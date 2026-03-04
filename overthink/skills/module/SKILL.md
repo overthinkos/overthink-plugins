@@ -2,54 +2,48 @@
 name: module
 description: |
   Remote layer modules: Go-module-style dependency management for layers.
-  Use when working with layers.mod, layers.lock, or referencing layers
-  from external git repositories.
+  Use when working with inline @version refs, layers.lock, or referencing
+  layers from external git repositories.
 ---
 
 # Module - Remote Layer Modules
 
 ## Overview
 
-Go-module-style dependency management for layers. Any git repository with a `layers/` directory can serve as a layer module. Remote layers are referenced by fully qualified paths in `images.yml` and cached locally.
+Go-module-style dependency management for layers. Any git repository with a `layers/` directory can serve as a layer module. Remote layers are referenced by fully qualified paths with inline `@version` in `images.yml` and `layer.yml`, and cached locally.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Initialize | `ov mod init` | Create layers.mod from git remote |
-| Add module | `ov mod get <module>@<version>` | Add/update a require entry |
-| Remove module | `ov mod remove <module>` | Remove from layers.mod and lock |
-| Download all | `ov mod download` | Download all required modules to cache |
-| Tidy | `ov mod tidy` | Remove unused requires, add missing |
+| Add module | `ov mod get <module>@<version>` | Download module, update layers.lock |
+| Download all | `ov mod download` | Download all modules from inline @version refs |
+| Tidy | `ov mod tidy` | Remove unused lock entries |
 | Verify | `ov mod verify` | Check cached modules against lock hashes |
 | Update | `ov mod update [module]` | Update to latest version |
 | List | `ov mod list` | List modules with versions and layers |
 
 ## Layer Referencing
 
-In `images.yml`, remote layers use fully qualified paths. Local layers remain short names:
+Remote layers use fully qualified paths with `@version` suffix:
 
 ```yaml
+# images.yml
 images:
   my-app:
     layers:
-      - pixi                                        # local: layers/pixi/
-      - github.com/overthinkos/ml-layers/cuda        # remote: module/layer
+      - pixi                                                # local: layers/pixi/
+      - github.com/overthinkos/ml-layers/cuda@v1.0.0        # remote: module/layer@version
 ```
-
-## Module Manifest (`layers.mod`)
-
-Project root, YAML format:
 
 ```yaml
-module: github.com/overthinkos/overthink
-require:
-  - module: github.com/overthinkos/ml-layers
-    version: v1.0.0
-replace:
-  - module: github.com/overthinkos/ml-layers
-    path: ../ml-layers    # local development override
+# layer.yml
+depends:
+  - github.com/overthinkos/ml-layers/cuda@v1.0.0           # remote dependency
+  - supervisord                                              # local dependency
 ```
+
+Version info is inline in the ref — no separate manifest file needed.
 
 ## Lock File (`layers.lock`)
 
@@ -91,40 +85,30 @@ Remote layers live outside the Docker build context. During `ov generate`, symli
 
 ## Cross-Module Dependencies
 
-Within a module, `depends` uses short names. Cross-module uses full paths:
+Within a module, `depends` uses short names. Cross-module uses full paths with version:
 
 ```yaml
 # In github.com/overthinkos/ml-layers/layers/python-ml/layer.yml
 depends:
-  - cuda                                    # same module
-  - github.com/overthinkos/overthink/pixi   # cross-module
+  - cuda                                                  # same module
+  - github.com/overthinkos/overthink/pixi@main            # cross-module
 ```
 
 ## Name Conflicts
 
 - Local layers always shadow remote layers with same short name (note emitted)
 - Two remote modules exporting the same layer name is a validation error
+- Same module referenced with different versions is a validation error
 
 ## Common Workflows
 
 ### Add a Remote Module
 
 ```bash
-ov mod init                                     # First time
 ov mod get github.com/overthinkos/ml-layers@v1.0.0
-# Now use in images.yml:
+# Now use in images.yml or layer.yml:
 # layers:
-#   - github.com/overthinkos/ml-layers/cuda
-```
-
-### Local Development Override
-
-Add a `replace` entry in `layers.mod`:
-
-```yaml
-replace:
-  - module: github.com/overthinkos/ml-layers
-    path: ../ml-layers
+#   - github.com/overthinkos/ml-layers/cuda@v1.0.0
 ```
 
 ### Update Dependencies
@@ -132,7 +116,7 @@ replace:
 ```bash
 ov mod update                    # Update all modules
 ov mod update github.com/...     # Update specific module
-ov mod tidy                      # Remove unused, add missing
+ov mod tidy                      # Remove unused lock entries
 ```
 
 ## Cross-References
@@ -145,7 +129,7 @@ ov mod tidy                      # Remove unused, add missing
 Use when the user asks about:
 
 - Remote layer dependencies
-- `layers.mod` or `layers.lock` files
-- `ov mod` commands (init, get, tidy, update, verify)
+- `layers.lock` files or inline `@version` refs
+- `ov mod` commands (get, tidy, update, verify)
 - Sharing layers between projects
 - "How do I use layers from another repo?"

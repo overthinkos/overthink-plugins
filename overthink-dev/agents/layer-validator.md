@@ -36,7 +36,7 @@ All entries in `depends` must reference:
 - An existing layer under `layers/` (short name), OR
 - A fully qualified remote layer path (e.g., `github.com/org/repo/layer`)
 
-Check with: `ls layers/` and `layers.mod` (if remote).
+Check with: `ls layers/` and inline `@version` refs (if remote).
 
 ### 3. Volume Names
 

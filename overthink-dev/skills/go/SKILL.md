@@ -81,7 +81,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | File | Purpose |
 |------|---------|
 | `mod.go` | Remote module types, parsing |
-| `mod_cmd.go` | CLI commands: mod init/get/remove/download/tidy/verify/update/list |
+| `mod_cmd.go` | CLI commands: mod get/download/tidy/verify/update/list |
 | `mod_git.go` | Git operations: clone, resolve ref, compute hash |
 
 ### Testing
