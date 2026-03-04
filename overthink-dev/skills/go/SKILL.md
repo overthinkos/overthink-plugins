@@ -133,7 +133,7 @@ bin/ov inspect <image>
 ## Cross-References
 
 - `/overthink-dev:generate` -- Understanding generated Containerfiles
-- `/overthink-dev:validate` -- Validation rules and error handling
+- `/overthink:validate` -- Validation rules and error handling
 - `/overthink:build` -- Using the built CLI
 - Source: `ov/` directory (58 .go files)
 

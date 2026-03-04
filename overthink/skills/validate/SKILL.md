@@ -9,7 +9,7 @@ description: |
 
 ## Overview
 
-`ov validate` checks `images.yml` and all layer definitions for errors. Validation collects all errors at once rather than failing on the first. All rules are centralized in `ov/validate.go`.
+`ov validate` checks `images.yml` and all layer definitions for errors. Validation collects all errors at once rather than failing on the first.
 
 ## Quick Reference
 
@@ -106,11 +106,9 @@ ov list layers                       # Verify layer exists
 
 ## Cross-References
 
-- `/overthink-dev:go` -- Source code structure
-- `/overthink-dev:generate` -- What passes validation gets generated
 - `/overthink:layer` -- Layer definition rules
 - `/overthink:image` -- Image configuration rules
-- Source: `ov/validate.go`
+- `/overthink:build` -- Building validated images
 
 ## When to Use This Skill
 

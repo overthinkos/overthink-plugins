@@ -139,7 +139,6 @@ ov mod tidy                      # Remove unused, add missing
 
 - `/overthink:layer` -- Layer definitions
 - `/overthink:image` -- Using remote layers in images.yml
-- Source: `ov/mod.go`, `ov/mod_cmd.go`, `ov/mod_git.go`
 
 ## When to Use This Skill
 

@@ -116,7 +116,7 @@ ov inspect my-image --format layers      # Shows layer list for an image
 ## Cross-References
 
 - `/overthink-dev:go` -- Source code for the generator
-- `/overthink-dev:validate` -- Validation rules
+- `/overthink:validate` -- Validation rules
 - `/overthink:build` -- Building from generated Containerfiles
 - Source: `ov/generate.go`, `ov/intermediates.go`, `ov/graph.go`
 

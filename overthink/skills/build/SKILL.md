@@ -16,8 +16,6 @@ description: |
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Build ov CLI | `task build:ov` | Compile Go binary to `bin/ov` |
-| Install ov | `task build:install` | Build and install to `~/.local/bin` |
 | Build all images | `task build:all` | Build all images in dependency order |
 | Build specific image | `task build:local -- <image>` | Build single image for host platform |
 | Build and push | `task build:push` | Build all platforms and push to registry |
@@ -35,11 +33,21 @@ ov build --platform linux/amd64 [image...]  # Specific platform
 ov build --cache registry|gha [image...]    # Enable build cache
 ```
 
+## Containerfile Generation
+
+`ov build` runs `ov generate` internally. You can also run it standalone to inspect generated Containerfiles:
+
+```bash
+ov generate                          # Write .build/ (Containerfiles)
+ov generate --tag v1.0.0             # Override CalVer tag
+cat .build/my-image/Containerfile    # Inspect generated output
+```
+
 ## Build Flow
 
 1. Run `ov generate` internally (produces Containerfiles in `.build/`)
 2. Resolve runtime config to get build engine (`engine.build`)
-3. Get image build order from `ResolveImageOrder()`
+3. Resolve image build order (dependency ordering)
 4. Filter to requested images (and their base dependencies)
 5. For each image: `<engine> build -f .build/<image>/Containerfile -t <tags> .`
 6. After all builds: `ov merge --all` (if `merge.auto` enabled, skipped for `--push`)
@@ -90,7 +98,7 @@ ov config set engine.run docker     # or podman
 
 ## Host Bootstrap (First Time)
 
-Requires: `task`, `go`, `docker` (or `podman`).
+Requires: `task`, `go`, `docker` (or `podman`). Run `task setup:all` to compile the `ov` CLI and create the builder image.
 
 ```bash
 task setup:all       # Build ov CLI + create builder image
@@ -126,7 +134,7 @@ task build:push
 
 ### "ov not found"
 
-Run `task build:ov` first to compile the CLI.
+Run `task setup:all` to compile and install the CLI.
 
 ### Build Fails with Missing Base
 
@@ -140,9 +148,8 @@ First build on a new machine won't have cache. Use `--cache registry` to pull fr
 
 - `/overthink:layer` -- Layer definitions that get built
 - `/overthink:image` -- Image definitions in images.yml
+- `/overthink:validate` -- Validating before building
 - `/overthink:deploy` -- Deploying built images
-- `/overthink-dev:generate` -- Understanding generated Containerfiles
-- Source: `ov/build.go`, `ov/merge.go`, `taskfiles/Build.yml`
 
 ## When to Use This Skill
 

@@ -150,7 +150,6 @@ Storage: `~/.local/share/ov/encrypted/ov-<image>-<name>/cipher/` and `plain/`.
 - `/overthink:build` -- Building images before deployment
 - `/overthink:run` -- Runtime commands (start, stop, shell)
 - `/overthink:image` -- Image configuration
-- Source: `ov/quadlet.go`, `ov/crypto.go`, `ov/deploy.go`, `ov/tunnel.go`
 
 ## When to Use This Skill
 

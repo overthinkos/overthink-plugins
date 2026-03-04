@@ -183,7 +183,6 @@ images:
 - `/overthink:layer` -- Layer definitions that compose into images
 - `/overthink:build` -- Building the defined images
 - `/overthink:deploy` -- Deploying built images (quadlet, bootc)
-- Source: `ov/config.go` (parsing, inheritance), `ov/graph.go` (dependency ordering)
 
 ## When to Use This Skill
 

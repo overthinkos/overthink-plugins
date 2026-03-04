@@ -125,7 +125,6 @@ When `engine.build` differs from `engine.run`, images are automatically transfer
 - `/overthink:build` -- Building images before running
 - `/overthink:deploy` -- Quadlet and deployment details
 - `/overthink:image` -- Image configuration (ports, volumes, aliases)
-- Source: `ov/shell.go`, `ov/start.go`, `ov/commands.go`, `ov/transfer.go`
 
 ## When to Use This Skill
 
