@@ -1,0 +1,36 @@
+{
+  "name": "overthink-plugins",
+  "owner": {
+    "name": "overthinkos"
+  },
+  "metadata": {
+    "description": "Claude Code plugins for the Overthink container image composition system",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "overthink",
+      "source": "./overthink",
+      "description": "Skills for composing, building, and running container images with the ov CLI",
+      "version": "1.0.0",
+      "author": { "name": "overthinkos" },
+      "homepage": "https://github.com/overthinkos/overthink",
+      "repository": "https://github.com/overthinkos/overthink-plugins",
+      "license": "MIT",
+      "keywords": ["overthink", "containers", "ov", "layers", "images"],
+      "category": "productivity"
+    },
+    {
+      "name": "overthink-dev",
+      "source": "./overthink-dev",
+      "description": "Development tools and enforcement agents for Overthink contributors",
+      "version": "1.0.0",
+      "author": { "name": "overthinkos" },
+      "homepage": "https://github.com/overthinkos/overthink",
+      "repository": "https://github.com/overthinkos/overthink-plugins",
+      "license": "MIT",
+      "keywords": ["overthink", "development", "go", "testing", "enforcement"],
+      "category": "development"
+    }
+  ]
+}
