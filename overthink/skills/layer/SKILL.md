@@ -103,7 +103,9 @@ path_append:
   - "~/.local/bin"
 ```
 
-`~` and `$HOME` are expanded to the resolved home directory. Setting `PATH` directly in `env` is a validation error -- use `path_append`.
+`~` and `$HOME` are expanded to the resolved home directory at generation time. Setting `PATH` directly in `env` is a validation error -- use `path_append`. Later layers override earlier for the same key. `path_append` paths are accumulated across all layers.
+
+Source: `ov/env.go` (`writeLayerEnv()`, `MergeEnvConfigs`, `ExpandEnvConfig`).
 
 ## Service Declaration
 
@@ -126,6 +128,21 @@ volumes:
 ```
 
 Names must match `^[a-z0-9]+(-[a-z0-9]+)*$`. Docker/podman volume names become `ov-<image>-<name>`.
+
+`CollectImageVolumes()` traverses the full image base chain (image -> base -> base's base), collecting volumes from all layers. Deduplicated by name (first declaration wins -- outermost image takes priority). Volumes are automatically mounted by `ov shell`, `ov start`, and `ov enable`.
+
+Source: `ov/volumes.go`, `ov/layers.go` (`VolumeYAML`, `HasVolumes`, `Volumes()`).
+
+## Cache Mounts
+
+| Step type | Cache path | Options |
+|-----------|------------|---------|
+| `rpm.packages`, `root.yml` (rpm) | `/var/cache/libdnf5` | `sharing=locked` |
+| `deb.packages`, `root.yml` (deb) | `/var/cache/apt` + `/var/lib/apt` | `sharing=locked` |
+| `user.yml` | `<home>/.cache/npm` | `uid=<UID>,gid=<GID>` |
+| `Cargo.toml` | `<home>/.cargo/registry` | `uid=<UID>,gid=<GID>` |
+
+UID/GID in cache mounts are dynamic (from resolved image config, not hardcoded 1000). Pixi builds happen in separate stages; pixi/rattler cache dirs are set via `layer.yml` `env` fields, not cache mounts.
 
 ## Common Workflows
 

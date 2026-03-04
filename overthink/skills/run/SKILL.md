@@ -106,6 +106,30 @@ ov alias uninstall openclaw   # Removes wrapper
 ov alias list                 # Show all installed aliases
 ```
 
+### Wrapper Script Format
+
+`ov alias add`/`ov alias install` writes shell scripts to `~/.local/bin/`:
+
+```sh
+#!/bin/sh
+# ov-alias
+# image: openclaw
+# command: openclaw
+_ov_q(){ printf "'"; printf '%s' "$1" | sed "s/'/'\\\\''/g"; printf "' "; }
+c="openclaw"; for a in "$@"; do c="$c $(_ov_q "$a")"; done
+exec ov shell openclaw -c "$c"
+```
+
+The `# ov-alias` marker enables safe list/delete scanning. `ov alias remove` verifies this marker before deleting. The `_ov_q()` helper properly single-quotes each argument (POSIX sh compatible).
+
+### Declaration
+
+Layer aliases require both `name` and `command`. Image-level aliases default `command` to `name` if omitted. Image-level aliases override layer aliases with the same name.
+
+`CollectImageAliases()` gathers aliases from the image's own layers (in dependency order) plus image-level config. **No base chain traversal** -- aliases are leaf-image specific (unlike volumes).
+
+Source: `ov/alias.go`, `ov/layers.go` (`AliasYAML`, `HasAliases`, `Aliases()`).
+
 ## Runtime Configuration
 
 ```bash
@@ -116,9 +140,34 @@ ov config set bind_address 0.0.0.0   # Port binding address
 ov config list                       # Show all settings
 ```
 
+Stored in `~/.config/ov/config.yml`. Resolution chain: **env var > config file > default**.
+
+| Setting | Env Var | Default | Purpose |
+|---------|---------|---------|---------|
+| `engine.build` | `OV_BUILD_ENGINE` | `docker` | Engine for `ov build` and `ov merge` |
+| `engine.run` | `OV_RUN_ENGINE` | `docker` | Engine for `ov shell` and `ov start` |
+| `run_mode` | `OV_RUN_MODE` | `direct` | `direct` or `quadlet` |
+| `auto_enable` | `OV_AUTO_ENABLE` | `false` | Auto-run `ov enable` on first `ov start` (quadlet) |
+| `bind_address` | `OV_BIND_ADDRESS` | `127.0.0.1` | Address for port bindings |
+| `encrypted_storage_path` | `OV_ENCRYPTED_STORAGE_PATH` | `~/.local/share/ov/encrypted` | Gocryptfs storage base |
+
+When `run_mode=quadlet`, `ov start` checks for an existing `.container` file. If none exists and `auto_enable=true`, it auto-enables. If `auto_enable=false`, it errors with a message to run `ov enable` first. Quadlet requires `engine.run=podman`.
+
+Source: `ov/runtime_config.go`, `ov/engine.go`.
+
 ## Cross-Engine Image Transfer
 
-When `engine.build` differs from `engine.run`, images are automatically transferred via `docker save | podman load` (or reverse).
+When `engine.build` differs from `engine.run`, images are automatically transferred between engines on demand.
+
+| Function | Purpose |
+|----------|---------|
+| `LocalImageExists(engine, imageRef)` | Check if image exists in engine's local store |
+| `TransferImage(srcEngine, dstEngine, imageRef)` | Bidirectional pipe: `<src> save <ref> \| <dst> load` |
+| `EnsureImage(imageRef, rt)` | Transfer from build to run engine if needed, error if missing from both |
+
+Transfer is called automatically by `ov shell`, `ov start`, `ov enable`, and `ov update`.
+
+Source: `ov/transfer.go`.
 
 ## Cross-References
 

@@ -64,6 +64,10 @@ ov build --cache registry my-image
 OV_BUILD_CACHE=gha ov build             # Via environment variable
 ```
 
+## Build Flow Details
+
+**Internal base images** use exact CalVer tags in Containerfiles (`FROM ghcr.io/overthinkos/fedora:2026.46.1415`). This ensures each image references the precise version of its parent. Both Docker and Podman resolve local images before pulling from registry.
+
 ## Push Mode
 
 - **Docker:** `docker buildx build --push` for multi-platform builds
@@ -88,6 +92,20 @@ defaults:
     auto: true     # Auto-merge after builds
     max_mb: 128    # Max merged layer size (MB)
 ```
+
+CLI flag `--max-mb` overrides `images.yml`. `auto` is only used by `ov merge --all` to select which images to merge; `ov merge <image>` always merges regardless.
+
+### Algorithm
+
+1. Load image from engine via `<engine> save` -> `tarball.ImageFromPath()`
+2. Get compressed sizes via `layer.Size()`
+3. Group consecutive layers into groups totaling <= `max_mb`
+4. Single-layer "groups" are kept as-is (need 2+ layers to merge)
+5. For each merge group: read uncompressed tarballs, deduplicate entries by path (last writer wins), write combined tar into a single new layer
+6. Reconstruct image with `mutate.Append()`, preserving OCI history alignment (empty-layer entries for ENV/USER/EXPOSE kept in correct positions)
+7. Save via `tarball.WriteToFile()` -> `<engine> load`
+
+Merge is idempotent -- running again after merging shows all layers as `[keep]`. Source: `ov/merge.go`.
 
 ## Engine Configuration
 

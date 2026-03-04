@@ -101,6 +101,10 @@ images:
 
 Resolution: **image.builder -> defaults.builder -> ""**. Builder dependency is conditional -- `ImageNeedsBuilder()` checks whether layers have pixi manifests, `package.json`, or `Cargo.toml`.
 
+The builder image itself has **no pixi build stages** (the pixi layer has no pixi.toml) and **no npm build stages** (none of its layers have package.json). It's a straightforward image: bootstrap + system packages + pixi binary download. The builder is excluded from using builder stages to avoid circular dependency. The generator recognizes self-reference and skips it.
+
+Source: `ov/generate.go` (`builderRefForImage`), `ov/graph.go` (`ResolveImageOrder`, `ImageNeedsBuilder`), `ov/validate.go` (`validateBuilder`).
+
 ## Internal Base Images
 
 When `base` references another image in `images.yml`, the generator resolves it to the full registry/tag and creates a build dependency. The referenced image must be built first.
@@ -127,6 +131,16 @@ fedora (external)
 ```
 
 Auto-intermediates are marked with `Auto: true` and appear in `ov list targets`.
+
+### Algorithm
+
+`ComputeIntermediates()` runs during generation:
+1. `GlobalLayerOrder()` computes a deterministic layer ordering across all images, prioritizing layers by popularity (how many images need them) for cache efficiency.
+2. Images are grouped by their direct parent (base). For each sibling group with 2+ images, a **prefix trie** is built from their relative layer sequences.
+3. The trie is walked to detect branch points (where sibling layer sequences diverge). At each branch, an auto-intermediate image is created.
+4. Original images are rebased to the nearest intermediate, so shared layers are built once.
+
+Source: `ov/intermediates.go` (`ComputeIntermediates`, `GlobalLayerOrder`, `walkTrieScoped`).
 
 ## Versioning
 

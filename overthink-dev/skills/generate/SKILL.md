@@ -84,16 +84,57 @@ fedora (external)
 
 `ComputeIntermediates()` uses a prefix trie to detect divergence points. `GlobalLayerOrder()` prioritizes popular layers for cache efficiency.
 
+## User Resolution
+
+Configurable via `user`, `uid`, `gid` fields in `images.yml` (defaults: `"user"`, 1000, 1000).
+
+For external base images, `ov` calls `registry.go:InspectImageUser()` which:
+1. Pulls the base image via go-containerregistry
+2. Extracts `/etc/passwd` from image layers (top layer first)
+3. Finds user at configured UID
+4. If found: overrides username, home directory, and GID (e.g., `ubuntu` with home `/home/ubuntu` for `ubuntu:24.04`)
+5. If not found: uses configured defaults, bootstrap creates the user
+
+For internal base images, user context is inherited from the parent image.
+
+The bootstrap conditionally creates the user:
+```dockerfile
+RUN getent passwd <UID> >/dev/null 2>&1 || \
+    (getent group <GID> >/dev/null 2>&1 || groupadd -g <GID> <user> && \
+     useradd -m -u <UID> -g <GID> -s /bin/bash <user>)
+```
+
+Source: `ov/registry.go` (`InspectImageUser`).
+
 ## OCI Labels
 
-Built images embed runtime metadata as labels (prefix: `org.overthink.`):
+Built images embed runtime metadata as labels (prefix: `org.overthink.`), making images self-describing for runtime commands (`ov shell`, `ov start`, `ov enable`, `ov alias install`).
 
-| Label | Example |
-|-------|---------|
-| `org.overthink.image` | `"openclaw"` |
-| `org.overthink.ports` | `["18789:18789"]` |
-| `org.overthink.volumes` | `[{"name":"data","path":"/home/user/.openclaw"}]` |
-| `org.overthink.aliases` | `[{"name":"openclaw","command":"openclaw"}]` |
+| Label | Type | Example |
+|-------|------|---------|
+| `org.overthink.version` | string | `"1"` (schema version) |
+| `org.overthink.image` | string | `"openclaw"` |
+| `org.overthink.registry` | string | `"ghcr.io/overthinkos"` (omitted if empty) |
+| `org.overthink.uid` / `.gid` | string | `"1000"` |
+| `org.overthink.user` / `.home` | string | `"user"` / `"/home/user"` |
+| `org.overthink.ports` | JSON | `["18789:18789"]` |
+| `org.overthink.volumes` | JSON | `[{"name":"data","path":"/home/user/.openclaw"}]` |
+| `org.overthink.aliases` | JSON | `[{"name":"openclaw","command":"openclaw"}]` |
+
+Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands try `LoadConfig` (images.yml) first, falling back to `<engine> inspect` labels -- enabling `ov shell myimage` from any directory.
+
+Source: `ov/labels.go`, `ov/generate.go` (`writeLabels`).
+
+## Cache Mounts
+
+| Step type | Cache path | Options |
+|-----------|------------|---------|
+| `rpm.packages`, `root.yml` (rpm) | `/var/cache/libdnf5` | `sharing=locked` |
+| `deb.packages`, `root.yml` (deb) | `/var/cache/apt` + `/var/lib/apt` | `sharing=locked` |
+| `user.yml` | `<home>/.cache/npm` | `uid=<UID>,gid=<GID>` |
+| `Cargo.toml` | `<home>/.cargo/registry` | `uid=<UID>,gid=<GID>` |
+
+UID/GID in cache mounts are dynamic (from resolved image config). Pixi builds use separate stages with cache dirs set via `layer.yml` `env` fields.
 
 ## Common Workflows
 
