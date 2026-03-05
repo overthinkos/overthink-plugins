@@ -17,7 +17,7 @@ Before declaring "working", verify ALL of these:
 
 1. `ov validate` passes with no errors
 2. `ov generate` produces valid Containerfiles
-3. `task build:local -- <image>` succeeds (if applicable)
+3. `ov build <image>` succeeds (if applicable)
 4. `ov shell <image>` runs successfully (if applicable)
 5. Services start and respond correctly (if applicable)
 6. No unexpected errors or warnings in output
@@ -32,7 +32,7 @@ Before declaring "working", verify ALL of these:
 # Must show:
 ov validate                          # Exit 0
 ov generate                          # No errors
-task build:local -- <affected-image> # Build succeeds
+ov build <affected-image> # Build succeeds
 ov shell <affected-image> -c "..."   # Verify installation
 ```
 
@@ -41,7 +41,7 @@ ov shell <affected-image> -c "..."   # Verify installation
 ```bash
 ov validate                          # Exit 0
 ov inspect <image>                   # Config is correct
-task build:local -- <image>          # Build succeeds
+ov build <image>          # Build succeeds
 ```
 
 ### For Go CLI Changes

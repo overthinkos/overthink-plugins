@@ -1,7 +1,7 @@
 ---
 name: build
 description: |
-  Building container images with ov build and task build:* commands.
+  Building container images with ov build.
   Use when building images, pushing to registries, merging layers,
   or configuring build caches.
 ---
@@ -10,16 +10,17 @@ description: |
 
 ## Overview
 
-`ov build` generates Containerfiles from `images.yml` and layer definitions, then builds images sequentially in dependency order using the configured build engine (Docker or Podman). Task wrappers in `taskfiles/Build.yml` provide convenient entry points.
+`ov build` generates Containerfiles from `images.yml` and layer definitions, then builds images sequentially in dependency order using the configured build engine (Docker or Podman).
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Build all images | `task build:all` | Build all images in dependency order |
-| Build specific image | `task build:local -- <image>` | Build single image for host platform |
-| Build and push | `task build:push` | Build all platforms and push to registry |
-| Merge layers | `task build:merge -- <image>` | Post-build layer optimization |
+| Build all images | `ov build` | Build all images in dependency order |
+| Build specific image | `ov build <image>` | Build single image for host platform |
+| Build and push | `ov build --push` | Build all platforms and push to registry |
+| Build without cache | `ov build --no-cache` | Disable build cache entirely |
+| Merge layers | `ov merge <image>` | Post-build layer optimization |
 | Build QCOW2 | `ov vm build <image>` | Build QCOW2 disk image (bootc) |
 | Build RAW | `ov vm build <image> --type raw` | Build RAW disk image (bootc) |
 
@@ -29,7 +30,10 @@ description: |
 ov build [image...]                         # Build for local platform
 ov build --push [image...]                  # Build for all platforms and push
 ov build --platform linux/amd64 [image...]  # Specific platform
-ov build --cache registry [image...]         # Enable build cache
+ov build --cache registry [image...]         # Registry cache (read+write)
+ov build --cache image [image...]           # Image cache (read-only, default)
+ov build --cache gha [image...]             # GitHub Actions cache
+ov build --no-cache [image...]              # Disable cache entirely
 ```
 
 ## Containerfile Generation
@@ -55,8 +59,10 @@ cat .build/my-image/Containerfile    # Inspect generated output
 
 | Mode | Backend | Use Case |
 |------|---------|----------|
+| `image` | `<registry>/<image>` | Read-only cache from registry image (default) |
 | `registry` | `<registry>/cache:<image>` | Production CI/CD (read + write) |
-| `image` | `<registry>/<image>` | Read-only cache from registry image |
+| `gha` | GitHub Actions cache | CI builds on GitHub Actions |
+| `none` | No cache | Same as `--no-cache` |
 
 ```bash
 ov build --cache registry my-image        # Read+write registry cache
@@ -120,11 +126,12 @@ ov config set engine.run docker     # or podman
 
 ## Host Bootstrap (First Time)
 
-Requires: `task`, `go`, `docker` (or `podman`). Run `task setup:all` to compile the `ov` CLI and create the builder image.
+Requires: `go`, `docker` (or `podman`). Run `bash setup.sh` to download `task`, build the `ov` CLI, then use `ov` directly.
 
 ```bash
-task setup:all       # Build ov CLI + create builder image
-task build:all       # Generate + build + merge all images
+bash setup.sh        # Download task, build ov CLI
+task setup:builder   # Create multi-platform buildx builder
+ov build             # Generate + build + merge all images
 ```
 
 ## Common Workflows
@@ -132,13 +139,13 @@ task build:all       # Generate + build + merge all images
 ### Build a Single Image
 
 ```bash
-task build:local -- my-app
+ov build my-app
 ```
 
 ### Rebuild After Layer Changes
 
 ```bash
-task build:local -- my-app
+ov build my-app
 # Only changed layers are rebuilt (Docker layer cache)
 ```
 
@@ -149,14 +156,14 @@ task build:local -- my-app
 docker login ghcr.io
 # or: podman login ghcr.io
 
-task build:push
+ov build --push
 ```
 
 ## Troubleshooting
 
 ### "ov not found"
 
-Run `task setup:all` to compile and install the CLI.
+Run `bash setup.sh` to download task and compile the CLI, or `task build:ov` if task is already installed.
 
 ### Build Fails with Missing Base
 
@@ -177,7 +184,7 @@ First build on a new machine won't have cache. Use `--cache registry` to pull fr
 
 Use when the user asks about:
 
-- Building images (`ov build`, `task build:*`)
+- Building images (`ov build`)
 - Pushing images to registries
 - Build caches (registry, GitHub Actions)
 - Layer merging and optimization

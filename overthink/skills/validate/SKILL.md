@@ -102,7 +102,7 @@ Volume names must be unique within a layer and across bind mounts.
 ### Validate Before Building
 
 ```bash
-ov validate && task build:local -- my-image
+ov validate && ov build my-image
 ```
 
 ### Debug Validation Errors

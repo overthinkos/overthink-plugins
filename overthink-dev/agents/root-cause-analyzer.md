@@ -64,7 +64,7 @@ cat .build/<image>/Containerfile
 ov inspect <image>
 
 # Check build logs
-task build:local -- <image> 2>&1 | tail -50
+ov build <image> 2>&1 | tail -50
 
 # Check runtime
 ov status <image>
@@ -97,7 +97,7 @@ Fix ROOT CAUSE, not symptoms:
 ```bash
 ov validate                    # Must pass
 ov generate                    # Must succeed
-task build:local -- <image>    # Must build
+ov build <image>    # Must build
 ov shell <image> -c "test"     # Must run
 ```
 

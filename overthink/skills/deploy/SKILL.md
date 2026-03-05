@@ -27,7 +27,7 @@ Overthink supports multiple deployment modes: quadlet systemd user services for 
 | List VMs | `ov vm list` | List VMs and status |
 | VM console | `ov vm console <image>` | Attach to serial console |
 | SSH into VM | `ov vm ssh <image>` | SSH into a VM |
-| Push to registry | `task build:push` | Multi-platform push |
+| Push to registry | `ov build --push` | Multi-platform push |
 | Seed bind mounts | `ov seed <image>` | Copy image data to empty bind mount dirs |
 | Init encryption | `ov crypto init <image>` | Initialize gocryptfs dirs |
 | Mount encrypted | `ov crypto mount <image>` | Mount encrypted volumes |

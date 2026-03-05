@@ -158,10 +158,12 @@ Source: `ov/security.go` (`CollectSecurity`, `SecurityArgs`).
 |-----------|------------|---------|
 | `rpm.packages`, `root.yml` (rpm) | `/var/cache/libdnf5` | `sharing=locked` |
 | `deb.packages`, `root.yml` (deb) | `/var/cache/apt` + `/var/lib/apt` | `sharing=locked` |
-| `user.yml` | `<home>/.cache/npm` | `uid=<UID>,gid=<GID>` |
-| `Cargo.toml` | `<home>/.cargo/registry` | `uid=<UID>,gid=<GID>` |
+| `user.yml` | `/tmp/npm-cache` | `uid=<UID>,gid=<GID>` |
+| `Cargo.toml` | `/tmp/cargo-cache` | `uid=<UID>,gid=<GID>` |
+| pixi build stage | `/tmp/pixi-cache` + `/tmp/rattler-cache` | `uid=<UID>,gid=<GID>` |
+| npm build stage | `/tmp/npm-cache` | `uid=<UID>,gid=<GID>` |
 
-UID/GID in cache mounts are dynamic (from resolved image config, not hardcoded 1000). Pixi builds happen in separate stages; pixi/rattler cache dirs are set via `layer.yml` `env` fields, not cache mounts.
+UID/GID in cache mounts are dynamic (from resolved image config, not hardcoded 1000). All non-root cache mounts use flat `/tmp/<tool>-cache` paths to avoid buildah permission issues with nested paths.
 
 ## Common Workflows
 

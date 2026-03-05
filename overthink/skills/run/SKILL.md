@@ -2,8 +2,7 @@
 name: run
 description: |
   Runtime operations: running shells, starting/stopping services, managing
-  containers. Use when working with ov shell, ov start/stop, or task run:*
-  commands.
+  containers. Use when working with ov shell, ov start/stop commands.
 ---
 
 # Run - Runtime Operations
@@ -28,27 +27,6 @@ The `ov` CLI provides runtime commands for interacting with built container imag
 | Seed bind mounts | `ov seed <image>` | Copy image data to empty bind mount dirs |
 | Install aliases | `ov alias install <image>` | Create host command wrappers |
 | Uninstall aliases | `ov alias uninstall <image>` | Remove host command wrappers |
-
-## Task Wrappers
-
-| Task | Description |
-|------|-------------|
-| `task run:shell -- <image>` | Shell into image |
-| `task run:start -- <image>` | Start service |
-| `task run:stop -- <image>` | Stop service |
-| `task run:status -- <image>` | Service status |
-| `task run:logs -- <image>` | Service logs |
-| `task run:update -- <image>` | Update and restart |
-| `task run:remove -- <image>` | Remove service |
-| `task run:enable -- <image>` | Enable quadlet service |
-| `task run:disable -- <image>` | Disable quadlet service |
-| `task run:vm -- <image>` | Create VM via `ov vm create` |
-| `task run:vm-start -- <image>` | Start VM |
-| `task run:vm-stop -- <image>` | Stop VM |
-| `task run:vm-destroy -- <image>` | Destroy VM |
-| `task run:vm-list` | List VMs |
-| `task run:vm-console -- <image>` | VM serial console |
-| `task run:vm-ssh -- <image>` | SSH into VM |
 
 ## Run Modes
 

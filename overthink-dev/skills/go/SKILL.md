@@ -9,7 +9,7 @@ description: |
 
 ## Overview
 
-The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framework, go-containerregistry for OCI operations, and YAML parsing for configuration. All computation, validation, and building logic lives in Go -- Taskfiles are thin wrappers only.
+The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framework, go-containerregistry for OCI operations, and YAML parsing for configuration. All computation, validation, and building logic lives in Go. Taskfiles are used only for bootstrapping (building ov itself).
 
 ## Quick Reference
 
@@ -97,7 +97,7 @@ All `*_test.go` files provide tests for their corresponding source files.
 
 ## Go Module Info
 
-- Go version: 1.25.6
+- Go version: 1.25.3
 - Key dependencies: `kong` v1.14.0 (CLI), `go-containerregistry` v0.20.7 (OCI)
 - Module path: `ov/go.mod`
 
@@ -133,8 +133,8 @@ bin/ov inspect <image>
 
 ## Style Guide
 
-- Tasks are thin wrappers. Complex logic belongs in Go.
-- No shell scripts -- Taskfiles for automation, Go for logic.
+- All logic belongs in Go. Taskfiles are only for bootstrap (building ov).
+- Taskfiles for bootstrap only, Go for all other logic.
 - Test files alongside source files (`foo.go` -> `foo_test.go`).
 
 ## Cross-References

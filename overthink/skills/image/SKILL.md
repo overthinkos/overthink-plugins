@@ -230,7 +230,7 @@ Add an entry to `images.yml` with `base` and `layers`, then build:
 ```bash
 # Edit images.yml
 # Then:
-task build:local -- my-new-image
+ov build my-new-image
 ```
 
 ### Layer Images (inheritance)
