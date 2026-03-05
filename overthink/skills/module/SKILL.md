@@ -119,10 +119,24 @@ ov mod update github.com/...     # Update specific module
 ov mod tidy                      # Remove unused lock entries
 ```
 
+## Remote Image References
+
+Distinct from remote layer modules, **remote image refs** let you run pre-built images from other projects:
+
+```bash
+ov shell github.com/org/repo/my-app@v1.0.0
+ov enable github.com/org/repo/my-app --build
+```
+
+The module system (`layers.lock`, `ov mod` commands) manages **layer source code** for building. Remote image refs manage **pre-built images** for runtime. When `--build` is used with a remote image ref, the module is downloaded and the image is built locally.
+
+Source: `ov/remote_image.go`, `ov/mod.go` (`ParseRemoteRef`, `IsRemoteImageRef`).
+
 ## Cross-References
 
 - `/overthink:layer` -- Layer definitions
 - `/overthink:image` -- Using remote layers in images.yml
+- `/overthink:run` -- Running remote image refs
 
 ## When to Use This Skill
 
