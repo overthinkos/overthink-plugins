@@ -50,6 +50,8 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 | `deb` | object | Debian package config: `packages` |
 | `volumes` | `[]VolumeYAML` | Persistent named volumes (`name` + `path`) |
 | `aliases` | `[]AliasYAML` | Host command aliases (`name` + `command`) |
+| `security` | `SecurityConfig` | Container security: `privileged`, `cap_add`, `devices`, `security_opt` |
+| `libvirt` | `[]string` | Raw libvirt XML snippets injected into VM domain XML after creation |
 
 ## Package Manager Sections
 
@@ -132,6 +134,23 @@ Names must match `^[a-z0-9]+(-[a-z0-9]+)*$`. Docker/podman volume names become `
 `CollectImageVolumes()` traverses the full image base chain (image -> base -> base's base), collecting volumes from all layers. Deduplicated by name (first declaration wins -- outermost image takes priority). Volumes are automatically mounted by `ov shell`, `ov start`, and `ov enable`.
 
 Source: `ov/volumes.go`, `ov/layers.go` (`VolumeYAML`, `HasVolumes`, `Volumes()`).
+
+## Security Declaration
+
+```yaml
+security:
+  privileged: false
+  cap_add:
+    - SYS_PTRACE
+  devices:
+    - /dev/dri
+  security_opt:
+    - label:disable
+```
+
+Security settings are merged across layers: if any layer sets `privileged: true`, the result is privileged. `cap_add`, `devices`, and `security_opt` are unioned (deduplicated). Image-level `security:` in `images.yml` overrides `privileged` and appends to the other fields.
+
+Source: `ov/security.go` (`CollectSecurity`, `SecurityArgs`).
 
 ## Cache Mounts
 

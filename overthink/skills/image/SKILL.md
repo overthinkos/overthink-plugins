@@ -57,6 +57,11 @@ images:
       - my-service
     ports:
       - "8080:8080"
+    env:
+      - MY_VAR=value
+    env_file: "~/.config/my-app/.env"
+    security:
+      cap_add: [SYS_PTRACE]
 ```
 
 ## Inheritance Chain
@@ -80,7 +85,12 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `merge` | `null` | Layer merge settings |
 | `aliases` | `[]` | Command aliases |
 | `builder` | `""` | Builder image name |
+| `env` | `[]` | Runtime env vars (`KEY=VALUE`). Not inherited from defaults |
+| `env_file` | `""` | Path to `.env` file for runtime injection. Not inherited |
+| `security` | `null` | Container security options. Overrides layer-level security |
 | `bind_mounts` | `[]` | Bind mount declarations (image-level only, not inherited) |
+| `vm` | `VmConfig` | VM settings: `disk_size`, `root_size`, `ram`, `cpus`, `rootfs`, `kernel_args`, `ssh_port`, `transport`, `firmware`, `network` |
+| `libvirt` | `[]string` | Raw libvirt XML snippets for VM domain configuration |
 
 ## Builder Image
 
@@ -153,6 +163,63 @@ CalVer: `YYYY.DDD.HHMM` (year, day-of-year, UTC time). Computed once per `ov gen
 | `"1.2.3"` | `1.2.3` only |
 
 Override: `ov generate --tag <value>`.
+
+## Runtime Environment Variables
+
+The `env` and `env_file` fields inject environment variables into containers at runtime (not build time):
+
+```yaml
+images:
+  my-app:
+    env:
+      - DB_HOST=localhost
+      - LOG_LEVEL=info
+    env_file: "~/.config/my-app/.env"
+```
+
+These are the lowest priority in the env resolution chain. CLI flags (`-e`, `--env-file`) and workspace `.env` take precedence. See `/overthink:run` for the full priority chain.
+
+Source: `ov/envfile.go` (`ResolveEnvVars`).
+
+## Security Configuration
+
+Image-level `security:` overrides layer-level security settings:
+
+```yaml
+images:
+  my-app:
+    security:
+      privileged: true
+      cap_add: [SYS_ADMIN]
+      devices: [/dev/fuse]
+      security_opt: [label:disable]
+```
+
+Image `security.privileged` replaces the layer-derived value. `cap_add`, `devices`, `security_opt` are appended to layer-collected values (deduplicated). Applied as container run arguments at runtime (not build time).
+
+Source: `ov/security.go` (`CollectSecurity`).
+
+## VM Configuration
+
+For bootc images, the `vm:` section configures VM disk builds and runtime:
+
+```yaml
+images:
+  my-bootc-image:
+    bootc: true
+    base: "quay.io/fedora/fedora-bootc:43"
+    layers: [sshd, qemu-guest-agent, bootc-config]
+    vm:
+      disk_size: "10 GiB"
+      ram: "4G"
+      cpus: 2
+      rootfs: ext4
+      ssh_port: 2222
+    libvirt:
+      - "<filesystem type='mount'>...</filesystem>"
+```
+
+Resolution chain: **image-level vm: -> defaults vm: -> ov config -> hardcoded defaults**. See `/overthink:deploy` for full VM management documentation.
 
 ## Common Workflows
 

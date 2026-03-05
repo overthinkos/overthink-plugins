@@ -50,6 +50,9 @@ description: |
 - `bootc: true` requires appropriate base image
 - Duplicate alias names within an image are errors
 - Image-level alias `command` defaults to `name` if omitted
+- `env` accepts list of `KEY=VALUE` strings (runtime only)
+- `env_file` accepts a path string (validated at runtime)
+- `security` at image level overrides layer-level security (not an error)
 
 ### Bind Mount Rules
 
@@ -64,6 +67,12 @@ description: |
 - Tailscale serve: HTTPS port must be in allowed set (80, 443, 3000-10000, 4443, 5432, 6443, 8443)
 - Tailscale funnel: HTTPS must be 443, 8443, or 10000
 - Cloudflare: `fqdn` required
+
+### VM / Bootc Rules
+
+- `bootc: true` requires appropriate base image
+- `vm.rootfs` must be `ext4`, `xfs`, or `btrfs`
+- `vm.backend` must be `auto`, `bcvk`, `libvirt`, or `qemu`
 
 ### Module Rules
 

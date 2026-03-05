@@ -27,6 +27,8 @@ Only these top-level fields are valid in `layer.yml`:
 - `deb` (object)
 - `volumes` ([]object with `name` + `path`)
 - `aliases` ([]object with `name` + `command`)
+- `security` (object: `privileged`, `cap_add`, `devices`, `security_opt`)
+- `libvirt` ([]string, raw XML snippets for VM domain configuration)
 
 Flag any unrecognized fields.
 

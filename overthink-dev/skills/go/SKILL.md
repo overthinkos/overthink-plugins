@@ -47,11 +47,16 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 
 | File | Purpose |
 |------|---------|
-| `build.go` | `build` command (sequential image building) |
+| `build.go` | `build` command (sequential image building, retry logic) |
 | `merge.go` | `merge` command (post-build layer merging) |
 | `shell.go` | `shell` command (execs engine run) |
 | `start.go` | `start`/`stop` commands |
 | `commands.go` | `enable`/`disable`/`status`/`logs`/`update`/`remove` |
+| `seed.go` | `seed` command (bind mount data seeding) |
+| `remote_image.go` | Remote image ref resolution, pull-or-build |
+| `vm.go` | VM lifecycle: create, start, stop, destroy, list, console, ssh |
+| `vm_build.go` | VM disk image builds (qcow2, raw via bcvk) |
+| `libvirt.go` | Libvirt XML snippet collection and injection |
 
 ### Infrastructure
 
@@ -67,6 +72,8 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | File | Purpose |
 |------|---------|
 | `env.go` | ENV merging, path expansion |
+| `envfile.go` | `.env` file parsing, runtime env var resolution/merging |
+| `security.go` | Container security config collection, CLI args generation |
 | `labels.go` | OCI label constants |
 | `volumes.go` | Named volume collection/mounting |
 | `alias.go` | Command aliases (wrapper scripts) |
@@ -135,7 +142,7 @@ bin/ov inspect <image>
 - `/overthink-dev:generate` -- Understanding generated Containerfiles
 - `/overthink:validate` -- Validation rules and error handling
 - `/overthink:build` -- Using the built CLI
-- Source: `ov/` directory (58 .go files)
+- Source: `ov/` directory (64 .go files)
 
 ## When to Use This Skill
 

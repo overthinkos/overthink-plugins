@@ -1,8 +1,8 @@
 ---
 name: deploy
 description: |
-  Deployment: quadlet systemd services, bootc disk images (ISO/QCOW2/RAW),
-  registry push, tunnels, encrypted storage, and deploy overlays.
+  Deployment: quadlet systemd services, bootc disk images (QCOW2/RAW),
+  VM management, registry push, tunnels, encrypted storage, and deploy overlays.
   Use for production deployment workflows.
 ---
 
@@ -18,14 +18,21 @@ Overthink supports multiple deployment modes: quadlet systemd user services for 
 |--------|---------|-------------|
 | Enable quadlet | `ov enable <image>` | Generate .container file, daemon-reload |
 | Disable quadlet | `ov disable <image>` | Disable auto-start |
-| Build ISO | `task build:iso -- <image>` | Bootc ISO installer |
-| Build QCOW2 | `task build:qcow2 -- <image>` | VM disk image |
-| Build RAW | `task build:raw -- <image>` | Raw disk image |
-| Run VM | `task run:vm -- <image>` | Run QCOW2 in QEMU |
+| Build QCOW2 | `ov vm build <image>` | Build QCOW2 disk image |
+| Build RAW | `ov vm build <image> --type raw` | Build RAW disk image |
+| Create VM | `ov vm create <image>` | Create VM from disk image |
+| Start VM | `ov vm start <image>` | Start a VM |
+| Stop VM | `ov vm stop <image>` | Stop a VM |
+| Destroy VM | `ov vm destroy <image>` | Remove VM definition |
+| List VMs | `ov vm list` | List VMs and status |
+| VM console | `ov vm console <image>` | Attach to serial console |
+| SSH into VM | `ov vm ssh <image>` | SSH into a VM |
 | Push to registry | `task build:push` | Multi-platform push |
+| Seed bind mounts | `ov seed <image>` | Copy image data to empty bind mount dirs |
 | Init encryption | `ov crypto init <image>` | Initialize gocryptfs dirs |
 | Mount encrypted | `ov crypto mount <image>` | Mount encrypted volumes |
 | Unmount encrypted | `ov crypto unmount <image>` | Unmount encrypted volumes |
+| Change password | `ov crypto passwd <image>` | Change encryption password |
 
 ## Quadlet Services
 
@@ -43,6 +50,7 @@ loginctl enable-linger $USER    # Required for user services
 
 ```bash
 ov enable my-app -w ~/project    # Generate .container file, transfer image
+ov enable my-app -i prod -w ~/prod -e ENV=production  # Named instance with env
 ov start my-app                  # systemctl --user start
 ov status my-app                 # systemctl --user status
 ov logs my-app -f                # journalctl --user -u (follow)
@@ -54,7 +62,27 @@ ov remove my-app                 # Stop + remove .container file
 
 With `auto_enable=true`, `ov start` auto-generates the quadlet file on first run.
 
-Generated files: `~/.config/containers/systemd/ov-<image>.container`. Service name: `ov-<image>.service`. Container name: `ov-<image>`. Ports bound to configured `bind_address`. Entrypoint: `supervisord -n -c /etc/supervisord.conf`. Auto-restart on failure via `WantedBy=default.target`.
+Generated files: `~/.config/containers/systemd/ov-<image>.container` (or `ov-<image>-<instance>.container` with `-i`). Service name: `ov-<image>.service`. Container name: `ov-<image>`. Ports bound to configured `bind_address`. Entrypoint: `supervisord -n -c /etc/supervisord.conf`. Auto-restart on failure via `WantedBy=default.target`.
+
+### Environment Variables in Quadlet
+
+Quadlet handles env vars via two mechanisms:
+
+- **`Environment=`** lines for CLI `-e` flags (inline in .container file)
+- **`EnvironmentFile=`** directive for file-sourced vars (`--env-file`, workspace `.env`, or `env_file` in images.yml)
+
+When `EnvironmentFile=` is used, only explicit CLI `-e` vars appear as inline `Environment=` to avoid duplication.
+
+### Security in Quadlet
+
+Layer and image-level security settings are applied as `PodmanArgs=` in the quadlet file:
+
+- `privileged: true` → `PodmanArgs=--privileged`
+- `cap_add` → `PodmanArgs=--cap-add=<CAP>`
+- `devices` → `PodmanArgs=--device=<DEV>`
+- `security_opt` → `PodmanArgs=--security-opt=<OPT>`
+
+Source: `ov/security.go` (`CollectSecurity`, `SecurityArgs`).
 
 ### Image Transfer
 
@@ -62,19 +90,113 @@ When `engine.build=docker`, `ov enable` auto-detects if the image is missing fro
 
 Source: `ov/quadlet.go` (generation), `ov/commands.go` (command structs).
 
-## Bootc Disk Images
+## Bootc Disk Images & VM Management
 
-For images with `bootc: true` in images.yml. Requires `podman` (rootful).
+For images with `bootc: true` in images.yml. Uses `bcvk` (bootc virtualization kit) which runs `bootc install to-disk` inside an ephemeral QEMU VM. No root required. Install via `dnf install bcvk`.
+
+### Building Disk Images
 
 ```bash
-task build:iso -- bazzite-ai          # ISO installer
-task build:qcow2 -- bazzite-ai       # VM disk image
-task build:raw -- bazzite-ai          # Raw disk for dd
-
-task run:vm -- bazzite-ai             # Run QCOW2 in QEMU
+ov vm build my-bootc-image                  # Build QCOW2 (default)
+ov vm build my-bootc-image --type raw       # Build RAW disk
+ov vm build my-bootc-image --size 20G       # Custom disk size
+ov vm build my-bootc-image --root-size 10G  # Custom root partition
+ov vm build my-bootc-image --ssh-keygen     # Generate and inject SSH keypair
+ov vm build my-bootc-image --console        # Enable console output for debugging
 ```
 
-Config files: `config/disk.toml` (QCOW2/RAW), `config/iso-gnome.toml` (ISO/Anaconda).
+Output goes to `output/<type>/disk.<type>`. ISO format is not supported -- use qcow2 or raw.
+
+### VM Lifecycle
+
+```bash
+ov vm create my-image                  # Create VM from built disk image
+ov vm create my-image --ram 8G --cpus 4  # Custom resources
+ov vm create my-image --gpu            # GPU passthrough
+ov vm create my-image -i prod          # Named instance
+ov vm start my-image                   # Start a stopped VM
+ov vm stop my-image                    # Graceful shutdown
+ov vm stop my-image --force            # Force stop (destroy)
+ov vm destroy my-image                 # Remove VM definition
+ov vm destroy my-image --disk          # Also delete disk image
+ov vm list                             # List running VMs
+ov vm list -a                          # Include stopped VMs
+ov vm console my-image                 # Attach to serial console
+ov vm ssh my-image                     # SSH into VM
+ov vm ssh my-image -p 2222 -l user     # Custom port and user
+ov vm ssh my-image -- ls /tmp          # Run command via SSH
+```
+
+VM name convention: `ov-<image>[-<instance>]`. All VMs use session-level libvirt URI (`qemu:///session`).
+
+### VM Backends
+
+Backend resolution order: **bcvk -> libvirt -> qemu** (auto-detected by available binaries).
+
+| Backend | Requires | Notes |
+|---------|----------|-------|
+| `bcvk` | `bcvk` + `virsh` | Default, recommended |
+| `libvirt` | `virsh` + `virt-install` | Standard libvirt |
+| `qemu` | `qemu-system-*` | Direct QEMU, state in `~/.local/share/ov/vm/` |
+
+Override: `ov config set vm.backend libvirt`
+
+### VM Configuration
+
+Per-image `vm:` section in images.yml:
+
+```yaml
+images:
+  my-bootc-image:
+    bootc: true
+    base: "quay.io/fedora/fedora-bootc:43"
+    layers: [sshd, qemu-guest-agent, bootc-config]
+    vm:
+      disk_size: "10 GiB"
+      root_size: "10G"
+      ram: "4G"
+      cpus: 2
+      rootfs: ext4            # ext4, xfs, or btrfs
+      kernel_args: "console=ttyS0,115200n8"
+      ssh_port: 2222
+      transport: registry     # registry, containers-storage, oci, oci-archive
+      firmware: ""            # uefi-secure, uefi-insecure, bios
+      network: ""             # user, or bridge name
+```
+
+User-level config via `ov config set`:
+
+| Key | Env Var | Default |
+|-----|---------|---------|
+| `vm.backend` | `OV_VM_BACKEND` | `auto` |
+| `vm.disk_size` | `OV_VM_DISK_SIZE` | `10 GiB` |
+| `vm.root_size` | `OV_VM_ROOT_SIZE` | (empty) |
+| `vm.ram` | `OV_VM_RAM` | `4G` |
+| `vm.cpus` | `OV_VM_CPUS` | `2` |
+| `vm.rootfs` | `OV_VM_ROOTFS` | `ext4` |
+| `vm.transport` | `OV_VM_TRANSPORT` | (empty) |
+
+Resolution chain: **image-level vm: -> defaults vm: -> ov config -> hardcoded defaults**.
+
+### Libvirt XML Injection
+
+Layers and images can declare raw libvirt XML snippets via the `libvirt` field. These are injected into the VM domain XML after creation.
+
+```yaml
+# In layer.yml (e.g., qemu-guest-agent):
+libvirt:
+  - <channel type='unix'><target type='virtio' name='org.qemu.guest_agent.0'/></channel>
+
+# In images.yml:
+images:
+  my-image:
+    libvirt:
+      - "<filesystem type='mount'>...</filesystem>"
+```
+
+Device elements (channel, disk, interface, etc.) are placed inside `<devices>`. Other elements are placed before `</domain>`. Snippets are deduplicated by exact string match.
+
+Source: `ov/vm.go`, `ov/vm_build.go`, `ov/libvirt.go`.
 
 ## Tunnel Configuration
 
@@ -144,7 +266,7 @@ images:
       - "2283:2283"
 ```
 
-Only deployment/runtime fields allowed: `tunnel`, `fqdn`, `acme_email`, `bind_mounts`, `ports`.
+Only deployment/runtime fields allowed: `tunnel`, `fqdn`, `acme_email`, `bind_mounts`, `ports`, `env`, `env_file`.
 
 ## Bind Mounts
 
@@ -192,10 +314,12 @@ When an image has multiple encrypted bind mounts, `ov crypto init`, `ov crypto m
 
 ### Integration
 
+- **`ov seed <image>`**: copies default data from image into empty bind mount directories before first start
 - **`ov shell`/`ov start` (direct)**: resolves bind mounts, verifies plain dirs exist and encrypted volumes are mounted, appends `-v <host>:<container>` flags
 - **`ov enable` (quadlet)**: plain mounts as `Volume=` lines; encrypted mounts generate a companion `ov-<image>-crypto.service` with `Requires=`/`After=`
 - **`ov remove`**: removes companion crypto service file
 - **`ov inspect --format bind_mounts`**: outputs `NAME\tHOST\tPATH\tENCRYPTED`
+- **`ov crypto passwd <image>`**: changes the gocryptfs password for all encrypted volumes of an image
 
 Source: `ov/crypto.go`, `ov/validate.go` (`validateBindMounts`).
 
@@ -210,7 +334,8 @@ Source: `ov/crypto.go`, `ov/validate.go` (`validateBindMounts`).
 Use when the user asks about:
 
 - Quadlet/systemd service deployment
-- Bootc disk images (ISO, QCOW2, RAW)
+- Bootc disk images (QCOW2, RAW)
+- VM management (create, start, stop, destroy, console, ssh)
 - Pushing images to registries
 - Tunnel configuration (Tailscale, Cloudflare)
 - Encrypted storage and bind mounts

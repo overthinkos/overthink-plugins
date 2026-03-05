@@ -20,9 +20,8 @@ description: |
 | Build specific image | `task build:local -- <image>` | Build single image for host platform |
 | Build and push | `task build:push` | Build all platforms and push to registry |
 | Merge layers | `task build:merge -- <image>` | Post-build layer optimization |
-| Build ISO | `task build:iso -- <image>` | Build ISO disk image (bootc) |
-| Build QCOW2 | `task build:qcow2 -- <image>` | Build QCOW2 VM image (bootc) |
-| Build RAW | `task build:raw -- <image>` | Build RAW disk image (bootc) |
+| Build QCOW2 | `ov vm build <image>` | Build QCOW2 disk image (bootc) |
+| Build RAW | `ov vm build <image> --type raw` | Build RAW disk image (bootc) |
 
 ## ov build Commands
 
@@ -30,7 +29,7 @@ description: |
 ov build [image...]                         # Build for local platform
 ov build --push [image...]                  # Build for all platforms and push
 ov build --platform linux/amd64 [image...]  # Specific platform
-ov build --cache registry|gha [image...]    # Enable build cache
+ov build --cache registry [image...]         # Enable build cache
 ```
 
 ## Containerfile Generation
@@ -56,12 +55,13 @@ cat .build/my-image/Containerfile    # Inspect generated output
 
 | Mode | Backend | Use Case |
 |------|---------|----------|
-| `registry` | `<registry>/cache:<image>` | Production CI/CD |
-| `gha` | GitHub Actions cache | GitHub Actions workflows |
+| `registry` | `<registry>/cache:<image>` | Production CI/CD (read + write) |
+| `image` | `<registry>/<image>` | Read-only cache from registry image |
 
 ```bash
-ov build --cache registry my-image
-OV_BUILD_CACHE=gha ov build             # Via environment variable
+ov build --cache registry my-image        # Read+write registry cache
+ov build --cache image my-image          # Read-only from registry image
+OV_BUILD_CACHE=registry ov build         # Via environment variable
 ```
 
 ## Build Flow Details
@@ -72,6 +72,10 @@ OV_BUILD_CACHE=gha ov build             # Via environment variable
 
 - **Docker:** `docker buildx build --push` for multi-platform builds
 - **Podman:** `podman build --manifest` + `podman manifest push`
+
+Podman manifest push uses retry with exponential backoff (3 attempts, 5s/10s/20s delays) to handle transient registry errors (e.g., GHCR 500 errors after long builds).
+
+Source: `ov/build.go` (`retryCmd`).
 
 ## Layer Merging
 

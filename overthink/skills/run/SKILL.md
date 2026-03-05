@@ -25,6 +25,7 @@ The `ov` CLI provides runtime commands for interacting with built container imag
 | Service logs | `ov logs <image> -f` | Follow service logs |
 | Update service | `ov update <image>` | Update image and restart |
 | Remove service | `ov remove <image>` | Stop and remove service |
+| Seed bind mounts | `ov seed <image>` | Copy image data to empty bind mount dirs |
 | Install aliases | `ov alias install <image>` | Create host command wrappers |
 | Uninstall aliases | `ov alias uninstall <image>` | Remove host command wrappers |
 
@@ -41,7 +42,13 @@ The `ov` CLI provides runtime commands for interacting with built container imag
 | `task run:remove -- <image>` | Remove service |
 | `task run:enable -- <image>` | Enable quadlet service |
 | `task run:disable -- <image>` | Disable quadlet service |
-| `task run:vm -- <image>` | Run QCOW2 in QEMU |
+| `task run:vm -- <image>` | Create VM via `ov vm create` |
+| `task run:vm-start -- <image>` | Start VM |
+| `task run:vm-stop -- <image>` | Stop VM |
+| `task run:vm-destroy -- <image>` | Destroy VM |
+| `task run:vm-list` | List VMs |
+| `task run:vm-console -- <image>` | VM serial console |
+| `task run:vm-ssh -- <image>` | SSH into VM |
 
 ## Run Modes
 
@@ -75,6 +82,11 @@ ov shell <image> -w ~/project             # Mount workspace
 ov shell <image> -c "nvidia-smi"          # Run command
 ov shell <image> --tag 2026.46.1415       # Specific version
 ov shell <image> --gpu                    # Force GPU
+ov shell <image> -e MY_VAR=value          # Set env var
+ov shell <image> --env-file .env          # Load env file
+ov shell <image> -i runner-1              # Named instance
+ov shell <image> --build                  # Force local build
+ov shell github.com/org/repo/app          # Remote image ref
 ```
 
 Features:
@@ -83,16 +95,19 @@ Features:
 - Resolves bind mounts (plain and encrypted)
 - Applies port mappings from image config
 - Transfers image between engines if needed
+- Applies security config (privileged, capabilities, devices)
 
 ## Service Lifecycle
 
 ```bash
-ov start <image>        # Start background service
-ov status <image>       # Check if running
-ov logs <image> -f      # Follow logs
-ov stop <image>         # Stop service
-ov update <image>       # Rebuild + restart
-ov remove <image>       # Stop + cleanup
+ov start <image>                  # Start background service
+ov start <image> -i prod          # Start named instance
+ov status <image>                 # Check if running
+ov logs <image> -f                # Follow logs
+ov stop <image>                   # Stop service
+ov update <image>                 # Rebuild + restart
+ov update <image> --build         # Force local rebuild + restart
+ov remove <image>                 # Stop + cleanup
 ```
 
 ## Command Aliases
@@ -155,6 +170,92 @@ When `run_mode=quadlet`, `ov start` checks for an existing `.container` file. If
 
 Source: `ov/runtime_config.go`, `ov/engine.go`.
 
+## Environment Variables
+
+Runtime environment variables can be injected into containers from multiple sources. Resolution priority (last wins for duplicate keys):
+
+1. **Deploy config `env:`** (images.yml / deploy.yml) -- lowest priority
+2. **Deploy config `env_file:`** (images.yml / deploy.yml)
+3. **Workspace `.env`** file -- auto-loaded from `-w` directory
+4. **CLI `--env-file`** flag
+5. **CLI `-e`** flags -- highest priority
+
+```bash
+ov shell <image> -e DB_HOST=localhost -e DB_PORT=5432
+ov shell <image> --env-file production.env
+ov start <image> -e LOG_LEVEL=debug --env-file base.env
+```
+
+`.env` file format (Docker-compatible): `KEY=VALUE`, `KEY="VALUE"`, `KEY='VALUE'`, `KEY` (inherits from host), `#` comments, blank lines ignored.
+
+Source: `ov/envfile.go` (`ParseEnvFile`, `ResolveEnvVars`, `LoadWorkspaceEnv`).
+
+## Multi-Instance Support
+
+The `--instance NAME` (`-i`) flag enables running multiple containers of the same image with separate state:
+
+```bash
+ov enable <image> -i prod -w ~/prod          # Instance "prod"
+ov enable <image> -i staging -w ~/staging    # Instance "staging"
+ov start <image> -i prod
+ov status <image> -i staging
+```
+
+Instance naming affects:
+- Container name: `ov-<image>` → `ov-<image>-<instance>`
+- Volume names: `ov-<image>-<name>` → `ov-<image>-<instance>-<name>`
+- Quadlet file: `ov-<image>.container` → `ov-<image>-<instance>.container`
+- Service name: `ov-<image>.service` → `ov-<image>-<instance>.service`
+
+Available on: `shell`, `start`, `stop`, `enable`, `disable`, `status`, `logs`, `update`, `remove`.
+
+Source: `ov/volumes.go` (`InstanceVolumes`), `ov/quadlet.go`.
+
+## Remote Image References
+
+All runtime commands accept remote image refs: `github.com/org/repo/image[@version]`.
+
+```bash
+ov shell github.com/org/repo/my-app              # Pull and run
+ov shell github.com/org/repo/my-app@v1.0.0       # Specific version
+ov enable github.com/org/repo/my-app --build      # Force local build
+```
+
+**Registry-first approach:** attempts to pull the pre-built image from the remote project's registry. Falls back to local build (download repo, generate Containerfiles, build). `--build` flag skips the pull attempt and always builds locally.
+
+Source: `ov/remote_image.go` (`ResolveRemoteImage`, `PullOrBuild`).
+
+## Seed Command
+
+`ov seed <image>` copies image data into empty bind mount directories that override layer volumes.
+
+```bash
+ov seed my-app                 # Seed all empty bind mount dirs
+ov seed my-app --tag v1.0.0    # From specific image version
+```
+
+Only seeds bind mounts that match layer volume names (the override mechanism). Skips directories that already contain data. Useful for initializing bind mount directories on first deployment.
+
+Source: `ov/seed.go`.
+
+## VM Management
+
+For bootc images, `ov vm` commands manage virtual machines built from disk images:
+
+```bash
+ov vm create my-image                  # Create VM from disk image
+ov vm create my-image --ram 8G --cpus 4  # Custom resources
+ov vm create my-image -i prod          # Named instance
+ov vm start my-image                   # Start a stopped VM
+ov vm stop my-image                    # Graceful shutdown
+ov vm destroy my-image --disk          # Remove VM and delete disk
+ov vm list -a                          # List all VMs
+ov vm console my-image                 # Serial console
+ov vm ssh my-image -p 2222 -l user     # SSH access
+```
+
+See `/overthink:deploy` for full VM configuration, backends, and libvirt XML injection.
+
 ## Cross-Engine Image Transfer
 
 When `engine.build` differs from `engine.run`, images are automatically transferred between engines on demand.
@@ -184,4 +285,8 @@ Use when the user asks about:
 - GPU passthrough configuration
 - Command aliases
 - Runtime configuration
+- Environment variable injection (`-e`, `--env-file`)
+- Multi-instance containers (`--instance`)
+- Remote image references
+- Seeding bind mount data (`ov seed`)
 - "How do I run X in a container?"

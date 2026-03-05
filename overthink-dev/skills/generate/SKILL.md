@@ -41,7 +41,7 @@ The generated Containerfile follows this order:
 3. **Image metadata** -- consolidated `ENV` directives, `EXPOSE` ports, `org.overthink.*` labels
 4. **COPY build artifacts** -- pixi environments, pixi binary, npm packages from build stages
 5. **Per-layer install steps** -- for each layer: rpm/deb packages, `root.yml`, `Cargo.toml`, `user.yml`. `USER` toggles between root and UID
-6. **Final assembly** -- supervisord config concatenation, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc only)
+6. **Final assembly** -- supervisord config concatenation, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only -- validates bootc compliance)
 
 ## Multi-Stage Builds
 
@@ -124,6 +124,10 @@ Built images embed runtime metadata as labels (prefix: `org.overthink.`), making
 Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands try `LoadConfig` (images.yml) first, falling back to `<engine> inspect` labels -- enabling `ov shell myimage` from any directory.
 
 Source: `ov/labels.go`, `ov/generate.go` (`writeLabels`).
+
+## Runtime-Only Features
+
+Security configuration (`security:` in layer.yml/images.yml) and environment variable injection (`env:`, `env_file:`) are **runtime-only** features. They affect container run arguments (`--privileged`, `--cap-add`, `-e`) but do not appear in generated Containerfiles.
 
 ## Cache Mounts
 
