@@ -83,13 +83,12 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `tunnel.go` | Tunnel configuration (Tailscale, Cloudflare) |
 | `quadlet.go` | Quadlet .container file generation |
 
-### Modules
+### Remote Layer Refs
 
 | File | Purpose |
 |------|---------|
-| `mod.go` | Remote module types, parsing |
-| `mod_cmd.go` | CLI commands: mod get/download/tidy/verify/update/list |
-| `mod_git.go` | Git operations: clone, resolve ref, compute hash |
+| `refs.go` | Remote ref types, parsing, cache management |
+| `refs_git.go` | Git operations: clone, resolve ref, tag resolution |
 
 ### Testing
 

@@ -74,10 +74,12 @@ description: |
 - `vm.rootfs` must be `ext4`, `xfs`, or `btrfs`
 - `vm.backend` must be `auto`, `bcvk`, `libvirt`, or `qemu`
 
-### Module Rules
+### Remote Layer Rules
 
-- Two remote modules exporting the same layer name is an error
+- Two remote repos exporting the same layer name is an error
 - Local layers shadow remote layers with same name (note emitted)
+- Same bare ref at conflicting versions is an error
+- Different layers from the same repo can use different versions
 
 ## Common Validation Errors
 

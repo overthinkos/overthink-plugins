@@ -29,7 +29,7 @@ description: |
 │   ├── Containerfile              # One per image
 │   ├── supervisor/*.conf          # Supervisord configs (if service layers)
 │   └── traefik-routes.yml         # Traefik config (if route layers)
-└── _layers/<name>                 # Symlinks to remote module layers
+└── _layers/<name>                 # Symlinks to remote layers
 ```
 
 ## Containerfile Structure
