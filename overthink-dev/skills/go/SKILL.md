@@ -53,6 +53,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `start.go` | `start`/`stop` commands |
 | `commands.go` | `enable`/`disable`/`status`/`logs`/`update`/`remove` |
 | `seed.go` | `seed` command (bind mount data seeding) |
+| `hooks.go` | Lifecycle hooks (`post_enable`, `pre_remove`) collection and execution |
 | `remote_image.go` | Remote image ref resolution, pull-or-build |
 | `vm.go` | VM lifecycle: create, start, stop, destroy, list, console, ssh |
 | `vm_build.go` | VM disk image builds (qcow2, raw via bcvk) |
@@ -97,7 +98,7 @@ All `*_test.go` files provide tests for their corresponding source files.
 ## Go Module Info
 
 - Go version: 1.25.3
-- Key dependencies: `kong` v1.14.0 (CLI), `go-containerregistry` v0.20.7 (OCI)
+- Key dependencies: `kong` (CLI), `go-containerregistry` (OCI)
 - Module path: `ov/go.mod`
 
 ## Common Workflows

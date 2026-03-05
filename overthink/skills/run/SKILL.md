@@ -24,6 +24,7 @@ The `ov` CLI provides runtime commands for interacting with built container imag
 | Service logs | `ov logs <image> -f` | Follow service logs |
 | Update service | `ov update <image>` | Update image and restart |
 | Remove service | `ov remove <image>` | Stop and remove service |
+| Remove with volumes | `ov remove <image> --volumes` | Stop, remove, and delete named volumes |
 | Seed bind mounts | `ov seed <image>` | Copy image data to empty bind mount dirs |
 | Install aliases | `ov alias install <image>` | Create host command wrappers |
 | Uninstall aliases | `ov alias uninstall <image>` | Remove host command wrappers |
@@ -86,6 +87,8 @@ ov stop <image>                   # Stop service
 ov update <image>                 # Rebuild + restart
 ov update <image> --build         # Force local rebuild + restart
 ov remove <image>                 # Stop + cleanup
+ov remove <image> --volumes       # Stop + cleanup + delete named volumes
+ov remove <image> -e KEY=VALUE    # Set env vars for lifecycle hooks
 ```
 
 ## Command Aliases
@@ -191,12 +194,12 @@ Source: `ov/volumes.go` (`InstanceVolumes`), `ov/quadlet.go`.
 
 ## Remote Image References
 
-All runtime commands accept remote image refs: `github.com/org/repo/image[@version]`.
+All runtime commands accept remote image references: `github.com/org/repo/image[@version]`.
 
 ```bash
-ov shell github.com/org/repo/my-app              # Pull and run
-ov shell github.com/org/repo/my-app@v1.0.0       # Specific version
-ov enable github.com/org/repo/my-app --build      # Force local build
+ov shell github.com/org/repo/my-app               # Pull and run
+ov shell github.com/org/repo/my-app@v1.0.0        # Specific version
+ov enable github.com/org/repo/my-app --build       # Force local build
 ```
 
 **Registry-first approach:** attempts to pull the pre-built image from the remote project's registry. Falls back to local build (download repo, generate Containerfiles, build). `--build` flag skips the pull attempt and always builds locally.
@@ -233,6 +236,28 @@ ov vm ssh my-image -p 2222 -l user     # SSH access
 ```
 
 See `/overthink:deploy` for full VM configuration, backends, and libvirt XML injection.
+
+## Lifecycle Hooks
+
+Layers can declare lifecycle hooks that run on the host at specific points in the service lifecycle:
+
+```yaml
+# In layer.yml:
+hooks:
+  post_enable: |
+    echo "Service enabled"
+  pre_remove: |
+    echo "About to remove service"
+```
+
+| Hook | When it runs |
+|------|-------------|
+| `post_enable` | After `ov enable` generates the quadlet and reloads systemd |
+| `pre_remove` | Before `ov remove` stops and removes the service |
+
+Hooks from multiple layers are concatenated in layer order. Hook scripts run on the host (not inside the container). The `ov remove -e KEY=VALUE` flag passes environment variables to hook scripts.
+
+Source: `ov/hooks.go` (`CollectHooks`, `RunHook`).
 
 ## Cross-Engine Image Transfer
 

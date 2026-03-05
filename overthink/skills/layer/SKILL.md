@@ -41,6 +41,7 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 | Field | Type | Purpose |
 |-------|------|---------|
 | `depends` | `[]string` | Layer dependencies. Resolved transitively, topologically sorted |
+| `layers` | `[]string` | Compose other layers into this one. Layers with only `layers:` and no install files are valid (pure composition) |
 | `env` | `map[string]string` | Environment variables. Merged across layers |
 | `path_append` | `[]string` | Paths to append to `$PATH` |
 | `ports` | `[]int` | Exposed ports (1-65535). Deduplicated across layers |
@@ -51,6 +52,7 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 | `volumes` | `[]VolumeYAML` | Persistent named volumes (`name` + `path`) |
 | `aliases` | `[]AliasYAML` | Host command aliases (`name` + `command`) |
 | `security` | `SecurityConfig` | Container security: `privileged`, `cap_add`, `devices`, `security_opt` |
+| `hooks` | `HooksConfig` | Lifecycle hooks: `post_enable` (runs after `ov enable`), `pre_remove` (runs before `ov remove`) |
 | `libvirt` | `[]string` | Raw libvirt XML snippets injected into VM domain XML after creation |
 
 ## Package Manager Sections

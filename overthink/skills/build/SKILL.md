@@ -10,7 +10,7 @@ description: |
 
 ## Overview
 
-`ov build` generates Containerfiles from `images.yml` and layer definitions, then builds images sequentially in dependency order using the configured build engine (Docker or Podman).
+`ov build` generates Containerfiles from `images.yml` and layer definitions, then builds images in dependency order using the configured build engine (Docker or Podman). Images at the same dependency level are built in parallel (up to `--jobs` concurrent builds).
 
 ## Quick Reference
 
@@ -34,6 +34,7 @@ ov build --cache registry [image...]         # Registry cache (read+write)
 ov build --cache image [image...]           # Image cache (read-only, default)
 ov build --cache gha [image...]             # GitHub Actions cache
 ov build --no-cache [image...]              # Disable cache entirely
+ov build --jobs N [image...]                # Max concurrent builds per level (default: 4)
 ```
 
 ## Containerfile Generation
@@ -50,9 +51,9 @@ cat .build/my-image/Containerfile    # Inspect generated output
 
 1. Run `ov generate` internally (produces Containerfiles in `.build/`)
 2. Resolve runtime config to get build engine (`engine.build`)
-3. Resolve image build order (dependency ordering)
+3. Resolve image build order (dependency ordering, grouped by level)
 4. Filter to requested images (and their base dependencies)
-5. For each image: `<engine> build -f .build/<image>/Containerfile -t <tags> .`
+5. For each level: build images in parallel (up to `--jobs` concurrent, default 4)
 6. After all builds: `ov merge --all` (if `merge.auto` enabled, skipped for `--push`)
 
 ## Build Cache

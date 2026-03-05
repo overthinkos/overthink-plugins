@@ -58,6 +58,8 @@ ov update my-app                 # Re-transfer image, restart
 ov stop my-app                   # systemctl --user stop
 ov disable my-app                # Disable auto-start
 ov remove my-app                 # Stop + remove .container file
+ov remove my-app --volumes       # Also remove named volumes
+ov remove my-app -e KEY=VALUE    # Set env vars for lifecycle hooks
 ```
 
 With `auto_enable=true`, `ov start` auto-generates the quadlet file on first run.
@@ -83,6 +85,26 @@ Layer and image-level security settings are applied as `PodmanArgs=` in the quad
 - `security_opt` → `PodmanArgs=--security-opt=<OPT>`
 
 Source: `ov/security.go` (`CollectSecurity`, `SecurityArgs`).
+
+### Lifecycle Hooks
+
+Layers can declare lifecycle hooks that run on the host at specific points:
+
+```yaml
+# In layer.yml:
+hooks:
+  post_enable: |
+    echo "Service enabled for $OV_IMAGE"
+  pre_remove: |
+    echo "Cleaning up before removal"
+```
+
+- `post_enable` runs after `ov enable` generates the quadlet and reloads systemd
+- `pre_remove` runs before `ov remove` stops and removes the service
+
+Hooks from multiple layers are concatenated in layer order. Use `ov remove -e KEY=VALUE` to pass environment variables to hook scripts.
+
+Source: `ov/hooks.go` (`CollectHooks`, `RunHook`).
 
 ### Image Transfer
 
@@ -317,7 +339,7 @@ When an image has multiple encrypted bind mounts, `ov crypto init`, `ov crypto m
 - **`ov seed <image>`**: copies default data from image into empty bind mount directories before first start
 - **`ov shell`/`ov start` (direct)**: resolves bind mounts, verifies plain dirs exist and encrypted volumes are mounted, appends `-v <host>:<container>` flags
 - **`ov enable` (quadlet)**: plain mounts as `Volume=` lines; encrypted mounts generate a companion `ov-<image>-crypto.service` with `Requires=`/`After=`
-- **`ov remove`**: removes companion crypto service file
+- **`ov remove`**: removes companion crypto service file. `--volumes` also removes named volumes. Runs `pre_remove` hooks before cleanup
 - **`ov inspect --format bind_mounts`**: outputs `NAME\tHOST\tPATH\tENCRYPTED`
 - **`ov crypto passwd <image>`**: changes the gocryptfs password for all encrypted volumes of an image
 
