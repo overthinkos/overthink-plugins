@@ -197,7 +197,6 @@ Add a `service` field to layer.yml with a supervisord program fragment. Add `sup
 
 - `/overthink:image` -- Adding layers to image definitions
 - `/overthink:build` -- Building images with layers
-- `/overthink:module` -- Remote layer modules
 
 ## When to Use This Skill
 

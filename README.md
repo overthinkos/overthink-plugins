@@ -11,7 +11,7 @@ Claude Code plugins for the Overthink container image composition system.
 
 ## Plugins
 
-### overthink (7 skills)
+### overthink (6 skills)
 
 Skills for composing, building, and running container images with the `ov` CLI.
 
@@ -22,7 +22,6 @@ Skills for composing, building, and running container images with the `ov` CLI.
 | build | `/overthink:build` | Building images (ov build, task build:*, caches) |
 | run | `/overthink:run` | Runtime operations (ov shell, start/stop, aliases) |
 | deploy | `/overthink:deploy` | Deployment (quadlet, bootc, tunnels, encryption) |
-| module | `/overthink:module` | Remote layer modules (ov mod) |
 | validate | `/overthink:validate` | Validation rules and error handling (ov validate) |
 
 ### overthink-dev (2 skills, 3 agents, GitHub MCP)
@@ -72,7 +71,7 @@ Development tools and enforcement agents for contributors.
 | Component | Count |
 |-----------|-------|
 | Plugins | 2 |
-| Skills | 9 |
+| Skills | 8 |
 | Agents | 3 |
 | MCP Servers | 1 (GitHub) |
 | MCP Tools | 22 |
