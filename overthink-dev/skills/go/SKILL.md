@@ -52,11 +52,15 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `shell.go` | `shell` command (execs engine run) |
 | `start.go` | `start`/`stop` commands |
 | `commands.go` | `enable`/`disable`/`status`/`logs`/`update`/`remove` |
+| `service.go` | `service` command (supervisord service management inside containers) |
 | `seed.go` | `seed` command (bind mount data seeding) |
 | `hooks.go` | Lifecycle hooks (`post_enable`, `pre_remove`) collection and execution |
 | `remote_image.go` | Remote image ref resolution, pull-or-build |
 | `vm.go` | VM lifecycle: create, start, stop, destroy, list, console, ssh |
-| `vm_build.go` | VM disk image builds (qcow2, raw via bcvk) |
+| `vm_build.go` | VM disk image builds (qcow2, raw via bootc install) |
+| `vm_libvirt.go` | Libvirt backend: VM operations via session-level libvirt |
+| `vm_qemu.go` | QEMU backend: direct VM operations via qemu-system |
+| `smbios_credentials.go` | SSH key injection via SMBIOS/systemd credentials at VM boot |
 | `libvirt.go` | Libvirt XML snippet collection and injection |
 
 ### Infrastructure
@@ -67,6 +71,8 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `registry.go` | Remote image inspection (go-containerregistry) |
 | `transfer.go` | Cross-engine image transfer |
 | `runtime_config.go` | `~/.config/ov/config.yml` |
+| `network.go` | Shared "ov" container network management |
+| `machine.go` | Podman machine management (rootful VM builds) |
 
 ### Configuration
 
@@ -80,7 +86,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `alias.go` | Command aliases (wrapper scripts) |
 | `deploy.go` | Per-deployment config overlay |
 | `crypto.go` | Encrypted bind mounts (gocryptfs) |
-| `gpu.go` | GPU detection |
+| `devices.go` | Host device auto-detection (GPU, /dev/dri, /dev/kvm, etc.) |
 | `tunnel.go` | Tunnel configuration (Tailscale, Cloudflare) |
 | `quadlet.go` | Quadlet .container file generation |
 
@@ -142,7 +148,7 @@ bin/ov inspect <image>
 - `/overthink-dev:generate` -- Understanding generated Containerfiles
 - `/overthink:validate` -- Validation rules and error handling
 - `/overthink:build` -- Using the built CLI
-- Source: `ov/` directory (64 .go files)
+- Source: `ov/` directory (44 source + test .go files)
 
 ## When to Use This Skill
 

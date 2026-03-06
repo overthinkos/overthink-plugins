@@ -72,7 +72,7 @@ description: |
 
 - `bootc: true` requires appropriate base image
 - `vm.rootfs` must be `ext4`, `xfs`, or `btrfs`
-- `vm.backend` must be `auto`, `bcvk`, `libvirt`, or `qemu`
+- `vm.backend` must be `auto`, `libvirt`, or `qemu`
 
 ### Remote Layer Rules
 

@@ -28,6 +28,10 @@ The `ov` CLI provides runtime commands for interacting with built container imag
 | Seed bind mounts | `ov seed <image>` | Copy image data to empty bind mount dirs |
 | Install aliases | `ov alias install <image>` | Create host command wrappers |
 | Uninstall aliases | `ov alias uninstall <image>` | Remove host command wrappers |
+| Service status | `ov service status <image>` | Show supervisord service status |
+| Start service | `ov service start <image> <svc>` | Start a supervisord service |
+| Stop service | `ov service stop <image> <svc>` | Stop a supervisord service |
+| Restart service | `ov service restart <image> <svc>` | Restart a supervisord service |
 
 ## Run Modes
 
@@ -41,17 +45,25 @@ ov config set run_mode direct   # Default
 ov config set run_mode quadlet  # systemd integration
 ```
 
-## GPU Passthrough
+## Device Auto-Detection
+
+By default, `ov shell`, `ov start`, `ov enable`, and `ov vm create` auto-detect available host devices and pass them through to the container. Use `--no-autodetect` to disable.
+
+**Auto-detected devices:**
+- NVIDIA GPU (via `nvidia-smi`) — passed as `--gpus all` (Docker) or `--device nvidia.com/gpu=all` (Podman)
+- `/dev/dri/renderD*` — GPU render nodes
+- `/dev/kvm` — KVM virtualization
+- `/dev/vhost-net`, `/dev/vhost-vsock` — virtio networking
+- `/dev/fuse` — FUSE filesystem
+- `/dev/net/tun` — TUN/TAP networking
+- `/dev/hwrng` — hardware RNG
 
 | Flag | Behavior |
 |------|----------|
-| `--gpu` | Force GPU passthrough |
-| `--no-gpu` | Disable GPU passthrough |
-| (neither) | Auto-detect via `nvidia-smi` |
+| (default) | Auto-detect GPU + devices |
+| `--no-autodetect` | Disable all device auto-detection |
 
-Engine-specific flags:
-- **Docker:** `--gpus all`
-- **Podman:** `--device nvidia.com/gpu=all`
+Source: `ov/devices.go` (`DetectHostDevices`, `DetectGPU`).
 
 ## Shell Command
 
@@ -60,7 +72,7 @@ ov shell <image>                          # Interactive bash
 ov shell <image> -w ~/project             # Mount workspace
 ov shell <image> -c "nvidia-smi"          # Run command
 ov shell <image> --tag 2026.46.1415       # Specific version
-ov shell <image> --gpu                    # Force GPU
+ov shell <image> --no-autodetect           # Disable device auto-detection
 ov shell <image> -e MY_VAR=value          # Set env var
 ov shell <image> --env-file .env          # Load env file
 ov shell <image> -i runner-1              # Named instance
@@ -142,6 +154,7 @@ Stored in `~/.config/ov/config.yml`. Resolution chain: **env var > config file >
 |---------|---------|---------|---------|
 | `engine.build` | `OV_BUILD_ENGINE` | `docker` | Engine for `ov build` and `ov merge` |
 | `engine.run` | `OV_RUN_ENGINE` | `docker` | Engine for `ov shell` and `ov start` |
+| `engine.rootful` | `OV_ENGINE_ROOTFUL` | `false` | Use rootful podman (via podman machine) |
 | `run_mode` | `OV_RUN_MODE` | `direct` | `direct` or `quadlet` |
 | `auto_enable` | `OV_AUTO_ENABLE` | `false` | Auto-run `ov enable` on first `ov start` (quadlet) |
 | `bind_address` | `OV_BIND_ADDRESS` | `127.0.0.1` | Address for port bindings |
@@ -219,6 +232,28 @@ Only seeds bind mounts that match layer volume names (the override mechanism). S
 
 Source: `ov/seed.go`.
 
+## Supervisord Service Management
+
+Manage individual supervisord services inside a running container:
+
+```bash
+ov service status my-app               # Show status of all supervisord services
+ov service start my-app traefik        # Start a specific service
+ov service stop my-app traefik         # Stop a specific service
+ov service restart my-app traefik      # Restart a specific service
+ov service status my-app -i prod       # Named instance
+```
+
+The service name must match a `[program:<name>]` entry in the image's supervisord config. Available services are validated against the image's `org.overthinkos.supervisord` label.
+
+Source: `ov/service.go`.
+
+## Container Networking
+
+All containers are connected to a shared `ov` network by default, enabling inter-container DNS resolution by container name. Override with the `network` field in images.yml (e.g., `network: host`).
+
+Source: `ov/network.go` (`ResolveNetwork`).
+
 ## VM Management
 
 For bootc images, `ov vm` commands manage virtual machines built from disk images:
@@ -226,6 +261,8 @@ For bootc images, `ov vm` commands manage virtual machines built from disk image
 ```bash
 ov vm create my-image                  # Create VM from disk image
 ov vm create my-image --ram 8G --cpus 4  # Custom resources
+ov vm create my-image --ssh-key auto   # Auto-detect SSH key (default)
+ov vm create my-image --ssh-key generate  # Generate new SSH keypair
 ov vm create my-image -i prod          # Named instance
 ov vm start my-image                   # Start a stopped VM
 ov vm stop my-image                    # Graceful shutdown
@@ -285,7 +322,8 @@ Use when the user asks about:
 
 - Running containers or shells (`ov shell`, `ov start`)
 - Service management (start, stop, status, logs)
-- GPU passthrough configuration
+- Device auto-detection and GPU passthrough
+- Supervisord service management (`ov service`)
 - Command aliases
 - Runtime configuration
 - Environment variable injection (`-e`, `--env-file`)

@@ -114,7 +114,7 @@ Source: `ov/quadlet.go` (generation), `ov/commands.go` (command structs).
 
 ## Bootc Disk Images & VM Management
 
-For images with `bootc: true` in images.yml. Uses `bcvk` (bootc virtualization kit) which runs `bootc install to-disk` inside an ephemeral QEMU VM. No root required. Install via `dnf install bcvk`.
+For images with `bootc: true` in images.yml. Uses `bootc install to-disk` inside a privileged container to write a disk image. Requires a container engine (podman or docker).
 
 ### Building Disk Images
 
@@ -123,7 +123,6 @@ ov vm build my-bootc-image                  # Build QCOW2 (default)
 ov vm build my-bootc-image --type raw       # Build RAW disk
 ov vm build my-bootc-image --size 20G       # Custom disk size
 ov vm build my-bootc-image --root-size 10G  # Custom root partition
-ov vm build my-bootc-image --ssh-keygen     # Generate and inject SSH keypair
 ov vm build my-bootc-image --console        # Enable console output for debugging
 ```
 
@@ -134,7 +133,8 @@ Output goes to `output/<type>/disk.<type>`. ISO format is not supported -- use q
 ```bash
 ov vm create my-image                  # Create VM from built disk image
 ov vm create my-image --ram 8G --cpus 4  # Custom resources
-ov vm create my-image --gpu            # GPU passthrough
+ov vm create my-image --ssh-key auto   # Auto-detect SSH key (default)
+ov vm create my-image --ssh-key generate  # Generate new SSH keypair
 ov vm create my-image -i prod          # Named instance
 ov vm start my-image                   # Start a stopped VM
 ov vm stop my-image                    # Graceful shutdown
@@ -153,13 +153,16 @@ VM name convention: `ov-<image>[-<instance>]`. All VMs use session-level libvirt
 
 ### VM Backends
 
-Backend resolution order: **bcvk -> libvirt -> qemu** (auto-detected by available binaries).
+Backend resolution order: **libvirt -> qemu** (auto-detected). Libvirt is detected by checking for the session socket; QEMU by checking for `qemu-system-*` binary.
 
 | Backend | Requires | Notes |
 |---------|----------|-------|
-| `bcvk` | `bcvk` + `virsh` | Default, recommended |
-| `libvirt` | `virsh` + `virt-install` | Standard libvirt |
+| `libvirt` | libvirt session daemon (socket) | Default, recommended |
 | `qemu` | `qemu-system-*` | Direct QEMU, state in `~/.local/share/ov/vm/` |
+
+SSH keys are injected at VM creation time via SMBIOS credentials (systemd-based). The `--ssh-key` flag controls key injection: `auto` (default, uses `~/.ssh/*.pub`), `generate` (creates new keypair), `none` (no key injection), or a path to a `.pub` file.
+
+Source: `ov/smbios_credentials.go`.
 
 Override: `ov config set vm.backend libvirt`
 

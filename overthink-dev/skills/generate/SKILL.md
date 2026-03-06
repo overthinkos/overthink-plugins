@@ -38,7 +38,7 @@ The generated Containerfile follows this order:
 
 1. **Multi-stage build stages** -- scratch stages per layer (`COPY layers/<layer>/ /`), pixi build stages (`FROM <builder>`), npm build stages, supervisord config assembly, traefik routes
 2. **`FROM ${BASE_IMAGE}`** -- external bases get bootstrap (task, user/group at UID/GID, WORKDIR); internal bases get `USER root`
-3. **Image metadata** -- consolidated `ENV` directives, `EXPOSE` ports, `org.overthink.*` labels
+3. **Image metadata** -- consolidated `ENV` directives, `EXPOSE` ports, `org.overthinkos.*` labels
 4. **COPY build artifacts** -- pixi environments, pixi binary, npm packages from build stages
 5. **Per-layer install steps** -- for each layer: rpm/deb packages, `root.yml`, `Cargo.toml`, `user.yml`. `USER` toggles between root and UID
 6. **Final assembly** -- supervisord config concatenation, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only -- validates bootc compliance)
@@ -108,18 +108,34 @@ Source: `ov/registry.go` (`InspectImageUser`).
 
 ## OCI Labels
 
-Built images embed runtime metadata as labels (prefix: `org.overthink.`), making images self-describing for runtime commands (`ov shell`, `ov start`, `ov enable`, `ov alias install`).
+Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), making images self-describing for runtime commands (`ov shell`, `ov start`, `ov enable`, `ov alias install`).
 
 | Label | Type | Example |
 |-------|------|---------|
-| `org.overthink.version` | string | `"1"` (schema version) |
-| `org.overthink.image` | string | `"openclaw"` |
-| `org.overthink.registry` | string | `"ghcr.io/overthinkos"` (omitted if empty) |
-| `org.overthink.uid` / `.gid` | string | `"1000"` |
-| `org.overthink.user` / `.home` | string | `"user"` / `"/home/user"` |
-| `org.overthink.ports` | JSON | `["18789:18789"]` |
-| `org.overthink.volumes` | JSON | `[{"name":"data","path":"/home/user/.openclaw"}]` |
-| `org.overthink.aliases` | JSON | `[{"name":"openclaw","command":"openclaw"}]` |
+| `org.overthinkos.version` | string | `"1"` (schema version) |
+| `org.overthinkos.image` | string | `"openclaw"` |
+| `org.overthinkos.registry` | string | `"ghcr.io/overthinkos"` (omitted if empty) |
+| `org.overthinkos.bootc` | string | `"true"` (omitted if false) |
+| `org.overthinkos.uid` / `.gid` | string | `"1000"` |
+| `org.overthinkos.user` / `.home` | string | `"user"` / `"/home/user"` |
+| `org.overthinkos.ports` | JSON | `["18789:18789"]` |
+| `org.overthinkos.volumes` | JSON | `[{"name":"data","path":"/home/user/.openclaw"}]` |
+| `org.overthinkos.aliases` | JSON | `[{"name":"openclaw","command":"openclaw"}]` |
+| `org.overthinkos.bind_mounts` | JSON | `[{"name":"secrets","path":"...","encrypted":true}]` |
+| `org.overthinkos.security` | JSON | `{"privileged":false,"cap_add":["SYS_PTRACE"]}` |
+| `org.overthinkos.network` | string | `"host"` (omitted if default) |
+| `org.overthinkos.tunnel` | JSON | tunnel config (omitted if none) |
+| `org.overthinkos.fqdn` | string | FQDN for tunnel routing |
+| `org.overthinkos.acme_email` | string | ACME certificate email |
+| `org.overthinkos.env` | JSON | `["KEY=VALUE"]` runtime env vars |
+| `org.overthinkos.hooks` | JSON | lifecycle hooks config |
+| `org.overthinkos.vm` | JSON | VM config (bootc images) |
+| `org.overthinkos.libvirt` | JSON | libvirt XML snippets |
+| `org.overthinkos.routes` | JSON | `[{"host":"app.localhost","port":8080}]` |
+| `org.overthinkos.systemd` | JSON | systemd unit names (bootc) |
+| `org.overthinkos.supervisord` | JSON | supervisord service names |
+| `org.overthinkos.env_layers` | JSON | layer-level env vars (merged) |
+| `org.overthinkos.path_append` | JSON | PATH append entries |
 
 Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands try `LoadConfig` (images.yml) first, falling back to `<engine> inspect` labels -- enabling `ov shell myimage` from any directory.
 

@@ -89,6 +89,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `env_file` | `""` | Path to `.env` file for runtime injection. Not inherited |
 | `security` | `null` | Container security options. Overrides layer-level security |
 | `bind_mounts` | `[]` | Bind mount declarations (image-level only, not inherited) |
+| `network` | `string` | Container network mode (default: shared `ov` network; set `host` for host networking) |
 | `vm` | `VmConfig` | VM settings: `disk_size`, `root_size`, `ram`, `cpus`, `rootfs`, `kernel_args`, `ssh_port`, `transport`, `firmware`, `network` |
 | `libvirt` | `[]string` | Raw libvirt XML snippets for VM domain configuration |
 
