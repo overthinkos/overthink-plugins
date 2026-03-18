@@ -21,8 +21,6 @@ description: |
 | Build and push | `ov build --push` | Build all platforms and push to registry |
 | Build without cache | `ov build --no-cache` | Disable build cache entirely |
 | Merge layers | `ov merge <image>` | Post-build layer optimization |
-| Build QCOW2 | `ov vm build <image>` | Build QCOW2 disk image (bootc) |
-| Build RAW | `ov vm build <image> --type raw` | Build RAW disk image (bootc) |
 
 ## ov build Commands
 
@@ -185,7 +183,8 @@ First build on a new machine won't have cache. Use `--cache registry` to pull fr
 - `/overthink:layer` -- Layer definitions that get built
 - `/overthink:image` -- Image definitions in images.yml
 - `/overthink:validate` -- Validating before building
-- `/overthink:deploy` -- Deploying built images
+- `/overthink:vm` -- Building bootc disk images (`ov vm build`)
+- `/overthink:config` -- Engine configuration
 
 ## When to Use This Skill
 
