@@ -118,6 +118,12 @@ CLI flag `--max-mb` overrides `images.yml`. `auto` is only used by `ov merge --a
 
 Merge is idempotent -- running again after merging shows all layers as `[keep]`. Source: `ov/merge.go`.
 
+### Inline Merge
+
+Images are merged immediately after building, before their children are built. Child images inherit a merged (fewer-layer) base, producing smaller final images. Both local and push builds merge inline. The `mergeAfterBuild()` function handles this -- it checks `merge.auto` on the image config and runs merge if enabled.
+
+For filtered builds (`ov build <image>`), only the built images are merged. For full builds (`ov build`), merge runs after each dependency level completes.
+
 ## Engine Configuration
 
 ```bash

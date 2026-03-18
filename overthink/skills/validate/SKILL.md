@@ -74,6 +74,23 @@ description: |
 - `vm.rootfs` must be `ext4`, `xfs`, or `btrfs`
 - `vm.backend` must be `auto`, `libvirt`, or `qemu`
 
+### Port Relay Rules
+
+- Each relay port must be 1-65535
+- Each relay port must also be declared in the layer's `ports:`
+- No duplicate relay ports across layers in the same image
+
+### Tunnel Multi-Port Rules
+
+- `ports` must be `"all"` or omitted
+- When `ports: all`, the image must have at least one port defined
+- Multi-port mode skips single-port HTTPS validation
+
+### Port Protocol Rules
+
+- Only `tcp:` prefix is supported
+- Port number after prefix must be 1-65535
+
 ### Remote Layer Rules
 
 - Two remote repos exporting the same layer name is an error

@@ -266,6 +266,32 @@ tunnel:
 fqdn: "app.example.com"
 ```
 
+### Multi-Port Tailscale Serve
+
+When `ports: all`, every image port gets its own `tailscale serve` command:
+
+```yaml
+tunnel:
+  provider: tailscale
+  ports: all
+```
+
+- HTTP ports (default): `tailscale serve --bg --https=PORT http://127.0.0.1:PORT`
+- TCP ports (from `tcp:` annotation): `tailscale serve --bg --tcp=PORT tcp://127.0.0.1:PORT`
+
+Quadlet generates multiple `ExecStartPost=` and `ExecStopPost=` lines. Requires `tailscale set --operator=$USER` for non-root access.
+
+Port protocols are stored in the `org.overthinkos.port_protos` image label so remote refs work without access to the original layer definitions.
+
+The existing single-port syntax still works:
+
+```yaml
+tunnel:
+  provider: tailscale
+  port: 18789
+  https: 443
+```
+
 ### Resolution
 
 `tunnel` inherits from defaults (image -> defaults -> nil). The `port` field defaults to the first route port from layers if not specified. For tailscale, `https` defaults to 443.

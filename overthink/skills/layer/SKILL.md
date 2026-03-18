@@ -51,9 +51,39 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 | `deb` | object | Debian package config: `packages` |
 | `volumes` | `[]VolumeYAML` | Persistent named volumes (`name` + `path`) |
 | `aliases` | `[]AliasYAML` | Host command aliases (`name` + `command`) |
-| `security` | `SecurityConfig` | Container security: `privileged`, `cap_add`, `devices`, `security_opt` |
+| `security` | `SecurityConfig` | Container security: `privileged`, `cap_add`, `devices`, `security_opt`, `shm_size` |
+| `port_relay` | `[]int` | Ports needing eth0->loopback socat relay (auto-adds socat dependency) |
 | `hooks` | `HooksConfig` | Lifecycle hooks: `post_enable` (runs after `ov enable`), `pre_remove` (runs before `ov remove`) |
 | `libvirt` | `[]string` | Raw libvirt XML snippets injected into VM domain XML after creation |
+
+### port_relay
+
+Ports needing an eth0->loopback socat relay inside the container. For services that bind only to 127.0.0.1 (like Chrome DevTools). Auto-adds socat dependency and generates a supervisord relay service.
+
+```yaml
+port_relay:
+  - 9222
+```
+
+### Port Protocol Annotations
+
+Ports support a protocol prefix for tailscale serve mode.
+
+```yaml
+ports:
+  - 18789        # http (default) -> tailscale serve --https
+  - tcp:5900     # tcp -> tailscale serve --tcp
+  - 9222         # http (default)
+```
+
+### security.shm_size
+
+Shared memory size. Largest value from all layers wins. Passed as `--shm-size` to podman/docker and `ShmSize=` in quadlet.
+
+```yaml
+security:
+  shm_size: "1g"    # Chrome needs >64MB default
+```
 
 ## Package Manager Sections
 

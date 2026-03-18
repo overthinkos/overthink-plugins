@@ -62,6 +62,9 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `vm_qemu.go` | QEMU backend: direct VM operations via qemu-system |
 | `smbios_credentials.go` | SSH key injection via SMBIOS/systemd credentials at VM boot |
 | `libvirt.go` | Libvirt XML snippet collection and injection |
+| `browser.go` | Browser automation commands (open, list, close, text, html, url, screenshot, click, type, eval, wait, cdp) |
+| `browser_cdp.go` | CDPClient -- lightweight Chrome DevTools Protocol WebSocket client (golang.org/x/net/websocket) |
+| `browser_test.go` | Browser command and CDP client tests |
 
 ### Infrastructure
 

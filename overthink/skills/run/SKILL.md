@@ -310,6 +310,122 @@ Transfer is called automatically by `ov shell`, `ov start`, `ov enable`, and `ov
 
 Source: `ov/transfer.go`.
 
+## Browser Automation (ov browser)
+
+`ov browser` commands connect to Chrome DevTools Protocol (CDP) on port 9222 inside running containers. Requires a Chrome layer with `port_relay: [9222]` and `--remote-allow-origins='*'` in the Chrome launch flags.
+
+### Architecture
+
+1. Resolves the container name from image + instance
+2. Discovers the mapped port 9222 via `podman port` / `docker port`
+3. HTTP API (`/json/list`, `/json/new?url=`) for list, open, and close operations
+4. CDP WebSocket for interactive operations (click, type, eval, wait, text, html, screenshot, cdp)
+
+### Commands
+
+```bash
+ov browser open <image> <url>                    # Open URL in new Chrome tab
+ov browser list <image>                           # List all open tabs (id, title, url)
+ov browser close <image> <tab-id>                 # Close a tab by ID
+ov browser text <image> <tab-id>                  # Get page text content
+ov browser html <image> <tab-id>                  # Get page HTML source
+ov browser url <image> <tab-id>                   # Get page title and URL
+ov browser screenshot <image> <tab-id> [file]     # Capture screenshot as PNG
+ov browser click <image> <tab-id> <selector>      # Click element by CSS selector
+ov browser type <image> <tab-id> <selector> <text>  # Type into input field
+ov browser eval <image> <tab-id> <expression>     # Evaluate JavaScript expression
+ov browser wait <image> <tab-id> <selector>       # Wait for element (--timeout 30s)
+ov browser cdp <image> <tab-id> <method> [json]   # Send raw CDP command
+```
+
+All commands accept `-i INSTANCE` for multi-instance support.
+
+### Example: Navigate and Extract Data
+
+```bash
+ov browser open my-app "https://example.com"
+TAB=$(ov browser list my-app | head -1 | awk '{print $1}')
+ov browser wait my-app $TAB 'h1'
+ov browser text my-app $TAB
+ov browser screenshot my-app $TAB page.png
+```
+
+Source: `ov/browser.go`, `ov/browser_cdp.go`.
+
+## --tty Flag
+
+`ov shell <image> --tty -c "command"` forces TTY allocation even when stdout is not a terminal. Uses `script(1)` from util-linux to provide a real PTY.
+
+This is essential for automation tools (Claude Code, CI runners) where the process stdout is a pipe, not a terminal. Many interactive CLI commands (OAuth flows, prompts) require a TTY to function.
+
+```bash
+# Without --tty: "not a tty" errors from interactive commands
+ov shell my-app -c "interactive-cli auth login"  # fails
+
+# With --tty: script(1) wraps the command in a PTY
+ov shell my-app --tty -c "interactive-cli auth login"  # works
+```
+
+Works for both new containers (`<engine> run`) and exec into running containers (`<engine> exec`).
+
+## Port Relay
+
+The `port_relay` field in layer.yml solves the problem of services that bind only to 127.0.0.1 inside the container (e.g., Chrome 146+ DevTools). Container port mappings only forward to interfaces visible from outside, so a loopback-only service is unreachable from the host.
+
+```yaml
+# In layer.yml:
+port_relay:
+  - 9222
+```
+
+How it works:
+- socat binds to `eth0:<port>` and forwards to `127.0.0.1:<port>` (same port, different interface)
+- A supervisord service is auto-generated with priority 1 (starts before other services)
+- The socat layer is automatically added as a dependency
+
+This makes loopback-only services accessible through normal podman/docker port mappings and `tailscale serve`.
+
+Source: `ov/generate.go` (relay service generation), `ov/layers.go` (`PortRelayYAML`).
+
+## OAuth Automation Example
+
+Complete flow for deploying openclaw with Codex OAuth, using browser automation and TTY support:
+
+```bash
+# 1. Build and deploy with tailscale serve on all ports
+ov build openclaw-sway-browser
+ov enable openclaw-sway-browser
+# Quadlet generates: tailscale serve --https=18789, --tcp=5900, --https=9222
+
+# 2. Start OAuth process inside the running container
+ov shell openclaw-sway-browser --tty -c \
+  "openclaw models auth login --provider openai-codex --set-default" > /tmp/oauth.log &
+
+# 3. Extract OAuth URL, open in container's Chrome via CDP
+OAUTH_URL=$(grep -oP 'https://auth\.openai\.com\S+' /tmp/oauth.log)
+ov browser open openclaw-sway-browser "$OAUTH_URL"
+
+# 4. Wait for login page, click "Continue with Google"
+TAB=$(ov browser list openclaw-sway-browser | grep openai | awk '{print $1}')
+ov browser wait openclaw-sway-browser $TAB 'button[value="google"]'
+ov browser click openclaw-sway-browser $TAB 'button[value="google"]'
+
+# 5. Wait for consent page, click "Continue"
+ov browser wait openclaw-sway-browser $TAB 'button[type="submit"]'
+ov browser click openclaw-sway-browser $TAB 'button[type="submit"]'
+
+# 6. OAuth callback hits localhost:1455 inside container
+# Tokens saved to ~/.openclaw volume
+# Default model: openai-codex/gpt-5.4
+```
+
+Key enablers:
+- `--tty` provides PTY for interactive CLI commands from automation
+- `port_relay` makes Chrome DevTools accessible from host through podman bridge networking
+- `browser-open` + `BROWSER` env lets CLI tools open URLs in the running Chrome via CDP
+- `tailscale serve --tcp=5900` exposes VNC for manual inspection if needed
+- `shm_size: 1g` prevents Chrome from crashing due to /dev/shm exhaustion
+
 ## Cross-References
 
 - `/overthink:build` -- Building images before running
@@ -324,10 +440,14 @@ Use when the user asks about:
 - Service management (start, stop, status, logs)
 - Device auto-detection and GPU passthrough
 - Supervisord service management (`ov service`)
+- Browser automation (`ov browser`)
+- TTY allocation for automation (`--tty`)
+- Port relay for loopback-only services
 - Command aliases
 - Runtime configuration
 - Environment variable injection (`-e`, `--env-file`)
 - Multi-instance containers (`--instance`)
 - Remote image references
 - Seeding bind mount data (`ov seed`)
+- OAuth or interactive flows in containers
 - "How do I run X in a container?"
