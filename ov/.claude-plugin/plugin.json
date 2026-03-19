@@ -1,0 +1,7 @@
+{
+  "name": "ov",
+  "description": "Skills for composing, building, and running container images with the ov CLI",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "repository": "https://github.com/overthinkos/overthink-plugins"
+}

@@ -1,5 +1,5 @@
 {
-  "name": "overthink-plugins",
+  "name": "ov-plugins",
   "owner": {
     "name": "overthinkos"
   },
@@ -9,51 +9,51 @@
   },
   "plugins": [
     {
-      "name": "overthink",
-      "source": "./overthink",
+      "name": "ov",
+      "source": "./ov",
       "description": "Skills for composing, building, and running container images with the ov CLI",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["overthink", "containers", "ov", "layers", "images"],
+      "keywords": ["ov", "containers", "layers", "images"],
       "category": "productivity"
     },
     {
-      "name": "overthink-dev",
-      "source": "./overthink-dev",
+      "name": "ov-dev",
+      "source": "./ov-dev",
       "description": "Development tools and enforcement agents for Overthink contributors",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["overthink", "development", "go", "testing", "enforcement"],
+      "keywords": ["ov", "development", "go", "testing", "enforcement"],
       "category": "development"
     },
     {
-      "name": "overthink-layers",
-      "source": "./overthink-layers",
+      "name": "ov-layers",
+      "source": "./ov-layers",
       "description": "Reference documentation for all 61 Overthink container layers",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["overthink", "containers", "layers", "reference"],
+      "keywords": ["ov", "containers", "layers", "reference"],
       "category": "productivity"
     },
     {
-      "name": "overthink-images",
-      "source": "./overthink-images",
+      "name": "ov-images",
+      "source": "./ov-images",
       "description": "Reference documentation for all 16 Overthink container images",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["overthink", "containers", "images", "reference"],
+      "keywords": ["ov", "containers", "images", "reference"],
       "category": "productivity"
     }
   ]

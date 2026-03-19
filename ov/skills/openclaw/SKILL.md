@@ -1,0 +1,382 @@
+---
+name: openclaw
+description: |
+  OpenClaw AI gateway: configuration, model auth, browser integration,
+  and channel setup. Use when working with openclaw images, gateway
+  configuration, model providers, or messaging channels.
+---
+
+# OpenClaw - AI Gateway Configuration
+
+## Overview
+
+OpenClaw is an AI gateway that connects LLM agents to messaging channels (WhatsApp, Telegram, Discord, Slack, Signal, iMessage, IRC, Teams) and exposes them via a WebSocket API, CLI, and web Control UI. It runs as a Node.js process with an embedded agent runtime, model failover, browser automation, and multi-agent routing.
+
+In Overthink, OpenClaw runs as a supervisord service inside containers. The `openclaw` layer provides the npm package, and `openclaw-sway-browser` combines it with a full Sway desktop, Chrome browser, and VNC server for browser-based workflows like OAuth and web automation.
+
+The gateway listens on port 18789 (WebSocket + HTTP). All CLI commands (`openclaw *`) connect to the gateway WebSocket. The Control UI is served at the gateway root URL. Config is stored in `~/.openclaw/openclaw.json` (JSON5 format).
+
+## Quick Reference
+
+| Action | Command | Description |
+|--------|---------|-------------|
+| Gateway health | `openclaw health` | Check gateway connectivity |
+| Gateway status | `openclaw status --all` | Full status with channels |
+| Model status | `openclaw models status` | Show model, auth, and usage |
+| Browser status | `openclaw browser status` | Show browser connection state |
+| Browser tabs | `openclaw browser tabs` | List open Chrome tabs |
+| Open URL | `openclaw browser open <url>` | Open URL in Chrome |
+| Page snapshot | `openclaw browser snapshot` | Accessible page structure (AI refs) |
+| Screenshot | `openclaw browser screenshot` | Capture PNG to media dir |
+| Config get/set | `openclaw config get/set <key> <val>` | Read/write config values |
+| Doctor | `openclaw doctor --fix` | Health checks + auto-fixes |
+| Security audit | `openclaw security audit` | Check security posture |
+| Channel login | `openclaw channels login --channel <ch>` | Connect a messaging channel |
+| Agent message | `openclaw agent --agent main --message "..."` | Send test prompt |
+| Setup wizard | `openclaw configure` | Interactive config wizard |
+| Logs | `openclaw logs --follow` | Tail gateway logs |
+
+For container lifecycle, use `ov` commands -- see `/ov:service`.
+
+## Overthink Integration
+
+### Layer
+
+The `openclaw` layer (`layers/openclaw/`) depends on `nodejs` and `supervisord`. It installs the `openclaw` npm package globally, exposes port 18789, declares a `data` volume at `~/.openclaw`, and runs as a supervisord service:
+
+```
+[program:openclaw]
+command=%(ENV_HOME)s/.npm-global/bin/openclaw gateway --port 18789 --bind lan
+```
+
+### Image
+
+The `openclaw-sway-browser` image combines `openclaw` + `sway-desktop` on a Fedora base:
+
+| Port | Service | Protocol |
+|------|---------|----------|
+| 18789 | Gateway WebSocket + Control UI | HTTP |
+| 5900 | VNC (wayvnc) | TCP |
+| 9222 | Chrome DevTools | HTTP |
+
+Tunnel config exposes all ports via Tailscale (`ports: all`). Platform: linux/amd64 only.
+
+### Host Alias
+
+```bash
+ov alias add openclaw openclaw-sway-browser
+# Now: openclaw --help  (runs inside the container)
+```
+
+### Lifecycle
+
+```bash
+ov build openclaw-sway-browser         # Build image
+ov enable openclaw-sway-browser        # Generate quadlet, daemon-reload
+ov start openclaw-sway-browser         # Start via systemd
+ov stop openclaw-sway-browser          # Stop
+ov status openclaw-sway-browser        # Check systemd status
+ov logs openclaw-sway-browser -f       # Follow container logs
+```
+
+## Gateway Configuration
+
+### Required Settings for Container Use
+
+When the gateway runs inside an Overthink container with `--bind lan`, two config values must be set before the gateway will start:
+
+```bash
+openclaw config set gateway.mode local
+openclaw config set gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback true
+```
+
+Without `gateway.mode=local`, the gateway refuses to start. Without the origin fallback, non-loopback binding is rejected by the Control UI CORS check.
+
+After setting these, restart the gateway:
+
+```bash
+supervisorctl restart openclaw
+```
+
+### Auth Modes
+
+| Mode | Description |
+|------|-------------|
+| `none` | No auth (loopback only) |
+| `token` | Bearer token in WebSocket handshake |
+| `password` | Password auth |
+| `trusted-proxy` | Proxy handles auth (e.g., Tailscale identity headers) |
+
+### Bind Modes
+
+| Mode | Description |
+|------|-------------|
+| `loopback` | 127.0.0.1 only (default) |
+| `lan` | All interfaces (0.0.0.0) -- requires auth |
+| `tailnet` | Tailscale interface only |
+
+### Health Checks
+
+```bash
+openclaw health --json                 # Gateway health
+openclaw doctor --fix                  # Diagnose and fix issues
+openclaw status --all --deep           # Full status with channels
+# HTTP endpoints on gateway port:
+# GET /healthz  -- liveness
+# GET /readyz   -- readiness
+```
+
+## Model Configuration
+
+### Primary Model + Fallbacks
+
+```json5
+// In ~/.openclaw/openclaw.json
+agents: {
+  defaults: {
+    model: {
+      primary: "openai-codex/gpt-5.4",
+      fallbacks: ["anthropic/claude-sonnet-4-5"]
+    }
+  }
+}
+```
+
+### OAuth Auth (OpenAI Codex)
+
+```bash
+# Interactive OAuth flow (requires --tty for PTY)
+ov shell openclaw-sway-browser --tty -c \
+  "openclaw models auth login --provider openai-codex --set-default"
+```
+
+The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container. Tokens are stored in `~/.openclaw/agents/<id>/agent/auth-profiles.json` and persist in the `data` volume.
+
+For browser-assisted OAuth (Google sign-in), see the OAuth example in `/ov:cdp`.
+
+### Checking Model Status
+
+```bash
+openclaw models status
+# Shows: provider, model, auth profiles, token expiry, usage quotas
+```
+
+### Model Failover
+
+Two-stage failure handling:
+1. **Auth profile rotation**: cycles credentials for current provider
+2. **Model fallback**: switches to next model in fallback chain
+
+Backoff: 1min -> 5min -> 25min -> 1hr (capped). Auth profiles pin per session and reset on `/new` or compaction.
+
+### Custom Providers
+
+```json5
+models: {
+  providers: {
+    "my-local": {
+      baseUrl: "http://localhost:4000/v1",
+      api: "openai-completions",
+      models: [{ id: "my-model", contextWindow: 128000, maxTokens: 32000 }]
+    }
+  }
+}
+```
+
+## Browser Integration
+
+### Connecting to Existing Chrome
+
+In `openclaw-sway-browser`, Chrome already runs as a supervisord service on port 9222. OpenClaw must connect to it rather than launching a new instance:
+
+```bash
+openclaw config set browser.cdpUrl "http://127.0.0.1:9222"
+supervisorctl restart openclaw
+```
+
+Do **not** use `openclaw browser start` in this image -- it attempts to launch a separate Chrome instance that fails without Wayland environment variables.
+
+After configuration, verify:
+
+```bash
+openclaw browser status    # Should show running: true, cdpPort: 9222
+openclaw browser tabs      # Lists open Chrome tabs
+```
+
+### Browser Commands
+
+```bash
+openclaw browser open https://example.com        # Open URL in new tab
+openclaw browser navigate https://other.com       # Navigate current tab
+openclaw browser snapshot                          # AI-accessible page structure
+openclaw browser snapshot --format aria            # Accessibility tree
+openclaw browser screenshot                        # PNG to media dir
+openclaw browser screenshot --full-page            # Full page capture
+openclaw browser click 12                          # Click element by AI ref
+openclaw browser type 23 "hello" --submit          # Type + submit
+openclaw browser press Enter                       # Key press
+openclaw browser hover 44                          # Hover element
+openclaw browser fill --fields '[{"ref":"1","value":"Ada"}]'
+openclaw browser wait --text "Done"                # Wait for text
+openclaw browser wait --url "**/dashboard"         # Wait for URL pattern
+openclaw browser evaluate --fn '(el) => el.textContent' --ref 7
+openclaw browser console --level error             # Console messages
+openclaw browser cookies                           # Read cookies
+openclaw browser pdf                               # Save page as PDF
+```
+
+### Snapshot System
+
+Snapshots provide element references for interaction:
+- **AI snapshot** (default): numeric refs (`click 12`, `type 23 "text"`)
+- **Role snapshot** (`--interactive`): e-prefixed refs (`click e12`)
+- **Efficient preset** (`--efficient`): compact + interactive + depth reduction
+- Refs reset after navigation -- always re-snapshot before interacting
+
+### Browser Profiles
+
+```json5
+browser: {
+  profiles: {
+    openclaw: { cdpPort: 18800 },                           // managed (default)
+    user: { driver: "existing-session", attachOnly: true },  // attach to running Chrome
+    remote: { cdpUrl: "http://10.0.0.42:9222" },            // remote CDP
+    cloud: { cdpUrl: "wss://connect.browserbase.com?apiKey=<KEY>" }
+  }
+}
+```
+
+## Agent Configuration
+
+### Defaults
+
+```json5
+agents: {
+  defaults: {
+    workspace: "~/.openclaw/workspace",
+    maxConcurrent: 4,
+    compaction: { mode: "safeguard" },
+    subagents: { maxConcurrent: 8, maxChildrenPerAgent: 5, maxSpawnDepth: 1 },
+    tools: { profile: "coding" },     // coding|minimal|messaging|full
+    elevatedDefault: "off"             // off|on|ask|full
+  }
+}
+```
+
+### Bootstrap Files
+
+Placed in the agent workspace, injected on first session turn:
+- `AGENTS.md` -- operating instructions and memory
+- `SOUL.md` -- persona, boundaries, tone
+- `TOOLS.md` -- user-maintained tool documentation
+- `IDENTITY.md` -- agent name and characteristics
+
+### Multi-Agent Routing
+
+```json5
+agents: {
+  list: [
+    { id: "main", default: true, name: "Main", model: "openai-codex/gpt-5.4" },
+    { id: "home", name: "Home Assistant", model: "anthropic/claude-sonnet-4-5" }
+  ],
+  bindings: [
+    { agentId: "home", match: { channel: "telegram", peer: { id: "123" } } }
+  ]
+}
+```
+
+## Channel Setup
+
+### Supported Channels
+
+WhatsApp, Telegram, Discord, Slack, Signal, Google Chat, Mattermost, iMessage, IRC, Microsoft Teams, BlueBubbles.
+
+### DM Policies
+
+| Policy | Description |
+|--------|-------------|
+| `pairing` | Unknown senders get approval code (default) |
+| `allowlist` | Only pre-approved senders |
+| `open` | Accept all (requires `allowFrom: ["*"]`) |
+| `disabled` | Ignore all DMs |
+
+### Quick Channel Setup
+
+```bash
+# Connect WhatsApp (QR code linking)
+openclaw channels login --channel whatsapp
+
+# Connect Telegram (requires bot token from BotFather)
+openclaw config set channels.telegram.botToken "BOT_TOKEN"
+openclaw channels login --channel telegram
+
+# Connect Discord (requires bot token)
+openclaw config set channels.discord.token "BOT_TOKEN"
+
+# Check channel status
+openclaw channels status --probe
+```
+
+## Key Config Paths
+
+| Path | Purpose |
+|------|---------|
+| `~/.openclaw/openclaw.json` | Main config (JSON5) |
+| `~/.openclaw/agents/<id>/agent/auth-profiles.json` | Model auth tokens |
+| `~/.openclaw/agents/<id>/sessions/` | Session data |
+| `~/.openclaw/workspace/` | Agent workspace |
+| `~/.openclaw/media/browser/` | Browser screenshots |
+| `~/.openclaw/logs/` | Audit logs |
+| `/tmp/openclaw/openclaw-YYYY-MM-DD.log` | Gateway runtime log |
+
+## Troubleshooting
+
+### Gateway won't start
+
+Check supervisord: `supervisorctl status openclaw`. If cycling between STARTING and STOPPED:
+
+```bash
+# Run manually to see error output
+supervisorctl stop openclaw
+timeout 15 openclaw gateway --port 18789 --bind lan
+```
+
+Common fixes:
+- `gateway.mode` not set -> `openclaw config set gateway.mode local`
+- Control UI origin error -> `openclaw config set gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback true`
+
+### Browser not connected
+
+If `openclaw browser status` shows `running: false`:
+
+```bash
+openclaw config set browser.cdpUrl "http://127.0.0.1:9222"
+supervisorctl restart openclaw
+```
+
+### OAuth flow
+
+Use the browser automation flow from `/ov:cdp`. Key: `--tty` for interactive CLI, Chrome DevTools for callback handling.
+
+## Cross-References
+
+- `/ov:cdp` -- `ov cdp` CDP commands (lower-level container-external automation)
+- `/ov:deploy` -- Quadlet, tunnels, bind mounts, VNC password
+- `/ov:service` -- `ov start/stop/enable/disable/status/logs/update/remove`
+- `/ov:vnc` -- VNC desktop automation and password management
+- `/ov:alias` -- Host command aliases (`ov alias add openclaw`)
+- `/ov:shell` -- `ov shell --tty` for interactive container commands
+
+## When to Use This Skill
+
+Use when the user asks about:
+
+- OpenClaw configuration or setup
+- Gateway startup, health, or troubleshooting
+- Model providers, codex auth, or API keys
+- OpenClaw browser automation (`openclaw browser *`)
+- Messaging channel configuration (WhatsApp, Telegram, Discord, etc.)
+- Agent configuration, multi-agent routing, or subagents
+- "How do I configure openclaw?"
+- "How do I connect a messaging channel?"
+- The `openclaw-sway-browser` image

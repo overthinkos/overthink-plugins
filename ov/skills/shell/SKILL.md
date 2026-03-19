@@ -1,0 +1,173 @@
+---
+name: shell
+description: |
+  Shell and execution: ov shell command with all flags.
+  Use when running interactive shells, executing commands in containers,
+  or configuring workspace mounts, TTY allocation, and port relay.
+---
+
+# Shell - Shell & Execution
+
+## Overview
+
+`ov shell` runs an interactive shell or executes commands inside containers. Supports workspace mounting, device auto-detection, environment injection, and TTY allocation for automation tools.
+
+## Quick Reference
+
+| Action | Command | Description |
+|--------|---------|-------------|
+| Interactive shell | `ov shell <image>` | Bash shell in container |
+| With workspace | `ov shell <image> -w ~/project` | Mount directory at /workspace |
+| Run command | `ov shell <image> -c "cmd"` | Execute command and exit |
+| Force TTY | `ov shell <image> --tty -c "cmd"` | PTY allocation for automation |
+| Specific version | `ov shell <image> --tag v1.0.0` | Use specific image tag |
+| No devices | `ov shell <image> --no-autodetect` | Disable device auto-detection |
+| Set env var | `ov shell <image> -e KEY=VALUE` | Inject environment variable |
+| Load env file | `ov shell <image> --env-file .env` | Load env from file |
+| Named instance | `ov shell <image> -i runner-1` | Use named instance |
+| Force build | `ov shell <image> --build` | Build locally before running |
+| Remote ref | `ov shell github.com/org/repo/app` | Pull and run remote image |
+
+## How It Works
+
+1. Resolves image reference (local images.yml or remote `github.com/...`)
+2. Ensures image exists in run engine (transfers from build engine if needed)
+3. Resolves volumes, bind mounts, ports, security, environment
+4. If container is already running: `<engine> exec` into it
+5. If not running: `<engine> run` with full configuration
+
+## Workspace Mounting
+
+```bash
+ov shell <image> -w ~/project    # Mounts ~/project at /workspace
+ov shell <image>                 # Mounts current directory at /workspace
+```
+
+The `-w` directory is bind-mounted at `/workspace` inside the container. If a `.env` file exists in the workspace directory, it is auto-loaded.
+
+## --tty Flag
+
+Forces TTY allocation even when stdout is not a terminal. Uses `script(1)` from util-linux to provide a real PTY.
+
+```bash
+# Without --tty: "not a tty" errors from interactive commands
+ov shell my-app -c "interactive-cli auth login"       # fails in CI/automation
+
+# With --tty: script(1) wraps the command in a PTY
+ov shell my-app --tty -c "interactive-cli auth login"  # works everywhere
+```
+
+Essential for automation tools (Claude Code, CI runners) where stdout is a pipe, not a terminal. Many interactive CLI commands (OAuth flows, prompts) require a TTY.
+
+Works for both new containers (`<engine> run`) and exec into running containers (`<engine> exec`).
+
+## Exec Into Running Containers
+
+When `ov shell` detects the container is already running (via `<engine> inspect`), it uses `<engine> exec` instead of `<engine> run`. The same flags work:
+
+```bash
+ov start my-app                            # Start background service
+ov shell my-app -c "cat /etc/hostname"     # Exec into running container
+ov shell my-app                            # Interactive shell in running container
+```
+
+## Port Relay
+
+The `port_relay` field in layer.yml solves the problem of services that bind only to 127.0.0.1 inside the container (e.g., Chrome 146+ DevTools). Container port mappings only forward to interfaces visible from outside, so a loopback-only service is unreachable from the host.
+
+```yaml
+# In layer.yml:
+port_relay:
+  - 9222
+```
+
+How it works:
+- socat binds to `eth0:<port>` and forwards to `127.0.0.1:<port>`
+- A supervisord service is auto-generated with priority 1 (starts before other services)
+- The socat layer is automatically added as a dependency
+
+This makes loopback-only services accessible through normal podman/docker port mappings and `tailscale serve`.
+
+Source: `ov/generate.go` (relay service generation), `ov/layers.go` (`PortRelayYAML`).
+
+## Device Auto-Detection
+
+By default, `ov shell` auto-detects available host devices and passes them through. Use `--no-autodetect` to disable.
+
+**Auto-detected devices:**
+- NVIDIA GPU (via `nvidia-smi`) -- `--gpus all` (Docker) or `--device nvidia.com/gpu=all` (Podman)
+- `/dev/dri/renderD*` -- GPU render nodes
+- `/dev/kvm` -- KVM virtualization
+- `/dev/vhost-net`, `/dev/vhost-vsock` -- virtio networking
+- `/dev/fuse` -- FUSE filesystem
+- `/dev/net/tun` -- TUN/TAP networking
+- `/dev/hwrng` -- hardware RNG
+
+Source: `ov/devices.go` (`DetectHostDevices`, `DetectGPU`).
+
+## Environment Variables
+
+Runtime environment variables are injected from multiple sources. Resolution priority (last wins for duplicate keys):
+
+1. **Deploy config `env:`** (images.yml / deploy.yml) -- lowest priority
+2. **Deploy config `env_file:`** (images.yml / deploy.yml)
+3. **Workspace `.env`** file -- auto-loaded from `-w` directory
+4. **CLI `--env-file`** flag
+5. **CLI `-e`** flags -- highest priority
+
+```bash
+ov shell <image> -e DB_HOST=localhost -e DB_PORT=5432
+ov shell <image> --env-file production.env
+```
+
+`.env` file format (Docker-compatible): `KEY=VALUE`, `KEY="VALUE"`, `KEY='VALUE'`, `KEY` (inherits from host), `#` comments, blank lines ignored.
+
+Source: `ov/envfile.go` (`ParseEnvFile`, `ResolveEnvVars`, `LoadWorkspaceEnv`).
+
+## Remote Image References
+
+`ov shell` accepts remote image references: `github.com/org/repo/image[@version]`.
+
+```bash
+ov shell github.com/org/repo/my-app               # Pull and run
+ov shell github.com/org/repo/my-app@v1.0.0        # Specific version
+ov shell github.com/org/repo/my-app --build        # Force local build
+```
+
+**Registry-first approach:** attempts to pull the pre-built image from the remote project's registry. Falls back to local build (download repo, generate, build). `--build` skips pull and always builds locally.
+
+Source: `ov/remote_image.go`.
+
+## Cross-Engine Image Transfer
+
+When `engine.build` differs from `engine.run`, images are automatically transferred between engines on demand via `<src> save | <dst> load`.
+
+Source: `ov/transfer.go`.
+
+## Container Networking
+
+All containers are connected to a shared `ov` network by default, enabling inter-container DNS resolution by container name. Override with `network: host` in images.yml.
+
+Source: `ov/network.go`.
+
+## Cross-References
+
+- `/ov:service` -- Starting background services before exec
+- `/ov:cdp` -- Chrome DevTools Protocol automation
+- `/ov:sway` -- Sway compositor control
+- `/ov:config` -- Engine and bind address settings
+- `/ov:image` -- Image configuration (ports, volumes, env)
+
+## When to Use This Skill
+
+Use when the user asks about:
+
+- `ov shell` command and its flags
+- Running commands inside containers (`-c`)
+- TTY allocation for automation (`--tty`)
+- Workspace mounting (`-w`)
+- Device auto-detection and GPU passthrough
+- Port relay for loopback-only services
+- Remote image references
+- Environment variable injection
+- "How do I run a shell in a container?"
