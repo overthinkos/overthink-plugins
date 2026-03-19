@@ -192,13 +192,34 @@ When a bind mount has the same name as a layer volume, the bind mount **override
 
 Source: `ov/crypto.go`, `ov/validate.go` (`validateBindMounts`).
 
+## VNC Password for Deployments
+
+For images with wayvnc (VNC on tcp:5900), set a VNC password after enabling:
+
+```bash
+ov enable openclaw-sway-browser
+ov vnc passwd openclaw-sway-browser --generate   # auto-generates password, prints to stdout
+```
+
+Or pre-set via config before deployment:
+
+```bash
+ov config set vnc.password.openclaw-sway-browser mysecret
+ov enable openclaw-sway-browser
+# After container starts, run passwd to configure server-side auth:
+ov vnc passwd openclaw-sway-browser    # uses stored password (no prompt)
+```
+
+See `/overthink:vnc` for full VNC authentication documentation.
+
 ## Cross-References
 
 - `/overthink:service` -- Service lifecycle (start/stop/enable/disable/update/remove)
 - `/overthink:crypto` -- Encrypted storage commands (ov crypto)
+- `/overthink:vnc` -- VNC password setup for desktop containers
 - `/overthink:vm` -- Virtual machine deployment (ov vm)
 - `/overthink:build` -- Building images before deployment
-- `/overthink:config` -- bind_address, run_mode, auto_enable settings
+- `/overthink:config` -- bind_address, run_mode, auto_enable, vnc.password settings
 - `/overthink:image` -- Image configuration
 
 ## When to Use This Skill

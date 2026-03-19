@@ -79,6 +79,15 @@ Auto-detection prefers podman over docker when both are installed.
 | `vm.rootfs` | `OV_VM_ROOTFS` | `ext4` | `ext4`, `xfs`, `btrfs` | Root filesystem type |
 | `vm.transport` | `OV_VM_TRANSPORT` | (empty) | `registry`, `containers-storage`, `oci`, `oci-archive` | Image transport for bootc builds |
 
+### VNC Passwords
+
+| Key | Env Var | Default | Values | Purpose |
+|-----|---------|---------|--------|---------|
+| `vnc.password.<image>` | `VNC_PASSWORD` | (empty) | any string | VNC auth password for image |
+| `vnc.password.<image>-<instance>` | `VNC_PASSWORD` | (empty) | any string | VNC auth password for specific instance |
+
+Set via `ov vnc passwd <image> --generate` or `ov config set vnc.password.<image> <password>`. Stored in `vnc_passwords` map in config file.
+
 ## Resolution Chain
 
 For every key, the resolved value is the first non-empty from:
@@ -140,6 +149,7 @@ Source: `ov/runtime_config.go`.
 - `/overthink:vm` -- VM commands that use vm.* settings
 - `/overthink:crypto` -- Encrypted storage path configuration
 - `/overthink:build` -- Build commands that use engine.build
+- `/overthink:vnc` -- VNC password management (`vnc.password.*` keys)
 
 ## When to Use This Skill
 

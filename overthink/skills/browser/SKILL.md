@@ -175,6 +175,7 @@ Source: `ov/browser.go`, `ov/browser_cdp.go`.
 
 ## Cross-References
 
+- `/overthink:vnc` -- VNC desktop automation (same container, pixel-level interaction)
 - `/overthink:shell` -- Running commands in containers (`--tty` for OAuth flows)
 - `/overthink:service` -- Starting containers (`ov start`, `ov enable`)
 - `/overthink:layer` -- `port_relay` field and Chrome layer configuration

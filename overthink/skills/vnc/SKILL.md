@@ -34,7 +34,7 @@ CLI command -> resolveVNCContainer (engine + container name)
            -> NewVNCClient(address, password) -> RFB handshake -> operation
 ```
 
-Uses `github.com/kward/go-vnc` for RFB protocol (RFC 6143).
+Custom RFC 6143 VNC client implementation (no external dependency). Supports None, VNC auth (DES), and VeNCrypt (TLS + sub-auth) security types.
 
 ## Requirements
 
@@ -94,13 +94,36 @@ ov vnc passwd openclaw-sway-browser              # prompts for password
 ov vnc passwd openclaw-sway-browser --generate   # generates random password, prints to stdout
 ```
 
-Sets up VNC authentication:
-1. Stores password in `ov config` (host side, for automatic auth)
-2. Generates TLS cert/key + RSA key inside container
-3. Writes wayvnc config file with auth enabled
-4. Restarts wayvnc service
+Sets up VNC authentication (VeNCrypt/TLS):
+1. Stores password in `ov config` as `vnc.password.<image>` (host side, for automatic client auth)
+2. Resolves `$HOME` inside container for absolute config paths
+3. Generates self-signed TLS cert+key (valid 3650 days) if not present
+4. Generates RSA key in traditional format (`-traditional` flag for OpenSSL 3.x) if not present
+5. Writes `~/.config/wayvnc/config` with `enable_auth=true` (wayvnc reads this automatically)
+6. Restarts wayvnc supervisord service
 
-After setting a password, all `ov vnc` commands authenticate automatically.
+After setting a password, all `ov vnc` commands authenticate transparently via VeNCrypt/TLS.
+
+### Password Resolution Chain
+
+When connecting, password is resolved in this order:
+1. `VNC_PASSWORD` environment variable (CI/automation override)
+2. `ov config get vnc.password.<image>-<instance>` (instance-specific)
+3. `ov config get vnc.password.<image>` (image-level)
+4. Empty string (no auth — server must allow unauthenticated connections)
+
+```bash
+# One-off password override via env
+VNC_PASSWORD=secret ov vnc screenshot openclaw-sway-browser out.png
+
+# Set password programmatically (alternative to ov vnc passwd)
+ov config set vnc.password.openclaw-sway-browser mysecret
+
+# Instance-specific password
+ov config set vnc.password.openclaw-sway-browser-prod prodpassword
+```
+
+Requires `openssl` inside the container for TLS cert and RSA key generation.
 
 ### Raw RFB
 ```bash
@@ -122,9 +145,13 @@ ov vnc rfb openclaw-sway-browser fbupdate-request                              #
 | JavaScript | Yes (eval/wait) | No |
 | Use case | Web automation | Desktop automation |
 
+Source: `ov/vnc_client.go`, `ov/vnc.go`.
+
 ## Cross-references
 
 - `/overthink:browser` — Chrome browser automation (same container, different protocol)
+- `/overthink:config` — VNC password storage (`vnc.password.<image>` config keys)
 - `/overthink:service` — Managing wayvnc supervisord service
+- `/overthink:deploy` — VNC password setup in deployment workflows
 - `/overthink:shell` — Executing commands inside containers
 - `/overthink:layer` — wayvnc layer configuration (port tcp:5900)
