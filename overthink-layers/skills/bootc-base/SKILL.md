@@ -1,0 +1,40 @@
+---
+name: bootc-base
+description: |
+  Base composition for bootc OS images including SSH, QEMU guest agent, and bootc config.
+  Use when working with bootable container images, VMs, or OS-level configuration.
+---
+
+# bootc-base -- Base composition for bootable container images
+
+## Layer Properties
+
+| Property | Value |
+|----------|-------|
+| Layers (composition) | `sshd`, `qemu-guest-agent`, `bootc-config` |
+| Install files | none (pure composition) |
+
+## Usage
+
+```yaml
+# images.yml
+my-os:
+  layers:
+    - bootc-base
+```
+
+## Related Layers
+
+- `/overthink-layers:sshd` -- SSH server (included)
+- `/overthink-layers:qemu-guest-agent` -- QEMU guest agent (included)
+- `/overthink-layers:bootc-config` -- bootc system configuration (included)
+- `/overthink-layers:ov-full` -- often paired for full VM toolchain
+
+## When to Use This Skill
+
+Use when the user asks about:
+
+- Bootable container (bootc) image setup
+- VM base image composition
+- OS-level image configuration
+- SSH + QEMU guest agent setup

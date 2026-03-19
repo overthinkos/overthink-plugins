@@ -1,0 +1,70 @@
+---
+name: ollama
+description: |
+  Standalone Ollama LLM inference server with CUDA GPU support.
+  Runs as a supervisord service on port 11434 with persistent model storage.
+  Use when working with Ollama, LLM serving, or model management.
+---
+
+# ollama
+
+GPU-accelerated Ollama LLM inference server.
+
+## Image Properties
+
+| Property | Value |
+|----------|-------|
+| Base | nvidia |
+| Layers | ollama |
+| Platforms | linux/amd64 |
+| Ports | 11434 |
+| Registry | ghcr.io/overthinkos |
+
+## Full Layer Stack
+
+1. `fedora` → `nvidia` (CUDA base)
+2. `pixi` → `python` → `supervisord` (transitive)
+3. `ollama` — LLM server, models volume
+
+## Ports
+
+| Port | Service | Protocol |
+|------|---------|----------|
+| 11434 | Ollama API | HTTP |
+
+## Volumes
+
+| Name | Path | Purpose |
+|------|------|---------|
+| models | ~/.ollama | Model storage |
+
+## Quick Start
+
+```bash
+ov build ollama
+ov start ollama
+ov shell ollama -c "ollama pull llama3"
+ov shell ollama -c "ollama run llama3 'Hello'"
+```
+
+## Host Alias
+
+```bash
+ov alias install ollama
+# Now: ollama pull llama3  (runs inside the container)
+```
+
+## Key Layers
+
+- `/overthink-layers:ollama` — Ollama binary, supervisord service, model volume
+- `/overthink-layers:cuda` — GPU support (via nvidia base)
+
+## Related Images
+
+- `/overthink-images:nvidia` — parent (GPU without Ollama)
+- `/overthink-images:openclaw-ollama` — OpenClaw gateway + Ollama
+- `/overthink-images:openclaw-ollama-sway-browser` — full stack with desktop
+
+## When to Use This Skill
+
+Use when the user asks about the ollama image, LLM model serving, running models locally, or the standalone Ollama deployment.

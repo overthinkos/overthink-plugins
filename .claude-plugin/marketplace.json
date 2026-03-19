@@ -31,6 +31,30 @@
       "license": "MIT",
       "keywords": ["overthink", "development", "go", "testing", "enforcement"],
       "category": "development"
+    },
+    {
+      "name": "overthink-layers",
+      "source": "./overthink-layers",
+      "description": "Reference documentation for all 61 Overthink container layers",
+      "version": "1.0.0",
+      "author": { "name": "overthinkos" },
+      "homepage": "https://github.com/overthinkos/overthink",
+      "repository": "https://github.com/overthinkos/overthink-plugins",
+      "license": "MIT",
+      "keywords": ["overthink", "containers", "layers", "reference"],
+      "category": "productivity"
+    },
+    {
+      "name": "overthink-images",
+      "source": "./overthink-images",
+      "description": "Reference documentation for all 16 Overthink container images",
+      "version": "1.0.0",
+      "author": { "name": "overthinkos" },
+      "homepage": "https://github.com/overthinkos/overthink",
+      "repository": "https://github.com/overthinkos/overthink-plugins",
+      "license": "MIT",
+      "keywords": ["overthink", "containers", "images", "reference"],
+      "category": "productivity"
     }
   ]
 }
