@@ -31,7 +31,7 @@ description: |
 
 ### Layer Rules
 
-- Layer directory must contain at least one install file
+- Layer directory must contain at least one install file (`layer.yml` rpm/deb, `root.yml`, `pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, `Cargo.toml`, or `user.yml`) **or** a `layers:` field in `layer.yml` (pure composition)
 - `depends` must reference existing layers (local or remote)
 - Circular dependencies are errors
 - `volumes` names must match `^[a-z0-9]+(-[a-z0-9]+)*$`

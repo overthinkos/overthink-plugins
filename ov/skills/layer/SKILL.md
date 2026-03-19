@@ -36,6 +36,8 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 
 **Root vs User Rule:** System packages in `layer.yml` and `root.yml` run as root. Everything else runs as user. Pixi, npm, and cargo must never run as root.
 
+**Auto-detection:** The build system scans each layer directory for these files. `package.json`, `pixi.toml`, `pyproject.toml`, `environment.yml`, and `Cargo.toml` trigger automatic multi-stage builds -- no manual install commands needed. Only use `root.yml`/`user.yml` for things that can't be expressed as package manifests (binary downloads, `go install`, post-install configuration).
+
 ## layer.yml Fields
 
 | Field | Type | Purpose |
@@ -125,6 +127,25 @@ depends:
   - supervisord
 ```
 
+## depends vs layers
+
+`depends` and `layers` serve different purposes:
+
+| | `depends` | `layers` |
+|---|---|---|
+| Purpose | Prerequisite ordering | Group composition |
+| Effect | Ensures dependency is installed first | Splices layers into this layer's position |
+| Transitive | Yes -- pulls in all sub-dependencies | Yes -- recursively expands nested `layers:` |
+| Typical use | Runtime/build prerequisites | Metalayers, layer bundles |
+
+**Examples:**
+
+- Go tool layer -- needs Go compiler as prerequisite: `depends: [golang]`
+- Python package layer -- needs Python runtime (not pixi!): `depends: [python]`
+- Metalayer -- groups existing layers, no install logic: `layers: [openclaw, chrome, claude-code]`
+
+**Common mistake:** Using `depends: [pixi]` when you mean `depends: [python]`. The `pixi` layer installs the pixi binary (build tool). The `python` layer installs Python via pixi. Your layer needs Python, not pixi.
+
 ## Environment Variables
 
 ```yaml
@@ -209,7 +230,59 @@ ov new layer my-tool
 
 ### Add Python Packages
 
-Create `layers/my-tool/pixi.toml` with dependencies. The build system handles multi-stage builds automatically via the configured builder image.
+Create `pixi.toml` in the layer directory. The build system handles multi-stage builds automatically. For packages not on conda-forge, use `[pypi-dependencies]`.
+
+**layer.yml must depend on `python`, not `pixi`:**
+
+```yaml
+depends:
+  - python    # Runtime dependency (Python interpreter)
+              # NOT pixi (build tool, only in builder image)
+```
+
+Never use `pip install`, `conda install`, `pixi global install`, or `uv tool install` in `user.yml`. Always use `pixi.toml`.
+
+### Add npm Packages
+
+Create `package.json` in the layer directory. The build system runs `npm install -g` automatically in a multi-stage build.
+
+```json
+{
+  "name": "my-tool-layer",
+  "version": "1.0.0",
+  "dependencies": {
+    "my-npm-package": "*"
+  }
+}
+```
+
+**layer.yml must depend on `nodejs`:**
+
+```yaml
+depends:
+  - nodejs
+```
+
+Do not create `root.yml` with `npm install -g` commands -- `package.json` handles this automatically.
+
+### Add Go Packages
+
+Use `user.yml` with `go install` (Go has no declarative manifest for global installs).
+
+**layer.yml:**
+
+```yaml
+depends:
+  - golang
+
+env:
+  GOPATH: "~/go"
+
+path_append:
+  - "~/go/bin"
+```
+
+**cgo dependencies:** If the Go package uses C libraries (cgo), add required `-devel` packages to `rpm:`. Check build errors for `pkg-config` failures (e.g., `alsa-lib-devel` for audio). Always run `go clean -cache` at the end to reduce image size.
 
 ### Add a Service
 
