@@ -40,7 +40,7 @@ Custom RFC 6143 VNC client implementation (no external dependency). Supports Non
 
 - Container must include the `wayvnc` layer (port tcp:5900)
 - Container must be running (`ov start` or `ov enable`)
-- Wayland compositor must be active (sway, cage, or niri)
+- Wayland compositor must be active (sway)
 
 ## Commands
 
@@ -133,10 +133,10 @@ ov vnc rfb openclaw-sway-browser cut-text '{"text": "clipboard"}'              #
 ov vnc rfb openclaw-sway-browser fbupdate-request                              # get dimensions
 ```
 
-## Differences from Browser Commands
+## Differences from CDP Commands
 
-| Aspect | `ov browser` (CDP) | `ov vnc` (RFB) |
-|--------|-------------------|----------------|
+| Aspect | `ov cdp` (CDP) | `ov vnc` (RFB) |
+|--------|----------------|----------------|
 | Protocol | WebSocket JSON | Binary TCP |
 | Scope | Browser tabs | Whole desktop |
 | Click | CSS selector | x,y coordinates |
@@ -149,7 +149,8 @@ Source: `ov/vnc_client.go`, `ov/vnc.go`.
 
 ## Cross-references
 
-- `/overthink:browser` — Chrome browser automation (same container, different protocol)
+- `/overthink:cdp` — Chrome DevTools Protocol automation (same container, different protocol)
+- `/overthink:sway` — Sway compositor control (window management, workspaces)
 - `/overthink:config` — VNC password storage (`vnc.password.<image>` config keys)
 - `/overthink:service` — Managing wayvnc supervisord service
 - `/overthink:deploy` — VNC password setup in deployment workflows

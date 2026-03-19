@@ -201,7 +201,7 @@ Source: `ov/seed.go`.
 
 - `/overthink:shell` -- Interactive shells and exec into running containers
 - `/overthink:deploy` -- Quadlet generation details, tunnels, bind mounts
-- `/overthink:crypto` -- Encrypted storage companion service
+- `/overthink:enc` -- Encrypted storage companion service
 - `/overthink:config` -- `run_mode`, `auto_enable`, `engine.run` settings
 
 ## When to Use This Skill

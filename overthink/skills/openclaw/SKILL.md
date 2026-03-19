@@ -152,7 +152,7 @@ ov shell openclaw-sway-browser --tty -c \
 
 The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container. Tokens are stored in `~/.openclaw/agents/<id>/agent/auth-profiles.json` and persist in the `data` volume.
 
-For browser-assisted OAuth (Google sign-in), see the OAuth example in `/overthink:browser`.
+For browser-assisted OAuth (Google sign-in), see the OAuth example in `/overthink:cdp`.
 
 ### Checking Model Status
 
@@ -356,11 +356,11 @@ supervisorctl restart openclaw
 
 ### OAuth flow
 
-Use the browser automation flow from `/overthink:browser`. Key: `--tty` for interactive CLI, Chrome DevTools for callback handling.
+Use the browser automation flow from `/overthink:cdp`. Key: `--tty` for interactive CLI, Chrome DevTools for callback handling.
 
 ## Cross-References
 
-- `/overthink:browser` -- `ov browser` CDP commands (lower-level container-external automation)
+- `/overthink:cdp` -- `ov cdp` CDP commands (lower-level container-external automation)
 - `/overthink:deploy` -- Quadlet, tunnels, bind mounts, VNC password
 - `/overthink:service` -- `ov start/stop/enable/disable/status/logs/update/remove`
 - `/overthink:vnc` -- VNC desktop automation and password management

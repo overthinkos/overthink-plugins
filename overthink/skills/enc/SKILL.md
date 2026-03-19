@@ -1,25 +1,25 @@
 ---
-name: crypto
+name: enc
 description: |
-  Encrypted storage: ov crypto init/mount/unmount/status/passwd commands.
+  Encrypted storage: ov enc init/mount/unmount/status/passwd commands.
   Use when working with gocryptfs encrypted bind mounts.
 ---
 
-# Crypto - Encrypted Storage
+# Enc - Encrypted Storage
 
 ## Overview
 
-`ov crypto` manages gocryptfs-encrypted bind mounts for container images. Encrypted volumes store sensitive data (credentials, keys, configs) with transparent encryption at rest. The cipher directory lives on disk; the plain directory is mounted on demand.
+`ov enc` manages gocryptfs-encrypted bind mounts for container images. Encrypted volumes store sensitive data (credentials, keys, configs) with transparent encryption at rest. The cipher directory lives on disk; the plain directory is mounted on demand.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Initialize | `ov crypto init <image>` | Create gocryptfs cipher directories |
-| Mount | `ov crypto mount <image>` | Mount encrypted volumes |
-| Unmount | `ov crypto unmount <image>` | Unmount encrypted volumes |
-| Status | `ov crypto status <image>` | Show mount status |
-| Change password | `ov crypto passwd <image>` | Change encryption password |
+| Initialize | `ov enc init <image>` | Create gocryptfs cipher directories |
+| Mount | `ov enc mount <image>` | Mount encrypted volumes |
+| Unmount | `ov enc unmount <image>` | Unmount encrypted volumes |
+| Status | `ov enc status <image>` | Show mount status |
+| Change password | `ov enc passwd <image>` | Change encryption password |
 
 All commands accept `--volume NAME` to target a specific volume (otherwise all encrypted volumes are affected).
 
@@ -56,8 +56,8 @@ Override base path: `ov config set encrypted_storage_path /path/to/storage` or `
 ### Initialize
 
 ```bash
-ov crypto init my-app                    # Init all encrypted volumes
-ov crypto init my-app --volume secrets   # Init specific volume
+ov enc init my-app                    # Init all encrypted volumes
+ov enc init my-app --volume secrets   # Init specific volume
 ```
 
 Creates cipher directories and initializes gocryptfs. Prompts for password once (cached in kernel keyring for multi-volume images).
@@ -65,8 +65,8 @@ Creates cipher directories and initializes gocryptfs. Prompts for password once 
 ### Mount
 
 ```bash
-ov crypto mount my-app                    # Mount all encrypted volumes
-ov crypto mount my-app --volume secrets   # Mount specific volume
+ov enc mount my-app                    # Mount all encrypted volumes
+ov enc mount my-app --volume secrets   # Mount specific volume
 ```
 
 Prompts for password (or reuses from keyring). The plain directory becomes available for container bind mounts.
@@ -74,14 +74,14 @@ Prompts for password (or reuses from keyring). The plain directory becomes avail
 ### Unmount
 
 ```bash
-ov crypto unmount my-app                    # Unmount all
-ov crypto unmount my-app --volume secrets   # Unmount specific
+ov enc unmount my-app                    # Unmount all
+ov enc unmount my-app --volume secrets   # Unmount specific
 ```
 
 ### Status
 
 ```bash
-ov crypto status my-app
+ov enc status my-app
 # secrets: mounted
 # configs: not mounted
 ```
@@ -89,19 +89,19 @@ ov crypto status my-app
 ### Change Password
 
 ```bash
-ov crypto passwd my-app
+ov enc passwd my-app
 ```
 
 Changes the gocryptfs password for all encrypted volumes of an image.
 
 ## Single Password
 
-When an image has multiple encrypted bind mounts, `ov crypto init`, `ov crypto mount`, and the generated crypto systemd unit all use `systemd-ask-password --id=ov-<image>` to cache the passphrase in the kernel keyring. Password is prompted once and reused for all volumes.
+When an image has multiple encrypted bind mounts, `ov enc init`, `ov enc mount`, and the generated crypto systemd unit all use `systemd-ask-password --id=ov-<image>` to cache the passphrase in the kernel keyring. Password is prompted once and reused for all volumes.
 
 ## Integration with Runtime
 
 - **`ov shell`/`ov start` (direct mode)**: resolves bind mounts, verifies encrypted volumes are mounted, appends `-v <plain>:<container-path>` flags
-- **`ov enable` (quadlet mode)**: generates a companion `ov-<image>-crypto.service` with `Requires=`/`After=` dependency. The crypto service mounts volumes before the main container starts
+- **`ov enable` (quadlet mode)**: generates a companion `ov-<image>-enc.service` with `Requires=`/`After=` dependency. The crypto service mounts volumes before the main container starts
 - **`ov remove`**: removes the companion crypto service file. `--volumes` also removes named volumes
 - **`ov seed <image>`**: copies default data from the image into empty bind mount directories (works for both plain and encrypted mounts after mounting)
 - **`ov inspect --format bind_mounts`**: outputs `NAME\tHOST\tPATH\tENCRYPTED`
@@ -134,9 +134,9 @@ bind_mounts:
     path: "~/.myapp"           # Container path
 ```
 
-Plain mounts do not use `ov crypto` commands. They are direct bind mounts.
+Plain mounts do not use `ov enc` commands. They are direct bind mounts.
 
-Source: `ov/crypto.go`, `ov/validate.go` (`validateBindMounts`).
+Source: `ov/enc.go`, `ov/validate.go` (`validateBindMounts`).
 
 ## Cross-References
 
@@ -148,7 +148,7 @@ Source: `ov/crypto.go`, `ov/validate.go` (`validateBindMounts`).
 
 Use when the user asks about:
 
-- `ov crypto` commands (init, mount, unmount, status, passwd)
+- `ov enc` commands (init, mount, unmount, status, passwd)
 - Encrypted bind mounts and gocryptfs
 - Changing encryption passwords
 - Encrypted storage paths

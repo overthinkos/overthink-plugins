@@ -153,7 +153,8 @@ Source: `ov/network.go`.
 ## Cross-References
 
 - `/overthink:service` -- Starting background services before exec
-- `/overthink:browser` -- Browser automation using containers started with shell
+- `/overthink:cdp` -- Chrome DevTools Protocol automation
+- `/overthink:sway` -- Sway compositor control
 - `/overthink:config` -- Engine and bind address settings
 - `/overthink:image` -- Image configuration (ports, volumes, env)
 

@@ -19,7 +19,7 @@ Deployment configuration for container services: quadlet file generation details
 | Seed bind mounts | `ov seed <image>` | Copy image data to empty bind mount dirs |
 | Push to registry | `ov build --push` | Multi-platform push |
 
-For service lifecycle commands (start/stop/enable/disable/status/logs/update/remove), see `/overthink:service`. For VM deployment, see `/overthink:vm`. For encrypted storage, see `/overthink:crypto`.
+For service lifecycle commands (start/stop/enable/disable/status/logs/update/remove), see `/overthink:service`. For VM deployment, see `/overthink:vm`. For encrypted storage, see `/overthink:enc`.
 
 ## Quadlet Generation
 
@@ -186,11 +186,11 @@ When a bind mount has the same name as a layer volume, the bind mount **override
 
 - **`ov seed <image>`**: copies default data from image into empty bind mount directories before first start
 - **`ov shell`/`ov start` (direct)**: resolves bind mounts, verifies plain dirs exist and encrypted volumes are mounted, appends `-v <host>:<container>` flags
-- **`ov enable` (quadlet)**: plain mounts as `Volume=` lines; encrypted mounts generate a companion `ov-<image>-crypto.service` with `Requires=`/`After=`
+- **`ov enable` (quadlet)**: plain mounts as `Volume=` lines; encrypted mounts generate a companion `ov-<image>-enc.service` with `Requires=`/`After=`
 - **`ov remove`**: removes companion crypto service file. `--volumes` also removes named volumes
 - **`ov inspect --format bind_mounts`**: outputs `NAME\tHOST\tPATH\tENCRYPTED`
 
-Source: `ov/crypto.go`, `ov/validate.go` (`validateBindMounts`).
+Source: `ov/enc.go`, `ov/validate.go` (`validateBindMounts`).
 
 ## VNC Password for Deployments
 
@@ -215,7 +215,7 @@ See `/overthink:vnc` for full VNC authentication documentation.
 ## Cross-References
 
 - `/overthink:service` -- Service lifecycle (start/stop/enable/disable/update/remove)
-- `/overthink:crypto` -- Encrypted storage commands (ov crypto)
+- `/overthink:enc` -- Encrypted storage commands (ov enc)
 - `/overthink:vnc` -- VNC password setup for desktop containers
 - `/overthink:vm` -- Virtual machine deployment (ov vm)
 - `/overthink:build` -- Building images before deployment

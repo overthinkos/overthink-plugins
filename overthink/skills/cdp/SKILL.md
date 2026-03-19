@@ -1,33 +1,33 @@
 ---
-name: browser
+name: cdp
 description: |
-  Browser automation: ov browser commands for Chrome DevTools Protocol.
+  Chrome DevTools Protocol: ov cdp commands for CDP automation.
   Use when automating Chrome, interacting with tabs, taking screenshots,
   clicking elements, or running OAuth flows inside containers.
 ---
 
-# Browser - Browser Automation
+# CDP - Chrome DevTools Protocol
 
 ## Overview
 
-`ov browser` commands connect to Chrome DevTools Protocol (CDP) on port 9222 inside running containers. Provides HTTP API operations (open, list, close tabs) and WebSocket CDP operations (click, type, eval, wait, text, html, screenshot) for headless browser automation.
+`ov cdp` commands connect to Chrome DevTools Protocol (CDP) on port 9222 inside running containers. Provides HTTP API operations (open, list, close tabs) and WebSocket CDP operations (click, type, eval, wait, text, html, screenshot) for headless browser automation.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Open URL | `ov browser open <image> <url>` | Open URL in new Chrome tab |
-| List tabs | `ov browser list <image>` | List all open tabs (id, title, url) |
-| Close tab | `ov browser close <image> <tab-id>` | Close a tab by ID |
-| Get text | `ov browser text <image> <tab-id>` | Get page text content |
-| Get HTML | `ov browser html <image> <tab-id>` | Get page HTML source |
-| Get URL | `ov browser url <image> <tab-id>` | Get page title and URL |
-| Screenshot | `ov browser screenshot <image> <tab-id> [file]` | Capture PNG screenshot |
-| Click | `ov browser click <image> <tab-id> <selector>` | Click element by CSS selector |
-| Type | `ov browser type <image> <tab-id> <selector> <text>` | Type into input field |
-| Eval JS | `ov browser eval <image> <tab-id> <expression>` | Evaluate JavaScript |
-| Wait | `ov browser wait <image> <tab-id> <selector>` | Wait for element (--timeout 30s) |
-| Raw CDP | `ov browser cdp <image> <tab-id> <method> [json]` | Send raw CDP command |
+| Open URL | `ov cdp open <image> <url>` | Open URL in new Chrome tab |
+| List tabs | `ov cdp list <image>` | List all open tabs (id, title, url) |
+| Close tab | `ov cdp close <image> <tab-id>` | Close a tab by ID |
+| Get text | `ov cdp text <image> <tab-id>` | Get page text content |
+| Get HTML | `ov cdp html <image> <tab-id>` | Get page HTML source |
+| Get URL | `ov cdp url <image> <tab-id>` | Get page title and URL |
+| Screenshot | `ov cdp screenshot <image> <tab-id> [file]` | Capture PNG screenshot |
+| Click | `ov cdp click <image> <tab-id> <selector>` | Click element by CSS selector |
+| Type | `ov cdp type <image> <tab-id> <selector> <text>` | Type into input field |
+| Eval JS | `ov cdp eval <image> <tab-id> <expression>` | Evaluate JavaScript |
+| Wait | `ov cdp wait <image> <tab-id> <selector>` | Wait for element (--timeout 30s) |
+| Raw CDP | `ov cdp raw <image> <tab-id> <method> [json]` | Send raw CDP command |
 
 All commands accept `-i INSTANCE` for multi-instance support.
 
@@ -51,7 +51,7 @@ The `port_relay` is essential because Chrome 146+ binds DevTools only to 127.0.0
 ### Open a URL
 
 ```bash
-ov browser open my-app "https://example.com"
+ov cdp open my-app "https://example.com"
 ```
 
 Uses HTTP API: `PUT /json/new?url=<encoded-url>`. Returns the new tab ID.
@@ -59,7 +59,7 @@ Uses HTTP API: `PUT /json/new?url=<encoded-url>`. Returns the new tab ID.
 ### List Tabs
 
 ```bash
-ov browser list my-app
+ov cdp list my-app
 # ID                                    TITLE                URL
 # 7F8A3B2C...                          Example Domain       https://example.com/
 ```
@@ -69,7 +69,7 @@ Uses HTTP API: `GET /json/list`.
 ### Close a Tab
 
 ```bash
-ov browser close my-app 7F8A3B2C...
+ov cdp close my-app 7F8A3B2C...
 ```
 
 Uses HTTP API: `GET /json/close/<id>`.
@@ -77,9 +77,9 @@ Uses HTTP API: `GET /json/close/<id>`.
 ### Get Page Content
 
 ```bash
-ov browser text my-app $TAB      # Plain text
-ov browser html my-app $TAB      # HTML source
-ov browser url my-app $TAB       # Title and URL
+ov cdp text my-app $TAB      # Plain text
+ov cdp html my-app $TAB      # HTML source
+ov cdp url my-app $TAB       # Title and URL
 ```
 
 Uses CDP WebSocket: `Runtime.evaluate` with `document.body.innerText` / `document.documentElement.outerHTML`, `Target.getTargetInfo`.
@@ -87,8 +87,8 @@ Uses CDP WebSocket: `Runtime.evaluate` with `document.body.innerText` / `documen
 ### Screenshot
 
 ```bash
-ov browser screenshot my-app $TAB              # Prints base64 to stdout
-ov browser screenshot my-app $TAB page.png     # Saves to file
+ov cdp screenshot my-app $TAB              # Prints base64 to stdout
+ov cdp screenshot my-app $TAB page.png     # Saves to file
 ```
 
 Uses CDP: `Page.captureScreenshot`.
@@ -96,8 +96,8 @@ Uses CDP: `Page.captureScreenshot`.
 ### Click and Type
 
 ```bash
-ov browser click my-app $TAB 'button[type="submit"]'
-ov browser type my-app $TAB 'input[name="email"]' "user@example.com"
+ov cdp click my-app $TAB 'button[type="submit"]'
+ov cdp type my-app $TAB 'input[name="email"]' "user@example.com"
 ```
 
 Click uses CDP: `Runtime.evaluate` to find element, `DOM.getBoxModel` for coordinates, `Input.dispatchMouseEvent` for click. Type uses `DOM.focus` and `Input.dispatchKeyEvent` for each character.
@@ -105,8 +105,8 @@ Click uses CDP: `Runtime.evaluate` to find element, `DOM.getBoxModel` for coordi
 ### Evaluate JavaScript
 
 ```bash
-ov browser eval my-app $TAB 'document.title'
-ov browser eval my-app $TAB 'JSON.stringify(localStorage)'
+ov cdp eval my-app $TAB 'document.title'
+ov cdp eval my-app $TAB 'JSON.stringify(localStorage)'
 ```
 
 Uses CDP: `Runtime.evaluate`. Returns the result value.
@@ -114,8 +114,8 @@ Uses CDP: `Runtime.evaluate`. Returns the result value.
 ### Wait for Element
 
 ```bash
-ov browser wait my-app $TAB 'h1'                    # Default 30s timeout
-ov browser wait my-app $TAB '.loaded' --timeout 60s  # Custom timeout
+ov cdp wait my-app $TAB 'h1'                    # Default 30s timeout
+ov cdp wait my-app $TAB '.loaded' --timeout 60s  # Custom timeout
 ```
 
 Polls with CDP until the CSS selector matches an element.
@@ -123,8 +123,8 @@ Polls with CDP until the CSS selector matches an element.
 ### Raw CDP Command
 
 ```bash
-ov browser cdp my-app $TAB 'Page.navigate' '{"url":"https://example.com"}'
-ov browser cdp my-app $TAB 'Runtime.evaluate' '{"expression":"1+1"}'
+ov cdp raw my-app $TAB 'Page.navigate' '{"url":"https://example.com"}'
+ov cdp raw my-app $TAB 'Runtime.evaluate' '{"expression":"1+1"}'
 ```
 
 Sends arbitrary CDP method with optional JSON params. Returns raw CDP response.
@@ -149,16 +149,16 @@ ov shell openclaw-sway-browser --tty -c \
 
 # 3. Extract OAuth URL, open in container's Chrome via CDP
 OAUTH_URL=$(grep -oP 'https://auth\.openai\.com\S+' /tmp/oauth.log)
-ov browser open openclaw-sway-browser "$OAUTH_URL"
+ov cdp open openclaw-sway-browser "$OAUTH_URL"
 
 # 4. Wait for login page, click "Continue with Google"
-TAB=$(ov browser list openclaw-sway-browser | grep openai | awk '{print $1}')
-ov browser wait openclaw-sway-browser $TAB 'button[value="google"]'
-ov browser click openclaw-sway-browser $TAB 'button[value="google"]'
+TAB=$(ov cdp list openclaw-sway-browser | grep openai | awk '{print $1}')
+ov cdp wait openclaw-sway-browser $TAB 'button[value="google"]'
+ov cdp click openclaw-sway-browser $TAB 'button[value="google"]'
 
 # 5. Wait for consent page, click "Continue"
-ov browser wait openclaw-sway-browser $TAB 'button[type="submit"]'
-ov browser click openclaw-sway-browser $TAB 'button[type="submit"]'
+ov cdp wait openclaw-sway-browser $TAB 'button[type="submit"]'
+ov cdp click openclaw-sway-browser $TAB 'button[type="submit"]'
 
 # 6. OAuth callback hits localhost:1455 inside container
 # Tokens saved to ~/.openclaw volume
@@ -171,10 +171,11 @@ Key enablers:
 - `tailscale serve --tcp=5900` exposes VNC for manual inspection if needed
 - `shm_size: 1g` prevents Chrome from crashing due to /dev/shm exhaustion
 
-Source: `ov/browser.go`, `ov/browser_cdp.go`.
+Source: `ov/cdp.go`, `ov/browser_cdp.go`.
 
 ## Cross-References
 
+- `/overthink:sway` -- Sway compositor control (window management, workspaces)
 - `/overthink:vnc` -- VNC desktop automation (same container, pixel-level interaction)
 - `/overthink:shell` -- Running commands in containers (`--tty` for OAuth flows)
 - `/overthink:service` -- Starting containers (`ov start`, `ov enable`)
@@ -184,7 +185,7 @@ Source: `ov/browser.go`, `ov/browser_cdp.go`.
 
 Use when the user asks about:
 
-- `ov browser` commands
+- `ov cdp` commands
 - Chrome DevTools Protocol automation
 - Taking screenshots of container pages
 - Clicking elements or filling forms

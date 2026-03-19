@@ -11,7 +11,7 @@ Claude Code plugins for the Overthink container image composition system.
 
 ## Plugins
 
-### overthink (6 skills)
+### overthink (16 skills)
 
 Skills for composing, building, and running container images with the `ov` CLI.
 
@@ -23,6 +23,16 @@ Skills for composing, building, and running container images with the `ov` CLI.
 | run | `/overthink:run` | Runtime operations (ov shell, start/stop, aliases) |
 | deploy | `/overthink:deploy` | Deployment (quadlet, bootc, tunnels, encryption) |
 | validate | `/overthink:validate` | Validation rules and error handling (ov validate) |
+| shell | `/overthink:shell` | Shell access (ov shell, --tty, -c, exec) |
+| alias | `/overthink:alias` | Command aliases (ov alias add/remove/install) |
+| config | `/overthink:config` | Runtime configuration (ov config get/set/list) |
+| enc | `/overthink:enc` | Encrypted volumes (ov enc init/mount/unmount) |
+| vm | `/overthink:vm` | Virtual machines (ov vm build/create/start/stop) |
+| service | `/overthink:service` | Supervisord services (ov service start/stop/restart) |
+| cdp | `/overthink:cdp` | Chrome DevTools Protocol (ov cdp open/list/click/eval) |
+| vnc | `/overthink:vnc` | VNC desktop automation (ov vnc screenshot/click/type) |
+| sway | `/overthink:sway` | Sway compositor control (ov sway focus/move/tree/exec) |
+| openclaw | `/overthink:openclaw` | OpenClaw AI gateway configuration |
 
 ### overthink-dev (2 skills, 3 agents, GitHub MCP)
 
@@ -71,7 +81,7 @@ Development tools and enforcement agents for contributors.
 | Component | Count |
 |-----------|-------|
 | Plugins | 2 |
-| Skills | 8 |
+| Skills | 18 |
 | Agents | 3 |
 | MCP Servers | 1 (GitHub) |
 | MCP Tools | 22 |

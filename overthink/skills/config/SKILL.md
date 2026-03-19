@@ -147,7 +147,7 @@ Source: `ov/runtime_config.go`.
 - `/overthink:shell` -- Shell commands that use engine.run
 - `/overthink:service` -- Service lifecycle that uses run_mode
 - `/overthink:vm` -- VM commands that use vm.* settings
-- `/overthink:crypto` -- Encrypted storage path configuration
+- `/overthink:enc` -- Encrypted storage path configuration
 - `/overthink:build` -- Build commands that use engine.build
 - `/overthink:vnc` -- VNC password management (`vnc.password.*` keys)
 
