@@ -1,37 +1,25 @@
 ---
 name: openclaw-sway-browser
 description: |
-  OpenClaw AI gateway with full Sway desktop and Chrome browser.
-  Includes VNC, Chrome DevTools, and Tailscale tunnel support.
-  Use when working with openclaw browser automation or desktop deployments.
+  Maximal OpenClaw deployment with Sway desktop, Chrome, VNC, and all tool layers.
+  Includes all feasible OpenClaw skill dependencies. Use when working with
+  openclaw browser automation, desktop deployments, or full tool coverage.
 ---
 
 # openclaw-sway-browser
 
-OpenClaw gateway with full Wayland desktop, Chrome browser, and VNC access.
+Maximal OpenClaw gateway with full Wayland desktop, Chrome browser, VNC access, and all tool layers for maximum skill coverage.
 
 ## Image Properties
 
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | openclaw, sway-desktop |
+| Layers | openclaw-full (metalayer: 28 layers), sway-desktop |
 | Platforms | linux/amd64 |
 | Ports | 18789, 5900, 9222 |
 | Tunnel | tailscale (all ports) |
 | Registry | ghcr.io/overthinkos |
-
-## Full Layer Stack
-
-1. `fedora` (quay.io/fedora/fedora:43)
-2. `pixi` → `python` → `supervisord` (transitive)
-3. `nodejs` (transitive)
-4. `openclaw` — gateway on :18789
-5. `dbus` → `sway` (transitive via sway-desktop)
-6. `pipewire` — audio server
-7. `wayvnc` — VNC on :5900
-8. `socat` → `chrome` → `chrome-sway` — Chrome on :9222
-9. `xfce4-terminal`, `thunar`, `waybar` — desktop apps
 
 ## Ports
 
@@ -41,28 +29,33 @@ OpenClaw gateway with full Wayland desktop, Chrome browser, and VNC access.
 | 5900 | VNC (wayvnc) | TCP |
 | 9222 | Chrome DevTools | HTTP |
 
-## Tunnel
+## Included Tools
 
-Tailscale tunnel configured with `ports: all` — exposes all three ports via Tailscale serve.
+npm: codex, gemini, clawhub, mcporter, oracle, xurl, summarize, playwright, claude-code
+Go: blogwatcher, gifgrep, wacli, goplaces, songsee, sag, camsnap, gogcli, ordercli
+Cargo: himalaya
+Python: uv, nano-pdf
+RPM: gh, git, tmux, ffmpeg, ripgrep, sqlite
 
 ## Quick Start
 
 ```bash
 ov build openclaw-sway-browser
-ov enable openclaw-sway-browser    # Deploy with quadlet + tunnel
 ov start openclaw-sway-browser
+# Gateway at http://localhost:18789
+# VNC desktop at localhost:5900
 ```
 
 ## Key Layers
 
-- `/ov-layers:openclaw` — AI gateway service
-- `/ov-layers:sway-desktop` — full desktop composition (pipewire, wayvnc, chrome-sway, terminal, file manager, waybar)
+- `/ov-layers:openclaw-full` — metalayer composing openclaw + chrome + 26 tool layers
+- `/ov-layers:sway-desktop` — full desktop (pipewire, wayvnc, chrome-sway, terminal, file manager, waybar)
 
 ## Related Images
 
-- `/ov-images:openclaw` — headless (no desktop)
-- `/ov-images:openclaw-ollama-sway-browser` — adds local LLM with Ollama
+- `/ov-images:openclaw` — headless gateway only (minimal)
+- `/ov-images:openclaw-ollama-sway-browser` — adds CUDA, Ollama, Whisper, sherpa-onnx for ML
 
 ## When to Use This Skill
 
-Use when the user asks about openclaw-sway-browser, OpenClaw with browser automation, desktop gateway deployments, or VNC access to OpenClaw.
+Use when the user asks about openclaw-sway-browser, OpenClaw with browser automation, desktop gateway deployments, VNC access, or which tools are included.
