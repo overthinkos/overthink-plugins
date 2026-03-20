@@ -42,6 +42,7 @@ GPU-accelerated Ollama LLM inference server.
 
 ```bash
 ov build ollama
+ov enable ollama
 ov start ollama
 ov shell ollama -c "ollama pull llama3"
 ov shell ollama -c "ollama run llama3 'Hello'"
@@ -64,6 +65,13 @@ ov alias install ollama
 - `/ov-images:nvidia` — parent (GPU without Ollama)
 - `/ov-images:openclaw-ollama` — OpenClaw gateway + Ollama
 - `/ov-images:openclaw-ollama-sway-browser` — full stack with desktop
+
+## Verification
+
+After `ov start`:
+- `ov status ollama` — container running
+- `ov service status ollama` — all supervisord services RUNNING
+- `curl -s http://localhost:11434/api/tags` — Ollama API responds
 
 ## When to Use This Skill
 

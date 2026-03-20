@@ -35,6 +35,12 @@ ov shell fedora
 - `/ov-images:openclaw-sway-browser` — adds OpenClaw + desktop
 - `/ov-images:githubrunner` — adds GitHub Actions runner
 
+## Verification
+
+After `ov build`:
+- `ov list` — image appears in list
+- `ov shell fedora` — interactive shell works
+
 ## When to Use This Skill
 
 Use when the user asks about the fedora base image, the image inheritance chain, or the root of the build hierarchy.

@@ -43,6 +43,13 @@ ov shell python-ml
 - `/ov-images:nvidia` — parent (GPU without ML packages)
 - `/ov-images:jupyter` — adds Jupyter notebook server on top of ML stack
 
+## Verification
+
+After `ov build`:
+- `ov list` — image appears in list
+- `ov shell python-ml` — interactive shell works
+- `ov shell python-ml -c "python3 --version"` — Python available
+
 ## When to Use This Skill
 
 Use when the user asks about the python-ml image, ML training environments, PyTorch in containers, or GPU-accelerated Python.

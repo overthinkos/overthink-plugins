@@ -153,3 +153,5 @@ Use when the user asks about:
 - Changing encryption passwords
 - Encrypted storage paths
 - "How do I encrypt container data?"
+
+**Workflow position:** Pre-deployment. Set up encrypted storage before `ov enable`. See also `/ov:deploy` (bind mounts).

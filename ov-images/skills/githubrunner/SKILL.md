@@ -65,6 +65,13 @@ ov remove githubrunner -e RUNNER_TOKEN=<token>
 
 - `/ov-images:fedora` — parent base
 
+## Verification
+
+After `ov start`:
+- `ov status githubrunner` — container running
+- `ov service status githubrunner` — all supervisord services RUNNING
+- Check runner appears as "Idle" in GitHub org/repo Settings > Actions > Runners
+
 ## When to Use This Skill
 
 Use when the user asks about self-hosted runners, GitHub Actions CI/CD, the githubrunner image, or runner registration/removal.

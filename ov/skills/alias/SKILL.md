@@ -149,3 +149,5 @@ Use when the user asks about:
 - Creating host command wrappers
 - Distrobox-style command forwarding
 - "How do I run a container command from the host?"
+
+**Workflow position:** Post-deployment. Use after a service is running to create host command shortcuts.

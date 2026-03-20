@@ -51,6 +51,7 @@ Immich photo management with GPU-accelerated machine learning for face recogniti
 
 ```bash
 ov build immich-cuda
+ov enable immich-cuda
 ov start immich-cuda
 # Open http://localhost:2283
 ```
@@ -68,6 +69,14 @@ ov start immich-cuda
 
 - `/ov-images:immich` — CPU-only (no ML, no face recognition)
 - `/ov-images:nvidia` — GPU base without Immich
+
+## Verification
+
+After `ov start`:
+- `ov status immich-cuda` — container running
+- `ov service status immich-cuda` — all supervisord services RUNNING
+- `curl -s -o /dev/null -w '%{http_code}' http://localhost:2283` — Immich HTTP returns 200
+- `curl -s -o /dev/null -w '%{http_code}' http://localhost:3003` — ML backend HTTP returns 200
 
 ## When to Use This Skill
 

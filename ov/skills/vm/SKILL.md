@@ -204,3 +204,5 @@ Use when the user asks about:
 - SSH key injection
 - Libvirt XML customization
 - "How do I create a VM from a container image?"
+
+**Workflow position:** Standalone workflow. VM management is separate from container lifecycle.

@@ -48,6 +48,12 @@ ov shell nvidia
 
 - `/ov-images:fedora` — parent base (no GPU)
 
+## Verification
+
+After `ov build`:
+- `ov list` — image appears in list
+- `ov shell nvidia` — interactive shell works
+
 ## When to Use This Skill
 
 Use when the user asks about the nvidia image, GPU base images, CUDA in containers, or which images have GPU support.

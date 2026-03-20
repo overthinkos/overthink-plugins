@@ -156,3 +156,15 @@ Source: `ov/vnc_client.go`, `ov/vnc.go`.
 - `/ov:deploy` — VNC password setup in deployment workflows
 - `/ov:shell` — Executing commands inside containers
 - `/ov:layer` — wayvnc layer configuration (port tcp:5900)
+
+## When to Use This Skill
+
+Use when the user asks about:
+
+- `ov vnc` commands (screenshot, click, type, key, mouse, status, passwd, rfb)
+- VNC desktop automation and pixel-level interaction
+- VNC password management and VeNCrypt/TLS setup
+- Coordinate-based clicking or typing
+- "How do I interact with the desktop via VNC?"
+
+**Workflow position:** Desktop automation. Use for pixel-level interaction when CDP can't reach the element. See also `/ov:cdp` (DOM, preferred), `/ov:sway` (window).

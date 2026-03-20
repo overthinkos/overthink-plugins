@@ -146,3 +146,5 @@ Use when the user asks about:
 - Understanding validation errors
 - Layer or image definition correctness
 - "Why does validation fail?"
+
+**Workflow position:** Pre-build. Validate before building to catch errors early.

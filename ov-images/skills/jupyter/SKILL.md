@@ -36,6 +36,7 @@ GPU-accelerated Jupyter notebook server with ML libraries and llama.cpp.
 
 ```bash
 ov build jupyter
+ov enable jupyter
 ov start jupyter
 # Open http://localhost:8888
 ```
@@ -49,6 +50,13 @@ ov start jupyter
 
 - `/ov-images:nvidia` — parent (GPU without Jupyter)
 - `/ov-images:python-ml` — ML libraries without Jupyter server
+
+## Verification
+
+After `ov start`:
+- `ov status jupyter` — container running
+- `ov service status jupyter` — all supervisord services RUNNING
+- `curl -s -o /dev/null -w '%{http_code}' http://localhost:8888` — Jupyter HTTP returns 200
 
 ## When to Use This Skill
 

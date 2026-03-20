@@ -39,6 +39,7 @@ Headless OpenClaw gateway with local LLM inference via Ollama — no desktop, no
 
 ```bash
 ov build openclaw-ollama
+ov enable openclaw-ollama
 ov start openclaw-ollama
 # Pull a model and configure OpenClaw to use it
 ov shell openclaw-ollama -c "ollama pull llama3"
@@ -54,6 +55,18 @@ ov shell openclaw-ollama -c "ollama pull llama3"
 - `/ov-images:openclaw` — gateway only (no LLM, no GPU)
 - `/ov-images:ollama` — LLM only (no gateway)
 - `/ov-images:openclaw-ollama-sway-browser` — adds desktop + Chrome
+
+## Verification
+
+After `ov start`:
+- `ov status openclaw-ollama` — container running
+- `ov service status openclaw-ollama` — all supervisord services RUNNING
+- `curl -s http://localhost:18789` — OpenClaw gateway responds
+- `curl -s http://localhost:11434/api/tags` — Ollama API responds
+
+## Port Relay Architecture
+
+OpenClaw gateway (18789) uses port relay (socat) — the gateway binds to loopback, socat forwards from the container interface. This avoids the `allowedOrigins` requirement for the Control UI.
 
 ## When to Use This Skill
 

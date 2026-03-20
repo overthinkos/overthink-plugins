@@ -43,6 +43,12 @@ ov shell fedora-nonfree
 
 - `/ov-images:fedora` — parent base (without non-free repos)
 
+## Verification
+
+After `ov build`:
+- `ov list` — image appears in list
+- `ov shell fedora-nonfree` — interactive shell works
+
 ## When to Use This Skill
 
 Use when the user asks about the fedora-nonfree image, RPM Fusion support, or non-free codec packages in containers.

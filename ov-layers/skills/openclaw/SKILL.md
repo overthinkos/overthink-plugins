@@ -11,8 +11,9 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Dependencies | `nodejs`, `supervisord` |
+| Dependencies | `nodejs`, `socat`, `supervisord` |
 | Ports | 18789 |
+| Port relay | 18789 (eth0 -> loopback) |
 | Volumes | `data` -> `~/.openclaw` |
 | Aliases | `openclaw` -> `openclaw` |
 | Service | `openclaw` (supervisord) |
@@ -45,9 +46,16 @@ openclaw config              # uses the alias
 - `/ov-images:openclaw-ollama`
 - `/ov-images:openclaw-ollama-sway-browser`
 
+## Port Relay
+
+The gateway binds to `127.0.0.1:18789` (loopback only). A socat relay forwards from the container's network interface to loopback. This avoids OpenClaw's `allowedOrigins` requirement for the Control UI — all connections appear as loopback to the gateway.
+
+Same pattern as the `chrome` layer (CDP on port 9222).
+
 ## Related Layers
 
 - `/ov-layers:nodejs` -- Node.js runtime dependency
+- `/ov-layers:socat` -- port relay dependency (eth0 -> loopback)
 - `/ov-layers:supervisord` -- process manager dependency
 - `/ov-layers:ollama` -- optional local LLM backend
 

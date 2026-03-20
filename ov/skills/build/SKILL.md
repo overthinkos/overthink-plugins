@@ -178,6 +178,14 @@ Build base images first. `ov build` handles dependency ordering automatically, b
 
 First build on a new machine won't have cache. Use `--cache registry` to pull from registry cache if available.
 
+### RPM Conflict: ffmpeg-free vs negativo17
+
+If a build fails with `conflicting requests` involving `libavcodec-free` vs `libavcodec` (epoch 1), the layer is trying to install `ffmpeg-free` (Fedora) in an image that has negativo17's `ffmpeg-libs` (via cuda layer). Fix: change `ffmpeg-free` to `ffmpeg` in the layer's `rpm.packages` and add the `fedora-multimedia` repo from negativo17. See the `immich` layer for the correct pattern.
+
+### YAML Unmarshal Error on layer.yml
+
+If you see `cannot unmarshal !!str ... into int` or similar YAML parsing errors on layer fields, the installed `ov` binary is likely stale. Rebuild with `task build:install` or `cp bin/ov ~/.local/bin/ov`. Verify with `ov validate`.
+
 ## Cross-References
 
 - `/ov:layer` -- Layer definitions that get built
@@ -188,11 +196,7 @@ First build on a new machine won't have cache. Use `--cache registry` to pull fr
 
 ## When to Use This Skill
 
-Use when the user asks about:
+Use when the user asks about building images, pushing to registries, build caches, or layer merging.
 
-- Building images (`ov build`)
-- Pushing images to registries
-- Build caches (registry, GitHub Actions)
-- Layer merging and optimization
-- Setting up the build environment
-- "How do I build X?"
+**Workflow position:** Typically first in a lifecycle chain.
+Next step: `/ov:deploy` (quadlet setup, tunnels) → `/ov:service` (start and manage).

@@ -277,3 +277,5 @@ Use when the user asks about:
 - Image defaults and field resolution
 - Intermediate images and cache optimization
 - "How do I compose images from layers?"
+
+**Workflow position:** Pre-build. Define images before building. See also `/ov:layer` (layer authoring), `/ov:build` (building).

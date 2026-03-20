@@ -161,3 +161,5 @@ Use when the user asks about:
 - VM default settings
 - Encrypted storage path
 - "How do I configure ov?"
+
+**Workflow position:** Any time. Configuration can be set before or after builds/deployments.

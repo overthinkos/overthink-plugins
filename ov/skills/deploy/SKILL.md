@@ -212,6 +212,20 @@ ov vnc passwd openclaw-sway-browser    # uses stored password (no prompt)
 
 See `/ov:vnc` for full VNC authentication documentation.
 
+## Port Relay Pattern
+
+Some services (OpenClaw, Chrome DevTools) bind only to loopback for security. The `port_relay` field in `layer.yml` creates a socat relay from the container's network interface to loopback, making the service accessible externally without weakening its security model.
+
+```yaml
+# In layer.yml
+ports:
+  - 18789
+port_relay:
+  - 18789
+```
+
+Requires the `socat` layer as a dependency. The relay runs as a `relay-<port>` supervisord service. See `/ov-layers:chrome` and `/ov-layers:openclaw` for examples.
+
 ## Cross-References
 
 - `/ov:service` -- Service lifecycle (start/stop/enable/disable/update/remove)
@@ -224,10 +238,7 @@ See `/ov:vnc` for full VNC authentication documentation.
 
 ## When to Use This Skill
 
-Use when the user asks about:
+Use when the user asks about quadlet generation, tunnels, bind mounts, or deploy overlays.
 
-- Quadlet file generation details
-- Tunnel configuration (Tailscale, Cloudflare)
-- Bind mount configuration
-- Deploy overlays (deploy.yml)
-- "How do I expose my service externally?"
+**Workflow position:** After `/ov:build`, before `/ov:service`.
+Previous step: `/ov:build` (build the image). Next step: `/ov:service` (start, status, logs).

@@ -47,6 +47,12 @@ ov shell fedora-builder
 
 - `/ov-images:fedora` — parent base
 
+## Verification
+
+After `ov build`:
+- `ov list` — image appears in list
+- `ov shell fedora-builder` — interactive shell works
+
 ## When to Use This Skill
 
 Use when the user asks about the builder image, multi-stage builds, build cache, or what tools are available during the build phase.

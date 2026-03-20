@@ -47,6 +47,7 @@ Self-hosted photo and video management server with full codec support.
 
 ```bash
 ov build immich
+ov enable immich
 ov start immich
 # Open http://localhost:2283
 ```
@@ -62,6 +63,13 @@ ov start immich
 
 - `/ov-images:fedora-nonfree` — parent base
 - `/ov-images:immich-cuda` — adds CUDA ML for face recognition and smart search
+
+## Verification
+
+After `ov start`:
+- `ov status immich` — container running
+- `ov service status immich` — all supervisord services RUNNING
+- `curl -s -o /dev/null -w '%{http_code}' http://localhost:2283` — Immich HTTP returns 200
 
 ## When to Use This Skill
 

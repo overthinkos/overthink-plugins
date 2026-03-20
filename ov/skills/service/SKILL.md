@@ -10,7 +10,7 @@ description: |
 
 ## Overview
 
-Container service lifecycle management with two modes: **direct** (`<engine> run -d` / `<engine> stop`) and **quadlet** (systemd user services via podman quadlet). Also manages individual supervisord services inside running containers.
+Container service lifecycle management with two modes: **quadlet** (systemd user services via podman quadlet, always preferred) and **direct** (`<engine> run -d` / `<engine> stop`, fallback only for platforms without quadlet support). Also manages individual supervisord services inside running containers.
 
 ## Quick Reference
 
@@ -44,26 +44,12 @@ All commands accept `-i INSTANCE` for multi-instance support.
 
 | Mode | Config | How it works |
 |------|--------|-------------|
-| `direct` | `run_mode: direct` | `<engine> run -d` / `<engine> stop` |
-| `quadlet` | `run_mode: quadlet` | systemd user services via podman quadlet |
+| `quadlet` | `run_mode: quadlet` | systemd user services via podman quadlet (always preferred) |
+| `direct` | `run_mode: direct` | `<engine> run -d` / `<engine> stop` (fallback only) |
 
 ```bash
-ov config set run_mode direct   # Default
-ov config set run_mode quadlet  # systemd integration
-```
-
-## Direct Mode
-
-```bash
-ov start my-app                  # docker/podman run -d
-ov start my-app -w ~/project     # With workspace mount
-ov start my-app -e LOG=debug     # With env vars
-ov status my-app                 # docker/podman inspect
-ov logs my-app -f                # docker/podman logs -f
-ov stop my-app                   # docker/podman stop
-ov update my-app --build         # Rebuild, stop old, start new
-ov remove my-app                 # Stop + remove container
-ov remove my-app --volumes       # Also remove named volumes
+ov config set run_mode quadlet  # Recommended -- systemd integration
+ov config set run_mode direct   # Fallback for platforms without quadlet
 ```
 
 ## Quadlet Mode
@@ -126,6 +112,22 @@ Source: `ov/security.go`, `ov/quadlet.go`.
 ### Image Transfer
 
 When `engine.build=docker`, `ov enable` auto-detects if the image is missing from podman and transfers via `docker save | podman load`. `ov update` re-transfers if needed.
+
+## Direct Mode (Fallback)
+
+Only use direct mode on platforms that don't support quadlet (e.g., macOS Docker Desktop).
+
+```bash
+ov start my-app                  # docker/podman run -d
+ov start my-app -w ~/project     # With workspace mount
+ov start my-app -e LOG=debug     # With env vars
+ov status my-app                 # docker/podman inspect
+ov logs my-app -f                # docker/podman logs -f
+ov stop my-app                   # docker/podman stop
+ov update my-app --build         # Rebuild, stop old, start new
+ov remove my-app                 # Stop + remove container
+ov remove my-app --volumes       # Also remove named volumes
+```
 
 ## Supervisord Service Management
 
@@ -197,6 +199,28 @@ Only seeds bind mounts that match layer volume names. Skips directories with exi
 
 Source: `ov/seed.go`.
 
+## Troubleshooting
+
+### Port Already in Use
+
+If `ov start` fails with `bind: address already in use`, another container or host process is using the port. Find the conflict:
+
+```bash
+ss -tlnp | grep <port>           # Find what's listening
+podman ps --format '{{.Names}} {{.Ports}}' | grep <port>  # Find container
+```
+
+Stop the conflicting container before starting. Common conflicts: standalone `ollama` container on 11434, existing VNC on 5900.
+
+### Service Crash-Looping
+
+If `ov service status` shows a service cycling STARTING/STOPPED, run it manually to see the error:
+
+```bash
+ov shell <image> -c "supervisorctl stop <service>"
+ov shell <image> -c "<service-command>"
+```
+
 ## Cross-References
 
 - `/ov:shell` -- Interactive shells and exec into running containers
@@ -206,13 +230,7 @@ Source: `ov/seed.go`.
 
 ## When to Use This Skill
 
-Use when the user asks about:
+Use when the user asks about starting, stopping, enabling, or managing container services.
 
-- Starting/stopping containers (`ov start`, `ov stop`)
-- Quadlet systemd services (`ov enable`, `ov disable`)
-- Service status and logs (`ov status`, `ov logs`)
-- Updating or removing services (`ov update`, `ov remove`)
-- Supervisord service management (`ov service`)
-- Lifecycle hooks
-- Multi-instance containers
-- "How do I start/manage a service?"
+**Workflow position:** After `/ov:build` and `/ov:deploy`. This skill covers the runtime lifecycle.
+Previous step: `/ov:deploy` (quadlet generation, tunnels). Next step: `/ov-images:<name>` (verification).

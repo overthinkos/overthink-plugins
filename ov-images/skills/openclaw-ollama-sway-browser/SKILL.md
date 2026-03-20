@@ -41,6 +41,7 @@ Everything from `openclaw-sway-browser` plus:
 
 ```bash
 ov build openclaw-ollama-sway-browser
+ov enable openclaw-ollama-sway-browser
 ov start openclaw-ollama-sway-browser
 # Gateway at http://localhost:18789
 # Ollama at http://localhost:11434
@@ -59,6 +60,21 @@ ov start openclaw-ollama-sway-browser
 - `/ov-images:openclaw-sway-browser` — same tools but no GPU/ML (lighter)
 - `/ov-images:openclaw-ollama` — headless OpenClaw + Ollama (no desktop, no tools)
 - `/ov-images:openclaw` — minimal headless gateway
+
+## Verification
+
+After `ov start`:
+- `ov status openclaw-ollama-sway-browser` — container running
+- `ov service status openclaw-ollama-sway-browser` — all supervisord services RUNNING
+- `curl http://localhost:18789` — OpenClaw gateway responds
+- `curl http://localhost:11434/api/tags` — Ollama API responds
+- VNC client → `localhost:5900` — Sway desktop visible
+- `curl http://localhost:9222/json` — Chrome DevTools responds
+- `ov service status openclaw-ollama-sway-browser` should show `relay-18789` and `relay-9222` both RUNNING
+
+## Port Relay Architecture
+
+OpenClaw (18789) and Chrome DevTools (9222) both use port relay (socat) — services bind to loopback, socat forwards from the container interface. This avoids origin/security checks that block non-loopback connections.
 
 ## When to Use This Skill
 

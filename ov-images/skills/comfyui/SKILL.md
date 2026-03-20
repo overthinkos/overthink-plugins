@@ -36,6 +36,7 @@ GPU-accelerated ComfyUI image generation server with node-based workflow UI.
 
 ```bash
 ov build comfyui
+ov enable comfyui
 ov start comfyui
 # Open http://localhost:8188
 ```
@@ -48,6 +49,13 @@ ov start comfyui
 ## Related Images
 
 - `/ov-images:nvidia` — parent (GPU without ComfyUI)
+
+## Verification
+
+After `ov start`:
+- `ov status comfyui` — container running
+- `ov service status comfyui` — all supervisord services RUNNING
+- `curl -s -o /dev/null -w '%{http_code}' http://localhost:8188` — ComfyUI HTTP returns 200
 
 ## When to Use This Skill
 

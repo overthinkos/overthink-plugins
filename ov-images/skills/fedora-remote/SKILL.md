@@ -45,6 +45,12 @@ ov shell fedora-remote
 - `/ov-layers:build-toolchain` — gcc, cmake, autoconf, ninja, git
 - `/ov-layers:nodejs` — Node.js + npm
 
+## Verification
+
+After `ov build`:
+- `ov list` — image appears in list
+- `ov shell fedora-remote` — interactive shell works
+
 ## When to Use This Skill
 
 Use when the user asks about the fedora-remote image, remote layer references, the `@github.com/...` layer syntax, or building images from external layer sources.

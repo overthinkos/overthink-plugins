@@ -37,6 +37,7 @@ Headless OpenClaw AI gateway — no desktop, no browser, just the gateway servic
 
 ```bash
 ov build openclaw
+ov enable openclaw
 ov start openclaw
 # Gateway at http://localhost:18789
 ```
@@ -50,6 +51,17 @@ ov start openclaw
 - `/ov-images:openclaw-sway-browser` — adds desktop + Chrome for browser automation
 - `/ov-images:openclaw-ollama` — adds local LLM inference
 - `/ov-images:openclaw-ollama-sway-browser` — full stack with desktop + LLM
+
+## Verification
+
+After `ov start`:
+- `ov status openclaw` — container running
+- `ov service status openclaw` — all supervisord services RUNNING
+- `curl -s http://localhost:18789` — OpenClaw gateway responds
+
+## Port Relay Architecture
+
+OpenClaw gateway (18789) uses port relay (socat) — the gateway binds to loopback, socat forwards from the container interface. This avoids the `allowedOrigins` requirement for the Control UI.
 
 ## When to Use This Skill
 

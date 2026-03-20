@@ -134,3 +134,5 @@ Use when the user asks about:
 - Focusing or moving windows programmatically
 - Launching applications inside sway containers
 - "How do I control the desktop?"
+
+**Workflow position:** Desktop automation. Use for window management in running desktop containers. See also `/ov:cdp` (DOM), `/ov:vnc` (pixel).

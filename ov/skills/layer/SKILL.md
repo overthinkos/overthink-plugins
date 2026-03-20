@@ -313,3 +313,5 @@ Use when the user asks about:
 - Layer dependencies and ordering
 - Services, volumes, aliases, environment variables
 - "How do I add X to the container?"
+
+**Workflow position:** Pre-build. Author layers before adding to images. See also `/ov:image` (image composition), `/ov:build` (building).

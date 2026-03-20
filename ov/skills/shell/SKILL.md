@@ -171,3 +171,5 @@ Use when the user asks about:
 - Remote image references
 - Environment variable injection
 - "How do I run a shell in a container?"
+
+**Workflow position:** Any time. Interactive access to running or stopped containers.

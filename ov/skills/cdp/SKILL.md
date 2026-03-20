@@ -192,3 +192,5 @@ Use when the user asks about:
 - OAuth or login flows in containers
 - Headless Chrome interaction
 - "How do I automate the browser?"
+
+**Workflow position:** Desktop automation. Use after a desktop container is running. Preferred over VNC for structured interaction. See also `/ov:vnc` (pixel), `/ov:sway` (window).

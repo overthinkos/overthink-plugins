@@ -338,12 +338,12 @@ Check supervisord: `supervisorctl status openclaw`. If cycling between STARTING 
 ```bash
 # Run manually to see error output
 supervisorctl stop openclaw
-timeout 15 openclaw gateway --port 18789 --bind lan
+timeout 15 openclaw gateway --port 18789
 ```
 
 Common fixes:
 - `gateway.mode` not set -> `openclaw config set gateway.mode local`
-- Control UI origin error -> `openclaw config set gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback true`
+- Control UI origin error -> The gateway uses port_relay (socat) to bind to loopback, avoiding origin checks. If you see `allowedOrigins` errors, verify the relay is running: `supervisorctl status relay-18789`
 
 ### Browser not connected
 
@@ -380,3 +380,5 @@ Use when the user asks about:
 - "How do I configure openclaw?"
 - "How do I connect a messaging channel?"
 - The `openclaw-sway-browser` image
+
+**Workflow position:** Post-deployment. Configure the gateway after the container is running. See also `/ov-images:openclaw*` (image variants).
