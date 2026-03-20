@@ -1,9 +1,7 @@
 ---
 name: vm
 description: |
-  Virtual machines: ov vm build/create/start/stop/destroy/list/console/ssh.
-  Use when building bootc disk images, managing VMs, or configuring
-  libvirt/QEMU backends.
+  MUST be invoked before any work involving: virtual machines, ov vm commands, bootc disk images, libvirt/QEMU backends, or VM lifecycle management.
 ---
 
 # VM - Virtual Machine Management
@@ -196,13 +194,6 @@ ov vm ssh my-image -i dev
 
 ## When to Use This Skill
 
-Use when the user asks about:
-
-- `ov vm` commands (build, create, start, stop, destroy, list, console, ssh)
-- Bootc disk images (QCOW2, RAW)
-- VM configuration and backends (libvirt, QEMU)
-- SSH key injection
-- Libvirt XML customization
-- "How do I create a VM from a container image?"
+**MUST be invoked** when the task involves virtual machines, ov vm commands, bootc disk images, libvirt/QEMU backends, or VM lifecycle management. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Standalone workflow. VM management is separate from container lifecycle.

@@ -3,7 +3,7 @@ name: python-ml
 description: |
   GPU-accelerated Python ML environment with CUDA, PyTorch, and llama.cpp.
   No Jupyter server — use as a base for ML workloads or interactive shell.
-  Use when working with the python-ml image or ML training environments.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the python-ml image.
 ---
 
 # python-ml
@@ -52,4 +52,4 @@ After `ov build`:
 
 ## When to Use This Skill
 
-Use when the user asks about the python-ml image, ML training environments, PyTorch in containers, or GPU-accelerated Python.
+**MUST be invoked** when the task involves the python-ml image, ML training environments, or GPU-accelerated Python. Invoke this skill BEFORE reading source code or launching Explore agents.

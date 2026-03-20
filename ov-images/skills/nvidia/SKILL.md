@@ -3,7 +3,7 @@ name: nvidia
 description: |
   NVIDIA GPU base image with CUDA toolkit on Fedora. Base for all
   GPU-accelerated images (python-ml, jupyter, ollama, comfyui).
-  Use when working with GPU images or CUDA support.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the nvidia image.
 ---
 
 # nvidia
@@ -56,4 +56,4 @@ After `ov build`:
 
 ## When to Use This Skill
 
-Use when the user asks about the nvidia image, GPU base images, CUDA in containers, or which images have GPU support.
+**MUST be invoked** when the task involves the nvidia image, GPU base images, or CUDA in containers. Invoke this skill BEFORE reading source code or launching Explore agents.

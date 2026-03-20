@@ -3,7 +3,7 @@ name: fedora-remote
 description: |
   Fedora image using remote layer references from GitHub. Demonstrates
   the @github.com/org/repo/layers/name:version remote layer syntax.
-  Use when working with remote layers or the fedora-remote image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the fedora-remote image.
 ---
 
 # fedora-remote
@@ -53,4 +53,4 @@ After `ov build`:
 
 ## When to Use This Skill
 
-Use when the user asks about the fedora-remote image, remote layer references, the `@github.com/...` layer syntax, or building images from external layer sources.
+**MUST be invoked** when the task involves the fedora-remote image, remote layer references, or the `@github.com/...` layer syntax. Invoke this skill BEFORE reading source code or launching Explore agents.

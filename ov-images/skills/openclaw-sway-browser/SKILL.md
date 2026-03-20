@@ -3,7 +3,7 @@ name: openclaw-sway-browser
 description: |
   Maximal OpenClaw deployment with Sway desktop, Chrome, VNC, and all tool layers.
   Includes all feasible OpenClaw skill dependencies. Use when working with
-  openclaw browser automation, desktop deployments, or full tool coverage.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the openclaw-sway-browser image.
 ---
 
 # openclaw-sway-browser
@@ -72,4 +72,4 @@ OpenClaw (18789) and Chrome DevTools (9222) both use port relay (socat) — serv
 
 ## When to Use This Skill
 
-Use when the user asks about openclaw-sway-browser, OpenClaw with browser automation, desktop gateway deployments, VNC access, or which tools are included.
+**MUST be invoked** when the task involves the openclaw-sway-browser image, OpenClaw with browser automation, or desktop gateway deployments. Invoke this skill BEFORE reading source code or launching Explore agents.

@@ -3,7 +3,7 @@ name: fedora-builder
 description: |
   Builder image with pixi, Node.js, and C/C++ build toolchain. Used as the
   default builder for multi-stage image builds.
-  Use when working with the builder image or build cache configuration.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the fedora-builder image.
 ---
 
 # fedora-builder
@@ -55,4 +55,4 @@ After `ov build`:
 
 ## When to Use This Skill
 
-Use when the user asks about the builder image, multi-stage builds, build cache, or what tools are available during the build phase.
+**MUST be invoked** when the task involves the fedora-builder image, multi-stage builds, or build cache configuration. Invoke this skill BEFORE reading source code or launching Explore agents.

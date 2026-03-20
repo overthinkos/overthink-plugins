@@ -3,7 +3,7 @@ name: immich
 description: |
   Immich photo management server on port 2283. Includes PostgreSQL, Redis,
   and non-free codec support via RPM Fusion. CPU-only (no ML).
-  Use when working with Immich, photo management, or the immich image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the immich image.
 ---
 
 # immich
@@ -73,4 +73,4 @@ After `ov start`:
 
 ## When to Use This Skill
 
-Use when the user asks about the immich image, photo management, Immich deployment, or the CPU-only Immich setup.
+**MUST be invoked** when the task involves the immich image, photo management, or the CPU-only Immich setup. Invoke this skill BEFORE reading source code or launching Explore agents.

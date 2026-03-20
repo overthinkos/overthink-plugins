@@ -3,7 +3,7 @@ name: comfyui
 description: |
   ComfyUI image generation server with CUDA GPU support.
   Runs as a supervisord service on port 8188 with persistent storage.
-  Use when working with ComfyUI, image generation, or Stable Diffusion.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the comfyui image.
 ---
 
 # comfyui
@@ -59,4 +59,4 @@ After `ov start`:
 
 ## When to Use This Skill
 
-Use when the user asks about the comfyui image, image generation, Stable Diffusion, or ComfyUI workflows.
+**MUST be invoked** when the task involves the comfyui image, image generation, or ComfyUI workflows. Invoke this skill BEFORE reading source code or launching Explore agents.

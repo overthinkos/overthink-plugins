@@ -1,8 +1,7 @@
 ---
 name: validate
 description: |
-  Validation: ov validate command, validation rules, common errors.
-  Use when checking images.yml and layer definitions for correctness.
+  MUST be invoked before any work involving: ov validate command, validation rules, common validation errors, or checking images.yml and layer definitions.
 ---
 
 # Validate - Validation Commands
@@ -140,11 +139,6 @@ ov list layers                       # Verify layer exists
 
 ## When to Use This Skill
 
-Use when the user asks about:
-
-- Running `ov validate`
-- Understanding validation errors
-- Layer or image definition correctness
-- "Why does validation fail?"
+**MUST be invoked** when the task involves ov validate command, validation rules, common validation errors, or checking images.yml and layer definitions. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Validate before building to catch errors early.

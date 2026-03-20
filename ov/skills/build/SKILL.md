@@ -1,9 +1,7 @@
 ---
 name: build
 description: |
-  Building container images with ov build.
-  Use when building images, pushing to registries, merging layers,
-  or configuring build caches.
+  MUST be invoked before any work involving: building container images, ov build command, pushing to registries, merging layers, build caches, or Containerfile generation.
 ---
 
 # Build - Building Container Images
@@ -196,7 +194,7 @@ If you see `cannot unmarshal !!str ... into int` or similar YAML parsing errors 
 
 ## When to Use This Skill
 
-Use when the user asks about building images, pushing to registries, build caches, or layer merging.
+**MUST be invoked** when the task involves building images, pushing to registries, build caches, or layer merging. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Typically first in a lifecycle chain.
 Next step: `/ov:deploy` (quadlet setup, tunnels) → `/ov:service` (start and manage).

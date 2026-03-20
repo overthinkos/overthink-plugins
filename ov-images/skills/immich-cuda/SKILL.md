@@ -3,7 +3,7 @@ name: immich-cuda
 description: |
   Immich photo management with CUDA ML backend for face recognition
   and smart search. Includes PostgreSQL, Redis, and the immich-ml service.
-  Use when working with Immich ML features or the GPU-accelerated deployment.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the immich-cuda image.
 ---
 
 # immich-cuda
@@ -80,4 +80,4 @@ After `ov start`:
 
 ## When to Use This Skill
 
-Use when the user asks about Immich with ML, face recognition, smart search, the immich-cuda image, or GPU-accelerated photo management.
+**MUST be invoked** when the task involves the immich-cuda image, Immich ML features, or GPU-accelerated photo management. Invoke this skill BEFORE reading source code or launching Explore agents.

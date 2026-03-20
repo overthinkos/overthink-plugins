@@ -3,7 +3,7 @@ name: openclaw-ollama
 description: |
   Headless OpenClaw gateway with local Ollama LLM inference. GPU-accelerated,
   no desktop. Use when working with the headless openclaw+ollama deployment
-  or comparing openclaw variants.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the openclaw-ollama image.
 ---
 
 # openclaw-ollama
@@ -70,4 +70,4 @@ OpenClaw gateway (18789) uses port relay (socat) — the gateway binds to loopba
 
 ## When to Use This Skill
 
-Use when the user asks about the headless openclaw+ollama deployment, running OpenClaw with local models, or comparing openclaw image variants.
+**MUST be invoked** when the task involves the openclaw-ollama image, running OpenClaw with local models, or headless openclaw+ollama deployment. Invoke this skill BEFORE reading source code or launching Explore agents.

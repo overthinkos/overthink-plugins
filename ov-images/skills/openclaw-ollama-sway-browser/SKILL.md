@@ -3,7 +3,7 @@ name: openclaw-ollama-sway-browser
 description: |
   Full-stack AI image: OpenClaw gateway + all tools + Ollama LLM + Whisper STT +
   sherpa-onnx TTS + Sway desktop with Chrome. GPU-accelerated with CUDA.
-  Use when working with the combined ML-capable OpenClaw desktop deployment.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the openclaw-ollama-sway-browser image.
 ---
 
 # openclaw-ollama-sway-browser
@@ -78,4 +78,4 @@ OpenClaw (18789) and Chrome DevTools (9222) both use port relay (socat) — serv
 
 ## When to Use This Skill
 
-Use when the user asks about GPU-accelerated OpenClaw, local LLMs with OpenClaw, speech-to-text, the full-stack AI desktop, or the openclaw-ollama-sway-browser image.
+**MUST be invoked** when the task involves the openclaw-ollama-sway-browser image, GPU-accelerated OpenClaw, or the full-stack AI desktop. Invoke this skill BEFORE reading source code or launching Explore agents.

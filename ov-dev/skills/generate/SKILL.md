@@ -4,6 +4,7 @@ description: |
   Containerfile generation: understanding ov generate output, multi-stage builds,
   intermediate images, and the .build/ directory. Use when debugging or understanding
   generated Containerfiles.
+  MUST be invoked before reading or modifying any Go source file in ov/.
 ---
 
 # Generate - Containerfile Generation
@@ -185,11 +186,4 @@ ov inspect my-image --format layers      # Shows layer list for an image
 
 ## When to Use This Skill
 
-Use when the user asks about:
-
-- Generated Containerfile contents or structure
-- Multi-stage build architecture
-- Intermediate images and cache optimization
-- OCI labels and image metadata
-- `.build/` directory contents
-- "Why does the Containerfile look like X?"
+**MUST be invoked** before reading or modifying Go source files. Invoke this skill BEFORE launching Explore agents on ov/ code.

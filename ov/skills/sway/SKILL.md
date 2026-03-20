@@ -1,9 +1,7 @@
 ---
 name: sway
 description: |
-  Sway compositor control: ov sway commands for window management,
-  workspaces, outputs, and application launching inside containers.
-  Use when managing sway windows, changing layouts, or querying compositor state.
+  MUST be invoked before any work involving: Sway compositor control, ov sway commands, window management, workspaces, outputs, or application launching inside containers.
 ---
 
 # Sway - Compositor Control
@@ -126,13 +124,6 @@ Source: `ov/sway.go`.
 
 ## When to Use This Skill
 
-Use when the user asks about:
-
-- `ov sway` commands
-- Sway window management in containers
-- Changing layouts, workspaces, or resolution
-- Focusing or moving windows programmatically
-- Launching applications inside sway containers
-- "How do I control the desktop?"
+**MUST be invoked** when the task involves Sway compositor control, ov sway commands, window management, workspaces, outputs, or application launching inside containers. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Desktop automation. Use for window management in running desktop containers. See also `/ov:cdp` (DOM), `/ov:vnc` (pixel).

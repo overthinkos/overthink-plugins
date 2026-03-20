@@ -1,9 +1,7 @@
 ---
 name: layer
 description: |
-  Layer authoring: creating, modifying, and understanding layer definitions.
-  Use when working with layer.yml, root.yml, user.yml, pixi.toml, package.json,
-  or Cargo.toml files under layers/.
+  MUST be invoked before any work involving: layer authoring, layer.yml, root.yml, user.yml, pixi.toml, package.json, Cargo.toml, or any file under layers/.
 ---
 
 # Layer - Layer Authoring
@@ -305,13 +303,6 @@ Add a `service` field to layer.yml with a supervisord program fragment. Add `sup
 
 ## When to Use This Skill
 
-Use when the user asks about:
-
-- Creating new layers or layer scaffolding
-- Editing `layer.yml`, `root.yml`, `user.yml` files
-- Adding packages (rpm, deb, pixi, npm, cargo)
-- Layer dependencies and ordering
-- Services, volumes, aliases, environment variables
-- "How do I add X to the container?"
+**MUST be invoked** when the task involves layer authoring, layer.yml, root.yml, user.yml, pixi.toml, package.json, Cargo.toml, or any file under layers/. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Author layers before adding to images. See also `/ov:image` (image composition), `/ov:build` (building).

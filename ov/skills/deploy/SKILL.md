@@ -1,8 +1,7 @@
 ---
 name: deploy
 description: |
-  Deployment: quadlet generation, bind mounts, tunnels (Tailscale/Cloudflare),
-  and deploy overlays. Use for production deployment configuration.
+  MUST be invoked before any work involving: quadlet generation, bind mounts, tunnels (Tailscale/Cloudflare), deploy overlays, or production deployment configuration.
 ---
 
 # Deploy - Deployment Configuration
@@ -238,7 +237,7 @@ Requires the `socat` layer as a dependency. The relay runs as a `relay-<port>` s
 
 ## When to Use This Skill
 
-Use when the user asks about quadlet generation, tunnels, bind mounts, or deploy overlays.
+**MUST be invoked** when the task involves quadlet generation, tunnels, bind mounts, or deploy overlays. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** After `/ov:build`, before `/ov:service`.
 Previous step: `/ov:build` (build the image). Next step: `/ov:service` (start, status, logs).

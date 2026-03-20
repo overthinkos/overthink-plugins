@@ -3,7 +3,7 @@ name: fedora-nonfree
 description: |
   Fedora with RPM Fusion non-free repositories enabled. Base for images
   needing codec or proprietary package support like immich.
-  Use when working with non-free packages or the immich image chain.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the fedora-nonfree image.
 ---
 
 # fedora-nonfree
@@ -51,4 +51,4 @@ After `ov build`:
 
 ## When to Use This Skill
 
-Use when the user asks about the fedora-nonfree image, RPM Fusion support, or non-free codec packages in containers.
+**MUST be invoked** when the task involves the fedora-nonfree image, RPM Fusion support, or non-free codec packages. Invoke this skill BEFORE reading source code or launching Explore agents.

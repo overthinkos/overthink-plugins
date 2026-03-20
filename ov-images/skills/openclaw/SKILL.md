@@ -3,7 +3,7 @@ name: openclaw
 description: |
   Headless OpenClaw AI gateway image. Runs the gateway on port 18789
   without a desktop environment. Use when working with the headless
-  openclaw deployment or comparing openclaw image variants.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the openclaw image.
 ---
 
 # openclaw
@@ -65,4 +65,4 @@ OpenClaw gateway (18789) uses port relay (socat) — the gateway binds to loopba
 
 ## When to Use This Skill
 
-Use when the user asks about the headless openclaw image, deploying openclaw without a desktop, or comparing openclaw image variants.
+**MUST be invoked** when the task involves the headless openclaw image, deploying openclaw without a desktop, or comparing openclaw variants. Invoke this skill BEFORE reading source code or launching Explore agents.

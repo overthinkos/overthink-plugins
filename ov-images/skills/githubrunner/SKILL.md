@@ -3,7 +3,7 @@ name: githubrunner
 description: |
   Self-hosted GitHub Actions runner with full ov toolchain.
   Runs as root with host networking, includes VMs, crypto, and container tools.
-  Use when working with CI/CD, self-hosted runners, or the githubrunner image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the githubrunner image.
 ---
 
 # githubrunner
@@ -74,4 +74,4 @@ After `ov start`:
 
 ## When to Use This Skill
 
-Use when the user asks about self-hosted runners, GitHub Actions CI/CD, the githubrunner image, or runner registration/removal.
+**MUST be invoked** when the task involves the githubrunner image, self-hosted runners, or GitHub Actions CI/CD. Invoke this skill BEFORE reading source code or launching Explore agents.

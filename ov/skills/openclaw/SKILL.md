@@ -1,9 +1,7 @@
 ---
 name: openclaw
 description: |
-  OpenClaw AI gateway: configuration, model auth, browser integration,
-  and channel setup. Use when working with openclaw images, gateway
-  configuration, model providers, or messaging channels.
+  MUST be invoked before any work involving: OpenClaw gateway configuration, model auth, browser integration, channel setup, or openclaw images.
 ---
 
 # OpenClaw - AI Gateway Configuration
@@ -369,16 +367,6 @@ Use the browser automation flow from `/ov:cdp`. Key: `--tty` for interactive CLI
 
 ## When to Use This Skill
 
-Use when the user asks about:
-
-- OpenClaw configuration or setup
-- Gateway startup, health, or troubleshooting
-- Model providers, codex auth, or API keys
-- OpenClaw browser automation (`openclaw browser *`)
-- Messaging channel configuration (WhatsApp, Telegram, Discord, etc.)
-- Agent configuration, multi-agent routing, or subagents
-- "How do I configure openclaw?"
-- "How do I connect a messaging channel?"
-- The `openclaw-sway-browser` image
+**MUST be invoked** when the task involves OpenClaw gateway configuration, model auth, browser integration, channel setup, or openclaw images. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Post-deployment. Configure the gateway after the container is running. See also `/ov-images:openclaw*` (image variants).

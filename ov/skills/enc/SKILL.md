@@ -1,8 +1,7 @@
 ---
 name: enc
 description: |
-  Encrypted storage: ov enc init/mount/unmount/status/passwd commands.
-  Use when working with gocryptfs encrypted bind mounts.
+  MUST be invoked before any work involving: encrypted storage, ov enc commands, gocryptfs, or encrypted bind mounts.
 ---
 
 # Enc - Encrypted Storage
@@ -146,12 +145,6 @@ Source: `ov/enc.go`, `ov/validate.go` (`validateBindMounts`).
 
 ## When to Use This Skill
 
-Use when the user asks about:
-
-- `ov enc` commands (init, mount, unmount, status, passwd)
-- Encrypted bind mounts and gocryptfs
-- Changing encryption passwords
-- Encrypted storage paths
-- "How do I encrypt container data?"
+**MUST be invoked** when the task involves encrypted storage, ov enc commands, gocryptfs, or encrypted bind mounts. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-deployment. Set up encrypted storage before `ov enable`. See also `/ov:deploy` (bind mounts).

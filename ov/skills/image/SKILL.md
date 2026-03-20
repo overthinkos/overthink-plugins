@@ -1,9 +1,7 @@
 ---
 name: image
 description: |
-  Image composition: defining and configuring container images in images.yml.
-  Use when working with images.yml, image inheritance, defaults, platforms,
-  builder configuration, or understanding the image dependency graph.
+  MUST be invoked before any work involving: image definitions in images.yml, image inheritance, defaults, platforms, builder configuration, or the image dependency graph.
 ---
 
 # Image - Image Composition
@@ -268,14 +266,6 @@ images:
 
 ## When to Use This Skill
 
-Use when the user asks about:
-
-- Editing or understanding `images.yml`
-- Adding new images or image inheritance
-- Platform configuration, registry settings
-- Builder image setup
-- Image defaults and field resolution
-- Intermediate images and cache optimization
-- "How do I compose images from layers?"
+**MUST be invoked** when the task involves image definitions in images.yml, image inheritance, defaults, platforms, builder configuration, or the image dependency graph. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Define images before building. See also `/ov:layer` (layer authoring), `/ov:build` (building).

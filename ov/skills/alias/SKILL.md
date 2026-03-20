@@ -1,8 +1,7 @@
 ---
 name: alias
 description: |
-  Command aliases: ov alias add/remove/list/install/uninstall commands.
-  Use when creating host command wrappers that run inside containers.
+  MUST be invoked before any work involving: host command aliases, ov alias add/remove/install/uninstall, or wrapper scripts that run inside containers.
 ---
 
 # Alias - Command Aliases
@@ -143,11 +142,6 @@ Scans `~/.local/bin/` for files with the `# ov-alias` marker.
 
 ## When to Use This Skill
 
-Use when the user asks about:
-
-- `ov alias` commands (add, remove, list, install, uninstall)
-- Creating host command wrappers
-- Distrobox-style command forwarding
-- "How do I run a container command from the host?"
+**MUST be invoked** when the task involves host command aliases, ov alias commands, or wrapper scripts that run inside containers. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Post-deployment. Use after a service is running to create host command shortcuts.

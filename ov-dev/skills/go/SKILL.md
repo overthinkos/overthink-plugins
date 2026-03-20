@@ -2,7 +2,8 @@
 name: go
 description: |
   Go CLI development: building the ov binary, running tests, understanding
-  the source code structure. Use when working on the ov/ Go module.
+  the source code structure.
+  MUST be invoked before reading or modifying any Go source file in ov/.
 ---
 
 # Go - CLI Development
@@ -155,11 +156,4 @@ bin/ov inspect <image>
 
 ## When to Use This Skill
 
-Use when the user asks about:
-
-- Building the ov CLI from source
-- Running Go tests
-- Understanding the Go code structure
-- Adding new CLI commands or features
-- Debugging Go code
-- "Where is the code for X?"
+**MUST be invoked** before reading or modifying Go source files. Invoke this skill BEFORE launching Explore agents on ov/ code.

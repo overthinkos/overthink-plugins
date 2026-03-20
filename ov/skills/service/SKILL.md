@@ -1,9 +1,7 @@
 ---
 name: service
 description: |
-  Service management: ov start/stop/enable/disable/status/logs/update/remove
-  and ov service start/stop/restart/status for supervisord services.
-  Use when managing container lifecycle or supervisord services.
+  MUST be invoked before any work involving: ov start/stop/enable/disable/status/logs/update/remove commands, supervisord service management, or container lifecycle.
 ---
 
 # Service - Service Management
@@ -230,7 +228,7 @@ ov shell <image> -c "<service-command>"
 
 ## When to Use This Skill
 
-Use when the user asks about starting, stopping, enabling, or managing container services.
+**MUST be invoked** when the task involves starting, stopping, enabling, or managing container services, supervisord service management, or container lifecycle. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** After `/ov:build` and `/ov:deploy`. This skill covers the runtime lifecycle.
 Previous step: `/ov:deploy` (quadlet generation, tunnels). Next step: `/ov-images:<name>` (verification).

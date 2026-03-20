@@ -3,7 +3,7 @@ name: ollama
 description: |
   Standalone Ollama LLM inference server with CUDA GPU support.
   Runs as a supervisord service on port 11434 with persistent model storage.
-  Use when working with Ollama, LLM serving, or model management.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the ollama image.
 ---
 
 # ollama
@@ -75,4 +75,4 @@ After `ov start`:
 
 ## When to Use This Skill
 
-Use when the user asks about the ollama image, LLM model serving, running models locally, or the standalone Ollama deployment.
+**MUST be invoked** when the task involves the ollama image, LLM model serving, or the standalone Ollama deployment. Invoke this skill BEFORE reading source code or launching Explore agents.

@@ -2,8 +2,8 @@
 name: jupyter
 description: |
   Jupyter notebook server with CUDA GPU support and ML libraries.
-  Runs as a supervisord service on port 8888. Use when working with
-  Jupyter notebooks, ML training, or GPU-accelerated Python.
+  Runs as a supervisord service on port 8888.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the jupyter image.
 ---
 
 # jupyter
@@ -60,4 +60,4 @@ After `ov start`:
 
 ## When to Use This Skill
 
-Use when the user asks about the jupyter image, running Jupyter notebooks, ML development in containers, or GPU-accelerated Python notebooks.
+**MUST be invoked** when the task involves the jupyter image, running Jupyter notebooks, or ML development in containers. Invoke this skill BEFORE reading source code or launching Explore agents.

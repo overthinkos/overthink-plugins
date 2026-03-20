@@ -1,9 +1,7 @@
 ---
 name: vnc
 description: |
-  VNC automation: ov vnc commands for RFB protocol desktop interaction.
-  Use when capturing VNC screenshots, clicking at coordinates, typing text,
-  sending key events, or setting up VNC authentication for deployments.
+  MUST be invoked before any work involving: VNC automation, ov vnc commands, RFB protocol desktop interaction, VNC screenshots, clicking coordinates, or VNC authentication.
 ---
 
 # VNC - VNC Desktop Automation
@@ -159,12 +157,6 @@ Source: `ov/vnc_client.go`, `ov/vnc.go`.
 
 ## When to Use This Skill
 
-Use when the user asks about:
-
-- `ov vnc` commands (screenshot, click, type, key, mouse, status, passwd, rfb)
-- VNC desktop automation and pixel-level interaction
-- VNC password management and VeNCrypt/TLS setup
-- Coordinate-based clicking or typing
-- "How do I interact with the desktop via VNC?"
+**MUST be invoked** when the task involves VNC automation, ov vnc commands, RFB protocol desktop interaction, VNC screenshots, clicking coordinates, or VNC authentication. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Desktop automation. Use for pixel-level interaction when CDP can't reach the element. See also `/ov:cdp` (DOM, preferred), `/ov:sway` (window).

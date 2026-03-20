@@ -1,9 +1,7 @@
 ---
 name: shell
 description: |
-  Shell and execution: ov shell command with all flags.
-  Use when running interactive shells, executing commands in containers,
-  or configuring workspace mounts, TTY allocation, and port relay.
+  MUST be invoked before any work involving: ov shell command, interactive shells, command execution in containers, workspace mounts, TTY allocation, or port relay.
 ---
 
 # Shell - Shell & Execution
@@ -160,16 +158,6 @@ Source: `ov/network.go`.
 
 ## When to Use This Skill
 
-Use when the user asks about:
-
-- `ov shell` command and its flags
-- Running commands inside containers (`-c`)
-- TTY allocation for automation (`--tty`)
-- Workspace mounting (`-w`)
-- Device auto-detection and GPU passthrough
-- Port relay for loopback-only services
-- Remote image references
-- Environment variable injection
-- "How do I run a shell in a container?"
+**MUST be invoked** when the task involves ov shell command, interactive shells, command execution in containers, workspace mounts, TTY allocation, or port relay. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Any time. Interactive access to running or stopped containers.

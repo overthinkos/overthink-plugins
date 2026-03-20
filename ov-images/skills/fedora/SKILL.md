@@ -2,7 +2,7 @@
 name: fedora
 description: |
   Base Fedora 43 image. Root of the image hierarchy for all RPM-based images.
-  Use when working with the fedora base image or understanding the image chain.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the fedora image.
 ---
 
 # fedora
@@ -43,4 +43,4 @@ After `ov build`:
 
 ## When to Use This Skill
 
-Use when the user asks about the fedora base image, the image inheritance chain, or the root of the build hierarchy.
+**MUST be invoked** when the task involves the fedora base image or understanding the image chain. Invoke this skill BEFORE reading source code or launching Explore agents.

@@ -1,9 +1,7 @@
 ---
 name: config
 description: |
-  Configuration: ov config get/set/list/reset/path commands.
-  Use when managing runtime settings, engine selection, bind address,
-  VM defaults, or encrypted storage paths.
+  MUST be invoked before any work involving: ov config commands, runtime settings, engine selection, bind address, VM defaults, or encrypted storage paths.
 ---
 
 # Config - Runtime Configuration
@@ -153,13 +151,6 @@ Source: `ov/runtime_config.go`.
 
 ## When to Use This Skill
 
-Use when the user asks about:
-
-- `ov config` commands
-- Switching between Docker and Podman
-- Changing bind address or run mode
-- VM default settings
-- Encrypted storage path
-- "How do I configure ov?"
+**MUST be invoked** when the task involves ov config commands, runtime settings, engine selection, bind address, VM defaults, or encrypted storage paths. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Any time. Configuration can be set before or after builds/deployments.

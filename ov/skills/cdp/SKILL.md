@@ -1,9 +1,7 @@
 ---
 name: cdp
 description: |
-  Chrome DevTools Protocol: ov cdp commands for CDP automation.
-  Use when automating Chrome, interacting with tabs, taking screenshots,
-  clicking elements, or running OAuth flows inside containers.
+  MUST be invoked before any work involving: Chrome DevTools Protocol, ov cdp commands, browser automation, clicking elements, taking screenshots, or OAuth flows inside containers.
 ---
 
 # CDP - Chrome DevTools Protocol
@@ -183,14 +181,6 @@ Source: `ov/cdp.go`, `ov/browser_cdp.go`.
 
 ## When to Use This Skill
 
-Use when the user asks about:
-
-- `ov cdp` commands
-- Chrome DevTools Protocol automation
-- Taking screenshots of container pages
-- Clicking elements or filling forms
-- OAuth or login flows in containers
-- Headless Chrome interaction
-- "How do I automate the browser?"
+**MUST be invoked** when the task involves Chrome DevTools Protocol, ov cdp commands, browser automation, clicking elements, taking screenshots, or OAuth flows inside containers. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Desktop automation. Use after a desktop container is running. Preferred over VNC for structured interaction. See also `/ov:vnc` (pixel), `/ov:sway` (window).
