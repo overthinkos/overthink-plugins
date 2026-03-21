@@ -91,14 +91,25 @@ ov shell $IMG -c "supervisorctl restart openclaw"
 
 ### OpenAI Codex OAuth
 
-```bash
-# Interactive OAuth (--tty required for PTY)
-ov shell $IMG --tty -c "openclaw models auth login --provider openai-codex --set-default"
-```
+**Prerequisites:** Chrome must be signed into Google with sync enabled. See `/ov-images:openclaw-ollama-sway-browser` for the full Chrome sign-in and Codex OAuth procedure — the process is identical for this image (substitute `IMG=openclaw-sway-browser`).
 
-The `BROWSER=browser-open` env var auto-opens the OAuth URL in Chrome via CDP. The callback at `http://127.0.0.1:1455/auth/callback` is container-internal (no port mapping needed). Model: `openai-codex/gpt-5.4`.
+**Key points:**
+- Use `tmux` inside the container for the OAuth TUI (not `--tty` piped through `tee`)
+- Click "Continue with Google" then "Continue" on consent using `ov cdp click --vnc`
+- Callback at `localhost:1455` is container-internal (no port mapping needed)
+- Model: `openai-codex/gpt-5.4`
+- Tokens persist in the `data` volume (`~/.openclaw`)
 
 See `/ov:openclaw` for full gateway configuration reference.
+
+## Data Persistence
+
+| Volume | Container Path | Contents |
+|--------|----------------|----------|
+| `ov-...-data` | `~/.openclaw` | Config, auth tokens, sessions |
+| `ov-...-chrome-data` | `~/.chrome-debug` | Chrome profile, sign-in, sync |
+
+Volumes survive `ov stop`/`ov start` and image rebuilds. Only destroyed by `ov remove --purge`.
 
 ## When to Use This Skill
 

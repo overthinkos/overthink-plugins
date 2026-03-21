@@ -176,43 +176,58 @@ Images with Chrome include a `browser-open` script and set `BROWSER=browser-open
 
 ## OAuth Automation Example
 
-Complete flow for deploying openclaw with Codex OAuth:
+Complete flow for deploying openclaw with Codex OAuth. **All browser interactions must be VNC-visible** — use `--vnc` flag on `ov cdp click`.
+
+**Critical:** The `openclaw models auth login` TUI requires a real terminal. Do NOT pipe through `tee` or redirect stdout. Use **tmux** inside the container.
 
 ```bash
-# 1. Build and deploy with tailscale serve on all ports
-ov build openclaw-sway-browser
-ov enable openclaw-sway-browser
-# Quadlet generates: tailscale serve --https=18789, --tcp=5900, --https=9222
+IMG=openclaw-sway-browser  # or openclaw-ollama-sway-browser
 
-# 2. Start OAuth process inside the running container
-ov shell openclaw-sway-browser --tty -c \
-  "openclaw models auth login --provider openai-codex --set-default" > /tmp/oauth.log &
+# 1. Prerequisites: Chrome signed into Google with sync enabled
+#    See /ov-images:openclaw-ollama-sway-browser for full Chrome sign-in procedure
 
-# 3. Extract OAuth URL, open in container's Chrome via CDP
-OAUTH_URL=$(grep -oP 'https://auth\.openai\.com\S+' /tmp/oauth.log)
-ov cdp open openclaw-sway-browser "$OAUTH_URL"
+# 2. Start OAuth in tmux (real terminal inside container)
+ov shell $IMG -c 'tmux new-session -d -s oauth "openclaw models auth login --provider openai-codex --set-default; echo DONE; sleep 60"'
 
-# 4. Wait for login page, click "Continue with Google"
-TAB=$(ov cdp list openclaw-sway-browser | grep openai | awk '{print $1}')
-ov cdp wait openclaw-sway-browser $TAB 'button[value="google"]'
-ov cdp click openclaw-sway-browser $TAB 'button[value="google"]'
+# 3. Read OAuth URL from tmux output
+sleep 5
+OAUTH_URL=$(ov shell $IMG -c 'tmux capture-pane -t oauth -p' | grep -o 'https://auth.openai.com/[^ ]*')
+ov cdp open $IMG "$OAUTH_URL"
 
-# 5. Wait for consent page, click "Continue"
-ov cdp wait openclaw-sway-browser $TAB 'button[type="submit"]'
-ov cdp click openclaw-sway-browser $TAB 'button[type="submit"]'
+# 4. Click "Continue with Google" (VNC-visible)
+sleep 5
+TAB=$(ov cdp list $IMG | grep -i "openai\|auth" | head -1 | awk '{print $1}')
+ov cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc
 
-# 6. OAuth callback hits localhost:1455 inside container
-# Tokens saved to ~/.openclaw volume
+# 5. Click "Continue" on Codex consent page (VNC-visible)
+sleep 5
+ov cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc
+
+# 6. Verify token exchange completed in tmux
+sleep 10
+ov shell $IMG -c 'tmux capture-pane -t oauth -p | tail -5'
+# Expected: "OpenAI OAuth complete", "Default model set to openai-codex/gpt-5.4"
+
+# 7. Restart gateway
+ov shell $IMG -c "supervisorctl restart openclaw"
+ov shell $IMG -c "openclaw models status"
 ```
 
-Key enablers:
-- `--tty` provides PTY for interactive CLI commands from automation
-- `port_relay` makes Chrome DevTools accessible from host through podman bridge networking
-- `browser-open` + `BROWSER` env lets CLI tools open URLs in the running Chrome via CDP
-- `tailscale serve --tcp=5900` exposes VNC for manual inspection if needed
-- `shm_size: 1g` prevents Chrome from crashing due to /dev/shm exhaustion
+**Tested selectors** (OpenAI auth page as of 2026-03-21):
+- "Continue with Google": `button._buttonStyleFix_wvuha_65` (first matching social button)
+- "Continue" (consent): `button._primary_3rdp0_107` (black primary button)
+- These are CSS class selectors specific to OpenAI's auth UI — may change over time
 
-Source: `ov/cdp.go`, `ov/browser_cdp.go`.
+Key enablers:
+- `tmux` provides a real terminal for the TUI to complete the token exchange
+- `ov cdp click --vnc` finds elements via CDP, clicks via VNC (visible to user)
+- `port_relay` makes Chrome DevTools accessible from host through podman bridge networking
+- `shm_size: 1g` prevents Chrome from crashing due to /dev/shm exhaustion
+- Callback at `localhost:1455` is container-internal (no port mapping needed)
+
+**Stale port 1455:** If a previous OAuth attempt left port 1455 occupied: `ov shell $IMG -c 'kill -9 $(ss -tlnp sport = :1455 | grep -oP "pid=\K\d+")'`
+
+Source: `ov/cdp.go`, `ov/vnc.go`.
 
 ## Google Sign-In Automation
 

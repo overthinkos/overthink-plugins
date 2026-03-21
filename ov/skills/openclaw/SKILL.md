@@ -151,19 +151,40 @@ agents: {
 
 ### OAuth Auth (OpenAI Codex)
 
+**Critical:** The `openclaw models auth login` TUI requires a real terminal to complete the post-callback token exchange. Do NOT pipe through `tee` or redirect stdout — it breaks the TUI event loop. **Use tmux** inside the container:
+
 ```bash
-# Interactive OAuth flow (requires --tty for PTY)
-ov shell <image> --tty -c \
-  "openclaw models auth login --provider openai-codex --set-default"
+IMG=<image>
+
+# 1. Start OAuth in tmux (real terminal inside container)
+ov shell $IMG -c 'tmux new-session -d -s oauth "openclaw models auth login --provider openai-codex --set-default; echo DONE; sleep 60"'
+
+# 2. Read the OAuth URL from tmux output
+sleep 5
+ov shell $IMG -c 'tmux capture-pane -t oauth -p' | grep -o 'https://auth.openai.com/[^ ]*'
+
+# 3. Open URL in Chrome, click "Continue with Google", then "Continue" on consent
+ov cdp open $IMG "<oauth-url>"
+TAB=$(ov cdp list $IMG | grep -i "openai" | head -1 | awk '{print $1}')
+ov cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc   # Continue with Google
+sleep 5
+ov cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc          # Continue (consent)
+
+# 4. Verify completion
+sleep 10
+ov shell $IMG -c 'tmux capture-pane -t oauth -p | tail -5'
+# Should show: "OpenAI OAuth complete", "Default model set to openai-codex/gpt-5.4"
 ```
 
-The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container — this is container-internal, no port mapping is needed. The `BROWSER=browser-open` env var (set by the chrome layer) means the OAuth URL auto-opens in Chrome via CDP.
+**Prerequisites:** Chrome must have an active Google session. The "Continue with Google" button on OpenAI's auth page uses Chrome's Google cookies. See `/ov-images:openclaw-ollama-sway-browser` for the full Chrome sign-in procedure.
 
-Tokens are stored in `~/.openclaw/agents/<id>/agent/auth-profiles.json` and persist in the `data` volume.
+**Callback architecture:** The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container. Chrome and `openclaw-models` share the same network namespace — no port mapping needed for 1455. The `BROWSER=browser-open` env var (set by the chrome layer) auto-opens URLs via CDP, but may not trigger in all TTY contexts — open the URL manually via `ov cdp open` as a fallback.
 
-Model name: `openai-codex/gpt-5.4`
+**Stale port 1455:** If a previous attempt left port 1455 occupied: `ov shell $IMG -c 'kill -9 $(ss -tlnp sport = :1455 | grep -oP "pid=\K\d+")'`
 
-For browser-assisted OAuth (Google sign-in), see the OAuth example in `/ov:cdp`.
+Tokens persist in `~/.openclaw/agents/main/agent/auth-profiles.json` in the `data` volume. Survive `ov stop`/`ov start` and image rebuilds. Only destroyed by `ov remove --purge`.
+
+Model name: `openai-codex/gpt-5.4`. The `--set-default` flag sets it as the default model in `openclaw.json`.
 
 ### Checking Model Status
 
