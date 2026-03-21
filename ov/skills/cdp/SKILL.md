@@ -210,7 +210,7 @@ Sign into a Google account inside a running container. Requires `GMAIL_USER` and
 
 **App Passwords required:** Google accounts with 2FA (now mandatory for most accounts) require a 16-character [App Password](https://myaccount.google.com/apppasswords). App Passwords bypass all verification challenges and 2FA prompts — use them by default for automated sign-in.
 
-**Fresh profile prerequisite:** A fresh `chrome-data` volume triggers Chrome's first-run flow. Use `ov remove <image> --volumes` before `ov enable` to ensure a clean start. Just rebuilding the image does not reset named volumes.
+**Fresh profile prerequisite:** A fresh `chrome-data` volume triggers Chrome's first-run flow. Use `ov remove <image> --purge` before `ov enable` to ensure a clean start. Just rebuilding the image does not reset named volumes.
 
 ### Step 0: Dismiss Chrome First-Run Dialog
 
@@ -307,7 +307,7 @@ STAB=$(ov cdp list my-app | grep search-engine | head -1 | awk '{print $1}')
 
 ### Sign-In Persistence
 
-Cookies and sync state are stored in the `chrome-data` volume (`~/.chrome-debug`), persisting across container restarts. Use `ov remove <image> --volumes` to clear for a fresh start.
+Cookies and sync state are stored in the `chrome-data` volume (`~/.chrome-debug`), persisting across container restarts. Use `ov remove <image> --purge` to clear for a fresh start.
 
 ### Coordinate Translation for Sign-In
 

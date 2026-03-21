@@ -20,11 +20,12 @@ Container service lifecycle management with two modes: **quadlet** (systemd user
 | Stop service | `ov stop <image>` | Stop running service |
 | Enable quadlet | `ov enable <image>` | Generate .container file, daemon-reload |
 | Disable quadlet | `ov disable <image>` | Disable auto-start |
-| Service status | `ov status <image>` | Show service status |
+| Service status | `ov status [<image>]` | Show service status (all if no image given) |
+| List all services | `ov status --all` | Include inactive services in listing |
 | Service logs | `ov logs <image> -f` | Follow service logs |
 | Update service | `ov update <image>` | Update image and restart |
 | Remove service | `ov remove <image>` | Stop, remove service + deploy.yml entry |
-| Remove + volumes | `ov remove <image> --volumes` | Also delete named volumes |
+| Purge (+ volumes) | `ov remove <image> --purge` | Also delete named volumes |
 | Remove keep config | `ov remove <image> --keep-deploy` | Remove service but keep deploy.yml entry |
 | Seed data | `ov seed <image>` | Copy image data to empty bind mount dirs |
 
@@ -75,7 +76,7 @@ ov update my-app                   # Re-transfer image, restart
 ov stop my-app                     # systemctl --user stop
 ov disable my-app                  # Disable auto-start
 ov remove my-app                   # Stop + remove .container + deploy.yml entry
-ov remove my-app --volumes         # Also remove named volumes
+ov remove my-app --purge           # Also remove named volumes
 ov remove my-app --keep-deploy     # Remove service but keep deploy.yml for re-enable
 ov remove my-app -e KEY=VALUE      # Set env vars for lifecycle hooks
 ```
@@ -126,7 +127,7 @@ ov logs my-app -f                # docker/podman logs -f
 ov stop my-app                   # docker/podman stop
 ov update my-app --build         # Rebuild, stop old, start new
 ov remove my-app                 # Stop + remove container
-ov remove my-app --volumes       # Also remove named volumes
+ov remove my-app --purge         # Also remove named volumes
 ```
 
 ## Supervisord Service Management

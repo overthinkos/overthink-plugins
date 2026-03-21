@@ -84,7 +84,7 @@ Sign into Chrome with Gmail credentials for sync. Requires `GMAIL_USER` and `GMA
 IMG=openclaw-ollama-sway-browser
 
 # Fresh start (removes existing profile)
-ov remove $IMG --volumes
+ov remove $IMG --purge
 ov enable $IMG && ov start $IMG
 sleep 60  # wait for Chrome + VNC to stabilize
 

@@ -45,7 +45,7 @@ Usually used via the `chrome-sway` or `sway-desktop` composition layers rather t
 
 ## Google Sign-In
 
-Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see `/ov:cdp` for the full recipe). All clicks use `ov cdp click --vnc` (CDP selector targeting + VNC pointer delivery), and all text input uses `ov vnc type` (real OS-level keysym events). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts. Use `ov remove <image> --volumes` to clear for a fresh start — just rebuilding the image does not reset volumes.
+Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see `/ov:cdp` for the full recipe). All clicks use `ov cdp click --vnc` (CDP selector targeting + VNC pointer delivery), and all text input uses `ov vnc type` (real OS-level keysym events). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts. Use `ov remove <image> --purge` to clear for a fresh start — just rebuilding the image does not reset volumes.
 
 **App Passwords (required for automation):** Google accounts with 2FA (now mandatory for most accounts) require a 16-character [App Password](https://myaccount.google.com/apppasswords). App Passwords bypass all verification challenges and 2FA prompts. Set `GMAIL_PASSWORD` to the App Password in `.env`.
 

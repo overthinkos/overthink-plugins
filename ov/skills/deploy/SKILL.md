@@ -230,7 +230,7 @@ When a bind mount has the same name as a layer volume, the bind mount **override
 - **`ov seed <image>`**: copies default data from image into empty bind mount directories before first start
 - **`ov shell`/`ov start` (direct)**: resolves bind mounts, verifies plain dirs exist and encrypted volumes are mounted, appends `-v <host>:<container>` flags
 - **`ov enable` (quadlet)**: plain mounts as `Volume=` lines; encrypted mounts generate a companion `ov-<image>-enc.service` with `Requires=`/`After=`
-- **`ov remove`**: removes companion crypto service file. `--volumes` also removes named volumes
+- **`ov remove`**: removes companion crypto service file. `--purge` also removes named volumes
 - **`ov inspect --format bind_mounts`**: outputs `NAME\tHOST\tPATH\tENCRYPTED`
 
 Source: `ov/enc.go`, `ov/validate.go` (`validateBindMounts`).

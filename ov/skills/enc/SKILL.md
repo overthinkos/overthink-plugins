@@ -101,7 +101,7 @@ When an image has multiple encrypted bind mounts, `ov enc init`, `ov enc mount`,
 
 - **`ov shell`/`ov start` (direct mode)**: resolves bind mounts, verifies encrypted volumes are mounted, appends `-v <plain>:<container-path>` flags
 - **`ov enable` (quadlet mode)**: generates a companion `ov-<image>-enc.service` with `Requires=`/`After=` dependency. The crypto service mounts volumes before the main container starts
-- **`ov remove`**: removes the companion crypto service file. `--volumes` also removes named volumes
+- **`ov remove`**: removes the companion crypto service file. `--purge` also removes named volumes
 - **`ov seed <image>`**: copies default data from the image into empty bind mount directories (works for both plain and encrypted mounts after mounting)
 - **`ov inspect --format bind_mounts`**: outputs `NAME\tHOST\tPATH\tENCRYPTED`
 
