@@ -59,6 +59,33 @@ Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see 
 
 All Chrome launches go through `chrome-wrapper` (`~/.local/bin/chrome-wrapper`), which adds CDP flags (`--remote-debugging-port=9222`), Windows User-Agent spoofing, and GPU detection. A symlink `~/.local/bin/google-chrome-stable -> chrome-wrapper` ensures Chrome always uses the wrapper regardless of how it's launched (sway exec, desktop file, app menu, or Chrome's self-restart after close/crash). The wrapper calls `/opt/google/chrome/chrome` directly to avoid recursion through the symlink.
 
+### Pixman Detection and GPU Fallback
+
+On NVIDIA headless systems, Sway uses `WLR_RENDERER=pixman` (software rendering) because wayvnc/neatvnc cannot capture GPU-rendered buffers (`ext-image-copy-capture` fails with gles2, vulkan, and gles2+`WLR_DRM_NO_MODIFIERS` -- all produce blank VNC output). The chrome-wrapper detects this by reading Sway's `/proc/<pid>/environ` for `WLR_RENDERER=pixman` and strips NVIDIA EGL vars and VAAPI flags so Chrome falls back to software rendering naturally.
+
+Without this fix, NVIDIA EGL vars make Chrome try GPU acceleration against the GPU-less pixman compositor, producing `ContextResult::kTransientFailure: Failed to send GpuControl.CreateCommandBuffer`, which crashes the renderer with SIGILL.
+
+The detection uses `pgrep -x sway` (exact process name match — NOT `pgrep -f` which matches sway-wrapper and sway-autotile). When pixman is detected, the wrapper:
+- Strips VAAPI features (`VaapiVideoDecodeLinuxGL,VaapiIgnoreDriverChecks`) from `CHROME_FLAGS` env var
+- Skips setting NVIDIA EGL vars (`__EGL_VENDOR_LIBRARY_FILENAMES`, `GBM_BACKEND`, `__GLX_VENDOR_LIBRARY_NAME`)
+- Does NOT use `--disable-gpu` — that flag breaks CDP tab creation (`PUT /json/new` crashes Chrome). Without NVIDIA vars, Chrome falls back to software rendering gracefully.
+
+**Important**: `--disable-gpu` must NOT be used with CDP automation. Chrome with `--disable-gpu` crashes when creating new tabs via the DevTools HTTP API (`PUT /json/new`). The correct approach is to strip NVIDIA EGL vars and VAAPI flags, letting Chrome detect the missing GPU and fall back naturally.
+
+### ShaderCache / GpuCache Cleanup
+
+The wrapper cleans `ShaderCache` and `GpuCache` directories from the Chrome profile on startup. Corrupted caches (from `pkill -9` or hard container stops) cause secondary SIGILL crashes even with correct GPU flags. Cleaning on every launch prevents this.
+
+## browser-open On-Demand Chrome Launch
+
+The `browser-open` helper (set as `BROWSER` env var) handles three states:
+
+1. **Chrome running + CDP responsive**: Reuses the existing instance, opens the URL in a new tab.
+2. **Chrome running + CDP unresponsive**: Waits for CDP to become available (avoids double-launching).
+3. **Chrome not running**: Launches Chrome via `swaymsg exec chrome-wrapper` with SWAYSOCK discovery (glob on `/tmp/sway-ipc.*.sock`, newest first).
+
+Uses `pgrep` to detect Chrome process state before deciding whether to launch. This is used by OAuth flows (`BROWSER=browser-open` causes OAuth URLs to auto-open in Chrome via CDP).
+
 ## Windows Platform Spoofing
 
 Chrome launches with a Windows User-Agent and loads the `chrome-windows` extension to present a consistent Windows identity:
@@ -69,6 +96,24 @@ Chrome launches with a Windows User-Agent and loads the `chrome-windows` extensi
 - **Sec-CH-UA-Platform header:** Set to `"Windows"` via declarativeNetRequest rules (`chrome-windows/rules.json`)
 
 This reduces the chance of Google flagging the sign-in as suspicious (Linux + automation fingerprint).
+
+## NVIDIA Headless: Chrome SIGILL Root Cause
+
+On NVIDIA headless (no physical display), the full failure chain is:
+
+1. wayvnc/neatvnc cannot capture GPU-rendered buffers (ext-image-copy-capture protocol fails).
+2. Sway must use `WLR_RENDERER=pixman` (CPU software rendering) for VNC to work.
+3. Chrome attempts GPU acceleration against the pixman compositor.
+4. GPU context creation fails: `ContextResult::kTransientFailure`.
+5. Chrome renderer crashes with SIGILL.
+
+**Tested and confirmed failing**: gles2, vulkan, gles2+`WLR_DRM_NO_MODIFIERS` all produce blank VNC on NVIDIA headless. Pixman is the only working option for VNC with NVIDIA.
+
+**Fix**: chrome-wrapper auto-detects pixman and strips NVIDIA EGL vars + VAAPI flags. Chrome detects no GPU and falls back to software rendering naturally. `--disable-gpu` must NOT be used -- it breaks CDP tab creation (`PUT /json/new` crashes Chrome). No manual intervention needed.
+
+## CDP Diagnostics
+
+`ov cdp` commands now show diagnostics on connection failure: checks Chrome process, relay status, and port binding. Hints use `ov sway exec <image> chrome-wrapper` (not `ov shell` with bare `swaymsg`) for manual Chrome restart.
 
 ## Used In Images
 

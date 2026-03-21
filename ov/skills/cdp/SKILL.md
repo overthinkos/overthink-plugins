@@ -160,6 +160,16 @@ ov cdp raw my-app $TAB 'Runtime.evaluate' '{"expression":"1+1"}'
 
 Sends arbitrary CDP method with optional JSON params. Returns raw CDP response.
 
+## CDP Connection Diagnostics
+
+When `ov cdp` commands fail to connect, the `diagnoseCDP()` function runs automatically and provides targeted hints:
+
+1. **Chrome process check**: Is Chrome running inside the container? (`pgrep chrome`)
+2. **Relay status**: Is the port relay (socat) forwarding 9222? (`supervisorctl status relay-9222`)
+3. **Port binding**: Is Chrome listening on 127.0.0.1:9222? (`ss -tlnp`)
+
+Hints direct users to `ov sway exec <image> chrome-wrapper` for manual Chrome restart (not `ov shell` with bare `swaymsg`, which may lack the correct `SWAYSOCK` path).
+
 ## browser-open Script and BROWSER Env
 
 Images with Chrome include a `browser-open` script and set `BROWSER=browser-open` in the environment. When CLI tools inside the container call `xdg-open` or use the `$BROWSER` variable to open a URL, it routes through CDP to open the URL in the running Chrome instance.

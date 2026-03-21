@@ -76,6 +76,36 @@ After `ov start`:
 
 OpenClaw (18789) and Chrome DevTools (9222) both use port relay (socat) — services bind to loopback, socat forwards from the container interface. This avoids origin/security checks that block non-loopback connections.
 
+## Gateway First-Run Configuration
+
+After the first container start, the gateway needs one-time setup before it will accept requests:
+
+```bash
+IMG=openclaw-ollama-sway-browser
+
+# Required: gateway mode (without this, gateway refuses to start)
+ov shell $IMG -c "openclaw config set gateway.mode local"
+
+# Required: Chrome CDP integration
+ov shell $IMG -c "openclaw config set browser.cdpUrl 'http://127.0.0.1:9222'"
+
+# Apply changes
+ov shell $IMG -c "supervisorctl restart openclaw"
+```
+
+`dangerouslyAllowHostHeaderOriginFallback` is **NOT needed** — the gateway binds to loopback only, and port_relay (socat) handles external access.
+
+### OpenAI Codex OAuth
+
+```bash
+# Interactive OAuth (--tty required for PTY)
+ov shell $IMG --tty -c "openclaw models auth login --provider openai-codex --set-default"
+```
+
+The `BROWSER=browser-open` env var auto-opens the OAuth URL in Chrome via CDP. The callback at `http://127.0.0.1:1455/auth/callback` is container-internal (no port mapping needed). Model: `openai-codex/gpt-5.4`.
+
+See `/ov:openclaw` for full gateway configuration reference.
+
 ## Chrome Sign-In
 
 Sign into Chrome with Gmail credentials for sync. Requires `GMAIL_USER` and `GMAIL_PASSWORD` in `.env` (App Password for 2FA accounts). Both ports 9222 (CDP) and 5900 (VNC) are needed for the hybrid automation pattern.

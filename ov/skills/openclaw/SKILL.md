@@ -44,8 +44,10 @@ The `openclaw` layer (`layers/openclaw/`) depends on `nodejs` and `supervisord`.
 
 ```
 [program:openclaw]
-command=%(ENV_HOME)s/.npm-global/bin/openclaw gateway --port 18789 --bind lan
+command=%(ENV_HOME)s/.npm-global/bin/openclaw gateway --port 18789
 ```
+
+The gateway binds to loopback only (no `--bind lan`). External access is handled by port_relay (socat), which forwards from the container interface to loopback. This avoids CORS origin checks entirely — the gateway only ever sees loopback connections.
 
 ### Image
 
@@ -81,14 +83,21 @@ ov logs openclaw-sway-browser -f       # Follow container logs
 
 ### Required Settings for Container Use
 
-When the gateway runs inside an Overthink container with `--bind lan`, two config values must be set before the gateway will start:
+The gateway binds to loopback only (no `--bind lan`). Only one config value is required before the gateway will start:
 
 ```bash
 openclaw config set gateway.mode local
-openclaw config set gateway.controlUi.dangerouslyAllowHostHeaderOriginFallback true
 ```
 
-Without `gateway.mode=local`, the gateway refuses to start. Without the origin fallback, non-loopback binding is rejected by the Control UI CORS check.
+Without `gateway.mode=local`, the gateway refuses to start.
+
+`dangerouslyAllowHostHeaderOriginFallback` is **NOT needed** because port_relay (socat) handles external access — the gateway only sees loopback connections, so no CORS origin checks are triggered.
+
+For Chrome integration, also set:
+
+```bash
+openclaw config set browser.cdpUrl "http://127.0.0.1:9222"
+```
 
 After setting these, restart the gateway:
 
@@ -144,11 +153,15 @@ agents: {
 
 ```bash
 # Interactive OAuth flow (requires --tty for PTY)
-ov shell openclaw-sway-browser --tty -c \
+ov shell <image> --tty -c \
   "openclaw models auth login --provider openai-codex --set-default"
 ```
 
-The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container. Tokens are stored in `~/.openclaw/agents/<id>/agent/auth-profiles.json` and persist in the `data` volume.
+The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container — this is container-internal, no port mapping is needed. The `BROWSER=browser-open` env var (set by the chrome layer) means the OAuth URL auto-opens in Chrome via CDP.
+
+Tokens are stored in `~/.openclaw/agents/<id>/agent/auth-profiles.json` and persist in the `data` volume.
+
+Model name: `openai-codex/gpt-5.4`
 
 For browser-assisted OAuth (Google sign-in), see the OAuth example in `/ov:cdp`.
 
@@ -354,7 +367,23 @@ supervisorctl restart openclaw
 
 ### OAuth flow
 
-Use the browser automation flow from `/ov:cdp`. Key: `--tty` for interactive CLI, Chrome DevTools for callback handling.
+Use `--tty` for the interactive CLI. The `BROWSER=browser-open` env var auto-opens OAuth URLs in Chrome. The callback URL (`http://127.0.0.1:1455/auth/callback`) is container-internal and needs no port mapping.
+
+```bash
+ov shell <image> --tty -c "openclaw models auth login --provider openai-codex --set-default"
+```
+
+For browser-assisted OAuth (Google sign-in), see `/ov:cdp`.
+
+### First-run gateway setup (complete sequence)
+
+After the first container start, configure the gateway:
+
+```bash
+ov shell <image> -c "openclaw config set gateway.mode local"
+ov shell <image> -c "openclaw config set browser.cdpUrl 'http://127.0.0.1:9222'"
+ov shell <image> -c "supervisorctl restart openclaw"
+```
 
 ## Cross-References
 

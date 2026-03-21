@@ -42,6 +42,35 @@ my-desktop:
     - sway
 ```
 
+## Stale IPC Socket Cleanup
+
+Supervisord restarts leave old `/tmp/sway-ipc.1000.<old-pid>.sock` files. If multiple sockets exist, naive discovery (`ls /tmp/sway-ipc.*.sock | head -1`) picks alphabetically -- which selects the smallest PID (oldest = stale socket), causing `ov sway` commands to fail silently.
+
+**Fix**: `sway-wrapper` cleans old sockets before starting Sway. Both `sway-wrapper` and `ov sway` (sway.go) use `ls -t | head -1` (newest modification time first) when discovering the active socket.
+
+**Symptoms of stale socket**: `ov sway` commands fail, resolution stays at 1280x720 (wlr-randr resize fails), Chrome renders at wrong size.
+
+## NVIDIA Headless: Pixman Renderer
+
+On NVIDIA headless systems (no physical display), Sway must use software rendering:
+
+```
+WLR_RENDERER=pixman
+```
+
+**Why**: wayvnc/neatvnc uses the `ext-image-copy-capture` Wayland protocol to capture compositor output. This protocol fails with hardware renderers on NVIDIA headless:
+
+| Renderer | Result |
+|----------|--------|
+| `pixman` (software) | VNC works correctly |
+| `gles2` | Blank VNC (capture fails) |
+| `vulkan` | Blank VNC (capture fails) |
+| `gles2` + `WLR_DRM_NO_MODIFIERS=1` | Blank VNC (capture fails) |
+
+Pixman is set in `sway-wrapper` when NVIDIA GPU is detected without a physical display. This is the only working configuration for VNC with NVIDIA headless.
+
+**Impact on Chrome**: The pixman compositor has no GPU acceleration. Chrome must NOT have NVIDIA EGL vars (`__EGL_VENDOR_LIBRARY_FILENAMES`, `GBM_BACKEND`, `__GLX_VENDOR_LIBRARY_NAME`) or VAAPI flags set, or it crashes with SIGILL. `--disable-gpu` must NOT be used -- it breaks CDP tab creation. The chrome-wrapper strips these vars automatically on pixman. See `/ov-layers:chrome` for details.
+
 ## Used In Images
 
 Transitive dependency via `chrome-sway` and `sway-desktop` in all desktop images.

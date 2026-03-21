@@ -109,9 +109,11 @@ This runs `swaymsg` directly instead of going through `podman exec`.
 ## Architecture
 
 1. Resolves the container name from image + instance
-2. Discovers `SWAYSOCK` via `ls /tmp/sway-ipc.*.sock`
+2. Discovers `SWAYSOCK` via `ls -t /tmp/sway-ipc.*.sock | head -1` (newest first by modification time)
 3. Runs `swaymsg` with the discovered socket (via `podman exec` from host, or directly in local mode)
 4. JSON output piped to stdout, errors to stderr
+
+**Stale IPC socket handling**: Supervisord restarts leave old `/tmp/sway-ipc.1000.<old-pid>.sock` files. Using `ls` without `-t` picks alphabetically (smallest PID = oldest = stale socket). Both `sway-wrapper` (cleans old sockets before starting) and `ov sway` (sway.go, uses `ls -t`) handle this correctly. Symptoms of stale socket: `ov sway` commands fail, resolution stuck at 1280x720, Chrome renders at wrong size.
 
 Source: `ov/sway.go`.
 
