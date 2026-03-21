@@ -151,17 +151,17 @@ agents: {
 
 ### OAuth Auth (OpenAI Codex)
 
-**Critical:** The `openclaw models auth login` TUI requires a real terminal to complete the post-callback token exchange. Do NOT pipe through `tee` or redirect stdout — it breaks the TUI event loop. **Use tmux** inside the container:
+**Critical:** The `openclaw models auth login` TUI requires a real terminal to complete the post-callback token exchange. Do NOT pipe through `tee` or redirect stdout — it breaks the TUI event loop. **Use `ov tmux`** (see `/ov:tmux`):
 
 ```bash
 IMG=<image>
 
-# 1. Start OAuth in tmux (real terminal inside container)
-ov shell $IMG -c 'tmux new-session -d -s oauth "openclaw models auth login --provider openai-codex --set-default; echo DONE; sleep 60"'
+# 1. Start OAuth in a tmux session (real terminal)
+ov tmux run $IMG -s oauth "openclaw models auth login --provider openai-codex --set-default"
 
 # 2. Read the OAuth URL from tmux output
 sleep 5
-ov shell $IMG -c 'tmux capture-pane -t oauth -p' | grep -o 'https://auth.openai.com/[^ ]*'
+ov tmux capture $IMG -s oauth | grep -o 'https://auth.openai.com/[^ ]*'
 
 # 3. Open URL in Chrome, click "Continue with Google", then "Continue" on consent
 ov cdp open $IMG "<oauth-url>"
@@ -172,7 +172,7 @@ ov cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc          # Continue (co
 
 # 4. Verify completion
 sleep 10
-ov shell $IMG -c 'tmux capture-pane -t oauth -p | tail -5'
+ov tmux capture $IMG -s oauth
 # Should show: "OpenAI OAuth complete", "Default model set to openai-codex/gpt-5.4"
 ```
 

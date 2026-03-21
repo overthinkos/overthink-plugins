@@ -94,7 +94,7 @@ ov shell $IMG -c "supervisorctl restart openclaw"
 **Prerequisites:** Chrome must be signed into Google with sync enabled. See `/ov-images:openclaw-ollama-sway-browser` for the full Chrome sign-in and Codex OAuth procedure — the process is identical for this image (substitute `IMG=openclaw-sway-browser`).
 
 **Key points:**
-- Use `tmux` inside the container for the OAuth TUI (not `--tty` piped through `tee`)
+- Use `ov tmux run` for the OAuth TUI (not `--tty` piped through `tee`) — see `/ov:tmux`
 - Click "Continue with Google" then "Continue" on consent using `ov cdp click --vnc`
 - Callback at `localhost:1455` is container-internal (no port mapping needed)
 - Model: `openai-codex/gpt-5.4`

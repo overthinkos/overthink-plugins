@@ -99,17 +99,17 @@ ov shell $IMG -c "supervisorctl restart openclaw"
 
 **Prerequisites:** Chrome must be signed into Google with sync enabled (see Chrome Sign-In below). The Codex OAuth "Continue with Google" button requires an active Google session.
 
-**Critical:** The `openclaw models auth login` TUI requires a real terminal. Running it piped through `tee` or with stdout redirected breaks the post-callback token exchange. **Use tmux** inside the container:
+**Critical:** The `openclaw models auth login` TUI requires a real terminal. Running it piped through `tee` or with stdout redirected breaks the post-callback token exchange. **Use `ov tmux`** (see `/ov:tmux`):
 
 ```bash
 IMG=openclaw-ollama-sway-browser
 
 # 1. Start OAuth in a tmux session (provides real terminal)
-ov shell $IMG -c 'tmux new-session -d -s oauth "openclaw models auth login --provider openai-codex --set-default; echo DONE; sleep 60"'
+ov tmux run $IMG -s oauth "openclaw models auth login --provider openai-codex --set-default"
 
 # 2. Wait for URL, read it from tmux output
 sleep 5
-ov shell $IMG -c 'tmux capture-pane -t oauth -p' | grep -o 'https://auth.openai.com/[^ ]*'
+ov tmux capture $IMG -s oauth | grep -o 'https://auth.openai.com/[^ ]*'
 
 # 3. Open the OAuth URL in Chrome (visible in VNC)
 ov cdp open $IMG "<oauth-url>"
@@ -125,7 +125,7 @@ ov cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc
 
 # 6. Verify token exchange completed
 sleep 10
-ov shell $IMG -c 'tmux capture-pane -t oauth -p | tail -5'
+ov tmux capture $IMG -s oauth
 # Should show: "OpenAI OAuth complete", "Default model set to openai-codex/gpt-5.4"
 
 # 7. Restart gateway and verify
@@ -136,7 +136,7 @@ ov shell $IMG -c "openclaw models status"
 
 **Token persistence:** Auth tokens save to `~/.openclaw/agents/main/agent/auth-profiles.json` in the `data` volume. Survives `ov stop`/`ov start` and image rebuilds. Only destroyed by `ov remove --purge`.
 
-**Why tmux:** The `openclaw models auth login` TUI needs an active terminal to process the OAuth callback. The callback server (port 1455) receives the authorization code and displays "Authentication successful" in the browser, but the token exchange with OpenAI's servers requires the TUI event loop to be responsive. `ov shell --tty` uses `script(1)` which breaks when piped/backgrounded.
+**Why `ov tmux`:** The `openclaw models auth login` TUI needs an active terminal to process the OAuth callback. The callback server (port 1455) receives the authorization code and displays "Authentication successful" in the browser, but the token exchange with OpenAI's servers requires the TUI event loop to be responsive. `ov shell --tty` uses `script(1)` which breaks when piped/backgrounded. `ov tmux run` provides a real tmux terminal. See `/ov:tmux` for full documentation.
 
 **Stale port 1455:** If a previous OAuth attempt left port 1455 occupied, kill it: `ov shell $IMG -c 'kill -9 $(ss -tlnp sport = :1455 | grep -oP "pid=\K\d+")'`
 

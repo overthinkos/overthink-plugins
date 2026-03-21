@@ -12,7 +12,7 @@ Claude Code plugins for the Overthink container image composition system.
 
 ## Plugins
 
-### ov (15 skills)
+### ov (16 skills)
 
 Skills for composing, building, and running container images with the `ov` CLI.
 
@@ -32,6 +32,7 @@ Skills for composing, building, and running container images with the `ov` CLI.
 | cdp | `/ov:cdp` | Chrome DevTools Protocol (ov cdp open/list/click/eval) |
 | vnc | `/ov:vnc` | VNC desktop automation (ov vnc screenshot/click/type) |
 | sway | `/ov:sway` | Sway compositor control (ov sway focus/move/tree/exec) |
+| tmux | `/ov:tmux` | Persistent tmux sessions (ov tmux shell/run/attach/capture) |
 | openclaw | `/ov:openclaw` | OpenClaw AI gateway configuration |
 
 ### ov-dev (2 skills, 3 agents, GitHub MCP)
@@ -203,7 +204,7 @@ Reference documentation for every enabled Overthink container image.
 | Component | Count |
 |-----------|-------|
 | Plugins | 4 |
-| Skills | 123 |
+| Skills | 124 |
 | Agents | 3 |
 | MCP Servers | 1 (GitHub) |
 | MCP Tools | 22 |

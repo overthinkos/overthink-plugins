@@ -178,7 +178,7 @@ Images with Chrome include a `browser-open` script and set `BROWSER=browser-open
 
 Complete flow for deploying openclaw with Codex OAuth. **All browser interactions must be VNC-visible** — use `--vnc` flag on `ov cdp click`.
 
-**Critical:** The `openclaw models auth login` TUI requires a real terminal. Do NOT pipe through `tee` or redirect stdout. Use **tmux** inside the container.
+**Critical:** The `openclaw models auth login` TUI requires a real terminal. Do NOT pipe through `tee` or redirect stdout. Use **`ov tmux`** (see `/ov:tmux`).
 
 ```bash
 IMG=openclaw-sway-browser  # or openclaw-ollama-sway-browser
@@ -186,12 +186,12 @@ IMG=openclaw-sway-browser  # or openclaw-ollama-sway-browser
 # 1. Prerequisites: Chrome signed into Google with sync enabled
 #    See /ov-images:openclaw-ollama-sway-browser for full Chrome sign-in procedure
 
-# 2. Start OAuth in tmux (real terminal inside container)
-ov shell $IMG -c 'tmux new-session -d -s oauth "openclaw models auth login --provider openai-codex --set-default; echo DONE; sleep 60"'
+# 2. Start OAuth in a tmux session (real terminal)
+ov tmux run $IMG -s oauth "openclaw models auth login --provider openai-codex --set-default"
 
 # 3. Read OAuth URL from tmux output
 sleep 5
-OAUTH_URL=$(ov shell $IMG -c 'tmux capture-pane -t oauth -p' | grep -o 'https://auth.openai.com/[^ ]*')
+OAUTH_URL=$(ov tmux capture $IMG -s oauth | grep -o 'https://auth.openai.com/[^ ]*')
 ov cdp open $IMG "$OAUTH_URL"
 
 # 4. Click "Continue with Google" (VNC-visible)
@@ -203,9 +203,9 @@ ov cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc
 sleep 5
 ov cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc
 
-# 6. Verify token exchange completed in tmux
+# 6. Verify token exchange completed
 sleep 10
-ov shell $IMG -c 'tmux capture-pane -t oauth -p | tail -5'
+ov tmux capture $IMG -s oauth
 # Expected: "OpenAI OAuth complete", "Default model set to openai-codex/gpt-5.4"
 
 # 7. Restart gateway
@@ -219,7 +219,7 @@ ov shell $IMG -c "openclaw models status"
 - These are CSS class selectors specific to OpenAI's auth UI — may change over time
 
 Key enablers:
-- `tmux` provides a real terminal for the TUI to complete the token exchange
+- `ov tmux run` provides a real terminal for the TUI to complete the token exchange (see `/ov:tmux`)
 - `ov cdp click --vnc` finds elements via CDP, clicks via VNC (visible to user)
 - `port_relay` makes Chrome DevTools accessible from host through podman bridge networking
 - `shm_size: 1g` prevents Chrome from crashing due to /dev/shm exhaustion

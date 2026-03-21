@@ -150,6 +150,7 @@ Source: `ov/network.go`.
 
 ## Cross-References
 
+- `/ov:tmux` -- Persistent tmux sessions (survives disconnects, needed for TTY-dependent TUI programs)
 - `/ov:service` -- Starting background services before exec
 - `/ov:cdp` -- Chrome DevTools Protocol automation
 - `/ov:sway` -- Sway compositor control
