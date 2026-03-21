@@ -14,8 +14,12 @@ Deployment configuration for container services: quadlet file generation details
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Enable quadlet | `ov enable <image>` | Generate .container file, daemon-reload |
+| Enable quadlet | `ov enable <image>` | Generate .container file + save deploy.yml |
 | Seed bind mounts | `ov seed <image>` | Copy image data to empty bind mount dirs |
+| Deploy status | `ov deploy status` | Audit deploy.yml vs quadlet sync |
+| Show overrides | `ov deploy show [image]` | Display deploy.yml contents |
+| Import config | `ov deploy import <files>` | Merge files into deploy.yml |
+| Reset config | `ov deploy reset [image]` | Remove deploy.yml overrides |
 | Push to registry | `ov build --push` | Multi-platform push |
 
 For service lifecycle commands (start/stop/enable/disable/status/logs/update/remove), see `/ov:service`. For VM deployment, see `/ov:vm`. For encrypted storage, see `/ov:enc`.
@@ -131,13 +135,22 @@ tunnel:
 
 Source: `ov/tunnel.go`, `ov/validate.go` (`validateTunnel`), `ov/quadlet.go` (systemd integration).
 
-## Deploy Overlay
+## deploy.yml — Source of Truth
 
-Per-machine deployment overrides in `~/.config/ov/deploy.yml` (not checked into git):
+`~/.config/ov/deploy.yml` is the **source of truth** for per-machine deployment configuration (not checked into git). All deployment commands read from image labels + deploy.yml — no `images.yml` needed.
+
+### How it gets populated
+
+1. **`ov enable`** automatically persists: workspace, ports, env (CLI -e), env_file, network, security (auto-detected devices)
+2. **`ov deploy import`** merges pre-provisioned config (tunnel, bind_mounts, DNS) from files
+3. **`ov remove`** cleans the entry (use `--keep-deploy` to preserve for re-enable)
+
+### Structure
 
 ```yaml
 images:
   my-app:
+    workspace: /home/user/project     # saved by ov enable
     tunnel:
       provider: cloudflare
       port: 2283
@@ -148,13 +161,44 @@ images:
         encrypted: true
     ports:
       - "2283:2283"
+    env:
+      - "LOG_LEVEL=debug"
+    env_file: "/home/user/project/.env"
+    security:
+      devices:
+        - /dev/dri/renderD128
+    network: ov
+    engine: podman
 ```
 
-Only deployment/runtime fields allowed: `tunnel`, `fqdn`, `acme_email`, `bind_mounts`, `ports`, `env`, `env_file`.
+Allowed fields: `workspace`, `tunnel`, `fqdn`, `acme_email`, `bind_mounts`, `ports`, `env`, `env_file`, `security`, `network`, `engine`.
+
+### Workspace recall
+
+When re-enabling with default workspace (`.`), `ov enable` checks deploy.yml for a previously saved workspace path and reuses it. This enables the workflow:
+
+```bash
+ov enable my-app -w ~/project    # Saves workspace to deploy.yml
+ov remove my-app --keep-deploy   # Quadlet removed, config preserved
+ov enable my-app                 # Picks up ~/project from deploy.yml
+```
+
+### Deploy status audit
+
+```bash
+ov deploy status
+# openclaw-ollama-sway-browser  deploy.yml: yes  quadlet: yes  (ok)
+# old-service                   deploy.yml: yes  quadlet: no   (stale config)
+# manual-service                deploy.yml: no   quadlet: yes  (no overrides)
+```
+
+### Labels-only architecture
+
+Deployment commands (`ov enable`, `start`, `status`, `logs`, `update`, `remove`, `seed`, `service`) resolve all configuration from **OCI image labels** + **deploy.yml** — no `images.yml` dependency. This means you can deploy on any machine with just `podman pull` + `ov enable`.
 
 ## Bind Mounts
 
-Image-level host-path bind mounts declared in `images.yml` or `deploy.yml`. Two modes: plain (direct bind) and encrypted (gocryptfs-managed). Not inherited from defaults -- deployment-specific.
+Host-path bind mounts declared in image labels (from `images.yml` at build time) or overridden in `deploy.yml`. Two modes: plain (direct bind) and encrypted (gocryptfs-managed). Deployment-specific.
 
 ### Configuration
 

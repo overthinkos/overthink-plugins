@@ -61,7 +61,7 @@ Auto-detection prefers podman over docker when both are installed.
 | Key | Env Var | Default | Values | Purpose |
 |-----|---------|---------|--------|---------|
 | `run_mode` | `OV_RUN_MODE` | `direct` | `direct`, `quadlet` | Container lifecycle mode |
-| `auto_enable` | `OV_AUTO_ENABLE` | `false` | `true`, `false` | Auto-generate quadlet on first `ov start` |
+| `auto_enable` | `OV_AUTO_ENABLE` | `true` | `true`, `false` | Auto-generate quadlet on first `ov start` |
 | `bind_address` | `OV_BIND_ADDRESS` | `127.0.0.1` | `127.0.0.1`, `0.0.0.0` | Address for port bindings |
 | `encrypted_storage_path` | `OV_ENCRYPTED_STORAGE_PATH` | `~/.local/share/ov/encrypted` | any path | Gocryptfs storage base directory |
 
@@ -110,8 +110,8 @@ ov config set engine.run podman
 ```bash
 ov config set run_mode quadlet
 ov config set engine.run podman    # Required for quadlet
-ov config set auto_enable true     # Auto-generate on first start
 loginctl enable-linger $USER       # Required for user services
+# auto_enable defaults to true -- ov start auto-generates quadlet on first run
 ```
 
 ### Override Via Environment

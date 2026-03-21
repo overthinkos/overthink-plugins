@@ -23,8 +23,9 @@ Container service lifecycle management with two modes: **quadlet** (systemd user
 | Service status | `ov status <image>` | Show service status |
 | Service logs | `ov logs <image> -f` | Follow service logs |
 | Update service | `ov update <image>` | Update image and restart |
-| Remove service | `ov remove <image>` | Stop and remove service |
+| Remove service | `ov remove <image>` | Stop, remove service + deploy.yml entry |
 | Remove + volumes | `ov remove <image> --volumes` | Also delete named volumes |
+| Remove keep config | `ov remove <image> --keep-deploy` | Remove service but keep deploy.yml entry |
 | Seed data | `ov seed <image>` | Copy image data to empty bind mount dirs |
 
 ### Supervisord Services
@@ -73,12 +74,13 @@ ov logs my-app -f                  # journalctl --user -u (follow)
 ov update my-app                   # Re-transfer image, restart
 ov stop my-app                     # systemctl --user stop
 ov disable my-app                  # Disable auto-start
-ov remove my-app                   # Stop + remove .container file
+ov remove my-app                   # Stop + remove .container + deploy.yml entry
 ov remove my-app --volumes         # Also remove named volumes
+ov remove my-app --keep-deploy     # Remove service but keep deploy.yml for re-enable
 ov remove my-app -e KEY=VALUE      # Set env vars for lifecycle hooks
 ```
 
-With `auto_enable=true`, `ov start` auto-generates the quadlet file on first run.
+With `auto_enable=true` (the default), `ov start` auto-generates the quadlet file on first run.
 
 ### Generated Files
 
@@ -92,7 +94,7 @@ With `auto_enable=true`, `ov start` auto-generates the quadlet file on first run
 ### Environment Variables in Quadlet
 
 - **`Environment=`** lines for CLI `-e` flags (inline in .container file)
-- **`EnvironmentFile=`** directive for file-sourced vars (`--env-file`, workspace `.env`, or `env_file` in images.yml)
+- **`EnvironmentFile=`** directive for file-sourced vars (`--env-file`, workspace `.env`, or `env_file` in deploy.yml)
 
 When `EnvironmentFile=` is used, only explicit CLI `-e` vars appear as inline `Environment=` to avoid duplication.
 

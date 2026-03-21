@@ -71,7 +71,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 
 | File | Purpose |
 |------|---------|
-| `engine.go` | Docker/Podman abstraction |
+| `engine.go` | Docker/Podman abstraction, `ResolveImageEngineForDeploy()` |
 | `registry.go` | Remote image inspection (go-containerregistry) |
 | `transfer.go` | Cross-engine image transfer |
 | `runtime_config.go` | `~/.config/ov/config.yml` |
@@ -88,7 +88,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `labels.go` | OCI label constants |
 | `volumes.go` | Named volume collection/mounting |
 | `alias.go` | Command aliases (wrapper scripts) |
-| `deploy.go` | Per-deployment config overlay |
+| `deploy.go` | Per-deployment config overlay, `saveDeployState()`, `cleanDeployEntry()` |
 | `crypto.go` | Encrypted bind mounts (gocryptfs) |
 | `devices.go` | Host device auto-detection (GPU, /dev/dri, /dev/kvm, etc.) |
 | `tunnel.go` | Tunnel configuration (Tailscale, Cloudflare) |
