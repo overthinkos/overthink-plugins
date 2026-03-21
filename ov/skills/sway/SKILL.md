@@ -115,6 +115,19 @@ This runs `swaymsg` directly instead of going through `podman exec`.
 
 Source: `ov/sway.go`.
 
+## Window Geometry for Coordinate Translation
+
+`ov sway tree` returns window positions usable for VNC coordinate translation. Each window's `rect` field shows its desktop position and size. The `app_id` field identifies the application (e.g., `google-chrome` for Chrome).
+
+Use `ov vnc click --from-sway <app-id>` to translate window-relative coordinates to desktop-absolute coordinates by querying the sway tree:
+
+```bash
+ov vnc click my-app 500 200 --from-sway google-chrome
+# Translated window-relative (500, 200) → desktop (504, 204) via sway app_id=google-chrome
+```
+
+This is useful when you know where an element is relative to the window but need desktop coordinates for VNC.
+
 ## Cross-References
 
 - `/ov:cdp` -- Chrome DevTools Protocol (tab management, JavaScript eval)

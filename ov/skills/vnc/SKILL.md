@@ -137,13 +137,54 @@ ov vnc rfb openclaw-sway-browser fbupdate-request                              #
 |--------|----------------|----------------|
 | Protocol | WebSocket JSON | Binary TCP |
 | Scope | Browser tabs | Whole desktop |
-| Click | CSS selector | x,y coordinates |
-| Type | DOM manipulation | Key events (keysyms) |
+| Click | CSS selector (viewport-relative) | x,y coordinates (desktop-absolute) |
+| Type | CDP key events | Key events (keysyms) |
 | Screenshot | Browser page only | Full desktop |
 | JavaScript | Yes (eval/wait) | No |
 | Use case | Web automation | Desktop automation |
 
 Source: `ov/vnc_client.go`, `ov/vnc.go`.
+
+## VNC as Anti-Detection Fallback
+
+Some websites (notably Google sign-in) detect and block CDP-based input. VNC provides a reliable fallback because `ov vnc type` sends real X11 keysym events through the Wayland compositor — indistinguishable from physical keyboard input.
+
+**CDP + VNC Hybrid Pattern:** Use CDP for navigation and clicking (precise CSS selectors), VNC for typing credentials (bypasses anti-automation):
+
+```bash
+# CDP click targets the right element precisely
+ov cdp click my-app $TAB '#identifierId'
+# VNC type sends real key events through the compositor
+ov vnc type my-app "$GMAIL_USER"
+```
+
+When to use VNC type over CDP type:
+- Google sign-in or other anti-automation-protected forms
+- Sites that validate input event sequences (keyDown/keyPress/input/keyUp)
+- Any form where CDP type fails silently (value appears but form doesn't accept it)
+
+See `/ov:cdp` for the full Google sign-in recipe.
+
+## Using CDP Coordinates with VNC
+
+VNC uses desktop-absolute coordinates, while CDP returns viewport-relative coordinates. Use the `--from-cdp` or `--from-sway` flags to explicitly translate:
+
+**`--from-cdp <tab-id>`** — Translates viewport coords to desktop coords via CDP's `window.screenX/screenY`:
+
+```bash
+# Get viewport coords from ov cdp coords, then click via VNC
+ov vnc click my-app 1220 328 --from-cdp $TAB
+# Translated viewport (1220, 328) → desktop (1220, 439) via CDP tab ...
+```
+
+**`--from-sway <app-id>`** — Translates window-relative coords to desktop coords via sway tree:
+
+```bash
+ov vnc click my-app 500 200 --from-sway google-chrome
+# Translated window-relative (500, 200) → desktop (504, 204) via sway app_id=google-chrome
+```
+
+Without flags, X and Y are desktop-absolute coordinates (the default, unchanged behavior).
 
 ## Cross-references
 

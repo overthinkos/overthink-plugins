@@ -21,7 +21,8 @@ description: |
 | Get HTML | `ov cdp html <image> <tab-id>` | Get page HTML source |
 | Get URL | `ov cdp url <image> <tab-id>` | Get page title and URL |
 | Screenshot | `ov cdp screenshot <image> <tab-id> [file]` | Capture PNG screenshot |
-| Click | `ov cdp click <image> <tab-id> <selector>` | Click element by CSS selector |
+| Click | `ov cdp click <image> <tab-id> <selector> [--vnc]` | Click element by CSS selector |
+| Coords | `ov cdp coords <image> <tab-id> <selector>` | Show element coords in viewport + desktop |
 | Type | `ov cdp type <image> <tab-id> <selector> <text>` | Type into input field |
 | Eval JS | `ov cdp eval <image> <tab-id> <expression>` | Evaluate JavaScript |
 | Wait | `ov cdp wait <image> <tab-id> <selector>` | Wait for element (--timeout 30s) |
@@ -98,7 +99,39 @@ ov cdp click my-app $TAB 'button[type="submit"]'
 ov cdp type my-app $TAB 'input[name="email"]' "user@example.com"
 ```
 
-Click uses CDP: `Runtime.evaluate` to find element, `DOM.getBoxModel` for coordinates, `Input.dispatchMouseEvent` for click. Type uses `DOM.focus` and `Input.dispatchKeyEvent` for each character.
+Click uses CDP: `Runtime.evaluate` with `deepQuery()` to find element (piercing shadow DOM), `scrollIntoViewIfNeeded()` + `getBoundingClientRect()` for coordinates, `Input.dispatchMouseEvent` for click. Type uses `deepQuery()` + `scrollIntoViewIfNeeded()` + `focus()` to select the element, then `Input.dispatchKeyEvent` for each character (keyDown, char, keyUp — matching Puppeteer behavior).
+
+**Shadow DOM support:** All selector-based commands (click, type, wait) automatically pierce shadow DOM boundaries via recursive `deepQuery()`. This means selectors work on Chrome's internal pages (`chrome://settings/*`), Polymer/Lit web components, and any page using Web Components with shadow DOM. Hidden/zero-sized elements are skipped — only visible matches are returned.
+
+**Note on Chrome internal dialogs:** Some Chrome UI elements (e.g., the "Turn on sync" confirmation dialog) are rendered as native browser chrome, invisible to CDP. Use VNC keyboard (`ov vnc key ... Tab`, `ov vnc key ... Return`) to interact with these dialogs. VNC screenshots (`ov vnc screenshot`) show the full desktop including these dialogs, while CDP screenshots only show the page viewport.
+
+### Coordinate Systems
+
+CDP coordinates are **viewport-relative** (relative to Chrome's content area). VNC coordinates are **desktop-absolute** (the full Wayland framebuffer). The offset between them includes Chrome's window position on the desktop plus Chrome's UI chrome (title bar, tab bar, address bar — typically ~107px).
+
+**`ov cdp coords`** — Shows an element's coordinates in both systems:
+
+```bash
+ov cdp coords my-app $TAB '#sync-button'
+# Element:  #sync-button (108x36)
+# Viewport: x=1166 y=310  center=(1220, 328)
+# Desktop:  x=1166 y=421  center=(1220, 439)  (via window.screenX/screenY, chromeHeight=107)
+# Sway:     window at (4, 4) size 1912x1032  (app_id=google-chrome)
+```
+
+**`ov cdp click --vnc`** — Finds element via CDP selector, delivers click via VNC:
+
+```bash
+ov cdp click my-app $TAB '#sync-button' --vnc
+# Clicked element at viewport (1220, 328) → desktop (1220, 439) via VNC
+```
+
+**`ov vnc click --from-cdp`** — Translates viewport coords to desktop coords:
+
+```bash
+ov vnc click my-app 1220 328 --from-cdp $TAB
+# Translated viewport (1220, 328) → desktop (1220, 439) via CDP tab ...
+```
 
 ### Evaluate JavaScript
 
@@ -170,6 +203,85 @@ Key enablers:
 - `shm_size: 1g` prevents Chrome from crashing due to /dev/shm exhaustion
 
 Source: `ov/cdp.go`, `ov/browser_cdp.go`.
+
+## Google Sign-In Automation
+
+Sign into a Google account inside a running container using CDP. Requires `GMAIL_USER` and `GMAIL_PASSWORD` environment variables (set in `.env` or passed via `-e`).
+
+**Note:** Google accounts with 2FA require an [App Password](https://myaccount.google.com/apppasswords) (16-character) instead of the regular password.
+
+```bash
+# 1. Open Google sign-in
+ov cdp open my-app "https://accounts.google.com/signin/v2/identifier"
+TAB=$(ov cdp list my-app | grep -i google | head -1 | awk '{print $1}')
+
+# 2. Enter email
+ov cdp wait my-app $TAB '#identifierId' --timeout 30s
+ov cdp type my-app $TAB '#identifierId' "$GMAIL_USER"
+ov cdp click my-app $TAB '#identifierNext'
+
+# 3. Enter password
+ov cdp wait my-app $TAB 'input[type="password"]' --timeout 15s
+ov cdp type my-app $TAB 'input[type="password"]' "$GMAIL_PASSWORD"
+ov cdp click my-app $TAB '#passwordNext'
+
+# 4. Verify
+ov cdp screenshot my-app $TAB signin-result.png
+ov cdp url my-app $TAB
+```
+
+**If Google blocks CDP key events**, fall back to VNC type (real OS-level keysym events that bypass anti-automation detection):
+
+```bash
+ov cdp click my-app $TAB '#identifierId'       # CDP click (precise selector)
+ov vnc type my-app "$GMAIL_USER"                # VNC type (real key events)
+```
+
+See `/ov:vnc` for the VNC anti-detection fallback pattern.
+
+**Handling 2FA/CAPTCHA:** If Google presents a 2FA prompt or CAPTCHA, take a VNC screenshot (`ov vnc screenshot my-app 2fa.png`) and complete the challenge manually via a VNC client.
+
+**Sign-in persistence:** Cookies are stored in the `chrome-data` volume (`~/.chrome-debug`), so the sign-in survives container restarts.
+
+### Chrome Profile + Sync Setup
+
+After Google sign-in, Chrome offers to set up a profile and enable sync:
+
+```bash
+# 5. Accept Chrome profile (intercept dialog appears automatically)
+# This is a shadow DOM element — use eval with manual traversal:
+ov cdp eval my-app $TAB '
+  var app = document.querySelector("chrome-signin-app");
+  app.shadowRoot.querySelector("#accept-button").click(); "done"'
+
+# 6. Handle search engine choice (if shown)
+# This is also shadow DOM — select Google and confirm:
+STAB=$(ov cdp list my-app | grep search-engine | head -1 | awk '{print $1}')
+ov cdp eval my-app $STAB '
+  var app = document.querySelector("search-engine-choice-app");
+  var sr = app.shadowRoot;
+  var btns = sr.querySelectorAll("cr-radio-button");
+  for (var b of btns) { if (b.getAttribute("aria-label")==="Google") { b.click(); break; } }
+  sr.querySelectorAll("cr-button").forEach(function(b) {
+    if (b.textContent.trim().includes("Set as default")) b.click();
+  }); "done"'
+
+# 7. Enable sync
+ov cdp open my-app "chrome://settings/syncSetup"
+STAB=$(ov cdp list my-app | grep settings | head -1 | awk '{print $1}')
+ov cdp wait my-app $STAB '#sync-button' --timeout 10s
+ov cdp click my-app $STAB '#sync-button'
+# The "Turn on sync" confirmation dialog is native Chrome UI — use VNC keyboard:
+sleep 2
+ov vnc key my-app Tab    # Tab to "Yes, I'm in"
+ov vnc key my-app Tab
+ov vnc key my-app Return # Confirm
+# Then confirm the sync profile:
+sleep 2
+ov cdp eval my-app $STAB '...' # Click Confirm via deepQueryAll (see below)
+```
+
+**Important:** The sync confirmation dialog ("Yes, I'm in" / "No thanks") is Chrome-native UI, invisible to CDP. Use VNC keyboard events to interact with it. After confirming, a second "Confirm" button appears in the page — click it via `ov cdp eval` with `deepQueryAll`.
 
 ## Cross-References
 
