@@ -76,6 +76,47 @@ After `ov start`:
 
 OpenClaw (18789) and Chrome DevTools (9222) both use port relay (socat) — services bind to loopback, socat forwards from the container interface. This avoids origin/security checks that block non-loopback connections.
 
+## Chrome Sign-In
+
+Sign into Chrome with Gmail credentials for sync. Requires `GMAIL_USER` and `GMAIL_PASSWORD` in `.env` (App Password for 2FA accounts). Both ports 9222 (CDP) and 5900 (VNC) are needed for the hybrid automation pattern.
+
+```bash
+IMG=openclaw-ollama-sway-browser
+
+# Fresh start (removes existing profile)
+ov remove $IMG --volumes
+ov enable $IMG && ov start $IMG
+sleep 60  # wait for Chrome + VNC to stabilize
+
+# Dismiss first-run dialog
+ov sway msg $IMG 'focus left' && ov vnc key $IMG Return
+
+# Click "Sign in" on chrome://intro (--vnc required for chrome:// pages)
+TAB=$(ov cdp list $IMG | grep intro | head -1 | awk '{print $1}')
+ov cdp click $IMG $TAB '#acceptSignInButton' --vnc
+sleep 3
+TAB=$(ov cdp list $IMG | grep -i "sign in" | head -1 | awk '{print $1}')
+
+# Enter email
+ov cdp wait $IMG $TAB '#identifierId' --timeout 30s
+ov cdp click $IMG $TAB '#identifierId' --vnc && sleep 0.5
+ov vnc type $IMG "$GMAIL_USER"
+ov cdp click $IMG $TAB '#identifierNext' --vnc && sleep 5
+
+# Enter password
+ov cdp wait $IMG $TAB 'input[type="password"]' --timeout 15s
+ov cdp click $IMG $TAB 'input[type="password"]' --vnc && sleep 0.5
+ov vnc type $IMG "$GMAIL_PASSWORD"
+ov cdp click $IMG $TAB '#passwordNext' --vnc && sleep 7
+
+# Enable sync
+ov cdp click $IMG $TAB '#confirmButton' --vnc
+```
+
+See `/ov:cdp` for the full recipe with verification checkpoints and challenge handling.
+
+**VNC startup delay:** VNC shows a blank gray screen for ~30-70s after container start due to a transient wayvnc race condition. CDP screenshots work immediately. Wait for VNC to stabilize before relying on VNC screenshots for verification.
+
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the openclaw-ollama-sway-browser image, GPU-accelerated OpenClaw, or the full-stack AI desktop. Invoke this skill BEFORE reading source code or launching Explore agents.

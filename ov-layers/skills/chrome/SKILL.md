@@ -45,11 +45,15 @@ Usually used via the `chrome-sway` or `sway-desktop` composition layers rather t
 
 ## Google Sign-In
 
-Web sign-in at `accounts.google.com` works via CDP automation (see `/ov:cdp` for the full recipe). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts.
+Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see `/ov:cdp` for the full recipe). All clicks use `ov cdp click --vnc` (CDP selector targeting + VNC pointer delivery), and all text input uses `ov vnc type` (real OS-level keysym events). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts. Use `ov remove <image> --volumes` to clear for a fresh start — just rebuilding the image does not reset volumes.
 
-**App Passwords:** Google accounts with 2FA enabled (now mandatory for most accounts) require a 16-character [App Password](https://myaccount.google.com/apppasswords) instead of the regular password. Set `GMAIL_PASSWORD` to the App Password in `.env`.
+**App Passwords (required for automation):** Google accounts with 2FA (now mandatory for most accounts) require a 16-character [App Password](https://myaccount.google.com/apppasswords). App Passwords bypass all verification challenges and 2FA prompts. Set `GMAIL_PASSWORD` to the App Password in `.env`.
 
-**Chrome Sync:** Fully supported. After signing in to Google and clicking "Turn on Sync" in `chrome://settings/syncSetup`, passwords, bookmarks, and extensions sync across devices. Sync state persists in the `chrome-data` volume.
+**Windows spoofing effectiveness:** Tested with App Password — no CAPTCHA or verification challenges were triggered. The three-level identity spoofing (User-Agent header, navigator.platform JS, Sec-CH-UA-Platform headers) successfully prevents Google from flagging the sign-in as suspicious.
+
+**Fresh profile first-run:** A fresh `chrome-data` volume triggers Chrome's first-run flow: a separate dialog window ("Make Google Chrome the default browser") + `chrome://intro/` page. The dialog is invisible to CDP and must be dismissed via sway focus + VNC Return key before proceeding.
+
+**Chrome Sync:** Fully supported. After sign-in, Chrome navigates to `chrome://sync-confirmation/` (a `chrome://` page, not a native dialog). Click `#confirmButton` ("Yes, I'm in") with `--vnc` to enable sync. Sync state persists in the `chrome-data` volume.
 
 ## Chrome Wrapper
 

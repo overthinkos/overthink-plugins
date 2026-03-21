@@ -149,19 +149,25 @@ Source: `ov/vnc_client.go`, `ov/vnc.go`.
 
 Some websites (notably Google sign-in) detect and block CDP-based input. VNC provides a reliable fallback because `ov vnc type` sends real X11 keysym events through the Wayland compositor — indistinguishable from physical keyboard input.
 
-**CDP + VNC Hybrid Pattern:** Use CDP for navigation and clicking (precise CSS selectors), VNC for typing credentials (bypasses anti-automation):
+**CDP + VNC Hybrid Pattern:** Use `ov cdp click --vnc` for clicking (CDP selector precision + VNC pointer delivery) and `ov vnc type` for typing credentials:
 
 ```bash
-# CDP click targets the right element precisely
-ov cdp click my-app $TAB '#identifierId'
+# --vnc click: CDP finds element by selector, delivers click via VNC pointer
+ov cdp click my-app $TAB '#identifierId' --vnc
+sleep 0.5                                          # let compositor process focus
 # VNC type sends real key events through the compositor
 ov vnc type my-app "$GMAIL_USER"
 ```
 
-When to use VNC type over CDP type:
+**Tested timing:** 500ms sleep between `--vnc` click and VNC type is sufficient. No characters were dropped at this timing during Google sign-in testing.
+
+When to use `--vnc` click and VNC type:
+- **`chrome://` pages** (required): CDP mouse events and JS `.click()` are blocked on Chrome's privileged pages (`chrome://intro/`, `chrome://sync-confirmation/`, `chrome://settings/`). `--vnc` is the only way to click.
 - Google sign-in or other anti-automation-protected forms
 - Sites that validate input event sequences (keyDown/keyPress/input/keyUp)
 - Any form where CDP type fails silently (value appears but form doesn't accept it)
+
+**Chrome first-run dialogs:** On fresh profiles, Chrome opens a first-run dialog as a separate window invisible to CDP. Dismiss with `ov sway msg my-app 'focus left'` then `ov vnc key my-app Return`.
 
 See `/ov:cdp` for the full Google sign-in recipe.
 
