@@ -14,14 +14,14 @@ NVIDIA GPU base image — provides CUDA toolkit and GPU libraries on Fedora.
 
 | Property | Value |
 |----------|-------|
-| Base | fedora |
+| Base | fedora-nonfree (fedora + RPM Fusion) |
 | Layers | cuda |
 | Platforms | linux/amd64 |
 | Registry | ghcr.io/overthinkos |
 
 ## Full Layer Stack
 
-1. `fedora` (quay.io/fedora/fedora:43)
+1. `fedora-nonfree` (fedora + rpmfusion — provides RPM Fusion free + nonfree repos)
 2. `cuda` — CUDA toolkit, cuDNN, onnxruntime, ffmpeg-libs
 
 ## Quick Start

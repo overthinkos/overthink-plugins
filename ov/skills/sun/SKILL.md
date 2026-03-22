@@ -98,7 +98,14 @@ ov sun unpair sway-browser-sunshine --all          # unpair all clients
 ov sun apps sway-browser-sunshine
 # Output:
 # 0   Desktop   (desktop)
+
+ov sun apps sway-browser-sunshine-steam
+# Output:
+# 0   Desktop   (desktop)
+# 1   Steam Big Picture   (desktop)
 ```
+
+Images with the `/ov-layers:steam` layer have "Steam Big Picture" pre-configured in `apps.json`.
 
 ### Show Config
 ```bash

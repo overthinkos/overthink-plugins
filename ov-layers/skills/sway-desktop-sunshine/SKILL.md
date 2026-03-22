@@ -44,6 +44,7 @@ Identical to `sway-desktop` except `wayvnc` is replaced with `sunshine`:
 ## Used In Images
 
 - `/ov-images:sway-browser-sunshine`
+- `/ov-images:sway-browser-sunshine-steam` (+ steam layer)
 - `/ov-images:openclaw-ollama-sway-sunshine`
 
 ## Related Layers

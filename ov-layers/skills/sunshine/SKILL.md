@@ -124,6 +124,7 @@ Part of `/ov-layers:sway-desktop-sunshine` composition.
 - `/ov-layers:sway` -- Wayland compositor (provides display)
 - `/ov-layers:pipewire` -- audio server (PulseAudio compat for Sunshine)
 - `/ov-layers:sway-desktop-sunshine` -- composition that includes sunshine
+- `/ov-layers:steam` -- Steam client with XWayland and Sunshine Big Picture app
 - `/ov-layers:wayvnc` -- VNC alternative (used in sway-desktop)
 
 ## When to Use This Skill

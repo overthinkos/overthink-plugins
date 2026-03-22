@@ -42,6 +42,17 @@ my-desktop:
     - sway
 ```
 
+## XWayland
+
+XWayland is **disabled by default** (`xwayland disable` in the base config) for headless optimization. X11 applications (like Steam) require XWayland. Enable it via a sway drop-in config:
+
+```
+# ~/.config/sway/config.d/xwayland.conf
+xwayland enable
+```
+
+The `include ~/.config/sway/config.d/*` directive in the base config loads drop-ins automatically. The `/ov-layers:steam` layer installs this override.
+
 ## Stale IPC Socket Cleanup
 
 Supervisord restarts leave old `/tmp/sway-ipc.1000.<old-pid>.sock` files. If multiple sockets exist, naive discovery (`ls /tmp/sway-ipc.*.sock | head -1`) picks alphabetically -- which selects the smallest PID (oldest = stale socket), causing `ov sway` commands to fail silently.

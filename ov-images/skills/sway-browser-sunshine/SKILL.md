@@ -49,6 +49,7 @@ ov sun status sway-browser-sunshine              # Verify health
 
 ## Related Images
 
+- `/ov-images:sway-browser-sunshine-steam` -- same desktop + Steam gaming
 - `/ov-images:openclaw-ollama-sway-sunshine` -- full-stack AI + Sunshine desktop
 - `/ov-images:openclaw-sway-browser` -- similar but with VNC (wayvnc)
 

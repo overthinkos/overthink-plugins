@@ -29,7 +29,7 @@ RPM (from negativo17 fedora-multimedia repo): `cuda-nvcc`, `cuda-cudart-devel`, 
 ```yaml
 # images.yml
 nvidia:
-  base: fedora
+  base: fedora-nonfree
   layers:
     - cuda
 ```
