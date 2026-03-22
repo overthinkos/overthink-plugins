@@ -9,7 +9,6 @@
 | Action | Command | Description |
 |--------|---------|-------------|
 | Screenshot | `ov wl screenshot <image> [file]` | Capture desktop as PNG via grim |
-| Screenshot (X11) | `ov wl screenshot <image> --x11` | Capture via X11 import (GPU-rendered content) |
 | Click | `ov wl click <image> <x> <y>` | Click at absolute coordinates via wlrctl |
 | Type text | `ov wl type <image> <text>` | Send keyboard input via wtype |
 | Send key | `ov wl key <image> <key-name>` | Press a named key via wtype |
@@ -17,7 +16,6 @@
 | Status | `ov wl status <image>` | Check Wayland + X11 tool availability |
 | List windows | `ov wl windows <image>` | List X11 windows via xdotool |
 | Focus window | `ov wl focus <image> <title>` | Focus X11 window by title/class |
-| Capture X11 | `ov wl capture <image> [file]` | Capture X11 screen or window via import |
 
 ## Architecture
 

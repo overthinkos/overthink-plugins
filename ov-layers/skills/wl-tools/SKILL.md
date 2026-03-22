@@ -26,7 +26,7 @@ rpm:
 | Property | Value |
 |----------|-------|
 | Depends | `sway` |
-| Packages | `grim`, `wtype`, `wlrctl`, `xdotool`, `xprop`, `xwininfo`, `ImageMagick` |
+| Packages | `grim`, `wtype`, `wlrctl`, `xdotool`, `xprop`, `xwininfo` |
 | Service | None (all tools are one-shot CLI commands) |
 | Ports | None |
 
@@ -45,9 +45,10 @@ rpm:
 | Tool | Purpose |
 |------|---------|
 | `xdotool` | X11 window interaction (click, type, key, move, search, activate) |
-| `import` (ImageMagick) | X11 screen/window screenshot (captures GPU-rendered content) |
 | `xprop` | X11 window property inspection |
 | `xwininfo` | X11 window geometry information |
+
+Note: `grim` captures both Wayland and XWayland window content on gles2. Dedicated X11 screenshot tools (`xwd`, `import`) don't work on XWayland rootless mode.
 
 All packages are in Fedora official repos.
 
