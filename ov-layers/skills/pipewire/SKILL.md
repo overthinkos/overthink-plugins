@@ -25,6 +25,7 @@ description: |
 
 - `pipewire` (RPM)
 - `pipewire-pulseaudio` (RPM) -- PulseAudio compatibility
+- `pipewire-utils` (RPM) -- CLI utilities (pw-cli, pw-dump, pw-top, pw-cat, pw-record, pw-play)
 - `wireplumber` (RPM) -- session manager
 
 ## Usage

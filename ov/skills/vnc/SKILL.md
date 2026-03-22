@@ -194,10 +194,15 @@ Without flags, X and Y are desktop-absolute coordinates (the default, unchanged 
 
 ## NVIDIA Headless: Blank VNC
 
-On NVIDIA headless systems, VNC shows a blank screen unless Sway uses `WLR_RENDERER=pixman`. This is because wayvnc/neatvnc cannot capture GPU-rendered buffers via `ext-image-copy-capture` on NVIDIA. The `sway-wrapper` sets pixman automatically for NVIDIA + headless. If VNC screenshots are blank, verify the compositor renderer: `ov shell <image> -c "cat /proc/$(pgrep -x sway)/environ | tr '\\0' '\\n' | grep WLR_RENDERER"`. See `/ov-layers:wayvnc` for the full compatibility table.
+On NVIDIA headless systems, VNC shows a blank/gray screen. The `sway-wrapper` sets `WLR_RENDERER=pixman` automatically, but wayvnc 0.9.1's `ext-image-copy-capture` protocol still fails to deliver frame data on sway 1.11 / wlroots 0.19 with pixman. This is an upstream bug.
+
+**Workaround:** Use `ov wl screenshot` (grim via `wlr-screencopy` protocol) instead — it works correctly on NVIDIA headless. See `/ov:wl` for the full Wayland-native automation command.
+
+To verify the compositor renderer: `ov shell <image> -c "cat /proc/$(pgrep -x sway)/environ | tr '\\0' '\\n' | grep WLR_RENDERER"`. See `/ov-layers:wayvnc` for the full compatibility table.
 
 ## Cross-references
 
+- `/ov:wl` — Wayland-native desktop automation (works on NVIDIA headless)
 - `/ov:cdp` — Chrome DevTools Protocol automation (same container, different protocol)
 - `/ov:sway` — Sway compositor control (window management, workspaces)
 - `/ov:config` — VNC password storage (`vnc.password.<image>` config keys)

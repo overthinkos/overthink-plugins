@@ -40,12 +40,24 @@ wayvnc/neatvnc uses the `ext-image-copy-capture` Wayland protocol to capture com
 
 | Sway renderer | VNC result |
 |----------------|------------|
-| `pixman` (software) | Works correctly |
+| `pixman` (software) | Gray screen (upstream bug in sway 1.11 + wayvnc 0.9.1) |
 | `gles2` | Blank screen |
 | `vulkan` | Blank screen |
 | `gles2` + `WLR_DRM_NO_MODIFIERS=1` | Blank screen |
 
-Sway must use `WLR_RENDERER=pixman` on NVIDIA headless for VNC to work. The `sway-wrapper` sets this automatically when it detects NVIDIA + headless mode.
+**Known upstream issue (sway 1.11 / wlroots 0.19 + wayvnc 0.9.1):** Even with pixman, VNC produces gray framebuffers. wayvnc 0.9.1 uses `ext-image-copy-capture` which doesn't deliver frame data on pixman renderer. `grim` (using `wlr-screencopy`) works correctly. **Use `ov wl screenshot` as the reliable alternative on NVIDIA headless.**
+
+The `sway-wrapper` sets `WLR_RENDERER=pixman` automatically for NVIDIA + headless.
+
+### Startup Timing
+
+The `wayvnc-wrapper` uses a two-phase wait:
+1. Wait for Wayland display socket (`wayland-0`)
+2. Wait for sway IPC socket (`sway-ipc.*.sock`) + 2s delay
+
+This ensures sway has set the output resolution (default 1920x1080) before wayvnc connects. Without this, wayvnc would connect at the wlroots default 1280x720.
+
+VNC resizing is enabled (no `--disable-resizing` flag) — VNC clients can request resolution changes.
 
 See `/ov-layers:sway` for the renderer selection logic and `/ov-layers:chrome` for the Chrome GPU fallback that this requires.
 

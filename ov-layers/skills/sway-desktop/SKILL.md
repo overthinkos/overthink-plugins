@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Layers (composition) | `pipewire`, `wayvnc`, `chrome-sway`, `xfce4-terminal`, `thunar`, `waybar` |
+| Layers (composition) | `pipewire`, `xdg-portal`, `wl-tools`, `wayvnc`, `chrome-sway`, `xfce4-terminal`, `thunar`, `waybar` |
 | Install files | none (pure composition) |
 
 ## Usage
@@ -32,6 +32,8 @@ openclaw-sway-browser:
 ## Related Layers
 
 - `/ov-layers:pipewire` -- audio/media server (included)
+- `/ov-layers:xdg-portal` -- XDG desktop portal infrastructure (included)
+- `/ov-layers:wl-tools` -- Wayland automation tools: grim, wtype, wlrctl (included)
 - `/ov-layers:wayvnc` -- VNC server on tcp:5900 (included)
 - `/ov-layers:chrome-sway` -- Chrome browser on Sway (included)
 - `/ov-layers:waybar` -- status bar and auto-tiling (included)
