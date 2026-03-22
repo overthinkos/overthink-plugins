@@ -67,14 +67,17 @@ port_relay:
 
 ### Port Protocol Annotations
 
-Ports support a protocol prefix for tailscale serve mode.
+Ports support a protocol prefix that controls EXPOSE format, tailscale serve mode, and port mapping.
 
 ```yaml
 ports:
-  - 18789        # http (default) -> tailscale serve --https
-  - tcp:5900     # tcp -> tailscale serve --tcp
+  - 18789        # http (default) -> EXPOSE 18789, tailscale serve --https
+  - tcp:5900     # tcp -> EXPOSE 5900, tailscale serve --tcp
+  - udp:47998    # udp -> EXPOSE 47998/udp, -p 47998:47998/udp, not tunneled
   - 9222         # http (default)
 ```
+
+UDP ports generate `EXPOSE <port>/udp` in Containerfiles and `-p host:container/udp` in port mappings. Tailscale serve and Cloudflare tunnels do not support UDP — a warning is printed when UDP ports are encountered in tunnel configs.
 
 ### security.shm_size
 

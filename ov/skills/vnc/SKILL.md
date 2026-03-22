@@ -196,7 +196,9 @@ Without flags, X and Y are desktop-absolute coordinates (the default, unchanged 
 
 On NVIDIA headless systems, VNC shows a blank/gray screen. The `sway-wrapper` sets `WLR_RENDERER=pixman` automatically, but wayvnc 0.9.1's `ext-image-copy-capture` protocol still fails to deliver frame data on sway 1.11 / wlroots 0.19 with pixman. This is an upstream bug.
 
-**Workaround:** Use `ov wl screenshot` (grim via `wlr-screencopy` protocol) instead — it works correctly on NVIDIA headless. See `/ov:wl` for the full Wayland-native automation command.
+**Workarounds:**
+- Use `ov wl screenshot` (grim via `wlr-screencopy` protocol) — works correctly on NVIDIA headless
+- Use `sway-desktop-sunshine` instead of `sway-desktop` — Sunshine captures via `wlr-screencopy` with full GPU acceleration (gles2 + NVENC). See `/ov-layers:sunshine`
 
 To verify the compositor renderer: `ov shell <image> -c "cat /proc/$(pgrep -x sway)/environ | tr '\\0' '\\n' | grep WLR_RENDERER"`. See `/ov-layers:wayvnc` for the full compatibility table.
 

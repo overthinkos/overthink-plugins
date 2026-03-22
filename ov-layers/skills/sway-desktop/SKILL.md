@@ -29,6 +29,10 @@ openclaw-sway-browser:
 - `/ov-images:openclaw-sway-browser`
 - `/ov-images:openclaw-ollama-sway-browser`
 
+## GPU-Accelerated Variant
+
+For NVIDIA-optimized images, use `/ov-layers:sway-desktop-sunshine` instead. It replaces wayvnc with Sunshine game streaming, enabling full GPU acceleration (gles2 + NVENC) on NVIDIA headless.
+
 ## Related Layers
 
 - `/ov-layers:pipewire` -- audio/media server (included)
@@ -39,6 +43,7 @@ openclaw-sway-browser:
 - `/ov-layers:waybar` -- status bar and auto-tiling (included)
 - `/ov-layers:sway` -- Wayland compositor (transitive via chrome-sway)
 - `/ov-layers:dbus` -- D-Bus session bus (transitive via sway)
+- `/ov-layers:sway-desktop-sunshine` -- GPU-accelerated variant with Sunshine
 
 ## When to Use This Skill
 

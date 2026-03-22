@@ -50,26 +50,20 @@ Supervisord restarts leave old `/tmp/sway-ipc.1000.<old-pid>.sock` files. If mul
 
 **Symptoms of stale socket**: `ov sway` commands fail, resolution stays at 1280x720 (wlr-randr resize fails), Chrome renders at wrong size.
 
-## NVIDIA Headless: Pixman Renderer
+## NVIDIA Headless: Renderer Selection via SWAY_CAPTURE
 
-On NVIDIA headless systems (no physical display), Sway must use software rendering:
+On NVIDIA headless systems, the renderer depends on the capture method:
 
-```
-WLR_RENDERER=pixman
-```
+| `SWAY_CAPTURE` | Renderer | Pipeline | Used by |
+|----------------|----------|----------|---------|
+| unset (default) | `pixman` (CPU) | Software rendering, VNC gray screens | `sway-desktop` (wayvnc) |
+| `sunshine` | `gles2` (GPU) | Full GPU pipeline, NVENC encoding | `sway-desktop-sunshine` |
 
-**Why**: wayvnc/neatvnc uses the `ext-image-copy-capture` Wayland protocol to capture compositor output. This protocol fails with hardware renderers on NVIDIA headless:
+**With wayvnc (default):** wayvnc uses `ext-image-copy-capture` which fails with GPU renderers on NVIDIA headless. Forced to pixman. Chrome falls back to software rendering (chrome-wrapper strips NVIDIA EGL vars on pixman).
 
-| Renderer | Result |
-|----------|--------|
-| `pixman` (software) | VNC works correctly |
-| `gles2` | Blank VNC (capture fails) |
-| `vulkan` | Blank VNC (capture fails) |
-| `gles2` + `WLR_DRM_NO_MODIFIERS=1` | Blank VNC (capture fails) |
+**With Sunshine:** Sunshine captures via `wlr-screencopy-unstable-v1` (same as grim) which works with gles2 on NVIDIA. The `SWAY_CAPTURE=sunshine` env var (set by the sunshine layer) tells sway-wrapper to use gles2 + NVIDIA EGL vars, enabling full GPU acceleration.
 
-Pixman is set in `sway-wrapper` when NVIDIA GPU is detected without a physical display. This is the only working configuration for VNC with NVIDIA headless.
-
-**Impact on Chrome**: The pixman compositor has no GPU acceleration. Chrome must NOT have NVIDIA EGL vars (`__EGL_VENDOR_LIBRARY_FILENAMES`, `GBM_BACKEND`, `__GLX_VENDOR_LIBRARY_NAME`) or VAAPI flags set, or it crashes with SIGILL. `--disable-gpu` must NOT be used -- it breaks CDP tab creation. The chrome-wrapper strips these vars automatically on pixman. See `/ov-layers:chrome` for details.
+**Impact on Chrome (pixman mode)**: The pixman compositor has no GPU acceleration. Chrome must NOT have NVIDIA EGL vars (`__EGL_VENDOR_LIBRARY_FILENAMES`, `GBM_BACKEND`, `__GLX_VENDOR_LIBRARY_NAME`) or VAAPI flags set, or it crashes with SIGILL. `--disable-gpu` must NOT be used -- it breaks CDP tab creation. The chrome-wrapper strips these vars automatically on pixman. See `/ov-layers:chrome` for details.
 
 ## Used In Images
 
@@ -79,8 +73,10 @@ Transitive dependency via `chrome-sway` and `sway-desktop` in all desktop images
 
 - `/ov-layers:dbus` -- D-Bus session bus dependency
 - `/ov-layers:chrome-sway` -- Chrome on Sway (depends on sway)
-- `/ov-layers:sway-desktop` -- full desktop composition
+- `/ov-layers:sway-desktop` -- full desktop composition (VNC)
+- `/ov-layers:sway-desktop-sunshine` -- GPU-accelerated desktop (Sunshine)
 - `/ov-layers:wayvnc` -- VNC access to Sway display
+- `/ov-layers:sunshine` -- Sunshine game streaming (Moonlight)
 - `/ov-layers:waybar` -- status bar (depends on sway)
 
 ## When to Use This Skill

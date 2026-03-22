@@ -65,11 +65,17 @@ See `/ov-layers:sway` for the renderer selection logic and `/ov-layers:chrome` f
 
 Part of `/ov-layers:sway-desktop` composition.
 
+## GPU-Accelerated Alternative: Sunshine
+
+For NVIDIA headless systems, wayvnc has a known upstream bug (gray/blank framebuffers with pixman renderer). Use `/ov-layers:sunshine` instead — it captures via `wlr-screencopy` which works with gles2, enabling full GPU acceleration. See `/ov-layers:sway-desktop-sunshine` for the composition variant.
+
 ## Related Layers
 
 - `/ov-layers:supervisord` -- process manager dependency
 - `/ov-layers:sway` -- Wayland compositor (provides display)
 - `/ov-layers:sway-desktop` -- composition that includes wayvnc
+- `/ov-layers:sway-desktop-sunshine` -- GPU-accelerated variant with Sunshine instead of wayvnc
+- `/ov-layers:sunshine` -- Sunshine game streaming alternative
 - `/ov-layers:pipewire` -- sibling in desktop stack
 
 ## When to Use This Skill
