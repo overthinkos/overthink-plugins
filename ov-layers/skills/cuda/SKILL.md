@@ -41,6 +41,7 @@ nvidia:
 
 ## Related Layers
 
+- `/ov-layers:rocm` -- AMD GPU counterpart (ROCm runtime + OpenCL)
 - `/ov-layers:python-ml` -- ML Python environment (depends on cuda)
 - `/ov-layers:jupyter` -- Jupyter notebooks (depends on cuda)
 - `/ov-layers:ollama` -- LLM server (depends on cuda)

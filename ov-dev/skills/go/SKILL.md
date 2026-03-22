@@ -97,7 +97,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `alias.go` | Command aliases (wrapper scripts) |
 | `deploy.go` | Per-deployment config overlay, `saveDeployState()`, `cleanDeployEntry()` |
 | `crypto.go` | Encrypted bind mounts (gocryptfs) |
-| `devices.go` | Host device auto-detection (GPU, /dev/dri, /dev/kvm, etc.) |
+| `devices.go` | Host device auto-detection (NVIDIA GPU, AMD GPU/KFD, /dev/dri, /dev/kvm, etc.) |
 | `tunnel.go` | Tunnel configuration (Tailscale, Cloudflare) |
 | `quadlet.go` | Quadlet .container file generation |
 

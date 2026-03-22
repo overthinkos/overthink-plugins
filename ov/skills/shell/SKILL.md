@@ -94,14 +94,18 @@ By default, `ov shell` auto-detects available host devices and passes them throu
 
 **Auto-detected devices:**
 - NVIDIA GPU (via `nvidia-smi`) -- `--gpus all` (Docker) or `--device nvidia.com/gpu=all` (Podman)
+- AMD GPU (via sysfs `amdgpu` driver) -- `--device /dev/kfd` + `--group-add keep-groups` + auto-detected `HSA_OVERRIDE_GFX_VERSION` from KFD topology
 - `/dev/dri/renderD*` -- GPU render nodes
+- `/dev/kfd` -- AMD Kernel Fusion Driver (ROCm compute)
 - `/dev/kvm` -- KVM virtualization
 - `/dev/vhost-net`, `/dev/vhost-vsock` -- virtio networking
 - `/dev/fuse` -- FUSE filesystem
 - `/dev/net/tun` -- TUN/TAP networking
 - `/dev/hwrng` -- hardware RNG
 
-Source: `ov/devices.go` (`DetectHostDevices`, `DetectGPU`).
+When an AMD GPU is detected, `keep-groups` is auto-added to preserve host supplementary groups (video, render) inside the container, and `HSA_OVERRIDE_GFX_VERSION` is auto-set from the GPU's KFD topology (e.g., `10.3.0` for RDNA2). The HSA env var can be overridden via `-e`.
+
+Source: `ov/devices.go` (`DetectHostDevices`, `DetectGPU`, `DetectAMDGPU`).
 
 ## Environment Variables
 

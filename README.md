@@ -56,7 +56,7 @@ Development tools and enforcement agents for contributors.
 
 **MCP Server:** GitHub (22 tools for issues, PRs, workflows, repo operations)
 
-### ov-layers (90 skills)
+### ov-layers (100 skills)
 
 Reference documentation for every Overthink container layer.
 
@@ -124,6 +124,7 @@ Reference documentation for every Overthink container layer.
 | qemu-guest-agent | `/ov-layers:qemu-guest-agent` | QEMU guest agent |
 | redis | `/ov-layers:redis` | Redis on :6379 |
 | ripgrep | `/ov-layers:ripgrep` | ripgrep search tool |
+| rocm | `/ov-layers:rocm` | AMD ROCm runtime + OpenCL |
 | rpmfusion | `/ov-layers:rpmfusion` | RPM Fusion repository configuration |
 | rust | `/ov-layers:rust` | Rust + Cargo via rpm/deb |
 | sag | `/ov-layers:sag` | ElevenLabs TTS (depends: golang) |
