@@ -34,6 +34,9 @@ GPU-accelerated Sway desktop with Sunshine game streaming and Chrome browser. Us
 ```bash
 ov build sway-browser-sunshine
 ov start sway-browser-sunshine
+# Wait for services to start (~20s)
+ov sun passwd sway-browser-sunshine --generate   # Set Sunshine Web UI credentials
+ov sun status sway-browser-sunshine              # Verify health
 # Sunshine Web UI at https://localhost:47990
 # Chrome DevTools at localhost:9222
 ```

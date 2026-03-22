@@ -139,6 +139,7 @@ ov service status my-app               # Show status of all supervisord services
 ov service start my-app traefik        # Start a specific service
 ov service stop my-app traefik         # Stop a specific service
 ov service restart my-app traefik      # Restart a specific service
+ov service restart my-app sunshine     # Restart Sunshine game streaming
 ov service status my-app -i prod       # Named instance
 ```
 

@@ -48,6 +48,7 @@ Identical to `sway-desktop` except `wayvnc` is replaced with `sunshine`:
 
 ## Related Layers
 
+- `/ov:sun` -- Sunshine management commands (credentials, pairing, config)
 - `/ov-layers:sway-desktop` -- VNC-based variant
 - `/ov-layers:sunshine` -- Sunshine game streaming (included)
 - `/ov-layers:pipewire` -- audio/media server (included)

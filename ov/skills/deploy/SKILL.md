@@ -255,6 +255,26 @@ ov vnc passwd openclaw-sway-browser    # uses stored password (no prompt)
 
 See `/ov:vnc` for full VNC authentication documentation.
 
+## Sunshine Credentials for Deployments
+
+For images with Sunshine (game streaming on port 47990), set credentials after the container starts:
+
+```bash
+ov enable sway-browser-sunshine
+ov start sway-browser-sunshine
+# Wait for Sunshine to start (~20s)
+ov sun passwd sway-browser-sunshine --generate   # auto-generates password, prints to stdout
+```
+
+Or pre-set via config before deployment:
+
+```bash
+ov config set sunshine.user.sway-browser-sunshine admin
+ov config set sunshine.password.sway-browser-sunshine mysecret
+```
+
+See `/ov:sun` for full Sunshine management documentation.
+
 ## Port Relay Pattern
 
 Some services (OpenClaw, Chrome DevTools) bind only to loopback for security. The `port_relay` field in `layer.yml` creates a socat relay from the container's network interface to loopback, making the service accessible externally without weakening its security model.

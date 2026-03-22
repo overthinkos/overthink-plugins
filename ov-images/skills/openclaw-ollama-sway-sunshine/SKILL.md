@@ -36,6 +36,9 @@ Full-stack GPU-accelerated AI deployment: OpenClaw gateway with all tool layers,
 ```bash
 ov build openclaw-ollama-sway-sunshine
 ov start openclaw-ollama-sway-sunshine
+# Wait for services to start (~20s)
+ov sun passwd openclaw-ollama-sway-sunshine --generate   # Set Sunshine Web UI credentials
+ov sun status openclaw-ollama-sway-sunshine               # Verify health
 # Gateway at http://localhost:18789
 # Ollama at http://localhost:11434
 # Sunshine at https://localhost:47990

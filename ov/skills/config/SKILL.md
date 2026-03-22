@@ -86,6 +86,17 @@ Auto-detection prefers podman over docker when both are installed.
 
 Set via `ov vnc passwd <image> --generate` or `ov config set vnc.password.<image> <password>`. Stored in `vnc_passwords` map in config file.
 
+### Sunshine Credentials
+
+| Key | Env Var | Default | Values | Purpose |
+|-----|---------|---------|--------|---------|
+| `sunshine.user.<image>` | `SUNSHINE_USER` | (empty) | any string | Sunshine Web UI username |
+| `sunshine.password.<image>` | `SUNSHINE_PASSWORD` | (empty) | any string | Sunshine Web UI password |
+| `sunshine.user.<image>-<instance>` | `SUNSHINE_USER` | (empty) | any string | Instance-specific username |
+| `sunshine.password.<image>-<instance>` | `SUNSHINE_PASSWORD` | (empty) | any string | Instance-specific password |
+
+Set via `ov sun passwd <image> --generate` or `ov config set sunshine.user.<image> <user>` + `ov config set sunshine.password.<image> <pass>`. Stored in `sunshine_users` and `sunshine_passwords` maps in config file.
+
 ## Resolution Chain
 
 For every key, the resolved value is the first non-empty from:
@@ -148,6 +159,7 @@ Source: `ov/runtime_config.go`.
 - `/ov:enc` -- Encrypted storage path configuration
 - `/ov:build` -- Build commands that use engine.build
 - `/ov:vnc` -- VNC password management (`vnc.password.*` keys)
+- `/ov:sun` -- Sunshine credential management (`sunshine.user.*`, `sunshine.password.*` keys)
 
 ## When to Use This Skill
 

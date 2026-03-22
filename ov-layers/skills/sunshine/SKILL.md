@@ -79,10 +79,21 @@ A default `sunshine.conf` is generated on first start with `capture=wlroots` and
 
 ## Client Access
 
-1. Open Web UI at `https://<host>:47990` to set initial credentials
-2. Connect Moonlight client — it discovers Sunshine via the API
-3. Enter 4-digit PIN from Web UI to pair
-4. Stream with GPU-encoded video (H.264/HEVC/AV1)
+```bash
+# Set credentials (first-time setup)
+ov sun passwd sway-browser-sunshine --generate
+
+# Get Web UI URL
+ov sun url sway-browser-sunshine
+
+# Pair a Moonlight client (enter PIN from Moonlight)
+ov sun pair sway-browser-sunshine 1234
+
+# Check status
+ov sun status sway-browser-sunshine
+```
+
+Or via Web UI at `https://<host>:47990`. See `/ov:sun` for full CLI reference.
 
 ## Differences from VNC (wayvnc)
 
@@ -103,6 +114,7 @@ Part of `/ov-layers:sway-desktop-sunshine` composition.
 
 ## Related Layers
 
+- `/ov:sun` -- Sunshine management commands (credentials, pairing, config)
 - `/ov-layers:supervisord` -- process manager dependency
 - `/ov-layers:sway` -- Wayland compositor (provides display)
 - `/ov-layers:pipewire` -- audio server (PulseAudio compat for Sunshine)
