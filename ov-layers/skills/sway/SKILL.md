@@ -44,14 +44,9 @@ my-desktop:
 
 ## XWayland
 
-XWayland is **disabled by default** (`xwayland disable` in the base config) for headless optimization. X11 applications (like Steam) require XWayland. Enable it via a sway drop-in config:
+XWayland is **enabled by default** (`xwayland enable` in the base config). The `xorg-x11-server-Xwayland` package is included in the sway layer. XWayland starts lazily — the Xwayland process only launches when the first X11 client connects (e.g., Steam, Moonlight, Qt apps with xcb platform).
 
-```
-# ~/.config/sway/config.d/xwayland.conf
-xwayland enable
-```
-
-The `include ~/.config/sway/config.d/*` directive in the base config loads drop-ins automatically. The `/ov-layers:steam` layer installs this override.
+X11 tools for interacting with XWayland windows (`xdotool`, `xprop`, `xwininfo`, `import`) are provided by the `/ov-layers:wl-tools` layer.
 
 ## Stale IPC Socket Cleanup
 

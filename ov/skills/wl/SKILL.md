@@ -1,19 +1,23 @@
-# WL - Wayland-Native Desktop Automation
+# WL - Wayland and X11 Desktop Automation
 
 ## Overview
 
-`ov wl` commands provide Wayland-native desktop interaction inside running containers using `grim` (screenshots), `wtype` (keyboard input), and `wlrctl` (pointer control). This is an alternative to `ov vnc` that doesn't require a VNC server — it runs tools directly inside the container via `exec`.
+`ov wl` commands provide desktop interaction inside running containers using both Wayland-native tools (`grim`, `wtype`, `wlrctl`) and X11 tools (`xdotool`, `import`). This is an alternative to `ov vnc` that doesn't require a VNC server — it runs tools directly inside the container via `exec`.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
 | Screenshot | `ov wl screenshot <image> [file]` | Capture desktop as PNG via grim |
+| Screenshot (X11) | `ov wl screenshot <image> --x11` | Capture via X11 import (GPU-rendered content) |
 | Click | `ov wl click <image> <x> <y>` | Click at absolute coordinates via wlrctl |
 | Type text | `ov wl type <image> <text>` | Send keyboard input via wtype |
 | Send key | `ov wl key <image> <key-name>` | Press a named key via wtype |
 | Move mouse | `ov wl mouse <image> <x> <y>` | Move pointer to absolute coordinates |
-| Status | `ov wl status <image>` | Check tool availability and resolution |
+| Status | `ov wl status <image>` | Check Wayland + X11 tool availability |
+| List windows | `ov wl windows <image>` | List X11 windows via xdotool |
+| Focus window | `ov wl focus <image> <title>` | Focus X11 window by title/class |
+| Capture X11 | `ov wl capture <image> [file]` | Capture X11 screen or window via import |
 
 ## Architecture
 

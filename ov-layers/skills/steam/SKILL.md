@@ -1,8 +1,8 @@
 ---
 name: steam
 description: |
-  Steam gaming client with gamescope, XWayland, and Sunshine Big Picture app.
-  Use when working with Steam, gaming, gamescope, or XWayland in containers.
+  Steam gaming client with gamescope and Sunshine Big Picture app.
+  Use when working with Steam, gaming, or gamescope in containers.
 ---
 
 # steam -- Steam gaming client
@@ -26,7 +26,8 @@ description: |
 
 - `steam` (RPM, from RPM Fusion nonfree)
 - `gamescope` (RPM, Fedora main repos)
-- `xorg-x11-server-Xwayland` (RPM)
+
+XWayland is provided by the base `sway` layer.
 
 ## Usage
 

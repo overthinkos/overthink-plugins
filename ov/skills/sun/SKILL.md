@@ -26,6 +26,7 @@ description: |
 | Set config | `ov sun set <image> <key> <value>` | Modify a config value |
 | Restart | `ov sun restart <image>` | Restart Sunshine service |
 | Web UI URL | `ov sun url <image>` | Print Sunshine Web UI URL |
+| Diagnostics | `ov sun diag <image>` | Full streaming diagnostics (GPU, encoder, network) |
 
 ## Architecture
 

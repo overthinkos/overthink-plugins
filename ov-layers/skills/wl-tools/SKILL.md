@@ -1,8 +1,8 @@
-# wl-tools - Wayland Automation Tools
+# wl-tools - Wayland and X11 Automation Tools
 
 ## Overview
 
-Provides CLI tools for Wayland-native desktop automation: `grim` for screenshots, `wtype` for keyboard input, and `wlrctl` for pointer control. Used by the `ov wl` command. No daemon or special device access needed — all tools use native Wayland protocols directly.
+Provides CLI tools for desktop automation — both Wayland-native and X11. Used by the `ov wl` command. No daemon or special device access needed.
 
 ## Layer Definition
 
@@ -15,6 +15,10 @@ rpm:
     - grim
     - wtype
     - wlrctl
+    - xdotool
+    - xprop
+    - xwininfo
+    - ImageMagick
 ```
 
 ## Key Properties
@@ -22,12 +26,13 @@ rpm:
 | Property | Value |
 |----------|-------|
 | Depends | `sway` |
-| Packages | `grim`, `wtype`, `wlrctl` |
+| Packages | `grim`, `wtype`, `wlrctl`, `xdotool`, `xprop`, `xwininfo`, `ImageMagick` |
 | Service | None (all tools are one-shot CLI commands) |
 | Ports | None |
-| Devices | None (uses Wayland protocols, not uinput) |
 
 ## Tools
+
+### Wayland Tools
 
 | Tool | Protocol | Purpose |
 |------|----------|---------|
@@ -35,7 +40,16 @@ rpm:
 | `wtype` | `zwp_virtual_keyboard_v1` | Keyboard input (type text, send keys) |
 | `wlrctl` | `zwlr_virtual_pointer_v1` | Pointer control (move, click) |
 
-All three are packaged in Fedora official repos — no COPR or source builds needed.
+### X11 Tools
+
+| Tool | Purpose |
+|------|---------|
+| `xdotool` | X11 window interaction (click, type, key, move, search, activate) |
+| `import` (ImageMagick) | X11 screen/window screenshot (captures GPU-rendered content) |
+| `xprop` | X11 window property inspection |
+| `xwininfo` | X11 window geometry information |
+
+All packages are in Fedora official repos.
 
 ## Included In
 
