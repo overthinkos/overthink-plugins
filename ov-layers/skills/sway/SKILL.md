@@ -56,20 +56,14 @@ Supervisord restarts leave old `/tmp/sway-ipc.1000.<old-pid>.sock` files. If mul
 
 **Symptoms of stale socket**: `ov sway` commands fail, resolution stays at 1280x720 (wlr-randr resize fails), Chrome renders at wrong size.
 
-## NVIDIA Headless: Renderer Selection via SWAY_CAPTURE
+## NVIDIA Headless: Renderer
 
-On NVIDIA headless systems, the renderer depends on the capture method:
+All images use `gles2` on NVIDIA (hardware auto-detect in sway-wrapper). No renderer overrides or application-specific conditionals.
 
-| `SWAY_CAPTURE` | Renderer | Pipeline | Used by |
-|----------------|----------|----------|---------|
-| unset (default) | `pixman` (CPU) | Software rendering, VNC gray screens | `sway-desktop` (wayvnc) |
-| `sunshine` | `gles2` (GPU) | Full GPU pipeline, NVENC encoding | `sway-desktop-sunshine` |
-
-**With wayvnc (default):** wayvnc uses `ext-image-copy-capture` which fails with GPU renderers on NVIDIA headless. Forced to pixman. Chrome falls back to software rendering (chrome-wrapper strips NVIDIA EGL vars on pixman).
-
-**With Sunshine:** Sunshine captures via `wlr-screencopy-unstable-v1` (same as grim) which works with gles2 on NVIDIA. The `SWAY_CAPTURE=sunshine` env var (set by the sunshine layer) tells sway-wrapper to use gles2 + NVIDIA EGL vars, enabling full GPU acceleration.
-
-**Impact on Chrome (pixman mode)**: The pixman compositor has no GPU acceleration. Chrome must NOT have NVIDIA EGL vars (`__EGL_VENDOR_LIBRARY_FILENAMES`, `GBM_BACKEND`, `__GLX_VENDOR_LIBRARY_NAME`) or VAAPI flags set, or it crashes with SIGILL. `--disable-gpu` must NOT be used -- it breaks CDP tab creation. The chrome-wrapper strips these vars automatically on pixman. See `/ov-layers:chrome` for details.
+- `grim` (`ov wl screenshot`) captures real desktop content via `wlr-screencopy` — works with gles2
+- `wayvnc` screenshots are gray (upstream `ext-image-copy-capture` bug) — use `ov wl` instead
+- Sunshine streams via `wlr-screencopy` + NVENC — works with gles2
+- Chrome gets full GPU acceleration with gles2
 
 ## Used In Images
 

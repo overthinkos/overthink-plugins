@@ -34,20 +34,13 @@ ov vnc screenshot my-image          # capture desktop
 ov vnc passwd my-image --generate   # set up VeNCrypt/TLS auth
 ```
 
-## NVIDIA Headless: GPU Buffer Capture Limitation
+## NVIDIA Headless: VNC Screenshot Limitation
 
-wayvnc/neatvnc uses the `ext-image-copy-capture` Wayland protocol to capture compositor output. On NVIDIA headless systems (no physical display), this protocol cannot capture GPU-rendered buffers. Tested with wayvnc 0.9.1, neatvnc 0.9.0, NVIDIA driver 590.48 (RTX 4080 SUPER):
+wayvnc's `ext-image-copy-capture` protocol produces gray/blank screenshots on NVIDIA headless (upstream bug in sway 1.11 / wlroots 0.19 + wayvnc 0.9.1). VNC remote viewing (connecting a VNC client) still works, but `ov vnc screenshot` produces gray images.
 
-| Sway renderer | VNC result |
-|----------------|------------|
-| `pixman` (software) | Gray screen (upstream bug in sway 1.11 + wayvnc 0.9.1) |
-| `gles2` | Blank screen |
-| `vulkan` | Blank screen |
-| `gles2` + `WLR_DRM_NO_MODIFIERS=1` | Blank screen |
+**For screenshots on NVIDIA headless, use `ov wl screenshot`** (grim via `wlr-screencopy`) or `ov wl capture` (import for X11 windows). Both work correctly with gles2 on NVIDIA.
 
-**Known upstream issue (sway 1.11 / wlroots 0.19 + wayvnc 0.9.1):** Even with pixman, VNC produces gray framebuffers. wayvnc 0.9.1 uses `ext-image-copy-capture` which doesn't deliver frame data on pixman renderer. `grim` (using `wlr-screencopy`) works correctly. **Use `ov wl screenshot` as the reliable alternative on NVIDIA headless.**
-
-The `sway-wrapper` sets `WLR_RENDERER=pixman` automatically for NVIDIA + headless.
+All images use `gles2` renderer on NVIDIA (hardware auto-detect in sway-wrapper). No renderer overrides.
 
 ### Startup Timing
 
@@ -55,11 +48,7 @@ The `wayvnc-wrapper` uses a two-phase wait:
 1. Wait for Wayland display socket (`wayland-0`)
 2. Wait for sway IPC socket (`sway-ipc.*.sock`) + 2s delay
 
-This ensures sway has set the output resolution (default 1920x1080) before wayvnc connects. Without this, wayvnc would connect at the wlroots default 1280x720.
-
-VNC resizing is enabled (no `--disable-resizing` flag) — VNC clients can request resolution changes.
-
-See `/ov-layers:sway` for the renderer selection logic and `/ov-layers:chrome` for the Chrome GPU fallback that this requires.
+This ensures sway has set the output resolution (default 1920x1080) before wayvnc connects.
 
 ## Used In Images
 
@@ -67,7 +56,7 @@ Part of `/ov-layers:sway-desktop` composition.
 
 ## GPU-Accelerated Alternative: Sunshine
 
-For NVIDIA headless systems, wayvnc has a known upstream bug (gray/blank framebuffers with pixman renderer). Use `/ov-layers:sunshine` instead — it captures via `wlr-screencopy` which works with gles2, enabling full GPU acceleration. See `/ov-layers:sway-desktop-sunshine` for the composition variant.
+For game streaming with NVENC hardware encoding, use `/ov-layers:sunshine` instead of wayvnc. See `/ov-layers:sway-desktop-sunshine` for the composition variant.
 
 ## Related Layers
 

@@ -192,15 +192,16 @@ ov vnc click my-app 500 200 --from-sway google-chrome
 
 Without flags, X and Y are desktop-absolute coordinates (the default, unchanged behavior).
 
-## NVIDIA Headless: Blank VNC
+## NVIDIA Headless: VNC Gray Screen
 
-On NVIDIA headless systems, VNC shows a blank/gray screen. The `sway-wrapper` sets `WLR_RENDERER=pixman` automatically, but wayvnc 0.9.1's `ext-image-copy-capture` protocol still fails to deliver frame data on sway 1.11 / wlroots 0.19 with pixman. This is an upstream bug.
+On NVIDIA headless systems, `ov vnc screenshot` produces gray images. This is an **upstream wayvnc/neatvnc bug** — `ext-image-copy-capture` doesn't deliver frame data with gles2 on sway 1.11 / wlroots 0.19. VNC remote viewing (connecting a VNC client) may still work, but screenshots are unreliable.
 
-**Workarounds:**
-- Use `ov wl screenshot` (grim via `wlr-screencopy` protocol) — works correctly on NVIDIA headless
-- Use `sway-desktop-sunshine` instead of `sway-desktop` — Sunshine captures via `wlr-screencopy` with full GPU acceleration (gles2 + NVENC). See `/ov-layers:sunshine`
-
-To verify the compositor renderer: `ov shell <image> -c "cat /proc/$(pgrep -x sway)/environ | tr '\\0' '\\n' | grep WLR_RENDERER"`. See `/ov-layers:wayvnc` for the full compatibility table.
+**Use `ov wl` instead of `ov vnc` for screenshots on NVIDIA:**
+```bash
+ov wl screenshot <image>                    # Wayland screenshot (grim, works on NVIDIA)
+ov wl screenshot <image> --x11             # X11 screenshot (import, captures GPU content)
+ov wl capture <image> --window "Moonlight"  # Capture specific X11 window
+```
 
 ## Cross-references
 

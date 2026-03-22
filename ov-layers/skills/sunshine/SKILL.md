@@ -22,9 +22,7 @@ description: |
 
 | Variable | Value |
 |----------|-------|
-| `SWAY_CAPTURE` | `sunshine` |
-
-The `SWAY_CAPTURE=sunshine` env var signals `sway-wrapper` to use `gles2` renderer on NVIDIA headless instead of `pixman`. This enables the full GPU pipeline: gles2 compositing + NVENC encoding.
+All images use gles2 on NVIDIA (hardware auto-detect). Sunshine captures via `wlr-screencopy` and encodes with NVENC — full GPU pipeline.
 
 ## Packages
 
@@ -65,9 +63,7 @@ With Sunshine, the entire NVIDIA headless pipeline is GPU-accelerated:
 Sway (gles2/NVIDIA) -> Sunshine (wlr-screencopy) -> NVENC (H.264/HEVC/AV1) -> Moonlight client
 ```
 
-Compare to wayvnc: sway forced to pixman (CPU), wayvnc shows gray/blank screens (upstream bug).
-
-Sunshine captures via `wlr-screencopy-unstable-v1` — the same Wayland protocol that `grim` uses — which works correctly with the gles2 renderer on NVIDIA headless.
+Sunshine captures via `wlr-screencopy-unstable-v1` — the same protocol that `grim` (`ov wl screenshot`) uses — which works correctly with gles2 on NVIDIA headless.
 
 ## Startup Timing
 
@@ -104,13 +100,13 @@ Or via Web UI at `https://<host>:47990`. See `/ov:sun` for server management, `/
 | Aspect | Sunshine/Moonlight | wayvnc/VNC |
 |--------|-------------------|------------|
 | Video encoding | H.264/HEVC/AV1 (GPU) | Raw framebuffer (CPU) |
-| NVIDIA headless | Full GPU pipeline (gles2) | Forced pixman (gray screens) |
+| NVIDIA headless | Full GPU pipeline (gles2 + NVENC) | gles2 (VNC screenshots gray — upstream bug) |
 | Audio | Built-in (Opus) | Separate (PipeWire forwarding) |
 | Input | Keyboard + mouse + gamepad | Keyboard + mouse only |
 | Client | Moonlight (all platforms) | Any VNC viewer |
-| Automation | Not programmable | `ov vnc` commands |
+| Screenshots | `ov wl screenshot` | `ov wl screenshot` |
 
-Note: `ov cdp` and `ov wl` work with both Sunshine and VNC images for programmatic automation.
+Both use gles2 on NVIDIA. `ov wl` and `ov cdp` work with both image types for automation.
 
 ## Used In Images
 

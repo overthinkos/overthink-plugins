@@ -2,7 +2,7 @@
 name: sway-desktop-vnc
 description: |
   Sway desktop with VNC remote access via wayvnc on port 5900.
-  Composes sway-desktop base with wayvnc. Sets pixman renderer override for NVIDIA headless.
+  Composes sway-desktop base with wayvnc.
 ---
 
 # sway-desktop-vnc -- Desktop with VNC remote access
@@ -14,9 +14,9 @@ description: |
 | Layers (composition) | `sway-desktop`, `wayvnc` |
 | Install files | none (pure composition) |
 
-## Renderer Override
+## NVIDIA Note
 
-The wayvnc layer writes `pixman` to `~/.config/sway/renderer`. The sway-wrapper reads this file and uses pixman instead of gles2 on NVIDIA headless. This is needed because wayvnc's `ext-image-copy-capture` protocol has an upstream bug with gles2 on NVIDIA.
+Uses gles2 on NVIDIA (same as all images). VNC screenshots may be gray (upstream wayvnc bug) — use `ov wl screenshot` instead.
 
 ## Used In Images
 

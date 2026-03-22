@@ -34,12 +34,14 @@ sway-browser-sunshine:
 
 Composes `sway-desktop` (base) with `sunshine` (display server):
 
-| Component | sway-desktop | sway-desktop-sunshine |
-|-----------|-------------|----------------------|
+| Component | sway-desktop-vnc | sway-desktop-sunshine |
+|-----------|-----------------|----------------------|
 | Remote access | wayvnc (VNC, port 5900) | Sunshine (Moonlight, port 47990) |
-| NVIDIA headless renderer | pixman (CPU) | gles2 (GPU) |
-| Video encoding | Raw framebuffer | NVENC H.264/HEVC/AV1 |
-| Chrome rendering | Software fallback | GPU-accelerated |
+| NVIDIA renderer | gles2 (GPU) | gles2 (GPU) |
+| Video encoding | N/A (raw VNC framebuffer) | NVENC H.264/HEVC/AV1 |
+| Screenshots | `ov wl screenshot` (grim) | `ov wl screenshot` (grim) |
+
+Both use the same gles2 renderer on NVIDIA. The difference is the streaming protocol (VNC vs Moonlight/GameStream).
 
 ## Used In Images
 
