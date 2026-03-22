@@ -132,4 +132,3 @@ Use when the user asks about:
 - GPU-accelerated remote desktop
 - NVENC encoding in containers
 - Alternative to VNC for desktop access
-- `SWAY_CAPTURE` environment variable

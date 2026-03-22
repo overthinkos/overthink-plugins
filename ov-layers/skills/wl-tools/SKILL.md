@@ -18,7 +18,6 @@ rpm:
     - xdotool
     - xprop
     - xwininfo
-    - ImageMagick
 ```
 
 ## Key Properties

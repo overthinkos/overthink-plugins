@@ -38,7 +38,7 @@ ov vnc passwd my-image --generate   # set up VeNCrypt/TLS auth
 
 wayvnc's `ext-image-copy-capture` protocol produces gray/blank screenshots on NVIDIA headless (upstream bug in sway 1.11 / wlroots 0.19 + wayvnc 0.9.1). VNC remote viewing (connecting a VNC client) still works, but `ov vnc screenshot` produces gray images.
 
-**For screenshots on NVIDIA headless, use `ov wl screenshot`** (grim via `wlr-screencopy`) or `ov wl capture` (import for X11 windows). Both work correctly with gles2 on NVIDIA.
+**For screenshots on NVIDIA headless, use `ov wl screenshot`** (grim via `wlr-screencopy`). Works correctly with gles2 on NVIDIA, capturing both Wayland and XWayland window content.
 
 All images use `gles2` renderer on NVIDIA (hardware auto-detect in sway-wrapper). No renderer overrides.
 

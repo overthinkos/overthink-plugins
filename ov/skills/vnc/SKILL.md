@@ -199,8 +199,8 @@ On NVIDIA headless systems, `ov vnc screenshot` produces gray images. This is an
 **Use `ov wl` instead of `ov vnc` for screenshots on NVIDIA:**
 ```bash
 ov wl screenshot <image>                    # Wayland screenshot (grim, works on NVIDIA)
-ov wl screenshot <image> --x11             # X11 screenshot (import, captures GPU content)
-ov wl capture <image> --window "Moonlight"  # Capture specific X11 window
+ov wl windows <image>                       # List X11 windows
+ov wl focus <image> "Moonlight"             # Focus specific X11 window
 ```
 
 ## Cross-references
