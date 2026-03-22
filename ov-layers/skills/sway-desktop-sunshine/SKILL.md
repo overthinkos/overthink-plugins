@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Layers (composition) | `pipewire`, `xdg-portal`, `wl-tools`, `sunshine`, `chrome-sway`, `xfce4-terminal`, `thunar`, `waybar` |
+| Layers (composition) | `sway-desktop`, `sunshine` |
 | Install files | none (pure composition) |
 
 ## Usage
@@ -32,7 +32,7 @@ sway-browser-sunshine:
 
 ## Comparison with sway-desktop
 
-Identical to `sway-desktop` except `wayvnc` is replaced with `sunshine`:
+Composes `sway-desktop` (base) with `sunshine` (display server):
 
 | Component | sway-desktop | sway-desktop-sunshine |
 |-----------|-------------|----------------------|
@@ -45,12 +45,14 @@ Identical to `sway-desktop` except `wayvnc` is replaced with `sunshine`:
 
 - `/ov-images:sway-browser-sunshine`
 - `/ov-images:sway-browser-sunshine-steam` (+ steam layer)
+- `/ov-images:sway-browser-sunshine-steam-heroic` (+ steam + heroic)
 - `/ov-images:openclaw-ollama-sway-sunshine`
 
 ## Related Layers
 
 - `/ov:sun` -- Sunshine management commands (credentials, pairing, config)
-- `/ov-layers:sway-desktop` -- VNC-based variant
+- `/ov-layers:sway-desktop` -- base desktop (composed)
+- `/ov-layers:sway-desktop-vnc` -- VNC-based variant
 - `/ov-layers:sunshine` -- Sunshine game streaming (included)
 - `/ov-layers:pipewire` -- audio/media server (included)
 - `/ov-layers:chrome-sway` -- Chrome browser on Sway (included)

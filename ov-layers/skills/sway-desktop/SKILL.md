@@ -1,56 +1,59 @@
 ---
 name: sway-desktop
 description: |
-  Full Sway desktop composition with audio, VNC, Chrome browser, terminal, file manager, and status bar.
-  Use when working with desktop containers, remote desktop, or browser-enabled Sway images.
+  Base Sway desktop composition with audio, portals, Wayland tools, Chrome, terminal, file manager, and status bar.
+  No display server — use sway-desktop-vnc (VNC) or sway-desktop-sunshine (Sunshine) for remote access.
 ---
 
-# sway-desktop -- Full remote desktop composition
+# sway-desktop -- Base desktop composition (no display server)
 
 ## Layer Properties
 
 | Property | Value |
 |----------|-------|
-| Layers (composition) | `pipewire`, `xdg-portal`, `wl-tools`, `wayvnc`, `chrome-sway`, `xfce4-terminal`, `thunar`, `waybar` |
+| Layers (composition) | `pipewire`, `xdg-portal`, `wl-tools`, `chrome-sway`, `xfce4-terminal`, `thunar`, `waybar` |
 | Install files | none (pure composition) |
+
+## Three-Tier Architecture
+
+```
+sway-desktop          = base desktop (no display server)
+sway-desktop-vnc      = sway-desktop + wayvnc
+sway-desktop-sunshine = sway-desktop + sunshine
+```
 
 ## Usage
 
+Not used directly in images — use `sway-desktop-vnc` or `sway-desktop-sunshine` instead:
+
 ```yaml
-# images.yml
-openclaw-sway-browser:
+# images.yml — VNC variant
+sway-browser-vnc:
   layers:
-    - sway-desktop
-    - openclaw
+    - sway-desktop-vnc
+
+# images.yml — Sunshine variant
+sway-browser-sunshine:
+  base: nvidia
+  layers:
+    - sway-desktop-sunshine
 ```
-
-## Used In Images
-
-- `/ov-images:openclaw-sway-browser`
-- `/ov-images:openclaw-ollama-sway-browser`
-
-## GPU-Accelerated Variant
-
-For NVIDIA-optimized images, use `/ov-layers:sway-desktop-sunshine` instead. It replaces wayvnc with Sunshine game streaming, enabling full GPU acceleration (gles2 + NVENC) on NVIDIA headless.
 
 ## Related Layers
 
 - `/ov-layers:pipewire` -- audio/media server (included)
 - `/ov-layers:xdg-portal` -- XDG desktop portal infrastructure (included)
 - `/ov-layers:wl-tools` -- Wayland automation tools: grim, wtype, wlrctl (included)
-- `/ov-layers:wayvnc` -- VNC server on tcp:5900 (included)
 - `/ov-layers:chrome-sway` -- Chrome browser on Sway (included)
 - `/ov-layers:waybar` -- status bar and auto-tiling (included)
-- `/ov-layers:sway` -- Wayland compositor (transitive via chrome-sway)
-- `/ov-layers:dbus` -- D-Bus session bus (transitive via sway)
-- `/ov-layers:sway-desktop-sunshine` -- GPU-accelerated variant with Sunshine
+- `/ov-layers:sway-desktop-vnc` -- VNC variant (adds wayvnc)
+- `/ov-layers:sway-desktop-sunshine` -- Sunshine variant (adds sunshine)
 
 ## When to Use This Skill
 
 Use when the user asks about:
 
-- Full desktop container setup
-- Remote desktop with VNC access
-- Browser-enabled container images
-- Sway desktop composition
-- Desktop applications in containers
+- Desktop container composition architecture
+- Three-tier desktop layer separation
+- Comparing VNC vs Sunshine desktop variants
+- Base desktop without display server
