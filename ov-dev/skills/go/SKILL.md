@@ -66,6 +66,12 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `browser.go` | Browser automation commands (open, list, close, text, html, url, screenshot, click, type, eval, wait, cdp) |
 | `browser_cdp.go` | CDPClient -- lightweight Chrome DevTools Protocol WebSocket client (golang.org/x/net/websocket) |
 | `browser_test.go` | Browser command and CDP client tests |
+| `sun.go` | Sunshine server management commands (status, passwd, pair, clients, config, set, restart, url) |
+| `sun_client.go` | Sunshine REST API client (HTTPS, Basic Auth, port 47990) |
+| `sun_test.go` | Sunshine client tests (httptest servers, credential resolution) |
+| `moon.go` | GameStream client commands (status, pair, unpair, apps, launch, quit) |
+| `moon_client.go` | GameStream protocol client (cert gen, AES pairing crypto, XML parsing, mutual TLS) |
+| `moon_test.go` | GameStream client tests (AES roundtrip, cert gen, XML parsing, RSA signing) |
 
 ### Infrastructure
 

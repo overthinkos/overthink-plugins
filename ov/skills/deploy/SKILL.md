@@ -273,7 +273,13 @@ ov config set sunshine.user.sway-browser-sunshine admin
 ov config set sunshine.password.sway-browser-sunshine mysecret
 ```
 
-See `/ov:sun` for full Sunshine management documentation.
+For Moonlight client pairing after setup:
+
+```bash
+ov moon pair sway-browser-sunshine --auto   # fully automated pairing
+```
+
+See `/ov:sun` for server management, `/ov:moon` for client protocol.
 
 ## Port Relay Pattern
 

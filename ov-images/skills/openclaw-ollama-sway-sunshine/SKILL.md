@@ -38,6 +38,7 @@ ov build openclaw-ollama-sway-sunshine
 ov start openclaw-ollama-sway-sunshine
 # Wait for services to start (~20s)
 ov sun passwd openclaw-ollama-sway-sunshine --generate   # Set Sunshine Web UI credentials
+ov moon pair openclaw-ollama-sway-sunshine --auto        # Pair as Moonlight client
 ov sun status openclaw-ollama-sway-sunshine               # Verify health
 # Gateway at http://localhost:18789
 # Ollama at http://localhost:11434

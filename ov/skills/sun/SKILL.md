@@ -166,6 +166,7 @@ SUNSHINE_USER=admin SUNSHINE_PASSWORD=secret ov sun status sway-browser-sunshine
 
 ## Cross-References
 
+- `/ov:moon` — GameStream client protocol (client-side pairing, app launch/quit)
 - `/ov-layers:sunshine` — Sunshine layer properties (ports, deps, service config)
 - `/ov-layers:sway-desktop-sunshine` — GPU-accelerated desktop composition with Sunshine
 - `/ov:vnc` — VNC automation (alternative remote access, wayvnc)

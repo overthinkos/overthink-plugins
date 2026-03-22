@@ -83,17 +83,21 @@ A default `sunshine.conf` is generated on first start with `capture=wlroots` and
 # Set credentials (first-time setup)
 ov sun passwd sway-browser-sunshine --generate
 
-# Get Web UI URL
-ov sun url sway-browser-sunshine
+# Pair as a Moonlight client (fully automated, single command)
+ov moon pair sway-browser-sunshine --auto
 
-# Pair a Moonlight client (enter PIN from Moonlight)
-ov sun pair sway-browser-sunshine 1234
+# List available apps
+ov moon apps sway-browser-sunshine
+
+# Launch/quit streaming session
+ov moon launch sway-browser-sunshine Desktop
+ov moon quit sway-browser-sunshine
 
 # Check status
 ov sun status sway-browser-sunshine
 ```
 
-Or via Web UI at `https://<host>:47990`. See `/ov:sun` for full CLI reference.
+Or via Web UI at `https://<host>:47990`. See `/ov:sun` for server management, `/ov:moon` for client protocol.
 
 ## Differences from VNC (wayvnc)
 
@@ -114,7 +118,8 @@ Part of `/ov-layers:sway-desktop-sunshine` composition.
 
 ## Related Layers
 
-- `/ov:sun` -- Sunshine management commands (credentials, pairing, config)
+- `/ov:sun` -- Sunshine server management (credentials, config, service control)
+- `/ov:moon` -- GameStream client protocol (client-side pairing, app launch/quit)
 - `/ov-layers:supervisord` -- process manager dependency
 - `/ov-layers:sway` -- Wayland compositor (provides display)
 - `/ov-layers:pipewire` -- audio server (PulseAudio compat for Sunshine)
