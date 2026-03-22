@@ -52,7 +52,8 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `merge.go` | `merge` command (post-build layer merging) |
 | `shell.go` | `shell` command (execs engine run) |
 | `start.go` | `start`/`stop` commands |
-| `commands.go` | `enable`/`disable`/`status`/`logs`/`update`/`remove` |
+| `status.go` | `status` command (structured table/detail view, live tool probing, `--json`) |
+| `commands.go` | `enable`/`disable`/`logs`/`update`/`remove` |
 | `service.go` | `service` command (supervisord service management inside containers) |
 | `seed.go` | `seed` command (bind mount data seeding) |
 | `hooks.go` | Lifecycle hooks (`post_enable`, `pre_remove`) collection and execution |
@@ -66,7 +67,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `browser.go` | Browser automation commands (open, list, close, text, html, url, screenshot, click, type, eval, wait, cdp) |
 | `browser_cdp.go` | CDPClient -- lightweight Chrome DevTools Protocol WebSocket client (golang.org/x/net/websocket) |
 | `browser_test.go` | Browser command and CDP client tests |
-| `sun.go` | Sunshine server management commands (status, passwd, pair, clients, config, set, restart, url) |
+| `sun.go` | Sunshine server management commands (status, passwd, pair, clients, config, set, restart, url) + `checkSunStatus()` for tool probing |
 | `sun_client.go` | Sunshine REST API client (HTTPS, Basic Auth, port 47990) |
 | `sun_test.go` | Sunshine client tests (httptest servers, credential resolution) |
 | `moon.go` | GameStream client commands (status, pair, unpair, apps, launch, quit) |
@@ -158,7 +159,7 @@ bin/ov inspect <image>
 - `/ov-dev:generate` -- Understanding generated Containerfiles
 - `/ov:validate` -- Validation rules and error handling
 - `/ov:build` -- Using the built CLI
-- Source: `ov/` directory (44 source + test .go files)
+- Source: `ov/` directory (61 source + 44 test .go files)
 
 ## When to Use This Skill
 

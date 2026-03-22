@@ -20,8 +20,10 @@ Container service lifecycle management with two modes: **quadlet** (systemd user
 | Stop service | `ov stop <image>` | Stop running service |
 | Enable quadlet | `ov enable <image>` | Generate .container file, daemon-reload |
 | Disable quadlet | `ov disable <image>` | Disable auto-start |
-| Service status | `ov status [<image>]` | Show service status (all if no image given) |
-| List all services | `ov status --all` | Include inactive services in listing |
+| Service status | `ov status [<image>]` | Structured status table (IMAGE, STATUS, PORTS, DEVICES, TOOLS) |
+| All services | `ov status --all` | Include stopped/enabled services in listing |
+| Detailed status | `ov status <image>` | Detailed key-value view with live tool probes |
+| JSON output | `ov status --json` | Machine-readable JSON output |
 | Service logs | `ov logs <image> -f` | Follow service logs |
 | Update service | `ov update <image>` | Update image and restart |
 | Remove service | `ov remove <image>` | Stop, remove service + deploy.yml entry |
@@ -223,12 +225,70 @@ ov shell <image> -c "supervisorctl stop <service>"
 ov shell <image> -c "<service-command>"
 ```
 
+## Status Output
+
+`ov status` shows a structured table of all running ov containers:
+
+```
+IMAGE                       STATUS   PORTS                      DEVICES  TOOLS
+openclaw-sway-browser       running  5900,8000,8080,18789       dri,gpu  cdp:9222,sway,vnc:5900,wl
+ollama                      running  11434                      gpu      -
+jupyter                     stopped  8888                       -        -
+```
+
+- **PORTS**: Host-side port numbers, sorted numerically
+- **DEVICES**: Compact tokens (`gpu`, `dri`, `kvm`, `fuse`), sorted alphabetically
+- **TOOLS**: Live-probed desktop automation tools with actual host ports, sorted alphabetically. Port-based tools show `name:port` (e.g., `cdp:9222`). Socket-based tools show just the name (e.g., `sway`). Non-running containers show `-`.
+
+### Tool Probes
+
+For running containers, `ov status` probes all 5 desktop automation tools concurrently (2s timeout each):
+
+| Tool | Probe | What it checks |
+|------|-------|---------------|
+| cdp | HTTP GET `:9222/json` | Chrome DevTools Protocol |
+| vnc | TCP + RFB handshake on `:5900` | VNC server (wayvnc) |
+| sway | Sway IPC socket | Sway compositor |
+| wl | `command -v grim wtype wlrctl` | Wayland tools |
+| sun | HTTPS GET `:47990/api/config` | Sunshine streaming |
+
+Each tool also has its own `status` subcommand: `ov cdp status`, `ov vnc status`, `ov sway status`, `ov wl status`, `ov sun status`.
+
+### Single Image Detail
+
+`ov status <image>` shows a detailed key-value view:
+
+```
+Image:     openclaw-sway-browser
+Status:    running (Up 3 days)
+Container: ov-openclaw-sway-browser
+Mode:      quadlet
+Ports:     5900:5900, 8000:8000, 8080:8080, 18789:18789
+Devices:   nvidia.com/gpu=all, /dev/dri/renderD128
+Tools:     cdp:9222 (ok), sway (ok), vnc:5900 (ok), wl (ok)
+Volumes:   ov-openclaw-sway-browser-data -> ~/.openclaw
+Workspace: ~/projects
+Network:   host
+Tunnel:    tailscale (all ports)
+```
+
+### JSON Output
+
+`ov status --json` and `ov status <image> --json` emit structured JSON for scripting.
+
+Source: `ov/status.go`.
+
 ## Cross-References
 
 - `/ov:shell` -- Interactive shells and exec into running containers
 - `/ov:deploy` -- Quadlet generation details, tunnels, bind mounts
 - `/ov:enc` -- Encrypted storage companion service
 - `/ov:config` -- `run_mode`, `auto_enable`, `engine.run` settings
+- `/ov:cdp` -- CDP status subcommand (`ov cdp status`)
+- `/ov:vnc` -- VNC status subcommand (`ov vnc status`)
+- `/ov:sway` -- Sway status subcommand (`ov sway status`)
+- `/ov:wl` -- WL status subcommand (`ov wl status`)
+- `/ov:sun` -- Sunshine status subcommand (`ov sun status`)
 
 ## When to Use This Skill
 

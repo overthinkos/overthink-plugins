@@ -27,6 +27,7 @@ description: |
 | Eval JS | `ov cdp eval <image> <tab-id> <expression>` | Evaluate JavaScript |
 | Wait | `ov cdp wait <image> <tab-id> <selector>` | Wait for element (--timeout 30s) |
 | Raw CDP | `ov cdp raw <image> <tab-id> <method> [json]` | Send raw CDP command |
+| Status | `ov cdp status <image>` | Check CDP availability, show port and tab count |
 
 All commands accept `-i INSTANCE` for multi-instance support.
 

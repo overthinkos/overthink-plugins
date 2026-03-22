@@ -29,6 +29,7 @@ description: |
 | Workspace | `ov sway workspace <image> <num>` | Switch workspace |
 | Reload | `ov sway reload <image>` | Reload sway config |
 | Resolution | `ov sway resolution <image> <WxH>` | Set output resolution |
+| Status | `ov sway status <image>` | Check Sway compositor, show output and resolution |
 
 All commands accept `-i INSTANCE` for multi-instance support. Use `.` as image name for local/in-container execution.
 
