@@ -1,0 +1,66 @@
+---
+name: openclaw-full-ml
+description: |
+  OpenClaw full + ML tools + Ollama + Sway desktop + VNC. GPU-accelerated.
+  Currently disabled. Enable in images.yml to build.
+  MUST be invoked before building, deploying, or troubleshooting the openclaw-full-ml image.
+---
+
+# openclaw-full-ml
+
+GPU-accelerated OpenClaw with all tools, ML capabilities (whisper, sherpa-onnx TTS), Ollama, Sway desktop, and VNC.
+
+## Image Properties
+
+| Property | Value |
+|----------|-------|
+| Base | nvidia |
+| Layers | openclaw-full-ml, sway-desktop-vnc, ollama |
+| Platforms | linux/amd64 |
+| Ports | 18789 (gateway), 5900 (VNC), 9222 (CDP), 11434 (Ollama) |
+| Status | **disabled** (set `enabled: true` in images.yml) |
+| Registry | ghcr.io/overthinkos |
+
+## Full Layer Stack
+
+1. `fedora` → `fedora-nonfree` → `nvidia` (CUDA base)
+2. `openclaw-full-ml` metalayer:
+   - `openclaw-full` (28 tool layers)
+   - `whisper` — speech-to-text
+   - `sherpa-onnx` — offline TTS
+3. `sway-desktop-vnc` — desktop + VNC
+4. `ollama` — LLM inference server
+
+## Ports
+
+| Port | Service | Protocol |
+|------|---------|----------|
+| 18789 | OpenClaw gateway | HTTP |
+| 5900 | VNC | TCP |
+| 9222 | Chrome DevTools | HTTP |
+| 11434 | Ollama API | HTTP |
+
+## Quick Start
+
+```bash
+# Enable in images.yml first (remove enabled: false)
+ov build openclaw-full-ml
+ov enable openclaw-full-ml
+ov start openclaw-full-ml
+```
+
+## Key Layers
+
+- `/ov-layers:openclaw-full-ml` — Full tools + ML (whisper, sherpa-onnx)
+- `/ov-layers:ollama` — LLM server
+- `/ov-layers:cuda` — GPU support (via nvidia base)
+
+## Related Images
+
+- `/ov-images:openclaw-ollama-sway-browser` — enabled GPU variant (same concept)
+- `/ov-images:openclaw-full-sway` — without ML/Ollama (disabled)
+- `/ov-images:openclaw-full` — headless, no ML (disabled)
+
+## When to Use This Skill
+
+**MUST be invoked** when the task involves the openclaw-full-ml image or the combined ML-capable OpenClaw desktop deployment.
