@@ -27,7 +27,7 @@ description: |
 | `WOLF_CFG_FILE` | `~/.config/wolf/config.toml` |
 | `WOLF_PRIVATE_KEY_FILE` | `~/.config/wolf/key.pem` |
 | `WOLF_PRIVATE_CERT_FILE` | `~/.config/wolf/cert.pem` |
-| `XDG_RUNTIME_DIR` | `/tmp` |
+| `XDG_RUNTIME_DIR` | `/run/user/1000/wolf` (dedicated tmpfs — NOT `/tmp`, which corrupts host permissions via sibling container mounts) |
 | `GST_GL_API` | `gles2` |
 | `GST_GL_WINDOW` | `surfaceless` |
 | `GST_PLUGIN_PATH` | `/usr/local/lib64/gstreamer-1.0` |
@@ -84,7 +84,7 @@ Wolf spawns per-app containers (PulseAudio, game sessions) via the Docker API. T
 - **Rootful Podman**: `/run/podman/podman.sock` (override via deploy.yml)
 - **Docker**: `/var/run/docker.sock` (override via deploy.yml)
 
-Image-level `SYS_ADMIN` cap is required for Wolf to manage container namespaces via the socket.
+No special capabilities beyond `NET_ADMIN` (declared in `layer.yml` for input device injection) are needed for the socket mount.
 
 ## GPU Pipeline
 
@@ -100,7 +100,7 @@ Wolf's compositor directly exposes raw framebuffers to the GStreamer encoding pi
 ## Startup Sequence (wolf-wrapper)
 
 1. GPU detection (NVIDIA via nvidia-smi → AMD/Intel via renderD* → software)
-2. Wait for Docker/Podman socket (30s timeout)
+2. Wait for Docker/Podman socket (30s timeout, warns if missing)
 3. Set up `/run/udev/data` and `/run/udev/control` for input handling
 4. Ensure config directory exists and is writable
 5. Generate default TOML config if none exists

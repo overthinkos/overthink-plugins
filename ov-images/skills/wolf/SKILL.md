@@ -2,7 +2,7 @@
 name: wolf
 description: |
   Wolf game streaming server image (Games on Whales) on fedora-nonfree with
-  host networking and container orchestration via Podman socket.
+  container orchestration via Podman socket and standard port mappings.
   MUST be invoked before building, deploying, configuring, or troubleshooting the wolf image.
 ---
 
@@ -18,7 +18,6 @@ Container-native game streaming server built from source on Fedora. Uses Wolf's 
 | Layers | wolf |
 | Platforms | linux/amd64 |
 | Ports | 47984 (TCP), 47989, 47999/udp, 48010 (TCP), 48100/udp, 48200/udp |
-| Security | `cap_add: [SYS_ADMIN]`, `network: host` |
 | Registry | ghcr.io/overthinkos |
 
 ## Ports
@@ -53,9 +52,8 @@ ov moon pair wolf --auto
 
 Wolf is fundamentally different from Sunshine — it's an **orchestrator** that manages per-app containers:
 
-- **Host networking** — Required for UDP game streaming. No port mapping.
-- **Podman socket mount** — `/run/user/1000/podman/podman.sock` -> `/var/run/docker.sock`. Wolf spawns PulseAudio and app containers via Docker API.
-- **SYS_ADMIN capability** — Required for Wolf to manage container namespaces via the socket. Set at image level, not layer level.
+- **Standard port mappings** — All 6 ports (TCP + UDP) mapped like other overthink images.
+- **Podman socket mount** — `/run/user/1000/podman/podman.sock` -> `/var/run/docker.sock`. Wolf spawns PulseAudio and app containers via Docker API. Required unconditionally by Wolf's `docker::init()`.
 - **Self-contained** — Wolf brings its own compositor (gst-wayland-display), audio (GStreamer + spawned PulseAudio container), and input handling (inputtino). No sway/pipewire layers needed.
 - **GPU auto-detection** — `wolf-wrapper` detects NVIDIA/AMD/Intel at startup and configures encoding.
 
@@ -66,7 +64,7 @@ Wolf is fundamentally different from Sunshine — it's an **orchestrator** that 
 | Base | fedora-nonfree | nvidia |
 | Compositor | Built-in (Smithay) | Sway (wlroots) |
 | Audio | GStreamer + spawned PA container | PipeWire layer |
-| Network | Host (required for UDP) | Bridge with port mapping |
+| Network | Bridge with port mapping | Bridge with port mapping |
 | Desktop | No desktop — Wolf is headless | Full Sway desktop + Chrome |
 | Multi-session | Yes | No |
 | App model | Per-app containers | Single container |
