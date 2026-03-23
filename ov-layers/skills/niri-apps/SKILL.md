@@ -1,0 +1,41 @@
+---
+name: niri-apps
+description: |
+  Desktop applications (terminal, file manager) for Niri compositor.
+  Use when working with the niri-apps layer.
+---
+
+# niri-apps -- Desktop apps for Niri
+
+## Layer Properties
+
+| Property | Value |
+|----------|-------|
+| Dependencies | `niri` |
+
+## Packages
+
+- `xfce4-terminal` (RPM) -- Terminal emulator
+- `thunar` (RPM) -- File manager
+
+## Usage
+
+```yaml
+# images.yml -- typically included via niri-desktop composition
+my-desktop:
+  layers:
+    - niri-apps
+```
+
+**Note:** This layer exists because the existing `xfce4-terminal` and `thunar` layers depend on `sway`. `niri-apps` provides the same packages with a `niri` dependency instead.
+
+## Related Layers
+
+- `/ov-layers:niri` -- compositor dependency
+- `/ov-layers:xfce4-terminal` -- Sway variant (depends on sway)
+- `/ov-layers:thunar` -- Sway variant (depends on sway)
+- `/ov-layers:niri-desktop` -- composition that includes this layer
+
+## When to Use This Skill
+
+Use when working with desktop applications in Niri containers.

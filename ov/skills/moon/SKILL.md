@@ -145,13 +145,28 @@ ov wl type sway-browser-sunshine "hello"         # wtype
 ov wl key sway-browser-sunshine Return           # wtype -k
 ```
 
+## Testing Streaming End-to-End
+
+`ov moon` handles the **control plane** (pairing, app launch/quit) but does NOT stream video/audio/input. To test actual streaming, use the Moonlight GUI client inside `sway-browser-vnc-moonlight`:
+
+```bash
+ov start sunshine-desktop-x11                   # Sunshine server (X11, recommended)
+ov sun passwd sunshine-desktop-x11 --generate   # Set credentials
+ov start sway-browser-vnc-moonlight             # Moonlight GUI client
+# VNC into sway-browser-vnc-moonlight, press Alt+M, pair via Moonlight GUI
+```
+
+The Moonlight GUI performs its own independent pairing (separate from `ov moon pair` on the host). Only the GUI handles the full streaming pipeline: RTSP negotiation, H.264/HEVC decoding, audio, and input forwarding.
+
 ## Cross-References
 
 - `/ov:sun` — Sunshine server management (credentials, config, REST API)
 - `/ov:wl` — Desktop interaction (screenshot, click, type via Wayland tools)
 - `/ov:cdp` — Chrome DevTools Protocol (browser automation)
-- `/ov-layers:sunshine` — Sunshine layer properties
-- `/ov-layers:sway-desktop-sunshine` — GPU-accelerated desktop composition
+- `/ov-layers:sunshine-x11` — Sunshine with X11 capture (recommended)
+- `/ov-layers:sunshine` — Sunshine with Sway/wlroots capture
+- `/ov-images:sunshine-desktop-x11` — X11 Sunshine server image (recommended)
+- `/ov-images:sway-browser-vnc-moonlight` — Moonlight GUI client for testing
 
 ## When to Use This Skill
 

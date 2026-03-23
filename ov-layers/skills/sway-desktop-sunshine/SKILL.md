@@ -71,6 +71,7 @@ Both use the same gles2 renderer on NVIDIA. The difference is the streaming prot
 - `/ov-layers:pipewire` -- audio/media server (included)
 - `/ov-layers:chrome-sway` -- Chrome browser on Sway (included)
 - `/ov-layers:waybar` -- status bar and auto-tiling (included)
+- `/ov-layers:niri-desktop-sunshine` -- Niri variant (Smithay compositor instead of Sway)
 
 ## When to Use This Skill
 

@@ -152,6 +152,7 @@ Part of `/ov-layers:sway-desktop-sunshine` composition.
 - `/ov-layers:sway-desktop-sunshine` -- composition that includes sunshine
 - `/ov-layers:steam` -- Steam client with XWayland and Sunshine Big Picture app
 - `/ov-layers:wayvnc` -- VNC alternative (used in sway-desktop)
+- `/ov-layers:sunshine-niri` -- Niri variant (Smithay compositor instead of Sway)
 
 ## When to Use This Skill
 

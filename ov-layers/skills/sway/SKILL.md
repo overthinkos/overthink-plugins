@@ -88,6 +88,7 @@ Transitive dependency via `chrome-sway` and `sway-desktop` in all desktop images
 - `/ov-layers:wayvnc` -- VNC access to Sway display
 - `/ov-layers:sunshine` -- Sunshine game streaming (Moonlight)
 - `/ov-layers:waybar` -- status bar (depends on sway)
+- `/ov-layers:niri` -- Niri compositor alternative (Smithay-based, built from source)
 
 ## When to Use This Skill
 

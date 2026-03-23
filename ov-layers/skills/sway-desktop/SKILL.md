@@ -48,6 +48,8 @@ sway-browser-sunshine:
 - `/ov-layers:waybar` -- status bar and auto-tiling (included)
 - `/ov-layers:sway-desktop-vnc` -- VNC variant (adds wayvnc)
 - `/ov-layers:sway-desktop-sunshine` -- Sunshine variant (adds sunshine)
+- `/ov-layers:niri-desktop` -- Niri variant (Smithay compositor, built from source)
+- `/ov-layers:niri-desktop-sunshine` -- Niri + Sunshine variant
 
 ## When to Use This Skill
 

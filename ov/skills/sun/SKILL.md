@@ -174,9 +174,11 @@ SUNSHINE_USER=admin SUNSHINE_PASSWORD=secret ov sun status sway-browser-sunshine
 
 ## Cross-References
 
-- `/ov:moon` — GameStream client protocol (client-side pairing, app launch/quit)
-- `/ov-layers:sunshine` — Sunshine layer properties (ports, deps, service config)
-- `/ov-layers:sway-desktop-sunshine` — GPU-accelerated desktop composition with Sunshine
+- `/ov:moon` — GameStream client protocol (host-side control plane: pairing, app launch/quit)
+- `/ov-layers:sunshine-x11` — Sunshine with X11 capture (recommended, all features work)
+- `/ov-layers:sunshine` — Sunshine with Sway/wlroots capture (input erratic)
+- `/ov-images:sunshine-desktop-x11` — X11 Sunshine server image (recommended)
+- `/ov-images:sway-browser-vnc-moonlight` — Moonlight GUI client for end-to-end streaming tests
 - `/ov:vnc` — VNC automation (alternative remote access, wayvnc)
 - `/ov:cdp` — Chrome DevTools Protocol (browser automation, same container)
 - `/ov:service` — Supervisord service management
