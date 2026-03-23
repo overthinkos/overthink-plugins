@@ -51,7 +51,7 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 | `deb` | object | Debian package config: `packages` |
 | `volumes` | `[]VolumeYAML` | Persistent named volumes (`name` + `path`) |
 | `aliases` | `[]AliasYAML` | Host command aliases (`name` + `command`) |
-| `security` | `SecurityConfig` | Container security: `privileged`, `cap_add`, `devices`, `security_opt`, `shm_size` |
+| `security` | `SecurityConfig` | Container security: `privileged`, `cap_add`, `devices`, `security_opt`, `shm_size`, `group_add`, `mounts` |
 | `port_relay` | `[]int` | Ports needing eth0->loopback socat relay (auto-adds socat dependency) |
 | `hooks` | `HooksConfig` | Lifecycle hooks: `post_enable` (runs after `ov enable`), `pre_remove` (runs before `ov remove`) |
 | `libvirt` | `[]string` | Raw libvirt XML snippets injected into VM domain XML after creation |
@@ -200,11 +200,18 @@ security:
     - /dev/dri
   security_opt:
     - label:disable
+  group_add:
+    - keep-groups
+  mounts:
+    - /dev/input:/dev/input:rw
+    - tmpfs:/run/udev:rw,size=1m
 ```
 
-Security settings are merged across layers: if any layer sets `privileged: true`, the result is privileged. `cap_add`, `devices`, and `security_opt` are unioned (deduplicated). Image-level `security:` in `images.yml` overrides `privileged` and appends to the other fields.
+Security settings are merged across layers: if any layer sets `privileged: true`, the result is privileged. `cap_add`, `devices`, `security_opt`, `group_add`, and `mounts` are unioned (deduplicated). Image-level `security:` in `images.yml` overrides `privileged` and appends to the other fields.
 
-Source: `ov/security.go` (`CollectSecurity`, `SecurityArgs`).
+**`mounts`**: Host bind mounts or tmpfs mounts needed for device access. Format: `host:container:options` for bind mounts, `tmpfs:path:options` for tmpfs. Stored in the `org.overthinkos.security` image label and applied by `ov enable`/`ov start`. Bind mounts generate `Volume=` in quadlets; tmpfs mounts generate `Tmpfs=`.
+
+Source: `ov/security.go` (`CollectSecurity`, `SecurityArgs`), `ov/quadlet.go`, `ov/start.go`.
 
 ## Cache Mounts
 

@@ -30,6 +30,18 @@ sway-browser-sunshine:
     - "48000:48000/udp"
 ```
 
+## Sunshine Layer Runtime Details
+
+The `sunshine` layer adds several runtime requirements beyond standard desktop layers:
+
+- **fake-udev service:** A Python supervisord service (`fake-udev`) that emulates udev events for virtual input devices. Runs at priority 19 (before sunshine at priority 20).
+- **`LIBSEAT_BACKEND=noop`** environment variable -- disables seat management since containers don't have real seat access.
+- **Security mounts:** `/dev/input:/dev/input:rw` (host input device access) and `tmpfs:/run/udev:rw,size=1m` (fake udev runtime directory).
+- **Capabilities:** `NET_ADMIN` (required for Sunshine networking), `keep-groups` group policy.
+- **Device:** `/dev/uinput` (virtual input device creation for gamepad/keyboard/mouse emulation).
+
+These are declared in the `sunshine` layer's `layer.yml` security section and automatically injected at container start.
+
 ## Comparison with sway-desktop
 
 Composes `sway-desktop` (base) with `sunshine` (display server):

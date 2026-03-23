@@ -19,12 +19,22 @@ description: |
 
 | Variable | Value |
 |----------|-------|
-| `WLR_BACKENDS` | `headless` |
+| `WLR_BACKENDS` | `headless,libinput` (supervisord env) |
 | `WLR_HEADLESS_OUTPUTS` | `1` |
 | `WLR_LIBINPUT_NO_DEVICES` | `1` |
 | `XDG_RUNTIME_DIR` | `/tmp` |
 | `WAYLAND_DISPLAY` | `wayland-0` |
 | `EGL_LOG_LEVEL` | `fatal` |
+
+The supervisord `[program:sway]` environment sets `WLR_BACKENDS=headless,libinput` — enabling both headless output and libinput input. `WLR_LIBINPUT_NO_DEVICES=1` allows sway to start with zero input devices (Sunshine's fake-udev adds them later via synthetic udev events).
+
+## Sunshine Input Support (sway-wrapper)
+
+When `/dev/uinput` is present, sway-wrapper automatically:
+1. Sets `LIBSEAT_BACKEND=noop` (no real seat session needed)
+2. Creates `/run/udev/control` and `/run/udev/data/` (so libinput monitors for udev events)
+
+This enables Sunshine's `fake-udev` service to inject virtual input devices into sway at runtime. See `/ov-layers:sunshine` for the full input pipeline.
 
 ## Packages
 

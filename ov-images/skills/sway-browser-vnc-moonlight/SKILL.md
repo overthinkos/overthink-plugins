@@ -17,13 +17,17 @@ Sway desktop with VNC remote access, Chrome browser, and Moonlight game streamin
 | Layers | sway-desktop-vnc, moonlight |
 | Ports | 5900, 9222 |
 
+## Waybar Moonlight Button
+
+The moonlight layer patches waybar to add a **purple Moonlight launcher button** in the status bar. Click it (or press Alt+M) to launch Moonlight. The button appears in `modules-left` next to the terminal button, styled in Catppuccin Mocha purple.
+
 ## Quick Start
 
 ```bash
 ov build sway-browser-vnc-moonlight
 ov start sway-browser-vnc-moonlight -p 5901:5900 -p 9227:9222
 
-# VNC into this container, press Alt+M to launch Moonlight
+# VNC into this container, press Alt+M or click the Moonlight button in waybar
 # Point Moonlight at the Sunshine container's IP
 ```
 

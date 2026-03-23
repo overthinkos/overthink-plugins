@@ -30,7 +30,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | File | Purpose |
 |------|---------|
 | `main.go` | CLI entry point (Kong framework) |
-| `config.go` | `images.yml` parsing, inheritance resolution |
+| `config.go` | `images.yml` parsing, inheritance resolution. `SecurityConfig` has `Mounts` field for host mounts (e.g. `/dev/input`, tmpfs) |
 | `layers.go` | Layer scanning, file detection, `parseLayerYAML()` |
 | `generate.go` | Containerfile generation (largest file) |
 | `validate.go` | All validation rules |
@@ -67,6 +67,9 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `browser.go` | Browser automation commands (open, list, close, text, html, url, screenshot, click, type, eval, wait, cdp) |
 | `browser_cdp.go` | CDPClient -- lightweight Chrome DevTools Protocol WebSocket client (golang.org/x/net/websocket) |
 | `browser_test.go` | Browser command and CDP client tests |
+| `wl.go` | Wayland desktop commands (screenshot, click, type, key, mouse, status, windows, focus). `--from-x11` flag + `FindX11WindowGeometry()` for XWayland coordinate translation |
+| `vnc.go` | VNC desktop commands (screenshot, click, type, key, mouse, status, passwd, rfb). `--from-x11` flag for XWayland coordinate translation |
+| `sway.go` | Sway compositor commands. `swayNode` has `Focused`/`FullscreenMode` fields; `searchSwayNode` prefers focused/fullscreen nodes; XWayland class matching via `swayWindowProperties` |
 | `sun.go` | Sunshine server management commands (status, passwd, pair, clients, config, set, restart, url) + `checkSunStatus()` for tool probing |
 | `sun_client.go` | Sunshine REST API client (HTTPS, Basic Auth, port 47990) |
 | `sun_test.go` | Sunshine client tests (httptest servers, credential resolution) |
@@ -91,7 +94,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 |------|---------|
 | `env.go` | ENV merging, path expansion |
 | `envfile.go` | `.env` file parsing, runtime env var resolution/merging |
-| `security.go` | Container security config collection, CLI args generation |
+| `security.go` | Container security config collection, CLI args generation. Merges `Mounts` from layer security configs |
 | `labels.go` | OCI label constants |
 | `volumes.go` | Named volume collection/mounting |
 | `alias.go` | Command aliases (wrapper scripts) |

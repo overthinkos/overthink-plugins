@@ -42,6 +42,18 @@ ov sun status sway-browser-sunshine              # Verify health
 # Chrome DevTools at localhost:9222
 ```
 
+## Runtime Details
+
+The Sunshine layer adds runtime requirements that `ov` injects automatically at container start:
+
+- **fake-udev service:** A supervisord service that emulates udev events for virtual input devices (gamepad, keyboard, mouse emulation via `/dev/uinput`). Required for Sunshine's input handling to function.
+- **Virtual input:** `/dev/uinput` device access and `/dev/input:/dev/input:rw` host mount for input device passthrough.
+- **Mounts:** `tmpfs:/run/udev:rw,size=1m` for the fake-udev runtime directory.
+- **Capabilities:** `NET_ADMIN` cap and `keep-groups` group policy.
+- **Environment:** `LIBSEAT_BACKEND=noop` (no real seat management in containers).
+
+These are declared in the `sunshine` layer's `layer.yml` and collected automatically by the security config system.
+
 ## Key Layers
 
 - `/ov-layers:sway-desktop-sunshine` -- full desktop composition with Sunshine

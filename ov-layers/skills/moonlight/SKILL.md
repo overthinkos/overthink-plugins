@@ -11,9 +11,9 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Dependencies | `sway` |
+| Dependencies | `sway`, `waybar` |
 | Packages | `fuse-libs` (RPM), `moonlight-qt` v6.1.0 (AppImage from GitHub) |
-| Install files | `root.yml` (AppImage download), `user.yml` (sway keybinding) |
+| Install files | `root.yml` (AppImage download), `user.yml` (sway keybinding, waybar button) |
 
 ## Usage
 
@@ -29,6 +29,10 @@ sway-browser-vnc-moonlight:
 ## Sway Keybinding
 
 Moonlight launches with **Alt+M** (`Mod1+m`) via sway config drop-in. Uses `--appimage-extract-and-run` for rootless container compatibility.
+
+## Waybar Moonlight Button
+
+The `user.yml` install patches the waybar config to add a **purple Moonlight launcher button** (`custom/moonlight`) to `modules-left`, positioned after the terminal button. The button has a Catppuccin Mocha purple theme (`#cba6f7`) and launches Moonlight via swaymsg on click. Requires the `waybar` layer (listed as a dependency).
 
 ## Related Layers
 

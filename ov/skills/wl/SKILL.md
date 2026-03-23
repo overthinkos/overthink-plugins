@@ -52,9 +52,28 @@ ov wl click openclaw-sway-browser 960 540             # left click at center (19
 ov wl click openclaw-sway-browser 100 200 --button right  # right click
 ov wl click openclaw-sway-browser 100 200 --from-cdp <tab-id>  # translate from CDP viewport
 ov wl click openclaw-sway-browser 100 200 --from-sway <app_id>  # translate from sway window
+ov wl click openclaw-sway-browser 100 200 --from-x11 Moonlight  # translate from X11 window (XWayland)
 ```
 
 **Absolute positioning:** `wlrctl` only supports relative pointer movement. The workaround: move far negative to clamp at (0,0), then move by target offset. Sway clamps the pointer to screen bounds, making this reliable.
+
+### X11 Coordinate Translation (XWayland)
+
+**`--from-x11 <class-or-title>`** translates coordinates from X11 window-internal space to Wayland desktop-absolute coordinates. This is essential for XWayland windows (e.g., Moonlight, Steam) where the X11 window geometry differs from the sway container geometry -- particularly when the XWayland window is fullscreened and scaled.
+
+How it works:
+1. Queries X11 window geometry via `xdotool search --name <target> getwindowgeometry` inside the container
+2. Finds the matching sway node via `swaymsg -t get_tree` (prefers focused/fullscreen windows, matches XWayland `window_properties.class`)
+3. Scales coordinates: `desktop_x = sway_x + (x * sway_width / x11_width)`, same for y
+4. Passes the translated desktop-absolute coordinates to `wlrctl`
+
+```bash
+# Click at X11 coordinate (400, 300) inside a fullscreen Moonlight window
+ov wl click my-app 400 300 --from-x11 Moonlight
+# Translated X11-internal (400, 300) → desktop (720, 540) via X11 geometry 1280x720, sway rect 1920x1080
+```
+
+Uses `FindX11WindowGeometry()` helper in `ov/wl.go`.
 
 ### Type
 ```bash

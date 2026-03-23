@@ -109,16 +109,34 @@ ov moon launch sway-browser-sunshine Desktop    # by name
 ov moon launch sway-browser-sunshine 1          # by ID
 ```
 
-Launches a GameStream session. App name matching is case-insensitive. Generates random session encryption keys (`rikey`/`rikeyid`).
+Sends Sunshine's `/launch` API call to start a GameStream app. App name matching is case-insensitive. Generates random session encryption keys (`rikey`/`rikeyid`).
+
+**Important:** This is a **control plane** command only. It tells Sunshine to start the app, but does NOT establish actual video/audio/input streaming. A real Moonlight client (the GUI application) handles the full streaming pipeline: RTSP session negotiation (port 48010), video decoding (UDP 47998), audio (UDP 48000), and input forwarding (UDP 47999). `ov moon launch` is useful for pre-starting an app before a Moonlight client connects.
 
 ### Quit
 ```bash
 ov moon quit sway-browser-sunshine
 ```
 
+Sends `/cancel` to Sunshine to stop the running app. Useful for cleaning up stale sessions.
+
+## What `ov moon` Is and Isn't
+
+**`ov moon` IS:**
+- A pure Go implementation of the GameStream HTTPS control protocol
+- An API client that manages pairing, app listing, session start/stop
+- A tool for automating Sunshine setup without the Moonlight GUI
+
+**`ov moon` is NOT:**
+- A video/audio streaming client (no RTSP, no H.264/HEVC decoding)
+- An input forwarder (no keyboard/mouse/gamepad streaming)
+- A replacement for the Moonlight GUI/CLI application
+
+For actual streaming with video and input, use the **Moonlight client** (AppImage in the `moonlight` layer, or desktop Moonlight app). `ov moon` complements Moonlight by handling pairing and session management programmatically.
+
 ## Desktop Interaction
 
-`ov moon` manages **streaming sessions**, not desktop input. For screenshots, clicks, and typing in Sunshine containers, use `ov wl` (which works via `docker exec` regardless of the remote access method):
+For screenshots, clicks, and typing in Sunshine containers, use `ov wl` (which works via `podman exec` regardless of the remote access method):
 
 ```bash
 ov wl screenshot sway-browser-sunshine          # grim
