@@ -15,7 +15,7 @@ description: |
 | Dependencies | `supervisord`, `rust`, `build-toolchain` |
 | Ports | `tcp:47984`, `47989`, `udp:47999`, `tcp:48010`, `udp:48100`, `udp:48200` |
 | Services | `wolf` (priority 20) |
-| Security | `devices: [/dev/uinput, /dev/uhid]`, `cap_add: [NET_ADMIN]`, `group_add: [keep-groups]`, `mounts: [/run/user/1000/podman/podman.sock:/var/run/docker.sock:rw, /dev/input:/dev/input:rw, tmpfs:/run/udev:rw,size=1m]` |
+| Security | `devices: [/dev/uinput, /dev/uhid]`, `cap_add: [NET_ADMIN]`, `group_add: [keep-groups]`, `mounts: [/run/user/1000/podman/podman.sock:/var/run/docker.sock:rw, /dev/input:/dev/input:rw, tmpfs:/run/udev:rw,size=1m, tmpfs:/run/user/1000/wolf:rw,size=10m]` |
 | Volumes | `wolf-config` -> `~/.config/wolf`, `wolf-state` -> `/var/lib/wolf` |
 | Install files | `root.yml` (build from source), `user.yml`, `wolf-wrapper` |
 
@@ -130,7 +130,7 @@ ov moon pair wolf --auto
 ov moon apps wolf
 ```
 
-**Note**: `ov moon` requires the container to have port mappings. Wolf uses `network: host`, so `ov moon` may need Go-side changes to resolve host-networked containers. Use `curl http://localhost:47989/serverinfo` to verify directly.
+Wolf uses standard bridge networking with port mappings, so `ov moon` resolves ports normally.
 
 ## Related Layers
 
