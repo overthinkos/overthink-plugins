@@ -17,7 +17,7 @@ description: |
 | Action | Command | Description |
 |--------|---------|-------------|
 | Status | `ov sun status <image>` | Check Sunshine health, show version/encoder |
-| Set password | `ov sun passwd <image>` | Set Web UI credentials (stores in ov config) |
+| Set password | `ov sun passwd <image>` | Set Web UI credentials (keyring or config) |
 | Pair client | `ov sun pair <image> <pin>` | Submit 4-digit PIN from Moonlight client |
 | List clients | `ov sun clients <image>` | List paired Moonlight clients |
 | Unpair | `ov sun unpair <image> [uuid]` | Unpair one or all clients |
@@ -66,7 +66,7 @@ ov sun passwd sway-browser-sunshine              # prompt for password
 ov sun passwd sway-browser-sunshine --user admin --generate  # custom username
 ```
 
-Sets Sunshine Web UI credentials via `POST /api/password`. On first run (no credentials set), the API accepts the request without authentication. Stores username and password in `ov config`.
+Sets Sunshine Web UI credentials via `POST /api/password`. On first run (no credentials set), the API accepts the request without authentication. Stores username and password in system keyring (or config file fallback).
 
 ### Pair Client
 ```bash
@@ -136,28 +136,29 @@ ov sun url sway-browser-sunshine
 
 ## Credential Storage
 
-Stored in `~/.config/ov/config.yml`:
-
-```yaml
-sunshine_users:
-  sway-browser-sunshine: sunshine
-sunshine_passwords:
-  sway-browser-sunshine: <password>
-```
+Credentials are stored via the `CredentialStore` abstraction. When `secret_backend=auto` (default) and a system keyring is available (GNOME Keyring, KDE Wallet, KeePassXC), credentials are stored securely in the keyring. On headless systems without a keyring, they fall back to `~/.config/ov/config.yml` (permissions 0600).
 
 **Resolution chain** (per command):
 1. `SUNSHINE_USER` / `SUNSHINE_PASSWORD` env vars (CI/automation)
-2. `sunshine.user.<image>-<instance>` + `sunshine.password.<image>-<instance>` (instance-specific)
-3. `sunshine.user.<image>` + `sunshine.password.<image>` (image-level)
-4. Error — credentials required for API access
+2. System keyring lookup (when `secret_backend=auto` or `keyring`)
+3. Config file lookup: `sunshine.user.<image>-<instance>` / `sunshine.password.<image>-<instance>` (instance-specific)
+4. Config file lookup: `sunshine.user.<image>` / `sunshine.password.<image>` (image-level)
+5. Error — credentials required for API access
 
 ```bash
-# Set credentials programmatically
+# Set credentials programmatically (stored in keyring or config depending on backend)
 ov config set sunshine.user.sway-browser-sunshine admin
 ov config set sunshine.password.sway-browser-sunshine mysecret
 
+# Migrate existing plaintext credentials to system keyring
+ov config migrate-secrets --dry-run
+ov config migrate-secrets
+
 # One-off env var override
 SUNSHINE_USER=admin SUNSHINE_PASSWORD=secret ov sun status sway-browser-sunshine
+
+# Force config file backend (headless/SSH)
+ov config set secret_backend config
 ```
 
 ## Sunshine Ports
@@ -182,7 +183,7 @@ SUNSHINE_USER=admin SUNSHINE_PASSWORD=secret ov sun status sway-browser-sunshine
 - `/ov:vnc` — VNC automation (alternative remote access, wayvnc)
 - `/ov:cdp` — Chrome DevTools Protocol (browser automation, same container)
 - `/ov:service` — Supervisord service management
-- `/ov:config` — Sunshine credential storage (`sunshine.user.<image>`, `sunshine.password.<image>`)
+- `/ov:config` — Sunshine credential storage, `secret_backend` setting, `migrate-secrets` command
 
 ## When to Use This Skill
 

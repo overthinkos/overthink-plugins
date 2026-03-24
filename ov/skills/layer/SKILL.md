@@ -56,6 +56,7 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 | `aliases` | `[]AliasYAML` | Host command aliases (`name` + `command`) |
 | `security` | `SecurityConfig` | Container security: `privileged`, `cap_add`, `devices`, `security_opt`, `shm_size`, `group_add`, `mounts` |
 | `port_relay` | `[]int` | Ports needing eth0->loopback socat relay (auto-adds socat dependency) |
+| `secrets` | `[]SecretYAML` | Container secrets provisioned as Podman secrets at runtime (`name`, `target`, `env`) |
 | `hooks` | `HooksConfig` | Lifecycle hooks: `post_enable` (runs after `ov enable`), `pre_remove` (runs before `ov remove`) |
 | `libvirt` | `[]string` | Raw libvirt XML snippets injected into VM domain XML after creation |
 
@@ -67,6 +68,23 @@ Ports needing an eth0->loopback socat relay inside the container. For services t
 port_relay:
   - 9222
 ```
+
+### secrets
+
+Container secrets provisioned as Podman secrets at `ov enable`/`ov start` time. Metadata only is stored in OCI image labels — never the secret value itself. Values are resolved from the credential store (keyring or config) at deployment time.
+
+```yaml
+secrets:
+  - name: sunshine-password                    # unique secret name
+    target: /run/secrets/sunshine_password      # mount path (default: /run/secrets/<name>)
+    env: SUNSHINE_PASSWORD                      # fallback env var (for Docker, or if Podman secrets fail)
+```
+
+- `name`: unique identifier, becomes Podman secret `ov-<image>-<name>`
+- `target`: container mount path, defaults to `/run/secrets/<name>` if omitted
+- `env`: optional fallback — if Podman secrets are unavailable (Docker), the value is injected as this env var instead
+
+In quadlet mode, generates `Secret=ov-<image>-<name>,target=/run/secrets/<name>` directives. In direct mode, generates `--secret` flags.
 
 ### Port Protocol Annotations
 

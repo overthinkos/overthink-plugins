@@ -98,7 +98,7 @@ ov vnc passwd openclaw-sway-browser --generate   # generates random password, pr
 ```
 
 Sets up VNC authentication (VeNCrypt/TLS):
-1. Stores password in `ov config` as `vnc.password.<image>` (host side, for automatic client auth)
+1. Stores password in system keyring or config file (depending on `secret_backend` setting) as `vnc.password.<image>`
 2. Resolves `$HOME` inside container for absolute config paths
 3. Generates self-signed TLS cert+key (valid 3650 days) if not present
 4. Generates RSA key in traditional format (`-traditional` flag for OpenSSL 3.x) if not present
@@ -111,9 +111,10 @@ After setting a password, all `ov vnc` commands authenticate transparently via V
 
 When connecting, password is resolved in this order:
 1. `VNC_PASSWORD` environment variable (CI/automation override)
-2. `ov config get vnc.password.<image>-<instance>` (instance-specific)
-3. `ov config get vnc.password.<image>` (image-level)
-4. Empty string (no auth — server must allow unauthenticated connections)
+2. System keyring lookup for `vnc.password.<image>-<instance>` (when `secret_backend=auto` or `keyring`)
+3. Config file lookup for `vnc.password.<image>-<instance>` (instance-specific)
+4. System keyring / config file lookup for `vnc.password.<image>` (image-level)
+5. Empty string (no auth — server must allow unauthenticated connections)
 
 ```bash
 # One-off password override via env
@@ -213,7 +214,7 @@ ov wl focus <image> "Moonlight"             # Focus specific X11 window
 - `/ov:wl` — Wayland-native desktop automation (works on NVIDIA headless)
 - `/ov:cdp` — Chrome DevTools Protocol automation (same container, different protocol)
 - `/ov:sway` — Sway compositor control (window management, workspaces)
-- `/ov:config` — VNC password storage (`vnc.password.<image>` config keys)
+- `/ov:config` — VNC password storage, `secret_backend` setting, `migrate-secrets` command
 - `/ov:service` — Managing wayvnc supervisord service
 - `/ov:deploy` — VNC password setup in deployment workflows
 - `/ov:shell` — Executing commands inside containers

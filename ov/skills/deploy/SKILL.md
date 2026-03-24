@@ -171,7 +171,19 @@ images:
     engine: podman
 ```
 
-Allowed fields: `workspace`, `version`, `status`, `info`, `tunnel`, `fqdn`, `acme_email`, `bind_mounts`, `ports`, `env`, `env_file`, `security`, `network`, `engine`.
+Allowed fields: `workspace`, `version`, `status`, `info`, `tunnel`, `fqdn`, `acme_email`, `bind_mounts`, `ports`, `env`, `env_file`, `security`, `network`, `engine`, `secrets`.
+
+### Secrets
+
+Per-deployment secret source overrides. Secrets declared in image labels (from `layer.yml`) are provisioned as Podman secrets at `ov enable` time. Deploy.yml can override where the value comes from:
+
+```yaml
+secrets:
+  - name: sunshine-password     # matches layer secret name
+    source: keyring              # "keyring" (default), "env:VAR", "file:/path"
+```
+
+If no source is specified, the credential resolution chain is used: env var > keyring > config file.
 
 ### Workspace recall
 

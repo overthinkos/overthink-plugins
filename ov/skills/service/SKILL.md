@@ -93,6 +93,17 @@ With `auto_enable=true` (the default), `ov start` auto-generates the quadlet fil
 - Ports bound to configured `bind_address`
 - Entrypoint: `supervisord -n -c /etc/supervisord.conf`
 - Auto-restart on failure via `WantedBy=default.target`
+- `Secret=ov-<image>-<name>,target=/run/secrets/<name>` for each layer-declared secret (Podman only)
+
+### Container Secrets
+
+When image labels declare secrets (from `layer.yml` `secrets` field), `ov enable` provisions them:
+1. Resolves secret values from the credential store (env var > keyring > config file)
+2. Creates Podman secrets via `podman secret create ov-<image>-<name>`
+3. Generates `Secret=` directives in the quadlet file
+4. Secrets are mounted at `/run/secrets/<name>` inside the container
+
+For Docker, secrets fall back to `Environment=` injection with a security warning.
 
 ### Environment Variables in Quadlet
 

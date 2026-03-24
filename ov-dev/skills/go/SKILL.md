@@ -84,7 +84,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `engine.go` | Docker/Podman abstraction, `ResolveImageEngineForDeploy()` |
 | `registry.go` | Remote image inspection (go-containerregistry) |
 | `transfer.go` | Cross-engine image transfer |
-| `runtime_config.go` | `~/.config/ov/config.yml` |
+| `runtime_config.go` | `~/.config/ov/config.yml`, `secret_backend` key, credential maps |
 | `network.go` | Shared "ov" container network management |
 | `machine.go` | Podman machine management (rootful VM builds) |
 
@@ -102,7 +102,11 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `crypto.go` | Encrypted bind mounts (gocryptfs) |
 | `devices.go` | Host device auto-detection (NVIDIA GPU, AMD GPU/KFD, /dev/dri, /dev/kvm, etc.) |
 | `tunnel.go` | Tunnel configuration (Tailscale, Cloudflare) |
-| `quadlet.go` | Quadlet .container file generation |
+| `quadlet.go` | Quadlet .container file generation, `Secret=` directives |
+| `credential_store.go` | `CredentialStore` interface, `ResolveCredential()`, `DefaultCredentialStore()`, `ConfigMigrateSecretsCmd` |
+| `credential_keyring.go` | System keyring backend (`go-keyring`: GNOME Keyring, KDE Wallet, KeePassXC) |
+| `credential_config.go` | Config file credential backend (plaintext fallback for headless) |
+| `secrets.go` | Container secret collection from labels, Podman secret provisioning, `SecretArgs()` |
 
 ### Remote Layer Refs
 
@@ -118,7 +122,7 @@ All `*_test.go` files provide tests for their corresponding source files.
 ## Go Module Info
 
 - Go version: 1.25.3
-- Key dependencies: `kong` (CLI), `go-containerregistry` (OCI)
+- Key dependencies: `kong` (CLI), `go-containerregistry` (OCI), `go-keyring` (Secret Service API)
 - Module path: `ov/go.mod`
 
 ## Common Workflows
@@ -162,7 +166,7 @@ bin/ov inspect <image>
 - `/ov-dev:generate` -- Understanding generated Containerfiles
 - `/ov:validate` -- Validation rules and error handling
 - `/ov:build` -- Using the built CLI
-- Source: `ov/` directory (61 source + 44 test .go files)
+- Source: `ov/` directory (65 source + 46 test .go files)
 
 ## When to Use This Skill
 
