@@ -67,7 +67,9 @@ Auto-detection prefers podman over docker when both are installed.
 | `auto_enable` | `OV_AUTO_ENABLE` | `true` | `true`, `false` | Auto-generate quadlet on first `ov start` |
 | `bind_address` | `OV_BIND_ADDRESS` | `127.0.0.1` | `127.0.0.1`, `0.0.0.0` | Address for port bindings |
 | `encrypted_storage_path` | `OV_ENCRYPTED_STORAGE_PATH` | `~/.local/share/ov/encrypted` | any path | Gocryptfs storage base directory |
-| `secret_backend` | `OV_SECRET_BACKEND` | `auto` | `auto`, `keyring`, `config` | Credential storage backend |
+| `secret_backend` | `OV_SECRET_BACKEND` | `auto` | `auto`, `keyring`, `kdbx`, `config` | Credential storage backend |
+| `secrets.kdbx_path` | `OV_KDBX_PATH` | (empty) | any path | Path to KeePass .kdbx database |
+| `secrets.kdbx_key_file` | `OV_KDBX_KEY_FILE` | (empty) | any path | Optional key file for .kdbx |
 
 ### VM Settings
 
@@ -113,8 +115,9 @@ For credential keys (`vnc.password.*`, `sunshine.user.*`, `sunshine.password.*`)
 
 1. **Environment variable** (e.g., `VNC_PASSWORD`, `SUNSHINE_USER`, `SUNSHINE_PASSWORD`)
 2. **System keyring** (when `secret_backend=auto` or `keyring`)
-3. **Config file** (plaintext fallback)
-4. **Default** (empty)
+3. **KeePass .kdbx** (when `secret_backend=kdbx`, or auto-detected when keyring unavailable and `secrets.kdbx_path` configured)
+4. **Config file** (plaintext fallback)
+5. **Default** (empty)
 
 `ov config list` shows which source each value comes from. Credential values are masked with `****`.
 
@@ -169,13 +172,24 @@ ov config migrate-secrets              # Actually migrate (creates .bak backup)
 
 Migrates plaintext VNC and Sunshine credentials from `config.yml` to the system keyring (GNOME Keyring, KDE Wallet, KeePassXC). Creates a backup file first. If keyring is unavailable, prints setup instructions.
 
+### KeePass Backend (headless/SSH — encrypted, no daemon)
+
+```bash
+ov secrets init                              # Create ~/.config/ov/secrets.kdbx
+ov config set secret_backend kdbx            # Activate (or auto-detected when keyring unavailable)
+ov secrets import --dry-run                  # Preview importing existing credentials
+ov secrets import                            # Import from config.yml + keyring into kdbx
+```
+
+Encrypted at rest (KDBX 4, Argon2). No daemon needed. Works over SSH. Password prompted once per session (cached in kernel keyring via `systemd-ask-password`).
+
 ### Force Config-File Backend (headless/SSH)
 
 ```bash
 ov config set secret_backend config    # Suppress keyring warnings
 ```
 
-Source: `ov/runtime_config.go`, `ov/credential_store.go`, `ov/credential_keyring.go`, `ov/credential_config.go`.
+Source: `ov/runtime_config.go`, `ov/credential_store.go`, `ov/credential_keyring.go`, `ov/credential_config.go`, `ov/credential_kdbx.go`, `ov/secrets_cmd.go`.
 
 ## Cross-References
 

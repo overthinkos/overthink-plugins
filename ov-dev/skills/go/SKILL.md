@@ -106,7 +106,9 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `credential_store.go` | `CredentialStore` interface, `ResolveCredential()`, `DefaultCredentialStore()`, `ConfigMigrateSecretsCmd` |
 | `credential_keyring.go` | System keyring backend (`go-keyring`: GNOME Keyring, KDE Wallet, KeePassXC) |
 | `credential_config.go` | Config file credential backend (plaintext fallback for headless) |
+| `credential_kdbx.go` | KeePass .kdbx backend (`gokeepasslib`: KDBX 4, Argon2, encrypted at rest) |
 | `secrets.go` | Container secret collection from labels, Podman secret provisioning, `SecretArgs()` |
+| `secrets_cmd.go` | `ov secrets` CLI commands (init, list, get, set, delete, import, export, path) |
 
 ### Remote Layer Refs
 
@@ -122,7 +124,7 @@ All `*_test.go` files provide tests for their corresponding source files.
 ## Go Module Info
 
 - Go version: 1.25.3
-- Key dependencies: `kong` (CLI), `go-containerregistry` (OCI), `go-keyring` (Secret Service API)
+- Key dependencies: `kong` (CLI), `go-containerregistry` (OCI), `go-keyring` (Secret Service API), `gokeepasslib` (KeePass .kdbx)
 - Module path: `ov/go.mod`
 
 ## Common Workflows
@@ -166,7 +168,7 @@ bin/ov inspect <image>
 - `/ov-dev:generate` -- Understanding generated Containerfiles
 - `/ov:validate` -- Validation rules and error handling
 - `/ov:build` -- Using the built CLI
-- Source: `ov/` directory (65 source + 46 test .go files)
+- Source: `ov/` directory (67 source + 47 test .go files)
 
 ## When to Use This Skill
 
