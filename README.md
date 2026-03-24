@@ -1,6 +1,6 @@
 # Overthink Plugins
 
-Claude Code plugins for the Overthink container image composition system.
+Claude Code plugins for Overthink — the container management experience for you and your AI.
 
 ## Which Plugins to Install
 

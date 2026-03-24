@@ -4,7 +4,7 @@
     "name": "overthinkos"
   },
   "metadata": {
-    "description": "Claude Code plugins for the Overthink container image composition system",
+    "description": "Claude Code plugins for Overthink — the container management experience for you and your AI",
     "version": "1.0.0"
   },
   "plugins": [
@@ -35,7 +35,7 @@
     {
       "name": "ov-layers",
       "source": "./ov-layers",
-      "description": "Reference documentation for all 129 Overthink container layers",
+      "description": "Reference documentation for all Overthink container layers",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
@@ -47,7 +47,7 @@
     {
       "name": "ov-images",
       "source": "./ov-images",
-      "description": "Reference documentation for all 37 Overthink container images",
+      "description": "Reference documentation for all Overthink container images",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",

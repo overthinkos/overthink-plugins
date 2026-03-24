@@ -1,6 +1,6 @@
 {
   "name": "ov-images",
-  "description": "Reference documentation for all 37 Overthink container images",
+  "description": "Reference documentation for all Overthink container images",
   "version": "1.0.0",
   "author": { "name": "overthinkos" },
   "repository": "https://github.com/overthinkos/overthink-plugins"
