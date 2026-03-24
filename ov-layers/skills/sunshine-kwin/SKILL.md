@@ -21,20 +21,19 @@ description: |
 
 - `sunshine` (RPM, from COPR `lizardbyte/beta`)
 
-## Security: What's Eliminated
+## Security: Reduced vs Sway
 
-Unlike the Sway/Niri sunshine layers, this layer has **zero security declarations**:
+Would require `/dev/uinput` and `/dev/input` mount for input if ever enabled (Sunshine's input subsystem uses uinput regardless of capture method). Eliminates fake-udev, NET_ADMIN, LIBSEAT_BACKEND vs Sway.
 
 | | sunshine (Sway) | sunshine-kwin |
 |---|---|---|
-| `/dev/uinput` | Required | Not needed |
-| `/dev/input` mount | Required | Not needed |
+| `/dev/uinput` | Required | Would be required |
+| `/dev/input` mount | Required | Would be required |
 | `tmpfs:/run/udev` | Required | Not needed |
 | `NET_ADMIN` cap | Required | Not needed |
-| `LIBSEAT_BACKEND=noop` | Required | Not needed |
 | fake-udev service | Required | Not needed |
 
-Portal-based capture uses PipeWire for screen frames and libei/EIS for input injection -- all userspace, no kernel devices.
+**Note:** Currently no security section declared because the image is disabled (KWin screencast limitation). If enabled, `/dev/uinput` + `/dev/input` mount would need to be added for input to work.
 
 ## Sunshine Configuration
 

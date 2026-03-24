@@ -137,6 +137,12 @@ Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), maki
 | `org.overthinkos.supervisord` | JSON | supervisord service names |
 | `org.overthinkos.env_layers` | JSON | layer-level env vars (merged) |
 | `org.overthinkos.path_append` | JSON | PATH append entries |
+| `org.overthinkos.engine` | string | Required run engine (`docker`/`podman`, omitted if any) |
+| `org.overthinkos.port_protos` | JSON | `{"9222":"tcp"}` port protocol overrides (non-http only) |
+| `org.overthinkos.port_relay` | JSON | `[9222]` ports with socat relay |
+| `org.overthinkos.status` | string | Effective status: `working`, `testing`, or `broken` (always emitted) |
+| `org.overthinkos.info` | string | Aggregated status info from image + non-working layers (omitted if empty) |
+| `org.overthinkos.layer_versions` | JSON | `{"chrome":"2026.83.1430"}` layer name → CalVer (only versioned layers) |
 | `org.overthinkos.skills` | string | Skill documentation URL (omitted if no skill exists) |
 
 Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands try `LoadConfig` (images.yml) first, falling back to `<engine> inspect` labels -- enabling `ov shell myimage` from any directory.

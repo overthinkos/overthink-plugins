@@ -40,6 +40,9 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 
 | Field | Type | Purpose |
 |-------|------|---------|
+| `version` | `string` | CalVer version (`YYYY.DDD.HHMM`) of this layer definition. Set manually by author |
+| `status` | `string` | `working`, `testing`, or `broken`. Default: `testing` (empty = testing) |
+| `info` | `string` | Free-form description of what works/doesn't. Recommended when status is `testing` or `broken` |
 | `depends` | `[]string` | Layer dependencies. Resolved transitively, topologically sorted |
 | `layers` | `[]string` | Compose other layers into this one. Layers with only `layers:` and no install files are valid (pure composition) |
 | `env` | `map[string]string` | Environment variables. Merged across layers |

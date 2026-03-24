@@ -171,7 +171,7 @@ images:
     engine: podman
 ```
 
-Allowed fields: `workspace`, `tunnel`, `fqdn`, `acme_email`, `bind_mounts`, `ports`, `env`, `env_file`, `security`, `network`, `engine`.
+Allowed fields: `workspace`, `version`, `status`, `info`, `tunnel`, `fqdn`, `acme_email`, `bind_mounts`, `ports`, `env`, `env_file`, `security`, `network`, `engine`.
 
 ### Workspace recall
 

@@ -37,12 +37,13 @@ KWin's `--virtual` backend does not expose `zkde_screencast_unstable_v1` Wayland
 
 ## Comparison
 
-| Stack | Capture | Input | Status |
-|-------|---------|-------|--------|
-| sway-desktop-sunshine | wlr-screencopy | fake-udev + /dev/uinput | Working |
-| x11-desktop-sunshine | X11 native | XTest | Working |
-| niri-desktop-sunshine | wlr-screencopy (pending) | fake-udev | Capture broken |
-| **kwin-desktop-sunshine** | XDG Portal + PipeWire | libei/EIS | **Blocked (KWin limitation)** |
+| Stack | Capture | Input | Security | Status |
+|-------|---------|-------|----------|--------|
+| mutter-desktop-sunshine | Portal + PipeWire | uinput | /dev/uinput | **Working** |
+| sway-desktop-sunshine | wlr-screencopy | fake-udev + uinput | /dev/uinput, NET_ADMIN | Working |
+| x11-desktop-sunshine | X11 native | uinput | /dev/uinput | Working |
+| niri-desktop-sunshine | wlr-screencopy (pending) | fake-udev | /dev/uinput, NET_ADMIN | Capture broken |
+| **kwin-desktop-sunshine** | Portal + PipeWire | uinput | /dev/uinput | **Blocked (KWin limitation)** |
 
 ## Related Layers
 

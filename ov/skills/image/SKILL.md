@@ -69,6 +69,9 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | Field | Default | Description |
 |-------|---------|-------------|
 | `enabled` | `true` | Set `false` to disable (skipped by generate, validate, list) |
+| `version` | `""` | CalVer version (`YYYY.DDD.HHMM`) of this image definition. Set manually |
+| `status` | `""` (= `testing`) | `working`, `testing`, or `broken`. Effective status = worst of image + all layers |
+| `info` | `""` | Free-form description. Aggregated with layer-level info in OCI labels |
 | `base` | `quay.io/fedora/fedora:43` | External OCI image or name of another image |
 | `bootc` | `false` | Adds `bootc container lint`, enables disk image builds |
 | `platforms` | `["linux/amd64", "linux/arm64"]` | Target architectures |
