@@ -19,14 +19,14 @@ description: |
 
 | Variable | Value |
 |----------|-------|
-| `WLR_BACKENDS` | `headless,libinput` (supervisord env) |
+| `WLR_BACKENDS` | `headless` (supervisord env) |
 | `WLR_HEADLESS_OUTPUTS` | `1` |
 | `WLR_LIBINPUT_NO_DEVICES` | `1` |
 | `XDG_RUNTIME_DIR` | `/tmp` |
 | `WAYLAND_DISPLAY` | `wayland-0` |
 | `EGL_LOG_LEVEL` | `fatal` |
 
-The supervisord `[program:sway]` environment sets `WLR_BACKENDS=headless,libinput` — enabling both headless output and libinput input. `WLR_LIBINPUT_NO_DEVICES=1` allows sway to start with zero input devices (Sunshine's fake-udev adds them later via synthetic udev events).
+The supervisord `[program:sway]` environment sets `WLR_BACKENDS=headless` — headless output only. The `libinput` backend is **not** included by default because it requires a libseat session which fails in rootless containers. Sunshine images that need libinput for input injection handle it via the sway-wrapper's `/dev/uinput` detection (sets `LIBSEAT_BACKEND=noop` dynamically).
 
 ## Sunshine Input Support (sway-wrapper)
 
