@@ -30,8 +30,8 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | File | Purpose |
 |------|---------|
 | `main.go` | CLI entry point (Kong framework) |
-| `config.go` | `images.yml` parsing, inheritance resolution. `SecurityConfig` has `Mounts` field for host mounts (e.g. `/dev/input`, tmpfs) |
-| `layers.go` | Layer scanning, file detection, `parseLayerYAML()` |
+| `config.go` | `images.yml` parsing, inheritance resolution. `PkgFormats` type (string or list YAML unmarshal). `AurBuilder`, `PkgOrder` fields. `SupportsPkg()` method. `SecurityConfig` has `Mounts` field for host mounts |
+| `layers.go` | Layer scanning, file detection, `parseLayerYAML()`. `PacConfig`, `PacRepo`, `AurConfig` structs for Arch Linux support |
 | `generate.go` | Containerfile generation (largest file) |
 | `validate.go` | All validation rules |
 | `version.go` | CalVer computation |

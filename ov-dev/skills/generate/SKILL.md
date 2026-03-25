@@ -65,6 +65,38 @@ COPY layers/openclaw/package.json package.json
 RUN npm install -g --prefix /npm-global
 ```
 
+### AUR Build Stage (Arch Linux)
+
+For layers with `aur:` packages, the generator creates a multi-stage build using the `aur_builder` image:
+
+```dockerfile
+FROM ghcr.io/overthinkos/archlinux-builder:2026.84.942 AS my-tool-aur-build
+USER root
+RUN echo 'user ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
+USER 1000
+WORKDIR /home/user
+RUN --mount=type=cache,dst=/var/cache/pacman/pkg,sharing=locked \
+    mkdir -p /tmp/aur-build && \
+    cp /etc/makepkg.conf /tmp/makepkg.conf && \
+    sed -i '/^OPTIONS/s/ debug/ !debug/' /tmp/makepkg.conf && \
+    yay -S --noconfirm --needed --builddir /tmp/aur-build --makepkgconf /tmp/makepkg.conf \
+      aur-package && \
+    mkdir -p /tmp/aur-pkgs && \
+    find /tmp/aur-build -name '*.pkg.tar.zst' -exec cp {} /tmp/aur-pkgs/ \;
+```
+
+In the main image, the built packages are installed:
+```dockerfile
+COPY --from=my-tool-aur-build /tmp/aur-pkgs/ /tmp/aur-pkgs/
+RUN --mount=type=cache,dst=/var/cache/pacman/pkg,sharing=locked \
+    pacman -U --noconfirm /tmp/aur-pkgs/*.pkg.tar.zst && \
+    rm -rf /tmp/aur-pkgs
+```
+
+Key details: passwordless sudo is required because yay calls `pacman -U` as root. Debug packages are disabled via a patched copy of `makepkg.conf` (the build user can't modify `/etc/` directly).
+
+**Status:** Working. Verified with `yay-bin` in `arch-test` image.
+
 ### Scratch Context Stage
 
 ```dockerfile
@@ -159,6 +191,7 @@ Security configuration (`security:` in layer.yml/images.yml) and environment var
 |-----------|------------|---------|
 | `rpm.packages`, `root.yml` (rpm) | `/var/cache/libdnf5` | `sharing=locked` |
 | `deb.packages`, `root.yml` (deb) | `/var/cache/apt` + `/var/lib/apt` | `sharing=locked` |
+| `pac.packages`, `aur`, `root.yml` (pac) | `/var/cache/pacman/pkg` | `sharing=locked` |
 | `user.yml` | `/tmp/npm-cache` | `uid=<UID>,gid=<GID>` |
 | `Cargo.toml` | `/tmp/cargo-cache` | `uid=<UID>,gid=<GID>` |
 | pixi build stage | `/tmp/pixi-cache` + `/tmp/rattler-cache` | `uid=<UID>,gid=<GID>` |

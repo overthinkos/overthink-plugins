@@ -52,6 +52,8 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 | `service` | multiline string | Supervisord `[program:<name>]` fragment |
 | `rpm` | object | RPM package config: `packages`, `copr`, `repos`, `exclude`, `options` |
 | `deb` | object | Debian package config: `packages` |
+| `pac` | object | Pacman package config: `packages`, `repos`, `options` |
+| `aur` | object | AUR package config: `packages`, `options` (multi-stage build via yay) |
 | `volumes` | `[]VolumeYAML` | Persistent named volumes (`name` + `path`) |
 | `aliases` | `[]AliasYAML` | Host command aliases (`name` + `command`) |
 | `security` | `SecurityConfig` | Container security: `privileged`, `cap_add`, `devices`, `security_opt`, `shm_size`, `group_add`, `mounts` |
@@ -138,6 +140,40 @@ deb:
     - neovim
     - ripgrep
 ```
+
+### Pac (`pac:`)
+
+Pacman packages for Arch Linux images. Activated when the image has `pac` in its `pkg` list.
+
+```yaml
+pac:
+  packages:
+    - neovim
+    - ripgrep
+  repos:
+    - name: custom-repo
+      server: https://example.com/repo/$arch
+      siglevel: Optional TrustAll    # default if omitted
+  options:
+    - --needed
+```
+
+### AUR (`aur:`)
+
+AUR packages installed via yay in a multi-stage build. The image must have `aur` in its `pkg` list and an `aur_builder` configured. The builder image (typically `archlinux-builder`) compiles the AUR packages, and the resulting `.pkg.tar.zst` files are copied to the final image and installed via `pacman -U`.
+
+```yaml
+aur:
+  packages:
+    - yay-bin
+    - neovim-nightly-bin
+  options:
+    - --nocheck
+```
+
+**Status:** Working. AUR packages build successfully in the `archlinux-builder` multi-stage build. Debug packages are automatically disabled (makepkg.conf patched). Passwordless sudo is configured for the build user in the AUR build stage.
+
+**Known limitation:** Post-build layer merging (`ov merge`) may fail with `payload does not match any of the supported image formats` on Arch-based images. The image builds and runs correctly — only the optional merge step fails.
 
 ## Dependencies
 
@@ -240,6 +276,7 @@ Source: `ov/security.go` (`CollectSecurity`, `SecurityArgs`), `ov/quadlet.go`, `
 |-----------|------------|---------|
 | `rpm.packages`, `root.yml` (rpm) | `/var/cache/libdnf5` | `sharing=locked` |
 | `deb.packages`, `root.yml` (deb) | `/var/cache/apt` + `/var/lib/apt` | `sharing=locked` |
+| `pac.packages`, `aur`, `root.yml` (pac) | `/var/cache/pacman/pkg` | `sharing=locked` |
 | `user.yml` | `/tmp/npm-cache` | `uid=<UID>,gid=<GID>` |
 | `Cargo.toml` | `/tmp/cargo-cache` | `uid=<UID>,gid=<GID>` |
 | pixi build stage | `/tmp/pixi-cache` + `/tmp/rattler-cache` | `uid=<UID>,gid=<GID>` |
@@ -321,11 +358,12 @@ Add a `service` field to layer.yml with a supervisord program fragment. Add `sup
 
 - Lowercase-hyphenated names for layers
 - `root.yml` / `user.yml`: single `install` task, no parameters, idempotent
-- System packages in `layer.yml` `rpm:`/`deb:` sections, not in root.yml
+- System packages in `layer.yml` `rpm:`/`deb:`/`pac:` sections, not in root.yml
+- AUR packages in `layer.yml` `aur:` section (requires `aur_builder` on the image)
 - Python in `pixi.toml`, npm in `package.json`, Rust in `Cargo.toml`
 - Binary downloads in `root.yml`: detect arch with `uname -m`, map via `case`
 - Never `pip install`, `conda install`, or `dnf install python3-*`
-- Never `dnf clean all` in root.yml (cache mounts handle it)
+- Never `dnf clean all` or `pacman -Scc` in root.yml (cache mounts handle it)
 
 ## Cross-References
 
