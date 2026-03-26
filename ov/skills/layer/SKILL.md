@@ -160,7 +160,7 @@ pac:
 
 ### AUR (`aur:`)
 
-AUR packages installed via yay in a multi-stage build. The image must have `aur` in its `pkg` list and an `aur_builder` configured. The builder image (typically `archlinux-builder`) compiles the AUR packages, and the resulting `.pkg.tar.zst` files are copied to the final image and installed via `pacman -U`.
+AUR packages installed via yay in a multi-stage build. The image must have `aur` in its `pkg` list and `builders.aur` configured (typically pointing to `archlinux-builder`). The builder image compiles the AUR packages, and the resulting `.pkg.tar.zst` files are copied to the final image and installed via `pacman -U`.
 
 ```yaml
 aur:
@@ -359,7 +359,7 @@ Add a `service` field to layer.yml with a supervisord program fragment. Add `sup
 - Lowercase-hyphenated names for layers
 - `root.yml` / `user.yml`: single `install` task, no parameters, idempotent
 - System packages in `layer.yml` `rpm:`/`deb:`/`pac:` sections, not in root.yml
-- AUR packages in `layer.yml` `aur:` section (requires `aur_builder` on the image)
+- AUR packages in `layer.yml` `aur:` section (requires `builders.aur` on the image)
 - Python in `pixi.toml`, npm in `package.json`, Rust in `Cargo.toml`
 - Binary downloads in `root.yml`: detect arch with `uname -m`, map via `case`
 - Never `pip install`, `conda install`, or `dnf install python3-*`

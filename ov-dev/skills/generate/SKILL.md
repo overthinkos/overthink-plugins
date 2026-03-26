@@ -67,7 +67,7 @@ RUN npm install -g --prefix /npm-global
 
 ### AUR Build Stage (Arch Linux)
 
-For layers with `aur:` packages, the generator creates a multi-stage build using the `aur_builder` image:
+For layers with `aur:` packages, the generator creates a multi-stage build using the `builders.aur` image:
 
 ```dockerfile
 FROM ghcr.io/overthinkos/archlinux-builder:2026.84.942 AS my-tool-aur-build

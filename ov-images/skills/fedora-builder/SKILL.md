@@ -8,7 +8,7 @@ description: |
 
 # fedora-builder
 
-Builder image with package managers and compilation tools. Default `builder` for all multi-stage image builds.
+Builder image with package managers and compilation tools. Default builder for pixi, npm, and cargo multi-stage builds (declared via `builds: [pixi, npm, cargo]`).
 
 ## Image Properties
 
@@ -28,7 +28,7 @@ Builder image with package managers and compilation tools. Default `builder` for
 
 ## Role in Build System
 
-This image is referenced as `builder: fedora-builder` in `images.yml` defaults. The generator uses it as the first stage in multi-stage builds, providing build tools without bloating final images.
+This image is referenced in `defaults.builders` as the builder for `pixi`, `npm`, and `cargo` multi-stage builds. It declares `builds: [pixi, npm, cargo]` to advertise its capabilities. The generator uses it as the `FROM` stage in multi-stage builds, providing build tools without bloating final images.
 
 ## Quick Start
 

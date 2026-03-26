@@ -30,10 +30,13 @@ defaults:
     - linux/amd64
     - linux/arm64
   pkg: rpm
+  builders:                    # build type → builder image
+    pixi: fedora-builder
+    npm: fedora-builder
+    cargo: fedora-builder
   merge:
     auto: false
     max_mb: 128
-  builder: fedora-builder
 
 images:
   fedora:
@@ -42,6 +45,7 @@ images:
 
   fedora-builder:
     base: fedora
+    builds: [pixi, npm, cargo]  # declares what this builder can build
     layers:
       - pixi
       - nodejs
@@ -77,7 +81,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `platforms` | `["linux/amd64", "linux/arm64"]` | Target architectures |
 | `tag` | `"auto"` | Image tag. `"auto"` for CalVer |
 | `registry` | `""` | Container registry prefix |
-| `pkg` | `"rpm"` | Package manager: `"rpm"` or `"deb"` |
+| `pkg` | `"rpm"` | Package formats: string `"rpm"` or list `["pac", "aur"]`. Inherited from base image |
 | `layers` | (required) | Layer list (image-specific, not inherited) |
 | `ports` | `[]` | Runtime port mappings (`"host:container"` or `"port"`) |
 | `user` | `"user"` | Username for non-root operations |
@@ -85,7 +89,8 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `gid` | `1000` | Group ID |
 | `merge` | `null` | Layer merge settings |
 | `aliases` | `[]` | Command aliases |
-| `builder` | `""` | Builder image name |
+| `builders` | `{}` | Build type → builder image map (inherited from base image + defaults) |
+| `builds` | `[]` | What this builder image can build: `pixi`, `npm`, `cargo`, `aur` (not inherited) |
 | `env` | `[]` | Runtime env vars (`KEY=VALUE`). Not inherited from defaults |
 | `env_file` | `""` | Path to `.env` file for runtime injection. Not inherited |
 | `security` | `null` | Container security options. Overrides layer-level security |
@@ -94,28 +99,54 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `vm` | `VmConfig` | VM settings: `disk_size`, `root_size`, `ram`, `cpus`, `rootfs`, `kernel_args`, `ssh_port`, `transport`, `firmware`, `network` |
 | `libvirt` | `[]string` | Raw libvirt XML snippets for VM domain configuration |
 
-## Builder Image
+## Builders and Builds
 
-A dedicated image used as the base for all pixi, npm, and cargo multi-stage build stages.
+Builder images provide build tools (pixi, npm, cargo, yay) for multi-stage builds without bloating final images. Three fields control this:
+
+- **`builders:`** on images — map of build type → builder image name. Inherited: image → base image → defaults → `{}`.
+- **`builds:`** on builder images — list declaring what the builder can build. Not inherited.
+- **`pkg:`** — system package formats (`rpm`, `deb`, `pac`, `aur`). Inherited from base image.
 
 ```yaml
 defaults:
-  builder: fedora-builder
+  builders:
+    pixi: fedora-builder
+    npm: fedora-builder
+    cargo: fedora-builder
 
 images:
   fedora-builder:
     base: fedora
-    layers:
-      - pixi
-      - nodejs
-      - build-toolchain
+    builds: [pixi, npm, cargo]
+    layers: [pixi, nodejs, build-toolchain]
+
+  archlinux:
+    base: "docker.io/library/archlinux:latest"
+    pkg: pac
+    builders:
+      pixi: archlinux-builder
+      npm: archlinux-builder
+      cargo: archlinux-builder
+      aur: archlinux-builder
+
+  archlinux-builder:
+    base: archlinux              # inherits pkg: pac AND builders: from archlinux
+    builds: [pixi, npm, cargo, aur]
+    layers: [pixi, nodejs, build-toolchain, yay]
+
+  arch-test:
+    base: archlinux              # inherits builders: from archlinux
+    pkg: [pac, aur]              # override to add aur format
+    layers: [arch-pac-test, arch-aur-test]
 ```
 
-Resolution: **image.builder -> defaults.builder -> ""**. Builder dependency is conditional -- `ImageNeedsBuilder()` checks whether layers have pixi manifests, `package.json`, or `Cargo.toml`.
+Each build type resolves its builder independently: **`image.builders[type]` → `base_image.builders[type]` → `defaults.builders[type]` → `""`**. This means you can use `fedora-builder` for pixi but `archlinux-builder` for npm on the same image.
 
-The builder image itself has **no pixi build stages** (the pixi layer has no pixi.toml) and **no npm build stages** (none of its layers have package.json). It's a straightforward image: bootstrap + system packages + pixi binary download. The builder is excluded from using builder stages to avoid circular dependency. The generator recognizes self-reference and skips it.
+Self-reference protection: after merging defaults/base, any `builders` entry pointing to the image itself is filtered out. Builder images can't use themselves as builders.
 
-Source: `ov/generate.go` (`builderRefForImage`), `ov/graph.go` (`ResolveImageOrder`, `ImageNeedsBuilder`), `ov/validate.go` (`validateBuilder`).
+Validation checks that every builder referenced in `builders:` declares the matching capability in `builds:`.
+
+Source: `ov/generate.go` (`builderRefForFormat`), `ov/graph.go` (`ResolveImageOrder`, `ImageNeedsBuilder`), `ov/validate.go` (`validateBuilders`).
 
 ## Internal Base Images
 
