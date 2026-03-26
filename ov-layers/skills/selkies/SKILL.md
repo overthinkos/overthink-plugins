@@ -54,8 +54,8 @@ The web UI dashboard is built from the selkies repo's `addons/` directory using 
 
 - `selkies-wrapper` — GPU detection, PulseAudio null sink setup, NVRTC library path, starts selkies
 - `nginx.conf` — Rootless NGINX config (temp paths in /tmp, port 3000, proxies /websockets to :8081)
-- `root.yml` — Downloads selkies source, strips av/cryptography, pip installs, builds web dashboard, creates NVRTC symlinks, removes build deps
-- `pixi.toml` — Base Python 3.13 + pip (selkies installed via pip in root.yml, not pixi)
+- `root.yml` — Downloads selkies source, strips av/cryptography, pip installs, builds web dashboard (npm), creates NVRTC symlinks (`libnvrtc.so` → `libnvrtc.so.13` for NVENC), removes build deps (nodejs, npm, gcc, etc.)
+- `pixi.toml` — Python 3.13 + pip + setuptools (setuptools provides distutils shim for Python 3.13, needed by GPUtil)
 
 ## GPU Encoding Status
 
