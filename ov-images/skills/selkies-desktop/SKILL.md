@@ -22,7 +22,7 @@ selkies-desktop:
 
 ## Layers
 
-`selkies-desktop` metalayer = pipewire + chrome + labwc + waybar-labwc + selkies
+`selkies-desktop` metalayer = pipewire + chrome + labwc + waybar-labwc + wl-tools + wl-screenshot-pixelflux + a11y-tools + xterm + selkies
 
 ## Ports
 

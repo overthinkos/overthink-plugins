@@ -1,8 +1,8 @@
-# WL - Wayland and X11 Desktop Automation
+# WL - Compositor-Agnostic Desktop Automation
 
 ## Overview
 
-`ov wl` commands provide desktop interaction inside running containers using both Wayland-native tools (`grim`, `wtype`, `wlrctl`) and X11 tools (`xdotool`, `import`). This is an alternative to `ov vnc` that doesn't require a VNC server — it runs tools directly inside the container via `exec`.
+`ov wl` is the unified desktop automation command for all wlroots-based compositors (sway, labwc, niri). It provides screenshots, input (click, type, key combos, scroll, drag), window management (via `wlrctl toplevel`), clipboard, resolution control, accessibility introspection (AT-SPI2), and window geometry queries. Works on both sway-desktop and selkies-desktop images.
 
 ## Quick Reference
 
@@ -10,12 +10,49 @@
 |--------|---------|-------------|
 | Screenshot | `ov wl screenshot <image> [file]` | Capture desktop as PNG via grim |
 | Click | `ov wl click <image> <x> <y>` | Click at absolute coordinates via wlrctl |
+| Double-click | `ov wl double-click <image> <x> <y>` | Double-click with configurable delay |
 | Type text | `ov wl type <image> <text>` | Send keyboard input via wtype |
 | Send key | `ov wl key <image> <key-name>` | Press a named key via wtype |
+| Key combo | `ov wl key-combo <image> <keys>` | Send key combination (ctrl+c, alt+tab) |
 | Move mouse | `ov wl mouse <image> <x> <y>` | Move pointer to absolute coordinates |
-| Status | `ov wl status <image>` | Check Wayland + X11 tool availability |
-| List windows | `ov wl windows <image>` | List X11 windows via xdotool |
-| Focus window | `ov wl focus <image> <title>` | Focus X11 window by title/class |
+| Scroll | `ov wl scroll <image> <x> <y> <dir>` | Scroll at coordinates (up/down/left/right) |
+| Drag | `ov wl drag <image> <x1> <y1> <x2> <y2>` | Drag between coordinates (experimental) |
+| List windows | `ov wl windows <image>` | List windows (wlrctl toplevel, xdotool fallback) |
+| List toplevel | `ov wl toplevel <image>` | List Wayland toplevel windows via wlrctl |
+| Focus window | `ov wl focus <image> <title>` | Focus window (wlrctl toplevel, xdotool fallback) |
+| Close window | `ov wl close <image> <title>` | Close window via wlrctl toplevel |
+| Fullscreen | `ov wl fullscreen <image> <title>` | Toggle fullscreen via wlrctl toplevel |
+| Minimize | `ov wl minimize <image> <title>` | Toggle minimize via wlrctl toplevel |
+| Launch app | `ov wl exec <image> <command>` | Launch application in container |
+| Resolution | `ov wl resolution <image> <WxH>` | Set output resolution via wlr-randr |
+| Clipboard | `ov wl clipboard <image> get/set/clear` | Read/write Wayland clipboard |
+| Window props | `ov wl xprop <image> [target]` | Query X11 window properties |
+| Window rect | `ov wl geometry <image> <target>` | Get window position/size as JSON |
+| A11y tree | `ov wl atspi <image> tree` | Dump accessibility tree as JSON |
+| A11y find | `ov wl atspi <image> find <query>` | Find elements by name/role |
+| A11y click | `ov wl atspi <image> click <query>` | Click element by name/role |
+| Status | `ov wl status <image>` | Check all tool availability |
+
+## Compositor Compatibility
+
+All commands work on any wlroots-based compositor:
+
+| Tool | Protocol | sway | labwc (selkies) | niri |
+|------|----------|------|-----------------|------|
+| grim | wlr-screencopy | YES | NO (nested compositor) | YES |
+| pixelflux-screenshot | pixelflux API | NO | YES | NO |
+| wtype | zwp_virtual_keyboard_v1 | YES | YES | YES |
+| wlrctl pointer | wlr-virtual-pointer | YES | YES | YES |
+| wlrctl toplevel | wlr-foreign-toplevel-management | YES | YES | YES |
+| wlr-randr | wlr-output-management | YES | YES | YES |
+| wl-copy/paste | wlr-data-control | YES | YES | YES |
+| xdotool | X11 (XWayland) | YES | YES (on-demand) | YES |
+| swaymsg | i3 IPC | YES | NO | NO |
+
+**Coordinate translation flags:**
+- `--from-cdp` — Works on all compositors (uses `window.screenX/Y`)
+- `--from-sway` — Sway only (uses `swaymsg -t get_tree`)
+- `--from-x11` — Works on all compositors with XWayland
 
 ## Architecture
 
@@ -25,107 +62,117 @@ CLI command -> resolveContainer (engine + container name)
            -> capture stdout (screenshot) or run silently (input)
 ```
 
-Uses `exec` into the container (same pattern as `ov sway`), not TCP connections (like `ov vnc`). All tools use native Wayland protocols — no daemon, no `/dev/uinput`, no VNC server required.
+Uses `exec` into the container. All tools use native Wayland protocols — no daemon, no `/dev/uinput`, no VNC server required.
 
 ## Requirements
 
-- Container must include the `wl-tools` layer (grim, wtype, wlrctl)
-- Container must include the `sway` layer (Wayland compositor)
-- Container must be running (`ov start` or `ov enable`)
-- Included in `sway-desktop` metalayer by default
+- Container must include `wl-tools` layer (wtype, wlrctl, wl-clipboard, wlr-randr, xdotool, ydotool)
+- For screenshots: `wl-screenshot-grim` (sway) or `wl-screenshot-pixelflux` (selkies)
+- Container must have a running Wayland compositor (sway, labwc, etc.)
+- For AT-SPI2: `a11y-tools` layer (python3-pyatspi, python3-gobject) + `dbus` layer
+- For XWayland: an X11 app like `xterm` must be running to trigger XWayland start on labwc
+- Included in `sway-desktop` and `selkies-desktop` metalayers
 
 ## Commands
 
-### Screenshot
+### Key Combo
 ```bash
-ov wl screenshot openclaw-sway-browser              # saves screenshot.png
-ov wl screenshot openclaw-sway-browser desktop.png   # custom filename
-ov wl screenshot openclaw-sway-browser --output HEADLESS-1  # specific output (default)
-ov wl screenshot openclaw-sway-browser --region "0,0 800x600"  # region capture
+ov wl key-combo my-app ctrl+c          # Ctrl+C
+ov wl key-combo my-app alt+tab         # Alt+Tab
+ov wl key-combo my-app ctrl+shift+t    # Ctrl+Shift+T
+ov wl key-combo my-app super+l         # Super+L (lock)
 ```
 
-Captures via `grim -o <output> -` which outputs PNG to stdout. The Go code captures the bytes and writes to a local file. No temp files inside the container.
+Modifiers: `ctrl`/`control`, `alt`, `shift`, `super`/`win`/`logo`, `meta`. Uses `wtype -M`.
 
-### Click
+### Scroll
 ```bash
-ov wl click openclaw-sway-browser 960 540             # left click at center (1920x1080)
-ov wl click openclaw-sway-browser 100 200 --button right  # right click
-ov wl click openclaw-sway-browser 100 200 --from-cdp <tab-id>  # translate from CDP viewport
-ov wl click openclaw-sway-browser 100 200 --from-sway <app_id>  # translate from sway window
-ov wl click openclaw-sway-browser 100 200 --from-x11 Moonlight  # translate from X11 window (XWayland)
+ov wl scroll my-app 960 540 down              # scroll down 3 steps at center
+ov wl scroll my-app 960 540 up --amount 10    # scroll up 10 steps
 ```
 
-**Absolute positioning:** `wlrctl` only supports relative pointer movement. The workaround: move far negative to clamp at (0,0), then move by target offset. Sway clamps the pointer to screen bounds, making this reliable.
+Uses xdotool click 4/5/6/7 (X11 scroll buttons) for XWayland windows. Falls back to wtype Page_Up/Page_Down.
 
-### X11 Coordinate Translation (XWayland)
-
-**`--from-x11 <class-or-title>`** translates coordinates from X11 window-internal space to Wayland desktop-absolute coordinates. This is essential for XWayland windows (e.g., Moonlight, Steam) where the X11 window geometry differs from the sway container geometry -- particularly when the XWayland window is fullscreened and scaled.
-
-How it works:
-1. Queries X11 window geometry via `xdotool search --name <target> getwindowgeometry` inside the container
-2. Finds the matching sway node via `swaymsg -t get_tree` (prefers focused/fullscreen windows, matches XWayland `window_properties.class`)
-3. Scales coordinates: `desktop_x = sway_x + (x * sway_width / x11_width)`, same for y
-4. Passes the translated desktop-absolute coordinates to `wlrctl`
-
+### Drag (Experimental)
 ```bash
-# Click at X11 coordinate (400, 300) inside a fullscreen Moonlight window
-ov wl click my-app 400 300 --from-x11 Moonlight
-# Translated X11-internal (400, 300) → desktop (720, 540) via X11 geometry 1280x720, sway rect 1920x1080
+ov wl drag my-app 100 100 500 500                # drag left to right
+ov wl drag my-app 100 100 500 500 --duration 500  # slower drag (500ms)
 ```
 
-Uses `FindX11WindowGeometry()` helper in `ov/wl.go`.
+Requires XWayland (uses `xdotool mousemove + mousedown/mouseup`).
 
-### Type
+### Window Management (wlrctl toplevel)
 ```bash
-ov wl type openclaw-sway-browser "hello world"    # types text via wtype
-```
-Supports full Unicode. Uses `zwp_virtual_keyboard_v1` Wayland protocol.
-
-### Key
-```bash
-ov wl key openclaw-sway-browser Return       # press Enter
-ov wl key openclaw-sway-browser Escape       # press Escape
-ov wl key openclaw-sway-browser Tab          # press Tab
+ov wl toplevel my-app                  # list all windows
+ov wl focus my-app "Chrome"            # focus by title
+ov wl close my-app "Chrome"            # close by title
+ov wl fullscreen my-app "Chrome"       # toggle fullscreen
+ov wl minimize my-app "Chrome"         # toggle minimize
+ov wl exec my-app foot                 # launch terminal
 ```
 
-Uses `wtype -k <keyname>` with standard XKB key names. Valid keys: Return, Escape, Tab, BackSpace, Delete, Home, End, Page_Up, Page_Down, Up, Down, Left, Right, Insert, F1-F12, Shift_L, Shift_R, Control_L, Control_R, Alt_L, Alt_R, Super_L, Super_R, Meta_L, Meta_R, Caps_Lock, space.
-
-### Mouse
+### Resolution
 ```bash
-ov wl mouse openclaw-sway-browser 500 300    # move pointer to (500, 300)
+ov wl resolution my-app 1920x1080              # auto-detect output
+ov wl resolution my-app 2560x1440 -o WL-1      # specific output
 ```
 
-### Status
+### Clipboard
 ```bash
-ov wl status openclaw-sway-browser
-# Output:
-# grim:      available
-# wtype:     available
-# wlrctl:    available
-# output:    HEADLESS-1 1920x1080
+ov wl clipboard my-app get                   # read clipboard
+ov wl clipboard my-app set "hello"           # write clipboard
+ov wl clipboard my-app clear                 # clear clipboard
+ov wl clipboard my-app get --primary         # read primary selection
 ```
 
-## Differences from VNC Commands
+### Window Geometry
+```bash
+ov wl geometry my-app "Chrome"    # returns JSON: {"x":0,"y":0,"width":1920,"height":1080}
+ov wl xprop my-app                # active window properties
+ov wl xprop my-app "Chrome"      # specific window properties
+```
 
-| Aspect | `ov wl` (Wayland) | `ov vnc` (RFB) |
-|--------|-------------------|----------------|
-| Transport | exec into container | TCP port 5900 |
-| Screenshot | grim (wlr-screencopy) | RFB framebuffer |
-| Click | wlrctl (virtual pointer) | RFB pointer event |
-| Type | wtype (virtual keyboard) | RFB key events |
-| Resolution | Native compositor | VNC framebuffer |
-| Daemon needed | No | wayvnc |
-| NVIDIA headless | Works perfectly | Gray screen (upstream bug) |
-| Remote access | No (local exec only) | Yes (TCP) |
+### AT-SPI2 Accessibility
+```bash
+ov wl atspi my-app tree                    # dump full accessibility tree
+ov wl atspi my-app find "Save"             # find elements named "Save"
+ov wl atspi my-app find "button"           # find elements with role "button"
+ov wl atspi my-app find "Save:button"      # find by name AND role
+ov wl atspi my-app click "Save:button"     # click element by name/role
+```
 
-On NVIDIA headless systems, `ov wl` is the reliable choice for screenshots and input — `ov vnc` suffers from an upstream sway/wayvnc `ext-image-copy-capture` bug that produces gray framebuffers.
+Requires `a11y-tools` layer. Chrome needs `--force-renderer-accessibility` flag.
+
+### CDP → WL Bridge
+
+Use `ov cdp click --wl` to find elements by CSS selector in Chrome and deliver clicks via wlrctl (critical for selkies-desktop which has no VNC):
+
+```bash
+ov cdp click selkies-desktop $TAB '#submit-button' --wl
+```
+
+## Differences from VNC and Sway Commands
+
+| Aspect | `ov wl` | `ov vnc` | `ov sway` |
+|--------|---------|----------|-----------|
+| Compositors | All wlroots | Requires wayvnc | Sway only |
+| Transport | exec into container | TCP port 5900 | exec into container |
+| Window mgmt | wlrctl toplevel | No | swaymsg IPC |
+| Clipboard | wl-copy/paste | rfb cut-text | No |
+| Remote access | No | Yes (TCP) | No |
+| NVIDIA headless | Works | Gray screen bug | Works |
 
 Source: `ov/wl.go`.
 
 ## Cross-references
 
 - `/ov:vnc` — VNC/RFB protocol alternative (TCP-based, works remotely)
-- `/ov:cdp` — Chrome DevTools Protocol (DOM-level interaction)
-- `/ov:sway` — Sway compositor control (window management)
-- `/ov-layers:wl-tools` — Layer providing grim, wtype, wlrctl
-- `/ov-layers:sway-desktop` — Desktop metalayer (includes wl-tools)
+- `/ov:cdp` — Chrome DevTools Protocol (DOM-level interaction, `--wl` flag for click, `axtree` for accessibility)
+- `/ov:sway` — Sway-specific compositor control (tree, workspaces, layout, move, resize)
+- `/ov-layers:wl-tools` — Compositor-agnostic tools (wtype, wlrctl, wl-clipboard, wlr-randr, xdotool, ydotool)
+- `/ov-layers:wl-screenshot-grim` — Screenshot layer for sway (grim, wlr-screencopy)
+- `/ov-layers:wl-screenshot-pixelflux` — Screenshot layer for selkies (pixelflux rendering pipeline)
+- `/ov-layers:a11y-tools` — AT-SPI2 accessibility (python3-pyatspi, python3-gobject)
+- `/ov-layers:xterm` — X11 terminal for XWayland testing
+- `/ov-layers:sway-desktop` — Desktop metalayer (wl-tools + wl-screenshot-grim)
+- `/ov-layers:selkies-desktop` — Desktop metalayer (wl-tools + wl-screenshot-pixelflux + a11y-tools + xterm)

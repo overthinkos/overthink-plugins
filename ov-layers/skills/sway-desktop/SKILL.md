@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Layers (composition) | `pipewire`, `xdg-portal`, `wl-tools`, `chrome-sway`, `xfce4-terminal`, `thunar`, `waybar` |
+| Layers (composition) | `pipewire`, `xdg-portal`, `wl-tools`, `wl-screenshot-grim`, `chrome-sway`, `xfce4-terminal`, `thunar`, `waybar` |
 | Install files | none (pure composition) |
 
 ## Three-Tier Architecture
