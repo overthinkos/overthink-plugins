@@ -45,7 +45,7 @@ With `kpipewire` installed, KWin loads: `screencast`, `eis` (libei input), `scre
 
 ## Known Limitation
 
-KWin's `--virtual` backend does NOT expose `zkde_screencast_unstable_v1` Wayland protocol, even with the screencast plugin loaded. This means `xdg-desktop-portal-kde` ScreenCast/RemoteDesktop portal sessions fail with response code 2. Portal-based capture (`capture=portal` in Sunshine) does not work in headless mode as of KDE 6.6.3.
+KWin's `--virtual` backend does NOT expose `zkde_screencast_unstable_v1` Wayland protocol, even with the screencast plugin loaded. This means `xdg-desktop-portal-kde` ScreenCast/RemoteDesktop portal sessions fail with response code 2. Portal-based capture does not work in headless mode as of KDE 6.6.3.
 
 ## Related Layers
 

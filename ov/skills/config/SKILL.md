@@ -92,17 +92,6 @@ Auto-detection prefers podman over docker when both are installed.
 
 Set via `ov vnc passwd <image> --generate` or `ov config set vnc.password.<image> <password>`. Stored in system keyring (when `secret_backend=auto` or `keyring`) or `vnc_passwords` map in config file (when `secret_backend=config`).
 
-### Sunshine Credentials
-
-| Key | Env Var | Default | Values | Purpose |
-|-----|---------|---------|--------|---------|
-| `sunshine.user.<image>` | `SUNSHINE_USER` | (empty) | any string | Sunshine Web UI username |
-| `sunshine.password.<image>` | `SUNSHINE_PASSWORD` | (empty) | any string | Sunshine Web UI password |
-| `sunshine.user.<image>-<instance>` | `SUNSHINE_USER` | (empty) | any string | Instance-specific username |
-| `sunshine.password.<image>-<instance>` | `SUNSHINE_PASSWORD` | (empty) | any string | Instance-specific password |
-
-Set via `ov sun passwd <image> --generate` or `ov config set sunshine.user.<image> <user>` + `ov config set sunshine.password.<image> <pass>`. Stored in system keyring (when `secret_backend=auto` or `keyring`) or `sunshine_users`/`sunshine_passwords` maps in config file (when `secret_backend=config`).
-
 ## Resolution Chain
 
 For every key, the resolved value is the first non-empty from:
@@ -111,9 +100,9 @@ For every key, the resolved value is the first non-empty from:
 2. **Config file** (`~/.config/ov/config.yml`)
 3. **Hardcoded default**
 
-For credential keys (`vnc.password.*`, `sunshine.user.*`, `sunshine.password.*`), the chain is:
+For credential keys (`vnc.password.*`), the chain is:
 
-1. **Environment variable** (e.g., `VNC_PASSWORD`, `SUNSHINE_USER`, `SUNSHINE_PASSWORD`)
+1. **Environment variable** (e.g., `VNC_PASSWORD`)
 2. **System keyring** (when `secret_backend=auto` or `keyring`)
 3. **KeePass .kdbx** (when `secret_backend=kdbx`, or auto-detected when keyring unavailable and `secrets.kdbx_path` configured)
 4. **Config file** (plaintext fallback)
@@ -170,7 +159,7 @@ ov config migrate-secrets --dry-run    # See what would be migrated
 ov config migrate-secrets              # Actually migrate (creates .bak backup)
 ```
 
-Migrates plaintext VNC and Sunshine credentials from `config.yml` to the system keyring (GNOME Keyring, KDE Wallet, KeePassXC). Creates a backup file first. If keyring is unavailable, prints setup instructions.
+Migrates plaintext VNC credentials from `config.yml` to the system keyring (GNOME Keyring, KDE Wallet, KeePassXC). Creates a backup file first. If keyring is unavailable, prints setup instructions.
 
 ### KeePass Backend (headless/SSH — encrypted, no daemon)
 
@@ -199,7 +188,6 @@ Source: `ov/runtime_config.go`, `ov/credential_store.go`, `ov/credential_keyring
 - `/ov:enc` -- Encrypted storage path configuration
 - `/ov:build` -- Build commands that use engine.build
 - `/ov:vnc` -- VNC password management (`vnc.password.*` keys)
-- `/ov:sun` -- Sunshine credential management (`sunshine.user.*`, `sunshine.password.*` keys)
 
 ## When to Use This Skill
 

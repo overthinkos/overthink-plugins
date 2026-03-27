@@ -27,7 +27,6 @@ description: |
 - `/ov-layers:kwin-desktop` -- KDE variant
 - `/ov-layers:sway-desktop` -- Sway variant
 - `/ov-layers:niri-desktop` -- Niri variant
-- `/ov-layers:mutter-desktop-sunshine` -- with Sunshine streaming
 
 ## When to Use This Skill
 

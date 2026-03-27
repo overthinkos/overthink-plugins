@@ -56,10 +56,10 @@ ov vnc click openclaw-sway-browser 100 200 --button right  # right click
 ov vnc click openclaw-sway-browser 100 200 --button middle # middle click
 ov vnc click openclaw-sway-browser 100 200 --from-cdp $TAB   # translate from CDP viewport
 ov vnc click openclaw-sway-browser 100 200 --from-sway google-chrome  # translate from sway window
-ov vnc click openclaw-sway-browser 100 200 --from-x11 Moonlight  # translate from X11 window (XWayland)
+ov vnc click openclaw-sway-browser 100 200 --from-x11 Steam  # translate from X11 window (XWayland)
 ```
 
-**`--from-x11 <class-or-title>`** translates coordinates from X11 window-internal space to desktop-absolute VNC coordinates. Works the same as `ov wl click --from-x11` -- queries X11 geometry via xdotool, finds the sway node, and scales to desktop coordinates. Essential for XWayland windows (Moonlight, Steam) where the X11 resolution differs from the compositor resolution.
+**`--from-x11 <class-or-title>`** translates coordinates from X11 window-internal space to desktop-absolute VNC coordinates. Works the same as `ov wl click --from-x11` -- queries X11 geometry via xdotool, finds the sway node, and scales to desktop coordinates. Essential for XWayland windows (Steam, Heroic) where the X11 resolution differs from the compositor resolution.
 
 ### Type
 ```bash
@@ -206,7 +206,7 @@ On NVIDIA headless systems, `ov vnc screenshot` produces gray images. This is an
 ```bash
 ov wl screenshot <image>                    # Wayland screenshot (grim, works on NVIDIA)
 ov wl windows <image>                       # List X11 windows
-ov wl focus <image> "Moonlight"             # Focus specific X11 window
+ov wl focus <image> "Steam"                  # Focus specific X11 window
 ```
 
 ## Cross-references

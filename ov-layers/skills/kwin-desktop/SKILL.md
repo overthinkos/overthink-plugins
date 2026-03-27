@@ -47,7 +47,6 @@ my-kwin-desktop:
 - `/ov-layers:kwin` -- KWin compositor
 - `/ov-layers:sway-desktop` -- Sway variant
 - `/ov-layers:niri-desktop` -- Niri variant
-- `/ov-layers:kwin-desktop-sunshine` -- with Sunshine streaming
 
 ## When to Use This Skill
 

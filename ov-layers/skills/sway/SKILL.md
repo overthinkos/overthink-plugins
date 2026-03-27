@@ -26,15 +26,7 @@ description: |
 | `WAYLAND_DISPLAY` | `wayland-0` |
 | `EGL_LOG_LEVEL` | `fatal` |
 
-The supervisord `[program:sway]` environment sets `WLR_BACKENDS=headless` — headless output only. The `libinput` backend is **not** included by default because it requires a libseat session which fails in rootless containers. Sunshine images that need libinput for input injection handle it via the sway-wrapper's `/dev/uinput` detection (sets `LIBSEAT_BACKEND=noop` dynamically).
-
-## Sunshine Input Support (sway-wrapper)
-
-When `/dev/uinput` is present, sway-wrapper automatically:
-1. Sets `LIBSEAT_BACKEND=noop` (no real seat session needed)
-2. Creates `/run/udev/control` and `/run/udev/data/` (so libinput monitors for udev events)
-
-This enables Sunshine's `fake-udev` service to inject virtual input devices into sway at runtime. See `/ov-layers:sunshine` for the full input pipeline.
+The supervisord `[program:sway]` environment sets `WLR_BACKENDS=headless` — headless output only. The `libinput` backend is **not** included by default because it requires a libseat session which fails in rootless containers.
 
 ## Packages
 
@@ -54,7 +46,7 @@ my-desktop:
 
 ## XWayland
 
-XWayland is **enabled by default** (`xwayland enable` in the base config). The `xorg-x11-server-Xwayland` package is included in the sway layer. XWayland starts lazily — the Xwayland process only launches when the first X11 client connects (e.g., Steam, Moonlight, Qt apps with xcb platform).
+XWayland is **enabled by default** (`xwayland enable` in the base config). The `xorg-x11-server-Xwayland` package is included in the sway layer. XWayland starts lazily — the Xwayland process only launches when the first X11 client connects (e.g., Steam, Heroic, Qt apps with xcb platform).
 
 X11 tools for interacting with XWayland windows (`xdotool`, `xprop`, `xwininfo`, `import`) are provided by the `/ov-layers:wl-tools` layer.
 
@@ -72,7 +64,6 @@ All images use `gles2` on NVIDIA (hardware auto-detect in sway-wrapper). No rend
 
 - `grim` (`ov wl screenshot`) captures real desktop content via `wlr-screencopy` — works with gles2
 - `wayvnc` screenshots are gray (upstream `ext-image-copy-capture` bug) — use `ov wl` instead
-- Sunshine streams via `wlr-screencopy` + NVENC — works with gles2
 - Chrome gets full GPU acceleration with gles2
 
 ## Used In Images
@@ -84,9 +75,7 @@ Transitive dependency via `chrome-sway` and `sway-desktop` in all desktop images
 - `/ov-layers:dbus` -- D-Bus session bus dependency
 - `/ov-layers:chrome-sway` -- Chrome on Sway (depends on sway)
 - `/ov-layers:sway-desktop` -- full desktop composition (VNC)
-- `/ov-layers:sway-desktop-sunshine` -- GPU-accelerated desktop (Sunshine)
 - `/ov-layers:wayvnc` -- VNC access to Sway display
-- `/ov-layers:sunshine` -- Sunshine game streaming (Moonlight)
 - `/ov-layers:waybar` -- status bar (depends on sway)
 - `/ov-layers:niri` -- Niri compositor alternative (Smithay-based, built from source)
 

@@ -152,7 +152,6 @@ ov service status my-app               # Show status of all supervisord services
 ov service start my-app traefik        # Start a specific service
 ov service stop my-app traefik         # Stop a specific service
 ov service restart my-app traefik      # Restart a specific service
-ov service restart my-app sunshine     # Restart Sunshine game streaming
 ov service status my-app -i prod       # Named instance
 ```
 
@@ -261,9 +260,8 @@ For running containers, `ov status` probes all 5 desktop automation tools concur
 | vnc | TCP + RFB handshake on `:5900` | VNC server (wayvnc) |
 | sway | Sway IPC socket | Sway compositor |
 | wl | `command -v grim wtype wlrctl` | Wayland tools |
-| sun | HTTPS GET `:47990/api/config` | Sunshine streaming |
 
-Each tool also has its own `status` subcommand: `ov cdp status`, `ov vnc status`, `ov wl sway status`, `ov wl status`, `ov sun status`.
+Each tool also has its own `status` subcommand: `ov cdp status`, `ov vnc status`, `ov wl sway status`, `ov wl status`.
 
 ### Single Image Detail
 
@@ -299,7 +297,6 @@ Source: `ov/status.go`.
 - `/ov:vnc` -- VNC status subcommand (`ov vnc status`)
 - `/ov:wl` -- Desktop automation + sway subgroup (`ov wl sway status`)
 - `/ov:wl` -- WL status subcommand (`ov wl status`)
-- `/ov:sun` -- Sunshine status subcommand (`ov sun status`)
 
 ## When to Use This Skill
 

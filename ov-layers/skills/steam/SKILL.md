@@ -1,7 +1,7 @@
 ---
 name: steam
 description: |
-  Steam gaming client with gamescope and Sunshine Big Picture app.
+  Steam gaming client with gamescope.
   Use when working with Steam, gaming, or gamescope in containers.
 ---
 
@@ -33,24 +33,16 @@ XWayland is provided by the base `sway` layer.
 
 ```yaml
 # images.yml — requires nvidia base (RPM Fusion nonfree via fedora-nonfree)
-sway-browser-sunshine-steam:
+sway-browser-vnc-steam:
   base: nvidia
   layers:
-    - sway-desktop-sunshine
+    - sway-desktop-vnc
     - steam
 ```
 
 ## XWayland
 
 Steam is an X11 application — it requires XWayland. The base sway config has `xwayland disable` for headless optimization. This layer installs a sway drop-in config at `~/.config/sway/config.d/xwayland.conf` that enables XWayland.
-
-## Sunshine Apps
-
-The `user.yml` pre-configures `~/.config/sunshine/apps.json` with:
-- **Desktop** — default full desktop session
-- **Steam Big Picture** — launches via `setsid steam steam://open/bigpicture` (detached pattern)
-
-Steam's self-updater kills the original process, so the `detached` command pattern with `setsid` is required. The `undo` command (`steam steam://close/bigpicture`) closes Big Picture when the Moonlight streaming session ends.
 
 ## Gamescope
 
@@ -64,13 +56,12 @@ Features: resolution spoofing, FSR/NIS upscaling, FPS limiting, HDR support.
 
 ## First Login
 
-Steam Guard requires interactive login. Connect via Moonlight "Desktop" app, launch Steam, and log in manually. Auth tokens persist in the `steam-data` volume for subsequent container restarts.
+Steam Guard requires interactive login. Connect via VNC desktop, launch Steam, and log in manually. Auth tokens persist in the `steam-data` volume for subsequent container restarts.
 
 ## Related Layers
 
 - `/ov-layers:sway` — Wayland compositor (dependency)
-- `/ov-layers:sunshine` — Game streaming server
-- `/ov-layers:sway-desktop-sunshine` — Desktop composition with Sunshine
+- `/ov-layers:sway-desktop-vnc` — Desktop composition with VNC
 - `/ov-layers:cuda` — NVIDIA GPU support (via nvidia base)
 
 ## When to Use This Skill
@@ -81,4 +72,3 @@ Use when the user asks about:
 - Gaming on Sway/Wayland containers
 - Gamescope configuration
 - XWayland setup
-- Steam Big Picture via Sunshine/Moonlight

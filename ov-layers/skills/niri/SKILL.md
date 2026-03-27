@@ -62,13 +62,11 @@ The `niri-wrapper` starts niri with `NIRI_BACKEND=headless`:
 
 ## Known Limitation: Screen Capture
 
-Niri does not implement the `wlr-screencopy` protocol (it's wlroots-specific). Sunshine's Linux capture only supports `wlroots` and `kms` modes. This means **Sunshine capture does not work with niri headless** yet. Pending:
-- Sunshine ext-image-copy-capture support (PR #2507)
-- Or niri wlr-screencopy implementation
+Niri does not implement the `wlr-screencopy` protocol (it's wlroots-specific). The `ext-image-copy-capture` protocol support is pending.
 
 ## Used In Images
 
-Part of `niri-desktop` and `niri-desktop-sunshine` compositions. Image: `/ov-images:sunshine-desktop-niri`.
+Part of `niri-desktop` composition.
 
 ## Related Layers
 
@@ -77,8 +75,6 @@ Part of `niri-desktop` and `niri-desktop-sunshine` compositions. Image: `/ov-ima
 - `/ov-layers:chrome-niri` -- Chrome browser on Niri
 - `/ov-layers:niri-apps` -- Desktop apps (terminal, file manager)
 - `/ov-layers:niri-desktop` -- Full desktop composition
-- `/ov-layers:niri-desktop-sunshine` -- Desktop + Sunshine streaming
-- `/ov-layers:sunshine-niri` -- Sunshine configured for Niri
 
 ## When to Use This Skill
 

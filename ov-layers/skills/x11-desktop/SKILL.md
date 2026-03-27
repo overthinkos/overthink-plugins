@@ -37,7 +37,6 @@ x11-desktop
 
 - `/ov-layers:sway-desktop` -- Sway variant
 - `/ov-layers:niri-desktop` -- Niri variant
-- `/ov-layers:x11-desktop-sunshine` -- adds Sunshine streaming
 
 ## When to Use This Skill
 

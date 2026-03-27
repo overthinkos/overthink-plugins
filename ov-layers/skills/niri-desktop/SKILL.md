@@ -2,7 +2,7 @@
 name: niri-desktop
 description: |
   Base Niri desktop composition with audio, portals, Chrome, terminal, and file manager.
-  No display server — use niri-desktop-sunshine for Sunshine streaming.
+  Base desktop composition layer — no display server included.
 ---
 
 # niri-desktop -- Base Niri desktop composition
@@ -42,13 +42,12 @@ niri-desktop
 my-desktop:
   base: nvidia
   layers:
-    - niri-desktop-sunshine    # adds Sunshine streaming
+    - niri-desktop
 ```
 
 ## Related Layers
 
 - `/ov-layers:sway-desktop` -- Sway variant
-- `/ov-layers:niri-desktop-sunshine` -- adds Sunshine streaming
 - `/ov-layers:niri` -- compositor (included)
 - `/ov-layers:pipewire` -- audio (included)
 - `/ov-layers:chrome-niri` -- Chrome browser (included)

@@ -21,7 +21,6 @@ Uses gles2 on NVIDIA (same as all images). VNC screenshots may be gray (upstream
 ## Used In Images
 
 - `/ov-images:sway-browser-vnc`
-- `/ov-images:sway-browser-vnc-moonlight`
 - `/ov-images:openclaw-sway-browser`
 - `/ov-images:openclaw-ollama-sway-browser`
 
@@ -29,4 +28,3 @@ Uses gles2 on NVIDIA (same as all images). VNC screenshots may be gray (upstream
 
 - `/ov-layers:sway-desktop` -- base desktop (composed)
 - `/ov-layers:wayvnc` -- VNC server on tcp:5900 (added)
-- `/ov-layers:sway-desktop-sunshine` -- Sunshine variant (alternative)

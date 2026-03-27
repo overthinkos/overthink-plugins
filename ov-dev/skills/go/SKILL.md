@@ -70,12 +70,6 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `wl.go` | Wayland desktop commands (screenshot, click, type, key, mouse, status, windows, focus). `--from-x11` flag + `FindX11WindowGeometry()` for XWayland coordinate translation |
 | `vnc.go` | VNC desktop commands (screenshot, click, type, key, mouse, status, passwd, rfb). `--from-x11` flag for XWayland coordinate translation |
 | `sway.go` | Sway compositor commands. `swayNode` has `Focused`/`FullscreenMode` fields; `searchSwayNode` prefers focused/fullscreen nodes; XWayland class matching via `swayWindowProperties` |
-| `sun.go` | Sunshine server management commands (status, passwd, pair, clients, config, set, restart, url) + `checkSunStatus()` for tool probing |
-| `sun_client.go` | Sunshine REST API client (HTTPS, Basic Auth, port 47990) |
-| `sun_test.go` | Sunshine client tests (httptest servers, credential resolution) |
-| `moon.go` | GameStream client commands (status, pair, unpair, apps, launch, quit) |
-| `moon_client.go` | GameStream protocol client (cert gen, AES pairing crypto, XML parsing, mutual TLS) |
-| `moon_test.go` | GameStream client tests (AES roundtrip, cert gen, XML parsing, RSA signing) |
 
 ### Infrastructure
 

@@ -77,9 +77,9 @@ Container secrets provisioned as Podman secrets at `ov enable`/`ov start` time. 
 
 ```yaml
 secrets:
-  - name: sunshine-password                    # unique secret name
-    target: /run/secrets/sunshine_password      # mount path (default: /run/secrets/<name>)
-    env: SUNSHINE_PASSWORD                      # fallback env var (for Docker, or if Podman secrets fail)
+  - name: api-key                              # unique secret name
+    target: /run/secrets/api_key               # mount path (default: /run/secrets/<name>)
+    env: API_KEY                               # fallback env var (for Docker, or if Podman secrets fail)
 ```
 
 - `name`: unique identifier, becomes Podman secret `ov-<image>-<name>`

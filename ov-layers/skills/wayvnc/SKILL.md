@@ -54,17 +54,11 @@ This ensures sway has set the output resolution (default 1920x1080) before wayvn
 
 Part of `/ov-layers:sway-desktop` composition.
 
-## GPU-Accelerated Alternative: Sunshine
-
-For game streaming with NVENC hardware encoding, use `/ov-layers:sunshine` instead of wayvnc. See `/ov-layers:sway-desktop-sunshine` for the composition variant.
-
 ## Related Layers
 
 - `/ov-layers:supervisord` -- process manager dependency
 - `/ov-layers:sway` -- Wayland compositor (provides display)
 - `/ov-layers:sway-desktop` -- composition that includes wayvnc
-- `/ov-layers:sway-desktop-sunshine` -- GPU-accelerated variant with Sunshine instead of wayvnc
-- `/ov-layers:sunshine` -- Sunshine game streaming alternative
 - `/ov-layers:pipewire` -- sibling in desktop stack
 
 ## When to Use This Skill

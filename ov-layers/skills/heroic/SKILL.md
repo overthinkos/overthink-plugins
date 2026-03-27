@@ -24,11 +24,10 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml — typically used with sway-desktop-sunshine + steam
-sway-browser-sunshine-steam-heroic:
-  base: nvidia
+# images.yml — typically used with sway-desktop-vnc + steam
+sway-browser-vnc-steam-heroic:
   layers:
-    - sway-desktop-sunshine
+    - sway-desktop-vnc
     - steam
     - heroic
 ```
@@ -39,20 +38,11 @@ Heroic is an Electron app distributed as an RPM on GitHub releases. The `root.ym
 
 COPR repos exist (`atim/heroic-games-launcher`) but builds are currently failing — GitHub RPM is more reliable.
 
-## Sunshine Apps
-
-The `user.yml` configures `~/.config/sunshine/apps.json` with three apps:
-- **Desktop** — full Sway desktop session
-- **Steam Big Picture** — Steam in controller-friendly mode
-- **Heroic Games Launcher** — Heroic in `--fullscreen` mode (controller-friendly UI)
-
-Note: This overwrites `apps.json` from the steam layer (last layer wins). All three apps are included.
-
 ## CLI Flags
 
 | Flag | Purpose |
 |------|---------|
-| `heroic --fullscreen` | Controller-friendly full-screen UI (used in Sunshine app) |
+| `heroic --fullscreen` | Controller-friendly full-screen UI |
 | `heroic --no-gui` | Start minimized to system tray |
 | `heroic://launch/<runner>/<app>` | Protocol handler — launch a specific game directly |
 
@@ -83,8 +73,7 @@ Both are persistent named volumes.
 
 - `/ov-layers:steam` — Steam client (sibling game launcher)
 - `/ov-layers:sway` — Wayland compositor (dependency)
-- `/ov-layers:sunshine` — Game streaming server
-- `/ov-layers:sway-desktop-sunshine` — Desktop composition with Sunshine
+- `/ov-layers:sway-desktop-vnc` — Desktop composition with VNC
 
 ## When to Use This Skill
 

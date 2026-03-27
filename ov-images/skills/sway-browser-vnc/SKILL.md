@@ -28,5 +28,4 @@ ov wl screenshot sway-browser-vnc screenshot.png
 
 ## Related Images
 
-- `/ov-images:sway-browser-vnc-moonlight` -- same + Moonlight client
-- `/ov-images:sway-browser-sunshine` -- Sunshine variant (GPU streaming)
+None.
