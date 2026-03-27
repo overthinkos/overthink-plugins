@@ -157,7 +157,7 @@ Source: `ov/network.go`.
 - `/ov:tmux` -- Persistent tmux sessions (survives disconnects, needed for TTY-dependent TUI programs)
 - `/ov:service` -- Starting background services before exec
 - `/ov:cdp` -- Chrome DevTools Protocol automation
-- `/ov:sway` -- Sway compositor control
+- `/ov:wl` (sway subgroup) -- Sway compositor control
 - `/ov:config` -- Engine and bind address settings
 - `/ov:image` -- Image configuration (ports, volumes, env)
 

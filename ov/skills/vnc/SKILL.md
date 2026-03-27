@@ -173,7 +173,7 @@ When to use `--vnc` click and VNC type:
 - Sites that validate input event sequences (keyDown/keyPress/input/keyUp)
 - Any form where CDP type fails silently (value appears but form doesn't accept it)
 
-**Chrome first-run dialogs:** On fresh profiles, Chrome opens a first-run dialog as a separate window invisible to CDP. Dismiss with `ov sway msg my-app 'focus left'` then `ov vnc key my-app Return`.
+**Chrome first-run dialogs:** On fresh profiles, Chrome opens a first-run dialog as a separate window invisible to CDP. Dismiss with `ov wl sway msg my-app 'focus left'` then `ov vnc key my-app Return`.
 
 See `/ov:cdp` for the full Google sign-in recipe.
 
@@ -213,7 +213,7 @@ ov wl focus <image> "Moonlight"             # Focus specific X11 window
 
 - `/ov:wl` — Wayland-native desktop automation (works on NVIDIA headless)
 - `/ov:cdp` — Chrome DevTools Protocol automation (same container, different protocol)
-- `/ov:sway` — Sway compositor control (window management, workspaces)
+- `/ov:wl` (sway subgroup) — Sway compositor control (window management, workspaces)
 - `/ov:config` — VNC password storage, `secret_backend` setting, `migrate-secrets` command
 - `/ov:service` — Managing wayvnc supervisord service
 - `/ov:deploy` — VNC password setup in deployment workflows
@@ -224,4 +224,4 @@ ov wl focus <image> "Moonlight"             # Focus specific X11 window
 
 **MUST be invoked** when the task involves VNC automation, ov vnc commands, RFB protocol desktop interaction, VNC screenshots, clicking coordinates, or VNC authentication. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Desktop automation. Use for pixel-level interaction when CDP can't reach the element. See also `/ov:cdp` (DOM, preferred), `/ov:sway` (window).
+**Workflow position:** Desktop automation. Use for pixel-level interaction when CDP can't reach the element. See also `/ov:cdp` (DOM, preferred), `/ov:wl` (sway subgroup) (window).

@@ -151,16 +151,35 @@ Use `ov cdp click --wl` to find elements by CSS selector in Chrome and deliver c
 ov cdp click selkies-desktop $TAB '#submit-button' --wl
 ```
 
-## Differences from VNC and Sway Commands
+## Sway-Specific Commands (`ov wl sway`)
 
-| Aspect | `ov wl` | `ov vnc` | `ov sway` |
-|--------|---------|----------|-----------|
-| Compositors | All wlroots | Requires wayvnc | Sway only |
-| Transport | exec into container | TCP port 5900 | exec into container |
-| Window mgmt | wlrctl toplevel | No | swaymsg IPC |
-| Clipboard | wl-copy/paste | rfb cut-text | No |
-| Remote access | No | Yes (TCP) | No |
-| NVIDIA headless | Works | Gray screen bug | Works |
+Sway IPC commands are grouped under `ov wl sway <subcommand>`. These require a sway compositor and use swaymsg. They will error on labwc/niri.
+
+```bash
+ov wl sway tree <image>              # Get sway window tree (JSON)
+ov wl sway msg <image> 'focus left'  # Run any swaymsg command
+ov wl sway workspaces <image>        # List workspaces (JSON)
+ov wl sway outputs <image>           # List outputs (JSON)
+ov wl sway focus <image> left        # Focus by direction or [criteria]
+ov wl sway move <image> right        # Move focused window
+ov wl sway resize <image> width 10px # Resize focused window
+ov wl sway kill <image>              # Close focused window
+ov wl sway floating <image>          # Toggle floating
+ov wl sway layout <image> tabbed     # Set layout mode
+ov wl sway workspace <image> 2       # Switch workspace
+ov wl sway reload <image>            # Reload sway config
+```
+
+## Differences from VNC
+
+| Aspect | `ov wl` | `ov vnc` |
+|--------|---------|----------|
+| Compositors | All wlroots (+ sway subgroup) | Requires wayvnc |
+| Transport | exec into container | TCP port 5900 |
+| Window mgmt | wlrctl toplevel + sway IPC | No |
+| Clipboard | wl-copy/paste | rfb cut-text |
+| Remote access | No | Yes (TCP) |
+| NVIDIA headless | Works | Gray screen bug |
 
 Source: `ov/wl.go`.
 
@@ -168,7 +187,6 @@ Source: `ov/wl.go`.
 
 - `/ov:vnc` — VNC/RFB protocol alternative (TCP-based, works remotely)
 - `/ov:cdp` — Chrome DevTools Protocol (DOM-level interaction, `--wl` flag for click, `axtree` for accessibility)
-- `/ov:sway` — Sway-specific compositor control (tree, workspaces, layout, move, resize)
 - `/ov-layers:wl-tools` — Compositor-agnostic tools (wtype, wlrctl, wl-clipboard, wlr-randr, xdotool, ydotool)
 - `/ov-layers:wl-screenshot-grim` — Screenshot layer for sway (grim, wlr-screencopy)
 - `/ov-layers:wl-screenshot-pixelflux` — Screenshot layer for selkies (pixelflux rendering pipeline)

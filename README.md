@@ -12,7 +12,7 @@ Claude Code plugins for Overthink — the container management experience for yo
 
 ## Plugins
 
-### ov (16 skills)
+### ov (19 skills)
 
 Skills for composing, building, and running container images with the `ov` CLI.
 
@@ -31,7 +31,10 @@ Skills for composing, building, and running container images with the `ov` CLI.
 | service | `/ov:service` | Service management (ov start/stop/enable + supervisord services) |
 | cdp | `/ov:cdp` | Chrome DevTools Protocol (ov cdp open/list/click/eval) |
 | vnc | `/ov:vnc` | VNC desktop automation (ov vnc screenshot/click/type) |
-| sway | `/ov:sway` | Sway compositor control (ov sway focus/move/tree/exec) |
+| sway | `/ov:sway` | DEPRECATED — Sway commands moved to `ov wl sway <subcommand>` |
+| wl | `/ov:wl` | Desktop automation (22 commands + 12 sway IPC commands) |
+| sun | `/ov:sun` | Sunshine game streaming server management |
+| moon | `/ov:moon` | GameStream client (Moonlight pairing, app launch/quit) |
 | tmux | `/ov:tmux` | Persistent tmux sessions (ov tmux shell/run/attach/capture) |
 | openclaw | `/ov:openclaw` | OpenClaw AI gateway configuration |
 
@@ -56,7 +59,7 @@ Development tools and enforcement agents for contributors.
 
 **MCP Server:** GitHub (22 tools for issues, PRs, workflows, repo operations)
 
-### ov-layers (100 skills)
+### ov-layers (137 skills)
 
 Reference documentation for every Overthink container layer.
 
@@ -154,7 +157,7 @@ Reference documentation for every Overthink container layer.
 | xfce4-terminal | `/ov-layers:xfce4-terminal` | Xfce terminal emulator |
 | xurl | `/ov-layers:xurl` | X/Twitter API CLI (depends: nodejs) |
 
-### ov-images (16 skills)
+### ov-images (39 skills)
 
 Reference documentation for every enabled Overthink container image.
 

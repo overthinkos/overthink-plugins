@@ -98,7 +98,7 @@ All images use `gles2` on NVIDIA headless. Chrome gets full GPU acceleration. Th
 
 ## CDP Diagnostics
 
-`ov cdp` commands now show diagnostics on connection failure: checks Chrome process, relay status, and port binding. Hints use `ov sway exec <image> chrome-wrapper` (not `ov shell` with bare `swaymsg`) for manual Chrome restart.
+`ov cdp` commands now show diagnostics on connection failure: checks Chrome process, relay status, and port binding. Hints use `ov wl sway exec <image> chrome-wrapper` (not `ov shell` with bare `swaymsg`) for manual Chrome restart.
 
 ## Used In Images
 

@@ -263,7 +263,7 @@ For running containers, `ov status` probes all 5 desktop automation tools concur
 | wl | `command -v grim wtype wlrctl` | Wayland tools |
 | sun | HTTPS GET `:47990/api/config` | Sunshine streaming |
 
-Each tool also has its own `status` subcommand: `ov cdp status`, `ov vnc status`, `ov sway status`, `ov wl status`, `ov sun status`.
+Each tool also has its own `status` subcommand: `ov cdp status`, `ov vnc status`, `ov wl sway status`, `ov wl status`, `ov sun status`.
 
 ### Single Image Detail
 
@@ -297,7 +297,7 @@ Source: `ov/status.go`.
 - `/ov:config` -- `run_mode`, `auto_enable`, `engine.run` settings
 - `/ov:cdp` -- CDP status subcommand (`ov cdp status`)
 - `/ov:vnc` -- VNC status subcommand (`ov vnc status`)
-- `/ov:sway` -- Sway status subcommand (`ov sway status`)
+- `/ov:wl` -- Desktop automation + sway subgroup (`ov wl sway status`)
 - `/ov:wl` -- WL status subcommand (`ov wl status`)
 - `/ov:sun` -- Sunshine status subcommand (`ov sun status`)
 

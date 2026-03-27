@@ -169,7 +169,7 @@ When `ov cdp` commands fail to connect, the `diagnoseCDP()` function runs automa
 2. **Relay status**: Is the port relay (socat) forwarding 9222? (`supervisorctl status relay-9222`)
 3. **Port binding**: Is Chrome listening on 127.0.0.1:9222? (`ss -tlnp`)
 
-Hints direct users to `ov sway exec <image> chrome-wrapper` for manual Chrome restart (not `ov shell` with bare `swaymsg`, which may lack the correct `SWAYSOCK` path).
+Hints direct users to `ov wl sway exec <image> chrome-wrapper` for manual Chrome restart (not `ov shell` with bare `swaymsg`, which may lack the correct `SWAYSOCK` path).
 
 ## browser-open Script and BROWSER Env
 
@@ -244,7 +244,7 @@ On a fresh profile, Chrome opens a first-run dialog ("Make Google Chrome the def
 
 ```bash
 # Focus the first-run dialog and dismiss it
-ov sway msg my-app 'focus left'     # first-run dialog is typically the left window
+ov wl sway msg my-app 'focus left'     # first-run dialog is typically the left window
 ov vnc key my-app Return            # press OK
 ```
 
@@ -346,7 +346,7 @@ Use `ov cdp coords my-app $TAB '<selector>'` to debug coordinate translation. It
 
 ## Cross-References
 
-- `/ov:sway` -- Sway compositor control (window management, workspaces)
+- `/ov:wl` (sway subgroup) -- Sway compositor control (window management, workspaces)
 - `/ov:vnc` -- VNC desktop automation (same container, pixel-level interaction)
 - `/ov:shell` -- Running commands in containers (`--tty` for OAuth flows)
 - `/ov:service` -- Starting containers (`ov start`, `ov enable`)
@@ -356,4 +356,4 @@ Use `ov cdp coords my-app $TAB '<selector>'` to debug coordinate translation. It
 
 **MUST be invoked** when the task involves Chrome DevTools Protocol, ov cdp commands, browser automation, clicking elements, taking screenshots, or OAuth flows inside containers. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Desktop automation. Use after a desktop container is running. Preferred over VNC for structured interaction. See also `/ov:vnc` (pixel), `/ov:sway` (window).
+**Workflow position:** Desktop automation. Use after a desktop container is running. Preferred over VNC for structured interaction. See also `/ov:vnc` (pixel), `/ov:wl` (sway subgroup) (window).
