@@ -2,13 +2,13 @@
 name: arch-ov
 description: |
   Arch Linux image with ov installed from PKGBUILD via makepkg. Runs as root with
-  host networking and privileged mode for full container management including nested podman.
+  host networking and cap_add ALL for full container management including nested podman.
   MUST be invoked before building, deploying, configuring, or troubleshooting the arch-ov image.
 ---
 
 # arch-ov
 
-Arch Linux container with ov installed from source via the [overthink-arch](https://github.com/overthinkos/overthink-arch) PKGBUILD. A self-hosting proof: ov building an image that contains itself, installed through the distribution's native package manager.
+Arch Linux container with ov installed from source via the [overthink-arch](https://github.com/overthinkos/overthink-arch) PKGBUILD. A self-hosting proof: ov building an image that contains itself, installed through the distribution's native package manager. Supports running arch-ov inside arch-ov (tested to depth 3).
 
 ## Image Properties
 
@@ -20,7 +20,7 @@ Arch Linux container with ov installed from source via the [overthink-arch](http
 | UID/GID | 0/0 (root) |
 | User | root |
 | Network | host |
-| Security | privileged |
+| Security | cap_add: ALL, security_opt: label=disable + seccomp=unconfined |
 | Registry | ghcr.io/overthinkos |
 
 ## What's Installed
@@ -56,11 +56,18 @@ ov stop arch-ov
 
 ## Nested Containers
 
-Podman works inside arch-ov — the image is configured with privileged mode, rootless podman support, and host networking for nested containers:
+Podman works inside arch-ov at any nesting depth. The image uses `cap_add: ALL` instead of `privileged: true` to avoid sysfs remount failures, plus `containers.conf` disables cgroups, user namespaces, and network namespaces for the inner podman:
 
 ```bash
+# Level 1: run containers inside arch-ov
 ov shell arch-ov -c "podman run --rm docker.io/library/alpine echo hello"
 ov shell arch-ov -c "ov status --all"
+
+# Self-hosting: build arch-ov inside arch-ov
+ov shell arch-ov -c "cd /tmp && git clone https://github.com/overthinkos/overthink.git && cd overthink/ov && go build -o ../bin/ov . && cd .. && bin/ov build arch-ov"
+
+# Level 2: run ov inside arch-ov inside arch-ov
+ov shell arch-ov -c "ov shell arch-ov --no-auto-detect -c 'ov version'"
 ```
 
 ## Verification
@@ -75,7 +82,7 @@ ov shell arch-ov -c "podman run --rm docker.io/library/alpine echo OK"  # Nested
 
 ## Known Limitations
 
-- **AUR packages not installed:** `docker-buildx`, `cloudflared-bin`, `gvisor-tap-vsock` are AUR-only — the image uses makepkg for ov but doesn't set up yay for additional AUR packages
-- **libvirt socket:** Not available inside the container (no virtqemud running) — VM commands that need libvirt will fail
+- **AUR packages not installed:** `docker-buildx`, `cloudflared-bin`, `gvisor-tap-vsock` are AUR-only
+- **libvirt socket:** Not available inside the container (no virtqemud running)
 - **Secret storage:** Falls back to plaintext config (no gnome-keyring/keepassxc in container)
-- **`config get` fix:** The ov binary built from GitHub may lack the `config get` fix for non-engine keys until the fix is pushed upstream
+- **GPU at level 2:** Use `--no-auto-detect` when running `ov shell` at level 2 to avoid CDI device resolution errors for NVIDIA GPUs
