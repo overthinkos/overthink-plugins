@@ -92,4 +92,4 @@ ov inspect fedora-ov --format tags
 
 ## Unified with arch-ov
 
-Both `fedora-ov` and `arch-ov` use the exact same layer list. The tag system (`pkg: [rpm, fedora, "fedora:43"]` vs `pkg: [pac, archlinux]`) selects the right packages and scripts per distro.
+Both `fedora-ov` and `arch-ov` use the exact same layer list. The tag system (`build: [rpm]` + `distro: ["fedora:43", fedora]` vs `build: [pac]` + `distro: [archlinux]`) selects the right packages and scripts per distro.

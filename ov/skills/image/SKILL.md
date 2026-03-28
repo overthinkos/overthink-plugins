@@ -29,7 +29,7 @@ defaults:
   platforms:
     - linux/amd64
     - linux/arm64
-  pkg: rpm
+  build: [rpm]
   builders:                    # build type → builder image
     pixi: fedora-builder
     npm: fedora-builder
@@ -41,7 +41,7 @@ defaults:
 images:
   fedora:
     base: "quay.io/fedora/fedora:43"
-    pkg: rpm
+    distro: ["fedora:43", fedora]
 
   fedora-builder:
     base: fedora
@@ -81,7 +81,8 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `platforms` | `["linux/amd64", "linux/arm64"]` | Target architectures |
 | `tag` | `"auto"` | Image tag. `"auto"` for CalVer |
 | `registry` | `""` | Container registry prefix |
-| `pkg` | `"rpm"` | Tags: string `"rpm"` or list `["rpm", "fedora", "fedora:43"]`. First entry must be a format (rpm/deb/pac/aur). Tags control layer.yml sections and root.yml/user.yml tasks. Inherited from base image |
+| `distro` | `[]` | Distro identity tags in priority order: `["fedora:43", fedora]`. For packages: first matching section wins (override). For tasks: additive. Inherited from base image |
+| `build` | `["rpm"]` | Package formats tied to builders: `[rpm]` or `[pac, aur]`. ALL formats installed in order. Valid: rpm, deb, pac, aur. Inherited from base image |
 | `layers` | (required) | Layer list (image-specific, not inherited) |
 | `ports` | `[]` | Runtime port mappings (`"host:container"` or `"port"`) |
 | `user` | `"user"` | Username for non-root operations |
@@ -105,7 +106,8 @@ Builder images provide build tools (pixi, npm, cargo, yay) for multi-stage build
 
 - **`builders:`** on images — map of build type → builder image name. Inherited: image → base image → defaults → `{}`.
 - **`builds:`** on builder images — list declaring what the builder can build. Not inherited.
-- **`pkg:`** — system package formats (`rpm`, `deb`, `pac`, `aur`). Inherited from base image.
+- **`build:`** — package formats tied to builders (`rpm`, `deb`, `pac`, `aur`). ALL formats installed in order. Inherited from base image. Default: `[rpm]`.
+- **`distro:`** — distro identity tags in priority order (`["fedora:43", fedora]`). First matching section overrides packages. Inherited from base image.
 
 ```yaml
 defaults:
@@ -122,7 +124,8 @@ images:
 
   archlinux:
     base: "docker.io/library/archlinux:latest"
-    pkg: pac
+    distro: [archlinux]
+    build: [pac]
     builders:
       pixi: archlinux-builder
       npm: archlinux-builder
@@ -130,13 +133,13 @@ images:
       aur: archlinux-builder
 
   archlinux-builder:
-    base: archlinux              # inherits pkg: pac AND builders: from archlinux
+    base: archlinux              # inherits build: [pac] AND builders: from archlinux
     builds: [pixi, npm, cargo, aur]
     layers: [pixi, nodejs, build-toolchain, yay]
 
   arch-test:
     base: archlinux              # inherits builders: from archlinux
-    pkg: [pac, aur]              # override to add aur format
+    build: [pac, aur]            # override to add aur format
     layers: [arch-pac-test, arch-aur-test]
 ```
 

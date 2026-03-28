@@ -87,4 +87,4 @@ ov shell arch-ov -c "which nvidia-ctk"
 
 ## Unified with fedora-ov
 
-Both `arch-ov` and `fedora-ov` use the exact same layer list. The tag system (`pkg: [pac, archlinux]` vs `pkg: [rpm, fedora, "fedora:43"]`) selects the right packages and scripts per distro.
+Both `arch-ov` and `fedora-ov` use the exact same layer list. The tag system (`build: [pac]` + `distro: [archlinux]` vs `build: [rpm]` + `distro: ["fedora:43", fedora]`) selects the right packages and scripts per distro.
