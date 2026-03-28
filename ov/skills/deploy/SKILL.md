@@ -41,7 +41,7 @@ Contents include:
 - `Environment=` / `EnvironmentFile=` for env vars
 - `ExecStartPost=` / `ExecStopPost=` for tunnel commands
 
-Service name: `ov-<image>.service`. Container name: `ov-<image>`. Entrypoint: `supervisord -n -c /etc/supervisord.conf`.
+Service name: `ov-<image>.service`. Container name: `ov-<image>`. Entrypoint: determined by init.yml for the configured init system.
 
 ### Security in Quadlet
 
@@ -279,7 +279,7 @@ port_relay:
   - 18789
 ```
 
-Requires the `socat` layer as a dependency. The relay runs as a `relay-<port>` supervisord service. See `/ov-layers:chrome` and `/ov-layers:openclaw` for examples.
+Requires the `socat` layer as a dependency. The relay runs as a `relay-<port>` service in the configured init system. See `/ov-layers:chrome` and `/ov-layers:openclaw` for examples.
 
 ## Cross-References
 

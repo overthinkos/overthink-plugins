@@ -56,7 +56,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `start.go` | `start`/`stop` commands |
 | `status.go` | `status` command (structured table/detail view, live tool probing, `--json`) |
 | `commands.go` | `enable`/`disable`/`logs`/`update`/`remove` |
-| `service.go` | `service` command (supervisord service management inside containers) |
+| `service.go` | `service` command (init system service management inside containers) |
 | `seed.go` | `seed` command (bind mount data seeding) |
 | `hooks.go` | Lifecycle hooks (`post_enable`, `pre_remove`) collection and execution |
 | `remote_image.go` | Remote image ref resolution, pull-or-build |

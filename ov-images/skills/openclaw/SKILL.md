@@ -56,7 +56,7 @@ ov start openclaw
 
 After `ov start`:
 - `ov status openclaw` — container running
-- `ov service status openclaw` — all supervisord services RUNNING
+- `ov service status openclaw` — all services RUNNING
 - `curl -s http://localhost:18789` — OpenClaw gateway responds
 
 ## Port Relay Architecture

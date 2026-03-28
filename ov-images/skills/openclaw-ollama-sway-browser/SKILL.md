@@ -65,7 +65,7 @@ ov start openclaw-ollama-sway-browser
 
 After `ov start`:
 - `ov status openclaw-ollama-sway-browser` — container running
-- `ov service status openclaw-ollama-sway-browser` — all supervisord services RUNNING
+- `ov service status openclaw-ollama-sway-browser` — all services RUNNING
 - `curl http://localhost:18789` — OpenClaw gateway responds
 - `curl http://localhost:11434/api/tags` — Ollama API responds
 - VNC client → `localhost:5900` — Sway desktop visible

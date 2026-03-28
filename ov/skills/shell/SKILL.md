@@ -81,7 +81,7 @@ port_relay:
 
 How it works:
 - socat binds to `eth0:<port>` and forwards to `127.0.0.1:<port>`
-- A supervisord service is auto-generated with priority 1 (starts before other services)
+- An init system service is auto-generated (via init.yml `relay_template`) with priority 1 (starts before other services)
 - The socat layer is automatically added as a dependency
 
 This makes loopback-only services accessible through normal podman/docker port mappings and `tailscale serve`.

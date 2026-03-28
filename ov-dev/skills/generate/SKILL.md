@@ -37,12 +37,12 @@ description: |
 
 The generated Containerfile follows this order:
 
-1. **Multi-stage build stages** -- scratch stages per layer, builder stages from `builder.yml` templates (pixi, npm, aur, cargo), supervisord config assembly, traefik routes
+1. **Multi-stage build stages** -- scratch stages per layer, builder stages from `builder.yml` templates (pixi, npm, aur, cargo), init system config assembly (driven by init.yml), traefik routes
 2. **`FROM ${BASE_IMAGE}`** -- external bases get bootstrap from `distro.yml` (install cmd, cache mounts, workarounds); internal bases get `USER root`
 3. **Image metadata** -- consolidated `ENV` directives, `EXPOSE` ports, `org.overthinkos.*` labels
 4. **COPY build artifacts** -- config-driven from `builder.yml` `copy_artifacts` and `copy_binary` definitions
 5. **Per-layer install steps** -- distro: override (first match) then build: formats (all in order). Install commands rendered from `distro.yml` format templates. `root.yml` (tag-based task dispatch), inline builders (cargo), `user.yml`. `USER` toggles between root and UID
-6. **Final assembly** -- supervisord config concatenation, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only)
+6. **Final assembly** -- init system config assembly, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only)
 
 **Config-driven generation:** All format-specific install commands, cache mounts, repo setup, and builder stages are defined in `distro.yml` and `builder.yml` at the project root as Go `text/template` strings. Each distro entry in `distro.yml` contains both bootstrap config and its package format definitions. Referenced via `format_config:` in `images.yml` — supports local paths and remote `@github.com/org/repo/path:version` refs. Adding a new format (e.g., `apk` for Alpine) requires only YAML changes — zero Go code modifications.
 
@@ -167,8 +167,8 @@ Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), maki
 | `org.overthinkos.vm` | JSON | VM config (bootc images) |
 | `org.overthinkos.libvirt` | JSON | libvirt XML snippets |
 | `org.overthinkos.routes` | JSON | `[{"host":"app.localhost","port":8080}]` |
-| `org.overthinkos.systemd` | JSON | systemd unit names (bootc) |
-| `org.overthinkos.supervisord` | JSON | supervisord service names |
+| `org.overthinkos.init` | string | active init system name |
+| `org.overthinkos.services.<init>` | JSON | service names per init system |
 | `org.overthinkos.env_layers` | JSON | layer-level env vars (merged) |
 | `org.overthinkos.path_append` | JSON | PATH append entries |
 | `org.overthinkos.engine` | string | Required run engine (`docker`/`podman`, omitted if any) |

@@ -60,7 +60,7 @@ ov shell openclaw-ollama -c "ollama pull llama3"
 
 After `ov start`:
 - `ov status openclaw-ollama` — container running
-- `ov service status openclaw-ollama` — all supervisord services RUNNING
+- `ov service status openclaw-ollama` — all services RUNNING
 - `curl -s http://localhost:18789` — OpenClaw gateway responds
 - `curl -s http://localhost:11434/api/tags` — Ollama API responds
 

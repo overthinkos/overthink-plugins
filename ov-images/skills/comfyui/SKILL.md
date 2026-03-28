@@ -54,7 +54,7 @@ ov start comfyui
 
 After `ov start`:
 - `ov status comfyui` — container running
-- `ov service status comfyui` — all supervisord services RUNNING
+- `ov service status comfyui` — all services RUNNING
 - `curl -s -o /dev/null -w '%{http_code}' http://localhost:8188` — ComfyUI HTTP returns 200
 
 ## When to Use This Skill

@@ -69,7 +69,7 @@ ov remove githubrunner -e RUNNER_TOKEN=<token>
 
 After `ov start`:
 - `ov status githubrunner` — container running
-- `ov service status githubrunner` — all supervisord services RUNNING
+- `ov service status githubrunner` — all services RUNNING
 - Check runner appears as "Idle" in GitHub org/repo Settings > Actions > Runners
 
 ## When to Use This Skill

@@ -28,7 +28,7 @@ Skills for composing, building, and running container images with the `ov` CLI.
 | config | `/ov:config` | Runtime configuration (ov config get/set/list) |
 | enc | `/ov:enc` | Encrypted volumes (ov enc init/mount/unmount) |
 | vm | `/ov:vm` | Virtual machines (ov vm build/create/start/stop) |
-| service | `/ov:service` | Service management (ov start/stop/enable + supervisord services) |
+| service | `/ov:service` | Service management (ov start/stop/enable + init system services) |
 | cdp | `/ov:cdp` | Chrome DevTools Protocol (ov cdp open/list/click/eval) |
 | vnc | `/ov:vnc` | VNC desktop automation (ov vnc screenshot/click/type) |
 | wl | `/ov:wl` | Desktop automation (22 commands + 12 sway IPC commands) |

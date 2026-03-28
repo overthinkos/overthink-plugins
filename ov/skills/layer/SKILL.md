@@ -64,7 +64,7 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 
 ### port_relay
 
-Ports needing an eth0->loopback socat relay inside the container. For services that bind only to 127.0.0.1 (like Chrome DevTools). Auto-adds socat dependency and generates a supervisord relay service.
+Ports needing an eth0->loopback socat relay inside the container. For services that bind only to 127.0.0.1 (like Chrome DevTools). Auto-adds socat dependency and generates a relay service via the configured init system (defined in init.yml).
 
 ```yaml
 port_relay:
@@ -230,7 +230,7 @@ service: |
   autorestart=true
 ```
 
-Requires `supervisord` layer in the dependency chain.
+Requires the init system's dependency layer (e.g., `supervisord` for containers). See init.yml `depends_layer`.
 
 ## Volume Declaration
 
@@ -352,7 +352,7 @@ path_append:
 
 ### Add a Service
 
-Add a `service` field to layer.yml with a supervisord program fragment. Add `supervisord` to `depends`.
+Add a `service` field to layer.yml with an init system program fragment (e.g., supervisord INI format). Add the init system's dependency layer to `depends` (e.g., `supervisord`).
 
 ## Style Guide
 

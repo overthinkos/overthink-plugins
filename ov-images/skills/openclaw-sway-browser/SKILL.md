@@ -61,7 +61,7 @@ ov start openclaw-sway-browser
 
 After `ov start`:
 - `ov status openclaw-sway-browser` — container running
-- `ov service status openclaw-sway-browser` — all supervisord services RUNNING
+- `ov service status openclaw-sway-browser` — all services RUNNING
 - `curl -s http://localhost:18789` — OpenClaw gateway responds
 - VNC client connects to `localhost:5900` — desktop accessible
 - `curl -s http://localhost:9222/json/version` — Chrome DevTools responds

@@ -1,14 +1,14 @@
 ---
 name: service
 description: |
-  MUST be invoked before any work involving: ov start/stop/enable/disable/status/logs/update/remove commands, supervisord service management, or container lifecycle.
+  MUST be invoked before any work involving: ov start/stop/enable/disable/status/logs/update/remove commands, init system service management, or container lifecycle.
 ---
 
 # Service - Service Management
 
 ## Overview
 
-Container service lifecycle management with two modes: **quadlet** (systemd user services via podman quadlet, always preferred) and **direct** (`<engine> run -d` / `<engine> stop`, fallback only for platforms without quadlet support). Also manages individual supervisord services inside running containers.
+Container service lifecycle management with two modes: **quadlet** (systemd user services via podman quadlet, always preferred) and **direct** (`<engine> run -d` / `<engine> stop`, fallback only for platforms without quadlet support). Also manages individual init system services inside running containers (supervisord, systemd, etc. — configured via init.yml).
 
 ## Quick Reference
 
@@ -35,7 +35,7 @@ Container service lifecycle management with two modes: **quadlet** (systemd user
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Service status | `ov service status <image>` | Show all supervisord service status |
+| Service status | `ov service status <image>` | Show all service status |
 | Start service | `ov service start <image> <svc>` | Start a specific service |
 | Stop service | `ov service stop <image> <svc>` | Stop a specific service |
 | Restart service | `ov service restart <image> <svc>` | Restart a specific service |
@@ -91,9 +91,9 @@ With `auto_enable=true` (the default), `ov start` auto-generates the quadlet fil
 - Service name: `ov-<image>.service`
 - Container name: `ov-<image>`
 - Ports bound to configured `bind_address`
-- Entrypoint: `supervisord -n -c /etc/supervisord.conf` (for images with supervisord services) or `sleep infinity` (for images without)
+- Entrypoint: determined by init.yml config (e.g., `supervisord -n -c /etc/supervisord.conf` for supervisord, `sleep infinity` if no init system)
 - Auto-restart on failure via `WantedBy=default.target`
-- `ov validate` enforces: images with `service:` or `port_relay:` layers MUST include the `supervisord` layer in their dependency chain
+- `ov validate` enforces: images with init system layers MUST include the required dependency layer (defined by init.yml `depends_layer`)
 - `Secret=ov-<image>-<name>,target=/run/secrets/<name>` for each layer-declared secret (Podman only)
 
 ### Container Secrets
@@ -144,19 +144,19 @@ ov remove my-app                 # Stop + remove container
 ov remove my-app --purge         # Also remove named volumes
 ```
 
-## Supervisord Service Management
+## Init System Service Management
 
-Manage individual supervisord services inside a running container:
+Manage individual services inside a running container (uses the init system configured via init.yml — supervisord, systemd, etc.):
 
 ```bash
-ov service status my-app               # Show status of all supervisord services
+ov service status my-app               # Show status of all services
 ov service start my-app traefik        # Start a specific service
 ov service stop my-app traefik         # Stop a specific service
 ov service restart my-app traefik      # Restart a specific service
 ov service status my-app -i prod       # Named instance
 ```
 
-The service name must match a `[program:<name>]` entry in the image's supervisord config. Available services are validated against the image's `org.overthinkos.supervisord` label.
+The service name must match an entry in the image's init system config. Available services are validated against the image's `org.overthinkos.services.<init>` label (e.g., `org.overthinkos.services.supervisord`). The management tool and commands are defined in init.yml.
 
 Source: `ov/service.go`.
 
@@ -301,7 +301,7 @@ Source: `ov/status.go`.
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves starting, stopping, enabling, or managing container services, supervisord service management, or container lifecycle. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves starting, stopping, enabling, or managing container services, init system service management, or container lifecycle. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** After `/ov:build` and `/ov:deploy`. This skill covers the runtime lifecycle.
 Previous step: `/ov:deploy` (quadlet generation, tunnels). Next step: `/ov-images:<name>` (verification).

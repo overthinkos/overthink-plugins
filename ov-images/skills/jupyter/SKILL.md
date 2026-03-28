@@ -55,7 +55,7 @@ ov start jupyter
 
 After `ov start`:
 - `ov status jupyter` — container running
-- `ov service status jupyter` — all supervisord services RUNNING
+- `ov service status jupyter` — all services RUNNING
 - `curl -s -o /dev/null -w '%{http_code}' http://localhost:8888` — Jupyter HTTP returns 200
 
 ## When to Use This Skill

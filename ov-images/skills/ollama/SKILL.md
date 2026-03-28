@@ -70,7 +70,7 @@ ov alias install ollama
 
 After `ov start`:
 - `ov status ollama` — container running
-- `ov service status ollama` — all supervisord services RUNNING
+- `ov service status ollama` — all services RUNNING
 - `curl -s http://localhost:11434/api/tags` — Ollama API responds
 
 ## When to Use This Skill

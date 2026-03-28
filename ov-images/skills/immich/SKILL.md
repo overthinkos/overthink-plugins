@@ -68,7 +68,7 @@ ov start immich
 
 After `ov start`:
 - `ov status immich` — container running
-- `ov service status immich` — all supervisord services RUNNING
+- `ov service status immich` — all services RUNNING
 - `curl -s -o /dev/null -w '%{http_code}' http://localhost:2283` — Immich HTTP returns 200
 
 ## When to Use This Skill
