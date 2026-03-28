@@ -26,11 +26,11 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 | File | Runs as | Purpose |
 |------|---------|---------|
 | `layer.yml` `rpm`/`deb` | root | System packages declared in layer.yml |
-| `root.yml` | root | Custom root install logic (Taskfile). Binary downloads, system config |
+| `root.yml` | root | Custom root install logic (Taskfile). Tag-based dispatch: `all:` + `rpm:`/`pac:`/`fedora:` tasks |
 | `pixi.toml` / `pyproject.toml` / `environment.yml` | user | Python/conda packages. Multi-stage build. Only one per layer |
 | `package.json` | user | npm packages -- installed globally via `npm install -g` |
 | `Cargo.toml` | user | Rust crate -- built via `cargo install --path`. Requires `src/` directory |
-| `user.yml` | user | Custom user install logic (Taskfile). Post-install config |
+| `user.yml` | user | Custom user install logic (Taskfile). Same tag-based dispatch as root.yml |
 
 **Root vs User Rule:** System packages in `layer.yml` and `root.yml` run as root. Everything else runs as user. Pixi, npm, and cargo must never run as root.
 
@@ -357,7 +357,7 @@ Add a `service` field to layer.yml with a supervisord program fragment. Add `sup
 ## Style Guide
 
 - Lowercase-hyphenated names for layers
-- `root.yml` / `user.yml`: single `install` task, no parameters, idempotent
+- `root.yml` / `user.yml`: `all:` task for common logic, optional tag-specific tasks (`rpm:`, `pac:`, `fedora:`, etc.), idempotent
 - System packages in `layer.yml` `rpm:`/`deb:`/`pac:` sections, not in root.yml
 - AUR packages in `layer.yml` `aur:` section (requires `builders.aur` on the image)
 - Python in `pixi.toml`, npm in `package.json`, Rust in `Cargo.toml`

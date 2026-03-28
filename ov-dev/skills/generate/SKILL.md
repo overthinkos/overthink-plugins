@@ -41,7 +41,7 @@ The generated Containerfile follows this order:
 2. **`FROM ${BASE_IMAGE}`** -- external bases get bootstrap (task, user/group at UID/GID, WORKDIR); internal bases get `USER root`
 3. **Image metadata** -- consolidated `ENV` directives, `EXPOSE` ports, `org.overthinkos.*` labels
 4. **COPY build artifacts** -- pixi environments, pixi binary, npm packages from build stages
-5. **Per-layer install steps** -- for each layer: rpm/deb packages, `root.yml`, `Cargo.toml`, `user.yml`. `USER` toggles between root and UID
+5. **Per-layer install steps** -- for each layer: rpm/deb/pac packages, tag-specific packages, `root.yml` (tag-based task dispatch: `task -t root.yml all rpm fedora`), `Cargo.toml`, `user.yml` (same dispatch). `USER` toggles between root and UID
 6. **Final assembly** -- supervisord config concatenation, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only -- validates bootc compliance)
 
 ## Multi-Stage Builds

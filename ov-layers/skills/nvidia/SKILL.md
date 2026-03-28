@@ -45,7 +45,8 @@ Creates Vulkan ICD compatibility symlinks for nvidia-ctk CDI device injection.
 ## Used In Images
 
 - `/ov-images:nvidia` — NVIDIA GPU base image (nvidia + cuda layers)
-- `/ov-images:arch-ov` — Arch Linux ov development image (arch-ov + nvidia layers)
+- `/ov-images:arch-ov` — Arch Linux ov toolchain (shared layers + nvidia)
+- `/ov-images:fedora-ov` — Fedora ov toolchain (shared layers + nvidia)
 
 ## Related Layers
 

@@ -49,7 +49,8 @@ ov shell nvidia
 ## Related Images
 
 - `/ov-images:fedora` — parent base (no GPU)
-- `/ov-images:arch-ov` — Arch Linux with nvidia layer (GPU testing on Arch)
+- `/ov-images:arch-ov` — Arch Linux ov toolchain with nvidia (shared layers)
+- `/ov-images:fedora-ov` — Fedora ov toolchain with nvidia (shared layers)
 
 ## Verification
 

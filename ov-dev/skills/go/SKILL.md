@@ -30,8 +30,8 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | File | Purpose |
 |------|---------|
 | `main.go` | CLI entry point (Kong framework) |
-| `config.go` | `images.yml` parsing, inheritance resolution. `PkgFormats` type (string or list YAML unmarshal). `AurBuilder`, `PkgOrder` fields. `SupportsPkg()` method. `SecurityConfig` has `Mounts` field for host mounts |
-| `layers.go` | Layer scanning, file detection, `parseLayerYAML()`. `PacConfig`, `PacRepo`, `AurConfig` structs for Arch Linux support |
+| `config.go` | `images.yml` parsing, inheritance resolution. `PkgFormats` type (string-or-list YAML unmarshal for `pkg:` field). `ResolvedImage.Tags` (resolved tag list with `"all"` prefix). `SupportsTag()` method. `MatchingTasks()` for tag-aware root.yml/user.yml dispatch. `SecurityConfig` has `Mounts` field for host mounts |
+| `layers.go` | Layer scanning, file detection, `parseLayerYAML()`. `PacConfig`, `PacRepo`, `AurConfig` structs. `TagSections` map for dynamic distro/version sections. `RootYmlTasks`/`UserYmlTasks` parsed from Taskfiles. `parseTaskfileTaskNames()` |
 | `generate.go` | Containerfile generation (largest file) |
 | `validate.go` | All validation rules |
 | `version.go` | CalVer computation |

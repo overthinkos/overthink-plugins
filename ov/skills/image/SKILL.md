@@ -81,7 +81,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `platforms` | `["linux/amd64", "linux/arm64"]` | Target architectures |
 | `tag` | `"auto"` | Image tag. `"auto"` for CalVer |
 | `registry` | `""` | Container registry prefix |
-| `pkg` | `"rpm"` | Package formats: string `"rpm"` or list `["pac", "aur"]`. Inherited from base image |
+| `pkg` | `"rpm"` | Tags: string `"rpm"` or list `["rpm", "fedora", "fedora:43"]`. First entry must be a format (rpm/deb/pac/aur). Tags control layer.yml sections and root.yml/user.yml tasks. Inherited from base image |
 | `layers` | (required) | Layer list (image-specific, not inherited) |
 | `ports` | `[]` | Runtime port mappings (`"host:container"` or `"port"`) |
 | `user` | `"user"` | Username for non-root operations |
