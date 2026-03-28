@@ -56,7 +56,7 @@ Development tools and enforcement agents for contributors.
 
 **MCP Server:** GitHub (22 tools for issues, PRs, workflows, repo operations)
 
-### ov-layers (125 skills)
+### ov-layers (127 skills)
 
 Reference documentation for every Overthink container layer.
 
@@ -188,7 +188,7 @@ Reference documentation for every Overthink container layer.
 | xterm | `/ov-layers:xterm` | X11 terminal (XWayland) |
 | xurl | `/ov-layers:xurl` | X (Twitter) API CLI for posts, search, DMs, and media |
 
-### ov-images (29 skills)
+### ov-images (31 skills)
 
 Reference documentation for every enabled Overthink container image.
 
@@ -252,7 +252,7 @@ Reference documentation for every enabled Overthink container image.
 | Component | Count |
 |-----------|-------|
 | Plugins | 4 |
-| Skills | 172 |
+| Skills | 176 |
 | Agents | 3 |
 | MCP Servers | 1 (GitHub) |
 | MCP Tools | 22 |

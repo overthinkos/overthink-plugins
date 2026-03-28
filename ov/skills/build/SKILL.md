@@ -33,6 +33,22 @@ ov build --no-cache [image...]              # Disable cache entirely
 ov build --jobs N [image...]                # Max concurrent builds per level (default: 4)
 ```
 
+## Format Config (distro.yml / builder.yml)
+
+Containerfile generation is driven by declarative YAML config files referenced in `images.yml`:
+
+```yaml
+defaults:
+  format_config:
+    distro: distro.yml    # Distro bootstrap + package format definitions
+    builder: builder.yml  # Multi-stage builder definitions (pixi, npm, cargo, aur)
+```
+
+- **`distro.yml`** — Defines per-distro bootstrap commands (package manager setup, cache mounts, repo management) and package format templates (how `rpm:`, `pac:`, `deb:` sections in layer.yml become `RUN` steps). Each format has `install`, `repos`, `copr`, `modules`, and `options` templates.
+- **`builder.yml`** — Defines multi-stage builder patterns (pixi, npm, cargo, aur). Each builder has `build_stage` and `copy_stage` templates that generate the appropriate `FROM builder AS ...` and `COPY --from=...` steps.
+
+Both files use Go `text/template` syntax with access to layer config data. Source: `ov/format_config.go` (loading), `ov/format_template.go` (rendering).
+
 ## Containerfile Generation
 
 `ov build` runs `ov generate` internally. You can also run it standalone to inspect generated Containerfiles:

@@ -91,8 +91,9 @@ With `auto_enable=true` (the default), `ov start` auto-generates the quadlet fil
 - Service name: `ov-<image>.service`
 - Container name: `ov-<image>`
 - Ports bound to configured `bind_address`
-- Entrypoint: `supervisord -n -c /etc/supervisord.conf`
+- Entrypoint: `supervisord -n -c /etc/supervisord.conf` (for images with supervisord services) or `sleep infinity` (for images without)
 - Auto-restart on failure via `WantedBy=default.target`
+- `ov validate` enforces: images with `service:` or `port_relay:` layers MUST include the `supervisord` layer in their dependency chain
 - `Secret=ov-<image>-<name>,target=/run/secrets/<name>` for each layer-declared secret (Podman only)
 
 ### Container Secrets
