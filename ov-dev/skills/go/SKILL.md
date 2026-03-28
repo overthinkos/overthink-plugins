@@ -31,11 +31,10 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 |------|---------|
 | `main.go` | CLI entry point (Kong framework) |
 | `config.go` | `images.yml` parsing, inheritance resolution. `BuildFormats` type. `Distro` field. `ResolvedImage.Tags` (union). `SupportsTag()`, `SupportsBuild()`, `MatchingTasks()` methods |
-| `format_config.go` | `DistroConfig`, `BuildConfig`, `BuilderConfig` types. Loads `distro.yml`/`build.yml`/`builder.yml` with `//go:embed` defaults. `FormatDef`, `BuilderDef`, `PackageSection` types |
+| `format_config.go` | `DistroConfig` (with per-distro `Formats`), `BuilderConfig` types. Loads `distro.yml`/`builder.yml` via `format_config:` refs in `images.yml`. `FormatDef`, `BuilderDef` types. Per-image config resolution with remote ref support |
 | `format_template.go` | Go `text/template` rendering engine. Template helpers: `cacheMounts`, `cacheMountsOwned`, `quote`, `default`, `splitFirst`, `replace`, `join`. `InstallContext`, `BuildStageContext` types |
-| `format_defaults.go` | `//go:embed` directives for `ov/defaults/*.yml` |
 | `layers.go` | Layer scanning, file detection, `parseLayerYAML()`. `PackageSection` generic format sections. `TagSections` for distro overrides. `RootYmlTasks`/`UserYmlTasks` from Taskfiles |
-| `generate.go` | Containerfile generation. Config-driven: renders install templates from `build.yml`, builder stages from `builder.yml`, bootstrap from `distro.yml` |
+| `generate.go` | Containerfile generation. Config-driven: renders install templates from `distro.yml` formats, builder stages from `builder.yml`, bootstrap from `distro.yml` |
 | `validate.go` | All validation rules. Format/builder validation against config definitions (not hardcoded maps) |
 | `version.go` | CalVer computation |
 | `scaffold.go` | `new layer` scaffolding |

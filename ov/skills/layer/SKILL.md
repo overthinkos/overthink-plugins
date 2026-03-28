@@ -143,7 +143,7 @@ deb:
 
 ### Pac (`pac:`)
 
-Pacman packages for Arch Linux images. Activated when the image has `pac` in its `pkg` list.
+Pacman packages for Arch Linux images. Activated when the image has `pac` in its `build` list.
 
 ```yaml
 pac:
@@ -160,7 +160,7 @@ pac:
 
 ### AUR (`aur:`)
 
-AUR packages installed via yay in a multi-stage build. The image must have `aur` in its `pkg` list and `builders.aur` configured (typically pointing to `archlinux-builder`). The builder image compiles the AUR packages, and the resulting `.pkg.tar.zst` files are copied to the final image and installed via `pacman -U`.
+AUR packages installed via yay in a multi-stage build. The image must have `aur` in its `build` list and `builders.aur` configured (typically pointing to `archlinux-builder`). The builder image compiles the AUR packages, and the resulting `.pkg.tar.zst` files are copied to the final image and installed via `pacman -U`.
 
 ```yaml
 aur:

@@ -41,10 +41,10 @@ The generated Containerfile follows this order:
 2. **`FROM ${BASE_IMAGE}`** -- external bases get bootstrap from `distro.yml` (install cmd, cache mounts, workarounds); internal bases get `USER root`
 3. **Image metadata** -- consolidated `ENV` directives, `EXPOSE` ports, `org.overthinkos.*` labels
 4. **COPY build artifacts** -- config-driven from `builder.yml` `copy_artifacts` and `copy_binary` definitions
-5. **Per-layer install steps** -- distro: override (first match) then build: formats (all in order). Install commands rendered from `build.yml` templates. `root.yml` (tag-based task dispatch), inline builders (cargo), `user.yml`. `USER` toggles between root and UID
+5. **Per-layer install steps** -- distro: override (first match) then build: formats (all in order). Install commands rendered from `distro.yml` format templates. `root.yml` (tag-based task dispatch), inline builders (cargo), `user.yml`. `USER` toggles between root and UID
 6. **Final assembly** -- supervisord config concatenation, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only)
 
-**Config-driven generation:** All format-specific install commands, cache mounts, repo setup, and builder stages are defined in `ov/defaults/build.yml` and `ov/defaults/builder.yml` as Go `text/template` strings. Bootstrap behavior comes from `ov/defaults/distro.yml`. Adding a new format (e.g., `apk` for Alpine) requires only YAML changes — zero Go code modifications.
+**Config-driven generation:** All format-specific install commands, cache mounts, repo setup, and builder stages are defined in `distro.yml` and `builder.yml` at the project root as Go `text/template` strings. Each distro entry in `distro.yml` contains both bootstrap config and its package format definitions. Referenced via `format_config:` in `images.yml` — supports local paths and remote `@github.com/org/repo/path:version` refs. Adding a new format (e.g., `apk` for Alpine) requires only YAML changes — zero Go code modifications.
 
 ## Multi-Stage Builds
 
