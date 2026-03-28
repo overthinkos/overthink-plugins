@@ -37,12 +37,14 @@ description: |
 
 The generated Containerfile follows this order:
 
-1. **Multi-stage build stages** -- scratch stages per layer (`COPY layers/<layer>/ /`), pixi build stages (`FROM <builder>`), npm build stages, supervisord config assembly, traefik routes
-2. **`FROM ${BASE_IMAGE}`** -- external bases get bootstrap (task, user/group at UID/GID, WORKDIR); internal bases get `USER root`
+1. **Multi-stage build stages** -- scratch stages per layer, builder stages from `builder.yml` templates (pixi, npm, aur, cargo), supervisord config assembly, traefik routes
+2. **`FROM ${BASE_IMAGE}`** -- external bases get bootstrap from `distro.yml` (install cmd, cache mounts, workarounds); internal bases get `USER root`
 3. **Image metadata** -- consolidated `ENV` directives, `EXPOSE` ports, `org.overthinkos.*` labels
-4. **COPY build artifacts** -- pixi environments, pixi binary, npm packages from build stages
-5. **Per-layer install steps** -- for each layer: rpm/deb/pac packages, tag-specific packages, `root.yml` (tag-based task dispatch: `task -t root.yml all rpm fedora`), `Cargo.toml`, `user.yml` (same dispatch). `USER` toggles between root and UID
-6. **Final assembly** -- supervisord config concatenation, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only -- validates bootc compliance)
+4. **COPY build artifacts** -- config-driven from `builder.yml` `copy_artifacts` and `copy_binary` definitions
+5. **Per-layer install steps** -- distro: override (first match) then build: formats (all in order). Install commands rendered from `build.yml` templates. `root.yml` (tag-based task dispatch), inline builders (cargo), `user.yml`. `USER` toggles between root and UID
+6. **Final assembly** -- supervisord config concatenation, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only)
+
+**Config-driven generation:** All format-specific install commands, cache mounts, repo setup, and builder stages are defined in `ov/defaults/build.yml` and `ov/defaults/builder.yml` as Go `text/template` strings. Bootstrap behavior comes from `ov/defaults/distro.yml`. Adding a new format (e.g., `apk` for Alpine) requires only YAML changes — zero Go code modifications.
 
 ## Multi-Stage Builds
 

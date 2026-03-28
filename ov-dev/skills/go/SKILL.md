@@ -30,10 +30,13 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | File | Purpose |
 |------|---------|
 | `main.go` | CLI entry point (Kong framework) |
-| `config.go` | `images.yml` parsing, inheritance resolution. `BuildFormats` type (string-or-list YAML unmarshal for `build:` field). `Distro` field on ImageConfig/ResolvedImage. `ResolvedImage.Tags` (union: `["all"]` + Distro + BuildFormats). `SupportsTag()`, `SupportsBuild()`, `MatchingTasks()` methods. `SecurityConfig` has `Mounts` field for host mounts |
-| `layers.go` | Layer scanning, file detection, `parseLayerYAML()`. `PacConfig`, `PacRepo`, `AurConfig` structs. `TagSections` map for dynamic distro/version sections. `RootYmlTasks`/`UserYmlTasks` parsed from Taskfiles. `parseTaskfileTaskNames()` |
-| `generate.go` | Containerfile generation (largest file) |
-| `validate.go` | All validation rules |
+| `config.go` | `images.yml` parsing, inheritance resolution. `BuildFormats` type. `Distro` field. `ResolvedImage.Tags` (union). `SupportsTag()`, `SupportsBuild()`, `MatchingTasks()` methods |
+| `format_config.go` | `DistroConfig`, `BuildConfig`, `BuilderConfig` types. Loads `distro.yml`/`build.yml`/`builder.yml` with `//go:embed` defaults. `FormatDef`, `BuilderDef`, `PackageSection` types |
+| `format_template.go` | Go `text/template` rendering engine. Template helpers: `cacheMounts`, `cacheMountsOwned`, `quote`, `default`, `splitFirst`, `replace`, `join`. `InstallContext`, `BuildStageContext` types |
+| `format_defaults.go` | `//go:embed` directives for `ov/defaults/*.yml` |
+| `layers.go` | Layer scanning, file detection, `parseLayerYAML()`. `PackageSection` generic format sections. `TagSections` for distro overrides. `RootYmlTasks`/`UserYmlTasks` from Taskfiles |
+| `generate.go` | Containerfile generation. Config-driven: renders install templates from `build.yml`, builder stages from `builder.yml`, bootstrap from `distro.yml` |
+| `validate.go` | All validation rules. Format/builder validation against config definitions (not hardcoded maps) |
 | `version.go` | CalVer computation |
 | `scaffold.go` | `new layer` scaffolding |
 
