@@ -30,7 +30,7 @@ The supervisord `[program:sway]` environment sets `WLR_BACKENDS=headless` — he
 
 ## Packages
 
-- `sway`, `fuzzel`, `mako` (RPM)
+- `sway`, `fuzzel` (RPM)
 - `mesa-dri-drivers`, `mesa-vulkan-drivers` (RPM)
 - `libglvnd-egl`, `libglvnd-gles`, `egl-wayland` (RPM)
 - `wlr-randr` (RPM)

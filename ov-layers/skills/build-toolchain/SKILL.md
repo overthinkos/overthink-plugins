@@ -35,6 +35,7 @@ my-image:
 ## Used In Images
 
 - `/ov-images:fedora-builder`
+- `/ov-images:archlinux-builder`
 - `/ov-images:fedora-remote` (via remote layer ref)
 - Also used in `bazzite-ai` (disabled)
 

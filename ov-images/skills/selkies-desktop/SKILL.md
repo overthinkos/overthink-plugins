@@ -22,7 +22,7 @@ selkies-desktop:
 
 ## Layers
 
-`selkies-desktop` metalayer = pipewire + chrome + labwc + waybar-labwc + wl-tools + wl-screenshot-pixelflux + wl-record-pixelflux + a11y-tools + xterm + tmux + asciinema + selkies
+`selkies-desktop` metalayer = pipewire + chrome + labwc + waybar-labwc + desktop-fonts + swaync + pavucontrol + wl-tools + wl-screenshot-pixelflux + wl-record-pixelflux + a11y-tools + xterm + tmux + asciinema + fastfetch + selkies
 
 ## Ports
 
@@ -33,7 +33,7 @@ selkies-desktop:
 
 ## Access
 
-Open `http://localhost:3000` in a browser. No auth by default (legacy mode). The Selkies dashboard shows the labwc desktop with Chrome maximized and Waybar at the bottom.
+Open `http://localhost:3000` in a browser. No auth by default (legacy mode). The Selkies dashboard shows the labwc desktop with Chrome maximized and Waybar at the top.
 
 ## Build & Deploy
 

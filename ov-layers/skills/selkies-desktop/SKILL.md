@@ -9,7 +9,10 @@ layers:
   - pipewire                # Audio (PulseAudio compat)
   - chrome                  # Google Chrome with CDP on :9222
   - labwc                   # Wayland compositor (nested in pixelflux)
-  - waybar-labwc            # Bottom taskbar panel
+  - waybar-labwc            # Top status bar (Catppuccin Mocha, system monitors)
+  - desktop-fonts           # JetBrains Mono + Nerd Fonts
+  - swaync                  # SwayNotificationCenter (notification daemon)
+  - pavucontrol             # PulseAudio volume control GUI
   - wl-tools                # Desktop automation (wtype, wlrctl, xdotool, wl-clipboard, wlr-randr)
   - wl-screenshot-pixelflux # Screenshots via selkies capture bridge
   - wl-record-pixelflux    # Desktop video recording via selkies capture bridge
@@ -25,10 +28,13 @@ layers:
 
 A browser-accessible desktop at `http://localhost:3000` with:
 - **labwc** Wayland compositor with server-side decorations
-- **Waybar** bottom panel with Chrome/Terminal/Files buttons
+- **Waybar** top panel with system monitors, clock, audio, and notification bell
 - **Chrome** auto-started maximized with CDP on port 9222 and `--force-renderer-accessibility`
-- **foot** terminal (from Waybar or Super+E)
-- **thunar** file manager (from Waybar)
+- **foot** terminal (from labwc or fuzzel)
+- **thunar** file manager (from labwc)
+- **SwayNotificationCenter** notification daemon with Catppuccin Mocha theme
+- **pavucontrol** PulseAudio volume control (click audio module in Waybar)
+- **JetBrains Mono + Nerd Fonts** for sharp monospace text and icons
 - **xterm** X11 terminal (triggers XWayland on-demand when launched)
 - **pixelflux** Wayland capture → H.264/JPEG streaming at 60fps
 - **pcmflux** audio capture → Opus encoding at 320kbps
@@ -65,5 +71,6 @@ A browser-accessible desktop at `http://localhost:3000` with:
 | 5 | pipewire | Audio server |
 | 8 | selkies | pixelflux `wayland-1` + WebSocket :8081 |
 | 12 | labwc | Desktop on `wayland-0` (nested in wayland-1) |
-| 15 | waybar | Bottom panel (on wayland-0) |
+| 14 | swaync | Notification daemon (on wayland-0) |
+| 15 | waybar | Top panel (on wayland-0) |
 | 18 | nginx | Web UI on :3000 |

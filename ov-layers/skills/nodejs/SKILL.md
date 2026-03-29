@@ -39,6 +39,7 @@ my-image:
 ## Used In Images
 
 - `/ov-images:fedora-builder`
+- `/ov-images:archlinux-builder`
 - `/ov-images:fedora-remote` (via remote layer ref)
 - Transitive dependency for `openclaw`, `claude-code`, `pre-commit`, and other layers
 

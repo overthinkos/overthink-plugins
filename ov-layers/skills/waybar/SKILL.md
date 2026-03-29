@@ -13,22 +13,42 @@ description: |
 |----------|-------|
 | Dependencies | `sway` |
 | Service | `waybar` (supervisord, priority 15), `sway-autotile` (priority 16) |
-| Install files | `user.yml`, `config.jsonc`, `style.css`, `waybar-wrapper`, `sway-autotile`, `sway-float-toggle` |
+| Install files | `user.yml`, `config.json`, `style.css`, `waybar-wrapper`, `sway-autotile` |
 
 ## Packages
 
 - `waybar` (RPM)
-- `dejavu-sans-mono-fonts` (RPM)
-- `google-noto-sans-mono-fonts` (RPM)
 
-## Usage
+Fonts (JetBrains Mono, Symbols Nerd Font) provided by the `desktop-fonts` layer in metalayers.
 
-```yaml
-# images.yml -- typically included via sway-desktop composition
-my-desktop:
-  layers:
-    - waybar
-```
+## Configuration
+
+Unified config shared with the `waybar-labwc` layer (Catppuccin Mocha, top bar):
+
+### Modules
+
+| Position | Module | Purpose |
+|----------|--------|---------|
+| Left | `sway/workspaces` | Workspace indicator |
+| Left | `sway/mode` | Sway mode indicator |
+| Left | `wlr/taskbar` | Running windows (click to activate) |
+| Center | `clock` | Time with calendar tooltip (Europe/Vienna) |
+| Right | `cpu`, `memory`, `disk` | System monitors |
+| Right | `network` | Container IP and bandwidth |
+| Right | `pulseaudio` | Volume control (click opens pavucontrol) |
+| Right | `tray` | System tray |
+| Right | `custom/notification` | swaync notification bell |
+
+### Style
+
+Catppuccin Mocha theme — semi-transparent dark background, JetBrains Mono + Symbols Nerd Font.
+
+## Key Files
+
+- `waybar-wrapper` — Waits for Wayland socket, discovers SWAYSOCK, then exec waybar
+- `sway-autotile` — Subscribes to sway window events, auto-tiles windows restored from scratchpad
+- `config.json` — Unified module layout (same as waybar-labwc layer)
+- `style.css` — Catppuccin Mocha styling (same as waybar-labwc layer)
 
 ## Used In Images
 
@@ -38,6 +58,9 @@ Part of `/ov-layers:sway-desktop` composition.
 
 - `/ov-layers:sway` -- compositor dependency
 - `/ov-layers:sway-desktop` -- composition that includes waybar
+- `/ov-layers:swaync` -- notification daemon (notification bell module)
+- `/ov-layers:pavucontrol` -- volume control (pulseaudio on-click)
+- `/ov-layers:desktop-fonts` -- JetBrains Mono + Nerd Font icons
 
 ## When to Use This Skill
 
