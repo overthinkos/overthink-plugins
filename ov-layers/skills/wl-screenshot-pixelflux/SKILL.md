@@ -1,10 +1,17 @@
-# wl-screenshot-pixelflux - Screenshot via pixelflux rendering pipeline
+---
+name: wl-screenshot-pixelflux
+description: |
+  Screenshot via selkies WebSocket capture bridge for selkies-desktop.
+  Use when working with the wl-screenshot-pixelflux layer.
+---
+
+# wl-screenshot-pixelflux -- Screenshot via selkies capture bridge
 
 ## Overview
 
-Provides `pixelflux-screenshot` for capturing screenshots on selkies-desktop. Taps directly into pixelflux's `ScreenCapture` API — the same rendering pipeline that powers the WebSocket video stream. Zero-copy, no protocol limitations.
+Provides `pixelflux-screenshot` for capturing screenshots on selkies-desktop. Connects to the in-process capture bridge at `/tmp/ov-capture.sock` (started by `selkies-capture-server` inside the selkies process). The capture bridge taps into the selkies WebSocket stream and decodes H.264 frames to PNG via ffmpeg.
 
-**Why not grim?** labwc running nested inside pixelflux advertises `wlr-screencopy` but can't deliver frames because pixelflux owns the render target. `pixelflux-screenshot` bypasses this by capturing from the rendering pipeline directly.
+**Why not grim?** labwc running nested inside pixelflux can't deliver wlr-screencopy frames. The capture bridge bypasses this by tapping into the selkies WebSocket stream which has direct access to the composited desktop.
 
 ## Layer Definition
 
@@ -13,23 +20,24 @@ depends:
   - selkies
 ```
 
-No RPM packages — uses pixelflux and Pillow from the selkies layer's pixi environment.
+No RPM packages — uses the capture bridge provided by the selkies layer.
 
 ## How It Works
 
-1. Creates a `ScreenCapture` instance with `output_mode=0` (JPEG), quality 95
-2. Callback receives JPEG stripes (11 per frame at 720p, 16 per frame at 1080p)
-3. Each stripe has a 4-byte header (frame_id + y_offset) then standard JPEG data
-4. Strips headers, decodes each JPEG with Pillow, stitches vertically
-5. Outputs PNG to stdout
+1. Connects to Unix socket at `/tmp/ov-capture.sock`
+2. Sends `SCREENSHOT\n`
+3. Receives `4-byte length + PNG data` response
+4. Outputs PNG to stdout
+
+The capture bridge (running inside the selkies process) handles frame collection and H.264→PNG decoding via ffmpeg.
 
 ## Key Properties
 
 | Property | Value |
 |----------|-------|
-| Depends | `selkies` (pixelflux + Pillow in pixi env) |
+| Depends | `selkies` (capture bridge in selkies process) |
 | Install | `~/.local/bin/pixelflux-screenshot` (Python script) |
-| Protocol | pixelflux `ScreenCapture` API (not Wayland screencopy) |
+| Capture | Via `/tmp/ov-capture.sock` (selkies WebSocket bridge) |
 
 ## Usage
 
@@ -39,6 +47,15 @@ Used by `ov wl screenshot` — auto-detected when `pixelflux-screenshot` is avai
 ov wl screenshot <image> [output.png]
 ```
 
+## Architecture
+
+```
+selkies process
+    ├── WebSocket :8081 (H.264 frame broadcast)
+    └── Capture bridge thread → /tmp/ov-capture.sock
+        └── SCREENSHOT request → ffmpeg H.264→PNG decode → PNG response
+```
+
 ## Included In
 
 - `selkies-desktop` metalayer
@@ -46,5 +63,6 @@ ov wl screenshot <image> [output.png]
 ## Cross-references
 
 - `/ov:wl` — `ov wl screenshot` auto-detects pixelflux-screenshot
-- `/ov-layers:wl-screenshot-grim` — Alternative for sway-desktop
-- `/ov-layers:selkies` — Parent layer (provides pixelflux + Pillow)
+- `/ov-layers:wl-record-pixelflux` — Recording companion (same capture bridge)
+- `/ov-layers:wl-screenshot-grim` — Alternative for sway-desktop (wlr-screencopy)
+- `/ov-layers:selkies` — Parent layer (provides capture bridge)

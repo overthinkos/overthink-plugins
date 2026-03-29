@@ -11,8 +11,8 @@ layers:
   - labwc                   # Wayland compositor (nested in pixelflux)
   - waybar-labwc            # Bottom taskbar panel
   - wl-tools                # Desktop automation (wtype, wlrctl, xdotool, wl-clipboard, wlr-randr)
-  - wl-screenshot-pixelflux # Screenshots via pixelflux rendering pipeline
-  - wl-record-pixelflux    # Desktop video recording via pixelflux H.264 pipeline
+  - wl-screenshot-pixelflux # Screenshots via selkies capture bridge
+  - wl-record-pixelflux    # Desktop video recording via selkies capture bridge
   - a11y-tools              # AT-SPI2 accessibility introspection (python3-pyatspi)
   - xterm                   # X11 terminal for XWayland testing
   - tmux                    # Terminal multiplexer (required by ov record)
@@ -36,13 +36,13 @@ A browser-accessible desktop at `http://localhost:3000` with:
 - **Full `ov wl` automation:** 22 subcommands all working — screenshots (pixelflux), input (wtype, wlrctl), window management (wlrctl toplevel), clipboard (wl-copy/paste), resolution (wlr-randr), accessibility (AT-SPI2), XWayland tools (xdotool, xprop)
 - **`ov cdp click --wl`:** CSS selector → Wayland pointer click (no VNC needed)
 - **`ov cdp axtree`:** Chrome accessibility tree via CDP
-- **Desktop video recording** via `ov record start --mode desktop` (pixelflux H.264 pipeline → MP4, with optional audio)
+- **Desktop video recording** via `ov record start --mode desktop` (capture bridge → H.264 → ffmpeg MP4, with optional audio)
 
 ## What Works / What Doesn't
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Screenshots (pixelflux-screenshot) | WORKS | Taps into pixelflux rendering pipeline |
+| Screenshots (pixelflux-screenshot) | WORKS | Via capture bridge at /tmp/ov-capture.sock |
 | Screenshots (grim) | BROKEN | labwc nested in pixelflux can't deliver screencopy frames |
 | wtype (keyboard) | WORKS | Wayland virtual keyboard |
 | wlrctl pointer (mouse) | WORKS | Move, click, double-click |

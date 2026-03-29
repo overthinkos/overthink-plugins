@@ -180,8 +180,8 @@ Reference documentation for every Overthink container layer.
 | wayvnc | `/ov-layers:wayvnc` | WayVNC server on port 5900 for Wayland remote access |
 | whisper | `/ov-layers:whisper` | OpenAI Whisper local speech-to-text |
 | wl-screenshot-grim | `/ov-layers:wl-screenshot-grim` | Screenshot via grim (wlr-screencopy) |
-| wl-screenshot-pixelflux | `/ov-layers:wl-screenshot-pixelflux` | Screenshot via pixelflux rendering pipeline |
-| wl-record-pixelflux | `/ov-layers:wl-record-pixelflux` | Desktop video recorder via pixelflux H.264 pipeline |
+| wl-screenshot-pixelflux | `/ov-layers:wl-screenshot-pixelflux` | Screenshot via selkies WebSocket capture bridge |
+| wl-record-pixelflux | `/ov-layers:wl-record-pixelflux` | Desktop video recorder via selkies WebSocket capture bridge |
 | wl-tools | `/ov-layers:wl-tools` | Compositor-agnostic desktop automation tools (grim, wtype, wlrctl) |
 | x11-apps | `/ov-layers:x11-apps` | Desktop applications (terminal, file manager) for X11 containers |
 | x11-desktop | `/ov-layers:x11-desktop` | X11 desktop composition (Xorg headless, Openbox, Chrome, terminal, file manager) |

@@ -1,60 +1,41 @@
 ---
 name: wl-record-pixelflux
 description: |
-  Desktop video recorder via pixelflux H.264 pipeline.
+  Desktop video recorder via selkies WebSocket capture bridge for selkies-desktop.
   Use when working with the wl-record-pixelflux layer.
 ---
 
-# wl-record-pixelflux -- Desktop video recording via pixelflux pipeline
+# wl-record-pixelflux -- Desktop video recording via selkies capture bridge
 
-## Overview
+## Layer Properties
 
-Provides `pixelflux-record` for recording desktop video on selkies-desktop. Taps directly into pixelflux's `ScreenCapture` API — the same rendering pipeline that powers the WebSocket video stream and screenshots.
+| Property | Value |
+|----------|-------|
+| Install files | `layer.yml`, `user.yml`, `pixelflux-record` (Python script) |
+| Depends | `selkies` (capture bridge + WebSocket stream), `ffmpeg` (MP4 muxing) |
 
-**Primary mode (H.264):** Uses `output_mode=1` to receive pre-encoded H.264 frames from pixelflux, piped to ffmpeg for MP4 container muxing only (no re-encoding, near-zero CPU overhead).
+## What It Does
 
-**Fallback mode (JPEG):** If H.264 output mode is unavailable, falls back to `output_mode=0` (JPEG stripes), stitches frames with Pillow, and pipes to ffmpeg for H.264 encoding.
+Provides `pixelflux-record` for recording desktop video on selkies-desktop. Connects to the capture bridge at `/tmp/ov-capture.sock` which relays the same H.264 frames that the browser sees via the selkies WebSocket stream. No direct ScreenCapture API access -- taps into the existing selkies streaming pipeline to avoid creating a second capture instance (the Rust backend only supports one active capture at a time).
 
-**Why not wf-recorder?** labwc running nested inside pixelflux advertises `wlr-screencopy` but can't deliver frames because pixelflux owns the render target. `pixelflux-record` bypasses this by capturing from the rendering pipeline directly (same reason `pixelflux-screenshot` exists for screenshots).
-
-## Layer Definition
-
-```yaml
-depends:
-  - selkies
-  - ffmpeg
-```
-
-Uses pixelflux and Pillow from the selkies layer's pixi environment. Requires ffmpeg for MP4 muxing/encoding.
+**Why not wf-recorder?** labwc running nested inside pixelflux can't deliver wlr-screencopy frames. The capture bridge bypasses this by tapping into the selkies WebSocket stream directly.
 
 ## How It Works
 
-### H.264 Mode (Primary)
-
-1. Creates `ScreenCapture` with `output_mode=1`, `h264_streaming_mode=True`, `h264_fullframe=True`
-2. Callback receives H.264 NAL units directly from pixelflux's encoder
-3. Writes raw H.264 data to ffmpeg stdin pipe
-4. ffmpeg muxes to MP4: `ffmpeg -f h264 -c:v copy output.mp4` (no transcode)
-5. Optional audio: `-f pulse -i default.monitor -c:a aac`
-
-### JPEG Fallback Mode
-
-1. Creates `ScreenCapture` with `output_mode=0` (JPEG stripes)
-2. Collects stripes per frame, stitches with Pillow (same as pixelflux-screenshot)
-3. Writes full JPEG frames to ffmpeg stdin pipe
-4. ffmpeg re-encodes: `ffmpeg -f image2pipe -c:v mjpeg -c:v libx264 output.mp4`
-
-### Signal Handling
-
-SIGINT (Ctrl-C) or SIGTERM triggers graceful shutdown: stops capture, closes ffmpeg pipe, waits for MP4 finalization.
+1. Connects to Unix socket at `/tmp/ov-capture.sock` (started by `selkies-capture-server`)
+2. Sends `STREAM\n` to request continuous H.264 frame data
+3. Receives frames as `4-byte length + raw H.264 data` pairs
+4. Pipes raw H.264 data to ffmpeg with `-use_wallclock_as_timestamps 1`
+5. ffmpeg re-encodes to MP4 with correct wall-clock timing
+6. SIGINT/SIGTERM triggers graceful shutdown: closes socket, waits for ffmpeg to finalize MP4
 
 ## Key Properties
 
 | Property | Value |
 |----------|-------|
-| Depends | `selkies` (pixelflux + Pillow), `ffmpeg` (muxing/encoding) |
+| Depends | `selkies` (capture bridge + stream), `ffmpeg` (muxing) |
 | Install | `~/.local/bin/pixelflux-record` (Python script) |
-| Protocol | pixelflux `ScreenCapture` API (H.264 or JPEG mode) |
+| Capture | Via `/tmp/ov-capture.sock` (selkies WebSocket bridge) |
 | Output | MP4 (H.264 video + optional AAC audio) |
 | Audio | PulseAudio monitor source via ffmpeg |
 
@@ -86,17 +67,29 @@ ov wl click selkies-desktop 640 360
 ov record stop selkies-desktop -n demo -o demo.mp4
 ```
 
+## Architecture
+
+```
+selkies process (existing capture, unchanged)
+    ├── ScreenCapture (captures full composited desktop)
+    ├── WebSocket server :8081 (broadcasts H.264 frames)
+    └── Capture bridge thread (internal WebSocket client)
+        └── Unix socket /tmp/ov-capture.sock
+            └── pixelflux-record connects here (STREAM mode)
+                └── pipes H.264 frames to ffmpeg
+```
+
 ## Included In
 
 - `selkies-desktop` metalayer
 
 ## Cross-References
 
-- `/ov:record` — `ov record start --mode desktop` auto-detects pixelflux-record
-- `/ov-layers:wl-screenshot-pixelflux` — Screenshot companion (same API, JPEG mode only)
-- `/ov-layers:wf-recorder` — Alternative for sway-desktop (wlr-screencopy)
-- `/ov-layers:selkies` — Parent layer (provides pixelflux + Pillow)
-- `/ov-layers:ffmpeg` — Required dependency (MP4 muxing/encoding)
+- `/ov:record` -- `ov record start --mode desktop` auto-detects pixelflux-record
+- `/ov-layers:wl-screenshot-pixelflux` -- Screenshot companion (same capture bridge)
+- `/ov-layers:wf-recorder` -- Alternative for sway-desktop (wlr-screencopy)
+- `/ov-layers:selkies` -- Parent layer (provides capture bridge + WebSocket stream)
+- `/ov-layers:ffmpeg` -- Required dependency (MP4 muxing)
 
 ## When to Use This Skill
 

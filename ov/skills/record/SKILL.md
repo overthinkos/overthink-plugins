@@ -88,7 +88,7 @@ Auto-detects terminal emulator: xterm (selkies-desktop) → xfce4-terminal (sway
 | Tool | Layer | Desktop | Protocol |
 |------|-------|---------|----------|
 | asciinema | `asciinema` (or `dev-tools`) | N/A | Terminal capture |
-| pixelflux-record | `wl-record-pixelflux` | selkies-desktop | pixelflux ScreenCapture API (H.264 direct) |
+| pixelflux-record | `wl-record-pixelflux` | selkies-desktop | selkies WebSocket capture bridge → H.264 → ffmpeg |
 | wf-recorder | `wf-recorder` | sway-desktop | wlr-screencopy |
 
 ## Use Case: Terminal Demo Recording

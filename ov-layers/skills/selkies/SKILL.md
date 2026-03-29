@@ -12,10 +12,21 @@ Browser → NGINX (:3000) → static web UI + WebSocket proxy
                      Selkies Python (:8081)
                           ├── pixelflux: Wayland capture → H.264/JPEG
                           ├── pcmflux: PulseAudio → Opus audio
-                          └── xkbcommon: keyboard/mouse → Wayland inject
+                          ├── xkbcommon: keyboard/mouse → Wayland inject
+                          └── capture bridge → /tmp/ov-capture.sock
                                 ↓
                      labwc (wayland-0, nested in pixelflux wayland-1)
 ```
+
+### Capture Bridge
+
+The `selkies-capture-server` runs **inside the selkies process** as a background thread, started by `selkies-wrapper` before selkies main(). It connects as an internal WebSocket client to localhost:8081 and relays H.264 frames via a Unix socket at `/tmp/ov-capture.sock`.
+
+This is the ONLY working capture path for screenshots and recording on selkies-desktop. The pixelflux Rust backend only supports one active `ScreenCapture` at a time, and the backend creates a new empty Wayland compositor if instantiated in a separate process. grim doesn't work because labwc can't deliver wlr-screencopy frames when nested.
+
+**Protocol on `/tmp/ov-capture.sock`:**
+- `SCREENSHOT\n` → 4-byte length + PNG data (H.264 decoded via ffmpeg)
+- `STREAM\n` → continuous (4-byte length + raw H.264 frame data)
 
 ## Installation
 
@@ -52,7 +63,8 @@ The web UI dashboard is built from the selkies repo's `addons/` directory using 
 
 ## Key Files
 
-- `selkies-wrapper` — GPU detection, PulseAudio null sink setup, NVRTC library path, starts selkies
+- `selkies-wrapper` — GPU detection, PulseAudio null sink setup, NVRTC library path, starts selkies via capture server
+- `selkies-capture-server` — In-process WebSocket→Unix socket bridge for screenshots/recording
 - `nginx.conf` — Rootless NGINX config (temp paths in /tmp, port 3000, proxies /websockets to :8081)
 - `root.yml` — Downloads selkies source, strips av/cryptography, pip installs, builds web dashboard (npm), creates NVRTC symlinks (`libnvrtc.so` → `libnvrtc.so.13` for NVENC), removes build deps (nodejs, npm, gcc, etc.)
 - `pixi.toml` — Python 3.13 + pip + setuptools (setuptools provides distutils shim for Python 3.13, needed by GPUtil)
