@@ -57,7 +57,7 @@ Development tools and enforcement agents for contributors.
 
 **MCP Server:** GitHub (22 tools for issues, PRs, workflows, repo operations)
 
-### ov-layers (130 skills)
+### ov-layers (131 skills)
 
 Reference documentation for every Overthink container layer.
 
@@ -89,6 +89,7 @@ Reference documentation for every Overthink container layer.
 | dev-tools | `/ov-layers:dev-tools` | bat, ripgrep, neovim, gh, direnv, fd-find, htop |
 | devops-tools | `/ov-layers:devops-tools` | AWS CLI, Scaleway, kubectx/kubens, OpenTofu, wrangler, bind-utils, jq, rsync |
 | docker-ce | `/ov-layers:docker-ce` | Docker CE engine with buildx and compose plugins |
+| fastfetch | `/ov-layers:fastfetch` | Fast system information tool (neofetch successor) |
 | ffmpeg | `/ov-layers:ffmpeg` | FFmpeg multimedia framework |
 | gemini | `/ov-layers:gemini` | Google Gemini CLI for AI coding assistance and search |
 | gh | `/ov-layers:gh` | GitHub CLI and git |
@@ -260,7 +261,7 @@ Reference documentation for every enabled Overthink container image.
 | Component | Count |
 |-----------|-------|
 | Plugins | 4 |
-| Skills | 180 |
+| Skills | 181 |
 | Agents | 3 |
 | MCP Servers | 1 (GitHub) |
 | MCP Tools | 22 |

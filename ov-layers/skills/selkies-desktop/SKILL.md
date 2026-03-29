@@ -17,6 +17,7 @@ layers:
   - xterm                   # X11 terminal for XWayland testing
   - tmux                    # Terminal multiplexer (required by ov record)
   - asciinema               # Terminal session recording
+  - fastfetch               # System information display
   - selkies                 # Streaming server (pixelflux + pcmflux + nginx)
 ```
 
