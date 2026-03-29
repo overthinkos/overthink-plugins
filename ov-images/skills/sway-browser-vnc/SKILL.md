@@ -26,6 +26,16 @@ ov vnc status sway-browser-vnc
 ov wl screenshot sway-browser-vnc screenshot.png
 ```
 
+## Recording
+
+Desktop video recording via wf-recorder (included in sway-desktop):
+
+```bash
+ov record start sway-browser-vnc -n demo --mode desktop
+# ... interact ...
+ov record stop sway-browser-vnc -n demo -o demo.mp4
+```
+
 ## Related Images
 
 None.

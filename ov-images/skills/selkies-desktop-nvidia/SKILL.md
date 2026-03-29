@@ -24,6 +24,10 @@ selkies-desktop-nvidia:
 
 Same layers, but the `nvidia` base includes the full CUDA toolkit which may resolve the NVENC encoder initialization failure seen with the `fedora-nonfree` base. Use this variant for GPU-accelerated H.264 encoding via NVENC.
 
+## Recording
+
+Desktop video recording included via `wl-record-pixelflux` (part of selkies-desktop metalayer). With NVIDIA GPU, pixelflux-record may use NVENC for H.264 encoding (zero CPU overhead).
+
 ## Status
 
 Not yet tested. The `fedora-nonfree` variant works with CPU encoding. This variant needs verification for NVENC hardware encoding.

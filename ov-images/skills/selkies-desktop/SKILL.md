@@ -22,7 +22,7 @@ selkies-desktop:
 
 ## Layers
 
-`selkies-desktop` metalayer = pipewire + chrome + labwc + waybar-labwc + wl-tools + wl-screenshot-pixelflux + a11y-tools + xterm + selkies
+`selkies-desktop` metalayer = pipewire + chrome + labwc + waybar-labwc + wl-tools + wl-screenshot-pixelflux + wl-record-pixelflux + a11y-tools + xterm + tmux + asciinema + selkies
 
 ## Ports
 
@@ -59,6 +59,16 @@ ov start selkies-desktop
 1. **NVENC encoding fails** with NVIDIA driver 590.48 — pixelflux detects GPU, CUDA inits, but encoder init fails. CPU encoding works fine.
 2. **Chrome volume permissions** — first deploy may need `podman unshare chown 1000:1000 $(podman volume inspect ov-selkies-desktop-chrome-data --format '{{.Mountpoint}}')`
 3. **Audio** — PulseAudio null sinks created by selkies-wrapper. Audio streaming works but may have slight latency over WebSocket.
+
+## Recording
+
+Desktop video recording is built-in via `wl-record-pixelflux`:
+
+```bash
+ov record start selkies-desktop -n demo --mode desktop --audio
+# ... interact with desktop ...
+ov record stop selkies-desktop -n demo -o demo.mp4
+```
 
 ## Verification
 

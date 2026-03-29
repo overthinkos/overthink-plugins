@@ -12,8 +12,11 @@ layers:
   - waybar-labwc            # Bottom taskbar panel
   - wl-tools                # Desktop automation (wtype, wlrctl, xdotool, wl-clipboard, wlr-randr)
   - wl-screenshot-pixelflux # Screenshots via pixelflux rendering pipeline
+  - wl-record-pixelflux    # Desktop video recording via pixelflux H.264 pipeline
   - a11y-tools              # AT-SPI2 accessibility introspection (python3-pyatspi)
   - xterm                   # X11 terminal for XWayland testing
+  - tmux                    # Terminal multiplexer (required by ov record)
+  - asciinema               # Terminal session recording
   - selkies                 # Streaming server (pixelflux + pcmflux + nginx)
 ```
 
@@ -33,6 +36,7 @@ A browser-accessible desktop at `http://localhost:3000` with:
 - **Full `ov wl` automation:** 22 subcommands all working — screenshots (pixelflux), input (wtype, wlrctl), window management (wlrctl toplevel), clipboard (wl-copy/paste), resolution (wlr-randr), accessibility (AT-SPI2), XWayland tools (xdotool, xprop)
 - **`ov cdp click --wl`:** CSS selector → Wayland pointer click (no VNC needed)
 - **`ov cdp axtree`:** Chrome accessibility tree via CDP
+- **Desktop video recording** via `ov record start --mode desktop` (pixelflux H.264 pipeline → MP4, with optional audio)
 
 ## What Works / What Doesn't
 

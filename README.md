@@ -12,7 +12,7 @@ Claude Code plugins for Overthink — the container management experience for yo
 
 ## Plugins
 
-### ov (16 skills)
+### ov (17 skills)
 
 Skills for composing, building, and running container images with the `ov` CLI.
 
@@ -34,6 +34,7 @@ Skills for composing, building, and running container images with the `ov` CLI.
 | wl | `/ov:wl` | Desktop automation (22 commands + 12 sway IPC commands) |
 | tmux | `/ov:tmux` | Persistent tmux sessions (ov tmux shell/run/attach/capture) |
 | openclaw | `/ov:openclaw` | OpenClaw AI gateway configuration |
+| record | `/ov:record` | Recording sessions (ov record start/stop/list/cmd/term) |
 
 ### ov-dev (2 skills, 3 agents, GitHub MCP)
 
@@ -56,13 +57,14 @@ Development tools and enforcement agents for contributors.
 
 **MCP Server:** GitHub (22 tools for issues, PRs, workflows, repo operations)
 
-### ov-layers (127 skills)
+### ov-layers (130 skills)
 
 Reference documentation for every Overthink container layer.
 
 | Skill | Invocation | Description |
 |-------|-----------|-------------|
 | a11y-tools | `/ov-layers:a11y-tools` | AT-SPI2 accessibility introspection for element-based automation |
+| asciinema | `/ov-layers:asciinema` | Terminal session recorder (asciinema) |
 | blogwatcher | `/ov-layers:blogwatcher` | Blog/RSS feed monitor CLI |
 | bootc-base | `/ov-layers:bootc-base` | Base composition for bootc OS images (sshd + qemu-guest-agent + bootc-config) |
 | bootc-config | `/ov-layers:bootc-config` | Bootc system config (autologin, graphical target, pipewire) |
@@ -78,6 +80,7 @@ Reference documentation for every Overthink container layer.
 | clawhub | `/ov-layers:clawhub` | ClawHub CLI for searching and installing OpenClaw skills |
 | cloud-init | `/ov-layers:cloud-init` | Cloud-init for instance initialization with NoCloud datasource |
 | codex | `/ov-layers:codex` | OpenAI Codex CLI coding agent |
+| container-nesting | `/ov-layers:container-nesting` | Container-in-container support (podman, buildah, fuse-overlayfs) |
 | comfyui | `/ov-layers:comfyui` | ComfyUI image generation service on port 8188 with CUDA |
 | copr-desktop | `/ov-layers:copr-desktop` | COPR desktop packages (CoolerControl, Ghostty, Nerd Fonts, WinBoat) |
 | cuda | `/ov-layers:cuda` | CUDA toolkit, cuDNN, ONNX Runtime from negativo17 repos |
@@ -118,6 +121,7 @@ Reference documentation for every Overthink container layer.
 | niri | `/ov-layers:niri` | Niri Wayland compositor (Smithay-based) built from source with virtual output |
 | niri-apps | `/ov-layers:niri-apps` | Desktop applications (terminal, file manager) for Niri compositor |
 | niri-desktop | `/ov-layers:niri-desktop` | Niri desktop composition with audio, portals, Chrome, terminal, and file manager |
+| nvidia | `/ov-layers:nvidia` | NVIDIA GPU runtime support: driver libs, nvidia-container-toolkit (CDI), VA-API |
 | nodejs | `/ov-layers:nodejs` | Node.js and npm via system packages (RPM/DEB) |
 | nodejs24 | `/ov-layers:nodejs24` | Node.js 24 and npm via Fedora RPM packages |
 | ollama | `/ov-layers:ollama` | Ollama LLM server on port 11434 with CUDA and model persistence |
@@ -170,12 +174,14 @@ Reference documentation for every Overthink container layer.
 | vr-streaming | `/ov-layers:vr-streaming` | OpenXR, OpenVR, and GStreamer libraries for VR streaming |
 | vscode | `/ov-layers:vscode` | Visual Studio Code from Microsoft's RPM repository |
 | wacli | `/ov-layers:wacli` | WhatsApp CLI for message sending and history sync |
+| wf-recorder | `/ov-layers:wf-recorder` | Wayland screen recorder for wlroots compositors |
 | waybar | `/ov-layers:waybar` | Waybar status bar and sway-autotile for Sway desktop |
 | waybar-labwc | `/ov-layers:waybar-labwc` | Waybar taskbar panel adapted for labwc compositor |
 | wayvnc | `/ov-layers:wayvnc` | WayVNC server on port 5900 for Wayland remote access |
 | whisper | `/ov-layers:whisper` | OpenAI Whisper local speech-to-text |
 | wl-screenshot-grim | `/ov-layers:wl-screenshot-grim` | Screenshot via grim (wlr-screencopy) |
 | wl-screenshot-pixelflux | `/ov-layers:wl-screenshot-pixelflux` | Screenshot via pixelflux rendering pipeline |
+| wl-record-pixelflux | `/ov-layers:wl-record-pixelflux` | Desktop video recorder via pixelflux H.264 pipeline |
 | wl-tools | `/ov-layers:wl-tools` | Compositor-agnostic desktop automation tools (grim, wtype, wlrctl) |
 | x11-apps | `/ov-layers:x11-apps` | Desktop applications (terminal, file manager) for X11 containers |
 | x11-desktop | `/ov-layers:x11-desktop` | X11 desktop composition (Xorg headless, Openbox, Chrome, terminal, file manager) |
@@ -194,12 +200,14 @@ Reference documentation for every enabled Overthink container image.
 
 | Skill | Invocation | Description |
 |-------|-----------|-------------|
+| arch-ov | `/ov-images:arch-ov` | Arch Linux image with full ov toolchain for container management |
 | aurora | `/ov-images:aurora` | Aurora DX bootc image with NVIDIA, SSH, ov toolchain, and Go |
 | bazzite-ai | `/ov-images:bazzite-ai` | Bazzite NVIDIA bootc image with dev tools, CUDA, Kubernetes, Docker, and desktop apps |
 | comfyui | `/ov-images:comfyui` | ComfyUI image generation server with CUDA GPU support |
 | debian | `/ov-images:debian` | Base Debian 13 image (disabled, placeholder for Debian-based builds) |
 | fedora | `/ov-images:fedora` | Base Fedora 43 image, root of the RPM-based image hierarchy |
 | fedora-builder | `/ov-images:fedora-builder` | Builder image with pixi, Node.js, and C/C++ build toolchain |
+| fedora-ov | `/ov-images:fedora-ov` | Fedora image with full ov toolchain for container management |
 | fedora-nonfree | `/ov-images:fedora-nonfree` | Fedora with RPM Fusion non-free repositories enabled |
 | fedora-remote | `/ov-images:fedora-remote` | Fedora image using remote layer references from GitHub |
 | fedora-test | `/ov-images:fedora-test` | Test image with Traefik reverse proxy and testapi service |
@@ -252,7 +260,7 @@ Reference documentation for every enabled Overthink container image.
 | Component | Count |
 |-----------|-------|
 | Plugins | 4 |
-| Skills | 176 |
+| Skills | 180 |
 | Agents | 3 |
 | MCP Servers | 1 (GitHub) |
 | MCP Tools | 22 |
