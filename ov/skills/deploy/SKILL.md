@@ -93,7 +93,7 @@ tunnel:
 
 ### Cloudflare Tunnel
 
-Routes traffic through Cloudflare's network. Requires `fqdn`.
+Routes traffic through Cloudflare's network. Requires `fqdn`. Prerequisite: `cloudflared tunnel login` (one-time auth).
 
 ```yaml
 tunnel:
@@ -102,6 +102,15 @@ tunnel:
   tunnel: my-tunnel    # optional, defaults to ov-<image>
 fqdn: "app.example.com"
 ```
+
+`ov config` handles the full tunnel lifecycle automatically:
+1. Creates the Cloudflare tunnel (`cloudflared tunnel create`) if it doesn't exist
+2. Writes the tunnel config YAML (`~/.config/ov/tunnels/<name>.yml`) with ingress rules
+3. Routes DNS with `--overwrite-dns` (creates or updates CNAME to tunnel)
+4. Generates a companion systemd service (`ov-<image>-tunnel.service`)
+5. Enables the tunnel service and adds `Wants=` to the container quadlet
+
+`ov start` then starts both the container and the tunnel service together.
 
 ### Multi-Port Tailscale Serve
 
