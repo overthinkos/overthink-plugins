@@ -113,7 +113,7 @@ Use `path_append` in layer.yml instead of `env: PATH: ...`.
 
 ### "duplicate volume name"
 
-Volume names must be unique within a layer and across bind mounts.
+Volume names must be unique within a layer.
 
 ## Common Workflows
 

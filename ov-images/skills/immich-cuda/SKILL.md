@@ -44,6 +44,8 @@ Immich photo management with GPU-accelerated machine learning for face recogniti
 |------|------|---------|
 | library | ~/.immich/library | Photo/video storage |
 | cache | ~/.immich/cache | Thumbnail cache |
+| import | ~/.immich/import | Photo import directory |
+| external | ~/.immich/external | External library (no-copy) |
 | pgdata | ~/.postgresql | PostgreSQL data |
 | models | ~/.immich/models | ML models |
 

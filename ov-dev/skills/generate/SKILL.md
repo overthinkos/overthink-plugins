@@ -156,7 +156,6 @@ Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), maki
 | `org.overthinkos.ports` | JSON | `["18789:18789"]` |
 | `org.overthinkos.volumes` | JSON | `[{"name":"data","path":"/home/user/.openclaw"}]` |
 | `org.overthinkos.aliases` | JSON | `[{"name":"openclaw","command":"openclaw"}]` |
-| `org.overthinkos.bind_mounts` | JSON | `[{"name":"secrets","path":"...","encrypted":true}]` |
 | `org.overthinkos.security` | JSON | `{"privileged":false,"cap_add":["SYS_PTRACE"]}` |
 | `org.overthinkos.network` | string | `"host"` (omitted if default) |
 | `org.overthinkos.tunnel` | JSON | tunnel config (omitted if none) |

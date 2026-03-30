@@ -29,7 +29,7 @@ Container service lifecycle management with two modes: **quadlet** (systemd user
 | Remove service | `ov remove <image>` | Stop, remove service + deploy.yml entry |
 | Purge (+ volumes) | `ov remove <image> --purge` | Also delete named volumes |
 | Remove keep config | `ov remove <image> --keep-deploy` | Remove service but keep deploy.yml entry |
-| Seed data | `ov seed <image>` | Copy image data to empty bind mount dirs |
+| Seed data | `ov seed <image>` | Copy image data to empty bind-backed volume dirs |
 
 ### Supervisord Services
 
@@ -204,14 +204,14 @@ Source: `ov/volumes.go` (`InstanceVolumes`), `ov/quadlet.go`.
 
 ## Seed Command
 
-`ov seed <image>` copies image data into empty bind mount directories that override layer volumes.
+`ov seed <image>` copies image data into empty bind-backed volume directories (configured via `ov config --bind` or `--encrypt`).
 
 ```bash
-ov seed my-app                 # Seed all empty bind mount dirs
+ov seed my-app                 # Seed all empty bind-backed volume dirs
 ov seed my-app --tag v1.0.0    # From specific image version
 ```
 
-Only seeds bind mounts that match layer volume names. Skips directories with existing data.
+Only seeds volumes configured as `type: bind` or `type: encrypted` in deploy.yml. Skips directories with existing data.
 
 Source: `ov/seed.go`.
 
@@ -292,7 +292,7 @@ Source: `ov/status.go`.
 ## Cross-References
 
 - `/ov:shell` -- Interactive shells and exec into running containers
-- `/ov:deploy` -- Quadlet generation details, tunnels, bind mounts
+- `/ov:deploy` -- Quadlet generation details, tunnels, volume backing
 - `/ov:enc` -- Encrypted storage (mounted inline by ov start)
 - `/ov:config` -- `run_mode`, `auto_enable`, `engine.run` settings
 - `/ov:cdp` -- CDP status subcommand (`ov cdp status`)

@@ -1,21 +1,22 @@
 ---
 name: deploy
 description: |
-  MUST be invoked before any work involving: quadlet generation, bind mounts, tunnels (Tailscale/Cloudflare), deploy overlays, or production deployment configuration.
+  MUST be invoked before any work involving: quadlet generation, volume backing, tunnels (Tailscale/Cloudflare), deploy overlays, or production deployment configuration.
 ---
 
 # Deploy - Deployment Configuration
 
 ## Overview
 
-Deployment configuration for container services: quadlet file generation details, bind mount declarations, tunnel configuration for external access, and per-machine deploy overlays.
+Deployment configuration for container services: quadlet file generation details, per-volume backing configuration, tunnel configuration for external access, and per-machine deploy overlays.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
 | Configure deployment | `ov config <image>` | Generate .container file + save deploy.yml |
-| Seed bind mounts | `ov seed <image>` | Copy image data to empty bind mount dirs |
+| Configure volume backing | `ov config <image> --bind name` | Set volume as host bind mount |
+| Seed bind-backed volumes | `ov seed <image>` | Copy image data to empty bind-backed dirs |
 | Deploy status | `ov deploy status` | Audit deploy.yml vs quadlet sync |
 | Show overrides | `ov deploy show [image]` | Display deploy.yml contents |
 | Import config | `ov deploy import <files>` | Merge files into deploy.yml |
@@ -150,8 +151,8 @@ Source: `ov/tunnel.go`, `ov/validate.go` (`validateTunnel`), `ov/quadlet.go` (sy
 
 ### How it gets populated
 
-1. **`ov config`** automatically persists: workspace, ports, env (CLI -e), env_file, network, security (auto-detected devices)
-2. **`ov deploy import`** merges pre-provisioned config (tunnel, bind_mounts, DNS) from files
+1. **`ov config`** automatically persists: workspace, ports, env (CLI -e), env_file, network, security (auto-detected devices), volume backing (--bind/--encrypt)
+2. **`ov deploy import`** merges pre-provisioned config (tunnel, volumes, DNS) from files
 3. **`ov remove`** cleans the entry (use `--keep-deploy` to preserve for re-config)
 
 ### Structure
@@ -164,10 +165,12 @@ images:
       provider: cloudflare
       port: 2283
     fqdn: "app.example.com"
-    bind_mounts:
+    volumes:
+      - name: data
+        type: bind
+        host: "~/data/myapp"
       - name: secrets
-        path: "~/.myapp/secrets"
-        encrypted: true
+        type: encrypted
     ports:
       - "2283:2283"
     env:
@@ -180,7 +183,7 @@ images:
     engine: podman
 ```
 
-Allowed fields: `workspace`, `version`, `status`, `info`, `tunnel`, `fqdn`, `acme_email`, `bind_mounts`, `ports`, `env`, `env_file`, `security`, `network`, `engine`, `secrets`.
+Allowed fields: `workspace`, `version`, `status`, `info`, `tunnel`, `fqdn`, `acme_email`, `volumes`, `ports`, `env`, `env_file`, `security`, `network`, `engine`, `secrets`.
 
 ### Secrets
 
@@ -217,44 +220,78 @@ ov deploy status
 
 Deployment commands (`ov config`, `start`, `status`, `logs`, `update`, `remove`, `seed`, `service`) resolve all configuration from **OCI image labels** + **deploy.yml** — no `images.yml` dependency. This means you can deploy on any machine with just `podman pull` + `ov config`.
 
-## Bind Mounts
+## Volume Backing
 
-Host-path bind mounts declared in image labels (from `images.yml` at build time) or overridden in `deploy.yml`. Two modes: plain (direct bind) and encrypted (gocryptfs-managed). Deployment-specific.
+Layers declare what persistent storage they need via `volumes:` in `layer.yml`. By default, all volumes are Docker/Podman named volumes. At `ov config` time, any volume's backing can be changed to a host bind mount or encrypted gocryptfs mount.
 
-### Configuration
+### Per-Volume Configuration via `ov config`
 
-```yaml
-bind_mounts:
-  - name: data
-    host: "~/data/myapp"        # host dir, required for plain mounts
-    path: "~/.myapp"            # container path, ~ expanded to resolved home
+```bash
+# Default: all volumes as named volumes (no flags needed)
+ov config immich
 
-  - name: secrets
-    path: "~/.myapp/secrets"    # container path
-    encrypted: true             # gocryptfs, host managed by ov
+# Configure specific volumes as bind mounts
+ov config immich --bind import --bind external
+
+# Bind mount with explicit host path
+ov config immich --bind library=/mnt/nas/photos
+
+# Configure volume as encrypted (gocryptfs)
+ov config immich --encrypt library
+
+# Canonical syntax: --volume name:type[:path]
+ov config immich -v library:bind:/mnt/nas -v import:bind -v cache:encrypted
+
+# Fully automated via env vars (no prompts)
+OV_VOLUMES_IMMICH="library:bind:/mnt/nas,import:bind" ov config immich --password auto
 ```
 
-**Rules:**
-- `encrypted: false` (default): `host` is required -- direct bind mount
-- `encrypted: true`: `host` is forbidden -- ov manages cipher/plain dirs at `encrypted_storage_path`
-- `path`: container mount path (required). `~`/`$HOME` expanded to the image's resolved home dir
-- `host`: host mount path (plain mounts only). `~`/`$HOME` expanded to the user's actual home
-- `name`: unique identifier, must match `^[a-z0-9]+(-[a-z0-9]+)*$`
-- Bind mount names must not collide with layer volume names (same namespace)
+### deploy.yml Volume Config
 
-### Bind Mount / Volume Override
+Volume backing choices are persisted in deploy.yml:
 
-When a bind mount has the same name as a layer volume, the bind mount **overrides** the volume. The named volume is not created -- the bind mount is used instead. This allows deploy.yml to replace layer-declared volumes with encrypted bind mounts.
+```yaml
+volumes:
+  - name: library
+    type: bind
+    host: "/mnt/nas/photos"     # explicit host path
+  - name: import
+    type: bind                   # no host → auto path: <volumes_path>/<image>/import
+  - name: cache
+    type: encrypted              # gocryptfs managed
+```
+
+**Fields:**
+- `name`: matches a layer-declared volume name
+- `type`: `volume` (default, named volume), `bind` (host directory), `encrypted` (gocryptfs)
+- `host`: explicit host path for `bind` type (optional — omit for auto path)
+- `path`: container path (only for deploy-only volumes not declared in any layer)
+
+**Auto path:** When `type: bind` and no `host` is specified, the host path is computed at runtime: `<volumes_path>/<image>/<name>`. Default volumes_path: `~/.local/share/ov/volumes/`. Configurable: `ov settings set volumes_path /mnt/nas/ov` (env: `OV_VOLUMES_PATH`).
+
+**Unconfigured volumes** remain named volumes — no deploy.yml entry needed.
+
+### Resolution Flow
+
+`ResolveVolumeBacking()` in `ov/deploy.go` splits image volumes into named volumes and bind-backed mounts:
+
+1. Load all volumes from image labels (`org.overthinkos.volumes`)
+2. Load deploy.yml volume overrides for this image
+3. For each declared volume:
+   - If deploy.yml says `type=bind` → host bind mount (explicit path or auto path)
+   - If deploy.yml says `type=encrypted` → gocryptfs FUSE mount
+   - Otherwise → named volume (Docker/Podman-managed)
+4. Deploy-only volumes (with `path:` set, not in any layer) are also supported
 
 ### Integration
 
-- **`ov seed <image>`**: copies default data from image into empty bind mount directories before first start
-- **`ov shell`/`ov start` (direct)**: resolves bind mounts, verifies plain dirs exist and encrypted volumes are mounted, appends `-v <host>:<container>` flags. `ov start` mounts encrypted volumes inline
-- **`ov config` (quadlet)**: plain mounts as `Volume=` lines. Encrypted volumes are mounted inline by `ov start`
-- **`ov remove`**: `--purge` removes named volumes
-- **`ov inspect --format bind_mounts`**: outputs `NAME\tHOST\tPATH\tENCRYPTED`
+- **`ov seed <image>`**: copies image data into empty bind-backed volume directories before first start
+- **`ov shell`/`ov start`**: resolves volume backing, verifies bind dirs exist and encrypted volumes are mounted, generates `-v` flags
+- **`ov config` (quadlet)**: bind-backed volumes become `Volume=` lines with host paths. `--userns=keep-id` added when bind-backed volumes exist
+- **`ov remove --purge`**: removes named volumes
+- **`ov inspect --format bind_mounts`**: outputs deploy-configured volume backing
 
-Source: `ov/enc.go`, `ov/validate.go` (`validateBindMounts`).
+Source: `ov/deploy.go` (`DeployVolumeConfig`, `ResolveVolumeBacking`), `ov/enc.go` (`ResolvedBindMount`).
 
 ## VNC Password for Deployments
 

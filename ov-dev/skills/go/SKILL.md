@@ -57,7 +57,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `status.go` | `status` command (structured table/detail view, live tool probing, `--json`) |
 | `commands.go` | `enable`/`disable`/`logs`/`update`/`remove` |
 | `service.go` | `service` command (init system service management inside containers) |
-| `seed.go` | `seed` command (bind mount data seeding) |
+| `seed.go` | `seed` command (bind-backed volume data seeding) |
 | `hooks.go` | Lifecycle hooks (`post_enable`, `pre_remove`) collection and execution |
 | `remote_image.go` | Remote image ref resolution, pull-or-build |
 | `vm.go` | VM lifecycle: create, start, stop, destroy, list, console, ssh |
@@ -94,8 +94,8 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `labels.go` | OCI label constants |
 | `volumes.go` | Named volume collection/mounting |
 | `alias.go` | Command aliases (wrapper scripts) |
-| `deploy.go` | Per-deployment config overlay, `saveDeployState()`, `cleanDeployEntry()` |
-| `crypto.go` | Encrypted bind mounts (gocryptfs) |
+| `deploy.go` | Per-deployment config overlay, `DeployVolumeConfig`, `ResolveVolumeBacking()`, `saveDeployState()` |
+| `enc.go` | Encrypted volumes (gocryptfs), `ResolvedBindMount` |
 | `devices.go` | Host device auto-detection (NVIDIA GPU, AMD GPU/KFD, /dev/dri, /dev/kvm, etc.) |
 | `tunnel.go` | Tunnel configuration (Tailscale, Cloudflare) |
 | `quadlet.go` | Quadlet .container file generation, `Secret=` directives |

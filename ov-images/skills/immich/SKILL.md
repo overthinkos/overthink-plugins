@@ -27,7 +27,7 @@ Self-hosted photo and video management server with full codec support.
 3. `nodejs24` — Node.js 24 runtime
 4. `postgresql` — database on :5432
 5. `redis` — cache on :6379
-6. `immich` — Immich server on :2283, library + cache volumes
+6. `immich` — Immich server on :2283, library + cache + import + external volumes
 
 ## Ports
 
@@ -41,6 +41,8 @@ Self-hosted photo and video management server with full codec support.
 |------|------|---------|
 | library | ~/.immich/library | Photo/video storage |
 | cache | ~/.immich/cache | Thumbnail cache |
+| import | ~/.immich/import | Photo import directory |
+| external | ~/.immich/external | External library (no-copy) |
 | pgdata | ~/.postgresql | PostgreSQL data |
 
 ## Quick Start

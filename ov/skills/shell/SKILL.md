@@ -30,7 +30,7 @@ description: |
 
 1. Resolves image reference (local images.yml or remote `github.com/...`)
 2. Ensures image exists in run engine (transfers from build engine if needed)
-3. Resolves volumes, bind mounts, ports, security, environment
+3. Resolves volumes (with deploy-time backing), ports, security, environment
 4. If container is already running: `<engine> exec` into it
 5. If not running: `<engine> run` with full configuration
 

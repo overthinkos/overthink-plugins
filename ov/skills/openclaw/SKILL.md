@@ -409,7 +409,7 @@ ov shell <image> -c "supervisorctl restart openclaw"
 ## Cross-References
 
 - `/ov:cdp` -- `ov cdp` CDP commands (lower-level container-external automation)
-- `/ov:deploy` -- Quadlet, tunnels, bind mounts, VNC password
+- `/ov:deploy` -- Quadlet, tunnels, volume backing, VNC password
 - `/ov:service` -- `ov start/stop/enable/disable/status/logs/update/remove`
 - `/ov:vnc` -- VNC desktop automation and password management
 - `/ov:alias` -- Host command aliases (`ov alias add openclaw`)

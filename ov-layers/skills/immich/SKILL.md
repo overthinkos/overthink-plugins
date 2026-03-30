@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `supervisord`, `nodejs24`, `postgresql`, `redis` |
 | Ports | 2283 |
-| Volumes | `library` -> `~/.immich/library`, `cache` -> `~/.immich/cache` |
+| Volumes | `library` -> `~/.immich/library`, `cache` -> `~/.immich/cache`, `import` -> `~/.immich/import`, `external` -> `~/.immich/external` |
 | Service | `immich-db-init` (oneshot, priority 20), `immich-server` (priority 30) |
 | Route | `immich.localhost:2283` |
 | Install files | `root.yml`, `user.yml` |
