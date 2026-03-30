@@ -70,6 +70,8 @@ Auto-detection prefers podman over docker when both are installed.
 | `secret_backend` | `OV_SECRET_BACKEND` | `auto` | `auto`, `keyring`, `kdbx`, `config` | Credential storage backend |
 | `secrets.kdbx_path` | `OV_KDBX_PATH` | (empty) | any path | Path to KeePass .kdbx database |
 | `secrets.kdbx_key_file` | `OV_KDBX_KEY_FILE` | (empty) | any path | Optional key file for .kdbx |
+| `secrets.kdbx_cache` | `OV_KDBX_CACHE` | `true` | `true`, `false` | Enable kernel keyring caching of kdbx password |
+| `secrets.kdbx_cache_timeout` | `OV_KDBX_CACHE_TIMEOUT` | `3600` | integer (seconds) | TTL for cached kdbx password in kernel keyring |
 
 ### VM Settings
 
@@ -170,7 +172,7 @@ ov secrets import --dry-run                  # Preview importing existing creden
 ov secrets import                            # Import from config.yml + keyring into kdbx
 ```
 
-Encrypted at rest (KDBX 4, Argon2). No daemon needed. Works over SSH. Password prompted once per session (cached in kernel keyring via `systemd-ask-password`).
+Encrypted at rest (KDBX 4, Argon2). No daemon needed. Works over SSH. Password prompted once, then cached in the Linux kernel keyring (user keyring, key `ov-kdbx-password`) for 1 hour by default. Configurable: `ov settings set secrets.kdbx_cache false` to disable, `ov settings set secrets.kdbx_cache_timeout 7200` to change TTL. Resolution: `OV_KDBX_PASSWORD` env var > kernel keyring > interactive prompt > auto-store in keyring.
 
 ### Force Config-File Backend (headless/SSH)
 

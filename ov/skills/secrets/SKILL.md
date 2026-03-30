@@ -117,6 +117,25 @@ ov secrets import                       # Migrate existing credentials
 
 The `.kdbx` file is a standard KeePass database. You can open it with KeePassXC or any KeePass-compatible tool for backup or manual editing.
 
+## Password Caching
+
+The kdbx master password is cached in the Linux kernel keyring (user keyring, key `ov-kdbx-password`) after the first interactive prompt. All subsequent `ov` commands within the timeout window reuse the cached password automatically -- no re-prompting.
+
+**Password resolution chain:**
+1. `OV_KDBX_PASSWORD` environment variable (CI/automation)
+2. Linux kernel keyring lookup
+3. Interactive prompt (systemd-ask-password or terminal)
+4. After prompting, auto-store in kernel keyring with configured TTL
+
+**Configuration:**
+
+```bash
+ov settings set secrets.kdbx_cache false       # Disable caching entirely
+ov settings set secrets.kdbx_cache_timeout 7200 # Cache for 2 hours instead of 1
+```
+
+Default: enabled, 3600 seconds (1 hour) TTL. Uses `keyctl` syscalls via `golang.org/x/sys/unix`. Source: `ov/keyctl.go`.
+
 ## Config Keys
 
 | Key | Description |
@@ -124,6 +143,8 @@ The `.kdbx` file is a standard KeePass database. You can open it with KeePassXC 
 | `secret_backend` | Force backend: `keyring`, `kdbx`, or `config` |
 | `secrets.kdbx_path` | Path to .kdbx file |
 | `secrets.kdbx_key_file` | Optional key file for .kdbx |
+| `secrets.kdbx_cache` | Enable/disable kernel keyring caching (default: `true`) |
+| `secrets.kdbx_cache_timeout` | TTL in seconds for cached password (default: `3600`) |
 
 ## Cross-References
 
