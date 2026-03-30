@@ -8,7 +8,7 @@ description: |
 
 ## Overview
 
-Manage credentials in a KeePass `.kdbx` database. Part of ov's credential store hierarchy — the kdbx backend is used when the system keyring is unavailable (headless servers, SSH sessions) or when explicitly selected via `ov config set secret_backend kdbx`.
+Manage credentials in a KeePass `.kdbx` database. Part of ov's credential store hierarchy — the kdbx backend is used when the system keyring is unavailable (headless servers, SSH sessions) or when explicitly selected via `ov settings set secret_backend kdbx`.
 
 ## Credential Store Hierarchy
 
@@ -48,7 +48,7 @@ ov secrets init --force                  # Overwrite existing database
 Creates a new .kdbx database with password confirmation. Automatically sets `secrets.kdbx_path` in config. After init, activate with:
 
 ```bash
-ov config set secret_backend kdbx
+ov settings set secret_backend kdbx
 ```
 
 Or it auto-activates when the system keyring is unavailable.
@@ -108,7 +108,7 @@ ov secrets path    # Prints resolved path or default location
 
 ```bash
 ov secrets init                         # Create database
-ov config set secret_backend kdbx       # Activate kdbx backend
+ov settings set secret_backend kdbx     # Activate kdbx backend
 ov secrets import --dry-run             # Preview migration
 ov secrets import                       # Migrate existing credentials
 ```
@@ -127,8 +127,8 @@ The `.kdbx` file is a standard KeePass database. You can open it with KeePassXC 
 
 ## Cross-References
 
-- `/ov:config` — `secret_backend`, `secrets.kdbx_path` config keys
-- `/ov:service` — container secrets (`secrets` field in layer.yml, provisioned at `ov enable`)
+- `/ov:config` — `secret_backend`, `secrets.kdbx_path` settings keys
+- `/ov:service` — container secrets (`secrets` field in layer.yml, provisioned at `ov config`)
 
 ## Source
 

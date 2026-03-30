@@ -37,7 +37,7 @@ Headless OpenClaw AI gateway — no desktop, no browser, just the gateway servic
 
 ```bash
 ov build openclaw
-ov enable openclaw
+ov config openclaw
 ov start openclaw
 # Gateway at http://localhost:18789
 ```

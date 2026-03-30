@@ -28,7 +28,7 @@ description: |
 ```
 CLI command -> resolveVNCContainer (engine + container name)
            -> resolveVNCAddress (docker/podman port <name> 5900)
-           -> resolveVNCPassword (ov config + VNC_PASSWORD env)
+           -> resolveVNCPassword (ov settings + VNC_PASSWORD env)
            -> NewVNCClient(address, password) -> RFB handshake -> operation
 ```
 
@@ -37,7 +37,7 @@ Custom RFC 6143 VNC client implementation (no external dependency). Supports Non
 ## Requirements
 
 - Container must include the `wayvnc` layer (port tcp:5900)
-- Container must be running (`ov start` or `ov enable`)
+- Container must be running (`ov start`)
 - Wayland compositor must be active (sway)
 
 ## Commands
@@ -121,10 +121,10 @@ When connecting, password is resolved in this order:
 VNC_PASSWORD=secret ov vnc screenshot openclaw-sway-browser out.png
 
 # Set password programmatically (alternative to ov vnc passwd)
-ov config set vnc.password.openclaw-sway-browser mysecret
+ov settings set vnc.password.openclaw-sway-browser mysecret
 
 # Instance-specific password
-ov config set vnc.password.openclaw-sway-browser-prod prodpassword
+ov settings set vnc.password.openclaw-sway-browser-prod prodpassword
 ```
 
 Requires `openssl` inside the container for TLS cert and RSA key generation.

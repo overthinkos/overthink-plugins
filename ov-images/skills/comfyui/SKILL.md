@@ -36,7 +36,7 @@ GPU-accelerated ComfyUI image generation server with node-based workflow UI.
 
 ```bash
 ov build comfyui
-ov enable comfyui
+ov config comfyui
 ov start comfyui
 # Open http://localhost:8188
 ```

@@ -1,27 +1,27 @@
 ---
 name: config
 description: |
-  MUST be invoked before any work involving: ov config commands, runtime settings, engine selection, bind address, VM defaults, or encrypted storage paths.
+  MUST be invoked before any work involving: ov settings commands, runtime settings, engine selection, bind address, VM defaults, or encrypted storage paths.
 ---
 
 # Config - Runtime Configuration
 
 ## Overview
 
-`ov config` manages user-level runtime settings stored in `~/.config/ov/config.yml`. All settings follow a three-level resolution chain: **environment variable > config file > default**.
+`ov settings` manages user-level runtime settings stored in `~/.config/ov/config.yml`. All settings follow a three-level resolution chain: **environment variable > config file > default**.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Get a value | `ov config get <key>` | Print resolved value |
-| Set a value | `ov config set <key> <value>` | Write to config file |
-| List all | `ov config list` | Show all keys with source |
-| Reset a key | `ov config reset <key>` | Remove from config (revert to default) |
-| Reset all | `ov config reset` | Clear entire config file |
-| Show path | `ov config path` | Print config file path |
-| Migrate secrets | `ov config migrate-secrets` | Move plaintext creds to system keyring |
-| Dry-run migrate | `ov config migrate-secrets --dry-run` | Preview migration without changes |
+| Get a value | `ov settings get <key>` | Print resolved value |
+| Set a value | `ov settings set <key> <value>` | Write to config file |
+| List all | `ov settings list` | Show all keys with source |
+| Reset a key | `ov settings reset <key>` | Remove from config (revert to default) |
+| Reset all | `ov settings reset` | Clear entire config file |
+| Show path | `ov settings path` | Print config file path |
+| Migrate secrets | `ov settings migrate-secrets` | Move plaintext creds to system keyring |
+| Dry-run migrate | `ov settings migrate-secrets --dry-run` | Preview migration without changes |
 
 ## Config File
 
@@ -54,7 +54,7 @@ vm:
 | Key | Env Var | Default | Values | Purpose |
 |-----|---------|---------|--------|---------|
 | `engine.build` | `OV_BUILD_ENGINE` | `auto` | `auto`, `docker`, `podman` | Engine for `ov build` and `ov merge` |
-| `engine.run` | `OV_RUN_ENGINE` | `auto` | `auto`, `docker`, `podman` | Engine for `ov shell`, `ov start`, `ov enable` |
+| `engine.run` | `OV_RUN_ENGINE` | `auto` | `auto`, `docker`, `podman` | Engine for `ov shell`, `ov start`, `ov config` |
 | `engine.rootful` | `OV_ENGINE_ROOTFUL` | `auto` | `auto`, `machine`, `sudo`, `native` | Rootful podman strategy for VM builds |
 
 Auto-detection prefers podman over docker when both are installed.
@@ -90,7 +90,7 @@ Auto-detection prefers podman over docker when both are installed.
 | `vnc.password.<image>` | `VNC_PASSWORD` | (empty) | any string | VNC auth password for image |
 | `vnc.password.<image>-<instance>` | `VNC_PASSWORD` | (empty) | any string | VNC auth password for specific instance |
 
-Set via `ov vnc passwd <image> --generate` or `ov config set vnc.password.<image> <password>`. Stored in system keyring (when `secret_backend=auto` or `keyring`) or `vnc_passwords` map in config file (when `secret_backend=config`).
+Set via `ov vnc passwd <image> --generate` or `ov settings set vnc.password.<image> <password>`. Stored in system keyring (when `secret_backend=auto` or `keyring`) or `vnc_passwords` map in config file (when `secret_backend=config`).
 
 ## Resolution Chain
 
@@ -108,22 +108,22 @@ For credential keys (`vnc.password.*`), the chain is:
 4. **Config file** (plaintext fallback)
 5. **Default** (empty)
 
-`ov config list` shows which source each value comes from. Credential values are masked with `****`.
+`ov settings list` shows which source each value comes from. Credential values are masked with `****`.
 
 ## Common Workflows
 
 ### Switch to Podman
 
 ```bash
-ov config set engine.build podman
-ov config set engine.run podman
+ov settings set engine.build podman
+ov settings set engine.run podman
 ```
 
 ### Enable Quadlet Mode
 
 ```bash
-ov config set run_mode quadlet
-ov config set engine.run podman    # Required for quadlet
+ov settings set run_mode quadlet
+ov settings set engine.run podman    # Required for quadlet
 loginctl enable-linger $USER       # Required for user services
 # auto_enable defaults to true -- ov start auto-generates quadlet on first run
 ```
@@ -138,7 +138,7 @@ export OV_RUN_MODE=quadlet                  # Session-wide override
 ### Check Current Settings
 
 ```bash
-ov config list
+ov settings list
 # engine.build      auto     (default)
 # engine.run        podman   (config)
 # run_mode          direct   (default)
@@ -148,24 +148,24 @@ ov config list
 ### Reset to Defaults
 
 ```bash
-ov config reset engine.build    # Reset one key
-ov config reset                 # Reset everything
+ov settings reset engine.build    # Reset one key
+ov settings reset                 # Reset everything
 ```
 
 ### Migrate Credentials to System Keyring
 
 ```bash
-ov config migrate-secrets --dry-run    # See what would be migrated
-ov config migrate-secrets              # Actually migrate (creates .bak backup)
+ov settings migrate-secrets --dry-run    # See what would be migrated
+ov settings migrate-secrets              # Actually migrate (creates .bak backup)
 ```
 
 Migrates plaintext VNC credentials from `config.yml` to the system keyring (GNOME Keyring, KDE Wallet, KeePassXC). Creates a backup file first. If keyring is unavailable, prints setup instructions.
 
-### KeePass Backend (headless/SSH — encrypted, no daemon)
+### KeePass Backend (headless/SSH -- encrypted, no daemon)
 
 ```bash
 ov secrets init                              # Create ~/.config/ov/secrets.kdbx
-ov config set secret_backend kdbx            # Activate (or auto-detected when keyring unavailable)
+ov settings set secret_backend kdbx          # Activate (or auto-detected when keyring unavailable)
 ov secrets import --dry-run                  # Preview importing existing credentials
 ov secrets import                            # Import from config.yml + keyring into kdbx
 ```
@@ -175,7 +175,13 @@ Encrypted at rest (KDBX 4, Argon2). No daemon needed. Works over SSH. Password p
 ### Force Config-File Backend (headless/SSH)
 
 ```bash
-ov config set secret_backend config    # Suppress keyring warnings
+ov settings set secret_backend config    # Suppress keyring warnings
+```
+
+### Global KeePass Flag
+
+```bash
+ov --kdbx ~/.config/ov/secrets.kdbx start my-app    # Use kdbx for this command
 ```
 
 Source: `ov/runtime_config.go`, `ov/credential_store.go`, `ov/credential_keyring.go`, `ov/credential_config.go`, `ov/credential_kdbx.go`, `ov/secrets_cmd.go`.
@@ -191,6 +197,6 @@ Source: `ov/runtime_config.go`, `ov/credential_store.go`, `ov/credential_keyring
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves ov config commands, runtime settings, engine selection, bind address, VM defaults, encrypted storage paths, or credential storage backend. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves ov settings commands, runtime settings, engine selection, bind address, VM defaults, encrypted storage paths, or credential storage backend. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Any time. Configuration can be set before or after builds/deployments.

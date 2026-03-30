@@ -59,7 +59,7 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 | `security` | `SecurityConfig` | Container security: `privileged`, `cap_add`, `devices`, `security_opt`, `shm_size`, `group_add`, `mounts` |
 | `port_relay` | `[]int` | Ports needing eth0->loopback socat relay (auto-adds socat dependency) |
 | `secrets` | `[]SecretYAML` | Container secrets provisioned as Podman secrets at runtime (`name`, `target`, `env`) |
-| `hooks` | `HooksConfig` | Lifecycle hooks: `post_enable` (runs after `ov enable`), `pre_remove` (runs before `ov remove`) |
+| `hooks` | `HooksConfig` | Lifecycle hooks: `post_enable` (runs after `ov config`), `pre_remove` (runs before `ov remove`) |
 | `libvirt` | `[]string` | Raw libvirt XML snippets injected into VM domain XML after creation |
 
 ### port_relay
@@ -73,7 +73,7 @@ port_relay:
 
 ### secrets
 
-Container secrets provisioned as Podman secrets at `ov enable`/`ov start` time. Metadata only is stored in OCI image labels — never the secret value itself. Values are resolved from the credential store (keyring or config) at deployment time.
+Container secrets provisioned as Podman secrets at `ov config`/`ov start` time. Metadata only is stored in OCI image labels — never the secret value itself. Values are resolved from the credential store (keyring or config) at deployment time.
 
 ```yaml
 secrets:
@@ -242,7 +242,7 @@ volumes:
 
 Names must match `^[a-z0-9]+(-[a-z0-9]+)*$`. Docker/podman volume names become `ov-<image>-<name>`.
 
-`CollectImageVolumes()` traverses the full image base chain (image -> base -> base's base), collecting volumes from all layers. Deduplicated by name (first declaration wins -- outermost image takes priority). Volumes are automatically mounted by `ov shell`, `ov start`, and `ov enable`.
+`CollectImageVolumes()` traverses the full image base chain (image -> base -> base's base), collecting volumes from all layers. Deduplicated by name (first declaration wins -- outermost image takes priority). Volumes are automatically mounted by `ov shell`, `ov start`, and `ov config`.
 
 Source: `ov/volumes.go`, `ov/layers.go` (`VolumeYAML`, `HasVolumes`, `Volumes()`).
 
@@ -266,7 +266,7 @@ security:
 
 Security settings are merged across layers: if any layer sets `privileged: true`, the result is privileged. `cap_add`, `devices`, `security_opt`, `group_add`, and `mounts` are unioned (deduplicated). Image-level `security:` in `images.yml` overrides `privileged` and appends to the other fields.
 
-**`mounts`**: Host bind mounts or tmpfs mounts needed for device access. Format: `host:container:options` for bind mounts, `tmpfs:path:options` for tmpfs. Stored in the `org.overthinkos.security` image label and applied by `ov enable`/`ov start`. Bind mounts generate `Volume=` in quadlets; tmpfs mounts generate `Tmpfs=`.
+**`mounts`**: Host bind mounts or tmpfs mounts needed for device access. Format: `host:container:options` for bind mounts, `tmpfs:path:options` for tmpfs. Stored in the `org.overthinkos.security` image label and applied by `ov config`/`ov start`. Bind mounts generate `Volume=` in quadlets; tmpfs mounts generate `Tmpfs=`.
 
 Source: `ov/security.go` (`CollectSecurity`, `SecurityArgs`), `ov/quadlet.go`, `ov/start.go`.
 

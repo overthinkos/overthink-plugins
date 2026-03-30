@@ -255,7 +255,7 @@ images:
       - "<filesystem type='mount'>...</filesystem>"
 ```
 
-Resolution chain: **image-level vm: -> defaults vm: -> ov config -> hardcoded defaults**. See `/ov:deploy` for full VM management documentation.
+Resolution chain: **image-level vm: -> defaults vm: -> ov settings -> hardcoded defaults**. See `/ov:deploy` for full VM management documentation.
 
 ## Common Workflows
 

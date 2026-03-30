@@ -42,7 +42,7 @@ OpenClaw with maximal tool coverage plus Sway desktop and VNC access.
 ```bash
 # Enable in images.yml first (remove enabled: false)
 ov build openclaw-full-sway
-ov enable openclaw-full-sway
+ov config openclaw-full-sway
 ov start openclaw-full-sway
 ```
 

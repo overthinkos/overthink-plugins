@@ -42,7 +42,7 @@ GPU-accelerated Ollama LLM inference server.
 
 ```bash
 ov build ollama
-ov enable ollama
+ov config ollama
 ov start ollama
 ov shell ollama -c "ollama pull llama3"
 ov shell ollama -c "ollama run llama3 'Hello'"

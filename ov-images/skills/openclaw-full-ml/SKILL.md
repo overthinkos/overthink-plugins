@@ -45,7 +45,7 @@ GPU-accelerated OpenClaw with all tools, ML capabilities (whisper, sherpa-onnx T
 ```bash
 # Enable in images.yml first (remove enabled: false)
 ov build openclaw-full-ml
-ov enable openclaw-full-ml
+ov config openclaw-full-ml
 ov start openclaw-full-ml
 ```
 

@@ -36,7 +36,7 @@ Runs as root with host networking. Required for nested container builds and VM o
 ## Registration
 
 ```bash
-ov enable githubrunner -e RUNNER_ORG=myorg -e RUNNER_TOKEN=<token>
+ov config githubrunner -e RUNNER_ORG=myorg -e RUNNER_TOKEN=<token>
 # post_enable hook runs config.sh --unattended
 ```
 
@@ -50,7 +50,7 @@ ov remove githubrunner -e RUNNER_TOKEN=<token>
 
 ```bash
 ov build githubrunner
-ov enable githubrunner -e RUNNER_ORG=myorg -e RUNNER_TOKEN=<token>
+ov config githubrunner -e RUNNER_ORG=myorg -e RUNNER_TOKEN=<token>
 ov start githubrunner
 ov stop githubrunner
 ov remove githubrunner -e RUNNER_TOKEN=<token>

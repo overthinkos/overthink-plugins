@@ -79,7 +79,7 @@ Backend resolution order: **libvirt -> qemu** (auto-detected). Libvirt is detect
 | `libvirt` | libvirt session daemon (socket) | Default, recommended |
 | `qemu` | `qemu-system-*` | Direct QEMU, state in `~/.local/share/ov/vm/` |
 
-Override: `ov config set vm.backend libvirt`
+Override: `ov settings set vm.backend libvirt`
 
 Source: `ov/vm.go`, `ov/vm_libvirt.go`, `ov/vm_qemu.go`.
 
@@ -121,7 +121,7 @@ images:
 
 ### User-Level Defaults
 
-Set via `ov config set`:
+Set via `ov settings set`:
 
 | Key | Env Var | Default |
 |-----|---------|---------|
@@ -133,7 +133,7 @@ Set via `ov config set`:
 | `vm.rootfs` | `OV_VM_ROOTFS` | `ext4` |
 | `vm.transport` | `OV_VM_TRANSPORT` | (empty) |
 
-Resolution chain: **image-level vm: -> defaults vm: -> ov config -> hardcoded defaults**.
+Resolution chain: **image-level vm: -> defaults vm: -> ov settings -> hardcoded defaults**.
 
 ## Libvirt XML Injection
 

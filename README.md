@@ -25,10 +25,10 @@ Skills for composing, building, and running container images with the `ov` CLI.
 | validate | `/ov:validate` | Validation rules and error handling (ov validate) |
 | shell | `/ov:shell` | Shell access (ov shell, --tty, -c, exec) |
 | alias | `/ov:alias` | Command aliases (ov alias add/remove/install) |
-| config | `/ov:config` | Runtime configuration (ov config get/set/list) |
-| enc | `/ov:enc` | Encrypted volumes (ov enc init/mount/unmount) |
+| config | `/ov:config` | Runtime configuration (ov settings get/set/list) |
+| enc | `/ov:enc` | Encrypted volumes (ov config mount/unmount) |
 | vm | `/ov:vm` | Virtual machines (ov vm build/create/start/stop) |
-| service | `/ov:service` | Service management (ov start/stop/enable + init system services) |
+| service | `/ov:service` | Service management (ov start/stop/config + init system services) |
 | cdp | `/ov:cdp` | Chrome DevTools Protocol (ov cdp open/list/click/eval) |
 | vnc | `/ov:vnc` | VNC desktop automation (ov vnc screenshot/click/type) |
 | wl | `/ov:wl` | Desktop automation (22 commands + 12 sway IPC commands) |
@@ -96,7 +96,7 @@ Reference documentation for every Overthink container layer.
 | gifgrep | `/ov-layers:gifgrep` | GIF search and download CLI |
 | github-actions | `/ov-layers:github-actions` | Act CLI via COPR + guestfs-tools |
 | github-runner | `/ov-layers:github-runner` | GitHub Actions self-hosted runner as supervised service |
-| gocryptfs | `/ov-layers:gocryptfs` | Encrypted filesystem for ov enc operations |
+| gocryptfs | `/ov-layers:gocryptfs` | Encrypted filesystem for ov config encrypted volume operations |
 | gogcli | `/ov-layers:gogcli` | Google Workspace CLI (Gmail, Calendar, Drive, Contacts, Sheets, Docs) |
 | golang | `/ov-layers:golang` | Go programming language compiler |
 | google-cloud | `/ov-layers:google-cloud` | Google Cloud SDK (gcloud, gsutil, bq) |

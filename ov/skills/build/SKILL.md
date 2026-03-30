@@ -139,8 +139,8 @@ For filtered builds (`ov build <image>`), only the built images are merged. For 
 ## Engine Configuration
 
 ```bash
-ov config set engine.build docker   # or podman
-ov config set engine.run docker     # or podman
+ov settings set engine.build docker   # or podman
+ov settings set engine.run docker     # or podman
 ```
 
 ## Host Bootstrap (First Time)

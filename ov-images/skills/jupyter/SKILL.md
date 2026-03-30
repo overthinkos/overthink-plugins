@@ -36,7 +36,7 @@ GPU-accelerated Jupyter notebook server with ML libraries and llama.cpp.
 
 ```bash
 ov build jupyter
-ov enable jupyter
+ov config jupyter
 ov start jupyter
 # Open http://localhost:8888
 ```

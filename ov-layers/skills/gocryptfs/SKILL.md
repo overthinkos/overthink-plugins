@@ -1,8 +1,8 @@
 ---
 name: gocryptfs
 description: |
-  Encrypted filesystem (gocryptfs) for ov enc operations.
-  Use when working with encrypted volumes, ov enc, or filesystem encryption.
+  Encrypted filesystem (gocryptfs) for ov config encrypted volume operations.
+  Use when working with encrypted volumes, ov config mount/unmount, or filesystem encryption.
 ---
 
 # gocryptfs -- Encrypted filesystem support
@@ -42,5 +42,5 @@ Typically used as part of the `ov-full` composition layer rather than directly.
 Use when the user asks about:
 
 - Encrypted volumes or filesystems
-- `ov enc` operations (init, mount, unmount)
+- `ov config` encrypted volume operations (mount, unmount, status, passwd)
 - The `gocryptfs` layer

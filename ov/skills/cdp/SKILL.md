@@ -42,7 +42,7 @@ All commands accept `-i INSTANCE` for multi-instance support.
 
 - A Chrome layer with `port_relay: [9222]` in layer.yml
 - Chrome launched with `--remote-allow-origins='*'` and `--remote-debugging-port=9222`
-- Container must be running (`ov start` or `ov enable`)
+- Container must be running (`ov start`)
 
 The `port_relay` is essential because Chrome 146+ binds DevTools only to 127.0.0.1. The socat relay forwards eth0:9222 to localhost:9222, making it accessible through container port mappings.
 
@@ -236,7 +236,7 @@ Sign into a Google account inside a running container. Requires `GMAIL_USER` and
 
 **App Passwords required:** Google accounts with 2FA (now mandatory for most accounts) require a 16-character [App Password](https://myaccount.google.com/apppasswords). App Passwords bypass all verification challenges and 2FA prompts — use them by default for automated sign-in.
 
-**Fresh profile prerequisite:** A fresh `chrome-data` volume triggers Chrome's first-run flow. Use `ov remove <image> --purge` before `ov enable` to ensure a clean start. Just rebuilding the image does not reset named volumes.
+**Fresh profile prerequisite:** A fresh `chrome-data` volume triggers Chrome's first-run flow. Use `ov remove <image> --purge` before `ov config` to ensure a clean start. Just rebuilding the image does not reset named volumes.
 
 ### Step 0: Dismiss Chrome First-Run Dialog
 
@@ -349,7 +349,7 @@ Use `ov cdp coords my-app $TAB '<selector>'` to debug coordinate translation. It
 - `/ov:wl` (sway subgroup) -- Sway compositor control (window management, workspaces)
 - `/ov:vnc` -- VNC desktop automation (same container, pixel-level interaction)
 - `/ov:shell` -- Running commands in containers (`--tty` for OAuth flows)
-- `/ov:service` -- Starting containers (`ov start`, `ov enable`)
+- `/ov:service` -- Starting containers (`ov start`, `ov config`)
 - `/ov:layer` -- `port_relay` field and Chrome layer configuration
 
 ## When to Use This Skill

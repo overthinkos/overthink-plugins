@@ -47,7 +47,7 @@ githubrunner:
 ```
 
 ```bash
-ov enable githubrunner -e RUNNER_ORG=myorg -e RUNNER_TOKEN=xxx
+ov config githubrunner -e RUNNER_ORG=myorg -e RUNNER_TOKEN=xxx
 ov remove githubrunner -e RUNNER_TOKEN=xxx
 ```
 

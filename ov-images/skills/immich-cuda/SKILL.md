@@ -51,7 +51,7 @@ Immich photo management with GPU-accelerated machine learning for face recogniti
 
 ```bash
 ov build immich-cuda
-ov enable immich-cuda
+ov config immich-cuda
 ov start immich-cuda
 # Open http://localhost:2283
 ```

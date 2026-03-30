@@ -41,7 +41,7 @@ Everything from `openclaw-sway-browser` plus:
 
 ```bash
 ov build openclaw-ollama-sway-browser
-ov enable openclaw-ollama-sway-browser
+ov config openclaw-ollama-sway-browser
 ov start openclaw-ollama-sway-browser
 # Gateway at http://localhost:18789
 # Ollama at http://localhost:11434
@@ -155,7 +155,7 @@ See `/ov:openclaw` for full gateway configuration reference.
 - `ov vnc click` — clicks Chrome native UI elements (infobubbles, dialogs not in DOM)
 - `ov vnc screenshot` — verifies state after every action
 
-**Critical shm_size:** The `shm_size: "1g"` in chrome layer.yml is essential. Without it, Chrome crashes with `ContextResult::kTransientFailure` on complex pages (Google sign-in, OpenAI auth). If Chrome crashes on page load, check: `ov shell $IMG -c 'df -h /dev/shm'` — must show 1.0G, not 63M. Fix: `ov remove $IMG && ov enable $IMG && ov start $IMG` with updated `ov` binary.
+**Critical shm_size:** The `shm_size: "1g"` in chrome layer.yml is essential. Without it, Chrome crashes with `ContextResult::kTransientFailure` on complex pages (Google sign-in, OpenAI auth). If Chrome crashes on page load, check: `ov shell $IMG -c 'df -h /dev/shm'` — must show 1.0G, not 63M. Fix: `ov remove $IMG && ov config $IMG && ov start $IMG` with updated `ov` binary.
 
 **DO NOT** open `chrome://intro` on NVIDIA+pixman setups — it crashes Chrome due to GPU-intensive animations. Use `https://accounts.google.com/signin` directly.
 
@@ -250,7 +250,7 @@ All persistent state lives in three named volumes:
 | `ov build` (image rebuild) | Preserved |
 | `ov remove --purge` | **DESTROYED** |
 
-Volume metadata is stored as OCI labels (`org.overthinkos.volumes`) in the image. `ov enable` always recreates the correct mounts even after image rebuild.
+Volume metadata is stored as OCI labels (`org.overthinkos.volumes`) in the image. `ov config` always recreates the correct mounts even after image rebuild.
 
 ## When to Use This Skill
 

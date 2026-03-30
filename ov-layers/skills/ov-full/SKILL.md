@@ -32,7 +32,7 @@ my-vm-host:
 
 - `/ov-layers:ov` -- ov CLI binary (included)
 - `/ov-layers:virtualization` -- QEMU/KVM/libvirt stack (included)
-- `/ov-layers:gocryptfs` -- encrypted filesystem for `ov enc` (included)
+- `/ov-layers:gocryptfs` -- encrypted filesystem for `ov config` encrypted volumes (included)
 - `/ov-layers:socat` -- socket relay for console access and port_relay (included)
 - `/ov-layers:bootc-base` -- often paired for OS images
 

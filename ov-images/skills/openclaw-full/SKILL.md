@@ -42,7 +42,7 @@ Headless OpenClaw image with maximal tool/skill coverage. No desktop, no VNC.
 ```bash
 # Enable in images.yml first (remove enabled: false)
 ov build openclaw-full
-ov enable openclaw-full
+ov config openclaw-full
 ov start openclaw-full
 ```
 

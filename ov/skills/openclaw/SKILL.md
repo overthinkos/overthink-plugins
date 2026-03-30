@@ -72,7 +72,7 @@ ov alias add openclaw openclaw-sway-browser
 
 ```bash
 ov build openclaw-sway-browser         # Build image
-ov enable openclaw-sway-browser        # Generate quadlet, daemon-reload
+ov config openclaw-sway-browser        # Generate quadlet, daemon-reload
 ov start openclaw-sway-browser         # Start via systemd
 ov stop openclaw-sway-browser          # Stop
 ov status openclaw-sway-browser        # Check systemd status

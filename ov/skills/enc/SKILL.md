@@ -1,24 +1,24 @@
 ---
 name: enc
 description: |
-  MUST be invoked before any work involving: encrypted storage, ov enc commands, gocryptfs, or encrypted bind mounts.
+  MUST be invoked before any work involving: encrypted storage, gocryptfs, or encrypted bind mounts.
 ---
 
 # Enc - Encrypted Storage
 
 ## Overview
 
-`ov enc` manages gocryptfs-encrypted bind mounts for container images. Encrypted volumes store sensitive data (credentials, keys, configs) with transparent encryption at rest. The cipher directory lives on disk; the plain directory is mounted on demand.
+Encrypted bind mount management is integrated into the `ov config` command. Gocryptfs-encrypted volumes store sensitive data (credentials, keys, configs) with transparent encryption at rest. The cipher directory lives on disk; the plain directory is mounted on demand. `ov config <image>` handles initialization and mounting during deployment setup. `ov start` mounts encrypted volumes inline before starting the container.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Initialize | `ov enc init <image>` | Create gocryptfs cipher directories |
-| Mount | `ov enc mount <image>` | Mount encrypted volumes |
-| Unmount | `ov enc unmount <image>` | Unmount encrypted volumes |
-| Status | `ov enc status <image>` | Show mount status |
-| Change password | `ov enc passwd <image>` | Change encryption password |
+| Setup (init + mount) | `ov config <image>` | Initialize cipher dirs and mount encrypted volumes |
+| Mount | `ov config mount <image>` | Mount encrypted volumes |
+| Unmount | `ov config unmount <image>` | Unmount encrypted volumes |
+| Status | `ov config status <image>` | Show mount status |
+| Change password | `ov config passwd <image>` | Change encryption password |
 
 All commands accept `--volume NAME` to target a specific volume (otherwise all encrypted volumes are affected).
 
@@ -48,24 +48,26 @@ Rules:
     plain/     # Decrypted mount point (mounted on demand)
 ```
 
-Override base path: `ov config set encrypted_storage_path /path/to/storage` or `OV_ENCRYPTED_STORAGE_PATH=/path`.
+Override base path: `ov settings set encrypted_storage_path /path/to/storage` or `OV_ENCRYPTED_STORAGE_PATH=/path`.
 
 ## Commands
 
-### Initialize
+### Setup (ov config)
 
 ```bash
-ov enc init my-app                    # Init all encrypted volumes
-ov enc init my-app --volume secrets   # Init specific volume
+ov config my-app                             # Init + mount all encrypted volumes
+ov config my-app --password auto             # Auto-generate password
+ov config my-app --password manual           # Prompt for password
+ov config my-app --volume secrets            # Target specific volume
 ```
 
-Creates cipher directories and initializes gocryptfs. Prompts for password once (cached in kernel keyring for multi-volume images).
+`ov config <image>` handles both initialization (creating cipher directories) and mounting in a single step. If volumes are already initialized, it mounts them. Password is cached in kernel keyring for multi-volume images.
 
 ### Mount
 
 ```bash
-ov enc mount my-app                    # Mount all encrypted volumes
-ov enc mount my-app --volume secrets   # Mount specific volume
+ov config mount my-app                    # Mount all encrypted volumes
+ov config mount my-app --volume secrets   # Mount specific volume
 ```
 
 Prompts for password (or reuses from keyring). The plain directory becomes available for container bind mounts.
@@ -73,14 +75,14 @@ Prompts for password (or reuses from keyring). The plain directory becomes avail
 ### Unmount
 
 ```bash
-ov enc unmount my-app                    # Unmount all
-ov enc unmount my-app --volume secrets   # Unmount specific
+ov config unmount my-app                    # Unmount all
+ov config unmount my-app --volume secrets   # Unmount specific
 ```
 
 ### Status
 
 ```bash
-ov enc status my-app
+ov config status my-app
 # secrets: mounted
 # configs: not mounted
 ```
@@ -88,20 +90,29 @@ ov enc status my-app
 ### Change Password
 
 ```bash
-ov enc passwd my-app
+ov config passwd my-app
 ```
 
 Changes the gocryptfs password for all encrypted volumes of an image.
 
 ## Single Password
 
-When an image has multiple encrypted bind mounts, `ov enc init`, `ov enc mount`, and the generated crypto systemd unit all use `systemd-ask-password --id=ov-<image>` to cache the passphrase in the kernel keyring. Password is prompted once and reused for all volumes.
+When an image has multiple encrypted bind mounts, `ov config`, `ov config mount`, and the generated crypto systemd unit all use `systemd-ask-password --id=ov-<image>` to cache the passphrase in the kernel keyring. Password is prompted once and reused for all volumes.
+
+## KeePass Integration
+
+Use the `--kdbx` global flag to specify a KeePass database for password storage:
+
+```bash
+ov --kdbx ~/.config/ov/secrets.kdbx config my-app
+```
 
 ## Integration with Runtime
 
-- **`ov shell`/`ov start` (direct mode)**: resolves bind mounts, verifies encrypted volumes are mounted, appends `-v <plain>:<container-path>` flags
-- **`ov enable` (quadlet mode)**: generates a companion `ov-<image>-enc.service` with `Requires=`/`After=` dependency. The crypto service mounts volumes before the main container starts
-- **`ov remove`**: removes the companion crypto service file. `--purge` also removes named volumes
+- **`ov shell`/`ov start` (direct mode)**: resolves bind mounts, verifies encrypted volumes are mounted, appends `-v <plain>:<container-path>` flags. `ov start` mounts encrypted volumes inline before starting the container
+- **`ov start --enable`**: generates quadlet file and starts the service. Encrypted volumes are mounted inline by `ov start` -- no companion service needed
+- **`ov start --enable=false`**: starts without generating a quadlet file
+- **`ov remove`**: `--purge` removes named volumes
 - **`ov seed <image>`**: copies default data from the image into empty bind mount directories (works for both plain and encrypted mounts after mounting)
 - **`ov inspect --format bind_mounts`**: outputs `NAME\tHOST\tPATH\tENCRYPTED`
 
@@ -133,7 +144,7 @@ bind_mounts:
     path: "~/.myapp"           # Container path
 ```
 
-Plain mounts do not use `ov enc` commands. They are direct bind mounts.
+Plain mounts do not use encrypted storage commands. They are direct bind mounts.
 
 Source: `ov/enc.go`, `ov/validate.go` (`validateBindMounts`).
 
@@ -141,10 +152,10 @@ Source: `ov/enc.go`, `ov/validate.go` (`validateBindMounts`).
 
 - `/ov:deploy` -- Quadlet integration, bind mount configuration, deploy.yml
 - `/ov:config` -- `encrypted_storage_path` setting
-- `/ov:service` -- Crypto companion service for quadlet mode
+- `/ov:service` -- Container lifecycle, `ov start` inline mount
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves encrypted storage, ov enc commands, gocryptfs, or encrypted bind mounts. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves encrypted storage, gocryptfs, or encrypted bind mounts. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Pre-deployment. Set up encrypted storage before `ov enable`. See also `/ov:deploy` (bind mounts).
+**Workflow position:** Pre-deployment. Set up encrypted storage before `ov start`. See also `/ov:deploy` (bind mounts).

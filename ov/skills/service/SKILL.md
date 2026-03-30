@@ -1,14 +1,14 @@
 ---
 name: service
 description: |
-  MUST be invoked before any work involving: ov start/stop/enable/disable/status/logs/update/remove commands, init system service management, or container lifecycle.
+  MUST be invoked before any work involving: ov start/stop/status/logs/update/remove commands, ov config (deployment), init system service management, or container lifecycle.
 ---
 
 # Service - Service Management
 
 ## Overview
 
-Container service lifecycle management with two modes: **quadlet** (systemd user services via podman quadlet, always preferred) and **direct** (`<engine> run -d` / `<engine> stop`, fallback only for platforms without quadlet support). Also manages individual init system services inside running containers (supervisord, systemd, etc. — configured via init.yml).
+Container service lifecycle management with two modes: **quadlet** (systemd user services via podman quadlet, always preferred) and **direct** (`<engine> run -d` / `<engine> stop`, fallback only for platforms without quadlet support). Also manages individual init system services inside running containers (supervisord, systemd, etc. -- configured via init.yml).
 
 ## Quick Reference
 
@@ -18,8 +18,8 @@ Container service lifecycle management with two modes: **quadlet** (systemd user
 |--------|---------|-------------|
 | Start service | `ov start <image>` | Start as background service |
 | Stop service | `ov stop <image>` | Stop running service |
-| Enable quadlet | `ov enable <image>` | Generate .container file, daemon-reload |
-| Disable quadlet | `ov disable <image>` | Disable auto-start |
+| Configure deployment | `ov config <image>` | Generate .container file, daemon-reload |
+| Remove deployment | `ov config remove <image>` | Remove deployment configuration |
 | Service status | `ov status [<image>]` | Structured status table (IMAGE, STATUS, PORTS, DEVICES, TOOLS) |
 | All services | `ov status --all` | Include stopped/enabled services in listing |
 | Detailed status | `ov status <image>` | Detailed key-value view with live tool probes |
@@ -50,8 +50,8 @@ All commands accept `-i INSTANCE` for multi-instance support.
 | `direct` | `run_mode: direct` | `<engine> run -d` / `<engine> stop` (fallback only) |
 
 ```bash
-ov config set run_mode quadlet  # Recommended -- systemd integration
-ov config set run_mode direct   # Fallback for platforms without quadlet
+ov settings set run_mode quadlet  # Recommended -- systemd integration
+ov settings set run_mode direct   # Fallback for platforms without quadlet
 ```
 
 ## Quadlet Mode
@@ -61,25 +61,26 @@ User-level systemd services via podman quadlet. No root required.
 ### Setup
 
 ```bash
-ov config set run_mode quadlet
-ov config set engine.run podman    # Required
-loginctl enable-linger $USER       # Required for user services
+ov settings set run_mode quadlet
+ov settings set engine.run podman    # Required
+loginctl enable-linger $USER         # Required for user services
 ```
 
 ### Workflow
 
 ```bash
-ov enable my-app -w ~/project                          # Generate .container file
-ov enable my-app -i prod -w ~/prod -e ENV=production   # Named instance with env
+ov config my-app -w ~/project                          # Generate .container file
+ov config my-app -i prod -w ~/prod -e ENV=production   # Named instance with env
 ov start my-app                    # systemctl --user start
+ov start my-app --enable           # Generate quadlet + start in one step
 ov status my-app                   # systemctl --user status
 ov logs my-app -f                  # journalctl --user -u (follow)
 ov update my-app                   # Re-transfer image, restart
 ov stop my-app                     # systemctl --user stop
-ov disable my-app                  # Disable auto-start
+ov config remove my-app            # Remove deployment configuration
 ov remove my-app                   # Stop + remove .container + deploy.yml entry
 ov remove my-app --purge           # Also remove named volumes
-ov remove my-app --keep-deploy     # Remove service but keep deploy.yml for re-enable
+ov remove my-app --keep-deploy     # Remove service but keep deploy.yml for re-config
 ov remove my-app -e KEY=VALUE      # Set env vars for lifecycle hooks
 ```
 
@@ -98,7 +99,7 @@ With `auto_enable=true` (the default), `ov start` auto-generates the quadlet fil
 
 ### Container Secrets
 
-When image labels declare secrets (from `layer.yml` `secrets` field), `ov enable` provisions them:
+When image labels declare secrets (from `layer.yml` `secrets` field), `ov config` provisions them:
 1. Resolves secret values from the credential store (env var > keyring > config file)
 2. Creates Podman secrets via `podman secret create ov-<image>-<name>`
 3. Generates `Secret=` directives in the quadlet file
@@ -126,7 +127,7 @@ Source: `ov/security.go`, `ov/quadlet.go`.
 
 ### Image Transfer
 
-When `engine.build=docker`, `ov enable` auto-detects if the image is missing from podman and transfers via `docker save | podman load`. `ov update` re-transfers if needed.
+When `engine.build=docker`, `ov config` auto-detects if the image is missing from podman and transfers via `docker save | podman load`. `ov update` re-transfers if needed.
 
 ## Direct Mode (Fallback)
 
@@ -175,7 +176,7 @@ hooks:
 
 | Hook | When it runs |
 |------|-------------|
-| `post_enable` | After `ov enable` generates the quadlet and reloads systemd |
+| `post_enable` | After `ov config` generates the quadlet and reloads systemd |
 | `pre_remove` | Before `ov remove` stops and removes the service |
 
 Hooks from multiple layers are concatenated in layer order. Scripts run on the host (not inside the container). Use `ov remove -e KEY=VALUE` to pass environment variables to hook scripts.
@@ -187,8 +188,8 @@ Source: `ov/hooks.go`.
 The `-i NAME` flag enables running multiple containers of the same image with separate state:
 
 ```bash
-ov enable my-app -i prod -w ~/prod
-ov enable my-app -i staging -w ~/staging
+ov config my-app -i prod -w ~/prod
+ov config my-app -i staging -w ~/staging
 ov start my-app -i prod
 ov status my-app -i staging
 ```
@@ -292,7 +293,7 @@ Source: `ov/status.go`.
 
 - `/ov:shell` -- Interactive shells and exec into running containers
 - `/ov:deploy` -- Quadlet generation details, tunnels, bind mounts
-- `/ov:enc` -- Encrypted storage companion service
+- `/ov:enc` -- Encrypted storage (mounted inline by ov start)
 - `/ov:config` -- `run_mode`, `auto_enable`, `engine.run` settings
 - `/ov:cdp` -- CDP status subcommand (`ov cdp status`)
 - `/ov:vnc` -- VNC status subcommand (`ov vnc status`)
@@ -301,7 +302,7 @@ Source: `ov/status.go`.
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves starting, stopping, enabling, or managing container services, init system service management, or container lifecycle. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves starting, stopping, configuring, or managing container services, init system service management, or container lifecycle. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** After `/ov:build` and `/ov:deploy`. This skill covers the runtime lifecycle.
 Previous step: `/ov:deploy` (quadlet generation, tunnels). Next step: `/ov-images:<name>` (verification).
