@@ -31,7 +31,7 @@ my-image:
 ## Used In Images
 
 Transitive dependency for all images with managed services, including:
-`openclaw`, `openclaw-sway-browser`, `openclaw-ollama-sway-browser`, `openclaw-ollama`, `jupyter`, `ollama`, `comfyui`, `immich`, `immich-cuda`
+`openclaw`, `openclaw-sway-browser`, `openclaw-ollama-sway-browser`, `openclaw-ollama`, `jupyter`, `ollama`, `comfyui`, `immich`, `immich-ml`
 
 ## Related Layers
 

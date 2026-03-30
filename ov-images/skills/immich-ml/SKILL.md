@@ -1,12 +1,12 @@
 ---
-name: immich-cuda
+name: immich-ml
 description: |
   Immich photo management with CUDA ML backend for face recognition
   and smart search. Includes PostgreSQL, Redis, and the immich-ml service.
-  MUST be invoked before building, deploying, configuring, or troubleshooting the immich-cuda image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the immich-ml image.
 ---
 
-# immich-cuda
+# immich-ml
 
 Immich photo management with GPU-accelerated machine learning for face recognition and smart search.
 
@@ -52,9 +52,9 @@ Immich photo management with GPU-accelerated machine learning for face recogniti
 ## Quick Start
 
 ```bash
-ov build immich-cuda
-ov config immich-cuda
-ov start immich-cuda
+ov build immich-ml
+ov config immich-ml
+ov start immich-ml
 # Open http://localhost:2283
 ```
 
@@ -75,11 +75,11 @@ ov start immich-cuda
 ## Verification
 
 After `ov start`:
-- `ov status immich-cuda` — container running
-- `ov service status immich-cuda` — all services RUNNING
+- `ov status immich-ml` — container running
+- `ov service status immich-ml` — all services RUNNING
 - `curl -s -o /dev/null -w '%{http_code}' http://localhost:2283` — Immich HTTP returns 200
 - `curl -s -o /dev/null -w '%{http_code}' http://localhost:3003` — ML backend HTTP returns 200
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the immich-cuda image, Immich ML features, or GPU-accelerated photo management. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the immich-ml image, Immich ML features, or GPU-accelerated photo management. Invoke this skill BEFORE reading source code or launching Explore agents.

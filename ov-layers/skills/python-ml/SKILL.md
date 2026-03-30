@@ -44,7 +44,7 @@ my-ml:
 ## Used In Images
 
 - `/ov-images:python-ml`
-- `/ov-images:immich-cuda`
+- `/ov-images:immich-ml`
 
 ## Related Layers
 

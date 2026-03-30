@@ -49,7 +49,7 @@ immich:
 ## Used In Images
 
 - `/ov-images:immich`
-- `/ov-images:immich-cuda`
+- `/ov-images:immich-ml`
 
 ## Related Layers
 

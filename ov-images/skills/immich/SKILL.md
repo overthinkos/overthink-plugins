@@ -64,7 +64,7 @@ ov start immich
 ## Related Images
 
 - `/ov-images:fedora-nonfree` — parent base
-- `/ov-images:immich-cuda` — adds CUDA ML for face recognition and smart search
+- `/ov-images:immich-ml` — adds CUDA ML for face recognition and smart search
 
 ## Verification
 

@@ -47,7 +47,7 @@ nvidia:
 ## Used In Images
 
 - `/ov-images:nvidia` (base for all GPU images)
-- `/ov-images:immich-cuda`
+- `/ov-images:immich-ml`
 
 ## Related Layers
 

@@ -33,14 +33,14 @@ description: |
 
 ```yaml
 # images.yml -- adds ML to an immich image
-immich-cuda:
+immich-ml:
   layers:
     - immich-ml
 ```
 
 ## Used In Images
 
-- `/ov-images:immich-cuda`
+- `/ov-images:immich-ml`
 
 ## Related Layers
 

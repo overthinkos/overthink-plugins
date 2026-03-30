@@ -214,7 +214,7 @@ Reference documentation for every enabled Overthink container image.
 | fedora-test | `/ov-images:fedora-test` | Test image with Traefik reverse proxy and testapi service |
 | githubrunner | `/ov-images:githubrunner` | Self-hosted GitHub Actions runner with full ov toolchain |
 | immich | `/ov-images:immich` | Immich photo management server on port 2283 (CPU) |
-| immich-cuda | `/ov-images:immich-cuda` | Immich photo management with CUDA ML backend |
+| immich-ml | `/ov-images:immich-ml` | Immich photo management with CUDA ML backend |
 | jupyter | `/ov-images:jupyter` | Jupyter notebook server with CUDA GPU support and ML libraries |
 | nvidia | `/ov-images:nvidia` | NVIDIA GPU base image with CUDA toolkit on Fedora |
 | ollama | `/ov-images:ollama` | Standalone Ollama LLM inference server with CUDA GPU support |
