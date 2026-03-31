@@ -1,7 +1,7 @@
 ---
 name: enc
 description: |
-  MUST be invoked before any work involving: encrypted storage, ov enc commands, gocryptfs, or encrypted volume backing.
+  MUST be invoked before any work involving: encrypted storage, ov config mount/unmount/status/passwd commands, gocryptfs, or encrypted volume backing.
 ---
 
 # Enc - Encrypted Storage
@@ -47,11 +47,34 @@ volumes:
 
 Rules:
 - Volume must be declared in `layer.yml` (or provided as deploy-only with `path:`)
-- Encrypted volumes do not use `host:` — ov manages cipher/plain directories automatically
 - `name`: matches a layer volume name, must match `^[a-z0-9]+(-[a-z0-9]+)*$`
+
+### Per-Volume Explicit Path
+
+Each encrypted volume can specify its own storage directory:
+
+```bash
+# Explicit per-volume paths (each volume gets its own directory)
+ov config immich-ml \
+  --volume library:encrypt:/mnt/nas/immich/library \
+  --volume pgdata:encrypt:/mnt/nas/immich/pgdata
+
+# Canonical syntax
+ov config immich-ml -v library:encrypted:/mnt/nas/immich/library
+```
+
+The path is the **direct volume directory** — `cipher/` and `plain/` are created inside it:
+```
+/mnt/nas/immich/library/
+  cipher/    # gocryptfs encrypted data
+  plain/     # FUSE mount point
+```
+
+Without an explicit path, the global `encrypted_storage_path` is used with an `ov-<image>-<name>` prefix (backward compatible).
 
 ## Storage Layout
 
+### Default (no explicit path)
 ```
 ~/.local/share/ov/encrypted/
   ov-<image>-<name>/
@@ -120,9 +143,25 @@ ov --kdbx ~/.config/ov/secrets.kdbx config my-app --encrypt secrets
 ## Integration with Runtime
 
 - **`ov shell`/`ov start` (direct mode)**: resolves volume backing from deploy.yml, verifies encrypted volumes are mounted, appends `-v <plain>:<container-path>` flags. `ov start` mounts encrypted volumes inline before starting the container
-- **`ov config` (quadlet mode)**: generates quadlet file. Encrypted volumes are mounted inline by `ov start` -- no companion service needed
+- **`ov config` (quadlet mode)**: generates quadlet file with `ExecStartPre=ov config mount <image>` for encrypted services. Boot behavior is backend-gated (see below)
 - **`ov remove --purge`**: removes named volumes
 - **`ov seed <image>`**: copies default data from the image into empty bind-backed directories (works for both bind and encrypted volumes after mounting)
+
+### Boot Behavior: Backend-Gated
+
+| Credential Backend | Quadlet Behavior | User Action on Reboot |
+|---|---|---|
+| **Secret Service (keyring)** | `WantedBy=default.target` + `ExecStartPre` (waits for keyring) + `TimeoutStartSec=0` | None — auto-starts after login |
+| **KeePass (.kdbx)** | `ExecStartPre` (guard) + NO `WantedBy` | `ov start <image>` (prompts for kdbx master) |
+| **Config file / none** | `ExecStartPre` (guard) + NO `WantedBy` | `ov start <image>` (prompts interactively) |
+
+**Secret Service flow on reboot:**
+1. Boot → systemd starts user instance (linger) → quadlet service starts
+2. ExecStartPre → `ov config mount` → keyring locked → polls every 5s
+3. User logs in → PAM unlocks GNOME Keyring
+4. Next poll → passphrase found → volumes mount → container starts
+
+**Crash recovery:** FUSE mounts survive container restarts → ExecStartPre detects already-mounted → skips → container restarts immediately
 
 ## Volume Backing Override
 

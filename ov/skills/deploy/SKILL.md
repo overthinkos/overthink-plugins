@@ -36,13 +36,13 @@ Path: `~/.config/containers/systemd/ov-<image>.container` (or `ov-<image>-<insta
 Contents include:
 - `[Container]` section: image reference, container name, port mappings, volumes, environment
 - `[Service]` section: restart policy, lifecycle hooks
-- `[Install]` section: `WantedBy=default.target`
+- `[Install]` section: `WantedBy=default.target` (omitted for encrypted services without keyring backend)
 - `PodmanArgs=` for security settings (privileged, capabilities, devices)
 - `Volume=` for named volumes and plain bind mounts
 - `Environment=` / `EnvironmentFile=` for env vars
 - `ExecStartPost=` / `ExecStopPost=` for tunnel commands
 
-Service name: `ov-<image>.service`. Container name: `ov-<image>`. Entrypoint: determined by init.yml for the configured init system. Encrypted volumes are mounted inline by `ov start` -- no companion service needed.
+Service name: `ov-<image>.service`. Container name: `ov-<image>`. Entrypoint: determined by init.yml for the configured init system. Encrypted volumes are mounted via `ExecStartPre=ov config mount` in the quadlet. With Secret Service backend: auto-starts after login (ExecStartPre waits for keyring unlock, `TimeoutStartSec=0`). With KeePass or no backend: requires `ov start` (no `WantedBy=default.target`).
 
 ### Security in Quadlet
 
@@ -264,7 +264,7 @@ volumes:
 **Fields:**
 - `name`: matches a layer-declared volume name
 - `type`: `volume` (default, named volume), `bind` (host directory), `encrypted` (gocryptfs)
-- `host`: explicit host path for `bind` type (optional — omit for auto path)
+- `host`: explicit host path — for `bind` type (optional, omit for auto path); for `encrypted` type, the direct volume directory containing `cipher/` and `plain/` (optional, omit to use global `encrypted_storage_path` with `ov-<image>-<name>` prefix)
 - `path`: container path (only for deploy-only volumes not declared in any layer)
 
 **Auto path:** When `type: bind` and no `host` is specified, the host path is computed at runtime: `<volumes_path>/<image>/<name>`. Default volumes_path: `~/.local/share/ov/volumes/`. Configurable: `ov settings set volumes_path /mnt/nas/ov` (env: `OV_VOLUMES_PATH`).

@@ -37,6 +37,24 @@ description: |
 - `libheif`, `LibRaw`, `gcc-c++`, `make`, `unzip` (RPM)
 - Fedora Multimedia repo (negativo17)
 
+## Build Process (root.yml)
+
+The root.yml downloads Immich source, builds the server, web UI, and core plugin:
+
+1. **Server** — `pnpm install --frozen-lockfile && pnpm --filter immich build && pnpm --filter immich deploy --prod /opt/immich/server`
+2. **Geodata** — Downloads reverse geocoding data from geonames.org
+3. **Web UI** — `pnpm --filter @immich/sdk --filter immich-web build`
+4. **Core Plugin** — Installs `extism-js` (v1.6.0) and `binaryen` (v124), then `pnpm run build` in `plugins/` to compile TypeScript → WASM (`plugin.wasm`). Build tools are cleaned up after compilation.
+5. **PostgreSQL extensions** — Registers `vector` and `earthdistance` extensions
+
+All pnpm commands use `npm_config_cache=/tmp/npm-root-cache` to avoid creating root-owned files in the container user's `~/.cache` directory.
+
+## Secrets
+
+| Name | Env Vars |
+|------|----------|
+| `db-password` | `DB_PASSWORD`, `POSTGRES_PASSWORD` |
+
 ## Usage
 
 ```yaml

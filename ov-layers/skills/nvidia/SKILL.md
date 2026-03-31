@@ -8,7 +8,7 @@ description: |
 
 # nvidia -- NVIDIA GPU runtime
 
-Minimal NVIDIA runtime layer providing driver userspace libraries, `nvidia-container-toolkit` for CDI device injection, and VA-API hardware video acceleration. Supports both Fedora and Arch Linux.
+NVIDIA runtime layer providing `nvidia-container-toolkit` for CDI device injection and VA-API hardware video acceleration. Driver userspace libraries (libcuda, libnvidia-ml, etc.) are NOT bundled — CDI provides host-matching driver libs at runtime, preventing version mismatches between container and host kernel module. Supports both Fedora and Arch Linux.
 
 ## Layer Properties
 
@@ -20,7 +20,6 @@ Minimal NVIDIA runtime layer providing driver userspace libraries, `nvidia-conta
 ## Packages
 
 **RPM** (from negativo17 fedora-multimedia repo):
-- `nvidia-driver-libs` — NVIDIA GL/Vulkan userspace, `nvidia-smi`
 - `nvidia-container-toolkit` — `nvidia-ctk` CLI for CDI spec generation
 - `libva-nvidia-driver` — VA-API hardware video acceleration
 

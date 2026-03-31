@@ -34,7 +34,7 @@ Full ov toolchain via shared layers:
 - **gh** — GitHub CLI (`gh`, `git`)
 - **sshd** — SSH server/client (`openssh-server`, `openssh-clients`)
 - **container-nesting** — buildah, fuse-overlayfs, shadow-utils, skopeo, tailscale, libsecret + nested container config (Tailscale from `tailscale-stable` repo)
-- **nvidia** — nvidia-driver-libs, nvidia-container-toolkit, libva-nvidia-driver (from negativo17 repo)
+- **nvidia** — nvidia-container-toolkit, libva-nvidia-driver (from negativo17 repo; driver libs provided by CDI at runtime)
 
 ## Lifecycle
 
@@ -70,8 +70,7 @@ ov shell fedora-ov -c "ov shell fedora-ov -c 'ov version'"
 ## GPU Support
 
 The `nvidia` layer provides NVIDIA GPU runtime:
-- `nvidia-driver-libs` — driver userspace (from negativo17)
-- `nvidia-container-toolkit` — CDI spec generation
+- `nvidia-container-toolkit` — CDI spec generation (driver userspace libs provided by CDI at runtime, matching host kernel module)
 - `libva-nvidia-driver` — VA-API acceleration
 
 `ov` automatically calls `EnsureCDI()` before launching GPU containers. GPU access works at any nesting depth.

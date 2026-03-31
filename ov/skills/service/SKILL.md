@@ -93,7 +93,7 @@ With `auto_enable=true` (the default), `ov start` auto-generates the quadlet fil
 - Container name: `ov-<image>`
 - Ports bound to configured `bind_address`
 - Entrypoint: determined by init.yml config (e.g., `supervisord -n -c /etc/supervisord.conf` for supervisord, `sleep infinity` if no init system)
-- Auto-restart on failure via `WantedBy=default.target`
+- Auto-restart on failure via `WantedBy=default.target` (encrypted services with Secret Service backend include `ExecStartPre=ov config mount` + `TimeoutStartSec=0` for keyring wait; KeePass/no backend omit `WantedBy` — require `ov start`)
 - `ov validate` enforces: images with init system layers MUST include the required dependency layer (defined by init.yml `depends_layer`)
 - `Secret=ov-<image>-<name>,target=/run/secrets/<name>` for each layer-declared secret (Podman only)
 
