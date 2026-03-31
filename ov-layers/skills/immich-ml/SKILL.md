@@ -29,6 +29,11 @@ description: |
 | `MACHINE_LEARNING_WORKER_TIMEOUT` | `120` |
 | `TRANSFORMERS_CACHE` | `~/.immich/models` |
 
+## Build Setup
+
+- **root.yml** — Downloads immich ML module, installs via uv/pip into `/opt/immich/machine-learning/.venv`
+- **user.yml** — Creates `~/.immich/models` (TRANSFORMERS_CACHE) and `~/.cache/immich_ml` (immich ML model cache). The `~/.cache/immich_ml` directory must be created at build time because `~/.cache` may be root-owned from earlier layer builds (npm/pixi). Creating it in user.yml ensures correct UID 1000 ownership.
+
 ## Usage
 
 ```yaml

@@ -31,7 +31,7 @@ NVIDIA runtime layer providing `nvidia-container-toolkit` for CDI device injecti
 
 | Variable | Value |
 |----------|-------|
-| `LD_LIBRARY_PATH` | `/usr/lib64` |
+| `LD_LIBRARY_PATH` | `/usr/lib64` (ensures CDI-injected host driver libs are found by the dynamic linker) |
 
 ## CDI Support
 
