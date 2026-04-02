@@ -103,7 +103,7 @@ ov config mount my-app                    # Mount all encrypted volumes
 ov config mount my-app --volume secrets   # Mount specific volume
 ```
 
-Prompts for password (or reuses from keyring). The plain directory becomes available for container use.
+Prompts for password (or reuses from keyring). Each volume is mounted inside a transient systemd scope unit (`ov-enc-<image>-<volume>.scope`) via `systemd-run --scope --user`. The plain directory becomes available for container use. Scope units can be listed with `systemctl --user list-units 'ov-enc-*'`.
 
 ### Unmount
 
@@ -111,6 +111,8 @@ Prompts for password (or reuses from keyring). The plain directory becomes avail
 ov config unmount my-app                    # Unmount all
 ov config unmount my-app --volume secrets   # Unmount specific
 ```
+
+Unmount calls `fusermount3 -u` then stops the scope unit (`systemctl --user stop ov-enc-<image>-<volume>.scope`) to clean up the gocryptfs daemon.
 
 ### Status
 
@@ -140,10 +142,27 @@ Use the `--kdbx` global flag to specify a KeePass database for password storage:
 ov --kdbx ~/.config/ov/secrets.kdbx config my-app --encrypt secrets
 ```
 
+## Scope Unit Architecture
+
+Each encrypted volume is mounted via `systemd-run --scope --user --unit=ov-enc-<image>-<volume> -- gocryptfs -allow_other <cipherdir> <plaindir>`. This creates a transient systemd scope unit that:
+
+- **Survives container stop/restart** — scope units are independent of the container service's cgroup, so `KillMode=mixed` on service stop does not kill gocryptfs
+- **Keeps mounts browsable on host** — the host user can access `plain/` directories even when the container is stopped
+- **Handles stale scopes** — if a scope persists from a crash, the next mount attempt stops the stale scope and retries
+- **Cleans up on unmount** — `ov config unmount` calls `fusermount3 -u` then `systemctl --user stop ov-enc-<image>-<volume>.scope`
+
+Scope unit naming: `ov-enc-<image>-<volume>.scope` (e.g., `ov-enc-immich-ml-library.scope`).
+
+List active scopes: `systemctl --user list-units 'ov-enc-*'`
+
+### Why `-allow_other` is Required
+
+Rootless podman with `--userns=keep-id` creates a two-level user namespace. During container mount setup, crun runs as inner uid 0, which maps through the namespace chain to **host uid 524288** (a subordinate uid), not the FUSE mount owner (uid 1000). FUSE's kernel check rejects access. The `-allow_other` flag bypasses this check, allowing crun to bind-mount from the FUSE filesystem. gocryptfs auto-enables `default_permissions` with `-allow_other`, so kernel UNIX permission checks still apply (0700 dirs restrict access to the mount owner). Confirmed by podman issues #14488, #15314, #16350, #25894.
+
 ## Integration with Runtime
 
-- **`ov shell`/`ov start` (direct mode)**: resolves volume backing from deploy.yml, verifies encrypted volumes are mounted, appends `-v <plain>:<container-path>` flags. `ov start` mounts encrypted volumes inline before starting the container
-- **`ov config` (quadlet mode)**: generates quadlet file with `ExecStartPre=ov config mount <image>` for encrypted services. Boot behavior is backend-gated (see below)
+- **`ov shell`/`ov start` (direct mode)**: resolves volume backing from deploy.yml, verifies encrypted volumes are mounted, appends `-v <plain>:<container-path>` flags. `ov start` mounts encrypted volumes inline via systemd-run scopes before starting the container
+- **`ov config` (quadlet mode)**: generates quadlet file with `ExecStartPre=ov config mount <image>` for encrypted services. ExecStartPre creates scope units internally — these are independent of the container service. Boot behavior is backend-gated (see below)
 - **`ov remove --purge`**: removes named volumes
 - **`ov seed <image>`**: copies default data from the image into empty bind-backed directories (works for both bind and encrypted volumes after mounting)
 
@@ -161,7 +180,7 @@ ov --kdbx ~/.config/ov/secrets.kdbx config my-app --encrypt secrets
 3. User logs in → PAM unlocks GNOME Keyring
 4. Next poll → passphrase found → volumes mount → container starts
 
-**Crash recovery:** FUSE mounts survive container restarts → ExecStartPre detects already-mounted → skips → container restarts immediately
+**Crash recovery:** FUSE mounts survive container restarts because scope units are independent of the container service cgroup → ExecStartPre detects already-mounted → skips → container restarts immediately. If gocryptfs crashes (scope dies), the next `ov config mount` or `ov start` detects the stale scope, stops it, and remounts.
 
 ## Volume Backing Override
 
@@ -190,7 +209,7 @@ ov config my-app --bind data                   # Auto path: ~/.local/share/ov/vo
 
 Plain bind mounts do not use encrypted storage commands. They are direct host directory mounts.
 
-Source: `ov/enc.go` (encrypted lifecycle), `ov/deploy.go` (`DeployVolumeConfig`, `ResolveVolumeBacking`).
+Source: `ov/enc.go` (`encMount`, `ensureEncryptedMounts`, `encUnmount` — scope unit lifecycle), `ov/deploy.go` (`DeployVolumeConfig`, `ResolveVolumeBacking`).
 
 ## Cross-References
 

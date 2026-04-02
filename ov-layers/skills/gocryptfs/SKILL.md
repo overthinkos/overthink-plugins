@@ -28,6 +28,14 @@ my-image:
 
 Typically used as part of the `ov-full` composition layer rather than directly.
 
+## Runtime Behavior
+
+When `ov config mount` or `ov start` mounts encrypted volumes, each gocryptfs daemon runs inside a `systemd-run --scope --user --unit=ov-enc-<image>-<volume>` scope unit. This decouples the FUSE mount lifecycle from the container service — mounts survive container stop/restart and remain browsable on the host.
+
+The `-allow_other` flag is always passed to gocryptfs (required for rootless podman with `--userns=keep-id`). gocryptfs auto-enables `default_permissions`, so kernel UNIX permission checks still apply.
+
+See `/ov:enc` for full encrypted volume operations documentation.
+
 ## Used In Images
 
 - Part of `ov-full` composition layer (used in `githubrunner`)
@@ -44,3 +52,4 @@ Use when the user asks about:
 - Encrypted volumes or filesystems
 - `ov config` encrypted volume operations (mount, unmount, status, passwd)
 - The `gocryptfs` layer
+- systemd scope units for encrypted mounts (`ov-enc-*`)
