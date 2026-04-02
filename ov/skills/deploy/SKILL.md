@@ -67,29 +67,26 @@ Expose services outside the container host via tunnels.
 
 ### Tailscale Serve (tailnet-private, default)
 
-Exposes a port to your Tailscale network only. No FQDN needed -- Tailscale handles TLS automatically.
+Exposes a port to your Tailscale network only. No FQDN needed -- Tailscale handles TLS automatically. Any port works for tailnet-only serve.
 
 ```yaml
 tunnel: tailscale
 # or expanded:
 tunnel:
   provider: tailscale
-  port: 2283
-  https: 443          # default: 443
+  private: all       # all image ports on tailnet
 ```
 
-Allowed HTTPS ports for serve: 80, 443, 3000-10000, 4443, 5432, 6443, 8443.
+**CRITICAL: `bind_address` must be `127.0.0.1` (the default).** Setting `0.0.0.0` causes the container to bind on the Tailscale interface, preventing Tailscale from intercepting TLS. Result: HTTPS fails with `wrong version number`.
 
 ### Tailscale Funnel (public internet)
 
-Exposes a port to the public internet via Tailscale's edge network.
+Exposes a port to the public internet via Tailscale's edge network. Funnel restricts HTTPS ports to: 443, 8443, 10000.
 
 ```yaml
 tunnel:
   provider: tailscale
-  funnel: true
-  port: 8080
-  https: 443    # must be 443, 8443, or 10000
+  public: [8080]    # funnel ports must be 443, 8443, or 10000
 ```
 
 ### Cloudflare Tunnel
@@ -130,18 +127,9 @@ Quadlet generates multiple `ExecStartPost=` and `ExecStopPost=` lines. Requires 
 
 Port protocols are stored in the `org.overthinkos.port_protos` image label so remote refs work without access to the original layer definitions.
 
-The existing single-port syntax still works:
-
-```yaml
-tunnel:
-  provider: tailscale
-  port: 18789
-  https: 443
-```
-
 ### Resolution
 
-`tunnel` inherits from defaults (image -> defaults -> nil). The `port` field defaults to the first route port from layers if not specified. For tailscale, `https` defaults to 443.
+`tunnel` inherits from defaults (image -> defaults -> nil). The shorthand `tunnel: tailscale` defaults to `private: all` (all ports on tailnet). The shorthand `tunnel: cloudflare` defaults to `public: all`.
 
 Source: `ov/tunnel.go`, `ov/validate.go` (`validateTunnel`), `ov/quadlet.go` (systemd integration).
 

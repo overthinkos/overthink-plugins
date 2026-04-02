@@ -63,8 +63,8 @@ description: |
 
 ### Tunnel Rules
 
-- Tailscale serve: HTTPS port must be in allowed set (80, 443, 3000-10000, 4443, 5432, 6443, 8443)
-- Tailscale funnel: HTTPS must be 443, 8443, or 10000
+- Tailscale serve (tailnet-only): any port works for HTTPS
+- Tailscale funnel (public): HTTPS port must be 443, 8443, or 10000
 - Cloudflare: `fqdn` required
 
 ### VM / Bootc Rules

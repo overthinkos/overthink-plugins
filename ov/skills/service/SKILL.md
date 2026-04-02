@@ -100,10 +100,13 @@ With `auto_enable=true` (the default), `ov start` auto-generates the quadlet fil
 ### Container Secrets
 
 When image labels declare secrets (from `layer.yml` `secrets` field), `ov config` provisions them:
-1. Resolves secret values from the credential store (env var > keyring > config file)
-2. Creates Podman secrets via `podman secret create ov-<image>-<name>`
-3. Generates `Secret=` directives in the quadlet file
-4. Secrets are mounted at `/run/secrets/<name>` inside the container
+1. Checks if Podman secret already exists — **if so, keeps it** (never overwrites)
+2. If missing: resolves secret values from the credential store (env var > keyring > config file)
+3. Creates Podman secrets via `podman secret create ov-<image>-<name>`
+4. Generates `Secret=` directives in the quadlet file
+5. Secrets are mounted at `/run/secrets/<name>` inside the container
+
+**Provisioning is idempotent** — existing secrets are never overwritten. This prevents breaking stateful services (e.g., PostgreSQL) that store their own copy of the password. To force re-provisioning: `podman secret rm <name> && ov config setup <image>`.
 
 For Docker, secrets fall back to `Environment=` injection with a security warning.
 

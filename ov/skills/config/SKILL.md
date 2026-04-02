@@ -65,7 +65,7 @@ Auto-detection prefers podman over docker when both are installed.
 |-----|---------|---------|--------|---------|
 | `run_mode` | `OV_RUN_MODE` | `direct` | `direct`, `quadlet` | Container lifecycle mode |
 | `auto_enable` | `OV_AUTO_ENABLE` | `true` | `true`, `false` | Auto-generate quadlet on first `ov start` |
-| `bind_address` | `OV_BIND_ADDRESS` | `127.0.0.1` | `127.0.0.1`, `0.0.0.0` | Address for port bindings |
+| `bind_address` | `OV_BIND_ADDRESS` | `127.0.0.1` | `127.0.0.1`, `0.0.0.0` | Address for port bindings. **Must be `127.0.0.1` for Tailscale serve** — `0.0.0.0` prevents TLS interception |
 | `encrypted_storage_path` | `OV_ENCRYPTED_STORAGE_PATH` | `~/.local/share/ov/encrypted` | any path | Gocryptfs storage base directory |
 | `secret_backend` | `OV_SECRET_BACKEND` | `auto` | `auto`, `keyring`, `kdbx`, `config` | Credential storage backend |
 | `secrets.kdbx_path` | `OV_KDBX_PATH` | (empty) | any path | Path to KeePass .kdbx database |
