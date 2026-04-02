@@ -15,7 +15,7 @@ Immich photo management with GPU-accelerated machine learning for face recogniti
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | nodejs24, cuda, python-ml, supervisord, postgresql, redis, immich, immich-ml |
+| Layers | nodejs24, cuda, python-ml, supervisord, postgresql, vectorchord, redis, immich, immich-ml |
 | Platforms | linux/amd64 |
 | Ports | 2283 |
 | Registry | ghcr.io/overthinkos |
@@ -28,9 +28,10 @@ Immich photo management with GPU-accelerated machine learning for face recogniti
 4. `cuda` — CUDA toolkit, cuDNN
 5. `python-ml` — ML Python environment
 6. `postgresql` — database on :5432
-7. `redis` — cache on :6379
-8. `immich` — Immich server on :2283
-9. `immich-ml` — ML backend on :3003
+7. `vectorchord` — VectorChord vector similarity extension
+8. `redis` — cache on :6379
+9. `immich` — Immich server on :2283
+10. `immich-ml` — ML backend on :3003
 
 ## Ports
 
@@ -65,6 +66,7 @@ ov start immich-ml
 - `/ov-layers:cuda` — GPU support
 - `/ov-layers:python-ml` — ML Python environment
 - `/ov-layers:postgresql` — database backend
+- `/ov-layers:vectorchord` — VectorChord for smart search
 - `/ov-layers:redis` — session/cache backend
 
 ## Related Images

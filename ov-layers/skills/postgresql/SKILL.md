@@ -2,6 +2,7 @@
 name: postgresql
 description: |
   PostgreSQL database server on port 5432 with pgvector extension and persistent data.
+  Entrypoint supports POSTGRES_SHARED_PRELOAD_LIBRARIES for extension loading.
   Use when working with PostgreSQL, database configuration, or pgvector.
 ---
 
@@ -22,9 +23,13 @@ description: |
 | Variable | Value |
 |----------|-------|
 | `PGDATA` | `~/.postgresql/data` |
-| `POSTGRES_DB` | `immich` |
-| `POSTGRES_USER` | `immich` |
-| `POSTGRES_PASSWORD` | `immich` |
+| `POSTGRES_HOST_AUTH_METHOD` | `scram-sha-256` |
+| `POSTGRES_SHARED_PRELOAD_LIBRARIES` | *(optional)* — comma-separated `.so` names loaded at startup |
+
+The entrypoint also reads these variables (with defaults, not set in layer.yml):
+- `POSTGRES_USER` (default: `postgres`) — set by consuming layers (e.g., immich sets `immich`)
+- `POSTGRES_DB` (default: `$POSTGRES_USER`) — set by consuming layers
+- `POSTGRES_PASSWORD` — required unless `POSTGRES_HOST_AUTH_METHOD=trust`
 
 ## Packages
 
@@ -46,9 +51,18 @@ my-image:
 - `/ov-images:immich`
 - `/ov-images:immich-ml`
 
+## Entrypoint Features
+
+The custom entrypoint (`/usr/local/bin/postgresql-entrypoint.sh`) supports:
+
+- **First-run initialization** — `initdb`, database creation, and `/docker-entrypoint-initdb.d/` scripts
+- **Password management** — `POSTGRES_PASSWORD` or `POSTGRES_PASSWORD_FILE`
+- **`POSTGRES_SHARED_PRELOAD_LIBRARIES`** — when set, adds `-c shared_preload_libraries=...` to both the init-phase temp server and the final exec. Used by the `vectorchord` layer to load `vchord.so`. Generic mechanism — any extension layer can use it.
+
 ## Related Layers
 
 - `/ov-layers:immich` -- primary consumer (depends on postgresql)
+- `/ov-layers:vectorchord` -- sets `POSTGRES_SHARED_PRELOAD_LIBRARIES=vchord.so`
 - `/ov-layers:redis` -- often paired with postgresql in service stacks
 
 ## When to Use This Skill

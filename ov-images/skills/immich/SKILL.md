@@ -15,7 +15,7 @@ Self-hosted photo and video management server with full codec support.
 | Property | Value |
 |----------|-------|
 | Base | fedora-nonfree |
-| Layers | nodejs24, supervisord, postgresql, redis, immich |
+| Layers | nodejs24, supervisord, postgresql, vectorchord, redis, immich |
 | Platforms | linux/amd64 |
 | Ports | 2283 |
 | Registry | ghcr.io/overthinkos |
@@ -26,8 +26,9 @@ Self-hosted photo and video management server with full codec support.
 2. `pixi` → `python` → `supervisord` (transitive)
 3. `nodejs24` — Node.js 24 runtime
 4. `postgresql` — database on :5432
-5. `redis` — cache on :6379
-6. `immich` — Immich server on :2283, library + cache + import + external volumes
+5. `vectorchord` — VectorChord vector similarity extension
+6. `redis` — cache on :6379
+7. `immich` — Immich server on :2283, library + cache + import + external volumes
 
 ## Ports
 
@@ -58,6 +59,7 @@ ov start immich
 
 - `/ov-layers:immich` — Immich server, db init, library/cache volumes
 - `/ov-layers:postgresql` — database backend
+- `/ov-layers:vectorchord` — VectorChord for smart search
 - `/ov-layers:redis` — session/cache backend
 - `/ov-layers:rpmfusion` — non-free codec support (via fedora-nonfree base)
 

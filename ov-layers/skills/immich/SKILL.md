@@ -14,7 +14,7 @@ description: |
 | Dependencies | `supervisord`, `nodejs24`, `postgresql`, `redis` |
 | Ports | 2283 |
 | Volumes | `library` -> `~/.immich/library`, `cache` -> `~/.immich/cache`, `import` -> `~/.immich/import`, `external` -> `~/.immich/external` |
-| Service | `immich-db-init` (oneshot, priority 20), `immich-server` (priority 30) |
+| Service | `immich-db-init` (oneshot, priority 15), `immich-server` (priority 30) |
 | Route | `immich.localhost:2283` |
 | Install files | `root.yml`, `user.yml` |
 
@@ -45,7 +45,9 @@ The root.yml downloads Immich source, builds the server, web UI, and core plugin
 2. **Geodata** — Downloads reverse geocoding data from geonames.org
 3. **Web UI** — `pnpm --filter @immich/sdk --filter immich-web build`
 4. **Core Plugin** — Installs `extism-js` (v1.6.0) and `binaryen` (v124), then `pnpm run build` in `plugins/` to compile TypeScript → WASM (`plugin.wasm`). Build tools are cleaned up after compilation.
-5. **PostgreSQL extensions** — Registers `vector` and `earthdistance` extensions
+5. **PostgreSQL extensions** — Init SQL at `/docker-entrypoint-initdb.d/01-immich-extensions.sql` creates `vector`, `vchord CASCADE`, and `earthdistance CASCADE` extensions (runs during first `initdb` only)
+6. **Database migration script** — `/usr/local/bin/immich-db-migrate.sh` runs on every container start via the `immich-db-init` supervisord service. Waits for PostgreSQL, then idempotently ensures `vector`, `earthdistance`, and `vchord` (if available) extensions exist. Handles both fresh installs and upgrades of existing databases.
+7. **Server startup wrapper** — `/usr/local/bin/immich-server-start.sh` waits for PostgreSQL to be ready before starting the Node.js process. Eliminates the crash-restart loop that previously occurred when supervisord started `immich-server` before PostgreSQL finished recovery.
 
 All pnpm commands use `npm_config_cache=/tmp/npm-root-cache` to avoid creating root-owned files in the container user's `~/.cache` directory.
 
@@ -75,6 +77,7 @@ immich:
 - `/ov-layers:nodejs24` -- Node.js runtime dependency
 - `/ov-layers:postgresql` -- database dependency
 - `/ov-layers:redis` -- cache dependency
+- `/ov-layers:vectorchord` -- VectorChord extension (migration script creates it if available)
 - `/ov-layers:immich-ml` -- optional ML backend
 
 ## When to Use This Skill
