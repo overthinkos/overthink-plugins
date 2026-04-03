@@ -101,10 +101,11 @@ Source: `ov/build.go` (`retryCmd`).
 Post-build optimization that merges consecutive small layers:
 
 ```bash
-ov merge <image> --dry-run    # Preview what would be merged
-ov merge <image>              # Merge small layers
-ov merge --all                # Merge all images with merge.auto enabled
-ov merge <image> --max-mb 512 # Custom threshold
+ov merge <image> --dry-run         # Preview what would be merged
+ov merge <image>                   # Merge small layers
+ov merge --all                     # Merge all images with merge.auto enabled
+ov merge <image> --max-mb 512      # Custom per-layer threshold
+ov merge <image> --max-total-mb 4096  # Custom total image size limit
 ```
 
 Configure in images.yml:
@@ -112,11 +113,12 @@ Configure in images.yml:
 ```yaml
 defaults:
   merge:
-    auto: true     # Auto-merge after builds
-    max_mb: 128    # Max merged layer size (MB)
+    auto: true        # Auto-merge after builds
+    max_mb: 128       # Max merged layer size (MB)
+    max_total_mb: 0   # Max total image size for merge (0 = no limit)
 ```
 
-CLI flag `--max-mb` overrides `images.yml`. `auto` is only used by `ov merge --all` to select which images to merge; `ov merge <image>` always merges regardless.
+CLI flags `--max-mb` and `--max-total-mb` override `images.yml`. `auto` is only used by `ov merge --all` to select which images to merge; `ov merge <image>` always merges regardless. `max_total_mb` controls whether large images skip merging entirely (the merge process decompresses layers in memory). Set to `0` to disable (default), or a positive value like `2048` to cap on low-memory CI runners.
 
 ### Algorithm
 
