@@ -28,6 +28,12 @@ description: |
 | Wait | `ov cdp wait <image> <tab-id> <selector>` | Wait for element (--timeout 30s) |
 | Raw CDP | `ov cdp raw <image> <tab-id> <method> [json]` | Send raw CDP command |
 | Status | `ov cdp status <image>` | Check CDP availability, show port and tab count |
+| SPA click | `ov cdp spa click <image> <tab> <x> <y> [--scale]` | Click at canvas coords with SPA scale correction |
+| SPA type | `ov cdp spa type <image> <tab> <text>` | Type text via SPA (bypasses local compositor/Chrome) |
+| SPA key | `ov cdp spa key <image> <tab> <key>` | Send key press via SPA (Return, Escape, F1-F12, etc.) |
+| SPA key-combo | `ov cdp spa key-combo <image> <tab> <combo>` | Send modifier combo via SPA (super+e, ctrl+t, alt+F4) |
+| SPA mouse | `ov cdp spa mouse <image> <tab> <x> <y> [--scale]` | Move pointer with SPA scale correction |
+| SPA status | `ov cdp spa status <image> <tab>` | Show SPA state (canvas, overlay, decoders) |
 
 All commands accept `-i INSTANCE` for multi-instance support.
 
@@ -344,6 +350,60 @@ The `--vnc` flag on `ov cdp click` is essential for the sign-in flow:
 
 Use `ov cdp coords my-app $TAB '<selector>'` to debug coordinate translation. It shows element position in viewport, desktop (via CDP), and desktop (via sway) systems.
 
+## SPA Remote Desktop Interaction (`ov cdp spa`)
+
+The `ov cdp spa` subcommands provide first-class support for interacting with Selkies-style remote desktop SPAs. These bypass the local compositor and Chrome shortcut handlers — the **only way** to send Super+e, Ctrl+T, or Alt+F4 to the remote desktop.
+
+### SPA DOM Structure
+
+- **`input#overlayInput`** (z-index 3, opacity 0, pointer-events: auto) — invisible input overlay capturing all events
+- **`canvas#videoCanvas`** (z-index 2, pointer-events: none) — H.264 video render surface
+- **Header controls** (fullscreen, gaming mode) — hidden at left=-132px, slide in on mouse hover
+
+### Usage Example
+
+```bash
+IMG=sway-browser-vnc
+TAB=$(ov cdp list $IMG | grep -i selkies | awk '{print $1}')
+
+# Check SPA state
+ov cdp spa status $IMG $TAB
+
+# Click at canvas coordinates (where elements appear in CDP screenshots)
+ov cdp spa click $IMG $TAB 990 375 --scale 0.824,0.836
+
+# Type text (bypasses local compositor — no double-char issue)
+ov cdp spa type $IMG $TAB "hello world"
+
+# Send modifier combos that normally can't reach the remote desktop:
+ov cdp spa key-combo $IMG $TAB super+e    # Open foot terminal in labwc
+ov cdp spa key-combo $IMG $TAB ctrl+t     # New tab in REMOTE Chrome
+ov cdp spa key-combo $IMG $TAB alt+f4     # Close window in labwc
+
+# Send special keys
+ov cdp spa key $IMG $TAB return
+ov cdp spa key $IMG $TAB escape
+```
+
+### Coordinate Scaling
+
+The SPA maps mouse events from canvas to remote desktop with an internal scaling factor. Use `--scale scaleX,scaleY` to correct: a click at canvas position `(x, y)` is sent to `(x/scaleX, y/scaleY)`. Determine the scale empirically by comparing `ov cdp spa click` cursor position (via `ov cdp screenshot`) with the target.
+
+### Keyboard Architecture
+
+`ov cdp spa type/key/key-combo` sends `Input.dispatchKeyEvent` directly to the page. The SPA's `onkeydown` handler on `#overlayInput` (with `stopImmediatePropagation`) captures these and forwards to the remote compositor via WebSocket. Only keyDown + keyUp are sent (no "char" event) to prevent double input.
+
+### When to use `spa` vs regular CDP vs VNC/WL
+
+| Scenario | Command |
+|----------|---------|
+| Click/type in a web page | `ov cdp click/type` (CSS selector targeting) |
+| Click/type in a remote desktop via SPA | `ov cdp spa click/type` (canvas coordinates) |
+| Send Super+key or Ctrl+T to remote desktop | `ov cdp spa key-combo` (only option that works) |
+| Click in local compositor | `ov wl click` or `ov vnc click` |
+| Take screenshot of stream content | `ov cdp screenshot` (captures canvas) |
+| Take screenshot of full client desktop | `ov vnc screenshot` or `ov wl screenshot` |
+
 ## Cross-References
 
 - `/ov:wl` (sway subgroup) -- Sway compositor control (window management, workspaces)
@@ -351,6 +411,7 @@ Use `ov cdp coords my-app $TAB '<selector>'` to debug coordinate translation. It
 - `/ov:shell` -- Running commands in containers (`--tty` for OAuth flows)
 - `/ov:service` -- Starting containers (`ov start`, `ov config`)
 - `/ov:layer` -- `port_relay` field and Chrome layer configuration
+- `/ov-images:selkies-desktop` -- Full SPA DOM structure, coordinate mapping, session resilience
 
 ## When to Use This Skill
 
