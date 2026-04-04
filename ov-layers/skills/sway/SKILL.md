@@ -60,11 +60,11 @@ Supervisord restarts leave old `/tmp/sway-ipc.1000.<old-pid>.sock` files. If mul
 
 ## NVIDIA Headless: Renderer
 
-All images use `gles2` on NVIDIA (hardware auto-detect in sway-wrapper). No renderer overrides or application-specific conditionals.
+By default, `sway-wrapper` auto-detects GPU hardware and uses `gles2` on NVIDIA. However, if `WLR_RENDERER` is pre-set (e.g., by a composing layer), the wrapper skips GPU auto-detection entirely and uses the specified renderer.
 
-- `grim` (`ov wl screenshot`) captures real desktop content via `wlr-screencopy` — works with gles2
-- `wayvnc` screenshots are gray (upstream `ext-image-copy-capture` bug) — use `ov wl` instead
-- Chrome gets full GPU acceleration with gles2
+- **VNC images** (`sway-desktop-vnc`) override to `pixman` (software rendering) — ensures reliable VNC screenshot capture on NVIDIA headless
+- **Non-VNC images** (Sunshine, standalone sway) use `gles2` via auto-detection — Chrome gets full GPU acceleration
+- `grim` (`ov wl screenshot`) works with both renderers
 
 ## Used In Images
 

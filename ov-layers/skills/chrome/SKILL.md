@@ -94,7 +94,7 @@ This reduces the chance of Google flagging the sign-in as suspicious (Linux + au
 
 ## NVIDIA Headless Notes
 
-All images use `gles2` on NVIDIA headless. Chrome gets full GPU acceleration. The chrome-wrapper auto-detects the renderer and sets GPU vars accordingly. No special handling needed — gles2 is the default and Chrome works correctly with it.
+Most images use `gles2` on NVIDIA headless — Chrome gets full GPU acceleration. VNC images (`sway-desktop-vnc`) use `pixman` instead — Chrome falls back to software rendering (chrome-wrapper auto-detects `WLR_RENDERER=pixman` and strips NVIDIA EGL vars). No special handling needed — the chrome-wrapper adapts automatically to both renderers.
 
 ## CDP Diagnostics
 

@@ -231,7 +231,7 @@ PYEOF'
 
 **Search engine list order:** The EU DMA search engine choice presents engines in randomized order. The `cr-radio-button:nth-of-type(6)` selector may not always be Google. Verify with: `ov cdp eval $IMG $TAB '...'` to find which nth-of-type index has "Google" in its text.
 
-**VNC startup delay:** VNC shows a blank gray screen for ~30-70s after container start due to a transient wayvnc race condition. CDP screenshots work immediately. Wait for VNC to stabilize before relying on VNC screenshots for verification.
+**VNC startup delay:** VNC may show a blank screen for ~10-15s after container start while the DPMS workaround triggers wayvnc's capture pipeline. CDP screenshots work immediately. Wait for VNC to stabilize before relying on VNC screenshots for verification.
 
 ## Data Persistence
 

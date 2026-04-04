@@ -179,7 +179,7 @@ ov wl sway reload <image>            # Reload sway config
 | Window mgmt | wlrctl toplevel + sway IPC | No |
 | Clipboard | wl-copy/paste | rfb cut-text |
 | Remote access | No | Yes (TCP) |
-| NVIDIA headless | Works | Gray screen bug |
+| NVIDIA headless | Works | Works (pixman + DPMS fix) |
 
 Source: `ov/wl.go`.
 

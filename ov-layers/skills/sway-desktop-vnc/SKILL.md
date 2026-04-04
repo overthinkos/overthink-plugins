@@ -14,9 +14,9 @@ description: |
 | Layers (composition) | `sway-desktop`, `wayvnc` |
 | Install files | none (pure composition) |
 
-## NVIDIA Note
+## NVIDIA Support
 
-Uses gles2 on NVIDIA (same as all images). VNC screenshots may be gray (upstream wayvnc bug) — use `ov wl screenshot` instead.
+Forces `WLR_RENDERER=pixman` (software rendering) via layer env. This ensures VNC screenshots work reliably on all hardware, including NVIDIA headless. The `wayvnc-wrapper` includes a DPMS workaround for wayvnc 0.9.1's headless power event bug (to be removed when Fedora ships a fixed version).
 
 ## Used In Images
 

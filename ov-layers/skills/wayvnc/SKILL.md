@@ -34,13 +34,15 @@ ov vnc screenshot my-image          # capture desktop
 ov vnc passwd my-image --generate   # set up VeNCrypt/TLS auth
 ```
 
-## NVIDIA Headless: VNC Screenshot Limitation
+## NVIDIA Headless: Fixed via Pixman + DPMS Workaround
 
-wayvnc's `ext-image-copy-capture` protocol produces gray/blank screenshots on NVIDIA headless (upstream bug in sway 1.11 / wlroots 0.19 + wayvnc 0.9.1). VNC remote viewing (connecting a VNC client) still works, but `ov vnc screenshot` produces gray images.
+VNC screenshots work correctly on NVIDIA headless when used via `sway-desktop-vnc` (the standard VNC composition). Two fixes make this work:
 
-**For screenshots on NVIDIA headless, use `ov wl screenshot`** (grim via `wlr-screencopy`). Works correctly with gles2 on NVIDIA, capturing both Wayland and XWayland window content.
+1. **Pixman renderer** — `sway-desktop-vnc` sets `WLR_RENDERER=pixman` in its layer env, forcing software rendering. The `sway-wrapper` skips GPU auto-detection when `WLR_RENDERER` is pre-set.
 
-All images use `gles2` renderer on NVIDIA (hardware auto-detect in sway-wrapper). No renderer overrides.
+2. **DPMS workaround** — wayvnc 0.9.1 gates screen capture on `zwlr_output_power_v1` mode events, but sway's headless backend never emits them. The `wayvnc-wrapper` performs a minimal VNC handshake to trigger wayvnc to bind the power manager, then `swaymsg "output HEADLESS-1 power on"` forces the missing event. Fixed in wayvnc git main (post-0.9.1) — remove workaround when Fedora ships the fix.
+
+For images NOT using `sway-desktop-vnc` (custom sway + wayvnc setups), `ov wl screenshot` (grim) remains a reliable fallback.
 
 ### Startup Timing
 
