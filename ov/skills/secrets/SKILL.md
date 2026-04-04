@@ -148,7 +148,7 @@ Default: enabled, 3600 seconds (1 hour) TTL. Uses `keyctl` syscalls via `golang.
 
 ## Project-Level Secrets (.secrets + direnv)
 
-Separate from ov's credential store, project-level environment variables (e.g., `GMAIL_USER`, `GMAIL_PASSWORD`) are stored in `.secrets` — a GPG-encrypted file at the project root. direnv decrypts it in memory via `dotenv_gpg_if_exists` when entering the directory.
+Separate from ov's credential store, project-level environment variables (e.g., `GMAIL_USER`, `GMAIL_PASSWORD`) are stored in `.secrets` — a GPG-encrypted file at the project root. direnv decrypts it in memory via `ov secrets gpg env` when entering the directory (`eval "$(ov secrets gpg env)"` in `.envrc`).
 
 **This is NOT managed by `ov secrets` (kdbx).** The two systems serve different purposes:
 
@@ -166,6 +166,7 @@ Manage GPG-encrypted `.secrets` environment files directly from the CLI. All com
 | Action | Command | Description |
 |--------|---------|-------------|
 | Show contents | `ov secrets gpg show [-f FILE]` | Decrypt and print to stdout |
+| Export for eval | `ov secrets gpg env [-f FILE]` | Decrypt .secrets as `export KEY='value'` for eval/direnv |
 | Edit in editor | `ov secrets gpg edit [-f FILE]` | Decrypt, open `$EDITOR`, re-encrypt |
 | Encrypt file | `ov secrets gpg encrypt -r KEY_ID [-i .env] [-o .secrets]` | Encrypt plaintext env file |
 | Decrypt file | `ov secrets gpg decrypt [-i .secrets] [-o FILE]` | Decrypt to file or stdout |
@@ -173,6 +174,26 @@ Manage GPG-encrypted `.secrets` environment files directly from the CLI. All com
 | Remove a key | `ov secrets gpg unset KEY [-f FILE]` | Remove a key from .secrets |
 | Add recipient | `ov secrets gpg add-recipient KEY_ID [-f FILE]` | Re-encrypt with additional recipient |
 | List recipients | `ov secrets gpg recipients [-f FILE]` | List GPG key IDs that can decrypt |
+
+### `ov secrets gpg env`
+
+Decrypt `.secrets` and output `export KEY='value'` lines to stdout. Designed for `eval` or direnv:
+
+```bash
+eval "$(ov secrets gpg env)"              # Load secrets into current shell
+eval "$(ov secrets gpg env -f .secrets.prod)"  # Load from specific file
+```
+
+**Behavior:**
+- Silent exit 0 if file doesn't exist (safe for `.envrc` — no error when `.secrets` is absent)
+- Parses KEY=VALUE format, skips comments and blank lines, strips surrounding quotes
+- Values are single-quoted in output (safe shell escaping via `shellQuote`)
+- Replaces the external `dotenv_gpg_if_exists` direnvrc function — no external dependency needed
+
+**Usage in `.envrc`:**
+```bash
+eval "$(ov secrets gpg env)"
+```
 
 ### Common Workflows
 
@@ -218,7 +239,7 @@ For GPG agent forwarding into containers (so `gpg --decrypt` works inside), use 
 - `/ov-layers:agent-forwarding` — SSH/GPG agent forwarding into containers
 - `/ov-layers:gnupg` — GnuPG package layer
 - `/ov-layers:direnv` — direnv environment loader
-- `gpg-agent-setup/CLAUDE.md` — GPG agent + direnv setup for `.secrets` files
+- `gpg-agent-setup/CLAUDE.md` — GPG agent setup guide
 
 ## Source
 

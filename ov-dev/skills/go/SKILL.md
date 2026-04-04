@@ -16,8 +16,8 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Build | `task build:ov` | Compile to `bin/ov` |
-| Install | `task build:install` | Build and install to `~/.local/bin` |
+| Build | `task build:ov` | Compile to `bin/ov` and install as Arch package |
+| Install | `task build:install` | Install ov as Arch package (uses pre-built binary) |
 | Run tests | `cd ov && go test ./...` | Run all tests |
 | Run specific test | `cd ov && go test -run TestName ./...` | Run single test |
 | Vet | `cd ov && go vet ./...` | Static analysis |
@@ -91,7 +91,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | File | Purpose |
 |------|---------|
 | `env.go` | ENV merging, path expansion |
-| `envfile.go` | `.env` file parsing, runtime env var resolution/merging |
+| `envfile.go` | `.env` file parsing (`ParseEnvFile`, `ParseEnvBytes`), runtime env var resolution/merging |
 | `security.go` | Container security config collection, CLI args generation. Merges `Mounts` from layer security configs |
 | `labels.go` | OCI label constants |
 | `volumes.go` | Named volume collection/mounting |
@@ -107,6 +107,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `credential_kdbx.go` | KeePass .kdbx backend (`gokeepasslib`: KDBX 4, Argon2, encrypted at rest) |
 | `secrets.go` | Container secret collection from labels, Podman secret provisioning, `SecretArgs()` |
 | `secrets_cmd.go` | `ov secrets` CLI commands (init, list, get, set, delete, import, export, path) |
+| `secrets_gpg.go` | `ov secrets gpg` commands (show, env, edit, encrypt, decrypt, set, unset, add-recipient, recipients) |
 
 ### Remote Layer Refs
 

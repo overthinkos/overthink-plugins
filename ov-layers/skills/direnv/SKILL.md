@@ -33,7 +33,7 @@ Typically used as part of the `agent-forwarding` composition layer rather than d
 
 Provides the `direnv` binary for automatic environment variable loading from `.envrc` files. When entering a directory with `.envrc`, direnv evaluates it and exports environment variables.
 
-The primary use case in Overthink is the `.secrets` workflow: `.envrc` calls `dotenv_gpg_if_exists` which decrypts a GPG-encrypted `.secrets` file in memory and exports the variables — no plaintext on disk.
+The primary use case in Overthink is the `.secrets` workflow: `.envrc` calls `eval "$(ov secrets gpg env)"` which decrypts a GPG-encrypted `.secrets` file in memory and exports the variables — no plaintext on disk. No external `direnvrc` dependency needed.
 
 ## Used In Images
 

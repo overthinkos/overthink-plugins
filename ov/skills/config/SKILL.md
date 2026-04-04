@@ -190,7 +190,7 @@ Source: `ov/runtime_config.go`, `ov/credential_store.go`, `ov/credential_keyring
 
 ## Project-Level Environment Variables (.secrets)
 
-Separate from `ov settings`, project-level env vars (e.g., `GMAIL_USER`, `GMAIL_PASSWORD`) are loaded from `.secrets` — a GPG-encrypted file decrypted by direnv's `dotenv_gpg_if_exists` when entering the project directory. These variables are available to all commands run in the project shell, including `ov`.
+Separate from `ov settings`, project-level env vars (e.g., `GMAIL_USER`, `GMAIL_PASSWORD`) are loaded from `.secrets` — a GPG-encrypted file decrypted by `ov secrets gpg env` via direnv (`eval "$(ov secrets gpg env)"` in `.envrc`). These variables are available to all commands run in the project shell, including `ov`.
 
 This is NOT managed by `ov settings` or `ov secrets`. See `.env.example` for available variables. See `/ov:secrets` for the distinction between the two systems.
 
