@@ -32,6 +32,8 @@
 | A11y find | `ov wl atspi <image> find <query>` | Find elements by name/role |
 | A11y click | `ov wl atspi <image> click <query>` | Click element by name/role |
 | Status | `ov wl status <image>` | Check all tool availability |
+| Overlay show | `ov wl overlay show <image> --type text --text "Hello"` | Show recording overlay (see `/ov:wl-overlay`) |
+| Overlay hide | `ov wl overlay hide <image> --all` | Remove all overlays |
 
 ## Compositor Compatibility
 
@@ -188,6 +190,8 @@ Source: `ov/wl.go`.
 - `/ov:vnc` — VNC/RFB protocol alternative (TCP-based, works remotely)
 - `/ov:cdp` — Chrome DevTools Protocol (DOM-level interaction, `--wl` flag for click, `axtree` for accessibility)
 - `/ov-layers:wl-tools` — Compositor-agnostic tools (wtype, wlrctl, wl-clipboard, wlr-randr, xdotool, ydotool)
+- `/ov:wl-overlay` — Fullscreen overlays for recordings (title cards, lower-thirds, countdowns, highlights, fades)
+- `/ov-layers:wl-overlay` — Overlay layer (gtk4-layer-shell, python3-gobject)
 - `/ov-layers:wl-screenshot-grim` — Screenshot layer for sway (grim, wlr-screencopy)
 - `/ov-layers:wl-screenshot-pixelflux` — Screenshot layer for selkies (pixelflux rendering pipeline)
 - `/ov-layers:a11y-tools` — AT-SPI2 accessibility (python3-pyatspi, python3-gobject)

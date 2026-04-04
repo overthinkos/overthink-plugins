@@ -144,6 +144,7 @@ ov record stop selkies-desktop -n walkthrough -o walkthrough.mp4
 - `/ov-layers:dbus` — D-Bus session bus (required for notification delivery)
 - `/ov-layers:swaync` — Notification daemon (displays the notifications)
 - `/ov:wl` — Desktop automation (used alongside recording)
+- `/ov:wl-overlay` — Fullscreen overlays (title cards, lower-thirds, fades — compose with recording workflow)
 - `/ov:cdp` — Chrome automation (used alongside recording)
 
 ## When to Use This Skill

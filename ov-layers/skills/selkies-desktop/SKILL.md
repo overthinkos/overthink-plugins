@@ -15,6 +15,7 @@ layers:
   - pavucontrol             # PulseAudio volume control GUI
   - wl-tools                # Desktop automation (wtype, wlrctl, xdotool, wl-clipboard, wlr-randr)
   - wl-screenshot-pixelflux # Screenshots via selkies capture bridge
+  - wl-overlay              # Fullscreen overlays via gtk4-layer-shell (for recordings)
   - wl-record-pixelflux    # Desktop video recording via selkies capture bridge
   - a11y-tools              # AT-SPI2 accessibility introspection (python3-pyatspi)
   - xterm                   # X11 terminal for XWayland testing
@@ -44,6 +45,7 @@ A browser-accessible desktop at `http://localhost:3000` with:
 - **`ov cdp click --wl`:** CSS selector → Wayland pointer click (no VNC needed)
 - **`ov cdp axtree`:** Chrome accessibility tree via CDP
 - **Desktop video recording** via `ov record start --mode desktop` (capture bridge → H.264 → ffmpeg MP4, with optional audio)
+- **Fullscreen overlays** via `ov wl overlay` (title cards, lower-thirds, countdowns, highlights, fades — rendered by compositor with true alpha transparency, no post-production needed)
 
 ## What Works / What Doesn't
 
@@ -62,6 +64,7 @@ A browser-accessible desktop at `http://localhost:3000` with:
 | ydotool (drag/scroll) | WORKS | Needs `/dev/uinput` access |
 | CDP click --wl | WORKS | Selector → Wayland pointer (same coordinate space) |
 | CDP axtree | WORKS | Chrome accessibility tree with filtering |
+| wl-overlay (overlays) | WORKS | True alpha, ~15s screenshot latency in controller mode. Instant in recordings |
 
 ## Startup Order
 

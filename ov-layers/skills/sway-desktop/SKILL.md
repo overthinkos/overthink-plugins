@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Layers (composition) | `pipewire`, `xdg-portal`, `wl-tools`, `wl-screenshot-grim`, `wf-recorder`, `chrome-sway`, `xfce4-terminal`, `thunar`, `waybar`, `desktop-fonts`, `swaync`, `pavucontrol`, `tmux`, `asciinema`, `fastfetch` |
+| Layers (composition) | `pipewire`, `xdg-portal`, `wl-tools`, `wl-screenshot-grim`, `wl-overlay`, `wf-recorder`, `chrome-sway`, `xfce4-terminal`, `thunar`, `waybar`, `desktop-fonts`, `swaync`, `pavucontrol`, `tmux`, `asciinema`, `fastfetch` |
 | Install files | none (pure composition) |
 
 ## Usage
@@ -30,6 +30,7 @@ sway-browser-vnc:
 - `/ov-layers:pipewire` -- audio/media server (included)
 - `/ov-layers:xdg-portal` -- XDG desktop portal infrastructure (included)
 - `/ov-layers:wl-tools` -- Wayland automation tools: grim, wtype, wlrctl (included)
+- `/ov-layers:wl-overlay` -- Fullscreen overlays via gtk4-layer-shell for recordings (included)
 - `/ov-layers:wf-recorder` -- Wayland screen recorder for desktop video (included)
 - `/ov-layers:chrome-sway` -- Chrome browser on Sway (included)
 - `/ov-layers:waybar` -- status bar and auto-tiling (included)

@@ -44,6 +44,21 @@ ov dbus list sway-browser-vnc          # List all D-Bus services
 
 The notification daemon (swaync) is included via the sway-desktop metalayer.
 
+## Overlays
+
+Fullscreen overlays for recording (via wl-overlay, included in sway-desktop):
+
+```bash
+ov wl overlay show sway-browser-vnc --type text --text "INTRO" --name title
+ov wl overlay show sway-browser-vnc --type lower-third --text "Speaker" --subtitle "Role" --name lt
+ov wl overlay show sway-browser-vnc --type countdown --seconds 3 --name cd
+ov wl overlay show sway-browser-vnc --type highlight --region "430,290,510,50" --name hl
+ov wl overlay show sway-browser-vnc --type fade --color black --name outro
+ov wl overlay hide sway-browser-vnc --all
+```
+
+All overlay types render with true RGBA compositor transparency. See `/ov:wl-overlay` for the full recording workflow.
+
 ## Recording
 
 Desktop video recording via wf-recorder (included in sway-desktop):

@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Layers (composition) | `pipewire`, `xdg-portal-niri`, `niri`, `chrome-niri`, `niri-apps` |
+| Layers (composition) | `pipewire`, `xdg-portal-niri`, `niri`, `chrome-niri`, `wl-overlay`, `niri-apps` |
 | Install files | none (pure composition) |
 
 ## Composition
@@ -22,6 +22,7 @@ niri-desktop
   ├─ xdg-portal-niri   (desktop portals, GTK+GNOME backends)
   ├─ niri              (Smithay compositor, built from source)
   ├─ chrome-niri       (Chrome browser + DevTools)
+  ├─ wl-overlay        (fullscreen overlays via gtk4-layer-shell)
   └─ niri-apps         (xfce4-terminal, thunar)
 ```
 
@@ -51,6 +52,7 @@ my-desktop:
 - `/ov-layers:niri` -- compositor (included)
 - `/ov-layers:pipewire` -- audio (included)
 - `/ov-layers:chrome-niri` -- Chrome browser (included)
+- `/ov-layers:wl-overlay` -- Fullscreen overlays for recordings (included)
 
 ## When to Use This Skill
 
