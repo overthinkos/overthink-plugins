@@ -30,6 +30,7 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 | `pixi.toml` / `pyproject.toml` / `environment.yml` | user | Python/conda packages. Multi-stage build. Only one per layer |
 | `package.json` | user | npm packages -- installed globally via `npm install -g` |
 | `Cargo.toml` | user | Rust crate -- built via `cargo install --path`. Requires `src/` directory |
+| `build.sh` | user | Optional post-install script for pixi layers. Runs in pixi builder stage after `pixi install`. For build-time logic that can't be expressed in pixi.toml (C extension compilation, npm builds, binary patching). Builder image has gcc, nodejs, cmake, etc. |
 | `user.yml` | user | Custom user install logic (Taskfile). Same tag-based dispatch as root.yml |
 
 **Root vs User Rule:** System packages in `layer.yml` and `root.yml` run as root. Everything else runs as user. Pixi, npm, and cargo must never run as root.

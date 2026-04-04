@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `dbus` |
-| Service | `swaync` (supervisord, priority 14) |
+| Service | `swaync` (supervisord, priority 14, startsecs=2) |
 | Install files | `layer.yml`, `user.yml`, `swaync-wrapper`, `config.json`, `style.css` |
 
 ## Packages
@@ -21,7 +21,7 @@ description: |
 
 ## Service
 
-Runs as a supervisord service (priority 14) via `swaync-wrapper` which waits for the Wayland socket before starting. Priority 14 ensures swaync starts after the compositor (10-12) but before waybar (15), so the notification indicator module is ready.
+Runs as a supervisord service (priority 14, `startsecs=2`) via `swaync-wrapper` which waits for the Wayland socket before starting. The wrapper uses `pkill -9 -x swaync` (exact name match) to kill any stale instance before exec, preventing D-Bus name conflicts on restart. `startsecs=2` gives swaync time to claim the D-Bus name before supervisord declares it running. Priority 14 ensures swaync starts after the compositor (10-12) but before waybar (15), so the notification indicator module is ready.
 
 ## Configuration
 

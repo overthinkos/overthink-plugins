@@ -26,10 +26,20 @@ No RPM packages — uses the capture bridge provided by the selkies layer.
 
 1. Connects to Unix socket at `/tmp/ov-capture.sock`
 2. Sends `SCREENSHOT\n`
-3. Receives `4-byte length + PNG data` response
-4. Outputs PNG to stdout
+3. Receives `4-byte length + PNG data` response (or `0 + reason string` on failure)
+4. Validates PNG completeness (reports incomplete reads)
+5. Outputs PNG to stdout
 
-The capture bridge (running inside the selkies process) handles frame collection and H.264→PNG decoding via ffmpeg.
+The capture bridge (running inside the selkies process) handles frame collection, H.264 NAL filtering (drops Opus audio), and ffmpeg decode. On failure, the bridge sends a descriptive reason (e.g., "not connected", "ffmpeg exit N: ...") instead of bare `exit status 1`.
+
+## Status Query
+
+```bash
+pixelflux-screenshot --status
+# Returns: {"connected": true, "mode": "controller", "frames": 90, "seq": 1234, "active_streams": 0, "last_error": ""}
+```
+
+Fields: `connected` (WebSocket up), `mode` (controller/viewer/reconnecting), `frames` (buffered H.264), `seq` (total received), `active_streams` (active recordings), `last_error` (last ffmpeg error).
 
 ## Key Properties
 
