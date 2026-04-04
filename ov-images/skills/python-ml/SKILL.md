@@ -15,7 +15,7 @@ GPU-accelerated Python environment with ML libraries — PyTorch, transformers, 
 | Property | Value |
 |----------|-------|
 | Base | nvidia |
-| Layers | python-ml |
+| Layers | agent-forwarding, python-ml |
 | Platforms | linux/amd64 |
 | Registry | ghcr.io/overthinkos |
 

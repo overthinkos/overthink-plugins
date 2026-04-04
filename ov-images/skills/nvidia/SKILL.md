@@ -15,7 +15,7 @@ NVIDIA GPU base image — provides GPU runtime (driver libs, CDI toolkit) and CU
 | Property | Value |
 |----------|-------|
 | Base | fedora-nonfree (fedora + RPM Fusion) |
-| Layers | nvidia, cuda |
+| Layers | agent-forwarding, nvidia, cuda |
 | Platforms | linux/amd64 |
 | Registry | ghcr.io/overthinkos |
 

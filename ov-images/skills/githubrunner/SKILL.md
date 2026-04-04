@@ -15,7 +15,7 @@ Self-hosted GitHub Actions runner with the full Overthink toolchain.
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | github-runner, ov-full |
+| Layers | agent-forwarding, github-runner, ov-full |
 | Platforms | linux/amd64 |
 | UID/GID | 0/0 (root) |
 | User | root |

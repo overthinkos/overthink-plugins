@@ -15,7 +15,7 @@ Headless OpenClaw gateway with local LLM inference via Ollama — no desktop, no
 | Property | Value |
 |----------|-------|
 | Base | nvidia |
-| Layers | openclaw, ollama |
+| Layers | agent-forwarding, openclaw, ollama |
 | Platforms | linux/amd64 |
 | Ports | 18789, 11434 |
 | Registry | ghcr.io/overthinkos |

@@ -15,7 +15,7 @@ Unsloth Studio web UI for LLM fine-tuning with GPU acceleration.
 | Property | Value |
 |----------|-------|
 | Base | nvidia |
-| Layers | unsloth-studio |
+| Layers | agent-forwarding, unsloth-studio |
 | Platforms | linux/amd64 |
 | Ports | 8888, 8000 |
 | Registry | ghcr.io/overthinkos |

@@ -15,7 +15,7 @@ Headless OpenClaw AI gateway — no desktop, no browser, just the gateway servic
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | openclaw |
+| Layers | agent-forwarding, openclaw |
 | Platforms | linux/amd64 |
 | Ports | 18789 |
 | Registry | ghcr.io/overthinkos |

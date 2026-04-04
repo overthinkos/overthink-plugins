@@ -15,7 +15,7 @@ Development test image with Valkey in-memory data store.
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | supervisord, valkey |
+| Layers | agent-forwarding, supervisord, valkey |
 | Platforms | linux/amd64, linux/arm64 |
 | Ports | 6379 (Valkey) |
 | Status | **disabled** (set `enabled: true` in images.yml) |

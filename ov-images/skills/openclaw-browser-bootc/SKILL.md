@@ -16,7 +16,7 @@ Bootable container (bootc) VM image with OpenClaw AI gateway, Chrome browser, VN
 |----------|-------|
 | Base | quay.io/fedora/fedora-bootc:43 |
 | Bootc | true |
-| Layers | bootc-base, openclaw, pipewire, wayvnc, chrome-sway |
+| Layers | agent-forwarding, bootc-base, openclaw, pipewire, wayvnc, chrome-sway |
 | Platforms | linux/amd64 |
 | Ports | 18789 (gateway), 5900 (VNC), 9222 (CDP) |
 | Status | **disabled** (set `enabled: true` in images.yml) |

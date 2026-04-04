@@ -14,7 +14,7 @@ Minimal Sway desktop with VNC (wayvnc on port 5900) and Chrome (CDP on port 9222
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | sway-desktop-vnc, dbus, ov |
+| Layers | agent-forwarding, sway-desktop-vnc, dbus, ov |
 | Ports | 5900, 9222 |
 
 ## Quick Start

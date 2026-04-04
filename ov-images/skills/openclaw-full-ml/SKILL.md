@@ -15,7 +15,7 @@ GPU-accelerated OpenClaw with all tools, ML capabilities (whisper, sherpa-onnx T
 | Property | Value |
 |----------|-------|
 | Base | nvidia |
-| Layers | openclaw-full-ml, sway-desktop-vnc, ollama |
+| Layers | agent-forwarding, openclaw-full-ml, sway-desktop-vnc, ollama |
 | Platforms | linux/amd64 |
 | Ports | 18789 (gateway), 5900 (VNC), 9222 (CDP), 11434 (Ollama) |
 | Status | **disabled** (set `enabled: true` in images.yml) |

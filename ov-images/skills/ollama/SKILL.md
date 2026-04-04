@@ -15,7 +15,7 @@ GPU-accelerated Ollama LLM inference server.
 | Property | Value |
 |----------|-------|
 | Base | nvidia |
-| Layers | ollama |
+| Layers | agent-forwarding, ollama |
 | Platforms | linux/amd64 |
 | Ports | 11434 |
 | Registry | ghcr.io/overthinkos |

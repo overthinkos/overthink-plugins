@@ -188,12 +188,19 @@ ov --kdbx ~/.config/ov/secrets.kdbx start my-app    # Use kdbx for this command
 
 Source: `ov/runtime_config.go`, `ov/credential_store.go`, `ov/credential_keyring.go`, `ov/credential_config.go`, `ov/credential_kdbx.go`, `ov/secrets_cmd.go`.
 
+## Project-Level Environment Variables (.secrets)
+
+Separate from `ov settings`, project-level env vars (e.g., `GMAIL_USER`, `GMAIL_PASSWORD`) are loaded from `.secrets` — a GPG-encrypted file decrypted by direnv's `dotenv_gpg_if_exists` when entering the project directory. These variables are available to all commands run in the project shell, including `ov`.
+
+This is NOT managed by `ov settings` or `ov secrets`. See `.env.example` for available variables. See `/ov:secrets` for the distinction between the two systems.
+
 ## Cross-References
 
 - `/ov:shell` -- Shell commands that use engine.run
 - `/ov:service` -- Service lifecycle that uses run_mode
 - `/ov:vm` -- VM commands that use vm.* settings
 - `/ov:enc` -- Encrypted storage path configuration
+- `/ov:secrets` -- KeePass credential management (container-level secrets) + `.secrets` distinction
 - `/ov:build` -- Build commands that use engine.build
 - `/ov:vnc` -- VNC password management (`vnc.password.*` keys)
 

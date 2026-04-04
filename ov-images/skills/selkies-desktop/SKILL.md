@@ -8,6 +8,7 @@ Browser-accessible Wayland desktop streamed via Selkies/pixelflux WebSocket at `
 selkies-desktop:
   base: fedora-nonfree
   layers:
+    - agent-forwarding
     - selkies-desktop
   ports:
     - "3000:3000"
@@ -22,7 +23,7 @@ selkies-desktop:
 
 ## Layers
 
-`selkies-desktop` metalayer = pipewire + chrome + labwc + waybar-labwc + desktop-fonts + swaync + pavucontrol + wl-tools + wl-screenshot-pixelflux + wl-record-pixelflux + a11y-tools + xterm + tmux + asciinema + fastfetch + selkies
+`agent-forwarding` (gnupg + direnv + ssh-client) + `selkies-desktop` metalayer = pipewire + chrome + labwc + waybar-labwc + desktop-fonts + swaync + pavucontrol + wl-tools + wl-screenshot-pixelflux + wl-record-pixelflux + a11y-tools + xterm + tmux + asciinema + fastfetch + selkies
 
 ## Ports
 

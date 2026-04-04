@@ -15,7 +15,7 @@ GPU-accelerated ComfyUI image generation server with node-based workflow UI.
 | Property | Value |
 |----------|-------|
 | Base | nvidia |
-| Layers | comfyui |
+| Layers | agent-forwarding, comfyui |
 | Platforms | linux/amd64 |
 | Ports | 8188 |
 | Registry | ghcr.io/overthinkos |

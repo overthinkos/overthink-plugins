@@ -17,7 +17,7 @@ Arch Linux container with full ov toolchain. Uses the same shared layer list as 
 |----------|-------|
 | Base | archlinux (docker.io/library/archlinux:latest) |
 | Tags | `[all, pac, archlinux]` |
-| Layers | ov-full, golang, gh, sshd, container-nesting, nvidia |
+| Layers | agent-forwarding, ov-full, golang, gh, sshd, container-nesting, nvidia |
 | Platforms | linux/amd64 |
 | UID/GID | 0/0 (root) |
 | User | root |

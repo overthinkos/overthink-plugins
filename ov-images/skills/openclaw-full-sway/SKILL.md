@@ -15,7 +15,7 @@ OpenClaw with maximal tool coverage plus Sway desktop and VNC access.
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | openclaw-full, sway-desktop-vnc |
+| Layers | agent-forwarding, openclaw-full, sway-desktop-vnc |
 | Platforms | linux/amd64 |
 | Ports | 18789 (gateway), 5900 (VNC), 9222 (CDP) |
 | Status | **disabled** (set `enabled: true` in images.yml) |

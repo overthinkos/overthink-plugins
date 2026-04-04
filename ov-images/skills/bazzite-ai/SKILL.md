@@ -23,7 +23,8 @@ Bootc VM image based on Universal Blue's Bazzite (gaming-focused) with NVIDIA dr
 ## Full Layer Stack
 
 1. `bazzite-nvidia-open` (external bootc base — gaming desktop with NVIDIA)
-2. Build & dev tools: `build-toolchain`, `language-runtimes`, `dev-tools`
+2. Agent forwarding: `agent-forwarding` (gnupg + direnv + ssh-client)
+3. Build & dev tools: `build-toolchain`, `language-runtimes`, `dev-tools`
 3. Infrastructure: `ujust`, `github-actions`, `virtualization`, `kubernetes`, `docker-ce`
 4. Cloud: `google-cloud`, `devops-tools`, `grafana-tools`
 5. GPU/ML: `cuda`

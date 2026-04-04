@@ -15,7 +15,7 @@ GPU-accelerated Jupyter notebook server with ML libraries and llama.cpp.
 | Property | Value |
 |----------|-------|
 | Base | nvidia |
-| Layers | jupyter |
+| Layers | agent-forwarding, jupyter |
 | Platforms | linux/amd64 |
 | Ports | 8888 |
 | Registry | ghcr.io/overthinkos |

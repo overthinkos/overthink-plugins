@@ -15,7 +15,7 @@ Full-stack GPU-accelerated AI deployment: OpenClaw gateway with all tool layers,
 | Property | Value |
 |----------|-------|
 | Base | nvidia (fedora + CUDA) |
-| Layers | openclaw-full-ml (metalayer), sway-desktop, ollama |
+| Layers | agent-forwarding, openclaw-full-ml (metalayer), sway-desktop, ollama |
 | Platforms | linux/amd64 |
 | Ports | 18789, 5900, 9222, 11434 |
 | Registry | ghcr.io/overthinkos |

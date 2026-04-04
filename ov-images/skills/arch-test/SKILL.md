@@ -15,7 +15,7 @@ Test image that validates both `pac:` (pacman) and `aur:` (AUR) package formats 
 |----------|-------|
 | Base | archlinux |
 | Build | pac, aur |
-| Layers | arch-pac-test, arch-aur-test |
+| Layers | agent-forwarding, arch-pac-test, arch-aur-test |
 | Platforms | linux/amd64 |
 | Registry | ghcr.io/overthinkos |
 

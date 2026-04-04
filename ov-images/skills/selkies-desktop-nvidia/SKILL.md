@@ -8,6 +8,7 @@ GPU-accelerated variant of selkies-desktop using the NVIDIA base image with CUDA
 selkies-desktop-nvidia:
   base: nvidia
   layers:
+    - agent-forwarding
     - selkies-desktop
   ports:
     - "3000:3000"

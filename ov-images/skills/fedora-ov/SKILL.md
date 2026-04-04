@@ -17,7 +17,7 @@ Fedora container with full ov toolchain. Uses the same shared layer list as `arc
 |----------|-------|
 | Base | fedora (quay.io/fedora/fedora:43) |
 | Tags | `[all, rpm, fedora, fedora:43]` |
-| Layers | ov-full, golang, gh, sshd, container-nesting, nvidia |
+| Layers | agent-forwarding, ov-full, golang, gh, sshd, container-nesting, nvidia |
 | Platforms | linux/amd64 |
 | UID/GID | 0/0 (root) |
 | User | root |

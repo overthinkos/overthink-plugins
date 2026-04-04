@@ -15,7 +15,7 @@ Immich photo management with GPU-accelerated machine learning for face recogniti
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | nodejs24, cuda, python-ml, supervisord, postgresql, vectorchord, redis, immich, immich-ml |
+| Layers | agent-forwarding, nodejs24, cuda, python-ml, supervisord, postgresql, vectorchord, redis, immich, immich-ml |
 | Platforms | linux/amd64 |
 | Ports | 2283 |
 | Registry | ghcr.io/overthinkos |

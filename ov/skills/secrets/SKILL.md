@@ -146,15 +146,84 @@ Default: enabled, 3600 seconds (1 hour) TTL. Uses `keyctl` syscalls via `golang.
 | `secrets.kdbx_cache` | Enable/disable kernel keyring caching (default: `true`) |
 | `secrets.kdbx_cache_timeout` | TTL in seconds for cached password (default: `3600`) |
 
+## Project-Level Secrets (.secrets + direnv)
+
+Separate from ov's credential store, project-level environment variables (e.g., `GMAIL_USER`, `GMAIL_PASSWORD`) are stored in `.secrets` — a GPG-encrypted file at the project root. direnv decrypts it in memory via `dotenv_gpg_if_exists` when entering the directory.
+
+**This is NOT managed by `ov secrets` (kdbx).** The two systems serve different purposes:
+
+| System | What it manages | How it works |
+|--------|----------------|--------------|
+| `ov secrets` (kdbx/keyring) | Container-level credentials (VNC passwords, service secrets) | Provisioned at `ov config` time into Podman secrets |
+| `ov secrets gpg` + direnv | Project-level shell env vars (API keys, credentials) | GPG-encrypted `.secrets` file, decrypted by direnv on `cd` |
+
+## `ov secrets gpg` — GPG-Encrypted .secrets Management
+
+Manage GPG-encrypted `.secrets` environment files directly from the CLI. All commands shell out to `gpg` (must be in PATH).
+
+### Quick Reference
+
+| Action | Command | Description |
+|--------|---------|-------------|
+| Show contents | `ov secrets gpg show [-f FILE]` | Decrypt and print to stdout |
+| Edit in editor | `ov secrets gpg edit [-f FILE]` | Decrypt, open `$EDITOR`, re-encrypt |
+| Encrypt file | `ov secrets gpg encrypt -r KEY_ID [-i .env] [-o .secrets]` | Encrypt plaintext env file |
+| Decrypt file | `ov secrets gpg decrypt [-i .secrets] [-o FILE]` | Decrypt to file or stdout |
+| Set a key | `ov secrets gpg set KEY VALUE [-f FILE] [-r KEY_ID]` | Add or update KEY=VALUE |
+| Remove a key | `ov secrets gpg unset KEY [-f FILE]` | Remove a key from .secrets |
+| Add recipient | `ov secrets gpg add-recipient KEY_ID [-f FILE]` | Re-encrypt with additional recipient |
+| List recipients | `ov secrets gpg recipients [-f FILE]` | List GPG key IDs that can decrypt |
+
+### Common Workflows
+
+```bash
+# Create .secrets from a plaintext .env file
+ov secrets gpg encrypt -r 420DE2B3 -i .env -o .secrets
+rm .env
+
+# View contents
+ov secrets gpg show
+
+# Add a new secret
+ov secrets gpg set API_KEY sk-test-abc123
+
+# Edit in your editor
+ov secrets gpg edit
+
+# Remove a secret
+ov secrets gpg unset OLD_KEY
+
+# Add another person who can decrypt
+ov secrets gpg add-recipient THEIR_KEY_ID
+
+# See who can decrypt
+ov secrets gpg recipients
+```
+
+### Flags
+
+- `-f, --file` — Path to encrypted file (default: `.secrets` in current directory)
+- `-r, --recipient` — GPG key ID (repeatable, required for `encrypt`, optional for `set` on new files)
+- `-i, --input` — Input file for encrypt/decrypt (default: `.env` / `.secrets`)
+- `-o, --output` — Output file for encrypt/decrypt (default: `.secrets` / stdout)
+
+### Using .secrets Inside Containers
+
+For GPG agent forwarding into containers (so `gpg --decrypt` works inside), use the `agent-forwarding` layer. See `/ov-layers:agent-forwarding` for details. The container's GPG uses the host's agent via a forwarded socket — no GPG agent runs inside the container.
+
 ## Cross-References
 
 - `/ov:config` — `secret_backend`, `secrets.kdbx_path` settings keys
 - `/ov:service` — container secrets (`secrets` field in layer.yml, provisioned at `ov config`)
+- `/ov-layers:agent-forwarding` — SSH/GPG agent forwarding into containers
+- `/ov-layers:gnupg` — GnuPG package layer
+- `/ov-layers:direnv` — direnv environment loader
+- `gpg-agent-setup/CLAUDE.md` — GPG agent + direnv setup for `.secrets` files
 
 ## Source
 
-`ov/secrets_cmd.go` (CLI commands), `ov/credential_kdbx.go` (KdbxStore backend).
+`ov/secrets_cmd.go` (CLI commands), `ov/secrets_gpg.go` (GPG .secrets commands), `ov/credential_kdbx.go` (KdbxStore backend).
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the `ov secrets` command, KeePass credential management, or the kdbx credential backend. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves `ov secrets` commands, KeePass .kdbx credential management, GPG-encrypted `.secrets` file management, credential import/export, or secret database administration. Invoke this skill BEFORE reading source code or launching Explore agents.

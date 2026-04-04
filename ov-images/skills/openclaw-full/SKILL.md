@@ -15,7 +15,7 @@ Headless OpenClaw image with maximal tool/skill coverage. No desktop, no VNC.
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | openclaw-full |
+| Layers | agent-forwarding, openclaw-full |
 | Platforms | linux/amd64, linux/arm64 |
 | Ports | 18789 (gateway), 9222 (CDP) |
 | Status | **disabled** (set `enabled: true` in images.yml) |

@@ -15,7 +15,7 @@ Maximal OpenClaw gateway with full Wayland desktop, Chrome browser, VNC access, 
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | openclaw-full (metalayer: 28 layers), sway-desktop |
+| Layers | agent-forwarding, openclaw-full (metalayer: 28 layers), sway-desktop |
 | Platforms | linux/amd64 |
 | Ports | 18789, 5900, 9222 |
 | Tunnel | tailscale (all ports) |

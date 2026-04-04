@@ -16,7 +16,7 @@ Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH acce
 |----------|-------|
 | Base | ghcr.io/ublue-os/aurora-dx-nvidia-open:stable-daily-43.20260305 |
 | Bootc | true |
-| Layers | sshd, ov-full, golang |
+| Layers | agent-forwarding, sshd, ov-full, golang |
 | Platforms | linux/amd64 |
 | Status | **disabled** (set `enabled: true` in images.yml) |
 | Registry | ghcr.io/overthinkos |
