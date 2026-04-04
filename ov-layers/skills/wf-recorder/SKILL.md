@@ -50,7 +50,7 @@ ov record start sway-browser-vnc -n demo --mode desktop
 
 # Interact with desktop
 ov wl click sway-browser-vnc 640 360
-ov record term sway-browser-vnc "neofetch" -n demo
+ov record cmd sway-browser-vnc "neofetch" -n demo
 
 # Stop and copy to host
 ov record stop sway-browser-vnc -n demo -o demo.mp4

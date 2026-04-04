@@ -25,7 +25,6 @@ All recording sessions are managed via tmux sessions with a `record-` prefix. Th
 | Stop recording | `ov record stop <image> [-n NAME] [-o FILE]` | Stop and optionally copy to host |
 | List recordings | `ov record list <image>` | Show active recording sessions |
 | Send command | `ov record cmd <image> "command" [-n NAME]` | Send command to recording terminal |
-| Visible terminal | `ov record term <image> "command" [-n NAME]` | Run command in desktop terminal |
 
 ## Commands
 
@@ -71,17 +70,7 @@ Shows all active recording sessions with name, mode, and file path.
 ov record cmd <image> "command" [--name NAME] [-i INSTANCE]
 ```
 
-Sends a command to the recording's tmux session. For terminal recordings, the command and its output become part of the `.cast` file. Convenience wrapper for `ov tmux send <image> -s record-<name> "command" --enter`.
-
-### `ov record term` — Visible Desktop Terminal
-
-```bash
-ov record term <image> "command" [--name NAME] [--terminal TERM] [-i INSTANCE]
-```
-
-Opens a terminal window (xterm or xfce4-terminal) on the desktop compositor and runs the command inside it. The terminal is visible in desktop video recordings. Uses `-hold` to keep the window open after the command finishes.
-
-Auto-detects terminal emulator: xterm (selkies-desktop) → xfce4-terminal (sway-desktop).
+Sends a command to the recording's tmux session. For terminal recordings, the command and its output become part of the `.cast` file. Convenience wrapper for `ov tmux send <image> -s record-<name> "command" --enter`. Sends a desktop notification when the command is dispatched (if a notification daemon like swaync is running).
 
 ## Recording Tools
 
@@ -119,9 +108,9 @@ asciinema play demo.cast
 # Start desktop video recording with audio
 ov record start selkies-desktop -n walkthrough --mode desktop --audio
 
-# Show CLI commands in visible terminal windows
-ov record term selkies-desktop "git status" -n walkthrough
-ov record term selkies-desktop "docker ps" -n walkthrough
+# Run CLI commands (visible in recording)
+ov record cmd selkies-desktop "git status" -n walkthrough
+ov record cmd selkies-desktop "docker ps" -n walkthrough
 
 # Interact with browser
 ov cdp open selkies-desktop "https://github.com"
@@ -138,14 +127,22 @@ ov record stop selkies-desktop -n walkthrough -o walkthrough.mp4
 - **Desktop recording (sway):** `wf-recorder` layer (included in `sway-desktop` metalayer)
 - **All modes:** `tmux` layer must be present (for session management)
 
+## Implementation Notes
+
+- `ov record cmd` uses the shared `sendTmuxCommand()` helper (also used by `ov tmux cmd`)
+- Desktop notifications are sent via `sendContainerNotification()` on every `ov record cmd` dispatch (always-on, no `--no-notify` flag — recording context always benefits from notification)
+- The notification chain: `sendContainerNotification()` → tries in-container `ov dbus notify .` → falls back to `gdbus call` → silently skips if neither available
+
 ## Cross-References
 
-- `/ov:tmux` — Underlying tmux session management (recording sessions use `record-` prefix)
+- `/ov:tmux` — Underlying tmux session management (recording sessions use `record-` prefix). `ov tmux cmd` uses the same `sendTmuxCommand` helper
 - `/ov-layers:asciinema` — Terminal recording layer
 - `/ov-layers:wl-record-pixelflux` — Pixelflux video recording layer
 - `/ov-layers:wf-recorder` — wf-recorder video recording layer
 - `/ov-layers:selkies-desktop` — Desktop metalayer with pixelflux recording
 - `/ov-layers:sway-desktop` — Desktop metalayer with wf-recorder
+- `/ov-layers:dbus` — D-Bus session bus (required for notification delivery)
+- `/ov-layers:swaync` — Notification daemon (displays the notifications)
 - `/ov:wl` — Desktop automation (used alongside recording)
 - `/ov:cdp` — Chrome automation (used alongside recording)
 

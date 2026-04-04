@@ -152,8 +152,24 @@ All containers are connected to a shared `ov` network by default, enabling inter
 
 Source: `ov/network.go`.
 
+## `ov cmd` vs `ov shell -c`
+
+`ov cmd <image> "command"` is a dedicated single-command tool for **running containers only**. Key differences from `ov shell -c`:
+
+| | `ov cmd` | `ov shell -c` |
+|---|---------|--------------|
+| Container state | Running only | Running or starts new |
+| Notification | Yes (`--[no-]notify`) | No |
+| Process model | `exec.Command` (returns) | `syscall.Exec` (replaces) |
+| Workspace mount | No | Yes (`-w`) |
+| Device auto-detect | No | Yes |
+| Use case | Quick commands + notification | Full container setup + command |
+
+Use `ov cmd` for quick operations on running services. Use `ov shell -c` when you need workspace mounts, device passthrough, or need to start a new container.
+
 ## Cross-References
 
+- `ov cmd` -- Single command execution with D-Bus notification (running containers only)
 - `/ov:tmux` -- Persistent tmux sessions (survives disconnects, needed for TTY-dependent TUI programs)
 - `/ov:service` -- Starting background services before exec
 - `/ov:cdp` -- Chrome DevTools Protocol automation

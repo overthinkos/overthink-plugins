@@ -14,7 +14,7 @@ Minimal Sway desktop with VNC (wayvnc on port 5900) and Chrome (CDP on port 9222
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | sway-desktop-vnc |
+| Layers | sway-desktop-vnc, dbus, ov |
 | Ports | 5900, 9222 |
 
 ## Quick Start
@@ -22,9 +22,27 @@ Minimal Sway desktop with VNC (wayvnc on port 5900) and Chrome (CDP on port 9222
 ```bash
 ov build sway-browser-vnc
 ov start sway-browser-vnc
+ov status sway-browser-vnc          # Shows all probes: supervisord, cdp, dbus, ov, sway, vnc, wl
 ov vnc status sway-browser-vnc
 ov wl screenshot sway-browser-vnc screenshot.png
 ```
+
+## D-Bus and Notification Support
+
+This image includes `dbus` and `ov` layers, enabling:
+- `ov dbus notify` — native Go D-Bus notifications via in-container ov binary
+- `ov dbus list/call/introspect` — full D-Bus interaction
+- `ov cmd` — single command execution with desktop notification on completion
+- `ov tmux cmd` — tmux command sending with notification
+- `ov status` — supervisord, dbus, and ov probes
+
+```bash
+ov dbus notify sway-browser-vnc "Build Complete" "Image built successfully"
+ov cmd sway-browser-vnc "make test"    # Notifies on completion
+ov dbus list sway-browser-vnc          # List all D-Bus services
+```
+
+The notification daemon (swaync) is included via the sway-desktop metalayer.
 
 ## Recording
 

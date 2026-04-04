@@ -56,8 +56,8 @@ pixelflux-record output.mp4 --fps 60 --audio # 60fps + audio
 # Start desktop video recording (auto-detects pixelflux-record)
 ov record start selkies-desktop -n demo --mode desktop --audio
 
-# Run visible terminal commands
-ov record term selkies-desktop "echo hello" -n demo
+# Run commands (visible in recording)
+ov record cmd selkies-desktop "echo hello" -n demo
 
 # Interact with desktop
 ov cdp open selkies-desktop "https://example.com"

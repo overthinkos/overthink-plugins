@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `dbus` |
 | Service | `swaync` (supervisord, priority 14, startsecs=2) |
-| Install files | `layer.yml`, `user.yml`, `swaync-wrapper`, `config.json`, `style.css` |
+| Install files | `layer.yml`, `root.yml`, `user.yml`, `swaync-wrapper`, `config.json`, `style.css` |
 
 ## Packages
 
@@ -22,6 +22,10 @@ description: |
 ## Service
 
 Runs as a supervisord service (priority 14, `startsecs=2`) via `swaync-wrapper` which waits for the Wayland socket before starting. The wrapper uses `pkill -9 -x swaync` (exact name match) to kill any stale instance before exec, preventing D-Bus name conflicts on restart. `startsecs=2` gives swaync time to claim the D-Bus name before supervisord declares it running. Priority 14 ensures swaync starts after the compositor (10-12) but before waybar (15), so the notification indicator module is ready.
+
+### D-Bus Auto-Activation Fix
+
+The `root.yml` removes D-Bus auto-activation service files (`org.erikreider.swaync.service`, `org.erikreider.swaync.cc.service`) at build time. Without this fix, D-Bus spawns a competing swaync instance when waybar's `swaync-client -swb` queries the notification service ~2 seconds after startup. The `SystemdService=` directive in those files is intended to delegate to systemd, but since containers use supervisord (not systemd as PID 1), D-Bus falls back to `Exec=/usr/bin/swaync`, creating a second instance that steals the D-Bus bus name from the supervisord-managed one — causing the supervisord instance to exit with FATAL status.
 
 ## Configuration
 
@@ -57,21 +61,23 @@ Works with any wlroots compositor via `wlr-layer-shell` protocol:
 ## Testing Notifications
 
 ```bash
-# Send a test notification to the running container
-podman exec ov-<image> env DBUS_SESSION_BUS_ADDRESS=unix:path=/tmp/dbus-session \
-  notify-send "Title" "Body text"
+# Preferred: use ov dbus notify (native Go D-Bus, no shell quoting issues)
+ov dbus notify <image> "Title" "Body text"
 
-# Send critical (stays visible until dismissed)
-podman exec ov-<image> env DBUS_SESSION_BUS_ADDRESS=unix:path=/tmp/dbus-session \
-  notify-send -u critical "Alert" "This stays visible"
+# Alternative: use ov cmd with notification (triggers on completion)
+ov cmd <image> "sleep 2 && echo done"
 
-# Check notification count
-podman exec ov-<image> env DBUS_SESSION_BUS_ADDRESS=unix:path=/tmp/dbus-session \
-  swaync-client -c
+# Check if swaync is receiving notifications
+ov dbus list <image> | grep Notifications
 
-# Clear all notifications
-podman exec ov-<image> env DBUS_SESSION_BUS_ADDRESS=unix:path=/tmp/dbus-session \
-  swaync-client -C
+# Low-level: notify-send (requires libnotify layer)
+ov cmd <image> "notify-send 'Title' 'Body text'" --no-notify
+
+# swaync-client operations
+ov cmd <image> "swaync-client -c"    # notification count
+ov cmd <image> "swaync-client -C"    # clear all
+ov cmd <image> "swaync-client -t"    # toggle panel
+ov cmd <image> "swaync-client -d"    # toggle DnD
 ```
 
 ## Used In
@@ -82,6 +88,7 @@ podman exec ov-<image> env DBUS_SESSION_BUS_ADDRESS=unix:path=/tmp/dbus-session 
 ## Related Layers
 
 - `/ov-layers:dbus` -- D-Bus session bus dependency
+- `/ov-layers:libnotify` -- `notify-send` CLI (optional; `ov dbus notify` uses native Go D-Bus instead)
 - `/ov-layers:waybar` -- notification bell module
 - `/ov-layers:waybar-labwc` -- same notification bell module
 - `/ov-layers:desktop-fonts` -- Nerd Font icons for notification bell

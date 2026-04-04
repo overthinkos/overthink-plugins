@@ -246,8 +246,8 @@ ov shell <image> -c "<service-command>"
 
 ```
 IMAGE                       STATUS   PORTS                      DEVICES  TOOLS
-openclaw-sway-browser       running  5900,8000,8080,18789       dri,gpu  cdp:9222,sway,vnc:5900,wl
-ollama                      running  11434                      gpu      -
+openclaw-sway-browser       running  5900,8000,8080,18789       dri,gpu  supervisord:ok,cdp:9222,dbus,ov,sway,vnc:5900,wl
+ollama                      running  11434                      gpu      supervisord:ok,dbus,ov
 jupyter                     stopped  8888                       -        -
 ```
 
@@ -257,16 +257,21 @@ jupyter                     stopped  8888                       -        -
 
 ### Tool Probes
 
-For running containers, `ov status` probes all 5 desktop automation tools concurrently (2s timeout each):
+For running containers, `ov status` probes all tools concurrently:
 
 | Tool | Probe | What it checks |
 |------|-------|---------------|
+| supervisord | `supervisorctl status` | Process manager health, service count (e.g., `8/8 running`) |
 | cdp | HTTP GET `:9222/json` | Chrome DevTools Protocol |
 | vnc | TCP + RFB handshake on `:5900` | VNC server (wayvnc) |
 | sway | Sway IPC socket | Sway compositor |
 | wl | `command -v grim wtype wlrctl` | Wayland tools |
+| dbus | `pgrep -x dbus-daemon` | D-Bus session bus + notification daemon (swaync/mako/dunst) |
+| ov | `which ov` + `ov version` | In-container ov binary + CalVer version |
 
 Each tool also has its own `status` subcommand: `ov cdp status`, `ov vnc status`, `ov wl sway status`, `ov wl status`.
+
+**Note:** `supervisorctl status` exits with code 3 when any service isn't RUNNING (e.g., FATAL, STOPPED). The probe correctly handles this — it parses the output regardless of exit code, only reporting `unreachable` when supervisord is truly not responding.
 
 ### Single Image Detail
 
@@ -279,7 +284,7 @@ Container: ov-openclaw-sway-browser
 Mode:      quadlet
 Ports:     5900:5900, 8000:8000, 8080:8080, 18789:18789
 Devices:   nvidia.com/gpu=all, /dev/dri/renderD128
-Tools:     cdp:9222 (ok), sway (ok), vnc:5900 (ok), wl (ok)
+Tools:     supervisord (ok), cdp:9222 (ok), dbus (ok), ov (ok), sway (ok), vnc:5900 (ok), wl (ok)
 Volumes:   ov-openclaw-sway-browser-data -> ~/.openclaw
 Workspace: ~/projects
 Network:   host

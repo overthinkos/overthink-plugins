@@ -32,9 +32,9 @@ Skills for composing, building, and running container images with the `ov` CLI.
 | cdp | `/ov:cdp` | Chrome DevTools Protocol (ov cdp open/list/click/eval) |
 | vnc | `/ov:vnc` | VNC desktop automation (ov vnc screenshot/click/type) |
 | wl | `/ov:wl` | Desktop automation (22 commands + 12 sway IPC commands) |
-| tmux | `/ov:tmux` | Persistent tmux sessions (ov tmux shell/run/attach/capture) |
+| tmux | `/ov:tmux` | Persistent tmux sessions (ov tmux shell/cmd/run/attach/capture) |
 | openclaw | `/ov:openclaw` | OpenClaw AI gateway configuration |
-| record | `/ov:record` | Recording sessions (ov record start/stop/list/cmd/term) |
+| record | `/ov:record` | Recording sessions (ov record start/stop/list/cmd) |
 
 ### ov-dev (2 skills, 3 agents, GitHub MCP)
 
@@ -84,7 +84,7 @@ Reference documentation for every Overthink container layer.
 | comfyui | `/ov-layers:comfyui` | ComfyUI image generation service on port 8188 with CUDA |
 | copr-desktop | `/ov-layers:copr-desktop` | COPR desktop packages (CoolerControl, Ghostty, Nerd Fonts, WinBoat) |
 | cuda | `/ov-layers:cuda` | CUDA toolkit, cuDNN, ONNX Runtime from negativo17 repos |
-| dbus | `/ov-layers:dbus` | D-Bus session bus for inter-process communication |
+| dbus | `/ov-layers:dbus` | D-Bus session bus for IPC and `ov dbus` commands |
 | desktop-apps | `/ov-layers:desktop-apps` | Chromium, VLC, KeePassXC, btop, cockpit, zsh |
 | dev-tools | `/ov-layers:dev-tools` | bat, ripgrep, neovim, gh, direnv, fd-find, htop |
 | devops-tools | `/ov-layers:devops-tools` | AWS CLI, Scaleway, kubectx/kubens, OpenTofu, wrangler, bind-utils, jq, rsync |
@@ -114,6 +114,7 @@ Reference documentation for every Overthink container layer.
 | kwin-desktop | `/ov-layers:kwin-desktop` | KDE desktop composition (KWin, PipeWire, XDG Portal, Chrome, Konsole, Dolphin) |
 | labwc | `/ov-layers:labwc` | Lightweight wlroots-based Wayland compositor for nested desktop in pixelflux |
 | language-runtimes | `/ov-layers:language-runtimes` | Go, PHP, .NET, nodejs-devel, python3-devel |
+| libnotify | `/ov-layers:libnotify` | Desktop notification client (notify-send CLI) |
 | mcporter | `/ov-layers:mcporter` | MCP server CLI for listing, configuring, and calling MCP tools |
 | mutter | `/ov-layers:mutter` | GNOME Mutter Wayland compositor running headless with virtual monitor |
 | mutter-apps | `/ov-layers:mutter-apps` | GNOME-native desktop applications (gnome-terminal, Nautilus) |

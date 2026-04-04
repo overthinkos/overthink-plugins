@@ -23,6 +23,7 @@ All operations translate to `engine exec container tmux <args>`. The tmux layer 
 | Action | Command | Description |
 |--------|---------|-------------|
 | Persistent shell | `ov tmux shell <image>` | Create or reattach to a shell session |
+| Send command | `ov tmux cmd <image> "command" -s <name>` | Send command to session (with notification) |
 | Run detached | `ov tmux run <image> -s <name> "<command>"` | Start command in new detached session |
 | Attach | `ov tmux attach <image> -s <name>` | Attach to session interactively |
 | List sessions | `ov tmux list <image>` | Show active tmux sessions |
@@ -56,6 +57,21 @@ ov tmux shell openclaw-ollama-sway-browser -s dev
 - Always interactive — uses `syscall.Exec` with `-it` for a real terminal
 - Default session name: `shell`
 - Detach with **Ctrl-b d** (standard tmux detach)
+
+### `ov tmux cmd` — Send Command to Session
+
+Sends a command (text + Enter) to an existing tmux session. Returns immediately after sending. Sends a desktop notification by default (disable with `--no-notify`).
+
+```bash
+ov tmux cmd openclaw-ollama-sway-browser "ls -la" -s oauth
+ov tmux cmd jupyter "python train.py" -s training --no-notify
+```
+
+**Behavior:**
+- Sends literal text followed by Enter key to the named session
+- Errors if session doesn't exist (use `ov tmux list` to see sessions)
+- Desktop notification sent when command is dispatched (requires swaync/mako daemon)
+- Convenience wrapper for `ov tmux send <image> -s <name> -l "command" --enter`
 
 ### `ov tmux run` — Detached Command
 
@@ -211,13 +227,28 @@ For users unfamiliar with tmux:
 | `Ctrl-b %` | Split pane vertically |
 | `Ctrl-b "` | Split pane horizontally |
 
+## Naming Consistency
+
+Command execution follows a consistent naming pattern across ov:
+
+| Interactive shell | Single command | Persistent session |
+|-------------------|---------------|-------------------|
+| `ov shell` | `ov cmd` | — |
+| `ov tmux shell` | `ov tmux cmd` | `ov tmux run` |
+
+- `ov cmd` — runs command synchronously in running container, notifies on completion
+- `ov tmux cmd` — sends command to existing tmux session, notifies on dispatch
+- `ov tmux run` — creates new detached tmux session with command
+
 ## Cross-References
 
-- `/ov:shell` — `ov shell` for one-shot commands (no persistence)
+- `ov cmd` — Single command execution with D-Bus notification (running containers only, no tmux)
+- `/ov:shell` — `ov shell` for one-shot commands (no persistence) or `ov shell -c` (full container setup)
 - `/ov:cdp` — Chrome DevTools Protocol (used with tmux for OAuth flows)
 - `/ov:openclaw` — OpenClaw gateway config (OAuth requires tmux for token exchange)
 - `/ov:service` — Supervisord service management (different scope: persistent services vs ad-hoc commands)
 - `/ov-layers:tmux` — The tmux layer definition
+- `/ov-layers:dbus` — D-Bus session bus (required for notifications)
 
 ## When to Use This Skill
 
