@@ -60,6 +60,62 @@ ov start jupyter-colab
 - `/ov-images:jupyter` — GPU-accelerated variant (nvidia base, ML libraries, amd64 only)
 - `/ov-images:fedora` — parent base image
 
+## MCP Server (Programmatic Notebook Access)
+
+The image includes a built-in MCP server at `http://localhost:8888/mcp` (Streamable HTTP transport, MCP spec 2025-11-25). AI agents can create, read, edit, execute, and watch notebooks programmatically — with changes syncing live to all collaborators via CRDT.
+
+### Configure Claude Code
+
+The `ov-jupyter` plugin in `plugins/ov-jupyter/` declares the MCP server. To connect manually:
+
+```bash
+claude mcp add --transport http --scope project jupyter-colab http://localhost:8888/mcp
+```
+
+This creates `.mcp.json` at the project root:
+```json
+{"mcpServers": {"jupyter-colab": {"type": "http", "url": "http://localhost:8888/mcp"}}}
+```
+
+### 13 MCP tools
+
+| Category | Tools |
+|----------|-------|
+| Notebook management | `list_notebooks`, `get_notebook`, `create_notebook` |
+| Cell operations (CRDT) | `get_cell`, `update_cell`, `insert_cell`, `delete_cell`, `execute_cell` |
+| Room management | `open_notebook_session`, `close_notebook_session` |
+| Change watching | `watch_notebook` (blocks until change or timeout) |
+| Collaboration | `get_active_users`, `get_active_sessions` |
+
+See `/ov-layers:jupyter-colab` for full parameter and return type documentation.
+
+### Testing with `claude -p`
+
+```bash
+# Prerequisites: ov start jupyter-colab
+
+# Create and work with a notebook
+claude -p "Call create_notebook with path 'test.ipynb'"
+claude -p "Call open_notebook_session with path 'test.ipynb'"
+claude -p "Call insert_cell with path 'test.ipynb', index 0, source 'print(42)', cell_type 'code'"
+claude -p "Call execute_cell with path 'test.ipynb' and index 0"
+claude -p "Call close_notebook_session with path 'test.ipynb'"
+```
+
+### Multi-client collaboration
+
+Multiple `claude -p` sessions (or any MCP client) can edit the same notebook simultaneously. Each session creates a separate HTTP connection but shares the same CRDT document. Changes from one client are immediately visible to all others.
+
+```bash
+# Client A watches for changes
+claude -p "Call watch_notebook with path 'test.ipynb' and timeout 30" &
+
+# Client B makes a change
+claude -p "Call update_cell with path 'test.ipynb', index 0, source 'print(\"hello\")'"
+
+# Client A's watch_notebook returns: {"changed": true, "cell_count": 1}
+```
+
 ## Verification
 
 After `ov start`:
@@ -72,17 +128,19 @@ ov service status jupyter-colab
 # JupyterLab responds
 curl -s -o /dev/null -w '%{http_code}' http://localhost:8888    # 200
 
-# Collaboration endpoint active
-curl -s http://localhost:8888/api/collaboration/room/
-# Expected: "Can \"Upgrade\" only to \"WebSocket\"."
+# MCP server responds
+curl -s http://localhost:8888/mcp -X POST \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"test","version":"0.1.0"}}}'
+# Expected: SSE response with serverInfo.name = "jupyter-colab"
 
 # Server extensions
-ov shell jupyter-colab -c "jupyter server extension list 2>&1 | grep ydoc"
-# Expected: jupyter_server_ydoc enabled OK
+ov shell jupyter-colab -c "jupyter server extension list 2>&1 | grep -E 'ydoc|colab_mcp'"
+# Expected: jupyter_server_ydoc enabled OK, jupyter_colab_mcp 0.1.0 OK
 
-# Versions
-ov shell jupyter-colab -c "python -c 'import jupyterlab; print(jupyterlab.__version__)'"
-ov shell jupyter-colab -c "python -c 'import jupyter_collaboration; print(jupyter_collaboration.__version__)'"
+# MCP tools via Claude Code
+claude mcp list    # Should show: jupyter-colab: http://localhost:8888/mcp (HTTP) - ✓ Connected
 ```
 
 ## Testing Collaboration
@@ -114,9 +172,10 @@ ov cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"keyUp","wind
 | Base | fedora | nvidia |
 | GPU | None | CUDA |
 | Platforms | amd64 + arm64 | amd64 only |
-| Focus | Collaboration | ML/AI |
+| Focus | Collaboration + MCP | ML/AI training |
+| MCP server | Yes (13 tools) | Yes (via jupyter-mcp-server) |
 | Size | ~3.4 GB | ~15+ GB |
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the jupyter-colab image, collaborative Jupyter notebooks, or lightweight Jupyter deployments without GPU. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the jupyter-colab image, collaborative Jupyter notebooks, lightweight Jupyter deployments without GPU, MCP-based notebook access, or multi-client collaboration. Invoke this skill BEFORE reading source code or launching Explore agents.
