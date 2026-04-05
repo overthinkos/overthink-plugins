@@ -48,6 +48,7 @@ ov start jupyter
 
 ## Related Images
 
+- `/ov-images:jupyter-colab` — lightweight variant with real-time collaboration (no GPU, dual-arch)
 - `/ov-images:nvidia` — parent (GPU without Jupyter)
 - `/ov-images:python-ml` — ML libraries without Jupyter server
 
