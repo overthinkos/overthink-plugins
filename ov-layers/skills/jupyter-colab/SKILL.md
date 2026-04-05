@@ -15,7 +15,7 @@ description: |
 | Dependencies | `supervisord` |
 | Ports | 8888 |
 | Service | `jupyter-colab` (supervisord) |
-| Volume | `notebooks` at `~/notebooks` |
+| Volume | `workspace` at `~/workspace` |
 | Install files | `layer.yml` (rpm: git), `pixi.toml` |
 
 ## Key Packages
@@ -42,7 +42,7 @@ The service supports optional token-based authentication via the `JUPYTER_TOKEN_
 
 ## Volume
 
-The `notebooks` volume is mounted at `~/notebooks` (NOT `/workspace`). This avoids a collision with `ov`'s hardcoded workspace mount which always targets `/workspace`.
+The `workspace` volume is mounted at `~/workspace`. JupyterLab serves notebooks from this directory via `--notebook-dir=$HOME/workspace`.
 
 ## Usage
 

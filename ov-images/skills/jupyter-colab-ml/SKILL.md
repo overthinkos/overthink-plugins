@@ -34,7 +34,7 @@ The `jupyter-colab-ml` layer is a Tier 2 environment-owning meta-layer that comp
 
 Additional layers from the image:
 - `agent-forwarding` — SSH/GPG agent forwarding
-- `notebook-templates` — Starter notebooks (data layer, seeds ~/notebooks)
+- `notebook-templates` — Starter notebooks (data layer, seeds ~/workspace)
 - `dbus` — D-Bus session bus
 - `ov` — Overthink CLI
 
@@ -58,7 +58,7 @@ quay.io/fedora/fedora:43
 
 | Name | Path | Purpose |
 |------|------|---------|
-| notebooks | ~/notebooks | Persistent notebook storage |
+| workspace | ~/workspace | Persistent notebook storage |
 | models | ~/.cache/huggingface | HuggingFace model cache (from unsloth sub-layer) |
 
 ## Key Capabilities
@@ -70,7 +70,7 @@ quay.io/fedora/fedora:43
 - **Unsloth** fine-tuning (LoRA, QLoRA)
 - **LangChain** RAG stack (chromadb, faiss-cpu)
 - **Evaluation** tools (evidently, sacrebleu, rouge-score)
-- **Notebook templates** seeded into ~/notebooks
+- **Notebook templates** seeded into ~/workspace
 
 ## Deploy
 
@@ -101,8 +101,8 @@ ov shell jupyter-colab-ml -c "pixi run verify-collaboration"
 | MCP | CRDT (13 tools) | CRDT (13 tools) | jupyter-mcp-server |
 | Collaboration | Yes | Yes | Yes |
 | ML Stack | No | Full | Full |
-| Volume | notebooks | notebooks + models | — |
-| Notebook dir | ~/notebooks | ~/notebooks | /workspace |
+| Volume | workspace | workspace + models | — |
+| Notebook dir | ~/workspace | ~/workspace | ~/workspace |
 
 ## Related Images
 

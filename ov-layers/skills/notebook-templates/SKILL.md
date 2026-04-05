@@ -15,8 +15,8 @@ description: |
 | Dependencies | *(none)* |
 | Packages | *(none)* |
 | Services | *(none)* |
-| Volumes | `notebooks` -> `~/notebooks` |
-| Data | `data/notebooks` -> `notebooks` volume |
+| Volumes | `workspace` -> `~/workspace` |
+| Data | `data/notebooks` -> `workspace` volume |
 | Install files | *(none)* |
 
 ## How It Works
@@ -28,12 +28,12 @@ info: "Starter notebook templates for jupyter-colab"
 
 data:
   - src: data/notebooks
-    volume: notebooks
+    volume: workspace
 ```
 
-At build time, the contents of `data/notebooks/` are staged into `/data/notebooks/` inside the image.
+At build time, the contents of `data/notebooks/` are staged into `/data/workspace/` inside the image.
 
-At deploy time, when the volume is configured as a bind mount (`ov config --bind notebooks`), `ov config` copies the staged data from the image into the host-backed volume directory. This seeds the volume with starter content (e.g., `getting-started.ipynb`).
+At deploy time, when the volume is configured as a bind mount (`ov config --bind workspace`), `ov config` copies the staged data from the image into the host-backed volume directory. This seeds the volume with starter content (e.g., `getting-started.ipynb`).
 
 ## Included Data
 
@@ -53,7 +53,7 @@ jupyter-colab:
 
 ```bash
 # Deploy with bind-backed notebooks volume
-ov config jupyter-colab --bind notebooks
+ov config jupyter-colab --bind workspace
 
 # Data is copied from image to host volume on first config
 ov start jupyter-colab
@@ -68,7 +68,7 @@ ov start jupyter-colab
 - `/ov:layer` -- data field documentation and layer authoring rules
 - `/ov:config` -- data provisioning during `ov config` setup
 - `/ov:deploy` -- volume backing configuration (bind, named, encrypted)
-- `/ov-layers:jupyter-colab` -- the JupyterLab layer that consumes the notebooks volume
+- `/ov-layers:jupyter-colab` -- the JupyterLab layer that consumes the workspace volume
 - `/ov-images:jupyter-colab` -- the image that includes this layer
 
 ## When to Use This Skill

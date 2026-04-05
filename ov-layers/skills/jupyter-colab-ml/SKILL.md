@@ -16,7 +16,7 @@ description: |
 | Sub-layers | `llama-cpp`, `unsloth` |
 | Ports | 8888 |
 | Service | `jupyter-colab-ml` (supervisord) |
-| Volume | `notebooks` at `~/notebooks` |
+| Volume | `workspace` at `~/workspace` |
 | Install files | `layer.yml`, `pixi.toml`, `user.yml` |
 
 ## Architecture: Environment-Owning Meta-Layer
@@ -73,7 +73,7 @@ Endpoint: `http://localhost:8888/mcp` (Streamable HTTP, MCP spec 2025-11-25)
 | Platforms | amd64 + arm64 | amd64 only | amd64 only |
 | MCP | CRDT (13 tools) | CRDT (13 tools) | jupyter-mcp-server |
 | ML stack | No | Full (PyTorch, vLLM, unsloth) | Full (PyTorch, vLLM, unsloth) |
-| Volume | notebooks | notebooks | — |
+| Volume | workspace | workspace | — |
 
 ## Used In Images
 
