@@ -79,6 +79,7 @@ ov start unsloth-studio
 ## Used In Images
 
 - `/ov-images:unsloth-studio`
+- `/ov-images:jupyter-colab-ml-finetuning`
 
 ## Related Skills
 

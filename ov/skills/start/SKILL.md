@@ -25,7 +25,8 @@ Start a container image as a background service. In quadlet mode, `ov config <im
 
 | Action | Flag | Description |
 |--------|------|-------------|
-| Workspace | `-w PATH` | Mount host directory as workspace |
+| Bind volume | `--bind name=path` | Override volume backing for session |
+| Volume config | `-v name:type[:path]` | Configure volume backing |
 | Environment | `-e KEY=VALUE` | Set environment variable |
 | Env file | `--env-file PATH` | Load environment from file |
 | Port mapping | `-p PORT` | Additional port mapping |
@@ -54,7 +55,7 @@ ov start sway-browser-vnc
 
 ```bash
 # Configure first
-ov config jupyter -w ~/notebooks --password auto
+ov config jupyter --bind workspace --password auto
 
 # Start the service (systemctl --user start ov-jupyter.service)
 ov start jupyter
@@ -66,7 +67,7 @@ Encrypted volumes declared in the image are auto-mounted at start time.
 
 ```bash
 # Start with workspace and env vars
-ov start jupyter -w ~/notebooks -e JUPYTER_TOKEN=mytoken
+ov start jupyter -e JUPYTER_TOKEN=mytoken
 
 # Start with port mapping
 ov start jupyter -p 8888:8888

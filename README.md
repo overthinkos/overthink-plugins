@@ -259,7 +259,7 @@ Reference documentation for every Overthink container layer.
 | xurl | `/ov-layers:xurl` | X (Twitter) API CLI for posts, search, DMs, and media |
 | yay | `/ov-layers:yay` | AUR helper for Arch Linux (base-devel + yay binary) |
 
-### ov-images (37 skills)
+### ov-images (38 skills)
 
 Reference documentation for every enabled Overthink container image.
 
@@ -285,6 +285,7 @@ Reference documentation for every enabled Overthink container image.
 | jupyter | `/ov-images:jupyter` | Jupyter notebook server with CUDA GPU support and ML libraries |
 | jupyter-colab | `/ov-images:jupyter-colab` | Lightweight JupyterLab with real-time collaboration (no GPU) |
 | jupyter-colab-ml | `/ov-images:jupyter-colab-ml` | Full CUDA ML + JupyterLab + CRDT MCP server |
+| jupyter-colab-ml-finetuning | `/ov-images:jupyter-colab-ml-finetuning` | Full CUDA ML + JupyterLab + CRDT MCP + fine-tuning notebooks |
 | nvidia | `/ov-images:nvidia` | NVIDIA GPU base image with CUDA toolkit on Fedora |
 | ollama | `/ov-images:ollama` | Standalone Ollama LLM inference server with CUDA GPU support |
 | openclaw | `/ov-images:openclaw` | Headless OpenClaw AI gateway on port 18789 |

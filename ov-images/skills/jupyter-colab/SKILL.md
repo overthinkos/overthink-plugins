@@ -39,7 +39,7 @@ Lightweight JupyterLab with real-time collaboration via jupyter-collaboration (Y
 
 | Name | Path | Purpose |
 |------|------|---------|
-| notebooks | ~/notebooks | Persistent notebook storage |
+| workspace | ~/workspace | Persistent notebook storage |
 
 ## Quick Start
 

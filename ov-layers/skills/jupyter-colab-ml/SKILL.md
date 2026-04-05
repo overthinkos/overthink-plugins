@@ -78,6 +78,7 @@ Endpoint: `http://localhost:8888/mcp` (Streamable HTTP, MCP spec 2025-11-25)
 ## Used In Images
 
 - `/ov-images:jupyter-colab-ml`
+- `/ov-images:jupyter-colab-ml-finetuning`
 
 ## Related Layers
 

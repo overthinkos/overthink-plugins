@@ -1,7 +1,7 @@
 ---
 name: notebook-templates
 description: |
-  Starter notebook templates provisioned into the notebooks volume at deploy time.
+  Starter notebook templates provisioned into the workspace volume at deploy time.
   First data-only layer in the project — no packages, no services, no dependencies.
   Use when working with notebook-templates, data layers, or jupyter-colab initial content.
 ---
@@ -52,7 +52,7 @@ jupyter-colab:
 ```
 
 ```bash
-# Deploy with bind-backed notebooks volume
+# Deploy with bind-backed workspace volume
 ov config jupyter-colab --bind workspace
 
 # Data is copied from image to host volume on first config
@@ -62,6 +62,8 @@ ov start jupyter-colab
 ## Used In Images
 
 - `/ov-images:jupyter-colab`
+- `/ov-images:jupyter-colab-ml`
+- `/ov-images:jupyter-colab-ml-finetuning`
 
 ## Related Skills
 

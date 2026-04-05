@@ -187,12 +187,12 @@ If no source is specified, the credential resolution chain is used: env var > ke
 
 ### Workspace recall
 
-When re-configuring with default workspace (`.`), `ov config` checks deploy.yml for a previously saved workspace path and reuses it. This enables the workflow:
+Volume binding is configured at deploy time via `--bind` flags. The binding is persisted in deploy.yml:
 
 ```bash
-ov config my-app -w ~/project    # Saves workspace to deploy.yml
-ov remove my-app --keep-deploy   # Quadlet removed, config preserved
-ov config my-app                 # Picks up ~/project from deploy.yml
+ov config my-app --bind workspace=~/project    # Saves volume config to deploy.yml
+ov remove my-app --keep-deploy                 # Quadlet removed, config preserved
+ov config my-app                               # Picks up volumes from deploy.yml
 ```
 
 ### Deploy status audit

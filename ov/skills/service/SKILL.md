@@ -68,8 +68,8 @@ loginctl enable-linger $USER         # Required for user services
 ### Workflow
 
 ```bash
-ov config my-app -w ~/project                          # Generate .container file
-ov config my-app -i prod -w ~/prod -e ENV=production   # Named instance with env
+ov config my-app --bind workspace=~/project              # Generate .container file
+ov config my-app -i prod --bind workspace=~/prod -e ENV=production   # Named instance
 ov start my-app                    # systemctl --user start (config required first)
 ov status my-app                   # systemctl --user status
 ov logs my-app -f                  # journalctl --user -u (follow)
@@ -136,7 +136,7 @@ Only use direct mode on platforms that don't support quadlet (e.g., macOS Docker
 
 ```bash
 ov start my-app                  # docker/podman run -d
-ov start my-app -w ~/project     # With workspace mount
+ov start my-app --bind workspace=~/project  # With volume binding
 ov start my-app -e LOG=debug     # With env vars
 ov status my-app                 # docker/podman inspect
 ov logs my-app -f                # docker/podman logs -f
@@ -189,8 +189,8 @@ Source: `ov/hooks.go`.
 The `-i NAME` flag enables running multiple containers of the same image with separate state:
 
 ```bash
-ov config my-app -i prod -w ~/prod
-ov config my-app -i staging -w ~/staging
+ov config my-app -i prod --bind workspace=~/prod
+ov config my-app -i staging --bind workspace=~/staging
 ov start my-app -i prod
 ov status my-app -i staging
 ```

@@ -15,7 +15,7 @@ description: |
 | Action | Command | Description |
 |--------|---------|-------------|
 | Interactive shell | `ov shell <image>` | Bash shell in container |
-| With workspace | `ov shell <image> -w ~/project` | Mount directory at /workspace |
+| Bind workspace | `ov shell <image> --bind workspace=~/project` | Mount host dir as workspace volume |
 | Run command | `ov shell <image> -c "cmd"` | Execute command and exit |
 | Force TTY | `ov shell <image> --tty -c "cmd"` | PTY allocation for automation |
 | Specific version | `ov shell <image> --tag v1.0.0` | Use specific image tag |
@@ -34,14 +34,15 @@ description: |
 4. If container is already running: `<engine> exec` into it
 5. If not running: `<engine> run` with full configuration
 
-## Workspace Mounting
+## Volume Binding
 
 ```bash
-ov shell <image> -w ~/project    # Mounts ~/project at /workspace
-ov shell <image>                 # Mounts current directory at /workspace
+ov shell <image> --bind workspace=~/project  # Bind ~/project as workspace volume
+ov shell <image> --bind workspace=.          # Bind PWD as workspace volume
+ov shell <image>                             # No host mount (named volume)
 ```
 
-The `-w` directory is bind-mounted at `/workspace` inside the container. If a `.env` file exists in the workspace directory, it is auto-loaded.
+The `--bind` flag overrides volume backing for the session. The container working directory is `~/workspace` (resolved from the `workspace` volume). If a `.env` file exists in the bound directory, it is auto-loaded.
 
 ## --tty Flag
 

@@ -44,7 +44,6 @@ Display running container status in table or detail mode. Includes concurrent to
 | Devices | `nvidia (CUDA)` |
 | Tools | `cdp:9222, vnc:5900, sway, wl` |
 | Volumes | `data: bind /home/user/data` |
-| Workspace | `/home/user/notebooks` |
 | Network | `host` |
 | Tunnel | `cloudflare: jupyter.example.com` |
 

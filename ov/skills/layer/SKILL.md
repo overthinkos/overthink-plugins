@@ -97,7 +97,7 @@ Data layers map files from the layer directory into volume staging areas. At bui
 ```yaml
 data:
   - src: data/notebooks      # source dir relative to layer dir
-    volume: notebooks         # must match a volumes[].name in the image chain
+    volume: workspace         # must match a volumes[].name in the image chain
     dest: ""                  # optional subdirectory within the volume
 ```
 
