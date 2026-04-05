@@ -1,67 +1,52 @@
 ---
 name: unsloth
 description: |
-  Unsloth LLM fine-tuning library with CUDA GPU support, vLLM inference, and llama.cpp tools.
-  Use when working with Unsloth, LLM fine-tuning, or the unsloth-studio layer.
+  Unsloth LLM fine-tuning library with vLLM integration. Tier 1 post-install layer —
+  no pixi.toml, requires pixi env from a parent layer (python-ml, jupyter-colab-ml, unsloth-studio).
+  Use when working with Unsloth, LLM fine-tuning, or vLLM wheel installation.
 ---
 
-# unsloth -- LLM fine-tuning environment
+# unsloth -- LLM fine-tuning (Tier 1 post-install layer)
 
 ## Layer Properties
 
 | Property | Value |
 |----------|-------|
-| Dependencies | `cuda` |
+| Dependencies | None (requires pixi env from parent) |
 | Volumes | `models` -> `~/.cache/huggingface` |
 | Aliases | `unsloth` -> `unsloth` |
-| Install files | `pixi.toml`, `user.yml` |
+| Install files | `layer.yml`, `user.yml` |
+
+## Architecture: Tier 1 Post-Install Layer
+
+This layer has **no pixi.toml** and **no depends**. It installs pip packages into the pixi environment established by a Tier 2 "environment-owner" parent layer. The user.yml runs AFTER the parent's pixi COPY in the final image build.
+
+**Cannot be used standalone** — must be composed into an environment-owner layer via the `layers:` field.
 
 ## Environment Variables
 
 | Variable | Value |
 |----------|-------|
-| `NVIDIA_PYTHON_PROJECT` | `~/.pixi` |
-| `LLAMA_CPP_PATH` | `~/llama.cpp` |
 | `UNSLOTH_SKIP_LLAMA_CPP_INSTALL` | `1` |
-| `LD_LIBRARY_PATH` | `/usr/lib64:$HOME/llama.cpp` |
 | `HF_HOME` | `~/.cache/huggingface` |
-
-## Python Environment (pixi.toml)
-
-Focused ML fine-tuning stack:
-- PyTorch with CUDA 13.0 (cu130 wheels)
-- xformers (memory-efficient attention)
-- vLLM runtime dependencies (wheel installed --no-deps in user.yml)
-- HuggingFace: transformers, accelerate, datasets, tokenizers, sentencepiece
-- Fine-tuning: peft, trl, bitsandbytes, liger-kernel
-- GGUF tools for model conversion
 
 ## Post-pixi Installs (user.yml)
 
-- llama.cpp prebuilt binaries (quantize, cli, convert_hf_to_gguf.py)
-- vLLM cu130 nightly wheel (--no-deps)
-- unsloth + unsloth-zoo (--no-deps, incompatible with transformers 5.x in pixi solve)
+1. **vLLM cu130 nightly wheel** (`pip install --no-deps`) — installed here because vLLM wheel must run after pixi env exists
+2. **unsloth + unsloth-zoo** (`pip install --no-deps`) — incompatible with transformers 5.x in pixi solve
+3. **vLLM 0.14 compatibility patch** — fixes `create_lora_manager` signature in `unsloth_zoo`
 
-## Usage
+## Used In Layers (via `layers:` field)
 
-```yaml
-# images.yml
-my-finetuning-image:
-  base: nvidia
-  layers:
-    - unsloth
-```
-
-## Used In Images
-
-- `/ov-images:unsloth-studio` (via `unsloth-studio` metalayer)
+- `/ov-layers:jupyter-colab-ml` — `layers: [llama-cpp, unsloth]`
+- `/ov-layers:unsloth-studio` — `layers: [llama-cpp, unsloth]`
 
 ## Related Layers
 
-- `/ov-layers:cuda` -- CUDA toolkit dependency
-- `/ov-layers:unsloth-studio` -- Studio web UI metalayer that composes this layer
-- `/ov-layers:python-ml` -- Alternative ML environment (broader scope, no unsloth)
-- `/ov-layers:jupyter` -- Jupyter notebooks with similar ML stack
+- `/ov-layers:llama-cpp` — llama.cpp binaries (often paired as sibling Tier 1 layer)
+- `/ov-layers:unsloth-studio` — Studio web UI (Tier 2 parent, owns pixi.toml)
+- `/ov-layers:jupyter-colab-ml` — ML Jupyter with MCP (Tier 2 parent, owns pixi.toml)
+- `/ov-layers:python-ml` — Core ML environment (Tier 2, uses vllm pip install in its own user.yml instead)
 
 ## When to Use This Skill
 
@@ -70,5 +55,7 @@ Use when the user asks about:
 - Unsloth fine-tuning setup or configuration
 - LLM fine-tuning environments
 - The unsloth Python library or unsloth-zoo
+- vLLM wheel installation inside pixi environments
 - HuggingFace model cache volume
 - The `unsloth` host alias
+- The two-tier layer architecture for ML layers

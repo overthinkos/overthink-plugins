@@ -8,7 +8,7 @@ description: |
 
 # python-ml
 
-GPU-accelerated Python environment with ML libraries — PyTorch, transformers, llama.cpp.
+GPU-accelerated Python environment with ML libraries — PyTorch, transformers, vLLM, llama.cpp.
 
 ## Image Properties
 
@@ -19,11 +19,21 @@ GPU-accelerated Python environment with ML libraries — PyTorch, transformers, 
 | Platforms | linux/amd64 |
 | Registry | ghcr.io/overthinkos |
 
+## Layer Composition
+
+The `python-ml` layer is a **Tier 2 environment-owner meta-layer** that:
+1. Owns the pixi.toml (core ML Python environment)
+2. Composes `llama-cpp` (Tier 1 sub-layer) via `layers: [llama-cpp]`
+3. Installs vLLM wheel via user.yml (after pixi env is established)
+
+Build order: pixi environment → llama-cpp (binaries) → vLLM wheel
+
 ## Full Layer Stack
 
 1. `fedora` → `nvidia` (CUDA base)
 2. `pixi` → `python` (transitive)
-3. `python-ml` — ML pixi environment, llama.cpp build
+3. `python-ml` — ML pixi environment (Tier 2, owns pixi.toml)
+4. `llama-cpp` — llama.cpp binaries (Tier 1, via `layers:` field)
 
 ## Quick Start
 
@@ -35,20 +45,23 @@ ov shell python-ml
 
 ## Key Layers
 
-- `/ov-layers:python-ml` — ML Python packages via pixi, llama.cpp
+- `/ov-layers:python-ml` — ML Python packages via pixi (Tier 2 meta-layer)
+- `/ov-layers:llama-cpp` — llama.cpp binaries (sub-layer)
 - `/ov-layers:cuda` — GPU support (via nvidia base)
 
 ## Related Images
 
 - `/ov-images:nvidia` — parent (GPU without ML packages)
-- `/ov-images:jupyter` — adds Jupyter notebook server on top of ML stack
+- `/ov-images:jupyter-colab-ml` — adds JupyterLab + collaboration + MCP + unsloth on top of ML stack
+- `/ov-images:jupyter` — legacy Jupyter with ML stack (monolithic)
+- `/ov-images:unsloth-studio` — fine-tuning UI with similar ML stack
 
 ## Verification
 
 After `ov build`:
-- `ov list` — image appears in list
-- `ov shell python-ml` — interactive shell works
-- `ov shell python-ml -c "python3 --version"` — Python available
+- `ov shell python-ml -c "python -c 'import torch; print(torch.cuda.is_available())'"` — CUDA OK
+- `ov shell python-ml -c "python -c 'import vllm; print(vllm.__version__)'"` — vLLM OK
+- `ov shell python-ml -c "ls ~/llama.cpp/llama-quantize"` — llama.cpp OK
 
 ## When to Use This Skill
 

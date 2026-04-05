@@ -166,7 +166,8 @@ Multiple MCP clients can edit the same notebook simultaneously:
 
 ## Related Layers
 
-- `/ov-layers:jupyter` -- GPU-accelerated Jupyter with ML libraries (heavy variant)
+- `/ov-layers:jupyter-colab-ml` -- GPU-accelerated variant with full CUDA ML stack + same CRDT MCP server
+- `/ov-layers:jupyter` -- Legacy GPU Jupyter with ML libraries (monolithic, no CRDT MCP)
 - `/ov-layers:supervisord` -- process manager dependency
 - `/ov-layers:python` -- Python runtime (transitive via supervisord)
 

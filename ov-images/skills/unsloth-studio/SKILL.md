@@ -15,17 +15,27 @@ Unsloth Studio web UI for LLM fine-tuning with GPU acceleration.
 | Property | Value |
 |----------|-------|
 | Base | nvidia |
-| Layers | agent-forwarding, unsloth-studio |
+| Layers | agent-forwarding, unsloth-studio, dbus, ov |
 | Platforms | linux/amd64 |
 | Ports | 8888, 8000 |
 | Registry | ghcr.io/overthinkos |
 
+## Layer Composition
+
+The `unsloth-studio` layer is a **Tier 2 environment-owner meta-layer** that:
+1. Owns the pixi.toml (fine-tuning Python environment)
+2. Composes two Tier 1 sub-layers via `layers: [llama-cpp, unsloth]`
+3. Defines the supervisord service for the Studio web UI
+
+Build order: pixi environment → llama-cpp (binaries) → unsloth (vLLM wheel + unsloth pip + patch) → supervisord config
+
 ## Full Layer Stack
 
-1. `fedora` -> `nvidia` (CUDA base)
-2. `pixi` -> `python` -> `supervisord` (transitive)
-3. `unsloth` -- Fine-tuning ML environment, vLLM, llama.cpp
-4. `unsloth-studio` -- Studio web UI service
+1. `fedora` → `nvidia` (CUDA base)
+2. `pixi` → `python` → `supervisord` (transitive)
+3. `unsloth-studio` — Tier 2 meta-layer (owns pixi.toml, service config)
+4. `llama-cpp` — llama.cpp binaries (Tier 1, via `layers:`)
+5. `unsloth` — vLLM + unsloth pip install + patch (Tier 1, via `layers:`)
 
 ## Ports
 
@@ -52,22 +62,24 @@ ov start unsloth-studio
 
 ## Key Layers
 
-- `/ov-layers:unsloth` -- Core fine-tuning environment (PyTorch, transformers, peft, trl, bitsandbytes, vLLM)
-- `/ov-layers:unsloth-studio` -- Studio web UI service
-- `/ov-layers:cuda` -- GPU support (via nvidia base)
+- `/ov-layers:unsloth-studio` — Studio web UI service + pixi.toml (Tier 2)
+- `/ov-layers:llama-cpp` — llama.cpp binaries (Tier 1 sub-layer)
+- `/ov-layers:unsloth` — vLLM + unsloth fine-tuning (Tier 1 sub-layer)
+- `/ov-layers:cuda` — GPU support (via nvidia base)
 
 ## Related Images
 
-- `/ov-images:nvidia` -- parent (GPU without Studio)
-- `/ov-images:jupyter` -- alternative ML UI (Jupyter notebooks, shares port 8888)
-- `/ov-images:python-ml` -- ML libraries without any UI
+- `/ov-images:nvidia` — parent (GPU without Studio)
+- `/ov-images:jupyter-colab-ml` — alternative ML UI with JupyterLab + CRDT MCP (same Tier 1 sub-layers)
+- `/ov-images:python-ml` — ML libraries without any UI
+- `/ov-images:jupyter` — legacy Jupyter with ML (shares port 8888)
 
 ## Verification
 
 After `ov start`:
-- `ov status unsloth-studio` -- container running
-- `ov service status unsloth-studio` -- all services RUNNING
-- `curl -s -o /dev/null -w '%{http_code}' http://localhost:8888` -- Studio HTTP returns 200
+- `ov status unsloth-studio` — container running
+- `ov service status unsloth-studio` — all services RUNNING
+- `curl -s -o /dev/null -w '%{http_code}' http://localhost:8888` — Studio HTTP returns 200
 
 ## When to Use This Skill
 

@@ -1,45 +1,46 @@
 ---
 name: python-ml
 description: |
-  ML/AI Python environment with PyTorch, transformers, vLLM, and CUDA support.
+  Core ML/AI Python environment with PyTorch, vLLM runtime deps, and CUDA support.
+  Tier 2 environment-owner meta-layer that composes llama-cpp.
   Use when working with machine learning, PyTorch, HuggingFace, or GPU computing.
 ---
 
-# python-ml -- ML/AI Python environment
+# python-ml -- Core ML Python environment (Tier 2 meta-layer)
 
 ## Layer Properties
 
 | Property | Value |
 |----------|-------|
 | Dependencies | `cuda` |
+| Sub-layers | `llama-cpp` |
 | Install files | `layer.yml`, `pixi.toml`, `user.yml` |
+
+## Architecture: Tier 2 Environment-Owner Meta-Layer
+
+This layer **owns the pixi.toml** for the core ML Python environment and composes the `llama-cpp` Tier 1 layer via `layers: [llama-cpp]`. Build order: pixi environment → llama-cpp (binaries) → python-ml user.yml (vLLM wheel).
 
 ## Environment Variables
 
 | Variable | Value |
 |----------|-------|
 | `NVIDIA_PYTHON_PROJECT` | `~/.pixi` |
-| `LLAMA_CPP_PATH` | `~/llama.cpp` |
-| `UNSLOTH_SKIP_LLAMA_CPP_INSTALL` | `1` |
 | `LD_LIBRARY_PATH` | `/usr/lib64:$HOME/llama.cpp` |
 
-PATH additions: `~/llama.cpp`
+Plus from `llama-cpp` sub-layer:
 
-## Packages
+| Variable | Value |
+|----------|-------|
+| `LLAMA_CPP_PATH` | `~/llama.cpp` |
+| PATH (appended) | `~/llama.cpp` |
 
-Pixi/PyPI: `torch` (CUDA 13.0), `torchvision`, `torchaudio`, `xformers`, `transformers`, `accelerate`, `safetensors`, `numpy`, `scipy`, `einops`, `pillow`, `kornia`, `spandrel`, `torchsde`, `vllm` (runtime deps), `gguf`, `pydantic`, `ray`, `aiohttp`, and more
+## Packages (pixi.toml)
 
-Verification tasks: `pixi run verify-cuda`, `pixi run verify-env`, `pixi run verify-transformers`, `pixi run verify-vllm`
+**PyPI:** PyTorch >= 2.9.1 (CUDA 13.0), xformers, transformers, accelerate, safetensors, numpy, scipy, einops, pillow, kornia, spandrel, torchsde, vLLM runtime deps (blake3, flashinfer, numba, ray, xgrammar, etc.), gguf, pydantic, aiohttp
 
-## Usage
+## Post-pixi Installs (user.yml)
 
-```yaml
-# images.yml
-my-ml:
-  base: nvidia
-  layers:
-    - python-ml
-```
+- **vLLM cu130 nightly wheel** (`pip install --no-deps`)
 
 ## Used In Images
 
@@ -48,8 +49,10 @@ my-ml:
 
 ## Related Layers
 
-- `/ov-layers:cuda` -- required CUDA toolkit dependency (not documented here)
-- `/ov-layers:pixi` -- transitive via python dependency chain
+- `/ov-layers:llama-cpp` — Sub-layer: llama.cpp binaries (composed via `layers:`)
+- `/ov-layers:cuda` — CUDA toolkit dependency
+- `/ov-layers:jupyter-colab-ml` — Full ML + Jupyter variant (superset of python-ml's pixi env)
+- `/ov-layers:unsloth-studio` — Fine-tuning variant (similar pixi env + unsloth)
 
 ## When to Use This Skill
 
@@ -58,5 +61,5 @@ Use when the user asks about:
 - Machine learning Python environment
 - PyTorch, transformers, or vLLM setup
 - CUDA Python integration
-- ML model loading or inference
-- The `python-ml` layer or its packages
+- The `python-ml` layer, its packages, or its meta-layer composition
+- The two-tier layer architecture for ML layers

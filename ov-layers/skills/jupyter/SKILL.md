@@ -40,7 +40,8 @@ jupyter:
 
 ## Related Layers
 
-- `/ov-layers:jupyter-colab` -- lightweight variant with real-time collaboration (no GPU)
+- `/ov-layers:jupyter-colab-ml` -- recommended replacement: full CUDA ML + collaboration + CRDT MCP (meta-layer)
+- `/ov-layers:jupyter-colab` -- lightweight variant with collaboration (no GPU)
 - `/ov-layers:cuda` -- CUDA toolkit dependency
 - `/ov-layers:supervisord` -- process manager dependency
 
