@@ -9,32 +9,52 @@ Claude Code plugins for Overthink — the container management experience for yo
 | **Building and running images** | ov |
 | **Contributing to the ov CLI** | ov + ov-dev |
 | **Layer and image reference** | ov-layers + ov-images |
+| **Programmatic notebook access** | ov-jupyter |
 
 ## Plugins
 
-### ov (17 skills)
+### ov (36 skills)
 
 Skills for composing, building, and running container images with the `ov` CLI.
 
 | Skill | Invocation | Description |
 |-------|-----------|-------------|
-| layer | `/ov:layer` | Layer authoring (layer.yml, root.yml, pixi.toml, etc.) |
-| image | `/ov:image` | Image composition (images.yml, defaults, inheritance) |
-| build | `/ov:build` | Building images (ov build, task build:*, caches) |
-| deploy | `/ov:deploy` | Deployment (quadlet, bootc, tunnels, encryption) |
-| validate | `/ov:validate` | Validation rules and error handling (ov validate) |
-| shell | `/ov:shell` | Shell access (ov shell, --tty, -c, exec) |
 | alias | `/ov:alias` | Command aliases (ov alias add/remove/install) |
-| config | `/ov:config` | Runtime configuration (ov settings get/set/list) |
-| enc | `/ov:enc` | Encrypted volumes (ov config mount/unmount) |
-| vm | `/ov:vm` | Virtual machines (ov vm build/create/start/stop) |
-| service | `/ov:service` | Service management (ov start/stop/config + init system services) |
+| build | `/ov:build` | Building images (ov build, task build:*, caches) |
 | cdp | `/ov:cdp` | Chrome DevTools Protocol (ov cdp open/list/click/eval) |
-| vnc | `/ov:vnc` | VNC desktop automation (ov vnc screenshot/click/type) |
-| wl | `/ov:wl` | Desktop automation (22 commands + 12 sway IPC commands) |
-| tmux | `/ov:tmux` | Persistent tmux sessions (ov tmux shell/cmd/run/attach/capture) |
+| cmd | `/ov:cmd` | Single command execution with D-Bus notification |
+| config | `/ov:config` | Unified setup: quadlet + secrets + volumes + data provisioning |
+| dbus | `/ov:dbus` | D-Bus interaction inside containers (notify, call, list, introspect) |
+| deploy | `/ov:deploy` | Deployment (quadlet, bootc, tunnels, volume backing) |
+| doctor | `/ov:doctor` | Host dependency and hardware checks |
+| enc | `/ov:enc` | Encrypted volumes (ov config mount/unmount/status/passwd) |
+| generate | `/ov:generate` | Containerfile generation from images.yml and layers |
+| image | `/ov:image` | Image composition (images.yml, defaults, inheritance) |
+| inspect | `/ov:inspect` | Image inspection (resolved config as JSON) |
+| layer | `/ov:layer` | Layer authoring (layer.yml, root.yml, pixi.toml, etc.) |
+| list | `/ov:list` | List images, layers, targets, services, routes, volumes, aliases |
+| logs | `/ov:logs` | Service log viewing (ov logs, -f for follow) |
+| merge | `/ov:merge` | Post-build layer optimization via merging small layers |
+| new | `/ov:new` | Scaffold new layers (ov new layer) |
 | openclaw | `/ov:openclaw` | OpenClaw AI gateway configuration |
 | record | `/ov:record` | Recording sessions (ov record start/stop/list/cmd) |
+| remove | `/ov:remove` | Remove service container, quadlet, and deploy.yml entry |
+| secrets | `/ov:secrets` | KeePass .kdbx and GPG secret management |
+| service | `/ov:service` | Init system service management inside containers |
+| settings | `/ov:settings` | Runtime configuration (ov settings get/set/list/reset) |
+| shell | `/ov:shell` | Shell access (ov shell, --tty, -c, exec) |
+| start | `/ov:start` | Start container as background service |
+| status | `/ov:status` | Service status with tool probes and device detection |
+| stop | `/ov:stop` | Stop running container |
+| tmux | `/ov:tmux` | Persistent tmux sessions (ov tmux shell/cmd/run/attach/capture) |
+| udev | `/ov:udev` | GPU device access rules (ov udev status/generate/install/remove) |
+| update | `/ov:update` | Update image and restart with data sync |
+| validate | `/ov:validate` | Validation rules and error handling (ov validate) |
+| version | `/ov:version` | Show CLI version information |
+| vm | `/ov:vm` | Virtual machines (ov vm build/create/start/stop) |
+| vnc | `/ov:vnc` | VNC desktop automation (ov vnc screenshot/click/type) |
+| wl | `/ov:wl` | Desktop automation (22 commands + 12 sway IPC commands) |
+| wl-overlay | `/ov:wl-overlay` | Wayland overlays for screen recordings |
 
 ### ov-dev (2 skills, 3 agents, GitHub MCP)
 
@@ -57,13 +77,40 @@ Development tools and enforcement agents for contributors.
 
 **MCP Server:** GitHub (22 tools for issues, PRs, workflows, repo operations)
 
-### ov-layers (131 skills)
+### ov-jupyter (MCP server)
+
+Jupyter MCP server for programmatic notebook access with real-time collaboration.
+
+**MCP Server:** Streamable HTTP at `http://localhost:8888/mcp` (when jupyter-colab or jupyter-colab-ml container is running).
+
+| Tool | Description |
+|------|-------------|
+| list_notebooks | List all notebooks in the workspace |
+| get_notebook | Read full notebook content |
+| create_notebook | Create a new notebook |
+| open_notebook_session | Open a CRDT collaboration session |
+| close_notebook_session | Close a collaboration session |
+| get_cell | Read a specific cell |
+| update_cell | Modify cell source or type |
+| insert_cell | Add a new cell at position |
+| delete_cell | Remove a cell |
+| execute_cell | Run a cell and return output |
+| watch_notebook | Watch for real-time changes |
+| get_active_sessions | List open collaboration sessions |
+| get_active_users | List connected collaborators |
+
+Multiple MCP clients can edit the same notebook simultaneously — changes sync via CRDT.
+
+### ov-layers (151 skills)
 
 Reference documentation for every Overthink container layer.
 
 | Skill | Invocation | Description |
 |-------|-----------|-------------|
 | a11y-tools | `/ov-layers:a11y-tools` | AT-SPI2 accessibility introspection for element-based automation |
+| agent-forwarding | `/ov-layers:agent-forwarding` | SSH/GPG agent forwarding (gnupg + direnv + ssh-client) |
+| arch-aur-test | `/ov-layers:arch-aur-test` | AUR package installation test layer for Arch Linux |
+| arch-pac-test | `/ov-layers:arch-pac-test` | Pacman package installation test layer for Arch Linux |
 | asciinema | `/ov-layers:asciinema` | Terminal session recorder (asciinema) |
 | blogwatcher | `/ov-layers:blogwatcher` | Blog/RSS feed monitor CLI |
 | bootc-base | `/ov-layers:bootc-base` | Base composition for bootc OS images (sshd + qemu-guest-agent + bootc-config) |
@@ -86,16 +133,20 @@ Reference documentation for every Overthink container layer.
 | cuda | `/ov-layers:cuda` | CUDA toolkit, cuDNN, ONNX Runtime from negativo17 repos |
 | dbus | `/ov-layers:dbus` | D-Bus session bus for IPC and `ov dbus` commands |
 | desktop-apps | `/ov-layers:desktop-apps` | Chromium, VLC, KeePassXC, btop, cockpit, zsh |
+| desktop-fonts | `/ov-layers:desktop-fonts` | JetBrains Mono and Nerd Fonts for desktop containers |
 | dev-tools | `/ov-layers:dev-tools` | bat, ripgrep, neovim, gh, direnv, fd-find, htop |
 | devops-tools | `/ov-layers:devops-tools` | AWS CLI, Scaleway, kubectx/kubens, OpenTofu, wrangler, bind-utils, jq, rsync |
+| direnv | `/ov-layers:direnv` | Automatic environment variable loading from .envrc files |
 | docker-ce | `/ov-layers:docker-ce` | Docker CE engine with buildx and compose plugins |
 | fastfetch | `/ov-layers:fastfetch` | Fast system information tool (neofetch successor) |
 | ffmpeg | `/ov-layers:ffmpeg` | FFmpeg multimedia framework |
+| finetuning-notebooks | `/ov-layers:finetuning-notebooks` | Unsloth fine-tuning notebook collection (data layer) |
 | gemini | `/ov-layers:gemini` | Google Gemini CLI for AI coding assistance and search |
 | gh | `/ov-layers:gh` | GitHub CLI and git |
 | gifgrep | `/ov-layers:gifgrep` | GIF search and download CLI |
 | github-actions | `/ov-layers:github-actions` | Act CLI via COPR + guestfs-tools |
 | github-runner | `/ov-layers:github-runner` | GitHub Actions self-hosted runner as supervised service |
+| gnupg | `/ov-layers:gnupg` | GnuPG encryption and signing tools for GPG agent forwarding |
 | gocryptfs | `/ov-layers:gocryptfs` | Encrypted filesystem for ov config encrypted volume operations |
 | gogcli | `/ov-layers:gogcli` | Google Workspace CLI (Gmail, Calendar, Drive, Contacts, Sheets, Docs) |
 | golang | `/ov-layers:golang` | Go programming language compiler |
@@ -108,6 +159,8 @@ Reference documentation for every Overthink container layer.
 | immich | `/ov-layers:immich` | Immich photo management server on port 2283 |
 | immich-ml | `/ov-layers:immich-ml` | Immich ML backend on port 3003 |
 | jupyter | `/ov-layers:jupyter` | Jupyter notebook server on port 8888 with CUDA and ML libraries |
+| jupyter-colab | `/ov-layers:jupyter-colab` | JupyterLab with real-time collaboration + MCP server on port 8888 |
+| jupyter-colab-ml | `/ov-layers:jupyter-colab-ml` | Full CUDA ML + JupyterLab collaboration + CRDT MCP on port 8888 |
 | kubernetes | `/ov-layers:kubernetes` | kubectl and Helm package manager |
 | kwin | `/ov-layers:kwin` | KWin Wayland compositor running headless with virtual backend |
 | kwin-apps | `/ov-layers:kwin-apps` | KDE-native desktop applications (Konsole, Dolphin) |
@@ -115,6 +168,7 @@ Reference documentation for every Overthink container layer.
 | labwc | `/ov-layers:labwc` | Lightweight wlroots-based Wayland compositor for nested desktop in pixelflux |
 | language-runtimes | `/ov-layers:language-runtimes` | Go, PHP, .NET, nodejs-devel, python3-devel |
 | libnotify | `/ov-layers:libnotify` | Desktop notification client (notify-send CLI) |
+| llama-cpp | `/ov-layers:llama-cpp` | llama.cpp prebuilt binaries and GGUF conversion tools |
 | mcporter | `/ov-layers:mcporter` | MCP server CLI for listing, configuring, and calling MCP tools |
 | mutter | `/ov-layers:mutter` | GNOME Mutter Wayland compositor running headless with virtual monitor |
 | mutter-apps | `/ov-layers:mutter-apps` | GNOME-native desktop applications (gnome-terminal, Nautilus) |
@@ -126,6 +180,7 @@ Reference documentation for every Overthink container layer.
 | nvidia | `/ov-layers:nvidia` | NVIDIA GPU runtime support: driver libs, nvidia-container-toolkit (CDI), VA-API |
 | nodejs | `/ov-layers:nodejs` | Node.js and npm via system packages (RPM/DEB) |
 | nodejs24 | `/ov-layers:nodejs24` | Node.js 24 and npm via Fedora RPM packages |
+| notebook-templates | `/ov-layers:notebook-templates` | Starter notebook templates (data layer for jupyter-colab) |
 | ollama | `/ov-layers:ollama` | Ollama LLM server on port 11434 with CUDA and model persistence |
 | openbox | `/ov-layers:openbox` | Openbox lightweight X11 window manager with keybindings |
 | openclaw | `/ov-layers:openclaw` | OpenClaw AI gateway service on port 18789 |
@@ -137,6 +192,7 @@ Reference documentation for every Overthink container layer.
 | os-system-files | `/ov-layers:os-system-files` | System files overlay and justfile imports for bootc images |
 | ov | `/ov-layers:ov` | Overthink CLI (ov) binary for container/VM use |
 | ov-full | `/ov-layers:ov-full` | Full ov toolchain (CLI + virtualization + gocryptfs + socat) |
+| pavucontrol | `/ov-layers:pavucontrol` | PulseAudio volume control GUI for desktop containers |
 | pipewire | `/ov-layers:pipewire` | PipeWire audio/media server with WirePlumber session manager |
 | pixi | `/ov-layers:pixi` | Pixi package manager binary with environment and PATH setup |
 | playwright | `/ov-layers:playwright` | Playwright browser automation (OpenClaw AI snapshots) |
@@ -157,6 +213,7 @@ Reference documentation for every Overthink container layer.
 | socat | `/ov-layers:socat` | Socket relay for port_relay and VM console access |
 | songsee | `/ov-layers:songsee` | Audio spectrogram and visualization CLI |
 | sqlite | `/ov-layers:sqlite` | SQLite database CLI |
+| ssh-client | `/ov-layers:ssh-client` | OpenSSH client tools for SSH agent forwarding |
 | sshd | `/ov-layers:sshd` | OpenSSH server and client on port 22 |
 | steam | `/ov-layers:steam` | Steam gaming client with gamescope |
 | summarize | `/ov-layers:summarize` | Summarize CLI for extracting text/transcripts from URLs and files |
@@ -164,14 +221,18 @@ Reference documentation for every Overthink container layer.
 | sway | `/ov-layers:sway` | Sway Wayland compositor running headless with Mesa GPU drivers |
 | sway-desktop | `/ov-layers:sway-desktop` | Sway desktop composition (audio, portals, Chrome, terminal, file manager, status bar) |
 | sway-desktop-vnc | `/ov-layers:sway-desktop-vnc` | Sway desktop with VNC remote access via wayvnc on port 5900 |
+| swaync | `/ov-layers:swaync` | SwayNotificationCenter for wlroots compositors (sway, labwc) |
 | testapi | `/ov-layers:testapi` | FastAPI test service on port 9090 routed via testapi.localhost |
 | thunar | `/ov-layers:thunar` | Thunar file manager for Sway desktop environments |
 | tmux | `/ov-layers:tmux` | Terminal multiplexer |
 | traefik | `/ov-layers:traefik` | Traefik reverse proxy on ports 8000/8080/443 with automatic TLS |
 | typst | `/ov-layers:typst` | Typst document processor for typesetting |
 | ujust | `/ov-layers:ujust` | Just task runner with ujust wrapper |
+| unsloth | `/ov-layers:unsloth` | Unsloth LLM fine-tuning (Tier 1 post-install, no pixi.toml) |
+| unsloth-studio | `/ov-layers:unsloth-studio` | Unsloth Studio fine-tuning web UI (Tier 2 meta-layer with pixi.toml) |
 | uv | `/ov-layers:uv` | uv Python package manager |
 | valkey | `/ov-layers:valkey` | Valkey 9.x key-value store (Redis-compatible) on port 6379 |
+| vectorchord | `/ov-layers:vectorchord` | VectorChord PostgreSQL vector similarity extension |
 | virtualization | `/ov-layers:virtualization` | QEMU/KVM/libvirt virtualization stack with virt-manager |
 | vr-streaming | `/ov-layers:vr-streaming` | OpenXR, OpenVR, and GStreamer libraries for VR streaming |
 | vscode | `/ov-layers:vscode` | Visual Studio Code from Microsoft's RPM repository |
@@ -181,6 +242,7 @@ Reference documentation for every Overthink container layer.
 | waybar-labwc | `/ov-layers:waybar-labwc` | Waybar taskbar panel adapted for labwc compositor |
 | wayvnc | `/ov-layers:wayvnc` | WayVNC server on port 5900 for Wayland remote access |
 | whisper | `/ov-layers:whisper` | OpenAI Whisper local speech-to-text |
+| wl-overlay | `/ov-layers:wl-overlay` | Wayland overlay windows via gtk4-layer-shell for recordings |
 | wl-screenshot-grim | `/ov-layers:wl-screenshot-grim` | Screenshot via grim (wlr-screencopy) |
 | wl-screenshot-pixelflux | `/ov-layers:wl-screenshot-pixelflux` | Screenshot via selkies WebSocket capture bridge |
 | wl-record-pixelflux | `/ov-layers:wl-record-pixelflux` | Desktop video recorder via selkies WebSocket capture bridge |
@@ -195,14 +257,18 @@ Reference documentation for every Overthink container layer.
 | xorg-headless | `/ov-layers:xorg-headless` | Xorg X server with dummy video driver and libinput for headless containers |
 | xterm | `/ov-layers:xterm` | X11 terminal (XWayland) |
 | xurl | `/ov-layers:xurl` | X (Twitter) API CLI for posts, search, DMs, and media |
+| yay | `/ov-layers:yay` | AUR helper for Arch Linux (base-devel + yay binary) |
 
-### ov-images (31 skills)
+### ov-images (37 skills)
 
 Reference documentation for every enabled Overthink container image.
 
 | Skill | Invocation | Description |
 |-------|-----------|-------------|
 | arch-ov | `/ov-images:arch-ov` | Arch Linux image with full ov toolchain for container management |
+| arch-test | `/ov-images:arch-test` | Arch Linux pacman and AUR package installation test image |
+| archlinux | `/ov-images:archlinux` | Base Arch Linux image, root of the pac-based image hierarchy |
+| archlinux-builder | `/ov-images:archlinux-builder` | Arch Linux builder with pixi, Node.js, build toolchain, and yay |
 | aurora | `/ov-images:aurora` | Aurora DX bootc image with NVIDIA, SSH, ov toolchain, and Go |
 | bazzite-ai | `/ov-images:bazzite-ai` | Bazzite NVIDIA bootc image with dev tools, CUDA, Kubernetes, Docker, and desktop apps |
 | comfyui | `/ov-images:comfyui` | ComfyUI image generation server with CUDA GPU support |
@@ -217,6 +283,8 @@ Reference documentation for every enabled Overthink container image.
 | immich | `/ov-images:immich` | Immich photo management server on port 2283 (CPU) |
 | immich-ml | `/ov-images:immich-ml` | Immich photo management with CUDA ML backend |
 | jupyter | `/ov-images:jupyter` | Jupyter notebook server with CUDA GPU support and ML libraries |
+| jupyter-colab | `/ov-images:jupyter-colab` | Lightweight JupyterLab with real-time collaboration (no GPU) |
+| jupyter-colab-ml | `/ov-images:jupyter-colab-ml` | Full CUDA ML + JupyterLab + CRDT MCP server |
 | nvidia | `/ov-images:nvidia` | NVIDIA GPU base image with CUDA toolkit on Fedora |
 | ollama | `/ov-images:ollama` | Standalone Ollama LLM inference server with CUDA GPU support |
 | openclaw | `/ov-images:openclaw` | Headless OpenClaw AI gateway on port 18789 |
@@ -232,6 +300,7 @@ Reference documentation for every enabled Overthink container image.
 | selkies-desktop-nvidia | `/ov-images:selkies-desktop-nvidia` | GPU-accelerated selkies-desktop variant with NVIDIA CUDA toolkit |
 | sway-browser-vnc | `/ov-images:sway-browser-vnc` | Minimal Sway desktop with VNC remote access and Chrome browser |
 | ubuntu | `/ov-images:ubuntu` | Base Ubuntu 24.04 image (disabled, placeholder for Debian-based builds) |
+| unsloth-studio | `/ov-images:unsloth-studio` | Unsloth Studio fine-tuning web UI with vLLM on ports 8888/8000 |
 | valkey-test | `/ov-images:valkey-test` | Test image with Valkey (Redis-compatible) key-value store |
 
 ## Installation
@@ -243,6 +312,7 @@ Reference documentation for every enabled Overthink container image.
   "enabledPlugins": {
     "ov@ov-plugins": true,
     "ov-dev@ov-plugins": true,
+    "ov-jupyter@ov-plugins": true,
     "ov-layers@ov-plugins": true,
     "ov-images@ov-plugins": true
   },
@@ -261,8 +331,8 @@ Reference documentation for every enabled Overthink container image.
 
 | Component | Count |
 |-----------|-------|
-| Plugins | 4 |
-| Skills | 181 |
+| Plugins | 5 |
+| Skills | 226 |
 | Agents | 3 |
-| MCP Servers | 1 (GitHub) |
-| MCP Tools | 22 |
+| MCP Servers | 2 (GitHub, Jupyter) |
+| MCP Tools | 35 (22 GitHub + 13 Jupyter) |

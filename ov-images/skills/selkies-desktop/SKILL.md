@@ -194,6 +194,11 @@ typeof VideoDecoder !== "undefined"            // true (H.264)
 typeof AudioDecoder !== "undefined"            // true (Opus)
 ```
 
+## Related Images
+
+- `/ov-images:selkies-desktop-nvidia` — GPU-accelerated variant with NVIDIA CUDA toolkit (base: nvidia instead of fedora-nonfree)
+- `/ov-images:sway-browser-vnc` — VNC-based alternative using Sway compositor instead of Selkies/labwc streaming
+
 ## Verification
 
 ```bash
