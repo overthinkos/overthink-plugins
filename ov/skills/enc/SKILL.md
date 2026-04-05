@@ -164,7 +164,7 @@ Rootless podman with `--userns=keep-id` creates a two-level user namespace. Duri
 - **`ov shell`/`ov start` (direct mode)**: resolves volume backing from deploy.yml, verifies encrypted volumes are mounted, appends `-v <plain>:<container-path>` flags. `ov start` mounts encrypted volumes inline via systemd-run scopes before starting the container
 - **`ov config` (quadlet mode)**: generates quadlet file with `ExecStartPre=ov config mount <image>` for encrypted services. ExecStartPre creates scope units internally — these are independent of the container service. Boot behavior is backend-gated (see below)
 - **`ov remove --purge`**: removes named volumes
-- **`ov seed <image>`**: copies default data from the image into empty bind-backed directories (works for both bind and encrypted volumes after mounting)
+- **Data provisioning**: `ov config --seed` (default) provisions data from data layers into bind-backed directories after mounting encrypted volumes. Works for both bind and encrypted volume types
 
 ### Boot Behavior: Backend-Gated
 

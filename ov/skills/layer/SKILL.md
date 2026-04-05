@@ -62,6 +62,7 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 | `secrets` | `[]SecretYAML` | Container secrets provisioned as Podman secrets at runtime (`name`, `target`, `env`) |
 | `hooks` | `HooksConfig` | Lifecycle hooks: `post_enable` (runs after `ov config`), `pre_remove` (runs before `ov remove`) |
 | `libvirt` | `[]string` | Raw libvirt XML snippets injected into VM domain XML after creation |
+| `data` | `[]DataYAML` | Data mappings from layer directory to volume staging area (`src`, `volume`, `dest`) |
 
 ### port_relay
 
@@ -88,6 +89,33 @@ secrets:
 - `env`: optional fallback — if Podman secrets are unavailable (Docker), the value is injected as this env var instead
 
 In quadlet mode, generates `Secret=ov-<image>-<name>,target=/run/secrets/<name>` directives. In direct mode, generates `--secret` flags.
+
+### data
+
+Data layers map files from the layer directory into volume staging areas. At build time, data files are COPYed into `/data/<volume>/[dest/]` in the image. At deploy time, `ov config` provisions them into bind-backed volumes; `ov update` merges new files non-destructively.
+
+```yaml
+data:
+  - src: data/notebooks      # source dir relative to layer dir
+    volume: notebooks         # must match a volumes[].name in the image chain
+    dest: ""                  # optional subdirectory within the volume
+```
+
+- `src`: path to a directory in the layer dir (e.g., `data/notebooks/`)
+- `volume`: target volume name — must match a `volumes[].name` declared somewhere in the image's layer chain
+- `dest`: optional subdirectory within the volume path (e.g., `examples/` would stage to `/data/<volume>/examples/`)
+
+**Build behavior:** Data files are COPYed from the layer's scratch stage into `/data/<volume>/[dest/]` in the final image. This staging area is separate from volume mount points (which get overlaid at runtime).
+
+**Deploy behavior:**
+- `ov config --bind <volume>`: initial seed — copies staged data into empty bind mount directories
+- `ov config --force-seed`: re-copies even if directory is not empty
+- `ov update`: merges new files non-destructively (adds missing files, preserves existing)
+- `ov update --force-seed`: overwrites matching files
+
+**Data layers** are layers that only have `data:` and `volumes:` — no packages, no services, no install files. They're valid as standalone layers. Example: `/ov-layers:notebook-templates`.
+
+**Data images** (`data_image: true` in images.yml) are scratch-based images containing only data layers — no OS, no runtime. Used as portable data bundles via `ov config --data-from <data-image>`.
 
 ### Port Protocol Annotations
 

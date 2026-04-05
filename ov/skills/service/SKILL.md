@@ -29,7 +29,6 @@ Container service lifecycle management with two modes: **quadlet** (systemd user
 | Remove service | `ov remove <image>` | Stop, remove service + deploy.yml entry |
 | Purge (+ volumes) | `ov remove <image> --purge` | Also delete named volumes |
 | Remove keep config | `ov remove <image> --keep-deploy` | Remove service but keep deploy.yml entry |
-| Seed data | `ov seed <image>` | Copy image data to empty bind-backed volume dirs |
 
 ### Supervisord Services
 
@@ -71,8 +70,7 @@ loginctl enable-linger $USER         # Required for user services
 ```bash
 ov config my-app -w ~/project                          # Generate .container file
 ov config my-app -i prod -w ~/prod -e ENV=production   # Named instance with env
-ov start my-app                    # systemctl --user start
-ov start my-app --enable           # Generate quadlet + start in one step
+ov start my-app                    # systemctl --user start (config required first)
 ov status my-app                   # systemctl --user status
 ov logs my-app -f                  # journalctl --user -u (follow)
 ov update my-app                   # Re-transfer image, restart
@@ -84,7 +82,7 @@ ov remove my-app --keep-deploy     # Remove service but keep deploy.yml for re-c
 ov remove my-app -e KEY=VALUE      # Set env vars for lifecycle hooks
 ```
 
-With `auto_enable=true` (the default), `ov start` auto-generates the quadlet file on first run.
+`ov config` must be run before `ov start` in quadlet mode. If the quadlet file doesn't exist, `ov start` fails with: "not configured; run 'ov config <image>' first".
 
 ### Generated Files
 
@@ -205,18 +203,9 @@ Instance naming affects:
 
 Source: `ov/volumes.go` (`InstanceVolumes`), `ov/quadlet.go`.
 
-## Seed Command
+## Data Provisioning
 
-`ov seed <image>` copies image data into empty bind-backed volume directories (configured via `ov config --bind` or `--encrypt`).
-
-```bash
-ov seed my-app                 # Seed all empty bind-backed volume dirs
-ov seed my-app --tag v1.0.0    # From specific image version
-```
-
-Only seeds volumes configured as `type: bind` or `type: encrypted` in deploy.yml. Skips directories with existing data.
-
-Source: `ov/seed.go`.
+Data from data layers is automatically provisioned into bind-backed volumes during `ov config` and synced during `ov update`. See `/ov:config` for `--seed`/`--force-seed`/`--data-from` flags. Source: `ov/data.go`.
 
 ## Troubleshooting
 

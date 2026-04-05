@@ -1,0 +1,88 @@
+---
+name: start
+description: |
+  Start a container as a background service.
+  MUST be invoked before any work involving: ov start command, launching containers, quadlet vs direct mode startup, or encrypted volume auto-mounting.
+---
+
+# ov start -- Start Container Service
+
+## Overview
+
+Start a container image as a background service. In quadlet mode, `ov config <image>` MUST be run first to generate the systemd quadlet unit. In direct mode, start creates an ephemeral container directly.
+
+## Quick Reference
+
+| Action | Command | Description |
+|--------|---------|-------------|
+| Start (quadlet) | `ov start <image>` | Start via systemd quadlet unit |
+| Start (direct) | `ov start <image>` | Create ephemeral container (when run_mode=direct) |
+| With specific tag | `ov start <image> --tag TAG` | Use specific image tag |
+| Build first | `ov start <image> --build` | Build image before starting |
+| Named instance | `ov start <image> -i INSTANCE` | Start a named instance |
+
+### Direct Mode Only
+
+| Action | Flag | Description |
+|--------|------|-------------|
+| Workspace | `-w PATH` | Mount host directory as workspace |
+| Environment | `-e KEY=VALUE` | Set environment variable |
+| Env file | `--env-file PATH` | Load environment from file |
+| Port mapping | `-p PORT` | Additional port mapping |
+
+## Important: Quadlet Mode Requires Prior Configuration
+
+In quadlet mode (default), `ov config <image>` **MUST** be run before `ov start`. If the quadlet file does not exist, start fails with:
+
+```
+not configured; run 'ov config <image>' first
+```
+
+The correct workflow is:
+
+```bash
+# Step 1: Configure (generates quadlet, provisions secrets, sets up volumes)
+ov config sway-browser-vnc
+
+# Step 2: Start
+ov start sway-browser-vnc
+```
+
+## Usage
+
+### Quadlet Mode (Default)
+
+```bash
+# Configure first
+ov config jupyter -w ~/notebooks --password auto
+
+# Start the service (systemctl --user start ov-jupyter.service)
+ov start jupyter
+```
+
+Encrypted volumes declared in the image are auto-mounted at start time.
+
+### Direct Mode
+
+```bash
+# Start with workspace and env vars
+ov start jupyter -w ~/notebooks -e JUPYTER_TOKEN=mytoken
+
+# Start with port mapping
+ov start jupyter -p 8888:8888
+```
+
+### Build and Start
+
+```bash
+# Build the image first, then start
+ov start jupyter --build
+```
+
+## Cross-References
+
+- `/ov:config` -- **MUST run first** in quadlet mode (setup: quadlet + secrets + encrypted volumes)
+- `/ov:stop` -- stop a running service (via `/ov:service`)
+- `/ov:status` -- check service status
+- `/ov:update` -- update image and restart
+- `/ov:logs` -- view service logs (via `/ov:service`)

@@ -16,7 +16,7 @@ Deployment configuration for container services: quadlet file generation details
 |--------|---------|-------------|
 | Configure deployment | `ov config <image>` | Generate .container file + save deploy.yml |
 | Configure volume backing | `ov config <image> --bind name` | Set volume as host bind mount |
-| Seed bind-backed volumes | `ov seed <image>` | Copy image data to empty bind-backed dirs |
+| Provision data | `ov config <image> --seed` | Auto-provision data layers into bind mounts (default) |
 | Deploy status | `ov deploy status` | Audit deploy.yml vs quadlet sync |
 | Show overrides | `ov deploy show [image]` | Display deploy.yml contents |
 | Import config | `ov deploy import <files>` | Merge files into deploy.yml |
@@ -254,6 +254,8 @@ volumes:
 - `type`: `volume` (default, named volume), `bind` (host directory), `encrypted` (gocryptfs)
 - `host`: explicit host path — for `bind` type (optional, omit for auto path); for `encrypted` type, the direct volume directory containing `cipher/` and `plain/` (optional, omit to use global `encrypted_storage_path` with `ov-<image>-<name>` prefix)
 - `path`: container path (only for deploy-only volumes not declared in any layer)
+- `data_seeded`: `bool` — tracks whether data from image data layers was provisioned (set by `ov config`)
+- `data_source`: `string` — image:tag that provided the data (updated by `ov config` and `ov update`)
 
 **Auto path:** When `type: bind` and no `host` is specified, the host path is computed at runtime: `<volumes_path>/<image>/<name>`. Default volumes_path: `~/.local/share/ov/volumes/`. Configurable: `ov settings set volumes_path /mnt/nas/ov` (env: `OV_VOLUMES_PATH`).
 
@@ -273,7 +275,7 @@ volumes:
 
 ### Integration
 
-- **`ov seed <image>`**: copies image data into empty bind-backed volume directories before first start
+- **Data provisioning**: `ov config` automatically provisions data from data layers into bind-backed volumes (via `--seed`, default true). `ov update` merges new data non-destructively. See `/ov:config` and `/ov:update`
 - **`ov shell`/`ov start`**: resolves volume backing, verifies bind dirs exist and encrypted volumes are mounted, generates `-v` flags
 - **`ov config` (quadlet)**: bind-backed volumes become `Volume=` lines with host paths. `--userns=keep-id` added when bind-backed volumes exist
 - **`ov remove --purge`**: removes named volumes
