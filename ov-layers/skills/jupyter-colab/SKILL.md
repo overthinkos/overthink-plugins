@@ -13,6 +13,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `supervisord` |
+| Sub-layers | `jupyter-colab-mcp` |
 | Ports | 8888 |
 | Service | `jupyter-colab` (supervisord) |
 | Volume | `workspace` at `~/workspace` |
@@ -125,15 +126,15 @@ Tornado (Jupyter Server, :8888)
 
 ### Installation
 
-Installed at build time via `user.yml`:
-1. `pip install "fastmcp>=3.2.0"` (not pixi — cross-platform resolver conflicts with opentelemetry-api on aarch64)
-2. `pip install --no-deps /ctx/jupyter_colab_mcp` (extension package from layer directory)
+The MCP extension is installed by the `jupyter-colab-mcp` sub-layer (composed via `layers: [jupyter-colab-mcp]`):
+1. `pip install "fastmcp>=3.2.0"` + opentelemetry runtime deps (not pixi -- cross-platform resolver conflicts with opentelemetry-api on aarch64)
+2. `pip install --no-deps /ctx/jupyter_colab_mcp` (extension package from sub-layer directory)
 3. Extension enabled via `jupyter_server_config.d/jupyter_colab_mcp.json`
 
 ### Source files
 
 ```
-layers/jupyter-colab/
+layers/jupyter-colab-mcp/
 ├── jupyter_colab_mcp/
 │   ├── pyproject.toml              # hatchling package, no deps (--no-deps install)
 │   └── jupyter_colab_mcp/
@@ -143,8 +144,7 @@ layers/jupyter-colab/
 │       ├── mcp_server.py           # FastMCP tool definitions (13 tools)
 │       └── rtc_adapter.py          # CRDT access via YNotebook + kernel execution
 ├── user.yml                        # Build-time: pip install fastmcp + extension + enable
-├── layer.yml
-└── pixi.toml
+└── layer.yml
 ```
 
 ### Multi-client support

@@ -29,8 +29,8 @@ jupyter-colab-ml:
 
 The `jupyter-colab-ml` layer is a Tier 2 environment-owning meta-layer that composes:
 - `llama-cpp` — llama.cpp prebuilt binaries + GGUF tools
-- `vllm` — vLLM 0.14.0 cu130 inference engine
-- `unsloth` — Fine-tuning (unsloth + unsloth-zoo) + vLLM patch
+- `unsloth` — vLLM 0.19 cu130 inference engine + fine-tuning (unsloth + unsloth-zoo) + vLLM torch.compile patch
+- `jupyter-colab-mcp` — CRDT MCP extension (fastmcp + jupyter_colab_mcp package)
 
 Additional layers from the image:
 - `agent-forwarding` — SSH/GPG agent forwarding
@@ -65,8 +65,8 @@ quay.io/fedora/fedora:43
 
 - **JupyterLab** with real-time collaboration (jupyter-collaboration, Y-CRDT)
 - **CRDT MCP Server** at `/mcp` — 13 tools for programmatic notebook access
-- **PyTorch** >= 2.9.1 with CUDA 13.0
-- **vLLM** 0.14.0 inference engine
+- **PyTorch** >= 2.10.0 with CUDA 13.0
+- **vLLM** 0.19 inference engine
 - **Unsloth** fine-tuning (LoRA, QLoRA)
 - **LangChain** RAG stack (chromadb, faiss-cpu)
 - **Evaluation** tools (evidently, sacrebleu, rouge-score)

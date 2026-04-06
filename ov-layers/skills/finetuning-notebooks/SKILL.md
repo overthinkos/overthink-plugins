@@ -76,6 +76,15 @@ ov start unsloth-studio
 # Open http://localhost:8888 → navigate to finetuning/
 ```
 
+## Notebook Compatibility Fixes
+
+The notebooks include several workarounds for upstream library changes:
+
+- **`packing=True` in SFTConfig** (19 notebooks) -- Required for TRL 1.0 compatibility. Without it, SFT training fails with the updated TRL API
+- **`os.environ["UNSLOTH_ENABLE_FLEX_ATTENTION"] = "0"`** (16 Ministral/Pixtral notebooks) -- Disables flex_attention to work around a transformers 5.5 bug that crashes these model architectures
+- **`max_memory={0: "14GB"}` in model loading** (3 Pixtral-12B notebooks) -- Fixes accelerate device_map estimation for Pixtral-12B models that would otherwise OOM
+- **`max_prompt_length` removed from DPOConfig** (2 DPO notebooks) -- Parameter deprecated and removed in TRL 1.0
+
 ## Used In Images
 
 - `/ov-images:unsloth-studio`

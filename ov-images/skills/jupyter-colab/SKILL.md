@@ -15,7 +15,7 @@ Lightweight JupyterLab with real-time collaboration via jupyter-collaboration (Y
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | agent-forwarding, jupyter-colab, dbus, ov |
+| Layers | agent-forwarding, jupyter-colab (sub-layers: jupyter-colab-mcp), dbus, ov |
 | Platforms | linux/amd64, linux/arm64 |
 | Ports | 8888 |
 | Registry | ghcr.io/overthinkos |
@@ -24,7 +24,7 @@ Lightweight JupyterLab with real-time collaboration via jupyter-collaboration (Y
 
 1. `fedora` (Fedora 43 base — no GPU)
 2. `pixi` → `python` → `supervisord` (transitive)
-3. `jupyter-colab` — JupyterLab + jupyter-collaboration + data science
+3. `jupyter-colab` — JupyterLab + jupyter-collaboration + data science (composes `jupyter-colab-mcp` sub-layer for MCP extension)
 4. `agent-forwarding` — SSH/GPG agent forwarding
 5. `dbus` — D-Bus session bus
 6. `ov` — ov CLI binary

@@ -34,7 +34,8 @@ This layer has **no pixi.toml** and **no depends**. It installs pip packages int
 
 1. **vLLM cu130 nightly wheel** (`pip install --no-deps`) — installed here because vLLM wheel must run after pixi env exists
 2. **unsloth + unsloth-zoo** (`pip install --no-deps`) — incompatible with transformers 5.x in pixi solve
-3. **vLLM 0.14 compatibility patch** — fixes `create_lora_manager` signature in `unsloth_zoo`
+3. **opentelemetry runtime deps** (`pip install`) — pixi resolver conflict prevents solving these via conda-forge
+4. **vLLM torch.compile patch** (`patch_vllm_size_nodes.py`) — fixes `_decompose_size_nodes` bug where `getitem` users and `x.size(dim)` patterns crash during model compilation (upstream: vllm-project/vllm#38360)
 
 ## Used In Layers (via `layers:` field)
 

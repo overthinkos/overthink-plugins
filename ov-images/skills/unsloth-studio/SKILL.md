@@ -27,7 +27,7 @@ The `unsloth-studio` layer is a **Tier 2 environment-owner meta-layer** that:
 2. Composes two Tier 1 sub-layers via `layers: [llama-cpp, unsloth]`
 3. Defines the supervisord service for the Studio web UI
 
-Build order: pixi environment → llama-cpp (binaries) → unsloth (vLLM wheel + unsloth pip + patch) → supervisord config
+Build order: pixi environment → llama-cpp (binaries) → unsloth (vLLM 0.19 wheel + unsloth pip + torch.compile patch) → supervisord config
 
 ## Full Layer Stack
 
@@ -35,7 +35,7 @@ Build order: pixi environment → llama-cpp (binaries) → unsloth (vLLM wheel +
 2. `pixi` → `python` → `supervisord` (transitive)
 3. `unsloth-studio` — Tier 2 meta-layer (owns pixi.toml, service config)
 4. `llama-cpp` — llama.cpp binaries (Tier 1, via `layers:`)
-5. `unsloth` — vLLM + unsloth pip install + patch (Tier 1, via `layers:`)
+5. `unsloth` — vLLM 0.19 + unsloth pip install + torch.compile patch (Tier 1, via `layers:`)
 
 ## Ports
 
@@ -64,7 +64,7 @@ ov start unsloth-studio
 
 - `/ov-layers:unsloth-studio` — Studio web UI service + pixi.toml (Tier 2)
 - `/ov-layers:llama-cpp` — llama.cpp binaries (Tier 1 sub-layer)
-- `/ov-layers:unsloth` — vLLM + unsloth fine-tuning (Tier 1 sub-layer)
+- `/ov-layers:unsloth` — vLLM 0.19 + unsloth fine-tuning + torch.compile patch (Tier 1 sub-layer)
 - `/ov-layers:finetuning-notebooks` — 37 Unsloth fine-tuning notebooks provisioned into workspace volume
 - `/ov-layers:cuda` — GPU support (via nvidia base)
 

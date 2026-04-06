@@ -13,7 +13,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `cuda`, `supervisord` |
-| Sub-layers | `llama-cpp`, `unsloth` |
+| Sub-layers | `llama-cpp`, `unsloth`, `jupyter-colab-mcp` |
 | Ports | 8888 |
 | Service | `jupyter-colab-ml` (supervisord) |
 | Volume | `workspace` at `~/workspace` |
@@ -23,16 +23,16 @@ description: |
 
 This is a **Tier 2 "environment owner"** layer that:
 1. Owns the pixi.toml with ALL Python dependencies (Jupyter + ML + vLLM runtime deps)
-2. Composes two Tier 1 sub-layers via `layers: [llama-cpp, unsloth]`
-3. Installs the CRDT MCP extension via user.yml
+2. Composes three Tier 1 sub-layers via `layers: [llama-cpp, unsloth, jupyter-colab-mcp]`
+3. MCP extension installed by the `jupyter-colab-mcp` sub-layer (not directly in user.yml)
 
-Build order: pixi environment → llama-cpp (binaries) → unsloth (vllm wheel + unsloth pip + patch) → MCP extension
+Build order: pixi environment → llama-cpp (binaries) → unsloth (vllm wheel + unsloth pip + patch) → jupyter-colab-mcp (MCP extension)
 
 ## Key Packages
 
 **conda-forge:** JupyterLab >= 4.4.0, jupyter-resource-usage, jupyterlab-git, jupyterlab-lsp, jupyterlab-spellchecker, tensorboard, wandb, matplotlib, seaborn, pandas, numpy, scikit-learn, scipy, polars, pyarrow, dask, duckdb, altair, papermill, marimo, mkdocs, black, pytest
 
-**PyPI (ML Core):** PyTorch >= 2.9.1 (CUDA 13.0), xformers, transformers >= 5.0.0rc1, accelerate, einops, kornia, spandrel, torchsde
+**PyPI (ML Core):** PyTorch >= 2.10.0 (CUDA 13.0), xformers, transformers >= 5.0.0rc1, accelerate, einops, kornia, spandrel, torchsde
 
 **PyPI (vLLM Runtime):** blake3, flashinfer-python, numba, ray, xgrammar, and 25+ more runtime deps
 
@@ -46,7 +46,7 @@ Build order: pixi environment → llama-cpp (binaries) → unsloth (vllm wheel +
 
 **PyPI (Collaboration):** jupyter-collaboration >= 4.1.0
 
-**RPM:** git
+**RPM:** git, gcc, gcc-c++
 
 ## Environment
 
@@ -72,7 +72,7 @@ Endpoint: `http://localhost:8888/mcp` (Streamable HTTP, MCP spec 2025-11-25)
 | GPU | No | CUDA 13.0 | CUDA 13.0 |
 | Platforms | amd64 + arm64 | amd64 only | amd64 only |
 | MCP | CRDT (13 tools) | CRDT (13 tools) | jupyter-mcp-server |
-| ML stack | No | Full (PyTorch, vLLM, unsloth) | Full (PyTorch, vLLM, unsloth) |
+| ML stack | No | Full (PyTorch, vLLM 0.19, unsloth) | Full (PyTorch, vLLM 0.19, unsloth) |
 | Volume | workspace | workspace | — |
 
 ## Used In Images
@@ -86,6 +86,7 @@ Endpoint: `http://localhost:8888/mcp` (Streamable HTTP, MCP spec 2025-11-25)
 - `/ov-layers:jupyter` — Legacy monolithic variant
 - `/ov-layers:llama-cpp` — Sub-layer: llama.cpp binaries
 - `/ov-layers:unsloth` — Sub-layer: vLLM wheel + fine-tuning + vLLM patch
+- `/ov-layers:jupyter-colab-mcp` — Sub-layer: CRDT MCP extension
 
 ## When to Use This Skill
 

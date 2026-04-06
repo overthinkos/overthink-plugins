@@ -32,7 +32,7 @@ This image is identical to `jupyter-colab-ml` with one addition: the `finetuning
 
 ## Layer Composition
 
-- `jupyter-colab-ml` — Tier 2 environment-owning meta-layer (PyTorch, vLLM, unsloth, LangChain, CRDT MCP)
+- `jupyter-colab-ml` — Tier 2 environment-owning meta-layer (PyTorch >= 2.10.0, vLLM 0.19, unsloth, LangChain, CRDT MCP via jupyter-colab-mcp sub-layer)
 - `notebook-templates` — Starter notebooks (data layer, seeds ~/workspace)
 - `finetuning-notebooks` — 38 Unsloth fine-tuning notebooks (data layer, seeds ~/workspace/finetuning/)
 - `agent-forwarding` — SSH/GPG agent forwarding
@@ -91,6 +91,14 @@ ov start jupyter-colab-ml-finetuning
 # With bind-backed workspace (data seeded into local dir):
 ov config jupyter-colab-ml-finetuning --bind workspace=/path/to/project
 ```
+
+## Notebook Workarounds
+
+The finetuning-notebooks include compatibility fixes for current library versions:
+- **flex_attention disabled** in Ministral/Pixtral notebooks (transformers 5.5 bug)
+- **max_memory={0: "14GB"}** for Pixtral-12B notebooks (accelerate device_map estimation fix)
+- **packing=True** in all SFTConfig cells (TRL 1.0 requirement)
+- **max_prompt_length removed** from DPO notebooks (deprecated in TRL 1.0)
 
 ## Verify
 

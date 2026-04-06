@@ -36,11 +36,11 @@ Plus from `llama-cpp` sub-layer:
 
 ## Packages (pixi.toml)
 
-**PyPI:** PyTorch >= 2.9.1 (CUDA 13.0), xformers, transformers, accelerate, safetensors, numpy, scipy, einops, pillow, kornia, spandrel, torchsde, vLLM runtime deps (blake3, flashinfer, numba, ray, xgrammar, etc.), gguf, pydantic, aiohttp
+**PyPI:** PyTorch >= 2.10.0 (CUDA 13.0), xformers, transformers, accelerate, safetensors, numpy, scipy, einops, pillow, kornia, spandrel, torchsde, vLLM runtime deps (blake3, flashinfer, numba, ray, xgrammar, etc.), gguf, pydantic, aiohttp
 
 ## Post-pixi Installs (user.yml)
 
-- **vLLM cu130 nightly wheel** (`pip install --no-deps`)
+- **vLLM 0.19 cu130 nightly wheel** (`pip install --no-deps`)
 
 ## Used In Images
 

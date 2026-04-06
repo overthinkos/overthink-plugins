@@ -24,9 +24,9 @@ GPU-accelerated Python environment with ML libraries — PyTorch, transformers, 
 The `python-ml` layer is a **Tier 2 environment-owner meta-layer** that:
 1. Owns the pixi.toml (core ML Python environment)
 2. Composes `llama-cpp` (Tier 1 sub-layer) via `layers: [llama-cpp]`
-3. Installs vLLM wheel via user.yml (after pixi env is established)
+3. Installs vLLM 0.19 wheel via user.yml (after pixi env is established)
 
-Build order: pixi environment → llama-cpp (binaries) → vLLM wheel
+Build order: pixi environment → llama-cpp (binaries) → vLLM 0.19 wheel
 
 ## Full Layer Stack
 
