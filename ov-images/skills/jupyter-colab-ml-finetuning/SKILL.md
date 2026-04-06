@@ -1,8 +1,8 @@
 ---
 name: jupyter-colab-ml-finetuning
 description: |
-  Full CUDA ML JupyterLab image with finetuning notebooks, CRDT MCP server, and real-time collaboration.
-  Base: nvidia. Port 8888. Combines jupyter-colab-ml with 37 Unsloth fine-tuning notebooks.
+  Full CUDA ML JupyterLab image with finetuning and Ollama notebooks, CRDT MCP server, and real-time collaboration.
+  Base: nvidia. Port 8888. Combines jupyter-colab-ml with 37 Unsloth fine-tuning notebooks and 6 Ollama integration notebooks.
   MUST be invoked before building, deploying, or troubleshooting the jupyter-colab-ml-finetuning image.
 ---
 
@@ -18,6 +18,7 @@ jupyter-colab-ml-finetuning:
     - jupyter-colab-ml
     - notebook-templates
     - finetuning-notebooks
+    - ollama-notebooks
     - dbus
     - ov
   ports:
@@ -28,13 +29,18 @@ jupyter-colab-ml-finetuning:
 
 ## What's Different from jupyter-colab-ml
 
-This image is identical to `jupyter-colab-ml` with one addition: the `finetuning-notebooks` data layer, which seeds 37 Unsloth fine-tuning notebooks into `~/workspace/finetuning/`.
+This image is identical to `jupyter-colab-ml` with two data layer additions:
+- `finetuning-notebooks` — seeds 37 Unsloth fine-tuning notebooks into `~/workspace/finetuning/`
+- `ollama-notebooks` — seeds 6 Ollama integration notebooks into `~/workspace/ollama/`
+
+The Ollama notebooks require a running `ov-ollama` container on the same `ov` Podman network for API connectivity.
 
 ## Layer Composition
 
 - `jupyter-colab-ml` — Tier 2 environment-owning meta-layer (PyTorch >= 2.10.0, vLLM 0.19, unsloth, LangChain, CRDT MCP via jupyter-colab-mcp sub-layer)
 - `notebook-templates` — Starter notebooks (data layer, seeds ~/workspace)
 - `finetuning-notebooks` — 37 Unsloth fine-tuning notebooks (data layer, seeds ~/workspace/finetuning/)
+- `ollama-notebooks` — 6 Ollama integration notebooks (data layer, seeds ~/workspace/ollama/)
 - `agent-forwarding` — SSH/GPG agent forwarding
 - `dbus` — D-Bus session bus
 - `ov` — Overthink CLI
@@ -58,6 +64,7 @@ This image is identical to `jupyter-colab-ml` with one addition: the `finetuning
 |-------|--------|------|----------|
 | notebook-templates | workspace | *(root)* | getting-started.ipynb |
 | finetuning-notebooks | workspace | finetuning/ | 37 Unsloth notebooks (SFT, GRPO, DPO, RLOO, QLoRA) |
+| ollama-notebooks | workspace | ollama/ | 6 Ollama API notebooks (requests, OpenAI, ollama lib, GPU, HuggingFace, Anthropic) |
 
 ## File Layout in JupyterLab
 
@@ -78,6 +85,14 @@ This image is identical to `jupyter-colab-ml` with one addition: the `finetuning
     07_RLOO_Training_Qwen.ipynb
     08_QLoRA_Alpha_Scaling_Ministral.ipynb
     ... (37 notebooks total)
+  ollama/                                   (from ollama-notebooks)
+    notebooks.yaml
+    ollama_requests.ipynb
+    ollama_openai.ipynb
+    ollama_ollama.ipynb
+    ollama_gpu.ipynb
+    ollama_huggingface.ipynb
+    ollama_anthropic.ipynb
 ```
 
 ## Deploy
@@ -107,6 +122,7 @@ ov shell jupyter-colab-ml-finetuning -c "pixi run verify-pytorch"
 ov shell jupyter-colab-ml-finetuning -c "pixi run verify-unsloth"
 ov shell jupyter-colab-ml-finetuning -c "pixi run verify-mcp"
 ov shell jupyter-colab-ml-finetuning -c "ls ~/workspace/finetuning/"
+ov shell jupyter-colab-ml-finetuning -c "ls ~/workspace/ollama/"
 ```
 
 ## Related Images
