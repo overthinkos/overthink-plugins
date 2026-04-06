@@ -35,6 +35,16 @@ layers:
 - `sway-desktop` metalayer (and all sway-desktop-* variants)
 - `selkies-desktop` metalayer (and all selkies-desktop-* variants)
 
+## Used In Images
+
+- `/ov-images:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/ov-images:openclaw-sway-browser` (via `sway-desktop` metalayer)
+- `/ov-images:openclaw-ollama-sway-browser` (via `sway-desktop` metalayer)
+- `/ov-images:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes-jupyter` (via `selkies-desktop` metalayer)
+
 ## When to Use This Skill
 
 Use when the user asks about:

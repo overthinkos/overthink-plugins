@@ -32,6 +32,10 @@ my-browser:
 - `/ov-layers:chrome-niri` -- Niri variant
 - `/ov-layers:mutter-desktop` -- composition that includes chrome-mutter
 
+## Used In Images
+
+Not used in any current image definition. Part of the `mutter-desktop` metalayer composition.
+
 ## When to Use This Skill
 
 Use when working with Chrome in Mutter/GNOME desktop containers.

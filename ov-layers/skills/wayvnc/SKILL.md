@@ -63,6 +63,10 @@ Part of `/ov-layers:sway-desktop` composition.
 - `/ov-layers:sway-desktop` -- composition that includes wayvnc
 - `/ov-layers:pipewire` -- sibling in desktop stack
 
+## Related Commands
+
+- `/ov:vnc` — VNC screenshot, click, type, key, mouse commands
+
 ## When to Use This Skill
 
 Use when the user asks about:

@@ -108,6 +108,11 @@ Most images use `gles2` on NVIDIA headless — Chrome gets full GPU acceleration
 
 - `/ov-layers:socat` -- required dependency for DevTools port relay
 
+## Related Commands
+
+- `/ov:cdp` — Chrome DevTools Protocol automation (click, type, eval, screenshot)
+- `/ov:shell` — Interactive shell to access Chrome
+
 ## When to Use This Skill
 
 Use when the user asks about:

@@ -185,7 +185,7 @@ ov wl sway reload <image>            # Reload sway config
 
 Source: `ov/wl.go`.
 
-## Cross-references
+## Cross-References
 
 - `/ov:vnc` — VNC/RFB protocol alternative (TCP-based, works remotely)
 - `/ov:cdp` — Chrome DevTools Protocol (DOM-level interaction, `--wl` flag for click, `axtree` for accessibility)

@@ -35,6 +35,10 @@ my-desktop:
 - `/ov-layers:niri-apps` -- Niri variant (xfce4-terminal + thunar)
 - `/ov-layers:kwin-desktop` -- composition that includes this layer
 
+## Used In Images
+
+Not used in any current image definition. Part of the `kwin-desktop` metalayer composition.
+
 ## When to Use This Skill
 
 Use when working with desktop applications in KWin containers.

@@ -48,3 +48,10 @@ All windows open maximized (ideal for streaming desktop):
   <action name="Maximize" />
 </windowRule>
 ```
+
+## Used In Images
+
+- `/ov-images:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes-jupyter` (via `selkies-desktop` metalayer)

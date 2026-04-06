@@ -60,9 +60,23 @@ images:
 
 1. Load image via `go-containerregistry`
 2. Group consecutive layers where each is below `max_mb`
-3. Deduplicate filesystem entries across merged layers (last writer wins)
+3. Deduplicate filesystem entries across merged layers (last writer wins) and suppress whiteout conflicts
 4. Reconstruct image with merged layers
 5. Inline merge also runs automatically after each build level during `ov build`
+
+## Whiteout Handling
+
+OCI/Docker images use special "whiteout" files to represent file deletions across layers. When merging layers, these must be handled correctly to prevent `EEXIST` errors during overlay unpack.
+
+**Three cases:**
+
+1. **Regular whiteout** — A file `.wh.<name>` in layer N indicates that `<name>` was deleted. If an earlier layer contains the original file, the merge suppresses the original (keeps the whiteout marker so the deletion is preserved in the merged output).
+
+2. **Opaque whiteout** — A file `.wh..wh..opq` in directory D means "the entire directory was replaced." All entries under D from earlier layers are suppressed. Only entries from the layer containing the opaque marker (and later layers) survive.
+
+3. **Reintroduction supersedes whiteout** — If a file is deleted (whiteout in layer M) then re-created (same path in layer N, where N > M), the whiteout is suppressed and the re-introduced file is kept. This prevents the merged layer from containing both a file and its own whiteout, which would cause overlay unpack failures.
+
+**Why this matters:** Without whiteout suppression, merged layers could contain contradictory entries (a file and its `.wh.*` marker coexisting), causing `EEXIST` errors when the container runtime unpacks the layer onto an overlay filesystem.
 
 ## Cross-References
 

@@ -85,11 +85,14 @@ These variables are injected automatically into the container environment at `ov
 - **Evaluation** tools (evidently, sacrebleu, rouge-score)
 - **Notebook templates** seeded into ~/workspace
 
-## Deploy
+## Quick Start
 
 ```bash
+ov build jupyter-colab-ml
 ov config jupyter-colab-ml
 ov start jupyter-colab-ml
+ov status jupyter-colab-ml
+ov logs jupyter-colab-ml -f
 # JupyterLab: http://localhost:8888
 # MCP endpoint: http://localhost:8888/mcp
 ```

@@ -35,6 +35,10 @@ description: |
 - `/ov-layers:chrome-x11` -- Chrome on X11 (launched via openbox autostart)
 - `/ov-layers:x11-desktop` -- desktop composition
 
+## Used In Images
+
+Not used in any current image definition. Part of the `x11-desktop` metalayer composition.
+
 ## When to Use This Skill
 
 Use when working with Openbox WM configuration or X11 desktop containers.

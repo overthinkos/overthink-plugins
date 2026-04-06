@@ -30,6 +30,10 @@ Overrides the chrome layer's default flags to remove `--ozone-platform=wayland` 
 - `/ov-layers:chrome-niri` -- Niri variant
 - `/ov-layers:x11-desktop` -- composition that includes this layer
 
+## Used In Images
+
+Not used in any current image definition. Part of the `x11-desktop` metalayer composition.
+
 ## When to Use This Skill
 
 Use when working with Chrome in X11 desktop containers.

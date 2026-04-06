@@ -49,6 +49,12 @@ This layer has **no pixi.toml** and **no depends**. It installs pip packages int
 - `/ov-layers:jupyter-colab-ml` — ML Jupyter with MCP (Tier 2 parent, owns pixi.toml)
 - `/ov-layers:python-ml` — Core ML environment (Tier 2, uses vllm pip install in its own user.yml instead)
 
+## Used In Images
+
+- `/ov-images:jupyter-colab-ml` (via `jupyter-colab-ml` metalayer)
+- `/ov-images:jupyter-colab-ml-notebook` (via `jupyter-colab-ml` metalayer)
+- `/ov-images:unsloth-studio` (via `unsloth-studio` metalayer)
+
 ## When to Use This Skill
 
 Use when the user asks about:

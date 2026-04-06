@@ -47,6 +47,14 @@ The user.yml runs after the pixi environment is established by the parent layer.
 
 - `/ov-layers:unsloth` — Fine-tuning (depends on llama.cpp for GGUF conversion)
 
+## Used In Images
+
+- `/ov-images:python-ml` (via `python-ml` metalayer)
+- `/ov-images:immich-ml` (via `python-ml` metalayer)
+- `/ov-images:jupyter-colab-ml` (via `jupyter-colab-ml` metalayer)
+- `/ov-images:jupyter-colab-ml-notebook` (via `jupyter-colab-ml` metalayer)
+- `/ov-images:unsloth-studio` (via `unsloth-studio` metalayer)
+
 ## When to Use This Skill
 
 Use when the user asks about:

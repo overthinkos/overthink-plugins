@@ -211,7 +211,7 @@ ov vnc screenshot <image> out.png           # VNC screenshot (works with pixman 
 ov wl screenshot <image> out.png            # Wayland screenshot (grim, always works)
 ```
 
-## Cross-references
+## Cross-References
 
 - `/ov:wl` — Wayland-native desktop automation (works on NVIDIA headless)
 - `/ov:cdp` — Chrome DevTools Protocol automation (same container, different protocol)

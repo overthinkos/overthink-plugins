@@ -75,6 +75,10 @@ Both are persistent named volumes.
 - `/ov-layers:sway` — Wayland compositor (dependency)
 - `/ov-layers:sway-desktop-vnc` — Desktop composition with VNC
 
+## Used In Images
+
+Not used in any current image definition. Standalone gaming layer requiring a Sway desktop image.
+
 ## When to Use This Skill
 
 Use when the user asks about:

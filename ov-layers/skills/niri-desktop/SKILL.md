@@ -54,6 +54,10 @@ my-desktop:
 - `/ov-layers:chrome-niri` -- Chrome browser (included)
 - `/ov-layers:wl-overlay` -- Fullscreen overlays for recordings (included)
 
+## Used In Images
+
+Not used in any current image definition. Available as a metalayer composition but no image references it yet.
+
 ## When to Use This Skill
 
 Use when working with Niri desktop composition or comparing Niri vs Sway desktop stacks.

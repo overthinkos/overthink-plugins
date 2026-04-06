@@ -32,7 +32,7 @@ layers:
 
 Requires an Arch-based image with `build: [pac, aur]` so the builder can resolve AUR packages.
 
-## Included In
+## Used In Images
 
 - `/ov-images:arch-test` — Arch packaging test image
 

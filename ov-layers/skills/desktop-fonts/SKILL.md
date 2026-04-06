@@ -40,6 +40,16 @@ Included in desktop metalayers. Not typically added directly:
 - `/ov-layers:sway-desktop` -- via metalayer composition
 - `/ov-layers:selkies-desktop` -- via metalayer composition
 
+## Used In Images
+
+- `/ov-images:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/ov-images:openclaw-sway-browser` (via `sway-desktop` metalayer)
+- `/ov-images:openclaw-ollama-sway-browser` (via `sway-desktop` metalayer)
+- `/ov-images:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes-jupyter` (via `selkies-desktop` metalayer)
+
 ## Related Layers
 
 - `/ov-layers:waybar` -- uses JetBrains Mono + Symbols Nerd Font

@@ -40,12 +40,14 @@ Open `https://localhost:3000` in a browser. Accept the self-signed certificate w
 
 HTTPS is required for the WebCodecs API (`VideoDecoder`) used by the Selkies JS client. From other containers on the same network, use `https://ov-selkies-desktop:3000`.
 
-## Build & Deploy
+## Quick Start
 
 ```bash
 ov build selkies-desktop
+ov config selkies-desktop
 ov start selkies-desktop
-# Open https://localhost:3000 (accept cert warning)
+# Access: https://localhost:3000 (accept cert warning)
+ov wl screenshot selkies-desktop screenshot.png
 ```
 
 ## Services

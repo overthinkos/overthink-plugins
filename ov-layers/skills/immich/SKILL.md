@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Dependencies | `supervisord`, `nodejs24`, `postgresql`, `redis` |
+| Dependencies | `supervisord`, `nodejs24`, `postgresql`, `redis`, `ffmpeg` |
 | Ports | 2283 |
 | Volumes | `library` -> `~/.immich/library`, `cache` -> `~/.immich/cache`, `import` -> `~/.immich/import`, `external` -> `~/.immich/external` |
 | Service | `immich-db-init` (oneshot, priority 15), `immich-server` (priority 30) |
@@ -33,9 +33,10 @@ description: |
 
 ## Packages
 
-- `vips`, `vips-devel`, `ffmpeg`, `perl-Image-ExifTool` (RPM)
+- `vips`, `vips-devel`, `perl-Image-ExifTool` (RPM)
 - `libheif`, `LibRaw`, `gcc-c++`, `make`, `unzip` (RPM)
-- Fedora Multimedia repo (negativo17)
+
+**Note:** FFmpeg is provided via the `ffmpeg` dependency layer (negativo17 nonfree build) rather than installed directly.
 
 ## Build Process (root.yml)
 
@@ -77,6 +78,7 @@ immich:
 - `/ov-layers:nodejs24` -- Node.js runtime dependency
 - `/ov-layers:postgresql` -- database dependency
 - `/ov-layers:redis` -- cache dependency
+- `/ov-layers:ffmpeg` -- FFmpeg multimedia (nonfree codecs) — required dependency
 - `/ov-layers:vectorchord` -- VectorChord extension (migration script creates it if available)
 - `/ov-layers:immich-ml` -- optional ML backend
 

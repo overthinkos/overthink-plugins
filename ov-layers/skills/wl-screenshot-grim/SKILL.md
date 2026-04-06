@@ -34,7 +34,13 @@ ov wl screenshot <image> [output.png]
 
 - `sway-desktop` metalayer
 
-## Cross-references
+## Used In Images
+
+- `/ov-images:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/ov-images:openclaw-sway-browser` (via `sway-desktop` metalayer)
+- `/ov-images:openclaw-ollama-sway-browser` (via `sway-desktop` metalayer)
+
+## Cross-References
 
 - `/ov:wl` — `ov wl screenshot` auto-detects grim
 - `/ov-layers:wl-screenshot-pixelflux` — Alternative for selkies-desktop

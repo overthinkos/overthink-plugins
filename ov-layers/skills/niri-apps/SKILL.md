@@ -36,6 +36,10 @@ my-desktop:
 - `/ov-layers:thunar` -- Sway variant (depends on sway)
 - `/ov-layers:niri-desktop` -- composition that includes this layer
 
+## Used In Images
+
+Not used in any current image definition. Part of the `niri-desktop` metalayer composition.
+
 ## When to Use This Skill
 
 Use when working with desktop applications in Niri containers.

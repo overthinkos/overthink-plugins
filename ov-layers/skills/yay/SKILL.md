@@ -50,7 +50,7 @@ layers:
 
 Not used directly in end-user images. Instead, it's part of the builder image that compiles AUR packages during multi-stage builds.
 
-## Included In
+## Used In Images
 
 - `/ov-images:archlinux-builder` — Arch build infrastructure image
 

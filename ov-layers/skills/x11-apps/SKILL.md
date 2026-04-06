@@ -20,6 +20,10 @@ description: |
 - `/ov-layers:niri-apps` -- Niri variant
 - `/ov-layers:x11-desktop` -- composition that includes this layer
 
+## Used In Images
+
+Not used in any current image definition. Part of the `x11-desktop` metalayer composition.
+
 ## When to Use This Skill
 
 Use when working with desktop applications in X11 containers.

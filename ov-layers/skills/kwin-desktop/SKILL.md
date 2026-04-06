@@ -48,6 +48,10 @@ my-kwin-desktop:
 - `/ov-layers:sway-desktop` -- Sway variant
 - `/ov-layers:niri-desktop` -- Niri variant
 
+## Used In Images
+
+Not used in any current image definition. Available as a metalayer composition but no image references it yet.
+
 ## When to Use This Skill
 
 Use when working with KWin-based desktop containers or comparing desktop compositions.

@@ -34,6 +34,10 @@ description: |
 - `/ov-layers:pipewire` -- audio/media dependency
 - `/ov-layers:niri-desktop` -- composition that includes this layer
 
+## Used In Images
+
+Not used in any current image definition. Part of the `niri-desktop` metalayer composition.
+
 ## When to Use This Skill
 
 Use when working with desktop portals, screen sharing, or file dialogs in Niri containers.

@@ -53,7 +53,13 @@ rpm:
 
 - `sway-desktop` metalayer (default for all desktop images)
 
-## Cross-references
+## Used In Images
+
+- `/ov-images:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/ov-images:openclaw-sway-browser` (via `sway-desktop` metalayer)
+- `/ov-images:openclaw-ollama-sway-browser` (via `sway-desktop` metalayer)
+
+## Cross-References
 
 - `/ov-layers:sway-desktop` — Desktop metalayer that includes this layer
 - `/ov-layers:dbus` — D-Bus session bus (required dependency)

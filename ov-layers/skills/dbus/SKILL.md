@@ -87,6 +87,10 @@ Shows as `dbus:ok (notify:swaync)` in `ov status` detail view.
 - `/ov-layers:libnotify` -- `notify-send` CLI tool (depends on dbus)
 - `/ov-layers:ov` -- in-container ov binary for native D-Bus
 
+## Related Commands
+
+- `/ov:dbus` — Native Go D-Bus commands (notify, list, call, introspect)
+
 ## When to Use This Skill
 
 Use when the user asks about:

@@ -43,6 +43,10 @@ Transitive dependency for all images with managed services, including:
 - `/ov-layers:postgresql` -- database (service layer)
 - `/ov-layers:redis` -- cache (service layer)
 
+## Related Commands
+
+- `/ov:service` — Start/stop/restart/status for individual services inside container
+
 ## When to Use This Skill
 
 Use when the user asks about:

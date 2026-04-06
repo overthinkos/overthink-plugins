@@ -64,6 +64,10 @@ Steam Guard requires interactive login. Connect via VNC desktop, launch Steam, a
 - `/ov-layers:sway-desktop-vnc` — Desktop composition with VNC
 - `/ov-layers:cuda` — NVIDIA GPU support (via nvidia base)
 
+## Used In Images
+
+Not used in any current image definition. Standalone gaming layer requiring a Sway desktop image.
+
 ## When to Use This Skill
 
 Use when the user asks about:

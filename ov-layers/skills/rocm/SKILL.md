@@ -79,6 +79,10 @@ ov shell my-amd-app -c "echo \$HSA_OVERRIDE_GFX_VERSION"
 - `/ov-layers:cuda` -- NVIDIA GPU counterpart (CUDA toolkit)
 - `/ov-layers:python-ml` -- ML Python environment (currently depends on cuda)
 
+## Used In Images
+
+Not directly used in any current image definition. Available as a standalone layer for AMD GPU support.
+
 ## When to Use This Skill
 
 Use when the user asks about:

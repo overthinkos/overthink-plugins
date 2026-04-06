@@ -35,6 +35,10 @@ fedora-test:
 - `/ov-layers:supervisord` -- process manager dependency
 - `/ov-layers:testapi` -- test service with Traefik route
 
+## Related Commands
+
+- `/ov:list` — `ov list routes` shows Traefik route configuration
+
 ## When to Use This Skill
 
 Use when the user asks about:

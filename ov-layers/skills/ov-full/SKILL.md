@@ -36,6 +36,13 @@ my-vm-host:
 - `/ov-layers:socat` -- socket relay for console access and port_relay (included)
 - `/ov-layers:bootc-base` -- often paired for OS images
 
+## Used In Images
+
+- `/ov-images:arch-ov`
+- `/ov-images:fedora-ov`
+- `/ov-images:githubrunner`
+- `/ov-images:aurora` (disabled)
+
 ## When to Use This Skill
 
 Use when the user asks about:

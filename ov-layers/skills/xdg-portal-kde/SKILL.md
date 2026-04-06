@@ -59,6 +59,10 @@ The `zkde_screencast_unstable_v1` Wayland protocol is not exposed by KWin's `--v
 - `/ov-layers:xdg-portal-niri` -- Niri variant (uses xdg-desktop-portal-gnome)
 - `/ov-layers:kwin-desktop` -- composition that includes this layer
 
+## Used In Images
+
+Not used in any current image definition. Part of the `kwin-desktop` metalayer composition.
+
 ## When to Use This Skill
 
 Use when working with:

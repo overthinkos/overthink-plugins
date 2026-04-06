@@ -1,4 +1,11 @@
-# Image: selkies-desktop-nvidia
+---
+name: selkies-desktop-nvidia
+description: |
+  GPU-accelerated Selkies streaming desktop with NVIDIA CUDA.
+  Use when working with the selkies-desktop-nvidia image.
+---
+
+# selkies-desktop-nvidia
 
 GPU-accelerated variant of selkies-desktop using the NVIDIA base image with CUDA toolkit.
 

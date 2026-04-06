@@ -79,6 +79,10 @@ Transitive dependency via `chrome-sway` and `sway-desktop` in all desktop images
 - `/ov-layers:waybar` -- status bar (depends on sway)
 - `/ov-layers:niri` -- Niri compositor alternative (Smithay-based, built from source)
 
+## Related Commands
+
+- `/ov:wl` — Wayland desktop automation (screenshot, input, windows, clipboard, AT-SPI2)
+
 ## When to Use This Skill
 
 Use when the user asks about:

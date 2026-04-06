@@ -61,6 +61,10 @@ This is architecturally different from KWin (Wayland protocol) and Sway (wlr-scr
 - `/ov-layers:mutter-apps` -- GNOME desktop applications
 - `/ov-layers:mutter-desktop` -- full Mutter desktop composition
 
+## Used In Images
+
+Not used in any current image definition. Part of the `mutter-desktop` metalayer composition.
+
 ## When to Use This Skill
 
 Use when working with:

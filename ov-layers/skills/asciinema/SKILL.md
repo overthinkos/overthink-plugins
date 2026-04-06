@@ -52,6 +52,20 @@ asciinema play demo.cast
 
 Also available via the `dev-tools` layer (which includes asciinema among many other tools). This standalone layer is for images that need terminal recording without the full dev-tools bundle.
 
+## Used In Images
+
+- `/ov-images:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/ov-images:openclaw-sway-browser` (via `sway-desktop` metalayer)
+- `/ov-images:openclaw-ollama-sway-browser` (via `sway-desktop` metalayer)
+- `/ov-images:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes-jupyter` (via `selkies-desktop` metalayer)
+
+## Related Commands
+
+- `/ov:record` — Terminal recording via asciinema (start, stop, cmd)
+
 ## Cross-References
 
 - `/ov:record` — `ov record start --mode terminal` uses asciinema

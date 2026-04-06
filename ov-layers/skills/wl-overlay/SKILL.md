@@ -63,6 +63,16 @@ ov wl overlay hide my-image --all
 - `/ov-layers:selkies-desktop` — selkies streaming desktop composition
 - `/ov-layers:niri-desktop` — niri desktop composition
 
+## Used In Images
+
+- `/ov-images:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/ov-images:openclaw-sway-browser` (via `sway-desktop` metalayer)
+- `/ov-images:openclaw-ollama-sway-browser` (via `sway-desktop` metalayer)
+- `/ov-images:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes-jupyter` (via `selkies-desktop` metalayer)
+
 ## Related Layers
 
 - `/ov-layers:dbus` — D-Bus session bus (dependency, required by GTK4)

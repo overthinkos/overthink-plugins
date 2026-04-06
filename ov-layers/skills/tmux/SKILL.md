@@ -32,6 +32,10 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Commands
+
+- `/ov:tmux` — Persistent shell sessions, send commands, capture output
+
 ## When to Use This Skill
 
 Use when the user asks about:

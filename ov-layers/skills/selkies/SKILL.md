@@ -112,6 +112,12 @@ Build-time dependencies (gcc, nodejs, npm, python3-devel, libxkbcommon-devel) ar
 - `/ov-images:selkies-desktop`
 - `/ov-images:selkies-desktop-nvidia`
 
+## Related Commands
+
+- `/ov:wl` — Wayland automation (screenshot via capture bridge, input, windows)
+- `/ov:cdp` — Chrome DevTools and SPA bridge (click, type, key-combo through remote desktop)
+- `/ov:record` — Desktop video recording via capture bridge
+
 ## Security
 
 - `shm_size: "1g"`

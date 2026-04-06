@@ -52,6 +52,10 @@ The GNOME portal backend checks `XDG_SESSION_TYPE` at startup. Without `XDG_SESS
 - `/ov-layers:xdg-portal-niri` -- Niri variant
 - `/ov-layers:mutter-desktop` -- composition that includes this layer
 
+## Used In Images
+
+Not used in any current image definition. Part of the `mutter-desktop` metalayer composition.
+
 ## When to Use This Skill
 
 Use when working with:

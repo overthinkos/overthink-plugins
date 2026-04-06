@@ -116,11 +116,14 @@ This image is a **consumer** of env_provides variables from infrastructure layer
 
 The notebooks read `OLLAMA_HOST` via `os.getenv("OLLAMA_HOST", "http://localhost:11434")`. When ollama is deployed via `ov config ollama --update-all`, the env_provides mechanism overrides the localhost default automatically.
 
-## Deploy
+## Quick Start
 
 ```bash
+ov build jupyter-colab-ml-notebook
 ov config jupyter-colab-ml-notebook
 ov start jupyter-colab-ml-notebook
+ov status jupyter-colab-ml-notebook
+ov logs jupyter-colab-ml-notebook -f
 # JupyterLab: http://localhost:8888
 # MCP endpoint: http://localhost:8888/mcp
 

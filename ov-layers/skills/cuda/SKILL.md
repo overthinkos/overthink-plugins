@@ -15,7 +15,7 @@ CUDA compiler, cuDNN, ONNX Runtime, and GPU development libraries. Depends on th
 | Property | Value |
 |----------|-------|
 | Install files | `root.yml`, `layer.yml` |
-| Depends | `nvidia` |
+| Depends | `nvidia`, `ffmpeg` |
 
 ## Environment Variables
 
@@ -25,7 +25,9 @@ CUDA compiler, cuDNN, ONNX Runtime, and GPU development libraries. Depends on th
 
 ## Packages
 
-RPM (from negativo17 fedora-multimedia repo): `cuda-nvcc`, `cuda-cudart-devel`, `cuda-cudart-static`, `cuda-nvrtc-devel`, `cuda-cupti-devel`, `cuda-cccl-devel`, `cuda-cudnn`, `libcurand-devel`, `libcufile-devel`, `onnxruntime`, `ffmpeg-libs`, `libaio-devel`, `cpio`
+RPM: `cuda-nvcc`, `cuda-cudart-devel`, `cuda-cudart-static`, `cuda-nvrtc-devel`, `cuda-cupti-devel`, `cuda-cccl-devel`, `cuda-cudnn`, `libcurand-devel`, `libcufile-devel`, `onnxruntime`, `libaio-devel`, `cpio`
+
+**Note:** FFmpeg codec libraries are provided via the `ffmpeg` dependency layer rather than installed directly. CUDA packages come from the negativo17 `fedora-nvidia` repo (added by the `nvidia` layer).
 
 **Note:** No pac section — CUDA development is Fedora-only. The `nvidia` layer provides Arch Linux GPU runtime support.
 
@@ -52,6 +54,7 @@ nvidia:
 ## Related Layers
 
 - `/ov-layers:nvidia` — NVIDIA GPU runtime (driver libs, CDI toolkit) — required dependency
+- `/ov-layers:ffmpeg` — FFmpeg multimedia (nonfree codecs) — required dependency
 - `/ov-layers:rocm` — AMD GPU counterpart (ROCm runtime + OpenCL)
 - `/ov-layers:python-ml` — ML Python environment (depends on cuda)
 - `/ov-layers:jupyter` — Jupyter notebooks (depends on cuda)

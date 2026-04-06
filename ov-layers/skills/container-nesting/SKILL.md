@@ -63,4 +63,7 @@ my-ov-image:
     - nvidia
 ```
 
-Used by both `fedora-ov` and `arch-ov` images.
+## Used In Images
+
+- `/ov-images:arch-ov`
+- `/ov-images:fedora-ov`

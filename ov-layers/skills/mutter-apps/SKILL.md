@@ -34,6 +34,10 @@ my-desktop:
 - `/ov-layers:niri-apps` -- Niri variant (xfce4-terminal + Thunar)
 - `/ov-layers:mutter-desktop` -- composition that includes this layer
 
+## Used In Images
+
+Not used in any current image definition. Part of the `mutter-desktop` metalayer composition.
+
 ## When to Use This Skill
 
 Use when working with desktop applications in Mutter/GNOME containers.

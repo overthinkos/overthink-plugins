@@ -46,7 +46,14 @@ With xterm installed, users can launch it to enable full XWayland testing.
 
 - `selkies-desktop` metalayer
 
-## Cross-references
+## Used In Images
+
+- `/ov-images:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes-jupyter` (via `selkies-desktop` metalayer)
+
+## Cross-References
 
 - `/ov:wl` — `ov wl exec`, `ov wl focus`, `ov wl close`, `ov wl xprop`, `ov wl geometry`
 - `/ov-layers:selkies-desktop` — Desktop metalayer that includes this layer

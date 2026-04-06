@@ -76,6 +76,11 @@ The custom entrypoint (`/usr/local/bin/postgresql-entrypoint.sh`) supports:
 - `/ov-layers:vectorchord` -- sets `POSTGRES_SHARED_PRELOAD_LIBRARIES=vchord.so`
 - `/ov-layers:redis` -- often paired with postgresql in service stacks
 
+## Related Commands
+
+- `/ov:config` — Deploy with secrets provisioning (db-password)
+- `/ov:secrets` — Manage database credentials
+
 ## When to Use This Skill
 
 Use when the user asks about:

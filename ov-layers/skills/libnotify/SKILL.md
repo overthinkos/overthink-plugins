@@ -44,6 +44,10 @@ Provides `notify-send` as a convenience CLI for sending desktop notifications fr
 - `/ov-layers:swaync` -- notification daemon to display the notifications
 - `/ov-layers:ov` -- alternative: native D-Bus via `ov dbus notify`
 
+## Used In Images
+
+Not used in any current image definition. Optional notification CLI -- prefer `ov dbus notify` which uses native Go D-Bus.
+
 ## When to Use This Skill
 
 Use when the user asks about:

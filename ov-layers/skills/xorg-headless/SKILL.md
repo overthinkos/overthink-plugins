@@ -39,6 +39,10 @@ The `xorg-dummy.conf` (installed to `/etc/X11/`) configures:
 - `/ov-layers:x11-desktop` -- desktop composition
 - `/ov-layers:sway` -- Wayland alternative
 
+## Used In Images
+
+Not used in any current image definition. Part of the `x11-desktop` metalayer composition (dependency of `openbox`).
+
 ## When to Use This Skill
 
 Use when working with headless X11 display, Xorg configuration, or the X11-based desktop stack.

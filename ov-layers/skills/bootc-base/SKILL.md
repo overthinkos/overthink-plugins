@@ -30,6 +30,10 @@ my-os:
 - `/ov-layers:bootc-config` -- bootc system configuration (included)
 - `/ov-layers:ov-full` -- often paired for full VM toolchain
 
+## Used In Images
+
+- `/ov-images:openclaw-browser-bootc` (disabled image)
+
 ## When to Use This Skill
 
 Use when the user asks about:

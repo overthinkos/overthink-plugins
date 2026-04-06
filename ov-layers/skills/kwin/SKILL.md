@@ -56,6 +56,10 @@ KWin's `--virtual` backend does NOT expose `zkde_screencast_unstable_v1` Wayland
 - `/ov-layers:kwin-apps` -- KDE desktop applications
 - `/ov-layers:kwin-desktop` -- full KWin desktop composition
 
+## Used In Images
+
+Not used in any current image definition. Part of the `kwin-desktop` metalayer composition.
+
 ## When to Use This Skill
 
 Use when working with:

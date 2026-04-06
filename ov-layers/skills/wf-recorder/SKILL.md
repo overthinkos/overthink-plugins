@@ -60,6 +60,12 @@ ov record stop sway-browser-vnc -n demo -o demo.mp4
 
 - `sway-desktop` metalayer (and all images using sway-desktop-vnc)
 
+## Used In Images
+
+- `/ov-images:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/ov-images:openclaw-sway-browser` (via `sway-desktop` metalayer)
+- `/ov-images:openclaw-ollama-sway-browser` (via `sway-desktop` metalayer)
+
 ## Cross-References
 
 - `/ov:record` — `ov record start --mode desktop` auto-detects wf-recorder

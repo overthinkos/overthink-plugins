@@ -52,6 +52,13 @@ Catppuccin Mocha theme — semi-transparent dark background, JetBrains Mono + Sy
 - `config.json` — Unified module layout (same as waybar layer)
 - `style.css` — Catppuccin Mocha styling (same as waybar layer)
 
+## Used In Images
+
+- `/ov-images:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes-jupyter` (via `selkies-desktop` metalayer)
+
 ## Note: Difference from `waybar` Layer
 
 Both layers use the same config. The only differences are:

@@ -37,6 +37,12 @@ sway-browser-vnc:
 - `/ov-layers:sway-desktop-vnc` -- VNC variant (adds wayvnc)
 - `/ov-layers:niri-desktop` -- Niri variant (Smithay compositor, built from source)
 
+## Used In Images
+
+- `/ov-images:sway-browser-vnc` (via `sway-desktop-vnc` metalayer)
+- `/ov-images:openclaw-sway-browser` (via `sway-desktop-vnc` metalayer)
+- `/ov-images:openclaw-ollama-sway-browser` (via `sway-desktop-vnc` metalayer)
+
 ## When to Use This Skill
 
 Use when the user asks about:

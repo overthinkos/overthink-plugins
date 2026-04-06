@@ -83,6 +83,13 @@ selkies process (existing capture, unchanged)
 
 - `selkies-desktop` metalayer
 
+## Used In Images
+
+- `/ov-images:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes` (via `selkies-desktop` metalayer)
+- `/ov-images:selkies-desktop-hermes-jupyter` (via `selkies-desktop` metalayer)
+
 ## Cross-References
 
 - `/ov:record` -- `ov record start --mode desktop` auto-detects pixelflux-record

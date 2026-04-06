@@ -52,6 +52,10 @@ my-app:
 
 - `/ov-layers:redis` -- Redis alternative (same port 6379)
 
+## Used In Images
+
+- `/ov-images:valkey-test` (disabled image)
+
 ## When to Use This Skill
 
 Use when the user asks about:

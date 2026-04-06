@@ -12,11 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Install files | `layer.yml`, `pixi.toml` |
-| Depends | `python`, `cuda` |
-
-## Packages
-
-RPM: `ffmpeg-free`
+| Depends | `python`, `cuda`, `ffmpeg` |
 
 ## Usage
 
@@ -29,6 +25,13 @@ layers:
 ## Used In Images
 
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
+
+## Related Layers
+
+- `/ov-layers:python` — Python runtime — required dependency
+- `/ov-layers:cuda` — CUDA toolkit — required dependency
+- `/ov-layers:ffmpeg` — FFmpeg multimedia (nonfree codecs) — required dependency
+- `/ov-layers:sherpa-onnx` — alternative STT engine (ONNX-based, lighter weight)
 
 ## When to Use This Skill
 

@@ -61,6 +61,12 @@ ollama run llama3          # uses the alias
 - `/ov-layers:supervisord` -- process manager dependency
 - `/ov-layers:openclaw` -- AI gateway that can use Ollama as backend
 
+## Related Commands
+
+- `/ov:config` — Deploy with quadlet (secrets, volumes, env_provides injection)
+- `/ov:start` — Start the Ollama service
+- `/ov:service` — Manage Ollama service inside container
+
 ## When to Use This Skill
 
 Use when the user asks about:
