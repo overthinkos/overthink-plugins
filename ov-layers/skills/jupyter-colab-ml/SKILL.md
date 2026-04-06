@@ -78,7 +78,7 @@ Endpoint: `http://localhost:8888/mcp` (Streamable HTTP, MCP spec 2025-11-25)
 ## Used In Images
 
 - `/ov-images:jupyter-colab-ml`
-- `/ov-images:jupyter-colab-ml-finetuning`
+- `/ov-images:jupyter-colab-ml-notebook`
 
 ## Related Layers
 
@@ -87,6 +87,7 @@ Endpoint: `http://localhost:8888/mcp` (Streamable HTTP, MCP spec 2025-11-25)
 - `/ov-layers:llama-cpp` — Sub-layer: llama.cpp binaries
 - `/ov-layers:unsloth` — Sub-layer: vLLM wheel + fine-tuning + vLLM patch
 - `/ov-layers:jupyter-colab-mcp` — Sub-layer: CRDT MCP extension
+- `/ov-layers:notebook-templates` — Starter notebooks (data layer, used alongside this layer in images)
 
 ## When to Use This Skill
 

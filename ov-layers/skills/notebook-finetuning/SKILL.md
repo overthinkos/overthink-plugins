@@ -1,12 +1,12 @@
 ---
-name: finetuning-notebooks
+name: notebook-finetuning
 description: |
   Unsloth fine-tuning notebook collection provisioned into the workspace volume at deploy time.
   Data-only layer — no packages, no services, no dependencies.
-  Use when working with finetuning-notebooks, Unsloth training notebooks, or unsloth-studio data provisioning.
+  Use when working with notebook-finetuning, Unsloth training notebooks, or unsloth-studio data provisioning.
 ---
 
-# finetuning-notebooks -- Unsloth fine-tuning notebook data layer
+# notebook-finetuning -- Unsloth fine-tuning notebook data layer
 
 ## Layer Properties
 
@@ -63,7 +63,7 @@ The `dest: finetuning` field places the notebooks in a subdirectory rather than 
 unsloth-studio:
   layers:
     - unsloth-studio
-    - finetuning-notebooks
+    - notebook-finetuning
     # ... other layers
 ```
 
@@ -88,7 +88,7 @@ The notebooks include several workarounds for upstream library changes:
 ## Used In Images
 
 - `/ov-images:unsloth-studio`
-- `/ov-images:jupyter-colab-ml-finetuning`
+- `/ov-images:jupyter-colab-ml-notebook`
 
 ## Related Skills
 
@@ -103,7 +103,7 @@ The notebooks include several workarounds for upstream library changes:
 
 Use when the user asks about:
 
-- The finetuning-notebooks layer or its contents
+- The notebook-finetuning layer or its contents
 - Unsloth fine-tuning notebook templates or training workflows
 - How training notebooks get provisioned into the workspace volume
 - The `data:` field with `dest:` subdirectory mapping

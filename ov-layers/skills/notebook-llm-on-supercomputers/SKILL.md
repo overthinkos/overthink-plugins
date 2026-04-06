@@ -1,5 +1,5 @@
 ---
-name: notebooks-llm-on-supercomputers
+name: notebook-llm-on-supercomputers
 description: |
   LLMs on Supercomputers course notebook collection (TU Wien AI Factory Austria).
   15 Jupyter notebooks covering prompt engineering, RAG, and fine-tuning.
@@ -7,7 +7,7 @@ description: |
   Use when working with the LLM course notebooks, LangChain tutorials, or RAG examples.
 ---
 
-# notebooks-llm-on-supercomputers -- LLM course data layer
+# notebook-llm-on-supercomputers -- LLM course data layer
 
 ## Layer Properties
 
@@ -93,7 +93,7 @@ At build time, the contents are staged into `/data/workspace/llms_on_supercomput
 
 ### ollama Python library
 
-The same `importlib.reload(ollama)` pattern from `/ov-layers:ollama-notebooks` is applied to all cleanup cells that use `import ollama` for model unloading.
+The same `importlib.reload(ollama)` pattern from `/ov-layers:notebook-ollama` is applied to all cleanup cells that use `import ollama` for model unloading.
 
 ### External services
 
@@ -106,23 +106,23 @@ The same `importlib.reload(ollama)` pattern from `/ov-layers:ollama-notebooks` i
 
 ## Used In Images
 
-- `/ov-images:jupyter-colab-ml-finetuning`
+- `/ov-images:jupyter-colab-ml-notebook`
 
 ## Related Skills
 
 - `/ov:layer` — data field documentation and layer authoring rules
 - `/ov:config` — data provisioning during `ov config` setup
-- `/ov-layers:finetuning-notebooks` — sibling data layer (Unsloth fine-tuning notebooks)
-- `/ov-layers:ollama-notebooks` — sibling data layer (Ollama API tutorials)
+- `/ov-layers:notebook-finetuning` — sibling data layer (Unsloth fine-tuning notebooks)
+- `/ov-layers:notebook-ollama` — sibling data layer (Ollama API tutorials)
 - `/ov-layers:notebook-templates` — sibling data layer (starter notebooks)
 - `/ov-images:ollama` — the Ollama server image (must be running for D0-D2 notebooks)
-- `/ov-images:jupyter-colab-ml-finetuning` — the image that includes this layer
+- `/ov-images:jupyter-colab-ml-notebook` — the image that includes this layer
 
 ## When to Use This Skill
 
 Use when the user asks about:
 
-- The notebooks-llm-on-supercomputers layer or its contents
+- The notebook-llm-on-supercomputers layer or its contents
 - LangChain prompt engineering tutorials
 - RAG examples with ChromaDB
 - The TU Wien LLM course notebooks

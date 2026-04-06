@@ -16,6 +16,7 @@ description: |
 |--------|---------|-------------|
 | Interactive shell | `ov shell <image>` | Bash shell in container |
 | Bind workspace | `ov shell <image> --bind workspace=~/project` | Mount host dir as workspace volume |
+| Volume config | `ov shell <image> -v name:type[:path]` | Configure volume backing (volume\|bind\|encrypted) |
 | Run command | `ov shell <image> -c "cmd"` | Execute command and exit |
 | Force TTY | `ov shell <image> --tty -c "cmd"` | PTY allocation for automation |
 | Specific version | `ov shell <image> --tag v1.0.0` | Use specific image tag |
@@ -42,7 +43,7 @@ ov shell <image> --bind workspace=.          # Bind PWD as workspace volume
 ov shell <image>                             # No host mount (named volume)
 ```
 
-The `--bind` flag overrides volume backing for the session. The container working directory is `~/workspace` (resolved from the `workspace` volume). If a `.env` file exists in the bound directory, it is auto-loaded.
+The `--bind` flag overrides volume backing for the session. For finer control, use `-v name:type[:path]` where type is `volume`, `bind`, or `encrypted`. The container working directory is `~/workspace` (resolved from the `workspace` volume). If a `.env` file exists in the bound directory, it is auto-loaded.
 
 ## --tty Flag
 
@@ -175,7 +176,8 @@ Use `ov cmd` for quick operations on running services. Use `ov shell -c` when yo
 - `/ov:service` -- Starting background services before exec
 - `/ov:cdp` -- Chrome DevTools Protocol automation
 - `/ov:wl` (sway subgroup) -- Sway compositor control
-- `/ov:config` -- Engine and bind address settings
+- `/ov:settings` -- Engine and bind address settings
+- `/ov:config` -- Image deployment setup (quadlet + secrets + volumes)
 - `/ov:image` -- Image configuration (ports, volumes, env)
 
 ## When to Use This Skill

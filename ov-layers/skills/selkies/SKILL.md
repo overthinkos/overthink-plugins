@@ -1,3 +1,10 @@
+---
+name: selkies
+description: |
+  Browser-accessible desktop streaming via WebSocket using pixelflux and pcmflux.
+  Use when working with Selkies streaming engine, pixelflux, pcmflux, or browser-based remote desktop.
+---
+
 # Layer: selkies
 
 Browser-accessible desktop streaming via WebSocket using pixelflux (Wayland capture) and pcmflux (audio), served over HTTPS via Traefik with a self-signed certificate.
@@ -99,6 +106,11 @@ Build-time dependencies (gcc, nodejs, npm, python3-devel, libxkbcommon-devel) ar
 ## Volumes
 
 - `selkies-config` → `~/.config/selkies`
+
+## Used In Images
+
+- `/ov-images:selkies-desktop`
+- `/ov-images:selkies-desktop-nvidia`
 
 ## Security
 

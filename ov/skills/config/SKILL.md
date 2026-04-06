@@ -1,209 +1,190 @@
 ---
 name: config
 description: |
-  MUST be invoked before any work involving: ov settings commands, runtime settings, engine selection, bind address, VM defaults, or encrypted storage paths.
+  MUST be invoked before any work involving: ov config commands, image deployment setup, quadlet generation, secrets provisioning, encrypted volumes, data seeding, or volume backing configuration.
 ---
 
-# Config - Runtime Configuration
+# ov config -- Image Deployment Configuration
 
 ## Overview
 
-`ov settings` manages user-level runtime settings stored in `~/.config/ov/config.yml`. All settings follow a three-level resolution chain: **environment variable > config file > default**.
+`ov config` configures an image for deployment: generates a systemd quadlet unit, provisions container secrets, initializes encrypted volumes, and seeds data into bind-backed volumes. Requires `run_mode=quadlet`.
+
+This is the **single entry point** for deployment setup. `ov start` requires `ov config` to have been run first in quadlet mode.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Get a value | `ov settings get <key>` | Print resolved value |
-| Set a value | `ov settings set <key> <value>` | Write to config file |
-| List all | `ov settings list` | Show all keys with source |
-| Reset a key | `ov settings reset <key>` | Remove from config (revert to default) |
-| Reset all | `ov settings reset` | Clear entire config file |
-| Show path | `ov settings path` | Print config file path |
-| Migrate secrets | `ov settings migrate-secrets` | Move plaintext creds to system keyring |
-| Dry-run migrate | `ov settings migrate-secrets --dry-run` | Preview migration without changes |
+| Full setup | `ov config <image>` | Quadlet + secrets + volumes + data seed |
+| With bind mount | `ov config <image> --bind workspace=~/project` | Bind workspace to host dir |
+| With encryption | `ov config <image> --encrypt data` | Encrypted volume via gocryptfs |
+| Volume config | `ov config <image> -v data:bind:/mnt/nas` | Explicit volume backing |
+| Manual passwords | `ov config <image> --password manual` | Prompt for each secret |
+| Re-seed data | `ov config <image> --force-seed` | Overwrite existing data |
+| Seed from other image | `ov config <image> --data-from data-image:v1` | Use separate data image |
+| No data seed | `ov config <image> --no-seed` | Skip data provisioning |
+| Keep mounts | `ov config <image> --keep-mounted` | Keep encrypted volumes mounted after setup |
+| Show status | `ov config status <image>` | Show encrypted volume status |
+| Mount volumes | `ov config mount <image>` | Mount encrypted volumes |
+| Unmount volumes | `ov config unmount <image>` | Unmount encrypted volumes |
+| Change password | `ov config passwd <image>` | Change gocryptfs password |
+| Remove config | `ov config remove <image>` | Remove quadlet and disable service |
 
-## Config File
+## Subcommands
 
-Location: `~/.config/ov/config.yml`
+| Subcommand | Description |
+|------------|-------------|
+| `setup` (default) | Full setup: quadlet + secrets + encrypted volumes + data seed |
+| `status` | Show encrypted volume mount status |
+| `mount` | Mount encrypted volumes |
+| `unmount` | Unmount encrypted volumes |
+| `passwd` | Change gocryptfs password |
+| `remove` | Remove quadlet file and disable systemd service |
 
-```yaml
-engine:
-  build: podman
-  run: podman
-  rootful: auto
-run_mode: quadlet
-bind_address: 127.0.0.1
-encrypted_storage_path: ~/.local/share/ov/encrypted
-secret_backend: auto
-vm:
-  backend: auto
-  disk_size: "10 GiB"
-  root_size: ""
-  ram: "4G"
-  cpus: 2
-  rootfs: ext4
-  transport: ""
+## Setup Flags
+
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--tag` | | `latest` | Image tag to use |
+| `--build` | | | Force local build instead of pulling |
+| `--env` | `-e` | | Set container env var (KEY=VALUE) |
+| `--env-file` | | | Load env vars from file |
+| `--instance` | `-i` | | Instance name (multiple containers of same image) |
+| `--port` | `-p` | | Remap host port (newHost:containerPort) |
+| `--keep-mounted` | | | Keep encrypted volumes mounted after setup |
+| `--password` | | `auto` | `auto`: generate secrets, `manual`: prompt for each |
+| `--volume` | `-v` | | Configure volume backing (name:type[:path]). Type: volume\|bind\|encrypted |
+| `--bind` | | | Shorthand: configure volume as bind mount (name or name=path) |
+| `--encrypt` | | | Shorthand: configure volume as encrypted (gocryptfs) |
+| `--seed` | | `true` | Seed bind-backed volumes with data from image |
+| `--no-seed` | | | Disable data seeding |
+| `--force-seed` | | | Re-seed even if target directory is not empty |
+| `--data-from` | | | Seed data from a different data image |
+| `--no-autodetect` | | | Disable GPU/device auto-detection |
+
+## How It Works
+
+1. Requires `run_mode=quadlet` (errors if set to `direct`)
+2. Resolves image reference (local or remote `github.com/...`)
+3. Ensures image exists in run engine (transfers if needed)
+4. Extracts metadata from OCI image labels
+5. Generates quadlet `.container` file in `~/.config/containers/systemd/`
+6. Provisions container secrets (from `org.overthinkos.secrets` label)
+7. Resolves volume backing (named, bind, or encrypted)
+8. Initializes encrypted volumes (gocryptfs) if configured
+9. Seeds data layers into bind-backed volumes
+10. Runs `systemctl --user daemon-reload`
+
+## Volume Backing
+
+Volumes declared in layer.yml default to named volumes. At `ov config` time, backing can be changed per-volume:
+
+```bash
+# Named volume (default)
+ov config my-app
+
+# Bind mount to host directory
+ov config my-app --bind workspace=~/project
+ov config my-app -v workspace:bind:~/project    # Equivalent
+
+# Encrypted (gocryptfs)
+ov config my-app --encrypt data
+ov config my-app -v data:encrypted              # Equivalent
+ov config my-app -v data:encrypt:/mnt/ssd       # With explicit path
+
+# Multiple volumes
+ov config my-app --bind workspace=~/project --encrypt data -v models:bind
 ```
 
-## All Config Keys
+Auto-path for bind without explicit host path: `<volumes_path>/<image>/<name>` (default: `~/.local/share/ov/volumes/`).
 
-### Engine Settings
+## Secret Provisioning
 
-| Key | Env Var | Default | Values | Purpose |
-|-----|---------|---------|--------|---------|
-| `engine.build` | `OV_BUILD_ENGINE` | `auto` | `auto`, `docker`, `podman` | Engine for `ov build` and `ov merge` |
-| `engine.run` | `OV_RUN_ENGINE` | `auto` | `auto`, `docker`, `podman` | Engine for `ov shell`, `ov start`, `ov config` |
-| `engine.rootful` | `OV_ENGINE_ROOTFUL` | `auto` | `auto`, `machine`, `sudo`, `native` | Rootful podman strategy for VM builds |
+Secrets declared in `layer.yml` `secrets:` field are stored as OCI label metadata. At config time:
 
-Auto-detection prefers podman over docker when both are installed.
+- `--password auto` (default): generates random passwords for all secrets
+- `--password manual`: prompts for each secret
 
-### Runtime Settings
+**Idempotent:** existing Podman secrets are never overwritten. To re-provision: `podman secret rm <name> && ov config setup <image>`.
 
-| Key | Env Var | Default | Values | Purpose |
-|-----|---------|---------|--------|---------|
-| `run_mode` | `OV_RUN_MODE` | `direct` | `direct`, `quadlet` | Container lifecycle mode |
-| `bind_address` | `OV_BIND_ADDRESS` | `127.0.0.1` | `127.0.0.1`, `0.0.0.0` | Address for port bindings. **Must be `127.0.0.1` for Tailscale serve** — `0.0.0.0` prevents TLS interception |
-| `encrypted_storage_path` | `OV_ENCRYPTED_STORAGE_PATH` | `~/.local/share/ov/encrypted` | any path | Gocryptfs storage base directory |
-| `secret_backend` | `OV_SECRET_BACKEND` | `auto` | `auto`, `keyring`, `kdbx`, `config` | Credential storage backend |
-| `secrets.kdbx_path` | `OV_KDBX_PATH` | (empty) | any path | Path to KeePass .kdbx database |
-| `secrets.kdbx_key_file` | `OV_KDBX_KEY_FILE` | (empty) | any path | Optional key file for .kdbx |
-| `secrets.kdbx_cache` | `OV_KDBX_CACHE` | `true` | `true`, `false` | Enable kernel keyring caching of kdbx password |
-| `secrets.kdbx_cache_timeout` | `OV_KDBX_CACHE_TIMEOUT` | `3600` | integer (seconds) | TTL for cached kdbx password in kernel keyring |
+## Data Seeding
 
-### VM Settings
+Data layers (layers with `data:` field) stage files into `/data/<volume>/<dest>/` at build time. At config time:
 
-| Key | Env Var | Default | Values | Purpose |
-|-----|---------|---------|--------|---------|
-| `vm.backend` | `OV_VM_BACKEND` | `auto` | `auto`, `libvirt`, `qemu` | VM hypervisor backend |
-| `vm.disk_size` | `OV_VM_DISK_SIZE` | `10 GiB` | size string | Default disk image size |
-| `vm.root_size` | `OV_VM_ROOT_SIZE` | (empty) | size string | Root partition size |
-| `vm.ram` | `OV_VM_RAM` | `4G` | size string | Default VM memory |
-| `vm.cpus` | `OV_VM_CPUS` | `2` | integer | Default VM CPU count |
-| `vm.rootfs` | `OV_VM_ROOTFS` | `ext4` | `ext4`, `xfs`, `btrfs` | Root filesystem type |
-| `vm.transport` | `OV_VM_TRANSPORT` | (empty) | `registry`, `containers-storage`, `oci`, `oci-archive` | Image transport for bootc builds |
+- **First config** (`--seed`, default true): copies staged data into bind-backed volumes
+- **Subsequent config**: skips if `data_seeded` flag is set in deploy.yml
+- **`--force-seed`**: re-seeds even if directory is not empty
+- **`--data-from <image>`**: seeds from a separate data image instead of the target image
 
-### VNC Passwords
+Only applies to bind-backed volumes (not named volumes or encrypted volumes without bind).
 
-| Key | Env Var | Default | Values | Purpose |
-|-----|---------|---------|--------|---------|
-| `vnc.password.<image>` | `VNC_PASSWORD` | (empty) | any string | VNC auth password for image |
-| `vnc.password.<image>-<instance>` | `VNC_PASSWORD` | (empty) | any string | VNC auth password for specific instance |
+## Encrypted Volumes
 
-Set via `ov vnc passwd <image> --generate` or `ov settings set vnc.password.<image> <password>`. Stored in system keyring (when `secret_backend=auto` or `keyring`) or `vnc_passwords` map in config file (when `secret_backend=config`).
+Encrypted volumes use gocryptfs. Each volume gets `{cipher,plain}` subdirectories:
 
-## Resolution Chain
+- Default path: `<encrypted_storage_path>/ov-<image>-<name>/`
+- Explicit path: `--volume name:encrypt:/path` stores directly at `/path/{cipher,plain}`
+- Mounted via `ExecStartPre=ov config mount` in the quadlet
+- Each mount runs in a `systemd-run --scope` unit (survives container restart)
+- `-allow_other` flag for rootless podman with `--userns=keep-id`
 
-For every key, the resolved value is the first non-empty from:
+## Deploy State
 
-1. **Environment variable** (e.g., `OV_BUILD_ENGINE`)
-2. **Config file** (`~/.config/ov/config.yml`)
-3. **Hardcoded default**
+All configuration is persisted to `~/.config/ov/deploy.yml`:
 
-For credential keys (`vnc.password.*`), the chain is:
-
-1. **Environment variable** (e.g., `VNC_PASSWORD`)
-2. **System keyring** (when `secret_backend=auto` or `keyring`)
-3. **KeePass .kdbx** (when `secret_backend=kdbx`, or auto-detected when keyring unavailable and `secrets.kdbx_path` configured)
-4. **Config file** (plaintext fallback)
-5. **Default** (empty)
-
-`ov settings list` shows which source each value comes from. Credential values are masked with `****`.
+```yaml
+images:
+  my-app:
+    tag: latest
+    volumes:
+      - name: workspace
+        type: bind
+        host: ~/project
+    data_seeded: true
+    data_source: "my-app:latest"
+```
 
 ## Common Workflows
 
-### Switch to Podman
+### Deploy a Jupyter notebook server
 
 ```bash
-ov settings set engine.build podman
-ov settings set engine.run podman
+ov config jupyter-colab-ml-notebook --bind workspace=~/notebooks
+ov start jupyter-colab-ml-notebook
+# Open http://localhost:8888
 ```
 
-### Enable Quadlet Mode
+### Deploy with encrypted model cache
 
 ```bash
-ov settings set run_mode quadlet
-ov settings set engine.run podman    # Required for quadlet
-loginctl enable-linger $USER       # Required for user services
-# ov config must be run before ov start (no auto-config)
+ov config ollama --encrypt models
+# Prompted for gocryptfs password on first setup
+ov start ollama
 ```
 
-### Override Via Environment
+### Remove and reconfigure
 
 ```bash
-OV_BUILD_ENGINE=docker ov build my-image    # One-off override
-export OV_RUN_MODE=quadlet                  # Session-wide override
+ov config remove my-app
+ov config my-app --bind workspace=/new/path
 ```
-
-### Check Current Settings
-
-```bash
-ov settings list
-# engine.build      auto     (default)
-# engine.run        podman   (config)
-# run_mode          direct   (default)
-# ...
-```
-
-### Reset to Defaults
-
-```bash
-ov settings reset engine.build    # Reset one key
-ov settings reset                 # Reset everything
-```
-
-### Migrate Credentials to System Keyring
-
-```bash
-ov settings migrate-secrets --dry-run    # See what would be migrated
-ov settings migrate-secrets              # Actually migrate (creates .bak backup)
-```
-
-Migrates plaintext VNC credentials from `config.yml` to the system keyring (GNOME Keyring, KDE Wallet, KeePassXC). Creates a backup file first. If keyring is unavailable, prints setup instructions.
-
-### KeePass Backend (headless/SSH -- encrypted, no daemon)
-
-```bash
-ov secrets init                              # Create ~/.config/ov/secrets.kdbx
-ov settings set secret_backend kdbx          # Activate (or auto-detected when keyring unavailable)
-ov secrets import --dry-run                  # Preview importing existing credentials
-ov secrets import                            # Import from config.yml + keyring into kdbx
-```
-
-Encrypted at rest (KDBX 4, Argon2). No daemon needed. Works over SSH. Password prompted once, then cached in the Linux kernel keyring (user keyring, key `ov-kdbx-password`) for 1 hour by default. Configurable: `ov settings set secrets.kdbx_cache false` to disable, `ov settings set secrets.kdbx_cache_timeout 7200` to change TTL. Resolution: `OV_KDBX_PASSWORD` env var > kernel keyring > interactive prompt > auto-store in keyring.
-
-### Force Config-File Backend (headless/SSH)
-
-```bash
-ov settings set secret_backend config    # Suppress keyring warnings
-```
-
-### Global KeePass Flag
-
-```bash
-ov --kdbx ~/.config/ov/secrets.kdbx start my-app    # Use kdbx for this command
-```
-
-Source: `ov/runtime_config.go`, `ov/credential_store.go`, `ov/credential_keyring.go`, `ov/credential_config.go`, `ov/credential_kdbx.go`, `ov/secrets_cmd.go`.
-
-## Project-Level Environment Variables (.secrets)
-
-Separate from `ov settings`, project-level env vars (e.g., `GMAIL_USER`, `GMAIL_PASSWORD`) are loaded from `.secrets` — a GPG-encrypted file decrypted by `ov secrets gpg env` via direnv (`eval "$(ov secrets gpg env)"` in `.envrc`). These variables are available to all commands run in the project shell, including `ov`.
-
-This is NOT managed by `ov settings` or `ov secrets`. See `.env.example` for available variables. See `/ov:secrets` for the distinction between the two systems.
 
 ## Cross-References
 
-- `/ov:shell` -- Shell commands that use engine.run
-- `/ov:service` -- Service lifecycle that uses run_mode
-- `/ov:vm` -- VM commands that use vm.* settings
-- `/ov:enc` -- Encrypted storage path configuration
-- `/ov:secrets` -- KeePass credential management (container-level secrets) + `.secrets` distinction
-- `/ov:build` -- Build commands that use engine.build
-- `/ov:vnc` -- VNC password management (`vnc.password.*` keys)
+- `/ov:start` — Requires `ov config` first in quadlet mode
+- `/ov:deploy` — Deploy state file (deploy.yml) management
+- `/ov:enc` — Encrypted storage details
+- `/ov:secrets` — Container secret management
+- `/ov:settings` — Runtime settings (engine, run_mode, encrypted_storage_path)
+- `/ov:service` — Service lifecycle (start, stop, status, logs)
+- `/ov:layer` — Volume and secret declarations in layer.yml
+- `/ov:image` — Image composition and inheritance
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves ov settings commands, runtime settings, engine selection, bind address, VM defaults, encrypted storage paths, or credential storage backend. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves `ov config` commands, image deployment setup, quadlet generation, secret provisioning, encrypted volumes, data seeding, or volume backing configuration. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Any time. Configuration can be set before or after builds/deployments.
+**Workflow position:** After build, before start. `ov build` → `ov config` → `ov start`.
+
+Source: `ov/config_image.go` (command structs), `ov/quadlet.go` (quadlet generation), `ov/deploy.go` (deploy state), `ov/enc.go` (encrypted volumes), `ov/secrets.go` (secret provisioning), `ov/data.go` (data seeding).

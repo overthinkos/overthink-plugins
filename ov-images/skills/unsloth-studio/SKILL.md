@@ -15,7 +15,7 @@ Unsloth Studio web UI for LLM fine-tuning with GPU acceleration.
 | Property | Value |
 |----------|-------|
 | Base | nvidia |
-| Layers | agent-forwarding, unsloth-studio, finetuning-notebooks, dbus, ov |
+| Layers | agent-forwarding, unsloth-studio, notebook-finetuning, dbus, ov |
 | Platforms | linux/amd64 |
 | Ports | 8888, 8000 |
 | Registry | ghcr.io/overthinkos |
@@ -65,7 +65,7 @@ ov start unsloth-studio
 - `/ov-layers:unsloth-studio` — Studio web UI service + pixi.toml (Tier 2)
 - `/ov-layers:llama-cpp` — llama.cpp binaries (Tier 1 sub-layer)
 - `/ov-layers:unsloth` — vLLM 0.19 + unsloth fine-tuning + torch.compile patch (Tier 1 sub-layer)
-- `/ov-layers:finetuning-notebooks` — 37 Unsloth fine-tuning notebooks provisioned into workspace volume
+- `/ov-layers:notebook-finetuning` — 37 Unsloth fine-tuning notebooks provisioned into workspace volume
 - `/ov-layers:cuda` — GPU support (via nvidia base)
 
 ## Related Images

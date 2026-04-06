@@ -140,7 +140,6 @@ Reference documentation for every Overthink container layer.
 | docker-ce | `/ov-layers:docker-ce` | Docker CE engine with buildx and compose plugins |
 | fastfetch | `/ov-layers:fastfetch` | Fast system information tool (neofetch successor) |
 | ffmpeg | `/ov-layers:ffmpeg` | FFmpeg multimedia framework |
-| finetuning-notebooks | `/ov-layers:finetuning-notebooks` | Unsloth fine-tuning notebook collection (data layer) |
 | gemini | `/ov-layers:gemini` | Google Gemini CLI for AI coding assistance and search |
 | gh | `/ov-layers:gh` | GitHub CLI and git |
 | gifgrep | `/ov-layers:gifgrep` | GIF search and download CLI |
@@ -180,6 +179,9 @@ Reference documentation for every Overthink container layer.
 | nvidia | `/ov-layers:nvidia` | NVIDIA GPU runtime support: driver libs, nvidia-container-toolkit (CDI), VA-API |
 | nodejs | `/ov-layers:nodejs` | Node.js and npm via system packages (RPM/DEB) |
 | nodejs24 | `/ov-layers:nodejs24` | Node.js 24 and npm via Fedora RPM packages |
+| notebook-finetuning | `/ov-layers:notebook-finetuning` | Unsloth fine-tuning notebook collection (data layer) |
+| notebook-llm-on-supercomputers | `/ov-layers:notebook-llm-on-supercomputers` | LLMs on Supercomputers course notebooks (data layer) |
+| notebook-ollama | `/ov-layers:notebook-ollama` | Ollama integration notebook collection (data layer) |
 | notebook-templates | `/ov-layers:notebook-templates` | Starter notebook templates (data layer for jupyter-colab) |
 | ollama | `/ov-layers:ollama` | Ollama LLM server on port 11434 with CUDA and model persistence |
 | openbox | `/ov-layers:openbox` | Openbox lightweight X11 window manager with keybindings |
@@ -285,7 +287,7 @@ Reference documentation for every enabled Overthink container image.
 | jupyter | `/ov-images:jupyter` | Jupyter notebook server with CUDA GPU support and ML libraries |
 | jupyter-colab | `/ov-images:jupyter-colab` | Lightweight JupyterLab with real-time collaboration (no GPU) |
 | jupyter-colab-ml | `/ov-images:jupyter-colab-ml` | Full CUDA ML + JupyterLab + CRDT MCP server |
-| jupyter-colab-ml-finetuning | `/ov-images:jupyter-colab-ml-finetuning` | Full CUDA ML + JupyterLab + CRDT MCP + fine-tuning notebooks |
+| jupyter-colab-ml-notebook | `/ov-images:jupyter-colab-ml-notebook` | Full CUDA ML + JupyterLab + CRDT MCP + fine-tuning notebooks |
 | nvidia | `/ov-images:nvidia` | NVIDIA GPU base image with CUDA toolkit on Fedora |
 | ollama | `/ov-images:ollama` | Standalone Ollama LLM inference server with CUDA GPU support |
 | openclaw | `/ov-images:openclaw` | Headless OpenClaw AI gateway on port 18789 |

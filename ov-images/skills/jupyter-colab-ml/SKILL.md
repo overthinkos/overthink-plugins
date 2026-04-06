@@ -106,7 +106,7 @@ ov shell jupyter-colab-ml -c "pixi run verify-collaboration"
 
 ## Related Images
 
-- `/ov-images:jupyter-colab-ml-finetuning` — Same stack with fine-tuning notebooks
+- `/ov-images:jupyter-colab-ml-notebook` — Same stack with fine-tuning notebooks
 - `/ov-images:jupyter-colab` — Lightweight variant (no CUDA, multi-arch)
 - `/ov-images:jupyter` — Legacy monolithic variant
 - `/ov-images:python-ml` — ML base without Jupyter

@@ -1,13 +1,13 @@
 ---
-name: ollama-notebooks
+name: notebook-ollama
 description: |
   Ollama integration notebook collection provisioned into the workspace volume at deploy time.
   6 Jupyter notebooks demonstrating Ollama via requests, OpenAI, ollama lib, Anthropic, HuggingFace, and GPU.
   Data-only layer — no packages, no services, no dependencies.
-  Use when working with ollama-notebooks, Ollama API tutorials, or Jupyter+Ollama integration.
+  Use when working with notebook-ollama, Ollama API tutorials, or Jupyter+Ollama integration.
 ---
 
-# ollama-notebooks -- Ollama integration notebook data layer
+# notebook-ollama -- Ollama integration notebook data layer
 
 ## Layer Properties
 
@@ -43,12 +43,12 @@ At deploy time, `ov config` or `ov update` copies the staged data into the works
 
 | Notebook | Library | Features |
 |----------|---------|----------|
-| `ollama_requests.ipynb` | `requests` | Raw REST API: list, show, generate, chat, stream, embed, copy, delete |
-| `ollama_openai.ipynb` | `openai` | OpenAI-compatible API: completions, chat, multi-turn, stream, embed |
-| `ollama_ollama.ipynb` | `ollama` | Native Python library: all API operations + model management |
-| `ollama_gpu.ipynb` | `requests` | GPU verification: nvidia-smi, inference metrics, VRAM monitoring |
-| `ollama_huggingface.ipynb` | `ollama` | HuggingFace GGUF model import, verification, inference |
-| `ollama_anthropic.ipynb` | `anthropic` | Anthropic-compatible API: chat, system prompts, streaming, tool calling, vision |
+| `00_Ollama_Requests.ipynb` | `requests` | Raw REST API: list, show, generate, chat, stream, embed, copy, delete |
+| `01_Ollama_GPU.ipynb` | `requests` | GPU verification: nvidia-smi, inference metrics, VRAM monitoring |
+| `02_Ollama_OpenAI.ipynb` | `openai` | OpenAI-compatible API: completions, chat, multi-turn, stream, embed |
+| `03_Ollama_Library.ipynb` | `ollama` | Native Python library: all API operations + model management |
+| `04_Ollama_HuggingFace.ipynb` | `ollama` | HuggingFace GGUF model import, verification, inference |
+| `05_Ollama_Anthropic.ipynb` | `anthropic` | Anthropic-compatible API: chat, system prompts, streaming, tool calling, vision |
 
 **Manifest:** `notebooks.yaml` — structured catalog with title, description, and ordering.
 
@@ -58,7 +58,7 @@ The notebooks connect to Ollama at `http://ov-ollama:11434` via Podman DNS on th
 
 ```bash
 ov start ollama       # Start Ollama server
-ov start jupyter-colab-ml-finetuning   # Both on 'ov' network
+ov start jupyter-colab-ml-notebook   # Both on 'ov' network
 ```
 
 The URL is configurable via the `OLLAMA_HOST` environment variable. Each notebook reads `os.getenv("OLLAMA_HOST", "http://ov-ollama:11434")`.
@@ -103,19 +103,19 @@ Pull models before running: `ov shell ollama -c "ollama pull llama3.2"`
 
 ```yaml
 # images.yml
-jupyter-colab-ml-finetuning:
+jupyter-colab-ml-notebook:
   layers:
     - jupyter-colab-ml
     - notebook-templates
-    - finetuning-notebooks
-    - ollama-notebooks
+    - notebook-finetuning
+    - notebook-ollama
     # ... other layers
 ```
 
 ```bash
 # Deploy and start both services
 ov config ollama && ov start ollama
-ov config jupyter-colab-ml-finetuning && ov start jupyter-colab-ml-finetuning
+ov config jupyter-colab-ml-notebook && ov start jupyter-colab-ml-notebook
 
 # Pull a model, then open notebooks
 ov shell ollama -c "ollama pull llama3.2"
@@ -124,24 +124,24 @@ ov shell ollama -c "ollama pull llama3.2"
 
 ## Used In Images
 
-- `/ov-images:jupyter-colab-ml-finetuning`
+- `/ov-images:jupyter-colab-ml-notebook`
 
 ## Related Skills
 
 - `/ov:layer` — data field documentation and layer authoring rules
 - `/ov:config` — data provisioning during `ov config` setup
 - `/ov:deploy` — volume backing configuration
-- `/ov-layers:finetuning-notebooks` — sibling data layer pattern (Unsloth fine-tuning notebooks)
+- `/ov-layers:notebook-finetuning` — sibling data layer pattern (Unsloth fine-tuning notebooks)
 - `/ov-layers:notebook-templates` — sibling data layer pattern (starter notebooks)
 - `/ov-layers:ollama` — the Ollama binary layer (server side)
 - `/ov-images:ollama` — the standalone Ollama image (must be running for notebooks to connect)
-- `/ov-images:jupyter-colab-ml-finetuning` — the image that includes this layer
+- `/ov-images:jupyter-colab-ml-notebook` — the image that includes this layer
 
 ## When to Use This Skill
 
 Use when the user asks about:
 
-- The ollama-notebooks layer or its contents
+- The notebook-ollama layer or its contents
 - Ollama API tutorial notebooks or integration examples
 - How Jupyter notebooks connect to a separate Ollama container
 - The `ollama` Python library env var or Pydantic API gotchas

@@ -10,12 +10,30 @@ selkies-desktop-nvidia:
   layers:
     - agent-forwarding
     - selkies-desktop
+    - dbus
+    - ov
   ports:
     - "3000:3000"
     - "9222:9222"
   platforms:
     - linux/amd64
 ```
+
+## Layers
+
+`agent-forwarding` (gnupg + direnv + ssh-client) + `selkies-desktop` metalayer (pipewire + chrome + labwc + waybar-labwc + desktop-fonts + swaync + pavucontrol + wl-tools + wl-screenshot-pixelflux + wl-overlay + wl-record-pixelflux + a11y-tools + xterm + tmux + asciinema + fastfetch + selkies) + `dbus` + `ov`
+
+## Ports
+
+| Port | Service |
+|------|---------|
+| 3000 | Selkies web UI (Traefik HTTPS → static files + WebSocket proxy) |
+| 9222 | Chrome DevTools Protocol (CDP, via socat relay) |
+
+## Volumes
+
+- `chrome-data` → `~/.chrome-debug` (Chrome profile)
+- `selkies-config` → `~/.config/selkies`
 
 ## Base
 

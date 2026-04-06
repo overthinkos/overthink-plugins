@@ -89,7 +89,7 @@ layers/jupyter-colab-mcp/
 
 - `/ov-images:jupyter-colab`
 - `/ov-images:jupyter-colab-ml`
-- `/ov-images:jupyter-colab-ml-finetuning`
+- `/ov-images:jupyter-colab-ml-notebook`
 
 ## Related Skills
 

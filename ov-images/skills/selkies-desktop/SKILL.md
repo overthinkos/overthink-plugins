@@ -10,6 +10,8 @@ selkies-desktop:
   layers:
     - agent-forwarding
     - selkies-desktop
+    - dbus
+    - ov
   ports:
     - "3000:3000"
     - "9222:9222"
@@ -23,7 +25,7 @@ selkies-desktop:
 
 ## Layers
 
-`agent-forwarding` (gnupg + direnv + ssh-client) + `selkies-desktop` metalayer = pipewire + chrome + labwc + waybar-labwc + desktop-fonts + swaync + pavucontrol + wl-tools + wl-screenshot-pixelflux + wl-record-pixelflux + a11y-tools + xterm + tmux + asciinema + fastfetch + selkies
+`agent-forwarding` (gnupg + direnv + ssh-client) + `selkies-desktop` metalayer (pipewire + chrome + labwc + waybar-labwc + desktop-fonts + swaync + pavucontrol + wl-tools + wl-screenshot-pixelflux + wl-overlay + wl-record-pixelflux + a11y-tools + xterm + tmux + asciinema + fastfetch + selkies) + `dbus` + `ov`
 
 ## Ports
 

@@ -1,3 +1,10 @@
+---
+name: selkies-desktop
+description: |
+  Metalayer composing a full Selkies Wayland streaming desktop with Chrome, Waybar, desktop automation tools, and accessibility introspection.
+  Use when working with the selkies-desktop metalayer composition, labwc desktop, or browser-accessible remote desktops.
+---
+
 # Layer: selkies-desktop
 
 Metalayer composing a full Selkies Wayland streaming desktop with Chrome, Waybar, desktop automation tools, accessibility introspection, and XWayland support.
@@ -77,3 +84,8 @@ A browser-accessible desktop at `http://localhost:3000` with:
 | 14 | swaync | Notification daemon (on wayland-0) |
 | 15 | waybar | Top panel (on wayland-0) |
 | 18 | nginx | Web UI on :3000 |
+
+## Used In Images
+
+- `/ov-images:selkies-desktop`
+- `/ov-images:selkies-desktop-nvidia`

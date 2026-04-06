@@ -65,12 +65,12 @@ ov alias install ollama
 - `/ov-images:nvidia` — parent (GPU without Ollama)
 - `/ov-images:openclaw-ollama` — OpenClaw gateway + Ollama
 - `/ov-images:openclaw-ollama-sway-browser` — full stack with desktop
-- `/ov-images:jupyter-colab-ml-finetuning` — Jupyter with Ollama integration notebooks (connects to this image via Podman DNS at `ov-ollama:11434`)
+- `/ov-images:jupyter-colab-ml-notebook` — Jupyter with Ollama integration notebooks (connects to this image via Podman DNS at `ov-ollama:11434`)
 
 ## Related Layers
 
 - `/ov-layers:ollama` — the Ollama binary layer
-- `/ov-layers:ollama-notebooks` — 6 Jupyter notebooks demonstrating Ollama APIs (requests, OpenAI, ollama lib, Anthropic, HuggingFace, GPU)
+- `/ov-layers:notebook-ollama` — 6 Jupyter notebooks demonstrating Ollama APIs (requests, OpenAI, ollama lib, Anthropic, HuggingFace, GPU)
 
 ## Verification
 
