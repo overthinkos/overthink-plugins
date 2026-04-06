@@ -1,8 +1,8 @@
 ---
 name: jupyter-colab-ml-finetuning
 description: |
-  Full CUDA ML JupyterLab image with finetuning and Ollama notebooks, CRDT MCP server, and real-time collaboration.
-  Base: nvidia. Port 8888. Combines jupyter-colab-ml with 37 Unsloth fine-tuning notebooks and 6 Ollama integration notebooks.
+  Full CUDA ML JupyterLab image with finetuning, Ollama, and LLM course notebooks, CRDT MCP server, and real-time collaboration.
+  Base: nvidia. Port 8888. Combines jupyter-colab-ml with 37 Unsloth fine-tuning notebooks, 6 Ollama integration notebooks, and 15 LLM course notebooks.
   MUST be invoked before building, deploying, or troubleshooting the jupyter-colab-ml-finetuning image.
 ---
 
@@ -19,6 +19,7 @@ jupyter-colab-ml-finetuning:
     - notebook-templates
     - finetuning-notebooks
     - ollama-notebooks
+    - notebooks-llm-on-supercomputers
     - dbus
     - ov
   ports:
@@ -41,6 +42,7 @@ The Ollama notebooks require a running `ov-ollama` container on the same `ov` Po
 - `notebook-templates` — Starter notebooks (data layer, seeds ~/workspace)
 - `finetuning-notebooks` — 37 Unsloth fine-tuning notebooks (data layer, seeds ~/workspace/finetuning/)
 - `ollama-notebooks` — 6 Ollama integration notebooks (data layer, seeds ~/workspace/ollama/)
+- `notebooks-llm-on-supercomputers` — 15 LLM course notebooks (data layer, seeds ~/workspace/llms_on_supercomputers/)
 - `agent-forwarding` — SSH/GPG agent forwarding
 - `dbus` — D-Bus session bus
 - `ov` — Overthink CLI
@@ -65,6 +67,7 @@ The Ollama notebooks require a running `ov-ollama` container on the same `ov` Po
 | notebook-templates | workspace | *(root)* | getting-started.ipynb |
 | finetuning-notebooks | workspace | finetuning/ | 37 Unsloth notebooks (SFT, GRPO, DPO, RLOO, QLoRA) |
 | ollama-notebooks | workspace | ollama/ | 6 Ollama API notebooks (requests, OpenAI, ollama lib, GPU, HuggingFace, Anthropic) |
+| notebooks-llm-on-supercomputers | workspace | llms_on_supercomputers/ | 15 LLM course notebooks (prompt engineering, RAG, fine-tuning) + datasets |
 
 ## File Layout in JupyterLab
 
@@ -93,6 +96,13 @@ The Ollama notebooks require a running `ov-ollama` container on the same `ov` Po
     ollama_gpu.ipynb
     ollama_huggingface.ipynb
     ollama_anthropic.ipynb
+  llms_on_supercomputers/                   (from notebooks-llm-on-supercomputers)
+    notebooks.yaml
+    datasets/
+    D0_00_Bazzite_AI_Setup.ipynb
+    D1_01_Prompting_with_LangChain.ipynb
+    D1_02_Prompt_templates_and_parsing.ipynb
+    ... (15 notebooks total)
 ```
 
 ## Deploy
@@ -123,6 +133,7 @@ ov shell jupyter-colab-ml-finetuning -c "pixi run verify-unsloth"
 ov shell jupyter-colab-ml-finetuning -c "pixi run verify-mcp"
 ov shell jupyter-colab-ml-finetuning -c "ls ~/workspace/finetuning/"
 ov shell jupyter-colab-ml-finetuning -c "ls ~/workspace/ollama/"
+ov shell jupyter-colab-ml-finetuning -c "ls ~/workspace/llms_on_supercomputers/"
 ```
 
 ## Related Images
