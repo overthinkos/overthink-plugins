@@ -23,6 +23,16 @@ description: |
 |----------|-------|
 | `VALKEY_URL` | `redis://127.0.0.1:6379` |
 
+## Service Environment (injected into other containers)
+
+| Variable | Template Value | Resolved Example |
+|----------|---------------|-----------------|
+| `REDIS_URL` | `redis://{{.ContainerName}}:6379` | `redis://ov-valkey:6379` |
+
+When `ov config` runs for an image containing this layer, `REDIS_URL` is automatically injected into the global `deploy.yml` env for cross-container service discovery (Redis-compatible protocol).
+
+See `/ov:layer` for `service_env` field docs.
+
 ## Packages
 
 - `valkey` (RPM, from Remi modular repo, module `valkey:remi-9.0`)

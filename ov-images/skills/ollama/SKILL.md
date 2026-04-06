@@ -55,6 +55,16 @@ ov alias install ollama
 # Now: ollama pull llama3  (runs inside the container)
 ```
 
+## Service Environment
+
+When deployed via `ov config ollama`, this image automatically provides `OLLAMA_HOST=http://ov-ollama:11434` to all other deployed containers via the `service_env` mechanism. Use `--update-all` to propagate to already-deployed services:
+
+```bash
+ov config ollama --update-all
+```
+
+This means containers like `jupyter-colab-ml-notebook` automatically discover the Ollama endpoint without manual `OLLAMA_HOST` configuration.
+
 ## Key Layers
 
 - `/ov-layers:ollama` — Ollama binary, supervisord service, model volume
@@ -65,7 +75,7 @@ ov alias install ollama
 - `/ov-images:nvidia` — parent (GPU without Ollama)
 - `/ov-images:openclaw-ollama` — OpenClaw gateway + Ollama
 - `/ov-images:openclaw-ollama-sway-browser` — full stack with desktop
-- `/ov-images:jupyter-colab-ml-notebook` — Jupyter with Ollama integration notebooks (connects to this image via Podman DNS at `ov-ollama:11434`)
+- `/ov-images:jupyter-colab-ml-notebook` — Jupyter with Ollama integration notebooks (receives `OLLAMA_HOST` automatically via service_env when ollama is deployed)
 
 ## Related Layers
 

@@ -63,6 +63,7 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 | `hooks` | `HooksConfig` | Lifecycle hooks: `post_enable` (runs after `ov config`), `pre_remove` (runs before `ov remove`) |
 | `libvirt` | `[]string` | Raw libvirt XML snippets injected into VM domain XML after creation |
 | `data` | `[]DataYAML` | Data mappings from layer directory to volume staging area (`src`, `volume`, `dest`) |
+| `service_env` | `map[string]string` | Env vars injected into OTHER containers when this service is deployed. Template: `{{.ContainerName}}` |
 
 ### port_relay
 
@@ -116,6 +117,26 @@ data:
 **Data layers** are layers that only have `data:` and `volumes:` — no packages, no services, no install files. They're valid as standalone layers. Example: `/ov-layers:notebook-templates`.
 
 **Data images** (`data_image: true` in images.yml) are scratch-based images containing only data layers — no OS, no runtime. Used as portable data bundles via `ov config --data-from <data-image>`.
+
+### service_env
+
+Environment variables provided to OTHER containers when this service is deployed. Used for cross-container service discovery. Resolved at `ov config` time and stored in the global `env:` section of `deploy.yml`.
+
+```yaml
+service_env:
+  OLLAMA_HOST: "http://{{.ContainerName}}:11434"
+  PGHOST: "{{.ContainerName}}"
+  PGPORT: "5432"
+```
+
+- Template variable `{{.ContainerName}}` resolves to the container name (e.g., `ov-ollama`, or `ov-ollama-staging` with `--instance`)
+- `service_env` keys may overlap with `env` keys in the same layer — `env` is baked into the service's own image, `service_env` is injected into consumers
+- On `ov config remove` / `ov remove`, injected vars are automatically cleaned from deploy.yml
+- `--update-all` flag on `ov config` propagates changes to all deployed quadlets immediately
+- Validated by `ov validate`: empty keys and unknown template variables are errors
+- Stored in OCI label `org.overthinkos.service_env` for deploy-only scenarios
+
+See `/ov:config` for `--update-all` flag and `/ov:deploy` for global env in deploy.yml.
 
 ### Port Protocol Annotations
 

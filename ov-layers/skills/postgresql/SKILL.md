@@ -31,6 +31,17 @@ The entrypoint also reads these variables (with defaults, not set in layer.yml):
 - `POSTGRES_DB` (default: `$POSTGRES_USER`) — set by consuming layers
 - `POSTGRES_PASSWORD` — required unless `POSTGRES_HOST_AUTH_METHOD=trust`
 
+## Service Environment (injected into other containers)
+
+| Variable | Template Value | Resolved Example |
+|----------|---------------|-----------------|
+| `PGHOST` | `{{.ContainerName}}` | `ov-postgresql` |
+| `PGPORT` | `5432` | `5432` |
+
+When `ov config` runs for an image containing this layer, `PGHOST` and `PGPORT` are automatically injected into the global `deploy.yml` env for cross-container PostgreSQL service discovery.
+
+See `/ov:layer` for `service_env` field docs.
+
 ## Packages
 
 - `postgresql-server` (RPM)

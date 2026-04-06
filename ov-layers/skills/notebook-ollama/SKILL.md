@@ -54,14 +54,24 @@ At deploy time, `ov config` or `ov update` copies the staged data into the works
 
 ## Network Connectivity
 
-The notebooks connect to Ollama at `http://ov-ollama:11434` via Podman DNS on the `ov` bridge network. This requires the `ollama` container to be running on the same network:
+The notebooks default to `http://localhost:11434` for the Ollama API endpoint. Each notebook reads:
 
-```bash
-ov start ollama       # Start Ollama server
-ov start jupyter-colab-ml-notebook   # Both on 'ov' network
+```python
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 ```
 
-The URL is configurable via the `OLLAMA_HOST` environment variable. Each notebook reads `os.getenv("OLLAMA_HOST", "http://ov-ollama:11434")`.
+When the `ollama` image is deployed via `ov config ollama`, its `service_env` automatically injects `OLLAMA_HOST=http://ov-ollama:11434` into the global `deploy.yml` env. Any container configured after ollama (or reconfigured with `--update-all`) automatically gets the correct Ollama endpoint — no manual environment setup needed.
+
+**Setup:**
+```bash
+ov config ollama --update-all    # deploys ollama + propagates OLLAMA_HOST to all
+ov start ollama
+ov start jupyter-colab-ml-notebook   # OLLAMA_HOST already set via service_env
+```
+
+Both containers must be on the same `ov` Podman network for DNS resolution to work.
+
+See `/ov:config` for `--update-all` and `/ov-layers:ollama` for service_env details.
 
 ## Notebook Compatibility Notes
 
@@ -73,7 +83,7 @@ The notebooks use this pattern to handle both fresh kernels and re-runs:
 
 ```python
 import os
-OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://ov-ollama:11434")
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 os.environ["OLLAMA_HOST"] = OLLAMA_HOST
 
 import ollama

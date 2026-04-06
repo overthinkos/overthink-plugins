@@ -61,6 +61,19 @@ quay.io/fedora/fedora:43
 | workspace | ~/workspace | Persistent notebook storage |
 | models | ~/.cache/huggingface | HuggingFace model cache (from unsloth sub-layer) |
 
+## Service Environment Integration
+
+This image receives service_env variables from infrastructure layers when they are deployed:
+
+| Variable | Injected by | Value |
+|----------|------------|-------|
+| `OLLAMA_HOST` | `/ov-layers:ollama` | `http://ov-ollama:11434` |
+| `PGHOST` | `/ov-layers:postgresql` | `ov-postgresql` |
+| `PGPORT` | `/ov-layers:postgresql` | `5432` |
+| `REDIS_URL` | `/ov-layers:redis` or `/ov-layers:valkey` | `redis://ov-<image>:6379` |
+
+These variables are injected automatically into the container environment at `ov config` time when the corresponding service is deployed. No manual `-e` flags needed.
+
 ## Key Capabilities
 
 - **JupyterLab** with real-time collaboration (jupyter-collaboration, Y-CRDT)

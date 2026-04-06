@@ -173,6 +173,30 @@ images:
 
 Allowed fields: `workspace`, `version`, `status`, `info`, `tunnel`, `fqdn`, `acme_email`, `volumes`, `ports`, `env`, `env_file`, `security`, `network`, `engine`, `secrets`.
 
+### Global Environment (Top-Level)
+
+The top-level `env:` and `service_env_sources:` fields in `deploy.yml` are shared across all deployed images. Managed automatically by `ov config` when images with `service_env` layers are deployed.
+
+```yaml
+env:
+  - OLLAMA_HOST=http://ov-ollama:11434
+  - PGHOST=ov-postgresql
+  - PGPORT=5432
+service_env_sources:
+  OLLAMA_HOST: ollama
+  PGHOST: postgresql
+  PGPORT: postgresql
+images:
+  my-app: { ... }
+```
+
+- `env:` — global env vars injected into all containers (lowest priority in the 6-level chain)
+- `service_env_sources:` — tracks which image injected each var (for cleanup on `ov remove` and self-exclusion)
+- Priority (last wins): global env < per-image deploy env < deploy env_file < workspace .env < CLI --env-file < CLI -e
+- `ov config remove` / `ov remove` automatically cleans up vars from the removed image
+
+See `/ov:layer` for `service_env` field declaration and `/ov:config` for `--update-all` propagation.
+
 ### Secrets
 
 Per-deployment secret source overrides. Secrets declared in image labels (from `layer.yml`) are provisioned as Podman secrets at `ov config` time. Deploy.yml can override where the value comes from:
@@ -326,6 +350,7 @@ Requires the `socat` layer as a dependency. The relay runs as a `relay-<port>` s
 - `/ov:build` -- Building images before deployment
 - `/ov:config` -- bind_address, run_mode, auto_enable, vnc.password settings
 - `/ov:image` -- Image configuration
+- `/ov:layer` — `service_env` field declaration
 
 ## When to Use This Skill
 

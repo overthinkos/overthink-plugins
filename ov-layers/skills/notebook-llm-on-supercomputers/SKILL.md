@@ -87,7 +87,7 @@ At build time, the contents are staged into `/data/workspace/llms_on_supercomput
 
 ## Network Connectivity
 
-9 notebooks (D0, D1, D2 series) connect to Ollama at `http://ov-ollama:11434` via Podman DNS on the `ov` bridge network. The D3 fine-tuning notebooks work locally with GPU — no Ollama needed.
+9 notebooks (D0, D1, D2 series) connect to Ollama via the `OLLAMA_HOST` environment variable (default: `http://localhost:11434`). When Ollama is deployed via `ov config ollama --update-all`, the `OLLAMA_HOST` env var is auto-injected via `service_env` to `http://ov-ollama:11434` — both containers must be on the same `ov` Podman network. The D3 fine-tuning notebooks work locally with GPU — no Ollama needed.
 
 ## Notebook Compatibility Notes
 
