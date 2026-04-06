@@ -49,8 +49,7 @@ Also available in `dev-tools` layer (used in `bazzite-ai`, `fedora-remote`).
 
 ## Cross-References
 
-- `/ov:secrets` -- `ov secrets gpg` commands for managing `.secrets` files
-- `gpg-agent-setup/CLAUDE.md` -- full GPG agent + direnv setup guide
+- `/ov:secrets` -- `ov secrets gpg` commands for managing `.secrets` files, `ov secrets gpg setup` for GPG agent + KeePassXC configuration, `ov secrets gpg doctor` for health checks
 
 ## When to Use This Skill
 

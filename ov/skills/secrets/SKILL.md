@@ -174,6 +174,10 @@ Manage GPG-encrypted `.secrets` environment files directly from the CLI. All com
 | Remove a key | `ov secrets gpg unset KEY [-f FILE]` | Remove a key from .secrets |
 | Add recipient | `ov secrets gpg add-recipient KEY_ID [-f FILE]` | Re-encrypt with additional recipient |
 | List recipients | `ov secrets gpg recipients [-f FILE]` | List GPG key IDs that can decrypt |
+| **Import key** | `ov secrets gpg import-key <path>` | Import GPG key from file, directory, or Secret Service |
+| **Export key** | `ov secrets gpg export-key [path] [--to-keystore]` | Export GPG key to directory and/or KeePassXC |
+| **Setup** | `ov secrets gpg setup` | Configure gpg-agent, import/generate key, store passphrase |
+| **Doctor** | `ov secrets gpg doctor [-f FILE]` | Health check: GPG agent, keys, Secret Service, .secrets |
 
 ### `ov secrets gpg env`
 
@@ -228,6 +232,157 @@ ov secrets gpg recipients
 - `-i, --input` — Input file for encrypt/decrypt (default: `.env` / `.secrets`)
 - `-o, --output` — Output file for encrypt/decrypt (default: `.secrets` / stdout)
 
+### `ov secrets gpg import-key` — Import GPG Keys
+
+Import from file, directory, or KeePassXC Secret Service:
+
+```bash
+ov secrets gpg import-key ~/Sync/Conf/gpg/           # From directory (all .asc/.gpg + ownertrust.txt)
+ov secrets gpg import-key ~/key.asc                   # From single file
+ov secrets gpg import-key --from-keystore              # From KeePassXC Secret Service
+ov secrets gpg import-key --from-keystore --key-id XX  # Specific key from KeePassXC
+ov secrets gpg import-key ~/keys/ --passphrase "xxx"   # With loopback pinentry (no GUI prompt)
+```
+
+**Directory import** auto-detects `.asc`, `.gpg`, and `ownertrust.txt` files. **Keystore import** retrieves armored keys stored with schema `org.gnupg.Key` — these are created by `ov secrets gpg export-key --to-keystore`.
+
+The `--passphrase` flag uses GPG's loopback pinentry mode, avoiding the GUI prompt during import.
+
+### `ov secrets gpg export-key` — Export GPG Keys
+
+Export to filesystem and/or KeePassXC:
+
+```bash
+ov secrets gpg export-key ~/Sync/Conf/gpg/            # To directory (public.asc, secret.asc, ownertrust.txt)
+ov secrets gpg export-key --to-keystore                # To KeePassXC Secret Service
+ov secrets gpg export-key ~/backup/ --to-keystore      # Both filesystem and KeePassXC
+ov secrets gpg export-key --key-id XXXX --to-keystore  # Specific key
+ov secrets gpg export-key --to-keystore --passphrase X # Also store passphrase in Secret Service
+```
+
+**Keystore export** stores the armored private key as a Secret Service entry (schema `org.gnupg.Key`, attributes: `keyid`, `uid`). This enables key recovery via `import-key --from-keystore` without filesystem backups.
+
+### `ov secrets gpg setup` — One-Stop GPG Configuration
+
+Configures the full GPG/KeePassXC chain in one command:
+
+```bash
+ov secrets gpg setup                                   # Interactive
+ov secrets gpg setup --import ~/Sync/Conf/gpg/         # Import key, then configure
+ov secrets gpg setup --from-keystore                    # Restore key from KeePassXC
+ov secrets gpg setup --passphrase "xxx"                 # Batch mode (no prompts)
+```
+
+**Steps performed:**
+1. Check prerequisites: `gpg`, `gpg-connect-agent`, `pinentry-qt` (libsecret), `secret-tool`
+2. Install `~/.gnupg/gpg-agent.conf` (pinentry-qt, 8h cache, allow-preset-passphrase)
+3. Enable systemd socket activation (`gpg-agent.socket`, `gpg-agent-extra.socket`)
+4. Restart gpg-agent
+5. Import or generate GPG key (RSA-4096, 2-year expiry, git config for name/email)
+6. Store passphrase in Secret Service for ALL keygrips (primary + subkeys)
+7. Verify encrypt/decrypt round-trip
+
+**Flags:**
+- `--import <path>` — Import key from file/directory before setup
+- `--from-keystore` — Import key from KeePassXC before setup
+- `--passphrase <value>` — Batch mode: generate key + store passphrase without prompts
+- `--key-id <id>` — Use specific existing key
+- `--skip-secret-service` — Skip passphrase storage in Secret Service
+
+### `ov secrets gpg doctor` — Health Check
+
+Read-only diagnostic of the full GPG/direnv chain:
+
+```bash
+ov secrets gpg doctor                    # Check everything
+ov secrets gpg doctor -f .secrets.prod   # Check specific file
+```
+
+**Checks:** gpg binary, gpg-agent status, gpg-agent.conf (pinentry, cache TTL), systemd sockets, secret keys, Secret Service availability, passphrase storage for each keygrip, key backups in Secret Service, .secrets file recipients and decrypt test.
+
+Returns non-zero exit code if any critical issue found.
+
+## GPG/KeePassXC Integration Architecture
+
+### Passphrase Flow (pinentry-qt ↔ KeePassXC)
+
+```
+gpg --decrypt .secrets
+  → gpg-agent (needs passphrase for subkey keygrip)
+    → spawns pinentry-qt
+      → pinentry-qt: secret_password_lookup_nonpageable_sync()
+        schema: "org.gnupg.Passphrase", attr: keygrip="<40-char-hex>"
+      → KeePassXC returns stored passphrase (if found) → no GUI prompt
+      → OR: pinentry-qt shows GUI dialog → user enters passphrase
+    → gpg-agent caches passphrase (8h default, 12h max)
+  → decryption succeeds
+```
+
+**Key facts:**
+- pinentry-qt links against libsecret and queries KeePassXC via `org.freedesktop.secrets` D-Bus API
+- Passphrase lookup uses schema `org.gnupg.Passphrase` with attribute `keygrip`
+- Each GPG key has multiple keygrips (one per key/subkey) — passphrases must be stored for ALL keygrips
+- `ov secrets gpg setup` stores passphrases for all keygrips automatically
+- gpg-agent's in-memory cache (8h/12h) reduces Secret Service lookups
+
+### Key Storage in KeePassXC
+
+Two Secret Service schemas:
+- **`org.gnupg.Passphrase`** — passphrase per keygrip (compatible with pinentry-qt auto-lookup)
+- **`org.gnupg.Key`** — armored private key backup (for `import-key --from-keystore` recovery)
+
+Both are standard Secret Service entries visible in KeePassXC's FdoSecrets-exposed group.
+
+### Error Diagnostics
+
+When decryption fails, `ov secrets gpg` now prints actionable diagnostics instead of raw GPG errors:
+- Which key ID the file is encrypted for
+- Whether the key exists in the local keyring
+- Whether the key is backed up in Secret Service (with restore command)
+- Agent status, config status, Secret Service availability
+- Specific `ov secrets gpg` commands to fix each issue
+
+## Key Management Workflows
+
+### First-Time Setup (New Machine)
+
+```bash
+# Option A: Import existing key from backup
+ov secrets gpg setup --import ~/Sync/Conf/gpg/
+
+# Option B: Restore from KeePassXC (if key was previously exported)
+ov secrets gpg setup --from-keystore
+
+# Option C: Generate fresh key
+ov secrets gpg setup
+# Then re-encrypt .secrets: ov secrets gpg encrypt -r <NEW_KEY_ID> -i .env -o .secrets
+```
+
+### Backup Key to KeePassXC
+
+```bash
+ov secrets gpg export-key --to-keystore              # Key backup
+ov secrets gpg export-key ~/Sync/Conf/gpg/           # Filesystem backup too
+```
+
+### Restore Key on New Machine
+
+```bash
+ov secrets gpg import-key --from-keystore            # From KeePassXC
+ov secrets gpg setup                                 # Configure agent + store passphrase
+```
+
+### Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `gpg: No secret key` | Key not in keyring | `ov secrets gpg import-key <path>` |
+| Constant passphrase prompts | Passphrase not in Secret Service | `ov secrets gpg setup` (stores for all keygrips) |
+| `decrypting .secrets failed` | Diagnostics printed automatically | Follow suggested `ov secrets gpg` commands |
+| `Secret Service not available` | KeePassXC not running/unlocked | Start KeePassXC, unlock database |
+| `secret-tool store` fails | No FdoSecrets exposed group | KeePassXC → right-click group → "Mark as Secret Service exposed" |
+| Passphrase stored but still prompted | Stored for wrong keygrip | `ov secrets gpg doctor` shows which keygrips need passphrases |
+
 ### Using .secrets Inside Containers
 
 For GPG agent forwarding into containers (so `gpg --decrypt` works inside), use the `agent-forwarding` layer. See `/ov-layers:agent-forwarding` for details. The container's GPG uses the host's agent via a forwarded socket — no GPG agent runs inside the container.
@@ -239,12 +394,11 @@ For GPG agent forwarding into containers (so `gpg --decrypt` works inside), use 
 - `/ov-layers:agent-forwarding` — SSH/GPG agent forwarding into containers
 - `/ov-layers:gnupg` — GnuPG package layer
 - `/ov-layers:direnv` — direnv environment loader
-- `gpg-agent-setup/CLAUDE.md` — GPG agent setup guide
 
 ## Source
 
-`ov/secrets_cmd.go` (CLI commands), `ov/secrets_gpg.go` (GPG .secrets commands), `ov/credential_kdbx.go` (KdbxStore backend).
+`ov/secrets_cmd.go` (CLI commands), `ov/secrets_gpg.go` (GPG .secrets commands, key management, diagnostics), `ov/credential_kdbx.go` (KdbxStore backend).
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves `ov secrets` commands, KeePass .kdbx credential management, GPG-encrypted `.secrets` file management, credential import/export, or secret database administration. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves `ov secrets` commands, KeePass .kdbx credential management, GPG-encrypted `.secrets` file management, GPG key management, Secret Service integration, credential import/export, or secret database administration. Invoke this skill BEFORE reading source code or launching Explore agents.

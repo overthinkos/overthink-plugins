@@ -47,7 +47,7 @@ Part of `agent-forwarding` composition layer, used in 27 application images incl
 
 ## Cross-References
 
-- `/ov:secrets` -- `ov secrets gpg` commands for managing GPG-encrypted `.secrets` files
+- `/ov:secrets` -- `ov secrets gpg` commands: key management (`import-key`, `export-key`), GPG agent setup (`setup`), health check (`doctor`), and `.secrets` file management
 - `/ov:shell` -- agent socket forwarding happens at `ov shell` invocation time
 - `/ov:service` -- agent forwarding in `ov start` direct mode
 

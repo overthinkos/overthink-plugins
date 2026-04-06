@@ -116,7 +116,7 @@ arch-ov, arch-test, aurora, bazzite-ai, comfyui, fedora-ov, fedora-test, githubr
 
 ## Cross-References
 
-- `/ov:secrets` -- `ov secrets gpg` for managing `.secrets` files; credential store for container secrets
+- `/ov:secrets` -- `ov secrets gpg` for managing `.secrets` files, GPG key management (`import-key`, `export-key`, `setup`, `doctor`), KeePassXC integration; credential store for container secrets
 - `/ov:shell` -- where SSH/GPG agent forwarding happens at runtime
 - `/ov:service` -- `ov start` direct mode forwarding
 - `/ov:config` -- `forward_gpg_agent`, `forward_ssh_agent` settings
