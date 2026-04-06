@@ -2,7 +2,7 @@
 name: jupyter-colab-ml-finetuning
 description: |
   Full CUDA ML JupyterLab image with finetuning notebooks, CRDT MCP server, and real-time collaboration.
-  Base: nvidia. Port 8888. Combines jupyter-colab-ml with 38 Unsloth fine-tuning notebooks.
+  Base: nvidia. Port 8888. Combines jupyter-colab-ml with 37 Unsloth fine-tuning notebooks.
   MUST be invoked before building, deploying, or troubleshooting the jupyter-colab-ml-finetuning image.
 ---
 
@@ -28,13 +28,13 @@ jupyter-colab-ml-finetuning:
 
 ## What's Different from jupyter-colab-ml
 
-This image is identical to `jupyter-colab-ml` with one addition: the `finetuning-notebooks` data layer, which seeds 38 Unsloth fine-tuning notebooks into `~/workspace/finetuning/`.
+This image is identical to `jupyter-colab-ml` with one addition: the `finetuning-notebooks` data layer, which seeds 37 Unsloth fine-tuning notebooks into `~/workspace/finetuning/`.
 
 ## Layer Composition
 
 - `jupyter-colab-ml` — Tier 2 environment-owning meta-layer (PyTorch >= 2.10.0, vLLM 0.19, unsloth, LangChain, CRDT MCP via jupyter-colab-mcp sub-layer)
 - `notebook-templates` — Starter notebooks (data layer, seeds ~/workspace)
-- `finetuning-notebooks` — 38 Unsloth fine-tuning notebooks (data layer, seeds ~/workspace/finetuning/)
+- `finetuning-notebooks` — 37 Unsloth fine-tuning notebooks (data layer, seeds ~/workspace/finetuning/)
 - `agent-forwarding` — SSH/GPG agent forwarding
 - `dbus` — D-Bus session bus
 - `ov` — Overthink CLI
@@ -57,7 +57,7 @@ This image is identical to `jupyter-colab-ml` with one addition: the `finetuning
 | Layer | Target | Dest | Contents |
 |-------|--------|------|----------|
 | notebook-templates | workspace | *(root)* | getting-started.ipynb |
-| finetuning-notebooks | workspace | finetuning/ | 38 Unsloth notebooks (SFT, GRPO, DPO, RLOO, QLoRA) |
+| finetuning-notebooks | workspace | finetuning/ | 37 Unsloth notebooks (SFT, GRPO, DPO, RLOO, QLoRA) |
 
 ## File Layout in JupyterLab
 
@@ -77,7 +77,7 @@ This image is identical to `jupyter-colab-ml` with one addition: the `finetuning
     06_Reward_Training_Qwen.ipynb
     07_RLOO_Training_Qwen.ipynb
     08_QLoRA_Alpha_Scaling_Ministral.ipynb
-    ... (38 notebooks total)
+    ... (37 notebooks total)
 ```
 
 ## Deploy

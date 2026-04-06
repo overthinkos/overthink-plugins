@@ -101,7 +101,7 @@ Jupyter MCP server for programmatic notebook access with real-time collaboration
 
 Multiple MCP clients can edit the same notebook simultaneously — changes sync via CRDT.
 
-### ov-layers (151 skills)
+### ov-layers (152 skills)
 
 Reference documentation for every Overthink container layer.
 
@@ -333,7 +333,7 @@ Reference documentation for every enabled Overthink container image.
 | Component | Count |
 |-----------|-------|
 | Plugins | 5 |
-| Skills | 226 |
+| Skills | 228 |
 | Agents | 3 |
 | MCP Servers | 2 (GitHub, Jupyter) |
 | MCP Tools | 35 (22 GitHub + 13 Jupyter) |

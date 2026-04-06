@@ -39,7 +39,7 @@ This layer has **no pixi.toml** and **no depends**. It installs pip packages int
 
 ## Used In Layers (via `layers:` field)
 
-- `/ov-layers:jupyter-colab-ml` — `layers: [llama-cpp, unsloth]`
+- `/ov-layers:jupyter-colab-ml` — `layers: [llama-cpp, unsloth, jupyter-colab-mcp]`
 - `/ov-layers:unsloth-studio` — `layers: [llama-cpp, unsloth]`
 
 ## Related Layers
