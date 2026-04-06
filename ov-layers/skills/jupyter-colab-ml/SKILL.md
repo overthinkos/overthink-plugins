@@ -38,7 +38,7 @@ Build order: pixi environment → llama-cpp (binaries) → unsloth (vllm wheel +
 
 **PyPI (Fine-tuning):** peft, trl, bitsandbytes, deepspeed, liger-kernel
 
-**PyPI (LangChain):** langchain, langchain-core, langchain-openai, langchain-community, langchain-classic, langchain-anthropic, chromadb, faiss-cpu
+**PyPI (LangChain):** langchain, langchain-core, langchain-openai, langchain-community, langchain-classic, langchain-anthropic, langchain-huggingface, langchain-ollama, chromadb, faiss-cpu
 
 **PyPI (Evaluation):** evidently (with llm extras), evaluate, sacrebleu, rouge-score, nltk, bertviz
 
