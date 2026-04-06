@@ -140,17 +140,26 @@ See `/ov:config` for `--update-all` flag and `/ov:deploy` for global env in depl
 
 ### Port Protocol Annotations
 
-Ports support a protocol prefix that controls EXPOSE format, tailscale serve mode, and port mapping.
+Ports support a protocol prefix that controls the backend scheme for tunnel commands, EXPOSE format, and port mapping.
 
 ```yaml
 ports:
-  - 18789        # http (default) -> EXPOSE 18789, tailscale serve --https
-  - tcp:5900     # tcp -> EXPOSE 5900, tailscale serve --tcp
-  - udp:47998    # udp -> EXPOSE 47998/udp, -p 47998:47998/udp, not tunneled
-  - 9222         # http (default)
+  - 18789                   # http (default) -> tailscale serve --https, cloudflared http://
+  - "https+insecure:3000"   # https+insecure -> tailscale serve --https with https+insecure:// target
+  - tcp:5900                # tcp -> tailscale serve --tcp, cloudflared tcp://
+  - "tls-terminated-tcp:22" # tls-terminated-tcp -> tailscale serve --tls-terminated-tcp
+  - udp:47998               # udp -> EXPOSE 47998/udp, not tunneled (warning)
+  - 9222                    # http (default)
 ```
 
-UDP ports generate `EXPOSE <port>/udp` in Containerfiles and `-p host:container/udp` in port mappings. Tailscale serve and Cloudflare tunnels do not support UDP — a warning is printed when UDP ports are encountered in tunnel configs.
+**Tailscale schemes:** `http` (default), `https`, `https+insecure`, `tcp`, `tls-terminated-tcp`
+**Cloudflare schemes:** `http` (default), `https`, `tcp`, `ssh`, `rdp`, `smb`
+
+UDP ports generate `EXPOSE <port>/udp` and are never tunneled. `ov validate` checks that port schemes are supported by the configured tunnel provider.
+
+Ports with HTTPS backends (like Traefik with self-signed certs) MUST use `https+insecure` — plain `http` proxying to an HTTPS backend returns 404.
+
+Protocol stored in OCI label `org.overthinkos.port_protos` (JSON map, only non-http entries). See `/ov:deploy` for tunnel backend scheme details.
 
 ### security.shm_size
 

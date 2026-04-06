@@ -110,18 +110,51 @@ fqdn: "app.example.com"
 
 `ov start` then starts both the container and the tunnel service together.
 
+### Backend Schemes
+
+Port protocols declared in `layer.yml` control the backend URL scheme used by tunnel commands. The protocol flows from layer → OCI label (`org.overthinkos.port_protos`) → tunnel command.
+
+**Tailscale serve/funnel schemes:**
+
+| Scheme | Target URL | Tailscale flag | Use case |
+|--------|-----------|----------------|----------|
+| `http` (default) | `http://127.0.0.1:PORT` | `--https` | Plain HTTP backends |
+| `https` | `https://127.0.0.1:PORT` | `--https` | HTTPS with valid cert |
+| `https+insecure` | `https+insecure://127.0.0.1:PORT` | `--https` | HTTPS with self-signed cert (e.g., Traefik) |
+| `tcp` | `tcp://127.0.0.1:PORT` | `--tcp` | Raw TCP forwarding |
+| `tls-terminated-tcp` | `tcp://127.0.0.1:PORT` | `--tls-terminated-tcp` | TLS-terminated TCP |
+
+**Cloudflare tunnel schemes:**
+
+| Scheme | Ingress service | Use case |
+|--------|----------------|----------|
+| `http` (default) | `http://localhost:PORT` | HTTP origins |
+| `https` | `https://localhost:PORT` | HTTPS origins (use with `noTLSVerify`) |
+| `tcp` | `tcp://localhost:PORT` | Raw TCP (requires client-side cloudflared) |
+| `ssh` | `ssh://localhost:PORT` | SSH tunneling |
+| `rdp` | `rdp://localhost:PORT` | RDP streaming |
+| `smb` | `smb://localhost:PORT` | SMB/CIFS file sharing |
+
+**UDP** ports are never tunneled — a warning is printed. UDP traffic works directly between tailnet nodes.
+
+`ov validate` checks port schemes against provider capabilities. For example, `ssh` is valid for Cloudflare but not Tailscale; `tls-terminated-tcp` is valid for Tailscale but not Cloudflare.
+
+See `/ov:layer` for port protocol syntax in `layer.yml`.
+
 ### Multi-Port Tailscale Serve
 
-When `ports: all`, every image port gets its own `tailscale serve` command:
+When `private: all` or `ports: all`, every image port gets its own `tailscale serve` command with scheme-appropriate flags:
 
 ```yaml
 tunnel:
   provider: tailscale
-  ports: all
+  private: all
 ```
 
-- HTTP ports (default): `tailscale serve --bg --https=PORT http://127.0.0.1:PORT`
-- TCP ports (from `tcp:` annotation): `tailscale serve --bg --tcp=PORT tcp://127.0.0.1:PORT`
+- `tailscale serve --bg --https=PORT http://127.0.0.1:PORT` (http, default)
+- `tailscale serve --bg --https=PORT https+insecure://127.0.0.1:PORT` (https+insecure)
+- `tailscale serve --bg --tcp=PORT tcp://127.0.0.1:PORT` (tcp)
+- `tailscale serve --bg --tls-terminated-tcp=PORT tcp://127.0.0.1:PORT` (tls-terminated-tcp)
 
 Quadlet generates multiple `ExecStartPost=` and `ExecStopPost=` lines. Requires `tailscale set --operator=$USER` for non-root access.
 
@@ -131,7 +164,7 @@ Port protocols are stored in the `org.overthinkos.port_protos` image label so re
 
 `tunnel` inherits from defaults (image -> defaults -> nil). The shorthand `tunnel: tailscale` defaults to `private: all` (all ports on tailnet). The shorthand `tunnel: cloudflare` defaults to `public: all`.
 
-Source: `ov/tunnel.go`, `ov/validate.go` (`validateTunnel`), `ov/quadlet.go` (systemd integration).
+Source: `ov/tunnel.go` (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`, `validTailscaleSchemes`, `validCloudflareSchemes`), `ov/validate.go` (`validateTunnel`), `ov/quadlet.go` (systemd integration).
 
 ## deploy.yml — Source of Truth
 

@@ -90,6 +90,31 @@ ov start selkies-desktop-hermes-jupyter
 # Open http://localhost:8888   (JupyterLab)
 ```
 
+## Tailnet Deployment
+
+Expose ports 3000 and 8888 to all hosts in your Tailscale network:
+
+```bash
+ov deploy import <<EOF
+images:
+  selkies-desktop-hermes-jupyter:
+    tunnel:
+      provider: tailscale
+      private: [3000, 8888]
+EOF
+
+ov config selkies-desktop-hermes-jupyter
+ov start selkies-desktop-hermes-jupyter
+
+# Access from any tailnet host:
+#   https://<hostname>:3000  (Selkies desktop, https+insecure backend)
+#   https://<hostname>:8888  (JupyterLab, http backend)
+```
+
+Port 3000 uses `https+insecure` backend scheme (Traefik self-signed cert). Port 8888 uses plain `http`. Port 9222 (CDP) is intentionally not tunneled — it allows arbitrary JS execution.
+
+Requires: `sudo systemctl enable --now tailscaled && tailscale up && sudo tailscale set --operator=$USER`
+
 ## MCP Server
 
 The JupyterLab MCP server is at `http://localhost:8888/mcp` (Streamable HTTP, MCP spec 2025-11-25) with 13 tools for programmatic notebook access.

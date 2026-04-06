@@ -99,7 +99,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `deploy.go` | Per-deployment config overlay, `DeployVolumeConfig`, `ResolveVolumeBacking()`, `saveDeployState()` |
 | `enc.go` | Encrypted volumes (gocryptfs via `systemd-run --scope --user --unit=ov-enc-<image>-<volume>`), `ResolvedBindMount`. `-allow_other` required for rootless podman keep-id. `encUnmount()` stops scope units after fusermount. Stale scope retry on mount failure |
 | `devices.go` | Host device auto-detection (NVIDIA GPU, AMD GPU/KFD, /dev/dri, /dev/kvm, etc.) |
-| `tunnel.go` | Tunnel configuration (Tailscale, Cloudflare) |
+| `tunnel.go` | Tunnel providers (Tailscale, Cloudflare), backend scheme helpers (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`), scheme validation maps (`validTailscaleSchemes`, `validCloudflareSchemes`), start/stop for each provider |
 | `quadlet.go` | Quadlet .container file generation, `Secret=` directives |
 | `credential_store.go` | `CredentialStore` interface, `ResolveCredential()`, `DefaultCredentialStore()`, `ConfigMigrateSecretsCmd` |
 | `credential_keyring.go` | System keyring backend (`go-keyring`: GNOME Keyring, KDE Wallet, KeePassXC) |

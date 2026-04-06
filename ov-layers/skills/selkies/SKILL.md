@@ -58,10 +58,12 @@ Build-time dependencies (gcc, nodejs, npm, python3-devel, libxkbcommon-devel) ar
 
 ## Ports
 
-| Port | Protocol | Service |
-|------|----------|---------|
-| 3000 | HTTPS | Traefik (web UI + WebSocket proxy, self-signed cert) |
-| 8081 | WebSocket | Selkies streaming backend (internal only) |
+| Port | Protocol | Backend Scheme | Service |
+|------|----------|---------------|---------|
+| 3000 | HTTPS | `https+insecure` | Traefik (web UI + WebSocket proxy, self-signed cert) |
+| 8081 | WebSocket | (internal only) | Selkies streaming backend |
+
+Port 3000 uses `https+insecure` backend scheme because Traefik terminates TLS with a self-signed certificate. When tunneled via Tailscale, this generates `tailscale serve --bg --https=3000 https+insecure://127.0.0.1:3000` — Tailscale terminates TLS on the tailnet side and proxies to the self-signed HTTPS backend. Plain `http://` proxying would get 404 from Traefik.
 
 ## Environment
 
@@ -111,6 +113,8 @@ Build-time dependencies (gcc, nodejs, npm, python3-devel, libxkbcommon-devel) ar
 
 - `/ov-images:selkies-desktop`
 - `/ov-images:selkies-desktop-nvidia`
+- `/ov-images:selkies-desktop-hermes`
+- `/ov-images:selkies-desktop-hermes-jupyter`
 
 ## Related Commands
 
