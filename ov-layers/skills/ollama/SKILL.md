@@ -33,7 +33,7 @@ description: |
 
 When `ov config ollama` runs, `OLLAMA_HOST` is automatically injected into the global `deploy.yml` env. All other deployed containers receive this variable, enabling automatic Ollama service discovery. Use `ov config ollama --update-all` to propagate to already-deployed services immediately.
 
-See `/ov:layer` for `service_env` field docs and `/ov:config` for `--update-all`.
+See `/ov:layer` for `env_provides` field docs and `/ov:config` for `--update-all`.
 
 ## Usage
 

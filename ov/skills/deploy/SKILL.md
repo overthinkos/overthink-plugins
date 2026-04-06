@@ -175,14 +175,14 @@ Allowed fields: `workspace`, `version`, `status`, `info`, `tunnel`, `fqdn`, `acm
 
 ### Global Environment (Top-Level)
 
-The top-level `env:` and `service_env_sources:` fields in `deploy.yml` are shared across all deployed images. Managed automatically by `ov config` when images with `service_env` layers are deployed.
+The top-level `env:` and `env_provides_sources:` fields in `deploy.yml` are shared across all deployed images. Managed automatically by `ov config` when images with `env_provides` layers are deployed.
 
 ```yaml
 env:
   - OLLAMA_HOST=http://ov-ollama:11434
   - PGHOST=ov-postgresql
   - PGPORT=5432
-service_env_sources:
+env_provides_sources:
   OLLAMA_HOST: ollama
   PGHOST: postgresql
   PGPORT: postgresql
@@ -191,11 +191,11 @@ images:
 ```
 
 - `env:` — global env vars injected into all containers (lowest priority in the 6-level chain)
-- `service_env_sources:` — tracks which image injected each var (for cleanup on `ov remove` and self-exclusion)
+- `env_provides_sources:` — tracks which image injected each var (for cleanup on `ov remove` and self-exclusion)
 - Priority (last wins): global env < per-image deploy env < deploy env_file < workspace .env < CLI --env-file < CLI -e
 - `ov config remove` / `ov remove` automatically cleans up vars from the removed image
 
-See `/ov:layer` for `service_env` field declaration and `/ov:config` for `--update-all` propagation.
+See `/ov:layer` for `env_provides` field declaration and `/ov:config` for `--update-all` propagation.
 
 ### Secrets
 
@@ -350,7 +350,7 @@ Requires the `socat` layer as a dependency. The relay runs as a `relay-<port>` s
 - `/ov:build` -- Building images before deployment
 - `/ov:config` -- bind_address, run_mode, auto_enable, vnc.password settings
 - `/ov:image` -- Image configuration
-- `/ov:layer` — `service_env` field declaration
+- `/ov:layer` — `env_provides` field declaration
 
 ## When to Use This Skill
 

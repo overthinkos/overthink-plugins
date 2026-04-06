@@ -30,7 +30,7 @@ description: |
 
 When `ov config` runs for an image containing this layer, `REDIS_URL` is automatically injected into the global `deploy.yml` env for cross-container Redis service discovery.
 
-See `/ov:layer` for `service_env` field docs.
+See `/ov:layer` for `env_provides` field docs.
 
 ## Packages
 

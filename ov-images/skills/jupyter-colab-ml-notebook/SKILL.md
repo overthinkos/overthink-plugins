@@ -20,6 +20,7 @@ jupyter-colab-ml-notebook:
     - notebook-finetuning
     - notebook-ollama
     - notebook-llm-on-supercomputers
+    - notebook-openrouter
     - dbus
     - ov
   ports:
@@ -34,7 +35,7 @@ This image is identical to `jupyter-colab-ml` with two data layer additions:
 - `notebook-finetuning` — seeds 37 Unsloth fine-tuning notebooks into `~/workspace/finetuning/`
 - `notebook-ollama` — seeds 6 Ollama integration notebooks into `~/workspace/ollama/`
 
-The Ollama notebooks require a running `ollama` deployment. When deployed via `ov config ollama --update-all`, the `OLLAMA_HOST` env var is automatically injected via `service_env` -- no manual configuration needed.
+The Ollama notebooks require a running `ollama` deployment. When deployed via `ov config ollama --update-all`, the `OLLAMA_HOST` env var is automatically injected via `env_provides` -- no manual configuration needed.
 
 ## Layer Composition
 
@@ -107,13 +108,13 @@ The Ollama notebooks require a running `ollama` deployment. When deployed via `o
 
 ## Service Environment Integration
 
-This image is a **consumer** of service_env variables from infrastructure layers:
+This image is a **consumer** of env_provides variables from infrastructure layers:
 
 | Variable | Injected by | Value |
 |----------|------------|-------|
 | `OLLAMA_HOST` | `/ov-layers:ollama` | `http://ov-ollama:11434` |
 
-The notebooks read `OLLAMA_HOST` via `os.getenv("OLLAMA_HOST", "http://localhost:11434")`. When ollama is deployed via `ov config ollama --update-all`, the service_env mechanism overrides the localhost default automatically.
+The notebooks read `OLLAMA_HOST` via `os.getenv("OLLAMA_HOST", "http://localhost:11434")`. When ollama is deployed via `ov config ollama --update-all`, the env_provides mechanism overrides the localhost default automatically.
 
 ## Deploy
 

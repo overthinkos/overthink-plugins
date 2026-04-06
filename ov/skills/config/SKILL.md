@@ -76,7 +76,7 @@ This is the **single entry point** for deployment setup. `ov start` requires `ov
 8. Initializes encrypted volumes (gocryptfs) if configured
 9. Seeds data layers into bind-backed volumes
 10. Runs `systemctl --user daemon-reload`
-11. Injects `service_env` vars from image labels into global `deploy.yml` env
+11. Injects `env_provides` vars from image labels into global `deploy.yml` env
 12. If `--update-all`, regenerates quadlets for all other deployed images and reloads systemd
 
 ## Volume Backing
@@ -175,25 +175,25 @@ ov config my-app --bind workspace=/new/path
 
 ## Service Environment Injection
 
-When a configured image declares `service_env` in its layers (stored in the `org.overthinkos.service_env` OCI label), `ov config` automatically injects those environment variables into the global `env:` section of `deploy.yml`. This provides cross-container service discovery without manual configuration.
+When a configured image declares `env_provides` in its layers (stored in the `org.overthinkos.env_provides` OCI label), `ov config` automatically injects those environment variables into the global `env:` section of `deploy.yml`. This provides cross-container service discovery without manual configuration.
 
 ```yaml
 # deploy.yml after `ov config ollama`
 env:
   - OLLAMA_HOST=http://ov-ollama:11434
-service_env_sources:
+env_provides_sources:
   OLLAMA_HOST: ollama
 images:
   ollama: { ... }
 ```
 
-**Self-exclusion:** An image's own service_env vars are filtered out of its own environment — the image uses its own `env:` (e.g., `OLLAMA_HOST=0.0.0.0`), not the service discovery URL.
+**Self-exclusion:** An image's own env_provides vars are filtered out of its own environment — the image uses its own `env:` (e.g., `OLLAMA_HOST=0.0.0.0`), not the service discovery URL.
 
 **Propagation:** Use `--update-all` to regenerate quadlets for all other deployed images so they pick up the new env vars immediately. Without `--update-all`, other images pick up the env vars on their next `ov config` or `ov update`.
 
 **Cleanup:** `ov config remove` and `ov remove` automatically remove the service's injected vars from the global env.
 
-See `/ov:layer` for `service_env` field documentation.
+See `/ov:layer` for `env_provides` field documentation.
 
 ## Cross-References
 
@@ -205,7 +205,7 @@ See `/ov:layer` for `service_env` field documentation.
 - `/ov:service` — Service lifecycle (start, stop, status, logs)
 - `/ov:layer` — Volume and secret declarations in layer.yml
 - `/ov:image` — Image composition and inheritance
-- `/ov:layer` — `service_env` field documentation
+- `/ov:layer` — `env_provides` field documentation
 
 ## When to Use This Skill
 

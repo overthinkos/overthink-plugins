@@ -26,6 +26,19 @@ description: |
 | `HERMES_HOME` | `/opt/data` |
 | `TERMINAL_ENV` | `local` |
 
+## Optional Environment Variables (env_accepts)
+
+These env vars are declared via `env_accepts:` in `layer.yml` — hermes can use any LLM provider, so none are required:
+
+| Variable | Description |
+|----------|-------------|
+| `OPENROUTER_API_KEY` | API key for OpenRouter LLM inference |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot token for messaging |
+| `SLACK_BOT_TOKEN` | Slack bot token |
+| `DISCORD_BOT_TOKEN` | Discord bot token |
+
+Provide via `ov config hermes -e OPENROUTER_API_KEY=...` or workspace `.env` file.
+
 ## Architecture
 
 This is a **Tier 2 environment-owner layer** with `pixi.toml` defining the Python 3.13 environment. Follows the **selkies build.sh pattern**: the `build.sh` script runs in the pixi builder stage (which has gcc, nodejs, npm) to clone the hermes-agent repo, pip install it, and set up the WhatsApp bridge.

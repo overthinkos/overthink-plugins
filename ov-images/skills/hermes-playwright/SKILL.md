@@ -31,9 +31,11 @@ Inherits everything from the `hermes` image, plus:
 
 ```bash
 ov build hermes-playwright
-ov config hermes-playwright
+ov config hermes-playwright -e OPENROUTER_API_KEY=sk-xxx
 ov start hermes-playwright
 ```
+
+Hermes accepts optional env vars (inherited from the hermes layer via `env_accepts`): `OPENROUTER_API_KEY`, `TELEGRAM_BOT_TOKEN`, `SLACK_BOT_TOKEN`, `DISCORD_BOT_TOKEN`. See `/ov-images:hermes` for details.
 
 ## Playwright Usage
 

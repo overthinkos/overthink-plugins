@@ -52,7 +52,15 @@ ov shell hermes -c "hermes chat"
 
 ## Configuration
 
-API keys and settings are provided via environment variables at deploy time:
+API keys and settings are provided via environment variables at deploy time. The hermes layer declares these as `env_accepts` (optional — hermes works with multiple LLM providers):
+
+| Variable | Description |
+|----------|-------------|
+| `OPENROUTER_API_KEY` | API key for OpenRouter LLM inference |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot token for messaging |
+| `SLACK_BOT_TOKEN` | Slack bot token |
+| `DISCORD_BOT_TOKEN` | Discord bot token |
+
 ```bash
 # Via ov config env vars
 ov config hermes -e OPENROUTER_API_KEY=sk-xxx -e TELEGRAM_BOT_TOKEN=xxx

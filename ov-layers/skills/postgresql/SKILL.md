@@ -40,7 +40,7 @@ The entrypoint also reads these variables (with defaults, not set in layer.yml):
 
 When `ov config` runs for an image containing this layer, `PGHOST` and `PGPORT` are automatically injected into the global `deploy.yml` env for cross-container PostgreSQL service discovery.
 
-See `/ov:layer` for `service_env` field docs.
+See `/ov:layer` for `env_provides` field docs.
 
 ## Packages
 
