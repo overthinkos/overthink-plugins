@@ -1,4 +1,11 @@
-# Layer: labwc
+---
+name: labwc
+description: |
+  Lightweight Wayland compositor (wlroots-based) for nested desktop inside pixelflux.
+  MUST be invoked when working with: the labwc layer, Wayland compositor config in selkies images, or labwc-wrapper.
+---
+
+# labwc -- Nested Wayland compositor for Selkies desktop
 
 Lightweight Wayland compositor (wlroots-based) for use as a nested desktop inside pixelflux's Wayland capture compositor.
 
@@ -55,3 +62,15 @@ All windows open maximized (ideal for streaming desktop):
 - `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
 - `/ov-images:selkies-desktop-hermes` (via `selkies-desktop` metalayer)
 - `/ov-images:selkies-desktop-hermes-jupyter` (via `selkies-desktop` metalayer)
+
+## Related Skills
+
+- `/ov-layers:selkies` — pixelflux streaming engine (provides `wayland-1` that labwc connects to)
+- `/ov-layers:selkies-desktop` — desktop metalayer that composes labwc + chrome + waybar + selkies
+- `/ov-layers:waybar-labwc` — status bar configured for labwc
+- `/ov-layers:chrome` — Chrome browser (auto-started by labwc's autostart)
+- `/ov:wl` — Wayland automation commands (screenshots, input, window management)
+
+## When to Use This Skill
+
+**MUST be invoked** when the task involves the labwc layer, Wayland compositor configuration in selkies images, the labwc-wrapper script, window rules, or the nested compositor architecture (pixelflux → labwc → apps).

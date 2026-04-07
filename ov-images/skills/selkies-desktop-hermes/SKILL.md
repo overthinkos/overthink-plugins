@@ -99,9 +99,16 @@ HTTPS is required for WebCodecs API (`VideoDecoder`) used by the Selkies JS clie
 
 ## Quick Start
 
+The hermes entrypoint auto-configures the LLM provider from env vars (priority: `OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`):
+
 ```bash
 ov build selkies-desktop-hermes
-ov config selkies-desktop-hermes -e OPENROUTER_API_KEY=sk-xxx
+
+# Ollama Cloud / OpenRouter / Local Ollama (pick one):
+ov config selkies-desktop-hermes -e OLLAMA_API_KEY=your-key
+# ov config selkies-desktop-hermes -e OPENROUTER_API_KEY=sk-or-xxx
+# ov config selkies-desktop-hermes   # (uses OLLAMA_HOST if injected by ollama sidecar)
+
 ov start selkies-desktop-hermes
 # Access: https://localhost:3000 (accept cert warning)
 ov wl screenshot selkies-desktop-hermes screenshot.png

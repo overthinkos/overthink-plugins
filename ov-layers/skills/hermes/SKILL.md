@@ -33,11 +33,31 @@ These env vars are declared via `env_accepts:` in `layer.yml` — hermes can use
 | Variable | Description |
 |----------|-------------|
 | `OPENROUTER_API_KEY` | API key for OpenRouter LLM inference |
+| `OLLAMA_API_KEY` | API key for Ollama Cloud inference (https://ollama.com) |
+| `OLLAMA_HOST` | Local Ollama server URL (auto-injected by ollama layer `env_provides`) |
+| `HERMES_MODEL` | Override default Hermes model (default depends on detected provider) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token for messaging |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `DISCORD_BOT_TOKEN` | Discord bot token |
 
-Provide via `ov config hermes -e OPENROUTER_API_KEY=...` or workspace `.env` file.
+Provide via `ov config hermes -e OLLAMA_API_KEY=...` or workspace `.secrets` / `.env` file.
+
+## Automatic LLM Provider Configuration
+
+The `hermes-entrypoint` auto-detects and configures the LLM provider on first start based on environment variables. Priority order:
+
+| Priority | Env var | Provider | Default model |
+|----------|---------|----------|---------------|
+| 1 | `OLLAMA_HOST` | Local Ollama (`custom`) | `qwen2.5-coder:32b` |
+| 2 | `OLLAMA_API_KEY` | Ollama Cloud (`custom`) | `kimi-k2.5:cloud` |
+| 3 | `OPENROUTER_API_KEY` | OpenRouter (built-in) | `qwen/qwen3.6-plus:free` |
+
+**How it works:**
+- **Phase A (first start):** Registers ALL providers whose env vars are set into `config.yaml` as `custom_providers` entries. Priority determines only the default model and auxiliary task routing. Writes a `# ov:provider-configured` sentinel to prevent re-patching after user customization
+- **Phase B (every start):** Refreshes API keys in `config.yaml` (Ollama Cloud only) to handle key rotation
+- Override the default model with `HERMES_MODEL` env var
+- Switch between registered providers mid-session: `/model custom:ollama-cloud:kimi-k2.5:cloud` or `hermes chat --provider openrouter`
+- To force full reconfigure: remove the sentinel line from `/opt/data/config.yaml`, update env vars, restart
 
 ## Architecture
 
@@ -59,6 +79,7 @@ This is a **Tier 2 environment-owner layer** with `pixi.toml` defining the Pytho
 The `hermes-entrypoint` script (run by supervisord) initializes the data volume on first start:
 - Creates `$HERMES_HOME/{cron,sessions,logs,hooks,memories,skills}`
 - Copies `.env.example`, `config.yaml`, `SOUL.md` defaults if not present
+- Auto-configures LLM provider from environment (see Automatic LLM Provider Configuration above)
 - Syncs bundled skills via `skills_sync.py`
 - Execs `hermes`
 

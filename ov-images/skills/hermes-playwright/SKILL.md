@@ -31,11 +31,11 @@ Inherits everything from the `hermes` image, plus:
 
 ```bash
 ov build hermes-playwright
-ov config hermes-playwright -e OPENROUTER_API_KEY=sk-xxx
+ov config hermes-playwright -e OLLAMA_API_KEY=your-key   # or OPENROUTER_API_KEY
 ov start hermes-playwright
 ```
 
-Hermes accepts optional env vars (inherited from the hermes layer via `env_accepts`): `OPENROUTER_API_KEY`, `TELEGRAM_BOT_TOKEN`, `SLACK_BOT_TOKEN`, `DISCORD_BOT_TOKEN`. See `/ov-images:hermes` for details.
+The hermes entrypoint auto-configures the LLM provider from env vars (priority: `OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`). Override the default model with `HERMES_MODEL`. See `/ov-images:hermes` for full provider configuration details.
 
 ## Playwright Usage
 

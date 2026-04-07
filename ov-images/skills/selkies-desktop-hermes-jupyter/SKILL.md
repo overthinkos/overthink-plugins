@@ -82,9 +82,26 @@ All layers from `selkies-desktop-hermes` are inherited:
 
 ## Quick Start
 
+The hermes entrypoint auto-configures the LLM provider based on which env var is set (priority: `OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`):
+
 ```bash
 ov build selkies-desktop-hermes-jupyter
-ov config selkies-desktop-hermes-jupyter -e OPENROUTER_API_KEY=sk-xxx
+
+# Option 1: Ollama Cloud (no local GPU needed)
+ov config selkies-desktop-hermes-jupyter -e OLLAMA_API_KEY=your-key
+# Auto-configures: kimi-k2.5:cloud via https://ollama.com/v1
+
+# Option 2: OpenRouter
+ov config selkies-desktop-hermes-jupyter -e OPENROUTER_API_KEY=sk-or-xxx
+# Auto-configures: qwen/qwen3.6-plus:free via OpenRouter
+
+# Option 3: Local Ollama sidecar (OLLAMA_HOST auto-injected by ov config ollama --update-all)
+ov config selkies-desktop-hermes-jupyter
+# Auto-configures: qwen2.5-coder:32b via local Ollama
+
+# Override default model with any provider:
+ov config selkies-desktop-hermes-jupyter -e OLLAMA_API_KEY=your-key -e HERMES_MODEL=llama3.3:cloud
+
 ov start selkies-desktop-hermes-jupyter
 # Open https://localhost:3000  (Selkies desktop)
 # Open http://localhost:8888   (JupyterLab)

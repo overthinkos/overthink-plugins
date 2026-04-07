@@ -1,3 +1,11 @@
+---
+name: jupyter-colab-mcp
+description: |
+  JupyterLab CRDT MCP server extension with 13 tools for programmatic notebook access.
+  MUST be invoked when working with: the MCP server implementation, CRDT collaboration,
+  or the Tier 1 pip-only installation pattern for jupyter extensions.
+---
+
 # jupyter-colab-mcp -- JupyterLab CRDT MCP server extension
 
 ## Layer Properties
@@ -90,6 +98,7 @@ layers/jupyter-colab-mcp/
 - `/ov-images:jupyter-colab`
 - `/ov-images:jupyter-colab-ml`
 - `/ov-images:jupyter-colab-ml-notebook`
+- `/ov-images:selkies-desktop-hermes-jupyter` (via `jupyter-colab` layer)
 
 ## Related Skills
 

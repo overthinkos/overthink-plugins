@@ -45,25 +45,38 @@ Headless Hermes AI agent by Nous Research — voice, messaging, tool-calling, sk
 
 ```bash
 ov build hermes
-ov config hermes
+ov config hermes -e OLLAMA_API_KEY=your-key   # or OPENROUTER_API_KEY
 ov start hermes
 ov shell hermes -c "hermes chat"
 ```
 
 ## Configuration
 
-API keys and settings are provided via environment variables at deploy time. The hermes layer declares these as `env_accepts` (optional — hermes works with multiple LLM providers):
+The hermes entrypoint auto-configures the LLM provider based on which env var is set:
+
+| Priority | Env var | Provider | Default model |
+|----------|---------|----------|---------------|
+| 1 | `OLLAMA_HOST` | Local Ollama | `qwen2.5-coder:32b` |
+| 2 | `OLLAMA_API_KEY` | Ollama Cloud | `kimi-k2.5:cloud` |
+| 3 | `OPENROUTER_API_KEY` | OpenRouter | `qwen/qwen3.6-plus:free` |
+
+Override the default model with `HERMES_MODEL` env var. Additional `env_accepts`:
 
 | Variable | Description |
 |----------|-------------|
-| `OPENROUTER_API_KEY` | API key for OpenRouter LLM inference |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token for messaging |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `DISCORD_BOT_TOKEN` | Discord bot token |
 
 ```bash
-# Via ov config env vars
-ov config hermes -e OPENROUTER_API_KEY=sk-xxx -e TELEGRAM_BOT_TOKEN=xxx
+# Ollama Cloud
+ov config hermes -e OLLAMA_API_KEY=your-key
+
+# OpenRouter with custom model
+ov config hermes -e OPENROUTER_API_KEY=sk-or-xxx -e HERMES_MODEL=google/gemini-2.5-flash
+
+# Local Ollama (OLLAMA_HOST auto-injected by ov config ollama --update-all)
+ov config hermes
 
 # Or via .env file in the data volume
 ov shell hermes -c "vi /opt/data/.env"

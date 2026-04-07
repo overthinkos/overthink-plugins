@@ -55,11 +55,16 @@ ollama run llama3          # uses the alias
 - `/ov-images:openclaw-ollama`
 - `/ov-images:openclaw-ollama-sway-browser`
 
+## Cross-Container Integration
+
+The `env_provides` mechanism makes `OLLAMA_HOST` available to all containers. The `hermes` layer auto-detects this variable and configures itself to use local Ollama as its LLM provider (highest priority in the auto-detection chain: `OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`). See `/ov-layers:hermes` for details on the auto-provider-configuration.
+
 ## Related Layers
 
 - `/ov-layers:cuda` -- CUDA toolkit dependency
 - `/ov-layers:supervisord` -- process manager dependency
 - `/ov-layers:openclaw` -- AI gateway that can use Ollama as backend
+- `/ov-layers:hermes` -- AI agent that auto-detects `OLLAMA_HOST` for local Ollama provider
 
 ## Related Commands
 

@@ -195,6 +195,24 @@ images:
 
 See `/ov:layer` for `env_provides` field documentation.
 
+## Hermes LLM Provider Auto-Configuration Example
+
+The hermes layer uses `-e` env vars to auto-configure its LLM provider on first start. Pass the API key at config time:
+
+```bash
+# Ollama Cloud
+ov config selkies-desktop-hermes-jupyter -e OLLAMA_API_KEY=your-key
+
+# OpenRouter
+ov config hermes -e OPENROUTER_API_KEY=sk-or-xxx
+
+# Local Ollama (OLLAMA_HOST auto-injected by ov config ollama --update-all)
+ov config ollama --update-all
+ov config hermes
+```
+
+All providers whose keys are present get registered simultaneously. Priority (`OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`) only determines the default. Override model with `-e HERMES_MODEL=...`. See `/ov-layers:hermes` for auto-provider-config details.
+
 ## Cross-References
 
 - `/ov:start` — Requires `ov config` first in quadlet mode
