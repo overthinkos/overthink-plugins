@@ -136,6 +136,12 @@ The data volume (`/opt/data`) persists: sessions, skills, memories, logs, config
 - **Rendering:** NVIDIA GPU via CDI (`DRINODE=/dev/dri/renderD129`), AMD/Intel via Mesa
 - **Encoding:** NVENC detected but currently fails with driver 590.48. Falls back to CPU x264enc-striped at 60fps.
 
+## Shared Browser
+
+Hermes browser tools (`browser_navigate`, `browser_click`, `browser_snapshot`, etc.) use the desktop Chrome — the only browser in the image. The chrome layer's `env_provides: BROWSER_CDP_URL` is pod-aware resolved to `http://localhost:9222`, so hermes connects to Chrome's CDP port automatically.
+
+The user can watch hermes browse in real-time via the Selkies stream at `:3000`. No separate headless browser is installed. Use `/browser status` in hermes CLI to verify connection. `browser.inactivity_timeout` is set to `0` so hermes never disconnects from the shared browser.
+
 ## Verification
 
 ```bash
@@ -147,9 +153,21 @@ ov service status selkies-desktop-hermes      # hermes: RUNNING
 ov shell selkies-desktop-hermes -c "hermes --version"
 ```
 
+## Related Layers
+
+- `/ov-layers:hermes` — Hermes AI agent layer (env_accepts `BROWSER_CDP_URL`, `OV_MCP_SERVERS`)
+- `/ov-layers:chrome` — Chrome with CDP on port 9222 (env_provides `BROWSER_CDP_URL`)
+- `/ov-layers:selkies-desktop` — Desktop metalayer: labwc + chrome + pipewire + waybar + wl-tools
+
+## Related Commands
+
+- `/ov:cdp` — CDP automation for the desktop Chrome (click, type, eval, screenshot)
+- `/ov:wl` — Wayland automation (screenshots, input, window management, clipboard)
+
 ## Related Images
 
 - `/ov-images:selkies-desktop` — desktop only, no Hermes agent
+- `/ov-images:selkies-desktop-hermes-jupyter` — adds JupyterLab with MCP server
 - `/ov-images:hermes` — Hermes agent only, no desktop
 - `/ov-images:hermes-playwright` — Hermes agent with Playwright Chromium browser automation
 

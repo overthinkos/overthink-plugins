@@ -31,7 +31,7 @@ description: |
 |----------|---------------|-----------------|
 | `OLLAMA_HOST` | `http://{{.ContainerName}}:11434` | `http://ov-ollama:11434` |
 
-When `ov config ollama` runs, `OLLAMA_HOST` is automatically injected into the global `deploy.yml` env. All other deployed containers receive this variable, enabling automatic Ollama service discovery. Use `ov config ollama --update-all` to propagate to already-deployed services immediately.
+Pod-aware: same-container consumers receive `http://localhost:11434`, cross-container consumers receive `http://ov-ollama:11434`. When `ov config ollama` runs, `OLLAMA_HOST` is automatically injected into the global `deploy.yml` env. Use `ov config ollama --update-all` to propagate to already-deployed services immediately.
 
 See `/ov:layer` for `env_provides` field docs and `/ov:config` for `--update-all`.
 

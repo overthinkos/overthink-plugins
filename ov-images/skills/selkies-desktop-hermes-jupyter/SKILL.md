@@ -140,6 +140,10 @@ The JupyterLab MCP server is at `http://localhost:8888/mcp` (Streamable HTTP, MC
 claude mcp add --transport http --scope project jupyter-colab http://localhost:8888/mcp
 ```
 
+## Shared Browser
+
+Hermes browser tools (`browser_navigate`, `browser_click`, `browser_snapshot`, etc.) use the desktop Chrome — the only browser in the image. The chrome layer's `env_provides: BROWSER_CDP_URL` is pod-aware resolved to `http://localhost:9222`. The user can watch hermes browse in real-time via the Selkies stream at `:3000`. Use `/browser status` in hermes CLI to verify.
+
 ## Verification
 
 ```bash
@@ -170,6 +174,18 @@ hermes chat -q "Use the list_notebooks MCP tool to list notebooks"
 Or in interactive chat: `/reload-mcp` to refresh MCP server connections.
 
 No manual MCP registration needed -- configured automatically by the entrypoint from `OV_MCP_SERVERS`.
+
+## Related Layers
+
+- `/ov-layers:hermes` — Hermes AI agent (env_accepts `BROWSER_CDP_URL`, `OV_MCP_SERVERS`)
+- `/ov-layers:chrome` — Chrome with CDP (env_provides `BROWSER_CDP_URL`)
+- `/ov-layers:jupyter-colab` — JupyterLab with MCP server (mcp_provides `jupyter-colab`)
+- `/ov-layers:selkies-desktop` — Desktop metalayer: labwc + chrome + pipewire + waybar + wl-tools
+
+## Related Commands
+
+- `/ov:cdp` — CDP automation for the desktop Chrome
+- `/ov:wl` — Wayland automation (screenshots, input, window management)
 
 ## Related Images
 

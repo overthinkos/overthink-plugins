@@ -38,7 +38,7 @@ The entrypoint also reads these variables (with defaults, not set in layer.yml):
 | `PGHOST` | `{{.ContainerName}}` | `ov-postgresql` |
 | `PGPORT` | `5432` | `5432` |
 
-When `ov config` runs for an image containing this layer, `PGHOST` and `PGPORT` are automatically injected into the global `deploy.yml` env for cross-container PostgreSQL service discovery.
+Pod-aware: same-container consumers receive `PGHOST=localhost`, cross-container consumers receive `PGHOST=ov-postgresql`. When `ov config` runs, these are automatically injected into the global `deploy.yml` env for PostgreSQL service discovery.
 
 See `/ov:layer` for `env_provides` field docs.
 

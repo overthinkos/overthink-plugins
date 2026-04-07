@@ -27,6 +27,14 @@ description: |
 
 PATH additions: `~/.local/bin`
 
+## Environment Provides
+
+| Variable | Template Value |
+|----------|---------------|
+| `BROWSER_CDP_URL` | `http://{{.ContainerName}}:9222` |
+
+Pod-aware: same-container consumers receive `http://localhost:9222`, cross-container consumers receive `http://ov-<image>:9222`. Consumed by hermes (`env_accepts: BROWSER_CDP_URL`) for shared browser automation.
+
 ## Packages
 
 RPM (system): `liberation-fonts`, `vulkan-loader`, `mesa-dri-drivers`, `alsa-lib`, `at-spi2-core`, `cups-libs`, `gtk3`, `libdrm`, `libxkbcommon`, `nss`, `procps-ng`, `iproute`, `libva-utils`
@@ -107,11 +115,15 @@ Most images use `gles2` on NVIDIA headless — Chrome gets full GPU acceleration
 ## Related Layers
 
 - `/ov-layers:socat` -- required dependency for DevTools port relay
+- `/ov-layers:hermes` -- consumes `BROWSER_CDP_URL` via `env_accepts` for shared browser automation
+- `/ov-layers:selkies-desktop` -- desktop metalayer composing chrome with labwc, pipewire, waybar, etc.
 
 ## Related Commands
 
 - `/ov:cdp` — Chrome DevTools Protocol automation (click, type, eval, screenshot)
 - `/ov:shell` — Interactive shell to access Chrome
+- `/ov:vnc` — VNC automation (used with `--vnc` flag on `ov cdp click`)
+- `/ov:wl` — Wayland automation (used with `--wl` flag on `ov cdp click`)
 
 ## When to Use This Skill
 

@@ -29,7 +29,7 @@ description: |
 |----------|---------------|-----------------|
 | `REDIS_URL` | `redis://{{.ContainerName}}:6379` | `redis://ov-valkey:6379` |
 
-When `ov config` runs for an image containing this layer, `REDIS_URL` is automatically injected into the global `deploy.yml` env for cross-container service discovery (Redis-compatible protocol).
+Pod-aware: same-container consumers receive `redis://localhost:6379`, cross-container consumers receive `redis://ov-valkey:6379`. When `ov config` runs, `REDIS_URL` is automatically injected into the global `deploy.yml` env for service discovery (Redis-compatible protocol).
 
 See `/ov:layer` for `env_provides` field docs.
 

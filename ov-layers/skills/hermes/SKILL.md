@@ -103,6 +103,27 @@ The `hermes-entrypoint` script (run by supervisord) initializes the data volume 
 
 Agent-browser and camoufox-browser are installed in the **project-level** `node_modules/` (via `build.sh`), not globally. Hermes expects these as local imports from its source tree at `~/hermes-agent/`.
 
+### Browser Integration
+
+Hermes has browser tools (`browser_navigate`, `browser_click`, `browser_snapshot`, etc.) enabled by default. The browser backend depends on configuration:
+
+| Priority | Env var | Backend | Description |
+|----------|---------|---------|-------------|
+| 1 | `CAMOFOX_URL` | Camoufox REST API | Anti-detection Firefox (explicit opt-in) |
+| 2 | `BROWSER_CDP_URL` | CDP override (`agent-browser --cdp`) | Connect to existing Chrome |
+| 3 | Browserbase configured | Cloud session | Remote cloud browser |
+| 4 | *(default)* | Local headless (`agent-browser --session`) | Requires Playwright Chromium |
+
+**In desktop images** (`selkies-desktop-hermes*`): The chrome layer's `env_provides: BROWSER_CDP_URL` is pod-aware resolved to `http://localhost:9222`. Hermes uses the desktop Chrome — the user sees hermes browsing in real-time at `:3000`. No separate headless browser is installed.
+
+**In standalone images** (`hermes-playwright`): The `hermes-playwright` layer provides Playwright Chromium for local headless mode (backend #4).
+
+**In headless images** (`hermes`): No browser binary installed. Browser tools fail unless `BROWSER_CDP_URL` points to an external Chrome (cross-container via `env_provides`).
+
+**Cross-container:** Deploy Chrome/Selkies in one container and hermes in another. `ov config` injects `BROWSER_CDP_URL=http://ov-<chrome-image>:9222` into hermes's quadlet via `env_provides`. Port 9222 is reachable via the chrome layer's `port_relay`.
+
+Runtime commands: `/browser connect [url]`, `/browser disconnect`, `/browser status`.
+
 ### WhatsApp Bridge
 
 The WhatsApp bridge is a separate Node.js service with `autostart=false` in supervisord. Enable via:
@@ -129,11 +150,6 @@ hermes:
     - ov
 ```
 
-## Used In Images
-
-- `/ov-images:hermes` -- headless agent (no browser)
-- `/ov-images:hermes-playwright` -- with Playwright Chromium
-
 ## Related Layers
 
 - `/ov-layers:nodejs` -- Node.js runtime dependency
@@ -141,8 +157,21 @@ hermes:
 - `/ov-layers:ripgrep` -- fast search dependency
 - `/ov-layers:ffmpeg` -- audio/video processing (negativo17 nonfree codecs)
 - `/ov-layers:pipewire` -- audio support for voice features
-- `/ov-layers:hermes-playwright` -- optional Playwright Chromium browser
-- `/ov-layers:jupyter-colab` -- MCP server provider (mcp_provides)
+- `/ov-layers:hermes-playwright` -- optional Playwright Chromium browser (standalone headless mode)
+- `/ov-layers:chrome` -- provides `BROWSER_CDP_URL` via `env_provides` for shared browser in desktop images
+- `/ov-layers:jupyter-colab` -- MCP server provider (`mcp_provides: jupyter-colab`)
+
+## Related Commands
+
+- `/ov:cdp` — CDP automation; hermes uses the same Chrome endpoint via `BROWSER_CDP_URL`
+- `/ov:config` — Injects `BROWSER_CDP_URL` and `OV_MCP_SERVERS` via pod-aware `env_provides`/`mcp_provides`
+
+## Related Images
+
+- `/ov-images:hermes` -- headless agent (no browser, no desktop)
+- `/ov-images:hermes-playwright` -- agent with Playwright Chromium (standalone headless)
+- `/ov-images:selkies-desktop-hermes` -- desktop + hermes with shared Chrome browser
+- `/ov-images:selkies-desktop-hermes-jupyter` -- desktop + hermes + jupyter with shared Chrome and MCP
 
 ## When to Use This Skill
 
