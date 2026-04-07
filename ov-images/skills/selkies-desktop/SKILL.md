@@ -17,6 +17,9 @@ selkies-desktop:
     - "9222:9222"
   platforms:
     - linux/amd64
+  tunnel:
+    provider: tailscale
+    private: all
 ```
 
 ## Base
@@ -197,6 +200,61 @@ window.isSecureContext                         // true
 typeof VideoDecoder !== "undefined"            // true (H.264)
 typeof AudioDecoder !== "undefined"            // true (Opus)
 ```
+
+## Deploy with Tailscale Exit Node
+
+Route all outbound internet traffic (Chrome browsing) through a Tailscale exit node while keeping the desktop accessible on the host's tailnet and the ov bridge.
+
+### Prerequisites
+
+1. A Tailscale auth key for the sidecar's tailnet (can be a different tailnet from the host)
+2. An exit node device advertising on that tailnet (approved in admin console)
+
+### Setup
+
+```bash
+# Store auth key
+ov secrets gpg set TS_AUTHKEY tskey-auth-xxxxxxxxxxxx
+ov secrets gpg set TS_EXIT_NODE 100.80.254.4    # exit node's Tailscale IP
+
+# Deploy with sidecar
+ov config selkies-desktop --sidecar tailscale \
+  -e TS_HOSTNAME=selkies-desktop \
+  -e "TS_EXTRA_ARGS=--exit-node=${TS_EXIT_NODE} --exit-node-allow-lan-access"
+ov start selkies-desktop
+
+# First time: set exit node inside sidecar (persists in state volume)
+podman exec ov-selkies-desktop-tailscale \
+  tailscale set --exit-node=100.80.254.4 --exit-node-allow-lan-access
+```
+
+### Verify Dual Networking
+
+```bash
+# Exit node routing — shows exit node's public IP, not host's
+podman exec ov-selkies-desktop curl -s ifconfig.me
+
+# Bridge connectivity — other ov containers reachable
+podman exec ov-selkies-desktop getent hosts ov-ollama
+
+# Host tailnet — accessible via host's tailscale serve
+curl -sk https://o.armadillo-quail.ts.net:3000/ | head -1
+
+# Sidecar status
+podman exec ov-selkies-desktop-tailscale tailscale status
+```
+
+### Architecture
+
+The pod has dual networking: `Network=ov` (bridge for container-to-container) + `tailscale0` (tun interface for exit node). `--exit-node-allow-lan-access` adds `throw 10.89.0.0/24` to exempt bridge traffic. The host's `tunnel: tailscale` (ExecStartPost=tailscale serve) exposes ports 3000+9222 on the host's tailnet independently.
+
+**Known issues:**
+- `TS_DEBUG_FIREWALL_MODE=nftables` is required (iptables-legacy fails in rootless podman) — built into the sidecar template
+- `ShmSize=1g` is required for Chrome — automatically propagated to the pod via `PodmanArgs=--shm-size`
+- Exit node device must be **approved** on the sidecar's tailnet admin console
+- First-time exit node: use `tailscale set --exit-node` inside sidecar (persists in state volume for restarts)
+
+See `/ov:sidecar` for full sidecar documentation.
 
 ## Related Images
 

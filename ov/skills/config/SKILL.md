@@ -225,22 +225,39 @@ ov config hermes
 
 All providers whose keys are present get registered simultaneously. Priority (`OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`) only determines the default. Override model with `-e HERMES_MODEL=...`. See `/ov-layers:hermes` for auto-provider-config details.
 
+## Sidecar Attachment
+
+Attach a sidecar container at deploy time:
+
+```bash
+ov config --list-sidecars                    # List built-in sidecar templates
+ov config <image> --sidecar tailscale        # Attach tailscale sidecar
+ov config <image> --sidecar tailscale \
+  -e TS_HOSTNAME=my-app \
+  -e "TS_EXTRA_ARGS=--exit-node=<ip> --exit-node-allow-lan-access"
+```
+
+- `--sidecar <name>` — Attach sidecar (repeatable). Saved to deploy.yml
+- CLI `-e` env vars matching sidecar template keys (e.g., `TS_*`) are auto-routed to the sidecar, not the app container
+- Generates pod + sidecar + app quadlet files (3 instead of 1)
+
+See `/ov:sidecar` for full sidecar documentation.
+
 ## Cross-References
 
+- `/ov:sidecar` — Sidecar containers, pod networking, Tailscale exit nodes
 - `/ov:start` — Requires `ov config` first in quadlet mode
-- `/ov:deploy` — Deploy state file (deploy.yml) management
+- `/ov:deploy` — Deploy state file (deploy.yml), sidecar pod deployment
 - `/ov:enc` — Encrypted storage details
-- `/ov:secrets` — Container secret management
+- `/ov:secrets` — Container secret management, `ov secrets gpg set TS_AUTHKEY`
 - `/ov:settings` — Runtime settings (engine, run_mode, encrypted_storage_path)
 - `/ov:service` — Service lifecycle (start, stop, status, logs)
-- `/ov:layer` — Volume and secret declarations in layer.yml
+- `/ov:layer` — Volume, secret, and `env_provides` declarations
 - `/ov:image` — Image composition and inheritance
-- `/ov:layer` — `env_provides` field documentation
-- `/ov:deploy` — Provides configuration (env + MCP)
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves `ov config` commands, image deployment setup, quadlet generation, secret provisioning, encrypted volumes, data seeding, or volume backing configuration. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves `ov config` commands, image deployment setup, quadlet generation, sidecar attachment, secret provisioning, encrypted volumes, data seeding, or volume backing configuration. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** After build, before start. `ov build` → `ov config` → `ov start`.
 

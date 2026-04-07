@@ -412,14 +412,50 @@ provides:
 
 See `/ov:config` for setup workflow and `/ov:layer` for declaration format.
 
+## Sidecar Pod Deployment
+
+When sidecars are attached via `ov config --sidecar <name>`, deployment generates a Podman **pod** instead of a standalone container. See `/ov:sidecar` for full sidecar documentation.
+
+### Generated Files
+
+| File | Content |
+|------|---------|
+| `ov-<image>.pod` | Pod: `Network=ov`, `PodmanArgs=-p` (ports), `--shm-size` |
+| `ov-<image>-<sidecar>.container` | Sidecar: image, env, caps, devices, secrets |
+| `ov-<image>.container` | App: `Pod=ov-<image>.pod`, no ports/network |
+
+The pod owns the shared network namespace. Port mappings and ShmSize move from the container to the pod. The app container gets `Pod=` and loses `PublishPort=` and `Network=`.
+
+### Dual Networking (Tailscale)
+
+When a Tailscale sidecar is attached, the pod has dual networking:
+- **"ov" bridge** — container-to-container connectivity, `env_provides` discovery
+- **Tailscale tun** — exit node routing for outbound internet traffic
+- `--exit-node-allow-lan-access` exempts bridge subnets from the tunnel
+
+Host `tunnel: tailscale` (ExecStartPost=tailscale serve) and the sidecar are **independent**: the host tunnel serves ports on the host's tailnet, while the sidecar handles exit node routing on a potentially different tailnet.
+
+### deploy.yml Sidecar Config
+
+```yaml
+images:
+  selkies-desktop:
+    sidecars:
+      tailscale:
+        env:
+          TS_HOSTNAME: selkies-desktop
+          TS_EXTRA_ARGS: "--exit-node=100.80.254.4 --exit-node-allow-lan-access"
+```
+
 ## Cross-References
 
+- `/ov:sidecar` -- Sidecar containers, pod networking, Tailscale exit nodes
 - `/ov:service` -- Service lifecycle (start/stop/update/remove)
 - `/ov:enc` -- Encrypted storage commands (ov config mount/unmount)
 - `/ov:vnc` -- VNC password setup for desktop containers
 - `/ov:vm` -- Virtual machine deployment (ov vm)
 - `/ov:build` -- Building images before deployment
-- `/ov:config` -- bind_address, run_mode, auto_enable, vnc.password settings
+- `/ov:config` -- bind_address, run_mode, auto_enable, vnc.password, --sidecar flag
 - `/ov:image` -- Image configuration
 - `/ov:layer` — `env_provides` field declaration
 
