@@ -17,7 +17,7 @@ Maximal OpenClaw gateway with full Wayland desktop, Chrome browser, VNC access, 
 | Base | fedora |
 | Layers | agent-forwarding, openclaw-full (metalayer: 28 layers), sway-desktop |
 | Platforms | linux/amd64 |
-| Ports | 18789, 5900, 9222 |
+| Ports | 18789, 5900, 9222, 9224 |
 | Tunnel | tailscale (all ports) |
 | Registry | ghcr.io/overthinkos |
 
@@ -28,6 +28,7 @@ Maximal OpenClaw gateway with full Wayland desktop, Chrome browser, VNC access, 
 | 18789 | OpenClaw gateway + Control UI | HTTP |
 | 5900 | VNC (wayvnc) | TCP |
 | 9222 | Chrome DevTools | HTTP |
+| 9224 | Chrome DevTools MCP (Streamable HTTP) | HTTP |
 
 ## Included Tools
 

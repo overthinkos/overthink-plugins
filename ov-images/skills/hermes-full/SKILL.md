@@ -54,7 +54,7 @@ ov start hermes-full
 
 Hermes receives:
 - `BROWSER_CDP_URL=http://ov-selkies-desktop:9222` — controls desktop Chrome
-- `OV_MCP_SERVERS=[{"name":"jupyter-colab","url":"http://ov-jupyter-colab:8888/mcp"}]` — notebook manipulation
+- `OV_MCP_SERVERS=[{"name":"jupyter-colab","url":"http://ov-jupyter-colab:8888/mcp"},{"name":"chrome-devtools","url":"http://ov-selkies-desktop:9224/mcp"}]` — notebook manipulation + browser DevTools MCP
 
 ## Verification
 
@@ -68,6 +68,7 @@ ov shell hermes-full -c "gemini --version"
 ov shell hermes-full -c "ov version"
 ov shell hermes-full -c "echo BROWSER_CDP_URL=\$BROWSER_CDP_URL"
 ov shell hermes-full -c "echo OV_MCP_SERVERS=\$OV_MCP_SERVERS"
+ov shell hermes-full -c "hermes mcp list"              # Should show chrome-devtools, jupyter-colab
 ```
 
 ## Related Layers
@@ -75,6 +76,7 @@ ov shell hermes-full -c "echo OV_MCP_SERVERS=\$OV_MCP_SERVERS"
 - `/ov-layers:hermes-full` — Metalayer composition details
 - `/ov-layers:hermes` — Core agent (env_accepts, browser dispatch, LLM config)
 - `/ov-layers:chrome` — Provides `BROWSER_CDP_URL` (from selkies-desktop)
+- `/ov-layers:chrome-devtools-mcp` — Chrome DevTools MCP server on port 9224 (from selkies-desktop)
 
 ## Related Images
 

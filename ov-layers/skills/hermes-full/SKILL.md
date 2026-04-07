@@ -50,6 +50,8 @@ hermes-full:
 - `/ov-layers:devops-tools` — Cloud and infrastructure tools
 - `/ov-layers:ov` — Overthink CLI binary
 - `/ov-layers:chrome` — Provides `BROWSER_CDP_URL` (cross-container, from selkies-desktop)
+- `/ov-layers:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-discovered via `mcp_provides`, 29 tools)
+- `/ov-layers:jupyter-colab-mcp` — JupyterLab CRDT MCP server (auto-discovered via `mcp_provides`, 13 tools)
 
 ## Related Images
 

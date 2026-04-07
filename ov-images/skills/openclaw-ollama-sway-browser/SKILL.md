@@ -17,7 +17,7 @@ Full-stack GPU-accelerated AI deployment: OpenClaw gateway with all tool layers,
 | Base | nvidia (fedora + CUDA) |
 | Layers | agent-forwarding, openclaw-full-ml (metalayer), sway-desktop, ollama |
 | Platforms | linux/amd64 |
-| Ports | 18789, 5900, 9222, 11434 |
+| Ports | 18789, 5900, 9222, 9224, 11434 |
 | Registry | ghcr.io/overthinkos |
 
 ## Ports
@@ -27,6 +27,7 @@ Full-stack GPU-accelerated AI deployment: OpenClaw gateway with all tool layers,
 | 18789 | OpenClaw gateway + Control UI | HTTP |
 | 5900 | VNC (wayvnc) | TCP |
 | 9222 | Chrome DevTools | HTTP |
+| 9224 | Chrome DevTools MCP (Streamable HTTP) | HTTP |
 | 11434 | Ollama API | HTTP |
 
 ## Included Tools

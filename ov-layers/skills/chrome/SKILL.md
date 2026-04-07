@@ -1,7 +1,7 @@
 ---
 name: chrome
 description: |
-  Google Chrome with DevTools on port 9222, port relay, and browser-open helper.
+  Google Chrome with DevTools on port 9222, Chrome DevTools MCP on port 9224, and browser-open helper.
   Use when working with Chrome, CDP, browser automation, or DevTools Protocol.
 ---
 
@@ -12,7 +12,8 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `supervisord` |
-| Ports | 9222 (external, via cdp-proxy) |
+| Composed layers | `chrome-devtools-mcp` |
+| Ports | 9222 (CDP, via cdp-proxy), 9224 (Chrome DevTools MCP, via chrome-devtools-mcp) |
 | CDP Proxy | `cdp-proxy` on 0.0.0.0:9222 → Chrome on 127.0.0.1:9223 |
 | Volumes | `chrome-data` -> `~/.chrome-debug` |
 | Security | `shm_size: 1g` |
@@ -34,6 +35,14 @@ PATH additions: `~/.local/bin`
 | `BROWSER_CDP_URL` | `http://{{.ContainerName}}:9222` |
 
 Pod-aware: same-container consumers receive `http://localhost:9222`, cross-container consumers receive `http://ov-<image>:9222`. Consumed by hermes (`env_accepts: BROWSER_CDP_URL`) for shared browser automation.
+
+## MCP Provides
+
+| Name | URL Template | Transport |
+|------|-------------|-----------|
+| `chrome-devtools` | `http://{{.ContainerName}}:9224/mcp` | http |
+
+Provided by the auto-included `chrome-devtools-mcp` sub-layer (29 Chrome DevTools tools via mcp-proxy). Consumed by hermes (`mcp_accepts: chrome-devtools`) for MCP-based browser inspection and automation. See `/ov-layers:chrome-devtools-mcp` for tool list and architecture.
 
 ## Packages
 
@@ -128,9 +137,10 @@ Most images use `gles2` on NVIDIA headless — Chrome gets full GPU acceleration
 
 ## Related Layers
 
-- `/ov-layers:supervisord` -- required dependency for cdp-proxy service
-- `/ov-layers:hermes` -- consumes `BROWSER_CDP_URL` via `env_accepts` for shared browser automation
-- `/ov-layers:selkies-desktop` -- desktop metalayer composing chrome with labwc, pipewire, waybar, etc.
+- `/ov-layers:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-included via `layers:`)
+- `/ov-layers:supervisord` — required dependency for cdp-proxy service
+- `/ov-layers:hermes` — consumes `BROWSER_CDP_URL` via `env_accepts` and `chrome-devtools` via `mcp_accepts`
+- `/ov-layers:selkies-desktop` — desktop metalayer composing chrome with labwc, pipewire, waybar, etc.
 
 ## Related Commands
 

@@ -22,6 +22,7 @@ selkies-desktop-nvidia:
   ports:
     - "3000:3000"
     - "9222:9222"
+    - "9224:9224"
   platforms:
     - linux/amd64
 ```
@@ -36,6 +37,7 @@ selkies-desktop-nvidia:
 |------|---------|
 | 3000 | Selkies web UI (Traefik HTTPS → static files + WebSocket proxy) |
 | 9222 | Chrome DevTools Protocol (CDP, via socat relay) |
+| 9224 | Chrome DevTools MCP (Streamable HTTP) |
 
 ## Volumes
 
