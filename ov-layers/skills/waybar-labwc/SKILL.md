@@ -56,8 +56,6 @@ Catppuccin Mocha theme — semi-transparent dark background, JetBrains Mono + Sy
 
 - `/ov-images:selkies-desktop` (via `selkies-desktop` metalayer)
 - `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
-- `/ov-images:selkies-desktop-hermes` (via `selkies-desktop` metalayer)
-- `/ov-images:selkies-desktop-hermes-jupyter` (via `selkies-desktop` metalayer)
 
 ## Note: Difference from `waybar` Layer
 

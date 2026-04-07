@@ -62,7 +62,7 @@ ov wl screenshot selkies-desktop screenshot.png
 | `swaync` | 14 | Notification daemon |
 | `pipewire` | 5 | Audio server |
 | `dbus` | 2 | D-Bus session bus |
-| `relay-9222` | — | socat CDP port relay |
+| `cdp-proxy` | — | CDP reverse proxy (Host header + URL rewrite for Chrome 146+) |
 
 ## GPU Support
 

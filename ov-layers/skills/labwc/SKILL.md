@@ -45,7 +45,7 @@ labwc runs as a **nested compositor** inside pixelflux's `wayland-1` display. It
 
 - `labwc-wrapper` — Waits for pixelflux's `wayland-1` socket, then starts labwc with `WAYLAND_DISPLAY=wayland-1` (hardcoded, not from env)
 - `rc.xml` — labwc configuration: server-side decorations, maximize-all window rule, keyboard shortcuts (Alt+F4 close, Super+E terminal)
-- `autostart` — Chrome auto-starts maximized with CDP on port 9222
+- `autostart` — Chrome auto-starts maximized via `chrome-wrapper` (internal CDP on port 9223, external 9222 via cdp-proxy)
 
 ## Window Rules
 
@@ -60,8 +60,6 @@ All windows open maximized (ideal for streaming desktop):
 
 - `/ov-images:selkies-desktop` (via `selkies-desktop` metalayer)
 - `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
-- `/ov-images:selkies-desktop-hermes` (via `selkies-desktop` metalayer)
-- `/ov-images:selkies-desktop-hermes-jupyter` (via `selkies-desktop` metalayer)
 
 ## Related Skills
 

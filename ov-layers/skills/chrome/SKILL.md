@@ -65,7 +65,7 @@ Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see 
 
 ## Chrome Wrapper
 
-All Chrome launches go through `chrome-wrapper` (`~/.local/bin/chrome-wrapper`), which adds CDP flags (`--remote-debugging-port=9222`), Windows User-Agent spoofing, and GPU detection. A symlink `~/.local/bin/google-chrome-stable -> chrome-wrapper` ensures Chrome always uses the wrapper regardless of how it's launched (sway exec, desktop file, app menu, or Chrome's self-restart after close/crash). The wrapper calls `/opt/google/chrome/chrome` directly to avoid recursion through the symlink.
+All Chrome launches go through `chrome-wrapper` (`~/.local/bin/chrome-wrapper`), which adds CDP flags (`--remote-debugging-port=9223`), Windows User-Agent spoofing, and GPU detection. A symlink `~/.local/bin/google-chrome-stable -> chrome-wrapper` ensures Chrome always uses the wrapper regardless of how it's launched (sway exec, desktop file, app menu, or Chrome's self-restart after close/crash). The wrapper calls `/opt/google/chrome/chrome` directly to avoid recursion through the symlink.
 
 ### GPU Detection
 
@@ -74,6 +74,20 @@ The chrome-wrapper detects the sway renderer by reading Sway's `/proc/<pid>/envi
 If `WLR_RENDERER=pixman` is detected (e.g., explicit override via `WLR_RENDERER` env var), the wrapper strips NVIDIA EGL vars and VAAPI flags so Chrome falls back to software rendering naturally. `--disable-gpu` must NOT be used — it breaks CDP tab creation.
 
 The detection uses `pgrep -x sway` (exact process name match — NOT `pgrep -f` which matches sway-wrapper and sway-autotile).
+
+## CDP Proxy
+
+Chrome 146+ rejects HTTP requests to the DevTools API when the `Host` header contains a non-localhost, non-IP hostname (e.g., `ov-selkies-desktop:9222`). This breaks cross-container CDP access via `env_provides: BROWSER_CDP_URL`.
+
+**Architecture:** A `cdp-proxy` Python supervisord service listens on `0.0.0.0:9222` and forwards requests to Chrome on `127.0.0.1:9223`. Chrome binds only to the internal loopback address.
+
+**Host header rewrite:** Incoming requests with container hostnames (e.g., `Host: ov-selkies-desktop:9222`) are rewritten to `Host: localhost:9223` before forwarding to Chrome, satisfying Chrome's localhost-only check.
+
+**Response URL rewrite:** Chrome's DevTools HTTP API returns WebSocket URLs containing `ws://localhost:9223/...` in JSON responses. The proxy rewrites these to `ws://<client-host>:9222/...` (using the original `Host` header from the client request) so that cross-container WebSocket connections route back through the proxy.
+
+**Content-Length correction:** After URL rewriting, response body sizes change. The proxy recalculates and corrects the `Content-Length` header to match the rewritten body.
+
+The chrome layer depends on `supervisord` (not `socat`) to run cdp-proxy as a managed service.
 
 ### ShaderCache / GpuCache Cleanup
 
@@ -106,7 +120,7 @@ Most images use `gles2` on NVIDIA headless — Chrome gets full GPU acceleration
 
 ## CDP Diagnostics
 
-`ov cdp` commands now show diagnostics on connection failure: checks Chrome process, relay status, and port binding. Hints use `ov wl sway exec <image> chrome-wrapper` (not `ov shell` with bare `swaymsg`) for manual Chrome restart.
+`ov cdp` commands now show diagnostics on connection failure: checks Chrome process, cdp-proxy status, and port binding. Hints use `ov wl sway exec <image> chrome-wrapper` (not `ov shell` with bare `swaymsg`) for manual Chrome restart.
 
 ## Used In Images
 
@@ -114,7 +128,7 @@ Most images use `gles2` on NVIDIA headless — Chrome gets full GPU acceleration
 
 ## Related Layers
 
-- `/ov-layers:socat` -- required dependency for DevTools port relay
+- `/ov-layers:supervisord` -- required dependency for cdp-proxy service
 - `/ov-layers:hermes` -- consumes `BROWSER_CDP_URL` via `env_accepts` for shared browser automation
 - `/ov-layers:selkies-desktop` -- desktop metalayer composing chrome with labwc, pipewire, waybar, etc.
 

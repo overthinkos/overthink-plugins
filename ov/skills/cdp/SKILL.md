@@ -46,11 +46,11 @@ All commands accept `-i INSTANCE` for multi-instance support.
 
 ## Requirements
 
-- A Chrome layer with `port_relay: [9222]` in layer.yml
-- Chrome launched with `--remote-allow-origins='*'` and `--remote-debugging-port=9222`
+- A Chrome layer with the `cdp-proxy` supervisord service
+- Chrome launched with `--remote-allow-origins='*'` and `--remote-debugging-port=9223` (internal port)
 - Container must be running (`ov start`)
 
-The `port_relay` is essential because Chrome 146+ binds DevTools only to 127.0.0.1. The socat relay forwards eth0:9222 to localhost:9222, making it accessible through container port mappings.
+The `cdp-proxy` is essential because Chrome 146+ binds DevTools only to 127.0.0.1 and rejects connections with non-localhost Host headers. Chrome binds to `127.0.0.1:9223` internally. The `cdp-proxy` Python script listens on `0.0.0.0:9222` and forwards to Chrome with Host header rewriting. It also rewrites response URLs (`webSocketDebuggerUrl: ws://localhost:9223/...` to `ws://<client-host>:9222/...`) with Content-Length correction, ensuring CDP WebSocket connections work correctly from the host.
 
 ## Commands
 
@@ -172,8 +172,8 @@ Sends arbitrary CDP method with optional JSON params. Returns raw CDP response.
 When `ov cdp` commands fail to connect, the `diagnoseCDP()` function runs automatically and provides targeted hints:
 
 1. **Chrome process check**: Is Chrome running inside the container? (`pgrep chrome`)
-2. **Relay status**: Is the port relay (socat) forwarding 9222? (`supervisorctl status relay-9222`)
-3. **Port binding**: Is Chrome listening on 127.0.0.1:9222? (`ss -tlnp`)
+2. **Proxy status**: Is the cdp-proxy forwarding to Chrome? (`supervisorctl status cdp-proxy`)
+3. **Port binding**: Is Chrome listening on 127.0.0.1:9223? Is cdp-proxy listening on 0.0.0.0:9222? (`ss -tlnp`)
 
 Hints direct users to `ov wl sway exec <image> chrome-wrapper` for manual Chrome restart (not `ov shell` with bare `swaymsg`, which may lack the correct `SWAYSOCK` path).
 
@@ -228,7 +228,7 @@ ov shell $IMG -c "openclaw models status"
 Key enablers:
 - `ov tmux run` provides a real terminal for the TUI to complete the token exchange (see `/ov:tmux`)
 - `ov cdp click --vnc` finds elements via CDP, clicks via VNC (visible to user)
-- `port_relay` makes Chrome DevTools accessible from host through podman bridge networking
+- `cdp-proxy` makes Chrome DevTools accessible from host through podman bridge networking (with Host header rewriting)
 - `shm_size: 1g` prevents Chrome from crashing due to /dev/shm exhaustion
 - Callback at `localhost:1455` is container-internal (no port mapping needed)
 
@@ -410,7 +410,7 @@ The SPA maps mouse events from canvas to remote desktop with an internal scaling
 - `/ov:vnc` -- VNC desktop automation (same container, pixel-level interaction)
 - `/ov:shell` -- Running commands in containers (`--tty` for OAuth flows)
 - `/ov:service` -- Starting containers (`ov start`, `ov config`)
-- `/ov:layer` -- `port_relay` field and Chrome layer configuration
+- `/ov:layer` -- Chrome layer configuration (cdp-proxy service, port declarations)
 - `/ov-images:selkies-desktop` -- Full SPA DOM structure, coordinate mapping, session resilience
 
 ## When to Use This Skill

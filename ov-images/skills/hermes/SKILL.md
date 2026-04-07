@@ -110,7 +110,7 @@ Tools are registered as `mcp_<server_name>_<tool_name>`. Reload at runtime: `/re
 ## Related Images
 
 - `/ov-images:hermes-playwright` -- adds Playwright Chromium for browser automation
-- `/ov-images:selkies-desktop-hermes-jupyter` -- Selkies desktop + hermes + JupyterLab with MCP
+- Deploy `hermes-full` alongside `selkies-desktop` and `jupyter-colab` as separate pods for desktop + agent + notebook workflows
 - `/ov-images:openclaw` -- alternative AI gateway (OpenClaw vs Hermes)
 
 ## Verification

@@ -199,7 +199,7 @@ images:
 
 **Self-exclusion (env):** An image's own env_provides vars are filtered out of its own environment — the image uses its own `env:` (e.g., `OLLAMA_HOST=0.0.0.0`), not the service discovery URL.
 
-**Pod-aware (MCP):** When provider and consumer share a container (e.g., `selkies-desktop-hermes-jupyter`), MCP URLs resolve to `localhost` instead of container hostname. No self-exclusion for MCP — same-container consumers always see their own MCP servers.
+**Pod-aware (MCP):** When provider and consumer share a container, MCP URLs resolve to `localhost` instead of container hostname. No self-exclusion for MCP — same-container consumers always see their own MCP servers.
 
 **Propagation:** Use `--update-all` to regenerate quadlets for all other deployed images so they pick up the new env vars immediately. Without `--update-all`, other images pick up the env vars on their next `ov config` or `ov update`.
 
@@ -213,7 +213,7 @@ The hermes layer uses `-e` env vars to auto-configure its LLM provider on first 
 
 ```bash
 # Ollama Cloud
-ov config selkies-desktop-hermes-jupyter -e OLLAMA_API_KEY=your-key
+ov config hermes-full -e OLLAMA_API_KEY=your-key
 
 # OpenRouter
 ov config hermes -e OPENROUTER_API_KEY=sk-or-xxx

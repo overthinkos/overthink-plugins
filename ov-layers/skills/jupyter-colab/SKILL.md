@@ -74,7 +74,7 @@ jupyter-colab:
 
 ## MCP Server Discovery
 
-The `jupyter-colab` layer declares `mcp_provides` for cross-container and pod MCP discovery. The URL template `http://{{.ContainerName}}:8888/mcp` resolves to the actual container name at deploy time (e.g., `http://ov-selkies-desktop-hermes-jupyter:8888/mcp`), or to `http://localhost:8888/mcp` in combined images like `selkies-desktop-hermes-jupyter` where both services run in the same container.
+The `jupyter-colab` layer declares `mcp_provides` for cross-container and pod MCP discovery. The URL template `http://{{.ContainerName}}:8888/mcp` resolves to the actual container name at deploy time (e.g., `http://ov-jupyter-colab:8888/mcp`), or to `http://localhost:8888/mcp` in combined images where both services run in the same container.
 
 - **Transport:** Streamable HTTP (`http`)
 - **13 tools** available via the `jupyter-colab-mcp` extension (see below)

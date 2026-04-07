@@ -113,8 +113,6 @@ Port 3000 uses `https+insecure` backend scheme because Traefik terminates TLS wi
 
 - `/ov-images:selkies-desktop`
 - `/ov-images:selkies-desktop-nvidia`
-- `/ov-images:selkies-desktop-hermes`
-- `/ov-images:selkies-desktop-hermes-jupyter`
 
 ## Related Commands
 

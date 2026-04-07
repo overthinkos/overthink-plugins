@@ -368,7 +368,7 @@ See `/ov:vnc` for full VNC authentication documentation.
 
 ## Port Relay Pattern
 
-Some services (OpenClaw, Chrome DevTools) bind only to loopback for security. The `port_relay` field in `layer.yml` creates a socat relay from the container's network interface to loopback, making the service accessible externally without weakening its security model.
+Some services (OpenClaw) bind only to loopback for security. The `port_relay` field in `layer.yml` creates a socat relay from the container's network interface to loopback, making the service accessible externally without weakening its security model.
 
 ```yaml
 # In layer.yml
@@ -378,7 +378,9 @@ port_relay:
   - 18789
 ```
 
-Requires the `socat` layer as a dependency. The relay runs as a `relay-<port>` service in the configured init system. See `/ov-layers:chrome` and `/ov-layers:openclaw` for examples.
+Requires the `socat` layer as a dependency. The relay runs as a `relay-<port>` service in the configured init system. See `/ov-layers:openclaw` for an example.
+
+**Chrome CDP exception:** Chrome DevTools no longer uses `port_relay`. Chrome 146+ rejects connections with non-localhost Host headers, so a simple socat relay is insufficient. Instead, Chrome uses a `cdp-proxy` Python supervisord service that listens on `0.0.0.0:9222`, forwards to Chrome on `127.0.0.1:9223` with Host header rewriting, and rewrites response URLs (e.g., `webSocketDebuggerUrl`) with Content-Length correction. See `/ov-layers:chrome` and `/ov:cdp` for details.
 
 ## Provides Configuration
 

@@ -38,8 +38,6 @@ All layers that need ffmpeg should declare it as a dependency rather than indepe
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 - `hermes` (via `hermes` layer `depends: ffmpeg`)
 - `hermes-playwright` (via `hermes` layer `depends: ffmpeg`)
-- `selkies-desktop-hermes` (via `hermes` layer `depends: ffmpeg`)
-- `selkies-desktop-hermes-jupyter` (via `hermes` layer `depends: ffmpeg`)
 - `immich` (via `immich` layer `depends: ffmpeg`)
 - `immich-ml` (via `immich` layer `depends: ffmpeg`)
 - CUDA-based images (via `cuda` layer `depends: ffmpeg`)

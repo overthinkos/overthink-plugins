@@ -70,8 +70,6 @@ ov wl overlay hide my-image --all
 - `/ov-images:openclaw-ollama-sway-browser` (via `sway-desktop` metalayer)
 - `/ov-images:selkies-desktop` (via `selkies-desktop` metalayer)
 - `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
-- `/ov-images:selkies-desktop-hermes` (via `selkies-desktop` metalayer)
-- `/ov-images:selkies-desktop-hermes-jupyter` (via `selkies-desktop` metalayer)
 
 ## Related Layers
 

@@ -50,8 +50,6 @@ With xterm installed, users can launch it to enable full XWayland testing.
 
 - `/ov-images:selkies-desktop` (via `selkies-desktop` metalayer)
 - `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
-- `/ov-images:selkies-desktop-hermes` (via `selkies-desktop` metalayer)
-- `/ov-images:selkies-desktop-hermes-jupyter` (via `selkies-desktop` metalayer)
 
 ## Cross-References
 

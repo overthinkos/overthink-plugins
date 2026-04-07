@@ -74,6 +74,8 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 
 Ports needing an eth0->loopback socat relay inside the container. For services that bind only to 127.0.0.1 (like Chrome DevTools). Auto-adds socat dependency and generates a relay service via the configured init system (defined in init.yml).
 
+Note: The chrome layer uses a dedicated `cdp-proxy` supervisord service instead of port_relay, to handle Chrome 146+ Host header validation for cross-container CDP.
+
 ```yaml
 port_relay:
   - 9222
@@ -156,7 +158,7 @@ mcp_provides:
 
 - Each entry has `name` (required, unique), `url` (required, supports `{{.ContainerName}}` template), `transport` (optional, defaults to `"http"` for streamable HTTP; also supports `"sse"`)
 - Consumer containers receive `OV_MCP_SERVERS` JSON env var with all resolved MCP server entries
-- **Pod-aware**: When consumer and provider are in the same container (e.g., `selkies-desktop-hermes-jupyter`), URLs resolve to `localhost` instead of container hostname. If both a local and remote entry share a name, local wins
+- **Pod-aware**: When consumer and provider are in the same container, URLs resolve to `localhost` instead of container hostname. If both a local and remote entry share a name, local wins
 - **No self-exclusion** (unlike env_provides): MCP servers are always included for same-container consumers
 - On `ov config remove` / `ov remove`, MCP entries are automatically cleaned from deploy.yml
 - Validated by `ov validate`: empty names, duplicate names, empty URLs, unknown template variables, and invalid transport values are errors

@@ -70,7 +70,7 @@ After `ov start`:
 - `curl http://localhost:11434/api/tags` — Ollama API responds
 - VNC client → `localhost:5900` — Sway desktop visible
 - `curl http://localhost:9222/json` — Chrome DevTools responds
-- `ov service status openclaw-ollama-sway-browser` should show `relay-18789` and `relay-9222` both RUNNING
+- `ov service status openclaw-ollama-sway-browser` should show `relay-18789` and `cdp-proxy` both RUNNING
 
 ## Port Relay Architecture
 

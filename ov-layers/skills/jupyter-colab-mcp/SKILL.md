@@ -90,7 +90,7 @@ layers/jupyter-colab-mcp/
 
 ## Integration with mcp_provides
 
-The parent `jupyter-colab` layer declares `mcp_provides` to make this MCP server discoverable to other services at deploy time. In pod images like `selkies-desktop-hermes-jupyter`, the hermes service auto-discovers this server via the `OV_MCP_SERVERS` env var and registers all 13 tools as `mcp_jupyter_colab_<tool_name>`.
+The parent `jupyter-colab` layer declares `mcp_provides` to make this MCP server discoverable to other services at deploy time. The hermes service auto-discovers this server via the `OV_MCP_SERVERS` env var and registers all 13 tools as `mcp_jupyter_colab_<tool_name>`.
 
 ## Used In Layers
 
@@ -102,7 +102,6 @@ The parent `jupyter-colab` layer declares `mcp_provides` to make this MCP server
 - `/ov-images:jupyter-colab`
 - `/ov-images:jupyter-colab-ml`
 - `/ov-images:jupyter-colab-ml-notebook`
-- `/ov-images:selkies-desktop-hermes-jupyter` (via `jupyter-colab` layer)
 
 ## Related Skills
 

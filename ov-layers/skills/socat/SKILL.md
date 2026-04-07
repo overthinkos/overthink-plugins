@@ -28,14 +28,14 @@ my-image:
 
 Typically not added directly. Auto-included when a layer uses `port_relay:` in its `layer.yml`.
 
+**Note:** Chrome no longer uses socat for its DevTools port relay. Chrome now uses a `cdp-proxy` Python supervisord service (see `/ov-layers:chrome`). Socat is still used by other `port_relay` consumers.
+
 ## Used In Images
 
 - Part of `ov-full` composition layer (used in `githubrunner`)
-- Transitive dependency of `chrome` (via `port_relay` on port 9222)
 
 ## Related Layers
 
-- `/ov-layers:chrome` -- depends on socat for DevTools port relay
 - `/ov-layers:virtualization` -- part of `ov-full` alongside socat
 - `/ov-layers:gocryptfs` -- part of `ov-full` alongside socat
 
