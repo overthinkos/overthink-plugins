@@ -76,8 +76,11 @@ This is the **single entry point** for deployment setup. `ov start` requires `ov
 8. Initializes encrypted volumes (gocryptfs) if configured
 9. Seeds data layers into bind-backed volumes
 10. Runs `systemctl --user daemon-reload`
-11. Injects `env_provides` vars from image labels into global `deploy.yml` env
-12. If `--update-all`, regenerates quadlets for all other deployed images and reloads systemd
+11. Injects `env_provides` entries from image labels into deploy.yml `provides.env:` (resolves `{{.ContainerName}}` templates)
+12. Injects `mcp_provides` entries from image labels into deploy.yml `provides.mcp:` (resolves templates, defaults transport to `http`)
+13. Synthesizes `OV_MCP_SERVERS` JSON env var for consumer containers (pod-aware: same-image entries resolve to `localhost`)
+14. Warns about missing `mcp_requires` servers (same pattern as `env_requires` warnings)
+15. If `--update-all`, regenerates quadlets for all other deployed images and reloads systemd
 
 ## Volume Backing
 
@@ -175,19 +178,28 @@ ov config my-app --bind workspace=/new/path
 
 ## Service Environment Injection
 
-When a configured image declares `env_provides` in its layers (stored in the `org.overthinkos.env_provides` OCI label), `ov config` automatically injects those environment variables into the global `env:` section of `deploy.yml`. This provides cross-container service discovery without manual configuration.
+When a configured image declares `env_provides` or `mcp_provides` in its layers (stored in OCI labels), `ov config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration.
 
 ```yaml
-# deploy.yml after `ov config ollama`
-env:
-  - OLLAMA_HOST=http://ov-ollama:11434
-env_provides_sources:
-  OLLAMA_HOST: ollama
+# deploy.yml after `ov config ollama && ov config jupyter-colab`
+provides:
+  env:
+    - name: OLLAMA_HOST
+      value: http://ov-ollama:11434
+      source: ollama
+  mcp:
+    - name: jupyter-colab
+      url: http://ov-jupyter-colab:8888/mcp
+      transport: http
+      source: jupyter-colab
 images:
   ollama: { ... }
+  jupyter-colab: { ... }
 ```
 
-**Self-exclusion:** An image's own env_provides vars are filtered out of its own environment — the image uses its own `env:` (e.g., `OLLAMA_HOST=0.0.0.0`), not the service discovery URL.
+**Self-exclusion (env):** An image's own env_provides vars are filtered out of its own environment — the image uses its own `env:` (e.g., `OLLAMA_HOST=0.0.0.0`), not the service discovery URL.
+
+**Pod-aware (MCP):** When provider and consumer share a container (e.g., `selkies-desktop-hermes-jupyter`), MCP URLs resolve to `localhost` instead of container hostname. No self-exclusion for MCP — same-container consumers always see their own MCP servers.
 
 **Propagation:** Use `--update-all` to regenerate quadlets for all other deployed images so they pick up the new env vars immediately. Without `--update-all`, other images pick up the env vars on their next `ov config` or `ov update`.
 
@@ -224,6 +236,7 @@ All providers whose keys are present get registered simultaneously. Priority (`O
 - `/ov:layer` — Volume and secret declarations in layer.yml
 - `/ov:image` — Image composition and inheritance
 - `/ov:layer` — `env_provides` field documentation
+- `/ov:deploy` — Provides configuration (env + MCP)
 
 ## When to Use This Skill
 

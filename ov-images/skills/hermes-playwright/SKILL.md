@@ -35,7 +35,7 @@ ov config hermes-playwright -e OLLAMA_API_KEY=your-key   # or OPENROUTER_API_KEY
 ov start hermes-playwright
 ```
 
-The hermes entrypoint auto-configures the LLM provider from env vars (priority: `OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`). Override the default model with `HERMES_MODEL`. See `/ov-images:hermes` for full provider configuration details.
+The hermes entrypoint performs single-phase, first-start-only auto-configuration of LLM providers and MCP servers from env vars. See `/ov-images:hermes` for full provider configuration and MCP auto-discovery details.
 
 ## Playwright Usage
 

@@ -17,6 +17,7 @@ description: |
 | Ports | 8888 |
 | Service | `jupyter-colab` (supervisord) |
 | Volume | `workspace` at `~/workspace` |
+| MCP provides | `jupyter-colab` at `http://{{.ContainerName}}:8888/mcp` (streamable HTTP) |
 | Install files | `layer.yml` (rpm: git), `pixi.toml` |
 
 ## Key Packages
@@ -70,6 +71,15 @@ jupyter-colab:
 | Focus | Collaboration + data science | ML/AI training |
 | Key packages | jupyter-collaboration, pandas, polars | PyTorch, vLLM, transformers, llama.cpp |
 | Image size | ~3.4 GB | ~15+ GB |
+
+## MCP Server Discovery
+
+The `jupyter-colab` layer declares `mcp_provides` for cross-container and pod MCP discovery. The URL template `http://{{.ContainerName}}:8888/mcp` resolves to the actual container name at deploy time (e.g., `http://ov-selkies-desktop-hermes-jupyter:8888/mcp`), or to `http://localhost:8888/mcp` in combined images like `selkies-desktop-hermes-jupyter` where both services run in the same container.
+
+- **Transport:** Streamable HTTP (`http`)
+- **13 tools** available via the `jupyter-colab-mcp` extension (see below)
+- **Hermes auto-configures** via the `OV_MCP_SERVERS` env var -- no manual MCP registration needed
+- **Pod-aware:** resolves to `localhost` in combined images where hermes and jupyter share a container
 
 ## MCP Server Extension (`jupyter_colab_mcp`)
 
@@ -167,9 +177,10 @@ Multiple MCP clients can edit the same notebook simultaneously:
 ## Related Layers
 
 - `/ov-layers:jupyter-colab-ml` -- GPU-accelerated variant with full CUDA ML stack + same CRDT MCP server
-- `/ov-layers:jupyter-colab-mcp` -- Sub-layer: CRDT MCP extension (13 tools for programmatic notebook access)
+- `/ov-layers:jupyter-colab-mcp` -- MCP server implementation (sub-layer, 13 tools for programmatic notebook access)
 - `/ov-layers:notebook-templates` -- Starter notebooks (data layer, used alongside this layer in images)
 - `/ov-layers:jupyter` -- Legacy GPU Jupyter with ML libraries (monolithic, no CRDT MCP)
+- `/ov-layers:hermes` -- MCP consumer (mcp_accepts)
 - `/ov-layers:supervisord` -- process manager dependency
 - `/ov-layers:python` -- Python runtime (transitive via supervisord)
 

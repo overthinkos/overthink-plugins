@@ -88,6 +88,10 @@ layers/jupyter-colab-mcp/
       tornado_asgi.py    # Tornado-to-ASGI bridge for FastMCP
 ```
 
+## Integration with mcp_provides
+
+The parent `jupyter-colab` layer declares `mcp_provides` to make this MCP server discoverable to other services at deploy time. In pod images like `selkies-desktop-hermes-jupyter`, the hermes service auto-discovers this server via the `OV_MCP_SERVERS` env var and registers all 13 tools as `mcp_jupyter_colab_<tool_name>`.
+
 ## Used In Layers
 
 - `/ov-layers:jupyter-colab` — lightweight multi-arch JupyterLab (`layers: [jupyter-colab-mcp]`)

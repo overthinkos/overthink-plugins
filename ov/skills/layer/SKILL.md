@@ -64,6 +64,11 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 | `libvirt` | `[]string` | Raw libvirt XML snippets injected into VM domain XML after creation |
 | `data` | `[]DataYAML` | Data mappings from layer directory to volume staging area (`src`, `volume`, `dest`) |
 | `env_provides` | `map[string]string` | Env vars injected into OTHER containers when this service is deployed. Template: `{{.ContainerName}}` |
+| `env_requires` | `[]EnvDependency` | Env vars this layer MUST have from the environment |
+| `env_accepts` | `[]EnvDependency` | Env vars this layer CAN optionally use |
+| `mcp_provides` | `[]MCPServerYAML` | MCP servers provided to OTHER containers when this service is deployed |
+| `mcp_requires` | `[]EnvDependency` | MCP servers this layer MUST have from the environment |
+| `mcp_accepts` | `[]EnvDependency` | MCP servers this layer CAN optionally use |
 
 ### port_relay
 
@@ -137,6 +142,51 @@ env_provides:
 - Stored in OCI label `org.overthinkos.env_provides` for deploy-only scenarios
 
 See `/ov:config` for `--update-all` flag and `/ov:deploy` for global env in deploy.yml.
+
+### mcp_provides
+
+MCP servers provided to OTHER containers when this service is deployed. Used for cross-container MCP server discovery. Resolved at `ov config` time and stored in `deploy.yml` under `provides.mcp:`.
+
+```yaml
+mcp_provides:
+  - name: jupyter-colab
+    url: "http://{{.ContainerName}}:8888/mcp"
+    transport: http
+```
+
+- Each entry has `name` (required, unique), `url` (required, supports `{{.ContainerName}}` template), `transport` (optional, defaults to `"http"` for streamable HTTP; also supports `"sse"`)
+- Consumer containers receive `OV_MCP_SERVERS` JSON env var with all resolved MCP server entries
+- **Pod-aware**: When consumer and provider are in the same container (e.g., `selkies-desktop-hermes-jupyter`), URLs resolve to `localhost` instead of container hostname. If both a local and remote entry share a name, local wins
+- **No self-exclusion** (unlike env_provides): MCP servers are always included for same-container consumers
+- On `ov config remove` / `ov remove`, MCP entries are automatically cleaned from deploy.yml
+- Validated by `ov validate`: empty names, duplicate names, empty URLs, unknown template variables, and invalid transport values are errors
+- Stored in OCI label `org.overthinkos.mcp_provides`
+
+See `/ov:config` for `--update-all` flag and `/ov:deploy` for provides section in deploy.yml.
+
+### mcp_requires
+
+MCP servers this layer MUST have from the environment to function. At `ov config` time, `warnMissingMCPRequires()` prints warnings for missing required servers.
+
+```yaml
+mcp_requires:
+  - name: jupyter-colab
+    description: "JupyterLab CRDT MCP server for notebook manipulation"
+```
+
+Same `EnvDependency` struct as `env_requires` (`name`, `description`, optional `default`).
+
+### mcp_accepts
+
+MCP servers this layer CAN optionally use. No warnings if missing — purely for documentation and discoverability.
+
+```yaml
+mcp_accepts:
+  - name: jupyter-colab
+    description: "JupyterLab CRDT MCP server for notebook manipulation"
+```
+
+Same struct as `mcp_requires`.
 
 ### Port Protocol Annotations
 
@@ -428,6 +478,7 @@ Add a `service` field to layer.yml with an init system program fragment (e.g., s
 
 - `/ov:image` -- Adding layers to image definitions
 - `/ov:build` -- Building images with layers
+- `/ov:deploy` -- Provides configuration in deploy.yml (env + MCP)
 
 ## When to Use This Skill
 

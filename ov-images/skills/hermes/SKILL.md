@@ -52,7 +52,9 @@ ov shell hermes -c "hermes chat"
 
 ## Configuration
 
-The hermes entrypoint auto-configures the LLM provider based on which env var is set:
+The hermes entrypoint performs a **single-phase, first-start-only** auto-configuration of LLM providers and MCP servers. Guarded by `# ov:auto-configured` sentinel in `config.yaml`. To reconfigure: delete `/opt/data/config.yaml` and restart. API keys are synced to `.env` on every start (handles rotation).
+
+LLM provider based on which env var is set:
 
 | Priority | Env var | Provider | Default model |
 |----------|---------|----------|---------------|
@@ -84,6 +86,21 @@ ov shell hermes -c "vi /opt/data/.env"
 
 The data volume (`/opt/data`) persists: sessions, skills, memories, logs, config, and `.env`.
 
+## MCP Server Discovery
+
+When co-deployed with services that declare `mcp_provides` (e.g., jupyter-colab), hermes auto-discovers and connects to their MCP servers at first start. The `OV_MCP_SERVERS` JSON env var is injected by `ov config` and the entrypoint writes the servers into `config.yaml` under `mcp_servers:`.
+
+```bash
+# Verify MCP connection
+ov shell hermes -c "hermes mcp list"                    # Shows registered servers
+ov shell hermes -c "hermes mcp test jupyter-colab"      # Tests connection (expects 13 tools)
+
+# Use MCP tools in chat
+ov shell hermes -c "hermes chat -q 'Use list_notebooks to list notebooks'"
+```
+
+Tools are registered as `mcp_<server_name>_<tool_name>`. Reload at runtime: `/reload-mcp`.
+
 ## Key Layers
 
 - `/ov-layers:hermes` -- core agent layer (pixi.toml, build.sh, service, volumes)
@@ -93,6 +110,7 @@ The data volume (`/opt/data`) persists: sessions, skills, memories, logs, config
 ## Related Images
 
 - `/ov-images:hermes-playwright` -- adds Playwright Chromium for browser automation
+- `/ov-images:selkies-desktop-hermes-jupyter` -- Selkies desktop + hermes + JupyterLab with MCP
 - `/ov-images:openclaw` -- alternative AI gateway (OpenClaw vs Hermes)
 
 ## Verification

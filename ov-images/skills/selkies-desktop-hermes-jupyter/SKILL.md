@@ -153,6 +153,24 @@ ov shell selkies-desktop-hermes-jupyter -c "hermes --version"  # v0.7.0
 ov shell selkies-desktop-hermes-jupyter -c "jupyter lab --version"  # 4.x
 ```
 
+## MCP Auto-Discovery
+
+Hermes auto-discovers the jupyter-colab MCP server at first start. In this combined image, both services run in the same container, so the URL resolves to `http://localhost:8888/mcp` (pod-aware).
+
+**Verify:**
+```bash
+ov shell selkies-desktop-hermes-jupyter -c "hermes mcp test jupyter-colab"
+# Expects 13 tools, ~742ms connection
+```
+
+**Use:**
+```bash
+hermes chat -q "Use the list_notebooks MCP tool to list notebooks"
+```
+Or in interactive chat: `/reload-mcp` to refresh MCP server connections.
+
+No manual MCP registration needed -- configured automatically by the entrypoint from `OV_MCP_SERVERS`.
+
 ## Related Images
 
 - `/ov-images:selkies-desktop-hermes` — same image without JupyterLab

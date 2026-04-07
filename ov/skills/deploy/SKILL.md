@@ -206,29 +206,35 @@ images:
 
 Allowed fields: `workspace`, `version`, `status`, `info`, `tunnel`, `fqdn`, `acme_email`, `volumes`, `ports`, `env`, `env_file`, `security`, `network`, `engine`, `secrets`.
 
-### Global Environment (Top-Level)
+### Provides (Top-Level)
 
-The top-level `env:` and `env_provides_sources:` fields in `deploy.yml` are shared across all deployed images. Managed automatically by `ov config` when images with `env_provides` layers are deployed.
+The `provides:` section holds all resolved env and MCP provides entries from deployed images. Managed automatically by `ov config` when images with `env_provides` or `mcp_provides` layers are deployed.
 
 ```yaml
-env:
-  - OLLAMA_HOST=http://ov-ollama:11434
-  - PGHOST=ov-postgresql
-  - PGPORT=5432
-env_provides_sources:
-  OLLAMA_HOST: ollama
-  PGHOST: postgresql
-  PGPORT: postgresql
+provides:
+  env:
+    - name: OLLAMA_HOST
+      value: http://ov-ollama:11434
+      source: ollama
+    - name: PGHOST
+      value: ov-postgresql
+      source: postgresql
+  mcp:
+    - name: jupyter-colab
+      url: http://ov-jupyter-colab:8888/mcp
+      transport: http
+      source: jupyter-colab
 images:
   my-app: { ... }
 ```
 
-- `env:` — global env vars injected into all containers (lowest priority in the 6-level chain)
-- `env_provides_sources:` — tracks which image injected each var (for cleanup on `ov remove` and self-exclusion)
-- Priority (last wins): global env < per-image deploy env < deploy env_file < workspace .env < CLI --env-file < CLI -e
-- `ov config remove` / `ov remove` automatically cleans up vars from the removed image
+- `provides.env:` — resolved env_provides entries with `{name, value, source}` (self-excluded per consumer)
+- `provides.mcp:` — resolved mcp_provides entries with `{name, url, transport, source}` (pod-aware, no self-exclusion)
+- `source` tracks which image injected each entry — used for cleanup on `ov remove`
+- Priority for env (last wins): provides.env < per-image deploy env < deploy env_file < workspace .env < CLI --env-file < CLI -e
+- `ov config remove` / `ov remove` automatically cleans up entries from the removed image
 
-See `/ov:layer` for `env_provides` field declaration and `/ov:config` for `--update-all` propagation.
+See `/ov:layer` for `env_provides`/`mcp_provides` field declarations and `/ov:config` for `--update-all` propagation.
 
 ### Secrets
 
@@ -373,6 +379,36 @@ port_relay:
 ```
 
 Requires the `socat` layer as a dependency. The relay runs as a `relay-<port>` service in the configured init system. See `/ov-layers:chrome` and `/ov-layers:openclaw` for examples.
+
+## Provides Configuration
+
+Global environment and MCP server injection for all deployed images. Stored in deploy.yml under `provides:`.
+
+### Structure
+
+```yaml
+provides:
+  env:
+    - name: OLLAMA_HOST
+      value: http://ov-ollama:11434
+      source: ollama
+  mcp:
+    - name: jupyter-colab
+      url: http://ov-jupyter-colab:8888/mcp
+      transport: http
+      source: jupyter-colab
+```
+
+- `provides.env:` — resolved env_provides entries with `{name, value, source}`
+- `provides.mcp:` — resolved mcp_provides entries with `{name, url, transport, source}`
+- `source` field tracks which image contributed each entry (used for cleanup on `ov remove`)
+- Entries resolved at `ov config` time from layer `env_provides:` and `mcp_provides:` declarations
+- `GlobalEnvForImage()` in `provides.go` resolves both env and MCP provides for each consumer image
+- Env provides: self-excluded (prevents own env_provides from overriding service bind addresses)
+- MCP provides: pod-aware (same-container entries resolve to `localhost`, no self-exclusion)
+- Consumer containers receive `OV_MCP_SERVERS` JSON env var with resolved MCP server entries
+
+See `/ov:config` for setup workflow and `/ov:layer` for declaration format.
 
 ## Cross-References
 
