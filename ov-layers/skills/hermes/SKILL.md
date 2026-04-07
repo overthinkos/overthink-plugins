@@ -114,7 +114,7 @@ Hermes has browser tools (`browser_navigate`, `browser_click`, `browser_snapshot
 | 3 | Browserbase configured | Cloud session | Remote cloud browser |
 | 4 | *(default)* | Local headless (`agent-browser --session`) | Requires Playwright Chromium |
 
-**In desktop images** (`selkies-desktop-hermes*`): The chrome layer's `env_provides: BROWSER_CDP_URL` is pod-aware resolved to `http://localhost:9222`. Hermes uses the desktop Chrome — the user sees hermes browsing in real-time at `:3000`. No separate headless browser is installed.
+**Cross-container with selkies-desktop:** Deploy `hermes-full` alongside `selkies-desktop` as separate pods. The chrome layer's `env_provides: BROWSER_CDP_URL` injects `http://ov-selkies-desktop:9222` into the hermes quadlet via `ov config --update-all`. Hermes uses the desktop Chrome — the user sees hermes browsing in real-time at `:3000`. The `cdp-proxy` in the chrome layer rewrites Host headers for Chrome 146+ compatibility.
 
 **In standalone images** (`hermes-playwright`): The `hermes-playwright` layer provides Playwright Chromium for local headless mode (backend #4).
 
@@ -170,8 +170,9 @@ hermes:
 
 - `/ov-images:hermes` -- headless agent (no browser, no desktop)
 - `/ov-images:hermes-playwright` -- agent with Playwright Chromium (standalone headless)
-- `/ov-images:selkies-desktop-hermes` -- desktop + hermes with shared Chrome browser
-- `/ov-images:selkies-desktop-hermes-jupyter` -- desktop + hermes + jupyter with shared Chrome and MCP
+- `/ov-images:hermes-full` -- full-featured standalone (claude-code + codex + gemini + dev-tools + devops-tools + ov)
+- `/ov-images:selkies-desktop` -- deploy alongside for shared Chrome browser (cross-container CDP)
+- `/ov-images:jupyter-colab` -- deploy alongside for MCP notebook access (cross-container MCP)
 
 ## When to Use This Skill
 

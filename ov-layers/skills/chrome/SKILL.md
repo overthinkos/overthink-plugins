@@ -11,12 +11,12 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Dependencies | `socat` |
-| Ports | 9222 |
-| Port relay | 9222 (eth0 -> loopback) |
+| Dependencies | `supervisord` |
+| Ports | 9222 (external, via cdp-proxy) |
+| CDP Proxy | `cdp-proxy` on 0.0.0.0:9222 → Chrome on 127.0.0.1:9223 |
 | Volumes | `chrome-data` -> `~/.chrome-debug` |
 | Security | `shm_size: 1g` |
-| Install files | `layer.yml`, `root.yml`, `user.yml` |
+| Install files | `layer.yml`, `root.yml`, `user.yml`, `cdp-proxy`, `chrome-wrapper`, `browser-open` |
 
 ## Environment Variables
 
