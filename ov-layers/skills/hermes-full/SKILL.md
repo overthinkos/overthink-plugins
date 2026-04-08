@@ -20,6 +20,7 @@ layers:
   - dev-tools       # bat, ripgrep, neovim, gh, direnv, fd-find, htop, etc.
   - devops-tools    # AWS CLI, Scaleway, kubectx, OpenTofu, wrangler, jq, rsync
   - ov              # Overthink CLI for in-container management
+  - tmux            # Terminal multiplexer for persistent sessions
 ```
 
 ## Browser Integration
@@ -49,6 +50,7 @@ hermes-full:
 - `/ov-layers:dev-tools` — Developer CLI utilities
 - `/ov-layers:devops-tools` — Cloud and infrastructure tools
 - `/ov-layers:ov` — Overthink CLI binary
+- `/ov-layers:tmux` — Terminal multiplexer for persistent sessions (`ov tmux` commands)
 - `/ov-layers:chrome` — Provides `BROWSER_CDP_URL` (cross-container, from selkies-desktop)
 - `/ov-layers:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-discovered via `mcp_provides`, 29 tools)
 - `/ov-layers:jupyter-colab-mcp` — JupyterLab CRDT MCP server (auto-discovered via `mcp_provides`, 13 tools)

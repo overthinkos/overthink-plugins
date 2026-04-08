@@ -44,6 +44,38 @@ Pod-aware: same-container consumers receive `http://localhost:9222`, cross-conta
 
 Provided by the auto-included `chrome-devtools-mcp` sub-layer (29 Chrome DevTools tools via mcp-proxy). Consumed by hermes (`mcp_accepts: chrome-devtools`) for MCP-based browser inspection and automation. See `/ov-layers:chrome-devtools-mcp` for tool list and architecture.
 
+When deploying with `-i <instance>`, the MCP server name is automatically disambiguated to `chrome-devtools-<instance>` (e.g., `chrome-devtools-31.58.9.4`). See `/ov:config` for MCP name disambiguation details.
+
+## Environment Accepts (Proxy)
+
+| Variable | Description |
+|----------|-------------|
+| `HTTP_PROXY` | HTTP proxy URL for Chrome (e.g., `http://proxy:8080`) |
+| `HTTPS_PROXY` | HTTPS proxy URL for Chrome (e.g., `http://proxy:8080`) |
+| `NO_PROXY` | Comma-separated bypass list (e.g., `localhost,127.0.0.1,.internal`) |
+
+Chrome does NOT natively respect `HTTP_PROXY`/`HTTPS_PROXY` environment variables. The `chrome-wrapper` script translates them to Chrome CLI flags at launch:
+
+- Both set: `--proxy-server=http=<HTTP_PROXY>;https=<HTTPS_PROXY>`
+- Only one set: `--proxy-server=<value>` (applies to all protocols)
+- `NO_PROXY` → `--proxy-bypass-list=<list>` (only added when a proxy is configured)
+
+Uppercase takes precedence over lowercase (`HTTP_PROXY` over `http_proxy`). The `chrome-x11-wrapper` has identical proxy translation logic.
+
+```bash
+# Deploy with proxy
+ov config selkies-desktop -e HTTP_PROXY=http://proxy:8080 -e "NO_PROXY=localhost;127.0.0.1"
+
+# Per-instance proxy (separate from base deployment)
+ov config selkies-desktop -i proxy \
+  -e HTTP_PROXY=http://31.58.9.4:6077 \
+  -e HTTPS_PROXY=http://31.58.9.4:6077 \
+  -e "NO_PROXY=localhost;127.0.0.1" \
+  -p 3001:3000 -p 9232:9222
+```
+
+**Note:** Kong's `[]string` CLI parsing splits on commas. Use semicolons in `NO_PROXY` values (e.g., `localhost;127.0.0.1`) or pass as a single `-e` flag. Chrome's `--proxy-bypass-list` accepts both comma and semicolon separators.
+
 ## Packages
 
 RPM (system): `liberation-fonts`, `vulkan-loader`, `mesa-dri-drivers`, `alsa-lib`, `at-spi2-core`, `cups-libs`, `gtk3`, `libdrm`, `libxkbcommon`, `nss`, `procps-ng`, `iproute`, `libva-utils`

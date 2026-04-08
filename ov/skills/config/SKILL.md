@@ -17,6 +17,7 @@ This is the **single entry point** for deployment setup. `ov start` requires `ov
 | Action | Command | Description |
 |--------|---------|-------------|
 | Full setup | `ov config <image>` | Quadlet + secrets + volumes + data seed |
+| Instance setup | `ov config <image> -i <instance>` | Deploy named instance with separate config |
 | With bind mount | `ov config <image> --bind workspace=~/project` | Bind workspace to host dir |
 | With encryption | `ov config <image> --encrypt data` | Encrypted volume via gocryptfs |
 | Volume config | `ov config <image> -v data:bind:/mnt/nas` | Explicit volume backing |
@@ -206,6 +207,34 @@ images:
 **Cleanup:** `ov config remove` and `ov remove` automatically remove the service's injected vars from the global env.
 
 See `/ov:layer` for `env_provides` field documentation.
+
+### Instance-Aware MCP Server Naming
+
+When deploying with `-i <instance>`, `injectMCPProvides` appends `-<instance>` to each MCP server name. This prevents naming collisions when multiple instances of the same image provide the same MCP server:
+
+```bash
+# Base deployment — MCP name: "chrome-devtools"
+ov config selkies-desktop --update-all
+
+# Instance deployment — MCP name: "chrome-devtools-31.58.9.4"
+ov config selkies-desktop -i 31.58.9.4 \
+  -e HTTP_PROXY=http://31.58.9.4:6077 \
+  -p 3001:3000 --update-all
+```
+
+Result in `deploy.yml` `provides.mcp`:
+```yaml
+- name: chrome-devtools
+  url: http://ov-selkies-desktop:9224/mcp
+  source: selkies-desktop
+- name: chrome-devtools-31.58.9.4
+  url: http://ov-selkies-desktop-31.58.9.4:9224/mcp
+  source: selkies-desktop/31.58.9.4
+```
+
+Consumers (e.g., hermes-full) see both as distinct MCP servers in `OV_MCP_SERVERS`. On re-config, stale MCP entries from the same source are automatically cleaned before new entries are injected.
+
+Source: `ov/config_image.go` (`injectMCPProvides`).
 
 ## Hermes LLM Provider Auto-Configuration Example
 

@@ -15,12 +15,15 @@ Deployment configuration for container services: quadlet file generation details
 | Action | Command | Description |
 |--------|---------|-------------|
 | Configure deployment | `ov config <image>` | Generate .container file + save deploy.yml |
+| Configure instance | `ov config <image> -i <instance>` | Generate instance-specific quadlet + deploy entry |
 | Configure volume backing | `ov config <image> --bind name` | Set volume as host bind mount |
 | Provision data | `ov config <image> --seed` | Auto-provision data layers into bind mounts (default) |
 | Deploy status | `ov deploy status` | Audit deploy.yml vs quadlet sync |
 | Show overrides | `ov deploy show [image]` | Display deploy.yml contents |
+| Show instance overrides | `ov deploy show <image> -i <instance>` | Display instance-specific overrides |
 | Import config | `ov deploy import <files>` | Merge files into deploy.yml |
 | Reset config | `ov deploy reset [image]` | Remove deploy.yml overrides |
+| Reset instance config | `ov deploy reset <image> -i <instance>` | Remove instance overrides |
 | Push to registry | `ov build --push` | Multi-platform push |
 
 For service lifecycle commands (start/stop/status/logs/update/remove), see `/ov:service`. For VM deployment, see `/ov:vm`. For encrypted storage, see `/ov:enc`.
@@ -271,6 +274,38 @@ ov deploy status
 
 Deployment commands (`ov config`, `start`, `status`, `logs`, `update`, `remove`, `seed`, `service`) resolve all configuration from **OCI image labels** + **deploy.yml** — no `images.yml` dependency. This means you can deploy on any machine with just `podman pull` + `ov config`.
 
+### Instance Support
+
+Deploy multiple containers of the same image with `-i <instance>`:
+
+```bash
+ov config selkies-desktop -i work -e TS_HOSTNAME=work -p 3001:3000
+ov config selkies-desktop -i personal -p 3002:3000
+ov start selkies-desktop -i work
+ov start selkies-desktop -i personal
+```
+
+**Deploy key convention:** Base images use `selkies-desktop` as the deploy.yml key. Instances use `selkies-desktop/work` (slash-separated). Functions: `deployKey()` constructs keys, `parseDeployKey()` splits them back. Source: `ov/deploy.go`.
+
+**Container naming:** `ov-<image>-<instance>` (e.g., `ov-selkies-desktop-work`). Quadlet file: `ov-selkies-desktop-work.container`.
+
+**Deploy.yml structure with instances:**
+
+```yaml
+images:
+  selkies-desktop:
+    ports: [3000:3000]
+  selkies-desktop/work:
+    ports: [3001:3000]
+    env: [TS_HOSTNAME=work]
+  selkies-desktop/personal:
+    ports: [3002:3000]
+```
+
+**Instance lifecycle:** All commands accept `-i`: `ov start/stop/status/logs/remove <image> -i <instance>`, `ov deploy show/reset <image> -i <instance>`. Removing an instance only cleans its deploy.yml entry — the base and other instances are unaffected. Provides cleanup waits until the last entry for a base image is removed.
+
+**MCP name disambiguation:** When an instance provides MCP servers, the server name gets `-<instance>` appended (e.g., `chrome-devtools-work`). See `/ov:config` for details.
+
 ## Volume Backing
 
 Layers declare what persistent storage they need via `volumes:` in `layer.yml`. By default, all volumes are Docker/Podman named volumes. At `ov config` time, any volume's backing can be changed to a host bind mount or encrypted gocryptfs mount.
@@ -455,7 +490,7 @@ images:
 - `/ov:vnc` -- VNC password setup for desktop containers
 - `/ov:vm` -- Virtual machine deployment (ov vm)
 - `/ov:build` -- Building images before deployment
-- `/ov:config` -- bind_address, run_mode, auto_enable, vnc.password, --sidecar flag
+- `/ov:config` -- bind_address, run_mode, auto_enable, vnc.password, --sidecar flag, MCP name disambiguation for instances
 - `/ov:image` -- Image configuration
 - `/ov:layer` — `env_provides` field declaration
 
