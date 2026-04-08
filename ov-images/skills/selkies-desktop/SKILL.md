@@ -258,6 +258,32 @@ The pod has dual networking: `Network=ov` (bridge for container-to-container) + 
 
 See `/ov:sidecar` for full sidecar documentation.
 
+## Multi-Instance Proxy Deployment
+
+Deploy multiple instances with different HTTP proxies for IP-diverse browsing. Each instance gets unique host ports and its own MCP server (`chrome-devtools-<instance>`).
+
+```bash
+# Deploy 3 instances with different proxies (ports 3001-3003, CDP 9231-9233)
+ov config selkies-desktop -i 45.39.130.21 \
+  -e HTTP_PROXY=http://45.39.130.21:6753 \
+  -e HTTPS_PROXY=http://45.39.130.21:6753 \
+  -e 'NO_PROXY=localhost;127.0.0.1' \
+  -p 3001:3000 -p 9231:9222
+
+# Propagate MCP to hermes-full, then start
+ov config hermes-full --update-all
+ov start selkies-desktop -i 45.39.130.21
+
+# Verify proxy IP
+ov cdp open selkies-desktop -i 45.39.130.21 "https://httpbin.org/ip"
+```
+
+**Tailscale access (no sidecar needed):** The image-level `tunnel: tailscale` generates `tailscale serve` commands for host-mapped ports. All instances are accessible via the host's Tailscale IP on their respective ports (`https://<host>:3001`, etc.). Use sidecars only when per-instance exit node routing is needed.
+
+**MCP auto-disambiguation:** Each instance provides `chrome-devtools-<instance>` MCP server. Consumers (hermes-full) receive all instances in `OV_MCP_SERVERS` JSON after `--update-all`.
+
+See `/ov:config` for `--update-all` propagation, `/ov-layers:chrome` for `env_accepts` (HTTP_PROXY/HTTPS_PROXY/NO_PROXY).
+
 ## Related Images
 
 - `/ov-images:selkies-desktop-nvidia` — GPU-accelerated variant with NVIDIA CUDA toolkit (base: nvidia instead of fedora-nonfree)

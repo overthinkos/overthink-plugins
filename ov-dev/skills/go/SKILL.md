@@ -96,7 +96,8 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | `labels.go` | OCI label constants |
 | `volumes.go` | Named volume collection/mounting |
 | `alias.go` | Command aliases (wrapper scripts) |
-| `deploy.go` | Per-deployment config overlay, `DeployVolumeConfig`, `ResolveVolumeBacking()`, `saveDeployState()` |
+| `deploy.go` | Per-deployment config overlay, `DeployVolumeConfig`, `ResolveVolumeBacking()`, `saveDeployState()`, `cleanDeployEntry()` (instance-aware provides cleanup) |
+| `provides.go` | Env/MCP provides injection, `removeBySource()`, `removeByExactSource()` (instance-specific cleanup), `podAwareMCPProvides()` |
 | `enc.go` | Encrypted volumes (gocryptfs via `systemd-run --scope --user --unit=ov-enc-<image>-<volume>`), `ResolvedBindMount`. `-allow_other` required for rootless podman keep-id. `encUnmount()` stops scope units after fusermount. Stale scope retry on mount failure |
 | `devices.go` | Host device auto-detection (NVIDIA GPU, AMD GPU/KFD, /dev/dri, /dev/kvm, etc.) |
 | `tunnel.go` | Tunnel providers (Tailscale, Cloudflare), backend scheme helpers (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`), scheme validation maps (`validTailscaleSchemes`, `validCloudflareSchemes`), start/stop for each provider |

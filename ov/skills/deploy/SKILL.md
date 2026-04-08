@@ -236,6 +236,7 @@ images:
 - `source` tracks which image injected each entry — used for cleanup on `ov remove`
 - Priority for env (last wins): provides.env < per-image deploy env < deploy env_file < workspace .env < CLI --env-file < CLI -e
 - `ov config remove` / `ov remove` automatically cleans up entries from the removed image
+- Instance-aware cleanup: removing an instance (e.g., `ov remove selkies-desktop -i work`) only cleans provides entries sourced from that specific instance (`selkies-desktop/work`), not from other instances of the same base image. Base image removal requires no other instances to exist before cleaning provides
 
 See `/ov:layer` for `env_provides`/`mcp_provides` field declarations and `/ov:config` for `--update-all` propagation.
 

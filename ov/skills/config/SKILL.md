@@ -81,7 +81,7 @@ This is the **single entry point** for deployment setup. `ov start` requires `ov
 12. Injects `mcp_provides` entries from image labels into deploy.yml `provides.mcp:` (resolves templates, defaults transport to `http`)
 13. Synthesizes `OV_MCP_SERVERS` JSON env var for consumer containers (pod-aware: same-image entries resolve to `localhost`)
 14. Warns about missing `mcp_requires` servers (same pattern as `env_requires` warnings)
-15. If `--update-all`, regenerates quadlets for all other deployed images and reloads systemd
+15. If `--update-all`, regenerates quadlets for all other deployed images (preserving Instance, Tunnel, PodName, Sidecars, and instance-scoped volume names) and reloads systemd
 
 ## Volume Backing
 
