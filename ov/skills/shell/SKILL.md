@@ -105,9 +105,9 @@ By default, `ov shell` auto-detects available host devices and passes them throu
 - `/dev/net/tun` -- TUN/TAP networking
 - `/dev/hwrng` -- hardware RNG
 
-When an AMD GPU is detected, `keep-groups` is auto-added to preserve host supplementary groups (video, render) inside the container, and `HSA_OVERRIDE_GFX_VERSION` is auto-set from the GPU's KFD topology (e.g., `10.3.0` for RDNA2). The HSA env var can be overridden via `-e`.
+When an AMD GPU is detected, `keep-groups` is auto-added to preserve host supplementary groups (video, render) inside the container, and `HSA_OVERRIDE_GFX_VERSION` is auto-set from the GPU's KFD topology (e.g., `10.3.0` for RDNA2). Additionally, the first detected `/dev/dri/renderD*` device is auto-injected as `DRINODE` and `DRI_NODE` env vars (used by selkies for VAAPI encoding). All auto-detected env vars can be overridden via `-e`.
 
-Source: `ov/devices.go` (`DetectHostDevices`, `DetectGPU`, `DetectAMDGPU`).
+Source: `ov/devices.go` (`DetectHostDevices`, `DetectGPU`, `DetectAMDGPU`, `appendAutoDetectedEnv`).
 
 ## Environment Variables
 

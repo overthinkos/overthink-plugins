@@ -93,7 +93,7 @@ The built-in tailscale sidecar template (validated against `tailscale/tailscale`
 | `TS_AUTH_ONCE` | `true` | Skip re-auth when state exists |
 | `TS_USERSPACE` | `false` | **Kernel mode** — required for exit node routing |
 | `TS_DEBUG_FIREWALL_MODE` | `nftables` | Force nftables (iptables-legacy fails in rootless podman) |
-| `TS_ACCEPT_DNS` | `true` | MagicDNS — split DNS (.ts.net via Tailscale, rest via upstream) |
+| `TS_ACCEPT_DNS` | `false` | Prevents Tailscale from rewriting `/etc/resolv.conf`. Pod quadlet adds explicit `--dns` flags for container DNS + MagicDNS |
 | `TS_ENABLE_HEALTH_CHECK` | `true` | `/healthz` endpoint |
 | `TS_LOCAL_ADDR_PORT` | `[::]:9002` | Health check listen address |
 | `TS_AUTHKEY` | Via secret | Auth key (from credential store) |

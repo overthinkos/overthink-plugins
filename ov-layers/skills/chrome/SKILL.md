@@ -17,7 +17,7 @@ description: |
 | CDP Proxy | `cdp-proxy` on 0.0.0.0:9222 → Chrome on 127.0.0.1:9223 |
 | Volumes | `chrome-data` -> `~/.chrome-debug` |
 | Security | `shm_size: 1g` |
-| Install files | `layer.yml`, `root.yml`, `user.yml`, `cdp-proxy`, `chrome-wrapper`, `browser-open` |
+| Install files | `layer.yml`, `root.yml`, `user.yml`, `cdp-proxy`, `chrome-wrapper`, `chrome-restart`, `browser-open` |
 
 ## Environment Variables
 
@@ -141,6 +141,22 @@ The `browser-open` helper (set as `BROWSER` env var) handles three states:
 3. **Chrome not running**: Launches Chrome via `swaymsg exec chrome-wrapper` with SWAYSOCK discovery (glob on `/tmp/sway-ipc.*.sock`, newest first).
 
 Uses `pgrep` to detect Chrome process state before deciding whether to launch. This is used by OAuth flows (`BROWSER=browser-open` causes OAuth URLs to auto-open in Chrome via CDP).
+
+## chrome-restart
+
+The `chrome-restart` script kills any running Chrome and relaunches it via `chrome-wrapper` with all proxy, CDP, and user-agent settings intact. Used by waybar's `custom/chrome` button (see `/ov-layers:waybar`) for one-click Chrome restart.
+
+**Compositor detection:** Tries `swaymsg exec` first (sway — needs IPC context for proper window management), falls back to direct `chrome-wrapper &` (labwc). Uses the same SWAYSOCK discovery pattern as `browser-open` and `waybar-wrapper` (`ls -t /tmp/sway-ipc.*.sock`).
+
+**Kill sequence:** SIGTERM first, then SIGKILL after 1 second for stubborn processes. Matches Chrome by `chrome.*remote-debugging-port` pattern (same as `browser-open`).
+
+```bash
+# Manual usage (inside container)
+chrome-restart
+
+# Via ov shell
+ov shell selkies-desktop -i 45.39.130.177 -c "chrome-restart"
+```
 
 ## Windows Platform Spoofing
 

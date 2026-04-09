@@ -62,7 +62,7 @@ This is the **single entry point** for deployment setup. `ov start` requires `ov
 | `--no-seed` | | | Disable data seeding |
 | `--force-seed` | | | Re-seed even if target directory is not empty |
 | `--data-from` | | | Seed data from a different data image |
-| `--no-autodetect` | | | Disable GPU/device auto-detection |
+| `--no-autodetect` | | | Disable GPU/device auto-detection (skips DRINODE, DRI_NODE, HSA_OVERRIDE_GFX_VERSION injection) |
 | `--update-all` | | | Regenerate quadlets for all other deployed images to pick up service env changes |
 
 ## How It Works

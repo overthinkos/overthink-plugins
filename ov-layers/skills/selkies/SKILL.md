@@ -70,8 +70,8 @@ Port 3000 uses `https+insecure` backend scheme because Traefik terminates TLS wi
 | Variable | Value | Purpose |
 |----------|-------|---------|
 | `PIXELFLUX_WAYLAND` | `true` | Enable Wayland capture mode |
-| `DRINODE` | `/dev/dri/renderD129` | GPU render node for pixelflux GL renderer |
-| `DRI_NODE` | `/dev/dri/renderD129` | GPU render node for VAAPI encoding |
+| `DRINODE` | Auto-detected | GPU render node — injected at runtime by `ov config` from first `/dev/dri/renderD*` device. See `/ov:config` |
+| `DRI_NODE` | Auto-detected | Same as DRINODE — required by selkies VAAPI encoder. Override with `-e DRINODE=/dev/dri/renderDN` |
 | `PULSE_SERVER` | `unix:/tmp/pulse/native` | PipeWire PulseAudio socket |
 
 ## Services (supervisord)
@@ -97,11 +97,14 @@ Port 3000 uses `https+insecure` backend scheme because Traefik terminates TLS wi
 
 | GPU | Rendering | Encoding | Status |
 |-----|-----------|----------|--------|
-| NVIDIA (CDI) | GL via renderD129 | NVENC attempted but fails (pixelflux compat issue with driver 590.48) | Working GL, CPU encoding fallback |
-| AMD/Intel | Mesa VA-API drivers installed | VAAPI available | Untested |
-| CPU | pixman fallback | x264enc / x264enc-striped / jpeg | Working |
+| NVIDIA (CDI) | GL via auto-detected renderD | NVENC attempted but fails (pixelflux compat issue with driver 590.48) | Working GL, CPU encoding fallback |
+| AMD | Mesa VA-API via auto-detected renderD | VAAPI hardware H264 encoding | Working — requires correct DRINODE (auto-detected by `ov config`) |
+| Intel | Mesa VA-API via auto-detected renderD | VAAPI available | Untested |
+| CPU | pixman fallback | x264enc / x264enc-striped / jpeg | Working but causes flickering at high resolutions |
 
-**NVENC note:** pixelflux detects the GPU, CUDA initializes, but NVENC encoder init fails. All NVIDIA libraries load correctly (libnvidia-encode, libcuda, libnvrtc). Likely a pixelflux compatibility issue with driver 590.48. CPU x264enc at 60fps with striped mode (16 parallel stripes) provides good performance.
+**DRINODE auto-detection:** `ov config` detects the first `/dev/dri/renderD*` device on the host and injects `DRINODE` and `DRI_NODE` env vars at runtime via `appendAutoDetectedEnv()`. Previously these were hardcoded to `renderD129` in `layer.yml`, causing VAAPI encoder failure on hosts with `renderD128` — the encoder fell back to CPU software encoding, which caused labwc swapchain buffer exhaustion (`No free output buffer slot`) and visible stream flickering. See `/ov-dev:go` for implementation details.
+
+**NVENC note:** pixelflux detects the GPU, CUDA initializes, but NVENC encoder init fails. All NVIDIA libraries load correctly (libnvidia-encode, libcuda, libnvrtc). Likely a pixelflux compatibility issue with driver 590.48. CPU x264enc at 60fps with striped mode (16 parallel stripes) provides acceptable performance.
 
 **Important:** Setting `SELKIES_ENCODER=x264enc-striped` locks to CPU mode. Leave encoder unset for GPU auto-detection.
 

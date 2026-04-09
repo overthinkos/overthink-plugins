@@ -22,25 +22,19 @@ Fonts (JetBrains Mono, Symbols Nerd Font) provided by the `desktop-fonts` layer 
 
 | Service | Priority | Purpose |
 |---------|----------|---------|
-| `waybar` | 15 | Top panel (after labwc at 12, swaync at 14, before nginx at 18) |
+| `waybar` | 15 | Bottom panel (after labwc at 12, swaync at 14, before nginx at 18) |
 
 ## Configuration
 
-Unified config shared with the `waybar` layer (Catppuccin Mocha, top bar):
+Unified config shared with the `waybar` layer (Catppuccin Mocha, bottom bar):
 
 ### Modules
 
 | Position | Module | Purpose |
 |----------|--------|---------|
-| Left | `sway/workspaces` | Workspace indicator (auto-hides on labwc) |
-| Left | `sway/mode` | Sway mode indicator (auto-hides on labwc) |
-| Left | `wlr/taskbar` | Running windows (click to activate) |
-| Center | `clock` | Time with calendar tooltip (Europe/Vienna) |
-| Right | `cpu`, `memory`, `disk` | System monitors |
-| Right | `network` | Container IP and bandwidth |
-| Right | `pulseaudio` | Volume control (click opens pavucontrol) |
-| Right | `tray` | System tray |
-| Right | `custom/notification` | swaync notification bell |
+| Left | `custom/chrome` | (Re)start Chrome button — calls `chrome-restart` (see `/ov-layers:chrome`) |
+| Center | `wlr/taskbar` | Running app icons — click to activate, middle-click to close, right-click to minimize |
+| Right | `custom/notification` | swaync notification toggle — click to open notification panel (see `/ov-layers:swaync`) |
 
 ### Style
 

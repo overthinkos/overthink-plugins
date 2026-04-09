@@ -71,9 +71,10 @@ ov wl screenshot selkies-desktop screenshot.png
 
 ## GPU Support
 
-- **Rendering:** NVIDIA GPU via CDI (`DRINODE=/dev/dri/renderD129`), AMD/Intel via Mesa
-- **Encoding:** NVENC detected but currently fails with driver 590.48 (pixelflux compat issue). Falls back to CPU x264enc. VAAPI drivers installed for AMD/Intel.
-- **CPU fallback:** x264enc-striped at 60fps (16 parallel stripes) — works well
+- **Rendering:** NVIDIA GPU via CDI, AMD/Intel via Mesa. `DRINODE`/`DRI_NODE` auto-detected at runtime by `ov config` (from first `/dev/dri/renderD*`)
+- **VAAPI encoding (AMD):** Hardware H264 encoding via VAAPI — requires correct DRINODE (auto-detected). Wrong DRINODE causes CPU fallback → swapchain buffer exhaustion → stream flickering
+- **NVENC (NVIDIA):** Detected but currently fails with driver 590.48 (pixelflux compat issue). Falls back to CPU x264enc
+- **CPU fallback:** x264enc-striped at 60fps (16 parallel stripes) — works but may cause flickering at high resolutions due to compositor buffer pressure
 
 ## Volumes
 
