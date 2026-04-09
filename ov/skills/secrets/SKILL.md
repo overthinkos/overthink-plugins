@@ -393,6 +393,7 @@ For GPG agent forwarding into containers (so `gpg --decrypt` works inside), use 
 - `/ov:service` — container secrets (`secrets` field in layer.yml, provisioned at `ov config`)
 - `/ov-layers:agent-forwarding` — SSH/GPG agent forwarding into containers
 - `/ov-layers:gnupg` — GnuPG package layer
+- `/ov-layers:openwebui` — two-tier secrets pattern: podman secrets (`WEBUI_SECRET_KEY` auto-generated) + GPG `.secrets` (API keys)
 - `/ov-layers:direnv` — direnv environment loader
 
 ## Source

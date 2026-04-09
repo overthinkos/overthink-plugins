@@ -254,6 +254,44 @@ ov config hermes
 
 All providers whose keys are present get registered simultaneously. Priority (`OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`) only determines the default. Override model with `-e HERMES_MODEL=...`. See `/ov-layers:hermes` for auto-provider-config details.
 
+## Open WebUI Auto-Configuration Example
+
+Open WebUI uses `env_requires` for mandatory admin credentials and `env_accepts` for optional LLM providers:
+
+```bash
+# Minimal: admin credentials required (hard error if missing)
+eval "$(ov secrets gpg env)"
+ov config openwebui \
+  -e "WEBUI_ADMIN_EMAIL=$WEBUI_ADMIN_EMAIL" \
+  -e "WEBUI_ADMIN_PASSWORD=$WEBUI_ADMIN_PASSWORD" \
+  -e "OPENROUTER_API_KEY=$OPENROUTER_API_KEY" \
+  -e "OLLAMA_API_KEY=$OLLAMA_API_KEY" \
+  --update-all
+
+# Full workstation: Ollama + Jupyter + OpenWebUI
+ov config ollama
+ov config jupyter --update-all
+ov config openwebui ... --update-all
+```
+
+The entrypoint auto-configures: OpenRouter + Ollama Cloud as semicolon-separated `OPENAI_API_BASE_URLS`, MCP servers from `OV_MCP_SERVERS` → `TOOL_SERVER_CONNECTIONS`, Jupyter code execution from co-deployed jupyter container. `ENABLE_OLLAMA_API` is disabled unless a local Ollama is deployed via `env_provides`. See `/ov-layers:openwebui` for details.
+
+## env_requires Enforcement
+
+Layers can declare `env_requires` in `layer.yml` for mandatory environment variables. `ov config` performs a hard check after resolving all env vars — if any required var is missing, it aborts before writing the quadlet and prints clear instructions:
+
+```
+Error: openwebui requires the following environment variable(s):
+
+  WEBUI_ADMIN_EMAIL — Admin email — pass via: ov config openwebui -e WEBUI_ADMIN_EMAIL=you@example.com
+
+Set them with -e flags, --env-file, or deploy.yml env:
+
+  ov config openwebui -e WEBUI_ADMIN_EMAIL=... -e WEBUI_ADMIN_PASSWORD=...
+```
+
+Source: `ov/config_image.go` (`checkMissingEnvRequires`).
+
 ## Sidecar Attachment
 
 Attach a sidecar container at deploy time:
