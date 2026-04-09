@@ -153,7 +153,7 @@ ov shell jupyter-colab-ml-notebook -c "ls ~/workspace/llms_on_supercomputers/"
 ## Related Images
 
 - `/ov-images:jupyter-colab-ml` — Same stack without finetuning notebooks
-- `/ov-images:jupyter-colab` — Lightweight variant (no CUDA, multi-arch)
+- `/ov-images:jupyter` — Lightweight variant (no CUDA, multi-arch)
 - `/ov-images:unsloth-studio` — Unsloth Studio UI (different pixi env, same finetuning notebooks)
 
 ## When to Use This Skill

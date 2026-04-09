@@ -53,15 +53,15 @@ jupyter-colab:
 
 ```bash
 # Deploy with bind-backed workspace volume
-ov config jupyter-colab --bind workspace
+ov config jupyter --bind workspace
 
 # Data is copied from image to host volume on first config
-ov start jupyter-colab
+ov start jupyter
 ```
 
 ## Used In Images
 
-- `/ov-images:jupyter-colab`
+- `/ov-images:jupyter`
 - `/ov-images:jupyter-colab-ml`
 - `/ov-images:jupyter-colab-ml-notebook`
 
@@ -71,7 +71,7 @@ ov start jupyter-colab
 - `/ov:config` -- data provisioning during `ov config` setup
 - `/ov:deploy` -- volume backing configuration (bind, named, encrypted)
 - `/ov-layers:jupyter-colab` -- the JupyterLab layer that consumes the workspace volume
-- `/ov-images:jupyter-colab` -- the image that includes this layer
+- `/ov-images:jupyter` -- the image that includes this layer
 
 ## When to Use This Skill
 

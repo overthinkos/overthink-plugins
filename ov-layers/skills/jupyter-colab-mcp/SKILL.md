@@ -99,7 +99,7 @@ The parent `jupyter-colab` layer declares `mcp_provides` to make this MCP server
 
 ## Used In Images
 
-- `/ov-images:jupyter-colab`
+- `/ov-images:jupyter`
 - `/ov-images:jupyter-colab-ml`
 - `/ov-images:jupyter-colab-ml-notebook`
 

@@ -223,10 +223,10 @@ provides:
       value: ov-postgresql
       source: postgresql
   mcp:
-    - name: jupyter-colab
-      url: http://ov-jupyter-colab:8888/mcp
+    - name: jupyter
+      url: http://ov-jupyter:8888/mcp
       transport: http
-      source: jupyter-colab
+      source: jupyter
 images:
   my-app: { ... }
 ```
@@ -431,10 +431,10 @@ provides:
       value: http://ov-ollama:11434
       source: ollama
   mcp:
-    - name: jupyter-colab
-      url: http://ov-jupyter-colab:8888/mcp
+    - name: jupyter
+      url: http://ov-jupyter:8888/mcp
       transport: http
-      source: jupyter-colab
+      source: jupyter
 ```
 
 - `provides.env:` — resolved env_provides entries with `{name, value, source}`
