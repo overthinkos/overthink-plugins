@@ -1,45 +1,39 @@
 ---
 name: hermes
 description: |
-  Headless Hermes AI agent image. Self-improving agent with voice, messaging,
-  and tool-calling — no browser. Use when working with the headless hermes deployment.
+  Full-featured standalone Hermes AI agent with AI CLIs, dev tools, DevOps tools, and ov.
   MUST be invoked before building, deploying, configuring, or troubleshooting the hermes image.
 ---
 
-# hermes
+# Image: hermes
 
-Headless Hermes AI agent by Nous Research — voice, messaging, tool-calling, skill learning. No browser.
+Full-featured standalone Hermes AI agent. No browser or desktop — designed for cross-container deployment alongside `selkies-desktop` (shared Chrome via `BROWSER_CDP_URL`) and `jupyter-colab` (MCP notebooks via `OV_MCP_SERVERS`).
 
-## Image Properties
+## Definition
 
-| Property | Value |
-|----------|-------|
-| Base | fedora |
-| Layers | agent-forwarding, hermes, dbus, ov |
-| Platforms | linux/amd64 |
-| Registry | ghcr.io/overthinkos |
+```yaml
+hermes:
+  base: fedora
+  layers:
+    - agent-forwarding
+    - hermes-full      # hermes + claude-code + codex + gemini + dev-tools + devops-tools + ov + tmux
+    - dbus
+```
 
-## Full Layer Stack
+## Layer Stack
 
-1. `fedora` (quay.io/fedora/fedora:43)
-2. `pixi` -> `python` -> `supervisord` (transitive)
-3. `nodejs` (transitive via hermes)
-4. `ripgrep` (transitive via hermes)
-5. `ffmpeg` (transitive via hermes, negativo17 nonfree codecs)
-6. `pipewire` (transitive via hermes, audio for voice features)
-7. `hermes` -- agent on supervisord, data volume at `/opt/data`
-8. `agent-forwarding` (gnupg + direnv + ssh-client)
-9. `dbus` -- D-Bus session bus
-10. `ov` -- ov CLI
-
-## Services
-
-| Service | Status | Description |
-|---------|--------|-------------|
-| `hermes` | autostart | Main Hermes agent process |
-| `hermes-whatsapp` | manual | WhatsApp bridge (Node.js) |
-| `dbus` | autostart | D-Bus session bus |
-| `pipewire` | autostart | Audio server for voice |
+| Layer | Purpose |
+|-------|---------|
+| `agent-forwarding` | SSH + GPG agent forwarding into container |
+| `hermes` | AI agent with LLM auto-config, MCP, browser tools |
+| `claude-code` | Anthropic Claude Code CLI |
+| `codex` | OpenAI Codex CLI |
+| `gemini` | Google Gemini CLI |
+| `dev-tools` | bat, ripgrep, neovim, gh, direnv, fd-find, htop, podman-compose, etc. |
+| `devops-tools` | AWS CLI, Scaleway, kubectx/kubens, OpenTofu, wrangler, bind-utils, jq, rsync |
+| `ov` | Overthink CLI for in-container management |
+| `tmux` | Terminal multiplexer for persistent sessions |
+| `dbus` | D-Bus session bus |
 
 ## Quick Start
 
@@ -86,6 +80,28 @@ ov shell hermes -c "vi /opt/data/.env"
 
 The data volume (`/opt/data`) persists: sessions, skills, memories, logs, config, and `.env`.
 
+## Cross-Container Service Discovery
+
+Deploy alongside provider containers for full functionality:
+
+```bash
+# 1. Deploy selkies-desktop (provides BROWSER_CDP_URL)
+ov config selkies-desktop
+ov start selkies-desktop
+
+# 2. Deploy jupyter-colab (provides jupyter-colab MCP server)
+ov config jupyter --update-all
+ov start jupyter
+
+# 3. Deploy hermes (consumes both)
+ov config hermes -e OLLAMA_API_KEY=... --update-all
+ov start hermes
+```
+
+Hermes receives:
+- `BROWSER_CDP_URL=http://ov-selkies-desktop:9222` — controls desktop Chrome
+- `OV_MCP_SERVERS=[{"name":"jupyter","url":"http://ov-jupyter:8888/mcp"},{"name":"chrome-devtools","url":"http://ov-selkies-desktop:9224/mcp"}]` — notebook manipulation + browser DevTools MCP
+
 ## MCP Server Discovery
 
 When co-deployed with services that declare `mcp_provides` (e.g., jupyter-colab), hermes auto-discovers and connects to their MCP servers at first start. The `OV_MCP_SERVERS` JSON env var is injected by `ov config` and the entrypoint writes the servers into `config.yaml` under `mcp_servers:`.
@@ -93,38 +109,37 @@ When co-deployed with services that declare `mcp_provides` (e.g., jupyter-colab)
 ```bash
 # Verify MCP connection
 ov shell hermes -c "hermes mcp list"                    # Shows registered servers
-ov shell hermes -c "hermes mcp test jupyter-colab"      # Tests connection (expects 13 tools)
-
-# Use MCP tools in chat
-ov shell hermes -c "hermes chat -q 'Use list_notebooks to list notebooks'"
+ov shell hermes -c "hermes mcp test jupyter"      # Tests connection (expects 13 tools)
 ```
-
-Tools are registered as `mcp_<server_name>_<tool_name>`. Reload at runtime: `/reload-mcp`.
 
 ## Key Layers
 
-- `/ov-layers:hermes` -- core agent layer (pixi.toml, build.sh, service, volumes)
-- `/ov-layers:ffmpeg` -- nonfree audio/video codecs
-- `/ov-layers:pipewire` -- audio for voice features (sounddevice, faster-whisper, edge-tts)
+- `/ov-layers:hermes-full` — Metalayer composition details
+- `/ov-layers:hermes` — Core agent (env_accepts, browser dispatch, LLM config)
+- `/ov-layers:chrome` — Provides `BROWSER_CDP_URL` (from selkies-desktop)
+- `/ov-layers:chrome-devtools-mcp` — Chrome DevTools MCP server on port 9224 (from selkies-desktop)
 
 ## Related Images
 
-- `/ov-images:hermes-playwright` -- adds Playwright Chromium for browser automation
-- Deploy `hermes-full` alongside `selkies-desktop` and `jupyter-colab` as separate pods for desktop + agent + notebook workflows
-- `/ov-images:openclaw` -- alternative AI gateway (OpenClaw vs Hermes)
+- `/ov-images:hermes-playwright` — Hermes with local Playwright Chromium
+- `/ov-images:selkies-desktop` — Desktop with Chrome (cross-container browser provider)
+- `/ov-images:jupyter` — JupyterLab with MCP (cross-container MCP provider)
 
 ## Verification
 
-After `ov start`:
 ```bash
-ov status hermes                    # container running
-ov service status hermes            # all services RUNNING
-ov shell hermes -c "hermes --version"    # Hermes Agent v0.7.0
-ov shell hermes -c "python -c 'import openai; import anthropic; print(\"OK\")'"
-ov shell hermes -c "ffmpeg -version"     # nonfree codecs present
-ov shell hermes -c "cd ~/hermes-agent && node -e \"require('agent-browser')\""
+ov status hermes
+ov service status hermes                    # hermes: RUNNING
+ov shell hermes -c "hermes --version"
+ov shell hermes -c "claude --version"
+ov shell hermes -c "codex --version"
+ov shell hermes -c "gemini --version"
+ov shell hermes -c "ov version"
+ov shell hermes -c "echo BROWSER_CDP_URL=\$BROWSER_CDP_URL"
+ov shell hermes -c "echo OV_MCP_SERVERS=\$OV_MCP_SERVERS"
+ov shell hermes -c "hermes mcp list"              # Should show chrome-devtools, jupyter-colab
 ```
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the headless hermes image, deploying Hermes Agent, or comparing hermes variants. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** before building, deploying, configuring, or troubleshooting the hermes image.

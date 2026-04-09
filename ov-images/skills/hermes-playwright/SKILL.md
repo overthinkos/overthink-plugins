@@ -22,9 +22,9 @@ Hermes AI agent with Playwright Chromium — web scraping, browser automation, a
 
 ## Full Layer Stack
 
-Inherits everything from the `hermes` image, plus:
+Builds on the base `hermes` layer (not the hermes image), adding Playwright Chromium:
 
-1. Everything from `/ov-images:hermes` (fedora + agent-forwarding + hermes + dbus + ov)
+1. `fedora` base + `agent-forwarding` + `hermes` + `hermes-playwright` + `dbus` + `ov`
 2. `hermes-playwright` -- Playwright npm package + Chromium Headless Shell + system deps
 
 ## Quick Start
@@ -73,7 +73,7 @@ The `PLAYWRIGHT_BROWSERS_PATH=/tmp/.cache/ms-playwright` env var is set automati
 
 ## Related Images
 
-- `/ov-images:hermes` -- headless agent without browser (smaller, ~400MB less)
+- `/ov-images:hermes` -- full-featured standalone hermes (no browser, uses cross-container CDP)
 - `/ov-images:openclaw-sway-browser` -- alternative: OpenClaw with full desktop + Chrome
 
 ## Verification

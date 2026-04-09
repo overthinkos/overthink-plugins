@@ -284,8 +284,7 @@ Reference documentation for every enabled Overthink container image.
 | githubrunner | `/ov-images:githubrunner` | Self-hosted GitHub Actions runner with full ov toolchain |
 | immich | `/ov-images:immich` | Immich photo management server on port 2283 (CPU) |
 | immich-ml | `/ov-images:immich-ml` | Immich photo management with CUDA ML backend |
-| jupyter | `/ov-images:jupyter` | Jupyter notebook server with CUDA GPU support and ML libraries |
-| jupyter-colab | `/ov-images:jupyter-colab` | Lightweight JupyterLab with real-time collaboration (no GPU) |
+| jupyter | `/ov-images:jupyter` | Lightweight JupyterLab with real-time collaboration (no GPU) |
 | jupyter-colab-ml | `/ov-images:jupyter-colab-ml` | Full CUDA ML + JupyterLab + CRDT MCP server |
 | jupyter-colab-ml-notebook | `/ov-images:jupyter-colab-ml-notebook` | Full CUDA ML + JupyterLab + CRDT MCP + fine-tuning notebooks |
 | nvidia | `/ov-images:nvidia` | NVIDIA GPU base image with CUDA toolkit on Fedora |

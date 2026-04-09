@@ -182,20 +182,20 @@ ov config my-app --bind workspace=/new/path
 When a configured image declares `env_provides` or `mcp_provides` in its layers (stored in OCI labels), `ov config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration.
 
 ```yaml
-# deploy.yml after `ov config ollama && ov config jupyter-colab`
+# deploy.yml after `ov config ollama && ov config jupyter`
 provides:
   env:
     - name: OLLAMA_HOST
       value: http://ov-ollama:11434
       source: ollama
   mcp:
-    - name: jupyter-colab
-      url: http://ov-jupyter-colab:8888/mcp
+    - name: jupyter
+      url: http://ov-jupyter:8888/mcp
       transport: http
-      source: jupyter-colab
+      source: jupyter
 images:
   ollama: { ... }
-  jupyter-colab: { ... }
+  jupyter: { ... }
 ```
 
 **Self-exclusion (env):** An image's own env_provides vars are filtered out of its own environment — the image uses its own `env:` (e.g., `OLLAMA_HOST=0.0.0.0`), not the service discovery URL.
@@ -232,7 +232,7 @@ Result in `deploy.yml` `provides.mcp`:
   source: selkies-desktop/31.58.9.4
 ```
 
-Consumers (e.g., hermes-full) see both as distinct MCP servers in `OV_MCP_SERVERS`. On re-config, stale MCP entries from the same source are automatically cleaned before new entries are injected.
+Consumers (e.g., hermes) see both as distinct MCP servers in `OV_MCP_SERVERS`. On re-config, stale MCP entries from the same source are automatically cleaned before new entries are injected.
 
 Source: `ov/config_image.go` (`injectMCPProvides`).
 
@@ -242,7 +242,7 @@ The hermes layer uses `-e` env vars to auto-configure its LLM provider on first 
 
 ```bash
 # Ollama Cloud
-ov config hermes-full -e OLLAMA_API_KEY=your-key
+ov config hermes -e OLLAMA_API_KEY=your-key
 
 # OpenRouter
 ov config hermes -e OPENROUTER_API_KEY=sk-or-xxx

@@ -33,7 +33,7 @@ Without a browser provider, hermes browser tools fall back to local headless mod
 
 ```yaml
 # images.yml
-hermes-full:
+hermes:
   base: fedora
   layers:
     - agent-forwarding
@@ -57,8 +57,7 @@ hermes-full:
 
 ## Related Images
 
-- `/ov-images:hermes-full` — Standalone full-featured hermes image
-- `/ov-images:hermes` — Minimal standalone hermes (no AI CLIs, no dev tools)
+- `/ov-images:hermes` — Standalone full-featured hermes image
 - `/ov-images:hermes-playwright` — Hermes with local Playwright Chromium
 
 ## When to Use This Skill
