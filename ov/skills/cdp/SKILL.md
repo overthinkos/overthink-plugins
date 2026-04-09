@@ -404,12 +404,31 @@ The SPA maps mouse events from canvas to remote desktop with an internal scaling
 | Take screenshot of stream content | `ov cdp screenshot` (captures canvas) |
 | Take screenshot of full client desktop | `ov vnc screenshot` or `ov wl screenshot` |
 
+## CDP Proxy Verification
+
+Use `cdp status` → `cdp open` → `cdp eval` to verify proxy connectivity on instances:
+
+```bash
+# Check CDP is available
+ov cdp status selkies-desktop -i 198.145.102.110
+
+# Open a test page
+ov cdp open selkies-desktop -i 198.145.102.110 "https://ip.me"
+
+# Extract the detected IP (ip.me stores it in an input field)
+ov cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
+  "document.querySelector('#ip-lookup').value"
+# → Should return 198.145.102.110 (the proxy IP)
+```
+
+This pattern works for any page content extraction via JS. The `cdp eval` command returns the expression's result directly.
+
 ## Cross-References
 
 - `/ov:wl` (sway subgroup) -- Sway compositor control (window management, workspaces)
 - `/ov:vnc` -- VNC desktop automation (same container, pixel-level interaction)
 - `/ov:shell` -- Running commands in containers (`--tty` for OAuth flows)
-- `/ov:service` -- Starting containers (`ov start`, `ov config`)
+- `/ov:config` -- Instance deployment, proxy configuration, removal workflow
 - `/ov:layer` -- Chrome layer configuration (cdp-proxy service, port declarations)
 - `/ov-images:selkies-desktop` -- Full SPA DOM structure, coordinate mapping, session resilience
 - `/ov-layers:chrome-devtools-mcp` -- MCP-based browser automation (29 tools via Streamable HTTP)

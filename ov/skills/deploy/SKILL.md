@@ -305,6 +305,8 @@ images:
 
 **Instance lifecycle:** All commands accept `-i`: `ov start/stop/status/logs/remove <image> -i <instance>`, `ov deploy show/reset <image> -i <instance>`. Removing an instance only cleans its deploy.yml entry — the base and other instances are unaffected. Provides cleanup waits until the last entry for a base image is removed.
 
+**Instance removal gotcha:** `ov config remove` disables the systemd service but does NOT remove the deploy.yml entry. You MUST also run `ov deploy reset <image> -i <instance>` and delete the quadlet file. If you run `ov config --update-all` before cleaning deploy.yml, stale quadlet files will be re-created. See `/ov:config` for the full 3-step cleanup workflow.
+
 **MCP name disambiguation:** When an instance provides MCP servers, the server name gets `-<instance>` appended (e.g., `chrome-devtools-work`). See `/ov:config` for details.
 
 ## Volume Backing

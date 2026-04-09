@@ -180,6 +180,7 @@ Use `ov cmd` for quick operations on running services. Use `ov shell -c` when yo
 - `/ov:wl` (sway subgroup) -- Sway compositor control
 - `/ov:settings` -- Engine and bind address settings
 - `/ov:config` -- Image deployment setup (quadlet + secrets + volumes)
+- `/ov:doctor` -- GPU auto-detection, DRINODE, HSA_OVERRIDE_GFX_VERSION
 - `/ov:image` -- Image configuration (ports, volumes, env)
 
 ## When to Use This Skill

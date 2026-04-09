@@ -177,6 +177,42 @@ ov config remove my-app
 ov config my-app --bind workspace=/new/path
 ```
 
+### Full instance removal (important: 3-step cleanup)
+
+`ov config remove` disables the systemd service but does NOT clean the deploy.yml entry. Running `--update-all` before cleaning deploy.yml will re-create quadlets from stale entries. Full cleanup requires:
+
+```bash
+ov config remove <image> -i <instance>     # 1. Stop & disable service
+ov deploy reset <image> -i <instance>       # 2. Remove deploy.yml entry
+rm ~/.config/containers/systemd/ov-<image>-<instance>.container  # 3. Delete quadlet
+systemctl --user daemon-reload              # 4. Reload systemd
+systemctl --user reset-failed               # 5. Clear ghost units (optional)
+```
+
+Only THEN run `ov config <image> --update-all` to propagate the clean state.
+
+### Multi-instance proxy deployment
+
+Deploy multiple browser instances with different HTTP proxies (e.g., for selkies-desktop):
+
+```bash
+ov config selkies-desktop -i 198.145.102.110 \
+  -e HTTP_PROXY=http://198.145.102.110:5466 \
+  -e HTTPS_PROXY=http://198.145.102.110:5466 \
+  -e "NO_PROXY=localhost,127.0.0.1" \
+  -p 3006:3000 -p 9236:9222
+ov start selkies-desktop -i 198.145.102.110
+```
+
+Each instance gets unique host ports. The Chrome layer's `chrome-wrapper` translates `HTTP_PROXY`/`HTTPS_PROXY` into Chrome's `--proxy-server` flag. Verify with CDP:
+
+```bash
+ov cdp status selkies-desktop -i 198.145.102.110
+ov cdp open selkies-desktop -i 198.145.102.110 "https://ip.me"
+ov cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
+  "document.querySelector('#ip-lookup').value"
+```
+
 ## Service Environment Injection
 
 When a configured image declares `env_provides` or `mcp_provides` in its layers (stored in OCI labels), `ov config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration.

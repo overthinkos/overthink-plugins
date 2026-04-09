@@ -95,7 +95,9 @@ Probes GPU and device hardware, reports what flags containers will receive:
 | `/dev/net/tun` | TUN/TAP network device | `--device /dev/net/tun` |
 | `/dev/hwrng` | Hardware RNG | `--device /dev/hwrng` |
 
-AMD GPU detection also reports the GFX version (e.g., `gfx1030`).
+AMD GPU detection also reports the GFX version (e.g., `gfx 11.0.0`) from KFD topology nodes and sets `HSA_OVERRIDE_GFX_VERSION` accordingly.
+
+**DRINODE auto-detection:** `ov` automatically finds the first `/dev/dri/renderD*` device and injects it as `DRINODE` and `DRI_NODE` environment variables into `ov config`, `ov start`, and `ov shell` sessions. This ensures GPU render node selection is consistent across all operations without manual configuration. The detection is centralized in `ov/devices.go` (`DetectedDevices.RenderNode`).
 
 ## Output Format
 
@@ -118,7 +120,10 @@ Each check shows the binary path and version when available, or an install hint 
 ## Cross-References
 
 - `/ov:udev` — install udev rules for GPU device access
-- `/ov:config` — `engine.build`, `engine.run`, `secret_backend` settings
+- `/ov:config` — `engine.build`, `engine.run`, `secret_backend` settings, DRINODE injection
+- `/ov:shell` — auto-detected env vars (DRINODE, DRI_NODE, HSA_OVERRIDE_GFX_VERSION)
+- `/ov-layers:nvidia` — NVIDIA GPU runtime support
+- `/ov-layers:rocm` — AMD ROCm runtime support
 
 ## Source
 
