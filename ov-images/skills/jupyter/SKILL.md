@@ -60,6 +60,8 @@ ov start jupyter
 
 - `/ov-images:jupyter-colab-ml` — GPU-accelerated variant (nvidia base, full ML stack)
 - `/ov-images:jupyter-colab-ml-notebook` — GPU variant with fine-tuning notebooks
+- `/ov-images:openwebui` — Open WebUI consumes jupyter for code execution and MCP tools
+- `/ov-images:hermes` — Hermes agent consumes jupyter MCP for notebook manipulation
 - `/ov-images:fedora` — parent base image
 
 ## MCP Server (Programmatic Notebook Access)

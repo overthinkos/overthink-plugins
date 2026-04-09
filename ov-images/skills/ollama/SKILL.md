@@ -76,6 +76,7 @@ This means containers like `jupyter-colab-ml-notebook` automatically discover th
 - `/ov-images:openclaw-ollama` — OpenClaw gateway + Ollama
 - `/ov-images:openclaw-ollama-sway-browser` — full stack with desktop
 - `/ov-images:jupyter-colab-ml-notebook` — Jupyter with Ollama integration notebooks (receives `OLLAMA_HOST` automatically via env_provides when ollama is deployed)
+- `/ov-images:openwebui` — Open WebUI (receives `OLLAMA_HOST` via env_provides, auto-configures as `OLLAMA_BASE_URL`)
 
 ## Related Layers
 

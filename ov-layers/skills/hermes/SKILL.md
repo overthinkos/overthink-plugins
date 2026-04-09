@@ -171,6 +171,7 @@ hermes:
 
 - `/ov-images:hermes` -- full-featured standalone (claude-code + codex + gemini + dev-tools + devops-tools + ov)
 - `/ov-images:hermes-playwright` -- agent with Playwright Chromium (standalone headless)
+- `/ov-images:openwebui` -- alternative web UI frontend with similar MCP/LLM auto-config pattern
 - `/ov-images:selkies-desktop` -- deploy alongside for shared Chrome browser (cross-container CDP)
 - `/ov-images:jupyter` -- deploy alongside for MCP notebook access (cross-container MCP)
 

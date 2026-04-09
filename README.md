@@ -101,7 +101,7 @@ Jupyter MCP server for programmatic notebook access with real-time collaboration
 
 Multiple MCP clients can edit the same notebook simultaneously — changes sync via CRDT.
 
-### ov-layers (152 skills)
+### ov-layers (160 skills)
 
 Reference documentation for every Overthink container layer.
 
@@ -188,6 +188,7 @@ Reference documentation for every Overthink container layer.
 | openclaw | `/ov-layers:openclaw` | OpenClaw AI gateway service on port 18789 |
 | openclaw-full | `/ov-layers:openclaw-full` | Maximal OpenClaw deployment (gateway + browser + all tools/skills) |
 | openclaw-full-ml | `/ov-layers:openclaw-full-ml` | OpenClaw full + ML tools (whisper, sherpa-onnx, CUDA) |
+| openwebui | `/ov-layers:openwebui` | Open WebUI with auto-configured LLM providers, MCP servers, and Jupyter |
 | oracle | `/ov-layers:oracle` | Oracle CLI for prompt bundling and multi-engine AI queries |
 | ordercli | `/ov-layers:ordercli` | Food delivery order status CLI (Foodora) |
 | os-config | `/ov-layers:os-config` | OS system configuration for bootc images |
@@ -261,7 +262,7 @@ Reference documentation for every Overthink container layer.
 | xurl | `/ov-layers:xurl` | X (Twitter) API CLI for posts, search, DMs, and media |
 | yay | `/ov-layers:yay` | AUR helper for Arch Linux (base-devel + yay binary) |
 
-### ov-images (38 skills)
+### ov-images (40 skills)
 
 Reference documentation for every enabled Overthink container image.
 
@@ -294,6 +295,7 @@ Reference documentation for every enabled Overthink container image.
 | openclaw-full | `/ov-images:openclaw-full` | Headless OpenClaw with all tool layers (no desktop) |
 | openclaw-full-ml | `/ov-images:openclaw-full-ml` | OpenClaw full + ML tools + Ollama + Sway desktop + VNC |
 | openclaw-full-sway | `/ov-images:openclaw-full-sway` | OpenClaw with all tools + Sway desktop + VNC (no GPU/ML) |
+| openwebui | `/ov-images:openwebui` | Open WebUI on port 8080 with auto-configured LLM providers and MCP |
 | openclaw-ollama | `/ov-images:openclaw-ollama` | Headless OpenClaw gateway with local Ollama LLM inference |
 | openclaw-ollama-sway-browser | `/ov-images:openclaw-ollama-sway-browser` | Full-stack AI: OpenClaw + all tools + Ollama + Whisper + Sway desktop |
 | openclaw-sway-browser | `/ov-images:openclaw-sway-browser` | Maximal OpenClaw with Sway desktop, Chrome, VNC, and all tools |
