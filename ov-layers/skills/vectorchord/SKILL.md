@@ -47,7 +47,7 @@ VectorChord provides the `vchordrq` index type for PostgreSQL, replacing pgvecto
 - **`shared_preload_libraries`** -- VectorChord's `.so` must be loaded at PostgreSQL startup via the `POSTGRES_SHARED_PRELOAD_LIBRARIES` env var (consumed by the postgresql layer's entrypoint)
 - **Extension creation** -- `CREATE EXTENSION vchord CASCADE;` (handled by the immich layer's migration script)
 
-## Version Requirements (Immich v2.6.3)
+## Version Requirements (Immich v2.7.2)
 
 - pgvector >= 0.7, < 0.9 (provided by postgresql layer)
 - VectorChord >= 0.3, < 2.0 (provided by this layer)

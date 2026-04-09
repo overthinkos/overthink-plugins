@@ -119,6 +119,7 @@ Port 3000 uses `https+insecure` backend scheme because Traefik terminates TLS wi
 - `/ov:wl` — Wayland automation (screenshot via capture bridge, input, windows)
 - `/ov:cdp` — Chrome DevTools and SPA bridge (click, type, key-combo through remote desktop)
 - `/ov:record` — Desktop video recording via capture bridge
+- `/ov-layers:selkies-desktop` — Desktop metalayer composing selkies with Chrome, labwc, Waybar
 
 ## Security
 

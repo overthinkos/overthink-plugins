@@ -124,6 +124,8 @@ ov shell <image> -e DB_HOST=localhost -e DB_PORT=5432
 ov shell <image> --env-file production.env
 ```
 
+Kong `sep:"none"` on `-e` means commas in values are safe (e.g., `NO_PROXY=localhost,127.0.0.1`).
+
 `.env` file format (Docker-compatible): `KEY=VALUE`, `KEY="VALUE"`, `KEY='VALUE'`, `KEY` (inherits from host), `#` comments, blank lines ignored.
 
 Source: `ov/envfile.go` (`ParseEnvFile`, `ResolveEnvVars`, `LoadWorkspaceEnv`).

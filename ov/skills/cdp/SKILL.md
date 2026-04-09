@@ -412,6 +412,8 @@ The SPA maps mouse events from canvas to remote desktop with an internal scaling
 - `/ov:service` -- Starting containers (`ov start`, `ov config`)
 - `/ov:layer` -- Chrome layer configuration (cdp-proxy service, port declarations)
 - `/ov-images:selkies-desktop` -- Full SPA DOM structure, coordinate mapping, session resilience
+- `/ov-layers:chrome-devtools-mcp` -- MCP-based browser automation (29 tools via Streamable HTTP)
+- `/ov-layers:chrome` -- Chrome layer with cdp-proxy, env_accepts (HTTP_PROXY)
 
 ## When to Use This Skill
 

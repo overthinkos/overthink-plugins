@@ -64,17 +64,15 @@ Uppercase takes precedence over lowercase (`HTTP_PROXY` over `http_proxy`). The 
 
 ```bash
 # Deploy with proxy
-ov config selkies-desktop -e HTTP_PROXY=http://proxy:8080 -e "NO_PROXY=localhost;127.0.0.1"
+ov config selkies-desktop -e HTTP_PROXY=http://proxy:8080 -e "NO_PROXY=localhost,127.0.0.1"
 
 # Per-instance proxy (separate from base deployment)
 ov config selkies-desktop -i proxy \
   -e HTTP_PROXY=http://31.58.9.4:6077 \
   -e HTTPS_PROXY=http://31.58.9.4:6077 \
-  -e "NO_PROXY=localhost;127.0.0.1" \
+  -e "NO_PROXY=localhost,127.0.0.1" \
   -p 3001:3000 -p 9232:9222
 ```
-
-**Note:** Kong's `[]string` CLI parsing splits on commas. Use semicolons in `NO_PROXY` values (e.g., `localhost;127.0.0.1`) or pass as a single `-e` flag. Chrome's `--proxy-bypass-list` accepts both comma and semicolon separators.
 
 ## Packages
 
@@ -180,6 +178,7 @@ Most images use `gles2` on NVIDIA headless — Chrome gets full GPU acceleration
 - `/ov:shell` — Interactive shell to access Chrome
 - `/ov:vnc` — VNC automation (used with `--vnc` flag on `ov cdp click`)
 - `/ov:wl` — Wayland automation (used with `--wl` flag on `ov cdp click`)
+- `/ov:config` — Proxy deployment, `normalizeNoProxy()` auto-conversion, `sep:"none"` env handling
 
 ## When to Use This Skill
 

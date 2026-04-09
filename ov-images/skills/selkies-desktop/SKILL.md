@@ -267,7 +267,7 @@ Deploy multiple instances with different HTTP proxies for IP-diverse browsing. E
 ov config selkies-desktop -i 45.39.130.21 \
   -e HTTP_PROXY=http://45.39.130.21:6753 \
   -e HTTPS_PROXY=http://45.39.130.21:6753 \
-  -e 'NO_PROXY=localhost;127.0.0.1' \
+  -e 'NO_PROXY=localhost,127.0.0.1' \
   -p 3001:3000 -p 9231:9222
 
 # Propagate MCP to hermes-full, then start

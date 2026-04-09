@@ -272,6 +272,14 @@ ov config <image> --sidecar tailscale \
 
 See `/ov:sidecar` for full sidecar documentation.
 
+## Environment Variable Handling
+
+Kong `sep:"none"` on all `-e` flags means commas in values are preserved (no splitting). `NO_PROXY=localhost,127.0.0.1` works correctly as a single env var.
+
+`normalizeNoProxy()` auto-converts semicolons to commas in `NO_PROXY`/`no_proxy` values during env resolution. Legacy semicolon values in deploy.yml are auto-healed.
+
+Source: `ov/envfile.go` (`normalizeNoProxy`), `sep:"none"` in config_image.go/shell.go/commands.go/start.go.
+
 ## Cross-References
 
 - `/ov:sidecar` — Sidecar containers, pod networking, Tailscale exit nodes
@@ -283,6 +291,7 @@ See `/ov:sidecar` for full sidecar documentation.
 - `/ov:service` — Service lifecycle (start, stop, status, logs)
 - `/ov:layer` — Volume, secret, and `env_provides` declarations
 - `/ov:image` — Image composition and inheritance
+- `/ov-layers:chrome` — Chrome HTTP proxy (`env_accepts`), proxy deployment examples
 
 ## When to Use This Skill
 

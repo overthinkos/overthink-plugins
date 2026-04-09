@@ -31,6 +31,8 @@ Start a container image as a background service. In quadlet mode, `ov config <im
 | Env file | `--env-file PATH` | Load environment from file |
 | Port mapping | `-p PORT` | Additional port mapping |
 
+**Note:** `-e` flags use Kong `sep:"none"` — commas in values are preserved (e.g., `NO_PROXY=localhost,127.0.0.1`).
+
 ## Important: Quadlet Mode Requires Prior Configuration
 
 In quadlet mode (default), `ov config <image>` **MUST** be run before `ov start`. If the quadlet file does not exist, start fails with:

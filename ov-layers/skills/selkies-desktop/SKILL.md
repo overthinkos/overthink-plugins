@@ -89,3 +89,12 @@ A browser-accessible desktop at `http://localhost:3000` with:
 
 - `/ov-images:selkies-desktop`
 - `/ov-images:selkies-desktop-nvidia`
+
+## Related Skills
+
+- `/ov-layers:selkies` — Streaming engine (pixelflux, capture bridge, traefik)
+- `/ov-layers:labwc` — Nested Wayland compositor
+- `/ov-layers:chrome` — Chrome browser with CDP proxy and HTTP proxy support
+- `/ov:wl` — Wayland automation (screenshots, input, windows)
+- `/ov:cdp` — Chrome DevTools Protocol automation
+- `/ov:record` — Desktop video recording via capture bridge
