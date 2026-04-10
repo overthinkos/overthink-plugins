@@ -90,6 +90,22 @@ A browser-accessible desktop at `http://localhost:3000` with:
 - `/ov-images:selkies-desktop`
 - `/ov-images:selkies-desktop-nvidia`
 
+## Multi-Instance Proxy Deployment
+
+Deploy multiple instances with different HTTP proxies. Each instance gets a port offset:
+
+| Offset | Web (3000) | CDP (9222) | MCP (9224) | SSH (2222) |
+|--------|-----------|-----------|-----------|-----------|
+| 1 | 3001 | 9231 | 9241 | 2231 |
+| 2 | 3002 | 9232 | 9242 | 2232 |
+| N | 300N | 923N | 924N | 223N |
+
+**Tunnel must be in deploy.yml** for each instance. `ov config setup -i <ip>` does NOT inherit tunnel from the base entry. After config, manually add `tunnel: {provider: tailscale, private: all}` to the instance's deploy.yml entry, then re-run `ov config setup -i <ip>` to regenerate the quadlet with Tailscale serve commands. See `/ov:deploy` for details.
+
+**Chrome 147+ CDP:** The `/json/new` endpoint requires the PUT HTTP method (not GET). Use `curl -X PUT "http://localhost:<cdp-port>/json/new?<url>"` to create new tabs programmatically.
+
+See `/ov-images:selkies-desktop` for full multi-instance deployment examples.
+
 ## Related Skills
 
 - `/ov-layers:selkies` — Streaming engine (pixelflux, capture bridge, traefik)
@@ -98,3 +114,5 @@ A browser-accessible desktop at `http://localhost:3000` with:
 - `/ov:wl` — Wayland automation (screenshots, input, windows)
 - `/ov:cdp` — Chrome DevTools Protocol automation
 - `/ov:record` — Desktop video recording via capture bridge
+- `/ov:config` — Multi-instance deployment, tunnel, proxy env vars
+- `/ov:deploy` — Tunnel configuration (deploy.yml-only, instance inheritance gap)

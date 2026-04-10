@@ -56,9 +56,20 @@ ov remove openclaw -e CLEANUP_MODE=full
 
 Images can define `pre_remove` hooks that run before the container is removed. These are useful for graceful shutdown, data export, or cleanup tasks. Use `-e` to pass context to hooks.
 
+## Instance Removal
+
+Remove specific instances with `-i`:
+
+```bash
+ov remove selkies-desktop -i 192.241.92.221          # Remove instance
+ov remove selkies-desktop -i 192.241.92.221 --purge  # Also purge volumes
+```
+
+Instance removal automatically cleans the instance's `env_provides` and `mcp_provides` from `deploy.yml` provides section. Other instances of the same base image are unaffected.
+
 ## Cross-References
 
 - `/ov:stop` -- Stop without removing
-- `/ov:config` -- Configure/reconfigure services
-- `/ov:deploy` -- Deploy.yml management
+- `/ov:config` -- Configure/reconfigure services (see "Full instance removal" for 3-step cleanup)
+- `/ov:deploy` -- Deploy.yml management, tunnel configuration
 - `/ov:service` -- Full service lifecycle

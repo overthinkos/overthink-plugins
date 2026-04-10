@@ -173,6 +173,21 @@ This reduces the chance of Google flagging the sign-in as suspicious (Linux + au
 
 Most images use `gles2` on NVIDIA headless — Chrome gets full GPU acceleration. VNC images (`sway-desktop-vnc`) use `pixman` instead — Chrome falls back to software rendering (chrome-wrapper auto-detects `WLR_RENDERER=pixman` and strips NVIDIA EGL vars). No special handling needed — the chrome-wrapper adapts automatically to both renderers.
 
+## Chrome 147+ CDP Changes
+
+Chrome 147 introduced a breaking change to the CDP HTTP API:
+
+- **`/json/new` requires PUT** — `GET /json/new?<url>` returns `405 Method Not Allowed`. Use `PUT /json/new?<url>` instead. This affects programmatic tab creation via curl or HTTP clients.
+- **Host header validation** (since Chrome 146) — Non-localhost Host headers are rejected. The `cdp-proxy` rewrites headers to satisfy this check (see CDP Proxy section above).
+
+```bash
+# Chrome 147+: create new tab (PUT required)
+curl -s -X PUT "http://localhost:9222/json/new?https://example.com"
+
+# List tabs (GET still works)
+curl -s "http://localhost:9222/json/list"
+```
+
 ## CDP Diagnostics
 
 `ov cdp` commands now show diagnostics on connection failure: checks Chrome process, cdp-proxy status, and port binding. Hints use `ov wl sway exec <image> chrome-wrapper` (not `ov shell` with bare `swaymsg`) for manual Chrome restart.

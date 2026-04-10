@@ -163,6 +163,14 @@ Quadlet generates multiple `ExecStartPost=` and `ExecStopPost=` lines. Requires 
 
 Port protocols are stored in the `org.overthinkos.port_protos` image label so remote refs work without access to the original layer definitions.
 
+### Instance Tunnel Inheritance
+
+**Critical:** When deploying instances with `ov config setup -i <name>`, tunnel config is NOT auto-inherited from the base image's deploy.yml entry. Each instance must have its own `tunnel:` section in deploy.yml. Without it, the generated quadlet will have no `ExecStartPost=tailscale serve` commands and the instance will be unreachable via Tailscale.
+
+**Root cause:** `labels.go:238` deliberately skips parsing the `org.overthinkos.tunnel` OCI label — tunnel is deploy.yml-only. When `ov config setup` creates a new instance, it writes ports/env/security to deploy.yml but does not copy tunnel from the base entry.
+
+**Workaround:** After `ov config setup -i <name>`, manually edit `~/.config/ov/deploy.yml` to add `tunnel: {provider: tailscale, private: all}` to the instance entry, then re-run `ov config setup -i <name>` to regenerate the quadlet.
+
 ### Resolution
 
 `tunnel` inherits from defaults (image -> defaults -> nil). The shorthand `tunnel: tailscale` defaults to `private: all` (all ports on tailnet). The shorthand `tunnel: cloudflare` defaults to `public: all`.

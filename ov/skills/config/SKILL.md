@@ -64,6 +64,7 @@ This is the **single entry point** for deployment setup. `ov start` requires `ov
 | `--force-seed` | | | Re-seed even if target directory is not empty |
 | `--data-from` | | | Seed data from a different data image |
 | `--no-autodetect` | | | Disable GPU/device auto-detection (skips DRINODE, DRI_NODE, HSA_OVERRIDE_GFX_VERSION injection) |
+| `--ssh-key` | | `auto` | SSH public key: `auto` (default ~/.ssh key), path to .pub file, `generate`, or `none` |
 | `--update-all` | | | Regenerate quadlets for all other deployed images to pick up service env changes |
 
 ## How It Works
@@ -358,6 +359,8 @@ Kong `sep:"none"` on all `-e` flags means commas in values are preserved (no spl
 `normalizeNoProxy()` auto-converts semicolons to commas in `NO_PROXY`/`no_proxy` values during env resolution. Legacy semicolon values in deploy.yml are auto-healed.
 
 **Tunnel persistence:** `ov config setup` automatically persists tunnel config from deploy.yml back to deploy.yml via `saveDeployState`. Tunnel is a deploy-time concern — see `/ov:deploy` for tunnel configuration.
+
+**Tunnel is deploy.yml-only:** `labels.go:238` deliberately skips parsing the `org.overthinkos.tunnel` OCI image label. Tunnel config is ONLY sourced from `deploy.yml`. New instances created with `ov config setup -i <name>` do NOT inherit tunnel config from the base image's deploy.yml entry — you must manually add `tunnel: {provider: tailscale, private: all}` to the instance's deploy.yml entry, then re-run `ov config setup` to regenerate the quadlet with `ExecStartPost=tailscale serve` commands.
 
 Source: `ov/envfile.go` (`normalizeNoProxy`), `ov/deploy.go` (`mergeEnvVars`, `saveDeployState`), `sep:"none"` in config_image.go/shell.go/commands.go/start.go.
 
