@@ -158,7 +158,7 @@ Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), maki
 | `org.overthinkos.aliases` | JSON | `[{"name":"openclaw","command":"openclaw"}]` |
 | `org.overthinkos.security` | JSON | `{"privileged":false,"cap_add":["SYS_PTRACE"]}` |
 | `org.overthinkos.network` | string | `"host"` (omitted if default) |
-| `org.overthinkos.tunnel` | JSON | tunnel config (omitted if none) |
+| ~~`org.overthinkos.tunnel`~~ | | Removed — tunnel is a deploy-time concern (deploy.yml only) |
 | `org.overthinkos.fqdn` | string | FQDN for tunnel routing |
 | `org.overthinkos.acme_email` | string | ACME certificate email |
 | `org.overthinkos.env` | JSON | `["KEY=VALUE"]` runtime env vars |

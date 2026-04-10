@@ -151,7 +151,7 @@ The sidecar runs its own `tailscaled` daemon in the pod's network namespace with
 
 ### Host Tailnet Port Exposure
 
-The host's `tunnel: tailscale` (configured in images.yml) is independent of the sidecar:
+The host's `tunnel: tailscale` (configured in deploy.yml) is independent of the sidecar:
 - `ExecStartPost=tailscale serve` runs on the **host**, exposing pod ports on the **host's tailnet**
 - The sidecar handles routing on the **sidecar's tailnet**
 - Both work simultaneously (dual networking)

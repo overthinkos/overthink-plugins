@@ -49,7 +49,8 @@ This is the **single entry point** for deployment setup. `ov start` requires `ov
 |------|-------|---------|-------------|
 | `--tag` | | `latest` | Image tag to use |
 | `--build` | | | Force local build instead of pulling |
-| `--env` | `-e` | | Set container env var (KEY=VALUE) |
+| `--env` | `-e` | | Set container env var (KEY=VALUE), merged with existing vars (upsert by key) |
+| `--clean` | `-c` | | Replace all env vars instead of merging (clean slate) |
 | `--env-file` | | | Load env vars from file |
 | `--instance` | `-i` | | Instance name (multiple containers of same image) |
 | `--port` | `-p` | | Remap host port (newHost:containerPort) |
@@ -348,11 +349,17 @@ See `/ov:sidecar` for full sidecar documentation.
 
 ## Environment Variable Handling
 
+**Merge behavior (default):** `-e` performs upsert — new vars override existing vars with the same key; existing vars not in the new set are preserved. This means `ov config setup -e HTTP_PROXY=...` adds the proxy without dropping existing vars like `SSH_AUTHORIZED_KEYS`.
+
+**Clean behavior (`-c`):** `-c`/`--clean` replaces the entire env list in deploy.yml. Use when you want to reset env vars to exactly what's specified on the command line.
+
 Kong `sep:"none"` on all `-e` flags means commas in values are preserved (no splitting). `NO_PROXY=localhost,127.0.0.1` works correctly as a single env var.
 
 `normalizeNoProxy()` auto-converts semicolons to commas in `NO_PROXY`/`no_proxy` values during env resolution. Legacy semicolon values in deploy.yml are auto-healed.
 
-Source: `ov/envfile.go` (`normalizeNoProxy`), `sep:"none"` in config_image.go/shell.go/commands.go/start.go.
+**Tunnel persistence:** `ov config setup` automatically persists tunnel config from deploy.yml back to deploy.yml via `saveDeployState`. Tunnel is a deploy-time concern — see `/ov:deploy` for tunnel configuration.
+
+Source: `ov/envfile.go` (`normalizeNoProxy`), `ov/deploy.go` (`mergeEnvVars`, `saveDeployState`), `sep:"none"` in config_image.go/shell.go/commands.go/start.go.
 
 ## Cross-References
 

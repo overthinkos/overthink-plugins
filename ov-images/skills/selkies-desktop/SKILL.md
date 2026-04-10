@@ -18,10 +18,9 @@ selkies-desktop:
     - "9224:9224"
   platforms:
     - linux/amd64
-  tunnel:
-    provider: tailscale
-    private: all
 ```
+
+Tunnel config is in `deploy.yml` (not images.yml): `tunnel: {provider: tailscale, private: all}`. See `/ov:deploy`.
 
 ## Base
 
@@ -249,7 +248,7 @@ podman exec ov-selkies-desktop-tailscale tailscale status
 
 ### Architecture
 
-The pod has dual networking: `Network=ov` (bridge for container-to-container) + `tailscale0` (tun interface for exit node). `--exit-node-allow-lan-access` adds `throw 10.89.0.0/24` to exempt bridge traffic. The host's `tunnel: tailscale` (ExecStartPost=tailscale serve) exposes ports 3000+9222 on the host's tailnet independently.
+The pod has dual networking: `Network=ov` (bridge for container-to-container) + `tailscale0` (tun interface for exit node). `--exit-node-allow-lan-access` adds `throw 10.89.0.0/24` to exempt bridge traffic. The deploy.yml `tunnel: tailscale` config generates `ExecStartPost=tailscale serve` to expose ports 3000+9222 on the host's tailnet independently.
 
 **Known issues:**
 - `TS_DEBUG_FIREWALL_MODE=nftables` is required (iptables-legacy fails in rootless podman) — built into the sidecar template
@@ -279,7 +278,7 @@ ov start selkies-desktop -i 45.39.130.21
 ov cdp open selkies-desktop -i 45.39.130.21 "https://httpbin.org/ip"
 ```
 
-**Tailscale access (no sidecar needed):** The image-level `tunnel: tailscale` generates `tailscale serve` commands for host-mapped ports. All instances are accessible via the host's Tailscale IP on their respective ports (`https://<host>:3001`, etc.). Use sidecars only when per-instance exit node routing is needed.
+**Tailscale access (no sidecar needed):** The deploy.yml `tunnel: tailscale` config generates `tailscale serve` commands for host-mapped ports. All instances are accessible via the host's Tailscale IP on their respective ports (`https://<host>:3001`, etc.). Use sidecars only when per-instance exit node routing is needed.
 
 **MCP auto-disambiguation:** Each instance provides `chrome-devtools-<instance>` MCP server. Consumers (hermes) receive all instances in `OV_MCP_SERVERS` JSON after `--update-all`.
 

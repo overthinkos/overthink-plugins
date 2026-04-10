@@ -73,7 +73,7 @@ description: |
 | `ov` | 37 | CLI operations ("how do I use X?") |
 | `ov-dev` | 3 + 3 agents | Development ("how does the code work?") |
 | `ov-jupyter` | 1 MCP server | Notebook MCP tools |
-| `ov-layers` | 159 | Layer reference ("what does layer X contain?") |
+| `ov-layers` | 161 | Layer reference ("what does layer X contain?") |
 | `ov-images` | 41 | Image reference ("what does image X look like?") |
 
 ## Cross-References

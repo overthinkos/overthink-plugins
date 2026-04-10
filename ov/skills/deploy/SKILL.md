@@ -66,7 +66,7 @@ Source: `ov/quadlet.go` (generation), `ov/commands.go` (command structs).
 
 ## Tunnel Configuration
 
-Expose services outside the container host via tunnels.
+Expose services outside the container host via tunnels. Tunnel config lives exclusively in `deploy.yml` — it is NOT in `images.yml` or OCI image labels. `ov config setup` persists tunnel config automatically via `saveDeployState`.
 
 ### Tailscale Serve (tailnet-private, default)
 
