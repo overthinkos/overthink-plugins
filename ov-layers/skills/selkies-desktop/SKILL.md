@@ -53,6 +53,7 @@ A browser-accessible desktop at `http://localhost:3000` with:
 - **`ov cdp axtree`:** Chrome accessibility tree via CDP
 - **Desktop video recording** via `ov record start --mode desktop` (capture bridge → H.264 → ffmpeg MP4, with optional audio)
 - **Fullscreen overlays** via `ov wl overlay` (title cards, lower-thirds, countdowns, highlights, fades — rendered by compositor with true alpha transparency, no post-production needed)
+- **Configurable keyboard layout** via `XKB_DEFAULT_LAYOUT` — German (de), French (fr), Nordic (no), etc. AltGr characters (@, €, \\, ~) work via direct scancode injection. See `/ov-layers:labwc`
 
 ## What Works / What Doesn't
 

@@ -25,6 +25,22 @@ description: |
 | `XDG_RUNTIME_DIR` | `/tmp` |
 | `WAYLAND_DISPLAY` | `wayland-0` |
 | `EGL_LOG_LEVEL` | `fatal` |
+| `XKB_DEFAULT_LAYOUT` | `us` |
+
+### Keyboard Configuration
+
+Keyboard layout defaults to US. Override with `env_accepts` vars:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `XKB_DEFAULT_LAYOUT` | `us` | Keyboard layout (us, de, fr, gb, etc.) |
+| `XKB_DEFAULT_VARIANT` | (empty) | Layout variant (dvorak, nodeadkeys, etc.) |
+
+```bash
+ov config sway-desktop -e XKB_DEFAULT_LAYOUT=de
+```
+
+Sway reads `XKB_DEFAULT_LAYOUT` natively from the environment — no wrapper change needed. See `/ov-layers:labwc` for full XKB var list (MODEL, OPTIONS).
 
 The supervisord `[program:sway]` environment sets `WLR_BACKENDS=headless` — headless output only. The `libinput` backend is **not** included by default because it requires a libseat session which fails in rootless containers.
 

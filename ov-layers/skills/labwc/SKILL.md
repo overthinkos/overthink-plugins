@@ -35,6 +35,30 @@ labwc runs as a **nested compositor** inside pixelflux's `wayland-1` display. It
 | `WAYLAND_DISPLAY` | `wayland-0` | labwc's client socket (global default for apps) |
 | `XDG_RUNTIME_DIR` | `/tmp` | Runtime directory |
 
+## Keyboard Configuration
+
+labwc-wrapper exports all XKB environment variables with defaults, making keyboard layout configurable at deploy time:
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `XKB_DEFAULT_LAYOUT` | `us` | Keyboard layout (us, de, fr, gb, es, no, etc.) |
+| `XKB_DEFAULT_VARIANT` | (empty) | Layout variant (dvorak, nodeadkeys, etc.) |
+| `XKB_DEFAULT_MODEL` | `pc105` | Keyboard model (pc105, pc104, chromebook) |
+| `XKB_DEFAULT_OPTIONS` | (empty) | XKB options (compose:ralt, caps:escape) |
+| `XKB_DEFAULT_RULES` | `evdev` | XKB rules (always evdev, not configurable) |
+
+All except RULES are declared as `env_accepts` — override via `ov config -e`:
+
+```bash
+# German QWERTZ layout
+ov config selkies-desktop -e XKB_DEFAULT_LAYOUT=de
+
+# French AZERTY with no dead keys
+ov config selkies-desktop -e XKB_DEFAULT_LAYOUT=fr -e XKB_DEFAULT_VARIANT=nodeadkeys
+```
+
+The compositor and selkies input handler both read `XKB_DEFAULT_LAYOUT` from the environment, ensuring the scancode map matches the compositor's layout. See `/ov-layers:selkies` for the keyboard input pipeline details.
+
 ## Service (supervisord)
 
 | Service | Priority | Purpose |
@@ -43,7 +67,7 @@ labwc runs as a **nested compositor** inside pixelflux's `wayland-1` display. It
 
 ## Key Files
 
-- `labwc-wrapper` — Waits for pixelflux's `wayland-1` socket, then starts labwc with `WAYLAND_DISPLAY=wayland-1` (hardcoded, not from env)
+- `labwc-wrapper` — Waits for pixelflux's `wayland-1` socket, exports XKB_DEFAULT_* from env with defaults, then starts labwc
 - `rc.xml` — labwc configuration: server-side decorations, maximize-all window rule, keyboard shortcuts (Alt+F4 close, Super+E terminal)
 - `autostart` — Chrome auto-starts maximized via `chrome-wrapper` (internal CDP on port 9223, external 9222 via cdp-proxy)
 

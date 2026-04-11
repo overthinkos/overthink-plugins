@@ -73,6 +73,40 @@ Port 3000 uses `https+insecure` backend scheme because Traefik terminates TLS wi
 | `DRINODE` | Auto-detected | GPU render node — injected at runtime by `ov config` from first `/dev/dri/renderD*` device. See `/ov:config` |
 | `DRI_NODE` | Auto-detected | Same as DRINODE — required by selkies VAAPI encoder. Override with `-e DRINODE=/dev/dri/renderDN` |
 | `PULSE_SERVER` | `unix:/tmp/pulse/native` | PipeWire PulseAudio socket |
+| `LANG` | `C.UTF-8` | UTF-8 locale — enables wtype to handle non-ASCII characters (ö, é, å, ñ, etc.) |
+
+## Keyboard Layout Support
+
+Selkies supports any keyboard layout via XKB environment variables. The compositor (labwc/sway) and the selkies input handler both read `XKB_DEFAULT_LAYOUT` from the environment. Set the layout at deploy time:
+
+```bash
+ov config selkies-desktop -e XKB_DEFAULT_LAYOUT=de    # German QWERTZ
+ov config selkies-desktop -e XKB_DEFAULT_LAYOUT=fr    # French AZERTY
+```
+
+See `/ov-layers:labwc` for the full list of XKB variables (LAYOUT, VARIANT, MODEL, OPTIONS).
+
+### Input Pipeline
+
+The browser captures keyboard events and sends keysyms via WebSocket. The selkies Python server translates keysyms to scancodes using an xkbcommon keymap that matches the compositor's layout, then injects scancodes via pixelflux.
+
+`build.sh` patches `input_handler.py` at build time with five fixes for generic layout support:
+
+| Patch | What it does |
+|-------|-------------|
+| Env-based keymap | Reads `XKB_DEFAULT_*` from env instead of hardcoding US layout |
+| Latin-1 bypass removal | Layout chars (ö, é, å, ñ) go through scancode map, not wtype |
+| Level 2 scanning | AltGr characters (@, €, \\, ~) added to scancode map |
+| AltGr direct injection | Injects AltGr scancode + key scancode via pixelflux (same device) |
+| Euro bypass removal | € uses scancode map like all other characters |
+
+### AltGr Characters
+
+The browser sends AltGr as a **momentary press/release** (not held). By the time the character keysym arrives, AltGr is no longer in the server's active modifier set. The server handles this by injecting a complete AltGr+key sequence directly through pixelflux when it detects a level-2 keysym. This avoids the wtype fallback which races with pixelflux's input device (different Wayland clients, timing-sensitive).
+
+### LANG=C.UTF-8
+
+The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can decode non-ASCII characters in its argv. Without it, wtype fails with "Failed to deencode input argv" for characters like ö, ä, ü. This is the fallback path for characters not in the scancode map.
 
 ## Services (supervisord)
 
@@ -89,7 +123,7 @@ Port 3000 uses `https+insecure` backend scheme because Traefik terminates TLS wi
 - `selkies-fileserver` — Python SPA file server with index.html fallback (serves `/usr/local/share/selkies/web/`)
 - `traefik.yml` — Traefik static config (HTTPS entrypoint on :3000, self-signed cert)
 - `traefik-dynamic.yml` — Path-based routing (`/websockets` → :8081, `/` → :3001) with TLS default certificate
-- `build.sh` — Pixi builder stage script: pip installs selkies (C extensions), builds web UI dashboard (npm), stages artifacts for copy to final image
+- `build.sh` — Pixi builder stage script: pip installs selkies (C extensions), patches `input_handler.py` for generic keyboard layout support (env-based keymap, AltGr injection, bypass removal), builds web UI dashboard (npm), stages artifacts for copy to final image
 - `root.yml` — Downloads Traefik binary, generates self-signed cert, installs configs (no build deps, no dnf remove)
 - `pixi.toml` — Python 3.13 + pip + setuptools + libxkbcommon (C headers for builder stage)
 

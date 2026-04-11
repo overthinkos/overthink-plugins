@@ -358,6 +358,8 @@ Kong `sep:"none"` on all `-e` flags means commas in values are preserved (no spl
 
 `normalizeNoProxy()` auto-converts semicolons to commas in `NO_PROXY`/`no_proxy` values during env resolution. Legacy semicolon values in deploy.yml are auto-healed.
 
+**NO_PROXY enrichment:** When `HTTP_PROXY` or `HTTPS_PROXY` is present, `ov config` automatically appends all deployed container hostnames to `NO_PROXY`. This is necessary because Chrome does not support CIDR ranges in NO_PROXY (unlike curl) — without explicit hostnames, Chrome routes internal traffic like `http://ov-immich-ml:2283` through the external proxy, causing Bad Gateway errors. Applied in both the main config path and `--update-all`. Source: `ov/envfile.go` (`enrichNoProxy`), `ov/deploy.go` (`DeployedContainerNames`).
+
 **Tunnel persistence:** `ov config setup` automatically persists tunnel config from deploy.yml back to deploy.yml via `saveDeployState`. Tunnel is a deploy-time concern — see `/ov:deploy` for tunnel configuration.
 
 **Tunnel is deploy.yml-only:** `labels.go:238` deliberately skips parsing the `org.overthinkos.tunnel` OCI image label. Tunnel config is ONLY sourced from `deploy.yml`. New instances created with `ov config setup -i <name>` do NOT inherit tunnel config from the base image's deploy.yml entry — you must manually add `tunnel: {provider: tailscale, private: all}` to the instance's deploy.yml entry, then re-run `ov config setup` to regenerate the quadlet with `ExecStartPost=tailscale serve` commands.

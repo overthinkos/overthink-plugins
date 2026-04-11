@@ -54,6 +54,24 @@ ov start selkies-desktop
 ov wl screenshot selkies-desktop screenshot.png
 ```
 
+## Keyboard Configuration
+
+Override the default US keyboard layout via environment variables:
+
+```bash
+ov config selkies-desktop -e XKB_DEFAULT_LAYOUT=de                              # German QWERTZ
+ov config selkies-desktop -e XKB_DEFAULT_LAYOUT=fr -e XKB_DEFAULT_VARIANT=nodeadkeys  # French, no dead keys
+```
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `XKB_DEFAULT_LAYOUT` | `us` | Keyboard layout |
+| `XKB_DEFAULT_VARIANT` | (empty) | Layout variant |
+| `XKB_DEFAULT_MODEL` | `pc105` | Keyboard model |
+| `XKB_DEFAULT_OPTIONS` | (empty) | XKB options |
+
+All level 0/1 characters (ö, ä, ü, ß, =, ?) and AltGr characters (@, €, \\, ~) work for any layout. See `/ov-layers:labwc` for details and `/ov-layers:selkies` for the input pipeline.
+
 ## Services
 
 | Service | Priority | Purpose |
