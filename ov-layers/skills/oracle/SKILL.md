@@ -28,6 +28,14 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:nodejs` -- runtime dependency
+- `/ov-layers:openclaw-full` -- parent metalayer that bundles oracle
+
+## Related Commands
+- `/ov:openclaw` -- gateway/skill configuration
+- `/ov:shell` -- run oracle CLI inside the container
+
 ## When to Use This Skill
 
 Use when the user asks about:

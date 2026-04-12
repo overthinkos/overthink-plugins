@@ -39,6 +39,15 @@ my-image:
 - `/ov-images:fedora-remote` (via remote layer ref)
 - Also used in `bazzite-ai` (disabled)
 
+## Related Layers
+- `/ov-layers:pixi` — Sibling in builder images for conda-forge package builds
+- `/ov-layers:nodejs` — Sibling in builder images for npm package builds
+- `/ov-layers:yay` — Pairs in archlinux-builder for AUR builds
+
+## Related Commands
+- `/ov:build` — Multi-stage builders consume this layer for pixi/npm/cargo builds
+- `/ov:generate` — See how builder stages are generated from this layer
+
 ## When to Use This Skill
 
 Use when the user asks about:

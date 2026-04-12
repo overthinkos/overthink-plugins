@@ -41,6 +41,16 @@ After `ov build`:
 - `ov list` — image appears in list
 - `ov shell fedora` — interactive shell works
 
+## Related Images
+- `/ov-images:fedora-nonfree` — adds RPM Fusion repos
+- `/ov-images:fedora-builder` — adds pixi, nodejs, build-toolchain
+- `/ov-images:fedora-ov` — full ov toolchain on Fedora
+- `/ov-images:archlinux` — pacman-based counterpart base
+
+## Related Commands
+- `/ov:build` — build the fedora base image
+- `/ov:shell` — interactive shell in the base image
+
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the fedora base image or understanding the image chain. Invoke this skill BEFORE reading source code or launching Explore agents.

@@ -35,6 +35,15 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:golang` — required Go toolchain dependency
+- `/ov-layers:openclaw-full` — metalayer that includes gifgrep
+- `/ov-layers:goplaces` — sibling Go-based CLI in openclaw-full
+
+## Related Commands
+- `/ov:build` — compiles gifgrep via the Go builder during image build
+- `/ov:shell` — run gifgrep interactively inside a container
+
 ## When to Use This Skill
 
 Use when the user asks about:

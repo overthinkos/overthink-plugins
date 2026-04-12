@@ -28,7 +28,16 @@ my-vr:
 
 ## Used In Images
 
-- `bazzite-ai` (disabled)
+- `/ov-images:bazzite-ai` (disabled)
+
+## Related Layers
+- `/ov-layers:cuda` — GPU compute sibling for ML/streaming workloads
+- `/ov-layers:nvidia` — NVIDIA runtime sibling
+- `/ov-layers:pipewire` — audio/media stack pairing
+
+## Related Commands
+- `/ov:build` — rebuild after layer changes
+- `/ov:shell` — inspect installed VR libraries
 
 ## When to Use This Skill
 

@@ -53,6 +53,16 @@ After `ov build`:
 - `ov shell archlinux` — interactive shell works
 - `ov shell archlinux -c "pacman --version"` — pacman available
 
+## Related Images
+- `/ov-images:archlinux-builder` — adds pixi, nodejs, build-toolchain, yay
+- `/ov-images:arch-ov` — full ov toolchain on Arch
+- `/ov-images:arch-test` — pacman + AUR test image
+- `/ov-images:fedora` — RPM-based counterpart
+
+## Related Commands
+- `/ov:build` — build the archlinux base image
+- `/ov:shell` — interactive shell in the base image
+
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the archlinux base image or understanding the Arch image chain. Invoke this skill BEFORE reading source code or launching Explore agents.

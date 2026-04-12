@@ -35,6 +35,14 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:golang` -- build/runtime dependency
+- `/ov-layers:openclaw-full` -- parent metalayer that bundles ordercli
+
+## Related Commands
+- `/ov:shell` -- run ordercli inside the container
+- `/ov:openclaw` -- skill registration in OpenClaw gateway
+
 ## When to Use This Skill
 
 Use when the user asks about:

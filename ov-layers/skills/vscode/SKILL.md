@@ -30,6 +30,15 @@ my-image:
 
 - `/ov-images:bazzite-ai` (disabled)
 
+## Related Layers
+- `/ov-layers:desktop-apps` — desktop tooling sibling
+- `/ov-layers:dev-tools` — CLI dev tools companion
+- `/ov-layers:typst` — document tooling sibling
+
+## Related Commands
+- `/ov:shell` — launch vscode inside the container
+- `/ov:build` — rebuild after layer changes
+
 ## When to Use This Skill
 
 Use when the user asks about:

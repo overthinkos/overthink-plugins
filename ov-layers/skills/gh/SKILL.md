@@ -32,6 +32,16 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:dev-tools` — alternative bundle that also ships `gh`
+- `/ov-layers:openclaw-full` — metalayer that includes gh
+- `/ov-layers:agent-forwarding` — pairs with gh for SSH/GPG agent access
+
+## Related Commands
+- `/ov:secrets` — provision GITHUB_TOKEN for `gh auth login`
+- `/ov:shell` — run gh interactively inside a container
+- `/ov:build` — installs gh during image build
+
 ## When to Use This Skill
 
 Use when the user asks about:

@@ -59,3 +59,16 @@ Desktop video recording included via `wl-record-pixelflux` (part of selkies-desk
 ## Status
 
 Not yet tested. The `fedora-nonfree` variant works with CPU encoding. This variant needs verification for NVENC hardware encoding.
+
+## Key Layers
+- `/ov-layers:selkies-desktop` — full Selkies streaming desktop metalayer
+- `/ov-layers:dbus` — session bus for desktop services
+- `/ov-layers:ov` — in-container ov binary
+
+## Related Images
+- `/ov-images:selkies-desktop` — CPU-encoding sibling on fedora-nonfree
+- `/ov-images:nvidia` — parent base image with CUDA toolkit
+
+## Related Commands
+- `/ov:cdp` — drive Chrome inside the streaming desktop
+- `/ov:wl` — interact with the labwc Wayland session

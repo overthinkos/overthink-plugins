@@ -61,6 +61,16 @@ layers:
 - `openclaw-full-sway` (with `sway-desktop`)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:openclaw` — base gateway layer included in this metalayer
+- `/ov-layers:openclaw-full-ml` — superset adding whisper, sherpa-onnx, CUDA
+- `/ov-layers:sway-desktop-vnc` — desktop layer paired in sway-browser images
+
+## Related Commands
+- `/ov:openclaw` — gateway configuration, model auth, and channel setup
+- `/ov:build` — builds the metalayer composition into an image
+- `/ov:config` — sets up secrets and quadlets for openclaw-full images
+
 ## When to Use This Skill
 
 Use when the user asks about:

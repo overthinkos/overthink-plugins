@@ -51,6 +51,14 @@ After `ov build`:
 - `ov list` — image appears in list
 - `ov shell fedora-remote` — interactive shell works
 
+## Related Images
+- `/ov-images:fedora` — local-layer parent base image
+- `/ov-images:fedora-builder` — local-layer alternative bundling the same tooling
+
+## Related Commands
+- `/ov:build` — fetch remote layer refs and build the image
+- `/ov:validate` — validate remote layer references resolve
+
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the fedora-remote image, remote layer references, or the `@github.com/...` layer syntax. Invoke this skill BEFORE reading source code or launching Explore agents.

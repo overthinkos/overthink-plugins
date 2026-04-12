@@ -66,6 +66,10 @@ This is the **single entry point** for deployment setup. `ov start` requires `ov
 | `--no-autodetect` | | | Disable GPU/device auto-detection (skips DRINODE, DRI_NODE, HSA_OVERRIDE_GFX_VERSION injection) |
 | `--ssh-key` | | `auto` | SSH public key: `auto` (default ~/.ssh key), path to .pub file, `generate`, or `none` |
 | `--update-all` | | | Regenerate quadlets for all other deployed images to pick up service env changes |
+| `--memory-max` | | | Cgroup `memory.max` hard OOM limit (e.g. `6g`, `500m`). Persists to deploy.yml. |
+| `--memory-high` | | | Cgroup `memory.high` soft limit — reclaim pressure kicks in before OOM. Persists to deploy.yml. |
+| `--memory-swap-max` | | | Cgroup `memory.swap.max` ceiling (e.g. `2g`). Persists to deploy.yml. |
+| `--cpus` | | | CPU quota in cores (e.g. `2.5` for 2.5 cores). Persists to deploy.yml. |
 
 ## How It Works
 
@@ -137,6 +141,51 @@ Encrypted volumes use gocryptfs. Each volume gets `{cipher,plain}` subdirectorie
 - Mounted via `ExecStartPre=ov config mount` in the quadlet
 - Each mount runs in a `systemd-run --scope` unit (survives container restart)
 - `-allow_other` flag for rootless podman with `--userns=keep-id`
+
+## Resource Caps
+
+Memory and CPU caps flow through the same `security:` block as `shm_size`.
+Layers can declare defaults; image/deploy overrides replace them. CLI flags
+on `ov config` persist to `deploy.yml` and take effect on the next quadlet
+regeneration.
+
+```bash
+# Image-level default (all instances)
+ov config selkies-desktop --memory-max=6g --memory-high=5g --memory-swap-max=2g
+
+# Per-instance override (tighter cap for one instance)
+ov config selkies-desktop -i 192.241.92.221 --memory-max=8g
+
+# CPU quota on an unrelated image
+ov config jupyter --memory-max=16g --cpus=8
+```
+
+Merge rules (see `ov/security.go`):
+
+- **Layers → image**: smallest value wins (`minCap` / `minCpus`). A tighter
+  cap is a smaller blast radius, so it's the safer default.
+- **Image-level and deploy-level overrides**: full replace, identical to
+  how `shm_size` is handled.
+
+Emitted as native systemd cgroup directives (`MemoryMax=`, `MemoryHigh=`,
+`MemorySwapMax=`, `CPUQuota=`) in the quadlet's `[Service]` section,
+guaranteed to work on every systemd version ov targets. For the runtime
+(non-quadlet) path, `SecurityArgs` also emits the equivalent
+`podman run --memory / --memory-reservation / --memory-swap / --cpus` flags.
+
+`CPUQuota` uses systemd's percentage form — `--cpus=2.5` → `CPUQuota=250%`
+(one full core is `100%`).
+
+### Gotchas
+
+- Lowercase suffixes (`6g`) are auto-normalized to `6G`. systemd silently
+  parses lowercase as `infinity` — no error, just no limit — so ov coerces
+  everything to the canonical uppercase form before emitting the quadlet.
+- Field-level merge in deploy means `--memory-max` won't wipe co-set fields
+  like `shm_size`. Unset CLI fields fall through to layer/image defaults
+  rather than being replaced with zero values.
+- Resource caps merge **smallest-wins** across layers (tightest cap = smallest
+  blast radius). Image-level and deploy-level overrides replace entirely.
 
 ## Deploy State
 

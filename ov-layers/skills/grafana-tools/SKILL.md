@@ -26,6 +26,15 @@ my-image:
 
 - `/ov-images:bazzite-ai` (disabled)
 
+## Related Layers
+- `/ov-layers:devops-tools` — common companion bundle in observability images
+- `/ov-layers:kubernetes` — pairs with Grafana for cluster observability
+- `/ov-layers:dev-tools` — typically paired in devops images
+
+## Related Commands
+- `/ov:build` — fetches Grafana CLI binaries via curl during image build
+- `/ov:shell` — run mcp-grafana, logcli, promtool, etc. interactively
+
 ## When to Use This Skill
 
 Use when the user asks about:

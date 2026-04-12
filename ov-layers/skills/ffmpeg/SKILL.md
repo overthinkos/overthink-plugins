@@ -43,6 +43,16 @@ All layers that need ffmpeg should declare it as a dependency rather than indepe
 - CUDA-based images (via `cuda` layer `depends: ffmpeg`)
 - Whisper-based images (via `whisper` layer `depends: ffmpeg`)
 
+## Related Layers
+- `/ov-layers:cuda` — Depends on ffmpeg for GPU video processing
+- `/ov-layers:whisper` — Depends on ffmpeg for audio transcoding
+- `/ov-layers:hermes` — Depends on ffmpeg for media tooling
+- `/ov-layers:immich` — Depends on ffmpeg for photo/video transcoding
+
+## Related Commands
+- `/ov:build` — Builds the ffmpeg negativo17 RPM into the image
+- `/ov:shell` — Interactive shell to run `ffmpeg` for media processing
+
 ## When to Use This Skill
 
 Use when the user asks about:

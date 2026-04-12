@@ -26,6 +26,15 @@ my-image:
 
 - `/ov-images:bazzite-ai` (disabled)
 
+## Related Layers
+- `/ov-layers:bootc-config` — bootc system bring-up
+- `/ov-layers:os-config` — bootc OS configuration sibling
+- `/ov-layers:os-system-files` — system file overlay sibling
+
+## Related Commands
+- `/ov:shell` — run ujust inside the container
+- `/ov:vm` — bootc VM lifecycle for ujust-managed images
+
 ## When to Use This Skill
 
 Use when the user asks about:

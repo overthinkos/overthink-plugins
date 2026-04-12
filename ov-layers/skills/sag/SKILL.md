@@ -39,6 +39,15 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:golang` -- build/runtime dependency
+- `/ov-layers:sherpa-onnx` -- offline TTS sibling
+- `/ov-layers:whisper` -- speech-to-text counterpart
+
+## Related Commands
+- `/ov:shell` -- run sag CLI inside the container
+- `/ov:secrets` -- supply ELEVENLABS_API_KEY
+
 ## When to Use This Skill
 
 Use when the user asks about:

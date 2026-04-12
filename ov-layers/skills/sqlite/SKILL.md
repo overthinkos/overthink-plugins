@@ -32,6 +32,14 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:dev-tools` -- common dev CLI bundle that pairs with sqlite
+- `/ov-layers:openclaw-full` -- parent metalayer that bundles sqlite
+
+## Related Commands
+- `/ov:shell` -- run sqlite3 inside the container
+- `/ov:cmd` -- one-shot sqlite query in a running service
+
 ## When to Use This Skill
 
 Use when the user asks about:

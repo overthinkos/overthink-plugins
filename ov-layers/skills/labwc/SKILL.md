@@ -69,7 +69,7 @@ The compositor and selkies input handler both read `XKB_DEFAULT_LAYOUT` from the
 
 - `labwc-wrapper` — Waits for pixelflux's `wayland-1` socket, exports XKB_DEFAULT_* from env with defaults, then starts labwc
 - `rc.xml` — labwc configuration: server-side decorations, maximize-all window rule, keyboard shortcuts (Alt+F4 close, Super+E terminal)
-- `autostart` — Chrome auto-starts maximized via `chrome-wrapper` (internal CDP on port 9223, external 9222 via cdp-proxy)
+- `autostart` — Hands off to supervisord (`supervisorctl start chrome`) so the chrome-crash-listener circuit breaker supervises the browser. Falls back to a direct `chrome-wrapper` launch when supervisord isn't ready (images without `[program:chrome]`). CDP: internal 9223, external 9222 via cdp-proxy.
 
 ## Window Rules
 

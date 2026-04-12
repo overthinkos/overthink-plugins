@@ -28,6 +28,15 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:nodejs` — runtime dependency
+- `/ov-layers:openclaw-full` — metalayer that bundles xurl
+- `/ov-layers:hermes` — companion social/messaging agent
+
+## Related Commands
+- `/ov:shell` — run xurl inside the container
+- `/ov:secrets` — store X/Twitter API credentials
+
 ## When to Use This Skill
 
 Use when the user asks about:

@@ -35,6 +35,14 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:golang` — Required Go runtime parent dependency
+- `/ov-layers:openclaw-full` — Metalayer that bundles blogwatcher with other AI/agent CLIs
+
+## Related Commands
+- `/ov:build` — Builds the layer (Go install via user.yml)
+- `/ov:shell` — Interactive shell to run blogwatcher inside the container
+
 ## When to Use This Skill
 
 Use when the user asks about:

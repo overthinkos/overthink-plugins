@@ -28,6 +28,15 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:nodejs` — required runtime dependency
+- `/ov-layers:openclaw-full` — metalayer that includes mcporter
+- `/ov-layers:claude-code` — sibling AI CLI commonly paired with MCP tools
+
+## Related Commands
+- `/ov:shell` — run mcporter interactively to list/call MCP tools
+- `/ov:build` — installs mcporter via the npm builder during image build
+
 ## When to Use This Skill
 
 Use when the user asks about:

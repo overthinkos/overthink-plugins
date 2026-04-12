@@ -35,6 +35,15 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:golang` — Go toolchain dependency
+- `/ov-layers:openclaw-full` — metalayer that bundles wacli
+- `/ov-layers:hermes` — companion messaging stack with WhatsApp bridge
+
+## Related Commands
+- `/ov:shell` — run wacli inside the container
+- `/ov:secrets` — store WhatsApp session credentials
+
 ## When to Use This Skill
 
 Use when the user asks about:

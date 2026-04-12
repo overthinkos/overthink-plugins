@@ -28,6 +28,16 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:nodejs` — required runtime dependency
+- `/ov-layers:claude-code` — sibling AI CLI in openclaw-full and hermes-full
+- `/ov-layers:codex` — sibling AI CLI in openclaw-full and hermes-full
+
+## Related Commands
+- `/ov:secrets` — provision Gemini API credentials for the CLI
+- `/ov:shell` — run gemini interactively inside a container
+- `/ov:build` — installs gemini during image build
+
 ## When to Use This Skill
 
 Use when the user asks about:

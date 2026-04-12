@@ -30,6 +30,15 @@ my-devops:
 
 - `bazzite-ai` (disabled)
 
+## Related Layers
+- `/ov-layers:docker-ce` — common companion for local container builds
+- `/ov-layers:devops-tools` — provides kubectx/kubens and cloud CLIs
+- `/ov-layers:dev-tools` — typically paired in DevOps images
+
+## Related Commands
+- `/ov:build` — installs kubectl and helm RPMs during image build
+- `/ov:shell` — run kubectl/helm interactively against external clusters
+
 ## When to Use This Skill
 
 Use when the user asks about:

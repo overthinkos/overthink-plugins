@@ -35,6 +35,16 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:golang` — required Go toolchain dependency
+- `/ov-layers:openclaw-full` — metalayer that includes goplaces
+- `/ov-layers:gogcli` — sibling Google API CLI in openclaw-full
+
+## Related Commands
+- `/ov:secrets` — provision Google Places API key for the CLI
+- `/ov:shell` — run goplaces interactively inside a container
+- `/ov:build` — compiles goplaces via the Go builder during image build
+
 ## When to Use This Skill
 
 Use when the user asks about:

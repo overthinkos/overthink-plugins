@@ -29,6 +29,14 @@ Used for testing Traefik routing, service health checks, and the `testapi` layer
 - `/ov-layers:traefik` — Reverse proxy
 - `/ov-layers:testapi` — FastAPI test service
 
+## Related Images
+- `/ov-images:fedora` — parent base image
+- `/ov-images:valkey-test` — sibling test image (also disabled)
+
+## Related Commands
+- `/ov:build` — build the fedora-test image
+- `/ov:validate` — validate the test layer composition
+
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the fedora-test image or Traefik routing validation.

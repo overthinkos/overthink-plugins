@@ -33,6 +33,15 @@ layers:
 
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:openclaw-full-ml` -- parent metalayer that bundles sherpa-onnx
+- `/ov-layers:whisper` -- speech-to-text counterpart
+- `/ov-layers:sag` -- ElevenLabs TTS alternative
+
+## Related Commands
+- `/ov:shell` -- run sherpa-onnx CLI inside the container
+- `/ov:openclaw` -- TTS skill registration in OpenClaw
+
 ## When to Use This Skill
 
 Use when the user asks about:

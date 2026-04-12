@@ -30,6 +30,15 @@ my-ci:
 
 - `bazzite-ai` (disabled)
 
+## Related Layers
+- `/ov-layers:github-runner` — distinct self-hosted runner layer (not act)
+- `/ov-layers:docker-ce` — common companion for act workflow execution
+- `/ov-layers:dev-tools` — typically paired in CI images
+
+## Related Commands
+- `/ov:build` — installs act-cli from COPR during image build
+- `/ov:shell` — run `act` interactively to test workflows locally
+
 ## When to Use This Skill
 
 Use when the user asks about:

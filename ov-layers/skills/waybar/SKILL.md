@@ -56,6 +56,10 @@ Part of `/ov-layers:sway-desktop` composition.
 - `/ov-layers:pavucontrol` -- volume control (pulseaudio on-click)
 - `/ov-layers:desktop-fonts` -- JetBrains Mono + Nerd Font icons
 
+## Related Commands
+- `/ov:wl` — interact with the Wayland session hosting waybar
+- `/ov:shell` — restart waybar via supervisorctl
+
 ## When to Use This Skill
 
 Use when the user asks about:

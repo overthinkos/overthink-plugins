@@ -26,6 +26,15 @@ my-image:
 
 - `/ov-images:bazzite-ai` (disabled)
 
+## Related Layers
+- `/ov-layers:desktop-apps` — Sibling desktop GUI application bundle
+- `/ov-layers:os-config` — Sibling bootc system config layer
+- `/ov-layers:os-system-files` — Sibling bootc system files overlay
+
+## Related Commands
+- `/ov:build` — Builds the bootc image including these COPR packages
+- `/ov:vm` — Run the bootc image as a VM to test desktop packages
+
 ## When to Use This Skill
 
 Use when the user asks about:

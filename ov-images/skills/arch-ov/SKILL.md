@@ -88,3 +88,16 @@ ov shell arch-ov -c "which nvidia-ctk"
 ## Unified with fedora-ov
 
 Both `arch-ov` and `fedora-ov` use the exact same layer list. The tag system (`build: [pac]` + `distro: [archlinux]` vs `build: [rpm]` + `distro: ["fedora:43", fedora]`) selects the right packages and scripts per distro.
+
+## Key Layers
+- `/ov-layers:ov-full` — ov binary plus VM/encryption tools
+- `/ov-layers:container-nesting` — nested podman/buildah/docker
+- `/ov-layers:nvidia` — NVIDIA GPU runtime
+
+## Related Images
+- `/ov-images:archlinux` — parent base image
+- `/ov-images:fedora-ov` — Fedora counterpart, same layers
+
+## Related Commands
+- `/ov:shell` — open an interactive shell in arch-ov
+- `/ov:service` — manage arch-ov as a service

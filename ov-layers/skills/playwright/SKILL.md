@@ -28,6 +28,15 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:nodejs` -- runtime dependency
+- `/ov-layers:openclaw-full` -- parent metalayer that bundles playwright
+- `/ov-layers:chrome` -- browser commonly driven by playwright
+
+## Related Commands
+- `/ov:cdp` -- Chrome DevTools Protocol automation alternative
+- `/ov:openclaw` -- snapshot/skill configuration
+
 ## When to Use This Skill
 
 Use when the user asks about:

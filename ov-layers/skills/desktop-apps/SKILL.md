@@ -30,6 +30,15 @@ my-desktop:
 
 - `bazzite-ai` (disabled)
 
+## Related Layers
+- `/ov-layers:copr-desktop` — Sibling COPR desktop packages (Ghostty, Nerd Fonts)
+- `/ov-layers:dev-tools` — Sibling CLI utilities bundled in the same bootc image
+- `/ov-layers:desktop-fonts` — Sibling font configuration for desktop containers
+
+## Related Commands
+- `/ov:build` — Build the bootc image including these desktop packages
+- `/ov:vm` — Run the bootc image as a VM to test the desktop apps
+
 ## When to Use This Skill
 
 Use when the user asks about:

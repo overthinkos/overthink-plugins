@@ -28,6 +28,16 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:rust` — required Rust toolchain dependency
+- `/ov-layers:openclaw-full` — metalayer that includes himalaya
+- `/ov-layers:gnupg` — pairs with himalaya for PGP-encrypted email
+
+## Related Commands
+- `/ov:secrets` — provision IMAP/SMTP credentials for himalaya
+- `/ov:shell` — run himalaya interactively inside a container
+- `/ov:build` — compiles himalaya via the Cargo builder during image build
+
 ## When to Use This Skill
 
 Use when the user asks about:

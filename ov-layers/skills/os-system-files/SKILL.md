@@ -27,6 +27,14 @@ my-bootc-image:
 
 - `/ov-images:bazzite-ai` (disabled)
 
+## Related Layers
+- `/ov-layers:os-config` -- companion bootc system configuration layer
+- `/ov-layers:bootc-base` -- bootc image base composition
+
+## Related Commands
+- `/ov:build` -- build the bootc image that consumes this layer
+- `/ov:vm` -- boot the resulting bootc disk image
+
 ## When to Use This Skill
 
 Use when the user asks about:

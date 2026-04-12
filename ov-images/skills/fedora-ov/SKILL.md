@@ -92,3 +92,16 @@ ov inspect fedora-ov --format tags
 ## Unified with arch-ov
 
 Both `fedora-ov` and `arch-ov` use the exact same layer list. The tag system (`build: [rpm]` + `distro: ["fedora:43", fedora]` vs `build: [pac]` + `distro: [archlinux]`) selects the right packages and scripts per distro.
+
+## Key Layers
+- `/ov-layers:ov-full` — ov binary plus VM/encryption tools
+- `/ov-layers:container-nesting` — nested podman/buildah/docker
+- `/ov-layers:nvidia` — NVIDIA GPU runtime
+
+## Related Images
+- `/ov-images:fedora` — parent base image
+- `/ov-images:arch-ov` — Arch counterpart, same layers
+
+## Related Commands
+- `/ov:shell` — open an interactive shell in fedora-ov
+- `/ov:service` — manage fedora-ov as a service

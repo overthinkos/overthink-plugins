@@ -32,6 +32,14 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:dev-tools` -- bundles ripgrep alongside other CLI utilities
+- `/ov-layers:openclaw-full` -- parent metalayer that bundles ripgrep
+
+## Related Commands
+- `/ov:shell` -- run rg interactively inside the container
+- `/ov:cmd` -- one-shot rg invocation in a running service
+
 ## When to Use This Skill
 
 Use when the user asks about:

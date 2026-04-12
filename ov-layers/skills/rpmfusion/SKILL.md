@@ -27,6 +27,14 @@ fedora-nonfree:
 
 - `/ov-images:fedora-nonfree` (base for immich and other images needing nonfree packages)
 
+## Related Layers
+- `/ov-layers:ffmpeg` -- nonfree multimedia codecs installed from RPM Fusion
+- `/ov-layers:immich` -- consumes nonfree codecs via fedora-nonfree
+
+## Related Commands
+- `/ov:build` -- build the fedora-nonfree base image
+- `/ov:image` -- inspect base/image inheritance
+
 ## When to Use This Skill
 
 Use when the user asks about:

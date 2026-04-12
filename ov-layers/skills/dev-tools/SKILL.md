@@ -32,6 +32,15 @@ my-dev:
 - `/ov-images:fedora-remote` (via remote layer ref)
 - `bazzite-ai` (disabled, via `devops-tools` which is separate)
 
+## Related Layers
+- `/ov-layers:gh` — Sibling GitHub CLI commonly paired with dev-tools
+- `/ov-layers:devops-tools` — Sibling DevOps cloud CLI bundle in bootc images
+- `/ov-layers:build-toolchain` — Sibling C/C++ toolchain in bootc image stacks
+
+## Related Commands
+- `/ov:build` — Build images that ship the dev-tools package set
+- `/ov:shell` — Interactive shell to use bat/ripgrep/neovim/etc.
+
 ## When to Use This Skill
 
 Use when the user asks about:

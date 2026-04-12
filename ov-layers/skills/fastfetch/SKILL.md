@@ -43,6 +43,15 @@ layers:
 - `/ov-images:selkies-desktop` (via `selkies-desktop` metalayer)
 - `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
 
+## Related Layers
+- `/ov-layers:sway-desktop` — Metalayer that pulls fastfetch in
+- `/ov-layers:selkies-desktop` — Metalayer that pulls fastfetch in
+- `/ov-layers:dev-tools` — Sibling that also packages fastfetch via dnf
+
+## Related Commands
+- `/ov:build` — Builds the fastfetch RPM into the image
+- `/ov:shell` — Interactive shell to run `fastfetch` for environment verification
+
 ## When to Use This Skill
 
 Use when the user asks about:

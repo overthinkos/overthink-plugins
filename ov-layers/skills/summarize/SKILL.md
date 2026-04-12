@@ -28,6 +28,15 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:nodejs` — runtime dependency
+- `/ov-layers:openclaw-full` — metalayer that bundles summarize
+- `/ov-layers:whisper` — speech-to-text companion in openclaw-full-ml
+
+## Related Commands
+- `/ov:shell` — run summarize CLI inside the container
+- `/ov:build` — rebuild after layer changes
+
 ## When to Use This Skill
 
 Use when the user asks about:

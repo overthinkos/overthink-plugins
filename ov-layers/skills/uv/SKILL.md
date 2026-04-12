@@ -28,6 +28,15 @@ layers:
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
+## Related Layers
+- `/ov-layers:python` — Python runtime dependency
+- `/ov-layers:pixi` — alternate Python package manager
+- `/ov-layers:openclaw-full` — metalayer that bundles uv
+
+## Related Commands
+- `/ov:shell` — run uv inside the container
+- `/ov:build` — rebuild after layer changes
+
 ## When to Use This Skill
 
 Use when the user asks about:

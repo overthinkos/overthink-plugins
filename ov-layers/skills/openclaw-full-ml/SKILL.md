@@ -34,6 +34,15 @@ layers:
 
 - `openclaw-full-ml` (with `sway-desktop` and `ollama`)
 
+## Related Layers
+- `/ov-layers:openclaw-full` -- base composition with all OpenClaw tools
+- `/ov-layers:whisper` -- speech-to-text component
+- `/ov-layers:sherpa-onnx` -- offline TTS component
+
+## Related Commands
+- `/ov:openclaw` -- gateway configuration and channel setup
+- `/ov:build` -- build images composing this metalayer
+
 ## When to Use This Skill
 
 Use when the user asks about:

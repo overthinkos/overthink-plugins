@@ -16,8 +16,8 @@ description: |
 | Ports | 9222 (CDP, via cdp-proxy), 9224 (Chrome DevTools MCP, via chrome-devtools-mcp) |
 | CDP Proxy | `cdp-proxy` on 0.0.0.0:9222 → Chrome on 127.0.0.1:9223 |
 | Volumes | `chrome-data` -> `~/.chrome-debug` |
-| Security | `shm_size: 1g` |
-| Install files | `layer.yml`, `root.yml`, `user.yml`, `cdp-proxy`, `chrome-wrapper`, `chrome-restart`, `browser-open` |
+| Security | `shm_size: 1g`, `memory_max: 6g`, `memory_high: 5g`, `memory_swap_max: 2g` |
+| Install files | `layer.yml`, `root.yml`, `user.yml`, `cdp-proxy`, `chrome-wrapper`, `chrome-restart`, `browser-open`, `chrome-crash-listener` |
 
 ## Environment Variables
 
@@ -157,6 +157,57 @@ chrome-restart
 # Via ov shell
 ov shell selkies-desktop -i 45.39.130.177 -c "chrome-restart"
 ```
+
+**When `chrome-restart` is not enough:** Chrome uses `memfd_create` /
+anonymous shared memory extensively (IPC buffers, Skia texture pools,
+compositor tiles). These memfds are reference-counted — when a Chrome
+child dies (OOM kill or SIGKILL), any surviving peer that still has the
+memfd mapped keeps the pages pinned. The browser process and zygote
+inherit memfds across renderer crashes. Over multiple crash cycles this
+accumulates as "orphan shmem" inside the container's cgroup, and
+`chrome-restart` cannot release it because the container (and therefore
+the memory namespace) persists. The only way to clear it is to restart
+the whole container, which tears down the cgroup:
+
+```bash
+systemctl --user restart ov-selkies-desktop.service
+# or per-instance
+systemctl --user restart ov-selkies-desktop-192.241.92.221.service
+```
+
+See the circuit-breaker section below — it automates exactly this when
+Chrome enters a crash loop.
+
+## Resource Caps & Circuit Breaker
+
+The chrome layer ships cgroup caps in its `security:` block:
+
+| Directive | Value | Purpose |
+|-----------|-------|---------|
+| `memory_max` | `6g` | Hard OOM threshold — cgroup-scoped, no host impact. |
+| `memory_high` | `5g` | Soft limit — reclaim pressure kicks in before OOM so Chrome can shed caches instead of being hard-killed. |
+| `memory_swap_max` | `2g` | Caps swap usage so a runaway tab can't drag the host into swap thrash. |
+| `shm_size` | `1g` | Existing `/dev/shm` sizing — unchanged. |
+
+Override per image or per instance via `ov config` flags (see `/ov:config`
+"Resource Caps"). Merging follows the smallest-wins rule.
+
+Chrome is a supervisord service in this layer (`[program:chrome]`):
+
+- `autostart=false` — Chrome needs a Wayland compositor up first, so
+  labwc's autostart hands off with `supervisorctl start chrome`.
+- `autorestart=true startretries=3 startsecs=5` — Chrome may crash three
+  times within 5 s of startup before supervisord gives up.
+- After the 3-strike budget is exhausted supervisord marks Chrome `FATAL`
+  and emits a `PROCESS_STATE_FATAL` event.
+
+The `chrome-crash-listener` eventlistener (`~/.local/bin/chrome-crash-listener`,
+installed by `user.yml`) subscribes to `PROCESS_STATE_FATAL` and terminates
+supervisord (PID 1) with `SIGTERM`. The container exits, the systemd
+quadlet's `Restart=always` rebuilds the whole container, and the memory
+namespace — including any orphan memfd shmem from the crash loop — is
+rebuilt from scratch. This is the only way to actually break a memfd
+leak cycle; see the "orphan shmem" note under `chrome-restart` above.
 
 ## Windows Platform Spoofing
 

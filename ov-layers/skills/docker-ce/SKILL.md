@@ -30,6 +30,15 @@ my-image:
 
 - `bazzite-ai` (disabled)
 
+## Related Layers
+- `/ov-layers:container-nesting` — Alternative podman-based nested container support
+- `/ov-layers:kubernetes` — Sibling kubectl/Helm commonly paired with docker-ce
+- `/ov-layers:github-actions` — Sibling layer needing a container engine for act runs
+
+## Related Commands
+- `/ov:build` — Build the bootc image including docker-ce packages
+- `/ov:vm` — Run the bootc image as a VM to test the docker engine
+
 ## When to Use This Skill
 
 Use when the user asks about:

@@ -55,6 +55,14 @@ ov vm start bazzite-ai
 
 - Base image `terra-mesa.repo` has corrupt zchunk metadata. The generator auto-removes it (`rm -f /etc/yum.repos.d/terra-mesa.repo`).
 
+## Related Images
+- `/ov-images:aurora` — sibling Universal Blue bootc image with ov toolchain
+- `/ov-images:openclaw-browser-bootc` — sibling fedora-bootc image
+
+## Related Commands
+- `/ov:vm` — build and run as a bootc VM
+- `/ov:build` — produce the bootc image
+
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the bazzite-ai bootc image or the Bazzite-based AI workstation VM.

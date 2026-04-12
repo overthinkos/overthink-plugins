@@ -29,6 +29,14 @@ Used for testing the Valkey layer (Redis-compatible fork). Runs as a supervisord
 - `/ov-layers:valkey` — Valkey data store
 - `/ov-layers:supervisord` — Process manager
 
+## Related Images
+- `/ov-images:fedora` — parent base image
+- `/ov-images:fedora-test` — sibling test image (also disabled)
+
+## Related Commands
+- `/ov:build` — build the valkey-test image
+- `/ov:service` — manage the supervised valkey service
+
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the valkey-test image or Valkey service testing.
