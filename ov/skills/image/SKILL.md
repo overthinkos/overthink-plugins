@@ -256,6 +256,34 @@ images:
 
 Resolution chain: **image-level vm: -> defaults vm: -> ov settings -> hardcoded defaults**. See `/ov:deploy` for full VM management documentation.
 
+## OCI Labels
+
+Every image `ov` builds carries a set of `org.overthinkos.*` OCI labels embedding the resolved image config so that `ov config` and `ov deploy` can work without the project source tree. The full list is assembled in `ov/labels.go`:
+
+| Label | Contents |
+|---|---|
+| `org.overthinkos.volumes` | Volume declarations from the layer chain |
+| `org.overthinkos.ports` | Ports + protocol annotations |
+| `org.overthinkos.security` | `cap_add`, `devices`, `security_opt`, `mounts`, resource caps |
+| `org.overthinkos.env` | Runtime env keys |
+| `org.overthinkos.env_provides` | Cross-container env provides (resolved at deploy time) |
+| `org.overthinkos.env_requires` | Declared env contracts (used for `ov config` hard-fail checks) |
+| `org.overthinkos.env_accepts` | Opt-in allowlist for provides filtering |
+| `org.overthinkos.mcp_provides` | Cross-container MCP server provides |
+| `org.overthinkos.port_protos` | Port protocol annotations (non-default only) |
+
+All of the above round-trip via `ov config`: the label is read from the image manifest and applied to deploy.yml + the quadlet. There is one deliberate exception.
+
+### Tunnel is deploy.yml-only
+
+`labels.go:238` **explicitly skips reading** any tunnel label when resolving an image's deploy config. Tunnels (Tailscale serve, Cloudflare tunnel) are treated as a **deployment** decision, not an image attribute — they live exclusively in `deploy.yml`. This was the deliberate design of commit `2759124` (tunnel→deploy.yml migration), motivated by three concerns:
+
+1. **Per-instance divergence.** One selkies-desktop image may be deployed with a Tailscale tunnel in one environment and no tunnel in another. Baking the tunnel choice into the image forecloses that.
+2. **`--update-all` safety.** Propagating config changes across deployed services must not accidentally rewrite tunnel settings from image labels and blow away per-instance overrides.
+3. **Instance inheritance gap.** Tunnel config is **not** auto-inherited from the base `ov config <image>` call to an `ov config <image> -i <instance>` call. This is a deliberate gap — see `/ov-layers:selkies-desktop` (Multi-Instance Proxy Deployment) for the manual workaround and `/ov:deploy` (Instance Tunnel Inheritance) for the full lifecycle.
+
+**Practical implication:** you can inspect an image's tunnel declaration with `ov inspect <image>` and see nothing useful — that's correct. To see a tunnel's actual state, read `deploy.yml` directly (`ov deploy show <image>`) or the generated quadlet (`ov status <image>`).
+
 ## Common Workflows
 
 ### Add a New Image
@@ -296,9 +324,12 @@ images:
 
 ## Cross-References
 
-- `/ov:layer` -- Layer definitions that compose into images
-- `/ov:build` -- Building the defined images
-- `/ov:deploy` -- Deploying built images (quadlet, bootc)
+- `/ov:layer` -- Layer definitions that compose into images (env_provides, env_requires, env_accepts, security resource caps)
+- `/ov:build` -- Building the defined images (+ the `--no-cache` intermediate scratch-stage caveat)
+- `/ov:generate` -- Containerfile generation including OCI label emission
+- `/ov:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
+- `/ov:config` -- `ov config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
+- `/ov:inspect` -- `ov inspect <image>` shows the resolved OCI label set
 
 ## When to Use This Skill
 

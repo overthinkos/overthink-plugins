@@ -70,7 +70,7 @@ ov record stop selkies-desktop -n demo -o demo.mp4
 ## Architecture
 
 ```
-selkies process (existing capture, unchanged)
+selkies process (single ScreenCapture singleton — process-wide)
     ├── ScreenCapture (captures full composited desktop)
     ├── WebSocket server :8081 (broadcasts H.264 frames)
     └── Capture bridge thread (internal WebSocket client)
@@ -78,6 +78,8 @@ selkies process (existing capture, unchanged)
             └── pixelflux-record connects here (STREAM mode)
                 └── pipes H.264 frames to ffmpeg
 ```
+
+**Singleton note:** The `ScreenCapture` instance is process-wide and lives inside the selkies Python process. `pixelflux-record` never spawns its own capture; it only attaches to the existing STREAM socket. This is architecturally important because pixelflux's `WaylandBackend` construction is expensive (EGL context + dmabuf allocators + GPU texture pools) and was the subject of a memory leak fix in commits `6be85eb` (singleton enforcement) and `7977b91` (per-frame `cleanup_texture_cache()`). If you ever see two selkies-capture processes inside the container, that's a regression — see `/ov-layers:selkies` (Pixelflux Memory Management) for the diagnostic recipe.
 
 ## Included In
 
@@ -91,9 +93,11 @@ selkies process (existing capture, unchanged)
 ## Cross-References
 
 - `/ov:record` -- `ov record start --mode desktop` auto-detects pixelflux-record
-- `/ov-layers:wl-screenshot-pixelflux` -- Screenshot companion (same capture bridge)
+- `/ov:update` -- Per-instance update pattern used to roll out the per-frame `cleanup_texture_cache()` fix across live instances
+- `/ov-layers:wl-screenshot-pixelflux` -- Screenshot companion (same capture bridge, same singleton)
 - `/ov-layers:wf-recorder` -- Alternative for sway-desktop (wlr-screencopy)
-- `/ov-layers:selkies` -- Parent layer (provides capture bridge + WebSocket stream)
+- `/ov-layers:selkies` -- Parent layer (provides capture bridge, WebSocket stream, and the ScreenCapture singleton — see Pixelflux Memory Management)
+- `/ov-layers:selkies-desktop` -- Metalayer that composes this recorder into the full browser-accessible desktop
 - `/ov-layers:ffmpeg` -- Required dependency (MP4 muxing)
 
 ## When to Use This Skill

@@ -80,11 +80,15 @@ A browser-accessible desktop at `http://localhost:3000` with:
 |----------|---------|---------|
 | 2 | dbus | D-Bus session bus |
 | 5 | pipewire | Audio server |
-| 8 | selkies | pixelflux `wayland-1` + WebSocket :8081 |
+| 8 | selkies | pixelflux `wayland-1` + WebSocket :8081 (process-wide `ScreenCapture` singleton) |
 | 12 | labwc | Desktop on `wayland-0` (nested in wayland-1) |
 | 14 | swaync | Notification daemon (on wayland-0) |
 | 15 | waybar | Top panel (on wayland-0) |
 | 18 | nginx | Web UI on :3000 |
+
+**Chrome ownership:** Chrome is managed exclusively by supervisord, not by labwc's direct exec. labwc's autostart calls `supervisorctl start chrome` after a TOCTOU-safe `supervisorctl avail | grep chrome` check to avoid a race that could launch two Chrome processes against the same `--user-data-dir`. The fix is commit `febb9bd`; see `/ov-layers:labwc` (autostart Chrome-duplication race) for the full analysis and `/ov-layers:chrome` (Resource Caps & Circuit Breaker) for the crash-loop supervision pattern paired with the cgroup memory caps.
+
+**Capture singleton:** the selkies process owns a single process-wide `ScreenCapture` instance. Screenshot requests (`/ov-layers:wl-screenshot-pixelflux`) and recording requests (`/ov-layers:wl-record-pixelflux`) both attach to the same capture bridge at `/tmp/ov-capture.sock` — there is never a second capture process. This is the state enforced by commit `6be85eb` after the `WaylandBackend` leak investigation; the per-frame cleanup fix in commit `7977b91` is the paired memory-management step. See `/ov-layers:selkies` (Pixelflux Memory Management) for the leak diagnosis, rollout recipe, and diagnostic commands.
 
 ## Used In Images
 
@@ -109,11 +113,17 @@ See `/ov-images:selkies-desktop` for full multi-instance deployment examples.
 
 ## Related Skills
 
-- `/ov-layers:selkies` — Streaming engine (pixelflux, capture bridge, traefik)
-- `/ov-layers:labwc` — Nested Wayland compositor
-- `/ov-layers:chrome` — Chrome browser with CDP proxy and HTTP proxy support
+- `/ov-layers:selkies` — Streaming engine, Pixelflux Memory Management, ScreenCapture singleton, DRINODE auto-detection, keyboard layout support
+- `/ov-layers:labwc` — Nested Wayland compositor + autostart Chrome-duplication race fix (commit `febb9bd`)
+- `/ov-layers:chrome` — Chrome browser with CDP proxy, HTTP proxy support, resource caps, and crash-loop circuit breaker
+- `/ov-layers:supervisord` — Event listener pattern (chrome-crash-listener) that owns Chrome's PID 1 escalation
+- `/ov-layers:wl-record-pixelflux` — Desktop video recording via the shared capture singleton
+- `/ov-layers:wl-screenshot-pixelflux` — Screenshots via the shared capture singleton
+- `/ov-images:fedora-builder` — Builder image that compiles patched pixelflux from source (rpmfusion + build-toolchain codec devel libs)
+- `/ov-images:selkies-desktop` — Image that bundles this metalayer
 - `/ov:wl` — Wayland automation (screenshots, input, windows)
 - `/ov:cdp` — Chrome DevTools Protocol automation
 - `/ov:record` — Desktop video recording via capture bridge
-- `/ov:config` — Multi-instance deployment, tunnel, proxy env vars
+- `/ov:update` — Per-instance update pattern used to roll out pixelflux/Chrome fixes
+- `/ov:config` — Multi-instance deployment, resource caps, tunnel, proxy env vars, NO_PROXY auto-enrichment
 - `/ov:deploy` — Tunnel configuration (deploy.yml-only, instance inheritance gap)

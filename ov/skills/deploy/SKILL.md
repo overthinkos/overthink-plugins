@@ -217,6 +217,43 @@ images:
 
 Allowed fields: `workspace`, `version`, `status`, `info`, `tunnel`, `fqdn`, `acme_email`, `volumes`, `ports`, `env`, `env_file`, `security`, `network`, `engine`, `secrets`.
 
+### Resource Caps
+
+Cgroup memory and CPU limits are stored in the `security:` block of deploy.yml and persist across `ov config` re-runs (a `--memory-max` flag applied once stays in effect until explicitly changed). The fields are:
+
+```yaml
+images:
+  selkies-desktop:
+    security:
+      shm_size: "1g"
+      memory_max: "6g"
+      memory_high: "5g"
+      memory_swap_max: "2g"
+      cpus: "4.0"
+```
+
+**Merge semantics** (authoritative, from `ov/security.go`):
+
+| Source | Merge rule |
+|---|---|
+| Layer → layer | Smallest value wins (tightest cap is the safer default) |
+| Layers → image-level `security:` in images.yml | Image-level **replaces** the merged layer value |
+| Image-level → deploy-level `security:` in deploy.yml | Deploy-level **replaces** the image-level value |
+| CLI flag → deploy-level | CLI flag **writes** directly to deploy.yml (`--memory-max=...` on `ov config`) |
+
+Quadlet emission (`[Service]` section of `.container` file):
+
+- `memory_max` → `MemoryMax=6G` (lowercase `g` is auto-normalized to `G` because systemd parses lowercase as `infinity` — see `/ov-layers:chrome` gotcha)
+- `memory_high` → `MemoryHigh=5G`
+- `memory_swap_max` → `MemorySwapMax=2G`
+- `cpus` → `CPUQuota=400%` (systemd percentage form: 1 core = 100%)
+
+Direct-mode emission (podman run flags, for `engine.run=direct`): `--memory`, `--memory-reservation`, `--memory-swap`, `--cpus`. `SecurityArgs` in `ov/security.go` emits both forms from the same source of truth.
+
+**Unset fields pass through** — setting `--memory-max=6g` alone will not wipe an existing `shm_size` from deploy.yml. Only the fields you pass on the CLI get overwritten; everything else is preserved from the current deploy.yml state.
+
+**Canonical consumer:** the chrome layer. See `/ov-layers:chrome` (Resource Caps & Circuit Breaker) for the pattern that pairs these caps with supervisord's `chrome-crash-listener` event listener to trigger container rebuild on FATAL state — the only way to release orphan memfd shmem across a Chrome crash loop. See `/ov-layers:supervisord` (Event Listeners) for the event listener pattern in full and `/ov:layer` (Security Declaration) for the authoring side.
+
 ### Provides (Top-Level)
 
 The `provides:` section holds all resolved env and MCP provides entries from deployed images. Managed automatically by `ov config` when images with `env_provides` or `mcp_provides` layers are deployed.
@@ -495,15 +532,19 @@ images:
 
 ## Cross-References
 
-- `/ov:sidecar` -- Sidecar containers, pod networking, Tailscale exit nodes
+- `/ov:sidecar` -- Sidecar containers, pod networking, Tailscale exit nodes, Environment Contract (provides filtering)
 - `/ov:service` -- Service lifecycle (start/stop/update/remove)
 - `/ov:enc` -- Encrypted storage commands (ov config mount/unmount)
 - `/ov:vnc` -- VNC password setup for desktop containers
 - `/ov:vm` -- Virtual machine deployment (ov vm)
-- `/ov:build` -- Building images before deployment
-- `/ov:config` -- bind_address, run_mode, auto_enable, vnc.password, --sidecar flag, MCP name disambiguation for instances
-- `/ov:image` -- Image configuration
-- `/ov:layer` — `env_provides` field declaration
+- `/ov:update` -- Per-instance update pattern for rolling out layer fixes + podman tag rollback recipe
+- `/ov:build` -- Building images before deployment (+ the `--no-cache` intermediate scratch-stage caveat)
+- `/ov:config` -- Resource cap flags (`--memory-max/high/swap/cpus`), provides filtering, env_requires enforcement, NO_PROXY auto-enrichment, `--sidecar`, `-i` instance support, MCP name disambiguation
+- `/ov:image` -- Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
+- `/ov:layer` — `env_provides`/`env_requires`/`env_accepts` field declarations, security resource caps, `service:` blocks
+- `/ov-layers:chrome` — Canonical resource caps consumer + crash-loop circuit breaker
+- `/ov-layers:supervisord` — Event listener pattern triggered by the caps
+- `/ov-layers:selkies-desktop` — Multi-instance proxy deployment, tunnel inheritance workaround
 
 ## When to Use This Skill
 

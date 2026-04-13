@@ -67,6 +67,28 @@ ov bridge (container-to-container)
 
 CLI `-e KEY=VALUE` flags are automatically routed: env vars matching a sidecar template's keys (all `TS_*` for tailscale) go to the sidecar's deploy.yml env override. Other vars go to the app container.
 
+## Environment Contract (env_provides / env_accepts / env_requires)
+
+Sidecars participate in the same cross-container env discovery pipeline as regular layers, with one critical caveat: **routing is explicit, not implicit**. A sidecar's env (e.g., the tailscale sidecar's `TS_*` vars) is **not** auto-injected into the app container, and vice versa — the app only sees what it explicitly opts in to via `env_accepts` or `env_requires` in its `layer.yml`.
+
+This matters for two reasons:
+
+1. **Prevents env var leakage.** Without opt-in filtering, every deployed service would see every other service's `env_provides`. The chrome layer doesn't want `TS_*` vars in its env; the tailscale sidecar doesn't want `BROWSER_CDP_URL`. The filtering model is the mechanism that enforces this boundary.
+
+2. **Enforces dependency contracts.** When the app declares `env_requires` and the provider (or sidecar) is actually deployed, the provide-resolution pipeline (`provides.go`) satisfies the requirement without the user manually setting `-e` flags. When the provider is **not** deployed and no default is set, `ov config` fails hard — deployment does not proceed with a broken env contract.
+
+### Tailscale sidecar as a provides participant
+
+The tailscale sidecar declares its advertised state (e.g., `TS_HOSTNAME`, the sidecar's tailnet IP) via the sidecar template, not via `env_provides`. The app container receives only what it declares in `env_accepts`. Most images don't need to look at tailscale state from inside the container — the sidecar handles all routing transparently — so the accepts set is usually empty.
+
+If a future sidecar needs to forward auth tokens or service URLs into the app, the right pattern is:
+
+- Sidecar template declares `env_provides:` with `{{.ContainerName}}`-templated values
+- App layer declares `env_accepts: [<var>]` or `env_requires: [<var>]`
+- `ov config` resolves the provide at deploy time and writes it to `deploy.yml` under `provides:`
+
+Missing `env_accepts` on the consumer side silently drops the var. Missing `env_requires` is a hard fail. See `/ov:layer` (env_requires / env_accepts) for the authoring side, `/ov:config` (Provides Filtering) for the resolution pipeline, and `provides.go` in the `ov` source for the implementation.
+
 ### deploy.yml Persistence
 
 `--sidecar` assignments and `-e` overrides are saved to `deploy.yml`. Subsequent `ov config` calls re-read them:
@@ -162,11 +184,12 @@ Chrome requires large `/dev/shm`. In pod mode, per-container `ShmSize=` is ignor
 
 ## Cross-References
 
-- `/ov:deploy` — Quadlet generation, deploy.yml, tunnel configuration
-- `/ov:config` — `--sidecar` and `--list-sidecars` flags
+- `/ov:deploy` — Quadlet generation, deploy.yml, tunnel configuration (tunnel is deploy.yml-only, not auto-inherited by instances)
+- `/ov:config` — `--sidecar` and `--list-sidecars` flags, Provides Filtering, resource caps, NO_PROXY auto-enrichment
+- `/ov:layer` — `env_accepts` / `env_requires` authoring and the full provides filtering contract
 - `/ov:secrets` — `ov secrets gpg set TS_AUTHKEY` for auth key storage
 - `/ov-images:selkies-desktop` — Full deployment example with Tailscale exit node
-- `/ov-layers:chrome` — Proxy deployment pattern (Tailscale exit node + HTTP_PROXY)
+- `/ov-layers:chrome` — Proxy deployment pattern (Tailscale exit node + HTTP_PROXY) and NO_PROXY auto-enrichment
 - `/ov:enc` — Encrypted volumes in pod deployments
 
 ## Source

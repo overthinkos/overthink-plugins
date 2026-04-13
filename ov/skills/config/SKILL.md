@@ -379,6 +379,30 @@ Set them with -e flags, --env-file, or deploy.yml env:
 
 Source: `ov/config_image.go` (`checkMissingEnvRequires`).
 
+## Provides Filtering (env_accepts / env_requires opt-in)
+
+`env_provides` is the **supply** side of cross-container env discovery. `env_accepts` and `env_requires` are the **demand** side. The provide-resolution pipeline in `provides.go` intersects the two sets per consumer, so env vars flow through deploy.yml's `provides:` section only to consumers that explicitly asked for them.
+
+**Why filtering exists.** Without it, every deployed service would see every other service's `env_provides` — a chrome layer would receive tailscale sidecar `TS_*` vars, a postgres layer would receive ollama's `OLLAMA_HOST`, and the env table would quickly become noise. Explicit opt-in via `env_accepts`/`env_requires` is how we enforce the principle that services must declare the contracts they rely on.
+
+**Resolution per variable:**
+
+| Consumer declared | Provider deployed | Result |
+|---|---|---|
+| `env_requires: [X]` (no default) | yes (X in `env_provides`) | X resolved, injected via `provides:` |
+| `env_requires: [X]` (no default) | **no** | **`ov config` aborts with a hard error** |
+| `env_requires: [X]` with default | no | default used |
+| `env_accepts: [X]` | yes | X resolved, injected |
+| `env_accepts: [X]` | no | var silently omitted |
+| neither accepts nor requires X | yes | **var is silently dropped** (filtering in action) |
+| neither accepts nor requires X | no | nothing happens |
+
+**Sidecar interaction.** Sidecars (e.g., the tailscale sidecar) participate in the same filtering pipeline — their `TS_*` env set is routed to the sidecar container, not auto-merged into the app container. For the app to see anything from the sidecar, it must declare `env_accepts: [<var>]` or `env_requires: [<var>]`. See `/ov:sidecar` (Environment Contract) for the pattern.
+
+**`--update-all` effect.** When filtering rules change (e.g., a layer adds a new `env_accepts` entry), `ov config <any-image> --update-all` re-runs the resolution pipeline for every deployed image and writes updated `provides:` blocks to their quadlets. Propagation is atomic per-image.
+
+Source: `ov/provides.go` (resolution, filtering, `{{.ContainerName}}` templating), `ov/config_image.go` (`injectEnvProvides`, `injectMCPProvides`, `checkMissingEnvRequires`).
+
 ## Sidecar Attachment
 
 Attach a sidecar container at deploy time:
@@ -417,16 +441,21 @@ Source: `ov/envfile.go` (`normalizeNoProxy`), `ov/deploy.go` (`mergeEnvVars`, `s
 
 ## Cross-References
 
-- `/ov:sidecar` — Sidecar containers, pod networking, Tailscale exit nodes
+- `/ov:sidecar` — Sidecar containers, pod networking, Tailscale exit nodes, Environment Contract (how sidecars participate in provides filtering)
 - `/ov:start` — Requires `ov config` first in quadlet mode
-- `/ov:deploy` — Deploy state file (deploy.yml), sidecar pod deployment
+- `/ov:deploy` — Deploy state file (deploy.yml), sidecar pod deployment, tunnel lifecycle, instance tunnel inheritance, resource caps persistence
 - `/ov:enc` — Encrypted storage details
 - `/ov:secrets` — Container secret management, `ov secrets gpg set TS_AUTHKEY`
 - `/ov:settings` — Runtime settings (engine, run_mode, encrypted_storage_path)
 - `/ov:service` — Service lifecycle (start, stop, status, logs)
-- `/ov:layer` — Volume, secret, and `env_provides` declarations
-- `/ov:image` — Image composition and inheritance
-- `/ov-layers:chrome` — Chrome HTTP proxy (`env_accepts`), proxy deployment examples
+- `/ov:layer` — Volume, secret, `env_provides` / `env_requires` / `env_accepts` declarations, security resource cap fields, `service:` blocks
+- `/ov:image` — Image composition, inheritance, OCI label emission, tunnel deploy.yml-only note (`labels.go:238`)
+- `/ov:doctor` — Host GPU/device detection driving `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
+- `/ov:shell` — Interactive shells share the same `appendAutoDetectedEnv()` path
+- `/ov-layers:chrome` — Chrome HTTP proxy (`env_accepts`), NO_PROXY auto-enrichment, resource caps, crash-loop circuit breaker
+- `/ov-layers:supervisord` — Event listener pattern that pairs with the resource caps
+- `/ov-layers:nvidia`, `/ov-layers:rocm` — GPU layers that consume DRINODE auto-injection
+- `/ov-layers:selkies` — Pixelflux DRINODE consumer + ScreenCapture singleton
 
 ## When to Use This Skill
 

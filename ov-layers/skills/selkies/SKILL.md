@@ -46,6 +46,45 @@ This is the ONLY working capture path for screenshots and recording on selkies-d
 - `STREAM\n` → continuous (4-byte length + raw H.264 frame data)
 - `STATUS\n` → 4-byte length + JSON status (`connected`, `mode`, `frames`, `seq`, `active_streams`, `last_error`)
 
+## Pixelflux Memory Management
+
+Pixelflux's Wayland backend is expensive to construct: each `ScreenCapture` creates an EGL context, dmabuf allocators, GPU texture pools, and ffmpeg codec state. Two commits in April 2026 locked down its memory behavior after a month of debugging a slow virtual-address-space leak that manifested on long-running selkies-desktop instances (9 GB of mapped virtual memory after a 20-minute streaming session).
+
+### ScreenCapture singleton (commit `6be85eb`)
+
+The `ScreenCapture` instance is **process-wide**. `selkies_core.reconfigure_displays()` — which runs when the browser client changes resolution or when the compositor output geometry changes — now **mutates** the existing capture (updating dimensions, rebuilding the pipeline in place) instead of spawning a new one. Before the fix, every reconfiguration spawned a new `WaylandBackend` without freeing the old one, leaking the whole EGL+dmabuf construction set. The symptom was reproducible on any instance with a browser client that resized the window; the cumulative leak scaled with the number of reconfigure events.
+
+Diagnostic recipe (use this when investigating a suspected selkies memory leak):
+
+```bash
+# Virtual address-space size (VmSize) of the selkies process
+ov shell selkies-desktop -c "grep VmSize /proc/\$(pgrep -f selkies_core)/status"
+
+# Count WaylandBackend instances in heap state (should always be 1)
+ov shell selkies-desktop -c "ls -la /proc/\$(pgrep -f selkies_core)/map_files/ | wc -l"
+
+# Watch the above repeatedly while a browser reconnects / resizes
+watch -n5 "ov shell selkies-desktop -c 'grep VmSize /proc/\$(pgrep -f selkies_core)/status'"
+```
+
+If `VmSize` grows monotonically across reconfigure events, the singleton is broken — investigate `reconfigure_displays()` for regressions.
+
+### Per-frame `cleanup_texture_cache()` (commit `7977b91`)
+
+`cleanup_texture_cache()` runs **per frame** (not per capture session) in pixelflux's renderer main loop. It releases dmabuf imports whose Wayland buffer reference has already been dropped — these accumulate across frames because the EGL image-dmabuf import cache holds a GPU-side reference that the CPU-side `wl_buffer_release` does not clear. Without per-frame cleanup, a 60 fps stream leaks ~60 dmabuf handles per second even though `VmSize` stays flat (the leak is GPU-side, visible as increasing `nvidia-smi` memory usage on NVIDIA, `radeontop` on AMD).
+
+This fix was rolled out via `ov update -i INSTANCE` across all live selkies-desktop instances — see `/ov:update` for the per-instance update pattern. The rollback recipe there also applies if a pixelflux patch regresses.
+
+### Rebuild cadence
+
+Pixelflux is compiled **from source** in the selkies build stage (`layers/selkies/build.sh`), not installed from PyPI, because these fixes live on a fork not yet merged upstream. The build stage clones from a pinned commit, applies four inline source patches, and runs `pip install .` against the fedora-builder image. See `/ov-images:fedora-builder` (rpmfusion is applied first so codec devel libs install) and `/ov-layers:build-toolchain` (5 package categories — smithay backend headers, codec devel, bindgen runtime, rust, generic C/C++) for the builder-stage dependency story.
+
+### Related fixes
+
+- `/ov-layers:wl-screenshot-pixelflux` — Reuses the singleton capture path for screenshots
+- `/ov-layers:wl-record-pixelflux` — Reuses the singleton capture path for recording
+- `/ov-images:selkies-desktop` — Build Pipeline Note explaining the patched pixelflux compilation
+
 ## Installation
 
 Selkies is installed from `selkies-project/selkies` commit `af1a1c2` (not the PyPI `selkies` package, which is the old GStreamer-based upstream). The LSIO fork declares `pixelflux` and `pcmflux` as direct dependencies. `av` and `cryptography` deps are stripped before install (not needed for websocket mode).
@@ -151,12 +190,32 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 - `/ov-images:selkies-desktop`
 - `/ov-images:selkies-desktop-nvidia`
 
+## Related Layers
+
+- `/ov-layers:labwc` — Nested compositor that selkies hosts inside `wayland-1` (autostart Chrome-duplication race + keyboard layout)
+- `/ov-layers:chrome` — Chrome browser managed by supervisord, paired with the crash-loop circuit breaker
+- `/ov-layers:supervisord` — Service ordering, event listeners, crash-loop escalation
+- `/ov-layers:wl-screenshot-pixelflux` — Screenshot path via the shared ScreenCapture singleton
+- `/ov-layers:wl-record-pixelflux` — Recording path via the shared ScreenCapture singleton
+- `/ov-layers:selkies-desktop` — Metalayer composing selkies with labwc, Chrome, waybar, desktop tools
+- `/ov-layers:nvidia`, `/ov-layers:rocm` — GPU runtime layers feeding DRINODE into the selkies VAAPI encoder
+- `/ov-layers:ffmpeg` — Codec dep used by the capture bridge for H.264→PNG decode
+- `/ov-layers:build-toolchain` — Builder-stage packages (smithay, bindgen, codec devel) that compile the patched pixelflux
+- `/ov-layers:rpmfusion` — Applied before build-toolchain so codec devel libs (libva-devel, x264-devel, ffmpeg-devel) install
+
+## Related Images
+
+- `/ov-images:selkies-desktop`, `/ov-images:selkies-desktop-nvidia` — Images that bundle this layer
+- `/ov-images:fedora-builder` — Builder image for the pixelflux from-source compilation
+
 ## Related Commands
 
 - `/ov:wl` — Wayland automation (screenshot via capture bridge, input, windows)
 - `/ov:cdp` — Chrome DevTools and SPA bridge (click, type, key-combo through remote desktop)
 - `/ov:record` — Desktop video recording via capture bridge
-- `/ov-layers:selkies-desktop` — Desktop metalayer composing selkies with Chrome, labwc, Waybar
+- `/ov:update` — Per-instance update pattern used to roll out pixelflux memory fixes
+- `/ov:config` — DRINODE auto-injection, resource caps, NO_PROXY auto-enrichment, keyboard layout XKB env
+- `/ov:doctor` — Host GPU probe feeding `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
 
 ## Security
 

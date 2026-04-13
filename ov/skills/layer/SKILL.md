@@ -145,6 +145,43 @@ env_provides:
 
 See `/ov:config` for `--update-all` flag and `/ov:deploy` for global env in deploy.yml.
 
+### env_requires
+
+Environment variables this layer MUST have from the environment to function. Enforced at `ov config` time with a **hard error** — missing required vars abort deployment. This is the enforcement contract (distinct from `env_accepts`, which is an opt-in allowlist).
+
+```yaml
+env_requires:
+  - name: OLLAMA_API_KEY
+    description: "API key for Ollama Cloud — required to authenticate outbound inference calls"
+  - name: DATABASE_URL
+    description: "Postgres connection URL"
+    default: "postgres://localhost:5432/app"    # optional default; absent = hard fail
+```
+
+Each `EnvDependency` entry has `name` (required), `description` (required, shown in error output), `default` (optional — if set, missing var is substituted; if absent, missing var aborts `ov config`).
+
+**Enforcement point:** `ov config` calls `checkMissingEnvRequires()` before writing the quadlet. A missing required var without a default is a fatal error — deploy.yml is not modified. The error message lists the missing vars with their descriptions so the user knows what to set with `-e`.
+
+**Interaction with env_provides filtering:** When a provider service declares `env_provides` and the consumer declares matching `env_requires`, the provide-resolution pipeline (`provides.go`) **automatically satisfies** the requirement without the user needing `-e`. This is how cross-container service discovery works: deploy the provider first, then the consumer, and the required vars flow through deploy.yml's `provides:` section.
+
+### env_accepts
+
+Environment variables this layer CAN optionally use. **Opt-in allowlist** — no warnings if missing, but `env_accepts` also gates which `env_provides` vars actually get injected from other services. A provider's `env_provides` entry is **only** injected into consumers that declared matching `env_accepts` or `env_requires`. This prevents env var leakage: e.g., a tailscale sidecar's `TS_*` vars only reach containers that explicitly opt in.
+
+```yaml
+env_accepts:
+  - name: HTTP_PROXY
+    description: "Upstream HTTP proxy (optional)"
+  - name: HTTPS_PROXY
+    description: "Upstream HTTPS proxy (optional)"
+  - name: NO_PROXY
+    description: "Proxy exclusions — semicolons auto-converted to commas, container hostnames auto-enriched"
+```
+
+Same `EnvDependency` struct as `env_requires`. Used by the chrome layer for proxy accepts, and by most layers to opt into cross-container service discovery (e.g., `OLLAMA_HOST` from an ollama provider).
+
+**Filtering model:** `env_provides` declarations are the supply side; `env_accepts` + `env_requires` are the demand side. The provide-resolution pipeline intersects the two sets per consumer, so env vars only reach containers that explicitly opt in. Missing `env_accepts` silently drops the var (opposite of missing `env_requires`, which is a hard fail). See `/ov:config` (Provides Filtering) and `/ov:sidecar` (Environment Contract) for the full lifecycle.
+
 ### mcp_provides
 
 MCP servers provided to OTHER containers when this service is deployed. Used for cross-container MCP server discovery. Resolved at `ov config` time and stored in `deploy.yml` under `provides.mcp:`.
@@ -373,11 +410,18 @@ security:
   mounts:
     - /dev/input:/dev/input:rw
     - tmpfs:/run/udev:rw,size=1m
+  shm_size: "1g"
+  memory_max: "8g"           # hard limit, OOM-kill above
+  memory_high: "6g"          # soft limit, reclaim above
+  memory_swap_max: "0"       # disable swap (recommended for containers)
+  cpus: "4.0"                # CPU quota
 ```
 
 Security settings are merged across layers: if any layer sets `privileged: true`, the result is privileged. `cap_add`, `devices`, `security_opt`, `group_add`, and `mounts` are unioned (deduplicated). Image-level `security:` in `images.yml` overrides `privileged` and appends to the other fields.
 
 **`mounts`**: Host bind mounts or tmpfs mounts needed for device access. Format: `host:container:options` for bind mounts, `tmpfs:path:options` for tmpfs. Stored in the `org.overthinkos.security` image label and applied by `ov config`/`ov start`. Bind mounts generate `Volume=` in quadlets; tmpfs mounts generate `Tmpfs=`.
+
+**Resource caps** (`memory_max`, `memory_high`, `memory_swap_max`, `cpus`): Cgroup limits applied at container runtime. **Smallest-wins merge** across layers — the most restrictive value from any layer wins. Image-level and deploy.yml values **replace** layer values (not merge). Emitted to quadlet as `MemoryMax=`, `MemoryHigh=`, `MemorySwapMax=`, `CPUQuota=` in the `[Service]` section; emitted to direct podman runs as `--memory`, `--memory-reservation`, `--memory-swap`, `--cpus`. Used by the chrome layer's crash-loop circuit breaker pattern: a tight `memory_max` triggers cgroup OOM-kill which supervisord's chrome-crash-listener catches and escalates to PID 1 termination, rebuilding the cgroup fresh. See `/ov-layers:chrome` (Resource Caps & Circuit Breaker) and `/ov-layers:supervisord` (Event Listeners) for the full pattern.
 
 Source: `ov/security.go` (`CollectSecurity`, `SecurityArgs`), `ov/quadlet.go`, `ov/start.go`.
 
@@ -480,7 +524,12 @@ Add a `service` field to layer.yml with an init system program fragment (e.g., s
 
 - `/ov:image` -- Adding layers to image definitions
 - `/ov:build` -- Building images with layers
-- `/ov:deploy` -- Provides configuration in deploy.yml (env + MCP)
+- `/ov:generate` -- Containerfile generation and layer scratch-stage cache behavior (`ov build --no-cache` caveat lives in `/ov:build`)
+- `/ov:config` -- `env_requires`/`env_accepts` enforcement, provides filtering, resource caps, `--update-all`
+- `/ov:deploy` -- Provides configuration in deploy.yml (env + MCP), resource caps, tunnel is deploy.yml-only
+- `/ov:sidecar` -- Sidecars as env_provides participants (tailscale `TS_*` filtering)
+- `/ov-layers:chrome` -- Canonical consumer of `env_accepts` (proxy vars) and resource caps (crash-loop circuit breaker)
+- `/ov-layers:supervisord` -- Event listener pattern triggered by resource caps
 
 ## When to Use This Skill
 

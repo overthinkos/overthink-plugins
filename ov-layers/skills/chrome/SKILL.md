@@ -62,6 +62,8 @@ Chrome does NOT natively respect `HTTP_PROXY`/`HTTPS_PROXY` environment variable
 
 Uppercase takes precedence over lowercase (`HTTP_PROXY` over `http_proxy`). The `chrome-x11-wrapper` has identical proxy translation logic.
 
+**NO_PROXY auto-enrichment:** `ov config` runs `enrichNoProxy()` before writing the quadlet, adding every deployed container's hostname (`ov-<image>`, `ov-<image>-<instance>`) to `NO_PROXY`. This is required because Chrome does **not** support CIDR notation in `NO_PROXY` (unlike curl/requests) — only exact hostnames work, so `ov` pre-computes the list. Semicolons in user-provided values are auto-converted to commas since Chrome only accepts comma-separated lists. See `/ov:config` (Environment Variable Handling → NO_PROXY enrichment).
+
 ```bash
 # Deploy with proxy
 ov config selkies-desktop -e HTTP_PROXY=http://proxy:8080 -e "NO_PROXY=localhost,127.0.0.1"

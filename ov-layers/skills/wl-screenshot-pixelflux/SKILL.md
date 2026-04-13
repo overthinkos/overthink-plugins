@@ -60,11 +60,13 @@ ov wl screenshot <image> [output.png]
 ## Architecture
 
 ```
-selkies process
+selkies process (single ScreenCapture singleton)
     ├── WebSocket :8081 (H.264 frame broadcast)
     └── Capture bridge thread → /tmp/ov-capture.sock
         └── SCREENSHOT request → ffmpeg H.264→PNG decode → PNG response
 ```
+
+**Singleton guarantee:** The `ScreenCapture` instance inside selkies is process-wide. `pixelflux-screenshot` taps into the **same** capture path that the browser client uses and that `pixelflux-record` (`/ov-layers:wl-record-pixelflux`) uses — there is never a second capture process spawned. This matters because pixelflux's `WaylandBackend` is expensive to construct (creates EGL context, dmabuf allocators, GPU texture pools), so spawning a new one per screenshot would leak GBM buffers on every call. The singleton was re-affirmed in commit `6be85eb` (`selkies ScreenCapture singleton to stop pixelflux WaylandBackend leak`) and paired with the per-frame `cleanup_texture_cache()` fix in commit `7977b91`. See `/ov-layers:selkies` (Pixelflux Memory Management) for the full leak diagnosis and fix.
 
 ## Included In
 
@@ -78,6 +80,8 @@ selkies process
 ## Cross-References
 
 - `/ov:wl` — `ov wl screenshot` auto-detects pixelflux-screenshot
-- `/ov-layers:wl-record-pixelflux` — Recording companion (same capture bridge)
+- `/ov-layers:wl-record-pixelflux` — Recording companion (same capture bridge + same singleton)
 - `/ov-layers:wl-screenshot-grim` — Alternative for sway-desktop (wlr-screencopy)
-- `/ov-layers:selkies` — Parent layer (provides capture bridge)
+- `/ov-layers:selkies` — Parent layer providing the ScreenCapture singleton and capture bridge
+- `/ov-layers:selkies-desktop` — Metalayer that composes this screenshot path into the selkies-desktop image
+- `/ov:record` — Uses `/ov-layers:wl-record-pixelflux` via the same singleton

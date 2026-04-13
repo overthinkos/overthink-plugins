@@ -37,6 +37,18 @@ NVIDIA runtime layer providing `nvidia-container-toolkit` for CDI device injecti
 
 The `nvidia-container-toolkit` provides `nvidia-ctk` which generates CDI (Container Device Interface) specs. `ov` calls `EnsureCDI()` before launching containers with GPU — if CDI specs don't exist at `/etc/cdi/nvidia.yaml`, it runs `nvidia-ctk cdi generate` to create them. This enables GPU access in nested containers where host CDI specs are not inherited.
 
+## DRINODE Auto-Injection
+
+NVIDIA VAAPI acceleration requires the container to know which DRM render node to bind the EGL context against. On multi-GPU hosts there may be `/dev/dri/renderD128`, `/dev/dri/renderD129`, … and the correct one depends on which physical card backs the NVIDIA driver.
+
+`ov` does **not** bake a hardcoded `DRINODE=/dev/dri/renderD128` into this layer. Instead, it auto-detects the correct render node at container-launch time and injects it as an environment variable. The detection + injection is consolidated in a single function, `appendAutoDetectedEnv()` in `ov/devices.go`, which is called by `ov config`, `ov start`, and `ov shell` — so the three commands always produce the same env set.
+
+Selkies is the primary consumer: pixelflux's Wayland compositor uses `DRINODE` to open the render node and set up the VAAPI H.264 encoder. Without the injection, selkies would fall back to software encode (`libx264`) and lose ~40% of its streaming bandwidth budget.
+
+The injection replaces 10 previously-scattered GPU device injection blocks across the `ov` source tree — see commit `8f6f322` for the consolidation history. If you see `DRINODE` referenced in layer scripts, you can assume it was auto-detected and injected by `ov`, not set by the user.
+
+See `/ov:doctor` (Hardware Detection) for the detection probe and `/ov-layers:rocm` for the AMD-side counterpart using the same mechanism.
+
 ## root.yml
 
 Creates Vulkan ICD compatibility symlinks for nvidia-ctk CDI device injection.
@@ -50,4 +62,14 @@ Creates Vulkan ICD compatibility symlinks for nvidia-ctk CDI device injection.
 ## Related Layers
 
 - `/ov-layers:cuda` — CUDA development toolkit (depends on nvidia)
-- `/ov-layers:rocm` — AMD GPU counterpart (ROCm runtime + OpenCL)
+- `/ov-layers:rocm` — AMD GPU counterpart (ROCm runtime + OpenCL), uses the same `appendAutoDetectedEnv()` DRINODE injection
+- `/ov-layers:selkies` — Primary consumer of the DRINODE env for VAAPI H.264 encode
+- `/ov-layers:python-ml`, `/ov-layers:llama-cpp`, `/ov-layers:jupyter-colab-ml` — CUDA ML stacks that depend on this layer
+
+## Related Commands
+
+- `/ov:doctor` — Host NVIDIA detection (GPU probe, CDI spec status, driver version)
+- `/ov:shell` — DRINODE auto-injection applies to interactive shells too
+- `/ov:udev` — Device permission management for `/dev/dri/*` and `/dev/nvidia*`
+- `/ov:config` — Runtime GPU device injection at deployment time (same `appendAutoDetectedEnv()` path)
+- `/ov:start` — Runtime GPU device injection at service start time

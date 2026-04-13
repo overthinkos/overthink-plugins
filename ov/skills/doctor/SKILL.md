@@ -97,7 +97,11 @@ Probes GPU and device hardware, reports what flags containers will receive:
 
 AMD GPU detection also reports the GFX version (e.g., `gfx 11.0.0`) from KFD topology nodes and sets `HSA_OVERRIDE_GFX_VERSION` accordingly.
 
-**DRINODE auto-detection:** `ov` automatically finds the first `/dev/dri/renderD*` device and injects it as `DRINODE` and `DRI_NODE` environment variables into `ov config`, `ov start`, and `ov shell` sessions. This ensures GPU render node selection is consistent across all operations without manual configuration. The detection is centralized in `ov/devices.go` (`DetectedDevices.RenderNode`).
+**DRINODE auto-detection:** `ov` automatically finds the first `/dev/dri/renderD*` device and injects it as `DRINODE` and `DRI_NODE` environment variables into `ov config`, `ov start`, and `ov shell` sessions. This ensures GPU render node selection is consistent across all operations without manual configuration. The detection is centralized in `ov/devices.go` (`DetectedDevices.RenderNode`); the injection is centralized in `appendAutoDetectedEnv()` in the same file.
+
+**Why centralized:** before commit `8f6f322`, DRINODE injection was scattered across 10 separate call sites across `ov`'s source tree — one in `config_image.go`, one in `shell.go`, one in `start.go`, and 7 more in various layer-authored scripts. This led to drift: a fix applied to `ov config` wouldn't reach `ov shell`, and `DRINODE=/dev/dri/renderD129` hardcoded in some selkies scripts masked the auto-detection entirely. The consolidation into `appendAutoDetectedEnv()` means `/ov:config`, `/ov:start`, and `/ov:shell` all produce the identical env set, and `/ov-layers:nvidia` + `/ov-layers:rocm` stopped shipping hardcoded render nodes in their layer.yml.
+
+**Disabling auto-detection:** Pass `--no-autodetect` to `ov config` to skip all of DRINODE, DRI_NODE, and HSA_OVERRIDE_GFX_VERSION injection. Useful when you want to set these values explicitly or test a layer without host device dependence. See `/ov:config` flag table.
 
 ## Output Format
 
@@ -120,10 +124,12 @@ Each check shows the binary path and version when available, or an install hint 
 ## Cross-References
 
 - `/ov:udev` — install udev rules for GPU device access
-- `/ov:config` — `engine.build`, `engine.run`, `secret_backend` settings, DRINODE injection
-- `/ov:shell` — auto-detected env vars (DRINODE, DRI_NODE, HSA_OVERRIDE_GFX_VERSION)
-- `/ov-layers:nvidia` — NVIDIA GPU runtime support
-- `/ov-layers:rocm` — AMD ROCm runtime support
+- `/ov:config` — `engine.build`, `engine.run`, `secret_backend` settings, `--no-autodetect` flag, DRINODE injection via `appendAutoDetectedEnv()`
+- `/ov:shell` — auto-detected env vars (DRINODE, DRI_NODE, HSA_OVERRIDE_GFX_VERSION) injected via the same `appendAutoDetectedEnv()` path
+- `/ov:start` — same auto-injection path at service-start time
+- `/ov-layers:nvidia` — NVIDIA GPU runtime support + DRINODE Auto-Injection section
+- `/ov-layers:rocm` — AMD ROCm runtime support + DRINODE/HSA_OVERRIDE_GFX_VERSION auto-detect table
+- `/ov-layers:selkies` — Primary consumer of DRINODE for VAAPI H.264 encode
 
 ## Source
 

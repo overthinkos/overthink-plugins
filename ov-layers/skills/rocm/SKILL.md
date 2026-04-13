@@ -24,8 +24,14 @@ description: |
 | Variable | Source | Example |
 |----------|--------|---------|
 | `HSA_OVERRIDE_GFX_VERSION` | KFD topology sysfs | `10.3.0` (RDNA2), `11.0.0` (RDNA3) |
+| `DRINODE` | DRM render node enumeration | `/dev/dri/renderD128` (typical), `/dev/dri/renderD129` (multi-GPU) |
 
-`HSA_OVERRIDE_GFX_VERSION` is **not baked into the layer** -- it is auto-detected from the host GPU at runtime via `/sys/class/kfd/kfd/topology/nodes/*/properties` and injected as a container environment variable. Override with `-e HSA_OVERRIDE_GFX_VERSION=X.Y.Z`.
+Both variables are **not baked into the layer** — they are auto-detected from host state at runtime and injected as container environment variables via `appendAutoDetectedEnv()` in `ov/devices.go`. The same function is called by `ov config`, `ov start`, and `ov shell`, so interactive shells and deployed services see the identical env set.
+
+- `HSA_OVERRIDE_GFX_VERSION` is read from `/sys/class/kfd/kfd/topology/nodes/*/properties` (gfx_target_version field).
+- `DRINODE` is selected by walking `/dev/dri/renderD*` and picking the node that matches the AMD PCI device exposed to the container.
+
+Override either with `-e HSA_OVERRIDE_GFX_VERSION=X.Y.Z` or `-e DRINODE=/dev/dri/renderD129`. See `/ov:doctor` (Hardware Detection) for how the probe runs on the host side, and `/ov-layers:nvidia` (DRINODE Auto-Injection) for the NVIDIA counterpart using the same mechanism.
 
 ## Security
 
@@ -76,12 +82,21 @@ ov shell my-amd-app -c "echo \$HSA_OVERRIDE_GFX_VERSION"
 
 ## Related Layers
 
-- `/ov-layers:cuda` -- NVIDIA GPU counterpart (CUDA toolkit)
-- `/ov-layers:python-ml` -- ML Python environment (currently depends on cuda)
+- `/ov-layers:nvidia` -- NVIDIA GPU counterpart (runtime libs + CDI), shares `appendAutoDetectedEnv()` DRINODE injection
+- `/ov-layers:cuda` -- NVIDIA CUDA toolkit (stacked on nvidia)
+- `/ov-layers:python-ml` -- ML Python environment (currently depends on cuda; ROCm equivalent is a future direction)
+
+## Related Commands
+
+- `/ov:doctor` -- Host AMD GPU detection (`/dev/kfd`, render nodes, driver status)
+- `/ov:shell` -- Interactive shells receive the same auto-detected HSA_OVERRIDE_GFX_VERSION + DRINODE envs
+- `/ov:udev` -- Device permission management for `/dev/kfd` and `/dev/dri/renderD*`
+- `/ov:config` -- Runtime GPU env injection at deployment time (same auto-detect path)
+- `/ov:start` -- Runtime GPU env injection at service start time
 
 ## Used In Images
 
-Not directly used in any current image definition. Available as a standalone layer for AMD GPU support.
+Not directly used in any current image definition. Available as a standalone layer for AMD GPU support. The NVIDIA base image (`/ov-images:nvidia`) is the currently-shipped GPU image; an AMD counterpart can be composed by substituting this layer.
 
 ## When to Use This Skill
 
