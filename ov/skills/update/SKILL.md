@@ -61,6 +61,56 @@ ov update jupyter --force-seed
 ov update jupyter --data-from jupyter-custom
 ```
 
+### Per-Instance Update with Volume Preservation
+
+```bash
+ov update selkies-desktop -i 82.23.94.69
+```
+
+When using `-i INSTANCE`, the update operates on a single named instance. The
+container is destroyed and recreated from the new image, but the per-instance named
+volumes are reattached:
+
+- `ov-selkies-desktop-82.23.94.69-chrome-data` → `/home/user/.chrome-debug`
+- `ov-selkies-desktop-82.23.94.69-selkies-config` → `/home/user/.config/selkies`
+
+User-side state in those volumes (Chrome cookies, profile, history, selkies client
+settings) **survives the restart**. The cgroup is recreated fresh, so any in-memory
+state — including any leaked memfd-backed shmem from the old container — is released.
+
+This was the rollout pattern used in commit `7977b91` (pixelflux dmabuf cache leak
+fix): all 13 selkies-desktop instances were updated via a `for ip in ...; do ov update
+selkies-desktop -i $ip; done` loop, and every active streaming session resumed cleanly
+on the new image with state intact.
+
+### Rollback via `podman tag`
+
+`ov update` does not have a built-in rollback flag, but the previous CalVer-tagged image
+is left in the local podman image store after each `ov build`. To roll back:
+
+```bash
+# Find the previous tag
+podman image ls ghcr.io/overthinkos/selkies-desktop
+# REPOSITORY                            TAG             IMAGE ID
+# ghcr.io/overthinkos/selkies-desktop   latest          bc2bb4f90ca0   <- new (broken)
+# ghcr.io/overthinkos/selkies-desktop   2026.102.2333   bc2bb4f90ca0
+# ghcr.io/overthinkos/selkies-desktop   2026.102.1933   502c8012c7a5   <- previous
+
+# Re-point :latest at the previous tag
+podman tag ghcr.io/overthinkos/selkies-desktop:2026.102.1933 \
+           ghcr.io/overthinkos/selkies-desktop:latest
+
+# Restart the service(s) — they pick up :latest, no re-pull needed
+systemctl --user restart ov-selkies-desktop.service
+# or per-instance:
+systemctl --user restart ov-selkies-desktop-82.23.94.69.service
+```
+
+This is fast (no network round-trip) and survives because podman's image GC is
+opt-in. To make rollback survive a `podman image prune`, also tag the previous image
+with a stable name (e.g., `:rollback`). The deploy.yml entry is unchanged — only the
+local registry pointer moves.
+
 ## Behavior by Mode
 
 ### Quadlet Mode

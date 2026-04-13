@@ -26,6 +26,10 @@ fedora-nonfree:
 ## Used In Images
 
 - `/ov-images:fedora-nonfree` (base for immich and other images needing nonfree packages)
+- `/ov-images:fedora-builder` — applied **before** `build-toolchain` so cargo crates that
+  need RPM Fusion free system libs (`libva-devel`, `x264-devel`, `ffmpeg-devel`) can install
+  via dnf in the builder stage. Required for building pixelflux from source — see
+  `/ov-layers:selkies` (Patched pixelflux build pipeline).
 
 ## Related Layers
 - `/ov-layers:ffmpeg` -- nonfree multimedia codecs installed from RPM Fusion

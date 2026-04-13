@@ -202,6 +202,32 @@ If a build fails with `conflicting requests` involving `libavcodec-free` vs `lib
 
 If you see `cannot unmarshal !!str ... into int` or similar YAML parsing errors on layer fields, the installed `ov` binary is likely stale. Rebuild with `task build:install` or `cp bin/ov ~/.local/bin/ov`. Verify with `ov validate`.
 
+### `--no-cache` does not invalidate intermediate scratch-stage caches
+
+`ov build --no-cache <image>` and `ov build --cache none <image>` reliably disable the
+cache for the **final image stage**, but in observed behavior they do **not** propagate
+to intermediate scratch stages produced by `COPY layers/<x>/ /` instructions
+(`[15/25] STEP 2/2: COPY layers/labwc/ /` style). Editing a single file inside a layer
+directory and rebuilding with `--no-cache` may still pull the labwc scratch stage from
+cache, leaving the new file content out of the rebuilt image.
+
+**Workaround:** force a content-hash bump on the layer's `layer.yml`. The simplest is
+adding (or removing) a trailing comment line:
+
+```bash
+echo "" >> layers/labwc/layer.yml          # bump content hash
+ov build selkies-desktop                   # now invalidates the labwc scratch stage
+git checkout -- layers/labwc/layer.yml     # revert the cosmetic change
+```
+
+This was discovered while shipping commit `febb9bd` (labwc autostart race fix): the
+edit to `layers/labwc/autostart` did not propagate to the rebuilt image until
+`layers/labwc/layer.yml` itself was touched. Two consecutive `--no-cache` rebuilds
+produced the same image hash (`502c8012c7a5`) until the layer.yml content changed.
+
+Symptom: `podman image ls` shows a new tag, but `podman run --rm <new tag> cat /path/to/changed/file`
+returns the **old** content.
+
 ## Cross-References
 
 - `/ov:layer` -- Layer definitions that get built

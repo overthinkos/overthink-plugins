@@ -302,6 +302,16 @@ ov cdp open selkies-desktop -i 45.39.130.21 "https://httpbin.org/ip"
 
 See `/ov:config` for `--update-all` propagation, `/ov-layers:chrome` for `env_accepts` (HTTP_PROXY/HTTPS_PROXY/NO_PROXY).
 
+## Build Pipeline Note
+
+The selkies-desktop image now compiles `pixelflux_wayland` from source in the
+fedora-builder stage. This is because pixelflux's upstream wheel does not include the
+**dmabuf cache cleanup fix** (`renderer.cleanup_texture_cache()` per frame) that
+prevents a Wayland compositor shmem leak under sustained heavy streaming. The patch is
+applied at build time via inline source patching in `layers/selkies/build.sh`. See
+`/ov-layers:selkies` (Patched pixelflux build pipeline) for the full pipeline and the
+diagnostic recipe that found the leak.
+
 ## Related Images
 
 - `/ov-images:selkies-desktop-nvidia` — GPU-accelerated variant with NVIDIA CUDA toolkit (base: nvidia instead of fedora-nonfree)

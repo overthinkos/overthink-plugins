@@ -15,16 +15,25 @@ Builder image with package managers and compilation tools. Default builder for p
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | pixi, nodejs, build-toolchain |
+| Layers | rpmfusion, pixi, nodejs, build-toolchain |
 | Platforms | linux/amd64 |
 | Registry | ghcr.io/overthinkos |
 
 ## Full Layer Stack
 
 1. `fedora` (quay.io/fedora/fedora:43)
-2. `pixi` — pixi package manager + env paths
-3. `nodejs` — Node.js + npm
-4. `build-toolchain` — gcc, cmake, autoconf, ninja, git, pkg-config
+2. `rpmfusion` — RPM Fusion free + nonfree repo configuration. Applied **first** so subsequent layers can `dnf install` packages from RPM Fusion (e.g. `x264-devel`, `ffmpeg-devel`, `libva-devel`)
+3. `pixi` — pixi package manager + env paths
+4. `nodejs` — Node.js + npm
+5. `build-toolchain` — gcc, cmake, autoconf, ninja, git, pkg-config, **plus** the smithay/cargo build deps (`rust`, `cargo`, `clang-devel`, `nasm`, `wayland-devel`, `libva-devel`, `x264-devel`, `ffmpeg-devel`, `pixman-devel`, …) needed for builder-stage compilation of Wayland compositors like pixelflux. See `/ov-layers:build-toolchain` for the full grouped list.
+
+## Why rpmfusion is first
+
+The build-toolchain layer's `dnf install` references packages that live in RPM Fusion free
+(`libva-devel`, `x264-devel`, `ffmpeg-devel`). These are required to build pixelflux from
+source (its `libva-sys`, `x264-sys`, and `ffmpeg-sys-next` cargo crates link against the
+system libs). Without rpmfusion applied first, those `dnf install` calls would fail.
+See `/ov-layers:selkies` (Patched pixelflux build pipeline) for the consumer story.
 
 ## Role in Build System
 

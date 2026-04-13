@@ -69,7 +69,52 @@ The compositor and selkies input handler both read `XKB_DEFAULT_LAYOUT` from the
 
 - `labwc-wrapper` — Waits for pixelflux's `wayland-1` socket, exports XKB_DEFAULT_* from env with defaults, then starts labwc
 - `rc.xml` — labwc configuration: server-side decorations, maximize-all window rule, keyboard shortcuts (Alt+F4 close, Super+E terminal)
-- `autostart` — Hands off to supervisord (`supervisorctl start chrome`) so the chrome-crash-listener circuit breaker supervises the browser. Falls back to a direct `chrome-wrapper` launch when supervisord isn't ready (images without `[program:chrome]`). CDP: internal 9223, external 9222 via cdp-proxy.
+- `autostart` — Hands off to supervisord (`supervisorctl start chrome`) so the chrome-crash-listener circuit breaker supervises the browser. **Waits up to 10 s for `/tmp/supervisor.sock` and uses `supervisorctl avail | grep chrome` to confirm chrome is a defined program** before starting it; only falls through to a direct `chrome-wrapper` launch when chrome is not defined at all (minimal image variants without the chrome layer). CDP: internal 9223, external 9222 via cdp-proxy.
+
+### autostart Chrome-duplication race (fixed in febb9bd)
+
+The previous autostart logic was a one-liner:
+
+```sh
+if ! supervisorctl start chrome 2>/dev/null; then
+    chrome-wrapper --force-renderer-accessibility --no-first-run --start-maximized &
+fi
+```
+
+This had a TOCTOU race: if labwc's autostart ran before supervisord's unix socket
+(`/tmp/supervisor.sock`) was reachable, the `supervisorctl start chrome` call failed
+silently with stderr suppressed, and the fallback launched a background `chrome-wrapper`
+**not managed by supervisord**. Then later, supervisord's own `[program:chrome]` could
+also bring chrome up via a separate code path (e.g., a subsequent `supervisorctl start`
+call from another script, or autorestart after a crash), leaving **two Chrome browser
+mains** on the same `--user-data-dir=/home/user/.chrome-debug`. Because
+`chrome-wrapper` deletes Chrome's `SingletonLock`/`SingletonSocket`/`SingletonCookie`
+files at exec time (see `/ov-layers:chrome` — chrome-wrapper SingletonLock removal),
+Chrome's own duplicate-detection cannot save us. The two parallel Chrome processes then
+share GPU contexts, both render through the pixelflux Wayland compositor, both feed the
+selkies-capture pipeline, and resource usage roughly doubles.
+
+The race was observed in the wild on `ov-selkies-desktop-207.228.33.28` during the
+pixelflux leak investigation: `ps axo comm,args | grep '^chrome ' | grep -v -- --type=`
+showed two PIDs with distinct crashpad-handler-pids and identical command lines.
+
+The fix (commit `febb9bd`) replaces the silent fallback with:
+
+1. Wait up to 10 s for `/tmp/supervisor.sock` to appear (`for _ in $(seq 1 20); do
+   [ -S /tmp/supervisor.sock ] && break; sleep 0.5; done`).
+2. Use `supervisorctl avail | grep -q '^chrome\b'` to ask whether chrome is actually a
+   defined program (works because `avail` lists all programs whether running or not,
+   distinct from `start` which is a state-changing call).
+3. If chrome is defined → `supervisorctl start chrome`. Supervisord becomes the single
+   owner; the chrome-crash-listener circuit breaker handles failures.
+4. If chrome is **not** defined (minimal image without the chrome layer) → fall through
+   to the direct `chrome-wrapper &` launch.
+
+The fix is purely a labwc-side hardening; chrome-wrapper's SingletonLock removal is
+preserved. The combination is: chrome-wrapper still removes stale singleton state on
+launch (defensive against crash residue), and the labwc autostart now refuses to launch
+chrome twice. See `/ov-layers:chrome` for the SingletonLock and crash-listener side of
+the story.
 
 ## Window Rules
 

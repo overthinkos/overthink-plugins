@@ -13,7 +13,7 @@ Claude Code plugins for Overthink — the container management experience for yo
 
 ## Plugins
 
-### ov (36 skills)
+### ov (37 skills)
 
 Skills for composing, building, and running container images with the `ov` CLI.
 
@@ -101,7 +101,7 @@ Jupyter MCP server for programmatic notebook access with real-time collaboration
 
 Multiple MCP clients can edit the same notebook simultaneously — changes sync via CRDT.
 
-### ov-layers (160 skills)
+### ov-layers (161 skills)
 
 Reference documentation for every Overthink container layer.
 
@@ -262,7 +262,7 @@ Reference documentation for every Overthink container layer.
 | xurl | `/ov-layers:xurl` | X (Twitter) API CLI for posts, search, DMs, and media |
 | yay | `/ov-layers:yay` | AUR helper for Arch Linux (base-devel + yay binary) |
 
-### ov-images (40 skills)
+### ov-images (41 skills)
 
 Reference documentation for every enabled Overthink container image.
 
@@ -336,7 +336,7 @@ Reference documentation for every enabled Overthink container image.
 | Component | Count |
 |-----------|-------|
 | Plugins | 5 |
-| Skills | 228 |
+| Skills | 242 |
 | Agents | 3 |
 | MCP Servers | 2 (GitHub, Jupyter) |
 | MCP Tools | 35 (22 GitHub + 13 Jupyter) |
