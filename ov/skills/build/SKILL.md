@@ -30,7 +30,8 @@ ov build --cache registry [image...]         # Registry cache (read+write)
 ov build --cache image [image...]           # Image cache (read-only, default)
 ov build --cache gha [image...]             # GitHub Actions cache
 ov build --no-cache [image...]              # Disable cache entirely
-ov build --jobs N [image...]                # Max concurrent builds per level (default: 4)
+ov build --jobs N [image...]                # Max concurrent images per DAG level (default: 4)
+ov build --podman-jobs N [image...]         # Max concurrent stages within a single podman build (default: min(NCPU, 4))
 ```
 
 ## Format Config (distro.yml / builder.yml)
@@ -67,6 +68,39 @@ cat .build/my-image/Containerfile    # Inspect generated output
 4. Filter to requested images (and their base dependencies)
 5. For each level: build images in parallel (up to `--jobs` concurrent, default 4)
 6. After all builds: `ov merge --all` (if `merge.auto` enabled, skipped for `--push`)
+
+## Parallelism: `--jobs` vs `--podman-jobs`
+
+ov exposes **two** parallelism knobs with distinct meanings:
+
+| Flag | Env var | Default | What it controls |
+|---|---|---|---|
+| `--jobs N` | `OV_BUILD_JOBS` | `4` | **Outer** concurrency: how many ov-level images to build in parallel within a DAG level (e.g., when `ov build` rebuilds the whole graph). |
+| `--podman-jobs N` | `OV_PODMAN_JOBS` | auto = `min(NCPU, 4)` | **Inner** concurrency: passed to `podman build --jobs N`, controls how many stages of a *single* multi-stage build run concurrently. |
+
+The inner default is **capped at 4** because podman-5.7.x races under high
+concurrency in its blob-reuse code path (`storage_dest.go:TryReusingBlobWithOptions`
+and `queueOrCommit`). Observed reproducibly on `selkies-desktop` (29-stage
+DAG) with `--jobs runtime.NumCPU()` (16 on a 16-core host) and `--cache-from`:
+podman SIGABRTs with a core dump in the middle of the blob-reuse path. The cap
+narrows the race window enough that the bug has not been observed to fire in
+practice. Core dumps are captured by `systemd-coredump` at
+`/var/lib/systemd/coredump/core.podman.*.zst` — inspect with `coredumpctl info`
+to confirm which build was faulting.
+
+Override the cap if your podman version is known-good (upstream upgrades
+may eventually fix it):
+
+```bash
+ov build <image> --podman-jobs 16             # fully parallel stages
+OV_PODMAN_JOBS=8 ov update <image> --build    # via env
+ov build <image> --podman-jobs 1              # fully serialised, worst-case debugging
+```
+
+Source: `ov/build.go:resolvePodmanJobs` + `podmanJobsDefault`. Covered by
+`ov/build_jobs_test.go` (12 unit + integration cases). The outer `--jobs` knob
+lives on the `BuildCmd` struct; the inner `--podman-jobs` was added as a
+separate field so the two semantics don't get conflated.
 
 ## Build Cache
 
@@ -228,13 +262,56 @@ produced the same image hash (`502c8012c7a5`) until the layer.yml content change
 Symptom: `podman image ls` shows a new tag, but `podman run --rm <new tag> cat /path/to/changed/file`
 returns the **old** content.
 
+### Known caveat: stale `:latest` under `--cache-from`
+
+ov's Containerfile generator currently emits `FROM <registry>/<builder>:latest`
+for parent builder images (not pinned CalVer). When ov invokes
+`podman build --cache-from <registry>/<image>`, podman resolves those `FROM`
+clauses at parse time and will **pull `:latest` from the remote registry**,
+silently clobbering any locally-rebuilt `:latest` tag. For images that rebuild
+their builder stages in the same invocation this can lead to the later
+stages using the **stale registry builder** instead of the freshly-built one.
+
+**Symptom observed on this project:** `ov update selkies-desktop --build`
+fails deep inside selkies' `pixi install && bash build.sh` step with
+`error: can't find Rust compiler`. The remote
+`ghcr.io/overthinkos/fedora-builder:latest` predates the `build-toolchain`
+layer adding `cargo` as an RPM, so its pixi env has no rustc — even though
+the current local `build-toolchain/layer.yml` lists `cargo`. The build phase
+that rebuilds fedora-builder locally *does* run, but parent-stage FROM
+resolution happens before that stage exists, and podman pulls the stale
+remote image.
+
+**Workaround until the generator is fixed:**
+
+```bash
+ov build <image> --cache=none      # or equivalently --no-cache at the ov level
+```
+
+Both `--cache=none` and `--no-cache` short-circuit `cacheArgs()` in
+`ov/build.go:cacheArgs` and do NOT pass `--cache-from` to podman, so
+the broken resolution path never fires. `--no-cache` is ov-level only — it
+does *not* pass `--no-cache` to podman, it just skips `--cache-from`.
+
+**Proper fix (not yet implemented):** ov's generator should emit pinned
+CalVer tags for builder `FROM` clauses (e.g.,
+`FROM ghcr.io/overthinkos/fedora-builder:2026.105.0128`) or pass
+`--pull=never` to podman so local tags aren't resolved from the remote.
+Tracked as a follow-up.
+
+See also: `/ov:generate` for the Containerfile generation path, `/ov:update`
+for the `--build` flag that also picks up this caveat.
+
 ## Cross-References
 
 - `/ov:layer` -- Layer definitions that get built
 - `/ov:image` -- Image definitions in images.yml
+- `/ov:generate` -- Containerfile generation path (where the stale `:latest` FROM emission lives; referenced by the cache-from caveat)
 - `/ov:validate` -- Validating before building
+- `/ov:update` -- `ov update <image> --build` invokes `BuildCmd.Run` and picks up the same `--jobs` cap and stale-`:latest` caveat
 - `/ov:vm` -- Building bootc disk images (`ov vm build`)
 - `/ov:config` -- Engine configuration
+- `/ov:enc` -- Encrypted-volume restart path interacts with the `--build` flow (`ov config mount` short-circuit means builds can restart services without touching the keyring)
 
 ## When to Use This Skill
 

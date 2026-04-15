@@ -22,7 +22,7 @@ description: |
 
 | Variable | Value |
 |----------|-------|
-| `IMMICH_VERSION` | `v2.7.2` |
+| `IMMICH_VERSION` | `v2.7.5` |
 | `IMMICH_HOST` / `IMMICH_PORT` | `0.0.0.0` / `2283` |
 | `IMMICH_MEDIA_LOCATION` | `~/.immich/library` |
 | `IMMICH_MACHINE_LEARNING_ENABLED` | `false` |

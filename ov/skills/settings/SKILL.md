@@ -33,6 +33,7 @@ Manage ov's runtime configuration stored in `~/.config/ov/settings.yml`. Control
 | `encrypted_storage_path` | `~/.local/share/ov/encrypted` | `OV_ENCRYPTED_STORAGE_PATH` | Base path for gocryptfs volumes |
 | `volumes_path` | `~/.local/share/ov/volumes` | `OV_VOLUMES_PATH` | Base path for bind-mounted volumes |
 | `secret_backend` | `auto` | `OV_SECRET_BACKEND` | Credential backend (auto/keyring/kdbx/config) |
+| `keyring_collection_label` | *(empty)* | `OV_KEYRING_COLLECTION_LABEL` | Preferred Secret Service collection label. Empty = iterate naturally (default alias → listing order). Set to pin ov to a specific collection in multi-database setups (e.g. KeePassXC with multiple open databases). See `/ov:enc` for the full iteration order. |
 | `forward_gpg_agent` | `true` | `OV_FORWARD_GPG_AGENT` | Forward GPG agent into containers |
 | `forward_ssh_agent` | `true` | `OV_FORWARD_SSH_AGENT` | Forward SSH agent into containers |
 | `secrets.kdbx_path` | *(none)* | `OV_KDBX_PATH` | Path to KeePass .kdbx database |

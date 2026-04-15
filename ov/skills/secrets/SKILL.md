@@ -21,6 +21,17 @@ Resolution order (first match wins):
 | 3 | KeePass .kdbx | Headless/SSH or `secret_backend: kdbx` |
 | 4 | Config file | Plaintext fallback in `config.yml` |
 
+**Iteration-capable keyring read path** (since 2026-04): when the system
+keyring backend is active, `ov`'s read path (`KeyringStore.Get` →
+`keyringGetViaSSClient` → `ssClient.findItemAnyCollection`) does NOT rely on
+the Secret Service `default` alias alone. It iterates all healthy collections,
+skipping any that return DBus errors on property reads. This makes ov
+resilient to broken `default` alias stubs (commonly seen in KeePassXC
+FdoSecrets setups) — credentials stored in a non-default collection are still
+findable. Set `keyring_collection_label` via `/ov:settings` to pin ov to a
+specific collection by label. See `/ov:enc` for the full iteration order,
+source classification, and troubleshooting.
+
 ## Quick Reference
 
 | Action | Command | Description |
@@ -141,6 +152,7 @@ Default: enabled, 3600 seconds (1 hour) TTL. Uses `keyctl` syscalls via `golang.
 | Key | Description |
 |-----|-------------|
 | `secret_backend` | Force backend: `keyring`, `kdbx`, or `config` |
+| `keyring_collection_label` | Preferred Secret Service collection label (empty = iterate naturally). Pin ov to a specific collection in multi-database setups. |
 | `secrets.kdbx_path` | Path to .kdbx file |
 | `secrets.kdbx_key_file` | Optional key file for .kdbx |
 | `secrets.kdbx_cache` | Enable/disable kernel keyring caching (default: `true`) |
@@ -390,6 +402,9 @@ For GPG agent forwarding into containers (so `gpg --decrypt` works inside), use 
 ## Cross-References
 
 - `/ov:config` — `secret_backend`, `secrets.kdbx_path` settings keys
+- `/ov:enc` — encrypted volume credential lookup, iteration-capable ssClient, broken-collection troubleshooting, source classification (`env`/`keyring`/`config`/`locked`/`unavailable`/`default`)
+- `/ov:settings` — `keyring_collection_label`, `secret_backend`, and other runtime config keys
+- `/ov:doctor` — Secret Service collection health + shadow index consistency checks
 - `/ov:service` — container secrets (`secrets` field in layer.yml, provisioned at `ov config`)
 - `/ov-layers:agent-forwarding` — SSH/GPG agent forwarding into containers
 - `/ov-layers:gnupg` — GnuPG package layer

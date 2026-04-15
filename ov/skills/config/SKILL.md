@@ -142,6 +142,31 @@ Encrypted volumes use gocryptfs. Each volume gets `{cipher,plain}` subdirectorie
 - Each mount runs in a `systemd-run --scope` unit (survives container restart)
 - `-allow_other` flag for rootless podman with `--userns=keep-id`
 
+### Fast path: `ov config mount` short-circuit
+
+When every requested encrypted volume for an image is already mounted — the
+typical state on service restart, because `ov-enc-<image>-<volume>.scope`
+units survive container stop/restart independently of the service's cgroup —
+`ov config mount <image>` short-circuits and returns without touching the
+credential store at all. Output is:
+
+    All encrypted volumes for <image> already mounted (N/N)
+
+This makes service restarts (`systemctl --user restart ov-<image>.service`)
+resilient to temporary keyring backend problems: the only reason to query the
+keyring is to get the passphrase for a fresh `gocryptfs -init` or mount, and
+the short-circuit skips that entirely when no new mount is needed. A broken
+`default` alias in the Secret Service — for example, KeePassXC's FdoSecrets
+plugin advertising a stub collection — does NOT block restarts.
+
+When a volume IS unmounted and needs to be remounted, the normal path runs:
+`resolveEncPassphraseForMount` queries the credential store via the
+iteration-capable `ssClient` (not just the Secret Service default alias), so
+even then the broken-stub scenario still resolves automatically by finding
+the credential in a sibling healthy collection. See `/ov:enc` for the full
+iteration order, the bounded `encMountDeadline` retry behavior, and the
+source classification (`env`/`keyring`/`config`/`locked`/`unavailable`/`default`).
+
 ## Resource Caps
 
 Memory and CPU caps flow through the same `security:` block as `shm_size`.
