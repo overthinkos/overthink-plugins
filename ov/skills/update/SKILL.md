@@ -9,7 +9,7 @@ description: |
 
 ## Overview
 
-Pull or build a new image version, optionally sync data from data layers into bind-backed volumes, then restart the service. Data sync uses MERGE mode by default -- adds new files without overwriting existing user modifications.
+Pull or build a new image version, optionally sync data from data layers into the image's volumes (bind mounts AND podman named volumes — both kinds are seeded), then restart the service. Data sync uses MERGE mode by default -- adds new files without overwriting existing user modifications.
 
 ## Quick Reference
 
@@ -116,15 +116,64 @@ local registry pointer moves.
 ### Quadlet Mode
 
 1. Pull/build new image
-2. Sync data from data layers into bind-backed volumes (if `--seed`)
+2. Sync data from data layers into the image's volumes — both bind mounts and podman named volumes (if `--seed`)
 3. `systemctl --user restart ov-<image>.service`
 4. Update `deploy.yml` with new `data_source`
 
 ### Direct Mode
 
 1. Pull/build new image
-2. Sync data from data layers into bind-backed volumes (if `--seed`)
+2. Sync data from data layers into the image's volumes (if `--seed`)
 3. Print restart instructions (manual restart required)
+
+## Data Seeding
+
+Data layers (layers that declare a `data:` block in `layer.yml`) ship
+starter content that gets copied into the runtime volume on first
+deployment. Examples: `notebook-templates` ships
+`getting-started.ipynb` into jupyter's `workspace` volume;
+`notebook-finetuning` ships a set of Unsloth notebooks into
+`jupyter-ml-notebook`.
+
+### Which volumes get seeded
+
+Both backings are seeded:
+
+- **Bind-mounted volumes** (`type: bind` in `deploy.yml`) — the
+  staged data is copied into the host directory via a throwaway
+  `podman run` with `--userns=keep-id` so the files end up owned by
+  the real host user.
+- **Named volumes** (the default when no `type: bind` override is set)
+  — the staged data is copied via `podman run -v <name>:/seed`
+  *without* `--userns=keep-id`, so the files match the rootless
+  subuid identity the runtime container uses.
+
+Before the fix in `fix/data-seeding-complete`, seeding ran only for
+bind mounts — named volumes were silently skipped. Hosts running that
+pre-fix code will see their previously-empty named volumes populated
+with starter content on the first `ov config` or `ov update` after
+upgrading. Existing user-modified content is preserved in all cases.
+
+### Mode semantics
+
+- **`DataProvisionInitial`** (the default for `ov config`) — only
+  seeds when the target volume is empty. For bind mounts, checks the
+  per-entry subdirectory; for named volumes, checks the volume root
+  via `podman volume inspect`.
+- **`DataProvisionMerge`** (the default for `ov update --seed`) —
+  always runs `cp -an`, which adds new files without overwriting
+  existing ones. Safe on non-empty targets.
+- **`DataProvisionForce`** (`ov update --force-seed` or
+  `ov config --force-seed`) — runs `cp -a` unconditionally,
+  overwriting existing files.
+
+### Upgrade note
+
+The first `ov config` or `ov update` after upgrading to the fix will
+seed data into named volumes that previously had none — you'll see
+`  <volume> (named): provisioning from /data/<volume>/ ...` in the
+output. This is the intended behavior; operator action is only
+needed if the seeding reports an error.
 
 ## Cross-References
 

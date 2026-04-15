@@ -8,7 +8,7 @@ description: |
 
 ## Overview
 
-`ov config` configures an image for deployment: generates a systemd quadlet unit, provisions container secrets, initializes encrypted volumes, and seeds data into bind-backed volumes. Requires `run_mode=quadlet`.
+`ov config` configures an image for deployment: generates a systemd quadlet unit, provisions container secrets, initializes encrypted volumes, and seeds data from data layers into the image's volumes (both bind mounts and podman named volumes). Requires `run_mode=quadlet`.
 
 This is the **single entry point** for deployment setup. `ov start` requires `ov config` to have been run first in quadlet mode.
 
@@ -59,7 +59,7 @@ This is the **single entry point** for deployment setup. `ov start` requires `ov
 | `--volume` | `-v` | | Configure volume backing (name:type[:path]). Type: volume\|bind\|encrypted |
 | `--bind` | | | Shorthand: configure volume as bind mount (name or name=path) |
 | `--encrypt` | | | Shorthand: configure volume as encrypted (gocryptfs) |
-| `--seed` | | `true` | Seed bind-backed volumes with data from image |
+| `--seed` | | `true` | Seed image volumes (bind mounts AND named volumes) with data from the image's data layers |
 | `--no-seed` | | | Disable data seeding |
 | `--force-seed` | | | Re-seed even if target directory is not empty |
 | `--data-from` | | | Seed data from a different data image |
@@ -81,7 +81,7 @@ This is the **single entry point** for deployment setup. `ov start` requires `ov
 6. Provisions container secrets (from `org.overthinkos.secrets` label)
 7. Resolves volume backing (named, bind, or encrypted)
 8. Initializes encrypted volumes (gocryptfs) if configured
-9. Seeds data layers into bind-backed volumes
+9. Seeds data layers into the image's volumes (bind mounts AND podman named volumes)
 10. Runs `systemctl --user daemon-reload`
 11. Injects `env_provides` entries from image labels into deploy.yml `provides.env:` (resolves `{{.ContainerName}}` templates)
 12. Injects `mcp_provides` entries from image labels into deploy.yml `provides.mcp:` (resolves templates, defaults transport to `http`)
@@ -125,22 +125,36 @@ Secrets declared in `layer.yml` `secrets:` field are stored as OCI label metadat
 
 Data layers (layers with `data:` field) stage files into `/data/<volume>/<dest>/` at build time. At config time:
 
-- **First config** (`--seed`, default true): copies staged data into bind-backed volumes
+- **First config** (`--seed`, default true): copies staged data into the image's volumes (both bind mounts and named volumes)
 - **Subsequent config**: skips if `data_seeded` flag is set in deploy.yml
 - **`--force-seed`**: re-seeds even if directory is not empty
 - **`--data-from <image>`**: seeds from a separate data image instead of the target image
 
-### Bind-only seeding
+### Volume-kind dispatch
 
-Data provisioning only runs when the target volume is **bind-backed** (`--bind <name>` or `--bind <name>=<path>`). Named podman volumes (the default when no `--bind` is passed) come up **empty** — the data layers stage to `/data/<volume>/` inside the image but nothing copies them into the volume.
+Seeding runs for both volume backings, with a minor difference in how podman is invoked:
 
-If you want data layers populated in a named-volume deployment, either (a) reconfigure with `--bind`, or (b) manually copy from the image staging dir: `podman cp <container>:/data/<volume>/. <volume-mountpoint>/`. The deploy.yml authoritative record of volume backing is under the image's `volumes:` section.
+- **Bind mount** (`--bind <name>` or `--bind <name>=<path>`, or `type: bind` in deploy.yml): the seeder runs `podman run --rm -v <host-path>:/seed --userns=keep-id:uid=<UID>,gid=<GID> <image> bash -c "cp -a /data/<vol>/. /seed/"`. The `--userns=keep-id` aligns the in-container UID with the real host UID so files end up owned by the host user.
+- **Named volume** (the default): the seeder runs `podman run --rm -v <ov-image-name>:/seed <image> bash -c "cp -a /data/<vol>/. /seed/"` — **without** `--userns=keep-id`. Named volumes live in the rootless subuid space; the runtime container reads them without keep-id, so the seeder must write with the same identity.
 
-### Data layer ordering
+For `FROM scratch` data images (`data_image: true`), bind-mount targets use `podman create` + `podman cp` (the simpler path), and named-volume targets use `podman run --mount type=image,src=<scratch>,dst=/staging,rw=false` with a lightweight `busybox:stable` helper image as the runnable side (pulled lazily on first use).
 
-The per-entry "already provisioned" detection runs against the target subdirectory (`<bind-root>/<dest>/`), not the entire bind root. This means each data layer with a distinct `dest:` subdirectory can safely coexist in the same bind mount.
+### Emptiness check
 
-However, data layers that target the volume **root** (`dest:` absent or empty — e.g. `notebook-templates`, which drops `getting-started.ipynb` directly into `~/workspace/`) should be listed **first** in the image's `layers:` list. A root-targeted layer ordered after subdirectory-targeted layers will see the root as non-empty (because subdirs from earlier layers exist) and skip. This is a convention, not a hard-enforced rule.
+`DataProvisionInitial` only runs when the target is empty:
+
+- **Bind mount**: checks the per-entry subdirectory (`<bind-root>/<dest>/`) via `os.ReadDir`, so data layers with distinct `dest:` values can coexist in the same bind mount.
+- **Named volume**: checks the volume root via `podman volume inspect --format {{.Mountpoint}}` followed by `os.ReadDir` of the returned path. Per-entry subdirectory checks aren't available without exec'ing into a container, so multiple entries targeting the same named volume all run on the initial seed and then transition to merge-safe `cp -an` on subsequent runs.
+
+### Data layer ordering (bind mounts only)
+
+For **bind-mounted** targets, data layers that target the volume **root** (`dest:` absent or empty — e.g. `notebook-templates`, which drops `getting-started.ipynb` directly into `~/workspace/`) should be listed **first** in the image's `layers:` list. A root-targeted layer ordered after subdirectory-targeted layers will see the root as non-empty (because subdirs from earlier layers exist) and skip. This is a convention, not a hard-enforced rule.
+
+This ordering caveat does not apply to named-volume targets, where the initial seed runs against the whole volume regardless of sub-paths.
+
+### Upgrade note
+
+Hosts that ran ov versions prior to `fix/data-seeding-complete` had their data layers silently skipped whenever the target volume was a named volume — the common default. On the first `ov config` or `ov update` after upgrading, those previously-unseeded volumes will finally be populated with their starter content. Existing user-modified content is preserved by the emptiness check; operator action is only needed if seeding reports an error.
 
 ## Encrypted Volumes
 
