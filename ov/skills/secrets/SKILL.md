@@ -124,6 +124,75 @@ ov secrets import --dry-run             # Preview migration
 ov secrets import                       # Migrate existing credentials
 ```
 
+### Credential-backed layer env vars (`secret_accepts` / `secret_requires`)
+
+A layer can declare credential-backed env vars in `layer.yml` via the
+`secret_accepts:` / `secret_requires:` sections. At `ov config` time, the
+declared values are resolved from the credential store, provisioned as
+per-image podman secrets, and injected into the container at runtime via
+`Secret=<name>,type=env,target=<var>` directives — **never landing in
+`deploy.yml` or the generated quadlet as plaintext**. See `/ov:layer`
+(secret_accepts / secret_requires) for the authoring side.
+
+The credential store namespace for these entries defaults to `ov/secret`
+with the env var name as the key. Layer authors can override with an
+explicit `key: ov/api-key/openrouter` in layer.yml, which is useful when
+multiple consumers should resolve the same upstream credential (e.g.,
+openwebui and hermes both pointing at `ov/api-key/openrouter` so one
+`ov secrets set` populates both).
+
+**Storage commands:**
+
+```bash
+# Default path (matches layer.yml `secret_accepts: [{name: WEBUI_ADMIN_PASSWORD}]`)
+ov secrets set ov/secret WEBUI_ADMIN_PASSWORD <password>
+
+# Explicit key path (matches layer.yml `key: ov/api-key/openrouter`)
+ov secrets set ov/api-key openrouter sk-or-xxxxxxxx
+ov secrets set ov/api-key ollama gsk-yyyyyyyy
+ov secrets set ov/api-key immich <immich-key-from-web-ui>
+```
+
+**Rotation:** update the store and re-run `ov config`. The
+`RotateOnConfig` flag on credential-backed secrets bypasses the
+`podmanSecretExists` short-circuit, so the podman secret is re-created
+with the new value on every `ov config`:
+
+```bash
+ov secrets set ov/api-key/openrouter <new-value>
+ov config openwebui --update-all
+systemctl --user restart ov-openwebui.service
+```
+
+**One-shot `-e` import:** the `-e NAME=VAL` CLI flag on `ov config`
+auto-imports the value into the credential store when NAME matches a
+`secret_accepts` / `secret_requires` declaration on the target image. The
+plaintext is stripped from `c.Env` before it can reach `saveDeployState`
+or the quadlet writer. First-time setup:
+
+```bash
+ov config openwebui -e WEBUI_ADMIN_PASSWORD=<password> -e OPENROUTER_API_KEY=sk-or-xxx
+```
+
+Subsequent `ov config openwebui` resolves from the store without needing
+`-e` again.
+
+**Migration from legacy plaintext:** on the first `ov config` after
+upgrading to a version with this feature, any pre-existing `NAME=VAL`
+entry in `deploy.yml` whose NAME is now a `secret_accepts` /
+`secret_requires` declaration on the image is automatically moved to the
+credential store. The plaintext is stripped, `deploy.yml.bak.<ts>` is
+written as a rollback point, and the migration logs each entry on stderr.
+Idempotent — safe to run on a clean host.
+
+**Distinction from layer-owned `secrets:`:** the layer.yml `secrets:`
+field (e.g., immich's `db-password`) creates per-image secrets that are
+auto-generated once at `ov config` time and never rotated. Credential-
+backed `secret_accepts` / `secret_requires` are user-owned, shareable
+across consumers, and refreshed on every `ov config`. Both flow through
+the same `Secret=<name>,type=env,target=<var>` quadlet emission; only the
+rotation semantics differ. See `/ov:layer` (secret_accepts / secret_requires).
+
 ### Backup / Restore
 
 The `.kdbx` file is a standard KeePass database. You can open it with KeePassXC or any KeePass-compatible tool for backup or manual editing.

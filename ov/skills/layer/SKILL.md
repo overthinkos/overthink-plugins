@@ -64,8 +64,10 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 | `libvirt` | `[]string` | Raw libvirt XML snippets injected into VM domain XML after creation |
 | `data` | `[]DataYAML` | Data mappings from layer directory to volume staging area (`src`, `volume`, `dest`) |
 | `env_provides` | `map[string]string` | Env vars injected into OTHER containers when this service is deployed. Template: `{{.ContainerName}}` |
-| `env_requires` | `[]EnvDependency` | Env vars this layer MUST have from the environment |
-| `env_accepts` | `[]EnvDependency` | Env vars this layer CAN optionally use |
+| `env_requires` | `[]EnvDependency` | Plaintext env vars this layer MUST have from the environment |
+| `env_accepts` | `[]EnvDependency` | Plaintext env vars this layer CAN optionally use |
+| `secret_requires` | `[]EnvDependency` | Credential-backed env vars this layer MUST have (values live in credential store, never in deploy.yml/quadlet) |
+| `secret_accepts` | `[]EnvDependency` | Credential-backed env vars this layer CAN optionally use |
 | `mcp_provides` | `[]MCPServerYAML` | MCP servers provided to OTHER containers when this service is deployed |
 | `mcp_requires` | `[]EnvDependency` | MCP servers this layer MUST have from the environment |
 | `mcp_accepts` | `[]EnvDependency` | MCP servers this layer CAN optionally use |
@@ -181,6 +183,72 @@ env_accepts:
 Same `EnvDependency` struct as `env_requires`. Used by the chrome layer for proxy accepts, and by most layers to opt into cross-container service discovery (e.g., `OLLAMA_HOST` from an ollama provider).
 
 **Filtering model:** `env_provides` declarations are the supply side; `env_accepts` + `env_requires` are the demand side. The provide-resolution pipeline intersects the two sets per consumer, so env vars only reach containers that explicitly opt in. Missing `env_accepts` silently drops the var (opposite of missing `env_requires`, which is a hard fail). See `/ov:config` (Provides Filtering) and `/ov:sidecar` (Environment Contract) for the full lifecycle.
+
+### secret_accepts / secret_requires
+
+Credential-backed env vars. Same YAML shape as `env_accepts` / `env_requires`, but values are **never stored in `deploy.yml` or the quadlet file** — they flow through the credential store (`ResolveCredential` chain: env → keyring → kdbx → config) and are injected into the container at runtime via podman secrets (`Secret=<name>,type=env,target=<var>`).
+
+Use these for anything that would be a security incident if it ended up in a world-readable file: API keys, passwords, auth tokens. Use plain `env_accepts` / `env_requires` for non-sensitive config like hostnames, URLs, email addresses, and model identifiers.
+
+```yaml
+# layers/openwebui/layer.yml — excerpt
+
+env_requires:
+  - name: WEBUI_ADMIN_EMAIL
+    description: "Admin email (identifier, not a credential)"
+
+env_accepts:
+  - name: OLLAMA_HOST
+    description: "Local Ollama URL (auto-resolved from ollama env_provides)"
+
+secret_requires:
+  - name: WEBUI_ADMIN_PASSWORD
+    description: "Initial admin account password"
+
+secret_accepts:
+  - name: OPENROUTER_API_KEY
+    description: "OpenRouter API key"
+    key: ov/api-key/openrouter
+  - name: OLLAMA_API_KEY
+    description: "Ollama Cloud API key"
+    key: ov/api-key/ollama
+```
+
+**Fields** (same `EnvDependency` struct as the env_* siblings):
+
+- `name` — required, must be a valid env var identifier (`^[A-Z_][A-Z0-9_]*$`)
+- `description` — required, shown in error output when a `secret_requires` entry is missing
+- `key` — optional. Credential store lookup path in `<service>/<key>` form. Default: `ov/secret/<NAME>`. Must start with `ov/` (validated to prevent exfiltration of unrelated credentials like `aws/access-key`). Use a shared `ov/api-key/openrouter` path when multiple layers should resolve the same upstream credential (e.g., openwebui and hermes both pulling the same OpenRouter key).
+
+**Runtime delivery.** `ov config` resolves each entry from the credential store, provisions a per-image podman secret (`ov-<image>-<lower-kebab(name)>`), and emits `Secret=ov-<image>-<slug>,type=env,target=<NAME>` in the quadlet. Podman injects the decrypted value as an env var at container start — the container process sees `$NAME` just like any other env var, but the value never touches `deploy.yml`, `~/.config/containers/systemd/`, shell history, or `ps aux`.
+
+**Runtime independence from credential backend.** Once `ov config` has written the podman secret, podman reads from its own on-disk store at container start. The user's keyring/kdbx/config backend is **only queried at `ov config` time**, not at runtime. A locked keyring at boot does not affect containers that are already provisioned. This is fundamentally different from encrypted volumes, which re-read the passphrase on every mount.
+
+**Rotation.** Update the credential store and re-run `ov config`:
+
+```bash
+ov secrets set ov/api-key/openrouter <new-value>
+ov config openwebui --update-all
+systemctl --user restart ov-openwebui.service
+```
+
+Credential-backed secrets have `RotateOnConfig=true` internally, so `ProvisionPodmanSecrets` re-creates the podman secret on every `ov config` (bypassing the `podmanSecretExists` short-circuit that layer-owned secrets rely on). This is load-bearing — without it, rotation would silently no-op.
+
+**`-e NAME=VAL` auto-import.** When a `-e` flag's name matches a `secret_accepts` / `secret_requires` entry, `ov config` stores the value in the credential backend once and strips it from `c.Env`. The value never reaches `deploy.yml` or the quadlet. This is a convenience for first-time setup: one command stores the credential, and subsequent `ov config` runs resolve from the backend without needing `-e` again. Plain `env_accepts` / `env_requires` entries are unaffected — their `-e` values flow through the plaintext pipeline as before.
+
+**Migration from legacy plaintext.** `ov config` automatically migrates any pre-existing `NAME=VAL` entry in `deploy.yml`'s `env:` list whose NAME is now declared as `secret_accepts` / `secret_requires`. The value moves to the credential backend, the plaintext is stripped, and `deploy.yml.bak.<unix-timestamp>` is written as a rollback point. Idempotent — safe to run on a clean host.
+
+**Validation rules** (enforced by `ov validate`):
+
+1. No env var name in more than one of `env_accepts` / `env_requires` / `secret_accepts` / `secret_requires`.
+2. `secret_accepts` / `secret_requires` entries cannot collide with `env_provides` keys (credential-backed entries can't also be provider templates).
+3. `key:` override must match `^ov/<service>/<key>$` with both segments lowercase — starts with `ov/`, prevents exfiltration of unrelated credentials.
+4. The `lower_kebab(name)` slug form must produce a valid podman secret name (`^[a-z0-9][a-z0-9-]*$`).
+5. Every entry requires a `description:` (same as env_* convention).
+
+**What about the existing layer-owned `secrets:` field?** Unchanged. `layer.yml secrets:` is for **image-owned secrets** like `db-password` — one per image instance, auto-generated by `ov config`, never rotated. `secret_accepts` / `secret_requires` is for **user-owned credentials** that can be shared across multiple consumers. The two are kept separate because they have different lifecycles: you cannot re-init a live postgres cluster with a rotated `db-password`, but you can and should rotate `OPENROUTER_API_KEY` regularly. Both flow through the same `ProvisionPodmanSecrets` call and the same `Secret=<name>,type=env,target=<var>` quadlet directive — only the short-circuit behavior differs (layer-owned: keep if exists; credential-backed: always rotate).
+
+Stored in OCI labels `org.overthinkos.secret_accepts` and `org.overthinkos.secret_requires`.
 
 ### mcp_provides
 

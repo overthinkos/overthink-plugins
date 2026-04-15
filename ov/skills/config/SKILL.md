@@ -423,10 +423,59 @@ Error: openwebui requires the following environment variable(s):
 
 Set them with -e flags, --env-file, or deploy.yml env:
 
-  ov config openwebui -e WEBUI_ADMIN_EMAIL=... -e WEBUI_ADMIN_PASSWORD=...
+  ov config openwebui -e WEBUI_ADMIN_EMAIL=...
 ```
 
 Source: `ov/config_image.go` (`checkMissingEnvRequires`).
+
+## secret_requires Enforcement
+
+Parallel to `env_requires` but for credential-backed env vars. Layers declare `secret_requires` in `layer.yml` (see `/ov:layer`). `ov config` resolves each entry from the credential store via `ResolveCredential` and, if any required value is not stored, aborts with a clear remediation message:
+
+```
+Error: openwebui requires the following credential-backed secret(s):
+
+  WEBUI_ADMIN_PASSWORD — Initial admin account password for Open WebUI first-run setup
+
+Store them in the credential backend. For each entry:
+
+  ov secrets set ov/secret WEBUI_ADMIN_PASSWORD <value>
+
+Alternatively, pass the value once via -e; it will be auto-imported:
+
+  ov config openwebui -e WEBUI_ADMIN_PASSWORD=...
+```
+
+Source: `ov/config_image.go` (`checkMissingSecretRequires`).
+
+## Plaintext-to-Credential Migration Hook
+
+When `ov config <image>` runs, it automatically migrates any existing plaintext `NAME=VAL` entry in `deploy.yml`'s `env:` list whose NAME is now declared as `secret_accepts` / `secret_requires` on the image. The sequence:
+
+1. Scan `dc.Images[deployKey(image, instance)].Env` for names that match `meta.SecretAccepts` / `meta.SecretRequires`
+2. For each match: copy the value to the credential store at the layer-declared `(service, key)` path (default `ov/secret/<NAME>`), remove the entry from `dc.Env`, mark the deploy config dirty
+3. On first mutation, back up `deploy.yml` → `deploy.yml.bak.<unix-timestamp>`
+4. Persist the cleaned deploy config via `SaveDeployConfig`
+5. Log each migrated entry on stderr: `"Migrated plaintext OPENROUTER_API_KEY from deploy.yml to credential store (ov/api-key/openrouter)"`
+
+Idempotent — running on a clean host is a no-op. This gives pre-upgrade hosts an automatic one-time cleanup with a rollback point preserved.
+
+Source: `ov/config_secret_migration.go` (`MigratePlaintextEnvSecrets`).
+
+## `-e` Auto-Import for `secret_accepts` / `secret_requires`
+
+When a `-e NAME=VAL` flag targets an env var declared as `secret_accepts` / `secret_requires` on the image, `ov config` auto-imports the value into the credential store and strips it from `c.Env` before the plaintext env merge runs. The stderr output shows each imported key:
+
+```
+Imported WEBUI_ADMIN_PASSWORD into credential store (ov/secret/WEBUI_ADMIN_PASSWORD)
+Imported OPENROUTER_API_KEY into credential store (ov/api-key/openrouter)
+```
+
+The normal secret resolution path then picks up the value from the backend on the same `ov config` invocation. First-time setup is a single command; subsequent runs don't need `-e`.
+
+Plain `env_accepts` / `env_requires` entries are unaffected — their `-e` values continue to flow through the plaintext env merge into `deploy.yml` and the quadlet as before.
+
+Source: `ov/config_secret_migration.go` (`scrubSecretCLIEnv`).
 
 ## Provides Filtering (env_accepts / env_requires opt-in)
 
