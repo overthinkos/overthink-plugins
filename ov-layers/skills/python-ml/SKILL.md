@@ -51,7 +51,7 @@ Plus from `llama-cpp` sub-layer:
 
 - `/ov-layers:llama-cpp` — Sub-layer: llama.cpp binaries (composed via `layers:`)
 - `/ov-layers:cuda` — CUDA toolkit dependency
-- `/ov-layers:jupyter-colab-ml` — Full ML + Jupyter variant (superset of python-ml's pixi env)
+- `/ov-layers:jupyter-ml` — Full ML + Jupyter variant (superset of python-ml's pixi env)
 - `/ov-layers:unsloth-studio` — Fine-tuning variant (similar pixi env + unsloth)
 
 ## When to Use This Skill

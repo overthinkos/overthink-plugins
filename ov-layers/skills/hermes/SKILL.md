@@ -16,7 +16,7 @@ description: |
 | Volumes | `data` -> `/opt/data` |
 | Aliases | `hermes` -> `hermes`, `hermes-agent` -> `hermes-agent` |
 | Services | `hermes` (supervisord, autostart), `hermes-whatsapp` (supervisord, manual) |
-| MCP accepts | `jupyter-colab`, `chrome-devtools` |
+| MCP accepts | `jupyter`, `chrome-devtools` |
 | Install files | `pixi.toml`, `build.sh`, `user.yml` |
 | RPM packages | `alsa-lib`, `portaudio` |
 
@@ -55,7 +55,7 @@ The `hermes-entrypoint` performs a **single-phase, first-start-only** configurat
 | 3 | `OPENROUTER_API_KEY` | OpenRouter (built-in) | `qwen/qwen3.6-plus:free` |
 
 **How it works:**
-- **First start:** Registers ALL providers whose env vars are set into `config.yaml` as `custom_providers` entries, and configures any discovered MCP servers from `OV_MCP_SERVERS` (e.g., `jupyter-colab` at `:8888/mcp`, `chrome-devtools` at `:9224/mcp`). Priority determines only the default model and auxiliary task routing. Writes a `# ov:auto-configured` sentinel to prevent re-patching after user customization
+- **First start:** Registers ALL providers whose env vars are set into `config.yaml` as `custom_providers` entries, and configures any discovered MCP servers from `OV_MCP_SERVERS` (e.g., `jupyter` at `:8888/mcp`, `chrome-devtools` at `:9224/mcp`). Priority determines only the default model and auxiliary task routing. Writes a `# ov:auto-configured` sentinel to prevent re-patching after user customization
 - **Key insight:** When new MCP servers are added to `OV_MCP_SERVERS` after initial configuration, hermes will NOT pick them up automatically. Delete `config.yaml` and restart: `ov shell <image> -c "rm /opt/data/config.yaml" && ov service restart <image> hermes`
 - **Every start:** Syncs API keys to `.env` to handle key rotation
 - Override the default model with `HERMES_MODEL` env var
@@ -74,7 +74,7 @@ The hermes entrypoint auto-discovers MCP servers from the `OV_MCP_SERVERS` envir
 - Tools are registered as `mcp_<server_name>_<tool_name>`
 - Reload MCP servers at runtime: `/reload-mcp` in interactive chat
 
-**Example:** The `jupyter-colab` layer provides 13 tools (list_notebooks, execute_cell, etc.) via its MCP server at `http://<container>:8888/mcp`.
+**Example:** The `jupyter` layer provides 13 tools (list_notebooks, execute_cell, etc.) via its MCP server at `http://<container>:8888/mcp`.
 
 ## Architecture
 
@@ -159,7 +159,7 @@ hermes:
 - `/ov-layers:pipewire` -- audio support for voice features
 - `/ov-layers:hermes-playwright` -- optional Playwright Chromium browser (standalone headless mode)
 - `/ov-layers:chrome` -- provides `BROWSER_CDP_URL` via `env_provides` for shared browser in desktop images
-- `/ov-layers:jupyter-colab` -- MCP server provider (`mcp_provides: jupyter-colab`)
+- `/ov-layers:jupyter` -- MCP server provider (`mcp_provides: jupyter`)
 - `/ov-layers:chrome-devtools-mcp` -- Chrome DevTools MCP server (`mcp_provides: chrome-devtools`, 29 tools)
 
 ## Related Commands

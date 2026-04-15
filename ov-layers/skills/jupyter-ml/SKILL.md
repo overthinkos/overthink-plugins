@@ -1,21 +1,21 @@
 ---
-name: jupyter-colab-ml
+name: jupyter-ml
 description: |
   Full CUDA ML stack + JupyterLab with real-time collaboration and CRDT MCP server on port 8888.
   Use when working with GPU-accelerated Jupyter notebooks, ML training with collaboration,
-  or the jupyter-colab-ml layer.
+  or the jupyter-ml layer.
 ---
 
-# jupyter-colab-ml -- Full ML + JupyterLab with CRDT MCP
+# jupyter-ml -- Full ML + JupyterLab with CRDT MCP
 
 ## Layer Properties
 
 | Property | Value |
 |----------|-------|
 | Dependencies | `cuda`, `supervisord` |
-| Sub-layers | `llama-cpp`, `unsloth`, `jupyter-colab-mcp` |
+| Sub-layers | `llama-cpp`, `unsloth`, `jupyter-mcp` |
 | Ports | 8888 |
-| Service | `jupyter-colab-ml` (supervisord) |
+| Service | `jupyter-ml` (supervisord) |
 | Volume | `workspace` at `~/workspace` |
 | Install files | `layer.yml`, `pixi.toml`, `user.yml` |
 
@@ -23,10 +23,10 @@ description: |
 
 This is a **Tier 2 "environment owner"** layer that:
 1. Owns the pixi.toml with ALL Python dependencies (Jupyter + ML + vLLM runtime deps)
-2. Composes three Tier 1 sub-layers via `layers: [llama-cpp, unsloth, jupyter-colab-mcp]`
-3. MCP extension installed by the `jupyter-colab-mcp` sub-layer (not directly in user.yml)
+2. Composes three Tier 1 sub-layers via `layers: [llama-cpp, unsloth, jupyter-mcp]`
+3. MCP extension installed by the `jupyter-mcp` sub-layer (not directly in user.yml)
 
-Build order: pixi environment → llama-cpp (binaries) → unsloth (vllm wheel + unsloth pip + patch) → jupyter-colab-mcp (MCP extension)
+Build order: pixi environment → llama-cpp (binaries) → unsloth (vllm wheel + unsloth pip + patch) → jupyter-mcp (MCP extension)
 
 ## Key Packages
 
@@ -60,33 +60,32 @@ Build order: pixi environment → llama-cpp (binaries) → unsloth (vllm wheel +
 
 ## MCP Server Extension
 
-Same CRDT MCP server as `/ov-layers:jupyter-colab` — 13 tools for programmatic notebook access (list, get, create, update, insert, delete, execute cells, watch changes, collaboration awareness). See `/ov-layers:jupyter-colab` for full tool reference.
+Same CRDT MCP server as `/ov-layers:jupyter` — 13 tools for programmatic notebook access (list, get, create, update, insert, delete, execute cells, watch changes, collaboration awareness). See `/ov-layers:jupyter` for full tool reference.
 
 Endpoint: `http://localhost:8888/mcp` (Streamable HTTP, MCP spec 2025-11-25)
 
 ## Comparison
 
-| | jupyter-colab | jupyter-colab-ml | jupyter |
-|---|---|---|---|
-| Base dep | supervisord | cuda, supervisord | cuda, supervisord |
-| GPU | No | CUDA 13.0 | CUDA 13.0 |
-| Platforms | amd64 + arm64 | amd64 only | amd64 only |
-| MCP | CRDT (13 tools) | CRDT (13 tools) | jupyter-mcp-server |
-| ML stack | No | Full (PyTorch, vLLM 0.19, unsloth) | Full (PyTorch, vLLM 0.19, unsloth) |
-| Volume | workspace | workspace | — |
+| | jupyter | jupyter-ml |
+|---|---|---|
+| Base dep | supervisord | cuda, supervisord |
+| GPU | No | CUDA 13.0 |
+| Platforms | amd64 + arm64 | amd64 only |
+| MCP | CRDT (13 tools) | CRDT (13 tools) |
+| ML stack | No | Full (PyTorch, vLLM 0.19, unsloth) |
+| Volume | workspace | workspace |
 
 ## Used In Images
 
-- `/ov-images:jupyter-colab-ml`
-- `/ov-images:jupyter-colab-ml-notebook`
+- `/ov-images:jupyter-ml`
+- `/ov-images:jupyter-ml-notebook`
 
 ## Related Layers
 
-- `/ov-layers:jupyter-colab` — Lightweight variant (no CUDA, multi-arch)
-- `/ov-layers:jupyter` — Legacy monolithic variant
+- `/ov-layers:jupyter` — Lightweight variant (no CUDA, multi-arch)
 - `/ov-layers:llama-cpp` — Sub-layer: llama.cpp binaries
 - `/ov-layers:unsloth` — Sub-layer: vLLM wheel + fine-tuning + vLLM patch
-- `/ov-layers:jupyter-colab-mcp` — Sub-layer: CRDT MCP extension
+- `/ov-layers:jupyter-mcp` — Sub-layer: CRDT MCP extension
 - `/ov-layers:notebook-templates` — Starter notebooks (data layer, used alongside this layer in images)
 
 ## When to Use This Skill
@@ -95,5 +94,5 @@ Use when the user asks about:
 
 - GPU-accelerated Jupyter with collaboration
 - ML training notebooks with CRDT MCP
-- The `jupyter-colab-ml` layer
-- Combining jupyter-colab features with CUDA ML
+- The `jupyter-ml` layer
+- Combining jupyter features with CUDA ML

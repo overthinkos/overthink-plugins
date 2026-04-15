@@ -15,7 +15,7 @@ Lightweight JupyterLab with real-time collaboration via jupyter-collaboration (Y
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | agent-forwarding, jupyter-colab (sub-layers: jupyter-colab-mcp), notebook-templates, dbus, ov |
+| Layers | agent-forwarding, jupyter (sub-layers: jupyter-mcp), notebook-templates, dbus, ov |
 | Platforms | linux/amd64, linux/arm64 |
 | Ports | 8888 |
 | Registry | ghcr.io/overthinkos |
@@ -24,7 +24,7 @@ Lightweight JupyterLab with real-time collaboration via jupyter-collaboration (Y
 
 1. `fedora` (Fedora 43 base — no GPU)
 2. `pixi` → `python` → `supervisord` (transitive)
-3. `jupyter-colab` — JupyterLab + jupyter-collaboration + data science (composes `jupyter-colab-mcp` sub-layer for MCP extension)
+3. `jupyter` — JupyterLab + jupyter-collaboration + data science (composes `jupyter-mcp` sub-layer for MCP extension)
 4. `notebook-templates` — Starter notebooks (data layer, seeds ~/workspace)
 5. `agent-forwarding` — SSH/GPG agent forwarding
 5. `dbus` — D-Bus session bus
@@ -53,13 +53,13 @@ ov start jupyter
 
 ## Key Layers
 
-- `/ov-layers:jupyter-colab` — JupyterLab + collaboration + data science
+- `/ov-layers:jupyter` — JupyterLab + collaboration + data science
 - `/ov-layers:agent-forwarding` — SSH/GPG forwarding
 
 ## Related Images
 
-- `/ov-images:jupyter-colab-ml` — GPU-accelerated variant (nvidia base, full ML stack)
-- `/ov-images:jupyter-colab-ml-notebook` — GPU variant with fine-tuning notebooks
+- `/ov-images:jupyter-ml` — GPU-accelerated variant (nvidia base, full ML stack)
+- `/ov-images:jupyter-ml-notebook` — GPU variant with fine-tuning notebooks
 - `/ov-images:openwebui` — Open WebUI consumes jupyter for code execution and MCP tools
 - `/ov-images:hermes` — Hermes agent consumes jupyter MCP for notebook manipulation
 - `/ov-images:fedora` — parent base image
@@ -93,7 +93,7 @@ This creates `.mcp.json` at the project root:
 | Change watching | `watch_notebook` (blocks until change or timeout) |
 | Collaboration | `get_active_users`, `get_active_sessions` |
 
-See `/ov-layers:jupyter-colab` for full parameter and return type documentation.
+See `/ov-layers:jupyter` for full parameter and return type documentation.
 
 ### Testing with `claude -p`
 
@@ -143,7 +143,7 @@ curl -s http://localhost:8888/mcp -X POST \
 
 # Server extensions
 ov shell jupyter -c "jupyter server extension list 2>&1 | grep -E 'ydoc|colab_mcp'"
-# Expected: jupyter_server_ydoc enabled OK, jupyter_colab_mcp 0.1.0 OK
+# Expected: jupyter_server_ydoc enabled OK, jupyter_mcp 0.1.0 OK
 
 # MCP tools via Claude Code
 claude mcp list    # Should show: jupyter: http://localhost:8888/mcp (HTTP) - ✓ Connected

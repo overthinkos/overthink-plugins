@@ -60,6 +60,22 @@ Tools are detected via concurrent 2-second timeout probes:
 
 Port-based tools show `name:port`. Socket-based tools show just the name.
 
+## Known display issue: `Volumes:` reads from image labels
+
+The `Volumes:` field is populated from the image's OCI labels (`ExtractMetadata` in `ov/status.go:686–698`), not from the live container's actual mounts. This means a volume deployed with `--bind <name>=<path>` will appear in `ov status` as `ov-<image>-<volume> -> /container/path` (the image default from the OCI label), not as `<host-path> -> /container/path` (the actual runtime bind mount).
+
+The running container is functionally correct — only the display is misleading. Authoritative sources for the live volume backing:
+
+```bash
+# What the live container is actually mounting
+podman inspect <container> --format '{{range .Mounts}}{{.Type}}:{{.Source}}->{{.Destination}} {{"\n"}}{{end}}'
+
+# The deploy.yml record (what ov config resolved)
+ov deploy show <image>
+```
+
+Use either of the above when you need to confirm that a `--bind` / `--encrypt` override actually took effect.
+
 ## Usage
 
 ```bash

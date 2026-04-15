@@ -71,7 +71,7 @@ ov start unsloth-studio
 ## Related Images
 
 - `/ov-images:nvidia` — parent (GPU without Studio)
-- `/ov-images:jupyter-colab-ml` — alternative ML UI with JupyterLab + CRDT MCP (same Tier 1 sub-layers)
+- `/ov-images:jupyter-ml` — alternative ML UI with JupyterLab + CRDT MCP (same Tier 1 sub-layers)
 - `/ov-images:python-ml` — ML libraries without any UI
 - `/ov-images:jupyter` — legacy Jupyter with ML (shares port 8888)
 

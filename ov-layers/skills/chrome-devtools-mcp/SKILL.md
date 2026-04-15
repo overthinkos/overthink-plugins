@@ -90,7 +90,7 @@ This layer is auto-included by the `chrome` base layer via `layers: [chrome-devt
 ## Related Skills
 
 - `/ov-layers:chrome` — parent layer, provides Chrome + CDP on port 9222
-- `/ov-layers:jupyter-colab-mcp` — analogous MCP server pattern (Tier 1, different domain)
+- `/ov-layers:jupyter-mcp` — analogous MCP server pattern (Tier 1, different domain)
 - `/ov-layers:hermes` — consumes via `mcp_accepts: chrome-devtools`
 - `/ov-layers:mcporter` — MCP server CLI (npm-based, similar npm install pattern)
 - `/ov:cdp` — direct Chrome DevTools Protocol commands (lower-level than MCP)

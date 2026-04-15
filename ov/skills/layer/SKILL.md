@@ -188,7 +188,7 @@ MCP servers provided to OTHER containers when this service is deployed. Used for
 
 ```yaml
 mcp_provides:
-  - name: jupyter-colab
+  - name: jupyter
     url: "http://{{.ContainerName}}:8888/mcp"
     transport: http
 ```
@@ -201,6 +201,8 @@ mcp_provides:
 - Validated by `ov validate`: empty names, duplicate names, empty URLs, unknown template variables, and invalid transport values are errors
 - Stored in OCI label `org.overthinkos.mcp_provides`
 
+**Naming convention**: The `name:` field is the **service contract** — it should stay stable across layer/package/image renames. Pick a semantic name (like `jupyter`, `chrome-devtools`) that describes the service, not the artifact. See `/ov-layers:jupyter-mcp` § "MCP Name Decoupling" for a worked example: the `jupyter-colab-ml` layer, the `jupyter_colab_mcp` Python package, and the `jupyter-colab-ml-notebook` image were all renamed in one pass, but `mcp_provides.name: jupyter` stayed unchanged — and every consumer (`hermes`, `openwebui`, the `ov-jupyter` Claude Code plugin) kept working with zero edits.
+
 See `/ov:config` for `--update-all` flag and `/ov:deploy` for provides section in deploy.yml.
 
 ### mcp_requires
@@ -209,7 +211,7 @@ MCP servers this layer MUST have from the environment to function. At `ov config
 
 ```yaml
 mcp_requires:
-  - name: jupyter-colab
+  - name: jupyter
     description: "JupyterLab CRDT MCP server for notebook manipulation"
 ```
 
@@ -221,7 +223,7 @@ MCP servers this layer CAN optionally use. No warnings if missing — purely for
 
 ```yaml
 mcp_accepts:
-  - name: jupyter-colab
+  - name: jupyter
     description: "JupyterLab CRDT MCP server for notebook manipulation"
 ```
 
@@ -462,6 +464,23 @@ depends:
 ```
 
 Never use `pip install`, `conda install`, `pixi global install`, or `uv tool install` in `user.yml`. Always use `pixi.toml`.
+
+**Tier 1 in-tree Python packages**: If a layer ships its own Python package (e.g. `jupyter-mcp` ships the `jupyter_mcp` MCP server), the repository convention is a **nested directory layout** `layers/<layer-name>/<pkg-name>/<pkg-name>/`:
+
+```
+layers/jupyter-mcp/
+  layer.yml
+  user.yml               # runs `pip install --no-deps /ctx/jupyter_mcp`
+  jupyter_mcp/           # distribution root
+    pyproject.toml       # [project] name = "jupyter-mcp"; packages = ["jupyter_mcp"]
+    jupyter_mcp/         # importable Python package
+      __init__.py
+      app.py
+```
+
+Two rules make this work cleanly across renames:
+1. **Distribution name** (`pyproject.toml` → `[project].name`) and **Python package name** (inner directory) can be hyphenated (`jupyter-mcp`) or underscored (`jupyter_mcp`) — pick one convention and use it consistently.
+2. **Internal imports must be relative** (`from .app import MCPExtensionApp`, never `from jupyter_mcp.app import MCPExtensionApp`). This means the package directory can be renamed without editing every `.py` file inside it — only `pyproject.toml`, the module docstrings, and external callers (`pip install` command, extension config files) need updating.
 
 ### Add npm Packages
 

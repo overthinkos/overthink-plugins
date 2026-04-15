@@ -16,7 +16,7 @@ description: |
 | Dependencies | *(none)* |
 | Packages | *(none)* |
 | Services | *(none)* |
-| Volumes | `workspace` -> `~/workspace` (from jupyter-colab) |
+| Volumes | `workspace` -> `~/workspace` (from jupyter) |
 | Data | `data/ollama` -> `workspace` volume, dest: `ollama` |
 | Install files | *(none)* |
 
@@ -66,7 +66,7 @@ When the `ollama` image is deployed via `ov config ollama`, its `env_provides` a
 ```bash
 ov config ollama --update-all    # deploys ollama + propagates OLLAMA_HOST to all
 ov start ollama
-ov start jupyter-colab-ml-notebook   # OLLAMA_HOST already set via env_provides
+ov start jupyter-ml-notebook   # OLLAMA_HOST already set via env_provides
 ```
 
 Both containers must be on the same `ov` Podman network for DNS resolution to work.
@@ -113,9 +113,9 @@ Pull models before running: `ov shell ollama -c "ollama pull llama3.2"`
 
 ```yaml
 # images.yml
-jupyter-colab-ml-notebook:
+jupyter-ml-notebook:
   layers:
-    - jupyter-colab-ml
+    - jupyter-ml
     - notebook-templates
     - notebook-finetuning
     - notebook-ollama
@@ -125,7 +125,7 @@ jupyter-colab-ml-notebook:
 ```bash
 # Deploy and start both services
 ov config ollama && ov start ollama
-ov config jupyter-colab-ml-notebook && ov start jupyter-colab-ml-notebook
+ov config jupyter-ml-notebook && ov start jupyter-ml-notebook
 
 # Pull a model, then open notebooks
 ov shell ollama -c "ollama pull llama3.2"
@@ -134,7 +134,7 @@ ov shell ollama -c "ollama pull llama3.2"
 
 ## Used In Images
 
-- `/ov-images:jupyter-colab-ml-notebook`
+- `/ov-images:jupyter-ml-notebook`
 
 ## Related Skills
 
@@ -145,7 +145,7 @@ ov shell ollama -c "ollama pull llama3.2"
 - `/ov-layers:notebook-templates` — sibling data layer pattern (starter notebooks)
 - `/ov-layers:ollama` — the Ollama binary layer (server side)
 - `/ov-images:ollama` — the standalone Ollama image (must be running for notebooks to connect)
-- `/ov-images:jupyter-colab-ml-notebook` — the image that includes this layer
+- `/ov-images:jupyter-ml-notebook` — the image that includes this layer
 
 ## When to Use This Skill
 

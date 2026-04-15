@@ -1,21 +1,21 @@
 ---
-name: jupyter-colab-ml
+name: jupyter-ml
 description: |
   Full CUDA ML JupyterLab image with real-time collaboration and CRDT MCP server.
   Base: nvidia. Port 8888. GPU-accelerated ML training + collaborative notebooks.
-  MUST be invoked before building, deploying, or troubleshooting the jupyter-colab-ml image.
+  MUST be invoked before building, deploying, or troubleshooting the jupyter-ml image.
 ---
 
-# jupyter-colab-ml -- GPU ML Jupyter with CRDT MCP
+# jupyter-ml -- GPU ML Jupyter with CRDT MCP
 
 ## Image Definition
 
 ```yaml
-jupyter-colab-ml:
+jupyter-ml:
   base: nvidia
   layers:
     - agent-forwarding
-    - jupyter-colab-ml
+    - jupyter-ml
     - notebook-templates
     - dbus
     - ov
@@ -27,10 +27,10 @@ jupyter-colab-ml:
 
 ## Layer Composition
 
-The `jupyter-colab-ml` layer is a Tier 2 environment-owning meta-layer that composes:
+The `jupyter-ml` layer is a Tier 2 environment-owning meta-layer that composes:
 - `llama-cpp` — llama.cpp prebuilt binaries + GGUF tools
 - `unsloth` — vLLM 0.19 cu130 inference engine + fine-tuning (unsloth + unsloth-zoo) + vLLM torch.compile patch
-- `jupyter-colab-mcp` — CRDT MCP extension (fastmcp + jupyter_colab_mcp package)
+- `jupyter-mcp` — CRDT MCP extension (fastmcp + jupyter_mcp package)
 
 Additional layers from the image:
 - `agent-forwarding` — SSH/GPG agent forwarding
@@ -44,8 +44,8 @@ Additional layers from the image:
 quay.io/fedora/fedora:43
 └── fedora
     └── fedora-nonfree (RPM Fusion repos)
-        └─�� nvidia (NVIDIA drivers + container toolkit)
-            └── jupyter-colab-ml
+        └── nvidia (NVIDIA drivers + container toolkit)
+            └── jupyter-ml
 ```
 
 ## Ports
@@ -88,11 +88,11 @@ These variables are injected automatically into the container environment at `ov
 ## Quick Start
 
 ```bash
-ov build jupyter-colab-ml
-ov config jupyter-colab-ml
-ov start jupyter-colab-ml
-ov status jupyter-colab-ml
-ov logs jupyter-colab-ml -f
+ov build jupyter-ml
+ov config jupyter-ml
+ov start jupyter-ml
+ov status jupyter-ml
+ov logs jupyter-ml -f
 # JupyterLab: http://localhost:8888
 # MCP endpoint: http://localhost:8888/mcp
 ```
@@ -100,32 +100,32 @@ ov logs jupyter-colab-ml -f
 ## Verify
 
 ```bash
-ov shell jupyter-colab-ml -c "pixi run verify-pytorch"
-ov shell jupyter-colab-ml -c "pixi run verify-vllm"
-ov shell jupyter-colab-ml -c "pixi run verify-unsloth"
-ov shell jupyter-colab-ml -c "pixi run verify-mcp"
-ov shell jupyter-colab-ml -c "pixi run verify-collaboration"
+ov shell jupyter-ml -c "pixi run verify-pytorch"
+ov shell jupyter-ml -c "pixi run verify-vllm"
+ov shell jupyter-ml -c "pixi run verify-unsloth"
+ov shell jupyter-ml -c "pixi run verify-mcp"
+ov shell jupyter-ml -c "pixi run verify-collaboration"
 ```
 
 ## Comparison with Other Jupyter Images
 
-| | jupyter-colab | jupyter-colab-ml | jupyter |
-|---|---|---|---|
-| Base | fedora | nvidia | nvidia |
-| CUDA | No | Yes | Yes |
-| Arch | amd64 + arm64 | amd64 | amd64 |
-| MCP | CRDT (13 tools) | CRDT (13 tools) | jupyter-mcp-server |
-| Collaboration | Yes | Yes | Yes |
-| ML Stack | No | Full | Full |
-| Volume | workspace | workspace + models | — |
-| Notebook dir | ~/workspace | ~/workspace | ~/workspace |
+| | jupyter | jupyter-ml |
+|---|---|---|
+| Base | fedora | nvidia |
+| CUDA | No | Yes |
+| Arch | amd64 + arm64 | amd64 |
+| MCP | CRDT (13 tools) | CRDT (13 tools) |
+| Collaboration | Yes | Yes |
+| ML Stack | No | Full |
+| Volume | workspace | workspace + models |
+| Notebook dir | ~/workspace | ~/workspace |
 
 ## Related Images
 
-- `/ov-images:jupyter-colab-ml-notebook` — Same stack with fine-tuning notebooks
+- `/ov-images:jupyter-ml-notebook` — Same stack with fine-tuning notebooks
 - `/ov-images:jupyter` — Lightweight variant (no CUDA, multi-arch)
 - `/ov-images:python-ml` — ML base without Jupyter
 
 ## When to Use This Skill
 
-MUST be invoked before building, deploying, configuring, or troubleshooting the jupyter-colab-ml image.
+MUST be invoked before building, deploying, configuring, or troubleshooting the jupyter-ml image.

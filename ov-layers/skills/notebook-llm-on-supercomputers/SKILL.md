@@ -16,7 +16,7 @@ description: |
 | Dependencies | *(none)* |
 | Packages | *(none)* |
 | Services | *(none)* |
-| Volumes | `workspace` -> `~/workspace` (from jupyter-colab) |
+| Volumes | `workspace` -> `~/workspace` (from jupyter) |
 | Data | `data/llms_on_supercomputers` -> `workspace` volume, dest: `llms_on_supercomputers` |
 | Install files | *(none)* |
 
@@ -106,7 +106,7 @@ The same `importlib.reload(ollama)` pattern from `/ov-layers:notebook-ollama` is
 
 ## Used In Images
 
-- `/ov-images:jupyter-colab-ml-notebook`
+- `/ov-images:jupyter-ml-notebook`
 
 ## Related Skills
 
@@ -116,7 +116,7 @@ The same `importlib.reload(ollama)` pattern from `/ov-layers:notebook-ollama` is
 - `/ov-layers:notebook-ollama` — sibling data layer (Ollama API tutorials)
 - `/ov-layers:notebook-templates` — sibling data layer (starter notebooks)
 - `/ov-images:ollama` — the Ollama server image (must be running for D0-D2 notebooks)
-- `/ov-images:jupyter-colab-ml-notebook` — the image that includes this layer
+- `/ov-images:jupyter-ml-notebook` — the image that includes this layer
 
 ## When to Use This Skill
 

@@ -2,7 +2,7 @@
 name: unsloth
 description: |
   Unsloth LLM fine-tuning library with vLLM integration. Tier 1 post-install layer —
-  no pixi.toml, requires pixi env from a parent layer (python-ml, jupyter-colab-ml, unsloth-studio).
+  no pixi.toml, requires pixi env from a parent layer (python-ml, jupyter-ml, unsloth-studio).
   Use when working with Unsloth, LLM fine-tuning, or vLLM wheel installation.
 ---
 
@@ -39,20 +39,20 @@ This layer has **no pixi.toml** and **no depends**. It installs pip packages int
 
 ## Used In Layers (via `layers:` field)
 
-- `/ov-layers:jupyter-colab-ml` — `layers: [llama-cpp, unsloth, jupyter-colab-mcp]`
+- `/ov-layers:jupyter-ml` — `layers: [llama-cpp, unsloth, jupyter-mcp]`
 - `/ov-layers:unsloth-studio` — `layers: [llama-cpp, unsloth]`
 
 ## Related Layers
 
 - `/ov-layers:llama-cpp` — llama.cpp binaries (often paired as sibling Tier 1 layer)
 - `/ov-layers:unsloth-studio` — Studio web UI (Tier 2 parent, owns pixi.toml)
-- `/ov-layers:jupyter-colab-ml` — ML Jupyter with MCP (Tier 2 parent, owns pixi.toml)
+- `/ov-layers:jupyter-ml` — ML Jupyter with MCP (Tier 2 parent, owns pixi.toml)
 - `/ov-layers:python-ml` — Core ML environment (Tier 2, uses vllm pip install in its own user.yml instead)
 
 ## Used In Images
 
-- `/ov-images:jupyter-colab-ml` (via `jupyter-colab-ml` metalayer)
-- `/ov-images:jupyter-colab-ml-notebook` (via `jupyter-colab-ml` metalayer)
+- `/ov-images:jupyter-ml` (via `jupyter-ml` metalayer)
+- `/ov-images:jupyter-ml-notebook` (via `jupyter-ml` metalayer)
 - `/ov-images:unsloth-studio` (via `unsloth-studio` metalayer)
 
 ## When to Use This Skill

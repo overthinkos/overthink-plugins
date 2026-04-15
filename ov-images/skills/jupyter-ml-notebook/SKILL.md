@@ -1,21 +1,21 @@
 ---
-name: jupyter-colab-ml-notebook
+name: jupyter-ml-notebook
 description: |
   Full CUDA ML JupyterLab image with finetuning, Ollama, and LLM course notebooks, CRDT MCP server, and real-time collaboration.
-  Base: nvidia. Port 8888. Combines jupyter-colab-ml with 37 Unsloth fine-tuning notebooks, 6 Ollama integration notebooks, and 15 LLM course notebooks.
-  MUST be invoked before building, deploying, or troubleshooting the jupyter-colab-ml-notebook image.
+  Base: nvidia. Port 8888. Combines jupyter-ml with 37 Unsloth fine-tuning notebooks, 6 Ollama integration notebooks, and 15 LLM course notebooks.
+  MUST be invoked before building, deploying, or troubleshooting the jupyter-ml-notebook image.
 ---
 
-# jupyter-colab-ml-notebook -- GPU ML Jupyter with Fine-tuning Notebooks
+# jupyter-ml-notebook -- GPU ML Jupyter with Fine-tuning Notebooks
 
 ## Image Definition
 
 ```yaml
-jupyter-colab-ml-notebook:
+jupyter-ml-notebook:
   base: nvidia
   layers:
     - agent-forwarding
-    - jupyter-colab-ml
+    - jupyter-ml
     - notebook-templates
     - notebook-finetuning
     - notebook-ollama
@@ -29,9 +29,9 @@ jupyter-colab-ml-notebook:
     - linux/amd64
 ```
 
-## What's Different from jupyter-colab-ml
+## What's Different from jupyter-ml
 
-This image is identical to `jupyter-colab-ml` with two data layer additions:
+This image is identical to `jupyter-ml` with two data layer additions:
 - `notebook-finetuning` — seeds 37 Unsloth fine-tuning notebooks into `~/workspace/finetuning/`
 - `notebook-ollama` — seeds 6 Ollama integration notebooks into `~/workspace/ollama/`
 
@@ -39,7 +39,7 @@ The Ollama notebooks require a running `ollama` deployment. When deployed via `o
 
 ## Layer Composition
 
-- `jupyter-colab-ml` — Tier 2 environment-owning meta-layer (PyTorch >= 2.10.0, vLLM 0.19, unsloth, LangChain, CRDT MCP via jupyter-colab-mcp sub-layer)
+- `jupyter-ml` — Tier 2 environment-owning meta-layer (PyTorch >= 2.10.0, vLLM 0.19, unsloth, LangChain, CRDT MCP via jupyter-mcp sub-layer)
 - `notebook-templates` — Starter notebooks (data layer, seeds ~/workspace)
 - `notebook-finetuning` — 37 Unsloth fine-tuning notebooks (data layer, seeds ~/workspace/finetuning/)
 - `notebook-ollama` — 6 Ollama integration notebooks (data layer, seeds ~/workspace/ollama/)
@@ -119,16 +119,16 @@ The notebooks read `OLLAMA_HOST` via `os.getenv("OLLAMA_HOST", "http://localhost
 ## Quick Start
 
 ```bash
-ov build jupyter-colab-ml-notebook
-ov config jupyter-colab-ml-notebook
-ov start jupyter-colab-ml-notebook
-ov status jupyter-colab-ml-notebook
-ov logs jupyter-colab-ml-notebook -f
+ov build jupyter-ml-notebook
+ov config jupyter-ml-notebook
+ov start jupyter-ml-notebook
+ov status jupyter-ml-notebook
+ov logs jupyter-ml-notebook -f
 # JupyterLab: http://localhost:8888
 # MCP endpoint: http://localhost:8888/mcp
 
 # With bind-backed workspace (data seeded into local dir):
-ov config jupyter-colab-ml-notebook --bind workspace=/path/to/project
+ov config jupyter-ml-notebook --bind workspace=/path/to/project
 ```
 
 ## Notebook Workarounds
@@ -142,20 +142,20 @@ The notebook-finetuning include compatibility fixes for current library versions
 ## Verify
 
 ```bash
-ov shell jupyter-colab-ml-notebook -c "pixi run verify-pytorch"
-ov shell jupyter-colab-ml-notebook -c "pixi run verify-unsloth"
-ov shell jupyter-colab-ml-notebook -c "pixi run verify-mcp"
-ov shell jupyter-colab-ml-notebook -c "ls ~/workspace/finetuning/"
-ov shell jupyter-colab-ml-notebook -c "ls ~/workspace/ollama/"
-ov shell jupyter-colab-ml-notebook -c "ls ~/workspace/llms_on_supercomputers/"
+ov shell jupyter-ml-notebook -c "pixi run verify-pytorch"
+ov shell jupyter-ml-notebook -c "pixi run verify-unsloth"
+ov shell jupyter-ml-notebook -c "pixi run verify-mcp"
+ov shell jupyter-ml-notebook -c "ls ~/workspace/finetuning/"
+ov shell jupyter-ml-notebook -c "ls ~/workspace/ollama/"
+ov shell jupyter-ml-notebook -c "ls ~/workspace/llms_on_supercomputers/"
 ```
 
 ## Related Images
 
-- `/ov-images:jupyter-colab-ml` — Same stack without finetuning notebooks
+- `/ov-images:jupyter-ml` — Same stack without finetuning notebooks
 - `/ov-images:jupyter` — Lightweight variant (no CUDA, multi-arch)
 - `/ov-images:unsloth-studio` — Unsloth Studio UI (different pixi env, same finetuning notebooks)
 
 ## When to Use This Skill
 
-MUST be invoked before building, deploying, configuring, or troubleshooting the jupyter-colab-ml-notebook image.
+MUST be invoked before building, deploying, configuring, or troubleshooting the jupyter-ml-notebook image.

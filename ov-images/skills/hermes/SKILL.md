@@ -7,7 +7,7 @@ description: |
 
 # Image: hermes
 
-Full-featured standalone Hermes AI agent. No browser or desktop — designed for cross-container deployment alongside `selkies-desktop` (shared Chrome via `BROWSER_CDP_URL`) and `jupyter-colab` (MCP notebooks via `OV_MCP_SERVERS`).
+Full-featured standalone Hermes AI agent. No browser or desktop — designed for cross-container deployment alongside `selkies-desktop` (shared Chrome via `BROWSER_CDP_URL`) and `jupyter` (MCP notebooks via `OV_MCP_SERVERS`).
 
 ## Definition
 
@@ -89,7 +89,7 @@ Deploy alongside provider containers for full functionality:
 ov config selkies-desktop
 ov start selkies-desktop
 
-# 2. Deploy jupyter-colab (provides jupyter-colab MCP server)
+# 2. Deploy jupyter (provides jupyter MCP server)
 ov config jupyter --update-all
 ov start jupyter
 
@@ -104,7 +104,7 @@ Hermes receives:
 
 ## MCP Server Discovery
 
-When co-deployed with services that declare `mcp_provides` (e.g., jupyter-colab), hermes auto-discovers and connects to their MCP servers at first start. The `OV_MCP_SERVERS` JSON env var is injected by `ov config` and the entrypoint writes the servers into `config.yaml` under `mcp_servers:`.
+When co-deployed with services that declare `mcp_provides` (e.g., jupyter), hermes auto-discovers and connects to their MCP servers at first start. The `OV_MCP_SERVERS` JSON env var is injected by `ov config` and the entrypoint writes the servers into `config.yaml` under `mcp_servers:`.
 
 ```bash
 # Verify MCP connection
@@ -137,7 +137,7 @@ ov shell hermes -c "gemini --version"
 ov shell hermes -c "ov version"
 ov shell hermes -c "echo BROWSER_CDP_URL=\$BROWSER_CDP_URL"
 ov shell hermes -c "echo OV_MCP_SERVERS=\$OV_MCP_SERVERS"
-ov shell hermes -c "hermes mcp list"              # Should show chrome-devtools, jupyter-colab
+ov shell hermes -c "hermes mcp list"              # Should show chrome-devtools, jupyter
 ```
 
 ## When to Use This Skill

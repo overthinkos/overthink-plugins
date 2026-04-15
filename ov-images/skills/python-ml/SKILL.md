@@ -52,7 +52,7 @@ ov shell python-ml
 ## Related Images
 
 - `/ov-images:nvidia` — parent (GPU without ML packages)
-- `/ov-images:jupyter-colab-ml` — adds JupyterLab + collaboration + MCP + unsloth on top of ML stack
+- `/ov-images:jupyter-ml` — adds JupyterLab + collaboration + MCP + unsloth on top of ML stack
 - `/ov-images:jupyter` — legacy Jupyter with ML stack (monolithic)
 - `/ov-images:unsloth-studio` — fine-tuning UI with similar ML stack
 

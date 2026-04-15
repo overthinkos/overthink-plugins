@@ -130,7 +130,17 @@ Data layers (layers with `data:` field) stage files into `/data/<volume>/<dest>/
 - **`--force-seed`**: re-seeds even if directory is not empty
 - **`--data-from <image>`**: seeds from a separate data image instead of the target image
 
-Only applies to bind-backed volumes (not named volumes or encrypted volumes without bind).
+### Bind-only seeding
+
+Data provisioning only runs when the target volume is **bind-backed** (`--bind <name>` or `--bind <name>=<path>`). Named podman volumes (the default when no `--bind` is passed) come up **empty** — the data layers stage to `/data/<volume>/` inside the image but nothing copies them into the volume.
+
+If you want data layers populated in a named-volume deployment, either (a) reconfigure with `--bind`, or (b) manually copy from the image staging dir: `podman cp <container>:/data/<volume>/. <volume-mountpoint>/`. The deploy.yml authoritative record of volume backing is under the image's `volumes:` section.
+
+### Data layer ordering
+
+The per-entry "already provisioned" detection runs against the target subdirectory (`<bind-root>/<dest>/`), not the entire bind root. This means each data layer with a distinct `dest:` subdirectory can safely coexist in the same bind mount.
+
+However, data layers that target the volume **root** (`dest:` absent or empty — e.g. `notebook-templates`, which drops `getting-started.ipynb` directly into `~/workspace/`) should be listed **first** in the image's `layers:` list. A root-targeted layer ordered after subdirectory-targeted layers will see the root as non-empty (because subdirs from earlier layers exist) and skip. This is a convention, not a hard-enforced rule.
 
 ## Encrypted Volumes
 
@@ -233,8 +243,8 @@ images:
 ### Deploy a Jupyter notebook server
 
 ```bash
-ov config jupyter-colab-ml-notebook --bind workspace=~/notebooks
-ov start jupyter-colab-ml-notebook
+ov config jupyter-ml-notebook --bind workspace=~/notebooks
+ov start jupyter-ml-notebook
 # Open http://localhost:8888
 ```
 

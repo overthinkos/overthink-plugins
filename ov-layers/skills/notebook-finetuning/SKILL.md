@@ -88,7 +88,7 @@ The notebooks include several workarounds for upstream library changes:
 ## Used In Images
 
 - `/ov-images:unsloth-studio`
-- `/ov-images:jupyter-colab-ml-notebook`
+- `/ov-images:jupyter-ml-notebook`
 
 ## Related Skills
 
@@ -96,7 +96,7 @@ The notebooks include several workarounds for upstream library changes:
 - `/ov:config` -- data provisioning during `ov config` setup
 - `/ov:deploy` -- volume backing configuration (bind, named, encrypted)
 - `/ov-layers:unsloth-studio` -- the Tier 2 meta-layer that owns the workspace volume
-- `/ov-layers:notebook-templates` -- sibling data layer pattern (starter notebooks for jupyter-colab)
+- `/ov-layers:notebook-templates` -- sibling data layer pattern (starter notebooks for jupyter)
 - `/ov-images:unsloth-studio` -- the image that includes this layer
 
 ## When to Use This Skill

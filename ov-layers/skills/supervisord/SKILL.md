@@ -142,7 +142,7 @@ Adding a `service:` block to a layer automatically pulls in `supervisord` via `i
 ## Used In Images
 
 Transitive dependency for all images with managed services, including:
-`openclaw`, `openclaw-sway-browser`, `openclaw-ollama-sway-browser`, `openclaw-ollama`, `jupyter`, `jupyter-colab-ml`, `jupyter-colab-ml-notebook`, `ollama`, `comfyui`, `immich`, `immich-ml`, `selkies-desktop`, `selkies-desktop-nvidia`, `hermes`, `openwebui`, `filebrowser`.
+`openclaw`, `openclaw-sway-browser`, `openclaw-ollama-sway-browser`, `openclaw-ollama`, `jupyter`, `jupyter-ml`, `jupyter-ml-notebook`, `ollama`, `comfyui`, `immich`, `immich-ml`, `selkies-desktop`, `selkies-desktop-nvidia`, `hermes`, `openwebui`, `filebrowser`.
 
 ## Related Layers
 

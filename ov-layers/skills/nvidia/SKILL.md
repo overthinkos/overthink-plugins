@@ -64,7 +64,7 @@ Creates Vulkan ICD compatibility symlinks for nvidia-ctk CDI device injection.
 - `/ov-layers:cuda` — CUDA development toolkit (depends on nvidia)
 - `/ov-layers:rocm` — AMD GPU counterpart (ROCm runtime + OpenCL), uses the same `appendAutoDetectedEnv()` DRINODE injection
 - `/ov-layers:selkies` — Primary consumer of the DRINODE env for VAAPI H.264 encode
-- `/ov-layers:python-ml`, `/ov-layers:llama-cpp`, `/ov-layers:jupyter-colab-ml` — CUDA ML stacks that depend on this layer
+- `/ov-layers:python-ml`, `/ov-layers:llama-cpp`, `/ov-layers:jupyter-ml` — CUDA ML stacks that depend on this layer
 
 ## Related Commands
 

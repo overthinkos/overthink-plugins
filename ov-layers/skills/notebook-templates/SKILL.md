@@ -3,7 +3,7 @@ name: notebook-templates
 description: |
   Starter notebook templates provisioned into the workspace volume at deploy time.
   First data-only layer in the project — no packages, no services, no dependencies.
-  Use when working with notebook-templates, data layers, or jupyter-colab initial content.
+  Use when working with notebook-templates, data layers, or jupyter initial content.
 ---
 
 # notebook-templates -- Starter notebook data layer
@@ -24,7 +24,7 @@ description: |
 This is a **data layer** — the first of its kind in the project. It uses the `data:` field in `layer.yml` to map a directory of files to a named volume:
 
 ```yaml
-info: "Starter notebook templates for jupyter-colab"
+info: "Starter notebook templates for jupyter"
 
 data:
   - src: data/notebooks
@@ -39,13 +39,13 @@ At deploy time, when the volume is configured as a bind mount (`ov config --bind
 
 | File | Purpose |
 |------|---------|
-| `getting-started.ipynb` | Starter notebook for new jupyter-colab deployments |
+| `getting-started.ipynb` | Starter notebook for new jupyter deployments |
 
 ## Usage
 
 ```yaml
 # images.yml
-jupyter-colab:
+jupyter:
   layers:
     - notebook-templates
     # ... other layers
@@ -62,15 +62,15 @@ ov start jupyter
 ## Used In Images
 
 - `/ov-images:jupyter`
-- `/ov-images:jupyter-colab-ml`
-- `/ov-images:jupyter-colab-ml-notebook`
+- `/ov-images:jupyter-ml`
+- `/ov-images:jupyter-ml-notebook`
 
 ## Related Skills
 
 - `/ov:layer` -- data field documentation and layer authoring rules
 - `/ov:config` -- data provisioning during `ov config` setup
 - `/ov:deploy` -- volume backing configuration (bind, named, encrypted)
-- `/ov-layers:jupyter-colab` -- the JupyterLab layer that consumes the workspace volume
+- `/ov-layers:jupyter` -- the JupyterLab layer that consumes the workspace volume
 - `/ov-images:jupyter` -- the image that includes this layer
 
 ## When to Use This Skill

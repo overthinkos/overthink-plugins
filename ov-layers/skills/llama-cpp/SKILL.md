@@ -40,7 +40,7 @@ The user.yml runs after the pixi environment is established by the parent layer.
 ## Used In Layers
 
 - `/ov-layers:python-ml` — via `layers: [llama-cpp]`
-- `/ov-layers:jupyter-colab-ml` — via `layers: [llama-cpp, unsloth]`
+- `/ov-layers:jupyter-ml` — via `layers: [llama-cpp, unsloth]`
 - `/ov-layers:unsloth-studio` — via `layers: [llama-cpp, unsloth]`
 
 ## Related Layers
@@ -51,8 +51,8 @@ The user.yml runs after the pixi environment is established by the parent layer.
 
 - `/ov-images:python-ml` (via `python-ml` metalayer)
 - `/ov-images:immich-ml` (via `python-ml` metalayer)
-- `/ov-images:jupyter-colab-ml` (via `jupyter-colab-ml` metalayer)
-- `/ov-images:jupyter-colab-ml-notebook` (via `jupyter-colab-ml` metalayer)
+- `/ov-images:jupyter-ml` (via `jupyter-ml` metalayer)
+- `/ov-images:jupyter-ml-notebook` (via `jupyter-ml` metalayer)
 - `/ov-images:unsloth-studio` (via `unsloth-studio` metalayer)
 
 ## When to Use This Skill

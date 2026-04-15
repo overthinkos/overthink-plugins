@@ -49,7 +49,7 @@ Runs `pixi run start-studio` which executes `unsloth studio -H 0.0.0.0 -p 8888`.
 - `/ov-layers:llama-cpp` — Sub-layer: llama.cpp binaries
 - `/ov-layers:unsloth` — Sub-layer: vLLM + unsloth pip install + patch
 - `/ov-layers:supervisord` — Process manager dependency
-- `/ov-layers:jupyter-colab-ml` — Alternative: ML Jupyter with MCP (same Tier 1 sub-layers)
+- `/ov-layers:jupyter-ml` — Alternative: ML Jupyter with MCP (same Tier 1 sub-layers)
 - `/ov-layers:python-ml` — Alternative: core ML without UI
 
 ## When to Use This Skill

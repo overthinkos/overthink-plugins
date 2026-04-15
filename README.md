@@ -81,7 +81,7 @@ Development tools and enforcement agents for contributors.
 
 Jupyter MCP server for programmatic notebook access with real-time collaboration.
 
-**MCP Server:** Streamable HTTP at `http://localhost:8888/mcp` (when jupyter-colab or jupyter-colab-ml container is running).
+**MCP Server:** Streamable HTTP at `http://localhost:8888/mcp` (when jupyter or jupyter-ml container is running).
 
 | Tool | Description |
 |------|-------------|
@@ -101,7 +101,7 @@ Jupyter MCP server for programmatic notebook access with real-time collaboration
 
 Multiple MCP clients can edit the same notebook simultaneously — changes sync via CRDT.
 
-### ov-layers (161 skills)
+### ov-layers (160 skills)
 
 Reference documentation for every Overthink container layer.
 
@@ -158,8 +158,8 @@ Reference documentation for every Overthink container layer.
 | immich | `/ov-layers:immich` | Immich photo management server on port 2283 |
 | immich-ml | `/ov-layers:immich-ml` | Immich ML backend on port 3003 |
 | jupyter | `/ov-layers:jupyter` | Jupyter notebook server on port 8888 with CUDA and ML libraries |
-| jupyter-colab | `/ov-layers:jupyter-colab` | JupyterLab with real-time collaboration + MCP server on port 8888 |
-| jupyter-colab-ml | `/ov-layers:jupyter-colab-ml` | Full CUDA ML + JupyterLab collaboration + CRDT MCP on port 8888 |
+| jupyter | `/ov-layers:jupyter` | JupyterLab with real-time collaboration + MCP server on port 8888 |
+| jupyter-ml | `/ov-layers:jupyter-ml` | Full CUDA ML + JupyterLab collaboration + CRDT MCP on port 8888 |
 | kubernetes | `/ov-layers:kubernetes` | kubectl and Helm package manager |
 | kwin | `/ov-layers:kwin` | KWin Wayland compositor running headless with virtual backend |
 | kwin-apps | `/ov-layers:kwin-apps` | KDE-native desktop applications (Konsole, Dolphin) |
@@ -182,7 +182,7 @@ Reference documentation for every Overthink container layer.
 | notebook-finetuning | `/ov-layers:notebook-finetuning` | Unsloth fine-tuning notebook collection (data layer) |
 | notebook-llm-on-supercomputers | `/ov-layers:notebook-llm-on-supercomputers` | LLMs on Supercomputers course notebooks (data layer) |
 | notebook-ollama | `/ov-layers:notebook-ollama` | Ollama integration notebook collection (data layer) |
-| notebook-templates | `/ov-layers:notebook-templates` | Starter notebook templates (data layer for jupyter-colab) |
+| notebook-templates | `/ov-layers:notebook-templates` | Starter notebook templates (data layer for jupyter) |
 | ollama | `/ov-layers:ollama` | Ollama LLM server on port 11434 with CUDA and model persistence |
 | openbox | `/ov-layers:openbox` | Openbox lightweight X11 window manager with keybindings |
 | openclaw | `/ov-layers:openclaw` | OpenClaw AI gateway service on port 18789 |
@@ -286,8 +286,8 @@ Reference documentation for every enabled Overthink container image.
 | immich | `/ov-images:immich` | Immich photo management server on port 2283 (CPU) |
 | immich-ml | `/ov-images:immich-ml` | Immich photo management with CUDA ML backend |
 | jupyter | `/ov-images:jupyter` | Lightweight JupyterLab with real-time collaboration (no GPU) |
-| jupyter-colab-ml | `/ov-images:jupyter-colab-ml` | Full CUDA ML + JupyterLab + CRDT MCP server |
-| jupyter-colab-ml-notebook | `/ov-images:jupyter-colab-ml-notebook` | Full CUDA ML + JupyterLab + CRDT MCP + fine-tuning notebooks |
+| jupyter-ml | `/ov-images:jupyter-ml` | Full CUDA ML + JupyterLab + CRDT MCP server |
+| jupyter-ml-notebook | `/ov-images:jupyter-ml-notebook` | Full CUDA ML + JupyterLab + CRDT MCP + fine-tuning notebooks |
 | nvidia | `/ov-images:nvidia` | NVIDIA GPU base image with CUDA toolkit on Fedora |
 | ollama | `/ov-images:ollama` | Standalone Ollama LLM inference server with CUDA GPU support |
 | openclaw | `/ov-images:openclaw` | Headless OpenClaw AI gateway on port 18789 |
@@ -336,7 +336,7 @@ Reference documentation for every enabled Overthink container image.
 | Component | Count |
 |-----------|-------|
 | Plugins | 5 |
-| Skills | 242 |
+| Skills | 241 |
 | Agents | 3 |
 | MCP Servers | 2 (GitHub, Jupyter) |
 | MCP Tools | 35 (22 GitHub + 13 Jupyter) |

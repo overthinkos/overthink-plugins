@@ -16,7 +16,7 @@ description: |
 | Dependencies | *(none)* |
 | Packages | *(none)* |
 | Services | *(none)* |
-| Volumes | `workspace` -> `~/workspace` (from jupyter-colab) |
+| Volumes | `workspace` -> `~/workspace` (from jupyter) |
 | Data | `data/openrouter` -> `workspace` volume, dest: `openrouter` |
 | env_requires | `OPENROUTER_API_KEY` — API key for OpenRouter LLM inference |
 | Install files | *(none)* |
@@ -44,7 +44,7 @@ At deploy time, `ov config` copies the staged data into the workspace volume at 
 
 The `env_requires` declaration is stored as an OCI label (`org.overthinkos.env_requires`). At `ov config` time, if `OPENROUTER_API_KEY` is not present in the resolved environment, a warning is printed:
 ```
-Warning: jupyter-colab-ml-notebook requires OPENROUTER_API_KEY (API key for OpenRouter LLM inference) — not set
+Warning: jupyter-ml-notebook requires OPENROUTER_API_KEY (API key for OpenRouter LLM inference) — not set
 ```
 
 This is the first layer in the project to use the `env_requires` feature.
@@ -86,7 +86,7 @@ The `OPENROUTER_API_KEY` must be injected into the container environment:
 
 ```bash
 # Via ov config (persisted in quadlet)
-ov config jupyter-colab-ml-notebook -e OPENROUTER_API_KEY=sk-or-v1-...
+ov config jupyter-ml-notebook -e OPENROUTER_API_KEY=sk-or-v1-...
 
 # Via workspace .env file
 echo "OPENROUTER_API_KEY=sk-or-v1-..." >> ~/project/.env
@@ -99,9 +99,9 @@ ov secrets gpg set OPENROUTER_API_KEY sk-or-v1-...
 
 ```yaml
 # images.yml
-jupyter-colab-ml-notebook:
+jupyter-ml-notebook:
   layers:
-    - jupyter-colab-ml
+    - jupyter-ml
     - notebook-templates
     - notebook-finetuning
     - notebook-ollama
@@ -112,14 +112,14 @@ jupyter-colab-ml-notebook:
 
 ```bash
 # Deploy with API key
-ov config jupyter-colab-ml-notebook -e OPENROUTER_API_KEY=sk-or-v1-...
-ov start jupyter-colab-ml-notebook
+ov config jupyter-ml-notebook -e OPENROUTER_API_KEY=sk-or-v1-...
+ov start jupyter-ml-notebook
 # Open http://localhost:8888 -> navigate to openrouter/
 ```
 
 ## Used In Images
 
-- `/ov-images:jupyter-colab-ml-notebook`
+- `/ov-images:jupyter-ml-notebook`
 
 ## Related Skills
 
@@ -130,7 +130,7 @@ ov start jupyter-colab-ml-notebook
 - `/ov-layers:notebook-finetuning` — sibling data layer pattern (Unsloth fine-tuning notebooks)
 - `/ov-layers:notebook-templates` — sibling data layer pattern (starter notebooks)
 - `/ov-layers:notebook-llm-on-supercomputers` — sibling data layer pattern (TU Wien course notebooks)
-- `/ov-images:jupyter-colab-ml-notebook` — the image that includes this layer
+- `/ov-images:jupyter-ml-notebook` — the image that includes this layer
 
 ## When to Use This Skill
 
