@@ -29,8 +29,12 @@ skipping any that return DBus errors on property reads. This makes ov
 resilient to broken `default` alias stubs (commonly seen in KeePassXC
 FdoSecrets setups) — credentials stored in a non-default collection are still
 findable. Set `keyring_collection_label` via `/ov:settings` to pin ov to a
-specific collection by label. See `/ov:enc` for the full iteration order,
-source classification, and troubleshooting.
+specific collection by label. When every candidate collection is locked
+(requires interactive unlock), `source=locked` is returned and
+`ov config mount` waits indefinitely via event-driven DBus signal
+subscription (zero CPU) until the user unlocks the keyring. See `/ov:enc`
+for the full iteration order, source classification, event-driven waiting
+behavior, and troubleshooting.
 
 ## Quick Reference
 

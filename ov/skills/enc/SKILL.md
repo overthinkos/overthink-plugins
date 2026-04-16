@@ -334,24 +334,50 @@ Rootless podman with `--userns=keep-id` creates a two-level user namespace. Duri
 
 **Secret Service flow on reboot:**
 1. Boot → systemd starts user instance (linger) → quadlet service starts
-2. ExecStartPre → `ov config mount` → keyring locked → polls every `encMountPollPeriod` (5s)
+2. ExecStartPre → `ov config mount` → keyring locked → subscribes to
+   DBus `PropertiesChanged` signals on Secret Service collections, with a
+   30-second backstop re-probe (`encMountSignalBackstop`)
 3. User logs in → PAM unlocks GNOME Keyring / KeePassXC unlocks database
-4. Next poll → passphrase found → volumes mount → container starts
-5. If no progress after `encMountDeadline` (2 min default) → ExecStartPre fails with a clear diagnostic listing backend, source, and remediation. The service goes to `failed` state instead of wedging forever.
+4. DBus signal fires (or backstop re-probes) → passphrase found → volumes
+   mount → container starts
+5. The wait is **unbounded** — ov blocks until the keyring unlocks or
+   systemd sends SIGTERM on `systemctl stop`. No arbitrary deadline.
 
-**Bounded retry** (since 2026-04): the poll loop in
-`resolveEncPassphraseForMount` is bounded by two package-level variables
-in `ov/enc.go`:
+**Event-driven keyring waiting** (since 2026-04-16): when
+`source=locked` under a keyring-capable backend, ov subscribes to DBus
+`org.freedesktop.DBus.Properties.PropertiesChanged` signals on the
+`/org/freedesktop/secrets/collection/*` namespace. The wait loop blocks
+on `select { case <-sigCh | case <-backstop | case <-ctx.Done() }` —
+zero CPU cost between events. No polling.
+
+- `encMountSignalBackstop` — safety-net re-probe interval (default
+  `30 * time.Second`). Catches unlock events when the Secret Service
+  provider does not emit `PropertiesChanged` (KeePassXC's FdoSecrets
+  plugin does NOT emit this signal; GNOME Keyring and KDE Wallet do).
+  The backstop is what catches the unlock on KeePassXC hosts.
+- `encMountProgressLogInterval` — throttle for periodic "still waiting"
+  journal output (default `1 * time.Hour`).
+- SIGTERM cancellation via `signal.NotifyContext(ctx, SIGINT, SIGTERM)`
+  — `systemctl stop` sends SIGTERM, the context cancels, the function
+  returns cleanly, and systemd transitions the unit to `inactive`.
+- If the DBus session bus is unavailable (edge case: linger-based start
+  before graphical session), falls back to backstop-only polling at the
+  same `encMountSignalBackstop` cadence — still unbounded, still
+  low-resource.
+
+Source: `ov/enc.go` (`waitForKeyringUnlock`, `waitForKeyringUnlockLoop`,
+`waitForKeyringUnlockBackstopOnly`).
+
+**Bounded retry for `source=unavailable`** (since 2026-04): transient
+backend-probe failures (`source=unavailable`) still use a bounded poll
+loop with two package-level variables in `ov/enc.go`:
 
 - `encMountDeadline` — total wall-clock cap (default `2 * time.Minute`)
 - `encMountPollPeriod` — interval between probes (default `5 * time.Second`)
 
-Only `source=locked` and `source=unavailable` trigger retries.
 `source=default` (credential not stored anywhere) is terminal and fails
 immediately with an actionable error — no amount of retrying will conjure
-a credential that was never stored. This is what fixed the
-hang-forever-at-ExecStartPre regression that used to wedge
-`ov-<image>.service` with `TimeoutStartSec=0`.
+a credential that was never stored.
 
 **Crash recovery:** FUSE mounts survive container restarts because scope
 units are independent of the container service cgroup. On restart, the
@@ -397,11 +423,11 @@ ov config my-app --bind data                   # Auto path: ~/.local/share/ov/vo
 
 Plain bind mounts do not use encrypted storage commands. They are direct host directory mounts.
 
-**Source files (as of 2026-04):**
+**Source files (as of 2026-04-16):**
 
-- `ov/enc.go` — `encMount` (with all-mounted short-circuit, `ov/enc.go:232-291`), `ensureEncryptedMounts`, `encUnmount`, scope unit lifecycle, `resolveEncPassphraseForMount` (bounded retry with `encMountDeadline`)
-- `ov/secret_service.go` — godbus-based ssClient, `findItemAcrossCollections`, `ssOps` interface for test injection, `ErrSSNotFound` / `ErrSSAllBroken` sentinel errors
-- `ov/credential_keyring.go` — `KeyringStore.Probe` (iterates collections, accepts if ≥1 healthy), `KeyringStore.Get` (delegates to `keyringGetViaSSClient`), index-divergence warning
+- `ov/enc.go` — `encMount` (with all-mounted short-circuit), `ensureEncryptedMounts`, `encUnmount`, scope unit lifecycle, `resolveEncPassphraseForMount` (bounded retry for `source=unavailable` via `retryUnavailable`), `waitForKeyringUnlock` (event-driven DBus signal wait for `source=locked`), `waitForKeyringUnlockLoop`, `waitForKeyringUnlockBackstopOnly`, `encMountSignalBackstop` (30s), `encMountProgressLogInterval` (1h)
+- `ov/secret_service.go` — godbus-based ssClient, `findItemAcrossCollections` (with locked-vs-broken tracking), `ssOps` interface for test injection, `ErrSSNotFound` / `ErrSSAllBroken` / `ErrSSInteractiveUnlockRequired` sentinel errors, `isCollectionUnlockedSignal` (DBus signal filter)
+- `ov/credential_keyring.go` — `KeyringStore.Probe` (iterates collections, accepts if ≥1 healthy), `KeyringStore.Get` (delegates to `keyringGetViaSSClient`, maps `ErrSSInteractiveUnlockRequired` to `KeyringLockedError`), index-divergence warning
 - `ov/credential_store.go` — `DefaultCredentialStore` (tracks `defaultStoreProbeErr`), `ResolveCredential` (returns the new `"unavailable"` source distinctly from `"default"`)
 - `ov/deploy.go` — `DeployVolumeConfig`, `ResolveVolumeBacking`
 - `ov/runtime_config.go` — `KeyringCollectionLabel` field (the `keyring_collection_label` setting)
