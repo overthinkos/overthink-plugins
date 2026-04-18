@@ -160,7 +160,7 @@ Source: `ov/libvirt.go`.
 ### Build and Run a VM
 
 ```bash
-ov build my-bootc-image
+ov image build my-bootc-image
 ov vm build my-bootc-image
 ov vm create my-bootc-image --ram 8G --cpus 4
 ov vm start my-bootc-image
@@ -186,6 +186,8 @@ ov vm ssh my-image -i dev
 ```
 
 ## Cross-References
+
+- `/ov:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
 - `/ov:build` -- Building container images before VM disk builds
 - `/ov:config` -- VM default settings (`vm.*` config keys)

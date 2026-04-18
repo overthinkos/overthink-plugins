@@ -20,7 +20,7 @@ Minimal Sway desktop with VNC (wayvnc on port 5900) and Chrome (CDP on port 9222
 ## Quick Start
 
 ```bash
-ov build sway-browser-vnc
+ov image build sway-browser-vnc
 ov start sway-browser-vnc
 ov status sway-browser-vnc          # Shows all probes: supervisord, cdp, dbus, ov, sway, vnc, wl
 ov vnc status sway-browser-vnc

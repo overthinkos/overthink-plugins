@@ -38,7 +38,7 @@ hermes:
 ## Quick Start
 
 ```bash
-ov build hermes
+ov image build hermes
 ov config hermes -e OLLAMA_API_KEY=your-key   # or OPENROUTER_API_KEY
 ov start hermes
 ov shell hermes -c "hermes chat"

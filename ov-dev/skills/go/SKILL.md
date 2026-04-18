@@ -145,16 +145,16 @@ Add to `ov/validate.go`. All validation rules are centralized there.
 
 ```bash
 # Generate Containerfiles without building
-bin/ov generate
+bin/ov image generate
 
 # Inspect generated output
 cat .build/<image>/Containerfile
 
 # Validate configuration
-bin/ov validate
+bin/ov image validate
 
 # Inspect resolved image config
-bin/ov inspect <image>
+bin/ov image inspect <image>
 ```
 
 ## Style Guide

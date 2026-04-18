@@ -49,7 +49,7 @@ Self-hosted photo and video management server with full codec support.
 ## Quick Start
 
 ```bash
-ov build immich
+ov image build immich
 ov config immich
 ov start immich
 # Open http://localhost:2283

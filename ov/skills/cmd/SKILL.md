@@ -49,6 +49,8 @@ ov cmd ollama "ollama list" -i 2
 
 ## Cross-References
 
+- `/ov:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
+
 - `/ov:shell` -- Interactive shell sessions with workspace mounts
 - `/ov:dbus` -- D-Bus interaction inside containers
 - `/ov:tmux` -- Persistent tmux sessions for long-running commands

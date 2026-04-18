@@ -28,7 +28,7 @@ The binary at `layers/ov/bin/ov` must be updated when the host-side ov is rebuil
 ```bash
 cd ov && go build -o ../bin/ov .                    # Build host binary
 cp bin/ov layers/ov/bin/ov                           # Update layer binary
-ov build <image>                                     # Rebuild affected images
+ov image build <image>                                     # Rebuild affected images
 ```
 
 ## `ov status` Probe

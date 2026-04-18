@@ -45,7 +45,7 @@ archlinux:
 ## Quick Start
 
 ```bash
-ov build archlinux-builder
+ov image build archlinux-builder
 ov shell archlinux-builder -c "pixi --version"
 ov shell archlinux-builder -c "node --version"
 ov shell archlinux-builder -c "yay --version"

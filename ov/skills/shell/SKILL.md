@@ -25,15 +25,27 @@ description: |
 | Load env file | `ov shell <image> --env-file .env` | Load env from file |
 | Named instance | `ov shell <image> -i runner-1` | Use named instance |
 | Force build | `ov shell <image> --build` | Build locally before running |
-| Remote ref | `ov shell github.com/org/repo/app` | Pull and run remote image |
+
+**Note:** `ov shell` does not accept remote refs (`@github.com/...`). Remote
+refs are handled exclusively by `ov image pull` (build-mode). Pull first,
+then `ov shell <image-name>` works via labels. See `/ov:pull`.
 
 ## How It Works
 
-1. Resolves image reference (local images.yml or remote `github.com/...`)
-2. Ensures image exists in run engine (transfers from build engine if needed)
-3. Resolves volumes (with deploy-time backing), ports, security, environment
-4. If container is already running: `<engine> exec` into it
-5. If not running: `<engine> run` with full configuration
+1. Resolves image from OCI labels via `ExtractMetadata` (never `images.yml`)
+2. Applies `deploy.yml` overlay (volumes, env, sidecars, tunnel)
+3. Ensures image exists in run engine (transfers from build engine if needed)
+4. Resolves volumes (with deploy-time backing), ports, security, environment
+5. If container is already running: `<engine> exec` into it
+6. If not running: `<engine> run` with full configuration
+
+If the image isn't in local storage, `ExtractMetadata`/`EnsureImage` return
+`ErrImageNotLocal` and the CLI surfaces:
+```
+Error: image "X" is not available locally.
+       Run 'ov image pull X' to fetch it first
+```
+See `/ov:pull` for the full sentinel pattern.
 
 ## Volume Binding
 
@@ -134,17 +146,19 @@ Source: `ov/envfile.go` (`ParseEnvFile`, `ResolveEnvVars`, `LoadWorkspaceEnv`).
 
 ## Remote Image References
 
-`ov shell` accepts remote image references: `github.com/org/repo/image[@version]`.
+`ov shell` **does not** accept `@github.com/...` remote refs. Pre-refactor
+versions did; post-refactor, deploy-mode commands read only from local OCI
+labels, so remote refs are rejected with a redirect:
 
-```bash
-ov shell github.com/org/repo/my-app               # Pull and run
-ov shell github.com/org/repo/my-app@v1.0.0        # Specific version
-ov shell github.com/org/repo/my-app --build        # Force local build
+```
+Error: remote refs are not accepted here;
+       run 'ov image pull @github.com/org/repo/my-app' first,
+       then 'ov shell my-app'
 ```
 
-**Registry-first approach:** attempts to pull the pre-built image from the remote project's registry. Falls back to local build (download repo, generate, build). `--build` skips pull and always builds locally.
-
-Source: `ov/remote_image.go`.
+To run a shell on a remote image, pull it first (via `ov image pull`) and
+then invoke `ov shell <short-name>`. See `/ov:pull` for the full remote-ref
+workflow.
 
 ## Cross-Engine Image Transfer
 
@@ -175,19 +189,31 @@ Use `ov cmd` for quick operations on running services. Use `ov shell -c` when yo
 
 ## Cross-References
 
-- `ov cmd` -- Single command execution with D-Bus notification (running containers only)
+### Prerequisite
+
+- `/ov:pull` -- **Required** before `ov shell` can work on a fresh host. Fetches the image into local storage so `ExtractMetadata` can read its OCI labels. Handles remote refs (`@github.com/...`) that `ov shell` itself rejects.
+
+### Deploy-mode neighbors
+
+- `/ov:cmd` -- Single command execution with D-Bus notification (running containers only)
 - `/ov:tmux` -- Persistent tmux sessions (survives disconnects, needed for TTY-dependent TUI programs)
 - `/ov:service` -- Starting background services before exec
+- `/ov:start` -- Same `appendAutoDetectedEnv()` injection at service-start time
+- `/ov:config` -- Deployment setup + same `appendAutoDetectedEnv()` at deploy time; `--no-autodetect` flag disables it
+- `/ov:deploy` -- `deploy.yml` overlay applied to labels before shell spawns
 - `/ov:cdp` -- Chrome DevTools Protocol automation
-- `/ov:doctor` -- Host hardware probe that feeds `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
-- `/ov:config` -- Same `appendAutoDetectedEnv()` injection at deploy time; `--no-autodetect` flag disables it
-- `/ov:start` -- Same injection at service-start time
-- `/ov-layers:nvidia`, `/ov-layers:rocm` -- GPU layers consuming the auto-injected env
 - `/ov:wl` (sway subgroup) -- Sway compositor control
+- `/ov:doctor` -- Host hardware probe that feeds `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
 - `/ov:settings` -- Engine and bind address settings
-- `/ov:config` -- Image deployment setup (quadlet + secrets + volumes)
-- `/ov:doctor` -- GPU auto-detection, DRINODE, HSA_OVERRIDE_GFX_VERSION
-- `/ov:image` -- Image configuration (ports, volumes, env)
+
+### Build-mode references
+
+- `/ov:image` -- Image definitions (ports, volumes, env) in `images.yml`; authoritative source before a pull
+- `/ov:build` -- Build the image you intend to shell into
+
+### Layer skills
+
+- `/ov-layers:nvidia`, `/ov-layers:rocm` -- GPU layers consuming the auto-injected env
 
 ## When to Use This Skill
 

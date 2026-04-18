@@ -37,7 +37,7 @@ fedora-test:
 
 ## Related Commands
 
-- `/ov:list` — `ov list routes` shows Traefik route configuration
+- `/ov:list` — `ov image list routes` shows Traefik route configuration
 
 ## When to Use This Skill
 

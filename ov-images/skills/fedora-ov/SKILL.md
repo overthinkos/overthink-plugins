@@ -40,7 +40,7 @@ Full ov toolchain via shared layers:
 
 ```bash
 # Build
-ov build fedora-ov
+ov image build fedora-ov
 
 # Interactive shell
 ov shell fedora-ov
@@ -85,7 +85,7 @@ ov shell fedora-ov -c "podman run --rm docker.io/library/alpine echo OK"
 ov shell fedora-ov -c "which nvidia-ctk"
 
 # Verify OCI tags
-ov inspect fedora-ov --format tags
+ov image inspect fedora-ov --format tags
 # ["all","rpm","fedora","fedora:43"]
 ```
 

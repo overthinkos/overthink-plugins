@@ -19,7 +19,7 @@ Skills are living documents at `plugins/<plugin>/skills/<name>/SKILL.md`. They a
 | Verification check missing from image skill | Add to the image skill's Verification section |
 | Skill's recommended defaults are wrong | Fix in the skill, not CLAUDE.md |
 | New feature added to ov CLI | Update `/ov:<cmd>` skill + `/ov-dev:go` source map |
-| New layer or image added | Create skill via `ov new layer` scaffold or manual SKILL.md |
+| New layer or image added | Create skill via `ov image new layer` scaffold or manual SKILL.md |
 | Bug fix changes behavior | Document the fix in affected skills |
 | Cross-skill behavior discovered | Update Cross-References in all affected skills |
 

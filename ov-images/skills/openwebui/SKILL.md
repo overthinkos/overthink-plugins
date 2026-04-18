@@ -35,7 +35,7 @@ openwebui:
 ## Quick Start
 
 ```bash
-ov build openwebui
+ov image build openwebui
 ov config openwebui -e OPENROUTER_API_KEY=sk-or-xxx
 ov start openwebui
 # Open http://localhost:8080
@@ -47,7 +47,7 @@ ov start openwebui
 ```bash
 ov secrets gpg setup
 ov secrets gpg set OPENROUTER_API_KEY sk-or-xxx
-ov build openwebui
+ov image build openwebui
 ov config openwebui --env-file .secrets
 ov start openwebui
 ```

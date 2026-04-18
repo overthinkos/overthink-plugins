@@ -41,7 +41,7 @@ Everything from `openclaw-sway-browser` plus:
 ## Quick Start
 
 ```bash
-ov build openclaw-ollama-sway-browser
+ov image build openclaw-ollama-sway-browser
 ov config openclaw-ollama-sway-browser
 ov start openclaw-ollama-sway-browser
 # Gateway at http://localhost:18789
@@ -248,7 +248,7 @@ All persistent state lives in three named volumes:
 |-----------|---------|
 | `ov stop` + `ov start` | Preserved |
 | `ov remove` (no `--purge`) | Preserved |
-| `ov build` (image rebuild) | Preserved |
+| `ov image build` (image rebuild) | Preserved |
 | `ov remove --purge` | **DESTROYED** |
 
 Volume metadata is stored as OCI labels (`org.overthinkos.volumes`) in the image. `ov config` always recreates the correct mounts even after image rebuild.

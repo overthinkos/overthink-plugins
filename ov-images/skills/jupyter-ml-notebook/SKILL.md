@@ -119,7 +119,7 @@ The notebooks read `OLLAMA_HOST` via `os.getenv("OLLAMA_HOST", "http://localhost
 ## Quick Start
 
 ```bash
-ov build jupyter-ml-notebook
+ov image build jupyter-ml-notebook
 ov config jupyter-ml-notebook
 ov start jupyter-ml-notebook
 ov status jupyter-ml-notebook

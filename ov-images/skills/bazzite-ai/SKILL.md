@@ -45,7 +45,7 @@ Bootc VM image based on Universal Blue's Bazzite (gaming-focused) with NVIDIA dr
 
 ```bash
 # Enable in images.yml first (remove enabled: false)
-ov build bazzite-ai
+ov image build bazzite-ai
 ov vm build bazzite-ai --type qcow2
 ov vm create bazzite-ai
 ov vm start bazzite-ai

@@ -69,6 +69,8 @@ Instance removal automatically cleans the instance's `env_provides` and `mcp_pro
 
 ## Cross-References
 
+- `/ov:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
+
 - `/ov:stop` -- Stop without removing
 - `/ov:config` -- Configure/reconfigure services (see "Full instance removal" for 3-step cleanup)
 - `/ov:deploy` -- Deploy.yml management, tunnel configuration

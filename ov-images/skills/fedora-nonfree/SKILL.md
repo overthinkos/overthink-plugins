@@ -27,7 +27,7 @@ Fedora base with RPM Fusion free and non-free repositories enabled.
 ## Quick Start
 
 ```bash
-ov build fedora-nonfree
+ov image build fedora-nonfree
 ov shell fedora-nonfree
 ```
 
@@ -45,8 +45,8 @@ ov shell fedora-nonfree
 
 ## Verification
 
-After `ov build`:
-- `ov list` — image appears in list
+After `ov image build`:
+- `ov image list` — image appears in list
 - `ov shell fedora-nonfree` — interactive shell works
 
 ## When to Use This Skill

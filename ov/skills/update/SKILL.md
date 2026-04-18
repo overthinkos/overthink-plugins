@@ -86,7 +86,7 @@ on the new image with state intact.
 ### Rollback via `podman tag`
 
 `ov update` does not have a built-in rollback flag, but the previous CalVer-tagged image
-is left in the local podman image store after each `ov build`. To roll back:
+is left in the local podman image store after each `ov image build`. To roll back:
 
 ```bash
 # Find the previous tag
@@ -176,6 +176,8 @@ output. This is the intended behavior; operator action is only
 needed if the seeding reports an error.
 
 ## Cross-References
+
+- `/ov:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
 - `/ov:config` -- initial deployment setup
 - `/ov:start` -- start a service

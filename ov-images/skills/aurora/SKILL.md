@@ -40,7 +40,7 @@ Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH acce
 
 ```bash
 # Enable in images.yml first (remove enabled: false)
-ov build aurora
+ov image build aurora
 ov vm build aurora --type qcow2
 ov vm create aurora --ram 12G --cpus 4
 ov vm start aurora

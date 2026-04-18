@@ -88,7 +88,7 @@ These variables are injected automatically into the container environment at `ov
 ## Quick Start
 
 ```bash
-ov build jupyter-ml
+ov image build jupyter-ml
 ov config jupyter-ml
 ov start jupyter-ml
 ov status jupyter-ml

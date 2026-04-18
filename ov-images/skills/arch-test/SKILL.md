@@ -27,7 +27,7 @@ Test image that validates both `pac:` (pacman) and `aur:` (AUR) package formats 
 ## Quick Start
 
 ```bash
-ov build arch-test
+ov image build arch-test
 ov shell arch-test
 ```
 

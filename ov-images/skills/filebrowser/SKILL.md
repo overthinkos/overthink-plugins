@@ -45,7 +45,7 @@ Web file manager accessible via Tailscale private tunnel.
 ## Quick Start
 
 ```bash
-ov build filebrowser
+ov image build filebrowser
 ov config filebrowser --bind files=~/Documents
 ov start filebrowser
 # Access at http://localhost:8085

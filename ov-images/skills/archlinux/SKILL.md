@@ -24,7 +24,7 @@ Root base image built from `docker.io/library/archlinux:latest`. Foundation for 
 ## Quick Start
 
 ```bash
-ov build archlinux
+ov image build archlinux
 ov shell archlinux
 ```
 
@@ -48,8 +48,8 @@ pac:
 
 ## Verification
 
-After `ov build`:
-- `ov list` — image appears in list
+After `ov image build`:
+- `ov image list` — image appears in list
 - `ov shell archlinux` — interactive shell works
 - `ov shell archlinux -c "pacman --version"` — pacman available
 

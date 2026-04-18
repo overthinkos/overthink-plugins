@@ -1,24 +1,70 @@
 ---
 name: image
 description: |
-  MUST be invoked before any work involving: image definitions in images.yml, image inheritance, defaults, platforms, builder configuration, or the image dependency graph.
+  MUST be invoked before any work involving: the `ov image` command family, image definitions in images.yml, image inheritance, defaults, platforms, builder configuration, the image dependency graph, or the build/deploy scope boundary.
 ---
 
-# Image - Image Composition
+# ov image -- Family Overview + Image Composition
 
 ## Overview
 
-An **image** is a named build target in `images.yml`. Images compose layers into container images with configurable defaults, inheritance chains, platform targets, and builder configurations. The `ov` CLI resolves dependencies, generates Containerfiles, and builds images in the correct order.
+`ov image` is the **only** command family that reads `images.yml`. It groups
+every build-mode operation (build, generate, validate, list, merge, new,
+inspect, pull) under a single namespace. All other `ov` commands read
+exclusively from OCI labels embedded into built images + `deploy.yml` for
+deployment overrides.
+
+This scope boundary was introduced by the `ov image` refactor. Old top-level
+invocations (`ov build`, `ov validate`, `ov list images`, `ov inspect`, etc.)
+return Kong's `unexpected argument` error — there are no backward-compat shims.
+
+An **image** is a named build target in `images.yml`. Images compose layers
+into container images with configurable defaults, inheritance chains,
+platform targets, and builder configurations. The `ov` CLI resolves
+dependencies, generates Containerfiles, and builds images in the correct
+order.
+
+## The `ov image` Command Family
+
+| Subcommand | Purpose | Skill |
+|---|---|---|
+| `ov image build` | Build container images from images.yml | `/ov:build` |
+| `ov image generate` | Write `.build/` Containerfiles | `/ov:generate` |
+| `ov image inspect` | Print resolved image config as JSON | `/ov:inspect` |
+| `ov image list {images,layers,targets,services,routes,volumes,aliases}` | List components from images.yml | `/ov:list` |
+| `ov image merge` | Merge small layers in a built image | `/ov:merge` |
+| `ov image new layer <name>` | Scaffold a new layer directory | `/ov:new` |
+| `ov image pull` | Fetch an image into local storage | `/ov:pull` |
+| `ov image validate` | Check images.yml + layers | `/ov:validate` |
+
+## Scope Boundary (Build vs. Deploy)
+
+| | Reads `images.yml` | Reads OCI labels | Reads `deploy.yml` |
+|---|---|---|---|
+| `ov image …` | **Yes** (required) | Rarely | No |
+| Everything else | **No** | Yes (required for deploy-mode) | Yes (overlay) |
+
+If a new command needs to resolve layer dependencies, image inheritance, or
+registry tag configuration, it must live under `ov image`. Any command that
+operates on a running container or deployed image must go through
+`ExtractMetadata` (labels) + deploy.yml — never `LoadConfig`.
+
+When a deploy-mode command is run against an image that isn't in local
+storage, `ExtractMetadata`/`EnsureImage` return `ErrImageNotLocal` and the
+top-level error handler renders: *"image 'X' is not available locally. Run
+'ov image pull X' to fetch it first."* See `/ov:pull` for the full sentinel
+pattern.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| List images | `ov list images` | Images from images.yml |
-| List build targets | `ov list targets` | Build targets in dependency order (includes auto-intermediates) |
-| Inspect image | `ov inspect <image>` | Print resolved config as JSON |
-| Inspect field | `ov inspect <image> --format <field>` | Print single field (tag, base, layers, ports, etc.) |
-| Validate | `ov validate` | Check images.yml + layers |
+| List images | `ov image list images` | Images from images.yml |
+| List build targets | `ov image list targets` | Build targets in dependency order (includes auto-intermediates) |
+| Inspect image | `ov image inspect <image>` | Print resolved config as JSON |
+| Inspect field | `ov image inspect <image> --format <field>` | Print single field (tag, base, layers, ports, etc.) |
+| Validate | `ov image validate` | Check images.yml + layers |
+| Pull into local storage | `ov image pull <image>` | Fetch from registry so deploy-mode commands work |
 
 ## images.yml Structure
 
@@ -175,7 +221,7 @@ fedora (external)
      -> openclaw (adds: nodejs, openclaw)
 ```
 
-Auto-intermediates are marked with `Auto: true` and appear in `ov list targets`.
+Auto-intermediates are marked with `Auto: true` and appear in `ov image list targets`.
 
 ### Algorithm
 
@@ -189,7 +235,7 @@ Source: `ov/intermediates.go` (`ComputeIntermediates`, `GlobalLayerOrder`, `walk
 
 ## Versioning
 
-CalVer: `YYYY.DDD.HHMM` (year, day-of-year, UTC time). Computed once per `ov generate`.
+CalVer: `YYYY.DDD.HHMM` (year, day-of-year, UTC time). Computed once per `ov image generate`.
 
 | `tag` value | Generated tag(s) |
 |-------------|-----------------|
@@ -197,7 +243,7 @@ CalVer: `YYYY.DDD.HHMM` (year, day-of-year, UTC time). Computed once per `ov gen
 | `"nightly"` | `nightly` only |
 | `"1.2.3"` | `1.2.3` only |
 
-Override: `ov generate --tag <value>`.
+Override: `ov image generate --tag <value>`.
 
 ## Runtime Environment Variables
 
@@ -282,7 +328,7 @@ All of the above round-trip via `ov config`: the label is read from the image ma
 2. **`--update-all` safety.** Propagating config changes across deployed services must not accidentally rewrite tunnel settings from image labels and blow away per-instance overrides.
 3. **Instance inheritance gap.** Tunnel config is **not** auto-inherited from the base `ov config <image>` call to an `ov config <image> -i <instance>` call. This is a deliberate gap — see `/ov-layers:selkies-desktop` (Multi-Instance Proxy Deployment) for the manual workaround and `/ov:deploy` (Instance Tunnel Inheritance) for the full lifecycle.
 
-**Practical implication:** you can inspect an image's tunnel declaration with `ov inspect <image>` and see nothing useful — that's correct. To see a tunnel's actual state, read `deploy.yml` directly (`ov deploy show <image>`) or the generated quadlet (`ov status <image>`).
+**Practical implication:** you can inspect an image's tunnel declaration with `ov image inspect <image>` and see nothing useful — that's correct. To see a tunnel's actual state, read `deploy.yml` directly (`ov deploy show <image>`) or the generated quadlet (`ov status <image>`).
 
 ## Common Workflows
 
@@ -293,7 +339,7 @@ Add an entry to `images.yml` with `base` and `layers`, then build:
 ```bash
 # Edit images.yml
 # Then:
-ov build my-new-image
+ov image build my-new-image
 ```
 
 ### Layer Images (inheritance)
@@ -324,12 +370,23 @@ images:
 
 ## Cross-References
 
+### Family subcommand skills
+
+- `/ov:build` -- `ov image build` (+ the `--no-cache` intermediate scratch-stage caveat)
+- `/ov:generate` -- `ov image generate` (Containerfile generation including OCI label emission)
+- `/ov:inspect` -- `ov image inspect` (resolved OCI label set)
+- `/ov:list` -- `ov image list {images,layers,targets,services,routes,volumes,aliases}`
+- `/ov:merge` -- `ov image merge` (post-build layer consolidation)
+- `/ov:new` -- `ov image new layer <name>` (scaffold new layer directory)
+- `/ov:pull` -- `ov image pull` (fetch into local storage; `ErrImageNotLocal` recovery)
+- `/ov:validate` -- `ov image validate` (images.yml + layers consistency check)
+
+### Related skills
+
 - `/ov:layer` -- Layer definitions that compose into images (env_provides, env_requires, env_accepts, security resource caps)
-- `/ov:build` -- Building the defined images (+ the `--no-cache` intermediate scratch-stage caveat)
-- `/ov:generate` -- Containerfile generation including OCI label emission
 - `/ov:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
 - `/ov:config` -- `ov config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
-- `/ov:inspect` -- `ov inspect <image>` shows the resolved OCI label set
+- `/ov-dev:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
 
 ## When to Use This Skill
 

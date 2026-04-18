@@ -47,7 +47,7 @@ HTTPS is required for the WebCodecs API (`VideoDecoder`) used by the Selkies JS 
 ## Quick Start
 
 ```bash
-ov build selkies-desktop
+ov image build selkies-desktop
 ov config selkies-desktop
 ov start selkies-desktop
 # Access: https://localhost:3000 (accept cert warning)

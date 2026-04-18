@@ -539,6 +539,12 @@ Source: `ov/envfile.go` (`normalizeNoProxy`), `ov/deploy.go` (`mergeEnvVars`, `s
 
 ## Cross-References
 
+### Prerequisites
+
+- `/ov:pull` — Required before `ov config` can read OCI labels. Remote refs (`@github.com/...`) are rejected with a redirect to `ov image pull`. If the image isn't local, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI prompts for a pull.
+
+### Deploy-mode neighbors
+
 - `/ov:sidecar` — Sidecar containers, pod networking, Tailscale exit nodes, Environment Contract (how sidecars participate in provides filtering)
 - `/ov:start` — Requires `ov config` first in quadlet mode
 - `/ov:deploy` — Deploy state file (deploy.yml), sidecar pod deployment, tunnel lifecycle, instance tunnel inheritance, resource caps persistence
@@ -559,6 +565,6 @@ Source: `ov/envfile.go` (`normalizeNoProxy`), `ov/deploy.go` (`mergeEnvVars`, `s
 
 **MUST be invoked** when the task involves `ov config` commands, image deployment setup, quadlet generation, sidecar attachment, secret provisioning, encrypted volumes, data seeding, or volume backing configuration. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** After build, before start. `ov build` → `ov config` → `ov start`.
+**Workflow position:** After build, before start. `ov image build` → `ov config` → `ov start`.
 
 Source: `ov/config_image.go` (command structs), `ov/quadlet.go` (quadlet generation), `ov/deploy.go` (deploy state), `ov/enc.go` (encrypted volumes), `ov/secrets.go` (secret provisioning), `ov/data.go` (data seeding).

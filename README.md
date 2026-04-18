@@ -13,14 +13,18 @@ Claude Code plugins for Overthink — the container management experience for yo
 
 ## Plugins
 
-### ov (37 skills)
+### ov (38 skills)
 
 Skills for composing, building, and running container images with the `ov` CLI.
+
+Build-mode commands live under `ov image …` (the only family that reads
+`images.yml`). Every other command reads exclusively from OCI labels +
+`deploy.yml`. See `/ov:image` for the family overview.
 
 | Skill | Invocation | Description |
 |-------|-----------|-------------|
 | alias | `/ov:alias` | Command aliases (ov alias add/remove/install) |
-| build | `/ov:build` | Building images (ov build, task build:*, caches) |
+| build | `/ov:build` | `ov image build` — building images, caches |
 | cdp | `/ov:cdp` | Chrome DevTools Protocol (ov cdp open/list/click/eval) |
 | cmd | `/ov:cmd` | Single command execution with D-Bus notification |
 | config | `/ov:config` | Unified setup: quadlet + secrets + volumes + data provisioning |
@@ -28,28 +32,30 @@ Skills for composing, building, and running container images with the `ov` CLI.
 | deploy | `/ov:deploy` | Deployment (quadlet, bootc, tunnels, volume backing) |
 | doctor | `/ov:doctor` | Host dependency and hardware checks |
 | enc | `/ov:enc` | Encrypted volumes (ov config mount/unmount/status/passwd) |
-| generate | `/ov:generate` | Containerfile generation from images.yml and layers |
-| image | `/ov:image` | Image composition (images.yml, defaults, inheritance) |
-| inspect | `/ov:inspect` | Image inspection (resolved config as JSON) |
+| generate | `/ov:generate` | `ov image generate` — Containerfile generation from images.yml and layers |
+| image | `/ov:image` | `ov image` family overview + images.yml composition reference |
+| inspect | `/ov:inspect` | `ov image inspect` — resolved config as JSON |
 | layer | `/ov:layer` | Layer authoring (layer.yml, root.yml, pixi.toml, etc.) |
-| list | `/ov:list` | List images, layers, targets, services, routes, volumes, aliases |
+| list | `/ov:list` | `ov image list` — images, layers, targets, services, routes, volumes, aliases |
 | logs | `/ov:logs` | Service log viewing (ov logs, -f for follow) |
-| merge | `/ov:merge` | Post-build layer optimization via merging small layers |
-| new | `/ov:new` | Scaffold new layers (ov new layer) |
+| merge | `/ov:merge` | `ov image merge` — post-build layer optimization |
+| new | `/ov:new` | `ov image new layer` — scaffold new layers |
 | openclaw | `/ov:openclaw` | OpenClaw AI gateway configuration |
+| pull | `/ov:pull` | `ov image pull` — fetch into local storage; ErrImageNotLocal recovery |
 | record | `/ov:record` | Recording sessions (ov record start/stop/list/cmd) |
 | remove | `/ov:remove` | Remove service container, quadlet, and deploy.yml entry |
 | secrets | `/ov:secrets` | KeePass .kdbx and GPG secret management |
 | service | `/ov:service` | Init system service management inside containers |
 | settings | `/ov:settings` | Runtime configuration (ov settings get/set/list/reset) |
 | shell | `/ov:shell` | Shell access (ov shell, --tty, -c, exec) |
+| sidecar | `/ov:sidecar` | Sidecar containers, pod networking, Tailscale exit nodes |
 | start | `/ov:start` | Start container as background service |
 | status | `/ov:status` | Service status with tool probes and device detection |
 | stop | `/ov:stop` | Stop running container |
 | tmux | `/ov:tmux` | Persistent tmux sessions (ov tmux shell/cmd/run/attach/capture) |
 | udev | `/ov:udev` | GPU device access rules (ov udev status/generate/install/remove) |
 | update | `/ov:update` | Update image and restart with data sync |
-| validate | `/ov:validate` | Validation rules and error handling (ov validate) |
+| validate | `/ov:validate` | `ov image validate` — images.yml + layer definitions |
 | version | `/ov:version` | Show CLI version information |
 | vm | `/ov:vm` | Virtual machines (ov vm build/create/start/stop) |
 | vnc | `/ov:vnc` | VNC desktop automation (ov vnc screenshot/click/type) |

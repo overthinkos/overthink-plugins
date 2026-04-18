@@ -71,7 +71,7 @@ ov alias add openclaw openclaw-sway-browser
 ### Lifecycle
 
 ```bash
-ov build openclaw-sway-browser         # Build image
+ov image build openclaw-sway-browser         # Build image
 ov config openclaw-sway-browser        # Generate quadlet, daemon-reload
 ov start openclaw-sway-browser         # Start via systemd
 ov stop openclaw-sway-browser          # Stop

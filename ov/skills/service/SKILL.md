@@ -92,7 +92,7 @@ ov remove my-app -e KEY=VALUE      # Set env vars for lifecycle hooks
 - Ports bound to configured `bind_address`
 - Entrypoint: determined by init.yml config (e.g., `supervisord -n -c /etc/supervisord.conf` for supervisord, `sleep infinity` if no init system)
 - Auto-restart on failure via `WantedBy=default.target` (encrypted services with Secret Service backend include `ExecStartPre=ov config mount` + `TimeoutStartSec=0` for keyring wait; KeePass/no backend omit `WantedBy` — require `ov start`)
-- `ov validate` enforces: images with init system layers MUST include the required dependency layer (defined by init.yml `depends_layer`)
+- `ov image validate` enforces: images with init system layers MUST include the required dependency layer (defined by init.yml `depends_layer`)
 - `Secret=ov-<image>-<name>,target=/run/secrets/<name>` for each layer-declared secret (Podman only)
 
 ### Container Secrets
@@ -287,6 +287,8 @@ Tunnel:    tailscale (all ports)
 Source: `ov/status.go`.
 
 ## Cross-References
+
+- `/ov:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
 - `/ov:shell` -- Interactive shells and exec into running containers
 - `/ov:deploy` -- Quadlet generation details, tunnels, volume backing

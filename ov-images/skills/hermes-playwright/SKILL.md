@@ -30,7 +30,7 @@ Builds on the base `hermes` layer (not the hermes image), adding Playwright Chro
 ## Quick Start
 
 ```bash
-ov build hermes-playwright
+ov image build hermes-playwright
 ov config hermes-playwright -e OLLAMA_API_KEY=your-key   # or OPENROUTER_API_KEY
 ov start hermes-playwright
 ```

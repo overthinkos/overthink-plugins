@@ -40,7 +40,7 @@ Full ov toolchain via shared layers:
 
 ```bash
 # Build
-ov build arch-ov
+ov image build arch-ov
 
 # Interactive shell
 ov shell arch-ov

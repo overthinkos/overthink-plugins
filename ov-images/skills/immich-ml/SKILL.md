@@ -53,7 +53,7 @@ Immich photo management with GPU-accelerated machine learning for face recogniti
 ## Quick Start
 
 ```bash
-ov build immich-ml
+ov image build immich-ml
 ov config setup immich-ml
 ov start immich-ml
 # Open http://localhost:2283

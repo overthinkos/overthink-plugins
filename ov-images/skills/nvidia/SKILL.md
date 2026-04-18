@@ -28,7 +28,7 @@ NVIDIA GPU base image — provides GPU runtime (driver libs, CDI toolkit) and CU
 ## Quick Start
 
 ```bash
-ov build nvidia
+ov image build nvidia
 ov shell nvidia
 ```
 
@@ -54,7 +54,7 @@ ov shell nvidia
 
 ## Verification
 
-After `ov build`:
+After `ov image build`:
 - `ov shell nvidia -c "nvidia-smi"` — GPU info
 - `ov shell nvidia -c "nvidia-ctk --version"` — CDI toolkit
 - `ov shell nvidia -c "nvcc --version"` — CUDA compiler

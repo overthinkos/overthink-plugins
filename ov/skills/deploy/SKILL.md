@@ -24,7 +24,7 @@ Deployment configuration for container services: quadlet file generation details
 | Import config | `ov deploy import <files>` | Merge files into deploy.yml |
 | Reset config | `ov deploy reset [image]` | Remove deploy.yml overrides |
 | Reset instance config | `ov deploy reset <image> -i <instance>` | Remove instance overrides |
-| Push to registry | `ov build --push` | Multi-platform push |
+| Push to registry | `ov image build --push` | Multi-platform push |
 
 For service lifecycle commands (start/stop/status/logs/update/remove), see `/ov:service`. For VM deployment, see `/ov:vm`. For encrypted storage, see `/ov:enc`.
 
@@ -140,7 +140,7 @@ Port protocols declared in `layer.yml` control the backend URL scheme used by tu
 
 **UDP** ports are never tunneled — a warning is printed. UDP traffic works directly between tailnet nodes.
 
-`ov validate` checks port schemes against provider capabilities. For example, `ssh` is valid for Cloudflare but not Tailscale; `tls-terminated-tcp` is valid for Tailscale but not Cloudflare.
+`ov image validate` checks port schemes against provider capabilities. For example, `ssh` is valid for Cloudflare but not Tailscale; `tls-terminated-tcp` is valid for Tailscale but not Cloudflare.
 
 See `/ov:layer` for port protocol syntax in `layer.yml`.
 
@@ -161,7 +161,7 @@ tunnel:
 
 Quadlet generates multiple `ExecStartPost=` and `ExecStopPost=` lines. Requires `tailscale set --operator=$USER` for non-root access.
 
-Port protocols are stored in the `org.overthinkos.port_protos` image label so remote refs work without access to the original layer definitions.
+Port protocols are stored in the `org.overthinkos.port_protos` image label so deploy-mode commands work without access to the original layer definitions. (Pre-refactor, `ov shell @github.com/...` could fetch a remote repo and build on the fly; that path was deleted. Remote refs now require `ov image pull` first — see `/ov:pull`.)
 
 ### Instance Tunnel Inheritance
 
@@ -318,7 +318,11 @@ ov deploy status
 
 ### Labels-only architecture
 
-Deployment commands (`ov config`, `start`, `status`, `logs`, `update`, `remove`, `seed`, `service`) resolve all configuration from **OCI image labels** + **deploy.yml** — no `images.yml` dependency. This means you can deploy on any machine with just `podman pull` + `ov config`.
+Deployment commands (`ov config`, `start`, `status`, `logs`, `update`, `remove`, `seed`, `service`) resolve all configuration from **OCI image labels** + **deploy.yml** — no `images.yml` dependency. This means you can deploy on any machine with just `ov image pull` + `ov config`.
+
+**Local-storage requirement.** Because deploy-mode commands read OCI labels directly from local container storage (via `ExtractMetadata` → `podman inspect`), the image must be pulled first. If it isn't, the command fails with `ErrImageNotLocal` and the CLI suggests `ov image pull`. See `/ov:pull` for the sentinel pattern and remote-ref (`@github.com/...`) handling.
+
+**`MergeDeployOntoMetadata` ordering gotcha.** When extending deploy-mode code, remember that deploy-overlay fields like `meta.Tunnel` are nil until `MergeDeployOntoMetadata` runs. A `if meta.Tunnel != nil` check before the merge is unreachable code — this was the actual bug fixed in `start.go` by the refactor.
 
 ### Instance Support
 
@@ -425,7 +429,7 @@ volumes:
 - **`ov shell`/`ov start`**: resolves volume backing, verifies bind dirs exist and encrypted volumes are mounted, generates `-v` flags
 - **`ov config` (quadlet)**: bind-backed volumes become `Volume=` lines with host paths. `--userns=keep-id` added when bind-backed volumes exist
 - **`ov remove --purge`**: removes named volumes
-- **`ov inspect --format bind_mounts`**: outputs deploy-configured volume backing
+- **`ov image inspect --format bind_mounts`**: outputs deploy-configured volume backing
 
 Source: `ov/deploy.go` (`DeployVolumeConfig`, `ResolveVolumeBacking`), `ov/enc.go` (`ResolvedBindMount`).
 
@@ -531,6 +535,8 @@ images:
 ```
 
 ## Cross-References
+
+- `/ov:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
 - `/ov:sidecar` -- Sidecar containers, pod networking, Tailscale exit nodes, Environment Contract (provides filtering)
 - `/ov:service` -- Service lifecycle (start/stop/update/remove)

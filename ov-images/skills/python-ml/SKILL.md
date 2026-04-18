@@ -38,7 +38,7 @@ Build order: pixi environment → llama-cpp (binaries) → vLLM 0.19 wheel
 ## Quick Start
 
 ```bash
-ov build python-ml
+ov image build python-ml
 ov shell python-ml
 # python -c "import torch; print(torch.cuda.is_available())"
 ```
@@ -58,7 +58,7 @@ ov shell python-ml
 
 ## Verification
 
-After `ov build`:
+After `ov image build`:
 - `ov shell python-ml -c "python -c 'import torch; print(torch.cuda.is_available())'"` — CUDA OK
 - `ov shell python-ml -c "python -c 'import vllm; print(vllm.__version__)'"` — vLLM OK
 - `ov shell python-ml -c "ls ~/llama.cpp/llama-quantize"` — llama.cpp OK

@@ -45,7 +45,7 @@ Lightweight JupyterLab with real-time collaboration via jupyter-collaboration (Y
 ## Quick Start
 
 ```bash
-ov build jupyter
+ov image build jupyter
 ov config jupyter
 ov start jupyter
 # Open http://localhost:8888

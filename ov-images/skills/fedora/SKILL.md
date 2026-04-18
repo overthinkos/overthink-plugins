@@ -22,7 +22,7 @@ Root base image built from `quay.io/fedora/fedora:43`. Foundation for all RPM-ba
 ## Quick Start
 
 ```bash
-ov build fedora
+ov image build fedora
 ov shell fedora
 ```
 
@@ -37,8 +37,8 @@ ov shell fedora
 
 ## Verification
 
-After `ov build`:
-- `ov list` — image appears in list
+After `ov image build`:
+- `ov image list` — image appears in list
 - `ov shell fedora` — interactive shell works
 
 ## Related Images

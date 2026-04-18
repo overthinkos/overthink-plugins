@@ -136,6 +136,8 @@ Scans `~/.local/bin/` for files with the `# ov-alias` marker.
 
 ## Cross-References
 
+- `/ov:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
+
 - `/ov:shell` -- How aliases execute commands via `ov shell -c`
 - `/ov:layer` -- Declaring aliases in layer.yml
 - `/ov:image` -- Image-level alias overrides

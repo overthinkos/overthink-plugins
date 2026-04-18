@@ -41,7 +41,7 @@ GPU-accelerated Ollama LLM inference server.
 ## Quick Start
 
 ```bash
-ov build ollama
+ov image build ollama
 ov config ollama
 ov start ollama
 ov shell ollama -c "ollama pull llama3"

@@ -49,7 +49,7 @@ ov remove githubrunner -e RUNNER_TOKEN=<token>
 ## Lifecycle
 
 ```bash
-ov build githubrunner
+ov image build githubrunner
 ov config githubrunner -e RUNNER_ORG=myorg -e RUNNER_TOKEN=<token>
 ov start githubrunner
 ov stop githubrunner

@@ -44,6 +44,8 @@ ov stop ollama -i 2
 
 ## Cross-References
 
+- `/ov:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
+
 - `/ov:start` -- Start services
 - `/ov:remove` -- Remove containers, quadlets, and deploy config
 - `/ov:status` -- Check service status

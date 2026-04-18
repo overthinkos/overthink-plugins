@@ -1,37 +1,39 @@
 ---
 name: build
 description: |
-  MUST be invoked before any work involving: building container images, ov build command, pushing to registries, merging layers, build caches, or Containerfile generation.
+  MUST be invoked before any work involving: building container images, ov image build command, pushing to registries, merging layers, build caches, or Containerfile generation.
 ---
 
-# Build - Building Container Images
+# ov image build -- Building Container Images
+
+Invoked as `ov image build`. See `/ov:image` for the family overview.
 
 ## Overview
 
-`ov build` generates Containerfiles from `images.yml` and layer definitions, then builds images in dependency order using the configured build engine (Docker or Podman). Images at the same dependency level are built in parallel (up to `--jobs` concurrent builds).
+`ov image build` generates Containerfiles from `images.yml` and layer definitions, then builds images in dependency order using the configured build engine (Docker or Podman). Images at the same dependency level are built in parallel (up to `--jobs` concurrent builds).
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Build all images | `ov build` | Build all images in dependency order |
-| Build specific image | `ov build <image>` | Build single image for host platform |
-| Build and push | `ov build --push` | Build all platforms and push to registry |
-| Build without cache | `ov build --no-cache` | Disable build cache entirely |
-| Merge layers | `ov merge <image>` | Post-build layer optimization |
+| Build all images | `ov image build` | Build all images in dependency order |
+| Build specific image | `ov image build <image>` | Build single image for host platform |
+| Build and push | `ov image build --push` | Build all platforms and push to registry |
+| Build without cache | `ov image build --no-cache` | Disable build cache entirely |
+| Merge layers | `ov image merge <image>` | Post-build layer optimization |
 
-## ov build Commands
+## ov image build Commands
 
 ```bash
-ov build [image...]                         # Build for local platform
-ov build --push [image...]                  # Build for all platforms and push
-ov build --platform linux/amd64 [image...]  # Specific platform
-ov build --cache registry [image...]         # Registry cache (read+write)
-ov build --cache image [image...]           # Image cache (read-only, default)
-ov build --cache gha [image...]             # GitHub Actions cache
-ov build --no-cache [image...]              # Disable cache entirely
-ov build --jobs N [image...]                # Max concurrent images per DAG level (default: 4)
-ov build --podman-jobs N [image...]         # Max concurrent stages within a single podman build (default: min(NCPU, 4))
+ov image build [image...]                         # Build for local platform
+ov image build --push [image...]                  # Build for all platforms and push
+ov image build --platform linux/amd64 [image...]  # Specific platform
+ov image build --cache registry [image...]         # Registry cache (read+write)
+ov image build --cache image [image...]           # Image cache (read-only, default)
+ov image build --cache gha [image...]             # GitHub Actions cache
+ov image build --no-cache [image...]              # Disable cache entirely
+ov image build --jobs N [image...]                # Max concurrent images per DAG level (default: 4)
+ov image build --podman-jobs N [image...]         # Max concurrent stages within a single podman build (default: min(NCPU, 4))
 ```
 
 ## Format Config (distro.yml / builder.yml)
@@ -52,22 +54,22 @@ Both files use Go `text/template` syntax with access to layer config data. Sourc
 
 ## Containerfile Generation
 
-`ov build` runs `ov generate` internally. You can also run it standalone to inspect generated Containerfiles:
+`ov image build` runs `ov image generate` internally. You can also run it standalone to inspect generated Containerfiles:
 
 ```bash
-ov generate                          # Write .build/ (Containerfiles)
-ov generate --tag v1.0.0             # Override CalVer tag
+ov image generate                          # Write .build/ (Containerfiles)
+ov image generate --tag v1.0.0             # Override CalVer tag
 cat .build/my-image/Containerfile    # Inspect generated output
 ```
 
 ## Build Flow
 
-1. Run `ov generate` internally (produces Containerfiles in `.build/`)
+1. Run `ov image generate` internally (produces Containerfiles in `.build/`)
 2. Resolve runtime config to get build engine (`engine.build`)
 3. Resolve image build order (dependency ordering, grouped by level)
 4. Filter to requested images (and their base dependencies)
 5. For each level: build images in parallel (up to `--jobs` concurrent, default 4)
-6. After all builds: `ov merge --all` (if `merge.auto` enabled, skipped for `--push`)
+6. After all builds: `ov image merge --all` (if `merge.auto` enabled, skipped for `--push`)
 
 ## Parallelism: `--jobs` vs `--podman-jobs`
 
@@ -75,7 +77,7 @@ ov exposes **two** parallelism knobs with distinct meanings:
 
 | Flag | Env var | Default | What it controls |
 |---|---|---|---|
-| `--jobs N` | `OV_BUILD_JOBS` | `4` | **Outer** concurrency: how many ov-level images to build in parallel within a DAG level (e.g., when `ov build` rebuilds the whole graph). |
+| `--jobs N` | `OV_BUILD_JOBS` | `4` | **Outer** concurrency: how many ov-level images to build in parallel within a DAG level (e.g., when `ov image build` rebuilds the whole graph). |
 | `--podman-jobs N` | `OV_PODMAN_JOBS` | auto = `min(NCPU, 4)` | **Inner** concurrency: passed to `podman build --jobs N`, controls how many stages of a *single* multi-stage build run concurrently. |
 
 The inner default is **capped at 4** because podman-5.7.x races under high
@@ -92,9 +94,9 @@ Override the cap if your podman version is known-good (upstream upgrades
 may eventually fix it):
 
 ```bash
-ov build <image> --podman-jobs 16             # fully parallel stages
+ov image build <image> --podman-jobs 16             # fully parallel stages
 OV_PODMAN_JOBS=8 ov update <image> --build    # via env
-ov build <image> --podman-jobs 1              # fully serialised, worst-case debugging
+ov image build <image> --podman-jobs 1              # fully serialised, worst-case debugging
 ```
 
 Source: `ov/build.go:resolvePodmanJobs` + `podmanJobsDefault`. Covered by
@@ -112,9 +114,9 @@ separate field so the two semantics don't get conflated.
 | `none` | No cache | Same as `--no-cache` |
 
 ```bash
-ov build --cache registry my-image        # Read+write registry cache
-ov build --cache image my-image          # Read-only from registry image
-OV_BUILD_CACHE=registry ov build         # Via environment variable
+ov image build --cache registry my-image        # Read+write registry cache
+ov image build --cache image my-image          # Read-only from registry image
+OV_BUILD_CACHE=registry ov image build         # Via environment variable
 ```
 
 ## Build Flow Details
@@ -135,11 +137,11 @@ Source: `ov/build.go` (`retryCmd`).
 Post-build optimization that merges consecutive small layers:
 
 ```bash
-ov merge <image> --dry-run         # Preview what would be merged
-ov merge <image>                   # Merge small layers
-ov merge --all                     # Merge all images with merge.auto enabled
-ov merge <image> --max-mb 512      # Custom per-layer threshold
-ov merge <image> --max-total-mb 4096  # Custom total image size limit
+ov image merge <image> --dry-run         # Preview what would be merged
+ov image merge <image>                   # Merge small layers
+ov image merge --all                     # Merge all images with merge.auto enabled
+ov image merge <image> --max-mb 512      # Custom per-layer threshold
+ov image merge <image> --max-total-mb 4096  # Custom total image size limit
 ```
 
 Configure in images.yml:
@@ -152,7 +154,7 @@ defaults:
     max_total_mb: 0   # Max total image size for merge (0 = no limit)
 ```
 
-CLI flags `--max-mb` and `--max-total-mb` override `images.yml`. `auto` is only used by `ov merge --all` to select which images to merge; `ov merge <image>` always merges regardless. `max_total_mb` controls whether large images skip merging entirely (the merge process decompresses layers in memory). Set to `0` to disable (default), or a positive value like `2048` to cap on low-memory CI runners.
+CLI flags `--max-mb` and `--max-total-mb` override `images.yml`. `auto` is only used by `ov image merge --all` to select which images to merge; `ov image merge <image>` always merges regardless. `max_total_mb` controls whether large images skip merging entirely (the merge process decompresses layers in memory). Set to `0` to disable (default), or a positive value like `2048` to cap on low-memory CI runners.
 
 ### Algorithm
 
@@ -170,7 +172,7 @@ Merge is idempotent -- running again after merging shows all layers as `[keep]`.
 
 Images are merged immediately after building, before their children are built. Child images inherit a merged (fewer-layer) base, producing smaller final images. Both local and push builds merge inline. The `mergeAfterBuild()` function handles this -- it checks `merge.auto` on the image config and runs merge if enabled.
 
-For filtered builds (`ov build <image>`), only the built images are merged. For full builds (`ov build`), merge runs after each dependency level completes.
+For filtered builds (`ov image build <image>`), only the built images are merged. For full builds (`ov image build`), merge runs after each dependency level completes.
 
 ## Engine Configuration
 
@@ -186,7 +188,7 @@ Requires: `go`, `docker` (or `podman`). Run `bash setup.sh` to download `task`, 
 ```bash
 bash setup.sh        # Download task, build ov CLI
 task setup:builder   # Create multi-platform buildx builder
-ov build             # Generate + build + merge all images
+ov image build             # Generate + build + merge all images
 ```
 
 ## Common Workflows
@@ -194,13 +196,13 @@ ov build             # Generate + build + merge all images
 ### Build a Single Image
 
 ```bash
-ov build my-app
+ov image build my-app
 ```
 
 ### Rebuild After Layer Changes
 
 ```bash
-ov build my-app
+ov image build my-app
 # Only changed layers are rebuilt (Docker layer cache)
 ```
 
@@ -211,7 +213,7 @@ ov build my-app
 docker login ghcr.io
 # or: podman login ghcr.io
 
-ov build --push
+ov image build --push
 ```
 
 ## Troubleshooting
@@ -222,7 +224,7 @@ Run `bash setup.sh` to download task and compile the CLI, or `task build:ov` if 
 
 ### Build Fails with Missing Base
 
-Build base images first. `ov build` handles dependency ordering automatically, but if building a single image, its base must already exist.
+Build base images first. `ov image build` handles dependency ordering automatically, but if building a single image, its base must already exist.
 
 ### Cache Miss
 
@@ -234,11 +236,11 @@ If a build fails with `conflicting requests` involving `libavcodec-free` vs `lib
 
 ### YAML Unmarshal Error on layer.yml
 
-If you see `cannot unmarshal !!str ... into int` or similar YAML parsing errors on layer fields, the installed `ov` binary is likely stale. Rebuild with `task build:install` or `cp bin/ov ~/.local/bin/ov`. Verify with `ov validate`.
+If you see `cannot unmarshal !!str ... into int` or similar YAML parsing errors on layer fields, the installed `ov` binary is likely stale. Rebuild with `task build:install` or `cp bin/ov ~/.local/bin/ov`. Verify with `ov image validate`.
 
 ### `--no-cache` does not invalidate intermediate scratch-stage caches
 
-`ov build --no-cache <image>` and `ov build --cache none <image>` reliably disable the
+`ov image build --no-cache <image>` and `ov image build --cache none <image>` reliably disable the
 cache for the **final image stage**, but in observed behavior they do **not** propagate
 to intermediate scratch stages produced by `COPY layers/<x>/ /` instructions
 (`[15/25] STEP 2/2: COPY layers/labwc/ /` style). Editing a single file inside a layer
@@ -250,7 +252,7 @@ adding (or removing) a trailing comment line:
 
 ```bash
 echo "" >> layers/labwc/layer.yml          # bump content hash
-ov build selkies-desktop                   # now invalidates the labwc scratch stage
+ov image build selkies-desktop                   # now invalidates the labwc scratch stage
 git checkout -- layers/labwc/layer.yml     # revert the cosmetic change
 ```
 
@@ -285,7 +287,7 @@ remote image.
 **Workaround until the generator is fixed:**
 
 ```bash
-ov build <image> --cache=none      # or equivalently --no-cache at the ov level
+ov image build <image> --cache=none      # or equivalently --no-cache at the ov level
 ```
 
 Both `--cache=none` and `--no-cache` short-circuit `cacheArgs()` in
@@ -304,10 +306,20 @@ for the `--build` flag that also picks up this caveat.
 
 ## Cross-References
 
+### `ov image` family siblings
+
+- `/ov:image` -- Family overview + images.yml composition reference
+- `/ov:generate` -- Containerfile generation (called internally; stale `:latest` FROM lives there)
+- `/ov:inspect` -- Inspect resolved image config before building
+- `/ov:list` -- Enumerate images, layers, build targets
+- `/ov:merge` -- Post-build layer consolidation (runs inline after each build level)
+- `/ov:new` -- Scaffold a new layer directory before adding to `images.yml`
+- `/ov:pull` -- Pull prebuilt images; orthogonal to building (use for downstream deploy-mode commands)
+- `/ov:validate` -- Validate `images.yml` + layers before building
+
+### Related skills
+
 - `/ov:layer` -- Layer definitions that get built
-- `/ov:image` -- Image definitions in images.yml
-- `/ov:generate` -- Containerfile generation path (where the stale `:latest` FROM emission lives; referenced by the cache-from caveat)
-- `/ov:validate` -- Validating before building
 - `/ov:update` -- `ov update <image> --build` invokes `BuildCmd.Run` and picks up the same `--jobs` cap and stale-`:latest` caveat
 - `/ov:vm` -- Building bootc disk images (`ov vm build`)
 - `/ov:config` -- Engine configuration

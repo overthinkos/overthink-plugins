@@ -94,6 +94,8 @@ ov status --json | jq '.[] | select(.status == "running")'
 
 ## Cross-References
 
+- `/ov:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
+
 - `/ov:start` -- start a service
 - `/ov:stop` -- stop a service (via `/ov:service`)
 - `/ov:logs` -- view service logs (via `/ov:service`)

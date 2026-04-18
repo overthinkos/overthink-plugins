@@ -54,7 +54,7 @@ Build order: pixi environment → llama-cpp (binaries) → unsloth (vLLM 0.19 wh
 ## Quick Start
 
 ```bash
-ov build unsloth-studio
+ov image build unsloth-studio
 ov config unsloth-studio
 ov start unsloth-studio
 # Open http://localhost:8888

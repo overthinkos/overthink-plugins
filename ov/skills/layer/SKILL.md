@@ -14,12 +14,12 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Scaffold new layer | `ov new layer <name>` | Create layer directory with template files |
-| List all layers | `ov list layers` | Show available layers from filesystem |
-| List services | `ov list services` | Layers with `service` in layer.yml |
-| List volumes | `ov list volumes` | Layers with `volumes` in layer.yml |
-| List aliases | `ov list aliases` | Layers with `aliases` in layer.yml |
-| Validate | `ov validate` | Check all layers and images |
+| Scaffold new layer | `ov image new layer <name>` | Create layer directory with template files |
+| List all layers | `ov image list layers` | Show available layers from filesystem |
+| List services | `ov image list services` | Layers with `service` in layer.yml |
+| List volumes | `ov image list volumes` | Layers with `volumes` in layer.yml |
+| List aliases | `ov image list aliases` | Layers with `aliases` in layer.yml |
+| Validate | `ov image validate` | Check all layers and images |
 
 ## Install Files (processed in order)
 
@@ -142,7 +142,7 @@ env_provides:
 - `env_provides` keys may overlap with `env` keys in the same layer — `env` is baked into the service's own image, `env_provides` is injected into consumers
 - On `ov config remove` / `ov remove`, injected vars are automatically cleaned from deploy.yml
 - `--update-all` flag on `ov config` propagates changes to all deployed quadlets immediately
-- Validated by `ov validate`: empty keys and unknown template variables are errors
+- Validated by `ov image validate`: empty keys and unknown template variables are errors
 - Stored in OCI label `org.overthinkos.env_provides` for deploy-only scenarios
 
 See `/ov:config` for `--update-all` flag and `/ov:deploy` for global env in deploy.yml.
@@ -238,7 +238,7 @@ Credential-backed secrets have `RotateOnConfig=true` internally, so `ProvisionPo
 
 **Migration from legacy plaintext.** `ov config` automatically migrates any pre-existing `NAME=VAL` entry in `deploy.yml`'s `env:` list whose NAME is now declared as `secret_accepts` / `secret_requires`. The value moves to the credential backend, the plaintext is stripped, and `deploy.yml.bak.<unix-timestamp>` is written as a rollback point. Idempotent — safe to run on a clean host.
 
-**Validation rules** (enforced by `ov validate`):
+**Validation rules** (enforced by `ov image validate`):
 
 1. No env var name in more than one of `env_accepts` / `env_requires` / `secret_accepts` / `secret_requires`.
 2. `secret_accepts` / `secret_requires` entries cannot collide with `env_provides` keys (credential-backed entries can't also be provider templates).
@@ -266,7 +266,7 @@ mcp_provides:
 - **Pod-aware**: When consumer and provider are in the same container, URLs resolve to `localhost` instead of container hostname. If both a local and remote entry share a name, local wins
 - **No self-exclusion** (unlike env_provides): MCP servers are always included for same-container consumers
 - On `ov config remove` / `ov remove`, MCP entries are automatically cleaned from deploy.yml
-- Validated by `ov validate`: empty names, duplicate names, empty URLs, unknown template variables, and invalid transport values are errors
+- Validated by `ov image validate`: empty names, duplicate names, empty URLs, unknown template variables, and invalid transport values are errors
 - Stored in OCI label `org.overthinkos.mcp_provides`
 
 **Naming convention**: The `name:` field is the **service contract** — it should stay stable across layer/package/image renames. Pick a semantic name (like `jupyter`, `chrome-devtools`) that describes the service, not the artifact. See `/ov-layers:jupyter-mcp` § "MCP Name Decoupling" for a worked example: the `jupyter-colab-ml` layer, the `jupyter_colab_mcp` Python package, and the `jupyter-colab-ml-notebook` image were all renamed in one pass, but `mcp_provides.name: jupyter` stayed unchanged — and every consumer (`hermes`, `openwebui`, the `ov-jupyter` Claude Code plugin) kept working with zero edits.
@@ -314,7 +314,7 @@ ports:
 **Tailscale schemes:** `http` (default), `https`, `https+insecure`, `tcp`, `tls-terminated-tcp`
 **Cloudflare schemes:** `http` (default), `https`, `tcp`, `ssh`, `rdp`, `smb`
 
-UDP ports generate `EXPOSE <port>/udp` and are never tunneled. `ov validate` checks that port schemes are supported by the configured tunnel provider.
+UDP ports generate `EXPOSE <port>/udp` and are never tunneled. `ov image validate` checks that port schemes are supported by the configured tunnel provider.
 
 Ports with HTTPS backends (like Traefik with self-signed certs) MUST use `https+insecure` — plain `http` proxying to an HTTPS backend returns 404.
 
@@ -391,7 +391,7 @@ aur:
 
 **Status:** Working. AUR packages build successfully in the `archlinux-builder` multi-stage build. Debug packages are automatically disabled (makepkg.conf patched). Passwordless sudo is configured for the build user in the AUR build stage.
 
-**Known limitation:** Post-build layer merging (`ov merge`) may fail with `payload does not match any of the supported image formats` on Arch-based images. The image builds and runs correctly — only the optional merge step fails.
+**Known limitation:** Post-build layer merging (`ov image merge`) may fail with `payload does not match any of the supported image formats` on Arch-based images. The image builds and runs correctly — only the optional merge step fails.
 
 ## Dependencies
 
@@ -514,7 +514,7 @@ UID/GID in cache mounts are dynamic (from resolved image config, not hardcoded 1
 ### Create a New Layer
 
 ```bash
-ov new layer my-tool
+ov image new layer my-tool
 # Edit layers/my-tool/layer.yml to add packages and dependencies
 # Add root.yml for binary downloads, user.yml for post-install config
 ```
@@ -611,7 +611,7 @@ Add a `service` field to layer.yml with an init system program fragment (e.g., s
 
 - `/ov:image` -- Adding layers to image definitions
 - `/ov:build` -- Building images with layers
-- `/ov:generate` -- Containerfile generation and layer scratch-stage cache behavior (`ov build --no-cache` caveat lives in `/ov:build`)
+- `/ov:generate` -- Containerfile generation and layer scratch-stage cache behavior (`ov image build --no-cache` caveat lives in `/ov:build`)
 - `/ov:config` -- `env_requires`/`env_accepts` enforcement, provides filtering, resource caps, `--update-all`
 - `/ov:deploy` -- Provides configuration in deploy.yml (env + MCP), resource caps, tunnel is deploy.yml-only
 - `/ov:sidecar` -- Sidecars as env_provides participants (tailscale `TS_*` filtering)

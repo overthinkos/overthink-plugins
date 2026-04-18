@@ -1,7 +1,7 @@
 ---
 name: generate
 description: |
-  Containerfile generation: understanding ov generate output, multi-stage builds,
+  Containerfile generation: understanding ov image generate output, multi-stage builds,
   intermediate images, and the .build/ directory. Use when debugging or understanding
   generated Containerfiles.
   MUST be invoked before reading or modifying any Go source file in ov/.
@@ -11,16 +11,16 @@ description: |
 
 ## Overview
 
-`ov generate` reads `images.yml` and `layers/`, resolves dependency graphs, and writes Containerfiles to `.build/`. Generation is idempotent and `.build/` is disposable (gitignored). Understanding the generated output is essential for debugging build issues.
+`ov image generate` reads `images.yml` and `layers/`, resolves dependency graphs, and writes Containerfiles to `.build/`. Generation is idempotent and `.build/` is disposable (gitignored). Understanding the generated output is essential for debugging build issues.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Generate all | `ov generate` | Write .build/ (Containerfiles) |
-| Generate with tag | `ov generate --tag v1.0.0` | Override CalVer tag |
-| List targets | `ov list targets` | Build targets in dependency order |
-| Inspect config | `ov inspect <image>` | Show resolved config JSON |
+| Generate all | `ov image generate` | Write .build/ (Containerfiles) |
+| Generate with tag | `ov image generate --tag v1.0.0` | Override CalVer tag |
+| List targets | `ov image list targets` | Build targets in dependency order |
+| Inspect config | `ov image inspect <image>` | Show resolved config JSON |
 
 ## Generated Output Structure
 
@@ -178,7 +178,7 @@ Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), maki
 | `org.overthinkos.layer_versions` | JSON | `{"chrome":"2026.83.1430"}` layer name → CalVer (only versioned layers) |
 | `org.overthinkos.skills` | string | Skill documentation URL (omitted if no skill exists) |
 
-Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands try `LoadConfig` (images.yml) first, falling back to `<engine> inspect` labels -- enabling `ov shell myimage` from any directory. Labels also include `org.overthinkos.init` for init system identification and `org.overthinkos.services.<init>` for per-init service lists.
+Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `ov/labels.go`) plus `deploy.yml` overlay — they never touch `images.yml` at runtime. That's why `ov shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `ov image pull`). See `/ov:image` for the build/deploy boundary and `/ov:pull` for the sentinel pattern. Labels also include `org.overthinkos.init` for init system identification and `org.overthinkos.services.<init>` for per-init service lists.
 
 Source: `ov/labels.go`, `ov/generate.go` (`writeLabels`).
 
@@ -205,17 +205,17 @@ UID/GID in cache mounts are dynamic (from resolved image config). All non-root c
 ### Debug Why a Build Fails
 
 ```bash
-ov generate                              # Generate Containerfiles
+ov image generate                              # Generate Containerfiles
 cat .build/my-image/Containerfile        # Inspect the generated Containerfile
-ov validate                              # Check for validation errors
-ov inspect my-image                      # See resolved config
+ov image validate                              # Check for validation errors
+ov image inspect my-image                      # See resolved config
 ```
 
 ### Understand Layer Ordering
 
 ```bash
-ov list targets                          # Shows dependency-ordered build sequence
-ov inspect my-image --format layers      # Shows layer list for an image
+ov image list targets                          # Shows dependency-ordered build sequence
+ov image inspect my-image --format layers      # Shows layer list for an image
 ```
 
 ## Cross-References

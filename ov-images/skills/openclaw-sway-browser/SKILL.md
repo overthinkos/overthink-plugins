@@ -41,7 +41,7 @@ RPM: gh, git, tmux, ffmpeg, ripgrep, sqlite
 ## Quick Start
 
 ```bash
-ov build openclaw-sway-browser
+ov image build openclaw-sway-browser
 ov config openclaw-sway-browser
 ov start openclaw-sway-browser
 # Gateway at http://localhost:18789

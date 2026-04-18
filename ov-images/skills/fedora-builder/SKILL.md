@@ -42,7 +42,7 @@ This image is referenced in `defaults.builders` as the builder for `pixi`, `npm`
 ## Quick Start
 
 ```bash
-ov build fedora-builder
+ov image build fedora-builder
 ov shell fedora-builder
 ```
 
@@ -58,8 +58,8 @@ ov shell fedora-builder
 
 ## Verification
 
-After `ov build`:
-- `ov list` — image appears in list
+After `ov image build`:
+- `ov image list` — image appears in list
 - `ov shell fedora-builder` — interactive shell works
 
 ## When to Use This Skill

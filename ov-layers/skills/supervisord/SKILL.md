@@ -22,7 +22,7 @@ description: |
 
 ## How `ov` Generates Supervisord Configs
 
-Layers declare processes via `service:` in `layer.yml` — a raw supervisord `[program:<name>]` fragment. `ov generate` collects all `service:` fragments across the layer chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `init.yml`).
+Layers declare processes via `service:` in `layer.yml` — a raw supervisord `[program:<name>]` fragment. `ov image generate` collects all `service:` fragments across the layer chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `init.yml`).
 
 ```yaml
 # layers/chrome/layer.yml

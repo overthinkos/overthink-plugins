@@ -2,10 +2,12 @@
 name: merge
 description: |
   Post-build layer optimization via merging consecutive small layers.
-  MUST be invoked before any work involving: ov merge command, image layer reduction, merge configuration, or post-build optimization.
+  MUST be invoked before any work involving: ov image merge command, image layer reduction, merge configuration, or post-build optimization.
 ---
 
-# ov merge -- Post-Build Layer Optimization
+# ov image merge -- Post-Build Layer Optimization
+
+Invoked as `ov image merge [<image>]`. See `/ov:image` for the family overview.
 
 ## Overview
 
@@ -15,10 +17,10 @@ Reduces image layer count by merging consecutive small layers. Uses `go-containe
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Merge single image | `ov merge <image>` | Merge layers in specified image |
-| Dry run | `ov merge <image> --dry-run` | Show what would be merged without changing anything |
-| Custom threshold | `ov merge <image> --max-mb N` | Set max layer size for merge candidates (default: 128 MB) |
-| Merge all auto | `ov merge --all` | Merge all images that have `merge.auto: true` |
+| Merge single image | `ov image merge <image>` | Merge layers in specified image |
+| Dry run | `ov image merge <image> --dry-run` | Show what would be merged without changing anything |
+| Custom threshold | `ov image merge <image> --max-mb N` | Set max layer size for merge candidates (default: 128 MB) |
+| Merge all auto | `ov image merge --all` | Merge all images that have `merge.auto: true` |
 
 ## Usage
 
@@ -26,24 +28,24 @@ Reduces image layer count by merging consecutive small layers. Uses `go-containe
 
 ```bash
 # Merge consecutive small layers in an image
-ov merge sway-browser-vnc
+ov image merge sway-browser-vnc
 
 # Preview without changing
-ov merge sway-browser-vnc --dry-run
+ov image merge sway-browser-vnc --dry-run
 ```
 
 ### Custom Size Threshold
 
 ```bash
 # Only merge layers smaller than 64 MB
-ov merge sway-browser-vnc --max-mb 64
+ov image merge sway-browser-vnc --max-mb 64
 ```
 
 ### Automatic Merge for All Configured Images
 
 ```bash
 # Merge all images that opt in via images.yml
-ov merge --all
+ov image merge --all
 ```
 
 ## Configuration in images.yml
@@ -52,7 +54,7 @@ ov merge --all
 images:
   sway-browser-vnc:
     merge:
-      auto: true      # Include in `ov merge --all`
+      auto: true      # Include in `ov image merge --all`
       max_mb: 128     # Size threshold (default: 128)
 ```
 
@@ -62,7 +64,7 @@ images:
 2. Group consecutive layers where each is below `max_mb`
 3. Deduplicate filesystem entries across merged layers (last writer wins) and suppress whiteout conflicts
 4. Reconstruct image with merged layers
-5. Inline merge also runs automatically after each build level during `ov build`
+5. Inline merge also runs automatically after each build level during `ov image build`
 
 ## Whiteout Handling
 
@@ -80,5 +82,17 @@ OCI/Docker images use special "whiteout" files to represent file deletions acros
 
 ## Cross-References
 
-- `/ov:build` -- building images (merge runs as part of build)
+### `ov image` family siblings
+
+- `/ov:image` -- Family overview + images.yml composition reference
+- `/ov:build` -- Building images (merge runs inline after each build level)
 - `/ov:generate` -- Containerfile generation
+- `/ov:inspect` -- Inspect merged images
+- `/ov:list` -- Enumerate images before merging
+- `/ov:new` -- Scaffold new layers
+- `/ov:pull` -- Pull prebuilt images into local storage
+- `/ov:validate` -- Validate before merging
+
+### Related skills
+
+- `/ov:layer` -- Layer authoring (layer size affects merge behavior)

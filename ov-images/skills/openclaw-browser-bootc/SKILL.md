@@ -52,7 +52,7 @@ Bootable container (bootc) VM image with OpenClaw AI gateway, Chrome browser, VN
 
 ```bash
 # Enable in images.yml first (remove enabled: false)
-ov build openclaw-browser-bootc
+ov image build openclaw-browser-bootc
 ov vm build openclaw-browser-bootc --type qcow2
 ov vm create openclaw-browser-bootc --ram 4G --cpus 2
 ov vm start openclaw-browser-bootc

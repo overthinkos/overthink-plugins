@@ -35,7 +35,7 @@ layers:
 ## Quick Start
 
 ```bash
-ov build fedora-remote
+ov image build fedora-remote
 ov shell fedora-remote
 ```
 
@@ -47,8 +47,8 @@ ov shell fedora-remote
 
 ## Verification
 
-After `ov build`:
-- `ov list` — image appears in list
+After `ov image build`:
+- `ov image list` — image appears in list
 - `ov shell fedora-remote` — interactive shell works
 
 ## Related Images

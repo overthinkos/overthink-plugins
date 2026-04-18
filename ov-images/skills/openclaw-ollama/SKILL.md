@@ -38,7 +38,7 @@ Headless OpenClaw gateway with local LLM inference via Ollama — no desktop, no
 ## Quick Start
 
 ```bash
-ov build openclaw-ollama
+ov image build openclaw-ollama
 ov config openclaw-ollama
 ov start openclaw-ollama
 # Pull a model and configure OpenClaw to use it

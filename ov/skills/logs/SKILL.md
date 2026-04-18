@@ -56,6 +56,8 @@ ov logs comfyui -f -n 50
 
 ## Cross-References
 
+- `/ov:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
+
 - `/ov:status` -- Check service status
 - `/ov:service` -- Service lifecycle management
 - `/ov:start` -- Starting services

@@ -2,10 +2,12 @@
 name: inspect
 description: |
   Image inspection showing resolved configuration as JSON.
-  MUST be invoked before any work involving: ov inspect command, viewing image configuration, or querying image metadata.
+  MUST be invoked before any work involving: ov image inspect command, viewing image configuration, or querying image metadata.
 ---
 
-# ov inspect -- Image Inspection
+# ov image inspect -- Image Inspection
+
+Invoked as `ov image inspect <image>`. See `/ov:image` for the family overview.
 
 ## Overview
 
@@ -15,26 +17,26 @@ Displays the fully resolved configuration of an image as JSON. Shows base image,
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Full inspect | `ov inspect <image>` | Show complete resolved config as JSON |
-| Specific field | `ov inspect <image> --format FIELD` | Extract a specific field |
+| Full inspect | `ov image inspect <image>` | Show complete resolved config as JSON |
+| Specific field | `ov image inspect <image> --format FIELD` | Extract a specific field |
 
 ## Usage
 
 ```bash
 # Inspect full image configuration
-ov inspect fedora
+ov image inspect fedora
 
 # Get specific field
-ov inspect jupyter --format ports
+ov image inspect jupyter --format ports
 
 # Get the base image
-ov inspect sway-browser-vnc --format base
+ov image inspect sway-browser-vnc --format base
 
 # Get layer list
-ov inspect ollama --format layers
+ov image inspect ollama --format layers
 
 # Get platforms
-ov inspect fedora --format platforms
+ov image inspect fedora --format platforms
 ```
 
 ## Output Fields
@@ -57,6 +59,18 @@ The JSON output includes:
 
 ## Cross-References
 
-- `/ov:image` -- Image definitions in images.yml
-- `/ov:list` -- List all available images
-- `/ov:validate` -- Validate image and layer definitions
+### `ov image` family siblings
+
+- `/ov:image` -- Family overview + images.yml composition reference
+- `/ov:build` -- Build the inspected image
+- `/ov:generate` -- Containerfile generation for the inspected image
+- `/ov:list` -- Enumerate images before inspecting one
+- `/ov:merge` -- Post-build layer consolidation
+- `/ov:new` -- Scaffold new layers
+- `/ov:pull` -- Fetch prebuilt images into local storage
+- `/ov:validate` -- Validate image and layer definitions before inspect
+
+### Related skills
+
+- `/ov:layer` -- Layer-level detail shown in inspect output
+- `/ov:deploy` -- `deploy.yml` overlay applied on top of inspect's resolved config
