@@ -170,6 +170,19 @@ Multiple MCP clients can edit the same notebook simultaneously:
 - The supervisord service command calls `jupyter lab` directly, not via `pixi run`. Pixi multi-stage builds copy only `~/.pixi/envs/` to the final image — `pixi.toml` is not present at runtime.
 - The `start-jupyter` pixi task in `pixi.toml` is for build-time verification only.
 
+## Tests
+
+The layer ships 2 declarative checks embedded in the `org.overthinkos.tests`
+OCI label (see `/ov:test` for the full schema):
+
+- **Build-scope** (run under `ov image test`):
+  - `workspace-dir` — `${HOME}/workspace` exists as a directory
+- **Deploy-scope** (run under `ov test` against a live service):
+  - `jupyter-api` — `GET http://${CONTAINER_IP}:${HOST_PORT:8888}/api`
+    returns 200 with a body containing `"version"`. The `${HOST_PORT:8888}`
+    substitution means the check works unchanged when `deploy.yml` remaps
+    the host port.
+
 ## Used In Images
 
 - `/ov-images:jupyter`

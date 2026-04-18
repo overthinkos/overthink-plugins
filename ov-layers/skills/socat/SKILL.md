@@ -47,3 +47,8 @@ Use when the user asks about:
 - socat configuration
 - Exposing loopback-only services
 - The `socat` layer or `port_relay` field
+
+## Author + Test References
+
+- `/ov:layer` — layer authoring reference (tasks, vars, env_provides, tests block syntax)
+- `/ov:test` — declarative testing framework for the `tests:` block

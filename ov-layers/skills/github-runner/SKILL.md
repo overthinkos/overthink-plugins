@@ -67,3 +67,8 @@ Use when the user asks about:
 - Runner registration or deregistration
 - CI/CD container infrastructure
 - `RUNNER_TOKEN` or `RUNNER_ORG` configuration
+
+## Author + Test References
+
+- `/ov:layer` — layer authoring reference (tasks, vars, env_provides, tests block syntax)
+- `/ov:test` — declarative testing framework for the `tests:` block

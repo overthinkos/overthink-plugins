@@ -63,3 +63,8 @@ Use when the user asks about:
 - Valkey key-value store
 - Redis-compatible caching in containers
 - Port 6379 services
+
+## Author + Test References
+
+- `/ov:layer` — layer authoring reference (tasks, vars, env_provides, tests block syntax)
+- `/ov:test` — declarative testing framework for the `tests:` block

@@ -58,3 +58,8 @@ Use when the user asks about:
 - Rust compiler in containers
 - Cargo builds or Rust development
 - The `rust` layer
+
+## Author + Test References
+
+- `/ov:layer` — layer authoring reference (tasks, vars, env_provides, tests block syntax)
+- `/ov:test` — declarative testing framework for the `tests:` block

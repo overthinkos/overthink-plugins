@@ -171,6 +171,26 @@ ov cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"rawKeyDown",
 ov cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"keyUp","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}'
 ```
 
+## Test Coverage
+
+Latest `ov test jupyter` run: **29 passed, 0 failed, 0 skipped**.
+All tests embedded in the `org.overthinkos.tests` OCI label:
+jupyter-lab binary under pixi, notebook-templates provisioned into
+`${HOME}/workspace`, jupyter-mcp extension enabled, fastmcp pip
+package installed. Deploy-scope: supervisord up, port 8888 reachable
+on `127.0.0.1`, `/api` returns 200 with `version` in body, `/mcp`
+returns 400 on empty POST (proving MCP routing is wired). Image-scope:
+`jupyter_mcp` appears in extension list, workspace has ≥1 `.ipynb`.
+
+See `/ov:test` for the framework and author-facing gotchas.
+
+## Related Skills
+
+- `/ov-layers:jupyter`, `/ov-layers:jupyter-mcp`, `/ov-layers:notebook-templates`
+- `/ov:test` — declarative testing framework
+- `/ov:config` — deploy setup
+- `/ov-images:jupyter-ml`, `/ov-images:jupyter-ml-notebook` — GPU variants
+
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the jupyter image, collaborative Jupyter notebooks, lightweight Jupyter deployments without GPU, MCP-based notebook access, or multi-client collaboration. Invoke this skill BEFORE reading source code or launching Explore agents.

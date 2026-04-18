@@ -551,6 +551,7 @@ images:
 - `/ov-layers:chrome` — Canonical resource caps consumer + crash-loop circuit breaker
 - `/ov-layers:supervisord` — Event listener pattern triggered by the caps
 - `/ov-layers:selkies-desktop` — Multi-instance proxy deployment, tunnel inheritance workaround
+- `/ov:test` — Local `tests:` in deploy.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.
 
 ## When to Use This Skill
 

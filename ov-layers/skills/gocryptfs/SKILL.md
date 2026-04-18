@@ -53,3 +53,8 @@ Use when the user asks about:
 - `ov config` encrypted volume operations (mount, unmount, status, passwd)
 - The `gocryptfs` layer
 - systemd scope units for encrypted mounts (`ov-enc-*`)
+
+## Author + Test References
+
+- `/ov:layer` — layer authoring reference (tasks, vars, env_provides, tests block syntax)
+- `/ov:test` — declarative testing framework for the `tests:` block

@@ -93,6 +93,24 @@ After `ov start`:
 - `curl -s http://localhost:8085/health` -- `{"message":"ok"}`
 - Tailscale: `https://<hostname>:8085` from any tailnet device
 
+## Test Coverage
+
+Latest `ov test filebrowser` run: **24 passed, 0 failed, 0 skipped**.
+All tests embedded in the `org.overthinkos.tests` OCI label, covering
+agent-forwarding prerequisites (gpg, ssh, direnv binaries), supervisord
++ dbus daemon + ov binary presence, filebrowser binary + config, and
+deploy-scope: service up, port reachable on `127.0.0.1:${HOST_PORT:8080}`,
+HTTP 200 on `/`, data volume mounted.
+
+See `/ov:test` for the framework and author-facing gotchas.
+
+## Related Skills
+
+- `/ov-layers:filebrowser` — layer authoring
+- `/ov:test` — declarative testing framework
+- `/ov:config` — deploy-mode setup with volume backing and tunnels
+- `/ov:build` — LABELs-at-end cache efficiency
+
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the filebrowser image, web file management deployment, or the FileBrowser Quantum service. Invoke this skill BEFORE reading source code or launching Explore agents.

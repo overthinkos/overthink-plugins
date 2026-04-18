@@ -34,9 +34,13 @@ my-cloud-image:
 
 Used in bootc images for VM/cloud deployments. Depends on `sshd`.
 
-## Related Layers
+## Related Skills
 
 - `/ov-layers:sshd` -- SSH server dependency
+- `/ov-layers:bootc-base` — composition that includes this layer
+- `/ov-layers:qemu-guest-agent` — host-guest communication (paired with cloud-init in VMs)
+- `/ov:vm` — VM lifecycle (create, start, stop) for bootc disk images
+- `/ov:layer` — layer authoring reference
 
 ## When to Use This Skill
 

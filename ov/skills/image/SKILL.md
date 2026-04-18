@@ -35,6 +35,7 @@ order.
 | `ov image merge` | Merge small layers in a built image | `/ov:merge` |
 | `ov image new layer <name>` | Scaffold a new layer directory | `/ov:new` |
 | `ov image pull` | Fetch an image into local storage | `/ov:pull` |
+| `ov image test` | Run declarative tests against a disposable container from a built image (reads the `org.overthinkos.tests` OCI label) | `/ov:test` |
 | `ov image validate` | Check image.yml + layers | `/ov:validate` |
 
 ## Scope Boundary (Build vs. Deploy)
@@ -65,6 +66,7 @@ pattern.
 | Inspect field | `ov image inspect <image> --format <field>` | Print single field (tag, base, layers, ports, etc.) |
 | Validate | `ov image validate` | Check image.yml + layers |
 | Pull into local storage | `ov image pull <image>` | Fetch from registry so deploy-mode commands work |
+| Run build-time tests | `ov image test <image>` | Runs the baked layer + image test sections in a disposable `podman run --rm` container; add `--include-deploy` to also run the deploy section. See `/ov:test`. |
 
 ## image.yml Structure
 
@@ -387,6 +389,7 @@ images:
 - `/ov:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
 - `/ov:config` -- `ov config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
 - `/ov-dev:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
+- `/ov:test` — Image-level `tests:` (cross-layer invariants) and `deploy_tests:` (deploy-default checks shipped with the image). Both are embedded in the `org.overthinkos.tests` OCI label.
 
 ## When to Use This Skill
 

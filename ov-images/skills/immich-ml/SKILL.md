@@ -82,6 +82,31 @@ After `ov start`:
 - `curl -s -o /dev/null -w '%{http_code}' http://localhost:2283` — Immich HTTP returns 200
 - `curl -s -o /dev/null -w '%{http_code}' http://localhost:3003` — ML backend HTTP returns 200
 
+## Test Coverage
+
+Latest `ov test immich-ml` run: **61 passed, 0 failed, 2 skipped**.
+The 2 skips are `redis-responds` and `redis-port-open` — they reference
+`${HOST_PORT:6379}` which isn't mapped on this image (redis is internal
+to the pod). Correct skip behavior; no authoring action needed.
+
+Covers postgres binaries + pg_isready, `valkey-compat-redis` package
+(Fedora 43 rename — see `/ov-layers:redis`), pytorch + vllm importable
+in python-ml pixi env, nodejs24 + cuda, Immich server `dist/main.js`,
+DB migrate script, geodata init SQL, ML venv + `immich_ml/` module.
+Deploy-scope: port 2283 host-reachable, `/api/server/ping` returns 200
+with `pong`, internal ML endpoint reachable via in-container
+`curl http://127.0.0.1:3003/ping`. Image-scope: supervisorctl orchestrates
+postgresql + redis + immich-server + immich-ml all RUNNING.
+
+## Related Skills
+
+- `/ov-layers:immich`, `/ov-layers:immich-ml`, `/ov-layers:postgresql`,
+  `/ov-layers:vectorchord`, `/ov-layers:redis`, `/ov-layers:cuda`,
+  `/ov-layers:python-ml`, `/ov-layers:nodejs24`
+- `/ov:test` — framework + runtime variable rules (why skips happen)
+- `/ov:config` — deploy setup (pg password secret, volume backing)
+- `/ov-images:immich` — non-ML variant
+
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the immich-ml image, Immich ML features, or GPU-accelerated photo management. Invoke this skill BEFORE reading source code or launching Explore agents.

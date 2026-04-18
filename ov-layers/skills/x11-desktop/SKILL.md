@@ -45,3 +45,8 @@ Not used in any current image definition. Available as a metalayer composition b
 ## When to Use This Skill
 
 Use when working with X11 desktop composition or comparing display server approaches.
+
+## Author + Test References
+
+- `/ov:layer` — layer authoring reference (tasks, vars, env_provides, tests block syntax)
+- `/ov:test` — declarative testing framework for the `tests:` block

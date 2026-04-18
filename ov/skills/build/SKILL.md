@@ -133,6 +133,42 @@ ov image build --cache image my-image          # Read-only from registry image
 OV_BUILD_CACHE=registry ov image build         # Via environment variable
 ```
 
+## Cache Efficiency
+
+Three rules determine how much of a rebuild re-runs cached steps:
+
+1. **LABEL directives are emitted last** in every final stage (after the
+   last `USER` directive). This means a `tests:` edit — the most
+   common layer mutation — only re-runs the LABEL steps themselves
+   (~2 seconds on a 138-step stack like `immich-ml`). Without this,
+   the `org.overthinkos.tests` LABEL change would invalidate every
+   downstream RUN/COPY. See `/ov-dev:generate` for the rationale.
+
+2. **Content-addressed COPY sources** (via `stageInlineContent` for
+   `write:` tasks) mean edits to inline content change only the
+   affected COPY layer's cache key. Edits to regular file-based `copy:`
+   sources change the scratch stage's content hash and invalidate the
+   downstream `COPY --from=<layer>` step.
+
+3. **CalVer cascade (residual cost)**: each `ov image build` assigns a
+   fresh CalVer timestamp to every intermediate image. Downstream
+   stages reference those new tags in their `FROM` step, which never
+   hits cache on a clean run. Subsequent RUN/COPY steps DO hit cache
+   (buildkit uses content-addressed keys from the FROM image onward).
+   This is the dominant cold-start cost; not yet addressed by any
+   stable-tag mode.
+
+Rule of thumb for rebuild cost:
+
+| Edit | Cost |
+|------|------|
+| A `tests:` / label entry | ~2 sec (LABEL re-emit only) |
+| A `copy:` source file's content | Rebuild from the COPY step onward |
+| A `write:` task's content | Just that single COPY layer (content-addressed) |
+| A `cmd:` / `download:` task | Rebuild from that RUN onward |
+| A package added/removed | Rebuild from the install RUN onward |
+| `ov image build` with no source changes | Seconds (every step cache-hits) |
+
 ## Build Flow Details
 
 **Internal base images** use exact CalVer tags in Containerfiles (`FROM ghcr.io/overthinkos/fedora:2026.46.1415`). This ensures each image references the precise version of its parent. Both Docker and Podman resolve local images before pulling from registry.
@@ -334,6 +370,7 @@ for the `--build` flag that also picks up this caveat.
 ### Related skills
 
 - `/ov:layer` -- Layer definitions that get built
+- `/ov:test` -- Tests are embedded as `org.overthinkos.tests` OCI label at build time; LABEL-at-end optimization (see Cache Efficiency above) makes test edits cheap.
 - `/ov:update` -- `ov update <image> --build` invokes `BuildCmd.Run` and picks up the same `--jobs` cap and stale-`:latest` caveat
 - `/ov:vm` -- Building bootc disk images (`ov vm build`)
 - `/ov:config` -- Engine configuration

@@ -325,3 +325,30 @@ curl -k https://localhost:3000         # HTTPS 200, Selkies dashboard HTML
 ov wl screenshot selkies-desktop t.png # Screenshot via capture bridge
 ov cdp status selkies-desktop          # CDP available on port 9222
 ```
+
+## Test Coverage
+
+Latest `ov test selkies-desktop` run: **91 passed, 0 failed, 0 skipped**
+— the largest test suite in the project. Covers all 21 transitive
+layers (selkies, chrome, sshd, chrome-devtools-mcp primary; labwc,
+waybar-labwc, pipewire, swaync, pavucontrol, wl-tools, wl-*-pixelflux,
+a11y-tools, xterm, desktop-fonts, asciinema, fastfetch, tmux
+secondary).
+
+Deploy-scope: ports 3000 (HTTPS selkies), 9222 (Chrome CDP), 9224
+(chrome-devtools-mcp), 2222 (sshd) all reachable via
+`127.0.0.1:${HOST_PORT:N}`. `/json/version` returns 200 with
+`webSocketDebuggerUrl`. All primary services RUNNING under supervisord
+(labwc, selkies, traefik, chrome via event-listener handoff, sshd).
+
+Note: the sshd layer uses `sudo -n -l` rather than `file:` existence
+for `/etc/sudoers.d/ov-user` because it's root-only (`/ov:test` Gotcha #10).
+
+## Related Skills
+
+- `/ov-layers:selkies-desktop` (metalayer), `/ov-layers:selkies`,
+  `/ov-layers:chrome`, `/ov-layers:labwc`, `/ov-layers:sshd`,
+  `/ov-layers:chrome-devtools-mcp`, `/ov-layers:pipewire`
+- `/ov:test` — declarative testing framework + testing gotchas
+- `/ov:cdp`, `/ov:wl` — desktop automation on this image
+- `/ov:config` — deploy setup (tunnel, port remapping, instances)

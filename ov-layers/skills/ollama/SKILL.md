@@ -59,6 +59,19 @@ ollama run llama3          # uses the alias
 
 The `env_provides` mechanism makes `OLLAMA_HOST` available to all containers. The `hermes` layer auto-detects this variable and configures itself to use local Ollama as its LLM provider (highest priority in the auto-detection chain: `OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`). See `/ov-layers:hermes` for details on the auto-provider-configuration.
 
+## Tests
+
+The layer ships 3 declarative checks embedded in the `org.overthinkos.tests`
+OCI label (see `/ov:test` for the full schema):
+
+- **Build-scope** (run under `ov image test`):
+  - `ollama-binary` — `/usr/bin/ollama` exists
+- **Deploy-scope** (run under `ov test` against a live service; uses
+  `${HOST_PORT:11434}` / `${CONTAINER_IP}` so deploy-time port remapping
+  works unchanged):
+  - `ollama-tags-api` — `GET http://${CONTAINER_IP}:${HOST_PORT:11434}/api/tags` returns 200
+  - `ollama-version` — `ollama --version` stdout matches `^ollama version`
+
 ## Related Layers
 
 - `/ov-layers:cuda` -- CUDA toolkit dependency

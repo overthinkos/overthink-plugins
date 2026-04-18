@@ -95,6 +95,27 @@ ov cdp open sway-browser-vnc "https://ov-selkies-desktop:3000"
 
 See `/ov-images:selkies-desktop` for detailed SPA interaction documentation.
 
+## Test Coverage
+
+Latest `ov test sway-browser-vnc` run: **84 passed, 0 failed, 1 skipped**
+(`chrome-devtools-mcp-port` references `${HOST_PORT:9224}` which isn't
+mapped here — correct skip behavior).
+
+Covers all 19 transitive layers: wayvnc (VNC), sway (compositor),
+chrome-sway, xdg-portal, waybar, swaync, pavucontrol, thunar,
+xfce4-terminal, pipewire, wl-screenshot-grim, wl-overlay, wf-recorder,
+desktop-fonts, fastfetch, asciinema, tmux, dbus, ov. Deploy-scope: VNC
+port 5900 reachable, Chrome CDP on port 9250→9222 with `/json/version`
+200. Image-scope: sway + wayvnc both RUNNING under supervisord.
+
+## Related Skills
+
+- `/ov-layers:sway-desktop-vnc`, `/ov-layers:sway`, `/ov-layers:wayvnc`,
+  `/ov-layers:chrome-sway`, `/ov-layers:xdg-portal`
+- `/ov:test` — declarative testing framework
+- `/ov:vnc` — VNC automation on this image
+- `/ov:cdp` — Chrome automation (CDP on host port 9250)
+
 ## Related Images
 
 - `selkies-desktop` — browser-accessible remote desktop (can be accessed from sway-browser-vnc's Chrome)

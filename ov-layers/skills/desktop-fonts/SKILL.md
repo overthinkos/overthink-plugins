@@ -21,6 +21,12 @@ description: |
 - `liberation-fonts` (RPM) -- serif/sans/mono web fonts (Chrome rendering fallback)
 - `nerd-fonts` (RPM, via `che/nerd-fonts` COPR) -- icon font (Symbols Nerd Font)
 
+**Fedora 43 package-name note:** `liberation-fonts` is a **virtual**
+package — dnf resolves it to `liberation-sans-fonts` (and sibling
+`-serif-fonts` / `-mono-fonts` packages). Any `package:` test must
+query the real installed name (`liberation-sans-fonts`), not the
+dnf-level request. See `/ov:test` Authoring Gotcha #8.
+
 ## Usage
 
 Included in desktop metalayers. Not typically added directly:
@@ -48,11 +54,13 @@ Included in desktop metalayers. Not typically added directly:
 - `/ov-images:selkies-desktop` (via `selkies-desktop` metalayer)
 - `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
 
-## Related Layers
+## Related Skills
 
 - `/ov-layers:waybar` -- uses JetBrains Mono + Symbols Nerd Font
 - `/ov-layers:waybar-labwc` -- same fonts
 - `/ov-layers:swaync` -- uses JetBrains Mono
+- `/ov:test` -- declarative testing framework (Authoring Gotcha #8 on package renames)
+- `/ov:layer` -- layer authoring reference
 
 ## When to Use This Skill
 

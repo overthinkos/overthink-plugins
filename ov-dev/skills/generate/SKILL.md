@@ -89,9 +89,35 @@ func (t *Task) Kind() (string, error)   // returns verb or error ("no action" / 
 | `emitCopy(b, Task, layerStage, img)` | `COPY --from=<layerStage> --chmod= [--chown=] <src> <to>` |
 | `emitWrite(b, Task, srcPath, img)` | `COPY [--chown=] --chmod= <srcPath> <path>` where `srcPath` is the staged inline-content file |
 | `emitLinkBatch(b, []Task, img)` | One `RUN ln -sf t1 l1 && ln -sf t2 l2 …` |
-| `emitDownload(b, Task, img)` | `RUN --mount=type=cache,dst=/tmp/downloads bash -c 'BUILD_ARCH=$(uname -m) curl … \| <extractor>'` |
+| `emitDownload(b, Task, img)` | `RUN --mount=type=cache,dst=/tmp/downloads bash -c 'export BUILD_ARCH=$(uname -m); curl … \| <extractor>'` |
 | `emitSetcapBatch(b, []Task, img)` | `RUN setcap -r … && setcap caps path …` |
-| `emitCmd(b, Task, layerStage, img, userIsRoot)` | `RUN --mount=type=bind,from=<layerStage>,source=/,target=/ctx [--mount=type=cache,…] bash -c 'BUILD_ARCH=$(uname -m)\nset -e\n<command>'` |
+| `emitCmd(b, Task, layerStage, img, userIsRoot)` | `RUN --mount=type=bind,from=<layerStage>,source=/,target=/ctx [--mount=type=cache,…] bash -c $'BUILD_ARCH=$(uname -m)\nset -e\n<command>'` (ANSI-C `$'...'` quoting — see below) |
+
+### Shell-quoting helpers (`ov/tasks.go`)
+
+Two helpers in `tasks.go` handle the two shell-quoting problems that
+come up when embedding scripts and JSON into a Containerfile:
+
+| Helper | Purpose | Used by |
+|--------|---------|---------|
+| `shellSingleQuote(s)` | Standard `'...'` quoting with `'\''` escape for embedded single quotes. | `emitDownload` (for `t.Env` values), `writeJSONLabel` (for LABEL JSON values containing `awk '{…}'` etc.) |
+| `shellAnsiQuote(s)` | Bash ANSI-C `$'...'` quoting: real newlines, tabs, and backslashes survive as `\n` / `\t` / `\\`. Keeps a multi-line script on a single physical line. | `emitCmd` body |
+
+**Why `shellAnsiQuote` exists**: a plain `bash -c '<body>'` with embedded
+real newlines gets cut off by podman's Dockerfile parser at the first
+newline inside the quoted string — the parser is line-oriented and
+treats everything after the newline as a new instruction. `$'…\n…'`
+serializes the whole script to one physical line; bash then reassembles
+the newlines when it parses the `-c` argument. Works on Fedora/Arch
+(bash-linked `/bin/sh`) and Alpine (ash supports ANSI-C).
+
+**Why `export VAR=val;` beats `VAR=val cmd`** in `emitDownload`: the
+`VAR=val cmd` prefix form sets `VAR` in `cmd`'s environment, but bash
+expands `${VAR}` in `cmd`'s arguments *before* the environment is
+assembled. Result: the URL `pixi-${BUILD_ARCH}-unknown-linux-musl.tar.gz`
+gets rendered as `pixi--unknown-linux-musl.tar.gz` (empty arch) →
+404. Terminating with `;` forces bash to run the export statement first,
+putting the value in scope for the downstream URL expansion.
 
 ### Inline-content staging
 
@@ -185,65 +211,59 @@ FROM scratch AS mylib-ctx
 COPY layers/mylib/ /
 ```
 
-## Multi-Stage Builds
+## LABEL Placement — Cache Efficiency
 
-### Pixi Build Stage
+**All OCI LABEL directives are emitted at the end of the final stage**,
+after the last `USER` directive. This is an intentional cache-efficiency
+choice driven by `ov/generate.go`'s `writeLabels` call being placed
+after `writeLayerSteps` + the final `USER` emission.
 
-```dockerfile
-FROM ghcr.io/overthinkos/fedora-builder:2026.48.1808 AS supervisord-pixi-build
-WORKDIR /home/user
-COPY layers/supervisord/pixi.toml pixi.toml
-RUN pixi install
-```
+Why it matters: the `org.overthinkos.tests` LABEL is the most-volatile
+piece of image metadata — it changes every time a test is added, edited,
+or removed. If LABELs appeared BEFORE the RUN/COPY install steps (as
+before the relocation), buildkit's cache invalidated at the first
+changed LABEL and every downstream instruction rebuilt from scratch.
+For a 138-step stack like `immich-ml`, that meant re-running pnpm
+install, the Immich server build, geodata downloads — minutes to hours
+for a one-line test edit.
 
-Uses the configured builder image. No `apt-get install` needed -- builder has pixi, node, npm, gcc, cmake, git.
+With LABELs at the end, a test/label edit only re-runs the LABEL
+instructions themselves (pure manifest metadata, no filesystem work).
+Measured: ~2 seconds of delta over a no-change rebuild baseline of
+~24 seconds for `filebrowser`.
 
-### npm Build Stage
+LABELs are safe to move because they have no functional dependency on
+subsequent instructions — they attach to the final image manifest and
+are read only via `podman inspect` (an unordered map). None of the
+runtime consumers (`ov config`, `ov start`, `ov status`, `ov test`,
+`ov shell`, `ov alias install`) care about directive order.
 
-```dockerfile
-FROM <builder> AS openclaw-npm-build
-COPY layers/openclaw/package.json package.json
-RUN npm install -g --prefix /npm-global
-```
+### LABEL JSON escaping (`writeJSONLabel`)
 
-### AUR Build Stage (Arch Linux)
+`writeJSONLabel` in `ov/generate.go` routes every LABEL value through
+`shellSingleQuote` before emitting `LABEL key=<quoted>`. This is
+required because test/task commands often contain literal `'` characters
+(e.g. `awk '{print $1}'`, `sed 's/foo/bar/'`) which JSON preserves
+verbatim. Without escaping, the embedded quote terminates the LABEL's
+own surrounding quote and the rest of the JSON blob is parsed as
+`key=value` pairs — which typically fails with "can't find = in ..." on
+the JSON payload.
 
-For layers with `aur:` packages, the generator creates a multi-stage build using the `builders.aur` image:
+### CalVer cascade (known residual cost)
 
-```dockerfile
-FROM ghcr.io/overthinkos/archlinux-builder:2026.84.942 AS my-tool-aur-build
-USER root
-RUN echo 'user ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
-USER 1000
-WORKDIR /home/user
-RUN --mount=type=cache,dst=/var/cache/pacman/pkg,sharing=locked \
-    mkdir -p /tmp/aur-build && \
-    cp /etc/makepkg.conf /tmp/makepkg.conf && \
-    sed -i '/^OPTIONS/s/ debug/ !debug/' /tmp/makepkg.conf && \
-    yay -S --noconfirm --needed --builddir /tmp/aur-build --makepkgconf /tmp/makepkg.conf \
-      aur-package && \
-    mkdir -p /tmp/aur-pkgs && \
-    find /tmp/aur-build -name '*.pkg.tar.zst' -exec cp {} /tmp/aur-pkgs/ \;
-```
+Each `ov image build` assigns a fresh CalVer timestamp to every
+intermediate image it produces. Downstream stages reference those by
+their new tag (e.g. `FROM ghcr.io/overthinkos/fedora:2026.108.1955`),
+which is a literally different image reference than last run. The
+downstream stage's first `FROM` step therefore never hits cache on a
+fresh run — but the subsequent content-addressed RUN/COPY steps do
+hit cache, because buildkit's per-instruction key is content-based
+from the FROM image ID onward, not from the tag string.
 
-In the main image, the built packages are installed:
-```dockerfile
-COPY --from=my-tool-aur-build /tmp/aur-pkgs/ /tmp/aur-pkgs/
-RUN --mount=type=cache,dst=/var/cache/pacman/pkg,sharing=locked \
-    pacman -U --noconfirm /tmp/aur-pkgs/*.pkg.tar.zst && \
-    rm -rf /tmp/aur-pkgs
-```
-
-Key details: passwordless sudo is required because yay calls `pacman -U` as root. Debug packages are disabled via a patched copy of `makepkg.conf` (the build user can't modify `/etc/` directly).
-
-**Status:** Working. Verified with `yay-bin` in `arch-test` image.
-
-### Scratch Context Stage
-
-```dockerfile
-FROM scratch AS mylib-ctx
-COPY layers/mylib/ /
-```
+The LABELs-at-end fix wins on the common case (edit a test, rebuild the
+same stack) and doesn't help the "fresh base-image build" case. A
+content-hash tag mode would eliminate the residual FROM-step cost; not
+yet implemented.
 
 ## Intermediate Images
 

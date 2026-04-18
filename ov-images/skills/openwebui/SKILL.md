@@ -132,6 +132,21 @@ podman secret ls | grep openwebui              # webui-secret-key, admin-passwor
 podman exec ov-openwebui cat /proc/3/environ | tr '\0' '\n' | grep TOOL_SERVER_CONNECTIONS
 ```
 
+## Test Coverage
+
+Latest `ov test openwebui` run: **24 passed, 0 failed, 0 skipped**.
+Covers: openwebui entrypoint script presence, pixi python + ov binary,
+and deploy-scope: service up, port reachable on `127.0.0.1:${HOST_PORT:8080}`,
+HTTP 200 on `/` (30-second timeout for first-request startup), admin
+email env var injected. See `/ov:test` for the framework.
+
+## Related Skills
+
+- `/ov-layers:openwebui` — layer authoring
+- `/ov:test` — declarative testing framework
+- `/ov:secrets` — WEBUI_ADMIN_PASSWORD + provider API keys
+- `/ov:config` — `-e WEBUI_ADMIN_EMAIL=...` deploy-time env setup
+
 ## When to Use This Skill
 
 **MUST be invoked** before building, deploying, configuring, or troubleshooting the openwebui image.

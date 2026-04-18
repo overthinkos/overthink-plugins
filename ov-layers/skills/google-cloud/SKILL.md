@@ -38,3 +38,8 @@ Use when the user asks about:
 - gcloud, gsutil, or bq commands
 - GCP authentication or configuration
 - Google Cloud Platform services
+
+## Author + Test References
+
+- `/ov:layer` — layer authoring reference (tasks, vars, env_provides, tests block syntax)
+- `/ov:test` — declarative testing framework for the `tests:` block

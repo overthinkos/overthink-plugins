@@ -49,8 +49,20 @@ Chrome needs `--force-renderer-accessibility` flag to expose DOM elements via AT
 - `/ov-images:selkies-desktop` (via `selkies-desktop` metalayer)
 - `/ov-images:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
 
-## Cross-References
+## Testing Notes
+
+- `python3-pyatspi` installs under the **system** `/usr/lib/python3.X/
+  site-packages/`, NOT pixi's Python 3.13 env (which dominates PATH).
+  Declarative tests must use the absolute path `/usr/bin/python3 -c
+  "import pyatspi"`; a bare `python3` invocation resolves to pixi's
+  python and fails with `ModuleNotFoundError: No module named 'pyatspi'`.
+  See `/ov:test` Authoring Gotchas #7 (no bash defaults) and #8
+  (system vs pixi Python).
+
+## Related Skills
 
 - `/ov:wl` — `ov wl atspi tree/find/click` commands
 - `/ov-layers:dbus` — Required dependency (D-Bus session bus)
 - `/ov-layers:selkies-desktop` — Desktop metalayer that includes this layer
+- `/ov:test` — declarative testing framework
+- `/ov:layer` — layer authoring

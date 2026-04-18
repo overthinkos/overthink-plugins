@@ -108,6 +108,7 @@ Full protocol details: [supervisord event listener docs](http://supervisord.org/
 # Inside container
 supervisorctl status           # All programs + states
 supervisorctl avail            # All defined programs (including stopped)
+supervisorctl pid              # Supervisord's own PID — best liveness probe
 supervisorctl tail -f chrome stderr  # Live stderr log for one program
 supervisorctl restart chrome   # Restart a single program (does not reset startretries counter)
 
@@ -116,6 +117,33 @@ ov service status <image>      # Wraps supervisorctl status via ov shell
 ov service start/stop/restart <image> <name>   # Per-program control
 ov logs <image>                # Container-level stdout/stderr (supervisord output)
 ```
+
+### Declarative-testing liveness check
+
+**`supervisorctl status` returns exit 3 when ANY program is non-RUNNING**
+(FATAL, STOPPED, or EXITED). Layers with `autostart=false` programs
+(e.g. `hermes` ships `hermes-whatsapp` as autostart=false) will always
+fail a naive `command: supervisorctl status; exit_status: 0` test.
+
+The robust liveness probe is `supervisorctl pid`, which asks
+supervisord for its own PID and exits 0 iff the socket responds:
+
+```yaml
+- id: supervisorctl-responds
+  scope: deploy
+  command: supervisorctl pid
+  exit_status: 0
+  in_container: true
+```
+
+This is what the current supervisord layer ships in its `tests:` block.
+See `/ov:test` Authoring Gotcha #4.
+
+**Also note**: `pgrep` is NOT installed by default in minimal images
+(needs `procps-ng`). The `process: <name>; running: true` test verb
+silently fails when pgrep is absent. Prefer `service:` (which uses
+supervisorctl internally) for program-liveness checks. See `/ov:test`
+Authoring Gotcha #3.
 
 `supervisorctl avail | grep -q '^<name>\b'` is the idiomatic way to check whether a program is defined (as opposed to whether it's currently running). This is what labwc's autostart uses to decide whether to hand off Chrome to supervisord or fall back to a direct launch — see `/ov-layers:labwc` (autostart Chrome-duplication race) for the canonical pattern.
 

@@ -30,9 +30,14 @@ my-image:
 
 - `aurora` (disabled)
 
-## Related Layers
+## Related Skills
 
 - `/ov-layers:language-runtimes` -- also includes `golang-bin` alongside other runtimes
+- `/ov-layers:rust`, `/ov-layers:nodejs` — sibling language runtimes
+- `/ov-layers:build-toolchain` — C/C++ toolchain often paired with Go builds
+- `/ov-layers:github-runner` — consumes go for Actions workflows
+- `/ov:layer` — layer authoring
+- `/ov-dev:go` — ov CLI is itself built from Go — development conventions
 
 ## When to Use This Skill
 

@@ -47,3 +47,8 @@ Use when the user asks about:
 - OpenTofu or infrastructure-as-code
 - Cloudflare Wrangler
 - DNS tools (dig, nslookup) or jq/rsync in containers
+
+## Author + Test References
+
+- `/ov:layer` — layer authoring reference (tasks, vars, env_provides, tests block syntax)
+- `/ov:test` — declarative testing framework for the `tests:` block

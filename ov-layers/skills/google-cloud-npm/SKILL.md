@@ -44,3 +44,8 @@ Use when the user asks about:
 - Firebase CLI tools or deployment
 - Gemini CLI for Google AI
 - GCP npm packages
+
+## Author + Test References
+
+- `/ov:layer` — layer authoring reference (tasks, vars, env_provides, tests block syntax)
+- `/ov:test` — declarative testing framework for the `tests:` block

@@ -75,9 +75,9 @@ For each layer, `writeLayerSteps` runs this sequence:
 | `copy` | `emitCopy` | `COPY --from=<layer-stage> --chmod=<mode> [--chown=<uid>:<gid>] <src> <dest>` — **no RUN** |
 | `write` | `emitWrite` | `COPY --from=<layer-stage> --chmod=<mode> [--chown=] .build/<image>/_inline/<layer>/<sha256> <dest>` — **no RUN, no shell heredoc** |
 | `link` | `emitLinkBatch` | `RUN ln -sf t1 l1 && ln -sf t2 l2 …` (one RUN per batch) |
-| `download` | `emitDownload` | `RUN --mount=type=cache,dst=/tmp/downloads bash -c 'BUILD_ARCH=$(uname -m) curl -fsSL <url> \| <extractor>'` (one RUN per download) |
+| `download` | `emitDownload` | `RUN --mount=type=cache,dst=/tmp/downloads bash -c 'export BUILD_ARCH=$(uname -m); curl -fsSL <url> \| <extractor>'` (one RUN per download; `export ...;` termination is required so bash expands `${BUILD_ARCH}` in the URL) |
 | `setcap` | `emitSetcapBatch` | `RUN setcap -r … && setcap caps path …` (strip + set chained) |
-| `cmd` | `emitCmd` | `RUN --mount=type=bind,from=<layer-stage>,source=/,target=/ctx [--mount=type=cache,…] bash -c 'BUILD_ARCH=$(uname -m)\nset -e\n<command>'` (one RUN per cmd) |
+| `cmd` | `emitCmd` | `RUN --mount=type=bind,from=<layer-stage>,source=/,target=/ctx [--mount=type=cache,…] bash -c $'BUILD_ARCH=$(uname -m)\nset -e\n<command>'` — ANSI-C `$'...'` quoting keeps the multi-line body on one physical line (podman's Dockerfile parser splits at unescaped newlines) |
 | `build` | handled inline in `writeLayerSteps` | Existing pixi/npm/cargo/aur multi-stage + inline blocks |
 
 ## Cache-mount inheritance
@@ -134,6 +134,17 @@ The Containerfile references the file by its relative path: `COPY --from=<layer-
 - Multi-stage builds use builder images declared in `build.yml` `builder:` section (`pixi-builder`, `npm-builder`, `archlinux-builder` for AUR, etc.).
 - Stale `.build/<image>/` directories (from removed or renamed images) are cleaned at the start of each generation.
 
+### LABEL placement (cache efficiency)
+
+All `org.overthinkos.*` LABEL directives are emitted at the **end** of
+the final stage, after the last `USER` directive. This means a test or
+label edit only re-runs the LABEL steps themselves (metadata-only, ~2
+sec) instead of invalidating the buildkit cache for every upstream
+RUN/COPY. Particularly important for test authoring: `tests:` edits on
+a 138-step stack like `immich-ml` used to cost minutes per iteration;
+they now cost seconds. See `/ov-dev:generate` "LABEL Placement" for the
+rationale and `/ov:test` for author-facing workflow implications.
+
 ## Cross-References
 
 ### `ov image` family siblings
@@ -150,5 +161,6 @@ The Containerfile references the file by its relative path: `COPY --from=<layer-
 ### Related skills
 
 - `/ov:layer` — **Canonical task verb catalog, `vars:` substitution, YAML anchors, execution order.** Read this first for authoring questions.
-- `/ov-dev:generate` — Deep dive on Containerfile emission internals, `Task` struct, per-verb emitters, `stageInlineContent`.
-- `/ov-dev:go` — Source-code map: `ov/tasks.go` (376 lines), `ov/generate.go:writeLayerSteps`, `ov/layers.go` struct definitions.
+- `/ov:test` — test-authoring workflow; `tests:` blocks are embedded via `writeJSONLabel` and benefit directly from LABELs-at-end cache efficiency.
+- `/ov-dev:generate` — Deep dive on Containerfile emission internals, `Task` struct, per-verb emitters, `stageInlineContent`, `shellSingleQuote` + `shellAnsiQuote` helpers, LABEL-placement rationale.
+- `/ov-dev:go` — Source-code map: `ov/tasks.go` (~430 lines), `ov/generate.go:writeLayerSteps` + `writeLabels`, `ov/layers.go` struct definitions.

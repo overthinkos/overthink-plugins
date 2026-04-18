@@ -34,7 +34,11 @@ See `/ov:layer` for `env_provides` field docs.
 
 ## Packages
 
-- `redis` (RPM)
+- `redis` (dnf request) → installed as **`valkey-compat-redis`** on
+  Fedora 43. The old `redis` package was replaced; dnf resolves the
+  name via `Provides:`, but `rpm -q redis` returns "not installed".
+  Any `package:` test must query the real installed name. See
+  `/ov:test` Authoring Gotcha #8.
 
 ## Usage
 
@@ -50,10 +54,36 @@ my-image:
 - `/ov-images:immich`
 - `/ov-images:immich-ml`
 
-## Related Layers
+## Tests
+
+The layer ships 5 declarative checks embedded in the `org.overthinkos.tests`
+OCI label (see `/ov:test` for the full schema — this layer is the
+**gold-standard pattern** referenced there):
+
+- **Build-scope** (run under `ov image test`, via `podman run --rm`):
+  - `redis-binary` — `/usr/bin/redis-server` exists
+  - `redis-cli-binary` — `/usr/bin/redis-cli` exists
+  - `redis-package` — `valkey-compat-redis` package installed (real
+    installed provider on Fedora 43; see Packages note above)
+- **Deploy-scope** (run under `ov test` against a live service; uses
+  `${HOST_PORT:6379}` runtime substitution so the checks keep working
+  if `deploy.yml` remaps the host port — host-side tests always use
+  `127.0.0.1:${HOST_PORT:N}`, not `${CONTAINER_IP}`):
+  - `redis-responds` — `redis-cli -h 127.0.0.1 -p ${HOST_PORT:6379} ping` returns `PONG`
+  - `redis-port-open` — TCP dial `127.0.0.1:${HOST_PORT:6379}` succeeds
+
+**Composed-vs-standalone skip behavior**: when redis is a sub-layer of
+a larger image (e.g. `immich-ml`) that doesn't expose port 6379 on the
+host, the deploy-scope tests correctly skip with
+`unresolved variables: HOST_PORT:6379`. No authoring action needed.
+
+## Related Skills
 
 - `/ov-layers:immich` -- primary consumer (depends on redis)
 - `/ov-layers:postgresql` -- often paired with redis in service stacks
+- `/ov:test` -- declarative testing framework (this layer is the gold-standard pattern)
+- `/ov:layer` -- layer authoring + `env_provides` field docs
+- `/ov-layers:valkey` -- Remi-repo Valkey 9 package (separate layer; different version than Fedora's default valkey-compat-redis)
 
 ## When to Use This Skill
 

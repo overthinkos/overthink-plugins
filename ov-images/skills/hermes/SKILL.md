@@ -140,6 +140,26 @@ ov shell hermes -c "echo OV_MCP_SERVERS=\$OV_MCP_SERVERS"
 ov shell hermes -c "hermes mcp list"              # Should show chrome-devtools, jupyter
 ```
 
+## Test Coverage
+
+Latest `ov test hermes` run: **50 passed, 0 failed, 0 skipped**.
+Covers all 4 AI CLIs at `${HOME}/.npm-global/bin/{claude,codex,gemini}`
++ pixi's `hermes` at `${HOME}/.pixi/envs/default/bin/hermes`, plus
+dev-tools (rg, bat, gh, fastfetch, nvim, htop) and devops-tools (aws,
+scw, kubectx, kubens, tofu, jq). Deploy-scope: pipewire + hermes
+services up, `/opt/data` volume mounted. Uses `supervisorctl pid` for
+liveness (hermes-whatsapp is autostart=false — see `/ov:test` Gotcha #4).
+
+## Related Skills
+
+- `/ov-layers:hermes-full`, `/ov-layers:hermes`, `/ov-layers:claude-code`,
+  `/ov-layers:codex`, `/ov-layers:gemini`, `/ov-layers:dev-tools`,
+  `/ov-layers:devops-tools`
+- `/ov:test` — declarative testing framework + supervisord gotchas
+- `/ov:config` — `OV_MCP_SERVERS` auto-discovery + secret provisioning
+- `/ov-images:selkies-desktop` — companion for shared browser (CDP)
+- `/ov-images:jupyter` — MCP notebook tools auto-discovered
+
 ## When to Use This Skill
 
 **MUST be invoked** before building, deploying, configuring, or troubleshooting the hermes image.

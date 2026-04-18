@@ -70,11 +70,32 @@ description: |
 
 | Plugin | Skills | Purpose |
 |--------|--------|---------|
-| `ov` | 37 | CLI operations ("how do I use X?") |
+| `ov` | 38 | CLI operations ("how do I use X?") — includes `/ov:test` |
 | `ov-dev` | 3 + 3 agents | Development ("how does the code work?") |
 | `ov-jupyter` | 1 MCP server | Notebook MCP tools |
 | `ov-layers` | 161 | Layer reference ("what does layer X contain?") |
 | `ov-images` | 41 | Image reference ("what does image X look like?") |
+
+## Two-Layer Sync Architecture
+
+The project uses two complementary sync mechanisms with `.gitignore` as the
+boundary:
+
+| What | Synced by | Visibility |
+|------|-----------|------------|
+| Code, CLAUDE.md, skills, layers, images | Git | Public (committed) |
+| `.claude/memory/` (auto-memory) | Syncthing | Private (gitignored) |
+| `.claude/settings.local.json` (personal overrides) | Syncthing | Private (gitignored) |
+| `.claude/settings.json` (project policy) | Git | Public (committed) |
+
+Memory setup: `autoMemoryDirectory: ".claude/memory"` in
+`.claude/settings.local.json`. Both `settings.local.json` and `memory/`
+propagate via Syncthing so your working state follows you across machines
+without polluting the public repo.
+
+Rule of thumb: **if it's useful to every contributor, it lives in git**
+(skills, CLAUDE.md, code). **If it's useful only to you, it lives in the
+Syncthing-synced half** (memory, personal settings).
 
 ## Cross-References
 

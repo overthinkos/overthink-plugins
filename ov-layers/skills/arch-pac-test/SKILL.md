@@ -46,3 +46,8 @@ Use when the user asks about:
 - Arch Linux pacman package testing
 - The `pac:` package format in layer.yml
 - The `arch-pac-test` layer
+
+## Author + Test References
+
+- `/ov:layer` — layer authoring reference (tasks, vars, env_provides, tests block syntax)
+- `/ov:test` — declarative testing framework for the `tests:` block

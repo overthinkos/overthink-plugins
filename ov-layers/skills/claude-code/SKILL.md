@@ -29,9 +29,14 @@ my-dev:
 
 - No enabled images use this layer directly (standalone tool layer)
 
-## Related Layers
+## Related Skills
 
 - `/ov-layers:nodejs` -- required dependency (provides npm)
+- `/ov-layers:codex`, `/ov-layers:gemini` — sibling AI CLIs (all three share the npm-global install pattern)
+- `/ov-layers:hermes-full` — metalayer that bundles this with codex, gemini, dev-tools, devops-tools
+- `/ov-images:hermes` — primary image that ships this CLI
+- `/ov:layer` — layer authoring reference
+- `/ov:test` — declarative testing framework (this layer's test verifies `${HOME}/.npm-global/bin/claude` + `claude --version`)
 
 ## When to Use This Skill
 
