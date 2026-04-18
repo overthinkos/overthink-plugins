@@ -61,7 +61,7 @@ All pnpm commands use `npm_config_cache=/tmp/npm-root-cache` to avoid creating r
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 immich:
   layers:
     - immich

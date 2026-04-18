@@ -21,7 +21,7 @@ RPM (with `--setopt=tsflags=noscripts`): `android-tools`, `apptainer`, `apptaine
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-dev:
   layers:
     - dev-tools

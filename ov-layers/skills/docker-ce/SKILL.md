@@ -20,7 +20,7 @@ RPM (from `docker-ce-stable` repo): `containerd.io`, `docker-buildx-plugin`, `do
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-image:
   layers:
     - docker-ce

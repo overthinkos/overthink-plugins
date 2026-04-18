@@ -8,7 +8,7 @@ description: |
 
 ## Overview
 
-`ov vm` commands build disk images from bootc container images and manage virtual machines via libvirt or QEMU. Images must have `bootc: true` in images.yml. Disk images are built using `bootc install to-disk` inside a privileged container.
+`ov vm` commands build disk images from bootc container images and manage virtual machines via libvirt or QEMU. Images must have `bootc: true` in image.yml. Disk images are built using `bootc install to-disk` inside a privileged container.
 
 ## Quick Reference
 
@@ -29,7 +29,7 @@ description: |
 
 ## Building Disk Images
 
-For images with `bootc: true` in images.yml. Uses `bootc install to-disk` inside a privileged container.
+For images with `bootc: true` in image.yml. Uses `bootc install to-disk` inside a privileged container.
 
 ```bash
 ov vm build my-bootc-image                  # Build QCOW2 (default)
@@ -98,7 +98,7 @@ Source: `ov/smbios_credentials.go`.
 
 ## VM Configuration
 
-### Per-Image in images.yml
+### Per-Image in image.yml
 
 ```yaml
 images:
@@ -144,7 +144,7 @@ Layers and images can declare raw libvirt XML snippets via the `libvirt` field. 
 libvirt:
   - <channel type='unix'><target type='virtio' name='org.qemu.guest_agent.0'/></channel>
 
-# In images.yml:
+# In image.yml:
 images:
   my-image:
     libvirt:
@@ -191,7 +191,7 @@ ov vm ssh my-image -i dev
 
 - `/ov:build` -- Building container images before VM disk builds
 - `/ov:config` -- VM default settings (`vm.*` config keys)
-- `/ov:image` -- `bootc`, `vm:`, and `libvirt` fields in images.yml
+- `/ov:image` -- `bootc`, `vm:`, and `libvirt` fields in image.yml
 - `/ov:layer` -- `libvirt` field in layer.yml
 
 ## When to Use This Skill

@@ -43,7 +43,7 @@ Installs the `yay` AUR helper, which enables the `aur:` package format in `layer
 ## Usage
 
 ```yaml
-# images.yml — typically in a builder image
+# image.yml — typically in a builder image
 layers:
   - yay
 ```

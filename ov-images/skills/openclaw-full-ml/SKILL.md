@@ -2,7 +2,7 @@
 name: openclaw-full-ml
 description: |
   OpenClaw full + ML tools + Ollama + Sway desktop + VNC. GPU-accelerated.
-  Currently disabled. Enable in images.yml to build.
+  Currently disabled. Enable in image.yml to build.
   MUST be invoked before building, deploying, or troubleshooting the openclaw-full-ml image.
 ---
 
@@ -18,7 +18,7 @@ GPU-accelerated OpenClaw with all tools, ML capabilities (whisper, sherpa-onnx T
 | Layers | agent-forwarding, openclaw-full-ml, sway-desktop-vnc, ollama |
 | Platforms | linux/amd64 |
 | Ports | 18789 (gateway), 5900 (VNC), 9222 (CDP), 11434 (Ollama) |
-| Status | **disabled** (set `enabled: true` in images.yml) |
+| Status | **disabled** (set `enabled: true` in image.yml) |
 | Registry | ghcr.io/overthinkos |
 
 ## Full Layer Stack
@@ -43,7 +43,7 @@ GPU-accelerated OpenClaw with all tools, ML capabilities (whisper, sherpa-onnx T
 ## Quick Start
 
 ```bash
-# Enable in images.yml first (remove enabled: false)
+# Enable in image.yml first (remove enabled: false)
 ov image build openclaw-full-ml
 ov config openclaw-full-ml
 ov start openclaw-full-ml

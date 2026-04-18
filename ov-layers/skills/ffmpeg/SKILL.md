@@ -24,7 +24,7 @@ RPM: `ffmpeg` (from negativo17 `fedora-multimedia` repo — full nonfree build w
 ## Usage
 
 ```yaml
-# images.yml or layer.yml
+# image.yml or layer.yml
 layers:
   - ffmpeg
 ```

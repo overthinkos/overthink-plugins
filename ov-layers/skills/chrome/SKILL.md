@@ -84,7 +84,7 @@ RPM (tasks:): `google-chrome-stable` (from Google's direct RPM)
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-browser:
   layers:
     - chrome

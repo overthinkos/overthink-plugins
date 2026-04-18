@@ -18,7 +18,7 @@ Claude Code plugins for Overthink — the container management experience for yo
 Skills for composing, building, and running container images with the `ov` CLI.
 
 Build-mode commands live under `ov image …` (the only family that reads
-`images.yml`). Every other command reads exclusively from OCI labels +
+`image.yml`). Every other command reads exclusively from OCI labels +
 `deploy.yml`. See `/ov:image` for the family overview.
 
 | Skill | Invocation | Description |
@@ -32,8 +32,8 @@ Build-mode commands live under `ov image …` (the only family that reads
 | deploy | `/ov:deploy` | Deployment (quadlet, bootc, tunnels, volume backing) |
 | doctor | `/ov:doctor` | Host dependency and hardware checks |
 | enc | `/ov:enc` | Encrypted volumes (ov config mount/unmount/status/passwd) |
-| generate | `/ov:generate` | `ov image generate` — Containerfile generation from images.yml and layers |
-| image | `/ov:image` | `ov image` family overview + images.yml composition reference |
+| generate | `/ov:generate` | `ov image generate` — Containerfile generation from image.yml and layers |
+| image | `/ov:image` | `ov image` family overview + image.yml composition reference |
 | inspect | `/ov:inspect` | `ov image inspect` — resolved config as JSON |
 | layer | `/ov:layer` | Layer authoring (layer.yml with tasks:, pixi.toml, etc.) |
 | list | `/ov:list` | `ov image list` — images, layers, targets, services, routes, volumes, aliases |
@@ -55,7 +55,7 @@ Build-mode commands live under `ov image …` (the only family that reads
 | tmux | `/ov:tmux` | Persistent tmux sessions (ov tmux shell/cmd/run/attach/capture) |
 | udev | `/ov:udev` | GPU device access rules (ov udev status/generate/install/remove) |
 | update | `/ov:update` | Update image and restart with data sync |
-| validate | `/ov:validate` | `ov image validate` — images.yml + layer definitions |
+| validate | `/ov:validate` | `ov image validate` — image.yml + layer definitions |
 | version | `/ov:version` | Show CLI version information |
 | vm | `/ov:vm` | Virtual machines (ov vm build/create/start/stop) |
 | vnc | `/ov:vnc` | VNC desktop automation (ov vnc screenshot/click/type) |

@@ -50,7 +50,7 @@ This metalayer includes the following 25 layers:
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 layers:
   - openclaw-full
 ```

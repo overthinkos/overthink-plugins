@@ -20,7 +20,7 @@ RPM: `gocryptfs`
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-image:
   layers:
     - gocryptfs

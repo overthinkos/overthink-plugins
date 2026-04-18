@@ -24,7 +24,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml — typically used with sway-desktop-vnc + steam
+# image.yml — typically used with sway-desktop-vnc + steam
 sway-browser-vnc-steam-heroic:
   layers:
     - sway-desktop-vnc

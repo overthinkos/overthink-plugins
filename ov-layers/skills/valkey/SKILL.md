@@ -40,7 +40,7 @@ See `/ov:layer` for `env_provides` field docs.
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-app:
   layers:
     - valkey

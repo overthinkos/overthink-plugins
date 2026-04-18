@@ -38,7 +38,7 @@ See `/ov:layer` for `env_provides` field docs and `/ov:config` for `--update-all
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 ollama:
   layers:
     - ollama

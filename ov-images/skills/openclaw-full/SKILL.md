@@ -2,7 +2,7 @@
 name: openclaw-full
 description: |
   Headless OpenClaw with all tool layers. No desktop environment.
-  Currently disabled. Enable in images.yml to build.
+  Currently disabled. Enable in image.yml to build.
   MUST be invoked before building, deploying, or troubleshooting the openclaw-full image.
 ---
 
@@ -18,7 +18,7 @@ Headless OpenClaw image with maximal tool/skill coverage. No desktop, no VNC.
 | Layers | agent-forwarding, openclaw-full |
 | Platforms | linux/amd64, linux/arm64 |
 | Ports | 18789 (gateway), 9222 (CDP) |
-| Status | **disabled** (set `enabled: true` in images.yml) |
+| Status | **disabled** (set `enabled: true` in image.yml) |
 | Registry | ghcr.io/overthinkos |
 
 ## Full Layer Stack
@@ -40,7 +40,7 @@ Headless OpenClaw image with maximal tool/skill coverage. No desktop, no VNC.
 ## Quick Start
 
 ```bash
-# Enable in images.yml first (remove enabled: false)
+# Enable in image.yml first (remove enabled: false)
 ov image build openclaw-full
 ov config openclaw-full
 ov start openclaw-full

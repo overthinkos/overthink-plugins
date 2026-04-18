@@ -20,7 +20,7 @@ RPM: `socat`, `iproute`
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-image:
   layers:
     - socat

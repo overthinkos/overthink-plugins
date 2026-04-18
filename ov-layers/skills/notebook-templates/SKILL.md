@@ -44,7 +44,7 @@ At deploy time, when the volume is configured as a bind mount (`ov config --bind
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 jupyter:
   layers:
     - notebook-templates

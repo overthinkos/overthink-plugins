@@ -20,7 +20,7 @@ RPM (from COPR `goncalossilva/act`): `act-cli`, `guestfs-tools`
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-ci:
   layers:
     - github-actions

@@ -212,7 +212,7 @@ ov shell <image> -c "which tmux"
 
 If tmux is not installed, `ov tmux` returns: `"tmux is not installed in container <name> (add the tmux layer to your image)"`.
 
-The tmux layer is already a dependency of `openclaw-full` (and all derivative images). For other images, add `tmux` to the layers list in `images.yml`.
+The tmux layer is already a dependency of `openclaw-full` (and all derivative images). For other images, add `tmux` to the layers list in `image.yml`.
 
 ## tmux Basics
 

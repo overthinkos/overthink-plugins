@@ -39,7 +39,7 @@ See `/ov:layer` for `env_provides` field docs.
 ## Usage
 
 ```yaml
-# images.yml -- typically used as dependency of immich
+# image.yml -- typically used as dependency of immich
 my-image:
   layers:
     - redis

@@ -35,7 +35,7 @@ RPM: `nodejs24`, `nodejs24-npm`
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-image:
   layers:
     - nodejs24

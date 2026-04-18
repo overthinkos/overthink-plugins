@@ -20,7 +20,7 @@ RPM: `bindfs`, `genisoimage`, `guestfs-tools`, `libguestfs-tools`, `libvirt-nss`
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-vm-host:
   layers:
     - virtualization

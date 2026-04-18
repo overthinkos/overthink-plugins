@@ -28,7 +28,7 @@ RPM: `alsa-lib-devel`
 ## Usage
 
 ```yaml
-# images.yml or layer.yml
+# image.yml or layer.yml
 layers:
   - sag
 ```

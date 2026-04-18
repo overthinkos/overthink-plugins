@@ -16,7 +16,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 fedora-nonfree:
   base: fedora
   layers:

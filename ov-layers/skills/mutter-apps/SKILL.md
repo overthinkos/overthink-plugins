@@ -21,7 +21,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml -- typically included via mutter-desktop composition
+# image.yml -- typically included via mutter-desktop composition
 my-desktop:
   layers:
     - mutter-apps

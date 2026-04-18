@@ -98,7 +98,7 @@ ov secrets gpg set OPENROUTER_API_KEY sk-or-v1-...
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 jupyter-ml-notebook:
   layers:
     - jupyter-ml

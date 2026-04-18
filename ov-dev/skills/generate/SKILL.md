@@ -11,7 +11,7 @@ description: |
 
 ## Overview
 
-`ov image generate` reads `images.yml` and `layers/`, resolves dependency graphs, and writes Containerfiles to `.build/`. Generation is idempotent and `.build/` is disposable (gitignored). Understanding the generated output is essential for debugging build issues.
+`ov image generate` reads `image.yml` and `layers/`, resolves dependency graphs, and writes Containerfiles to `.build/`. Generation is idempotent and `.build/` is disposable (gitignored). Understanding the generated output is essential for debugging build issues.
 
 ## Quick Reference
 
@@ -44,7 +44,7 @@ The generated Containerfile follows this order:
 5. **Per-layer install steps** — see "Task emission pipeline" below. `USER` toggles as each task's `user:` field requires.
 6. **Final assembly** — init system config assembly, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only)
 
-**Config-driven generation:** All format-specific install commands, cache mounts, repo setup, and builder stages are defined in `distro.yml` and `builder.yml` at the project root as Go `text/template` strings. Each distro entry in `distro.yml` contains both bootstrap config and its package format definitions. Referenced via `format_config:` in `images.yml` — supports local paths and remote `@github.com/org/repo/path:version` refs. Adding a new format (e.g., `apk` for Alpine) requires only YAML changes — zero Go code modifications.
+**Config-driven generation:** All format-specific install commands, cache mounts, repo setup, and builder stages are defined in `distro.yml` and `builder.yml` at the project root as Go `text/template` strings. Each distro entry in `distro.yml` contains both bootstrap config and its package format definitions. Referenced via `format_config:` in `image.yml` — supports local paths and remote `@github.com/org/repo/path:version` refs. Adding a new format (e.g., `apk` for Alpine) requires only YAML changes — zero Go code modifications.
 
 ## Task emission pipeline
 
@@ -260,7 +260,7 @@ fedora (external)
 
 ## User Resolution
 
-Configurable via `user`, `uid`, `gid` fields in `images.yml` (defaults: `"user"`, 1000, 1000).
+Configurable via `user`, `uid`, `gid` fields in `image.yml` (defaults: `"user"`, 1000, 1000).
 
 For external base images, `ov` calls `registry.go:InspectImageUser()` which:
 1. Pulls the base image via go-containerregistry
@@ -317,13 +317,13 @@ Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), maki
 | `org.overthinkos.layer_versions` | JSON | `{"chrome":"2026.83.1430"}` layer name → CalVer (only versioned layers) |
 | `org.overthinkos.skills` | string | Skill documentation URL (omitted if no skill exists) |
 
-Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `ov/labels.go`) plus `deploy.yml` overlay — they never touch `images.yml` at runtime. That's why `ov shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `ov image pull`). See `/ov:image` for the build/deploy boundary and `/ov:pull` for the sentinel pattern. Labels also include `org.overthinkos.init` for init system identification and `org.overthinkos.services.<init>` for per-init service lists.
+Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `ov/labels.go`) plus `deploy.yml` overlay — they never touch `image.yml` at runtime. That's why `ov shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `ov image pull`). See `/ov:image` for the build/deploy boundary and `/ov:pull` for the sentinel pattern. Labels also include `org.overthinkos.init` for init system identification and `org.overthinkos.services.<init>` for per-init service lists.
 
 Source: `ov/labels.go`, `ov/generate.go` (`writeLabels`).
 
 ## Runtime-Only Features
 
-Security configuration (`security:` in layer.yml/images.yml) and environment variable injection (`env:`, `env_file:`) are **runtime-only** features. They affect container run arguments (`--privileged`, `--cap-add`, `-e`) but do not appear in generated Containerfiles.
+Security configuration (`security:` in layer.yml/image.yml) and environment variable injection (`env:`, `env_file:`) are **runtime-only** features. They affect container run arguments (`--privileged`, `--cap-add`, `-e`) but do not appear in generated Containerfiles.
 
 ## Cache Mounts
 

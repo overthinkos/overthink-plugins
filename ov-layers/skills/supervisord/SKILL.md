@@ -130,7 +130,7 @@ ov logs <image>                # Container-level stdout/stderr (supervisord outp
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-image:
   layers:
     - supervisord

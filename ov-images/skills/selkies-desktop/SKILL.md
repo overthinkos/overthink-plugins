@@ -20,7 +20,7 @@ selkies-desktop:
     - linux/amd64
 ```
 
-Tunnel config is in `deploy.yml` (not images.yml): `tunnel: {provider: tailscale, private: all}`. See `/ov:deploy`.
+Tunnel config is in `deploy.yml` (not image.yml): `tunnel: {provider: tailscale, private: all}`. See `/ov:deploy`.
 
 ## Base
 

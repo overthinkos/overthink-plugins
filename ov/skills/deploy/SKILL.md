@@ -66,7 +66,7 @@ Source: `ov/quadlet.go` (generation), `ov/commands.go` (command structs).
 
 ## Tunnel Configuration
 
-Expose services outside the container host via tunnels. Tunnel config lives exclusively in `deploy.yml` — it is NOT in `images.yml` or OCI image labels. `ov config setup` persists tunnel config automatically via `saveDeployState`.
+Expose services outside the container host via tunnels. Tunnel config lives exclusively in `deploy.yml` — it is NOT in `image.yml` or OCI image labels. `ov config setup` persists tunnel config automatically via `saveDeployState`.
 
 ### Tailscale Serve (tailnet-private, default)
 
@@ -179,7 +179,7 @@ Source: `ov/tunnel.go` (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`, `validTa
 
 ## deploy.yml — Source of Truth
 
-`~/.config/ov/deploy.yml` is the **source of truth** for per-machine deployment configuration (not checked into git). All deployment commands read from image labels + deploy.yml — no `images.yml` needed.
+`~/.config/ov/deploy.yml` is the **source of truth** for per-machine deployment configuration (not checked into git). All deployment commands read from image labels + deploy.yml — no `image.yml` needed.
 
 ### How it gets populated
 
@@ -237,7 +237,7 @@ images:
 | Source | Merge rule |
 |---|---|
 | Layer → layer | Smallest value wins (tightest cap is the safer default) |
-| Layers → image-level `security:` in images.yml | Image-level **replaces** the merged layer value |
+| Layers → image-level `security:` in image.yml | Image-level **replaces** the merged layer value |
 | Image-level → deploy-level `security:` in deploy.yml | Deploy-level **replaces** the image-level value |
 | CLI flag → deploy-level | CLI flag **writes** directly to deploy.yml (`--memory-max=...` on `ov config`) |
 
@@ -318,7 +318,7 @@ ov deploy status
 
 ### Labels-only architecture
 
-Deployment commands (`ov config`, `start`, `status`, `logs`, `update`, `remove`, `seed`, `service`) resolve all configuration from **OCI image labels** + **deploy.yml** — no `images.yml` dependency. This means you can deploy on any machine with just `ov image pull` + `ov config`.
+Deployment commands (`ov config`, `start`, `status`, `logs`, `update`, `remove`, `seed`, `service`) resolve all configuration from **OCI image labels** + **deploy.yml** — no `image.yml` dependency. This means you can deploy on any machine with just `ov image pull` + `ov config`.
 
 **Local-storage requirement.** Because deploy-mode commands read OCI labels directly from local container storage (via `ExtractMetadata` → `podman inspect`), the image must be pulled first. If it isn't, the command fails with `ErrImageNotLocal` and the CLI suggests `ov image pull`. See `/ov:pull` for the sentinel pattern and remote-ref (`@github.com/...`) handling.
 

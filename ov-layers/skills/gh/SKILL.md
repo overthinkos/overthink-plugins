@@ -21,7 +21,7 @@ RPM: `gh`, `git`
 ## Usage
 
 ```yaml
-# images.yml or layer.yml
+# image.yml or layer.yml
 layers:
   - gh
 ```

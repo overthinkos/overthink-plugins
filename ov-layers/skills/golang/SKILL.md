@@ -20,7 +20,7 @@ RPM: `golang-bin`
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-image:
   layers:
     - golang

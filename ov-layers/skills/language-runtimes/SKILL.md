@@ -21,7 +21,7 @@ RPM: `dotnet-sdk-9.0`, `golang-bin`, `golang-bazil-fuse-devel`, `libicu`, `php`,
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-polyglot:
   layers:
     - language-runtimes

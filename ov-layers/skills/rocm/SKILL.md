@@ -60,7 +60,7 @@ Run `ov doctor` to verify detection. Run `ov udev install` to set up device perm
 ## Usage
 
 ```yaml
-# images.yml -- standalone AMD GPU image
+# image.yml -- standalone AMD GPU image
 my-amd-app:
   base: fedora
   layers:

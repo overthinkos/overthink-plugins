@@ -54,7 +54,7 @@ npx playwright --version
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 hermes-playwright:
   base: fedora
   layers:

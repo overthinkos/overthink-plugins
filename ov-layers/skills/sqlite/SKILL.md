@@ -21,7 +21,7 @@ RPM: `sqlite`
 ## Usage
 
 ```yaml
-# images.yml or layer.yml
+# image.yml or layer.yml
 layers:
   - sqlite
 ```

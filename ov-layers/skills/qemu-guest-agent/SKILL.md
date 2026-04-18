@@ -20,7 +20,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml -- typically used via bootc-base composition
+# image.yml -- typically used via bootc-base composition
 my-vm-image:
   bootc: true
   layers:

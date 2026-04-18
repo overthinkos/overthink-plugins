@@ -1,7 +1,7 @@
 ---
 name: validate
 description: |
-  MUST be invoked before any work involving: ov image validate command, validation rules, common validation errors, or checking images.yml and layer definitions.
+  MUST be invoked before any work involving: ov image validate command, validation rules, common validation errors, or checking image.yml and layer definitions.
 ---
 
 # ov image validate -- Validation Commands
@@ -10,13 +10,13 @@ Invoked as `ov image validate`. See `/ov:image` for the family overview.
 
 ## Overview
 
-`ov image validate` checks `images.yml` and all layer definitions for errors. Validation collects all errors at once rather than failing on the first.
+`ov image validate` checks `image.yml` and all layer definitions for errors. Validation collects all errors at once rather than failing on the first.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Validate all | `ov image validate` | Check images.yml + all layers |
+| Validate all | `ov image validate` | Check image.yml + all layers |
 | Check version | `ov version` | Verify CalVer computation |
 | Inspect image | `ov image inspect <image>` | Show resolved config |
 
@@ -72,7 +72,7 @@ See `/ov:layer` for the full verb catalog. The validator enforces:
 
 ### Image Rules
 
-- `base` must reference a valid external image or another image in images.yml
+- `base` must reference a valid external image or another image in image.yml
 - `layers` field is required
 - `builder` must reference an existing image
 - Self-referencing builder is allowed (skipped by generator)
@@ -135,7 +135,7 @@ Layers form a dependency cycle. Check `depends` fields.
 
 ### "layer X not found"
 
-A `depends` entry or `images.yml` layer references a non-existent layer.
+A `depends` entry or `image.yml` layer references a non-existent layer.
 
 ### "PATH must not be set directly"
 
@@ -165,7 +165,7 @@ ov image list layers                       # Verify layer exists
 
 ### `ov image` family siblings
 
-- `/ov:image` -- Family overview + images.yml composition reference
+- `/ov:image` -- Family overview + image.yml composition reference
 - `/ov:build` -- Building validated images
 - `/ov:generate` -- Containerfile generation after validation
 - `/ov:inspect` -- Inspect a specific image after validation
@@ -182,6 +182,6 @@ ov image list layers                       # Verify layer exists
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves ov image validate command, validation rules, common validation errors, or checking images.yml and layer definitions. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves ov image validate command, validation rules, common validation errors, or checking image.yml and layer definitions. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Validate before building to catch errors early.

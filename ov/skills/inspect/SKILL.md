@@ -61,7 +61,7 @@ The JSON output includes:
 
 ### `ov image` family siblings
 
-- `/ov:image` -- Family overview + images.yml composition reference
+- `/ov:image` -- Family overview + image.yml composition reference
 - `/ov:build` -- Build the inspected image
 - `/ov:generate` -- Containerfile generation for the inspected image
 - `/ov:list` -- Enumerate images before inspecting one

@@ -1,7 +1,7 @@
 ---
 name: generate
 description: |
-  Containerfile generation from images.yml and layers.
+  Containerfile generation from image.yml and layers.
   MUST be invoked before any work involving: ov image generate command, Containerfile generation, .build/ directory contents, the task-verb emission pipeline, or understanding generated output.
 ---
 
@@ -11,7 +11,7 @@ Invoked as `ov image generate`. See `/ov:image` for the family overview.
 
 ## Overview
 
-Parses `images.yml`, scans `layers/`, resolves the dependency graph, and emits all build artifacts into the `.build/` directory. Called internally by `ov image build` but can be run standalone to inspect generated output before a build.
+Parses `image.yml`, scans `layers/`, resolves the dependency graph, and emits all build artifacts into the `.build/` directory. Called internally by `ov image build` but can be run standalone to inspect generated output before a build.
 
 The generator is **config-driven** (distro format templates from `distro.yml`, builder stage templates from `builder.yml`, init system fragments from `init.yml`) and **declarative per-task** for install logic — each task verb (see `/ov:layer`) has a dedicated emitter that writes the right Containerfile directive.
 
@@ -138,7 +138,7 @@ The Containerfile references the file by its relative path: `COPY --from=<layer-
 
 ### `ov image` family siblings
 
-- `/ov:image` -- Family overview + images.yml composition reference
+- `/ov:image` -- Family overview + image.yml composition reference
 - `/ov:build` -- Building images (calls generate internally)
 - `/ov:inspect` -- Inspect generated output for a specific image
 - `/ov:list` -- Enumerate targets before generation

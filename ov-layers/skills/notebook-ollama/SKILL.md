@@ -112,7 +112,7 @@ Pull models before running: `ov shell ollama -c "ollama pull llama3.2"`
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 jupyter-ml-notebook:
   layers:
     - jupyter-ml

@@ -1,7 +1,7 @@
 ---
 name: list
 description: |
-  List components from images.yml and filesystem.
+  List components from image.yml and filesystem.
   MUST be invoked before any work involving: ov image list commands, enumerating images, layers, build targets, services, routes, volumes, or aliases.
 ---
 
@@ -12,13 +12,13 @@ See `/ov:image` for the family overview.
 
 ## Overview
 
-Enumerate images, layers, build targets, and layer properties from `images.yml` and the filesystem. Useful for discovery and scripting.
+Enumerate images, layers, build targets, and layer properties from `image.yml` and the filesystem. Useful for discovery and scripting.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| List images | `ov image list images` | All images defined in images.yml |
+| List images | `ov image list images` | All images defined in image.yml |
 | List layers | `ov image list layers` | All layers found on filesystem |
 | List targets | `ov image list targets` | Build targets in dependency order |
 | List services | `ov image list services` | Layers that declare a `service:` field |
@@ -31,7 +31,7 @@ Enumerate images, layers, build targets, and layer properties from `images.yml` 
 ### List All Images
 
 ```bash
-# Show all images from images.yml
+# Show all images from image.yml
 ov image list images
 
 # Output: one image name per line
@@ -75,14 +75,14 @@ ov image list aliases
 
 ### `ov image` family siblings
 
-- `/ov:image` -- Family overview + images.yml composition reference
+- `/ov:image` -- Family overview + image.yml composition reference
 - `/ov:build` -- Build enumerated images
 - `/ov:generate` -- Containerfile generation
 - `/ov:inspect` -- Detailed inspection of a specific image
 - `/ov:merge` -- Post-build layer consolidation
 - `/ov:new` -- Scaffold a new layer
 - `/ov:pull` -- Pull prebuilt images into local storage
-- `/ov:validate` -- Validate images.yml and layer definitions
+- `/ov:validate` -- Validate image.yml and layer definitions
 
 ### Related skills
 

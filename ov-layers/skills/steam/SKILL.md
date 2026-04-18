@@ -32,7 +32,7 @@ XWayland is provided by the base `sway` layer.
 ## Usage
 
 ```yaml
-# images.yml — requires nvidia base (RPM Fusion nonfree via fedora-nonfree)
+# image.yml — requires nvidia base (RPM Fusion nonfree via fedora-nonfree)
 sway-browser-vnc-steam:
   base: nvidia
   layers:

@@ -23,7 +23,7 @@ DEB: `rustc`, `cargo`
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-image:
   layers:
     - rust

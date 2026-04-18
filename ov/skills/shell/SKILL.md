@@ -32,7 +32,7 @@ then `ov shell <image-name>` works via labels. See `/ov:pull`.
 
 ## How It Works
 
-1. Resolves image from OCI labels via `ExtractMetadata` (never `images.yml`)
+1. Resolves image from OCI labels via `ExtractMetadata` (never `image.yml`)
 2. Applies `deploy.yml` overlay (volumes, env, sidecars, tunnel)
 3. Ensures image exists in run engine (transfers from build engine if needed)
 4. Resolves volumes (with deploy-time backing), ports, security, environment
@@ -127,8 +127,8 @@ Source: `ov/devices.go` (`DetectHostDevices`, `DetectGPU`, `DetectAMDGPU`, `appe
 
 Runtime environment variables are injected from multiple sources. Resolution priority (last wins for duplicate keys):
 
-1. **Deploy config `env:`** (images.yml / deploy.yml) -- lowest priority
-2. **Deploy config `env_file:`** (images.yml / deploy.yml)
+1. **Deploy config `env:`** (image.yml / deploy.yml) -- lowest priority
+2. **Deploy config `env_file:`** (image.yml / deploy.yml)
 3. **Workspace `.env`** file -- auto-loaded from `-w` directory
 4. **CLI `--env-file`** flag
 5. **CLI `-e`** flags -- highest priority
@@ -168,7 +168,7 @@ Source: `ov/transfer.go`.
 
 ## Container Networking
 
-All containers are connected to a shared `ov` network by default, enabling inter-container DNS resolution by container name. Override with `network: host` in images.yml.
+All containers are connected to a shared `ov` network by default, enabling inter-container DNS resolution by container name. Override with `network: host` in image.yml.
 
 Source: `ov/network.go`.
 
@@ -208,7 +208,7 @@ Use `ov cmd` for quick operations on running services. Use `ov shell -c` when yo
 
 ### Build-mode references
 
-- `/ov:image` -- Image definitions (ports, volumes, env) in `images.yml`; authoritative source before a pull
+- `/ov:image` -- Image definitions (ports, volumes, env) in `image.yml`; authoritative source before a pull
 - `/ov:build` -- Build the image you intend to shell into
 
 ### Layer skills

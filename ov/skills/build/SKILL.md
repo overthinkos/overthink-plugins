@@ -10,7 +10,7 @@ Invoked as `ov image build`. See `/ov:image` for the family overview.
 
 ## Overview
 
-`ov image build` generates Containerfiles from `images.yml` and layer definitions, then builds images in dependency order using the configured build engine (Docker or Podman). Images at the same dependency level are built in parallel (up to `--jobs` concurrent builds).
+`ov image build` generates Containerfiles from `image.yml` and layer definitions, then builds images in dependency order using the configured build engine (Docker or Podman). Images at the same dependency level are built in parallel (up to `--jobs` concurrent builds).
 
 ## Quick Reference
 
@@ -38,7 +38,7 @@ ov image build --podman-jobs N [image...]         # Max concurrent stages within
 
 ## Format Config (distro.yml / builder.yml)
 
-Containerfile generation is driven by declarative YAML config files referenced in `images.yml`:
+Containerfile generation is driven by declarative YAML config files referenced in `image.yml`:
 
 ```yaml
 defaults:
@@ -144,7 +144,7 @@ ov image merge <image> --max-mb 512      # Custom per-layer threshold
 ov image merge <image> --max-total-mb 4096  # Custom total image size limit
 ```
 
-Configure in images.yml:
+Configure in image.yml:
 
 ```yaml
 defaults:
@@ -154,7 +154,7 @@ defaults:
     max_total_mb: 0   # Max total image size for merge (0 = no limit)
 ```
 
-CLI flags `--max-mb` and `--max-total-mb` override `images.yml`. `auto` is only used by `ov image merge --all` to select which images to merge; `ov image merge <image>` always merges regardless. `max_total_mb` controls whether large images skip merging entirely (the merge process decompresses layers in memory). Set to `0` to disable (default), or a positive value like `2048` to cap on low-memory CI runners.
+CLI flags `--max-mb` and `--max-total-mb` override `image.yml`. `auto` is only used by `ov image merge --all` to select which images to merge; `ov image merge <image>` always merges regardless. `max_total_mb` controls whether large images skip merging entirely (the merge process decompresses layers in memory). Set to `0` to disable (default), or a positive value like `2048` to cap on low-memory CI runners.
 
 ### Algorithm
 
@@ -308,14 +308,14 @@ for the `--build` flag that also picks up this caveat.
 
 ### `ov image` family siblings
 
-- `/ov:image` -- Family overview + images.yml composition reference
+- `/ov:image` -- Family overview + image.yml composition reference
 - `/ov:generate` -- Containerfile generation (called internally; stale `:latest` FROM lives there)
 - `/ov:inspect` -- Inspect resolved image config before building
 - `/ov:list` -- Enumerate images, layers, build targets
 - `/ov:merge` -- Post-build layer consolidation (runs inline after each build level)
-- `/ov:new` -- Scaffold a new layer directory before adding to `images.yml`
+- `/ov:new` -- Scaffold a new layer directory before adding to `image.yml`
 - `/ov:pull` -- Pull prebuilt images; orthogonal to building (use for downstream deploy-mode commands)
-- `/ov:validate` -- Validate `images.yml` + layers before building
+- `/ov:validate` -- Validate `image.yml` + layers before building
 
 ### Related skills
 

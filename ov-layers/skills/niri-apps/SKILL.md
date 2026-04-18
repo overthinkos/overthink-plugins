@@ -21,7 +21,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml -- typically included via niri-desktop composition
+# image.yml -- typically included via niri-desktop composition
 my-desktop:
   layers:
     - niri-apps

@@ -20,7 +20,7 @@ RPM: `btop`, `chromium`, `cloud-init`, `cockpit`, `keepassxc`, `transmission`, `
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-desktop:
   layers:
     - desktop-apps

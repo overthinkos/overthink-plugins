@@ -54,7 +54,7 @@ The supervisord `[program:sway]` environment sets `WLR_BACKENDS=headless` — he
 ## Usage
 
 ```yaml
-# images.yml -- typically not used directly; pulled in via chrome-sway
+# image.yml -- typically not used directly; pulled in via chrome-sway
 my-desktop:
   layers:
     - sway

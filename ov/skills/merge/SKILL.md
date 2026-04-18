@@ -44,11 +44,11 @@ ov image merge sway-browser-vnc --max-mb 64
 ### Automatic Merge for All Configured Images
 
 ```bash
-# Merge all images that opt in via images.yml
+# Merge all images that opt in via image.yml
 ov image merge --all
 ```
 
-## Configuration in images.yml
+## Configuration in image.yml
 
 ```yaml
 images:
@@ -84,7 +84,7 @@ OCI/Docker images use special "whiteout" files to represent file deletions acros
 
 ### `ov image` family siblings
 
-- `/ov:image` -- Family overview + images.yml composition reference
+- `/ov:image` -- Family overview + image.yml composition reference
 - `/ov:build` -- Building images (merge runs inline after each build level)
 - `/ov:generate` -- Containerfile generation
 - `/ov:inspect` -- Inspect merged images

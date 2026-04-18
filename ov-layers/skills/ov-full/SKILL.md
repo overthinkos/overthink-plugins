@@ -22,7 +22,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-vm-host:
   layers:
     - ov-full

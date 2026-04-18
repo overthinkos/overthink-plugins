@@ -17,7 +17,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-kwin-desktop:
   base: nvidia
   layers:

@@ -25,7 +25,7 @@ Records terminal sessions as `.cast` files (asciicast v2 format). Recordings cap
 ## Usage
 
 ```yaml
-# images.yml or layer.yml
+# image.yml or layer.yml
 layers:
   - asciinema
 ```

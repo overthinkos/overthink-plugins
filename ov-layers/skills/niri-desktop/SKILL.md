@@ -39,7 +39,7 @@ niri-desktop
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-desktop:
   base: nvidia
   layers:

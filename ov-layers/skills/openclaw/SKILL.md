@@ -28,7 +28,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 openclaw:
   layers:
     - openclaw

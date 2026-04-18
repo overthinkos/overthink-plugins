@@ -2,7 +2,7 @@
 name: openclaw-full-sway
 description: |
   OpenClaw with all tools + Sway desktop + VNC. No GPU/ML.
-  Currently disabled. Enable in images.yml to build.
+  Currently disabled. Enable in image.yml to build.
   MUST be invoked before building, deploying, or troubleshooting the openclaw-full-sway image.
 ---
 
@@ -18,7 +18,7 @@ OpenClaw with maximal tool coverage plus Sway desktop and VNC access.
 | Layers | agent-forwarding, openclaw-full, sway-desktop-vnc |
 | Platforms | linux/amd64 |
 | Ports | 18789 (gateway), 5900 (VNC), 9222 (CDP) |
-| Status | **disabled** (set `enabled: true` in images.yml) |
+| Status | **disabled** (set `enabled: true` in image.yml) |
 | Registry | ghcr.io/overthinkos |
 
 ## Full Layer Stack
@@ -40,7 +40,7 @@ OpenClaw with maximal tool coverage plus Sway desktop and VNC access.
 ## Quick Start
 
 ```bash
-# Enable in images.yml first (remove enabled: false)
+# Enable in image.yml first (remove enabled: false)
 ov image build openclaw-full-sway
 ov config openclaw-full-sway
 ov start openclaw-full-sway

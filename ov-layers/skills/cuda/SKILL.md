@@ -38,7 +38,7 @@ Extracts cuDNN headers from `cuda-cudnn-devel` RPM (bypasses driver dependency v
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 nvidia:
   base: fedora-nonfree
   layers:

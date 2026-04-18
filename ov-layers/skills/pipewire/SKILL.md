@@ -31,7 +31,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml -- typically included via sway-desktop composition
+# image.yml -- typically included via sway-desktop composition
 my-desktop:
   layers:
     - pipewire

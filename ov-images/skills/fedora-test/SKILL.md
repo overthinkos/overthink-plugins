@@ -18,7 +18,7 @@ Development test image with Traefik reverse proxy and a FastAPI test service.
 | Layers | agent-forwarding, traefik, testapi |
 | Platforms | linux/amd64, linux/arm64 |
 | Ports | 8000 (Traefik HTTP), 8080 (Traefik dashboard) |
-| Status | **disabled** (set `enabled: true` in images.yml) |
+| Status | **disabled** (set `enabled: true` in image.yml) |
 
 ## Purpose
 

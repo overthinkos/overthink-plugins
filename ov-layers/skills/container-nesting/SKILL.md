@@ -50,7 +50,7 @@ network: host
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-ov-image:
   base: fedora
   uid: 0

@@ -20,7 +20,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 fedora-test:
   layers:
     - testapi

@@ -20,7 +20,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml -- typically used via bootc-base composition
+# image.yml -- typically used via bootc-base composition
 my-bootc-image:
   base: "quay.io/fedora/fedora-bootc:43"
   bootc: true

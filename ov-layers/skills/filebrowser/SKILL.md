@@ -50,7 +50,7 @@ ov config filebrowser --bind files=/mnt/nas/shared
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 filebrowser:
   base: fedora
   layers:

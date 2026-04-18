@@ -49,7 +49,7 @@ The `workspace` volume is mounted at `~/workspace`. JupyterLab serves notebooks 
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 jupyter:
   base: fedora
   layers:

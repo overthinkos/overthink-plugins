@@ -32,7 +32,7 @@ Without a browser provider, hermes browser tools fall back to local headless mod
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 hermes:
   base: fedora
   layers:

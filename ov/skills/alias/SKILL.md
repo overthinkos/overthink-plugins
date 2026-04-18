@@ -62,7 +62,7 @@ aliases:
     command: "ollama run"
 ```
 
-### In images.yml
+### In image.yml
 
 Image-level aliases default `command` to `name` if omitted. Image-level aliases override layer aliases with the same name.
 

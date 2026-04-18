@@ -37,7 +37,7 @@ After scaffolding, the typical workflow is:
 1. `ov image new layer <name>` — create the scaffold
 2. Edit `layers/<name>/layer.yml` — add packages, deps, `tasks:` (see `/ov:layer` for the verb catalog)
 3. Optionally add auto-detected package manifests (`pixi.toml`, `package.json`, `Cargo.toml`) if the layer ships Python / npm / Rust dependencies
-4. Add the layer to an image in `images.yml`
+4. Add the layer to an image in `image.yml`
 5. `ov image validate` — check for errors
 6. `ov image build <image>` — build the image
 
@@ -52,7 +52,7 @@ The scaffolded `layer.yml` is minimal — just `depends:` and a `description:`. 
 
 ### `ov image` family siblings
 
-- `/ov:image` -- Family overview + images.yml composition reference
+- `/ov:image` -- Family overview + image.yml composition reference
 - `/ov:build` -- Build images containing the new layer
 - `/ov:generate` -- Containerfile generation
 - `/ov:inspect` -- Inspect built image including the new layer

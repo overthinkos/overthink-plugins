@@ -56,7 +56,7 @@ VectorChord provides the `vchordrq` index type for PostgreSQL, replacing pgvecto
 ## Usage
 
 ```yaml
-# images.yml -- used alongside postgresql for Immich smart search
+# image.yml -- used alongside postgresql for Immich smart search
 my-image:
   layers:
     - postgresql

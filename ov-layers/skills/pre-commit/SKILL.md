@@ -22,7 +22,7 @@ npm: `markdownlint-cli`
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-dev:
   layers:
     - pre-commit

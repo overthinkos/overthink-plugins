@@ -59,7 +59,7 @@ The `dest: finetuning` field places the notebooks in a subdirectory rather than 
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 unsloth-studio:
   layers:
     - unsloth-studio

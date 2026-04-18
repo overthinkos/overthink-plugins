@@ -21,7 +21,7 @@ PAC: `direnv`
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-image:
   layers:
     - direnv

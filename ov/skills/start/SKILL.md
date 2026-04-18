@@ -36,7 +36,7 @@ Start a container image as a background service. In quadlet mode, `ov config <im
 ## Label-Only Policy
 
 `ov start` reads only OCI labels (via `ExtractMetadata`) + `deploy.yml`. It
-does not touch `images.yml`. Remote refs (`@github.com/...`) are rejected
+does not touch `image.yml`. Remote refs (`@github.com/...`) are rejected
 with a redirect to `ov image pull`.
 
 If the image isn't in local storage, startup fails with the standard
@@ -113,5 +113,5 @@ ov start jupyter --build
 
 ### Build-mode references
 
-- `/ov:image` -- Image definitions (ports, volumes, env) in `images.yml`
+- `/ov:image` -- Image definitions (ports, volumes, env) in `image.yml`
 - `/ov:build` -- Build the image you intend to start

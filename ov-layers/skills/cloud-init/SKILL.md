@@ -22,7 +22,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-cloud-image:
   base: "quay.io/fedora/fedora-bootc:43"
   bootc: true

@@ -2,7 +2,7 @@
 name: openclaw-browser-bootc
 description: |
   Bootc VM image with OpenClaw gateway, Chrome, VNC, and PipeWire.
-  Currently disabled. Enable in images.yml to build.
+  Currently disabled. Enable in image.yml to build.
   MUST be invoked before building, deploying, or troubleshooting the openclaw-browser-bootc image.
 ---
 
@@ -19,7 +19,7 @@ Bootable container (bootc) VM image with OpenClaw AI gateway, Chrome browser, VN
 | Layers | agent-forwarding, bootc-base, openclaw, pipewire, wayvnc, chrome-sway |
 | Platforms | linux/amd64 |
 | Ports | 18789 (gateway), 5900 (VNC), 9222 (CDP) |
-| Status | **disabled** (set `enabled: true` in images.yml) |
+| Status | **disabled** (set `enabled: true` in image.yml) |
 | Registry | ghcr.io/overthinkos |
 
 ## VM Configuration
@@ -51,7 +51,7 @@ Bootable container (bootc) VM image with OpenClaw AI gateway, Chrome browser, VN
 ## Quick Start
 
 ```bash
-# Enable in images.yml first (remove enabled: false)
+# Enable in image.yml first (remove enabled: false)
 ov image build openclaw-browser-bootc
 ov vm build openclaw-browser-bootc --type qcow2
 ov vm create openclaw-browser-bootc --ram 4G --cpus 2

@@ -20,7 +20,7 @@ RPM: `avahi-devel`, `avahi-glib-devel`, `eigen3-devel`, `glslang-devel`, `gstrea
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-vr:
   layers:
     - vr-streaming

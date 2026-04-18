@@ -17,7 +17,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml -- typically included via kwin-desktop composition
+# image.yml -- typically included via kwin-desktop composition
 my-browser:
   layers:
     - chrome-kwin

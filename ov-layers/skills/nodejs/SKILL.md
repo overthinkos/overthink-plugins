@@ -30,7 +30,7 @@ DEB: `nodejs`, `npm`
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-image:
   layers:
     - nodejs

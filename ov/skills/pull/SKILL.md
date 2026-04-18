@@ -21,7 +21,7 @@ service. That's `ov update`'s job (see `/ov:update`).
 
 This command is the prerequisite for every deploy-mode operation on a fresh
 host. Since the `ov image` refactor, deploy-mode commands no longer read
-`images.yml` — they read OCI labels + `deploy.yml` only. If an image isn't
+`image.yml` — they read OCI labels + `deploy.yml` only. If an image isn't
 in local storage, the label read fails and the CLI surfaces a friendly
 recommendation pointing here.
 
@@ -29,9 +29,9 @@ recommendation pointing here.
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Pull short name | `ov image pull jupyter` | Resolves registry + tag via `images.yml` (requires project directory) |
+| Pull short name | `ov image pull jupyter` | Resolves registry + tag via `image.yml` (requires project directory) |
 | Pull fully-qualified ref | `ov image pull ghcr.io/overthinkos/jupyter:2026.108.56` | Pulls as-is, works from anywhere |
-| Pull remote project ref | `ov image pull @github.com/org/repo/image:v1` | Downloads repo, reads its `images.yml`, pulls registry ref |
+| Pull remote project ref | `ov image pull @github.com/org/repo/image:v1` | Downloads repo, reads its `image.yml`, pulls registry ref |
 | Override tag (short name) | `ov image pull jupyter --tag 2026.108.1` | Pull a specific CalVer tag |
 | Override platform | `ov image pull jupyter --platform linux/arm64` | Pull a specific platform |
 
@@ -43,7 +43,7 @@ recommendation pointing here.
 cd ~/overthink && ov image pull jupyter
 ```
 
-Resolves `<registry>/jupyter:<tag>` via `images.yml`. Equivalent to the
+Resolves `<registry>/jupyter:<tag>` via `image.yml`. Equivalent to the
 two-step:
 
 ```bash
@@ -71,7 +71,7 @@ ov image pull @github.com/overthinkos/overthink/jupyter:2026.108.56
 ov image pull @github.com/overthinkos/overthink/jupyter          # latest git tag
 ```
 
-Downloads and caches the repo, reads its `images.yml`, then pulls the
+Downloads and caches the repo, reads its `image.yml`, then pulls the
 registry ref declared there. This is the **only** place `@github.com/...`
 refs are accepted in `ov`. Deploy-mode commands (`ov shell`, `ov start`,
 `ov config`, etc.) reject them with a message pointing users here.
@@ -164,12 +164,12 @@ ov shell jupyter                      # now works
 ## Why this command exists
 
 Before the `ov image` refactor, deploy-mode commands had dual-mode logic:
-try `images.yml` first, fall back to OCI labels. That produced drift (the
+try `image.yml` first, fall back to OCI labels. That produced drift (the
 two paths could diverge) and silently pulled-and-built remote refs as a
 side effect of what looked like a simple `ov shell @github.com/...` call.
 
 The refactor drew a hard line: deploy-mode commands read labels only;
-build-mode commands (`ov image …`) read `images.yml` only. `ov image pull`
+build-mode commands (`ov image …`) read `image.yml` only. `ov image pull`
 is the bridge — it takes a build-mode identifier (short name or remote
 repo ref) and produces a deploy-mode-consumable artifact (labels in local
 storage).
@@ -181,7 +181,7 @@ storage).
   pull fetches existing ones.
 - `/ov:update` — rolls deployed services to a new image version
   (pulls + data-seeds + restarts).
-- `/ov:inspect` — print resolved ref from `images.yml` without pulling.
+- `/ov:inspect` — print resolved ref from `image.yml` without pulling.
 - `/ov:shell`, `/ov:start`, `/ov:config`, `/ov:alias`, `/ov:vm` —
   deploy-mode commands that require a pulled image.
 - `/ov:deploy` — deploy.yml overlay semantics applied on top of the

@@ -44,7 +44,7 @@ Installed to `~/.local/bin/ov-overlay` via `tasks:`. Dual-mode script (daemon + 
 ## Usage
 
 ```yaml
-# images.yml — typically included via desktop metalayers
+# image.yml — typically included via desktop metalayers
 # Already part of sway-desktop, selkies-desktop, niri-desktop
 my-desktop:
   layers:

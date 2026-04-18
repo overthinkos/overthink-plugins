@@ -28,7 +28,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml -- now included in all images with supervisord
+# image.yml -- now included in all images with supervisord
 my-image:
   layers:
     - dbus

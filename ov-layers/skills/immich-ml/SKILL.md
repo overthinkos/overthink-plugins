@@ -37,7 +37,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml -- adds ML to an immich image
+# image.yml -- adds ML to an immich image
 immich-ml:
   layers:
     - immich-ml

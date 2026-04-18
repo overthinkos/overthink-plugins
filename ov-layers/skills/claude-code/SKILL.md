@@ -19,7 +19,7 @@ PATH additions: `~/.local/bin`
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-dev:
   layers:
     - claude-code

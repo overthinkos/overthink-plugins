@@ -23,7 +23,7 @@ Note: On Arch Linux, `openssh` is a single package that includes both client and
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-image:
   layers:
     - ssh-client

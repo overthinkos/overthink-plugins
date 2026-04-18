@@ -27,7 +27,7 @@ Native Wayland screen recorder for wlroots-based compositors (sway, labwc, etc.)
 ## Usage
 
 ```yaml
-# images.yml or layer.yml
+# image.yml or layer.yml
 layers:
   - wf-recorder
 ```

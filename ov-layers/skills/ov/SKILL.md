@@ -44,7 +44,7 @@ Shows as `ov:ok (2026.94.1417)` in `ov status` detail view. Returns `-` for imag
 ## Usage
 
 ```yaml
-# images.yml -- now included in all images with supervisord
+# image.yml -- now included in all images with supervisord
 my-image:
   layers:
     - ov

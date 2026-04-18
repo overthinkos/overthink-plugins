@@ -30,8 +30,8 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | File | Purpose |
 |------|---------|
 | `main.go` | CLI entry point (Kong framework) |
-| `config.go` | `images.yml` parsing, inheritance resolution. `BuildFormats` type. `Distro` field. `ResolvedImage.Tags` (union). `SupportsTag()`, `SupportsBuild()` methods |
-| `format_config.go` | `DistroConfig` (with per-distro `Formats`), `BuilderConfig` types. Loads `distro.yml`/`builder.yml` via `format_config:` refs in `images.yml`. `FormatDef`, `BuilderDef` types. Per-image config resolution with remote ref support |
+| `config.go` | `image.yml` parsing, inheritance resolution. `BuildFormats` type. `Distro` field. `ResolvedImage.Tags` (union). `SupportsTag()`, `SupportsBuild()` methods |
+| `format_config.go` | `DistroConfig` (with per-distro `Formats`), `BuilderConfig` types. Loads `distro.yml`/`builder.yml` via `format_config:` refs in `image.yml`. `FormatDef`, `BuilderDef` types. Per-image config resolution with remote ref support |
 | `format_template.go` | Go `text/template` rendering engine. Template helpers: `cacheMounts`, `cacheMountsOwned`, `quote`, `default`, `splitFirst`, `replace`, `join`. `InstallContext`, `BuildStageContext` types |
 | `layers.go` | Layer scanning, file detection, `parseLayerYAML()`. `LayerYAML` struct with `Vars` + `Tasks` fields. `Task` struct + `Kind()` method (exactly-one-verb). `PackageSection` generic format sections. `TagSections` for distro overrides. |
 | `tasks.go` | **All task emission logic** — per-verb emitters (`emitMkdirBatch`, `emitCopy`, `emitWrite`, `emitLinkBatch`, `emitDownload`, `emitSetcapBatch`, `emitCmd`, `emitBuild`), `emitTasks` orchestrator, `stageInlineContent` (content-addressed), `resolveUserSpec`, `taskSubstPath`, `taskUnresolvedRefs`. Adjacent-coalescing (`taskCoalescesWith`). ~380 lines, single home for install-task codegen. |

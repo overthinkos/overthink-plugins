@@ -33,7 +33,7 @@ Builder image for Arch Linux multi-stage builds. Counterpart to `/ov-images:fedo
 When an Arch-based image has layers with `pixi.toml`, `package.json`, `Cargo.toml`, or `aur:` packages, the build system uses this image as the builder for multi-stage builds. Configured via the `archlinux` image's `builders:` field:
 
 ```yaml
-# images.yml
+# image.yml
 archlinux:
   builders:
     pixi: archlinux-builder

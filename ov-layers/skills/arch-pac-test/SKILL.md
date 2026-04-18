@@ -25,7 +25,7 @@ Validates that the `pac:` package format works correctly on Arch Linux images. I
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 layers:
   - arch-pac-test
 ```

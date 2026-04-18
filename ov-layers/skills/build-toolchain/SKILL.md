@@ -78,7 +78,7 @@ inline source patches, and runs `pip install .` against this builder stage.
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-image:
   layers:
     - build-toolchain

@@ -2,7 +2,7 @@
 name: bazzite-ai
 description: |
   Bazzite NVIDIA bootc image with dev tools, CUDA, Kubernetes, Docker, and desktop apps.
-  Currently disabled. Enable in images.yml to build.
+  Currently disabled. Enable in image.yml to build.
   MUST be invoked before building, deploying, or troubleshooting the bazzite-ai image.
 ---
 
@@ -17,7 +17,7 @@ Bootc VM image based on Universal Blue's Bazzite (gaming-focused) with NVIDIA dr
 | Base | ghcr.io/ublue-os/bazzite-nvidia-open:stable-43.20260120.1 |
 | Bootc | true |
 | Platforms | linux/amd64 |
-| Status | **disabled** (set `enabled: true` in images.yml) |
+| Status | **disabled** (set `enabled: true` in image.yml) |
 | Registry | ghcr.io/overthinkos |
 
 ## Full Layer Stack
@@ -44,7 +44,7 @@ Bootc VM image based on Universal Blue's Bazzite (gaming-focused) with NVIDIA dr
 ## Quick Start
 
 ```bash
-# Enable in images.yml first (remove enabled: false)
+# Enable in image.yml first (remove enabled: false)
 ov image build bazzite-ai
 ov vm build bazzite-ai --type qcow2
 ov vm create bazzite-ai

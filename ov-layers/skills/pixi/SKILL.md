@@ -25,7 +25,7 @@ PATH additions: `~/.pixi/bin`, `~/.pixi/envs/default/bin`
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-image:
   layers:
     - pixi

@@ -31,7 +31,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 comfyui:
   layers:
     - comfyui

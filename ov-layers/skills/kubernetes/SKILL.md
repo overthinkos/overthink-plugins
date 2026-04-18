@@ -20,7 +20,7 @@ RPM: `kubernetes-client`, `helm`
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-devops:
   layers:
     - kubernetes

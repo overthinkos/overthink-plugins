@@ -19,7 +19,7 @@ description: |
 Not used directly in images — use `sway-desktop-vnc` instead:
 
 ```yaml
-# images.yml — VNC variant
+# image.yml — VNC variant
 sway-browser-vnc:
   layers:
     - sway-desktop-vnc

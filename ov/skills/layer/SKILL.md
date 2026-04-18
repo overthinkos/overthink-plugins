@@ -182,7 +182,7 @@ These names are reserved — `vars:` may not shadow them:
 
 | Name | Value | Resolution |
 |---|---|---|
-| `USER` | image's configured username | Generate-time (from images.yml resolution) |
+| `USER` | image's configured username | Generate-time (from image.yml resolution) |
 | `UID` | numeric user ID | Generate-time |
 | `GID` | numeric group ID | Generate-time |
 | `HOME` | resolved home directory | Generate-time |
@@ -492,7 +492,7 @@ security:
   cpus: "4.0"                # CPU quota
 ```
 
-Security settings merge across layers (union for lists; `privileged` true if any layer sets it; smallest-wins for resource caps). Image-level `security:` in `images.yml` overrides `privileged` and replaces resource caps.
+Security settings merge across layers (union for lists; `privileged` true if any layer sets it; smallest-wins for resource caps). Image-level `security:` in `image.yml` overrides `privileged` and replaces resource caps.
 
 Resource caps (memory / cpus) are used by the chrome layer's crash-loop circuit breaker. See `/ov-layers:chrome` and `/ov-layers:supervisord` for the event-listener pattern.
 
@@ -615,7 +615,7 @@ data:
     dest: ""                 # optional subdirectory within volume
 ```
 
-**Data layers** are layers with only `data:` + `volumes:` — no packages, no services, no tasks. Valid standalone. **Data images** (`data_image: true` in images.yml) are scratch-based — consumed via `ov config --data-from <image>`. See `/ov-layers:notebook-templates` for a worked example.
+**Data layers** are layers with only `data:` + `volumes:` — no packages, no services, no tasks. Valid standalone. **Data images** (`data_image: true` in image.yml) are scratch-based — consumed via `ov config --data-from <image>`. See `/ov-layers:notebook-templates` for a worked example.
 
 ---
 

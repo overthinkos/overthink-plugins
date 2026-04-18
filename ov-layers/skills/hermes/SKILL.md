@@ -141,7 +141,7 @@ ov service start hermes hermes-whatsapp
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 hermes:
   base: fedora
   layers:

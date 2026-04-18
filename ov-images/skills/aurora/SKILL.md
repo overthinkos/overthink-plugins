@@ -2,7 +2,7 @@
 name: aurora
 description: |
   Aurora DX bootc image with NVIDIA, SSH, ov toolchain, and Go.
-  Currently disabled. Enable in images.yml to build.
+  Currently disabled. Enable in image.yml to build.
   MUST be invoked before building, deploying, or troubleshooting the aurora image.
 ---
 
@@ -18,7 +18,7 @@ Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH acce
 | Bootc | true |
 | Layers | agent-forwarding, sshd, ov-full, golang |
 | Platforms | linux/amd64 |
-| Status | **disabled** (set `enabled: true` in images.yml) |
+| Status | **disabled** (set `enabled: true` in image.yml) |
 | Registry | ghcr.io/overthinkos |
 
 ## VM Configuration
@@ -39,7 +39,7 @@ Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH acce
 ## Quick Start
 
 ```bash
-# Enable in images.yml first (remove enabled: false)
+# Enable in image.yml first (remove enabled: false)
 ov image build aurora
 ov vm build aurora --type qcow2
 ov vm create aurora --ram 12G --cpus 4

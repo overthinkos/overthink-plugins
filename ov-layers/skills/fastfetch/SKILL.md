@@ -25,7 +25,7 @@ Displays system information (OS, kernel, CPU, GPU, memory, etc.) with ASCII art 
 ## Usage
 
 ```yaml
-# images.yml or layer.yml
+# image.yml or layer.yml
 layers:
   - fastfetch
 ```

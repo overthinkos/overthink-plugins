@@ -1,14 +1,14 @@
 ---
 name: image
 description: |
-  MUST be invoked before any work involving: the `ov image` command family, image definitions in images.yml, image inheritance, defaults, platforms, builder configuration, the image dependency graph, or the build/deploy scope boundary.
+  MUST be invoked before any work involving: the `ov image` command family, image definitions in image.yml, image inheritance, defaults, platforms, builder configuration, the image dependency graph, or the build/deploy scope boundary.
 ---
 
 # ov image -- Family Overview + Image Composition
 
 ## Overview
 
-`ov image` is the **only** command family that reads `images.yml`. It groups
+`ov image` is the **only** command family that reads `image.yml`. It groups
 every build-mode operation (build, generate, validate, list, merge, new,
 inspect, pull) under a single namespace. All other `ov` commands read
 exclusively from OCI labels embedded into built images + `deploy.yml` for
@@ -18,7 +18,7 @@ This scope boundary was introduced by the `ov image` refactor. Old top-level
 invocations (`ov build`, `ov validate`, `ov list images`, `ov inspect`, etc.)
 return Kong's `unexpected argument` error — there are no backward-compat shims.
 
-An **image** is a named build target in `images.yml`. Images compose layers
+An **image** is a named build target in `image.yml`. Images compose layers
 into container images with configurable defaults, inheritance chains,
 platform targets, and builder configurations. The `ov` CLI resolves
 dependencies, generates Containerfiles, and builds images in the correct
@@ -28,18 +28,18 @@ order.
 
 | Subcommand | Purpose | Skill |
 |---|---|---|
-| `ov image build` | Build container images from images.yml | `/ov:build` |
+| `ov image build` | Build container images from image.yml | `/ov:build` |
 | `ov image generate` | Write `.build/` Containerfiles | `/ov:generate` |
 | `ov image inspect` | Print resolved image config as JSON | `/ov:inspect` |
-| `ov image list {images,layers,targets,services,routes,volumes,aliases}` | List components from images.yml | `/ov:list` |
+| `ov image list {images,layers,targets,services,routes,volumes,aliases}` | List components from image.yml | `/ov:list` |
 | `ov image merge` | Merge small layers in a built image | `/ov:merge` |
 | `ov image new layer <name>` | Scaffold a new layer directory | `/ov:new` |
 | `ov image pull` | Fetch an image into local storage | `/ov:pull` |
-| `ov image validate` | Check images.yml + layers | `/ov:validate` |
+| `ov image validate` | Check image.yml + layers | `/ov:validate` |
 
 ## Scope Boundary (Build vs. Deploy)
 
-| | Reads `images.yml` | Reads OCI labels | Reads `deploy.yml` |
+| | Reads `image.yml` | Reads OCI labels | Reads `deploy.yml` |
 |---|---|---|---|
 | `ov image …` | **Yes** (required) | Rarely | No |
 | Everything else | **No** | Yes (required for deploy-mode) | Yes (overlay) |
@@ -59,14 +59,14 @@ pattern.
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| List images | `ov image list images` | Images from images.yml |
+| List images | `ov image list images` | Images from image.yml |
 | List build targets | `ov image list targets` | Build targets in dependency order (includes auto-intermediates) |
 | Inspect image | `ov image inspect <image>` | Print resolved config as JSON |
 | Inspect field | `ov image inspect <image> --format <field>` | Print single field (tag, base, layers, ports, etc.) |
-| Validate | `ov image validate` | Check images.yml + layers |
+| Validate | `ov image validate` | Check image.yml + layers |
 | Pull into local storage | `ov image pull <image>` | Fetch from registry so deploy-mode commands work |
 
-## images.yml Structure
+## image.yml Structure
 
 ```yaml
 defaults:
@@ -198,7 +198,7 @@ Source: `ov/generate.go` (`builderRefForFormat`), `ov/graph.go` (`ResolveImageOr
 
 ## Internal Base Images
 
-When `base` references another image in `images.yml`, the generator resolves it to the full registry/tag and creates a build dependency. The referenced image must be built first.
+When `base` references another image in `image.yml`, the generator resolves it to the full registry/tag and creates a build dependency. The referenced image must be built first.
 
 ```yaml
 images:
@@ -334,10 +334,10 @@ All of the above round-trip via `ov config`: the label is read from the image ma
 
 ### Add a New Image
 
-Add an entry to `images.yml` with `base` and `layers`, then build:
+Add an entry to `image.yml` with `base` and `layers`, then build:
 
 ```bash
-# Edit images.yml
+# Edit image.yml
 # Then:
 ov image build my-new-image
 ```
@@ -379,7 +379,7 @@ images:
 - `/ov:merge` -- `ov image merge` (post-build layer consolidation)
 - `/ov:new` -- `ov image new layer <name>` (scaffold new layer directory)
 - `/ov:pull` -- `ov image pull` (fetch into local storage; `ErrImageNotLocal` recovery)
-- `/ov:validate` -- `ov image validate` (images.yml + layers consistency check)
+- `/ov:validate` -- `ov image validate` (image.yml + layers consistency check)
 
 ### Related skills
 
@@ -390,6 +390,6 @@ images:
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves image definitions in images.yml, image inheritance, defaults, platforms, builder configuration, or the image dependency graph. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves image definitions in image.yml, image inheritance, defaults, platforms, builder configuration, or the image dependency graph. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Define images before building. See also `/ov:layer` (layer authoring), `/ov:build` (building).

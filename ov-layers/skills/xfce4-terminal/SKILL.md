@@ -21,7 +21,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml -- typically used via sway-desktop composition
+# image.yml -- typically used via sway-desktop composition
 my-image:
   layers:
     - sway-desktop

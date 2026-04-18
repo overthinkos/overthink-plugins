@@ -25,7 +25,7 @@ This metalayer extends `openclaw-full` with ML capabilities:
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 layers:
   - openclaw-full-ml
 ```

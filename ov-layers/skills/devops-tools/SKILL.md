@@ -24,7 +24,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-image:
   layers:
     - devops-tools

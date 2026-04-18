@@ -119,7 +119,7 @@ Open WebUI binds to `0.0.0.0:8080` by default. The `port_relay` field is only fo
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 openwebui:
   base: fedora
   layers:

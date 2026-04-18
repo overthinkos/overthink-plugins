@@ -17,7 +17,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-os:
   layers:
     - bootc-base

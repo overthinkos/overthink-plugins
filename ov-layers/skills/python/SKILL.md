@@ -21,7 +21,7 @@ Pixi (conda-forge): `python >=3.13,<3.14`
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-image:
   layers:
     - python

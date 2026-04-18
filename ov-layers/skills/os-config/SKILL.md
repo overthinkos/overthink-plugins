@@ -16,7 +16,7 @@ description: |
 ## Usage
 
 ```yaml
-# images.yml
+# image.yml
 my-bootc-image:
   bootc: true
   layers:
