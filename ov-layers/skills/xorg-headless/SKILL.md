@@ -14,7 +14,7 @@ description: |
 | Dependencies | `dbus` |
 | Service | `xorg` (supervisord, priority 10) |
 | Packages | xorg-x11-server-Xorg, xorg-x11-drv-dummy, xorg-x11-drv-libinput, xrandr, xdotool, xdpyinfo |
-| Install files | `root.yml` (xorg-dummy.conf) |
+| Install files | `tasks:` (xorg-dummy.conf) |
 
 ## Environment Variables
 

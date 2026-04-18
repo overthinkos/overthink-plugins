@@ -14,7 +14,7 @@ description: |
 | Dependencies | `sway` |
 | Security | `shm_size: 1g` |
 | Volume | `steam-data` -> `~/.local/share/Steam` |
-| Install files | `user.yml` |
+| Install files | `tasks:` |
 
 ## Environment Variables
 

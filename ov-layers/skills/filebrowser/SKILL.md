@@ -15,7 +15,7 @@ description: |
 | Ports | 8080 |
 | Volumes | `data` -> `~/.filebrowser/data`, `files` -> `~/.filebrowser/files` |
 | Service | `filebrowser` (supervisord) |
-| Install files | `root.yml`, `config.yaml` |
+| Install files | `tasks:`, `config.yaml` |
 
 ## Environment Variables
 

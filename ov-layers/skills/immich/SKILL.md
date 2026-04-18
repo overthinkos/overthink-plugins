@@ -16,7 +16,7 @@ description: |
 | Volumes | `library` -> `~/.immich/library`, `cache` -> `~/.immich/cache`, `import` -> `~/.immich/import`, `external` -> `~/.immich/external` |
 | Service | `immich-db-init` (oneshot, priority 15), `immich-server` (priority 30) |
 | Route | `immich.localhost:2283` |
-| Install files | `root.yml`, `user.yml` |
+| Install files | `tasks:` |
 
 ## Environment Variables
 
@@ -38,9 +38,9 @@ description: |
 
 **Note:** FFmpeg is provided via the `ffmpeg` dependency layer (negativo17 nonfree build) rather than installed directly.
 
-## Build Process (root.yml)
+## Build Process (tasks:)
 
-The root.yml downloads Immich source, builds the server, web UI, and core plugin:
+The root-phase tasks download Immich source, builds the server, web UI, and core plugin:
 
 1. **Server** — `pnpm install --frozen-lockfile && pnpm --filter immich build && pnpm --filter immich deploy --prod /opt/immich/server`
 2. **Geodata** — Downloads reverse geocoding data from geonames.org

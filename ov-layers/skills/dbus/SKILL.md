@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `supervisord` |
 | Service | `dbus` (supervisord, priority 2) |
-| Install files | `root.yml` |
+| Install files | `tasks:` |
 
 ## Environment Variables
 

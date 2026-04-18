@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `root.yml` |
+| Install files | `layer.yml`, `tasks:` |
 | Depends | none |
 
 ## Packages
@@ -20,10 +20,10 @@ PAC: `base-devel`, `git`
 
 ## Install Script
 
-The `root.yml` task downloads the latest `yay` binary from GitHub releases:
+The `tasks:` task downloads the latest `yay` binary from GitHub releases:
 
 ```yaml
-# root.yml (Taskfile)
+# tasks: (in layer.yml)
 tasks:
   all:
     cmds:

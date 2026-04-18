@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `user.yml` |
+| Install files | `layer.yml`, `tasks:` |
 | Depends | `golang` |
 
 ## Environment
@@ -40,7 +40,7 @@ layers:
 - `/ov-layers:openclaw-full` — Metalayer that bundles blogwatcher with other AI/agent CLIs
 
 ## Related Commands
-- `/ov:build` — Builds the layer (Go install via user.yml)
+- `/ov:build` — Builds the layer (Go install via a cmd task)
 - `/ov:shell` — Interactive shell to run blogwatcher inside the container
 
 ## When to Use This Skill

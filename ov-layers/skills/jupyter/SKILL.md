@@ -153,7 +153,7 @@ layers/jupyter-mcp/
 │       ├── tornado_asgi.py         # Tornado↔ASGI bridge (SSE streaming, disconnect handling)
 │       ├── mcp_server.py           # FastMCP tool definitions (13 tools)
 │       └── rtc_adapter.py          # CRDT access via YNotebook + kernel execution
-├── user.yml                        # Build-time: pip install fastmcp + extension + enable
+# (in layer.yml tasks:)  # Build-time: pip install fastmcp + extension + enable
 └── layer.yml
 ```
 

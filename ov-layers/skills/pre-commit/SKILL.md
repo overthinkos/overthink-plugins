@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `nodejs` |
-| Install files | `layer.yml`, `pixi.toml`, `package.json`, `user.yml` |
+| Install files | `layer.yml`, `pixi.toml`, `package.json`, `tasks:` |
 
 ## Packages
 

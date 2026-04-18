@@ -14,7 +14,7 @@ description: |
 |----------|-------|
 | Dependencies | `hermes` |
 | Security | `shm_size: 1g` |
-| Install files | `layer.yml`, `package.json`, `root.yml` |
+| Install files | `layer.yml`, `package.json`, `tasks:` |
 | RPM packages | `alsa-lib`, `at-spi2-core`, `cups-libs`, `gtk3`, `libdrm`, `libxkbcommon`, `nss`, `mesa-dri-drivers`, `vulkan-loader`, `libXcomposite`, `libXdamage`, `libXrandr`, `pango`, `cairo` |
 
 ## Environment Variables
@@ -32,11 +32,11 @@ This is a **Tier 1 layer** (no pixi.toml) that adds Playwright + Chromium on top
 Playwright's `npx playwright install --with-deps` does **not support Fedora** -- it falls back to Ubuntu and tries `apt-get`, which fails. The workaround:
 
 1. **rpm packages** in `layer.yml` install all Chromium system library dependencies manually
-2. **root.yml** runs `npx playwright install chromium` (without `--with-deps`) to download only the browser binary
+2. A root-phase `cmd:` task runs `npx playwright install chromium` (without `--with-deps`) to download only the browser binary
 
 ### Browser Location
 
-Browsers are installed to `/tmp/.cache/ms-playwright/` during the build (root.yml runs as root with `HOME=/tmp`). The `PLAYWRIGHT_BROWSERS_PATH` env var ensures Playwright finds them at runtime.
+Browsers are installed to `/tmp/.cache/ms-playwright/` during the build (the cmd runs as root with `HOME=/tmp`). The `PLAYWRIGHT_BROWSERS_PATH` env var ensures Playwright finds them at runtime.
 
 ### Using Playwright from Node.js
 

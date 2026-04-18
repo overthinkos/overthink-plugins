@@ -17,7 +17,7 @@ description: |
 | Aliases | `hermes` -> `hermes`, `hermes-agent` -> `hermes-agent` |
 | Services | `hermes` (supervisord, autostart), `hermes-whatsapp` (supervisord, manual) |
 | MCP accepts | `jupyter`, `chrome-devtools` |
-| Install files | `pixi.toml`, `build.sh`, `user.yml` |
+| Install files | `pixi.toml`, `build.sh`, `tasks:` |
 | RPM packages | `alsa-lib`, `portaudio` |
 
 ## Environment Variables
@@ -89,7 +89,7 @@ This is a **Tier 2 environment-owner layer** with `pixi.toml` defining the Pytho
    - `npm install` in project root (agent-browser, camoufox-browser)
    - `npm install` in `scripts/whatsapp-bridge/`
    - Copies full source tree to `$HOME/hermes-agent` for runtime files
-3. **user.yml** -- Copies `hermes-entrypoint` wrapper to `~/.local/bin/`
+3. A `copy:` task delivers `hermes-entrypoint` wrapper to `~/.local/bin/`
 
 ### Runtime Entrypoint
 

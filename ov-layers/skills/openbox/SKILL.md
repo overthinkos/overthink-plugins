@@ -14,7 +14,7 @@ description: |
 | Dependencies | `xorg-headless` |
 | Service | `openbox` (supervisord, priority 12) |
 | Packages | openbox, xterm |
-| Install files | `user.yml`, `openbox-wrapper`, `rc.xml` |
+| Install files | `tasks:`, `openbox-wrapper`, `rc.xml` |
 
 ## Keybindings
 

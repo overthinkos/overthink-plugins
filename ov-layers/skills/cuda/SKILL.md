@@ -14,7 +14,7 @@ CUDA compiler, cuDNN, ONNX Runtime, and GPU development libraries. Depends on th
 
 | Property | Value |
 |----------|-------|
-| Install files | `root.yml`, `layer.yml` |
+| Install files | `tasks:`, `layer.yml` |
 | Depends | `nvidia`, `ffmpeg` |
 
 ## Environment Variables
@@ -31,7 +31,7 @@ RPM: `cuda-nvcc`, `cuda-cudart-devel`, `cuda-cudart-static`, `cuda-nvrtc-devel`,
 
 **Note:** No pac section — CUDA development is Fedora-only. The `nvidia` layer provides Arch Linux GPU runtime support.
 
-## root.yml
+## Install tasks
 
 Extracts cuDNN headers from `cuda-cudnn-devel` RPM (bypasses driver dependency via rpm2cpio).
 

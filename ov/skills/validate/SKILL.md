@@ -32,15 +32,43 @@ Invoked as `ov image validate`. See `/ov:image` for the family overview.
 
 ### Layer Rules
 
-- Layer directory must contain at least one install file (`layer.yml` rpm/deb, `root.yml`, `pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, `Cargo.toml`, or `user.yml`) **or** a `layers:` field in `layer.yml` (pure composition)
-- `depends` must reference existing layers (local or remote)
-- Circular dependencies are errors
-- `volumes` names must match `^[a-z0-9]+(-[a-z0-9]+)*$`
-- Volume names must be unique within a layer
-- `aliases` in layer.yml require both `name` and `command`
-- Alias names must match `^[a-zA-Z0-9][a-zA-Z0-9._-]*$`
-- Setting `PATH` directly in `env` is an error (use `path_append`)
-- Only one pixi manifest per layer (`pixi.toml`, `pyproject.toml`, or `environment.yml`)
+- Layer directory must contain at least one install source — `layer.yml` with a non-empty `tasks:` list or a `rpm:` / `deb:` / `pac:` / `aur:` packages section; an auto-detected builder manifest (`pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, `Cargo.toml`); or a `layers:` composition field (pure composition layers are valid).
+- `depends` must reference existing layers (local or remote).
+- Circular dependencies are errors.
+- `volumes` names must match `^[a-z0-9]+(-[a-z0-9]+)*$`.
+- Volume names must be unique within a layer.
+- `aliases` in layer.yml require both `name` and `command`.
+- Alias names must match `^[a-zA-Z0-9][a-zA-Z0-9._-]*$`.
+- Setting `PATH` directly in `env` is an error (use `path_append`).
+- Only one pixi manifest per layer (`pixi.toml`, `pyproject.toml`, or `environment.yml`).
+
+### `tasks:` Rules
+
+See `/ov:layer` for the full verb catalog. The validator enforces:
+
+- **Exactly one verb per task.** A task map must contain exactly one of `cmd` / `mkdir` / `copy` / `write` / `link` / `download` / `setcap` / `build`. Zero verbs → `"task has no action"`; multiple → `"task has conflicting actions: X and Y"`.
+- **Per-verb required modifiers:**
+  - `copy` → `to:` (destination) required; `copy:` value must be relative to the layer directory, no `..` traversal
+  - `write` → `content:` required (non-empty)
+  - `link` → `target:` required (what the symlink points to)
+  - `download` → `to:` required unless `extract: sh` (piped install scripts)
+  - `setcap` with non-empty `caps:` → caps pattern check (`cap_name=flags[,cap_name=flags]`)
+- **Path rules:** paths must be absolute, `~/`-prefixed, or `${HOME}`-prefixed. `copy:` source must exist under the layer directory at generate time.
+- **Mode rules:** `mode:` must match `^0[0-7]{3,4}$` (octal) if present.
+- **Download extract values:** must be one of `tar.gz` / `tar.xz` / `tar.zst` / `zip` / `none` / `sh` or empty.
+- **`build:` value:** must be `"all"` (initial implementation; specific builder names reserved for future use).
+- **`user:` format:** must be `root`, `${USER}`, a literal name matching `^[a-z_][a-z0-9_-]*$`, or numeric `<uid>:<gid>`. Unresolved `${VAR}` in `user:` errors.
+
+### `vars:` Rules
+
+- Keys must match `^[A-Z_][A-Z0-9_]*$` (shell identifier).
+- Keys may not collide with reserved auto-exports (`USER`, `UID`, `GID`, `HOME`, `ARCH`, `BUILD_ARCH`).
+- Keys may not collide with the same layer's `env:` keys.
+
+### `${VAR}` Reference Resolution
+
+- In non-shell fields (paths, URLs, `to`, `target`, etc.), every `${NAME}` reference must resolve against `vars:` ∪ auto-exports. Unresolved references error at validate time.
+- In shell fields (`cmd:` values, `write: content:`), references are passed through verbatim and resolved by bash at build time.
 
 ### Image Rules
 
@@ -148,7 +176,9 @@ ov image list layers                       # Verify layer exists
 
 ### Related skills
 
-- `/ov:layer` -- Layer definition rules
+- `/ov:layer` — **Canonical reference** for the task verb catalog, `vars:` substitution, YAML anchors, execution order. The validator rules above enforce what's documented there.
+- `/ov:generate` — What the generator emits from validated input (per-verb emitters, cache-mount inheritance, inline-content staging).
+- `/ov-dev:generate` — Internal architecture of the task emission pipeline.
 
 ## When to Use This Skill
 

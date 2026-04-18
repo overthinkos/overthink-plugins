@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml` (packages), `root.yml` (nested config) |
+| Install files | `layer.yml` (packages), `tasks:` (nested config) |
 | Security | `cap_add: [ALL]`, `label=disable`, `seccomp=unconfined` |
 | Volumes | `storage` at `/var/lib/containers/storage` |
 | Environment | `OV_BUILD_ENGINE=podman`, `OV_RUN_ENGINE=podman` |
@@ -23,9 +23,9 @@ description: |
 
 **Pacman:** `buildah`, `docker`, `fuse-overlayfs`, `shadow`, `skopeo`, `tailscale`, `libsecret`
 
-## Nested Container Configuration (root.yml)
+## Nested Container Configuration (tasks:)
 
-The `all:` task in root.yml configures the container for nested podman/buildah:
+The `all:` task in tasks: configures the container for nested podman/buildah:
 
 1. **subuid/subgid** -- Maps `root:100000:65536` for rootless user namespace support
 2. **File capabilities** -- `cap_setuid` on `newuidmap`, `cap_setgid` on `newgidmap`

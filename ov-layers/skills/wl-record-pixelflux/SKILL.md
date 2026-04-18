@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `user.yml`, `pixelflux-record` (Python script) |
+| Install files | `layer.yml`, `tasks:`, `pixelflux-record` (Python script) |
 | Depends | `selkies` (capture bridge + WebSocket stream), `ffmpeg` (MP4 muxing) |
 
 ## What It Does

@@ -15,7 +15,7 @@ description: |
 | Ports | 8000, 8080, 443 |
 | Volumes | `certs` -> `~/.traefik/acme` |
 | Service | `traefik` (supervisord) |
-| Install files | `root.yml`, `traefik.yml` |
+| Install files | `tasks:`, `traefik.yml` |
 
 ## Usage
 

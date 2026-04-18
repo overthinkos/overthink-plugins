@@ -37,14 +37,153 @@ description: |
 
 The generated Containerfile follows this order:
 
-1. **Multi-stage build stages** -- scratch stages per layer, builder stages from `builder.yml` templates (pixi, npm, aur, cargo), init system config assembly (driven by init.yml), traefik routes
-2. **`FROM ${BASE_IMAGE}`** -- external bases get bootstrap from `distro.yml` (install cmd, cache mounts, workarounds); internal bases get `USER root`
-3. **Image metadata** -- consolidated `ENV` directives, `EXPOSE` ports, `org.overthinkos.*` labels
-4. **COPY build artifacts** -- config-driven from `builder.yml` `copy_artifacts` and `copy_binary` definitions
-5. **Per-layer install steps** -- distro: override (first match) then build: formats (all in order). Install commands rendered from `distro.yml` format templates. `root.yml` (tag-based task dispatch), inline builders (cargo), `user.yml`. `USER` toggles between root and UID
-6. **Final assembly** -- init system config assembly, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only)
+1. **Multi-stage build stages** — scratch stages per layer, builder stages from `builder.yml` templates (pixi, npm, aur, cargo), init system config assembly (driven by init.yml), traefik routes
+2. **`FROM ${BASE_IMAGE}`** — external bases get bootstrap from `distro.yml` (install cmd, cache mounts, workarounds); internal bases get `USER root`
+3. **Image metadata** — consolidated `ENV` directives, `EXPOSE` ports, `org.overthinkos.*` labels
+4. **COPY build artifacts** — config-driven from `builder.yml` `copy_artifacts` and `copy_binary` definitions
+5. **Per-layer install steps** — see "Task emission pipeline" below. `USER` toggles as each task's `user:` field requires.
+6. **Final assembly** — init system config assembly, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only)
 
 **Config-driven generation:** All format-specific install commands, cache mounts, repo setup, and builder stages are defined in `distro.yml` and `builder.yml` at the project root as Go `text/template` strings. Each distro entry in `distro.yml` contains both bootstrap config and its package format definitions. Referenced via `format_config:` in `images.yml` — supports local paths and remote `@github.com/org/repo/path:version` refs. Adding a new format (e.g., `apk` for Alpine) requires only YAML changes — zero Go code modifications.
+
+## Task emission pipeline
+
+All install-task logic lives in a single file: `ov/tasks.go` (~380 lines). Authored layer-side as `tasks:` list in `layer.yml`; emitted as Containerfile directives via this sequence per layer inside `writeLayerSteps` (`ov/generate.go:1021`):
+
+```
+1. # Layer: <name>                 (comment header)
+2. ARG TARGETARCH + ENV ARCH=${TARGETARCH}    (once; from emitVarsEnv)
+3. ENV <K>=<V> for each layer.Vars entry      (also from emitVarsEnv)
+4. Package install: rpm/deb/pac/aur  (unchanged — format template render)
+5. emitTasks(b, layer, img, buildDir, contextRelPrefix, initialUser):
+   for each t in layer.tasks:
+     resolve ${VAR} in non-verbatim fields
+     user := resolveUserSpec(t.User, img)   // numeric UID for ${USER}
+     if user != runningUser: emit USER <value>
+     switch t.Kind():
+       case "mkdir":    emitMkdirBatch  (coalesces adjacent same-user+same-mode)
+       case "copy":     emitCopy        (COPY --from=<layer> --chmod= --chown=)
+       case "write":    stageInlineContent + emitWrite (COPY from .build _inline)
+       case "link":     emitLinkBatch   (coalesces adjacent same-user)
+       case "download": emitDownload    (RUN curl + extractor + /tmp/downloads cache)
+       case "setcap":   emitSetcapBatch (coalesces; strip on empty caps)
+       case "cmd":      emitCmd         (RUN bash -c 'set -e; ...' + /ctx bind)
+       case "build":    writeLayerSteps handles builder placement
+6. USER root reset (unless last layer + skipRootReset)
+```
+
+### `Task` struct (`ov/layers.go:195`)
+
+Flat struct with verb-discriminator fields. Exactly one of `Cmd` / `Mkdir` / `Copy` / `Write` / `Link` / `Download` / `Setcap` / `Build` must be non-empty. Shared modifiers (`User`, `Mode`, `To`, `Target`, `Content`, `Extract`, `Include`, `Env`, `Caps`, `Comment`) are validated per-verb in `ov/validate.go:validateLayerTasks`.
+
+```go
+func (t *Task) Kind() (string, error)   // returns verb or error ("no action" / "conflicting actions")
+```
+
+### Emitter helpers (all in `ov/tasks.go`)
+
+| Helper | Output |
+|---|---|
+| `emitVarsEnv(b, vars)` | `ARG TARGETARCH` + `ENV ARCH=${TARGETARCH}` + sorted `ENV K=V` |
+| `emitMkdirBatch(b, []Task, img)` | One `RUN mkdir -p … [&& chmod <mode> …]` |
+| `emitCopy(b, Task, layerStage, img)` | `COPY --from=<layerStage> --chmod= [--chown=] <src> <to>` |
+| `emitWrite(b, Task, srcPath, img)` | `COPY [--chown=] --chmod= <srcPath> <path>` where `srcPath` is the staged inline-content file |
+| `emitLinkBatch(b, []Task, img)` | One `RUN ln -sf t1 l1 && ln -sf t2 l2 …` |
+| `emitDownload(b, Task, img)` | `RUN --mount=type=cache,dst=/tmp/downloads bash -c 'BUILD_ARCH=$(uname -m) curl … \| <extractor>'` |
+| `emitSetcapBatch(b, []Task, img)` | `RUN setcap -r … && setcap caps path …` |
+| `emitCmd(b, Task, layerStage, img, userIsRoot)` | `RUN --mount=type=bind,from=<layerStage>,source=/,target=/ctx [--mount=type=cache,…] bash -c 'BUILD_ARCH=$(uname -m)\nset -e\n<command>'` |
+
+### Inline-content staging
+
+`stageInlineContent(buildDir, contextRelPrefix, layerName, content)` writes `write:` task content to `<buildDir>/_inline/<layer>/<sha256>` on disk and returns the build-context-relative path (e.g. `.build/<image>/_inline/<layer>/<sha256>`). Content-addressed filename makes writes idempotent — identical content writes no-op; changed content produces a new hash which invalidates only that COPY's cache layer. **No shell heredoc ever appears in the Containerfile** — content travels as bytes.
+
+### User resolution
+
+`resolveUserSpec(userField, img)` → `(directive, chownPair)`:
+
+- `root` / `0` / empty → `("0", "")` (root is COPY's default; skip `--chown`)
+- `${USER}` → `(strconv.Itoa(img.UID), fmt.Sprintf("%d:%d", img.UID, img.GID))` — **numeric** directive, matching the pre-refactor `USER <UID>` convention and avoiding `/etc/passwd` dependencies at the switch point
+- `<uid>:<gid>` → pass through
+- bare numeric `<uid>` → `(u, u + ":" + u)`
+- literal name → `(u, u + ":" + u)` (COPY `--chown=<name>:<name>` works when the user exists in the image)
+
+### Variable substitution
+
+Two-tier:
+
+- **Generate-time:** `taskSubstPath` expands `~/` to `img.Home` and substitutes `${USER}` / `${UID}` / `${GID}` / `${HOME}` literally (values known at generate time). Applied to paths, URLs, modes, `to`, `target`, etc.
+- **Build-time (Docker):** `${ARCH}` comes from BuildKit's `TARGETARCH` via `ARG TARGETARCH` + `ENV ARCH=${TARGETARCH}` emitted at layer top. Layer-local `vars:` become `ENV` directives too. Docker substitutes these in COPY paths, RUN commands, and ENV values.
+- **Build-time (shell):** `${BUILD_ARCH}` is auto-injected as a local shell variable at the top of each `cmd:` / `download:` RUN (`BUILD_ARCH=$(uname -m)`). Unlike `${ARCH}`, it isn't available in non-shell fields.
+
+`taskUnresolvedRefs(s, known)` returns `${NAME}` references that don't resolve against auto-exports ∪ layer `vars:` — used by `validateLayerTasks` to error on typos.
+
+### Adjacent-coalescing (`taskCoalescesWith`)
+
+Only these verbs coalesce: `mkdir`, `link`, `setcap`. Coalescing requires same verb + same `User` field (literal equality before resolution). The orchestrator loop consumes consecutive matching tasks into a batch, then flushes as a single directive. Non-adjacent same-verb tasks never merge — reordering across other verbs is forbidden.
+
+### Parent-dir auto-insertion
+
+For `copy:` and `write:` tasks, if the destination's parent directory isn't already registered in `declaredDirs` (which tracks every `mkdir:` task PLUS all ancestor paths, matching Unix `mkdir -p` semantics), the orchestrator prepends a single `RUN mkdir -p <parent>` (as the task's `user:`) immediately before the COPY. This is the only implicit directive in the pipeline; authors can disable it for a specific path by declaring the parent via explicit `mkdir:`.
+
+## Multi-Stage Builds
+
+### Pixi Build Stage
+
+```dockerfile
+FROM ghcr.io/overthinkos/fedora-builder:2026.48.1808 AS supervisord-pixi-build
+WORKDIR /home/user
+COPY layers/supervisord/pixi.toml pixi.toml
+RUN pixi install
+```
+
+Uses the configured builder image. No `apt-get install` needed — builder has pixi, node, npm, gcc, cmake, git.
+
+### npm Build Stage
+
+```dockerfile
+FROM <builder> AS openclaw-npm-build
+COPY layers/openclaw/package.json package.json
+RUN npm install -g --prefix /npm-global
+```
+
+### AUR Build Stage (Arch Linux)
+
+For layers with `aur:` packages, the generator creates a multi-stage build using the `builders.aur` image:
+
+```dockerfile
+FROM ghcr.io/overthinkos/archlinux-builder:2026.84.942 AS my-tool-aur-build
+USER root
+RUN echo 'user ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
+USER 1000
+WORKDIR /home/user
+RUN --mount=type=cache,dst=/var/cache/pacman/pkg,sharing=locked \
+    mkdir -p /tmp/aur-build && \
+    cp /etc/makepkg.conf /tmp/makepkg.conf && \
+    sed -i '/^OPTIONS/s/ debug/ !debug/' /tmp/makepkg.conf && \
+    yay -S --noconfirm --needed --builddir /tmp/aur-build --makepkgconf /tmp/makepkg.conf \
+      aur-package && \
+    mkdir -p /tmp/aur-pkgs && \
+    find /tmp/aur-build -name '*.pkg.tar.zst' -exec cp {} /tmp/aur-pkgs/ \;
+```
+
+In the main image, the built packages are installed:
+```dockerfile
+COPY --from=my-tool-aur-build /tmp/aur-pkgs/ /tmp/aur-pkgs/
+RUN --mount=type=cache,dst=/var/cache/pacman/pkg,sharing=locked \
+    pacman -U --noconfirm /tmp/aur-pkgs/*.pkg.tar.zst && \
+    rm -rf /tmp/aur-pkgs
+```
+
+Key details: passwordless sudo is required because yay calls `pacman -U` as root. Debug packages are disabled via a patched copy of `makepkg.conf` (the build user can't modify `/etc/` directly).
+
+**Status:** Working. Verified with `yay-bin` in `arch-test` image.
+
+### Scratch Context Stage
+
+```dockerfile
+FROM scratch AS mylib-ctx
+COPY layers/mylib/ /
+```
 
 ## Multi-Stage Builds
 
@@ -188,15 +327,17 @@ Security configuration (`security:` in layer.yml/images.yml) and environment var
 
 ## Cache Mounts
 
-| Step type | Cache path | Options |
-|-----------|------------|---------|
-| `rpm.packages`, `root.yml` (rpm) | `/var/cache/libdnf5` | `sharing=locked` |
-| `deb.packages`, `root.yml` (deb) | `/var/cache/apt` + `/var/lib/apt` | `sharing=locked` |
-| `pac.packages`, `aur`, `root.yml` (pac) | `/var/cache/pacman/pkg` | `sharing=locked` |
-| `user.yml` | `/tmp/npm-cache` | `uid=<UID>,gid=<GID>` |
-| `Cargo.toml` | `/tmp/cargo-cache` | `uid=<UID>,gid=<GID>` |
-| pixi build stage | `/tmp/pixi-cache` + `/tmp/rattler-cache` | `uid=<UID>,gid=<GID>` |
-| npm build stage | `/tmp/npm-cache` | `uid=<UID>,gid=<GID>` |
+| Emission site | Cache path | Options |
+|---|---|---|
+| `rpm.packages` | `/var/cache/libdnf5` | `sharing=locked` |
+| `deb.packages` | `/var/cache/apt` + `/var/lib/apt` | `sharing=locked` |
+| `pac.packages` + `aur` | `/var/cache/pacman/pkg` | `sharing=locked` |
+| `cmd:` as root | Distro-format caches (above) + `/ctx` bind to layer stage | — |
+| `cmd:` as non-root | `/tmp/npm-cache` (UID-scoped) + `/ctx` bind to layer stage | `uid=<UID>,gid=<GID>` |
+| `download:` | `/tmp/downloads` (shared across layers) | — |
+| pixi builder stage | `/tmp/pixi-cache` + `/tmp/rattler-cache` | `uid=<UID>,gid=<GID>` |
+| npm builder stage | `/tmp/npm-cache` | `uid=<UID>,gid=<GID>` |
+| cargo inline | `/tmp/cargo-cache` | `uid=<UID>,gid=<GID>` |
 
 UID/GID in cache mounts are dynamic (from resolved image config). All non-root cache mounts use flat `/tmp/<tool>-cache` paths to avoid buildah permission issues with nested paths.
 
@@ -220,10 +361,12 @@ ov image inspect my-image --format layers      # Shows layer list for an image
 
 ## Cross-References
 
-- `/ov-dev:go` -- Source code for the generator
-- `/ov:validate` -- Validation rules
-- `/ov:build` -- Building from generated Containerfiles
-- Source: `ov/generate.go`, `ov/intermediates.go`, `ov/graph.go`
+- `/ov:layer` — **Canonical author-facing reference** for the task verb catalog, `vars:` substitution, YAML anchors, execution order. The emitter pipeline here implements what's documented there.
+- `/ov:generate` — User-facing `ov image generate` command.
+- `/ov-dev:go` — Source code map: `ov/tasks.go` (emitter pipeline), `ov/generate.go:writeLayerSteps` (orchestrator call site), `ov/layers.go:Task` struct, `ov/validate.go:validateLayerTasks`.
+- `/ov:validate` — User-facing validation rules (what `validateLayerTasks` enforces).
+- `/ov:build` — Building from generated Containerfiles.
+- Source: `ov/generate.go`, `ov/tasks.go`, `ov/intermediates.go`, `ov/graph.go`.
 
 ## When to Use This Skill
 

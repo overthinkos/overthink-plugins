@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `dbus` |
 | Service | `swaync` (supervisord, priority 14, startsecs=2) |
-| Install files | `layer.yml`, `root.yml`, `user.yml`, `swaync-wrapper`, `config.json`, `style.css` |
+| Install files | `layer.yml`, `tasks:`, `swaync-wrapper`, `config.json`, `style.css` |
 
 ## Packages
 
@@ -25,7 +25,7 @@ Runs as a supervisord service (priority 14, `startsecs=2`) via `swaync-wrapper` 
 
 ### D-Bus Auto-Activation Fix
 
-The `root.yml` removes D-Bus auto-activation service files (`org.erikreider.swaync.service`, `org.erikreider.swaync.cc.service`) at build time. Without this fix, D-Bus spawns a competing swaync instance when waybar's `swaync-client -swb` queries the notification service ~2 seconds after startup. The `SystemdService=` directive in those files is intended to delegate to systemd, but since containers use supervisord (not systemd as PID 1), D-Bus falls back to `Exec=/usr/bin/swaync`, creating a second instance that steals the D-Bus bus name from the supervisord-managed one — causing the supervisord instance to exit with FATAL status.
+The `tasks:` removes D-Bus auto-activation service files (`org.erikreider.swaync.service`, `org.erikreider.swaync.cc.service`) at build time. Without this fix, D-Bus spawns a competing swaync instance when waybar's `swaync-client -swb` queries the notification service ~2 seconds after startup. The `SystemdService=` directive in those files is intended to delegate to systemd, but since containers use supervisord (not systemd as PID 1), D-Bus falls back to `Exec=/usr/bin/swaync`, creating a second instance that steals the D-Bus bus name from the supervisord-managed one — causing the supervisord instance to exit with FATAL status.
 
 ## Configuration
 

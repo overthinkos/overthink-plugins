@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `user.yml` |
+| Install files | `layer.yml`, `tasks:` |
 | Depends | none |
 
 ## Environment

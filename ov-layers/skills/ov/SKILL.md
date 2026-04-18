@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `root.yml`, `bin/ov` |
+| Install files | `tasks:`, `bin/ov` |
 
 ## What It Provides
 

@@ -17,7 +17,7 @@ description: |
 | Ports | 8080 |
 | Aliases | `open-webui` -> `open-webui` |
 | Services | `openwebui` (supervisord, autostart) |
-| Install files | `pixi.toml`, `user.yml`, `openwebui-entrypoint` |
+| Install files | `pixi.toml`, `tasks:`, `openwebui-entrypoint` |
 
 ## Environment Variables
 

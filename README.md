@@ -35,7 +35,7 @@ Build-mode commands live under `ov image …` (the only family that reads
 | generate | `/ov:generate` | `ov image generate` — Containerfile generation from images.yml and layers |
 | image | `/ov:image` | `ov image` family overview + images.yml composition reference |
 | inspect | `/ov:inspect` | `ov image inspect` — resolved config as JSON |
-| layer | `/ov:layer` | Layer authoring (layer.yml, root.yml, pixi.toml, etc.) |
+| layer | `/ov:layer` | Layer authoring (layer.yml with tasks:, pixi.toml, etc.) |
 | list | `/ov:list` | `ov image list` — images, layers, targets, services, routes, volumes, aliases |
 | logs | `/ov:logs` | Service log viewing (ov logs, -f for follow) |
 | merge | `/ov:merge` | `ov image merge` — post-build layer optimization |

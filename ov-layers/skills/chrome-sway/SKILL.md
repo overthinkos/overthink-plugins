@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `sway` |
 | Layers (includes) | `chrome` |
-| Install files | `user.yml`, `chrome-sway.conf` |
+| Install files | `tasks:`, `chrome-sway.conf` |
 
 ## Usage
 

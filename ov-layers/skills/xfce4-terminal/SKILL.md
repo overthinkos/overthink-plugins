@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `sway` |
-| Install files | `layer.yml`, `user.yml` |
+| Install files | `layer.yml`, `tasks:` |
 
 ## Packages
 

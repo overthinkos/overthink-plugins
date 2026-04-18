@@ -14,7 +14,7 @@ description: |
 | Dependencies | none |
 | Ports | 6379 |
 | Service | `redis` (supervisord, priority 20) |
-| Install files | `user.yml` |
+| Install files | `tasks:` |
 
 ## Environment Variables
 

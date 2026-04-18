@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `nodejs` |
-| Install files | `root.yml`, `package.json` |
+| Install files | `tasks:`, `package.json` |
 
 ## Packages
 

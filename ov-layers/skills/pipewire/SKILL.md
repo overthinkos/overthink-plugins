@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `supervisord` |
 | Service | `pipewire` (supervisord, priority 5) |
-| Install files | `user.yml`, `pipewire-wrapper` |
+| Install files | `tasks:`, `pipewire-wrapper` |
 
 ## Environment Variables
 

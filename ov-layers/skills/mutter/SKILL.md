@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `dbus` |
 | Service | `mutter` (supervisord, priority 10) |
-| Install files | `layer.yml`, `root.yml`, `user.yml`, `mutter-wrapper` |
+| Install files | `layer.yml`, `tasks:`, `mutter-wrapper` |
 
 ## Environment Variables
 

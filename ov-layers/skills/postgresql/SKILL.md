@@ -16,7 +16,7 @@ description: |
 | Ports | 5432 |
 | Volumes | `pgdata` -> `~/.postgresql/data` |
 | Service | `postgresql` (supervisord, priority 10) |
-| Install files | `root.yml` |
+| Install files | `tasks:` |
 
 ## Environment Variables
 

@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `dbus`, `kwin`, `pipewire` |
-| Install files | `layer.yml`, `user.yml`, `portals.conf` |
+| Install files | `layer.yml`, `tasks:`, `portals.conf` |
 
 ## Environment Variables
 

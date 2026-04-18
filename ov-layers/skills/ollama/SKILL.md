@@ -16,7 +16,7 @@ description: |
 | Volumes | `models` -> `~/.ollama` |
 | Aliases | `ollama` -> `ollama` |
 | Service | `ollama` (supervisord) |
-| Install files | `root.yml` |
+| Install files | `tasks:` |
 
 ## Environment Variables
 

@@ -34,12 +34,14 @@ ov image new layer my-tool
 
 After scaffolding, the typical workflow is:
 
-1. `ov image new layer <name>` -- create the scaffold
-2. Edit `layers/<name>/layer.yml` -- add packages, deps, description
-3. Add install files (`root.yml`, `user.yml`, `pixi.toml`, etc.) as needed
+1. `ov image new layer <name>` — create the scaffold
+2. Edit `layers/<name>/layer.yml` — add packages, deps, `tasks:` (see `/ov:layer` for the verb catalog)
+3. Optionally add auto-detected package manifests (`pixi.toml`, `package.json`, `Cargo.toml`) if the layer ships Python / npm / Rust dependencies
 4. Add the layer to an image in `images.yml`
-5. `ov image validate` -- check for errors
-6. `ov image build <image>` -- build the image
+5. `ov image validate` — check for errors
+6. `ov image build <image>` — build the image
+
+The scaffolded `layer.yml` is minimal — just `depends:` and a `description:`. Add sections as needed: `rpm:` / `deb:` / `pac:` / `aur:` for system packages, `env:` for runtime environment, `ports:` / `service:` / `volumes:` for services, and `tasks:` for install operations (mkdir, copy, write, download, link, setcap, cmd, build). The scaffolder no longer creates separate Taskfile shell scripts — all install logic flows through `tasks:` in `layer.yml`.
 
 ## Naming Rules
 

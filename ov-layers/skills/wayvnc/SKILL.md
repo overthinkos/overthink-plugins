@@ -14,7 +14,7 @@ description: |
 | Dependencies | `supervisord` |
 | Ports | `tcp:5900` (non-HTTP protocol) |
 | Service | `wayvnc` (supervisord, priority 20) |
-| Install files | `user.yml`, `wayvnc-wrapper` |
+| Install files | `tasks:`, `wayvnc-wrapper` |
 
 ## Packages
 

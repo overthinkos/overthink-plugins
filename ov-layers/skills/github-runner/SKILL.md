@@ -15,7 +15,7 @@ description: |
 | Volumes | `state` -> `/opt/actions-runner`, `storage` -> `/var/lib/containers/storage` |
 | Service | `github-runner` (supervisord) |
 | Security | `privileged: true` |
-| Install files | `root.yml` |
+| Install files | `tasks:` |
 
 ## Environment Variables
 

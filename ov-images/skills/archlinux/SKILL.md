@@ -36,7 +36,7 @@ ov shell archlinux
 
 ## Multi-Distro Support
 
-This is the Arch counterpart to `/ov-images:fedora`. The tag system (`distro: [archlinux]`, `build: [pac]`) selects `pac:` package sections and `pac:` tasks in root.yml/user.yml. Layers shared between Arch and Fedora images use distro-specific sections:
+This is the Arch counterpart to `/ov-images:fedora`. The tag system (`distro: [archlinux]`, `build: [pac]`) selects `pac:` package sections and `pac:` tasks in tasks:. Layers shared between Arch and Fedora images use distro-specific sections:
 
 ```yaml
 # layer.yml — multi-distro package declarations

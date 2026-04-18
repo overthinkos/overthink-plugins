@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `root.yml` |
+| Install files | `tasks:` |
 
 ## Usage
 

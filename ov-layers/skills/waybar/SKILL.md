@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `sway` |
 | Service | `waybar` (supervisord, priority 15), `sway-autotile` (priority 16) |
-| Install files | `user.yml`, `config.json`, `style.css`, `waybar-wrapper`, `sway-autotile` |
+| Install files | `tasks:`, `config.json`, `style.css`, `waybar-wrapper`, `sway-autotile` |
 
 ## Packages
 

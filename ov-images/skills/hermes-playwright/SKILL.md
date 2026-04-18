@@ -67,7 +67,7 @@ ov shell hermes-playwright -c "npx playwright --version"
 
 Playwright's `--with-deps` flag does not support Fedora (falls back to Ubuntu's `apt-get`). The `hermes-playwright` layer works around this by:
 1. Installing Chromium's system library dependencies via rpm packages in `layer.yml`
-2. Installing only the browser binary via `npx playwright install chromium` in `root.yml`
+2. Installing only the browser binary via `npx playwright install chromium` in `tasks:`
 
 The `PLAYWRIGHT_BROWSERS_PATH=/tmp/.cache/ms-playwright` env var is set automatically.
 

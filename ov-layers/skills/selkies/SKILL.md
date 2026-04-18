@@ -163,7 +163,7 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 - `traefik.yml` — Traefik static config (HTTPS entrypoint on :3000, self-signed cert)
 - `traefik-dynamic.yml` — Path-based routing (`/websockets` → :8081, `/` → :3001) with TLS default certificate
 - `build.sh` — Pixi builder stage script: pip installs selkies (C extensions), patches `input_handler.py` for generic keyboard layout support (env-based keymap, AltGr injection, bypass removal), builds web UI dashboard (npm), stages artifacts for copy to final image
-- `root.yml` — Downloads Traefik binary, generates self-signed cert, installs configs (no build deps, no dnf remove)
+- `tasks:` — Downloads Traefik binary, generates self-signed cert, installs configs (no build deps, no dnf remove)
 - `pixi.toml` — Python 3.13 + pip + setuptools + libxkbcommon (C headers for builder stage)
 
 ## GPU Encoding Status

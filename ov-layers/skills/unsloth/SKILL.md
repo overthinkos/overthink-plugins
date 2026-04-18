@@ -15,11 +15,11 @@ description: |
 | Dependencies | None (requires pixi env from parent) |
 | Volumes | `models` -> `~/.cache/huggingface` |
 | Aliases | `unsloth` -> `unsloth` |
-| Install files | `layer.yml`, `user.yml` |
+| Install files | `layer.yml`, `tasks:` |
 
 ## Architecture: Tier 1 Post-Install Layer
 
-This layer has **no pixi.toml** and **no depends**. It installs pip packages into the pixi environment established by a Tier 2 "environment-owner" parent layer. The user.yml runs AFTER the parent's pixi COPY in the final image build.
+This layer has **no pixi.toml** and **no depends**. It installs pip packages into the pixi environment established by a Tier 2 "environment-owner" parent layer. The user-phase tasks run AFTER the parent's pixi COPY in the final image build.
 
 **Cannot be used standalone** — must be composed into an environment-owner layer via the `layers:` field.
 
@@ -30,7 +30,7 @@ This layer has **no pixi.toml** and **no depends**. It installs pip packages int
 | `UNSLOTH_SKIP_LLAMA_CPP_INSTALL` | `1` |
 | `HF_HOME` | `~/.cache/huggingface` |
 
-## Post-pixi Installs (user.yml)
+## Post-pixi Installs (tasks:)
 
 1. **vLLM cu130 nightly wheel** (`pip install --no-deps`) — installed here because vLLM wheel must run after pixi env exists
 2. **unsloth + unsloth-zoo** (`pip install --no-deps`) — incompatible with transformers 5.x in pixi solve
@@ -47,7 +47,7 @@ This layer has **no pixi.toml** and **no depends**. It installs pip packages int
 - `/ov-layers:llama-cpp` — llama.cpp binaries (often paired as sibling Tier 1 layer)
 - `/ov-layers:unsloth-studio` — Studio web UI (Tier 2 parent, owns pixi.toml)
 - `/ov-layers:jupyter-ml` — ML Jupyter with MCP (Tier 2 parent, owns pixi.toml)
-- `/ov-layers:python-ml` — Core ML environment (Tier 2, uses vllm pip install in its own user.yml instead)
+- `/ov-layers:python-ml` — Core ML environment (Tier 2, uses vllm pip install in its own tasks: instead)
 
 ## Used In Images
 

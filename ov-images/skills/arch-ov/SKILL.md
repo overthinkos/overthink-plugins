@@ -9,7 +9,7 @@ description: |
 
 # arch-ov
 
-Arch Linux container with full ov toolchain. Uses the same shared layer list as `fedora-ov` — the tag system handles Arch-specific packages and scripts via `pac:` sections and `pac:` tasks in root.yml/user.yml. Supports running arch-ov inside arch-ov (tested to depth 3).
+Arch Linux container with full ov toolchain. Uses the same shared layer list as `fedora-ov` — the tag system handles Arch-specific packages and scripts via `pac:` sections and `pac:` tasks in tasks:. Supports running arch-ov inside arch-ov (tested to depth 3).
 
 ## Image Properties
 

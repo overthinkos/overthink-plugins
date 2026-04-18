@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `dbus` |
 | Service | `kwin` (supervisord, priority 10) |
-| Install files | `layer.yml`, `root.yml`, `user.yml`, `kwin-wrapper` |
+| Install files | `layer.yml`, `tasks:`, `kwin-wrapper` |
 
 ## Environment Variables
 

@@ -9,7 +9,7 @@ description: |
 
 # fedora-ov
 
-Fedora container with full ov toolchain. Uses the same shared layer list as `arch-ov` — the tag system handles Fedora-specific packages and scripts via `rpm:` sections and `rpm:` tasks in root.yml/user.yml. Supports running fedora-ov inside fedora-ov (nested containers).
+Fedora container with full ov toolchain. Uses the same shared layer list as `arch-ov` — the tag system handles Fedora-specific packages and scripts via `rpm:` sections and `rpm:` tasks in tasks:. Supports running fedora-ov inside fedora-ov (nested containers).
 
 ## Image Properties
 

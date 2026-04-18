@@ -30,12 +30,13 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 | File | Purpose |
 |------|---------|
 | `main.go` | CLI entry point (Kong framework) |
-| `config.go` | `images.yml` parsing, inheritance resolution. `BuildFormats` type. `Distro` field. `ResolvedImage.Tags` (union). `SupportsTag()`, `SupportsBuild()`, `MatchingTasks()` methods |
+| `config.go` | `images.yml` parsing, inheritance resolution. `BuildFormats` type. `Distro` field. `ResolvedImage.Tags` (union). `SupportsTag()`, `SupportsBuild()` methods |
 | `format_config.go` | `DistroConfig` (with per-distro `Formats`), `BuilderConfig` types. Loads `distro.yml`/`builder.yml` via `format_config:` refs in `images.yml`. `FormatDef`, `BuilderDef` types. Per-image config resolution with remote ref support |
 | `format_template.go` | Go `text/template` rendering engine. Template helpers: `cacheMounts`, `cacheMountsOwned`, `quote`, `default`, `splitFirst`, `replace`, `join`. `InstallContext`, `BuildStageContext` types |
-| `layers.go` | Layer scanning, file detection, `parseLayerYAML()`. `PackageSection` generic format sections. `TagSections` for distro overrides. `RootYmlTasks`/`UserYmlTasks` from Taskfiles |
-| `generate.go` | Containerfile generation. Config-driven: renders install templates from `distro.yml` formats, builder stages from `builder.yml`, bootstrap from `distro.yml` |
-| `validate.go` | All validation rules. Format/builder validation against config definitions (not hardcoded maps) |
+| `layers.go` | Layer scanning, file detection, `parseLayerYAML()`. `LayerYAML` struct with `Vars` + `Tasks` fields. `Task` struct + `Kind()` method (exactly-one-verb). `PackageSection` generic format sections. `TagSections` for distro overrides. |
+| `tasks.go` | **All task emission logic** — per-verb emitters (`emitMkdirBatch`, `emitCopy`, `emitWrite`, `emitLinkBatch`, `emitDownload`, `emitSetcapBatch`, `emitCmd`, `emitBuild`), `emitTasks` orchestrator, `stageInlineContent` (content-addressed), `resolveUserSpec`, `taskSubstPath`, `taskUnresolvedRefs`. Adjacent-coalescing (`taskCoalescesWith`). ~380 lines, single home for install-task codegen. |
+| `generate.go` | Containerfile generation. `writeLayerSteps` orchestrates per-layer: packages → `emitTasks` (from `tasks.go`) → builders → USER reset. Config-driven format install from `distro.yml`, builder stages from `builder.yml`, bootstrap from `distro.yml`. |
+| `validate.go` | All validation rules. `validateLayerTasks` enforces exactly-one-verb, per-verb required modifiers, `vars` key rules, path/mode/caps format, `${VAR}` resolution checks. Format/builder validation against config definitions (not hardcoded maps) |
 | `version.go` | CalVer computation |
 | `scaffold.go` | `new layer` scaffolding |
 
@@ -165,10 +166,11 @@ bin/ov image inspect <image>
 
 ## Cross-References
 
-- `/ov-dev:generate` -- Understanding generated Containerfiles
-- `/ov:validate` -- Validation rules and error handling
-- `/ov:build` -- Using the built CLI
-- Source: `ov/` directory (67 source + 47 test .go files)
+- `/ov-dev:generate` — Understanding generated Containerfiles + deep dive on the task emission pipeline (`ov/tasks.go`).
+- `/ov:layer` — **Canonical author-facing reference** for the task verb catalog that `ov/tasks.go` implements.
+- `/ov:validate` — Validation rules and error handling (`validateLayerTasks` in `ov/validate.go`).
+- `/ov:build` — Using the built CLI.
+- Source: `ov/` directory (~68 source + ~48 test .go files).
 
 ## When to Use This Skill
 

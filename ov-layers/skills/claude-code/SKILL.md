@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `nodejs` |
-| Install files | `layer.yml`, `root.yml` |
+| Install files | `layer.yml`, `tasks:` |
 
 PATH additions: `~/.local/bin`
 

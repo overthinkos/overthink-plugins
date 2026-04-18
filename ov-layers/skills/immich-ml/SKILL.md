@@ -15,7 +15,7 @@ description: |
 | Ports | 3003 |
 | Volumes | `models` -> `~/.immich/models` |
 | Service | `immich-ml` (supervisord, priority 40) |
-| Install files | `root.yml`, `user.yml` |
+| Install files | `tasks:` |
 
 ## Environment Variables
 
@@ -31,8 +31,8 @@ description: |
 
 ## Build Setup
 
-- **root.yml** — Downloads immich ML module, installs via uv/pip into `/opt/immich/machine-learning/.venv`
-- **user.yml** — Creates `~/.immich/models` (TRANSFORMERS_CACHE) and `~/.cache/immich_ml` (immich ML model cache). The `~/.cache/immich_ml` directory must be created at build time because `~/.cache` may be root-owned from earlier layer builds (npm/pixi). Creating it in user.yml ensures correct UID 1000 ownership.
+- Root-phase tasks download the immich ML module, installs via uv/pip into `/opt/immich/machine-learning/.venv`
+- User-phase tasks create `~/.immich/models` (TRANSFORMERS_CACHE) and `~/.cache/immich_ml` (immich ML model cache). The `~/.cache/immich_ml` directory must be created at build time because `~/.cache` may be root-owned from earlier layer builds (npm/pixi). Creating it in tasks: ensures correct UID 1000 ownership.
 
 ## Usage
 

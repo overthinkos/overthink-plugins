@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | none (explicit `depends: []`) |
-| Install files | `layer.yml`, `root.yml` |
+| Install files | `layer.yml`, `tasks:` |
 
 ## Environment Variables
 
@@ -29,8 +29,8 @@ RPM: `nodejs24`, `nodejs24-npm`
 
 ## Build Setup
 
-- **root.yml** — Creates symlinks (`node-24` → `node`, `npm-24` → `npm`, `npx-24` → `npx` in `/usr/local/bin`) since Fedora's parallel-installable nodejs24 package installs binaries with version suffixes
-- **package.json** — Declares `pnpm@10` as a dependency. Installed via the builder system's npm pattern (runs as UID 1000, uses `/tmp/npm-cache`), NOT via `npm install -g` in root.yml. This avoids creating root-owned files in `~/.cache`
+- `tasks:` symlink verbs create (`node-24` → `node`, `npm-24` → `npm`, `npx-24` → `npx` in `/usr/local/bin`) since Fedora's parallel-installable nodejs24 package installs binaries with version suffixes
+- **package.json** — Declares `pnpm@10` as a dependency. Installed via the builder system's npm pattern (runs as UID 1000, uses `/tmp/npm-cache`), NOT via `npm install -g` in tasks:. This avoids creating root-owned files in `~/.cache`
 
 ## Usage
 

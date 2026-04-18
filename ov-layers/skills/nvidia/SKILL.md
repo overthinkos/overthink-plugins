@@ -14,7 +14,7 @@ NVIDIA runtime layer providing `nvidia-container-toolkit` for CDI device injecti
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `root.yml` |
+| Install files | `layer.yml`, `tasks:` |
 | Depends | none |
 
 ## Packages
@@ -49,7 +49,7 @@ The injection replaces 10 previously-scattered GPU device injection blocks acros
 
 See `/ov:doctor` (Hardware Detection) for the detection probe and `/ov-layers:rocm` for the AMD-side counterpart using the same mechanism.
 
-## root.yml
+## Install tasks
 
 Creates Vulkan ICD compatibility symlinks for nvidia-ctk CDI device injection.
 

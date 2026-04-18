@@ -17,7 +17,7 @@ description: |
 | CDP Proxy | `cdp-proxy` on 0.0.0.0:9222 → Chrome on 127.0.0.1:9223 |
 | Volumes | `chrome-data` -> `~/.chrome-debug` |
 | Security | `shm_size: 1g`, `memory_max: 6g`, `memory_high: 5g`, `memory_swap_max: 2g` |
-| Install files | `layer.yml`, `root.yml`, `user.yml`, `cdp-proxy`, `chrome-wrapper`, `chrome-restart`, `browser-open`, `chrome-crash-listener` |
+| Install files | `layer.yml`, `tasks:`, `cdp-proxy`, `chrome-wrapper`, `chrome-restart`, `browser-open`, `chrome-crash-listener` |
 
 ## Environment Variables
 
@@ -79,7 +79,7 @@ ov config selkies-desktop -i proxy \
 ## Packages
 
 RPM (system): `liberation-fonts`, `vulkan-loader`, `mesa-dri-drivers`, `alsa-lib`, `at-spi2-core`, `cups-libs`, `gtk3`, `libdrm`, `libxkbcommon`, `nss`, `procps-ng`, `iproute`, `libva-utils`
-RPM (root.yml): `google-chrome-stable` (from Google's direct RPM)
+RPM (tasks:): `google-chrome-stable` (from Google's direct RPM)
 
 ## Usage
 
@@ -204,7 +204,7 @@ Chrome is a supervisord service in this layer (`[program:chrome]`):
   and emits a `PROCESS_STATE_FATAL` event.
 
 The `chrome-crash-listener` eventlistener (`~/.local/bin/chrome-crash-listener`,
-installed by `user.yml`) subscribes to `PROCESS_STATE_FATAL` and terminates
+installed by `tasks:`) subscribes to `PROCESS_STATE_FATAL` and terminates
 supervisord (PID 1) with `SIGTERM`. The container exits, the systemd
 quadlet's `Restart=always` rebuilds the whole container, and the memory
 namespace — including any orphan memfd shmem from the crash loop — is

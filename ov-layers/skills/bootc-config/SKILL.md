@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `root.yml`, `layer.yml` |
+| Install files | `tasks:`, `layer.yml` |
 
 ## Packages
 

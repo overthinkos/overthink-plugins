@@ -15,7 +15,7 @@ description: |
 | Ports | none |
 | Volumes | none |
 | Service | none |
-| Install files | `root.yml` |
+| Install files | `tasks:` |
 
 ## Environment Variables
 
@@ -28,7 +28,7 @@ description: |
 
 - `unzip` (RPM) -- for extracting VectorChord release archives
 
-## Build Process (root.yml)
+## Build Process (tasks:)
 
 Downloads VectorChord from GitHub releases (tensorchord/VectorChord) and installs the extension:
 

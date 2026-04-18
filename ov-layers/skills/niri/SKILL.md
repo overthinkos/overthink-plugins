@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `dbus`, `rust`, `build-toolchain` |
 | Service | `niri` (supervisord, priority 10) |
-| Install files | `root.yml`, `user.yml`, `config.kdl`, `niri-wrapper` |
+| Install files | `tasks:`, `config.kdl`, `niri-wrapper` |
 | Built from | `QaidVoid/niri` `feat/virtual` branch (Smithay + virtual outputs) |
 
 ## Environment Variables
@@ -34,7 +34,7 @@ Niri is built from the QaidVoid/niri fork (`feat/virtual` branch) which adds:
 - `niri msg create-virtual-output` — dynamic virtual output creation
 - Timer-based vblank simulation for proper frame pacing
 
-Build process (in `root.yml`):
+Build process (in `tasks:`):
 1. `git clone --depth 1 --branch feat/virtual https://github.com/QaidVoid/niri.git`
 2. `cargo build --release`
 3. Install binary to `/usr/local/bin/niri`
