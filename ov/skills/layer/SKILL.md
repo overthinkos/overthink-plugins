@@ -1,7 +1,7 @@
 ---
 name: layer
 description: |
-  MUST be invoked before any work involving: layer authoring, layer.yml, tasks, pixi.toml, package.json, Cargo.toml, or any file under layers/. This skill is the authoritative reference for the `tasks:` verb catalog, `vars:` substitution, YAML anchors, execution order, and per-verb validation. Every other skill defers here for install-schema questions.
+  MUST be invoked before any work involving: layer authoring, layer.yml, tasks, pixi.toml, package.json, Cargo.toml, or any file under layers/. This skill is the authoritative reference for the `tasks:` verb catalog, `vars:` substitution, execution order, and per-verb validation. Every other skill defers here for install-schema questions.
 ---
 
 # Layer - Layer Authoring
@@ -208,39 +208,31 @@ Everything else (paths, URLs, modes, `to`, `target`, `user`, etc.) resolves via 
 
 ---
 
-## YAML Anchors (for DRY task lists)
+## Style: Explicit Tasks, No YAML Anchors
 
-Standard YAML anchors (`&name`, `*name`, `<<: *name`) work natively — `gopkg.in/yaml.v3` handles them, and `ov` doesn't need to implement anything. The pattern that works:
+Every task — root or user — must be written out in full. Do **not** use YAML anchors (`&name`, `<<: *name`) to share `user:` / `mode:` across tasks. `gopkg.in/yaml.v3` parses anchors correctly, but the repo convention is that every `layer.yml` task reads end-to-end without indirection.
 
 ```yaml
+# Style across the repo — root and user tasks look identical in shape:
 tasks:
-  # Whole-item anchor — anchor AND discriminator on the same block mapping.
-  - &user_cp
-    user: "${USER}"
+  - mkdir: /etc/traefik
+    user: root
     mode: "0755"
-    copy: chrome-wrapper
+
+  - mkdir: "${HOME}/.local/bin"
+    user: "${USER}"
+
+  - copy: chrome-wrapper
     to: "${HOME}/.local/bin/chrome-wrapper"
-
-  # Subsequent tasks merge the anchor's modifiers; explicit fields override.
-  - <<: *user_cp
-    copy: chrome-restart
+    mode: "0755"
+    user: "${USER}"
+  - copy: chrome-restart
     to: "${HOME}/.local/bin/chrome-restart"
-
-  - <<: *user_cp
-    copy: browser-open
-    to: "${HOME}/.local/bin/browser-open"
+    mode: "0755"
+    user: "${USER}"
 ```
 
-**Common pitfall (will break the YAML parser):** inline flow-mapping anchors followed by additional block fields on the same list item:
-
-```yaml
-# BROKEN — do not use
-- &user_cp {user: "${USER}", mode: "0755"}
-  copy: chrome-wrapper        # YAML parser chokes: "did not find expected '-' indicator"
-  to: "${HOME}/.local/bin/chrome-wrapper"
-```
-
-Keep the anchor and all fields in the same block mapping (as in the working example above). If you absolutely need an anchor in a flow mapping, put the full task in the flow form too — but block form is the convention across the codebase.
+Why: anchor merges always override the verb (the interesting field), so the DRY saving is 1–2 trivial fields per task at the cost of forcing readers to jump to the anchor definition to understand each task. Adjacent-coalescing in the generator already collapses identical consecutive operations into one Containerfile directive — there is no build-time cost to explicit repetition.
 
 ---
 
@@ -748,7 +740,7 @@ Declare `service:` with a supervisord `[program:<name>]` fragment and add `super
 - Never `dnf clean all` / `pacman -Scc` inside a `cmd:` — cache mounts handle it.
 - Prefer `mkdir:` + `copy:` + `link:` + `write:` over `cmd:`. Fall back to `cmd:` only for true escape-hatch logic (git clone + cargo build, complex conditionals, etc.).
 - Tasks are order-sensitive — put `download:` / `mkdir:` before the `copy:` / `write:` / `cmd:` that depends on them.
-- YAML anchors: whole-item anchor + `<<: *name` merge; don't use inline flow mappings.
+- No YAML anchors: write every task explicitly (same shape for `user: root` and `user: "${USER}"`).
 
 ---
 
@@ -761,9 +753,10 @@ Declare `service:` with a supervisord `[program:<name>]` fragment and add `super
 - `/ov:build` — Building images (`--no-cache` caveat; multi-stage scratch).
 - `/ov:config` — Cross-container `env_provides` / `mcp_provides` injection; `env_requires` enforcement; `--update-all`; resource caps.
 - `/ov:deploy` — `deploy.yml` `provides:` section; tunnel is deploy.yml-only.
+- `/ov:test` — `tests:` field for declarative layer checks (file/port/http/...); embedded in the `org.overthinkos.tests` OCI label under the `layer` section. Layer tests default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`.
 - `/ov:sidecar` — Sidecars as `env_provides` participants (tailscale `TS_*` filtering).
 - `/ov:secrets` — Credential store chain for `secret_accepts` / `secret_requires`.
-- `/ov-layers:chrome` — Canonical consumer of `env_accepts` (proxy vars), resource caps (crash-loop circuit breaker), and the wrapper + anchor pattern applied to 10 copy tasks.
+- `/ov-layers:chrome` — Canonical consumer of `env_accepts` (proxy vars), resource caps (crash-loop circuit breaker), and heavy user-phase copy/mkdir task list.
 - `/ov-layers:supervisord` — Event listener pattern triggered by resource caps.
 - `/ov-layers:notebook-templates` — Data-layer example.
 - `/ov-dev:generate` — Internal architecture of the task emission pipeline (Go side).
