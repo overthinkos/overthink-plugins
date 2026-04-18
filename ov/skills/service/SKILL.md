@@ -8,7 +8,7 @@ description: |
 
 ## Overview
 
-Container service lifecycle management with two modes: **quadlet** (systemd user services via podman quadlet, always preferred) and **direct** (`<engine> run -d` / `<engine> stop`, fallback only for platforms without quadlet support). Also manages individual init system services inside running containers (supervisord, systemd, etc. -- configured via init.yml).
+Container service lifecycle management with two modes: **quadlet** (systemd user services via podman quadlet, always preferred) and **direct** (`<engine> run -d` / `<engine> stop`, fallback only for platforms without quadlet support). Also manages individual init system services inside running containers (supervisord, systemd, etc. -- configured via build.yml `init:` section).
 
 ## Quick Reference
 
@@ -90,9 +90,9 @@ ov remove my-app -e KEY=VALUE      # Set env vars for lifecycle hooks
 - Service name: `ov-<image>.service`
 - Container name: `ov-<image>`
 - Ports bound to configured `bind_address`
-- Entrypoint: determined by init.yml config (e.g., `supervisord -n -c /etc/supervisord.conf` for supervisord, `sleep infinity` if no init system)
+- Entrypoint: determined by build.yml `init:` section config (e.g., `supervisord -n -c /etc/supervisord.conf` for supervisord, `sleep infinity` if no init system)
 - Auto-restart on failure via `WantedBy=default.target` (encrypted services with Secret Service backend include `ExecStartPre=ov config mount` + `TimeoutStartSec=0` for keyring wait; KeePass/no backend omit `WantedBy` — require `ov start`)
-- `ov image validate` enforces: images with init system layers MUST include the required dependency layer (defined by init.yml `depends_layer`)
+- `ov image validate` enforces: images with init system layers MUST include the required dependency layer (defined by build.yml `init:` section `depends_layer`)
 - `Secret=ov-<image>-<name>,target=/run/secrets/<name>` for each layer-declared secret (Podman only)
 
 ### Container Secrets
@@ -148,7 +148,7 @@ ov remove my-app --purge         # Also remove named volumes
 
 ## Init System Service Management
 
-Manage individual services inside a running container (uses the init system configured via init.yml — supervisord, systemd, etc.):
+Manage individual services inside a running container (uses the init system configured via build.yml `init:` section — supervisord, systemd, etc.):
 
 ```bash
 ov service status my-app               # Show status of all services
@@ -158,7 +158,7 @@ ov service restart my-app traefik      # Restart a specific service
 ov service status my-app -i prod       # Named instance
 ```
 
-The service name must match an entry in the image's init system config. Available services are validated against the image's `org.overthinkos.services.<init>` label (e.g., `org.overthinkos.services.supervisord`). The management tool and commands are defined in init.yml.
+The service name must match an entry in the image's init system config. Available services are validated against the image's `org.overthinkos.services.<init>` label (e.g., `org.overthinkos.services.supervisord`). The management tool and commands are defined in build.yml `init:` section.
 
 Source: `ov/service.go`.
 

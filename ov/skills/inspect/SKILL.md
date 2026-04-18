@@ -11,7 +11,7 @@ Invoked as `ov image inspect <image>`. See `/ov:image` for the family overview.
 
 ## Overview
 
-Displays the fully resolved configuration of an image as JSON. Shows base image, layers, ports, platforms, registry, tags, builders, volumes, and all computed metadata.
+Displays the fully resolved configuration of an image as JSON. Shows base image, layers, ports, platforms, registry, tags, builder selections, volumes, and all computed metadata.
 
 ## Quick Reference
 
@@ -37,6 +37,12 @@ ov image inspect ollama --format layers
 
 # Get platforms
 ov image inspect fedora --format platforms
+
+# Get the builder map (build-type → builder image)
+ov image inspect archlinux --format builder
+
+# Get the builder capabilities this image declares
+ov image inspect fedora-builder --format builds
 ```
 
 ## Output Fields
@@ -52,10 +58,13 @@ The JSON output includes:
 | `platforms` | Target platforms (e.g., `linux/amd64`, `linux/arm64`) |
 | `registry` | Container registry for push |
 | `tags` | Image tags |
-| `builders` | Builder capabilities (pixi, npm, cargo) |
+| `builder` | Build-type → builder-image map (e.g. `{"pixi": "fedora-builder"}`) — resolved from image → base → defaults |
+| `builds` | Builder capabilities this image declares (e.g. `[pixi, npm, cargo, aur]`) — not inherited |
 | `volumes` | Declared volumes from layers |
 | `distro` | Distro identity tags |
 | `build` | Package format tags |
+
+All `--format` values are the JSON field names from the `inspect` output. When passing `--format` to select a map (like `builder`) or list, the CLI prints one entry per line.
 
 ## Cross-References
 

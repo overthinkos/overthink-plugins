@@ -36,21 +36,35 @@ ov image build --jobs N [image...]                # Max concurrent images per DA
 ov image build --podman-jobs N [image...]         # Max concurrent stages within a single podman build (default: min(NCPU, 4))
 ```
 
-## Format Config (distro.yml / builder.yml)
+## Build Config (build.yml)
 
-Containerfile generation is driven by declarative YAML config files referenced in `image.yml`:
+Containerfile generation is driven by a single declarative YAML file referenced in `image.yml`:
 
 ```yaml
 defaults:
-  format_config:
-    distro: distro.yml    # Distro bootstrap + package format definitions
-    builder: builder.yml  # Multi-stage builder definitions (pixi, npm, cargo, aur)
+  format_config: build.yml    # Unified distro + builder + init config
 ```
 
-- **`distro.yml`** — Defines per-distro bootstrap commands (package manager setup, cache mounts, repo management) and package format templates (how `rpm:`, `pac:`, `deb:` sections in layer.yml become `RUN` steps). Each format has `install`, `repos`, `copr`, `modules`, and `options` templates.
-- **`builder.yml`** — Defines multi-stage builder patterns (pixi, npm, cargo, aur). Each builder has `build_stage` and `copy_stage` templates that generate the appropriate `FROM builder AS ...` and `COPY --from=...` steps.
+`build.yml` has three top-level sections:
 
-Both files use Go `text/template` syntax with access to layer config data. Source: `ov/format_config.go` (loading), `ov/format_template.go` (rendering).
+- **`distro:`** — Per-distro bootstrap commands (package manager setup, cache mounts, repo management) and package format templates (how `rpm:`, `pac:`, `deb:` sections in layer.yml become `RUN` steps). Each format has `install`, `repos`, `copr`, `modules`, and `options` templates.
+- **`builder:`** — Multi-stage builder patterns (pixi, npm, cargo, aur). Each builder has `build_stage` and `copy_stage` templates that generate the appropriate `FROM builder AS ...` and `COPY --from=...` steps.
+- **`init:`** — Init system definitions (supervisord, systemd) including detection rules, fragment templates, entrypoint commands, and service management commands. Optional — images can omit this if they don't need an init system.
+
+All sections use Go `text/template` syntax with access to layer config data. Source: `ov/format_config.go` (loader + distro/builder types), `ov/init_config.go` (init type), `ov/format_template.go` (rendering).
+
+### The `builder:` name in two places
+
+`builder:` appears in both `build.yml` (top-level section) and `image.yml` (per-image map, plus `defaults.builder`). They share the name on purpose — both maps key on the same slot (the build-type name, e.g. `pixi`, `npm`, `cargo`, `aur`):
+
+- `build.yml` `builder.pixi` — **definition**: detection rules, stage template, cache mounts for the pixi builder.
+- `image.yml` `builder.pixi` — **selection**: which image (e.g. `fedora-builder`) to use as the pixi builder for this image.
+
+An image's effective builder map resolves as: `image.builder[type]` → `base_image.builder[type]` → `defaults.builder[type]` → `""`. Self-references (a builder image pointing at itself) are filtered automatically.
+
+### Why one file, not three
+
+`build.yml` was unified from three former files (`distro.yml` + `builder.yml` + `init.yml`) because they were always resolved together through the same `format_config:` ref. One file → one loader (`LoadBuildConfigForImage`) → three in-memory configs (`DistroConfig` / `BuilderConfig` / `InitConfig`) — the internal split is preserved, only the YAML surface is unified. The `init:` section is optional (absent = no init system); `distro:` and `builder:` are required.
 
 ## Containerfile Generation
 

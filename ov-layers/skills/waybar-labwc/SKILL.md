@@ -57,3 +57,10 @@ Both layers use the same config. The only differences are:
 - **Dependency:** `labwc` instead of `sway`
 - **Wrapper:** Explicitly pins `WAYLAND_DISPLAY=wayland-0` (labwc socket, not pixelflux's wayland-1)
 - **No sway-autotile:** Autotiling is sway-specific
+
+## Related
+
+- `/ov-layers:waybar` — the sway-native sibling with the same config
+- `/ov-layers:labwc` — compositor this layer targets
+- `/ov-layers:selkies-desktop` — metalayer that composes this layer
+- `/ov-layers:swaync` + `/ov-layers:chrome` — consumers of the status-bar modules

@@ -13,7 +13,7 @@ Invoked as `ov image generate`. See `/ov:image` for the family overview.
 
 Parses `image.yml`, scans `layers/`, resolves the dependency graph, and emits all build artifacts into the `.build/` directory. Called internally by `ov image build` but can be run standalone to inspect generated output before a build.
 
-The generator is **config-driven** (distro format templates from `distro.yml`, builder stage templates from `builder.yml`, init system fragments from `init.yml`) and **declarative per-task** for install logic — each task verb (see `/ov:layer`) has a dedicated emitter that writes the right Containerfile directive.
+The generator is **config-driven** — distro format templates, builder stage templates, and init system fragments all come from a single `build.yml` (three top-level sections: `distro:`, `builder:`, `init:`) — and **declarative per-task** for install logic — each task verb (see `/ov:layer`) has a dedicated emitter that writes the right Containerfile directive.
 
 ## Quick Reference
 
@@ -82,14 +82,14 @@ For each layer, `writeLayerSteps` runs this sequence:
 
 ## Cache-mount inheritance
 
-Cache mounts come from `distro.yml` (format caches) and `builder.yml` (builder caches). `ov tasks.go` picks the right set based on task context:
+Cache mounts come from `build.yml` — `distro:` section (format caches) and `builder:` section (builder caches). `ov tasks.go` picks the right set based on task context:
 
 | Task context | Cache mount(s) |
 |---|---|
 | `cmd:` as root | Distro format caches (`/var/cache/libdnf5` / `/var/cache/apt` / `/var/cache/pacman/pkg`) + `/ctx` bind mount |
 | `cmd:` as non-root | `/tmp/npm-cache` (UID-scoped) + `/ctx` bind mount |
 | `download:` | `/tmp/downloads` (shared across layers) |
-| Package install | Distro format caches from `distro.yml` |
+| Package install | Distro format caches from `build.yml` `distro:` section |
 | pixi builder | `/tmp/pixi-cache` + `/tmp/rattler-cache` (UID-scoped) |
 | npm builder | `/tmp/npm-cache` (UID-scoped) |
 
@@ -131,7 +131,7 @@ The Containerfile references the file by its relative path: `COPY --from=<layer-
 - `.build/` is disposable and gitignored; `ov image generate` will recreate it from scratch.
 - Layer dependencies resolve transitively and topologically; circular `depends:` is a validation error (surfaced by `/ov:validate`).
 - Pixi manylinux fix is injected into `pixi.toml` files during the pixi builder stage.
-- Multi-stage builds use builder images from `builder.yml` (`pixi-builder`, `npm-builder`, `archlinux-builder` for AUR, etc.).
+- Multi-stage builds use builder images declared in `build.yml` `builder:` section (`pixi-builder`, `npm-builder`, `archlinux-builder` for AUR, etc.).
 - Stale `.build/<image>/` directories (from removed or renamed images) are cleaned at the start of each generation.
 
 ## Cross-References

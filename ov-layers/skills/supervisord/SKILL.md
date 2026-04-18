@@ -13,8 +13,8 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `python` |
-| Install files | `layer.yml`, `supervisord.header.conf` (via `init.yml` header_file) |
-| Init role | Default init system for container images (set in `init.yml`) |
+| Install files | `layer.yml`, `supervisord.header.conf` (via `build.yml `init:` section` header_file) |
+| Init role | Default init system for container images (set in `build.yml `init:` section`) |
 
 ## Packages
 
@@ -22,7 +22,7 @@ description: |
 
 ## How `ov` Generates Supervisord Configs
 
-Layers declare processes via `service:` in `layer.yml` — a raw supervisord `[program:<name>]` fragment. `ov image generate` collects all `service:` fragments across the layer chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `init.yml`).
+Layers declare processes via `service:` in `layer.yml` — a raw supervisord `[program:<name>]` fragment. `ov image generate` collects all `service:` fragments across the layer chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `build.yml `init:` section`).
 
 ```yaml
 # layers/chrome/layer.yml
@@ -121,7 +121,7 @@ ov logs <image>                # Container-level stdout/stderr (supervisord outp
 
 ## Header File
 
-`templates/supervisord.header.conf` (at the repo root) defines global `[supervisord]`, `[unix_http_server]`, `[supervisorctl]`, and `[rpcinterface:supervisor]` sections. It's referenced from `init.yml` as the init system's `header_file:` and prepended to every generated `supervisord.conf`. Common fields:
+`templates/supervisord.header.conf` (at the repo root) defines global `[supervisord]`, `[unix_http_server]`, `[supervisorctl]`, and `[rpcinterface:supervisor]` sections. It's referenced from `build.yml `init:` section` as the init system's `header_file:` and prepended to every generated `supervisord.conf`. Common fields:
 
 - `[unix_http_server] file=/tmp/supervisor.sock` — the socket `supervisorctl` uses
 - `[supervisord] nodaemon=true logfile=/tmp/supervisord.log pidfile=/tmp/supervisord.pid`
@@ -137,7 +137,7 @@ my-image:
     - my-service  # layers with service: entries need supervisord
 ```
 
-Adding a `service:` block to a layer automatically pulls in `supervisord` via `init.yml`'s `depends_layer`. You rarely add `supervisord` to an image's `layers:` list manually.
+Adding a `service:` block to a layer automatically pulls in `supervisord` via `build.yml `init:` section`'s `depends_layer`. You rarely add `supervisord` to an image's `layers:` list manually.
 
 ## Used In Images
 

@@ -45,7 +45,7 @@ Contents include:
 - `Environment=` / `EnvironmentFile=` for env vars
 - `ExecStartPost=` / `ExecStopPost=` for tunnel commands
 
-Service name: `ov-<image>.service`. Container name: `ov-<image>`. Entrypoint: determined by init.yml for the configured init system. Encrypted volumes are mounted via `ExecStartPre=ov config mount` in the quadlet, which creates transient `ov-enc-<image>-<volume>.scope` units for each encrypted volume. These scope units are independent of the container service — they survive stop/restart (see `/ov:enc`). With Secret Service backend: auto-starts after login (ExecStartPre waits for keyring unlock, `TimeoutStartSec=0`). With KeePass or no backend: requires `ov start` (no `WantedBy=default.target`).
+Service name: `ov-<image>.service`. Container name: `ov-<image>`. Entrypoint: determined by build.yml `init:` section for the configured init system. Encrypted volumes are mounted via `ExecStartPre=ov config mount` in the quadlet, which creates transient `ov-enc-<image>-<volume>.scope` units for each encrypted volume. These scope units are independent of the container service — they survive stop/restart (see `/ov:enc`). With Secret Service backend: auto-starts after login (ExecStartPre waits for keyring unlock, `TimeoutStartSec=0`). With KeePass or no backend: requires `ov start` (no `WantedBy=default.target`).
 
 ### Security in Quadlet
 

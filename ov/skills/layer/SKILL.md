@@ -457,7 +457,7 @@ service: |
   autorestart=true
 ```
 
-Requires the init system's dependency layer (e.g., `supervisord` for containers). See init.yml `depends_layer`.
+Requires the init system's dependency layer (e.g., `supervisord` for containers). See build.yml `init.<name>.depends_layer`.
 
 ## Volume Declaration
 
