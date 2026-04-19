@@ -151,6 +151,7 @@ Rebuild + redeploy the VM.
 
 - `/ov-images:selkies-desktop` — non-bootc container sibling (`fedora-nonfree` base, supervisord as PID 1)
 - `/ov-images:selkies-desktop-nvidia` — GPU-accelerated container sibling (`nvidia` base)
+- `/ov-images:selkies-desktop-ov` — GPU-accelerated container sibling + full ov toolchain (nested rootless podman + rootless libvirt VMs). The non-bootc counterpart of this bootc image when you want the desktop to itself build images / launch pods / spawn VMs.
 - `/ov-images:openclaw-browser-bootc` — sibling bootc template (disabled; latent `distro:` bug per Caveat 1)
 - `/ov-images:bazzite-ai` — ublue-based bootc template
 - `/ov-images:aurora` — ublue-based bootc template

@@ -315,6 +315,8 @@ diagnostic recipe that found the leak.
 ## Related Images
 
 - `/ov-images:selkies-desktop-nvidia` — GPU-accelerated variant with NVIDIA CUDA toolkit (base: nvidia instead of fedora-nonfree)
+- `/ov-images:selkies-desktop-ov` — GPU-accelerated variant + full ov toolchain (build images, run nested pods, launch rootless libvirt VMs from inside the streaming desktop). Uses `/ov-layers:container-nesting`'s `unmask=/proc/*` posture — no `--privileged`, still uid 1000.
+- `/ov-images:selkies-desktop-bootc` — bootable VM flavor
 - `/ov-images:sway-browser-vnc` — VNC-based alternative using Sway compositor instead of Selkies/labwc streaming
 
 ## Verification

@@ -31,7 +31,32 @@ Self-hosted GitHub Actions runner with the full Overthink toolchain.
 
 ## Security
 
-Runs as root with host networking. Required for nested container builds and VM operations in CI.
+Runs as root with host networking. The image asserts its posture at the
+**image level** in `image.yml`:
+
+```yaml
+githubrunner:
+  security:
+    cap_add: [ALL]
+    security_opt:
+      - label=disable
+      - seccomp=unconfined
+```
+
+`githubrunner` does NOT compose `/ov-layers:container-nesting` directly
+(only transitively via `ov-full`'s composition chain, and in this
+image's case the layer list is `[agent-forwarding, github-runner,
+ov-full, dbus]` — no explicit `container-nesting`). So the resolved OCI
+security label is just `cap_add:[ALL] + security_opt:[label=disable,
+seccomp=unconfined]` — no `unmask=/proc/*` (unlike `/ov-images:fedora-ov`
+and `/ov-images:arch-ov` which include `container-nesting` directly and
+therefore inherit `unmask=/proc/*` + `/dev/fuse` + `/dev/net/tun` from
+that layer).
+
+If the GitHub Actions runner needs nested rootless podman, add
+`container-nesting` to the layer list. Otherwise the image-level
+`cap_add:[ALL]` + host networking is sufficient for most CI workloads
+that spawn containers via `docker`/`podman` against the host socket.
 
 ## Registration
 
@@ -64,6 +89,16 @@ ov remove githubrunner -e RUNNER_TOKEN=<token>
 ## Related Images
 
 - `/ov-images:fedora` — parent base
+- `/ov-images:fedora-ov` — sibling root-mode ov toolchain (includes `container-nesting` directly)
+- `/ov-images:arch-ov` — Arch counterpart of fedora-ov
+- `/ov-images:selkies-desktop-ov` — non-root ov toolchain wrapped in a streaming desktop
+
+## Related Layers
+
+- `/ov-layers:github-runner` — runner agent package + hooks
+- `/ov-layers:ov-full` — ov + virtualization (including virtqemud supervisord program) + gocryptfs + socat
+- `/ov-layers:virtualization` — QEMU/KVM + rootless libvirt session daemon
+- `/ov-layers:container-nesting` — nested rootless podman recipe (not composed here by default — add if your workflows need it)
 
 ## Verification
 

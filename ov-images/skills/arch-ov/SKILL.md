@@ -22,7 +22,7 @@ Arch Linux container with full ov toolchain. Uses the same shared layer list as 
 | UID/GID | 0/0 (root) |
 | User | root |
 | Network | host |
-| Security | cap_add: ALL, security_opt: label=disable + seccomp=unconfined (from container-nesting) |
+| Security | cap_add: ALL, security_opt: [unmask=/proc/*, label=disable, seccomp=unconfined] (see "Security posture" below) |
 | Registry | ghcr.io/overthinkos |
 
 ## What's Installed
@@ -55,9 +55,35 @@ ov status arch-ov
 ov stop arch-ov
 ```
 
+## Security posture (image-level override)
+
+As of the 2026-04-19 `container-nesting` refactor, the **layer** ships
+only `security_opt:[unmask=/proc/*] + devices:[/dev/fuse, /dev/net/tun]` —
+zero cap_add. The `arch-ov` image asserts the historical full-hammer
+posture at the **image level** via `image.yml`:
+
+```yaml
+arch-ov:
+  security:
+    cap_add: [ALL]
+    security_opt:
+      - label=disable
+      - seccomp=unconfined
+```
+
+`ov/security.go:66-97` unions image-level values onto the layer-level
+merged set, so the resolved OCI label is
+`cap_add:[ALL] + security_opt:[unmask=/proc/*, label=disable, seccomp=unconfined] + devices:[/dev/fuse, /dev/net/tun]`.
+This preserves the historical permissive posture for root-mode ov
+images while letting `/ov-layers:container-nesting` ship a minimum-privilege
+baseline for non-root images like `/ov-images:selkies-desktop-ov`.
+
+See `/ov-layers:container-nesting` for the kernel `mount_too_revealing()`
+RCA that drove the refactor.
+
 ## Nested Containers
 
-Podman works inside arch-ov at any nesting depth. The `container-nesting` layer provides `cap_add: ALL` (instead of `privileged: true` to avoid sysfs remount failures) plus `containers.conf` disabling cgroups, user namespaces, and network namespaces for inner podman:
+Podman works inside arch-ov at any nesting depth. The `container-nesting` layer provides the config + env vars; the image-level `cap_add: [ALL]` is belt-and-braces for root-mode workloads that might need capabilities beyond what rootless delegation grants:
 
 ```bash
 # Level 1: run containers inside arch-ov
@@ -97,7 +123,10 @@ Both `arch-ov` and `fedora-ov` use the exact same layer list. The tag system (`b
 ## Related Images
 - `/ov-images:archlinux` — parent base image
 - `/ov-images:fedora-ov` — Fedora counterpart, same layers
+- `/ov-images:selkies-desktop-ov` — non-root counterpart (same `ov` toolchain, no `cap_add` + no host networking; streaming desktop wrapper for browser-accessible operation)
+- `/ov-images:githubrunner` — sibling root-mode image for self-hosted CI runners
 
 ## Related Commands
 - `/ov:shell` — open an interactive shell in arch-ov
 - `/ov:service` — manage arch-ov as a service
+- `/ov:vm` — nested libvirt VMs via `qemu:///session` (now works rootless too — see `/ov-images:selkies-desktop-ov`)

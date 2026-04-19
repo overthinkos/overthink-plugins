@@ -70,6 +70,8 @@ Not yet tested. The `fedora-nonfree` variant works with CPU encoding. This varia
 
 ## Related Images
 - `/ov-images:selkies-desktop` — CPU-encoding sibling on fedora-nonfree
+- `/ov-images:selkies-desktop-ov` — same streaming desktop stack + full ov toolchain (ov-full + container-nesting + golang + gh). Use this variant if you want to build images / start nested pods / launch VMs from inside the browser-accessible desktop.
+- `/ov-images:selkies-desktop-bootc` — bootable VM flavor
 - `/ov-images:nvidia` — parent base image with CUDA toolkit
 
 ## Related Commands
