@@ -22,6 +22,22 @@ Bootable container (bootc) VM image with OpenClaw AI gateway, Chrome browser, VN
 | Status | **disabled** (set `enabled: true` in image.yml) |
 | Registry | ghcr.io/overthinkos |
 
+## Known latent bug — missing `distro:` declaration
+
+This image's `image.yml` entry does **not** declare `distro:`. Because `base: "quay.io/fedora/fedora-bootc:43"` is an external URL (not the name of another `image.yml` entry), the generator resolves `Distro` to `null`, which short-circuits the install_template's Phase-2 branch — **no layer `rpm:` install RUNs are emitted**. The image will build cleanly but every layer's declarative `rpm:` packages are missing; only `cmd: dnf install …` tasks survive.
+
+This hasn't tripped because the image is `enabled: false`. Before enabling, add:
+
+```yaml
+openclaw-browser-bootc:
+  base: "quay.io/fedora/fedora-bootc:43"
+  bootc: true
+  distro: ["fedora:43", fedora]   # ← add this
+  ...
+```
+
+The same latent bug affects `/ov-images:bazzite-ai` and `/ov-images:aurora` (both external ublue bases). See `/ov:image` "External Bases Require Explicit `distro:`" for the full mechanism; `/ov-images:selkies-desktop-bootc` is the canonical working reference.
+
 ## VM Configuration
 
 | Setting | Value |
@@ -69,6 +85,15 @@ ov vm ssh openclaw-browser-bootc -p 2222
 
 - `/ov-images:openclaw-sway-browser` — container variant (enabled)
 - `/ov-images:openclaw-ollama-sway-browser` — with Ollama LLM (enabled)
+- `/ov-images:selkies-desktop-bootc` — sibling bootc image with `distro:` correctly declared; follow its pattern when enabling this one
+- `/ov-images:bazzite-ai`, `/ov-images:aurora` — share the same latent `distro:` bug
+
+## Related Skills
+
+- `/ov:image` — external-base `distro:` requirement explanation
+- `/ov:vm` — VM lifecycle, `/dev:/dev` mount, `vm.ssh_port` plumbing, bootc-VM caveats
+- `/ov-layers:bootc-base` — the bootc composition layer pulled in first
+- `/ov-layers:bootc-config` — bootc boot wiring (tty1 autologin, graphical target, systemd-user supervisord)
 
 ## When to Use This Skill
 

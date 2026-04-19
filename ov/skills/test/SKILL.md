@@ -523,9 +523,9 @@ them fails in `ov image test` because the mount isn't attached.
 ### 10. Disposable tests run as the image's default USER — not root
 
 `ov image test` runs `podman run --rm <image>` with the image's USER
-directive (typically uid 1000). Root-only files (e.g. `/etc/sudoers.d/*`
-is root:root 0750) report as "missing" because the user can't traverse
-the parent directory.
+directive (typically uid 1000 for containers). Root-only files
+(e.g. `/etc/sudoers.d/*` is root:root 0750) report as "missing" because
+the user can't traverse the parent directory.
 
 ```yaml
 # ❌ Reports "exists=false" even though the file IS there (0750 dir)
@@ -540,6 +540,30 @@ the parent directory.
   stdout:
     - contains: "NOPASSWD"
 ```
+
+### 11. **Bootc images keep USER=root** — tests must cover both modes
+
+Gotcha 10 flips for bootc. `ov/generate.go` deliberately omits the final `USER <uid>` directive on bootc images because systemd (PID 1 in a bootc VM) manages user sessions via login, so the container's own USER directive is irrelevant. Result: the same `ov image test` that runs as uid 1000 in a container runs as **uid 0** in a bootc image.
+
+That breaks any test that assumes the user-context default. A `sudo -n -l` check that expects `NOPASSWD` in the output works for non-bootc (USER=1000 → sudo lists the user's NOPASSWD rule) but fails for bootc (USER=0 → sudo prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`). Same failure mode for any `test -f ~/.config/foo` that depends on `$HOME=/home/user`.
+
+The fix: drop into `user` explicitly when running as root, stay as-is otherwise. Use `runuser -l user -s /bin/bash -c '...'` as the bridge — it honours the target user's login shell and env:
+
+```yaml
+# Dual-mode: container (USER=1000) AND bootc (USER=root) both pass
+- id: sudoers-ov-user
+  command: |
+    if [ "$(id -u)" = "0" ]; then
+      runuser -l user -s /bin/bash -c 'sudo -n -l'
+    else
+      sudo -n -l
+    fi
+  exit_status: 0
+  stdout:
+    - contains: "NOPASSWD"
+```
+
+Worked example: `/ov-layers:sshd` ships exactly this pattern. Alternative: make the check `scope: deploy` so it runs against a live container where you control the user-switch externally.
 
 ## Three levels, three sections
 

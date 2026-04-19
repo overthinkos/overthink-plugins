@@ -185,14 +185,55 @@ ov vm start my-image -i dev
 ov vm ssh my-image -i dev
 ```
 
+## Known bootc-VM caveats
+
+Covers non-obvious issues that only surface when a bootc image actually boots under QEMU. The canonical end-to-end worked example is `/ov-images:selkies-desktop-bootc`.
+
+### Privileged container needs `-v /dev:/dev`
+
+`ov vm build` runs `bootc install to-disk --via-loopback` inside a privileged container (via `sudo podman` under `engine.rootful=sudo`, or podman-machine under `engine.rootful=machine`). `--privileged` alone is not enough — the container's `/dev` is a tmpfs in its own mount namespace, so `losetup`'s `LOOP_CTL_GET_FREE` can create a `/dev/loopN` in the kernel but the node is invisible inside the container. `ov/vm_build.go` adds `-v /dev:/dev` so the container shares the host's `/dev`. Symptom without it: `losetup: <path>: failed to set up loop device: No such file or directory`.
+
+### `vm.ssh_port` is honoured end-to-end
+
+The QEMU hostfwd SSH mapping (`hostfwd=tcp::<ssh_port>-:22`) and the libvirt `<portForward>` range both read `vm.ssh_port` from the image's Vm OCI label. Plumbing lives at `ov/vm.go` (`createQemu`/`createLibvirt`) and `ov/vm_libvirt.go` (`buildDomainXML`). Older `ov` binaries hardcoded 2222; if your VM creates with SSH on 2222 despite `vm.ssh_port: 2250` in `image.yml`, the binary is stale — run `task build:ov`. Also: `image.yml` `ports:` flow straight into QEMU hostfwd, so a `"2222:2222"` publish will collide with `vm.ssh_port: 2222` — don't declare both.
+
+### Rootful ↔ rootless podman storage split
+
+Under `engine.rootful=sudo`, `ov vm build` invokes `sudo podman`, which reads from root's container storage (`/var/lib/containers/storage`), not your rootless storage. After every `ov image build`, refresh rootful storage:
+
+```bash
+podman save ghcr.io/<registry>/<image>:latest -o /tmp/img.tar
+sudo podman load -i /tmp/img.tar && rm -f /tmp/img.tar
+```
+
+Symptom without refresh: `Trying to pull ... 403 Forbidden` (bootc falls back to registry).
+
+### Host kernel/module-dir mismatch
+
+On rolling distros (Arch, Fedora) after a kernel upgrade, `/lib/modules/$(uname -r)` may be missing while `/lib/modules/<new-kernel>/` is present. `modprobe loop` fails with `Module loop not found in directory /lib/modules/$(uname -r)`, losetup cannot create a loop device, and the VM disk build hangs at `losetup: failed to set up loop device`. Resolution: **reboot**. Quick check:
+
+```bash
+ls /lib/modules/$(uname -r) >/dev/null 2>&1 && echo "ok" || echo "reboot needed"
+```
+
+### Disk exhaustion from `output/`
+
+`bootc install to-disk` writes a ~40 GiB sparse raw file AND a qcow2. A failed `qemu-img convert` (disk-full, corrupted cache) leaves both behind. Clean `output/raw/disk.raw` after successful qcow2 conversion, and keep a close eye on `df -h /` before a fresh VM build.
+
+### `qemu-guest-agent` enabled/inactive under QEMU user-net
+
+Expected. The agent needs a `virtio-serial` channel that ov's QEMU backend doesn't expose under user-net. Switch to the libvirt backend (`ov settings set vm.backend libvirt`) to activate it.
+
 ## Cross-References
 
 - `/ov:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
-- `/ov:build` -- Building container images before VM disk builds
+- `/ov:build` -- Building container images before VM disk builds; also covers the stale-ov-binary and buildah-cache-mount caveats
 - `/ov:config` -- VM default settings (`vm.*` config keys)
-- `/ov:image` -- `bootc`, `vm:`, and `libvirt` fields in image.yml
+- `/ov:image` -- `bootc`, `vm:`, and `libvirt` fields in image.yml; also the external-base `distro:` requirement
 - `/ov:layer` -- `libvirt` field in layer.yml
+- `/ov-images:selkies-desktop-bootc` -- Canonical end-to-end bootc worked example (port remap, known caveats, verification recipes)
+- `/ov-layers:bootc-config` -- Bootc-side boot wiring (tty1 autologin, graphical target, systemd-user supervisord)
 
 ## When to Use This Skill
 

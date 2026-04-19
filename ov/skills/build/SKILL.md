@@ -290,6 +290,35 @@ If a build fails with `conflicting requests` involving `libavcodec-free` vs `lib
 
 If you see `cannot unmarshal !!str ... into int` or similar YAML parsing errors on layer fields, the installed `ov` binary is likely stale. Rebuild with `task build:install` or `cp bin/ov ~/.local/bin/ov`. Verify with `ov image validate`.
 
+### Stale `ov` binary produces stale Containerfiles
+
+Beyond the YAML-unmarshal symptom above, a stale `ov` binary can produce *syntactically valid but outdated* Containerfile output — e.g. emitting an old broken form of a template that HEAD's source has already fixed. Symptom: build fails on a step whose generated shell clearly doesn't match the source you see in `git grep`. Quick diagnostic: `ls -la $(which ov)` vs. `git log -1 ov/generate.go` — if the binary predates the fix, rebuild:
+
+```bash
+task build:ov        # rebuild + pacman-reinstall on Arch (ov-git package)
+```
+
+Common on Arch where `ov-git` is pacman-installed and HEAD moves faster than rebuilds. If you find yourself rebuilding `ov` to chase a bug and the symptom persists, the binary path on $PATH may not be the one `task build:ov` updated — confirm with `which ov`.
+
+### Buildah cache-mount corruption (pixi tzdata et al.)
+
+Cache mounts declared via `--mount=type=cache,dst=<path>,uid=<u>,gid=<g>` (used for pixi, npm, cargo, rattler, dnf) persist across builds and are **not** evicted by `ov image build --no-cache` (which only suppresses `--cache-from`; see above). A disk-full event mid-download can leave a partial package in the cache, and every subsequent build re-hits the same broken file:
+
+```
+error: × failed to link tzdata-2025c-hc9c84f9_1.conda
+  ├─▶ failed to copy file ... zoneinfo/<Region>/<City>: No such file or directory
+```
+
+Options, in order of least to most disruptive:
+
+1. **Just retry the build.** Often the cache clears itself once the partial package finishes downloading or gets superseded by a checksum mismatch.
+2. **Bump a content-hash on the builder layer** (e.g. `echo "" >> layers/pixi/layer.yml`) to evict the cache mount associated with that build-stage's hash, then revert the cosmetic change. Same workaround as the scratch-stage cache issue above.
+3. **`podman image prune -af` is NOT the right hammer** — see next note.
+
+### `podman image prune -af` caveat — removes tagged-but-idle images
+
+`podman image prune -a -f` will delete tagged images that are **not referenced by a running container**. That means the image you just built via `ov image build` — and haven't started as a container yet — is eligible for prune. Observed sequence: `ov image build` → `podman image prune -af` → `sudo podman load` (manual rootful refresh) fails with `image not known`. Protect the fresh build by starting a container or use `prune` with explicit filters instead.
+
 ### `--no-cache` does not invalidate intermediate scratch-stage caches
 
 `ov image build --no-cache <image>` and `ov image build --cache none <image>` reliably disable the

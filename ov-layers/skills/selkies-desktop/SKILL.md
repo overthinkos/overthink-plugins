@@ -94,6 +94,25 @@ A browser-accessible desktop at `http://localhost:3000` with:
 
 - `/ov-images:selkies-desktop`
 - `/ov-images:selkies-desktop-nvidia`
+- `/ov-images:selkies-desktop-bootc` -- Fedora 43 bootc VM with added Tailscale + KeePassXC
+
+## Known bootc caveat — labwc ↔ pixelflux start-order race
+
+On container images, `ENTRYPOINT=supervisord` with priority-based startup sequences the desktop tier cleanly. On bootc images, supervisord runs under a systemd user service (see `/ov-layers:bootc-config`), and a start-order race surfaces that's invisible in container mode:
+
+- `labwc-wrapper` blocks at startup waiting for `/tmp/wayland-1` (pixelflux's socket).
+- `pixelflux` is started by `selkies` (another supervisord program) which — via its own ordering — comes up alongside labwc, not before it.
+- With `startsecs=2`, supervisord marks labwc RUNNING before pixelflux is ready. labwc-wrapper times out, exits status 1, supervisord restarts it. Meanwhile selkies exits too (labwc isn't up). Both programs cycle every ~15 s.
+
+Stable services (`traefik`, `selkies-fileserver`, `chrome-devtools-mcp`, `cdp-proxy`, `sshd`, `tailscaled`, `swaync`, `waybar`, `dbus`, `pipewire`) keep running; the HTTPS selkies web endpoint on port 3000 and the MCP endpoint on 9224 both stay responsive throughout.
+
+Fix options for a follow-up pass (none implemented yet — this layer is shared between container and bootc modes):
+
+1. Raise labwc's `startsecs` so supervisord waits for pixelflux before declaring labwc RUNNING.
+2. Add an explicit `priority:` ordering via supervisord's eventlistener hooks — a `PROCESS_STATE_RUNNING` listener on selkies that `supervisorctl start`s labwc only after pixelflux publishes its socket.
+3. Have labwc-wrapper spawn pixelflux directly as a child (the container-mode start order without relying on supervisord for ordering).
+
+Canonical worked example and diagnostic recipes: `/ov-images:selkies-desktop-bootc`.
 
 ## Multi-Instance Proxy Deployment
 

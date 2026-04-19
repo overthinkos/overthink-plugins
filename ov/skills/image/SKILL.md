@@ -212,6 +212,29 @@ images:
     layers: [my-layer]
 ```
 
+## External Bases Require Explicit `distro:`
+
+When `base` is a URL string (not the name of another image in `image.yml`), the generator treats it as **external** and does not inherit distro tags or build formats. This is the canonical gotcha for bootc images, which typically use `quay.io/fedora/fedora-bootc:43`:
+
+```yaml
+# ❌ BROKEN — Distro resolves to null, no RPM installs emitted
+my-bootc-image:
+  base: "quay.io/fedora/fedora-bootc:43"
+  bootc: true
+  layers: [sshd, qemu-guest-agent, ffmpeg]
+
+# ✓ CORRECT — explicit distro: tags matching the base
+my-bootc-image:
+  base: "quay.io/fedora/fedora-bootc:43"
+  bootc: true
+  distro: ["fedora:43", fedora]
+  layers: [sshd, qemu-guest-agent, ffmpeg]
+```
+
+Symptom without `distro:`: `ov image inspect <image>` shows `"Distro": null`. The generator's install_template Phase-2 branch short-circuits on `img.DistroDef == nil`, so **no layer `rpm:` install RUN steps are emitted**. The image builds cleanly but is missing every package from every layer that uses declarative `rpm:` sections. Explicit `cmd: dnf install …` tasks still run; the bug affects only declarative `rpm:`/`deb:`/`pac:` sections.
+
+Internal bases (`base: fedora`) inherit `distro:` and `build:` from the parent image automatically — you only need explicit tags on images whose `base:` is a URL. Canonical worked example: `/ov-images:selkies-desktop-bootc`. Sibling bootc templates (`/ov-images:openclaw-browser-bootc`, `/ov-images:bazzite-ai`, `/ov-images:aurora`) currently lack `distro:` — they're `enabled: false` so haven't tripped the bug yet, but will need the declaration before they can be enabled.
+
 ## Intermediate Images
 
 When multiple images share the same base and common layer prefixes, `ov` auto-generates intermediate images at branch points to maximize cache reuse.
@@ -391,6 +414,8 @@ images:
 - `/ov-dev:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
 - `/ov:test` — Image-level `tests:` (cross-layer invariants) and `deploy_tests:` (deploy-default checks shipped with the image). Both are embedded in the `org.overthinkos.tests` OCI label.
 - `/ov:mcp` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `ov test <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
+- `/ov-images:selkies-desktop-bootc` — canonical worked example for the external-base + explicit-`distro:` pattern.
+- `/ov:vm` — `bootc: true` and `vm:` field consumers; covers the `vm.ssh_port` plumbing, `/dev:/dev` mount, and rootful storage refresh.
 
 ## When to Use This Skill
 

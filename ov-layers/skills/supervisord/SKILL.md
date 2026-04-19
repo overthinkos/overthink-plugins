@@ -170,7 +170,20 @@ Adding a `service:` block to a layer automatically pulls in `supervisord` via `b
 ## Used In Images
 
 Transitive dependency for all images with managed services, including:
-`openclaw`, `openclaw-sway-browser`, `openclaw-ollama-sway-browser`, `openclaw-ollama`, `jupyter`, `jupyter-ml`, `jupyter-ml-notebook`, `ollama`, `comfyui`, `immich`, `immich-ml`, `selkies-desktop`, `selkies-desktop-nvidia`, `hermes`, `openwebui`, `filebrowser`.
+`openclaw`, `openclaw-sway-browser`, `openclaw-ollama-sway-browser`, `openclaw-ollama`, `jupyter`, `jupyter-ml`, `jupyter-ml-notebook`, `ollama`, `comfyui`, `immich`, `immich-ml`, `selkies-desktop`, `selkies-desktop-nvidia`, `selkies-desktop-bootc`, `hermes`, `openwebui`, `filebrowser`.
+
+## Running supervisord under systemd (bootc mode)
+
+On non-bootc images, supervisord is container PID 1 (`ENTRYPOINT=supervisord` emitted by the init system definition in `build.yml`). On **bootc** images, systemd is PID 1, which means supervisord needs a systemd unit wrapper — otherwise the whole desktop tier never starts. `/ov-layers:bootc-config` ships that wrapper as a systemd **user** unit at `/etc/systemd/user/supervisord.service`, `systemctl --global enable`d so tty1 autologin brings it up. See `/ov-layers:bootc-config` for the full mechanism (including the linger sentinel file).
+
+### Two gotchas specific to running under a systemd user service
+
+Both involve opening `/dev/stdout` or `/dev/fd/1`, which resolve to the journal pipe under a systemd user service — and `open()` on a pipe returns ENXIO.
+
+1. **Main supervisord logfile.** The header template (`templates/supervisord.header.conf`) was changed from `logfile=/dev/stdout` to `logfile=/tmp/supervisord.log`. `/dev/stdout` works when supervisord is PID 1 in a container (fd 1 is real stdio), but fails with `OSError: [Errno 6] No such device or address: '/dev/stdout'` under a systemd user service where fd 1 is a pipe. Writing to a regular file works everywhere.
+2. **Per-program `stdout_logfile=/dev/fd/1`.** Every layer's `service:` fragment redirects program stdout to `/dev/fd/1` so container logs (`podman logs`) show per-program output. Under a systemd user service this fails with `unknown error making dispatchers for <name>: ENXIO` for every program. The fix lives in the systemd user unit itself — set `StandardOutput=file:/tmp/supervisord-stdout.log` so supervisord's fd 1 backs a real file, not a pipe. Existing per-program `/dev/fd/1` lines then resolve correctly. See `/ov-layers:bootc-config` for the unit definition.
+
+Container-mode logs are unaffected — supervisord is still PID 1 there.
 
 ## Related Layers
 
@@ -179,6 +192,8 @@ Transitive dependency for all images with managed services, including:
 - `/ov-layers:labwc` -- Uses `supervisorctl avail` + `supervisorctl start chrome` to hand off to supervisord with a TOCTOU-safe sequence (autostart race fix in commit `febb9bd`)
 - `/ov-layers:traefik` -- Reverse proxy (depends on supervisord)
 - `/ov-layers:dbus` -- D-Bus session bus (depends on supervisord)
+- `/ov-layers:bootc-config` -- ships the systemd-user supervisord autostart wrapper for bootc images
+- `/ov-images:selkies-desktop-bootc` -- canonical worked example of supervisord running under systemd
 - `/ov-layers:ollama`, `/ov-layers:openclaw`, `/ov-layers:postgresql`, `/ov-layers:redis`, `/ov-layers:sway`, `/ov-layers:mutter`, `/ov-layers:niri`, `/ov-layers:kwin` -- All ship `service:` blocks
 
 ## Related Commands

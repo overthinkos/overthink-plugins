@@ -145,6 +145,22 @@ a 138-step stack like `immich-ml` used to cost minutes per iteration;
 they now cost seconds. See `/ov-dev:generate` "LABEL Placement" for the
 rationale and `/ov:test` for author-facing workflow implications.
 
+## Bootc-specific generator behaviour
+
+Three emission rules matter specifically for bootc images. The canonical worked example is `/ov-images:selkies-desktop-bootc`.
+
+### 1. `initHasFragments` pre-scan gates empty init stages
+
+Each init system defined in `build.yml` (currently `supervisord` and `systemd`) emits a `FROM scratch AS <stage_name>` scratch stage that layers COPY fragments into, plus an `assembly_template` RUN that bind-mounts from that scratch stage. `ov/generate.go` pre-scans the layer chain for each init system to check whether any layer contributes fragments (supervisord `service:` fragments, relay configs, or systemd `.service` files). If none, **both** the scratch stage and the assembly_template RUN are suppressed. Without this, a bootc image with only `system_services:` unit-name declarations (no shipped `.service` files) would emit an empty `FROM scratch AS systemd-services` + a RUN that bind-mounts from it — which fails at build time with `opening directory "systemd" under "...merged": no such file or directory`. The `system_enable_template` and `post_assembly_template` for that init still run — they're independent of the scratch stage. See `/ov-layers:sshd` + `/ov-layers:qemu-guest-agent` for the `system_services:`-only pattern that triggered this fix.
+
+### 2. `anyRepoHasURL` helper → prepend `dnf5-plugins`
+
+The RPM install_template prepends `dnf install -y dnf5-plugins` whenever any layer `rpm.repos:` entry declares a `url:` (checked via the `anyRepoHasURL` template helper in `ov/format_template.go`). Required because `quay.io/fedora/fedora-bootc:43` strips `dnf5-plugins` (which provides the `config-manager` subcommand) from the default install. Without the prepend, `dnf5 config-manager addrepo --from-repofile=…` — emitted for every URL-based repo — fails with `Unknown argument "config-manager" for command "dnf5"`. `/ov-layers:ffmpeg` is the canonical URL-repo consumer (adds negativo17's `fedora-multimedia.repo`).
+
+### 3. `export BUILD_ARCH=…;` (not prefix assignment) in `download:` tasks
+
+The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUILD_ARCH}…"` with an explicit semicolon-separator `export`, not the prefix form `BUILD_ARCH=$(uname -m) curl ...`. Bash prefix assignments set the variable in the spawned command's environment **after** the shell has already expanded `${BUILD_ARCH}` in the command's arguments — the expansion sees an unset variable, the URL resolves with an empty arch string, and the download 404s. Source: `ov/tasks.go:envPrefix` with the documenting comment. Layers that use `${BUILD_ARCH}` in a `download:` URL: `/ov-layers:pixi`, `/ov-layers:typst`, `/ov-layers:ujust`, `/ov-layers:yay`, `/ov-layers:vectorchord`, `/ov-layers:sherpa-onnx`.
+
 ## Cross-References
 
 ### `ov image` family siblings
@@ -164,3 +180,6 @@ rationale and `/ov:test` for author-facing workflow implications.
 - `/ov:test` — test-authoring workflow; `tests:` blocks are embedded via `writeJSONLabel` and benefit directly from LABELs-at-end cache efficiency.
 - `/ov-dev:generate` — Deep dive on Containerfile emission internals, `Task` struct, per-verb emitters, `stageInlineContent`, `shellSingleQuote` + `shellAnsiQuote` helpers, LABEL-placement rationale.
 - `/ov-dev:go` — Source-code map: `ov/tasks.go` (~430 lines), `ov/generate.go:writeLayerSteps` + `writeLabels`, `ov/layers.go` struct definitions.
+- `/ov-images:selkies-desktop-bootc` — canonical worked example exercising all three bootc-specific emission rules above.
+- `/ov-layers:ffmpeg` — canonical URL-repo consumer (triggers the `dnf5-plugins` prepend).
+- `/ov-layers:bootc-config` — bootc boot wiring that depends on the empty-init-stage fix (only `system_services:`, no `.service` files).
