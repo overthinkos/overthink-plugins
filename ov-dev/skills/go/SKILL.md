@@ -16,6 +16,38 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 
 The codebase keeps wire format (YAML keys) and internal names (Go fields/types) in strict symmetry — plural YAML keys get plural Go identifiers, singular get singular. When the `builders:` top-level key was renamed to `builder:` in `build.yml` and `image.yml`, the rename propagated to `BuildersMap → BuilderMap`, `ImageConfig.Builders → Builder`, `BuilderConfig.Builders → Builder`, `DistroConfig.Distros → Distro`, `InitConfig.Inits → Init`, and the OCI label constant `LabelBuilders → LabelBuilder` (value `org.overthinkos.builder`). The rule: if you change a YAML tag, also rename the Go identifier. Tests enforce this indirectly — struct literals won't compile if they disagree.
 
+### Kong `default:"withargs"` for parent+leaf commands
+
+Kong normally treats a struct as either a branch (has child `cmd:""` subcommands) OR a leaf (accepts `arg:""` positionals and has a `Run()` method) — not both. When you want both shapes on the same parent command (e.g., `ov test <image>` runs tests AND `ov test cdp …` dispatches to a subcommand), tag the default child with `default:"withargs"`. Kong then dispatches to that child when the first token doesn't match a subcommand name, passing positional args/flags through.
+
+Two uses in the codebase:
+- `ov/config_image.go:14-21` — `ImageConfigCmd.Setup` is the default; `ov config <image>` routes through `ImageConfigSetupCmd` while `ov config mount|status|…` dispatch explicitly.
+- `ov/test_cmd.go:22-31` — `TestCmd.Run` is the default; `ov test <image>` runs declarative tests while `ov test cdp|wl|dbus|vnc …` dispatch explicitly.
+
+Tradeoff: a subcommand name shadows a positional value with the same text. `ov test cdp` always dispatches to the cdp subcommand — if an image is literally named `cdp`, use the explicit `ov test run cdp` form.
+
+### Mode purity: `LoadConfig` must NOT read `deploy.yml`
+
+OCI labels are written exclusively from `image.yml` + `layer.yml` at `ov image build` / `ov image generate` time. `deploy.yml` is deploy-mode state and must never bleed into the baked image. The key guarantee lives in `ov/config.go:LoadConfig` — it calls `LoadConfigRaw` only, with no `MergeDeployOverlay`.
+
+**The rule**: every build-mode command (anything under `ov image …`) calls `LoadConfig`. If you ever re-introduce `MergeDeployOverlay` inside `LoadConfig`, you will silently contaminate OCI labels with whatever is in the user's local `deploy.yml` — exactly the bug that made images bake `ports: ["5900:5900","9250:9222"]` from a stale `deploy.yml` entry instead of the `image.yml`-declared `["5900:5900","9222:9222","9224:9224"]`.
+
+Deploy-mode commands (`ov config`, `ov start`, `ov shell`, `ov cmd`, `ov service`, `ov vm create`, …) read labels via `ExtractMetadata` and then apply the deploy overlay explicitly via `MergeDeployOntoMetadata(meta, dc, instance)`. This split is load-bearing — never collapse it.
+
+### Self-exec coordination: host → container AND host → host
+
+The `ov` binary self-execs in two distinct directions.
+
+**Host → container** — the host `ov` delegates to a container-baked `ov` via `exec … ov <subcommand>`. Three sites today:
+- `ov/notify.go:20` — best-effort desktop notification via in-container `ov test dbus notify`.
+- `ov/dbus.go:195` — strict in-container `ov test dbus notify` with gdbus fallback.
+- `ov/dbus.go:229` — generic D-Bus call via in-container `ov test dbus call`.
+
+**Host → host** — the test runner spawns the same host `ov` binary as a subprocess to execute cdp/wl/dbus/vnc declarative verbs:
+- `ov/testrun_ov_verbs.go` — the `runOvVerb` dispatcher builds `ov test <verb> <method> <image> [args…]` argv and runs it via `exec.CommandContext`, feeding stdout/stderr through the existing matcher pipeline. `findOvBinary()` prefers `os.Executable()` so tests invoke the same build that collected them, falling back to `$PATH`.
+
+**The rule:** whenever you rename a subcommand path crossed by any of these self-exec sites, edit the host-side invocation strings AND plan a coordinated rebuild of every image that bakes the `ov` layer (affected images: grep `image.yml` for `- ov$`). For host→host sites the rebuild doesn't matter — it's the same binary — but the method-name allowlists in `testrun_ov_verbs.go` must stay in lockstep with the actual `ov test cdp|wl|dbus|vnc` subcommand tree.
+
 ## Quick Reference
 
 | Action | Command | Description |
@@ -155,13 +187,15 @@ section is the Go-implementation map.
 
 | File | Purpose |
 |------|---------|
-| `testspec.go` | `Check` struct (15 verb discriminators; `Kind()` enforces exactly-one). **`Status` on the http verb is a plain `int`** — not a MatcherList. One expected code per test; no `[200, 302]` list shorthand. `Matcher` + `MatcherList` with custom YAML **and** JSON unmarshalers for scalar/list/map shorthand — symmetry between layer.yml authoring and hand-crafted OCI labels. `LabelTestSet` with `{Layer, Image, Deploy}` sections. Extended `${NAME[:arg]}` regex (`testVarRefPattern`) — backward-compatible widening of `taskVarRefPattern` in `tasks.go`. **No bash-style defaults**: `${VAR:-fallback}` is unsupported; only `${IDENT}`. `ExpandTestVars`, `TestVarRefs`, `IsRuntimeOnlyVar`, `Check.ExpandVars`. |
+| `testspec.go` | `Check` struct (19 verb discriminators; `Kind()` enforces exactly-one). Original 15 built-in verbs (file/port/command/http/package/service/process/dns/user/group/interface/kernel-param/mount/addr/matching) plus 4 live-container verbs (`cdp`/`wl`/`dbus`/`vnc`) dispatched via `testrun_ov_verbs.go`. **`Status` on the http verb is a plain `int`** — not a MatcherList. One expected code per test; no `[200, 302]` list shorthand. `Matcher` + `MatcherList` with custom YAML **and** JSON unmarshalers for scalar/list/map shorthand — symmetry between layer.yml authoring and hand-crafted OCI labels. `LabelTestSet` with `{Layer, Image, Deploy}` sections. Extended `${NAME[:arg]}` regex (`testVarRefPattern`) — backward-compatible widening of `taskVarRefPattern` in `tasks.go`. **No bash-style defaults**: `${VAR:-fallback}` is unsupported; only `${IDENT}`. `ExpandTestVars`, `TestVarRefs`, `IsRuntimeOnlyVar`, `Check.ExpandVars`. |
 | `testvars.go` | `ResolveTestVarsBuild` / `ResolveTestVarsRuntime`. `InspectContainer` is a swappable package-level `var` (test-friendly pattern matching `InspectLabels` in `labels.go`). Maps `podman inspect` output into `HOST_PORT:<N>`, `VOLUME_PATH:<name>`, `VOLUME_CONTAINER_PATH:<name>`, `CONTAINER_IP`, `CONTAINER_NAME`, `ENV_<NAME>`. |
 | `testrun.go` | `Runner`, `Executor` interface, `ContainerExecutor` (via `podman exec`), `ImageExecutor` (via `podman run --rm`). `TestStatus`/`TestResult` types (renamed from `CheckStatus`/`CheckResult` to avoid collision with doctor.go). Per-verb dispatch for `file`/`port`/`command`/`http`. Matcher evaluation: `matchOne` + `matchNumeric` (`lt`/`le`/`gt`/`ge`). `validMatcherOps` allowlist kept in lockstep with the runner switch by `TestMatcher_AllowlistRunnerSync`. Output formatters: text, JSON, TAP. |
 | `testrun_verbs.go` | Dispatch for the remaining verbs: `package` (rpm/dpkg/pacman), `service` (supervisorctl + systemctl), `process` (pgrep), `dns` (host-side `net.LookupIP` or in-container `getent`), `user`/`group` (getent passwd/group), `interface` (`ip -o addr show` + MTU), `kernel-param` (`sysctl -n`), `mount` (`findmnt`), `addr` (host-side `net.DialTimeout` or in-container `nc -z`), `matching` (pure in-process value matching). |
+| `testrun_ov_verbs.go` | Dispatch for the four live-container verbs (`cdp`/`wl`/`dbus`/`vnc`). Hand-enumerated method allowlists (`cdpMethods`/`wlMethods`/`dbusMethods`/`vncMethods`) map each method name to its `ov test <verb> <method>` subcommand path, required modifier fields, and positional-arg builder. The `runOvVerb` dispatcher handles skip (RunModeImageTest → skip with message; empty `r.Image` → skip), required-modifier enforcement (via `checkRequiredFields` + `isZeroField`), subprocess exec via `findOvBinary()`, matcher pipeline through `matchAll`, and post-run `artifact_min_bytes` size assertions for screenshot methods. |
+| `local_image.go` | `resolveLocalImageRef(engine, input)` — test-mode-only image resolution that never reads `image.yml`. Full refs pass through with a `LocalImageExists` check; short names match against `ListLocalImages()` output using label-preferred matching (`org.overthinkos.image=<name>`) with a repo-name trailing-component fallback. Returns `ErrImageNotLocal` on no-match so `FormatCLIError` renders the "ov image pull / ov image build" recommendation. Used by `ImageTestCmd.Run()` to keep `ov image test` purely OCI-labels-driven. |
 | `testcollect.go` | `CollectTests(cfg, layers, imageName) *LabelTestSet` walks the base-image chain — mirror of `CollectHooks` in `hooks.go:18-68` — with a visited-image guard so pathological cycles reported by `validateImageDAG` can't hang the collector. Bucketizes checks into `layer`/`image`/`deploy` by source + scope, stamps `Origin` for reporting. `MergeDeployTests(baked, local)` implements id-based replace, append, and `{id: X, skip: true}` disable semantics. |
-| `test_cmd.go` | `TestCmd` (top-level `ov test`) and `ImageTestCmd` (`ov image test`) kong command structs. `ov test` flow: `resolveContainer` → `containerImageRef` → `ExtractMetadata` → load `DeployImageConfig.Tests` overlay → `MergeDeployTests` → `ResolveTestVarsRuntime` → `Runner.Run` → format results. `ov image test` flow: resolve short/full/remote ref → `ExtractMetadata` → `ResolveTestVarsBuild` → disposable `ImageExecutor` → run only `layer`+`image` sections (add `--include-deploy` for the deploy section). |
-| `validate_tests.go` | `validateTests(cfg, layers, errs)` hooked into `Validate` in `validate.go`. Enforces: exactly-one-verb per Check, attribute types, port range (1-65535), `time.Duration` parse on `timeout`, `scope` ∈ {build,deploy}, build-scope checks can't reference runtime-only variables (via `IsRuntimeOnlyVar`), `id:` uniqueness per section (including cross-layer collisions via `validateCollectedIDUniqueness` → `CollectTests`), matcher-op allowlist (kept in lockstep with `matchOne`). |
+| `test_cmd.go` | `TestCmd` (top-level `ov test`) and `ImageTestCmd` (`ov image test`) kong command structs. `ov test` flow: `resolveContainer` → `containerImageRef` → `ExtractMetadata` → load `DeployImageConfig.Tests` overlay → `MergeDeployTests` → `ResolveTestVarsRuntime` → populate `Runner.Image`/`Instance` (so `cdp`/`wl`/`dbus`/`vnc` verbs can build CLI invocations) → `Runner.Run` → format results. `ov image test` flow: `resolveLocalImageRef` (never reads image.yml — see `local_image.go`) → `ExtractMetadata` → `ResolveTestVarsBuild` → disposable `ImageExecutor` → run only `layer`+`image` sections (add `--include-deploy` for the deploy section). |
+| `validate_tests.go` | `validateTests(cfg, layers, errs)` hooked into `Validate` in `validate.go`. Enforces: exactly-one-verb per Check, attribute types, port range (1-65535), `time.Duration` parse on `timeout`, `scope` ∈ {build,deploy}, build-scope checks can't reference runtime-only variables (via `IsRuntimeOnlyVar`), `id:` uniqueness per section (including cross-layer collisions via `validateCollectedIDUniqueness` → `CollectTests`), matcher-op allowlist (kept in lockstep with `matchOne`), per-verb method-allowlist and required-modifier checks for `cdp`/`wl`/`dbus`/`vnc` (via `validateOvVerb` — deploy-scope-only enforcement, method validation against `cdpMethods`/`wlMethods`/`dbusMethods`/`vncMethods` maps in `testrun_ov_verbs.go`). |
 
 **Related skill**: `/ov:test` is the authoring-facing reference.
 
@@ -201,6 +235,17 @@ bin/ov image validate
 bin/ov image inspect <image>
 ```
 
+### Intermediate image cache invalidation
+
+`ov image build` auto-generates intermediate images (e.g., `ghcr.io/overthinkos/fedora-ov-2-dbus-nodejs`) that bundle the `ov` layer plus common layers for cache reuse across many downstream images. These intermediates are aggressively podman-cached. Updating `layers/ov/bin/ov` does invalidate the COPY step inside the intermediate, but if the intermediate tag already exists locally, `ov image build` may reuse it without re-running the build chain. To force a fresh binary propagation after a manual `bin/ov` update:
+
+```bash
+podman rmi 'ghcr.io/overthinkos/fedora-ov-2*' 2>/dev/null || true
+ov image build <image>
+```
+
+This also interacts with the dual-path gotcha documented in `/ov-layers:ov`: `bin/ov` (repo-root, used by host-side invocations) and `layers/ov/bin/ov` (what the `ov` layer actually copies into images) must stay in sync. The canonical `task build:ov` path does both; a manual `go build -o bin/ov ./ov` needs an explicit `cp bin/ov layers/ov/bin/ov` follow-up.
+
 ## Style Guide
 
 - All logic belongs in Go. Taskfiles are only for bootstrap (building ov).
@@ -213,7 +258,7 @@ bin/ov image inspect <image>
 - `/ov:layer` — **Canonical author-facing reference** for the task verb catalog that `ov/tasks.go` implements.
 - `/ov:validate` — Validation rules and error handling (`validateLayerTasks` in `ov/validate.go`).
 - `/ov:build` — Using the built CLI.
-- `/ov:test` — Author-facing reference for the declarative-testing feature that `testspec.go` / `testvars.go` / `testrun.go` / `testrun_verbs.go` / `testcollect.go` / `test_cmd.go` / `validate_tests.go` implement.
+- `/ov:test` — Author-facing reference for the declarative-testing feature that `testspec.go` / `testvars.go` / `testrun.go` / `testrun_verbs.go` / `testrun_ov_verbs.go` / `testcollect.go` / `test_cmd.go` / `local_image.go` / `validate_tests.go` implement.
 - Source: `ov/` directory (~77 source + ~54 test .go files).
 
 ## When to Use This Skill

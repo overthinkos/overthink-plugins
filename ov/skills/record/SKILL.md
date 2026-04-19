@@ -113,8 +113,8 @@ ov record cmd selkies-desktop "git status" -n walkthrough
 ov record cmd selkies-desktop "docker ps" -n walkthrough
 
 # Interact with browser
-ov cdp open selkies-desktop "https://github.com"
-ov wl click selkies-desktop 640 360
+ov test cdp open selkies-desktop "https://github.com"
+ov test wl click selkies-desktop 640 360
 
 # Stop and save
 ov record stop selkies-desktop -n walkthrough -o walkthrough.mp4
@@ -131,7 +131,7 @@ ov record stop selkies-desktop -n walkthrough -o walkthrough.mp4
 
 - `ov record cmd` uses the shared `sendTmuxCommand()` helper (also used by `ov tmux cmd`)
 - Desktop notifications are sent via `sendContainerNotification()` on every `ov record cmd` dispatch (always-on, no `--no-notify` flag — recording context always benefits from notification)
-- The notification chain: `sendContainerNotification()` → tries in-container `ov dbus notify .` → falls back to `gdbus call` → silently skips if neither available
+- The notification chain: `sendContainerNotification()` → tries in-container `ov test dbus notify .` → falls back to `gdbus call` → silently skips if neither available
 
 ## Cross-References
 

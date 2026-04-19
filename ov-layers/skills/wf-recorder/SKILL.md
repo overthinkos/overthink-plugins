@@ -49,7 +49,7 @@ wf-recorder -f output.mp4 -r 60        # 60fps
 ov record start sway-browser-vnc -n demo --mode desktop
 
 # Interact with desktop
-ov wl click sway-browser-vnc 640 360
+ov test wl click sway-browser-vnc 640 360
 ov record cmd sway-browser-vnc "neofetch" -n demo
 
 # Stop and copy to host

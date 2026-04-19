@@ -60,8 +60,8 @@ ov record start selkies-desktop -n demo --mode desktop --audio
 ov record cmd selkies-desktop "echo hello" -n demo
 
 # Interact with desktop
-ov cdp open selkies-desktop "https://example.com"
-ov wl click selkies-desktop 640 360
+ov test cdp open selkies-desktop "https://example.com"
+ov test wl click selkies-desktop 640 360
 
 # Stop and copy to host
 ov record stop selkies-desktop -n demo -o demo.mp4

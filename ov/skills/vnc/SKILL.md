@@ -1,27 +1,31 @@
 ---
 name: vnc
 description: |
-  MUST be invoked before any work involving: VNC automation, ov vnc commands, RFB protocol desktop interaction, VNC screenshots, clicking coordinates, or VNC authentication.
+  MUST be invoked before any work involving: VNC automation, ov test vnc commands, RFB protocol desktop interaction, VNC screenshots, clicking coordinates, or VNC authentication.
 ---
 
 # VNC - VNC Desktop Automation
 
 ## Overview
 
-`ov vnc` commands connect to VNC servers (RFB protocol on port tcp:5900) inside running containers. Provides screenshot capture, keyboard/mouse input, and VNC password management for Wayland desktop automation via wayvnc.
+`ov test vnc` commands connect to VNC servers (RFB protocol on port tcp:5900) inside running containers. Provides screenshot capture, keyboard/mouse input, and VNC password management for Wayland desktop automation via wayvnc.
+
+### Also as a declarative verb
+
+Every `ov test vnc <method>` (status/screenshot/click/mouse/type/key/rfb/passwd) is authorable as a `vnc:` verb inside a `tests:` block. Method-specific fields (`x`, `y`, `text`, `key`, `artifact`, `artifact_min_bytes`) are siblings of the verb line. See `/ov:test` for the full YAML shape. Example: `- vnc: screenshot\n  artifact: /tmp/vnc.png\n  artifact_min_bytes: 5000`.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Screenshot | `ov vnc screenshot <image> [file]` | Capture VNC framebuffer as PNG |
-| Click | `ov vnc click <image> <x> <y>` | Click at x,y coordinates |
-| Type text | `ov vnc type <image> <text>` | Send keyboard input as key events |
-| Send key | `ov vnc key <image> <key-name>` | Press a special key (Return, Escape, etc.) |
-| Move mouse | `ov vnc mouse <image> <x> <y>` | Move mouse without clicking |
-| Status | `ov vnc status <image>` | Check VNC server, show resolution and desktop name |
-| Set password | `ov vnc passwd <image>` | Set VNC auth password for deployment |
-| Raw RFB | `ov vnc rfb <image> <method> [json]` | Send raw RFB protocol message |
+| Screenshot | `ov test vnc screenshot <image> [file]` | Capture VNC framebuffer as PNG |
+| Click | `ov test vnc click <image> <x> <y>` | Click at x,y coordinates |
+| Type text | `ov test vnc type <image> <text>` | Send keyboard input as key events |
+| Send key | `ov test vnc key <image> <key-name>` | Press a special key (Return, Escape, etc.) |
+| Move mouse | `ov test vnc mouse <image> <x> <y>` | Move mouse without clicking |
+| Status | `ov test vnc status <image>` | Check VNC server, show resolution and desktop name |
+| Set password | `ov test vnc passwd <image>` | Set VNC auth password for deployment |
+| Raw RFB | `ov test vnc rfb <image> <method> [json]` | Send raw RFB protocol message |
 
 ## Architecture
 
@@ -44,48 +48,48 @@ Custom RFC 6143 VNC client implementation (no external dependency). Supports Non
 
 ### Screenshot
 ```bash
-ov vnc screenshot openclaw-sway-browser              # saves screenshot.png
-ov vnc screenshot openclaw-sway-browser desktop.png   # custom filename
-ov vnc screenshot openclaw-sway-browser -i prod       # specific instance
+ov test vnc screenshot openclaw-sway-browser              # saves screenshot.png
+ov test vnc screenshot openclaw-sway-browser desktop.png   # custom filename
+ov test vnc screenshot openclaw-sway-browser -i prod       # specific instance
 ```
 
 ### Click
 ```bash
-ov vnc click openclaw-sway-browser 960 540             # left click at center of 1920x1080
-ov vnc click openclaw-sway-browser 100 200 --button right  # right click
-ov vnc click openclaw-sway-browser 100 200 --button middle # middle click
-ov vnc click openclaw-sway-browser 100 200 --from-cdp $TAB   # translate from CDP viewport
-ov vnc click openclaw-sway-browser 100 200 --from-sway google-chrome  # translate from sway window
-ov vnc click openclaw-sway-browser 100 200 --from-x11 Steam  # translate from X11 window (XWayland)
+ov test vnc click openclaw-sway-browser 960 540             # left click at center of 1920x1080
+ov test vnc click openclaw-sway-browser 100 200 --button right  # right click
+ov test vnc click openclaw-sway-browser 100 200 --button middle # middle click
+ov test vnc click openclaw-sway-browser 100 200 --from-cdp $TAB   # translate from CDP viewport
+ov test vnc click openclaw-sway-browser 100 200 --from-sway google-chrome  # translate from sway window
+ov test vnc click openclaw-sway-browser 100 200 --from-x11 Steam  # translate from X11 window (XWayland)
 ```
 
-**`--from-x11 <class-or-title>`** translates coordinates from X11 window-internal space to desktop-absolute VNC coordinates. Works the same as `ov wl click --from-x11` -- queries X11 geometry via xdotool, finds the sway node, and scales to desktop coordinates. Essential for XWayland windows (Steam, Heroic) where the X11 resolution differs from the compositor resolution.
+**`--from-x11 <class-or-title>`** translates coordinates from X11 window-internal space to desktop-absolute VNC coordinates. Works the same as `ov test wl click --from-x11` -- queries X11 geometry via xdotool, finds the sway node, and scales to desktop coordinates. Essential for XWayland windows (Steam, Heroic) where the X11 resolution differs from the compositor resolution.
 
 ### Type
 ```bash
-ov vnc type openclaw-sway-browser "hello world"    # types each character as key events
+ov test vnc type openclaw-sway-browser "hello world"    # types each character as key events
 ```
-Only supports ASCII/Latin-1 characters. For special keys, use `ov vnc key`.
+Only supports ASCII/Latin-1 characters. For special keys, use `ov test vnc key`.
 
 ### Key
 ```bash
-ov vnc key openclaw-sway-browser Return       # press Enter
-ov vnc key openclaw-sway-browser Escape       # press Escape
-ov vnc key openclaw-sway-browser Tab          # press Tab
-ov vnc key openclaw-sway-browser F5           # press F5
-ov vnc key openclaw-sway-browser Control_L    # press left Ctrl
+ov test vnc key openclaw-sway-browser Return       # press Enter
+ov test vnc key openclaw-sway-browser Escape       # press Escape
+ov test vnc key openclaw-sway-browser Tab          # press Tab
+ov test vnc key openclaw-sway-browser F5           # press F5
+ov test vnc key openclaw-sway-browser Control_L    # press left Ctrl
 ```
 
 Valid key names: Return, Escape, Tab, BackSpace, Delete, Home, End, Page_Up, Page_Down, Up, Down, Left, Right, Insert, F1-F12, Shift_L, Shift_R, Control_L, Control_R, Alt_L, Alt_R, Super_L, Super_R, Meta_L, Meta_R, Caps_Lock, space.
 
 ### Mouse
 ```bash
-ov vnc mouse openclaw-sway-browser 500 300    # move mouse to (500, 300)
+ov test vnc mouse openclaw-sway-browser 500 300    # move mouse to (500, 300)
 ```
 
 ### Status
 ```bash
-ov vnc status openclaw-sway-browser
+ov test vnc status openclaw-sway-browser
 # Output:
 # Desktop:    sway
 # Resolution: 1920x1080
@@ -93,8 +97,8 @@ ov vnc status openclaw-sway-browser
 
 ### Password
 ```bash
-ov vnc passwd openclaw-sway-browser              # prompts for password
-ov vnc passwd openclaw-sway-browser --generate   # generates random password, prints to stdout
+ov test vnc passwd openclaw-sway-browser              # prompts for password
+ov test vnc passwd openclaw-sway-browser --generate   # generates random password, prints to stdout
 ```
 
 Sets up VNC authentication (VeNCrypt/TLS):
@@ -105,7 +109,7 @@ Sets up VNC authentication (VeNCrypt/TLS):
 5. Writes `~/.config/wayvnc/config` with `enable_auth=true` (wayvnc reads this automatically)
 6. Restarts wayvnc supervisord service
 
-After setting a password, all `ov vnc` commands authenticate transparently via VeNCrypt/TLS.
+After setting a password, all `ov test vnc` commands authenticate transparently via VeNCrypt/TLS.
 
 ### Password Resolution Chain
 
@@ -118,9 +122,9 @@ When connecting, password is resolved in this order:
 
 ```bash
 # One-off password override via env
-VNC_PASSWORD=secret ov vnc screenshot openclaw-sway-browser out.png
+VNC_PASSWORD=secret ov test vnc screenshot openclaw-sway-browser out.png
 
-# Set password programmatically (alternative to ov vnc passwd)
+# Set password programmatically (alternative to ov test vnc passwd)
 ov settings set vnc.password.openclaw-sway-browser mysecret
 
 # Instance-specific password
@@ -131,15 +135,15 @@ Requires `openssl` inside the container for TLS cert and RSA key generation.
 
 ### Raw RFB
 ```bash
-ov vnc rfb openclaw-sway-browser key '{"key": 65293, "down": true}'           # raw key event
-ov vnc rfb openclaw-sway-browser pointer '{"x": 100, "y": 200, "button": 1}'  # raw pointer
-ov vnc rfb openclaw-sway-browser cut-text '{"text": "clipboard"}'              # clipboard
-ov vnc rfb openclaw-sway-browser fbupdate-request                              # get dimensions
+ov test vnc rfb openclaw-sway-browser key '{"key": 65293, "down": true}'           # raw key event
+ov test vnc rfb openclaw-sway-browser pointer '{"x": 100, "y": 200, "button": 1}'  # raw pointer
+ov test vnc rfb openclaw-sway-browser cut-text '{"text": "clipboard"}'              # clipboard
+ov test vnc rfb openclaw-sway-browser fbupdate-request                              # get dimensions
 ```
 
 ## Differences from CDP Commands
 
-| Aspect | `ov cdp` (CDP) | `ov vnc` (RFB) |
+| Aspect | `ov test cdp` (CDP) | `ov test vnc` (RFB) |
 |--------|----------------|----------------|
 | Protocol | WebSocket JSON | Binary TCP |
 | Scope | Browser tabs | Whole desktop |
@@ -153,16 +157,16 @@ Source: `ov/vnc_client.go`, `ov/vnc.go`.
 
 ## VNC as Anti-Detection Fallback
 
-Some websites (notably Google sign-in) detect and block CDP-based input. VNC provides a reliable fallback because `ov vnc type` sends real X11 keysym events through the Wayland compositor — indistinguishable from physical keyboard input.
+Some websites (notably Google sign-in) detect and block CDP-based input. VNC provides a reliable fallback because `ov test vnc type` sends real X11 keysym events through the Wayland compositor — indistinguishable from physical keyboard input.
 
-**CDP + VNC Hybrid Pattern:** Use `ov cdp click --vnc` for clicking (CDP selector precision + VNC pointer delivery) and `ov vnc type` for typing credentials:
+**CDP + VNC Hybrid Pattern:** Use `ov test cdp click --vnc` for clicking (CDP selector precision + VNC pointer delivery) and `ov test vnc type` for typing credentials:
 
 ```bash
 # --vnc click: CDP finds element by selector, delivers click via VNC pointer
-ov cdp click my-app $TAB '#identifierId' --vnc
+ov test cdp click my-app $TAB '#identifierId' --vnc
 sleep 0.5                                          # let compositor process focus
 # VNC type sends real key events through the compositor
-ov vnc type my-app "$GMAIL_USER"
+ov test vnc type my-app "$GMAIL_USER"
 ```
 
 **Tested timing:** 500ms sleep between `--vnc` click and VNC type is sufficient. No characters were dropped at this timing during Google sign-in testing.
@@ -173,7 +177,7 @@ When to use `--vnc` click and VNC type:
 - Sites that validate input event sequences (keyDown/keyPress/input/keyUp)
 - Any form where CDP type fails silently (value appears but form doesn't accept it)
 
-**Chrome first-run dialogs:** On fresh profiles, Chrome opens a first-run dialog as a separate window invisible to CDP. Dismiss with `ov wl sway msg my-app 'focus left'` then `ov vnc key my-app Return`.
+**Chrome first-run dialogs:** On fresh profiles, Chrome opens a first-run dialog as a separate window invisible to CDP. Dismiss with `ov test wl sway msg my-app 'focus left'` then `ov test vnc key my-app Return`.
 
 See `/ov:cdp` for the full Google sign-in recipe.
 
@@ -184,15 +188,15 @@ VNC uses desktop-absolute coordinates, while CDP returns viewport-relative coord
 **`--from-cdp <tab-id>`** — Translates viewport coords to desktop coords via CDP's `window.screenX/screenY`:
 
 ```bash
-# Get viewport coords from ov cdp coords, then click via VNC
-ov vnc click my-app 1220 328 --from-cdp $TAB
+# Get viewport coords from ov test cdp coords, then click via VNC
+ov test vnc click my-app 1220 328 --from-cdp $TAB
 # Translated viewport (1220, 328) → desktop (1220, 439) via CDP tab ...
 ```
 
 **`--from-sway <app-id>`** — Translates window-relative coords to desktop coords via sway tree:
 
 ```bash
-ov vnc click my-app 500 200 --from-sway google-chrome
+ov test vnc click my-app 500 200 --from-sway google-chrome
 # Translated window-relative (500, 200) → desktop (504, 204) via sway app_id=google-chrome
 ```
 
@@ -205,16 +209,18 @@ VNC screenshots work correctly on NVIDIA headless for images using `sway-desktop
 1. **Pixman renderer** — `sway-desktop-vnc` forces `WLR_RENDERER=pixman` (software rendering), producing buffers wayvnc can reliably capture
 2. **DPMS workaround** — `wayvnc-wrapper` triggers the missing headless power event that wayvnc 0.9.1 waits for before starting capture
 
-Both `ov vnc screenshot` and `ov wl screenshot` work on NVIDIA headless:
+Both `ov test vnc screenshot` and `ov test wl screenshot` work on NVIDIA headless:
 ```bash
-ov vnc screenshot <image> out.png           # VNC screenshot (works with pixman + DPMS fix)
-ov wl screenshot <image> out.png            # Wayland screenshot (grim, always works)
+ov test vnc screenshot <image> out.png           # VNC screenshot (works with pixman + DPMS fix)
+ov test wl screenshot <image> out.png            # Wayland screenshot (grim, always works)
 ```
 
 ## Cross-References
 
-- `/ov:wl` — Wayland-native desktop automation (works on NVIDIA headless)
-- `/ov:cdp` — Chrome DevTools Protocol automation (same container, different protocol)
+- `/ov:test` — parent router; `ov test vnc …` is how every invocation is dispatched.
+- `/ov:wl` — Wayland-native desktop automation (sibling verb; works on NVIDIA headless).
+- `/ov:cdp` — Chrome DevTools Protocol automation (sibling verb; same container, different protocol).
+- `/ov:dbus` — D-Bus calls and desktop notifications (sibling verb under `ov test`).
 - `/ov:wl` (sway subgroup) — Sway compositor control (window management, workspaces)
 - `/ov:config` — VNC password storage, `secret_backend` setting, `migrate-secrets` command
 - `/ov:service` — Managing wayvnc supervisord service
@@ -224,6 +230,6 @@ ov wl screenshot <image> out.png            # Wayland screenshot (grim, always w
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves VNC automation, ov vnc commands, RFB protocol desktop interaction, VNC screenshots, clicking coordinates, or VNC authentication. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves VNC automation, ov test vnc commands, RFB protocol desktop interaction, VNC screenshots, clicking coordinates, or VNC authentication. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Desktop automation. Use for pixel-level interaction when CDP can't reach the element. See also `/ov:cdp` (DOM, preferred), `/ov:wl` (sway subgroup) (window).

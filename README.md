@@ -25,7 +25,7 @@ Build-mode commands live under `ov image …` (the only family that reads
 |-------|-----------|-------------|
 | alias | `/ov:alias` | Command aliases (ov alias add/remove/install) |
 | build | `/ov:build` | `ov image build` — building images, caches |
-| cdp | `/ov:cdp` | Chrome DevTools Protocol (ov cdp open/list/click/eval) |
+| cdp | `/ov:cdp` | Chrome DevTools Protocol (ov test cdp open/list/click/eval) |
 | cmd | `/ov:cmd` | Single command execution with D-Bus notification |
 | config | `/ov:config` | Unified setup: quadlet + secrets + volumes + data provisioning |
 | dbus | `/ov:dbus` | D-Bus interaction inside containers (notify, call, list, introspect) |
@@ -58,7 +58,7 @@ Build-mode commands live under `ov image …` (the only family that reads
 | validate | `/ov:validate` | `ov image validate` — image.yml + layer definitions |
 | version | `/ov:version` | Show CLI version information |
 | vm | `/ov:vm` | Virtual machines (ov vm build/create/start/stop) |
-| vnc | `/ov:vnc` | VNC desktop automation (ov vnc screenshot/click/type) |
+| vnc | `/ov:vnc` | VNC desktop automation (ov test vnc screenshot/click/type) |
 | wl | `/ov:wl` | Desktop automation (22 commands + 12 sway IPC commands) |
 | wl-overlay | `/ov:wl-overlay` | Wayland overlays for screen recordings |
 
@@ -137,7 +137,7 @@ Reference documentation for every Overthink container layer.
 | comfyui | `/ov-layers:comfyui` | ComfyUI image generation service on port 8188 with CUDA |
 | copr-desktop | `/ov-layers:copr-desktop` | COPR desktop packages (CoolerControl, Ghostty, Nerd Fonts, WinBoat) |
 | cuda | `/ov-layers:cuda` | CUDA toolkit, cuDNN, ONNX Runtime from negativo17 repos |
-| dbus | `/ov-layers:dbus` | D-Bus session bus for IPC and `ov dbus` commands |
+| dbus | `/ov-layers:dbus` | D-Bus session bus for IPC and `ov test dbus` commands |
 | desktop-apps | `/ov-layers:desktop-apps` | Chromium, VLC, KeePassXC, btop, cockpit, zsh |
 | desktop-fonts | `/ov-layers:desktop-fonts` | JetBrains Mono and Nerd Fonts for desktop containers |
 | dev-tools | `/ov-layers:dev-tools` | bat, ripgrep, neovim, gh, direnv, fd-find, htop |

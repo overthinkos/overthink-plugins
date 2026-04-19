@@ -51,10 +51,10 @@ Fields: `connected` (WebSocket up), `mode` (controller/viewer/reconnecting), `fr
 
 ## Usage
 
-Used by `ov wl screenshot` — auto-detected when `pixelflux-screenshot` is available (preferred over grim).
+Used by `ov test wl screenshot` — auto-detected when `pixelflux-screenshot` is available (preferred over grim).
 
 ```bash
-ov wl screenshot <image> [output.png]
+ov test wl screenshot <image> [output.png]
 ```
 
 ## Architecture
@@ -79,7 +79,7 @@ selkies process (single ScreenCapture singleton)
 
 ## Cross-References
 
-- `/ov:wl` — `ov wl screenshot` auto-detects pixelflux-screenshot
+- `/ov:wl` — `ov test wl screenshot` auto-detects pixelflux-screenshot
 - `/ov-layers:wl-record-pixelflux` — Recording companion (same capture bridge + same singleton)
 - `/ov-layers:wl-screenshot-grim` — Alternative for sway-desktop (wlr-screencopy)
 - `/ov-layers:selkies` — Parent layer providing the ScreenCapture singleton and capture bridge

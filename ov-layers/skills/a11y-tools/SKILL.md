@@ -4,7 +4,7 @@
 
 Provides Python AT-SPI2 bindings for querying the accessibility tree of GTK, Qt, and Chrome applications. Enables element-based automation — find buttons, menus, and text fields by name/role instead of pixel coordinates.
 
-Used by `ov wl atspi tree/find/click`.
+Used by `ov test wl atspi tree/find/click`.
 
 ## Layer Definition
 
@@ -28,7 +28,7 @@ rpm:
 
 ## Important: System Python Required
 
-The RPM packages install to system Python (`/usr/bin/python3`). Containers with pixi environments have pixi's python3 first in PATH, but pixi's python3 doesn't see system RPM packages. The `ov wl atspi` command explicitly uses `/usr/bin/python3` to ensure AT-SPI2 bindings are found.
+The RPM packages install to system Python (`/usr/bin/python3`). Containers with pixi environments have pixi's python3 first in PATH, but pixi's python3 doesn't see system RPM packages. The `ov test wl atspi` command explicitly uses `/usr/bin/python3` to ensure AT-SPI2 bindings are found.
 
 ## What You Can Query
 
@@ -61,7 +61,7 @@ Chrome needs `--force-renderer-accessibility` flag to expose DOM elements via AT
 
 ## Related Skills
 
-- `/ov:wl` — `ov wl atspi tree/find/click` commands
+- `/ov:wl` — `ov test wl atspi tree/find/click` commands
 - `/ov-layers:dbus` — Required dependency (D-Bus session bus)
 - `/ov-layers:selkies-desktop` — Desktop metalayer that includes this layer
 - `/ov:test` — declarative testing framework

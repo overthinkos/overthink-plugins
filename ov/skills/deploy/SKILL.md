@@ -439,7 +439,7 @@ For images with wayvnc (VNC on tcp:5900), set a VNC password after enabling:
 
 ```bash
 ov config openclaw-sway-browser
-ov vnc passwd openclaw-sway-browser --generate   # auto-generates password, prints to stdout
+ov test vnc passwd openclaw-sway-browser --generate   # auto-generates password, prints to stdout
 ```
 
 Or pre-set via settings before deployment:
@@ -448,7 +448,7 @@ Or pre-set via settings before deployment:
 ov settings set vnc.password.openclaw-sway-browser mysecret
 ov config openclaw-sway-browser
 # After container starts, run passwd to configure server-side auth:
-ov vnc passwd openclaw-sway-browser    # uses stored password (no prompt)
+ov test vnc passwd openclaw-sway-browser    # uses stored password (no prompt)
 ```
 
 See `/ov:vnc` for full VNC authentication documentation.

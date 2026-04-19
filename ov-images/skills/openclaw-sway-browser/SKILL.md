@@ -96,7 +96,7 @@ ov shell $IMG -c "supervisorctl restart openclaw"
 
 **Key points:**
 - Use `ov tmux run` for the OAuth TUI (not `--tty` piped through `tee`) — see `/ov:tmux`
-- Click "Continue with Google" then "Continue" on consent using `ov cdp click --vnc`
+- Click "Continue with Google" then "Continue" on consent using `ov test cdp click --vnc`
 - Callback at `localhost:1455` is container-internal (no port mapping needed)
 - Model: `openai-codex/gpt-5.4`
 - Tokens persist in the `data` volume (`~/.openclaw`)

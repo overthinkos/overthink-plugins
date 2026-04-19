@@ -307,9 +307,9 @@ ov start selkies-desktop -i 198.145.102.110
 Each instance gets unique host ports. The Chrome layer's `chrome-wrapper` translates `HTTP_PROXY`/`HTTPS_PROXY` into Chrome's `--proxy-server` flag. Verify with CDP:
 
 ```bash
-ov cdp status selkies-desktop -i 198.145.102.110
-ov cdp open selkies-desktop -i 198.145.102.110 "https://ip.me"
-ov cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
+ov test cdp status selkies-desktop -i 198.145.102.110
+ov test cdp open selkies-desktop -i 198.145.102.110 "https://ip.me"
+ov test cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
   "document.querySelector('#ip-lookup').value"
 ```
 

@@ -164,11 +164,11 @@ sleep 5
 ov tmux capture $IMG -s oauth | grep -o 'https://auth.openai.com/[^ ]*'
 
 # 3. Open URL in Chrome, click "Continue with Google", then "Continue" on consent
-ov cdp open $IMG "<oauth-url>"
-TAB=$(ov cdp list $IMG | grep -i "openai" | head -1 | awk '{print $1}')
-ov cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc   # Continue with Google
+ov test cdp open $IMG "<oauth-url>"
+TAB=$(ov test cdp list $IMG | grep -i "openai" | head -1 | awk '{print $1}')
+ov test cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc   # Continue with Google
 sleep 5
-ov cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc          # Continue (consent)
+ov test cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc          # Continue (consent)
 
 # 4. Verify completion
 sleep 10
@@ -178,7 +178,7 @@ ov tmux capture $IMG -s oauth
 
 **Prerequisites:** Chrome must have an active Google session. The "Continue with Google" button on OpenAI's auth page uses Chrome's Google cookies. See `/ov-images:openclaw-ollama-sway-browser` for the full Chrome sign-in procedure.
 
-**Callback architecture:** The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container. Chrome and `openclaw-models` share the same network namespace — no port mapping needed for 1455. The `BROWSER=browser-open` env var (set by the chrome layer) auto-opens URLs via CDP, but may not trigger in all TTY contexts — open the URL manually via `ov cdp open` as a fallback.
+**Callback architecture:** The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container. Chrome and `openclaw-models` share the same network namespace — no port mapping needed for 1455. The `BROWSER=browser-open` env var (set by the chrome layer) auto-opens URLs via CDP, but may not trigger in all TTY contexts — open the URL manually via `ov test cdp open` as a fallback.
 
 **Stale port 1455:** If a previous attempt left port 1455 occupied: `ov shell $IMG -c 'kill -9 $(ss -tlnp sport = :1455 | grep -oP "pid=\K\d+")'`
 
@@ -408,7 +408,7 @@ ov shell <image> -c "supervisorctl restart openclaw"
 
 ## Cross-References
 
-- `/ov:cdp` -- `ov cdp` CDP commands (lower-level container-external automation)
+- `/ov:cdp` -- `ov test cdp` CDP commands (lower-level container-external automation)
 - `/ov:deploy` -- Quadlet, tunnels, volume backing, VNC password
 - `/ov:service` -- `ov start/stop/enable/disable/status/logs/update/remove`
 - `/ov:vnc` -- VNC desktop automation and password management

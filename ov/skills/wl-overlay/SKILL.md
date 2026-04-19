@@ -2,7 +2,7 @@
 name: wl-overlay
 description: |
   Fullscreen Wayland overlays for screen recordings via gtk4-layer-shell.
-  MUST be invoked before any work involving: ov wl overlay commands, recording
+  MUST be invoked before any work involving: ov test wl overlay commands, recording
   overlays, title cards, lower-thirds, countdowns, or fade transitions.
 ---
 
@@ -10,14 +10,14 @@ description: |
 
 ## Overview
 
-`ov wl overlay` creates and manages fullscreen Wayland overlays using the layer-shell protocol via gtk4-layer-shell. Overlays render directly in the compositor, appearing natively in screen recordings without post-production editing. Supports true alpha transparency — desktop content is visible through semi-transparent overlays.
+`ov test wl overlay` creates and manages fullscreen Wayland overlays using the layer-shell protocol via gtk4-layer-shell. Overlays render directly in the compositor, appearing natively in screen recordings without post-production editing. Supports true alpha transparency — desktop content is visible through semi-transparent overlays.
 
 ## Architecture
 
 Three components work together:
 
 1. **`wl-overlay` layer** — installs `gtk4-layer-shell`, `gtk4`, `python3-gobject` RPMs + `ov-overlay` Python daemon/client
-2. **`ov wl overlay` Go commands** — CLI that resolves the container and invokes `ov-overlay` inside it
+2. **`ov test wl overlay` Go commands** — CLI that resolves the container and invokes `ov-overlay` inside it
 3. **`ov-overlay` daemon** — GTK4 application managing multiple named overlay windows via Unix socket IPC
 
 The daemon starts on-demand in a tmux session (`ov-overlay-daemon`) when the first `show` command is issued. It persists until `hide --all` or the tmux session is killed.
@@ -26,11 +26,11 @@ The daemon starts on-demand in a tmux session (`ov-overlay-daemon`) when the fir
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Show overlay | `ov wl overlay show <image> --type text --text "Hello"` | Display a named overlay |
-| Hide one | `ov wl overlay hide <image> --name intro` | Remove specific overlay |
-| Hide all | `ov wl overlay hide <image> --all` | Remove all overlays |
-| List | `ov wl overlay list <image>` | List active overlays (JSON) |
-| Status | `ov wl overlay status <image>` | Check daemon health |
+| Show overlay | `ov test wl overlay show <image> --type text --text "Hello"` | Display a named overlay |
+| Hide one | `ov test wl overlay hide <image> --name intro` | Remove specific overlay |
+| Hide all | `ov test wl overlay hide <image> --all` | Remove all overlays |
+| List | `ov test wl overlay list <image>` | List active overlays (JSON) |
+| Status | `ov test wl overlay status <image>` | Check daemon health |
 
 ## Overlay Types
 
@@ -39,7 +39,7 @@ The daemon starts on-demand in a tmux session (`ov-overlay-daemon`) when the fir
 Full-screen semi-transparent overlay with centered text. Use for intro/outro title cards.
 
 ```bash
-ov wl overlay show myimage --type text \
+ov test wl overlay show myimage --type text \
   --text "Building a REST API" \
   --bg "rgba(0,0,0,0.7)" \
   --font-size 64 --name title
@@ -50,7 +50,7 @@ ov wl overlay show myimage --type text \
 Bottom-anchored bar with name and optional subtitle. Use for speaker identification.
 
 ```bash
-ov wl overlay show myimage --type lower-third \
+ov test wl overlay show myimage --type lower-third \
   --text "Andreas Trawoeger" \
   --subtitle "Developer" --name speaker
 ```
@@ -60,7 +60,7 @@ ov wl overlay show myimage --type lower-third \
 Corner-anchored persistent text at low opacity. Use for draft/preview markers.
 
 ```bash
-ov wl overlay show myimage --type watermark \
+ov test wl overlay show myimage --type watermark \
   --text "DRAFT" --position bottom-right \
   --color red --opacity 0.5 --name wm
 ```
@@ -72,7 +72,7 @@ Default opacity is 0.3. Positions: `top-left`, `top-right`, `bottom-left`, `bott
 Full-screen animated countdown that auto-hides on completion. Use before recording starts.
 
 ```bash
-ov wl overlay show myimage --type countdown --seconds 5 --name cd
+ov test wl overlay show myimage --type countdown --seconds 5 --name cd
 ```
 
 ### Highlight
@@ -80,7 +80,7 @@ ov wl overlay show myimage --type countdown --seconds 5 --name cd
 Transparent overlay with a colored rectangle at specified coordinates. Use to draw attention to a screen region.
 
 ```bash
-ov wl overlay show myimage --type highlight \
+ov test wl overlay show myimage --type highlight \
   --region "430,290,510,50" \
   --color "rgba(255,0,0,0.4)" --name hl
 ```
@@ -92,7 +92,7 @@ Region format: `X,Y,Width,Height` in pixels.
 Full-screen solid color overlay. Use for transitions (fade to black, fade to white).
 
 ```bash
-ov wl overlay show myimage --type fade --color black --name outro
+ov test wl overlay show myimage --type fade --color black --name outro
 ```
 
 ## Duration Auto-Hide
@@ -100,7 +100,7 @@ ov wl overlay show myimage --type fade --color black --name outro
 Any overlay (except countdown, which has built-in auto-hide) can auto-remove after a duration:
 
 ```bash
-ov wl overlay show myimage --type text --text "INTRO" --duration 5s --name intro
+ov test wl overlay show myimage --type text --text "INTRO" --duration 5s --name intro
 ```
 
 Supported formats: `5s`, `1.5m`, `500ms`, or bare seconds (`5`).
@@ -111,7 +111,7 @@ Overlays compose naturally with `ov record`:
 
 ```bash
 # Title card
-ov wl overlay show myimage --type text --text "Building a REST API" \
+ov test wl overlay show myimage --type text --text "Building a REST API" \
   --bg "rgba(0,0,0,0.9)" --font-size 64 --name title
 
 # Start recording
@@ -119,21 +119,21 @@ ov record start myimage -n demo -m desktop
 
 # Fade out title after 3s
 sleep 3
-ov wl overlay hide myimage --name title
+ov test wl overlay hide myimage --name title
 
 # Lower-third speaker ID
-ov wl overlay show myimage --type lower-third \
+ov test wl overlay show myimage --type lower-third \
   --text "Andreas Trawoeger" --subtitle "Developer" --name speaker
 
 # ... record content ...
 
 # Fade to black for ending
-ov wl overlay show myimage --type fade --color black --name outro
+ov test wl overlay show myimage --type fade --color black --name outro
 sleep 2
 
 # Stop recording
 ov record stop myimage -n demo -o demo.mp4
-ov wl overlay hide myimage --all
+ov test wl overlay hide myimage --all
 ```
 
 ## Compositor Compatibility

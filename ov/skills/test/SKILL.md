@@ -39,6 +39,40 @@ check written once works unchanged when `deploy.yml` remaps ports.
 | Filter by section | `ov test <image> --section deploy` | One of: layer / image / deploy |
 | Output format | `ov test <image> --format json\|tap\|text` | Default text |
 
+## Subcommands: live-container verbs
+
+`ov test` is both the declarative test runner AND the grouping point for the
+interactive verbs that drive a running service. Kong's `default:"withargs"`
+tag means `ov test <image>` still dispatches to the runner — only the
+explicit subcommand names below take over when matched.
+
+| Subcommand | Skill | Purpose |
+|-----------|-------|---------|
+| `ov test cdp …` | `/ov:cdp` | Chrome DevTools Protocol — open/list/close tabs, click, type, eval, screenshot, axtree |
+| `ov test wl …` | `/ov:wl` | Wayland desktop input/windows/clipboard + sway IPC |
+| `ov test dbus …` | `/ov:dbus` | D-Bus calls, introspection, desktop notifications |
+| `ov test vnc …` | `/ov:vnc` | VNC framebuffer screenshot + click/key/type/passwd |
+
+These four verbs were previously top-level commands (`ov cdp`, `ov wl`,
+`ov dbus`, `ov vnc`). They moved under `ov test` because every one of them
+is a "probe or drive a running service" operation — the same surface the
+declarative test runner composes when it executes checks. The old top-level
+forms were removed (no deprecation shim).
+
+**Reserved image names:** because subcommand names take priority when
+matched, an image literally named `cdp`, `wl`, `dbus`, or `vnc` cannot be
+run via `ov test <name>` — use the explicit `ov test run <name>` form or
+rename the image. No such images currently exist in `image.yml`.
+
+**Gotcha — stale container-baked `ov` binary:** `ov test dbus notify` and
+`ov test dbus call` delegate to the container's own `ov` binary (see
+`ov/notify.go:20`, `ov/dbus.go:195,229`). If the container was built
+before the `ov cdp|wl|dbus|vnc` → `ov test <verb>` move, its in-container
+`ov` doesn't know the new subcommand path and the delegation fails. Fix
+by rebuilding and redeploying any image that bakes `ov` (grep `image.yml`
+for `- ov$` to find them). Test runner itself is unaffected — this only
+bites the host→container delegation paths.
+
 ## Authoring: the `tests:` list
 
 Every test is a **list entry with exactly one verb discriminator** plus
@@ -97,6 +131,10 @@ service layer.
 | `mount` | `mount_source`, `filesystem`, `opts` | `findmnt` |
 | `addr` | `reachable`, `timeout` | Pure Go-native `net.DialTimeout` for `ov test`; `nc` for `ov image test` |
 | `matching` | `contains` | Pure in-process value matching — no target probe |
+| `cdp` | Method name (status/list/eval/text/html/url/axtree/screenshot/open/click/type/raw/wait/coords + spa-*) + method-specific modifiers (`tab`, `expression`, `url`, `selector`, `text`, `artifact`, `x`, `y`) + shared `stdout`/`stderr`/`exit_status`/`artifact_min_bytes` | **Deploy-scope only.** Wraps `ov test cdp <method>`. See Live-container verb catalog below. |
+| `wl` | Method name (screenshot/status/click/type/key/key-combo/mouse/scroll/drag/clipboard/toplevel/windows/focus/close/geometry/xprop/atspi/exec/resolution + overlay-*/sway-*) + method-specific modifiers (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `ov test wl <method>` (including `sway` and `overlay` nested subgroups). See Live-container verb catalog below. |
+| `dbus` | Method name (list/call/introspect/notify) + method-specific modifiers (`dest`, `path`, `method`, `args`, `text`) + shared matchers | **Deploy-scope only.** Wraps `ov test dbus <method>`. |
+| `vnc` | Method name (status/screenshot/click/mouse/type/key/rfb/passwd) + method-specific modifiers (`x`, `y`, `text`, `key`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `ov test vnc <method>`. |
 
 ### Shared modifiers
 
@@ -130,6 +168,143 @@ verbs need them).
 
 **`status:` is NOT a MatcherList** — it's a plain `int` on the `http`
 verb. One code per test. See Authoring Gotcha #2.
+
+### Live-container verb catalog: `cdp`, `wl`, `dbus`, `vnc`
+
+These four verbs wrap the corresponding `ov test <verb> <method>` CLI
+subcommands so every live-container operation (browser automation, Wayland
+input/screenshot, D-Bus calls, VNC framebuffer capture) is authorable as a
+declarative check. All four are **deploy-scope only** — they need a
+running container with port mappings; `ov image validate` rejects them in
+build scope, and `ov image test` skips them at runtime with a clear
+message.
+
+**Assertion semantics:** subprocess delegation — the runner executes
+`ov test <verb> <method> <image> <args…> [-i <instance>]` on the host,
+captures stdout/stderr/exit, and feeds the output through the existing
+matcher pipeline. Queries (status/list/eval/text/html/url/axtree/screenshot/…)
+produce assertable output. Side-effect actions (click/type/open/close/…) pass
+when they exit 0 — follow them with a query check to verify the effect.
+
+**No state chaining (Phase 1):** there's no framework-managed variable to
+carry a tab ID or window handle from one check to the next. Authors rely
+on conventions (new tabs are usually ID 1) and capture state manually via
+follow-up `cdp: list` checks if needed. Phase 2 (deferred) will add
+`capture:` + `${CAPTURED:name}` for stateful flows.
+
+#### Method allowlist — `cdp` (15 methods + 6 SPA-nested)
+
+Queries: `status`, `list`, `url`, `text`, `html`, `eval`, `axtree`,
+`coords`, `raw`, `wait`, `screenshot`.
+Actions: `open`, `close`, `click`, `type`.
+SPA-nested (selkies coordinate-scaling / passthrough input):
+`spa-status`, `spa-click`, `spa-type`, `spa-key`, `spa-key-combo`,
+`spa-mouse`.
+
+```yaml
+- id: cdp-up
+  cdp: status
+  stdout:
+    equals: ok
+
+- id: cdp-page-title
+  cdp: eval
+  tab: "1"
+  expression: "document.title"
+  stdout: "Dashboard"
+
+- id: cdp-screenshot-valid
+  cdp: screenshot
+  tab: "1"
+  artifact: /tmp/cdp.png
+  artifact_min_bytes: 10000       # PNG must be non-empty
+```
+
+#### Method allowlist — `wl` (22 top-level + 4 overlay + 12 sway)
+
+Queries: `screenshot`, `status`, `toplevel`, `windows`, `geometry`,
+`xprop`, `atspi`, `clipboard`.
+Actions: `click`, `double-click`, `mouse`, `scroll`, `drag`, `type`,
+`key`, `key-combo`, `focus`, `close`, `fullscreen`, `minimize`, `exec`,
+`resolution`.
+Overlay-nested: `overlay-list`, `overlay-status`, `overlay-show`,
+`overlay-hide`.
+Sway-nested: `sway-tree`, `sway-workspaces`, `sway-outputs`, `sway-msg`,
+`sway-focus`, `sway-move`, `sway-resize`, `sway-kill`, `sway-floating`,
+`sway-layout`, `sway-workspace`, `sway-reload`.
+
+```yaml
+- id: wl-desktop-captured
+  wl: screenshot
+  artifact: /tmp/wl.png
+  artifact_min_bytes: 10000
+
+- id: wl-has-windows
+  wl: toplevel
+  stdout:
+    matches: "."        # at least one line of output
+
+- id: wl-sway-has-workspace-1
+  wl: sway-workspaces
+  stdout:
+    contains: '"name":"1"'
+```
+
+#### Method allowlist — `dbus` (4 methods)
+
+Queries: `list`, `call`, `introspect`.
+Actions: `notify`.
+
+```yaml
+- id: dbus-notifications-registered
+  dbus: list
+  stdout:
+    contains: "org.freedesktop.Notifications"
+
+- id: dbus-get-capabilities
+  dbus: call
+  dest: org.freedesktop.Notifications
+  path: /org/freedesktop/Notifications
+  method: org.freedesktop.Notifications.GetCapabilities
+  args: []
+  stdout:
+    contains: body
+```
+
+#### Method allowlist — `vnc` (8 methods)
+
+Queries: `status`, `screenshot`, `rfb`.
+Actions: `click`, `mouse`, `type`, `key`, `passwd`.
+
+```yaml
+- id: vnc-up
+  vnc: status
+  stdout:
+    equals: ok
+
+- id: vnc-framebuffer-captured
+  vnc: screenshot
+  artifact: /tmp/vnc.png
+  artifact_min_bytes: 5000
+```
+
+#### New modifier: `artifact_min_bytes`
+
+For screenshot-producing methods (`cdp: screenshot`, `wl: screenshot`,
+`vnc: screenshot`), set `artifact: <path>` to tell `ov` where to write
+the image AND `artifact_min_bytes: <N>` to assert the file is at least N
+bytes after the run. Guards against the common failure mode of "the
+screenshot ran but produced a zero-byte file because the compositor
+wasn't ready yet."
+
+#### Gotcha — stale container-baked `ov` binary
+
+The `dbus:` verb invokes the container's `ov` binary via delegation. If
+the container image was built before the `ov cdp|wl|dbus|vnc` → `ov test
+<verb>` move, its in-container `ov` expects the old paths and the
+delegation fails. Rebuild and redeploy any image that bakes `ov` (grep
+`image.yml` for `- ov$`). The test runner itself is unaffected; this only
+bites the host→container delegation paths in the `dbus` verb.
 
 ## Authoring Gotchas (learned the hard way)
 
@@ -419,7 +594,7 @@ Reference numbers from the last end-to-end session:
 | `hermes` | 50 | 50 | 0 | 0 |
 | `immich-ml` | 63 | 61 | 0 | 2 (redis port internal) |
 | `selkies-desktop` | 91 | 91 | 0 | 0 |
-| `sway-browser-vnc` | 85 | 84 | 0 | 1 (port 9224 not exposed here) |
+| `sway-browser-vnc` | 90 | 90 | 0 | 0 (includes 5 declarative cdp/wl/dbus/vnc checks since Apr 2026) |
 
 The "skipped" entries are intentional — they reference ports that
 aren't mapped in the containing image's `ports:` block. Skipping them
@@ -428,6 +603,7 @@ ports.
 
 ## Related skills
 
+- **Nested verbs under `ov test`** — `/ov:cdp`, `/ov:wl`, `/ov:dbus`, `/ov:vnc` are dispatched as `ov test cdp|wl|dbus|vnc`. See the Subcommands section above.
 - `/ov:layer` — layer authoring; `tests:` field is part of every `layer.yml`.
 - `/ov:image` — image-level `tests:` and `deploy_tests:` at composition time.
 - `/ov:deploy` — local `deploy.yml` overlay rules and the `tests:` merge.

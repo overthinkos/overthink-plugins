@@ -156,9 +156,9 @@ To test real-time collaboration, deploy `sway-browser-vnc` alongside:
 ```bash
 ov start sway-browser-vnc
 # Open JupyterLab in two Chrome tabs via container DNS:
-ov cdp open sway-browser-vnc "http://ov-jupyter:8888/lab"
+ov test cdp open sway-browser-vnc "http://ov-jupyter:8888/lab"
 # Open second tab
-ov cdp open sway-browser-vnc "http://ov-jupyter:8888/lab"
+ov test cdp open sway-browser-vnc "http://ov-jupyter:8888/lab"
 ```
 
 **Executing cells via CDP:** Use `Input.dispatchKeyEvent` (not VNC keys — unreliable when Chrome lacks compositor focus):
@@ -166,9 +166,9 @@ ov cdp open sway-browser-vnc "http://ov-jupyter:8888/lab"
 ```bash
 TAB=<tab-id>
 # Focus cell, then Shift+Enter via CDP
-ov cdp eval sway-browser-vnc $TAB "document.querySelector('.jp-Cell-inputArea .cm-content')?.focus()"
-ov cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"rawKeyDown","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}'
-ov cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"keyUp","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}'
+ov test cdp eval sway-browser-vnc $TAB "document.querySelector('.jp-Cell-inputArea .cm-content')?.focus()"
+ov test cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"rawKeyDown","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}'
+ov test cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"keyUp","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}'
 ```
 
 ## Test Coverage

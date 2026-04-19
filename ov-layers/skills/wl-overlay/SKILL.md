@@ -52,9 +52,9 @@ my-desktop:
 ```
 
 ```bash
-ov wl overlay show my-image --type text --text "Hello" --name intro
-ov wl overlay list my-image
-ov wl overlay hide my-image --all
+ov test wl overlay show my-image --type text --text "Hello" --name intro
+ov test wl overlay list my-image
+ov test wl overlay hide my-image --all
 ```
 
 ## Used In

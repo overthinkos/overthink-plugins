@@ -113,16 +113,16 @@ sleep 5
 ov tmux capture $IMG -s oauth | grep -o 'https://auth.openai.com/[^ ]*'
 
 # 3. Open the OAuth URL in Chrome (visible in VNC)
-ov cdp open $IMG "<oauth-url>"
+ov test cdp open $IMG "<oauth-url>"
 
 # 4. Click "Continue with Google" (VNC-visible via --vnc)
-TAB=$(ov cdp list $IMG | grep -i "openai\|auth" | head -1 | awk '{print $1}')
-ov cdp wait $IMG $TAB 'button._buttonStyleFix_wvuha_65' --timeout 15s
-ov cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc
+TAB=$(ov test cdp list $IMG | grep -i "openai\|auth" | head -1 | awk '{print $1}')
+ov test cdp wait $IMG $TAB 'button._buttonStyleFix_wvuha_65' --timeout 15s
+ov test cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc
 sleep 5
 
 # 5. Click "Continue" on Codex consent page (VNC-visible)
-ov cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc
+ov test cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc
 
 # 6. Verify token exchange completed
 sleep 10
@@ -150,11 +150,11 @@ See `/ov:openclaw` for full gateway configuration reference.
 **MANDATORY:** Full Chrome profile setup with Google sign-in and sync enabled. Never skip steps or use "Chrome without an account". All interactions must be VNC-visible.
 
 **Required tools:**
-- `ov cdp click --vnc` — finds element via CDP (shadow DOM aware), clicks via VNC (visible)
-- `ov cdp coords` — shows element position in viewport and desktop coordinates
-- `ov vnc mouse` — moves cursor to verify position before clicking native UI
-- `ov vnc click` — clicks Chrome native UI elements (infobubbles, dialogs not in DOM)
-- `ov vnc screenshot` — verifies state after every action
+- `ov test cdp click --vnc` — finds element via CDP (shadow DOM aware), clicks via VNC (visible)
+- `ov test cdp coords` — shows element position in viewport and desktop coordinates
+- `ov test vnc mouse` — moves cursor to verify position before clicking native UI
+- `ov test vnc click` — clicks Chrome native UI elements (infobubbles, dialogs not in DOM)
+- `ov test vnc screenshot` — verifies state after every action
 
 **Critical shm_size:** The `shm_size: "1g"` in chrome layer.yml is essential. Without it, Chrome crashes with `ContextResult::kTransientFailure` on complex pages (Google sign-in, OpenAI auth). If Chrome crashes on page load, check: `ov shell $IMG -c 'df -h /dev/shm'` — must show 1.0G, not 63M. Fix: `ov remove $IMG && ov config $IMG && ov start $IMG` with updated `ov` binary.
 
@@ -167,53 +167,53 @@ IMG=openclaw-ollama-sway-browser
 # Wait 30s after container start for Chrome + VNC to stabilize
 
 # Step 1: Google sign-in via accounts.google.com (NOT chrome://intro)
-ov cdp open $IMG "https://accounts.google.com/signin"
+ov test cdp open $IMG "https://accounts.google.com/signin"
 sleep 5
-TAB=$(ov cdp list $IMG | grep -i "sign in\|accounts" | head -1 | awk '{print $1}')
+TAB=$(ov test cdp list $IMG | grep -i "sign in\|accounts" | head -1 | awk '{print $1}')
 
 # Step 2: Enter email (VNC-visible clicks)
-ov cdp click $IMG $TAB 'input[type="email"]' --vnc && sleep 1
-ov cdp type $IMG $TAB 'input[type="email"]' "$GMAIL_USER"
-ov cdp click $IMG $TAB '#identifierNext' --vnc && sleep 5
+ov test cdp click $IMG $TAB 'input[type="email"]' --vnc && sleep 1
+ov test cdp type $IMG $TAB 'input[type="email"]' "$GMAIL_USER"
+ov test cdp click $IMG $TAB '#identifierNext' --vnc && sleep 5
 
 # Step 3: Enter password
-ov cdp wait $IMG $TAB 'input[type="password"]' --timeout 15s
-ov cdp click $IMG $TAB 'input[type="password"]' --vnc && sleep 1
-ov cdp type $IMG $TAB 'input[type="password"]' "$GMAIL_PASSWORD"
-ov cdp click $IMG $TAB '#passwordNext' --vnc && sleep 7
+ov test cdp wait $IMG $TAB 'input[type="password"]' --timeout 15s
+ov test cdp click $IMG $TAB 'input[type="password"]' --vnc && sleep 1
+ov test cdp type $IMG $TAB 'input[type="password"]' "$GMAIL_PASSWORD"
+ov test cdp click $IMG $TAB '#passwordNext' --vnc && sleep 7
 
 # Step 4: Dismiss Chrome first-run dialogs (appear after Google sign-in)
 # 4a: Search engine choice (EU DMA) — select Google, click Set as default
 #     Uses shadow DOM: cr-radio-button elements, #actionButton
-SE_TAB=$(ov cdp list $IMG | grep "search-engine" | head -1 | awk '{print $1}')
-ov cdp click $IMG $SE_TAB 'cr-radio-button:nth-of-type(6)' --vnc   # Google (6th in randomized list — verify with eval)
+SE_TAB=$(ov test cdp list $IMG | grep "search-engine" | head -1 | awk '{print $1}')
+ov test cdp click $IMG $SE_TAB 'cr-radio-button:nth-of-type(6)' --vnc   # Google (6th in randomized list — verify with eval)
 sleep 1
-ov cdp click $IMG $SE_TAB '#actionButton' --vnc                      # "Set as default"
+ov test cdp click $IMG $SE_TAB '#actionButton' --vnc                      # "Set as default"
 sleep 2
 
 # 4b: "Make Chrome your own" — click "Continue as <user>" for browser sync
 #     This is a chrome:// DICE intercept tab with shadow DOM
-DICE_TAB=$(ov cdp list $IMG | grep "signin-dice" | head -1 | awk '{print $1}')
-ov cdp click $IMG $DICE_TAB '#accept-button' --vnc                   # "Continue as <user>"
+DICE_TAB=$(ov test cdp list $IMG | grep "signin-dice" | head -1 | awk '{print $1}')
+ov test cdp click $IMG $DICE_TAB '#accept-button' --vnc                   # "Continue as <user>"
 sleep 3
 
 # Step 5: Enable sync — "Turn on Sync" then "Yes, I'm in"
-ov cdp open $IMG "chrome://settings/syncSetup"
+ov test cdp open $IMG "chrome://settings/syncSetup"
 sleep 3
-SYNC_TAB=$(ov cdp list $IMG | grep "settings" | head -1 | awk '{print $1}')
-ov cdp click $IMG $SYNC_TAB '#sync-button' --vnc                     # "Turn on Sync"
+SYNC_TAB=$(ov test cdp list $IMG | grep "settings" | head -1 | awk '{print $1}')
+ov test cdp click $IMG $SYNC_TAB '#sync-button' --vnc                     # "Turn on Sync"
 sleep 2
-# "Yes, I'm in" is Chrome native UI — use ov vnc mouse to find, then ov vnc click
-ov vnc mouse $IMG 1130 565       # Verify cursor is on "Yes, I'm in"
-ov vnc screenshot $IMG /tmp/verify-yesin.png  # Check position
-ov vnc click $IMG 1130 565       # Click "Yes, I'm in"
+# "Yes, I'm in" is Chrome native UI — use ov test vnc mouse to find, then ov test vnc click
+ov test vnc mouse $IMG 1130 565       # Verify cursor is on "Yes, I'm in"
+ov test vnc screenshot $IMG /tmp/verify-yesin.png  # Check position
+ov test vnc click $IMG 1130 565       # Click "Yes, I'm in"
 sleep 3
 
 # Step 6: Dismiss "Restore pages?" if present (Chrome native UI)
-# Use ov vnc mouse to find X button, then click
-# The X is at approximately VNC (1880, 117) — verify with ov vnc mouse first
-ov vnc mouse $IMG 1880 117 && ov vnc screenshot $IMG /tmp/verify-restore-x.png
-ov vnc click $IMG 1880 117
+# Use ov test vnc mouse to find X button, then click
+# The X is at approximately VNC (1880, 117) — verify with ov test vnc mouse first
+ov test vnc mouse $IMG 1880 117 && ov test vnc screenshot $IMG /tmp/verify-restore-x.png
+ov test vnc click $IMG 1880 117
 
 # Step 7: Verify full sign-in and sync
 ov shell $IMG -c 'python3 << "PYEOF"
@@ -228,9 +228,9 @@ PYEOF'
 # Expected: gaia_id populated, signed_in: True, user_name: <email>
 ```
 
-**Coordinate discovery for Chrome native UI:** VNC coordinates from screenshots don't match pixel positions in the displayed image (the image viewer scales). Always use `ov vnc mouse <x> <y>` + `ov vnc screenshot` to verify the cursor position before clicking. For web page elements, `ov cdp click --vnc` handles coordinate translation automatically.
+**Coordinate discovery for Chrome native UI:** VNC coordinates from screenshots don't match pixel positions in the displayed image (the image viewer scales). Always use `ov test vnc mouse <x> <y>` + `ov test vnc screenshot` to verify the cursor position before clicking. For web page elements, `ov test cdp click --vnc` handles coordinate translation automatically.
 
-**Search engine list order:** The EU DMA search engine choice presents engines in randomized order. The `cr-radio-button:nth-of-type(6)` selector may not always be Google. Verify with: `ov cdp eval $IMG $TAB '...'` to find which nth-of-type index has "Google" in its text.
+**Search engine list order:** The EU DMA search engine choice presents engines in randomized order. The `cr-radio-button:nth-of-type(6)` selector may not always be Google. Verify with: `ov test cdp eval $IMG $TAB '...'` to find which nth-of-type index has "Google" in its text.
 
 **VNC startup delay:** VNC may show a blank screen for ~10-15s after container start while the DPMS workaround triggers wayvnc's capture pipeline. CDP screenshots work immediately. Wait for VNC to stabilize before relying on VNC screenshots for verification.
 

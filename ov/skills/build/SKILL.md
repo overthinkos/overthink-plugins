@@ -12,6 +12,8 @@ Invoked as `ov image build`. See `/ov:image` for the family overview.
 
 `ov image build` generates Containerfiles from `image.yml` and layer definitions, then builds images in dependency order using the configured build engine (Docker or Podman). Images at the same dependency level are built in parallel (up to `--jobs` concurrent builds).
 
+**Mode purity**: `ov image build` reads `image.yml` + `build.yml` + `layer.yml` only. `deploy.yml` is never read during build — this is enforced by `LoadConfig` in `ov/config.go`, which calls `LoadConfigRaw` (no `MergeDeployOverlay`) to guarantee OCI labels are baked strictly from authored configuration, never from local deploy-time overrides. See `/ov-dev:go` "Mode purity" for the architectural invariant this protects and the bug it prevents.
+
 ## Quick Reference
 
 | Action | Command | Description |

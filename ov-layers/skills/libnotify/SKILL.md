@@ -28,11 +28,11 @@ my-image:
 
 ## Purpose
 
-Provides `notify-send` as a convenience CLI for sending desktop notifications from shell scripts and manual use. The `ov dbus notify` command uses native Go D-Bus instead and does NOT depend on this layer.
+Provides `notify-send` as a convenience CLI for sending desktop notifications from shell scripts and manual use. The `ov test dbus notify` command uses native Go D-Bus instead and does NOT depend on this layer.
 
-### When to use `notify-send` vs `ov dbus notify`
+### When to use `notify-send` vs `ov test dbus notify`
 
-| | `notify-send` | `ov dbus notify` |
+| | `notify-send` | `ov test dbus notify` |
 |---|--------------|-----------------|
 | Requires | `libnotify` layer | `ov` layer (or `gdbus` fallback) |
 | Implementation | Shell command, libnotify C library | Native Go `godbus/dbus/v5` |
@@ -42,11 +42,11 @@ Provides `notify-send` as a convenience CLI for sending desktop notifications fr
 
 - `/ov-layers:dbus` -- D-Bus session bus (required dependency)
 - `/ov-layers:swaync` -- notification daemon to display the notifications
-- `/ov-layers:ov` -- alternative: native D-Bus via `ov dbus notify`
+- `/ov-layers:ov` -- alternative: native D-Bus via `ov test dbus notify`
 
 ## Used In Images
 
-Not used in any current image definition. Optional notification CLI -- prefer `ov dbus notify` which uses native Go D-Bus.
+Not used in any current image definition. Optional notification CLI -- prefer `ov test dbus notify` which uses native Go D-Bus.
 
 ## When to Use This Skill
 

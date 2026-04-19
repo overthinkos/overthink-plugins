@@ -66,6 +66,8 @@ The JSON output includes:
 
 All `--format` values are the JSON field names from the `inspect` output. When passing `--format` to select a map (like `builder`) or list, the CLI prints one entry per line.
 
+**Caveat — `--format bind_mounts`**: this one format option reads `deploy.yml` (not `image.yml`), because bind-mount backings are a deploy-time concept (`ov config --bind <volume>` writes them to `deploy.yml`). The output is display-only — no OCI label contamination, no build-mode state leak. All other `--format` values (`ports`, `volumes`, `layers`, `base`, `builder`, …) are strictly `image.yml`-derived per the mode-purity invariant (see `/ov:build` and `/ov-dev:go` "Mode purity").
+
 ## Cross-References
 
 ### `ov image` family siblings

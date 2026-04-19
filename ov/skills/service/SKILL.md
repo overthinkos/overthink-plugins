@@ -258,7 +258,7 @@ For running containers, `ov status` probes all tools concurrently:
 | dbus | `pgrep -x dbus-daemon` | D-Bus session bus + notification daemon (swaync/mako/dunst) |
 | ov | `which ov` + `ov version` | In-container ov binary + CalVer version |
 
-Each tool also has its own `status` subcommand: `ov cdp status`, `ov vnc status`, `ov wl sway status`, `ov wl status`.
+Each tool also has its own `status` subcommand: `ov test cdp status`, `ov test vnc status`, `ov test wl sway status`, `ov test wl status`.
 
 **Note:** `supervisorctl status` exits with code 3 when any service isn't RUNNING (e.g., FATAL, STOPPED). The probe correctly handles this — it parses the output regardless of exit code, only reporting `unreachable` when supervisord is truly not responding.
 
@@ -294,10 +294,10 @@ Source: `ov/status.go`.
 - `/ov:deploy` -- Quadlet generation details, tunnels, volume backing
 - `/ov:enc` -- Encrypted storage (mounted inline by ov start)
 - `/ov:config` -- `run_mode`, `auto_enable`, `engine.run` settings
-- `/ov:cdp` -- CDP status subcommand (`ov cdp status`)
-- `/ov:vnc` -- VNC status subcommand (`ov vnc status`)
-- `/ov:wl` -- Desktop automation + sway subgroup (`ov wl sway status`)
-- `/ov:wl` -- WL status subcommand (`ov wl status`)
+- `/ov:cdp` -- CDP status subcommand (`ov test cdp status`)
+- `/ov:vnc` -- VNC status subcommand (`ov test vnc status`)
+- `/ov:wl` -- Desktop automation + sway subgroup (`ov test wl sway status`)
+- `/ov:wl` -- WL status subcommand (`ov test wl status`)
 
 ## When to Use This Skill
 

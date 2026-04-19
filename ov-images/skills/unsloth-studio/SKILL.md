@@ -66,7 +66,11 @@ ov start unsloth-studio
 - `/ov-layers:llama-cpp` — llama.cpp binaries (Tier 1 sub-layer)
 - `/ov-layers:unsloth` — vLLM 0.19 + unsloth fine-tuning + torch.compile patch (Tier 1 sub-layer)
 - `/ov-layers:notebook-finetuning` — 37 Unsloth fine-tuning notebooks provisioned into workspace volume
-- `/ov-layers:cuda` — GPU support (via nvidia base)
+- `/ov-layers:nvidia` — GPU runtime and CDI device auto-detection (base)
+- `/ov-layers:cuda` — CUDA toolkit and libraries (via nvidia base)
+- `/ov-layers:dbus` — session bus for desktop notifications
+- `/ov-layers:ov` — in-container `ov` binary (enables `ov test dbus notify`)
+- `/ov-layers:agent-forwarding` — SSH/GPG/direnv agent forwarding
 
 ## Related Images
 

@@ -62,13 +62,18 @@ Not yet tested. The `fedora-nonfree` variant works with CPU encoding. This varia
 
 ## Key Layers
 - `/ov-layers:selkies-desktop` — full Selkies streaming desktop metalayer
+- `/ov-layers:nvidia` — GPU runtime and CDI device auto-detection (base)
+- `/ov-layers:cuda` — CUDA toolkit and libraries (via nvidia base)
 - `/ov-layers:dbus` — session bus for desktop services
-- `/ov-layers:ov` — in-container ov binary
+- `/ov-layers:ov` — in-container `ov` binary (enables `ov test dbus notify`)
+- `/ov-layers:agent-forwarding` — SSH/GPG/direnv agent forwarding
 
 ## Related Images
 - `/ov-images:selkies-desktop` — CPU-encoding sibling on fedora-nonfree
 - `/ov-images:nvidia` — parent base image with CUDA toolkit
 
 ## Related Commands
+- `/ov:test` — parent router for live-container verbs (`ov test cdp|wl|dbus|vnc`)
 - `/ov:cdp` — drive Chrome inside the streaming desktop
 - `/ov:wl` — interact with the labwc Wayland session
+- `/ov:dbus` — D-Bus notifications via in-container `ov` binary

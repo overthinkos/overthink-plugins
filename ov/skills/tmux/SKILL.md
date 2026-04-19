@@ -172,11 +172,11 @@ ov tmux run $IMG -s oauth \
 ov tmux capture $IMG -s oauth | grep -o 'https://auth.openai.com/[^ ]*'
 
 # 3. Open URL in Chrome, complete OAuth via CDP
-ov cdp open $IMG "<oauth-url>"
-TAB=$(ov cdp list $IMG | grep -i "openai" | head -1 | awk '{print $1}')
-ov cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc   # Continue with Google
+ov test cdp open $IMG "<oauth-url>"
+TAB=$(ov test cdp list $IMG | grep -i "openai" | head -1 | awk '{print $1}')
+ov test cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc   # Continue with Google
 sleep 5
-ov cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc          # Continue (consent)
+ov test cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc          # Continue (consent)
 
 # 4. Verify token exchange completed
 sleep 10

@@ -51,7 +51,7 @@ ov image build selkies-desktop
 ov config selkies-desktop
 ov start selkies-desktop
 # Access: https://localhost:3000 (accept cert warning)
-ov wl screenshot selkies-desktop screenshot.png
+ov test wl screenshot selkies-desktop screenshot.png
 ```
 
 ## Keyboard Configuration
@@ -106,11 +106,11 @@ All level 0/1 characters (ö, ä, ü, ß, =, ?) and AltGr characters (@, €, \\
 
 ## Screenshots and Recording
 
-The capture bridge provides `ov wl screenshot` and `ov record` support:
+The capture bridge provides `ov test wl screenshot` and `ov record` support:
 
 ```bash
 # Screenshot (works with or without browser connected)
-ov wl screenshot selkies-desktop screenshot.png
+ov test wl screenshot selkies-desktop screenshot.png
 
 # Check bridge status
 ov shell selkies-desktop -c "pixelflux-screenshot --status"
@@ -144,36 +144,36 @@ The SPA renders the remote desktop on a `<canvas id="videoCanvas">` with an invi
 
 The SPA maps mouse events from the canvas viewport to the remote desktop with a scaling factor. When the canvas is 1908x950 and the remote desktop runs at a different resolution, there is an empirical **~0.824x / 0.836y** ratio between input coordinates and where the remote cursor lands.
 
-Use `ov cdp spa click` with `--scale` for automatic correction:
+Use `ov test cdp spa click` with `--scale` for automatic correction:
 
 ```bash
 # Click at canvas position (990, 375) with scale correction
-ov cdp spa click <client> $TAB 990 375 --scale 0.824,0.836
+ov test cdp spa click <client> $TAB 990 375 --scale 0.824,0.836
 ```
 
 ### Keyboard Passthrough
 
-**Recommended:** Use `ov cdp spa` commands for keyboard interaction — they bypass the local compositor and Chrome shortcut handlers:
+**Recommended:** Use `ov test cdp spa` commands for keyboard interaction — they bypass the local compositor and Chrome shortcut handlers:
 
 ```bash
 # Type text (no double-char issue, bypasses local shortcuts)
-ov cdp spa type <client> $TAB "hello world"
+ov test cdp spa type <client> $TAB "hello world"
 
 # Send modifier combos that reach the REMOTE desktop:
-ov cdp spa key-combo <client> $TAB super+e    # Open foot terminal in labwc
-ov cdp spa key-combo <client> $TAB ctrl+t     # New tab in remote Chrome
-ov cdp spa key-combo <client> $TAB alt+f4     # Close window in labwc
+ov test cdp spa key-combo <client> $TAB super+e    # Open foot terminal in labwc
+ov test cdp spa key-combo <client> $TAB ctrl+t     # New tab in remote Chrome
+ov test cdp spa key-combo <client> $TAB alt+f4     # Close window in labwc
 
 # Send special keys
-ov cdp spa key <client> $TAB return
-ov cdp spa key <client> $TAB escape
+ov test cdp spa key <client> $TAB return
+ov test cdp spa key <client> $TAB escape
 ```
 
 **Alternative methods** (limited — local compositor/Chrome may intercept keys):
 
 ```bash
-ov vnc type <client> "text"     # VNC keysym events (Super key intercepted by local compositor)
-ov wl type <client> "text"      # wtype via Wayland (same limitation)
+ov test vnc type <client> "text"     # VNC keysym events (Super key intercepted by local compositor)
+ov test wl type <client> "text"      # wtype via Wayland (same limitation)
 ```
 
 The SPA's `onkeydown` handler on `#overlayInput` intercepts events with `stopImmediatePropagation()`, converts to keysyms, and sends via WebSocket to the remote labwc compositor.
@@ -293,7 +293,7 @@ ov config hermes --update-all
 ov start selkies-desktop -i 45.39.130.21
 
 # Verify proxy IP
-ov cdp open selkies-desktop -i 45.39.130.21 "https://httpbin.org/ip"
+ov test cdp open selkies-desktop -i 45.39.130.21 "https://httpbin.org/ip"
 ```
 
 **Tailscale access (no sidecar needed):** The deploy.yml `tunnel: tailscale` config generates `tailscale serve` commands for host-mapped ports. All instances are accessible via the host's Tailscale IP on their respective ports (`https://<host>:3001`, etc.). Use sidecars only when per-instance exit node routing is needed.
@@ -322,8 +322,8 @@ diagnostic recipe that found the leak.
 ```bash
 ov status selkies-desktop              # All services RUNNING
 curl -k https://localhost:3000         # HTTPS 200, Selkies dashboard HTML
-ov wl screenshot selkies-desktop t.png # Screenshot via capture bridge
-ov cdp status selkies-desktop          # CDP available on port 9222
+ov test wl screenshot selkies-desktop t.png # Screenshot via capture bridge
+ov test cdp status selkies-desktop          # CDP available on port 9222
 ```
 
 ## Test Coverage

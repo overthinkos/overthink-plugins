@@ -24,21 +24,21 @@ rpm:
 ## Usage
 
 ```bash
-ov wl exec <image> xterm           # Launch xterm (triggers XWayland)
-ov wl focus <image> xterm          # Focus by app_id
-ov wl xprop <image> xterm          # Query X11 properties
-ov wl geometry <image> xterm       # Get window position/size
-ov wl close <image> xterm          # Close window
+ov test wl exec <image> xterm           # Launch xterm (triggers XWayland)
+ov test wl focus <image> xterm          # Focus by app_id
+ov test wl xprop <image> xterm          # Query X11 properties
+ov test wl geometry <image> xterm       # Get window position/size
+ov test wl close <image> xterm          # Close window
 ```
 
-**Important:** The `ov wl exec` command sets `DISPLAY=:0` automatically for X11 apps.
+**Important:** The `ov test wl exec` command sets `DISPLAY=:0` automatically for X11 apps.
 
 ## Why It's in selkies-desktop
 
 labwc has XWayland compiled in (`+xwayland`) but starts it on-demand only when an X11 client opens. Without an X11 app like xterm:
 - XWayland never starts
 - xdotool, xprop, xwininfo find no windows
-- `ov wl scroll` (xdotool click 4/5) and `ov wl drag` (xdotool mousedown/mouseup) can't target X11 windows
+- `ov test wl scroll` (xdotool click 4/5) and `ov test wl drag` (xdotool mousedown/mouseup) can't target X11 windows
 
 With xterm installed, users can launch it to enable full XWayland testing.
 
@@ -53,5 +53,5 @@ With xterm installed, users can launch it to enable full XWayland testing.
 
 ## Cross-References
 
-- `/ov:wl` — `ov wl exec`, `ov wl focus`, `ov wl close`, `ov wl xprop`, `ov wl geometry`
+- `/ov:wl` — `ov test wl exec`, `ov test wl focus`, `ov test wl close`, `ov test wl xprop`, `ov test wl geometry`
 - `/ov-layers:selkies-desktop` — Desktop metalayer that includes this layer

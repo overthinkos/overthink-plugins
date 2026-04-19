@@ -61,14 +61,14 @@ Works with any wlroots compositor via `wlr-layer-shell` protocol:
 ## Testing Notifications
 
 ```bash
-# Preferred: use ov dbus notify (native Go D-Bus, no shell quoting issues)
-ov dbus notify <image> "Title" "Body text"
+# Preferred: use ov test dbus notify (native Go D-Bus, no shell quoting issues)
+ov test dbus notify <image> "Title" "Body text"
 
 # Alternative: use ov cmd with notification (triggers on completion)
 ov cmd <image> "sleep 2 && echo done"
 
 # Check if swaync is receiving notifications
-ov dbus list <image> | grep Notifications
+ov test dbus list <image> | grep Notifications
 
 # Low-level: notify-send (requires libnotify layer)
 ov cmd <image> "notify-send 'Title' 'Body text'" --no-notify
@@ -96,7 +96,7 @@ ov cmd <image> "swaync-client -d"    # toggle DnD
 ## Related Layers
 
 - `/ov-layers:dbus` -- D-Bus session bus dependency
-- `/ov-layers:libnotify` -- `notify-send` CLI (optional; `ov dbus notify` uses native Go D-Bus instead)
+- `/ov-layers:libnotify` -- `notify-send` CLI (optional; `ov test dbus notify` uses native Go D-Bus instead)
 - `/ov-layers:waybar` -- notification bell module
 - `/ov-layers:waybar-labwc` -- same notification bell module
 - `/ov-layers:desktop-fonts` -- Nerd Font icons for notification bell

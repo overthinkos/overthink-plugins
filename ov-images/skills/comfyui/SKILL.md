@@ -15,7 +15,7 @@ GPU-accelerated ComfyUI image generation server with node-based workflow UI.
 | Property | Value |
 |----------|-------|
 | Base | nvidia |
-| Layers | agent-forwarding, comfyui |
+| Layers | agent-forwarding, comfyui, dbus, ov |
 | Platforms | linux/amd64 |
 | Ports | 8188 |
 | Registry | ghcr.io/overthinkos |
@@ -44,7 +44,11 @@ ov start comfyui
 ## Key Layers
 
 - `/ov-layers:comfyui` — ComfyUI installation, supervisord service, volume
-- `/ov-layers:cuda` — GPU support (via nvidia base)
+- `/ov-layers:nvidia` — GPU runtime and CDI device auto-detection (base)
+- `/ov-layers:cuda` — CUDA toolkit and libraries (via nvidia base)
+- `/ov-layers:dbus` — session bus for desktop notifications
+- `/ov-layers:ov` — in-container `ov` binary (enables `ov test dbus notify`)
+- `/ov-layers:agent-forwarding` — SSH/GPG/direnv agent forwarding
 
 ## Related Images
 

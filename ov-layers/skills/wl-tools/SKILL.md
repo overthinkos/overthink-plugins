@@ -2,7 +2,7 @@
 
 ## Overview
 
-Provides CLI tools for desktop automation — Wayland-native, X11, and clipboard. Used by the `ov wl` command. Works on all wlroots compositors (sway, labwc, niri). No daemon or special device access needed.
+Provides CLI tools for desktop automation — Wayland-native, X11, and clipboard. Used by the `ov test wl` command. Works on all wlroots compositors (sway, labwc, niri). No daemon or special device access needed.
 
 **Note:** Screenshots are NOT included in this layer. Use `wl-screenshot-grim` (sway) or `wl-screenshot-pixelflux` (selkies) depending on your compositor.
 

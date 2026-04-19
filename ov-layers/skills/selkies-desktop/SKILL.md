@@ -48,11 +48,11 @@ A browser-accessible desktop at `http://localhost:3000` with:
 - **pcmflux** audio capture → Opus encoding at 320kbps
 - **PipeWire** audio server with PulseAudio compatibility
 - **NGINX** web frontend on port 3000
-- **Full `ov wl` automation:** 22 subcommands all working — screenshots (pixelflux), input (wtype, wlrctl), window management (wlrctl toplevel), clipboard (wl-copy/paste), resolution (wlr-randr), accessibility (AT-SPI2), XWayland tools (xdotool, xprop)
-- **`ov cdp click --wl`:** CSS selector → Wayland pointer click (no VNC needed)
-- **`ov cdp axtree`:** Chrome accessibility tree via CDP
+- **Full `ov test wl` automation:** 22 subcommands all working — screenshots (pixelflux), input (wtype, wlrctl), window management (wlrctl toplevel), clipboard (wl-copy/paste), resolution (wlr-randr), accessibility (AT-SPI2), XWayland tools (xdotool, xprop)
+- **`ov test cdp click --wl`:** CSS selector → Wayland pointer click (no VNC needed)
+- **`ov test cdp axtree`:** Chrome accessibility tree via CDP
 - **Desktop video recording** via `ov record start --mode desktop` (capture bridge → H.264 → ffmpeg MP4, with optional audio)
-- **Fullscreen overlays** via `ov wl overlay` (title cards, lower-thirds, countdowns, highlights, fades — rendered by compositor with true alpha transparency, no post-production needed)
+- **Fullscreen overlays** via `ov test wl overlay` (title cards, lower-thirds, countdowns, highlights, fades — rendered by compositor with true alpha transparency, no post-production needed)
 - **Configurable keyboard layout** via `XKB_DEFAULT_LAYOUT` — German (de), French (fr), Nordic (no), etc. AltGr characters (@, €, \\, ~) work via direct scancode injection. See `/ov-layers:labwc`
 
 ## What Works / What Doesn't
