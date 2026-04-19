@@ -565,6 +565,25 @@ The fix: drop into `user` explicitly when running as root, stay as-is otherwise.
 
 Worked example: `/ov-layers:sshd` ships exactly this pattern. Alternative: make the check `scope: deploy` so it runs against a live container where you control the user-switch externally.
 
+### 12. **`ov image test <short-name>` is ambiguous with multiple CalVer tags** — use the full registry ref
+
+`ov image test` resolves its positional argument against **local podman storage**, not `image.yml`. When the host has accumulated many CalVer tags for the same image (a normal consequence of iterative `ov image build` runs), the short form errors out:
+
+```
+ov: error: ambiguous short name "selkies-desktop-ov" in local storage;
+           candidates: ghcr.io/overthinkos/selkies-desktop-ov:latest,
+           ghcr.io/overthinkos/selkies-desktop-ov:2026.109.1418,
+           ... Re-run with a full ref.
+```
+
+Use the fully-qualified registry ref:
+
+```bash
+ov image test ghcr.io/overthinkos/selkies-desktop-ov:latest
+```
+
+This is different from `ov image inspect`, `ov image build`, and `ov test` (the live-service runner), which key off `image.yml` and accept short names unambiguously. Only the disposable-container runner has this restriction because it does not consult `image.yml` at all.
+
 ## Three levels, three sections
 
 | Section | Authored in | When it runs |

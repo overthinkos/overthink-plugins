@@ -236,6 +236,20 @@ guaranteed to work on every systemd version ov targets. For the runtime
 - Resource caps merge **smallest-wins** across layers (tightest cap = smallest
   blast radius). Image-level and deploy-level overrides replace entirely.
 
+## Port-conflict detection
+
+When a `-p HOST:CONTAINER` flag publishes onto a host port that another listener already holds, `ov config` emits a **soft warning** (does not abort) and suggests a remap:
+
+```
+Warning: port conflicts detected:
+  Port 13000 is in use
+    Fix: find and stop the process using port 13000
+    Or remap: ov start selkies-desktop-ov --port 13001:3000
+Wrote /home/atrawog/.config/containers/systemd/ov-<image>-<instance>.container
+```
+
+The quadlet is still written with the conflicting port, so `ov start` will fail at bind time unless you either free the port, re-run `ov config` with a remap, or edit `deploy.yml`. Detection uses a local `net.Listen` probe per published port at configure time. Handy for multi-instance deployments alongside a production fleet (e.g., running `/ov-images:selkies-desktop-ov` as a test instance while `/ov-images:selkies-desktop` holds the canonical 3000/9222/9224/2222 range).
+
 ## Deploy State
 
 All configuration is persisted to `~/.config/ov/deploy.yml`:

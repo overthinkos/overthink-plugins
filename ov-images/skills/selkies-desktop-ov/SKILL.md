@@ -154,19 +154,71 @@ invoking user (via `ov shell`'s `--userns=keep-id:uid=1000,gid=1000`).
 
 ## Empirical test results (2026-04-19)
 
-- `ov image test selkies-desktop-ov` — **91 passed · 0 failed · 0 skipped**
+- `ov image test ghcr.io/overthinkos/selkies-desktop-ov:latest` — **91 passed · 0 failed · 0 skipped**.
+- `ov test selkies-desktop-ov -i test` (live service, port-remapped) — **118 passed · 0 failed · 0 skipped** (adds deploy-scope verification: nested podman alpine, libvirt session list, KVM domcaps, in-container `ov version` / `ov doctor`).
 - `ov image inspect selkies-desktop-ov` — resolved `security` label matches
   the table above (cap_add empty, security_opt: `[unmask=/proc/*]`,
   devices: `[/dev/fuse, /dev/net/tun]`).
-- Nested smoke: `podman run --rm quay.io/libpod/alpine:latest true`
-  succeeds with no CLI overrides.
-- VM smoke: `virsh -c qemu:///session domcapabilities` reports
-  `<domain>kvm</domain>`.
+
+### Two-level nested-virtualization proof (end-to-end `ov vm` run-through)
+
+Verified on 2026-04-19: the full `ov vm build/create/ssh/stop/destroy` lifecycle completes inside the rootless pod, **two levels of KVM nesting deep**:
+
+1. Host (rootless podman, uid 1000) runs `ov-selkies-desktop-ov-test`.
+2. Inside that container, `ov vm build selkies-desktop-bootc --transport containers-storage` auto-falls back to `engine.rootful=machine` (no host `sudo` in reach), which spawns a **podman-machine VM (nested VM #1)** via KVM passthrough, mounts `/home/user`, and runs `bootc install to-disk`.
+3. `ov vm create selkies-desktop-bootc -i smoke --ram 2G --cpus 2 --ssh-key generate` then boots the produced qcow2 as a QEMU user-net VM (**nested VM #2**).
+4. `ov vm ssh selkies-desktop-bootc -i smoke -- uname -a` returns `Linux fedora 6.19.12-200.fc43.x86_64` from the guest; `/etc/os-release` reports Fedora Linux 43, rootfs is composefs-on-overlay with `/dev/vda3` ext4.
+5. `ov vm destroy --disk` cleans up fully.
+
+No `--privileged`, no `cap_add`, no seccomp relaxations beyond the baked `[unmask=/proc/*]`. Only `/dev/kvm` passthrough.
+
+### Cross-storage loading for private bootc images
+
+The podman-machine spawned by step 2 above has its **own rootful storage**, separate from the outer container's nested rootless storage. Pulling a private bootc image from the registry (403 Forbidden without creds) can be sidestepped by loading the image via the host:
+
+```bash
+# on host
+podman save -o /tmp/bootc.tar ghcr.io/overthinkos/selkies-desktop-bootc:latest
+podman cp /tmp/bootc.tar ov-selkies-desktop-ov-test:/tmp/bootc.tar
+
+# inside the pod
+podman load -i /tmp/bootc.tar                              # into nested rootless store
+podman save -o /tmp/bootc.tar ghcr.io/overthinkos/selkies-desktop-bootc:latest
+podman --connection ov-root load -i /tmp/bootc.tar         # into podman-machine rootful store
+ov vm build selkies-desktop-bootc --transport containers-storage
+```
 
 Full RCA of the path from `--privileged` to the surgical
 `unmask=/proc/*` fix lives in `/ov-layers:container-nesting`. The plan
 file that drove this implementation documents every test variation
 against `quay.io/podman/stable` for comparison.
+
+### Full supervisord program roster on `ov-selkies-desktop-ov-test`
+
+All 15 programs RUNNING under uid 1000 on a healthy container (2026-04-19):
+
+```
+cdp-proxy            chrome               chrome-crash
+chrome-devtools-mcp  dbus                 labwc
+pipewire             selkies              selkies-fileserver
+sshd                 swaync               traefik
+virtnetworkd (pid 7, priority 6)    virtqemud (pid 6, priority 5)
+waybar
+```
+
+Check anytime with `ov cmd selkies-desktop-ov -i <instance> 'supervisorctl status'`.
+
+### Using `ov` from inside the pod
+
+The `ov` layer bakes **only the binary**, not `image.yml` / `build.yml` / `layers/` / `plugins/`. These commands work standalone inside the container:
+
+- `ov version`, `ov doctor`, `ov settings list`, `ov alias list`, `ov secrets list`, `ov vm list`, `ov udev list`.
+
+These need the repo mounted or `podman cp`'d in:
+
+- `ov image validate / list / inspect / build / merge / generate / pull / test`, `ov vm build` (reads `image.yml` for the bootc ref).
+
+Quick import: `podman cp image.yml <container>:/home/user/image.yml && podman cp build.yml <container>:/home/user/ && podman cp layers <container>:/home/user/ && podman cp plugins <container>:/home/user/` — then `cd /home/user && ov image build <target>`.
 
 ## Docker Hub rate-limit note
 

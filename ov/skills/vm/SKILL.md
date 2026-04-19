@@ -208,6 +208,30 @@ sudo podman load -i /tmp/img.tar && rm -f /tmp/img.tar
 
 Symptom without refresh: `Trying to pull ... 403 Forbidden` (bootc falls back to registry).
 
+### `engine.rootful=machine` path (rootless containers, `/ov-images:selkies-desktop-ov`)
+
+When `ov vm build` is invoked from inside a rootless container (no host `sudo` available), the engine auto-picks `engine.rootful=machine`. That **spawns a podman-machine VM** (nested VM #1, KVM-accelerated via `/dev/kvm` passthrough), mounts the calling user's home into the machine, and runs `bootc install to-disk --via-loopback` inside it. The machine has its **own rootful storage** (`podman --connection ov-root`), separate from the calling container's nested rootless store — so the image ref passed to `ov vm build` must be resolvable from the machine's storage, not just the calling container's.
+
+Symptom: `Trying to pull ghcr.io/.../<image>:latest ... 403 Forbidden` **inside** the `podman --connection ov-root` step, even after the image is loaded in the calling container's nested rootless store.
+
+Cross-storage load pattern (run inside the calling container):
+
+```bash
+# Assume the image is already in the calling container's nested rootless store
+# (via `podman load -i` of a host-side `podman save` tarball).
+
+podman save -o /tmp/bootc.tar ghcr.io/<registry>/<image>:latest
+podman --connection ov-root load -i /tmp/bootc.tar
+rm /tmp/bootc.tar
+ov vm build <image> --transport containers-storage
+```
+
+`--transport containers-storage` forces `bootc install` to pull from the machine's local store instead of the registry. Worked example + two-level nesting end-to-end run lives in `/ov-images:selkies-desktop-ov` ("Two-level nested-virtualization proof").
+
+### `ov vm stop` state-sync race under the QEMU backend
+
+Observed 2026-04-19 on `selkies-desktop-bootc` inside `selkies-desktop-ov`: `ov vm stop <image>` returns `Stopped VM ov-<image>` and exits 0, but a subsequent `ov vm list -a` still reports the VM as `running` until `ov vm destroy` is called — at which point list goes empty cleanly. The libvirt backend is unaffected; this is a QEMU-backend state-sync bug in `ov`. Workaround: proceed straight to `ov vm destroy` rather than treating the residual "running" as a stop failure. Tracked as a follow-up ov bug; no source change in this skill's scope.
+
 ### Host kernel/module-dir mismatch
 
 On rolling distros (Arch, Fedora) after a kernel upgrade, `/lib/modules/$(uname -r)` may be missing while `/lib/modules/<new-kernel>/` is present. `modprobe loop` fails with `Module loop not found in directory /lib/modules/$(uname -r)`, losetup cannot create a loop device, and the VM disk build hangs at `losetup: failed to set up loop device`. Resolution: **reboot**. Quick check:

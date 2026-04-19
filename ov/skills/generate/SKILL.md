@@ -21,7 +21,8 @@ The generator is **config-driven** — distro format templates, builder stage te
 |---|---|---|
 | Generate all | `ov image generate` | Generate Containerfiles for all enabled images |
 | With tag | `ov image generate --tag TAG` | Override the image tag |
-| Single image | `ov image generate <image>` | Generate for a specific image (not all flavours support this — see below) |
+
+`ov image generate` takes **no positional image argument** — it always writes the full `.build/` tree for every enabled image in `image.yml`. To inspect a single image's output, run `ov image generate` (fast — it reuses scratch-stage caches) and then `cat .build/<image>/Containerfile`. Filtering to one image happens implicitly via `ov image build <image>`, which invokes generate internally and then builds only the requested image + its dependencies.
 
 ```bash
 # Generate all Containerfiles
