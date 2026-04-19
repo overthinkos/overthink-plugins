@@ -189,7 +189,8 @@ See `/ov:test` for the framework and author-facing gotchas.
 - `/ov-layers:jupyter`, `/ov-layers:jupyter-mcp`, `/ov-layers:notebook-templates`
 - `/ov:test` — declarative testing framework
 - `/ov:config` — deploy setup
-- `/ov-images:jupyter-ml`, `/ov-images:jupyter-ml-notebook` — GPU variants
+- `/ov:mcp` — the image inherits 3 deploy-scope `mcp:` declarative checks from the `jupyter` layer (`ping`, `list-tools` asserting `insert_cell`/`execute_cell`, `call list_notebooks`). Run `ov test jupyter --filter mcp` to exercise them against a live deployment, or `ov test mcp list-tools jupyter` for ad-hoc inspection
+- `/ov-images:jupyter-ml`, `/ov-images:jupyter-ml-notebook` — GPU variants that inherit the same MCP test suite
 
 ## When to Use This Skill
 

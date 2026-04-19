@@ -195,6 +195,7 @@ OCI label (see `/ov:test` for the full schema):
 - `/ov-layers:hermes` -- MCP consumer (mcp_accepts)
 - `/ov-layers:supervisord` -- process manager dependency
 - `/ov-layers:python` -- Python runtime (transitive via supervisord)
+- `/ov:mcp` -- end-to-end testing of the layer's MCP endpoint (`ov test mcp ping`, `list-tools`, `call`); the layer ships 3 deploy-scope `mcp:` declarative checks against `list_notebooks`/`insert_cell`/`execute_cell`
 
 ## When to Use This Skill
 

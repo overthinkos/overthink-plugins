@@ -94,6 +94,7 @@ This layer is auto-included by the `chrome` base layer via `layers: [chrome-devt
 - `/ov-layers:hermes` — consumes via `mcp_accepts: chrome-devtools`
 - `/ov-layers:mcporter` — MCP server CLI (npm-based, similar npm install pattern)
 - `/ov:cdp` — direct Chrome DevTools Protocol commands (lower-level than MCP)
+- `/ov:mcp` — test-side client for this layer's MCP endpoint (`ov test mcp ping`, `list-tools`, etc.). The layer ships 2 deploy-scope `mcp:` declarative checks (`mcp-chrome-devtools-ping`, `mcp-chrome-devtools-list-tools` asserting `navigate_page` / `take_screenshot`). **Port-publishing gotcha**: when this layer is added to an image that already has a `deploy.yml` `ports:` override (e.g. `sway-browser-vnc`), port 9224 may not be published until the override is updated. `ov test mcp` surfaces this with the exact `ports: [9224:9224]` remediation message — see `/ov:mcp` for the full fix.
 
 ## When to Use This Skill
 

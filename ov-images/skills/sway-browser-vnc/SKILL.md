@@ -113,11 +113,12 @@ port 5900 reachable, Chrome CDP on port 9250→9222 with `/json/version`
 - `/ov-layers:sway-desktop-vnc`, `/ov-layers:sway`, `/ov-layers:wayvnc`,
   `/ov-layers:chrome-sway`, `/ov-layers:xdg-portal`, `/ov-layers:dbus`,
   `/ov-layers:ov`, `/ov-layers:agent-forwarding`
-- `/ov:test` — declarative testing framework (parent router for `ov test cdp|wl|dbus|vnc`)
+- `/ov:test` — declarative testing framework (parent router for `ov test cdp|wl|dbus|vnc|mcp`)
 - `/ov:vnc` — VNC automation on this image
 - `/ov:cdp` — Chrome automation (CDP on host port 9250)
 - `/ov:wl` — Wayland input/windows/clipboard (sway subgroup for compositor control)
 - `/ov:dbus` — D-Bus notifications via in-container `ov` binary
+- `/ov:mcp` — the image inherits 2 deploy-scope `mcp:` checks from the `chrome-devtools-mcp` layer (ping + list-tools asserting `navigate_page`/`take_screenshot`). `ov test sway-browser-vnc --filter mcp` runs them; note the **port-publishing gotcha** — if your `deploy.yml` has an explicit `ports:` override that predates `chrome-devtools-mcp`, port 9224 may not be published. See `/ov:mcp` for the fix.
 
 ## Related Images
 

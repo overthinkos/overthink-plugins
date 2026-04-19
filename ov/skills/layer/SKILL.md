@@ -590,6 +590,8 @@ mcp_accepts:
 
 **Pod-aware:** when provider and consumer share a container, URLs resolve to `localhost` (local wins over remote for same-named entries). **Naming is the service contract** — keep `name:` stable across layer/package/image renames.
 
+**Testing the endpoint:** once a layer is deployed, `ov test mcp ping <image>` verifies the server is alive, and `ov test mcp list-tools <image>` enumerates the tool catalog. Both are authorable as deploy-scope `mcp:` declarative checks inside the layer's `tests:` block. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/ov:mcp`.
+
 ---
 
 ## data

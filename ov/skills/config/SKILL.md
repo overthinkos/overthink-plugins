@@ -315,7 +315,7 @@ ov test cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
 
 ## Service Environment Injection
 
-When a configured image declares `env_provides` or `mcp_provides` in its layers (stored in OCI labels), `ov config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration.
+When a configured image declares `env_provides` or `mcp_provides` in its layers (stored in OCI labels), `ov config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `ov test mcp ping <image>` — see `/ov:mcp` for the full verb surface.
 
 ```yaml
 # deploy.yml after `ov config ollama && ov config jupyter`

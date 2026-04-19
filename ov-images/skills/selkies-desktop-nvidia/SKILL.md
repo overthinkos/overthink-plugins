@@ -73,7 +73,8 @@ Not yet tested. The `fedora-nonfree` variant works with CPU encoding. This varia
 - `/ov-images:nvidia` — parent base image with CUDA toolkit
 
 ## Related Commands
-- `/ov:test` — parent router for live-container verbs (`ov test cdp|wl|dbus|vnc`)
+- `/ov:test` — parent router for live-container verbs (`ov test cdp|wl|dbus|vnc|mcp`)
 - `/ov:cdp` — drive Chrome inside the streaming desktop
 - `/ov:wl` — interact with the labwc Wayland session
 - `/ov:dbus` — D-Bus notifications via in-container `ov` binary
+- `/ov:mcp` — inherits chrome-devtools-mcp's 2 deploy-scope `mcp:` checks; use `ov test mcp list-tools selkies-desktop-nvidia` to verify the MCP server is alive and exposing the full tool catalog.

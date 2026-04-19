@@ -546,6 +546,7 @@ images:
 - `/ov:update` -- Per-instance update pattern for rolling out layer fixes + podman tag rollback recipe
 - `/ov:build` -- Building images before deployment (+ the `--no-cache` intermediate scratch-stage caveat)
 - `/ov:config` -- Resource cap flags (`--memory-max/high/swap/cpus`), provides filtering, env_requires enforcement, NO_PROXY auto-enrichment, `--sidecar`, `-i` instance support, MCP name disambiguation
+- `/ov:mcp` -- verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`ov test mcp ping <image>`); note the **port-publishing gotcha** when a `ports:` override in deploy.yml predates a newly-added mcp-providing layer
 - `/ov:image` -- Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
 - `/ov:layer` — `env_provides`/`env_requires`/`env_accepts` field declarations, security resource caps, `service:` blocks
 - `/ov-layers:chrome` — Canonical resource caps consumer + crash-loop circuit breaker

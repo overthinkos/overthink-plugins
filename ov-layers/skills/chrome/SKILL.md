@@ -263,6 +263,7 @@ curl -s "http://localhost:9222/json/list"
 - `/ov:vnc` — VNC automation (used with `--vnc` flag on `ov test cdp click`)
 - `/ov:wl` — Wayland automation (used with `--wl` flag on `ov test cdp click`)
 - `/ov:config` — Proxy deployment, `normalizeNoProxy()` auto-conversion, `sep:"none"` env handling
+- `/ov:mcp` — the auto-included `chrome-devtools-mcp` sub-layer exposes 29 tools via Streamable HTTP on port 9224; probe with `ov test mcp list-tools <image>` or run the declarative 2-check suite via `ov test <image> --filter mcp`
 
 ## When to Use This Skill
 

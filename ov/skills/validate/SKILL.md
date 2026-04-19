@@ -179,7 +179,9 @@ ov image list layers                       # Verify layer exists
 - `/ov:layer` — **Canonical reference** for the task verb catalog, `vars:` substitution, YAML anchors, execution order. The validator rules above enforce what's documented there.
 - `/ov:generate` — What the generator emits from validated input (per-verb emitters, cache-mount inheritance, inline-content staging).
 - `/ov-dev:generate` — Internal architecture of the task emission pipeline.
-- `/ov:test` — `ov image validate` schema-checks every `tests:` entry: exactly-one-verb, attribute types, scope/variable consistency (build-scope can't reference runtime-only vars), `id:` uniqueness per section, matcher operator allowlist, unroutable-check rejection.
+- `/ov:test` — `ov image validate` schema-checks every `tests:` entry: exactly-one-verb, attribute types, scope/variable consistency (build-scope can't reference runtime-only vars), `id:` uniqueness per section, matcher operator allowlist, unroutable-check rejection. The five live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`) also get per-verb method-allowlist + required-modifier enforcement via `validateOvVerb` (deploy-scope-only; unknown methods rejected with the allowed set listed).
+- `/ov:mcp` — the standalone reference for the `mcp:` verb: required modifiers (`tool:` for `call`, `uri:` for `read`), the 7-method allowlist, and the URL-rewrite / port-publishing behavior that authors occasionally hit.
+- `/ov:cdp`, `/ov:wl`, `/ov:dbus`, `/ov:vnc` — per-verb references for the other four live-container verbs.
 
 ## When to Use This Skill
 

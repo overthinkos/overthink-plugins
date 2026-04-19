@@ -52,6 +52,7 @@ explicit subcommand names below take over when matched.
 | `ov test wl …` | `/ov:wl` | Wayland desktop input/windows/clipboard + sway IPC |
 | `ov test dbus …` | `/ov:dbus` | D-Bus calls, introspection, desktop notifications |
 | `ov test vnc …` | `/ov:vnc` | VNC framebuffer screenshot + click/key/type/passwd |
+| `ov test mcp …` | (this skill) | MCP client — ping/list-tools/list-resources/list-prompts/call/read/servers against any `mcp_provides` endpoint. Speaks `github.com/modelcontextprotocol/go-sdk` (Streamable HTTP by default, SSE when `transport: sse`). |
 
 These four verbs were previously top-level commands (`ov cdp`, `ov wl`,
 `ov dbus`, `ov vnc`). They moved under `ov test` because every one of them
@@ -60,9 +61,9 @@ declarative test runner composes when it executes checks. The old top-level
 forms were removed (no deprecation shim).
 
 **Reserved image names:** because subcommand names take priority when
-matched, an image literally named `cdp`, `wl`, `dbus`, or `vnc` cannot be
-run via `ov test <name>` — use the explicit `ov test run <name>` form or
-rename the image. No such images currently exist in `image.yml`.
+matched, an image literally named `cdp`, `wl`, `dbus`, `vnc`, or `mcp`
+cannot be run via `ov test <name>` — use the explicit `ov test run <name>`
+form or rename the image. No such images currently exist in `image.yml`.
 
 **Gotcha — stale container-baked `ov` binary:** `ov test dbus notify` and
 `ov test dbus call` delegate to the container's own `ov` binary (see
@@ -135,6 +136,7 @@ service layer.
 | `wl` | Method name (screenshot/status/click/type/key/key-combo/mouse/scroll/drag/clipboard/toplevel/windows/focus/close/geometry/xprop/atspi/exec/resolution + overlay-*/sway-*) + method-specific modifiers (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `ov test wl <method>` (including `sway` and `overlay` nested subgroups). See Live-container verb catalog below. |
 | `dbus` | Method name (list/call/introspect/notify) + method-specific modifiers (`dest`, `path`, `method`, `args`, `text`) + shared matchers | **Deploy-scope only.** Wraps `ov test dbus <method>`. |
 | `vnc` | Method name (status/screenshot/click/mouse/type/key/rfb/passwd) + method-specific modifiers (`x`, `y`, `text`, `key`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `ov test vnc <method>`. |
+| `mcp` | Method name (ping/servers/list-tools/list-resources/list-prompts/call/read) + method-specific modifiers (`tool`, `uri`, `input`, `mcp_name`) + shared matchers | **Deploy-scope only.** Speaks `github.com/modelcontextprotocol/go-sdk` to any `mcp_provides` endpoint. See "Method allowlist — mcp" below. |
 
 ### Shared modifiers
 
@@ -169,15 +171,15 @@ verbs need them).
 **`status:` is NOT a MatcherList** — it's a plain `int` on the `http`
 verb. One code per test. See Authoring Gotcha #2.
 
-### Live-container verb catalog: `cdp`, `wl`, `dbus`, `vnc`
+### Live-container verb catalog: `cdp`, `wl`, `dbus`, `vnc`, `mcp`
 
-These four verbs wrap the corresponding `ov test <verb> <method>` CLI
+These five verbs wrap the corresponding `ov test <verb> <method>` CLI
 subcommands so every live-container operation (browser automation, Wayland
-input/screenshot, D-Bus calls, VNC framebuffer capture) is authorable as a
-declarative check. All four are **deploy-scope only** — they need a
-running container with port mappings; `ov image validate` rejects them in
-build scope, and `ov image test` skips them at runtime with a clear
-message.
+input/screenshot, D-Bus calls, VNC framebuffer capture, MCP protocol
+probes) is authorable as a declarative check. All five are **deploy-scope
+only** — they need a running container with port mappings; `ov image
+validate` rejects them in build scope, and `ov image test` skips them at
+runtime with a clear message.
 
 **Assertion semantics:** subprocess delegation — the runner executes
 `ov test <verb> <method> <image> <args…> [-i <instance>]` on the host,
@@ -287,6 +289,71 @@ Actions: `click`, `mouse`, `type`, `key`, `passwd`.
   artifact: /tmp/vnc.png
   artifact_min_bytes: 5000
 ```
+
+#### Method allowlist — `mcp` (7 methods)
+
+Queries: `ping`, `servers`, `list-tools`, `list-resources`, `list-prompts`,
+`read`.
+Actions: `call`.
+
+The `mcp` verb speaks the Model Context Protocol to any server advertised
+via `mcp_provides`. URL resolution is automatic — the runner reads the
+image's `org.overthinkos.mcp_provides` OCI label, substitutes
+`{{.ContainerName}}`, runs the entries through `podAwareMCPProvides`, and
+then rewrites the host portion to `127.0.0.1:<published-host-port>` using
+the same port-mapping data that powers `${HOST_PORT:N}`. No URL argument
+is needed in YAML.
+
+Transport dispatch: `transport: http` (or empty) → Streamable HTTP;
+`transport: sse` → SSE. Anything else is rejected at dial time.
+
+Disambiguation: if an image declares multiple `mcp_provides` entries,
+add `mcp_name: <server>` on the check; otherwise the single entry
+auto-picks.
+
+```yaml
+- id: mcp-ping
+  scope: deploy
+  mcp: ping
+  timeout: 10s                # optional; default 30s
+
+- id: mcp-list-tools
+  scope: deploy
+  mcp: list-tools
+  stdout:
+    - contains: insert_cell   # plaintext "name\tdescription" per line
+    - contains: execute_cell
+
+- id: mcp-call-tool
+  scope: deploy
+  mcp: call
+  tool: list_notebooks        # required
+  input: "{}"                 # optional JSON arg blob
+  exit_status: 0              # assert no IsError
+
+- id: mcp-read-resource
+  scope: deploy
+  mcp: read
+  uri: file:///tmp/example.txt
+  stdout:
+    - matches: "."            # non-empty body
+```
+
+Ad-hoc CLI equivalents (each leaf also supports `--json` for programmatic
+use and `--name <server>` for multi-server images):
+
+```bash
+ov test mcp ping       <image> [-i <instance>] [--name <server>]
+ov test mcp servers    <image> [-i <instance>]
+ov test mcp list-tools <image> [-i <instance>] [--name <server>]
+ov test mcp call       <image> <tool> '<json-args>' [-i <instance>]
+ov test mcp read       <image> <uri>            [-i <instance>]
+```
+
+Output format: tab-separated plaintext (one record per line) so matchers
+can `contains:` without JSON decoding. `list-tools` emits
+`<name>\t<description>`; `list-resources` emits `<uri>\t<name>\t<mime>`;
+`call` emits the concatenated `TextContent` payloads; `ping` emits `ok`.
 
 #### New modifier: `artifact_min_bytes`
 
@@ -589,12 +656,14 @@ Reference numbers from the last end-to-end session:
 | Image | Tests | Pass | Fail | Skipped |
 |-------|-------|------|------|---------|
 | `filebrowser` | 24 | 24 | 0 | 0 |
-| `jupyter` | 29 | 29 | 0 | 0 |
+| `jupyter` | 32 | 32 | 0 | 0 (includes 3 declarative `mcp:` checks added Apr 2026) |
 | `openwebui` | 24 | 24 | 0 | 0 |
 | `hermes` | 50 | 50 | 0 | 0 |
 | `immich-ml` | 63 | 61 | 0 | 2 (redis port internal) |
 | `selkies-desktop` | 91 | 91 | 0 | 0 |
-| `sway-browser-vnc` | 90 | 90 | 0 | 0 (includes 5 declarative cdp/wl/dbus/vnc checks since Apr 2026) |
+| `sway-browser-vnc` | 92 | 92 | 0 | 0 (includes 7 declarative cdp/wl/dbus/vnc/mcp checks; 2 mcp tests come from the chrome-devtools-mcp layer) |
+
+**Total: 376 checks across 7 images (0 failing).**
 
 The "skipped" entries are intentional — they reference ports that
 aren't mapped in the containing image's `ports:` block. Skipping them
@@ -603,7 +672,7 @@ ports.
 
 ## Related skills
 
-- **Nested verbs under `ov test`** — `/ov:cdp`, `/ov:wl`, `/ov:dbus`, `/ov:vnc` are dispatched as `ov test cdp|wl|dbus|vnc`. See the Subcommands section above.
+- **Nested verbs under `ov test`** — `/ov:cdp`, `/ov:wl`, `/ov:dbus`, `/ov:vnc`, `/ov:mcp` are dispatched as `ov test cdp|wl|dbus|vnc|mcp`. See the Subcommands section above.
 - `/ov:layer` — layer authoring; `tests:` field is part of every `layer.yml`.
 - `/ov:image` — image-level `tests:` and `deploy_tests:` at composition time.
 - `/ov:deploy` — local `deploy.yml` overlay rules and the `tests:` merge.
@@ -613,8 +682,9 @@ ports.
   LABELs-at-end cache behavior.
 - `/ov:inspect` — view the merged 3-section tests structure as JSON.
 - `/ov-dev:go` — implementation map: `testspec.go`, `testvars.go`,
-  `testrun.go`, `testrun_verbs.go`, `testcollect.go`, `test_cmd.go`,
-  `validate_tests.go`, plus the `LabelTests` constant in `labels.go`.
+  `testrun.go`, `testrun_verbs.go`, `testrun_ov_verbs.go`, `testcollect.go`,
+  `test_cmd.go`, `validate_tests.go`, `mcp.go`, `mcp_client.go`, plus the
+  `LabelTests` constant in `labels.go`.
 - `/ov-dev:generate` — how `LabelTests` is written into the Containerfile
   via `writeJSONLabel`, and why the LABEL block lives at the end of the
   final stage.

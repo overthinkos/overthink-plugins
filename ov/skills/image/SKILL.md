@@ -390,6 +390,7 @@ images:
 - `/ov:config` -- `ov config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
 - `/ov-dev:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
 - `/ov:test` — Image-level `tests:` (cross-layer invariants) and `deploy_tests:` (deploy-default checks shipped with the image). Both are embedded in the `org.overthinkos.tests` OCI label.
+- `/ov:mcp` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `ov test <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
 
 ## When to Use This Skill
 

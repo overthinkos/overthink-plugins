@@ -156,6 +156,8 @@ ov shell jupyter-ml-notebook -c "ls ~/workspace/llms_on_supercomputers/"
 - `/ov-images:jupyter` — Lightweight variant (no CUDA, multi-arch)
 - `/ov-images:unsloth-studio` — Unsloth Studio UI (different pixi env, same finetuning notebooks)
 
+**MCP testing:** same 3 deploy-scope `mcp:` checks as `jupyter-ml` are inherited here. See `/ov:mcp` for the verb reference.
+
 ## When to Use This Skill
 
 MUST be invoked before building, deploying, configuring, or troubleshooting the jupyter-ml-notebook image.
