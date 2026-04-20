@@ -15,7 +15,7 @@ description: |
 
 ## Packages
 
-RPM: `golang-bin`
+RPM: `golang-bin` · PAC: `go` · DEB: `golang-go` — full cross-distro parity.
 
 ## Usage
 

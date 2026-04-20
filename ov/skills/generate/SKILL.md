@@ -105,6 +105,39 @@ The `/ctx` bind mount exposes the layer's own directory tree to `cmd:` tasks —
 
 `COPY --chown=` uses numeric `<UID>:<GID>` for `${USER}` (BuildKit-safe), name-pairs for literal users.
 
+## writeBootstrap — adopt vs create (2026-04)
+
+`writeBootstrap` emits the user-creation section of the base-image Containerfile and branches on `ResolvedImage.UserAdopted`:
+
+**Adopt mode** (`UserAdopted = true`) — the base image already ships the declared user; no `useradd` is needed. Emits:
+
+```dockerfile
+# User ubuntu (uid=1000) adopted from base image (declared in build.yml distro.base_user) — no useradd needed
+
+WORKDIR /home/ubuntu
+USER 1000
+```
+
+**Create mode** (`UserAdopted = false`) — classic idempotent useradd:
+
+```dockerfile
+RUN if ! getent passwd 1000 >/dev/null 2>&1; then \
+      (getent group 1000 >/dev/null 2>&1 || groupadd -g 1000 user) && \
+      useradd -m -u 1000 -g 1000 -s /bin/bash user; \
+    fi
+
+WORKDIR /home/user
+USER 1000
+```
+
+The pivot is `ResolvedImage.UserAdopted`, set by the `user_policy:` reconciliation in `ov/config.go:ResolveImage`. See `/ov:image` "user_policy" for the policy semantics, `/ov:build` "base_user:" for the declaration, and `/ov-images:ubuntu` for the canonical adopt-mode worked example.
+
+Neither branch does destructive metadata mutation (no `usermod -l` rename). Fedora/Arch/Debian always hit the create branch (no `base_user:` declared); Ubuntu under `user_policy: auto` hits the adopt branch.
+
+## Tag-section install emission
+
+Distro-version tag sections like `debian:13:` and `ubuntu:24.04:` are resolved via first-match-wins on the image's `distro:` priority list (e.g. `["ubuntu:24.04", "ubuntu", "debian"]`). Each matched tag section uses the primary format's full install template — so a tag section can carry `repos:`, `keys:`, `options:`, and `packages:`, not just packages alone. See `ov/layers.go:TagPkgConfig.Raw` for the map that captures full tag-section YAML, and `/ov:layer` for authoring reference.
+
 ## ARCH / TARGETARCH emission
 
 Every layer section begins with:

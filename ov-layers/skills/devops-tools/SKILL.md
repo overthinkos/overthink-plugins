@@ -21,6 +21,10 @@ description: |
 - `rsync` (RPM) -- file synchronization
 - `wrangler` (npm) -- Cloudflare Workers CLI
 
+## Cross-distro coverage
+
+`rpm:` (Fedora) · `pac:` (Arch) · `deb:` (Debian/Ubuntu — `dnsutils` replaces `bind-utils`, `jq`, `rsync` identical). The cloud-CLI tools (AWS, Scaleway, kubectx/kubens, OpenTofu) are curl-downloaded binaries — distro-agnostic by construction, no per-package-manager work needed.
+
 ## Usage
 
 ```yaml

@@ -300,6 +300,10 @@ Rootless images like `/ov-images:selkies-desktop-ov` don't add an
 image-level `security:` block, so the resolved posture stays at
 `security_opt:[unmask=/proc/*]` only — zero capability escalation.
 
+## Cross-distro coverage
+
+`rpm:` (Fedora), `pac:` (Arch), plus compound tag `debian,ubuntu:` for shared packages (`podman`, `buildah`, `skopeo`, `fuse-overlayfs`, `crun`, `uidmap`, `passwd`, `libsecret-1-0`). Each of `debian:13:` and `ubuntu:24.04:` additionally declares the Tailscale apt repo (`https://pkgs.tailscale.com/stable/debian` or `.../ubuntu`) with signed-by key for the `tailscale` package. Drops on deb: none at the nesting recipe level — all the critical pieces (containers.conf, storage.conf, subuid layout, `_CONTAINERS_USERNS_CONFIGURED=""` env) are format-agnostic task content.
+
 ## Usage — rootless image (uid 1000)
 
 ```yaml

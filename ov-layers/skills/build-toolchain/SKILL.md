@@ -75,6 +75,10 @@ See `/ov-layers:selkies` (Patched pixelflux build pipeline) for the consumer sto
 the selkies layer's `build.sh` clones pixelflux from a pinned commit, applies four
 inline source patches, and runs `pip install .` against this builder stage.
 
+## Cross-distro coverage
+
+`rpm:` (Fedora), `pac:` (Arch), `deb:` (Debian/Ubuntu) — full parity. The deb section maps Fedora's ~40 `-devel` packages to their Debian `-dev` equivalents (`libclang-dev`, `libavformat-dev`, `libdrm-dev`, `libinput-dev`, `libturbojpeg0-dev`, `libseat-dev`, `libva-dev`, `libwayland-dev`, `libxkbcommon-dev`, `libgbm-dev`, `libsystemd-dev`, `libpixman-1-dev`, `libx264-dev`, `libudev-dev` — plus `build-essential`). Drops on deb: `redhat-rpm-config`, `rpm-build`, `rpm-sign`, `pkgconf-m4` (RPM-specific); `cli11-devel` (header-only, cmake FetchContent).
+
 ## Usage
 
 ```yaml

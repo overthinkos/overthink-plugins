@@ -15,8 +15,7 @@ description: |
 
 ## Packages
 
-RPM: `direnv`
-PAC: `direnv`
+RPM: `direnv` · PAC: `direnv` · DEB: `direnv` — full cross-distro parity.
 
 ## Usage
 

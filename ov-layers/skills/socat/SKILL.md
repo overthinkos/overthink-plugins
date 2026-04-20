@@ -17,6 +17,10 @@ description: |
 
 RPM: `socat`, `iproute`
 
+## Cross-distro coverage
+
+`rpm:` (Fedora), `pac:` (Arch), `deb:` (Debian/Ubuntu — `socat`, `iproute2`). Full parity.
+
 ## Usage
 
 ```yaml

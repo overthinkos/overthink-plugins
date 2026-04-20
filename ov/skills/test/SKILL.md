@@ -208,8 +208,23 @@ naturally. An empty-string map value falls through to the next tag
 | `id` | Optional stable identifier. Enables `deploy.yml` to override by `id`. Unique per section per image. |
 | `description` | Human-readable label for reports. |
 | `skip: true` | Always skip this check (reported but doesn't fail the run). |
+| `exclude_distros: [<tag>, ...]` | Skip the check when any of the image's `distro:` tags matches an entry. Use for probes that only apply on some distros (e.g. `file: /usr/bin/fastfetch` is valid on Fedora/Arch/Debian but fastfetch is dropped from Ubuntu 24.04's noble main). Matched against the image's full distro list (`["ubuntu:24.04", "ubuntu", "debian"]`), so either `ubuntu:24.04` or `ubuntu` matches. Wired 2026-04 — see `ov/testspec.go:Check.ExcludeDistros` and `ov/testrun.go:runOne`. |
 | `timeout: "5s"` | Per-check timeout (http, addr). |
 | `scope: build\|deploy` | Default `build` at layer/image level, `deploy` at deploy level. |
+
+#### `exclude_distros:` worked example
+
+```yaml
+- id: fastfetch-binary
+  file: /usr/bin/fastfetch
+  exists: true
+  exclude_distros:
+    - ubuntu:24.04
+```
+
+On `ghcr.io/overthinkos/ubuntu-coder:latest` this reports `skipped (excluded on distro "ubuntu:24.04")` instead of `failed`. On any other image it runs normally. Prefer this over dropping the test entirely — it keeps the guard in place for Fedora/Arch/Debian and documents why Ubuntu is special.
+
+**Compared to `package_map:`** — `package_map:` changes what the test *probes for* per distro (same semantic, different package name). `exclude_distros:` skips the check entirely — use it when the functionality genuinely doesn't exist on a given distro.
 
 ### Matcher forms
 

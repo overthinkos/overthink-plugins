@@ -68,6 +68,10 @@ Six build-scope tests:
 | `git-lfs-binary` | `/usr/bin/git-lfs` exists |
 | `git-lfs-version` | `git-lfs --version` exits 0 |
 
+## Cross-distro coverage
+
+`rpm:` (Fedora — from the `github-cli` COPR / community repo), `pac:` (Arch — `github-cli` from `extra`), `deb:` (Debian/Ubuntu — adds `https://cli.github.com/packages` as an apt repo with signed-by key; ships `gh`, `git`, `git-lfs`). Full parity across all three package families.
+
 ## Usage
 
 ```yaml

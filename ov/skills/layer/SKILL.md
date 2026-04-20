@@ -223,10 +223,12 @@ These names are reserved — `vars:` may not shadow them:
 
 `${VAR}` is resolved in every task field **except**:
 
-- `cmd:` command text — passed verbatim to bash so shell-style `${VAR:-default}`, `$(command)`, and `$NAME` all work the way you'd expect
-- `write: content:` — the file body is verbatim bytes (never substituted, never heredoc'd)
+- `cmd:` command text — passed verbatim to bash so shell-style `${VAR:-default}`, `$(command)`, and `$NAME` all work the way you'd expect. **But** RUN shells don't have `$USER` exported by default — use `getent passwd <UID>` for user-name discovery inside `cmd:`, not `$USER`.
+- `write: content:` — the file body is verbatim bytes (never substituted, never heredoc'd). If you need the resolved `${USER}` inside a file, use a `cmd:` task that writes via shell redirect after discovering the name via `getent passwd 1000 | cut -d: -f1`. Canonical worked example: `/ov-layers:sshd`'s sudoers drop-in.
 
 Everything else (paths, URLs, modes, `to`, `target`, `user`, etc.) resolves via the Docker-level ENV mechanism, so BuildKit sees the values and substitutes in COPY/RUN/ENV directives.
+
+**Why `$USER` isn't reliable in `cmd:`** — the generator resolves `${USER}` in task fields (paths, `user:` directive, COPY --chown) at generate time. But `cmd:` body text is passed through to bash at RUN time, and bash at RUN time doesn't export `$USER` unless the image explicitly set it via an `ENV USER=` directive (which we don't). `getent passwd <UID>` is the robust, fully-generic alternative that works equally under create mode (`user`) and adopt mode (`ubuntu`) — see `/ov:image` "user_policy".
 
 ### Validation
 
@@ -395,6 +397,41 @@ deb:
     - neovim
     - ripgrep
 ```
+
+Debian/Ubuntu-specific capabilities:
+
+- **`repos:`** — add `/etc/apt/sources.list.d/<name>.list` entries with GPG key management via `gpg --dearmor -o /etc/apt/keyrings/<name>.gpg`. Supports `url:`, `suite:`, `components:`, `key:` (URL to an ASCII-armored key), `signed_by:` (explicit keyring path), and PPA entries via `ppa:`. The install template auto-injects `signed-by=...` into `sources.list` when a key is configured.
+- **`options:`** — extra `apt-get install` flags (e.g. `--no-install-recommends` — already the default).
+- **`debian,ubuntu:` compound tag** — a shared section for packages that are identical on both Debian and Ubuntu; avoids duplication across `debian:13:` / `ubuntu:24.04:` sections. First-match-wins; if a version-specific tag also matches the image's distro list, that wins over the compound.
+
+Distro-version tag sections work too — `debian:13:` and `ubuntu:24.04:` carry full install-template surface (packages, repos, options). Useful when upstream apt-repo URLs differ per codename (e.g. `/ov-layers:docker-ce`, `/ov-layers:kubernetes`).
+
+### Distro-version tag sections (2026-04 extension)
+
+```yaml
+rpm:
+  packages: [...]            # Fedora fallback
+
+pac:
+  packages: [...]            # Arch fallback
+
+deb:
+  packages: [golang-go, libicu-dev]   # Debian-family fallback
+
+debian:13:
+  repos:
+    - name: microsoft-prod
+      url: "https://packages.microsoft.com/debian/13/prod"
+      key: "https://packages.microsoft.com/keys/microsoft.asc"
+      suite: trixie
+      components: main
+  packages: [dotnet-sdk-9.0]
+
+ubuntu:24.04:
+  packages: []              # ubuntu 24.04 keeps the generic deb: packages (implicit)
+```
+
+Match order: the image's `distro:` priority list (e.g. `["ubuntu:24.04", "ubuntu", "debian"]`) is walked in order; the first matching tag section wins. All tag sections now support the full install-template surface (not just `packages:`) via `TagPkgConfig.Raw` in `ov/layers.go:214-219` — see `/ov-dev:go`.
 
 ### Pac (`pac:`)
 

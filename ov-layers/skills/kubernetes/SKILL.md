@@ -17,6 +17,10 @@ description: |
 
 RPM: `kubernetes-client`, `helm`
 
+## Cross-distro coverage
+
+`rpm:` (Fedora), `pac:` (Arch — `kubectl` + `helm` from `extra`), `deb:` — adds two upstream apt repos: `https://pkgs.k8s.io/core:/stable:/v1.30/deb/` for `kubectl` and `https://baltocdn.com/helm/stable/debian/all` for `helm`. Both use signed-by GPG keys. The flat-repo `pkgs.k8s.io` URL ends in `/` — supported by `build.yml`'s deb install template (the trailing-slash suite special case added during Phase 3).
+
 ## Usage
 
 ```yaml

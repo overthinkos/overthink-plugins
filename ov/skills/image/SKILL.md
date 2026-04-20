@@ -202,9 +202,10 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `build` | `["rpm"]` | Package formats tied to builder definitions: `[rpm]` or `[pac, aur]`. ALL formats installed in order. Valid: rpm, deb, pac, aur. Inherited from base image |
 | `layers` | (required) | Layer list (image-specific, not inherited) |
 | `ports` | `[]` | Runtime port mappings (`"host:container"` or `"port"`) |
-| `user` | `"user"` | Username for non-root operations |
-| `uid` | `1000` | User ID |
-| `gid` | `1000` | Group ID |
+| `user` | `"user"` | Username for non-root operations. See `user_policy:` — may be overridden at resolve time when adopt mode fires |
+| `uid` | `1000` | User ID (may be overridden by `base_user:` under adopt) |
+| `gid` | `1000` | Group ID (may be overridden by `base_user:` under adopt) |
+| `user_policy` | `"auto"` | How to reconcile `user:` against the base image's pre-existing uid-1000 account. Values: `auto` / `adopt` / `create`. See "user_policy" section below. Wired 2026-04 |
 | `merge` | `null` | Layer merge settings |
 | `aliases` | `[]` | Command aliases |
 | `builder` | `{}` | Build type → builder image map (inherited from base image + defaults). Keys match the `build.yml` `builder:` section — e.g., `builder.pixi` selects which image to use as the pixi builder |
@@ -280,6 +281,63 @@ images:
     base: fedora        # References fedora image above
     layers: [my-layer]
 ```
+
+## user_policy: adopt vs create
+
+Added 2026-04 to cleanly handle base images that ship a pre-existing uid-1000 account (notably Ubuntu 24.04's `ubuntu:ubuntu`). Previously the bootstrap's `getent passwd $UID || useradd …` short-circuited on such accounts, leaving the image's configured `user:` never created — sudoers, `${HOME}`, npm prefix, etc. all broke because they assumed the configured name existed.
+
+The fix: a **declarative** fact (what the base image ships, in `build.yml distro.<name>.base_user:` — see `/ov:build`) + an **image-level policy** (how to reconcile with the image's `user:` field).
+
+### Policy values
+
+| Policy | Behavior | Failure mode |
+|--------|----------|--------------|
+| `auto` (default) | If `base_user:` is declared for the image's distro AND the image didn't explicitly set `user:`, adopt the base_user. Otherwise create the configured user. | Never fails — falls through gracefully. |
+| `adopt` | Always adopt. Error if the distro has no `base_user:` declaration. | Hard error at config resolve time. Use when you specifically need to lock adopt semantics. |
+| `create` | Always create the configured user. | Build fails if `useradd` collides (should never happen on a "create" distro). |
+
+### Decision matrix per base image
+
+| Base image | `base_user` declared? | `user_policy: auto` outcome | Resolved user |
+|---|---|---|---|
+| `/ov-images:fedora` | no | create | `user` |
+| `/ov-images:archlinux` | no | create | `user` |
+| `/ov-images:debian` | no | create | `user` |
+| `/ov-images:ubuntu` | **yes** (`ubuntu:1000:/home/ubuntu`) | adopt | `ubuntu` |
+
+This is why `ubuntu-coder`'s resolved identity is `ubuntu:/home/ubuntu` while the other three coder images are `user:/home/user`. The image.yml for all four coder images is identical on the user-related fields (no explicit `user:`); the policy + base_user together decide the outcome.
+
+### How resolution flows (`ov/config.go ResolveImage`)
+
+1. Resolve `User`, `UID`, `GID` from defaults → image overrides → hardcoded fallback `user` / `1000` / `1000`.
+2. Load the distro config (`DistroConfig` from `build.yml`), resolve the image's `DistroDef` by walking `distro:` tags.
+3. Apply `user_policy`:
+   - `adopt` → overwrite User/UID/GID/Home with the distro's `BaseUser`, set `ResolvedImage.UserAdopted = true`.
+   - `auto` → same overwrite IF `base_user` exists AND the image didn't explicitly set `user:`.
+   - `create` → no-op.
+4. `writeBootstrap` (`ov/generate.go`) keys on `UserAdopted`: adopt emits only a comment; create emits an idempotent `useradd` (see `/ov:generate`).
+
+### Live verification
+
+```bash
+ov image inspect ubuntu-coder | grep -E '"User"|"UID"|"Home"|UserAdopted'
+# "User": "ubuntu",
+# "UID": 1000,
+# "Home": "/home/ubuntu",
+# "UserAdopted": true,
+
+ov image inspect debian-coder | grep -E '"User"|"UID"|"Home"|UserAdopted'
+# "User": "user",
+# "UID": 1000,
+# "Home": "/home/user",
+# "UserAdopted": false,
+```
+
+### Layer consequences
+
+Adopt mode means `resolved.User` is not a stable string across distros. Layers that reference the uid-1000 account by name must NOT hardcode `user` — use `${USER}` where the generator substitutes (task fields like `user: ${USER}`), or use `getent passwd 1000 | cut -d: -f1` inside `cmd:` blocks (where the generator does NOT substitute — bash sees the script verbatim). The canonical getent example is `/ov-layers:sshd`'s sudoers task.
+
+See also `/ov-images:ubuntu` (canonical adopt consumer), `/ov:build` "base_user:", `/ov-dev:go` "ResolvedImage.UserAdopted".
 
 ## External Bases Require Explicit `distro:`
 

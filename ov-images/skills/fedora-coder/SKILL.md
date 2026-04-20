@@ -24,7 +24,6 @@ meant to be accessed via `ssh -p 2222` or `ov shell`.
 ```yaml
 fedora-coder:
   base: fedora-nonfree            # = fedora + rpmfusion (for x264/ffmpeg-devel)
-  network: host
   ports:
     - "2222:2222"                 # sshd-wrapper
     - "18765:18765"               # ov-mcp (Streamable HTTP)
@@ -72,6 +71,12 @@ fedora-coder:
     - grafana-tools
 ```
 
+Network: default `ov` bridge. `network: host` was dropped 2026-04 once the
+sibling `/ov-images:arch-coder` landed — the `ports:` mapping is the
+right way to expose sshd/ov-mcp, and bridge networking lets dev boxes
+coexist on one host via normal `-p host:container` remapping (e.g.
+running `arch-coder` alongside `fedora-coder` on the same machine).
+
 No `uid:` / `gid:` / `user:` / `security:` override — inherits
 `1000/1000/user` from `defaults` and the layer-level security from
 `/ov-layers:container-nesting`. Rootless-first by design (shares this
@@ -96,15 +101,23 @@ once it was proven redundant by the `container-nesting` kernel RCA —
 see `/ov-layers:container-nesting` for the `mount_too_revealing()` +
 `unmask=/proc/*` derivation.
 
-## Why `network: host`
+## Network posture
 
-Lets the developer reach host services (other ov containers, local
-dev servers on 127.0.0.1:*, tunnels, etc.) without per-port plumbing.
-Matches `/ov-images:fedora-ov`. Consequence: sshd on `2222` and ov-mcp
-on `18765` bind directly to the host — the OCI `ports:` declaration is
-cosmetic in this mode. For deploy-scope testing see
-`/ov:mcp` (host-networked containers get `HOST_PORT:<N>=<N>` resolution
-via the `IsHostNetworked()` helper in `ov/testvars.go`).
+Default `ov` bridge. `network: host` was dropped 2026-04 — it prevented
+running `fedora-coder` alongside `/ov-images:arch-coder` on the same host
+(both want sshd on 2222 and ov-mcp on 18765). Bridge networking plus
+normal `-p host:container` remapping is the right pattern for dev boxes.
+To run two dev images side by side:
+
+```bash
+ov config arch-coder -p 2223:2222 -p 18766:18765     # alt-instance ports
+ov config fedora-coder                               # canonical 2222/18765
+```
+
+Reaching host services from inside a bridge-networked container: use
+the host's LAN IP or `host.containers.internal` (podman) rather than
+`127.0.0.1`. For selkies-style sibling-container discovery, the deploy.yml
+`provides.env:` and `OV_MCP_SERVERS` auto-injection give explicit hostnames.
 
 ## The 32-layer composition explained
 
@@ -218,6 +231,19 @@ google-cloud-npm) by forking image.yml. See `/ov:image` for authoring.
 - `/ov-layers:language-runtimes` — Go + PHP + .NET + nodejs-devel + python3-devel (system-python stack, no pixi)
 - `/ov-layers:uv` — direct-download binary at /usr/local/bin/uv (rewritten 2026-04)
 - `/ov-layers:gh` — GitHub CLI + git + git-lfs (single-responsibility, 2026-04)
+
+## Cross-distro siblings
+
+`fedora-coder` is one of **four cross-distro coder images** that share the identical 80-line `tests:` block + ~30 identical layers; they diverge only in each layer's package-format section (`rpm:` / `pac:` / `deb:`) and a handful of distro-specific quirks handled inside individual layers.
+
+| Image | Base | Package mgr | User model |
+|---|---|---|---|
+| `/ov-images:fedora-coder` | `fedora-nonfree` (Fedora 43) | rpm | `user:user` (create) |
+| `/ov-images:arch-coder` | `archlinux` | pac + aur | `user:user` (create) |
+| `/ov-images:debian-coder` | `debian:13` | deb | `user:user` (create) |
+| `/ov-images:ubuntu-coder` | `ubuntu:24.04` | deb | `user:ubuntu` (**adopt** from base) |
+
+All four produce the same daily-dev surface (sshd on 2222, ov-mcp on 18765, 5 AI CLIs, full language runtimes, DevOps tooling). Pick based on distro-family alignment with your team/CI. See `/ov:image` "user_policy" for the adopt-vs-create reconciliation that gives ubuntu-coder its `ubuntu` username.
 
 ## Related Images
 

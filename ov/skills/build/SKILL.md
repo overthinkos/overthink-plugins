@@ -49,11 +49,33 @@ defaults:
 
 `build.yml` has three top-level sections:
 
-- **`distro:`** — Per-distro bootstrap commands (package manager setup, cache mounts, repo management) and package format templates (how `rpm:`, `pac:`, `deb:` sections in layer.yml become `RUN` steps). Each format has `install`, `repos`, `copr`, `modules`, and `options` templates.
+- **`distro:`** — Per-distro bootstrap commands (package manager setup, cache mounts, repo management), optional `base_user:` declaration (what uid-1000 account the upstream base image ships), and package format templates (how `rpm:`, `pac:`, `deb:` sections in layer.yml become `RUN` steps). Each format has `install`, `repos`, `copr`, `modules`, and `options` templates.
 - **`builder:`** — Multi-stage builder patterns (pixi, npm, cargo, aur). Each builder has `build_stage` and `copy_stage` templates that generate the appropriate `FROM builder AS ...` and `COPY --from=...` steps.
 - **`init:`** — Init system definitions (supervisord, systemd) including detection rules, fragment templates, entrypoint commands, and service management commands. Optional — images can omit this if they don't need an init system.
 
-All sections use Go `text/template` syntax with access to layer config data. Source: `ov/format_config.go` (loader + distro/builder types), `ov/init_config.go` (init type), `ov/format_template.go` (rendering).
+All sections use Go `text/template` syntax with access to layer config data. Source: `ov/format_config.go` (loader + distro/builder types, including `DistroDef.BaseUser`), `ov/init_config.go` (init type), `ov/format_template.go` (rendering).
+
+### `base_user:` — declaring a pre-existing base-image account
+
+Added 2026-04 to handle Ubuntu 24.04's `ubuntu:ubuntu` pre-existing account (and future distros that ship something similar). Declare it under the distro when the upstream base image ships a uid-1000 account; leave it out otherwise.
+
+```yaml
+distro:
+  ubuntu:
+    inherits: debian
+    base_user:
+      name: ubuntu
+      uid: 1000
+      gid: 1000
+      home: /home/ubuntu
+    # ... bootstrap inherited from debian
+```
+
+All four fields (`name`, `uid`, `gid`, `home`) are required when the block is present. Inherited across distro inheritance chains — if the child has no `base_user:` but the parent does, the child inherits it (see `resolveInherits` in `ov/format_config.go`).
+
+Consumed by the `user_policy:` reconciliation in `ov/config.go:ResolveImage` — see `/ov:image` "user_policy" for the three-value policy (`auto` / `adopt` / `create`) and the decision matrix.
+
+No `base_user:` currently declared for Fedora, Arch, or Debian (their canonical base images ship no pre-existing uid-1000 account). Add one in your project's `build.yml` override if you're basing on a distro-cloud variant that DOES ship one (e.g. `debian:13-cloud`).
 
 ### The `builder:` name in two places
 

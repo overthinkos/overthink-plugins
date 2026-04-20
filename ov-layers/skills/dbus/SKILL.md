@@ -25,6 +25,10 @@ description: |
 
 - `dbus-daemon` (RPM)
 
+## Cross-distro coverage
+
+RPM: `dbus-daemon` (Fedora) · PAC: `dbus` (Arch) · DEB: `dbus` (Debian/Ubuntu). Full parity — same DBUS_SESSION_BUS_ADDRESS env, same supervisord fragment, identical behavior downstream.
+
 ## Usage
 
 ```yaml

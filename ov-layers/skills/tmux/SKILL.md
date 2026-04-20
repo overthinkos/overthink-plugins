@@ -16,7 +16,7 @@ description: |
 
 ## Packages
 
-RPM: `tmux`
+RPM: `tmux` · PAC: `tmux` · DEB: `tmux` — full cross-distro parity.
 
 ## Usage
 

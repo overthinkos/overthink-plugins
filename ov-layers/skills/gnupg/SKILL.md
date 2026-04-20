@@ -15,8 +15,7 @@ description: |
 
 ## Packages
 
-RPM: `gnupg2`
-PAC: `gnupg`
+RPM: `gnupg2` · PAC: `gnupg` · DEB: `gnupg` — full cross-distro parity. Note: `gnupg` is also in the `debian` distro's bootstrap package set (see `/ov-images:debian`) because downstream layers need `gpg --dearmor` at build time.
 
 ## Usage
 

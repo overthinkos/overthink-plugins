@@ -17,6 +17,10 @@ description: |
 
 RPM (from `docker-ce-stable` repo): `containerd.io`, `docker-buildx-plugin`, `docker-ce`, `docker-ce-cli`, `docker-compose-plugin`
 
+## Cross-distro coverage
+
+`rpm:` (Fedora — Docker's yum repo), `pac:` (Arch — `docker` metapackage from `extra`), `deb:` — via distro-version tag sections `debian:13:` and `ubuntu:24.04:` because the upstream apt repo URL differs per distro codename (`https://download.docker.com/linux/debian trixie` vs `.../ubuntu noble`). Each tag section declares its own `repos:` block with the correct URL + GPG key; packages (`docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, `docker-compose-plugin`) are identical. See `/ov:layer` "distro-version tag sections".
+
 ## Usage
 
 ```yaml

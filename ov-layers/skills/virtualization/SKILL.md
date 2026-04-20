@@ -116,11 +116,28 @@ This layer makes that URI actually work inside a container at uid
 
 **Build-scope (run by `ov image test <image>` without deploying):**
 
-- `virtqemud-binary` — `/usr/sbin/virtqemud` exists.
-- `virtnetworkd-binary` — `/usr/sbin/virtnetworkd` exists.
+- `virtqemud-package` / `virtnetworkd-package` — package-existence probes using `package:` + `package_map:` (see below).
 - `virsh-binary` — `/usr/bin/virsh` exists.
 - `qemu-system-x86-binary` — `/usr/bin/qemu-system-x86_64` exists.
 - `qemu-img-binary` — `/usr/bin/qemu-img` exists.
+
+### Why package-existence, not binary-path, for the virtqemud/virtnetworkd tests
+
+Debian/Ubuntu and Fedora/Arch bundle libvirt drivers differently. On Fedora/Arch the `libvirt-daemon-driver-qemu` / `libvirt-daemon-driver-network` subpackages ship `/usr/sbin/virtqemud` and `/usr/sbin/virtnetworkd` as standalone binaries. On Debian/Ubuntu those drivers are bundled inside `libvirt-daemon-system`, and the monolithic `libvirtd` binary replaces the per-driver split daemons — so a `file: /usr/sbin/virtqemud` probe hard-fails on deb even when the functionality is present.
+
+The fix — introduced 2026-04 during Phase E — probes package presence with distro-specific names:
+
+```yaml
+- id: virtqemud-package
+  package: libvirt-daemon-driver-qemu     # rpm name on Fedora
+  package_map:
+    archlinux: libvirt                    # Arch bundles into 'libvirt' metapackage
+    debian: libvirt-daemon-system         # deb bundles all drivers here
+    ubuntu: libvirt-daemon-system
+  installed: true
+```
+
+See `/ov:test` "`package:` + `package_map:` pattern" for the resolution order (tag > base name > fallback).
 
 **Deploy-scope (run against a live `ov start`ed container):**
 
@@ -152,11 +169,18 @@ selkies-desktop-ov:
 `ov-full` automatically gets the supervisord-managed virtqemud/virtnetworkd
 programs.
 
+## Cross-distro coverage
+
+`rpm:` (Fedora), `pac:` (Arch), `deb:` (Debian generic + `ubuntu:24.04:` tag section). Debian/Ubuntu use `libvirt-daemon-system`, `libvirt-clients`, `qemu-system-x86`, `qemu-utils`, `qemu-kvm`, `virtinst`. The per-driver daemons (`virtqemud`, `virtnetworkd`) are bundled into `libvirt-daemon-system` on deb — supervisord still supervises libvirtd via the same fragment.
+
+Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networking features degrade gracefully on debian-coder / ubuntu-coder).
+
 ## Used In Images
 
 - `/ov-images:selkies-desktop-ov` — rootless VM host inside a streaming desktop
 - `/ov-images:fedora-ov` — root VM host (same daemons, uid 0)
 - `/ov-images:arch-ov` — Arch counterpart
+- `/ov-images:debian-coder`, `/ov-images:ubuntu-coder` — deb-based consumers (via `ov-full`)
 - `/ov-images:githubrunner` — VMs for CI workloads
 - `/ov-images:aurora`, `/ov-images:bazzite-ai` — bootc siblings (currently `enabled: false`)
 

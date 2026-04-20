@@ -153,6 +153,46 @@ Submodule convention: `plugins/` is a submodule rooted at the
 
 ### Configuration
 
+**Key types added 2026-04 (Phase F) — user_policy + exclude_distros architecture:**
+
+| Type / Field | File | Purpose |
+|---|---|---|
+| `DistroDef.BaseUser *BaseUserDef` | `format_config.go` | Pointer to a declared pre-existing uid-1000 account in the upstream base image. Nil when not declared (fedora/arch/debian); set for ubuntu (`{ubuntu, 1000, 1000, /home/ubuntu}`). Inherited via `resolveInherits` so a child distro with no `base_user:` inherits the parent's |
+| `BaseUserDef` | `format_config.go` | Four required fields: `Name`, `UID`, `GID`, `Home`. Parsed from `build.yml distro.<name>.base_user:` |
+| `ImageConfig.UserPolicy string` | `config.go:130` | YAML field `user_policy`. Values: `auto` (default) / `adopt` / `create`. Drives the reconciliation switch in `ResolveImage` |
+| `ResolvedImage.UserAdopted bool` | `config.go:194` | True when the policy reconciliation adopted a distro's `BaseUser` (User/UID/GID/Home overwritten). Consumed by `writeBootstrap` in `generate.go` to skip the useradd step |
+| `Check.ExcludeDistros []string` | `testspec.go` | Per-test filter — test runner in `testrun.go:runOne` skips the check when any of the image's distro tags intersects with this list. Reason reported as `excluded on distro "<tag>"` |
+| `TagPkgConfig.Raw map[string]any` | `layers.go` | Captures the full YAML map for a tag section (e.g. `debian:13:`), not just `packages:`. Enables `repos:`, `keys:`, `options:` inside tag sections. Read by the generator's install-template emission path |
+
+**Policy reconciliation flow** (`ov/config.go:ResolveImage`, after distroDef loaded):
+
+```go
+policy := img.UserPolicy
+if policy == "" { policy = c.Defaults.UserPolicy }
+if policy == "" { policy = "auto" }
+baseUser := (*BaseUserDef)(nil)
+if resolved.DistroDef != nil { baseUser = resolved.DistroDef.BaseUser }
+userExplicitlySet := img.User != "" || c.Defaults.User != ""
+
+switch policy {
+case "adopt":
+    if baseUser == nil { return nil, fmt.Errorf(...) }
+    // overwrite User/UID/GID/Home
+    resolved.UserAdopted = true
+case "auto":
+    if baseUser != nil && !userExplicitlySet {
+        // overwrite User/UID/GID/Home
+        resolved.UserAdopted = true
+    }
+case "create":
+    // no-op
+}
+```
+
+See `/ov:image` "user_policy" for the user-facing decision matrix, `/ov:build` "base_user:" for the declarative side, and `/ov:generate` "writeBootstrap" for the consumer side.
+
+### Existing configuration files
+
 | File | Purpose |
 |------|---------|
 | `env.go` | ENV merging, path expansion |

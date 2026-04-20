@@ -17,6 +17,10 @@ description: |
 
 RPM: `gocryptfs`
 
+## Cross-distro coverage
+
+`rpm:` (Fedora), `pac:` (Arch — community), `deb:` (Debian/Ubuntu — `gocryptfs` available in Debian main) — full parity.
+
 ## Usage
 
 ```yaml

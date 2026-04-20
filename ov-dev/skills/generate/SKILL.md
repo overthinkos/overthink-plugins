@@ -340,25 +340,62 @@ The current code resolves `inheritedDistro` / `inheritedBuilds` from the parent 
 
 ## User Resolution
 
-Configurable via `user`, `uid`, `gid` fields in `image.yml` (defaults: `"user"`, 1000, 1000).
+Configurable via `user`, `uid`, `gid`, and `user_policy` fields in `image.yml` (defaults: `"user"`, 1000, 1000, `"auto"`).
 
-For external base images, `ov` calls `registry.go:InspectImageUser()` which:
-1. Pulls the base image via go-containerregistry
-2. Extracts `/etc/passwd` from image layers (top layer first)
-3. Finds user at configured UID
-4. If found: overrides username, home directory, and GID (e.g., `ubuntu` with home `/home/ubuntu` for `ubuntu:24.04`)
-5. If not found: uses configured defaults, bootstrap creates the user
+### Declarative adopt: `build.yml distro.<name>.base_user:` (2026-04)
 
-For internal base images, user context is inherited from the parent image.
+Some base images ship a pre-existing uid-1000 account (Ubuntu 24.04 ships `ubuntu:ubuntu`). The `base_user:` declaration in `build.yml` tells ov about it:
 
-The bootstrap conditionally creates the user:
-```dockerfile
-RUN getent passwd <UID> >/dev/null 2>&1 || \
-    (getent group <GID> >/dev/null 2>&1 || groupadd -g <GID> <user> && \
-     useradd -m -u <UID> -g <GID> -s /bin/bash <user>)
+```yaml
+distro:
+  ubuntu:
+    base_user: { name: ubuntu, uid: 1000, gid: 1000, home: /home/ubuntu }
 ```
 
-Source: `ov/registry.go` (`InspectImageUser`).
+`ov/config.go:ResolveImage` reconciles this against the image's `user_policy:`:
+
+- `auto` (default) — adopt `base_user` when declared AND image didn't explicitly set `user:`.
+- `adopt` — always adopt; hard-errors without a declaration.
+- `create` — always create via useradd.
+
+When adopt fires, `resolved.User` / `UID` / `GID` / `Home` are overwritten and `resolved.UserAdopted = true`.
+
+### writeBootstrap — two emission branches
+
+`ov/generate.go:writeBootstrap` keys on `img.UserAdopted`:
+
+**Adopt (no useradd):**
+```dockerfile
+# User ubuntu (uid=1000) adopted from base image (declared in build.yml distro.base_user) — no useradd needed
+
+WORKDIR /home/ubuntu
+USER 1000
+```
+
+**Create (idempotent useradd):**
+```dockerfile
+RUN if ! getent passwd <UID> >/dev/null 2>&1; then \
+      (getent group <GID> >/dev/null 2>&1 || groupadd -g <GID> <user>) && \
+      useradd -m -u <UID> -g <GID> -s /bin/bash <user>; \
+    fi
+
+WORKDIR /home/<user>
+USER <UID>
+```
+
+The old `getent passwd <UID> >/dev/null 2>&1 ||` short-circuit-based form is superseded — the `if !` form is functionally equivalent for create-mode distros but composes better with the adopt branch (no risk of silently short-circuiting on an unexpectedly-pre-existing user).
+
+### Legacy path: `registry.go:InspectImageUser`
+
+Pre-2026-04 code that pulled the base image via go-containerregistry and extracted `/etc/passwd` to auto-detect home dir. Still present; now largely superseded by the declarative `base_user:` approach (simpler, no network round-trip, explicit intent).
+
+Source: `ov/config.go:ResolveImage` (policy reconciliation), `ov/generate.go:writeBootstrap` (emission), `ov/format_config.go:BaseUserDef` (struct), `ov/registry.go:InspectImageUser` (legacy).
+
+## Tag-section install emission
+
+Distro-version tag sections (`debian:13:`, `ubuntu:24.04:`, etc.) are resolved via first-match-wins on the image's `distro:` priority list. Since 2026-04, tag sections use the primary format's **full** install template — so they can carry `repos:`, `keys:`, `options:`, and `packages:`, not just packages alone. The generator reads each tag section's full YAML map via `ov/layers.go:TagPkgConfig.Raw`.
+
+Example: `layers/language-runtimes/layer.yml` had (before Phase F) a `debian:13:` section with a Microsoft apt repo entry — though ultimately dropped in favor of the `dotnet-install.sh` cmd: task for cross-distro consistency (see `/ov-layers:language-runtimes`).
 
 ## OCI Labels
 

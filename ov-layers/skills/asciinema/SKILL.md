@@ -22,6 +22,10 @@ RPM: `asciinema`
 
 Records terminal sessions as `.cast` files (asciicast v2 format). Recordings capture timing, input, and output — can be replayed with `asciinema play`, uploaded to asciinema.org, or converted to GIF/video.
 
+## Cross-distro coverage
+
+RPM: `asciinema` · PAC: `asciinema` · DEB: `asciinema` — full parity.
+
 ## Usage
 
 ```yaml

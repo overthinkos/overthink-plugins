@@ -15,10 +15,9 @@ description: |
 
 ## Packages
 
-RPM: `openssh-clients`
-PAC: `openssh`
+RPM: `openssh-clients` · PAC: `openssh` · DEB: `openssh-client` (singular — Debian splits client/server, unlike Arch's unified `openssh`).
 
-Note: On Arch Linux, `openssh` is a single package that includes both client and server. The `sshd` layer also installs this package but adds a systemd service and opens port 22.
+Note: On Arch Linux, `openssh` is a single package that includes both client and server. The `sshd` layer also installs this package but adds a systemd service and opens port 22. On Debian/Ubuntu, `openssh-client` ships only the client tools; `openssh-server` is a separate package installed by the `sshd` layer.
 
 ## Usage
 

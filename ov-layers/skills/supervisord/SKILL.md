@@ -178,6 +178,10 @@ Authoring Gotcha #3.
 - `[supervisord] nodaemon=true logfile=/tmp/supervisord.log pidfile=/tmp/supervisord.pid`
 - `[supervisord] user=user` — supervisord runs as the container user, not root
 
+## Cross-distro coverage
+
+RPM: `supervisor` (Fedora) · PAC: `supervisor` (Arch community) · DEB: `supervisor` (Debian/Ubuntu — package is named `supervisor`, not `supervisord`). Full parity; the process manager itself plus the header template is identical across distros. The `[supervisord] user=user` line in `templates/supervisord.header.conf` is a fallback only — when `user_policy: adopt` fires on an ubuntu base image, supervisord inherits the adopted `ubuntu` identity at runtime via the USER directive, so `user=user` in the header is harmless (supervisord's `user=` field is advisory — uid passthrough from the Dockerfile USER directive takes precedence).
+
 ## Usage
 
 ```yaml

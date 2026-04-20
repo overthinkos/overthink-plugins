@@ -16,10 +16,14 @@ description: |
 
 ## Packages
 
-- `openssh-server` (RPM) — SSH daemon
-- `openssh-clients` (RPM) — SSH client tools (ssh, scp, sftp)
+- `openssh-server` (RPM / deb) — SSH daemon
+- `openssh-clients` (RPM) / `openssh-client` (deb, singular) — SSH client tools (ssh, scp, sftp)
 - `openssh` (pac) — Arch metapackage bundling both daemon and client
-- `sudo` (both) — required for the NOPASSWD rule this layer writes
+- `sudo` (rpm / pac / deb) — required for the NOPASSWD rule this layer writes
+
+### Cross-distro coverage
+
+`rpm:` (Fedora), `pac:` (Arch), `deb:` (Debian/Ubuntu) — full parity across all four supported package-format families. The `openssh-server` / `openssh-clients` naming differs per distro; package-existence tests use `package_map:` to resolve (see below).
 
 **Cross-distro package-test pattern:** the sshd layer's
 `openssh-server-package` check uses `package_map:` to resolve the right
@@ -36,8 +40,36 @@ match).
     archlinux: openssh
     fedora: openssh-server
     fedora:43: openssh-server
+    debian: openssh-server
+    ubuntu: openssh-server
   installed: true
 ```
+
+### Cross-distro sudoers via `getent passwd 1000`
+
+The sudoers drop-in at `/etc/sudoers.d/ov-user` targets the **actual uid-1000 account**, whatever it happens to be named on the running base image. The layer no longer hardcodes a literal `user` — instead it discovers the account name at build time via `getent passwd 1000`:
+
+```yaml
+tasks:
+  - cmd: |
+      account=$(getent passwd 1000 | cut -d: -f1)
+      if [ -z "$account" ]; then
+        echo "sshd layer: no uid-1000 account found — refusing to write sudoers" >&2
+        exit 1
+      fi
+      printf '%s ALL=(ALL) NOPASSWD: ALL\n' "$account" > /etc/sudoers.d/ov-user
+      chmod 0440 /etc/sudoers.d/ov-user
+    user: root
+```
+
+This works uniformly across both user-policy modes:
+
+| Image | Resolved account | Sudoers content |
+|---|---|---|
+| fedora-coder, arch-coder, debian-coder | `user` (create mode — `/ov:image` "user_policy") | `user ALL=(ALL) NOPASSWD: ALL` |
+| ubuntu-coder | `ubuntu` (adopt mode — `/ov-images:ubuntu` `base_user:`) | `ubuntu ALL=(ALL) NOPASSWD: ALL` |
+
+Why not `${USER}` substitution? The generator substitutes `${USER}` in task fields (paths, URLs, etc.) but **not** inside `cmd:` command text — `cmd:` is passed verbatim to bash, and bash at RUN time doesn't have `$USER` exported. `getent` is the robust, fully-generic alternative. See `/ov:layer` "`${VAR}` substitution scope" and `/ov:image` "user_policy" for the full architectural context.
 
 ## Usage
 
@@ -96,8 +128,12 @@ caught during `arch-ov` bring-up. See `/ov:test` Authoring Gotcha #11.
 - `/ov-layers:bootc-config` -- the bootc boot wiring (tty1 autologin + systemd-user supervisord) that typically runs alongside this layer
 - `/ov-layers:cloud-init` -- depends on sshd for VM provisioning
 - `/ov-images:selkies-desktop-bootc` -- canonical bootc worked example that exercises the dual-mode sudo test
-- `/ov:test` -- declarative testing framework (gotchas #10 and #11)
-- `/ov:layer` -- layer authoring
+- `/ov-images:ubuntu-coder` -- canonical adopt-mode example; sudoers correctly targets `ubuntu` via getent
+- `/ov-images:debian-coder` -- canonical create-mode deb-family example; sudoers targets `user`
+- `/ov-images:ubuntu` -- declares the `base_user:` block that makes ubuntu-coder run as `ubuntu`
+- `/ov:test` -- declarative testing framework (gotchas #10 and #11, `package_map:`, `exclude_distros:`)
+- `/ov:image` -- `user_policy:` field (create / adopt / auto) that drives which account this layer's sudoers targets
+- `/ov:layer` -- layer authoring (`${VAR}` substitution scope, cmd: vs write:)
 
 ## When to Use This Skill
 
