@@ -1,7 +1,7 @@
 ---
 name: mcp
 description: |
-  MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `ov test mcp` client: probing MCP servers declared via mcp_provides, testing MCP tool catalogs, debugging the URL-rewriter or port-publishing behavior. (2) `ov mcp serve` server: running the ov CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (176 tools), destructive-hint annotations, the `--read-only` filter, and the `ov-mcp` deployment layer with its `/project` bind mount.
+  MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `ov test mcp` client: probing MCP servers declared via mcp_provides, testing MCP tool catalogs, debugging the URL-rewriter or port-publishing behavior. (2) `ov mcp serve` server: running the ov CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (190 tools including the MCP-first authoring surface — image/layer scaffolding, comment-preserving YAML edits, free-form file writes), destructive-hint annotations, the `--read-only` filter, auto-fallback to `overthinkos/overthink` when no project is wired, and the `ov-mcp` deployment layer with its now-optional `/project` bind mount.
 ---
 
 # MCP - Model Context Protocol (client + server)
@@ -9,7 +9,7 @@ description: |
 `ov` speaks MCP in both directions. This skill covers both:
 
 - **Client** — `ov test mcp <method>`: connect to any MCP server declared via `mcp_provides` and probe/call/read. Used to test MCP endpoints shipped by `jupyter-mcp`, `chrome-devtools-mcp`, or the ov server itself.
-- **Server** — `ov mcp serve`: expose the entire ov CLI surface (build + test + deploy modes, 176 tools) as MCP over Streamable HTTP or stdio. Used by LLM agents (Claude Code, Open WebUI, OpenClaw) to drive ov remotely. Deployed in-container via the `ov-mcp` layer.
+- **Server** — `ov mcp serve`: expose the entire ov CLI surface (build + test + deploy modes, 190 tools) as MCP over Streamable HTTP or stdio. Used by LLM agents (Claude Code, Open WebUI, OpenClaw) to drive ov remotely. Deployed in-container via the `ov-mcp` layer. The 190-tool catalog now includes a project-scaffolding + YAML-editing + file-write authoring surface, so an agent can build an `ov` project from scratch over RPC — see "Authoring tools" below.
 
 Both surfaces share the same SDK: `github.com/modelcontextprotocol/go-sdk v1.5.0`.
 
@@ -268,7 +268,7 @@ No other required modifiers — `ping`, `servers`, `list-*` take only the option
 
 ## Overview
 
-`ov mcp serve` runs the ov CLI *as* an MCP server. Every leaf command in the Kong CLI tree — `image.build`, `status`, `test.mcp.ping`, `config.setup`, etc. — becomes a callable MCP tool. Tool catalogs are **auto-generated from Kong struct tags** by reflection; there is no hand-written schema per command. Result: **176 tools** covering the entire build + test + deploy surface.
+`ov mcp serve` runs the ov CLI *as* an MCP server. Every leaf command in the Kong CLI tree — `image.build`, `status`, `test.mcp.ping`, `config.setup`, `image.new.project`, `layer.add-rpm`, etc. — becomes a callable MCP tool. Tool catalogs are **auto-generated from Kong struct tags** by reflection; there is no hand-written schema per command. Result: **190 tools** covering the entire build + test + deploy surface, including the MCP-first authoring verbs (14 added in 2026: `image.{new.project, new.image, set, add-layer, rm-layer, fetch, refresh, write, cat}` + `layer.{set, add-rpm, add-deb, add-pac, add-aur}`).
 
 ```bash
 ov mcp serve                                # Streamable HTTP on :18765/mcp
@@ -290,7 +290,7 @@ The server lives in a single file: `ov/mcp_server.go`.
    - **InputSchema**: JSON schema built from `long:""`, `help:""`, `enum:""`, `default:""`, `required:""` struct tags. Positional args become required properties; flags become optional properties. **Every schema has `additionalProperties: false`** — unknown keys are rejected by the SDK's input validation before the handler runs. The schema validator is LLM-honest about the allowed surface.
    - **Annotations**: destructive tools get `DestructiveHint: &true`; everything else gets `ReadOnlyHint: true`.
 
-2. **Destructive gating** — `mcpDestructivePaths` is an explicit 51-entry allowlist of mutating tools (lifecycle: `remove`/`stop`/`start`/`update`/`cmd`/`shell`/`service.*`; config: `config.setup`/`mount`/`unmount`/`passwd`/`remove`; secrets: `set`/`delete`/`import`/`init`/`gpg.setup`/`gpg.set`/`gpg.unset`/`gpg.edit`/`gpg.encrypt`/`gpg.add-recipient`/`gpg.import-key`; deploy: `import`/`reset`; image: `build`/`merge`/`new.layer`; VM: `create`/`destroy`/`start`/`stop`/`build`; udev: `install`/`remove`; alias: `install`/`uninstall`/`add`/`remove`; record: `start`/`stop`/`cmd`; tmux: `kill`/`run`/`send`/`cmd`; settings: `set`/`reset`/`migrate-secrets`). When `--read-only` is set, `buildMcpServer` skips registration entirely rather than gating at runtime — read-only servers expose **125 tools** (176 − 51).
+2. **Destructive gating** — `mcpDestructivePaths` is an explicit 63-entry allowlist of mutating tools (lifecycle: `remove`/`stop`/`start`/`update`/`cmd`/`shell`/`service.*`; config: `config.setup`/`mount`/`unmount`/`passwd`/`remove`; secrets: `set`/`delete`/`import`/`init`/`gpg.setup`/`gpg.set`/`gpg.unset`/`gpg.edit`/`gpg.encrypt`/`gpg.add-recipient`/`gpg.import-key`; deploy: `import`/`reset`; image build/scaffold/edit: `image.build`/`merge`/`new.{layer,project,image}`/`set`/`add-layer`/`rm-layer`/`refresh`/`write`; layer edit: `layer.set`/`add-rpm`/`add-deb`/`add-pac`/`add-aur`; VM: `create`/`destroy`/`start`/`stop`/`build`; udev: `install`/`remove`; alias: `install`/`uninstall`/`add`/`remove`; record: `start`/`stop`/`cmd`; tmux: `kill`/`run`/`send`/`cmd`; settings: `set`/`reset`/`migrate-secrets`). When `--read-only` is set, `buildMcpServer` skips registration entirely rather than gating at runtime — read-only servers expose **127 tools** (190 − 63). `image.fetch` (idempotent, additive cache prime) and `image.cat` (read-only file read) are **not** in the destructive set despite living in the authoring family — they're safe under `--read-only`.
 
 3. **Tool invocation** — `makeToolHandler(path, leaf)` returns a closure. On call: decode the MCP JSON arguments, reconstruct a `[]string` argv via `argvFromJSON(…)` (booleans → bare flag, slices → repeated `--flag=value`, positionals in Kong order), then `captureAndRun(argv)` builds a fresh `kong.New(&CLI{})`, calls `k.Parse(argv)`, invokes `kctx.Run()`, and returns captured stdout/stderr as a single `TextContent`. Errors become `IsError: true` tool results, not MCP-protocol errors — the LLM sees the failure text.
 
@@ -326,7 +326,15 @@ service: |
   ...
 ```
 
-**Project-dir wiring** — build-mode tools (`image.build`, `image.inspect`, `image.list.*`) resolve `image.yml` via `os.Getwd()`. Inside the container, cwd is `/root`, not the project. The `env: OV_PROJECT_DIR: /project` + `volumes: project → /project` pair solves this: the deployer bind-mounts their project with `ov config <image> --bind project=/path/to/overthink`, and the ov CLI's global `-C` / `--dir` / `OV_PROJECT_DIR` flag (implemented in `ov/main.go`) honours the env var before Kong dispatch, calling `os.Chdir(OV_PROJECT_DIR)` once. See `/ov:image` "Project directory resolution" for the flag itself.
+**Project-dir wiring** — build-mode tools (`image.build`, `image.inspect`, `image.list.*`) resolve `image.yml` via `os.Getwd()`. Inside the container, cwd is `/root`, not the project. There are now three deployment patterns, in order of progressively less local setup:
+
+1. **Bind-mount** — the original `ov-mcp` layer pattern. The `env: OV_PROJECT_DIR: /project` + `volumes: project → /project` pair: deployer bind-mounts with `ov config <image> --bind project=/path/to/overthink`. The ov CLI's global `-C` / `--dir` / `OV_PROJECT_DIR` flag honours the env var before Kong dispatch, calling `os.Chdir(OV_PROJECT_DIR)` once. Use this when the agent should see your in-flight local edits.
+
+2. **Remote pin** — set `OV_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env (e.g. via `ov config <image> -e OV_PROJECT_REPO=...`). The ov CLI clones (or hits its `~/.cache/ov/repos/` cache) and chdirs into the cache path before Kong dispatch. No bind mount required. Use this for reproducible agent runs against a pinned upstream.
+
+3. **Auto-default** — `ov mcp serve` with no `OV_PROJECT_DIR`/`OV_PROJECT_REPO` and no local `image.yml` silently falls back to `github.com/overthinkos/overthink`. Pass `--no-default-repo` on the serve command to opt out (it then hard-fails with `ov mcp serve: no project source found …`). This is the only command in the entire CLI that auto-fetches; the top-level CLI stays opt-in. Implemented in `McpServeCmd.bootstrapProject()` in `ov/mcp_server.go`.
+
+See `/ov:image` "Project directory resolution" for the flag/env semantics, and `ov/mcp_serve_default_repo_test.go` for the auto-fallback behaviour test.
 
 **Composition style** — `ov-mcp` uses `layers: [ov, supervisord]` (meta-layer composition) rather than `depends:` (hard prerequisite) because it adds no install of its own — it's pure wiring. Images that want the MCP server add `ov-mcp` to their layer list; images that just want the ov binary continue to use the `ov` layer alone. Both `layers:` and `depends:` reference other layers, but only `layers:` lets the using layer ship no install files.
 
@@ -342,7 +350,7 @@ ov start arch-ov
 ov test mcp ping arch-ov --name ov
 # ok
 ov test mcp list-tools arch-ov --name ov | wc -l
-# 176
+# 190
 ov test mcp call arch-ov version '{}' --name ov
 # 2026.nnn.nnnn          (the container's own ov version)
 ov test mcp call arch-ov image.list.images '{}' --name ov
@@ -352,6 +360,38 @@ ov test mcp call arch-ov image.list.images '{}' --name ov
 ```
 
 The deploy-scope tests in `layers/ov-mcp/layer.yml` cover this exact sequence: service-running, port-reachable, `mcp: ping`, `mcp: list-tools`, `mcp: call tool=version`, `mcp: call tool=image.list.images` (the last proves the bind-mount + OV_PROJECT_DIR wiring).
+
+## Authoring tools (build-from-scratch over MCP)
+
+Every CLI verb under `ov image …` and `ov layer …` auto-becomes an MCP tool via Kong reflection. The authoring surface added for "build a project from scratch using only `ov mcp`" exposes these tools:
+
+| MCP tool | What it does |
+|---|---|
+| `image.new.project` | Scaffold `image.yml` (referencing the upstream `build.yml` remotely), `layers/`, `.gitignore`. |
+| `image.new.image` | Append a new image entry to `image.yml`. |
+| `image.new.layer` | Scaffold `layers/<name>/layer.yml` with a stub. |
+| `image.set` | Set any value in `image.yml` by dot-path (`defaults.tag`, `images.foo.layers`, …). Value is parsed as YAML. |
+| `image.add-layer` / `image.rm-layer` | Append / remove a layer from an image's `layers:` list (idempotent). |
+| `layer.set` | Set any value in `layers/<name>/layer.yml` by dot-path. |
+| `layer.add-rpm` / `layer.add-deb` / `layer.add-pac` / `layer.add-aur` | Append packages to a layer's `<format>.packages` list. Idempotent. Upgrades scaffold's null `packages:` value to a real sequence. |
+| `image.fetch` / `image.refresh` | Pre-prime / re-clone the remote-repo cache. Spec defaults to `default` (overthinkos/overthink). |
+| `image.write` / `image.cat` | Write / read any file under the project root — escape hatch for free-form auxiliary files (`pixi.toml`, `package.json`, `root.yml`, scripts, `*.service`). Path is resolved against `os.Getwd()` and rejected if it escapes the project root. |
+
+All YAML edits go through the `yaml.v3` *node* API (not value unmarshal) so comments and key order are preserved across edits. Implementation in `ov/scaffold_project.go`, `ov/yaml_setter.go`, and `ov/scaffold_cmds.go`. Tested in `ov/scaffold_project_test.go` and `ov/yaml_setter_test.go`.
+
+End-to-end MCP-only worked example:
+
+```jsonc
+// All called as MCP tool calls (e.g. via `ov test mcp call <ctr> <tool> '<args>'`):
+image.new.project   {"dir": "/tmp/hello"}
+image.new.image     {"name": "hello", "base": "quay.io/fedora/fedora:43"}
+image.new.layer     {"name": "hello-svc"}
+layer.add-rpm       {"name": "hello-svc", "packages": ["openssh-server"]}
+image.add-layer     {"image": "hello", "layer": "hello-svc"}
+image.validate      {}
+image.build         {"image": "hello"}
+image.inspect       {"image": "hello"}
+```
 
 ## Port choice
 

@@ -30,13 +30,13 @@ Historical note: `arch-ov` previously used `network: host`. That was dropped in 
 
 ### MCP gateway (ov-mcp)
 
-The `ov-mcp` layer deploys `ov mcp serve --listen :18765` inside the container under supervisord, advertising 176 MCP tools (the full Kong CLI surface) over Streamable HTTP. Project-dir-dependent tools (`image.build`, `image.list.images`, `image.inspect`) work when a project is bind-mounted at `/project` via `--bind project=...`:
+The `ov-mcp` layer deploys `ov mcp serve --listen :18765` inside the container under supervisord, advertising 190 MCP tools (the full Kong CLI surface, including the project-scaffolding + YAML-editing + file-write authoring verbs added in 2026) over Streamable HTTP. Project-dir-dependent tools (`image.build`, `image.list.images`, `image.inspect`) work via three deployment patterns: bind-mount the project at `/project` (`--bind project=...`), pin a remote with `-e OV_PROJECT_REPO=owner/repo@ref`, or rely on the auto-fallback to `overthinkos/overthink` (the default in 2026). Example with the bind-mount pattern:
 
 ```bash
 ov config arch-ov --bind project=/home/you/overthink
 ov start arch-ov
 ov test mcp ping arch-ov --name ov                      # → ok
-ov test mcp list-tools arch-ov --name ov | wc -l         # → 176
+ov test mcp list-tools arch-ov --name ov | wc -l         # → 190
 ov test mcp call arch-ov image.list.images '{}' --name ov  # lists the project's images
 ```
 

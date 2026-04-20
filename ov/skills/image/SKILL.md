@@ -58,27 +58,47 @@ pattern.
 
 ## Project directory resolution
 
-Every `ov image …` command resolves `image.yml` (and `build.yml`, `layers/`, etc.) **relative to the current working directory** — internally via `os.Getwd()` on every entry point. Three ways to override that default:
+Every `ov image …` command resolves `image.yml` (and `build.yml`, `layers/`, etc.) **relative to the current working directory** — internally via `os.Getwd()` on every entry point. Five ways to override that default — three local, two remote:
 
 ```bash
+# Local project — pick a directory on disk:
 ov -C /path/to/overthink image list images          # short flag
 ov --dir /path/to/overthink image list images       # long flag
 OV_PROJECT_DIR=/path/to/overthink ov image list images   # env var
+
+# Remote project — clone (or hit cache) and chdir into it:
+ov --repo overthinkos/overthink image list images        # bare owner/repo → github.com/owner/repo@<default-branch>
+ov --repo overthinkos/overthink@main image list images   # pinned ref
+ov --repo default image list images                      # literal "default" → overthinkos/overthink
+OV_PROJECT_REPO=overthinkos/overthink ov image list images
 ```
 
-All three are equivalent. They're declared on the top-level `CLI` struct in `ov/main.go` and resolved by a single `os.Chdir(cli.Dir)` call **before** Kong dispatches the subcommand, so every existing `os.Getwd()` site picks up the new cwd — no per-command plumbing needed.
+`--repo` and `--dir` are mutually exclusive (passing both exits with `ov: --repo and --dir are mutually exclusive`). All five paths are declared on the top-level `CLI` struct in `ov/main.go` and resolved by a single `os.Chdir(cli.Dir)` call **before** Kong dispatches the subcommand, so every existing `os.Getwd()` site picks up the new cwd — no per-command plumbing needed.
 
-**Canonical use case**: running `ov mcp serve` inside a container. The container's cwd is `/root` (or similar) where no `image.yml` exists. The `ov-mcp` layer bind-mounts the project at `/project` and sets `env: OV_PROJECT_DIR=/project` — so every build-mode MCP tool (`image.build`, `image.inspect`, `image.list.images`, …) reaches the right `image.yml`:
+**Repo spec normalization** (in `ov/main_repo.go`):
 
-```bash
-# Host side:
-ov config arch-ov --bind project=/home/you/overthink
-ov start arch-ov
-ov test mcp call arch-ov image.list.images '{}' --name ov
-#  → lists the images from the bind-mounted project, as if cwd = /home/you/overthink
-```
+- `default` → `github.com/overthinkos/overthink` at the default branch
+- bare `owner/repo` → `github.com/owner/repo` (auto-prefix when first segment has no dot)
+- bare `owner/repo@ref` → pinned to `ref`
+- `host.tld/owner/repo[@ref]` → used literally (the dot in the host disambiguates)
 
-The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory` or `reading image.yml: open /project/image.yml: no such file or directory` (when the bind mount exists but hasn't been populated). See `/ov:mcp` "Deployment: the `ov-mcp` layer" for the full bind-mount pattern and `/ov-dev:go` "main.go" for the implementation note (guarded by `TestOvDir_FlagChdir` + `TestOvDir_Errors` in `main_dir_test.go`).
+Remote repos are cloned into `~/.cache/ov/repos/<repoPath>@<version>/` (override via `OV_REPO_CACHE`). The cache is shared with the existing remote-layer fetcher (`ov/refs.go`, `ov/refs_git.go`) — both go through `EnsureRepoDownloaded`.
+
+**Canonical use case**: running `ov mcp serve` inside a container. The container's cwd is `/root` (or similar) where no `image.yml` exists. There are now three deployment patterns, in order of progressively less local setup:
+
+1. **Bind-mount** — the original `ov-mcp` layer pattern. Host project mounted at `/project`, `OV_PROJECT_DIR=/project` set in the container env. Use this when you want the agent to read your in-flight local edits.
+
+   ```bash
+   ov config arch-ov --bind project=/home/you/overthink
+   ov start arch-ov
+   ov test mcp call arch-ov image.list.images '{}' --name ov
+   ```
+
+2. **Remote pin** — set `OV_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env. The agent reads from a pinned upstream version. No bind mount required.
+
+3. **Auto-default** — `ov mcp serve` with no `OV_PROJECT_DIR`/`OV_PROJECT_REPO` and no local `image.yml` silently falls back to `github.com/overthinkos/overthink`. Pass `--no-default-repo` on the serve command to opt out (it then hard-fails with a clear error). This is the only command that auto-fetches; the top-level CLI stays opt-in.
+
+The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory` or `reading image.yml: open /project/image.yml: no such file or directory` (when the bind mount exists but hasn't been populated). See `/ov:mcp` "Deployment: the `ov-mcp` layer" for the full bind-mount pattern and `/ov-dev:go` "main.go" for the implementation note (guarded by `TestOvDir_FlagChdir` + `TestOvDir_Errors` in `main_dir_test.go`, and `TestNormalizeRepoSpec` + `TestOvRepo_*` in `main_repo_test.go`).
 
 ## Quick Reference
 
@@ -91,6 +111,31 @@ The error messages are explicit when misconfigured: `cannot chdir to --dir "/mis
 | Validate | `ov image validate` | Check image.yml + layers |
 | Pull into local storage | `ov image pull <image>` | Fetch from registry so deploy-mode commands work |
 | Run build-time tests | `ov image test <image>` | Runs the baked layer + image test sections in a disposable `podman run --rm` container; add `--include-deploy` to also run the deploy section. See `/ov:test`. |
+| Pre-prime remote repo cache | `ov image fetch [<spec>]` | Clones (or hits cache) for the spec — defaults to `default` (overthinkos/overthink). Prints the cache path. |
+| Force re-clone | `ov image refresh [<spec>]` | Removes the cache entry and re-clones. |
+
+### Authoring (the MCP-first surface)
+
+Each verb below is also auto-exposed as an MCP tool (`image.new.project`, `image.new.image`, `image.set`, `image.add-layer`, `image.rm-layer`, `image.write`, `image.cat`, `layer.set`, `layer.add-rpm`, …) via `ov/mcp_server.go`'s Kong reflection. So an LLM agent driving `ov mcp serve` can author a project from scratch over RPC.
+
+| Action | Command |
+|--------|---------|
+| Scaffold a fresh project | `ov image new project <dir>` |
+| Add an image entry | `ov image new image <name> --base <ref> --layers <a,b,c>` |
+| Add a layer dir (stub `layer.yml`) | `ov image new layer <name>` |
+| Edit a value in `image.yml` | `ov image set <dotpath> <yaml-value>` |
+| Append a layer to an image | `ov image add-layer <image> <layer>` |
+| Remove a layer from an image | `ov image rm-layer <image> <layer>` |
+| Edit a value in `layers/<name>/layer.yml` | `ov layer set <name> <dotpath> <yaml-value>` |
+| Append rpm/deb/pac/aur packages to a layer | `ov layer add-rpm <name> <pkg…>` (and `add-deb`, `add-pac`, `add-aur`) |
+| Write any file under the project root | `ov image write <rel-path> [--content X \| --from-stdin]` |
+| Read any file under the project root | `ov image cat <rel-path>` |
+
+**Safety boundary**: `ov image write` / `ov image cat` resolve the path against `os.Getwd()` (the project root) and reject absolute paths or `..` traversal that would escape the root. They are the deliberate escape hatch for free-form auxiliary files (`pixi.toml`, `package.json`, `root.yml`, `*.service`, scripts) that the schema-aware setters don't cover.
+
+**Comment preservation**: every YAML edit (`set`, `add-layer`, `rm-layer`, `add-rpm`, etc.) goes through the `yaml.v3` *node* API rather than the value API, so human-authored comments and key order are preserved across edits. Tested in `ov/yaml_setter_test.go` and `ov/scaffold_project_test.go`.
+
+**Project scaffold contents**: `ov image new project` writes a minimal `image.yml` whose `defaults.format_config` references the upstream `build.yml` remotely (`@github.com/overthinkos/overthink/build.yml`), so new projects don't have to copy the canonical 1k-line build.yml. Replace with a local `build.yml` + drop the `format_config` field if you need custom distro/builder/init definitions.
 
 ## image.yml Structure
 

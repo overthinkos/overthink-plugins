@@ -20,7 +20,7 @@ description: |
 
 ## What It Provides
 
-Deploys `ov mcp serve --listen :18765` inside the container under supervisord. The server exposes the entire ov CLI (176 tools) as MCP over Streamable HTTP. Any image that composes `ov-mcp` advertises itself as an MCP server via the `org.overthinkos.mcp_provides` OCI label, so consumers — Claude Code, Open WebUI, OpenClaw, or the in-repo `ov test mcp` client — can drive it without any out-of-band URL configuration.
+Deploys `ov mcp serve --listen :18765` inside the container under supervisord. The server exposes the entire ov CLI (190 tools, including the MCP-first authoring surface added in 2026) as MCP over Streamable HTTP. Any image that composes `ov-mcp` advertises itself as an MCP server via the `org.overthinkos.mcp_provides` OCI label, so consumers — Claude Code, Open WebUI, OpenClaw, or the in-repo `ov test mcp` client — can drive it without any out-of-band URL configuration.
 
 See `/ov:mcp` (Part 2) for the full server architecture: Kong reflection, destructive-hint annotations, `--read-only` filter, transport dispatch.
 
@@ -55,7 +55,7 @@ ov start arch-ov
 
 The ov binary's global `-C` / `--dir` / `OV_PROJECT_DIR` flag (`ov/main.go`) calls `os.Chdir(OV_PROJECT_DIR)` before Kong dispatches the subcommand — so every `os.Getwd()` call in build-mode code paths picks up `/project` transparently, without any per-command plumbing. See `/ov:image` "Project directory resolution" for the flag and `/ov:config` "Bind-mounting a project checkout for ov mcp serve" for the config workflow.
 
-If the deployer forgets the `--bind`, build-mode tools return a clear error (`reading image.yml: open /project/image.yml: no such file or directory`) but session-wide tools (`status`, `version`, `doctor`, `secrets`, `settings`) continue to work.
+If the deployer forgets the `--bind`, build-mode tools no longer hard-fail. Since `ov mcp serve` learned to auto-fall to `github.com/overthinkos/overthink` when no project is wired (see `/ov:image` "Project directory resolution" and `/ov:mcp` "Project-dir wiring"), an unwired container will silently chdir into the upstream cache. The bind mount remains the right call when the agent should see your *local* edits; for read-only agents driving a pinned upstream, you can skip the `--bind` entirely or set `OV_PROJECT_REPO=overthinkos/overthink@<sha>` instead. Pass `--no-default-repo` on the serve command (e.g. via the layer's `service:` block) to opt out of the auto-fallback and reinstate the hard-fail behaviour.
 
 ## Tests
 
@@ -101,7 +101,7 @@ Images composing `ov-mcp` must publish port 18765 (either via layer-declared `po
 - `/ov:image` — "Project directory resolution" covers the `-C` / `--dir` / `OV_PROJECT_DIR` global flag that this layer's `env:` block targets.
 - `/ov:config` — `--bind project=<path>` is the deployer's handshake with this layer's `volumes:` declaration.
 - `/ov:test` — Deploy-scope `mcp:` test verb methods used here.
-- `/ov-dev:go` — `ov/mcp_server.go` implementation map (Kong reflection, capture model, destructive set).
+- `/ov-dev:go` — `ov/mcp_server.go` implementation map (Kong reflection, capture model, destructive set). See "Implementation insights" for: env-var proxy detection of top-level `--repo` / `--dir` from inside `bootstrapProject()`, the Kong flag-namespace collision that forced dropping a per-subcommand `--repo` flag, and the auto-fallback precedence chain.
 
 ## When to Use This Skill
 

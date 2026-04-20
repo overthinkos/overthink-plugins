@@ -16,12 +16,40 @@ Since the `tasks:` refactor, there is **one YAML file per layer** for install lo
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Scaffold new layer | `ov image new layer <name>` | Create layer directory with starter `layer.yml` |
+| Scaffold new layer | `ov image new layer <name>` | Create layer directory with starter `layer.yml` (see `/ov:new`) |
+| Edit a layer field | `ov layer set <name> <dotpath> <value>` | Comment-preserving YAML edit by dot-path |
+| Append rpm/deb/pac/aur packages | `ov layer add-rpm <name> <pkg…>` (plus `add-deb`, `add-pac`, `add-aur`) | Idempotent append; auto-upgrades scaffold's null `packages:` to a sequence |
+| Write a free-form file (`pixi.toml`, `root.yml`, …) | `ov image write <rel-path> --content X` | Escape hatch for files the schema setters don't cover; guarded against `..` traversal |
 | List all layers | `ov image list layers` | Show available layers from filesystem |
 | List services | `ov image list services` | Layers with `service` in layer.yml |
 | List volumes | `ov image list volumes` | Layers with `volumes` in layer.yml |
 | List aliases | `ov image list aliases` | Layers with `aliases` in layer.yml |
 | Validate | `ov image validate` | Check all layers and images |
+
+Every editor verb above auto-becomes an MCP tool via Kong reflection (`layer.set`, `layer.add-rpm`, `image.write`, …) so an agent driving `ov mcp serve` can author layers from scratch over RPC without touching the filesystem directly. See `/ov:mcp` "Authoring tools" for the worked end-to-end example, and `/ov:new` for the project / image / layer scaffolders that bootstrap the flow.
+
+### Editing layer.yml via the CLI (no hand-edit required)
+
+The `ov layer …` group edits `layers/<name>/layer.yml` through the `yaml.v3` Node API, so **comments and key order are preserved** across edits. Unlike unmarshal-then-marshal, nothing gets scrambled when an agent (or a shell script) touches the file:
+
+```bash
+# Append packages (idempotent; handles scaffold's null `packages:` value):
+ov layer add-rpm sshd openssh-server openssh-clients
+ov layer add-deb sshd openssh-server
+ov layer add-pac sshd openssh
+
+# Set any field by dot-path (value is parsed as YAML):
+ov layer set sshd env.SSHD_PORT 22
+ov layer set sshd service.name sshd
+ov layer set sshd ports '["22:22"]'
+ov layer set sshd depends '[supervisord]'
+
+# Free-form files (layer scripts, pixi.toml, root.yml, *.service):
+ov image write layers/sshd/root.yml --content 'tasks:\n  - cmd: echo configured\n'
+ov image cat layers/sshd/root.yml
+```
+
+Implementation: `ov/scaffold_cmds.go` (verbs) + `ov/yaml_setter.go` (`SetByDotPath`). Tested in `ov/yaml_setter_test.go` — the comment-preservation guarantee is explicitly exercised (leading file comments, sibling keys, and per-key inline comments all survive round trips). See `/ov-dev:go` "Implementation insights" for the full rationale.
 
 ## Install Surface (what a layer directory holds)
 
@@ -764,7 +792,8 @@ Declare `service:` with a supervisord `[program:<name>]` fragment and add `super
 
 ## Cross-References
 
-- `/ov:image` — Adding layers to image definitions; image composition; `data_image:` for data-only bundles.
+- `/ov:image` — Adding layers to image definitions; image composition; `data_image:` for data-only bundles; the full MCP-first authoring table including `image set`, `image add-layer`, `image rm-layer`, `image write`, `image cat`.
+- `/ov:mcp` — "Authoring tools" table exposing `layer.set`, `layer.add-rpm`, `layer.add-deb`, `layer.add-pac`, `layer.add-aur` as MCP tools; end-to-end build-from-scratch worked example.
 - `/ov:generate` — What `ov image generate` actually emits; the per-verb emitter pipeline; `.build/<image>/` layout.
 - `/ov:validate` — Validation rules (including per-verb task requirements).
 - `/ov:new` — Scaffolding a new layer directory.

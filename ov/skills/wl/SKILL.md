@@ -1,3 +1,9 @@
+---
+name: wl
+description: |
+  MUST be invoked before any work involving: Wayland / wlroots desktop automation — `ov test wl` commands (screenshots, click/type/scroll/drag, window management via wlrctl, clipboard, resolution control, AT-SPI2 introspection, window geometry), nested `wl sway` / `wl overlay` subcommands, or `wl:` declarative verbs inside `tests:` blocks. Covers sway-desktop and selkies-desktop image automation on both sway and labwc compositors.
+---
+
 # WL - Compositor-Agnostic Desktop Automation
 
 ## Overview
