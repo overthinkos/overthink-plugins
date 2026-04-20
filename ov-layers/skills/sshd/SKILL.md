@@ -16,8 +16,28 @@ description: |
 
 ## Packages
 
-- `openssh-server` (RPM) -- SSH daemon
-- `openssh-clients` (RPM) -- SSH client tools (ssh, scp, sftp)
+- `openssh-server` (RPM) — SSH daemon
+- `openssh-clients` (RPM) — SSH client tools (ssh, scp, sftp)
+- `openssh` (pac) — Arch metapackage bundling both daemon and client
+- `sudo` (both) — required for the NOPASSWD rule this layer writes
+
+**Cross-distro package-test pattern:** the sshd layer's
+`openssh-server-package` check uses `package_map:` to resolve the right
+name per distro — `openssh-server` on Fedora/Debian, `openssh` on Arch.
+This is the canonical worked example for the `package_map` feature; see
+`/ov:test` "Cross-distro package names (`package_map:`)" for the
+mechanics and the priority ordering (`fedora:43` > `fedora` when both
+match).
+
+```yaml
+- id: openssh-server-package
+  package: openssh-server        # default
+  package_map:
+    archlinux: openssh
+    fedora: openssh-server
+    fedora:43: openssh-server
+  installed: true
+```
 
 ## Usage
 
@@ -45,7 +65,7 @@ my-image:
 - Host-side port reachability uses `127.0.0.1:${HOST_PORT:2222}`, not
   `${CONTAINER_IP}:${HOST_PORT:2222}`. See `/ov:test` Gotcha #1.
 
-### Dual-mode sudo check — the `runuser -l user` wrapper
+### Dual-mode sudo check — the `runuser -u user --` wrapper
 
 `ov image test` runs with USER=1000 on container images but USER=0 on bootc images (bootc intentionally keeps USER=root because systemd manages user sessions via login). A naïve `sudo -n -l; contains: NOPASSWD` check fails on bootc — running as root prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`. The layer's current test drops to `user` explicitly when running as root:
 
@@ -53,7 +73,7 @@ my-image:
 - id: sudoers-ov-user
   command: |
     if [ "$(id -u)" = "0" ]; then
-      runuser -l user -s /bin/bash -c 'sudo -n -l'
+      runuser -u user -- sudo -n -l
     else
       sudo -n -l
     fi
@@ -62,7 +82,13 @@ my-image:
     - contains: "NOPASSWD"
 ```
 
-`runuser -l user -s /bin/bash -c '...'` is the root-available bridge — it honours the target user's login shell and env, and requires no password. This is the canonical pattern for any test that needs to probe user-1000 behaviour on a bootc image. See `/ov:test` Authoring Gotcha #11.
+**Portability note:** use `runuser -u user -- <cmd>`, **not**
+`runuser -l user -s /bin/bash -c '<cmd>'`. On Arch util-linux (2.42+),
+the `-l … -c` form swallows the wrapped command's stdout — reproduced
+cleanly: `runuser -l user -s /bin/bash -c 'sudo -n -l'` prints nothing
+and exits 0, while `runuser -u user -- sudo -n -l` prints the full
+NOPASSWD listing. The layer was fixed to `-u … --` after this was
+caught during `arch-ov` bring-up. See `/ov:test` Authoring Gotcha #11.
 
 ## Related Skills
 

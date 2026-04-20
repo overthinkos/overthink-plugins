@@ -71,6 +71,10 @@ ov image list volumes
 ov image list aliases
 ```
 
+## Project directory override
+
+`ov image list …` resolves `image.yml` + `layers/` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov:image` "Project directory resolution".
+
 ## Cross-References
 
 ### `ov image` family siblings

@@ -162,6 +162,10 @@ The RPM install_template prepends `dnf install -y dnf5-plugins` whenever any lay
 
 The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUILD_ARCH}…"` with an explicit semicolon-separator `export`, not the prefix form `BUILD_ARCH=$(uname -m) curl ...`. Bash prefix assignments set the variable in the spawned command's environment **after** the shell has already expanded `${BUILD_ARCH}` in the command's arguments — the expansion sees an unset variable, the URL resolves with an empty arch string, and the download 404s. Source: `ov/tasks.go:envPrefix` with the documenting comment. Layers that use `${BUILD_ARCH}` in a `download:` URL: `/ov-layers:pixi`, `/ov-layers:typst`, `/ov-layers:ujust`, `/ov-layers:yay`, `/ov-layers:vectorchord`, `/ov-layers:sherpa-onnx`.
 
+## Project directory override
+
+`ov image generate` resolves `image.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov:image` "Project directory resolution".
+
 ## Cross-References
 
 ### `ov image` family siblings

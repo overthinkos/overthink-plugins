@@ -1,10 +1,21 @@
 ---
 name: mcp
 description: |
-  MUST be invoked before any work involving: Model Context Protocol clients, ov test mcp commands, probing MCP servers declared via mcp_provides, testing MCP tool catalogs, or debugging the URL-rewriter / port-publishing behavior for MCP endpoints.
+  MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `ov test mcp` client: probing MCP servers declared via mcp_provides, testing MCP tool catalogs, debugging the URL-rewriter or port-publishing behavior. (2) `ov mcp serve` server: running the ov CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (176 tools), destructive-hint annotations, the `--read-only` filter, and the `ov-mcp` deployment layer with its `/project` bind mount.
 ---
 
-# MCP - Model Context Protocol client
+# MCP - Model Context Protocol (client + server)
+
+`ov` speaks MCP in both directions. This skill covers both:
+
+- **Client** — `ov test mcp <method>`: connect to any MCP server declared via `mcp_provides` and probe/call/read. Used to test MCP endpoints shipped by `jupyter-mcp`, `chrome-devtools-mcp`, or the ov server itself.
+- **Server** — `ov mcp serve`: expose the entire ov CLI surface (build + test + deploy modes, 176 tools) as MCP over Streamable HTTP or stdio. Used by LLM agents (Claude Code, Open WebUI, OpenClaw) to drive ov remotely. Deployed in-container via the `ov-mcp` layer.
+
+Both surfaces share the same SDK: `github.com/modelcontextprotocol/go-sdk v1.5.0`.
+
+---
+
+# Part 1 — Client (`ov test mcp …`)
 
 ## Overview
 
@@ -251,6 +262,110 @@ Tests currently shipping in the three provider layers (`layers/jupyter/layer.yml
 
 No other required modifiers — `ping`, `servers`, `list-*` take only the optional `mcp_name:`.
 
+---
+
+# Part 2 — Server (`ov mcp serve`)
+
+## Overview
+
+`ov mcp serve` runs the ov CLI *as* an MCP server. Every leaf command in the Kong CLI tree — `image.build`, `status`, `test.mcp.ping`, `config.setup`, etc. — becomes a callable MCP tool. Tool catalogs are **auto-generated from Kong struct tags** by reflection; there is no hand-written schema per command. Result: **176 tools** covering the entire build + test + deploy surface.
+
+```bash
+ov mcp serve                                # Streamable HTTP on :18765/mcp
+ov mcp serve --listen 127.0.0.1:9999        # Custom port
+ov mcp serve --path /api/mcp                # Custom HTTP path prefix (default /mcp)
+ov mcp serve --stdio                        # Stdio transport for editor/LLM integration
+ov mcp serve --read-only                    # Skip registering the 51 destructive tools
+```
+
+The server uses the same `github.com/modelcontextprotocol/go-sdk` v1.5.0 as the client, so the wire format is identical and `ov test mcp ping <image>` works against it unchanged.
+
+## Architecture
+
+The server lives in a single file: `ov/mcp_server.go`.
+
+1. **Reflection** — `buildMcpServer(readOnly)` calls `kong.New(&CLI{}, …)` to materialise the CLI tree, then walks `k.Model.Leaves(true)` — every non-branch node. For each leaf, `kongLeafToTool(leaf, path, destructive)` emits an `*mcp.Tool`:
+   - **Name**: dot-joined Kong path (e.g. `image.build`, `test.mcp.ping`, `config.setup`).
+   - **Description**: Kong's `Help` tag, with a `[destructive: …]` annotation appended for mutating tools.
+   - **InputSchema**: JSON schema built from `long:""`, `help:""`, `enum:""`, `default:""`, `required:""` struct tags. Positional args become required properties; flags become optional properties. **Every schema has `additionalProperties: false`** — unknown keys are rejected by the SDK's input validation before the handler runs. The schema validator is LLM-honest about the allowed surface.
+   - **Annotations**: destructive tools get `DestructiveHint: &true`; everything else gets `ReadOnlyHint: true`.
+
+2. **Destructive gating** — `mcpDestructivePaths` is an explicit 51-entry allowlist of mutating tools (lifecycle: `remove`/`stop`/`start`/`update`/`cmd`/`shell`/`service.*`; config: `config.setup`/`mount`/`unmount`/`passwd`/`remove`; secrets: `set`/`delete`/`import`/`init`/`gpg.setup`/`gpg.set`/`gpg.unset`/`gpg.edit`/`gpg.encrypt`/`gpg.add-recipient`/`gpg.import-key`; deploy: `import`/`reset`; image: `build`/`merge`/`new.layer`; VM: `create`/`destroy`/`start`/`stop`/`build`; udev: `install`/`remove`; alias: `install`/`uninstall`/`add`/`remove`; record: `start`/`stop`/`cmd`; tmux: `kill`/`run`/`send`/`cmd`; settings: `set`/`reset`/`migrate-secrets`). When `--read-only` is set, `buildMcpServer` skips registration entirely rather than gating at runtime — read-only servers expose **125 tools** (176 − 51).
+
+3. **Tool invocation** — `makeToolHandler(path, leaf)` returns a closure. On call: decode the MCP JSON arguments, reconstruct a `[]string` argv via `argvFromJSON(…)` (booleans → bare flag, slices → repeated `--flag=value`, positionals in Kong order), then `captureAndRun(argv)` builds a fresh `kong.New(&CLI{})`, calls `k.Parse(argv)`, invokes `kctx.Run()`, and returns captured stdout/stderr as a single `TextContent`. Errors become `IsError: true` tool results, not MCP-protocol errors — the LLM sees the failure text.
+
+4. **Capture model — os.Stdout / os.Stderr redirect, NOT fd-level** — the first implementation used `syscall.Dup2(pipe, fd=1)` for fd-level capture (would also catch subprocess output and Go's builtin `println`). It **deadlocked** because the MCP SDK's `StdioTransport` captures `os.Stdout` by pointer at Connect time — after dup2'ing fd 1 to our capture pipe, the SDK's JSON-RPC responses went into the tool-output buffer instead of reaching the client. The fix: redirect the `os.Stdout`/`os.Stderr` package variables only. This requires every ov command to write via `fmt.Println`/`fmt.Printf` (not Go's builtin `println`, which bypasses `os.Stderr` and writes directly to fd 2). The `VersionCmd` fix (`println` → `fmt.Println`) landed with this work so `ov version` now routes through the capture pipe correctly. Subprocess output *is* a known leak — but the `ov` codebase invokes subprocesses via `cmd.Stdout = os.Stderr` etc., so in practice it stays captured.
+
+5. **Serialisation** — `runMu` (sync.Mutex) serialises handler invocations because `os.Stdout`/`os.Stderr` redirects are global. MCP tool calls on the server run sequentially; most tools are I/O-bound shell-outs to podman so parallelism is not a big loss.
+
+6. **Transport** — `mcp.NewStreamableHTTPHandler(func(*http.Request) *mcp.Server { return server }, nil)` wraps the server for HTTP mode. In stdio mode, `server.Run(ctx, &mcp.StdioTransport{})` blocks on stdin.
+
+## Deployment: the `ov-mcp` layer
+
+Composing `ov-mcp` into an image deploys the server via supervisord:
+
+```yaml
+# layers/ov-mcp/layer.yml (summary)
+layers:
+  - ov
+  - supervisord
+ports:
+  - 18765
+mcp_provides:
+  - name: ov
+    url: "http://{{.ContainerName}}:18765/mcp"
+    transport: http
+volumes:
+  - name: project        # Bind-mount the project root; see below
+    path: /project
+env:
+  OV_PROJECT_DIR: "/project"
+service: |
+  [program:ov-mcp]
+  command=/usr/local/bin/ov mcp serve --listen :18765
+  ...
+```
+
+**Project-dir wiring** — build-mode tools (`image.build`, `image.inspect`, `image.list.*`) resolve `image.yml` via `os.Getwd()`. Inside the container, cwd is `/root`, not the project. The `env: OV_PROJECT_DIR: /project` + `volumes: project → /project` pair solves this: the deployer bind-mounts their project with `ov config <image> --bind project=/path/to/overthink`, and the ov CLI's global `-C` / `--dir` / `OV_PROJECT_DIR` flag (implemented in `ov/main.go`) honours the env var before Kong dispatch, calling `os.Chdir(OV_PROJECT_DIR)` once. See `/ov:image` "Project directory resolution" for the flag itself.
+
+**Composition style** — `ov-mcp` uses `layers: [ov, supervisord]` (meta-layer composition) rather than `depends:` (hard prerequisite) because it adds no install of its own — it's pure wiring. Images that want the MCP server add `ov-mcp` to their layer list; images that just want the ov binary continue to use the `ov` layer alone. Both `layers:` and `depends:` reference other layers, but only `layers:` lets the using layer ship no install files.
+
+## Verifying end to end
+
+```bash
+# Build an ov-mcp-bearing image (e.g. arch-ov) and start it:
+ov image build arch-ov
+ov config arch-ov --bind project=/home/you/overthink
+ov start arch-ov
+
+# From the host — the container's mcp_provides URL is auto-rewritten to the published host port:
+ov test mcp ping arch-ov --name ov
+# ok
+ov test mcp list-tools arch-ov --name ov | wc -l
+# 176
+ov test mcp call arch-ov version '{}' --name ov
+# 2026.nnn.nnnn          (the container's own ov version)
+ov test mcp call arch-ov image.list.images '{}' --name ov
+# arch-ov [testing]      (reads image.yml from the bind-mounted /project)
+# archlinux [testing]
+# …
+```
+
+The deploy-scope tests in `layers/ov-mcp/layer.yml` cover this exact sequence: service-running, port-reachable, `mcp: ping`, `mcp: list-tools`, `mcp: call tool=version`, `mcp: call tool=image.list.images` (the last proves the bind-mount + OV_PROJECT_DIR wiring).
+
+## Port choice
+
+Default `:18765` chosen for non-collision with other MCP layers:
+- `8888` — jupyter-mcp
+- `9224` — chrome-devtools-mcp (via mcp-proxy)
+- `18789` — openclaw gateway
+
+## Policy note
+
+The server registers destructive tools with `DestructiveHint: true` rather than withholding them. The LLM runtime (Claude Code, Open WebUI) is responsible for acting on the hint — e.g. prompting the user before calling an annotated tool. For hostile-LLM scenarios or untrusted network deployments, run with `--read-only` (drops the 51 mutating tools at registration time) and/or restrict reach via the tunnel / Traefik layer.
+
+---
+
 ## Cross-References
 
 - `/ov:test` — parent router; all `ov test mcp …` invocations are dispatched through it. Full method allowlist for all 5 live-container verbs (cdp/wl/dbus/vnc/mcp) lives in the "Live-container verb catalog" section.
@@ -268,10 +383,19 @@ No other required modifiers — `ping`, `servers`, `list-*` take only the option
 - `/ov-layers:openwebui` — another consumer (`mcp_accepts: jupyter, chrome-devtools`).
 - `/ov-images:jupyter`, `/ov-images:jupyter-ml`, `/ov-images:jupyter-ml-notebook` — images bundling `jupyter-mcp`; `ov test <image> --filter mcp` exercises the verb end-to-end.
 - `/ov-images:sway-browser-vnc`, `/ov-images:selkies-desktop`, `/ov-images:selkies-desktop-nvidia` — images bundling `chrome-devtools-mcp` (transitively via the chrome metalayer).
-- `/ov-dev:go` — implementation map: `mcp.go` (Kong subcommand tree), `mcp_client.go` (SDK wrapper + URL rewriter), `testrun_ov_verbs.go` (declarative dispatcher entry `mcpMethods`), `validate_tests.go` (`validateOvVerb` case for `mcp`).
+- `/ov-dev:go` — implementation map: `mcp.go` (client Kong subcommand tree), `mcp_client.go` (client SDK wrapper + URL rewriter), `mcp_server.go` (server: Kong→MCP reflection, destructive-hint set, `captureAndRun`), `testrun_ov_verbs.go` (declarative dispatcher entry `mcpMethods`), `validate_tests.go` (`validateOvVerb` case for `mcp`).
+- `/ov-layers:ov-mcp` — the deployment layer that wires `ov mcp serve` into an image via supervisord. Includes the `/project` bind-mount + `OV_PROJECT_DIR` env var pattern for build-mode tools.
+- `/ov-layers:ov` — the underlying binary layer; required by `ov-mcp`.
+- `/ov:image` — "Project directory resolution" subsection documents the `-C` / `--dir` / `OV_PROJECT_DIR` global flag that makes the server's project-dir bind-mount work.
+- `/ov-images:arch-ov`, `/ov-images:fedora-ov` — canonical images composing `ov-mcp` for remote ov-via-MCP deployments.
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves Model Context Protocol clients, `ov test mcp` commands, probing or testing MCP servers declared via `mcp_provides`, examining MCP tool/resource/prompt catalogs, debugging the URL-rewriter or port-publishing behavior, or authoring deploy-scope `mcp:` checks in a `tests:` block. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves Model Context Protocol on either side:
 
-**Workflow position:** Test mode, live-container phase. Deploy an image with `mcp_provides`, start the service, then use `ov test mcp` to verify the endpoint speaks MCP and exposes the expected tools. Pairs naturally with `/ov:test` (for the parent router + declarative-verb catalog), `/ov:config` (for consumer-side injection), and the consumer-layer skills (`/ov-layers:hermes`, `/ov-layers:openwebui`).
+- **Client** — `ov test mcp` commands, probing/testing MCP servers declared via `mcp_provides`, examining MCP tool/resource/prompt catalogs, debugging the URL-rewriter or port-publishing behavior, or authoring deploy-scope `mcp:` checks in a `tests:` block.
+- **Server** — `ov mcp serve` operation, the `ov-mcp` layer, destructive-hint policy, the `--read-only` filter, Kong-reflection tool generation, the project-dir bind-mount pattern, or symptoms like "MCP tool returned empty output" (check `println` vs `fmt.Println` in the invoked command — the server captures `os.Stdout`, not fd 1).
+
+Invoke this skill BEFORE reading source code or launching Explore agents.
+
+**Workflow position:** Test mode / live service operation. Client: deploy an image with `mcp_provides`, start it, then probe. Server: compose `ov-mcp` into an image, bind `--bind project=/path/to/overthink` at config time, start the container, then consume from any MCP-speaking LLM runtime. Pairs with `/ov:test` (parent router + declarative-verb catalog), `/ov:config` (consumer-side injection + `--bind` for the project dir), `/ov-layers:ov-mcp` (server deployment layer), and the consumer-layer skills (`/ov-layers:hermes`, `/ov-layers:openwebui`).

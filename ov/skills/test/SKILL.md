@@ -113,6 +113,34 @@ The six entries cover: binary existence, package identity, a functional
 live probe, and raw TCP reachability. Adopt this shape for any primary
 service layer.
 
+### Cross-distro package names (`package_map:`)
+
+The `package:` verb chains `rpm -q || dpkg -s || pacman -Q` with a single
+literal name, so a test that works on Fedora (`openssh-server`) fails on
+Arch (where the package is just `openssh`). `package_map:` is the
+authoring hook: the first key that matches any of the image's
+`distro:` tags wins; otherwise the `package:` scalar is used as the
+fallback. Source: `ov/testrun_verbs.go:resolvePackageName` + the
+`Runner.Distros` field wired from `meta.Distro` at both test entry
+points.
+
+```yaml
+# layers/sshd/layer.yml — cross-distro authoring
+- id: openssh-server-package
+  package: openssh-server              # Fedora / Debian default
+  package_map:
+    archlinux: openssh                 # Arch ships the metapackage as 'openssh'
+    fedora: openssh-server
+    fedora:43: openssh-server          # explicit version tag — matches before 'fedora'
+  installed: true
+```
+
+Tag priority: entries in `distro:` are in priority order (e.g.
+`["fedora:43", fedora]`), so `package_map:` can be keyed on either the
+version-specific or the family tag, and the more-specific tag wins
+naturally. An empty-string map value falls through to the next tag
+(see `TestResolvePackageName` in `ov/testrun_verbs_test.go`).
+
 ### Verb catalog (goss-parity feature set)
 
 | Verb | Typical attributes | Notes |
@@ -444,18 +472,26 @@ exit_status: 0
 in_container: true
 ```
 
-### 5. `ov version` writes to stderr, not stdout
+### 5. Know which stream a `--version`-style command writes to
 
-Common gotcha — also affects OpenSSH's `ssh -V` and others. Use
-`stderr:` matcher:
+`ov version` writes to **stdout** — the canonical `layers/ov/layer.yml`
+test asserts a `stdout:` matcher. (Prior versions used Go's builtin
+`println(version)` which routes to stderr; the fix to `fmt.Println`
+landed alongside the MCP server work so every call stays captured.)
 
 ```yaml
 - id: ov-version
   command: /usr/local/bin/ov version
   exit_status: 0
-  stderr:
+  stdout:
     - matches: "[0-9]{4}\\.[0-9]+"
 ```
+
+**But other tools genuinely write to stderr** — `ssh -V`, `openssl version`,
+some `*-config --version` scripts. Always probe first
+(`ov cmd <image> '<cmd> 2>&1 >/dev/null'` — if the output shows up here
+it was stderr; if silent, it's stdout). See also the `ssh-version`
+check in `layers/ssh-client/layer.yml` which IS a real stderr case.
 
 ### 6. Drop `$` anchor in `matches:` regexes on command output
 
@@ -547,14 +583,14 @@ Gotcha 10 flips for bootc. `ov/generate.go` deliberately omits the final `USER <
 
 That breaks any test that assumes the user-context default. A `sudo -n -l` check that expects `NOPASSWD` in the output works for non-bootc (USER=1000 → sudo lists the user's NOPASSWD rule) but fails for bootc (USER=0 → sudo prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`). Same failure mode for any `test -f ~/.config/foo` that depends on `$HOME=/home/user`.
 
-The fix: drop into `user` explicitly when running as root, stay as-is otherwise. Use `runuser -l user -s /bin/bash -c '...'` as the bridge — it honours the target user's login shell and env:
+The fix: drop into `user` explicitly when running as root, stay as-is otherwise. Use **`runuser -u user -- <cmd>`** as the bridge — it's portable across util-linux versions and preserves stdout:
 
 ```yaml
 # Dual-mode: container (USER=1000) AND bootc (USER=root) both pass
 - id: sudoers-ov-user
   command: |
     if [ "$(id -u)" = "0" ]; then
-      runuser -l user -s /bin/bash -c 'sudo -n -l'
+      runuser -u user -- sudo -n -l
     else
       sudo -n -l
     fi
@@ -563,7 +599,14 @@ The fix: drop into `user` explicitly when running as root, stay as-is otherwise.
     - contains: "NOPASSWD"
 ```
 
-Worked example: `/ov-layers:sshd` ships exactly this pattern. Alternative: make the check `scope: deploy` so it runs against a live container where you control the user-switch externally.
+**Don't use `runuser -l user -s /bin/bash -c '…'`.** On Arch's util-linux
+(2.42+), `runuser -l … -c` swallows the wrapped command's stdout when
+the shell is a login shell — reproduced: `runuser -l user -s /bin/bash
+-c 'sudo -n -l'` prints nothing and exits 0; `runuser -u user -- sudo
+-n -l` prints the full NOPASSWD listing. This bit the earlier shipping
+form of the test; the sshd layer now uses `-u … --`.
+
+Worked example: `/ov-layers:sshd` ships exactly the `-u user --` pattern. Alternative: make the check `scope: deploy` so it runs against a live container where you control the user-switch externally.
 
 ### 12. **`ov image test <short-name>` is ambiguous with multiple CalVer tags** — use the full registry ref
 

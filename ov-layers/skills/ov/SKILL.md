@@ -55,7 +55,13 @@ The `ov` probe checks:
 
 Shows as `ov:ok (2026.94.1417)` in `ov status` detail view. Returns `-` for images without the `ov` layer.
 
-**Note:** `ov version` uses Go's `println()` which writes to stderr. The probe uses `CombinedOutput()` to capture it correctly.
+**Note:** `ov version` writes to **stdout** via `fmt.Println` (the prior
+`println(version)` emitted to stderr; the move to `fmt.Println` landed
+with the MCP server work so the in-process tool-call path — which
+captures `os.Stdout` — returns the CalVer correctly). The layer test at
+`layers/ov/layer.yml` asserts `stdout:` matches `[0-9]{4}\.[0-9]+`. The
+`ov status` probe uses `CombinedOutput()` so it's agnostic to the
+stream.
 
 ## Usage
 
@@ -74,6 +80,7 @@ my-image:
 ## Related Layers
 
 - `/ov-layers:ov-full` -- composition that includes ov + virtualization + gocryptfs + socat
+- `/ov-layers:ov-mcp` -- layers: [ov, supervisord] meta-composition that deploys `ov mcp serve` (176-tool MCP gateway) with a `/project` bind mount for build-mode tools
 - `/ov-layers:dbus` -- D-Bus session bus (ov test dbus commands need this)
 - `/ov-layers:swaync` -- notification daemon (needed for ov test dbus notify to show popups)
 

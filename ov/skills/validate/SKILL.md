@@ -161,6 +161,10 @@ ov image inspect <image>                   # Check resolved config
 ov image list layers                       # Verify layer exists
 ```
 
+## Project directory override
+
+`ov image validate` resolves `image.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov:image` "Project directory resolution".
+
 ## Cross-References
 
 ### `ov image` family siblings

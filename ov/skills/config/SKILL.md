@@ -112,6 +112,19 @@ ov config my-app --bind workspace=~/project --encrypt data -v models:bind
 
 Auto-path for bind without explicit host path: `<volumes_path>/<image>/<name>` (default: `~/.local/share/ov/volumes/`).
 
+### Bind-mounting a project checkout for `ov mcp serve`
+
+The `ov-mcp` layer declares a `project` volume at `/project` and sets `env: OV_PROJECT_DIR=/project`. Bind-mount your overthink checkout at config time so build-mode MCP tools (`image.build`, `image.list.images`, `image.inspect`) can read `image.yml`:
+
+```bash
+ov config arch-ov --bind project=/home/you/overthink
+ov start arch-ov
+ov test mcp call arch-ov image.list.images '{}' --name ov
+# → lists images from the bind-mounted /home/you/overthink
+```
+
+The `OV_PROJECT_DIR` env var is consumed by the ov binary's global `-C` / `--dir` / `OV_PROJECT_DIR` flag (`ov/main.go` calls `os.Chdir(Dir)` before Kong dispatch). See `/ov:image` "Project directory resolution" and `/ov:mcp` "Deployment: the `ov-mcp` layer" for the full pattern.
+
 ## Secret Provisioning
 
 Secrets declared in `layer.yml` `secrets:` field are stored as OCI label metadata. At config time:

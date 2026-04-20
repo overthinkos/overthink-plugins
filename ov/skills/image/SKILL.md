@@ -56,6 +56,30 @@ top-level error handler renders: *"image 'X' is not available locally. Run
 'ov image pull X' to fetch it first."* See `/ov:pull` for the full sentinel
 pattern.
 
+## Project directory resolution
+
+Every `ov image …` command resolves `image.yml` (and `build.yml`, `layers/`, etc.) **relative to the current working directory** — internally via `os.Getwd()` on every entry point. Three ways to override that default:
+
+```bash
+ov -C /path/to/overthink image list images          # short flag
+ov --dir /path/to/overthink image list images       # long flag
+OV_PROJECT_DIR=/path/to/overthink ov image list images   # env var
+```
+
+All three are equivalent. They're declared on the top-level `CLI` struct in `ov/main.go` and resolved by a single `os.Chdir(cli.Dir)` call **before** Kong dispatches the subcommand, so every existing `os.Getwd()` site picks up the new cwd — no per-command plumbing needed.
+
+**Canonical use case**: running `ov mcp serve` inside a container. The container's cwd is `/root` (or similar) where no `image.yml` exists. The `ov-mcp` layer bind-mounts the project at `/project` and sets `env: OV_PROJECT_DIR=/project` — so every build-mode MCP tool (`image.build`, `image.inspect`, `image.list.images`, …) reaches the right `image.yml`:
+
+```bash
+# Host side:
+ov config arch-ov --bind project=/home/you/overthink
+ov start arch-ov
+ov test mcp call arch-ov image.list.images '{}' --name ov
+#  → lists the images from the bind-mounted project, as if cwd = /home/you/overthink
+```
+
+The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory` or `reading image.yml: open /project/image.yml: no such file or directory` (when the bind mount exists but hasn't been populated). See `/ov:mcp` "Deployment: the `ov-mcp` layer" for the full bind-mount pattern and `/ov-dev:go` "main.go" for the implementation note (guarded by `TestOvDir_FlagChdir` + `TestOvDir_Errors` in `main_dir_test.go`).
+
 ## Quick Reference
 
 | Action | Command | Description |
@@ -283,7 +307,7 @@ images:
     env_file: "~/.config/my-app/.env"
 ```
 
-These are the lowest priority in the env resolution chain. CLI flags (`-e`, `--env-file`) and workspace `.env` take precedence. See `/ov:run` for the full priority chain.
+These are the lowest priority in the env resolution chain. CLI flags (`-e`, `--env-file`) and workspace `.env` take precedence. See `/ov:config` and `/ov:start` for the full priority chain at config-time and run-time respectively.
 
 Source: `ov/envfile.go` (`ResolveEnvVars`).
 

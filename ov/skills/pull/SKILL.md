@@ -174,6 +174,10 @@ is the bridge — it takes a build-mode identifier (short name or remote
 repo ref) and produces a deploy-mode-consumable artifact (labels in local
 storage).
 
+## Project directory override
+
+`ov image pull` resolves `image.yml` via `os.Getwd()` when given a short name (to resolve registry + tag). Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. Fully-qualified refs and `@github.com/...` remote refs don't need a project dir. See `/ov:image` "Project directory resolution".
+
 ## Cross-References
 
 - `/ov:image` — family overview; `ov image pull` is one of 8 subcommands.

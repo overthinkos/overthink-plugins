@@ -1,7 +1,7 @@
 ---
 name: enc
 description: |
-  MUST be invoked before any work involving: encrypted storage, ov config mount/unmount/status/passwd commands, gocryptfs, or encrypted volume backing.
+  Topic skill (no dedicated `ov enc` command — the surface is flags + subcommands on `ov config`). MUST be invoked before any work involving: encrypted storage, gocryptfs, or the `--encrypt` / `-v <name>:encrypted` backing flags on `ov config`, the `ov config mount` / `unmount` / `status` / `passwd` subcommands, or `ov-enc-<image>-<volume>.scope` systemd units.
 ---
 
 # Enc - Encrypted Storage

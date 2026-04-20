@@ -18,7 +18,16 @@ description: |
 
 ## Packages
 
-- `supervisor` (RPM) -- process control system (Python-based)
+- `supervisor` (RPM) — process control system (Python-based)
+- `supervisor` (pac) — same package name on Arch (`extra/` repo)
+
+**Arch note:** the `pac: [supervisor]` section was added alongside the
+intermediates-inheritance fix so that Arch-based images with
+`build: [pac]` actually install supervisord. Previously only `rpm:` was
+declared, so Arch images silently got a `/etc/supervisord.conf` with no
+`supervisord` binary — the quadlet's `supervisord -n -c /etc/supervisord.conf`
+exited 127 (command not found) at container start. Every Arch-rooted
+auto-intermediate that composes `supervisord` was affected.
 
 ## How `ov` Generates Supervisord Configs
 

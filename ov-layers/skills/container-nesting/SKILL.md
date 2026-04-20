@@ -36,8 +36,20 @@ can compose it.
 **RPM:** `buildah`, `fuse-overlayfs`, `shadow-utils`, `skopeo`,
 `tailscale`, `libsecret` (Tailscale from the `tailscale-stable` repo).
 
-**Pacman:** `buildah`, `docker`, `fuse-overlayfs`, `shadow`, `skopeo`,
-`tailscale`, `libsecret`.
+**Pacman:** `buildah`, `crun`, `fuse-overlayfs`, `libsecret`, `podman`,
+`shadow`, `skopeo`, `tailscale`.
+
+**Arch correction (current):** the pac list previously held `docker`
+instead of `podman` and omitted `crun`. Neither was right — the layer's
+whole purpose is **rootless nested podman**, and the `containers.conf`
+shipped by this layer explicitly sets `runtime = "crun"`. The correction
+was caught when `ov mcp serve`'s `status` tool failed inside `arch-ov`
+with `executable file "podman" not found in $PATH`, because the fedora
+pacman population incorrectly pulled `docker` and no podman binary ever
+made it into the Arch-based image. Rpm users have always gotten
+`podman` transitively via the Fedora base image; Arch has no such
+transitive pull, so both `podman` and `crun` must be declared
+explicitly.
 
 ## The kernel-level RCA (why none of the obvious fixes work)
 

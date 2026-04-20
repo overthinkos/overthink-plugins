@@ -278,6 +278,12 @@ fedora (external)
 
 `ComputeIntermediates()` uses a prefix trie to detect divergence points. `GlobalLayerOrder()` prioritizes popular layers for cache efficiency.
 
+### Parent-vs-defaults inheritance (critical)
+
+`createIntermediate()` must inherit `Distro` and `BuildFormats` **from the parent image first**, with `cfg.Defaults.*` as the fallback only when the parent is external or empty. The inverse — defaults winning over an explicit parent — is a silent-failure bug: an `archlinux`-rooted auto-intermediate would get re-tagged as `build: [rpm]` (because `defaults.Build=[rpm]` in `image.yml`), then the layer emitter would scan each layer for an `rpm:` section and find nothing (the layers only declare `pac:`) — emitting empty RUN steps. Symptom: the intermediate built fine but shipped without any of its layers' packages (e.g. `archlinux-ssh-client` without direnv/gnupg/openssh).
+
+The current code resolves `inheritedDistro` / `inheritedBuilds` from the parent first and only falls back to defaults when both are empty. Regression guard: `TestComputeIntermediates_InheritDistroFromParent` constructs a config with `defaults.Build=[rpm]` but an `archlinux` parent carrying `[pac]`, and asserts that the auto-intermediate comes out `[pac]`. See `/ov-dev:go` `intermediates.go` row for the file-level note.
+
 ## User Resolution
 
 Configurable via `user`, `uid`, `gid` fields in `image.yml` (defaults: `"user"`, 1000, 1000).

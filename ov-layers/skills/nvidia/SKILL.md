@@ -37,6 +37,29 @@ NVIDIA runtime layer providing `nvidia-container-toolkit` for CDI device injecti
 
 The `nvidia-container-toolkit` provides `nvidia-ctk` which generates CDI (Container Device Interface) specs. `ov` calls `EnsureCDI()` before launching containers with GPU — if CDI specs don't exist at `/etc/cdi/nvidia.yaml`, it runs `nvidia-ctk cdi generate` to create them. This enables GPU access in nested containers where host CDI specs are not inherited.
 
+### Build-time noise on GPU-less hosts (Arch)
+
+Arch's `nvidia-container-toolkit` ships a pacman post-install hook that
+invokes `nvidia-ctk cdi generate`. On a host with no NVIDIA driver
+loaded (e.g., an AMD-only build host), the hook fails NVML init:
+
+```
+ERROR: failed to generate CDI spec: failed to initialize NVML: Driver Not Loaded
+error: command failed to execute correctly
+```
+
+This is **benign for the build** — pacman still exits 0 (hooks don't
+affect the parent transaction's status), the layer finishes installing,
+and the resulting image works at runtime on a GPU-bearing host (where
+the CDI spec is generated via `EnsureCDI()` at container-launch time,
+not build time). You can ignore the error message. RPM installs don't
+trigger the hook, so Fedora-based images don't see this noise.
+
+If you ever build inside CI where even-benign hook errors matter,
+either build arch-nvidia images on a GPU-bearing runner, or patch the
+layer to carry a build-time `NVIDIA_VISIBLE_DEVICES=void` env var so
+nvidia-ctk skips CDI gen.
+
 ## DRINODE Auto-Injection
 
 NVIDIA VAAPI acceleration requires the container to know which DRM render node to bind the EGL context against. On multi-GPU hosts there may be `/dev/dri/renderD128`, `/dev/dri/renderD129`, … and the correct one depends on which physical card backs the NVIDIA driver.

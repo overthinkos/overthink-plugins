@@ -9,7 +9,38 @@ description: |
 
 # fedora-ov
 
-Fedora container with full ov toolchain. Uses the same shared layer list as `arch-ov` — the tag system handles Fedora-specific packages and scripts via `rpm:` sections and `rpm:` tasks in tasks:. Supports running fedora-ov inside fedora-ov (nested containers).
+Fedora container with full ov toolchain. Uses almost the same layer list as `arch-ov` — the tag system handles Fedora-specific packages and scripts via `rpm:` sections. Supports running fedora-ov inside fedora-ov (nested containers).
+
+### MCP gateway migration note
+
+`arch-ov` composes `ov-mcp` (MCP gateway on :18765) and runs on the default `ov` bridge with explicit `ports:` publishing. `fedora-ov` is the direct sibling but currently still uses `network: host` and does not compose `ov-mcp`. To bring it to parity, mirror `arch-ov`'s `image.yml` stanza:
+
+```yaml
+fedora-ov:
+  base: fedora
+  uid: 0
+  gid: 0
+  user: root
+  ports:                                 # drop `network: host`; publish explicitly
+    - "2222:2222"
+    - "18765:18765"
+  security:
+    cap_add: [ALL]
+    security_opt:
+      - label=disable
+      - seccomp=unconfined
+  layers:
+    - agent-forwarding
+    - ov-full
+    - ov-mcp                             # add
+    - golang
+    - gh
+    - sshd
+    - container-nesting
+    - nvidia
+```
+
+Rationale for the migration: host-networked containers expose no `NetworkSettings.Ports` entries, which breaks `rewriteMCPURLForHost` in `ov/mcp_client.go` — `ov test mcp ping fedora-ov` would fail with "container port 18765/tcp is not published to a host port". Bridge + explicit `ports:` is the portable pattern that `arch-ov` adopted. See `/ov-images:arch-ov` "Network migration (host → bridge) and port publishing" for the full story and `/ov-layers:ov-mcp` for the layer contract.
 
 ## Image Properties
 

@@ -385,6 +385,10 @@ Tracked as a follow-up.
 See also: `/ov:generate` for the Containerfile generation path, `/ov:update`
 for the `--build` flag that also picks up this caveat.
 
+## Project directory override
+
+`ov image build` (like every build-mode command) resolves `image.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>` — honoured before Kong dispatch. See `/ov:image` "Project directory resolution" for the canonical reference and the `ov mcp serve` use case. Typical use: building from an `ov mcp serve` MCP tool where the container cwd doesn't hold the project.
+
 ## Cross-References
 
 ### `ov image` family siblings

@@ -48,6 +48,10 @@ The scaffolded `layer.yml` is minimal — just `depends:` and a `description:`. 
 - Lowercase-hyphenated names only (e.g., `my-tool`, `desktop-apps`)
 - Must not conflict with existing layer names
 
+## Project directory override
+
+`ov image new layer <name>` writes into `layers/<name>/` relative to `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov:image` "Project directory resolution".
+
 ## Cross-References
 
 ### `ov image` family siblings

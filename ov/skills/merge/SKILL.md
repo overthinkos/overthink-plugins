@@ -80,6 +80,10 @@ OCI/Docker images use special "whiteout" files to represent file deletions acros
 
 **Why this matters:** Without whiteout suppression, merged layers could contain contradictory entries (a file and its `.wh.*` marker coexisting), causing `EEXIST` errors when the container runtime unpacks the layer onto an overlay filesystem.
 
+## Project directory override
+
+`ov image merge` resolves `image.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov:image` "Project directory resolution".
+
 ## Cross-References
 
 ### `ov image` family siblings

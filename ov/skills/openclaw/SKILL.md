@@ -1,7 +1,7 @@
 ---
 name: openclaw
 description: |
-  MUST be invoked before any work involving: OpenClaw gateway configuration, model auth, browser integration, channel setup, or openclaw images.
+  Topic skill (no dedicated `ov openclaw` command — the surface is layer composition + image deployment). MUST be invoked before any work involving: OpenClaw gateway configuration, model auth, browser integration, channel setup, or any image composing `openclaw-*` layers (`openclaw`, `openclaw-ollama`, `openclaw-sway-browser`, `openclaw-full`, `openclaw-full-ml`, `openclaw-full-sway`, `openclaw-ollama-sway-browser`, `openclaw-browser-bootc`).
 ---
 
 # OpenClaw - AI Gateway Configuration

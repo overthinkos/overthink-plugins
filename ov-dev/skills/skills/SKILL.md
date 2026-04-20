@@ -66,6 +66,22 @@ description: |
 | Skill disambiguation (which skill to use) | CLAUDE.md (brief table) |
 | Detailed operational patterns | Relevant `/ov:*` skill |
 
+## Command skills vs topic skills
+
+Most skills under `plugins/ov/skills/` map 1:1 to a top-level ov command
+(e.g. `/ov:build` ↔ `ov image build`, `/ov:status` ↔ `ov status`).
+**Topic skills** are the exception: they don't correspond to a
+top-level command but cover a cross-cutting concept surfaced by flags
+or layer composition. Today's topic skills:
+
+| Skill | Surfaced via | What it covers |
+|---|---|---|
+| `/ov:enc` | `ov config --encrypt`, `ov config mount`, `ov config unmount`, `ov config passwd` | Encrypted-volume (gocryptfs) semantics, keyring resolution, `ov-enc-<image>-<volume>.scope` lifecycle |
+| `/ov:openclaw` | Composing `openclaw-*` layers | OpenClaw AI gateway deployment story |
+| `/ov:sidecar` | `ov config --sidecar tailscale` | Sidecar-container model, pod networking, env-var routing |
+
+When adding a new command, always create a matching command skill. Consider a topic skill when a concept spans multiple commands or layers and the natural home isn't any single command's skill. Keep the frontmatter `description:` explicit about the topic nature (the blocking `Skill:` tool dispatcher matches on description keywords).
+
 ## Plugin Structure
 
 | Plugin | Skills | Purpose |

@@ -437,6 +437,22 @@ path_append:
 
 **`env:` vs `vars:`:** `env:` is container **runtime** environment (emitted as `ENV` and persists into the running container). `vars:` is **build-time** substitution for `${VAR}` references inside `tasks:` — also emitted as `ENV` so BuildKit can substitute in COPY paths, but conceptually scoped to the layer's install. There's no hard rule against using `env:` for both purposes, but keeping them separate makes intent clearer.
 
+**`env:` is a MAP, not a list.** The YAML parser decodes it as `map[string]string`, not `[]string`. Authoring it as `- KEY=value` fails with `cannot unmarshal !!seq into map[string]string` at `ov image validate`. Always use map form:
+
+```yaml
+# ❌ WRONG — parser rejects the list shape
+env:
+  - OV_PROJECT_DIR=/project
+  - GOPATH=~/go
+
+# ✓ RIGHT — map form
+env:
+  OV_PROJECT_DIR: "/project"
+  GOPATH: "~/go"
+```
+
+The `ov-mcp` layer is the canonical example of the map form used to thread a container-level env var into the MCP server process via supervisord.
+
 ---
 
 ## Service Declaration
@@ -755,11 +771,13 @@ Declare `service:` with a supervisord `[program:<name>]` fragment and add `super
 - `/ov:build` — Building images (`--no-cache` caveat; multi-stage scratch).
 - `/ov:config` — Cross-container `env_provides` / `mcp_provides` injection; `env_requires` enforcement; `--update-all`; resource caps.
 - `/ov:deploy` — `deploy.yml` `provides:` section; tunnel is deploy.yml-only.
-- `/ov:test` — `tests:` field for declarative layer checks (file/port/http/...); embedded in the `org.overthinkos.tests` OCI label under the `layer` section. Layer tests default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`.
+- `/ov:test` — `tests:` field for declarative layer checks (file/port/http/...); embedded in the `org.overthinkos.tests` OCI label under the `layer` section. Layer tests default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `layers/sshd/layer.yml`.
 - `/ov:sidecar` — Sidecars as `env_provides` participants (tailscale `TS_*` filtering).
 - `/ov:secrets` — Credential store chain for `secret_accepts` / `secret_requires`.
 - `/ov-layers:chrome` — Canonical consumer of `env_accepts` (proxy vars), resource caps (crash-loop circuit breaker), and heavy user-phase copy/mkdir task list.
 - `/ov-layers:supervisord` — Event listener pattern triggered by resource caps.
+- `/ov-layers:ov` — The ov-binary layer (composed by every ov-driving image). Paired with `/ov-layers:ov-mcp` which turns any image into an MCP server exposing the full ov CLI.
+- `/ov-layers:ov-mcp` — Reference implementation of a meta-layer composition (`layers: [ov, supervisord]` — no install of its own, just wiring) with bind-mounted project directory and `OV_PROJECT_DIR` env-var plumbing.
 - `/ov-layers:notebook-templates` — Data-layer example.
 - `/ov-dev:generate` — Internal architecture of the task emission pipeline (Go side).
 
