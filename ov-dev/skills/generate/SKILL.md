@@ -211,6 +211,60 @@ FROM scratch AS mylib-ctx
 COPY layers/mylib/ /
 ```
 
+## Auto-Intermediate Images — grouping by `(Base, UID)` (2026-04)
+
+Sibling images that share the same base are grouped by
+`ComputeIntermediates` in `ov/intermediates.go` so repeated layer
+prefixes become shared intermediate images (the `fedora-nonfree-ssh-client-dbus`
+pattern). Before 2026-04 the grouping key was just `img.Base`; that
+collapsed images with **different UIDs** into one intermediate whose
+resolved `HOME` was always the default (`/home/user`). For a child
+image with `uid: 0` (`/home/root`), this baked `/home/user/.pixi/bin`
+into the intermediate's `ENV PATH`, which the child then inherited as
+dead PATH entries it couldn't override.
+
+The fix: `siblingKey{base, uid}` instead of a bare base string.
+Per-UID sibling groups get their own intermediate chains. When the UID
+differs from `cfg.Defaults.UID` (typically 1000), `pickAutoName`
+appends `-uid<N>` to the intermediate name so OCI tags don't collide
+with the default-UID variant.
+
+```go
+// ov/intermediates.go (abridged)
+type siblingKey struct {
+    base string
+    uid  int
+}
+siblingGroups := make(map[siblingKey][]string)
+for name, img := range images {
+    if builderNames[name] {
+        continue
+    }
+    k := siblingKey{img.Base, img.UID}
+    siblingGroups[k] = append(siblingGroups[k], name)
+}
+```
+
+`createIntermediate()` then derives `User/GID/Home` from the group's
+UID (uid=0 → `root`/`/root`; else default user + `/home/<user>`)
+instead of always using defaults. This keeps HOME-relative
+`env:` / `path_append:` expansion consistent with the child images.
+
+Blast radius: uid=1000 images (the overwhelming majority) see no
+change — they still share all the intermediates they shared before.
+Uid=0 images (pre-2026-04 outliers: `fedora-coder`, `fedora-ov`,
+`arch-ov`, `githubrunner`) got their own `-uid0`-suffixed
+intermediates — but as of 2026-04 all four of those images
+transitioned to uid=1000 + sudo (see `/ov-images:fedora-coder`), so
+the fix is currently dormant protection against any future uid=0
+image. It remains in place because the defensive grouping is cheap
+(one extra struct field) and prevents a whole class of silent PATH
+regressions from reappearing.
+
+Verified via the existing `ov/intermediates_test.go` suite (the
+test images construct `ResolvedImage{}` without an explicit UID, so
+they trip `uid=0` → `-uid0` naming; all assertions still pass).
+
 ## LABEL Placement — Cache Efficiency
 
 **All OCI LABEL directives are emitted at the end of the final stage**,

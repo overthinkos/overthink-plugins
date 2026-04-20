@@ -1,13 +1,21 @@
 ---
 name: arch-ov
 description: |
-  Arch Linux image with full ov toolchain using shared layers. Runs as root on the default `ov` bridge network with cap_add ALL for full container management including nested podman. Ships the `ov-mcp` MCP gateway on port 18765. NVIDIA GPU runtime composed in.
-  MUST be invoked before building, deploying, configuring, or troubleshooting the arch-ov image.
+  Arch Linux image with the full ov toolchain. Rootless-first since 2026-04
+  — runs as uid=1000 with passwordless sudo (no root, no cap_add: ALL).
+  Composes /ov-layers:ov-mcp so the image is reachable as an MCP gateway
+  on port 18765. NVIDIA GPU runtime composed in.
+  MUST be invoked before building, deploying, configuring, or troubleshooting
+  the arch-ov image.
 ---
 
 # arch-ov
 
-Arch Linux container with full ov toolchain. Uses the same shared layer list as `fedora-ov` — the tag system handles Arch-specific packages and scripts via `pac:` sections. Supports running arch-ov inside arch-ov (tested to depth 3). Composes `ov-mcp` so the image is addressable as an MCP gateway — LLM agents can drive build/test/deploy via Streamable HTTP on port 18765.
+Arch Linux container with the full ov toolchain. Uses the same shared
+layer list as `/ov-images:fedora-ov` — the tag system handles
+Arch-specific packages and scripts via `pac:` sections. Composes
+`ov-mcp` so the image is addressable as an MCP gateway — LLM agents
+can drive build/test/deploy via Streamable HTTP on port 18765.
 
 ## Image Properties
 
@@ -17,40 +25,92 @@ Arch Linux container with full ov toolchain. Uses the same shared layer list as 
 | Tags | `[all, pac, archlinux]` |
 | Layers | agent-forwarding, ov-full, **ov-mcp**, golang, gh, sshd, container-nesting, nvidia |
 | Platforms | linux/amd64 |
-| UID/GID | 0/0 (root) |
-| User | root |
-| Network | default `ov` bridge (was `host` pre-migration) |
+| UID / user | **1000 / user** (rootless-first since 2026-04) |
+| Network | default `ov` bridge |
 | Ports | `2222:2222` (sshd), `18765:18765` (ov-mcp) |
-| Security | cap_add: ALL, security_opt: [unmask=/proc/*, label=disable, seccomp=unconfined] (see "Security posture" below) |
+| Security | layer-level only (from `/ov-layers:container-nesting`) |
 | Registry | ghcr.io/overthinkos |
 
-### Network migration (host → bridge) and port publishing
+### Rootless-first posture (2026-04 refactor)
 
-Historical note: `arch-ov` previously used `network: host`. That was dropped in favour of the project-default `ov` bridge network so `ov-mcp`'s MCP URL rewriting (`rewriteMCPURLForHost` in `ov/mcp_client.go`) has a published host port to map against — host-networked containers expose no `NetworkSettings.Ports` entries, which broke `ov test mcp ping arch-ov`. The explicit `ports: ["2222:2222", "18765:18765"]` block in `image.yml` publishes both SSH and the MCP endpoint onto `127.0.0.1`. If host-port 2222 is already taken (canonical conflict: `selkies-desktop-infra`), remap at config time: `ov config arch-ov -p 2223:2222`. `fedora-ov` is still on `network: host` — it should migrate to the same bridge pattern when ready.
+Previously ran as `uid: 0 / user: root` with `cap_add: [ALL]` +
+`security_opt: [label=disable, seccomp=unconfined]`. All four
+power-user images (`arch-ov`, `/ov-images:fedora-ov`,
+`/ov-images:fedora-coder`, `/ov-images:githubrunner`) dropped that
+posture once the `/ov-layers:container-nesting` kernel-level RCA
+proved that `unmask=/proc/*` + uid-delegation via subuid/subgid ranges
+is sufficient for rootless nested containers + rootless libvirt VMs.
+
+The `/ov-layers:sshd` layer installs `/etc/sudoers.d/ov-user` with
+passwordless sudo for `user`, so anything that truly needs root inside
+the container is one `sudo` prefix away — but the default user for
+every process (sshd session, `ov` commands, nested `podman run`) is
+uid=1000.
+
+Resolved OCI security label:
+
+| Field | Value |
+|---|---|
+| `cap_add` | **(empty)** |
+| `security_opt` | `[unmask=/proc/*]` (from `/ov-layers:container-nesting`) |
+| `devices` | `[/dev/fuse, /dev/net/tun]` (from `/ov-layers:container-nesting`) |
+| `privileged` | `false` |
+
+See `/ov-images:selkies-desktop-ov` for the sibling rootless-first
+image that proves this posture works under streaming-desktop +
+nested-VM load, and `/ov-layers:container-nesting` for the kernel
+`mount_too_revealing()` RCA.
+
+### Network + port publishing
+
+`network: host` was dropped pre-2026 in favour of the project-default
+`ov` bridge — so `ov-mcp`'s MCP URL rewriting
+(`rewriteMCPURLForHost` in `ov/mcp_client.go`) has published port
+mappings to work with. (As of 2026-04 that function also handles
+host-networked containers via `HostConfig.NetworkMode` detection, so
+this isn't strictly necessary anymore — but the bridge-network pattern
+remains the portable default.) If host-port 2222 is already taken by
+another running image (canonical conflict: `/ov-images:selkies-desktop-ov`
+or any `selkies-desktop-*` variant), remap at config time:
+`ov config arch-ov -p 2223:2222`.
 
 ### MCP gateway (ov-mcp)
 
-The `ov-mcp` layer deploys `ov mcp serve --listen :18765` inside the container under supervisord, advertising 190 MCP tools (the full Kong CLI surface, including the project-scaffolding + YAML-editing + file-write authoring verbs added in 2026) over Streamable HTTP. Project-dir-dependent tools (`image.build`, `image.list.images`, `image.inspect`) work via three deployment patterns: bind-mount the project at `/project` (`--bind project=...`), pin a remote with `-e OV_PROJECT_REPO=owner/repo@ref`, or rely on the auto-fallback to `overthinkos/overthink` (the default in 2026). Example with the bind-mount pattern:
+The `/ov-layers:ov-mcp` layer deploys `ov mcp serve --listen :18765`
+inside the container under supervisord, advertising ~192 MCP tools
+(the full Kong CLI surface, including the project-scaffolding +
+YAML-editing + file-write authoring verbs added in 2026). Three
+deployment patterns work — bind-mount your project, pin an
+`OV_PROJECT_REPO`, or rely on the 2026-04 auto-fallback to
+`overthinkos/overthink`:
 
 ```bash
+# Pattern 1: bind your local checkout
 ov config arch-ov --bind project=/home/you/overthink
 ov start arch-ov
-ov test mcp ping arch-ov --name ov                      # → ok
-ov test mcp list-tools arch-ov --name ov | wc -l         # → 190
-ov test mcp call arch-ov image.list.images '{}' --name ov  # lists the project's images
+ov test mcp call arch-ov image.list.images '{}' --name ov  # lists YOUR project's images
+
+# Pattern 3: no bind-mount (auto-fallback kicks in)
+ov config arch-ov
+ov start arch-ov
+ov test mcp call arch-ov image.list.images '{}' --name ov  # lists upstream overthinkos/overthink images
 ```
 
-See `/ov-layers:ov-mcp` for the deployment layer, `/ov:mcp` Part 2 for the server architecture, and `/ov:config` "Bind-mounting a project checkout for ov mcp serve" for the bind-mount handshake.
+Volume NAME is `project` (stable bind-mount API); container PATH is
+`/workspace`. See `/ov-layers:ov-mcp` for full deployment patterns,
+`/ov:mcp` Part 2 for the server architecture, and `/ov:config`
+"Bind-mounting a project checkout for ov mcp serve" for the
+bind-mount handshake.
 
 ## What's Installed
 
 Full ov toolchain via shared layers:
 
 - **ov-full** — ov binary + VM tools (qemu-full, virtiofsd, libvirt) + gocryptfs + socat
-- **ov-mcp** — MCP server exposing the full ov CLI as tools on :18765 (supervisord-managed; bind `project=` for build-mode tools)
+- **ov-mcp** — MCP server exposing the full ov CLI as tools on :18765 (supervisord-managed; bind `project=` for build-mode tools or rely on auto-fallback)
 - **golang** — Go compiler (`go`)
-- **gh** — GitHub CLI (`github-cli`, `git`)
-- **sshd** — SSH server/client (`openssh` on Arch — `package_map` handles the Fedora/Arch name split)
+- **gh** — GitHub CLI + `git` + `git-lfs` (single-responsibility since 2026-04; see `/ov-layers:gh`)
+- **sshd** — SSH server/client (`openssh` on Arch — `package_map` handles the Fedora/Arch name split) + passwordless sudo for `user`
 - **container-nesting** — podman, buildah, crun, fuse-overlayfs, skopeo, tailscale, libsecret + nested container config
 - **nvidia** — nvidia-utils, nvidia-container-toolkit (CDI generation; benign pacman-hook NVML noise on GPU-less hosts — see `/ov-layers:nvidia`)
 
@@ -60,12 +120,12 @@ Full ov toolchain via shared layers:
 # Build
 ov image build arch-ov
 
-# Interactive shell
+# Interactive shell (as uid=1000)
 ov shell arch-ov
 
 # Run a command
 ov shell arch-ov -c "ov version"
-ov shell arch-ov -c "ov doctor"
+ov shell arch-ov -c "sudo dnf --help"    # sudo works passwordless
 
 # Start as service
 ov start arch-ov
@@ -73,80 +133,75 @@ ov status arch-ov
 ov stop arch-ov
 ```
 
-## Security posture (image-level override)
-
-As of the 2026-04-19 `container-nesting` refactor, the **layer** ships
-only `security_opt:[unmask=/proc/*] + devices:[/dev/fuse, /dev/net/tun]` —
-zero cap_add. The `arch-ov` image asserts the historical full-hammer
-posture at the **image level** via `image.yml`:
-
-```yaml
-arch-ov:
-  security:
-    cap_add: [ALL]
-    security_opt:
-      - label=disable
-      - seccomp=unconfined
-```
-
-`ov/security.go:66-97` unions image-level values onto the layer-level
-merged set, so the resolved OCI label is
-`cap_add:[ALL] + security_opt:[unmask=/proc/*, label=disable, seccomp=unconfined] + devices:[/dev/fuse, /dev/net/tun]`.
-This preserves the historical permissive posture for root-mode ov
-images while letting `/ov-layers:container-nesting` ship a minimum-privilege
-baseline for non-root images like `/ov-images:selkies-desktop-ov`.
-
-See `/ov-layers:container-nesting` for the kernel `mount_too_revealing()`
-RCA that drove the refactor.
-
 ## Nested Containers
 
-Podman works inside arch-ov at any nesting depth. The `container-nesting` layer provides the config + env vars; the image-level `cap_add: [ALL]` is belt-and-braces for root-mode workloads that might need capabilities beyond what rootless delegation grants:
+Rootless podman works inside arch-ov at any nesting depth. The
+`/ov-layers:container-nesting` layer provides the config + env vars +
+subuid/subgid delegation (1:999 + 1001:64535 per the podman/stable
+recipe):
 
 ```bash
 # Level 1: run containers inside arch-ov
-ov shell arch-ov -c "podman run --rm docker.io/library/alpine echo hello"
+ov shell arch-ov -c "podman run --rm quay.io/libpod/alpine:latest echo hello"
 
 # Level 2: run ov inside arch-ov inside arch-ov
 ov shell arch-ov -c "ov shell arch-ov -c 'ov version'"
 ```
 
+Use `quay.io/libpod/alpine:latest` instead of `docker.io/library/alpine`
+to dodge Docker Hub rate limits — the baked
+`container-nesting-alpine-run` test does.
+
 ## GPU Support
 
-The `nvidia` layer provides NVIDIA GPU runtime:
+The `/ov-layers:nvidia` layer provides NVIDIA GPU runtime:
+
 - `nvidia-utils` — `nvidia-smi` and driver userspace
 - `nvidia-container-toolkit` — `nvidia-ctk` for CDI spec generation
 
-`ov` automatically calls `EnsureCDI()` before launching GPU containers. GPU access works at any nesting depth.
+`ov` automatically calls `EnsureCDI()` before launching GPU
+containers. GPU access works at any nesting depth.
 
 ## Verification
 
 ```bash
+ov shell arch-ov -c "id"                              # uid=1000(user)
+ov shell arch-ov -c "sudo -n whoami"                  # root (passwordless)
 ov shell arch-ov -c "ov version"
 ov shell arch-ov -c "ov doctor"
 ov shell arch-ov -c "podman info"
-ov shell arch-ov -c "podman run --rm docker.io/library/alpine echo OK"
+ov shell arch-ov -c "podman run --rm quay.io/libpod/alpine:latest echo OK"
 ov shell arch-ov -c "which nvidia-ctk"
 ```
 
 ## Unified with fedora-ov
 
-Both `arch-ov` and `fedora-ov` use the exact same layer list. The tag system (`build: [pac]` + `distro: [archlinux]` vs `build: [rpm]` + `distro: ["fedora:43", fedora]`) selects the right packages and scripts per distro.
+Both `arch-ov` and `/ov-images:fedora-ov` use the exact same layer
+list. The tag system (`build: [pac]` + `distro: [archlinux]` vs
+`build: [rpm]` + `distro: ["fedora:43", fedora]`) selects the right
+packages and scripts per distro.
 
 ## Key Layers
+
 - `/ov-layers:ov-full` — ov binary plus VM/encryption tools
-- `/ov-layers:ov-mcp` — MCP server gateway (port 18765; `/project` bind-mount for build-mode tools)
-- `/ov-layers:container-nesting` — nested podman/buildah (pac: podman + crun + buildah; `docker` is RPM-only now — Arch gets podman directly)
-- `/ov-layers:sshd` — SSH server/client with `package_map` for cross-distro package names
+- `/ov-layers:ov-mcp` — MCP server gateway (port 18765; `/workspace` bind-mount or auto-fallback)
+- `/ov-layers:container-nesting` — nested podman/buildah (pac: podman + crun + buildah; `docker` is RPM-only — Arch gets podman directly)
+- `/ov-layers:sshd` — SSH server/client with `package_map` for cross-distro package names + the passwordless-sudo sudoers drop-in
+- `/ov-layers:gh` — GitHub CLI + git + git-lfs (owns all git tooling as of 2026-04)
 - `/ov-layers:nvidia` — NVIDIA GPU runtime
 
 ## Related Images
+
 - `/ov-images:archlinux` — parent base image
-- `/ov-images:fedora-ov` — Fedora counterpart, same layers
-- `/ov-images:selkies-desktop-ov` — non-root counterpart (same `ov` toolchain, no `cap_add` + no host networking; streaming desktop wrapper for browser-accessible operation)
-- `/ov-images:githubrunner` — sibling root-mode image for self-hosted CI runners
+- `/ov-images:fedora-ov` — Fedora counterpart, same layers, same rootless posture
+- `/ov-images:fedora-coder` — kitchen-sink dev sibling (32 layers vs 8; adds coding CLIs + DevOps)
+- `/ov-images:selkies-desktop-ov` — streaming-desktop counterpart (ov toolchain + browser-accessible Wayland); shares the rootless-first posture
+- `/ov-images:githubrunner` — self-hosted GitHub Actions runner; same uid=1000 posture
 
 ## Related Commands
-- `/ov:shell` — open an interactive shell in arch-ov
+
+- `/ov:shell` — open an interactive shell in arch-ov (as uid=1000 with sudo)
 - `/ov:service` — manage arch-ov as a service
-- `/ov:vm` — nested libvirt VMs via `qemu:///session` (now works rootless too — see `/ov-images:selkies-desktop-ov`)
+- `/ov:vm` — nested libvirt VMs via `qemu:///session` (rootless)
+- `/ov:test` — `--include-deploy` prefers the running container (see `/ov:test` "Live vs disposable executor selection")
+- `/ov:mcp` — MCP gateway + auto-fallback behavior

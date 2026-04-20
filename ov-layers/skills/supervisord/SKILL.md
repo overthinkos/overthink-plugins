@@ -12,14 +12,28 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Dependencies | `python` |
+| Dependencies | **(none)** — system Python comes from the `supervisor` RPM's own dep |
 | Install files | `layer.yml`, `supervisord.header.conf` (via `build.yml `init:` section` header_file) |
 | Init role | Default init system for container images (set in `build.yml `init:` section`) |
 
 ## Packages
 
-- `supervisor` (RPM) — process control system (Python-based)
-- `supervisor` (pac) — same package name on Arch (`extra/` repo)
+- `supervisor` (RPM) — process control system. The RPM brings
+  `/usr/bin/python3` as its own dependency; supervisord's shebang is
+  `/usr/bin/python3`. **No pixi-python / no conda-forge Python env is
+  needed.**
+- `supervisor` (pac) — same package name on Arch (`extra/` repo), same
+  system-Python dependency.
+
+### The vestigial `depends: python` removed in 2026-04
+
+The layer used to declare `depends: python`, which pulled in the
+`python` ov-layer → `pixi` ov-layer → a conda-forge Python env
+(~500 MB). Nothing in supervisord's runtime touched that env — it's
+pure system-Python all the way. The dep was dropped in 2026-04.
+Every image in the catalog that uses supervisord (which is nearly all
+of them) got an image-size drop of several hundred MB. See CLAUDE.md
+"Key Rules" → *"Don't declare defensive deps"* for the general rule.
 
 **Arch note:** the `pac: [supervisor]` section was added alongside the
 intermediates-inheritance fix so that Arch-based images with
@@ -196,7 +210,7 @@ Container-mode logs are unaffected — supervisord is still PID 1 there.
 
 ## Related Layers
 
-- `/ov-layers:python` -- Python runtime dependency (supervisord is Python-based)
+- `/ov-layers:python` -- Optional pixi-python env (NOT a dep of this layer as of 2026-04; supervisord uses system python3 from RPM)
 - `/ov-layers:chrome` -- Canonical consumer of the crash-loop circuit breaker pattern (chrome-crash-listener, resource caps)
 - `/ov-layers:labwc` -- Uses `supervisorctl avail` + `supervisorctl start chrome` to hand off to supervisord with a TOCTOU-safe sequence (autostart race fix in commit `febb9bd`)
 - `/ov-layers:traefik` -- Reverse proxy (depends on supervisord)

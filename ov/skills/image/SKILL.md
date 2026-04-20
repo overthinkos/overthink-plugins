@@ -84,9 +84,9 @@ OV_PROJECT_REPO=overthinkos/overthink ov image list images
 
 Remote repos are cloned into `~/.cache/ov/repos/<repoPath>@<version>/` (override via `OV_REPO_CACHE`). The cache is shared with the existing remote-layer fetcher (`ov/refs.go`, `ov/refs_git.go`) — both go through `EnsureRepoDownloaded`.
 
-**Canonical use case**: running `ov mcp serve` inside a container. The container's cwd is `/root` (or similar) where no `image.yml` exists. There are now three deployment patterns, in order of progressively less local setup:
+**Canonical use case**: running `ov mcp serve` inside a container. The container's cwd is `/workspace` (set by the `ov-mcp` layer's env + volume declaration). There are three deployment patterns, in order of progressively less local setup:
 
-1. **Bind-mount** — the original `ov-mcp` layer pattern. Host project mounted at `/project`, `OV_PROJECT_DIR=/project` set in the container env. Use this when you want the agent to read your in-flight local edits.
+1. **Bind-mount** — the canonical `ov-mcp` pattern. Host project bind-mounted to the container's `/workspace`; volume NAME stays `project` for a stable deployer API. Use this when you want the agent to read your in-flight local edits.
 
    ```bash
    ov config arch-ov --bind project=/home/you/overthink
@@ -96,9 +96,9 @@ Remote repos are cloned into `~/.cache/ov/repos/<repoPath>@<version>/` (override
 
 2. **Remote pin** — set `OV_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env. The agent reads from a pinned upstream version. No bind mount required.
 
-3. **Auto-default** — `ov mcp serve` with no `OV_PROJECT_DIR`/`OV_PROJECT_REPO` and no local `image.yml` silently falls back to `github.com/overthinkos/overthink`. Pass `--no-default-repo` on the serve command to opt out (it then hard-fails with a clear error). This is the only command that auto-fetches; the top-level CLI stays opt-in.
+3. **Auto-default** — `ov mcp serve` with no `image.yml` reachable at cwd silently falls back to `github.com/overthinkos/overthink`. **Refined in 2026-04**: the fallback now fires whenever cwd lacks `image.yml`, regardless of whether `OV_PROJECT_DIR` is set (previously the fallback only fired when the env var was empty — but the `ov-mcp` layer permanently sets `OV_PROJECT_DIR=/workspace`, so the fallback was effectively dead code). Pass `--no-default-repo` on the serve command to opt out. Only `ov mcp serve` auto-fetches; the top-level CLI stays opt-in.
 
-The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory` or `reading image.yml: open /project/image.yml: no such file or directory` (when the bind mount exists but hasn't been populated). See `/ov:mcp` "Deployment: the `ov-mcp` layer" for the full bind-mount pattern and `/ov-dev:go` "main.go" for the implementation note (guarded by `TestOvDir_FlagChdir` + `TestOvDir_Errors` in `main_dir_test.go`, and `TestNormalizeRepoSpec` + `TestOvRepo_*` in `main_repo_test.go`).
+The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory`. See `/ov:mcp` "Deployment: the `ov-mcp` layer" for the full bind-mount pattern and `/ov-dev:go` "main.go" for the implementation note (guarded by `TestOvDir_FlagChdir` + `TestOvDir_Errors` in `main_dir_test.go`, and `TestNormalizeRepoSpec` + `TestOvRepo_*` in `main_repo_test.go`).
 
 ## Quick Reference
 

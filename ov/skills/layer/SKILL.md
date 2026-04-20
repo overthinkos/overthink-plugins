@@ -81,7 +81,7 @@ Every task in `tasks:` is a YAML map with **exactly one verb key** (the discrimi
 | `copy:` | source relative to layer dir | `to:` | `user`, `mode`, `comment` | `COPY --from=<layer-stage> --chmod= [--chown=]` — no RUN |
 | `write:` | destination path | `content:` | `user`, `mode`, `comment` | Write inline content — staged + COPY, no shell heredoc |
 | `link:` | symlink path (where the link lives) | `target:` | `user`, `comment` | `ln -sf <target> <link>` (coalesces with adjacent) |
-| `download:` | URL | — (`to:` unless `extract: sh`) | `user`, `extract`, `to`, `include`, `mode`, `env`, `comment` | `curl` + optional extract (`tar.gz`/`tar.xz`/`tar.zst`/`zip`/`none`/`sh`) |
+| `download:` | URL | — (`to:` unless `extract: sh`) | `user`, `extract`, `to`, `include`, `strip_components`, `mode`, `env`, `comment` | `curl` + optional extract (`tar.gz`/`tar.xz`/`tar.zst`/`zip`/`none`/`sh`). `strip_components: N` (2026-04) emits `tar --strip-components=N` for tar.* — drops leading path segments so tarballs that nest under a top-level arch/version dir (Go, Rust, Node binary releases) land files directly at `to:`. See `/ov-layers:uv` for the canonical uv-x86_64-unknown-linux-gnu/uv → /usr/local/bin/uv example. |
 | `setcap:` | file path | — | `user` (implicit root), `caps`, `comment` | File capabilities (`setcap -r` strip if `caps` empty) |
 | `build:` | `"all"` | — | `user` (default `${USER}`), `comment` | Run auto-detected builders (pixi/npm/cargo/aur) at this point (instead of end-of-layer) |
 
@@ -470,12 +470,12 @@ path_append:
 ```yaml
 # ❌ WRONG — parser rejects the list shape
 env:
-  - OV_PROJECT_DIR=/project
+  - OV_PROJECT_DIR=/workspace
   - GOPATH=~/go
 
 # ✓ RIGHT — map form
 env:
-  OV_PROJECT_DIR: "/project"
+  OV_PROJECT_DIR: "/workspace"
   GOPATH: "~/go"
 ```
 

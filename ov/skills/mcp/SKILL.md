@@ -1,7 +1,7 @@
 ---
 name: mcp
 description: |
-  MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `ov test mcp` client: probing MCP servers declared via mcp_provides, testing MCP tool catalogs, debugging the URL-rewriter or port-publishing behavior. (2) `ov mcp serve` server: running the ov CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (190 tools including the MCP-first authoring surface — image/layer scaffolding, comment-preserving YAML edits, free-form file writes), destructive-hint annotations, the `--read-only` filter, auto-fallback to `overthinkos/overthink` when no project is wired, and the `ov-mcp` deployment layer with its now-optional `/project` bind mount.
+  MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `ov test mcp` client: probing MCP servers declared via mcp_provides, testing MCP tool catalogs, debugging the URL-rewriter (including host-networked containers via `HostConfig.NetworkMode` detection — new 2026-04) or port-publishing behavior. (2) `ov mcp serve` server: running the ov CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (~192 tools including the MCP-first authoring surface — image/layer scaffolding, comment-preserving YAML edits, free-form file writes), destructive-hint annotations, the `--read-only` filter, auto-fallback to `overthinkos/overthink` when cwd has no `image.yml` (always fires now, regardless of OV_PROJECT_DIR being set — 2026-04 change), and the `ov-mcp` deployment layer with its `/workspace` bind mount.
 ---
 
 # MCP - Model Context Protocol (client + server)
@@ -317,22 +317,22 @@ mcp_provides:
     transport: http
 volumes:
   - name: project        # Bind-mount the project root; see below
-    path: /project
+    path: /workspace
 env:
-  OV_PROJECT_DIR: "/project"
+  OV_PROJECT_DIR: "/workspace"
 service: |
   [program:ov-mcp]
   command=/usr/local/bin/ov mcp serve --listen :18765
   ...
 ```
 
-**Project-dir wiring** — build-mode tools (`image.build`, `image.inspect`, `image.list.*`) resolve `image.yml` via `os.Getwd()`. Inside the container, cwd is `/root`, not the project. There are now three deployment patterns, in order of progressively less local setup:
+**Project-dir wiring** — build-mode tools (`image.build`, `image.inspect`, `image.list.*`) resolve `image.yml` via `os.Getwd()`. Inside the container, cwd is `/workspace` (set by the `ov-mcp` layer's `OV_PROJECT_DIR` env + `volumes:` declaration). Three deployment patterns, in order of progressively less local setup:
 
-1. **Bind-mount** — the original `ov-mcp` layer pattern. The `env: OV_PROJECT_DIR: /project` + `volumes: project → /project` pair: deployer bind-mounts with `ov config <image> --bind project=/path/to/overthink`. The ov CLI's global `-C` / `--dir` / `OV_PROJECT_DIR` flag honours the env var before Kong dispatch, calling `os.Chdir(OV_PROJECT_DIR)` once. Use this when the agent should see your in-flight local edits.
+1. **Bind-mount** — the canonical `ov-mcp` pattern. The layer ships `env: OV_PROJECT_DIR: /workspace` + `volumes: project → /workspace`; the deployer attaches a host checkout via `ov config <image> --bind project=/path/to/overthink`. The ov CLI's global `-C` / `--dir` / `OV_PROJECT_DIR` flag honours the env var before Kong dispatch, calling `os.Chdir(OV_PROJECT_DIR)` once. Use this when the agent should see your in-flight local edits. The volume NAME stays `project` (stable bind-mount API) — only the in-container PATH changed from `/project` to `/workspace` in 2026-04 (the generic name works whether the contents are an overthink checkout or any other workspace).
 
 2. **Remote pin** — set `OV_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env (e.g. via `ov config <image> -e OV_PROJECT_REPO=...`). The ov CLI clones (or hits its `~/.cache/ov/repos/` cache) and chdirs into the cache path before Kong dispatch. No bind mount required. Use this for reproducible agent runs against a pinned upstream.
 
-3. **Auto-default** — `ov mcp serve` with no `OV_PROJECT_DIR`/`OV_PROJECT_REPO` and no local `image.yml` silently falls back to `github.com/overthinkos/overthink`. Pass `--no-default-repo` on the serve command to opt out (it then hard-fails with `ov mcp serve: no project source found …`). This is the only command in the entire CLI that auto-fetches; the top-level CLI stays opt-in. Implemented in `McpServeCmd.bootstrapProject()` in `ov/mcp_server.go`.
+3. **Auto-default** — `ov mcp serve` with no image.yml reachable at cwd silently falls back to `github.com/overthinkos/overthink`. **Changed in 2026-04:** the fallback now fires regardless of `OV_PROJECT_DIR` being set — it checks whether the resolved cwd actually contains `image.yml`, not whether the env var is populated. This matters because the `ov-mcp` layer permanently sets `OV_PROJECT_DIR=/workspace`; the old early-return-on-env-set logic meant the auto-fallback was effectively dead code for any ov-mcp container. Now a deployer who forgets the `--bind` still gets a working MCP server backed by the upstream repo, with a log line naming the reason (`ov mcp: OV_PROJECT_DIR=/workspace has no image.yml; falling back to default repo …`). Pass `--no-default-repo` on the serve command to opt out (hard-fail with a clear message). This is the only command in the entire CLI that auto-fetches; the top-level CLI stays opt-in. Implementation: `McpServeCmd.bootstrapProject()` in `ov/mcp_server.go`.
 
 See `/ov:image` "Project directory resolution" for the flag/env semantics, and `ov/mcp_serve_default_repo_test.go` for the auto-fallback behaviour test.
 
@@ -354,7 +354,7 @@ ov test mcp list-tools arch-ov --name ov | wc -l
 ov test mcp call arch-ov version '{}' --name ov
 # 2026.nnn.nnnn          (the container's own ov version)
 ov test mcp call arch-ov image.list.images '{}' --name ov
-# arch-ov [testing]      (reads image.yml from the bind-mounted /project)
+# arch-ov [testing]      (reads image.yml from the bind-mounted /workspace)
 # archlinux [testing]
 # …
 ```
@@ -424,7 +424,7 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 - `/ov-images:jupyter`, `/ov-images:jupyter-ml`, `/ov-images:jupyter-ml-notebook` — images bundling `jupyter-mcp`; `ov test <image> --filter mcp` exercises the verb end-to-end.
 - `/ov-images:sway-browser-vnc`, `/ov-images:selkies-desktop`, `/ov-images:selkies-desktop-nvidia` — images bundling `chrome-devtools-mcp` (transitively via the chrome metalayer).
 - `/ov-dev:go` — implementation map: `mcp.go` (client Kong subcommand tree), `mcp_client.go` (client SDK wrapper + URL rewriter), `mcp_server.go` (server: Kong→MCP reflection, destructive-hint set, `captureAndRun`), `testrun_ov_verbs.go` (declarative dispatcher entry `mcpMethods`), `validate_tests.go` (`validateOvVerb` case for `mcp`).
-- `/ov-layers:ov-mcp` — the deployment layer that wires `ov mcp serve` into an image via supervisord. Includes the `/project` bind-mount + `OV_PROJECT_DIR` env var pattern for build-mode tools.
+- `/ov-layers:ov-mcp` — the deployment layer that wires `ov mcp serve` into an image via supervisord. Includes the `/workspace` bind-mount (volume NAME `project`) + `OV_PROJECT_DIR` env var pattern for build-mode tools.
 - `/ov-layers:ov` — the underlying binary layer; required by `ov-mcp`.
 - `/ov:image` — "Project directory resolution" subsection documents the `-C` / `--dir` / `OV_PROJECT_DIR` global flag that makes the server's project-dir bind-mount work.
 - `/ov-images:arch-ov`, `/ov-images:fedora-ov` — canonical images composing `ov-mcp` for remote ov-via-MCP deployments.

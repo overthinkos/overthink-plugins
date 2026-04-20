@@ -33,11 +33,46 @@ check written once works unchanged when `deploy.yml` remaps ports.
 |--------|---------|-------------|
 | Run tests against running service | `ov test <image> [-i instance]` | Full three-section run + deploy overlay |
 | Run tests against disposable container | `ov image test <image>` | Layer + image sections (deploy needs `--include-deploy`) |
+| Run tests against *live* container (auto-fallback) | `ov image test <image> --include-deploy` | Prefers the running `ov-<image>` container; falls back to disposable if none (see "Live vs disposable executor selection" below) |
 | Validate authored tests at config time | `ov image validate` | Schema, scope/variable consistency, id uniqueness |
 | Inspect effective spec | `ov image inspect <image>` | JSON includes merged tests structure |
 | Filter by verb | `ov test <image> --filter file --filter port` | Repeatable |
 | Filter by section | `ov test <image> --section deploy` | One of: layer / image / deploy |
 | Output format | `ov test <image> --format json\|tap\|text` | Default text |
+
+## Live vs disposable executor selection (`ov image test`, 2026-04)
+
+`ov image test` picks its executor based on `--include-deploy`:
+
+- **Without `--include-deploy`** — always spawns a disposable
+  container via `podman run --rm <image-ref>` (`ImageExecutor`). Only
+  layer + image sections run. This is the correct choice for pure
+  build-scope invariants ("did this binary land at this path?") where
+  a running service would only add noise.
+- **With `--include-deploy`** — probes for `ov-<meta.Image>`
+  **running** container. If alive: uses `ContainerExecutor`
+  (`podman exec`) + `ResolveTestVarsRuntime` so deploy tests see real
+  supervisord state, real `HOST_PORT:<N>` mappings (including
+  host-networked containers via `HostConfig.NetworkMode` detection,
+  new in 2026-04), and real in-container env. If no running
+  container: falls back to `ImageExecutor` (same behaviour as the
+  pre-2026-04 default — most deploy tests will skip or fail, which is
+  the honest outcome).
+
+The banner after the test run reports which executor was used:
+
+```
+Image: ghcr.io/overthinkos/fedora-coder:latest (live container: ov-fedora-coder)
+# ← live
+
+Image: ghcr.io/overthinkos/fedora-coder:latest
+# ← disposable
+```
+
+The `meta.Image` short-name (from the `org.overthinkos.image` OCI
+label) is used for the container-name lookup — full image refs like
+`ghcr.io/overthinkos/fedora-coder:latest` are correctly mapped to
+`ov-fedora-coder`. Implementation: `ov/test_cmd.go` `ImageTestCmd.Run()`.
 
 ## Subcommands: live-container verbs
 

@@ -80,7 +80,7 @@ my-image:
 ## Related Layers
 
 - `/ov-layers:ov-full` -- composition that includes ov + virtualization + gocryptfs + socat
-- `/ov-layers:ov-mcp` -- layers: [ov, supervisord] meta-composition that deploys `ov mcp serve` (176-tool MCP gateway) with a `/project` bind mount for build-mode tools
+- `/ov-layers:ov-mcp` -- layers: [ov, supervisord] meta-composition that deploys `ov mcp serve` (~192-tool MCP gateway) with a `/workspace` bind mount (volume NAME `project`) for build-mode tools + auto-fallback to overthinkos/overthink when nothing is bound
 - `/ov-layers:dbus` -- D-Bus session bus (ov test dbus commands need this)
 - `/ov-layers:swaync` -- notification daemon (needed for ov test dbus notify to show popups)
 
