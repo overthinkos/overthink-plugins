@@ -14,6 +14,10 @@ Invoked as `ov image build`. See `/ov:image` for the family overview.
 
 **Mode purity**: `ov image build` reads `image.yml` + `build.yml` + `layer.yml` only. `deploy.yml` is never read during build — this is enforced by `LoadConfig` in `ov/config.go`, which calls `LoadConfigRaw` (no `MergeDeployOverlay`) to guarantee OCI labels are baked strictly from authored configuration, never from local deploy-time overrides. See `/ov-dev:go` "Mode purity" for the architectural invariant this protects and the bug it prevents.
 
+**IR-driven emission**: since the 2026-04 refactor, `ov image build` emits Containerfiles via `OCITarget` — the build-mode implementation of the shared `DeployTarget` interface. Internally the flow is: `image.yml` + `layer.yml` → `BuildDeployPlan` (pure compiler) → `InstallPlan` IR → `OCITarget.Emit` → Containerfile text. The same IR backs `ContainerDeployTarget` and `HostDeployTarget` used by `ov deploy add`. See `/ov-dev:install-plan` for the IR and `/ov-dev:generate` for the Go call graph.
+
+**Three-phase templates**: `build.yml` format and builder definitions split each install operation into `phases.{prepare, install, cleanup}.{container, host}` — three phases × two venues. Build-mode emission reads the `container` cell; host deploys read `host`. The legacy `install_template:` field still works and serves as the `(install, container)` fallback when `phases:` is absent, so migration is incremental. See `/ov:layer` "Service Declaration" for the analogue at the init-system level (`init.<name>.service_schema`).
+
 ## Quick Reference
 
 | Action | Command | Description |

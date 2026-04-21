@@ -320,10 +320,12 @@ volumes:
     path: /workspace
 env:
   OV_PROJECT_DIR: "/workspace"
-service: |
-  [program:ov-mcp]
-  command=/usr/local/bin/ov mcp serve --listen :18765
-  ...
+services:
+  - name: ov-mcp
+    exec: /usr/local/bin/ov mcp serve --listen :18765
+    restart: always
+    enable: true
+    scope: system
 ```
 
 **Project-dir wiring** — build-mode tools (`image.build`, `image.inspect`, `image.list.*`) resolve `image.yml` via `os.Getwd()`. Inside the container, cwd is `/workspace` (set by the `ov-mcp` layer's `OV_PROJECT_DIR` env + `volumes:` declaration). Three deployment patterns, in order of progressively less local setup:

@@ -1,19 +1,29 @@
 ---
 name: deploy
 description: |
-  MUST be invoked before any work involving: quadlet generation, volume backing, tunnels (Tailscale/Cloudflare), deploy overlays, or production deployment configuration.
+  MUST be invoked before any work involving: `ov deploy add`/`ov deploy del` commands, quadlet generation, volume backing, tunnels (Tailscale/Cloudflare), `add_layers:` overlay, or per-machine deploy overlays.
 ---
 
 # Deploy - Deployment Configuration
 
 ## Overview
 
-Deployment configuration for container services: quadlet file generation details, per-volume backing configuration, tunnel configuration for external access, and per-machine deploy overlays.
+`ov deploy` is the parent verb for applying and tearing down deployments, plus managing `deploy.yml` overrides. The command family has two distinct surfaces:
+
+1. **Execution verbs** — `ov deploy add <name>` / `ov deploy del <name>`. Apply or reverse a deployment. The literal name `host` targets the local filesystem via `HostDeployTarget`; any other name is a container deployment managed via `ContainerDeployTarget` (overlay Containerfile + quadlet/podman). See `/ov:host-deploy` for the host-target deep dive.
+2. **Config-file management** — `ov deploy show/export/import/reset/path/status`. Read and mutate `~/.config/ov/deploy.yml` itself.
+
+`ov start` / `ov stop` remain as ergonomic wrappers: `ov start <image>` is equivalent to `ov deploy add <image> <image>` with the container target; `ov stop <name>` is `ov deploy del <name>`. New scripts should prefer the explicit `ov deploy add`/`ov deploy del` forms, especially when using `--add-layer` overlays or the `host` target.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
+| Apply container deploy | `ov deploy add <name> <ref>` | Compile layers + build overlay if `add_layers:` present + run via quadlet |
+| Apply host deploy | `ov deploy add host <ref>` | Apply layers directly to local filesystem (see `/ov:host-deploy`) |
+| Tear down deploy | `ov deploy del <name>` | Stop container + reverse ReverseOps (host) + ledger cleanup |
+| Dry-run | `ov deploy add <name> <ref> --dry-run [--format=json]` | Print the InstallPlan without executing |
+| Layer overlay | `ov deploy add <name> <ref> --add-layer <ref>` | Extra layer(s) applied on top; repeatable |
 | Configure deployment | `ov config <image>` | Generate .container file + save deploy.yml |
 | Configure instance | `ov config <image> -i <instance>` | Generate instance-specific quadlet + deploy entry |
 | Configure volume backing | `ov config <image> --bind name` | Set volume as host bind mount |
@@ -26,7 +36,101 @@ Deployment configuration for container services: quadlet file generation details
 | Reset instance config | `ov deploy reset <image> -i <instance>` | Remove instance overrides |
 | Push to registry | `ov image build --push` | Multi-platform push |
 
-For service lifecycle commands (start/stop/status/logs/update/remove), see `/ov:service`. For VM deployment, see `/ov:vm`. For encrypted storage, see `/ov:enc`.
+For service lifecycle commands (start/stop/status/logs/update/remove), see `/ov:service`. For VM deployment, see `/ov:vm`. For encrypted storage, see `/ov:enc`. For host-target semantics, see `/ov:host-deploy`. For the Go IR that drives both targets, see `/ov-dev:install-plan`.
+
+## Command Family: `add` / `del`
+
+### `ov deploy add <name> [<ref>]`
+
+Applies a deployment. `<name>` selects the target:
+
+- **`host`** (literal) — apply layers to the local filesystem via `HostDeployTarget`. One host deploy per machine (singleton). See `/ov:host-deploy`.
+- **Any other string** — container deployment. Multiple container deploys coexist (`my-dev`, `postgres-staging`, etc.); each gets its own quadlet, container name, and deploy.yml entry.
+
+`<ref>` accepts four forms, auto-detected:
+
+| Form | Example | Resolution |
+|---|---|---|
+| Local image name | `fedora-coder` | Looked up in current project's `image.yml` |
+| Local layer name | `pre-commit` | Looked up in current project's `layers/` directory |
+| Local YAML path | `./custom.yml`, `/abs/path/layer.yml` | File's top-level keys classify image vs layer |
+| Remote repo | `github.com/owner/repo[/images/<n>\|/layers/<n>][@ref]` | Fetched via existing `--repo` cache |
+
+Disambiguation: a ref containing `/layers/` resolves to a layer; `/images/` to an image. For local names, `image.yml` is checked before `layers/`; same-named entries in both are a hard error. The legacy `@host/org/repo:version` form (used by `depends:` and `layers:` in layer.yml) is also accepted.
+
+When `<ref>` is omitted, the ref falls back to `deploy.yml['deploys'][<name>]['image']` (or the deploy key itself if no explicit image is declared).
+
+### `ov deploy add` flags
+
+**Universal:**
+- `--tag <calver>` — override deploy.yml tag
+- `--dry-run` — print the InstallPlan without executing
+- `--format table|json` — with `--dry-run`
+- `--pull` — force re-fetch of remote refs / image pull
+- `--verify` — run layer `tests:` post-deploy
+- `--add-layer <ref>` — repeatable; extra layer(s) applied on top (all 4 ref forms)
+
+**Host-target-specific** (silently ignored on container deploys):
+- `--with-services` — opt-in for systemd unit installation (packaged-unit enable + drop-ins)
+- `--allow-repo-changes` — opt-in for repo config mutations (rpmfusion, copr, external `.repo` files)
+- `--allow-root-tasks` — opt-in for arbitrary `cmd: user: root` task bodies
+- `--skip-incompatible` — skip layers lacking a host-matching format section instead of failing
+- `--builder-image <ref>` — override the compile-builder image
+- `--yes` / `-y` — all three gates plus skip sudo preflight
+
+### `ov deploy del <name>`
+
+Reverses a deployment. Gated host-side reversal respects `--keep-repo-changes` and `--keep-services`. Container teardown: `podman stop` + `rm` + overlay image removal (unless `--keep-image`) + ledger cleanup. See `/ov:host-deploy` for the full 15-kind ReverseOp table.
+
+### `add_layers:` overlay mechanism
+
+Both container and host targets accept extra layers at deploy time via `--add-layer <ref>` (repeatable) or a `deploy.yml['deploys'][<name>]['add_layers']` list. Semantics:
+
+- **Container target**: synthesizes an overlay Containerfile (`FROM <base-image>` + the extra layers' build steps) and builds a deterministic overlay image tagged `<deploy-name>-overlay:<short-hash>`. The deploy runs the overlay, not the base image. Re-running with different overlays rebuilds. `ov deploy del <name>` removes the overlay unless `--keep-image`.
+- **Host target**: the compiler merges the image's layers with `add_layers:`, topo-sorts the union, and compiles one `InstallPlan` covering the combined set. The ledger records which layers (base + overlay) were applied so teardown reverses everything.
+
+Ref forms for `--add-layer` are identical to the primary `<ref>` positional (local name / local path / remote / legacy `@` form).
+
+## Examples
+
+**Deploy a local image as a container:**
+```bash
+ov deploy add my-dev fedora-coder
+# Uses deploy.yml['deploys']['my-dev'] for volumes/ports/env/tunnel.
+ov deploy del my-dev
+```
+
+**Deploy directly to the host:**
+```bash
+ov deploy add host fedora-coder --with-services --yes
+ov deploy del host --yes
+```
+
+**Deploy from a remote repo:**
+```bash
+ov deploy add my-coder github.com/overthinkos/overthink/images/fedora-coder@main
+ov deploy add host github.com/team-acme/private-configs/layers/my-team-tools
+```
+
+**Add overlay layers:**
+```bash
+ov deploy add host fedora-coder \
+    --add-layer team-extras \
+    --add-layer github.com/team/configs/layers/sshkeys \
+    --add-layer ./private.yml \
+    --with-services
+```
+
+**Dry-run to preview the plan:**
+```bash
+ov deploy add host fedora-coder --dry-run --format=json
+```
+
+**`ov start`/`ov stop` equivalence:**
+```bash
+ov start fedora-coder            # == ov deploy add fedora-coder fedora-coder (container target)
+ov stop fedora-coder             # == ov deploy del fedora-coder
+```
 
 ## Quadlet Generation
 
@@ -215,7 +319,39 @@ images:
     engine: podman
 ```
 
-Allowed fields: `workspace`, `version`, `status`, `info`, `tunnel`, `fqdn`, `acme_email`, `volumes`, `ports`, `env`, `env_file`, `security`, `network`, `engine`, `secrets`.
+Allowed fields: `workspace`, `version`, `status`, `info`, `tunnel`, `fqdn`, `acme_email`, `volumes`, `ports`, `env`, `env_file`, `security`, `network`, `engine`, `secrets`, `target`, `add_layers`, `install_opts` (new fields described below).
+
+### New fields from the `ov deploy add` surface
+
+The `ov deploy add`/`del` refactor introduced three fields on every deploy.yml image entry. They're honored only when relevant to the deploy target.
+
+**`target:`** — `""` or `"container"` (default, existing pipeline) or `"host"` (local filesystem apply). The deploy name `host` typically also sets this explicitly for clarity. When `target: host` is set on a non-`host` deploy name, `ov deploy add` errors cleanly — container deploy names can't secretly target the host.
+
+**`add_layers:`** — list of extra layer refs applied on top of the image's base layers. Each entry accepts the same 4 ref forms as the command-line `--add-layer` flag (local name / local YAML path / remote `github.com/.../layers/<n>[@ref]`). See "add_layers: overlay mechanism" above for container vs host semantics.
+
+**`install_opts:`** — host-target defaults that mirror the CLI flags on `ov deploy add`. CLI flags win on conflict; deploy.yml provides defaults so you don't have to repeat `--with-services --allow-repo-changes` on every invocation.
+
+```yaml
+images:
+  host:
+    image: fedora-coder
+    target: host
+    add_layers:
+      - my-team-vimrc                                     # local layer
+      - github.com/team-acme/configs/layers/sshkeys       # remote layer
+      - ./private-overlay.yml                             # local file
+    install_opts:
+      with_services: true
+      allow_repo_changes: true
+      allow_root_tasks: false
+      skip_incompatible: false
+      verify: true
+      builder_image: fedora-builder:2026.04
+    env:
+      OVERTHINK_DEV: "true"
+```
+
+Fields ignored on container deploys: `install_opts` (host-only). Fields ignored on host deploys: `volumes`, `ports`, `tunnel`, `sidecars`, `security`'s container-runtime bits.
 
 ### Resource Caps
 
@@ -536,23 +672,34 @@ images:
 
 ## Cross-References
 
-- `/ov:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
+**Deploy surface (new):**
+- `/ov:host-deploy` — Host-target execution model: HostDeployTarget, ledger, gates, 15 ReverseOp kinds, sudo batching
+- `/ov-dev:install-plan` — The InstallPlan IR shared by `ov image build` (OCITarget), container deploys (ContainerDeployTarget), and host deploys (HostDeployTarget)
+- `/ov-dev:host-infra` — Supporting Go files for host deploys: hostdistro, ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref
 
-- `/ov:sidecar` -- Sidecar containers, pod networking, Tailscale exit nodes, Environment Contract (provides filtering)
-- `/ov:service` -- Service lifecycle (start/stop/update/remove)
-- `/ov:enc` -- Encrypted storage commands (ov config mount/unmount)
-- `/ov:vnc` -- VNC password setup for desktop containers
-- `/ov:vm` -- Virtual machine deployment (ov vm)
-- `/ov:update` -- Per-instance update pattern for rolling out layer fixes + podman tag rollback recipe
-- `/ov:build` -- Building images before deployment (+ the `--no-cache` intermediate scratch-stage caveat)
-- `/ov:config` -- Resource cap flags (`--memory-max/high/swap/cpus`), provides filtering, env_requires enforcement, NO_PROXY auto-enrichment, `--sidecar`, `-i` instance support, MCP name disambiguation
-- `/ov:mcp` -- verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`ov test mcp ping <image>`); note the **port-publishing gotcha** when a `ports:` override in deploy.yml predates a newly-added mcp-providing layer
-- `/ov:image` -- Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
-- `/ov:layer` — `env_provides`/`env_requires`/`env_accepts` field declarations, security resource caps, `service:` blocks
-- `/ov-layers:chrome` — Canonical resource caps consumer + crash-loop circuit breaker
-- `/ov-layers:supervisord` — Event listener pattern triggered by the caps
-- `/ov-layers:selkies-desktop` — Multi-instance proxy deployment, tunnel inheritance workaround
+**Deploy-adjacent commands:**
+- `/ov:pull` — Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
+- `/ov:sidecar` — Sidecar containers, pod networking, Tailscale exit nodes, Environment Contract (provides filtering)
+- `/ov:service` — Service lifecycle (start/stop/update/remove)
+- `/ov:start` — Ergonomic alias for `ov deploy add <image> <image>` (container target)
+- `/ov:stop` — Ergonomic alias for `ov deploy del <name>`
+- `/ov:update` — Per-instance update pattern; equivalent to `ov deploy add <name> --pull`
+- `/ov:config` — Resource cap flags (`--memory-max/high/swap/cpus`), provides filtering, env_requires enforcement, NO_PROXY auto-enrichment, `--sidecar`, `-i` instance support, MCP name disambiguation
+- `/ov:enc` — Encrypted storage commands (ov config mount/unmount)
+- `/ov:vnc` — VNC password setup for desktop containers
+- `/ov:vm` — Virtual machine deployment (ov vm)
+- `/ov:build` — Building images before deployment (+ the `--no-cache` intermediate scratch-stage caveat)
+- `/ov:mcp` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`ov test mcp ping <image>`); note the **port-publishing gotcha** when a `ports:` override in deploy.yml predates a newly-added mcp-providing layer
+- `/ov:image` — Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
+- `/ov:layer` — Unified `services:` schema (use_packaged + structured custom), `env_provides`/`env_requires`/`env_accepts` field declarations, security resource caps
 - `/ov:test` — Local `tests:` in deploy.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.
+
+**Canonical layer worked examples:**
+- `/ov-layers:chrome` — Resource caps consumer + crash-loop circuit breaker
+- `/ov-layers:supervisord` — Event listener pattern triggered by the caps; ServiceSchemaDef that renders `services:` entries to supervisord INI
+- `/ov-layers:postgresql` — Canonical `use_packaged:` entry (packaged unit reuse)
+- `/ov-layers:ollama`, `/ov-layers:hermes` — Custom `services:` entries
+- `/ov-layers:selkies-desktop` — Multi-instance proxy deployment, tunnel inheritance workaround
 
 ## When to Use This Skill
 

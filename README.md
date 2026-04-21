@@ -13,7 +13,7 @@ Claude Code plugins for Overthink — the container management experience for yo
 
 ## Plugins
 
-### ov (38 skills)
+### ov (39 skills)
 
 Skills for composing, building, and running container images with the `ov` CLI.
 
@@ -29,7 +29,8 @@ Build-mode commands live under `ov image …` (the only family that reads
 | cmd | `/ov:cmd` | Single command execution with D-Bus notification |
 | config | `/ov:config` | Unified setup: quadlet + secrets + volumes + data provisioning |
 | dbus | `/ov:dbus` | D-Bus interaction inside containers (notify, call, list, introspect) |
-| deploy | `/ov:deploy` | Deployment (quadlet, bootc, tunnels, volume backing) |
+| deploy | `/ov:deploy` | Deployment verb family: `ov deploy add/del` (unified; host + container targets), deploy.yml management, quadlet, tunnels, volume backing |
+| host-deploy | `/ov:host-deploy` | Host-target deploys (`ov deploy add host`): ledger, 15 ReverseOps, `--with-services`/`--allow-repo-changes`/`--allow-root-tasks` gates, systemd rendering |
 | doctor | `/ov:doctor` | Host dependency and hardware checks |
 | enc | `/ov:enc` | Encrypted volumes (ov config mount/unmount/status/passwd) |
 | generate | `/ov:generate` | `ov image generate` — Containerfile generation from image.yml and layers |
@@ -62,7 +63,7 @@ Build-mode commands live under `ov image …` (the only family that reads
 | wl | `/ov:wl` | Desktop automation (22 commands + 12 sway IPC commands) |
 | wl-overlay | `/ov:wl-overlay` | Wayland overlays for screen recordings |
 
-### ov-dev (2 skills, 3 agents, GitHub MCP)
+### ov-dev (4 skills, 3 agents, GitHub MCP)
 
 Development tools and enforcement agents for contributors.
 
@@ -70,8 +71,10 @@ Development tools and enforcement agents for contributors.
 
 | Skill | Invocation | Description |
 |-------|-----------|-------------|
-| go | `/ov-dev:go` | Go CLI development (build, test, code map) |
-| generate | `/ov-dev:generate` | Containerfile generation internals and debugging |
+| go | `/ov-dev:go` | Go CLI development (build, test, code map, mode purity, self-exec, IR refactor pointer) |
+| generate | `/ov-dev:generate` | Containerfile generation internals and debugging; OCITarget + IR integration |
+| install-plan | `/ov-dev:install-plan` | The shared InstallPlan IR: 8 step kinds, DeployTarget interface, BuildDeployPlan compiler, OCITarget/ContainerDeployTarget/HostDeployTarget |
+| host-infra | `/ov-dev:host-infra` | Host-deploy supporting files: hostdistro, install_ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref, migrate_services_tool |
 
 **Agents:**
 

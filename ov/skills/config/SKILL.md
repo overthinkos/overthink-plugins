@@ -10,7 +10,9 @@ description: |
 
 `ov config` configures an image for deployment: generates a systemd quadlet unit, provisions container secrets, initializes encrypted volumes, and seeds data from data layers into the image's volumes (both bind mounts and podman named volumes). Requires `run_mode=quadlet`.
 
-This is the **single entry point** for deployment setup. `ov start` requires `ov config` to have been run first in quadlet mode.
+This is the **single entry point** for **container** deployment setup. `ov start` requires `ov config` to have been run first in quadlet mode.
+
+**Relationship to `ov deploy add`** — `ov config` remains the primary way to create/update a quadlet and provision secrets/volumes/sidecars for a container deploy. `ov deploy add <name> <ref>` (container target) wraps both `ov config` and `ov start` and additionally handles `--add-layer` overlay synthesis (an overlay Containerfile is built before the quadlet references the resulting overlay image). `ov deploy add host` bypasses `ov config` entirely — the host target has no quadlet; it writes systemd units directly (when `--with-services` is enabled) and records every action in the ledger at `~/.config/overthink/installed/`. See `/ov:deploy` for the command family and `/ov:host-deploy` for host-target semantics.
 
 ## Quick Reference
 

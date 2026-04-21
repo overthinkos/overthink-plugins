@@ -13,6 +13,8 @@ description: |
 
 `ov image generate` reads `image.yml` and `layers/`, resolves dependency graphs, and writes Containerfiles to `.build/`. Generation is idempotent and `.build/` is disposable (gitignored). Understanding the generated output is essential for debugging build issues.
 
+**2026-04 refactor**: generation now runs through the shared `DeployTarget` interface. `OCITarget` is the build-mode implementation; it consumes the `InstallPlan` IR emitted by `BuildDeployPlan` and writes Containerfile text. `ContainerDeployTarget` and `HostDeployTarget` are the deploy-mode siblings consuming the same IR. For the IR shape and step kinds, see **`/ov-dev:install-plan`**. For host-deploy supporting files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref), see **`/ov-dev:host-infra`**.
+
 ## Quick Reference
 
 | Action | Command | Description |
@@ -427,6 +429,10 @@ Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), maki
 | `org.overthinkos.env_layers` | JSON | layer-level env vars (merged) |
 | `org.overthinkos.path_append` | JSON | PATH append entries |
 | `org.overthinkos.engine` | string | Required run engine (`docker`/`podman`, omitted if any) |
+| `org.overthinkos.platform.distro` | JSON | `["archlinux"]` distro identity (first match picks bootstrap/format templates) |
+| `org.overthinkos.platform.formats` | JSON | `["pac"]` package formats installed (`pac`, `rpm`, `deb`, `pixi`, `aur`, …) |
+| `org.overthinkos.builder.uses` | JSON | `{"aur":"archlinux-builder","pixi":"default-builder"}` consumer-side routing: format → builder image |
+| `org.overthinkos.builder.provides` | JSON | `["pac","aur"]` producer-side capability: formats this image can build for others (builder images only) |
 | `org.overthinkos.port_protos` | JSON | `{"9222":"tcp"}` port protocol overrides (non-http only) |
 | `org.overthinkos.port_relay` | JSON | `[9222]` ports with socat relay |
 | `org.overthinkos.status` | string | Effective status: `working`, `testing`, or `broken` (always emitted) |

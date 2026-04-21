@@ -59,7 +59,7 @@ Host ports are intentionally shifted into 13xxx/19xxx so the VM can run **alongs
 | 19224 | 9224 | chrome-devtools-mcp | HTTP (MCP Streamable HTTP) |
 | 2250 | 22 | system `sshd` | TCP |
 
-**There is no `2222:2222` publish on this image.** Non-bootc selkies-desktop publishes 2222 for its supervisord-managed `sshd-wrapper`; under bootc, `sshd` runs as a system systemd unit on port 22 (via `/ov-layers:sshd`'s `system_services:`), so 2222 is dead weight and would collide with `vm.ssh_port`. See `/ov-layers:sshd` for the dual-mode story.
+**There is no `2222:2222` publish on this image.** Non-bootc selkies-desktop publishes 2222 for its supervisord-managed `sshd-wrapper`; under bootc, `sshd` runs as a system systemd unit on port 22 (via `/ov-layers:sshd`'s `services: use_packaged: sshd.service` entry, formerly the `system_services:` field), so 2222 is dead weight and would collide with `vm.ssh_port`. See `/ov-layers:sshd` for the dual-mode story.
 
 ## Quick Start
 

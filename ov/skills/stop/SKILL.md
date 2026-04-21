@@ -11,6 +11,8 @@ description: |
 
 Stops a running service container. In quadlet mode, stops the systemd user service. In direct mode, stops the container via the container engine.
 
+**Relationship to `ov deploy del`** — `ov stop <name>` is the ergonomic wrapper for `ov deploy del <name>` on a container deploy. The two are interchangeable for container deploys; `ov deploy del host` is required for the host-target teardown path (which runs ReverseOps, removes env.d files, and strips the shell managed block). See `/ov:deploy` and `/ov:host-deploy`.
+
 ## Quick Reference
 
 | Action | Command | Description |

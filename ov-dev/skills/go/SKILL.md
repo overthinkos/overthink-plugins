@@ -14,7 +14,7 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 
 ### YAML surface ↔ Go identifier convention
 
-The codebase keeps wire format (YAML keys) and internal names (Go fields/types) in strict symmetry — plural YAML keys get plural Go identifiers, singular get singular. When the `builders:` top-level key was renamed to `builder:` in `build.yml` and `image.yml`, the rename propagated to `BuildersMap → BuilderMap`, `ImageConfig.Builders → Builder`, `BuilderConfig.Builders → Builder`, `DistroConfig.Distros → Distro`, `InitConfig.Inits → Init`, and the OCI label constant `LabelBuilders → LabelBuilder` (value `org.overthinkos.builder`). The rule: if you change a YAML tag, also rename the Go identifier. Tests enforce this indirectly — struct literals won't compile if they disagree.
+The codebase keeps wire format (YAML keys) and internal names (Go fields/types) in strict symmetry — plural YAML keys get plural Go identifiers, singular get singular. When the `builders:` top-level key was renamed to `builder:` in `build.yml` and `image.yml`, the rename propagated to `BuildersMap → BuilderMap`, `ImageConfig.Builders → Builder`, `BuilderConfig.Builders → Builder`, `DistroConfig.Distros → Distro`, and `InitConfig.Inits → Init`. The rule: if you change a YAML tag, also rename the Go identifier. Tests enforce this indirectly — struct literals won't compile if they disagree. (Note: the OCI **label key** was separately regrouped under `platform.*` / `builder.*` sub-namespaces in 2026-04 — see `LabelPlatformDistro`, `LabelPlatformFormats`, `LabelBuilderUses`, `LabelBuilderProvides` in `labels.go`. Label wire-names are decoupled from YAML/Go identifiers by design.)
 
 ### Kong `default:"withargs"` for parent+leaf commands
 
@@ -32,7 +32,25 @@ OCI labels are written exclusively from `image.yml` + `layer.yml` at `ov image b
 
 **The rule**: every build-mode command (anything under `ov image …`) calls `LoadConfig`. If you ever re-introduce `MergeDeployOverlay` inside `LoadConfig`, you will silently contaminate OCI labels with whatever is in the user's local `deploy.yml` — exactly the bug that made images bake `ports: ["5900:5900","9250:9222"]` from a stale `deploy.yml` entry instead of the `image.yml`-declared `["5900:5900","9222:9222","9224:9224"]`.
 
-Deploy-mode commands (`ov config`, `ov start`, `ov shell`, `ov cmd`, `ov service`, `ov vm create`, …) read labels via `ExtractMetadata` and then apply the deploy overlay explicitly via `MergeDeployOntoMetadata(meta, dc, instance)`. This split is load-bearing — never collapse it.
+Deploy-mode commands (`ov config`, `ov start`, `ov stop`, `ov update`, `ov deploy add`, `ov deploy del`, `ov shell`, `ov cmd`, `ov service`, `ov vm create`, …) read labels via `ExtractMetadata` and then apply the deploy overlay explicitly via `MergeDeployOntoMetadata(meta, dc, instance)`. This split is load-bearing — never collapse it.
+
+**Host-deploy specifics**: `ov deploy add host` is deploy mode (reads both image.yml and deploy.yml), not build mode — despite looking like "install on host, not into an image". The compiler (`BuildDeployPlan` in `install_build.go`) is pure and shared with build mode, but the invocation path reads deploy.yml for `add_layers:` and `install_opts:` like every other deploy-mode command.
+
+### InstallPlan IR — the shared intermediate representation (2026-04)
+
+Since the 2026-04 refactor, `ov image build`, `ov deploy add <container>`, and `ov deploy add host` all route through a shared IR. Flow:
+
+```
+Layer + ResolvedImage + HostContext
+    → BuildDeployPlan (install_build.go) [pure]
+    → InstallPlan (install_plan.go)
+    → DeployTarget.Emit
+       ├── OCITarget (build_target_oci.go) → Containerfile text
+       ├── ContainerDeployTarget (deploy_target_container.go) → overlay + quadlet
+       └── HostDeployTarget (deploy_target_host.go) → shell execution
+```
+
+Full reference lives in **`/ov-dev:install-plan`** — go there before touching any of those files. Supporting Go files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref, hostdistro, migrate_services_tool) are covered in **`/ov-dev:host-infra`**.
 
 ### Self-exec coordination: host → container AND host → host
 

@@ -520,17 +520,115 @@ The `ov-mcp` layer is the canonical example of the map form used to thread a con
 
 ---
 
-## Service Declaration
+## Service Declaration — unified `services:` schema
+
+A layer declares services via the **unified `services:` list** (introduced 2026-04; all 40 previously-using layers migrated). One schema covers both distro-packaged systemd units and fully custom entries, rendered to supervisord INI (for container init) or systemd unit files (for bootc images + host deploys) by the init-system's `service_schema` in `build.yml`.
+
+Every entry has one `name:` plus either a `use_packaged:` reference (reuse a distro-shipped unit) OR a structured custom spec (`exec`, `env`, `restart`, ...). The two forms are mutually exclusive.
+
+### Form 1 — reuse a packaged systemd unit
+
+For services shipped by a distro package (postgresql, nginx, redis, sshd, ...). ov enables the packaged unit with optional drop-in overrides — it never regenerates the unit file. The packaged unit at `/usr/lib/systemd/system/<unit>.service` stays untouched; override config lands at `/etc/systemd/system/<unit>.service.d/ov-<layer>.conf`.
 
 ```yaml
-service: |
-  [program:myservice]
-  command=/usr/bin/myservice --flag
-  autostart=true
-  autorestart=true
+services:
+  - name: postgresql
+    use_packaged: postgresql.service     # distro-shipped unit
+    enable: true                          # systemctl enable --now
+    scope: system                         # system | user
+    overrides:                            # optional — rendered as drop-in
+      env:
+        PGDATA: /var/lib/postgresql/data
+      after: [network-online.target]
 ```
 
-Requires the init system's dependency layer (e.g., `supervisord` for containers). See build.yml `init.<name>.depends_layer`.
+**Supervisord caveat**: `use_packaged:` is a systemd-only concept. On supervisord-targeted images (containers using the default init), packaged entries render a warning and get skipped; either author a custom entry (form 2) or target a systemd image.
+
+### Form 2 — custom service
+
+For services that aren't distro-packaged (ollama, custom daemons, layer-provided binaries). ov renders the spec through the init-system's `service_template` in `build.yml` — supervisord-init containers get INI fragments, systemd-init containers and bootc/host deploys get `.service` unit files.
+
+```yaml
+services:
+  - name: ollama
+    exec: /usr/bin/ollama serve
+    env:
+      OLLAMA_HOST: "0.0.0.0:11434"
+      OLLAMA_KEEP_ALIVE: "-1"
+    restart: always                       # no | on-failure | always | unless-stopped
+    working_directory: /var/lib/ollama
+    user: ollama
+    after: [network.target]
+    before: [ollama-exporter]
+    stdout: journal                       # journal | file:<path> | none
+    stop_timeout: "30s"
+    scope: system                         # system | user
+    enable: true
+```
+
+### Mixed entries in one layer
+
+A layer can declare multiple entries mixing both forms. The `sshd` layer is the canonical example: it enables the packaged `sshd.service` for systemd-init scope AND runs a custom wrapper via supervisord.
+
+```yaml
+services:
+  - name: sshd
+    use_packaged: sshd.service           # bootc/systemd scope
+    enable: true
+    scope: system
+
+  - name: sshd                            # name may repeat across forms (different init system renders each)
+    exec: /usr/local/bin/sshd-wrapper
+    restart: always
+    priority: 3
+    enable: true
+    scope: system
+```
+
+### Field reference
+
+| Field | Required | Applies to | Description |
+|---|---|---|---|
+| `name` | yes | both | Service identifier; passed to `service_template` as `.Name` |
+| `use_packaged` | form 1 | packaged | Distro-shipped unit name (e.g., `postgresql.service`); mutually exclusive with `exec` |
+| `exec` | form 2 | custom | Command to run (`ExecStart` in systemd, `command` in supervisord) |
+| `env` | no | both | Map of env vars; systemd renders as `Environment="K=V"`, supervisord as `environment=K="V",...` |
+| `restart` | no | custom | `no` / `on-failure` / `always` / `unless-stopped`; mapped by init-specific template helper |
+| `working_directory` | no | custom | `WorkingDirectory=` (systemd) / `directory=` (supervisord) |
+| `user` | no | custom | Service runtime user |
+| `after` | no | both | List of unit names this service starts after; systemd `After=`, supervisord priority ordering |
+| `before` | no | custom | Inverse of `after` |
+| `stdout` | no | custom | `journal` / `file:<path>` / `none`; init-specific mapping |
+| `stop_timeout` | no | custom | `TimeoutStopSec=` (systemd) / `stopwaitsecs=` (supervisord) |
+| `scope` | no | both | `system` (default, `/etc/systemd/system/`) or `user` (`~/.config/systemd/user/`) |
+| `enable` | no | both | Whether to `systemctl enable --now` at install time |
+| `overrides` | no | packaged | Drop-in modifications: `env`, `after`, `exec` |
+| `priority` | no | supervisord-only | Startup priority; translated from `after`/`before` on systemd |
+
+### Legacy fields (retired 2026-04)
+
+Before the refactor, layers used two separate fields:
+- `service:` — raw supervisord INI fragment (one or more `[program:X]` sections)
+- `system_services:` — list of distro-shipped systemd unit names to enable
+
+Both fields are still **parsed** by the compiler for backwards compat, but all 40 previously-using layers in-tree have been migrated. New layers should use `services:` only. The compiler's legacy path exists to support external layer sources that haven't yet migrated.
+
+### Rendering to init systems
+
+The actual unit text is rendered by the init-system's `service_schema` block in `build.yml`:
+
+- **Supervisord init** — `service_template` produces `[program:NAME]` INI fragments with `autorestart` / `environment` / etc.; fragments go to `/etc/supervisord.d/<layer>-<name>.conf` and are assembled at container-build time.
+- **Systemd init (bootc + host deploys)** — `service_template` produces `[Unit]` / `[Service]` / `[Install]` blocks; the rendered file goes to `/etc/systemd/system/ov-<layer>-<name>.service` (or the user-scope path when `scope: user`). For `use_packaged:` entries, `dropin_template` + `dropin_path_template` produce an override file alongside the packaged unit.
+
+See `/ov-layers:supervisord` for the supervisord ServiceSchemaDef template, `/ov:build` for the three-phase template model, and `/ov:host-deploy` for how the host target consumes `services:` entries.
+
+### Worked examples in-tree
+
+- `/ov-layers:postgresql` — canonical `use_packaged:` entry with drop-in overrides
+- `/ov-layers:ollama` — single custom entry (common shape)
+- `/ov-layers:hermes` — custom entry with complex env and ordering
+- `/ov-layers:sshd` — mixed (packaged + custom) within one layer
+- `/ov-layers:traefik` — multiple custom entries for a multi-service layer
 
 ## Volume Declaration
 

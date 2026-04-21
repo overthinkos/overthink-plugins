@@ -45,24 +45,48 @@ auto-intermediate that composes `supervisord` was affected.
 
 ## How `ov` Generates Supervisord Configs
 
-Layers declare processes via `service:` in `layer.yml` — a raw supervisord `[program:<name>]` fragment. `ov image generate` collects all `service:` fragments across the layer chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `build.yml `init:` section`).
+Layers declare processes via the unified **`services:`** schema in `layer.yml` (see `/ov:layer` "Service Declaration"). Each entry is rendered through supervisord's `service_schema.service_template` in `build.yml`, which produces a `[program:<name>]` INI fragment. `ov image generate` collects all rendered fragments across the layer chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `build.yml init:` section).
 
 ```yaml
-# layers/chrome/layer.yml
-service: |
-  [program:chrome]
-  command=/home/user/.local/bin/chrome-wrapper --force-renderer-accessibility --no-first-run --start-maximized
-  autostart=false
-  autorestart=true
-  startretries=3
-  startsecs=5
-  user=user
-  environment=...
-  stdout_logfile=/tmp/supervisor-chrome.log
-  stderr_logfile_maxbytes=0
+# layers/chrome/layer.yml — unified schema (post-2026-04 migration)
+services:
+  - name: chrome
+    exec: /home/user/.local/bin/chrome-wrapper --force-renderer-accessibility --no-first-run --start-maximized
+    restart: always
+    user: user
+    env:
+      # ...
+    priority: 50                  # supervisord-specific; ordering hint
+    stdout: file:/tmp/supervisor-chrome.log
+    scope: system
+    enable: true
 ```
 
+The render template maps the abstract spec to supervisord INI:
+
+| `services:` field | Supervisord output |
+|---|---|
+| `exec` | `command=` |
+| `env` | `environment=K="V",K2="V2"` |
+| `restart: always` | `autorestart=true` (helper `supervisordRestart`) |
+| `restart: on-failure` | `autorestart=unexpected` |
+| `restart: no` / unset | `autorestart=false` |
+| `working_directory` | `directory=` |
+| `user` | `user=` |
+| `priority` | `priority=` (supervisord-specific) |
+| `stop_timeout` | `stopwaitsecs=` |
+| `stdout: file:/path` | `stdout_logfile=/path` (helper `supervisordLog`) |
+| `stdout: journal` / unset | `stdout_logfile=/dev/stdout` |
+
+**Supervisord does NOT support `use_packaged:`** — it doesn't consume systemd units. Entries with `use_packaged:` are skipped with a warning when rendering into a supervisord-init image. Use a custom entry (with explicit `exec:`) on supervisord-init images, or target a systemd init (bootc / host-deploy) where `use_packaged:` is honored.
+
+The rendered INI lands at `/etc/supervisord.d/<layer>-<name>.conf` and is assembled into `/etc/supervisord.conf` at container-build time via the init system's fragment pipeline (`build.yml init.supervisord.fragment_template` + `stage_fragment_copy`).
+
 At runtime, PID 1 is `supervisord`. The container's lifecycle is the supervisord process's lifecycle — when supervisord exits, the container exits (and the systemd quadlet's `Restart=always` rebuilds it).
+
+### Legacy `service:` / `system_services:` — retired 2026-04
+
+All 40 in-tree layers migrated from the legacy `service:` (raw supervisord INI block) and `system_services:` (list of unit names) fields to the unified `services:` list. The `service:` field is still parsed by the compiler's `compileServiceStepsLegacy` path for backwards compat with external (out-of-tree) layer sources. New in-tree layers should use `services:` only. See `/ov:layer` "Legacy fields" for the migration table.
 
 ## Service Priority & Ordering
 

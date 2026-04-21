@@ -469,6 +469,10 @@ Every image `ov` builds carries a set of `org.overthinkos.*` OCI labels embeddin
 | `org.overthinkos.env_accepts` | Opt-in allowlist for provides filtering |
 | `org.overthinkos.mcp_provides` | Cross-container MCP server provides |
 | `org.overthinkos.port_protos` | Port protocol annotations (non-default only) |
+| `org.overthinkos.platform.distro` | Distro identity (e.g. `["archlinux"]`) — first match picks bootstrap/format templates |
+| `org.overthinkos.platform.formats` | Package formats installed (`pac`, `rpm`, `deb`, `pixi`, `aur`, …) |
+| `org.overthinkos.builder.uses` | Consumer-side routing map: format → builder-image name |
+| `org.overthinkos.builder.provides` | Producer-side capability list: formats this image can build for others |
 
 All of the above round-trip via `ov config`: the label is read from the image manifest and applied to deploy.yml + the quadlet. There is one deliberate exception.
 

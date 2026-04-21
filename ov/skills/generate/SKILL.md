@@ -15,6 +15,10 @@ Parses `image.yml`, scans `layers/`, resolves the dependency graph, and emits al
 
 The generator is **config-driven** — distro format templates, builder stage templates, and init system fragments all come from a single `build.yml` (three top-level sections: `distro:`, `builder:`, `init:`) — and **declarative per-task** for install logic — each task verb (see `/ov:layer`) has a dedicated emitter that writes the right Containerfile directive.
 
+**IR-driven since 2026-04**: `ov image generate` now drives emission through the shared `DeployTarget` interface. `image.yml` + `layer.yml` compile into an `InstallPlan` IR (one per layer); `OCITarget.Emit` walks the IR and writes Containerfile text. The same IR backs `ContainerDeployTarget` (overlay-Containerfile synthesis when `add_layers:` is set) and `HostDeployTarget` (host-target execution). See `/ov-dev:install-plan` for the type catalog and `/ov-dev:generate` for the Go-level call graph.
+
+**Three-phase templates**: `build.yml` format (`formats.<fmt>`) and builder (`builders.<name>`) definitions carry a new `phases: { prepare, install, cleanup }.{ container, host }` structure. The generator reads `phases.install.container` when set and falls back to the legacy top-level `install_template:` otherwise. The `host:` cell is consumed only by `HostDeployTarget` (`ov deploy add host`) — the generator ignores it. Template migration is layer-by-layer; both paths coexist during the transition.
+
 ## Quick Reference
 
 | Action | Command | Description |
