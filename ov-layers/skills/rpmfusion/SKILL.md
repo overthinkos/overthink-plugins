@@ -47,3 +47,8 @@ Use when the user asks about:
 - Nonfree or multimedia packages on Fedora
 - The `fedora-nonfree` base image
 - Enabling additional Fedora repositories
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

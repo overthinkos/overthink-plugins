@@ -46,3 +46,8 @@ Not used in any current image definition. Part of the `x11-desktop` metalayer co
 ## When to Use This Skill
 
 Use when working with headless X11 display, Xorg configuration, or the X11-based desktop stack.
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

@@ -44,3 +44,8 @@ Use when the user asks about:
 - Justfile imports for bazzite-ai
 - `/usr/share/bazzite-ai/just/` configuration
 - `60-custom.just` generation
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

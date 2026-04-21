@@ -167,3 +167,7 @@ my-polyglot:
   "system python3 only" example.
 - Understanding why the `python` ov-layer is missing from an image that
   uses language-runtimes (that's by design since 2026-04).
+
+## Related
+
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

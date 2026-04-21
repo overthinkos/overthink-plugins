@@ -42,3 +42,8 @@ Use when working with:
 - Chrome running in KWin desktop
 - Browser automation in KDE containers
 - CDP (Chrome DevTools Protocol) in KWin containers
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

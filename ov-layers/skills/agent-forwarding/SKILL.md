@@ -129,3 +129,8 @@ arch-ov, arch-test, aurora, bazzite-ai, comfyui, fedora-ov, fedora-test, githubr
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves SSH or GPG agent forwarding, the `.secrets` + direnv workflow inside containers, or the `agent-forwarding` layer. Invoke this skill BEFORE reading source code.
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

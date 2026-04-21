@@ -42,3 +42,8 @@ Use when the user asks about:
 - VM base image composition
 - OS-level image configuration
 - SSH + QEMU guest agent setup
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

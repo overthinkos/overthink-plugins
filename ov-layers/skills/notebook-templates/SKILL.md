@@ -82,3 +82,7 @@ Use when the user asks about:
 - How starter content gets provisioned into volumes
 - The `getting-started.ipynb` notebook
 - How `ov config` seeds bind-backed volumes with image data
+
+## Related
+
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

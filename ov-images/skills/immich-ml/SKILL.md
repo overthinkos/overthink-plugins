@@ -112,3 +112,8 @@ postgresql + redis + immich-server + immich-ml all RUNNING.
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the immich-ml image, Immich ML features, or GPU-accelerated photo management. Invoke this skill BEFORE reading source code or launching Explore agents.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

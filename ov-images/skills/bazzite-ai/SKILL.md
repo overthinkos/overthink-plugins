@@ -66,3 +66,7 @@ ov vm start bazzite-ai
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the bazzite-ai bootc image or the Bazzite-based AI workstation VM.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)

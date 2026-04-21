@@ -72,3 +72,8 @@ Use when working with:
 - Mutter/GNOME Wayland compositor inside containers
 - GNOME-based headless desktop environments
 - Portal-based screen capture and input injection
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

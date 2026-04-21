@@ -60,3 +60,8 @@ nvidia:
 - `/ov-layers:jupyter` — Jupyter notebooks (depends on cuda)
 - `/ov-layers:ollama` — LLM server (depends on cuda)
 - `/ov-layers:comfyui` — image generation (depends on cuda)
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

@@ -43,3 +43,8 @@ Use when the user asks about:
 - PDF editing with natural language
 - nano-pdf CLI tools
 - The `nano-pdf` layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

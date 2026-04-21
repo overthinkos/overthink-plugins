@@ -78,3 +78,8 @@ hermes-playwright:
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves Playwright browser automation in hermes containers, Chromium system dependencies on Fedora, or the hermes-playwright layer. Invoke this skill BEFORE reading source code or launching Explore agents.
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

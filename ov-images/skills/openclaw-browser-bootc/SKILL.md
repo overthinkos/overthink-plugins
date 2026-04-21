@@ -98,3 +98,7 @@ ov vm ssh openclaw-browser-bootc -p 2222
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the openclaw-browser-bootc VM image or bootc-based OpenClaw deployment.
+
+## Related
+
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

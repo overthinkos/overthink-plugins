@@ -90,3 +90,7 @@ Use when the user asks about:
 - Database volume or `PGDATA` configuration
 - Port 5432 service
 - Database initialization
+
+## Related
+
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

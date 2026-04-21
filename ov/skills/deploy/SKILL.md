@@ -10,8 +10,12 @@ description: |
 
 `ov deploy` is the parent verb for applying and tearing down deployments, plus managing `deploy.yml` overrides. The command family has two distinct surfaces:
 
-1. **Execution verbs** — `ov deploy add <name>` / `ov deploy del <name>`. Apply or reverse a deployment. The literal name `host` targets the local filesystem via `HostDeployTarget`; any other name is a container deployment managed via `ContainerDeployTarget` (overlay Containerfile + quadlet/podman). See `/ov:host-deploy` for the host-target deep dive.
+1. **Execution verbs** — `ov deploy add <name>` / `ov deploy del <name>`. Apply or reverse a deployment. The literal name `host` targets the local filesystem via `HostDeployTarget`; any other name is a container deployment managed via `ContainerDeployTarget` (overlay Containerfile + quadlet/podman). A third target, **`kubernetes`**, emits a Kustomize `base/` + `overlays/` tree under `.overthink/k8s/<name>/` — see `/ov:kubernetes` for the K8s deploy surface. See `/ov:host-deploy` for the host-target deep dive.
 2. **Config-file management** — `ov deploy show/export/import/reset/path/status`. Read and mutate `~/.config/ov/deploy.yml` itself.
+
+## Three targets, one schema
+
+The same `DeployImageConfig` shape feeds all three targets (`container`, `host`, `kubernetes`) — authors describe *what the workload needs* (ports, volumes, env, security, tests); the generator per target decides *how K8s / quadlet / host apply* realizes it. K8s-specific choices (storage class, ingress class, cert issuer, secret backend) live in a **cluster profile** file (`~/.config/ov/clusters/<name>.yaml` or in-repo `clusters/<name>.yaml`), *not* in the deployment. This means one deployment spec targets dev/staging/prod clusters with zero schema changes — only the cluster profile differs.
 
 `ov start` / `ov stop` remain as ergonomic wrappers: `ov start <image>` is equivalent to `ov deploy add <image> <image>` with the container target; `ov stop <name>` is `ov deploy del <name>`. New scripts should prefer the explicit `ov deploy add`/`ov deploy del` forms, especially when using `--add-layer` overlays or the `host` target.
 

@@ -65,3 +65,8 @@ rpm:
 - `/ov-layers:dbus` — D-Bus session bus (required dependency)
 - `/ov-layers:pipewire` — PipeWire (required for ScreenCast)
 - `/ov-layers:sway` — Sway compositor (required)
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

@@ -85,3 +85,8 @@ Use when the user asks about:
 - Headless virtual output support
 - Alternative to Sway for containers
 - Building niri from source
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

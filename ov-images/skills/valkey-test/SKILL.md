@@ -40,3 +40,7 @@ Used for testing the Valkey layer (Redis-compatible fork). Runs as a supervisord
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the valkey-test image or Valkey service testing.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)

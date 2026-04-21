@@ -42,3 +42,8 @@ Not used in any current image definition. Part of the `kwin-desktop` metalayer c
 ## When to Use This Skill
 
 Use when working with desktop applications in KWin containers.
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

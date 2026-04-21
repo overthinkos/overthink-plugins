@@ -80,3 +80,8 @@ Not yet tested. The `fedora-nonfree` variant works with CPU encoding. This varia
 - `/ov:wl` — interact with the labwc Wayland session
 - `/ov:dbus` — D-Bus notifications via in-container `ov` binary
 - `/ov:mcp` — inherits chrome-devtools-mcp's 2 deploy-scope `mcp:` checks; use `ov test mcp list-tools selkies-desktop-nvidia` to verify the MCP server is alive and exposing the full tool catalog.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

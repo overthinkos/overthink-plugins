@@ -83,3 +83,8 @@ ov test wl overlay hide my-image --all
 - `/ov:wl-overlay` — Overlay command usage, types, recording workflow
 - `/ov:wl` — Compositor-agnostic desktop automation
 - `/ov:record` — Recording commands (overlays compose with recording)
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

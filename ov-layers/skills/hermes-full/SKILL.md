@@ -64,3 +64,8 @@ hermes:
 ## When to Use This Skill
 
 Use when working with the `hermes-full` metalayer, full-featured standalone hermes deployments, or the composition of hermes with AI CLIs and developer tools.
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

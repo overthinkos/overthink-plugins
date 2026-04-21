@@ -109,3 +109,8 @@ Use when the user asks about:
 - SwayNotificationCenter configuration or styling
 - Notification bell in waybar
 - Do Not Disturb mode
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

@@ -220,3 +220,8 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 ## Security
 
 - `shm_size: "1g"`
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

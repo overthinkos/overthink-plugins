@@ -156,3 +156,7 @@ Use when the user asks about:
 - How Jupyter notebooks connect to a separate Ollama container
 - The `ollama` Python library env var or Pydantic API gotchas
 - Which client libraries and API features are covered
+
+## Related
+
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

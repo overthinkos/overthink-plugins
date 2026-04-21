@@ -67,3 +67,8 @@ Use when working with:
 - KWin Wayland compositor inside containers
 - KDE-based desktop environments
 - KWin headless/virtual mode configuration
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

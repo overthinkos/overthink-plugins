@@ -205,3 +205,8 @@ packages and scripts per distro.
 - `/ov:vm` — nested libvirt VMs via `qemu:///session` (rootless)
 - `/ov:test` — `--include-deploy` prefers the running container (see `/ov:test` "Live vs disposable executor selection")
 - `/ov:mcp` — MCP gateway + auto-fallback behavior
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

@@ -106,3 +106,8 @@ Use when the user asks about:
 - Desktop video recording on selkies-desktop
 - The pixelflux recording pipeline
 - The `wl-record-pixelflux` layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

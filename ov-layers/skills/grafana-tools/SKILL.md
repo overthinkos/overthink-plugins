@@ -46,3 +46,8 @@ Use when the user asks about:
 - Tanka (tk) for Grafana configuration
 - grafanactl for Grafana Cloud management
 - Observability stack tooling
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

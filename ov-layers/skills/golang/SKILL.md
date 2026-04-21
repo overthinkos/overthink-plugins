@@ -46,3 +46,7 @@ Use when the user asks about:
 - Go compiler in containers
 - Go development environment
 - The `golang` layer
+
+## Related
+
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

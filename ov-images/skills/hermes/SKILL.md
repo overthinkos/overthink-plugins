@@ -164,3 +164,8 @@ liveness (hermes-whatsapp is autostart=false — see `/ov:test` Gotcha #4).
 ## When to Use This Skill
 
 **MUST be invoked** before building, deploying, configuring, or troubleshooting the hermes image.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

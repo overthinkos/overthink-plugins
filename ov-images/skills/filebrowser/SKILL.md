@@ -114,3 +114,7 @@ See `/ov:test` for the framework and author-facing gotchas.
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the filebrowser image, web file management deployment, or the FileBrowser Quantum service. Invoke this skill BEFORE reading source code or launching Explore agents.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)

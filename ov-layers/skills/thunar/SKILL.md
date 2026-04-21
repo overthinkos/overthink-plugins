@@ -44,3 +44,8 @@ Use when the user asks about:
 - Thunar file manager in Sway containers
 - File browsing in desktop images
 - Sway desktop application configuration
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

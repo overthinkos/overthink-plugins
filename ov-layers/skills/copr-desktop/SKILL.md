@@ -44,3 +44,8 @@ Use when the user asks about:
 - Nerd Fonts installation (from Terra repo)
 - WinBoat COPR package
 - COPR repository packages for desktop use
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

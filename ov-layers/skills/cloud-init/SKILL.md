@@ -51,3 +51,7 @@ Use when the user asks about:
 - Cloud instance bootstrapping
 - Partition growing with growpart
 - System services: cloud-init-local, cloud-init, cloud-config, cloud-final
+
+## Related
+
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

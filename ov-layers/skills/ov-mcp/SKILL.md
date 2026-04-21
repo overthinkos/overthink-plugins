@@ -190,3 +190,7 @@ in `image.yml`). Both `network: host` and the default ov bridge work.
   pattern (`layers:` composition + volumes + env + service + auto-fallback).
 - Investigating port-18765 collisions or MCP URL rewriting on composed
   images (especially host-networked ones).
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)

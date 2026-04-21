@@ -45,3 +45,8 @@ Use when the user asks about:
 - Pixi-managed Python installation
 - The `python` layer
 - Why `pip install` and `conda install` are not used (pixi is the only Python package manager)
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

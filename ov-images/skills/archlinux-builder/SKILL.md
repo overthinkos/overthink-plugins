@@ -71,3 +71,8 @@ ov shell archlinux-builder -c "pixi --version && node --version && yay --version
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the archlinux-builder image, Arch multi-stage builds, or AUR package building infrastructure. Invoke this skill BEFORE reading source code or launching Explore agents.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

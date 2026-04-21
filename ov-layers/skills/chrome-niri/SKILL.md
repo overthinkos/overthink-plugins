@@ -37,3 +37,8 @@ Part of `/ov-layers:niri-desktop` composition.
 ## When to Use This Skill
 
 Use when the user asks about Chrome running in Niri desktop containers.
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

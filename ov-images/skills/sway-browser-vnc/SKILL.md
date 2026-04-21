@@ -123,3 +123,8 @@ port 5900 reachable, Chrome CDP on port 9250→9222 with `/json/version`
 ## Related Images
 
 - `selkies-desktop` — browser-accessible remote desktop (can be accessed from sway-browser-vnc's Chrome)
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

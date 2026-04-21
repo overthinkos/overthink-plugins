@@ -108,3 +108,8 @@ Use when the user asks about:
 - `WLR_BACKENDS` or Wayland environment variables
 - Mesa GPU driver configuration
 - Desktop compositor in containers
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

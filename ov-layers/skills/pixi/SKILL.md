@@ -50,3 +50,8 @@ Use when the user asks about:
 - Conda-forge package installation
 - Python environment base layer
 - The `pixi` layer or `PIXI_CACHE_DIR`
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

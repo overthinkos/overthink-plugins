@@ -195,3 +195,8 @@ See `/ov:test` for the framework and author-facing gotchas.
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the jupyter image, collaborative Jupyter notebooks, lightweight Jupyter deployments without GPU, MCP-based notebook access, or multi-client collaboration. Invoke this skill BEFORE reading source code or launching Explore agents.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

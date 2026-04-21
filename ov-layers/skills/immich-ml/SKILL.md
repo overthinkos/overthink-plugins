@@ -61,3 +61,8 @@ Use when the user asks about:
 - ML model caching or downloads
 - Port 3003 configuration
 - Enabling ML in Immich
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

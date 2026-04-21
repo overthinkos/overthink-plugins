@@ -161,3 +161,8 @@ ov shell jupyter-ml-notebook -c "ls ~/workspace/llms_on_supercomputers/"
 ## When to Use This Skill
 
 MUST be invoked before building, deploying, configuring, or troubleshooting the jupyter-ml-notebook image.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

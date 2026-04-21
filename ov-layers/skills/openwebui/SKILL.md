@@ -154,3 +154,8 @@ openwebui:
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the openwebui layer, Open WebUI configuration, LLM provider auto-detection, MCP server discovery for Open WebUI, or the openwebui entrypoint. Invoke this skill BEFORE reading source code or launching Explore agents.
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

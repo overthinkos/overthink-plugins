@@ -355,3 +355,8 @@ for `/etc/sudoers.d/ov-user` because it's root-only (`/ov:test` Gotcha #10).
 - `/ov:cdp`, `/ov:wl` — desktop automation on this image
 - `/ov:config` — deploy setup (tunnel, port remapping, instances)
 - `/ov:mcp` — the image bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `ov test selkies-desktop --filter mcp` runs them; `ov test mcp list-tools selkies-desktop` enumerates the 29 chrome-devtools tools ad-hoc.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

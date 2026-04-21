@@ -63,3 +63,8 @@ Use when the user asks about:
 - GGUF model conversion (convert_hf_to_gguf.py)
 - llama-quantize or llama-cli
 - The `LLAMA_CPP_PATH` environment variable
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

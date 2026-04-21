@@ -276,3 +276,7 @@ All four produce the same daily-dev surface (sshd on 2222, ov-mcp on 18765, 5 AI
   without a GUI is here).
 - The full MCP auto-fallback deployment pattern when the `/workspace`
   bind-mount is intentionally left empty.
+
+## Related
+
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

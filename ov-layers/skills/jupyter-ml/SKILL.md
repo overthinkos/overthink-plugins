@@ -96,3 +96,8 @@ Use when the user asks about:
 - ML training notebooks with CRDT MCP
 - The `jupyter-ml` layer
 - Combining jupyter features with CUDA ML
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

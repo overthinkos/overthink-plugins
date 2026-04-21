@@ -104,3 +104,8 @@ Use when the user asks about:
 - `ov test dbus` commands (notify, call, list, introspect)
 - Desktop notifications in containers
 - Inter-process communication in containers
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

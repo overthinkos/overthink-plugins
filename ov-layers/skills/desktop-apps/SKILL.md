@@ -46,3 +46,8 @@ Use when the user asks about:
 - Desktop applications in containers
 - Chromium, VLC, KeePassXC, or cockpit
 - The `desktop-apps` layer or its packages
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

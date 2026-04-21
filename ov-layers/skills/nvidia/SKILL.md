@@ -100,3 +100,8 @@ Creates Vulkan ICD compatibility symlinks for nvidia-ctk CDI device injection.
 - `/ov:udev` — Device permission management for `/dev/dri/*` and `/dev/nvidia*`
 - `/ov:config` — Runtime GPU device injection at deployment time (same `appendAutoDetectedEnv()` path)
 - `/ov:start` — Runtime GPU device injection at service start time
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

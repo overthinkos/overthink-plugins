@@ -61,3 +61,8 @@ ov start openclaw-full
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the openclaw-full image or the headless maximal OpenClaw deployment.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

@@ -47,3 +47,8 @@ Use when the user asks about:
 - Arch Linux AUR package testing
 - The `aur:` package format in layer.yml
 - The `arch-aur-test` layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

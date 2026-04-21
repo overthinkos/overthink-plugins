@@ -49,3 +49,8 @@ Use when the user asks about:
 - Blog or RSS feed monitoring
 - Go-based CLI tools for feed watching
 - The `blogwatcher` layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

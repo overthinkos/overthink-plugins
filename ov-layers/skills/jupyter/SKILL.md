@@ -210,3 +210,7 @@ Use when the user asks about:
 - Programmatic notebook access from AI agents
 - `watch_notebook` or change notifications
 - Multi-client concurrent editing
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)

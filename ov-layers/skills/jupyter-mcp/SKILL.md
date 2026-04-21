@@ -132,3 +132,7 @@ Use when the user asks about:
 - The 13 MCP tools for notebook manipulation
 - How the MCP extension is installed and enabled
 - The Tier 1 extraction pattern (avoiding code duplication across Tier 2 layers)
+
+## Related
+
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

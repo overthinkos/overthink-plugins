@@ -45,3 +45,8 @@ Use when the user asks about:
 - Host-guest communication in VMs
 - Libvirt virtio channel configuration
 - The `org.qemu.guest_agent.0` channel
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

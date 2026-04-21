@@ -88,3 +88,8 @@ Use when the user asks about:
 - Non-Steam game launchers
 - mangohud or gamemode configuration
 - Wine/Proton management outside of Steam
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

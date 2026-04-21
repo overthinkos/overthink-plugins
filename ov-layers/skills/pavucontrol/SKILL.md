@@ -57,3 +57,8 @@ Use when the user asks about:
 - Audio volume control in desktop containers
 - PulseAudio/PipeWire GUI configuration
 - pavucontrol setup
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

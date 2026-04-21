@@ -179,3 +179,8 @@ hermes:
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the hermes layer, Hermes Agent setup, hermes service configuration, hermes Python dependencies, or the hermes entrypoint. Invoke this skill BEFORE reading source code or launching Explore agents.
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

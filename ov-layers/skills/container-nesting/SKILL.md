@@ -396,3 +396,8 @@ this order:
 - Chasing `mount_too_revealing` / `mount proc to proc: Operation not permitted` errors — this is the authoritative RCA.
 - Choosing between `--privileged`, `cap_add: ALL`, and `unmask=/proc/*` — this skill documents why the surgical `unmask` fix is the minimum-privilege path and the others are hammers.
 - Evaluating the security posture of `/ov-images:selkies-desktop-ov`, `/ov-images:fedora-ov`, `/ov-images:arch-ov`, or `/ov-images:githubrunner`.
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

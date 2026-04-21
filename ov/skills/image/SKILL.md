@@ -553,3 +553,8 @@ images:
 **MUST be invoked** when the task involves image definitions in image.yml, image inheritance, defaults, platforms, builder configuration, or the image dependency graph. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Define images before building. See also `/ov:layer` (layer authoring), `/ov:build` (building).
+
+## Related skills
+
+- `/ov:migrate` — `ov migrate unified` converts legacy `image.yml` into `image:` entries in `overthink.yml`
+- `/ov-dev:capabilities` — OCI label contract emitted at build time and consumed by deploy commands

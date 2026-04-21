@@ -13,13 +13,15 @@ Claude Code plugins for Overthink — the container management experience for yo
 
 ## Plugins
 
-### ov (39 skills)
+### ov (43 skills)
 
 Skills for composing, building, and running container images with the `ov` CLI.
 
 Build-mode commands live under `ov image …` (the only family that reads
-`image.yml`). Every other command reads exclusively from OCI labels +
-`deploy.yml`. See `/ov:image` for the family overview.
+`overthink.yml`). Every other command reads exclusively from OCI labels +
+`deploy.yml`. See `/ov:image` for the family overview. Legacy projects
+with `image.yml`/`build.yml`/flat-form `layer.yml` convert in one shot
+via `ov migrate unified` — see `/ov:migrate`.
 
 | Skill | Invocation | Description |
 |-------|-----------|-------------|
@@ -33,13 +35,16 @@ Build-mode commands live under `ov image …` (the only family that reads
 | host-deploy | `/ov:host-deploy` | Host-target deploys (`ov deploy add host`): ledger, 15 ReverseOps, `--with-services`/`--allow-repo-changes`/`--allow-root-tasks` gates, systemd rendering |
 | doctor | `/ov:doctor` | Host dependency and hardware checks |
 | enc | `/ov:enc` | Encrypted volumes (ov config mount/unmount/status/passwd) |
-| generate | `/ov:generate` | `ov image generate` — Containerfile generation from image.yml and layers |
-| image | `/ov:image` | `ov image` family overview + image.yml composition reference |
+| generate | `/ov:generate` | `ov image generate` — Containerfile generation from `overthink.yml` + layers |
+| image | `/ov:image` | `ov image` family overview + `image:` entries in `overthink.yml` composition reference |
 | inspect | `/ov:inspect` | `ov image inspect` — resolved config as JSON |
-| layer | `/ov:layer` | Layer authoring (layer.yml with tasks:, pixi.toml, etc.) |
+| kubernetes | `/ov:kubernetes` | K8s deploy target: Kustomize base/overlays, ClusterProfile, `ov deploy sync <name>` |
+| layer | `/ov:layer` | Layer authoring (layer.yml with tasks:, pixi.toml, service: list, etc.) |
 | list | `/ov:list` | `ov image list` — images, layers, targets, services, routes, volumes, aliases |
 | logs | `/ov:logs` | Service log viewing (ov logs, -f for follow) |
+| mcp | `/ov:mcp` | MCP gateway: `ov mcp serve` exposes the CLI as tools; `ov test mcp` client |
 | merge | `/ov:merge` | `ov image merge` — post-build layer optimization |
+| migrate | `/ov:migrate` | `ov migrate unified` — convert legacy `image.yml`/`build.yml`/flat `layer.yml` to unified `overthink.yml` |
 | new | `/ov:new` | `ov image new layer` — scaffold new layers |
 | openclaw | `/ov:openclaw` | OpenClaw AI gateway configuration |
 | pull | `/ov:pull` | `ov image pull` — fetch into local storage; ErrImageNotLocal recovery |
@@ -53,17 +58,18 @@ Build-mode commands live under `ov image …` (the only family that reads
 | start | `/ov:start` | Start container as background service |
 | status | `/ov:status` | Service status with tool probes and device detection |
 | stop | `/ov:stop` | Stop running container |
+| test | `/ov:test` | Declarative test runner (layer/image/deploy sections); parent router for `ov test cdp/wl/dbus/vnc/mcp` |
 | tmux | `/ov:tmux` | Persistent tmux sessions (ov tmux shell/cmd/run/attach/capture) |
 | udev | `/ov:udev` | GPU device access rules (ov udev status/generate/install/remove) |
 | update | `/ov:update` | Update image and restart with data sync |
-| validate | `/ov:validate` | `ov image validate` — image.yml + layer definitions |
+| validate | `/ov:validate` | `ov image validate` — `overthink.yml` + layer definitions |
 | version | `/ov:version` | Show CLI version information |
 | vm | `/ov:vm` | Virtual machines (ov vm build/create/start/stop) |
 | vnc | `/ov:vnc` | VNC desktop automation (ov test vnc screenshot/click/type) |
 | wl | `/ov:wl` | Desktop automation (22 commands + 12 sway IPC commands) |
 | wl-overlay | `/ov:wl-overlay` | Wayland overlays for screen recordings |
 
-### ov-dev (4 skills, 3 agents, GitHub MCP)
+### ov-dev (6 skills, 3 agents, GitHub MCP)
 
 Development tools and enforcement agents for contributors.
 
@@ -73,8 +79,10 @@ Development tools and enforcement agents for contributors.
 |-------|-----------|-------------|
 | go | `/ov-dev:go` | Go CLI development (build, test, code map, mode purity, self-exec, IR refactor pointer) |
 | generate | `/ov-dev:generate` | Containerfile generation internals and debugging; OCITarget + IR integration |
-| install-plan | `/ov-dev:install-plan` | The shared InstallPlan IR: 8 step kinds, DeployTarget interface, BuildDeployPlan compiler, OCITarget/ContainerDeployTarget/HostDeployTarget |
+| install-plan | `/ov-dev:install-plan` | The shared InstallPlan IR: 8 step kinds, DeployTarget interface, BuildDeployPlan compiler, OCITarget/ContainerDeployTarget/HostDeployTarget/K8sDeployTarget |
 | host-infra | `/ov-dev:host-infra` | Host-deploy supporting files: hostdistro, install_ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref, migrate_services_tool |
+| capabilities | `/ov-dev:capabilities` | OCI label contract: `Capabilities`/`ImageMetadata`, `CapabilityLabelMap` completeness check, `LabelServices` structured round-trip, source-less deploy |
+| skills | `/ov-dev:skills` | Meta-skill: skill-maintenance guidelines, when to update CLAUDE.md vs skills, audit workflow |
 
 **Agents:**
 

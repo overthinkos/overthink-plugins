@@ -68,3 +68,8 @@ Use when the user asks about:
 - Status bar in Sway desktop
 - Automatic window tiling
 - Desktop UI customization
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

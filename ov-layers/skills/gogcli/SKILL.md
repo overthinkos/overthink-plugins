@@ -51,3 +51,8 @@ Use when the user asks about:
 - Google Workspace CLI access (Gmail, Calendar, Drive, Contacts, Sheets, Docs)
 - Google API tools in containers
 - The `gogcli` layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

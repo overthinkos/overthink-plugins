@@ -55,3 +55,8 @@ Use when the user asks about:
 - PipeWire or PulseAudio setup
 - WirePlumber session management
 - Desktop audio configuration
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

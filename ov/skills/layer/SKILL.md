@@ -12,6 +12,43 @@ A **layer** is a directory under `layers/<name>/` that installs a single concern
 
 Since the `tasks:` refactor, there is **one YAML file per layer** for install logic — no separate Taskfiles, no `tasks:` / `tasks:`. Everything an author needs to install flows through `tasks:` and auto-detected package manifests (`pixi.toml`, `package.json`, `Cargo.toml`).
 
+## `directory:` — where the layer's config files live
+
+A layer.yml's relative file references (`tasks.copy`, `tasks.write` inline paths, `data.src`, install-file probes like `pixi.toml` / `package.json`, service-file globs) resolve against **`directory:`**, which defaults to `.` (the directory containing layer.yml).
+
+Use `directory:` to keep layer.yml and its supporting config files in separate directories:
+
+```yaml
+# layers/my-app/layer.yml
+directory: ../../configs/my-app       # resolves relative to layer.yml's dir
+rpm: { packages: [foo] }
+tasks:
+  - copy: policies.json                # found at configs/my-app/policies.json
+```
+
+Resolution rule:
+- `""` or `"."` → same dir as layer.yml (today's behavior, fully backward compatible)
+- relative path → joined onto layer.yml's dir
+- absolute path → used as-is
+
+`ov image validate` fails when `directory:` points at a path that doesn't exist.
+
+## Kind-keyed standalone form (`layer: {name, …}`)
+
+Post-migration (via `ov migrate unified`), every layer.yml is self-describing: a single `layer:` wrapper with an explicit `name:` field + the body. This makes layer files bundle-mergeable — concatenate with `---` separators to form a single file containing many layers.
+
+```yaml
+# layers/chrome/layer.yml  (post-migration shape)
+layer:
+  name: chrome
+  directory: .
+  rpm: { packages: [chromium] }
+  tasks:
+    - copy: policies.json
+```
+
+The runtime parser accepts only the kind-keyed form. `ov migrate unified --rewrite-layers` converts any author-authored files to the canonical shape in a single idempotent pass.
+
 ## Quick Reference
 
 | Action | Command | Description |
@@ -362,7 +399,7 @@ tasks:
 | `env_accepts` | `[]EnvDependency` | Plaintext env vars this layer CAN optionally use. Opt-in allowlist for `env_provides` injection. |
 | `secret_accepts` / `secret_requires` | `[]EnvDependency` | Credential-backed env vars. Values live in credential store, never in deploy.yml/quadlet. |
 | `mcp_provides` / `mcp_requires` / `mcp_accepts` | various | MCP server discovery analogous to `env_*`. |
-| `system_services` | `[]string` | System-level systemd units to enable (bootc images only). |
+| `service` | `[]ServiceEntry` | Unified service list — see "Service Declaration" below. |
 
 Field details for non-`tasks:` sections are below; they're unchanged from the pre-refactor schema.
 
@@ -605,13 +642,9 @@ services:
 | `overrides` | no | packaged | Drop-in modifications: `env`, `after`, `exec` |
 | `priority` | no | supervisord-only | Startup priority; translated from `after`/`before` on systemd |
 
-### Legacy fields (retired 2026-04)
+### Service declaration
 
-Before the refactor, layers used two separate fields:
-- `service:` — raw supervisord INI fragment (one or more `[program:X]` sections)
-- `system_services:` — list of distro-shipped systemd unit names to enable
-
-Both fields are still **parsed** by the compiler for backwards compat, but all 40 previously-using layers in-tree have been migrated. New layers should use `services:` only. The compiler's legacy path exists to support external layer sources that haven't yet migrated.
+Layers use the unified `service:` (singular, list) form with full lifecycle-directive support (`auto_start`, `start_retries`, `start_secs`, `stop_signal`, `exit_codes`, `priority`, `kind: eventlistener` + `events:`). See `/ov-layers:supervisord` for the directive table and `/ov-layers:chrome` for the eventlistener worked example.
 
 ### Rendering to init systems
 
@@ -952,3 +985,9 @@ Declare `service:` with a supervisord `[program:<name>]` fragment and add `super
 **MUST be invoked** for any task involving layer authoring, `layer.yml`, `tasks:`, `vars:`, `pixi.toml`, `package.json`, `Cargo.toml`, or any file under `layers/`. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Author layers before adding them to images. See `/ov:image` (composition), `/ov:build` (building), `/ov:generate` (emission internals).
+
+## Related skills
+
+- `/ov:migrate` — `ov migrate unified` converts legacy flat-form `layer.yml` + raw-INI `service:` blocks into the canonical schema
+- `/ov-dev:capabilities` — how the `service:` list is baked into the `LabelServices` OCI label
+- `/ov-dev:install-plan` — internal IR the loader feeds into build/deploy pipelines

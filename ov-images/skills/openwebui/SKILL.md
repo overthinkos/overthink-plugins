@@ -150,3 +150,8 @@ email env var injected. See `/ov:test` for the framework.
 ## When to Use This Skill
 
 **MUST be invoked** before building, deploying, configuring, or troubleshooting the openwebui image.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

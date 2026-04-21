@@ -91,3 +91,8 @@ Use when the user asks about:
 - Immich database or Redis connectivity
 - Port 2283 or `immich.localhost` route
 - Media processing (vips, ffmpeg, ExifTool)
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

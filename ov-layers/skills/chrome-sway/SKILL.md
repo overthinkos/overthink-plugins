@@ -52,3 +52,8 @@ Use when the user asks about:
 - Browser autostart in compositor
 - CDP (Chrome DevTools Protocol) in desktop containers
 - Chrome-sway configuration
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

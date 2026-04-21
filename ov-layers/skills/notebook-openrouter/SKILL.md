@@ -142,3 +142,7 @@ Use when the user asks about:
 - The `env_requires` feature (this is the first real consumer)
 - Free tier rate limits on `qwen/qwen3.6-plus:free`
 - Structured output, reasoning with thinking tokens, or model comparison via OpenRouter
+
+## Related
+
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

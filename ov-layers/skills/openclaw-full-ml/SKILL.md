@@ -50,3 +50,8 @@ Use when the user asks about:
 - Speech-to-text and text-to-speech in OpenClaw
 - CUDA-accelerated OpenClaw deployment
 - The `openclaw-full-ml` layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

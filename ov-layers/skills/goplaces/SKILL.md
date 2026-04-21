@@ -51,3 +51,8 @@ Use when the user asks about:
 - Google Places API access
 - Location search tools
 - The `goplaces` layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

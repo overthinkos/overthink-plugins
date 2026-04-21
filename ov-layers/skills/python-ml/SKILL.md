@@ -63,3 +63,8 @@ Use when the user asks about:
 - CUDA Python integration
 - The `python-ml` layer, its packages, or its meta-layer composition
 - The two-tier layer architecture for ML layers
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

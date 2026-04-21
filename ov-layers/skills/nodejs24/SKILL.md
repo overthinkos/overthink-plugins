@@ -57,3 +57,8 @@ Use when the user asks about:
 - Node.js 24 specifically
 - Immich or applications needing Node.js 24
 - The `nodejs24` layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

@@ -189,7 +189,7 @@ Three emission rules matter specifically for bootc images. The canonical worked 
 
 ### 1. `initHasFragments` pre-scan gates empty init stages
 
-Each init system defined in `build.yml` (currently `supervisord` and `systemd`) emits a `FROM scratch AS <stage_name>` scratch stage that layers COPY fragments into, plus an `assembly_template` RUN that bind-mounts from that scratch stage. `ov/generate.go` pre-scans the layer chain for each init system to check whether any layer contributes fragments (supervisord `service:` fragments, relay configs, or systemd `.service` files). If none, **both** the scratch stage and the assembly_template RUN are suppressed. Without this, a bootc image with only `system_services:` unit-name declarations (no shipped `.service` files) would emit an empty `FROM scratch AS systemd-services` + a RUN that bind-mounts from it — which fails at build time with `opening directory "systemd" under "...merged": no such file or directory`. The `system_enable_template` and `post_assembly_template` for that init still run — they're independent of the scratch stage. See `/ov-layers:sshd` + `/ov-layers:qemu-guest-agent` for the `system_services:`-only pattern that triggered this fix.
+Each init system defined in `build.yml` (currently `supervisord` and `systemd`) emits a `FROM scratch AS <stage_name>` scratch stage that layers COPY fragments into, plus an `assembly_template` RUN that bind-mounts from that scratch stage. `ov/generate.go` pre-scans the layer chain for each init system to check whether any layer contributes fragments (per-entry rendered from the unified `service:` list via `ServiceSchema.ServiceTemplate` / `ServiceSchema.SupportsPackaged`, plus relay configs, plus systemd `.service` files). If none, **both** the scratch stage and the assembly_template RUN are suppressed. Without this, a bootc image with only packaged-unit entries (`use_packaged:`, no rendered body) would emit an empty `FROM scratch AS systemd-services` + a RUN that bind-mounts from it — which fails at build time. The `system_enable_template` and `post_assembly_template` for that init still run — they're independent of the scratch stage.
 
 ### 2. `anyRepoHasURL` helper → prepend `dnf5-plugins`
 
@@ -224,4 +224,4 @@ The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUIL
 - `/ov-dev:go` — Source-code map: `ov/tasks.go` (~430 lines), `ov/generate.go:writeLayerSteps` + `writeLabels`, `ov/layers.go` struct definitions.
 - `/ov-images:selkies-desktop-bootc` — canonical worked example exercising all three bootc-specific emission rules above.
 - `/ov-layers:ffmpeg` — canonical URL-repo consumer (triggers the `dnf5-plugins` prepend).
-- `/ov-layers:bootc-config` — bootc boot wiring that depends on the empty-init-stage fix (only `system_services:`, no `.service` files).
+- `/ov-layers:bootc-config` — bootc boot wiring that depends on the empty-init-stage fix (only `use_packaged:` entries, no custom-exec rendered bodies).

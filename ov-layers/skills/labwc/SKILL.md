@@ -141,3 +141,8 @@ All windows open maximized (ideal for streaming desktop):
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the labwc layer, Wayland compositor configuration in selkies images, the labwc-wrapper script, window rules, or the nested compositor architecture (pixelflux → labwc → apps).
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

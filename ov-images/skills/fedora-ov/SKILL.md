@@ -169,3 +169,8 @@ and scripts per distro.
 - `/ov:service` — manage fedora-ov as a service
 - `/ov:vm` — nested libvirt VMs via `qemu:///session` (rootless)
 - `/ov:mcp` — MCP gateway deployment patterns (if you add `ov-mcp` to the layers)
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

@@ -85,3 +85,8 @@ selkies process (single ScreenCapture singleton)
 - `/ov-layers:selkies` — Parent layer providing the ScreenCapture singleton and capture bridge
 - `/ov-layers:selkies-desktop` — Metalayer that composes this screenshot path into the selkies-desktop image
 - `/ov:record` — Uses `/ov-layers:wl-record-pixelflux` via the same singleton
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

@@ -14,6 +14,31 @@ description: |
 
 # Test - Declarative Full-Stack Testing
 
+## DO NOT fake success — mandatory verification sequence (READ FIRST)
+
+An earlier agent claimed "cutover complete, all tests pass" after green `go test ./...` runs, then built an image that crash-looped at startup because a Containerfile stage was silently dropped. The unit tests didn't notice — they only exercised YAML loaders. **Unit tests are NOT a substitute for running the service.** Apply this sequence whenever a change could affect Containerfile generation, OCI labels, init systems, service startup, or deploy code:
+
+1. **`ov image build <image>`** — build a concrete image, don't stop at `ov image generate`.
+2. **Verify the generated Containerfile contains every expected stage**, e.g. `grep -c supervisord-conf .build/<image>/Containerfile` for any image that uses supervisord. Missing stages produce an image that falls back to the stock RPM config.
+3. **Verify critical OCI labels post-build**:
+   ```bash
+   podman inspect <ref> --format '{{index .Config.Labels "org.overthinkos.init"}}'
+   # Empty or missing → detection path silently returned nil → regression.
+   ```
+4. **`ov image test <image>`** — baked layer + image tests must pass. Be aware: this ALSO passes on a broken image whose stages were dropped, because the dropped content isn't part of any declarative test. Do not stop here.
+5. **Start the service**: `ov start <image>` (new deploy) or `ov update <image>` / `ov deploy add <image> <image>` (existing). Must reach `Active: active (running)` in `systemctl --user status ov-<image>.service`. If `start-limit-hit` appears, the container is crashing — look at `podman run --rm <image> <entrypoint>` stderr for the real error.
+6. **`ov test <image>`** — full three-section run against the live container. This is the definitive pass/fail. If deploy tests probe ports or services and the container is dead, they will fail — which is the honest outcome.
+7. **If any of the steps above fails, the task is NOT done.** Roll back to the prior-working image (`podman tag <prior-calver-tag> <ref>:latest && systemctl --user restart ov-<image>.service`) before continuing to debug.
+
+**Specific anti-patterns observed and banned:**
+
+- **"Unit tests pass → cutover done"** — no. Build + run + test, every time.
+- **"Retested after update → still passing!"** but the pre-update test was against the old running image and the post-update container failed to come up — see the `is not running` error and conclude the update broke it, not that "tests pass in aggregate."
+- **"Service start failed, probably a transient"** — no. `A dependency job for X failed` + immediate exit is a real error. Read the service log: `podman run --rm <image> <entrypoint>` will reproduce the failure directly.
+- **"I'll test it later / Phase 2"** — no. If the plan said "clean cutover in one PR", don't invent a Phase 2.
+
+If the container needs state that's only available in deploy (volumes, env, tunnel), author the test at `scope: deploy`. If it needs something at build only (binary path, package presence), author at `scope: build`. Both scopes must pass for the cutover to be real.
+
 ## Overview
 
 `ov` ships a goss-inspired declarative testing framework built into the
@@ -831,3 +856,7 @@ ports.
 tests at any level. If the user mentions `ov test`, `ov image test`,
 `tests:`, `deploy_tests:`, `LabelTests`, or any check verb by name
 (file/port/http/command/package/service/...), invoke this skill first.
+
+## Related skills
+
+- `/ov-dev:capabilities` — the `LabelTests` three-section OCI label is part of the same capability contract as `LabelServices`

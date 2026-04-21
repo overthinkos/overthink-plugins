@@ -48,3 +48,8 @@ Use when the user asks about:
 - TLS certificate management (ACME)
 - Ports 8000, 8080, or 443
 - Service routing via `*.localhost`
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

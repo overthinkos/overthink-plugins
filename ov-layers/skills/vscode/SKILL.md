@@ -46,3 +46,8 @@ Use when the user asks about:
 - VS Code installation in containers
 - Microsoft code editor setup
 - The `code` RPM package or Microsoft repository
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

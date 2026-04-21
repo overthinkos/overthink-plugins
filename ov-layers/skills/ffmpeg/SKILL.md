@@ -59,3 +59,8 @@ Use when the user asks about:
 - FFmpeg in containers
 - Multimedia processing tools
 - The `ffmpeg` layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

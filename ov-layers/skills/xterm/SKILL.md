@@ -55,3 +55,8 @@ With xterm installed, users can launch it to enable full XWayland testing.
 
 - `/ov:wl` — `ov test wl exec`, `ov test wl focus`, `ov test wl close`, `ov test wl xprop`, `ov test wl geometry`
 - `/ov-layers:selkies-desktop` — Desktop metalayer that includes this layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

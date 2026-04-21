@@ -93,3 +93,8 @@ After `ov start`:
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the ollama image, LLM model serving, or the standalone Ollama deployment. Invoke this skill BEFORE reading source code or launching Explore agents.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

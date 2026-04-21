@@ -84,9 +84,24 @@ The rendered INI lands at `/etc/supervisord.d/<layer>-<name>.conf` and is assemb
 
 At runtime, PID 1 is `supervisord`. The container's lifecycle is the supervisord process's lifecycle — when supervisord exits, the container exits (and the systemd quadlet's `Restart=always` rebuilds it).
 
-### Legacy `service:` / `system_services:` — retired 2026-04
+### `service:` declaration
 
-All 40 in-tree layers migrated from the legacy `service:` (raw supervisord INI block) and `system_services:` (list of unit names) fields to the unified `services:` list. The `service:` field is still parsed by the compiler's `compileServiceStepsLegacy` path for backwards compat with external (out-of-tree) layer sources. New in-tree layers should use `services:` only. See `/ov:layer` "Legacy fields" for the migration table.
+Layers declare services under a single `service:` key (singular; value is a list of `ServiceEntry`). Two entry shapes: `use_packaged:` reuses a distro-shipped systemd unit; custom exec (with `exec:`, `env:`, `restart:`, …) renders via the init-system's `service_template:`.
+
+**Supervisord lifecycle directives on ServiceEntry** (all optional — render only when set):
+
+| Field | Purpose |
+|---|---|
+| `kind: eventlistener` | Emits `[eventlistener:...]` instead of `[program:...]`; use with `events:`. |
+| `events:` | Supervisord eventlistener trigger list (e.g. `PROCESS_STATE_FATAL`). |
+| `auto_start:` | Tri-state bool. `false` for services started manually (Chrome waits for Wayland). |
+| `start_retries:` | Max restart attempts before FATAL. Chrome uses `3` as circuit breaker. |
+| `start_secs:` | Seconds the process must stay up to count as "started." |
+| `stop_signal:` | TERM (default), INT, HUP, … |
+| `exit_codes:` | Success codes for `restart: no` / `on-failure`. |
+| `priority:` | Startup order; lower = earlier. |
+
+See `/ov-layers:chrome` for the canonical consumer (3-strike circuit breaker + eventlistener).
 
 ## Service Priority & Ordering
 

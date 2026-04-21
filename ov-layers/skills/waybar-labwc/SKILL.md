@@ -64,3 +64,8 @@ Both layers use the same config. The only differences are:
 - `/ov-layers:labwc` — compositor this layer targets
 - `/ov-layers:selkies-desktop` — metalayer that composes this layer
 - `/ov-layers:swaync` + `/ov-layers:chrome` — consumers of the status-bar modules
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

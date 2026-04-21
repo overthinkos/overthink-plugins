@@ -43,3 +43,8 @@ Use when the user asks about:
 - Extracting text or transcripts from URLs
 - Content summarization tools
 - The `summarize` layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

@@ -83,3 +83,8 @@ Use when the user asks about:
 - PostgreSQL shared_preload_libraries configuration
 - Immich smart search or face recognition index types
 - `vchordrq` index type
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

@@ -40,3 +40,7 @@ Used for testing Traefik routing, service health checks, and the `testapi` layer
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the fedora-test image or Traefik routing validation.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)

@@ -50,3 +50,8 @@ Use when the user asks about:
 - WhatsApp messaging from containers
 - WhatsApp history sync
 - The `wacli` layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

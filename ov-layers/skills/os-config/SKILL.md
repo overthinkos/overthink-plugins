@@ -44,3 +44,8 @@ Use when the user asks about:
 - /opt directory permissions for rpm-ostree
 - initramfs/dracut rebuild in bootc images
 - Removing gaming-specific desktop entries
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

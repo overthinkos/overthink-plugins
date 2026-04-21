@@ -41,3 +41,8 @@ Not used in any current image definition. Part of the `mutter-desktop` metalayer
 ## When to Use This Skill
 
 Use when working with desktop applications in Mutter/GNOME containers.
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

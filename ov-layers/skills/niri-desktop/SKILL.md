@@ -61,3 +61,8 @@ Not used in any current image definition. Available as a metalayer composition b
 ## When to Use This Skill
 
 Use when working with Niri desktop composition or comparing Niri vs Sway desktop stacks.
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

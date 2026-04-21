@@ -273,3 +273,8 @@ Use when the user asks about:
 - Chrome DevTools Protocol (CDP) on port 9222
 - Browser automation or `browser-open`
 - The `chrome` layer, `CHROME_FLAGS`, or `shm_size`
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

@@ -50,3 +50,7 @@ Use when the user asks about:
 - Docker CE inside containers
 - Docker buildx or compose plugins
 - The `docker-ce` layer or Docker repository setup
+
+## Related
+
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

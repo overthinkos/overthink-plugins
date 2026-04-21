@@ -108,3 +108,8 @@ layers:
   post-install pattern here is the fix).
 - Understanding why `/ov-layers:dev-tools` no longer installs gh
   (the 2026-04 single-responsibility split lives here).
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

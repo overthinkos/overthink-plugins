@@ -76,3 +76,8 @@ Use when the user asks about:
 - Gaming on Sway/Wayland containers
 - Gamescope configuration
 - XWayland setup
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

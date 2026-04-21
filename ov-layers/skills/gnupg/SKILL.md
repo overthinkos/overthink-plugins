@@ -58,3 +58,8 @@ Use when the user asks about:
 - The `gnupg` layer
 - GPG agent forwarding
 - Importing public keys into container keyrings
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

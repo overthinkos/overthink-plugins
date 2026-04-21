@@ -44,3 +44,8 @@ Use when the user asks about:
 - Google Gemini CLI in containers
 - AI coding assistance tools
 - The `gemini` layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

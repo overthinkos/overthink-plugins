@@ -45,3 +45,8 @@ ov test wl screenshot <image> [output.png]
 - `/ov:wl` — `ov test wl screenshot` auto-detects grim
 - `/ov-layers:wl-screenshot-pixelflux` — Alternative for selkies-desktop
 - `/ov-layers:wl-tools` — Companion layer (input, window mgmt, clipboard)
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

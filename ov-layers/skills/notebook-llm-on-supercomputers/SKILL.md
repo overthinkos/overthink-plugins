@@ -127,3 +127,7 @@ Use when the user asks about:
 - RAG examples with ChromaDB
 - The TU Wien LLM course notebooks
 - Fine-tuning notebooks (PyTorch, HuggingFace, PEFT, Unsloth)
+
+## Related
+
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

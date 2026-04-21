@@ -86,3 +86,8 @@ All packages are in Fedora official repos.
 - `/ov-layers:wl-screenshot-pixelflux` — Screenshot layer for selkies (pixelflux pipeline)
 - `/ov-layers:sway-desktop` — Desktop metalayer that includes this layer
 - `/ov-layers:selkies-desktop` — Desktop metalayer that includes this layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

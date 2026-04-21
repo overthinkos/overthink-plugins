@@ -61,3 +61,8 @@ Use when the user asks about:
 - Port 8888 or 8000 in the context of fine-tuning
 - The two-tier layer architecture for ML layers
 - Fine-tuning pixi environment ownership
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

@@ -68,3 +68,8 @@ Use when the user asks about:
 - Port 18789 service
 - The `openclaw` host alias
 - OpenClaw data volume
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

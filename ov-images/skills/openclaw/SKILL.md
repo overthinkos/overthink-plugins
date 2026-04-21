@@ -66,3 +66,8 @@ OpenClaw gateway (18789) uses port relay (socat) — the gateway binds to loopba
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the headless openclaw image, deploying openclaw without a desktop, or comparing openclaw variants. Invoke this skill BEFORE reading source code or launching Explore agents.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

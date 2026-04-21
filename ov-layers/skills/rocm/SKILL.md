@@ -109,3 +109,8 @@ Use when the user asks about:
 - AMD GPU passthrough or compute
 - The rocm layer or AMD GPU computing
 - Comparing AMD vs NVIDIA GPU support
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

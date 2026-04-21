@@ -78,3 +78,8 @@ Use when the user asks about:
 - The `openclaw-full` metalayer composition
 - Which tools are included in the maximal OpenClaw image
 - The `openclaw-full` layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

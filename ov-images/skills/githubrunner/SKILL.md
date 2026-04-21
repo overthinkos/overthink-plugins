@@ -119,3 +119,8 @@ After `ov start`:
 **MUST be invoked** when the task involves the githubrunner image,
 self-hosted runners, or GitHub Actions CI/CD. Invoke this skill BEFORE
 reading source code or launching Explore agents.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

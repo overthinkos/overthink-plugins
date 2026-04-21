@@ -46,3 +46,8 @@ Use when the user asks about:
 - ripgrep (rg) in containers
 - Fast text search tools
 - The `ripgrep` layer
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

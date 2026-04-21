@@ -106,3 +106,8 @@ Use when the user asks about:
 - Port 9224 or the chrome-devtools MCP endpoint
 - How Chrome DevTools MCP integrates with hermes
 - Why hermes doesn't see a newly added MCP server (sentinel issue)
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

@@ -115,3 +115,8 @@ Volumes survive `ov stop`/`ov start` and image rebuilds. Only destroyed by `ov r
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the openclaw-sway-browser image, OpenClaw with browser automation, or desktop gateway deployments. Invoke this skill BEFORE reading source code or launching Explore agents.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

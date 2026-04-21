@@ -443,3 +443,7 @@ for the `--build` flag that also picks up this caveat.
 
 **Workflow position:** Typically first in a lifecycle chain.
 Next step: `/ov:deploy` (quadlet setup, tunnels) → `/ov:service` (start and manage).
+
+## Related skills
+
+- `/ov-dev:capabilities` — OCI labels emitted during the build stage; `CapabilityLabelMap` completeness check

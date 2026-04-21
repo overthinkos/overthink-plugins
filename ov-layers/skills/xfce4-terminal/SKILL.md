@@ -44,3 +44,8 @@ Use when the user asks about:
 - Terminal emulator in Sway containers
 - Xfce4 terminal configuration
 - Sway desktop terminal access
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

@@ -28,3 +28,8 @@ Forces `WLR_RENDERER=pixman` (software rendering) via layer env. This ensures VN
 
 - `/ov-layers:sway-desktop` -- base desktop (composed)
 - `/ov-layers:wayvnc` -- VNC server on tcp:5900 (added)
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

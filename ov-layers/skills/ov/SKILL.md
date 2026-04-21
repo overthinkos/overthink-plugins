@@ -93,3 +93,8 @@ Use when the user asks about:
 - In-container ov CLI usage
 - Native D-Bus support (ov test dbus commands delegate to in-container binary)
 - Updating the ov layer binary after code changes
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

@@ -99,3 +99,7 @@ Three build-scope tests ship with the layer:
   at-wrong-path issue, not a Python env problem.
 - Understanding why "uv has no dependencies" is correct even though it
   manages Python packages.
+
+## Related
+
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

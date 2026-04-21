@@ -115,3 +115,8 @@ Use when the user asks about:
 - Build tools (cmake, make, ninja, autoconf)
 - Compiler toolchain setup
 - The `build-toolchain` layer or its packages
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

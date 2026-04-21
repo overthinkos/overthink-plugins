@@ -134,7 +134,7 @@ Step emission order (mirrors today's `writeLayerSteps`):
 2. `SystemPackagesStep`(s) — distro-tag section wins over build-format section (first-match precedence from `ResolvedImage.Distro` order).
 3. `TaskStep`(s) in YAML order.
 4. `BuilderStep`(s) for each matching multi-stage or inline builder.
-5. `ServicePackagedStep` / `ServiceCustomStep` from unified `services:` (legacy `service:`/`system_services:` fall through `compileServiceStepsLegacy`).
+5. `ServicePackagedStep` / `ServiceCustomStep` from the `service:` list — per-entry routing via `IsPackaged()` + `ServiceSchema.SupportsPackaged`.
 
 `MergePlans([]*InstallPlan, image, addLayers)` composes per-layer plans into a single whole-image plan for target-level walking (sudo batching, single dry-run output).
 

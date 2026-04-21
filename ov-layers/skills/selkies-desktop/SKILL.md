@@ -146,3 +146,8 @@ See `/ov-images:selkies-desktop` for full multi-instance deployment examples.
 - `/ov:update` — Per-instance update pattern used to roll out pixelflux/Chrome fixes
 - `/ov:config` — Multi-instance deployment, resource caps, tunnel, proxy env vars, NO_PROXY auto-enrichment
 - `/ov:deploy` — Tunnel configuration (deploy.yml-only, instance inheritance gap)
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

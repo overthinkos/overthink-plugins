@@ -26,7 +26,7 @@ The InstallPlan IR (see `/ov-dev:install-plan`) is the central data type. `HostD
 | `ov/reverse_ops.go` | Execute `ReverseOp` slices in LIFO order via per-kind handlers | `runReverseOps`, `ReverseExecutor` interface, 15 reverse handlers |
 | `ov/service_render.go` | Render `ServiceEntry` → supervisord INI / systemd unit via init-system template | `ServiceEntry`, `ServiceOverrides`, `RenderService`, `RenderedService`, `ServiceRenderContext`, template helpers (`systemdRestart`, `supervisordRestart`, `systemdStdout`, `supervisordLog`) |
 | `ov/deploy_ref.go` | Unified 4-form ref resolver (local name / local path / remote github / legacy `@host/...`) | `DeployRef`, `RefKind`, `RefSource`, `ResolveDeployRef`, `classifyYAMLFile` |
-| `ov/migrate_services_tool.go` | One-shot migration from legacy `service:`/`system_services:` → unified `services:` (kept for external layer sources) | `MigrateServicesDir`, `migrateLayerFile` |
+| `ov/migrate_services_tool.go` | Schema converter invoked by `ov migrate unified --rewrite-layers` and auto-run on remote caches in `EnsureRepoDownloaded`. | `MigrateServicesDir`, `migrateLayerFile` |
 
 ## `hostdistro.go` — distro detection
 
@@ -242,13 +242,15 @@ Image vs layer disambiguation:
 - Refs containing `/layers/` → layer.
 - Refs containing `/images/` → image.
 - Bare remote repos (`github.com/owner/repo`) → image (falls back to image.yml).
-- Local YAML path: `classifyYAMLFile` reads top-level keys — `images:`/`base:`/`defaults:` → image; `rpm:`/`deb:`/`pac:`/`aur:`/`tasks:`/`services:`/`service:`/`system_services:`/`layers:`/`depends:`/`env:`/`path_append:`/`description:` → layer.
+- Local YAML path: `classifyYAMLFile` reads top-level keys — `images:`/`base:`/`defaults:` → image; `rpm:`/`deb:`/`pac:`/`aur:`/`tasks:`/`service:`/`layers:`/`depends:`/`env:`/`path_append:`/`description:` → layer.
 
 ## `migrate_services_tool.go` — one-shot layer migration
 
-`MigrateServicesDir(dir)` walks a `layers/` directory, rewrites each `layer.yml` with legacy `service:`/`system_services:` fields to the unified `services:` list, and returns the count of modified files.
+`MigrateServicesDir(dir)` walks a `layers/` directory and normalizes each `layer.yml` to the canonical `service:` list schema. Returns count of modified files.
 
-Already used to migrate all 40 in-tree layers (see git history). Kept in-tree for external layer sources that haven't yet migrated; not wired to a CLI subcommand — invoked via the gated test `TestRunMigrateServices` (set `OV_RUN_MIGRATION=1`).
+Invoked in two places:
+- `ov migrate unified --rewrite-layers` — explicit author flow.
+- `EnsureRepoDownloaded` (`ov/refs.go`) — auto-run on freshly-cloned remote caches on first download so external layer sources flow through the strict runtime parser.
 
 Internals: `extractBlock` parses the scalar `|`-block; `extractListBlock` parses the sequence; `parseSupervisordPrograms` walks `[program:X]` sections; `buildServicesEntries` synthesizes the structured entries; `renderServicesYAML` emits the new block. `yamlScalar` handles quoting for values with YAML indicator characters (notably `%` for supervisord's `%(ENV_HOME)s` interpolations).
 

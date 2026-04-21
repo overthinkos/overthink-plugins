@@ -86,7 +86,7 @@ Part of the `/ov-layers:bootc-base` composition layer. Used transitively in ever
 
 - `/ov:vm` -- VM lifecycle + the `/dev:/dev` mount requirement for `bootc install to-disk`
 - `/ov:image` -- the external-base `distro:` requirement
-- `/ov:generate` -- the empty-`systemd-services`-stage fix that makes bootc images with only packaged systemd units (i.e., unified `services:` entries using `use_packaged:`, formerly the retired `system_services:` field) build cleanly
+- `/ov:generate` -- the empty-`systemd-services`-stage fix that makes bootc images with only packaged systemd units (unified `service:` entries using `use_packaged:`) build cleanly
 - `/ov:test` -- dual-mode USER context authoring gotcha (test #11)
 - `/ov:layer` -- layer authoring reference
 

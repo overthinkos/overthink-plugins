@@ -66,3 +66,8 @@ After `ov image build`:
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the python-ml image, ML training environments, or GPU-accelerated Python. Invoke this skill BEFORE reading source code or launching Explore agents.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

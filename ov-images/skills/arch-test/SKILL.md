@@ -49,3 +49,8 @@ ov shell arch-test -c "which yay"          # aur: package installed
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves building or troubleshooting the arch-test image, or validating Arch Linux package format support.
+
+## Related
+
+- `/ov:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/ov:build` — `build.yml` vocabulary (distros, builders, init-systems)

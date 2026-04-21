@@ -108,3 +108,7 @@ Use when the user asks about:
 - How training notebooks get provisioned into the workspace volume
 - The `data:` field with `dest:` subdirectory mapping
 - Which models and training methods are covered by the notebook collection
+
+## Related
+
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)

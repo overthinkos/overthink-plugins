@@ -12,6 +12,26 @@ description: |
 
 The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framework, go-containerregistry for OCI operations, and YAML parsing for configuration. All computation, validation, and building logic lives in Go. Taskfiles are used only for bootstrapping (building ov itself).
 
+### Unified YAML loader (`LoadUnified`)
+
+The unified format's entry point is `LoadUnified(dir)` at `ov/unified.go`. It reads `<dir>/overthink.yml`, recursively resolves `includes:` (max depth 8, cycle-safe via visited set), parses every file as a **YAML multi-document stream** (so bundle files with `---` separators work), and routes each document by shape:
+
+- **Root-shape doc** — has any of `version:`, `includes:`, `discover:`, `defaults:`, `distros:`, `builders:`, `inits:`, `images:`, `layers:`, `deployments:` → parsed as `UnifiedFile`, merged root-wins.
+- **Kind-keyed doc** — has exactly one of `layer:`, `image:`, `deployment:`, `builder:`, `distro:`, `init:` + a `name:` inside → registered under `name:` in the matching map.
+- **Ambiguous** (both root and kind keys) → loader error with file + doc-index.
+
+`UnifiedFile.ApplyDiscover(rootDir)` walks `discover:` roots after initial merge — generic over six entity kinds via a single `applyScanSpecsKindKeyed` + `applyScanSpecsLayers` pair. Explicit map entries always win over discovered entries.
+
+Projections to today's concrete types: `ProjectConfig()` → `*Config`, `ProjectDistroConfig()` → `*DistroConfig`, etc. Existing `LoadConfig` / `LoadBuildConfigForImage` / `LoadDeployConfig` continue to work unchanged — migration to the unified entry point is incremental.
+
+### Capabilities — `ImageMetadata` alias + label completeness check
+
+`Capabilities = ImageMetadata` (type alias in `ov/capabilities.go`). `CapabilityLabelMap` lists every field with its OCI label home; `TestCapabilityLabelCompleteness` fails the build if an `ImageMetadata` field lacks a mapping. This invariant keeps `ov deploy from-image` reliable: every field deploy code might consult is readable from a pushed image's labels alone, independent of `overthink.yml`.
+
+### Kubernetes target (fourth DeployTarget)
+
+`K8sDeployTarget` (`ov/k8s_target.go`) sits alongside `OCITarget`, `ContainerDeployTarget`, `HostDeployTarget`. Unlike host target, K8s doesn't consume install plans — it emits Kustomize manifests directly from `(Capabilities, DeployImageConfig, ClusterProfile)` via `GenerateK8sKustomize` (`ov/k8s_generate.go`). The workload-kind heuristic (`selectWorkloadKind`) translates the generic `kind:` enum to Deployment/StatefulSet/DaemonSet/Job/CronJob/Pod based on intent + storage presence.
+
 ### YAML surface ↔ Go identifier convention
 
 The codebase keeps wire format (YAML keys) and internal names (Go fields/types) in strict symmetry — plural YAML keys get plural Go identifiers, singular get singular. When the `builders:` top-level key was renamed to `builder:` in `build.yml` and `image.yml`, the rename propagated to `BuildersMap → BuilderMap`, `ImageConfig.Builders → Builder`, `BuilderConfig.Builders → Builder`, `DistroConfig.Distros → Distro`, and `InitConfig.Inits → Init`. The rule: if you change a YAML tag, also rename the Go identifier. Tests enforce this indirectly — struct literals won't compile if they disagree. (Note: the OCI **label key** was separately regrouped under `platform.*` / `builder.*` sub-namespaces in 2026-04 — see `LabelPlatformDistro`, `LabelPlatformFormats`, `LabelBuilderUses`, `LabelBuilderProvides` in `labels.go`. Label wire-names are decoupled from YAML/Go identifiers by design.)

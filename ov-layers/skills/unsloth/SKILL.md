@@ -66,3 +66,8 @@ Use when the user asks about:
 - HuggingFace model cache volume
 - The `unsloth` host alias
 - The two-tier layer architecture for ML layers
+
+## Related
+
+- `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
