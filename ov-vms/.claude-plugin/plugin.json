@@ -1,0 +1,7 @@
+{
+  "name": "ov-vms",
+  "description": "Reference documentation for all Overthink kind:vm entities (cloud_image + bootc VMs)",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "repository": "https://github.com/overthinkos/overthink-plugins"
+}

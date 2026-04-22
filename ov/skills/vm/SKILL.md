@@ -1,266 +1,334 @@
 ---
 name: vm
 description: |
-  MUST be invoked before any work involving: virtual machines, ov vm commands, bootc disk images, libvirt/QEMU backends, or VM lifecycle management.
+  MUST be invoked before any work involving: virtual machines, ov vm commands,
+  kind:vm entities in vms.yml, cloud_image vs bootc source types,
+  libvirt/QEMU backends, BIOS vs UEFI firmware, virtio-gpu video, or VM lifecycle.
 ---
 
-# VM - Virtual Machine Management
+# VM — Virtual Machine Management
 
 ## Overview
 
-`ov vm` commands build disk images from bootc container images and manage virtual machines via libvirt or QEMU. Images must have `bootc: true` in image.yml. Disk images are built using `bootc install to-disk` inside a privileged container.
+`ov vm` commands build disk images and manage virtual machines via libvirt (default) or direct QEMU. VMs are declared as **`kind: vm` entities in `vms.yml`** — a first-class primitive alongside `kind: image` entries. Two source types:
+
+- **`source.kind: cloud_image`** — fetches a pre-built qcow2 from an external URL (Arch, Fedora, Ubuntu, Debian, CentOS Cloud images). Renders a NoCloud seed ISO with cloud-init. Canonical example: `/ov-vms:arch-cloud-base`.
+- **`source.kind: bootc`** — pairs with a `kind: image` entry that has `bootc: true`. Runs `bootc install to-disk` inside a privileged container. Canonical example: `/ov-vms:selkies-desktop-bootc-bootc`.
+
+The legacy `image.bootc: true` + `image.vm: {...}` + `image.libvirt: [...]` fields were **deleted in the hard cutover**. Legacy projects convert in one shot with `ov migrate vm-spec` (see `/ov:migrate`). For the YAML authoring reference, see `/ov-vms:vms`; for the Go types, see `/ov-dev:vm-spec`.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Build QCOW2 | `ov vm build <image>` | Build QCOW2 disk image (default) |
-| Build RAW | `ov vm build <image> --type raw` | Build RAW disk image |
-| Create VM | `ov vm create <image>` | Create VM from built disk image |
-| Start VM | `ov vm start <image>` | Start a stopped VM |
-| Stop VM | `ov vm stop <image>` | Graceful shutdown |
-| Force stop | `ov vm stop <image> --force` | Force stop (destroy) |
-| Destroy VM | `ov vm destroy <image>` | Remove VM definition |
-| Destroy + disk | `ov vm destroy <image> --disk` | Remove VM and delete disk image |
-| List VMs | `ov vm list` | List running VMs |
-| List all | `ov vm list -a` | Include stopped VMs |
-| Console | `ov vm console <image>` | Attach to serial console |
-| SSH | `ov vm ssh <image>` | SSH into VM |
+| Build QCOW2 | `ov vm build <name>` | Build disk image (`<name>` = kind:vm entity key) |
+| Build RAW | `ov vm build <name> --type raw` | Build RAW disk |
+| Create VM | `ov vm create <name>` | Provision libvirt/QEMU VM from the built disk |
+| Start VM | `ov vm start <name>` | Start a stopped VM |
+| Stop VM | `ov vm stop <name>` | Graceful shutdown |
+| Force stop | `ov vm stop <name> --force` | Force stop (destroy) |
+| Destroy VM | `ov vm destroy <name>` | Remove VM definition |
+| Destroy + disk | `ov vm destroy <name> --disk` | Remove VM and delete disk |
+| List VMs | `ov vm list [-a]` | List running (or all) VMs |
+| Console | `ov vm console <name>` | Attach to serial console |
+| SSH | `ov vm ssh <name>` | SSH into VM |
+
+VM name convention: `ov-<name>[-<instance>]`. Default libvirt URI: `qemu:///session`.
 
 ## Building Disk Images
 
-For images with `bootc: true` in image.yml. Uses `bootc install to-disk` inside a privileged container.
-
 ```bash
-ov vm build my-bootc-image                  # Build QCOW2 (default)
-ov vm build my-bootc-image --type raw       # Build RAW disk
-ov vm build my-bootc-image --size 20G       # Custom disk size
-ov vm build my-bootc-image --root-size 10G  # Custom root partition
-ov vm build my-bootc-image --console        # Enable console output for debugging
+ov vm build arch-cloud-base          # cloud_image: fetch qcow2, resize, render seed ISO
+ov vm build selkies-desktop-bootc-bootc --type qcow2   # bootc: bootc install to-disk
+ov vm build <name> --size 40G        # disk_size override (CLI wins over vms.yml)
+ov vm build <name> --root-size 10G   # bootc only: cap root partition
+ov vm build <name> --console         # enable console output for debugging
+ov vm build <name> --transport containers-storage   # bootc: local podman storage
 ```
 
-Output goes to `output/<type>/disk.<type>`. ISO format is not supported -- use qcow2 or raw.
+Output: `output/<type>/disk.<type>`. For cloud_image, also `output/<type>/seed.iso`. ISO format is not supported — use qcow2 or raw.
 
-The `--transport` flag controls how the container image is passed to bootc: `registry` (pull from registry), `containers-storage` (local podman storage), `oci` (OCI directory), `oci-archive` (OCI tarball).
+The `--transport` flag (bootc only) controls how the container image is read: `registry` (pull from registry), `containers-storage` (local podman), `oci` (OCI dir), `oci-archive` (OCI tarball).
 
-Source: `ov/vm_build.go`.
+Source: `ov/vm_build.go`, `ov/vm_cloud_image.go`.
 
 ## VM Lifecycle
 
 ```bash
-ov vm create my-image                       # Create from disk image
-ov vm create my-image --ram 8G --cpus 4     # Custom resources
-ov vm create my-image --ssh-key auto        # Auto-detect SSH key (default)
-ov vm create my-image --ssh-key generate    # Generate new SSH keypair
-ov vm create my-image --ssh-key none        # No key injection
-ov vm create my-image --ssh-key ~/.ssh/id_ed25519.pub  # Specific key
-ov vm create my-image -i prod               # Named instance
-ov vm start my-image                        # Start a stopped VM
-ov vm stop my-image                         # Graceful shutdown
-ov vm stop my-image --force                 # Force stop (destroy)
-ov vm destroy my-image                      # Remove VM definition
-ov vm destroy my-image --disk               # Also delete disk image
-ov vm list                                  # List running VMs
-ov vm list -a                               # Include stopped VMs
-ov vm console my-image                      # Attach to serial console
-ov vm ssh my-image                          # SSH into VM
-ov vm ssh my-image -p 2222 -l user          # Custom port and user
-ov vm ssh my-image -- ls /tmp               # Run command via SSH
+ov vm create arch-cloud-base                        # default resources from vms.yml
+ov vm create <name> --ram 8G --cpus 4               # CLI overrides
+ov vm create <name> --ssh-key auto                  # auto-detect SSH key (default)
+ov vm create <name> --ssh-key generate              # generate new keypair
+ov vm create <name> --ssh-key none                  # no key injection
+ov vm create <name> --ssh-key ~/.ssh/id_ed25519.pub # specific key
+ov vm create <name> -i prod                         # named instance
+ov vm start <name>
+ov vm stop <name>                                   # graceful
+ov vm stop <name> --force                           # destroy
+ov vm destroy <name>                                # remove VM definition
+ov vm destroy <name> --disk                         # also delete disk image
+ov vm list [-a]
+ov vm console <name>                                # serial console
+ov vm ssh <name>                                    # SSH with resolved user/port from vms.yml
+ov vm ssh <name> -p 2224 -l arch                    # override user/port
+ov vm ssh <name> -- ls /tmp                         # run command via SSH
 ```
 
-VM name convention: `ov-<image>[-<instance>]`. All VMs use session-level libvirt URI (`qemu:///session`).
+## `kind: vm` entity reference
 
-## VM Backends
+Canonical `vms.yml` shape, condensed from `/ov-vms:vms`:
 
-Backend resolution order: **libvirt -> qemu** (auto-detected). Libvirt is detected by checking for the session socket; QEMU by checking for `qemu-system-*` binary.
+```yaml
+vms:
+  # cloud_image source
+  arch-cloud-base:
+    source:
+      kind: cloud_image
+      url: https://fastly.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2
+      checksum: {type: sha256}                      # value auto-resolves from <url>.SHA256 sidecar
+      base_user: arch                               # adopt pattern (no useradd)
+    disk_size: 40G
+    ram: 8G
+    cpus: 4
+    machine: q35
+    firmware: bios                                  # BIOS preferred for cloud images — see decision matrix below
+    network: {mode: user}
+    ssh: {port: 2224, key_source: generate}
+    cloud_init:
+      packages: [sudo, spice-vdagent]
+      ov_install: {strategy: auto}
+    libvirt:
+      devices:
+        video: [{model: virtio, vram: 65536, heads: 1, accel3d: false}]
+        graphics: [{type: spice, autoport: "yes", listen: 127.0.0.1}]
 
-| Backend | Requires | Notes |
-|---------|----------|-------|
-| `libvirt` | libvirt session daemon (socket) | Default, recommended |
-| `qemu` | `qemu-system-*` | Direct QEMU, state in `~/.local/share/ov/vm/` |
+  # bootc source
+  selkies-desktop-bootc-bootc:
+    source:
+      kind: bootc
+      image: selkies-desktop-bootc                  # kind:image entry
+    disk_size: 40 GiB
+    ram: 8G
+    cpus: 4
+    ssh: {user: root, port: 2250}
+```
 
-Override: `ov settings set vm.backend libvirt`
+Every field in `VmSpec` applies to both source kinds (parity guarantee). See `/ov-dev:vm-spec` for the Go type reference and `/ov-vms:vms` for the full field-by-field authoring guide.
+
+## Backend matrix
+
+Resolution order: **libvirt → qemu** (auto-detected). Override via `ov settings set vm.backend libvirt`.
+
+| Backend | Requires | When to pick |
+|---|---|---|
+| `libvirt` (default) | libvirt session daemon socket | Almost always — full domain XML, portForward with passt, SPICE console, per-VM NVRAM |
+| `qemu` | `qemu-system-*` binary | Direct QEMU; air-gapped hosts where libvirt isn't installed |
+
+**Socket path probing for libvirt ≥ 8.0**: modular libvirt splits into `virtqemud` / `virtnetworkd` / ... — the socket is `virtqemud-sock`, not `libvirt-sock`. `libvirtSessionSocket()` probes `virtqemud-sock` first, falls back to `libvirt-sock` on older setups. Symptom of a misprobe: `ConnectToURI(QEMUSession)` returns `End of file while reading data: Input/output error` — means the daemon isn't accepting on the socket you reached.
 
 Source: `ov/vm.go`, `ov/vm_libvirt.go`, `ov/vm_qemu.go`.
 
+## BIOS vs UEFI decision matrix
+
+The `firmware:` field controls the VM boot path. Choice matters more than most authors realize.
+
+| Firmware | When to pick |
+|---|---|
+| `bios` (default) | Cloud images (Arch, Fedora Cloud, Ubuntu Cloud, Debian Cloud, CentOS Cloud) that ship a GPT BIOS boot partition. Avoids stale BOOTX64.EFI issues. No OVMF package dependency. No per-VM NVRAM. See `/ov-vms:arch-cloud-base` Finding B for the RCA. |
+| `uefi-insecure` | bootc Fedora images (ship signed BOOTX64.EFI built at image-build time). Guests needing GPT > 2 TiB disks. ARM hosts (aarch64). |
+| `uefi-secure` | Guests needing Secure Boot (signed kernel + initramfs). Locks to Microsoft UEFI CA keys. |
+
+See `/ov-dev:ovmf` for the per-distro OVMF_CODE/OVMF_VARS path table and the per-VM NVRAM mechanics. When `firmware: bios`, `ResolveOvmfForSpec` returns empty strings and the libvirt renderer skips `<loader>`/`<nvram>` entirely.
+
+## Video-model choice
+
+`libvirt.devices.video[0].model` drives the VM's paravirtualized GPU.
+
+| Model | Default for | Why |
+|---|---|---|
+| `virtio` (virtio-gpu) | **Linux guests — modern default** | Native `virtio_gpu` kernel DRM driver (4.16+), Wayland-native, simpler config, no X-server-specific driver needed |
+| `qxl` | Legacy X11 SPICE use | 2010-era Red Hat SPICE stack; simpledrm→qxldrmfb takeover race under UEFI (see `/ov-vms:arch-cloud-base` Finding B); more knobs (ram_size + vram_size + vram64_size_mb + vgamem_mb) |
+| `cirrus` | BIOS fallback only | Low resolution, no acceleration |
+| `none` | Headless VMs | No framebuffer at all |
+
+SPICE is video-model-agnostic — it streams pixels from virtio-gpu as well as from QXL. See `/ov-dev:libvirt-renderer` "video-model choice" for the full decision rationale.
+
 ## SSH Key Injection
 
-SSH keys are injected at VM creation time via SMBIOS credentials (systemd-based). The `--ssh-key` flag controls key injection:
+SSH keys inject via two additive channels (both on by default for cloud_image VMs):
+
+- **SMBIOS type 11 OEM strings** — systemd-ssh-generator (systemd ≥ v250) materializes the pubkey into `~<user>/.ssh/authorized_keys` during early boot. Works even without cloud-init.
+- **cloud-init user-data** — `users:[...].ssh_authorized_keys` list in the rendered user-data on the NoCloud seed ISO.
+
+The `--ssh-key` flag (and `vms.<name>.ssh.key_source`) controls the source of the pubkey:
 
 | Value | Behavior |
 |-------|----------|
 | `auto` (default) | Uses first `~/.ssh/*.pub` found |
-| `generate` | Creates new keypair in `~/.local/share/ov/vm/ssh/` |
+| `generate` | Creates new keypair in `~/.local/share/ov/vm/ov-<name>/id_ed25519`. Idempotent across rebuilds. |
 | `none` | No key injection |
 | `/path/to/key.pub` | Uses the specified public key |
 
-Source: `ov/smbios_credentials.go`.
+See `/ov-dev:vm-spec` for the `VmSSH.KeyInjection` tri-state (`auto` | `enabled` | `disabled`) per channel, and `/ov-dev:cloud-init-renderer` for the `composeUsers` adopt-merge pattern that delivers the key into the guest.
 
-## VM Configuration
-
-### Per-Image in image.yml
-
-```yaml
-images:
-  my-bootc-image:
-    bootc: true
-    base: "quay.io/fedora/fedora-bootc:43"
-    layers: [sshd, qemu-guest-agent, bootc-config]
-    vm:
-      disk_size: "10 GiB"
-      root_size: "10G"
-      ram: "4G"
-      cpus: 2
-      rootfs: ext4            # ext4, xfs, or btrfs
-      kernel_args: "console=ttyS0,115200n8"
-      ssh_port: 2222
-      transport: registry     # registry, containers-storage, oci, oci-archive
-      firmware: ""            # uefi-secure, uefi-insecure, bios
-      network: ""             # user, or bridge name
-```
-
-### User-Level Defaults
+## User-Level Defaults
 
 Set via `ov settings set`:
 
 | Key | Env Var | Default |
 |-----|---------|---------|
 | `vm.backend` | `OV_VM_BACKEND` | `auto` |
-| `vm.disk_size` | `OV_VM_DISK_SIZE` | `10 GiB` |
-| `vm.root_size` | `OV_VM_ROOT_SIZE` | (empty) |
-| `vm.ram` | `OV_VM_RAM` | `4G` |
-| `vm.cpus` | `OV_VM_CPUS` | `2` |
-| `vm.rootfs` | `OV_VM_ROOTFS` | `ext4` |
-| `vm.transport` | `OV_VM_TRANSPORT` | (empty) |
 
-Resolution chain: **image-level vm: -> defaults vm: -> ov settings -> hardcoded defaults**.
+Per-VM overrides live in `vms.yml`. The user-level defaults exist only for fields that don't have a per-VM equivalent (backend is the main one). For anything else, declare it in `vms.<name>`.
 
-## Libvirt XML Injection
+## Libvirt XML configuration
 
-Layers and images can declare raw libvirt XML snippets via the `libvirt` field. These are injected into the VM domain XML after creation.
+Primary surface is structured `LibvirtConfig` in `vms.<name>.libvirt:` (features, CPU, clock, devices, sysinfo, launch_security, etc.). See `/ov-dev:libvirt-renderer` for the full schema.
 
-```yaml
-# In layer.yml (e.g., qemu-guest-agent):
-libvirt:
-  - <channel type='unix'><target type='virtio' name='org.qemu.guest_agent.0'/></channel>
+Raw-XML escape hatch: `vms.<name>.libvirt.snippets:` (list of strings) — classified by element name. Device-scoped elements go into `<devices>`, domain-scoped before `</domain>`. Deduplicated by exact string match.
 
-# In image.yml:
-images:
-  my-image:
-    libvirt:
-      - "<filesystem type='mount'>...</filesystem>"
-```
+Layer-level raw snippets: `layer.yml` `libvirt.snippets:` still supported for layers that contribute device XML (e.g., `/ov-layers:qemu-guest-agent` contributes the virtio-serial channel). Image-level `libvirt: [...]` was **removed** in the hard cutover — it had no home in the new VM model.
 
-Device elements (channel, disk, interface, etc.) are placed inside `<devices>`. Other elements are placed before `</domain>`. Snippets are deduplicated by exact string match.
-
-Source: `ov/libvirt.go`.
+Source: `ov/libvirt.go`, `ov/libvirt_render.go`, `ov/libvirt_render_devices.go`.
 
 ## Common Workflows
 
-### Build and Run a VM
+### Build and run a cloud_image VM
 
 ```bash
-ov image build my-bootc-image
-ov vm build my-bootc-image
-ov vm create my-bootc-image --ram 8G --cpus 4
-ov vm start my-bootc-image
-ov vm ssh my-bootc-image
+ov vm build arch-cloud-base              # fetches qcow2, resizes, renders seed ISO
+ov vm create arch-cloud-base
+ssh -p 2224 -i ~/.local/share/ov/vm/ov-arch-cloud-base/id_ed25519 arch@127.0.0.1
 ```
 
-### Debug VM Boot Issues
+### Build and run a bootc VM
 
 ```bash
-ov vm build my-bootc-image --console     # Enable console output
-ov vm create my-bootc-image
-ov vm start my-bootc-image
-ov vm console my-bootc-image             # Watch boot messages
+ov image build selkies-desktop-bootc             # container image must exist first
+ov vm build selkies-desktop-bootc-bootc
+ov vm create selkies-desktop-bootc-bootc
+ov vm start selkies-desktop-bootc-bootc
+ov vm ssh selkies-desktop-bootc-bootc
 ```
 
-### Multiple VM Instances
+### Apply layers inside a VM
 
 ```bash
-ov vm create my-image -i dev
-ov vm create my-image -i staging
-ov vm start my-image -i dev
-ov vm ssh my-image -i dev
+ov vm create arch-cloud-base
+ov deploy add vm:arch-cloud-base ripgrep         # apply ripgrep layer over SSH
+ov deploy add vm:arch-cloud-base fedora-coder --add-layer team-extras
+ov deploy del vm:arch-cloud-base                 # reverse all applied layers
 ```
 
-## Known bootc-VM caveats
+See `/ov:deploy` "vm: target" for the `ov deploy add vm:<name>` surface and `/ov-dev:vm-deploy-target` for the executor model.
 
-Covers non-obvious issues that only surface when a bootc image actually boots under QEMU. The canonical end-to-end worked example is `/ov-images:selkies-desktop-bootc`.
+### Debug VM boot issues
 
-### Privileged container needs `-v /dev:/dev`
+```bash
+ov vm build <name> --console     # enable console output during disk build
+ov vm create <name>
+ov vm start <name>
+ov vm console <name>             # watch boot messages
+```
 
-`ov vm build` runs `bootc install to-disk --via-loopback` inside a privileged container (via `sudo podman` under `engine.rootful=sudo`, or podman-machine under `engine.rootful=machine`). `--privileged` alone is not enough — the container's `/dev` is a tmpfs in its own mount namespace, so `losetup`'s `LOOP_CTL_GET_FREE` can create a `/dev/loopN` in the kernel but the node is invisible inside the container. `ov/vm_build.go` adds `-v /dev:/dev` so the container shares the host's `/dev`. Symptom without it: `losetup: <path>: failed to set up loop device: No such file or directory`.
+### Multiple VM instances
 
-### `vm.ssh_port` is honoured end-to-end
+```bash
+ov vm create <name> -i dev
+ov vm create <name> -i staging
+ov vm start <name> -i dev
+ov vm ssh <name> -i dev
+```
 
-The QEMU hostfwd SSH mapping (`hostfwd=tcp::<ssh_port>-:22`) and the libvirt `<portForward>` range both read `vm.ssh_port` from the image's Vm OCI label. Plumbing lives at `ov/vm.go` (`createQemu`/`createLibvirt`) and `ov/vm_libvirt.go` (`buildDomainXML`). Older `ov` binaries hardcoded 2222; if your VM creates with SSH on 2222 despite `vm.ssh_port: 2250` in `image.yml`, the binary is stale — run `task build:ov`. Also: `image.yml` `ports:` flow straight into QEMU hostfwd, so a `"2222:2222"` publish will collide with `vm.ssh_port: 2222` — don't declare both.
+## Known live-tested caveats
 
-### Rootful ↔ rootless podman storage split
+Non-obvious issues that surface only when VMs actually boot. `/ov-images:selkies-desktop-bootc` is the canonical end-to-end bootc worked example; `/ov-vms:arch-cloud-base` is the canonical cloud_image worked example.
 
-Under `engine.rootful=sudo`, `ov vm build` invokes `sudo podman`, which reads from root's container storage (`/var/lib/containers/storage`), not your rootless storage. After every `ov image build`, refresh rootful storage:
+### Privileged container needs `-v /dev:/dev` (bootc)
+
+`ov vm build` runs `bootc install to-disk --via-loopback` inside a privileged container. `--privileged` alone is not enough — the container's `/dev` is a tmpfs in its own mount namespace, so `losetup`'s `LOOP_CTL_GET_FREE` creates a `/dev/loopN` in the kernel but the node is invisible inside the container. `ov/vm_build.go` adds `-v /dev:/dev` so the container shares the host's `/dev`.
+
+### virtqemud socket probing (libvirt ≥ 8.0)
+
+Modular libvirt daemons: the session socket moved from `libvirt-sock` to `virtqemud-sock`. Probe order in `libvirtSessionSocket()`: virtqemud-sock first, libvirt-sock fallback. `ConnectToURI(QEMUSession)` uses `qemu:///session`, not `qemu:///system`.
+
+### `<backend type='passt'/>` required for `<portForward>`
+
+libvirt ≥ 9.x `<portForward>` on `<interface type='user'>` only activates with `<backend type='passt'/>`. Emitted automatically by `renderDefaultInterface`; if you author a custom interface, include the backend line. Debugged live in April 2026: ssh on port 2224 accepted TCP but landed in the wrong guest port when the backend was missing. See `/ov-dev:libvirt-renderer`.
+
+### Per-VM NVRAM required for UEFI
+
+When `firmware: uefi-insecure` or `firmware: uefi-secure`, each VM gets its own NVRAM file under `~/.local/share/ov/vm/ov-<name>/nvram.fd`, copied from the OVMF_VARS template. Preserves UEFI variable state across reboots. See `/ov-dev:ovmf`.
+
+### Resource sizing over package pruning (cloud_image)
+
+Cloud-init `packages: [spice-vdagent]` pulls GTK3 + X11 (~200 MB download, ~1 GB installed). Running at 2 GiB RAM stalls cloud-init. **Check host inventory (`free -h`, `nproc`) before sizing** — give the VM what it needs (8 GiB + 4 cpus for a desktop-class workload is reasonable on a 16-core / 61 GiB host). See `/ov-vms:arch-cloud-base` Finding C for the live-test bisect.
+
+### Rootful ↔ rootless podman storage split (bootc)
+
+Under `engine.rootful=sudo`, `ov vm build` invokes `sudo podman` which reads from `/var/lib/containers/storage`, not your rootless storage. After every `ov image build`, refresh:
 
 ```bash
 podman save ghcr.io/<registry>/<image>:latest -o /tmp/img.tar
 sudo podman load -i /tmp/img.tar && rm -f /tmp/img.tar
 ```
 
-Symptom without refresh: `Trying to pull ... 403 Forbidden` (bootc falls back to registry).
+Symptom without refresh: `Trying to pull ... 403 Forbidden`.
 
-### `engine.rootful=machine` path (rootless containers, `/ov-images:selkies-desktop-ov`)
+### `engine.rootful=machine` path (rootless containers)
 
-When `ov vm build` is invoked from inside a rootless container (no host `sudo` available), the engine auto-picks `engine.rootful=machine`. That **spawns a podman-machine VM** (nested VM #1, KVM-accelerated via `/dev/kvm` passthrough), mounts the calling user's home into the machine, and runs `bootc install to-disk --via-loopback` inside it. The machine has its **own rootful storage** (`podman --connection ov-root`), separate from the calling container's nested rootless store — so the image ref passed to `ov vm build` must be resolvable from the machine's storage, not just the calling container's.
-
-Symptom: `Trying to pull ghcr.io/.../<image>:latest ... 403 Forbidden` **inside** the `podman --connection ov-root` step, even after the image is loaded in the calling container's nested rootless store.
-
-Cross-storage load pattern (run inside the calling container):
+When `ov vm build` runs from inside a rootless container (no host `sudo`), the engine auto-picks `engine.rootful=machine` — spawns a podman-machine VM with its own rootful storage (`podman --connection ov-root`). Cross-storage load pattern:
 
 ```bash
-# Assume the image is already in the calling container's nested rootless store
-# (via `podman load -i` of a host-side `podman save` tarball).
-
 podman save -o /tmp/bootc.tar ghcr.io/<registry>/<image>:latest
 podman --connection ov-root load -i /tmp/bootc.tar
 rm /tmp/bootc.tar
-ov vm build <image> --transport containers-storage
+ov vm build <name> --transport containers-storage
 ```
 
-`--transport containers-storage` forces `bootc install` to pull from the machine's local store instead of the registry. Worked example + two-level nesting end-to-end run lives in `/ov-images:selkies-desktop-ov` ("Two-level nested-virtualization proof").
+`--transport containers-storage` forces `bootc install` to pull from the machine's local store. Worked example: `/ov-images:selkies-desktop-ov` "Two-level nested-virtualization proof".
 
-### `ov vm stop` state-sync race under the QEMU backend
+### `ov vm stop` state-sync race under QEMU backend
 
-Observed 2026-04-19 on `selkies-desktop-bootc` inside `selkies-desktop-ov`: `ov vm stop <image>` returns `Stopped VM ov-<image>` and exits 0, but a subsequent `ov vm list -a` still reports the VM as `running` until `ov vm destroy` is called — at which point list goes empty cleanly. The libvirt backend is unaffected; this is a QEMU-backend state-sync bug in `ov`. Workaround: proceed straight to `ov vm destroy` rather than treating the residual "running" as a stop failure. Tracked as a follow-up ov bug; no source change in this skill's scope.
+Observed 2026-04-19: `ov vm stop <name>` returns success + exit 0, but `ov vm list -a` still reports the VM as `running` until `ov vm destroy` runs. Libvirt backend unaffected. Workaround: proceed to `ov vm destroy` rather than treating residual "running" as a stop failure.
 
 ### Host kernel/module-dir mismatch
 
-On rolling distros (Arch, Fedora) after a kernel upgrade, `/lib/modules/$(uname -r)` may be missing while `/lib/modules/<new-kernel>/` is present. `modprobe loop` fails with `Module loop not found in directory /lib/modules/$(uname -r)`, losetup cannot create a loop device, and the VM disk build hangs at `losetup: failed to set up loop device`. Resolution: **reboot**. Quick check:
-
-```bash
-ls /lib/modules/$(uname -r) >/dev/null 2>&1 && echo "ok" || echo "reboot needed"
-```
+Rolling distros after a kernel upgrade: `/lib/modules/$(uname -r)` missing, `modprobe loop` fails, VM disk build hangs. **Resolution: reboot.** Check: `ls /lib/modules/$(uname -r) >/dev/null 2>&1 && echo ok || echo "reboot needed"`.
 
 ### Disk exhaustion from `output/`
 
-`bootc install to-disk` writes a ~40 GiB sparse raw file AND a qcow2. A failed `qemu-img convert` (disk-full, corrupted cache) leaves both behind. Clean `output/raw/disk.raw` after successful qcow2 conversion, and keep a close eye on `df -h /` before a fresh VM build.
+`bootc install to-disk` writes both a ~40 GiB sparse raw AND a qcow2. Failed `qemu-img convert` leaves both behind. Clean `output/raw/disk.raw` after successful qcow2 conversion; watch `df -h /` before fresh VM builds.
 
-### `qemu-guest-agent` enabled/inactive under QEMU user-net
+### `qemu-guest-agent` inactive under QEMU user-net
 
-Expected. The agent needs a `virtio-serial` channel that ov's QEMU backend doesn't expose under user-net. Switch to the libvirt backend (`ov settings set vm.backend libvirt`) to activate it.
+Expected. The agent needs a `virtio-serial` channel that ov's QEMU backend doesn't expose under user-net. Switch to libvirt backend (`ov settings set vm.backend libvirt`) to activate it. See `/ov-layers:qemu-guest-agent`.
 
 ## Cross-References
 
-- `/ov:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
-
-- `/ov:build` -- Building container images before VM disk builds; also covers the stale-ov-binary and buildah-cache-mount caveats
-- `/ov:config` -- VM default settings (`vm.*` config keys)
-- `/ov:image` -- `bootc`, `vm:`, and `libvirt` fields in image.yml; also the external-base `distro:` requirement
-- `/ov:layer` -- `libvirt` field in layer.yml
-- `/ov-images:selkies-desktop-bootc` -- Canonical end-to-end bootc worked example (port remap, known caveats, verification recipes)
-- `/ov-layers:bootc-config` -- Bootc-side boot wiring (tty1 autologin, graphical target, systemd-user supervisord)
+- `/ov-vms:vms` — **vms.yml authoring reference** (VmSpec schema, source.kind, adopt pattern)
+- `/ov-vms:arch-cloud-base` — canonical cloud_image VM (BIOS / virtio-gpu / resource sizing / stale BOOTX64.EFI RCA)
+- `/ov-vms:aurora-bootc`, `/ov-vms:bazzite-ai-bootc`, `/ov-vms:openclaw-browser-bootc-bootc`, `/ov-vms:selkies-desktop-bootc-bootc` — bootc VMs
+- `/ov-dev:vm-spec` — Go type reference; validation rules; legacy migration map
+- `/ov-dev:libvirt-renderer` — RenderDomain + device emission + passt backend + virtio-gpu
+- `/ov-dev:cloud-init-renderer` — RenderCloudInit + composeUsers + seed ISO + ov_install
+- `/ov-dev:vm-deploy-target` — VmDeployTarget / SSHExecutor / VmDeployState
+- `/ov-dev:ovmf` — UEFI firmware path resolution; per-VM NVRAM; bios-skips-loader sentinel
+- `/ov-dev:cutover-policy` — hard cutover policy — why the legacy surface was deleted
+- `/ov:migrate` — `ov migrate vm-spec` legacy conversion
+- `/ov:deploy` — `ov deploy add vm:<name> <ref>` in-guest layer application
+- `/ov:pull` — fetch container images into local storage (prereq for bootc VM builds)
+- `/ov:build` — building container images before VM disk builds
+- `/ov:layer` — `libvirt.snippets:` field in layer.yml
+- `/ov-images:selkies-desktop-bootc` — canonical end-to-end bootc worked example
+- `/ov-images:selkies-desktop-ov` — two-level nested-virtualization proof
+- `/ov-layers:bootc-base` — sshd + qemu-guest-agent + bootc-config bundle
+- `/ov-layers:bootc-config` — bootc-side boot wiring (tty1 autologin, graphical target, systemd-user supervisord)
+- `/ov-layers:cloud-init` — guest-side cloud-init package (complements host-side seed ISO rendering)
+- `/ov-layers:qemu-guest-agent` — virtio-serial channel
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves virtual machines, ov vm commands, bootc disk images, libvirt/QEMU backends, or VM lifecycle management. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves virtual machines, ov vm commands, kind:vm entities, cloud_image vs bootc source types, libvirt/QEMU backends, BIOS vs UEFI firmware choice, or VM lifecycle management. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Standalone workflow. VM management is separate from container lifecycle.
+**Workflow position:** Standalone workflow. VM management is separate from container lifecycle, but `ov deploy add vm:<name>` bridges into the shared InstallPlan + DeployTarget machinery.

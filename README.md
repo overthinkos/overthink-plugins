@@ -9,6 +9,7 @@ Claude Code plugins for Overthink — the container management experience for yo
 | **Building and running images** | ov |
 | **Contributing to the ov CLI** | ov + ov-dev |
 | **Layer and image reference** | ov-layers + ov-images |
+| **VM authoring + reference** | ov-vms (+ ov, ov-images for paired bootc images) |
 | **Programmatic notebook access** | ov-jupyter |
 
 ## Plugins
@@ -69,7 +70,7 @@ via `ov migrate unified` — see `/ov:migrate`.
 | wl | `/ov:wl` | Desktop automation (22 commands + 12 sway IPC commands) |
 | wl-overlay | `/ov:wl-overlay` | Wayland overlays for screen recordings |
 
-### ov-dev (6 skills, 3 agents, GitHub MCP)
+### ov-dev (12 skills, 3 agents, GitHub MCP)
 
 Development tools and enforcement agents for contributors.
 
@@ -77,11 +78,17 @@ Development tools and enforcement agents for contributors.
 
 | Skill | Invocation | Description |
 |-------|-----------|-------------|
-| go | `/ov-dev:go` | Go CLI development (build, test, code map, mode purity, self-exec, IR refactor pointer) |
+| go | `/ov-dev:go` | Go CLI development (build, test, code map, mode purity, self-exec, IR refactor pointer, VM-path architecture) |
 | generate | `/ov-dev:generate` | Containerfile generation internals and debugging; OCITarget + IR integration |
-| install-plan | `/ov-dev:install-plan` | The shared InstallPlan IR: 8 step kinds, DeployTarget interface, BuildDeployPlan compiler, OCITarget/ContainerDeployTarget/HostDeployTarget/K8sDeployTarget |
+| install-plan | `/ov-dev:install-plan` | The shared InstallPlan IR: 8 step kinds, DeployTarget interface, BuildDeployPlan compiler, OCITarget/ContainerDeployTarget/HostDeployTarget/VmDeployTarget/K8sDeployTarget |
 | host-infra | `/ov-dev:host-infra` | Host-deploy supporting files: hostdistro, install_ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref, migrate_services_tool |
 | capabilities | `/ov-dev:capabilities` | OCI label contract: `Capabilities`/`ImageMetadata`, `CapabilityLabelMap` completeness check, `LabelServices` structured round-trip, source-less deploy |
+| vm-spec | `/ov-dev:vm-spec` | Go type reference for VmSpec, VmSource discriminated union (cloud_image/bootc), VmCloudInit, adopt-user decision |
+| libvirt-renderer | `/ov-dev:libvirt-renderer` | Pure renderer from VmSpec + LibvirtConfig → domain XML / QEMU argv; passt backend; virtio-gpu default; firmware plumbing |
+| cloud-init-renderer | `/ov-dev:cloud-init-renderer` | Host-side NoCloud seed ISO renderer: composeUsers adopt-merge, SMBIOS+cloud_init additive channels, ov_install state machine |
+| vm-deploy-target | `/ov-dev:vm-deploy-target` | VmDeployTarget as 4th DeployTarget: DeployExecutor interface, SSHExecutor, VmDeployState persistence, SSH-key idempotency |
+| ovmf | `/ov-dev:ovmf` | UEFI firmware path resolution: per-distro OVMF_CODE/OVMF_VARS table, per-VM NVRAM copies, bios-sentinel contract |
+| cutover-policy | `/ov-dev:cutover-policy` | Hard Cutover by Default: forbidden patterns, required deliverables, rationale, worked VM-refactor example |
 | skills | `/ov-dev:skills` | Meta-skill: skill-maintenance guidelines, when to update CLAUDE.md vs skills, audit workflow |
 
 **Agents:**
@@ -93,6 +100,19 @@ Development tools and enforcement agents for contributors.
 | testing-validator | Blocking | Claiming something "works" |
 
 **MCP Server:** GitHub (22 tools for issues, PRs, workflows, repo operations)
+
+### ov-vms (6 skills)
+
+Reference documentation for all `kind: vm` entities in `vms.yml`. Parallel to `ov-images` — one skill per entity + a namespace-authoring reference. See `/ov:vm` for the command family and `/ov-vms:vms` for the authoring guide.
+
+| Skill | Invocation | Description |
+|-------|-----------|-------------|
+| vms | `/ov-vms:vms` | **Authoring reference**: VmSpec schema, source.kind discriminator (cloud_image vs bootc), base_user adopt pattern, step-by-step recipes |
+| arch-cloud-base | `/ov-vms:arch-cloud-base` | **Canonical cloud_image VM**: Arch Linux from pkgbuild.com. BIOS firmware + virtio-gpu + resource sizing RCA (stale BOOTX64.EFI, simpledrm→qxldrmfb race) |
+| aurora-bootc | `/ov-vms:aurora-bootc` | Thin pointer → `/ov-images:aurora` for composition; VM-specific 80 GiB / 12G / 4 cpus |
+| bazzite-ai-bootc | `/ov-vms:bazzite-ai-bootc` | Thin pointer → `/ov-images:bazzite-ai` |
+| openclaw-browser-bootc-bootc | `/ov-vms:openclaw-browser-bootc-bootc` | Thin pointer → `/ov-images:openclaw-browser-bootc`; 20 GiB / 4G / 2 cpus |
+| selkies-desktop-bootc-bootc | `/ov-vms:selkies-desktop-bootc-bootc` | Thin pointer → `/ov-images:selkies-desktop-bootc` (canonical bootc-VM worked example); 40 GiB / 8G / 4 cpus, port 2250 |
 
 ### ov-jupyter (MCP server)
 
@@ -335,7 +355,8 @@ Reference documentation for every enabled Overthink container image.
     "ov-dev@ov-plugins": true,
     "ov-jupyter@ov-plugins": true,
     "ov-layers@ov-plugins": true,
-    "ov-images@ov-plugins": true
+    "ov-images@ov-plugins": true,
+    "ov-vms@ov-plugins": true
   },
   "extraKnownMarketplaces": {
     "ov-plugins": {
@@ -352,8 +373,8 @@ Reference documentation for every enabled Overthink container image.
 
 | Component | Count |
 |-----------|-------|
-| Plugins | 5 |
-| Skills | 241 |
+| Plugins | 6 |
+| Skills | 253 |
 | Agents | 3 |
 | MCP Servers | 2 (GitHub, Jupyter) |
 | MCP Tools | 35 (22 GitHub + 13 Jupyter) |

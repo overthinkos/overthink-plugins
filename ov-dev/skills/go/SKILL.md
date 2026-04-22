@@ -28,9 +28,15 @@ Projections to today's concrete types: `ProjectConfig()` → `*Config`, `Project
 
 `Capabilities = ImageMetadata` (type alias in `ov/capabilities.go`). `CapabilityLabelMap` lists every field with its OCI label home; `TestCapabilityLabelCompleteness` fails the build if an `ImageMetadata` field lacks a mapping. This invariant keeps `ov deploy from-image` reliable: every field deploy code might consult is readable from a pushed image's labels alone, independent of `overthink.yml`.
 
-### Kubernetes target (fourth DeployTarget)
+### Kubernetes target (fifth DeployTarget)
 
-`K8sDeployTarget` (`ov/k8s_target.go`) sits alongside `OCITarget`, `ContainerDeployTarget`, `HostDeployTarget`. Unlike host target, K8s doesn't consume install plans — it emits Kustomize manifests directly from `(Capabilities, DeployImageConfig, ClusterProfile)` via `GenerateK8sKustomize` (`ov/k8s_generate.go`). The workload-kind heuristic (`selectWorkloadKind`) translates the generic `kind:` enum to Deployment/StatefulSet/DaemonSet/Job/CronJob/Pod based on intent + storage presence.
+`K8sDeployTarget` (`ov/k8s_target.go`) sits alongside `OCITarget`, `ContainerDeployTarget`, `HostDeployTarget`, `VmDeployTarget`. Unlike host/VM targets, K8s doesn't consume install plans — it emits Kustomize manifests directly from `(Capabilities, DeployImageConfig, ClusterProfile)` via `GenerateK8sKustomize` (`ov/k8s_generate.go`). The workload-kind heuristic (`selectWorkloadKind`) translates the generic `kind:` enum to Deployment/StatefulSet/DaemonSet/Job/CronJob/Pod based on intent + storage presence.
+
+### VM target (fourth DeployTarget) — 2026-04
+
+`VmDeployTarget` (`ov/deploy_target_vm.go`) executes InstallPlans inside a running VM over SSH. Same IR as HostDeployTarget, but bash bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` (`ov/deploy_executor_ssh.go`). Ledger writes land on the **guest** filesystem. The `DeployExecutor` interface (`ov/deploy_executor.go`) decouples "how shell commands run" from the target walking logic — `LocalExecutor` + `SSHExecutor` are the two implementations.
+
+Dispatched via `deploy_add_cmd_vm.go::runVM` when the deploy name starts with `vm:`. Full architecture + preflight flow lives in `/ov-dev:vm-deploy-target`.
 
 ### YAML surface ↔ Go identifier convention
 
@@ -65,12 +71,49 @@ Layer + ResolvedImage + HostContext
     → BuildDeployPlan (install_build.go) [pure]
     → InstallPlan (install_plan.go)
     → DeployTarget.Emit
-       ├── OCITarget (build_target_oci.go) → Containerfile text
+       ├── OCITarget (build_target_oci.go)              → Containerfile text
        ├── ContainerDeployTarget (deploy_target_container.go) → overlay + quadlet
-       └── HostDeployTarget (deploy_target_host.go) → shell execution
+       ├── HostDeployTarget (deploy_target_host.go)     → local shell execution
+       ├── VmDeployTarget (deploy_target_vm.go)         → SSH-wrapped shell in the guest
+       └── K8sDeployTarget (k8s_target.go)              → Kustomize base/overlays tree
 ```
 
 Full reference lives in **`/ov-dev:install-plan`** — go there before touching any of those files. Supporting Go files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref, hostdistro, migrate_services_tool) are covered in **`/ov-dev:host-infra`**.
+
+### VM-path architecture (2026-04 — hard cutover)
+
+The VM refactor introduced 12 new Go files + deleted 6 legacy structures in a single PR (see `/ov-dev:cutover-policy`). The new module topology:
+
+| File | Role |
+|---|---|
+| `ov/vm_spec.go` | `VmSpec` + `VmSource` discriminated union (cloud_image / bootc) + `VmChecksum` + `VmNetwork` + `VmSSH` + `VmKeyInjection` |
+| `ov/cloud_init_types.go` | `VmCloudInit` + `VmCloudInitUser/File/Network/Mirrors` + `VmOvInstall` (auto/scp/url/skip state machine) |
+| `ov/libvirt_schema.go` | `LibvirtConfig` + 30+ sub-types (features, CPU, clock, memory backing, numatune, cputune, devices, seclabel, launch security, resource, sysinfo) |
+| `ov/libvirt_render.go` + `libvirt_render_devices.go` | `RenderDomain` pure function + device emission (passt backend, portForward attribute order, virtio-gpu default, SMBIOS credentials) |
+| `ov/qemu_render.go` | `RenderQemuArgv` for direct-QEMU backend |
+| `ov/cloud_init_render.go` + `cloud_init_iso.go` | `RenderCloudInit` + `ResolveKeyInjectionChannels` + `composeUsers` (adopt-merge) + `WriteSeedISO` via xorriso/genisoimage/mkisofs |
+| `ov/vm_cloud_image.go` + `http_fetch.go` | `BuildCloudImage` pipeline: fetch URL + sha256 sidecar + resize + seed ISO render |
+| `ov/ov_install.go` | `EnsureOvInGuest` — strategy state machine for installing the `ov` binary in the guest |
+| `ov/ovmf_paths.go` | `ResolveOvmfPaths` (per-distro OVMF_CODE/VARS paths) + `EnsurePerVmNvram` + `ResolveOvmfForSpec` (bios-sentinel returning empty strings) |
+| `ov/libvirt_validate.go` | `ValidateVmSpec` + `ValidateLibvirtConfig` |
+| `ov/deploy_executor*.go` | `DeployExecutor` interface + `LocalExecutor` + `SSHExecutor` with `WaitForSSH` + `WaitForCloudInit` |
+| `ov/deploy_target_vm.go` | `VmDeployTarget.Emit` |
+| `ov/deploy_add_cmd_vm.go` | CLI dispatch: `runVM` / `runVmDel` for `ov deploy add vm:<name>` |
+| `ov/vm_create_spec.go` + `vm_build.go` | CLI command wiring for `ov vm build/create` reading `kind: vm` entities |
+| `ov/migrate_vm_spec.go` | `ov migrate vm-spec` one-shot conversion from legacy image.bootc/image.vm/image.libvirt |
+
+**`unified.go` changes**: added `"vm"` to the `entityKind` enum, `VmDoc` loader struct, `mergeVmMap` merger, and `"vms"` to `rootShapeKeys` (so `vms.yml` is recognized as a valid entity-shape include file).
+
+**Deleted in the same PR** (see `/ov-dev:cutover-policy` for the rationale):
+
+- `VmConfig` struct — from `ov/config.go`.
+- `ImageConfig.Vm` + `ImageConfig.Libvirt` fields.
+- `ResolvedImage.Vm`.
+- `resolveVmConfig` function.
+- `LabelVm` + `LabelLibvirt` label constants + `CapabilityLabelMap` entries (OCI label contract side — see `/ov-dev:capabilities`).
+- Image-level libvirt snippet validation + iteration.
+
+Full subsystem references: `/ov-dev:vm-spec`, `/ov-dev:libvirt-renderer`, `/ov-dev:cloud-init-renderer`, `/ov-dev:vm-deploy-target`, `/ov-dev:ovmf`, `/ov-dev:cutover-policy`.
 
 ### Self-exec coordination: host → container AND host → host
 

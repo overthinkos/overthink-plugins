@@ -10,12 +10,16 @@ description: |
 
 `ov deploy` is the parent verb for applying and tearing down deployments, plus managing `deploy.yml` overrides. The command family has two distinct surfaces:
 
-1. **Execution verbs** — `ov deploy add <name>` / `ov deploy del <name>`. Apply or reverse a deployment. The literal name `host` targets the local filesystem via `HostDeployTarget`; any other name is a container deployment managed via `ContainerDeployTarget` (overlay Containerfile + quadlet/podman). A third target, **`kubernetes`**, emits a Kustomize `base/` + `overlays/` tree under `.overthink/k8s/<name>/` — see `/ov:kubernetes` for the K8s deploy surface. See `/ov:host-deploy` for the host-target deep dive.
+1. **Execution verbs** — `ov deploy add <name>` / `ov deploy del <name>`. Apply or reverse a deployment. Four targets are dispatched by the `<name>` prefix:
+   - `host` (literal) → `HostDeployTarget` on the local filesystem. See `/ov:host-deploy`.
+   - `vm:<vm-name>` → `VmDeployTarget` inside a running VM via SSH. See "VM target" section below and `/ov-dev:vm-deploy-target`.
+   - `kubernetes` → Kustomize base/overlays tree. See `/ov:kubernetes`.
+   - Any other name → `ContainerDeployTarget` (overlay Containerfile + quadlet/podman).
 2. **Config-file management** — `ov deploy show/export/import/reset/path/status`. Read and mutate `~/.config/ov/deploy.yml` itself.
 
-## Three targets, one schema
+## Four targets, one schema
 
-The same `DeployImageConfig` shape feeds all three targets (`container`, `host`, `kubernetes`) — authors describe *what the workload needs* (ports, volumes, env, security, tests); the generator per target decides *how K8s / quadlet / host apply* realizes it. K8s-specific choices (storage class, ingress class, cert issuer, secret backend) live in a **cluster profile** file (`~/.config/ov/clusters/<name>.yaml` or in-repo `clusters/<name>.yaml`), *not* in the deployment. This means one deployment spec targets dev/staging/prod clusters with zero schema changes — only the cluster profile differs.
+The same `DeployImageConfig` shape feeds all four targets (`container`, `host`, `vm`, `kubernetes`) — authors describe *what the workload needs* (ports, volumes, env, security, tests); the generator per target decides *how K8s / quadlet / host apply / VM over SSH* realizes it. K8s-specific choices (storage class, ingress class, cert issuer, secret backend) live in a **cluster profile** file (`~/.config/ov/clusters/<name>.yaml` or in-repo `clusters/<name>.yaml`), *not* in the deployment. This means one deployment spec targets dev/staging/prod clusters with zero schema changes — only the cluster profile differs.
 
 `ov start` / `ov stop` remain as ergonomic wrappers: `ov start <image>` is equivalent to `ov deploy add <image> <image>` with the container target; `ov stop <name>` is `ov deploy del <name>`. New scripts should prefer the explicit `ov deploy add`/`ov deploy del` forms, especially when using `--add-layer` overlays or the `host` target.
 
@@ -40,7 +44,7 @@ The same `DeployImageConfig` shape feeds all three targets (`container`, `host`,
 | Reset instance config | `ov deploy reset <image> -i <instance>` | Remove instance overrides |
 | Push to registry | `ov image build --push` | Multi-platform push |
 
-For service lifecycle commands (start/stop/status/logs/update/remove), see `/ov:service`. For VM deployment, see `/ov:vm`. For encrypted storage, see `/ov:enc`. For host-target semantics, see `/ov:host-deploy`. For the Go IR that drives both targets, see `/ov-dev:install-plan`.
+For service lifecycle commands (start/stop/status/logs/update/remove), see `/ov:service`. For VM lifecycle (build/create/start/stop/ssh), see `/ov:vm`; for in-VM layer deploys via `ov deploy add vm:<name>`, see the "VM target" section below and `/ov-dev:vm-deploy-target`. For encrypted storage, see `/ov:enc`. For host-target semantics, see `/ov:host-deploy`. For Kubernetes targets, see `/ov:kubernetes`. For the Go IR that drives all four targets, see `/ov-dev:install-plan`.
 
 ## Command Family: `add` / `del`
 
@@ -49,6 +53,8 @@ For service lifecycle commands (start/stop/status/logs/update/remove), see `/ov:
 Applies a deployment. `<name>` selects the target:
 
 - **`host`** (literal) — apply layers to the local filesystem via `HostDeployTarget`. One host deploy per machine (singleton). See `/ov:host-deploy`.
+- **`vm:<vm-name>`** — apply layers inside a running `kind: vm` entity via SSH (`VmDeployTarget`). `<vm-name>` must match an entry in `vms.yml`; the VM must already be created (`ov vm create <vm-name>`). See "VM target" section below.
+- **`kubernetes`** — emit a Kustomize base/overlays tree. See `/ov:kubernetes`.
 - **Any other string** — container deployment. Multiple container deploys coexist (`my-dev`, `postgres-staging`, etc.); each gets its own quadlet, container name, and deploy.yml entry.
 
 `<ref>` accepts four forms, auto-detected:
@@ -84,7 +90,94 @@ When `<ref>` is omitted, the ref falls back to `deploy.yml['deploys'][<name>]['i
 
 ### `ov deploy del <name>`
 
-Reverses a deployment. Gated host-side reversal respects `--keep-repo-changes` and `--keep-services`. Container teardown: `podman stop` + `rm` + overlay image removal (unless `--keep-image`) + ledger cleanup. See `/ov:host-deploy` for the full 15-kind ReverseOp table.
+Reverses a deployment. Gated host-side reversal respects `--keep-repo-changes` and `--keep-services`. Container teardown: `podman stop` + `rm` + overlay image removal (unless `--keep-image`) + ledger cleanup. VM teardown: SSH-executed ReverseOps in the guest, preserving the VM itself (use `ov vm destroy` separately). See `/ov:host-deploy` for the full 15-kind ReverseOp table.
+
+## VM target: `ov deploy add vm:<vm-name> <ref>`
+
+Applies layer recipes **inside a running VM** over SSH. Same `InstallPlan` IR as host and container targets; the difference is that bash bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` (see `/ov-dev:vm-deploy-target`).
+
+**Prerequisite**: the VM must exist before `ov deploy add vm:...` runs. `ov deploy add vm:<name>` does NOT auto-provision; a missing VM produces a clean error pointing at `ov vm create`:
+
+```bash
+ov vm create arch-cloud-base                            # provision VM first
+ov deploy add vm:arch-cloud-base ripgrep                # then apply layer in guest
+ov deploy add vm:arch-cloud-base fedora-coder \
+    --add-layer team-extras \
+    --add-layer github.com/team/configs/layers/sshkeys
+ov deploy del vm:arch-cloud-base                        # reverse all applied layers (VM stays up)
+```
+
+### `VmDeployState` schema in deploy.yml
+
+When `ov deploy add vm:<name>` completes, a `vm_state` sub-object lands in the deploy.yml entry:
+
+```yaml
+images:
+  vm:arch-cloud-base:
+    target: vm                             # optional; inferred from the vm: prefix
+    vm_source:                             # persisted copy of VmSpec.Source for re-apply
+      kind: cloud_image
+      url: https://fastly.mirror.pkgbuild.com/...
+      base_user: arch
+    add_layers:
+      - ripgrep
+      - github.com/team/configs/layers/sshkeys
+    install_opts:
+      verify: true
+    vm_state:
+      instance_id: 7b3a8f42-...             # stable UUID across rebuilds
+      ssh_key_path: ~/.local/share/ov/vm/ov-arch-cloud-base/id_ed25519
+      nvram_path: ""                         # empty for firmware=bios
+      last_build: 2026-04-22T10:14:27Z
+      last_deploy: 2026-04-22T10:18:55Z
+      applied_layers: [ripgrep, sshkeys]
+      base_image_sha256: a8c9e0f1...         # cloud_image integrity trace
+```
+
+`vm_state` is persisted so re-applies pick up `instance_id` (cloud-init uses it as a stable identifier) and so `ov deploy del vm:<name>` knows which SSH key + NVRAM to use.
+
+### `target: vm` explicit declaration vs `vm:` prefix
+
+Two ways to mark a deploy entry as VM-targeted:
+
+1. **Name prefix (preferred)**: the deploy key is `vm:<vm-name>`. CLI dispatch reads the prefix and routes to `runVM`.
+2. **Explicit field**: the deploy key is anything + `target: vm`. Useful when you want a non-prefixed deploy name (e.g., for readability in `deploy.yml`).
+
+Using both is redundant but harmless. Using `target: vm` on a non-`vm:`-prefixed deploy whose underlying VM doesn't exist errors at `ov deploy add` time.
+
+### `add_layers:` overlay semantics for VM targets
+
+When `ov deploy add vm:<name> <ref>` runs with `--add-layer`, the extra layers are applied **inside the guest** alongside the primary ref. The compiler merges `<ref>` + `add_layers:` into a single topo-sorted `InstallPlan`; `VmDeployTarget.Emit` walks it over SSH. The guest-side ledger records both the base and overlay layers so `ov deploy del vm:<name>` reverses the full set.
+
+This is the same merge semantics as `HostDeployTarget` — just with SSH-wrapped execution. See `/ov-dev:install-plan` for the compiler and `/ov-dev:vm-deploy-target` for the execution model.
+
+### VM-relevant `install_opts:` fields
+
+`install_opts:` in the deploy.yml entry mirrors the CLI flags on `ov deploy add`. For VM targets, the relevant ones are:
+
+| Field | Effect |
+|---|---|
+| `with_services` | Enable systemd units declared in layers' `service:` lists |
+| `allow_repo_changes` | Permit repo-config mutations (rpmfusion, copr) in the guest |
+| `allow_root_tasks` | Permit arbitrary `cmd: user: root` tasks in the guest |
+| `verify` | Run layer `tests:` over SSH post-deploy |
+| `skip_incompatible` | Skip layers lacking a guest-matching format section |
+
+`builder_image` + `yes` also apply. Host-target-only gates that don't apply to VM target: none — the gate semantics are identical.
+
+### Prerequisite chain
+
+```
+vms.yml declares kind:vm entity
+    → ov vm build <name>         (cloud_image: fetch+resize+seed ISO; bootc: install to-disk)
+    → ov vm create <name>        (libvirt domain + SMBIOS ssh key + passt portForward)
+    → ov vm start <name>         (boot)
+    → ov deploy add vm:<name> <ref>  (SSH → cloud-init wait → ov install → layer apply)
+    → ov deploy del vm:<name>    (SSH → ReverseOps; VM stays up)
+    → ov vm destroy <name>       (remove libvirt domain; --disk to also delete qcow2)
+```
+
+See `/ov-vms:vms` for vms.yml authoring, `/ov:vm` for the lifecycle commands, `/ov-dev:vm-deploy-target` for the Emit flow.
 
 ### `add_layers:` overlay mechanism
 

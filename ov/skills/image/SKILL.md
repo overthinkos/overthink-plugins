@@ -214,8 +214,8 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `env_file` | `""` | Path to `.env` file for runtime injection. Not inherited |
 | `security` | `null` | Container security options. Overrides layer-level security |
 | `network` | `string` | Container network mode (default: shared `ov` network; set `host` for host networking) |
-| `vm` | `VmConfig` | VM settings: `disk_size`, `root_size`, `ram`, `cpus`, `rootfs`, `kernel_args`, `ssh_port`, `transport`, `firmware`, `network` |
-| `libvirt` | `[]string` | Raw libvirt XML snippets for VM domain configuration |
+
+VM-related fields (`vm`, `libvirt`) were **removed** from kind:image entries in the hard cutover. VMs are declared as `kind: vm` entities in `vms.yml` — see `/ov-vms:vms` for authoring, `/ov:migrate` for `ov migrate vm-spec` conversion, and `/ov-dev:cutover-policy` for the hard-cutover rationale. `bootc: true` stays on kind:image entries (marks the image as a bootable container); a separate `kind: vm` entity with `source.kind: bootc` references it.
 
 ## Builder and Builds
 
@@ -434,25 +434,24 @@ Source: `ov/security.go` (`CollectSecurity`).
 
 ## VM Configuration
 
-For bootc images, the `vm:` section configures VM disk builds and runtime:
+VMs are **not** configured on kind:image entries. As of the 2026-04 hard cutover, `image.vm:` and `image.libvirt:` fields are removed and rejected at load time. VM primitives are declared as `kind: vm` entities in `vms.yml`:
 
 ```yaml
-images:
-  my-bootc-image:
-    bootc: true
-    base: "quay.io/fedora/fedora-bootc:43"
-    layers: [sshd, qemu-guest-agent, bootc-config]
-    vm:
-      disk_size: "10 GiB"
-      ram: "4G"
-      cpus: 2
-      rootfs: ext4
-      ssh_port: 2222
+# vms.yml
+vms:
+  my-bootc-vm:
+    source:
+      kind: bootc
+      image: my-bootc-image        # references the kind:image entry above (must have bootc: true)
+    disk_size: 10 GiB
+    ram: 4G
+    cpus: 2
     libvirt:
-      - "<filesystem type='mount'>...</filesystem>"
+      devices:
+        filesystems: [{type: mount, source: ..., target: ...}]
 ```
 
-Resolution chain: **image-level vm: -> defaults vm: -> ov settings -> hardcoded defaults**. See `/ov:deploy` for full VM management documentation.
+See `/ov-vms:vms` for the full VmSpec schema, `/ov:vm` for the `ov vm build/create/ssh` command family, and `/ov:migrate` for `ov migrate vm-spec` to convert legacy `image.vm:` / `image.libvirt:` fields to the new schema.
 
 ## OCI Labels
 
@@ -546,7 +545,9 @@ images:
 - `/ov:test` — Image-level `tests:` (cross-layer invariants) and `deploy_tests:` (deploy-default checks shipped with the image). Both are embedded in the `org.overthinkos.tests` OCI label.
 - `/ov:mcp` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `ov test <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
 - `/ov-images:selkies-desktop-bootc` — canonical worked example for the external-base + explicit-`distro:` pattern.
-- `/ov:vm` — `bootc: true` and `vm:` field consumers; covers the `vm.ssh_port` plumbing, `/dev:/dev` mount, and rootful storage refresh.
+- `/ov:vm` — `ov vm build/create/start/stop/ssh` command family; reads `vms.yml`, not `image.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
+- `/ov-vms:vms` — authoring reference for the `kind: vm` entity schema (replaces legacy `image.vm:` / `image.libvirt:`).
+- `/ov:migrate` — `ov migrate vm-spec` converts legacy VM fields to `vms.yml`.
 
 ## When to Use This Skill
 
