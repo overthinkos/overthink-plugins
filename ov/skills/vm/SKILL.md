@@ -74,6 +74,14 @@ ov vm ssh <name> -p 2224 -l arch                    # override user/port
 ov vm ssh <name> -- ls /tmp                         # run command via SSH
 ```
 
+**`ov vm create` regenerates the cloud-init seed ISO** (cloud_image sources
+only). Edits to `vms.yml`'s `cloud_init:` block — runcmd entries, packages,
+ov_install strategy, network-config — take effect on the next `ov vm create`
+without requiring a full `ov vm build`. The qcow2 disk is left alone; only
+the seed ISO is rewritten (via `RegenerateSeedISO` in `ov/vm_cloud_image.go`).
+Use `ov vm destroy --disk` + `ov vm build` when you need a truly fresh disk
+(e.g. when a previous failed cloud-init left stale state in `/home/<user>/`).
+
 ## `kind: vm` entity reference
 
 Canonical `vms.yml` shape, condensed from `/ov-vms:vms`:

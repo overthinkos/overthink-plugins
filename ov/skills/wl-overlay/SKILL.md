@@ -107,7 +107,7 @@ Supported formats: `5s`, `1.5m`, `500ms`, or bare seconds (`5`).
 
 ## Recording Workflow
 
-Overlays compose naturally with `ov record`:
+Overlays compose naturally with `ov test record`:
 
 ```bash
 # Title card
@@ -115,7 +115,7 @@ ov test wl overlay show myimage --type text --text "Building a REST API" \
   --bg "rgba(0,0,0,0.9)" --font-size 64 --name title
 
 # Start recording
-ov record start myimage -n demo -m desktop
+ov test record start myimage -n demo -m desktop
 
 # Fade out title after 3s
 sleep 3
@@ -132,7 +132,7 @@ ov test wl overlay show myimage --type fade --color black --name outro
 sleep 2
 
 # Stop recording
-ov record stop myimage -n demo -o demo.mp4
+ov test record stop myimage -n demo -o demo.mp4
 ov test wl overlay hide myimage --all
 ```
 
@@ -157,7 +157,7 @@ All overlay types work on all wlroots-based compositors:
 
 ### Selkies-Desktop Capture Latency
 
-On selkies-desktop, `pixelflux-screenshot` captures from the H.264 WebSocket stream. In controller mode (no browser client connected), the frame rate is very low — screenshots may take 15-30 seconds to reflect overlay changes. **This does NOT affect recordings** — `ov record` captures at 30fps, so overlays appear immediately in recorded video.
+On selkies-desktop, `pixelflux-screenshot` captures from the H.264 WebSocket stream. In controller mode (no browser client connected), the frame rate is very low — screenshots may take 15-30 seconds to reflect overlay changes. **This does NOT affect recordings** — `ov test record` captures at 30fps, so overlays appear immediately in recorded video.
 
 ## IPC Protocol
 

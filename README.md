@@ -49,7 +49,7 @@ via `ov migrate unified` — see `/ov:migrate`.
 | new | `/ov:new` | `ov image new layer` — scaffold new layers |
 | openclaw | `/ov:openclaw` | OpenClaw AI gateway configuration |
 | pull | `/ov:pull` | `ov image pull` — fetch into local storage; ErrImageNotLocal recovery |
-| record | `/ov:record` | Recording sessions (ov record start/stop/list/cmd) |
+| record | `/ov:record` | Recording sessions (ov test record start/stop/list/cmd) |
 | remove | `/ov:remove` | Remove service container, quadlet, and deploy.yml entry |
 | secrets | `/ov:secrets` | KeePass .kdbx and GPG secret management |
 | service | `/ov:service` | Init system service management inside containers |

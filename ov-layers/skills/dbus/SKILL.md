@@ -56,7 +56,7 @@ ov test dbus introspect <image> <dest> <path>  # Service introspection
 
 ### Notification Delivery Chain
 
-`ov cmd`/`ov tmux cmd`/`ov record cmd` → `sendContainerNotification()` → `ov test dbus notify` → `org.freedesktop.Notifications.Notify` → swaync/mako → desktop popup
+`ov cmd`/`ov tmux cmd`/`ov test record cmd` → `sendContainerNotification()` → `ov test dbus notify` → `org.freedesktop.Notifications.Notify` → swaync/mako → desktop popup
 
 For notifications to work, the image needs:
 1. **`dbus` layer** — D-Bus session bus (this layer)

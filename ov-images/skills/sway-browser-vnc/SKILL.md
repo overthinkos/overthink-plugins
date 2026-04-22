@@ -64,9 +64,9 @@ All overlay types render with true RGBA compositor transparency. See `/ov:wl-ove
 Desktop video recording via wf-recorder (included in sway-desktop):
 
 ```bash
-ov record start sway-browser-vnc -n demo --mode desktop
+ov test record start sway-browser-vnc -n demo --mode desktop
 # ... interact ...
-ov record stop sway-browser-vnc -n demo -o demo.mp4
+ov test record stop sway-browser-vnc -n demo -o demo.mp4
 ```
 
 ## Use as Selkies Remote Desktop Client

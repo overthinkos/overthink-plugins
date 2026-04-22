@@ -42,18 +42,18 @@ wf-recorder -f output.mp4 -r 60        # 60fps
 # Stop with Ctrl-C
 ```
 
-## Integration with `ov record`
+## Integration with `ov test record`
 
 ```bash
 # Start recording sway desktop (auto-detects wf-recorder)
-ov record start sway-browser-vnc -n demo --mode desktop
+ov test record start sway-browser-vnc -n demo --mode desktop
 
 # Interact with desktop
 ov test wl click sway-browser-vnc 640 360
-ov record cmd sway-browser-vnc "neofetch" -n demo
+ov test record cmd sway-browser-vnc "neofetch" -n demo
 
 # Stop and copy to host
-ov record stop sway-browser-vnc -n demo -o demo.mp4
+ov test record stop sway-browser-vnc -n demo -o demo.mp4
 ```
 
 ## Included In
@@ -68,7 +68,7 @@ ov record stop sway-browser-vnc -n demo -o demo.mp4
 
 ## Cross-References
 
-- `/ov:record` — `ov record start --mode desktop` auto-detects wf-recorder
+- `/ov:record` — `ov test record start --mode desktop` auto-detects wf-recorder
 - `/ov-layers:wl-record-pixelflux` — Alternative for selkies-desktop (pixelflux pipeline)
 - `/ov-layers:wl-screenshot-grim` — Screenshot companion (same wlr-screencopy protocol)
 - `/ov-layers:sway-desktop` — Parent metalayer

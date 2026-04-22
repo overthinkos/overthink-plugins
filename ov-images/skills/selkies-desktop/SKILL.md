@@ -106,7 +106,7 @@ All level 0/1 characters (ö, ä, ü, ß, =, ?) and AltGr characters (@, €, \\
 
 ## Screenshots and Recording
 
-The capture bridge provides `ov test wl screenshot` and `ov record` support:
+The capture bridge provides `ov test wl screenshot` and `ov test record` support:
 
 ```bash
 # Screenshot (works with or without browser connected)
@@ -116,9 +116,9 @@ ov test wl screenshot selkies-desktop screenshot.png
 ov shell selkies-desktop -c "pixelflux-screenshot --status"
 
 # Desktop video recording (with audio via PulseAudio)
-ov record start selkies-desktop -n demo --mode desktop --audio
+ov test record start selkies-desktop -n demo --mode desktop --audio
 # ... interact with desktop ...
-ov record stop selkies-desktop -n demo -o demo.mp4
+ov test record stop selkies-desktop -n demo -o demo.mp4
 ```
 
 The bridge auto-heals: if no valid H.264 frames are available (e.g., after browser disconnect), it reconnects as controller to restart the pipeline.

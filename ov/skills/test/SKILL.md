@@ -113,17 +113,21 @@ explicit subcommand names below take over when matched.
 | `ov test dbus …` | `/ov:dbus` | D-Bus calls, introspection, desktop notifications |
 | `ov test vnc …` | `/ov:vnc` | VNC framebuffer screenshot + click/key/type/passwd |
 | `ov test mcp …` | (this skill) | MCP client — ping/list-tools/list-resources/list-prompts/call/read/servers against any `mcp_provides` endpoint. Speaks `github.com/modelcontextprotocol/go-sdk` (Streamable HTTP by default, SSE when `transport: sse`). |
+| `ov test record …` | `/ov:record` | Recording sessions — start/stop/list/cmd. Terminal (asciinema) or desktop (pixelflux/wf-recorder). Container-only. |
+| `ov test spice …` | `/ov:spice` | SPICE wire client for VMs — handshake, native-SPICE framebuffer screenshot, input injection. VM-only. |
+| `ov test libvirt …` | `/ov:libvirt` | libvirt-RPC test commands for VMs — info, domain XML, QMP, qemu-guest-agent, snapshots, events. VM-only. |
 
-These four verbs were previously top-level commands (`ov cdp`, `ov wl`,
-`ov dbus`, `ov vnc`). They moved under `ov test` because every one of them
-is a "probe or drive a running service" operation — the same surface the
-declarative test runner composes when it executes checks. The old top-level
-forms were removed (no deprecation shim).
+These eight verbs were previously top-level commands (e.g. `ov cdp`, `ov record`).
+They moved under `ov test` because every one of them is a "probe or drive a
+running service" operation — the same surface the declarative test runner
+composes when it executes checks. The old top-level forms were removed (no
+deprecation shim).
 
 **Reserved image names:** because subcommand names take priority when
-matched, an image literally named `cdp`, `wl`, `dbus`, `vnc`, or `mcp`
-cannot be run via `ov test <name>` — use the explicit `ov test run <name>`
-form or rename the image. No such images currently exist in `image.yml`.
+matched, an image literally named `cdp`, `wl`, `dbus`, `vnc`, `mcp`,
+`record`, `spice`, or `libvirt` cannot be run via `ov test <name>` —
+use the explicit `ov test run <name>` form or rename the image. No such
+images currently exist in `image.yml`.
 
 **Gotcha — stale container-baked `ov` binary:** `ov test dbus notify` and
 `ov test dbus call` delegate to the container's own `ov` binary (see

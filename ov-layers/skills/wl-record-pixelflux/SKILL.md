@@ -50,21 +50,21 @@ pixelflux-record output.mp4 --fps 60 --audio # 60fps + audio
 # Stop with Ctrl-C
 ```
 
-## Integration with `ov record`
+## Integration with `ov test record`
 
 ```bash
 # Start desktop video recording (auto-detects pixelflux-record)
-ov record start selkies-desktop -n demo --mode desktop --audio
+ov test record start selkies-desktop -n demo --mode desktop --audio
 
 # Run commands (visible in recording)
-ov record cmd selkies-desktop "echo hello" -n demo
+ov test record cmd selkies-desktop "echo hello" -n demo
 
 # Interact with desktop
 ov test cdp open selkies-desktop "https://example.com"
 ov test wl click selkies-desktop 640 360
 
 # Stop and copy to host
-ov record stop selkies-desktop -n demo -o demo.mp4
+ov test record stop selkies-desktop -n demo -o demo.mp4
 ```
 
 ## Architecture
@@ -92,7 +92,7 @@ selkies process (single ScreenCapture singleton — process-wide)
 
 ## Cross-References
 
-- `/ov:record` -- `ov record start --mode desktop` auto-detects pixelflux-record
+- `/ov:record` -- `ov test record start --mode desktop` auto-detects pixelflux-record
 - `/ov:update` -- Per-instance update pattern used to roll out the per-frame `cleanup_texture_cache()` fix across live instances
 - `/ov-layers:wl-screenshot-pixelflux` -- Screenshot companion (same capture bridge, same singleton)
 - `/ov-layers:wf-recorder` -- Alternative for sway-desktop (wlr-screencopy)
