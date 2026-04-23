@@ -59,7 +59,8 @@ via `ov migrate unified` — see `/ov:migrate`.
 | start | `/ov:start` | Start container as background service |
 | status | `/ov:status` | Service status with tool probes and device detection |
 | stop | `/ov:stop` | Stop running container |
-| test | `/ov:test` | Declarative test runner (layer/image/deploy sections); parent router for `ov test cdp/wl/dbus/vnc/mcp` |
+| test | `/ov:test` | Declarative test runner (layer/image/deploy sections); parent router for `ov test cdp/wl/dbus/vnc/mcp/k8s` |
+| test-k8s | `/ov:test-k8s` | Kubernetes cluster probes (`ov test k8s nodes/wait-nodes/pods/wait-ready/ingress/ingressclass/storageclass/service/lb-external-ip/addons/apply/delete/raw`) via vendored client-go — hermetic, no kubectl required |
 | tmux | `/ov:tmux` | Persistent tmux sessions (ov tmux shell/cmd/run/attach/capture) |
 | udev | `/ov:udev` | GPU device access rules (ov udev status/generate/install/remove) |
 | update | `/ov:update` | Update image and restart with data sync |
@@ -197,6 +198,9 @@ Reference documentation for every Overthink container layer.
 | jupyter | `/ov-layers:jupyter` | Jupyter notebook server on port 8888 with CUDA and ML libraries |
 | jupyter | `/ov-layers:jupyter` | JupyterLab with real-time collaboration + MCP server on port 8888 |
 | jupyter-ml | `/ov-layers:jupyter-ml` | Full CUDA ML + JupyterLab collaboration + CRDT MCP on port 8888 |
+| k3s | `/ov-layers:k3s` | k3s binary installer (base for k3s-server + k3s-agent); sha256-verified download at `v1.31.11+k3s1` |
+| k3s-agent | `/ov-layers:k3s-agent` | k3s worker node — joins k3s-server via pre-shared `K3S_CLUSTER_TOKEN` + `K3S_SERVER_URL` |
+| k3s-server | `/ov-layers:k3s-server` | k3s control-plane with default ServiceLB + Traefik + local-path-provisioner; kubeconfig retrieved via layer artifacts, ClusterProfile auto-registered |
 | kubernetes | `/ov-layers:kubernetes` | kubectl and Helm package manager |
 | kwin | `/ov-layers:kwin` | KWin Wayland compositor running headless with virtual backend |
 | kwin-apps | `/ov-layers:kwin-apps` | KDE-native desktop applications (Konsole, Dolphin) |
