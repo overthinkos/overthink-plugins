@@ -99,12 +99,12 @@ Applies layer recipes **inside a running VM** over SSH. Same `InstallPlan` IR as
 **Prerequisite**: the VM must exist before `ov deploy add vm:...` runs. `ov deploy add vm:<name>` does NOT auto-provision; a missing VM produces a clean error pointing at `ov vm create`:
 
 ```bash
-ov vm create arch-cloud-base                            # provision VM first
-ov deploy add vm:arch-cloud-base ripgrep                # then apply layer in guest
-ov deploy add vm:arch-cloud-base fedora-coder \
+ov vm create arch                            # provision VM first
+ov deploy add vm:arch ripgrep                # then apply layer in guest
+ov deploy add vm:arch fedora-coder \
     --add-layer team-extras \
     --add-layer github.com/team/configs/layers/sshkeys
-ov deploy del vm:arch-cloud-base                        # reverse all applied layers (VM stays up)
+ov deploy del vm:arch                        # reverse all applied layers (VM stays up)
 ```
 
 ### `VmDeployState` schema in deploy.yml
@@ -113,7 +113,7 @@ When `ov deploy add vm:<name>` completes, a `vm_state` sub-object lands in the d
 
 ```yaml
 images:
-  vm:arch-cloud-base:
+  vm:arch:
     target: vm                             # optional; inferred from the vm: prefix
     vm_source:                             # persisted copy of VmSpec.Source for re-apply
       kind: cloud_image
@@ -126,7 +126,7 @@ images:
       verify: true
     vm_state:
       instance_id: 7b3a8f42-...             # stable UUID across rebuilds
-      ssh_key_path: ~/.local/share/ov/vm/ov-arch-cloud-base/id_ed25519
+      ssh_key_path: ~/.local/share/ov/vm/ov-arch/id_ed25519
       nvram_path: ""                         # empty for firmware=bios
       last_build: 2026-04-22T10:14:27Z
       last_deploy: 2026-04-22T10:18:55Z

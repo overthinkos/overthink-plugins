@@ -1,15 +1,15 @@
 ---
-name: arch-cloud-base
+name: arch
 description: |
   First kind:vm entity with source.kind: cloud_image — fetches the Arch Linux cloud
   qcow2 from pkgbuild.com, applies cloud-init, boots under libvirt/QEMU via BIOS
   firmware + virtio-gpu. Documents the stale-BOOTX64.EFI RCA, the
   simpledrm→qxldrmfb takeover race, the adopt-user pattern, and resource sizing.
-  MUST be invoked before editing arch-cloud-base in vms.yml or authoring another
+  MUST be invoked before editing arch in vms.yml or authoring another
   cloud_image VM from a template.
 ---
 
-# arch-cloud-base
+# arch
 
 Canonical `source.kind: cloud_image` VM in the repo. Boots an Arch Linux cloud image as a full VM with SSH + SPICE console access, cloud-init-provisioned SSH keys, virtio-gpu graphics, and the `ov` toolchain auto-installed inside the guest.
 
@@ -29,23 +29,23 @@ This skill is the **decision log** for every non-obvious choice in the entry —
 | CPUs | `4` | Parallel xz decompression + `pacman-key --populate` benefit from SMP |
 | Network mode | `user` | QEMU user-mode with port forwards |
 | SSH port | `2224` | Non-default to coexist with other dev VMs on 2222 |
-| SSH key source | `generate` | Stable `~/.local/share/ov/vm/ov-arch-cloud-base/id_ed25519` across rebuilds |
+| SSH key source | `generate` | Stable `~/.local/share/ov/vm/ov-arch/id_ed25519` across rebuilds |
 | Video model | `virtio-gpu` | Modern default for Linux guests (Finding B, secondary) |
 | SPICE listener | `type: socket` (UNIX, auto-path) | Enables zero-config remote GUI via `qemu+ssh://` (see "Connecting from a remote workstation" below). virt-manager and `remote-viewer` auto-forward UNIX sockets through libvirt RPC fd-passing; TCP-loopback listeners are never auto-tunneled. No TCP port bound. |
-| `disposable` | `true` (LOAD-BEARING) | Authorizes `ov rebuild arch-cloud-base` to destroy + rebuild + restart unattended. This VM exists for live verification and rebuild-at-will. See `/ov-dev:disposable`. |
+| `disposable` | `true` (LOAD-BEARING) | Authorizes `ov rebuild arch` to destroy + rebuild + restart unattended. This VM exists for live verification and rebuild-at-will. See `/ov-dev:disposable`. |
 | `lifecycle` | `dev` (INFORMATIONAL) | Human-facing tier tag. Zero effect on disposability — the flag above is what matters. |
 
 ## Marked `disposable: true`
 
-This is the repo's canonical verification target. It carries `disposable: true` in vms.yml, which means `ov rebuild arch-cloud-base` runs the destroy → build → create → start loop unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
+This is the repo's canonical verification target. It carries `disposable: true` in vms.yml, which means `ov rebuild arch` runs the destroy → build → create → start loop unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
 
 If you're implementing something that touches VM config, libvirt rendering, cloud-init, SPICE, or any VM-adjacent behavior, the expected verification loop is:
 
 ```bash
-ov rebuild arch-cloud-base       # (destroy + build + create + start)
+ov rebuild arch       # (destroy + build + create + start)
 #  ... exploratory testing ...
 # commit the source-level fix
-ov rebuild arch-cloud-base       # fresh-rebuild re-verification (R10)
+ov rebuild arch       # fresh-rebuild re-verification (R10)
 # paste BOTH outputs into the conversation
 ```
 
@@ -55,7 +55,7 @@ No other VM in this repo is disposable by default. To make another one rebuildab
 
 ```yaml
 vms:
-  arch-cloud-base:
+  arch:
     source:
       kind: cloud_image
       url: https://fastly.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2
@@ -113,7 +113,7 @@ another machine Just Works against a libvirt session here.
 virt-manager --connect qemu+ssh://o.atrawog.org/session
 ```
 
-Double-click `ov-arch-cloud-base`. The SPICE console opens. Under the
+Double-click `ov-arch`. The SPICE console opens. Under the
 hood, virt-manager (and the `virt-viewer --connect qemu+ssh://…
 --attach <vm>` path it uses internally) reads the domain XML, sees
 `<listen type='socket' socket='/…/spice.sock'/>`, and auto-tunnels by
@@ -140,9 +140,9 @@ To probe the remote VM from the CLI and write screenshots into the local
 filesystem:
 
 ```bash
-ov test spice status arch-cloud-base --uri qemu+ssh://o.atrawog.org/session
-ov test spice screenshot arch-cloud-base --uri qemu+ssh://o.atrawog.org/session /tmp/shot.png
-ov test libvirt info arch-cloud-base --uri qemu+ssh://o.atrawog.org/session
+ov test spice status arch --uri qemu+ssh://o.atrawog.org/session
+ov test spice screenshot arch --uri qemu+ssh://o.atrawog.org/session /tmp/shot.png
+ov test libvirt info arch --uri qemu+ssh://o.atrawog.org/session
 ```
 
 `ov` opens an SSH connection, forwards the remote SPICE UNIX socket to a
@@ -157,8 +157,8 @@ For commands that don't need their output to land locally:
 ov settings set hosts.o o.atrawog.org
 ov --host o status
 ov --host o vm list
-ov --host o test spice status arch-cloud-base
-ov --host o test spice screenshot arch-cloud-base - > /tmp/shot.png
+ov --host o test spice status arch
+ov --host o test spice screenshot arch - > /tmp/shot.png
 ```
 
 `ov` re-execs itself over SSH (via your system's `ssh`, so `~/.ssh/config`
@@ -168,7 +168,7 @@ to stdout so the pipeline composes naturally.
 ### `ov ssh tunnel` (for external clients like TigerVNC / bare remote-viewer)
 
 ```bash
-ov ssh tunnel spice arch-cloud-base --uri qemu+ssh://o.atrawog.org/session
+ov ssh tunnel spice arch --uri qemu+ssh://o.atrawog.org/session
 # prints: spice tunnel: spice+unix:///tmp/ov-tunnel-8e4c.sock
 # Connect with: remote-viewer spice+unix:///tmp/ov-tunnel-8e4c.sock
 ```
@@ -264,33 +264,33 @@ users:
   - default                               # cloud-init keeps distro-default account untouched
   - name: arch
     ssh_authorized_keys:
-      - ssh-ed25519 AAAA…                 # generated pubkey from ~/.local/share/ov/vm/ov-arch-cloud-base/id_ed25519.pub
+      - ssh-ed25519 AAAA…                 # generated pubkey from ~/.local/share/ov/vm/ov-arch/id_ed25519.pub
 ```
 
-cloud-init appends the pubkey to `/home/arch/.ssh/authorized_keys` without calling `useradd`, rewriting sudoers, or changing the shell. `spec.ssh.user` defaults to `arch`, so `ov vm ssh arch-cloud-base` connects as `arch@127.0.0.1:2224`. Full parity with the container-side `base_user:` + `user_policy: adopt` pattern (`/ov:image` "user_policy").
+cloud-init appends the pubkey to `/home/arch/.ssh/authorized_keys` without calling `useradd`, rewriting sudoers, or changing the shell. `spec.ssh.user` defaults to `arch`, so `ov vm ssh arch` connects as `arch@127.0.0.1:2224`. Full parity with the container-side `base_user:` + `user_policy: adopt` pattern (`/ov:image` "user_policy").
 
 ## Verification recipes
 
 ### Rebuild + boot
 ```bash
-virsh -c qemu:///session destroy ov-arch-cloud-base 2>/dev/null
-virsh -c qemu:///session undefine --nvram ov-arch-cloud-base 2>/dev/null
-rm -f ~/.local/share/ov/vm/ov-arch-cloud-base/nvram.fd
+virsh -c qemu:///session destroy ov-arch 2>/dev/null
+virsh -c qemu:///session undefine --nvram ov-arch 2>/dev/null
+rm -f ~/.local/share/ov/vm/ov-arch/nvram.fd
 rm -f output/qcow2/{disk.qcow2,seed.iso}
-ov vm build arch-cloud-base
-ov vm create arch-cloud-base --no-auto-detect
+ov vm build arch
+ov vm create arch --no-auto-detect
 ```
 
 ### BIOS firmware + virtio-gpu took effect
 ```bash
-virsh -c qemu:///session dumpxml ov-arch-cloud-base \
+virsh -c qemu:///session dumpxml ov-arch \
   | grep -E "<loader|<nvram|<firmware|<type arch|<model type"
 ```
 Pass: NO `<loader>` / `<nvram>` / `<firmware>` elements; `<model type='virtio'>` inside `<video>`.
 
 ### No simpledrm race
 ```bash
-ssh -i ~/.local/share/ov/vm/ov-arch-cloud-base/id_ed25519 -p 2224 arch@127.0.0.1 \
+ssh -i ~/.local/share/ov/vm/ov-arch/id_ed25519 -p 2224 arch@127.0.0.1 \
   'sudo dmesg | grep -iE "simpledrm|virtio_gpu|drm"' | head -10
 ```
 Pass: `virtio_gpu` as primary, NO `simpledrm` lines, NO `fbcon: Deferring console take-over`.
@@ -299,7 +299,7 @@ Pass: `virtio_gpu` as primary, NO `simpledrm` lines, NO `fbcon: Deferring consol
 ```bash
 START=$(date +%s)
 for i in $(seq 1 20); do
-  ssh -i ~/.local/share/ov/vm/ov-arch-cloud-base/id_ed25519 -p 2224 -o ConnectTimeout=3 -o BatchMode=yes \
+  ssh -i ~/.local/share/ov/vm/ov-arch/id_ed25519 -p 2224 -o ConnectTimeout=3 -o BatchMode=yes \
       arch@127.0.0.1 'echo UP' 2>&1 | grep -q UP && break
   sleep 5
 done
@@ -330,7 +330,7 @@ Pass: `active` + version printed.
 - `/ov-vms:vms` — VmSpec authoring reference (schema, source.kind, adopt pattern)
 - `/ov:vm` — VM lifecycle commands + BIOS/UEFI decision matrix + video model choice
 - `/ov:migrate` — `ov migrate vm-spec` legacy conversion
-- `/ov:deploy` — `ov deploy add vm:arch-cloud-base <layer>` for in-guest layer application
+- `/ov:deploy` — `ov deploy add vm:arch <layer>` for in-guest layer application
 - `/ov-dev:vm-spec` — Go types and validation rules
 - `/ov-dev:libvirt-renderer` — `<backend type='passt'/>` for portForward, virtio-gpu video model
 - `/ov-dev:cloud-init-renderer` — `composeUsers` adopt-merge, seed ISO, `ov_install.strategy: auto`

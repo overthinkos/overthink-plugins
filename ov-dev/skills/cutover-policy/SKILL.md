@@ -101,7 +101,7 @@ The commit graph for this VM cutover:
 ```
 089f375 (initial D1-D17 tasks — new VmSpec surface lands alongside legacy)
  ↓
-b249ee4 (arch-cloud-base live-tested + migrate vm-spec authored)
+b249ee4 (arch live-tested + migrate vm-spec authored)
  ↓
 3087e0a feat(ov)!: hard cutover — delete VmConfig, ImageConfig.Vm/Libvirt, OCI labels
 ```

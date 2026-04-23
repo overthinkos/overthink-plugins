@@ -100,7 +100,7 @@ sequence.
 
 ```bash
 # Allowed (disposable: true):
-ov rebuild arch-cloud-base
+ov rebuild arch
 
 # Refused (no disposable flag, or disposable: false):
 $ ov rebuild production-api
@@ -164,7 +164,7 @@ still needs an explicit `disposable: true` to be rebuildable.
 ### VMs
 
 Today, classification applies to all instances of a kind:vm entity.
-If you need per-instance overrides (e.g., `ov vm create arch-cloud-base -i test`
+If you need per-instance overrides (e.g., `ov vm create arch -i test`
 with different classification than `-i prod`), that requires the
 per-instance override file at `~/.local/share/ov/vm/ov-<name>-<instance>/instance.yml`
 — planned follow-up.
@@ -191,7 +191,7 @@ on shared hosts.
   is Standard 4, fresh-rebuild re-verification is Standard 10.
 - `/ov-vms:vms` — kind:vm schema, including `disposable:` and
   `lifecycle:` fields.
-- `/ov-vms:arch-cloud-base` — canonical worked example.
+- `/ov-vms:arch` — canonical worked example.
 - `/ov:deploy` — `--disposable` / `--lifecycle` flags on
   `ov deploy add`.
 - `/ov:rebuild` — the rebuild verb command reference (not yet

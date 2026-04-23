@@ -61,7 +61,7 @@ Per-VM NVRAM path convention: `~/.local/share/ov/vm/ov-<vm-name>/nvram.fd`.
 
 ## BIOS as an escape valve
 
-From `/ov-vms:arch-cloud-base` Finding B: UEFI boot with a stale BOOTX64.EFI (embedded grub.cfg older than the image's on-disk `/boot/grub/grub.cfg`) is a common failure mode for distribution cloud images. BIOS boot sidesteps it entirely — GRUB reads `/boot/grub/grub.cfg` from the root filesystem, which is always current.
+From `/ov-vms:arch` Finding B: UEFI boot with a stale BOOTX64.EFI (embedded grub.cfg older than the image's on-disk `/boot/grub/grub.cfg`) is a common failure mode for distribution cloud images. BIOS boot sidesteps it entirely — GRUB reads `/boot/grub/grub.cfg` from the root filesystem, which is always current.
 
 When `spec.Firmware == "bios"`:
 
@@ -93,5 +93,5 @@ The libvirt renderer's `RenderDomain` checks for `codePath == ""` and skips `<lo
 - `/ov-dev:vm-spec` — `spec.Firmware` field
 - `/ov-dev:libvirt-renderer` — `RenderDomain` consumer; `<loader>`/`<nvram>` emission conditions
 - `/ov:vm` — command-family; BIOS vs UEFI decision matrix
-- `/ov-vms:arch-cloud-base` — live-test RCA showing why `firmware: bios` is the right default for Arch cloud image
+- `/ov-vms:arch` — live-test RCA showing why `firmware: bios` is the right default for Arch cloud image
 - `/ov-vms:selkies-desktop-bootc-bootc` — Fedora-based bootc VM, typical UEFI case

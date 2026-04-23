@@ -45,7 +45,7 @@ The two sides cooperate across the host/guest boundary:
 - This guest-side layer installs cloud-init so the guest reads `/dev/sr0` (the seed ISO) at boot.
 - The `composeUsers` adopt-merge pattern (renderer-side) deposits the SSH pubkey in `~<base_user>/.ssh/authorized_keys` without `useradd`.
 
-For cloud_image VMs (`source.kind: cloud_image`), cloud-init typically comes pre-installed in the upstream qcow2 — this layer isn't needed; author the VM entity directly in `vms.yml`. For bootc VMs that want cloud-init provisioning, add this layer explicitly. See `/ov-vms:vms` for the authoring guide and `/ov-vms:arch-cloud-base` for a worked example.
+For cloud_image VMs (`source.kind: cloud_image`), cloud-init typically comes pre-installed in the upstream qcow2 — this layer isn't needed; author the VM entity directly in `vms.yml`. For bootc VMs that want cloud-init provisioning, add this layer explicitly. See `/ov-vms:vms` for the authoring guide and `/ov-vms:arch` for a worked example.
 
 ## Related Skills
 

@@ -140,5 +140,5 @@ Explicitly supported — not either/or. `VmKeyInjection.SMBIOS: enabled` + `VmKe
 - `/ov-dev:vm-deploy-target` — `EnsureOvInGuest` caller; SSH/cloud-init readiness waits
 - `/ov:vm` — command-family; cloud-init flow
 - `/ov-vms:vms` — YAML-authoring reference
-- `/ov-vms:arch-cloud-base` — `ov_install.strategy: auto` worked example; adopt-user pattern
+- `/ov-vms:arch` — `ov_install.strategy: auto` worked example; adopt-user pattern
 - `/ov-layers:cloud-init` — **guest-side pairing**: the cloud-init package installed inside bootc images reads the seed ISO this renderer produces

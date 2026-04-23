@@ -32,13 +32,13 @@ SSH channel — so `DomainScreenshot`, `DomainSendKey`, QMP, etc. all
 work against the remote hypervisor. Example:
 
 ```bash
-ov test libvirt info arch-cloud-base --uri qemu+ssh://o.atrawog.org/session
-ov test libvirt screenshot arch-cloud-base --uri qemu+ssh://o.atrawog.org/session - > /tmp/shot.png
+ov test libvirt info arch --uri qemu+ssh://o.atrawog.org/session
+ov test libvirt screenshot arch --uri qemu+ssh://o.atrawog.org/session - > /tmp/shot.png
 ```
 
 `<file>` args accept `-` for stdout. Alternatively, run `ov` on the
 remote machine with the top-level `--host` flag: `ov --host o test
-libvirt info arch-cloud-base`.
+libvirt info arch`.
 
 **`guest` subgroup — qemu-guest-agent client:**
 ```
@@ -103,31 +103,31 @@ choices:
 ```bash
 # Sanity.
 ov test libvirt list
-ov test libvirt info arch-cloud-base
+ov test libvirt info arch
 
 # Framebuffer capture (independent of SPICE wire state).
-ov test libvirt screenshot arch-cloud-base /tmp/fb.png
+ov test libvirt screenshot arch /tmp/fb.png
 
 # Keyboard injection via libvirt (alternate path to `ov test spice key`).
-ov test libvirt send-key arch-cloud-base ctrl+alt+F2
+ov test libvirt send-key arch ctrl+alt+F2
 
 # Live graphics password update.
-ov test libvirt passwd arch-cloud-base hunter2
+ov test libvirt passwd arch hunter2
 
 # QMP escape hatch.
-ov test libvirt qmp arch-cloud-base query-status
+ov test libvirt qmp arch query-status
 
 # qemu-guest-agent (only if the guest has qemu-guest-agent installed).
-ov test libvirt guest ping arch-cloud-base
-ov test libvirt guest exec arch-cloud-base -- uname -a
+ov test libvirt guest ping arch
+ov test libvirt guest exec arch -- uname -a
 
 # Transactional testing: freeze → snapshot → thaw.
-ov test libvirt guest fsfreeze freeze arch-cloud-base
-ov test libvirt snapshot create arch-cloud-base pre-exp
-ov test libvirt guest fsfreeze thaw   arch-cloud-base
+ov test libvirt guest fsfreeze freeze arch
+ov test libvirt snapshot create arch pre-exp
+ov test libvirt guest fsfreeze thaw   arch
 # … exercise something destructive …
-ov test libvirt snapshot revert arch-cloud-base pre-exp
-ov test libvirt snapshot delete arch-cloud-base pre-exp
+ov test libvirt snapshot revert arch pre-exp
+ov test libvirt snapshot delete arch pre-exp
 ```
 
 ## Agent prerequisite

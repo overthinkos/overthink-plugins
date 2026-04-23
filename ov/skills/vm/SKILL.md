@@ -12,7 +12,7 @@ description: |
 
 `ov vm` commands build disk images and manage virtual machines via libvirt (default) or direct QEMU. VMs are declared as **`kind: vm` entities in `vms.yml`** — a first-class primitive alongside `kind: image` entries. Two source types:
 
-- **`source.kind: cloud_image`** — fetches a pre-built qcow2 from an external URL (Arch, Fedora, Ubuntu, Debian, CentOS Cloud images). Renders a NoCloud seed ISO with cloud-init. Canonical example: `/ov-vms:arch-cloud-base`.
+- **`source.kind: cloud_image`** — fetches a pre-built qcow2 from an external URL (Arch, Fedora, Ubuntu, Debian, CentOS Cloud images). Renders a NoCloud seed ISO with cloud-init. Canonical example: `/ov-vms:arch`.
 - **`source.kind: bootc`** — pairs with a `kind: image` entry that has `bootc: true`. Runs `bootc install to-disk` inside a privileged container. Canonical example: `/ov-vms:selkies-desktop-bootc-bootc`.
 
 The legacy `image.bootc: true` + `image.vm: {...}` + `image.libvirt: [...]` fields were **deleted in the hard cutover**. Legacy projects convert in one shot with `ov migrate vm-spec` (see `/ov:migrate`). For the YAML authoring reference, see `/ov-vms:vms`; for the Go types, see `/ov-dev:vm-spec`.
@@ -38,7 +38,7 @@ VM name convention: `ov-<name>[-<instance>]`. Default libvirt URI: `qemu:///sess
 ## Building Disk Images
 
 ```bash
-ov vm build arch-cloud-base          # cloud_image: fetch qcow2, resize, render seed ISO
+ov vm build arch          # cloud_image: fetch qcow2, resize, render seed ISO
 ov vm build selkies-desktop-bootc-bootc --type qcow2   # bootc: bootc install to-disk
 ov vm build <name> --size 40G        # disk_size override (CLI wins over vms.yml)
 ov vm build <name> --root-size 10G   # bootc only: cap root partition
@@ -55,7 +55,7 @@ Source: `ov/vm_build.go`, `ov/vm_cloud_image.go`.
 ## VM Lifecycle
 
 ```bash
-ov vm create arch-cloud-base                        # default resources from vms.yml
+ov vm create arch                        # default resources from vms.yml
 ov vm create <name> --ram 8G --cpus 4               # CLI overrides
 ov vm create <name> --ssh-key auto                  # auto-detect SSH key (default)
 ov vm create <name> --ssh-key generate              # generate new keypair
@@ -89,7 +89,7 @@ Canonical `vms.yml` shape, condensed from `/ov-vms:vms`:
 ```yaml
 vms:
   # cloud_image source
-  arch-cloud-base:
+  arch:
     source:
       kind: cloud_image
       url: https://fastly.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2
@@ -142,7 +142,7 @@ The `firmware:` field controls the VM boot path. Choice matters more than most a
 
 | Firmware | When to pick |
 |---|---|
-| `bios` (default) | Cloud images (Arch, Fedora Cloud, Ubuntu Cloud, Debian Cloud, CentOS Cloud) that ship a GPT BIOS boot partition. Avoids stale BOOTX64.EFI issues. No OVMF package dependency. No per-VM NVRAM. See `/ov-vms:arch-cloud-base` Finding B for the RCA. |
+| `bios` (default) | Cloud images (Arch, Fedora Cloud, Ubuntu Cloud, Debian Cloud, CentOS Cloud) that ship a GPT BIOS boot partition. Avoids stale BOOTX64.EFI issues. No OVMF package dependency. No per-VM NVRAM. See `/ov-vms:arch` Finding B for the RCA. |
 | `uefi-insecure` | bootc Fedora images (ship signed BOOTX64.EFI built at image-build time). Guests needing GPT > 2 TiB disks. ARM hosts (aarch64). |
 | `uefi-secure` | Guests needing Secure Boot (signed kernel + initramfs). Locks to Microsoft UEFI CA keys. |
 
@@ -155,7 +155,7 @@ See `/ov-dev:ovmf` for the per-distro OVMF_CODE/OVMF_VARS path table and the per
 | Model | Default for | Why |
 |---|---|---|
 | `virtio` (virtio-gpu) | **Linux guests — modern default** | Native `virtio_gpu` kernel DRM driver (4.16+), Wayland-native, simpler config, no X-server-specific driver needed |
-| `qxl` | Legacy X11 SPICE use | 2010-era Red Hat SPICE stack; simpledrm→qxldrmfb takeover race under UEFI (see `/ov-vms:arch-cloud-base` Finding B); more knobs (ram_size + vram_size + vram64_size_mb + vgamem_mb) |
+| `qxl` | Legacy X11 SPICE use | 2010-era Red Hat SPICE stack; simpledrm→qxldrmfb takeover race under UEFI (see `/ov-vms:arch` Finding B); more knobs (ram_size + vram_size + vram64_size_mb + vgamem_mb) |
 | `cirrus` | BIOS fallback only | Low resolution, no acceleration |
 | `none` | Headless VMs | No framebuffer at all |
 
@@ -204,9 +204,9 @@ Source: `ov/libvirt.go`, `ov/libvirt_render.go`, `ov/libvirt_render_devices.go`.
 ### Build and run a cloud_image VM
 
 ```bash
-ov vm build arch-cloud-base              # fetches qcow2, resizes, renders seed ISO
-ov vm create arch-cloud-base
-ssh -p 2224 -i ~/.local/share/ov/vm/ov-arch-cloud-base/id_ed25519 arch@127.0.0.1
+ov vm build arch              # fetches qcow2, resizes, renders seed ISO
+ov vm create arch
+ssh -p 2224 -i ~/.local/share/ov/vm/ov-arch/id_ed25519 arch@127.0.0.1
 ```
 
 ### Build and run a bootc VM
@@ -222,10 +222,10 @@ ov vm ssh selkies-desktop-bootc-bootc
 ### Apply layers inside a VM
 
 ```bash
-ov vm create arch-cloud-base
-ov deploy add vm:arch-cloud-base ripgrep         # apply ripgrep layer over SSH
-ov deploy add vm:arch-cloud-base fedora-coder --add-layer team-extras
-ov deploy del vm:arch-cloud-base                 # reverse all applied layers
+ov vm create arch
+ov deploy add vm:arch ripgrep         # apply ripgrep layer over SSH
+ov deploy add vm:arch fedora-coder --add-layer team-extras
+ov deploy del vm:arch                 # reverse all applied layers
 ```
 
 See `/ov:deploy` "vm: target" for the `ov deploy add vm:<name>` surface and `/ov-dev:vm-deploy-target` for the executor model.
@@ -250,7 +250,7 @@ ov vm ssh <name> -i dev
 
 ## Known live-tested caveats
 
-Non-obvious issues that surface only when VMs actually boot. `/ov-images:selkies-desktop-bootc` is the canonical end-to-end bootc worked example; `/ov-vms:arch-cloud-base` is the canonical cloud_image worked example.
+Non-obvious issues that surface only when VMs actually boot. `/ov-images:selkies-desktop-bootc` is the canonical end-to-end bootc worked example; `/ov-vms:arch` is the canonical cloud_image worked example.
 
 ### Privileged container needs `-v /dev:/dev` (bootc)
 
@@ -270,7 +270,7 @@ When `firmware: uefi-insecure` or `firmware: uefi-secure`, each VM gets its own 
 
 ### Resource sizing over package pruning (cloud_image)
 
-Cloud-init `packages: [spice-vdagent]` pulls GTK3 + X11 (~200 MB download, ~1 GB installed). Running at 2 GiB RAM stalls cloud-init. **Check host inventory (`free -h`, `nproc`) before sizing** — give the VM what it needs (8 GiB + 4 cpus for a desktop-class workload is reasonable on a 16-core / 61 GiB host). See `/ov-vms:arch-cloud-base` Finding C for the live-test bisect.
+Cloud-init `packages: [spice-vdagent]` pulls GTK3 + X11 (~200 MB download, ~1 GB installed). Running at 2 GiB RAM stalls cloud-init. **Check host inventory (`free -h`, `nproc`) before sizing** — give the VM what it needs (8 GiB + 4 cpus for a desktop-class workload is reasonable on a 16-core / 61 GiB host). See `/ov-vms:arch` Finding C for the live-test bisect.
 
 ### Rootful ↔ rootless podman storage split (bootc)
 
@@ -315,7 +315,7 @@ Expected. The agent needs a `virtio-serial` channel that ov's QEMU backend doesn
 ## Cross-References
 
 - `/ov-vms:vms` — **vms.yml authoring reference** (VmSpec schema, source.kind, adopt pattern)
-- `/ov-vms:arch-cloud-base` — canonical cloud_image VM (BIOS / virtio-gpu / resource sizing / stale BOOTX64.EFI RCA)
+- `/ov-vms:arch` — canonical cloud_image VM (BIOS / virtio-gpu / resource sizing / stale BOOTX64.EFI RCA)
 - `/ov-vms:aurora-bootc`, `/ov-vms:bazzite-ai-bootc`, `/ov-vms:openclaw-browser-bootc-bootc`, `/ov-vms:selkies-desktop-bootc-bootc` — bootc VMs
 - `/ov-dev:vm-spec` — Go type reference; validation rules; legacy migration map
 - `/ov-dev:libvirt-renderer` — RenderDomain + device emission + passt backend + virtio-gpu

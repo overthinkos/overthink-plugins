@@ -27,8 +27,8 @@ ov --host o status
 ov --host o start openclaw
 ov --host o vm list
 ov --host o deploy add host fedora-coder
-ov --host o test spice status arch-cloud-base
-ov --host o test spice screenshot arch-cloud-base - > /tmp/local.png   # stdout pipes back
+ov --host o test spice status arch
+ov --host o test spice screenshot arch - > /tmp/local.png   # stdout pipes back
 ```
 
 **LocalOnly commands are NOT re-execed**, even when `--host` is set:
@@ -61,7 +61,7 @@ Default mode preserves the wire format: UNIX socket in, UNIX socket out
 `spice+unix://` / `vnc+unix://`.
 
 ```
-$ ov ssh tunnel spice arch-cloud-base --uri qemu+ssh://o.atrawog.org/session
+$ ov ssh tunnel spice arch --uri qemu+ssh://o.atrawog.org/session
 spice tunnel: spice+unix:///tmp/ov-tunnel-8e4c.sock
 Connect with: remote-viewer spice+unix:///tmp/ov-tunnel-8e4c.sock
 Press Ctrl-C to close the tunnel.
@@ -72,7 +72,7 @@ exit.
 
 **Not needed for virt-manager or `remote-viewer --connect qemu+ssh://`**
 — those auto-forward UNIX-socket listeners through libvirt's RPC
-fd-passing, with zero ov involvement. See `/ov-vms:arch-cloud-base`.
+fd-passing, with zero ov involvement. See `/ov-vms:arch`.
 
 ## Alias management
 
@@ -98,7 +98,7 @@ and passed through.
 
 ## Cross-References
 
-- `/ov-vms:arch-cloud-base` — "Connecting from a remote workstation" —
+- `/ov-vms:arch` — "Connecting from a remote workstation" —
   the canonical worked example across all three paths.
 - `/ov:settings` — `hosts.<alias>` key schema.
 - `/ov:spice` — `--uri` + `--socket` flags on `ov test spice`.

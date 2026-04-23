@@ -62,7 +62,7 @@ Document rationale for *every* cloud_image VM author:
 | Model | Pros | Cons | When to pick |
 |---|---|---|---|
 | `virtio` (virtio-gpu) | Native `virtio_gpu` kernel DRM driver; Wayland-native; simpler config (just `vram` + `heads`); optional `accel3d: true` for virgl OpenGL passthrough | Only modern Linux kernels (4.16+) | **default for Linux guests** |
-| `qxl` | Legacy SPICE-specific (2010 Red Hat); X11-oriented; requires xf86-video-qxl for acceleration | More knobs to tune (ram_size + vram_size + vram64_size_mb + vgamem_mb quartet); simpledrm→qxldrmfb takeover race under UEFI (see `/ov-vms:arch-cloud-base` Finding B); X11-dominant | Legacy guests only |
+| `qxl` | Legacy SPICE-specific (2010 Red Hat); X11-oriented; requires xf86-video-qxl for acceleration | More knobs to tune (ram_size + vram_size + vram64_size_mb + vgamem_mb quartet); simpledrm→qxldrmfb takeover race under UEFI (see `/ov-vms:arch` Finding B); X11-dominant | Legacy guests only |
 | `cirrus` | Most compatible | Low resolution, no acceleration | BIOS-fallback only |
 | `none` | No video | — | Headless VMs |
 
@@ -80,7 +80,7 @@ SPICE graphics protocol is video-model-agnostic — it streams pixels from virti
 </os>
 ```
 
-When `spec.Firmware == "bios"` or empty, `ResolveOvmfForSpec` returns `("", "", nil)` and the renderer skips both `<loader>` and `<nvram>` entirely. No OVMF package dependency, no per-VM NVRAM file, no Secure Boot lock-in. This is what makes `/ov-vms:arch-cloud-base` viable — BIOS boot bypasses the stale BOOTX64.EFI issue by never loading it.
+When `spec.Firmware == "bios"` or empty, `ResolveOvmfForSpec` returns `("", "", nil)` and the renderer skips both `<loader>` and `<nvram>` entirely. No OVMF package dependency, no per-VM NVRAM file, no Secure Boot lock-in. This is what makes `/ov-vms:arch` viable — BIOS boot bypasses the stale BOOTX64.EFI issue by never loading it.
 
 `uefi-secure` additionally sets `Features.SMM = true` (required for Secure Boot authenticated variables).
 
@@ -131,5 +131,5 @@ Intended for environments without libvirt session daemon (some CI runners, air-g
 - `/ov-dev:cloud-init-renderer` — paired renderer for seed ISO + user-data
 - `/ov-dev:vm-deploy-target` — consumer that applies the rendered domain
 - `/ov:vm` — command-family skill; video-model decision table
-- `/ov-vms:arch-cloud-base` — BIOS decision RCA; virtio-gpu live-test bisect
+- `/ov-vms:arch` — BIOS decision RCA; virtio-gpu live-test bisect
 - `/ov-layers:qemu-guest-agent` — virtio-serial channel snippet that this renderer emits in `<devices>`

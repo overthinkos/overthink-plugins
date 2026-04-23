@@ -108,7 +108,7 @@ Reference documentation for all `kind: vm` entities in `vms.yml`. Parallel to `o
 | Skill | Invocation | Description |
 |-------|-----------|-------------|
 | vms | `/ov-vms:vms` | **Authoring reference**: VmSpec schema, source.kind discriminator (cloud_image vs bootc), base_user adopt pattern, step-by-step recipes |
-| arch-cloud-base | `/ov-vms:arch-cloud-base` | **Canonical cloud_image VM**: Arch Linux from pkgbuild.com. BIOS firmware + virtio-gpu + resource sizing RCA (stale BOOTX64.EFI, simpledrm→qxldrmfb race) |
+| arch | `/ov-vms:arch` | **Canonical cloud_image VM**: Arch Linux from pkgbuild.com. BIOS firmware + virtio-gpu + resource sizing RCA (stale BOOTX64.EFI, simpledrm→qxldrmfb race) |
 | aurora-bootc | `/ov-vms:aurora-bootc` | Thin pointer → `/ov-images:aurora` for composition; VM-specific 80 GiB / 12G / 4 cpus |
 | bazzite-ai-bootc | `/ov-vms:bazzite-ai-bootc` | Thin pointer → `/ov-images:bazzite-ai` |
 | openclaw-browser-bootc-bootc | `/ov-vms:openclaw-browser-bootc-bootc` | Thin pointer → `/ov-images:openclaw-browser-bootc`; 20 GiB / 4G / 2 cpus |

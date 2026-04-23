@@ -58,7 +58,7 @@ Five preflight steps before walking plans:
 ```go
 type VmDeployState struct {
     InstanceID   string           // stable UUID — stays the same across rebuilds
-    SshKeyPath   string           // absolute path on host, e.g. ~/.local/share/ov/vm/ov-arch-cloud-base/id_ed25519
+    SshKeyPath   string           // absolute path on host, e.g. ~/.local/share/ov/vm/ov-arch/id_ed25519
     NvramPath    string           // absolute path, empty for firmware=bios
     LastBuild    time.Time
     LastDeploy   time.Time
@@ -78,14 +78,14 @@ Persisted in `~/.config/ov/deploy.yml` under `images[<deploy-name>].vm_state`. E
 `deploy_add_cmd_vm.go::runVM` is called when the deploy name starts with `vm:` (or `target: vm` is set in `deploy.yml`):
 
 ```
-ov deploy add vm:arch-cloud-base ripgrep           # apply ripgrep layer in the guest
-ov deploy add vm:arch-cloud-base fedora-coder \    # apply full fedora-coder layer set
+ov deploy add vm:arch ripgrep           # apply ripgrep layer in the guest
+ov deploy add vm:arch fedora-coder \    # apply full fedora-coder layer set
     --add-layer team-extras \
     --add-layer github.com/team/configs/layers/sshkeys
-ov deploy del vm:arch-cloud-base                   # reverse all applied layers in the guest
+ov deploy del vm:arch                   # reverse all applied layers in the guest
 ```
 
-Prereq: VM must exist (`ov vm create arch-cloud-base` first). `runVM` does NOT auto-provision the VM — keeps the "provision" step explicit. If the VM is undefined, the dispatch returns a clean error pointing at `ov vm create`.
+Prereq: VM must exist (`ov vm create arch` first). `runVM` does NOT auto-provision the VM — keeps the "provision" step explicit. If the VM is undefined, the dispatch returns a clean error pointing at `ov vm create`.
 
 ## passt backend + SSH port forwarding
 
@@ -100,4 +100,4 @@ When the VM's network uses libvirt user-mode + `<backend type='passt'/>` + `<por
 - `/ov:deploy` — `ov deploy add vm:<name>` command + deploy.yml schema
 - `/ov:host-deploy` — parallel target (HostDeployTarget); ReverseOps model also used on VM target
 - `/ov:vm` — VM lifecycle; creates the target Emit runs against
-- `/ov-vms:arch-cloud-base` — canonical worked example — VmDeployState persistence; ssh_key idempotency live-test
+- `/ov-vms:arch` — canonical worked example — VmDeployState persistence; ssh_key idempotency live-test

@@ -29,7 +29,7 @@ Global flags on every subcommand:
 - `--uri qemu+ssh://[user@]host/session` — resolve the VM on a remote libvirt host. `ov` auto-opens an SSH tunnel and forwards the remote SPICE socket (or TCP port) to a local endpoint for the lifetime of the command. Also accepts the `OV_LIBVIRT_URI` env var.
 
 Screenshot/cursor `<file>` args accept `-` to write PNG bytes to stdout:
-`ov test spice screenshot arch-cloud-base - > /tmp/shot.png`. Status messages
+`ov test spice screenshot arch - > /tmp/shot.png`. Status messages
 go to stderr so stdout stays binary-clean — pipeline-friendly.
 
 ## Remote libvirt (qemu+ssh://)
@@ -40,23 +40,23 @@ free; the SPICE display channel needs a side tunnel, which `ov` opens
 transparently:
 
 ```bash
-ov test spice status arch-cloud-base --uri qemu+ssh://o.atrawog.org/session
+ov test spice status arch --uri qemu+ssh://o.atrawog.org/session
 # → opens SSH → discovers remote virtqemud socket via `id -u` → forwards
 #   the SPICE UNIX socket → dials it → prints channel enumeration.
 ```
 
 For VMs that declare `<listen type='socket'/>` (the default for
-arch-cloud-base after the socket-listen cutover), `ov` forwards the UNIX
+arch after the socket-listen cutover), `ov` forwards the UNIX
 socket. For TCP-listener VMs, `ov` opens a 127.0.0.1:<random> forward.
 
-Alternative: `ov --host o test spice status arch-cloud-base` runs `ov` on
+Alternative: `ov --host o test spice status arch` runs `ov` on
 the remote machine itself — no side tunnel needed because the VM's SPICE
 socket is local to the remote host. Useful when you want artifacts to stay
 remote, or when the SPICE server doesn't bind loopback on the remote side.
 
 GUI clients (virt-manager, `remote-viewer --connect qemu+ssh://…`) don't
 need any ov involvement for socket listeners — they auto-forward via
-libvirt RPC fd-passing. See `/ov-vms:arch-cloud-base` "Connecting from a
+libvirt RPC fd-passing. See `/ov-vms:arch` "Connecting from a
 remote workstation" for the complete story.
 
 ## What it does (and doesn't)
@@ -82,25 +82,25 @@ remote workstation" for the complete story.
 ## End-to-end example
 
 ```bash
-# Start a VM with SPICE graphics (arch-cloud-base ships this by default).
-ov vm start arch-cloud-base
+# Start a VM with SPICE graphics (arch ships this by default).
+ov vm start arch
 
 # Handshake + report channels.
-ov test spice status arch-cloud-base
+ov test spice status arch
 # → connected: 127.0.0.1:5901
 #   display:   1280x800
 #   inputs:    ready
 
 # Native SPICE screenshot (not libvirt DomainScreenshot).
-ov test spice screenshot arch-cloud-base /tmp/out.png
+ov test spice screenshot arch /tmp/out.png
 # → Screenshot saved to /tmp/out.png (1280x800, native SPICE display decode)
 
 # Drive the login.
-ov test spice key arch-cloud-base return
-ov test spice type arch-cloud-base arch
-ov test spice key arch-cloud-base tab
-ov test spice type arch-cloud-base "my-password"
-ov test spice key arch-cloud-base return
+ov test spice key arch return
+ov test spice type arch arch
+ov test spice key arch tab
+ov test spice type arch "my-password"
+ov test spice key arch return
 ```
 
 ## Architecture split (vs. `ov test libvirt`)
