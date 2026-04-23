@@ -39,6 +39,7 @@ Manage ov's runtime configuration stored in `~/.config/ov/settings.yml`. Control
 | `secrets.kdbx_path` | *(none)* | `OV_KDBX_PATH` | Path to KeePass .kdbx database |
 | `secrets.kdbx_cache` | `true` | `OV_KDBX_CACHE` | Cache kdbx password in kernel keyring |
 | `secrets.kdbx_cache_timeout` | `3600` | `OV_KDBX_CACHE_TIMEOUT` | Kernel keyring cache TTL (seconds) |
+| `hosts.<alias>` | *(none)* | — | SSH target for `ov --host <alias>` remote execution. Free-form: `host`, `user@host`, `user@host:port`. Consulted by the top-level `--host` flag to re-exec `ov` commands on another machine over SSH. See `/ov:ssh`. |
 
 ## Usage
 

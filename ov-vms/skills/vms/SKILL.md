@@ -69,6 +69,38 @@ vms:
         memballoon: {model: virtio}
 ```
 
+### graphics `listen:` field — three accepted shapes
+
+`graphics[].listen` is how you control the `<listen>` children of a
+`<graphics>` element. Three equivalent shapes, all unmarshal to the same
+internal list:
+
+```yaml
+# (1) Scalar address (shorthand for one TCP listener):
+listen: 127.0.0.1
+
+# (2) Single map (explicit type control — socket | address | network):
+listen:
+  type: socket              # libvirt auto-allocates the UNIX socket path
+# or:
+listen:
+  type: address
+  address: 127.0.0.1
+
+# (3) List of maps (multiple listeners on one <graphics>):
+listen:
+  - type: socket
+  - type: address
+    address: 127.0.0.1
+```
+
+**Prefer `type: socket` for ov-managed VMs.** virt-manager and
+`remote-viewer --connect qemu+ssh://…` auto-forward UNIX sockets over
+the libvirt RPC channel — GUI clients work out of the box against a
+remote libvirt with zero `ssh -L` setup. TCP loopback listeners are
+never auto-tunneled, by design. See `/ov-vms:arch-cloud-base`
+"Connecting from a remote workstation".
+
 ## source.kind: cloud_image
 
 Use when the VM is built from an **externally published qcow2** (Arch cloud image from pkgbuild.com, Fedora Cloud, Ubuntu Cloud, Debian Cloud, CentOS Cloud, etc.). The build pipeline fetches the URL, integrity-checks it via sha256 (sidecar auto-resolved when `checksum.value` is empty), creates a qcow2 overlay at `spec.disk_size`, renders a NoCloud seed ISO, and hands off to libvirt/QEMU.
@@ -175,3 +207,11 @@ Idempotent. Harvests the legacy fields into `vms:` entries, preserving any pre-e
 - `/ov-dev:cutover-policy` — Hard Cutover by Default policy
 - `/ov-layers:cloud-init` — guest-side cloud-init layer (pairs with host-side `cloud_init:` emission)
 - `/ov-layers:qemu-guest-agent` — virtio-serial channel for host↔guest comms
+
+## Live-deploy verification is mandatory (see `/ov:test` 10 standards)
+
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-dev:disposable`). Use `ov rebuild <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
+
+**After committing the source-level fix, `ov rebuild` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
+
+Unit tests + a clean compile are necessary but not sufficient. See CLAUDE.md R1–R10.

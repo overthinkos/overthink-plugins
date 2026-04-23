@@ -24,6 +24,22 @@ ov test libvirt console    <vm>                     # (stub) serial console — 
 ov test libvirt events     [<vm>]                   # poll lifecycle state transitions
 ```
 
+**Remote libvirt via `--uri`.** Every verb accepts `--uri
+qemu+ssh://[user@]host/session` (also honored as `OV_LIBVIRT_URI`). When
+set, `ov` opens an SSH connection to the remote host, discovers the
+remote virtqemud session socket via `id -u`, and forwards it over the
+SSH channel — so `DomainScreenshot`, `DomainSendKey`, QMP, etc. all
+work against the remote hypervisor. Example:
+
+```bash
+ov test libvirt info arch-cloud-base --uri qemu+ssh://o.atrawog.org/session
+ov test libvirt screenshot arch-cloud-base --uri qemu+ssh://o.atrawog.org/session - > /tmp/shot.png
+```
+
+`<file>` args accept `-` for stdout. Alternatively, run `ov` on the
+remote machine with the top-level `--host` flag: `ov --host o test
+libvirt info arch-cloud-base`.
+
 **`guest` subgroup — qemu-guest-agent client:**
 ```
 ov test libvirt guest ping       <vm>

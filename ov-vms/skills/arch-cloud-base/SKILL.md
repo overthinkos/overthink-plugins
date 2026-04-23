@@ -31,6 +31,25 @@ This skill is the **decision log** for every non-obvious choice in the entry —
 | SSH port | `2224` | Non-default to coexist with other dev VMs on 2222 |
 | SSH key source | `generate` | Stable `~/.local/share/ov/vm/ov-arch-cloud-base/id_ed25519` across rebuilds |
 | Video model | `virtio-gpu` | Modern default for Linux guests (Finding B, secondary) |
+| SPICE listener | `type: socket` (UNIX, auto-path) | Enables zero-config remote GUI via `qemu+ssh://` (see "Connecting from a remote workstation" below). virt-manager and `remote-viewer` auto-forward UNIX sockets through libvirt RPC fd-passing; TCP-loopback listeners are never auto-tunneled. No TCP port bound. |
+| `disposable` | `true` (LOAD-BEARING) | Authorizes `ov rebuild arch-cloud-base` to destroy + rebuild + restart unattended. This VM exists for live verification and rebuild-at-will. See `/ov-dev:disposable`. |
+| `lifecycle` | `dev` (INFORMATIONAL) | Human-facing tier tag. Zero effect on disposability — the flag above is what matters. |
+
+## Marked `disposable: true`
+
+This is the repo's canonical verification target. It carries `disposable: true` in vms.yml, which means `ov rebuild arch-cloud-base` runs the destroy → build → create → start loop unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
+
+If you're implementing something that touches VM config, libvirt rendering, cloud-init, SPICE, or any VM-adjacent behavior, the expected verification loop is:
+
+```bash
+ov rebuild arch-cloud-base       # (destroy + build + create + start)
+#  ... exploratory testing ...
+# commit the source-level fix
+ov rebuild arch-cloud-base       # fresh-rebuild re-verification (R10)
+# paste BOTH outputs into the conversation
+```
+
+No other VM in this repo is disposable by default. To make another one rebuildable unattended, add `disposable: true` to its kind:vm entry (no derivation from `lifecycle:` — the flag is always explicit).
 
 ## Full VmSpec (from vms.yml)
 
@@ -69,13 +88,94 @@ vms:
         channels:
           - {type: spicevmc, name: com.redhat.spice.0}
         graphics:
-          - {type: spice, autoport: "yes", listen: 127.0.0.1}
+          # Socket-only SPICE — virt-manager and `remote-viewer
+          # --connect qemu+ssh://…` auto-forward the UNIX socket over
+          # libvirt RPC, zero extra setup. libvirt auto-allocates the
+          # socket path under $XDG_RUNTIME_DIR/libvirt/qemu/.
+          - type: spice
+            listen:
+              - type: socket
         video:
           - {model: virtio, vram: 65536, heads: 1, accel3d: false}
         rng:
           - {model: virtio, backend: /dev/urandom}
         memballoon: {model: virtio}
 ```
+
+## Connecting from a remote workstation
+
+The VM's SPICE configuration above is specifically chosen so virt-manager on
+another machine Just Works against a libvirt session here.
+
+### virt-manager (zero ov involvement required)
+
+```
+virt-manager --connect qemu+ssh://o.atrawog.org/session
+```
+
+Double-click `ov-arch-cloud-base`. The SPICE console opens. Under the
+hood, virt-manager (and the `virt-viewer --connect qemu+ssh://…
+--attach <vm>` path it uses internally) reads the domain XML, sees
+`<listen type='socket' socket='/…/spice.sock'/>`, and auto-tunnels by
+spawning:
+
+```
+ssh <host> nc -U /<remote-socket-path>
+```
+
+stdio-piping SPICE traffic through the SSH control channel. **No `ssh
+-L`, no ov commands, no password, no TCP port bound on the remote
+host.**
+
+**Required host dep**: `nc` (openbsd-netcat on Arch, netcat-openbsd on
+Debian/Ubuntu, nmap-ncat on Fedora) must be installed on the libvirt
+host. ov's `setup.sh` and `pkg/arch/PKGBUILD` install it automatically.
+Without `nc`, virt-manager hangs at "Connecting to graphical console
+for guest" — no error, just silent failure. Diagnose with
+`ssh <host> which nc` (should return a path).
+
+### `ov test spice` with `--uri` (for CLI diagnostics / local artifacts)
+
+To probe the remote VM from the CLI and write screenshots into the local
+filesystem:
+
+```bash
+ov test spice status arch-cloud-base --uri qemu+ssh://o.atrawog.org/session
+ov test spice screenshot arch-cloud-base --uri qemu+ssh://o.atrawog.org/session /tmp/shot.png
+ov test libvirt info arch-cloud-base --uri qemu+ssh://o.atrawog.org/session
+```
+
+`ov` opens an SSH connection, forwards the remote SPICE UNIX socket to a
+local socket, and dials it — all transparent to the user. Set
+`OV_LIBVIRT_URI=qemu+ssh://o.atrawog.org/session` to avoid repeating the flag.
+
+### `ov --host o` (run ov on the remote machine)
+
+For commands that don't need their output to land locally:
+
+```bash
+ov settings set hosts.o o.atrawog.org
+ov --host o status
+ov --host o vm list
+ov --host o test spice status arch-cloud-base
+ov --host o test spice screenshot arch-cloud-base - > /tmp/shot.png
+```
+
+`ov` re-execs itself over SSH (via your system's `ssh`, so `~/.ssh/config`
+and agent forwarding just work). `-` as a screenshot path writes PNG bytes
+to stdout so the pipeline composes naturally.
+
+### `ov ssh tunnel` (for external clients like TigerVNC / bare remote-viewer)
+
+```bash
+ov ssh tunnel spice arch-cloud-base --uri qemu+ssh://o.atrawog.org/session
+# prints: spice tunnel: spice+unix:///tmp/ov-tunnel-8e4c.sock
+# Connect with: remote-viewer spice+unix:///tmp/ov-tunnel-8e4c.sock
+```
+
+Add `--tcp` to force a 127.0.0.1:<random> TCP forward for clients that
+don't understand `spice+unix://`.
+
 
 ## Finding A — disk/FS resize works end-to-end
 

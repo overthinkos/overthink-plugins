@@ -23,8 +23,41 @@ ov test spice cursor     <vm> [FILE]       # capture cursor bitmap + position
 
 Global flags on every subcommand:
 
-- `--address host:port` — bypass vms.yml lookup; targets an arbitrary SPICE server.
+- `--address host:port` — bypass vms.yml lookup; targets an arbitrary TCP SPICE server.
+- `--socket /path` — bypass vms.yml lookup; targets an arbitrary UNIX-socket SPICE server.
 - `--password SECRET` — SPICE ticket for `--address` mode.
+- `--uri qemu+ssh://[user@]host/session` — resolve the VM on a remote libvirt host. `ov` auto-opens an SSH tunnel and forwards the remote SPICE socket (or TCP port) to a local endpoint for the lifetime of the command. Also accepts the `OV_LIBVIRT_URI` env var.
+
+Screenshot/cursor `<file>` args accept `-` to write PNG bytes to stdout:
+`ov test spice screenshot arch-cloud-base - > /tmp/shot.png`. Status messages
+go to stderr so stdout stays binary-clean — pipeline-friendly.
+
+## Remote libvirt (qemu+ssh://)
+
+When `--uri qemu+ssh://…` is set, `ov test spice` runs locally but pokes a
+remote libvirt. Libvirt RPC is tunneled over the SSH control channel for
+free; the SPICE display channel needs a side tunnel, which `ov` opens
+transparently:
+
+```bash
+ov test spice status arch-cloud-base --uri qemu+ssh://o.atrawog.org/session
+# → opens SSH → discovers remote virtqemud socket via `id -u` → forwards
+#   the SPICE UNIX socket → dials it → prints channel enumeration.
+```
+
+For VMs that declare `<listen type='socket'/>` (the default for
+arch-cloud-base after the socket-listen cutover), `ov` forwards the UNIX
+socket. For TCP-listener VMs, `ov` opens a 127.0.0.1:<random> forward.
+
+Alternative: `ov --host o test spice status arch-cloud-base` runs `ov` on
+the remote machine itself — no side tunnel needed because the VM's SPICE
+socket is local to the remote host. Useful when you want artifacts to stay
+remote, or when the SPICE server doesn't bind loopback on the remote side.
+
+GUI clients (virt-manager, `remote-viewer --connect qemu+ssh://…`) don't
+need any ov involvement for socket listeners — they auto-forward via
+libvirt RPC fd-passing. See `/ov-vms:arch-cloud-base` "Connecting from a
+remote workstation" for the complete story.
 
 ## What it does (and doesn't)
 

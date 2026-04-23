@@ -131,3 +131,11 @@ The policy kicks in when the change is **visible to consumers** (YAML authors, o
 - `/ov-dev:capabilities` — example of coordinated label-map cleanup during a cutover
 - `/ov-dev:install-plan` — shared IR that survived the cutover unchanged (non-example — additive extension of the DeployTarget surface)
 - CLAUDE.md "Hard Cutover by Default" — summary pointing at this skill
+
+## Live-deploy verification is mandatory (see `/ov:test` 10 standards)
+
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-dev:disposable`). Use `ov rebuild <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
+
+**After committing the source-level fix, `ov rebuild` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
+
+Unit tests + a clean compile are necessary but not sufficient. See CLAUDE.md R1–R10.

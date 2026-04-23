@@ -14,30 +14,36 @@ description: |
 
 # Test - Declarative Full-Stack Testing
 
-## DO NOT fake success — mandatory verification sequence (READ FIRST)
+## The 10 Testing Standards (READ FIRST — referenced by CLAUDE.md R1–R10)
 
-An earlier agent claimed "cutover complete, all tests pass" after green `go test ./...` runs, then built an image that crash-looped at startup because a Containerfile stage was silently dropped. The unit tests didn't notice — they only exercised YAML loaders. **Unit tests are NOT a substitute for running the service.** Apply this sequence whenever a change could affect Containerfile generation, OCI labels, init systems, service startup, or deploy code:
+An earlier agent claimed "cutover complete, all tests pass" after green `go test ./...` runs, then built an image that crash-looped at startup because a Containerfile stage was silently dropped. The unit tests didn't notice — they only exercised YAML loaders. **Unit tests are NOT a substitute for running the service.**
 
-1. **`ov image build <image>`** — build a concrete image, don't stop at `ov image generate`.
-2. **Verify the generated Containerfile contains every expected stage**, e.g. `grep -c supervisord-conf .build/<image>/Containerfile` for any image that uses supervisord. Missing stages produce an image that falls back to the stock RPM config.
-3. **Verify critical OCI labels post-build**:
-   ```bash
-   podman inspect <ref> --format '{{index .Config.Labels "org.overthinkos.init"}}'
-   # Empty or missing → detection path silently returned nil → regression.
-   ```
-4. **`ov image test <image>`** — baked layer + image tests must pass. Be aware: this ALSO passes on a broken image whose stages were dropped, because the dropped content isn't part of any declarative test. Do not stop here.
-5. **Start the service**: `ov start <image>` (new deploy) or `ov update <image>` / `ov deploy add <image> <image>` (existing). Must reach `Active: active (running)` in `systemctl --user status ov-<image>.service`. If `start-limit-hit` appears, the container is crashing — look at `podman run --rm <image> <entrypoint>` stderr for the real error.
-6. **`ov test <image>`** — full three-section run against the live container. This is the definitive pass/fail. If deploy tests probe ports or services and the container is dead, they will fail — which is the honest outcome.
-7. **If any of the steps above fails, the task is NOT done.** Roll back to the prior-working image (`podman tag <prior-calver-tag> <ref>:latest && systemctl --user restart ov-<image>.service`) before continuing to debug.
+These are the 10 standards referenced in CLAUDE.md's AI attribution tier ("fully tested and validated"). Each is keyed to a CLAUDE.md R-rule. Apply them whenever a change could affect Containerfile generation, OCI labels, init systems, service startup, or deploy code.
 
-**Specific anti-patterns observed and banned:**
+1. **Build a real artifact** (R1) — `ov image build <image>` / `go build` / `ov vm build <vm>`. Not just `go test`. Not just `ov image generate`.
+2. **Verify the emitted artifact's content** (R3) — `grep -c supervisord-conf .build/<image>/Containerfile` for any image that uses supervisord; `virsh dumpxml` for a VM; `podman inspect --format '{{.Created}}'` to confirm the image was just rebuilt.
+3. **Verify critical OCI / capability labels post-build** (R4) — `podman inspect <ref> --format '{{index .Config.Labels "org.overthinkos.init"}}'` returns the expected value. Empty / missing → the detection path silently returned nil → regression.
+4. **Deploy to a DISPOSABLE target** (R10) — NEVER experiment on a resource that doesn't carry `disposable: true`. If no suitable disposable target exists, create one first (`ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml and `ov vm create`). The setup is part of the task. On a disposable target: `ov rebuild <name>` (unattended). On anything else: confirm with the user before any destroy.
+5. **Target must reach steady-state** — `systemctl --user status ov-<image>.service` → `Active: active (running)`; `virsh domstate <vm>` → `running (booted)`; SPICE socket file exists and accepts a handshake. If `start-limit-hit` appears, the container is crashing — reproduce directly via `podman run --rm <image> <entrypoint>`.
+6. **Run the declarative test suite** — `ov test <image>` full three-section pass against the live container (or `--uri` / `--host` remote equivalent for a remote target).
+7. **Verify the deployed binary is the one you built** (R8) — `ov version` on the target matches the expected CalVer; `podman inspect <ref> --format '{{.Created}}'` timestamp is from THIS build, not the prior one. Source-only changes (Syncthing, git push) do NOT update the deployed binary; you must build AND deploy on the target host.
+8. **Verify runtime deps are installed via package management** (R9) — `which nc`, `rpm -q <pkg>`, `pacman -Q <pkg>`. Manual installs do NOT count — they won't survive a fresh install on a synced host. Every runtime dep must live in `setup.sh` + `pkg/arch/PKGBUILD`.
+9. **Leave the target healthy, not paused/errored** — final snapshot of `virsh domstate` / `systemctl status` / `podman ps` is healthy. If the target is in a broken state during exploration, `ov rebuild` it back to the committed config before continuing — never layer experiments on broken state.
+10. **Re-verify on a FRESH rebuild after committing the source-level fix** (R10) — `ov rebuild <disposable-target>` one more time from clean, with the new source applied. Run standards 1–9 again against this fresh rebuild. **THIS IS THE ACCEPTANCE GATE.** A fix that works on a hand-patched target but not on a fresh rebuild is a regression waiting for the next unrelated rebuild to wipe your patch. Paste BOTH the exploratory-pass output AND the fresh-rebuild-pass output into the conversation — the user sees both.
 
-- **"Unit tests pass → cutover done"** — no. Build + run + test, every time.
+### Specific anti-patterns observed and banned
+
+- **"Unit tests pass → cutover done"** — no. Build + deploy + run + test, every time.
 - **"Retested after update → still passing!"** but the pre-update test was against the old running image and the post-update container failed to come up — see the `is not running` error and conclude the update broke it, not that "tests pass in aggregate."
 - **"Service start failed, probably a transient"** — no. `A dependency job for X failed` + immediate exit is a real error. Read the service log: `podman run --rm <image> <entrypoint>` will reproduce the failure directly.
+- **"Lifecycle: dev implies disposable"** — no. `disposable: true` is the ONE authorization for autonomous destroy + rebuild. Lifecycle tags are human-facing metadata; they do not authorize anything. See `/ov-dev:disposable`.
+- **"This is a dev box so I can just nuke it"** — no. The only authorization for autonomous destroy is the explicit `disposable: true` field on a specific deploy. Everything else requires user confirmation, regardless of hostname.
+- **"I tested on the VM I've been patching all afternoon, looks fine"** — incomplete. Run `ov rebuild <disposable-target>` once more from clean and re-verify before claiming success. Without the fresh-rebuild re-verification, your "fix" may be latent on hand-patched state.
 - **"I'll test it later / Phase 2"** — no. If the plan said "clean cutover in one PR", don't invent a Phase 2.
 
 If the container needs state that's only available in deploy (volumes, env, tunnel), author the test at `scope: deploy`. If it needs something at build only (binary path, package presence), author at `scope: build`. Both scopes must pass for the cutover to be real.
+
+**Confidence tier mapping:** The "fully tested and validated" confidence level in CLAUDE.md's AI-attribution table requires ALL 10 standards met — including Standard 10, the fresh-rebuild re-verification. Anything short of that ships at a lower confidence tier.
 
 ## Overview
 
