@@ -6,6 +6,12 @@ description: |
 
 # Service - Service Management
 
+## Schema v3 terminology note
+
+The schema-v3 rename settled on **"pod"** as the user-visible term for a single-container deployment (matches podman's vocabulary and the `target: pod` deploy-yml value). Internally, the Go struct is `PodDeployTarget` (formerly `ContainerDeployTarget`) and the file is `ov/deploy_target_pod.go`. This skill's body still uses the word "container" in many places because it's also the generic runtime artifact — read "container" as the runtime concept and "pod" as the schema-v3 target/deployment kind.
+
+`ov start/stop/status/logs/shell` operate on named pod deployments (the unit a user cares about); the underlying runtime is podman/docker (containers), managed via systemd user quadlet.
+
 ## Overview
 
 Container service lifecycle management with two modes: **quadlet** (systemd user services via podman quadlet, always preferred) and **direct** (`<engine> run -d` / `<engine> stop`, fallback only for platforms without quadlet support). Also manages individual init system services inside running containers (supervisord, systemd, etc. -- configured via build.yml `init:` section).

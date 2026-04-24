@@ -6,15 +6,26 @@ description: |
 
 # Deploy - Deployment Configuration
 
+## Schema v3 (in-progress cutover)
+
+The repo is migrating `deploy.yml` to schema v3 per `/home/atrawog/.claude/plans/can-you-have-a-recursive-axolotl.md`. Key changes:
+
+- **Dispatch via explicit `target:` only** — legacy name-prefix (`vm:<name>`, literal `host`) is deprecated. Schema-v3 target values: `host | vm | pod | k8s` (short, matches ov command verbs).
+- **Cross-ref fields on `DeploymentNode`** — `vm: <entity>` for target: vm, `image: <name>` for target: pod, `cluster: <name>` for target: k8s, `inside: <deploy>` for nested host-deploy.
+- **Disposability is a deploy property** — `DeploymentNode.Disposable` is the sole source of truth. `VmSpec.Disposable` is retained during transition and removed in Phase 5.
+- **Four disposable test beds** in repo `deploy.yml`: `arch-vm` (target: vm, disposable libvirt VM), `arch-vm.arch-host` (target: host, nested inside arch-vm — zero operator FS writes), `sway-pod` (target: pod, image: openclaw-sway-browser), `k3s-pod` (target: pod, image: fedora-ov + k3s-server layer). Together they exercise all 19 ov test verbs.
+
+Legacy spellings `container` / `kubernetes` / `vm:<name>` still work; `ov migrate deploy-schema-v3` (Phase 6) converts legacy files.
+
 ## Overview
 
 `ov deploy` is the parent verb for applying and tearing down deployments, plus managing `deploy.yml` overrides. The command family has two distinct surfaces:
 
-1. **Execution verbs** — `ov deploy add <name>` / `ov deploy del <name>`. Apply or reverse a deployment. Four targets are dispatched by the `<name>` prefix:
-   - `host` (literal) → `HostDeployTarget` on the local filesystem. See `/ov:host-deploy`.
-   - `vm:<vm-name>` → `VmDeployTarget` inside a running VM via SSH. See "VM target" section below and `/ov-dev:vm-deploy-target`.
-   - `kubernetes` → Kustomize base/overlays tree. See `/ov:kubernetes`.
-   - Any other name → `ContainerDeployTarget` (overlay Containerfile + quadlet/podman).
+1. **Execution verbs** — `ov deploy add <name>` / `ov deploy del <name>`. Apply or reverse a deployment. Four targets are dispatched by the `target:` field (schema v3) or the `<name>` prefix (legacy):
+   - `target: host` → `HostDeployTarget` on the local filesystem (or, with `inside: <deploy>`, via NestedExecutor into the referenced deployment). See `/ov:host-deploy`.
+   - `target: vm` (+ `vm: <entity>`) → `VmDeployTarget` inside a running VM via SSH. See "VM target" section below and `/ov-dev:vm-deploy-target`.
+   - `target: pod` (+ `image: <image>`) → `PodDeployTarget` (today's `ContainerDeployTarget`, renamed in Phase 4): overlay Containerfile + quadlet/podman.
+   - `target: k8s` (+ `cluster: <name>`) → Kustomize base/overlays tree. See `/ov:kubernetes` → `/ov:k8s`.
 2. **Config-file management** — `ov deploy show/export/import/reset/path/status`. Read and mutate `~/.config/ov/deploy.yml` itself.
 
 ## Four targets, one schema

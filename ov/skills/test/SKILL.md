@@ -14,6 +14,19 @@ description: |
 
 # Test - Declarative Full-Stack Testing
 
+## Schema v3 — four disposable test beds in this repo's `deploy.yml`
+
+The project's `deploy.yml` defines four canonical disposable beds covering the full ov verb surface with zero operator-side-effects:
+
+| Bed | Target | Surface |
+|---|---|---|
+| `arch-vm` | `target: vm, vm_source: arch` | libvirt/spice/ssh/cloud-init/guest OS (command/libvirt/spice/file/service/port/process/package/user/group/interface/kernel-param/mount/addr/dns/http/matching) |
+| `arch-vm.arch-host` | `target: host` nested child | HostDeployTarget code path inside arch-vm guest FS — zero operator FS writes |
+| `sway-pod` | `target: pod, image: openclaw-sway-browser` | cdp/wl/vnc/dbus/mcp/record (live-container verbs) |
+| `k3s-pod` | `target: pod, image: fedora-ov + k3s-server layer` | k8s verbs (all 13 methods) against the pod-hosted cluster |
+
+Run a full-stack smoke with `ov test run arch && ov test run <sway-pod> && ov test run <k3s-pod>`. Fresh-rebuild via `ov rebuild <name>` first (R10 acceptance gate). The bed-to-verb coverage map is a top-of-file comment in `deploy.yml`.
+
 ## The 10 Testing Standards (READ FIRST — referenced by CLAUDE.md R1–R10)
 
 An earlier agent claimed "cutover complete, all tests pass" after green `go test ./...` runs, then built an image that crash-looped at startup because a Containerfile stage was silently dropped. The unit tests didn't notice — they only exercised YAML loaders. **Unit tests are NOT a substitute for running the service.**

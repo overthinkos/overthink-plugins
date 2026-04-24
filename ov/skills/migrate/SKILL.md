@@ -14,6 +14,8 @@ One-shot, idempotent migrators for every hard-cutover schema change the project 
 |---|---|---|
 | `ov migrate unified` | Legacy `image.yml` + `build.yml` + flat-form `layer.yml` → `overthink.yml` with kind-keyed wrappers + `includes:` | `/ov:layer`, `/ov:image` |
 | `ov migrate vm-spec` | Legacy `image.bootc: true` + `image.vm: {...}` + `image.libvirt: [...]` + layer-level `libvirt:` → `vms.yml` `kind: vm` entities | `/ov-vms:vms`, `/ov-dev:vm-spec` |
+| `ov migrate merge-vms` | Separate `vms.yml` → `deploy.yml` top-level `vm:` key; rename `vms:` → `vm:`, `arch-cloud-base` → `arch`; bump schema v1 → v2 | `/ov-vms:vms` |
+| `ov migrate deploy-schema-v-3` | Schema v2 → v3: rename `vm:<name>` deploy keys → `<name>-vm`, normalize `target: container` → `pod`, `target: kubernetes` → `k8s`, rename `vm_source:` → `vm:`, bump `version: 2` → `3`. Idempotent (second run = no-op). | `/ov:deploy`, `/ov:vm`, `/ov-dev:disposable` |
 
 # ov migrate unified
 
