@@ -27,6 +27,7 @@ via `ov migrate unified` — see `/ov:migrate`.
 | Skill | Invocation | Description |
 |-------|-----------|-------------|
 | alias | `/ov:alias` | Command aliases (ov alias add/remove/install) |
+| benchmark | `/ov:benchmark` | `ov benchmark` — iterate an AI agent against BDD scenarios until plateau; rebuild + `ov image test` per iteration; git worktree per run |
 | build | `/ov:build` | `ov image build` — building images, caches |
 | cdp | `/ov:cdp` | Chrome DevTools Protocol (ov test cdp open/list/click/eval) |
 | cmd | `/ov:cmd` | Single command execution with D-Bus notification |
