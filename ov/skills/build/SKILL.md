@@ -161,41 +161,72 @@ ov image build --cache image my-image          # Read-only from registry image
 OV_BUILD_CACHE=registry ov image build         # Via environment variable
 ```
 
+## CalVer-only tagging (no `:latest`)
+
+`ov image build` tags every image with exactly one tag — its CalVer
+(e.g. `ghcr.io/overthinkos/fedora-supervisord:2026.114.1022`). ov does
+**not** emit a `:latest` tag, ever. Short-name resolution (in
+`ov/local_image.go`) picks the newest CalVer for a given short name
+via the `org.overthinkos.image=<short>` + `org.overthinkos.version=<calver>`
+OCI labels. The CLI accepts an explicit `--tag <calver>` for pinning;
+an empty `--tag` resolves to newest-local automatically.
+
+Rationale:
+1. **No stale-`:latest`-under-`--cache-from` bug.** The documented
+   caveat where podman's `--cache-from` silently pulls a stale
+   `:latest` from the remote registry is unreachable when ov never
+   emits `:latest` in the first place.
+2. **No "ambiguous short name" errors under multiple tags.** Previously
+   the resolver listed every `:latest` + `:<calver>` tag of the same
+   image as competing candidates; the CalVer sort picks the newest
+   one deterministically.
+3. **One-tag-per-build keeps registry + local storage lean.** A float
+   tag is a permanent nameable handle you have to garbage-collect;
+   a CalVer tag is self-describing and rotates naturally.
+
+Migration note: existing `:latest` tags from pre-cutover builds stay
+in local storage until the operator prunes them (`podman image prune`);
+they're just not refreshed by new builds.
+
 ## Cache Efficiency
 
-Three rules determine how much of a rebuild re-runs cached steps:
+### Core invariant — cache hits fully when nothing has changed
 
-1. **LABEL directives are emitted last** in every final stage (after the
-   last `USER` directive). This means a `tests:` edit — the most
-   common layer mutation — only re-runs the LABEL steps themselves
-   (~2 seconds on a 138-step stack like `immich-ml`). Without this,
-   the `org.overthinkos.tests` LABEL change would invalidate every
-   downstream RUN/COPY. See `/ov-dev:generate` for the rationale.
+**Running `ov image build <image>` with no source changes completes in seconds — every RUN/COPY/LABEL step hits the cache.** This is the invariant the rest of this section builds on. Cache-miss only happens when something in the build input genuinely changes; a rebuild you triggered "just to be sure" is free.
 
-2. **Content-addressed COPY sources** (via `stageInlineContent` for
-   `write:` tasks) mean edits to inline content change only the
-   affected COPY layer's cache key. Edits to regular file-based `copy:`
-   sources change the scratch stage's content hash and invalidate the
-   downstream `COPY --from=<layer>` step.
+Concretely: the cache is keyed by `(parent-image-SHA, instruction-text, COPY-source-content)`. The parent-image SHA resolves from the FROM reference at build time — a fresh CalVer tag that still points at the same image SHA keeps the subsequent RUN/COPY steps cached. Only when the underlying image SHA changes (because that upstream was rebuilt with changed content) does cache-miss cascade to the downstream steps.
 
-3. **CalVer cascade (residual cost)**: each `ov image build` assigns a
-   fresh CalVer timestamp to every intermediate image. Downstream
-   stages reference those new tags in their `FROM` step, which never
-   hits cache on a clean run. Subsequent RUN/COPY steps DO hit cache
-   (buildkit uses content-addressed keys from the FROM image onward).
-   This is the dominant cold-start cost; not yet addressed by any
-   stable-tag mode.
+### What legitimately invalidates cache
 
-Rule of thumb for rebuild cost:
+Three kinds of source changes are real cache invalidators — if you see a long rebuild, one of these is the cause:
+
+1. **Layer source file content changed.** Editing a file under `layers/<name>/` — the canonical case is `layers/ov/bin/ov` being rewritten by `task build:ov` after a Go source edit — changes the scratch stage's content hash, which invalidates `COPY --from=<layer>` and everything downstream that depends on it.
+2. **Package list / task text changed.** Adding/removing an rpm/deb/pac entry or editing a `cmd:` body changes the RUN instruction text emitted for that layer, invalidating cache from that RUN onward.
+3. **Upstream image content changed.** If a base image (external like `fedora` or internal like `fedora-supervisord`) has different content from the last cached build, the FROM step resolves to a new SHA and downstream RUN/COPY steps all cache-miss. This cascades through the dependency graph — rebuilding `fedora-supervisord` forces its children to re-run from the `FROM fedora-supervisord` step.
+
+### What does NOT invalidate cache
+
+- **CalVer tag shifts alone.** The Containerfile emits `ARG BASE_IMAGE=<registry>/<name>:<calver>` with a fresh CalVer on every generate. That ARG default appears in the Containerfile text but is not part of the cache key for subsequent RUN/COPY steps — podman/buildah resolves the FROM to an image SHA first, and caches downstream steps off that SHA. If the SHA is unchanged, cache hits. (Historical note: earlier skill revisions called this a "CalVer cascade cost"; that was a misdiagnosis. The real cost is content changes in the layer itself, not the tag.)
+- **`tests:` edits.** LABEL directives are emitted last in every final stage (after the last USER). A `tests:` edit — the most common layer mutation — only re-runs the final LABEL block (~2 seconds on a 138-step stack like `immich-ml`). See `/ov-dev:generate` for the rationale.
+- **Re-running `ov image build` without source changes.** Fully cached; seconds to complete.
+
+### `write:` vs `copy:` — cache granularity
+
+- `write:` tasks use `stageInlineContent` (content-addressed staging under `.build/<image>/_inline/<layer>/<sha256>/`). Editing a `write: content:` block changes only that single COPY layer's cache key — siblings in the same layer keep their cache.
+- `copy:` tasks reference files from the layer directory. Editing any file under `layers/<name>/` changes the WHOLE scratch stage's content hash (since `COPY layers/<name>/ /` is one instruction), invalidating every downstream `COPY --from=<layer>` step.
+
+### Rule of thumb for rebuild cost
 
 | Edit | Cost |
 |------|------|
+| `ov image build` with zero source changes | Seconds — every step cache-hits |
 | A `tests:` / label entry | ~2 sec (LABEL re-emit only) |
-| A `copy:` source file's content | Rebuild from the COPY step onward |
-| A `write:` task's content | Just that single COPY layer (content-addressed) |
-| A `cmd:` / `download:` task | Rebuild from that RUN onward |
-| A package added/removed | Rebuild from the install RUN onward |
-| `ov image build` with no source changes | Seconds (every step cache-hits) |
+| A `write:` task's content | Just that single content-addressed COPY layer |
+| A `copy:` source file's content | Rebuild from that layer's COPY onward + downstream |
+| A `cmd:` / `download:` task body | Rebuild from that RUN onward + downstream |
+| A package added/removed in `rpm:`/`deb:`/`pac:` | Rebuild from the install RUN onward + downstream |
+| `task build:ov` → new `layers/ov/bin/ov` | Rebuild the `ov` layer + every image that includes it |
+| An upstream image got content-changed and rebuilt | Rebuild from the FROM step onward in every descendant |
 
 ## Build Flow Details
 

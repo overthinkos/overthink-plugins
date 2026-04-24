@@ -11,6 +11,36 @@ description: |
 
 Skills are living documents at `plugins/<plugin>/skills/<name>/SKILL.md`. They are the primary knowledge source for Claude Code — always invoked before codebase exploration. This skill covers when and how to update them.
 
+## Skill Dispatcher (authoritative in CLAUDE.md R0; mirrored here)
+
+CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher. This section mirrors it so skill-authors already inside `/ov-dev:skills` see the same mapping without having to context-switch back to CLAUDE.md. If this table ever drifts from CLAUDE.md R0, **CLAUDE.md R0 wins** — fix this file, never the other way around.
+
+| Trigger | Skills to load BEFORE doing anything |
+|---|---|
+| `ov rebuild` / `ov vm *` / VM entities | `/ov:vm` + `/ov-dev:vm-deploy-target` |
+| `ov deploy add/del` / pod or container deploys | `/ov:deploy` |
+| host-target / nested host deploy | `/ov:host-deploy` + `/ov-dev:host-infra` |
+| `ov test run` / `ov test cdp/wl/dbus/vnc/mcp/record/spice/libvirt` | `/ov:test` |
+| `ov test k8s <verb>` | `/ov:test-k8s` |
+| Editing `layer.yml` / layer authoring | `/ov:layer` |
+| Editing `image.yml` / image composition | `/ov:image` |
+| `ov image build` / `ov image generate` / Containerfile | `/ov:build` + `/ov:generate` + `/ov-dev:generate` |
+| `ov image validate` / schema error | `/ov:validate` |
+| Secret management / `ov secrets` / `.kdbx` | `/ov:secrets` |
+| Schema v4 migration / legacy → new format | `/ov:migrate` |
+| Hard-cutover concerns / rename sweeps | `/ov-dev:cutover-policy` |
+| `disposable: true` semantics | `/ov-dev:disposable` |
+| Go source work | `/ov-dev:go` |
+| IR / InstallPlan / DeployTarget / OCITarget | `/ov-dev:install-plan` |
+| OCI labels / capabilities contract | `/ov-dev:capabilities` |
+| VmSpec / libvirt / cloud-init / OVMF | `/ov-dev:vm-spec` + renderer skills |
+| Unexpected failure / anomaly | `/ov-dev:root-cause-analyzer` agent |
+| "What does layer X do?" | `/ov-layers:<name>` |
+| "What's in image X?" | `/ov-images:<name>` |
+| Skill authoring / maintenance | `/ov-dev:skills` (this skill) |
+
+If multiple triggers apply, load ALL matching skills in ONE message (parallel `Skill` calls). Full index: `plugins/README.md` (250+ skills).
+
 ## When to Update Skills
 
 | Trigger | Action |

@@ -305,21 +305,30 @@ own surrounding quote and the rest of the JSON blob is parsed as
 `key=value` pairs — which typically fails with "can't find = in ..." on
 the JSON payload.
 
-### CalVer cascade (known residual cost)
+### CalVer tag shifts do NOT invalidate cache
 
-Each `ov image build` assigns a fresh CalVer timestamp to every
-intermediate image it produces. Downstream stages reference those by
-their new tag (e.g. `FROM ghcr.io/overthinkos/fedora:2026.108.1955`),
-which is a literally different image reference than last run. The
-downstream stage's first `FROM` step therefore never hits cache on a
-fresh run — but the subsequent content-addressed RUN/COPY steps do
-hit cache, because buildkit's per-instruction key is content-based
-from the FROM image ID onward, not from the tag string.
+Each `ov image build` generate assigns a fresh CalVer timestamp and
+emits it as the default of `ARG BASE_IMAGE=<registry>/<name>:<calver>`
+at the top of every intermediate Containerfile. The ARG default
+appears in the Containerfile text but is NOT part of the cache key
+for subsequent RUN/COPY steps.
 
-The LABELs-at-end fix wins on the common case (edit a test, rebuild the
-same stack) and doesn't help the "fresh base-image build" case. A
-content-hash tag mode would eliminate the residual FROM-step cost; not
-yet implemented.
+Concretely: podman/buildah resolves the `FROM ${BASE_IMAGE}` step
+first — turning the tag into an image SHA — then keys every later
+instruction off that SHA plus the instruction text plus COPY source
+content. If the SHA is the same as a cached build's parent (because
+the upstream image's content is unchanged), the whole rest of the
+build cache-hits. A CalVer bump on an unchanged upstream is free.
+
+Cache-miss only happens when something in the build input genuinely
+changes: the parent image's content (different SHA resolved by the
+FROM), a layer's scratch-stage content (`COPY layers/<name>/ /`
+source bytes), or an instruction's text (package list, cmd body).
+See `/ov:build` "Cache Efficiency" for the full list.
+
+Historical note: earlier revisions of this skill called this a
+"CalVer cascade cost" — that framing was incorrect. The cost is
+always in genuine content changes, never in tag shifts.
 
 ## Intermediate Images
 
