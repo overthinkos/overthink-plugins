@@ -10,9 +10,11 @@ description: |
 
 # cutover-policy
 
-Every schema change, API rename, or deprecation in Overthink ships as a **single hard-cutover PR** unless the user explicitly requests a phased migration. This applies to BOTH code (Go types, exported functions, CLI flags, OCI labels) AND config (overthink.yml, deploy.yml, layer.yml, vms.yml field names and shapes).
+Every schema change, API rename, or deprecation in Overthink ships as a **single hard-cutover PR**. This applies to BOTH code (Go types, exported functions, CLI flags, OCI labels) AND config (overthink.yml, deploy.yml, layer.yml, vms.yml field names and shapes).
 
-This skill is the source of truth for the policy. `CLAUDE.md` links here rather than re-stating the full policy inline.
+The ONLY way a cutover may be phased is if the user explicitly requests phasing DURING PLAN AUTHORING and the phasing is recorded in the plan file BEFORE approval. Once a plan has been approved, it executes end-to-end through R10 in the same conversation — no mid-execution splits, no "pause and resume", no exception.
+
+This skill is the source of truth for the policy. `CLAUDE.md` links here rather than re-stating the full policy inline. The project's `UserPromptSubmit` hook at `.claude/hooks/runtime-verification-reminder.sh` mirrors the key directives and fires at every user prompt.
 
 ## One phase, many tasks, one cutover — the workflow
 
@@ -25,7 +27,9 @@ This skill is the source of truth for the policy. `CLAUDE.md` links here rather 
 
 **Forbidden**: "Phase 1 landed, Phase 2 pending" as a stopping point. That leaves the system half-migrated — legacy paths live alongside new paths, migrations not yet run, tests passing for some beds and not others. Every historical instance of that pattern in this project left dead code and untested integration points that bit users later.
 
-If a cutover is genuinely too large for one conversation turn, split the WORK into plan-file-documented separate cutovers — each standing alone with its own migration, its own test sweep, and its own R10 re-verification. Never split "the same cutover" across turns.
+**Splitting an approved cutover across conversation turns is ABSOLUTELY FORBIDDEN.** Once a plan is approved, it executes end-to-end through R10 in the same conversation. "The work turned out to be large" is NOT a valid reason to pause — compact context and continue, do not negotiate a split mid-execution. An approved plan is a CONTRACT.
+
+If you can see BEFORE approval that a cutover is obviously too large for one turn, author it as TWO separate plans so the user can approve them independently — each plan then executes end-to-end. This is a planning-phase decision only; it is not a post-approval escape hatch. The Exception clause at the bottom of this document applies ONLY during planning, never during execution.
 
 ## Forbidden patterns (by default)
 
@@ -49,9 +53,11 @@ Phased migrations accumulate mid-state complexity that, in practice, rarely gets
 
 A developer who *needs* a grace period should record that explicitly in the plan file — both to force an honest review of whether the grace period is actually necessary, and to preserve the audit trail when someone later asks why the old field lingered.
 
-## Exception clause
+## Exception clause (PRE-APPROVAL ONLY)
 
-Explicit user instruction in the form of:
+This exception is ONLY usable during plan authoring, before the user approves. After approval, the exception is closed — the plan runs end-to-end through R10 in the same conversation.
+
+Explicit user instruction during planning in the form of:
 
 - "keep the old API for a grace period"
 - "phase the cutover across two releases"
