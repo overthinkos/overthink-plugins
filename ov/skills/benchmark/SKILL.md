@@ -103,17 +103,16 @@ benchmark:
         ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY}"
       timeout: 20m                   # default 30m when omitted
       credentials:
-        - src: ~/.claude             # OAuth session + history
-          dst: ~/.claude
-      cleanup_credentials: false     # default; retain state for faster repeat runs
+        - src: ~/.claude/.credentials.json
+          dst: ~/.claude/.credentials.json
     - name: codex
       command: [codex, exec, "${PROMPT}"]
       credentials:
-        - {src: ~/.config/codex, dst: ~/.config/codex}
+        - {src: ~/.config/codex/auth.json, dst: ~/.config/codex/auth.json, optional: true}
     - name: gemini
       command: [gemini, chat, "${PROMPT}"]
       credentials:
-        - {src: ~/.config/gcloud, dst: ~/.config/gcloud}
+        - {src: ~/.config/gcloud/application_default_credentials.json, dst: ~/.config/gcloud/application_default_credentials.json, optional: true}
 
   prompt: |
     You are benchmarking BDD-scenario-solving inside an overthink project.
@@ -147,18 +146,18 @@ benchmark:
     - name: claude
       command: [claude, -p, "${PROMPT}"]
       credentials:
-        - {src: ~/.claude, dst: ~/.claude}
+        - {src: ~/.claude/.credentials.json, dst: ~/.claude/.credentials.json}
     - name: codex
       command: [codex, exec, "${PROMPT}"]
       credentials:
-        - {src: ~/.config/codex, dst: ~/.config/codex}
+        - {src: ~/.config/codex/auth.json, dst: ~/.config/codex/auth.json, optional: true}
     - name: gemini
       command: [gemini, chat, "${PROMPT}"]
       credentials:
-        - {src: ~/.config/gcloud, dst: ~/.config/gcloud}
+        - {src: ~/.config/gcloud/application_default_credentials.json, dst: ~/.config/gcloud/application_default_credentials.json, optional: true}
 ```
 
-Each runner inherits `timeout: 30m` and `cleanup_credentials: false` from the Go-level defaults.
+Each runner inherits `timeout: 30m` from the Go-level default. Credentials sync the MINIMUM file the AI CLI needs to authenticate non-interactively — typically a single refresh-token file. Do not sync whole config directories: `~/.claude` alone is ~430 MB / 7k files, and only `.credentials.json` is load-bearing for `claude -p` auth.
 
 ## Supported deploy kinds
 
