@@ -3,93 +3,120 @@ name: benchmark
 description: |
   MUST be invoked before any work involving: `ov benchmark` commands, the
   `benchmark:` section in overthink.yml, the iteration-until-plateau
-  scoring loop, AI-runner credential sync, the `ovbench/<run-id>` git
-  branch convention, or the seven benchmark verdicts (solved / partial /
-  unchanged / regressed / tampered / retagged / added).
-  Covers runner configuration, plateau semantics, deploy-kind dispatch
-  (host/pod/vm; k8s rejected in v1), worktree lifecycle, credential sync
-  with no-worktree-leak guarantee, `ov image test --format yaml` scoring,
-  fingerprint-based tampering detection, and the AI-facing helpers
-  (`ov benchmark scope`, `ov benchmark last-test-tag`,
-  `ov benchmark self-evaluate`).
+  scoring loop, AI-runner credential sync into the bench-pod, the
+  `ovbench/<run-id>` git branch convention, or the seven benchmark
+  verdicts (solved / partial / unchanged / regressed / tampered /
+  retagged / added).
+  Covers runner configuration, plateau semantics, the thin-host /
+  fat-pod architecture, the per-run clone model (no host worktree),
+  one-shot credential sync, `ov image test --format yaml` scoring run
+  inside the pod's nested podman, fingerprint-based tampering detection,
+  and the AI-facing helpers (`ov benchmark scope`,
+  `ov benchmark last-test-tag`, `ov benchmark self-evaluate`).
 ---
 
 # benchmark — Score AI agents against BDD scenarios via iterative rebuild-test loops
 
 ## Overview
 
-`ov benchmark` runs an AI agent (claude / codex / gemini / any configured runner) **inside** an existing host/pod/vm deployment, lets it edit source in a dedicated git worktree to solve pending BDD scenarios, and iterates until the solved-count plateaus for N consecutive iterations. The deployment IS the sandbox. The worktree IS the workspace. `ov image test --format yaml` IS the scorer.
+`ov benchmark` runs an AI agent (claude / codex / gemini / any configured runner) **inside a persistent pod** that clones the project's repo and iterates against the pending BDD scenarios until the solved-count plateaus. The pod IS the sandbox. The pod's per-run git clone IS the workspace. `ov image test --format yaml` (run inside the pod against a freshly built iteration tag) IS the scorer.
 
-The feature composes two prior cutovers:
+**Architecture: thin-host / fat-pod.** The host's `ov benchmark run <pod>` is a pure forwarder — it validates the pod, generates a run-id, and execs `ov benchmark run-local` inside the pod via `podman exec`. Every interesting piece (clone, build, test, score, classify, fingerprint, commit) happens *exclusively inside the pod* using the pod's own `ov` binary. After completion the host `podman cp`s the run dir back so `ov benchmark list` and `ov benchmark report` work host-side.
 
-1. **BDD description cutover** (commit `64fd7d7`) — every `kind:` entity (layer / image / pod / vm / k8s / host / deployment) carries a structured `description:` block with Gherkin-shaped `scenarios:`. Each scenario step embeds an existing `ov test` Check, so scenarios are runnable verdicts, not prose.
-2. **Unified deploy targets (schema v4)** — `ov deploy add <name> <ref>` produces one of four sandbox flavours (host / pod / vm / k8s) with a shared shell surface (`ov cmd` / `ov shell` / `ov ssh` / `ov vm ssh`).
+The feature composes three prior cutovers:
 
-`ov benchmark` fires the AI inside one of those sandboxes, rebuilds the image from the worktree after every iteration, runs `ov image test <ovbench-tag> --format yaml` to score, and stops when the AI stops improving.
+1. **BDD description cutover** — every `kind:` entity carries `description.scenarios:` Gherkin blocks, each step embedding an existing `ov test` Check.
+2. **Unified deploy targets (schema v4)** — `ov deploy add <name> <ref>` produces a long-lived pod with the bind-mounted `/workspace`.
+3. **Container-nesting + ov-mcp + AI-CLI layers** — `fedora-coder` and `arch-coder` already ship rootless nested podman, the MCP gateway, and claude/codex/gemini, so a benchmark pod is a one-line `ov deploy add` away.
 
 ## Quick Reference
 
 | Command | Purpose |
 |---|---|
-| `ov benchmark run <deployment>` | Main driver — iterate until plateau |
-| `ov benchmark list` | Past runs under `.benchmark/` |
-| `ov benchmark list-runners` | Configured runners from `overthink.yml` `benchmark:` section |
+| `ov benchmark run <pod>` | Host forwarder — dispatches into the pod and streams output |
+| `ov benchmark run-local <image> --run-id <id>` | Pod-side iteration driver (HIDDEN; the host invokes this) |
+| `ov benchmark sync-credentials <pod>` | One-shot copy of AI-CLI credentials into the bench-pod |
+| `ov benchmark list` | Past runs under `.benchmark/` (host-mirrored) |
+| `ov benchmark list-runners` | Configured runners from `overthink.yml` `benchmark:` |
 | `ov benchmark report [<run-id>]` | Re-render a past `report.yml` (default: latest) |
 | `ov benchmark scope` | **AI-facing**: current iteration's scope YAML |
-| `ov benchmark last-test-tag` | **AI-facing**: prior iteration's image tag (for cheap self-inspection) |
-| `ov benchmark self-evaluate` | **AI-facing, expensive**: rebuilds current worktree + runs `ov image test` |
+| `ov benchmark last-test-tag` | **AI-facing**: prior iteration's image tag |
+| `ov benchmark self-evaluate` | **AI-facing, expensive**: rebuilds current clone + runs `ov image test` |
 
 ## The four design pillars
 
 ### 1. Everything through `ov` + YAML. No JSON.
 
-Runner config lives in `overthink.yml` under a new `benchmark:` key. The prompt template is a YAML multiline string on the same block. The per-run report persists as `.benchmark/<run-id>/report.yml`. Per-iteration state persists as `iter<k>/score.yml` + `iter<k>/test-output.yaml`. Fingerprints are sha256 hex strings inside those YAML files. There is zero JSON on the benchmark surface.
+Runner config lives in `overthink.yml` under `benchmark:`. The prompt template is a YAML multiline string on the same block. The per-run report persists as `.benchmark/<run-id>/report.yml`. Per-iteration state persists as `iter<k>/score.yml` + `iter<k>/test-output.yaml`. Fingerprints are sha256 hex strings inside those YAML files. Zero JSON on the benchmark surface.
 
-### 2. Git worktree per run — the workspace concept
+### 2. Per-run git clone inside the pod — the workspace concept
 
-Every benchmark run creates:
-
-```
-git worktree add .benchmark/<run-id>/worktree HEAD -b ovbench/<run-id>
-```
-
-The worktree is the AI's workspace. The deployment's `/workspace` bind-mount (from the `ov-mcp` layer) makes the worktree reachable inside pod/vm deploys at `/workspace/.benchmark/<run-id>/worktree/`. Host deploys reach the same dir at its absolute host path.
-
-After each iteration the harness stages + commits with **no `--no-verify`** (hooks run):
+Every benchmark run, inside the pod, executes:
 
 ```
-git commit -m "iter<k>: score=N, solved=[id1,id2,...]" --allow-empty
+git clone --no-local /workspace /workspace/.benchmark/<run-id>/repo
+git -C /workspace/.benchmark/<run-id>/repo checkout -b ovbench/<run-id>
+git -C /workspace/.benchmark/<run-id>/repo submodule update --init --recursive
 ```
 
-Post-benchmark, `git log ovbench/<run-id>` is the audit trail. `git diff main..ovbench/<run-id>` is the total AI delta. Cleanup is `git worktree remove` + `git branch -D`.
+The clone is the AI's workspace. `--no-local` keeps the new `.git` independent — the AI can't accidentally pollute host refs from inside the pod. Submodules are populated so the AI sees the full `plugins/` skill set.
 
-Damage isolation: if the AI breaks `layer.yml` parsing or any other invariant, the damage lives on the `ovbench/<run-id>` branch. `main` stays clean.
+After each iteration, inside the clone:
+
+```
+git add -A && git commit --allow-empty -m "iter<k>: score=N, solved=[id1,id2,...]"
+```
+
+(Hooks RUN — no `--no-verify`.) At end of run the branch pushes back to the bind-mounted host repo:
+
+```
+git push file:///workspace ovbench/<run-id>
+```
+
+Post-benchmark on the **host**, `git log ovbench/<run-id>` is the audit trail. `git diff main..ovbench/<run-id>` is the total AI delta. The branch lives in the host's `.git` after the push-back.
+
+Damage isolation: if the AI breaks `layer.yml` parsing or any other invariant, the damage is bounded inside the per-run clone (which is destroyed/garbage-collected between runs). The push-back lands on a dedicated branch that doesn't touch `main`.
 
 ### 3. `ov image test --format yaml` is the scorer
 
-After each iteration's rebuild into `ovbench/<run-id>-iter<k>:<image>`, the harness shells out:
+After each iteration's nested-podman rebuild into `ghcr.io/overthinkos/<image>:ovbench-<run-id>-iter<k>`, the pod's `ov` shells out:
 
 ```
-ov image test ovbench/<run-id>-iter<k>:<image> --format yaml
+ov image test ghcr.io/overthinkos/<image>:ovbench-<run-id>-iter<k> --format yaml
 ```
 
-parses the output via `ParseOvTestOutput` in `benchmark_score.go`, and counts scenarios with verdict `solved` as the iteration score. Improvements to `ov test` flow through the benchmark automatically.
+parses the output via `ParseOvTestOutput` in `benchmark_score.go`, and counts scenarios with verdict `solved` as the iteration score. The `Classify` 7-way matrix runs against (baseline, post) ScenarioState pairs computed from the per-run clone's description blocks. Improvements to `ov test` flow through automatically.
 
 ### 4. Iteration loop with plateau-driven termination
 
-For each iteration `k` (1-indexed):
+For each iteration `k` (1-indexed), inside the pod:
 
 1. Refresh scope YAML (still-unsolved scenarios + score-trajectory history).
-2. Render prompt with iteration-specific tokens substituted.
-3. Dispatch runner into deploy (via `ov cmd` / `ov ssh` / `ov vm ssh`).
-4. Rebuild image from worktree into `ovbench/<run-id>-iter<k>:<image>`.
-5. Shell out to `ov image test <iter-tag> --format yaml`; parse.
-6. Classify each pre-AI scenario (7-way verdict). Compute `score_k = count(solved)`.
-7. Commit iteration on the `ovbench/<run-id>` branch.
+2. Render prompt with iteration-specific tokens substituted; mirror to `<repo>/.benchmark/{scope.yml,prompt.md}`.
+3. Exec the runner directly (no podman-exec round-trip — already in the pod).
+4. Nested podman: `ov image build <image> --tag ovbench-<run-id>-iter<k>` from the clone.
+5. `ov image test <iter-tag> --format yaml` against the freshly built image.
+6. Reload post-iteration descriptions from the clone; classify each pre-AI scenario (7-way verdict). `score_k = count(solved)`.
+7. Commit iteration on the `ovbench/<run-id>` branch in the clone.
 8. Plateau check: `score_k > best_score` → reset counter; else increment.
 9. Exit when plateau counter ≥ `--plateau-iterations` (default 3).
 
 No overall timeout. Per-runner `timeout:` bounds individual AI invocations (default 30m).
+
+## Setup — one-time pod authoring
+
+```bash
+# In the project directory:
+ov deploy add bench-pod fedora-coder --bind project=$PWD
+ov start bench-pod
+ov benchmark sync-credentials bench-pod   # one-shot AI-CLI auth sync
+```
+
+`fedora-coder` ships every required layer (`ov-full`, `ov-mcp`, `container-nesting`, claude-code, codex, gemini) — no image work needed. `arch-coder` is the Arch sibling.
+
+The pod is **NOT** marked `disposable: true` by default. Persistence preserves the nested-podman build cache (massive iteration speedup) and the AI's auth state across runs. Add `--disposable` only if you want `ov rebuild bench-pod` to wipe state autonomously (typically only for R10 verification per `/ov-dev:disposable`).
+
+For multi-project users: one `bench-pod-<project>` per project, each with its own `--bind project=...`.
 
 ## Config shape — `benchmark:` in `overthink.yml`
 
@@ -120,59 +147,34 @@ benchmark:
     best score is ${BEST_SCORE}; plateau counter is ${PLATEAU_COUNTER} of
     ${PLATEAU_ITERATIONS}.
 
-    Your cwd is the git worktree at ${WORKSPACE}. Edits you make are
+    Your cwd is the per-run git clone at ${WORKSPACE}. Edits you make are
     captured per-iteration as git commits on branch ovbench/${RUN_ID}.
 
     MCP tools: ${MCP_ENDPOINT}
 
     Read scope:              ov benchmark scope
-    Inspect scenario:        ov feature list <origin>
-    Validate edits:          ov feature validate <origin>
     See prior test output:   ov image test $(ov benchmark last-test-tag) --format yaml
     Exit when done with this iteration.
 ```
 
 ### Substitution tokens
 
-`${PROMPT}`, `${PROMPT_FILE}`, `${WORKSPACE}`, `${TARGET_IMAGE}`, `${TARGET_DEPLOYMENT}`, `${RUN_ID}`, `${ITERATION}`, `${MAX_ITERATIONS}`, `${PLATEAU_ITERATIONS}`, `${PLATEAU_COUNTER}`, `${BEST_SCORE}`, `${MCP_ENDPOINT}`, `${TAGS}`, `${DEADLINE}`, `${TIMEOUT}`, plus any `${X}` that falls through to `os.Getenv("X")`. Unresolved tokens expand to the empty string.
+`${PROMPT}`, `${PROMPT_FILE}`, `${WORKSPACE}` (= per-run repo dir), `${TARGET_IMAGE}`, `${TARGET_DEPLOYMENT}`, `${RUN_ID}`, `${ITERATION}`, `${MAX_ITERATIONS}`, `${PLATEAU_ITERATIONS}`, `${PLATEAU_COUNTER}`, `${BEST_SCORE}`, `${MCP_ENDPOINT}` (= `http://localhost:18765/mcp`), `${TAGS}`, `${DEADLINE}`, `${TIMEOUT}`, plus any `${X}` that falls through to `os.Getenv("X")`.
 
-### Default skeleton (what a fresh project ships)
+## Supported pod targets
 
-Copy verbatim:
+The thin-host model only supports `target: pod` deployments. The old host/vm/k8s dispatch matrix was deleted with the cutover — a pod is what makes the in-pod nested build + test work, and there's no value in maintaining three near-identical paths.
 
-```yaml
-benchmark:
-  runners:
-    - name: claude
-      command: [claude, -p, "${PROMPT}"]
-      credentials:
-        - {src: ~/.claude/.credentials.json, dst: ~/.claude/.credentials.json}
-    - name: codex
-      command: [codex, exec, "${PROMPT}"]
-      credentials:
-        - {src: ~/.config/codex/auth.json, dst: ~/.config/codex/auth.json, optional: true}
-    - name: gemini
-      command: [gemini, chat, "${PROMPT}"]
-      credentials:
-        - {src: ~/.config/gcloud/application_default_credentials.json, dst: ~/.config/gcloud/application_default_credentials.json, optional: true}
-```
+If your host genuinely cannot run pods (rare; both Docker and Podman work), the workaround is to provision a VM that runs nested rootless podman, then run `ov deploy add bench-pod fedora-coder` *inside the VM* — the same pod recipe applies.
 
-Each runner inherits `timeout: 30m` from the Go-level default. Credentials sync the MINIMUM file the AI CLI needs to authenticate non-interactively — typically a single refresh-token file. Do not sync whole config directories: `~/.claude` alone is ~430 MB / 7k files, and only `.credentials.json` is load-bearing for `claude -p` auth.
+**Preflight requirements** on the bench-pod:
 
-## Supported deploy kinds
-
-| Target | Exec verb | Workspace (inside deploy) | Rebuild path |
-|---|---|---|---|
-| `pod` | `ov cmd <deploy> --` | `/workspace/.benchmark/<run-id>/worktree` | Host runs `ov -C <host-worktree> image build` |
-| `host` | `ov ssh <alias>` (if SSH-addressable) or local shell | Host absolute worktree path | Host runs `ov image build` |
-| `vm` | `ov vm ssh <vm> --` | `/workspace/.benchmark/<run-id>/worktree` via virtiofs/9p | Host runs `ov image build` |
-| `k8s` | — | — | **REJECTED in v1 with `ErrK8sUnsupported`.** Nested-build complexity; deferred. |
-
-**Preflight requirements** on the target deployment:
-
-- `ov-mcp` layer present (unless `--no-mcp` is passed).
-- AI-CLI layer matching the runner's `command[0]` (preflight probes `command -v <bin>` inside the deploy).
-- Writable `/workspace` bind-mount mapping to the project root.
+- `target: pod` (or default container target).
+- Pod is running (`ov status <pod>` shows `Active: active (running)`).
+- `/workspace` bind-mount points at the project directory (set with `--bind project=$PWD` at deploy time).
+- AI-CLI binary on PATH inside the pod (matches the runner's `command[0]`).
+- `ov` binary inside the pod (always present in `fedora-coder`/`arch-coder` via `ov-full`).
+- Nested podman works (`ov cmd <pod> -- podman info` succeeds; ships via `container-nesting`).
 
 ## The seven verdicts
 
@@ -188,26 +190,18 @@ Every pre-AI scenario is classified after each iteration:
 | `retagged` | Body unchanged, only tags differ | No (soft warning) |
 | `added` | Post-only scenario (AI added a new one) | No (reported separately) |
 
-## Credential sync — preflight-once, never per-iteration
+## Credential sync — `ov benchmark sync-credentials <pod>`
 
-AI CLIs typically hold auth state in the user's `$HOME` (`~/.claude/` for Claude Code, `~/.config/gcloud/` for Gemini ADC, `~/.config/codex/` for Codex). The benchmark syncs these into the deployment **once** at preflight via `Dispatcher.SyncCredentials`. Not per iteration — re-syncing mid-run would clobber OAuth refresh tokens the AI rotated during its work.
+A one-shot copy of AI-CLI auth files into the pod's `$HOME` via `podman cp`. Run once at pod creation, again whenever you rotate credentials. The persistent pod retains auth across iterations and across runs — there is no per-run credential sync.
 
-Copy semantics per deploy kind:
+```bash
+ov benchmark sync-credentials bench-pod                # all configured runners
+ov benchmark sync-credentials bench-pod --runner claude  # filter to one runner
+```
 
-| Kind | Mechanism |
-|---|---|
-| `host` (local) | `cp -a` (local filesystem; handled by `syncCredentialsLocal`) |
-| `host` (SSH) | `rsync -a …` over ssh |
-| `pod` | `podman cp <src> <container>:<dst>` |
-| `vm` | `rsync -a -e 'ov vm ssh <name> --' …` |
+Mounts come from `benchmark.runners[*].credentials` in `overthink.yml`. Each is `{src, dst, optional}` where `~` in `dst` resolves against the pod's $HOME (looked up via `getent passwd $(id -u)` inside the pod). Sync the **minimum** file the AI CLI needs to authenticate non-interactively — typically a single refresh-token file. Do not sync whole config directories: `~/.claude` alone is ~430 MB / 7k files, and only `.credentials.json` is load-bearing for `claude -p` auth.
 
-**Privacy invariant (enforced by `TestSyncCredentials_EndToEnd`):**
-
-1. Credentials land at the deploy's `$HOME` (or resolved `dst`).
-2. Credentials NEVER land in the worktree.
-3. `git status` on the worktree stays clean post-sync.
-
-The dispatcher's `SyncCredentials` contract explicitly forbids any code path that would copy credential material into the worktree. Violating that invariant would leak tokens into the `ovbench/<run-id>` commit history.
+**Concurrency**: a per-pod flock at `/workspace/.benchmark/.lock` prevents two `ov benchmark run` invocations against the same pod from racing on the per-run clone, on nested podman storage, or on the `ovbench/<run-id>` branch namespace. The second concurrent run fails fast.
 
 ## AI-facing feedback loop
 
@@ -220,8 +214,7 @@ max_iterations: 50
 plateau_iterations: 3
 plateau_counter: 1
 best_score: 2
-target_image: fedora-ov
-target_deployment: hermes-disposable
+target_image: fedora-coder
 history:
   - k: 1
     score: 1
@@ -231,22 +224,24 @@ history:
     score: 2
     solved_ids: [desc:layer:sshd:0, desc:layer:ssh-client:0]
     plateau_counter_after: 0
-scenarios:                           # still-unsolved only
+scenarios:
   - id: desc:layer:foo:0
     origin: layer:foo
     baseline_verdict: fail
     pending_steps_current: 2
 ```
 
-The AI can also run `ov image test $(ov benchmark last-test-tag) --format yaml` to re-inspect the prior iteration's detailed results WITHOUT triggering a rebuild (the previous iteration's `ovbench/<run-id>-iter<k-1>:<image>` tag is still in local storage).
+The AI can also run `ov image test $(ov benchmark last-test-tag) --format yaml` to re-inspect the prior iteration's detailed results without triggering a rebuild (the previous iteration's tag is still in the pod's nested storage).
 
-Opt-in expensive self-check: `ov benchmark self-evaluate` rebuilds the current worktree into a throwaway tag and runs `ov image test` against it, printing the score. It is **pure** — does NOT mutate the active iteration's scope or committed history. The authoritative score always comes from the harness at end-of-iteration.
+Opt-in expensive self-check: `ov benchmark self-evaluate` rebuilds the current per-run clone into a throwaway tag and runs `ov image test` against it, printing the score. **Pure** — does NOT mutate the active iteration's score. The authoritative score still comes from the harness at end-of-iteration.
 
 ## Filesystem layout under `.benchmark/<run-id>/`
 
+Inside the pod (canonical location during a run):
+
 ```
-.benchmark/<run-id>/
-├── worktree/                    # git worktree on branch ovbench/<run-id>
+/workspace/.benchmark/<run-id>/
+├── repo/                        # per-run git clone, branch ovbench/<run-id>
 │   └── .benchmark/
 │       ├── scope.yml            # mirror of active iteration's scope
 │       └── prompt.md            # mirror of active iteration's prompt
@@ -263,7 +258,7 @@ Opt-in expensive self-check: `ov benchmark self-evaluate` rebuilds the current w
 └── report.yml                   # aggregated final report
 ```
 
-Nothing outside `.benchmark/<run-id>/` and the `ovbench/<run-id>` git branch is written by the harness.
+After completion, the host's `ov benchmark run` mirrors `/workspace/.benchmark/<run-id>` back to the host's `<projectDir>/.benchmark/<run-id>` via `podman cp`, so `ov benchmark list` / `report` work host-side.
 
 ## Runner argv + env injection
 
@@ -286,6 +281,10 @@ These are what `ov benchmark scope` and `ov benchmark last-test-tag` read to loc
 | `dry-run` | `--dry-run` exited after iter1 scope+prompt rendering |
 | `interrupted` | SIGINT or context cancellation |
 
+## Known follow-ups
+
+- **Deploy-scope scenarios are not yet scored.** `ov image test` runs disposable (no `--include-deploy`), so deploy-scope scenarios — which need a running container — never appear in the post-iteration test output and currently false-trigger as `tampered` or `unchanged`. The fix is to spin up the iter-tag image as a transient `--rm` container inside the pod and run deploy-scope assertions against it. Documented as a follow-up; not bundled into the cutover.
+
 ## When to Use This Skill
 
 **MUST be invoked** before authoring runner configs, debugging benchmark loops, interpreting reports, or modifying any `ov/benchmark_*.go` file. Invoke BEFORE reading the source code.
@@ -295,6 +294,8 @@ These are what `ov benchmark scope` and `ov benchmark last-test-tag` read to loc
 - `/ov:test` — `ov test` and `ov image test` semantics; the verb catalog the scorer consumes
 - `/ov:layer`, `/ov:image` — the YAML surfaces the AI edits
 - `/ov-layers:ov-mcp` — the `/workspace` bind-mount convention benchmark relies on
-- `/ov-dev:go` — Go-side implementation map (including `benchmark_score.go`, `benchmark_config.go`, `benchmark_worktree.go`, `benchmark_dispatch.go`, `benchmark_loop.go`, `benchmark_cmd.go`)
-- `/ov-dev:cutover-policy` — the hard-cutover rules that govern how the benchmark cutover was shipped
-- `/ov-dev:disposable` — `disposable: true` authorization rules (relevant because benchmarks target disposable deploys)
+- `/ov-layers:container-nesting` — the rootless-nested-podman recipe that lets the pod build images
+- `/ov-images:fedora-coder`, `/ov-images:arch-coder` — the canonical bench-pod images
+- `/ov-dev:go` — Go-side implementation map (`benchmark_cmd.go`, `benchmark_runlocal_cmd.go`, `benchmark_synccreds_cmd.go`, `benchmark_loop.go`, `benchmark_clone.go`, `benchmark_score.go`, `benchmark_config.go`)
+- `/ov-dev:cutover-policy` — the hard-cutover rules that governed both this and the dispatcher-removal cutover
+- `/ov-dev:disposable` — `disposable: true` authorization rules (relevant when running R10 against a disposable bench-pod)
