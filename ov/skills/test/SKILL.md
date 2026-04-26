@@ -503,14 +503,57 @@ can `contains:` without JSON decoding. `list-tools` emits
 `<name>\t<description>`; `list-resources` emits `<uri>\t<name>\t<mime>`;
 `call` emits the concatenated `TextContent` payloads; `ping` emits `ok`.
 
-#### New modifier: `artifact_min_bytes`
+#### Artifact-validation modifiers
 
-For screenshot-producing methods (`cdp: screenshot`, `wl: screenshot`,
-`vnc: screenshot`), set `artifact: <path>` to tell `ov` where to write
-the image AND `artifact_min_bytes: <N>` to assert the file is at least N
-bytes after the run. Guards against the common failure mode of "the
-screenshot ran but produced a zero-byte file because the compositor
-wasn't ready yet."
+For artifact-producing methods (`cdp: screenshot`, `wl: screenshot`,
+`vnc: screenshot`, `libvirt: screenshot`, `spice: screenshot`,
+`record: stop`), set `artifact: <path>` to tell `ov` where to write the
+output AND any combination of the modifiers below to assert the
+artifact's correctness post-run.
+
+- **`artifact_min_bytes: <N>`** — assert the file is at least N bytes
+  after the run. Guards against zero-byte files. Cheap (`os.Stat`
+  only).
+- **`artifact_min_dimensions: WxH`** — assert decoded image width and
+  height are each at least the given values. Reads only the PNG/JPEG
+  header via `image.DecodeConfig`, so essentially free. Catches "the
+  screenshot ran but the compositor produced 320×240 instead of the
+  expected 1920×1080".
+- **`artifact_not_uniform: true`** — assert the image is not uniformly
+  one color. Decodes the full image and samples 100 pixels at
+  deterministic stride positions; fails if every sampled pixel has
+  the same RGBA. Catches the failure mode `artifact_min_bytes` is
+  blind to: a 100KB all-black PNG passes the byte check but fails
+  this one. Use on every screenshot probe where "the image has real
+  content" matters.
+- **`artifact_min_cast_events: <N>`** — for asciinema `.cast`
+  artifacts (e.g. `record: stop` in terminal mode): validates the
+  first line is the asciinema v2 header and counts at least N event
+  lines after it. Catches "the recording started and stopped but
+  captured nothing because nothing was typed".
+
+```yaml
+# Combined screenshot validity assertion — bytes + dimensions + content.
+- id: cdp-screenshot-real
+  cdp: screenshot
+  tab: "1"
+  artifact: /tmp/cdp.png
+  artifact_min_bytes: 5000
+  artifact_min_dimensions: 800x600
+  artifact_not_uniform: true
+
+# Recording validity — bytes + event count.
+- id: record-cast-has-events
+  record: stop
+  artifact: /tmp/session.cast
+  artifact_min_bytes: 200
+  artifact_min_cast_events: 5
+```
+
+The four modifiers are independent — set just the one you need or
+combine all four for the strongest "the artifact is real" assertion.
+Failure messages identify the specific artifact and the specific
+threshold that wasn't met.
 
 #### Gotcha — stale container-baked `ov` binary
 

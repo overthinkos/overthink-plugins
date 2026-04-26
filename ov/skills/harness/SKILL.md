@@ -403,6 +403,45 @@ Naming convention: `${HARNESS_NONCE_<UPPER_SNAKE>}` (e.g., `KEY`,
 `VALUE`, `TOKEN1`, `RANDOM_PATH`). The harness regex is
 `\$\{HARNESS_NONCE_([A-Z0-9_]+)\}`.
 
+## Recipe authoring discipline — fixture pods + producer→consumer chains
+
+**Active recipes in `harness.yml` follow this discipline (2026-04 cutover):**
+
+Every recipe deploys one or more **fixture pods** that produce
+verifiable state with a predetermined content marker, then has
+scenarios — sometimes intra-recipe, sometimes cross-recipe via the
+progressive curriculum's persistence — that probe the fixture via
+DIFFERENT verbs and assert the SAME predetermined marker. The result
+is a connected verification graph: a green chain proves cross-pod
+traffic + upstream correctness + verb correctness simultaneously,
+and a red probe isolates the failure to one arrow in the graph.
+
+**Naming convention:** fixture pods are named `fixture-<purpose>`
+(rendered as `ov-fixture-<purpose>` by the runtime). Cross-pod
+consumers reach them via the literal hostname `ov-fixture-<purpose>`.
+
+**Verb correctness via known expected outputs:** every consumer
+probe asserts a SPECIFIC predetermined value (`stdout: { contains:
+["ov-fixture-web-content-marker"] }`), never just `{ matches: "." }`.
+This is what makes a `cdp: text` test a CDP-correctness test, not a
+non-emptiness guard.
+
+**Example chain (current `default` score):** phase 2's
+`network-and-http` recipe deploys `fixture-web` serving the literal
+marker `"ov-fixture-web-content-marker"` on `GET /`. Phase 6's
+`desktop-display-and-input` recipe loads `http://ov-fixture-web:8080/`
+in a Chrome browser and asserts `cdp: text` returns the marker. Phase
+7's `vm-control-libvirt-spice` recipe, from inside a libvirt VM,
+runs `guest/exec curl http://ov-fixture-web:8080/` and asserts the
+same marker. A single regression in phase 2's served content cascades
+into red probes across multiple downstream phases — desired behavior
+for failure-isolation.
+
+**Artifact-validation primitives** (paired with this discipline for
+screenshot / recording probes): `artifact_min_dimensions: WxH`,
+`artifact_not_uniform: true`, `artifact_min_cast_events: <N>`. See
+`/ov:test` "Artifact-validation modifiers" for the authoring reference.
+
 ## Composition with `from:` — pull tests from existing entities
 
 A recipe is a **requirement spec**: "to satisfy this deployment, all
@@ -528,17 +567,23 @@ collapse N points to 1 and kill the plateau gradient.
 
 ### Worked examples in this repo
 
-`harness.yml` ships two self-test recipes against the unified
-`default` score:
+`harness.yml` ships a `composition-import-selftest` recipe under a
+dedicated **`scaffolding-selftest`** score (separate from `default`).
+A single recipe combines per-kind isolation (with distinct prefixes)
+AND multi-kind composition onto a shared pod with `select`+`exclude`
+filtering, plus a hand-written scenario whose `depends_on:` crosses
+the imported/hand-written namespace boundary. The two-score split
+isolates loader regressions from AI-task regressions: run
+`scaffolding-selftest` first as a canary; if it's red, the loader is
+broken and `default` runs cannot be trusted.
 
-- **`from-single-kind-selftest`** (phase 5) — one `from:` block per
-  kind in isolation, each onto its own dedicated harness container.
-  Failure here means per-kind expansion is broken.
-- **`from-composition-selftest`** (phase 6) — two `from:` blocks
-  onto the SAME container (composition), `select`+`exclude` filter
-  pipeline, plus a hand-written scenario whose `depends_on:` crosses
-  the imported/hand-written namespace boundary. Failure here means
-  composition wiring or namespace resolution is broken.
+The `mcp-protocol-probe` recipe (in the `default` score) shows the
+intended production usage: a `from: kind: image, name: jupyter`
+block pulls the existing jupyter image's MCP deploy-tests directly
+into the recipe, with `skip_live_only: false` so live-only verbs
+like `mcp:` are kept. The AI's task is reduced to "deploy the
+existing image as the named fixture pod" — no MCP server
+implementation work required.
 
 Reference: `ov/harness_recipe_from.go` (expander),
 `ov/harness_recipe_from_test.go` (per-kind, multi-kind, filter,
