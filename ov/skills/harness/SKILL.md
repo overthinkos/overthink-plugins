@@ -108,7 +108,9 @@ knows where it stands.
 ai:                                     # kind: ai — reusable AI-CLI catalog
   claude:
     description: { feature: "Anthropic Claude Code CLI" }
-    command: [claude, -p, --dangerously-skip-permissions, "${PROMPT}"]
+    command: [claude, -p, --verbose, --output-format, stream-json,
+              --dangerously-skip-permissions, "${PROMPT}"]
+    output_format: stream-json          # parses NDJSON into runner_event[]
     version_command: [claude, --version]
     credential:
       - {src: ~/.claude/.credentials.json, dst: ~/.claude/.credentials.json}
@@ -208,7 +210,9 @@ destructively edit `$PWD`'s git tree on a per-run branch.
         └── <run-id>/
             ├── repo/                   # per-run git clone
             └── iter1/
-                ├── runner.log
+                ├── runner.log          # plain AIs: merged stdout+stderr
+                ├── runner.ndjson       # stream-json AIs: raw NDJSON tee
+                ├── runner.stderr.log   # stream-json AIs: claude diagnostics
                 ├── build.log
                 ├── prompt.md
                 ├── prompt-arg.md
@@ -236,11 +240,41 @@ best_score: 4
 ovharness_branch: ovharness/...
 iteration:
   - k: 1
+    started_utc: "2026-04-26T14:30:00Z"   # NEW — absolute iter start
+    finished_utc: "2026-04-26T14:38:42Z"  # NEW — absolute iter end
+    iteration_duration: "8m42s"           # NEW — wall clock for the whole iter
     score: 1
-    score_delta: 1                      # NEW — improvement vs previous
+    score_delta: 1                        # improvement vs previous
     plateau_counter_after: 0
+    runner_command: [claude, -p, --verbose, --output-format, stream-json,
+                     --dangerously-skip-permissions, "<rendered prompt>"]
+    runner_duration: "8m12s"
+    watchdog_sample:                      # NEW — score timeline (5m cadence)
+      - {at_utc: "2026-04-26T14:35:00Z", elapsed: "5m0s",  score: 0, total: 2}
+      - {at_utc: "2026-04-26T14:38:30Z", elapsed: "8m30s", score: 1, total: 2,
+         last_improved_at: "2026-04-26T14:38:30Z"}
+    runner_event:                         # NEW — parsed stream-json timeline
+      - at_utc: "2026-04-26T14:30:01Z"
+        type: system
+        raw: {type: system, subtype: init, session_id: "..."}
+      - at_utc: "2026-04-26T14:30:05Z"
+        type: assistant
+        raw: {type: assistant, message: {content: [...]}}
+      # ... one entry per stream-json line
     solved_id: [recipe:tier1-easy:0]
 ```
+
+`runner_event[]` is populated only for AIs declared with
+`output_format: stream-json` (claude). Plain AIs (codex, gemini) keep
+the legacy `runner_output:` field carrying merged stdout+stderr text.
+The raw NDJSON for stream-json AIs lives byte-exact at
+`iter<k>/runner.ndjson` for cross-reference; result-`<calver>.yml`
+carries the parsed structured form.
+
+`watchdog_sample[]` records what the score-progress watchdog observed
+each tick (default 5-minute cadence — see "Score-progress watchdog"
+below). Cross-reference `at_utc` with iteration `started_utc` to
+answer "what score did the AI reach when?".
 
 ## Memory — persistent notes across runs
 
@@ -647,6 +681,56 @@ automatically.
 The default-score prompt in `harness.yml` includes a paragraph
 documenting this constraint to the AI explicitly so it knows to
 exit gracefully rather than loop.
+
+### stream-json runner output
+
+When an AI's `output_format:` is set to `stream-json` in `harness.yml`
+(claude default since 2026-04), its stdout emits newline-delimited
+JSON — one event per agent-loop message. The harness:
+
+1. Splits stdout/stderr at the runner. Stream-json corrupts when the
+   two are merged (claude emits structured JSON on stdout, human-
+   readable diagnostics on stderr); plain AIs continue using the
+   merged-stream path.
+2. Tees raw stdout bytes byte-exact to
+   `iter<k>/runner.ndjson` for cross-reference / debugging.
+3. Parses each NDJSON line as JSON and appends a `RunnerEvent` to
+   the iteration's `runner_event[]` slice — embedded directly into
+   `result-<calver>.yml`.
+4. Writes stderr to `iter<k>/runner.stderr.log`.
+
+`RunnerEvent` carries `at_utc` (when the line was read), the JSON
+object's top-level `type` field as a separate column when present
+(e.g. `system`, `assistant`, `user`, `tool_use`, `tool_result`,
+`result`), and the complete parsed object under `raw:`. Malformed
+JSON lines survive as `{_parse_error: <msg>, _line: <bytes>}` —
+truncated final output from a crashed runner is preserved rather
+than discarded.
+
+**Configuration** (per-AI):
+
+```yaml
+ai:
+  claude:
+    command: [claude, -p, --verbose, --output-format, stream-json,
+              --dangerously-skip-permissions, "${PROMPT}"]
+    output_format: stream-json
+```
+
+Legal `output_format:` values are `""` (the default — plain text,
+merged stdout+stderr) and `"stream-json"`. Anything else fails
+validation at config load with the legal-values list. Codex and
+gemini stay on the empty default and behave identically to before
+this feature landed.
+
+The score-progress watchdog (below) records its 5-minute samples
+into the same iteration record under `watchdog_sample[]`. Together,
+`runner_event[]` (what the AI did, line-by-line) plus
+`watchdog_sample[]` (what score it had reached at each tick) plus
+`started_utc` / `finished_utc` / `iteration_duration` make the
+result file a complete answer to "what did the AI do, and when?".
+The on-disk per-iter directory is for byte-exact debugging; the
+result file is the source of truth.
 
 ### Score-progress watchdog
 
