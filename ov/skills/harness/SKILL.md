@@ -669,7 +669,23 @@ Phase progression for the example score:
 Per-phase exit conditions:
 - **solved-all**: every in-scope scenario passes → next phase begins.
 - **plateau**: `plateau_iteration` consecutive iters of zero score
-  delta → next phase begins regardless (carries partial state).
+  delta → **the WHOLE RUN ends here** (post-2026-04-27 cutover; see
+  rationale below). The phase that plateaued is the LAST phase in the
+  result's `phases:` list; remaining phases never start.
+
+**Why plateau ends the run instead of advancing:** pre-2026-04-27,
+plateau silently advanced to the next phase, letting an AI that
+stalled on (say) phase 3 collect easier wins on phase 4 it never had
+to actually engage with. The user's expected semantic — "3 stalls of
+30 minutes each, then the testing run should end" — is what the
+post-2026-04-27 behavior delivers. A stalled AI is not advanced past
+its failure; the score reflects what the AI ACTUALLY accomplished
+before it stalled. Implementation: `decideOverallExit` in
+`ov/harness_runlocal_cmd.go` returns `("plateau", true)` when the
+phase's `ExitReason == "plateau"`, breaking the progressive phase
+loop. Regression test:
+`TestDecideOverallExit_PlateauEndsRun` in
+`ov/harness_runlocal_cmd_test.go`.
 
 State persists across phases:
 - Bench-pod is rebuilt FRESH at run start (existing host preflight),
