@@ -54,7 +54,7 @@ the union (sum of solved scenarios across a, b, c).
   container its steps probe. Multi-pod recipes are just scenarios
   with different `pod:` values in the same recipe.
 
-## ONE primitive: `scenario.pod`
+## ONE primitive: `scenario.pod` (flat or dotted)
 
 Every scenario declares its scoring target via ONE field at the
 scenario level:
@@ -62,13 +62,43 @@ scenario level:
 ```yaml
 scenario:
   - name: <scenario-name>
-    pod: <container-name>      # REQUIRED — all steps probe ov-<container-name>
+    pod: <container-name>      # REQUIRED — flat name OR dotted path
     steps: [...]
 ```
 
-The harness scoring code does `containerName := "ov-" + scenario.Pod`
-and dispatches every step in that scenario through `podman exec
-ov-<pod>`. No defaults, no fallbacks, no cascade.
+**Flat names** (e.g. `pod: redis`) probe `ov-redis` via single-hop
+`podman exec`. Pre-2026-04 default — still the right choice for any
+scenario that targets a single, top-level pod.
+
+**Dotted paths** (e.g. `pod: bench-vm.inner.nested-redis`) walk the
+deployment tree via `ResolveDeployChain` (post-2026-04 executor-
+hierarchy cutover) and stack one `NestedExecutor` hop per segment.
+The harness scorer (`harness_score_live.go: resolveScoringChain`)
+picks the right model automatically:
+
+| `scenario.pod:` value | What the harness does |
+|---|---|
+| `redis` (flat) | `podman exec ov-redis` (`ContainerChain`) |
+| `bench-vm` (flat, but VM in deploy.yml) | `ssh user@bench-vm` (`SSHExecutor`) |
+| `bench-vm.inner` | `ssh ...` → `podman exec ov-bench-vm_inner` |
+| `bench-vm.inner.deeper` | `ssh ...` → `podman exec ...` → `podman exec ov-bench-vm_inner_deeper` |
+
+**Container name flattening:** dots in the dotted path become
+underscores at the actual `podman exec` target — `bench-vm.inner.deeper`
+maps to a leaf container literally named `ov-bench-vm_inner_deeper`
+(`.` is reserved in podman names). Authors deploying inner pods must
+match this flattening so `ResolveDeployChain` finds them:
+
+```bash
+ov deploy add bench-vm <vm-image>                # → SSHExecutor target
+ov deploy add bench-vm.inner <pod-image>         # → ov-bench-vm_inner inside the VM
+ov deploy add bench-vm.inner.deeper <pod-image>  # → ov-bench-vm_inner_deeper inside ov-bench-vm_inner
+```
+
+Same chain-construction code path as `ov deploy add` and `ov test
+parent.child` — see `ov/deploy_chain.go` (`ResolveDeployChain`).
+Replaces the pre-cutover hardcoded `ContainerExecutor{ContainerName:
+"ov-" + pod}` that could not reach a pod-in-VM.
 
 Validator: every scenario inside a `recipe:` block MUST set `pod:`.
 Hard-error at load time otherwise (with hint pointing at the offending

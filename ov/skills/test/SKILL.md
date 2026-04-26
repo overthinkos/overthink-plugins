@@ -44,6 +44,28 @@ These are the 10 standards referenced in CLAUDE.md's AI attribution tier ("fully
 9. **Leave the target healthy, not paused/errored** — final snapshot of `virsh domstate` / `systemctl status` / `podman ps` is healthy. If the target is in a broken state during exploration, `ov rebuild` it back to the committed config before continuing — never layer experiments on broken state.
 10. **Re-verify on a FRESH rebuild after committing the source-level fix** (R10) — `ov rebuild <disposable-target>` one more time from clean, with the new source applied. Run standards 1–9 again against this fresh rebuild. **THIS IS THE ACCEPTANCE GATE.** A fix that works on a hand-patched target but not on a fresh rebuild is a regression waiting for the next unrelated rebuild to wipe your patch. Paste BOTH the exploratory-pass output AND the fresh-rebuild-pass output into the conversation — the user sees both.
 
+### `ov test parent.child` reaches the actual leaf (post-2026-04 cutover)
+
+`ov test <parent>.<child>` walks the dotted deployment path through
+`ResolveDeployChain` (`ov/deploy_chain.go`) and constructs a multi-hop
+`DeployExecutor` chain that lands probes inside the leaf's actual
+venue. Pre-cutover the path was silently single-hop SSH — `command:
+id` for a pod-in-VM leaf returned the parent VM's user, not the inner
+pod's user. The cutover unifies test-time + harness-time chain
+construction through the same code path `ov deploy add` already used.
+For deeply-nested paths, each segment adds one hop:
+
+```bash
+ov test bench-vm                            # → SSHExecutor (1 hop)
+ov test bench-vm.inner                      # → SSH + podman exec ov-bench-vm_inner (2 hops)
+ov test bench-vm.inner.deeper               # → SSH + 2× podman exec (3 hops)
+```
+
+Same chain primitive (`NestedExecutor`) used everywhere — `ov deploy
+add`, `ov test`, `ov harness` scoring. See `/ov:harness` "ONE
+primitive: scenario.pod (flat or dotted)" for the symmetric
+authoring surface in harness recipes.
+
 ### Specific anti-patterns observed and banned
 
 - **"Unit tests pass → cutover done"** — no. Build + deploy + run + test, every time.
