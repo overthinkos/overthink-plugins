@@ -339,6 +339,147 @@ Naming convention: `${HARNESS_NONCE_<UPPER_SNAKE>}` (e.g., `KEY`,
 `VALUE`, `TOKEN1`, `RANDOM_PATH`). The harness regex is
 `\$\{HARNESS_NONCE_([A-Z0-9_]+)\}`.
 
+## Composition with `from:` — pull tests from existing entities
+
+A recipe is a **requirement spec**: "to satisfy this deployment, all
+of THESE tests must pass." Many tests already exist on the project's
+layer / image / pod / vm entities (`tests:` and `deploy_tests:`
+blocks). Rather than duplicating them inline as recipe scenarios, a
+recipe can compose its requirement by pulling existing tests via the
+`from:` block.
+
+```yaml
+recipe:
+  prod-stack-ready:
+    description: { feature: "App+redis stack is fully ready." }
+    from:                                  # pull existing tests
+      - kind: layer
+        name: nodejs24
+        pod:  app                          # harness container scenario.pod
+        select: [node-installed, npm-installed]
+      - kind: image
+        name: arch-coder
+        pod:  app                          # SAME pod as above — composition
+        scope: [deploy]
+        exclude: [legacy-port-9090]
+      - kind: pod
+        name: redis
+        pod:  redis                        # different harness container
+        prefix: redis                       # → "redis-<id>" scenario names
+    scenario:                              # hand-written extras coexist
+      - name: app-greets-redis
+        pod: app
+        depends_on: [redis-redis-running, npm-installed]   # cross-namespace deps
+        steps: [...]
+```
+
+**Each `from:` entry expands at YAML-load time into N synthetic
+`Scenario` records** — one per `Check` that survives the filter
+pipeline. Each synthetic scenario has the supplied `pod:`, the
+imported Check inline as its single `Step`, and a stable name
+(`<prefix>-<check.id>` when the source has an id; otherwise
+`<prefix>-<kind>-<origin>-<index>`).
+
+### Fields
+
+| Field | Required | Default | Purpose |
+|---|---|---|---|
+| `kind` | yes | — | One of `layer | image | pod | vm` |
+| `name` | yes | — | Entity name (resolves in `cfg.Layers/Images/Pod/VM`) |
+| `pod` | yes | — | Harness container name → becomes `scenario.pod` |
+| `select` | no | (all) | Allow-list by `Check.ID` or synthesized name |
+| `exclude` | no | (none) | Deny-list by `Check.ID` or synthesized name (applied AFTER select) |
+| `scope` | no | `[layer, image, deploy]` | Which `LabelTestSet` sections to draw from |
+| `prefix` | no | `""` | Scenario-name prefix to disambiguate collisions |
+| `skip_live_only` | no | `true` | Drop `cdp/wl/dbus/vnc/mcp/record/spice/libvirt/k8s` verbs |
+
+### Filter pipeline (per `from:` entry, in order)
+
+1. **Section filter** via `scope:` — `layer` (layer-walked tests),
+   `image` (entity-direct build-scope tests), `deploy` (entity-direct
+   deploy-scope tests).
+2. **Live-only verb filter** — drops checks whose verb requires live-
+   container infrastructure (cdp/wl/etc.). Default: enabled.
+3. **`select:` allow-list** — if non-empty, keep only checks whose ID
+   (or synthesized name) matches.
+4. **`exclude:` deny-list** — drop checks whose ID matches.
+
+If the post-filter set is empty, the loader errors with a hint to
+check filter ids and the `scope:` setting against the source entity.
+
+### Per-kind expansion
+
+| `kind` | Source | Mechanism |
+|---|---|---|
+| `layer` | Layer's own `tests:` slice | Direct read |
+| `image` | `CollectTests(cfg, layers, name)` — full layer + base-image chain | Reuses image-build collector |
+| `pod` | `cfg.Pod[name].Image`'s `CollectTests` chain + pod's own `tests:` and `deploy_tests:` | Pod wraps an image |
+| `vm` | `cfg.VM[name]`'s `tests:` and `deploy_tests:` | VM's own + applies vm-target rule below |
+
+### Scoring invariant — 1 `Check` = 1 ScenarioID = 1 point
+
+**Imported tests are scored identically to hand-written tests.**
+Every `Check` that survives the filter pipeline expands into exactly
+one synthetic `Scenario` carrying exactly one `Step`. It contributes
+ONE ScenarioID, identical weight to a hand-written scenario. A
+`from:` block that imports 20 Checks adds 20 to the maximum
+achievable score, identical to writing 20 inline scenarios. Plateau
+detection, `${SCORE_DELTA}`, and solved-all detection see imported
+and hand-written scenarios as indistinguishable — the harness scorer
+cannot tell them apart by design.
+
+This invariant is enforced by `TestImportedScenarioCountEqualsCheckCount`
+in `ov/harness_recipe_from_test.go`. Bundling N imported Checks into
+one fat `Scenario` with N inline `Step`s is FORBIDDEN — it would
+collapse N points to 1 and kill the plateau gradient.
+
+### Composition properties
+
+- Multiple `from:` entries from DIFFERENT kinds compose freely.
+- Multiple `from:` entries can target the SAME `pod:` (their imported
+  scenarios all probe the same harness container) or DIFFERENT pods
+  (multi-pod composed recipe — exactly the existing pattern from
+  `tier4-redis`).
+- Hand-written `scenario:` entries coexist and can `depends_on:`
+  either imported or hand-written scenarios — same flat namespace.
+- Imports appear FIRST in the merged `recipe.Scenario` slice;
+  hand-written scenarios follow. This preserves authoring-order
+  intuition (the `from:` block reads BEFORE `scenario:`).
+
+### Validation rules
+
+- `kind`, `name`, `pod` are all required per `from:` entry.
+- `kind` ∈ `{layer, image, pod, vm}`.
+- `name` MUST resolve in the matching catalog; error includes an
+  available-names hint.
+- `kind: vm` recipes can only be referenced by scores that target the
+  same VM via `vm: <name>` — pod- or host-targeted scores can't reach
+  VM-side tests through `podman exec`. Validator rejects mismatched
+  scores at load time.
+- Synthesized scenario names must not collide with each other or with
+  hand-written scenarios in the same recipe; resolve via `prefix:` or
+  rename the conflicting scenario.
+- Empty result after `select`/`exclude` filtering is an error (likely
+  a typo in the filter list).
+
+### Worked examples in this repo
+
+`harness.yml` ships two self-test recipes against the unified
+`default` score:
+
+- **`from-single-kind-selftest`** (phase 5) — one `from:` block per
+  kind in isolation, each onto its own dedicated harness container.
+  Failure here means per-kind expansion is broken.
+- **`from-composition-selftest`** (phase 6) — two `from:` blocks
+  onto the SAME container (composition), `select`+`exclude` filter
+  pipeline, plus a hand-written scenario whose `depends_on:` crosses
+  the imported/hand-written namespace boundary. Failure here means
+  composition wiring or namespace resolution is broken.
+
+Reference: `ov/harness_recipe_from.go` (expander),
+`ov/harness_recipe_from_test.go` (per-kind, multi-kind, filter,
+collision, scoring-invariant tests).
+
 ## Scenario dependencies — `depends_on:`
 
 Some scenarios are only meaningful AFTER another scenario has passed.
@@ -473,6 +614,89 @@ There is **no max-iteration ceiling**. Set `plateau_iteration` to bound
 the run. With `plateau_iteration: 3`, a non-improving AI ends after 3
 wasted iterations; a continually-improving AI runs forever (interrupt
 with Ctrl-C).
+
+### When source-code fixes can't apply mid-run
+
+The harness orchestrator runs as a long-lived Go process (`ov harness
+run-local`, PID 7 inside the bench-pod after preflight). Go binaries
+are mmap'd at process start; **there is no in-process hot reload of
+Go code**.
+
+If the AI inside the bench-pod (or you, debugging an AI run)
+identifies a bug in `ov/*.go`, applies a source fix, and rebuilds
+`bin/ov`:
+
+- The new binary lands on disk via the `/workspace` bind-mount, AND
+- `go test ./...` against the new source compiles and runs the fixed
+  code, BUT
+- The RUNNING `ov harness run-local` PID still uses the OLD binary
+  it mmap'd at process start. It cannot see the on-disk fix.
+
+**Consequence:** The fix only takes effect on the NEXT
+`ov harness run <score>` invocation, which forks a fresh PID that
+mmap's the new binary. The current run's score will not improve as
+a result of the fix.
+
+**Recommended response (in the AI prompt):** Record the fix via
+`bin/ov harness note append <score> "<short note about the fix>"`
+and exit the iteration gracefully. Do NOT spin iterations 3+ trying
+to make the running PID see the fix — plateau will trigger and
+the run will exit anyway. The next run picks up the new binary
+automatically.
+
+The default-score prompt in `harness.yml` includes a paragraph
+documenting this constraint to the AI explicitly so it knows to
+exit gracefully rather than loop.
+
+### Score-progress watchdog
+
+The harness loop runs a per-iteration **score-progress watchdog**
+that bounds each iteration by *scoring progress* (not wall clock).
+Behavior:
+
+- Every `progress_check_interval` (default **5m**), the harness
+  probes the live deployments via the same `RunRecipeScenariosLive`
+  code the end-of-iter scorer uses, and emits one host-side stderr
+  line:
+  `harness: progress [phase X/N iter Y] elapsed Nm — current score A/B (last improvement at HH:MM:SS)`.
+- If the score has not increased in `progress_no_improvement_timeout`
+  (default **30m**), the watchdog cancels the runner's context,
+  emits
+  `harness: watchdog [phase X iter Y] terminating AI runner — no scoring progress for ...`,
+  and the iteration completes its end-of-iter scoring path normally.
+
+**The watchdog is HIDDEN from the AI by construction** — it runs in
+the harness Go process, never appears in the AI's prompt, never in
+any tool the AI invokes. The `score.default.prompt:`'s "Take all
+the time you need" promise is preserved from the AI's perspective;
+the watchdog only fires when the AI is *genuinely* stuck (e.g. a
+self-referential `pgrep -f` poll loop that never exits).
+
+**Configuration** (per-AI; both optional, both default to the spec
+values when empty):
+
+```yaml
+ai:
+  claude:
+    progress_check_interval: 5m
+    progress_no_improvement_timeout: 30m
+```
+
+Set either to `0s` to disable that aspect (e.g. for fully-unbounded
+development sessions where you want to debug an AI that's
+legitimately taking hours). Set both to `0s` to disable the
+watchdog entirely. The watchdog is independent of `ai.<name>.timeout:`
+(absolute backstop) — both can be active simultaneously; whichever
+fires first cancels the runner.
+
+The watchdog only runs in **recipe-mode** (when `score.recipes:`
+is non-empty). Image-test mode runs scoring after the runner exits,
+so there's no live-score signal to poll mid-iter — those iterations
+have no watchdog (rely on `ai.<name>.timeout:` if you need a cap).
+
+Implementation: `ov/harness_watchdog.go` (`ProgressWatchdog` struct
++ `Run` goroutine), wired into `ov/harness_loop.go`'s runner
+dispatch. Tests: `ov/harness_watchdog_test.go`.
 
 ## Multi-recipe sets + multi-pod scoring
 
