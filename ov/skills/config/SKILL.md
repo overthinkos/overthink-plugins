@@ -8,7 +8,7 @@ description: |
 
 ## Overview
 
-`ov config` configures an image for deployment: generates a systemd quadlet unit, provisions container secrets, initializes encrypted volumes, and seeds data from data layers into the image's volumes (both bind mounts and podman named volumes). Requires `run_mode=quadlet`.
+`ov config` configures an image for deployment. In `run_mode=quadlet` (the default on systemd-user hosts) it generates a systemd quadlet unit, provisions container secrets, initializes encrypted volumes, and seeds data from data layers into the image's volumes. In `run_mode=direct` (auto-selected on nested environments without systemd-user — bench-pods, supervisord-only containers, sysvinit hosts) it skips quadlet+systemctl and runs the container via `podman run -d`, recording a marker file at `~/.config/ov/direct/<name>.json` so `ov start`/`ov remove` can find it. Direct mode does NOT support sidecars, encrypted volumes, or cloudflare tunnel companion services (those require systemd) — warnings are emitted and the operation proceeds without those features.
 
 This is the **single entry point** for **container** deployment setup. `ov start` requires `ov config` to have been run first in quadlet mode.
 
