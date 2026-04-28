@@ -199,12 +199,12 @@ supervisord for its own PID and exits 0 iff the socket responds:
 ```
 
 This is what the current supervisord layer ships in its `tests:` block.
-See `/ov:test` Authoring Gotcha #4.
+See `/ov:eval` Authoring Gotcha #4.
 
 **Also note**: `pgrep` is NOT installed by default in minimal images
 (needs `procps-ng`). The `process: <name>; running: true` test verb
 silently fails when pgrep is absent. Prefer `service:` (which uses
-supervisorctl internally) for program-liveness checks. See `/ov:test`
+supervisorctl internally) for program-liveness checks. See `/ov:eval`
 Authoring Gotcha #3.
 
 `supervisorctl avail | grep -q '^<name>\b'` is the idiomatic way to check whether a program is defined (as opposed to whether it's currently running). This is what labwc's autostart uses to decide whether to hand off Chrome to supervisord or fall back to a direct launch — see `/ov-layers:labwc` (autostart Chrome-duplication race) for the canonical pattern.

@@ -13,7 +13,7 @@ Send desktop notifications, call D-Bus methods, list services, and introspect ob
 
 ### Also as a declarative verb
 
-Every `ov eval dbus <method>` (list/call/introspect/notify) is authorable as a `dbus:` verb inside a `tests:` block. Method-specific fields (`dest:`, `path:`, `method:`, `args:`, `text:`) are siblings of the verb line. See `/ov:test` for the full YAML shape. Example: `- dbus: list\n  stdout:\n    contains: "org.freedesktop.Notifications"`.
+Every `ov eval dbus <method>` (list/call/introspect/notify) is authorable as a `dbus:` verb inside a `tests:` block. Method-specific fields (`dest:`, `path:`, `method:`, `args:`, `text:`) are siblings of the verb line. See `/ov:eval` for the full YAML shape. Example: `- dbus: list\n  stdout:\n    contains: "org.freedesktop.Notifications"`.
 
 ## Quick Reference
 
@@ -64,7 +64,7 @@ ov eval dbus introspect sway-browser-vnc org.freedesktop.Notifications /org/free
 
 ## Cross-References
 
-- `/ov:test` -- parent router; `ov eval dbus …` is how every invocation is dispatched.
+- `/ov:eval` -- parent router; `ov eval dbus …` is how every invocation is dispatched.
 - `/ov:cdp` -- Chrome DevTools Protocol (sibling verb under `ov test`).
 - `/ov:wl` -- Wayland desktop automation (sibling verb under `ov test`).
 - `/ov:vnc` -- VNC desktop automation (sibling verb under `ov test`).

@@ -38,7 +38,7 @@ my-dev:
 - `/ov-layers:hermes-full` -- metalayer that bundles this CLI
 - `/ov-images:hermes` -- primary image that ships this CLI
 - `/ov:layer` -- layer authoring reference
-- `/ov:test` -- declarative testing framework (this layer verifies `${HOME}/.npm-global/bin/forge` + `forge --version`)
+- `/ov:eval` -- declarative testing framework (this layer verifies `${HOME}/.npm-global/bin/forge` + `forge --version`)
 
 ## When to Use This Skill
 

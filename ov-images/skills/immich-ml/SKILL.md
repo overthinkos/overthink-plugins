@@ -105,7 +105,7 @@ postgresql + redis + immich-server + immich-ml all RUNNING.
   `/ov-layers:cuda`, `/ov-layers:python-ml`, `/ov-layers:nodejs24`,
   `/ov-layers:supervisord`, `/ov-layers:dbus`, `/ov-layers:ov`,
   `/ov-layers:agent-forwarding`
-- `/ov:test` — framework + runtime variable rules (why skips happen)
+- `/ov:eval` — framework + runtime variable rules (why skips happen)
 - `/ov:config` — deploy setup (pg password secret, volume backing)
 - `/ov-images:immich` — non-ML variant
 

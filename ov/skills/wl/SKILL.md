@@ -12,7 +12,7 @@ description: |
 
 ### Also as a declarative verb
 
-Every `ov eval wl <method>` (including nested `wl overlay <method>` and `wl sway <method>`) is authorable as a `wl:` verb inside a `tests:` block. Nested subcommands are hyphenated in YAML: `wl: overlay-show`, `wl: sway-tree`, `wl: sway-workspaces`. Method-specific fields (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) are siblings of the verb line. See `/ov:test` for the full method allowlist. Example: `- wl: screenshot\n  artifact: /tmp/desktop.png\n  artifact_min_bytes: 10000`.
+Every `ov eval wl <method>` (including nested `wl overlay <method>` and `wl sway <method>`) is authorable as a `wl:` verb inside a `tests:` block. Nested subcommands are hyphenated in YAML: `wl: overlay-show`, `wl: sway-tree`, `wl: sway-workspaces`. Method-specific fields (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) are siblings of the verb line. See `/ov:eval` for the full method allowlist. Example: `- wl: screenshot\n  artifact: /tmp/desktop.png\n  artifact_min_bytes: 10000`.
 
 ## Quick Reference
 
@@ -197,7 +197,7 @@ Source: `ov/wl.go`.
 
 ## Cross-References
 
-- `/ov:test` — parent router; `ov eval wl …` is how every invocation is dispatched.
+- `/ov:eval` — parent router; `ov eval wl …` is how every invocation is dispatched.
 - `/ov:vnc` — VNC/RFB protocol alternative (sibling verb; TCP-based, works remotely).
 - `/ov:cdp` — Chrome DevTools Protocol (sibling verb; DOM-level interaction, `--wl` flag for click, `axtree` for accessibility).
 - `/ov:dbus` — D-Bus calls and desktop notifications (sibling verb under `ov test`).

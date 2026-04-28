@@ -203,7 +203,7 @@ packages and scripts per distro.
 - `/ov:shell` — open an interactive shell in arch-ov (as uid=1000 with sudo)
 - `/ov:service` — manage arch-ov as a service
 - `/ov:vm` — nested libvirt VMs via `qemu:///session` (rootless)
-- `/ov:test` — `--include-deploy` prefers the running container (see `/ov:test` "Live vs disposable executor selection")
+- `/ov:eval` — three modes: `ov eval image <ref>` (build-scope, disposable container), `ov eval live <name>` (full-stack against running deployment), `ov eval run <score>` (AI iteration loop)
 - `/ov:mcp` — MCP gateway + auto-fallback behavior
 
 ## Related

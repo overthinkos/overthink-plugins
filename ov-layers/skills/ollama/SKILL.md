@@ -62,7 +62,7 @@ The `env_provides` mechanism makes `OLLAMA_HOST` available to all containers. Th
 ## Tests
 
 The layer ships 3 declarative checks embedded in the `org.overthinkos.eval`
-OCI label (see `/ov:test` for the full schema):
+OCI label (see `/ov:eval` for the full schema):
 
 - **Build-scope** (run under `ov eval image`):
   - `ollama-binary` — `/usr/bin/ollama` exists

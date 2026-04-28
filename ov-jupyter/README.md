@@ -29,4 +29,4 @@ The MCP server name `jupyter` is deliberately stable across renames of the under
 - `/ov-images:jupyter-ml` — GPU image
 - `/ov-images:jupyter-ml-notebook` — GPU image + seeded finetuning/ollama/openrouter/llms_on_supercomputers notebooks
 - `/ov-layers:hermes` — another MCP consumer that discovers the `jupyter` server via cross-container `env_provides` / `mcp_provides`
-- `/ov:mcp` — the host-side CLI/test verb for probing this MCP server directly (`ov test mcp ping jupyter`, `ov test mcp list-tools jupyter`, `ov test mcp call jupyter list_notebooks '{}'`). Useful for diagnosing whether a failed `mcp__jupyter__*` tool call is a server issue or a Claude Code session-registration issue.
+- `/ov:mcp` — the host-side CLI/test verb for probing this MCP server directly (`ov eval mcp ping jupyter`, `ov eval mcp list-tools jupyter`, `ov eval mcp call jupyter list_notebooks '{}'`). Useful for diagnosing whether a failed `mcp__jupyter__*` tool call is a server issue or a Claude Code session-registration issue.

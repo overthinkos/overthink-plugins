@@ -35,7 +35,7 @@ order.
 | `ov image merge` | Merge small layers in a built image | `/ov:merge` |
 | `ov image new layer <name>` | Scaffold a new layer directory | `/ov:new` |
 | `ov image pull` | Fetch an image into local storage | `/ov:pull` |
-| `ov eval image` | Run declarative tests against a disposable container from a built image (reads the `org.overthinkos.eval` OCI label) | `/ov:test` |
+| `ov eval image` | Run declarative tests against a disposable container from a built image (reads the `org.overthinkos.eval` OCI label) | `/ov:eval` |
 | `ov image validate` | Check image.yml + layers | `/ov:validate` |
 
 ## Scope Boundary (Build vs. Deploy)
@@ -110,7 +110,7 @@ The error messages are explicit when misconfigured: `cannot chdir to --dir "/mis
 | Inspect field | `ov image inspect <image> --format <field>` | Print single field (tag, base, layers, ports, etc.) |
 | Validate | `ov image validate` | Check image.yml + layers |
 | Pull into local storage | `ov image pull <image>` | Fetch from registry so deploy-mode commands work |
-| Run build-time tests | `ov eval image <image>` | Runs the baked layer + image test sections in a disposable `podman run --rm` container; add `--include-deploy` to also run the deploy section. See `/ov:test`. |
+| Run build-time tests | `ov eval image <image>` | Runs the baked layer + image test sections in a disposable `podman run --rm` container (build-scope only). For full-stack live eval against a running deployment, use `ov eval live <name>`. See `/ov:eval`. |
 | Pre-prime remote repo cache | `ov image fetch [<spec>]` | Clones (or hits cache) for the spec — defaults to `default` (overthinkos/overthink). Prints the cache path. |
 | Force re-clone | `ov image refresh [<spec>]` | Removes the cache entry and re-clones. |
 
@@ -542,7 +542,7 @@ images:
 - `/ov:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
 - `/ov:config` -- `ov config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
 - `/ov-dev:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
-- `/ov:test` — Image-level `tests:` (cross-layer invariants) and `deploy_tests:` (deploy-default checks shipped with the image). Both are embedded in the `org.overthinkos.eval` OCI label.
+- `/ov:eval` — Image-level `tests:` (cross-layer invariants) and `deploy_tests:` (deploy-default checks shipped with the image). Both are embedded in the `org.overthinkos.eval` OCI label.
 - `/ov:mcp` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `ov test <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
 - `/ov-images:selkies-desktop-bootc` — canonical worked example for the external-base + explicit-`distro:` pattern.
 - `/ov:vm` — `ov vm build/create/start/stop/ssh` command family; reads `vms.yml`, not `image.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
@@ -560,7 +560,7 @@ images:
 - `/ov:migrate` — `ov migrate unified` converts legacy `image.yml` into `image:` entries in `overthink.yml`
 - `/ov-dev:capabilities` — OCI label contract emitted at build time and consumed by deploy commands
 
-## Live-deploy verification is mandatory (see `/ov:test` 10 standards)
+## Live-deploy verification is mandatory (see `/ov:eval` 10 standards)
 
 Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-dev:disposable`). Use `ov rebuild <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
 

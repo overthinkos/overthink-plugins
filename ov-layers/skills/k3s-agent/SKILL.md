@@ -64,11 +64,11 @@ Build-scope:
 - `/etc/rancher/k3s/config.yaml` exists, mode 0600.
 - `/etc/systemd/system/k3s-agent.service` exists.
 
-Deploy-scope (uses `/ov:test-k8s`):
+Deploy-scope (uses `/ov:eval-k8s`):
 - `k8s: wait-nodes name=${HOSTNAME}` — this node reaches Ready on the
   server.
 
 ## Related Layers
 - `/ov-layers:k3s` — Base layer installing the k3s binary (required dep)
 - `/ov-layers:k3s-server` — Control-plane node this agent joins
-- `/ov:test-k8s` — Test verb used by the agent-joined check
+- `/ov:eval-k8s` — Test verb used by the agent-joined check

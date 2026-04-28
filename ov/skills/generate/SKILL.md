@@ -181,7 +181,7 @@ sec) instead of invalidating the buildkit cache for every upstream
 RUN/COPY. Particularly important for test authoring: `tests:` edits on
 a 138-step stack like `immich-ml` used to cost minutes per iteration;
 they now cost seconds. See `/ov-dev:generate` "LABEL Placement" for the
-rationale and `/ov:test` for author-facing workflow implications.
+rationale and `/ov:eval` for author-facing workflow implications.
 
 ## Bootc-specific generator behaviour
 
@@ -219,7 +219,7 @@ The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUIL
 ### Related skills
 
 - `/ov:layer` — **Canonical task verb catalog, `vars:` substitution, YAML anchors, execution order.** Read this first for authoring questions.
-- `/ov:test` — test-authoring workflow; `tests:` blocks are embedded via `writeJSONLabel` and benefit directly from LABELs-at-end cache efficiency.
+- `/ov:eval` — test-authoring workflow; `tests:` blocks are embedded via `writeJSONLabel` and benefit directly from LABELs-at-end cache efficiency.
 - `/ov-dev:generate` — Deep dive on Containerfile emission internals, `Task` struct, per-verb emitters, `stageInlineContent`, `shellSingleQuote` + `shellAnsiQuote` helpers, LABEL-placement rationale.
 - `/ov-dev:go` — Source-code map: `ov/tasks.go` (~430 lines), `ov/generate.go:writeLayerSteps` + `writeLabels`, `ov/layers.go` struct definitions.
 - `/ov-images:selkies-desktop-bootc` — canonical worked example exercising all three bootc-specific emission rules above.

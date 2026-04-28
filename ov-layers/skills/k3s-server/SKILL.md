@@ -83,7 +83,7 @@ Build-scope:
 - `/etc/rancher/k3s/config.yaml` exists, mode 0600.
 - `/etc/systemd/system/k3s.service` exists.
 
-Deploy-scope (using the new `ov eval k8s` verb — see `/ov:test-k8s`):
+Deploy-scope (using the new `ov eval k8s` verb — see `/ov:eval-k8s`):
 - `k8s: wait-nodes` — at least 1 node Ready.
 - `k8s: ingressclass` — `traefik` present.
 - `k8s: storageclass` — `local-path` present.
@@ -93,4 +93,4 @@ Deploy-scope (using the new `ov eval k8s` verb — see `/ov:test-k8s`):
 - `/ov-layers:k3s` — Base layer installing the k3s binary (required dep)
 - `/ov-layers:k3s-agent` — Worker nodes joining this server
 - `/ov-layers:kubernetes` — `kubectl`/`helm` on the operator side (not needed in the cluster)
-- `/ov:test-k8s` — The test verb used by this layer's deploy-scope checks
+- `/ov:eval-k8s` — The test verb used by this layer's deploy-scope checks

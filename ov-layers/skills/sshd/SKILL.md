@@ -29,7 +29,7 @@ description: |
 `openssh-server-package` check uses `package_map:` to resolve the right
 name per distro — `openssh-server` on Fedora/Debian, `openssh` on Arch.
 This is the canonical worked example for the `package_map` feature; see
-`/ov:test` "Cross-distro package names (`package_map:`)" for the
+`/ov:eval` "Cross-distro package names (`package_map:`)" for the
 mechanics and the priority ordering (`fedora:43` > `fedora` when both
 match).
 
@@ -93,9 +93,9 @@ my-image:
   cannot traverse `/etc/sudoers.d/`. A `file: /etc/sudoers.d/ov-user; exists: true`
   test reports "missing" even when the file is present. Use
   `command: sudo -n -l; stdout: [{contains: NOPASSWD}]` to verify the
-  semantic instead. See `/ov:test` Authoring Gotcha #10.
+  semantic instead. See `/ov:eval` Authoring Gotcha #10.
 - Host-side port reachability uses `127.0.0.1:${HOST_PORT:2222}`, not
-  `${CONTAINER_IP}:${HOST_PORT:2222}`. See `/ov:test` Gotcha #1.
+  `${CONTAINER_IP}:${HOST_PORT:2222}`. See `/ov:eval` Gotcha #1.
 
 ### Dual-mode sudo check — the `runuser -u user --` wrapper
 
@@ -120,7 +120,7 @@ the `-l … -c` form swallows the wrapped command's stdout — reproduced
 cleanly: `runuser -l user -s /bin/bash -c 'sudo -n -l'` prints nothing
 and exits 0, while `runuser -u user -- sudo -n -l` prints the full
 NOPASSWD listing. The layer was fixed to `-u … --` after this was
-caught during `arch-ov` bring-up. See `/ov:test` Authoring Gotcha #11.
+caught during `arch-ov` bring-up. See `/ov:eval` Authoring Gotcha #11.
 
 ## Related Skills
 
@@ -131,7 +131,7 @@ caught during `arch-ov` bring-up. See `/ov:test` Authoring Gotcha #11.
 - `/ov-images:ubuntu-coder` -- canonical adopt-mode example; sudoers correctly targets `ubuntu` via getent
 - `/ov-images:debian-coder` -- canonical create-mode deb-family example; sudoers targets `user`
 - `/ov-images:ubuntu` -- declares the `base_user:` block that makes ubuntu-coder run as `ubuntu`
-- `/ov:test` -- declarative testing framework (gotchas #10 and #11, `package_map:`, `exclude_distros:`)
+- `/ov:eval` -- declarative testing framework (gotchas #10 and #11, `package_map:`, `exclude_distros:`)
 - `/ov:image` -- `user_policy:` field (create / adopt / auto) that drives which account this layer's sudoers targets
 - `/ov:layer` -- layer authoring (`${VAR}` substitution scope, cmd: vs write:)
 

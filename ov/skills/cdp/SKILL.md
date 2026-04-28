@@ -12,7 +12,7 @@ description: |
 
 ### Also as a declarative verb
 
-Every `ov eval cdp <method>` is authorable as a `cdp:` verb inside a `tests:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tab:`, `expression:`, `url:`, `selector:`, etc.). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `artifact_min_bytes:`) work like other verbs. See `/ov:test` for the full method allowlist and YAML shape. Example: `- cdp: eval\n  tab: "1"\n  expression: "document.title"\n  stdout: "Dashboard"`.
+Every `ov eval cdp <method>` is authorable as a `cdp:` verb inside a `tests:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tab:`, `expression:`, `url:`, `selector:`, etc.). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `artifact_min_bytes:`) work like other verbs. See `/ov:eval` for the full method allowlist and YAML shape. Example: `- cdp: eval\n  tab: "1"\n  expression: "document.title"\n  stdout: "Dashboard"`.
 
 ## Quick Reference
 
@@ -429,7 +429,7 @@ This pattern works for any page content extraction via JS. The `cdp eval` comman
 
 ## Cross-References
 
-- `/ov:test` -- parent router; `ov eval cdp …` is how every invocation is dispatched.
+- `/ov:eval` -- parent router; `ov eval cdp …` is how every invocation is dispatched.
 - `/ov:wl` -- Wayland desktop automation (sibling verb under `ov test`); also sway subgroup for compositor control.
 - `/ov:vnc` -- VNC desktop automation (sibling verb; same container, pixel-level interaction).
 - `/ov:dbus` -- D-Bus calls and notifications (sibling verb under `ov test`).

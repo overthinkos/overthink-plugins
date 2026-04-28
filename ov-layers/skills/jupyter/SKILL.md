@@ -173,7 +173,7 @@ Multiple MCP clients can edit the same notebook simultaneously:
 ## Tests
 
 The layer ships 2 declarative checks embedded in the `org.overthinkos.eval`
-OCI label (see `/ov:test` for the full schema):
+OCI label (see `/ov:eval` for the full schema):
 
 - **Build-scope** (run under `ov eval image`):
   - `workspace-dir` — `${HOME}/workspace` exists as a directory

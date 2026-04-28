@@ -462,7 +462,7 @@ for the `--build` flag that also picks up this caveat.
 ### Related skills
 
 - `/ov:layer` -- Layer definitions that get built
-- `/ov:test` -- Tests are embedded as `org.overthinkos.eval` OCI label at build time; LABEL-at-end optimization (see Cache Efficiency above) makes test edits cheap.
+- `/ov:eval` -- Tests are embedded as `org.overthinkos.eval` OCI label at build time; LABEL-at-end optimization (see Cache Efficiency above) makes test edits cheap.
 - `/ov:update` -- `ov update <image> --build` invokes `BuildCmd.Run` and picks up the same `--jobs` cap and stale-`:latest` caveat
 - `/ov:vm` -- Building bootc disk images (`ov vm build`)
 - `/ov:config` -- Engine configuration
@@ -479,7 +479,7 @@ Next step: `/ov:deploy` (quadlet setup, tunnels) → `/ov:service` (start and ma
 
 - `/ov-dev:capabilities` — OCI labels emitted during the build stage; `CapabilityLabelMap` completeness check
 
-## Live-deploy verification is mandatory (see `/ov:test` 10 standards)
+## Live-deploy verification is mandatory (see `/ov:eval` 10 standards)
 
 Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-dev:disposable`). Use `ov rebuild <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
 

@@ -32,7 +32,7 @@ Key entries (post-services-cutover):
 | `Services` | `LabelServices` (`org.overthinkos.services`) | **Structured JSON array of `CapabilityService`** — not just names. 22 per-entry fields including `kind`, `events`, `auto_start`, `start_retries`, `priority`, `init`, `layer`. See "LabelServices" below. |
 | `Init` | `LabelInit` | Init system name (supervisord / systemd / none). |
 | `ServiceNames` | `LabelInit` | Per-init active-name list; baked alongside `LabelInit` for CLI ergonomics (e.g., `ov service status`). |
-| `Tests` | `LabelTests` | Three-section `{layer, image, deploy}` JSON — the tests baked into the image, consumed by `ov test` / `ov eval image`. See `/ov:test`. |
+| `Tests` | `LabelEval` | Three-section `{layer, image, deploy}` JSON — the tests baked into the image, consumed by `ov test` / `ov eval image`. See `/ov:eval`. |
 | `EnvProvides` / `MCPProvides` | `LabelEnvProvides` / `LabelMCPProvides` | Cross-container discovery: what env vars / MCP servers this image advertises to pod peers. |
 | `EnvRequires` / `MCPRequires` | `LabelEnvRequires` / `LabelMCPRequires` | What this image *needs* from peers — validated at `ov config` time. |
 
@@ -130,7 +130,7 @@ See `/ov:image` for current user-facing structure and `/ov:migrate` for the one-
 3. Add the `CapabilityLabelMap` entry: `"Foo": LabelFoo`.
 4. Populate it in `EmitLabels` (label emission at build time).
 5. Parse it in `ExtractMetadata` (label read-back at deploy time).
-6. If the field is a struct/list, prefer `mustMarshalJSON` for consistent encoding (see how `LabelServices`, `LabelTests`, `LabelVolumes` do it).
+6. If the field is a struct/list, prefer `mustMarshalJSON` for consistent encoding (see how `LabelServices`, `LabelEval`, `LabelVolumes` do it).
 7. `go test ./...` — `TestCapabilityLabelCompleteness` passes.
 8. Update `/ov-dev:capabilities` (this skill) with the new entry in the key-labels table.
 
@@ -140,7 +140,7 @@ See `/ov:image` for current user-facing structure and `/ov:migrate` for the one-
 - `/ov:layer` — user-facing `layer:` authoring, including `service:` which feeds `LabelServices`
 - `/ov:deploy` — `ov deploy add` / `from-image` / `sync` commands
 - `/ov:kubernetes` — K8s deploy target that reads `LabelServices` to generate Kustomize
-- `/ov:test` — three-section `LabelTests` (layer/image/deploy) — same label-contract pattern
+- `/ov:eval` — three-section `LabelEval` (layer/image/deploy) — same label-contract pattern
 - `/ov:migrate` — `ov migrate unified` — emits the schema that populates these labels
 - `/ov-dev:go` — Go architecture overview, `LoadUnified`, `parseLayerYAML`
 - `/ov-dev:install-plan` — internal IR shared across build and deploy pipelines

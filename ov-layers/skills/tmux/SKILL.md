@@ -39,7 +39,7 @@ layers:
 - `/ov-images:hermes`, `/ov-images:selkies-desktop`, `/ov-images:sway-browser-vnc` — primary consumers
 - `/ov:shell` — interactive container shell (often wrapped in tmux)
 - `/ov:layer` — layer authoring
-- `/ov:test` — declarative testing framework (this layer tests `/usr/bin/tmux -V`)
+- `/ov:eval` — declarative testing framework (this layer tests `/usr/bin/tmux -V`)
 
 ## When to Use This Skill
 

@@ -176,7 +176,7 @@ in `image.yml`). Both `network: host` and the default ov bridge work.
 - `/ov:mcp` — **Part 2: Server** is the authoritative reference for `ov mcp serve` architecture, destructive-hint policy, `--read-only` filter, capture model, and the new bootstrapProject() logic.
 - `/ov:image` — "Project directory resolution" covers the `-C` / `--dir` / `OV_PROJECT_DIR` global flag and `--repo` / `OV_PROJECT_REPO`.
 - `/ov:config` — `--bind project=<path>` is the deployer's handshake with this layer's `volumes:` declaration.
-- `/ov:test` — Deploy-scope `mcp:` test verb methods used here.
+- `/ov:eval` — Deploy-scope `mcp:` test verb methods used here.
 - `/ov-dev:go` — `ov/mcp_server.go` `bootstrapProject()` implementation, including the env-var proxy detection of top-level flags and the unconditional image.yml check (new in 2026-04).
 
 ## When to Use This Skill

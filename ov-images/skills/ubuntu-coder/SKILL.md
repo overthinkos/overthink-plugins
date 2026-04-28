@@ -108,7 +108,7 @@ Identical to `/ov-images:debian-coder` — the only diff is `User` field.
 
 ## Ubuntu-specific layer quirks (differences vs debian-coder)
 
-- **fastfetch test is skipped** via `exclude_distros: [ubuntu:24.04]` (`/ov-layers:dev-tools`). Ubuntu 24.04 noble main does not ship `fastfetch` (Debian 13 trixie does, and so do Fedora/Arch). Skipping is cleaner than failing — `exclude_distros:` is a 2026-04 addition to the declarative-test schema (see `/ov:test`).
+- **fastfetch test is skipped** via `exclude_distros: [ubuntu:24.04]` (`/ov-layers:dev-tools`). Ubuntu 24.04 noble main does not ship `fastfetch` (Debian 13 trixie does, and so do Fedora/Arch). Skipping is cleaner than failing — `exclude_distros:` is a 2026-04 addition to the declarative-test schema (see `/ov:eval`).
 - **dotnet-sdk-9.0 source**: uses Microsoft's `dotnet-install.sh` (same as debian-coder). Note: Canonical's noble main/universe ships `dotnet-sdk-8.0` and `dotnet-sdk-10.0` but NOT 9.0; Microsoft's noble apt repo ships 10.0 only. `dotnet-install.sh --channel 9.0` is the only cross-distro-consistent path to .NET 9. See `/ov-layers:language-runtimes`.
 - **Everything else** is identical to debian-coder. The sudoers `getent` discovery, bat→batcat symlink, virtualization package-existence tests — all are implemented once in the respective layers and work uniformly on both debian-coder and ubuntu-coder.
 
@@ -135,7 +135,7 @@ podman run --rm ghcr.io/overthinkos/ubuntu-coder:latest id
 # 5. Deploy + live tests
 ov config ubuntu-coder
 ov start ubuntu-coder
-ov eval image ghcr.io/overthinkos/ubuntu-coder:latest --include-deploy
+ov eval image ghcr.io/overthinkos/ubuntu-coder:latest
 ```
 
 ## Gotcha: Dockerhub rate-limits during base pulls
@@ -187,7 +187,7 @@ Conflicts with the other three coder-family images on these ports.
 
 - `/ov:image` — **`user_policy:` field** (the pivot for this image's behavior).
 - `/ov:build` — **`base_user:` declaration** (where `ubuntu:1000` is declared).
-- `/ov:test` — `exclude_distros:` field reference.
+- `/ov:eval` — `exclude_distros:` field reference.
 - `/ov:generate` — adopt-vs-create writeBootstrap emission.
 - `/ov:shell`, `/ov:config`, `/ov:start`, `/ov:stop`.
 

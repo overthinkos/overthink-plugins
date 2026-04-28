@@ -64,7 +64,7 @@ Before this layer existed, `keepassxc` shipped inside `/ov-layers:desktop-apps` 
 - `/ov-layers:selkies-desktop` — desktop composition this layer pairs with
 - `/ov:secrets` — ov CLI credential store (shares `.kdbx` format only; different tool)
 - `/ov:layer` — layer authoring reference
-- `/ov:test` — declarative testing reference
+- `/ov:eval` — declarative testing reference
 
 ## When to Use This Skill
 

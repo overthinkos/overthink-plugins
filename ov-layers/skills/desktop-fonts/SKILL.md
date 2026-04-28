@@ -25,7 +25,7 @@ description: |
 package — dnf resolves it to `liberation-sans-fonts` (and sibling
 `-serif-fonts` / `-mono-fonts` packages). Any `package:` test must
 query the real installed name (`liberation-sans-fonts`), not the
-dnf-level request. See `/ov:test` Authoring Gotcha #8.
+dnf-level request. See `/ov:eval` Authoring Gotcha #8.
 
 ## Usage
 
@@ -59,7 +59,7 @@ Included in desktop metalayers. Not typically added directly:
 - `/ov-layers:waybar` -- uses JetBrains Mono + Symbols Nerd Font
 - `/ov-layers:waybar-labwc` -- same fonts
 - `/ov-layers:swaync` -- uses JetBrains Mono
-- `/ov:test` -- declarative testing framework (Authoring Gotcha #8 on package renames)
+- `/ov:eval` -- declarative testing framework (Authoring Gotcha #8 on package renames)
 - `/ov:layer` -- layer authoring reference
 
 ## When to Use This Skill

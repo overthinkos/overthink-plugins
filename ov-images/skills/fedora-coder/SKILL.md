@@ -165,8 +165,8 @@ ov config fedora-coder
 ov start fedora-coder
 
 # 5. Full-scope tests — prefers the running container automatically
-# (see /ov:test "Live vs disposable executor selection")
-ov eval image ghcr.io/overthinkos/fedora-coder:latest --include-deploy
+# (see /ov:eval "Live vs disposable executor selection")
+ov eval image ghcr.io/overthinkos/fedora-coder:latest
 # target: 167 passed · 0 failed · 0 skipped
 
 # 6. Clean up
@@ -200,7 +200,7 @@ if running alongside.
 ## Empirical test results (2026-04-20)
 
 - `ov eval image fedora-coder` — **149 passed · 0 failed · 0 skipped**.
-- `ov eval image fedora-coder --include-deploy` against a live running
+- `ov eval image fedora-coder` against a live running
   container — **167 passed · 0 failed · 0 skipped** (adds deploy-scope:
   sshd reachable, supervisord responding, dbus+ov-mcp+virtqemud+
   virtnetworkd services running, libvirt session list + KVM domcaps,
@@ -258,7 +258,7 @@ All four produce the same daily-dev surface (sshd on 2222, ov-mcp on 18765, 5 AI
 - `/ov:shell` — open an interactive shell inside the container (as user, with sudo)
 - `/ov:config` — deploy setup (--bind project=…, tunnel, --update-all)
 - `/ov:start`, `/ov:stop` — lifecycle
-- `/ov:test` — live-service and build-scope tests (`--include-deploy` prefers running container)
+- `/ov:eval` — live-service tests (`ov eval live <name>`) and build-scope tests (`ov eval image <ref>`)
 - `/ov:mcp` — MCP gateway documentation; `--no-default-repo` to disable auto-fallback
 - `/ov:vm` — nested libvirt VMs (via virtqemud inside the container)
 - `/ov:layer` — authoring reference (covers the new `strip_components:` modifier)

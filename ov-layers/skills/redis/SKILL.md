@@ -38,7 +38,7 @@ See `/ov:layer` for `env_provides` field docs.
   Fedora 43. The old `redis` package was replaced; dnf resolves the
   name via `Provides:`, but `rpm -q redis` returns "not installed".
   Any `package:` test must query the real installed name. See
-  `/ov:test` Authoring Gotcha #8.
+  `/ov:eval` Authoring Gotcha #8.
 
 ## Usage
 
@@ -57,7 +57,7 @@ my-image:
 ## Tests
 
 The layer ships 5 declarative checks embedded in the `org.overthinkos.eval`
-OCI label (see `/ov:test` for the full schema — this layer is the
+OCI label (see `/ov:eval` for the full schema — this layer is the
 **gold-standard pattern** referenced there):
 
 - **Build-scope** (run under `ov eval image`, via `podman run --rm`):
@@ -81,7 +81,7 @@ host, the deploy-scope tests correctly skip with
 
 - `/ov-layers:immich` -- primary consumer (depends on redis)
 - `/ov-layers:postgresql` -- often paired with redis in service stacks
-- `/ov:test` -- declarative testing framework (this layer is the gold-standard pattern)
+- `/ov:eval` -- declarative testing framework (this layer is the gold-standard pattern)
 - `/ov:layer` -- layer authoring + `env_provides` field docs
 - `/ov-layers:valkey` -- Remi-repo Valkey 9 package (separate layer; different version than Fedora's default valkey-compat-redis)
 

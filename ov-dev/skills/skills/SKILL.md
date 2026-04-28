@@ -20,8 +20,8 @@ CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher
 | `ov rebuild` / `ov vm *` / VM entities | `/ov:vm` + `/ov-dev:vm-deploy-target` |
 | `ov deploy add/del` / pod or container deploys | `/ov:deploy` |
 | host-target / nested host deploy | `/ov:host-deploy` + `/ov-dev:host-infra` |
-| `ov eval live` / `ov eval cdp/wl/dbus/vnc/mcp/record/spice/libvirt` | `/ov:test` |
-| `ov eval k8s <verb>` | `/ov:test-k8s` |
+| `ov eval live` / `ov eval cdp/wl/dbus/vnc/mcp/record/spice/libvirt` | `/ov:eval` |
+| `ov eval k8s <verb>` | `/ov:eval-k8s` |
 | Editing `layer.yml` / layer authoring | `/ov:layer` |
 | Editing `image.yml` / image composition | `/ov:image` |
 | `ov image build` / `ov image generate` / Containerfile | `/ov:build` + `/ov:generate` + `/ov-dev:generate` |
@@ -116,7 +116,7 @@ When adding a new command, always create a matching command skill. Consider a to
 
 | Plugin | Skills | Purpose |
 |--------|--------|---------|
-| `ov` | 38 | CLI operations ("how do I use X?") — includes `/ov:test` |
+| `ov` | 38 | CLI operations ("how do I use X?") — includes `/ov:eval` |
 | `ov-dev` | 3 + 3 agents | Development ("how does the code work?") |
 | `ov-jupyter` | 1 MCP server | Notebook MCP tools |
 | `ov-layers` | 161 | Layer reference ("what does layer X contain?") |

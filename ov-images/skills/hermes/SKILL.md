@@ -148,14 +148,14 @@ Covers all 4 AI CLIs at `${HOME}/.npm-global/bin/{claude,codex,gemini}`
 dev-tools (rg, bat, gh, fastfetch, nvim, htop) and devops-tools (aws,
 scw, kubectx, kubens, tofu, jq). Deploy-scope: pipewire + hermes
 services up, `/opt/data` volume mounted. Uses `supervisorctl pid` for
-liveness (hermes-whatsapp is autostart=false — see `/ov:test` Gotcha #4).
+liveness (hermes-whatsapp is autostart=false — see `/ov:eval` Gotcha #4).
 
 ## Related Skills
 
 - `/ov-layers:hermes-full`, `/ov-layers:hermes`, `/ov-layers:claude-code`,
   `/ov-layers:codex`, `/ov-layers:gemini`, `/ov-layers:dev-tools`,
   `/ov-layers:devops-tools`
-- `/ov:test` — declarative testing framework + supervisord gotchas
+- `/ov:eval` — declarative testing framework + supervisord gotchas
 - `/ov:config` — `OV_MCP_SERVERS` auto-discovery + secret provisioning
 - `/ov:mcp` — verify each MCP server in `OV_MCP_SERVERS` is actually alive before debugging hermes tool-call failures; `ov eval mcp list-tools <provider-image>` shows exactly what hermes will see
 - `/ov-images:selkies-desktop` — companion for shared browser (CDP)

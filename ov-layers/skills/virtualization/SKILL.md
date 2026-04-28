@@ -137,7 +137,7 @@ The fix — introduced 2026-04 during Phase E — probes package presence with d
   installed: true
 ```
 
-See `/ov:test` "`package:` + `package_map:` pattern" for the resolution order (tag > base name > fallback).
+See `/ov:eval` "`package:` + `package_map:` pattern" for the resolution order (tag > base name > fallback).
 
 **Deploy-scope (run against a live `ov start`ed container):**
 
@@ -196,7 +196,7 @@ Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networ
 - `/ov:vm` — VM lifecycle (build, create, start, stop, ssh, console, destroy); defaults to `qemu:///session` at ov/vm.go:22
 - `/ov:generate` — Containerfile generation; emits the supervisord `NN-virtualization.conf` fragment via `fragment_assembly` init model
 - `/ov:layer` — layer authoring reference (tasks, vars, service blocks, tests syntax)
-- `/ov:test` — declarative testing framework for the layer's `tests:` block (file, service, command verbs)
+- `/ov:eval` — declarative testing framework for the layer's `tests:` block (file, service, command verbs)
 
 ## When to Use This Skill
 

@@ -279,7 +279,7 @@ this mirror.
 
 - `/ov:shell` — open an interactive shell inside the container as uid 1000
 - `/ov:config` — deploy setup (tunnel, port remapping, multi-instance, encrypted volumes)
-- `/ov:test` — parent router for live-container verbs (`ov eval cdp|wl|dbus|vnc|mcp`)
+- `/ov:eval` — parent router for live-container verbs (`ov eval cdp|wl|dbus|vnc|mcp`)
 - `/ov:vm` — nested libvirt VM lifecycle (works via `virtqemud` session)
 - `/ov:build` — building other images from inside this one (nested podman)
 - `/ov:cdp` — drive the baked-in Chrome via DevTools Protocol

@@ -12,7 +12,7 @@ description: |
 
 `ov eval record` manages recording sessions inside running containers. It supports two modes:
 
-> **Moved under `ov test` in 2026-04** — the top-level `ov record` command was removed as a hard cutover. See `/ov:test` for the live-container verb family (cdp/wl/dbus/vnc/mcp/spice/libvirt/record).
+> **Moved under `ov test` in 2026-04** — the top-level `ov record` command was removed as a hard cutover. See `/ov:eval` for the live-container verb family (cdp/wl/dbus/vnc/mcp/spice/libvirt/record).
 
 1. **Terminal recording** (asciinema) — Records terminal sessions as `.cast` files
 2. **Desktop video recording** — Records full-screen video as MP4 files via pixelflux (selkies-desktop) or wf-recorder (sway-desktop)

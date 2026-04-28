@@ -90,4 +90,4 @@ All packages are in Fedora official repos.
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)
+- `/ov:eval` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

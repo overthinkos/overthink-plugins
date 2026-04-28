@@ -56,7 +56,7 @@ Chrome needs `--force-renderer-accessibility` flag to expose DOM elements via AT
   Declarative tests must use the absolute path `/usr/bin/python3 -c
   "import pyatspi"`; a bare `python3` invocation resolves to pixi's
   python and fails with `ModuleNotFoundError: No module named 'pyatspi'`.
-  See `/ov:test` Authoring Gotchas #7 (no bash defaults) and #8
+  See `/ov:eval` Authoring Gotchas #7 (no bash defaults) and #8
   (system vs pixi Python).
 
 ## Related Skills
@@ -64,5 +64,5 @@ Chrome needs `--force-renderer-accessibility` flag to expose DOM elements via AT
 - `/ov:wl` — `ov eval wl atspi tree/find/click` commands
 - `/ov-layers:dbus` — Required dependency (D-Bus session bus)
 - `/ov-layers:selkies-desktop` — Desktop metalayer that includes this layer
-- `/ov:test` — declarative testing framework
+- `/ov:eval` — declarative testing framework
 - `/ov:layer` — layer authoring

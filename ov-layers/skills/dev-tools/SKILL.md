@@ -55,7 +55,7 @@ The `fastfetch-binary` test is declared with an `exclude_distros:` filter:
     - ubuntu:24.04
 ```
 
-On images whose `org.overthinkos.platform.distro` OCI label includes `ubuntu:24.04`, the test runner skips this check with a reason — see `/ov:test` "`exclude_distros:` field". This was added because dropping fastfetch from the `ubuntu:24.04:` tag section is clean, but the baked test probe would otherwise false-fail.
+On images whose `org.overthinkos.platform.distro` OCI label includes `ubuntu:24.04`, the test runner skips this check with a reason — see `/ov:eval` "`exclude_distros:` field". This was added because dropping fastfetch from the `ubuntu:24.04:` tag section is clean, but the baked test probe would otherwise false-fail.
 
 ### Single-responsibility split: git tooling lives in `/ov-layers:gh`
 
@@ -92,7 +92,7 @@ my-dev:
 ## Related Commands
 - `/ov:build` — Build images that ship the dev-tools package set
 - `/ov:shell` — Interactive shell to use bat/ripgrep/neovim/etc.
-- `/ov:test` — `exclude_distros:` field reference for the fastfetch-binary test
+- `/ov:eval` — `exclude_distros:` field reference for the fastfetch-binary test
 - `/ov:layer` — authoring reference for distro-tolerant `cmd:` tasks and `exclude_distros:`
 
 ## When to Use This Skill

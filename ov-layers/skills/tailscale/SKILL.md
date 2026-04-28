@@ -72,7 +72,7 @@ All three can coexist, but for most cases you want exactly one.
 - `/ov:sidecar` — deploy-time Tailscale sidecar pattern (alternative, not a replacement)
 - `/ov:deploy` — `deploy.yml` tunnel/sidecar configuration
 - `/ov:layer` — layer authoring reference
-- `/ov:test` — declarative testing reference
+- `/ov:eval` — declarative testing reference
 
 ## When to Use This Skill
 

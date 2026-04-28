@@ -102,12 +102,12 @@ agent-forwarding prerequisites (gpg, ssh, direnv binaries), supervisord
 deploy-scope: service up, port reachable on `127.0.0.1:${HOST_PORT:8080}`,
 HTTP 200 on `/`, data volume mounted.
 
-See `/ov:test` for the framework and author-facing gotchas.
+See `/ov:eval` for the framework and author-facing gotchas.
 
 ## Related Skills
 
 - `/ov-layers:filebrowser` — layer authoring
-- `/ov:test` — declarative testing framework
+- `/ov:eval` — declarative testing framework
 - `/ov:config` — deploy-mode setup with volume backing and tunnels
 - `/ov:build` — LABELs-at-end cache efficiency
 

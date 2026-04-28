@@ -103,7 +103,7 @@ See `/ov:image` "user_policy" and `/ov:build` "base_user" for the full decision 
 
 `ov eval image ghcr.io/overthinkos/debian-coder:latest` — **143 passed · 0 failed · 0 skipped**.
 
-`ov eval image ghcr.io/overthinkos/debian-coder:latest --include-deploy` — live-service extension tests (sshd on 2222, supervisord, dbus, ov-mcp, virtqemud session) — not run in Phase F (disk-constrained CI environment), but expected to mirror fedora-coder's +18 additions.
+`ov eval image ghcr.io/overthinkos/debian-coder:latest` — live-service extension tests (sshd on 2222, supervisord, dbus, ov-mcp, virtqemud session) — not run in Phase F (disk-constrained CI environment), but expected to mirror fedora-coder's +18 additions.
 
 ## Verification recipe
 
@@ -120,7 +120,7 @@ ov eval image ghcr.io/overthinkos/debian-coder:latest
 # 4. Deploy + live tests
 ov config debian-coder
 ov start debian-coder
-ov eval image ghcr.io/overthinkos/debian-coder:latest --include-deploy
+ov eval image ghcr.io/overthinkos/debian-coder:latest
 
 # 5. Clean up
 ov stop debian-coder
@@ -164,7 +164,7 @@ All four coder-family images share the identical 80-line `tests:` block + ~30 id
 
 ## Related commands
 
-- `/ov:shell`, `/ov:config`, `/ov:start`, `/ov:stop`, `/ov:test`
+- `/ov:shell`, `/ov:config`, `/ov:start`, `/ov:stop`, `/ov:eval`
 - `/ov:image` — `user_policy:` field reference
 - `/ov:build` — `base_user:` declaration (absent for Debian)
 - `/ov:layer` — authoring reference (covers `exclude_distros:`, tag-section `repos:`, Microsoft dotnet-install pattern)

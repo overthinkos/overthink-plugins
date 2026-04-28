@@ -75,7 +75,7 @@ Not yet tested. The `fedora-nonfree` variant works with CPU encoding. This varia
 - `/ov-images:nvidia` — parent base image with CUDA toolkit
 
 ## Related Commands
-- `/ov:test` — parent router for live-container verbs (`ov eval cdp|wl|dbus|vnc|mcp`)
+- `/ov:eval` — parent router for live-container verbs (`ov eval cdp|wl|dbus|vnc|mcp`)
 - `/ov:cdp` — drive Chrome inside the streaming desktop
 - `/ov:wl` — interact with the labwc Wayland session
 - `/ov:dbus` — D-Bus notifications via in-container `ov` binary

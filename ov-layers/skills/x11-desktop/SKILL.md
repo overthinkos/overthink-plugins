@@ -49,4 +49,4 @@ Use when working with X11 desktop composition or comparing display server approa
 ## Author + Test References
 
 - `/ov:layer` — layer authoring reference (tasks, vars, env_provides, tests block syntax)
-- `/ov:test` — declarative testing framework for the `tests:` block
+- `/ov:eval` — declarative testing framework for the `tests:` block

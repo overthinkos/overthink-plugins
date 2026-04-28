@@ -193,7 +193,7 @@ on shared hosts.
 - `CLAUDE.md` — R10 "Verify on a `disposable: true` target; prove
   it on a fresh rebuild", plus the "Disposable-Only Autonomy"
   section.
-- `/ov:test` — the 10 testing standards; disposable-only deployment
+- `/ov:eval` — the 10 testing standards; disposable-only deployment
   is Standard 4, fresh-rebuild re-verification is Standard 10.
 - `/ov-vms:vms` — kind:vm schema, including `disposable:` and
   `lifecycle:` fields.

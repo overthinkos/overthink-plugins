@@ -36,7 +36,7 @@ my-dev:
 - `/ov-layers:hermes-full` — metalayer that bundles this with codex, gemini, dev-tools, devops-tools
 - `/ov-images:hermes` — primary image that ships this CLI
 - `/ov:layer` — layer authoring reference
-- `/ov:test` — declarative testing framework (this layer's test verifies `${HOME}/.npm-global/bin/claude` + `claude --version`)
+- `/ov:eval` — declarative testing framework (this layer's test verifies `${HOME}/.npm-global/bin/claude` + `claude --version`)
 
 ## When to Use This Skill
 

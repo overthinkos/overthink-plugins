@@ -131,7 +131,7 @@ ov eval image ghcr.io/overthinkos/arch-coder:latest
 
 ov config arch-coder
 ov start arch-coder
-ov eval image ghcr.io/overthinkos/arch-coder:latest --include-deploy
+ov eval image ghcr.io/overthinkos/arch-coder:latest
 # adds deploy-scope checks: sshd reachable, supervisord, dbus, ov-mcp,
 # virtqemud, libvirt session list, KVM domcaps, MCP tool-call probes.
 ```
@@ -165,7 +165,7 @@ Conflicts with `/ov-images:fedora-coder` / `/ov-images:debian-coder` / `/ov-imag
 
 ## Related commands
 
-- `/ov:shell`, `/ov:config`, `/ov:start`, `/ov:stop`, `/ov:test`
+- `/ov:shell`, `/ov:config`, `/ov:start`, `/ov:stop`, `/ov:eval`
 - `/ov:image` — `user_policy:` field reference
 - `/ov:build` — `base_user:` declaration (absent for archlinux)
 - `/ov:layer` — authoring reference

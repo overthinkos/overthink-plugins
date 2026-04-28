@@ -182,12 +182,12 @@ on `127.0.0.1`, `/api` returns 200 with `version` in body, `/mcp`
 returns 400 on empty POST (proving MCP routing is wired). Image-scope:
 `jupyter_mcp` appears in extension list, workspace has ≥1 `.ipynb`.
 
-See `/ov:test` for the framework and author-facing gotchas.
+See `/ov:eval` for the framework and author-facing gotchas.
 
 ## Related Skills
 
 - `/ov-layers:jupyter`, `/ov-layers:jupyter-mcp`, `/ov-layers:notebook-templates`
-- `/ov:test` — declarative testing framework
+- `/ov:eval` — declarative testing framework
 - `/ov:config` — deploy setup
 - `/ov:mcp` — the image inherits 3 deploy-scope `mcp:` declarative checks from the `jupyter` layer (`ping`, `list-tools` asserting `insert_cell`/`execute_cell`, `call list_notebooks`). Run `ov test jupyter --filter mcp` to exercise them against a live deployment, or `ov eval mcp list-tools jupyter` for ad-hoc inspection
 - `/ov-images:jupyter-ml`, `/ov-images:jupyter-ml-notebook` — GPU variants that inherit the same MCP test suite

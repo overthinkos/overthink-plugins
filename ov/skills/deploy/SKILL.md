@@ -800,7 +800,7 @@ images:
 - `/ov:mcp` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`ov eval mcp ping <image>`); note the **port-publishing gotcha** when a `ports:` override in deploy.yml predates a newly-added mcp-providing layer
 - `/ov:image` — Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
 - `/ov:layer` — Unified `services:` schema (use_packaged + structured custom), `env_provides`/`env_requires`/`env_accepts` field declarations, security resource caps
-- `/ov:test` — Local `tests:` in deploy.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.
+- `/ov:eval` — Local `tests:` in deploy.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.
 
 **Canonical layer worked examples:**
 - `/ov-layers:chrome` — Resource caps consumer + crash-loop circuit breaker
@@ -816,7 +816,7 @@ images:
 **Workflow position:** After `/ov:build`, before `/ov:service`.
 Previous step: `/ov:build` (build the image). Next step: `/ov:service` (start, status, logs).
 
-## Live-deploy verification is mandatory (see `/ov:test` 10 standards)
+## Live-deploy verification is mandatory (see `/ov:eval` 10 standards)
 
 Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-dev:disposable`). Use `ov rebuild <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
 

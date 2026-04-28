@@ -168,7 +168,7 @@ Rebuild + redeploy the VM.
 - `/ov:build` — container image build (also covers the stale-ov-binary and buildah-cache-mount caveats)
 - `/ov:generate` — Containerfile generation (empty-systemd-services-stage fix, `anyRepoHasURL`, `export BUILD_ARCH` gotcha)
 - `/ov:image` — the `distro:` field semantics + external-base caveat
-- `/ov:test` — declarative testing (including the USER-context gotcha for dual-mode images)
+- `/ov:eval` — declarative testing (including the USER-context gotcha for dual-mode images)
 
 ## When to Use This Skill
 

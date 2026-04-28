@@ -12,7 +12,7 @@ description: |
 
 ### Also as a declarative verb
 
-Every `ov eval vnc <method>` (status/screenshot/click/mouse/type/key/rfb/passwd) is authorable as a `vnc:` verb inside a `tests:` block. Method-specific fields (`x`, `y`, `text`, `key`, `artifact`, `artifact_min_bytes`) are siblings of the verb line. See `/ov:test` for the full YAML shape. Example: `- vnc: screenshot\n  artifact: /tmp/vnc.png\n  artifact_min_bytes: 5000`.
+Every `ov eval vnc <method>` (status/screenshot/click/mouse/type/key/rfb/passwd) is authorable as a `vnc:` verb inside a `tests:` block. Method-specific fields (`x`, `y`, `text`, `key`, `artifact`, `artifact_min_bytes`) are siblings of the verb line. See `/ov:eval` for the full YAML shape. Example: `- vnc: screenshot\n  artifact: /tmp/vnc.png\n  artifact_min_bytes: 5000`.
 
 ## Quick Reference
 
@@ -217,7 +217,7 @@ ov eval wl screenshot <image> out.png            # Wayland screenshot (grim, alw
 
 ## Cross-References
 
-- `/ov:test` — parent router; `ov eval vnc …` is how every invocation is dispatched.
+- `/ov:eval` — parent router; `ov eval vnc …` is how every invocation is dispatched.
 - `/ov:wl` — Wayland-native desktop automation (sibling verb; works on NVIDIA headless).
 - `/ov:cdp` — Chrome DevTools Protocol automation (sibling verb; same container, different protocol).
 - `/ov:dbus` — D-Bus calls and desktop notifications (sibling verb under `ov test`).

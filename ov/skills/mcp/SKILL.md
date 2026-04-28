@@ -23,7 +23,7 @@ Both surfaces share the same SDK: `github.com/modelcontextprotocol/go-sdk v1.5.0
 
 ### Also as a declarative verb
 
-Every `ov eval mcp <method>` is authorable as an `mcp:` verb inside a `tests:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tool:`, `uri:`, `input:`, `mcp_name:`). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `timeout:`) work like other verbs. See `/ov:test` for the parent router and the complete method allowlist. Example:
+Every `ov eval mcp <method>` is authorable as an `mcp:` verb inside a `tests:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tool:`, `uri:`, `input:`, `mcp_name:`). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `timeout:`) work like other verbs. See `/ov:eval` for the parent router and the complete method allowlist. Example:
 
 ```yaml
 - mcp: list-tools
@@ -410,7 +410,7 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 
 ## Cross-References
 
-- `/ov:test` — parent router; all `ov eval mcp …` invocations are dispatched through it. Full method allowlist for all 5 live-container verbs (cdp/wl/dbus/vnc/mcp) lives in the "Live-container verb catalog" section.
+- `/ov:eval` — parent router; all `ov eval mcp …` invocations are dispatched through it. Full method allowlist for all 5 live-container verbs (cdp/wl/dbus/vnc/mcp) lives in the "Live-container verb catalog" section.
 - `/ov:layer` — `mcp_provides` / `mcp_accepts` / `mcp_requires` field reference for layer authoring.
 - `/ov:config` — how `mcp_provides` gets injected into `deploy.yml` `provides.mcp:` and synthesized into `OV_MCP_SERVERS` for consumers at `ov config` time; pod-aware resolution to `localhost`; instance-aware MCP server naming with `-<instance>` suffix.
 - `/ov:validate` — authoring-time validation rules (method allowlist, required modifiers, scope enforcement).
@@ -440,4 +440,4 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 
 Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Test mode / live service operation. Client: deploy an image with `mcp_provides`, start it, then probe. Server: compose `ov-mcp` into an image, bind `--bind project=/path/to/overthink` at config time, start the container, then consume from any MCP-speaking LLM runtime. Pairs with `/ov:test` (parent router + declarative-verb catalog), `/ov:config` (consumer-side injection + `--bind` for the project dir), `/ov-layers:ov-mcp` (server deployment layer), and the consumer-layer skills (`/ov-layers:hermes`, `/ov-layers:openwebui`).
+**Workflow position:** Test mode / live service operation. Client: deploy an image with `mcp_provides`, start it, then probe. Server: compose `ov-mcp` into an image, bind `--bind project=/path/to/overthink` at config time, start the container, then consume from any MCP-speaking LLM runtime. Pairs with `/ov:eval` (parent router + declarative-verb catalog), `/ov:config` (consumer-side injection + `--bind` for the project dir), `/ov-layers:ov-mcp` (server deployment layer), and the consumer-layer skills (`/ov-layers:hermes`, `/ov-layers:openwebui`).

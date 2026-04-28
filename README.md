@@ -27,16 +27,17 @@ via `ov migrate unified` — see `/ov:migrate`.
 | Skill | Invocation | Description |
 |-------|-----------|-------------|
 | alias | `/ov:alias` | Command aliases (ov alias add/remove/install) |
-| benchmark | `/ov:benchmark` | `ov benchmark` — iterate an AI agent against BDD scenarios until plateau; rebuild + `ov image test` per iteration; git worktree per run |
 | build | `/ov:build` | `ov image build` — building images, caches |
-| cdp | `/ov:cdp` | Chrome DevTools Protocol (ov test cdp open/list/click/eval) |
+| cdp | `/ov:cdp` | Chrome DevTools Protocol (ov eval cdp open/list/click/eval) |
 | cmd | `/ov:cmd` | Single command execution with D-Bus notification |
 | config | `/ov:config` | Unified setup: quadlet + secrets + volumes + data provisioning |
-| dbus | `/ov:dbus` | D-Bus interaction inside containers (notify, call, list, introspect) |
+| dbus | `/ov:dbus` | D-Bus interaction inside containers (ov eval dbus notify, call, list, introspect) |
 | deploy | `/ov:deploy` | Deployment verb family: `ov deploy add/del` (unified; host + container targets), deploy.yml management, quadlet, tunnels, volume backing |
 | host-deploy | `/ov:host-deploy` | Host-target deploys (`ov deploy add host`): ledger, 15 ReverseOps, `--with-services`/`--allow-repo-changes`/`--allow-root-tasks` gates, systemd rendering |
 | doctor | `/ov:doctor` | Host dependency and hardware checks |
 | enc | `/ov:enc` | Encrypted volumes (ov config mount/unmount/status/passwd) |
+| eval | `/ov:eval` | `ov eval` — unified declarative + AI-iteration eval (image/live/run + cdp/wl/dbus/vnc/mcp/record/spice/libvirt/k8s probe verbs); replaces the pre-cutover `ov test` + `ov harness` split |
+| eval-k8s | `/ov:eval-k8s` | Kubernetes cluster probes (`ov eval k8s nodes/wait-nodes/pods/wait-ready/ingress/ingressclass/storageclass/service/lb-external-ip/addons/apply/delete/raw`) via vendored client-go — hermetic, no kubectl required |
 | generate | `/ov:generate` | `ov image generate` — Containerfile generation from `overthink.yml` + layers |
 | image | `/ov:image` | `ov image` family overview + `image:` entries in `overthink.yml` composition reference |
 | inspect | `/ov:inspect` | `ov image inspect` — resolved config as JSON |
@@ -44,13 +45,13 @@ via `ov migrate unified` — see `/ov:migrate`.
 | layer | `/ov:layer` | Layer authoring (layer.yml with tasks:, pixi.toml, service: list, etc.) |
 | list | `/ov:list` | `ov image list` — images, layers, targets, services, routes, volumes, aliases |
 | logs | `/ov:logs` | Service log viewing (ov logs, -f for follow) |
-| mcp | `/ov:mcp` | MCP gateway: `ov mcp serve` exposes the CLI as tools; `ov test mcp` client |
+| mcp | `/ov:mcp` | MCP gateway: `ov mcp serve` exposes the CLI as tools; `ov eval mcp` client |
 | merge | `/ov:merge` | `ov image merge` — post-build layer optimization |
-| migrate | `/ov:migrate` | `ov migrate unified` — convert legacy `image.yml`/`build.yml`/flat `layer.yml` to unified `overthink.yml` |
+| migrate | `/ov:migrate` | `ov migrate unified` / `ov migrate eval` — schema migrations (legacy image.yml/build.yml/flat layer.yml → overthink.yml; harness.yml → eval.yml) |
 | new | `/ov:new` | `ov image new layer` — scaffold new layers |
 | openclaw | `/ov:openclaw` | OpenClaw AI gateway configuration |
 | pull | `/ov:pull` | `ov image pull` — fetch into local storage; ErrImageNotLocal recovery |
-| record | `/ov:record` | Recording sessions (ov test record start/stop/list/cmd) |
+| record | `/ov:record` | Recording sessions (ov eval record start/stop/list/cmd) |
 | remove | `/ov:remove` | Remove service container, quadlet, and deploy.yml entry |
 | secrets | `/ov:secrets` | KeePass .kdbx and GPG secret management |
 | service | `/ov:service` | Init system service management inside containers |
@@ -60,16 +61,14 @@ via `ov migrate unified` — see `/ov:migrate`.
 | start | `/ov:start` | Start container as background service |
 | status | `/ov:status` | Service status with tool probes and device detection |
 | stop | `/ov:stop` | Stop running container |
-| test | `/ov:test` | Declarative test runner (layer/image/deploy sections); parent router for `ov test cdp/wl/dbus/vnc/mcp/k8s` |
-| test-k8s | `/ov:test-k8s` | Kubernetes cluster probes (`ov test k8s nodes/wait-nodes/pods/wait-ready/ingress/ingressclass/storageclass/service/lb-external-ip/addons/apply/delete/raw`) via vendored client-go — hermetic, no kubectl required |
 | tmux | `/ov:tmux` | Persistent tmux sessions (ov tmux shell/cmd/run/attach/capture) |
 | udev | `/ov:udev` | GPU device access rules (ov udev status/generate/install/remove) |
 | update | `/ov:update` | Update image and restart with data sync |
 | validate | `/ov:validate` | `ov image validate` — `overthink.yml` + layer definitions |
 | version | `/ov:version` | Show CLI version information |
 | vm | `/ov:vm` | Virtual machines (ov vm build/create/start/stop) |
-| vnc | `/ov:vnc` | VNC desktop automation (ov test vnc screenshot/click/type) |
-| wl | `/ov:wl` | Desktop automation (22 commands + 12 sway IPC commands) |
+| vnc | `/ov:vnc` | VNC desktop automation (ov eval vnc screenshot/click/type) |
+| wl | `/ov:wl` | Desktop automation (ov eval wl: 22 commands + 12 sway IPC commands) |
 | wl-overlay | `/ov:wl-overlay` | Wayland overlays for screen recordings |
 
 ### ov-dev (12 skills, 3 agents, GitHub MCP)
@@ -170,7 +169,7 @@ Reference documentation for every Overthink container layer.
 | comfyui | `/ov-layers:comfyui` | ComfyUI image generation service on port 8188 with CUDA |
 | copr-desktop | `/ov-layers:copr-desktop` | COPR desktop packages (CoolerControl, Ghostty, Nerd Fonts, WinBoat) |
 | cuda | `/ov-layers:cuda` | CUDA toolkit, cuDNN, ONNX Runtime from negativo17 repos |
-| dbus | `/ov-layers:dbus` | D-Bus session bus for IPC and `ov test dbus` commands |
+| dbus | `/ov-layers:dbus` | D-Bus session bus for IPC and `ov eval dbus` commands |
 | desktop-apps | `/ov-layers:desktop-apps` | Chromium, VLC, KeePassXC, btop, cockpit, zsh |
 | desktop-fonts | `/ov-layers:desktop-fonts` | JetBrains Mono and Nerd Fonts for desktop containers |
 | dev-tools | `/ov-layers:dev-tools` | bat, ripgrep, neovim, gh, direnv, fd-find, htop |

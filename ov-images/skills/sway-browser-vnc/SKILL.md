@@ -113,7 +113,7 @@ port 5900 reachable, Chrome CDP on port 9250→9222 with `/json/version`
 - `/ov-layers:sway-desktop-vnc`, `/ov-layers:sway`, `/ov-layers:wayvnc`,
   `/ov-layers:chrome-sway`, `/ov-layers:xdg-portal`, `/ov-layers:dbus`,
   `/ov-layers:ov`, `/ov-layers:agent-forwarding`
-- `/ov:test` — declarative testing framework (parent router for `ov eval cdp|wl|dbus|vnc|mcp`)
+- `/ov:eval` — declarative testing framework (parent router for `ov eval cdp|wl|dbus|vnc|mcp`)
 - `/ov:vnc` — VNC automation on this image
 - `/ov:cdp` — Chrome automation (CDP on host port 9250)
 - `/ov:wl` — Wayland input/windows/clipboard (sway subgroup for compositor control)

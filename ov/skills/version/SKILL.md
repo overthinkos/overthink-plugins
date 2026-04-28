@@ -42,7 +42,7 @@ Historical note: `VersionCmd` originally used Go's builtin
 `os.Stderr` and writes directly to fd 2). The move to `fmt.Println`
 landed with the MCP server work so the in-process tool-call path —
 which captures `os.Stdout` — can surface the version correctly. See
-`/ov:test` Authoring Gotcha #5 and `/ov:mcp` "Capture model" for the
+`/ov:eval` Authoring Gotcha #5 and `/ov:mcp` "Capture model" for the
 full story.
 
 ## Cross-References
@@ -50,6 +50,6 @@ full story.
 - `/ov:doctor` -- Full host dependency and health check
 - `/ov:settings` — runtime config where `secret_backend` and other settings live
 - `/ov:image` — build-mode family that stamps CalVer tags matching this version
-- `/ov:test` — declarative testing framework (Gotcha #5 covers the stdout rule)
+- `/ov:eval` — declarative testing framework (Gotcha #5 covers the stdout rule)
 - `/ov:mcp` — MCP server section explains why the stream choice matters for the capture pipeline
 - `/ov-dev:go` — `ov/version.go` CalVer computation; `main.go` `VersionCmd.Run` using `fmt.Println`

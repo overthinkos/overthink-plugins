@@ -188,7 +188,7 @@ ov deploy del host --yes
 - `/ov:layer` — Unified `services:` schema (use_packaged + custom entries) that host deploys render via systemd
 - `/ov:build` — Build-mode Containerfile generation; three-phase template split (prepare/install/cleanup × container/host)
 - `/ov:update` — `--pull` equivalent on `ov deploy add`
-- `/ov:test` — `--verify` re-runs layer `tests:` against the host post-deploy
+- `/ov:eval` — `--verify` re-runs layer `tests:` against the host post-deploy
 - `/ov-dev:install-plan` — InstallPlan IR that HostDeployTarget consumes; 8 step kinds; DeployTarget interface
 - `/ov-dev:host-infra` — Implementation: `hostdistro.go` (distro alias table), `install_ledger.go` (flock protocol + JSON shape), `builder_run.go` (podman argv), `shell_profile.go` (managed blocks), `reverse_ops.go` (15 executors), `service_render.go` (ServiceEntry → unit text), `deploy_ref.go` (4 ref forms)
 
