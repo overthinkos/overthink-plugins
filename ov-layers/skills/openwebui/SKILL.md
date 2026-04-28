@@ -142,7 +142,7 @@ openwebui:
 - `/ov:config` -- `ov config openwebui --update-all` for service discovery
 - `/ov:secrets` -- `ov secrets` for kdbx/keyring credential management
 - `/ov:service` -- `ov service status openwebui` for runtime management
-- `/ov:mcp` -- probe the MCP servers openwebui consumes (auto-configured into `TOOL_SERVER_CONNECTIONS` from `OV_MCP_SERVERS`): `ov test mcp list-tools <provider-image>` shows what tools openwebui will see, and `ov test mcp ping` verifies liveness before debugging openwebui itself.
+- `/ov:mcp` -- probe the MCP servers openwebui consumes (auto-configured into `TOOL_SERVER_CONNECTIONS` from `OV_MCP_SERVERS`): `ov eval mcp list-tools <provider-image>` shows what tools openwebui will see, and `ov eval mcp ping` verifies liveness before debugging openwebui itself.
 
 ## Related Images
 
@@ -158,4 +158,4 @@ openwebui:
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

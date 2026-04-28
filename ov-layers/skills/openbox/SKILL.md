@@ -46,4 +46,4 @@ Use when working with Openbox WM configuration or X11 desktop containers.
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

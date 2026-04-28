@@ -54,7 +54,7 @@ hermes:
 - `/ov-layers:chrome` — Provides `BROWSER_CDP_URL` (cross-container, from selkies-desktop)
 - `/ov-layers:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-discovered via `mcp_provides`, 29 tools)
 - `/ov-layers:jupyter-mcp` — JupyterLab CRDT MCP server (auto-discovered via `mcp_provides`, 13 tools)
-- `/ov:mcp` — host-side MCP client (`ov test mcp ping|list-tools|call|...`) to verify either of the above is alive and exposing the expected tool catalog before hermes tries to invoke them
+- `/ov:mcp` — host-side MCP client (`ov eval mcp ping|list-tools|call|...`) to verify either of the above is alive and exposing the expected tool catalog before hermes tries to invoke them
 
 ## Related Images
 
@@ -68,4 +68,4 @@ Use when working with the `hermes-full` metalayer, full-featured standalone herm
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

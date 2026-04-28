@@ -683,7 +683,7 @@ For images with wayvnc (VNC on tcp:5900), set a VNC password after enabling:
 
 ```bash
 ov config openclaw-sway-browser
-ov test vnc passwd openclaw-sway-browser --generate   # auto-generates password, prints to stdout
+ov eval vnc passwd openclaw-sway-browser --generate   # auto-generates password, prints to stdout
 ```
 
 Or pre-set via settings before deployment:
@@ -692,7 +692,7 @@ Or pre-set via settings before deployment:
 ov settings set vnc.password.openclaw-sway-browser mysecret
 ov config openclaw-sway-browser
 # After container starts, run passwd to configure server-side auth:
-ov test vnc passwd openclaw-sway-browser    # uses stored password (no prompt)
+ov eval vnc passwd openclaw-sway-browser    # uses stored password (no prompt)
 ```
 
 See `/ov:vnc` for full VNC authentication documentation.
@@ -797,7 +797,7 @@ images:
 - `/ov:vnc` — VNC password setup for desktop containers
 - `/ov:vm` — Virtual machine deployment (ov vm)
 - `/ov:build` — Building images before deployment (+ the `--no-cache` intermediate scratch-stage caveat)
-- `/ov:mcp` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`ov test mcp ping <image>`); note the **port-publishing gotcha** when a `ports:` override in deploy.yml predates a newly-added mcp-providing layer
+- `/ov:mcp` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`ov eval mcp ping <image>`); note the **port-publishing gotcha** when a `ports:` override in deploy.yml predates a newly-added mcp-providing layer
 - `/ov:image` — Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
 - `/ov:layer` — Unified `services:` schema (use_packaged + structured custom), `env_provides`/`env_requires`/`env_accepts` field declarations, security resource caps
 - `/ov:test` — Local `tests:` in deploy.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.

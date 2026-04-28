@@ -2,7 +2,7 @@
 name: dbus
 description: |
   D-Bus session bus for inter-process communication inside containers.
-  Use when working with D-Bus, desktop services, Wayland compositor dependencies, or ov test dbus commands.
+  Use when working with D-Bus, desktop services, Wayland compositor dependencies, or ov eval dbus commands.
 ---
 
 # dbus -- D-Bus session bus service
@@ -38,25 +38,25 @@ my-image:
     - dbus
 ```
 
-## `ov test dbus` Integration
+## `ov eval dbus` Integration
 
-The `ov test dbus` command provides native Go D-Bus interaction with containers via `godbus/dbus/v5`. It operates in two modes:
+The `ov eval dbus` command provides native Go D-Bus interaction with containers via `godbus/dbus/v5`. It operates in two modes:
 
-- **Remote mode** (`ov test dbus notify myimage "title" "body"`): delegates to the container's `ov` binary via `engine exec container ov test dbus notify . "title" "body"`. Falls back to `gdbus call` if `ov` binary is not in the container.
-- **Local mode** (`ov test dbus notify . "title" "body"`): connects directly to the local session bus. This is what runs inside the container when delegated from the host.
+- **Remote mode** (`ov eval dbus notify myimage "title" "body"`): delegates to the container's `ov` binary via `engine exec container ov eval dbus notify . "title" "body"`. Falls back to `gdbus call` if `ov` binary is not in the container.
+- **Local mode** (`ov eval dbus notify . "title" "body"`): connects directly to the local session bus. This is what runs inside the container when delegated from the host.
 
 ### Commands
 
 ```bash
-ov test dbus notify <image> "title" "body"    # Send desktop notification
-ov test dbus list <image>                      # List D-Bus services
-ov test dbus call <image> <dest> <path> <method> [type:value...]  # Generic method call
-ov test dbus introspect <image> <dest> <path>  # Service introspection
+ov eval dbus notify <image> "title" "body"    # Send desktop notification
+ov eval dbus list <image>                      # List D-Bus services
+ov eval dbus call <image> <dest> <path> <method> [type:value...]  # Generic method call
+ov eval dbus introspect <image> <dest> <path>  # Service introspection
 ```
 
 ### Notification Delivery Chain
 
-`ov cmd`/`ov tmux cmd`/`ov test record cmd` → `sendContainerNotification()` → `ov test dbus notify` → `org.freedesktop.Notifications.Notify` → swaync/mako → desktop popup
+`ov cmd`/`ov tmux cmd`/`ov eval record cmd` → `sendContainerNotification()` → `ov eval dbus notify` → `org.freedesktop.Notifications.Notify` → swaync/mako → desktop popup
 
 For notifications to work, the image needs:
 1. **`dbus` layer** — D-Bus session bus (this layer)
@@ -65,7 +65,7 @@ For notifications to work, the image needs:
 
 ### Error Messages
 
-`ov test dbus` provides explanatory errors when D-Bus is unavailable:
+`ov eval dbus` provides explanatory errors when D-Bus is unavailable:
 - No session bus → suggests adding the `dbus` layer
 - No notification daemon → suggests adding `swaync`
 - No `ov` binary → falls back to `gdbus`, warns about adding `ov` layer
@@ -101,11 +101,11 @@ Use when the user asks about:
 
 - D-Bus session bus configuration
 - `DBUS_SESSION_BUS_ADDRESS` environment variable
-- `ov test dbus` commands (notify, call, list, introspect)
+- `ov eval dbus` commands (notify, call, list, introspect)
 - Desktop notifications in containers
 - Inter-process communication in containers
 
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

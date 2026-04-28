@@ -65,7 +65,7 @@ Not yet tested. The `fedora-nonfree` variant works with CPU encoding. This varia
 - `/ov-layers:nvidia` — GPU runtime and CDI device auto-detection (base)
 - `/ov-layers:cuda` — CUDA toolkit and libraries (via nvidia base)
 - `/ov-layers:dbus` — session bus for desktop services
-- `/ov-layers:ov` — in-container `ov` binary (enables `ov test dbus notify`)
+- `/ov-layers:ov` — in-container `ov` binary (enables `ov eval dbus notify`)
 - `/ov-layers:agent-forwarding` — SSH/GPG/direnv agent forwarding
 
 ## Related Images
@@ -75,11 +75,11 @@ Not yet tested. The `fedora-nonfree` variant works with CPU encoding. This varia
 - `/ov-images:nvidia` — parent base image with CUDA toolkit
 
 ## Related Commands
-- `/ov:test` — parent router for live-container verbs (`ov test cdp|wl|dbus|vnc|mcp`)
+- `/ov:test` — parent router for live-container verbs (`ov eval cdp|wl|dbus|vnc|mcp`)
 - `/ov:cdp` — drive Chrome inside the streaming desktop
 - `/ov:wl` — interact with the labwc Wayland session
 - `/ov:dbus` — D-Bus notifications via in-container `ov` binary
-- `/ov:mcp` — inherits chrome-devtools-mcp's 2 deploy-scope `mcp:` checks; use `ov test mcp list-tools selkies-desktop-nvidia` to verify the MCP server is alive and exposing the full tool catalog.
+- `/ov:mcp` — inherits chrome-devtools-mcp's 2 deploy-scope `mcp:` checks; use `ov eval mcp list-tools selkies-desktop-nvidia` to verify the MCP server is alive and exposing the full tool catalog.
 
 ## Related
 

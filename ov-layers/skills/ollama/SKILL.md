@@ -61,10 +61,10 @@ The `env_provides` mechanism makes `OLLAMA_HOST` available to all containers. Th
 
 ## Tests
 
-The layer ships 3 declarative checks embedded in the `org.overthinkos.tests`
+The layer ships 3 declarative checks embedded in the `org.overthinkos.eval`
 OCI label (see `/ov:test` for the full schema):
 
-- **Build-scope** (run under `ov image test`):
+- **Build-scope** (run under `ov eval image`):
   - `ollama-binary` — `/usr/bin/ollama` exists
 - **Deploy-scope** (run under `ov test` against a live service; uses
   `${HOST_PORT:11434}` / `${CONTAINER_IP}` so deploy-time port remapping

@@ -143,7 +143,7 @@ Every `ov` verb family, verified empirically:
 |---|---|
 | `ov version`, `ov doctor` | `/dev/kvm` + libvirt socket reported present |
 | `ov image build/generate/validate/merge/inspect/list/pull/test` | Build-mode — nested podman handles the actual image build |
-| `ov test run/cdp/wl/dbus/vnc/mcp`, `ov image test` | Test-mode |
+| `ov eval live/cdp/wl/dbus/vnc/mcp`, `ov eval image` | Test-mode |
 | `ov config/deploy/start/stop/update/remove/shell/cmd/service/status/logs/tmux` | Deploy-mode — each spawns a nested container under the inner podman |
 | `ov vm list/create/start/stop/ssh/destroy` | Rootless libvirt session via `virtqemud` |
 | `ov doctor/udev/record/secrets/settings/alias` | Host-adjacent verbs |
@@ -154,7 +154,7 @@ invoking user (via `ov shell`'s `--userns=keep-id:uid=1000,gid=1000`).
 
 ## Empirical test results (2026-04-19)
 
-- `ov image test ghcr.io/overthinkos/selkies-desktop-ov:latest` — **91 passed · 0 failed · 0 skipped**.
+- `ov eval image ghcr.io/overthinkos/selkies-desktop-ov:latest` — **91 passed · 0 failed · 0 skipped**.
 - `ov test selkies-desktop-ov -i test` (live service, port-remapped) — **118 passed · 0 failed · 0 skipped** (adds deploy-scope verification: nested podman alpine, libvirt session list, KVM domcaps, in-container `ov version` / `ov doctor`).
 - `ov image inspect selkies-desktop-ov` — resolved `security` label matches
   the table above (cap_add empty, security_opt: `[unmask=/proc/*]`,
@@ -279,7 +279,7 @@ this mirror.
 
 - `/ov:shell` — open an interactive shell inside the container as uid 1000
 - `/ov:config` — deploy setup (tunnel, port remapping, multi-instance, encrypted volumes)
-- `/ov:test` — parent router for live-container verbs (`ov test cdp|wl|dbus|vnc|mcp`)
+- `/ov:test` — parent router for live-container verbs (`ov eval cdp|wl|dbus|vnc|mcp`)
 - `/ov:vm` — nested libvirt VM lifecycle (works via `virtqemud` session)
 - `/ov:build` — building other images from inside this one (nested podman)
 - `/ov:cdp` — drive the baked-in Chrome via DevTools Protocol

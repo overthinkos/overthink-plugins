@@ -1,43 +1,43 @@
 ---
 name: cdp
 description: |
-  MUST be invoked before any work involving: Chrome DevTools Protocol, ov test cdp commands, browser automation, clicking elements, taking screenshots, or OAuth flows inside containers.
+  MUST be invoked before any work involving: Chrome DevTools Protocol, ov eval cdp commands, browser automation, clicking elements, taking screenshots, or OAuth flows inside containers.
 ---
 
 # CDP - Chrome DevTools Protocol
 
 ## Overview
 
-`ov test cdp` commands connect to Chrome DevTools Protocol (CDP) on port 9222 inside running containers. Provides HTTP API operations (open, list, close tabs) and WebSocket CDP operations (click, type, eval, wait, text, html, screenshot) for headless browser automation.
+`ov eval cdp` commands connect to Chrome DevTools Protocol (CDP) on port 9222 inside running containers. Provides HTTP API operations (open, list, close tabs) and WebSocket CDP operations (click, type, eval, wait, text, html, screenshot) for headless browser automation.
 
 ### Also as a declarative verb
 
-Every `ov test cdp <method>` is authorable as a `cdp:` verb inside a `tests:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tab:`, `expression:`, `url:`, `selector:`, etc.). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `artifact_min_bytes:`) work like other verbs. See `/ov:test` for the full method allowlist and YAML shape. Example: `- cdp: eval\n  tab: "1"\n  expression: "document.title"\n  stdout: "Dashboard"`.
+Every `ov eval cdp <method>` is authorable as a `cdp:` verb inside a `tests:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tab:`, `expression:`, `url:`, `selector:`, etc.). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `artifact_min_bytes:`) work like other verbs. See `/ov:test` for the full method allowlist and YAML shape. Example: `- cdp: eval\n  tab: "1"\n  expression: "document.title"\n  stdout: "Dashboard"`.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Open URL | `ov test cdp open <image> <url>` | Open URL in new Chrome tab |
-| List tabs | `ov test cdp list <image>` | List all open tabs (id, title, url) |
-| Close tab | `ov test cdp close <image> <tab-id>` | Close a tab by ID |
-| Get text | `ov test cdp text <image> <tab-id>` | Get page text content |
-| Get HTML | `ov test cdp html <image> <tab-id>` | Get page HTML source |
-| Get URL | `ov test cdp url <image> <tab-id>` | Get page title and URL |
-| Screenshot | `ov test cdp screenshot <image> <tab-id> [file]` | Capture PNG screenshot |
-| Click | `ov test cdp click <image> <tab-id> <selector> [--vnc]` | Click element by CSS selector |
-| Coords | `ov test cdp coords <image> <tab-id> <selector>` | Show element coords in viewport + desktop |
-| Type | `ov test cdp type <image> <tab-id> <selector> <text>` | Type into input field |
-| Eval JS | `ov test cdp eval <image> <tab-id> <expression>` | Evaluate JavaScript |
-| Wait | `ov test cdp wait <image> <tab-id> <selector>` | Wait for element (--timeout 30s) |
-| Raw CDP | `ov test cdp raw <image> <tab-id> <method> [json]` | Send raw CDP command |
-| Status | `ov test cdp status <image>` | Check CDP availability, show port and tab count |
-| SPA click | `ov test cdp spa click <image> <tab> <x> <y> [--scale]` | Click at canvas coords with SPA scale correction |
-| SPA type | `ov test cdp spa type <image> <tab> <text>` | Type text via SPA (bypasses local compositor/Chrome) |
-| SPA key | `ov test cdp spa key <image> <tab> <key>` | Send key press via SPA (Return, Escape, F1-F12, etc.) |
-| SPA key-combo | `ov test cdp spa key-combo <image> <tab> <combo>` | Send modifier combo via SPA (super+e, ctrl+t, alt+F4) |
-| SPA mouse | `ov test cdp spa mouse <image> <tab> <x> <y> [--scale]` | Move pointer with SPA scale correction |
-| SPA status | `ov test cdp spa status <image> <tab>` | Show SPA state (canvas, overlay, decoders) |
+| Open URL | `ov eval cdp open <image> <url>` | Open URL in new Chrome tab |
+| List tabs | `ov eval cdp list <image>` | List all open tabs (id, title, url) |
+| Close tab | `ov eval cdp close <image> <tab-id>` | Close a tab by ID |
+| Get text | `ov eval cdp text <image> <tab-id>` | Get page text content |
+| Get HTML | `ov eval cdp html <image> <tab-id>` | Get page HTML source |
+| Get URL | `ov eval cdp url <image> <tab-id>` | Get page title and URL |
+| Screenshot | `ov eval cdp screenshot <image> <tab-id> [file]` | Capture PNG screenshot |
+| Click | `ov eval cdp click <image> <tab-id> <selector> [--vnc]` | Click element by CSS selector |
+| Coords | `ov eval cdp coords <image> <tab-id> <selector>` | Show element coords in viewport + desktop |
+| Type | `ov eval cdp type <image> <tab-id> <selector> <text>` | Type into input field |
+| Eval JS | `ov eval cdp eval <image> <tab-id> <expression>` | Evaluate JavaScript |
+| Wait | `ov eval cdp wait <image> <tab-id> <selector>` | Wait for element (--timeout 30s) |
+| Raw CDP | `ov eval cdp raw <image> <tab-id> <method> [json]` | Send raw CDP command |
+| Status | `ov eval cdp status <image>` | Check CDP availability, show port and tab count |
+| SPA click | `ov eval cdp spa click <image> <tab> <x> <y> [--scale]` | Click at canvas coords with SPA scale correction |
+| SPA type | `ov eval cdp spa type <image> <tab> <text>` | Type text via SPA (bypasses local compositor/Chrome) |
+| SPA key | `ov eval cdp spa key <image> <tab> <key>` | Send key press via SPA (Return, Escape, F1-F12, etc.) |
+| SPA key-combo | `ov eval cdp spa key-combo <image> <tab> <combo>` | Send modifier combo via SPA (super+e, ctrl+t, alt+F4) |
+| SPA mouse | `ov eval cdp spa mouse <image> <tab> <x> <y> [--scale]` | Move pointer with SPA scale correction |
+| SPA status | `ov eval cdp spa status <image> <tab>` | Show SPA state (canvas, overlay, decoders) |
 
 All commands accept `-i INSTANCE` for multi-instance support.
 
@@ -61,7 +61,7 @@ The `cdp-proxy` is essential because Chrome 146+ binds DevTools only to 127.0.0.
 ### Open a URL
 
 ```bash
-ov test cdp open my-app "https://example.com"
+ov eval cdp open my-app "https://example.com"
 ```
 
 Uses HTTP API: `PUT /json/new?url=<encoded-url>`. Returns the new tab ID.
@@ -69,7 +69,7 @@ Uses HTTP API: `PUT /json/new?url=<encoded-url>`. Returns the new tab ID.
 ### List Tabs
 
 ```bash
-ov test cdp list my-app
+ov eval cdp list my-app
 # ID                                    TITLE                URL
 # 7F8A3B2C...                          Example Domain       https://example.com/
 ```
@@ -79,7 +79,7 @@ Uses HTTP API: `GET /json/list`.
 ### Close a Tab
 
 ```bash
-ov test cdp close my-app 7F8A3B2C...
+ov eval cdp close my-app 7F8A3B2C...
 ```
 
 Uses HTTP API: `GET /json/close/<id>`.
@@ -87,9 +87,9 @@ Uses HTTP API: `GET /json/close/<id>`.
 ### Get Page Content
 
 ```bash
-ov test cdp text my-app $TAB      # Plain text
-ov test cdp html my-app $TAB      # HTML source
-ov test cdp url my-app $TAB       # Title and URL
+ov eval cdp text my-app $TAB      # Plain text
+ov eval cdp html my-app $TAB      # HTML source
+ov eval cdp url my-app $TAB       # Title and URL
 ```
 
 Uses CDP WebSocket: `Runtime.evaluate` with `document.body.innerText` / `document.documentElement.outerHTML`, `Target.getTargetInfo`.
@@ -97,8 +97,8 @@ Uses CDP WebSocket: `Runtime.evaluate` with `document.body.innerText` / `documen
 ### Screenshot
 
 ```bash
-ov test cdp screenshot my-app $TAB              # Prints base64 to stdout
-ov test cdp screenshot my-app $TAB page.png     # Saves to file
+ov eval cdp screenshot my-app $TAB              # Prints base64 to stdout
+ov eval cdp screenshot my-app $TAB page.png     # Saves to file
 ```
 
 Uses CDP: `Page.captureScreenshot`.
@@ -106,49 +106,49 @@ Uses CDP: `Page.captureScreenshot`.
 ### Click and Type
 
 ```bash
-ov test cdp click my-app $TAB 'button[type="submit"]'
-ov test cdp type my-app $TAB 'input[name="email"]' "user@example.com"
+ov eval cdp click my-app $TAB 'button[type="submit"]'
+ov eval cdp type my-app $TAB 'input[name="email"]' "user@example.com"
 ```
 
 Click uses CDP: `Runtime.evaluate` with `deepQuery()` to find element (piercing shadow DOM), `scrollIntoViewIfNeeded()` + `getBoundingClientRect()` for coordinates, `Input.dispatchMouseEvent` for click. Type uses `deepQuery()` + `scrollIntoViewIfNeeded()` + `focus()` to select the element, then `Input.dispatchKeyEvent` for each character (keyDown, char, keyUp — matching Puppeteer behavior).
 
 **Shadow DOM support:** All selector-based commands (click, type, wait) automatically pierce shadow DOM boundaries via recursive `deepQuery()`. This means selectors work on Chrome's internal pages (`chrome://settings/*`), Polymer/Lit web components, and any page using Web Components with shadow DOM. Hidden/zero-sized elements are skipped — only visible matches are returned.
 
-**Note on Chrome internal dialogs:** Some Chrome UI elements (e.g., the "Turn on sync" confirmation dialog) are rendered as native browser chrome, invisible to CDP. Use VNC keyboard (`ov test vnc key ... Tab`, `ov test vnc key ... Return`) to interact with these dialogs. VNC screenshots (`ov test vnc screenshot`) show the full desktop including these dialogs, while CDP screenshots only show the page viewport.
+**Note on Chrome internal dialogs:** Some Chrome UI elements (e.g., the "Turn on sync" confirmation dialog) are rendered as native browser chrome, invisible to CDP. Use VNC keyboard (`ov eval vnc key ... Tab`, `ov eval vnc key ... Return`) to interact with these dialogs. VNC screenshots (`ov eval vnc screenshot`) show the full desktop including these dialogs, while CDP screenshots only show the page viewport.
 
 ### Coordinate Systems
 
 CDP coordinates are **viewport-relative** (relative to Chrome's content area). VNC coordinates are **desktop-absolute** (the full Wayland framebuffer). The offset between them includes Chrome's window position on the desktop plus Chrome's UI chrome (title bar, tab bar, address bar — typically ~107px).
 
-**`ov test cdp coords`** — Shows an element's coordinates in both systems:
+**`ov eval cdp coords`** — Shows an element's coordinates in both systems:
 
 ```bash
-ov test cdp coords my-app $TAB '#sync-button'
+ov eval cdp coords my-app $TAB '#sync-button'
 # Element:  #sync-button (108x36)
 # Viewport: x=1166 y=310  center=(1220, 328)
 # Desktop:  x=1166 y=421  center=(1220, 439)  (via window.screenX/screenY, chromeHeight=107)
 # Sway:     window at (4, 4) size 1912x1032  (app_id=google-chrome)
 ```
 
-**`ov test cdp click --vnc`** — Finds element via CDP selector, delivers click via VNC:
+**`ov eval cdp click --vnc`** — Finds element via CDP selector, delivers click via VNC:
 
 ```bash
-ov test cdp click my-app $TAB '#sync-button' --vnc
+ov eval cdp click my-app $TAB '#sync-button' --vnc
 # Clicked element at viewport (1220, 328) → desktop (1220, 439) via VNC
 ```
 
-**`ov test vnc click --from-cdp`** — Translates viewport coords to desktop coords:
+**`ov eval vnc click --from-cdp`** — Translates viewport coords to desktop coords:
 
 ```bash
-ov test vnc click my-app 1220 328 --from-cdp $TAB
+ov eval vnc click my-app 1220 328 --from-cdp $TAB
 # Translated viewport (1220, 328) → desktop (1220, 439) via CDP tab ...
 ```
 
 ### Evaluate JavaScript
 
 ```bash
-ov test cdp eval my-app $TAB 'document.title'
-ov test cdp eval my-app $TAB 'JSON.stringify(localStorage)'
+ov eval cdp eval my-app $TAB 'document.title'
+ov eval cdp eval my-app $TAB 'JSON.stringify(localStorage)'
 ```
 
 Uses CDP: `Runtime.evaluate`. Returns the result value.
@@ -156,8 +156,8 @@ Uses CDP: `Runtime.evaluate`. Returns the result value.
 ### Wait for Element
 
 ```bash
-ov test cdp wait my-app $TAB 'h1'                    # Default 30s timeout
-ov test cdp wait my-app $TAB '.loaded' --timeout 60s  # Custom timeout
+ov eval cdp wait my-app $TAB 'h1'                    # Default 30s timeout
+ov eval cdp wait my-app $TAB '.loaded' --timeout 60s  # Custom timeout
 ```
 
 Polls with CDP until the CSS selector matches an element.
@@ -165,21 +165,21 @@ Polls with CDP until the CSS selector matches an element.
 ### Raw CDP Command
 
 ```bash
-ov test cdp raw my-app $TAB 'Page.navigate' '{"url":"https://example.com"}'
-ov test cdp raw my-app $TAB 'Runtime.evaluate' '{"expression":"1+1"}'
+ov eval cdp raw my-app $TAB 'Page.navigate' '{"url":"https://example.com"}'
+ov eval cdp raw my-app $TAB 'Runtime.evaluate' '{"expression":"1+1"}'
 ```
 
 Sends arbitrary CDP method with optional JSON params. Returns raw CDP response.
 
 ## CDP Connection Diagnostics
 
-When `ov test cdp` commands fail to connect, the `diagnoseCDP()` function runs automatically and provides targeted hints:
+When `ov eval cdp` commands fail to connect, the `diagnoseCDP()` function runs automatically and provides targeted hints:
 
 1. **Chrome process check**: Is Chrome running inside the container? (`pgrep chrome`)
 2. **Proxy status**: Is the cdp-proxy forwarding to Chrome? (`supervisorctl status cdp-proxy`)
 3. **Port binding**: Is Chrome listening on 127.0.0.1:9223? Is cdp-proxy listening on 0.0.0.0:9222? (`ss -tlnp`)
 
-Hints direct users to `ov test wl sway exec <image> chrome-wrapper` for manual Chrome restart (not `ov shell` with bare `swaymsg`, which may lack the correct `SWAYSOCK` path).
+Hints direct users to `ov eval wl sway exec <image> chrome-wrapper` for manual Chrome restart (not `ov shell` with bare `swaymsg`, which may lack the correct `SWAYSOCK` path).
 
 ## browser-open Script and BROWSER Env
 
@@ -187,7 +187,7 @@ Images with Chrome include a `browser-open` script and set `BROWSER=browser-open
 
 ## OAuth Automation Example
 
-Complete flow for deploying openclaw with Codex OAuth. **All browser interactions must be VNC-visible** — use `--vnc` flag on `ov test cdp click`.
+Complete flow for deploying openclaw with Codex OAuth. **All browser interactions must be VNC-visible** — use `--vnc` flag on `ov eval cdp click`.
 
 **Critical:** The `openclaw models auth login` TUI requires a real terminal. Do NOT pipe through `tee` or redirect stdout. Use **`ov tmux`** (see `/ov:tmux`).
 
@@ -203,16 +203,16 @@ ov tmux run $IMG -s oauth "openclaw models auth login --provider openai-codex --
 # 3. Read OAuth URL from tmux output
 sleep 5
 OAUTH_URL=$(ov tmux capture $IMG -s oauth | grep -o 'https://auth.openai.com/[^ ]*')
-ov test cdp open $IMG "$OAUTH_URL"
+ov eval cdp open $IMG "$OAUTH_URL"
 
 # 4. Click "Continue with Google" (VNC-visible)
 sleep 5
-TAB=$(ov test cdp list $IMG | grep -i "openai\|auth" | head -1 | awk '{print $1}')
-ov test cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc
+TAB=$(ov eval cdp list $IMG | grep -i "openai\|auth" | head -1 | awk '{print $1}')
+ov eval cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc
 
 # 5. Click "Continue" on Codex consent page (VNC-visible)
 sleep 5
-ov test cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc
+ov eval cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc
 
 # 6. Verify token exchange completed
 sleep 10
@@ -231,7 +231,7 @@ ov shell $IMG -c "openclaw models status"
 
 Key enablers:
 - `ov tmux run` provides a real terminal for the TUI to complete the token exchange (see `/ov:tmux`)
-- `ov test cdp click --vnc` finds elements via CDP, clicks via VNC (visible to user)
+- `ov eval cdp click --vnc` finds elements via CDP, clicks via VNC (visible to user)
 - `cdp-proxy` makes Chrome DevTools accessible from host through podman bridge networking (with Host header rewriting)
 - `shm_size: 1g` prevents Chrome from crashing due to /dev/shm exhaustion
 - Callback at `localhost:1455` is container-internal (no port mapping needed)
@@ -254,8 +254,8 @@ On a fresh profile, Chrome opens a first-run dialog ("Make Google Chrome the def
 
 ```bash
 # Focus the first-run dialog and dismiss it
-ov test wl sway msg my-app 'focus left'     # first-run dialog is typically the left window
-ov test vnc key my-app Return            # press OK
+ov eval wl sway msg my-app 'focus left'     # first-run dialog is typically the left window
+ov eval vnc key my-app Return            # press OK
 ```
 
 After dismissal, Chrome shows `chrome://intro/` — "Sign in to Chrome" with shadow DOM buttons.
@@ -265,8 +265,8 @@ After dismissal, Chrome shows `chrome://intro/` — "Sign in to Chrome" with sha
 `chrome://` pages block CDP mouse events and JS `.click()`. Use `--vnc` click (CDP selector targeting + VNC pointer delivery):
 
 ```bash
-TAB=$(ov test cdp list my-app | grep intro | head -1 | awk '{print $1}')
-ov test cdp click my-app $TAB '#acceptSignInButton' --vnc
+TAB=$(ov eval cdp list my-app | grep intro | head -1 | awk '{print $1}')
+ov eval cdp click my-app $TAB '#acceptSignInButton' --vnc
 ```
 
 Shadow DOM path: `intro-app` > `sign-in-promo` > `#acceptSignInButton`. The `--vnc` flag uses `deepQuery` to find the element, translates viewport coords to desktop coords via `window.screenX/screenY`, and delivers the click through VNC.
@@ -275,7 +275,7 @@ This opens a new tab with the Google sign-in page. Capture the new tab ID:
 
 ```bash
 sleep 3
-TAB=$(ov test cdp list my-app | grep -i "sign in" | head -1 | awk '{print $1}')
+TAB=$(ov eval cdp list my-app | grep -i "sign in" | head -1 | awk '{print $1}')
 ```
 
 **Note:** The tab ID survives Google's same-tab navigations (email → password → result).
@@ -283,39 +283,39 @@ TAB=$(ov test cdp list my-app | grep -i "sign in" | head -1 | awk '{print $1}')
 ### Step 2: Enter Email (--vnc click + VNC type)
 
 ```bash
-ov test cdp wait my-app $TAB '#identifierId' --timeout 30s
-ov test cdp click my-app $TAB '#identifierId' --vnc    # focus field via VNC pointer
+ov eval cdp wait my-app $TAB '#identifierId' --timeout 30s
+ov eval cdp click my-app $TAB '#identifierId' --vnc    # focus field via VNC pointer
 sleep 0.5                                          # let compositor process focus
-ov test vnc type my-app "$GMAIL_USER"                   # real keysym events
+ov eval vnc type my-app "$GMAIL_USER"                   # real keysym events
 ```
 
-Use `ov test cdp coords my-app $TAB '#identifierId'` to inspect element position in all three coordinate systems (viewport, desktop via CDP, desktop via sway) for debugging.
+Use `ov eval cdp coords my-app $TAB '#identifierId'` to inspect element position in all three coordinate systems (viewport, desktop via CDP, desktop via sway) for debugging.
 
 ### Step 3: Submit Email
 
 ```bash
-ov test cdp click my-app $TAB '#identifierNext' --vnc
+ov eval cdp click my-app $TAB '#identifierNext' --vnc
 sleep 5                                            # page transition
-ov test cdp url my-app $TAB                             # expect /challenge/pwd
-ov test cdp screenshot my-app $TAB step3.png            # verification checkpoint
+ov eval cdp url my-app $TAB                             # expect /challenge/pwd
+ov eval cdp screenshot my-app $TAB step3.png            # verification checkpoint
 ```
 
 ### Step 4: Enter Password
 
 ```bash
-ov test cdp wait my-app $TAB 'input[type="password"]' --timeout 15s
-ov test cdp click my-app $TAB 'input[type="password"]' --vnc
+ov eval cdp wait my-app $TAB 'input[type="password"]' --timeout 15s
+ov eval cdp click my-app $TAB 'input[type="password"]' --vnc
 sleep 0.5
-ov test vnc type my-app "$GMAIL_PASSWORD"
+ov eval vnc type my-app "$GMAIL_PASSWORD"
 ```
 
 ### Step 5: Submit Password
 
 ```bash
-ov test cdp click my-app $TAB '#passwordNext' --vnc
+ov eval cdp click my-app $TAB '#passwordNext' --vnc
 sleep 7                                            # backend verification
-ov test cdp screenshot my-app $TAB step5.png
-ov test vnc screenshot my-app step5-desktop.png         # catches native dialogs
+ov eval cdp screenshot my-app $TAB step5.png
+ov eval vnc screenshot my-app step5-desktop.png         # catches native dialogs
 ```
 
 ### Step 6: Enable Sync (chrome://sync-confirmation)
@@ -323,21 +323,21 @@ ov test vnc screenshot my-app step5-desktop.png         # catches native dialogs
 After successful sign-in, Chrome navigates to `chrome://sync-confirmation/` — a `chrome://` page (NOT a native dialog). CDP can see it but `--vnc` click is required:
 
 ```bash
-TAB=$(ov test cdp list my-app | grep -i sync-confirmation | head -1 | awk '{print $1}')
+TAB=$(ov eval cdp list my-app | grep -i sync-confirmation | head -1 | awk '{print $1}')
 # If no sync-confirmation tab, it may already be on the current tab:
 # TAB stays the same from step 5
-ov test cdp click my-app $TAB '#confirmButton' --vnc    # "Yes, I'm in"
+ov eval cdp click my-app $TAB '#confirmButton' --vnc    # "Yes, I'm in"
 ```
 
 Shadow DOM path: `sync-confirmation-app` > `#confirmButton`. Other buttons: `#notNowButton` ("No thanks"), `#settingsButton` ("Settings").
 
 ### Handling Challenges
 
-**2FA/CAPTCHA:** Take a VNC screenshot (`ov test vnc screenshot my-app challenge.png`) and complete manually via a VNC client. App Passwords bypass most challenges.
+**2FA/CAPTCHA:** Take a VNC screenshot (`ov eval vnc screenshot my-app challenge.png`) and complete manually via a VNC client. App Passwords bypass most challenges.
 
 **Search engine choice:** May appear as a new tab. Handle via CDP eval if present:
 ```bash
-STAB=$(ov test cdp list my-app | grep search-engine | head -1 | awk '{print $1}')
+STAB=$(ov eval cdp list my-app | grep search-engine | head -1 | awk '{print $1}')
 # If STAB is non-empty, select Google via shadow DOM eval
 ```
 
@@ -347,16 +347,16 @@ Cookies and sync state are stored in the `chrome-data` volume (`~/.chrome-debug`
 
 ### Coordinate Translation for Sign-In
 
-The `--vnc` flag on `ov test cdp click` is essential for the sign-in flow:
+The `--vnc` flag on `ov eval cdp click` is essential for the sign-in flow:
 - **`chrome://` pages** (intro, sync-confirmation): CDP mouse events and JS `.click()` are blocked. `--vnc` is the only way to click.
 - **Google sign-in pages**: `--vnc` delivers real pointer events that bypass anti-automation detection.
 - **Coordinate math**: viewport center + `window.screenX` + `window.screenY` + `chromeHeight` = desktop coords. On popup windows (no toolbar), `chromeHeight=0`.
 
-Use `ov test cdp coords my-app $TAB '<selector>'` to debug coordinate translation. It shows element position in viewport, desktop (via CDP), and desktop (via sway) systems.
+Use `ov eval cdp coords my-app $TAB '<selector>'` to debug coordinate translation. It shows element position in viewport, desktop (via CDP), and desktop (via sway) systems.
 
-## SPA Remote Desktop Interaction (`ov test cdp spa`)
+## SPA Remote Desktop Interaction (`ov eval cdp spa`)
 
-The `ov test cdp spa` subcommands provide first-class support for interacting with Selkies-style remote desktop SPAs. These bypass the local compositor and Chrome shortcut handlers — the **only way** to send Super+e, Ctrl+T, or Alt+F4 to the remote desktop.
+The `ov eval cdp spa` subcommands provide first-class support for interacting with Selkies-style remote desktop SPAs. These bypass the local compositor and Chrome shortcut handlers — the **only way** to send Super+e, Ctrl+T, or Alt+F4 to the remote desktop.
 
 ### SPA DOM Structure
 
@@ -368,45 +368,45 @@ The `ov test cdp spa` subcommands provide first-class support for interacting wi
 
 ```bash
 IMG=sway-browser-vnc
-TAB=$(ov test cdp list $IMG | grep -i selkies | awk '{print $1}')
+TAB=$(ov eval cdp list $IMG | grep -i selkies | awk '{print $1}')
 
 # Check SPA state
-ov test cdp spa status $IMG $TAB
+ov eval cdp spa status $IMG $TAB
 
 # Click at canvas coordinates (where elements appear in CDP screenshots)
-ov test cdp spa click $IMG $TAB 990 375 --scale 0.824,0.836
+ov eval cdp spa click $IMG $TAB 990 375 --scale 0.824,0.836
 
 # Type text (bypasses local compositor — no double-char issue)
-ov test cdp spa type $IMG $TAB "hello world"
+ov eval cdp spa type $IMG $TAB "hello world"
 
 # Send modifier combos that normally can't reach the remote desktop:
-ov test cdp spa key-combo $IMG $TAB super+e    # Open foot terminal in labwc
-ov test cdp spa key-combo $IMG $TAB ctrl+t     # New tab in REMOTE Chrome
-ov test cdp spa key-combo $IMG $TAB alt+f4     # Close window in labwc
+ov eval cdp spa key-combo $IMG $TAB super+e    # Open foot terminal in labwc
+ov eval cdp spa key-combo $IMG $TAB ctrl+t     # New tab in REMOTE Chrome
+ov eval cdp spa key-combo $IMG $TAB alt+f4     # Close window in labwc
 
 # Send special keys
-ov test cdp spa key $IMG $TAB return
-ov test cdp spa key $IMG $TAB escape
+ov eval cdp spa key $IMG $TAB return
+ov eval cdp spa key $IMG $TAB escape
 ```
 
 ### Coordinate Scaling
 
-The SPA maps mouse events from canvas to remote desktop with an internal scaling factor. Use `--scale scaleX,scaleY` to correct: a click at canvas position `(x, y)` is sent to `(x/scaleX, y/scaleY)`. Determine the scale empirically by comparing `ov test cdp spa click` cursor position (via `ov test cdp screenshot`) with the target.
+The SPA maps mouse events from canvas to remote desktop with an internal scaling factor. Use `--scale scaleX,scaleY` to correct: a click at canvas position `(x, y)` is sent to `(x/scaleX, y/scaleY)`. Determine the scale empirically by comparing `ov eval cdp spa click` cursor position (via `ov eval cdp screenshot`) with the target.
 
 ### Keyboard Architecture
 
-`ov test cdp spa type/key/key-combo` sends `Input.dispatchKeyEvent` directly to the page. The SPA's `onkeydown` handler on `#overlayInput` (with `stopImmediatePropagation`) captures these and forwards to the remote compositor via WebSocket. Only keyDown + keyUp are sent (no "char" event) to prevent double input.
+`ov eval cdp spa type/key/key-combo` sends `Input.dispatchKeyEvent` directly to the page. The SPA's `onkeydown` handler on `#overlayInput` (with `stopImmediatePropagation`) captures these and forwards to the remote compositor via WebSocket. Only keyDown + keyUp are sent (no "char" event) to prevent double input.
 
 ### When to use `spa` vs regular CDP vs VNC/WL
 
 | Scenario | Command |
 |----------|---------|
-| Click/type in a web page | `ov test cdp click/type` (CSS selector targeting) |
-| Click/type in a remote desktop via SPA | `ov test cdp spa click/type` (canvas coordinates) |
-| Send Super+key or Ctrl+T to remote desktop | `ov test cdp spa key-combo` (only option that works) |
-| Click in local compositor | `ov test wl click` or `ov test vnc click` |
-| Take screenshot of stream content | `ov test cdp screenshot` (captures canvas) |
-| Take screenshot of full client desktop | `ov test vnc screenshot` or `ov test wl screenshot` |
+| Click/type in a web page | `ov eval cdp click/type` (CSS selector targeting) |
+| Click/type in a remote desktop via SPA | `ov eval cdp spa click/type` (canvas coordinates) |
+| Send Super+key or Ctrl+T to remote desktop | `ov eval cdp spa key-combo` (only option that works) |
+| Click in local compositor | `ov eval wl click` or `ov eval vnc click` |
+| Take screenshot of stream content | `ov eval cdp screenshot` (captures canvas) |
+| Take screenshot of full client desktop | `ov eval vnc screenshot` or `ov eval wl screenshot` |
 
 ## CDP Proxy Verification
 
@@ -414,13 +414,13 @@ Use `cdp status` → `cdp open` → `cdp eval` to verify proxy connectivity on i
 
 ```bash
 # Check CDP is available
-ov test cdp status selkies-desktop -i 198.145.102.110
+ov eval cdp status selkies-desktop -i 198.145.102.110
 
 # Open a test page
-ov test cdp open selkies-desktop -i 198.145.102.110 "https://ip.me"
+ov eval cdp open selkies-desktop -i 198.145.102.110 "https://ip.me"
 
 # Extract the detected IP (ip.me stores it in an input field)
-ov test cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
+ov eval cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
   "document.querySelector('#ip-lookup').value"
 # → Should return 198.145.102.110 (the proxy IP)
 ```
@@ -429,7 +429,7 @@ This pattern works for any page content extraction via JS. The `cdp eval` comman
 
 ## Cross-References
 
-- `/ov:test` -- parent router; `ov test cdp …` is how every invocation is dispatched.
+- `/ov:test` -- parent router; `ov eval cdp …` is how every invocation is dispatched.
 - `/ov:wl` -- Wayland desktop automation (sibling verb under `ov test`); also sway subgroup for compositor control.
 - `/ov:vnc` -- VNC desktop automation (sibling verb; same container, pixel-level interaction).
 - `/ov:dbus` -- D-Bus calls and notifications (sibling verb under `ov test`).
@@ -442,6 +442,6 @@ This pattern works for any page content extraction via JS. The `cdp eval` comman
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves Chrome DevTools Protocol, ov test cdp commands, browser automation, clicking elements, taking screenshots, or OAuth flows inside containers. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves Chrome DevTools Protocol, ov eval cdp commands, browser automation, clicking elements, taking screenshots, or OAuth flows inside containers. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Desktop automation. Use after a desktop container is running. Preferred over VNC for structured interaction. See also `/ov:vnc` (pixel), `/ov:wl` (sway subgroup) (window).

@@ -121,7 +121,7 @@ The `ov-mcp` layer declares a `project` volume at `/workspace` (renamed from `/p
 ```bash
 ov config arch-ov --bind project=/home/you/overthink
 ov start arch-ov
-ov test mcp call arch-ov image.list.images '{}' --name ov
+ov eval mcp call arch-ov image.list.images '{}' --name ov
 # → lists images from the bind-mounted /home/you/overthink
 ```
 
@@ -336,15 +336,15 @@ ov start selkies-desktop -i 198.145.102.110
 Each instance gets unique host ports. The Chrome layer's `chrome-wrapper` translates `HTTP_PROXY`/`HTTPS_PROXY` into Chrome's `--proxy-server` flag. Verify with CDP:
 
 ```bash
-ov test cdp status selkies-desktop -i 198.145.102.110
-ov test cdp open selkies-desktop -i 198.145.102.110 "https://ip.me"
-ov test cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
+ov eval cdp status selkies-desktop -i 198.145.102.110
+ov eval cdp open selkies-desktop -i 198.145.102.110 "https://ip.me"
+ov eval cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
   "document.querySelector('#ip-lookup').value"
 ```
 
 ## Service Environment Injection
 
-When a configured image declares `env_provides` or `mcp_provides` in its layers (stored in OCI labels), `ov config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `ov test mcp ping <image>` — see `/ov:mcp` for the full verb surface.
+When a configured image declares `env_provides` or `mcp_provides` in its layers (stored in OCI labels), `ov config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `ov eval mcp ping <image>` — see `/ov:mcp` for the full verb surface.
 
 ```yaml
 # deploy.yml after `ov config ollama && ov config jupyter`

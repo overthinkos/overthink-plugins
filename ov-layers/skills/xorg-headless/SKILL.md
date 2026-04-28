@@ -50,4 +50,4 @@ Use when working with headless X11 display, Xorg configuration, or the X11-based
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

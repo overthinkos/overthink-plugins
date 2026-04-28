@@ -30,8 +30,8 @@ my-desktop:
 ```
 
 ```bash
-ov test vnc screenshot my-image          # capture desktop
-ov test vnc passwd my-image --generate   # set up VeNCrypt/TLS auth
+ov eval vnc screenshot my-image          # capture desktop
+ov eval vnc passwd my-image --generate   # set up VeNCrypt/TLS auth
 ```
 
 ## NVIDIA Headless: Fixed via Pixman + DPMS Workaround
@@ -42,7 +42,7 @@ VNC screenshots work correctly on NVIDIA headless when used via `sway-desktop-vn
 
 2. **DPMS workaround** — wayvnc 0.9.1 gates screen capture on `zwlr_output_power_v1` mode events, but sway's headless backend never emits them. The `wayvnc-wrapper` performs a minimal VNC handshake to trigger wayvnc to bind the power manager, then `swaymsg "output HEADLESS-1 power on"` forces the missing event. Fixed in wayvnc git main (post-0.9.1) — remove workaround when Fedora ships the fix.
 
-For images NOT using `sway-desktop-vnc` (custom sway + wayvnc setups), `ov test wl screenshot` (grim) remains a reliable fallback.
+For images NOT using `sway-desktop-vnc` (custom sway + wayvnc setups), `ov eval wl screenshot` (grim) remains a reliable fallback.
 
 ### Startup Timing
 
@@ -80,4 +80,4 @@ Use when the user asks about:
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

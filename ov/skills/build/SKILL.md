@@ -462,7 +462,7 @@ for the `--build` flag that also picks up this caveat.
 ### Related skills
 
 - `/ov:layer` -- Layer definitions that get built
-- `/ov:test` -- Tests are embedded as `org.overthinkos.tests` OCI label at build time; LABEL-at-end optimization (see Cache Efficiency above) makes test edits cheap.
+- `/ov:test` -- Tests are embedded as `org.overthinkos.eval` OCI label at build time; LABEL-at-end optimization (see Cache Efficiency above) makes test edits cheap.
 - `/ov:update` -- `ov update <image> --build` invokes `BuildCmd.Run` and picks up the same `--jobs` cap and stale-`:latest` caveat
 - `/ov:vm` -- Building bootc disk images (`ov vm build`)
 - `/ov:config` -- Engine configuration

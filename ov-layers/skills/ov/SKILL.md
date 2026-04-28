@@ -17,7 +17,7 @@ description: |
 
 The `ov` binary inside containers serves two purposes:
 
-1. **Native D-Bus agent** — `ov test dbus` commands on the host delegate to the in-container binary via `engine exec container ov test dbus <cmd> . <args>`. The in-container ov connects to the local D-Bus session bus using `godbus/dbus/v5` (pure Go, no external tools needed). This is the primary path for `ov test dbus notify`, `ov test dbus call`, `ov test dbus list`, and `ov test dbus introspect`.
+1. **Native D-Bus agent** — `ov eval dbus` commands on the host delegate to the in-container binary via `engine exec container ov eval dbus <cmd> . <args>`. The in-container ov connects to the local D-Bus session bus using `godbus/dbus/v5` (pure Go, no external tools needed). This is the primary path for `ov eval dbus notify`, `ov eval dbus call`, `ov eval dbus list`, and `ov eval dbus introspect`.
 
 2. **In-container CLI** — full ov functionality available inside the container for scripting, service management, and automation.
 
@@ -81,8 +81,8 @@ my-image:
 
 - `/ov-layers:ov-full` -- composition that includes ov + virtualization + gocryptfs + socat
 - `/ov-layers:ov-mcp` -- layers: [ov, supervisord] meta-composition that deploys `ov mcp serve` (~192-tool MCP gateway) with a `/workspace` bind mount (volume NAME `project`) for build-mode tools + auto-fallback to overthinkos/overthink when nothing is bound
-- `/ov-layers:dbus` -- D-Bus session bus (ov test dbus commands need this)
-- `/ov-layers:swaync` -- notification daemon (needed for ov test dbus notify to show popups)
+- `/ov-layers:dbus` -- D-Bus session bus (ov eval dbus commands need this)
+- `/ov-layers:swaync` -- notification daemon (needed for ov eval dbus notify to show popups)
 
 ## When to Use This Skill
 
@@ -91,10 +91,10 @@ Use when the user asks about:
 - Installing the ov binary inside containers
 - The ov-full composition layer
 - In-container ov CLI usage
-- Native D-Bus support (ov test dbus commands delegate to in-container binary)
+- Native D-Bus support (ov eval dbus commands delegate to in-container binary)
 - Updating the ov layer binary after code changes
 
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

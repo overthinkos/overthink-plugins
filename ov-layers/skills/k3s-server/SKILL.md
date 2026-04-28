@@ -74,7 +74,7 @@ ov vm create k3s-srv
 ov deploy add vm:k3s-srv
 # → kubeconfig auto-retrieved + ClusterProfile written
 kubectl --context k3s-srv get nodes
-ov test k8s addons --cluster k3s-srv
+ov eval k8s addons --cluster k3s-srv
 ```
 
 ## Tests
@@ -83,7 +83,7 @@ Build-scope:
 - `/etc/rancher/k3s/config.yaml` exists, mode 0600.
 - `/etc/systemd/system/k3s.service` exists.
 
-Deploy-scope (using the new `ov test k8s` verb — see `/ov:test-k8s`):
+Deploy-scope (using the new `ov eval k8s` verb — see `/ov:test-k8s`):
 - `k8s: wait-nodes` — at least 1 node Ready.
 - `k8s: ingressclass` — `traefik` present.
 - `k8s: storageclass` — `local-path` present.

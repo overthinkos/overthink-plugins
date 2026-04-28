@@ -802,7 +802,7 @@ mcp_accepts:
 
 **Pod-aware:** when provider and consumer share a container, URLs resolve to `localhost` (local wins over remote for same-named entries). **Naming is the service contract** — keep `name:` stable across layer/package/image renames.
 
-**Testing the endpoint:** once a layer is deployed, `ov test mcp ping <image>` verifies the server is alive, and `ov test mcp list-tools <image>` enumerates the tool catalog. Both are authorable as deploy-scope `mcp:` declarative checks inside the layer's `tests:` block. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/ov:mcp`.
+**Testing the endpoint:** once a layer is deployed, `ov eval mcp ping <image>` verifies the server is alive, and `ov eval mcp list-tools <image>` enumerates the tool catalog. Both are authorable as deploy-scope `mcp:` declarative checks inside the layer's `tests:` block. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/ov:mcp`.
 
 ---
 
@@ -968,7 +968,7 @@ Declare `service:` with a supervisord `[program:<name>]` fragment and add `super
 - `/ov:build` — Building images (`--no-cache` caveat; multi-stage scratch).
 - `/ov:config` — Cross-container `env_provides` / `mcp_provides` injection; `env_requires` enforcement; `--update-all`; resource caps.
 - `/ov:deploy` — `deploy.yml` `provides:` section; tunnel is deploy.yml-only.
-- `/ov:test` — `tests:` field for declarative layer checks (file/port/http/...); embedded in the `org.overthinkos.tests` OCI label under the `layer` section. Layer tests default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `layers/sshd/layer.yml`.
+- `/ov:test` — `tests:` field for declarative layer checks (file/port/http/...); embedded in the `org.overthinkos.eval` OCI label under the `layer` section. Layer tests default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `layers/sshd/layer.yml`.
 - `/ov:sidecar` — Sidecars as `env_provides` participants (tailscale `TS_*` filtering).
 - `/ov:secrets` — Credential store chain for `secret_accepts` / `secret_requires`.
 - `/ov-layers:chrome` — Canonical consumer of `env_accepts` (proxy vars), resource caps (crash-loop circuit breaker), and heavy user-phase copy/mkdir task list.

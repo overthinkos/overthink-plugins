@@ -156,9 +156,9 @@ To test real-time collaboration, deploy `sway-browser-vnc` alongside:
 ```bash
 ov start sway-browser-vnc
 # Open JupyterLab in two Chrome tabs via container DNS:
-ov test cdp open sway-browser-vnc "http://ov-jupyter:8888/lab"
+ov eval cdp open sway-browser-vnc "http://ov-jupyter:8888/lab"
 # Open second tab
-ov test cdp open sway-browser-vnc "http://ov-jupyter:8888/lab"
+ov eval cdp open sway-browser-vnc "http://ov-jupyter:8888/lab"
 ```
 
 **Executing cells via CDP:** Use `Input.dispatchKeyEvent` (not VNC keys — unreliable when Chrome lacks compositor focus):
@@ -166,15 +166,15 @@ ov test cdp open sway-browser-vnc "http://ov-jupyter:8888/lab"
 ```bash
 TAB=<tab-id>
 # Focus cell, then Shift+Enter via CDP
-ov test cdp eval sway-browser-vnc $TAB "document.querySelector('.jp-Cell-inputArea .cm-content')?.focus()"
-ov test cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"rawKeyDown","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}'
-ov test cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"keyUp","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}'
+ov eval cdp eval sway-browser-vnc $TAB "document.querySelector('.jp-Cell-inputArea .cm-content')?.focus()"
+ov eval cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"rawKeyDown","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}'
+ov eval cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"keyUp","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}'
 ```
 
 ## Test Coverage
 
 Latest `ov test jupyter` run: **29 passed, 0 failed, 0 skipped**.
-All tests embedded in the `org.overthinkos.tests` OCI label:
+All tests embedded in the `org.overthinkos.eval` OCI label:
 jupyter-lab binary under pixi, notebook-templates provisioned into
 `${HOME}/workspace`, jupyter-mcp extension enabled, fastmcp pip
 package installed. Deploy-scope: supervisord up, port 8888 reachable
@@ -189,7 +189,7 @@ See `/ov:test` for the framework and author-facing gotchas.
 - `/ov-layers:jupyter`, `/ov-layers:jupyter-mcp`, `/ov-layers:notebook-templates`
 - `/ov:test` — declarative testing framework
 - `/ov:config` — deploy setup
-- `/ov:mcp` — the image inherits 3 deploy-scope `mcp:` declarative checks from the `jupyter` layer (`ping`, `list-tools` asserting `insert_cell`/`execute_cell`, `call list_notebooks`). Run `ov test jupyter --filter mcp` to exercise them against a live deployment, or `ov test mcp list-tools jupyter` for ad-hoc inspection
+- `/ov:mcp` — the image inherits 3 deploy-scope `mcp:` declarative checks from the `jupyter` layer (`ping`, `list-tools` asserting `insert_cell`/`execute_cell`, `call list_notebooks`). Run `ov test jupyter --filter mcp` to exercise them against a live deployment, or `ov eval mcp list-tools jupyter` for ad-hoc inspection
 - `/ov-images:jupyter-ml`, `/ov-images:jupyter-ml-notebook` — GPU variants that inherit the same MCP test suite
 
 ## When to Use This Skill

@@ -1,10 +1,10 @@
 ---
 name: ov:spice
-description: SPICE wire-level client for VMs — `ov test spice <vm>` handshake, inputs, native display screenshots via the Shells-com/spice library.
+description: SPICE wire-level client for VMs — `ov eval spice <vm>` handshake, inputs, native display screenshots via the Shells-com/spice library.
 allowed-tools: Bash, Read
 ---
 
-MUST be invoked before any work involving: `ov test spice` commands,
+MUST be invoked before any work involving: `ov eval spice` commands,
 SPICE protocol debugging, libvirt-VM display testing via the SPICE
 wire, or anything that needs to *prove* a SPICE server is speaking
 the protocol correctly (not just that the TCP port is open).
@@ -12,13 +12,13 @@ the protocol correctly (not just that the TCP port is open).
 ## Command surface
 
 ```
-ov test spice status     <vm>              # handshake + channel enumeration
-ov test spice screenshot <vm> [FILE]       # native SPICE display-channel decode → PNG
-ov test spice click      <vm> X Y          # mouse press/release via inputs channel
-ov test spice mouse      <vm> X Y          # pointer move (no click)
-ov test spice type       <vm> TEXT         # type text as PC-AT scancodes
-ov test spice key        <vm> NAME         # press one named key (Return, Escape, F2, …)
-ov test spice cursor     <vm> [FILE]       # capture cursor bitmap + position
+ov eval spice status     <vm>              # handshake + channel enumeration
+ov eval spice screenshot <vm> [FILE]       # native SPICE display-channel decode → PNG
+ov eval spice click      <vm> X Y          # mouse press/release via inputs channel
+ov eval spice mouse      <vm> X Y          # pointer move (no click)
+ov eval spice type       <vm> TEXT         # type text as PC-AT scancodes
+ov eval spice key        <vm> NAME         # press one named key (Return, Escape, F2, …)
+ov eval spice cursor     <vm> [FILE]       # capture cursor bitmap + position
 ```
 
 Global flags on every subcommand:
@@ -29,18 +29,18 @@ Global flags on every subcommand:
 - `--uri qemu+ssh://[user@]host/session` — resolve the VM on a remote libvirt host. `ov` auto-opens an SSH tunnel and forwards the remote SPICE socket (or TCP port) to a local endpoint for the lifetime of the command. Also accepts the `OV_LIBVIRT_URI` env var.
 
 Screenshot/cursor `<file>` args accept `-` to write PNG bytes to stdout:
-`ov test spice screenshot arch - > /tmp/shot.png`. Status messages
+`ov eval spice screenshot arch - > /tmp/shot.png`. Status messages
 go to stderr so stdout stays binary-clean — pipeline-friendly.
 
 ## Remote libvirt (qemu+ssh://)
 
-When `--uri qemu+ssh://…` is set, `ov test spice` runs locally but pokes a
+When `--uri qemu+ssh://…` is set, `ov eval spice` runs locally but pokes a
 remote libvirt. Libvirt RPC is tunneled over the SSH control channel for
 free; the SPICE display channel needs a side tunnel, which `ov` opens
 transparently:
 
 ```bash
-ov test spice status arch --uri qemu+ssh://o.atrawog.org/session
+ov eval spice status arch --uri qemu+ssh://o.atrawog.org/session
 # → opens SSH → discovers remote virtqemud socket via `id -u` → forwards
 #   the SPICE UNIX socket → dials it → prints channel enumeration.
 ```
@@ -69,7 +69,7 @@ remote workstation" for the complete story.
   Audio channels drag in `portaudio` + `opusfile` (Arch packages
   listed in `pkg/arch/PKGBUILD`); these are required at build + run
   time but the CLI itself never plays/records audio.
-- **Target resolution.** Default path: `ov test spice <vm>` loads
+- **Target resolution.** Default path: `ov eval spice <vm>` loads
   vms.yml, finds the running libvirt domain, parses live XML via
   `libvirtxml.Domain`, and extracts the SPICE host/port/passwd from
   the `<graphics type="spice">` element (honoring autoport='yes').
@@ -86,36 +86,36 @@ remote workstation" for the complete story.
 ov vm start arch
 
 # Handshake + report channels.
-ov test spice status arch
+ov eval spice status arch
 # → connected: 127.0.0.1:5901
 #   display:   1280x800
 #   inputs:    ready
 
 # Native SPICE screenshot (not libvirt DomainScreenshot).
-ov test spice screenshot arch /tmp/out.png
+ov eval spice screenshot arch /tmp/out.png
 # → Screenshot saved to /tmp/out.png (1280x800, native SPICE display decode)
 
 # Drive the login.
-ov test spice key arch return
-ov test spice type arch arch
-ov test spice key arch tab
-ov test spice type arch "my-password"
-ov test spice key arch return
+ov eval spice key arch return
+ov eval spice type arch arch
+ov eval spice key arch tab
+ov eval spice type arch "my-password"
+ov eval spice key arch return
 ```
 
-## Architecture split (vs. `ov test libvirt`)
+## Architecture split (vs. `ov eval libvirt`)
 
 The two commands are single-protocol by design:
 
-- **`ov test spice`** — every byte flows through the SPICE wire.
+- **`ov eval spice`** — every byte flows through the SPICE wire.
   Use when the thing under test is "is SPICE itself healthy?".
-- **`ov test libvirt`** — every call goes through libvirtd RPC.
+- **`ov eval libvirt`** — every call goes through libvirtd RPC.
   Use when the thing under test is "is the VM working?" (framebuffer
   capture, keyboard injection, snapshots, domain state).
 
-For input testing, prefer `ov test spice type/key/click` to prove
+For input testing, prefer `ov eval spice type/key/click` to prove
 the SPICE wire delivers input to the guest. For display testing,
-compare `ov test spice screenshot` against `ov test libvirt
+compare `ov eval spice screenshot` against `ov eval libvirt
 screenshot` — if both render the same pixels, the SPICE server +
 the guest framebuffer agree.
 

@@ -114,7 +114,7 @@ Identical to `/ov-images:debian-coder` — the only diff is `User` field.
 
 ## Empirical test results (2026-04-20)
 
-`ov image test ghcr.io/overthinkos/ubuntu-coder:latest` — **142 passed · 0 failed · 1 skipped** (fastfetch, by design).
+`ov eval image ghcr.io/overthinkos/ubuntu-coder:latest` — **142 passed · 0 failed · 1 skipped** (fastfetch, by design).
 
 ## Verification recipe
 
@@ -126,7 +126,7 @@ ov image validate
 ov image build ubuntu-coder
 
 # 3. Disposable-container tests
-ov image test ghcr.io/overthinkos/ubuntu-coder:latest
+ov eval image ghcr.io/overthinkos/ubuntu-coder:latest
 
 # 4. Confirm adopt mode at runtime
 podman run --rm ghcr.io/overthinkos/ubuntu-coder:latest id
@@ -135,7 +135,7 @@ podman run --rm ghcr.io/overthinkos/ubuntu-coder:latest id
 # 5. Deploy + live tests
 ov config ubuntu-coder
 ov start ubuntu-coder
-ov image test ghcr.io/overthinkos/ubuntu-coder:latest --include-deploy
+ov eval image ghcr.io/overthinkos/ubuntu-coder:latest --include-deploy
 ```
 
 ## Gotcha: Dockerhub rate-limits during base pulls

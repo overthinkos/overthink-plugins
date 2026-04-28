@@ -91,7 +91,7 @@ and passed through.
 ## When NOT to use `--host`
 
 - When you want artifacts (screenshots, recordings) to land in the local
-  filesystem → use `ov test libvirt|spice|vnc --uri qemu+ssh://…`
+  filesystem → use `ov eval libvirt|spice|vnc --uri qemu+ssh://…`
   instead; it runs ov locally and forwards the display channel over SSH.
 - When `ov` isn't installed on the remote machine → use `--uri` or
   `ov ssh tunnel`.
@@ -101,6 +101,6 @@ and passed through.
 - `/ov-vms:arch` — "Connecting from a remote workstation" —
   the canonical worked example across all three paths.
 - `/ov:settings` — `hosts.<alias>` key schema.
-- `/ov:spice` — `--uri` + `--socket` flags on `ov test spice`.
-- `/ov:libvirt` — `--uri` flag on every `ov test libvirt` verb.
-- `/ov:vnc` — `ov test vnc vm <name> …` subcommand group.
+- `/ov:spice` — `--uri` + `--socket` flags on `ov eval spice`.
+- `/ov:libvirt` — `--uri` flag on every `ov eval libvirt` verb.
+- `/ov:vnc` — `ov eval vnc vm <name> …` subcommand group.

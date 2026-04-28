@@ -54,8 +54,8 @@ deployments:
 
 ```bash
 ov deploy add vm:k3s-ag1
-# agent registers; ov test k8s wait-nodes on server confirms the join.
-ov test k8s wait-nodes --cluster k3s-srv --count 2 --timeout 3m
+# agent registers; ov eval k8s wait-nodes on server confirms the join.
+ov eval k8s wait-nodes --cluster k3s-srv --count 2 --timeout 3m
 ```
 
 ## Tests

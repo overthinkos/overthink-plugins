@@ -42,18 +42,18 @@ wf-recorder -f output.mp4 -r 60        # 60fps
 # Stop with Ctrl-C
 ```
 
-## Integration with `ov test record`
+## Integration with `ov eval record`
 
 ```bash
 # Start recording sway desktop (auto-detects wf-recorder)
-ov test record start sway-browser-vnc -n demo --mode desktop
+ov eval record start sway-browser-vnc -n demo --mode desktop
 
 # Interact with desktop
-ov test wl click sway-browser-vnc 640 360
-ov test record cmd sway-browser-vnc "neofetch" -n demo
+ov eval wl click sway-browser-vnc 640 360
+ov eval record cmd sway-browser-vnc "neofetch" -n demo
 
 # Stop and copy to host
-ov test record stop sway-browser-vnc -n demo -o demo.mp4
+ov eval record stop sway-browser-vnc -n demo -o demo.mp4
 ```
 
 ## Included In
@@ -68,7 +68,7 @@ ov test record stop sway-browser-vnc -n demo -o demo.mp4
 
 ## Cross-References
 
-- `/ov:record` — `ov test record start --mode desktop` auto-detects wf-recorder
+- `/ov:record` — `ov eval record start --mode desktop` auto-detects wf-recorder
 - `/ov-layers:wl-record-pixelflux` — Alternative for selkies-desktop (pixelflux pipeline)
 - `/ov-layers:wl-screenshot-grim` — Screenshot companion (same wlr-screencopy protocol)
 - `/ov-layers:sway-desktop` — Parent metalayer
@@ -83,4 +83,4 @@ Use when the user asks about:
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

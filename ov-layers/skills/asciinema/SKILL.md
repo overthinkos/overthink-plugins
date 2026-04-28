@@ -34,19 +34,19 @@ layers:
   - asciinema
 ```
 
-Used by `ov test record start --mode terminal` for terminal recording sessions. Also available standalone via `asciinema rec`.
+Used by `ov eval record start --mode terminal` for terminal recording sessions. Also available standalone via `asciinema rec`.
 
-## Integration with `ov test record`
+## Integration with `ov eval record`
 
 ```bash
 # Start recording a terminal session
-ov test record start <image> -n demo --mode terminal
+ov eval record start <image> -n demo --mode terminal
 
 # Send commands to the recorded terminal
-ov test record cmd <image> "echo hello" -n demo
+ov eval record cmd <image> "echo hello" -n demo
 
 # Stop and copy to host
-ov test record stop <image> -n demo -o demo.cast
+ov eval record stop <image> -n demo -o demo.cast
 
 # Play back
 asciinema play demo.cast
@@ -70,7 +70,7 @@ Also available via the `dev-tools` layer (which includes asciinema among many ot
 
 ## Cross-References
 
-- `/ov:record` — `ov test record start --mode terminal` uses asciinema
+- `/ov:record` — `ov eval record start --mode terminal` uses asciinema
 - `/ov-layers:dev-tools` — Also includes asciinema (larger layer)
 
 ## When to Use This Skill
@@ -83,4 +83,4 @@ Use when the user asks about:
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

@@ -1,9 +1,9 @@
 ---
 name: test
 description: |
-  MUST be invoked before any work involving: `ov test`, `ov image test`, the
+  MUST be invoked before any work involving: `ov test`, `ov eval image`, the
   `tests:` / `deploy_tests:` fields in layer.yml / image.yml / deploy.yml, the
-  `org.overthinkos.tests` OCI label, or any declarative check authoring.
+  `org.overthinkos.eval` OCI label, or any declarative check authoring.
   Covers verb catalog (file/port/command/http/package/service/process/dns/
   user/group/interface/kernel-param/mount/addr/matching), runtime variable
   resolution (`${HOST_PORT:N}`, `${VOLUME_PATH:name}`, `${CONTAINER_IP}`,
@@ -25,7 +25,7 @@ The project's `deploy.yml` defines four canonical disposable beds covering the f
 | `sway-pod` | `target: pod, image: openclaw-sway-browser` | cdp/wl/vnc/dbus/mcp/record (live-container verbs) |
 | `k3s-pod` | `target: pod, image: fedora-ov + k3s-server layer` | k8s verbs (all 13 methods) against the pod-hosted cluster |
 
-Run a full-stack smoke with `ov test run arch && ov test run <sway-pod> && ov test run <k3s-pod>`. Fresh-rebuild via `ov rebuild <name>` first (R10 acceptance gate). The bed-to-verb coverage map is a top-of-file comment in `deploy.yml`.
+Run a full-stack smoke with `ov eval live arch && ov eval live <sway-pod> && ov eval live <k3s-pod>`. Fresh-rebuild via `ov rebuild <name>` first (R10 acceptance gate). The bed-to-verb coverage map is a top-of-file comment in `deploy.yml`.
 
 ## The 10 Testing Standards (READ FIRST — referenced by CLAUDE.md R1–R10)
 
@@ -56,13 +56,13 @@ construction through the same code path `ov deploy add` already used.
 For deeply-nested paths, each segment adds one hop:
 
 ```bash
-ov test bench-vm                            # → SSHExecutor (1 hop)
-ov test bench-vm.inner                      # → SSH + podman exec ov-bench-vm_inner (2 hops)
-ov test bench-vm.inner.deeper               # → SSH + 2× podman exec (3 hops)
+ov test eval-vm                            # → SSHExecutor (1 hop)
+ov test eval-vm.inner                      # → SSH + podman exec ov-bench-vm_inner (2 hops)
+ov test eval-vm.inner.deeper               # → SSH + 2× podman exec (3 hops)
 ```
 
 Same chain primitive (`NestedExecutor`) used everywhere — `ov deploy
-add`, `ov test`, `ov harness` scoring. See `/ov:harness` "ONE
+add`, `ov test`, `ov eval` scoring. See `/ov:harness` "ONE
 primitive: scenario.pod (flat or dotted)" for the symmetric
 authoring surface in harness recipes.
 
@@ -85,7 +85,7 @@ If the container needs state that's only available in deploy (volumes, env, tunn
 `ov` ships a goss-inspired declarative testing framework built into the
 CLI. Tests are authored inline under `tests:` (or `deploy_tests:`) in
 `layer.yml`, `image.yml`, or `deploy.yml`. They are **embedded as a
-three-section OCI label** (`org.overthinkos.tests` → `{layer, image, deploy}`)
+three-section OCI label** (`org.overthinkos.eval` → `{layer, image, deploy}`)
 so any pulled image is self-testable without its source repo. A local
 `deploy.yml` overlay can add checks or override baked ones by `id:`.
 
@@ -98,17 +98,17 @@ check written once works unchanged when `deploy.yml` remaps ports.
 | Action | Command | Description |
 |--------|---------|-------------|
 | Run tests against running service | `ov test <image> [-i instance]` | Full three-section run + deploy overlay |
-| Run tests against disposable container | `ov image test <image>` | Layer + image sections (deploy needs `--include-deploy`) |
-| Run tests against *live* container (auto-fallback) | `ov image test <image> --include-deploy` | Prefers the running `ov-<image>` container; falls back to disposable if none (see "Live vs disposable executor selection" below) |
+| Run tests against disposable container | `ov eval image <image>` | Layer + image sections (deploy needs `--include-deploy`) |
+| Run tests against *live* container (auto-fallback) | `ov eval image <image> --include-deploy` | Prefers the running `ov-<image>` container; falls back to disposable if none (see "Live vs disposable executor selection" below) |
 | Validate authored tests at config time | `ov image validate` | Schema, scope/variable consistency, id uniqueness |
 | Inspect effective spec | `ov image inspect <image>` | JSON includes merged tests structure |
 | Filter by verb | `ov test <image> --filter file --filter port` | Repeatable |
 | Filter by section | `ov test <image> --section deploy` | One of: layer / image / deploy |
 | Output format | `ov test <image> --format json\|tap\|text` | Default text |
 
-## Live vs disposable executor selection (`ov image test`, 2026-04)
+## Live vs disposable executor selection (`ov eval image`, 2026-04)
 
-`ov image test` picks its executor based on `--include-deploy`:
+`ov eval image` picks its executor based on `--include-deploy`:
 
 - **Without `--include-deploy`** — always spawns a disposable
   container via `podman run --rm <image-ref>` (`ImageExecutor`). Only
@@ -149,14 +149,14 @@ explicit subcommand names below take over when matched.
 
 | Subcommand | Skill | Purpose |
 |-----------|-------|---------|
-| `ov test cdp …` | `/ov:cdp` | Chrome DevTools Protocol — open/list/close tabs, click, type, eval, screenshot, axtree |
-| `ov test wl …` | `/ov:wl` | Wayland desktop input/windows/clipboard + sway IPC |
-| `ov test dbus …` | `/ov:dbus` | D-Bus calls, introspection, desktop notifications |
-| `ov test vnc …` | `/ov:vnc` | VNC framebuffer screenshot + click/key/type/passwd |
-| `ov test mcp …` | (this skill) | MCP client — ping/list-tools/list-resources/list-prompts/call/read/servers against any `mcp_provides` endpoint. Speaks `github.com/modelcontextprotocol/go-sdk` (Streamable HTTP by default, SSE when `transport: sse`). |
-| `ov test record …` | `/ov:record` | Recording sessions — start/stop/list/cmd. Terminal (asciinema) or desktop (pixelflux/wf-recorder). Container-only. |
-| `ov test spice …` | `/ov:spice` | SPICE wire client for VMs — handshake, native-SPICE framebuffer screenshot, input injection. VM-only. |
-| `ov test libvirt …` | `/ov:libvirt` | libvirt-RPC test commands for VMs — info, domain XML, QMP, qemu-guest-agent, snapshots, events. VM-only. |
+| `ov eval cdp …` | `/ov:cdp` | Chrome DevTools Protocol — open/list/close tabs, click, type, eval, screenshot, axtree |
+| `ov eval wl …` | `/ov:wl` | Wayland desktop input/windows/clipboard + sway IPC |
+| `ov eval dbus …` | `/ov:dbus` | D-Bus calls, introspection, desktop notifications |
+| `ov eval vnc …` | `/ov:vnc` | VNC framebuffer screenshot + click/key/type/passwd |
+| `ov eval mcp …` | (this skill) | MCP client — ping/list-tools/list-resources/list-prompts/call/read/servers against any `mcp_provides` endpoint. Speaks `github.com/modelcontextprotocol/go-sdk` (Streamable HTTP by default, SSE when `transport: sse`). |
+| `ov eval record …` | `/ov:record` | Recording sessions — start/stop/list/cmd. Terminal (asciinema) or desktop (pixelflux/wf-recorder). Container-only. |
+| `ov eval spice …` | `/ov:spice` | SPICE wire client for VMs — handshake, native-SPICE framebuffer screenshot, input injection. VM-only. |
+| `ov eval libvirt …` | `/ov:libvirt` | libvirt-RPC test commands for VMs — info, domain XML, QMP, qemu-guest-agent, snapshots, events. VM-only. |
 
 These eight verbs were previously top-level commands (e.g. `ov cdp`, `ov record`).
 They moved under `ov test` because every one of them is a "probe or drive a
@@ -167,11 +167,11 @@ deprecation shim).
 **Reserved image names:** because subcommand names take priority when
 matched, an image literally named `cdp`, `wl`, `dbus`, `vnc`, `mcp`,
 `record`, `spice`, or `libvirt` cannot be run via `ov test <name>` —
-use the explicit `ov test run <name>` form or rename the image. No such
+use the explicit `ov eval live <name>` form or rename the image. No such
 images currently exist in `image.yml`.
 
-**Gotcha — stale container-baked `ov` binary:** `ov test dbus notify` and
-`ov test dbus call` delegate to the container's own `ov` binary (see
+**Gotcha — stale container-baked `ov` binary:** `ov eval dbus notify` and
+`ov eval dbus call` delegate to the container's own `ov` binary (see
 `ov/notify.go:20`, `ov/dbus.go:195,229`). If the container was built
 before the `ov cdp|wl|dbus|vnc` → `ov test <verb>` move, its in-container
 `ov` doesn't know the new subcommand path and the delegation fails. Fix
@@ -256,19 +256,19 @@ naturally. An empty-string map value falls through to the next tag
 | `port` | `listening`, `ip`, `reachable` | **`listening` needs `ss`/`netstat` inside the container** — absent from minimal images |
 | `process` | `running` | **Needs `pgrep`** — absent from minimal images |
 | `command` | `exit_status`, `stdout`, `stderr`, `in_container` | Default runs via `podman exec`; set `in_container: false` to run from host |
-| `http` | `status` (int, single value), `body`, `headers`, `method`, `request_body`, `allow_insecure`, `no_follow_redirects`, `ca_file`, `timeout` | Host-side under `ov test`; curl-in-container under `ov image test` |
-| `dns` | `resolvable`, `addrs`, `server` | Host resolver for `ov test`; `getent hosts` for `ov image test` |
+| `http` | `status` (int, single value), `body`, `headers`, `method`, `request_body`, `allow_insecure`, `no_follow_redirects`, `ca_file`, `timeout` | Host-side under `ov test`; curl-in-container under `ov eval image` |
+| `dns` | `resolvable`, `addrs`, `server` | Host resolver for `ov test`; `getent hosts` for `ov eval image` |
 | `user` | `uid`, `gid`, `home`, `shell` | `getent passwd` |
 | `group` | `gid`, `groups` | `getent group` |
 | `interface` | `mtu`, `addrs` | `ip -o addr show` |
 | `kernel-param` | `value` (scalar or matcher) | `sysctl -n` |
 | `mount` | `mount_source`, `filesystem`, `opts` | `findmnt` |
-| `addr` | `reachable`, `timeout` | Pure Go-native `net.DialTimeout` for `ov test`; `nc` for `ov image test` |
+| `addr` | `reachable`, `timeout` | Pure Go-native `net.DialTimeout` for `ov test`; `nc` for `ov eval image` |
 | `matching` | `contains` | Pure in-process value matching — no target probe |
-| `cdp` | Method name (status/list/eval/text/html/url/axtree/screenshot/open/click/type/raw/wait/coords + spa-*) + method-specific modifiers (`tab`, `expression`, `url`, `selector`, `text`, `artifact`, `x`, `y`) + shared `stdout`/`stderr`/`exit_status`/`artifact_min_bytes` | **Deploy-scope only.** Wraps `ov test cdp <method>`. See Live-container verb catalog below. |
-| `wl` | Method name (screenshot/status/click/type/key/key-combo/mouse/scroll/drag/clipboard/toplevel/windows/focus/close/geometry/xprop/atspi/exec/resolution + overlay-*/sway-*) + method-specific modifiers (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `ov test wl <method>` (including `sway` and `overlay` nested subgroups). See Live-container verb catalog below. |
-| `dbus` | Method name (list/call/introspect/notify) + method-specific modifiers (`dest`, `path`, `method`, `args`, `text`) + shared matchers | **Deploy-scope only.** Wraps `ov test dbus <method>`. |
-| `vnc` | Method name (status/screenshot/click/mouse/type/key/rfb/passwd) + method-specific modifiers (`x`, `y`, `text`, `key`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `ov test vnc <method>`. |
+| `cdp` | Method name (status/list/eval/text/html/url/axtree/screenshot/open/click/type/raw/wait/coords + spa-*) + method-specific modifiers (`tab`, `expression`, `url`, `selector`, `text`, `artifact`, `x`, `y`) + shared `stdout`/`stderr`/`exit_status`/`artifact_min_bytes` | **Deploy-scope only.** Wraps `ov eval cdp <method>`. See Live-container verb catalog below. |
+| `wl` | Method name (screenshot/status/click/type/key/key-combo/mouse/scroll/drag/clipboard/toplevel/windows/focus/close/geometry/xprop/atspi/exec/resolution + overlay-*/sway-*) + method-specific modifiers (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `ov eval wl <method>` (including `sway` and `overlay` nested subgroups). See Live-container verb catalog below. |
+| `dbus` | Method name (list/call/introspect/notify) + method-specific modifiers (`dest`, `path`, `method`, `args`, `text`) + shared matchers | **Deploy-scope only.** Wraps `ov eval dbus <method>`. |
+| `vnc` | Method name (status/screenshot/click/mouse/type/key/rfb/passwd) + method-specific modifiers (`x`, `y`, `text`, `key`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `ov eval vnc <method>`. |
 | `mcp` | Method name (ping/servers/list-tools/list-resources/list-prompts/call/read) + method-specific modifiers (`tool`, `uri`, `input`, `mcp_name`) + shared matchers | **Deploy-scope only.** Speaks `github.com/modelcontextprotocol/go-sdk` to any `mcp_provides` endpoint. See "Method allowlist — mcp" below. |
 
 ### Shared modifiers
@@ -326,7 +326,7 @@ subcommands so every live-container operation (browser automation, Wayland
 input/screenshot, D-Bus calls, VNC framebuffer capture, MCP protocol
 probes) is authorable as a declarative check. All five are **deploy-scope
 only** — they need a running container with port mappings; `ov image
-validate` rejects them in build scope, and `ov image test` skips them at
+validate` rejects them in build scope, and `ov eval image` skips them at
 runtime with a clear message.
 
 **Assertion semantics:** subprocess delegation — the runner executes
@@ -491,11 +491,11 @@ Ad-hoc CLI equivalents (each leaf also supports `--json` for programmatic
 use and `--name <server>` for multi-server images):
 
 ```bash
-ov test mcp ping       <image> [-i <instance>] [--name <server>]
-ov test mcp servers    <image> [-i <instance>]
-ov test mcp list-tools <image> [-i <instance>] [--name <server>]
-ov test mcp call       <image> <tool> '<json-args>' [-i <instance>]
-ov test mcp read       <image> <uri>            [-i <instance>]
+ov eval mcp ping       <image> [-i <instance>] [--name <server>]
+ov eval mcp servers    <image> [-i <instance>]
+ov eval mcp list-tools <image> [-i <instance>] [--name <server>]
+ov eval mcp call       <image> <tool> '<json-args>' [-i <instance>]
+ov eval mcp read       <image> <uri>            [-i <instance>]
 ```
 
 Output format: tab-separated plaintext (one record per line) so matchers
@@ -704,10 +704,10 @@ Always verify with `podman run --rm <image> rpm -qf /path/to/binary`.
 
 `${HOME}/workspace`, `${VOLUME_CONTAINER_PATH:name}`, and similar paths
 are provisioned by `ov config` at deploy time. A build-scope test on
-them fails in `ov image test` because the mount isn't attached.
+them fails in `ov eval image` because the mount isn't attached.
 
 ```yaml
-# ❌ Fails under `ov image test` — workspace isn't mounted
+# ❌ Fails under `ov eval image` — workspace isn't mounted
 - id: workspace-dir
   file: ${HOME}/workspace
   filetype: directory
@@ -721,7 +721,7 @@ them fails in `ov image test` because the mount isn't attached.
 
 ### 10. Disposable tests run as the image's default USER — not root
 
-`ov image test` runs `podman run --rm <image>` with the image's USER
+`ov eval image` runs `podman run --rm <image>` with the image's USER
 directive (typically uid 1000 for containers). Root-only files
 (e.g. `/etc/sudoers.d/*` is root:root 0750) report as "missing" because
 the user can't traverse the parent directory.
@@ -742,7 +742,7 @@ the user can't traverse the parent directory.
 
 ### 11. **Bootc images keep USER=root** — tests must cover both modes
 
-Gotcha 10 flips for bootc. `ov/generate.go` deliberately omits the final `USER <uid>` directive on bootc images because systemd (PID 1 in a bootc VM) manages user sessions via login, so the container's own USER directive is irrelevant. Result: the same `ov image test` that runs as uid 1000 in a container runs as **uid 0** in a bootc image.
+Gotcha 10 flips for bootc. `ov/generate.go` deliberately omits the final `USER <uid>` directive on bootc images because systemd (PID 1 in a bootc VM) manages user sessions via login, so the container's own USER directive is irrelevant. Result: the same `ov eval image` that runs as uid 1000 in a container runs as **uid 0** in a bootc image.
 
 That breaks any test that assumes the user-context default. A `sudo -n -l` check that expects `NOPASSWD` in the output works for non-bootc (USER=1000 → sudo lists the user's NOPASSWD rule) but fails for bootc (USER=0 → sudo prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`). Same failure mode for any `test -f ~/.config/foo` that depends on `$HOME=/home/user`.
 
@@ -771,9 +771,9 @@ form of the test; the sshd layer now uses `-u … --`.
 
 Worked example: `/ov-layers:sshd` ships exactly the `-u user --` pattern. Alternative: make the check `scope: deploy` so it runs against a live container where you control the user-switch externally.
 
-### 12. **`ov image test <short-name>` is ambiguous with multiple CalVer tags** — use the full registry ref
+### 12. **`ov eval image <short-name>` is ambiguous with multiple CalVer tags** — use the full registry ref
 
-`ov image test` resolves its positional argument against **local podman storage**, not `image.yml`. When the host has accumulated many CalVer tags for the same image (a normal consequence of iterative `ov image build` runs), the short form errors out:
+`ov eval image` resolves its positional argument against **local podman storage**, not `image.yml`. When the host has accumulated many CalVer tags for the same image (a normal consequence of iterative `ov image build` runs), the short form errors out:
 
 ```
 ov: error: ambiguous short name "selkies-desktop-ov" in local storage;
@@ -785,7 +785,7 @@ ov: error: ambiguous short name "selkies-desktop-ov" in local storage;
 Use the fully-qualified registry ref:
 
 ```bash
-ov image test ghcr.io/overthinkos/selkies-desktop-ov:latest
+ov eval image ghcr.io/overthinkos/selkies-desktop-ov:latest
 ```
 
 This is different from `ov image inspect`, `ov image build`, and `ov test` (the live-service runner), which key off `image.yml` and accept short names unambiguously. Only the disposable-container runner has this restriction because it does not consult `image.yml` at all.
@@ -794,11 +794,11 @@ This is different from `ov image inspect`, `ov image build`, and `ov test` (the 
 
 | Section | Authored in | When it runs |
 |---------|-------------|--------------|
-| `layer` | `tests:` in `layers/<name>/layer.yml` (scope:"build") | `ov image test` + `ov test` |
-| `image` | `tests:` in `image.yml` per image (scope:"build") | `ov image test` + `ov test` |
-| `deploy` | `tests:` with `scope: deploy`, or `deploy_tests:` in `image.yml`, or local `deploy.yml` `tests:` | `ov test` always; `ov image test --include-deploy` |
+| `layer` | `tests:` in `layers/<name>/layer.yml` (scope:"build") | `ov eval image` + `ov test` |
+| `image` | `tests:` in `image.yml` per image (scope:"build") | `ov eval image` + `ov test` |
+| `deploy` | `tests:` with `scope: deploy`, or `deploy_tests:` in `image.yml`, or local `deploy.yml` `tests:` | `ov test` always; `ov eval image --include-deploy` |
 
-The build label `org.overthinkos.tests` contains all three sections with
+The build label `org.overthinkos.eval` contains all three sections with
 `origin:` annotations (`layer:<name>`, `image:<name>`, `deploy-default`,
 `deploy-local`). `CollectTests` walks the base-image chain with a
 visited-image guard: cycles are reported by `validateImageDAG` at validate
@@ -809,9 +809,9 @@ pathological config.
 
 Every verb dispatches through one of two executors depending on the run
 mode — this is what makes the same `tests:` list work both against a
-disposable container (`ov image test`) and a running service (`ov test`):
+disposable container (`ov eval image`) and a running service (`ov test`):
 
-| Verb + attributes | Under `ov test` (running service) | Under `ov image test` (disposable) |
+| Verb + attributes | Under `ov test` (running service) | Under `ov eval image` (disposable) |
 |-------------------|-----------------------------------|------------------------------------|
 | file, package, service, process, user, group, interface, kernel-param, mount | `ContainerExecutor` (`podman exec`) | `ImageExecutor` (`podman run --rm`) |
 | port with `listening` | `ContainerExecutor` (`ss`/`netstat` inside) | `ImageExecutor` |
@@ -823,7 +823,7 @@ disposable container (`ov image test`) and a running service (`ov test`):
 
 The routing table lives in `ov/testrun.go` (`runOne` switch) and
 `ov/testrun_verbs.go`. When a check is unroutable (e.g. `port:
-reachable` under `ov image test`), the runner reports it as **skipped**
+reachable` under `ov eval image`), the runner reports it as **skipped**
 with a reason rather than failing the run.
 
 ## Runtime variables
@@ -887,7 +887,7 @@ ov image validate
 ov image build redis-ml
 
 # 4. Run against a disposable container (build-scope checks only).
-ov image test redis-ml
+ov eval image redis-ml
 
 # 5. Start the service and test end-to-end.
 ov start redis-ml
@@ -921,7 +921,7 @@ ports.
 
 ## Related skills
 
-- **Nested verbs under `ov test`** — `/ov:cdp`, `/ov:wl`, `/ov:dbus`, `/ov:vnc`, `/ov:mcp` are dispatched as `ov test cdp|wl|dbus|vnc|mcp`. See the Subcommands section above.
+- **Nested verbs under `ov test`** — `/ov:cdp`, `/ov:wl`, `/ov:dbus`, `/ov:vnc`, `/ov:mcp` are dispatched as `ov eval cdp|wl|dbus|vnc|mcp`. See the Subcommands section above.
 - `/ov:layer` — layer authoring; `tests:` field is part of every `layer.yml`.
 - `/ov:image` — image-level `tests:` and `deploy_tests:` at composition time.
 - `/ov:deploy` — local `deploy.yml` overlay rules and the `tests:` merge.
@@ -941,7 +941,7 @@ ports.
 ## When to Use This Skill
 
 **MUST be invoked** before authoring, running, or debugging declarative
-tests at any level. If the user mentions `ov test`, `ov image test`,
+tests at any level. If the user mentions `ov test`, `ov eval image`,
 `tests:`, `deploy_tests:`, `LabelTests`, or any check verb by name
 (file/port/http/command/package/service/...), invoke this skill first.
 

@@ -134,15 +134,15 @@ Without `nc`, virt-manager hangs at "Connecting to graphical console
 for guest" — no error, just silent failure. Diagnose with
 `ssh <host> which nc` (should return a path).
 
-### `ov test spice` with `--uri` (for CLI diagnostics / local artifacts)
+### `ov eval spice` with `--uri` (for CLI diagnostics / local artifacts)
 
 To probe the remote VM from the CLI and write screenshots into the local
 filesystem:
 
 ```bash
-ov test spice status arch --uri qemu+ssh://o.atrawog.org/session
-ov test spice screenshot arch --uri qemu+ssh://o.atrawog.org/session /tmp/shot.png
-ov test libvirt info arch --uri qemu+ssh://o.atrawog.org/session
+ov eval spice status arch --uri qemu+ssh://o.atrawog.org/session
+ov eval spice screenshot arch --uri qemu+ssh://o.atrawog.org/session /tmp/shot.png
+ov eval libvirt info arch --uri qemu+ssh://o.atrawog.org/session
 ```
 
 `ov` opens an SSH connection, forwards the remote SPICE UNIX socket to a

@@ -52,9 +52,9 @@ my-desktop:
 ```
 
 ```bash
-ov test wl overlay show my-image --type text --text "Hello" --name intro
-ov test wl overlay list my-image
-ov test wl overlay hide my-image --all
+ov eval wl overlay show my-image --type text --text "Hello" --name intro
+ov eval wl overlay list my-image
+ov eval wl overlay hide my-image --all
 ```
 
 ## Used In
@@ -87,4 +87,4 @@ ov test wl overlay hide my-image --all
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

@@ -126,12 +126,12 @@ ssh -p 2222 user@localhost           # passwordless sudo
 
 ```bash
 ov image build arch-coder
-ov image test ghcr.io/overthinkos/arch-coder:latest
+ov eval image ghcr.io/overthinkos/arch-coder:latest
 # disposable-container tests against the baked OCI label
 
 ov config arch-coder
 ov start arch-coder
-ov image test ghcr.io/overthinkos/arch-coder:latest --include-deploy
+ov eval image ghcr.io/overthinkos/arch-coder:latest --include-deploy
 # adds deploy-scope checks: sshd reachable, supervisord, dbus, ov-mcp,
 # virtqemud, libvirt session list, KVM domcaps, MCP tool-call probes.
 ```

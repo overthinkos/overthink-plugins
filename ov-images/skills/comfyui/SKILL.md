@@ -47,7 +47,7 @@ ov start comfyui
 - `/ov-layers:nvidia` — GPU runtime and CDI device auto-detection (base)
 - `/ov-layers:cuda` — CUDA toolkit and libraries (via nvidia base)
 - `/ov-layers:dbus` — session bus for desktop notifications
-- `/ov-layers:ov` — in-container `ov` binary (enables `ov test dbus notify`)
+- `/ov-layers:ov` — in-container `ov` binary (enables `ov eval dbus notify`)
 - `/ov-layers:agent-forwarding` — SSH/GPG/direnv agent forwarding
 
 ## Related Images

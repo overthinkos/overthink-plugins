@@ -120,7 +120,7 @@ When the layer/package/image were renamed (`jupyter-colab-ml` → `jupyter-ml`, 
 - `/ov-layers:jupyter` — lightweight Tier 2 parent layer
 - `/ov-layers:jupyter-ml` — GPU ML Tier 2 parent layer
 - `/ov:layer` — layer authoring rules (Tier 1 pattern)
-- `/ov:mcp` — client-side verb for probing this server's tool catalog (ping, list-tools, call); use `ov test mcp list-tools jupyter` to see all 13 tools this layer registers
+- `/ov:mcp` — client-side verb for probing this server's tool catalog (ping, list-tools, call); use `ov eval mcp list-tools jupyter` to see all 13 tools this layer registers
 - `/ov-layers:chrome-devtools-mcp` — sibling MCP-server-provider layer for Chrome DevTools (different domain, same `mcp_provides` pattern)
 
 ## When to Use This Skill
@@ -135,4 +135,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

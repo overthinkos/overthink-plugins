@@ -75,4 +75,4 @@ Instance removal automatically cleans the instance's `env_provides` and `mcp_pro
 - `/ov:config` -- Configure/reconfigure services (see "Full instance removal" for 3-step cleanup)
 - `/ov:deploy` -- Deploy.yml management, tunnel configuration
 - `/ov:service` -- Full service lifecycle
-- `/ov:mcp` -- after `ov config remove` cleans this instance's `mcp_provides` from the global `provides.mcp:` list, consumers' `OV_MCP_SERVERS` no longer lists it; use `ov test mcp servers <consumer>` to confirm the cleanup propagated
+- `/ov:mcp` -- after `ov config remove` cleans this instance's `mcp_provides` from the global `provides.mcp:` list, consumers' `OV_MCP_SERVERS` no longer lists it; use `ov eval mcp servers <consumer>` to confirm the cleanup propagated

@@ -50,21 +50,21 @@ pixelflux-record output.mp4 --fps 60 --audio # 60fps + audio
 # Stop with Ctrl-C
 ```
 
-## Integration with `ov test record`
+## Integration with `ov eval record`
 
 ```bash
 # Start desktop video recording (auto-detects pixelflux-record)
-ov test record start selkies-desktop -n demo --mode desktop --audio
+ov eval record start selkies-desktop -n demo --mode desktop --audio
 
 # Run commands (visible in recording)
-ov test record cmd selkies-desktop "echo hello" -n demo
+ov eval record cmd selkies-desktop "echo hello" -n demo
 
 # Interact with desktop
-ov test cdp open selkies-desktop "https://example.com"
-ov test wl click selkies-desktop 640 360
+ov eval cdp open selkies-desktop "https://example.com"
+ov eval wl click selkies-desktop 640 360
 
 # Stop and copy to host
-ov test record stop selkies-desktop -n demo -o demo.mp4
+ov eval record stop selkies-desktop -n demo -o demo.mp4
 ```
 
 ## Architecture
@@ -92,7 +92,7 @@ selkies process (single ScreenCapture singleton — process-wide)
 
 ## Cross-References
 
-- `/ov:record` -- `ov test record start --mode desktop` auto-detects pixelflux-record
+- `/ov:record` -- `ov eval record start --mode desktop` auto-detects pixelflux-record
 - `/ov:update` -- Per-instance update pattern used to roll out the per-frame `cleanup_texture_cache()` fix across live instances
 - `/ov-layers:wl-screenshot-pixelflux` -- Screenshot companion (same capture bridge, same singleton)
 - `/ov-layers:wf-recorder` -- Alternative for sway-desktop (wlr-screencopy)
@@ -110,4 +110,4 @@ Use when the user asks about:
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

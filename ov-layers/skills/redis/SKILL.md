@@ -56,11 +56,11 @@ my-image:
 
 ## Tests
 
-The layer ships 5 declarative checks embedded in the `org.overthinkos.tests`
+The layer ships 5 declarative checks embedded in the `org.overthinkos.eval`
 OCI label (see `/ov:test` for the full schema — this layer is the
 **gold-standard pattern** referenced there):
 
-- **Build-scope** (run under `ov image test`, via `podman run --rm`):
+- **Build-scope** (run under `ov eval image`, via `podman run --rm`):
   - `redis-binary` — `/usr/bin/redis-server` exists
   - `redis-cli-binary` — `/usr/bin/redis-cli` exists
   - `redis-package` — `valkey-compat-redis` package installed (real

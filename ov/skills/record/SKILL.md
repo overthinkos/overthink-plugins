@@ -2,7 +2,7 @@
 name: record
 description: |
   Record terminal sessions (asciinema) or desktop video (pixelflux/wf-recorder).
-  MUST be invoked before any work involving: ov test record commands, terminal recording,
+  MUST be invoked before any work involving: ov eval record commands, terminal recording,
   desktop video recording, or session capture.
 ---
 
@@ -10,7 +10,7 @@ description: |
 
 ## Overview
 
-`ov test record` manages recording sessions inside running containers. It supports two modes:
+`ov eval record` manages recording sessions inside running containers. It supports two modes:
 
 > **Moved under `ov test` in 2026-04** — the top-level `ov record` command was removed as a hard cutover. See `/ov:test` for the live-container verb family (cdp/wl/dbus/vnc/mcp/spice/libvirt/record).
 
@@ -23,17 +23,17 @@ All recording sessions are managed via tmux sessions with a `record-` prefix. Th
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Start recording | `ov test record start <image> [-n NAME] [-m MODE]` | Start a recording session |
-| Stop recording | `ov test record stop <image> [-n NAME] [-o FILE]` | Stop and optionally copy to host |
-| List recordings | `ov test record list <image>` | Show active recording sessions |
-| Send command | `ov test record cmd <image> "command" [-n NAME]` | Send command to recording terminal |
+| Start recording | `ov eval record start <image> [-n NAME] [-m MODE]` | Start a recording session |
+| Stop recording | `ov eval record stop <image> [-n NAME] [-o FILE]` | Stop and optionally copy to host |
+| List recordings | `ov eval record list <image>` | Show active recording sessions |
+| Send command | `ov eval record cmd <image> "command" [-n NAME]` | Send command to recording terminal |
 
 ## Commands
 
-### `ov test record start` — Start Recording
+### `ov eval record start` — Start Recording
 
 ```bash
-ov test record start <image> [--name NAME] [--mode MODE] [--fps FPS] [--audio] [-i INSTANCE]
+ov eval record start <image> [--name NAME] [--mode MODE] [--fps FPS] [--audio] [-i INSTANCE]
 ```
 
 **Flags:**
@@ -48,28 +48,28 @@ ov test record start <image> [--name NAME] [--mode MODE] [--fps FPS] [--audio] [
 - Terminal: `/tmp/ov-recordings/<name>.cast`
 - Desktop: `/tmp/ov-recordings/<name>.mp4`
 
-### `ov test record stop` — Stop Recording
+### `ov eval record stop` — Stop Recording
 
 ```bash
-ov test record stop <image> [--name NAME] [--output FILE] [-i INSTANCE]
+ov eval record stop <image> [--name NAME] [--output FILE] [-i INSTANCE]
 ```
 
 - Sends graceful stop signal (exit for asciinema, SIGINT for video recorders)
 - Waits up to 5s for graceful shutdown, then force-kills
 - `-o, --output` copies the recording file from the container to the host
 
-### `ov test record list` — List Active Recordings
+### `ov eval record list` — List Active Recordings
 
 ```bash
-ov test record list <image> [-i INSTANCE]
+ov eval record list <image> [-i INSTANCE]
 ```
 
 Shows all active recording sessions with name, mode, and file path.
 
-### `ov test record cmd` — Send Command to Recording
+### `ov eval record cmd` — Send Command to Recording
 
 ```bash
-ov test record cmd <image> "command" [--name NAME] [-i INSTANCE]
+ov eval record cmd <image> "command" [--name NAME] [-i INSTANCE]
 ```
 
 Sends a command to the recording's tmux session. For terminal recordings, the command and its output become part of the `.cast` file. Convenience wrapper for `ov tmux send <image> -s record-<name> "command" --enter`. Sends a desktop notification when the command is dispatched (if a notification daemon like swaync is running).
@@ -86,19 +86,19 @@ Sends a command to the recording's tmux session. For terminal recordings, the co
 
 ```bash
 # Start recording
-ov test record start openclaw -n demo --mode terminal
+ov eval record start openclaw -n demo --mode terminal
 
 # Run commands (each appears in the recording)
-ov test record cmd openclaw "echo 'Hello World'" -n demo
-ov test record cmd openclaw "ls -la" -n demo
-ov test record cmd openclaw "ov --help" -n demo
+ov eval record cmd openclaw "echo 'Hello World'" -n demo
+ov eval record cmd openclaw "ls -la" -n demo
+ov eval record cmd openclaw "ov --help" -n demo
 
 # Or attach interactively
 ov tmux attach openclaw -s record-demo
 # ... interact, Ctrl-b d to detach
 
 # Stop and save
-ov test record stop openclaw -n demo -o demo.cast
+ov eval record stop openclaw -n demo -o demo.cast
 
 # Play back locally
 asciinema play demo.cast
@@ -108,18 +108,18 @@ asciinema play demo.cast
 
 ```bash
 # Start desktop video recording with audio
-ov test record start selkies-desktop -n walkthrough --mode desktop --audio
+ov eval record start selkies-desktop -n walkthrough --mode desktop --audio
 
 # Run CLI commands (visible in recording)
-ov test record cmd selkies-desktop "git status" -n walkthrough
-ov test record cmd selkies-desktop "docker ps" -n walkthrough
+ov eval record cmd selkies-desktop "git status" -n walkthrough
+ov eval record cmd selkies-desktop "docker ps" -n walkthrough
 
 # Interact with browser
-ov test cdp open selkies-desktop "https://github.com"
-ov test wl click selkies-desktop 640 360
+ov eval cdp open selkies-desktop "https://github.com"
+ov eval wl click selkies-desktop 640 360
 
 # Stop and save
-ov test record stop selkies-desktop -n walkthrough -o walkthrough.mp4
+ov eval record stop selkies-desktop -n walkthrough -o walkthrough.mp4
 ```
 
 ## Prerequisites
@@ -131,9 +131,9 @@ ov test record stop selkies-desktop -n walkthrough -o walkthrough.mp4
 
 ## Implementation Notes
 
-- `ov test record cmd` uses the shared `sendTmuxCommand()` helper (also used by `ov tmux cmd`)
-- Desktop notifications are sent via `sendContainerNotification()` on every `ov test record cmd` dispatch (always-on, no `--no-notify` flag — recording context always benefits from notification)
-- The notification chain: `sendContainerNotification()` → tries in-container `ov test dbus notify .` → falls back to `gdbus call` → silently skips if neither available
+- `ov eval record cmd` uses the shared `sendTmuxCommand()` helper (also used by `ov tmux cmd`)
+- Desktop notifications are sent via `sendContainerNotification()` on every `ov eval record cmd` dispatch (always-on, no `--no-notify` flag — recording context always benefits from notification)
+- The notification chain: `sendContainerNotification()` → tries in-container `ov eval dbus notify .` → falls back to `gdbus call` → silently skips if neither available
 
 ## Cross-References
 
@@ -154,7 +154,7 @@ ov test record stop selkies-desktop -n walkthrough -o walkthrough.mp4
 **MUST be invoked** when the task involves:
 
 - Recording terminal sessions or desktop video
-- `ov test record` commands
+- `ov eval record` commands
 - Creating demo videos or walkthroughs
 - Capturing asciinema sessions
 - "How do I record my desktop?"

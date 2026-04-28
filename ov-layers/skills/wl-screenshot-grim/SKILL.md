@@ -24,10 +24,10 @@ rpm:
 
 ## Usage
 
-Used by `ov test wl screenshot` — auto-detected when `grim` is available in the container.
+Used by `ov eval wl screenshot` — auto-detected when `grim` is available in the container.
 
 ```bash
-ov test wl screenshot <image> [output.png]
+ov eval wl screenshot <image> [output.png]
 ```
 
 ## Included In
@@ -42,11 +42,11 @@ ov test wl screenshot <image> [output.png]
 
 ## Cross-References
 
-- `/ov:wl` — `ov test wl screenshot` auto-detects grim
+- `/ov:wl` — `ov eval wl screenshot` auto-detects grim
 - `/ov-layers:wl-screenshot-pixelflux` — Alternative for selkies-desktop
 - `/ov-layers:wl-tools` — Companion layer (input, window mgmt, clipboard)
 
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

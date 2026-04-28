@@ -166,7 +166,7 @@ hermes:
 
 - `/ov:cdp` — CDP automation; hermes uses the same Chrome endpoint via `BROWSER_CDP_URL`
 - `/ov:config` — Injects `BROWSER_CDP_URL` and `OV_MCP_SERVERS` via pod-aware `env_provides`/`mcp_provides`
-- `/ov:mcp` — verify that the MCP servers hermes discovers (`jupyter`, `chrome-devtools`) are alive and exposing expected tools before hermes tries to call them: `ov test mcp ping jupyter`, `ov test mcp list-tools <image>`. Useful when hermes reports tool-call failures and you need to isolate whether the server or the agent is at fault.
+- `/ov:mcp` — verify that the MCP servers hermes discovers (`jupyter`, `chrome-devtools`) are alive and exposing expected tools before hermes tries to call them: `ov eval mcp ping jupyter`, `ov eval mcp list-tools <image>`. Useful when hermes reports tool-call failures and you need to isolate whether the server or the agent is at fault.
 
 ## Related Images
 
@@ -183,4 +183,4 @@ hermes:
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

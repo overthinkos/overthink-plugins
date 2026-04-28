@@ -99,7 +99,7 @@ my-image:
 
 ### Dual-mode sudo check — the `runuser -u user --` wrapper
 
-`ov image test` runs with USER=1000 on container images but USER=0 on bootc images (bootc intentionally keeps USER=root because systemd manages user sessions via login). A naïve `sudo -n -l; contains: NOPASSWD` check fails on bootc — running as root prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`. The layer's current test drops to `user` explicitly when running as root:
+`ov eval image` runs with USER=1000 on container images but USER=0 on bootc images (bootc intentionally keeps USER=root because systemd manages user sessions via login). A naïve `sudo -n -l; contains: NOPASSWD` check fails on bootc — running as root prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`. The layer's current test drops to `user` explicitly when running as root:
 
 ```yaml
 - id: sudoers-ov-user

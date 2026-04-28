@@ -103,7 +103,7 @@ curl -sS  -X POST http://127.0.0.1:19224/mcp \
 
 ## Test Coverage
 
-**77 declarative checks · 0 failing · 0 skipped** under `ov image test`. Includes binary/package/service checks for every layer plus image-level composition checks (labwc + chrome + tailscale + keepassxc executables, `bootc container lint` sanity). The sshd layer's NOPASSWD-sudo check uses a `runuser -l user` wrapper to work under bootc's `USER=root` default as well as non-bootc's `USER=1000` — see `/ov-layers:sshd`.
+**77 declarative checks · 0 failing · 0 skipped** under `ov eval image`. Includes binary/package/service checks for every layer plus image-level composition checks (labwc + chrome + tailscale + keepassxc executables, `bootc container lint` sanity). The sshd layer's NOPASSWD-sudo check uses a `runuser -l user` wrapper to work under bootc's `USER=root` default as well as non-bootc's `USER=1000` — see `/ov-layers:sshd`.
 
 ## Known Caveats
 

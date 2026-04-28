@@ -51,7 +51,7 @@ ov image build selkies-desktop
 ov config selkies-desktop
 ov start selkies-desktop
 # Access: https://localhost:3000 (accept cert warning)
-ov test wl screenshot selkies-desktop screenshot.png
+ov eval wl screenshot selkies-desktop screenshot.png
 ```
 
 ## Keyboard Configuration
@@ -106,19 +106,19 @@ All level 0/1 characters (ö, ä, ü, ß, =, ?) and AltGr characters (@, €, \\
 
 ## Screenshots and Recording
 
-The capture bridge provides `ov test wl screenshot` and `ov test record` support:
+The capture bridge provides `ov eval wl screenshot` and `ov eval record` support:
 
 ```bash
 # Screenshot (works with or without browser connected)
-ov test wl screenshot selkies-desktop screenshot.png
+ov eval wl screenshot selkies-desktop screenshot.png
 
 # Check bridge status
 ov shell selkies-desktop -c "pixelflux-screenshot --status"
 
 # Desktop video recording (with audio via PulseAudio)
-ov test record start selkies-desktop -n demo --mode desktop --audio
+ov eval record start selkies-desktop -n demo --mode desktop --audio
 # ... interact with desktop ...
-ov test record stop selkies-desktop -n demo -o demo.mp4
+ov eval record stop selkies-desktop -n demo -o demo.mp4
 ```
 
 The bridge auto-heals: if no valid H.264 frames are available (e.g., after browser disconnect), it reconnects as controller to restart the pipeline.
@@ -144,36 +144,36 @@ The SPA renders the remote desktop on a `<canvas id="videoCanvas">` with an invi
 
 The SPA maps mouse events from the canvas viewport to the remote desktop with a scaling factor. When the canvas is 1908x950 and the remote desktop runs at a different resolution, there is an empirical **~0.824x / 0.836y** ratio between input coordinates and where the remote cursor lands.
 
-Use `ov test cdp spa click` with `--scale` for automatic correction:
+Use `ov eval cdp spa click` with `--scale` for automatic correction:
 
 ```bash
 # Click at canvas position (990, 375) with scale correction
-ov test cdp spa click <client> $TAB 990 375 --scale 0.824,0.836
+ov eval cdp spa click <client> $TAB 990 375 --scale 0.824,0.836
 ```
 
 ### Keyboard Passthrough
 
-**Recommended:** Use `ov test cdp spa` commands for keyboard interaction — they bypass the local compositor and Chrome shortcut handlers:
+**Recommended:** Use `ov eval cdp spa` commands for keyboard interaction — they bypass the local compositor and Chrome shortcut handlers:
 
 ```bash
 # Type text (no double-char issue, bypasses local shortcuts)
-ov test cdp spa type <client> $TAB "hello world"
+ov eval cdp spa type <client> $TAB "hello world"
 
 # Send modifier combos that reach the REMOTE desktop:
-ov test cdp spa key-combo <client> $TAB super+e    # Open foot terminal in labwc
-ov test cdp spa key-combo <client> $TAB ctrl+t     # New tab in remote Chrome
-ov test cdp spa key-combo <client> $TAB alt+f4     # Close window in labwc
+ov eval cdp spa key-combo <client> $TAB super+e    # Open foot terminal in labwc
+ov eval cdp spa key-combo <client> $TAB ctrl+t     # New tab in remote Chrome
+ov eval cdp spa key-combo <client> $TAB alt+f4     # Close window in labwc
 
 # Send special keys
-ov test cdp spa key <client> $TAB return
-ov test cdp spa key <client> $TAB escape
+ov eval cdp spa key <client> $TAB return
+ov eval cdp spa key <client> $TAB escape
 ```
 
 **Alternative methods** (limited — local compositor/Chrome may intercept keys):
 
 ```bash
-ov test vnc type <client> "text"     # VNC keysym events (Super key intercepted by local compositor)
-ov test wl type <client> "text"      # wtype via Wayland (same limitation)
+ov eval vnc type <client> "text"     # VNC keysym events (Super key intercepted by local compositor)
+ov eval wl type <client> "text"      # wtype via Wayland (same limitation)
 ```
 
 The SPA's `onkeydown` handler on `#overlayInput` intercepts events with `stopImmediatePropagation()`, converts to keysyms, and sends via WebSocket to the remote labwc compositor.
@@ -293,7 +293,7 @@ ov config hermes --update-all
 ov start selkies-desktop -i 45.39.130.21
 
 # Verify proxy IP
-ov test cdp open selkies-desktop -i 45.39.130.21 "https://httpbin.org/ip"
+ov eval cdp open selkies-desktop -i 45.39.130.21 "https://httpbin.org/ip"
 ```
 
 **Tailscale access (no sidecar needed):** The deploy.yml `tunnel: tailscale` config generates `tailscale serve` commands for host-mapped ports. All instances are accessible via the host's Tailscale IP on their respective ports (`https://<host>:3001`, etc.). Use sidecars only when per-instance exit node routing is needed.
@@ -324,8 +324,8 @@ diagnostic recipe that found the leak.
 ```bash
 ov status selkies-desktop              # All services RUNNING
 curl -k https://localhost:3000         # HTTPS 200, Selkies dashboard HTML
-ov test wl screenshot selkies-desktop t.png # Screenshot via capture bridge
-ov test cdp status selkies-desktop          # CDP available on port 9222
+ov eval wl screenshot selkies-desktop t.png # Screenshot via capture bridge
+ov eval cdp status selkies-desktop          # CDP available on port 9222
 ```
 
 ## Test Coverage
@@ -354,7 +354,7 @@ for `/etc/sudoers.d/ov-user` because it's root-only (`/ov:test` Gotcha #10).
 - `/ov:test` — declarative testing framework + testing gotchas
 - `/ov:cdp`, `/ov:wl` — desktop automation on this image
 - `/ov:config` — deploy setup (tunnel, port remapping, instances)
-- `/ov:mcp` — the image bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `ov test selkies-desktop --filter mcp` runs them; `ov test mcp list-tools selkies-desktop` enumerates the 29 chrome-devtools tools ad-hoc.
+- `/ov:mcp` — the image bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `ov test selkies-desktop --filter mcp` runs them; `ov eval mcp list-tools selkies-desktop` enumerates the 29 chrome-devtools tools ad-hoc.
 
 ## Related
 

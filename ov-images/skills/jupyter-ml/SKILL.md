@@ -126,7 +126,7 @@ ov shell jupyter-ml -c "pixi run verify-collaboration"
 - `/ov-images:jupyter` — Lightweight variant (no CUDA, multi-arch)
 - `/ov-images:python-ml` — ML base without Jupyter
 
-**MCP testing:** inherits 3 deploy-scope `mcp:` checks from the `jupyter-ml` layer (`ping`, `list-tools`, `call list_notebooks`). Run `ov test jupyter-ml --filter mcp` or probe ad-hoc with `ov test mcp list-tools jupyter-ml`. See `/ov:mcp`.
+**MCP testing:** inherits 3 deploy-scope `mcp:` checks from the `jupyter-ml` layer (`ping`, `list-tools`, `call list_notebooks`). Run `ov test jupyter-ml --filter mcp` or probe ad-hoc with `ov eval mcp list-tools jupyter-ml`. See `/ov:mcp`.
 
 ## When to Use This Skill
 

@@ -20,8 +20,8 @@ CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher
 | `ov rebuild` / `ov vm *` / VM entities | `/ov:vm` + `/ov-dev:vm-deploy-target` |
 | `ov deploy add/del` / pod or container deploys | `/ov:deploy` |
 | host-target / nested host deploy | `/ov:host-deploy` + `/ov-dev:host-infra` |
-| `ov test run` / `ov test cdp/wl/dbus/vnc/mcp/record/spice/libvirt` | `/ov:test` |
-| `ov test k8s <verb>` | `/ov:test-k8s` |
+| `ov eval live` / `ov eval cdp/wl/dbus/vnc/mcp/record/spice/libvirt` | `/ov:test` |
+| `ov eval k8s <verb>` | `/ov:test-k8s` |
 | Editing `layer.yml` / layer authoring | `/ov:layer` |
 | Editing `image.yml` / image composition | `/ov:image` |
 | `ov image build` / `ov image generate` / Containerfile | `/ov:build` + `/ov:generate` + `/ov-dev:generate` |

@@ -94,7 +94,7 @@ This layer is auto-included by the `chrome` base layer via `layers: [chrome-devt
 - `/ov-layers:hermes` — consumes via `mcp_accepts: chrome-devtools`
 - `/ov-layers:mcporter` — MCP server CLI (npm-based, similar npm install pattern)
 - `/ov:cdp` — direct Chrome DevTools Protocol commands (lower-level than MCP)
-- `/ov:mcp` — test-side client for this layer's MCP endpoint (`ov test mcp ping`, `list-tools`, etc.). The layer ships 2 deploy-scope `mcp:` declarative checks (`mcp-chrome-devtools-ping`, `mcp-chrome-devtools-list-tools` asserting `navigate_page` / `take_screenshot`). **Port-publishing gotcha**: when this layer is added to an image that already has a `deploy.yml` `ports:` override (e.g. `sway-browser-vnc`), port 9224 may not be published until the override is updated. `ov test mcp` surfaces this with the exact `ports: [9224:9224]` remediation message — see `/ov:mcp` for the full fix.
+- `/ov:mcp` — test-side client for this layer's MCP endpoint (`ov eval mcp ping`, `list-tools`, etc.). The layer ships 2 deploy-scope `mcp:` declarative checks (`mcp-chrome-devtools-ping`, `mcp-chrome-devtools-list-tools` asserting `navigate_page` / `take_screenshot`). **Port-publishing gotcha**: when this layer is added to an image that already has a `deploy.yml` `ports:` override (e.g. `sway-browser-vnc`), port 9224 may not be published until the override is updated. `ov eval mcp` surfaces this with the exact `ports: [9224:9224]` remediation message — see `/ov:mcp` for the full fix.
 
 ## When to Use This Skill
 
@@ -110,4 +110,4 @@ Use when the user asks about:
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

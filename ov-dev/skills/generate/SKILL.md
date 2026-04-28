@@ -274,7 +274,7 @@ after the last `USER` directive. This is an intentional cache-efficiency
 choice driven by `ov/generate.go`'s `writeLabels` call being placed
 after `writeLayerSteps` + the final `USER` emission.
 
-Why it matters: the `org.overthinkos.tests` LABEL is the most-volatile
+Why it matters: the `org.overthinkos.eval` LABEL is the most-volatile
 piece of image metadata — it changes every time a test is added, edited,
 or removed. If LABELs appeared BEFORE the RUN/COPY install steps (as
 before the relocation), buildkit's cache invalidated at the first

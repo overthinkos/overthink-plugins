@@ -72,4 +72,4 @@ Use when the user asks about:
 - `/ov:vm` — VM lifecycle; bootc VM caveats; QEMU-user-net limitation
 - `/ov-vms:vms` — `kind: vm` entity schema that consumes this layer's contribution
 - `/ov-dev:libvirt-renderer` — renderer that injects this layer's snippet into `<devices>`
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

@@ -157,7 +157,7 @@ ov image validate
 ov image build fedora-coder
 
 # 3. Build-scope tests (disposable container)
-ov image test ghcr.io/overthinkos/fedora-coder:latest
+ov eval image ghcr.io/overthinkos/fedora-coder:latest
 # target: 149 passed · 0 failed · 0 skipped
 
 # 4. Deploy (no bind-mount needed; ov-mcp auto-falls back to overthinkos/overthink)
@@ -166,7 +166,7 @@ ov start fedora-coder
 
 # 5. Full-scope tests — prefers the running container automatically
 # (see /ov:test "Live vs disposable executor selection")
-ov image test ghcr.io/overthinkos/fedora-coder:latest --include-deploy
+ov eval image ghcr.io/overthinkos/fedora-coder:latest --include-deploy
 # target: 167 passed · 0 failed · 0 skipped
 
 # 6. Clean up
@@ -199,8 +199,8 @@ if running alongside.
 
 ## Empirical test results (2026-04-20)
 
-- `ov image test fedora-coder` — **149 passed · 0 failed · 0 skipped**.
-- `ov image test fedora-coder --include-deploy` against a live running
+- `ov eval image fedora-coder` — **149 passed · 0 failed · 0 skipped**.
+- `ov eval image fedora-coder --include-deploy` against a live running
   container — **167 passed · 0 failed · 0 skipped** (adds deploy-scope:
   sshd reachable, supervisord responding, dbus+ov-mcp+virtqemud+
   virtnetworkd services running, libvirt session list + KVM domcaps,

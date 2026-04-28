@@ -1,29 +1,29 @@
 ---
 name: mcp
 description: |
-  MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `ov test mcp` client: probing MCP servers declared via mcp_provides, testing MCP tool catalogs, debugging the URL-rewriter (including host-networked containers via `HostConfig.NetworkMode` detection — new 2026-04) or port-publishing behavior. (2) `ov mcp serve` server: running the ov CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (~192 tools including the MCP-first authoring surface — image/layer scaffolding, comment-preserving YAML edits, free-form file writes), destructive-hint annotations, the `--read-only` filter, auto-fallback to `overthinkos/overthink` when cwd has no `image.yml` (always fires now, regardless of OV_PROJECT_DIR being set — 2026-04 change), and the `ov-mcp` deployment layer with its `/workspace` bind mount.
+  MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `ov eval mcp` client: probing MCP servers declared via mcp_provides, testing MCP tool catalogs, debugging the URL-rewriter (including host-networked containers via `HostConfig.NetworkMode` detection — new 2026-04) or port-publishing behavior. (2) `ov mcp serve` server: running the ov CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (~192 tools including the MCP-first authoring surface — image/layer scaffolding, comment-preserving YAML edits, free-form file writes), destructive-hint annotations, the `--read-only` filter, auto-fallback to `overthinkos/overthink` when cwd has no `image.yml` (always fires now, regardless of OV_PROJECT_DIR being set — 2026-04 change), and the `ov-mcp` deployment layer with its `/workspace` bind mount.
 ---
 
 # MCP - Model Context Protocol (client + server)
 
 `ov` speaks MCP in both directions. This skill covers both:
 
-- **Client** — `ov test mcp <method>`: connect to any MCP server declared via `mcp_provides` and probe/call/read. Used to test MCP endpoints shipped by `jupyter-mcp`, `chrome-devtools-mcp`, or the ov server itself.
+- **Client** — `ov eval mcp <method>`: connect to any MCP server declared via `mcp_provides` and probe/call/read. Used to test MCP endpoints shipped by `jupyter-mcp`, `chrome-devtools-mcp`, or the ov server itself.
 - **Server** — `ov mcp serve`: expose the entire ov CLI surface (build + test + deploy modes, 190 tools) as MCP over Streamable HTTP or stdio. Used by LLM agents (Claude Code, Open WebUI, OpenClaw) to drive ov remotely. Deployed in-container via the `ov-mcp` layer. The 190-tool catalog now includes a project-scaffolding + YAML-editing + file-write authoring surface, so an agent can build an `ov` project from scratch over RPC — see "Authoring tools" below.
 
 Both surfaces share the same SDK: `github.com/modelcontextprotocol/go-sdk v1.5.0`.
 
 ---
 
-# Part 1 — Client (`ov test mcp …`)
+# Part 1 — Client (`ov eval mcp …`)
 
 ## Overview
 
-`ov test mcp` connects to Model Context Protocol servers declared by running containers via `mcp_provides`, using [github.com/modelcontextprotocol/go-sdk](https://pkg.go.dev/github.com/modelcontextprotocol/go-sdk) (v1.5.0). Seven leaf subcommands cover the full MCP client surface: `ping`, `servers`, `list-tools`, `list-resources`, `list-prompts`, `call`, `read`. No MCP URL argument is ever typed by the user — the verb reads the target image's `org.overthinkos.mcp_provides` OCI label, resolves `{{.ContainerName}}` templates, applies pod-aware `localhost` rewriting, and maps the container-network URL to the published host port automatically.
+`ov eval mcp` connects to Model Context Protocol servers declared by running containers via `mcp_provides`, using [github.com/modelcontextprotocol/go-sdk](https://pkg.go.dev/github.com/modelcontextprotocol/go-sdk) (v1.5.0). Seven leaf subcommands cover the full MCP client surface: `ping`, `servers`, `list-tools`, `list-resources`, `list-prompts`, `call`, `read`. No MCP URL argument is ever typed by the user — the verb reads the target image's `org.overthinkos.mcp_provides` OCI label, resolves `{{.ContainerName}}` templates, applies pod-aware `localhost` rewriting, and maps the container-network URL to the published host port automatically.
 
 ### Also as a declarative verb
 
-Every `ov test mcp <method>` is authorable as an `mcp:` verb inside a `tests:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tool:`, `uri:`, `input:`, `mcp_name:`). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `timeout:`) work like other verbs. See `/ov:test` for the parent router and the complete method allowlist. Example:
+Every `ov eval mcp <method>` is authorable as an `mcp:` verb inside a `tests:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tool:`, `uri:`, `input:`, `mcp_name:`). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `timeout:`) work like other verbs. See `/ov:test` for the parent router and the complete method allowlist. Example:
 
 ```yaml
 - mcp: list-tools
@@ -37,13 +37,13 @@ Every `ov test mcp <method>` is authorable as an `mcp:` verb inside a `tests:` b
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Ping | `ov test mcp ping <image>` | Liveness check — returns `ok` on a successful `Ping` RPC |
-| Enumerate | `ov test mcp servers <image>` | List MCP servers declared by the image (no dial) |
-| List tools | `ov test mcp list-tools <image>` | Tool name + first-line description per line |
-| List resources | `ov test mcp list-resources <image>` | URI + name + MIME type per line |
-| List prompts | `ov test mcp list-prompts <image>` | Prompt name + description per line |
-| Call | `ov test mcp call <image> <tool> [<input-json>]` | Invoke a tool; prints TextContent payload |
-| Read | `ov test mcp read <image> <uri>` | Read a resource; prints Text content |
+| Ping | `ov eval mcp ping <image>` | Liveness check — returns `ok` on a successful `Ping` RPC |
+| Enumerate | `ov eval mcp servers <image>` | List MCP servers declared by the image (no dial) |
+| List tools | `ov eval mcp list-tools <image>` | Tool name + first-line description per line |
+| List resources | `ov eval mcp list-resources <image>` | URI + name + MIME type per line |
+| List prompts | `ov eval mcp list-prompts <image>` | Prompt name + description per line |
+| Call | `ov eval mcp call <image> <tool> [<input-json>]` | Invoke a tool; prints TextContent payload |
+| Read | `ov eval mcp read <image> <uri>` | Read a resource; prints Text content |
 
 Every leaf accepts:
 - `-i <instance>` — target a specific instance
@@ -70,7 +70,7 @@ Source: `ov/mcp.go` (Kong subcommand tree + leaf Run() methods), `ov/mcp_client.
 ### Ping
 
 ```bash
-ov test mcp ping jupyter
+ov eval mcp ping jupyter
 # ok
 ```
 
@@ -79,10 +79,10 @@ Calls `ClientSession.Ping(ctx, nil)`. Exit 0 iff the server responds. Useful as 
 ### Servers (discovery only, no dial)
 
 ```bash
-ov test mcp servers jupyter
+ov eval mcp servers jupyter
 # jupyter   http://localhost:8888/mcp   http
 
-ov test mcp servers jupyter --json
+ov eval mcp servers jupyter --json
 # [{"name":"jupyter","url":"http://localhost:8888/mcp","transport":"http","source":"jupyter"}]
 ```
 
@@ -91,13 +91,13 @@ Reads `mcp_provides` from the OCI label, applies template substitution + pod-awa
 ### List tools / resources / prompts
 
 ```bash
-ov test mcp list-tools jupyter
+ov eval mcp list-tools jupyter
 # list_notebooks       List all notebooks accessible in the workspace.
 # execute_cell         Execute a cell and return its outputs.
 # insert_cell          Insert a new cell at the given position.
 # …
 
-ov test mcp list-tools jupyter --json | jq '.[].name'
+ov eval mcp list-tools jupyter --json | jq '.[].name'
 ```
 
 Plaintext output is tab-separated (`name\tfirst-line-of-description`) for easy `contains:` matching in declarative tests without JSON parsing. Multi-line descriptions collapse to the first non-empty line. `list-resources` emits `uri\tname\tmime`; `list-prompts` emits `name\tdescription`. The runner automatically pages through `NextCursor` so all results return in a single invocation.
@@ -105,10 +105,10 @@ Plaintext output is tab-separated (`name\tfirst-line-of-description`) for easy `
 ### Call a tool
 
 ```bash
-ov test mcp call jupyter list_notebooks '{}'
+ov eval mcp call jupyter list_notebooks '{}'
 # [{"path":"finetuning/01_FastInference_Qwen.ipynb",…}]
 
-ov test mcp call jupyter get_cell '{"path":"intro.ipynb","index":0}'
+ov eval mcp call jupyter get_cell '{"path":"intro.ipynb","index":0}'
 ```
 
 The third positional is the tool's arguments as a JSON object (optional — omit for zero-arg tools). The argument string is parsed with `encoding/json`; parse errors exit 1 immediately with the error location. Returned `TextContent` blocks print one per line; `ImageContent` / `AudioContent` emit a `[image content: <mime>, <N> bytes]` placeholder (use `--json` for the actual payload). If the server sets `IsError: true`, the leaf exits 1 after printing the error text to stderr.
@@ -116,7 +116,7 @@ The third positional is the tool's arguments as a JSON object (optional — omit
 ### Read a resource
 
 ```bash
-ov test mcp read my-image file:///workspace/data.txt
+ov eval mcp read my-image file:///workspace/data.txt
 ```
 
 Calls `ReadResource(URI: …)`. Text content is printed to stdout; binary blobs emit a `[binary resource … use --json for base64]` placeholder to stderr.
@@ -126,10 +126,10 @@ Calls `ReadResource(URI: …)`. Text content is printed to stdout; binary blobs 
 When an image declares more than one `mcp_provides` entry, every leaf requires `--name`:
 
 ```bash
-ov test mcp ping my-image
+ov eval mcp ping my-image
 # ov: error: image provides multiple mcp servers; use --name (available: jupyter, chrome-devtools)
 
-ov test mcp ping my-image --name chrome-devtools
+ov eval mcp ping my-image --name chrome-devtools
 # ok
 ```
 
@@ -145,7 +145,7 @@ No existing image ships multiple providers today — `jupyter` layers expose one
 
 ## Port-publishing gotcha (encountered during live testing)
 
-**Symptom:** `ov test mcp ping` fails with:
+**Symptom:** `ov eval mcp ping` fails with:
 
 ```
 ov: error: mcp chrome-devtools: container port 9224/tcp is not published to a host port;
@@ -173,7 +173,7 @@ images:
 ```bash
 podman inspect ov-<image> --format '{{json .NetworkSettings.Ports}}' | jq
 # Expect: the mcp port maps to a non-null [{"HostIp":"...","HostPort":"..."}]
-ov test mcp ping <image>
+ov eval mcp ping <image>
 # ok
 ```
 
@@ -202,7 +202,7 @@ Every leaf's default format is author-friendly plaintext with one record per lin
 - `read` → concatenated `ResourceContents.Text`, one per line
 - `servers` → `<name>\t<url>\t<transport>`
 
-`--json` on any leaf emits the SDK's raw result struct (e.g., `ListToolsResult`, `CallToolResult`) with `json.MarshalIndent`. Declarative tests always receive plaintext — the subprocess dispatcher runs `ov test mcp …` without `--json`.
+`--json` on any leaf emits the SDK's raw result struct (e.g., `ListToolsResult`, `CallToolResult`) with `json.MarshalIndent`. Declarative tests always receive plaintext — the subprocess dispatcher runs `ov eval mcp …` without `--json`.
 
 ## Declarative authoring examples
 
@@ -249,7 +249,7 @@ Tests currently shipping in the three provider layers (`layers/jupyter/layer.yml
     - matches: "."
 ```
 
-**Deploy-scope only.** `mcp:` checks require a running container with the mcp port published; `ov image validate` rejects build-scope mcp checks at authoring time, and `ov image test` skips them at runtime with the message `"mcp: <method> requires a running container (skip under ov image test)"`. Follow the same rule as the other four live-container verbs — `cdp`, `wl`, `dbus`, `vnc`.
+**Deploy-scope only.** `mcp:` checks require a running container with the mcp port published; `ov image validate` rejects build-scope mcp checks at authoring time, and `ov eval image` skips them at runtime with the message `"mcp: <method> requires a running container (skip under ov eval image)"`. Follow the same rule as the other four live-container verbs — `cdp`, `wl`, `dbus`, `vnc`.
 
 ## Validator coverage
 
@@ -278,7 +278,7 @@ ov mcp serve --stdio                        # Stdio transport for editor/LLM int
 ov mcp serve --read-only                    # Skip registering the 51 destructive tools
 ```
 
-The server uses the same `github.com/modelcontextprotocol/go-sdk` v1.5.0 as the client, so the wire format is identical and `ov test mcp ping <image>` works against it unchanged.
+The server uses the same `github.com/modelcontextprotocol/go-sdk` v1.5.0 as the client, so the wire format is identical and `ov eval mcp ping <image>` works against it unchanged.
 
 ## Architecture
 
@@ -349,13 +349,13 @@ ov config arch-ov --bind project=/home/you/overthink
 ov start arch-ov
 
 # From the host — the container's mcp_provides URL is auto-rewritten to the published host port:
-ov test mcp ping arch-ov --name ov
+ov eval mcp ping arch-ov --name ov
 # ok
-ov test mcp list-tools arch-ov --name ov | wc -l
+ov eval mcp list-tools arch-ov --name ov | wc -l
 # 190
-ov test mcp call arch-ov version '{}' --name ov
+ov eval mcp call arch-ov version '{}' --name ov
 # 2026.nnn.nnnn          (the container's own ov version)
-ov test mcp call arch-ov image.list.images '{}' --name ov
+ov eval mcp call arch-ov image.list.images '{}' --name ov
 # arch-ov [testing]      (reads image.yml from the bind-mounted /workspace)
 # archlinux [testing]
 # …
@@ -384,7 +384,7 @@ All YAML edits go through the `yaml.v3` *node* API (not value unmarshal) so comm
 End-to-end MCP-only worked example:
 
 ```jsonc
-// All called as MCP tool calls (e.g. via `ov test mcp call <ctr> <tool> '<args>'`):
+// All called as MCP tool calls (e.g. via `ov eval mcp call <ctr> <tool> '<args>'`):
 image.new.project   {"dir": "/tmp/hello"}
 image.new.image     {"name": "hello", "base": "quay.io/fedora/fedora:43"}
 image.new.layer     {"name": "hello-svc"}
@@ -410,7 +410,7 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 
 ## Cross-References
 
-- `/ov:test` — parent router; all `ov test mcp …` invocations are dispatched through it. Full method allowlist for all 5 live-container verbs (cdp/wl/dbus/vnc/mcp) lives in the "Live-container verb catalog" section.
+- `/ov:test` — parent router; all `ov eval mcp …` invocations are dispatched through it. Full method allowlist for all 5 live-container verbs (cdp/wl/dbus/vnc/mcp) lives in the "Live-container verb catalog" section.
 - `/ov:layer` — `mcp_provides` / `mcp_accepts` / `mcp_requires` field reference for layer authoring.
 - `/ov:config` — how `mcp_provides` gets injected into `deploy.yml` `provides.mcp:` and synthesized into `OV_MCP_SERVERS` for consumers at `ov config` time; pod-aware resolution to `localhost`; instance-aware MCP server naming with `-<instance>` suffix.
 - `/ov:validate` — authoring-time validation rules (method allowlist, required modifiers, scope enforcement).
@@ -421,7 +421,7 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 - `/ov:vnc` — sibling (VNC framebuffer / input).
 - `/ov-layers:jupyter-mcp` — the FastMCP server implementation layer (13 tools for notebook manipulation over CRDT).
 - `/ov-layers:chrome-devtools-mcp` — the mcp-proxy wrapper around chrome-devtools-mcp (29 tools for browser automation).
-- `/ov-layers:hermes` — a consumer (`mcp_accepts: jupyter, chrome-devtools`); use `ov test mcp` to verify the services hermes discovers are actually alive.
+- `/ov-layers:hermes` — a consumer (`mcp_accepts: jupyter, chrome-devtools`); use `ov eval mcp` to verify the services hermes discovers are actually alive.
 - `/ov-layers:openwebui` — another consumer (`mcp_accepts: jupyter, chrome-devtools`).
 - `/ov-images:jupyter`, `/ov-images:jupyter-ml`, `/ov-images:jupyter-ml-notebook` — images bundling `jupyter-mcp`; `ov test <image> --filter mcp` exercises the verb end-to-end.
 - `/ov-images:sway-browser-vnc`, `/ov-images:selkies-desktop`, `/ov-images:selkies-desktop-nvidia` — images bundling `chrome-devtools-mcp` (transitively via the chrome metalayer).
@@ -435,7 +435,7 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 
 **MUST be invoked** when the task involves Model Context Protocol on either side:
 
-- **Client** — `ov test mcp` commands, probing/testing MCP servers declared via `mcp_provides`, examining MCP tool/resource/prompt catalogs, debugging the URL-rewriter or port-publishing behavior, or authoring deploy-scope `mcp:` checks in a `tests:` block.
+- **Client** — `ov eval mcp` commands, probing/testing MCP servers declared via `mcp_provides`, examining MCP tool/resource/prompt catalogs, debugging the URL-rewriter or port-publishing behavior, or authoring deploy-scope `mcp:` checks in a `tests:` block.
 - **Server** — `ov mcp serve` operation, the `ov-mcp` layer, destructive-hint policy, the `--read-only` filter, Kong-reflection tool generation, the project-dir bind-mount pattern, or symptoms like "MCP tool returned empty output" (check `println` vs `fmt.Println` in the invoked command — the server captures `os.Stdout`, not fd 1).
 
 Invoke this skill BEFORE reading source code or launching Explore agents.

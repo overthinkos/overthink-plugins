@@ -88,12 +88,12 @@ deployment patterns work — bind-mount your project, pin an
 # Pattern 1: bind your local checkout
 ov config arch-ov --bind project=/home/you/overthink
 ov start arch-ov
-ov test mcp call arch-ov image.list.images '{}' --name ov  # lists YOUR project's images
+ov eval mcp call arch-ov image.list.images '{}' --name ov  # lists YOUR project's images
 
 # Pattern 3: no bind-mount (auto-fallback kicks in)
 ov config arch-ov
 ov start arch-ov
-ov test mcp call arch-ov image.list.images '{}' --name ov  # lists upstream overthinkos/overthink images
+ov eval mcp call arch-ov image.list.images '{}' --name ov  # lists upstream overthinkos/overthink images
 ```
 
 Volume NAME is `project` (stable bind-mount API); container PATH is

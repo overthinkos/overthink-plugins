@@ -37,7 +37,7 @@ Kong reflection, currently ~192 tools including the 2026 authoring
 surface — project scaffolding, YAML editing, file-write verbs) as MCP
 over Streamable HTTP. Any image composing `ov-mcp` advertises itself
 via the `org.overthinkos.mcp_provides` OCI label, so consumers —
-Claude Code, Open WebUI, OpenClaw, or the in-repo `ov test mcp` client
+Claude Code, Open WebUI, OpenClaw, or the in-repo `ov eval mcp` client
 — can drive it without any out-of-band URL configuration.
 
 See `/ov:mcp` Part 2 for the full server architecture: Kong

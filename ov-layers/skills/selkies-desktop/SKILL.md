@@ -26,7 +26,7 @@ layers:
   - wl-record-pixelflux    # Desktop video recording via selkies capture bridge
   - a11y-tools              # AT-SPI2 accessibility introspection (python3-pyatspi)
   - xterm                   # X11 terminal for XWayland testing
-  - tmux                    # Terminal multiplexer (required by ov test record)
+  - tmux                    # Terminal multiplexer (required by ov eval record)
   - asciinema               # Terminal session recording
   - fastfetch               # System information display
   - selkies                 # Streaming server (pixelflux + pcmflux + nginx)
@@ -48,11 +48,11 @@ A browser-accessible desktop at `http://localhost:3000` with:
 - **pcmflux** audio capture → Opus encoding at 320kbps
 - **PipeWire** audio server with PulseAudio compatibility
 - **NGINX** web frontend on port 3000
-- **Full `ov test wl` automation:** 22 subcommands all working — screenshots (pixelflux), input (wtype, wlrctl), window management (wlrctl toplevel), clipboard (wl-copy/paste), resolution (wlr-randr), accessibility (AT-SPI2), XWayland tools (xdotool, xprop)
-- **`ov test cdp click --wl`:** CSS selector → Wayland pointer click (no VNC needed)
-- **`ov test cdp axtree`:** Chrome accessibility tree via CDP
-- **Desktop video recording** via `ov test record start --mode desktop` (capture bridge → H.264 → ffmpeg MP4, with optional audio)
-- **Fullscreen overlays** via `ov test wl overlay` (title cards, lower-thirds, countdowns, highlights, fades — rendered by compositor with true alpha transparency, no post-production needed)
+- **Full `ov eval wl` automation:** 22 subcommands all working — screenshots (pixelflux), input (wtype, wlrctl), window management (wlrctl toplevel), clipboard (wl-copy/paste), resolution (wlr-randr), accessibility (AT-SPI2), XWayland tools (xdotool, xprop)
+- **`ov eval cdp click --wl`:** CSS selector → Wayland pointer click (no VNC needed)
+- **`ov eval cdp axtree`:** Chrome accessibility tree via CDP
+- **Desktop video recording** via `ov eval record start --mode desktop` (capture bridge → H.264 → ffmpeg MP4, with optional audio)
+- **Fullscreen overlays** via `ov eval wl overlay` (title cards, lower-thirds, countdowns, highlights, fades — rendered by compositor with true alpha transparency, no post-production needed)
 - **Configurable keyboard layout** via `XKB_DEFAULT_LAYOUT` — German (de), French (fr), Nordic (no), etc. AltGr characters (@, €, \\, ~) work via direct scancode injection. See `/ov-layers:labwc`
 
 ## What Works / What Doesn't
@@ -150,4 +150,4 @@ See `/ov-images:selkies-desktop` for full multi-instance deployment examples.
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

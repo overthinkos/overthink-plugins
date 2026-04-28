@@ -172,10 +172,10 @@ Multiple MCP clients can edit the same notebook simultaneously:
 
 ## Tests
 
-The layer ships 2 declarative checks embedded in the `org.overthinkos.tests`
+The layer ships 2 declarative checks embedded in the `org.overthinkos.eval`
 OCI label (see `/ov:test` for the full schema):
 
-- **Build-scope** (run under `ov image test`):
+- **Build-scope** (run under `ov eval image`):
   - `workspace-dir` — `${HOME}/workspace` exists as a directory
 - **Deploy-scope** (run under `ov test` against a live service):
   - `jupyter-api` — `GET http://${CONTAINER_IP}:${HOST_PORT:8888}/api`
@@ -195,7 +195,7 @@ OCI label (see `/ov:test` for the full schema):
 - `/ov-layers:hermes` -- MCP consumer (mcp_accepts)
 - `/ov-layers:supervisord` -- process manager dependency
 - `/ov-layers:python` -- Python runtime (transitive via supervisord)
-- `/ov:mcp` -- end-to-end testing of the layer's MCP endpoint (`ov test mcp ping`, `list-tools`, `call`); the layer ships 3 deploy-scope `mcp:` declarative checks against `list_notebooks`/`insert_cell`/`execute_cell`
+- `/ov:mcp` -- end-to-end testing of the layer's MCP endpoint (`ov eval mcp ping`, `list-tools`, `call`); the layer ships 3 deploy-scope `mcp:` declarative checks against `list_notebooks`/`insert_cell`/`execute_cell`
 
 ## When to Use This Skill
 

@@ -114,7 +114,7 @@ This layer makes that URI actually work inside a container at uid
 
 ## Tests baked into the layer
 
-**Build-scope (run by `ov image test <image>` without deploying):**
+**Build-scope (run by `ov eval image <image>` without deploying):**
 
 - `virtqemud-package` / `virtnetworkd-package` — package-existence probes using `package:` + `package_map:` (see below).
 - `virsh-binary` — `/usr/bin/virsh` exists.

@@ -94,7 +94,7 @@ Usually used via the `chrome-sway` or `sway-desktop` composition layers rather t
 
 ## Google Sign-In
 
-Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see `/ov:cdp` for the full recipe). All clicks use `ov test cdp click --vnc` (CDP selector targeting + VNC pointer delivery), and all text input uses `ov test vnc type` (real OS-level keysym events). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts. Use `ov remove <image> --purge` to clear for a fresh start — just rebuilding the image does not reset volumes.
+Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see `/ov:cdp` for the full recipe). All clicks use `ov eval cdp click --vnc` (CDP selector targeting + VNC pointer delivery), and all text input uses `ov eval vnc type` (real OS-level keysym events). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts. Use `ov remove <image> --purge` to clear for a fresh start — just rebuilding the image does not reset volumes.
 
 **App Passwords (required for automation):** Google accounts with 2FA (now mandatory for most accounts) require a 16-character [App Password](https://myaccount.google.com/apppasswords). App Passwords bypass all verification challenges and 2FA prompts. Set `GMAIL_PASSWORD` to the App Password in `.env`.
 
@@ -243,7 +243,7 @@ curl -s "http://localhost:9222/json/list"
 
 ## CDP Diagnostics
 
-`ov test cdp` commands now show diagnostics on connection failure: checks Chrome process, cdp-proxy status, and port binding. Hints use `ov test wl sway exec <image> chrome-wrapper` (not `ov shell` with bare `swaymsg`) for manual Chrome restart.
+`ov eval cdp` commands now show diagnostics on connection failure: checks Chrome process, cdp-proxy status, and port binding. Hints use `ov eval wl sway exec <image> chrome-wrapper` (not `ov shell` with bare `swaymsg`) for manual Chrome restart.
 
 ## Used In Images
 
@@ -260,10 +260,10 @@ curl -s "http://localhost:9222/json/list"
 
 - `/ov:cdp` — Chrome DevTools Protocol automation (click, type, eval, screenshot)
 - `/ov:shell` — Interactive shell to access Chrome
-- `/ov:vnc` — VNC automation (used with `--vnc` flag on `ov test cdp click`)
-- `/ov:wl` — Wayland automation (used with `--wl` flag on `ov test cdp click`)
+- `/ov:vnc` — VNC automation (used with `--vnc` flag on `ov eval cdp click`)
+- `/ov:wl` — Wayland automation (used with `--wl` flag on `ov eval cdp click`)
 - `/ov:config` — Proxy deployment, `normalizeNoProxy()` auto-conversion, `sep:"none"` env handling
-- `/ov:mcp` — the auto-included `chrome-devtools-mcp` sub-layer exposes 29 tools via Streamable HTTP on port 9224; probe with `ov test mcp list-tools <image>` or run the declarative 2-check suite via `ov test <image> --filter mcp`
+- `/ov:mcp` — the auto-included `chrome-devtools-mcp` sub-layer exposes 29 tools via Streamable HTTP on port 9224; probe with `ov eval mcp list-tools <image>` or run the declarative 2-check suite via `ov test <image> --filter mcp`
 
 ## When to Use This Skill
 
@@ -277,4 +277,4 @@ Use when the user asks about:
 ## Related
 
 - `/ov:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov:test` — declarative testing (`tests:` block, `ov image test`, `ov test`)
+- `/ov:test` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

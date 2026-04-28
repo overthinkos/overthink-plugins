@@ -157,7 +157,7 @@ liveness (hermes-whatsapp is autostart=false — see `/ov:test` Gotcha #4).
   `/ov-layers:devops-tools`
 - `/ov:test` — declarative testing framework + supervisord gotchas
 - `/ov:config` — `OV_MCP_SERVERS` auto-discovery + secret provisioning
-- `/ov:mcp` — verify each MCP server in `OV_MCP_SERVERS` is actually alive before debugging hermes tool-call failures; `ov test mcp list-tools <provider-image>` shows exactly what hermes will see
+- `/ov:mcp` — verify each MCP server in `OV_MCP_SERVERS` is actually alive before debugging hermes tool-call failures; `ov eval mcp list-tools <provider-image>` shows exactly what hermes will see
 - `/ov-images:selkies-desktop` — companion for shared browser (CDP)
 - `/ov-images:jupyter` — MCP notebook tools auto-discovered
 

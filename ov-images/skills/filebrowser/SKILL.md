@@ -96,7 +96,7 @@ After `ov start`:
 ## Test Coverage
 
 Latest `ov test filebrowser` run: **24 passed, 0 failed, 0 skipped**.
-All tests embedded in the `org.overthinkos.tests` OCI label, covering
+All tests embedded in the `org.overthinkos.eval` OCI label, covering
 agent-forwarding prerequisites (gpg, ssh, direnv binaries), supervisord
 + dbus daemon + ov binary presence, filebrowser binary + config, and
 deploy-scope: service up, port reachable on `127.0.0.1:${HOST_PORT:8080}`,

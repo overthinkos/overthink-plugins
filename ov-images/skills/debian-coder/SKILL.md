@@ -101,9 +101,9 @@ See `/ov:image` "user_policy" and `/ov:build` "base_user" for the full decision 
 
 ## Empirical test results (2026-04-20)
 
-`ov image test ghcr.io/overthinkos/debian-coder:latest` — **143 passed · 0 failed · 0 skipped**.
+`ov eval image ghcr.io/overthinkos/debian-coder:latest` — **143 passed · 0 failed · 0 skipped**.
 
-`ov image test ghcr.io/overthinkos/debian-coder:latest --include-deploy` — live-service extension tests (sshd on 2222, supervisord, dbus, ov-mcp, virtqemud session) — not run in Phase F (disk-constrained CI environment), but expected to mirror fedora-coder's +18 additions.
+`ov eval image ghcr.io/overthinkos/debian-coder:latest --include-deploy` — live-service extension tests (sshd on 2222, supervisord, dbus, ov-mcp, virtqemud session) — not run in Phase F (disk-constrained CI environment), but expected to mirror fedora-coder's +18 additions.
 
 ## Verification recipe
 
@@ -115,12 +115,12 @@ ov image validate
 ov image build debian-coder
 
 # 3. Disposable-container tests
-ov image test ghcr.io/overthinkos/debian-coder:latest
+ov eval image ghcr.io/overthinkos/debian-coder:latest
 
 # 4. Deploy + live tests
 ov config debian-coder
 ov start debian-coder
-ov image test ghcr.io/overthinkos/debian-coder:latest --include-deploy
+ov eval image ghcr.io/overthinkos/debian-coder:latest --include-deploy
 
 # 5. Clean up
 ov stop debian-coder
