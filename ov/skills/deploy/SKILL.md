@@ -292,7 +292,9 @@ tunnel:
   private: all       # all image ports on tailnet
 ```
 
-**CRITICAL: `bind_address` must be `127.0.0.1` (the default).** Setting `0.0.0.0` causes the container to bind on the Tailscale interface, preventing Tailscale from intercepting TLS. Result: HTTPS fails with `wrong version number`.
+**`bind_address` must be `127.0.0.1` (the default).** Setting `0.0.0.0` causes the container to bind on the Tailscale interface, preventing Tailscale from intercepting TLS. Result: HTTPS fails with `wrong version number`.
+
+**Port form in `deploy.yml`.** The canonical form is bare `H:C` (e.g. `8888:8888`); `ov config` prepends `127.0.0.1:` automatically when a tunnel is set. Since 2026-04-29 the IP-prefixed form `127.0.0.1:8888:8888` (and IPv6 `[::1]:8888:8888`) is also accepted — the canonical `ParsePortMapping` helper in `ov/ports.go` normalizes both shapes to a single-prefixed `PublishPort=` line, so neither form produces the doubled `127.0.0.1:127.0.0.1:8888:8888` quadlet that earlier versions emitted. Unparseable port strings are now logged loudly to stderr instead of being silently dropped (the silent-skip used to suppress the entire `ExecStartPost=tailscale serve` block when even one port couldn't be parsed).
 
 ### Tailscale Funnel (public internet)
 
