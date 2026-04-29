@@ -43,28 +43,63 @@ therefore be:
   instances of the same image can sit at different tiers with
   different disposability.
 
-## Schema — two fields, clear roles
+## Schema — three fields, clear roles
 
 ```yaml
-# DEPLOY-shaped YAML (vms.yml kind:vm entity, or deploy.yml entry):
+# DEPLOY-shaped YAML (deploy.yml entry):
 
-disposable: <bool>    # LOAD-BEARING. Default false. Explicit opt-in.
+disposable: <bool>    # LOAD-BEARING authorization. Default false.
                       #   `true` authorizes `ov rebuild <name>` to
                       #   destroy + rebuild + restart unattended.
 lifecycle: <tier>     # INFORMATIONAL ONLY. Free-form human tag.
                       #   scratch|dev|test|qa|staging|prod|custom.
                       #   Has ZERO effect on disposability.
+ephemeral: <block>    # LOAD-BEARING operational mandate. Default absent.
+                      #   Presence means "MUST be destroyed as soon as
+                      #   it isn't needed anymore". Implies
+                      #   `disposable: true` automatically (the one
+                      #   documented exception to anti-derivation —
+                      #   see "The ephemeral exception" below).
 ```
 
-**There is deliberately no derivation.** `lifecycle: dev` does NOT
-make a deploy disposable. A human reader might assume it would, so
-the anti-derivation invariant is enforced by `ov/classification.go`
-`IsDisposableFields()` (a one-liner that explicitly ignores
-lifecycle) and a unit test at `ov/classification_test.go`
+**Anti-derivation invariant — with one named exception**:
+
+`lifecycle: dev` does NOT make a deploy disposable. A human reader
+might assume it would, so the anti-derivation invariant is enforced
+by `ov/classification.go` and a unit test
 `TestVmSpec_LifecycleAloneDoesNotAuthorize`. If you find yourself
 tempted to add "if lifecycle in {scratch,dev,test} then
 disposable=true": don't. That hidden logic is the entire failure
 mode this design avoids.
+
+### The ephemeral exception
+
+`ephemeral: ...` DOES imply `disposable: true`. This is the **only**
+field allowed to derive disposability — because it strengthens the
+contract rather than weakening it. "Must be destroyed when not
+needed" can only be honored if "may be destroyed" is also true.
+
+Specifically:
+- `LoadDeployConfig` auto-promotes `Disposable=true` when an entry
+  carries `ephemeral: ...`.
+- `DeploymentNode.IsDisposable()` returns `Disposable || IsEphemeral()`
+  so every consumer (including `ov rebuild`) treats ephemerals as
+  authorized.
+- Authoring `disposable: false` together with `ephemeral: ...` is
+  contradictory; the loader rejects (or auto-promotes; bool fields
+  cannot distinguish "explicit false" from "default false", so the
+  load-time auto-promote is the canonical behavior).
+
+`ephemeral:` itself is the operational counterpart to `disposable:`:
+- `disposable: true` says "this resource MAY be destroyed
+  autonomously by `ov rebuild`" — a permission.
+- `ephemeral: true` (or block form) says "this resource MUST be
+  destroyed autonomously when no longer needed" — a requirement,
+  enforced by the eval-runner / BDD step keywords / TTL transient
+  timer registered in `ov deploy add`.
+
+The implication arrow is one-way. Disposable resources are not
+necessarily ephemeral; ephemeral resources are always disposable.
 
 ## Where the fields live
 
