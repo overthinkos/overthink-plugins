@@ -181,7 +181,7 @@ Used by: `ov deploy add vm:<name> <ref>` / `ov deploy del vm:<name>`. See `/ov-d
 ### `KubernetesDeployTarget` (`ov/deploy_target_k8s.go`)
 Emits a Kustomize `base/` + `overlays/` tree under `.overthink/k8s/<name>/`. Does NOT execute anything; the generated manifests are applied via `kubectl apply -k` out-of-band. Cluster-specific choices (storage class, ingress class, cert issuer, secret backend) come from a **cluster profile** (`~/.config/ov/clusters/<name>.yaml`), NOT the InstallPlan — the plan describes what the workload needs; the profile describes how K8s provides it.
 
-See `/ov:kubernetes` for the user-facing surface and profile layout.
+See `/ov-advanced:kubernetes` for the user-facing surface and profile layout.
 
 ## `StepBatch` batching
 
@@ -198,7 +198,7 @@ OCITarget doesn't batch — it emits each step in order as Containerfile directi
 
 ## `ReverseOp` catalogue
 
-See `/ov:host-deploy` for the user-facing reverse-op table. The Go-level source of truth is `ReverseOpKind` in `install_plan.go`; each step's `Reverse()` method emits ops tagged with kind + targets + scope. Execution lives in `ov/reverse_ops.go` — one handler per kind, all routed through `runReverseOps(ops, executor)` in LIFO order.
+See `/ov-advanced:host-deploy` for the user-facing reverse-op table. The Go-level source of truth is `ReverseOpKind` in `install_plan.go`; each step's `Reverse()` method emits ops tagged with kind + targets + scope. Execution lives in `ov/reverse_ops.go` — one handler per kind, all routed through `runReverseOps(ops, executor)` in LIFO order.
 
 Adding a new reverse kind requires:
 1. Add the `ReverseOpKind` constant in `install_plan.go`.
@@ -242,12 +242,12 @@ When you add a step kind, add:
 - `/ov-dev:vm-spec` — VmSpec shape that VmDeployTarget reads
 - `/ov-dev:go` — overall Go code map; Kong CLI framework; mode-purity invariant
 - `/ov-dev:generate` — Containerfile generation call graph; how OCITarget plugs into Generator
-- `/ov:deploy` — user-facing `ov deploy add`/`del` surface (host / container / vm: / kubernetes)
-- `/ov:host-deploy` — host-target user-facing behavior (ledger, gates, ReverseOps)
-- `/ov:kubernetes` — K8s-target user-facing behavior (cluster profiles, Kustomize layout)
-- `/ov:vm` — VM command family; VmDeployTarget prerequisite (`ov vm create` before `ov deploy add vm:...`)
-- `/ov:build` — build-mode user-facing surface; three-phase template story
-- `/ov:layer` — layer.yml schema including unified `services:` that map to `ServicePackagedStep` / `ServiceCustomStep`
+- `/ov-core:deploy` — user-facing `ov deploy add`/`del` surface (host / container / vm: / kubernetes)
+- `/ov-advanced:host-deploy` — host-target user-facing behavior (ledger, gates, ReverseOps)
+- `/ov-advanced:kubernetes` — K8s-target user-facing behavior (cluster profiles, Kustomize layout)
+- `/ov-advanced:vm` — VM command family; VmDeployTarget prerequisite (`ov vm create` before `ov deploy add vm:...`)
+- `/ov-build:build` — build-mode user-facing surface; three-phase template story
+- `/ov-build:layer` — layer.yml schema including unified `services:` that map to `ServicePackagedStep` / `ServiceCustomStep`
 
 ## When to Use This Skill
 

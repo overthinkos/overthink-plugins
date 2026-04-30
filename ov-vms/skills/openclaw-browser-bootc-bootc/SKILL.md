@@ -1,17 +1,17 @@
 ---
 name: openclaw-browser-bootc-bootc
 description: |
-  kind:vm entity pairing with the /ov-images:openclaw-browser-bootc container image.
+  kind:vm entity pairing with the /ov-openclaw:openclaw-browser-bootc container image.
   source.kind: bootc. Thin pointer skill — composition + layer stack authority
-  lives in /ov-images:openclaw-browser-bootc. This skill documents only VM overrides.
+  lives in /ov-openclaw:openclaw-browser-bootc. This skill documents only VM overrides.
   MUST be invoked before editing openclaw-browser-bootc-bootc in vms.yml.
 ---
 
 # openclaw-browser-bootc-bootc
 
-`kind: vm` entity that pairs with the `/ov-images:openclaw-browser-bootc` container image. The doubled `-bootc` suffix reflects that the paired image already ends in `-bootc` — the VM entity is distinguished by the `vms:` namespace, not by its name.
+`kind: vm` entity that pairs with the `/ov-openclaw:openclaw-browser-bootc` container image. The doubled `-bootc` suffix reflects that the paired image already ends in `-bootc` — the VM entity is distinguished by the `vms:` namespace, not by its name.
 
-**Composition authority: `/ov-images:openclaw-browser-bootc`.** OpenClaw gateway, Chrome, VNC, PipeWire composition, OCI labels all live there. This skill is a pointer.
+**Composition authority: `/ov-openclaw:openclaw-browser-bootc`.** OpenClaw gateway, Chrome, VNC, PipeWire composition, OCI labels all live there. This skill is a pointer.
 
 ## VmSpec (from vms.yml)
 
@@ -54,8 +54,8 @@ ssh -p 2222 root@localhost
 
 ## Cross-References
 
-- `/ov-images:openclaw-browser-bootc` — **composition authority**: layer stack, OpenClaw gateway, Chrome, VNC, OCI labels
+- `/ov-openclaw:openclaw-browser-bootc` — **composition authority**: layer stack, OpenClaw gateway, Chrome, VNC, OCI labels
 - `/ov-vms:vms` — VmSpec authoring reference, bootc branch authoring recipe
-- `/ov:vm` — VM lifecycle commands + bootc-specific caveats
-- `/ov:migrate` — `ov migrate vm-spec` legacy conversion
-- `/ov-layers:openclaw` — OpenClaw gateway layer
+- `/ov-advanced:vm` — VM lifecycle commands + bootc-specific caveats
+- `/ov-build:migrate` — `ov migrate vm-spec` legacy conversion
+- `/ov-openclaw:openclaw` — OpenClaw gateway layer

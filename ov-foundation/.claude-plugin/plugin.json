@@ -1,0 +1,7 @@
+{
+  "name": "ov-foundation",
+  "description": "Comprehensive maintainer reference for foundation layers and base/distro images — pixi, supervisord, cuda, nvidia, fedora, archlinux, debian, ubuntu, plus every layer/image not owned by a specific pod plugin.",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "repository": "https://github.com/overthinkos/overthink-plugins"
+}

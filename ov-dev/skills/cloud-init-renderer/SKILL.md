@@ -12,7 +12,7 @@ description: |
 
 Host-side renderer producing NoCloud seed ISOs for cloud_image VMs (and bootc VMs that include the `cloud-init` layer). Pure transformation — given `VmSpec` + `VmCloudInit`, produces three files (user-data, meta-data, network-config) and packages them into a FAT-labeled `cidata` ISO via xorriso.
 
-Lives **host-side**, in the `ov` binary. The **guest-side** `/ov-layers:cloud-init` layer is complementary: it puts the cloud-init package into the bootc guest OS so that guest reads the seed ISO. The two sides cooperate across the host/guest boundary.
+Lives **host-side**, in the `ov` binary. The **guest-side** `/ov-foundation:cloud-init` layer is complementary: it puts the cloud-init package into the bootc guest OS so that guest reads the seed ISO. The two sides cooperate across the host/guest boundary.
 
 ## Source files
 
@@ -45,7 +45,7 @@ users:
       - <pubkey>
 ```
 
-No `useradd`, no sudoers write, no shell change — cloud-init interprets "name: X" on an existing account as "append ssh_authorized_keys". The parity is exact with the container-side `base_user:` + `user_policy: adopt` pattern (`/ov:image` "user_policy").
+No `useradd`, no sudoers write, no shell change — cloud-init interprets "name: X" on an existing account as "append ssh_authorized_keys". The parity is exact with the container-side `base_user:` + `user_policy: adopt` pattern (`/ov-build:image` "user_policy").
 
 **When `BaseUser` is empty and `VmSSH.User` is non-empty** (create pattern):
 
@@ -138,7 +138,7 @@ Explicitly supported — not either/or. `VmKeyInjection.SMBIOS: enabled` + `VmKe
 - `/ov-dev:vm-spec` — `VmCloudInit`, `VmSSH.KeyInjection`, `VmOvInstall` types
 - `/ov-dev:libvirt-renderer` — SMBIOS-channel emission (domain XML side)
 - `/ov-dev:vm-deploy-target` — `EnsureOvInGuest` caller; SSH/cloud-init readiness waits
-- `/ov:vm` — command-family; cloud-init flow
+- `/ov-advanced:vm` — command-family; cloud-init flow
 - `/ov-vms:vms` — YAML-authoring reference
 - `/ov-vms:arch` — `ov_install.strategy: auto` worked example; adopt-user pattern
-- `/ov-layers:cloud-init` — **guest-side pairing**: the cloud-init package installed inside bootc images reads the seed ISO this renderer produces
+- `/ov-foundation:cloud-init` — **guest-side pairing**: the cloud-init package installed inside bootc images reads the seed ISO this renderer produces

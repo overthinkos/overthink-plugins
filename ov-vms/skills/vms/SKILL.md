@@ -1,7 +1,7 @@
 ---
 name: vms
 description: |
-  Authoring reference for kind:vm entities in vms.yml. Parallel to /ov:layer and /ov:image.
+  Authoring reference for kind:vm entities in vms.yml. Parallel to /ov-build:layer and /ov-build:image.
   Covers the VmSpec schema, source.kind discriminator (cloud_image vs bootc),
   base_user adopt pattern, and step-by-step recipes for both source kinds.
   MUST be invoked before authoring or editing vms.yml entries.
@@ -128,10 +128,10 @@ The 4 bootc VMs currently shipped (each with a dedicated thin skill):
 
 | VM entity | Paired container image | Skill |
 |---|---|---|
-| `aurora-bootc` | `/ov-images:aurora` | `/ov-vms:aurora-bootc` |
-| `bazzite-ai-bootc` | `/ov-images:bazzite-ai` | `/ov-vms:bazzite-ai-bootc` |
-| `openclaw-browser-bootc-bootc` | `/ov-images:openclaw-browser-bootc` | `/ov-vms:openclaw-browser-bootc-bootc` |
-| `selkies-desktop-bootc-bootc` | `/ov-images:selkies-desktop-bootc` | `/ov-vms:selkies-desktop-bootc-bootc` |
+| `aurora-bootc` | `/ov-foundation:aurora` | `/ov-vms:aurora-bootc` |
+| `bazzite-ai-bootc` | `/ov-foundation:bazzite-ai` | `/ov-vms:bazzite-ai-bootc` |
+| `openclaw-browser-bootc-bootc` | `/ov-openclaw:openclaw-browser-bootc` | `/ov-vms:openclaw-browser-bootc-bootc` |
+| `selkies-desktop-bootc-bootc` | `/ov-selkies:selkies-desktop-bootc` | `/ov-vms:selkies-desktop-bootc-bootc` |
 
 The `-bootc` suffix is doubled on some entries because the paired container image already ends in `-bootc` (the VM is distinguished from an equivalent container-form deploy by the `vms:` namespacing, not by the name).
 
@@ -140,11 +140,11 @@ The `-bootc` suffix is doubled on some entries because the paired container imag
 1. Ensure the paired container image has `bootc: true` declared and builds cleanly.
 2. Add a `vms:` entry with `source.kind: bootc` + `source.image: <entry-name>`.
 3. Size disk/ram/cpus for the workload (see `/ov-images:<name>` VM Configuration section for the authoritative numbers).
-4. Run `ov vm build <vm-name>`. See `/ov:vm` known-caveats section for bootc-specific gotchas (rootful storage split, nested-container `--transport containers-storage`, loopback device mount namespace).
+4. Run `ov vm build <vm-name>`. See `/ov-advanced:vm` known-caveats section for bootc-specific gotchas (rootful storage split, nested-container `--transport containers-storage`, loopback device mount namespace).
 
 ## Adopt pattern: base_user (cloud_image only)
 
-Mirrors the container-side `base_user:` + `user_policy: adopt` pattern documented in `/ov:image` "user_policy". The key insight: **don't recreate accounts cloud-init already shipped** — just append the SSH pubkey and move on.
+Mirrors the container-side `base_user:` + `user_policy: adopt` pattern documented in `/ov-build:image` "user_policy". The key insight: **don't recreate accounts cloud-init already shipped** — just append the SSH pubkey and move on.
 
 When `source.base_user:` is set, the cloud-init renderer (`/ov-dev:cloud-init-renderer::composeUsers`) emits a merge-by-name entry:
 
@@ -190,13 +190,13 @@ Projects predating this schema had three coupled fields on `kind: image` entries
 ov migrate vm-spec
 ```
 
-Idempotent. Harvests the legacy fields into `vms:` entries, preserving any pre-existing `vms:` keys. See `/ov:migrate` for the full command reference and `/ov-dev:cutover-policy` for why hard-cutover was the chosen policy.
+Idempotent. Harvests the legacy fields into `vms:` entries, preserving any pre-existing `vms:` keys. See `/ov-build:migrate` for the full command reference and `/ov-dev:cutover-policy` for why hard-cutover was the chosen policy.
 
 ## Cross-References
 
-- `/ov:vm` — the `ov vm build/create/start/stop/ssh/console` command family
-- `/ov:migrate` — `ov migrate vm-spec` conversion from legacy
-- `/ov:deploy` — `ov deploy add vm:<name>` for in-guest layer application
+- `/ov-advanced:vm` — the `ov vm build/create/start/stop/ssh/console` command family
+- `/ov-build:migrate` — `ov migrate vm-spec` conversion from legacy
+- `/ov-core:deploy` — `ov deploy add vm:<name>` for in-guest layer application
 - `/ov-vms:arch` — canonical cloud_image VM
 - `/ov-vms:aurora-bootc`, `/ov-vms:bazzite-ai-bootc`, `/ov-vms:openclaw-browser-bootc-bootc`, `/ov-vms:selkies-desktop-bootc-bootc` — bootc VMs
 - `/ov-dev:vm-spec` — Go type reference
@@ -205,10 +205,10 @@ Idempotent. Harvests the legacy fields into `vms:` entries, preserving any pre-e
 - `/ov-dev:ovmf` — UEFI firmware path resolution (when `firmware:` ≠ `bios`)
 - `/ov-dev:vm-deploy-target` — `VmDeployTarget` in the InstallPlan pipeline
 - `/ov-dev:cutover-policy` — Hard Cutover by Default policy
-- `/ov-layers:cloud-init` — guest-side cloud-init layer (pairs with host-side `cloud_init:` emission)
-- `/ov-layers:qemu-guest-agent` — virtio-serial channel for host↔guest comms
+- `/ov-foundation:cloud-init` — guest-side cloud-init layer (pairs with host-side `cloud_init:` emission)
+- `/ov-foundation:qemu-guest-agent` — virtio-serial channel for host↔guest comms
 
-## Live-deploy verification is mandatory (see `/ov:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/ov-build:eval` 10 standards)
 
 Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-dev:disposable`). Use `ov rebuild <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
 

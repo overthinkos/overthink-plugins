@@ -1,0 +1,7 @@
+{
+  "name": "ov-comfyui",
+  "description": "Self-contained skills for running the comfyui image-generation/diffusion image.",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "repository": "https://github.com/overthinkos/overthink-plugins"
+}

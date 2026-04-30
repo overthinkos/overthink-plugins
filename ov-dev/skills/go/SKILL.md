@@ -270,7 +270,7 @@ case "create":
 }
 ```
 
-See `/ov:image` "user_policy" for the user-facing decision matrix, `/ov:build` "base_user:" for the declarative side, and `/ov:generate` "writeBootstrap" for the consumer side.
+See `/ov-build:image` "user_policy" for the user-facing decision matrix, `/ov-build:build` "base_user:" for the declarative side, and `/ov-build:generate` "writeBootstrap" for the consumer side.
 
 ### Existing configuration files
 
@@ -307,7 +307,7 @@ See `/ov:image` "user_policy" for the user-facing decision matrix, `/ov:build` "
 
 Implements the `ov test` / `ov eval image` commands and the
 `org.overthinkos.eval` OCI label. User-facing authoring, verb catalog,
-runtime variables, and deploy.yml overlay rules live in `/ov:eval` — this
+runtime variables, and deploy.yml overlay rules live in `/ov-build:eval` — this
 section is the Go-implementation map.
 
 | File | Purpose |
@@ -331,7 +331,7 @@ section is the Go-implementation map.
 | `migrate_eval.go` | `ov migrate eval` — strict forward-only migrator from the pre-2026-04 `harness.yml` shape to `eval.yml` (file/dir/labels/tokens/env renames, `tests:`→`eval:` rewriting in layer.yml/image.yml/deploy.yml/overthink.yml, well-known bench/fixture project-data renames). Idempotent. NO chain-aware handling of pre-April-2026 `benchmark:` blocks. |
 | `validate_eval.go` | `validateEval(cfg, layers, errs)` hooked into `Validate` in `validate.go`. Enforces: exactly-one-verb per Check, attribute types, port range (1-65535), `time.Duration` parse on `timeout`, `scope` ∈ {build,deploy}, build-scope checks can't reference runtime-only variables (via `IsRuntimeOnlyVar`), `id:` uniqueness per section (including cross-layer collisions via `validateCollectedIDUniqueness` → `CollectEval`), matcher-op allowlist (kept in lockstep with `matchOne`), per-verb method-allowlist and required-modifier checks for `cdp`/`wl`/`dbus`/`vnc`/`mcp` (via `validateOvVerb` — deploy-scope-only enforcement, method validation against `cdpMethods`/`wlMethods`/`dbusMethods`/`vncMethods`/`mcpMethods` maps in `evalrun_ov_verbs.go`). |
 
-**Related skill**: `/ov:eval` is the authoring-facing reference.
+**Related skill**: `/ov-build:eval` is the authoring-facing reference.
 
 ## Go Module Info
 
@@ -378,7 +378,7 @@ podman rmi 'ghcr.io/overthinkos/fedora-ov-2*' 2>/dev/null || true
 ov image build <image>
 ```
 
-This also interacts with the dual-path gotcha documented in `/ov-layers:ov`: `bin/ov` (repo-root, used by host-side invocations) and `layers/ov/bin/ov` (what the `ov` layer actually copies into images) must stay in sync. The canonical `task build:ov` path does both; a manual `go build -o bin/ov ./ov` needs an explicit `cp bin/ov layers/ov/bin/ov` follow-up.
+This also interacts with the dual-path gotcha documented in `/ov-foundation:ov`: `bin/ov` (repo-root, used by host-side invocations) and `layers/ov/bin/ov` (what the `ov` layer actually copies into images) must stay in sync. The canonical `task build:ov` path does both; a manual `go build -o bin/ov ./ov` needs an explicit `cp bin/ov layers/ov/bin/ov` follow-up.
 
 ## Implementation insights
 
@@ -421,20 +421,20 @@ The layer scaffold writes `rpm:\n  packages:\n  # Add RPM packages here\n` — t
 ## Cross-References
 
 - `/ov-dev:generate` — Understanding generated Containerfiles + deep dive on the task emission pipeline (`ov/tasks.go`).
-- `/ov:layer` — **Canonical author-facing reference** for the task verb catalog that `ov/tasks.go` implements.
-- `/ov:validate` — Validation rules and error handling (`validateLayerTasks` in `ov/validate.go`).
-- `/ov:build` — Using the built CLI.
-- `/ov:eval` — Author-facing reference for the declarative-testing feature that `testspec.go` / `testvars.go` / `testrun.go` / `testrun_verbs.go` / `testrun_ov_verbs.go` / `testcollect.go` / `test_cmd.go` / `local_image.go` / `validate_tests.go` / `mcp.go` / `mcp_client.go` implement.
-- `/ov:mcp` — Author-facing reference for both (a) the `ov eval mcp` client verb (method catalog, URL-rewrite behavior, port-publishing gotcha, transport dispatch — pair with the file table's `mcp.go` + `mcp_client.go` rows above) and (b) the `ov mcp serve` server (190 tools auto-generated from Kong reflection including the MCP-first authoring surface, destructive-hint + `--read-only` filter, Streamable-HTTP + stdio transports, auto-fallback to `overthinkos/overthink` — pair with `mcp_server.go` + `main_repo.go` + `scaffold_cmds.go` + `scaffold_project.go` + `yaml_setter.go` above).
-- `/ov-layers:ov-mcp` — The layer that deploys `ov mcp serve` inside a container: bind-mount volume NAME `project` at the container PATH `/workspace` (renamed from `/project` in 2026-04 for a more neutral term), `OV_PROJECT_DIR=/workspace` so build-mode MCP tools (`image.list.images`, `image.inspect`, etc.) reach `image.yml` from outside the project checkout — or auto-fall back to `overthinkos/overthink` when `/workspace` is empty (2026-04 refinement: the fallback fires on absence of image.yml, not absence of OV_PROJECT_DIR).
-- `/ov:cdp`, `/ov:wl`, `/ov:dbus`, `/ov:vnc` — the four sibling live-container verbs.
+- `/ov-build:layer` — **Canonical author-facing reference** for the task verb catalog that `ov/tasks.go` implements.
+- `/ov-build:validate` — Validation rules and error handling (`validateLayerTasks` in `ov/validate.go`).
+- `/ov-build:build` — Using the built CLI.
+- `/ov-build:eval` — Author-facing reference for the declarative-testing feature that `testspec.go` / `testvars.go` / `testrun.go` / `testrun_verbs.go` / `testrun_ov_verbs.go` / `testcollect.go` / `test_cmd.go` / `local_image.go` / `validate_tests.go` / `mcp.go` / `mcp_client.go` implement.
+- `/ov-build:mcp` — Author-facing reference for both (a) the `ov eval mcp` client verb (method catalog, URL-rewrite behavior, port-publishing gotcha, transport dispatch — pair with the file table's `mcp.go` + `mcp_client.go` rows above) and (b) the `ov mcp serve` server (190 tools auto-generated from Kong reflection including the MCP-first authoring surface, destructive-hint + `--read-only` filter, Streamable-HTTP + stdio transports, auto-fallback to `overthinkos/overthink` — pair with `mcp_server.go` + `main_repo.go` + `scaffold_cmds.go` + `scaffold_project.go` + `yaml_setter.go` above).
+- `/ov-coder:ov-mcp` — The layer that deploys `ov mcp serve` inside a container: bind-mount volume NAME `project` at the container PATH `/workspace` (renamed from `/project` in 2026-04 for a more neutral term), `OV_PROJECT_DIR=/workspace` so build-mode MCP tools (`image.list.images`, `image.inspect`, etc.) reach `image.yml` from outside the project checkout — or auto-fall back to `overthinkos/overthink` when `/workspace` is empty (2026-04 refinement: the fallback fires on absence of image.yml, not absence of OV_PROJECT_DIR).
+- `/ov-advanced:cdp`, `/ov-advanced:wl`, `/ov-advanced:dbus`, `/ov-advanced:vnc` — the four sibling live-container verbs.
 - Source: `ov/` directory (~79 source + ~55 test .go files).
 
 ## When to Use This Skill
 
 **MUST be invoked** before reading or modifying Go source files. Invoke this skill BEFORE launching Explore agents on ov/ code.
 
-## Live-deploy verification is mandatory (see `/ov:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/ov-build:eval` 10 standards)
 
 Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-dev:disposable`). Use `ov rebuild <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
 

@@ -1,0 +1,7 @@
+{
+  "name": "ov-filebrowser",
+  "description": "Self-contained skills for the filebrowser image (web-based file management on top of an ov volume).",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "repository": "https://github.com/overthinkos/overthink-plugins"
+}

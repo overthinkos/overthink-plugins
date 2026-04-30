@@ -208,7 +208,7 @@ Sudo wrapper that peels env-var prefixes (e.g., `DEBIAN_FRONTEND=noninteractive`
 
 ### `ServiceEntry` struct
 
-Mirrors the `services:` schema in layer.yml (see `/ov:layer`). Fields: `Name`, `UsePackaged`, `Exec`, `Env`, `Restart`, `WorkingDirectory`, `User`, `After`, `Before`, `Stdout`, `StopTimeout`, `Scope`, `Enable`, `Overrides`.
+Mirrors the `services:` schema in layer.yml (see `/ov-build:layer`). Fields: `Name`, `UsePackaged`, `Exec`, `Env`, `Restart`, `WorkingDirectory`, `User`, `After`, `Before`, `Stdout`, `StopTimeout`, `Scope`, `Enable`, `Overrides`.
 
 ### `RenderService(entry, initDef, ctx)`
 
@@ -259,9 +259,9 @@ Internals: `extractBlock` parses the scalar `|`-block; `extractListBlock` parses
 - `/ov-dev:install-plan` — the IR these files support; full step-kind catalogue
 - `/ov-dev:go` — overall Go code map; Kong framework; mode-purity invariant
 - `/ov-dev:generate` — Containerfile generation call graph
-- `/ov:host-deploy` — user-facing host-deploy surface (ledger, gates, ReverseOps)
-- `/ov:deploy` — command family overview
-- `/ov:layer` — unified `services:` schema authored by layer authors
+- `/ov-advanced:host-deploy` — user-facing host-deploy surface (ledger, gates, ReverseOps)
+- `/ov-core:deploy` — command family overview
+- `/ov-build:layer` — unified `services:` schema authored by layer authors
 
 ## When to Use This Skill
 

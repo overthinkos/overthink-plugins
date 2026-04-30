@@ -1,0 +1,7 @@
+{
+  "name": "ov-advanced",
+  "description": "Power-user ov surfaces — kubernetes, eval-k8s, vm, libvirt, host-deploy, encrypted volumes, eval probe verbs (cdp, wl, dbus, vnc, spice, record), tmux, sidecar, alias, udev, wl-overlay.",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "repository": "https://github.com/overthinkos/overthink-plugins"
+}

@@ -267,7 +267,7 @@ users:
       - ssh-ed25519 AAAA…                 # generated pubkey from ~/.local/share/ov/vm/ov-arch/id_ed25519.pub
 ```
 
-cloud-init appends the pubkey to `/home/arch/.ssh/authorized_keys` without calling `useradd`, rewriting sudoers, or changing the shell. `spec.ssh.user` defaults to `arch`, so `ov vm ssh arch` connects as `arch@127.0.0.1:2224`. Full parity with the container-side `base_user:` + `user_policy: adopt` pattern (`/ov:image` "user_policy").
+cloud-init appends the pubkey to `/home/arch/.ssh/authorized_keys` without calling `useradd`, rewriting sudoers, or changing the shell. `spec.ssh.user` defaults to `arch`, so `ov vm ssh arch` connects as `arch@127.0.0.1:2224`. Full parity with the container-side `base_user:` + `user_policy: adopt` pattern (`/ov-build:image` "user_policy").
 
 ## Verification recipes
 
@@ -328,12 +328,12 @@ Pass: `active` + version printed.
 ## Cross-References
 
 - `/ov-vms:vms` — VmSpec authoring reference (schema, source.kind, adopt pattern)
-- `/ov:vm` — VM lifecycle commands + BIOS/UEFI decision matrix + video model choice
-- `/ov:migrate` — `ov migrate vm-spec` legacy conversion
-- `/ov:deploy` — `ov deploy add vm:arch <layer>` for in-guest layer application
+- `/ov-advanced:vm` — VM lifecycle commands + BIOS/UEFI decision matrix + video model choice
+- `/ov-build:migrate` — `ov migrate vm-spec` legacy conversion
+- `/ov-core:deploy` — `ov deploy add vm:arch <layer>` for in-guest layer application
 - `/ov-dev:vm-spec` — Go types and validation rules
 - `/ov-dev:libvirt-renderer` — `<backend type='passt'/>` for portForward, virtio-gpu video model
 - `/ov-dev:cloud-init-renderer` — `composeUsers` adopt-merge, seed ISO, `ov_install.strategy: auto`
 - `/ov-dev:ovmf` — why `firmware: bios` skips `<loader>`/`<nvram>` emission entirely
 - `/ov-dev:vm-deploy-target` — SSH key idempotency, VmDeployState persistence
-- `/ov-layers:cloud-init` — guest-side cloud-init layer (complementary to host-side emission)
+- `/ov-foundation:cloud-init` — guest-side cloud-init layer (complementary to host-side emission)

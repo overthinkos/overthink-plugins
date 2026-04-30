@@ -1,0 +1,7 @@
+{
+  "name": "ov-openwebui",
+  "description": "Self-contained skills for the openwebui chat-frontend image. Consumes the jupyter MCP server (enable ov-jupyter alongside) for in-chat code execution.",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "repository": "https://github.com/overthinkos/overthink-plugins"
+}

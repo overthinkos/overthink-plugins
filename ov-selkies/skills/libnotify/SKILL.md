@@ -1,0 +1,62 @@
+---
+name: libnotify
+description: |
+  Desktop notification client library providing notify-send CLI.
+  Use when working with notify-send, libnotify, or shell-based notifications.
+---
+
+# libnotify -- Desktop notification client
+
+## Layer Properties
+
+| Property | Value |
+|----------|-------|
+| Dependencies | `dbus` |
+
+## Packages
+
+- `libnotify` (RPM) -- provides `notify-send` CLI and `libnotify.so` shared library
+
+## Usage
+
+```yaml
+# image.yml
+my-image:
+  layers:
+    - libnotify
+```
+
+## Purpose
+
+Provides `notify-send` as a convenience CLI for sending desktop notifications from shell scripts and manual use. The `ov eval dbus notify` command uses native Go D-Bus instead and does NOT depend on this layer.
+
+### When to use `notify-send` vs `ov eval dbus notify`
+
+| | `notify-send` | `ov eval dbus notify` |
+|---|--------------|-----------------|
+| Requires | `libnotify` layer | `ov` layer (or `gdbus` fallback) |
+| Implementation | Shell command, libnotify C library | Native Go `godbus/dbus/v5` |
+| Use case | Shell scripts inside container | Host-side automation, `ov cmd`/`ov tmux cmd` notifications |
+
+## Related Layers
+
+- `/ov-foundation:dbus` -- D-Bus session bus (required dependency)
+- `/ov-selkies:swaync` -- notification daemon to display the notifications
+- `/ov-foundation:ov` -- alternative: native D-Bus via `ov eval dbus notify`
+
+## Used In Images
+
+Not used in any current image definition. Optional notification CLI -- prefer `ov eval dbus notify` which uses native Go D-Bus.
+
+## When to Use This Skill
+
+Use when the user asks about:
+
+- `notify-send` inside containers
+- Shell-based notification scripts
+- The libnotify library or package
+
+## Related
+
+- `/ov-build:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

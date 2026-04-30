@@ -92,6 +92,6 @@ The libvirt renderer's `RenderDomain` checks for `codePath == ""` and skips `<lo
 
 - `/ov-dev:vm-spec` — `spec.Firmware` field
 - `/ov-dev:libvirt-renderer` — `RenderDomain` consumer; `<loader>`/`<nvram>` emission conditions
-- `/ov:vm` — command-family; BIOS vs UEFI decision matrix
+- `/ov-advanced:vm` — command-family; BIOS vs UEFI decision matrix
 - `/ov-vms:arch` — live-test RCA showing why `firmware: bios` is the right default for Arch cloud image
 - `/ov-vms:selkies-desktop-bootc-bootc` — Fedora-based bootc VM, typical UEFI case

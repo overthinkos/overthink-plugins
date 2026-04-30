@@ -43,7 +43,7 @@ Each of these has a specific failure mode that has occurred historically: the fi
 
 ## Required for every breaking change
 
-- A one-shot **`ov migrate <name>`** command that transforms legacy configs in-place. Migration commands are **idempotent** — running twice is a no-op. See `/ov:migrate`.
+- A one-shot **`ov migrate <name>`** command that transforms legacy configs in-place. Migration commands are **idempotent** — running twice is a no-op. See `/ov-build:migrate`.
 - **Hard load-time errors** for any residual legacy field, with a one-line remediation hint pointing at the migration command.
 - **Deletion — in the same PR** — of every Go type, function, CLI flag, OCI label, YAML field, skill doc paragraph, and test fixture that references the removed surface.
 
@@ -133,7 +133,7 @@ The `!` in the last commit marker is the Conventional Commits breaking-change in
 - Unified `service:` schema cutover (legacy `service: |...|` raw INI and `system_services:` → structured `service:` list with 22 fields incl. `kind: eventlistener`) — folded into `ov migrate unified`.
 - User policy cutover (rename-based user renaming → `base_user:` + `user_policy:` declarative matrix) — no separate migration; hard cutover delete + skill updates.
 
-Each followed the same three-step shape: **delete old surface + publish migration + hard load error**. See `/ov:migrate` for the command surface.
+Each followed the same three-step shape: **delete old surface + publish migration + hard load error**. See `/ov-build:migrate` for the command surface.
 
 ## When the policy might not apply
 
@@ -145,13 +145,13 @@ The policy kicks in when the change is **visible to consumers** (YAML authors, o
 
 ## Cross-References
 
-- `/ov:migrate` — command-surface reference; lists all `ov migrate <name>` sub-verbs
+- `/ov-build:migrate` — command-surface reference; lists all `ov migrate <name>` sub-verbs
 - `/ov-dev:vm-spec` — example output of a cutover (new types replacing deleted ones)
 - `/ov-dev:capabilities` — example of coordinated label-map cleanup during a cutover
 - `/ov-dev:install-plan` — shared IR that survived the cutover unchanged (non-example — additive extension of the DeployTarget surface)
 - CLAUDE.md "Hard Cutover by Default" — summary pointing at this skill
 
-## Live-deploy verification is mandatory (see `/ov:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/ov-build:eval` 10 standards)
 
 Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-dev:disposable`). Use `ov rebuild <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
 

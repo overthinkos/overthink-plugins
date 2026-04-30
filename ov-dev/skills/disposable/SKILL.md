@@ -228,12 +228,12 @@ on shared hosts.
 - `CLAUDE.md` — R10 "Verify on a `disposable: true` target; prove
   it on a fresh rebuild", plus the "Disposable-Only Autonomy"
   section.
-- `/ov:eval` — the 10 testing standards; disposable-only deployment
+- `/ov-build:eval` — the 10 testing standards; disposable-only deployment
   is Standard 4, fresh-rebuild re-verification is Standard 10.
 - `/ov-vms:vms` — kind:vm schema, including `disposable:` and
   `lifecycle:` fields.
 - `/ov-vms:arch` — canonical worked example.
-- `/ov:deploy` — `--disposable` / `--lifecycle` flags on
+- `/ov-core:deploy` — `--disposable` / `--lifecycle` flags on
   `ov deploy add`.
 - `/ov:rebuild` — the rebuild verb command reference (not yet
   authored — currently living in this skill).

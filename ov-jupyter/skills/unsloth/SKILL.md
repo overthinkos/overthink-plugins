@@ -1,0 +1,73 @@
+---
+name: unsloth
+description: |
+  Unsloth LLM fine-tuning library with vLLM integration. Tier 1 post-install layer —
+  no pixi.toml, requires pixi env from a parent layer (python-ml, jupyter-ml, unsloth-studio).
+  Use when working with Unsloth, LLM fine-tuning, or vLLM wheel installation.
+---
+
+# unsloth -- LLM fine-tuning (Tier 1 post-install layer)
+
+## Layer Properties
+
+| Property | Value |
+|----------|-------|
+| Dependencies | None (requires pixi env from parent) |
+| Volumes | `models` -> `~/.cache/huggingface` |
+| Aliases | `unsloth` -> `unsloth` |
+| Install files | `layer.yml`, `tasks:` |
+
+## Architecture: Tier 1 Post-Install Layer
+
+This layer has **no pixi.toml** and **no depends**. It installs pip packages into the pixi environment established by a Tier 2 "environment-owner" parent layer. The user-phase tasks run AFTER the parent's pixi COPY in the final image build.
+
+**Cannot be used standalone** — must be composed into an environment-owner layer via the `layers:` field.
+
+## Environment Variables
+
+| Variable | Value |
+|----------|-------|
+| `UNSLOTH_SKIP_LLAMA_CPP_INSTALL` | `1` |
+| `HF_HOME` | `~/.cache/huggingface` |
+
+## Post-pixi Installs (tasks:)
+
+1. **vLLM cu130 nightly wheel** (`pip install --no-deps`) — installed here because vLLM wheel must run after pixi env exists
+2. **unsloth + unsloth-zoo** (`pip install --no-deps`) — incompatible with transformers 5.x in pixi solve
+3. **opentelemetry runtime deps** (`pip install`) — pixi resolver conflict prevents solving these via conda-forge
+4. **vLLM torch.compile patch** (`patch_vllm_size_nodes.py`) — fixes `_decompose_size_nodes` bug where `getitem` users and `x.size(dim)` patterns crash during model compilation (upstream: vllm-project/vllm#38360)
+
+## Used In Layers (via `layers:` field)
+
+- `/ov-jupyter:jupyter-ml` — `layers: [llama-cpp, unsloth, jupyter-mcp]`
+- `/ov-jupyter:unsloth-studio` — `layers: [llama-cpp, unsloth]`
+
+## Related Layers
+
+- `/ov-jupyter:llama-cpp` — llama.cpp binaries (often paired as sibling Tier 1 layer)
+- `/ov-jupyter:unsloth-studio` — Studio web UI (Tier 2 parent, owns pixi.toml)
+- `/ov-jupyter:jupyter-ml` — ML Jupyter with MCP (Tier 2 parent, owns pixi.toml)
+- `/ov-foundation:python-ml` — Core ML environment (Tier 2, uses vllm pip install in its own tasks: instead)
+
+## Used In Images
+
+- `/ov-jupyter:jupyter-ml` (via `jupyter-ml` metalayer)
+- `/ov-jupyter:jupyter-ml-notebook` (via `jupyter-ml` metalayer)
+- `/ov-jupyter:unsloth-studio` (via `unsloth-studio` metalayer)
+
+## When to Use This Skill
+
+Use when the user asks about:
+
+- Unsloth fine-tuning setup or configuration
+- LLM fine-tuning environments
+- The unsloth Python library or unsloth-zoo
+- vLLM wheel installation inside pixi environments
+- HuggingFace model cache volume
+- The `unsloth` host alias
+- The two-tier layer architecture for ML layers
+
+## Related
+
+- `/ov-build:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

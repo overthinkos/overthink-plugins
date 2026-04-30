@@ -1,17 +1,17 @@
 ---
 name: bazzite-ai-bootc
 description: |
-  kind:vm entity pairing with the /ov-images:bazzite-ai bootc container image.
+  kind:vm entity pairing with the /ov-foundation:bazzite-ai bootc container image.
   source.kind: bootc. Thin pointer skill — composition + layer stack authority
-  lives in /ov-images:bazzite-ai. This skill documents only the VM-specific fields.
+  lives in /ov-foundation:bazzite-ai. This skill documents only the VM-specific fields.
   MUST be invoked before editing bazzite-ai-bootc in vms.yml.
 ---
 
 # bazzite-ai-bootc
 
-`kind: vm` entity that pairs with the `/ov-images:bazzite-ai` container image. `ov vm build bazzite-ai-bootc` runs `bootc install to-disk` against the bazzite-ai image to produce a bootable qcow2/raw disk.
+`kind: vm` entity that pairs with the `/ov-foundation:bazzite-ai` container image. `ov vm build bazzite-ai-bootc` runs `bootc install to-disk` against the bazzite-ai image to produce a bootable qcow2/raw disk.
 
-**Composition authority: `/ov-images:bazzite-ai`.** Layer stack, NVIDIA/CUDA wiring, Kubernetes/Docker tools, desktop apps, OCI labels all live there. This skill is a pointer.
+**Composition authority: `/ov-foundation:bazzite-ai`.** Layer stack, NVIDIA/CUDA wiring, Kubernetes/Docker tools, desktop apps, OCI labels all live there. This skill is a pointer.
 
 ## VmSpec (from vms.yml)
 
@@ -37,11 +37,11 @@ ov vm create bazzite-ai-bootc --ram 16G --cpus 6
 ov vm start bazzite-ai-bootc
 ```
 
-See `/ov:vm` "Known bootc-VM caveats" for the privileged-container `-v /dev:/dev` loopback requirement and glibc-skew preflight.
+See `/ov-advanced:vm` "Known bootc-VM caveats" for the privileged-container `-v /dev:/dev` loopback requirement and glibc-skew preflight.
 
 ## Cross-References
 
-- `/ov-images:bazzite-ai` — **composition authority**: layer stack, NVIDIA/CUDA wiring, OCI labels
+- `/ov-foundation:bazzite-ai` — **composition authority**: layer stack, NVIDIA/CUDA wiring, OCI labels
 - `/ov-vms:vms` — VmSpec authoring reference, bootc branch authoring recipe
-- `/ov:vm` — VM lifecycle commands + bootc-specific caveats
-- `/ov:migrate` — `ov migrate vm-spec` legacy conversion
+- `/ov-advanced:vm` — VM lifecycle commands + bootc-specific caveats
+- `/ov-build:migrate` — `ov migrate vm-spec` legacy conversion

@@ -1,7 +1,0 @@
-{
-  "name": "ov-layers",
-  "description": "Reference documentation for all Overthink container layers",
-  "version": "1.0.0",
-  "author": { "name": "overthinkos" },
-  "repository": "https://github.com/overthinkos/overthink-plugins"
-}

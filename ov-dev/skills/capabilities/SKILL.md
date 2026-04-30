@@ -1,7 +1,7 @@
 ---
 name: capabilities
 description: |
-  MUST be invoked before any work involving: OCI label contract, Capabilities / ImageMetadata struct, CapabilityLabelMap completeness check, LabelServices structured round-trip, source-less deploy via `ov deploy from-image`, or adding a new OCI label. Developer-facing; users author via `/ov:layer` and `/ov:image`.
+  MUST be invoked before any work involving: OCI label contract, Capabilities / ImageMetadata struct, CapabilityLabelMap completeness check, LabelServices structured round-trip, source-less deploy via `ov deploy from-image`, or adding a new OCI label. Developer-facing; users author via `/ov-build:layer` and `/ov-build:image`.
 ---
 
 # Capabilities — the OCI-label runtime contract
@@ -32,7 +32,7 @@ Key entries (post-services-cutover):
 | `Services` | `LabelServices` (`org.overthinkos.services`) | **Structured JSON array of `CapabilityService`** — not just names. 22 per-entry fields including `kind`, `events`, `auto_start`, `start_retries`, `priority`, `init`, `layer`. See "LabelServices" below. |
 | `Init` | `LabelInit` | Init system name (supervisord / systemd / none). |
 | `ServiceNames` | `LabelInit` | Per-init active-name list; baked alongside `LabelInit` for CLI ergonomics (e.g., `ov service status`). |
-| `Tests` | `LabelEval` | Three-section `{layer, image, deploy}` JSON — the tests baked into the image, consumed by `ov test` / `ov eval image`. See `/ov:eval`. |
+| `Tests` | `LabelEval` | Three-section `{layer, image, deploy}` JSON — the tests baked into the image, consumed by `ov test` / `ov eval image`. See `/ov-build:eval`. |
 | `EnvProvides` / `MCPProvides` | `LabelEnvProvides` / `LabelMCPProvides` | Cross-container discovery: what env vars / MCP servers this image advertises to pod peers. |
 | `EnvRequires` / `MCPRequires` | `LabelEnvRequires` / `LabelMCPRequires` | What this image *needs* from peers — validated at `ov config` time. |
 
@@ -98,7 +98,7 @@ type CapabilityService struct {
 }
 ```
 
-**Why this matters**: `ov deploy from-image` (see below) reconstructs the full deploy surface from OCI labels alone. Pre-cutover, `Services` was just names — deploy-time K8s manifest generation couldn't know a process needed `start_retries: 3` or was an eventlistener. Now the label carries every supervisord directive faithfully, and the K8s Kustomize generator (see `/ov:kubernetes`) reads from it without touching the source repo.
+**Why this matters**: `ov deploy from-image` (see below) reconstructs the full deploy surface from OCI labels alone. Pre-cutover, `Services` was just names — deploy-time K8s manifest generation couldn't know a process needed `start_retries: 3` or was an eventlistener. Now the label carries every supervisord directive faithfully, and the K8s Kustomize generator (see `/ov-advanced:kubernetes`) reads from it without touching the source repo.
 
 ## Source-less deploy: `ov deploy from-image`
 
@@ -121,7 +121,7 @@ The long-term direction (documented in `ov/capabilities.go:17-22`) is to split `
 
 Today these co-exist in a single `ImageConfig`. The `Capabilities` alias is the stepping stone — once the schema split lands, `Capabilities` will point at the `capabilities:` subsection directly instead of aliasing the whole struct. The `CapabilityLabelMap` completeness test will keep the contract honest across the migration.
 
-See `/ov:image` for current user-facing structure and `/ov:migrate` for the one-shot `ov migrate unified` converter that emits the new schema when the split lands.
+See `/ov-build:image` for current user-facing structure and `/ov-build:migrate` for the one-shot `ov migrate unified` converter that emits the new schema when the split lands.
 
 ## Adding a new OCI label — checklist
 
@@ -136,11 +136,11 @@ See `/ov:image` for current user-facing structure and `/ov:migrate` for the one-
 
 ## See Also
 
-- `/ov:image` — user-facing `image:` entries in `overthink.yml`
-- `/ov:layer` — user-facing `layer:` authoring, including `service:` which feeds `LabelServices`
-- `/ov:deploy` — `ov deploy add` / `from-image` / `sync` commands
-- `/ov:kubernetes` — K8s deploy target that reads `LabelServices` to generate Kustomize
-- `/ov:eval` — three-section `LabelEval` (layer/image/deploy) — same label-contract pattern
-- `/ov:migrate` — `ov migrate unified` — emits the schema that populates these labels
+- `/ov-build:image` — user-facing `image:` entries in `overthink.yml`
+- `/ov-build:layer` — user-facing `layer:` authoring, including `service:` which feeds `LabelServices`
+- `/ov-core:deploy` — `ov deploy add` / `from-image` / `sync` commands
+- `/ov-advanced:kubernetes` — K8s deploy target that reads `LabelServices` to generate Kustomize
+- `/ov-build:eval` — three-section `LabelEval` (layer/image/deploy) — same label-contract pattern
+- `/ov-build:migrate` — `ov migrate unified` — emits the schema that populates these labels
 - `/ov-dev:go` — Go architecture overview, `LoadUnified`, `parseLayerYAML`
 - `/ov-dev:install-plan` — internal IR shared across build and deploy pipelines

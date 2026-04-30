@@ -17,17 +17,17 @@ CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher
 
 | Trigger | Skills to load BEFORE doing anything |
 |---|---|
-| `ov rebuild` / `ov vm *` / VM entities | `/ov:vm` + `/ov-dev:vm-deploy-target` |
-| `ov deploy add/del` / pod or container deploys | `/ov:deploy` |
-| host-target / nested host deploy | `/ov:host-deploy` + `/ov-dev:host-infra` |
-| `ov eval live` / `ov eval cdp/wl/dbus/vnc/mcp/record/spice/libvirt` | `/ov:eval` |
-| `ov eval k8s <verb>` | `/ov:eval-k8s` |
-| Editing `layer.yml` / layer authoring | `/ov:layer` |
-| Editing `image.yml` / image composition | `/ov:image` |
-| `ov image build` / `ov image generate` / Containerfile | `/ov:build` + `/ov:generate` + `/ov-dev:generate` |
-| `ov image validate` / schema error | `/ov:validate` |
-| Secret management / `ov secrets` / `.kdbx` | `/ov:secrets` |
-| Schema v4 migration / legacy → new format | `/ov:migrate` |
+| `ov rebuild` / `ov vm *` / VM entities | `/ov-advanced:vm` + `/ov-dev:vm-deploy-target` |
+| `ov deploy add/del` / pod or container deploys | `/ov-core:deploy` |
+| host-target / nested host deploy | `/ov-advanced:host-deploy` + `/ov-dev:host-infra` |
+| `ov eval live` / `ov eval cdp/wl/dbus/vnc/mcp/record/spice/libvirt` | `/ov-build:eval` |
+| `ov eval k8s <verb>` | `/ov-advanced:eval-k8s` |
+| Editing `layer.yml` / layer authoring | `/ov-build:layer` |
+| Editing `image.yml` / image composition | `/ov-build:image` |
+| `ov image build` / `ov image generate` / Containerfile | `/ov-build:build` + `/ov-build:generate` + `/ov-dev:generate` |
+| `ov image validate` / schema error | `/ov-build:validate` |
+| Secret management / `ov secrets` / `.kdbx` | `/ov-build:secrets` |
+| Schema v4 migration / legacy → new format | `/ov-build:migrate` |
 | Hard-cutover concerns / rename sweeps | `/ov-dev:cutover-policy` |
 | `disposable: true` semantics | `/ov-dev:disposable` |
 | Go source work | `/ov-dev:go` |
@@ -99,16 +99,16 @@ description: |
 ## Command skills vs topic skills
 
 Most skills under `plugins/ov/skills/` map 1:1 to a top-level ov command
-(e.g. `/ov:build` ↔ `ov image build`, `/ov:status` ↔ `ov status`).
+(e.g. `/ov-build:build` ↔ `ov image build`, `/ov-core:status` ↔ `ov status`).
 **Topic skills** are the exception: they don't correspond to a
 top-level command but cover a cross-cutting concept surfaced by flags
 or layer composition. Today's topic skills:
 
 | Skill | Surfaced via | What it covers |
 |---|---|---|
-| `/ov:enc` | `ov config --encrypt`, `ov config mount`, `ov config unmount`, `ov config passwd` | Encrypted-volume (gocryptfs) semantics, keyring resolution, `ov-enc-<image>-<volume>.scope` lifecycle |
-| `/ov:openclaw` | Composing `openclaw-*` layers | OpenClaw AI gateway deployment story |
-| `/ov:sidecar` | `ov config --sidecar tailscale` | Sidecar-container model, pod networking, env-var routing |
+| `/ov-advanced:enc` | `ov config --encrypt`, `ov config mount`, `ov config unmount`, `ov config passwd` | Encrypted-volume (gocryptfs) semantics, keyring resolution, `ov-enc-<image>-<volume>.scope` lifecycle |
+| `/ov-advanced:openclaw` | Composing `openclaw-*` layers | OpenClaw AI gateway deployment story |
+| `/ov-advanced:sidecar` | `ov config --sidecar tailscale` | Sidecar-container model, pod networking, env-var routing |
 
 When adding a new command, always create a matching command skill. Consider a topic skill when a concept spans multiple commands or layers and the natural home isn't any single command's skill. Keep the frontmatter `description:` explicit about the topic nature (the blocking `Skill:` tool dispatcher matches on description keywords).
 
@@ -116,7 +116,7 @@ When adding a new command, always create a matching command skill. Consider a to
 
 | Plugin | Skills | Purpose |
 |--------|--------|---------|
-| `ov` | 38 | CLI operations ("how do I use X?") — includes `/ov:eval` |
+| `ov` | 38 | CLI operations ("how do I use X?") — includes `/ov-build:eval` |
 | `ov-dev` | 3 + 3 agents | Development ("how does the code work?") |
 | `ov-jupyter` | 1 MCP server | Notebook MCP tools |
 | `ov-layers` | 161 | Layer reference ("what does layer X contain?") |
@@ -147,7 +147,7 @@ Syncthing-synced half** (memory, personal settings).
 
 - `/ov-dev:go` — Source code structure, adding new commands
 - `/ov-dev:generate` — Understanding generated Containerfiles
-- `/ov:validate` — Validation rules
+- `/ov-build:validate` — Validation rules
 - All `/ov:*` skills — Individual command documentation
 
 ## When to Use This Skill

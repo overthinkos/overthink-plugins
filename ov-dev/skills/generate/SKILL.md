@@ -257,7 +257,7 @@ change — they still share all the intermediates they shared before.
 Uid=0 images (pre-2026-04 outliers: `fedora-coder`, `fedora-ov`,
 `arch-ov`, `githubrunner`) got their own `-uid0`-suffixed
 intermediates — but as of 2026-04 all four of those images
-transitioned to uid=1000 + sudo (see `/ov-images:fedora-coder`), so
+transitioned to uid=1000 + sudo (see `/ov-coder:fedora-coder`), so
 the fix is currently dormant protection against any future uid=0
 image. It remains in place because the defensive grouping is cheap
 (one extra struct field) and prevents a whole class of silent PATH
@@ -324,7 +324,7 @@ Cache-miss only happens when something in the build input genuinely
 changes: the parent image's content (different SHA resolved by the
 FROM), a layer's scratch-stage content (`COPY layers/<name>/ /`
 source bytes), or an instruction's text (package list, cmd body).
-See `/ov:build` "Cache Efficiency" for the full list.
+See `/ov-build:build` "Cache Efficiency" for the full list.
 
 Historical note: earlier revisions of this skill called this a
 "CalVer cascade cost" — that framing was incorrect. The cost is
@@ -406,7 +406,7 @@ Source: `ov/config.go:ResolveImage` (policy reconciliation), `ov/generate.go:wri
 
 Distro-version tag sections (`debian:13:`, `ubuntu:24.04:`, etc.) are resolved via first-match-wins on the image's `distro:` priority list. Since 2026-04, tag sections use the primary format's **full** install template — so they can carry `repos:`, `keys:`, `options:`, and `packages:`, not just packages alone. The generator reads each tag section's full YAML map via `ov/layers.go:TagPkgConfig.Raw`.
 
-Example: `layers/language-runtimes/layer.yml` had (before Phase F) a `debian:13:` section with a Microsoft apt repo entry — though ultimately dropped in favor of the `dotnet-install.sh` cmd: task for cross-distro consistency (see `/ov-layers:language-runtimes`).
+Example: `layers/language-runtimes/layer.yml` had (before Phase F) a `debian:13:` section with a Microsoft apt repo entry — though ultimately dropped in favor of the `dotnet-install.sh` cmd: task for cross-distro consistency (see `/ov-coder:language-runtimes`).
 
 ## OCI Labels
 
@@ -449,7 +449,7 @@ Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), maki
 | `org.overthinkos.layer_versions` | JSON | `{"chrome":"2026.83.1430"}` layer name → CalVer (only versioned layers) |
 | `org.overthinkos.skills` | string | Skill documentation URL (omitted if no skill exists) |
 
-Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `ov/labels.go`) plus `deploy.yml` overlay — they never touch `image.yml` at runtime. That's why `ov shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `ov image pull`). See `/ov:image` for the build/deploy boundary and `/ov:pull` for the sentinel pattern. Labels also include `org.overthinkos.init` for init system identification and `org.overthinkos.services.<init>` for per-init service lists.
+Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `ov/labels.go`) plus `deploy.yml` overlay — they never touch `image.yml` at runtime. That's why `ov shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `ov image pull`). See `/ov-build:image` for the build/deploy boundary and `/ov-build:pull` for the sentinel pattern. Labels also include `org.overthinkos.init` for init system identification and `org.overthinkos.services.<init>` for per-init service lists.
 
 Source: `ov/labels.go`, `ov/generate.go` (`writeLabels`).
 
@@ -493,11 +493,11 @@ ov image inspect my-image --format layers      # Shows layer list for an image
 
 ## Cross-References
 
-- `/ov:layer` — **Canonical author-facing reference** for the task verb catalog, `vars:` substitution, YAML anchors, execution order. The emitter pipeline here implements what's documented there.
-- `/ov:generate` — User-facing `ov image generate` command.
+- `/ov-build:layer` — **Canonical author-facing reference** for the task verb catalog, `vars:` substitution, YAML anchors, execution order. The emitter pipeline here implements what's documented there.
+- `/ov-build:generate` — User-facing `ov image generate` command.
 - `/ov-dev:go` — Source code map: `ov/tasks.go` (emitter pipeline), `ov/generate.go:writeLayerSteps` (orchestrator call site), `ov/layers.go:Task` struct, `ov/validate.go:validateLayerTasks`.
-- `/ov:validate` — User-facing validation rules (what `validateLayerTasks` enforces).
-- `/ov:build` — Building from generated Containerfiles.
+- `/ov-build:validate` — User-facing validation rules (what `validateLayerTasks` enforces).
+- `/ov-build:build` — Building from generated Containerfiles.
 - Source: `ov/generate.go`, `ov/tasks.go`, `ov/intermediates.go`, `ov/graph.go`.
 
 ## When to Use This Skill

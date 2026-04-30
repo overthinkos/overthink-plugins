@@ -1,0 +1,8 @@
+{
+  "name": "ov-openclaw",
+  "description": "Self-contained skills + MCP wiring for the openclaw image family (multi-variant AI workstation: bootc, full, ml, sway, ollama, browser). Ships the chrome-devtools MCP server (port 9224) on the chrome-shipping variants.",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "repository": "https://github.com/overthinkos/overthink-plugins",
+  "mcpServers": "./.mcp.json"
+}

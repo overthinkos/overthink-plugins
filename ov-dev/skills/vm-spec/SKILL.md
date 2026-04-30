@@ -152,7 +152,7 @@ The legacy `VmConfig` type + `ImageConfig.Vm` + `ImageConfig.Libvirt` + `Resolve
 | `image.vm.network` (string) | `vms.<name>.network.mode` |
 | `image.libvirt: ["<xml>", …]` (list of strings) | `vms.<name>.libvirt.snippets: […]` + structured `libvirt.devices.*` |
 
-`ov migrate vm-spec` performs this mapping idempotently. See `/ov:migrate` for the command and `/ov-dev:cutover-policy` for the policy.
+`ov migrate vm-spec` performs this mapping idempotently. See `/ov-build:migrate` for the command and `/ov-dev:cutover-policy` for the policy.
 
 ## Cross-References
 
@@ -162,6 +162,6 @@ The legacy `VmConfig` type + `ImageConfig.Vm` + `ImageConfig.Libvirt` + `Resolve
 - `/ov-dev:vm-deploy-target` — VmDeployTarget consuming VmSpec via DeployExecutor
 - `/ov-dev:ovmf` — `ResolveOvmfForSpec` reads `spec.Firmware`
 - `/ov-dev:cutover-policy` — why the legacy surface was deleted in one PR
-- `/ov:vm` — command-family skill; reads vms.yml through VmSpec
-- `/ov:migrate` — `ov migrate vm-spec` command
+- `/ov-advanced:vm` — command-family skill; reads vms.yml through VmSpec
+- `/ov-build:migrate` — `ov migrate vm-spec` command
 - `/ov-dev:go` — Go CLI development overview

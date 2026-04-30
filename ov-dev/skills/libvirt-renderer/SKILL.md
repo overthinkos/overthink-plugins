@@ -130,6 +130,6 @@ Intended for environments without libvirt session daemon (some CI runners, air-g
 - `/ov-dev:ovmf` — `ResolveOvmfForSpec` for UEFI path resolution
 - `/ov-dev:cloud-init-renderer` — paired renderer for seed ISO + user-data
 - `/ov-dev:vm-deploy-target` — consumer that applies the rendered domain
-- `/ov:vm` — command-family skill; video-model decision table
+- `/ov-advanced:vm` — command-family skill; video-model decision table
 - `/ov-vms:arch` — BIOS decision RCA; virtio-gpu live-test bisect
-- `/ov-layers:qemu-guest-agent` — virtio-serial channel snippet that this renderer emits in `<devices>`
+- `/ov-foundation:qemu-guest-agent` — virtio-serial channel snippet that this renderer emits in `<devices>`

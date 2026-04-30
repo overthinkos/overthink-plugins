@@ -1,0 +1,49 @@
+---
+name: oracle
+description: |
+  Oracle CLI for prompt bundling and multi-engine AI queries.
+  Use when working with the oracle layer.
+---
+
+# oracle -- Prompt bundling CLI
+
+## Layer Properties
+
+| Property | Value |
+|----------|-------|
+| Install files | `layer.yml`, `package.json` |
+| Depends | `nodejs` |
+
+## Usage
+
+```yaml
+# image.yml or layer.yml
+layers:
+  - oracle
+```
+
+## Used In Images
+
+- `openclaw-full` (via `openclaw-full` metalayer)
+- `openclaw-full-sway` (via `openclaw-full` metalayer)
+- `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
+
+## Related Layers
+- `/ov-coder:nodejs` -- runtime dependency
+- `/ov-openclaw:openclaw-full` -- parent metalayer that bundles oracle
+
+## Related Commands
+- `/ov-advanced:openclaw` -- gateway/skill configuration
+- `/ov-core:shell` -- run oracle CLI inside the container
+
+## When to Use This Skill
+
+Use when the user asks about:
+- Prompt bundling for AI queries
+- Multi-engine AI query tools
+- The `oracle` layer
+
+## Related
+
+- `/ov-build:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov test`)

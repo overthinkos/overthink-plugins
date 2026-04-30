@@ -1,0 +1,7 @@
+{
+  "name": "ov-hermes",
+  "description": "Self-contained skills for the hermes agent image (hermes + hermes-playwright variants). Consumes the jupyter MCP server for notebook manipulation — enable ov-jupyter alongside.",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "repository": "https://github.com/overthinkos/overthink-plugins"
+}

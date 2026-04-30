@@ -59,7 +59,7 @@ Five preflight steps before walking plans:
 2. **Wait for cloud-init** (cloud_image sources only). `SSHExecutor.WaitForCloudInit` polls `cloud-init status --wait` until status is `done`. Bootc guests skip this step unless the `cloud-init` layer is present.
 3. **EnsureOvInGuest.** Runs the `VmOvInstall.Strategy` state machine (see `/ov-dev:cloud-init-renderer`).
 4. **Ensure guest ledger dir exists.** `ssh -- mkdir -p ~/.config/overthink/installed/{deploys,layers}`.
-5. **Walk plans.** Same batched `(Scope, Venue)` logic as `HostDeployTarget`, but with `sudo bash -s` wrapped in `ssh`. See `/ov:host-deploy` "HostDeployTarget execution model" for the grouping rules.
+5. **Walk plans.** Same batched `(Scope, Venue)` logic as `HostDeployTarget`, but with `sudo bash -s` wrapped in `ssh`. See `/ov-advanced:host-deploy` "HostDeployTarget execution model" for the grouping rules.
 
 ## VmDeployState persistence
 
@@ -105,7 +105,7 @@ When the VM's network uses libvirt user-mode + `<backend type='passt'/>` + `<por
 - `/ov-dev:vm-spec` — VmSpec consumed by VmDeployTarget
 - `/ov-dev:libvirt-renderer` — renders domain XML; portForward + passt backend
 - `/ov-dev:cloud-init-renderer` — `EnsureOvInGuest` lives there
-- `/ov:deploy` — `ov deploy add vm:<name>` command + deploy.yml schema
-- `/ov:host-deploy` — parallel target (HostDeployTarget); ReverseOps model also used on VM target
-- `/ov:vm` — VM lifecycle; creates the target Emit runs against
+- `/ov-core:deploy` — `ov deploy add vm:<name>` command + deploy.yml schema
+- `/ov-advanced:host-deploy` — parallel target (HostDeployTarget); ReverseOps model also used on VM target
+- `/ov-advanced:vm` — VM lifecycle; creates the target Emit runs against
 - `/ov-vms:arch` — canonical worked example — VmDeployState persistence; ssh_key idempotency live-test
