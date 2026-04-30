@@ -51,6 +51,27 @@ ov start jupyter
 # Open http://localhost:8888
 ```
 
+Routine ops once started:
+
+```bash
+ov status jupyter         # state + tools probe (dbus / ov / supervisord)
+ov restart jupyter        # atomic systemctl --user restart (preserves
+                          # ExecStopPost → ExecStartPost order — important
+                          # when the deploy carries a tailscale tunnel)
+ov stop jupyter           # stop without restarting
+ov logs jupyter           # supervisord aggregated stdout/stderr
+```
+
+## What's Installed
+
+Beyond the JupyterLab core, the image's pixi env carries: pandas /
+polars / numpy / scipy / scikit-learn / matplotlib / seaborn for data
+work; pyarrow / duckdb for column-store interop; **spacy 3.8.x +
+`en_core_web_sm`** for NLP (tokenization, NER, POS, dependency
+parsing); black / pytest / graphviz / pyyaml / tqdm as utilities. Full
+list and version pins live in `layers/jupyter/pixi.toml` — see
+`/ov-layers:jupyter` for the package matrix.
+
 ## Key Layers
 
 - `/ov-layers:jupyter` — JupyterLab + collaboration + data science
@@ -72,16 +93,60 @@ The MCP server name is set via the `MCP_SERVER_NAME` environment variable (defau
 
 ### Configure Claude Code
 
-The `ov-jupyter` plugin in `plugins/ov-jupyter/` declares the MCP server. To connect manually:
+There are three supported ways to give Claude Code access to the
+jupyter MCP server. Pick whichever matches the scope you want:
+
+**Project-scoped `.mcp.json` (preferred for `claude -p` from a
+specific working directory).** Drop a file at `<project-root>/.mcp.json`
+with the canonical shape:
+
+```json
+{
+  "mcpServers": {
+    "jupyter": {
+      "type": "http",
+      "url": "http://localhost:8888/mcp"
+    }
+  }
+}
+```
+
+Whenever `claude` (interactive) or `claude -p` (print mode) launches
+from that project root, it discovers the file and registers `jupyter`
+as an HTTP MCP server. Typical layout: a workspace dir on the host
+that is also bind-mounted as the jupyter `workspace` volume — running
+`claude -p` from inside that dir lets the model both see the notebook
+files on disk AND drive jupyter via MCP. (See `/ov:deploy` for the
+`--bind workspace=…` flag that pins the volume to a host path.)
+
+**`claude mcp add` shorthand** — equivalent to writing the file
+yourself:
 
 ```bash
 claude mcp add --transport http --scope project jupyter http://localhost:8888/mcp
 ```
 
-This creates `.mcp.json` at the project root:
-```json
-{"mcpServers": {"jupyter": {"type": "http", "url": "http://localhost:8888/mcp"}}}
+**The `ov-jupyter` plugin** (`plugins/ov-jupyter/.mcp.json`) — declares
+the same server at the project level for the overthink repo itself.
+Suitable when you're working IN the overthink checkout (the file is
+gitignored downstream of `.claude-plugin/plugin.json`).
+
+**Container must be running BEFORE `claude` starts.** Claude Code
+discovers MCP servers at session-start time. If `ov-jupyter.service`
+is not running when `claude` launches, the server registration shows
+"failed to connect" and `claude` will not auto-reconnect mid-session.
+Start jupyter first, then start the claude session:
+
+```bash
+ov status jupyter | grep -q running || ov start jupyter
+sleep 3                             # let supervisord settle
+cd <workspace-with-.mcp.json>
+claude                              # or claude -p "..."
 ```
+
+If you start `claude` first and then `ov start jupyter`, you'll need
+to exit and restart the claude session before the jupyter MCP tools
+become available.
 
 ### 13 MCP tools
 
@@ -124,12 +189,17 @@ claude -p "Call update_cell with path 'test.ipynb', index 0, source 'print(\"hel
 
 ## Verification
 
-After `ov start`:
+After `ov start` (or `ov restart` to recycle a running container):
 
 ```bash
 # Container and services running
 ov status jupyter
 ov service status jupyter
+
+# Atomic restart (preserves ExecStopPost → ExecStartPost order; important
+# when the deploy carries a tailscale tunnel — the off/on sequence
+# must be tight to avoid a serve-without-listener window)
+ov restart jupyter
 
 # JupyterLab responds
 curl -s -o /dev/null -w '%{http_code}' http://localhost:8888    # 200
@@ -145,7 +215,17 @@ curl -s http://localhost:8888/mcp -X POST \
 ov shell jupyter -c "jupyter server extension list 2>&1 | grep -E 'ydoc|colab_mcp'"
 # Expected: jupyter_server_ydoc enabled OK, jupyter_mcp 0.1.0 OK
 
-# MCP tools via Claude Code
+# In-container PATH includes the pixi env (post-2026-04-29 fix —
+# pixi runtime env now flows through the BUILDER, not the LAYER)
+ov shell jupyter -c 'echo PATH=$PATH'
+# Expected: PATH starts with /home/user/.pixi/bin:/home/user/.pixi/envs/default/bin:...
+
+# spacy + en_core_web_sm load (the build-scope eval check, runnable
+# at runtime too)
+ov shell jupyter -c '~/.pixi/envs/default/bin/python -c "import spacy; spacy.load(\"en_core_web_sm\"); print(\"ok\")"'
+# Expected: ok
+
+# MCP tools via Claude Code (run from a dir with .mcp.json)
 claude mcp list    # Should show: jupyter: http://localhost:8888/mcp (HTTP) - ✓ Connected
 ```
 

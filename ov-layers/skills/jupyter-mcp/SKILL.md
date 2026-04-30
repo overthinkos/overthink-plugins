@@ -122,6 +122,8 @@ When the layer/package/image were renamed (`jupyter-colab-ml` → `jupyter-ml`, 
 - `/ov:layer` — layer authoring rules (Tier 1 pattern)
 - `/ov:mcp` — client-side verb for probing this server's tool catalog (ping, list-tools, call); use `ov eval mcp list-tools jupyter` to see all 13 tools this layer registers
 - `/ov-layers:chrome-devtools-mcp` — sibling MCP-server-provider layer for Chrome DevTools (different domain, same `mcp_provides` pattern)
+- `/ov-layers:hermes` — downstream MCP consumer (auto-discovers `jupyter` via `OV_MCP_SERVERS`; uses the 13 tools to read/edit/execute notebook cells programmatically)
+- `/ov-layers:openwebui` — downstream MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI's in-chat code blocks to the Jupyter kernel)
 
 ## When to Use This Skill
 

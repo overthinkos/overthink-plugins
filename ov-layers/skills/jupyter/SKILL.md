@@ -22,15 +22,45 @@ description: |
 
 ## Key Packages
 
-**conda-forge:** JupyterLab >= 4.4.0, ipywidgets, ipykernel, jupyterlab-git, jupyter-resource-usage, matplotlib, seaborn, pandas, numpy, scikit-learn, scipy, polars, pyarrow, duckdb, black, pytest
+**conda-forge:** JupyterLab >= 4.4.0, ipywidgets, ipykernel, jupyterlab-git, jupyter-resource-usage, matplotlib, seaborn, pandas, numpy, scikit-learn, scipy, polars, pyarrow, duckdb, **spacy**, **spacy-model-en_core_web_sm**, black, pytest, graphviz, pyyaml, tqdm
 
 **PyPI:** jupyter-collaboration >= 4.1.0
 
 **RPM:** git
 
+### NLP
+
+`spacy` (3.8.x) ships with the small English statistical model
+(`en_core_web_sm`) preloaded so notebooks can do tokenization, NER,
+dependency parsing, and POS tagging out-of-the-box without a
+post-deploy `python -m spacy download` step. Sample:
+
+```python
+import spacy
+nlp = spacy.load("en_core_web_sm")
+doc = nlp("Apple is looking at buying a U.K. startup for $1 billion")
+[(t.text, t.pos_) for t in doc]   # tokens + parts of speech
+[(e.text, e.label_) for e in doc.ents]  # named entities
+```
+
+The `spacy-import` build-scope eval check (in `layer.yml`) verifies the
+package + model load successfully on every image build — a future
+upstream rename or version bump that breaks the model load fails the
+build loudly.
+
 ## Environment
 
-No custom environment variables. Inherits `PATH` from pixi layer (`~/.pixi/envs/default/bin`).
+No custom environment variables on the layer itself. **Runtime PATH
+contributions** for the pixi env (`~/.pixi/bin`,
+`~/.pixi/envs/default/bin`) and cache dirs (`PIXI_CACHE_DIR`,
+`RATTLER_CACHE_DIR`) come from the **pixi BUILDER** (declared in
+`build.yml` / `overthink.yml` under `builder.pixi.runtime_env:` and
+`path_contributions:`) — see `/ov-dev:generate` for the
+`writeLayerEnv` flow. This was moved from the pixi LAYER to the pixi
+BUILDER on 2026-04-29 so images that consume pixi via
+pixi.toml-triggered builds (jupyter, openwebui, immich-ml, …) get the
+env contract automatically without needing pixi as a top-level layer
+for sibling-grouped auto-intermediate inheritance.
 
 ## Collaboration
 
@@ -172,16 +202,27 @@ Multiple MCP clients can edit the same notebook simultaneously:
 
 ## Tests
 
-The layer ships 2 declarative checks embedded in the `org.overthinkos.eval`
+The layer ships declarative checks embedded in the `org.overthinkos.eval`
 OCI label (see `/ov:eval` for the full schema):
 
 - **Build-scope** (run under `ov eval image`):
-  - `workspace-dir` — `${HOME}/workspace` exists as a directory
+  - `jupyter-lab-binary` — `${HOME}/.pixi/envs/default/bin/jupyter-lab`
+    exists (proves pixi env install succeeded)
+  - `spacy-import` — `python -c "import spacy;
+    spacy.load('en_core_web_sm')"` exits 0 (proves NLP packages + model
+    load successfully)
 - **Deploy-scope** (run under `ov test` against a live service):
-  - `jupyter-api` — `GET http://${CONTAINER_IP}:${HOST_PORT:8888}/api`
-    returns 200 with a body containing `"version"`. The `${HOST_PORT:8888}`
-    substitution means the check works unchanged when `deploy.yml` remaps
-    the host port.
+  - `workspace-dir` — `${HOME}/workspace` exists (mount visible)
+  - `jupyter-service` — supervisord program `jupyter` is RUNNING
+  - `jupyter-port` — `${CONTAINER_IP}:${HOST_PORT:8888}` reachable
+  - `jupyter-api` — `GET .../api` returns 200 with `"version"` in body
+    (the `${HOST_PORT:8888}` substitution means the check works
+    unchanged when `deploy.yml` remaps the host port)
+  - `mcp-jupyter-ping` — MCP server responds to `ping`
+  - `mcp-jupyter-list-tools` — assertion that all 13 documented MCP
+    tools are present in `tools/list`
+  - `mcp-jupyter-call-list-notebooks` — actually invokes
+    `list_notebooks` and verifies the response shape
 
 ## Used In Images
 
@@ -192,7 +233,8 @@ OCI label (see `/ov:eval` for the full schema):
 - `/ov-layers:jupyter-ml` -- GPU-accelerated variant with full CUDA ML stack + same CRDT MCP server
 - `/ov-layers:jupyter-mcp` -- MCP server implementation (sub-layer, 13 tools for programmatic notebook access)
 - `/ov-layers:notebook-templates` -- Starter notebooks (data layer, used alongside this layer in images)
-- `/ov-layers:hermes` -- MCP consumer (mcp_accepts)
+- `/ov-layers:hermes` -- MCP consumer (auto-discovers via `OV_MCP_SERVERS` env var; uses `jupyter` server tools to read/edit/execute cells)
+- `/ov-layers:openwebui` -- MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code-block execution into the Jupyter kernel)
 - `/ov-layers:supervisord` -- process manager dependency
 - `/ov-layers:python` -- Python runtime (transitive via supervisord)
 - `/ov:mcp` -- end-to-end testing of the layer's MCP endpoint (`ov eval mcp ping`, `list-tools`, `call`); the layer ships 3 deploy-scope `mcp:` declarative checks against `list_notebooks`/`insert_cell`/`execute_cell`
