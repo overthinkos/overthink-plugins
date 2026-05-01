@@ -145,13 +145,13 @@ Tornado (Jupyter Server, :8888)
 | `update_cell` | `path`, `index`, `source`, `cell_type?` | `"Cell N updated"` |
 | `insert_cell` | `path`, `index`, `source`, `cell_type="code"` | `"Cell inserted at index N"` |
 | `delete_cell` | `path`, `index` | `"Cell N deleted"` |
-| `execute_cell` | `path`, `index` | `[{"type": "stream", "content": {...}}]` |
+| `execute_cell` | `path`, `index` | `[{"type": "stream", "content": {...}}]` — also writes `outputs` + `execution_count` back to the cell via the CRDT path so they persist on `close_notebook_session` |
 
 **Room Management:**
 | Tool | Parameters | Returns |
 |------|-----------|---------|
 | `open_notebook_session` | `path` | `"Collaboration room opened for ..."` |
-| `close_notebook_session` | `path` | `"Collaboration room closed for ..."` |
+| `close_notebook_session` | `path` | `"Collaboration room closed for ..."` — synchronously flushes pending CRDT state to disk via `room._save_to_disc()` before evicting the room |
 
 **Change Watching:**
 | Tool | Parameters | Returns |

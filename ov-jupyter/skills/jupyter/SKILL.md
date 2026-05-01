@@ -165,7 +165,11 @@ See `/ov-jupyter:jupyter` for full parameter and return type documentation.
 ```bash
 # Prerequisites: ov start jupyter
 
-# Create and work with a notebook
+# Create and work with a notebook. The execute_cell + close_notebook_session
+# round-trip is the canonical "land outputs on disk" path: execute_cell writes
+# outputs back to the cell via CRDT; close_notebook_session synchronously
+# flushes the room save before evicting. Files rendered with Quarto's
+# `execute: enabled: false` (and any non-MCP reader) see the outputs.
 claude -p "Call create_notebook with path 'test.ipynb'"
 claude -p "Call open_notebook_session with path 'test.ipynb'"
 claude -p "Call insert_cell with path 'test.ipynb', index 0, source 'print(42)', cell_type 'code'"
