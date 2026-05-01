@@ -148,15 +148,19 @@ If you start `claude` first and then `ov start jupyter`, you'll need
 to exit and restart the claude session before the jupyter MCP tools
 become available.
 
-### 13 MCP tools
+### 15 MCP tools (`<noun>_<verb>` form)
 
 | Category | Tools |
 |----------|-------|
-| Notebook management | `list_notebooks`, `get_notebook`, `create_notebook` |
-| Cell operations (CRDT) | `get_cell`, `update_cell`, `insert_cell`, `delete_cell`, `execute_cell` |
-| Room management | `open_notebook_session`, `close_notebook_session` |
-| Change watching | `watch_notebook` (blocks until change or timeout) |
-| Collaboration | `get_active_users`, `get_active_sessions` |
+| Notebook (filesystem) | `notebook_list`, `notebook_create` |
+| Notebook content (require open room) | `notebook_get`, `notebook_watch` |
+| Cell operations (CRDT, require open room) | `cell_get`, `cell_update`, `cell_insert`, `cell_delete`, `cell_execute` |
+| Room lifecycle | `room_open`, `room_close`, `room_close_all` |
+| Room introspection | `room_pick`, `room_list`, `room_list_users` |
+
+Room creation is ALWAYS explicit — only `room_open` creates a room.
+Every cell/notebook-content tool hard-fails with `RoomNotOpenError`
+when no room is open for the path.
 
 See `/ov-jupyter:jupyter` for full parameter and return type documentation.
 
@@ -165,16 +169,16 @@ See `/ov-jupyter:jupyter` for full parameter and return type documentation.
 ```bash
 # Prerequisites: ov start jupyter
 
-# Create and work with a notebook. The execute_cell + close_notebook_session
-# round-trip is the canonical "land outputs on disk" path: execute_cell writes
-# outputs back to the cell via CRDT; close_notebook_session synchronously
-# flushes the room save before evicting. Files rendered with Quarto's
+# Create and work with a notebook. The cell_execute + room_close
+# round-trip is the canonical "land outputs on disk" path: cell_execute writes
+# outputs back to the cell via CRDT; room_close synchronously flushes the
+# room save before evicting. Files rendered with Quarto's
 # `execute: enabled: false` (and any non-MCP reader) see the outputs.
-claude -p "Call create_notebook with path 'test.ipynb'"
-claude -p "Call open_notebook_session with path 'test.ipynb'"
-claude -p "Call insert_cell with path 'test.ipynb', index 0, source 'print(42)', cell_type 'code'"
-claude -p "Call execute_cell with path 'test.ipynb' and index 0"
-claude -p "Call close_notebook_session with path 'test.ipynb'"
+claude -p "Call notebook_create with path 'test.ipynb'"
+claude -p "Call room_open with path 'test.ipynb'"
+claude -p "Call cell_insert with path 'test.ipynb', index 0, source 'print(42)', cell_type 'code'"
+claude -p "Call cell_execute with path 'test.ipynb' and index 0"
+claude -p "Call room_close with path 'test.ipynb'"
 ```
 
 ### Multi-client collaboration
@@ -273,7 +277,7 @@ See `/ov-build:eval` for the framework and author-facing gotchas.
 - `/ov-jupyter:jupyter`, `/ov-jupyter:jupyter-mcp`, `/ov-jupyter:notebook-templates`
 - `/ov-build:eval` — declarative testing framework
 - `/ov-core:config` — deploy setup
-- `/ov-build:mcp` — the image inherits 3 deploy-scope `mcp:` declarative checks from the `jupyter` layer (`ping`, `list-tools` asserting `insert_cell`/`execute_cell`, `call list_notebooks`). Run `ov test jupyter --filter mcp` to exercise them against a live deployment, or `ov eval mcp list-tools jupyter` for ad-hoc inspection
+- `/ov-build:mcp` — the image inherits 3 deploy-scope `mcp:` declarative checks from the `jupyter` layer (`ping`, `list-tools` asserting all 15 prefixed tool names, `call notebook_list`). Run `ov test jupyter --filter mcp` to exercise them against a live deployment, or `ov eval mcp list-tools jupyter` for ad-hoc inspection
 - `/ov-jupyter:jupyter-ml`, `/ov-jupyter:jupyter-ml-notebook` — GPU variants that inherit the same MCP test suite
 
 ## When to Use This Skill

@@ -34,23 +34,35 @@ The `tasks:` performs three operations:
 
 ## MCP Server
 
-The extension registers a Streamable HTTP MCP server at `http://localhost:8888/mcp` (MCP spec 2025-11-25). It provides 13 tools for programmatic notebook access:
+The extension registers a Streamable HTTP MCP server at `http://localhost:8888/mcp` (MCP spec 2025-11-25). It provides 15 tools for programmatic notebook access, all named in `<noun>_<verb>` form.
+
+**Naming convention.** Three nouns partition the catalog:
+- `notebook_*` — filesystem operations on `.ipynb` files
+- `cell_*` — in-memory cell mutations (require an open room)
+- `room_*` — CRDT room lifecycle and introspection
+
+**Room creation is ALWAYS explicit.** Only `room_open` creates a room.
+Every room-mutation tool (`cell_*`, `notebook_get`, `notebook_watch`)
+raises `RoomNotOpenError` when no room exists for the path — call
+`room_open(path)` first, then `room_close(path)` when done.
 
 | Tool | Description |
 |------|-------------|
-| `list_notebooks` | List all notebooks in the workspace |
-| `get_notebook` | Get full notebook content (cells, metadata) |
-| `create_notebook` | Create a new notebook |
-| `open_notebook_session` | Open a CRDT collaboration room |
-| `close_notebook_session` | Synchronously flush pending CRDT state to disk, then evict the collaboration room (no 60-s `document_cleanup_delay` wait) |
-| `get_cell` | Get a specific cell's content |
-| `update_cell` | Replace a cell's source |
-| `insert_cell` | Insert a new cell at a position |
-| `delete_cell` | Delete a cell |
-| `execute_cell` | Execute a cell, return outputs, AND write outputs + `execution_count` back to the cell via the CRDT-aware `set_cell` path so they persist to disk on the next room save |
-| `get_active_sessions` | List active collaboration rooms |
-| `get_active_users` | List connected users |
-| `watch_notebook` | Watch for real-time changes |
+| `notebook_list` | List all notebooks in the workspace (filesystem) |
+| `notebook_create` | Create a new empty notebook on disk (filesystem; does NOT open a room) |
+| `notebook_get` | Get full notebook content from the live CRDT document; hard-fails with `RoomNotOpenError` if no room |
+| `notebook_watch` | Block until a CRDT change is observed; hard-fails if no room |
+| `cell_get` | Get a specific cell's content; hard-fails if no room |
+| `cell_update` | Replace a cell's source; hard-fails if no room |
+| `cell_insert` | Insert a new cell at a position; hard-fails if no room |
+| `cell_delete` | Delete a cell; hard-fails if no room |
+| `cell_execute` | Execute a cell, return outputs, AND write outputs + `execution_count` back via the CRDT-aware `set_cell` path; hard-fails if no room |
+| `room_open` | Open or join a CRDT room (idempotent). Subsequent JupyterLab UI tabs that open the same notebook auto-join this same room |
+| `room_close` | Synchronously flush pending CRDT state to disk, then evict the room; hard-fails if no room |
+| `room_close_all` | Blanket cleanup — close every active room; returns `{closed: [...], errors: [...]}` |
+| `room_pick` | Look up an existing room without creating one; hard-fails if no room |
+| `room_list` | List every active CRDT room with rich metadata per entry: `room_id`, `path`, `file_id`, `users`, `user_count`, `has_kernel` |
+| `room_list_users` | List awareness users currently connected to any room |
 
 ### CRDT Collaboration
 
@@ -60,16 +72,16 @@ Cell operations mutate the live CRDT document — changes appear instantly in al
 
 1. **Room initialization on open.** `_create_room()` calls `await room.initialize()` after `server.start_room(room)` to load notebook content from disk into the CRDT document. Without this, the YNotebook is empty (0 cells). Mirrors `YDocWebSocketHandler.open()` in `jupyter-server-ydoc`.
 
-2. **`execute_cell` persists outputs.** After collecting iopub messages, the adapter translates them via `nbformat.v4.output_from_msg`, captures `execution_count` from the shell-channel `execute_reply` (works for `print()`/`display()`-only cells that don't emit `execute_result`), and writes `cell["outputs"]` + `cell["execution_count"]` back via `set_cell()` — same CRDT-aware path used by `update_cell`. The MCP-level return path is unchanged. Without this, outputs only land on disk if `jupyter-collaboration`'s iopub→CRDT auto-bridge happened to fire in time (racy across many cells).
+2. **`cell_execute` persists outputs.** After collecting iopub messages, the adapter translates them via `nbformat.v4.output_from_msg`, captures `execution_count` from the shell-channel `execute_reply` (works for `print()`/`display()`-only cells that don't emit `execute_result`), and writes `cell["outputs"]` + `cell["execution_count"]` back via `set_cell()` — same CRDT-aware path used by `cell_update`. The MCP-level return path is unchanged. Without this, outputs only land on disk if `jupyter-collaboration`'s iopub→CRDT auto-bridge happened to fire in time (racy across many cells).
 
-3. **`close_notebook_session` flushes synchronously.** Calls `room._save_to_disc()` and awaits the returned task BEFORE `server.delete_room()`. Required because `DocumentRoom.stop()` (invoked by `delete_room`) cancels `self._saving_document` rather than awaiting it — any CRDT mutations sitting in the `save_delay` debounce would otherwise be lost. Then defensively pops `server.rooms` and clears the per-notebook lock entry, so a subsequent `open_notebook_session` on the same path gets a clean room with no leftover y-awareness state.
+3. **`room_close` flushes synchronously, no defensive pop.** Calls `room._save_to_disc()` and awaits the returned task BEFORE `server.delete_room()`. Required because `DocumentRoom.stop()` (invoked by `delete_room`) cancels `self._saving_document` rather than awaiting it — any CRDT mutations sitting in the `save_delay` debounce would otherwise be lost. Wraps `server.delete_room` in try/except for `ValueError("not in list")` because the upstream `YDocWebSocketHandler._clean_room` may have already cleaned up the room when a UI client disconnects concurrently. The pre-cutover code did a defensive `server.rooms.pop()` after `delete_room` — that line was the trigger for the upstream race and has been removed.
 
 ### Persistence contract
 
-`execute_cell → close_notebook_session → on-disk .ipynb` guarantees:
+`cell_execute → room_close → on-disk .ipynb` guarantees:
 - Every executed cell's `outputs` array reflects the kernel's iopub stream (text, display_data, execute_result, error).
 - Every executed cell's `execution_count` is a positive int.
-- After `close_notebook_session` returns, `get_active_sessions` no longer reports the path's room.
+- After `room_close` returns, `room_list` no longer reports the path's room.
 
 This contract is locked by the eval.yml recipe `jupyter-execute-cell-persistence` (4 scenarios: single-cell print, parallel multi-cell, rich HTML display_data, room-eviction-after-close).
 

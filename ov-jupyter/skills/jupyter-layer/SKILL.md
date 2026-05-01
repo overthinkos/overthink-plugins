@@ -129,40 +129,47 @@ Tornado (Jupyter Server, :8888)
 - **Per-notebook asyncio locks** — serializes mutations on the same notebook to prevent index-based race conditions during concurrent access
 - **Lazy YDocExtension resolution** — resolved on first tool call, not at extension load time (avoids load-order dependency)
 
-### MCP Tools (13 total)
+### MCP Tools (15 total — `<noun>_<verb>` form)
 
-**Notebook Management:**
+Naming convention: every tool is prefixed by `notebook_*`, `cell_*`,
+or `room_*`. Room creation is ALWAYS explicit — only `room_open`
+creates a CRDT room; every cell/notebook-content tool hard-fails with
+`RoomNotOpenError` when no room exists for the path.
+
+**Notebook (filesystem) operations:**
 | Tool | Parameters | Returns |
 |------|-----------|---------|
-| `list_notebooks` | — | `[{"path": "...", "name": "..."}]` |
-| `get_notebook` | `path` | Full notebook dict (CRDT if room open, else disk) |
-| `create_notebook` | `path` | `{"path": "...", "name": "..."}` |
+| `notebook_list` | — | `[{"path": "...", "name": "..."}]` |
+| `notebook_create` | `path` | `{"path": "...", "name": "..."}` (no room opened) |
 
-**Cell Operations (CRDT — changes sync live to all collaborators):**
+**Notebook-content operations (require open room):**
 | Tool | Parameters | Returns |
 |------|-----------|---------|
-| `get_cell` | `path`, `index` | Cell dict (source, cell_type, metadata, outputs) |
-| `update_cell` | `path`, `index`, `source`, `cell_type?` | `"Cell N updated"` |
-| `insert_cell` | `path`, `index`, `source`, `cell_type="code"` | `"Cell inserted at index N"` |
-| `delete_cell` | `path`, `index` | `"Cell N deleted"` |
-| `execute_cell` | `path`, `index` | `[{"type": "stream", "content": {...}}]` — also writes `outputs` + `execution_count` back to the cell via the CRDT path so they persist on `close_notebook_session` |
+| `notebook_get` | `path` | Full notebook dict (live CRDT) |
+| `notebook_watch` | `path`, `timeout=30` | `{"changed": true, "cell_count": N}` or `{"changed": false}` |
 
-**Room Management:**
+**Cell Operations (CRDT — changes sync live to all collaborators; require open room):**
 | Tool | Parameters | Returns |
 |------|-----------|---------|
-| `open_notebook_session` | `path` | `"Collaboration room opened for ..."` |
-| `close_notebook_session` | `path` | `"Collaboration room closed for ..."` — synchronously flushes pending CRDT state to disk via `room._save_to_disc()` before evicting the room |
+| `cell_get` | `path`, `index` | Cell dict (source, cell_type, metadata, outputs) |
+| `cell_update` | `path`, `index`, `source`, `cell_type?` | `"Cell N updated"` |
+| `cell_insert` | `path`, `index`, `source`, `cell_type="code"` | `"Cell inserted at index N"` |
+| `cell_delete` | `path`, `index` | `"Cell N deleted"` |
+| `cell_execute` | `path`, `index` | `[{"type": "stream", "content": {...}}]` — also writes `outputs` + `execution_count` back to the cell via the CRDT path so they persist on `room_close` |
 
-**Change Watching:**
+**Room lifecycle:**
 | Tool | Parameters | Returns |
 |------|-----------|---------|
-| `watch_notebook` | `path`, `timeout=30` | `{"changed": true, "cell_count": N}` or `{"changed": false}` |
+| `room_open` | `path` | `"Room opened for ..."` (idempotent — UI tabs that subsequently open the same notebook auto-join this same room) |
+| `room_close` | `path` | `"Room closed for ..."` — synchronously flushes pending CRDT state via `room._save_to_disc()` before evicting; tolerates the upstream `_clean_room` race |
+| `room_close_all` | — | `{"closed": [{"room_id":..., "path":...}, ...], "errors": [...]}` |
 
-**Collaboration Awareness:**
+**Room introspection (no room mutation):**
 | Tool | Parameters | Returns |
 |------|-----------|---------|
-| `get_active_users` | — | `[{"id": "...", "name": "..."}]` |
-| `get_active_sessions` | — | `[{"room_id": "..."}]` |
+| `room_pick` | `path` OR `room_id` (exactly one) | One room metadata entry; hard-fails if absent |
+| `room_list` | — | `[{"room_id": ..., "path": ..., "file_id": ..., "users": [...], "user_count": N, "has_kernel": bool}, ...]` |
+| `room_list_users` | — | `[{"id": "...", "name": "..."}]` |
 
 ### Installation
 
@@ -192,7 +199,7 @@ layers/jupyter-mcp/
 Multiple MCP clients can edit the same notebook simultaneously:
 - All sessions share the same CRDT document via the singleton RTCAdapter
 - Per-notebook asyncio locks prevent index corruption during concurrent mutations
-- `watch_notebook` uses a fan-out `NotebookWatcher` — each watcher gets an independent `asyncio.Event`, signaled when any CRDT change occurs
+- `notebook_watch` uses a fan-out `NotebookWatcher` — each watcher gets an independent `asyncio.Event`, signaled when any CRDT change occurs
 - The CRDT layer (pycrdt) handles merge conflicts automatically
 
 ## Implementation Notes
@@ -219,10 +226,10 @@ OCI label (see `/ov-build:eval` for the full schema):
     (the `${HOST_PORT:8888}` substitution means the check works
     unchanged when `deploy.yml` remaps the host port)
   - `mcp-jupyter-ping` — MCP server responds to `ping`
-  - `mcp-jupyter-list-tools` — assertion that all 13 documented MCP
+  - `mcp-jupyter-list-tools` — assertion that all 15 documented MCP
     tools are present in `tools/list`
   - `mcp-jupyter-call-list-notebooks` — actually invokes
-    `list_notebooks` and verifies the response shape
+    `notebook_list` and verifies the response shape
 
 ## Used In Images
 
@@ -231,7 +238,7 @@ OCI label (see `/ov-build:eval` for the full schema):
 ## Related Layers
 
 - `/ov-jupyter:jupyter-ml` -- GPU-accelerated variant with full CUDA ML stack + same CRDT MCP server
-- `/ov-jupyter:jupyter-mcp` -- MCP server implementation (sub-layer, 13 tools for programmatic notebook access)
+- `/ov-jupyter:jupyter-mcp` -- MCP server implementation (sub-layer, 15 tools for programmatic notebook access using `<noun>_<verb>` naming)
 - `/ov-jupyter:notebook-templates` -- Starter notebooks (data layer, used alongside this layer in images)
 - `/ov-hermes:hermes` -- MCP consumer (auto-discovers via `OV_MCP_SERVERS` env var; uses `jupyter` server tools to read/edit/execute cells)
 - `/ov-openwebui:openwebui` -- MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code-block execution into the Jupyter kernel)

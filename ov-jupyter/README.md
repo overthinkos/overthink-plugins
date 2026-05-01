@@ -2,7 +2,7 @@
 
 MCP server registration for JupyterLab notebook operations with real-time CRDT collaboration.
 
-This plugin exposes 13 MCP tools (`list_notebooks`, `get_notebook`, `create_notebook`, `get_cell`, `update_cell`, `insert_cell`, `delete_cell`, `execute_cell`, `open_notebook_session`, `close_notebook_session`, `watch_notebook`, `get_active_users`, `get_active_sessions`) to Claude Code, routing them to the JupyterLab server running on `http://localhost:8888/mcp`.
+This plugin exposes 15 MCP tools using the uniform `<noun>_<verb>` naming convention (three nouns: `notebook_*`, `cell_*`, `room_*`) — `notebook_list`, `notebook_create`, `notebook_get`, `notebook_watch`, `cell_get`, `cell_update`, `cell_insert`, `cell_delete`, `cell_execute`, `room_open`, `room_close`, `room_close_all`, `room_pick`, `room_list`, `room_list_users` — to Claude Code, routing them to the JupyterLab server running on `http://localhost:8888/mcp`. Room creation is explicit: call `room_open(path)` before any cell or notebook-content operation.
 
 ## Contents
 
