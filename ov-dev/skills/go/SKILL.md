@@ -78,7 +78,7 @@ Layer + ResolvedImage + HostContext
        └── K8sDeployTarget (k8s_target.go)              → Kustomize base/overlays tree
 ```
 
-Full reference lives in **`/ov-dev:install-plan`** — go there before touching any of those files. Supporting Go files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref, hostdistro, migrate_services_tool) are covered in **`/ov-dev:host-infra`**.
+Full reference lives in **`/ov-dev:install-plan`** — go there before touching any of those files. Supporting Go files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref, hostdistro, migrate_services_tool) are covered in **`/ov-dev:local-infra`**.
 
 ### VM-path architecture (2026-04 — hard cutover)
 

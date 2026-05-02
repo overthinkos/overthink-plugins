@@ -653,7 +653,7 @@ The actual unit text is rendered by the init-system's `service_schema` block in 
 - **Supervisord init** — `service_template` produces `[program:NAME]` INI fragments with `autorestart` / `environment` / etc.; fragments go to `/etc/supervisord.d/<layer>-<name>.conf` and are assembled at container-build time.
 - **Systemd init (bootc + host deploys)** — `service_template` produces `[Unit]` / `[Service]` / `[Install]` blocks; the rendered file goes to `/etc/systemd/system/ov-<layer>-<name>.service` (or the user-scope path when `scope: user`). For `use_packaged:` entries, `dropin_template` + `dropin_path_template` produce an override file alongside the packaged unit.
 
-See `/ov-foundation:supervisord` for the supervisord ServiceSchemaDef template, `/ov-build:build` for the three-phase template model, and `/ov-advanced:host-deploy` for how the host target consumes `services:` entries.
+See `/ov-foundation:supervisord` for the supervisord ServiceSchemaDef template, `/ov-build:build` for the three-phase template model, and `/ov-advanced:local-deploy` for how the host target consumes `services:` entries.
 
 ### Worked examples in-tree
 

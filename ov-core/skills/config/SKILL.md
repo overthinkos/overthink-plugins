@@ -12,7 +12,7 @@ description: |
 
 This is the **single entry point** for **container** deployment setup. `ov start` requires `ov config` to have been run first in quadlet mode.
 
-**Relationship to `ov deploy add`** — `ov config` remains the primary way to create/update a quadlet and provision secrets/volumes/sidecars for a container deploy. `ov deploy add <name> <ref>` (container target) wraps both `ov config` and `ov start` and additionally handles `--add-layer` overlay synthesis (an overlay Containerfile is built before the quadlet references the resulting overlay image). `ov deploy add host` bypasses `ov config` entirely — the host target has no quadlet; it writes systemd units directly (when `--with-services` is enabled) and records every action in the ledger at `~/.config/overthink/installed/`. See `/ov-core:deploy` for the command family and `/ov-advanced:host-deploy` for host-target semantics.
+**Relationship to `ov deploy add`** — `ov config` remains the primary way to create/update a quadlet and provision secrets/volumes/sidecars for a container deploy. `ov deploy add <name> <ref>` (container target) wraps both `ov config` and `ov start` and additionally handles `--add-layer` overlay synthesis (an overlay Containerfile is built before the quadlet references the resulting overlay image). `ov deploy add host` bypasses `ov config` entirely — the host target has no quadlet; it writes systemd units directly (when `--with-services` is enabled) and records every action in the ledger at `~/.config/overthink/installed/`. See `/ov-core:deploy` for the command family and `/ov-advanced:local-deploy` for host-target semantics.
 
 ## Quick Reference
 

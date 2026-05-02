@@ -169,7 +169,7 @@ Used by: `ov deploy add <container>` with `add_layers:` present.
 ### `HostDeployTarget` (`ov/deploy_target_host.go`)
 Walks the IR; groups contiguous same-`(Scope, Venue)` steps via `plan.StepsByVenue()`; emits one heredoc per batch. Full executor: writes service units (packaged + custom), env.d files, managed blocks, ledger entries. Invokes builder containers via `builder_run.go` for `VenueContainerBuilder` steps. Gates (`GateEnabled`) applied per step; skipped steps logged.
 
-See `/ov-dev:host-infra` for supporting files (hostdistro, ledger, reverse_ops, shell_profile, builder_run, service_render, deploy_ref).
+See `/ov-dev:local-infra` for supporting files (hostdistro, ledger, reverse_ops, shell_profile, builder_run, service_render, deploy_ref).
 
 ### `VmDeployTarget` (`ov/deploy_target_vm.go`)
 Same IR walking as HostDeployTarget, but shell bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` instead of local `sudo bash`. Ledger writes land on the **guest** filesystem; teardown runs in the guest via SSH. Preflight: `WaitForSSH` (120s) → `WaitForCloudInit` (cloud_image sources only) → `EnsureOvInGuest` (scp the `ov` binary per `VmOvInstall.Strategy`) → ensure guest ledger dir exists.
@@ -198,7 +198,7 @@ OCITarget doesn't batch — it emits each step in order as Containerfile directi
 
 ## `ReverseOp` catalogue
 
-See `/ov-advanced:host-deploy` for the user-facing reverse-op table. The Go-level source of truth is `ReverseOpKind` in `install_plan.go`; each step's `Reverse()` method emits ops tagged with kind + targets + scope. Execution lives in `ov/reverse_ops.go` — one handler per kind, all routed through `runReverseOps(ops, executor)` in LIFO order.
+See `/ov-advanced:local-deploy` for the user-facing reverse-op table. The Go-level source of truth is `ReverseOpKind` in `install_plan.go`; each step's `Reverse()` method emits ops tagged with kind + targets + scope. Execution lives in `ov/reverse_ops.go` — one handler per kind, all routed through `runReverseOps(ops, executor)` in LIFO order.
 
 Adding a new reverse kind requires:
 1. Add the `ReverseOpKind` constant in `install_plan.go`.
@@ -237,13 +237,13 @@ When you add a step kind, add:
 
 ## Cross-References
 
-- `/ov-dev:host-infra` — supporting files (hostdistro, ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref)
+- `/ov-dev:local-infra` — supporting files (hostdistro, ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref)
 - `/ov-dev:vm-deploy-target` — VmDeployTarget + DeployExecutor + SSHExecutor + VmDeployState
 - `/ov-dev:vm-spec` — VmSpec shape that VmDeployTarget reads
 - `/ov-dev:go` — overall Go code map; Kong CLI framework; mode-purity invariant
 - `/ov-dev:generate` — Containerfile generation call graph; how OCITarget plugs into Generator
 - `/ov-core:deploy` — user-facing `ov deploy add`/`del` surface (host / container / vm: / kubernetes)
-- `/ov-advanced:host-deploy` — host-target user-facing behavior (ledger, gates, ReverseOps)
+- `/ov-advanced:local-deploy` — host-target user-facing behavior (ledger, gates, ReverseOps)
 - `/ov-advanced:kubernetes` — K8s-target user-facing behavior (cluster profiles, Kustomize layout)
 - `/ov-advanced:vm` — VM command family; VmDeployTarget prerequisite (`ov vm create` before `ov deploy add vm:...`)
 - `/ov-build:build` — build-mode user-facing surface; three-phase template story

@@ -22,7 +22,7 @@ Legacy spellings `container` / `kubernetes` / `vm:<name>` still work; `ov migrat
 `ov deploy` is the parent verb for applying and tearing down deployments, plus managing `deploy.yml` overrides. The command family has two distinct surfaces:
 
 1. **Execution verbs** — `ov deploy add <name>` / `ov deploy del <name>`. Apply or reverse a deployment. Four targets are dispatched by the `target:` field (schema v3) or the `<name>` prefix (legacy):
-   - `target: host` → `HostDeployTarget` on the local filesystem (or, with `inside: <deploy>`, via NestedExecutor into the referenced deployment). See `/ov-advanced:host-deploy`.
+   - `target: host` → `HostDeployTarget` on the local filesystem (or, with `inside: <deploy>`, via NestedExecutor into the referenced deployment). See `/ov-advanced:local-deploy`.
    - `target: vm` (+ `vm: <entity>`) → `VmDeployTarget` inside a running VM via SSH. See "VM target" section below and `/ov-dev:vm-deploy-target`.
    - `target: pod` (+ `image: <image>`) → `PodDeployTarget` (today's `ContainerDeployTarget`, renamed in Phase 4): overlay Containerfile + quadlet/podman.
    - `target: k8s` (+ `cluster: <name>`) → Kustomize base/overlays tree. See `/ov-advanced:kubernetes`.
@@ -39,7 +39,7 @@ The same `DeployImageConfig` shape feeds all four targets (`container`, `host`, 
 | Action | Command | Description |
 |--------|---------|-------------|
 | Apply container deploy | `ov deploy add <name> <ref>` | Compile layers + build overlay if `add_layers:` present + run via quadlet |
-| Apply host deploy | `ov deploy add host <ref>` | Apply layers directly to local filesystem (see `/ov-advanced:host-deploy`) |
+| Apply host deploy | `ov deploy add host <ref>` | Apply layers directly to local filesystem (see `/ov-advanced:local-deploy`) |
 | Tear down deploy | `ov deploy del <name>` | Stop container + reverse ReverseOps (host) + ledger cleanup |
 | Dry-run | `ov deploy add <name> <ref> --dry-run [--format=json]` | Print the InstallPlan without executing |
 | Layer overlay | `ov deploy add <name> <ref> --add-layer <ref>` | Extra layer(s) applied on top; repeatable |
@@ -55,7 +55,7 @@ The same `DeployImageConfig` shape feeds all four targets (`container`, `host`, 
 | Reset instance config | `ov deploy reset <image> -i <instance>` | Remove instance overrides |
 | Push to registry | `ov image build --push` | Multi-platform push |
 
-For service lifecycle commands (start/stop/status/logs/update/remove), see `/ov-core:service`. For VM lifecycle (build/create/start/stop/ssh), see `/ov-advanced:vm`; for in-VM layer deploys via `ov deploy add vm:<name>`, see the "VM target" section below and `/ov-dev:vm-deploy-target`. For encrypted storage, see `/ov-advanced:enc`. For host-target semantics, see `/ov-advanced:host-deploy`. For Kubernetes targets, see `/ov-advanced:kubernetes`. For the Go IR that drives all four targets, see `/ov-dev:install-plan`.
+For service lifecycle commands (start/stop/status/logs/update/remove), see `/ov-core:service`. For VM lifecycle (build/create/start/stop/ssh), see `/ov-advanced:vm`; for in-VM layer deploys via `ov deploy add vm:<name>`, see the "VM target" section below and `/ov-dev:vm-deploy-target`. For encrypted storage, see `/ov-advanced:enc`. For host-target semantics, see `/ov-advanced:local-deploy`. For Kubernetes targets, see `/ov-advanced:kubernetes`. For the Go IR that drives all four targets, see `/ov-dev:install-plan`.
 
 ## Command Family: `add` / `del`
 
@@ -63,7 +63,7 @@ For service lifecycle commands (start/stop/status/logs/update/remove), see `/ov-
 
 Applies a deployment. `<name>` selects the target:
 
-- **`host`** (literal) — apply layers to the local filesystem via `HostDeployTarget`. One host deploy per machine (singleton). See `/ov-advanced:host-deploy`.
+- **`host`** (literal) — apply layers to the local filesystem via `HostDeployTarget`. One host deploy per machine (singleton). See `/ov-advanced:local-deploy`.
 - **`vm:<vm-name>`** — apply layers inside a running `kind: vm` entity via SSH (`VmDeployTarget`). `<vm-name>` must match an entry in `vms.yml`; the VM must already be created (`ov vm create <vm-name>`). See "VM target" section below.
 - **`kubernetes`** — emit a Kustomize base/overlays tree. See `/ov-advanced:kubernetes`.
 - **Any other string** — container deployment. Multiple container deploys coexist (`my-dev`, `postgres-staging`, etc.); each gets its own quadlet, container name, and deploy.yml entry.
@@ -101,7 +101,7 @@ When `<ref>` is omitted, the ref falls back to `deploy.yml['deploys'][<name>]['i
 
 ### `ov deploy del <name>`
 
-Reverses a deployment. Gated host-side reversal respects `--keep-repo-changes` and `--keep-services`. Container teardown: `podman stop` + `rm` + overlay image removal (unless `--keep-image`) + ledger cleanup. VM teardown: SSH-executed ReverseOps in the guest, preserving the VM itself (use `ov vm destroy` separately). See `/ov-advanced:host-deploy` for the full 15-kind ReverseOp table.
+Reverses a deployment. Gated host-side reversal respects `--keep-repo-changes` and `--keep-services`. Container teardown: `podman stop` + `rm` + overlay image removal (unless `--keep-image`) + ledger cleanup. VM teardown: SSH-executed ReverseOps in the guest, preserving the VM itself (use `ov vm destroy` separately). See `/ov-advanced:local-deploy` for the full 15-kind ReverseOp table.
 
 ## VM target: `ov deploy add vm:<vm-name> <ref>`
 
@@ -783,9 +783,9 @@ images:
 ## Cross-References
 
 **Deploy surface (new):**
-- `/ov-advanced:host-deploy` — Host-target execution model: HostDeployTarget, ledger, gates, 15 ReverseOp kinds, sudo batching
+- `/ov-advanced:local-deploy` — Host-target execution model: HostDeployTarget, ledger, gates, 15 ReverseOp kinds, sudo batching
 - `/ov-dev:install-plan` — The InstallPlan IR shared by `ov image build` (OCITarget), container deploys (ContainerDeployTarget), and host deploys (HostDeployTarget)
-- `/ov-dev:host-infra` — Supporting Go files for host deploys: hostdistro, ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref
+- `/ov-dev:local-infra` — Supporting Go files for host deploys: hostdistro, ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref
 
 **Deploy-adjacent commands:**
 - `/ov-build:pull` — Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path

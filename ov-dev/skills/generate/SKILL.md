@@ -13,7 +13,7 @@ description: |
 
 `ov image generate` reads `image.yml` and `layers/`, resolves dependency graphs, and writes Containerfiles to `.build/`. Generation is idempotent and `.build/` is disposable (gitignored). Understanding the generated output is essential for debugging build issues.
 
-**2026-04 refactor**: generation now runs through the shared `DeployTarget` interface. `OCITarget` is the build-mode implementation; it consumes the `InstallPlan` IR emitted by `BuildDeployPlan` and writes Containerfile text. `ContainerDeployTarget` and `HostDeployTarget` are the deploy-mode siblings consuming the same IR. For the IR shape and step kinds, see **`/ov-dev:install-plan`**. For host-deploy supporting files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref), see **`/ov-dev:host-infra`**.
+**2026-04 refactor**: generation now runs through the shared `DeployTarget` interface. `OCITarget` is the build-mode implementation; it consumes the `InstallPlan` IR emitted by `BuildDeployPlan` and writes Containerfile text. `ContainerDeployTarget` and `HostDeployTarget` are the deploy-mode siblings consuming the same IR. For the IR shape and step kinds, see **`/ov-dev:install-plan`**. For host-deploy supporting files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref), see **`/ov-dev:local-infra`**.
 
 ## Quick Reference
 

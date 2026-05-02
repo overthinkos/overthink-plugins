@@ -11,7 +11,7 @@ description: |
 
 Start a container image as a background service. In quadlet mode, `ov config <image>` MUST be run first to generate the systemd quadlet unit. In direct mode, start creates an ephemeral container directly.
 
-**Relationship to `ov deploy add`** — `ov start <image>` is the ergonomic wrapper for `ov deploy add <image> <image>` (container target). New scripts should prefer `ov deploy add <name> <ref>` directly when they need explicit deploy names, `--add-layer` overlays, or the host target. `ov start` covers the common single-image case and is retained for backwards compatibility. See `/ov-core:deploy` for the unified command family and `/ov-advanced:host-deploy` for the host target.
+**Relationship to `ov deploy add`** — `ov start <image>` is the ergonomic wrapper for `ov deploy add <image> <image>` (container target). New scripts should prefer `ov deploy add <name> <ref>` directly when they need explicit deploy names, `--add-layer` overlays, or the host target. `ov start` covers the common single-image case and is retained for backwards compatibility. See `/ov-core:deploy` for the unified command family and `/ov-advanced:local-deploy` for the host target.
 
 ## Quick Reference
 

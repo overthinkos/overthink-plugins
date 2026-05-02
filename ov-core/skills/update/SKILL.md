@@ -11,7 +11,7 @@ description: |
 
 Pull or build a new image version, optionally sync data from data layers into the image's volumes (bind mounts AND podman named volumes — both kinds are seeded), then restart the service. Data sync uses MERGE mode by default -- adds new files without overwriting existing user modifications.
 
-**Relationship to `ov deploy add --pull`** — `ov update <name>` is the container-deploy equivalent of `ov deploy add <name> --pull`. For host deploys, the same semantics are reached via `ov deploy add host --pull`. See `/ov-core:deploy` for the unified command family and `/ov-advanced:host-deploy` for host-target specifics.
+**Relationship to `ov deploy add --pull`** — `ov update <name>` is the container-deploy equivalent of `ov deploy add <name> --pull`. For host deploys, the same semantics are reached via `ov deploy add host --pull`. See `/ov-core:deploy` for the unified command family and `/ov-advanced:local-deploy` for host-target specifics.
 
 ## Quick Reference
 
