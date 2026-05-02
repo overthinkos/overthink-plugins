@@ -26,7 +26,7 @@ Container service lifecycle management with two modes: **quadlet** (systemd user
 | Stop service | `ov stop <image>` | Stop running service |
 | Configure deployment | `ov config <image>` | Generate .container file, daemon-reload |
 | Remove deployment | `ov config remove <image>` | Remove deployment configuration |
-| Service status | `ov status [<image>]` | Structured status table (IMAGE, STATUS, PORTS, DEVICES, TOOLS) |
+| Service status | `ov status [<image>]` | Structured status table (IMAGE, STATUS, PORTS, TUNNEL, DEVICES, TOOLS); IMAGE merges `image[/instance]` |
 | All services | `ov status --all` | Include stopped/enabled services in listing |
 | Detailed status | `ov status <image>` | Detailed key-value view with live tool probes |
 | JSON output | `ov status --json` | Machine-readable JSON output |
@@ -237,60 +237,115 @@ ov shell <image> -c "<service-command>"
 
 ## Status Output
 
-`ov status` shows a structured table of all running ov containers:
+`ov status` shows a structured table of all ov containers. The table
+gained a TUNNEL column and the IMAGE column now merges `image[/instance]`
+(2026-05-02 redesign):
 
 ```
-IMAGE                       STATUS   PORTS                      DEVICES  TOOLS
-openclaw-sway-browser       running  5900,8000,8080,18789       dri,gpu  supervisord:ok,cdp:9222,dbus,ov,sway,vnc:5900,wl
-ollama                      running  11434                      gpu      supervisord:ok,dbus,ov
-jupyter                     stopped  8888                       -        -
+IMAGE                              STATUS   PORTS                 TUNNEL                  DEVICES  TOOLS
+openclaw-sway-browser              running  5900,8000,8080,18789  -                       dri,gpu  cdp:9222,dbus,ov,supervisord,sway,vnc:5900,wl
+selkies-desktop/work               running  3001,9240             tailscale (all ports)   -        cdp:9240,dbus,ov,supervisord,wl
+selkies-desktop/personal           running  3002,9241             tailscale (all ports)   -        cdp:9241,dbus,ov,supervisord,wl
+ollama                             running  11434                 -                       gpu      dbus,ov,supervisord
+jupyter                            stopped  8888                  tailscale (all ports)   -        -
 ```
 
-- **PORTS**: Host-side port numbers, sorted numerically
-- **DEVICES**: Compact tokens (`gpu`, `dri`, `kvm`, `fuse`), sorted alphabetically
-- **TOOLS**: Live-probed desktop automation tools with actual host ports, sorted alphabetically. Port-based tools show `name:port` (e.g., `cdp:9222`). Socket-based tools show just the name (e.g., `sway`). Non-running containers show `-`.
+- **IMAGE**: `image` for base deploys, `image/instance` for multi-
+  instance — matches the `deployKey` shape used in `deploy.yml` keys and
+  `-i <inst>` flags.
+- **PORTS**: Sorted, deduped host port numbers. **Source priority**:
+  runtime `podman ps` mappings → `deploy.yml` `ports:` → image OCI label
+  `org.overthinkos.ports`. The runtime path uses the structured
+  `[]PortMapping` carried on `ContainerSnapshot`; deploy/label paths go
+  through canonical `ParsePortMapping` so the IPv4-prefixed
+  `127.0.0.1:H:C/proto` form parses correctly.
+- **TUNNEL**: `provider (all ports)` / `provider (ports H,H,H)` /
+  `provider` / `-`. Read from `deploy.yml` only — tunnel config is
+  deploy-yml-only (see `labels.go:238`).
+- **DEVICES**: Compact tokens (`gpu`, `dri`, `kvm`, `fuse`, `tun`),
+  sorted alphabetically.
+- **TOOLS**: Live-probed tools with actual host ports, sorted
+  alphabetically. Port-based tools show `name:port`; socket-based show
+  just the name; non-running containers show `-`.
 
 ### Tool Probes
 
-For running containers, `ov status` probes all tools concurrently:
+`ov status` runs the probe set per running container with two distinct
+shapes:
 
-| Tool | Probe | What it checks |
-|------|-------|---------------|
-| supervisord | `supervisorctl status` | Process manager health, service count (e.g., `8/8 running`) |
-| cdp | HTTP GET `:9222/json` | Chrome DevTools Protocol |
-| vnc | TCP + RFB handshake on `:5900` | VNC server (wayvnc) |
-| sway | Sway IPC socket | Sway compositor |
-| wl | `command -v grim wtype wlrctl` | Wayland tools |
-| dbus | `pgrep -x dbus-daemon` | D-Bus session bus + notification daemon (swaync/mako/dunst) |
-| ov | `which ov` + `ov version` | In-container ov binary + CalVer version |
+- **Host probes** (cdp, vnc) run from the operator's machine using the
+  port mappings already on `ContainerSnapshot` — no `podman port` /
+  `podman inspect` per probe.
+- **Guest probes** (supervisord, dbus, ov, wl, sway) batch into a
+  **single `podman exec sh -c '<concat>'`** invocation per container.
+  Each probe contributes a `Snippet()` that prints `KEY=value` lines; the
+  batcher delimits sections with `===PROBE:<name>===` markers and
+  dispatches each section to its probe's `Parse`.
 
-Each tool also has its own `status` subcommand: `ov eval cdp status`, `ov eval vnc status`, `ov eval wl sway status`, `ov eval wl status`.
+| Tool | Kind | Snippet / Probe | What it checks |
+|------|------|-----------------|---------------|
+| supervisord | guest | `command -v supervisorctl && supervisorctl status` | Process manager health, service count (`N/M running`) |
+| cdp | host | HTTP GET `<host_port_for_9222>/json` | Chrome DevTools Protocol (no `podman port` shell-out) |
+| vnc | host | TCP + RFB banner read on `<host_port_for_5900>` | VNC server (wayvnc) |
+| sway | guest | discover SWAYSOCK then `swaymsg -t get_outputs` | Sway compositor (output dimensions in detail) |
+| wl | guest | `command -v wtype/wlrctl/grim/pixelflux-screenshot` | Wayland tools (one snippet, four checks) |
+| dbus | guest | `pgrep -x dbus-daemon` + scan for swaync/mako/dunst | D-Bus session bus + notifier (one snippet, four checks) |
+| ov | guest | `command -v ov && ov version` | In-container ov binary + CalVer version |
 
-**Note:** `supervisorctl status` exits with code 3 when any service isn't RUNNING (e.g., FATAL, STOPPED). The probe correctly handles this — it parses the output regardless of exit code, only reporting `unreachable` when supervisord is truly not responding.
+Each tool also has its own `status` subcommand: `ov eval cdp status`,
+`ov eval vnc status`, `ov eval wl status`. These commands now use the
+same probe types via `runGuestProbes` / `cdpProbe.ProbeHost` /
+`vncProbe.ProbeHost`.
+
+**Note:** `supervisorctl status` exits with code 3 when any service
+isn't RUNNING (e.g. FATAL, STOPPED). The probe's `Snippet` ends with
+`|| true` so the outer shell never sees the non-zero exit; `Parse`
+classifies output regardless of exit code.
 
 ### Single Image Detail
 
-`ov status <image>` shows a detailed key-value view:
+`ov status <image> -i <inst>` shows a detailed key-value view:
 
 ```
-Image:     openclaw-sway-browser
+Image:     selkies-desktop
+Instance:  work
 Status:    running (Up 3 days)
-Container: ov-openclaw-sway-browser
+Container: ov-selkies-desktop-work
 Mode:      quadlet
-Ports:     5900:5900, 8000:8000, 8080:8080, 18789:18789
+Ports:     3001:3000/tcp, 9240:9222/tcp
 Devices:   nvidia.com/gpu=all, /dev/dri/renderD128
-Tools:     supervisord (ok), cdp:9222 (ok), dbus (ok), ov (ok), sway (ok), vnc:5900 (ok), wl (ok)
-Volumes:   ov-openclaw-sway-browser-data -> ~/.openclaw
-Workspace: ~/projects
-Network:   host
+Tools:     cdp:9240 (ok), dbus (ok), ov (ok), supervisord (ok), wl (ok)
+Volumes:   ov-selkies-desktop-work-data -> /home/abc/data
+Network:   ov
 Tunnel:    tailscale (all ports)
 ```
 
 ### JSON Output
 
-`ov status --json` and `ov status <image> --json` emit structured JSON for scripting.
+`ov status --json` emits an array; `ov status <image> --json` emits a
+single object. The 2026-05-02 redesign changed `ports` from `[]string`
+to a structured array (no compat shim — programmatic consumers must
+read the new shape):
 
-Source: `ov/status.go`.
+```json
+{
+  "ports": [
+    { "host_ip": "127.0.0.1", "host_port": 9240, "container_port": 9222, "protocol": "tcp" }
+  ],
+  "tunnel": "tailscale (all ports)"
+}
+```
+
+### Reaping Orphans
+
+`ov status --reap-orphans` was removed. Use the top-level
+`ov reap-orphans` command instead. Same semantics: walks deploy.yml
+ephemeral entries marked `active`, probes the underlying engine
+(libvirt for VM, podman for pod, kubectl for k8s) and runs `ov deploy
+del <name> --force` for orphans.
+
+Source: `ov/status.go`, `ov/status_engine.go`, `ov/status_collector.go`,
+`ov/status_probes.go`, `ov/status_render.go`, `ov/status_reap.go`.
 
 ## Cross-References
 
