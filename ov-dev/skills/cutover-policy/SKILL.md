@@ -3,7 +3,9 @@ name: cutover-policy
 description: |
   Authoritative reference for the "Hard Cutover by Default" policy governing
   schema changes, API renames, and deprecations. Forbidden patterns, required
-  deliverables, rationale, examples from this repo, and the exception clause.
+  deliverables, rationale, examples from this repo, and the no-exception
+  enforcement: plans are authored as full-scope single-phase cutovers and
+  executed end-to-end regardless of estimated time, context, or scope.
   MUST be invoked when planning or reviewing any breaking change to Go types,
   YAML field names, CLI flags, or OCI labels.
 ---
@@ -12,7 +14,7 @@ description: |
 
 Every schema change, API rename, or deprecation in Overthink ships as a **single hard-cutover PR**. This applies to BOTH code (Go types, exported functions, CLI flags, OCI labels) AND config (overthink.yml, deploy.yml, layer.yml, vms.yml field names and shapes).
 
-The ONLY way a cutover may be phased is if the user explicitly requests phasing DURING PLAN AUTHORING and the phasing is recorded in the plan file BEFORE approval. Once a plan has been approved, it executes end-to-end through R10 in the same conversation — no mid-execution splits, no "pause and resume", no exception.
+A cutover may NEVER be phased — not at plan authoring, not at execution. There is no pre-approval split, no post-approval split, no phased rollout, no grace period, no "author it as two plans" fallback. Plans are authored as full-scope, single-phase cutovers regardless of estimated time, scope, or context. Every cutover executes end-to-end through R10 in the SAME conversation. ALWAYS push as far as you can; compact context and continue, as many times as it takes. An approved plan is a CONTRACT; implement it as written.
 
 This skill is the source of truth for the policy. `CLAUDE.md` links here rather than re-stating the full policy inline. The project's `UserPromptSubmit` hook at `.claude/hooks/runtime-verification-reminder.sh` mirrors the key directives and fires at every user prompt.
 
@@ -27,9 +29,9 @@ This skill is the source of truth for the policy. `CLAUDE.md` links here rather 
 
 **Forbidden**: "Phase 1 landed, Phase 2 pending" as a stopping point. That leaves the system half-migrated — legacy paths live alongside new paths, migrations not yet run, tests passing for some beds and not others. Every historical instance of that pattern in this project left dead code and untested integration points that bit users later.
 
-**Splitting an approved cutover across conversation turns is ABSOLUTELY FORBIDDEN.** Once a plan is approved, it executes end-to-end through R10 in the same conversation. "The work turned out to be large" is NOT a valid reason to pause — compact context and continue, do not negotiate a split mid-execution. An approved plan is a CONTRACT.
+**Splitting a cutover across conversation turns is ABSOLUTELY FORBIDDEN, with NO exception — at plan authoring or at execution.** Once a plan is approved, it executes end-to-end through R10 in the same conversation. ALWAYS push as far as you can. Compact context and continue, as many times as it takes. Time, context space, session budget, scope size, and "the work turned out to be large" are NEVER valid stop reasons.
 
-If you can see BEFORE approval that a cutover is obviously too large for one turn, author it as TWO separate plans so the user can approve them independently — each plan then executes end-to-end. This is a planning-phase decision only; it is not a post-approval escape hatch. The Exception clause at the bottom of this document applies ONLY during planning, never during execution.
+Do not propose phasing, narrowing, or scope reduction at plan-authoring time. Do not negotiate a split mid-execution. Do not silently downgrade. An approved plan is a CONTRACT; implement it as written. The ONLY valid stop conditions, at any stage, are (a) an error you cannot resolve that requires user input, or (b) the plan contradicts itself, CLAUDE.md, or a loaded skill — STOP and ask in either case; do NOT commit a partial state.
 
 ## Forbidden patterns (by default)
 
@@ -51,19 +53,30 @@ Each of these has a specific failure mode that has occurred historically: the fi
 
 Phased migrations accumulate mid-state complexity that, in practice, rarely gets removed. "We'll clean up in Phase 2" is a fiction that the history of this project has shown over and over. Making hard cutover the default across the project closes the loophole where this behavior sneaks in via PRs whose plans didn't explicitly call for a clean cutover.
 
-A developer who *needs* a grace period should record that explicitly in the plan file — both to force an honest review of whether the grace period is actually necessary, and to preserve the audit trail when someone later asks why the old field lingered.
+## No exception clause
 
-## Exception clause (PRE-APPROVAL ONLY)
+There is no pre-approval split, no post-approval split, no phased rollout, no grace period, no "resume in the next session", no "author it as two plans" fallback. Plans are authored as full-scope, single-phase cutovers regardless of estimated time, scope, or context. Phase / scope / time concessions are FORBIDDEN at plan authoring AND at execution.
 
-This exception is ONLY usable during plan authoring, before the user approves. After approval, the exception is closed — the plan runs end-to-end through R10 in the same conversation.
+Every cutover — regardless of estimated effort — runs as ONE phase in the SAME conversation through R10. ALWAYS push as far as you can. Compact context and continue, as many times as it takes.
 
-Explicit user instruction during planning in the form of:
+The ONLY valid stop conditions, at any stage, are:
 
-- "keep the old API for a grace period"
-- "phase the cutover across two releases"
-- "ship backcompat for external consumers of the OCI labels"
+1. An error you cannot resolve that requires user input.
+2. The plan contradicts itself, CLAUDE.md, or a loaded skill.
 
-The exception **must be recorded in the plan file**. When the plan is silent, hard cutover is the default.
+In either case STOP and ask. Do NOT silently downgrade scope, narrow tests, abbreviate the R10 matrix, or commit a partial state. An approved plan is a CONTRACT; implement it as written.
+
+Forbidden internal-voice triggers (each is a confession, NOT a defence):
+
+- "this is too large for one turn"
+- "we should split this into two plans"
+- "session budget concerns mean ..."
+- "to fit context space ..."
+- "for tractable wall-clock ..."
+- "I'll narrow scope just for this canary ..."
+- "let me ask whether to phase it"
+
+If you catch yourself forming any of those: STOP forming them. The plan executes as written.
 
 ## Worked example: the VM refactor (this cutover)
 
