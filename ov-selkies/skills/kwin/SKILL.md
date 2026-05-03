@@ -52,7 +52,6 @@ KWin's `--virtual` backend does NOT expose `zkde_screencast_unstable_v1` Wayland
 - `/ov-foundation:dbus` -- D-Bus session bus (dependency)
 - `/ov-selkies:sway` -- wlroots compositor (alternative)
 - `/ov-selkies:niri` -- Smithay compositor (alternative)
-- `/ov-selkies:xorg-headless` -- X11 display server (alternative)
 - `/ov-selkies:kwin-apps` -- KDE desktop applications
 - `/ov-selkies:kwin-desktop` -- full KWin desktop composition
 
