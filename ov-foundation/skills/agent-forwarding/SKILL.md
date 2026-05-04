@@ -7,6 +7,22 @@ description: |
 
 # agent-forwarding -- SSH/GPG Agent Forwarding Support
 
+**Pure composition layer (post-2026-05 cutover).** This layer carries no
+shell config of its own; per-tool shell init lives in each tool's home
+layer and is inherited transitively via `requires:`. Specifically:
+
+- **direnv hook** (bash/zsh/fish) → `direnv` layer's `shell:` block.
+- **`SSH_AUTH_SOCK` redirect to KeePassXC's published agent socket** →
+  `keepassxc-keyring` layer's `shell:` block (target:local only).
+- **`GPG_TTY=$(tty)` for the pinentry-qt → libsecret → KeePassXC chain**
+  → `keepassxc-keyring` layer's `shell:` block.
+
+Putting any of these in `agent-forwarding` would scatter ownership: the
+direnv hook isn't a KeePassXC concern, KeePassXC's socket isn't a GPG
+concern. The composition stays declarative; agent-forwarding pulls
+in `gnupg` + `direnv` + `ssh-client` and inherits whatever each
+contributes.
+
 ## Layer Properties
 
 | Property | Value |

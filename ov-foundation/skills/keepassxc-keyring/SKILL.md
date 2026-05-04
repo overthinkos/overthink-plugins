@@ -37,8 +37,11 @@ description: |
 2. `~/.config/autostart/keepassxc.desktop` — XDG autostart entry that launches KeePassXC on every session login.
 3. `~/.config/autostart/<competitor>.desktop` — for each known competing Secret Service daemon (`gnome-keyring-secrets`, `gnome-keyring-ssh`, `gnome-keyring-pkcs11`, `org.kde.kwalletd[5,6]`, `kwalletd[5,6]`), writes an override with `Hidden=true` + `X-GNOME-Autostart-enabled=false`. Per the XDG spec, user-level overrides take precedence over `/etc/xdg/autostart/`, so the system package stays untouched and the change is fully reversible by `ov deploy del`.
 4. `systemctl --user disable --now <unit>` for the same competitors' systemd user units (`gnome-keyring-daemon.socket`, `gnome-keyring-daemon.service`, the kwallet service variants). Idempotent, silent if a unit doesn't exist.
-5. `~/.config/fish/conf.d/direnv.fish` — fenced direnv hook for fish.
-6. Fenced managed block appended to `~/.bashrc` and `~/.zshrc` invoking `direnv hook bash|zsh`. Fence pattern matches `ov/shell_profile.go:169-172` (`# overthink:begin direnv-hook ... # overthink:end direnv-hook`) so a future ReverseOp can strip it deterministically.
+5. `~/.gnupg/gpg-agent.conf` — `pinentry-program /usr/bin/pinentry-qt` (the libsecret-linked pinentry that talks to KeePassXC for GPG passphrase storage).
+6. `~/.config/environment.d/ssh-agent.conf` — exports `SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/ssh-agent.socket"` for systemd-bootstrapped sessions.
+7. **Per-shell init exports (post-2026-05 cutover, via the `shell:` schema):** for non-systemd-bootstrapped shells (tmux from a screen-locked session, ssh-in shells without a fresh login, scripts), the layer's `shell:` block lands managed-block exports of `SSH_AUTH_SOCK` (guarded with `command -v` / socket-existence check), `KEEPASSXC_DATABASE` advisory pointer, and `GPG_TTY=$(tty)`. bash/zsh/sh share one POSIX-style snippet; fish gets a syntactically-correct counterpart via `set -gx`. environment.d (item 6) and the `shell:` block coexist with no conflict — environment.d wins under systemd, the shell-rc lines fill the gap when systemd isn't in the loop.
+8. **Direnv shell hooks come from the `direnv` layer** (declared via `requires: [direnv]`). The pre-2026-05 inline `cmd:` heredocs that wrote `direnv-hook` fenced blocks have been DELETED in the same hard-cutover PR — the responsibility moved to where it belongs (the direnv layer's own `shell:` block). On hosts that previously had the legacy blocks, `ov migrate shell-schema` cleans them up.
+9. **systemd user service for KeePassXC** with `Restart=on-failure` and explicit dependency on `graphical-session.target`.
 
 ## What this layer DOES NOT do
 

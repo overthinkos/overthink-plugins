@@ -106,9 +106,9 @@ Each `SystemPackagesStep` carries one phase; `--allow-repo-changes` gating is a 
 Gates apply only to the host target. `EmitOpts.AssumeYes` enables all three. See `GateEnabled(gate, opts)` in `install_plan.go`.
 
 **`StepKind`** — discriminator for concrete types:
-- `SystemPackages`, `Builder`, `Task`, `File`, `ServicePackaged`, `ServiceCustom`, `ShellHook`, `RepoChange`.
+- `SystemPackages`, `Builder`, `Task`, `File`, `ServicePackaged`, `ServiceCustom`, `ShellHook`, `ShellSnippet`, `RepoChange`.
 
-## The eight step kinds
+## The nine step kinds
 
 | Kind | What it carries | Venue default | Scope derivation |
 |---|---|---|---|
@@ -119,7 +119,15 @@ Gates apply only to the host target. `EmitOpts.AssumeYes` enables all three. See
 | `ServicePackagedStep` | Unit, TargetScope, Enable, OverridesText, OverridesPath, LayerName, PriorEnabled | HostNative | TargetScope field |
 | `ServiceCustomStep` | Name, UnitText, UnitPath, TargetScope, Enable, LayerName | HostNative | TargetScope field |
 | `ShellHookStep` | LayerName, EnvVars, PathAdd, EnvFile | HostNative | Always user-profile |
+| `ShellSnippetStep` | LayerName, Origin, Shell (bash/zsh/fish/sh), Snippet, PathAppend, Destination, Marker, UseDropin, Priority | HostNative | `pathIsSystemScoped(Destination)` (system for container drop-ins, user-profile for ~/.bashrc etc.) |
 | `RepoChangeStep` | Format, File, Content, Checksum, LayerName | HostNative | Always system |
+
+**`ShellSnippetStep` notes (2026-05 cutover):**
+- Compiled by `compileShellSnippetSteps` in `install_build.go` — applies the per-shell-wins-over-generic selection rule from `layer.Shell()`.
+- OCITarget emits a `RUN mkdir -p ... && cat > <dest> <<EOF` heredoc with a sha256-derived end-marker (anti-collision).
+- LocalDeployTarget / VmDeployTarget probe `command -v <shell>` once at the top of `Emit()`; absent shells become VenueSkip-style no-ops with a logged reason. UseDropin=true → whole-file write; UseDropin=false → `replaceOrAppendManagedBlock` against the existing rc file with a per-layer marker.
+- Reverse: `ReverseOpRmFileSystem` / `ReverseOpRmFileUser` for drop-ins; `ReverseOpRemoveManaged` (with `Extra["marker"]=LayerName`) for managed-block append.
+- Round-trip: `LabelShell` (`org.overthinkos.shell`) carries the merged set; `CollectShell` builds it at `ov image build` time, `ExtractMetadata` parses it at deploy time, `MergeDeployShell` overlays deploy.yml entries by id.
 
 Each step's `Reverse()` emits typed `ReverseOp` values. Adding a step kind means: (a) define the struct in `install_plan.go`, (b) decide its Scope/Venue/Gate/Reverse, (c) add a case to each target's step dispatch (`emit*` in OCITarget; `exec*` in HostDeployTarget), (d) ensure the compiler in `install_build.go` emits it.
 

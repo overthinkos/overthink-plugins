@@ -958,6 +958,92 @@ Declare `service:` with a supervisord `[program:<name>]` fragment and add `super
 
 ---
 
+## Shell Init Surface (`shell:`)
+
+Layers declare per-shell init snippets via the structured `shell:` field
+(2026-05 cutover). Same body shape as per-distro `rpm:`/`pac:`/`deb:`:
+intrinsic fields apply to every shell, optional sub-blocks named after a
+shell allowlist key (`bash` / `zsh` / `fish` / `sh`) override the
+intrinsic for that one shell.
+
+```yaml
+# layer.yml — generic + override (the canonical shape)
+shell:
+  init: |
+    # Applies to bash, zsh, sh — ${SHELL_NAME} substituted at install time.
+    eval "$(direnv hook ${SHELL_NAME})"
+  fish:
+    init: |
+      # Different syntax — explicit override.
+      direnv hook fish | source
+
+# Pure per-shell form
+shell:
+  bash: { init: 'eval "$(direnv hook bash)"' }
+  zsh:  { init: 'eval "$(direnv hook zsh)"' }
+  fish: { init: 'direnv hook fish | source' }
+
+# PATH contributions (rendered with shell-appropriate syntax —
+# fish_add_path for fish, export PATH= for bash/zsh/sh).
+shell:
+  path_append:
+    - "~/.pixi/bin"
+```
+
+**Selection rule** — applied per (target, shell) at install time:
+1. If `shell.<shell>.init` exists, use it verbatim.
+2. Otherwise, `shell.init` with `${SHELL_NAME}` substituted.
+3. Otherwise, the layer contributes nothing for that shell.
+
+**Where snippets land** — destination is target-aware:
+
+| Shell | Container image (`ov image build`) | `target: local` host / `target: vm` guest |
+|---|---|---|
+| bash | `/etc/profile.d/ov-<layer>-bash.sh` | managed-block in `~/.bashrc` |
+| zsh  | `/etc/profile.d/ov-<layer>-zsh.sh`  | managed-block in `~/.zshrc`  |
+| sh   | `/etc/profile.d/ov-<layer>-sh.sh`   | managed-block in `~/.profile` |
+| fish | `/etc/fish/conf.d/ov-<layer>.fish`  | `~/.config/fish/conf.d/ov-<layer>.fish` |
+
+Bash/zsh/sh on host targets use a per-layer fence pair so multiple
+layers coexist in one rc file:
+
+```
+# overthink:begin <layer> (managed by ov; do not edit inside this block)
+<body>
+# overthink:end <layer>
+```
+
+`ov deploy del` strips just the layer's fence pair from the rc file
+(without touching unrelated content). Fish always uses a per-layer
+drop-in file (`conf.d/` is auto-sourced — no fence needed).
+
+**Cross-environment behaviour** — declaring all four shells in one
+layer covers the full cartesian product `{distros} × {host shells}`.
+The runtime `command -v <shell>` probe at `target: local` / `target: vm`
+deploy time skips snippets for shells that aren't installed on the
+target — same precedent as how `aur:` skips on non-Arch.
+
+**Field reference (intrinsic body OR per-shell sub-block):**
+
+| Field | Type | Purpose |
+|---|---|---|
+| `init` | string (block scalar) | Snippet body. Required when the block is present. |
+| `path_append` | `[]string` | PATH entries; rendered with shell-appropriate syntax. `~/`-prefix expands at install time. |
+| `path` | string | Override destination file. `..`-traversal is rejected at validate time. |
+| `priority` | int | Optional load order across layers contributing to the same shell. Default 50. |
+
+**OCI label round-trip:** the merged shell config is baked into
+`org.overthinkos.shell` at `ov image build` time and parsed back via
+`ExtractMetadata` at deploy. `deploy.yml` `shell:` overlays merge by
+id (same replace/skip/append semantics as `eval:`).
+
+**Migration:** `ov migrate shell-schema` rewrites legacy `cmd:` shell-rc
+heredoc tasks (matching the `# overthink:begin direnv-hook` /
+`# overthink:begin ssh-auth-sock` fence patterns) into the structured
+shell: schema. Idempotent.
+
+---
+
 ## Cross-References
 
 - `/ov-build:image` — Adding layers to image definitions; image composition; `data_image:` for data-only bundles; the full MCP-first authoring table including `image set`, `image add-layer`, `image rm-layer`, `image write`, `image cat`.

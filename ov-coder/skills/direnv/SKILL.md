@@ -30,7 +30,20 @@ Typically used as part of the `agent-forwarding` composition layer rather than d
 
 ## Runtime Behavior
 
-Provides the `direnv` binary for automatic environment variable loading from `.envrc` files. When entering a directory with `.envrc`, direnv evaluates it and exports environment variables.
+Provides the `direnv` binary AND the per-shell hook installation (post-2026-05 cutover) for automatic environment variable loading from `.envrc` files.
+
+**Shell hooks are now declarative (2026-05 cutover).** The layer carries a `shell:` block:
+
+```yaml
+shell:
+  init: |
+    eval "$(direnv hook ${SHELL_NAME})"   # bash/zsh/sh — POSIX-style
+  fish:
+    init: |
+      direnv hook fish | source            # fish — different syntax
+```
+
+Container images get `/etc/profile.d/ov-direnv-<shell>.sh` and `/etc/fish/conf.d/ov-direnv.fish` emitted at `ov image build` time. `target: local` host deploys get a managed-block in `~/.bashrc` / `~/.zshrc` plus `~/.config/fish/conf.d/ov-direnv.fish` at `ov deploy add` time, only for shells the runtime probe finds. The pre-cutover bug (fish hook missing because `~/.config/fish/config.fish` was never edited) is structurally fixed.
 
 The primary use case in Overthink is the `.secrets` workflow: `.envrc` calls `eval "$(ov secrets gpg env)"` which decrypts a GPG-encrypted `.secrets` file in memory and exports the variables — no plaintext on disk. No external `direnvrc` dependency needed.
 
