@@ -1066,6 +1066,12 @@ shell: schema. Idempotent.
 
 ---
 
+## Cross-kind name reuse (2026-05-05)
+
+A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `k8s:`, `local:`, and `deployment:`. The same identifier (e.g. `cachyos-dx`) MAY exist as a layer at `layers/cachyos-dx/` AND an image entry `image.cachyos-dx` AND a deployment row `deployment.cachyos-dx` simultaneously. Verbs disambiguate by context. When `ov deploy add <name>` resolves a ref where both an image AND a layer with that name exist, image wins (image-first precedence); use `--add-layer <name>` to explicitly select the layer for an overlay. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/ov-core:deploy`.
+
+---
+
 ## When to Use This Skill
 
 **MUST be invoked** for any task involving layer authoring, `layer.yml`, `tasks:`, `vars:`, `pixi.toml`, `package.json`, `Cargo.toml`, or any file under `layers/`. Invoke this skill BEFORE reading source code or launching Explore agents.

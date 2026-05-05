@@ -187,6 +187,10 @@ ov image list layers                       # Verify layer exists
 - `/ov-build:mcp` — the standalone reference for the `mcp:` verb: required modifiers (`tool:` for `call`, `uri:` for `read`), the 7-method allowlist, and the URL-rewrite / port-publishing behavior that authors occasionally hit.
 - `/ov-advanced:cdp`, `/ov-advanced:wl`, `/ov-advanced:dbus`, `/ov-advanced:vnc` — per-verb references for the other four live-container verbs.
 
+## Cross-kind name reuse — NOT a uniqueness violation (2026-05-05)
+
+`ov image validate` does NOT enforce global name uniqueness across kinds. The same name MAY exist simultaneously as a layer (`layers/<name>/`), an `image:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry, AND a `deployment:` entry. Uniqueness is scoped to each kind. Do not write a validator that flags `image.foo + vm.foo` as ambiguous — verbs disambiguate by command context. The single load-time error this cutover added is a deliberate hard-fail on the retired `deployment.qc` key, with a remediation hint pointing at `ov migrate qc-rename`. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/ov-build:migrate`.
+
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves ov image validate command, validation rules, common validation errors, or checking image.yml and layer definitions. Invoke this skill BEFORE reading source code or launching Explore agents.

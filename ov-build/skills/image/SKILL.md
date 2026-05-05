@@ -549,6 +549,10 @@ images:
 - `/ov-vms:vms` — authoring reference for the `kind: vm` entity schema (replaces legacy `image.vm:` / `image.libvirt:`).
 - `/ov-build:migrate` — `ov migrate vm-spec` converts legacy VM fields to `vms.yml`.
 
+## Cross-kind name reuse (2026-05-05)
+
+The `image:` map's namespace is independent of `layers/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deployment:`. The same name MAY exist across all of them. Authoring verbs (`ov image set`, `ov image new image`, `ov image add-layer`, `ov image rm-layer`, `ov image new project`) write exclusively to `overthink.yml` — per-kind `image.yml` is reachable only via `includes:` from `overthink.yml`, never as a default authoring target. Missing `overthink.yml` → hard error pointing at `ov image new project .` or `ov migrate unified`. See CLAUDE.md "Cross-kind name reuse" and `/ov-build:migrate` for `ov migrate qc-rename` (the demonstrative migration that paired a kind:local template with a same-named kind:deployment entry).
+
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves image definitions in image.yml, image inheritance, defaults, platforms, builder configuration, or the image dependency graph. Invoke this skill BEFORE reading source code or launching Explore agents.

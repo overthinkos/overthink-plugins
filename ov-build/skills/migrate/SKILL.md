@@ -17,6 +17,7 @@ One-shot, idempotent migrators for every hard-cutover schema change the project 
 | `ov migrate merge-vms` | Separate `vms.yml` → `deploy.yml` top-level `vm:` key; rename `vms:` → `vm:`, `arch-cloud-base` → `arch`; bump schema v1 → v2 | `/ov-vms:vms` |
 | `ov migrate deploy-schema-v-3` | Schema v2 → v3: rename `vm:<name>` deploy keys → `<name>-vm`, normalize `target: container` → `pod`, `target: kubernetes` → `k8s`, rename `vm_source:` → `vm:`, bump `version: 2` → `3`. Idempotent (second run = no-op). | `/ov-core:deploy`, `/ov-advanced:vm`, `/ov-dev:disposable` |
 | `ov migrate shell-schema` | Convert legacy `cmd:` shell-rc heredoc tasks (matching the `# overthink:begin direnv-hook` / `# overthink:begin ssh-auth-sock` fence patterns) into the structured `shell:` schema. Idempotent. Distinguishes install-style heredocs (`cat >`) from cleanup-style strips (`sed -i`) — only rewrites the former. 2026-05 cutover. | `/ov-build:layer`, `/ov-coder:direnv` |
+| `ov migrate qc-rename` | Rename the operator-specific `qc` deployment key to `cachyos-dx` in `overthink.yml` and `~/.config/ov/deploy.yml`. Demonstrates cross-kind name reuse (2026-05-05): the kind:local template and the kind:deployment entry that applies it now share the name `cachyos-dx`. Idempotent; line-oriented edits preserve comments. Residual `deployment.qc` keys raise a hard load-time error pointing at this command. | `/ov-build:local-spec`, `/ov-core:deploy` |
 
 # ov migrate unified
 

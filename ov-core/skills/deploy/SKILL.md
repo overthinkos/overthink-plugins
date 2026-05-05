@@ -811,6 +811,14 @@ images:
 - `/ov-ollama:ollama`, `/ov-hermes:hermes` — Custom `services:` entries
 - `/ov-selkies:selkies-desktop` — Multi-instance proxy deployment, tunnel inheritance workaround
 
+## Cross-kind name reuse + ResolveDeployRef precedence (2026-05-05)
+
+A deployment entry's key in `deployment:` lives in its own namespace. The same name MAY simultaneously be a layer, an `image:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry — and the deployment's cross-reference fields (`image:`, `vm:`, `local:`, `cluster:`) are scoped to the matching kind, no fall-through. Concrete worked example: this repo's `deployment.cachyos-dx` references `local.cachyos-dx` via `local: cachyos-dx` — same name across two namespaces.
+
+`ResolveDeployRef` (used by `ov deploy add <name> <ref>`): when a name exists as BOTH an image and a layer, image-first precedence wins for the primary `<ref>` positional. The `--add-layer <ref>` path goes through `ResolveDeployRefAsLayer` which is layer-first. The retired image+layer ambiguity error is gone — same-name image and layer is permitted.
+
+Migration for the operator-specific `qc` → `cachyos-dx` rename: `ov migrate qc-rename` (idempotent). Residual `deployment.qc` keys raise a hard load-time error. See `/ov-build:migrate`.
+
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves quadlet generation, tunnels, bind mounts, or deploy overlays. Invoke this skill BEFORE reading source code or launching Explore agents.

@@ -119,9 +119,9 @@ Three input forms (mirror `ov image pull`):
 - `@github.com/...`: syntax-valid remote ref check.
 - Duplicates within one template: hard error.
 
-**Idempotent.** Running `ov deploy add qc` twice on the same host —
-when all images are already present — emits "image=X present" for each
-declared entry and is a no-op for podman.
+**Idempotent.** Running `ov deploy add cachyos-dx` twice on the same
+host — when all images are already present — emits "image=X present"
+for each declared entry and is a no-op for podman.
 
 **Refcount-aware cleanup at `ov deploy del`.** Each `EnsureImageStep`
 records a `ReverseOpRemoveImage` op tagged with the deploy ID. Image
@@ -180,7 +180,11 @@ local:
 - `/ov-advanced:local-deploy` — the `target: local` deployment surface that consumes this template.
 - `/ov-dev:local-infra` — Go file map (`local_spec.go`, `LocalSpec` struct, `findLocalSpec` lookup).
 - `/ov-build:layer` — layer authoring (the building blocks composed by templates).
-- `/ov-build:migrate` — `ov migrate target-local` migrates legacy `kind: host`/`host.yml` projects.
+- `/ov-build:migrate` — `ov migrate target-local` migrates legacy `kind: host`/`host.yml` projects; `ov migrate qc-rename` renames the operator-specific `qc` deployment key to `cachyos-dx` (demonstrating that a kind:local template and a kind:deployment entry can share a name — cross-kind reuse, 2026-05-05).
+
+## Cross-kind name reuse (2026-05-05)
+
+A `kind: local` template's name lives in the `local:` namespace, independent of layer / image / pod / vm / k8s / deployment. The canonical example is `cachyos-dx` — `local.cachyos-dx` is the template; `deployment.cachyos-dx` is the deployment entry that applies it; both share the name without conflict. Verbs disambiguate: `ov rebuild cachyos-dx` resolves to the deployment entry; the template is referenced internally via the deployment's `local: cachyos-dx` field. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged".
 
 ## When to Use This Skill
 

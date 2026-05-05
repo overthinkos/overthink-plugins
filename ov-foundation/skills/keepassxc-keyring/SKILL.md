@@ -67,7 +67,7 @@ Order with respect to `direnv`/`gnupg`/`keepassxc` doesn't strictly matter (the 
 
 ## Used In Images / Templates
 
-- `cachyos-dx` (kind:local template, applied to the `qc` deployment)
+- `cachyos-dx` (kind:local template, applied via the `cachyos-dx` deployment — same name; cross-kind reuse permitted since 2026-05)
 
 ## Tests
 

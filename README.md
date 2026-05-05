@@ -2,6 +2,13 @@
 
 Claude Code plugins for Overthink — the container management experience for you and your AI.
 
+## Recent changes
+
+- **2026-05-05** — Cross-kind name reuse + `overthink.yml`-only authoring.
+  Same name MAY exist across layer / image / pod / vm / k8s / local /
+  deployment. All authoring verbs default to `overthink.yml`. New
+  migration: `ov migrate qc-rename`. See CLAUDE.md.
+
 ## Architecture (v2.0.0 — 2026-04-30)
 
 The marketplace is organized into **three concentric tiers**:
