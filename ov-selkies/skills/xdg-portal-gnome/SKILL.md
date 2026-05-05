@@ -49,7 +49,6 @@ The GNOME portal backend checks `XDG_SESSION_TYPE` at startup. Without `XDG_SESS
 - `/ov-selkies:pipewire` -- PipeWire media server (dependency)
 - `/ov-selkies:xdg-portal` -- Sway variant (uses xdg-desktop-portal-wlr)
 - `/ov-selkies:xdg-portal-kde` -- KDE variant (uses xdg-desktop-portal-kde)
-- `/ov-selkies:xdg-portal-niri` -- Niri variant
 - `/ov-selkies:mutter-desktop` -- composition that includes this layer
 
 ## Used In Images

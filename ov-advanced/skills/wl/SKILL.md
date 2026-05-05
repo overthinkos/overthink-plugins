@@ -8,7 +8,7 @@ description: |
 
 ## Overview
 
-`ov eval wl` is the unified desktop automation command for all wlroots-based compositors (sway, labwc, niri). It provides screenshots, input (click, type, key combos, scroll, drag), window management (via `wlrctl toplevel`), clipboard, resolution control, accessibility introspection (AT-SPI2), and window geometry queries. Works on both sway-desktop and selkies-desktop images.
+`ov eval wl` is the unified desktop automation command for all wlroots-based compositors (sway, labwc). It provides screenshots, input (click, type, key combos, scroll, drag), window management (via `wlrctl toplevel`), clipboard, resolution control, accessibility introspection (AT-SPI2), and window geometry queries. Works on both sway-desktop and selkies-desktop images.
 
 ### Also as a declarative verb
 
@@ -49,17 +49,17 @@ Every `ov eval wl <method>` (including nested `wl overlay <method>` and `wl sway
 
 All commands work on any wlroots-based compositor:
 
-| Tool | Protocol | sway | labwc (selkies) | niri |
-|------|----------|------|-----------------|------|
-| grim | wlr-screencopy | YES | NO (nested compositor) | YES |
-| pixelflux-screenshot | pixelflux API | NO | YES | NO |
-| wtype | zwp_virtual_keyboard_v1 | YES | YES | YES |
-| wlrctl pointer | wlr-virtual-pointer | YES | YES | YES |
-| wlrctl toplevel | wlr-foreign-toplevel-management | YES | YES | YES |
-| wlr-randr | wlr-output-management | YES | YES | YES |
-| wl-copy/paste | wlr-data-control | YES | YES | YES |
-| xdotool | X11 (XWayland) | YES | YES (on-demand) | YES |
-| swaymsg | i3 IPC | YES | NO | NO |
+| Tool | Protocol | sway | labwc (selkies) |
+|------|----------|------|-----------------|
+| grim | wlr-screencopy | YES | NO (nested compositor) |
+| pixelflux-screenshot | pixelflux API | NO | YES |
+| wtype | zwp_virtual_keyboard_v1 | YES | YES |
+| wlrctl pointer | wlr-virtual-pointer | YES | YES |
+| wlrctl toplevel | wlr-foreign-toplevel-management | YES | YES |
+| wlr-randr | wlr-output-management | YES | YES |
+| wl-copy/paste | wlr-data-control | YES | YES |
+| xdotool | X11 (XWayland) | YES | YES (on-demand) |
+| swaymsg | i3 IPC | YES | NO |
 
 **Coordinate translation flags:**
 - `--from-cdp` — Works on all compositors (uses `window.screenX/Y`)
@@ -165,7 +165,7 @@ ov eval cdp click selkies-desktop $TAB '#submit-button' --wl
 
 ## Sway-Specific Commands (`ov eval wl sway`)
 
-Sway IPC commands are grouped under `ov eval wl sway <subcommand>`. These require a sway compositor and use swaymsg. They will error on labwc/niri.
+Sway IPC commands are grouped under `ov eval wl sway <subcommand>`. These require a sway compositor and use swaymsg. They will error on labwc.
 
 ```bash
 ov eval wl sway tree <image>              # Get sway window tree (JSON)

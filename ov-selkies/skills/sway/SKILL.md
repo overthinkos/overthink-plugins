@@ -93,7 +93,6 @@ Transitive dependency via `chrome-sway` and `sway-desktop` in all desktop images
 - `/ov-selkies:sway-desktop` -- full desktop composition (VNC)
 - `/ov-selkies:wayvnc` -- VNC access to Sway display
 - `/ov-selkies:waybar` -- status bar (depends on sway)
-- `/ov-selkies:niri` -- Niri compositor alternative (Smithay-based, built from source)
 
 ## Related Commands
 

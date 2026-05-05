@@ -56,7 +56,6 @@ The waybar `custom/notification` module displays a notification bell icon using 
 Works with any wlroots compositor via `wlr-layer-shell` protocol:
 - **sway** -- replaces mako (mako removed from sway layer)
 - **labwc** -- first notification daemon (none was previously included)
-- **niri** -- compatible but niri layer still includes mako (separate scope)
 
 ## Testing Notifications
 

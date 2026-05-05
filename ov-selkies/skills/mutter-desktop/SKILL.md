@@ -26,7 +26,6 @@ description: |
 - `/ov-selkies:mutter` -- Mutter compositor
 - `/ov-selkies:kwin-desktop` -- KDE variant
 - `/ov-selkies:sway-desktop` -- Sway variant
-- `/ov-selkies:niri-desktop` -- Niri variant
 
 ## Used In Images
 

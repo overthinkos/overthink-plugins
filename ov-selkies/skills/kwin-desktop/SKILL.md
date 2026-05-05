@@ -33,20 +33,19 @@ my-kwin-desktop:
 
 ## Comparison with Other Desktops
 
-| Component | kwin-desktop | sway-desktop | niri-desktop |
-|-----------|-------------|--------------|--------------|
-| Compositor | KWin (KDE) | Sway (wlroots) | Niri (Smithay) |
-| Portal | xdg-portal-kde | xdg-portal (wlr) | xdg-portal-niri |
-| Terminal | Konsole | xfce4-terminal | xfce4-terminal |
-| File manager | Dolphin | Thunar | Thunar |
-| Status bar | None | Waybar | None |
-| Chrome binding | chrome-kwin | chrome-sway | chrome-niri |
+| Component | kwin-desktop | sway-desktop |
+|-----------|-------------|--------------|
+| Compositor | KWin (KDE) | Sway (wlroots) |
+| Portal | xdg-portal-kde | xdg-portal (wlr) |
+| Terminal | Konsole | xfce4-terminal |
+| File manager | Dolphin | Thunar |
+| Status bar | None | Waybar |
+| Chrome binding | chrome-kwin | chrome-sway |
 
 ## Related Layers
 
 - `/ov-selkies:kwin` -- KWin compositor
 - `/ov-selkies:sway-desktop` -- Sway variant
-- `/ov-selkies:niri-desktop` -- Niri variant
 
 ## Used In Images
 

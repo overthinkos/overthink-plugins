@@ -60,7 +60,7 @@ ov eval dbus introspect <image> <dest> <path>  # Service introspection
 
 For notifications to work, the image needs:
 1. **`dbus` layer** — D-Bus session bus (this layer)
-2. **`swaync` layer** — notification daemon (or `mako` for niri)
+2. **`swaync` layer** — notification daemon
 3. **`ov` layer** — in-container ov binary for native D-Bus (falls back to `gdbus` from `glib2`)
 
 ### Error Messages

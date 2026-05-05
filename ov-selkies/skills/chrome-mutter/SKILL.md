@@ -29,7 +29,6 @@ my-browser:
 - `/ov-selkies:chrome` -- Chrome browser and DevTools (included via layers)
 - `/ov-selkies:chrome-sway` -- Sway variant
 - `/ov-selkies:chrome-kwin` -- KWin variant
-- `/ov-selkies:chrome-niri` -- Niri variant
 - `/ov-selkies:mutter-desktop` -- composition that includes chrome-mutter
 
 ## Used In Images

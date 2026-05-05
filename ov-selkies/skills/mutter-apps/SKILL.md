@@ -31,7 +31,6 @@ my-desktop:
 
 - `/ov-selkies:mutter` -- compositor dependency
 - `/ov-selkies:kwin-apps` -- KDE variant (Konsole + Dolphin)
-- `/ov-selkies:niri-apps` -- Niri variant (xfce4-terminal + Thunar)
 - `/ov-selkies:mutter-desktop` -- composition that includes this layer
 
 ## Used In Images

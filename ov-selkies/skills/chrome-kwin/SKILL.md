@@ -32,7 +32,6 @@ Part of `/ov-selkies:kwin-desktop` composition.
 - `/ov-selkies:kwin` -- compositor dependency
 - `/ov-selkies:chrome` -- Chrome browser and DevTools (included via layers)
 - `/ov-selkies:chrome-sway` -- Sway variant
-- `/ov-selkies:chrome-niri` -- Niri variant
 - `/ov-selkies:kwin-desktop` -- composition that includes chrome-kwin
 
 ## When to Use This Skill

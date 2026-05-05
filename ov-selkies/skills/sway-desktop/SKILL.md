@@ -35,7 +35,6 @@ sway-browser-vnc:
 - `/ov-selkies:chrome-sway` -- Chrome browser on Sway (included)
 - `/ov-selkies:waybar` -- status bar and auto-tiling (included)
 - `/ov-selkies:sway-desktop-vnc` -- VNC variant (adds wayvnc)
-- `/ov-selkies:niri-desktop` -- Niri variant (Smithay compositor, built from source)
 
 ## Used In Images
 

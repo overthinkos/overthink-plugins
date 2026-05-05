@@ -23,8 +23,7 @@ description: |
 
 The package list is the **centralized place** to add system libraries that any builder
 stage needs. Image-specific cargo deps live here when they're broadly useful; truly
-image-specific deps stay in their image's own layer (e.g., `niri` still ships its own
-clang-devel etc. for niri-specific builds).
+image-specific deps stay in their image's own layer.
 
 ### 1. Generic C/C++ build tools (21)
 

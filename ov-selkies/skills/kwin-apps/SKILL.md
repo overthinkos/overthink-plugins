@@ -27,12 +27,11 @@ my-desktop:
     - kwin-apps
 ```
 
-**Note:** Uses KDE-native apps (Konsole, Dolphin) instead of the GTK apps used in Sway/Niri stacks (xfce4-terminal, Thunar). Better integration with KWin's D-Bus services and portal infrastructure.
+**Note:** Uses KDE-native apps (Konsole, Dolphin) instead of the GTK apps used in the Sway stack (xfce4-terminal, Thunar). Better integration with KWin's D-Bus services and portal infrastructure.
 
 ## Related Layers
 
 - `/ov-selkies:kwin` -- compositor dependency
-- `/ov-selkies:niri-apps` -- Niri variant (xfce4-terminal + thunar)
 - `/ov-selkies:kwin-desktop` -- composition that includes this layer
 
 ## Used In Images

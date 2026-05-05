@@ -57,7 +57,6 @@ This is architecturally different from KWin (Wayland protocol) and Sway (wlr-scr
 - `/ov-foundation:dbus` -- D-Bus session bus (dependency)
 - `/ov-selkies:kwin` -- KDE compositor (alternative, disabled due to screencast limitation)
 - `/ov-selkies:sway` -- wlroots compositor (alternative)
-- `/ov-selkies:niri` -- Smithay compositor (alternative)
 - `/ov-selkies:mutter-apps` -- GNOME desktop applications
 - `/ov-selkies:mutter-desktop` -- full Mutter desktop composition
 

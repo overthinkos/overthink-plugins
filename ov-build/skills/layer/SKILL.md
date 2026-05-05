@@ -231,7 +231,6 @@ They happen to emit `COPY` directives under the hood, but they have entirely dis
 ```yaml
 vars:
   TRAEFIK_VERSION: v3.4.0
-  NIRI_BRANCH: feat/virtual
 
 tasks:
   - download: "https://github.com/traefik/traefik/releases/download/${TRAEFIK_VERSION}/traefik_${TRAEFIK_VERSION}_linux_${ARCH}.tar.gz"

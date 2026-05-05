@@ -2,7 +2,7 @@
 
 ## Overview
 
-Provides CLI tools for desktop automation — Wayland-native, X11, and clipboard. Used by the `ov eval wl` command. Works on all wlroots compositors (sway, labwc, niri). No daemon or special device access needed.
+Provides CLI tools for desktop automation — Wayland-native, X11, and clipboard. Used by the `ov eval wl` command. Works on all wlroots compositors (sway, labwc). No daemon or special device access needed.
 
 **Note:** Screenshots are NOT included in this layer. Use `wl-screenshot-grim` (sway) or `wl-screenshot-pixelflux` (selkies) depending on your compositor.
 
@@ -21,7 +21,7 @@ rpm:
     - ydotool
 ```
 
-No dependencies — compositor-agnostic. Works with sway, labwc, niri, or any wlroots compositor.
+No dependencies — compositor-agnostic. Works with sway, labwc, or any wlroots compositor.
 
 ## Key Properties
 
@@ -61,15 +61,15 @@ All packages are in Fedora official repos.
 
 ## What works where
 
-| Tool | sway | labwc (selkies) | niri |
-|------|------|-----------------|------|
-| wtype | YES | YES | YES |
-| wlrctl pointer | YES | YES | YES |
-| wlrctl toplevel | YES | YES | YES |
-| wlr-randr | YES | YES | YES |
-| wl-clipboard | YES | YES | YES |
-| xdotool | YES (XWayland) | YES (XWayland on-demand) | YES (XWayland) |
-| ydotool | YES | YES (needs /dev/uinput) | YES |
+| Tool | sway | labwc (selkies) |
+|------|------|-----------------|
+| wtype | YES | YES |
+| wlrctl pointer | YES | YES |
+| wlrctl toplevel | YES | YES |
+| wlr-randr | YES | YES |
+| wl-clipboard | YES | YES |
+| xdotool | YES (XWayland) | YES (XWayland on-demand) |
+| ydotool | YES | YES (needs /dev/uinput) |
 
 ## Used In Images
 

@@ -45,7 +45,7 @@ Installed to `~/.local/bin/ov-overlay` via `tasks:`. Dual-mode script (daemon + 
 
 ```yaml
 # image.yml — typically included via desktop metalayers
-# Already part of sway-desktop, selkies-desktop, niri-desktop
+# Already part of sway-desktop, selkies-desktop
 my-desktop:
   layers:
     - wl-overlay
@@ -61,7 +61,6 @@ ov eval wl overlay hide my-image --all
 
 - `/ov-selkies:sway-desktop` — sway desktop composition
 - `/ov-selkies:selkies-desktop` — selkies streaming desktop composition
-- `/ov-selkies:niri-desktop` — niri desktop composition
 
 ## Used In Images
 

@@ -56,7 +56,6 @@ The `zkde_screencast_unstable_v1` Wayland protocol is not exposed by KWin's `--v
 - `/ov-selkies:kwin` -- KWin compositor (dependency)
 - `/ov-selkies:pipewire` -- PipeWire media server (dependency)
 - `/ov-selkies:xdg-portal` -- Sway variant (uses xdg-desktop-portal-wlr)
-- `/ov-selkies:xdg-portal-niri` -- Niri variant (uses xdg-desktop-portal-gnome)
 - `/ov-selkies:kwin-desktop` -- composition that includes this layer
 
 ## Used In Images

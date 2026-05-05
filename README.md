@@ -78,7 +78,7 @@ needed to run that pod.
 |---|---|---|---|
 | `ov-jupyter` | jupyter, jupyter-ml, jupyter-ml-notebook, unsloth-studio | jupyter @ 8888 | JupyterLab + ML stack + 13 CRDT MCP tools for notebook manipulation |
 | `ov-coder` | arch-coder, debian-coder, fedora-coder, ubuntu-coder, arch-ov | ov @ 18765 | Developer pods (Claude Code, Codex, Gemini, ForgeCode, Oracle, kubectl, docker, gcloud) with the ov MCP server |
-| `ov-selkies` | selkies-desktop\*, sway-browser-vnc | chrome-devtools @ 9224 | Wayland desktop in a container (sway/niri/labwc + VNC + Chrome) |
+| `ov-selkies` | selkies-desktop\*, sway-browser-vnc | chrome-devtools @ 9224 | Wayland desktop in a container (sway/labwc + VNC + Chrome) |
 | `ov-openclaw` | openclaw\* | chrome-devtools @ 9224 | Multi-variant AI workstation (bootc, full, ml, sway, ollama, browser) |
 | `ov-ollama` | ollama | — | Ollama LLM server. Pair with `ov-jupyter` for in-notebook inference |
 | `ov-openwebui` | openwebui | — (consumes jupyter MCP) | Web chat frontend with code-execution via jupyter |

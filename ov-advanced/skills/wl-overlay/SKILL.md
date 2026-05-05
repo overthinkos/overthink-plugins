@@ -144,7 +144,6 @@ All overlay types work on all wlroots-based compositors:
 |-----------|-------------|--------|-------|
 | sway | sway-browser-vnc | WORKS | Instant rendering, captured by wayvnc |
 | labwc | selkies-desktop | WORKS | ~15s capture latency in controller mode (no browser). Instant in recordings |
-| niri | niri-desktop | WORKS | Layer-shell supported via Smithay |
 
 ### Key Technical Details
 
@@ -191,9 +190,9 @@ Socket: `/tmp/ov-overlay.sock` (Unix domain, JSON-line)
 ## Requirements
 
 - Container must include `wl-overlay` layer (gtk4-layer-shell + python3-gobject)
-- Container must have a running Wayland compositor (sway, labwc, niri)
+- Container must have a running Wayland compositor (sway, labwc)
 - Container must have `tmux` layer (for daemon hosting)
-- Included in `sway-desktop`, `selkies-desktop`, and `niri-desktop` metalayers
+- Included in `sway-desktop` and `selkies-desktop` metalayers
 
 ## Cross-References
 
@@ -203,6 +202,5 @@ Socket: `/tmp/ov-overlay.sock` (Unix domain, JSON-line)
 - `/ov-selkies:wl-overlay-layer` — Layer reference (RPM packages, dependencies)
 - `/ov-selkies:sway-desktop` — Desktop metalayer (includes wl-overlay)
 - `/ov-selkies:selkies-desktop` — Desktop metalayer (includes wl-overlay)
-- `/ov-selkies:niri-desktop` — Desktop metalayer (includes wl-overlay)
 
 Source: `ov/wl_overlay.go` (Go commands), `layers/wl-overlay/ov-overlay` (Python daemon/client).
