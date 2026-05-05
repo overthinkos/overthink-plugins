@@ -151,7 +151,6 @@ project/
 │                              # (referenced via image.yml format_config)
 ├── .build/                    # Generated Containerfiles (gitignored)
 ├── image.yml                  # Image definitions
-├── setup.sh                   # Bootstrap: downloads task, builds ov
 ├── Taskfile.yml               # Bootstrap tasks only
 ├── taskfiles/                 # Build.yml, Setup.yml
 ├── layers/<name>/             # Layer directories (160 layers)

@@ -292,12 +292,12 @@ ov settings set engine.run docker     # or podman
 
 ## Host Bootstrap (First Time)
 
-Requires: `go`, `docker` (or `podman`). Run `bash setup.sh` to download `task`, build the `ov` CLI, then use `ov` directly.
+Requires: `go-task`, `go`, `docker` (or `podman`). On Arch the recommended install is `yay -S ov-git` (or `cd pkg/arch && makepkg -si`) — the PKGBUILD pulls every dep, including `task` itself, and the bundled pacman post-install hook enables docker/tailscaled/virtqemud automatically. On other distros, run `task build:ov` from the checkout to compile and install `ov` to `~/.local/bin/ov`.
 
 ```bash
-bash setup.sh        # Download task, build ov CLI
+task build:ov        # Build + install ov; on Arch delegates to makepkg -si, elsewhere installs portable to ~/.local/bin
 task setup:builder   # Create multi-platform buildx builder
-ov image build             # Generate + build + merge all images
+ov image build       # Generate + build + merge all images
 ```
 
 ## Common Workflows
@@ -329,7 +329,7 @@ ov image build --push
 
 ### "ov not found"
 
-Run `bash setup.sh` to download task and compile the CLI, or `task build:ov` if task is already installed.
+On Arch run `yay -S ov-git` (or `cd pkg/arch && makepkg -si`) to install system-wide. Elsewhere run `task build:ov` from the checkout — `task` itself is required (install via your distro package manager or download from go-task/task releases).
 
 ### Build Fails with Missing Base
 
