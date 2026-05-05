@@ -116,7 +116,7 @@ Supervisord starts programs in **priority order** (ascending). Layers set priori
 | Priority | Typical services |
 |----------|------------------|
 | `1-9` | System-level: dbus, pipewire |
-| `10` | Compositors: sway, labwc, mutter, kwin |
+| `10` | Compositors: sway, labwc |
 | `15-20` | Desktop extras: waybar, swaync |
 | `30-50` | Applications: chrome, openclaw, hermes |
 | `100` | Auxiliary: cdp-proxy, chrome-devtools-mcp |
@@ -266,7 +266,7 @@ Container-mode logs are unaffected — supervisord is still PID 1 there.
 - `/ov-foundation:dbus` -- D-Bus session bus (depends on supervisord)
 - `/ov-foundation:bootc-config` -- ships the systemd-user supervisord autostart wrapper for bootc images
 - `/ov-selkies:selkies-desktop-bootc` -- canonical worked example of supervisord running under systemd
-- `/ov-ollama:ollama`, `/ov-openclaw:openclaw`, `/ov-foundation:postgresql`, `/ov-foundation:redis`, `/ov-selkies:sway`, `/ov-selkies:mutter`, `/ov-selkies:kwin` -- All ship `service:` blocks
+- `/ov-ollama:ollama`, `/ov-openclaw:openclaw`, `/ov-foundation:postgresql`, `/ov-foundation:redis`, `/ov-selkies:sway` -- All ship `service:` blocks
 
 ## Related Commands
 
