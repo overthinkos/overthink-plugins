@@ -69,80 +69,32 @@ local:
 | `description` | No | Gherkin-shaped (Feature/Narrative/Tag/Scenario). Status word lives in `tag`: `working`/`testing`/`broken`. |
 | `eval` | No | Deploy-scope checks; merged with deployment.eval. |
 | `deploy_eval` | No | Same as `eval` but reserved for image-style deploy-tests propagation. |
-| `images` | No | Container images that must be present in local podman storage before tests can run. See "Images Surface" below. 2026-05 cutover. |
 
 There is **no** `status:` or `info:` field — those were removed in the local-cutover. Status lives in `description.tag` (one of `working`/`testing`/`broken`); the human-facing description lives in `description.feature` + `description.narrative`.
 
-## Images Surface (`images:`)
+## What the deploy does NOT do
 
-A `kind: local` template can declare the container images it needs
-present in local podman storage before tests can run. Without this,
-`ov eval run` against a freshly-deployed host fails with "image not
-local" because the deploy installs **layers** (host packages + configs)
-not **images** (container artifacts).
+A `kind: local` deploy emits **zero** container-image fetch / build
+steps. The deploy applies host packages + configs only. There is no
+`images:` field; declaring one in legacy YAML hard-errors at
+`ov image validate` time with a pointer to `ov migrate local-images`.
 
-```yaml
-local:
-  ov-cachyos:
-    layers: [...]
-    images:
-      - eval-target               # short name → cfg.Images[eval-target] → ghcr.io/.../eval-target:<tag>
-      - openclaw-sway-browser     # short name
-      - fedora-coder              # short name
-    install_opts: {...}
-```
+Test-bed image preflight is the **eval entry point's** job, not the
+deploy's. When `ov eval run --on-host <name>` resolves to a host
+target, the runner walks the score's recipes, collects every distinct
+`scenario.pod` value plus `score.target_image`, and ensures each
+image is present in local podman storage (LocalImageExists →
+`ov image pull` → fall back to `ov image build` for short names that
+resolve via `cfg.Images`). Operators who never run `ov eval run`
+never pay the image-fetch cost. See `/ov-build:eval` "Image
+preflight" and `ov/eval_image_preflight.go`.
 
-Three input forms (mirror `ov image pull`):
-
-| Form | Example | Resolution |
-|---|---|---|
-| Short name | `eval-target` | Resolved via `cfg.Images[eval-target]` to `<registry>/<name>:<tag>` |
-| Fully-qualified registry ref | `ghcr.io/overthinkos/eval-target:2026.124.1253` | Pass-through |
-| Remote project ref | `@github.com/overthinkos/overthink/eval-target:latest` | Resolves the repo, reads its `image.yml`, returns the declared registry ref |
-
-**Pull-first, build-fallback** — at deploy time, for each entry:
-
-1. `LocalImageExists(engine, ref)` short-circuit — already present, no-op.
-2. Try `ov image pull <ref>` (preferred — fast, no compile). Routed
-   through the `DeployExecutor` so SSH-routed deploys (`host:
-   user@machine`) pull on the **remote** machine.
-3. If pull fails AND the image is a short-name that resolves to
-   `cfg.Images[<name>]`, fall back to `ov image build <name>`. Build
-   fallback is local-only — SSH executors return an actionable error
-   asking the operator to pre-build the image.
-
-**Validation at `ov image validate`** (`validateLocalImages` in
-`ov/validate.go`):
-- Short names: must exist in `cfg.Images`. Suggests similar names on
-  miss via `findSimilarName`.
-- Fully-qualified refs: syntax-valid registry ref check.
-- `@github.com/...`: syntax-valid remote ref check.
-- Duplicates within one template: hard error.
-
-**Idempotent.** Running `ov deploy add ov-cachyos` twice on the same
-host — when all images are already present — emits "image=X present"
-for each declared entry and is a no-op for podman.
-
-**Refcount-aware cleanup at `ov deploy del`.** Each `EnsureImageStep`
-records a `ReverseOpRemoveImage` op tagged with the deploy ID. Image
-removal happens ONLY when all of:
-
-1. The last deploy referencing the image is being torn down (refcount
-   reaches zero in the install ledger), AND
-2. `ov deploy del --reclaim-images` is passed.
-
-Default behaviour leaves images in podman storage across deploys
-because pulls are expensive. The `--reclaim-images` flag is opt-in.
-
-**Failure mode** — if pull fails AND fallback build fails (or isn't
-applicable for the executor), the deploy aborts BEFORE any layer
-plan walks. Operators see the failure early; partial deploys are
-avoided.
-
-**IR step kind** — `StepKindEnsureImage` / `EnsureImageStep` in
-`ov/install_plan.go`. Compiled by `compileImagesSteps` in
-`install_build.go`. Emitted by `LocalDeployTarget.execEnsureImage` in
-`ov/deploy_target_local.go` as a pre-pass before the layer plan walk.
+This invariant — "deploy fetches NOTHING speculative" — is codified
+as a CLAUDE.md Key Rule and enforced at the type level: the
+`LocalSpec` Go struct has no `Images` field, so the surface is
+unreachable from any new code. Migration: `ov migrate local-images`
+(idempotent; rewrites legacy `images:` blocks under `local.<name>`
+to a dated comment fence).
 
 ## Merge semantics — `kind: local` template + `kind: deployment`
 

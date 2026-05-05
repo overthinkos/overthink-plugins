@@ -496,7 +496,18 @@ aur:
     - neovim-nightly-bin
   options:
     - --nocheck
+  # `replaces:` lists distro-repo packages whose file paths conflict
+  # with the AUR build artifact. Each entry is removed via
+  # `pacman -Rs --noconfirm <pkg>` BEFORE the AUR `pacman -U` install.
+  # Idempotent — entries that aren't installed are silently skipped,
+  # so re-runs of the deploy don't error. Required when the AUR build
+  # owns paths also owned by an Arch repo package (e.g.
+  # `visual-studio-code-bin` and `code` both own /usr/bin/code).
+  replaces:
+    - code
 ```
+
+The `replaces:` mechanism applies to host (`target: local`) deploys; in OCI image builds the layer is applied to a fresh rootfs that never has the conflicting package, so `replaces:` is a no-op there.
 
 ---
 

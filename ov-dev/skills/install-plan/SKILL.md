@@ -106,13 +106,16 @@ Each `SystemPackagesStep` carries one phase; `--allow-repo-changes` gating is a 
 Gates apply only to the host target. `EmitOpts.AssumeYes` enables all three. See `GateEnabled(gate, opts)` in `install_plan.go`.
 
 **`StepKind`** — discriminator for concrete types:
-- `SystemPackages`, `Builder`, `Task`, `File`, `ServicePackaged`, `ServiceCustom`, `ShellHook`, `ShellSnippet`, `RepoChange`, `EnsureImage`.
+- `SystemPackages`, `Builder`, `Task`, `File`, `ServicePackaged`, `ServiceCustom`, `ShellHook`, `ShellSnippet`, `RepoChange`.
 
-**`EnsureImageStep` notes (2026-05 cutover, kind:local `images:`):**
-- Compiled by `compileImagesSteps` from a `LocalSpec.Images []string`. One step per declared image.
-- Emitted by `LocalDeployTarget.runImagesPrePass` BEFORE the layer plan walk so layer steps never see a missing image.
-- Three-step runtime flow: `LocalImageExists` short-circuit → `ov image pull <ref>` (via executor — SSH-routed deploys pull on remote) → `ov image build <name>` fallback (local executor only).
-- Reverse op: `ReverseOpRemoveImage`. Gated behind `--reclaim-images` on `ov deploy del` (default: keep image, since pulls are expensive). Refcount via deploy ID in the synthetic `_local-images_` layer record.
+The IR carries no image-fetch step kind. Deploys (any target) emit
+zero image-pull / image-build steps; test-bed image preflight is a
+separate, eval-time concern handled by `ov/eval_image_preflight.go`.
+The retired `EnsureImageStep` / `compileImagesSteps` /
+`runImagesPrePass` surface and its `ReverseOpRemoveImage` /
+`--reclaim-images` flag were deleted in the 2026-05
+deploy-fetch-narrowing cutover (CLAUDE.md "Deploy fetches NOTHING
+speculative").
 
 ## The nine step kinds
 

@@ -112,6 +112,45 @@ check written once works unchanged when `deploy.yml` remaps ports.
 | Filter by section | `ov eval live <name> --section deploy` | One of: layer / image / deploy |
 | Output format | `ov eval live <name> --format json\|tap\|text` | Default text |
 
+## Image preflight (host-target runs only)
+
+When `ov eval run --on-host <name>` (or any score whose target
+resolves to `TargetKindHost`) dispatches the runner, an image
+preflight runs FIRST: walk the score's recipes, collect every
+distinct `scenario.pod` plus `score.target_image`, deduplicate, and
+ensure each image is present in local podman storage BEFORE handing
+off to the host runner.
+
+For each discovered image, the algorithm is:
+
+1. `LocalImageExists(podman, ref)` — short-circuit if already
+   present. Idempotent on re-runs.
+2. `ov image pull <ref>` — preferred path. Resolves short names via
+   `cfg.Images[<name>]`, full registry refs pass-through, remote
+   `@github.com/...` refs walk through `ResolveRemoteImage`.
+3. `ov image build <name>` — fallback when pull fails AND the
+   identifier is a short name resolvable via the project's
+   `image.yml`. Build fallback is local-only; for any non-short
+   identifier that fails to pull, the preflight aborts with an
+   actionable error.
+
+Failures abort the eval BEFORE any scenario runs, so operators see
+problems early rather than mid-scenario.
+
+This is the **only** image-fetch surface in the system: deploys (any
+target — `local`, `pod`, `vm`, `k8s`) emit zero image-pull steps.
+The retired `kind: local` `images:` field was deleted in the 2026-05
+deploy-fetch-narrowing cutover; image preflight moved to this verb.
+Operators with legacy YAML run `ov migrate local-images`. See
+`/ov-build:local-spec` "What the deploy does NOT do" and CLAUDE.md
+"Deploy fetches NOTHING speculative".
+
+Lives in `ov/eval_image_preflight.go`
+(`EnsureImagePresent`, `ensureScoreImages`); wired into
+`EvalRunCmd.Run` for the `case TargetKindHost:` arm. Pod / VM / k8s
+targets carry their own image inside their respective deploy schema
+and never trigger the preflight.
+
 ## Three primary modes (`ov eval image` / `live` / `run`)
 
 The post-2026-04 cutover unified the surface around three orthogonal
