@@ -140,7 +140,34 @@ Resolution order: **libvirt → qemu** (auto-detected). Override via `ov setting
 
 **Socket path probing for libvirt ≥ 8.0**: modular libvirt splits into `virtqemud` / `virtnetworkd` / ... — the socket is `virtqemud-sock`, not `libvirt-sock`. `libvirtSessionSocket()` probes `virtqemud-sock` first, falls back to `libvirt-sock` on older setups. Symptom of a misprobe: `ConnectToURI(QEMUSession)` returns `End of file while reading data: Input/output error` — means the daemon isn't accepting on the socket you reached.
 
-Source: `ov/vm.go`, `ov/vm_libvirt.go`, `ov/vm_qemu.go`.
+### Prereq: libvirt user-session daemon
+
+`backend: libvirt` requires `virtqemud.service` (or older monolithic
+`libvirtd.service`) running as a **user**-service — no sudo needed:
+
+```bash
+systemctl --user enable --now virtqemud.service
+```
+
+`ov vm create` best-effort starts `virtqemud.service` (and falls back
+to `libvirtd.service`) before backend resolution, so on hosts where
+the unit is installed-but-not-started, the first VM create works
+without manual intervention. If the unit isn't installed at all
+(libvirt missing entirely), `resolveVmBackend()` surfaces the
+explicit error `"libvirt backend requires libvirt session daemon"`
+with the remediation hint above.
+
+For projects whose eval beds use `ov eval libvirt …` and `ov eval
+spice …` probes (e.g., the project's `arch:` VM template), pin the
+backend explicitly via `backend: libvirt` on the kind:vm entity —
+`backend: auto` would silently fall through to qemu when the daemon
+is missing, breaking every libvirt-RPC probe with a confusing
+"no such file or directory" error 5+ minutes into the eval-live
+timeout. The 2026-05-06 R10 follow-up landed this pin on
+`arch:` and `k3s-vm:` (see `/ov-build:eval` "ov eval kind").
+
+Source: `ov/vm.go` (`resolveVmBackend`, `startLibvirtUserSession`),
+`ov/vm_libvirt.go`, `ov/vm_qemu.go`.
 
 ## BIOS vs UEFI decision matrix
 

@@ -54,7 +54,7 @@ Added in the 2026-05-XX per-kind file-split / `kind: deployment` → `kind: depl
 | `image` | `eval-image-pod` | Dedicated pod purpose-built for image-section probes. |
 | `layer` | `eval-layer-pod` | Dedicated pod for layer-section probes. |
 | `pod` | `eval-pod-pod` | Dedicated pod for `kind: pod` entity validation. |
-| `vm` | `arch-pacstrap-vm` | **REUSED** from the arch-pacstrap canary bed — no new VM image. |
+| `vm` | `arch-vm` (template `arch`) | **REUSED** from the existing arch cloud-image bed — no new VM image. |
 | `k8s` | `k3s-vm` | **REUSED** from the existing k3s test VM. |
 | `local` | `eval-local-deploy` | Dedicated `target: local` deploy on a disposable scratch dir. |
 | `deploy` | `eval-deploy-pod` | Dedicated pod exercising the `kind: deploy` end-to-end. |
@@ -81,6 +81,18 @@ Added in the 2026-05-XX per-kind file-split / `kind: deployment` → `kind: depl
 ### Per-run output
 
 `.eval/kind/<kind>/<calver>/summary.yml` carries the structured pass/fail rollup; per-step `.log` files (build.log, eval-image.log, deploy-add.log, eval-live.log, rebuild.log, remove.log) live in the same directory. Newest run is symlinked at `.eval/kind/<kind>/latest`.
+
+### Prereq for `vm` and `k8s` subkinds
+
+Both VM-targeting subkinds depend on the **libvirt user-session daemon** running on the operator's machine — every `ov eval libvirt …` and `ov eval spice …` probe in the bed's eval list routes through that daemon's session socket. Enable it once with:
+
+```bash
+systemctl --user enable --now virtqemud.service     # libvirt ≥ 8 (modular)
+# OR (older monolithic):
+systemctl --user enable --now libvirtd.service
+```
+
+`ov eval kind <vm|k8s>` best-effort starts the unit before invoking `ov vm create` (via `startLibvirtUserSession()` in `ov/vm.go`); `resolveVmBackend()` surfaces a clear `"libvirt backend requires libvirt session daemon"` error when the unit isn't installed at all (libvirt missing entirely on a CI runner / air-gapped host). The `arch:` and `k3s-vm:` templates pin `backend: libvirt` explicitly so the silent `auto → qemu` fallback can't mask a missing daemon. See `/ov-advanced:vm` "Prereq" and `/ov-advanced:libvirt` "Daemon prerequisite".
 
 ### Why this verb exists
 

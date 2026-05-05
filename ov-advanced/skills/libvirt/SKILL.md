@@ -141,6 +141,47 @@ this in for bootc VMs; cloud-image VMs need to add it to
 Use `ov eval libvirt info <vm>` — if `Agent: false`, the agent is
 not reachable.
 
+### Cloud-image VM packages: also include `portaudio`
+
+When a cloud-image VM uses `ov_install.strategy: auto` (the modern
+default), VmDeployTarget scps the **host** `ov` binary into the guest
+post-boot. The host binary is built with cgo (the
+`gordonklaus/portaudio` binding for SPICE audio — see
+`pkg/arch/PKGBUILD` `depends=()`), so the guest needs
+`libportaudio.so.2` available before the binary runs. Without it,
+`ov version` exits 127 with `error while loading shared libraries:
+libportaudio.so.2: cannot open shared object file`.
+
+Minimum cloud-image package list for full eval-live coverage:
+
+```yaml
+cloud_init:
+  packages:
+    - sudo
+    - spice-vdagent      # for spice-vdagentd
+    - qemu-guest-agent   # for `ov eval libvirt guest *` probes
+    - portaudio          # for libportaudio.so.2 (host ov binary dep)
+```
+
+## Daemon prerequisite (host side)
+
+Every `ov eval libvirt …` and `ov eval spice …` probe routes through
+the libvirt user-session daemon socket. The daemon must be running as
+a user-service:
+
+```bash
+systemctl --user enable --now virtqemud.service     # libvirt ≥ 8 (modular)
+# OR (older monolithic):
+systemctl --user enable --now libvirtd.service
+```
+
+`ov vm create` best-effort starts these units before resolving the
+VM backend (see `/ov-advanced:vm` "Prereq"). The `ov eval kind vm`
+and `ov eval kind k8s` dispatcher paths invoke the same hook. If the
+unit doesn't exist (libvirt not installed), the explicit-backend
+gate in `resolveVmBackend()` surfaces a clear error pointing at the
+remediation.
+
 ## Architecture split (vs. `ov eval spice`)
 
 - **`ov eval libvirt`** — libvirt RPC only. Every byte goes to
