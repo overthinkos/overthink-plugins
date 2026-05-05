@@ -95,7 +95,7 @@ After `ov start`:
 
 ## Test Coverage
 
-Latest `ov test filebrowser` run: **24 passed, 0 failed, 0 skipped**.
+Latest `ov eval live filebrowser` run: **24 passed, 0 failed, 0 skipped**.
 All tests embedded in the `org.overthinkos.eval` OCI label, covering
 agent-forwarding prerequisites (gpg, ssh, direnv binaries), supervisord
 + dbus daemon + ov binary presence, filebrowser binary + config, and

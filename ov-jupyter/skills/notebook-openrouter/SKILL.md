@@ -145,4 +145,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov test`)
+- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov eval live`)

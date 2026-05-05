@@ -84,7 +84,7 @@ After `ov start`:
 
 ## Test Coverage
 
-Latest `ov test immich-ml` run: **61 passed, 0 failed, 2 skipped**.
+Latest `ov eval live immich-ml` run: **61 passed, 0 failed, 2 skipped**.
 The 2 skips are `redis-responds` and `redis-port-open` — they reference
 `${HOST_PORT:6379}` which isn't mapped on this image (redis is internal
 to the pod). Correct skip behavior; no authoring action needed.

@@ -142,7 +142,7 @@ ov shell hermes -c "hermes mcp list"              # Should show chrome-devtools,
 
 ## Test Coverage
 
-Latest `ov test hermes` run: **50 passed, 0 failed, 0 skipped**.
+Latest `ov eval live hermes` run: **50 passed, 0 failed, 0 skipped**.
 Covers all 4 AI CLIs at `${HOME}/.npm-global/bin/{claude,codex,gemini}`
 + pixi's `hermes` at `${HOME}/.pixi/envs/default/bin/hermes`, plus
 dev-tools (rg, bat, gh, fastfetch, nvim, htop) and devops-tools (aws,

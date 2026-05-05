@@ -155,7 +155,7 @@ invoking user (via `ov shell`'s `--userns=keep-id:uid=1000,gid=1000`).
 ## Empirical test results (2026-04-19)
 
 - `ov eval image ghcr.io/overthinkos/selkies-desktop-ov:latest` — **91 passed · 0 failed · 0 skipped**.
-- `ov test selkies-desktop-ov -i test` (live service, port-remapped) — **118 passed · 0 failed · 0 skipped** (adds deploy-scope verification: nested podman alpine, libvirt session list, KVM domcaps, in-container `ov version` / `ov doctor`).
+- `ov eval live selkies-desktop-ov -i test` (live service, port-remapped) — **118 passed · 0 failed · 0 skipped** (adds deploy-scope verification: nested podman alpine, libvirt session list, KVM domcaps, in-container `ov version` / `ov doctor`).
 - `ov image inspect selkies-desktop-ov` — resolved `security` label matches
   the table above (cap_add empty, security_opt: `[unmask=/proc/*]`,
   devices: `[/dev/fuse, /dev/net/tun]`).

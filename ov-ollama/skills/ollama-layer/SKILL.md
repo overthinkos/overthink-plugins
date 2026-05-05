@@ -66,7 +66,7 @@ OCI label (see `/ov-build:eval` for the full schema):
 
 - **Build-scope** (run under `ov eval image`):
   - `ollama-binary` — `/usr/bin/ollama` exists
-- **Deploy-scope** (run under `ov test` against a live service; uses
+- **Deploy-scope** (run under `ov eval live` against a live service; uses
   `${HOST_PORT:11434}` / `${CONTAINER_IP}` so deploy-time port remapping
   works unchanged):
   - `ollama-tags-api` — `GET http://${CONTAINER_IP}:${HOST_PORT:11434}/api/tags` returns 200

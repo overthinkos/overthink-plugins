@@ -263,7 +263,7 @@ curl -s "http://localhost:9222/json/list"
 - `/ov-advanced:vnc` — VNC automation (used with `--vnc` flag on `ov eval cdp click`)
 - `/ov-advanced:wl` — Wayland automation (used with `--wl` flag on `ov eval cdp click`)
 - `/ov-core:config` — Proxy deployment, `normalizeNoProxy()` auto-conversion, `sep:"none"` env handling
-- `/ov-build:mcp` — the auto-included `chrome-devtools-mcp` sub-layer exposes 29 tools via Streamable HTTP on port 9224; probe with `ov eval mcp list-tools <image>` or run the declarative 2-check suite via `ov test <image> --filter mcp`
+- `/ov-build:mcp` — the auto-included `chrome-devtools-mcp` sub-layer exposes 29 tools via Streamable HTTP on port 9224; probe with `ov eval mcp list-tools <image>` or run the declarative 2-check suite via `ov eval live <image> --filter mcp`
 
 ## When to Use This Skill
 
@@ -277,4 +277,4 @@ Use when the user asks about:
 ## Related
 
 - `/ov-build:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov test`)
+- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov eval live`)

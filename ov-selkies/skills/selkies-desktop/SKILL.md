@@ -330,7 +330,7 @@ ov eval cdp status selkies-desktop          # CDP available on port 9222
 
 ## Test Coverage
 
-Latest `ov test selkies-desktop` run: **91 passed, 0 failed, 0 skipped**
+Latest `ov eval live selkies-desktop` run: **91 passed, 0 failed, 0 skipped**
 — the largest test suite in the project. Covers all 21 transitive
 layers (selkies, chrome, sshd, chrome-devtools-mcp primary; labwc,
 waybar-labwc, pipewire, swaync, pavucontrol, wl-tools, wl-*-pixelflux,
@@ -354,7 +354,7 @@ for `/etc/sudoers.d/ov-user` because it's root-only (`/ov-build:eval` Gotcha #10
 - `/ov-build:eval` — declarative testing framework + testing gotchas
 - `/ov-advanced:cdp`, `/ov-advanced:wl` — desktop automation on this image
 - `/ov-core:config` — deploy setup (tunnel, port remapping, instances)
-- `/ov-build:mcp` — the image bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `ov test selkies-desktop --filter mcp` runs them; `ov eval mcp list-tools selkies-desktop` enumerates the 29 chrome-devtools tools ad-hoc.
+- `/ov-build:mcp` — the image bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `ov eval live selkies-desktop --filter mcp` runs them; `ov eval mcp list-tools selkies-desktop` enumerates the 29 chrome-devtools tools ad-hoc.
 
 ## Related
 

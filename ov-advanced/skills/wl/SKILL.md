@@ -200,7 +200,7 @@ Source: `ov/wl.go`.
 - `/ov-build:eval` — parent router; `ov eval wl …` is how every invocation is dispatched.
 - `/ov-advanced:vnc` — VNC/RFB protocol alternative (sibling verb; TCP-based, works remotely).
 - `/ov-advanced:cdp` — Chrome DevTools Protocol (sibling verb; DOM-level interaction, `--wl` flag for click, `axtree` for accessibility).
-- `/ov-advanced:dbus` — D-Bus calls and desktop notifications (sibling verb under `ov test`).
+- `/ov-advanced:dbus` — D-Bus calls and desktop notifications (sibling verb under `ov eval`).
 - `/ov-selkies:wl-tools` — Compositor-agnostic tools (wtype, wlrctl, wl-clipboard, wlr-randr, xdotool, ydotool)
 - `/ov-advanced:wl-overlay` — Fullscreen overlays for recordings (title cards, lower-thirds, countdowns, highlights, fades)
 - `/ov-selkies:wl-overlay-layer` — Overlay layer (gtk4-layer-shell, python3-gobject)

@@ -134,7 +134,7 @@ podman exec ov-openwebui cat /proc/3/environ | tr '\0' '\n' | grep TOOL_SERVER_C
 
 ## Test Coverage
 
-Latest `ov test openwebui` run: **24 passed, 0 failed, 0 skipped**.
+Latest `ov eval live openwebui` run: **24 passed, 0 failed, 0 skipped**.
 Covers: openwebui entrypoint script presence, pixi python + ov binary,
 and deploy-scope: service up, port reachable on `127.0.0.1:${HOST_PORT:8080}`,
 HTTP 200 on `/` (30-second timeout for first-request startup), admin

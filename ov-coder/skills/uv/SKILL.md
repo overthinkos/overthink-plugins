@@ -102,4 +102,4 @@ Three build-scope tests ship with the layer:
 
 ## Related
 
-- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov test`)
+- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov eval live`)

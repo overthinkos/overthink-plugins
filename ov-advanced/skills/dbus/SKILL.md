@@ -65,9 +65,9 @@ ov eval dbus introspect sway-browser-vnc org.freedesktop.Notifications /org/free
 ## Cross-References
 
 - `/ov-build:eval` -- parent router; `ov eval dbus …` is how every invocation is dispatched.
-- `/ov-advanced:cdp` -- Chrome DevTools Protocol (sibling verb under `ov test`).
-- `/ov-advanced:wl` -- Wayland desktop automation (sibling verb under `ov test`).
-- `/ov-advanced:vnc` -- VNC desktop automation (sibling verb under `ov test`).
+- `/ov-advanced:cdp` -- Chrome DevTools Protocol (sibling verb under `ov eval`).
+- `/ov-advanced:wl` -- Wayland desktop automation (sibling verb under `ov eval`).
+- `/ov-advanced:vnc` -- VNC desktop automation (sibling verb under `ov eval`).
 - `/ov-core:cmd` -- single command execution in running containers
 - `/ov-core:shell` -- interactive shell access
 - `/ov-foundation:dbus` -- D-Bus session bus layer configuration

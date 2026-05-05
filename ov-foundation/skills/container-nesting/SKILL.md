@@ -400,4 +400,4 @@ this order:
 ## Related
 
 - `/ov-build:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov test`)
+- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov eval live`)

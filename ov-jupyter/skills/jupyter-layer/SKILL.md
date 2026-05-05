@@ -218,7 +218,7 @@ OCI label (see `/ov-build:eval` for the full schema):
   - `spacy-import` — `python -c "import spacy;
     spacy.load('en_core_web_sm')"` exits 0 (proves NLP packages + model
     load successfully)
-- **Deploy-scope** (run under `ov test` against a live service):
+- **Deploy-scope** (run under `ov eval live` against a live service):
   - `workspace-dir` — `${HOME}/workspace` exists (mount visible)
   - `jupyter-service` — supervisord program `jupyter` is RUNNING
   - `jupyter-port` — `${CONTAINER_IP}:${HOST_PORT:8888}` reachable

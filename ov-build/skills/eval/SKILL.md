@@ -5,8 +5,9 @@ description: |
   the `eval:` / `deploy_eval:` fields in layer.yml / image.yml / deploy.yml,
   the `org.overthinkos.eval` OCI label, the AI iteration harness loop,
   `kind: ai` / `kind: recipe` / `kind: score` in eval.yml, or any declarative
-  check authoring. Covers the unified post-2026-04 surface that replaced
-  `ov test` + `ov harness`: three primary modes (image / live / run),
+  check authoring. Covers the unified post-2026-04 `ov eval` surface
+  (which replaced the legacy `ov test` + `ov harness` commands): three
+  primary modes (image / live / run),
   9 live-container probe verbs (cdp/wl/dbus/vnc/mcp/record/spice/libvirt/k8s),
   verb catalog (file/port/command/http/package/service/process/dns/user/
   group/interface/kernel-param/mount/addr/matching), runtime variable
@@ -611,7 +612,7 @@ threshold that wasn't met.
 #### Gotcha — stale container-baked `ov` binary
 
 The `dbus:` verb invokes the container's `ov` binary via delegation. If
-the container image was built before the `ov cdp|wl|dbus|vnc` → `ov test
+the container image was built before the `ov cdp|wl|dbus|vnc` → `ov eval
 <verb>` move, its in-container `ov` expects the old paths and the
 delegation fails. Rebuild and redeploy any image that bakes `ov` (grep
 `image.yml` for `- ov$`). The test runner itself is unaffected; this only

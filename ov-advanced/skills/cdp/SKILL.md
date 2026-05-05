@@ -430,9 +430,9 @@ This pattern works for any page content extraction via JS. The `cdp eval` comman
 ## Cross-References
 
 - `/ov-build:eval` -- parent router; `ov eval cdp …` is how every invocation is dispatched.
-- `/ov-advanced:wl` -- Wayland desktop automation (sibling verb under `ov test`); also sway subgroup for compositor control.
+- `/ov-advanced:wl` -- Wayland desktop automation (sibling verb under `ov eval`); also sway subgroup for compositor control.
 - `/ov-advanced:vnc` -- VNC desktop automation (sibling verb; same container, pixel-level interaction).
-- `/ov-advanced:dbus` -- D-Bus calls and notifications (sibling verb under `ov test`).
+- `/ov-advanced:dbus` -- D-Bus calls and notifications (sibling verb under `ov eval`).
 - `/ov-core:shell` -- Running commands in containers (`--tty` for OAuth flows)
 - `/ov-core:config` -- Instance deployment, proxy configuration, removal workflow
 - `/ov-build:layer` -- Chrome layer configuration (cdp-proxy service, port declarations)

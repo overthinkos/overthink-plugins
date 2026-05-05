@@ -104,4 +104,4 @@ Creates Vulkan ICD compatibility symlinks for nvidia-ctk CDI device injection.
 ## Related
 
 - `/ov-build:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov test`)
+- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov eval live`)

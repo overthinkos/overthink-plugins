@@ -543,7 +543,7 @@ images:
 - `/ov-core:config` -- `ov config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
 - `/ov-dev:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
 - `/ov-build:eval` — Image-level `tests:` (cross-layer invariants) and `deploy_tests:` (deploy-default checks shipped with the image). Both are embedded in the `org.overthinkos.eval` OCI label.
-- `/ov-build:mcp` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `ov test <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
+- `/ov-build:mcp` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `ov eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
 - `/ov-selkies:selkies-desktop-bootc` — canonical worked example for the external-base + explicit-`distro:` pattern.
 - `/ov-advanced:vm` — `ov vm build/create/start/stop/ssh` command family; reads `vms.yml`, not `image.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
 - `/ov-vms:vms` — authoring reference for the `kind: vm` entity schema (replaces legacy `image.vm:` / `image.libvirt:`).

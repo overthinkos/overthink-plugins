@@ -32,7 +32,7 @@ Key entries (post-services-cutover):
 | `Services` | `LabelServices` (`org.overthinkos.services`) | **Structured JSON array of `CapabilityService`** — not just names. 22 per-entry fields including `kind`, `events`, `auto_start`, `start_retries`, `priority`, `init`, `layer`. See "LabelServices" below. |
 | `Init` | `LabelInit` | Init system name (supervisord / systemd / none). |
 | `ServiceNames` | `LabelInit` | Per-init active-name list; baked alongside `LabelInit` for CLI ergonomics (e.g., `ov service status`). |
-| `Tests` | `LabelEval` | Three-section `{layer, image, deploy}` JSON — the tests baked into the image, consumed by `ov test` / `ov eval image`. See `/ov-build:eval`. |
+| `Tests` | `LabelEval` | Three-section `{layer, image, deploy}` JSON — the tests baked into the image, consumed by `ov eval live` / `ov eval image`. See `/ov-build:eval`. |
 | `Shell` | `LabelShell` | Three-section `{layer, image, deploy}` JSON shell-init manifest. Each entry carries an Origin (layer name / "image" / "deploy"), an ID for overlay keying, an optional Generic body (intrinsic init + path_append) and a per-shell ByShell map (bash/zsh/fish/sh sub-blocks). Consumed by `ov image inspect`, `ov deploy from-image`, and `MergeDeployShell` for deploy.yml `shell:` overlay merging. See `/ov-build:layer` "Shell Init Surface". 2026-05 cutover. |
 | `EnvProvides` / `MCPProvides` | `LabelEnvProvides` / `LabelMCPProvides` | Cross-container discovery: what env vars / MCP servers this image advertises to pod peers. |
 | `EnvRequires` / `MCPRequires` | `LabelEnvRequires` / `LabelMCPRequires` | What this image *needs* from peers — validated at `ov config` time. |

@@ -13,7 +13,7 @@ The repo is migrating `deploy.yml` to schema v3 per `/home/atrawog/.claude/plans
 - **Dispatch via explicit `target:` only** — legacy name-prefix (`vm:<name>`, literal `host`) is deprecated. Schema-v3 target values: `host | vm | pod | k8s` (short, matches ov command verbs).
 - **Cross-ref fields on `DeploymentNode`** — `vm: <entity>` for target: vm, `image: <name>` for target: pod, `cluster: <name>` for target: k8s, `inside: <deploy>` for nested host-deploy.
 - **Disposability is a deploy property** — `DeploymentNode.Disposable` is the sole source of truth. `VmSpec.Disposable` is retained during transition and removed in Phase 5.
-- **Four disposable test beds** in repo `deploy.yml`: `arch-vm` (target: vm, disposable libvirt VM), `arch-vm.arch-host` (target: host, nested inside arch-vm — zero operator FS writes), `sway-pod` (target: pod, image: openclaw-sway-browser), `k3s-pod` (target: pod, image: fedora-ov + k3s-server layer). Together they exercise all 19 ov test verbs.
+- **Four disposable test beds** in repo `deploy.yml`: `arch-vm` (target: vm, disposable libvirt VM), `arch-vm.arch-host` (target: host, nested inside arch-vm — zero operator FS writes), `sway-pod` (target: pod, image: openclaw-sway-browser), `k3s-pod` (target: pod, image: fedora-ov + k3s-server layer). Together they exercise all 19 ov eval verbs.
 
 Legacy spellings `container` / `kubernetes` / `vm:<name>` still work; `ov migrate deploy-schema-v3` (Phase 6) converts legacy files.
 

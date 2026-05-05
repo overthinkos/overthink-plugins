@@ -220,7 +220,7 @@ ov eval wl screenshot <image> out.png            # Wayland screenshot (grim, alw
 - `/ov-build:eval` — parent router; `ov eval vnc …` is how every invocation is dispatched.
 - `/ov-advanced:wl` — Wayland-native desktop automation (sibling verb; works on NVIDIA headless).
 - `/ov-advanced:cdp` — Chrome DevTools Protocol automation (sibling verb; same container, different protocol).
-- `/ov-advanced:dbus` — D-Bus calls and desktop notifications (sibling verb under `ov test`).
+- `/ov-advanced:dbus` — D-Bus calls and desktop notifications (sibling verb under `ov eval`).
 - `/ov-advanced:wl` (sway subgroup) — Sway compositor control (window management, workspaces)
 - `/ov-core:config` — VNC password storage, `secret_backend` setting, `migrate-secrets` command
 - `/ov-core:service` — Managing wayvnc supervisord service

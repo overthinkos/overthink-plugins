@@ -65,7 +65,7 @@ OCI label (see `/ov-build:eval` for the full schema — this layer is the
   - `redis-cli-binary` — `/usr/bin/redis-cli` exists
   - `redis-package` — `valkey-compat-redis` package installed (real
     installed provider on Fedora 43; see Packages note above)
-- **Deploy-scope** (run under `ov test` against a live service; uses
+- **Deploy-scope** (run under `ov eval live` against a live service; uses
   `${HOST_PORT:6379}` runtime substitution so the checks keep working
   if `deploy.yml` remaps the host port — host-side tests always use
   `127.0.0.1:${HOST_PORT:N}`, not `${CONTAINER_IP}`):

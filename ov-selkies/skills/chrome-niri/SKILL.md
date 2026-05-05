@@ -41,4 +41,4 @@ Use when the user asks about Chrome running in Niri desktop containers.
 ## Related
 
 - `/ov-build:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov test`)
+- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov eval live`)

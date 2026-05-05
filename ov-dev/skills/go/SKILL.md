@@ -125,7 +125,7 @@ The `ov` binary self-execs in two distinct directions.
 - `ov/dbus.go:229` — generic D-Bus call via in-container `ov eval dbus call`.
 
 **Host → host** — the test runner spawns the same host `ov` binary as a subprocess to execute cdp/wl/dbus/vnc declarative verbs:
-- `ov/testrun_ov_verbs.go` — the `runOvVerb` dispatcher builds `ov test <verb> <method> <image> [args…]` argv and runs it via `exec.CommandContext`, feeding stdout/stderr through the existing matcher pipeline. `findOvBinary()` prefers `os.Executable()` so tests invoke the same build that collected them, falling back to `$PATH`.
+- `ov/testrun_ov_verbs.go` — the `runOvVerb` dispatcher builds `ov eval <verb> <method> <image> [args…]` argv and runs it via `exec.CommandContext`, feeding stdout/stderr through the existing matcher pipeline. `findOvBinary()` prefers `os.Executable()` so tests invoke the same build that collected them, falling back to `$PATH`.
 
 **The rule:** whenever you rename a subcommand path crossed by any of these self-exec sites, edit the host-side invocation strings AND plan a coordinated rebuild of every image that bakes the `ov` layer (affected images: grep `image.yml` for `- ov$`). For host→host sites the rebuild doesn't matter — it's the same binary — but the method-name allowlists in `testrun_ov_verbs.go` must stay in lockstep with the actual `ov eval cdp|wl|dbus|vnc` subcommand tree.
 
@@ -304,7 +304,7 @@ See `/ov-build:image` "user_policy" for the user-facing decision matrix, `/ov-bu
 
 ### Declarative Testing
 
-Implements the `ov test` / `ov eval image` commands and the
+Implements the `ov eval live` / `ov eval image` commands and the
 `org.overthinkos.eval` OCI label. User-facing authoring, verb catalog,
 runtime variables, and deploy.yml overlay rules live in `/ov-build:eval` — this
 section is the Go-implementation map.

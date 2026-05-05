@@ -291,7 +291,7 @@ Measured: ~2 seconds of delta over a no-change rebuild baseline of
 LABELs are safe to move because they have no functional dependency on
 subsequent instructions — they attach to the final image manifest and
 are read only via `podman inspect` (an unordered map). None of the
-runtime consumers (`ov config`, `ov start`, `ov status`, `ov test`,
+runtime consumers (`ov config`, `ov start`, `ov status`, `ov eval live`,
 `ov shell`, `ov alias install`) care about directive order.
 
 ### LABEL JSON escaping (`writeJSONLabel`)
