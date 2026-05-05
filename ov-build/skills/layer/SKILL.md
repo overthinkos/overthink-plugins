@@ -661,7 +661,16 @@ See `/ov-foundation:supervisord` for the supervisord ServiceSchemaDef template, 
 - `/ov-ollama:ollama` — single custom entry (common shape)
 - `/ov-hermes:hermes` — custom entry with complex env and ordering
 - `/ov-coder:sshd` — mixed (packaged + custom) within one layer
+- `/ov-foundation:virtualization` — mixed entries for virtqemud/virtnetworkd (canonical post-2026-05 polymorphism example)
 - `/ov-foundation:traefik` — multiple custom entries for a multi-service layer
+
+### Anti-pattern: `<name>-host` / `<name>-pod` sibling layers
+
+Do **NOT** split a polymorphic service into two layers like `myservice` (supervisord variant) + `myservice-host` (systemd variant). The mixed-entries pattern above (same `name:`, one `use_packaged:` entry, one `exec:` entry — init system at deploy time picks) is the supported way to carry both. The 2026-05 polymorphism cutover deleted exactly two such sibling pairs — `virtualization{,host}` and `ov-full{,host}` — for this reason.
+
+If you find yourself reaching for a `-host` suffix on a layer name, reach for a second `service:` entry instead. The same rule applies to `-pod` suffixes for the inverse case (a layer that needs container-only behavior under systemd targets).
+
+`ov image validate` does NOT (yet) statically reject `*-host` / `*-pod` layer names, because some legitimate uses might exist (a layer whose package literally only exists on host distros). The rule lives in CLAUDE.md "Init-system polymorphism via mixed `service:` entries" + this skill + `/ov-foundation:supervisord` — agents that load any of those before authoring will see the guidance. Canonical worked examples: `/ov-coder:sshd` (mixed), `/ov-foundation:virtualization` (mixed; CANONICAL post-cutover example), `/ov-foundation:postgresql` (use_packaged-only).
 
 ## Volume Declaration
 
@@ -1068,7 +1077,7 @@ shell: schema. Idempotent.
 
 ## Cross-kind name reuse (2026-05-05)
 
-A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `k8s:`, `local:`, and `deployment:`. The same identifier (e.g. `cachyos-dx`) MAY exist as a layer at `layers/cachyos-dx/` AND an image entry `image.cachyos-dx` AND a deployment row `deployment.cachyos-dx` simultaneously. Verbs disambiguate by context. When `ov deploy add <name>` resolves a ref where both an image AND a layer with that name exist, image wins (image-first precedence); use `--add-layer <name>` to explicitly select the layer for an overlay. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/ov-core:deploy`.
+A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `k8s:`, `local:`, and `deployment:`. The same identifier (e.g. `ov-cachyos`) MAY exist as a layer at `layers/ov-cachyos/` AND an image entry `image.ov-cachyos` AND a deployment row `deployment.ov-cachyos` simultaneously. Verbs disambiguate by context. When `ov deploy add <name>` resolves a ref where both an image AND a layer with that name exist, image wins (image-first precedence); use `--add-layer <name>` to explicitly select the layer for an overlay. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/ov-core:deploy`.
 
 ---
 

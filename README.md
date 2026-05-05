@@ -4,10 +4,20 @@ Claude Code plugins for Overthink — the container management experience for yo
 
 ## Recent changes
 
+- **2026-05-XX** — Init-system polymorphism + `cachyos-dx` → `ov-cachyos`.
+  Deleted the `*-host` sibling-layer pattern (`virtualization-host`,
+  `ov-full-host`); the unified layer carries both supervisord and
+  systemd renders via the mixed-`service:` schema (same `name:`, two
+  entries, init system picks). New CLAUDE.md Key Rule + skill guidance
+  in `/ov-build:layer`, `/ov-foundation:supervisord`,
+  `/ov-foundation:virtualization` (canonical worked example). The
+  `cachyos-dx` deployment renamed to `ov-cachyos`. New consolidated
+  migration: `ov migrate ov-cachyos` (handles qc → ov-cachyos AND
+  cachyos-dx → ov-cachyos in one hop).
 - **2026-05-05** — Cross-kind name reuse + `overthink.yml`-only authoring.
   Same name MAY exist across layer / image / pod / vm / k8s / local /
-  deployment. All authoring verbs default to `overthink.yml`. New
-  migration: `ov migrate qc-rename`. See CLAUDE.md.
+  deployment. All authoring verbs default to `overthink.yml`. See
+  CLAUDE.md.
 
 ## Architecture (v2.0.0 — 2026-04-30)
 

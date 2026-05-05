@@ -103,6 +103,12 @@ Layers declare services under a single `service:` key (singular; value is a list
 
 See `/ov-selkies:chrome` for the canonical consumer (3-strike circuit breaker + eventlistener).
 
+## Polymorphism: a layer that runs on BOTH supervisord and systemd
+
+A layer that needs the SAME service to run under supervisord (container/pod targets) AND systemd (host installs / bootc / VMs) must NOT spin up a `<name>-host` sibling layer. The supported pattern is **mixed entries in one `service:` list**: same `name:`, two entries — one with `use_packaged: <unit>.service` (or `.socket`) for the systemd render, the other with custom `exec:` for the supervisord render. Init system at deploy time picks the matching form; the other entry is silently skipped. See `/ov-build:layer` "Service Declaration" → "Mixed entries in one layer" for the schema, CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the project-wide rule, and `/ov-foundation:virtualization` for the canonical worked example (post-2026-05 polymorphism cutover, which deleted the deprecated `virtualization-host` and `ov-full-host` siblings).
+
+The 2026-05 cutover made this rule explicit precisely because it was tempting to copy-paste-and-rename a layer with a `-host` suffix when the schema already supported polymorphism via mixed entries. If you find yourself reaching for `-host`, reach for a second `service:` entry instead.
+
 ## Service Priority & Ordering
 
 Supervisord starts programs in **priority order** (ascending). Layers set priorities explicitly so that dependency chains come up in the right order:

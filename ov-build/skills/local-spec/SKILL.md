@@ -50,7 +50,7 @@ local:
     install_opts: {with_services: true, allow_root_tasks: true}
     description: {feature: CI runner profile, tag: [working]}
 
-  cachyos-dx:
+  ov-cachyos:
     # Empty placeholder — `layers: []` is a load-time WARNING (allowed
     # for staged template name reservation); a missing `layers:` field
     # is a hard error.
@@ -83,7 +83,7 @@ not **images** (container artifacts).
 
 ```yaml
 local:
-  cachyos-dx:
+  ov-cachyos:
     layers: [...]
     images:
       - eval-target               # short name → cfg.Images[eval-target] → ghcr.io/.../eval-target:<tag>
@@ -119,7 +119,7 @@ Three input forms (mirror `ov image pull`):
 - `@github.com/...`: syntax-valid remote ref check.
 - Duplicates within one template: hard error.
 
-**Idempotent.** Running `ov deploy add cachyos-dx` twice on the same
+**Idempotent.** Running `ov deploy add ov-cachyos` twice on the same
 host — when all images are already present — emits "image=X present"
 for each declared entry and is a no-op for podman.
 
@@ -167,7 +167,7 @@ A template with `layers: []` is permitted as a stub for staged name reservation:
 
 ```yaml
 local:
-  cachyos-dx:
+  ov-cachyos:
     layers: []
     install_opts: {}
     description: {feature: CachyOS DX (placeholder), tag: [testing]}
@@ -180,11 +180,11 @@ local:
 - `/ov-advanced:local-deploy` — the `target: local` deployment surface that consumes this template.
 - `/ov-dev:local-infra` — Go file map (`local_spec.go`, `LocalSpec` struct, `findLocalSpec` lookup).
 - `/ov-build:layer` — layer authoring (the building blocks composed by templates).
-- `/ov-build:migrate` — `ov migrate target-local` migrates legacy `kind: host`/`host.yml` projects; `ov migrate qc-rename` renames the operator-specific `qc` deployment key to `cachyos-dx` (demonstrating that a kind:local template and a kind:deployment entry can share a name — cross-kind reuse, 2026-05-05).
+- `/ov-build:migrate` — `ov migrate target-local` migrates legacy `kind: host`/`host.yml` projects; `ov migrate qc-rename` renames the operator-specific `qc` deployment key to `ov-cachyos` (demonstrating that a kind:local template and a kind:deployment entry can share a name — cross-kind reuse, 2026-05-05).
 
 ## Cross-kind name reuse (2026-05-05)
 
-A `kind: local` template's name lives in the `local:` namespace, independent of layer / image / pod / vm / k8s / deployment. The canonical example is `cachyos-dx` — `local.cachyos-dx` is the template; `deployment.cachyos-dx` is the deployment entry that applies it; both share the name without conflict. Verbs disambiguate: `ov rebuild cachyos-dx` resolves to the deployment entry; the template is referenced internally via the deployment's `local: cachyos-dx` field. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged".
+A `kind: local` template's name lives in the `local:` namespace, independent of layer / image / pod / vm / k8s / deployment. The canonical example is `ov-cachyos` — `local.ov-cachyos` is the template; `deployment.ov-cachyos` is the deployment entry that applies it; both share the name without conflict. Verbs disambiguate: `ov rebuild ov-cachyos` resolves to the deployment entry; the template is referenced internally via the deployment's `local: ov-cachyos` field. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged".
 
 ## When to Use This Skill
 

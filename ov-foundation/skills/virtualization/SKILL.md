@@ -1,15 +1,50 @@
 ---
 name: virtualization
 description: |
-  QEMU/KVM/libvirt stack plus supervisord-managed virtqemud and virtnetworkd
-  daemons. Works rootless: `qemu:///session` mode serves uid 1000 with only
-  /dev/kvm passthrough — no SYS_ADMIN, no root. Canonical source for the
-  rootless nested VM recipe.
-  Use when working with virtual machines, QEMU, KVM, libvirt, or the
-  virtualization layer.
+  QEMU/KVM/libvirt stack — works identically under supervisord (containers/
+  pods, custom `exec:` form) AND under systemd (host installs / bootc / VMs,
+  use_packaged: virtqemud.socket / virtnetworkd.socket). Uses the mixed-entry
+  `service:` schema (CLAUDE.md "Init-system polymorphism") — same name
+  appears twice in the service: list, init system at deploy time picks the
+  matching form. Canonical worked example of the polymorphism pattern.
 ---
 
-# virtualization — QEMU/KVM/libvirt with rootless session daemons
+# virtualization — QEMU/KVM/libvirt for both supervisord and systemd init systems
+
+## Canonical worked example: mixed-`service:` polymorphism (2026-05)
+
+This layer is the canonical demonstration that ONE layer can serve BOTH container/pod targets (supervisord init) AND host/bootc/VM targets (systemd init) without spawning a `<name>-host` sibling. The mechanism is the **mixed `service:` schema pattern**: each daemon (`virtqemud`, `virtnetworkd`) appears TWICE in the layer's `service:` list — once with `use_packaged: <unit>.socket` (rendered only on systemd-init targets) and once with custom `exec:` (rendered only on supervisord-init targets). The init system at deploy time picks the matching form; the other entry is silently skipped.
+
+```yaml
+service:
+  # virtqemud — systemd render
+  - name: virtqemud
+    use_packaged: virtqemud.socket
+    enable: true
+    scope: system
+  # virtqemud — supervisord render
+  - name: virtqemud
+    exec: "/usr/sbin/virtqemud --timeout 0"
+    restart: always
+    priority: 5
+    start_secs: 2
+    enable: true
+    scope: system
+  # virtnetworkd — same mixed-entry pattern
+  - name: virtnetworkd
+    use_packaged: virtnetworkd.socket
+    enable: true
+    scope: system
+  - name: virtnetworkd
+    exec: "/usr/sbin/virtnetworkd --timeout 0"
+    restart: always
+    priority: 6
+    start_secs: 2
+    enable: true
+    scope: system
+```
+
+Why this matters: the previous design had a `virtualization-host` sibling layer that duplicated package lists, eval probes, and tasks for systemd targets. Drift between the two siblings was inevitable. The mixed-entry pattern eliminates the sibling — ONE layer covers both contexts; the schema does the polymorphism. The 2026-05 polymorphism cutover deleted the `-host` sibling along with `ov-full-host`. See CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the rule and `/ov-build:layer` "Service Declaration" → "Anti-pattern: `<name>-host` / `<name>-pod` sibling layers" for what NOT to do.
 
 ## Overview
 

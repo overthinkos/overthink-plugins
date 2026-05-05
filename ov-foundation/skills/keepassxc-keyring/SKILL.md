@@ -54,7 +54,7 @@ description: |
 ```yaml
 # local.yml
 local:
-  cachyos-dx:
+  ov-cachyos:
     layers:
       - direnv
       - gnupg
@@ -67,7 +67,7 @@ Order with respect to `direnv`/`gnupg`/`keepassxc` doesn't strictly matter (the 
 
 ## Used In Images / Templates
 
-- `cachyos-dx` (kind:local template, applied via the `cachyos-dx` deployment — same name; cross-kind reuse permitted since 2026-05)
+- `ov-cachyos` (kind:local template, applied via the `ov-cachyos` deployment — same name; cross-kind reuse permitted since 2026-05)
 
 ## Tests
 
@@ -112,7 +112,7 @@ Use when the user asks about:
 - The `.envrc` + `.secrets` workflow not triggering on `cd` (likely missing direnv hook from this layer).
 - gnome-keyring or kwallet conflicting with KeePassXC over the `org.freedesktop.secrets` D-Bus name.
 - Why ov's keyring backend "can't find" the user's KeePassXC database (FdoSecrets plugin disabled in keepassxc.ini).
-- The `cachyos-dx` template's keyring/direnv/gpg block.
+- The `ov-cachyos` template's keyring/direnv/gpg block.
 
 ## Related
 
