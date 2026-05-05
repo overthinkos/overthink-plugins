@@ -551,7 +551,11 @@ images:
 
 ## Cross-kind name reuse (2026-05-05)
 
-The `image:` map's namespace is independent of `layers/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deployment:`. The same name MAY exist across all of them. Authoring verbs (`ov image set`, `ov image new image`, `ov image add-layer`, `ov image rm-layer`, `ov image new project`) write exclusively to `overthink.yml` — per-kind `image.yml` is reachable only via `includes:` from `overthink.yml`, never as a default authoring target. Missing `overthink.yml` → hard error pointing at `ov image new project .` or `ov migrate unified`. See CLAUDE.md "Cross-kind name reuse" and `/ov-build:migrate` for `ov migrate qc-rename` (the demonstrative migration that paired a kind:local template with a same-named kind:deployment entry).
+The `image:` map's namespace is independent of `layers/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`ov image set`, `ov image new image`, `ov image add-layer`, `ov image rm-layer`, `ov image new project`) write exclusively to `overthink.yml` — per-kind `image.yml` is reachable only via `includes:` from `overthink.yml`, never as a default authoring target. Missing `overthink.yml` → hard error pointing at `ov image new project .` or `ov migrate unified`. See CLAUDE.md "Cross-kind name reuse" and `/ov-build:migrate` for `ov migrate ov-cachyos` (the demonstrative migration that paired a kind:local template with a same-named kind:deploy entry).
+
+### Per-kind file convention (2026-05-XX)
+
+`overthink.yml` SHOULD use `includes:` to pull in sibling per-kind files: `image.yml` (kind:image entries), `pod.yml` (kind:pod), `vm.yml` (kind:vm), `k8s.yml` (kind:k8s), `local.yml` (kind:local), `deploy.yml` (kind:deploy). Filename and kind name match exactly — `kind: deploy` lives in `deploy.yml`, not the legacy `kind: deployment`. The 2026-05-XX cutover renamed `kind: deployment` → `kind: deploy` and split inline `overthink.yml` maps into per-kind sibling files in one atomic hop. Migration: `ov migrate kind-files` (idempotent). Inline maps inside `overthink.yml` remain valid (it's still a single canonical authoring target), but per-kind sibling files are the recommended layout. See `/ov-build:migrate`.
 
 ## When to Use This Skill
 

@@ -147,6 +147,7 @@ The `!` in the last commit marker is the Conventional Commits breaking-change in
 - Unified YAML cutover (legacy `image.yml`/`build.yml`/flat-form `layer.yml` → `overthink.yml` with kind-keyed wrappers + `includes:` + `discover:`) — `ov migrate unified`.
 - Unified `service:` schema cutover (legacy `service: |...|` raw INI and `system_services:` → structured `service:` list with 22 fields incl. `kind: eventlistener`) — folded into `ov migrate unified`.
 - User policy cutover (rename-based user renaming → `base_user:` + `user_policy:` declarative matrix) — no separate migration; hard cutover delete + skill updates.
+- **Per-kind file split + `kind: deployment` → `kind: deploy` rename (2026-05-XX)**: a "filename-discriminator-symmetry" hard cutover that bundled three transforms into one atomic commit: (1) split `overthink.yml`'s inline `image:` / `vm:` maps into sibling `image.yml` / `vm.yml` files (plus stubs for `pod.yml` / `k8s.yml`); (2) renamed schema kind `deployment` → `deploy` so the filename and the kind discriminator match (`kind: deploy` lives in `deploy.yml`); (3) added a new dispatcher verb `ov eval kind <kind>` for fast per-kind R10 sweeps. Migration: `ov migrate kind-files` (idempotent; one command covers all three transforms). Residual `kind: deployment` docs + root-key `deployment:` raise hard load-time errors pointing at the migration command.
 
 Each followed the same three-step shape: **delete old surface + publish migration + hard load error**. See `/ov-build:migrate` for the command surface.
 

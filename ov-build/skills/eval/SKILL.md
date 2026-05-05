@@ -21,6 +21,71 @@ description: |
 
 # Eval — unified declarative + AI-iteration evaluation
 
+## ov eval kind <kind> — fast per-kind R10 dispatcher
+
+Added in the 2026-05-XX per-kind file-split / `kind: deployment` → `kind: deploy` cutover. `ov eval kind <kind>` is the recommended fast entry point for R10 acceptance: it runs the full per-kind build → eval-image → deploy → eval-live → rebuild → remove cycle on a dedicated disposable bed for exactly one schema kind, with zero ceremony.
+
+### Subkinds
+
+| Subkind | Coverage |
+|---|---|
+| `image` | Image-level schema + Containerfile emission + OCI-label contract for one canonical image. |
+| `layer` | Layer authoring schema + per-layer task verbs + per-layer eval probes. |
+| `pod` | `kind: pod` entity composition + multi-container pod startup + intra-pod networking. |
+| `vm` | `kind: vm` entity → libvirt domain → boot to steady state via `ov vm create` + start. |
+| `k8s` | `kind: k8s` cluster definition → k3s control-plane reach + addon health. |
+| `local` | `kind: local` template merge with deploy + `target: local` ShellExecutor path. |
+| `deploy` | `kind: deploy` entity (post-cutover schema kind) → end-to-end add/del + ledger cleanup. |
+| `all` | Runs every kind serially, in dependency order. |
+
+### Per-kind sequence (applied for each subkind except `all`)
+
+1. `ov image build <image>` — build the test artifact.
+2. `ov eval image <image>` — image-section + baked layer-section probes.
+3. `ov deploy add <bed> <ref>` — apply the test bed (or `ov vm create <bed>` + `ov vm start <bed>` for the VM kind).
+4. `ov eval live <bed>` — full three-section live probe pass.
+5. `ov rebuild <bed>` — fresh-rebuild re-verification (R10 acceptance gate).
+6. `ov remove <bed>` — leave the host clean.
+
+### Bed table — which test bed each subkind targets
+
+| Subkind | Bed | Notes |
+|---|---|---|
+| `image` | `eval-image-pod` | Dedicated pod purpose-built for image-section probes. |
+| `layer` | `eval-layer-pod` | Dedicated pod for layer-section probes. |
+| `pod` | `eval-pod-pod` | Dedicated pod for `kind: pod` entity validation. |
+| `vm` | `arch-pacstrap-vm` | **REUSED** from the arch-pacstrap canary bed — no new VM image. |
+| `k8s` | `k3s-vm` | **REUSED** from the existing k3s test VM. |
+| `local` | `eval-local-deploy` | Dedicated `target: local` deploy on a disposable scratch dir. |
+| `deploy` | `eval-deploy-pod` | Dedicated pod exercising the `kind: deploy` end-to-end. |
+
+### Wall-clock budget (approximate, on the 10-CPU 32-GB reference host)
+
+| Subkind | Budget |
+|---|---|
+| `image` | ~75 s |
+| `layer` | ~105 s |
+| `pod` | ~85 s |
+| `vm` | ~3–4 min |
+| `k8s` | ~5–7 min |
+| `local` | ~45 s |
+| `deploy` | ~85 s |
+| `all` (serial) | ~10–15 min |
+
+### Flags
+
+- `--no-rebuild` — skip step 5 (the fresh-rebuild re-verification). Useful only for fast smoke; FORBIDDEN for an R10 acceptance run.
+- `--keep` — skip step 6 (don't tear the bed down). Useful for follow-up exploration; the next `ov eval kind` invocation will detect and reuse.
+- `--timeout=<duration>` — override the wall-clock budget. Default `1200s`. Per-kind defaults match the table above.
+
+### Per-run output
+
+`.eval/kind/<kind>/<calver>/summary.yml` carries the structured pass/fail rollup; per-step `.log` files (build.log, eval-image.log, deploy-add.log, eval-live.log, rebuild.log, remove.log) live in the same directory. Newest run is symlinked at `.eval/kind/<kind>/latest`.
+
+### Why this verb exists
+
+R10 acceptance has historically required the operator to assemble the build → eval-image → deploy → eval-live → rebuild sequence by hand for each affected kind. The 2026-05-XX file-split cutover added six new per-kind YAML files, multiplying the surfaces an R10 sweep must cover; a dedicated dispatcher cut the per-cutover R10 ceremony from N hand-rolled command sequences to ONE invocation per kind. See `/ov-dev:cutover-policy` "Historical cutovers that followed this policy".
+
 ## Schema v3 — four disposable test beds in this repo's `deploy.yml`
 
 The project's `deploy.yml` defines four canonical disposable beds covering the full ov verb surface with zero operator-side-effects:

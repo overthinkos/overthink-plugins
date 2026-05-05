@@ -17,7 +17,30 @@ One-shot, idempotent migrators for every hard-cutover schema change the project 
 | `ov migrate merge-vms` | Separate `vms.yml` → `deploy.yml` top-level `vm:` key; rename `vms:` → `vm:`, `arch-cloud-base` → `arch`; bump schema v1 → v2 | `/ov-vms:vms` |
 | `ov migrate deploy-schema-v-3` | Schema v2 → v3: rename `vm:<name>` deploy keys → `<name>-vm`, normalize `target: container` → `pod`, `target: kubernetes` → `k8s`, rename `vm_source:` → `vm:`, bump `version: 2` → `3`. Idempotent (second run = no-op). | `/ov-core:deploy`, `/ov-advanced:vm`, `/ov-dev:disposable` |
 | `ov migrate shell-schema` | Convert legacy `cmd:` shell-rc heredoc tasks (matching the `# overthink:begin direnv-hook` / `# overthink:begin ssh-auth-sock` fence patterns) into the structured `shell:` schema. Idempotent. Distinguishes install-style heredocs (`cat >`) from cleanup-style strips (`sed -i`) — only rewrites the former. 2026-05 cutover. | `/ov-build:layer`, `/ov-coder:direnv` |
-| `ov migrate ov-cachyos` | Rename the operator-specific CachyOS deployment to its 2026-05 canonical form `ov-cachyos`. Collapses the qc → cachyos-dx → ov-cachyos chain into a single hop — handles BOTH legacy keys (`qc`, `cachyos-dx`) AND moves the matching kind:local template name. Walks `overthink.yml` and `~/.config/ov/deploy.yml`. Idempotent; line-oriented edits preserve comments. Residual `deployment.qc`, `deployment.cachyos-dx`, `local.cachyos-dx` raise hard load-time errors all pointing at this command. Demonstrates the cross-kind name reuse policy (CLAUDE.md): the kind:local template and the kind:deployment entry that applies it share one name. | `/ov-build:local-spec`, `/ov-core:deploy` |
+| `ov migrate ov-cachyos` | Rename the operator-specific CachyOS deployment to its 2026-05 canonical form `ov-cachyos`. Collapses the qc → cachyos-dx → ov-cachyos chain into a single hop — handles BOTH legacy keys (`qc`, `cachyos-dx`) AND moves the matching kind:local template name. Walks `overthink.yml` and `~/.config/ov/deploy.yml`. Idempotent; line-oriented edits preserve comments. Residual `deploy.qc`, `deploy.cachyos-dx`, `local.cachyos-dx` raise hard load-time errors all pointing at this command. Demonstrates the cross-kind name reuse policy (CLAUDE.md): the kind:local template and the kind:deploy entry that applies it share one name. | `/ov-build:local-spec`, `/ov-core:deploy` |
+| `ov migrate kind-files` | Per-kind file split + `kind: deployment` → `kind: deploy` rename in one combined idempotent hop. (a) Extracts inline `image:` and `vm:` maps from `overthink.yml` into sibling `image.yml` / `vm.yml`. (b) Creates empty `pod.yml` / `k8s.yml` stubs if absent. (c) Appends each new file to `overthink.yml`'s `includes:` list (preserving any existing entries). (d) Renames the root-key `deployment:` → `deploy:` in `deploy.yml`. (e) Walks every reachable YAML doc and renames `kind: deployment` → `kind: deploy` in place. Re-runs are no-ops. Implementation: `ov/migrate_kind_files.go`. Pairs with hard load-time errors in `unified.go` for residual `kind: deployment` docs and root `deployment:` keys, both pointing at this command. | `/ov-build:image`, `/ov-build:local-spec`, `/ov-core:deploy`, `/ov-build:validate` |
+
+# ov migrate kind-files
+
+Invoked as `ov migrate kind-files`. Combined idempotent migration that performs the 2026-05-XX per-kind file split AND the `kind: deployment` → `kind: deploy` schema-key rename in a single atomic hop.
+
+## What it does
+
+1. **Extract inline kind maps from `overthink.yml`.** If `overthink.yml` carries an inline `image:` map, write the entries to a sibling `image.yml`; ditto for an inline `vm:` map → `vm.yml`. Existing per-kind files are left untouched.
+2. **Create stubs for missing per-kind files.** Empty `pod.yml` and `k8s.yml` files are created if absent (the recommended layout has all six per-kind files as siblings of `overthink.yml` regardless of whether they have content yet).
+3. **Re-wire `includes:`.** Each newly created file is appended to `overthink.yml`'s `includes:` list, preserving any existing entries and any existing comments.
+4. **Rename root key `deployment:` → `deploy:` in `deploy.yml`.** Line-oriented edit, comments preserved.
+5. **Rename `kind: deployment` → `kind: deploy` in every reachable YAML doc.** Walks `overthink.yml` plus every file in its `includes:` and rewrites the kind discriminator.
+
+Re-runs are no-ops: every step is idempotent (extractions are gated on inline-map presence, stub creation is gated on file absence, `includes:` entries are dedup'd, root-key and kind renames are gated on the legacy form being present).
+
+## Implementation
+
+Code lives in `ov/migrate_kind_files.go`. Pairs with hard load-time errors in `ov/unified.go` (and the validator) that fire on any residual `kind: deployment` doc OR any root-key `deployment:` map — each error points the operator at `ov migrate kind-files`.
+
+## Why combined
+
+The file-split and the kind rename land together because the filename and the kind name now match by convention (`kind: deploy` lives in `deploy.yml`, `kind: image` in `image.yml`, etc.) — splitting into per-kind files without renaming the discriminator would leave `kind: deployment` docs in `deploy.yml`, contradicting the convention immediately. R3 (no duplication) demands one migration command for the one cutover.
 
 # ov migrate unified
 

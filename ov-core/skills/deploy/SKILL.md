@@ -813,11 +813,11 @@ images:
 
 ## Cross-kind name reuse + ResolveDeployRef precedence (2026-05-05)
 
-A deployment entry's key in `deployment:` lives in its own namespace. The same name MAY simultaneously be a layer, an `image:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry — and the deployment's cross-reference fields (`image:`, `vm:`, `local:`, `cluster:`) are scoped to the matching kind, no fall-through. Concrete worked example: this repo's `deployment.ov-cachyos` references `local.ov-cachyos` via `local: ov-cachyos` — same name across two namespaces.
+A deploy entry's key in `deploy:` lives in its own namespace. The same name MAY simultaneously be a layer, an `image:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry — and the deploy entry's cross-reference fields (`image:`, `vm:`, `local:`, `cluster:`) are scoped to the matching kind, no fall-through. Concrete worked example: this repo's `deploy.ov-cachyos` references `local.ov-cachyos` via `local: ov-cachyos` — same name across two namespaces.
 
 `ResolveDeployRef` (used by `ov deploy add <name> <ref>`): when a name exists as BOTH an image and a layer, image-first precedence wins for the primary `<ref>` positional. The `--add-layer <ref>` path goes through `ResolveDeployRefAsLayer` which is layer-first. The retired image+layer ambiguity error is gone — same-name image and layer is permitted.
 
-Migration for the operator-specific `qc` → `ov-cachyos` rename: `ov migrate qc-rename` (idempotent). Residual `deployment.qc` keys raise a hard load-time error. See `/ov-build:migrate`.
+Migration for the operator-specific `qc` → `ov-cachyos` rename: `ov migrate ov-cachyos` (idempotent). Residual `deploy.qc` / `deploy.cachyos-dx` keys raise a hard load-time error. The 2026-05-XX per-kind file split also renamed the schema kind itself: `kind: deployment` → `kind: deploy`; root-key `deployment:` → `deploy:`; migration `ov migrate kind-files`. See `/ov-build:migrate`.
 
 ## When to Use This Skill
 
