@@ -35,6 +35,7 @@ CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher
 | OCI labels / capabilities contract | `/ov-dev:capabilities` |
 | VmSpec / libvirt / cloud-init / OVMF | `/ov-dev:vm-spec` + renderer skills |
 | Unexpected failure / anomaly | `/ov-dev:root-cause-analyzer` agent |
+| Engineering-discipline trigger (failure / dup pattern / ad-hoc fix / "out of scope" framing) | `/ov-dev:strict-policy` |
 | "What does layer X do?" | `/ov-layers:<name>` |
 | "What's in image X?" | `/ov-images:<name>` |
 | Skill authoring / maintenance | `/ov-dev:skills` (this skill) |
@@ -52,6 +53,7 @@ If multiple triggers apply, load ALL matching skills in ONE message (parallel `S
 | New layer or image added | Create skill via `ov image new layer` scaffold or manual SKILL.md |
 | Bug fix changes behavior | Document the fix in affected skills |
 | Cross-skill behavior discovered | Update Cross-References in all affected skills |
+| Removed identifier still referenced in skill paragraph (R5 self-test failed) | Update / delete the paragraph in the SAME commit as the removal (R5) |
 
 ## When NOT to Update Skills
 

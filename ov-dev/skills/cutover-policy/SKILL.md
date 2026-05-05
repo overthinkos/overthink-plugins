@@ -41,13 +41,15 @@ Do not propose phasing, narrowing, or scope reduction at plan-authoring time. Do
 - **Dual-mode code paths** where both the old and new surface work simultaneously.
 - **"Phase 2 cleanup" comments** or TODOs for work that the cutover PR was supposed to complete.
 
-Each of these has a specific failure mode that has occurred historically: the first three drag legacy-state complexity forward indefinitely; the fourth multiplies the test matrix; the fifth is the anti-pattern `R6` in `CLAUDE.md` forbids on a per-plan basis.
+Each of these has a specific failure mode that has occurred historically: the first three drag legacy-state complexity forward indefinitely; the fourth multiplies the test matrix; the fifth is the anti-pattern `R2` in `CLAUDE.md` forbids on a per-plan basis (no "pre-existing" / "out of scope" / "follow-up PR" classifications).
 
 ## Required for every breaking change
 
 - A one-shot **`ov migrate <name>`** command that transforms legacy configs in-place. Migration commands are **idempotent** — running twice is a no-op. See `/ov-build:migrate`.
 - **Hard load-time errors** for any residual legacy field, with a one-line remediation hint pointing at the migration command.
 - **Deletion — in the same PR** — of every Go type, function, CLI flag, OCI label, YAML field, skill doc paragraph, and test fixture that references the removed surface.
+- **Stale-reference sweep (R5).** Every reference, comment, docstring, error message, skill paragraph, migration help-text, test fixture, and hook string naming a deleted identifier MUST be updated or deleted in the same commit. After commit, `git grep '<deleted-id>'` returns ONLY historical mentions in changelog/history-note/migration-help-text context.
+- **Engineering-discipline gates (R1–R5).** See `/ov-dev:strict-policy`. Every failure during the cutover triggers `/ov-dev:root-cause-analyzer` BEFORE any remediation (R1). Every issue surfaced is fixed in the cutover or escalated (R2). Duplication is refactored on first surface (R3). Workarounds are forbidden (R4). Stale references are swept (R5).
 
 ## Rationale
 

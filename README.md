@@ -4,6 +4,7 @@ Claude Code plugins for Overthink — the container management experience for yo
 
 ## Recent changes
 
+- **2026-05-05** — Engineering-discipline cutover. R1–R10 reordered: engineering discipline (R1–R5) BEFORE runtime verification (R6–R9) BEFORE R10 (final acceptance gate, byte-identical). New skill `/ov-dev:strict-policy` operationalizes R1–R5. AI Attribution table closed: any R1–R10 or Clean Architecture violation FORBIDS commit at any tier — no "downgrade and ship" path exists. Documentation-only cutover.
 - **2026-05-XX** — Init-system polymorphism + `cachyos-dx` → `ov-cachyos`.
   Deleted the `*-host` sibling-layer pattern (`virtualization-host`,
   `ov-full-host`); the unified layer carries both supervisord and
