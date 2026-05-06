@@ -2,7 +2,7 @@
 
 MCP server registration for JupyterLab notebook operations with real-time CRDT collaboration.
 
-This plugin exposes 15 MCP tools using the uniform `<noun>_<verb>` naming convention (three nouns: `notebook_*`, `cell_*`, `room_*`) — `notebook_list`, `notebook_create`, `notebook_get`, `notebook_watch`, `cell_get`, `cell_update`, `cell_insert`, `cell_delete`, `cell_execute`, `room_open`, `room_close`, `room_close_all`, `room_pick`, `room_list`, `room_list_users` — to Claude Code, routing them to the JupyterLab server running on `http://localhost:8888/mcp`. Room creation is explicit: call `room_open(path)` before any cell or notebook-content operation.
+This plugin exposes 11 MCP tools using the uniform `<noun>_<verb>` naming convention — `notebook_list`, `notebook_create`, `notebook_get`, `notebook_watch`, `notebook_list_users`, `cell_get`, `cell_update`, `cell_insert`, `cell_delete`, `cell_execute`, `room_list` — to Claude Code, routing them to the JupyterLab server running on `http://localhost:8888/mcp`. The server manages CRDT rooms invisibly: every notebook_*/cell_* call auto-attaches to whichever room is open for the path (UI tab, another MCP session, or this one) or creates one if none exists. `room_list` is a read-only diagnostic. The pre-2026-05-06 client-side room management tools (`room_open`, `room_close`, `room_close_all`, `room_pick`) were deleted — clients no longer manage rooms.
 
 ## Contents
 
@@ -22,7 +22,7 @@ The MCP server name `jupyter` is deliberately stable across renames of the under
 
 ## Related Skills
 
-- `/ov-layers:jupyter-mcp` — the MCP server implementation (13 tools, FastMCP + Tornado-ASGI bridge, CRDT integration, design principles)
+- `/ov-layers:jupyter-mcp` — the MCP server implementation (11 tools, FastMCP + Tornado-ASGI bridge, CRDT integration, auto-attach + canonicalization design principles)
 - `/ov-layers:jupyter` — lightweight parent layer (composes `jupyter-mcp`)
 - `/ov-layers:jupyter-ml` — GPU ML parent layer (composes `llama-cpp`, `unsloth`, `jupyter-mcp`)
 - `/ov-images:jupyter` — lightweight CPU image

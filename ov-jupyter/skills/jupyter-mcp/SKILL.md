@@ -1,9 +1,8 @@
 ---
 name: jupyter-mcp
 description: |
-  JupyterLab CRDT MCP server extension with 13 tools for programmatic notebook access.
-  MUST be invoked when working with: the MCP server implementation, CRDT collaboration,
-  or the Tier 1 pip-only installation pattern for jupyter extensions.
+  JupyterLab CRDT MCP server extension with 11 tools (notebook_*/cell_* + room_list + notebook_list_users) for programmatic notebook access.
+  MUST be invoked when working with: the MCP server implementation, CRDT collaboration, the auto-attach single-room invariant, or the Tier 1 pip-only installation pattern for jupyter extensions.
 ---
 
 # jupyter-mcp -- JupyterLab CRDT MCP server extension
@@ -24,6 +23,21 @@ This is a **Tier 1 "post-install"** layer — it has no `pixi.toml` and installs
 
 **Single source of truth:** The `jupyter_mcp` Python package lives only in this layer. Both `jupyter` (lightweight) and `jupyter-ml` (GPU ML) compose it via their `layers:` field. This prevents code duplication and ensures bug fixes propagate to all images.
 
+## Usage philosophy and caveats (post-2026-05-06 cutover)
+
+The MCP server **manages CRDT rooms invisibly**. Clients see notebooks and cells; the server takes care of room lifecycle. Reading or mutating any notebook just works — call `cell_get`, `cell_update`, `notebook_get` directly.
+
+- **MCP works WITH the user.** Every `notebook_*` and `cell_*` tool auto-attaches to whichever CRDT room exists for the path (JupyterLab UI tab, another MCP session, or this one), or creates a fresh room if none exists. Calling `cell_update` on a notebook the user has open in JupyterLab edits THAT EXACT Y.Doc — the user sees changes in real time. **There is no scenario where MCP and UI work in parallel rooms.**
+- **No client-side room management.** The pre-cutover `room_open` / `room_close` / `room_close_all` / `room_pick` tools were deleted. Idle rooms (no clients, no MCP activity for `MCP_ROOM_IDLE_TIMEOUT_SEC`, default 600s) are flushed and closed by a server-side sweeper. Configure the timeout via env var on the layer for fast tests.
+- **`cell_update` is atomic by `cell_id`.** The cell's stable identifier is preserved across the update — pre-cutover versions minted a fresh UUID on every update, producing silent cell duplication when the room had any concurrent state. If you ever observe duplicate cells appearing during a sequence of `cell_update` calls on a build older than this commit, that's the bug.
+- **Path canonicalization.** Any path you pass — `"foo.ipynb"`, `"./foo.ipynb"`, `"/home/user/workspace/foo.ipynb"` — is normalized to the workspace-relative form before reaching `file_id_manager.index()`. All three converge on the same room. Host paths and `..` escapes are rejected with a clear error.
+- **Single room per notebook is an INVARIANT.** Two MCP sessions plus the JupyterLab UI editing the same notebook ALL share one Y.Doc. If `room_list` ever shows two entries for the same logical file, that's a regression — open a bug.
+- **Don't mix MCP cell-mutations with direct disk writes on the same notebook concurrently.** The upstream `jupyter_server_ydoc` file watcher CRDT-merges external writes against the in-memory state, producing hybrid cells. Pick one writer per session — either MCP or direct file edit, not both.
+- **After bulk edits, `notebook_get` cell-count check is cheap insurance.** Defensive verification catches upstream regressions early.
+- **`notebook_watch` returns on the FIRST change** after the call started. Pair with `notebook_get` if you need to confirm a specific change landed.
+- **Idle rooms auto-flush + close.** A notebook with no connected clients and no MCP activity for `MCP_ROOM_IDLE_TIMEOUT_SEC` is flushed to disk and removed from memory. The next access auto-creates the room again from disk. No client-driven flush is needed.
+- **`file_id_manager.db` is auto-cleaned on adapter init.** Rows whose path resolves outside the workspace (host-path leaks) and rows whose underlying file no longer exists (with no active room referencing them) are pruned. Idempotent and safe.
+
 ## How It Works
 
 The `tasks:` performs three operations:
@@ -34,67 +48,56 @@ The `tasks:` performs three operations:
 
 ## MCP Server
 
-The extension registers a Streamable HTTP MCP server at `http://localhost:8888/mcp` (MCP spec 2025-11-25). It provides 15 tools for programmatic notebook access, all named in `<noun>_<verb>` form.
+The extension registers a Streamable HTTP MCP server at `http://localhost:8888/mcp` (MCP spec 2025-11-25). It provides 11 tools, all named in `<noun>_<verb>` form.
 
-**Naming convention.** Three nouns partition the catalog:
-- `notebook_*` — filesystem operations on `.ipynb` files
-- `cell_*` — in-memory cell mutations (require an open room)
-- `room_*` — CRDT room lifecycle and introspection
-
-**Room creation is ALWAYS explicit.** Only `room_open` creates a room.
-Every room-mutation tool (`cell_*`, `notebook_get`, `notebook_watch`)
-raises `RoomNotOpenError` when no room exists for the path — call
-`room_open(path)` first, then `room_close(path)` when done.
+| Category | Tools |
+|----------|-------|
+| Notebook management | `notebook_list`, `notebook_create`, `notebook_get`, `notebook_watch`, `notebook_list_users` |
+| Cell operations | `cell_get`, `cell_update`, `cell_insert`, `cell_delete`, `cell_execute` |
+| Read-only diagnostic | `room_list` |
 
 | Tool | Description |
 |------|-------------|
 | `notebook_list` | List all notebooks in the workspace (filesystem) |
-| `notebook_create` | Create a new empty notebook on disk (filesystem; does NOT open a room) |
-| `notebook_get` | Get full notebook content from the live CRDT document; hard-fails with `RoomNotOpenError` if no room |
-| `notebook_watch` | Block until a CRDT change is observed; hard-fails if no room |
-| `cell_get` | Get a specific cell's content; hard-fails if no room |
-| `cell_update` | Replace a cell's source; hard-fails if no room |
-| `cell_insert` | Insert a new cell at a position; hard-fails if no room |
-| `cell_delete` | Delete a cell; hard-fails if no room |
-| `cell_execute` | Execute a cell, return outputs, AND write outputs + `execution_count` back via the CRDT-aware `set_cell` path; hard-fails if no room |
-| `room_open` | Open or join a CRDT room (idempotent). Subsequent JupyterLab UI tabs that open the same notebook auto-join this same room |
-| `room_close` | Synchronously flush pending CRDT state to disk, then evict the room; hard-fails if no room |
-| `room_close_all` | Blanket cleanup — close every active room; returns `{closed: [...], errors: [...]}` |
-| `room_pick` | Look up an existing room without creating one; hard-fails if no room |
-| `room_list` | List every active CRDT room with rich metadata per entry: `room_id`, `path`, `file_id`, `users`, `user_count`, `has_kernel` |
-| `room_list_users` | List awareness users currently connected to any room |
+| `notebook_create` | Create a new empty notebook on disk (filesystem; the room auto-attaches on the first cell op) |
+| `notebook_get` | Get full notebook content from the live CRDT document; auto-attaches to existing room or creates one |
+| `notebook_watch` | Block until a CRDT change is observed; auto-attaches |
+| `notebook_list_users` | List awareness users currently connected to one notebook's room (read-only diagnostic; returns `[]` if no room exists) |
+| `cell_get` | Get a specific cell's content; auto-attaches |
+| `cell_update` | Replace a cell's source IN PLACE — preserves the cell's `id`, leaves position in `_ycells` structurally untouched. Auto-attaches |
+| `cell_insert` | Insert a new cell at a position; auto-attaches |
+| `cell_delete` | Delete a cell; auto-attaches |
+| `cell_execute` | Execute a cell, return outputs, AND write outputs + `execution_count` back via the in-place `set_cell` path. Auto-attaches |
+| `room_list` | Read-only diagnostic: list every active CRDT room with rich metadata (`room_id`, `path`, `file_id`, `users`, `user_count`, `has_kernel`). Use to verify the single-room invariant |
 
 ### CRDT Collaboration
 
-Cell operations mutate the live CRDT document — changes appear instantly in all connected JupyterLab clients. Multiple MCP clients and browser users can edit the same notebook simultaneously. The server uses `jupyter-server-ydoc` for CRDT document management.
+Cell operations mutate the live CRDT document — changes appear instantly in all connected JupyterLab clients. Multiple MCP clients and browser users can edit the same notebook simultaneously. The server uses `jupyter-server-ydoc` for CRDT document management. The single-room invariant means MCP and UI clients ALWAYS share one Y.Doc per logical file — calls converge through deterministic `room_id = json:notebook:<file_id_manager.index(canonical_path)>`.
 
-**Key implementation details (2026-05-01):**
+**Key implementation details (post-2026-05-06):**
 
-1. **Room initialization on open.** `_create_room()` calls `await room.initialize()` after `server.start_room(room)` to load notebook content from disk into the CRDT document. Without this, the YNotebook is empty (0 cells). Mirrors `YDocWebSocketHandler.open()` in `jupyter-server-ydoc`.
+1. **Auto-attach in `_resolve_notebook_doc`.** Every path-accepting adapter method routes through this single resolve point. It computes the canonical path, looks up the deterministic room_id, and either attaches to the existing `server.rooms[room_id]` (UI-created or MCP-created) or constructs a new room mirroring `YDocWebSocketHandler.prepare()`. Same code path → same room → no parallel state.
 
-2. **`cell_execute` persists outputs.** After collecting iopub messages, the adapter translates them via `nbformat.v4.output_from_msg`, captures `execution_count` from the shell-channel `execute_reply` (works for `print()`/`display()`-only cells that don't emit `execute_result`), and writes `cell["outputs"]` + `cell["execution_count"]` back via `set_cell()` — same CRDT-aware path used by `cell_update`. The MCP-level return path is unchanged. Without this, outputs only land on disk if `jupyter-collaboration`'s iopub→CRDT auto-bridge happened to fire in time (racy across many cells).
+2. **In-place `set_cell`.** Cell mutations operate on the existing Y.Map's `source` (Y.Text), `metadata` (Y.Map), and `outputs` (Y.Array) IN PLACE. The cell's `id` and its position in `_ycells` are structurally untouched. Compare with the pre-cutover code that delegated to upstream `YNotebook.set_cell`, which calls `create_ycell(value)` (mints a fresh UUID when value lacks `id`) and `set_ycell(index, ycell)` (a `pycrdt.Array.__setitem__` that decomposes into delete-then-insert at the CRDT level — phantom-cell residue). A post-condition verify ensures `id` stability after every mutation.
 
-3. **`room_close` flushes synchronously, no defensive pop.** Calls `room._save_to_disc()` and awaits the returned task BEFORE `server.delete_room()`. Required because `DocumentRoom.stop()` (invoked by `delete_room`) cancels `self._saving_document` rather than awaiting it — any CRDT mutations sitting in the `save_delay` debounce would otherwise be lost. Wraps `server.delete_room` in try/except for `ValueError("not in list")` because the upstream `YDocWebSocketHandler._clean_room` may have already cleaned up the room when a UI client disconnects concurrently. The pre-cutover code did a defensive `server.rooms.pop()` after `delete_room` — that line was the trigger for the upstream race and has been removed.
+3. **Path canonicalization at the boundary.** `_canonical_notebook_path(path)` resolves host paths and `..` escapes BEFORE any call to `file_id_manager.index()`. Prevents the 2026-05 host-path-leak bug pattern where `/home/atrawog/...` got minted into the container's file_id manager from a stray client call.
 
-### Persistence contract
+4. **Server-side idle-room sweeper.** A background asyncio task runs every `MCP_ROOM_SWEEP_INTERVAL_SEC` (default 60), flushes and closes rooms with zero connected clients and idle for > `MCP_ROOM_IDLE_TIMEOUT_SEC` (default 600). Activity tracking via `_room_last_active`: every CRDT mutation through the adapter bumps the timestamp, so an actively-mutated MCP-only room (no WS clients) is not reaped.
 
-`cell_execute → room_close → on-disk .ipynb` guarantees:
-- Every executed cell's `outputs` array reflects the kernel's iopub stream (text, display_data, execute_result, error).
-- Every executed cell's `execution_count` is a positive int.
-- After `room_close` returns, `room_list` no longer reports the path's room.
+5. **`cell_execute` persists outputs.** After collecting iopub messages, the adapter translates them via `nbformat.v4.output_from_msg`, captures `execution_count` from the shell-channel `execute_reply` (works for `print()`/`display()`-only cells that don't emit `execute_result`), and writes `cell["outputs"]` + `cell["execution_count"]` back via `set_cell()` — the same in-place CRDT-aware path used by `cell_update`. Eventually flushed to disk by the upstream save_delay or the idle-room sweeper.
 
-This contract is locked by the eval.yml recipe `jupyter-execute-cell-persistence` (4 scenarios: single-cell print, parallel multi-cell, rich HTML display_data, room-eviction-after-close).
+6. **`file_id_manager.db` cleanup on init.** A one-shot pass deletes rows whose path is outside the notebook root (host-path leaks) or whose underlying file no longer exists (with no active room referencing them). Idempotent — safe to run on every server start.
 
 ### Architecture Stack
 
 ```
 Claude Code / MCP Client
     ↓ Streamable HTTP (POST /mcp)
-FastMCP Server (mcp_server.py)
+FastMCP Server (mcp_server.py)            — 11 tools, no room_* management
     ↓
-JupyterLab RTC Adapter (rtc_adapter.py)
-    ↓ CRDT operations
-jupyter-server-ydoc DocumentRoom
+JupyterLab RTC Adapter (rtc_adapter.py)   — auto-attach + canonicalization
+    ↓ CRDT operations (in-place Y.Map mutation)
+jupyter-server-ydoc DocumentRoom          — single room per file_id
     ↓ Y.js document sync
 JupyterLab Kernel Manager (execute_cell)
 ```
@@ -110,14 +113,14 @@ layers/jupyter-mcp/
     jupyter_mcp/
       __init__.py
       app.py             # Jupyter server extension entry point
-      mcp_server.py      # FastMCP tool definitions (13 tools)
+      mcp_server.py      # FastMCP tool definitions (11 tools)
       rtc_adapter.py     # CRDT room management, kernel execution
       tornado_asgi.py    # Tornado-to-ASGI bridge for FastMCP
 ```
 
 ## Integration with mcp_provides
 
-The parent `jupyter` layer declares `mcp_provides` to make this MCP server discoverable to other services at deploy time. The hermes service auto-discovers this server via the `OV_MCP_SERVERS` env var and registers all 13 tools as `mcp_jupyter_<tool_name>`.
+The parent `jupyter` layer declares `mcp_provides` to make this MCP server discoverable to other services at deploy time. The hermes service auto-discovers this server via the `OV_MCP_SERVERS` env var and registers all 11 tools as `mcp_jupyter_<tool_name>`.
 
 ## MCP Name Decoupling (design principle)
 
@@ -129,7 +132,7 @@ The `jupyter` MCP server name is **deliberately decoupled** from the layer name,
 | `layers/jupyter/layer.yml` | `mcp_provides[0].name` | `jupyter` | Cross-container discovery (hermes, openwebui) |
 | `plugins/ov-jupyter/.mcp.json` | `mcpServers.jupyter` | — | Claude Code static registration |
 
-When the layer/package/image were renamed (`jupyter-colab-ml` → `jupyter-ml`, `jupyter_colab_mcp` → `jupyter_mcp`), these three values stayed `jupyter` — and every consumer (`hermes` `mcp_accepts: jupyter`, `openwebui` `mcp_accepts: jupyter`, the Claude Code plugin) continued working without any edits. **Package/layer/image names describe the artifact; the MCP name describes the service contract.** Rename the artifact freely; the contract is stable.
+**Package/layer/image names describe the artifact; the MCP name describes the service contract.** Rename the artifact freely; the contract is stable.
 
 ## Used In Layers
 
@@ -147,9 +150,9 @@ When the layer/package/image were renamed (`jupyter-colab-ml` → `jupyter-ml`, 
 - `/ov-jupyter:jupyter` — lightweight Tier 2 parent layer
 - `/ov-jupyter:jupyter-ml` — GPU ML Tier 2 parent layer
 - `/ov-build:layer` — layer authoring rules (Tier 1 pattern)
-- `/ov-build:mcp` — client-side verb for probing this server's tool catalog (ping, list-tools, call); use `ov eval mcp list-tools jupyter` to see all 13 tools this layer registers
+- `/ov-build:mcp` — client-side verb for probing this server's tool catalog (ping, list-tools, call); use `ov eval mcp list-tools jupyter` to see all 11 tools this layer registers
 - `/ov-selkies:chrome-devtools-mcp` — sibling MCP-server-provider layer for Chrome DevTools (different domain, same `mcp_provides` pattern)
-- `/ov-hermes:hermes` — downstream MCP consumer (auto-discovers `jupyter` via `OV_MCP_SERVERS`; uses the 13 tools to read/edit/execute notebook cells programmatically)
+- `/ov-hermes:hermes` — downstream MCP consumer (auto-discovers `jupyter` via `OV_MCP_SERVERS`; uses the 11 tools to read/edit/execute notebook cells programmatically)
 - `/ov-openwebui:openwebui` — downstream MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI's in-chat code blocks to the Jupyter kernel)
 
 ## When to Use This Skill
@@ -158,7 +161,10 @@ Use when the user asks about:
 
 - The jupyter-mcp layer or its MCP server implementation
 - How the CRDT collaboration works in JupyterLab
-- The 13 MCP tools for notebook manipulation
+- The 11 MCP tools for notebook manipulation
+- The auto-attach single-room invariant
+- The path canonicalization rules
+- The idle-room sweeper / cleanup behavior
 - How the MCP extension is installed and enabled
 - The Tier 1 extraction pattern (avoiding code duplication across Tier 2 layers)
 

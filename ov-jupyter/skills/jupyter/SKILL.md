@@ -148,37 +148,29 @@ If you start `claude` first and then `ov start jupyter`, you'll need
 to exit and restart the claude session before the jupyter MCP tools
 become available.
 
-### 15 MCP tools (`<noun>_<verb>` form)
+### 11 MCP tools (`<noun>_<verb>` form, post-2026-05-06)
 
 | Category | Tools |
 |----------|-------|
-| Notebook (filesystem) | `notebook_list`, `notebook_create` |
-| Notebook content (require open room) | `notebook_get`, `notebook_watch` |
-| Cell operations (CRDT, require open room) | `cell_get`, `cell_update`, `cell_insert`, `cell_delete`, `cell_execute` |
-| Room lifecycle | `room_open`, `room_close`, `room_close_all` |
-| Room introspection | `room_pick`, `room_list`, `room_list_users` |
+| Notebook management | `notebook_list`, `notebook_create`, `notebook_get`, `notebook_watch`, `notebook_list_users` |
+| Cell operations (CRDT) | `cell_get`, `cell_update`, `cell_insert`, `cell_delete`, `cell_execute` |
+| Read-only diagnostic | `room_list` |
 
-Room creation is ALWAYS explicit — only `room_open` creates a room.
-Every cell/notebook-content tool hard-fails with `RoomNotOpenError`
-when no room is open for the path.
+**Clients no longer manage CRDT rooms.** The server auto-attaches each notebook_*/cell_* call to whichever room exists for that path (UI tab, another MCP session, or this one), or creates a fresh room if none exists. The pre-cutover client-side room management tools (`room_open`, `room_close`, `room_close_all`, `room_pick`) were deleted in the 2026-05-06 cutover. Idle rooms are flushed and closed by a server-side sweeper after `MCP_ROOM_IDLE_TIMEOUT_SEC` (default 600s).
 
-See `/ov-jupyter:jupyter` for full parameter and return type documentation.
+See `/ov-jupyter:jupyter-mcp` "Usage philosophy and caveats" for the full design principles + caveats. See `/ov-jupyter:jupyter` for full parameter and return type documentation.
 
 ### Testing with `claude -p`
 
 ```bash
 # Prerequisites: ov start jupyter
 
-# Create and work with a notebook. The cell_execute + room_close
-# round-trip is the canonical "land outputs on disk" path: cell_execute writes
-# outputs back to the cell via CRDT; room_close synchronously flushes the
-# room save before evicting. Files rendered with Quarto's
-# `execute: enabled: false` (and any non-MCP reader) see the outputs.
+# Create and work with a notebook. No room_open / room_close needed —
+# the server auto-attaches on every cell_*/notebook_* call.
 claude -p "Call notebook_create with path 'test.ipynb'"
-claude -p "Call room_open with path 'test.ipynb'"
 claude -p "Call cell_insert with path 'test.ipynb', index 0, source 'print(42)', cell_type 'code'"
 claude -p "Call cell_execute with path 'test.ipynb' and index 0"
-claude -p "Call room_close with path 'test.ipynb'"
+claude -p "Call notebook_get with path 'test.ipynb'"   # outputs persisted via in-place CRDT
 ```
 
 ### Multi-client collaboration

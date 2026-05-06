@@ -77,7 +77,7 @@ These variables are injected automatically into the container environment at `ov
 ## Key Capabilities
 
 - **JupyterLab** with real-time collaboration (jupyter-collaboration, Y-CRDT)
-- **CRDT MCP Server** at `/mcp` — 13 tools for programmatic notebook access
+- **CRDT MCP Server** at `/mcp` — 11 tools for programmatic notebook access (server manages CRDT rooms invisibly; see `/ov-jupyter:jupyter-mcp` for the auto-attach + canonicalization design)
 - **PyTorch** >= 2.10.0 with CUDA 13.0
 - **vLLM** 0.19 inference engine
 - **Unsloth** fine-tuning (LoRA, QLoRA)
@@ -114,7 +114,7 @@ ov shell jupyter-ml -c "pixi run verify-collaboration"
 | Base | fedora | nvidia |
 | CUDA | No | Yes |
 | Arch | amd64 + arm64 | amd64 |
-| MCP | CRDT (13 tools) | CRDT (13 tools) |
+| MCP | CRDT (11 tools) | CRDT (11 tools) |
 | Collaboration | Yes | Yes |
 | ML Stack | No | Full |
 | Volume | workspace | workspace + models |

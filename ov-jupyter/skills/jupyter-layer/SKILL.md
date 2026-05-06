@@ -125,51 +125,38 @@ Tornado (Jupyter Server, :8888)
 
 - **FastMCP v3.x** (standalone, by Prefect) with Streamable HTTP transport (MCP spec 2025-11-25)
 - **Tornado-ASGI bridge** — custom handler translates Tornado requests to ASGI scope/receive/send (both share the same asyncio event loop)
-- **On-demand room creation** — CRDT rooms are created headlessly when tools need them (no browser required). Replicates `YDocWebSocketHandler.prepare()` logic including lazy websocket server start
+- **Auto-attach + path canonicalization (post-2026-05-06)** — every `notebook_*`/`cell_*` call routes through `_resolve_notebook_doc(canonical_path)` which attaches to whichever room exists for the deterministic `room_id` (UI tab, another MCP session, this one) or creates one. Single room per notebook is an enforced invariant.
+- **In-place `set_cell` (post-2026-05-06)** — cell mutations operate on the existing Y.Map's `source`/`metadata`/`outputs` IN PLACE, preserving the cell's `id` and its position in the underlying `Y.Array`. Pre-cutover code delegated to upstream `YNotebook.set_cell` which decomposed into delete-then-insert at the CRDT level (phantom-cell residue).
 - **Per-notebook asyncio locks** — serializes mutations on the same notebook to prevent index-based race conditions during concurrent access
+- **Server-side idle-room sweeper** — periodically flushes and closes rooms with zero clients idle for `MCP_ROOM_IDLE_TIMEOUT_SEC` (default 600s); replaces the pre-cutover client-side `room_close` semantic
 - **Lazy YDocExtension resolution** — resolved on first tool call, not at extension load time (avoids load-order dependency)
 
-### MCP Tools (15 total — `<noun>_<verb>` form)
+### MCP Tools (11 total — `<noun>_<verb>` form, post-2026-05-06)
 
-Naming convention: every tool is prefixed by `notebook_*`, `cell_*`,
-or `room_*`. Room creation is ALWAYS explicit — only `room_open`
-creates a CRDT room; every cell/notebook-content tool hard-fails with
-`RoomNotOpenError` when no room exists for the path.
+Clients no longer manage CRDT rooms. The server auto-attaches every `notebook_*`/`cell_*` call to whichever room exists, or creates one. The pre-cutover client-side management tools (`room_open`, `room_close`, `room_close_all`, `room_pick`) were deleted. See `/ov-jupyter:jupyter-mcp` "Usage philosophy and caveats".
 
-**Notebook (filesystem) operations:**
+**Notebook operations:**
 | Tool | Parameters | Returns |
 |------|-----------|---------|
 | `notebook_list` | — | `[{"path": "...", "name": "..."}]` |
-| `notebook_create` | `path` | `{"path": "...", "name": "..."}` (no room opened) |
+| `notebook_create` | `path` | `{"path": "...", "name": "..."}` (no room opened — auto-attach happens on first cell op) |
+| `notebook_get` | `path` | Full notebook dict (live CRDT; auto-attaches) |
+| `notebook_watch` | `path`, `timeout=30` | `{"changed": true, "cell_count": N}` or `{"changed": false}` (auto-attaches) |
+| `notebook_list_users` | `path` | `[{"id": "...", "name": "..."}]` — awareness users on ONE notebook (read-only; returns `[]` if no room) |
 
-**Notebook-content operations (require open room):**
-| Tool | Parameters | Returns |
-|------|-----------|---------|
-| `notebook_get` | `path` | Full notebook dict (live CRDT) |
-| `notebook_watch` | `path`, `timeout=30` | `{"changed": true, "cell_count": N}` or `{"changed": false}` |
-
-**Cell Operations (CRDT — changes sync live to all collaborators; require open room):**
+**Cell Operations (CRDT — changes sync live to all collaborators; auto-attach):**
 | Tool | Parameters | Returns |
 |------|-----------|---------|
 | `cell_get` | `path`, `index` | Cell dict (source, cell_type, metadata, outputs) |
-| `cell_update` | `path`, `index`, `source`, `cell_type?` | `"Cell N updated"` |
+| `cell_update` | `path`, `index`, `source`, `cell_type?` | `"Cell N updated"` — preserves cell `id` (in-place Y.Map mutation) |
 | `cell_insert` | `path`, `index`, `source`, `cell_type="code"` | `"Cell inserted at index N"` |
 | `cell_delete` | `path`, `index` | `"Cell N deleted"` |
-| `cell_execute` | `path`, `index` | `[{"type": "stream", "content": {...}}]` — also writes `outputs` + `execution_count` back to the cell via the CRDT path so they persist on `room_close` |
+| `cell_execute` | `path`, `index` | `[{"type": "stream", "content": {...}}]` — also writes `outputs` + `execution_count` back via the in-place `set_cell` path |
 
-**Room lifecycle:**
+**Read-only diagnostic (no mutation, no auto-attach):**
 | Tool | Parameters | Returns |
 |------|-----------|---------|
-| `room_open` | `path` | `"Room opened for ..."` (idempotent — UI tabs that subsequently open the same notebook auto-join this same room) |
-| `room_close` | `path` | `"Room closed for ..."` — synchronously flushes pending CRDT state via `room._save_to_disc()` before evicting; tolerates the upstream `_clean_room` race |
-| `room_close_all` | — | `{"closed": [{"room_id":..., "path":...}, ...], "errors": [...]}` |
-
-**Room introspection (no room mutation):**
-| Tool | Parameters | Returns |
-|------|-----------|---------|
-| `room_pick` | `path` OR `room_id` (exactly one) | One room metadata entry; hard-fails if absent |
-| `room_list` | — | `[{"room_id": ..., "path": ..., "file_id": ..., "users": [...], "user_count": N, "has_kernel": bool}, ...]` |
-| `room_list_users` | — | `[{"id": "...", "name": "..."}]` |
+| `room_list` | — | `[{"room_id": ..., "path": ..., "file_id": ..., "users": [...], "user_count": N, "has_kernel": bool}, ...]` — verify the single-room invariant: never two rows for the same path |
 
 ### Installation
 
