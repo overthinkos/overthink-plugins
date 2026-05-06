@@ -109,7 +109,7 @@ When co-deployed with services that declare `mcp_provides` (e.g., jupyter), herm
 ```bash
 # Verify MCP connection
 ov shell hermes -c "hermes mcp list"                    # Shows registered servers
-ov shell hermes -c "hermes mcp test jupyter"      # Tests connection (expects 13 tools)
+ov shell hermes -c "hermes mcp test jupyter"      # Tests connection (expects 11 tools, post-2026-05-06 surface)
 ```
 
 ## Key Layers

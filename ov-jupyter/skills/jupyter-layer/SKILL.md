@@ -107,7 +107,7 @@ jupyter:
 The `jupyter` layer declares `mcp_provides` for cross-container and pod MCP discovery. The URL template `http://{{.ContainerName}}:8888/mcp` resolves to the actual container name at deploy time (e.g., `http://ov-jupyter:8888/mcp`), or to `http://localhost:8888/mcp` in combined images where both services run in the same container.
 
 - **Transport:** Streamable HTTP (`http`)
-- **13 tools** available via the `jupyter-mcp` extension (see below)
+- **11 tools** available via the `jupyter-mcp` extension (see below)
 - **Hermes auto-configures** via the `OV_MCP_SERVERS` env var -- no manual MCP registration needed
 - **Pod-aware:** resolves to `localhost` in combined images where hermes and jupyter share a container
 
@@ -175,7 +175,7 @@ layers/jupyter-mcp/
 │       ├── __init__.py             # Extension entry point
 │       ├── app.py                  # Registers /mcp handler + ASGI lifespan
 │       ├── tornado_asgi.py         # Tornado↔ASGI bridge (SSE streaming, disconnect handling)
-│       ├── mcp_server.py           # FastMCP tool definitions (13 tools)
+│       ├── mcp_server.py           # FastMCP tool definitions (11 tools)
 │       └── rtc_adapter.py          # CRDT access via YNotebook + kernel execution
 # (in layer.yml tasks:)  # Build-time: pip install fastmcp + extension + enable
 └── layer.yml
@@ -225,7 +225,7 @@ OCI label (see `/ov-build:eval` for the full schema):
 ## Related Layers
 
 - `/ov-jupyter:jupyter-ml` -- GPU-accelerated variant with full CUDA ML stack + same CRDT MCP server
-- `/ov-jupyter:jupyter-mcp` -- MCP server implementation (sub-layer, 15 tools for programmatic notebook access using `<noun>_<verb>` naming)
+- `/ov-jupyter:jupyter-mcp` -- MCP server implementation (sub-layer, 11 tools for programmatic notebook access using `<noun>_<verb>` naming; post-2026-05-06 cutover dropped client-side room management — server auto-attaches)
 - `/ov-jupyter:notebook-templates` -- Starter notebooks (data layer, used alongside this layer in images)
 - `/ov-hermes:hermes` -- MCP consumer (auto-discovers via `OV_MCP_SERVERS` env var; uses `jupyter` server tools to read/edit/execute cells)
 - `/ov-openwebui:openwebui` -- MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code-block execution into the Jupyter kernel)

@@ -419,7 +419,7 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 - `/ov-advanced:wl` — sibling (Wayland desktop control).
 - `/ov-advanced:dbus` — sibling (D-Bus calls/notifications).
 - `/ov-advanced:vnc` — sibling (VNC framebuffer / input).
-- `/ov-jupyter:jupyter-mcp` — the FastMCP server implementation layer (13 tools for notebook manipulation over CRDT).
+- `/ov-jupyter:jupyter-mcp` — the FastMCP server implementation layer (11 tools for notebook manipulation over CRDT, post-2026-05-06: notebook_*/cell_* + notebook_list_users + room_list; clients no longer manage CRDT rooms — server auto-attaches).
 - `/ov-selkies:chrome-devtools-mcp` — the mcp-proxy wrapper around chrome-devtools-mcp (29 tools for browser automation).
 - `/ov-hermes:hermes` — a consumer (`mcp_accepts: jupyter, chrome-devtools`); use `ov eval mcp` to verify the services hermes discovers are actually alive.
 - `/ov-openwebui:openwebui` — another consumer (`mcp_accepts: jupyter, chrome-devtools`).
