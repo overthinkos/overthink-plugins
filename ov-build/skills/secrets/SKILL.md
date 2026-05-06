@@ -157,6 +157,47 @@ ov secrets set ov/api-key ollama gsk-yyyyyyyy
 ov secrets set ov/api-key immich <immich-key-from-web-ui>
 ```
 
+**Auto-generated `secret_requires:` tokens.** Since 2026-05-06,
+`secret_requires:` entries that miss everywhere (env + credential
+store) auto-generate a 32-byte hex token via `generateRandomHex(32)` +
+`DefaultCredentialStore.Set`, persisted at `ov/secret/<NAME>` (or the
+declared `key:` override). The first deploy that resolves the secret
+writes; every subsequent deploy reads the persisted value. Race-free
+across multi-layer declarations because `DefaultCredentialStore` caches
+via `sync.Once` — when k3s-server and k3s-agent both declare
+`K3S_CLUSTER_TOKEN`, whichever resolves first writes, and the other
+reads. No operator setup required for `ov rebuild k3s-vm` to succeed
+on a fresh host.
+
+`secret_accepts:` entries do NOT auto-generate (they're optional by
+contract; the caller falls back to `dep.Default` when missing). Only
+`secret_requires:` triggers the auto-gen path.
+
+**Retrieve** an auto-generated value (e.g., to log into a service for
+the first time):
+
+```bash
+ov secrets get ov/secret K3S_CLUSTER_TOKEN
+ov secrets get ov/secret WEBUI_ADMIN_PASSWORD
+```
+
+**Override** a `secret_requires:` value with a specific value before
+the first deploy:
+
+```bash
+ov secrets set ov/secret K3S_CLUSTER_TOKEN <value>
+```
+
+The auto-gen path is skipped whenever any non-empty value is already
+resolvable (env var, keyring, kdbx, or config-file fallback).
+
+**Persistence venue.** When no kdbx and no keyring are available
+(headless first-boot, fresh CI runner), the auto-generated token
+lands in `~/.config/ov/config.yml` via `ConfigFileStore` (mode 0600).
+Operators on multi-user hosts should run `ov secrets init` BEFORE
+the first deploy to land subsequent secrets in an encrypted kdbx
+instead.
+
 **Rotation:** update the store and re-run `ov config`. The
 `RotateOnConfig` flag on credential-backed secrets bypasses the
 `podmanSecretExists` short-circuit, so the podman secret is re-created

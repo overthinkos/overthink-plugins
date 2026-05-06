@@ -14,6 +14,8 @@ This is the **single entry point** for **container** deployment setup. `ov start
 
 **Relationship to `ov deploy add`** — `ov config` remains the primary way to create/update a quadlet and provision secrets/volumes/sidecars for a container deploy. `ov deploy add <name> <ref>` (container target) wraps both `ov config` and `ov start` and additionally handles `--add-layer` overlay synthesis (an overlay Containerfile is built before the quadlet references the resulting overlay image). `ov deploy add host` bypasses `ov config` entirely — the host target has no quadlet; it writes systemd units directly (when `--with-services` is enabled) and records every action in the ledger at `~/.config/overthink/installed/`. See `/ov-core:deploy` for the command family and `/ov-advanced:local-deploy` for host-target semantics.
 
+**`ov config` vs `ov settings` — common verb confusion.** `ov config <image>` configures an image for deployment (quadlet + secrets + volumes + data seed). `ov settings list` shows runtime config keys (secret_backend, kdbx_path, vm.backend, etc.). A trailing `ov config show` parses as `ov config setup show` with `show` as the image positional — and errors with `image "show" is not available locally`. To inspect runtime configuration use `ov settings list`; to inspect a configured image's resolved deploy state use `ov image inspect <image>` or `ov deploy show <name>`.
+
 ## Quick Reference
 
 | Action | Command | Description |

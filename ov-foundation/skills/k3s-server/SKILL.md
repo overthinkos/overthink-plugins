@@ -36,17 +36,29 @@ description: |
    `~/.config/ov/clusters/<deploy_name>.yaml` with `ingress.class=traefik`
    and `storage.class_default=local-path`.
 
-## One-time operator setup
+## Operator setup — none required (auto-generated)
 
-Before the FIRST k3s-server deploy, the operator sets the pre-shared
-cluster token once:
+`K3S_CLUSTER_TOKEN` auto-generates on first deploy. The resolver
+(`ov/layer_secrets.go` — `ensureLayerSecret`) detects the missing
+`secret_requires:` entry, generates a 32-byte hex token via
+`generateAndStoreSecret`, and persists it to the active credential
+backend (keyring / kdbx / config-file fallback). Every subsequent
+`k3s-server` and `k3s-agent` deploy reads the same persisted value —
+zero operator setup, server and agents automatically share the token.
+
+**Override** with a specific value (uncommon — only when reproducing a
+specific cluster identity, e.g., disaster recovery):
 
 ```bash
 ov secrets set ov/secret/K3S_CLUSTER_TOKEN $(openssl rand -hex 32)
 ```
 
-Every `k3s-server` and `k3s-agent` deploy reads the same secret — no
-per-deploy token dance.
+**Retrieve** the auto-generated token (for debugging or
+out-of-band agent join):
+
+```bash
+ov secrets get ov/secret K3S_CLUSTER_TOKEN
+```
 
 ## Usage
 

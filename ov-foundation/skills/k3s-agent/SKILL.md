@@ -18,7 +18,10 @@ description: |
 ## What this layer does
 
 1. Reads `K3S_CLUSTER_TOKEN` from the credential store (same secret the
-   server consumes).
+   server consumes — auto-generated on the first server-or-agent
+   deploy via `ensureLayerSecret`; subsequent deploys read the
+   persisted value, so agents and server automatically share the
+   token without operator setup).
 2. Requires `K3S_SERVER_URL` from deploy.yml env (e.g.,
    `https://k3s-srv.lan:6443`).
 3. Writes `/etc/rancher/k3s/config.yaml` with `server:` and `token:`.
