@@ -292,7 +292,7 @@ ov settings set engine.run docker     # or podman
 
 ## Host Bootstrap (First Time)
 
-Requires: `go-task`, `go`, `docker` (or `podman`). On Arch the recommended install is `yay -S ov-git` (or `cd pkg/arch && makepkg -si`) — the PKGBUILD pulls every dep, including `task` itself, and the bundled pacman post-install hook enables docker/tailscaled/virtqemud automatically. On other distros, run `task build:ov` from the checkout to compile and install `ov` to `~/.local/bin/ov`.
+Requires: `go-task`, `go`, `docker` (or `podman`). On Arch the recommended install is `yay -S overthink-git` (or `cd pkg/arch && makepkg -si`) — the PKGBUILD pulls every dep, including `task` itself, and the bundled pacman post-install hook enables docker/tailscaled/virtqemud automatically. On other distros, run `task build:ov` from the checkout to compile and install `ov` to `~/.local/bin/ov`.
 
 ```bash
 task build:ov        # Build + install ov; on Arch delegates to makepkg -si, elsewhere installs portable to ~/.local/bin
@@ -329,7 +329,7 @@ ov image build --push
 
 ### "ov not found"
 
-On Arch run `yay -S ov-git` (or `cd pkg/arch && makepkg -si`) to install system-wide. Elsewhere run `task build:ov` from the checkout — `task` itself is required (install via your distro package manager or download from go-task/task releases).
+On Arch run `yay -S overthink-git` (or `cd pkg/arch && makepkg -si`) to install system-wide. Elsewhere run `task build:ov` from the checkout — `task` itself is required (install via your distro package manager or download from go-task/task releases).
 
 ### Build Fails with Missing Base
 
@@ -352,10 +352,10 @@ If you see `cannot unmarshal !!str ... into int` or similar YAML parsing errors 
 Beyond the YAML-unmarshal symptom above, a stale `ov` binary can produce *syntactically valid but outdated* Containerfile output — e.g. emitting an old broken form of a template that HEAD's source has already fixed. Symptom: build fails on a step whose generated shell clearly doesn't match the source you see in `git grep`. Quick diagnostic: `ls -la $(which ov)` vs. `git log -1 ov/generate.go` — if the binary predates the fix, rebuild:
 
 ```bash
-task build:ov        # rebuild + pacman-reinstall on Arch (ov-git package)
+task build:ov        # rebuild + pacman-reinstall on Arch (overthink-git package)
 ```
 
-Common on Arch where `ov-git` is pacman-installed and HEAD moves faster than rebuilds. If you find yourself rebuilding `ov` to chase a bug and the symptom persists, the binary path on $PATH may not be the one `task build:ov` updated — confirm with `which ov`.
+Common on Arch where `overthink-git` is pacman-installed and HEAD moves faster than rebuilds. If you find yourself rebuilding `ov` to chase a bug and the symptom persists, the binary path on $PATH may not be the one `task build:ov` updated — confirm with `which ov`.
 
 ### Buildah cache-mount corruption (pixi tzdata et al.)
 

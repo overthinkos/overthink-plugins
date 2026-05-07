@@ -206,4 +206,4 @@ For ambiguous tests, run both and diff the results.
 - `github.com/digitalocean/go-libvirt` — pure-Go libvirt RPC client.
 - `libvirt.org/go/libvirtxml` — typed domain XML parsing/generation.
 - The `libvirt` Arch package (libvirtd, session socket) is already a
-  hard dep of the `ov-git` PKGBUILD.
+  hard dep of the `overthink-git` PKGBUILD.
