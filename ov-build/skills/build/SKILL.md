@@ -40,7 +40,37 @@ ov image build --cache gha [image...]             # GitHub Actions cache
 ov image build --no-cache [image...]              # Disable cache entirely
 ov image build --jobs N [image...]                # Max concurrent images per DAG level (default: 4)
 ov image build --podman-jobs N [image...]         # Max concurrent stages within a single podman build (default: min(NCPU, 4))
+ov image build <image> --include-disabled         # Build an `enabled: false` image without flipping authored config
 ```
+
+## `--include-disabled` — operational rebuild of disabled images
+
+Images with `enabled: false` in `image.yml` are excluded from the build /
+inspect / validate working set by default. To rebuild ONE such image without
+flipping the authored flag (which would commit local-deployment intent into
+shared project config), pass `--include-disabled`:
+
+```bash
+ov image build immich --include-disabled    # builds the disabled image
+git diff --quiet image.yml                  # confirms image.yml is untouched
+```
+
+**Scoping.** When you pass positional `<image>` args together with
+`--include-disabled`, the override is **scoped to those names**. Other
+disabled images stay filtered out — important because widening the
+working set globally would surface unrelated dep errors (e.g., a
+disabled image with remote layers that haven't been fetched yet).
+`ov image build --include-disabled` (no positional args) widens
+globally; `ov image build immich --include-disabled` only relaxes the
+gate for `immich`.
+
+The flag flows from `BuildCmd.IncludeDisabled` → `ResolveOpts.IncludeDisabled`
++ `ResolveOpts.IncludeDisabledNames` → `ResolveAllImages` (in `Generator`)
+→ `ResolveImage`. The `shouldIncludeDisabled(name)` helper centralises the
+scoping rule. Sibling commands `ov image inspect <name> --include-disabled`
+and `ov image validate --include-disabled` accept the same flag for
+diagnostic / validation work on disabled entries. See `/ov-build:inspect`
+and `/ov-build:validate`.
 
 ## Build Config (build.yml)
 

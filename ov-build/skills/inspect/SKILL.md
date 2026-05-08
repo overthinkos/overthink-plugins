@@ -19,6 +19,7 @@ Displays the fully resolved configuration of an image as JSON. Shows base image,
 |--------|---------|-------------|
 | Full inspect | `ov image inspect <image>` | Show complete resolved config as JSON |
 | Specific field | `ov image inspect <image> --format FIELD` | Extract a specific field |
+| Disabled image | `ov image inspect <image> --include-disabled` | Operate on `enabled: false` images without flipping authored config |
 
 ## Usage
 

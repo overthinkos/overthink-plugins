@@ -16,7 +16,8 @@ Invoked as `ov image validate`. See `/ov-build:image` for the family overview.
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Validate all | `ov image validate` | Check image.yml + all layers |
+| Validate all | `ov image validate` | Check image.yml + all layers (enabled images only) |
+| Validate disabled too | `ov image validate --include-disabled` | Extend the validation pass to images marked `enabled: false` (does not modify image.yml) |
 | Check version | `ov version` | Verify CalVer computation |
 | Inspect image | `ov image inspect <image>` | Show resolved config |
 
