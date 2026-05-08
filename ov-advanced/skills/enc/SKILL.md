@@ -396,6 +396,20 @@ the next `ov config mount` or `ov start` detects the stale scope, stops
 it, and remounts fresh — at which point the iteration-capable ssClient
 kicks in.
 
+## Pre-start safety check: cipher populated + plain empty
+
+`verifyBindMounts` (`ov/enc.go:verifyBindMounts`) runs in the `ov start` / `ov shell` direct-mode code path before the container is started. For any `type: encrypted` volume that does not show up as a FUSE mount, an extra discrimination fires before the generic "not mounted" error: when the cipher dir on disk holds user data (anything beyond the `gocryptfs.conf` + `gocryptfs.diriv` metadata files) AND the plain mount target is empty, the error switches to a louder form spelling out the data-loss risk:
+
+```
+encrypted volume "library": cipher dir at /home/.../ov-immich-library/cipher is populated but plain mount at /home/.../ov-immich-library/plain is empty — refusing to start (would write plaintext over encrypted data); run 'ov config mount immich' first
+```
+
+This is the immich-2026-04-incident shape. A pre-cutover quadlet (one missing the `ExecStartPre=ov config mount <image>` auto-mount hook — see "Boot Behavior: Backend-Gated" above and `/ov-build:migrate` "ov migrate quadlets") would silently bind an empty `plain/` over a populated cipher tree, the container's services would `initdb` / first-run-wizard against the empty dir, and 2 weeks of plaintext data would accumulate on top of an encrypted vault. The new error class fails the start IMMEDIATELY when `ov start` detects that exact pre-start state.
+
+**Important caveat on quadlet-managed services.** This check runs only in the direct-mode (CLI) path. systemd-managed quadlet services bypass it — they go straight to `podman` after `ExecStartPre=ov config mount <image>` succeeds. The actual root-cause fix for those is the `ExecStartPre` hook itself; verifyBindMounts is a belt-and-suspenders safety net for the direct path.
+
+Helper: `cipherPopulatedPlainEmpty(cipherDir, plainDir)` returns true only when both conditions hold. Returns false on any os.ReadDir error (the surrounding error path will surface those — this helper is purely a discrimination hint). Source: `ov/enc.go:cipherPopulatedPlainEmpty`. Tested by `ov/migrate_quadlets_test.go:TestCipherPopulatedPlainEmpty` (5 sub-cases: dangerous, metadata-only, plain-non-empty, missing-cipher, missing-plain).
+
 ## Volume Backing Override
 
 When a volume is configured as `type: encrypted` in deploy.yml, it overrides the default named volume. The Docker/Podman named volume is not created -- the gocryptfs mount is used instead.

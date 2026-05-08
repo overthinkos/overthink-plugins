@@ -20,6 +20,7 @@ One-shot, idempotent migrators for every hard-cutover schema change the project 
 | `ov migrate ov-cachyos` | Rename the operator-specific CachyOS deployment to its 2026-05 canonical form `ov-cachyos`. Collapses the qc → cachyos-dx → ov-cachyos chain into a single hop — handles BOTH legacy keys (`qc`, `cachyos-dx`) AND moves the matching kind:local template name. Walks `overthink.yml` and `~/.config/ov/deploy.yml`. Idempotent; line-oriented edits preserve comments. Residual `deploy.qc`, `deploy.cachyos-dx`, `local.cachyos-dx` raise hard load-time errors all pointing at this command. Demonstrates the cross-kind name reuse policy (CLAUDE.md): the kind:local template and the kind:deploy entry that applies it share one name. | `/ov-build:local-spec`, `/ov-core:deploy` |
 | `ov migrate kind-files` | Per-kind file split + `kind: deployment` → `kind: deploy` rename in one combined idempotent hop. (a) Extracts inline `image:` and `vm:` maps from `overthink.yml` into sibling `image.yml` / `vm.yml`. (b) Creates empty `pod.yml` / `k8s.yml` stubs if absent. (c) Appends each new file to `overthink.yml`'s `includes:` list (preserving any existing entries). (d) Renames the root-key `deployment:` → `deploy:` in `deploy.yml`. (e) Walks every reachable YAML doc and renames `kind: deployment` → `kind: deploy` in place. Re-runs are no-ops. Implementation: `ov/migrate_kind_files.go`. Pairs with hard load-time errors in `unified.go` for residual `kind: deployment` docs and root `deployment:` keys, both pointing at this command. | `/ov-build:image`, `/ov-build:local-spec`, `/ov-core:deploy`, `/ov-build:validate` |
 | `ov migrate local-deploy` | Migrate the per-host file `~/.config/ov/deploy.yml` from the pre-2026-04 legacy schema (top-level `images:` map + per-entry `bind_mounts:` field with `path:`/`encrypted:` + `workspace:` scalar) to schema v4 (`deploy:` map + per-entry `volumes:` with `type: encrypted` / `type: bind`). The `workspace:` scalar is promoted to a `volumes:` entry of `type: bind` with `host: <legacy-value>` + `path: /workspace`. `target: pod` is added to every entry (legacy schema only supported container deploys). Idempotent: re-running on a v4 file is a no-op. Writes a `<file>.bak.<unix-ts>` rollback before rewriting. Implementation: `ov/migrate_local_deploy.go`. Pairs with a hard load-time error in `LoadDeployConfig` (`ov/deploy.go:hasLegacyImagesKey`) that fires on any residual `images:` root key, pointing at this command. | `/ov-core:deploy` |
+| `ov migrate quadlets` | Walk `~/.config/containers/systemd/ov-*.container` and regenerate any quadlet whose deploy declares `type: encrypted` volumes but whose on-disk unit lacks the `ExecStartPre=ov config mount <image>` auto-mount hook (added 2026-04-16). Pre-cutover quadlets silently boot containers against empty `plain/` FUSE mountpoints whenever gocryptfs is unmounted — the actual root cause of the 2026-04-18 immich incident. Detection is INI-tolerant (matches `/usr/bin/ov` / bare `ov` / `~/.local/bin/ov`); regeneration shells out to `ov config <image>` (kdbx prompt may fire on first regen, then cache-warms for siblings). Idempotent. Implementation: `ov/migrate_quadlets.go`. Pairs with the `verifyBindMounts` cipher-populated-plain-empty discrimination in `/ov-advanced:enc`. | `/ov-core:deploy`, `/ov-advanced:enc`, `/ov-core:start` |
 
 # ov migrate local-deploy
 
@@ -72,6 +73,53 @@ deploy.yml at <path>: legacy top-level `images:` field detected — run `ov migr
 ```
 
 `ov status` surfaces this as a non-fatal warning (graceful degradation falls back to image-label-driven display); the strictly-deploy.yml-driven verbs (`ov deploy show`, `ov config status`) hard-fail.
+
+# ov migrate quadlets
+
+Invoked as `ov migrate quadlets`. Walks the per-host quadlet directory (`~/.config/containers/systemd/ov-*.container`) and regenerates any unit whose deploy declares `type: encrypted` volumes but whose on-disk quadlet lacks the `ExecStartPre=ov config mount <image>` auto-mount hook.
+
+## Why this exists
+
+The auto-mount hook was added 2026-04-16. Pre-cutover quadlets that include encrypted-volume bindings (`Volume=<cipher-dir>/plain:<container-path>`) silently boot containers against empty `plain/` FUSE mountpoints whenever gocryptfs has been unmounted (host reboot, manual `fusermount3 -u`, scope-unit crash). The container's services then write plaintext data into `plain/` on top of the populated cipher tree — the encryption guarantee silently disappears. This is the actual root cause of the 2026-04-18 immich incident (2 weeks 5 days of plaintext data accumulated on top of the original encrypted vault before anyone noticed).
+
+The fix has TWO components:
+
+1. **`ov migrate quadlets`** (this command) regenerates the on-disk quadlet so future restarts go through the auto-mount hook.
+2. **`verifyBindMounts` cipher-populated-plain-empty discrimination** (`ov/enc.go`, see `/ov-advanced:enc` "Pre-start safety check") catches the dangerous state in the direct-mode CLI path before the container is started.
+
+## Detection
+
+For each entry in `~/.config/ov/deploy.yml` `deploy:` map:
+
+- Skip if `target` is anything other than empty / `pod` / `container` (only container-class deploys have quadlets).
+- Skip if no volume entry has `type: encrypted` (the hook is encryption-specific).
+- Skip if the on-disk quadlet at `~/.config/containers/systemd/ov-<name>.container` does not exist (the user hasn't run `ov config <name>` yet for this deploy — nothing to migrate, stay quiet).
+- For each remaining entry: scan the quadlet body for an `ExecStartPre=…ov config mount <name>` line. Tolerant to ov-binary path variations (`/usr/bin/ov`, `~/.local/bin/ov`, bare `ov`) and trailing flags. If the hook is missing, the entry is stale.
+
+## Regeneration
+
+Stale quadlets are regenerated by re-invoking the running ov binary as `ov config <name>` (self-exec via `os.Args[0]`, the same pattern documented in `/ov-dev:go` "Self-exec coordination"). This re-runs the entire `ov config` codepath — quadlet write + secret provisioning + encrypted-volume init + data seeding + daemon-reload — so every concomitant state stays in sync. The kdbx prompt will fire on the first regeneration; subsequent ones in the same migration cache-hit via the kernel-keyring cache (see `/ov-build:secrets` "Password Caching").
+
+## Flags
+
+- `--dry-run` — list stale quadlets and their regeneration commands without modifying anything.
+
+## Idempotency
+
+A quadlet that already carries the hook is silently skipped. Running `ov migrate quadlets` twice produces the same output as running it once on a fully-migrated tree:
+
+```
+ov migrate quadlets: nothing to migrate (all encrypted-volume quadlets carry ExecStartPre=ov config mount …)
+```
+
+## Tests
+
+`ov/migrate_quadlets_test.go`:
+
+- `TestQuadletHasMountHook` — 8 sub-cases covering hook presence/absence/prefix-collision/path-variation.
+- `TestDetectStaleEncryptedQuadlets` — full scratch-deploy.yml + scratch-quadlet-dir end-to-end: encrypted-needing-migration / encrypted-already-migrated / non-encrypted-irrelevant. Asserts only the stale entry is returned.
+- `TestDetectStaleEncryptedQuadlets_NoQuadletOnDisk` — encrypted deploy with no quadlet file → empty result, no spurious "missing" warnings.
+- `TestCipherPopulatedPlainEmpty` (in the same file) — discrimination helper used by `verifyBindMounts`; 5 sub-cases.
 
 # ov migrate kind-files
 
