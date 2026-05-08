@@ -135,26 +135,24 @@ not an array.
    not the joined container name (`selkies-desktop-185.52.136.164`),
    which was the 2026-05-02 bug.
 
-## Known display issue: `Volumes:` reads from image labels
+## `Volumes:` field — live mounts vs label fallback
 
-The `Volumes:` field is populated from the image's OCI labels
-(`ExtractMetadata` in `ov/status_collector.go`), not from the live
-container's actual mounts. This means a volume deployed with `--bind
-<name>=<path>` will appear in `ov status` as `ov-<image>-<volume> ->
-/container/path` (the image default from the OCI label), not as
-`<host-path> -> /container/path` (the actual runtime bind mount).
+The `Volumes:` field is rendered from THREE sources, in priority order:
 
-The running container is functionally correct — only the display is misleading. Authoritative sources for the live volume backing:
+1. **Live mounts** (`podman inspect .Mounts[]`) — wins for running containers. Format: `<name>: <source> -> <dest>` for named volumes, `bind: <source> -> <dest>` for bind mounts. Encrypted FUSE binds (source matches `<...>/encrypted/<vol>/plain`) get an `(enc)` suffix so the display distinguishes a `type: encrypted` deploy override from a plain bind.
+2. **deploy.yml** volume names — fallback for stopped/enabled containers when no live mounts are available. Lists just the volume names from the deploy entry.
+3. **Image OCI label** (`ExtractMetadata`) — last-resort fallback when neither runtime nor deploy data is present. Format: `<volume-name> -> <container-path>` (the layer-declared default).
+
+This means a volume deployed with `--bind <name>=<path>` or `--encrypt <name>` shows up in the live form for running containers — what the container is ACTUALLY mounting, including the gocryptfs FUSE plain dir for encrypted volumes. Pre-cutover behavior went straight to the image-label fallback even for running containers, which was load-bearing in misdiagnosing the immich-2026-04-18 incident: `ov status` reported `ov-immich-cache -> /home/user/.immich/cache` (the OCI label default) when the container was actually binding `<...>/ov-immich-cache/plain -> /home/user/.immich/cache` and the gocryptfs FUSE was unmounted, so the operator couldn't see from `ov status` alone that they were writing plaintext over the cipher tree.
+
+For programmatic queries the same data is in `ov status --json`'s `volumes` array. Source: `ov/status_collector.go:formatLiveMounts` + `ov/status_engine.go:mountsFromInspect`. Tested by `ov/status_live_mounts_test.go` (17 sub-cases covering the JSON parser, the encryption-path detector, the renderer, and an end-to-end JSON → MountInfo → display chain).
+
+Authoritative direct queries (when you need the raw inspect data):
 
 ```bash
-# What the live container is actually mounting
 podman inspect <container> --format '{{range .Mounts}}{{.Type}}:{{.Source}}->{{.Destination}} {{"\n"}}{{end}}'
-
-# The deploy.yml record (what ov config resolved)
 ov deploy show <image>
 ```
-
-Use either of the above when you need to confirm that a `--bind` / `--encrypt` override actually took effect.
 
 ## Usage
 
