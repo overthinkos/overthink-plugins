@@ -19,6 +19,59 @@ One-shot, idempotent migrators for every hard-cutover schema change the project 
 | `ov migrate shell-schema` | Convert legacy `cmd:` shell-rc heredoc tasks (matching the `# overthink:begin direnv-hook` / `# overthink:begin ssh-auth-sock` fence patterns) into the structured `shell:` schema. Idempotent. Distinguishes install-style heredocs (`cat >`) from cleanup-style strips (`sed -i`) — only rewrites the former. 2026-05 cutover. | `/ov-build:layer`, `/ov-coder:direnv` |
 | `ov migrate ov-cachyos` | Rename the operator-specific CachyOS deployment to its 2026-05 canonical form `ov-cachyos`. Collapses the qc → cachyos-dx → ov-cachyos chain into a single hop — handles BOTH legacy keys (`qc`, `cachyos-dx`) AND moves the matching kind:local template name. Walks `overthink.yml` and `~/.config/ov/deploy.yml`. Idempotent; line-oriented edits preserve comments. Residual `deploy.qc`, `deploy.cachyos-dx`, `local.cachyos-dx` raise hard load-time errors all pointing at this command. Demonstrates the cross-kind name reuse policy (CLAUDE.md): the kind:local template and the kind:deploy entry that applies it share one name. | `/ov-build:local-spec`, `/ov-core:deploy` |
 | `ov migrate kind-files` | Per-kind file split + `kind: deployment` → `kind: deploy` rename in one combined idempotent hop. (a) Extracts inline `image:` and `vm:` maps from `overthink.yml` into sibling `image.yml` / `vm.yml`. (b) Creates empty `pod.yml` / `k8s.yml` stubs if absent. (c) Appends each new file to `overthink.yml`'s `includes:` list (preserving any existing entries). (d) Renames the root-key `deployment:` → `deploy:` in `deploy.yml`. (e) Walks every reachable YAML doc and renames `kind: deployment` → `kind: deploy` in place. Re-runs are no-ops. Implementation: `ov/migrate_kind_files.go`. Pairs with hard load-time errors in `unified.go` for residual `kind: deployment` docs and root `deployment:` keys, both pointing at this command. | `/ov-build:image`, `/ov-build:local-spec`, `/ov-core:deploy`, `/ov-build:validate` |
+| `ov migrate local-deploy` | Migrate the per-host file `~/.config/ov/deploy.yml` from the pre-2026-04 legacy schema (top-level `images:` map + per-entry `bind_mounts:` field with `path:`/`encrypted:` + `workspace:` scalar) to schema v4 (`deploy:` map + per-entry `volumes:` with `type: encrypted` / `type: bind`). The `workspace:` scalar is promoted to a `volumes:` entry of `type: bind` with `host: <legacy-value>` + `path: /workspace`. `target: pod` is added to every entry (legacy schema only supported container deploys). Idempotent: re-running on a v4 file is a no-op. Writes a `<file>.bak.<unix-ts>` rollback before rewriting. Implementation: `ov/migrate_local_deploy.go`. Pairs with a hard load-time error in `LoadDeployConfig` (`ov/deploy.go:hasLegacyImagesKey`) that fires on any residual `images:` root key, pointing at this command. | `/ov-core:deploy` |
+
+# ov migrate local-deploy
+
+Invoked as `ov migrate local-deploy`. Converts the per-host deploy file `~/.config/ov/deploy.yml` from the pre-2026-04 legacy schema to schema v4.
+
+## Why this exists
+
+The 2026-04 unified-config cutover renamed the top-level `images:` map to `deploy:` and replaced the per-entry `bind_mounts:` field with a structured `volumes:` list that distinguishes `type: encrypted` / `type: bind` / `type: volume`. **`yaml.Unmarshal` silently drops unknown root keys**, so a pre-cutover file with `images:` parses to an empty `DeployConfig.Deploy` map — and downstream commands behave as if nothing was deployed. The most dangerous symptom: encrypted-volume entries declared under the legacy `bind_mounts: [{encrypted: true}]` shape are invisible to `loadEncryptedVolumes`, so the encryption guarantee silently disappears (the immich-recovery session that motivated this fix found a 2-week-5-day window of plaintext data accumulation against an unmounted gocryptfs vault). This migration closes that gap.
+
+## What it converts
+
+| Legacy field | → | Modern field |
+|---|---|---|
+| `images:` (root) | → | `deploy:` (root) |
+| (none) | → | `version: 4` (added if absent) |
+| (none) | → | `target: pod` (per entry) |
+| `images.<name>.bind_mounts: [{name, path, encrypted: true}]` | → | `deploy.<name>.volumes: [{name, type: encrypted}]` (path dropped — encrypted volumes derive their host path from `encrypted_storage_path/ov-<image>-<name>`) |
+| `images.<name>.bind_mounts: [{name, path}]` (plain) | → | `deploy.<name>.volumes: [{name, type: bind, path}]` |
+| `images.<name>.workspace: <host-path>` (scalar) | → | `deploy.<name>.volumes: [{name: workspace, type: bind, host: <host-path>, path: /workspace}]` |
+| `images.<name>.tunnel`, `dns`, `ports`, `env_file`, `security`, `network` | → | passed through verbatim under `deploy.<name>.*` |
+
+## Idempotency
+
+Running on a v4 file (top-level `deploy:` and no legacy `images:`) is a no-op — exit 0, message `nothing to migrate (already on schema v4)`, no backup written. Detection uses `hasLegacyImagesKey(data)` on the raw YAML body (a yaml.v3 `Node` walk on root-level mapping keys), so it correctly ignores nested `images:` keys that legitimately appear inside test fixtures or comment text under modern-schema entries.
+
+## Backup
+
+Before rewriting, `<file>.bak.<unix-timestamp>` is written with the original content (mode 0600). Match the plaintext-secret migration pattern in `ov/config_secret_migration.go`. There is no automatic cleanup of old backups — the operator deletes them when satisfied with the migration.
+
+## Flags
+
+- `--dry-run` — print the proposed transformation summary, leave the filesystem untouched, no backup written.
+- `--path <file>` — override the default `~/.config/ov/deploy.yml` (used by tests and for migrating saved snapshots from a different machine).
+
+## Typical flow
+
+```bash
+ov migrate local-deploy --dry-run                          # preview
+ov migrate local-deploy                                    # apply
+ov deploy show <name>                                      # confirm load works
+ls ~/.config/ov/deploy.yml.bak.*                           # rollback file present
+```
+
+## Hard load-time error
+
+When a legacy file is present and the user runs ANY ov command that reads `~/.config/ov/deploy.yml` (`ov status`, `ov deploy show`, `ov config status`, `ov start`, …), `LoadDeployConfig` returns:
+
+```
+deploy.yml at <path>: legacy top-level `images:` field detected — run `ov migrate local-deploy` to convert; the field was renamed to `deploy:` in the 2026-04 unified-config cutover (encryption guarantees disappear silently otherwise)
+```
+
+`ov status` surfaces this as a non-fatal warning (graceful degradation falls back to image-label-driven display); the strictly-deploy.yml-driven verbs (`ov deploy show`, `ov config status`) hard-fail.
 
 # ov migrate kind-files
 

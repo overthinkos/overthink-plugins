@@ -401,20 +401,35 @@ Source: `ov/tunnel.go` (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`, `validTa
 2. **`ov deploy import`** merges pre-provisioned config (tunnel, volumes, DNS) from files
 3. **`ov remove`** cleans the entry (use `--keep-deploy` to preserve for re-config)
 
-### Structure
+### Legacy-schema rejection (2026-04 cutover)
+
+Schema v4 renamed the top-level `images:` map to `deploy:` and replaced the per-entry `bind_mounts:` field with a structured `volumes:` list. **`yaml.Unmarshal` silently drops unknown root keys**, so a pre-cutover file with `images:` would parse to an empty `DeployConfig.Deploy` map and downstream commands would behave as if nothing was deployed — including the dangerous case where `bind_mounts: [{encrypted: true}]` entries become invisible to `loadEncryptedVolumes` and the encryption guarantee silently disappears. `LoadDeployConfig` (`ov/deploy.go:hasLegacyImagesKey`) detects the legacy root shape and fails loud with:
+
+```
+deploy.yml at <path>: legacy top-level `images:` field detected — run `ov migrate local-deploy` to convert; the field was renamed to `deploy:` in the 2026-04 unified-config cutover (encryption guarantees disappear silently otherwise)
+```
+
+`ov status` surfaces this as a non-fatal warning (graceful degradation falls back to image-label-driven display); the strictly-deploy.yml-driven verbs (`ov deploy show`, `ov config status`, `ov start`) hard-fail. Run `ov migrate local-deploy` to convert in place — it backs the original up to `<file>.bak.<unix-ts>` and rewrites to schema v4. See `/ov-build:migrate` "ov migrate local-deploy".
+
+### Structure (schema v4)
 
 ```yaml
-images:
+version: 4
+deploy:
   my-app:
-    workspace: /home/user/project     # saved by ov config
+    target: pod
     tunnel:
       provider: cloudflare
       port: 2283
-    fqdn: "app.example.com"
+    dns: "app.example.com"
     volumes:
       - name: data
         type: bind
         host: "~/data/myapp"
+      - name: workspace
+        type: bind
+        host: /home/user/project
+        path: /workspace
       - name: secrets
         type: encrypted
     ports:
