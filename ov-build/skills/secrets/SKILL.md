@@ -246,7 +246,7 @@ The `.kdbx` file is a standard KeePass database. You can open it with KeePassXC 
 
 The kdbx master password is cached in the Linux kernel keyring (user keyring, key `ov-kdbx-password`) after the first interactive prompt. All subsequent `ov` commands within the timeout window reuse the cached password automatically -- no re-prompting.
 
-**Password resolution chain:**
+**Password resolution chain (first attempt):**
 1. `OV_KDBX_PASSWORD` environment variable (CI/automation)
 2. Linux kernel keyring lookup
 3. Interactive prompt (systemd-ask-password or terminal)
@@ -260,6 +260,42 @@ ov settings set secrets.kdbx_cache_timeout 7200 # Cache for 2 hours instead of 1
 ```
 
 Default: enabled, 3600 seconds (1 hour) TTL. Uses `keyctl` syscalls via `golang.org/x/sys/unix`. Source: `ov/keyctl.go`.
+
+## Wrong-Password Retry + Non-TTY Guard
+
+The master-password prompt has two safeguards that match standard CLI conventions:
+
+### Three attempts before giving up
+
+When `openKdbx` rejects the supplied password (`Wrong password? Database integrity check failed`), `ov` re-prompts up to **3 times total** (matching sudo's `passwd_tries=3` default). Between attempts you see:
+
+```
+Sorry, try again.
+```
+
+Retries bypass both the `OV_KDBX_PASSWORD` env var AND the kernel-keyring cache, so a stale cached value or a wrong-env-var setup doesn't loop forever — every retry forces a fresh interactive prompt. After the third failed attempt, the underlying `decoding kdbx: Wrong password?` error is returned and the command exits non-zero. Errors other than wrong-password (file not found, malformed blob, I/O error) return immediately without retry.
+
+### Non-TTY fail-fast
+
+When stdin is not a terminal AND `OV_KDBX_PASSWORD` is unset, `ov` aborts immediately with:
+
+```
+ov: error: kdbx password required but stdin is not a terminal; set OV_KDBX_PASSWORD=<password> or run interactively
+```
+
+This catches CI runs, SSH-non-interactive contexts, systemd service units, and tooling that loses TTY (like agent shells). Previously such contexts hung forever on `term.ReadPassword`. The guard fires unconditionally on no-TTY — `systemd-ask-password` is NOT a graceful fallback because `askPassword` invokes it with `--timeout=0` AND passes our stdin through, so it inherits the same no-TTY hang.
+
+The acceptance contract:
+
+| Context | Behaviour |
+|---|---|
+| Interactive terminal | Prompt; on wrong, "Sorry, try again." up to 3× |
+| `OV_KDBX_PASSWORD` set, correct | Use env value, succeed silently |
+| `OV_KDBX_PASSWORD` set, wrong | Try env value (1st), then re-prompt — but if no TTY, fail-fast on the retry |
+| Non-TTY, no env var | Fail-fast within ~50 ms, actionable error |
+| systemd unit (`INVOCATION_ID` set), no env var | Fail-fast (same code path as non-TTY) |
+
+Source: `ov/credential_kdbx.go` (`defaultKdbxAskPassword`, `openKdbxWithRetry`, `isWrongKdbxPassword`, `KdbxStore.openValidated`). Tests: `ov/credential_kdbx_test.go` (`TestOpenKdbxWithRetry_*`, `TestIsWrongKdbxPassword`, `TestKdbxStore_OpenValidated_ReusesCachedPassword`).
 
 ## Config Keys
 
