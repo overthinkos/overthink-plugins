@@ -80,6 +80,54 @@ OCI/Docker images use special "whiteout" files to represent file deletions acros
 
 **Why this matters:** Without whiteout suppression, merged layers could contain contradictory entries (a file and its `.wh.*` marker coexisting), causing `EEXIST` errors when the container runtime unpacks the layer onto an overlay filesystem.
 
+## Known limitation — `podman load: file exists` on multi-stage RPM images
+
+In some images (observed empirically against `immich:2026.128.x`), the post-build merge step succeeds at the Go-level (every merge group emits a valid tarball that passes internal consistency checks) but `podman load` rejects the final docker-archive with:
+
+```
+unpacking failed (error: exit status 1; output: file exists)
+ov: error: post-build merge optimization failed (image is functional but unmerged): podman load: exit status 125
+  Diagnostic: set OV_MERGE_KEEP_TMP=1 and re-run `ov image merge <name>` to capture the failing /tmp/ov-merge-*.tar.
+  This is a known limitation against multi-stage RPM-installed images; the build itself succeeded and the image at this tag is correct.
+```
+
+**Investigation (May 2026)** ruled out every canonical mergeLayers bug class:
+
+- 0 within-layer duplicate Names
+- 0 whiteout/file collisions inside any merged layer
+- 0 broken hardlinks (all `Linkname` targets present in their own layer)
+- 0 cross-layer typeflag conflicts (no path is regular-file in one layer + directory in another)
+
+The trigger appears to be a podman-side overlay-unpack quirk under specific layer-content patterns — multi-stage RPM-installed images that touch `/usr/lib/sysimage/rpm/*` in 6+ source layers consistently reproduce. Possibly related to the known podman-5.7.x blob-reuse race (`storage_dest.go:TryReusingBlobWithOptions`) documented in `/ov-build:build`, but unconfirmed against 5.8.x.
+
+### Operational impact
+
+**The failure is non-fatal.** `mergeAfterBuild` (`ov/build.go:178-186`) treats merge failure as a non-fatal warning. The build itself returns 0, the image is tagged at its CalVer, every individual layer digest is valid, and `ov start` runs the unmerged image with no functional difference — only the layer count is higher than ideal (~39 layers instead of the ~12 a successful merge would produce).
+
+### Diagnostic hook: `OV_MERGE_KEEP_TMP=1`
+
+When merge fails and you want to capture the failing tarball for inspection or forensic analysis, set `OV_MERGE_KEEP_TMP=1`:
+
+```bash
+OV_MERGE_KEEP_TMP=1 ov image merge <name>
+```
+
+On failure the tarball is left at `/tmp/ov-merge-<random>.tar` (path printed to stderr) instead of being cleaned up. The tar is a docker-archive — extract `manifest.json` to see the layer chain, then `tar -xzf <hash>.tar.gz` on individual layers to inspect their contents.
+
+For forensic analysis of layer contents:
+
+```bash
+# List paths within a single layer
+zcat <hash>.tar.gz | tar -tvf -
+
+# Find paths that appear in multiple layers (the cross-layer overlap pattern)
+for f in *.tar.gz; do
+  zcat "$f" | tar -tf - | sed "s|^|$f\t|"
+done | awk -F'\t' '{cnt[$2]++} END {for (p in cnt) if (cnt[p]>1) print cnt[p], p}' | sort -rn | head
+```
+
+Source: `ov/merge.go:saveImageToDaemon` (the keep-on-fail logic; `loaded` flag gates the cleanup defer).
+
 ## Project directory override
 
 `ov image merge` resolves `image.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov-build:image` "Project directory resolution".
