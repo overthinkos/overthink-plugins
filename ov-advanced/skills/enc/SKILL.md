@@ -307,7 +307,7 @@ Each encrypted volume is mounted via `systemd-run --scope --user --unit=ov-enc-<
 - **Survives container stop/restart** — scope units are independent of the container service's cgroup, so `KillMode=mixed` on service stop does not kill gocryptfs
 - **Keeps mounts browsable on host** — the host user can access `plain/` directories even when the container is stopped
 - **Handles stale scopes** — if a scope persists from a crash, the next mount attempt stops the stale scope and retries
-- **Cleans up on unmount** — `ov config unmount` calls `fusermount3 -u` then `systemctl --user stop ov-enc-<image>-<volume>.scope`
+- **Cleans up on unmount** — `ov config unmount` calls `fusermount3 -u` then `systemctl --user stop ov-enc-<image>-<volume>.scope`. The same teardown is available as a one-shot from the stop verb via `ov stop <image> --unmount` (see `/ov-core:stop`); plain `ov stop` deliberately leaves scopes running because the next start fast-paths through the `ov config mount` short-circuit.
 
 Scope unit naming: `ov-enc-<image>-<volume>.scope` (e.g., `ov-enc-immich-ml-library.scope`).
 

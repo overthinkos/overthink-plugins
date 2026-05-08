@@ -19,6 +19,7 @@ Stops a running service container. In quadlet mode, stops the systemd user servi
 |--------|---------|-------------|
 | Stop service | `ov stop <image>` | Stop the running container |
 | With instance | `ov stop <image> -i 2` | Stop a specific instance |
+| Stop + tear down FUSE | `ov stop <image> --unmount` | Stop the container AND unmount encrypted volumes (drops `ov-enc-<image>-<volume>.scope` units) |
 
 ## Usage
 
@@ -28,6 +29,9 @@ ov stop jupyter
 
 # Stop a specific instance
 ov stop ollama -i 2
+
+# Stop and tear down encrypted FUSE mounts in one step
+ov stop immich --unmount
 ```
 
 ## Flags
@@ -35,6 +39,7 @@ ov stop ollama -i 2
 | Flag | Description |
 |------|-------------|
 | `-i, --instance INSTANCE` | Target a specific container instance |
+| `--unmount` | After the container stop succeeds, also tear down `ov-enc-<image>-<volume>.scope` units via `encUnmount`. Best-effort: per-volume unmount failures emit a warning but don't propagate (the container has already stopped; the user can retry with `ov config unmount <image>`). Default `false` — plain `ov stop` leaves gocryptfs scopes running so they survive container restart (the original load-bearing design from `/ov-advanced:enc`). |
 
 ## Behavior
 
@@ -43,6 +48,7 @@ ov stop ollama -i 2
 - Does not remove the container or its configuration -- use `ov remove` for that
 - Does not disable the service -- the container may restart on next login if enabled
 - To stop and disable: `ov start <image> --enable=false` then `ov stop <image>`
+- **By design**, plain `ov stop` does NOT tear down encrypted FUSE mounts — the `ov-enc-*.scope` units are deliberately decoupled from the container service cgroup so they survive `KillMode=mixed` on stop and let the next start fast-path through the `ov config mount` short-circuit. Use `--unmount` for the full teardown semantics.
 
 ## Cross-References
 
