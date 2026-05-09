@@ -10,9 +10,9 @@ description: |
 
 ## Schema v4 notes
 
-- **Disposability is a deploy property only.** `VmSpec.Disposable` / `VmSpec.Lifecycle` were deleted in the schema-v3 cutover. Put `disposable: true` on the matching `deployments.<name>-vm` entry in `deploy.yml`; that's what `ov rebuild <vm-name>` checks. The `vm:` entity entry only describes VM shape (disk, RAM, SSH, cloud-init, libvirt), never authorization.
+- **Disposability is a deploy property only.** `VmSpec.Disposable` / `VmSpec.Lifecycle` were deleted in the schema-v3 cutover. Put `disposable: true` on the matching `deployments.<name>-vm` entry in `deploy.yml`; that's what `ov update <vm-name>` checks. The `vm:` entity entry only describes VM shape (disk, RAM, SSH, cloud-init, libvirt), never authorization.
 - **Deploy-level cross-ref**: a deployment with `target: vm` references its VM entity via `vm_source: <entity-name>` (migration command `ov migrate deploy-schema-v-3` renames legacy field names in place).
-- **`ov rebuild <vm-entity-name>`** searches `deployments.images` for any entry with `target: vm` + `vm_source: <entity>`; disposable iff ANY such entry carries `disposable: true`. Absence of a matching disposable deploy entry → rebuild refused.
+- **`ov update <vm-entity-name>`** searches `deployments.images` for any entry with `target: vm` + `vm_source: <entity>`; disposable iff ANY such entry carries `disposable: true`. Absence of a matching disposable deploy entry → rebuild refused.
 
 ## Overview
 
@@ -376,8 +376,8 @@ Expected. The agent needs a `virtio-serial` channel that ov's QEMU backend doesn
 
 ## Live-deploy verification is mandatory (see `/ov-build:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-dev:disposable`). Use `ov rebuild <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-dev:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
 
-**After committing the source-level fix, `ov rebuild` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
+**After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 
 Unit tests + a clean compile are necessary but not sufficient. See CLAUDE.md R1–R10.

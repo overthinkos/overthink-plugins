@@ -2,8 +2,8 @@
 name: disposable
 description: |
   `disposable: true` is the ONE and ONLY authorization for autonomous
-  destroy + rebuild via `ov rebuild`. MUST be invoked before any task
-  involving `ov rebuild`, live verification on rebuildable targets, or
+  destroy + rebuild via `ov update`. MUST be invoked before any task
+  involving `ov update`, live verification on rebuildable targets, or
   marking a VM / container deploy as safe-to-nuke. Explains why
   disposability is a DEPLOY property (not an image property), the
   separation between load-bearing `disposable:` and informational
@@ -15,7 +15,7 @@ description: |
 
 ## Schema v4 note (in-progress cutover)
 
-Schema v4 makes `DeploymentNode.Disposable` the **sole source of truth** for disposability. `VmSpec.Disposable` is retained during the Phase 1-5 transition for backward compatibility with the legacy `ov rebuild arch` / `ov vm destroy --disk` paths, but the canonical field on any deployment entry (e.g. `deployments.images.arch-vm.disposable: true`) is what the unified dispatcher reads.
+Schema v4 makes `DeploymentNode.Disposable` the **sole source of truth** for disposability. `VmSpec.Disposable` is retained during the Phase 1-5 transition for backward compatibility with the legacy `ov update arch` / `ov vm destroy --disk` paths, but the canonical field on any deployment entry (e.g. `deployments.images.arch-vm.disposable: true`) is what the unified dispatcher reads.
 
 A latent bug was fixed alongside the refactor: `MergeDeployConfigs` previously dropped the `Disposable` and `Lifecycle` fields during project ↔ per-machine overlay merge — meaning a disposable flag on the project `deploy.yml` would vanish after merge with a user's `~/.config/ov/deploy.yml`. That's now an explicit merge (project-set OR overlay-set → true), with the same "later wins" rule when both set it.
 
@@ -49,7 +49,7 @@ therefore be:
 # DEPLOY-shaped YAML (deploy.yml entry):
 
 disposable: <bool>    # LOAD-BEARING authorization. Default false.
-                      #   `true` authorizes `ov rebuild <name>` to
+                      #   `true` authorizes `ov update <name>` to
                       #   destroy + rebuild + restart unattended.
 lifecycle: <tier>     # INFORMATIONAL ONLY. Free-form human tag.
                       #   scratch|dev|test|qa|staging|prod|custom.
@@ -83,7 +83,7 @@ Specifically:
 - `LoadDeployConfig` auto-promotes `Disposable=true` when an entry
   carries `ephemeral: ...`.
 - `DeploymentNode.IsDisposable()` returns `Disposable || IsEphemeral()`
-  so every consumer (including `ov rebuild`) treats ephemerals as
+  so every consumer (including `ov update`) treats ephemerals as
   authorized.
 - Authoring `disposable: false` together with `ephemeral: ...` is
   contradictory; the loader rejects (or auto-promotes; bool fields
@@ -92,7 +92,7 @@ Specifically:
 
 `ephemeral:` itself is the operational counterpart to `disposable:`:
 - `disposable: true` says "this resource MAY be destroyed
-  autonomously by `ov rebuild`" — a permission.
+  autonomously by `ov update`" — a permission.
 - `ephemeral: true` (or block form) says "this resource MUST be
   destroyed autonomously when no longer needed" — a requirement,
   enforced by the eval-runner / BDD step keywords / TTL transient
@@ -131,7 +131,7 @@ without opening vms.yml.
 For container deploys, the authoritative source is `deploy.yml` —
 `ov status <name>` reflects it at runtime.
 
-## `ov rebuild <name> [-i <instance>]`
+## `ov update <name> [-i <instance>]`
 
 The autonomous path. Resolves `<name>` as either a kind:vm entity
 (vms.yml) or a deploys entry (deploy.yml). Refuses if effective
@@ -141,13 +141,13 @@ sequence.
 
 ```bash
 # Allowed (disposable: true):
-ov rebuild arch
+ov update arch
 
 # Refused (no disposable flag, or disposable: false):
-$ ov rebuild production-api
-ov rebuild: "production-api" is not marked `disposable: true` in
+$ ov update production-api
+ov update: "production-api" is not marked `disposable: true` in
 deploy.yml (current lifecycle: (unset)).
-  `ov rebuild` only acts on explicitly disposable deploys —
+  `ov update` only acts on explicitly disposable deploys —
   lifecycle tags alone do NOT authorize autonomous destroy.
   To opt in: edit deploy.yml and add `disposable: true` to the
   entry, or run: ov deploy add production-api <ref> --disposable
@@ -197,10 +197,10 @@ deploys:
     disposable: true
 ```
 
-Running `ov rebuild fedora-coder-dev` fails with the refusal
+Running `ov update fedora-coder-dev` fails with the refusal
 message — the `lifecycle: dev` tag is informational; the deploy
 still needs an explicit `disposable: true` to be rebuildable.
-`ov rebuild fedora-coder-qa` succeeds.
+`ov update fedora-coder-qa` succeeds.
 
 ### VMs
 
@@ -241,7 +241,7 @@ on shared hosts.
 ## When to Use This Skill
 
 **MUST be invoked** for any task that involves:
-- `ov rebuild <name>` (determining which targets can be rebuilt
+- `ov update <name>` (determining which targets can be rebuilt
   unattended).
 - Authoring / editing `disposable:` or `lifecycle:` fields in
   vms.yml or deploy.yml.

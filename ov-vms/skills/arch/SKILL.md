@@ -32,20 +32,20 @@ This skill is the **decision log** for every non-obvious choice in the entry —
 | SSH key source | `generate` | Stable `~/.local/share/ov/vm/ov-arch/id_ed25519` across rebuilds |
 | Video model | `virtio-gpu` | Modern default for Linux guests (Finding B, secondary) |
 | SPICE listener | `type: socket` (UNIX, auto-path) | Enables zero-config remote GUI via `qemu+ssh://` (see "Connecting from a remote workstation" below). virt-manager and `remote-viewer` auto-forward UNIX sockets through libvirt RPC fd-passing; TCP-loopback listeners are never auto-tunneled. No TCP port bound. |
-| `disposable` | `true` (LOAD-BEARING) | Authorizes `ov rebuild arch` to destroy + rebuild + restart unattended. This VM exists for live verification and rebuild-at-will. See `/ov-dev:disposable`. |
+| `disposable` | `true` (LOAD-BEARING) | Authorizes `ov update arch` to destroy + rebuild + restart unattended. This VM exists for live verification and rebuild-at-will. See `/ov-dev:disposable`. |
 | `lifecycle` | `dev` (INFORMATIONAL) | Human-facing tier tag. Zero effect on disposability — the flag above is what matters. |
 
 ## Marked `disposable: true`
 
-This is the repo's canonical verification target. It carries `disposable: true` in vms.yml, which means `ov rebuild arch` runs the destroy → build → create → start loop unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
+This is the repo's canonical verification target. It carries `disposable: true` in vms.yml, which means `ov update arch` runs the destroy → build → create → start loop unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
 
 If you're implementing something that touches VM config, libvirt rendering, cloud-init, SPICE, or any VM-adjacent behavior, the expected verification loop is:
 
 ```bash
-ov rebuild arch       # (destroy + build + create + start)
+ov update arch       # (destroy + build + create + start)
 #  ... exploratory testing ...
 # commit the source-level fix
-ov rebuild arch       # fresh-rebuild re-verification (R10)
+ov update arch       # fresh-rebuild re-verification (R10)
 # paste BOTH outputs into the conversation
 ```
 

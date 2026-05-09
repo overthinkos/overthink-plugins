@@ -17,7 +17,7 @@ description: |
 - `ContainerDeployTarget` → **`PodDeployTarget`** (schema-v3 rename; file renamed to `ov/deploy_target_pod.go`, struct renamed, ledger target keying uses `pod:<name>`).
 - `parseVmDeployName` replaced with a trivial `vmNameFromDeployName` inline helper (TrimPrefix on `vm:`). The dispatch upstream (`deploy_add_cmd.go`) rewrites plain schema-v3 deploy keys like `arch-vm` to `vm:<vm_source>` before calling `runVM` / `runVmDel`, so internal VM code still sees the prefixed form.
 - `UnifiedDeployTarget` / `LifecycleTarget` interfaces (`ov/deploy_target_unified.go`) + `ResolveTarget` dispatcher (`ov/unified_targets.go`) are the forward-looking replacement for the legacy 2-method `DeployTarget` contract at `ov/install_plan.go:859`. Adapters delegate `Add()` to legacy `Emit()`; `Del/Test/Update/Start/Stop/Status/Logs/Shell/Rebuild` still pass through the cmd-file paths during the transition.
-- `VmSpec.Disposable` DELETED; disposability for `ov rebuild <vm>` reads from the `DeploymentNode` with `target: vm` + matching `vm_source:` (see `rebuild.go::vmDisposableFromDeployments`).
+- `VmSpec.Disposable` DELETED; disposability for `ov update <vm>` reads from the `DeploymentNode` with `target: vm` + matching `vm_source:` (see `rebuild.go::vmDisposableFromDeployments`).
 
 `VmDeployTarget` brings `ov deploy add vm:<name>` online: the same `InstallPlan` IR that drives pod builds and host deploys now runs **inside a VM** over SSH. Shell bodies that `HostDeployTarget` would exec via local `sudo bash -s` are instead exec'd via `ssh guest 'sudo bash -s'` through an `SSHExecutor`. Ledger writes land on the **guest** filesystem under the guest user's `~/.config/overthink/installed/`; teardown runs in the guest via SSH as well.
 

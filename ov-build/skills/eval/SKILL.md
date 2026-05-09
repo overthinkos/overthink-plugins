@@ -44,7 +44,7 @@ Added in the 2026-05-XX per-kind file-split / `kind: deployment` → `kind: depl
 2. `ov eval image <image>` — image-section + baked layer-section probes.
 3. `ov deploy add <bed> <ref>` — apply the test bed (or `ov vm create <bed>` + `ov vm start <bed>` for the VM kind).
 4. `ov eval live <bed>` — full three-section live probe pass.
-5. `ov rebuild <bed>` — fresh-rebuild re-verification (R10 acceptance gate).
+5. `ov update <bed>` — fresh-rebuild re-verification (R10 acceptance gate).
 6. `ov remove <bed>` — leave the host clean.
 
 ### Bed table — which test bed each subkind targets
@@ -109,7 +109,7 @@ The project's `deploy.yml` defines four canonical disposable beds covering the f
 | `sway-pod` | `target: pod, image: openclaw-sway-browser` | cdp/wl/vnc/dbus/mcp/record (live-container verbs) |
 | `k3s-pod` | `target: pod, image: fedora-ov + k3s-server layer` | k8s verbs (all 13 methods) against the pod-hosted cluster |
 
-Run a full-stack smoke with `ov eval live arch && ov eval live <sway-pod> && ov eval live <k3s-pod>`. Fresh-rebuild via `ov rebuild <name>` first (R10 acceptance gate). The bed-to-verb coverage map is a top-of-file comment in `deploy.yml`.
+Run a full-stack smoke with `ov eval live arch && ov eval live <sway-pod> && ov eval live <k3s-pod>`. Fresh-rebuild via `ov update <name>` first (R10 acceptance gate). The bed-to-verb coverage map is a top-of-file comment in `deploy.yml`.
 
 ## The 10 Testing Standards (READ FIRST — referenced by CLAUDE.md R1–R10)
 
@@ -120,13 +120,13 @@ These are the 10 standards referenced in CLAUDE.md's AI attribution tier ("fully
 1. **Build a real artifact** (R1) — `ov image build <image>` / `go build` / `ov vm build <vm>`. Not just `go test`. Not just `ov image generate`.
 2. **Verify the emitted artifact's content** (R3) — `grep -c supervisord-conf .build/<image>/Containerfile` for any image that uses supervisord; `virsh dumpxml` for a VM; `podman inspect --format '{{.Created}}'` to confirm the image was just rebuilt.
 3. **Verify critical OCI / capability labels post-build** (R4) — `podman inspect <ref> --format '{{index .Config.Labels "org.overthinkos.init"}}'` returns the expected value. Empty / missing → the detection path silently returned nil → regression.
-4. **Deploy to a DISPOSABLE target** (R10) — NEVER experiment on a resource that doesn't carry `disposable: true`. If no suitable disposable target exists, create one first (`ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml and `ov vm create`). The setup is part of the task. On a disposable target: `ov rebuild <name>` (unattended). On anything else: confirm with the user before any destroy.
+4. **Deploy to a DISPOSABLE target** (R10) — NEVER experiment on a resource that doesn't carry `disposable: true`. If no suitable disposable target exists, create one first (`ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml and `ov vm create`). The setup is part of the task. On a disposable target: `ov update <name>` (unattended). On anything else: confirm with the user before any destroy.
 5. **Target must reach steady-state** — `systemctl --user status ov-<image>.service` → `Active: active (running)`; `virsh domstate <vm>` → `running (booted)`; SPICE socket file exists and accepts a handshake. If `start-limit-hit` appears, the container is crashing — reproduce directly via `podman run --rm <image> <entrypoint>`.
 6. **Run the declarative test suite** — `ov eval live <image>` full three-section pass against the live container (or `--uri` / `--host` remote equivalent for a remote target).
 7. **Verify the deployed binary is the one you built** (R8) — `ov version` on the target matches the expected CalVer; `podman inspect <ref> --format '{{.Created}}'` timestamp is from THIS build, not the prior one. Source-only changes (Syncthing, git push) do NOT update the deployed binary; you must build AND deploy on the target host.
 8. **Verify runtime deps are installed via package management** (R9) — `which nc`, `rpm -q <pkg>`, `pacman -Q <pkg>`. Manual installs do NOT count — they won't survive a fresh install on a synced host. Every runtime dep must live in `setup.sh` + `pkg/arch/PKGBUILD`.
-9. **Leave the target healthy, not paused/errored** — final snapshot of `virsh domstate` / `systemctl status` / `podman ps` is healthy. If the target is in a broken state during exploration, `ov rebuild` it back to the committed config before continuing — never layer experiments on broken state.
-10. **Re-verify on a FRESH rebuild after committing the source-level fix** (R10) — `ov rebuild <disposable-target>` one more time from clean, with the new source applied. Run standards 1–9 again against this fresh rebuild. **THIS IS THE ACCEPTANCE GATE.** A fix that works on a hand-patched target but not on a fresh rebuild is a regression waiting for the next unrelated rebuild to wipe your patch. Paste BOTH the exploratory-pass output AND the fresh-rebuild-pass output into the conversation — the user sees both.
+9. **Leave the target healthy, not paused/errored** — final snapshot of `virsh domstate` / `systemctl status` / `podman ps` is healthy. If the target is in a broken state during exploration, `ov update` it back to the committed config before continuing — never layer experiments on broken state.
+10. **Re-verify on a FRESH rebuild after committing the source-level fix** (R10) — `ov update <disposable-target>` one more time from clean, with the new source applied. Run standards 1–9 again against this fresh rebuild. **THIS IS THE ACCEPTANCE GATE.** A fix that works on a hand-patched target but not on a fresh rebuild is a regression waiting for the next unrelated rebuild to wipe your patch. Paste BOTH the exploratory-pass output AND the fresh-rebuild-pass output into the conversation — the user sees both.
 
 ### `ov eval live parent.child` reaches the actual leaf (post-2026-04 cutover)
 
@@ -157,7 +157,7 @@ authoring surface in eval recipes (`kind: recipe`).
 - **"Service start failed, probably a transient"** — no. `A dependency job for X failed` + immediate exit is a real error. Read the service log: `podman run --rm <image> <entrypoint>` will reproduce the failure directly.
 - **"Lifecycle: dev implies disposable"** — no. `disposable: true` is the ONE authorization for autonomous destroy + rebuild. Lifecycle tags are human-facing metadata; they do not authorize anything. See `/ov-dev:disposable`.
 - **"This is a dev box so I can just nuke it"** — no. The only authorization for autonomous destroy is the explicit `disposable: true` field on a specific deploy. Everything else requires user confirmation, regardless of hostname.
-- **"I tested on the VM I've been patching all afternoon, looks fine"** — incomplete. Run `ov rebuild <disposable-target>` once more from clean and re-verify before claiming success. Without the fresh-rebuild re-verification, your "fix" may be latent on hand-patched state.
+- **"I tested on the VM I've been patching all afternoon, looks fine"** — incomplete. Run `ov update <disposable-target>` once more from clean and re-verify before claiming success. Without the fresh-rebuild re-verification, your "fix" may be latent on hand-patched state.
 - **"I'll test it later / Phase 2"** — no. If the plan said "clean cutover in one PR", don't invent a Phase 2.
 
 If the container needs state that's only available in deploy (volumes, env, tunnel), author the test at `scope: deploy`. If it needs something at build only (binary path, package presence), author at `scope: build`. Both scopes must pass for the cutover to be real.

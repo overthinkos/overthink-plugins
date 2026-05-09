@@ -136,7 +136,7 @@ local:
 
 ## Cross-kind name reuse (2026-05-05)
 
-A `kind: local` template's name lives in the `local:` namespace, independent of layer / image / pod / vm / k8s / deploy. The canonical example is `ov-cachyos` — `local.ov-cachyos` is the template; `deploy.ov-cachyos` is the deployment entry that applies it; both share the name without conflict. Verbs disambiguate: `ov rebuild ov-cachyos` resolves to the deploy entry; the template is referenced internally via the deploy's `local: ov-cachyos` field. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged".
+A `kind: local` template's name lives in the `local:` namespace, independent of layer / image / pod / vm / k8s / deploy. The canonical example is `ov-cachyos` — `local.ov-cachyos` is the template; `deploy.ov-cachyos` is the deployment entry that applies it; both share the name without conflict. Verbs disambiguate: `ov update ov-cachyos` resolves to the deploy entry; the template is referenced internally via the deploy's `local: ov-cachyos` field. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged".
 
 ## When to Use This Skill
 
