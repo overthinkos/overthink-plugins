@@ -179,7 +179,7 @@ New form (required — the flat form is rejected by `parseLayerYAML` after migra
 ```yaml
 layer:
   name: redis
-  depends: [base]
+  requires: [base]
   packages: [redis]
 ```
 

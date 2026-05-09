@@ -224,4 +224,4 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 ## Related
 
 - `/ov-build:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov eval live`)
+- `/ov-build:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)

@@ -23,7 +23,7 @@ description: |
 ## Why direct download (not pixi)
 
 Pre-2026-04 the layer shipped a `pixi.toml` with `uv = "*"` and
-`depends: python`. That installed uv into `$HOME/.pixi/envs/default/bin/`
+`requires: python`. That installed uv into `$HOME/.pixi/envs/default/bin/`
 as part of a conda-forge Python environment — despite uv being a
 completely self-contained Rust binary needing no Python runtime. The
 side effects:
@@ -102,4 +102,4 @@ Three build-scope tests ship with the layer:
 
 ## Related
 
-- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov eval live`)
+- `/ov-build:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)

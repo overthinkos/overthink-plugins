@@ -63,7 +63,7 @@ Unchanged from host-infra — every target:local deploy writes a `DeployRecord` 
 - `/ov-dev:go` — overall Go code map; Kong framework; mode-purity invariant.
 - `/ov-advanced:local-deploy` — user-facing target:local surface.
 - `/ov-core:deploy` — command family overview.
-- `/ov-build:layer` — unified `services:` schema authored by layer authors.
+- `/ov-build:layer` — unified `service:` schema authored by layer authors.
 
 ## When to Use This Skill
 

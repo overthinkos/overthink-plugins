@@ -12,7 +12,7 @@ description: |
 
 ### Also as a declarative verb
 
-Every `ov eval cdp <method>` is authorable as a `cdp:` verb inside a `tests:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tab:`, `expression:`, `url:`, `selector:`, etc.). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `artifact_min_bytes:`) work like other verbs. See `/ov-build:eval` for the full method allowlist and YAML shape. Example: `- cdp: eval\n  tab: "1"\n  expression: "document.title"\n  stdout: "Dashboard"`.
+Every `ov eval cdp <method>` is authorable as a `cdp:` verb inside a `eval:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tab:`, `expression:`, `url:`, `selector:`, etc.). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `artifact_min_bytes:`) work like other verbs. See `/ov-build:eval` for the full method allowlist and YAML shape. Example: `- cdp: eval\n  tab: "1"\n  expression: "document.title"\n  stdout: "Dashboard"`.
 
 ## Quick Reference
 

@@ -36,8 +36,8 @@ CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher
 | VmSpec / libvirt / cloud-init / OVMF | `/ov-dev:vm-spec` + renderer skills |
 | Unexpected failure / anomaly | `/ov-dev:root-cause-analyzer` agent |
 | Engineering-discipline trigger (failure / dup pattern / ad-hoc fix / "out of scope" framing) | `/ov-dev:strict-policy` |
-| "What does layer X do?" | `/ov-layers:<name>` |
-| "What's in image X?" | `/ov-images:<name>` |
+| "What does layer X do?" — pod-specific | `/ov-jupyter:<name>`, `/ov-coder:<name>`, `/ov-selkies:<name>`, `/ov-openclaw:<name>`, `/ov-ollama:<name>`, `/ov-openwebui:<name>`, `/ov-comfyui:<name>`, `/ov-immich:<name>`, `/ov-hermes:<name>`, `/ov-filebrowser:<name>` |
+| "What does layer X do?" / "What's in image X?" — base/foundation | `/ov-foundation:<name>` (pixi, supervisord, cuda, nvidia, fedora, archlinux, debian, ubuntu, …) |
 | Skill authoring / maintenance | `/ov-dev:skills` (this skill) |
 
 If multiple triggers apply, load ALL matching skills in ONE message (parallel `Skill` calls). Full index: `plugins/README.md` (250+ skills).
@@ -46,10 +46,10 @@ If multiple triggers apply, load ALL matching skills in ONE message (parallel `S
 
 | Trigger | Action |
 |---------|--------|
-| Deployment step fails or needs undocumented workaround | Update the relevant `/ov:*` or `/ov-images:*` skill |
+| Deployment step fails or needs undocumented workaround | Update the relevant `/ov-core:*`, `/ov-build:*`, `/ov-advanced:*`, or per-pod (`/ov-jupyter:*`, `/ov-foundation:*`, …) skill |
 | Verification check missing from image skill | Add to the image skill's Verification section |
 | Skill's recommended defaults are wrong | Fix in the skill, not CLAUDE.md |
-| New feature added to ov CLI | Update `/ov:<cmd>` skill + `/ov-dev:go` source map |
+| New feature added to ov CLI | Update `/ov-core:<cmd>` or `/ov-build:<cmd>` skill + `/ov-dev:go` source map |
 | New layer or image added | Create skill via `ov image new layer` scaffold or manual SKILL.md |
 | Bug fix changes behavior | Document the fix in affected skills |
 | Cross-skill behavior discovered | Update Cross-References in all affected skills |
@@ -92,16 +92,17 @@ description: |
 | Content type | Where it belongs |
 |-------------|-----------------|
 | Project philosophy, architecture, key rules | CLAUDE.md |
-| Command usage, flags, examples | `/ov:<cmd>` skill |
-| Layer properties, packages, ports | `/ov-layers:<name>` skill |
-| Image composition, deployment, verification | `/ov-images:<name>` skill |
+| Command usage, flags, examples | `/ov-core:<cmd>` or `/ov-build:<cmd>` skill |
+| Layer properties, packages, ports | per-pod plugin (`/ov-jupyter:<name>`, `/ov-coder:<name>`, …) or `/ov-foundation:<name>` for base layers |
+| Image composition, deployment, verification | per-pod plugin or `/ov-foundation:<name>` for base images |
 | Skill disambiguation (which skill to use) | CLAUDE.md (brief table) |
-| Detailed operational patterns | Relevant `/ov:*` skill |
+| Detailed operational patterns | Relevant `/ov-core:*` / `/ov-build:*` / `/ov-advanced:*` skill |
 
 ## Command skills vs topic skills
 
-Most skills under `plugins/ov/skills/` map 1:1 to a top-level ov command
-(e.g. `/ov-build:build` ↔ `ov image build`, `/ov-core:status` ↔ `ov status`).
+Most skills under `plugins/ov-core/skills/` and `plugins/ov-build/skills/`
+map 1:1 to a top-level ov command (e.g. `/ov-build:build` ↔ `ov image build`,
+`/ov-core:status` ↔ `ov status`).
 **Topic skills** are the exception: they don't correspond to a
 top-level command but cover a cross-cutting concept surfaced by flags
 or layer composition. Today's topic skills:

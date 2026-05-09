@@ -12,7 +12,7 @@ description: |
 
 ### Also as a declarative verb
 
-Every `ov eval vnc <method>` (status/screenshot/click/mouse/type/key/rfb/passwd) is authorable as a `vnc:` verb inside a `tests:` block. Method-specific fields (`x`, `y`, `text`, `key`, `artifact`, `artifact_min_bytes`) are siblings of the verb line. See `/ov-build:eval` for the full YAML shape. Example: `- vnc: screenshot\n  artifact: /tmp/vnc.png\n  artifact_min_bytes: 5000`.
+Every `ov eval vnc <method>` (status/screenshot/click/mouse/type/key/rfb/passwd) is authorable as a `vnc:` verb inside a `eval:` block. Method-specific fields (`x`, `y`, `text`, `key`, `artifact`, `artifact_min_bytes`) are siblings of the verb line. See `/ov-build:eval` for the full YAML shape. Example: `- vnc: screenshot\n  artifact: /tmp/vnc.png\n  artifact_min_bytes: 5000`.
 
 ## Quick Reference
 

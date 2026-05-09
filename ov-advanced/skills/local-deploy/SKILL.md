@@ -141,9 +141,9 @@ Remote `target: local` deploys assume **passwordless sudo** on the destination. 
 - `/ov-build:local-spec` — author-facing reference for `kind: local` templates.
 - `/ov-dev:local-infra` — Go file map for the executor/ledger surface.
 - `/ov-core:deploy` — parent command family.
-- `/ov-build:layer` — `services:` schema rendered as systemd units on local-target deploys.
+- `/ov-build:layer` — `service:` schema rendered as systemd units on local-target deploys.
 - `/ov-advanced:vm` — managed ssh-config fragment writen on `ov vm create`.
-- `/ov-build:eval` — `--verify` re-runs layer `tests:` against the deploy post-install.
+- `/ov-build:eval` — `--verify` re-runs layer `eval:` against the deploy post-install.
 - `/ov-dev:install-plan` — shared IR consumed by `LocalDeployTarget`.
 
 ## When to Use This Skill

@@ -11,7 +11,7 @@ description: |
 
 # debian-coder
 
-Debian 13 trixie counterpart of `/ov-coder:fedora-coder`. Same 80-line `tests:` block, same ~30 layers, same rootless posture (uid 1000 + passwordless sudo). Key wrinkles are all Debian-specific packaging quirks handled inside individual layers: `bat → batcat` symlink, Microsoft's `dotnet-install.sh` cross-distro installer, and package-existence tests (vs binary-path tests) for `virtualization` because Debian bundles libvirt drivers differently.
+Debian 13 trixie counterpart of `/ov-coder:fedora-coder`. Same 80-line `eval:` block, same ~30 layers, same rootless posture (uid 1000 + passwordless sudo). Key wrinkles are all Debian-specific packaging quirks handled inside individual layers: `bat → batcat` symlink, Microsoft's `dotnet-install.sh` cross-distro installer, and package-existence tests (vs binary-path tests) for `virtualization` because Debian bundles libvirt drivers differently.
 
 ## Definition
 
@@ -141,7 +141,7 @@ Conflicts with the other three coder-family images on the same ports — use `-i
 
 ## Cross-distro siblings
 
-All four coder-family images share the identical 80-line `tests:` block + ~30 identical layers; they diverge only in per-layer package-format sections.
+All four coder-family images share the identical 80-line `eval:` block + ~30 identical layers; they diverge only in per-layer package-format sections.
 
 - `/ov-coder:fedora-coder` — RPM (Fedora 43 via fedora-nonfree).
 - `/ov-coder:arch-coder` — pacman + optional AUR.

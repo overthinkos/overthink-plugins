@@ -61,4 +61,4 @@ Use when the user asks about:
 ## Author + Test References
 
 - `/ov-build:layer` — layer authoring reference (tasks, vars, env_provides, tests block syntax)
-- `/ov-build:eval` — declarative testing framework for the `tests:` block
+- `/ov-build:eval` — declarative testing framework for the `eval:` block

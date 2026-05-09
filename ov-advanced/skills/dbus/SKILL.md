@@ -13,7 +13,7 @@ Send desktop notifications, call D-Bus methods, list services, and introspect ob
 
 ### Also as a declarative verb
 
-Every `ov eval dbus <method>` (list/call/introspect/notify) is authorable as a `dbus:` verb inside a `tests:` block. Method-specific fields (`dest:`, `path:`, `method:`, `args:`, `text:`) are siblings of the verb line. See `/ov-build:eval` for the full YAML shape. Example: `- dbus: list\n  stdout:\n    contains: "org.freedesktop.Notifications"`.
+Every `ov eval dbus <method>` (list/call/introspect/notify) is authorable as a `dbus:` verb inside a `eval:` block. Method-specific fields (`dest:`, `path:`, `method:`, `args:`, `text:`) are siblings of the verb line. See `/ov-build:eval` for the full YAML shape. Example: `- dbus: list\n  stdout:\n    contains: "org.freedesktop.Notifications"`.
 
 ## Quick Reference
 

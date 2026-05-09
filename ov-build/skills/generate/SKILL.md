@@ -167,7 +167,7 @@ The Containerfile references the file by its relative path: `COPY --from=<layer-
 
 - Generation is idempotent — safe to run repeatedly.
 - `.build/` is disposable and gitignored; `ov image generate` will recreate it from scratch.
-- Layer dependencies resolve transitively and topologically; circular `depends:` is a validation error (surfaced by `/ov-build:validate`).
+- Layer dependencies resolve transitively and topologically; circular `requires:` is a validation error (surfaced by `/ov-build:validate`).
 - Pixi manylinux fix is injected into `pixi.toml` files during the pixi builder stage.
 - Multi-stage builds use builder images declared in `build.yml` `builder:` section (`pixi-builder`, `npm-builder`, `archlinux-builder` for AUR, etc.).
 - Stale `.build/<image>/` directories (from removed or renamed images) are cleaned at the start of each generation.
@@ -178,7 +178,7 @@ All `org.overthinkos.*` LABEL directives are emitted at the **end** of
 the final stage, after the last `USER` directive. This means a test or
 label edit only re-runs the LABEL steps themselves (metadata-only, ~2
 sec) instead of invalidating the buildkit cache for every upstream
-RUN/COPY. Particularly important for test authoring: `tests:` edits on
+RUN/COPY. Particularly important for test authoring: `eval:` edits on
 a 138-step stack like `immich-ml` used to cost minutes per iteration;
 they now cost seconds. See `/ov-dev:generate` "LABEL Placement" for the
 rationale and `/ov-build:eval` for author-facing workflow implications.
@@ -219,7 +219,7 @@ The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUIL
 ### Related skills
 
 - `/ov-build:layer` — **Canonical task verb catalog, `vars:` substitution, YAML anchors, execution order.** Read this first for authoring questions.
-- `/ov-build:eval` — test-authoring workflow; `tests:` blocks are embedded via `writeJSONLabel` and benefit directly from LABELs-at-end cache efficiency.
+- `/ov-build:eval` — test-authoring workflow; `eval:` blocks are embedded via `writeJSONLabel` and benefit directly from LABELs-at-end cache efficiency.
 - `/ov-dev:generate` — Deep dive on Containerfile emission internals, `Task` struct, per-verb emitters, `stageInlineContent`, `shellSingleQuote` + `shellAnsiQuote` helpers, LABEL-placement rationale.
 - `/ov-dev:go` — Source-code map: `ov/tasks.go` (~430 lines), `ov/generate.go:writeLayerSteps` + `writeLabels`, `ov/layers.go` struct definitions.
 - `/ov-selkies:selkies-desktop-bootc` — canonical worked example exercising all three bootc-specific emission rules above.

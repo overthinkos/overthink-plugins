@@ -93,9 +93,9 @@ See `/ov-build:layer` for general cross-distro task-authoring patterns.
 
 Both exist so future Microsoft-apt-repo-based installs can be slotted into tag sections via `repos:` + `packages:` without disturbing the generic `deb:` fallback.
 
-## The vestigial `depends: python` removed in 2026-04
+## The vestigial `requires: python` removed in 2026-04
 
-The layer used to declare `depends: python`, pulling in the
+The layer used to declare `requires: python`, pulling in the
 `python` ov-layer → `pixi` ov-layer → a conda-forge Python env
 (~500 MB). But this layer installs `python3-devel` + `python3-ramalama`
 via RPM — **system Python**. The pixi-python env was never referenced
@@ -111,7 +111,7 @@ defensive deps"* for the general rule.
 
 If you genuinely need the pixi-python env (e.g. a layer that
 installs a Python package from conda-forge via pixi), declare
-`depends: python` on THAT layer directly — don't rely on transitive
+`requires: python` on THAT layer directly — don't rely on transitive
 pulls.
 
 ## Tests
@@ -170,4 +170,4 @@ my-polyglot:
 
 ## Related
 
-- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov eval live`)
+- `/ov-build:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)

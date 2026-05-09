@@ -8,7 +8,7 @@ description: |
 
 # VM — Virtual Machine Management
 
-## Schema v3 notes
+## Schema v4 notes
 
 - **Disposability is a deploy property only.** `VmSpec.Disposable` / `VmSpec.Lifecycle` were deleted in the schema-v3 cutover. Put `disposable: true` on the matching `deployments.<name>-vm` entry in `deploy.yml`; that's what `ov rebuild <vm-name>` checks. The `vm:` entity entry only describes VM shape (disk, RAM, SSH, cloud-init, libvirt), never authorization.
 - **Deploy-level cross-ref**: a deployment with `target: vm` references its VM entity via `vm_source: <entity-name>` (migration command `ov migrate deploy-schema-v-3` renames legacy field names in place).

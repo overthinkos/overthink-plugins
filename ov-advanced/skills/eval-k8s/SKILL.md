@@ -7,7 +7,7 @@ allowed-tools: Bash, Read
 MUST be invoked before any work involving: `ov eval k8s` commands,
 cluster-readiness probes from test scripts, ingress / storage class
 assertions, k3s default-addon health checks, or declarative `k8s:`
-checks on `tests:` blocks in layer.yml.
+checks on `eval:` blocks in layer.yml.
 
 ## Command surface
 
@@ -53,7 +53,7 @@ ov eval k8s addons --cluster k3s-srv
 
 ## Declarative `k8s:` checks on layer tests
 
-The verb is also callable from a layer's `tests:` block via the `k8s:`
+The verb is also callable from a layer's `eval:` block via the `k8s:`
 discriminator field on `Check`. Every subcommand above maps to a method
 name; shared modifiers (`name:`, `namespace:`, `cluster:`, `timeout:`,
 `kubeconfig:`, `k8s_kind:`, `k8s_count:`, `manifest:`, `k8s_resource:`,
@@ -62,7 +62,7 @@ name; shared modifiers (`name:`, `namespace:`, `cluster:`, `timeout:`,
 Example from `layers/k3s-server/layer.yml`:
 
 ```yaml
-tests:
+eval:
   - id: cluster-nodes-ready
     scope: deploy
     k8s: wait-nodes

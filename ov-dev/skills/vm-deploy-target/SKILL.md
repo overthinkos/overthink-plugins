@@ -12,7 +12,7 @@ description: |
 
 # vm-deploy-target
 
-## Schema v3 notes
+## Schema v4 notes
 
 - `ContainerDeployTarget` → **`PodDeployTarget`** (schema-v3 rename; file renamed to `ov/deploy_target_pod.go`, struct renamed, ledger target keying uses `pod:<name>`).
 - `parseVmDeployName` replaced with a trivial `vmNameFromDeployName` inline helper (TrimPrefix on `vm:`). The dispatch upstream (`deploy_add_cmd.go`) rewrites plain schema-v3 deploy keys like `arch-vm` to `vm:<vm_source>` before calling `runVM` / `runVmDel`, so internal VM code still sees the prefixed form.

@@ -46,10 +46,10 @@ transport dispatch.
 
 ## Composition vs. dependency
 
-This layer uses `layers:`, not `depends:` — deliberately. The
+This layer uses `layers:`, not `requires:` — deliberately. The
 distinction:
 
-- `depends:` says "my install needs these layers installed first."
+- `requires:` says "my install needs these layers installed first."
 - `layers:` says "I *am* these layers plus my additions."
 
 `ov-mcp` installs no packages and copies no files — it's pure wiring

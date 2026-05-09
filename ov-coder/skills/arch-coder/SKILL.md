@@ -90,7 +90,7 @@ See `/ov-foundation:archlinux-builder` and `/ov-foundation:yay`.
 
 ## Cross-distro siblings
 
-`arch-coder` is one of **four cross-distro coder images** that share the identical 80-line `tests:` block and ~30 identical layers, diverging only in each layer's package-format section (`rpm:` / `pac:` / `deb:`):
+`arch-coder` is one of **four cross-distro coder images** that share the identical 80-line `eval:` block and ~30 identical layers, diverging only in each layer's package-format section (`rpm:` / `pac:` / `deb:`):
 
 - `/ov-coder:fedora-coder` — RPM-based, Fedora 43 via `fedora-nonfree`, uid=1000 `user`.
 - `/ov-coder:arch-coder` — this image; pacman + optional AUR, uid=1000 `user`.

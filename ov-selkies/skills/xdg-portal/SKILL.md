@@ -7,7 +7,7 @@ Provides XDG Desktop Portal support for Sway containers. Installs the portal dae
 ## Layer Definition
 
 ```yaml
-depends:
+requires:
   - dbus
   - sway
   - pipewire
@@ -69,4 +69,4 @@ rpm:
 ## Related
 
 - `/ov-build:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov eval live`)
+- `/ov-build:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)

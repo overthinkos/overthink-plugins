@@ -1,7 +1,7 @@
 ---
 name: wl
 description: |
-  MUST be invoked before any work involving: Wayland / wlroots desktop automation — `ov eval wl` commands (screenshots, click/type/scroll/drag, window management via wlrctl, clipboard, resolution control, AT-SPI2 introspection, window geometry), nested `wl sway` / `wl overlay` subcommands, or `wl:` declarative verbs inside `tests:` blocks. Covers sway-desktop and selkies-desktop image automation on both sway and labwc compositors.
+  MUST be invoked before any work involving: Wayland / wlroots desktop automation — `ov eval wl` commands (screenshots, click/type/scroll/drag, window management via wlrctl, clipboard, resolution control, AT-SPI2 introspection, window geometry), nested `wl sway` / `wl overlay` subcommands, or `wl:` declarative verbs inside `eval:` blocks. Covers sway-desktop and selkies-desktop image automation on both sway and labwc compositors.
 ---
 
 # WL - Compositor-Agnostic Desktop Automation
@@ -12,7 +12,7 @@ description: |
 
 ### Also as a declarative verb
 
-Every `ov eval wl <method>` (including nested `wl overlay <method>` and `wl sway <method>`) is authorable as a `wl:` verb inside a `tests:` block. Nested subcommands are hyphenated in YAML: `wl: overlay-show`, `wl: sway-tree`, `wl: sway-workspaces`. Method-specific fields (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) are siblings of the verb line. See `/ov-build:eval` for the full method allowlist. Example: `- wl: screenshot\n  artifact: /tmp/desktop.png\n  artifact_min_bytes: 10000`.
+Every `ov eval wl <method>` (including nested `wl overlay <method>` and `wl sway <method>`) is authorable as a `wl:` verb inside a `eval:` block. Nested subcommands are hyphenated in YAML: `wl: overlay-show`, `wl: sway-tree`, `wl: sway-workspaces`. Method-specific fields (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) are siblings of the verb line. See `/ov-build:eval` for the full method allowlist. Example: `- wl: screenshot\n  artifact: /tmp/desktop.png\n  artifact_min_bytes: 10000`.
 
 ## Quick Reference
 

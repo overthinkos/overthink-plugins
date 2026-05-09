@@ -139,7 +139,7 @@ The `-bootc` suffix is doubled on some entries because the paired container imag
 
 1. Ensure the paired container image has `bootc: true` declared and builds cleanly.
 2. Add a `vms:` entry with `source.kind: bootc` + `source.image: <entry-name>`.
-3. Size disk/ram/cpus for the workload (see `/ov-images:<name>` VM Configuration section for the authoritative numbers).
+3. Size disk/ram/cpus for the workload (see the relevant per-pod or `/ov-foundation:<name>` skill's VM Configuration section for the authoritative numbers).
 4. Run `ov vm build <vm-name>`. See `/ov-advanced:vm` known-caveats section for bootc-specific gotchas (rootful storage split, nested-container `--transport containers-storage`, loopback device mount namespace).
 
 ## Adopt pattern: base_user (cloud_image only)

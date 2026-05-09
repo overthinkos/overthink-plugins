@@ -36,12 +36,12 @@ All layers that need ffmpeg should declare it as a dependency rather than indepe
 - `openclaw-full` (via `openclaw-full` metalayer)
 - `openclaw-full-sway` (via `openclaw-full` metalayer)
 - `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
-- `hermes` (via `hermes` layer `depends: ffmpeg`)
-- `hermes-playwright` (via `hermes` layer `depends: ffmpeg`)
-- `immich` (via `immich` layer `depends: ffmpeg`)
-- `immich-ml` (via `immich` layer `depends: ffmpeg`)
-- CUDA-based images (via `cuda` layer `depends: ffmpeg`)
-- Whisper-based images (via `whisper` layer `depends: ffmpeg`)
+- `hermes` (via `hermes` layer `requires: ffmpeg`)
+- `hermes-playwright` (via `hermes` layer `requires: ffmpeg`)
+- `immich` (via `immich` layer `requires: ffmpeg`)
+- `immich-ml` (via `immich` layer `requires: ffmpeg`)
+- CUDA-based images (via `cuda` layer `requires: ffmpeg`)
+- Whisper-based images (via `whisper` layer `requires: ffmpeg`)
 
 ## Related Layers
 - `/ov-foundation:cuda` — Depends on ffmpeg for GPU video processing
@@ -63,4 +63,4 @@ Use when the user asks about:
 ## Related
 
 - `/ov-build:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov eval live`)
+- `/ov-build:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)

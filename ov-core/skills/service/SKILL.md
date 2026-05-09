@@ -6,7 +6,7 @@ description: |
 
 # Service - Service Management
 
-## Schema v3 terminology note
+## Schema v4 terminology note
 
 The schema-v3 rename settled on **"pod"** as the user-visible term for a single-container deployment (matches podman's vocabulary and the `target: pod` deploy-yml value). Internally, the Go struct is `PodDeployTarget` (formerly `ContainerDeployTarget`) and the file is `ov/deploy_target_pod.go`. This skill's body still uses the word "container" in many places because it's also the generic runtime artifact — read "container" as the runtime concept and "pod" as the schema-v3 target/deployment kind.
 
@@ -365,4 +365,4 @@ Source: `ov/status.go`, `ov/status_engine.go`, `ov/status_collector.go`,
 **MUST be invoked** when the task involves starting, stopping, configuring, or managing container services, init system service management, or container lifecycle. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** After `/ov-build:build` and `/ov-core:deploy`. This skill covers the runtime lifecycle.
-Previous step: `/ov-core:deploy` (quadlet generation, tunnels). Next step: `/ov-images:<name>` (verification).
+Previous step: `/ov-core:deploy` (quadlet generation, tunnels). Next step: per-pod plugin (`/ov-jupyter:<name>`, `/ov-coder:<name>`, etc.) or `/ov-foundation:<name>` for verification.

@@ -9,7 +9,7 @@ Used by `ov eval wl atspi tree/find/click`.
 ## Layer Definition
 
 ```yaml
-depends:
+requires:
   - dbus
 
 rpm:

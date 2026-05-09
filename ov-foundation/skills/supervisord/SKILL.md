@@ -45,11 +45,11 @@ auto-intermediate that composes `supervisord` was affected.
 
 ## How `ov` Generates Supervisord Configs
 
-Layers declare processes via the unified **`services:`** schema in `layer.yml` (see `/ov-build:layer` "Service Declaration"). Each entry is rendered through supervisord's `service_schema.service_template` in `build.yml`, which produces a `[program:<name>]` INI fragment. `ov image generate` collects all rendered fragments across the layer chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `build.yml init:` section).
+Layers declare processes via the unified **`service:`** schema in `layer.yml` (see `/ov-build:layer` "Service Declaration"). Each entry is rendered through supervisord's `service_schema.service_template` in `build.yml`, which produces a `[program:<name>]` INI fragment. `ov image generate` collects all rendered fragments across the layer chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `build.yml init:` section).
 
 ```yaml
 # layers/chrome/layer.yml — unified schema (post-2026-04 migration)
-services:
+service:
   - name: chrome
     exec: /home/user/.local/bin/chrome-wrapper --force-renderer-accessibility --no-first-run --start-maximized
     restart: always
@@ -64,7 +64,7 @@ services:
 
 The render template maps the abstract spec to supervisord INI:
 
-| `services:` field | Supervisord output |
+| `service:` field | Supervisord output |
 |---|---|
 | `exec` | `command=` |
 | `env` | `environment=K="V",K2="V2"` |
@@ -204,7 +204,7 @@ supervisord for its own PID and exits 0 iff the socket responds:
   in_container: true
 ```
 
-This is what the current supervisord layer ships in its `tests:` block.
+This is what the current supervisord layer ships in its `eval:` block.
 See `/ov-build:eval` Authoring Gotcha #4.
 
 **Also note**: `pgrep` is NOT installed by default in minimal images

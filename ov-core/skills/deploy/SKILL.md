@@ -6,9 +6,9 @@ description: |
 
 # Deploy - Deployment Configuration
 
-## Schema v3 (in-progress cutover)
+## Schema v4 (in-progress cutover)
 
-The repo is migrating `deploy.yml` to schema v3 per `/home/atrawog/.claude/plans/can-you-have-a-recursive-axolotl.md`. Key changes:
+The repo is migrating `deploy.yml` to schema v4 per `/home/atrawog/.claude/plans/can-you-have-a-recursive-axolotl.md`. Key changes:
 
 - **Dispatch via explicit `target:` only** — legacy name-prefix (`vm:<name>`, literal `host`) is deprecated. Schema-v3 target values: `host | vm | pod | k8s` (short, matches ov command verbs).
 - **Cross-ref fields on `DeploymentNode`** — `vm: <entity>` for target: vm, `image: <name>` for target: pod, `cluster: <name>` for target: k8s, `inside: <deploy>` for nested host-deploy.
@@ -21,7 +21,7 @@ Legacy spellings `container` / `kubernetes` / `vm:<name>` still work; `ov migrat
 
 `ov deploy` is the parent verb for applying and tearing down deployments, plus managing `deploy.yml` overrides. The command family has two distinct surfaces:
 
-1. **Execution verbs** — `ov deploy add <name>` / `ov deploy del <name>`. Apply or reverse a deployment. Four targets are dispatched by the `target:` field (schema v3) or the `<name>` prefix (legacy):
+1. **Execution verbs** — `ov deploy add <name>` / `ov deploy del <name>`. Apply or reverse a deployment. Four targets are dispatched by the `target:` field (schema v4) or the `<name>` prefix (legacy):
    - `target: host` → `HostDeployTarget` on the local filesystem (or, with `inside: <deploy>`, via NestedExecutor into the referenced deployment). See `/ov-advanced:local-deploy`.
    - `target: vm` (+ `vm: <entity>`) → `VmDeployTarget` inside a running VM via SSH. See "VM target" section below and `/ov-dev:vm-deploy-target`.
    - `target: pod` (+ `image: <image>`) → `PodDeployTarget` (today's `ContainerDeployTarget`, renamed in Phase 4): overlay Containerfile + quadlet/podman.
@@ -88,7 +88,7 @@ When `<ref>` is omitted, the ref falls back to `deploy.yml['deploys'][<name>]['i
 - `--dry-run` — print the InstallPlan without executing
 - `--format table|json` — with `--dry-run`
 - `--pull` — force re-fetch of remote refs / image pull
-- `--verify` — run layer `tests:` post-deploy
+- `--verify` — run layer `eval:` post-deploy
 - `--add-layer <ref>` — repeatable; extra layer(s) applied on top (all 4 ref forms)
 
 **Host-target-specific** (silently ignored on container deploys):
@@ -171,7 +171,7 @@ This is the same merge semantics as `HostDeployTarget` — just with SSH-wrapped
 | `with_services` | Enable systemd units declared in layers' `service:` lists |
 | `allow_repo_changes` | Permit repo-config mutations (rpmfusion, copr) in the guest |
 | `allow_root_tasks` | Permit arbitrary `cmd: user: root` tasks in the guest |
-| `verify` | Run layer `tests:` over SSH post-deploy |
+| `verify` | Run layer `eval:` over SSH post-deploy |
 | `skip_incompatible` | Skip layers lacking a guest-matching format section |
 
 `builder_image` + `yes` also apply. Host-target-only gates that don't apply to VM target: none — the gate semantics are identical.
@@ -816,14 +816,14 @@ images:
 - `/ov-build:build` — Building images before deployment (+ the `--no-cache` intermediate scratch-stage caveat)
 - `/ov-build:mcp` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`ov eval mcp ping <image>`); note the **port-publishing gotcha** when a `ports:` override in deploy.yml predates a newly-added mcp-providing layer
 - `/ov-build:image` — Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
-- `/ov-build:layer` — Unified `services:` schema (use_packaged + structured custom), `env_provides`/`env_requires`/`env_accepts` field declarations, security resource caps
-- `/ov-build:eval` — Local `tests:` in deploy.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.
+- `/ov-build:layer` — Unified `service:` schema (use_packaged + structured custom), `env_provides`/`env_requires`/`env_accepts` field declarations, security resource caps
+- `/ov-build:eval` — Local `eval:` in deploy.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.
 
 **Canonical layer worked examples:**
 - `/ov-selkies:chrome` — Resource caps consumer + crash-loop circuit breaker
-- `/ov-foundation:supervisord` — Event listener pattern triggered by the caps; ServiceSchemaDef that renders `services:` entries to supervisord INI
+- `/ov-foundation:supervisord` — Event listener pattern triggered by the caps; ServiceSchemaDef that renders `service:` entries to supervisord INI
 - `/ov-foundation:postgresql` — Canonical `use_packaged:` entry (packaged unit reuse)
-- `/ov-ollama:ollama`, `/ov-hermes:hermes` — Custom `services:` entries
+- `/ov-ollama:ollama`, `/ov-hermes:hermes` — Custom `service:` entries
 - `/ov-selkies:selkies-desktop` — Multi-instance proxy deployment, tunnel inheritance workaround
 
 ## Cross-kind name reuse + ResolveDeployRef precedence (2026-05-05)

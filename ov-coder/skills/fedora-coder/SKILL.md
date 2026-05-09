@@ -128,7 +128,7 @@ includes `rpmfusion` explicitly.
 
 **Python story** — `python` (the pixi-python ov-layer) is NOT pulled in.
 As of 2026-04, `supervisord`, `language-runtimes`, and `uv` all dropped
-their vestigial `depends: python` (they use system python3 from RPM, not
+their vestigial `requires: python` (they use system python3 from RPM, not
 the conda-forge pixi env). System Python is available via
 `language-runtimes` (`python3-devel` + `python3-ramalama`). See the
 "Key Rules" note in `CLAUDE.md` ("don't declare defensive deps").
@@ -234,7 +234,7 @@ google-cloud-npm) by forking image.yml. See `/ov-build:image` for authoring.
 
 ## Cross-distro siblings
 
-`fedora-coder` is one of **four cross-distro coder images** that share the identical 80-line `tests:` block + ~30 identical layers; they diverge only in each layer's package-format section (`rpm:` / `pac:` / `deb:`) and a handful of distro-specific quirks handled inside individual layers.
+`fedora-coder` is one of **four cross-distro coder images** that share the identical 80-line `eval:` block + ~30 identical layers; they diverge only in each layer's package-format section (`rpm:` / `pac:` / `deb:`) and a handful of distro-specific quirks handled inside individual layers.
 
 | Image | Base | Package mgr | User model |
 |---|---|---|---|

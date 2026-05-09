@@ -264,7 +264,7 @@ When you add a step kind, add:
 - `/ov-advanced:kubernetes` — K8s-target user-facing behavior (cluster profiles, Kustomize layout)
 - `/ov-advanced:vm` — VM command family; VmDeployTarget prerequisite (`ov vm create` before `ov deploy add vm:...`)
 - `/ov-build:build` — build-mode user-facing surface; three-phase template story
-- `/ov-build:layer` — layer.yml schema including unified `services:` that map to `ServicePackagedStep` / `ServiceCustomStep`
+- `/ov-build:layer` — layer.yml schema including unified `service:` that map to `ServicePackagedStep` / `ServiceCustomStep`
 
 ## When to Use This Skill
 

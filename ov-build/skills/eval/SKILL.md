@@ -98,7 +98,7 @@ systemctl --user enable --now libvirtd.service
 
 R10 acceptance has historically required the operator to assemble the build → eval-image → deploy → eval-live → rebuild sequence by hand for each affected kind. The 2026-05-XX file-split cutover added six new per-kind YAML files, multiplying the surfaces an R10 sweep must cover; a dedicated dispatcher cut the per-cutover R10 ceremony from N hand-rolled command sequences to ONE invocation per kind. See `/ov-dev:cutover-policy` "Historical cutovers that followed this policy".
 
-## Schema v3 — four disposable test beds in this repo's `deploy.yml`
+## Schema v4 — four disposable test beds in this repo's `deploy.yml`
 
 The project's `deploy.yml` defines four canonical disposable beds covering the full ov verb surface with zero operator-side-effects:
 
@@ -167,7 +167,7 @@ If the container needs state that's only available in deploy (volumes, env, tunn
 ## Overview
 
 `ov` ships a goss-inspired declarative testing framework built into the
-CLI. Tests are authored inline under `tests:` (or `deploy_tests:`) in
+CLI. Eval checks are authored inline under `eval:` (or `deploy_eval:`) in
 `layer.yml`, `image.yml`, or `deploy.yml`. They are **embedded as a
 three-section OCI label** (`org.overthinkos.eval` → `{layer, image, deploy}`)
 so any pulled image is self-testable without its source repo. A local
@@ -310,9 +310,9 @@ by rebuilding and redeploying any image that bakes `ov` (grep `image.yml`
 for `- ov$` to find them). Test runner itself is unaffected — this only
 bites the host→container delegation paths.
 
-## Authoring: the `tests:` list
+## Authoring: the `eval:` list
 
-Every test is a **list entry with exactly one verb discriminator** plus
+Every check is a **list entry with exactly one verb discriminator** plus
 shared modifiers and verb-specific attributes. This mirrors the `tasks:`
 pattern in `layer.yml`.
 
@@ -320,7 +320,7 @@ pattern in `layer.yml`.
 
 ```yaml
 # layers/redis/layer.yml
-tests:
+eval:
   # Build-scope — run inside the built image via `podman run --rm`.
   - id: redis-binary
     file: /usr/bin/redis-server
@@ -939,7 +939,7 @@ pathological config.
 ## Verb routing (which executor runs each check)
 
 Every verb dispatches through one of two executors depending on the run
-mode — this is what makes the same `tests:` list work both against a
+mode — this is what makes the same `eval:` list work both against a
 disposable container (`ov eval image`) and a running service (`ov eval live`):
 
 | Verb + attributes | Under `ov eval live` (running service) | Under `ov eval image` (disposable) |
@@ -982,7 +982,7 @@ Authoring Gotcha #7). Plain `${VAR}` only.
 
 ## Deploy.yml overlay rules
 
-A local `deploy.yml` can contribute its own `tests:` list per image.
+A local `deploy.yml` can contribute its own `eval:` list per image.
 Merge rules applied by `ov eval live`:
 
 1. Local entries with an `id:` matching a baked entry replace that entry.
@@ -993,7 +993,7 @@ Merge rules applied by `ov eval live`:
 # ~/.config/ov/deploy.yml
 images:
   redis-ml:
-    tests:
+    eval:
       - id: redis-responds                  # overrides image's baked check
         command: redis-cli -h 127.0.0.1 -p 16379 ping
         stdout: PONG

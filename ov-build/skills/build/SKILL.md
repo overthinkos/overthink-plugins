@@ -237,7 +237,7 @@ Three kinds of source changes are real cache invalidators — if you see a long 
 ### What does NOT invalidate cache
 
 - **CalVer tag shifts alone.** The Containerfile emits `ARG BASE_IMAGE=<registry>/<name>:<calver>` with a fresh CalVer on every generate. That ARG default appears in the Containerfile text but is not part of the cache key for subsequent RUN/COPY steps — podman/buildah resolves the FROM to an image SHA first, and caches downstream steps off that SHA. If the SHA is unchanged, cache hits. (Historical note: earlier skill revisions called this a "CalVer cascade cost"; that was a misdiagnosis. The real cost is content changes in the layer itself, not the tag.)
-- **`tests:` edits.** LABEL directives are emitted last in every final stage (after the last USER). A `tests:` edit — the most common layer mutation — only re-runs the final LABEL block (~2 seconds on a 138-step stack like `immich-ml`). See `/ov-dev:generate` for the rationale.
+- **`eval:` edits.** LABEL directives are emitted last in every final stage (after the last USER). A `eval:` edit — the most common layer mutation — only re-runs the final LABEL block (~2 seconds on a 138-step stack like `immich-ml`). See `/ov-dev:generate` for the rationale.
 - **Re-running `ov image build` without source changes.** Fully cached; seconds to complete.
 
 ### `write:` vs `copy:` — cache granularity
@@ -250,7 +250,7 @@ Three kinds of source changes are real cache invalidators — if you see a long 
 | Edit | Cost |
 |------|------|
 | `ov image build` with zero source changes | Seconds — every step cache-hits |
-| A `tests:` / label entry | ~2 sec (LABEL re-emit only) |
+| A `eval:` / label entry | ~2 sec (LABEL re-emit only) |
 | A `write:` task's content | Just that single content-addressed COPY layer |
 | A `copy:` source file's content | Rebuild from that layer's COPY onward + downstream |
 | A `cmd:` / `download:` task body | Rebuild from that RUN onward + downstream |

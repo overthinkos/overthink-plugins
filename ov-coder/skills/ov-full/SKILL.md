@@ -70,5 +70,5 @@ Use when the user asks about:
 
 - `/ov-build:layer` — layer authoring; "Service Declaration" + "Anti-pattern: `<name>-host` / `<name>-pod` sibling layers" subsections
 - `/ov-foundation:supervisord` — init system documentation for container-side rendering
-- `/ov-build:eval` — declarative testing (`tests:` block, `ov eval image`, `ov eval live`)
+- `/ov-build:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
 - CLAUDE.md "Init-system polymorphism via mixed `service:` entries" Key Rule

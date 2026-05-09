@@ -59,7 +59,7 @@ work end-to-end from a rootless outer container.
 
 | Property | Value |
 |----------|-------|
-| `depends:` | `supervisord` |
+| `requires:` | `supervisord` |
 | Services registered | `virtqemud` (priority 5), `virtnetworkd` (priority 6) |
 | Devices | `/dev/kvm` is required by consumers; declared at the image level or via `/ov-foundation:container-nesting` |
 
@@ -231,7 +231,7 @@ Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networ
 - `/ov-advanced:vm` — VM lifecycle (build, create, start, stop, ssh, console, destroy); defaults to `qemu:///session` at ov/vm.go:22
 - `/ov-build:generate` — Containerfile generation; emits the supervisord `NN-virtualization.conf` fragment via `fragment_assembly` init model
 - `/ov-build:layer` — layer authoring reference (tasks, vars, service blocks, tests syntax)
-- `/ov-build:eval` — declarative testing framework for the layer's `tests:` block (file, service, command verbs)
+- `/ov-build:eval` — declarative testing framework for the layer's `eval:` block (file, service, command verbs)
 
 ## When to Use This Skill
 
@@ -245,6 +245,6 @@ Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networ
 - Running `ov vm` from inside a rootless container (the
   supervisord-managed daemons here are what makes that work).
 - Understanding why the layer no longer just installs packages — the
-  2026-04-19 refactor added the supervisord programs + `depends:
+  2026-04-19 refactor added the supervisord programs + `requires:
   supervisord` + the deploy-scope tests, turning it from a
   package-only layer into a service provider.

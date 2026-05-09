@@ -23,7 +23,7 @@ Both surfaces share the same SDK: `github.com/modelcontextprotocol/go-sdk v1.5.0
 
 ### Also as a declarative verb
 
-Every `ov eval mcp <method>` is authorable as an `mcp:` verb inside a `tests:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tool:`, `uri:`, `input:`, `mcp_name:`). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `timeout:`) work like other verbs. See `/ov-build:eval` for the parent router and the complete method allowlist. Example:
+Every `ov eval mcp <method>` is authorable as an `mcp:` verb inside a `eval:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tool:`, `uri:`, `input:`, `mcp_name:`). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `timeout:`) work like other verbs. See `/ov-build:eval` for the parent router and the complete method allowlist. Example:
 
 ```yaml
 - mcp: list-tools
@@ -320,7 +320,7 @@ volumes:
     path: /workspace
 env:
   OV_PROJECT_DIR: "/workspace"
-services:
+service:
   - name: ov-mcp
     exec: /usr/local/bin/ov mcp serve --listen :18765
     restart: always
@@ -338,7 +338,7 @@ services:
 
 See `/ov-build:image` "Project directory resolution" for the flag/env semantics, and `ov/mcp_serve_default_repo_test.go` for the auto-fallback behaviour test.
 
-**Composition style** — `ov-mcp` uses `layers: [ov, supervisord]` (meta-layer composition) rather than `depends:` (hard prerequisite) because it adds no install of its own — it's pure wiring. Images that want the MCP server add `ov-mcp` to their layer list; images that just want the ov binary continue to use the `ov` layer alone. Both `layers:` and `depends:` reference other layers, but only `layers:` lets the using layer ship no install files.
+**Composition style** — `ov-mcp` uses `layers: [ov, supervisord]` (meta-layer composition) rather than `requires:` (hard prerequisite) because it adds no install of its own — it's pure wiring. Images that want the MCP server add `ov-mcp` to their layer list; images that just want the ov binary continue to use the `ov` layer alone. Both `layers:` and `requires:` reference other layers, but only `layers:` lets the using layer ship no install files.
 
 ## Verifying end to end
 
@@ -435,7 +435,7 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 
 **MUST be invoked** when the task involves Model Context Protocol on either side:
 
-- **Client** — `ov eval mcp` commands, probing/testing MCP servers declared via `mcp_provides`, examining MCP tool/resource/prompt catalogs, debugging the URL-rewriter or port-publishing behavior, or authoring deploy-scope `mcp:` checks in a `tests:` block.
+- **Client** — `ov eval mcp` commands, probing/testing MCP servers declared via `mcp_provides`, examining MCP tool/resource/prompt catalogs, debugging the URL-rewriter or port-publishing behavior, or authoring deploy-scope `mcp:` checks in a `eval:` block.
 - **Server** — `ov mcp serve` operation, the `ov-mcp` layer, destructive-hint policy, the `--read-only` filter, Kong-reflection tool generation, the project-dir bind-mount pattern, or symptoms like "MCP tool returned empty output" (check `println` vs `fmt.Println` in the invoked command — the server captures `os.Stdout`, not fd 1).
 
 Invoke this skill BEFORE reading source code or launching Explore agents.

@@ -79,7 +79,7 @@ ov layer add-pac sshd openssh
 ov layer set sshd env.SSHD_PORT 22
 ov layer set sshd service.name sshd
 ov layer set sshd ports '["22:22"]'
-ov layer set sshd depends '[supervisord]'
+ov layer set sshd requires '[supervisord]'
 
 # Free-form files (layer scripts, pixi.toml, root.yml, *.service):
 ov image write layers/sshd/root.yml --content 'tasks:\n  - cmd: echo configured\n'
@@ -375,7 +375,7 @@ tasks:
 | `version` | `string` | CalVer (`YYYY.DDD.HHMM`) of this layer definition. Set manually. |
 | `status` | `string` | `working`, `testing`, or `broken`. Default: `testing`. |
 | `info` | `string` | Free-form description of what works / doesn't. Recommended for `testing` / `broken`. |
-| `depends` | `[]string` | Layer dependencies. Resolved transitively, topologically sorted. |
+| `requires` | `[]string` | Layer dependencies. Resolved transitively, topologically sorted. |
 | `layers` | `[]string` | Compose other layers into this one (splicing). |
 | `env` | `map[string]string` | Container-runtime environment variables. Merged across layers. |
 | `path_append` | `[]string` | Paths appended to `$PATH`. Deduplicated. |
@@ -512,24 +512,24 @@ The `replaces:` mechanism applies to host (`target: local`) deploys; in OCI imag
 
 ## Dependencies
 
-Layers declare dependencies via `depends`. The generator resolves transitively, topologically sorts, and pulls missing dependencies automatically. Circular dependencies are a validation error.
+Layers declare dependencies via `requires`. The generator resolves transitively, topologically sorts, and pulls missing dependencies automatically. Circular dependencies are a validation error.
 
 ```yaml
-depends:
+requires:
   - python
   - supervisord
 ```
 
-### `depends` vs `layers`
+### `requires` vs `layers`
 
-| | `depends` | `layers` |
+| | `requires` | `layers` |
 |---|---|---|
 | Purpose | Prerequisite ordering | Group composition |
 | Effect | Ensures dependency is installed first | Splices layers at this layer's position |
 | Transitive | Yes — pulls in sub-dependencies | Yes — recursively expands |
 | Typical use | Runtime/build prerequisites | Metalayers, layer bundles |
 
-**Common mistake:** `depends: [pixi]` when you mean `depends: [python]`. The `pixi` layer installs the pixi binary (build tool). The `python` layer installs Python via pixi. Your layer needs Python.
+**Common mistake:** `requires: [pixi]` when you mean `requires: [python]`. The `pixi` layer installs the pixi binary (build tool). The `python` layer installs Python via pixi. Your layer needs Python.
 
 ---
 
@@ -567,9 +567,9 @@ The `ov-mcp` layer is the canonical example of the map form used to thread a con
 
 ---
 
-## Service Declaration — unified `services:` schema
+## Service Declaration — unified `service:` schema
 
-A layer declares services via the **unified `services:` list** (introduced 2026-04; all 40 previously-using layers migrated). One schema covers both distro-packaged systemd units and fully custom entries, rendered to supervisord INI (for container init) or systemd unit files (for bootc images + host deploys) by the init-system's `service_schema` in `build.yml`.
+A layer declares services via the **unified `service:` list** (introduced 2026-04; all 40 previously-using layers migrated). One schema covers both distro-packaged systemd units and fully custom entries, rendered to supervisord INI (for container init) or systemd unit files (for bootc images + host deploys) by the init-system's `service_schema` in `build.yml`.
 
 Every entry has one `name:` plus either a `use_packaged:` reference (reuse a distro-shipped unit) OR a structured custom spec (`exec`, `env`, `restart`, ...). The two forms are mutually exclusive.
 
@@ -578,7 +578,7 @@ Every entry has one `name:` plus either a `use_packaged:` reference (reuse a dis
 For services shipped by a distro package (postgresql, nginx, redis, sshd, ...). ov enables the packaged unit with optional drop-in overrides — it never regenerates the unit file. The packaged unit at `/usr/lib/systemd/system/<unit>.service` stays untouched; override config lands at `/etc/systemd/system/<unit>.service.d/ov-<layer>.conf`.
 
 ```yaml
-services:
+service:
   - name: postgresql
     use_packaged: postgresql.service     # distro-shipped unit
     enable: true                          # systemctl enable --now
@@ -596,7 +596,7 @@ services:
 For services that aren't distro-packaged (ollama, custom daemons, layer-provided binaries). ov renders the spec through the init-system's `service_template` in `build.yml` — supervisord-init containers get INI fragments, systemd-init containers and bootc/host deploys get `.service` unit files.
 
 ```yaml
-services:
+service:
   - name: ollama
     exec: /usr/bin/ollama serve
     env:
@@ -618,7 +618,7 @@ services:
 A layer can declare multiple entries mixing both forms. The `sshd` layer is the canonical example: it enables the packaged `sshd.service` for systemd-init scope AND runs a custom wrapper via supervisord.
 
 ```yaml
-services:
+service:
   - name: sshd
     use_packaged: sshd.service           # bootc/systemd scope
     enable: true
@@ -652,9 +652,9 @@ services:
 | `overrides` | no | packaged | Drop-in modifications: `env`, `after`, `exec` |
 | `priority` | no | supervisord-only | Startup priority; translated from `after`/`before` on systemd |
 
-### Service declaration
+### Lifecycle-directive overlay (supervisord-only fields)
 
-Layers use the unified `service:` (singular, list) form with full lifecycle-directive support (`auto_start`, `start_retries`, `start_secs`, `stop_signal`, `exit_codes`, `priority`, `kind: eventlistener` + `events:`). See `/ov-foundation:supervisord` for the directive table and `/ov-selkies:chrome` for the eventlistener worked example.
+Beyond the core `service:` schema above, supervisord-rendered entries accept additional lifecycle fields: `auto_start`, `start_retries`, `start_secs`, `stop_signal`, `exit_codes`, `priority`, `kind: eventlistener` + `events:`. See `/ov-foundation:supervisord` for the directive table and `/ov-selkies:chrome` for the eventlistener worked example.
 
 ### Rendering to init systems
 
@@ -663,7 +663,7 @@ The actual unit text is rendered by the init-system's `service_schema` block in 
 - **Supervisord init** — `service_template` produces `[program:NAME]` INI fragments with `autorestart` / `environment` / etc.; fragments go to `/etc/supervisord.d/<layer>-<name>.conf` and are assembled at container-build time.
 - **Systemd init (bootc + host deploys)** — `service_template` produces `[Unit]` / `[Service]` / `[Install]` blocks; the rendered file goes to `/etc/systemd/system/ov-<layer>-<name>.service` (or the user-scope path when `scope: user`). For `use_packaged:` entries, `dropin_template` + `dropin_path_template` produce an override file alongside the packaged unit.
 
-See `/ov-foundation:supervisord` for the supervisord ServiceSchemaDef template, `/ov-build:build` for the three-phase template model, and `/ov-advanced:local-deploy` for how the host target consumes `services:` entries.
+See `/ov-foundation:supervisord` for the supervisord ServiceSchemaDef template, `/ov-build:build` for the three-phase template model, and `/ov-advanced:local-deploy` for how the host target consumes `service:` entries.
 
 ### Worked examples in-tree
 
@@ -821,7 +821,7 @@ mcp_accepts:
 
 **Pod-aware:** when provider and consumer share a container, URLs resolve to `localhost` (local wins over remote for same-named entries). **Naming is the service contract** — keep `name:` stable across layer/package/image renames.
 
-**Testing the endpoint:** once a layer is deployed, `ov eval mcp ping <image>` verifies the server is alive, and `ov eval mcp list-tools <image>` enumerates the tool catalog. Both are authorable as deploy-scope `mcp:` declarative checks inside the layer's `tests:` block. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/ov-build:mcp`.
+**Testing the endpoint:** once a layer is deployed, `ov eval mcp ping <image>` verifies the server is alive, and `ov eval mcp list-tools <image>` enumerates the tool catalog. Both are authorable as deploy-scope `mcp:` declarative checks inside the layer's `eval:` block. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/ov-build:mcp`.
 
 ---
 
@@ -893,7 +893,7 @@ Create `package.json` in the layer directory; `layer.yml` depends on `nodejs`. T
 Go has no declarative manifest for global installs, so use `cmd:`:
 
 ```yaml
-depends:
+requires:
   - golang
 
 env:
@@ -960,7 +960,7 @@ tasks:
 
 ### Add a service
 
-Declare `service:` with a supervisord `[program:<name>]` fragment and add `supervisord` to `depends:`. The generator assembles per-layer service fragments into a single `/etc/supervisord.conf` at image build time.
+Declare `service:` with a supervisord `[program:<name>]` fragment and add `supervisord` to `requires:`. The generator assembles per-layer service fragments into a single `/etc/supervisord.conf` at image build time.
 
 ---
 
@@ -1073,7 +1073,7 @@ shell: schema. Idempotent.
 - `/ov-build:build` — Building images (`--no-cache` caveat; multi-stage scratch).
 - `/ov-core:config` — Cross-container `env_provides` / `mcp_provides` injection; `env_requires` enforcement; `--update-all`; resource caps.
 - `/ov-core:deploy` — `deploy.yml` `provides:` section; tunnel is deploy.yml-only.
-- `/ov-build:eval` — `tests:` field for declarative layer checks (file/port/http/...); embedded in the `org.overthinkos.eval` OCI label under the `layer` section. Layer tests default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `layers/sshd/layer.yml`.
+- `/ov-build:eval` — `eval:` field for declarative layer checks (file/port/http/...); embedded in the `org.overthinkos.eval` OCI label under the `layer` section. Layer eval checks default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `layers/sshd/layer.yml`.
 - `/ov-advanced:sidecar` — Sidecars as `env_provides` participants (tailscale `TS_*` filtering).
 - `/ov-build:secrets` — Credential store chain for `secret_accepts` / `secret_requires`.
 - `/ov-selkies:chrome` — Canonical consumer of `env_accepts` (proxy vars), resource caps (crash-loop circuit breaker), and heavy user-phase copy/mkdir task list.

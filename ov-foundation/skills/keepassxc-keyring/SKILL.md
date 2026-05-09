@@ -63,7 +63,7 @@ local:
       ...
 ```
 
-Order with respect to `direnv`/`gnupg`/`keepassxc` doesn't strictly matter (the layer system topo-sorts via `depends:`), but listing them adjacently makes the YAML self-documenting.
+Order with respect to `direnv`/`gnupg`/`keepassxc` doesn't strictly matter (the layer system topo-sorts via `requires:`), but listing them adjacently makes the YAML self-documenting.
 
 ## Used In Images / Templates
 
@@ -90,8 +90,8 @@ Deploy-scope (run on the host post-`ov deploy add` against the running user's HO
 
 | Skill | Relationship |
 |-------|--------------|
-| `/ov-foundation:keepassxc` | The package-only layer. `keepassxc-keyring` `depends:` on it; never composes it. |
-| `/ov-foundation:gnupg` | Same — keepassxc-keyring `depends:` on gnupg, never composes. |
+| `/ov-foundation:keepassxc` | The package-only layer. `keepassxc-keyring` `requires:` on it; never composes it. |
+| `/ov-foundation:gnupg` | Same — keepassxc-keyring `requires:` on gnupg, never composes. |
 | `/ov-foundation:agent-forwarding` | Distinct concern. agent-forwarding is for FORWARDING the host's GPG/SSH agents INTO containers via socket bind-mounts. keepassxc-keyring is about turning the host itself into a Secret Service server. Both can be active simultaneously. |
 | `/ov-build:secrets` | The CLI surface that talks to KeePassXC after this layer is in place. `ov secrets gpg setup` and `ov secrets gpg doctor` find pinentry-qt + libsecret + keyutils on PATH because this layer installed them. |
 | `/ov-coder:direnv` | Installs the direnv binary. This layer adds the missing piece (the shell hook) for `.envrc` to actually trigger on `cd`. |
