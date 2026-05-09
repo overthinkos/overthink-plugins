@@ -45,6 +45,8 @@ The image does **not** bring up the mesh on first boot — `tailscale up --authk
 - Interactive SSH after boot: `sudo tailscale up` and copy the login URL.
 - Auth key via cloud-init or a systemd drop-in that reads a secret from `/etc/tailscale/authkey` (out of scope for this layer).
 
+For `target: local` host deploys (canonical: `local.ov-cachyos`), pair this layer with `/ov-foundation:tailscale-up` — the runtime-config sibling that sets `--operator=$account` so non-root user-systemd quadlets can run `tailscale serve` (the per-pod `tunnel: tailscale` mechanism in `deploy.yml`), and that keeps the tailnet device name in sync with `hostname -s` across hostname changes. `tailscale-up` self-gates on `systemctl is-active tailscaled` so it's a no-op in image-build / pre-auth contexts; bootc consumers don't include it.
+
 ## Used In Images
 
 - `/ov-selkies:selkies-desktop-bootc` — primary consumer (bootc VM that wants a tailnet identity at boot).
@@ -66,6 +68,7 @@ All three can coexist, but for most cases you want exactly one.
 
 ## Related Skills
 
+- `/ov-foundation:tailscale-up` — runtime-config sibling for `target: local` host deploys (sets `--operator` + `--hostname`). Use both layers together on host targets that need `tailscale serve` to work without sudo.
 - `/ov-foundation:container-nesting` — the previous home of the tailscale package (bundled with buildah/skopeo/docker for nested podman; separate concern)
 - `/ov-selkies:selkies-desktop-bootc` — primary consumer
 - `/ov-foundation:bootc-config` — companion layer for bootc boot wiring (autologin, graphical target, supervisord user service)
