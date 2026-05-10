@@ -1,0 +1,10 @@
+{
+  "name": "ov-tools",
+  "description": "CLI utilities and the ov binary deploy artifacts — ripgrep, himalaya, whisper, nano-pdf, summarize, ordercli, gogcli, sherpa-onnx, and the `ov`/`ov-full` CLI deploy layers.",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "homepage": "https://github.com/overthinkos/overthink",
+  "repository": "https://github.com/overthinkos/overthink-plugins",
+  "license": "MIT",
+  "keywords": ["ov", "cli", "tools", "utilities"]
+}

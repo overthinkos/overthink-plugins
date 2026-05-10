@@ -1,0 +1,10 @@
+{
+  "name": "ov-local",
+  "description": "Schema authoring reference for `kind: local` entities — local.yml templates, target:local deployments, ssh-host destinations, and the managed ssh-config fragment.",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "homepage": "https://github.com/overthinkos/overthink",
+  "repository": "https://github.com/overthinkos/overthink-plugins",
+  "license": "MIT",
+  "keywords": ["ov", "local", "ssh", "ansible", "schema"]
+}

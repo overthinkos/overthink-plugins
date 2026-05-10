@@ -1,0 +1,10 @@
+{
+  "name": "ov-languages",
+  "description": "Programming language runtimes and package managers — python, python-ml, golang, rust, nodejs, pixi, uv.",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "homepage": "https://github.com/overthinkos/overthink",
+  "repository": "https://github.com/overthinkos/overthink-plugins",
+  "license": "MIT",
+  "keywords": ["ov", "python", "golang", "rust", "nodejs", "pixi", "uv"]
+}

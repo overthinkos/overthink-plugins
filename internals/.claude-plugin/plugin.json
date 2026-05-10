@@ -1,0 +1,8 @@
+{
+  "name": "ov-internals",
+  "description": "Development internals for ov contributors — Go source map, generate (renamed from `generate-source` to disambiguate from the build verb), install-plan IR, capabilities/OCI labels, vm-spec, libvirt/cloud-init renderers, cutover-policy, strict-policy, disposable, ovmf, local-infra, skill maintenance. Ships enforcement agents (root-cause-analyzer, layer-validator, testing-validator) and the github MCP server.",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "repository": "https://github.com/overthinkos/overthink-plugins",
+  "mcpServers": "./.mcp.json"
+}

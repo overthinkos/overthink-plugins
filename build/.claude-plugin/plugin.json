@@ -1,0 +1,7 @@
+{
+  "name": "ov-build",
+  "description": "Build/authoring CLI verbs — `ov image build`, `generate`, `list`, `inspect`, `merge`, `new`, `pull`, `validate`, plus secrets/settings/migrate/mcp. Schema authoring (`image`, `layer`, `local-spec`) moved to `kind/*` plugins; eval orchestrator moved to `eval/`.",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "repository": "https://github.com/overthinkos/overthink-plugins"
+}

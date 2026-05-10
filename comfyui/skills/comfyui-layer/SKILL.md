@@ -1,0 +1,62 @@
+---
+name: comfyui-layer
+description: |
+  ComfyUI image generation service on port 8188 with CUDA GPU support.
+  Use when working with ComfyUI, image generation, Stable Diffusion, or AI art pipelines.
+---
+
+# comfyui -- GPU-accelerated image generation service
+
+## Layer Properties
+
+| Property | Value |
+|----------|-------|
+| Dependencies | `cuda`, `supervisord` |
+| Ports | 8188 |
+| Volumes | `comfyui` -> `~/ComfyUI` |
+| Service | `comfyui` (supervisord) |
+| Install files | `tasks:`, `pixi.toml` |
+
+## Packages
+
+- `aria2` (RPM) -- download manager for model files
+- `git-lfs` (RPM) -- large file support for model repos
+
+## Environment Variables
+
+| Variable | Value |
+|----------|-------|
+| (inherited from cuda) | CUDA toolkit paths |
+
+## Usage
+
+```yaml
+# image.yml
+comfyui:
+  layers:
+    - comfyui
+```
+
+## Used In Images
+
+- `/ov-comfyui:comfyui`
+
+## Related Layers
+
+- `/ov-distros:cuda` -- CUDA toolkit dependency
+- `/ov-infrastructure:supervisord` -- process manager dependency
+
+## When to Use This Skill
+
+Use when the user asks about:
+
+- ComfyUI setup or configuration
+- Image generation service
+- Stable Diffusion workflows
+- The comfyui volume or port 8188
+- GPU-accelerated AI art
+
+## Related
+
+- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)

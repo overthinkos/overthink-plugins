@@ -4,133 +4,241 @@
     "name": "overthinkos"
   },
   "metadata": {
-    "description": "Claude Code plugins for Overthink — the container management experience for you and your AI",
-    "version": "2.0.0"
+    "description": "Claude Code plugins for Overthink — sorted into four use-case buckets: schema-kind authoring, contributor internals, runtime CLI verbs, and deployable images.",
+    "version": "3.0.0"
   },
   "plugins": [
     {
       "name": "ov-core",
-      "source": "./ov-core",
-      "description": "Daily-ops verbs for managing ov-built containers — start, stop, restart, status, logs, shell, deploy, update. Every consumer enables this.",
+      "source": "./core",
+      "description": "Runtime/lifecycle CLI verbs — start, stop, restart, status, logs, shell, ssh, deploy, update, remove, config, cmd, version, doctor.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "containers", "core"],
-      "category": "productivity"
+      "keywords": ["ov", "lifecycle", "containers", "verbs"],
+      "category": "commands"
     },
     {
       "name": "ov-build",
-      "source": "./ov-build",
-      "description": "Layer/image authoring verbs for ov contributors — build, image, layer, generate, validate, inspect, list, merge, new, mcp, pull, secrets, settings, eval, migrate.",
+      "source": "./build",
+      "description": "Build/authoring CLI verbs — build, generate, list, inspect, merge, new, pull, validate, secrets, settings, migrate, mcp.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "containers", "build", "authoring"],
+      "keywords": ["ov", "build", "authoring", "containerfile"],
+      "category": "commands"
+    },
+    {
+      "name": "ov-eval",
+      "source": "./eval",
+      "description": "Live-container evaluation and probe verbs — `ov eval` orchestrator + per-protocol live probes (cdp, wl, wl-overlay, dbus, vnc, spice, libvirt, record).",
+      "version": "1.0.0",
+      "author": { "name": "overthinkos" },
+      "homepage": "https://github.com/overthinkos/overthink",
+      "repository": "https://github.com/overthinkos/overthink-plugins",
+      "license": "MIT",
+      "keywords": ["ov", "eval", "probe", "automation", "live"],
+      "category": "commands"
+    },
+    {
+      "name": "ov-automation",
+      "source": "./automation",
+      "description": "Automation/customization knobs — tmux verb, host-side wrappers (alias, udev), topic flags (encryption, sidecars, openclaw deployment).",
+      "version": "1.0.0",
+      "author": { "name": "overthinkos" },
+      "homepage": "https://github.com/overthinkos/overthink",
+      "repository": "https://github.com/overthinkos/overthink-plugins",
+      "license": "MIT",
+      "keywords": ["ov", "tmux", "alias", "udev", "encryption", "sidecar"],
+      "category": "commands"
+    },
+    {
+      "name": "ov-image",
+      "source": "./image",
+      "description": "Schema authoring reference for `kind: image` and `kind: layer` — image.yml/layer.yml composition, task verbs, validation.",
+      "version": "1.0.0",
+      "author": { "name": "overthinkos" },
+      "homepage": "https://github.com/overthinkos/overthink",
+      "repository": "https://github.com/overthinkos/overthink-plugins",
+      "license": "MIT",
+      "keywords": ["ov", "image", "layer", "schema"],
+      "category": "kind"
+    },
+    {
+      "name": "ov-vm",
+      "source": "./vm",
+      "description": "Schema authoring reference for `kind: vm` + bootc VM catalog — libvirt/QEMU backends, cloud_image vs bootc sources.",
+      "version": "1.0.0",
+      "author": { "name": "overthinkos" },
+      "homepage": "https://github.com/overthinkos/overthink",
+      "repository": "https://github.com/overthinkos/overthink-plugins",
+      "license": "MIT",
+      "keywords": ["ov", "vm", "libvirt", "bootc"],
+      "category": "kind"
+    },
+    {
+      "name": "ov-kubernetes",
+      "source": "./kubernetes",
+      "description": "Schema authoring for `kind: k8s` — Kustomize manifests + cluster probes via `ov eval k8s`.",
+      "version": "1.0.0",
+      "author": { "name": "overthinkos" },
+      "homepage": "https://github.com/overthinkos/overthink",
+      "repository": "https://github.com/overthinkos/overthink-plugins",
+      "license": "MIT",
+      "keywords": ["ov", "kubernetes", "k8s"],
+      "category": "kind"
+    },
+    {
+      "name": "ov-local",
+      "source": "./local",
+      "description": "Schema authoring for `kind: local` — local templates, ssh-host targets, managed ssh-config fragment.",
+      "version": "1.0.0",
+      "author": { "name": "overthinkos" },
+      "homepage": "https://github.com/overthinkos/overthink",
+      "repository": "https://github.com/overthinkos/overthink-plugins",
+      "license": "MIT",
+      "keywords": ["ov", "local", "ssh", "ansible"],
+      "category": "kind"
+    },
+    {
+      "name": "ov-pod",
+      "source": "./pod",
+      "description": "Schema authoring for `kind: pod` and `kind: deploy` — deploy.yml shapes, nested deploys, sidecars.",
+      "version": "1.0.0",
+      "author": { "name": "overthinkos" },
+      "homepage": "https://github.com/overthinkos/overthink",
+      "repository": "https://github.com/overthinkos/overthink-plugins",
+      "license": "MIT",
+      "keywords": ["ov", "pod", "deploy"],
+      "category": "kind"
+    },
+    {
+      "name": "ov-internals",
+      "source": "./internals",
+      "description": "Development internals for ov contributors — Go source map, install-plan IR, capabilities/OCI labels, vm-spec, libvirt/cloud-init renderers, cutover-policy, strict-policy, disposable, ovmf, generate-source. Ships enforcement agents and the github MCP server.",
+      "version": "1.0.0",
+      "author": { "name": "overthinkos" },
+      "homepage": "https://github.com/overthinkos/overthink",
+      "repository": "https://github.com/overthinkos/overthink-plugins",
+      "license": "MIT",
+      "keywords": ["ov", "development", "internals", "go", "ir"],
       "category": "development"
     },
     {
-      "name": "ov-advanced",
-      "source": "./ov-advanced",
-      "description": "Power-user ov surfaces — kubernetes, eval-k8s, vm, libvirt, host-deploy, encrypted volumes, eval probe verbs (cdp, wl, dbus, vnc, spice, record), tmux, sidecar, alias, udev, wl-overlay.",
+      "name": "ov-distros",
+      "source": "./distros",
+      "description": "Base OS images and hardware runtime — archlinux, fedora, debian, ubuntu, aurora, bazzite-ai, GPU runtime (nvidia/cuda/rocm), bootc bootstrap, per-distro builders.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "kubernetes", "vm", "libvirt", "eval"],
-      "category": "development"
+      "keywords": ["ov", "distro", "fedora", "archlinux", "debian", "ubuntu", "nvidia", "cuda", "bootc"],
+      "category": "images"
     },
     {
-      "name": "ov-foundation",
-      "source": "./ov-foundation",
-      "description": "Comprehensive maintainer reference for foundation layers and base/distro images — pixi, supervisord, cuda, nvidia, fedora, archlinux, debian, ubuntu, plus every layer/image not owned by a specific pod plugin.",
+      "name": "ov-languages",
+      "source": "./languages",
+      "description": "Programming language runtimes and package managers — python, python-ml, pixi (others like golang/rust/nodejs live in `ov-coder`).",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "containers", "layers", "images", "reference"],
-      "category": "development"
+      "keywords": ["ov", "python", "pixi"],
+      "category": "images"
     },
     {
-      "name": "ov-dev",
-      "source": "./ov-dev",
-      "description": "Development tools and enforcement agents for Overthink contributors",
+      "name": "ov-infrastructure",
+      "source": "./infrastructure",
+      "description": "Infrastructure services and system layers — postgresql, redis, valkey, vectorchord, k3s cluster, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "development", "go", "testing", "enforcement"],
-      "category": "development"
+      "keywords": ["ov", "postgresql", "redis", "k3s", "traefik", "tailscale", "supervisord"],
+      "category": "images"
     },
     {
-      "name": "ov-vms",
-      "source": "./ov-vms",
-      "description": "Virtual-machine consumer skills (libvirt-managed VMs created by ov vm)",
+      "name": "ov-tools",
+      "source": "./tools",
+      "description": "CLI utilities and the ov binary deploy artifacts — ripgrep, himalaya, whisper, nano-pdf, summarize, ordercli, gogcli, sherpa-onnx, plus the `ov`/`ov-full` binary deployment skills.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "vm", "libvirt"],
-      "category": "productivity"
+      "keywords": ["ov", "cli", "tools", "utilities"],
+      "category": "images"
     },
     {
       "name": "ov-jupyter",
-      "source": "./ov-jupyter",
-      "description": "Self-contained skills + MCP wiring for the jupyter image family (jupyter, jupyter-ml, jupyter-ml-notebook, unsloth-studio). Ships the jupyter MCP server (port 8888) for programmatic notebook access with real-time collaboration.",
+      "source": "./jupyter",
+      "description": "Self-contained skills + MCP wiring for the jupyter image family (jupyter, jupyter-ml, jupyter-ml-notebook, unsloth-studio). Ships the jupyter MCP server (port 8888).",
       "version": "2.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
       "keywords": ["ov", "jupyter", "notebooks", "mcp", "collaboration", "ml"],
-      "category": "productivity"
+      "category": "images"
     },
     {
       "name": "ov-coder",
-      "source": "./ov-coder",
-      "description": "Self-contained skills + MCP wiring for the ov coder/dev images (arch-coder, debian-coder, fedora-coder, ubuntu-coder, arch-ov). Ships the ov MCP server (port 18765) for programmatic access to the running pod.",
+      "source": "./coder",
+      "description": "Self-contained skills + MCP wiring for ov coder/dev images (arch-coder, debian-coder, fedora-coder, ubuntu-coder, arch-ov). Ships the ov MCP server (port 18765). Bundles language runtimes (golang, rust, nodejs).",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
       "keywords": ["ov", "coder", "claude-code", "codex", "mcp"],
-      "category": "productivity"
+      "category": "images"
     },
     {
       "name": "ov-selkies",
-      "source": "./ov-selkies",
-      "description": "Self-contained skills + MCP wiring for the selkies-desktop image family (Wayland desktop in a container with VNC + Chrome). Ships the chrome-devtools MCP server (port 9224).",
+      "source": "./selkies",
+      "description": "Self-contained skills + MCP wiring for the selkies-desktop family (Wayland desktop in a container with VNC + Chrome). Ships the chrome-devtools MCP server (port 9224).",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
       "keywords": ["ov", "selkies", "wayland", "desktop", "vnc", "chrome", "mcp"],
-      "category": "productivity"
+      "category": "images"
     },
     {
       "name": "ov-openclaw",
-      "source": "./ov-openclaw",
-      "description": "Self-contained skills + MCP wiring for the openclaw image family (multi-variant AI workstation: bootc, full, ml, sway, ollama, browser). Ships the chrome-devtools MCP server (port 9224) on the chrome-shipping variants.",
+      "source": "./openclaw",
+      "description": "Self-contained skills + MCP wiring for the openclaw image family (multi-variant AI workstation: bootc, full, ml, sway, ollama, browser). Ships the chrome-devtools MCP server (port 9224) on chrome-shipping variants.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
       "keywords": ["ov", "openclaw", "ai", "chrome", "mcp"],
-      "category": "productivity"
+      "category": "images"
+    },
+    {
+      "name": "ov-marimo",
+      "source": "./marimo",
+      "description": "Self-contained skills + MCP wiring for the marimo-ml notebook environment (marimo + Airflow + OSM/GTFS analytics + martin vector tiles). Ships marimo (port 22718) and airflow (port 29999) MCP servers.",
+      "version": "1.0.0",
+      "author": { "name": "overthinkos" },
+      "homepage": "https://github.com/overthinkos/overthink",
+      "repository": "https://github.com/overthinkos/overthink-plugins",
+      "license": "MIT",
+      "keywords": ["ov", "marimo", "airflow", "notebook", "geo", "mcp"],
+      "category": "images"
     },
     {
       "name": "ov-ollama",
-      "source": "./ov-ollama",
+      "source": "./ollama",
       "description": "Self-contained skills for running the ollama LLM-server image. Pair with ov-jupyter to expose Ollama models to Jupyter notebooks via the jupyter MCP.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
@@ -138,11 +246,11 @@
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
       "keywords": ["ov", "ollama", "llm"],
-      "category": "productivity"
+      "category": "images"
     },
     {
       "name": "ov-openwebui",
-      "source": "./ov-openwebui",
+      "source": "./openwebui",
       "description": "Self-contained skills for the openwebui chat-frontend image. Consumes the jupyter MCP server (enable ov-jupyter alongside) for in-chat code execution.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
@@ -150,11 +258,11 @@
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
       "keywords": ["ov", "openwebui", "chat", "llm"],
-      "category": "productivity"
+      "category": "images"
     },
     {
       "name": "ov-comfyui",
-      "source": "./ov-comfyui",
+      "source": "./comfyui",
       "description": "Self-contained skills for running the comfyui image-generation/diffusion image.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
@@ -162,11 +270,11 @@
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
       "keywords": ["ov", "comfyui", "image-generation", "diffusion"],
-      "category": "productivity"
+      "category": "images"
     },
     {
       "name": "ov-immich",
-      "source": "./ov-immich",
+      "source": "./immich",
       "description": "Self-contained skills for the immich photo-management image (immich + immich-ml variants).",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
@@ -174,11 +282,11 @@
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
       "keywords": ["ov", "immich", "photos"],
-      "category": "productivity"
+      "category": "images"
     },
     {
       "name": "ov-hermes",
-      "source": "./ov-hermes",
+      "source": "./hermes",
       "description": "Self-contained skills for the hermes agent image (hermes + hermes-playwright variants). Consumes the jupyter MCP server for notebook manipulation — enable ov-jupyter alongside.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
@@ -186,11 +294,11 @@
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
       "keywords": ["ov", "hermes", "agent", "playwright"],
-      "category": "productivity"
+      "category": "images"
     },
     {
       "name": "ov-filebrowser",
-      "source": "./ov-filebrowser",
+      "source": "./filebrowser",
       "description": "Self-contained skills for the filebrowser image (web-based file management on top of an ov volume).",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
@@ -198,7 +306,7 @@
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
       "keywords": ["ov", "filebrowser", "files"],
-      "category": "productivity"
+      "category": "images"
     }
   ]
 }

@@ -1,0 +1,10 @@
+{
+  "name": "ov-eval",
+  "description": "Live-container evaluation and probe verbs — `ov eval` orchestrator plus per-protocol live probes (cdp, wl, wl-overlay, dbus, vnc, spice, libvirt, record).",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "homepage": "https://github.com/overthinkos/overthink",
+  "repository": "https://github.com/overthinkos/overthink-plugins",
+  "license": "MIT",
+  "keywords": ["ov", "eval", "probe", "automation", "live"]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "ov-image",
+  "description": "Schema authoring reference for `kind: image` and `kind: layer` entities — image.yml composition, layer.yml task verbs, layer/image inheritance, validation rules.",
+  "version": "1.0.0",
+  "author": { "name": "overthinkos" },
+  "homepage": "https://github.com/overthinkos/overthink",
+  "repository": "https://github.com/overthinkos/overthink-plugins",
+  "license": "MIT",
+  "keywords": ["ov", "image", "layer", "schema", "authoring"]
+}
