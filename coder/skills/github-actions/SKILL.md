@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `tasks:` |
+| Install files | `layer.yml`, `task:` |
 
 ## Packages
 
@@ -19,7 +19,7 @@ RPM (from COPR `goncalossilva/act`): `act-cli`, `guestfs-tools`
 
 ## Cross-distro coverage
 
-`rpm:` (Fedora), `pac:` (Arch). `deb:` (Debian/Ubuntu) — `act` and `actionlint` are curl-downloaded GitHub release binaries (distro-agnostic already); `guestfs-tools` is dropped from deb (not in Debian main). The layer's `tasks:` are format-agnostic so the per-distro divergence is minimal.
+`rpm:` (Fedora), `pac:` (Arch). `deb:` (Debian/Ubuntu) — `act` and `actionlint` are curl-downloaded GitHub release binaries (distro-agnostic already); `guestfs-tools` is dropped from deb (not in Debian main). The layer's `task:` are format-agnostic so the per-distro divergence is minimal.
 
 ## Usage
 

@@ -1,7 +1,7 @@
 ---
 name: layer
 description: |
-  MUST be invoked before any work involving: layer authoring, layer.yml, tasks, pixi.toml, package.json, Cargo.toml, or any file under layers/. This skill is the authoritative reference for the `tasks:` verb catalog, `vars:` substitution, execution order, and per-verb validation. Every other skill defers here for install-schema questions.
+  MUST be invoked before any work involving: layer authoring, layer.yml, tasks, pixi.toml, package.json, Cargo.toml, or any file under layers/. This skill is the authoritative reference for the `task:` verb catalog, `vars:` substitution, execution order, and per-verb validation. Every other skill defers here for install-schema questions.
 ---
 
 # Layer - Layer Authoring
@@ -10,7 +10,7 @@ description: |
 
 A **layer** is a directory under `layers/<name>/` that installs a single concern. Layers are the building blocks of container images in overthink. Each layer declares its packages, environment variables, services, volumes, and **install tasks** in a single `layer.yml` file.
 
-Since the `tasks:` refactor, there is **one YAML file per layer** for install logic — no separate Taskfiles, no `tasks:` / `tasks:`. Everything an author needs to install flows through `tasks:` and auto-detected package manifests (`pixi.toml`, `package.json`, `Cargo.toml`).
+Since the `task:` refactor, there is **one YAML file per layer** for install logic — no separate Taskfiles, no `task:` / `task:`. Everything an author needs to install flows through `task:` and auto-detected package manifests (`pixi.toml`, `package.json`, `Cargo.toml`).
 
 ## `directory:` — where the layer's config files live
 
@@ -55,7 +55,7 @@ The runtime parser accepts only the kind-keyed form. `ov migrate unified --rewri
 |--------|---------|-------------|
 | Scaffold new layer | `ov image new layer <name>` | Create layer directory with starter `layer.yml` (see `/ov-build:new`) |
 | Edit a layer field | `ov layer set <name> <dotpath> <value>` | Comment-preserving YAML edit by dot-path |
-| Append rpm/deb/pac/aur packages | `ov layer add-rpm <name> <pkg…>` (plus `add-deb`, `add-pac`, `add-aur`) | Idempotent append; auto-upgrades scaffold's null `packages:` to a sequence |
+| Append rpm/deb/pac/aur packages | `ov layer add-rpm <name> <pkg…>` (plus `add-deb`, `add-pac`, `add-aur`) | Idempotent append; auto-upgrades scaffold's null `package:` to a sequence |
 | Write a free-form file (`pixi.toml`, `root.yml`, …) | `ov image write <rel-path> --content X` | Escape hatch for files the schema setters don't cover; guarded against `..` traversal |
 | List all layers | `ov image list layers` | Show available layers from filesystem |
 | List services | `ov image list services` | Layers with `service` in layer.yml |
@@ -70,7 +70,7 @@ Every editor verb above auto-becomes an MCP tool via Kong reflection (`layer.set
 The `ov layer …` group edits `layers/<name>/layer.yml` through the `yaml.v3` Node API, so **comments and key order are preserved** across edits. Unlike unmarshal-then-marshal, nothing gets scrambled when an agent (or a shell script) touches the file:
 
 ```bash
-# Append packages (idempotent; handles scaffold's null `packages:` value):
+# Append packages (idempotent; handles scaffold's null `package:` value):
 ov layer add-rpm sshd openssh-server openssh-clients
 ov layer add-deb sshd openssh-server
 ov layer add-pac sshd openssh
@@ -95,21 +95,21 @@ A layer directory can contain any combination of these:
 | Artifact | Runs as | Purpose |
 |---|---|---|
 | `layer.yml` `rpm:`/`deb:`/`pac:`/`aur:` sections | root | System packages declared declaratively |
-| `layer.yml` `tasks:` list | per-task `user:` | Ordered install operations — the primary extension point (see catalog below) |
+| `layer.yml` `task:` list | per-task `user:` | Ordered install operations — the primary extension point (see catalog below) |
 | `pixi.toml` / `pyproject.toml` / `environment.yml` | user (builder stage) | Python/conda packages. Multi-stage build. Only one per layer |
 | `package.json` | user (builder stage) | npm packages — installed globally via `npm install -g` |
 | `Cargo.toml` + `src/` | user (builder stage) | Rust crate — built via `cargo install --path` |
 | `build.sh` | user (builder stage) | Optional post-install script for pixi layers. Runs in the pixi builder after `pixi install`. For build-time logic that can't be expressed in pixi.toml (C extension compilation, npm builds, binary patching). |
 
-**Auto-detection:** The build system scans each layer directory for these files. `pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, and `Cargo.toml` trigger automatic multi-stage builds — no manual install commands needed. Use `tasks:` only for things those manifests can't express (binary downloads, file copies from `/ctx`, inline config writes, post-install configuration, `go install`, etc.).
+**Auto-detection:** The build system scans each layer directory for these files. `pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, and `Cargo.toml` trigger automatic multi-stage builds — no manual install commands needed. Use `task:` only for things those manifests can't express (binary downloads, file copies from `/ctx`, inline config writes, post-install configuration, `go install`, etc.).
 
-**Root vs user rule:** Pixi/npm/cargo builders always run as user — never as root. For `tasks:`, the `user:` field per task is explicit: `user: root` for system-wide changes, `user: ${USER}` for anything under `${HOME}`, or a literal username for custom users (must be created earlier in the same layer via a `cmd:` task).
+**Root vs user rule:** Pixi/npm/cargo builders always run as user — never as root. For `task:`, the `user:` field per task is explicit: `user: root` for system-wide changes, `user: ${USER}` for anything under `${HOME}`, or a literal username for custom users (must be created earlier in the same layer via a `cmd:` task).
 
 ---
 
 ## Task Verb Catalog
 
-Every task in `tasks:` is a YAML map with **exactly one verb key** (the discriminator) plus optional sibling modifiers. The verb's value is the primary argument. `ov image validate` rejects tasks with zero verbs or multiple verbs.
+Every task in `task:` is a YAML map with **exactly one verb key** (the discriminator) plus optional sibling modifiers. The verb's value is the primary argument. `ov image validate` rejects tasks with zero verbs or multiple verbs.
 
 | Verb | Value | Required modifiers | Optional modifiers | Purpose |
 |---|---|---|---|---|
@@ -400,7 +400,7 @@ tasks:
 | `mcp_provides` / `mcp_requires` / `mcp_accepts` | various | MCP server discovery analogous to `env_*`. |
 | `service` | `[]ServiceEntry` | Unified service list — see "Service Declaration" below. |
 
-Field details for non-`tasks:` sections are below; they're unchanged from the pre-refactor schema.
+Field details for non-`task:` sections are below; they're unchanged from the pre-refactor schema.
 
 ---
 
@@ -467,7 +467,7 @@ ubuntu:24.04:
   packages: []              # ubuntu 24.04 keeps the generic deb: packages (implicit)
 ```
 
-Match order: the image's `distro:` priority list (e.g. `["ubuntu:24.04", "ubuntu", "debian"]`) is walked in order; the first matching tag section wins. All tag sections now support the full install-template surface (not just `packages:`) via `TagPkgConfig.Raw` in `ov/layers.go:214-219` — see `/ov-internals:go`.
+Match order: the image's `distro:` priority list (e.g. `["ubuntu:24.04", "ubuntu", "debian"]`) is walked in order; the first matching tag section wins. All tag sections now support the full install-template surface (not just `package:`) via `TagPkgConfig.Raw` in `ov/layers.go:214-219` — see `/ov-internals:go`.
 
 ### Pac (`pac:`)
 
@@ -547,7 +547,7 @@ path_append:
 
 `~` and `$HOME` expand to the resolved home directory at generation time. Setting `PATH` directly in `env` is a validation error — use `path_append`. Later layers override earlier for the same key.
 
-**`env:` vs `vars:`:** `env:` is container **runtime** environment (emitted as `ENV` and persists into the running container). `vars:` is **build-time** substitution for `${VAR}` references inside `tasks:` — also emitted as `ENV` so BuildKit can substitute in COPY paths, but conceptually scoped to the layer's install. There's no hard rule against using `env:` for both purposes, but keeping them separate makes intent clearer.
+**`env:` vs `vars:`:** `env:` is container **runtime** environment (emitted as `ENV` and persists into the running container). `vars:` is **build-time** substitution for `${VAR}` references inside `task:` — also emitted as `ENV` so BuildKit can substitute in COPY paths, but conceptually scoped to the layer's install. There's no hard rule against using `env:` for both purposes, but keeping them separate makes intent clearer.
 
 **`env:` is a MAP, not a list.** The YAML parser decodes it as `map[string]string`, not `[]string`. Authoring it as `- KEY=value` fails with `cannot unmarshal !!seq into map[string]string` at `ov image validate`. Always use map form:
 
@@ -840,7 +840,7 @@ data:
     dest: ""                 # optional subdirectory within volume
 ```
 
-**Data layers** are layers with only `data:` + `volumes:` — no packages, no services, no tasks. Valid standalone. **Data images** (`data_image: true` in image.yml) are scratch-based — consumed via `ov config --data-from <image>`. See `/ov-jupyter:notebook-templates` for a worked example.
+**Data layers** are layers with only `data:` + `volume:` — no packages, no services, no tasks. Valid standalone. **Data images** (`data_image: true` in image.yml) are scratch-based — consumed via `ov config --data-from <image>`. See `/ov-jupyter:notebook-templates` for a worked example.
 
 ---
 
@@ -960,7 +960,7 @@ tasks:
 
 ### Add a service
 
-Declare `service:` with a supervisord `[program:<name>]` fragment and add `supervisord` to `requires:`. The generator assembles per-layer service fragments into a single `/etc/supervisord.conf` at image build time.
+Declare `service:` with a supervisord `[program:<name>]` fragment and add `supervisord` to `require:`. The generator assembles per-layer service fragments into a single `/etc/supervisord.conf` at image build time.
 
 ---
 
@@ -1093,7 +1093,7 @@ A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `
 
 ## When to Use This Skill
 
-**MUST be invoked** for any task involving layer authoring, `layer.yml`, `tasks:`, `vars:`, `pixi.toml`, `package.json`, `Cargo.toml`, or any file under `layers/`. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** for any task involving layer authoring, `layer.yml`, `task:`, `vars:`, `pixi.toml`, `package.json`, `Cargo.toml`, or any file under `layers/`. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Author layers before adding them to images. See `/ov-image:image` (composition), `/ov-build:build` (building), `/ov-build:generate` (emission internals).
 

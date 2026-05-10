@@ -17,7 +17,7 @@ description: |
 | CDP Proxy | `cdp-proxy` on 0.0.0.0:9222 → Chrome on 127.0.0.1:9223 |
 | Volumes | `chrome-data` -> `~/.chrome-debug` |
 | Security | `shm_size: 1g`, `memory_max: 6g`, `memory_high: 5g`, `memory_swap_max: 2g` |
-| Install files | `layer.yml`, `tasks:`, `cdp-proxy`, `chrome-wrapper`, `chrome-restart`, `browser-open`, `chrome-crash-listener` |
+| Install files | `layer.yml`, `task:`, `cdp-proxy`, `chrome-wrapper`, `chrome-restart`, `browser-open`, `chrome-crash-listener` |
 
 ## Environment Variables
 
@@ -204,7 +204,7 @@ Chrome is a supervisord service in this layer (`[program:chrome]`):
   and emits a `PROCESS_STATE_FATAL` event.
 
 The `chrome-crash-listener` eventlistener (`~/.local/bin/chrome-crash-listener`,
-installed by `tasks:`) subscribes to `PROCESS_STATE_FATAL` and terminates
+installed by `task:`) subscribes to `PROCESS_STATE_FATAL` and terminates
 supervisord (PID 1) with `SIGTERM`. The container exits, the systemd
 quadlet's `Restart=always` rebuilds the whole container, and the memory
 namespace — including any orphan memfd shmem from the crash loop — is
@@ -251,7 +251,7 @@ curl -s "http://localhost:9222/json/list"
 
 ## Related Layers
 
-- `/ov-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-included via `layers:`)
+- `/ov-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-included via `layer:`)
 - `/ov-infrastructure:supervisord` — required dependency for cdp-proxy service
 - `/ov-hermes:hermes` — consumes `BROWSER_CDP_URL` via `env_accepts` and `chrome-devtools` via `mcp_accepts`
 - `/ov-selkies:selkies-desktop` — desktop metalayer composing chrome with labwc, pipewire, waybar, etc.

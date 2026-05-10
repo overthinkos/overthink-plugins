@@ -17,7 +17,7 @@ description: |
 | Ports | 8080 |
 | Aliases | `open-webui` -> `open-webui` |
 | Services | `openwebui` (supervisord, autostart) |
-| Install files | `pixi.toml`, `tasks:`, `openwebui-entrypoint` |
+| Install files | `pixi.toml`, `task:`, `openwebui-entrypoint` |
 
 ## Environment Variables
 
@@ -52,14 +52,14 @@ description: |
 
 ## Secrets (Two-Tier Architecture)
 
-### Tier 1: Infrastructure secrets (podman secrets via `secrets:` field)
+### Tier 1: Infrastructure secrets (podman secrets via `secret:` field)
 
 Auto-generated, stored in credential store (keyring/kdbx/config-file fallback):
 
 | Secret | Env Fallback | Purpose | Auto-gen path |
 |--------|-------------|---------|---------------|
 | `webui-secret-key` | `WEBUI_SECRET_KEY` | JWT + encryption key (CRITICAL: losing it breaks all sessions and OAuth tokens) | `ov config` time, `ProvisionPodmanSecrets` |
-| `admin-password` | `WEBUI_ADMIN_PASSWORD` | Admin account password — declared as `secret_requires:` | `ov deploy add` time, `ensureLayerSecret` |
+| `admin-password` | `WEBUI_ADMIN_PASSWORD` | Admin account password — declared as `secret_require:` | `ov deploy add` time, `ensureLayerSecret` |
 
 Provisioned as `Secret=ov-openwebui-<name>,type=env,target=<ENV>` in the quadlet. The entrypoint checks env vars first (from `type=env` injection), then file mounts at `/run/secrets/` as fallback.
 

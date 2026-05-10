@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `tasks:`, `service:`, `secret_requires:`, `env_requires:` |
+| Install files | `layer.yml`, `task:`, `service:`, `secret_require:`, `env_require:` |
 | Depends on | `/ov-infrastructure:k3s` |
 | Service | `k3s-agent.service` (system scope, enabled) |
 

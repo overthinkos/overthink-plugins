@@ -15,13 +15,13 @@ description: |
 | Dependencies | None (requires pixi env from parent) |
 | Volumes | `models` -> `~/.cache/huggingface` |
 | Aliases | `unsloth` -> `unsloth` |
-| Install files | `layer.yml`, `tasks:` |
+| Install files | `layer.yml`, `task:` |
 
 ## Architecture: Tier 1 Post-Install Layer
 
 This layer has **no pixi.toml** and **no depends**. It installs pip packages into the pixi environment established by a Tier 2 "environment-owner" parent layer. The user-phase tasks run AFTER the parent's pixi COPY in the final image build.
 
-**Cannot be used standalone** — must be composed into an environment-owner layer via the `layers:` field.
+**Cannot be used standalone** — must be composed into an environment-owner layer via the `layer:` field.
 
 ## Environment Variables
 
@@ -37,7 +37,7 @@ This layer has **no pixi.toml** and **no depends**. It installs pip packages int
 3. **opentelemetry runtime deps** (`pip install`) — pixi resolver conflict prevents solving these via conda-forge
 4. **vLLM torch.compile patch** (`patch_vllm_size_nodes.py`) — fixes `_decompose_size_nodes` bug where `getitem` users and `x.size(dim)` patterns crash during model compilation (upstream: vllm-project/vllm#38360)
 
-## Used In Layers (via `layers:` field)
+## Used In Layers (via `layer:` field)
 
 - `/ov-jupyter:jupyter-ml` — `layers: [llama-cpp, unsloth, jupyter-mcp]`
 - `/ov-jupyter:unsloth-studio` — `layers: [llama-cpp, unsloth]`

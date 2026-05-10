@@ -152,7 +152,7 @@ ov: error: mcp chrome-devtools: container port 9224/tcp is not published to a ho
 declare `ports: [9224:9224]` in the image or run the test from inside the pod
 ```
 
-**Cause:** the image's OCI label declares the port (e.g., `chrome-devtools-mcp` adds `9224` to `sway-browser-vnc`'s port list), but the running container's quadlet doesn't publish it because `deploy.yml`'s per-image `ports:` entry **replaces** (not appends to) the image-declared list. When a new mcp-providing layer is added to an image that already has a `deploy.yml` entry with an explicit `ports:` list, the new port silently drops out.
+**Cause:** the image's OCI label declares the port (e.g., `chrome-devtools-mcp` adds `9224` to `sway-browser-vnc`'s port list), but the running container's quadlet doesn't publish it because `deploy.yml`'s per-image `port:` entry **replaces** (not appends to) the image-declared list. When a new mcp-providing layer is added to an image that already has a `deploy.yml` entry with an explicit `port:` list, the new port silently drops out.
 
 **Fix:** either add the mcp port to the instance's `deploy.yml` entry:
 
@@ -166,7 +166,7 @@ images:
       - 9224:9224   # ← add this
 ```
 
-… or remove the `ports:` override entirely so the image default (which already includes 9224) applies. Re-run `ov config <image>` and restart the service (`ov stop && ov start` — `ov update` may no-op if the image tag hasn't changed).
+… or remove the `port:` override entirely so the image default (which already includes 9224) applies. Re-run `ov config <image>` and restart the service (`ov stop && ov start` — `ov update` may no-op if the image tag hasn't changed).
 
 **Verification** that the fix worked:
 
@@ -328,7 +328,7 @@ service:
     scope: system
 ```
 
-**Project-dir wiring** — build-mode tools (`image.build`, `image.inspect`, `image.list.*`) resolve `image.yml` via `os.Getwd()`. Inside the container, cwd is `/workspace` (set by the `ov-mcp` layer's `OV_PROJECT_DIR` env + `volumes:` declaration). Three deployment patterns, in order of progressively less local setup:
+**Project-dir wiring** — build-mode tools (`image.build`, `image.inspect`, `image.list.*`) resolve `image.yml` via `os.Getwd()`. Inside the container, cwd is `/workspace` (set by the `ov-mcp` layer's `OV_PROJECT_DIR` env + `volume:` declaration). Three deployment patterns, in order of progressively less local setup:
 
 1. **Bind-mount** — the canonical `ov-mcp` pattern. The layer ships `env: OV_PROJECT_DIR: /workspace` + `volumes: project → /workspace`; the deployer attaches a host checkout via `ov config <image> --bind project=/path/to/overthink`. The ov CLI's global `-C` / `--dir` / `OV_PROJECT_DIR` flag honours the env var before Kong dispatch, calling `os.Chdir(OV_PROJECT_DIR)` once. Use this when the agent should see your in-flight local edits. The volume NAME stays `project` (stable bind-mount API) — only the in-container PATH changed from `/project` to `/workspace` in 2026-04 (the generic name works whether the contents are an overthink checkout or any other workspace).
 
@@ -338,7 +338,7 @@ service:
 
 See `/ov-image:image` "Project directory resolution" for the flag/env semantics, and `ov/mcp_serve_default_repo_test.go` for the auto-fallback behaviour test.
 
-**Composition style** — `ov-mcp` uses `layers: [ov, supervisord]` (meta-layer composition) rather than `requires:` (hard prerequisite) because it adds no install of its own — it's pure wiring. Images that want the MCP server add `ov-mcp` to their layer list; images that just want the ov binary continue to use the `ov` layer alone. Both `layers:` and `requires:` reference other layers, but only `layers:` lets the using layer ship no install files.
+**Composition style** — `ov-mcp` uses `layers: [ov, supervisord]` (meta-layer composition) rather than `require:` (hard prerequisite) because it adds no install of its own — it's pure wiring. Images that want the MCP server add `ov-mcp` to their layer list; images that just want the ov binary continue to use the `ov` layer alone. Both `layer:` and `require:` reference other layers, but only `layer:` lets the using layer ship no install files.
 
 ## Verifying end to end
 
@@ -373,9 +373,9 @@ Every CLI verb under `ov image …` and `ov layer …` auto-becomes an MCP tool 
 | `image.new.image` | Append a new image entry to `image.yml`. |
 | `image.new.layer` | Scaffold `layers/<name>/layer.yml` with a stub. |
 | `image.set` | Set any value in `image.yml` by dot-path (`defaults.tag`, `images.foo.layers`, …). Value is parsed as YAML. |
-| `image.add-layer` / `image.rm-layer` | Append / remove a layer from an image's `layers:` list (idempotent). |
+| `image.add-layer` / `image.rm-layer` | Append / remove a layer from an image's `layer:` list (idempotent). |
 | `layer.set` | Set any value in `layers/<name>/layer.yml` by dot-path. |
-| `layer.add-rpm` / `layer.add-deb` / `layer.add-pac` / `layer.add-aur` | Append packages to a layer's `<format>.packages` list. Idempotent. Upgrades scaffold's null `packages:` value to a real sequence. |
+| `layer.add-rpm` / `layer.add-deb` / `layer.add-pac` / `layer.add-aur` | Append packages to a layer's `<format>.packages` list. Idempotent. Upgrades scaffold's null `package:` value to a real sequence. |
 | `image.fetch` / `image.refresh` | Pre-prime / re-clone the remote-repo cache. Spec defaults to `default` (overthinkos/overthink). |
 | `image.write` / `image.cat` | Write / read any file under the project root — escape hatch for free-form auxiliary files (`pixi.toml`, `package.json`, `root.yml`, scripts, `*.service`). Path is resolved against `os.Getwd()` and rejected if it escapes the project root. |
 
@@ -414,7 +414,7 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 - `/ov-image:layer` — `mcp_provides` / `mcp_accepts` / `mcp_requires` field reference for layer authoring.
 - `/ov-core:config` — how `mcp_provides` gets injected into `deploy.yml` `provides.mcp:` and synthesized into `OV_MCP_SERVERS` for consumers at `ov config` time; pod-aware resolution to `localhost`; instance-aware MCP server naming with `-<instance>` suffix.
 - `/ov-build:validate` — authoring-time validation rules (method allowlist, required modifiers, scope enforcement).
-- `/ov-core:deploy` — `deploy.yml` `ports:` override semantics (the port-publishing gotcha lives here operationally).
+- `/ov-core:deploy` — `deploy.yml` `port:` override semantics (the port-publishing gotcha lives here operationally).
 - `/ov-eval:cdp` — sibling live-container verb (Chrome DevTools Protocol).
 - `/ov-eval:wl` — sibling (Wayland desktop control).
 - `/ov-eval:dbus` — sibling (D-Bus calls/notifications).

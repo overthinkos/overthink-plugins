@@ -131,7 +131,7 @@ The `OV_PROJECT_DIR` env var is consumed by the ov binary's global `-C` / `--dir
 
 ## Secret Provisioning
 
-Secrets declared in `layer.yml` `secrets:` field are stored as OCI label metadata. At config time:
+Secrets declared in `layer.yml` `secret:` field are stored as OCI label metadata. At config time:
 
 - `--password auto` (default): generates random passwords for all secrets
 - `--password manual`: prompts for each secret
@@ -165,7 +165,7 @@ For `FROM scratch` data images (`data_image: true`), bind-mount targets use `pod
 
 ### Data layer ordering (bind mounts only)
 
-For **bind-mounted** targets, data layers that target the volume **root** (`dest:` absent or empty — e.g. `notebook-templates`, which drops `getting-started.ipynb` directly into `~/workspace/`) should be listed **first** in the image's `layers:` list. A root-targeted layer ordered after subdirectory-targeted layers will see the root as non-empty (because subdirs from earlier layers exist) and skip. This is a convention, not a hard-enforced rule.
+For **bind-mounted** targets, data layers that target the volume **root** (`dest:` absent or empty — e.g. `notebook-templates`, which drops `getting-started.ipynb` directly into `~/workspace/`) should be listed **first** in the image's `layer:` list. A root-targeted layer ordered after subdirectory-targeted layers will see the root as non-empty (because subdirs from earlier layers exist) and skip. This is a convention, not a hard-enforced rule.
 
 This ordering caveat does not apply to named-volume targets, where the initial seed runs against the whole volume regardless of sub-paths.
 

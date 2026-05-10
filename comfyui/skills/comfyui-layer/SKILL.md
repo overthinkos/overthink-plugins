@@ -15,7 +15,7 @@ description: |
 | Ports | 8188 |
 | Volumes | `comfyui` -> `~/ComfyUI` |
 | Service | `comfyui` (supervisord) |
-| Install files | `tasks:`, `pixi.toml` |
+| Install files | `task:`, `pixi.toml` |
 
 ## Packages
 

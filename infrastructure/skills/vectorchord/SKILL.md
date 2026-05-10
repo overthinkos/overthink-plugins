@@ -15,7 +15,7 @@ description: |
 | Ports | none |
 | Volumes | none |
 | Service | none |
-| Install files | `tasks:` |
+| Install files | `task:` |
 
 ## Environment Variables
 

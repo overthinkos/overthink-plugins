@@ -17,7 +17,7 @@ description: |
 | Ports | 8888 |
 | Service | `jupyter-ml` (supervisord) |
 | Volume | `workspace` at `~/workspace` |
-| Install files | `layer.yml`, `pixi.toml`, `tasks:` |
+| Install files | `layer.yml`, `pixi.toml`, `task:` |
 
 ## Architecture: Environment-Owning Meta-Layer
 

@@ -50,7 +50,7 @@ The generated Containerfile follows this order:
 
 ## Task emission pipeline
 
-All install-task logic lives in a single file: `ov/tasks.go` (~380 lines). Authored layer-side as `tasks:` list in `layer.yml`; emitted as Containerfile directives via this sequence per layer inside `writeLayerSteps` (`ov/generate.go:1021`):
+All install-task logic lives in a single file: `ov/tasks.go` (~380 lines). Authored layer-side as `task:` list in `layer.yml`; emitted as Containerfile directives via this sequence per layer inside `writeLayerSteps` (`ov/generate.go:1021`):
 
 ```
 1. # Layer: <name>                 (comment header)
@@ -404,7 +404,7 @@ Source: `ov/config.go:ResolveImage` (policy reconciliation), `ov/generate.go:wri
 
 ## Tag-section install emission
 
-Distro-version tag sections (`debian:13:`, `ubuntu:24.04:`, etc.) are resolved via first-match-wins on the image's `distro:` priority list. Since 2026-04, tag sections use the primary format's **full** install template — so they can carry `repos:`, `keys:`, `options:`, and `packages:`, not just packages alone. The generator reads each tag section's full YAML map via `ov/layers.go:TagPkgConfig.Raw`.
+Distro-version tag sections (`debian:13:`, `ubuntu:24.04:`, etc.) are resolved via first-match-wins on the image's `distro:` priority list. Since 2026-04, tag sections use the primary format's **full** install template — so they can carry `repos:`, `keys:`, `options:`, and `package:`, not just packages alone. The generator reads each tag section's full YAML map via `ov/layers.go:TagPkgConfig.Raw`.
 
 Example: `layers/language-runtimes/layer.yml` had (before Phase F) a `debian:13:` section with a Microsoft apt repo entry — though ultimately dropped in favor of the `dotnet-install.sh` cmd: task for cross-distro consistency (see `/ov-coder:language-runtimes`).
 

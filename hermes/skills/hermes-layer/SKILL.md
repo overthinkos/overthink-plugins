@@ -17,7 +17,7 @@ description: |
 | Aliases | `hermes` -> `hermes`, `hermes-agent` -> `hermes-agent` |
 | Services | `hermes` (supervisord, autostart), `hermes-whatsapp` (supervisord, manual) |
 | MCP accepts | `jupyter`, `chrome-devtools` |
-| Install files | `pixi.toml`, `build.sh`, `tasks:` |
+| Install files | `pixi.toml`, `build.sh`, `task:` |
 | RPM packages | `alsa-lib`, `portaudio` |
 
 ## Environment Variables
@@ -29,7 +29,7 @@ description: |
 
 ## Optional Environment Variables (env_accepts)
 
-These env vars are declared via `env_accepts:` in `layer.yml` — hermes can use any LLM provider, so none are required:
+These env vars are declared via `env_accept:` in `layer.yml` — hermes can use any LLM provider, so none are required:
 
 | Variable | Description |
 |----------|-------------|

@@ -1,7 +1,7 @@
 ---
 name: sidecar
 description: |
-  Topic skill (no dedicated `ov sidecar` command — the surface is the `--sidecar <name>` / `--list-sidecars` flags on `ov config` and the `sidecars:` field in `deploy.yml`). MUST be invoked before any work involving: sidecar containers, pod networking, Tailscale exit nodes, `ov config --sidecar`, the `deploy.yml` `sidecars:` field, or sidecar-env filtering (`env_accepts` / `env_requires` routing to the sidecar vs the app container).
+  Topic skill (no dedicated `ov sidecar` command — the surface is the `--sidecar <name>` / `--list-sidecars` flags on `ov config` and the `sidecar:` field in `deploy.yml`). MUST be invoked before any work involving: sidecar containers, pod networking, Tailscale exit nodes, `ov config --sidecar`, the `deploy.yml` `sidecar:` field, or sidecar-env filtering (`env_accepts` / `env_requires` routing to the sidecar vs the app container).
 ---
 
 # Sidecar — Deploy-Time Pod Composition

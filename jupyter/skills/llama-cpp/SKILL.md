@@ -14,7 +14,7 @@ description: |
 | Dependencies | None |
 | Ports | — |
 | Service | — |
-| Install files | `layer.yml`, `tasks:` |
+| Install files | `layer.yml`, `task:` |
 
 ## What It Installs
 
@@ -33,7 +33,7 @@ Downloads the latest llama.cpp release from GitHub into `~/llama.cpp`:
 
 ## Design: Tier 1 "Post-install" Layer
 
-This layer has **no pixi.toml** and **no depends**. It downloads prebuilt binaries and sets environment variables. It is designed to be composed into environment-owning layers (Tier 2) via the `layers:` field.
+This layer has **no pixi.toml** and **no depends**. It downloads prebuilt binaries and sets environment variables. It is designed to be composed into environment-owning layers (Tier 2) via the `layer:` field.
 
 The user-phase tasks run after the pixi environment is established by the parent layer. The `gguf` Python package (for programmatic GGUF access) is declared in the parent layer's pixi.toml, not here.
 

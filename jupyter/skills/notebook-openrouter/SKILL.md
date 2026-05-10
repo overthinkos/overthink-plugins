@@ -23,7 +23,7 @@ description: |
 
 ## How It Works
 
-This is a **data layer** with an **env_requires** declaration — it uses the `data:` field to map notebooks to a volume, and `env_requires:` to declare that the `OPENROUTER_API_KEY` environment variable must be present:
+This is a **data layer** with an **env_requires** declaration — it uses the `data:` field to map notebooks to a volume, and `env_require:` to declare that the `OPENROUTER_API_KEY` environment variable must be present:
 
 ```yaml
 info: "OpenRouter API integration notebook collection"

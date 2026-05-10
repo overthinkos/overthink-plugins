@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `sway` |
 | Volumes | `heroic-config` -> `~/.config/heroic`, `heroic-games` -> `~/Games/Heroic` |
-| Install files | `tasks:` |
+| Install files | `task:` |
 
 ## Packages
 
@@ -34,7 +34,7 @@ sway-browser-vnc-steam-heroic:
 
 ## Installation
 
-Heroic is an Electron app distributed as an RPM on GitHub releases. The `tasks:` downloads and installs it via `dnf install -y /tmp/heroic.rpm` (auto-resolves deps). Version pinned to v2.20.1.
+Heroic is an Electron app distributed as an RPM on GitHub releases. The `task:` downloads and installs it via `dnf install -y /tmp/heroic.rpm` (auto-resolves deps). Version pinned to v2.20.1.
 
 COPR repos exist (`atim/heroic-games-launcher`) but builds are currently failing — GitHub RPM is more reliable.
 

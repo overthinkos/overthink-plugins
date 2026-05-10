@@ -14,7 +14,7 @@ description: |
 |----------|-------|
 | Dependencies | `cuda` |
 | Sub-layers | `llama-cpp` |
-| Install files | `layer.yml`, `pixi.toml`, `tasks:` |
+| Install files | `layer.yml`, `pixi.toml`, `task:` |
 
 ## Architecture: Tier 2 Environment-Owner Meta-Layer
 
@@ -49,7 +49,7 @@ Plus from `llama-cpp` sub-layer:
 
 ## Related Layers
 
-- `/ov-jupyter:llama-cpp` — Sub-layer: llama.cpp binaries (composed via `layers:`)
+- `/ov-jupyter:llama-cpp` — Sub-layer: llama.cpp binaries (composed via `layer:`)
 - `/ov-distros:cuda` — CUDA toolkit dependency
 - `/ov-jupyter:jupyter-ml` — Full ML + Jupyter variant (superset of python-ml's pixi env)
 - `/ov-jupyter:unsloth-studio` — Fine-tuning variant (similar pixi env + unsloth)

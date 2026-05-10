@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `tasks:` |
+| Install files | `task:` |
 
 ## Usage
 

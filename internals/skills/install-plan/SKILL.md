@@ -19,7 +19,7 @@ description: |
 `ov` has five code paths that all need to know "what does applying this layer mean?":
 
 1. **Build mode** — `ov image build` / `ov image generate` emit Containerfiles.
-2. **Container deploy** — `ov deploy add <name> <ref>` runs the image via quadlet, optionally building an overlay image when `add_layers:` is set.
+2. **Container deploy** — `ov deploy add <name> <ref>` runs the image via quadlet, optionally building an overlay image when `add_layer:` is set.
 3. **Host deploy** — `ov deploy add host <ref>` applies the recipe to the invoking user's filesystem.
 4. **VM deploy** — `ov deploy add vm:<name> <ref>` applies the recipe inside a running VM over SSH.
 5. **Kubernetes deploy** — `ov deploy add <name> --target kubernetes` emits a Kustomize base/overlays tree.
@@ -35,7 +35,7 @@ This skill is the single source of truth for the IR shape. Add a new step kind b
 | `ov/install_plan.go` | IR types, enums, `InstallStep` interface, `ReverseOp`, `DeployTarget` interface, `EmitOpts`, `GateEnabled` |
 | `ov/install_build.go` | `BuildDeployPlan` pure compiler: `Layer` → `InstallPlan` |
 | `ov/build_target_oci.go` | `OCITarget` — emits Containerfile text |
-| `ov/deploy_target_container.go` | `ContainerDeployTarget` — synthesizes overlay Containerfile when `add_layers:` present, delegates to quadlet/start |
+| `ov/deploy_target_container.go` | `ContainerDeployTarget` — synthesizes overlay Containerfile when `add_layer:` present, delegates to quadlet/start |
 | `ov/deploy_target_host.go` | `HostDeployTarget` — executes plan on host via shell + `podman run <builder>` |
 | `ov/deploy_target_vm.go` | `VmDeployTarget` — executes plan inside a running VM via SSH + scp |
 | `ov/deploy_target_k8s.go` | `KubernetesDeployTarget` — emits Kustomize base/overlays tree |
@@ -148,7 +148,7 @@ func BuildDeployPlan(layer *Layer, img *ResolvedImage, hostCtx HostContext) (*In
 
 Pure — no I/O, no side effects. Given the same inputs, produces the same plan. Called:
 - Once per layer during `ov image build` (OCITarget walks the combined output).
-- Once per layer during `ov deploy add <container>` (ContainerDeployTarget filters to `add_layers:` for overlay synthesis).
+- Once per layer during `ov deploy add <container>` (ContainerDeployTarget filters to `add_layer:` for overlay synthesis).
 - Once per layer during `ov deploy add host` (HostDeployTarget walks the combined output).
 
 Pass `HostContext{Target: "host", Distro: ..., GlibcVersion: ...}` for host compilation; zero-value for build/container compilation.
@@ -179,9 +179,9 @@ Emits Containerfile text. Consumes `phases.install.container` from build.yml (fa
 Used by: `ov image build`, `ov image generate`, `ov deploy add <container>` (overlay Containerfile synthesis).
 
 ### `ContainerDeployTarget` (`ov/deploy_target_container.go`)
-Wraps the existing quadlet/podman pipeline with overlay-Containerfile synthesis for `add_layers:`. Picks an overlay tag deterministically from `(base-image, sorted-layer-set)`. Removed on `ov deploy del` unless `--keep-image`.
+Wraps the existing quadlet/podman pipeline with overlay-Containerfile synthesis for `add_layer:`. Picks an overlay tag deterministically from `(base-image, sorted-layer-set)`. Removed on `ov deploy del` unless `--keep-image`.
 
-Used by: `ov deploy add <container>` with `add_layers:` present.
+Used by: `ov deploy add <container>` with `add_layer:` present.
 
 ### `HostDeployTarget` (`ov/deploy_target_host.go`)
 Walks the IR; groups contiguous same-`(Scope, Venue)` steps via `plan.StepsByVenue()`; emits one heredoc per batch. Full executor: writes service units (packaged + custom), env.d files, managed blocks, ledger entries. Invokes builder containers via `builder_run.go` for `VenueContainerBuilder` steps. Gates (`GateEnabled`) applied per step; skipped steps logged.

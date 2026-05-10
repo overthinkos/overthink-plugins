@@ -59,7 +59,7 @@ work end-to-end from a rootless outer container.
 
 | Property | Value |
 |----------|-------|
-| `requires:` | `supervisord` |
+| `require:` | `supervisord` |
 | Services registered | `virtqemud` (priority 5), `virtnetworkd` (priority 6) |
 | Devices | `/dev/kvm` is required by consumers; declared at the image level or via `/ov-distros:container-nesting` |
 

@@ -131,7 +131,7 @@ ov secrets import                       # Migrate existing credentials
 ### Credential-backed layer env vars (`secret_accepts` / `secret_requires`)
 
 A layer can declare credential-backed env vars in `layer.yml` via the
-`secret_accepts:` / `secret_requires:` sections. At `ov config` time, the
+`secret_accept:` / `secret_require:` sections. At `ov config` time, the
 declared values are resolved from the credential store, provisioned as
 per-image podman secrets, and injected into the container at runtime via
 `Secret=<name>,type=env,target=<var>` directives — **never landing in
@@ -157,8 +157,8 @@ ov secrets set ov/api-key ollama gsk-yyyyyyyy
 ov secrets set ov/api-key immich <immich-key-from-web-ui>
 ```
 
-**Auto-generated `secret_requires:` tokens.** Since 2026-05-06,
-`secret_requires:` entries that miss everywhere (env + credential
+**Auto-generated `secret_require:` tokens.** Since 2026-05-06,
+`secret_require:` entries that miss everywhere (env + credential
 store) auto-generate a 32-byte hex token via `generateRandomHex(32)` +
 `DefaultCredentialStore.Set`, persisted at `ov/secret/<NAME>` (or the
 declared `key:` override). The first deploy that resolves the secret
@@ -169,9 +169,9 @@ via `sync.Once` — when k3s-server and k3s-agent both declare
 reads. No operator setup required for `ov update k3s-vm` to succeed
 on a fresh host.
 
-`secret_accepts:` entries do NOT auto-generate (they're optional by
+`secret_accept:` entries do NOT auto-generate (they're optional by
 contract; the caller falls back to `dep.Default` when missing). Only
-`secret_requires:` triggers the auto-gen path.
+`secret_require:` triggers the auto-gen path.
 
 **Retrieve** an auto-generated value (e.g., to log into a service for
 the first time):
@@ -181,7 +181,7 @@ ov secrets get ov/secret K3S_CLUSTER_TOKEN
 ov secrets get ov/secret WEBUI_ADMIN_PASSWORD
 ```
 
-**Override** a `secret_requires:` value with a specific value before
+**Override** a `secret_require:` value with a specific value before
 the first deploy:
 
 ```bash
@@ -230,7 +230,7 @@ credential store. The plaintext is stripped, `deploy.yml.bak.<ts>` is
 written as a rollback point, and the migration logs each entry on stderr.
 Idempotent — safe to run on a clean host.
 
-**Distinction from layer-owned `secrets:`:** the layer.yml `secrets:`
+**Distinction from layer-owned `secret:`:** the layer.yml `secret:`
 field (e.g., immich's `db-password`) creates per-image secrets that are
 auto-generated once at `ov config` time and never rotated. Credential-
 backed `secret_accepts` / `secret_requires` are user-owned, shareable

@@ -39,7 +39,7 @@ therefore be:
   The same image can be deployed as disposable on one host and
   non-disposable on another.
 - **Multi-instance aware.** Each deploy entry (vms.yml kind:vm, or
-  deploy.yml entry under `deploys:`) carries its own flag — two
+  deploy.yml entry under `deploy:`) carries its own flag — two
   instances of the same image can sit at different tiers with
   different disposability.
 
@@ -105,7 +105,7 @@ necessarily ephemeral; ephemeral resources are always disposable.
 
 - `kind: vm` entries in `vms.yml` — the VM template. Applies to
   every instance unless overridden.
-- `deploys:` entries in `deploy.yml` — the container per-deploy
+- `deploy:` entries in `deploy.yml` — the container per-deploy
   counterpart. Each instance of a container image has its own
   entry, so per-instance classifications are natural.
 - Per-instance VM overrides (deferred to a follow-up): will live at

@@ -15,7 +15,7 @@ description: |
 | Dependencies | none |
 | Ports | none |
 | Service | none (on-demand GUI) |
-| Install files | `tasks:` only |
+| Install files | `task:` only |
 
 ## Packages
 

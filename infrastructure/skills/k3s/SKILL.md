@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `tasks:` |
+| Install files | `layer.yml`, `task:` |
 | Pinned version | `v1.31.11+k3s1` (edit `K3S_VERSION` in `layer.yml` vars to cut over) |
 
 ## What this layer does

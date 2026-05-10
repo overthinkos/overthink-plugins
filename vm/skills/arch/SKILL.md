@@ -242,11 +242,11 @@ Bisect (live-measured):
 | graphics devices only | 2 GiB | ~15 s |
 | graphics + `packages: [spice-vdagent]` + `systemctl enable --now spice-vdagentd` | **2 GiB** | **never up in 180 s** |
 
-Root cause: `pacman -S spice-vdagent` pulls in GTK3 + X11 (~200 MB download, ~1 GB installed). Cloud-init's `packages:` module blocks on that + `pacman-key --populate archlinux` (CPU-heavy keyring build) simultaneously. At 2 GiB RAM + 2 cpus, the guest is starved — memory pressure triggers OOM-adjacent behavior, pacman's fsync cycles compete with sshd for IO, sshd either never finishes listening or accepts TCP but resets during kex.
+Root cause: `pacman -S spice-vdagent` pulls in GTK3 + X11 (~200 MB download, ~1 GB installed). Cloud-init's `package:` module blocks on that + `pacman-key --populate archlinux` (CPU-heavy keyring build) simultaneously. At 2 GiB RAM + 2 cpus, the guest is starved — memory pressure triggers OOM-adjacent behavior, pacman's fsync cycles compete with sshd for IO, sshd either never finishes listening or accepts TCP but resets during kex.
 
 **Fix: host has 61 GiB RAM / 16 cores / 184 GB free. Give the VM 8 GiB / 4 cpus / 40 GiB.** Comfortably holds pacman's keyring + spice-vdagent GTK3/X11 install + kernel caches without eviction pressure. With this sizing, SSH comes up in ≤ 20 s and spice-vdagent is active within 45 s — same as the minimal-config baseline.
 
-**Do NOT prune spice-vdagent from `packages:`** — it provides clipboard sync + resolution negotiation in the SPICE console, standard VDI features. Resource sizing is the correct fix.
+**Do NOT prune spice-vdagent from `package:`** — it provides clipboard sync + resolution negotiation in the SPICE console, standard VDI features. Resource sizing is the correct fix.
 
 **General heuristic**: check `free -h` / `nproc` / `df -h` before sizing a VM. Allocating <10% of host RAM and <25% of host cores is "frugal". Starving a VM to save host capacity the host isn't using is a bug, not thrift.
 

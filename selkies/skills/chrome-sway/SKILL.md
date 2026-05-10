@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `sway` |
 | Layers (includes) | `chrome` |
-| Install files | `tasks:`, `chrome-sway.conf` |
+| Install files | `task:`, `chrome-sway.conf` |
 
 ## Usage
 

@@ -14,7 +14,7 @@ NVIDIA runtime layer providing `nvidia-container-toolkit` for CDI device injecti
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `tasks:` |
+| Install files | `layer.yml`, `task:` |
 | Depends | none |
 
 ## Packages

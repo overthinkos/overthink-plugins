@@ -33,7 +33,7 @@ Invoked as `ov image validate`. See `/ov-image:image` for the family overview.
 
 ### Layer Rules
 
-- Layer directory must contain at least one install source — `layer.yml` with a non-empty `tasks:` list or a `rpm:` / `deb:` / `pac:` / `aur:` packages section; an auto-detected builder manifest (`pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, `Cargo.toml`); or a `layers:` composition field (pure composition layers are valid).
+- Layer directory must contain at least one install source — `layer.yml` with a non-empty `task:` list or a `rpm:` / `deb:` / `pac:` / `aur:` packages section; an auto-detected builder manifest (`pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, `Cargo.toml`); or a `layer:` composition field (pure composition layers are valid).
 - `depends` must reference existing layers (local or remote).
 - Circular dependencies are errors.
 - `volumes` names must match `^[a-z0-9]+(-[a-z0-9]+)*$`.
@@ -43,7 +43,7 @@ Invoked as `ov image validate`. See `/ov-image:image` for the family overview.
 - Setting `PATH` directly in `env` is an error (use `path_append`).
 - Only one pixi manifest per layer (`pixi.toml`, `pyproject.toml`, or `environment.yml`).
 
-### `tasks:` Rules
+### `task:` Rules
 
 See `/ov-image:layer` for the full verb catalog. The validator enforces:
 
@@ -107,7 +107,7 @@ See `/ov-image:layer` for the full verb catalog. The validator enforces:
 ### Port Relay Rules
 
 - Each relay port must be 1-65535
-- Each relay port must also be declared in the layer's `ports:`
+- Each relay port must also be declared in the layer's `port:`
 - No duplicate relay ports across layers in the same image
 
 ### Tunnel Multi-Port Rules

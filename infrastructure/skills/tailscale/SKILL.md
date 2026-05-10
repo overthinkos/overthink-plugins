@@ -15,7 +15,7 @@ description: |
 | Dependencies | none |
 | Ports | none (WireGuard uses UDP; no host port mapping) |
 | Service | `tailscaled.service` (systemd, enabled at build time) |
-| Install files | `tasks:` |
+| Install files | `task:` |
 
 ## Packages
 

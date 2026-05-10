@@ -15,7 +15,7 @@ description: |
 | Ports | 9090 |
 | Route | `testapi.localhost:9090` |
 | Service | `testapi` (supervisord) |
-| Install files | `tasks:`, `pixi.toml`, `app.py` |
+| Install files | `task:`, `pixi.toml`, `app.py` |
 
 ## Usage
 

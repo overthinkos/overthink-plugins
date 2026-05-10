@@ -217,7 +217,7 @@ problems early rather than mid-scenario.
 
 This is the **only** image-fetch surface in the system: deploys (any
 target — `local`, `pod`, `vm`, `k8s`) emit zero image-pull steps.
-The retired `kind: local` `images:` field was deleted in the 2026-05
+The retired `kind: local` `image:` field was deleted in the 2026-05
 deploy-fetch-narrowing cutover; image preflight moved to this verb.
 Operators with legacy YAML run `ov migrate local-images`. See
 `/ov-local:local-spec` "What the deploy does NOT do" and CLAUDE.md
@@ -313,7 +313,7 @@ bites the host→container delegation paths.
 ## Authoring: the `eval:` list
 
 Every check is a **list entry with exactly one verb discriminator** plus
-shared modifiers and verb-specific attributes. This mirrors the `tasks:`
+shared modifiers and verb-specific attributes. This mirrors the `task:`
 pattern in `layer.yml`.
 
 ### Gold-standard pattern (redis layer)
@@ -1046,7 +1046,7 @@ Reference numbers from the last end-to-end session:
 **Total: 376 checks across 7 images (0 failing).**
 
 The "skipped" entries are intentional — they reference ports that
-aren't mapped in the containing image's `ports:` block. Skipping them
+aren't mapped in the containing image's `port:` block. Skipping them
 is correct behavior; they'd pass in an image that does expose those
 ports.
 

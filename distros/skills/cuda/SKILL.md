@@ -14,7 +14,7 @@ CUDA compiler, cuDNN, ONNX Runtime, and GPU development libraries. Depends on th
 
 | Property | Value |
 |----------|-------|
-| Install files | `tasks:`, `layer.yml` |
+| Install files | `task:`, `layer.yml` |
 | Depends | `nvidia`, `ffmpeg` |
 
 ## Environment Variables

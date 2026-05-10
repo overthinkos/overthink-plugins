@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `sshd` |
-| Install files | `tasks:`, `layer.yml` |
+| Install files | `task:`, `layer.yml` |
 
 ## Packages
 

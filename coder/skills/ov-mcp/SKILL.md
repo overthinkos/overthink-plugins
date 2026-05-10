@@ -46,18 +46,18 @@ transport dispatch.
 
 ## Composition vs. dependency
 
-This layer uses `layers:`, not `requires:` — deliberately. The
+This layer uses `layer:`, not `require:` — deliberately. The
 distinction:
 
-- `requires:` says "my install needs these layers installed first."
-- `layers:` says "I *am* these layers plus my additions."
+- `require:` says "my install needs these layers installed first."
+- `layer:` says "I *am* these layers plus my additions."
 
 `ov-mcp` installs no packages and copies no files — it's pure wiring
 (service block, mcp_provides declaration, volumes/env, one mkdir
 task to create `/workspace` with 0777 so `ov version` works even
-when no bind-mount is attached). A meta-layer composition (`layers:`)
+when no bind-mount is attached). A meta-layer composition (`layer:`)
 captures that exactly. The validator requires every layer to ship
-*something* installable; `layers:` satisfies that by transitively
+*something* installable; `layer:` satisfies that by transitively
 pulling in the children's install files.
 
 ## Three deployment patterns
@@ -175,7 +175,7 @@ in `image.yml`). Both `network: host` and the default ov bridge work.
 
 - `/ov-build:mcp` — **Part 2: Server** is the authoritative reference for `ov mcp serve` architecture, destructive-hint policy, `--read-only` filter, capture model, and the new bootstrapProject() logic.
 - `/ov-image:image` — "Project directory resolution" covers the `-C` / `--dir` / `OV_PROJECT_DIR` global flag and `--repo` / `OV_PROJECT_REPO`.
-- `/ov-core:config` — `--bind project=<path>` is the deployer's handshake with this layer's `volumes:` declaration.
+- `/ov-core:config` — `--bind project=<path>` is the deployer's handshake with this layer's `volume:` declaration.
 - `/ov-eval:eval` — Deploy-scope `mcp:` test verb methods used here.
 - `/ov-internals:go` — `ov/mcp_server.go` `bootstrapProject()` implementation, including the env-var proxy detection of top-level flags and the unconditional image.yml check (new in 2026-04).
 
@@ -187,7 +187,7 @@ in `image.yml`). Both `network: host` and the default ov bridge work.
 - Debugging why a build-mode MCP tool returns stale data or an unexpected
   image list (is the agent reading the bind-mount or the auto-fallback?).
 - Authoring an ov-like CLI's MCP deployment and wanting the reference
-  pattern (`layers:` composition + volumes + env + service + auto-fallback).
+  pattern (`layer:` composition + volumes + env + service + auto-fallback).
 - Investigating port-18765 collisions or MCP URL rewriting on composed
   images (especially host-networked ones).
 

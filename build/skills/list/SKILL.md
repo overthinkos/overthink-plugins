@@ -23,8 +23,8 @@ Enumerate images, layers, build targets, and layer properties from `image.yml` a
 | List targets | `ov image list targets` | Build targets in dependency order |
 | List services | `ov image list services` | Layers that declare a `service:` field |
 | List routes | `ov image list routes` | Layers that declare a `route:` field |
-| List volumes | `ov image list volumes` | Layers that declare `volumes:` |
-| List aliases | `ov image list aliases` | Layers that declare `aliases:` |
+| List volumes | `ov image list volumes` | Layers that declare `volume:` |
+| List aliases | `ov image list aliases` | Layers that declare `alias:` |
 
 ## Usage
 

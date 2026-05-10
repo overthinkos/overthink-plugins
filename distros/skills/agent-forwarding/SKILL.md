@@ -9,7 +9,7 @@ description: |
 
 **Pure composition layer (post-2026-05 cutover).** This layer carries no
 shell config of its own; per-tool shell init lives in each tool's home
-layer and is inherited transitively via `requires:`. Specifically:
+layer and is inherited transitively via `require:`. Specifically:
 
 - **direnv hook** (bash/zsh/fish) → `direnv` layer's `shell:` block.
 - **`SSH_AUTH_SOCK` redirect to KeePassXC's published agent socket** →

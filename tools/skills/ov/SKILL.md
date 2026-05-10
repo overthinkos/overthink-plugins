@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `tasks:`, `bin/ov` |
+| Install files | `task:`, `bin/ov` |
 
 ## What It Provides
 

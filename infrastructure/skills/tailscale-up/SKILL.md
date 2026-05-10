@@ -48,7 +48,7 @@ the daemon is actually up. Bootc consumers don't include it.
 | Dependencies | `tailscale` |
 | Packages | none (config-only layer) |
 | Service | none (sets state on existing `tailscaled.service`) |
-| Install files | `tasks:` (one cmd task) |
+| Install files | `task:` (one cmd task) |
 
 ## Task body
 
@@ -276,7 +276,7 @@ host-level serve).
 ## Related Skills
 
 - `/ov-infrastructure:tailscale` — the install-side companion (daemon
-  install + systemctl enable). `tailscale-up` `requires:` it.
+  install + systemctl enable). `tailscale-up` `require:` it.
 - `/ov-core:deploy` — `deploy.yml` `tunnel: tailscale` mechanism that
   consumes the `--operator` permission.
 - `/ov-local:local-deploy` — the `target: local` execution model

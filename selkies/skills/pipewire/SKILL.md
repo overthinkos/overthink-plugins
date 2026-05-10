@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `supervisord` |
 | Service | `pipewire` (supervisord, priority 5) |
-| Install files | `tasks:`, `pipewire-wrapper` |
+| Install files | `task:`, `pipewire-wrapper` |
 
 ## Environment Variables
 

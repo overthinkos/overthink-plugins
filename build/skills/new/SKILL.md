@@ -81,7 +81,7 @@ ov -C ~/my-project image new layer sshd
 #   ~/my-project/layers/sshd/layer.yml  (stub with empty `rpm.packages:` null)
 ```
 
-Follow up with `ov layer add-rpm sshd openssh-server openssh-clients` (see `/ov-image:layer`) to populate packages without manually editing YAML. The `ov layer add-rpm` helper handles the scaffold's null `packages:` → sequence upgrade automatically.
+Follow up with `ov layer add-rpm sshd openssh-server openssh-clients` (see `/ov-image:layer`) to populate packages without manually editing YAML. The `ov layer add-rpm` helper handles the scaffold's null `package:` → sequence upgrade automatically.
 
 ## Workflow
 
@@ -97,7 +97,7 @@ The end-to-end scaffold → build flow:
 
 All six steps are also callable as MCP tools (`image.new.project`, `image.new.layer`, `layer.add-rpm`, …), so an agent driving `ov mcp serve` can run this entire flow over RPC. See `/ov-build:mcp` "Authoring tools" for the worked MCP-only example.
 
-The scaffolded `layer.yml` from step 3 is minimal (a null `rpm.packages:` list with a placeholder comment). Add sections as needed: `rpm:` / `deb:` / `pac:` / `aur:` for system packages, `env:` for runtime environment, `ports:` / `service:` / `volumes:` for services, and `tasks:` for install operations (mkdir, copy, write, download, link, setcap, cmd, build). The scaffolder does not create separate Taskfile shell scripts — all install logic flows through `tasks:` in `layer.yml`.
+The scaffolded `layer.yml` from step 3 is minimal (a null `rpm.packages:` list with a placeholder comment). Add sections as needed: `rpm:` / `deb:` / `pac:` / `aur:` for system packages, `env:` for runtime environment, `port:` / `service:` / `volume:` for services, and `task:` for install operations (mkdir, copy, write, download, link, setcap, cmd, build). The scaffolder does not create separate Taskfile shell scripts — all install logic flows through `task:` in `layer.yml`.
 
 ## Naming Rules
 

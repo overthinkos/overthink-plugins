@@ -33,7 +33,7 @@ Build order: pixi environment → llama-cpp (binaries) → vLLM 0.19 wheel
 1. `fedora` → `nvidia` (CUDA base)
 2. `pixi` → `python` (transitive)
 3. `python-ml` — ML pixi environment (Tier 2, owns pixi.toml)
-4. `llama-cpp` — llama.cpp binaries (Tier 1, via `layers:` field)
+4. `llama-cpp` — llama.cpp binaries (Tier 1, via `layer:` field)
 
 ## Quick Start
 

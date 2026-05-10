@@ -34,8 +34,8 @@ Build order: pixi environment → llama-cpp (binaries) → unsloth (vLLM 0.19 wh
 1. `fedora` → `nvidia` (CUDA base)
 2. `pixi` → `python` → `supervisord` (transitive)
 3. `unsloth-studio` — Tier 2 meta-layer (owns pixi.toml, service config)
-4. `llama-cpp` — llama.cpp binaries (Tier 1, via `layers:`)
-5. `unsloth` — vLLM 0.19 + unsloth pip install + torch.compile patch (Tier 1, via `layers:`)
+4. `llama-cpp` — llama.cpp binaries (Tier 1, via `layer:`)
+5. `unsloth` — vLLM 0.19 + unsloth pip install + torch.compile patch (Tier 1, via `layer:`)
 
 ## Ports
 

@@ -1,7 +1,7 @@
 ---
 name: deploy
 description: |
-  MUST be invoked before any work involving: `ov deploy add`/`ov deploy del` commands, quadlet generation, volume backing, tunnels (Tailscale/Cloudflare), `add_layers:` overlay, or per-machine deploy overlays.
+  MUST be invoked before any work involving: `ov deploy add`/`ov deploy del` commands, quadlet generation, volume backing, tunnels (Tailscale/Cloudflare), `add_layer:` overlay, or per-machine deploy overlays.
 ---
 
 # Deploy - Deployment Configuration
@@ -38,7 +38,7 @@ The same `DeployImageConfig` shape feeds all four targets (`container`, `host`, 
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Apply container deploy | `ov deploy add <name> <ref>` | Compile layers + build overlay if `add_layers:` present + run via quadlet |
+| Apply container deploy | `ov deploy add <name> <ref>` | Compile layers + build overlay if `add_layer:` present + run via quadlet |
 | Apply host deploy | `ov deploy add host <ref>` | Apply layers directly to local filesystem (see `/ov-local:local-deploy`) |
 | Tear down deploy | `ov deploy del <name>` | Stop container + reverse ReverseOps (host) + ledger cleanup |
 | Dry-run | `ov deploy add <name> <ref> --dry-run [--format=json]` | Print the InstallPlan without executing |
@@ -77,7 +77,7 @@ Applies a deployment. `<name>` selects the target:
 | Local YAML path | `./custom.yml`, `/abs/path/layer.yml` | File's top-level keys classify image vs layer |
 | Remote repo | `github.com/owner/repo[/images/<n>\|/layers/<n>][@ref]` | Fetched via existing `--repo` cache |
 
-Disambiguation: a ref containing `/layers/` resolves to a layer; `/images/` to an image. For local names, `image.yml` is checked before `layers/`; same-named entries in both are a hard error. The legacy `@host/org/repo:version` form (used by `depends:` and `layers:` in layer.yml) is also accepted.
+Disambiguation: a ref containing `/layers/` resolves to a layer; `/images/` to an image. For local names, `image.yml` is checked before `layers/`; same-named entries in both are a hard error. The legacy `@host/org/repo:version` form (used by `depends:` and `layer:` in layer.yml) is also accepted.
 
 When `<ref>` is omitted, the ref falls back to `deploy.yml['deploys'][<name>]['image']` (or the deploy key itself if no explicit image is declared).
 
@@ -156,9 +156,9 @@ Two ways to mark a deploy entry as VM-targeted:
 
 Using both is redundant but harmless. Using `target: vm` on a non-`vm:`-prefixed deploy whose underlying VM doesn't exist errors at `ov deploy add` time.
 
-### `add_layers:` overlay semantics for VM targets
+### `add_layer:` overlay semantics for VM targets
 
-When `ov deploy add vm:<name> <ref>` runs with `--add-layer`, the extra layers are applied **inside the guest** alongside the primary ref. The compiler merges `<ref>` + `add_layers:` into a single topo-sorted `InstallPlan`; `VmDeployTarget.Emit` walks it over SSH. The guest-side ledger records both the base and overlay layers so `ov deploy del vm:<name>` reverses the full set.
+When `ov deploy add vm:<name> <ref>` runs with `--add-layer`, the extra layers are applied **inside the guest** alongside the primary ref. The compiler merges `<ref>` + `add_layer:` into a single topo-sorted `InstallPlan`; `VmDeployTarget.Emit` walks it over SSH. The guest-side ledger records both the base and overlay layers so `ov deploy del vm:<name>` reverses the full set.
 
 This is the same merge semantics as `HostDeployTarget` — just with SSH-wrapped execution. See `/ov-internals:install-plan` for the compiler and `/ov-internals:vm-deploy-target` for the execution model.
 
@@ -190,12 +190,12 @@ vms.yml declares kind:vm entity
 
 See `/ov-vm:vms-catalog` for vms.yml authoring, `/ov-vm:vm` for the lifecycle commands, `/ov-internals:vm-deploy-target` for the Emit flow.
 
-### `add_layers:` overlay mechanism
+### `add_layer:` overlay mechanism
 
 Both container and host targets accept extra layers at deploy time via `--add-layer <ref>` (repeatable) or a `deploy.yml['deploys'][<name>]['add_layers']` list. Semantics:
 
 - **Container target**: synthesizes an overlay Containerfile (`FROM <base-image>` + the extra layers' build steps) and builds a deterministic overlay image tagged `<deploy-name>-overlay:<short-hash>`. The deploy runs the overlay, not the base image. Re-running with different overlays rebuilds. `ov deploy del <name>` removes the overlay unless `--keep-image`.
-- **Host target**: the compiler merges the image's layers with `add_layers:`, topo-sorts the union, and compiles one `InstallPlan` covering the combined set. The ledger records which layers (base + overlay) were applied so teardown reverses everything.
+- **Host target**: the compiler merges the image's layers with `add_layer:`, topo-sorts the union, and compiles one `InstallPlan` covering the combined set. The ledger records which layers (base + overlay) were applied so teardown reverses everything.
 
 Ref forms for `--add-layer` are identical to the primary `<ref>` positional (local name / local path / remote / legacy `@` form).
 
@@ -403,10 +403,10 @@ Source: `ov/tunnel.go` (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`, `validTa
 
 ### Legacy-schema rejection (2026-04 cutover)
 
-Schema v4 renamed the top-level `images:` map to `deploy:` and replaced the per-entry `bind_mounts:` field with a structured `volumes:` list. **`yaml.Unmarshal` silently drops unknown root keys**, so a pre-cutover file with `images:` would parse to an empty `DeployConfig.Deploy` map and downstream commands would behave as if nothing was deployed — including the dangerous case where `bind_mounts: [{encrypted: true}]` entries become invisible to `loadEncryptedVolumes` and the encryption guarantee silently disappears. `LoadDeployConfig` (`ov/deploy.go:hasLegacyImagesKey`) detects the legacy root shape and fails loud with:
+Schema v4 renamed the top-level `image:` map to `deploy:` and replaced the per-entry `bind_mounts:` field with a structured `volume:` list. **`yaml.Unmarshal` silently drops unknown root keys**, so a pre-cutover file with `image:` would parse to an empty `DeployConfig.Deploy` map and downstream commands would behave as if nothing was deployed — including the dangerous case where `bind_mounts: [{encrypted: true}]` entries become invisible to `loadEncryptedVolumes` and the encryption guarantee silently disappears. `LoadDeployConfig` (`ov/deploy.go:hasLegacyImagesKey`) detects the legacy root shape and fails loud with:
 
 ```
-deploy.yml at <path>: legacy top-level `images:` field detected — run `ov migrate local-deploy` to convert; the field was renamed to `deploy:` in the 2026-04 unified-config cutover (encryption guarantees disappear silently otherwise)
+deploy.yml at <path>: legacy top-level `image:` field detected — run `ov migrate local-deploy` to convert; the field was renamed to `deploy:` in the 2026-04 unified-config cutover (encryption guarantees disappear silently otherwise)
 ```
 
 `ov status` surfaces this as a non-fatal warning (graceful degradation falls back to image-label-driven display); the strictly-deploy.yml-driven verbs (`ov deploy show`, `ov config status`, `ov start`) hard-fail. Run `ov migrate local-deploy` to convert in place — it backs the original up to `<file>.bak.<unix-ts>` and rewrites to schema v4. See `/ov-build:migrate` "ov migrate local-deploy".
@@ -452,7 +452,7 @@ The `ov deploy add`/`del` refactor introduced three fields on every deploy.yml i
 
 **`target:`** — `""` or `"container"` (default, existing pipeline) or `"host"` (local filesystem apply). The deploy name `host` typically also sets this explicitly for clarity. When `target: host` is set on a non-`host` deploy name, `ov deploy add` errors cleanly — container deploy names can't secretly target the host.
 
-**`add_layers:`** — list of extra layer refs applied on top of the image's base layers. Each entry accepts the same 4 ref forms as the command-line `--add-layer` flag (local name / local YAML path / remote `github.com/.../layers/<n>[@ref]`). See "add_layers: overlay mechanism" above for container vs host semantics.
+**`add_layer:`** — list of extra layer refs applied on top of the image's base layers. Each entry accepts the same 4 ref forms as the command-line `--add-layer` flag (local name / local YAML path / remote `github.com/.../layers/<n>[@ref]`). See "add_layers: overlay mechanism" above for container vs host semantics.
 
 **`install_opts:`** — host-target defaults that mirror the CLI flags on `ov deploy add`. CLI flags win on conflict; deploy.yml provides defaults so you don't have to repeat `--with-services --allow-repo-changes` on every invocation.
 
@@ -621,7 +621,7 @@ images:
 
 ## Volume Backing
 
-Layers declare what persistent storage they need via `volumes:` in `layer.yml`. By default, all volumes are Docker/Podman named volumes. At `ov config` time, any volume's backing can be changed to a host bind mount or encrypted gocryptfs mount.
+Layers declare what persistent storage they need via `volume:` in `layer.yml`. By default, all volumes are Docker/Podman named volumes. At `ov config` time, any volume's backing can be changed to a host bind mount or encrypted gocryptfs mount.
 
 ### Per-Volume Configuration via `ov config`
 
@@ -752,7 +752,7 @@ provides:
 - `provides.env:` — resolved env_provides entries with `{name, value, source}`
 - `provides.mcp:` — resolved mcp_provides entries with `{name, url, transport, source}`
 - `source` field tracks which image contributed each entry (used for cleanup on `ov remove`)
-- Entries resolved at `ov config` time from layer `env_provides:` and `mcp_provides:` declarations
+- Entries resolved at `ov config` time from layer `env_provides:` and `mcp_provide:` declarations
 - `GlobalEnvForImage()` in `provides.go` resolves both env and MCP provides for each consumer image
 - Env provides: self-excluded (prevents own env_provides from overriding service bind addresses)
 - MCP provides: pod-aware (same-container entries resolve to `localhost`, no self-exclusion)
@@ -814,7 +814,7 @@ images:
 - `/ov-eval:vnc` — VNC password setup for desktop containers
 - `/ov-vm:vm` — Virtual machine deployment (ov vm)
 - `/ov-build:build` — Building images before deployment (+ the `--no-cache` intermediate scratch-stage caveat)
-- `/ov-build:mcp` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`ov eval mcp ping <image>`); note the **port-publishing gotcha** when a `ports:` override in deploy.yml predates a newly-added mcp-providing layer
+- `/ov-build:mcp` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`ov eval mcp ping <image>`); note the **port-publishing gotcha** when a `port:` override in deploy.yml predates a newly-added mcp-providing layer
 - `/ov-image:image` — Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
 - `/ov-image:layer` — Unified `service:` schema (use_packaged + structured custom), `env_provides`/`env_requires`/`env_accepts` field declarations, security resource caps
 - `/ov-eval:eval` — Local `eval:` in deploy.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.

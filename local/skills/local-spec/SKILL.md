@@ -52,7 +52,7 @@ local:
 
   ov-cachyos:
     # Empty placeholder — `layers: []` is a load-time WARNING (allowed
-    # for staged template name reservation); a missing `layers:` field
+    # for staged template name reservation); a missing `layer:` field
     # is a hard error.
     layers: []
     install_opts: {}
@@ -76,7 +76,7 @@ There is **no** `status:` or `info:` field — those were removed in the local-c
 
 A `kind: local` deploy emits **zero** container-image fetch / build
 steps. The deploy applies host packages + configs only. There is no
-`images:` field; declaring one in legacy YAML hard-errors at
+`image:` field; declaring one in legacy YAML hard-errors at
 `ov image validate` time with a pointer to `ov migrate local-images`.
 
 Test-bed image preflight is the **eval entry point's** job, not the
@@ -93,7 +93,7 @@ This invariant — "deploy fetches NOTHING speculative" — is codified
 as a CLAUDE.md Key Rule and enforced at the type level: the
 `LocalSpec` Go struct has no `Images` field, so the surface is
 unreachable from any new code. Migration: `ov migrate local-images`
-(idempotent; rewrites legacy `images:` blocks under `local.<name>`
+(idempotent; rewrites legacy `image:` blocks under `local.<name>`
 to a dated comment fence).
 
 ## Merge semantics — `kind: local` template + `kind: deploy`
@@ -125,7 +125,7 @@ local:
     description: {feature: CachyOS DX (placeholder), tag: [testing]}
 ```
 
-`ov image validate` emits a WARNING but does not error. A missing `layers:` field entirely IS an error — the field's presence is the signal that the author intended a template.
+`ov image validate` emits a WARNING but does not error. A missing `layer:` field entirely IS an error — the field's presence is the signal that the author intended a template.
 
 ## Cross-References
 

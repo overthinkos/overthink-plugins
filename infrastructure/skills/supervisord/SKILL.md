@@ -98,7 +98,7 @@ Layers declare services under a single `service:` key (singular; value is a list
 | `start_retries:` | Max restart attempts before FATAL. Chrome uses `3` as circuit breaker. |
 | `start_secs:` | Seconds the process must stay up to count as "started." |
 | `stop_signal:` | TERM (default), INT, HUP, … |
-| `exit_codes:` | Success codes for `restart: no` / `on-failure`. |
+| `exit_code:` | Success codes for `restart: no` / `on-failure`. |
 | `priority:` | Startup order; lower = earlier. |
 
 See `/ov-selkies:chrome` for the canonical consumer (3-strike circuit breaker + eventlistener).
@@ -237,7 +237,7 @@ my-image:
     - my-service  # layers with service: entries need supervisord
 ```
 
-Adding a `service:` block to a layer automatically pulls in `supervisord` via `build.yml `init:` section`'s `depends_layer`. You rarely add `supervisord` to an image's `layers:` list manually.
+Adding a `service:` block to a layer automatically pulls in `supervisord` via `build.yml `init:` section`'s `depends_layer`. You rarely add `supervisord` to an image's `layer:` list manually.
 
 ## Used In Images
 

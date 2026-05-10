@@ -14,9 +14,9 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 
 ### Unified YAML loader (`LoadUnified`)
 
-The unified format's entry point is `LoadUnified(dir)` at `ov/unified.go`. It reads `<dir>/overthink.yml`, recursively resolves `includes:` (max depth 8, cycle-safe via visited set), parses every file as a **YAML multi-document stream** (so bundle files with `---` separators work), and routes each document by shape:
+The unified format's entry point is `LoadUnified(dir)` at `ov/unified.go`. It reads `<dir>/overthink.yml`, recursively resolves `include:` (max depth 8, cycle-safe via visited set), parses every file as a **YAML multi-document stream** (so bundle files with `---` separators work), and routes each document by shape:
 
-- **Root-shape doc** — has any of `version:`, `includes:`, `discover:`, `defaults:`, `distros:`, `builders:`, `inits:`, `images:`, `layers:`, `deployments:` → parsed as `UnifiedFile`, merged root-wins.
+- **Root-shape doc** — has any of `version:`, `include:`, `discover:`, `defaults:`, `distro:`, `builder:`, `init:`, `image:`, `layer:`, `deploy:` → parsed as `UnifiedFile`, merged root-wins.
 - **Kind-keyed doc** — has exactly one of `layer:`, `image:`, `deployment:`, `builder:`, `distro:`, `init:` + a `name:` inside → registered under `name:` in the matching map.
 - **Ambiguous** (both root and kind keys) → loader error with file + doc-index.
 
@@ -40,7 +40,7 @@ Dispatched via `deploy_add_cmd_vm.go::runVM` when the deploy name starts with `v
 
 ### YAML surface ↔ Go identifier convention
 
-The codebase keeps wire format (YAML keys) and internal names (Go fields/types) in strict symmetry — plural YAML keys get plural Go identifiers, singular get singular. When the `builders:` top-level key was renamed to `builder:` in `build.yml` and `image.yml`, the rename propagated to `BuildersMap → BuilderMap`, `ImageConfig.Builders → Builder`, `BuilderConfig.Builders → Builder`, `DistroConfig.Distros → Distro`, and `InitConfig.Inits → Init`. The rule: if you change a YAML tag, also rename the Go identifier. Tests enforce this indirectly — struct literals won't compile if they disagree. (Note: the OCI **label key** was separately regrouped under `platform.*` / `builder.*` sub-namespaces in 2026-04 — see `LabelPlatformDistro`, `LabelPlatformFormats`, `LabelBuilderUses`, `LabelBuilderProvides` in `labels.go`. Label wire-names are decoupled from YAML/Go identifiers by design.)
+The codebase keeps wire format (YAML keys) and internal names (Go fields/types) in strict symmetry — plural YAML keys get plural Go identifiers, singular get singular. When the `builder:` top-level key was renamed to `builder:` in `build.yml` and `image.yml`, the rename propagated to `BuildersMap → BuilderMap`, `ImageConfig.Builders → Builder`, `BuilderConfig.Builders → Builder`, `DistroConfig.Distros → Distro`, and `InitConfig.Inits → Init`. The rule: if you change a YAML tag, also rename the Go identifier. Tests enforce this indirectly — struct literals won't compile if they disagree. (Note: the OCI **label key** was separately regrouped under `platform.*` / `builder.*` sub-namespaces in 2026-04 — see `LabelPlatformDistro`, `LabelPlatformFormats`, `LabelBuilderUses`, `LabelBuilderProvides` in `labels.go`. Label wire-names are decoupled from YAML/Go identifiers by design.)
 
 ### Kong `default:"withargs"` for parent+leaf commands
 
@@ -60,7 +60,7 @@ OCI labels are written exclusively from `image.yml` + `layer.yml` at `ov image b
 
 Deploy-mode commands (`ov config`, `ov start`, `ov stop`, `ov update`, `ov deploy add`, `ov deploy del`, `ov shell`, `ov cmd`, `ov service`, `ov vm create`, …) read labels via `ExtractMetadata` and then apply the deploy overlay explicitly via `MergeDeployOntoMetadata(meta, dc, instance)`. This split is load-bearing — never collapse it.
 
-**Host-deploy specifics**: `ov deploy add host` is deploy mode (reads both image.yml and deploy.yml), not build mode — despite looking like "install on host, not into an image". The compiler (`BuildDeployPlan` in `install_build.go`) is pure and shared with build mode, but the invocation path reads deploy.yml for `add_layers:` and `install_opts:` like every other deploy-mode command.
+**Host-deploy specifics**: `ov deploy add host` is deploy mode (reads both image.yml and deploy.yml), not build mode — despite looking like "install on host, not into an image". The compiler (`BuildDeployPlan` in `install_build.go`) is pure and shared with build mode, but the invocation path reads deploy.yml for `add_layer:` and `install_opts:` like every other deploy-mode command.
 
 ### InstallPlan IR — the shared intermediate representation (2026-04)
 
@@ -181,7 +181,7 @@ Submodule convention: `plugins/` is a submodule rooted at the
 | `version.go` | CalVer computation |
 | `scaffold.go` | `new layer` scaffolding (single-layer dir creation with stub `layer.yml`) |
 | `scaffold_project.go` | `new project` scaffolding + `image.yml` mutation helpers (`ScaffoldProject`, `AddImage`, `AddLayerToImage`, `RemoveLayerFromImage`). All YAML round-trips go through the `yaml.v3` Node API so comments + key order are preserved. Tested in `scaffold_project_test.go`. |
-| `scaffold_cmds.go` | All Kong command structs for the MCP-first authoring surface: `NewProjectCmd`, `NewImageCmd`, `ImageSetCmd`, `ImageAddLayerCmd`, `ImageRmLayerCmd`, `ImageFetchCmd`, `ImageRefreshCmd`, `ImageWriteCmd`, `ImageCatCmd`, `LayerCmd` (with `Set` + four `add-{rpm,deb,pac,aur}` aliases), `LayerAddPkgCmd`. Houses `resolveProjectFile()` — the path-traversal guard for `image write` / `image cat`. Houses `detectPkgSection(os.Args)` — the workaround for Kong not exposing "which alias triggered me" to a shared struct. Houses `appendLayerPackages()` with the scaffold's null-`packages:` → sequence upgrade. |
+| `scaffold_cmds.go` | All Kong command structs for the MCP-first authoring surface: `NewProjectCmd`, `NewImageCmd`, `ImageSetCmd`, `ImageAddLayerCmd`, `ImageRmLayerCmd`, `ImageFetchCmd`, `ImageRefreshCmd`, `ImageWriteCmd`, `ImageCatCmd`, `LayerCmd` (with `Set` + four `add-{rpm,deb,pac,aur}` aliases), `LayerAddPkgCmd`. Houses `resolveProjectFile()` — the path-traversal guard for `image write` / `image cat`. Houses `detectPkgSection(os.Args)` — the workaround for Kong not exposing "which alias triggered me" to a shared struct. Houses `appendLayerPackages()` with the scaffold's null-`package:` → sequence upgrade. |
 | `yaml_setter.go` | `SetByDotPath(path, dotpath, valueYAML)` — generic comment-preserving YAML setter used by `ov image set` and `ov layer set`. Walks `*yaml.Node` trees; creates intermediate mappings on demand; rejects descent into scalars. Tested in `yaml_setter_test.go` (comment preservation, list values, intermediate-mapping creation, scalar-descent error path). |
 
 ### Dependency & Graph
@@ -242,7 +242,7 @@ Submodule convention: `plugins/` is a submodule rooted at the
 | `ImageConfig.UserPolicy string` | `config.go:130` | YAML field `user_policy`. Values: `auto` (default) / `adopt` / `create`. Drives the reconciliation switch in `ResolveImage` |
 | `ResolvedImage.UserAdopted bool` | `config.go:194` | True when the policy reconciliation adopted a distro's `BaseUser` (User/UID/GID/Home overwritten). Consumed by `writeBootstrap` in `generate.go` to skip the useradd step |
 | `Check.ExcludeDistros []string` | `testspec.go` | Per-test filter — test runner in `testrun.go:runOne` skips the check when any of the image's distro tags intersects with this list. Reason reported as `excluded on distro "<tag>"` |
-| `TagPkgConfig.Raw map[string]any` | `layers.go` | Captures the full YAML map for a tag section (e.g. `debian:13:`), not just `packages:`. Enables `repos:`, `keys:`, `options:` inside tag sections. Read by the generator's install-template emission path |
+| `TagPkgConfig.Raw map[string]any` | `layers.go` | Captures the full YAML map for a tag section (e.g. `debian:13:`), not just `package:`. Enables `repos:`, `keys:`, `options:` inside tag sections. Read by the generator's install-template emission path |
 
 **Policy reconciliation flow** (`ov/config.go:ResolveImage`, after distroDef loaded):
 
@@ -399,9 +399,9 @@ Kong dispatches four distinct subcommand aliases (`add-rpm`, `add-deb`, `add-pac
 
 Unmarshal-to-value + re-marshal scrambles comments, key order, and node styles. Every `image.yml` / `layer.yml` editor in the authoring surface (`SetByDotPath` in `ov/yaml_setter.go`; `AddImage` / `AddLayerToImage` / `RemoveLayerFromImage` in `ov/scaffold_project.go`; `appendLayerPackages` in `ov/scaffold_cmds.go`) navigates `*yaml.Node` trees directly and only serializes with `yaml.Marshal(root)` at the very end. Tests (`ov/yaml_setter_test.go`, `ov/scaffold_project_test.go`) explicitly verify that leading file comments, sibling keys, and per-key inline comments all survive round trips.
 
-### Scalar-to-sequence upgrade (scaffold `packages:` null)
+### Scalar-to-sequence upgrade (scaffold `package:` null)
 
-The layer scaffold writes `rpm:\n  packages:\n  # Add RPM packages here\n` — the value of `packages:` parses as scalar-null, not a sequence. Naively calling `layersNode.Content = append(...)` silently no-ops. `appendLayerPackages` (`ov/scaffold_cmds.go`) checks `pkgsNode.Kind != yaml.SequenceNode` and upgrades in place (`Kind = yaml.SequenceNode; Tag = "!!seq"; Value = ""; Content = nil`). This preserves the key+comment association on serialization. Any other "upgrade a null scalar to a collection" path needs the same pattern.
+The layer scaffold writes `rpm:\n  packages:\n  # Add RPM packages here\n` — the value of `package:` parses as scalar-null, not a sequence. Naively calling `layersNode.Content = append(...)` silently no-ops. `appendLayerPackages` (`ov/scaffold_cmds.go`) checks `pkgsNode.Kind != yaml.SequenceNode` and upgrades in place (`Kind = yaml.SequenceNode; Tag = "!!seq"; Value = ""; Content = nil`). This preserves the key+comment association on serialization. Any other "upgrade a null scalar to a collection" path needs the same pattern.
 
 ### Path-traversal guard on the `image write` / `image cat` escape hatch
 

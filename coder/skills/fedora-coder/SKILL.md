@@ -72,7 +72,7 @@ fedora-coder:
 ```
 
 Network: default `ov` bridge. `network: host` was dropped 2026-04 once the
-sibling `/ov-coder:arch-coder` landed — the `ports:` mapping is the
+sibling `/ov-coder:arch-coder` landed — the `port:` mapping is the
 right way to expose sshd/ov-mcp, and bridge networking lets dev boxes
 coexist on one host via normal `-p host:container` remapping (e.g.
 running `arch-coder` alongside `fedora-coder` on the same machine).

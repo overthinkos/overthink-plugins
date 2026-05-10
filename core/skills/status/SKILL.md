@@ -126,7 +126,7 @@ not an array.
 
 1. Runtime `podman ps` mappings (`ContainerSnapshot.Ports`) — wins for
    running containers.
-2. `deploy.yml` `ports:` (parsed via canonical `ParsePortMapping` —
+2. `deploy.yml` `port:` (parsed via canonical `ParsePortMapping` —
    handles the `127.0.0.1:H:C/proto` IPv4-prefixed form correctly) —
    used when runtime data is empty.
 3. Image-label fallback (`ResolveNewestLocalCalVer` + `ExtractMetadata`)

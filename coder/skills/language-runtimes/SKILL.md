@@ -91,7 +91,7 @@ See `/ov-image:layer` for general cross-distro task-authoring patterns.
 - `debian:13:` — just packages (same as generic `deb:`).
 - `ubuntu:24.04:` — just packages (same as generic `deb:`).
 
-Both exist so future Microsoft-apt-repo-based installs can be slotted into tag sections via `repos:` + `packages:` without disturbing the generic `deb:` fallback.
+Both exist so future Microsoft-apt-repo-based installs can be slotted into tag sections via `repos:` + `package:` without disturbing the generic `deb:` fallback.
 
 ## The vestigial `requires: python` removed in 2026-04
 

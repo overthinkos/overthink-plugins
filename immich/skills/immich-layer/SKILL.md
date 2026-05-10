@@ -16,7 +16,7 @@ description: |
 | Volumes | `library` -> `~/.immich/library`, `cache` -> `~/.immich/cache`, `import` -> `~/.immich/import`, `external` -> `~/.immich/external` |
 | Service | `immich-db-init` (oneshot, priority 15), `immich-server` (priority 30) |
 | Route | `immich.localhost:2283` |
-| Install files | `tasks:` |
+| Install files | `task:` |
 
 ## Environment Variables
 

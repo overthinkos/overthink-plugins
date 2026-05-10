@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `dbus` |
 | Service | `sway` (supervisord, priority 10) |
-| Install files | `tasks:`, `config`, `sway-wrapper` |
+| Install files | `task:`, `config`, `sway-wrapper` |
 
 ## Environment Variables
 

@@ -14,7 +14,7 @@ description: |
 |----------|-------|
 | Dependencies | `hermes` |
 | Security | `shm_size: 1g` |
-| Install files | `layer.yml`, `package.json`, `tasks:` |
+| Install files | `layer.yml`, `package.json`, `task:` |
 | RPM packages | `alsa-lib`, `at-spi2-core`, `cups-libs`, `gtk3`, `libdrm`, `libxkbcommon`, `nss`, `mesa-dri-drivers`, `vulkan-loader`, `libXcomposite`, `libXdamage`, `libXrandr`, `pango`, `cairo` |
 
 ## Environment Variables

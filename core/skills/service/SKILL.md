@@ -254,7 +254,7 @@ jupyter                            stopped  8888                  tailscale (all
   instance — matches the `deployKey` shape used in `deploy.yml` keys and
   `-i <inst>` flags.
 - **PORTS**: Sorted, deduped host port numbers. **Source priority**:
-  runtime `podman ps` mappings → `deploy.yml` `ports:` → image OCI label
+  runtime `podman ps` mappings → `deploy.yml` `port:` → image OCI label
   `org.overthinkos.ports`. The runtime path uses the structured
   `[]PortMapping` carried on `ContainerSnapshot`; deploy/label paths go
   through canonical `ParsePortMapping` so the IPv4-prefixed

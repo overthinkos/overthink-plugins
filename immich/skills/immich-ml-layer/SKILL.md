@@ -15,7 +15,7 @@ description: |
 | Ports | 3003 |
 | Volumes | `models` -> `~/.immich/models` |
 | Service | `immich-ml` (supervisord, priority 40) |
-| Install files | `tasks:` |
+| Install files | `task:` |
 
 ## Environment Variables
 

@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `dbus` |
-| Install files | `tasks:`, `ov-overlay` |
+| Install files | `task:`, `ov-overlay` |
 
 ## Packages
 
@@ -24,7 +24,7 @@ description: |
 
 ### Python Script: `ov-overlay`
 
-Installed to `~/.local/bin/ov-overlay` via `tasks:`. Dual-mode script (daemon + client) using GTK4 + gtk4-layer-shell for layer-shell protocol overlays.
+Installed to `~/.local/bin/ov-overlay` via `task:`. Dual-mode script (daemon + client) using GTK4 + gtk4-layer-shell for layer-shell protocol overlays.
 
 **Key implementation details:**
 - **Shebang**: `#!/usr/bin/python3` (system Python 3.14, NOT pixi's Python — PyGObject is an RPM package)

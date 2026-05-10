@@ -115,7 +115,7 @@ Canonical example: `/ov-vm:arch`. Only existing cloud_image VM in the repo — *
 
 1. Find the upstream qcow2 URL + verify a sha256 sidecar exists (<url>.SHA256 / .sha256 / .sha256sum).
 2. Identify the **pre-existing user account** in the upstream image (`arch`, `ubuntu`, `fedora`, `debian`, `cloud-user`, etc.). This becomes `source.base_user:` — triggers the adopt pattern described below.
-3. Start from `/ov-vm:arch` as a template. Change `url`, `base_user`, distro-specific cloud_init `packages:` and `runcmd:`.
+3. Start from `/ov-vm:arch` as a template. Change `url`, `base_user`, distro-specific cloud_init `package:` and `runcmd:`.
 4. Pick firmware: default to `bios` unless the upstream image explicitly requires UEFI (e.g., secure boot lock-in).
 5. Run `ov vm build <name>` — observe the fetched qcow2 sha256 + rendered seed ISO path.
 6. Run `ov vm create <name>` + `ov vm ssh <name>` to verify cloud-init completed.

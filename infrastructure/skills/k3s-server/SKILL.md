@@ -11,13 +11,13 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `tasks:`, `service:`, `artifacts:`, `secret_requires:` |
+| Install files | `layer.yml`, `task:`, `service:`, `artifact:`, `secret_require:` |
 | Depends on | `/ov-infrastructure:k3s` |
 | Service | `k3s.service` (system scope, enabled) |
 
 ## What this layer does
 
-1. Reads `K3S_CLUSTER_TOKEN` from the credential store (`secret_requires:`).
+1. Reads `K3S_CLUSTER_TOKEN` from the credential store (`secret_require:`).
 2. Writes `/etc/rancher/k3s/config.yaml` with:
    - `token:` — the pre-shared cluster token
    - `write-kubeconfig-mode: "0644"` — so the operator can scp the kubeconfig back
@@ -26,7 +26,7 @@ description: |
      local-path-provisioner all install as default k3s addons.
 3. Emits `/etc/systemd/system/k3s.service` running `k3s server`.
 4. After setup, the runtime publishes `/etc/rancher/k3s/k3s.yaml` back to
-   the operator via the new `artifacts:` layer-schema feature. The
+   the operator via the new `artifact:` layer-schema feature. The
    retrieved file lands at `~/.cache/ov/clusters/<deploy_name>/kubeconfig.yaml`
    with `127.0.0.1` rewritten to `${K3S_SERVER_HOSTNAME}` so the operator
    can `kubectl` the cluster from their machine.
@@ -40,7 +40,7 @@ description: |
 
 `K3S_CLUSTER_TOKEN` auto-generates on first deploy. The resolver
 (`ov/layer_secrets.go` — `ensureLayerSecret`) detects the missing
-`secret_requires:` entry, generates a 32-byte hex token via
+`secret_require:` entry, generates a 32-byte hex token via
 `generateAndStoreSecret`, and persists it to the active credential
 backend (keyring / kdbx / config-file fallback). Every subsequent
 `k3s-server` and `k3s-agent` deploy reads the same persisted value —

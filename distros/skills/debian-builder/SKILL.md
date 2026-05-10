@@ -81,7 +81,7 @@ Typically not invoked directly — it's a build-time dependency of `/ov-coder:de
 ## Related commands
 
 - `/ov-build:build` — multi-stage builders, `base_user:` declaration
-- `/ov-image:image` — `builds:` + `builder:` fields
+- `/ov-image:image` — `produce:` + `builder:` fields
 - `/ov-build:generate` — COPY-from stage emission
 
 ## When to use this skill

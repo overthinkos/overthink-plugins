@@ -15,13 +15,13 @@ description: |
 | Packages | *(none -- pip-only Tier 1 layer)* |
 | Services | *(none)* |
 | Volumes | *(none)* |
-| Install files | `layer.yml`, `tasks:`, `jupyter_mcp/` (Python package) |
+| Install files | `layer.yml`, `task:`, `jupyter_mcp/` (Python package) |
 
 ## Architecture: Tier 1 Post-Install Layer
 
 This is a **Tier 1 "post-install"** layer — it has no `pixi.toml` and installs into whatever pixi environment exists from the parent Tier 2 layer. It follows the same pattern as `llama-cpp` and `unsloth`.
 
-**Single source of truth:** The `jupyter_mcp` Python package lives only in this layer. Both `jupyter` (lightweight) and `jupyter-ml` (GPU ML) compose it via their `layers:` field. This prevents code duplication and ensures bug fixes propagate to all images.
+**Single source of truth:** The `jupyter_mcp` Python package lives only in this layer. Both `jupyter` (lightweight) and `jupyter-ml` (GPU ML) compose it via their `layer:` field. This prevents code duplication and ensures bug fixes propagate to all images.
 
 ## Usage philosophy and caveats (post-2026-05-06 cutover)
 
@@ -40,7 +40,7 @@ The MCP server **manages CRDT rooms invisibly**. Clients see notebooks and cells
 
 ## How It Works
 
-The `tasks:` performs three operations:
+The `task:` performs three operations:
 
 1. **Install FastMCP** — `pip install "fastmcp>=3.2.0"` (not via pixi because pixi's cross-platform resolver conflicts with opentelemetry-api on aarch64)
 2. **Install jupyter-mcp extension** — `pip install --no-deps /ctx/jupyter_mcp` (from the layer's build context)
