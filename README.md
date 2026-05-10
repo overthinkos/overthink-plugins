@@ -39,6 +39,7 @@ Plus three special-purpose plugins: `ov-dev` (contributor tooling),
 | Use case | Enable |
 |---|---|
 | Single-pod jupyter project | `ov-core` + `ov-jupyter` |
+| Single-pod marimo project (OSM/GTFS analytics, vector tiles) | `ov-core` + `ov-marimo` |
 | Single-pod coder/dev pod | `ov-core` + `ov-coder` |
 | Multi-pod home AI server | `ov-core` + per-pod plugins for each pod you run |
 | Layer/image authoring | `ov-core` + `ov-build` + `ov-foundation` |
@@ -77,6 +78,7 @@ needed to run that pod.
 | Plugin | Image families | MCP server (port) | Description |
 |---|---|---|---|
 | `ov-jupyter` | jupyter, jupyter-ml, jupyter-ml-notebook, unsloth-studio | jupyter @ 8888 | JupyterLab + ML stack + 13 CRDT MCP tools for notebook manipulation |
+| `ov-marimo` | marimo-ml | marimo @ 22718, airflow @ 29999 | marimo notebooks + Airflow 3.x + OSM/GTFS analytics + martin vector tiles + MapLibre GL JS with 3D terrain |
 | `ov-coder` | arch-coder, debian-coder, fedora-coder, ubuntu-coder, arch-ov | ov @ 18765 | Developer pods (Claude Code, Codex, Gemini, ForgeCode, Oracle, kubectl, docker, gcloud) with the ov MCP server |
 | `ov-selkies` | selkies-desktop\*, sway-browser-vnc | chrome-devtools @ 9224 | Wayland desktop in a container (sway/labwc + VNC + Chrome) |
 | `ov-openclaw` | openclaw\* | chrome-devtools @ 9224 | Multi-variant AI workstation (bootc, full, ml, sway, ollama, browser) |

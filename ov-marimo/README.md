@@ -1,0 +1,86 @@
+# ov-marimo
+
+MCP server registration + skill coverage for the **marimo-ml** notebook
+environment: marimo reactive notebooks + Apache Airflow (LocalExecutor +
+SQLite) + OSM/GTFS analytics pipeline (quackosm + tippecanoe + martin
+vector tiles + MapLibre GL JS with 3D terrain) + transit visualisation
+(gtfs-parquet + folium).
+
+This plugin exposes **two** MCP servers to Claude Code:
+
+- `marimo` — 10 read-only inspection tools at `http://localhost:22718/mcp/server`
+  (notebook session diagnostics: cell outputs, runtime data, dependency
+  graph, errors)
+- `airflow` — ~70 REST-API-wrapping tools at `http://localhost:29999/mcp`
+  (DAG management: fetch_dags, post_dag_run, get_dag_run, list_connections,
+  …)
+
+URLs use the **host-visible** ports from the `marimo-ml-pod` deploy
+entry (Claude Code runs on the host). Container-internal ports
+(`2718`, `19999`) are only reachable from inside the pod.
+
+## Contents
+
+- `.claude-plugin/plugin.json` — plugin metadata
+- `.mcp.json` — registration of both MCP servers
+- `README.md` — this file
+- `skills/<name>/SKILL.md` — 9 skills covering the marimo-ml ecosystem
+
+## Skills
+
+| Skill | Kind | Coverage |
+|---|---|---|
+| `marimo-ml` | image | top-level marimo-ml image — composition, ports, env vars, R10 acceptance |
+| `marimo-layer` | layer | marimo runtime — pixi env, supervisord service, mo.iframe pattern |
+| `marimo-mcp` | mcp server | the 10 marimo MCP tools + execution gap |
+| `airflow-layer` | layer | Airflow 3.x compatibility (8 surfaced bugs from RCA) |
+| `airflow-mcp` | mcp server | mcp-server-apache-airflow tools + JWT auth flow |
+| `notebook-osm` | data layer | the dual-DAG OSM+GTFS notebook architecture |
+| `maputnik-layer` | layer | maputnik build with Vite `--base=/` override |
+| `osm-data-layer` | layer | tippecanoe + martin + DAG-completion reload pattern |
+| `debug-tools-layer` | layer | 49-tool distro-agnostic debug toolkit |
+
+## Requirements
+
+- A `marimo-ml` container must be **running** before Claude Code starts.
+  See `/ov-marimo:marimo-ml`.
+- Claude Code registers MCP servers at **session start**. If the
+  marimo-ml container is launched *after* Claude Code, the auto-connect
+  to `localhost:22718/mcp/server` and `localhost:29999/mcp` fails
+  silently and the `mcp__marimo__*` / `mcp__airflow__*` tools will not
+  appear in the session's tool catalog. **Restart Claude Code after the
+  container is up** to pick up the registration.
+
+## MCP Name Decoupling
+
+The MCP server names `marimo` and `airflow` are deliberately stable
+across renames of the underlying layer / Python package / image. The
+service contract is the `mcp_provides.name:` field in
+`layers/marimo/layer.yml` and `layers/airflow/layer.yml`. Consumers
+(this plugin's `.mcp.json`, plus any in-image MCP client) all key off
+those names — not off layer/package/image names — so renames don't
+ripple into client code.
+
+## Cross-pod use
+
+In single-pod deployments (the default) `airflow` runs alongside
+`marimo` inside `marimo-ml-pod`. For cross-pod topologies — separate
+`airflow-pod` reachable via the shared `ov` podman network — the
+notebook reads `AIRFLOW_API_INTERNAL_URL` from env (defaults
+`http://localhost:8080`; override to `http://airflow-pod:8080`).
+The marimo notebook's self-authored DAG goes into the shared
+`workspace` volume that both pods mount, so DAG drop + scheduler
+pickup work identically. See `/ov-marimo:marimo-ml` "Cross-pod
+topology" for the full operator recipe.
+
+## Related skills
+
+- `/ov-marimo:marimo-ml` — the image (start here)
+- `/ov-marimo:marimo-layer` — marimo's pixi env + service spec
+- `/ov-marimo:marimo-mcp` — the marimo MCP server's tool catalog
+- `/ov-marimo:airflow-layer` — Airflow 3.x layer wiring + auth
+- `/ov-marimo:airflow-mcp` — the airflow MCP server's tool catalog
+- `/ov-marimo:notebook-osm` — the dual-DAG OSM+GTFS notebook
+- `/ov-marimo:maputnik-layer` — maputnik static-style editor
+- `/ov-marimo:osm-data-layer` — martin + tippecanoe + reload pattern
+- `/ov-marimo:debug-tools-layer` — the debug toolkit composed by this image
