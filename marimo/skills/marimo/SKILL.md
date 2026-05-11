@@ -1,12 +1,12 @@
 ---
-name: marimo-ml
+name: marimo
 description: |
-  marimo reactive notebook environment with Apache Airflow + GPU-accelerated OSM/GTFS analytics + martin vector tiles + 3D terrain via MapLibre.
+  marimo reactive notebook environment with Apache Airflow + GPU-accelerated OSM/GTFS analytics + martin vector tiles + 3D terrain via MapLibre + Polars geospatial extensions (polars-st, geopolars) + GeoArrow + deck.gl rendering via lonboard.
   Composes 11 layers (agent-forwarding, nvidia, cuda, marimo, airflow, osm-tools, maputnik, notebook-osm, debug-tools, dbus, ov) on a CachyOS / Arch base into a single pod that exposes 5 host ports and 2 MCP servers.
-  MUST be invoked before building, deploying, configuring, or troubleshooting the marimo-ml image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the marimo image.
 ---
 
-# marimo-ml — marimo + Airflow + OSM/GTFS + martin
+# marimo — marimo + Airflow + OSM/GTFS + martin
 
 GPU-accelerated marimo notebook environment that composes a full
 analytics + visualisation stack: marimo notebooks (also acting as MCP
@@ -42,7 +42,9 @@ and a MapLibre style editor (maputnik). Two MCP servers are exposed
    rename — `build:` is `[pac]` only.
 5. `marimo` — `/ov-marimo:marimo-layer` — pixi env (cudf-polars-cu13,
    torch cu130, geopandas, quackosm, gtfs-parquet, folium, marimo,
-   airflow Python deps), supervisord service `marimo edit … --mcp`
+   airflow Python deps, plus polars-st / geopolars / geoarrow-pyarrow /
+   geoarrow-pandas / lonboard for Polars-native spatial ops + deck.gl
+   rendering), supervisord service `marimo edit … --mcp`
 6. `airflow` — `/ov-marimo:airflow-layer` — 4 supervisord services
    (init/scheduler/dag-processor/webserver) + the airflow-mcp wrapper
 7. `osm-tools` — `/ov-marimo:osm-tools-layer` — tippecanoe (built from
@@ -58,7 +60,7 @@ and a MapLibre style editor (maputnik). Two MCP servers are exposed
 
 ## Ports + host mappings
 
-The image declares container ports; `marimo-ml-pod` deploy entry
+The image declares container ports; `marimo` deploy entry
 remaps to host ports for browser reachability:
 
 | Service | Container port | Host port | Path |
@@ -80,9 +82,9 @@ URLs do NOT resolve there. The notebook reads four env vars to
 bridge the two URL spaces:
 
 ```yaml
-marimo-ml-pod:
+marimo:
   target: pod
-  image: marimo-ml
+  image: marimo
   disposable: true
   lifecycle: dev
   ports: [22718:2718, 28080:8080, 29999:19999, 23000:3000, 28000:8000]
@@ -113,15 +115,15 @@ This image publishes two MCP endpoints (registered by this plugin's
 ## R10 acceptance
 
 ```bash
-ov update --build --force-seed marimo-ml-pod
-ov eval live marimo-ml-pod         # → 82 passed · 0 failed · 0 skipped
+ov update --build --force-seed marimo
+ov eval live marimo         # → 82 passed · 0 failed · 0 skipped
 ```
 
-End-to-end notebook test (executes all 10 cells via marimo's own
+End-to-end notebook test (executes all 13 cells via marimo's own
 export):
 
 ```bash
-podman exec ov-marimo-ml-pod /home/user/.pixi/envs/default/bin/marimo \
+podman exec ov-marimo /home/user/.pixi/envs/default/bin/marimo \
   export ipynb /home/user/workspace/notebooks/osm-monaco-viz.py \
   --include-outputs --sort topological -o /tmp/notebook-run.ipynb -f
 ```
@@ -141,7 +143,7 @@ Expected outputs (verified end-to-end):
 ## Known gotchas
 
 - **User deploy.yml needs `image:` field.** `~/.config/ov/deploy.yml`
-  marimo-ml-pod entry must include `image: marimo-ml` — otherwise
+  marimo entry must include `image: marimo` — otherwise
   `ov update --build` fails with "deploy has no 'image:' field".
 - **Marimo session persistence reorders cells.** When a marimo session
   is open and the file changes (e.g. after `--force-seed`), marimo

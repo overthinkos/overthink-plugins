@@ -9,11 +9,11 @@ description: |
 
 Single-purpose layer that installs ~50 standard debugging utilities
 across 5 categories: network, process, file, system stats, session
-helpers. Composed by `/ov-marimo:marimo-ml` so operators can debug
+helpers. Composed by `/ov-marimo:marimo` so operators can debug
 the deployed services (marimo, airflow, martin, maputnik, etc.) from
 INSIDE the running container.
 
-Without this layer, `podman exec ov-marimo-ml-pod ps` returns
+Without this layer, `podman exec ov-marimo ps` returns
 "command not found" — minimal Fedora images don't ship procps-ng,
 iproute, bind-utils, etc. by default.
 
@@ -103,7 +103,7 @@ than file path because the binary's location varies across distros
 (Fedora: `/usr/bin/ping`; Debian: `/usr/bin/ping` but historically
 `/bin/ping`).
 
-## Use case: debugging marimo-ml services
+## Use case: debugging marimo services
 
 | Scenario | Tools |
 |---|---|
@@ -116,8 +116,8 @@ than file path because the binary's location varies across distros
 
 ## Cross-references
 
-- `/ov-marimo:marimo-ml` — image composing this layer
+- `/ov-marimo:marimo` — image composing this layer
 - `/ov-marimo:airflow-layer` — services this toolkit debugs
 - `/ov-marimo:osm-tools-layer` — martin server this toolkit debugs
 - `/ov-marimo:marimo-layer` — marimo runtime this toolkit debugs
-- `/ov-coder:dev-tools` — overlapping but heavier (includes qemu, AWS CLI, etc.); not composed by marimo-ml
+- `/ov-coder:dev-tools` — overlapping but heavier (includes qemu, AWS CLI, etc.); not composed by marimo

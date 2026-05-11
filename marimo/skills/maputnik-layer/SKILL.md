@@ -10,7 +10,7 @@ description: |
 Maputnik is a pure-JS SPA for visually editing MapLibre GL JS style
 JSON files. Built from upstream source (`felt/maputnik`) via npm at
 image build time, served as a static dist by Python's stdlib
-`http.server`. Composed by `/ov-marimo:marimo-ml` so operators can
+`http.server`. Composed by `/ov-marimo:marimo` so operators can
 iterate on the streets-map style against the in-pod martin tile
 server (`/ov-marimo:osm-tools-layer`).
 
@@ -97,7 +97,7 @@ Plus the standard probes (also deploy-scope):
 - `maputnik-port-reachable` — TCP 8000 reachable
 - `maputnik-http-up` — `GET /` returns 200
 
-## Use case in marimo-ml
+## Use case in marimo
 
 The streets-map style in `/ov-marimo:notebook-osm` cell 7 is a
 small inline JSON. Operators iterating on richer styles can:
@@ -111,7 +111,7 @@ small inline JSON. Operators iterating on richer styles can:
 
 ## Cross-references
 
-- `/ov-marimo:marimo-ml` — image composing this layer
+- `/ov-marimo:marimo` — image composing this layer
 - `/ov-marimo:osm-tools-layer` — companion martin tile server
 - `/ov-marimo:notebook-osm` — uses an inline style; maputnik can author richer ones
 - `/ov-infrastructure:supervisord` — service runtime

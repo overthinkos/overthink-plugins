@@ -8,7 +8,7 @@ description: |
 # osm-tools — OSM tooling + martin vector-tile server
 
 Bundles every CLI needed to ingest, transform, and serve OSM data
-in the marimo-ml image. Martin (Rust) is the long-running tile server
+in the marimo image. Martin (Rust) is the long-running tile server
 at port 3000 (host-mapped to **23000**); everything else is invoked
 ad-hoc from DAGs / shell.
 
@@ -152,7 +152,7 @@ NOT included — they'd false-fail on cold deploys before any DAG ran.
 
 ## Cross-references
 
-- `/ov-marimo:marimo-ml` — image composing this layer
+- `/ov-marimo:marimo` — image composing this layer
 - `/ov-marimo:notebook-osm` — DAG that produces pmtiles + MapLibre cell consuming them
 - `/ov-marimo:maputnik-layer` — visual style editor for the same vector tiles
 - `/ov-infrastructure:supervisord` — service runtime

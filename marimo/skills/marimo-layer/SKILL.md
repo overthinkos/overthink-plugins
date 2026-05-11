@@ -134,7 +134,7 @@ header lands at the bottom; etc.
 Surgical reset (kill marimo, restore from `/data/`, restart):
 
 ```bash
-podman exec ov-marimo-ml-pod bash -c '
+podman exec ov-marimo bash -c '
   supervisorctl stop marimo
   cp /data/workspace/notebooks/osm-monaco-viz.py \
      /home/user/workspace/notebooks/osm-monaco-viz.py
@@ -146,7 +146,7 @@ is dead after the restart anyway).
 
 ## Cross-references
 
-- `/ov-marimo:marimo-ml` — the image that composes this layer
+- `/ov-marimo:marimo` — the image that composes this layer
 - `/ov-marimo:marimo-mcp` — the MCP server tool catalog
 - `/ov-marimo:notebook-osm` — the canonical notebook using this env
 - `/ov-distros:cuda` — required dep

@@ -79,26 +79,26 @@ typically use:
 Ping the server:
 
 ```bash
-ov eval mcp ping marimo-ml-pod --name airflow
+ov eval mcp ping marimo --name airflow
 ```
 
 List tools (the eval suite already includes `mcp-airflow-list-tools`
 as a deploy-scope probe):
 
 ```bash
-ov eval mcp list-tools marimo-ml-pod --name airflow
+ov eval mcp list-tools marimo --name airflow
 ```
 
 Call a real RPC (list DAGs):
 
 ```bash
-ov eval mcp call marimo-ml-pod fetch_dags '{"args":{}}' --name airflow
+ov eval mcp call marimo fetch_dags '{"args":{}}' --name airflow
 ```
 
 Trigger a DAG:
 
 ```bash
-ov eval mcp call marimo-ml-pod post_dag_run '{"args":{
+ov eval mcp call marimo post_dag_run '{"args":{
   "dag_id": "notebook_osm_pipeline",
   "conf": {},
   "logical_date": "2026-05-10T00:00:00Z"
@@ -132,6 +132,6 @@ The MCP server name `airflow` is the service contract — declared in
 - `/ov-marimo:airflow-layer` — layer that runs the server
 - `/ov-marimo:marimo-mcp` — the OTHER MCP server in the same pod
 - `/ov-marimo:notebook-osm` — uses direct REST instead of MCP for triggering
-- `/ov-marimo:marimo-ml` — image composing the airflow layer
+- `/ov-marimo:marimo` — image composing the airflow layer
 - `/ov-build:mcp` — MCP probe verb authoring + URL rewriter
 - `/ov-eval:eval` — `ov eval mcp` subcommand reference

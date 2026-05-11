@@ -176,6 +176,6 @@ and `notebook_gtfs_pipeline` in parallel.
 - `/ov-marimo:airflow-mcp` — the airflow-mcp tool catalog
 - `/ov-marimo:marimo-layer` — pixi env that owns the airflow Python deps
 - `/ov-marimo:notebook-osm` — canonical user of the REST trigger pattern
-- `/ov-marimo:marimo-ml` — the image composing this layer
+- `/ov-marimo:marimo` — the image composing this layer
 - `/ov-infrastructure:supervisord` — service mgmt
 - `/ov-build:secrets` — the 3 airflow secrets injected via this layer

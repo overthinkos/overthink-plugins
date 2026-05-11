@@ -8,7 +8,7 @@ description: |
 # notebook-osm — the Monaco OSM + GTFS demo notebook
 
 A pure data layer that ships ONE file: a 10-cell self-contained
-marimo notebook demonstrating the full marimo-ml stack end-to-end.
+marimo notebook demonstrating the full marimo stack end-to-end.
 
 The notebook **self-authors its own Airflow DAGs at runtime** — no
 DAG files are baked into the image. It writes both the OSM pipeline
@@ -24,9 +24,9 @@ then runs analysis + visualisation cells.
 | Dependencies | none (file-only) |
 | Data | `data/notebooks/` → `workspace:notebooks/` (deploy-time bind/seed) |
 | Eval | `notebook-osm-viz-present` — file exists in volume |
-| Notebook | `~/workspace/notebooks/osm-monaco-viz.py` (~10 cells) |
+| Notebook | `~/workspace/notebooks/osm-monaco-viz.py` (~13 cells) |
 
-## Notebook architecture (10 cells, source order)
+## Notebook architecture (13 cells, source order)
 
 | # | Purpose | Returns |
 |---|---|---|
@@ -36,10 +36,13 @@ then runs analysis + visualisation cells.
 | 4 | trigger BOTH DAGs in parallel + poll until both succeed | `dag_run_states = {osm: success, gtfs: success}` |
 | 5 | OSM GPU `geom_kb` histogram via cudf-polars-cu13 | `df_gpu`, `parquet_path` |
 | 6 | OSM tag-key histogram via pyarrow (workaround) | `df_tags` |
-| 7 | streets MapLibre GL JS map (vector tiles + 3D terrain) | renders inline iframe |
-| 8 | GTFS analytics — stops/routes/trips counts + top routes | `df_route_stops`, `df_stops`, `gtfs_summary` |
-| 9 | render `df_route_stops` as table | (display) |
-| 10 | transit folium map (98 bus-stop CircleMarkers) | renders folium |
+| 7 | DuckDB Spatial geom-type counts (`INSTALL spatial`) | `df_duckdb_spatial` |
+| 8 | polars-st bounding-box area top-10 (`.st.*` namespace) | `df_polars_st` |
+| 9 | geopolars version + public-API inventory (alpha tripwire) | `df_geopolars` |
+| 10 | streets MapLibre GL JS map (vector tiles + 3D terrain) | renders inline iframe |
+| 11 | GTFS analytics — stops/routes/trips counts + top routes | `df_route_stops`, `df_stops`, `gtfs_summary` |
+| 12 | render `df_route_stops` as table | (display) |
+| 13 | transit folium map (98 bus-stop CircleMarkers) | renders folium |
 
 The two DAGs are independent (`notebook_osm_pipeline`,
 `notebook_gtfs_pipeline`) but triggered + polled together by the
@@ -85,7 +88,7 @@ Returns a `dag_run_states` dict so dependent cells can gate on
 The marimo kernel runs INSIDE the pod (container-internal reach).
 The user's browser runs OUTSIDE the pod (only host-port mappings
 work). Mixing the two is the most common failure mode — see
-`/ov-marimo:marimo-ml` "Required deploy.yml env block".
+`/ov-marimo:marimo` "Required deploy.yml env block".
 
 ## Key gotchas (surfaced and fixed)
 
@@ -151,7 +154,7 @@ End-to-end run via marimo's own export (executes every cell
 server-side):
 
 ```bash
-podman exec ov-marimo-ml-pod /home/user/.pixi/envs/default/bin/marimo \
+podman exec ov-marimo /home/user/.pixi/envs/default/bin/marimo \
   export ipynb /home/user/workspace/notebooks/osm-monaco-viz.py \
   --include-outputs --sort topological -o /tmp/notebook-run.ipynb -f
 ```
@@ -164,11 +167,11 @@ Expected results (verified):
 - Cell 7: MapLibre HTML embeds martin URL + mapterhorn DEM, no trust wrapper
 - Cell 8: GTFS counts: 98 stops, 15 routes, 5846 trips, 80581 stop_times
 - Cell 9: top route `'5'` with 46 distinct stops
-- Cell 10: folium HTML contains 98 `circleMarker` calls
+- Cell 13: folium HTML contains 98 `circleMarker` calls
 
 ## Cross-references
 
-- `/ov-marimo:marimo-ml` — image composing this layer
+- `/ov-marimo:marimo` — image composing this layer
 - `/ov-marimo:marimo-layer` — the runtime kernel
 - `/ov-marimo:airflow-layer` — DAG trigger REST API
 - `/ov-marimo:osm-tools-layer` — martin + tippecanoe + reload pattern

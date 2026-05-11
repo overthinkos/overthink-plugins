@@ -61,7 +61,7 @@ Two paths to execute notebook content programmatically:
    osm-monaco-viz.py notebook:
 
    ```bash
-   podman exec ov-marimo-ml-pod /home/user/.pixi/envs/default/bin/marimo \
+   podman exec ov-marimo /home/user/.pixi/envs/default/bin/marimo \
      export ipynb /home/user/workspace/notebooks/osm-monaco-viz.py \
      --include-outputs --sort topological -o /tmp/notebook-run.ipynb -f
    ```
@@ -74,21 +74,21 @@ Two paths to execute notebook content programmatically:
 Ping the server (proves it's alive + reachable):
 
 ```bash
-ov eval mcp ping marimo-ml-pod --name marimo
+ov eval mcp ping marimo --name marimo
 ```
 
 List the tools (catalog enumeration):
 
 ```bash
-ov eval mcp list-tools marimo-ml-pod --name marimo
+ov eval mcp list-tools marimo --name marimo
 ```
 
 Inspect a session's cell map (real diagnostic):
 
 ```bash
-SID=$(ov eval mcp call marimo-ml-pod get_active_notebooks '{"args":{}}' --name marimo \
+SID=$(ov eval mcp call marimo get_active_notebooks '{"args":{}}' --name marimo \
   | python3 -c 'import sys,json; print(json.load(sys.stdin)["data"]["notebooks"][0]["session_id"])')
-ov eval mcp call marimo-ml-pod get_lightweight_cell_map "{\"args\":{\"session_id\":\"$SID\"}}" --name marimo
+ov eval mcp call marimo get_lightweight_cell_map "{\"args\":{\"session_id\":\"$SID\"}}" --name marimo
 ```
 
 ## MCP name decoupling

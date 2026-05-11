@@ -1,6 +1,6 @@
 {
   "name": "ov-marimo",
-  "description": "MCP server registration + skill coverage for the marimo-ml notebook environment (marimo notebooks + Airflow + OSM/GTFS analytics + martin vector tiles + 3D terrain)",
+  "description": "MCP server registration + skill coverage for the marimo notebook environment (marimo notebooks + Airflow + OSM/GTFS analytics + martin vector tiles + 3D terrain)",
   "version": "1.0.0",
   "author": { "name": "overthinkos" },
   "repository": "https://github.com/overthinkos/overthink-plugins",
