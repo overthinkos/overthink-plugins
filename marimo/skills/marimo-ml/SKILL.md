@@ -2,7 +2,7 @@
 name: marimo-ml
 description: |
   marimo reactive notebook environment with Apache Airflow + GPU-accelerated OSM/GTFS analytics + martin vector tiles + 3D terrain via MapLibre.
-  Composes 11 layers (agent-forwarding, nvidia, cuda, marimo, airflow, osm-data, maputnik, notebook-osm, debug-tools, dbus, ov) on a CachyOS / Arch base into a single pod that exposes 5 host ports and 2 MCP servers.
+  Composes 11 layers (agent-forwarding, nvidia, cuda, marimo, airflow, osm-tools, maputnik, notebook-osm, debug-tools, dbus, ov) on a CachyOS / Arch base into a single pod that exposes 5 host ports and 2 MCP servers.
   MUST be invoked before building, deploying, configuring, or troubleshooting the marimo-ml image.
 ---
 
@@ -38,14 +38,15 @@ and a MapLibre style editor (maputnik). Two MCP servers are exposed
 4. `cuda` — CUDA toolkit (`cuda` + `cudnn` + `python-onnxruntime-cpu`
    from CachyOS extra repo; `/opt/cuda` symlinked into
    `/usr/{bin,include,lib64}` for path compatibility with the Fedora
-   layout). osm-data's `osmium-tool` is the one AUR build retained.
+   layout). No AUR builds remain in this image after the osm-tools
+   rename — `build:` is `[pac]` only.
 5. `marimo` — `/ov-marimo:marimo-layer` — pixi env (cudf-polars-cu13,
    torch cu130, geopandas, quackosm, gtfs-parquet, folium, marimo,
    airflow Python deps), supervisord service `marimo edit … --mcp`
 6. `airflow` — `/ov-marimo:airflow-layer` — 4 supervisord services
    (init/scheduler/dag-processor/webserver) + the airflow-mcp wrapper
-7. `osm-data` — `/ov-marimo:osm-data-layer` — tippecanoe (built from
-   source), osmium, gdal, jq, martin (Rust), pmtiles CLI
+7. `osm-tools` — `/ov-marimo:osm-tools-layer` — tippecanoe (built from
+   source), gdal, jq, martin (Rust), pmtiles CLI
 8. `maputnik` — `/ov-marimo:maputnik-layer` — MapLibre style editor
    built with Vite `--base=/`
 9. `notebook-osm` — `/ov-marimo:notebook-osm` — data-only layer
@@ -113,7 +114,7 @@ This image publishes two MCP endpoints (registered by this plugin's
 
 ```bash
 ov update --build --force-seed marimo-ml-pod
-ov eval live marimo-ml-pod         # → 83 passed · 0 failed · 0 skipped
+ov eval live marimo-ml-pod         # → 82 passed · 0 failed · 0 skipped
 ```
 
 End-to-end notebook test (executes all 10 cells via marimo's own
@@ -149,7 +150,7 @@ Expected outputs (verified end-to-end):
 - **Martin caches pmtiles mtime at startup.** Re-run a DAG that
   rewrites `monaco.pmtiles` → martin returns 500/204 forever until
   restart. The OSM DAG's `reload_martin` task handles this automatically;
-  see `/ov-marimo:osm-data-layer`.
+  see `/ov-marimo:osm-tools-layer`.
 - **Notebook needs `image:` field too.** Already covered above —
   same point worth emphasizing.
 
@@ -161,7 +162,7 @@ Expected outputs (verified end-to-end):
 - `/ov-marimo:airflow-mcp` — airflow MCP server tool catalog
 - `/ov-marimo:notebook-osm` — the dual-DAG OSM+GTFS notebook
 - `/ov-marimo:maputnik-layer` — Vite `--base=/` build pattern
-- `/ov-marimo:osm-data-layer` — martin reload pattern
+- `/ov-marimo:osm-tools-layer` — martin reload pattern
 - `/ov-marimo:debug-tools-layer` — debug toolkit
 - `/ov-eval:eval` — eval verbs used by the 83 probes
 - `/ov-core:deploy` — env block authoring + cross-pod topology

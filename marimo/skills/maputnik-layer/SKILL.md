@@ -1,7 +1,7 @@
 ---
 name: maputnik-layer
 description: |
-  Maputnik — visual editor for MapLibre GL vector-tile styles. Pure-JS SPA built from upstream source via npm at image build time, served as static dist by python -m http.server. Pairs with osm-data's martin tile server.
+  Maputnik — visual editor for MapLibre GL vector-tile styles. Pure-JS SPA built from upstream source via npm at image build time, served as static dist by python -m http.server. Pairs with osm-tools's martin tile server.
   Use when working with the maputnik layer, the Vite --base=/ build override (critical fix; default --base=/maputnik/ produces 404 asset paths), or the asset-base lock-in eval test.
 ---
 
@@ -12,7 +12,7 @@ JSON files. Built from upstream source (`felt/maputnik`) via npm at
 image build time, served as a static dist by Python's stdlib
 `http.server`. Composed by `/ov-marimo:marimo-ml` so operators can
 iterate on the streets-map style against the in-pod martin tile
-server (`/ov-marimo:osm-data-layer`).
+server (`/ov-marimo:osm-tools-layer`).
 
 ## Layer properties
 
@@ -112,6 +112,6 @@ small inline JSON. Operators iterating on richer styles can:
 ## Cross-references
 
 - `/ov-marimo:marimo-ml` — image composing this layer
-- `/ov-marimo:osm-data-layer` — companion martin tile server
+- `/ov-marimo:osm-tools-layer` — companion martin tile server
 - `/ov-marimo:notebook-osm` — uses an inline style; maputnik can author richer ones
 - `/ov-infrastructure:supervisord` — service runtime

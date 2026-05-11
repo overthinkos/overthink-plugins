@@ -56,7 +56,7 @@ source of truth).
 
 The OSM DAG ends with a `reload_martin` task that runs
 `supervisorctl restart martin` after writing pmtiles — see
-`/ov-marimo:osm-data-layer` for why.
+`/ov-marimo:osm-tools-layer` for why.
 
 The GTFS DAG uses `gtfs_parquet.parse_gtfs(zip_path)` then
 `write_parquet(dir)` to produce one `.parquet` per GTFS table.
@@ -171,6 +171,6 @@ Expected results (verified):
 - `/ov-marimo:marimo-ml` — image composing this layer
 - `/ov-marimo:marimo-layer` — the runtime kernel
 - `/ov-marimo:airflow-layer` — DAG trigger REST API
-- `/ov-marimo:osm-data-layer` — martin + tippecanoe + reload pattern
+- `/ov-marimo:osm-tools-layer` — martin + tippecanoe + reload pattern
 - `/ov-marimo:maputnik-layer` — companion vector-tile editor
 - `/ov-marimo:marimo-mcp` — read-only inspection of this notebook's session

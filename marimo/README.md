@@ -37,7 +37,7 @@ entry (Claude Code runs on the host). Container-internal ports
 | `airflow-mcp` | mcp server | mcp-server-apache-airflow tools + JWT auth flow |
 | `notebook-osm` | data layer | the dual-DAG OSM+GTFS notebook architecture |
 | `maputnik-layer` | layer | maputnik build with Vite `--base=/` override |
-| `osm-data-layer` | layer | tippecanoe + martin + DAG-completion reload pattern |
+| `osm-tools-layer` | layer | tippecanoe + martin + DAG-completion reload pattern |
 | `debug-tools-layer` | layer | 49-tool distro-agnostic debug toolkit |
 
 ## Requirements
@@ -82,5 +82,5 @@ topology" for the full operator recipe.
 - `/ov-marimo:airflow-mcp` — the airflow MCP server's tool catalog
 - `/ov-marimo:notebook-osm` — the dual-DAG OSM+GTFS notebook
 - `/ov-marimo:maputnik-layer` — maputnik static-style editor
-- `/ov-marimo:osm-data-layer` — martin + tippecanoe + reload pattern
+- `/ov-marimo:osm-tools-layer` — martin + tippecanoe + reload pattern
 - `/ov-marimo:debug-tools-layer` — the debug toolkit composed by this image

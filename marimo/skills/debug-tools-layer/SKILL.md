@@ -118,6 +118,6 @@ than file path because the binary's location varies across distros
 
 - `/ov-marimo:marimo-ml` — image composing this layer
 - `/ov-marimo:airflow-layer` — services this toolkit debugs
-- `/ov-marimo:osm-data-layer` — martin server this toolkit debugs
+- `/ov-marimo:osm-tools-layer` — martin server this toolkit debugs
 - `/ov-marimo:marimo-layer` — marimo runtime this toolkit debugs
 - `/ov-coder:dev-tools` — overlapping but heavier (includes qemu, AWS CLI, etc.); not composed by marimo-ml

@@ -1,11 +1,11 @@
 ---
-name: osm-data-layer
+name: osm-tools-layer
 description: |
-  OpenStreetMap data pipeline tooling: tippecanoe (GeoJSON → MBTiles/PMTiles, built from source), osmium-tool, gdal/ogr2ogr, jq, martin (Rust musl static binary on port 3000), pmtiles CLI. Martin reads tiles from ${HOME}/workspace/tiles/pmtiles/.
-  Use when working with the osm-data layer, tippecanoe build steps, the martin tile server config, the martin "Underlying data source was modified" cache issue + DAG-completion supervisord-restart pattern, or the vector-tiles-only output that requires MapLibre GL JS clients (NOT folium TileLayer).
+  OpenStreetMap data pipeline tooling: tippecanoe (GeoJSON → MBTiles/PMTiles, built from source), gdal/ogr2ogr, jq, martin (Rust musl static binary on port 3000), pmtiles CLI. Martin reads tiles from ${HOME}/workspace/tiles/pmtiles/.
+  Use when working with the osm-tools layer, tippecanoe build steps, the martin tile server config, the martin "Underlying data source was modified" cache issue + DAG-completion supervisord-restart pattern, or the vector-tiles-only output that requires MapLibre GL JS clients (NOT folium TileLayer).
 ---
 
-# osm-data — OSM tooling + martin vector-tile server
+# osm-tools — OSM tooling + martin vector-tile server
 
 Bundles every CLI needed to ingest, transform, and serve OSM data
 in the marimo-ml image. Martin (Rust) is the long-running tile server
@@ -17,22 +17,21 @@ ad-hoc from DAGs / shell.
 | Property | Value |
 |----------|-------|
 | Dependencies | `supervisord` |
-| Distros | `fedora` (sole; tippecanoe needs gcc-c++/sqlite-devel/zlib-devel for source build) |
+| Distros | `archlinux` + `fedora` (tippecanoe needs gcc-c++/sqlite-devel/zlib-devel on Fedora and gcc/sqlite on Arch for the source build) |
 | Ports | `3000` (martin HTTP, host-mapped to **23000**) |
 | Service | `martin` (supervisord, `restart: always`) |
 | Tile dir | `~/workspace/tiles/pmtiles/` |
-| Distros packages | osmium-tool, gdal, jq + tippecanoe build deps (git, make, gcc-c++, sqlite-devel, zlib-devel) |
+| Distros packages | gdal, jq + tippecanoe build deps (git, make, gcc-c++/gcc, sqlite-devel/sqlite, zlib-devel where applicable) |
 
 ## Tools installed
 
 | Tool | Source | Purpose |
 |---|---|---|
 | `tippecanoe` | Built from `felt/tippecanoe` source | GeoJSON → MBTiles/PMTiles |
-| `osmium-tool` | Fedora pkg `osmium-tool` | OSM PBF inspection / filtering / transformation |
-| `ogr2ogr` / `ogrinfo` | Fedora pkg `gdal` | Format conversion (e.g. GeoParquet → GeoJSON for tippecanoe) |
-| `jq` | Fedora pkg `jq` | JSON manipulation (also for inspecting martin's `/catalog`) |
+| `ogr2ogr` / `ogrinfo` | Distro pkg `gdal` | Format conversion (e.g. GeoParquet → GeoJSON for tippecanoe) |
+| `jq` | Distro pkg `jq` | JSON manipulation (also for inspecting martin's `/catalog`) |
 | `martin` | GitHub release musl binary | Rust tile server |
-| `pmtiles` | (separate install) | PMTiles inspection |
+| `pmtiles` | GitHub release tarball (resolved via API) | PMTiles inspection |
 
 Tippecanoe is built from source because no Fedora package exists and
 upstream ships only source. Build is small (~200 MB clone, <1 min
@@ -136,9 +135,8 @@ marimo works without proxy tricks.
 ## Eval probes
 
 Build-scope:
-- `tippecanoe-installed`, `osmium-installed`, `gdal-installed`,
-  `jq-installed`, `martin-installed`, `pmtiles-installed` — `--version`
-  exit 0
+- `tippecanoe-installed`, `gdal-installed`, `jq-installed`,
+  `martin-installed`, `pmtiles-installed` — `--version` exit 0
 - `martin-wrapper-installed` — `/usr/local/bin/martin-wrapper.sh`
   exists with mode 0755
 
