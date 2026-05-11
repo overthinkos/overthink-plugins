@@ -16,7 +16,7 @@ description: |
 | Sub-layers | `llama-cpp`, `unsloth`, `jupyter-mcp` |
 | Ports | 8888 |
 | Service | `jupyter-ml` (supervisord) |
-| Volume | `workspace` at `~/workspace` |
+| Volume | `workspace` at `/workspace` |
 | Install files | `layer.yml`, `pixi.toml`, `task:` |
 
 ## Architecture: Environment-Owning Meta-Layer

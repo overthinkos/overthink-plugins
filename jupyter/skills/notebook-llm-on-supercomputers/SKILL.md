@@ -16,7 +16,7 @@ description: |
 | Dependencies | *(none)* |
 | Packages | *(none)* |
 | Services | *(none)* |
-| Volumes | `workspace` -> `~/workspace` (from jupyter) |
+| Volumes | `workspace` -> `/workspace` (from jupyter) |
 | Data | `data/llms_on_supercomputers` -> `workspace` volume, dest: `llms_on_supercomputers` |
 | Install files | *(none)* |
 

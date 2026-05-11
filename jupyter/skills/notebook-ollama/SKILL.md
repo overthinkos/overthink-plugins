@@ -16,7 +16,7 @@ description: |
 | Dependencies | *(none)* |
 | Packages | *(none)* |
 | Services | *(none)* |
-| Volumes | `workspace` -> `~/workspace` (from jupyter) |
+| Volumes | `workspace` -> `/workspace` (from jupyter) |
 | Data | `data/ollama` -> `workspace` volume, dest: `ollama` |
 | Install files | *(none)* |
 

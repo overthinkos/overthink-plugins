@@ -15,7 +15,7 @@ description: |
 | Dependencies | *(none)* |
 | Packages | *(none)* |
 | Services | *(none)* |
-| Volumes | `workspace` -> `~/workspace` |
+| Volumes | `workspace` -> `/workspace` |
 | Data | `data/notebooks` -> `workspace` volume |
 | Install files | *(none)* |
 

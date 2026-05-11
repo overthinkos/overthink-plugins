@@ -34,7 +34,7 @@ The `jupyter-ml` layer is a Tier 2 environment-owning meta-layer that composes:
 
 Additional layers from the image:
 - `agent-forwarding` — SSH/GPG agent forwarding
-- `notebook-templates` — Starter notebooks (data layer, seeds ~/workspace)
+- `notebook-templates` — Starter notebooks (data layer, seeds /workspace)
 - `dbus` — D-Bus session bus
 - `ov` — Overthink CLI
 
@@ -58,7 +58,7 @@ quay.io/fedora/fedora:43
 
 | Name | Path | Purpose |
 |------|------|---------|
-| workspace | ~/workspace | Persistent notebook storage |
+| workspace | /workspace | Persistent notebook storage |
 | models | ~/.cache/huggingface | HuggingFace model cache (from unsloth sub-layer) |
 
 ## Service Environment Integration
@@ -83,7 +83,7 @@ These variables are injected automatically into the container environment at `ov
 - **Unsloth** fine-tuning (LoRA, QLoRA)
 - **LangChain** RAG stack (chromadb, faiss-cpu)
 - **Evaluation** tools (evidently, sacrebleu, rouge-score)
-- **Notebook templates** seeded into ~/workspace
+- **Notebook templates** seeded into /workspace
 
 ## Quick Start
 
@@ -118,7 +118,7 @@ ov shell jupyter-ml -c "pixi run verify-collaboration"
 | Collaboration | Yes | Yes |
 | ML Stack | No | Full |
 | Volume | workspace | workspace + models |
-| Notebook dir | ~/workspace | ~/workspace |
+| Notebook dir | /workspace | /workspace |
 
 ## Related Images
 

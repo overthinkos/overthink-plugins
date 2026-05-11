@@ -20,7 +20,7 @@ ad-hoc from DAGs / shell.
 | Distros | `archlinux` + `fedora` (tippecanoe needs gcc-c++/sqlite-devel/zlib-devel on Fedora and gcc/sqlite on Arch for the source build) |
 | Ports | `3000` (martin HTTP, host-mapped to **23000**) |
 | Service | `martin` (supervisord, `restart: always`) |
-| Tile dir | `~/workspace/tiles/pmtiles/` |
+| Tile dir | `/workspace/tiles/pmtiles/` |
 | Distros packages | gdal, jq, rust + tippecanoe build deps (git, make, gcc-c++/gcc, sqlite-devel/sqlite, zlib-devel where applicable) |
 
 ## Tools installed
@@ -165,7 +165,7 @@ Deploy-scope:
 - `martin-running` — supervisord program is RUNNING
 - `martin-port-reachable` — TCP 3000 reachable
 - `martin-http-catalog` — `GET /catalog` returns 200
-- `martin-tiles-dir-runtime` — `~/workspace/tiles/pmtiles/` exists
+- `martin-tiles-dir-runtime` — `/workspace/tiles/pmtiles/` exists
 
 The catalog probe passes pre-DAG (with empty source list) and
 post-DAG (with the monaco source listed). Tile-content probes are

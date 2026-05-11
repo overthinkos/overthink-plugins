@@ -15,7 +15,7 @@ description: |
 | Dependencies | *(none)* |
 | Packages | *(none)* |
 | Services | *(none)* |
-| Volumes | `workspace` -> `~/workspace` (from unsloth-studio) |
+| Volumes | `workspace` -> `/workspace` (from unsloth-studio) |
 | Data | `data/finetuning` -> `workspace` volume, dest: `finetuning` |
 | Install files | *(none)* |
 

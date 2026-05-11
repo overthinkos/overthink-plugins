@@ -82,7 +82,7 @@ image bundles. The `layers/marimo/` directory + the
     re-exports versatiles-style / fonts / styler at `/style/`,
     `/fonts/`, `/styler/`
 16. `notebook-osm` — `/ov-versa:notebook-osm` — data-only layer
-    seeding the OSM+GTFS+pipelines notebook into `~/workspace/notebooks/`
+    seeding the OSM+GTFS+pipelines notebook into `/workspace/notebooks/`
 17. `debug-tools` — `/ov-versa:debug-tools-layer` — 49 standard
     debug utilities (network/process/file/system/session)
 18. `dbus` — D-Bus session bus
@@ -168,10 +168,10 @@ podman exec ov-versa /home/user/.pixi/envs/default/bin/marimo \
 Expected outputs (verified end-to-end):
 
 - both DAGs reach `state: success`
-- OSM parquet ~824 KB at `~/workspace/tiles/work/monaco.parquet`
-- pmtiles ~2.6 MB at `~/workspace/tiles/pmtiles/monaco.pmtiles`
-- GTFS zip ~770 KB at `~/workspace/gtfs/raw/monaco.gtfs.zip`
-- 98 stops, 15 routes, 5846 trips in `~/workspace/gtfs/parquet/`
+- OSM parquet ~824 KB at `/workspace/tiles/work/monaco.parquet`
+- pmtiles ~2.6 MB at `/workspace/tiles/pmtiles/monaco.pmtiles`
+- GTFS zip ~770 KB at `/workspace/gtfs/raw/monaco.gtfs.zip`
+- 98 stops, 15 routes, 5846 trips in `/workspace/gtfs/parquet/`
 - streets MapLibre HTML embeds martin URL, mapterhorn DEM, hillshade,
   terrain, sky, TerrainControl
 - transit folium HTML embeds 98 `circleMarker` calls

@@ -49,7 +49,7 @@ Build order: pixi environment → llama-cpp (binaries) → unsloth (vLLM 0.19 wh
 | Name | Path | Purpose |
 |------|------|---------|
 | models | ~/.cache/huggingface | HuggingFace model cache |
-| workspace | ~/workspace | Training data and outputs |
+| workspace | /workspace | Training data and outputs |
 
 ## Quick Start
 

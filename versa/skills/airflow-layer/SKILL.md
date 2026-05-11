@@ -27,7 +27,7 @@ marimo in the same pod with one combined Python environment.
 | Volumes | `airflow-data` at `~/airflow` |
 | Secrets | `airflow-fernet-key`, `airflow-webserver-secret`, `airflow-admin-password` |
 | MCP provides | `airflow` at `http://{{.ContainerName}}:19999/mcp` (Streamable HTTP) |
-| DAG folder | `~/workspace/dags` (`AIRFLOW__CORE__DAGS_FOLDER`) |
+| DAG folder | `/workspace/dags` (`AIRFLOW__CORE__DAGS_FOLDER`) |
 
 ## Airflow 3.x compatibility — 8 RCA findings
 
@@ -158,7 +158,7 @@ Deploy-scope (7):
 ## Notebook self-author DAG pattern
 
 The marimo notebook in `/ov-versa:notebook-osm` writes its own DAG
-file into `~/workspace/dags/` and triggers it via the REST API:
+file into `/workspace/dags/` and triggers it via the REST API:
 
 1. POST `/auth/token` (admin / `$AIRFLOW_ADMIN_PASSWORD`) → JWT
 2. Wait for the DAG to register: poll `GET /api/v2/dags/<id>`

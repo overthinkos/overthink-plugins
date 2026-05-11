@@ -24,7 +24,7 @@ then runs analysis + visualisation cells.
 | Dependencies | none (file-only) |
 | Data | `data/notebooks/` → `workspace:notebooks/` (deploy-time bind/seed) |
 | Eval | `notebook-osm-viz-present` — file exists in volume |
-| Notebook | `~/workspace/notebooks/osm-monaco-viz.py` (~20 cells) |
+| Notebook | `/workspace/notebooks/osm-monaco-viz.py` (~20 cells) |
 
 ## Notebook architecture (20 cells, source order)
 
@@ -65,7 +65,7 @@ intermediate.
 
 The cell uses `textwrap.dedent('''...''')` to embed a complete DAG
 file as a string literal, then `Path.write_text(...)` to drop it
-into `${AIRFLOW_DAGS_DIR}` (defaults `~/workspace/dags`,
+into `${AIRFLOW_DAGS_DIR}` (defaults `/workspace/dags`,
 overridable for cross-pod). Idempotent — overwriting on every
 notebook run keeps the DAG body in sync with the notebook (single
 source of truth).

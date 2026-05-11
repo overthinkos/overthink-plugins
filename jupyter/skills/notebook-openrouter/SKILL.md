@@ -16,7 +16,7 @@ description: |
 | Dependencies | *(none)* |
 | Packages | *(none)* |
 | Services | *(none)* |
-| Volumes | `workspace` -> `~/workspace` (from jupyter) |
+| Volumes | `workspace` -> `/workspace` (from jupyter) |
 | Data | `data/openrouter` -> `workspace` volume, dest: `openrouter` |
 | env_requires | `OPENROUTER_API_KEY` — API key for OpenRouter LLM inference |
 | Install files | *(none)* |

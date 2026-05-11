@@ -111,7 +111,7 @@ than file path because the binary's location varies across distros
 | "What's the airflow scheduler doing?" | `ps auxf \| grep airflow`, `htop`, `strace -p <pid>` |
 | "Is the marimo MCP responding?" | `curl http://localhost:2718/mcp/server`, `nc -zv localhost 2718` |
 | "Why is the GTFS download slow?" | `iftop -i eth0`, `traceroute api.transitous.org` |
-| "Is the workspace volume filling up?" | `du -sh ~/workspace/*`, `iotop` |
+| "Is the workspace volume filling up?" | `du -sh /workspace/*`, `iotop` |
 | "What's eating CPU?" | `htop`, `pidstat -u 1` |
 
 ## Cross-references

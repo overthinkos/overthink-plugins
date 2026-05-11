@@ -25,7 +25,7 @@ Lightweight JupyterLab with real-time collaboration via jupyter-collaboration (Y
 1. `fedora` (Fedora 43 base — no GPU)
 2. `pixi` → `python` → `supervisord` (transitive)
 3. `jupyter` — JupyterLab + jupyter-collaboration + data science (composes `jupyter-mcp` sub-layer for MCP extension)
-4. `notebook-templates` — Starter notebooks (data layer, seeds ~/workspace)
+4. `notebook-templates` — Starter notebooks (data layer, seeds /workspace)
 5. `agent-forwarding` — SSH/GPG agent forwarding
 5. `dbus` — D-Bus session bus
 6. `ov` — ov CLI binary
@@ -40,7 +40,7 @@ Lightweight JupyterLab with real-time collaboration via jupyter-collaboration (Y
 
 | Name | Path | Purpose |
 |------|------|---------|
-| workspace | ~/workspace | Persistent notebook storage |
+| workspace | /workspace | Persistent notebook storage |
 
 ## Quick Start
 

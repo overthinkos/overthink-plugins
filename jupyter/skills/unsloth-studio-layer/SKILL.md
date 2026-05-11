@@ -15,7 +15,7 @@ description: |
 | Dependencies | `cuda`, `supervisord` |
 | Sub-layers | `llama-cpp`, `unsloth` |
 | Ports | 8888 (Studio UI), 8000 (vLLM API) |
-| Volumes | `workspace` -> `~/workspace` |
+| Volumes | `workspace` -> `/workspace` |
 | Service | `unsloth-studio` (supervisord) |
 | Install files | `layer.yml`, `pixi.toml` |
 

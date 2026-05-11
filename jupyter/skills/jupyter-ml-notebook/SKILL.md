@@ -32,18 +32,18 @@ jupyter-ml-notebook:
 ## What's Different from jupyter-ml
 
 This image is identical to `jupyter-ml` with two data layer additions:
-- `notebook-finetuning` — seeds 37 Unsloth fine-tuning notebooks into `~/workspace/finetuning/`
-- `notebook-ollama` — seeds 6 Ollama integration notebooks into `~/workspace/ollama/`
+- `notebook-finetuning` — seeds 37 Unsloth fine-tuning notebooks into `/workspace/finetuning/`
+- `notebook-ollama` — seeds 6 Ollama integration notebooks into `/workspace/ollama/`
 
 The Ollama notebooks require a running `ollama` deployment. When deployed via `ov config ollama --update-all`, the `OLLAMA_HOST` env var is automatically injected via `env_provides` -- no manual configuration needed.
 
 ## Layer Composition
 
 - `jupyter-ml` — Tier 2 environment-owning meta-layer (PyTorch >= 2.10.0, vLLM 0.19, unsloth, LangChain, CRDT MCP via jupyter-mcp sub-layer)
-- `notebook-templates` — Starter notebooks (data layer, seeds ~/workspace)
-- `notebook-finetuning` — 37 Unsloth fine-tuning notebooks (data layer, seeds ~/workspace/finetuning/)
-- `notebook-ollama` — 6 Ollama integration notebooks (data layer, seeds ~/workspace/ollama/)
-- `notebook-llm-on-supercomputers` — 15 LLM course notebooks (data layer, seeds ~/workspace/llms_on_supercomputers/)
+- `notebook-templates` — Starter notebooks (data layer, seeds /workspace)
+- `notebook-finetuning` — 37 Unsloth fine-tuning notebooks (data layer, seeds /workspace/finetuning/)
+- `notebook-ollama` — 6 Ollama integration notebooks (data layer, seeds /workspace/ollama/)
+- `notebook-llm-on-supercomputers` — 15 LLM course notebooks (data layer, seeds /workspace/llms_on_supercomputers/)
 - `agent-forwarding` — SSH/GPG agent forwarding
 - `dbus` — D-Bus session bus
 - `ov` — Overthink CLI
@@ -58,7 +58,7 @@ The Ollama notebooks require a running `ollama` deployment. When deployed via `o
 
 | Name | Path | Purpose |
 |------|------|---------|
-| workspace | ~/workspace | Persistent notebook storage |
+| workspace | /workspace | Persistent notebook storage |
 | models | ~/.cache/huggingface | HuggingFace model cache (from unsloth sub-layer) |
 
 ## Data Layers
@@ -73,7 +73,7 @@ The Ollama notebooks require a running `ollama` deployment. When deployed via `o
 ## File Layout in JupyterLab
 
 ```
-~/workspace/
+/workspace/
   getting-started.ipynb                    (from notebook-templates)
   finetuning/                               (from notebook-finetuning)
     .env.example
@@ -145,9 +145,9 @@ The notebook-finetuning include compatibility fixes for current library versions
 ov shell jupyter-ml-notebook -c "pixi run verify-pytorch"
 ov shell jupyter-ml-notebook -c "pixi run verify-unsloth"
 ov shell jupyter-ml-notebook -c "pixi run verify-mcp"
-ov shell jupyter-ml-notebook -c "ls ~/workspace/finetuning/"
-ov shell jupyter-ml-notebook -c "ls ~/workspace/ollama/"
-ov shell jupyter-ml-notebook -c "ls ~/workspace/llms_on_supercomputers/"
+ov shell jupyter-ml-notebook -c "ls /workspace/finetuning/"
+ov shell jupyter-ml-notebook -c "ls /workspace/ollama/"
+ov shell jupyter-ml-notebook -c "ls /workspace/llms_on_supercomputers/"
 ```
 
 ## Related Images
