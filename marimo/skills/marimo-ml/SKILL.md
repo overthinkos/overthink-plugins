@@ -2,7 +2,7 @@
 name: marimo-ml
 description: |
   marimo reactive notebook environment with Apache Airflow + GPU-accelerated OSM/GTFS analytics + martin vector tiles + 3D terrain via MapLibre.
-  Composes 9 layers (agent-forwarding, marimo, airflow, osm-data, maputnik, notebook-osm, debug-tools, dbus, ov) into a single pod that exposes 5 host ports and 2 MCP servers.
+  Composes 11 layers (agent-forwarding, nvidia, cuda, marimo, airflow, osm-data, maputnik, notebook-osm, debug-tools, dbus, ov) on a CachyOS / Arch base into a single pod that exposes 5 host ports and 2 MCP servers.
   MUST be invoked before building, deploying, configuring, or troubleshooting the marimo-ml image.
 ---
 
@@ -19,33 +19,41 @@ and a MapLibre style editor (maputnik). Two MCP servers are exposed
 
 | Property | Value |
 |----------|-------|
-| Base | `nvidia` (CUDA 13 / cuDNN / ONNX Runtime on Fedora 43 nonfree) |
+| Base | `cachyos` (CUDA 13 / cuDNN / python-onnxruntime-cpu via CachyOS `extra` repo) |
 | Platforms | `linux/amd64` only (cuDF + cu130 torch are amd64-only) |
-| Layers | 9 (see "Layer stack" below) |
+| Layers | 11 (see "Layer stack" below) |
 | Ports | 5 (see "Ports + host mappings") |
 | MCP servers | 2 (marimo @ container 2718, airflow @ container 19999) |
 | Registry | `ghcr.io/overthinkos` |
 | Image tag pattern | CalVer (`YYYY.DDD.HHMM`) |
+| Builder | `archlinux-builder` (pixi/npm/cargo/aur) — overrides the fedora-builder default since cachyos has no `builder:` of its own |
 
 ## Layer stack (composition order)
 
-1. `nvidia` (base — CUDA 13 / cuDNN / ONNX Runtime)
+1. `cachyos` (base — `docker.io/cachyos/cachyos-v3:latest` OCI image, matches the upstream CachyOS docker repo workflow)
 2. `agent-forwarding` — SSH/GPG agent forwarding for in-container git push
-3. `marimo` — `/ov-marimo:marimo-layer` — pixi env (cudf-polars-cu13,
+3. `nvidia` — driver runtime (`nvidia-utils`, `nvidia-container-toolkit`)
+   — formerly inherited via `base: nvidia` (Fedora image), now an
+   explicit layer entry since the cachyos base doesn't bundle it
+4. `cuda` — CUDA toolkit (`cuda` + `cudnn` + `python-onnxruntime-cpu`
+   from CachyOS extra repo; `/opt/cuda` symlinked into
+   `/usr/{bin,include,lib64}` for path compatibility with the Fedora
+   layout). osm-data's `osmium-tool` is the one AUR build retained.
+5. `marimo` — `/ov-marimo:marimo-layer` — pixi env (cudf-polars-cu13,
    torch cu130, geopandas, quackosm, gtfs-parquet, folium, marimo,
    airflow Python deps), supervisord service `marimo edit … --mcp`
-4. `airflow` — `/ov-marimo:airflow-layer` — 4 supervisord services
+6. `airflow` — `/ov-marimo:airflow-layer` — 4 supervisord services
    (init/scheduler/dag-processor/webserver) + the airflow-mcp wrapper
-5. `osm-data` — `/ov-marimo:osm-data-layer` — tippecanoe (built from
+7. `osm-data` — `/ov-marimo:osm-data-layer` — tippecanoe (built from
    source), osmium, gdal, jq, martin (Rust), pmtiles CLI
-6. `maputnik` — `/ov-marimo:maputnik-layer` — MapLibre style editor
+8. `maputnik` — `/ov-marimo:maputnik-layer` — MapLibre style editor
    built with Vite `--base=/`
-7. `notebook-osm` — `/ov-marimo:notebook-osm` — data-only layer
+9. `notebook-osm` — `/ov-marimo:notebook-osm` — data-only layer
    seeding the dual-DAG OSM+GTFS notebook into `~/workspace/notebooks/`
-8. `debug-tools` — `/ov-marimo:debug-tools-layer` — 49 standard
+10. `debug-tools` — `/ov-marimo:debug-tools-layer` — 49 standard
    debug utilities (network/process/file/system/session)
-9. `dbus` — D-Bus session bus
-10. `ov` — `ov` CLI binary inside the container
+11. `dbus` — D-Bus session bus
+12. `ov` — `ov` CLI binary inside the container
 
 ## Ports + host mappings
 
