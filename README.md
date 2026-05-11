@@ -11,7 +11,7 @@ Plugins are sorted into **four use-case buckets**:
 | **commands** | "I want to run ov verbs" | `ov-core`, `ov-build`, `ov-eval`, `ov-automation` |
 | **kind** | "I want to author the YAML schema for an entity" | `ov-image`, `ov-vm`, `ov-kubernetes`, `ov-local`, `ov-pod` |
 | **development** | "I'm a contributor working on the ov source code itself" | `ov-internals` |
-| **images** | "I want to deploy a specific image" | `ov-distros`, `ov-languages`, `ov-infrastructure`, `ov-tools`, `ov-jupyter`, `ov-coder`, `ov-selkies`, `ov-openclaw`, `ov-marimo`, `ov-ollama`, `ov-openwebui`, `ov-comfyui`, `ov-immich`, `ov-hermes`, `ov-filebrowser` |
+| **images** | "I want to deploy a specific image" | `ov-distros`, `ov-languages`, `ov-infrastructure`, `ov-tools`, `ov-jupyter`, `ov-coder`, `ov-selkies`, `ov-openclaw`, `ov-versa`, `ov-ollama`, `ov-openwebui`, `ov-comfyui`, `ov-immich`, `ov-hermes`, `ov-filebrowser` |
 
 The directory layout under `plugins/` is **flat** — every plugin sits at
 `plugins/<name>/` (no `ov-` prefix in directory names). The `ov-` prefix
@@ -67,7 +67,7 @@ manager UI.
 | **ov-coder** | 33 | ov @ 18765 | ov coder/dev images (arch-coder, debian-coder, fedora-coder, ubuntu-coder, arch-ov) + language runtimes (golang/rust/nodejs/docker-ce). |
 | **ov-selkies** | 41 | chrome-devtools @ 9224 | Selkies-desktop family (Wayland in container with VNC + Chrome). |
 | **ov-openclaw** | 12 | chrome-devtools @ 9224 | OpenClaw AI workstation family (bootc, full, ml, sway, ollama, browser variants). |
-| **ov-marimo** | 9 | marimo @ 22718, airflow @ 29999 | Marimo notebook + Airflow + OSM/GTFS analytics + martin vector tiles. |
+| **ov-versa** | 9 | marimo @ 22718, airflow @ 29999 | Versa image — marimo notebook + Airflow + OSM/GTFS analytics + martin vector tiles. |
 | **ov-ollama** | 2 | — | Ollama LLM-server image. Pair with `ov-jupyter` to expose to notebooks. |
 | **ov-openwebui** | 2 | — | OpenWebUI chat frontend. Consumes the jupyter MCP. |
 | **ov-comfyui** | 2 | — | ComfyUI image-generation/diffusion. |

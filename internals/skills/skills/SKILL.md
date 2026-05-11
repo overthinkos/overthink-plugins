@@ -144,7 +144,7 @@ Plugins are sorted into four use-case buckets. Directory names live at
 | images | `ov-coder` | 33 | coder/dev images + ov MCP @ 18765 |
 | images | `ov-selkies` | 41 | selkies-desktop family + chrome-devtools MCP @ 9224 |
 | images | `ov-openclaw` | 12 | openclaw AI workstation + chrome-devtools MCP @ 9224 |
-| images | `ov-marimo` | 9 | marimo + airflow + OSM analytics + 2 MCP servers |
+| images | `ov-versa` | 9 | versa image — marimo + airflow + OSM analytics + 2 MCP servers |
 | images | `ov-ollama` | 2 | ollama LLM-server image |
 | images | `ov-openwebui` | 2 | openwebui chat frontend |
 | images | `ov-comfyui` | 2 | comfyui image generation |

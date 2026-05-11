@@ -16,7 +16,7 @@ description: |
 | Sub-layers | `jupyter-mcp` |
 | Ports | 8888 |
 | Service | `jupyter` (supervisord) |
-| Volume | `workspace` at `~/workspace` |
+| Volume | `workspace` at `/workspace` |
 | MCP provides | `jupyter` at `http://{{.ContainerName}}:8888/mcp` (streamable HTTP) |
 | Install files | `layer.yml` (rpm: git), `pixi.toml` |
 
@@ -74,7 +74,7 @@ The service supports optional token-based authentication via the `JUPYTER_TOKEN_
 
 ## Volume
 
-The `workspace` volume is mounted at `~/workspace`. JupyterLab serves notebooks from this directory via `--notebook-dir=$HOME/workspace`.
+The `workspace` volume is mounted at `/workspace`. JupyterLab serves notebooks from this directory via `--notebook-dir=/workspace`.
 
 ## Usage
 
@@ -206,7 +206,7 @@ OCI label (see `/ov-eval:eval` for the full schema):
     spacy.load('en_core_web_sm')"` exits 0 (proves NLP packages + model
     load successfully)
 - **Deploy-scope** (run under `ov eval live` against a live service):
-  - `workspace-dir` — `${HOME}/workspace` exists (mount visible)
+  - `workspace-dir` — `/workspace` exists (mount visible)
   - `jupyter-service` — supervisord program `jupyter` is RUNNING
   - `jupyter-port` — `${CONTAINER_IP}:${HOST_PORT:8888}` reachable
   - `jupyter-api` — `GET .../api` returns 200 with `"version"` in body

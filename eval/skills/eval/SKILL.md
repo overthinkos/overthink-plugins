@@ -833,20 +833,20 @@ Always verify with `podman run --rm <image> rpm -qf /path/to/binary`.
 
 ### 9. Volume paths don't exist at build-scope
 
-`${HOME}/workspace`, `${VOLUME_CONTAINER_PATH:name}`, and similar paths
+`/workspace`, `${VOLUME_CONTAINER_PATH:name}`, and similar paths
 are provisioned by `ov config` at deploy time. A build-scope test on
 them fails in `ov eval image` because the mount isn't attached.
 
 ```yaml
 # ❌ Fails under `ov eval image` — workspace isn't mounted
 - id: workspace-dir
-  file: ${HOME}/workspace
+  file: /workspace
   filetype: directory
 
 # ✓ Scope to deploy so it runs only against live containers
 - id: workspace-dir
   scope: deploy
-  file: ${HOME}/workspace
+  file: /workspace
   filetype: directory
 ```
 

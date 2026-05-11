@@ -256,7 +256,7 @@ ov eval cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"keyUp",
 Latest `ov eval live jupyter` run: **29 passed, 0 failed, 0 skipped**.
 All tests embedded in the `org.overthinkos.eval` OCI label:
 jupyter-lab binary under pixi, notebook-templates provisioned into
-`${HOME}/workspace`, jupyter-mcp extension enabled, fastmcp pip
+`/workspace`, jupyter-mcp extension enabled, fastmcp pip
 package installed. Deploy-scope: supervisord up, port 8888 reachable
 on `127.0.0.1`, `/api` returns 200 with `version` in body, `/mcp`
 returns 400 on empty POST (proving MCP routing is wired). Image-scope:
