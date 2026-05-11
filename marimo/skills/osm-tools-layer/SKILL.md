@@ -21,7 +21,7 @@ ad-hoc from DAGs / shell.
 | Ports | `3000` (martin HTTP, host-mapped to **23000**) |
 | Service | `martin` (supervisord, `restart: always`) |
 | Tile dir | `~/workspace/tiles/pmtiles/` |
-| Distros packages | gdal, jq + tippecanoe build deps (git, make, gcc-c++/gcc, sqlite-devel/sqlite, zlib-devel where applicable) |
+| Distros packages | gdal, jq, rust + tippecanoe build deps (git, make, gcc-c++/gcc, sqlite-devel/sqlite, zlib-devel where applicable) |
 
 ## Tools installed
 
@@ -32,10 +32,19 @@ ad-hoc from DAGs / shell.
 | `jq` | Distro pkg `jq` | JSON manipulation (also for inspecting martin's `/catalog`) |
 | `martin` | GitHub release musl binary | Rust tile server |
 | `pmtiles` | GitHub release tarball (resolved via API) | PMTiles inspection |
+| `gpq-tiles` | `cargo install gpq-tiles --root /usr/local` | Direct GeoParquet → PMTiles converter (geoparquet-io/gpq-tiles v0.6.0) |
 
 Tippecanoe is built from source because no Fedora package exists and
 upstream ships only source. Build is small (~200 MB clone, <1 min
 `make -j`); cleanup keeps the image lean.
+
+gpq-tiles is cargo-installed because its PyPI wheels cover only
+Python 3.8 / Linux x86_64 (v0.6.0; verified 2026-05) — the marimo
+pixi env is Python `<3.14` and its `[pypi-options] no-build = true`
+(load-bearing for the apache-airflow resolution) blocks sdist
+builds. Cargo builds the binary from crates.io directly; the
+~/.cargo/registry + .cargo/git caches are dropped after install to
+keep the image-size delta tractable (~50 MB for the final binary).
 
 Martin is the **musl** static binary, NOT the gnu build — gnu
 hard-depends on `libicuuc.so.74` / `libicui18n.so.74` which Fedora
@@ -108,13 +117,25 @@ serves them with `Content-Type: application/x-protobuf`. **Folium's
 fails silently → grey map.
 
 The canonical client for vector tiles is **MapLibre GL JS**.
-`/ov-marimo:notebook-osm` cell 7 uses `mo.iframe` with embedded
+`/ov-marimo:notebook-osm` cell 10 uses `mo.iframe` with embedded
 MapLibre HTML pointing at martin's TileJSON URL
 (`http://localhost:23000/monaco`) as a vector source, with separate
-polygon/line/circle layers filtered by `geometry-type`.
+polygon/line/circle layers filtered by `geometry-type`. Three
+sibling cells (11-13) render the alternative-engine outputs at
+sibling source URLs:
+
+| Source name | Producer DAG | Notebook cell |
+|---|---|---|
+| `monaco` | `notebook_osm_pipeline` (tippecanoe via duckdb-spatial GeoJSON) | 10 |
+| `monaco-gpqtiles` | `notebook_osm_gpqtiles_pipeline` (gpq-tiles direct converter) | 11 |
+| `monaco-duckdb-mvt` | `notebook_osm_duckdb_mvt_pipeline` (DuckDB ST_AsMVT + pmtiles.Writer) | 12 |
+| `monaco-duckdb-freestiler` | `notebook_osm_duckdb_freestiler_pipeline` (DuckDB → freestiler) | 13 |
 
 `/ov-marimo:maputnik-layer` is a visual editor for these styles —
 useful for iterating on map appearance without notebook rebuilds.
+`/ov-marimo:pmtiles-viewer` is a sibling SPA on port 28001 that
+inspects any of the four PMTiles archives' bbox / zoom range /
+metadata directly in the browser.
 
 ## Martin URL surface
 

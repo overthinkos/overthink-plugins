@@ -227,13 +227,13 @@
     {
       "name": "ov-marimo",
       "source": "./marimo",
-      "description": "Self-contained skills + MCP wiring for the marimo notebook environment (marimo + Airflow + OSM/GTFS analytics + martin vector tiles). Ships marimo (port 22718) and airflow (port 29999) MCP servers.",
+      "description": "Self-contained skills + MCP wiring for the marimo notebook environment (marimo + Airflow + OSM/GTFS analytics + martin vector tiles + four PMTiles generation pipelines: tippecanoe / gpq-tiles / DuckDB ST_AsMVT / DuckDB → freestiler, plus a PMTiles Viewer SPA on port 28001). Ships marimo (port 22718) and airflow (port 29999) MCP servers.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "marimo", "airflow", "notebook", "geo", "mcp"],
+      "keywords": ["ov", "marimo", "airflow", "notebook", "geo", "pmtiles", "gpq-tiles", "freestiler", "mcp"],
       "category": "images"
     },
     {

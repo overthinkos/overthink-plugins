@@ -21,8 +21,8 @@ and a MapLibre style editor (maputnik). Two MCP servers are exposed
 |----------|-------|
 | Base | `cachyos` (CUDA 13 / cuDNN / python-onnxruntime-cpu via CachyOS `extra` repo) |
 | Platforms | `linux/amd64` only (cuDF + cu130 torch are amd64-only) |
-| Layers | 11 (see "Layer stack" below) |
-| Ports | 5 (see "Ports + host mappings") |
+| Layers | 12 (see "Layer stack" below) |
+| Ports | 6 (see "Ports + host mappings") |
 | MCP servers | 2 (marimo @ container 2718, airflow @ container 19999) |
 | Registry | `ghcr.io/overthinkos` |
 | Image tag pattern | CalVer (`YYYY.DDD.HHMM`) |
@@ -44,19 +44,27 @@ and a MapLibre style editor (maputnik). Two MCP servers are exposed
    torch cu130, geopandas, quackosm, gtfs-parquet, folium, marimo,
    airflow Python deps, plus polars-st / geopolars / geoarrow-pyarrow /
    geoarrow-pandas / lonboard for Polars-native spatial ops + deck.gl
-   rendering), supervisord service `marimo edit … --mcp`
+   rendering, plus freestiler for direct DuckDB → PMTiles tile
+   generation — gpq-tiles is system-installed via the osm-tools layer
+   instead, because its PyPI wheels don't cover Python 3.13/Linux x86_64
+   and the pixi env's `no-build = true` blocks sdist resolution),
+   supervisord service `marimo edit … --mcp`
 6. `airflow` — `/ov-marimo:airflow-layer` — 4 supervisord services
    (init/scheduler/dag-processor/webserver) + the airflow-mcp wrapper
 7. `osm-tools` — `/ov-marimo:osm-tools-layer` — tippecanoe (built from
-   source), gdal, jq, martin (Rust), pmtiles CLI
+   source), gdal, jq, martin (Rust binary), pmtiles CLI (Go binary),
+   gpq-tiles (cargo-installed Rust binary; v0.6.0 from crates.io —
+   the system-install fallback for the PyPI-wheel gap)
 8. `maputnik` — `/ov-marimo:maputnik-layer` — MapLibre style editor
    built with Vite `--base=/`
-9. `notebook-osm` — `/ov-marimo:notebook-osm` — data-only layer
-   seeding the dual-DAG OSM+GTFS notebook into `~/workspace/notebooks/`
-10. `debug-tools` — `/ov-marimo:debug-tools-layer` — 49 standard
-   debug utilities (network/process/file/system/session)
-11. `dbus` — D-Bus session bus
-12. `ov` — `ov` CLI binary inside the container
+9. `pmtiles-viewer` — `/ov-marimo:pmtiles-viewer` — protomaps/PMTiles
+   /app SPA, visual inspector for PMTiles archives (port 8001 → 28001)
+10. `notebook-osm` — `/ov-marimo:notebook-osm` — data-only layer
+    seeding the OSM+GTFS+pipelines notebook into `~/workspace/notebooks/`
+11. `debug-tools` — `/ov-marimo:debug-tools-layer` — 49 standard
+    debug utilities (network/process/file/system/session)
+12. `dbus` — D-Bus session bus
+13. `ov` — `ov` CLI binary inside the container
 
 ## Ports + host mappings
 
@@ -70,6 +78,7 @@ remaps to host ports for browser reachability:
 | airflow MCP | 19999 | **29999** | `/mcp` |
 | martin tile server | 3000 | **23000** | `/<source>/{z}/{x}/{y}` (vector tiles), `/<source>` (TileJSON), `/catalog` |
 | maputnik static editor | 8000 | **28000** | `/` (SPA root) |
+| pmtiles-viewer SPA | 8001 | **28001** | `/` (SPA root — load remote PMTiles archive via the UI's URL input) |
 
 **Host port 8080 is NOT used** for airflow because traefik already
 binds it on the operator's machine. Always use **28080** for airflow
@@ -87,7 +96,7 @@ marimo:
   image: marimo
   disposable: true
   lifecycle: dev
-  ports: [22718:2718, 28080:8080, 29999:19999, 23000:3000, 28000:8000]
+  ports: [22718:2718, 28080:8080, 29999:19999, 23000:3000, 28000:8000, 28001:8001]
   env:
     # Browser-bound (embedded in folium/MapLibre HTML)
     - "MARTIN_PUBLIC_URL=http://127.0.0.1:23000"

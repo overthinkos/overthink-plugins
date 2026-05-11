@@ -24,7 +24,7 @@ entry (Claude Code runs on the host). Container-internal ports
 - `.claude-plugin/plugin.json` — plugin metadata
 - `.mcp.json` — registration of both MCP servers
 - `README.md` — this file
-- `skills/<name>/SKILL.md` — 9 skills covering the marimo ecosystem
+- `skills/<name>/SKILL.md` — 10 skills covering the marimo ecosystem
 
 ## Skills
 
@@ -35,9 +35,10 @@ entry (Claude Code runs on the host). Container-internal ports
 | `marimo-mcp` | mcp server | the 10 marimo MCP tools + execution gap |
 | `airflow-layer` | layer | Airflow 3.x compatibility (8 surfaced bugs from RCA) |
 | `airflow-mcp` | mcp server | mcp-server-apache-airflow tools + JWT auth flow |
-| `notebook-osm` | data layer | the dual-DAG OSM+GTFS notebook architecture |
+| `notebook-osm` | data layer | the five-DAG OSM + GTFS + 3-pipeline-comparison notebook architecture |
 | `maputnik-layer` | layer | maputnik build with Vite `--base=/` override |
-| `osm-tools-layer` | layer | tippecanoe + martin + DAG-completion reload pattern |
+| `pmtiles-viewer` | layer | protomaps/PMTiles /app SPA on port 28001 — visual inspector for the four sibling PMTiles archives the image produces |
+| `osm-tools-layer` | layer | tippecanoe + martin + DAG-completion reload pattern + four sibling sources |
 | `debug-tools-layer` | layer | 49-tool distro-agnostic debug toolkit |
 
 ## Requirements
