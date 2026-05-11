@@ -24,30 +24,32 @@ then runs analysis + visualisation cells.
 | Dependencies | none (file-only) |
 | Data | `data/notebooks/` → `workspace:notebooks/` (deploy-time bind/seed) |
 | Eval | `notebook-osm-viz-present` — file exists in volume |
-| Notebook | `~/workspace/notebooks/osm-monaco-viz.py` (~18 cells) |
+| Notebook | `~/workspace/notebooks/osm-monaco-viz.py` (~20 cells) |
 
-## Notebook architecture (18 cells, source order)
+## Notebook architecture (20 cells, source order)
 
 | # | Purpose | Returns |
 |---|---|---|
 | 1 | imports | mo, os, time, textwrap, requests, Path, polars, folium |
 | 2 | markdown header (mo.md) | rendered intro + URL strategy table |
-| 3 | self-author **all five** DAG files (osm + gtfs + gpqtiles + duckdb-mvt + duckdb-freestiler) | `dag_files`, `dag_ids = [5 ids]`, `dags_dir` |
-| 4 | trigger ALL FIVE DAGs in parallel + poll until each succeeds | `dag_run_states = {osm: success, gtfs: success, gpqtiles: success, duckdb_mvt: success, duckdb_freestiler: success}` |
+| 3 | self-author **all six** DAG files (osm + gtfs + gpqtiles + duckdb-mvt + duckdb-freestiler + shortbread) | `dag_files`, `dag_ids = [6 ids]`, `dags_dir` |
+| 4 | trigger ALL SIX DAGs in parallel + poll until each succeeds | `dag_run_states = {6 ids → success}` |
 | 5 | OSM GPU `geom_kb` histogram via cudf-polars-cu13 | `df_gpu`, `parquet_path` |
 | 6 | OSM tag-key histogram via pyarrow (workaround) | `df_tags` |
 | 7 | DuckDB Spatial geom-type counts (`INSTALL spatial`) | `df_duckdb_spatial` |
 | 8 | polars-st bounding-box area top-10 (`.st.*` namespace) | `df_polars_st` |
 | 9 | geopolars version + public-API inventory (alpha tripwire) | `df_geopolars` |
-| 10 | streets MapLibre GL JS map (vector tiles + 3D terrain) — `monaco` source | renders inline iframe |
+| 10 | streets MapLibre GL JS map (vector tiles + 3D terrain) — `monaco` source on martin :23000 | renders inline iframe |
 | 11 | helper: `build_pipeline_maplibre_html` — shared MapLibre template for the pipeline comparison cells | `(build_pipeline_maplibre_html,)` |
 | 12 | gpq-tiles MapLibre map — `monaco-gpqtiles` source | renders inline iframe |
 | 13 | DuckDB ST_AsMVT MapLibre map — `monaco-duckdb-mvt` source | renders inline iframe |
 | 14 | DuckDB → freestiler MapLibre map — `monaco-duckdb-freestiler` source | renders inline iframe |
-| 15 | cudf-polars CUDA probe + GPU vs CPU benchmark on 2M-row synthetic numeric data | `df_cudf_polars_bench` |
-| 16 | GTFS analytics — stops/routes/trips counts + top routes | `df_route_stops`, `df_stops`, `gtfs_summary` |
-| 17 | render `df_route_stops` as table | (display) |
-| 18 | transit folium map (98 bus-stop CircleMarkers) | renders folium |
+| 15 | versatiles convert round-trip demo: PMTiles → .versatiles → PMTiles | `df_versatiles_convert` |
+| 16 | Shortbread MapLibre map — `monaco-shortbread` on versatiles serve :28090, styled with `@versatiles/style.colorful()` | renders inline iframe |
+| 17 | cudf-polars CUDA probe + GPU vs CPU benchmark on 2M-row synthetic numeric data | `df_cudf_polars_bench` |
+| 18 | GTFS analytics — stops/routes/trips counts + top routes | `df_route_stops`, `df_stops`, `gtfs_summary` |
+| 19 | render `df_route_stops` as table | (display) |
+| 20 | transit folium map (98 bus-stop CircleMarkers) | renders folium |
 
 The five DAGs are independent (`notebook_osm_pipeline`,
 `notebook_gtfs_pipeline`, `notebook_osm_gpqtiles_pipeline`,
@@ -178,7 +180,7 @@ Expected results (verified):
 - Cell 7: MapLibre HTML embeds martin URL + mapterhorn DEM, no trust wrapper
 - Cell 8: GTFS counts: 98 stops, 15 routes, 5846 trips, 80581 stop_times
 - Cell 9: top route `'5'` with 46 distinct stops
-- Cell 18: folium HTML contains 98 `circleMarker` calls
+- Cell 20: folium HTML contains 98 `circleMarker` calls
 
 ## Cross-references
 

@@ -21,8 +21,8 @@ and a MapLibre style editor (maputnik). Two MCP servers are exposed
 |----------|-------|
 | Base | `cachyos` (CUDA 13 / cuDNN / python-onnxruntime-cpu via CachyOS `extra` repo) |
 | Platforms | `linux/amd64` only (cuDF + cu130 torch are amd64-only) |
-| Layers | 12 (see "Layer stack" below) |
-| Ports | 6 (see "Ports + host mappings") |
+| Layers | 18 (see "Layer stack" below) |
+| Ports | 8 (see "Ports + host mappings") |
 | MCP servers | 2 (marimo @ container 2718, airflow @ container 19999) |
 | Registry | `ghcr.io/overthinkos` |
 | Image tag pattern | CalVer (`YYYY.DDD.HHMM`) |
@@ -59,12 +59,29 @@ and a MapLibre style editor (maputnik). Two MCP servers are exposed
    built with Vite `--base=/`
 9. `pmtiles-viewer` — `/ov-marimo:pmtiles-viewer` — protomaps/PMTiles
    /app SPA, visual inspector for PMTiles archives (port 8001 → 28001)
-10. `notebook-osm` — `/ov-marimo:notebook-osm` — data-only layer
+10. `shortbread` — `/ov-marimo:shortbread` — systemed/tilemaker (C++/Lua)
+    + shortbread-tilemaker config — produces shortbread-schema vector
+    tiles into `/workspace/tiles/shortbread/`
+11. `versatiles-style` — `/ov-marimo:versatiles-style` — @versatiles/style
+    MapLibre style generator bundled to `/opt/versatiles-style/`
+12. `versatiles-fonts` — `/ov-marimo:versatiles-fonts` — SDF font glyphs
+    (Noto Sans + 9 others) bundled to `/opt/versatiles-fonts/`
+13. `maplibre-versatiles-styler` — `/ov-marimo:maplibre-versatiles-styler` —
+    interactive MapLibre style-switcher control bundled to
+    `/opt/maplibre-versatiles-styler/`
+14. `versatiles` — `/ov-marimo:versatiles` — versatiles-rs CLI binary
+    (convert/serve/probe) + `versatiles serve` supervisord service on
+    port 8090 → 28090 (parallel tile server to martin)
+15. `versatiles-frontend` — `/ov-marimo:versatiles-frontend` —
+    versatiles-org/versatiles-frontend SPA (port 8002 → 28002); also
+    re-exports versatiles-style / fonts / styler at `/style/`,
+    `/fonts/`, `/styler/`
+16. `notebook-osm` — `/ov-marimo:notebook-osm` — data-only layer
     seeding the OSM+GTFS+pipelines notebook into `~/workspace/notebooks/`
-11. `debug-tools` — `/ov-marimo:debug-tools-layer` — 49 standard
+17. `debug-tools` — `/ov-marimo:debug-tools-layer` — 49 standard
     debug utilities (network/process/file/system/session)
-12. `dbus` — D-Bus session bus
-13. `ov` — `ov` CLI binary inside the container
+18. `dbus` — D-Bus session bus
+19. `ov` — `ov` CLI binary inside the container
 
 ## Ports + host mappings
 
@@ -79,6 +96,8 @@ remaps to host ports for browser reachability:
 | martin tile server | 3000 | **23000** | `/<source>/{z}/{x}/{y}` (vector tiles), `/<source>` (TileJSON), `/catalog` |
 | maputnik static editor | 8000 | **28000** | `/` (SPA root) |
 | pmtiles-viewer SPA | 8001 | **28001** | `/` (SPA root — load remote PMTiles archive via the UI's URL input) |
+| versatiles-frontend SPA | 8002 | **28002** | `/` (SPA root); `/style/` re-exports versatiles-style bundle |
+| versatiles serve | 8090 | **28090** | `/tiles/<source>/{z}/{x}/{y}.pbf` (parallel tile server to martin; serves /workspace/tiles/shortbread/) |
 
 **Host port 8080 is NOT used** for airflow because traefik already
 binds it on the operator's machine. Always use **28080** for airflow
@@ -96,7 +115,7 @@ marimo:
   image: marimo
   disposable: true
   lifecycle: dev
-  ports: [22718:2718, 28080:8080, 29999:19999, 23000:3000, 28000:8000, 28001:8001]
+  ports: [22718:2718, 28080:8080, 29999:19999, 23000:3000, 28000:8000, 28001:8001, 28002:8002, 28090:8090]
   env:
     # Browser-bound (embedded in folium/MapLibre HTML)
     - "MARTIN_PUBLIC_URL=http://127.0.0.1:23000"

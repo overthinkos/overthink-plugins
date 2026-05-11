@@ -1,0 +1,68 @@
+---
+name: maplibre-versatiles-styler
+description: |
+  maplibre-versatiles-styler — interactive MapLibre GL JS control widget. Renders a collapsible sidebar on the map enabling users to switch between VersaTiles style presets (colorful/eclipse/graybeard/neutrino/shadow/satellite), edit color palettes, apply global recoloring, adjust fonts/language, modify satellite imagery settings, and export the resulting style JSON. Bundled locally from the npm package so the notebook's MapLibre cell can `<script src>` it without a CDN dependency. Re-exported by the versatiles-frontend layer's http.server at /styler/.
+  MUST be invoked before building, deploying, or troubleshooting the maplibre-versatiles-styler layer.
+---
+
+# maplibre-versatiles-styler — interactive style-switcher control
+
+## Layer properties
+
+| Property | Value |
+|----------|-------|
+| Dependencies | `supervisord` (transitive; no service of its own) |
+| Distros | `archlinux` + `fedora` |
+| Build deps | nodejs, npm, curl, jq |
+| Install path | `/opt/maplibre-versatiles-styler/` |
+| Re-exported at | `/opt/versatiles-frontend/styler/` (by the versatiles-frontend layer) |
+
+## Usage pattern (in the notebook cell)
+
+```javascript
+// Loaded via <script src="/styler/maplibre-versatiles-styler.umd.js" defer></script>
+window.addEventListener('load', () => {
+  if (window.VersaTilesStylerControl) {
+    map.addControl(new window.VersaTilesStylerControl({ open: false }));
+  }
+});
+```
+
+The control attaches as a MapLibre `IControl` and renders a sidebar
+widget on the right edge of the map. Operators can:
+
+- Click a preset (colorful, eclipse, graybeard, …) to swap styles
+- Adjust a color picker to recolor the entire map palette
+- Change the label language (overrides the `language: 'en'` option
+  passed to the style generator at construction time)
+- Toggle satellite-imagery layers
+- Copy the resulting style JSON to clipboard for use in other tools
+
+## Two-tier install
+
+Same pattern as `/ov-marimo:versatiles-style`:
+
+1. **Tier 1**: GitHub release tarball if available.
+2. **Tier 2** (fallback): `npm install maplibre-versatiles-styler` and
+   copy the package's `dist/` directory.
+
+The eval probe is lenient about the exact filename (the package
+ships both ESM and UMD builds across multiple paths) — it asserts
+that at least one non-empty `*.js` file exists under
+`/opt/maplibre-versatiles-styler/`.
+
+## Eval probes
+
+Build-scope:
+- `maplibre-versatiles-styler-bundle-present` — at least one non-empty `*.js` file exists under `/opt/maplibre-versatiles-styler/`
+
+## Cross-references
+
+- `/ov-marimo:marimo` — image composing this layer
+- `/ov-marimo:versatiles-style` — the style generator whose output
+  this control mutates at runtime
+- `/ov-marimo:versatiles-fonts` — the font bundle the control's
+  language-switcher references
+- `/ov-marimo:versatiles-frontend` — re-exports this bundle at `/styler/`
+- `/ov-marimo:notebook-osm` — the shortbread MapLibre cell that
+  attaches this control to its map instance

@@ -24,7 +24,7 @@ entry (Claude Code runs on the host). Container-internal ports
 - `.claude-plugin/plugin.json` — plugin metadata
 - `.mcp.json` — registration of both MCP servers
 - `README.md` — this file
-- `skills/<name>/SKILL.md` — 10 skills covering the marimo ecosystem
+- `skills/<name>/SKILL.md` — 16 skills covering the marimo ecosystem
 
 ## Skills
 
@@ -35,9 +35,15 @@ entry (Claude Code runs on the host). Container-internal ports
 | `marimo-mcp` | mcp server | the 10 marimo MCP tools + execution gap |
 | `airflow-layer` | layer | Airflow 3.x compatibility (8 surfaced bugs from RCA) |
 | `airflow-mcp` | mcp server | mcp-server-apache-airflow tools + JWT auth flow |
-| `notebook-osm` | data layer | the five-DAG OSM + GTFS + 3-pipeline-comparison notebook architecture |
+| `notebook-osm` | data layer | the six-DAG OSM + GTFS + 4-pipeline-comparison + shortbread notebook architecture |
 | `maputnik-layer` | layer | maputnik build with Vite `--base=/` override |
 | `pmtiles-viewer` | layer | protomaps/PMTiles /app SPA on port 28001 — visual inspector for the four sibling PMTiles archives the image produces |
+| `shortbread` | layer | tilemaker (C++) + shortbread-tilemaker Lua config; produces shortbread-schema vector tiles |
+| `versatiles` | layer | versatiles-rs CLI (convert/serve/probe) + `versatiles serve` supervisord service on port 28090 |
+| `versatiles-style` | layer | @versatiles/style MapLibre style generator (colorful/eclipse/graybeard/...) bundled locally |
+| `versatiles-fonts` | layer | SDF font glyph PBFs (Noto Sans + 9 others) for MapLibre rendering |
+| `maplibre-versatiles-styler` | layer | interactive MapLibre control widget for switching versatiles styles + recoloring + exports |
+| `versatiles-frontend` | layer | versatiles-org/versatiles-frontend SPA on port 28002; also re-exports versatiles-style / fonts / styler at `/style/`, `/fonts/`, `/styler/` |
 | `osm-tools-layer` | layer | tippecanoe + martin + DAG-completion reload pattern + four sibling sources |
 | `debug-tools-layer` | layer | 49-tool distro-agnostic debug toolkit |
 
