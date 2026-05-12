@@ -26,42 +26,48 @@ then runs analysis + visualisation cells.
 | Eval | `notebook-osm-viz-present` — file exists in volume |
 | Notebook | `/workspace/notebooks/osm-monaco-viz.py` (~20 cells) |
 
-## Notebook architecture (20 cells, source order)
+## Notebook architecture (21 cells, source order)
 
 | # | Purpose | Returns |
 |---|---|---|
 | 1 | imports | mo, os, time, textwrap, requests, Path, polars, folium |
-| 2 | markdown header (mo.md) | rendered intro + URL strategy table |
-| 3 | self-author **all six** DAG files (osm + gtfs + gpqtiles + duckdb-mvt + duckdb-freestiler + shortbread) | `dag_files`, `dag_ids = [6 ids]`, `dags_dir` |
-| 4 | trigger ALL SIX DAGs in parallel + poll until each succeeds | `dag_run_states = {6 ids → success}` |
-| 5 | OSM GPU `geom_kb` histogram via cudf-polars-cu13 | `df_gpu`, `parquet_path` |
-| 6 | OSM tag-key histogram via pyarrow (workaround) | `df_tags` |
-| 7 | DuckDB Spatial geom-type counts (`INSTALL spatial`) | `df_duckdb_spatial` |
-| 8 | polars-st bounding-box area top-10 (`.st.*` namespace) | `df_polars_st` |
-| 9 | geopolars version + public-API inventory (alpha tripwire) | `df_geopolars` |
-| 10 | streets MapLibre GL JS map (vector tiles + 3D terrain) — `monaco` source on martin :23000 | renders inline iframe |
-| 11 | helper: `build_pipeline_maplibre_html` — shared MapLibre template for the pipeline comparison cells | `(build_pipeline_maplibre_html,)` |
-| 12 | gpq-tiles MapLibre map — `monaco-gpqtiles` source | renders inline iframe |
-| 13 | DuckDB ST_AsMVT MapLibre map — `monaco-duckdb-mvt` source | renders inline iframe |
-| 14 | DuckDB → freestiler MapLibre map — `monaco-duckdb-freestiler` source | renders inline iframe |
-| 15 | versatiles convert round-trip demo: PMTiles → .versatiles → PMTiles | `df_versatiles_convert` |
-| 16 | Shortbread MapLibre map — `monaco-shortbread` on versatiles serve :28090, styled with `@versatiles/style.colorful()` | renders inline iframe |
-| 17 | cudf-polars CUDA probe + GPU vs CPU benchmark on 2M-row synthetic numeric data | `df_cudf_polars_bench` |
-| 18 | GTFS analytics — stops/routes/trips counts + top routes | `df_route_stops`, `df_stops`, `gtfs_summary` |
-| 19 | render `df_route_stops` as table | (display) |
-| 20 | transit folium map (98 bus-stop CircleMarkers) | renders folium |
+| 2 | **`_resolved_urls`** — diagnostic cell: renders a polars DataFrame of the seven URL env vars (purpose / env_var / value / side / is_default) and exports each as a typed value so downstream map cells consume them as parameters instead of re-reading `os.environ` per cell. The user's first window into "what URLs am I actually using" — verifies `port: [auto]` allocations and any cross-pod URL overrides without inspecting deploy.yml. **Added 2026-05.** | `urls`, `martin`, `airflow_api_internal`, `airflow_public`, `airflow_dags_dir`, `versatiles_public`, `versatiles_style`, `versatiles_assets` |
+| 3 | markdown header (mo.md) | rendered intro + URL strategy table |
+| 4 | self-author **all six** DAG files (osm + gtfs + gpqtiles + duckdb-mvt + duckdb-freestiler + shortbread) | `dag_files`, `dag_ids = [6 ids]`, `dags_dir` |
+| 5 | trigger ALL SIX DAGs in parallel + poll until each succeeds | `dag_run_states = {6 ids → success}` |
+| 6 | OSM GPU `geom_kb` histogram via cudf-polars-cu13 | `df_gpu`, `parquet_path` |
+| 7 | OSM tag-key histogram via pyarrow (workaround) | `df_tags` |
+| 8 | DuckDB Spatial geom-type counts (`INSTALL spatial`) | `df_duckdb_spatial` |
+| 9 | polars-st bounding-box area top-10 (`.st.*` namespace) | `df_polars_st` |
+| 10 | geopolars version + public-API inventory (alpha tripwire) | `df_geopolars` |
+| 11 | streets MapLibre GL JS map (vector tiles + 3D terrain) — `monaco` source via the `martin` parameter from cell #2 | renders inline iframe |
+| 12 | helper: `build_pipeline_maplibre_html` — shared MapLibre template for the pipeline comparison cells | `(build_pipeline_maplibre_html,)` |
+| 13 | gpq-tiles MapLibre map — `monaco-gpqtiles` source via `martin` parameter | renders inline iframe |
+| 14 | DuckDB ST_AsMVT MapLibre map — `monaco-duckdb-mvt` source via `martin` parameter | renders inline iframe |
+| 15 | DuckDB → freestiler MapLibre map — `monaco-duckdb-freestiler` source via `martin` parameter | renders inline iframe |
+| 16 | versatiles convert round-trip demo: PMTiles → .versatiles → PMTiles | `df_versatiles_convert` |
+| 17 | Shortbread MapLibre map — `monaco-shortbread` on versatiles serve, styled with `@versatiles/style.colorful()` | renders inline iframe |
+| 18 | cudf-polars CUDA probe + GPU vs CPU benchmark on 2M-row synthetic numeric data | `df_cudf_polars_bench` |
+| 19 | GTFS analytics — stops/routes/trips counts + top routes | `df_route_stops`, `df_stops`, `gtfs_summary` |
+| 20 | render `df_route_stops` as table | (display) |
+| 21 | transit folium map (98 bus-stop CircleMarkers) | renders folium |
+
+**The four MapLibre cells (11, 13, 14, 15) share the `martin` URL via
+cell #2's exports** — no per-cell `os.environ.get("MARTIN_PUBLIC_URL")`
+re-reads. This is the post-2026-05 DRY refactor: the diagnostic cell
+is the single source of truth for all seven URL env vars (R3).
 
 The five DAGs are independent (`notebook_osm_pipeline`,
 `notebook_gtfs_pipeline`, `notebook_osm_gpqtiles_pipeline`,
 `notebook_osm_duckdb_mvt_pipeline`,
 `notebook_osm_duckdb_freestiler_pipeline`) but triggered + polled
-together by the single trigger cell. Cells 11-13 depend on the
+together by the single trigger cell. Cells 13-15 depend on the
 existence of monaco.parquet which the OSM DAG produces in its
 `pbf_to_geoparquet` task — so the three pipeline DAGs run only
 after the original OSM DAG's task chain produces the parquet
 intermediate.
 
-## DAG self-authoring pattern (cell 3)
+## DAG self-authoring pattern (cell 4)
 
 The cell uses `textwrap.dedent('''...''')` to embed a complete DAG
 file as a string literal, then `Path.write_text(...)` to drop it
@@ -77,7 +83,7 @@ The OSM DAG ends with a `reload_martin` task that runs
 The GTFS DAG uses `gtfs_parquet.parse_gtfs(zip_path)` then
 `write_parquet(dir)` to produce one `.parquet` per GTFS table.
 
-## DAG trigger pattern (cell 4)
+## DAG trigger pattern (cell 5)
 
 ```python
 # 1. Get JWT from /auth/token
@@ -113,9 +119,9 @@ arrow2 MapArray reader decodes the logical type as
 `.collect()`, `.read_parquet()`, AND `.collect(engine="gpu")`. NOT
 GPU-specific.
 
-**Workaround in cell 6**: read `tags` via `pyarrow.read_table` (which
+**Workaround in cell 7**: read `tags` via `pyarrow.read_table` (which
 handles `map<string,string>` correctly) + tally tag KEYS via
-`collections.Counter`. The GPU cell (cell 5) avoids `tags` entirely
+`collections.Counter`. The GPU cell (cell 6) avoids `tags` entirely
 by grouping on a flat `geom_kb` column.
 
 ### 2. Folium "Make this Notebook Trusted" wrapper
@@ -136,7 +142,7 @@ Tippecanoe → pmtiles → martin produces VECTOR tiles
 `Content-Type: application/x-protobuf`). Folium's TileLayer treats
 responses as PNG/JPG → silent failure → grey map.
 
-**Fix in cell 7**: replaced folium with **MapLibre GL JS** via
+**Fix in cell 11** (the streets MapLibre cell): replaced folium with **MapLibre GL JS** via
 `mo.iframe`. Vector source pointed at martin's TileJSON URL,
 polygon/line/circle layers filtered by geometry-type.
 
@@ -174,13 +180,14 @@ podman exec ov-versa /home/user/.pixi/envs/default/bin/marimo \
 
 Expected results (verified):
 
-- Cell 4: `{"notebook_osm_pipeline": "success", "notebook_gtfs_pipeline": "success"}`
-- Cell 5: polars DataFrame shape (9, 2) — geom_kb histogram
-- Cell 6: polars DataFrame shape (20, 2), top key `'highway'` count 4571
-- Cell 7: MapLibre HTML embeds martin URL + mapterhorn DEM, no trust wrapper
-- Cell 8: GTFS counts: 98 stops, 15 routes, 5846 trips, 80581 stop_times
-- Cell 9: top route `'5'` with 46 distinct stops
-- Cell 20: folium HTML contains 98 `circleMarker` calls
+- Cell 2 (NEW): polars DataFrame shape (7, 5) — resolved URLs table
+- Cell 5: `{"notebook_osm_pipeline": "success", "notebook_gtfs_pipeline": "success", ...}`
+- Cell 6: polars DataFrame shape (9, 2) — geom_kb histogram
+- Cell 7: polars DataFrame shape (20, 2), top key `'highway'` count 4571
+- Cell 11: MapLibre HTML embeds martin URL + mapterhorn DEM, no trust wrapper
+- Cell 19: GTFS counts: 98 stops, 15 routes, 5846 trips, 80581 stop_times
+- Cell 20: top route `'5'` with 46 distinct stops
+- Cell 21: folium HTML contains 98 `circleMarker` calls
 
 ## Cross-references
 

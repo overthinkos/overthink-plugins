@@ -108,11 +108,17 @@ remaps to host ports for browser reachability:
 binds it on the operator's machine. Always use **28080** for airflow
 from the host.
 
-## Required deploy.yml env block
+## Required deploy.yml entry
 
-The user's browser is on the host; container-internal `localhost:N`
-URLs do NOT resolve there. The notebook reads four env vars to
-bridge the two URL spaces:
+Starting with the 2026-05 port + env automation cutover, the versa
+deploy entry is minimal — the seven URL env vars the notebook reads
+are all auto-injected via per-producing-layer `env_provides:` blocks,
+and the eight container ports are auto-allocated to free host ports
+when the operator writes `port: [auto]`. The user's browser is on the
+host; container-internal `localhost:N` URLs do NOT resolve there —
+but the auto-derived `*_PUBLIC_URL` vars correctly carry the
+host-side mapping, so the browser-bound and kernel-bound URL spaces
+stay in sync automatically:
 
 ```yaml
 versa:
@@ -120,20 +126,54 @@ versa:
   image: versa
   disposable: true
   lifecycle: dev
-  ports: [22718:2718, 28080:8080, 29999:19999, 23000:3000, 28000:8000, 28001:8001, 28002:8002, 28090:8090]
-  env:
-    # Browser-bound (embedded in folium/MapLibre HTML)
-    - "MARTIN_PUBLIC_URL=http://127.0.0.1:23000"
-    - "AIRFLOW_PUBLIC_URL=http://127.0.0.1:28080"
-    # Notebook-internal (server-side requests in the kernel)
-    - "AIRFLOW_API_INTERNAL_URL=http://localhost:8080"
-    - "AIRFLOW_DAGS_DIR=/workspace/dags"
+  port: [auto]    # auto-allocate one free host port per image-declared
+                  # container port. The resolved expansion is persisted
+                  # as `resolved_port:` alongside this entry on the
+                  # next `ov config versa` / `ov update versa` run.
+```
+
+That's the entire entry. No `env:` block — the seven URL env vars
+flow from layer `env_provides:`:
+
+| env var | Producer layer | Template |
+|---|---|---|
+| `MARTIN_PUBLIC_URL` | `osm-tools` | `http://127.0.0.1:{{.HostPort 3000}}` |
+| `AIRFLOW_PUBLIC_URL` | `airflow` | `http://127.0.0.1:{{.HostPort 8080}}` |
+| `AIRFLOW_API_INTERNAL_URL` | `airflow` | `http://{{.ContainerName}}:8080` (rewritten to `localhost:8080` same-pod) |
+| `AIRFLOW_DAGS_DIR` | `airflow` | `/workspace/dags` (static) |
+| `VERSATILES_PUBLIC_URL` | `versatiles` | `http://127.0.0.1:{{.HostPort 8090}}` |
+| `VERSATILES_STYLE_PUBLIC_URL` | `versatiles-frontend` | `http://127.0.0.1:{{.HostPort 8002}}/style` |
+| `VERSATILES_ASSETS_PUBLIC_URL` | `versatiles-frontend` | `http://127.0.0.1:{{.HostPort 8002}}` |
+
+If you need stable host ports across rebuilds (e.g. browser
+bookmarks), replace `port: [auto]` with an explicit list — the
+`env_provides:` templates substitute against whichever ports you
+chose, so the URL env vars stay correct either way:
+
+```yaml
+port:
+  - "22718:2718"
+  - "28080:8080"
+  - "29999:19999"
+  - "23000:3000"
+  - "28000:8000"
+  - "28001:8001"
+  - "28002:8002"
+  - "28090:8090"
 ```
 
 For cross-pod topologies (airflow in a separate pod on the shared
-`ov` podman network), override `AIRFLOW_API_INTERNAL_URL` to
-`http://airflow-pod:8080` and ensure both pods mount the same
-`workspace` volume at the same path.
+`ov` podman network), no special handling needed — the
+`AIRFLOW_API_INTERNAL_URL` template renders to
+`http://<airflow-pod-name>:8080` because `{{.ContainerName}}`
+resolves to the airflow image's container, and `podAwareEnvProvides`
+only rewrites to `localhost` when consumer and producer share a pod.
+
+**To verify the resolved URLs once the deploy is running**, open the
+notebook — the new diagnostic cell at the top (`_resolved_urls`)
+renders a polars DataFrame listing every URL env var, its current
+value, and whether it came from `env_provides` injection or the
+fallback default. See `/ov-versa:notebook-osm` cell #2.
 
 ## MCP servers
 
@@ -153,8 +193,25 @@ software identity, not OUR image identity.
 
 ```bash
 ov update --build --force-seed versa
-ov eval live versa         # → 82 passed · 0 failed · 0 skipped
+ov eval live versa         # → 93 passed · 0 failed · 0 skipped
 ```
+
+The 11 new probes (added in the 2026-05 cutover; brings 82 → 93) all
+live under the `image.versa.deploy_eval` block in `overthink.yml` so
+they run AFTER every per-layer eval section:
+
+| probe id | what it checks |
+|---|---|
+| `versa-notebook-export` | end-to-end `marimo export ipynb` — triggers all 6 self-authored DAGs and renders every cell server-side (the single highest-value probe; 600s timeout) |
+| `versa-notebook-size` | rendered `.ipynb` is ≥100 KB (catches empty-cell renders) |
+| `versa-martin-monaco` | TileJSON for the canonical `monaco` source returns 200 + body contains `tilejson` + `vector_layers` |
+| `versa-martin-monaco-gpqtiles` | same for `monaco-gpqtiles` |
+| `versa-martin-monaco-duckdb-mvt` | same for `monaco-duckdb-mvt` |
+| `versa-martin-monaco-duckdb-freestiler` | same for `monaco-duckdb-freestiler` |
+| `versa-versatiles-shortbread-tile` | versatiles serve returns a non-empty PBF tile for the shortbread output (HEAD content-length probe) |
+| `versa-artifact-parquet` | post-DAG `monaco.parquet` ≥500 KB |
+| `versa-artifact-pmtiles` | post-DAG `monaco.pmtiles` ≥1 MB |
+| `versa-artifact-gtfs` | post-DAG `monaco.gtfs.zip` ≥500 KB |
 
 End-to-end notebook test (executes all 13 cells via marimo's own
 export):
