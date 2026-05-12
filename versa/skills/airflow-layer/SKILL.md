@@ -1,7 +1,7 @@
 ---
 name: airflow-layer
 description: |
-  Apache Airflow 3.x with LocalExecutor + SQLite (single-node, dev-friendly), 4 supervisord services (init, scheduler, dag-processor, webserver) plus the airflow-mcp wrapper. Layer is service-only — its Python deps live in /ov-versa:versa-layer's pixi env.
+  Apache Airflow 3.x with LocalExecutor + SQLite (single-node, dev-friendly), 4 supervisord services (init, scheduler, dag-processor, webserver). Layer is service-only — its Python deps live in /ov-versa:versa-layer's pixi env. NB: the upstream MCP wrapper was removed in 2026-05 (no v2 release exists; consumers drive Airflow via direct REST /api/v2 calls).
   Use when working with the airflow layer, Airflow 3.x compatibility findings, the SimpleAuthManager auth-fix pattern, the dag-processor split-from-scheduler architecture change, or the JWT-issuance + REST API trigger flow used by self-authoring notebooks.
 ---
 
@@ -13,20 +13,20 @@ in CeleryExecutor + Postgres + Valkey (those layers stayed available
 under `layers/postgresql/` + `layers/valkey/`).
 
 This layer is **service-only**: it ships no `pixi.toml`. Its Python
-deps (`apache-airflow`, `mcp-server-apache-airflow`, `fastmcp`) live
-in `/ov-versa:versa-layer`'s pixi env, so airflow runs alongside
-marimo in the same pod with one combined Python environment.
+deps (`apache-airflow`) live in `/ov-versa:versa-layer`'s pixi env,
+so airflow runs alongside marimo in the same pod with one combined
+Python environment.
 
 ## Layer properties
 
 | Property | Value |
 |----------|-------|
 | Dependencies | `marimo` (for the pixi env), `supervisord` |
-| Ports | `8080` (api-server, host-mapped to **28080**), `19999` (airflow-mcp HTTP) |
-| Services | `airflow-init` (one-shot) + `airflow-scheduler` + `airflow-dag-processor` + `airflow-webserver` + `airflow-mcp` |
+| Ports | `8080` (api-server, host-mapped to **28080**) |
+| Services | `airflow-init` (one-shot) + `airflow-scheduler` + `airflow-dag-processor` + `airflow-webserver` |
 | Volumes | `airflow-data` at `~/airflow` |
 | Secrets | `airflow-fernet-key`, `airflow-webserver-secret`, `airflow-admin-password` |
-| MCP provides | `airflow` at `http://{{.ContainerName}}:19999/mcp` (Streamable HTTP) |
+| MCP provides | none (the upstream `mcp-server-apache-airflow` package was removed in 2026-05 — no Airflow-3 / `/api/v2` release exists; consumers drive the REST API directly via JWT + `/api/v2/`) |
 | DAG folder | `/workspace/dags` (`AIRFLOW__CORE__DAGS_FOLDER`) |
 
 ## Airflow 3.x compatibility — 8 RCA findings
@@ -110,24 +110,14 @@ a token via `POST /auth/token` (admin/password JSON body), then pass
 `Authorization: Bearer <token>` on subsequent calls. Basic auth is
 rejected on `/api/v2/` endpoints by default.
 
-### 7. mcp-server-apache-airflow needs `--mcp-host`
-
-The package (0.2.10) defaults `--mcp-host` to `127.0.0.1`. We bind
-`0.0.0.0` so the host-port mapping reaches it:
-
-```bash
-exec "${HOME}/.pixi/envs/default/bin/mcp-server-apache-airflow" \
-  --transport http --mcp-host 0.0.0.0 --mcp-port 19999
-```
-
-### 8. airflow-init must NOT block boot
+### 7. airflow-init must NOT block boot
 
 `airflow-init` is a one-shot supervisord program (`restart: "no"`,
 `exit_codes: "0"`) that runs `airflow db migrate` + writes the
 passwords file. It exits cleanly on success; the long-running daemons
 start at higher priority numbers (30+) once init has finished.
 
-## Service list (5 entries)
+## Service list (4 entries)
 
 | Name | Priority | Restart | Purpose |
 |---|---:|---|---|
@@ -135,25 +125,21 @@ start at higher priority numbers (30+) once init has finished.
 | `airflow-scheduler` | 30 | always | Schedule DAG runs from the metadata DB |
 | `airflow-dag-processor` | 31 | always | Scan dags folder + serialise DAGs into the DB |
 | `airflow-webserver` | 31 | always | `airflow api-server` (FastAPI on :8080) |
-| `airflow-mcp` | 32 | always | mcp-server-apache-airflow wrapper on :19999 |
 
-## Eval probes (12 — proves the auth + REST + MCP paths work)
+## Eval probes (8 — proves the auth + REST paths work)
 
-Build-scope (5):
+Build-scope (4):
 - `airflow-init-script` `/usr/local/bin/airflow-init.sh` exists + executable
 - `airflow-webserver-script` ditto
 - `airflow-scheduler-script` ditto
 - `airflow-dag-processor-script` ditto (added with #3 above)
-- `airflow-mcp-script` ditto + `airflow-mcp-binary` (the pixi-installed binary)
 
-Deploy-scope (7):
+Deploy-scope (4):
 - `airflow-init-db-created` — `~/airflow/airflow.db` exists (SQLite metadata)
-- `airflow-scheduler-running`, `airflow-dag-processor-running`, `airflow-webserver-running`, `airflow-mcp-running` — supervisord program states
+- `airflow-scheduler-running`, `airflow-dag-processor-running`, `airflow-webserver-running` — supervisord program states
 - `airflow-port-reachable` — TCP 8080 reachable
 - `airflow-http-version` — `GET /api/v2/version` returns 200
 - `airflow-jwt-issuance` — `POST /auth/token` with admin creds returns body containing `access_token` (THE notebook auth path; locks in finding #1)
-- `airflow-mcp-port-reachable` — TCP 19999 reachable
-- `mcp-airflow-ping` + `mcp-airflow-list-tools` — MCP server alive + exposes `fetch_dags`, `post_dag_run`, `get_dag_run`
 
 ## Notebook self-author DAG pattern
 
@@ -173,7 +159,6 @@ and `notebook_gtfs_pipeline` in parallel.
 
 ## Cross-references
 
-- `/ov-versa:airflow-mcp` — the airflow-mcp tool catalog
 - `/ov-versa:versa-layer` — pixi env that owns the airflow Python deps
 - `/ov-versa:notebook-osm` — canonical user of the REST trigger pattern
 - `/ov-versa:versa` — the image composing this layer

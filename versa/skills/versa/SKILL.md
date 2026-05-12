@@ -27,8 +27,8 @@ image bundles. The `layers/marimo/` directory + the
 | Base | `cachyos` (CUDA 13 / cuDNN / python-onnxruntime-cpu via CachyOS `extra` repo) |
 | Platforms | `linux/amd64` only (cuDF + cu130 torch are amd64-only) |
 | Layers | 18 (see "Layer stack" below) |
-| Ports | 8 (see "Ports + host mappings") |
-| MCP servers | 2 (marimo @ container 2718, airflow @ container 19999) |
+| Ports | 7 (see "Ports + host mappings") |
+| MCP servers | 1 (marimo @ container 2718) — the upstream airflow MCP wrapper was removed in 2026-05 (no Airflow-3 / `/api/v2` release exists) |
 | Registry | `ghcr.io/overthinkos` |
 | Image tag pattern | CalVer (`YYYY.DDD.HHMM`) |
 | Builder | `archlinux-builder` (pixi/npm/cargo/aur) — overrides the fedora-builder default since cachyos has no `builder:` of its own |
@@ -55,7 +55,10 @@ image bundles. The `layers/marimo/` directory + the
    and the pixi env's `no-build = true` blocks sdist resolution),
    supervisord service `marimo edit … --mcp`
 6. `airflow` — `/ov-versa:airflow-layer` — 4 supervisord services
-   (init/scheduler/dag-processor/webserver) + the airflow-mcp wrapper
+   (init/scheduler/dag-processor/webserver). NB: airflow-mcp wrapper
+   removed 2026-05 — no Airflow-3 v2 release of
+   `mcp-server-apache-airflow` exists; consumers drive Airflow via
+   direct REST `/api/v2/` calls.
 7. `osm-tools` — `/ov-versa:osm-tools-layer` — tippecanoe (built from
    source), gdal, jq, martin (Rust binary), pmtiles CLI (Go binary),
    gpq-tiles (cargo-installed Rust binary; v0.6.0 from crates.io —
@@ -97,7 +100,6 @@ remaps to host ports for browser reachability:
 |---|---|---|---|
 | marimo edit + MCP | 2718 | **22718** | `/` for editor, `/mcp/server` for MCP |
 | airflow api-server | 8080 | **28080** | `/api/v2/`, `/auth/token`, `/api/v2/dags/<id>/dagRuns` |
-| airflow MCP | 19999 | **29999** | `/mcp` |
 | martin tile server | 3000 | **23000** | `/<source>/{z}/{x}/{y}` (vector tiles), `/<source>` (TileJSON), `/catalog` |
 | maputnik static editor | 8000 | **28000** | `/` (SPA root) |
 | pmtiles-viewer SPA | 8001 | **28001** | `/` (SPA root — load remote PMTiles archive via the UI's URL input) |
@@ -154,7 +156,6 @@ chose, so the URL env vars stay correct either way:
 port:
   - "22718:2718"
   - "28080:8080"
-  - "29999:19999"
   - "23000:3000"
   - "28000:8000"
   - "28001:8001"
@@ -175,19 +176,76 @@ renders a polars DataFrame listing every URL env var, its current
 value, and whether it came from `env_provides` injection or the
 fallback default. See `/ov-versa:notebook-osm` cell #2.
 
+### Multi-instance pattern (Pattern A from /ov-core:deploy)
+
+Run multiple instances of versa side-by-side using the
+`<base>/<instance>` deploy-key form. Each instance gets its own
+container (`ov-versa`, `ov-versa-ecovoyage`, …), its own workspace
+volume, and its own host-port mappings:
+
+```yaml
+deploy:
+  versa:
+    image: versa
+    target: pod
+    disposable: true
+    port: [auto]               # auto-allocated host ports
+
+  versa/ecovoyage:
+    image: versa               # SAME image, explicit field required
+    target: pod
+    disposable: true
+    volume:
+      - name: workspace
+        type: bind
+        host: /home/atrawog/Sync/Atrapub/ecovoyage
+    port:
+      - "32718:2718"           # explicit pinned ports for stable bookmarks
+      - "38080:8080"
+      - "33000:3000"
+      - "38000:8000"
+      - "38001:8001"
+      - "38002:8002"
+      - "38090:8090"
+```
+
+CLI: `ov update versa/ecovoyage` ↔ `ov update versa -i ecovoyage`.
+
+### Pinned-version pattern (Pattern B from /ov-core:deploy)
+
+Run a specific image tag under an arbitrary deploy name (useful for
+canaries, regression bisection, or holding back a specific version):
+
+```yaml
+deploy:
+  versa-pinned-2026.131.2134:
+    image: ghcr.io/overthinkos/versa:2026.131.2134  # exact ref, never re-resolved
+    target: pod
+    disposable: true
+    port: [auto]
+```
+
+Container name: `ov-versa-pinned-2026.131.2134`. CLI:
+`ov update versa-pinned-2026.131.2134`. The deploy key has no
+relation to the image name; `ov update` always pulls the exact tag
+declared in `image:`.
+
 ## MCP servers
 
-This image publishes two MCP endpoints (registered by this plugin's
+This image publishes one MCP endpoint (registered by this plugin's
 `.mcp.json`):
 
 | Name | Container URL | Tool count | Skill |
 |---|---|---:|---|
 | marimo | `http://localhost:2718/mcp/server` | 10 (read-only inspection) | `/ov-versa:versa-mcp` |
-| airflow | `http://localhost:19999/mcp` | ~70 (REST API wrappers) | `/ov-versa:airflow-mcp` |
 
-The MCP server names (`marimo`, `airflow`) deliberately did NOT
-change in the 2026-05 image rename — they reflect the upstream
-software identity, not OUR image identity.
+The marimo MCP server name deliberately did NOT change in the
+2026-05 image rename — it reflects the upstream software identity,
+not OUR image identity. (Prior versions also published an `airflow`
+MCP via `mcp-server-apache-airflow`; that wrapper was removed in
+2026-05 because no Airflow-3 / `/api/v2` release of the upstream
+package exists. Consumers drive Airflow via direct REST `/api/v2/`
+calls instead.)
 
 ## R10 acceptance
 
@@ -255,7 +313,6 @@ Expected outputs (verified end-to-end):
 - `/ov-versa:versa-layer` — marimo runtime layer (pixi env, service)
 - `/ov-versa:versa-mcp` — marimo MCP server tool catalog
 - `/ov-versa:airflow-layer` — Airflow 3.x compat findings
-- `/ov-versa:airflow-mcp` — airflow MCP server tool catalog
 - `/ov-versa:notebook-osm` — the dual-DAG OSM+GTFS notebook
 - `/ov-versa:maputnik-layer` — Vite `--base=/` build pattern
 - `/ov-versa:osm-tools-layer` — martin reload pattern

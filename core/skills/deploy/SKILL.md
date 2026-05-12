@@ -199,6 +199,135 @@ Both container and host targets accept extra layers at deploy time via `--add-la
 
 Ref forms for `--add-layer` are identical to the primary `<ref>` positional (local name / local path / remote / legacy `@` form).
 
+## Two supported deploy patterns
+
+Per the 2026-05-12 cutover, every `target: pod` deploy entry MUST
+declare its `image:` field explicitly (hard load-time error if
+absent — see "Required `image:` field" below). With that contract
+locked, two distinct patterns are supported:
+
+### Pattern A — Multiple instances of the same image
+
+Use the `<base>/<instance>` deploy-key form when you want N
+container instances backed by the same image (one per tenant,
+per workspace, per environment, …):
+
+```yaml
+deploy:
+  versa:                       # base instance — deploy key == image name (just convention)
+    image: versa
+    target: pod
+
+  versa/ecovoyage:             # `<base>/<instance>` deploy key
+    image: versa               # SAME image; explicit (no inference)
+    target: pod
+    volume:
+      - name: workspace
+        type: bind
+        host: /home/atrawog/Sync/Atrapub/ecovoyage
+    port:
+      - "32718:2718"           # explicit pinned ports for stable bookmarks
+      - ...
+
+  versa/another-tenant:        # second instance of versa
+    image: versa
+    target: pod
+    volume:
+      - name: workspace
+        type: bind
+        host: /srv/another-tenant/workspace
+```
+
+Container names: `ov-versa`, `ov-versa-ecovoyage`,
+`ov-versa-another-tenant`. Equivalent CLI invocations:
+`ov update versa -i ecovoyage` ↔ `ov update versa/ecovoyage` (the
+`-i <inst>` flag and the `/` suffix are interchangeable for
+addressing instance deploys).
+
+### Pattern B — Arbitrary deploy name with image (and optional version pin)
+
+The deploy key is purely a name; it does NOT have to match the
+`image:` value. Use this for version pinning, canary deploys, or
+when you want a more descriptive deploy name than the image name
+itself:
+
+```yaml
+deploy:
+  versa-prod:                                 # arbitrary deploy key
+    image: versa                              # short name → resolves to current build
+    target: pod
+
+  versa-pinned-2026.131.2134:                 # pinned-version deploy
+    image: ghcr.io/overthinkos/versa:2026.131.2134  # explicit ref, never re-resolved
+    target: pod
+
+  versa-canary:                               # canary deploy on a rolling tag
+    image: ghcr.io/overthinkos/versa:next
+    target: pod
+```
+
+Container names: `ov-versa-prod`, `ov-versa-pinned-2026.131.2134`,
+`ov-versa-canary`. Only the single `<key>` form addresses these
+(`ov update versa-prod`, NOT `ov update versa -i prod` — that would
+target an instance of `versa`, which is a different deploy).
+
+### Schema rules locked down by these patterns
+
+- **`image:` is REQUIRED on every `target: pod` deploy entry.** Hard
+  load-time error if absent, with a remediation hint pointing at
+  `ov migrate require-image` (the one-shot migration that injects
+  the field into legacy entries).
+- **The `image:` value is either**:
+  - a **short name** (e.g. `versa`) — resolved against `image:`
+    entries in `overthink.yml` to the currently-built tag, OR
+  - a **fully-qualified registry ref** (e.g.
+    `ghcr.io/overthinkos/versa:2026.131.2134` or
+    `…@sha256:…`) — pinned to that exact image, never re-resolved.
+    Use this for version pinning and canary deploys.
+- **The deploy key is purely a name.** It may contain `/` to express
+  the multi-instance pattern (`<base>/<instance>`) but does NOT have
+  to match `image:`. `versa-old`, `versa-canary`, and
+  `my-tenant/staging` are all valid deploy keys.
+- **Container name rule**: `ov-<key-with-slash-replaced-by-dash>`
+  (e.g. `ov-versa`, `ov-versa-ecovoyage`, `ov-versa-canary`).
+- **`ov update <key>` and `ov update <base> -i <inst>`** are
+  equivalent ways to address a `<base>/<inst>` deploy (Pattern A).
+  For Pattern B (arbitrary name), only the single `<key>` form
+  works.
+
+### Known issue (2026-05-12) — quadlet-port lookup keyed by image, not deploy-key
+
+Pattern B's first end-to-end test surfaced a pre-existing `ov config`
+bug: when two deploys share the same image (or use the same image
+short-name), the second `ov config <deploy-key>` invocation writes
+the FIRST deploy's `resolved_port:` set to the new deploy's quadlet.
+The image-ref resolution (which side this cutover changes) is
+correct — `Image=` in the emitted quadlet matches the deploy entry's
+`image:` field — but the `PublishPort=` lines are sourced via an
+image-keyed lookup rather than the deploy-entry's own
+`port:`/`resolved_port:`. Reproduction: `ov config versa-pinned-X`
+when `versa` is already deployed → quadlet's PublishPorts == versa's
+ports.
+
+**Workaround**: don't deploy two pod entries off the same image short-
+name on the same host. For Pattern B with a pinned version of an
+already-deployed image, the workflow has to bypass the auto-allocator
+entirely — and even explicit `port:` lists are ignored. This is a
+separate cutover (touches `ov config` port resolution); the schema
++ eval-runner side of Pattern B works correctly.
+
+### Why `image:` is required (R10 implication)
+
+Pre-2026-05-12 the eval runner resolved the running container's
+image ref via `containerImageRef()` when the deploy entry had no
+explicit `image:` field. For volume-pinned deploys (where
+`data_source:` seeds workspace from a specific image tag), the
+running container ended up at the seed-version, not the current
+image — and the eval runner read the older OCI label, silently
+dropping any probes added since. The cutover deletes the implicit
+fallback so the eval runner inspects what the operator declared,
+not what the container happens to be.
+
 ## Examples
 
 **Deploy a local image as a container:**

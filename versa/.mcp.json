@@ -3,10 +3,6 @@
     "marimo": {
       "type": "http",
       "url": "http://localhost:22718/mcp/server"
-    },
-    "airflow": {
-      "type": "http",
-      "url": "http://localhost:29999/mcp"
     }
   }
 }
