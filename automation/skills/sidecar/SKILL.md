@@ -106,6 +106,103 @@ images:
 
 The built-in tailscale sidecar template (validated against `tailscale/tailscale` containerboot source):
 
+### Multi-tailnet auth-key store (2026-05-13)
+
+The sidecar is parameterized on a `tailnet:` field declaring the target
+tailnet's MagicDNS suffix. Each tailnet's auth-key lives in `.secrets`
+(GPG-encrypted env file, loaded by direnv) under a per-tailnet env var
+name derived from the suffix.
+
+**Schema in the embedded `sidecar.yml`:**
+
+```yaml
+sidecar:
+  tailscale:
+    parameter:
+      tailnet: ""            # required: deploy must supply via parameter.tailnet
+    secret:
+      - name: ts-authkey
+        env: TS_AUTHKEY                                                     # container var (what tailscale's binary reads)
+        env_from: "TS_AUTHKEY_{{.Parameter.tailnet | tailnetEnvSuffix}}"    # host-side var (what ov reads from .secrets)
+```
+
+**Deploy.yml shape:**
+
+```yaml
+deploy:
+  sway-browser-vnc/ecovoyage:
+    sidecar:
+      tailscale:
+        parameter:
+          tailnet: armadillo-quail.ts.net   # picks which per-tailnet auth-key to use
+        env:
+          TS_HOSTNAME: ecovoyage-browser
+          TS_ACCEPT_DNS: "true"
+```
+
+**Storage convention (`.secrets`):** the `tailnetEnvSuffix` template
+helper uppercases the MagicDNS suffix and replaces every non-alphanumeric
+character with `_`. So:
+
+| MagicDNS suffix | Resolved host env var |
+|---|---|
+| `armadillo-quail.ts.net` | `TS_AUTHKEY_ARMADILLO_QUAIL_TS_NET` |
+| `tail297eca.ts.net` | `TS_AUTHKEY_TAIL297ECA_TS_NET` |
+| `acme-corp.example.com` | `TS_AUTHKEY_ACME_CORP_EXAMPLE_COM` |
+
+**Operator workflow — add a new tailnet:**
+
+```bash
+# 1. Generate an auth-key in the Tailscale admin console, signed in as
+#    the OWNING ACCOUNT for the target tailnet. Verify which account
+#    you're in by checking the top-right email. The MagicDNS suffix is
+#    visible at https://login.tailscale.com/admin/dns
+#
+#    Set: reusable=yes, ephemeral=yes, preauthorized=yes,
+#    tags=tag:server (or your ACL), expiration=90d (preference).
+
+# 2. Store under the per-tailnet env var name:
+ov secrets gpg set TS_AUTHKEY_ARMADILLO_QUAIL_TS_NET tskey-auth-XXXXXXXXX
+
+# 3. Wire `parameter.tailnet:` into deploy.yml under sidecar.tailscale:
+#    (operator-edited; no auto-write)
+
+# 4. Wipe stale state so the sidecar re-auths with the new key:
+podman volume rm ov-<image>[-<instance>]-tailscale-state
+
+# 5. Apply:
+ov stop <image> [-i <instance>]
+ov config <image> [-i <instance>]
+ov start <image> [-i <instance>]
+
+# 6. Verify the right tailnet was joined:
+podman exec ov-<image>[-<instance>]-tailscale tailscale status --json \
+    | python3 -c 'import json,sys; r=json.load(sys.stdin); print(r["MagicDNSSuffix"])'
+# Expected: armadillo-quail.ts.net
+```
+
+**Migration from the pre-2026-05-13 flat schema:**
+
+The retired flat schema used a single `TS_AUTHKEY` env var, conflating
+multi-tailnet hosts. Run the one-shot migration after upgrading:
+
+```bash
+ov migrate tailscale-secrets
+# Prompts for the tailnet the existing TS_AUTHKEY belongs to (auto-detects
+# from a running sidecar when present), renames the .secrets entry to the
+# per-tailnet form, and warns about deploy.yml entries that need
+# parameter.tailnet set.
+```
+
+Use `--tailnet armadillo-quail.ts.net` to skip the prompt, or
+`--delete-legacy` to remove the original `TS_AUTHKEY` entry after the
+rename. Idempotent.
+
+After migration, any deploy with a tailscale sidecar that doesn't supply
+`parameter.tailnet:` fails at `ov config` time with the message:
+
+> sidecar "tailscale": sidecar secret "ts-authkey" references parameter "tailnet" which is unset. Set `sidecars.<sidecar-name>.parameter.tailnet: <value>` in deploy.yml or run `ov migrate tailscale-secrets`
+
 ### Environment Variables
 
 | Env var | Default | Purpose |
