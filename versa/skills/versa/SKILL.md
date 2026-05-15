@@ -2,7 +2,7 @@
 name: versa
 description: |
   versa — image bundling marimo reactive notebook environment with Apache Airflow + GPU-accelerated OSM/GTFS analytics + martin vector tiles + 3D terrain via MapLibre + Polars geospatial extensions (polars-st, geopolars) + GeoArrow + deck.gl rendering via lonboard.
-  Composes 11 layers (agent-forwarding, nvidia, cuda, marimo, airflow, osm-tools, maputnik, notebook-osm, debug-tools, dbus, ov) on a CachyOS / Arch base into a single pod that exposes 5 host ports and 2 MCP servers.
+  Composes 12 layers (agent-forwarding, nvidia, cuda, marimo, airflow, osm-tools, maputnik, notebook-osm, notebook-graph, debug-tools, dbus, ov) on a CachyOS / Arch base into a single pod that exposes 5 host ports and 2 MCP servers.
   MUST be invoked before building, deploying, configuring, or troubleshooting the versa image.
 ---
 
@@ -26,7 +26,7 @@ image bundles. The `layers/marimo/` directory + the
 |----------|-------|
 | Base | `cachyos` (CUDA 13 / cuDNN / python-onnxruntime-cpu via CachyOS `extra` repo) |
 | Platforms | `linux/amd64` only (cuDF + cu130 torch are amd64-only) |
-| Layers | 18 (see "Layer stack" below) |
+| Layers | 19 (see "Layer stack" below) |
 | Ports | 7 (see "Ports + host mappings") |
 | MCP servers | 1 (marimo @ container 2718) — the upstream airflow MCP wrapper was removed in 2026-05 (no Airflow-3 / `/api/v2` release exists) |
 | Registry | `ghcr.io/overthinkos` |
@@ -86,10 +86,14 @@ image bundles. The `layers/marimo/` directory + the
     `/fonts/`, `/styler/`
 16. `notebook-osm` — `/ov-versa:notebook-osm` — data-only layer
     seeding the OSM+GTFS+pipelines notebook into `/workspace/notebooks/`
-17. `debug-tools` — `/ov-versa:debug-tools-layer` — 49 standard
+17. `notebook-graph` — `/ov-versa:notebook-graph` — data-only layer
+    seeding `gpu-libraries-demo.py` into `/workspace/notebooks/`;
+    exercises cuGraph (nx-cugraph backend), cuML (KMeans), PyG
+    (GCNConv on cuda:0 with torch_scatter), and graphistry
+18. `debug-tools` — `/ov-versa:debug-tools-layer` — 49 standard
     debug utilities (network/process/file/system/session)
-18. `dbus` — D-Bus session bus
-19. `ov` — `ov` CLI binary inside the container
+19. `dbus` — D-Bus session bus
+20. `ov` — `ov` CLI binary inside the container
 
 ## Ports + host mappings
 
@@ -251,11 +255,12 @@ calls instead.)
 
 ```bash
 ov update --build --force-seed versa
-ov eval live versa         # → 93 passed · 0 failed · 0 skipped
+ov eval live versa         # → 97 passed · 0 failed · 0 skipped
 ```
 
-The 11 new probes (added in the 2026-05 cutover; brings 82 → 93) all
-live under the `image.versa.deploy_eval` block in `overthink.yml` so
+The 4 GPU-library probes (added in the 2026-05 cuGraph/cuML/PyG/graphistry
+cutover; brings 93 → 97) live alongside the 11 OSM/GTFS probes
+under the `image.versa.deploy_eval` block in `overthink.yml` so
 they run AFTER every per-layer eval section:
 
 | probe id | what it checks |
@@ -270,6 +275,11 @@ they run AFTER every per-layer eval section:
 | `versa-artifact-parquet` | post-DAG `monaco.parquet` ≥500 KB |
 | `versa-artifact-pmtiles` | post-DAG `monaco.pmtiles` ≥1 MB |
 | `versa-artifact-gtfs` | post-DAG `monaco.gtfs.zip` ≥500 KB |
+| `versa-artifact-shortbread` | post-DAG `monaco-shortbread.pmtiles` ≥100 KB |
+| `versa-graph-imports` | cugraph + cuml + torch_geometric + torch_scatter + graphistry import + GPU visible |
+| `versa-graph-cugraph-pagerank` | `nx.pagerank(G, backend="cugraph")` on karate club; returns 34 rows |
+| `versa-graph-notebook-export` | end-to-end `marimo export ipynb` of `gpu-libraries-demo.py` (600s timeout) |
+| `versa-graph-notebook-size` | rendered `.ipynb` is ≥10 KB (matches the ~18 KB observed live) |
 
 End-to-end notebook test (executes all 13 cells via marimo's own
 export):
@@ -291,6 +301,36 @@ Expected outputs (verified end-to-end):
   terrain, sky, TerrainControl
 - transit folium HTML embeds 98 `circleMarker` calls
 - neither folium map carries the "Make this Notebook Trusted" wrapper
+
+## Deferred GPU libraries
+
+The 2026-05 cuGraph / cuML / PyG / graphistry cutover installed every
+library that had a working Linux-cp313 CUDA-13 wheel upstream. These
+were requested but skipped because no compatible wheel exists at
+build time. Re-add via a follow-up cutover when wheels ship — bump
+the marker date to the day the wheel was verified.
+
+- **DGL** — `https://data.dgl.ai/wheels/` has no `cu130/` directory
+  (verified 2026-05). DGL's release matrix typically lags CUDA by
+  1-2 major versions; source-building inside `archlinux-builder`
+  would cost 20-40 min of image-build time and is brittle against
+  CUDA toolkit-layout assumptions in DGL's CMake.
+- **PyTorch3D** — `https://github.com/facebookresearch/pytorch3d/releases`
+  has no cu130 wheel (verified 2026-05). Source-building would
+  break the pixi `no-build = true` invariant load-bearing for the
+  apache-airflow pin.
+- **FAISS GPU** — `https://pypi.org/project/faiss-gpu-cu13/` 404s
+  (verified 2026-05). conda-forge ships `faiss-gpu` but pinned to
+  CUDA 11/12, which would force a conflicting conda-forge CUDA
+  stack alongside the existing PyPI cu130 install. `faiss-cpu`
+  is functional but the user-facing decision was "skip rather
+  than CPU fallback".
+- **pyg-lib** — only a Windows-cp313 wheel exists at
+  `https://data.pyg.org/whl/torch-2.11.0+cu130.html` (verified
+  2026-05). PyG falls back to pure-Python message-passing without
+  it; the visible API is unchanged.
+- **torch-spline-conv** — no cp313 wheel at all (verified 2026-05).
+  Niche convolution layer; PyG's other layer types are unaffected.
 
 ## Known gotchas
 
