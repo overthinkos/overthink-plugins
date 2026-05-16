@@ -78,7 +78,7 @@ Idempotent: skips if rules are already up to date.
 
 ## Cross-References
 
-- `/ov-core:doctor` — hardware detection and dependency checks (includes GPU)
+- `/ov-core:ov-doctor` — hardware detection and dependency checks (includes GPU)
 - `/ov-distros:nvidia` — NVIDIA GPU runtime layer
 - `/ov-distros:rocm` — AMD ROCm GPU compute layer
 - `/ov-distros:cuda` — CUDA toolkit layer

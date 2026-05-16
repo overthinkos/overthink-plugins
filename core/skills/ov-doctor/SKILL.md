@@ -1,8 +1,9 @@
 ---
-name: doctor
+name: ov-doctor
 description: |
-  Host dependency checker and hardware detector.
+  Host dependency checker and hardware detector for the `ov doctor` CLI verb.
   Use when diagnosing host setup, checking dependencies, or verifying GPU detection.
+  Renamed from `doctor` to disambiguate from Claude Code's built-in `/doctor` slash command.
 ---
 
 # Doctor - Host Dependency Check

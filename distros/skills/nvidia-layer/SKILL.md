@@ -70,7 +70,7 @@ Selkies is the primary consumer: pixelflux's Wayland compositor uses `DRINODE` t
 
 The injection replaces 10 previously-scattered GPU device injection blocks across the `ov` source tree — see commit `8f6f322` for the consolidation history. If you see `DRINODE` referenced in layer scripts, you can assume it was auto-detected and injected by `ov`, not set by the user.
 
-See `/ov-core:doctor` (Hardware Detection) for the detection probe and `/ov-distros:rocm` for the AMD-side counterpart using the same mechanism.
+See `/ov-core:ov-doctor` (Hardware Detection) for the detection probe and `/ov-distros:rocm` for the AMD-side counterpart using the same mechanism.
 
 ### Cross-GPU portability (nvidia-base images on AMD hosts)
 
@@ -95,7 +95,7 @@ Creates Vulkan ICD compatibility symlinks for nvidia-ctk CDI device injection.
 
 ## Related Commands
 
-- `/ov-core:doctor` — Host NVIDIA detection (GPU probe, CDI spec status, driver version)
+- `/ov-core:ov-doctor` — Host NVIDIA detection (GPU probe, CDI spec status, driver version)
 - `/ov-core:shell` — DRINODE auto-injection applies to interactive shells too
 - `/ov-automation:udev` — Device permission management for `/dev/dri/*` and `/dev/nvidia*`
 - `/ov-core:config` — Runtime GPU device injection at deployment time (same `appendAutoDetectedEnv()` path)

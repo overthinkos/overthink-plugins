@@ -47,7 +47,7 @@ full story.
 
 ## Cross-References
 
-- `/ov-core:doctor` -- Full host dependency and health check
+- `/ov-core:ov-doctor` -- Full host dependency and health check
 - `/ov-build:settings` — runtime config where `secret_backend` and other settings live
 - `/ov-image:image` — build-mode family that stamps CalVer tags matching this version
 - `/ov-eval:eval` — declarative testing framework (Gotcha #5 covers the stdout rule)

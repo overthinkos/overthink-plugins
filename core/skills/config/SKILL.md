@@ -585,7 +585,7 @@ Source: `ov/envfile.go` (`normalizeNoProxy`), `ov/deploy.go` (`mergeEnvVars`, `s
 - `/ov-core:service` — Service lifecycle (start, stop, status, logs)
 - `/ov-image:layer` — Volume, secret, `env_provides` / `env_requires` / `env_accepts` declarations, security resource cap fields, `service:` blocks
 - `/ov-image:image` — Image composition, inheritance, OCI label emission, tunnel deploy.yml-only note (`labels.go:238`)
-- `/ov-core:doctor` — Host GPU/device detection driving `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
+- `/ov-core:ov-doctor` — Host GPU/device detection driving `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
 - `/ov-core:shell` — Interactive shells share the same `appendAutoDetectedEnv()` path
 - `/ov-selkies:chrome` — Chrome HTTP proxy (`env_accepts`), NO_PROXY auto-enrichment, resource caps, crash-loop circuit breaker
 - `/ov-infrastructure:supervisord` — Event listener pattern that pairs with the resource caps

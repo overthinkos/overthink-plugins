@@ -215,7 +215,7 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 - `/ov-eval:record` — Desktop video recording via capture bridge
 - `/ov-core:update` — Per-instance update pattern used to roll out pixelflux memory fixes
 - `/ov-core:config` — DRINODE auto-injection, resource caps, NO_PROXY auto-enrichment, keyboard layout XKB env
-- `/ov-core:doctor` — Host GPU probe feeding `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
+- `/ov-core:ov-doctor` — Host GPU probe feeding `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
 
 ## Security
 

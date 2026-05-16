@@ -31,7 +31,7 @@ Both variables are **not baked into the layer** — they are auto-detected from 
 - `HSA_OVERRIDE_GFX_VERSION` is read from `/sys/class/kfd/kfd/topology/nodes/*/properties` (gfx_target_version field).
 - `DRINODE` is selected by walking `/dev/dri/renderD*` and picking the node that matches the AMD PCI device exposed to the container.
 
-Override either with `-e HSA_OVERRIDE_GFX_VERSION=X.Y.Z` or `-e DRINODE=/dev/dri/renderD129`. See `/ov-core:doctor` (Hardware Detection) for how the probe runs on the host side, and `/ov-distros:nvidia` (DRINODE Auto-Injection) for the NVIDIA counterpart using the same mechanism.
+Override either with `-e HSA_OVERRIDE_GFX_VERSION=X.Y.Z` or `-e DRINODE=/dev/dri/renderD129`. See `/ov-core:ov-doctor` (Hardware Detection) for how the probe runs on the host side, and `/ov-distros:nvidia` (DRINODE Auto-Injection) for the NVIDIA counterpart using the same mechanism.
 
 ## Security
 
@@ -88,7 +88,7 @@ ov shell my-amd-app -c "echo \$HSA_OVERRIDE_GFX_VERSION"
 
 ## Related Commands
 
-- `/ov-core:doctor` -- Host AMD GPU detection (`/dev/kfd`, render nodes, driver status)
+- `/ov-core:ov-doctor` -- Host AMD GPU detection (`/dev/kfd`, render nodes, driver status)
 - `/ov-core:shell` -- Interactive shells receive the same auto-detected HSA_OVERRIDE_GFX_VERSION + DRINODE envs
 - `/ov-automation:udev` -- Device permission management for `/dev/kfd` and `/dev/dri/renderD*`
 - `/ov-core:config` -- Runtime GPU env injection at deployment time (same auto-detect path)

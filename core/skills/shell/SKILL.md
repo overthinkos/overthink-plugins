@@ -119,7 +119,7 @@ By default, `ov shell` auto-detects available host devices and passes them throu
 
 When an AMD GPU is detected, `keep-groups` is auto-added to preserve host supplementary groups (video, render) inside the container, and `HSA_OVERRIDE_GFX_VERSION` is auto-set from the GPU's KFD topology (e.g., `10.3.0` for RDNA2). Additionally, the first detected `/dev/dri/renderD*` device is auto-injected as `DRINODE` and `DRI_NODE` env vars (used by selkies for VAAPI encoding). All auto-detected env vars can be overridden via `-e`.
 
-**Shared code path:** `ov shell` calls `appendAutoDetectedEnv()` in `ov/devices.go` — the same function used by `ov config` and `ov start`. That means the three commands produce an identical env set on every run, eliminating drift that used to exist when DRINODE injection was scattered across 10 different call sites before commit `8f6f322`. See `/ov-core:doctor` (Hardware Detection) for the probe side, `/ov-distros:nvidia` (DRINODE Auto-Injection) for the NVIDIA consumer, and `/ov-distros:rocm` (Runtime Environment) for the AMD consumer.
+**Shared code path:** `ov shell` calls `appendAutoDetectedEnv()` in `ov/devices.go` — the same function used by `ov config` and `ov start`. That means the three commands produce an identical env set on every run, eliminating drift that used to exist when DRINODE injection was scattered across 10 different call sites before commit `8f6f322`. See `/ov-core:ov-doctor` (Hardware Detection) for the probe side, `/ov-distros:nvidia` (DRINODE Auto-Injection) for the NVIDIA consumer, and `/ov-distros:rocm` (Runtime Environment) for the AMD consumer.
 
 Source: `ov/devices.go` (`DetectHostDevices`, `DetectGPU`, `DetectAMDGPU`, `appendAutoDetectedEnv`).
 
@@ -203,7 +203,7 @@ Use `ov cmd` for quick operations on running services. Use `ov shell -c` when yo
 - `/ov-core:deploy` -- `deploy.yml` overlay applied to labels before shell spawns
 - `/ov-eval:cdp` -- Chrome DevTools Protocol automation
 - `/ov-eval:wl` (sway subgroup) -- Sway compositor control
-- `/ov-core:doctor` -- Host hardware probe that feeds `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
+- `/ov-core:ov-doctor` -- Host hardware probe that feeds `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
 - `/ov-build:settings` -- Engine and bind address settings
 
 ### Build-mode references

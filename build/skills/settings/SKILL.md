@@ -85,5 +85,5 @@ Settings resolve in this order: environment variable > settings.yml > default va
 
 - `/ov-core:config` -- deployment configuration (uses settings)
 - `/ov-build:secrets` -- credential management
-- `/ov-core:doctor` -- diagnose settings and secret storage health
+- `/ov-core:ov-doctor` -- diagnose settings and secret storage health
 - `/ov-automation:enc` -- encrypted volume paths

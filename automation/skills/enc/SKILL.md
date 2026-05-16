@@ -453,7 +453,7 @@ Plain bind mounts do not use encrypted storage commands. They are direct host di
 - `/ov-core:service` -- Container lifecycle, `ov start` inline mount
 - `/ov-build:secrets` -- Credential store hierarchy (env → keyring → kdbx → config), `ov secrets set ov/enc <image>` to store a gocryptfs passphrase explicitly, `ov secrets list` to inspect indexed keys
 - `/ov-build:settings` -- `secret_backend`, `keyring_collection_label`, `encrypted_storage_path`, and other runtime config keys that control credential + volume resolution
-- `/ov-core:doctor` -- "Secret Service collections" health check, "Keyring index consistency" cross-check; invoke `ov doctor` when diagnosing broken-collection symptoms
+- `/ov-core:ov-doctor` -- "Secret Service collections" health check, "Keyring index consistency" cross-check; invoke `ov doctor` when diagnosing broken-collection symptoms
 
 ## When to Use This Skill
 
