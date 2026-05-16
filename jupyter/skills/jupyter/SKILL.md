@@ -268,8 +268,8 @@ See `/ov-eval:eval` for the framework and author-facing gotchas.
 
 - `/ov-jupyter:jupyter`, `/ov-jupyter:jupyter-mcp`, `/ov-jupyter:notebook-templates`
 - `/ov-eval:eval` — declarative testing framework
-- `/ov-core:config` — deploy setup
-- `/ov-build:mcp` — the image inherits 3 deploy-scope `mcp:` declarative checks from the `jupyter` layer (`ping`, `list-tools` asserting all 15 prefixed tool names, `call notebook_list`). Run `ov eval live jupyter --filter mcp` to exercise them against a live deployment, or `ov eval mcp list-tools jupyter` for ad-hoc inspection
+- `/ov-core:ov-config` — deploy setup
+- `/ov-build:ov-mcp-cmd` — the image inherits 3 deploy-scope `mcp:` declarative checks from the `jupyter` layer (`ping`, `list-tools` asserting all 15 prefixed tool names, `call notebook_list`). Run `ov eval live jupyter --filter mcp` to exercise them against a live deployment, or `ov eval mcp list-tools jupyter` for ad-hoc inspection
 - `/ov-jupyter:jupyter-ml`, `/ov-jupyter:jupyter-ml-notebook` — GPU variants that inherit the same MCP test suite
 
 ## When to Use This Skill

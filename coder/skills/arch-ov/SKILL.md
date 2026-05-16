@@ -98,7 +98,7 @@ ov eval mcp call arch-ov image.list.images '{}' --name ov  # lists upstream over
 
 Volume NAME is `project` (stable bind-mount API); container PATH is
 `/workspace`. See `/ov-coder:ov-mcp` for full deployment patterns,
-`/ov-build:mcp` Part 2 for the server architecture, and `/ov-core:config`
+`/ov-build:ov-mcp-cmd` Part 2 for the server architecture, and `/ov-core:ov-config`
 "Bind-mounting a project checkout for ov mcp serve" for the
 bind-mount handshake.
 
@@ -204,7 +204,7 @@ packages and scripts per distro.
 - `/ov-core:service` — manage arch-ov as a service
 - `/ov-vm:vm` — nested libvirt VMs via `qemu:///session` (rootless)
 - `/ov-eval:eval` — three modes: `ov eval image <ref>` (build-scope, disposable container), `ov eval live <name>` (full-stack against running deployment), `ov eval run <score>` (AI iteration loop)
-- `/ov-build:mcp` — MCP gateway + auto-fallback behavior
+- `/ov-build:ov-mcp-cmd` — MCP gateway + auto-fallback behavior
 
 ## Related
 

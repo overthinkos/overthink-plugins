@@ -386,7 +386,7 @@ this order:
 - `/ov-build:build` — build images that ship nested podman
 - `/ov-core:shell` — run nested podman/buildah commands inside the outer
 - `/ov-build:generate` — Containerfile generation (the `service:` supervisord fragments for container-nesting consumers go through the fragment_assembly init model)
-- `/ov-core:config` — image-level `security:` union with layer-level when deploying
+- `/ov-core:ov-config` — image-level `security:` union with layer-level when deploying
 
 ## When to Use This Skill
 

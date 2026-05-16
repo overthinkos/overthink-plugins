@@ -63,7 +63,7 @@ The runtime parser accepts only the kind-keyed form. `ov migrate unified --rewri
 | List aliases | `ov image list aliases` | Layers with `aliases` in layer.yml |
 | Validate | `ov image validate` | Check all layers and images |
 
-Every editor verb above auto-becomes an MCP tool via Kong reflection (`layer.set`, `layer.add-rpm`, `image.write`, …) so an agent driving `ov mcp serve` can author layers from scratch over RPC without touching the filesystem directly. See `/ov-build:mcp` "Authoring tools" for the worked end-to-end example, and `/ov-build:new` for the project / image / layer scaffolders that bootstrap the flow.
+Every editor verb above auto-becomes an MCP tool via Kong reflection (`layer.set`, `layer.add-rpm`, `image.write`, …) so an agent driving `ov mcp serve` can author layers from scratch over RPC without touching the filesystem directly. See `/ov-build:ov-mcp-cmd` "Authoring tools" for the worked end-to-end example, and `/ov-build:new` for the project / image / layer scaffolders that bootstrap the flow.
 
 ### Editing layer.yml via the CLI (no hand-edit required)
 
@@ -785,7 +785,7 @@ env_accepts:
 
 `{{.ContainerName}}` resolves at `ov config` time. `env_provides` values are injected only into consumers that declare matching `env_accepts` or `env_requires` (opt-in filtering — prevents env var leakage). Missing `env_requires` without a default is a hard error at `ov config`; missing `env_accepts` silently drops the var.
 
-See `/ov-core:config` (`--update-all` flag, provides filtering) and `/ov-core:deploy` (deploy.yml `provides:` section) for the full lifecycle.
+See `/ov-core:ov-config` (`--update-all` flag, provides filtering) and `/ov-core:deploy` (deploy.yml `provides:` section) for the full lifecycle.
 
 ## secret_accepts / secret_requires
 
@@ -821,7 +821,7 @@ mcp_accepts:
 
 **Pod-aware:** when provider and consumer share a container, URLs resolve to `localhost` (local wins over remote for same-named entries). **Naming is the service contract** — keep `name:` stable across layer/package/image renames.
 
-**Testing the endpoint:** once a layer is deployed, `ov eval mcp ping <image>` verifies the server is alive, and `ov eval mcp list-tools <image>` enumerates the tool catalog. Both are authorable as deploy-scope `mcp:` declarative checks inside the layer's `eval:` block. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/ov-build:mcp`.
+**Testing the endpoint:** once a layer is deployed, `ov eval mcp ping <image>` verifies the server is alive, and `ov eval mcp list-tools <image>` enumerates the tool catalog. Both are authorable as deploy-scope `mcp:` declarative checks inside the layer's `eval:` block. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/ov-build:ov-mcp-cmd`.
 
 ---
 
@@ -1066,12 +1066,12 @@ shell: schema. Idempotent.
 ## Cross-References
 
 - `/ov-image:image` — Adding layers to image definitions; image composition; `data_image:` for data-only bundles; the full MCP-first authoring table including `image set`, `image add-layer`, `image rm-layer`, `image write`, `image cat`.
-- `/ov-build:mcp` — "Authoring tools" table exposing `layer.set`, `layer.add-rpm`, `layer.add-deb`, `layer.add-pac`, `layer.add-aur` as MCP tools; end-to-end build-from-scratch worked example.
+- `/ov-build:ov-mcp-cmd` — "Authoring tools" table exposing `layer.set`, `layer.add-rpm`, `layer.add-deb`, `layer.add-pac`, `layer.add-aur` as MCP tools; end-to-end build-from-scratch worked example.
 - `/ov-build:generate` — What `ov image generate` actually emits; the per-verb emitter pipeline; `.build/<image>/` layout.
 - `/ov-build:validate` — Validation rules (including per-verb task requirements).
 - `/ov-build:new` — Scaffolding a new layer directory.
 - `/ov-build:build` — Building images (`--no-cache` caveat; multi-stage scratch).
-- `/ov-core:config` — Cross-container `env_provides` / `mcp_provides` injection; `env_requires` enforcement; `--update-all`; resource caps.
+- `/ov-core:ov-config` — Cross-container `env_provides` / `mcp_provides` injection; `env_requires` enforcement; `--update-all`; resource caps.
 - `/ov-core:deploy` — `deploy.yml` `provides:` section; tunnel is deploy.yml-only.
 - `/ov-eval:eval` — `eval:` field for declarative layer checks (file/port/http/...); embedded in the `org.overthinkos.eval` OCI label under the `layer` section. Layer eval checks default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `layers/sshd/layer.yml`.
 - `/ov-automation:sidecar` — Sidecars as `env_provides` participants (tailscale `TS_*` filtering).

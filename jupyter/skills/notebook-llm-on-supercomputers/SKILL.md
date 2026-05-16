@@ -111,7 +111,7 @@ The same `importlib.reload(ollama)` pattern from `/ov-jupyter:notebook-ollama` i
 ## Related Skills
 
 - `/ov-image:layer` — data field documentation and layer authoring rules
-- `/ov-core:config` — data provisioning during `ov config` setup
+- `/ov-core:ov-config` — data provisioning during `ov config` setup
 - `/ov-jupyter:notebook-finetuning` — sibling data layer (Unsloth fine-tuning notebooks)
 - `/ov-jupyter:notebook-ollama` — sibling data layer (Ollama API tutorials)
 - `/ov-jupyter:notebook-templates` — sibling data layer (starter notebooks)

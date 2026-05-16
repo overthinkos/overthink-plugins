@@ -1,8 +1,9 @@
 ---
-name: status
+name: ov-status
 description: |
   Service status display with tool probes and device detection.
   MUST be invoked before any work involving: ov status command, checking container state, tool availability, port mapping, or JSON status output.
+  Renamed from `status` to `ov-status` to disambiguate from Claude Code's built-in `/status` slash command.
 ---
 
 # ov status -- Service Status Display

@@ -77,7 +77,7 @@ Tunnel config is in `deploy.yml`: `tunnel: {provider: tailscale, private: all}`.
 
 ## Related Commands
 
-- `/ov-core:config` -- deployment configuration, `--bind files=<path>` for file volume
+- `/ov-core:ov-config` -- deployment configuration, `--bind files=<path>` for file volume
 - `/ov-core:start` -- start the service
 - `/ov-core:shell` -- interactive access to the container
 

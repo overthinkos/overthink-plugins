@@ -1,7 +1,8 @@
 ---
-name: mcp
+name: ov-mcp-cmd
 description: |
   MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `ov eval mcp` client: probing MCP servers declared via mcp_provides, testing MCP tool catalogs, debugging the URL-rewriter (including host-networked containers via `HostConfig.NetworkMode` detection — new 2026-04) or port-publishing behavior. (2) `ov mcp serve` server: running the ov CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (~192 tools including the MCP-first authoring surface — image/layer scaffolding, comment-preserving YAML edits, free-form file writes), destructive-hint annotations, the `--read-only` filter, auto-fallback to `overthinkos/overthink` when cwd has no `image.yml` (always fires now, regardless of OV_PROJECT_DIR being set — 2026-04 change), and the `ov-mcp` deployment layer with its `/workspace` bind mount.
+  Renamed from `mcp` to `ov-mcp-cmd` to disambiguate from Claude Code's built-in `/mcp` slash command (the `-cmd` suffix avoids collision with the existing `/ov-coder:ov-mcp` image skill).
 ---
 
 # MCP - Model Context Protocol (client + server)
@@ -412,7 +413,7 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 
 - `/ov-eval:eval` — parent router; all `ov eval mcp …` invocations are dispatched through it. Full method allowlist for all 5 live-container verbs (cdp/wl/dbus/vnc/mcp) lives in the "Live-container verb catalog" section.
 - `/ov-image:layer` — `mcp_provides` / `mcp_accepts` / `mcp_requires` field reference for layer authoring.
-- `/ov-core:config` — how `mcp_provides` gets injected into `deploy.yml` `provides.mcp:` and synthesized into `OV_MCP_SERVERS` for consumers at `ov config` time; pod-aware resolution to `localhost`; instance-aware MCP server naming with `-<instance>` suffix.
+- `/ov-core:ov-config` — how `mcp_provides` gets injected into `deploy.yml` `provides.mcp:` and synthesized into `OV_MCP_SERVERS` for consumers at `ov config` time; pod-aware resolution to `localhost`; instance-aware MCP server naming with `-<instance>` suffix.
 - `/ov-build:validate` — authoring-time validation rules (method allowlist, required modifiers, scope enforcement).
 - `/ov-core:deploy` — `deploy.yml` `port:` override semantics (the port-publishing gotcha lives here operationally).
 - `/ov-eval:cdp` — sibling live-container verb (Chrome DevTools Protocol).
@@ -440,4 +441,4 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 
 Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Test mode / live service operation. Client: deploy an image with `mcp_provides`, start it, then probe. Server: compose `ov-mcp` into an image, bind `--bind project=/path/to/overthink` at config time, start the container, then consume from any MCP-speaking LLM runtime. Pairs with `/ov-eval:eval` (parent router + declarative-verb catalog), `/ov-core:config` (consumer-side injection + `--bind` for the project dir), `/ov-coder:ov-mcp` (server deployment layer), and the consumer-layer skills (`/ov-hermes:hermes`, `/ov-openwebui:openwebui`).
+**Workflow position:** Test mode / live service operation. Client: deploy an image with `mcp_provides`, start it, then probe. Server: compose `ov-mcp` into an image, bind `--bind project=/path/to/overthink` at config time, start the container, then consume from any MCP-speaking LLM runtime. Pairs with `/ov-eval:eval` (parent router + declarative-verb catalog), `/ov-core:ov-config` (consumer-side injection + `--bind` for the project dir), `/ov-coder:ov-mcp` (server deployment layer), and the consumer-layer skills (`/ov-hermes:hermes`, `/ov-openwebui:openwebui`).

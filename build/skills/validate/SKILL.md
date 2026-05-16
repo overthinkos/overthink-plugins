@@ -185,7 +185,7 @@ ov image list layers                       # Verify layer exists
 - `/ov-build:generate` — What the generator emits from validated input (per-verb emitters, cache-mount inheritance, inline-content staging).
 - `/ov-internals:generate-source` — Internal architecture of the task emission pipeline.
 - `/ov-eval:eval` — `ov image validate` schema-checks every `eval:` entry: exactly-one-verb, attribute types, scope/variable consistency (build-scope can't reference runtime-only vars), `id:` uniqueness per section, matcher operator allowlist, unroutable-check rejection. The five live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`) also get per-verb method-allowlist + required-modifier enforcement via `validateOvVerb` (deploy-scope-only; unknown methods rejected with the allowed set listed).
-- `/ov-build:mcp` — the standalone reference for the `mcp:` verb: required modifiers (`tool:` for `call`, `uri:` for `read`), the 7-method allowlist, and the URL-rewrite / port-publishing behavior that authors occasionally hit.
+- `/ov-build:ov-mcp-cmd` — the standalone reference for the `mcp:` verb: required modifiers (`tool:` for `call`, `uri:` for `read`), the 7-method allowlist, and the URL-rewrite / port-publishing behavior that authors occasionally hit.
 - `/ov-eval:cdp`, `/ov-eval:wl`, `/ov-eval:dbus`, `/ov-eval:vnc` — per-verb references for the other four live-container verbs.
 
 ## Cross-kind name reuse — NOT a uniqueness violation (2026-05-05)

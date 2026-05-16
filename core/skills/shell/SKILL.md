@@ -199,7 +199,7 @@ Use `ov cmd` for quick operations on running services. Use `ov shell -c` when yo
 - `/ov-automation:tmux` -- Persistent tmux sessions (survives disconnects, needed for TTY-dependent TUI programs)
 - `/ov-core:service` -- Starting background services before exec
 - `/ov-core:start` -- Same `appendAutoDetectedEnv()` injection at service-start time
-- `/ov-core:config` -- Deployment setup + same `appendAutoDetectedEnv()` at deploy time; `--no-autodetect` flag disables it
+- `/ov-core:ov-config` -- Deployment setup + same `appendAutoDetectedEnv()` at deploy time; `--no-autodetect` flag disables it
 - `/ov-core:deploy` -- `deploy.yml` overlay applied to labels before shell spawns
 - `/ov-eval:cdp` -- Chrome DevTools Protocol automation
 - `/ov-eval:wl` (sway subgroup) -- Sway compositor control

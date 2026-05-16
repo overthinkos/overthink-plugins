@@ -1,8 +1,9 @@
 ---
-name: update
+name: ov-update
 description: |
   Update image and restart service with data sync.
   MUST be invoked before any work involving: ov update command, pulling new image versions, data seeding, force-seed, or updating deployed services.
+  Renamed from `update` to `ov-update` to disambiguate from Claude Code's built-in `/update`/`/upgrade` slash commands.
 ---
 
 # ov update -- Update Image and Restart
@@ -181,10 +182,10 @@ needed if the seeding reports an error.
 
 - `/ov-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
-- `/ov-core:config` -- initial deployment setup
+- `/ov-core:ov-config` -- initial deployment setup
 - `/ov-core:start` -- start a service
 - `/ov-build:build` -- building images locally
-- `/ov-core:status` -- check service status after update
+- `/ov-core:ov-status` -- check service status after update
 
 ## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
 

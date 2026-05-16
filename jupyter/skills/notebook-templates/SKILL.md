@@ -68,7 +68,7 @@ ov start jupyter
 ## Related Skills
 
 - `/ov-image:layer` -- data field documentation and layer authoring rules
-- `/ov-core:config` -- data provisioning during `ov config` setup
+- `/ov-core:ov-config` -- data provisioning during `ov config` setup
 - `/ov-core:deploy` -- volume backing configuration (bind, named, encrypted)
 - `/ov-jupyter:jupyter` -- the JupyterLab layer that consumes the workspace volume
 - `/ov-jupyter:jupyter` -- the image that includes this layer

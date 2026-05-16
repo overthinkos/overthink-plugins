@@ -256,10 +256,10 @@ All four produce the same daily-dev surface (sshd on 2222, ov-mcp on 18765, 5 AI
 ## Related Commands
 
 - `/ov-core:shell` — open an interactive shell inside the container (as user, with sudo)
-- `/ov-core:config` — deploy setup (--bind project=…, tunnel, --update-all)
+- `/ov-core:ov-config` — deploy setup (--bind project=…, tunnel, --update-all)
 - `/ov-core:start`, `/ov-core:stop` — lifecycle
 - `/ov-eval:eval` — live-service tests (`ov eval live <name>`) and build-scope tests (`ov eval image <ref>`)
-- `/ov-build:mcp` — MCP gateway documentation; `--no-default-repo` to disable auto-fallback
+- `/ov-build:ov-mcp-cmd` — MCP gateway documentation; `--no-default-repo` to disable auto-fallback
 - `/ov-vm:vm` — nested libvirt VMs (via virtqemud inside the container)
 - `/ov-image:layer` — authoring reference (covers the new `strip_components:` modifier)
 

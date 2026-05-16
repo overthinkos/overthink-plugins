@@ -156,7 +156,7 @@ ov shell jupyter-ml-notebook -c "ls /workspace/llms_on_supercomputers/"
 - `/ov-jupyter:jupyter` — Lightweight variant (no CUDA, multi-arch)
 - `/ov-jupyter:unsloth-studio` — Unsloth Studio UI (different pixi env, same finetuning notebooks)
 
-**MCP testing:** same 3 deploy-scope `mcp:` checks as `jupyter-ml` are inherited here. See `/ov-build:mcp` for the verb reference.
+**MCP testing:** same 3 deploy-scope `mcp:` checks as `jupyter-ml` are inherited here. See `/ov-build:ov-mcp-cmd` for the verb reference.
 
 ## When to Use This Skill
 

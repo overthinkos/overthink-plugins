@@ -105,7 +105,7 @@ description: |
 
 Most skills under `plugins/ov-core/skills/` and `plugins/ov-build/skills/`
 map 1:1 to a top-level ov command (e.g. `/ov-build:build` ↔ `ov image build`,
-`/ov-core:status` ↔ `ov status`).
+`/ov-core:ov-status` ↔ `ov status`).
 **Topic skills** are the exception: they don't correspond to a
 top-level command but cover a cross-cutting concept surfaced by flags
 or layer composition. Today's topic skills:

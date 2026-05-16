@@ -132,7 +132,7 @@ ov shell selkies-desktop-ov -c 'virsh -c qemu:///session domcapabilities | grep 
 For multi-instance deployments alongside a running `selkies-desktop*`
 instance (which already holds those host ports), remap via
 `ov config selkies-desktop-ov -p 3010:3000 -p 9232:9222 -p 9242:9224 -p 2232:2222`
-or similar. See `/ov-core:config` for the `-p` flag and `/ov-selkies:selkies-desktop`
+or similar. See `/ov-core:ov-config` for the `-p` flag and `/ov-selkies:selkies-desktop`
 for the multi-instance proxy deployment pattern.
 
 ## What works from inside the desktop
@@ -230,7 +230,7 @@ this mirror.
 
 ## Deploy notes
 
-- Encrypted-volume workflow via `/ov-core:config --encrypt`: works because
+- Encrypted-volume workflow via `/ov-core:ov-config --encrypt`: works because
   `gocryptfs` (from `ov-full`) + `/dev/fuse` (from `container-nesting`)
   are both baked in.
 - Tunnel (Tailscale/Cloudflare) configuration lives in `deploy.yml`
@@ -278,14 +278,14 @@ this mirror.
 ## Related Commands
 
 - `/ov-core:shell` — open an interactive shell inside the container as uid 1000
-- `/ov-core:config` — deploy setup (tunnel, port remapping, multi-instance, encrypted volumes)
+- `/ov-core:ov-config` — deploy setup (tunnel, port remapping, multi-instance, encrypted volumes)
 - `/ov-eval:eval` — parent router for live-container verbs (`ov eval cdp|wl|dbus|vnc|mcp`)
 - `/ov-vm:vm` — nested libvirt VM lifecycle (works via `virtqemud` session)
 - `/ov-build:build` — building other images from inside this one (nested podman)
 - `/ov-eval:cdp` — drive the baked-in Chrome via DevTools Protocol
 - `/ov-eval:wl` — Wayland automation (screenshots, input, windows, clipboard)
 - `/ov-eval:dbus` — D-Bus notifications via in-container ov
-- `/ov-build:mcp` — probes the `chrome-devtools-mcp` server on port 9224 (29 tools) and any other MCP server declared by co-deployed images
+- `/ov-build:ov-mcp-cmd` — probes the `chrome-devtools-mcp` server on port 9224 (29 tools) and any other MCP server declared by co-deployed images
 
 ## When to Use This Skill
 

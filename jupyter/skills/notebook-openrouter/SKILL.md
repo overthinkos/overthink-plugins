@@ -124,7 +124,7 @@ ov start jupyter-ml-notebook
 ## Related Skills
 
 - `/ov-image:layer` — data field documentation, env_requires/env_accepts field documentation
-- `/ov-core:config` — data provisioning and env_requires warning during `ov config` setup
+- `/ov-core:ov-config` — data provisioning and env_requires warning during `ov config` setup
 - `/ov-core:deploy` — volume backing configuration
 - `/ov-jupyter:notebook-ollama` — sibling data layer pattern (Ollama integration notebooks)
 - `/ov-jupyter:notebook-finetuning` — sibling data layer pattern (Unsloth fine-tuning notebooks)

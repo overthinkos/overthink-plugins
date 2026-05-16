@@ -211,7 +211,7 @@ Source: `ov/volumes.go` (`InstanceVolumes`), `ov/quadlet.go`.
 
 ## Data Provisioning
 
-Data from data layers is automatically provisioned into bind-backed volumes during `ov config` and synced during `ov update`. See `/ov-core:config` for `--seed`/`--force-seed`/`--data-from` flags. Source: `ov/data.go`.
+Data from data layers is automatically provisioned into bind-backed volumes during `ov config` and synced during `ov update`. See `/ov-core:ov-config` for `--seed`/`--force-seed`/`--data-from` flags. Source: `ov/data.go`.
 
 ## Troubleshooting
 
@@ -354,7 +354,7 @@ Source: `ov/status.go`, `ov/status_engine.go`, `ov/status_collector.go`,
 - `/ov-core:shell` -- Interactive shells and exec into running containers
 - `/ov-core:deploy` -- Quadlet generation details, tunnels, volume backing
 - `/ov-automation:enc` -- Encrypted storage (mounted inline by ov start)
-- `/ov-core:config` -- `run_mode`, `auto_enable`, `engine.run` settings
+- `/ov-core:ov-config` -- `run_mode`, `auto_enable`, `engine.run` settings
 - `/ov-eval:cdp` -- CDP status subcommand (`ov eval cdp status`)
 - `/ov-eval:vnc` -- VNC status subcommand (`ov eval vnc status`)
 - `/ov-eval:wl` -- Desktop automation + sway subgroup (`ov eval wl sway status`)

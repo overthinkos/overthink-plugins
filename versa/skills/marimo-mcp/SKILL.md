@@ -104,5 +104,5 @@ explicitly broken in a hard cutover.
 - `/ov-versa:versa-layer` — layer that runs the server
 - `/ov-versa:airflow-mcp` — the OTHER MCP server in the same pod
 - `/ov-versa:notebook-osm` — example notebook diagnosed via this MCP
-- `/ov-build:mcp` — MCP probe verb authoring + URL rewriter
+- `/ov-build:ov-mcp-cmd` — MCP probe verb authoring + URL rewriter
 - `/ov-eval:eval` — `ov eval mcp` subcommand reference

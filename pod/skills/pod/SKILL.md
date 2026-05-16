@@ -27,6 +27,6 @@ Schema sources (read these for the canonical truth):
 
 ## Cross-references
 
-- Verb-level: `/ov-core:deploy`, `/ov-core:update`, `/ov-core:remove`.
+- Verb-level: `/ov-core:deploy`, `/ov-core:ov-update`, `/ov-core:remove`.
 - Sibling kinds: `/ov-image:image`, `/ov-vm:vm`, `/ov-kubernetes:kubernetes`, `/ov-local:local-spec`.
 - Topics: `/ov-automation:sidecar`, `/ov-automation:enc`.

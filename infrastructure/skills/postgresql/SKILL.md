@@ -78,7 +78,7 @@ The custom entrypoint (`/usr/local/bin/postgresql-entrypoint.sh`) supports:
 
 ## Related Commands
 
-- `/ov-core:config` — Deploy with secrets provisioning (db-password)
+- `/ov-core:ov-config` — Deploy with secrets provisioning (db-password)
 - `/ov-build:secrets` — Manage database credentials
 
 ## When to Use This Skill

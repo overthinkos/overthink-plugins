@@ -145,7 +145,7 @@ email env var injected. See `/ov-eval:eval` for the framework.
 - `/ov-openwebui:openwebui` — layer authoring
 - `/ov-eval:eval` — declarative testing framework
 - `/ov-build:secrets` — WEBUI_ADMIN_PASSWORD + provider API keys
-- `/ov-core:config` — `-e WEBUI_ADMIN_EMAIL=...` deploy-time env setup
+- `/ov-core:ov-config` — `-e WEBUI_ADMIN_EMAIL=...` deploy-time env setup
 
 ## When to Use This Skill
 

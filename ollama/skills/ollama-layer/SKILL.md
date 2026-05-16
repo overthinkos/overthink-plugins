@@ -33,7 +33,7 @@ description: |
 
 Pod-aware: same-container consumers receive `http://localhost:11434`, cross-container consumers receive `http://ov-ollama:11434`. When `ov config ollama` runs, `OLLAMA_HOST` is automatically injected into the global `deploy.yml` env. Use `ov config ollama --update-all` to propagate to already-deployed services immediately.
 
-See `/ov-image:layer` for `env_provides` field docs and `/ov-core:config` for `--update-all`.
+See `/ov-image:layer` for `env_provides` field docs and `/ov-core:ov-config` for `--update-all`.
 
 ## Usage
 
@@ -81,7 +81,7 @@ OCI label (see `/ov-eval:eval` for the full schema):
 
 ## Related Commands
 
-- `/ov-core:config` — Deploy with quadlet (secrets, volumes, env_provides injection)
+- `/ov-core:ov-config` — Deploy with quadlet (secrets, volumes, env_provides injection)
 - `/ov-core:start` — Start the Ollama service
 - `/ov-core:service` — Manage Ollama service inside container
 

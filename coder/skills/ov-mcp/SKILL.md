@@ -40,7 +40,7 @@ via the `org.overthinkos.mcp_provides` OCI label, so consumers —
 Claude Code, Open WebUI, OpenClaw, or the in-repo `ov eval mcp` client
 — can drive it without any out-of-band URL configuration.
 
-See `/ov-build:mcp` Part 2 for the full server architecture: Kong
+See `/ov-build:ov-mcp-cmd` Part 2 for the full server architecture: Kong
 reflection, destructive-hint annotations, `--read-only` filter,
 transport dispatch.
 
@@ -110,7 +110,7 @@ back to the default repo if missing. This matters because
 `OV_PROJECT_DIR=/workspace` is permanently set by this layer's `env:`
 block, so the old early-return meant the auto-fallback was dead code
 for any ov-mcp container. The new logic makes pattern 3 genuinely work
-by default. See `/ov-build:mcp` "Project-dir wiring" for the full RCA.
+by default. See `/ov-build:ov-mcp-cmd` "Project-dir wiring" for the full RCA.
 
 ## Tests
 
@@ -173,9 +173,9 @@ in `image.yml`). Both `network: host` and the default ov bridge work.
 
 ## Cross-References
 
-- `/ov-build:mcp` — **Part 2: Server** is the authoritative reference for `ov mcp serve` architecture, destructive-hint policy, `--read-only` filter, capture model, and the new bootstrapProject() logic.
+- `/ov-build:ov-mcp-cmd` — **Part 2: Server** is the authoritative reference for `ov mcp serve` architecture, destructive-hint policy, `--read-only` filter, capture model, and the new bootstrapProject() logic.
 - `/ov-image:image` — "Project directory resolution" covers the `-C` / `--dir` / `OV_PROJECT_DIR` global flag and `--repo` / `OV_PROJECT_REPO`.
-- `/ov-core:config` — `--bind project=<path>` is the deployer's handshake with this layer's `volume:` declaration.
+- `/ov-core:ov-config` — `--bind project=<path>` is the deployer's handshake with this layer's `volume:` declaration.
 - `/ov-eval:eval` — Deploy-scope `mcp:` test verb methods used here.
 - `/ov-internals:go` — `ov/mcp_server.go` `bootstrapProject()` implementation, including the env-var proxy detection of top-level flags and the unconditional image.yml check (new in 2026-04).
 

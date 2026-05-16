@@ -551,7 +551,7 @@ For GPG agent forwarding into containers (so `gpg --decrypt` works inside), use 
 
 ## Cross-References
 
-- `/ov-core:config` — `secret_backend`, `secrets.kdbx_path` settings keys
+- `/ov-core:ov-config` — `secret_backend`, `secrets.kdbx_path` settings keys
 - `/ov-automation:enc` — encrypted volume credential lookup, iteration-capable ssClient, broken-collection troubleshooting, source classification (`env`/`keyring`/`config`/`locked`/`unavailable`/`default`)
 - `/ov-build:settings` — `keyring_collection_label`, `secret_backend`, and other runtime config keys
 - `/ov-core:ov-doctor` — Secret Service collection health + shadow index consistency checks

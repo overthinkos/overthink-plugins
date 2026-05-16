@@ -73,7 +73,7 @@ If `VmSize` grows monotonically across reconfigure events, the singleton is brok
 
 `cleanup_texture_cache()` runs **per frame** (not per capture session) in pixelflux's renderer main loop. It releases dmabuf imports whose Wayland buffer reference has already been dropped — these accumulate across frames because the EGL image-dmabuf import cache holds a GPU-side reference that the CPU-side `wl_buffer_release` does not clear. Without per-frame cleanup, a 60 fps stream leaks ~60 dmabuf handles per second even though `VmSize` stays flat (the leak is GPU-side, visible as increasing `nvidia-smi` memory usage on NVIDIA, `radeontop` on AMD).
 
-This fix was rolled out via `ov update -i INSTANCE` across all live selkies-desktop instances — see `/ov-core:update` for the per-instance update pattern. The rollback recipe there also applies if a pixelflux patch regresses.
+This fix was rolled out via `ov update -i INSTANCE` across all live selkies-desktop instances — see `/ov-core:ov-update` for the per-instance update pattern. The rollback recipe there also applies if a pixelflux patch regresses.
 
 ### Rebuild cadence
 
@@ -109,7 +109,7 @@ Port 3000 uses `https+insecure` backend scheme because Traefik terminates TLS wi
 | Variable | Value | Purpose |
 |----------|-------|---------|
 | `PIXELFLUX_WAYLAND` | `true` | Enable Wayland capture mode |
-| `DRINODE` | Auto-detected | GPU render node — injected at runtime by `ov config` from first `/dev/dri/renderD*` device. See `/ov-core:config` |
+| `DRINODE` | Auto-detected | GPU render node — injected at runtime by `ov config` from first `/dev/dri/renderD*` device. See `/ov-core:ov-config` |
 | `DRI_NODE` | Auto-detected | Same as DRINODE — required by selkies VAAPI encoder. Override with `-e DRINODE=/dev/dri/renderDN` |
 | `PULSE_SERVER` | `unix:/tmp/pulse/native` | PipeWire PulseAudio socket |
 | `LANG` | `C.UTF-8` | UTF-8 locale — enables wtype to handle non-ASCII characters (ö, é, å, ñ, etc.) |
@@ -213,8 +213,8 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 - `/ov-eval:wl` — Wayland automation (screenshot via capture bridge, input, windows)
 - `/ov-eval:cdp` — Chrome DevTools and SPA bridge (click, type, key-combo through remote desktop)
 - `/ov-eval:record` — Desktop video recording via capture bridge
-- `/ov-core:update` — Per-instance update pattern used to roll out pixelflux memory fixes
-- `/ov-core:config` — DRINODE auto-injection, resource caps, NO_PROXY auto-enrichment, keyboard layout XKB env
+- `/ov-core:ov-update` — Per-instance update pattern used to roll out pixelflux memory fixes
+- `/ov-core:ov-config` — DRINODE auto-injection, resource caps, NO_PROXY auto-enrichment, keyboard layout XKB env
 - `/ov-core:ov-doctor` — Host GPU probe feeding `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
 
 ## Security

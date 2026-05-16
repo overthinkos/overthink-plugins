@@ -44,7 +44,7 @@ Pod-aware: same-container consumers receive `http://localhost:9222`, cross-conta
 
 Provided by the auto-included `chrome-devtools-mcp` sub-layer (29 Chrome DevTools tools via mcp-proxy). Consumed by hermes (`mcp_accepts: chrome-devtools`) for MCP-based browser inspection and automation. See `/ov-selkies:chrome-devtools-mcp` for tool list and architecture.
 
-When deploying with `-i <instance>`, the MCP server name is automatically disambiguated to `chrome-devtools-<instance>` (e.g., `chrome-devtools-31.58.9.4`). See `/ov-core:config` for MCP name disambiguation details.
+When deploying with `-i <instance>`, the MCP server name is automatically disambiguated to `chrome-devtools-<instance>` (e.g., `chrome-devtools-31.58.9.4`). See `/ov-core:ov-config` for MCP name disambiguation details.
 
 ## Environment Accepts (Proxy)
 
@@ -62,7 +62,7 @@ Chrome does NOT natively respect `HTTP_PROXY`/`HTTPS_PROXY` environment variable
 
 Uppercase takes precedence over lowercase (`HTTP_PROXY` over `http_proxy`).
 
-**NO_PROXY auto-enrichment:** `ov config` runs `enrichNoProxy()` before writing the quadlet, adding every deployed container's hostname (`ov-<image>`, `ov-<image>-<instance>`) to `NO_PROXY`. This is required because Chrome does **not** support CIDR notation in `NO_PROXY` (unlike curl/requests) — only exact hostnames work, so `ov` pre-computes the list. Semicolons in user-provided values are auto-converted to commas since Chrome only accepts comma-separated lists. See `/ov-core:config` (Environment Variable Handling → NO_PROXY enrichment).
+**NO_PROXY auto-enrichment:** `ov config` runs `enrichNoProxy()` before writing the quadlet, adding every deployed container's hostname (`ov-<image>`, `ov-<image>-<instance>`) to `NO_PROXY`. This is required because Chrome does **not** support CIDR notation in `NO_PROXY` (unlike curl/requests) — only exact hostnames work, so `ov` pre-computes the list. Semicolons in user-provided values are auto-converted to commas since Chrome only accepts comma-separated lists. See `/ov-core:ov-config` (Environment Variable Handling → NO_PROXY enrichment).
 
 ```bash
 # Deploy with proxy
@@ -191,7 +191,7 @@ The chrome layer ships cgroup caps in its `security:` block:
 | `memory_swap_max` | `2g` | Caps swap usage so a runaway tab can't drag the host into swap thrash. |
 | `shm_size` | `1g` | Existing `/dev/shm` sizing — unchanged. |
 
-Override per image or per instance via `ov config` flags (see `/ov-core:config`
+Override per image or per instance via `ov config` flags (see `/ov-core:ov-config`
 "Resource Caps"). Merging follows the smallest-wins rule.
 
 Chrome is a supervisord service in this layer (`[program:chrome]`):
@@ -262,8 +262,8 @@ curl -s "http://localhost:9222/json/list"
 - `/ov-core:shell` — Interactive shell to access Chrome
 - `/ov-eval:vnc` — VNC automation (used with `--vnc` flag on `ov eval cdp click`)
 - `/ov-eval:wl` — Wayland automation (used with `--wl` flag on `ov eval cdp click`)
-- `/ov-core:config` — Proxy deployment, `normalizeNoProxy()` auto-conversion, `sep:"none"` env handling
-- `/ov-build:mcp` — the auto-included `chrome-devtools-mcp` sub-layer exposes 29 tools via Streamable HTTP on port 9224; probe with `ov eval mcp list-tools <image>` or run the declarative 2-check suite via `ov eval live <image> --filter mcp`
+- `/ov-core:ov-config` — Proxy deployment, `normalizeNoProxy()` auto-conversion, `sep:"none"` env handling
+- `/ov-build:ov-mcp-cmd` — the auto-included `chrome-devtools-mcp` sub-layer exposes 29 tools via Streamable HTTP on port 9224; probe with `ov eval mcp list-tools <image>` or run the declarative 2-check suite via `ov eval live <image> --filter mcp`
 
 ## When to Use This Skill
 

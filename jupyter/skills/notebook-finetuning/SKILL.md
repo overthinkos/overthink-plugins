@@ -93,7 +93,7 @@ The notebooks include several workarounds for upstream library changes:
 ## Related Skills
 
 - `/ov-image:layer` -- data field documentation and layer authoring rules
-- `/ov-core:config` -- data provisioning during `ov config` setup
+- `/ov-core:ov-config` -- data provisioning during `ov config` setup
 - `/ov-core:deploy` -- volume backing configuration (bind, named, encrypted)
 - `/ov-jupyter:unsloth-studio` -- the Tier 2 meta-layer that owns the workspace volume
 - `/ov-jupyter:notebook-templates` -- sibling data layer pattern (starter notebooks for jupyter)

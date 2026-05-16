@@ -69,7 +69,7 @@ layers:
 ## Related Commands
 - `/ov-automation:openclaw-deploy` — gateway configuration, model auth, and channel setup
 - `/ov-build:build` — builds the metalayer composition into an image
-- `/ov-core:config` — sets up secrets and quadlets for openclaw-full images
+- `/ov-core:ov-config` — sets up secrets and quadlets for openclaw-full images
 
 ## When to Use This Skill
 

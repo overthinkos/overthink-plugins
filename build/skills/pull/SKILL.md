@@ -17,7 +17,7 @@ description: |
 engine's storage so deploy-mode commands (`ov shell`, `ov start`, `ov config`,
 `ov alias add`, etc.) can read its OCI labels via `ExtractMetadata`. It is a
 **pull-only** operation — it does not start, configure, or restart any
-service. That's `ov update`'s job (see `/ov-core:update`).
+service. That's `ov update`'s job (see `/ov-core:ov-update`).
 
 This command is the prerequisite for every deploy-mode operation on a fresh
 host. Since the `ov image` refactor, deploy-mode commands no longer read
@@ -183,10 +183,10 @@ storage).
 - `/ov-image:image` — family overview; `ov image pull` is one of 8 subcommands.
 - `/ov-build:build` — pulls and builds are orthogonal; build creates images,
   pull fetches existing ones.
-- `/ov-core:update` — rolls deployed services to a new image version
+- `/ov-core:ov-update` — rolls deployed services to a new image version
   (pulls + data-seeds + restarts).
 - `/ov-build:inspect` — print resolved ref from `image.yml` without pulling.
-- `/ov-core:shell`, `/ov-core:start`, `/ov-core:config`, `/ov-automation:alias`, `/ov-vm:vm` —
+- `/ov-core:shell`, `/ov-core:start`, `/ov-core:ov-config`, `/ov-automation:alias`, `/ov-vm:vm` —
   deploy-mode commands that require a pulled image.
 - `/ov-core:deploy` — deploy.yml overlay semantics applied on top of the
   labels `pull` materializes.

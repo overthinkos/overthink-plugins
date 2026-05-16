@@ -272,7 +272,7 @@ Container-mode logs are unaffected — supervisord is still PID 1 there.
 
 - `/ov-core:service` — Start/stop/restart/status for individual services inside the container
 - `/ov-core:logs` — Container-level log access (shows supervisord-aggregated stdout/stderr)
-- `/ov-core:status` — Container status including service probe results
+- `/ov-core:ov-status` — Container status including service probe results
 - `/ov-build:generate` — Containerfile generation: where `service:` blocks get written to `/etc/supervisord.conf`
 - `/ov-image:layer` — `service:` field authoring + `security:` resource caps that drive the circuit breaker
 

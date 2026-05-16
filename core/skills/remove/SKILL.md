@@ -72,7 +72,7 @@ Instance removal automatically cleans the instance's `env_provides` and `mcp_pro
 - `/ov-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
 - `/ov-core:stop` -- Stop without removing
-- `/ov-core:config` -- Configure/reconfigure services (see "Full instance removal" for 3-step cleanup)
+- `/ov-core:ov-config` -- Configure/reconfigure services (see "Full instance removal" for 3-step cleanup)
 - `/ov-core:deploy` -- Deploy.yml management, tunnel configuration
 - `/ov-core:service` -- Full service lifecycle
-- `/ov-build:mcp` -- after `ov config remove` cleans this instance's `mcp_provides` from the global `provides.mcp:` list, consumers' `OV_MCP_SERVERS` no longer lists it; use `ov eval mcp servers <consumer>` to confirm the cleanup propagated
+- `/ov-build:ov-mcp-cmd` -- after `ov config remove` cleans this instance's `mcp_provides` from the global `provides.mcp:` list, consumers' `OV_MCP_SERVERS` no longer lists it; use `ov eval mcp servers <consumer>` to confirm the cleanup propagated

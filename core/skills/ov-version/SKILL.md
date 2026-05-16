@@ -1,8 +1,9 @@
 ---
-name: version
+name: ov-version
 description: |
   Show ov CLI version information.
   MUST be invoked before any work involving: ov version command or checking installed ov version.
+  Renamed from `version` to `ov-version` to disambiguate from Claude Code's built-in `/version` slash command.
 ---
 
 # ov version -- CLI Version
@@ -42,7 +43,7 @@ Historical note: `VersionCmd` originally used Go's builtin
 `os.Stderr` and writes directly to fd 2). The move to `fmt.Println`
 landed with the MCP server work so the in-process tool-call path —
 which captures `os.Stdout` — can surface the version correctly. See
-`/ov-eval:eval` Authoring Gotcha #5 and `/ov-build:mcp` "Capture model" for the
+`/ov-eval:eval` Authoring Gotcha #5 and `/ov-build:ov-mcp-cmd` "Capture model" for the
 full story.
 
 ## Cross-References
@@ -51,5 +52,5 @@ full story.
 - `/ov-build:settings` — runtime config where `secret_backend` and other settings live
 - `/ov-image:image` — build-mode family that stamps CalVer tags matching this version
 - `/ov-eval:eval` — declarative testing framework (Gotcha #5 covers the stdout rule)
-- `/ov-build:mcp` — MCP server section explains why the stream choice matters for the capture pipeline
+- `/ov-build:ov-mcp-cmd` — MCP server section explains why the stream choice matters for the capture pipeline
 - `/ov-internals:go` — `ov/version.go` CalVer computation; `main.go` `VersionCmd.Run` using `fmt.Println`

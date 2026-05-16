@@ -91,7 +91,7 @@ ov shell my-amd-app -c "echo \$HSA_OVERRIDE_GFX_VERSION"
 - `/ov-core:ov-doctor` -- Host AMD GPU detection (`/dev/kfd`, render nodes, driver status)
 - `/ov-core:shell` -- Interactive shells receive the same auto-detected HSA_OVERRIDE_GFX_VERSION + DRINODE envs
 - `/ov-automation:udev` -- Device permission management for `/dev/kfd` and `/dev/dri/renderD*`
-- `/ov-core:config` -- Runtime GPU env injection at deployment time (same auto-detect path)
+- `/ov-core:ov-config` -- Runtime GPU env injection at deployment time (same auto-detect path)
 - `/ov-core:start` -- Runtime GPU env injection at service start time
 
 ## Used In Images

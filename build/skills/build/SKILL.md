@@ -469,7 +469,7 @@ CalVer tags for builder `FROM` clauses (e.g.,
 `--pull=never` to podman so local tags aren't resolved from the remote.
 Tracked as a follow-up.
 
-See also: `/ov-build:generate` for the Containerfile generation path, `/ov-core:update`
+See also: `/ov-build:generate` for the Containerfile generation path, `/ov-core:ov-update`
 for the `--build` flag that also picks up this caveat.
 
 ## Project directory override
@@ -493,9 +493,9 @@ for the `--build` flag that also picks up this caveat.
 
 - `/ov-image:layer` -- Layer definitions that get built
 - `/ov-eval:eval` -- Tests are embedded as `org.overthinkos.eval` OCI label at build time; LABEL-at-end optimization (see Cache Efficiency above) makes test edits cheap.
-- `/ov-core:update` -- `ov update <image> --build` invokes `BuildCmd.Run` and picks up the same `--jobs` cap and stale-`:latest` caveat
+- `/ov-core:ov-update` -- `ov update <image> --build` invokes `BuildCmd.Run` and picks up the same `--jobs` cap and stale-`:latest` caveat
 - `/ov-vm:vm` -- Building bootc disk images (`ov vm build`)
-- `/ov-core:config` -- Engine configuration
+- `/ov-core:ov-config` -- Engine configuration
 - `/ov-automation:enc` -- Encrypted-volume restart path interacts with the `--build` flow (`ov config mount` short-circuit means builds can restart services without touching the keyring)
 
 ## When to Use This Skill

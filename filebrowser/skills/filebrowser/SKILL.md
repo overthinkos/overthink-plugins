@@ -108,7 +108,7 @@ See `/ov-eval:eval` for the framework and author-facing gotchas.
 
 - `/ov-filebrowser:filebrowser` — layer authoring
 - `/ov-eval:eval` — declarative testing framework
-- `/ov-core:config` — deploy-mode setup with volume backing and tunnels
+- `/ov-core:ov-config` — deploy-mode setup with volume backing and tunnels
 - `/ov-build:build` — LABELs-at-end cache efficiency
 
 ## When to Use This Skill

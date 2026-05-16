@@ -189,7 +189,7 @@ Conflicts with the other three coder-family images on these ports.
 - `/ov-build:build` — **`base_user:` declaration** (where `ubuntu:1000` is declared).
 - `/ov-eval:eval` — `exclude_distros:` field reference.
 - `/ov-build:generate` — adopt-vs-create writeBootstrap emission.
-- `/ov-core:shell`, `/ov-core:config`, `/ov-core:start`, `/ov-core:stop`.
+- `/ov-core:shell`, `/ov-core:ov-config`, `/ov-core:start`, `/ov-core:stop`.
 
 ## When to use this skill
 

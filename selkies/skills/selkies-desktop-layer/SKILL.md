@@ -143,8 +143,8 @@ See `/ov-selkies:selkies-desktop` for full multi-instance deployment examples.
 - `/ov-eval:wl` — Wayland automation (screenshots, input, windows)
 - `/ov-eval:cdp` — Chrome DevTools Protocol automation
 - `/ov-eval:record` — Desktop video recording via capture bridge
-- `/ov-core:update` — Per-instance update pattern used to roll out pixelflux/Chrome fixes
-- `/ov-core:config` — Multi-instance deployment, resource caps, tunnel, proxy env vars, NO_PROXY auto-enrichment
+- `/ov-core:ov-update` — Per-instance update pattern used to roll out pixelflux/Chrome fixes
+- `/ov-core:ov-config` — Multi-instance deployment, resource caps, tunnel, proxy env vars, NO_PROXY auto-enrichment
 - `/ov-core:deploy` — Tunnel configuration (deploy.yml-only, instance inheritance gap)
 
 ## Related

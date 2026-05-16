@@ -231,7 +231,7 @@ OCI label (see `/ov-eval:eval` for the full schema):
 - `/ov-openwebui:openwebui` -- MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code-block execution into the Jupyter kernel)
 - `/ov-infrastructure:supervisord` -- process manager dependency
 - `/ov-languages:python` -- Python runtime (transitive via supervisord)
-- `/ov-build:mcp` -- end-to-end testing of the layer's MCP endpoint (`ov eval mcp ping`, `list-tools`, `call`); the layer ships 3 deploy-scope `mcp:` declarative checks against `list_notebooks`/`insert_cell`/`execute_cell`
+- `/ov-build:ov-mcp-cmd` -- end-to-end testing of the layer's MCP endpoint (`ov eval mcp ping`, `list-tools`, `call`); the layer ships 3 deploy-scope `mcp:` declarative checks against `list_notebooks`/`insert_cell`/`execute_cell`
 
 ## When to Use This Skill
 

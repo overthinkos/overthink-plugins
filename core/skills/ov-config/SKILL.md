@@ -1,7 +1,8 @@
 ---
-name: config
+name: ov-config
 description: |
   MUST be invoked before any work involving: ov config commands, image deployment setup, quadlet generation, secrets provisioning, encrypted volumes, data seeding, or volume backing configuration.
+  Renamed from `config` to `ov-config` to disambiguate from Claude Code's built-in `/config` slash command.
 ---
 
 # ov config -- Image Deployment Configuration
@@ -118,7 +119,7 @@ Auto-path for bind without explicit host path: `<volumes_path>/<image>/<name>` (
 
 ### Bind-mounting a project checkout for `ov mcp serve`
 
-The `ov-mcp` layer declares a `project` volume at `/workspace` (renamed from `/project` in 2026-04 for a more neutral term; the volume NAME stays `project` for a stable deployer API) and sets `env: OV_PROJECT_DIR=/workspace`. Bind-mount your overthink checkout at config time so build-mode MCP tools (`image.build`, `image.list.images`, `image.inspect`) can read `image.yml`. Alternatively, skip the bind-mount and `ov mcp serve` will auto-fall back to the upstream `overthinkos/overthink` repo (see `/ov-build:mcp` "Project-dir wiring"):
+The `ov-mcp` layer declares a `project` volume at `/workspace` (renamed from `/project` in 2026-04 for a more neutral term; the volume NAME stays `project` for a stable deployer API) and sets `env: OV_PROJECT_DIR=/workspace`. Bind-mount your overthink checkout at config time so build-mode MCP tools (`image.build`, `image.list.images`, `image.inspect`) can read `image.yml`. Alternatively, skip the bind-mount and `ov mcp serve` will auto-fall back to the upstream `overthinkos/overthink` repo (see `/ov-build:ov-mcp-cmd` "Project-dir wiring"):
 
 ```bash
 ov config arch-ov --bind project=/home/you/overthink
@@ -127,7 +128,7 @@ ov eval mcp call arch-ov image.list.images '{}' --name ov
 # → lists images from the bind-mounted /home/you/overthink
 ```
 
-The `OV_PROJECT_DIR` env var is consumed by the ov binary's global `-C` / `--dir` / `OV_PROJECT_DIR` flag (`ov/main.go` calls `os.Chdir(Dir)` before Kong dispatch). See `/ov-image:image` "Project directory resolution" and `/ov-build:mcp` "Deployment: the `ov-mcp` layer" for the full pattern.
+The `OV_PROJECT_DIR` env var is consumed by the ov binary's global `-C` / `--dir` / `OV_PROJECT_DIR` flag (`ov/main.go` calls `os.Chdir(Dir)` before Kong dispatch). See `/ov-image:image` "Project directory resolution" and `/ov-build:ov-mcp-cmd` "Deployment: the `ov-mcp` layer" for the full pattern.
 
 ## Secret Provisioning
 
@@ -346,7 +347,7 @@ ov eval cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
 
 ## Service Environment Injection
 
-When a configured image declares `env_provides` or `mcp_provides` in its layers (stored in OCI labels), `ov config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `ov eval mcp ping <image>` — see `/ov-build:mcp` for the full verb surface.
+When a configured image declares `env_provides` or `mcp_provides` in its layers (stored in OCI labels), `ov config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `ov eval mcp ping <image>` — see `/ov-build:ov-mcp-cmd` for the full verb surface.
 
 ```yaml
 # deploy.yml after `ov config ollama && ov config jupyter`

@@ -11,8 +11,8 @@
     {
       "name": "ov-core",
       "source": "./core",
-      "description": "Runtime/lifecycle CLI verbs — start, stop, restart, status, logs, shell, ssh, deploy, update, remove, config, cmd, version, ov-doctor.",
-      "version": "1.0.1",
+      "description": "Runtime/lifecycle CLI verbs — start, stop, restart, ov-status, logs, shell, ssh, deploy, ov-update, remove, ov-config, cmd, ov-version, ov-doctor.",
+      "version": "1.0.2",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
@@ -23,8 +23,8 @@
     {
       "name": "ov-build",
       "source": "./build",
-      "description": "Build/authoring CLI verbs — build, generate, list, inspect, merge, new, pull, validate, secrets, settings, migrate, mcp.",
-      "version": "1.0.0",
+      "description": "Build/authoring CLI verbs — build, generate, list, inspect, merge, new, pull, validate, secrets, settings, migrate, ov-mcp-cmd.",
+      "version": "1.0.1",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",

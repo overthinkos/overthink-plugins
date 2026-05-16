@@ -79,7 +79,7 @@ Not yet tested. The `fedora-nonfree` variant works with CPU encoding. This varia
 - `/ov-eval:cdp` — drive Chrome inside the streaming desktop
 - `/ov-eval:wl` — interact with the labwc Wayland session
 - `/ov-eval:dbus` — D-Bus notifications via in-container `ov` binary
-- `/ov-build:mcp` — inherits chrome-devtools-mcp's 2 deploy-scope `mcp:` checks; use `ov eval mcp list-tools selkies-desktop-nvidia` to verify the MCP server is alive and exposing the full tool catalog.
+- `/ov-build:ov-mcp-cmd` — inherits chrome-devtools-mcp's 2 deploy-scope `mcp:` checks; use `ov eval mcp list-tools selkies-desktop-nvidia` to verify the MCP server is alive and exposing the full tool catalog.
 
 ## Related
 

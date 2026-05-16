@@ -71,7 +71,7 @@ ov start jupyter-ml-notebook   # OLLAMA_HOST already set via env_provides
 
 Both containers must be on the same `ov` Podman network for DNS resolution to work.
 
-See `/ov-core:config` for `--update-all` and `/ov-ollama:ollama` for env_provides details.
+See `/ov-core:ov-config` for `--update-all` and `/ov-ollama:ollama` for env_provides details.
 
 ## Notebook Compatibility Notes
 
@@ -139,7 +139,7 @@ ov shell ollama -c "ollama pull llama3.2"
 ## Related Skills
 
 - `/ov-image:layer` — data field documentation and layer authoring rules
-- `/ov-core:config` — data provisioning during `ov config` setup
+- `/ov-core:ov-config` — data provisioning during `ov config` setup
 - `/ov-core:deploy` — volume backing configuration
 - `/ov-jupyter:notebook-finetuning` — sibling data layer pattern (Unsloth fine-tuning notebooks)
 - `/ov-jupyter:notebook-templates` — sibling data layer pattern (starter notebooks)

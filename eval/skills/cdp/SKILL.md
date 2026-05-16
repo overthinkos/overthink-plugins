@@ -434,7 +434,7 @@ This pattern works for any page content extraction via JS. The `cdp eval` comman
 - `/ov-eval:vnc` -- VNC desktop automation (sibling verb; same container, pixel-level interaction).
 - `/ov-eval:dbus` -- D-Bus calls and notifications (sibling verb under `ov eval`).
 - `/ov-core:shell` -- Running commands in containers (`--tty` for OAuth flows)
-- `/ov-core:config` -- Instance deployment, proxy configuration, removal workflow
+- `/ov-core:ov-config` -- Instance deployment, proxy configuration, removal workflow
 - `/ov-image:layer` -- Chrome layer configuration (cdp-proxy service, port declarations)
 - `/ov-selkies:selkies-desktop` -- Full SPA DOM structure, coordinate mapping, session resilience
 - `/ov-selkies:chrome-devtools-mcp` -- MCP-based browser automation (29 tools via Streamable HTTP)

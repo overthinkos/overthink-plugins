@@ -101,9 +101,9 @@ ov remove githubrunner -e RUNNER_TOKEN=<token>
 
 ## Related Commands
 
-- `/ov-core:config` — deploy setup with RUNNER_ORG / RUNNER_TOKEN
+- `/ov-core:ov-config` — deploy setup with RUNNER_ORG / RUNNER_TOKEN
 - `/ov-core:start`, `/ov-core:stop`, `/ov-core:remove` — lifecycle + pre-remove deregistration
-- `/ov-core:status`, `/ov-core:logs` — verify runner is idle + troubleshoot
+- `/ov-core:ov-status`, `/ov-core:logs` — verify runner is idle + troubleshoot
 
 ## Verification
 

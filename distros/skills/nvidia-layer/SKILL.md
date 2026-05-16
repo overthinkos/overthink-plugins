@@ -98,7 +98,7 @@ Creates Vulkan ICD compatibility symlinks for nvidia-ctk CDI device injection.
 - `/ov-core:ov-doctor` — Host NVIDIA detection (GPU probe, CDI spec status, driver version)
 - `/ov-core:shell` — DRINODE auto-injection applies to interactive shells too
 - `/ov-automation:udev` — Device permission management for `/dev/dri/*` and `/dev/nvidia*`
-- `/ov-core:config` — Runtime GPU device injection at deployment time (same `appendAutoDetectedEnv()` path)
+- `/ov-core:ov-config` — Runtime GPU device injection at deployment time (same `appendAutoDetectedEnv()` path)
 - `/ov-core:start` — Runtime GPU device injection at service start time
 
 ## Related

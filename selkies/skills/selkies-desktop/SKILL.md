@@ -300,7 +300,7 @@ ov eval cdp open selkies-desktop -i 45.39.130.21 "https://httpbin.org/ip"
 
 **MCP auto-disambiguation:** Each instance provides `chrome-devtools-<instance>` MCP server. Consumers (hermes) receive all instances in `OV_MCP_SERVERS` JSON after `--update-all`.
 
-See `/ov-core:config` for `--update-all` propagation, `/ov-selkies:chrome` for `env_accepts` (HTTP_PROXY/HTTPS_PROXY/NO_PROXY).
+See `/ov-core:ov-config` for `--update-all` propagation, `/ov-selkies:chrome` for `env_accepts` (HTTP_PROXY/HTTPS_PROXY/NO_PROXY).
 
 ## Build Pipeline Note
 
@@ -353,8 +353,8 @@ for `/etc/sudoers.d/ov-user` because it's root-only (`/ov-eval:eval` Gotcha #10)
   `/ov-selkies:chrome-devtools-mcp`, `/ov-selkies:pipewire`
 - `/ov-eval:eval` — declarative testing framework + testing gotchas
 - `/ov-eval:cdp`, `/ov-eval:wl` — desktop automation on this image
-- `/ov-core:config` — deploy setup (tunnel, port remapping, instances)
-- `/ov-build:mcp` — the image bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `ov eval live selkies-desktop --filter mcp` runs them; `ov eval mcp list-tools selkies-desktop` enumerates the 29 chrome-devtools tools ad-hoc.
+- `/ov-core:ov-config` — deploy setup (tunnel, port remapping, instances)
+- `/ov-build:ov-mcp-cmd` — the image bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `ov eval live selkies-desktop --filter mcp` runs them; `ov eval mcp list-tools selkies-desktop` enumerates the 29 chrome-devtools tools ad-hoc.
 
 ## Related
 

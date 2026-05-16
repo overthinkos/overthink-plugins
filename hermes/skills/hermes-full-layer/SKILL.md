@@ -54,7 +54,7 @@ hermes:
 - `/ov-selkies:chrome` — Provides `BROWSER_CDP_URL` (cross-container, from selkies-desktop)
 - `/ov-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-discovered via `mcp_provides`, 29 tools)
 - `/ov-jupyter:jupyter-mcp` — JupyterLab CRDT MCP server (auto-discovered via `mcp_provides`, 11 tools post-2026-05-06: notebook_*/cell_* + notebook_list_users + room_list; auto-attach single-room invariant)
-- `/ov-build:mcp` — host-side MCP client (`ov eval mcp ping|list-tools|call|...`) to verify either of the above is alive and exposing the expected tool catalog before hermes tries to invoke them
+- `/ov-build:ov-mcp-cmd` — host-side MCP client (`ov eval mcp ping|list-tools|call|...`) to verify either of the above is alive and exposing the expected tool catalog before hermes tries to invoke them
 
 ## Related Images
 

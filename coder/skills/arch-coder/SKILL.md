@@ -165,7 +165,7 @@ Conflicts with `/ov-coder:fedora-coder` / `/ov-coder:debian-coder` / `/ov-coder:
 
 ## Related commands
 
-- `/ov-core:shell`, `/ov-core:config`, `/ov-core:start`, `/ov-core:stop`, `/ov-eval:eval`
+- `/ov-core:shell`, `/ov-core:ov-config`, `/ov-core:start`, `/ov-core:stop`, `/ov-eval:eval`
 - `/ov-image:image` — `user_policy:` field reference
 - `/ov-build:build` — `base_user:` declaration (absent for archlinux)
 - `/ov-image:layer` — authoring reference

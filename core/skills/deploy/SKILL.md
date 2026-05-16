@@ -673,7 +673,7 @@ images:
 - `ov config remove` / `ov remove` automatically cleans up entries from the removed image
 - Instance-aware cleanup: removing an instance (e.g., `ov remove selkies-desktop -i work`) only cleans provides entries sourced from that specific instance (`selkies-desktop/work`), not from other instances of the same base image. Base image removal requires no other instances to exist before cleaning provides
 
-See `/ov-image:layer` for `env_provides`/`mcp_provides` field declarations and `/ov-core:config` for `--update-all` propagation.
+See `/ov-image:layer` for `env_provides`/`mcp_provides` field declarations and `/ov-core:ov-config` for `--update-all` propagation.
 
 ### Secrets
 
@@ -744,9 +744,9 @@ images:
 
 **Instance lifecycle:** All commands accept `-i`: `ov start/stop/status/logs/remove <image> -i <instance>`, `ov deploy show/reset <image> -i <instance>`. Removing an instance only cleans its deploy.yml entry — the base and other instances are unaffected. Provides cleanup waits until the last entry for a base image is removed.
 
-**Instance removal gotcha:** `ov config remove` disables the systemd service but does NOT remove the deploy.yml entry. You MUST also run `ov deploy reset <image> -i <instance>` and delete the quadlet file. If you run `ov config --update-all` before cleaning deploy.yml, stale quadlet files will be re-created. See `/ov-core:config` for the full 3-step cleanup workflow.
+**Instance removal gotcha:** `ov config remove` disables the systemd service but does NOT remove the deploy.yml entry. You MUST also run `ov deploy reset <image> -i <instance>` and delete the quadlet file. If you run `ov config --update-all` before cleaning deploy.yml, stale quadlet files will be re-created. See `/ov-core:ov-config` for the full 3-step cleanup workflow.
 
-**MCP name disambiguation:** When an instance provides MCP servers, the server name gets `-<instance>` appended (e.g., `chrome-devtools-work`). See `/ov-core:config` for details.
+**MCP name disambiguation:** When an instance provides MCP servers, the server name gets `-<instance>` appended (e.g., `chrome-devtools-work`). See `/ov-core:ov-config` for details.
 
 ## Volume Backing
 
@@ -815,7 +815,7 @@ volumes:
 
 ### Integration
 
-- **Data provisioning**: `ov config` automatically provisions data from data layers into bind-backed volumes (via `--seed`, default true). `ov update` merges new data non-destructively. See `/ov-core:config` and `/ov-core:update`
+- **Data provisioning**: `ov config` automatically provisions data from data layers into bind-backed volumes (via `--seed`, default true). `ov update` merges new data non-destructively. See `/ov-core:ov-config` and `/ov-core:ov-update`
 - **`ov shell`/`ov start`**: resolves volume backing, verifies bind dirs exist and encrypted volumes are mounted, generates `-v` flags
 - **`ov config` (quadlet)**: bind-backed volumes become `Volume=` lines with host paths. `--userns=keep-id` added when bind-backed volumes exist
 - **`ov remove --purge`**: removes named volumes
@@ -887,7 +887,7 @@ provides:
 - MCP provides: pod-aware (same-container entries resolve to `localhost`, no self-exclusion)
 - Consumer containers receive `OV_MCP_SERVERS` JSON env var with resolved MCP server entries
 
-See `/ov-core:config` for setup workflow and `/ov-image:layer` for declaration format.
+See `/ov-core:ov-config` for setup workflow and `/ov-image:layer` for declaration format.
 
 ## Sidecar Pod Deployment
 
@@ -937,13 +937,13 @@ images:
 - `/ov-core:service` — Service lifecycle (start/stop/update/remove)
 - `/ov-core:start` — Ergonomic alias for `ov deploy add <image> <image>` (container target)
 - `/ov-core:stop` — Ergonomic alias for `ov deploy del <name>`
-- `/ov-core:update` — Per-instance update pattern; equivalent to `ov deploy add <name> --pull`
-- `/ov-core:config` — Resource cap flags (`--memory-max/high/swap/cpus`), provides filtering, env_requires enforcement, NO_PROXY auto-enrichment, `--sidecar`, `-i` instance support, MCP name disambiguation
+- `/ov-core:ov-update` — Per-instance update pattern; equivalent to `ov deploy add <name> --pull`
+- `/ov-core:ov-config` — Resource cap flags (`--memory-max/high/swap/cpus`), provides filtering, env_requires enforcement, NO_PROXY auto-enrichment, `--sidecar`, `-i` instance support, MCP name disambiguation
 - `/ov-automation:enc` — Encrypted storage commands (ov config mount/unmount)
 - `/ov-eval:vnc` — VNC password setup for desktop containers
 - `/ov-vm:vm` — Virtual machine deployment (ov vm)
 - `/ov-build:build` — Building images before deployment (+ the `--no-cache` intermediate scratch-stage caveat)
-- `/ov-build:mcp` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`ov eval mcp ping <image>`); note the **port-publishing gotcha** when a `port:` override in deploy.yml predates a newly-added mcp-providing layer
+- `/ov-build:ov-mcp-cmd` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`ov eval mcp ping <image>`); note the **port-publishing gotcha** when a `port:` override in deploy.yml predates a newly-added mcp-providing layer
 - `/ov-image:image` — Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
 - `/ov-image:layer` — Unified `service:` schema (use_packaged + structured custom), `env_provides`/`env_requires`/`env_accepts` field declarations, security resource caps
 - `/ov-eval:eval` — Local `eval:` in deploy.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.

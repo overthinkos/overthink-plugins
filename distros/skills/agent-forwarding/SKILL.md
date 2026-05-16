@@ -135,7 +135,7 @@ arch-ov, arch-test, aurora, bazzite-ai, comfyui, fedora-ov, fedora-test, githubr
 - `/ov-build:secrets` -- `ov secrets gpg` for managing `.secrets` files, GPG key management (`import-key`, `export-key`, `setup`, `doctor`), KeePassXC integration; credential store for container secrets
 - `/ov-core:shell` -- where SSH/GPG agent forwarding happens at runtime
 - `/ov-core:service` -- `ov start` direct mode forwarding
-- `/ov-core:config` -- `forward_gpg_agent`, `forward_ssh_agent` settings
+- `/ov-core:ov-config` -- `forward_gpg_agent`, `forward_ssh_agent` settings
 - `/ov-core:deploy` -- per-image forwarding overrides in deploy.yml
 
 ## Source

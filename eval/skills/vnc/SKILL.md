@@ -222,7 +222,7 @@ ov eval wl screenshot <image> out.png            # Wayland screenshot (grim, alw
 - `/ov-eval:cdp` — Chrome DevTools Protocol automation (sibling verb; same container, different protocol).
 - `/ov-eval:dbus` — D-Bus calls and desktop notifications (sibling verb under `ov eval`).
 - `/ov-eval:wl` (sway subgroup) — Sway compositor control (window management, workspaces)
-- `/ov-core:config` — VNC password storage, `secret_backend` setting, `migrate-secrets` command
+- `/ov-core:ov-config` — VNC password storage, `secret_backend` setting, `migrate-secrets` command
 - `/ov-core:service` — Managing wayvnc supervisord service
 - `/ov-core:deploy` — VNC password setup in deployment workflows
 - `/ov-core:shell` — Executing commands inside containers

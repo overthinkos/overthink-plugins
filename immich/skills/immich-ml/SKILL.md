@@ -106,7 +106,7 @@ postgresql + redis + immich-server + immich-ml all RUNNING.
   `/ov-infrastructure:supervisord`, `/ov-infrastructure:dbus-layer`, `/ov-tools:ov`,
   `/ov-distros:agent-forwarding`
 - `/ov-eval:eval` — framework + runtime variable rules (why skips happen)
-- `/ov-core:config` — deploy setup (pg password secret, volume backing)
+- `/ov-core:ov-config` — deploy setup (pg password secret, volume backing)
 - `/ov-immich:immich` — non-ML variant
 
 ## When to Use This Skill

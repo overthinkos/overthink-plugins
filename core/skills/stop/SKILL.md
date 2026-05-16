@@ -56,4 +56,4 @@ ov stop immich --unmount
 
 - `/ov-core:start` -- Start services
 - `/ov-core:remove` -- Remove containers, quadlets, and deploy config
-- `/ov-core:status` -- Check service status
+- `/ov-core:ov-status` -- Check service status

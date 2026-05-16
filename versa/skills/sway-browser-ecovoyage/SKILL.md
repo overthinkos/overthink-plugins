@@ -161,6 +161,6 @@ sandboxed pods.
 - `/ov-selkies:sway-browser-vnc` — the base image this deploy instantiates
 - `/ov-selkies:chrome-devtools-mcp` — the layer providing the MCP server
 - `/ov-eval:cdp` — the verb catalog driving Chrome
-- `/ov-build:mcp` — verifying the MCP endpoint via `ov eval mcp ping/list-tools/call`
+- `/ov-build:ov-mcp-cmd` — verifying the MCP endpoint via `ov eval mcp ping/list-tools/call`
 - `/ov-core:deploy` — Pattern A multi-instance + MCP name disambiguation
 - `/ov-automation:sidecar` — alternative tailscale sidecar pattern (not used here; this skill uses host-serve)

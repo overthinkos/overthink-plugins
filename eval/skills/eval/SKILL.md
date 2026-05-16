@@ -1108,7 +1108,7 @@ deliberately.
 
 ## Related skills
 
-- **Live-container probe verbs under `ov eval`** — `/ov-eval:cdp`, `/ov-eval:wl`, `/ov-eval:dbus`, `/ov-eval:vnc`, `/ov-build:mcp`, `/ov-eval:record`, `/ov-eval:spice`, `/ov-eval:libvirt`, `/ov-kubernetes:eval-k8s` are dispatched as `ov eval cdp|wl|dbus|vnc|mcp|record|spice|libvirt|k8s`. See the Subcommands section above.
+- **Live-container probe verbs under `ov eval`** — `/ov-eval:cdp`, `/ov-eval:wl`, `/ov-eval:dbus`, `/ov-eval:vnc`, `/ov-build:ov-mcp-cmd`, `/ov-eval:record`, `/ov-eval:spice`, `/ov-eval:libvirt`, `/ov-kubernetes:eval-k8s` are dispatched as `ov eval cdp|wl|dbus|vnc|mcp|record|spice|libvirt|k8s`. See the Subcommands section above.
 - `/ov-image:layer` — layer authoring; `eval:` field is part of every `layer.yml`.
 - `/ov-image:image` — image-level `eval:` and `deploy_eval:` at composition time.
 - `/ov-core:deploy` — local `deploy.yml` overlay rules and the `eval:` merge.

@@ -21,7 +21,7 @@ Three verbs, in decreasing scope:
 
 All three are **comment-preserving**: the YAML edits route through the `yaml.v3` Node API rather than the value API, so human-authored comments and key order survive round trips. Implementation lives in `ov/scaffold_project.go` + `ov/yaml_setter.go`.
 
-Each verb also auto-becomes an MCP tool (`image.new.project`, `image.new.image`, `image.new.layer`) via Kong reflection in `ov/mcp_server.go` — so an LLM agent driving `ov mcp serve` can scaffold a project from scratch over RPC. See `/ov-build:mcp` "Authoring tools".
+Each verb also auto-becomes an MCP tool (`image.new.project`, `image.new.image`, `image.new.layer`) via Kong reflection in `ov/mcp_server.go` — so an LLM agent driving `ov mcp serve` can scaffold a project from scratch over RPC. See `/ov-build:ov-mcp-cmd` "Authoring tools".
 
 ## Quick Reference
 
@@ -95,7 +95,7 @@ The end-to-end scaffold → build flow:
 6. `ov image validate` — check for errors
 7. `ov image build my-app` — build the image
 
-All six steps are also callable as MCP tools (`image.new.project`, `image.new.layer`, `layer.add-rpm`, …), so an agent driving `ov mcp serve` can run this entire flow over RPC. See `/ov-build:mcp` "Authoring tools" for the worked MCP-only example.
+All six steps are also callable as MCP tools (`image.new.project`, `image.new.layer`, `layer.add-rpm`, …), so an agent driving `ov mcp serve` can run this entire flow over RPC. See `/ov-build:ov-mcp-cmd` "Authoring tools" for the worked MCP-only example.
 
 The scaffolded `layer.yml` from step 3 is minimal (a null `rpm.packages:` list with a placeholder comment). Add sections as needed: `rpm:` / `deb:` / `pac:` / `aur:` for system packages, `env:` for runtime environment, `port:` / `service:` / `volume:` for services, and `task:` for install operations (mkdir, copy, write, download, link, setcap, cmd, build). The scaffolder does not create separate Taskfile shell scripts — all install logic flows through `task:` in `layer.yml`.
 
@@ -124,5 +124,5 @@ The scaffolded `layer.yml` from step 3 is minimal (a null `rpm.packages:` list w
 ### Related skills
 
 - `/ov-image:layer` -- Layer authoring guide, layer.yml format, install files + the `ov layer set / add-rpm / add-deb / add-pac / add-aur` editing surface
-- `/ov-build:mcp` -- "Authoring tools" table + the MCP-only build-from-scratch worked example
+- `/ov-build:ov-mcp-cmd` -- "Authoring tools" table + the MCP-only build-from-scratch worked example
 - `/ov-internals:go` -- Implementation notes: the `yaml.v3` Node API is the reason edits preserve comments; `ov/scaffold_project.go` + `ov/yaml_setter.go` house the logic

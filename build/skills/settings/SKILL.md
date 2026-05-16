@@ -83,7 +83,7 @@ Settings resolve in this order: environment variable > settings.yml > default va
 
 ## Cross-References
 
-- `/ov-core:config` -- deployment configuration (uses settings)
+- `/ov-core:ov-config` -- deployment configuration (uses settings)
 - `/ov-build:secrets` -- credential management
 - `/ov-core:ov-doctor` -- diagnose settings and secret storage health
 - `/ov-automation:enc` -- encrypted volume paths

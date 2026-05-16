@@ -86,7 +86,7 @@ If a future sidecar needs to forward auth tokens or service URLs into the app, t
 - App layer declares `env_accepts: [<var>]` or `env_requires: [<var>]`
 - `ov config` resolves the provide at deploy time and writes it to `deploy.yml` under `provides:`
 
-Missing `env_accepts` on the consumer side silently drops the var. Missing `env_requires` is a hard fail. See `/ov-image:layer` (env_requires / env_accepts) for the authoring side, `/ov-core:config` (Provides Filtering) for the resolution pipeline, and `provides.go` in the `ov` source for the implementation.
+Missing `env_accepts` on the consumer side silently drops the var. Missing `env_requires` is a hard fail. See `/ov-image:layer` (env_requires / env_accepts) for the authoring side, `/ov-core:ov-config` (Provides Filtering) for the resolution pipeline, and `provides.go` in the `ov` source for the implementation.
 
 ### deploy.yml Persistence
 
@@ -281,7 +281,7 @@ Chrome requires large `/dev/shm`. In pod mode, per-container `ShmSize=` is ignor
 ## Cross-References
 
 - `/ov-core:deploy` — Quadlet generation, deploy.yml, tunnel configuration (tunnel is deploy.yml-only, not auto-inherited by instances)
-- `/ov-core:config` — `--sidecar` and `--list-sidecars` flags, Provides Filtering, resource caps, NO_PROXY auto-enrichment
+- `/ov-core:ov-config` — `--sidecar` and `--list-sidecars` flags, Provides Filtering, resource caps, NO_PROXY auto-enrichment
 - `/ov-image:layer` — `env_accepts` / `env_requires` authoring and the full provides filtering contract
 - `/ov-build:secrets` — `ov secrets gpg set TS_AUTHKEY` for auth key storage
 - `/ov-selkies:selkies-desktop` — Full deployment example with Tailscale exit node

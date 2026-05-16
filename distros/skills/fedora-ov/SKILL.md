@@ -168,7 +168,7 @@ and scripts per distro.
 - `/ov-core:shell` — open an interactive shell in fedora-ov (as uid=1000 with sudo)
 - `/ov-core:service` — manage fedora-ov as a service
 - `/ov-vm:vm` — nested libvirt VMs via `qemu:///session` (rootless)
-- `/ov-build:mcp` — MCP gateway deployment patterns (if you add `ov-mcp` to the layers)
+- `/ov-build:ov-mcp-cmd` — MCP gateway deployment patterns (if you add `ov-mcp` to the layers)
 
 ## Related
 

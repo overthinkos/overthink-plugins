@@ -150,7 +150,7 @@ The `jupyter` MCP server name is **deliberately decoupled** from the layer name,
 - `/ov-jupyter:jupyter` — lightweight Tier 2 parent layer
 - `/ov-jupyter:jupyter-ml` — GPU ML Tier 2 parent layer
 - `/ov-image:layer` — layer authoring rules (Tier 1 pattern)
-- `/ov-build:mcp` — client-side verb for probing this server's tool catalog (ping, list-tools, call); use `ov eval mcp list-tools jupyter` to see all 11 tools this layer registers
+- `/ov-build:ov-mcp-cmd` — client-side verb for probing this server's tool catalog (ping, list-tools, call); use `ov eval mcp list-tools jupyter` to see all 11 tools this layer registers
 - `/ov-selkies:chrome-devtools-mcp` — sibling MCP-server-provider layer for Chrome DevTools (different domain, same `mcp_provides` pattern)
 - `/ov-hermes:hermes` — downstream MCP consumer (auto-discovers `jupyter` via `OV_MCP_SERVERS`; uses the 11 tools to read/edit/execute notebook cells programmatically)
 - `/ov-openwebui:openwebui` — downstream MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI's in-chat code blocks to the Jupyter kernel)

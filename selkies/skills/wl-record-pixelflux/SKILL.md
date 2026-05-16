@@ -93,7 +93,7 @@ selkies process (single ScreenCapture singleton — process-wide)
 ## Cross-References
 
 - `/ov-eval:record` -- `ov eval record start --mode desktop` auto-detects pixelflux-record
-- `/ov-core:update` -- Per-instance update pattern used to roll out the per-frame `cleanup_texture_cache()` fix across live instances
+- `/ov-core:ov-update` -- Per-instance update pattern used to roll out the per-frame `cleanup_texture_cache()` fix across live instances
 - `/ov-selkies:wl-screenshot-pixelflux` -- Screenshot companion (same capture bridge, same singleton)
 - `/ov-selkies:wf-recorder` -- Alternative for sway-desktop (wlr-screencopy)
 - `/ov-selkies:selkies` -- Parent layer (provides capture bridge, WebSocket stream, and the ScreenCapture singleton — see Pixelflux Memory Management)

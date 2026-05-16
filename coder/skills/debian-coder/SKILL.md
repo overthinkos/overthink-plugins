@@ -164,7 +164,7 @@ All four coder-family images share the identical 80-line `eval:` block + ~30 ide
 
 ## Related commands
 
-- `/ov-core:shell`, `/ov-core:config`, `/ov-core:start`, `/ov-core:stop`, `/ov-eval:eval`
+- `/ov-core:shell`, `/ov-core:ov-config`, `/ov-core:start`, `/ov-core:stop`, `/ov-eval:eval`
 - `/ov-image:image` — `user_policy:` field reference
 - `/ov-build:build` — `base_user:` declaration (absent for Debian)
 - `/ov-image:layer` — authoring reference (covers `exclude_distros:`, tag-section `repos:`, Microsoft dotnet-install pattern)

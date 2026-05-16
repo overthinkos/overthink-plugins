@@ -98,7 +98,7 @@ Remote repos are cloned into `~/.cache/ov/repos/<repoPath>@<version>/` (override
 
 3. **Auto-default** — `ov mcp serve` with no `image.yml` reachable at cwd silently falls back to `github.com/overthinkos/overthink`. **Refined in 2026-04**: the fallback now fires whenever cwd lacks `image.yml`, regardless of whether `OV_PROJECT_DIR` is set (previously the fallback only fired when the env var was empty — but the `ov-mcp` layer permanently sets `OV_PROJECT_DIR=/workspace`, so the fallback was effectively dead code). Pass `--no-default-repo` on the serve command to opt out. Only `ov mcp serve` auto-fetches; the top-level CLI stays opt-in.
 
-The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory`. See `/ov-build:mcp` "Deployment: the `ov-mcp` layer" for the full bind-mount pattern and `/ov-internals:go` "main.go" for the implementation note (guarded by `TestOvDir_FlagChdir` + `TestOvDir_Errors` in `main_dir_test.go`, and `TestNormalizeRepoSpec` + `TestOvRepo_*` in `main_repo_test.go`).
+The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory`. See `/ov-build:ov-mcp-cmd` "Deployment: the `ov-mcp` layer" for the full bind-mount pattern and `/ov-internals:go` "main.go" for the implementation note (guarded by `TestOvDir_FlagChdir` + `TestOvDir_Errors` in `main_dir_test.go`, and `TestNormalizeRepoSpec` + `TestOvRepo_*` in `main_repo_test.go`).
 
 ## Quick Reference
 
@@ -410,7 +410,7 @@ images:
     env_file: "~/.config/my-app/.env"
 ```
 
-These are the lowest priority in the env resolution chain. CLI flags (`-e`, `--env-file`) and workspace `.env` take precedence. See `/ov-core:config` and `/ov-core:start` for the full priority chain at config-time and run-time respectively.
+These are the lowest priority in the env resolution chain. CLI flags (`-e`, `--env-file`) and workspace `.env` take precedence. See `/ov-core:ov-config` and `/ov-core:start` for the full priority chain at config-time and run-time respectively.
 
 Source: `ov/envfile.go` (`ResolveEnvVars`).
 
@@ -540,10 +540,10 @@ images:
 
 - `/ov-image:layer` -- Layer definitions that compose into images (env_provides, env_requires, env_accepts, security resource caps)
 - `/ov-core:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
-- `/ov-core:config` -- `ov config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
+- `/ov-core:ov-config` -- `ov config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
 - `/ov-internals:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
 - `/ov-eval:eval` — Image-level `eval:` (cross-layer invariants) and `deploy_eval:` (deploy-default checks shipped with the image). Both are embedded in the `org.overthinkos.eval` OCI label.
-- `/ov-build:mcp` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `ov eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
+- `/ov-build:ov-mcp-cmd` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `ov eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
 - `/ov-selkies:selkies-desktop-bootc` — canonical worked example for the external-base + explicit-`distro:` pattern.
 - `/ov-vm:vm` — `ov vm build/create/start/stop/ssh` command family; reads `vms.yml`, not `image.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
 - `/ov-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema (replaces legacy `image.vm:` / `image.libvirt:`).

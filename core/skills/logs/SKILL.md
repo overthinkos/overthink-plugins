@@ -58,6 +58,6 @@ ov logs comfyui -f -n 50
 
 - `/ov-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
-- `/ov-core:status` -- Check service status
+- `/ov-core:ov-status` -- Check service status
 - `/ov-core:service` -- Service lifecycle management
 - `/ov-core:start` -- Starting services
