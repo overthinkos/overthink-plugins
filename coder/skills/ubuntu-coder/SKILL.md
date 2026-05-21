@@ -14,6 +14,14 @@ description: |
 
 Ubuntu 24.04 noble counterpart of `/ov-coder:fedora-coder`. Same 80-line test block, same ~30 layers, same rootless posture — but **the resolved user is `ubuntu` (not `user`)** because the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` to adopt it. Everything that touches the user account — `${HOME}`, npm prefix, pixi env, sudoers — derives from `resolved.User = "ubuntu"`.
 
+> **Relocated (2026-05):** lives in the **`overthinkos/ubuntu`** repo (git
+> submodule at **`image/ubuntu`**) — a SEPARATE repo from `overthinkos/debian`.
+> Its ~31 layers are pulled by github reference from the main repo (none moved).
+> Build/validate from the submodule:
+> `ov -C image/ubuntu image build ubuntu-coder`, or
+> `ov --repo overthinkos/ubuntu image build ubuntu-coder`. Deploy-mode verbs
+> read the built image's OCI labels and work from anywhere once it's local.
+
 ## Definition
 
 ```yaml
@@ -120,10 +128,10 @@ Identical to `/ov-coder:debian-coder` — the only diff is `User` field.
 
 ```bash
 # 1. Validate
-ov image validate
+ov -C image/ubuntu image validate
 
 # 2. Build (auto-chains: ubuntu → ubuntu-builder → ubuntu-coder)
-ov image build ubuntu-coder
+ov -C image/ubuntu image build ubuntu-coder
 
 # 3. Disposable-container tests
 ov eval image ghcr.io/overthinkos/ubuntu-coder:latest

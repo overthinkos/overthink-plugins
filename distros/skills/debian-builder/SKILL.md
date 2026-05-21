@@ -11,7 +11,13 @@ description: |
 
 # debian-builder
 
-Debian 13 counterpart of `/ov-distros:fedora-builder`. Provides the pixi / npm / cargo build environments so downstream deb-based images (currently `/ov-coder:debian-coder`) get pre-compiled artifacts from a dedicated builder stage without bloating the final image.
+Debian 13 counterpart of `/ov-distros:fedora-builder`. Provides the pixi / npm / cargo build environments so downstream Debian images (currently `/ov-coder:debian-coder`) get pre-compiled artifacts from a dedicated builder stage without bloating the final image.
+
+> **Relocated (2026-05):** lives in the **`overthinkos/debian`** repo (git
+> submodule at **`image/debian`**). Build it from the submodule:
+> `ov -C image/debian image build debian-builder` (normally it builds implicitly
+> as a dependency of `debian-coder`). Its `pixi`/`nodejs`/`build-toolchain`
+> layers are pulled by github reference from the main repo.
 
 ## Image Properties
 
@@ -55,7 +61,7 @@ No AUR equivalent (unlike `/ov-distros:arch-builder`) — AUR is an Arch-only co
 ## Quick start
 
 ```bash
-ov image build debian-builder
+ov -C image/debian image build debian-builder
 ov shell debian-builder
 ```
 
@@ -63,7 +69,7 @@ Typically not invoked directly — it's a build-time dependency of `/ov-coder:de
 
 ## Verification
 
-- `ov image list | grep debian-builder` — image present.
+- `ov -C image/debian image list | grep debian-builder` — image present.
 - `ov shell debian-builder -- pixi --version && node --version && gcc --version`.
 
 ## Related images

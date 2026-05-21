@@ -37,7 +37,7 @@ manager UI.
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
 | **ov-image** | 2 | — | Schema for `kind: image` and `kind: layer` (image.yml / layer.yml authoring). |
-| **ov-vm** | 8 | — | Schema for `kind: vm` + bootc VM catalog (cloud_image vs bootc, libvirt/QEMU). Includes `cachyos` (bootstrap VM, in the `overthinkos/cachyos` submodule). |
+| **ov-vm** | 10 | — | Schema for `kind: vm` + bootc VM catalog (cloud_image vs bootc, libvirt/QEMU). Includes `cachyos` (bootstrap VM, in the `overthinkos/cachyos` submodule) and `debian` / `ubuntu` (debootstrap bootstrap VMs, in the `overthinkos/debian` / `overthinkos/ubuntu` submodules). |
 | **ov-kubernetes** | 2 | — | Schema for `kind: k8s` + cluster probes via `ov eval k8s`. |
 | **ov-local** | 3 | — | Schema for `kind: local` + ssh-host deploys + managed ssh-config fragment. Includes `ov-cachyos` (operator CachyOS workstation profile, in the `overthinkos/cachyos` submodule). |
 | **ov-pod** | 1 | — | Schema for `kind: pod` and `kind: deploy` — thin pointer to `/ov-core:deploy` for verb details. |
@@ -54,7 +54,7 @@ manager UI.
 
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
-| **ov-distros** | 37 | — | Base OS images, GPU runtime, bootc bootstrap, per-distro builders. arch, fedora, debian, ubuntu, cachyos (+ cachyos-pacstrap/-builder, owned by the `overthinkos/cachyos` submodule), aurora, bazzite-ai, nvidia, cuda, rocm, bootc-base, bootc-config, fedora-builder, arch-builder, ubuntu-builder, debian-builder, etc. |
+| **ov-distros** | 41 | — | Base OS images, GPU runtime, bootc bootstrap, per-distro builders. fedora (+ fedora-builder), arch (+ arch-builder, owned by the `overthinkos/arch` submodule), cachyos (+ cachyos-pacstrap/-builder, owned by the `overthinkos/cachyos` submodule), debian / ubuntu (+ their `-builder` and `-debootstrap`/`-debootstrap-builder`, owned by the `overthinkos/debian` / `overthinkos/ubuntu` submodules), aurora, bazzite-ai, nvidia, cuda, rocm, bootc-base, bootc-config, etc. |
 | **ov-languages** | 4 | — | Programming language runtimes — pixi, python, python-ml, python-ml-layer. (golang/rust/nodejs live in `ov-coder` because they're tightly coupled to dev images.) |
 | **ov-infrastructure** | 22 | — | Databases, networking, security, system services. postgresql, redis, valkey, vectorchord, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, ssh-client, gnupg, etc. |
 | **ov-tools** | 19 | — | CLI utilities and the `ov` binary — ripgrep, himalaya, whisper, nano-pdf, summarize, ordercli, gogcli, sherpa-onnx, songsee, blogwatcher, sag, xurl, goplaces, mcporter, yay, ujust, vscode, ov, ov-full. |
@@ -64,7 +64,7 @@ manager UI.
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
 | **ov-jupyter** | 15 | jupyter @ 8888 | Jupyter image family (jupyter, jupyter-ml, jupyter-ml-notebook, unsloth-studio) + notebook templates + jupyter-mcp server. |
-| **ov-coder** | 33 | ov @ 18765 | ov coder/dev images (arch-coder, debian-coder, fedora-coder, ubuntu-coder, arch-ov) + language runtimes (golang/rust/nodejs/docker-ce). |
+| **ov-coder** | 33 | ov @ 18765 | ov coder/dev images (fedora-coder; arch-coder/arch-ov in the `overthinkos/arch` submodule; debian-coder in `overthinkos/debian`; ubuntu-coder in `overthinkos/ubuntu`) + language runtimes (golang/rust/nodejs/docker-ce). |
 | **ov-selkies** | 41 | chrome-devtools @ 9224 | Selkies-desktop family (Wayland in container with VNC + Chrome). |
 | **ov-openclaw** | 12 | chrome-devtools @ 9224 | OpenClaw AI workstation family (bootc, full, ml, sway, ollama, browser variants). |
 | **ov-versa** | 9 | marimo @ 22718, airflow @ 29999 | Versa image — marimo notebook + Airflow + OSM/GTFS analytics + martin vector tiles. |

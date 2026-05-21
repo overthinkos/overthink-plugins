@@ -1,16 +1,28 @@
 ---
 name: debian
 description: |
-  Base Debian 13 trixie image. Root of the image hierarchy for deb-based
-  builds that run as uid 1000 `user` (create mode — Debian 13 ships no
-  pre-existing uid-1000 account). Enabled 2026-04 as part of Phase A–F.
+  Base Debian 13 trixie image. Root of the image hierarchy for Debian builds
+  that run as uid 1000 `user` (create mode — Debian 13 ships no pre-existing
+  uid-1000 account). Owned by the overthinkos/debian submodule (image/debian)
+  since the 2026-05 split; consumed by no main-repo image.
   MUST be invoked before building, deploying, configuring, or troubleshooting
   any Debian-based image.
 ---
 
 # debian
 
-Base Debian 13 (trixie) image. Root of the deb-family image hierarchy alongside `/ov-distros:ubuntu`.
+Base Debian 13 (trixie) image. Root of the Debian image hierarchy.
+
+> **Relocated (2026-05):** the Debian family was split out of the main repo into
+> the **`overthinkos/debian`** repo (git submodule at **`image/debian`**). The
+> `debian` base is **owned there** (in that repo's `image.yml`) and composes the
+> main repo's layers + shared `build.yml` (which keeps the `debian` distro
+> config + the `deb` format + the `debootstrap` builder template) by git
+> reference. Build it from the submodule:
+> `ov -C image/debian image build debian` (or `ov --repo overthinkos/debian image build debian`).
+> Ubuntu — the deb-family sibling — split into its own **`overthinkos/ubuntu`**
+> repo at the same time (see `/ov-distros:ubuntu`). Nothing in main consumes any
+> Debian image, so there is **no main ↔ debian coupling**.
 
 ## Image Properties
 
@@ -51,25 +63,30 @@ USER 1000
 
 `gnupg` is in the bootstrap package set because downstream layers with `deb.repos[].key` (GitHub CLI, Docker, Kubernetes, Tailscale, Microsoft) call `gpg --dearmor` to convert ASCII-armored keys into `/etc/apt/keyrings/<name>.gpg`. Without `gnupg` the apt-repo stages fail with `gpg: not found`.
 
-## Downstream images
+## Downstream / sibling entries (all in overthinkos/debian)
 
-Currently the single consumer is `/ov-distros:debian-builder` (itself the builder for `/ov-coder:debian-coder`).
+- `/ov-distros:debian-builder` — pixi/npm/cargo multi-stage builder on this base.
+- `/ov-coder:debian-coder` — kitchen-sink dev image on this base.
+- `/ov-distros:debian-debootstrap-builder` — privileged debootstrap builder (`base: debian:13`).
+- `/ov-distros:debian-debootstrap` — bootstrap-from-scratch rootfs (`from: builder:debootstrap`).
+- `/ov-vm:debian` — the `debian-debootstrap` bootstrap VM + `debian-debootstrap-vm` bed.
 
 ## Verification
 
 ```bash
-ov image build debian
+ov -C image/debian image build debian
 ov shell debian                       # drops into /home/user as uid 1000
 id                                    # uid=1000(user) gid=1000(user)
+ov -C image/debian image validate     # remote build.yml + layer refs resolve
 ```
 
 ## Related images
 
-- `/ov-distros:ubuntu` — sibling deb-family base; ships `base_user:` + adopts ubuntu:ubuntu.
+- `/ov-distros:ubuntu` — deb-family sibling base in the separate `overthinkos/ubuntu` submodule; ships `base_user:` + adopts ubuntu:ubuntu.
 - `/ov-distros:debian-builder` — multi-stage builder on top of this image.
 - `/ov-coder:debian-coder` — kitchen-sink dev image on this base.
 - `/ov-distros:fedora` — RPM-family counterpart.
-- `/ov-distros:arch` — pacman-family counterpart.
+- `/ov-distros:arch` — pacman-family counterpart (separate `overthinkos/arch` submodule).
 
 ## Related commands
 

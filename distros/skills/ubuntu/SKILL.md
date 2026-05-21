@@ -14,6 +14,18 @@ description: |
 
 Base Ubuntu 24.04 (noble) image. Distinguished from `/ov-distros:debian` by **adopt mode**: the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` so the `ov` generator honors that account rather than creating a new one.
 
+> **Relocated (2026-05):** the Ubuntu family was split out of the main repo into
+> its own **`overthinkos/ubuntu`** repo (git submodule at **`image/ubuntu`**) —
+> a SEPARATE repo from `overthinkos/debian` (Debian and Ubuntu each got their
+> own repo, matching the per-distro precedent set by arch ≠ cachyos). The
+> `ubuntu` base is **owned there** and composes the main repo's layers + shared
+> `build.yml` by git reference. Because `distro.ubuntu` is `inherits: debian`,
+> the single remote `build.yml` (which carries BOTH distro configs) resolves the
+> inheritance — `overthinkos/ubuntu` needs no reference to `overthinkos/debian`.
+> Build from the submodule:
+> `ov -C image/ubuntu image build ubuntu` (or `ov --repo overthinkos/ubuntu image build ubuntu`).
+> Nothing in main consumes any Ubuntu image, so there is **no main ↔ ubuntu coupling**.
+
 ## Image Properties
 
 | Property | Value |
@@ -95,17 +107,21 @@ ov image build ubuntu
 
 ECR Public mirrors the Dockerhub library namespace without rate-limiting.
 
-## Downstream images
+## Downstream / sibling entries (all in overthinkos/ubuntu)
 
 - `/ov-distros:ubuntu-builder` — pixi/npm/cargo multi-stage builder.
 - `/ov-coder:ubuntu-coder` — kitchen-sink dev image.
+- `/ov-distros:ubuntu-debootstrap-builder` — privileged debootstrap builder (`base: debian:13`).
+- `/ov-distros:ubuntu-debootstrap` — bootstrap-from-scratch rootfs.
+- `/ov-vm:ubuntu` — the `ubuntu-debootstrap` bootstrap VM + `ubuntu-debootstrap-vm` bed.
 
 ## Verification
 
 ```bash
-ov image build ubuntu
+ov -C image/ubuntu image build ubuntu
 ov shell ubuntu                       # drops into /home/ubuntu as uid 1000
 id                                    # uid=1000(ubuntu) gid=1000(ubuntu)
+ov -C image/ubuntu image validate     # remote build.yml resolves distro.ubuntu (inherits debian)
 ```
 
 ## Related images

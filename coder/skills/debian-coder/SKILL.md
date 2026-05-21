@@ -13,6 +13,14 @@ description: |
 
 Debian 13 trixie counterpart of `/ov-coder:fedora-coder`. Same 80-line `eval:` block, same ~30 layers, same rootless posture (uid 1000 + passwordless sudo). Key wrinkles are all Debian-specific packaging quirks handled inside individual layers: `bat → batcat` symlink, Microsoft's `dotnet-install.sh` cross-distro installer, and package-existence tests (vs binary-path tests) for `virtualization` because Debian bundles libvirt drivers differently.
 
+> **Relocated (2026-05):** lives in the **`overthinkos/debian`** repo (git
+> submodule at **`image/debian`**), in that repo's `image.yml`. Its ~31 layers
+> are pulled by github reference from the main repo (none moved). Build/validate
+> from the submodule: `ov -C image/debian image build debian-coder`, or
+> `ov --repo overthinkos/debian image build debian-coder`. Deploy-mode verbs
+> (`ov config`/`ov start`/`ov eval image`) read the built image's OCI labels and
+> work from anywhere once it's in local storage.
+
 ## Definition
 
 ```yaml
@@ -109,10 +117,10 @@ See `/ov-image:image` "user_policy" and `/ov-build:build` "base_user" for the fu
 
 ```bash
 # 1. Validate
-ov image validate
+ov -C image/debian image validate
 
 # 2. Build dependencies auto-resolve (debian → debian-builder → debian-coder)
-ov image build debian-coder
+ov -C image/debian image build debian-coder
 
 # 3. Disposable-container tests
 ov eval image ghcr.io/overthinkos/debian-coder:latest
