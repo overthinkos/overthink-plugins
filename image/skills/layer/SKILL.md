@@ -486,7 +486,7 @@ pac:
 
 ### AUR (`aur:`)
 
-AUR packages installed via yay in a multi-stage build. The image must have `aur` in its `build` list and `builders.aur` configured (typically `archlinux-builder`). The builder compiles AUR packages; resulting `.pkg.tar.zst` files are copied into the final image and installed via `pacman -U`.
+AUR packages installed via yay in a multi-stage build. The image must have `aur` in its `build` list and `builders.aur` configured (typically `arch-builder`). The builder compiles AUR packages; resulting `.pkg.tar.zst` files are copied into the final image and installed via `pacman -U`.
 
 ```yaml
 aur:

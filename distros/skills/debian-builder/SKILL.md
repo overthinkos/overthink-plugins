@@ -44,12 +44,12 @@ debian:
 
 During `ov image build debian-coder`, any layer that ships `pixi.toml` / `package.json` / `Cargo.toml` gets a multi-stage `FROM debian-builder AS <layer>-<builder>-build` section emitted by the generator, then `COPY --from=<stage> --chown=${UID}:${GID}` into the final image. See `/ov-internals:generate-source` for the template.
 
-No AUR equivalent (unlike `/ov-distros:archlinux-builder`) — AUR is an Arch-only concept.
+No AUR equivalent (unlike `/ov-distros:arch-builder`) — AUR is an Arch-only concept.
 
 ## Cross-distro sibling builders
 
 - `/ov-distros:fedora-builder` — Fedora 43 equivalent (+ `rpmfusion` for x264/ffmpeg/libva headers).
-- `/ov-distros:archlinux-builder` — Arch Linux equivalent + `yay` for AUR.
+- `/ov-distros:arch-builder` — Arch Linux equivalent + `yay` for AUR.
 - `/ov-distros:ubuntu-builder` — Ubuntu 24.04 equivalent; differs from this image mainly in `user:ubuntu` vs `user:user` (adopt mode — see `/ov-distros:ubuntu`).
 
 ## Quick start
@@ -71,7 +71,7 @@ Typically not invoked directly — it's a build-time dependency of `/ov-coder:de
 - `/ov-distros:debian` — parent base, declares the bootstrap packages in `build.yml`.
 - `/ov-coder:debian-coder` — the consumer that this builder exists to serve.
 - `/ov-distros:fedora-builder` — RPM-family sibling.
-- `/ov-distros:archlinux-builder` — pacman + AUR sibling.
+- `/ov-distros:arch-builder` — pacman + AUR sibling.
 - `/ov-distros:ubuntu-builder` — Ubuntu 24.04 sibling.
 
 ## Related layers

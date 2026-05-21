@@ -1,12 +1,12 @@
 ---
-name: archlinux-builder
+name: arch-builder
 description: |
   Arch Linux builder image with pixi, Node.js, build toolchain, and yay AUR helper.
   Default builder for pixi, npm, cargo, and aur multi-stage builds on Arch.
-  MUST be invoked before building, deploying, configuring, or troubleshooting the archlinux-builder image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the arch-builder image.
 ---
 
-# archlinux-builder
+# arch-builder
 
 Builder image for Arch Linux multi-stage builds. Counterpart to `/ov-distros:fedora-builder` — provides the same build capabilities (pixi, npm, cargo) plus AUR support via yay.
 
@@ -14,7 +14,7 @@ Builder image for Arch Linux multi-stage builds. Counterpart to `/ov-distros:fed
 
 | Property | Value |
 |----------|-------|
-| Base | archlinux |
+| Base | arch |
 | Layers | pixi, nodejs, build-toolchain, yay |
 | Builds | pixi, npm, cargo, aur |
 | Platforms | linux/amd64 |
@@ -22,7 +22,7 @@ Builder image for Arch Linux multi-stage builds. Counterpart to `/ov-distros:fed
 
 ## Full Layer Stack
 
-1. **archlinux** — base Arch Linux image
+1. **arch** — base Arch Linux image
 2. **pixi** — pixi package manager (conda-forge Python environments)
 3. **nodejs** — Node.js and npm
 4. **build-toolchain** — gcc, cmake, autoconf, ninja, git, pkg-config
@@ -30,16 +30,16 @@ Builder image for Arch Linux multi-stage builds. Counterpart to `/ov-distros:fed
 
 ## Role in Build System
 
-When an Arch-based image has layers with `pixi.toml`, `package.json`, `Cargo.toml`, or `aur:` packages, the build system uses this image as the builder for multi-stage builds. Configured via the `archlinux` image's `builder:` field (a map of build-type → builder-image):
+When an Arch-based image has layers with `pixi.toml`, `package.json`, `Cargo.toml`, or `aur:` packages, the build system uses this image as the builder for multi-stage builds. Configured via the `arch` image's `builder:` field (a map of build-type → builder-image):
 
 ```yaml
 # image.yml
-archlinux:
+arch:
   builder:
-    pixi: archlinux-builder
-    npm: archlinux-builder
-    cargo: archlinux-builder
-    aur: archlinux-builder
+    pixi: arch-builder
+    npm: arch-builder
+    cargo: arch-builder
+    aur: arch-builder
 ```
 
 The builder definitions themselves (pixi/npm/cargo/aur) live in `build.yml`'s `builder:` section — the same word is used intentionally because both maps key on the same slot (the build-type name).
@@ -47,15 +47,15 @@ The builder definitions themselves (pixi/npm/cargo/aur) live in `build.yml`'s `b
 ## Quick Start
 
 ```bash
-ov image build archlinux-builder
-ov shell archlinux-builder -c "pixi --version"
-ov shell archlinux-builder -c "node --version"
-ov shell archlinux-builder -c "yay --version"
+ov image build arch-builder
+ov shell arch-builder -c "pixi --version"
+ov shell arch-builder -c "node --version"
+ov shell arch-builder -c "yay --version"
 ```
 
 ## Related
 
-- `/ov-distros:archlinux` — parent base image
+- `/ov-distros:arch` — parent base image
 - `/ov-distros:fedora-builder` — Fedora counterpart (same role, no AUR)
 - `/ov-tools:yay` — AUR helper layer (unique to Arch)
 - `/ov-languages:pixi` — pixi package manager layer
@@ -65,12 +65,12 @@ ov shell archlinux-builder -c "yay --version"
 ## Verification
 
 ```bash
-ov shell archlinux-builder -c "pixi --version && node --version && yay --version && gcc --version"
+ov shell arch-builder -c "pixi --version && node --version && yay --version && gcc --version"
 ```
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the archlinux-builder image, Arch multi-stage builds, or AUR package building infrastructure. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the arch-builder image, Arch multi-stage builds, or AUR package building infrastructure. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 

@@ -39,7 +39,7 @@ my-image:
     - agent-forwarding
 ```
 
-Included in all application images (27 total). Not included in base images (`fedora`, `archlinux`) or builder images (`fedora-builder`, `archlinux-builder`).
+Included in all application images (27 total). Not included in base images (`fedora`, `arch`) or builder images (`fedora-builder`, `arch-builder`).
 
 ## How Agent Forwarding Works
 

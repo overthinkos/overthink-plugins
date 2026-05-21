@@ -239,28 +239,28 @@ images:
     builds: [pixi, npm, cargo]
     layers: [pixi, nodejs, build-toolchain]
 
-  archlinux:
+  arch:
     base: "docker.io/library/archlinux:latest"
-    distro: [archlinux]
+    distro: [arch]
     build: [pac]
     builder:
-      pixi: archlinux-builder
-      npm: archlinux-builder
-      cargo: archlinux-builder
-      aur: archlinux-builder
+      pixi: arch-builder
+      npm: arch-builder
+      cargo: arch-builder
+      aur: arch-builder
 
-  archlinux-builder:
-    base: archlinux              # inherits build: [pac] AND builder: from archlinux
+  arch-builder:
+    base: arch              # inherits build: [pac] AND builder: from arch
     builds: [pixi, npm, cargo, aur]
     layers: [pixi, nodejs, build-toolchain, yay]
 
   arch-test:
-    base: archlinux              # inherits builder: from archlinux
+    base: arch              # inherits builder: from arch
     build: [pac, aur]            # override to add aur format
     layers: [arch-pac-test, arch-aur-test]
 ```
 
-Each build type resolves its builder independently: **`image.builder[type]` → `base_image.builder[type]` → `defaults.builder[type]` → `""`**. This means you can use `fedora-builder` for pixi but `archlinux-builder` for npm on the same image.
+Each build type resolves its builder independently: **`image.builder[type]` → `base_image.builder[type]` → `defaults.builder[type]` → `""`**. This means you can use `fedora-builder` for pixi but `arch-builder` for npm on the same image.
 
 Self-reference protection: after merging defaults/base, any `builder` entry pointing to the image itself is filtered out. Builder images can't use themselves as builders.
 
@@ -301,7 +301,7 @@ The fix: a **declarative** fact (what the base image ships, in `build.yml distro
 | Base image | `base_user` declared? | `user_policy: auto` outcome | Resolved user |
 |---|---|---|---|
 | `/ov-distros:fedora` | no | create | `user` |
-| `/ov-distros:archlinux` | no | create | `user` |
+| `/ov-distros:arch` | no | create | `user` |
 | `/ov-distros:debian` | no | create | `user` |
 | `/ov-distros:ubuntu` | **yes** (`ubuntu:1000:/home/ubuntu`) | adopt | `ubuntu` |
 
@@ -468,7 +468,7 @@ Every image `ov` builds carries a set of `org.overthinkos.*` OCI labels embeddin
 | `org.overthinkos.env_accepts` | Opt-in allowlist for provides filtering |
 | `org.overthinkos.mcp_provides` | Cross-container MCP server provides |
 | `org.overthinkos.port_protos` | Port protocol annotations (non-default only) |
-| `org.overthinkos.platform.distro` | Distro identity (e.g. `["archlinux"]`) — first match picks bootstrap/format templates |
+| `org.overthinkos.platform.distro` | Distro identity (e.g. `["arch"]`) — first match picks bootstrap/format templates |
 | `org.overthinkos.platform.formats` | Package formats installed (`pac`, `rpm`, `deb`, `pixi`, `aur`, …) |
 | `org.overthinkos.builder.uses` | Consumer-side routing map: format → builder-image name |
 | `org.overthinkos.builder.provides` | Producer-side capability list: formats this image can build for others |

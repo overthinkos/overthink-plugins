@@ -239,7 +239,7 @@ google-cloud-npm) by forking image.yml. See `/ov-image:image` for authoring.
 | Image | Base | Package mgr | User model |
 |---|---|---|---|
 | `/ov-coder:fedora-coder` | `fedora-nonfree` (Fedora 43) | rpm | `user:user` (create) |
-| `/ov-coder:arch-coder` | `archlinux` | pac + aur | `user:user` (create) |
+| `/ov-coder:arch-coder` | `arch` | pac + aur | `user:user` (create) |
 | `/ov-coder:debian-coder` | `debian:13` | deb | `user:user` (create) |
 | `/ov-coder:ubuntu-coder` | `ubuntu:24.04` | deb | `user:ubuntu` (**adopt** from base) |
 

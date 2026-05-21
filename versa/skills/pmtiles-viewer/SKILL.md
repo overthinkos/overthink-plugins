@@ -22,7 +22,7 @@ without leaving the pod.
 | Property | Value |
 |----------|-------|
 | Dependencies | `supervisord` |
-| Distros | `archlinux` + `fedora` (needs node + npm + git for the build) |
+| Distros | `arch` + `fedora` (needs node + npm + git for the build) |
 | Build deps | nodejs, npm, git |
 | Ports | `8001` (host-mapped to **28001**) |
 | Service | `pmtiles-viewer` (supervisord, `restart: always`) |

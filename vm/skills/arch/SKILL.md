@@ -11,6 +11,14 @@ description: |
 
 # arch
 
+> **Relocated (2026-05):** the `arch` VM entity and its `arch-vm` /
+> `arch-pacstrap-vm` deploy beds (plus the nested `arch-host` host bed) now live
+> in the **`overthinkos/arch`** repo (git submodule at **`image/arch`**), in that
+> repo's `vm.yml` / `deploy.yml`. Drive them from the submodule, e.g.
+> `ov -C image/arch vm create arch` and `ov -C image/arch eval live arch-vm`
+> (or `ov --repo overthinkos/arch …`). Any layers applied via `add_layer:` are
+> pulled from this repo by git ref.
+
 Canonical `source.kind: cloud_image` VM in the repo. Boots an Arch Linux cloud image as a full VM with SSH + SPICE console access, cloud-init-provisioned SSH keys, virtio-gpu graphics, and the `ov` toolchain auto-installed inside the guest.
 
 This skill is the **decision log** for every non-obvious choice in the entry — BIOS vs UEFI, virtio-gpu vs QXL, resource sizing vs package list pruning, adopt-user vs create-user. Every decision traces to a live-test RCA; the rationales belong here permanently so a future editor (human or agent) doesn't reopen the same questions.

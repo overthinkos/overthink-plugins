@@ -45,7 +45,7 @@ After `ov image build`:
 - `/ov-distros:fedora-nonfree` — adds RPM Fusion repos
 - `/ov-distros:fedora-builder` — adds pixi, nodejs, build-toolchain
 - `/ov-distros:fedora-ov` — full ov toolchain on Fedora
-- `/ov-distros:archlinux` — pacman-based counterpart base
+- `/ov-distros:arch` — pacman-based counterpart base
 
 ## Related Commands
 - `/ov-build:build` — build the fedora base image

@@ -189,7 +189,7 @@ Submodule convention: `plugins/` is a submodule rooted at the
 | File | Purpose |
 |------|---------|
 | `graph.go` | Topological sort (layers + images), `ResolveImageOrder()` |
-| `intermediates.go` | Auto-intermediate image computation (trie analysis). `createIntermediate()` inherits `Distro` and `BuildFormats` **from the parent image first**, falling back to `cfg.Defaults.*` only when the parent is external or empty. Previously inverted — defaults won over the explicit parent — so every arch-rooted intermediate got mis-tagged as `build: [rpm]` and every layer section keyed on `pac:` silently emitted as an empty RUN step (symptom: `archlinux-ssh-client` shipped without `direnv` / `gnupg` / `openssh` until the fix landed). Regression guard: `TestComputeIntermediates_InheritDistroFromParent` uses `defaults.Build=[rpm]` but expects arch-rooted intermediates to come out `[pac]`. |
+| `intermediates.go` | Auto-intermediate image computation (trie analysis). `createIntermediate()` inherits `Distro` and `BuildFormats` **from the parent image first**, falling back to `cfg.Defaults.*` only when the parent is external or empty. Previously inverted — defaults won over the explicit parent — so every arch-rooted intermediate got mis-tagged as `build: [rpm]` and every layer section keyed on `pac:` silently emitted as an empty RUN step (symptom: `arch-ssh-client` shipped without `direnv` / `gnupg` / `openssh` until the fix landed). Regression guard: `TestComputeIntermediates_InheritDistroFromParent` uses `defaults.Build=[rpm]` but expects arch-rooted intermediates to come out `[pac]`. |
 
 ### Build & Runtime
 

@@ -90,14 +90,14 @@ my-image:
 ## Used In Images
 
 - `/ov-distros:fedora-builder`
-- `/ov-distros:archlinux-builder`
+- `/ov-distros:arch-builder`
 - `/ov-distros:fedora-remote` (via remote layer ref)
 - Also used in `bazzite-ai` (disabled)
 
 ## Related Layers
 - `/ov-languages:pixi` — Sibling in builder images for conda-forge package builds
 - `/ov-coder:nodejs` — Sibling in builder images for npm package builds
-- `/ov-tools:yay` — Pairs in archlinux-builder for AUR builds
+- `/ov-tools:yay` — Pairs in arch-builder for AUR builds
 - `/ov-coder:rust` — Disambiguates the builder-stage `rust`+`cargo` packages here from the runtime `rust` layer
 - `/ov-distros:rpmfusion` — Must be applied **before** this layer in fedora-builder so codec dev libs (`x264-devel`, `ffmpeg-devel`) can install
 - `/ov-selkies:selkies` — Primary consumer of all the new cargo/codec deps (Patched pixelflux build pipeline)

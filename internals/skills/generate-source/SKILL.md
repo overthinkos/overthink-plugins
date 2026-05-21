@@ -179,7 +179,7 @@ RUN npm install -g --prefix /npm-global
 For layers with `aur:` packages, the generator creates a multi-stage build using the `builders.aur` image:
 
 ```dockerfile
-FROM ghcr.io/overthinkos/archlinux-builder:2026.84.942 AS my-tool-aur-build
+FROM ghcr.io/overthinkos/arch-builder:2026.84.942 AS my-tool-aur-build
 USER root
 RUN echo 'user ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builder
 USER 1000
@@ -345,9 +345,9 @@ fedora (external)
 
 ### Parent-vs-defaults inheritance (critical)
 
-`createIntermediate()` must inherit `Distro` and `BuildFormats` **from the parent image first**, with `cfg.Defaults.*` as the fallback only when the parent is external or empty. The inverse — defaults winning over an explicit parent — is a silent-failure bug: an `archlinux`-rooted auto-intermediate would get re-tagged as `build: [rpm]` (because `defaults.Build=[rpm]` in `image.yml`), then the layer emitter would scan each layer for an `rpm:` section and find nothing (the layers only declare `pac:`) — emitting empty RUN steps. Symptom: the intermediate built fine but shipped without any of its layers' packages (e.g. `archlinux-ssh-client` without direnv/gnupg/openssh).
+`createIntermediate()` must inherit `Distro` and `BuildFormats` **from the parent image first**, with `cfg.Defaults.*` as the fallback only when the parent is external or empty. The inverse — defaults winning over an explicit parent — is a silent-failure bug: an `arch`-rooted auto-intermediate would get re-tagged as `build: [rpm]` (because `defaults.Build=[rpm]` in `image.yml`), then the layer emitter would scan each layer for an `rpm:` section and find nothing (the layers only declare `pac:`) — emitting empty RUN steps. Symptom: the intermediate built fine but shipped without any of its layers' packages (e.g. `arch-ssh-client` without direnv/gnupg/openssh).
 
-The current code resolves `inheritedDistro` / `inheritedBuilds` from the parent first and only falls back to defaults when both are empty. Regression guard: `TestComputeIntermediates_InheritDistroFromParent` constructs a config with `defaults.Build=[rpm]` but an `archlinux` parent carrying `[pac]`, and asserts that the auto-intermediate comes out `[pac]`. See `/ov-internals:go` `intermediates.go` row for the file-level note.
+The current code resolves `inheritedDistro` / `inheritedBuilds` from the parent first and only falls back to defaults when both are empty. Regression guard: `TestComputeIntermediates_InheritDistroFromParent` constructs a config with `defaults.Build=[rpm]` but an `arch` parent carrying `[pac]`, and asserts that the auto-intermediate comes out `[pac]`. See `/ov-internals:go` `intermediates.go` row for the file-level note.
 
 ## User Resolution
 
@@ -438,9 +438,9 @@ Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), maki
 | `org.overthinkos.env_layers` | JSON | layer-level env vars (merged) |
 | `org.overthinkos.path_append` | JSON | PATH append entries |
 | `org.overthinkos.engine` | string | Required run engine (`docker`/`podman`, omitted if any) |
-| `org.overthinkos.platform.distro` | JSON | `["archlinux"]` distro identity (first match picks bootstrap/format templates) |
+| `org.overthinkos.platform.distro` | JSON | `["arch"]` distro identity (first match picks bootstrap/format templates) |
 | `org.overthinkos.platform.formats` | JSON | `["pac"]` package formats installed (`pac`, `rpm`, `deb`, `pixi`, `aur`, …) |
-| `org.overthinkos.builder.uses` | JSON | `{"aur":"archlinux-builder","pixi":"default-builder"}` consumer-side routing: format → builder image |
+| `org.overthinkos.builder.uses` | JSON | `{"aur":"arch-builder","pixi":"default-builder"}` consumer-side routing: format → builder image |
 | `org.overthinkos.builder.provides` | JSON | `["pac","aur"]` producer-side capability: formats this image can build for others (builder images only) |
 | `org.overthinkos.port_protos` | JSON | `{"9222":"tcp"}` port protocol overrides (non-http only) |
 | `org.overthinkos.port_relay` | JSON | `[9222]` ports with socat relay |

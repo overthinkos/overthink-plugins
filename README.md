@@ -17,7 +17,7 @@ The directory layout under `plugins/` is **flat** — every plugin sits at
 `plugins/<name>/` (no `ov-` prefix in directory names). The `ov-` prefix
 lives exclusively in each `plugin.json`'s `name:` field, which means every
 skill invocation is `/ov-<plugin>:<skill>` (e.g. `/ov-core:ssh`,
-`/ov-jupyter:jupyter`, `/ov-distros:archlinux`). The `category:` field in
+`/ov-jupyter:jupyter`, `/ov-distros:arch`). The `category:` field in
 `marketplace.json` provides the four-bucket grouping for the plugin
 manager UI.
 
@@ -54,7 +54,7 @@ manager UI.
 
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
-| **ov-distros** | 34 | — | Base OS images, GPU runtime, bootc bootstrap, per-distro builders. archlinux, fedora, debian, ubuntu, aurora, bazzite-ai, nvidia, cuda, rocm, bootc-base, bootc-config, fedora-builder, archlinux-builder, ubuntu-builder, debian-builder, etc. |
+| **ov-distros** | 34 | — | Base OS images, GPU runtime, bootc bootstrap, per-distro builders. arch, fedora, debian, ubuntu, aurora, bazzite-ai, nvidia, cuda, rocm, bootc-base, bootc-config, fedora-builder, arch-builder, ubuntu-builder, debian-builder, etc. |
 | **ov-languages** | 4 | — | Programming language runtimes — pixi, python, python-ml, python-ml-layer. (golang/rust/nodejs live in `ov-coder` because they're tightly coupled to dev images.) |
 | **ov-infrastructure** | 22 | — | Databases, networking, security, system services. postgresql, redis, valkey, vectorchord, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, ssh-client, gnupg, etc. |
 | **ov-tools** | 19 | — | CLI utilities and the `ov` binary — ripgrep, himalaya, whisper, nano-pdf, summarize, ordercli, gogcli, sherpa-onnx, songsee, blogwatcher, sag, xurl, goplaces, mcporter, yay, ujust, vscode, ov, ov-full. |
@@ -83,7 +83,7 @@ plugin name carries the `ov-` prefix; the skill name does not. Examples:
 
 - `/ov-core:ssh` — open an interactive shell into a pod.
 - `/ov-image:layer` — schema authoring for `kind: layer`.
-- `/ov-distros:archlinux` — Arch Linux base image reference.
+- `/ov-distros:arch` — Arch Linux base image reference.
 - `/ov-jupyter:notebook-templates` — bundled notebook starter content.
 - `/ov-eval:cdp` — Chrome DevTools Protocol live probe.
 

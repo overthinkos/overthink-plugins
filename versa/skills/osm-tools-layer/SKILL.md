@@ -17,7 +17,7 @@ ad-hoc from DAGs / shell.
 | Property | Value |
 |----------|-------|
 | Dependencies | `supervisord` |
-| Distros | `archlinux` + `fedora` (tippecanoe needs gcc-c++/sqlite-devel/zlib-devel on Fedora and gcc/sqlite on Arch for the source build) |
+| Distros | `arch` + `fedora` (tippecanoe needs gcc-c++/sqlite-devel/zlib-devel on Fedora and gcc/sqlite on Arch for the source build) |
 | Ports | `3000` (martin HTTP, host-mapped to **23000**) |
 | Service | `martin` (supervisord, `restart: always`) |
 | Tile dir | `/workspace/tiles/pmtiles/` |

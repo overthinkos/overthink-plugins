@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `supervisord` (transitive; no service of its own) |
-| Distros | `archlinux` + `fedora` |
+| Distros | `arch` + `fedora` |
 | Build deps | curl, jq |
 | Install path | `/opt/versatiles-fonts/` |
 | Re-exported at | `/opt/versatiles-frontend/fonts/` (by the versatiles-frontend layer) |

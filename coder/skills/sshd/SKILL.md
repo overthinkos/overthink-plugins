@@ -37,7 +37,7 @@ match).
 - id: openssh-server-package
   package: openssh-server        # default
   package_map:
-    archlinux: openssh
+    arch: openssh
     fedora: openssh-server
     fedora:43: openssh-server
     debian: openssh-server

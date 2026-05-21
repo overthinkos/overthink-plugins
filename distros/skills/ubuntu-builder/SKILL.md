@@ -61,7 +61,7 @@ During `ov image build ubuntu-coder`, cargo/npm/pixi-owning layers get their `FR
 
 - `/ov-distros:fedora-builder` — RPM-family, `user:user` uid 1000 (create).
 - `/ov-distros:debian-builder` — deb-family, Debian 13, `user:user` (create — Debian 13 ships no pre-existing uid-1000 user).
-- `/ov-distros:archlinux-builder` — pacman-family, `user:user` + `yay` for AUR.
+- `/ov-distros:arch-builder` — pacman-family, `user:user` + `yay` for AUR.
 
 The three builders have near-identical layer stacks (pixi + nodejs + build-toolchain). The only meaningful divergence is this image's adopt-mode `ubuntu:ubuntu` identity.
 

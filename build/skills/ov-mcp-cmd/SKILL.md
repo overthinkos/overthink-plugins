@@ -358,7 +358,7 @@ ov eval mcp call arch-ov version '{}' --name ov
 # 2026.nnn.nnnn          (the container's own ov version)
 ov eval mcp call arch-ov image.list.images '{}' --name ov
 # arch-ov [testing]      (reads image.yml from the bind-mounted /workspace)
-# archlinux [testing]
+# arch [testing]
 # …
 ```
 

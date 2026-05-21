@@ -34,7 +34,7 @@ my-image:
 ## Used In Images
 
 - `/ov-distros:fedora-builder` (direct)
-- `/ov-distros:archlinux-builder` (direct)
+- `/ov-distros:arch-builder` (direct)
 - Transitive dependency via `python` / `supervisord` in most service images
 
 ## Related Layers

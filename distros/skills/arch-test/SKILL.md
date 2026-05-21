@@ -7,13 +7,20 @@ description: |
 
 # arch-test
 
+> **Relocated (2026-05):** `arch-test` now lives in the **`overthinkos/arch`**
+> repo (git submodule at **`image/arch`**) and composes its layers by git
+> reference to this repo. The test layers `arch-pac-test` / `arch-aur-test` stay
+> in this repo's `layers/` (pulled by git ref), as do the `arch` base +
+> `arch-builder` (via the submodule's remote `include:` of `arch-base.yml`).
+> Build from the submodule: `cd image/arch && ov image build arch-test`.
+
 Test image that validates both `pac:` (pacman) and `aur:` (AUR) package formats on Arch Linux. Used to verify the multi-distro build system handles Arch packaging correctly.
 
 ## Image Properties
 
 | Property | Value |
 |----------|-------|
-| Base | archlinux |
+| Base | arch |
 | Build | pac, aur |
 | Layers | agent-forwarding, arch-pac-test, arch-aur-test |
 | Platforms | linux/amd64 |
@@ -22,7 +29,7 @@ Test image that validates both `pac:` (pacman) and `aur:` (AUR) package formats 
 ## What It Tests
 
 - **`pac:` format** (via arch-pac-test) — installs `neovim` and `ripgrep` from official Arch repos
-- **`aur:` format** (via arch-aur-test) — installs `yay-bin` from the AUR using archlinux-builder
+- **`aur:` format** (via arch-aur-test) — installs `yay-bin` from the AUR using arch-builder
 
 ## Quick Start
 
@@ -41,8 +48,8 @@ ov shell arch-test -c "which yay"          # aur: package installed
 
 ## Related
 
-- `/ov-distros:archlinux` — base image
-- `/ov-distros:archlinux-builder` — builder image (provides yay for AUR builds)
+- `/ov-distros:arch` — base image
+- `/ov-distros:arch-builder` — builder image (provides yay for AUR builds)
 - `/ov-distros:arch-pac-test` — pacman test layer
 - `/ov-distros:arch-aur-test` — AUR test layer
 

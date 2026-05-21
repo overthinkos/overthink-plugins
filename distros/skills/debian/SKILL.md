@@ -69,7 +69,7 @@ id                                    # uid=1000(user) gid=1000(user)
 - `/ov-distros:debian-builder` — multi-stage builder on top of this image.
 - `/ov-coder:debian-coder` — kitchen-sink dev image on this base.
 - `/ov-distros:fedora` — RPM-family counterpart.
-- `/ov-distros:archlinux` — pacman-family counterpart.
+- `/ov-distros:arch` — pacman-family counterpart.
 
 ## Related commands
 

@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `supervisord` (transitive; no service of its own) |
-| Distros | `archlinux` + `fedora` (tilemaker is source-built) |
+| Distros | `arch` + `fedora` (tilemaker is source-built) |
 | Build deps | git, make, gcc/gcc-c++, lua/lua-devel, sqlite/sqlite-devel, boost+boost-libs/boost-devel, protobuf/protobuf-devel, shapelib/shapelib-devel, zlib-devel (Fedora only — Arch uses zlib-ng-compat) |
 | Output dir | `/workspace/tiles/shortbread/` (versatiles serve watches this) |
 | Tools installed | `/usr/local/bin/tilemaker`, `/opt/shortbread-tilemaker/{config.json,process.lua,...}` |

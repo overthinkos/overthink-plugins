@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `supervisord` |
-| Distros | `archlinux` + `fedora` (binary download) |
+| Distros | `arch` + `fedora` (binary download) |
 | Build deps | curl, jq (for the dynamic release-asset URL resolution) |
 | Ports | `8090` (versatiles serve HTTP; host-mapped to **28090**) |
 | Service | `versatiles` (supervisord, `restart: always`) |

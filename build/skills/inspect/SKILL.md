@@ -40,7 +40,7 @@ ov image inspect ollama --format layers
 ov image inspect fedora --format platforms
 
 # Get the builder map (build-type → builder image)
-ov image inspect archlinux --format builder
+ov image inspect arch --format builder
 
 # Get the builder capabilities this image declares
 ov image inspect fedora-builder --format builds

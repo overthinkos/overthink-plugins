@@ -22,7 +22,7 @@ iproute, bind-utils, etc. by default.
 | Property | Value |
 |----------|-------|
 | Dependencies | none |
-| Distros | fedora, archlinux, debian, ubuntu (per-distro package lists) |
+| Distros | fedora, arch, debian, ubuntu (per-distro package lists) |
 | Ports | none |
 | Services | none |
 | Volumes | none |
@@ -70,7 +70,7 @@ Multi-pane shell sessions, file sync, YAML manipulation.
 Tool names aren't portable — each distro is enumerated separately
 to avoid silent "installed nothing" on the wrong distro:
 
-| Tool | fedora | archlinux | debian | ubuntu |
+| Tool | fedora | arch | debian | ubuntu |
 |---|---|---|---|---|
 | Process basics (ps, top, free, kill, pgrep, vmstat) | `procps-ng` | `procps-ng` | `procps` | `procps` |
 | ip + ss + tc | `iproute` | `iproute2` | `iproute2` | `iproute2` |

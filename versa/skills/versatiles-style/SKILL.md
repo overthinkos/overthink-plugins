@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `supervisord` (transitive; no service of its own) |
-| Distros | `archlinux` + `fedora` |
+| Distros | `arch` + `fedora` |
 | Build deps | nodejs, npm |
 | Install path | `/opt/versatiles-style/` |
 | Re-exported at | `/opt/versatiles-frontend/style/` (by the versatiles-frontend layer) |

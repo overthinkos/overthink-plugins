@@ -20,7 +20,7 @@ AUR: `yay-bin`
 
 ## What It Does
 
-Validates that the `aur:` package format works correctly on Arch Linux images. Installs the `yay-bin` package from the AUR. Requires a builder image with `builds: [aur]` capability (i.e., `archlinux-builder` which includes the `yay` layer).
+Validates that the `aur:` package format works correctly on Arch Linux images. Installs the `yay-bin` package from the AUR. Requires a builder image with `builds: [aur]` capability (i.e., `arch-builder` which includes the `yay` layer).
 
 ## Usage
 

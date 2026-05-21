@@ -169,7 +169,7 @@ The Containerfile references the file by its relative path: `COPY --from=<layer-
 - `.build/` is disposable and gitignored; `ov image generate` will recreate it from scratch.
 - Layer dependencies resolve transitively and topologically; circular `require:` is a validation error (surfaced by `/ov-build:validate`).
 - Pixi manylinux fix is injected into `pixi.toml` files during the pixi builder stage.
-- Multi-stage builds use builder images declared in `build.yml` `builder:` section (`pixi-builder`, `npm-builder`, `archlinux-builder` for AUR, etc.).
+- Multi-stage builds use builder images declared in `build.yml` `builder:` section (`pixi-builder`, `npm-builder`, `arch-builder` for AUR, etc.).
 - Stale `.build/<image>/` directories (from removed or renamed images) are cleaned at the start of each generation.
 
 ### LABEL placement (cache efficiency)

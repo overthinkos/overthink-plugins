@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `supervisord`, `versatiles-style` (re-exported under `/style/`) |
-| Distros | `archlinux` + `fedora` |
+| Distros | `arch` + `fedora` |
 | Build deps | curl, jq |
 | Ports | `8002` (host-mapped to **28002**) |
 | Service | `versatiles-frontend` (supervisord, `restart: always`, priority 38) |

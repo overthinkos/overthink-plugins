@@ -31,7 +31,7 @@ image bundles. The `layers/marimo/` directory + the
 | MCP servers | 1 (marimo @ container 2718) — the upstream airflow MCP wrapper was removed in 2026-05 (no Airflow-3 / `/api/v2` release exists) |
 | Registry | `ghcr.io/overthinkos` |
 | Image tag pattern | CalVer (`YYYY.DDD.HHMM`) |
-| Builder | `archlinux-builder` (pixi/npm/cargo/aur) — overrides the fedora-builder default since cachyos has no `builder:` of its own |
+| Builder | `arch-builder` (pixi/npm/cargo/aur) — overrides the fedora-builder default since cachyos has no `builder:` of its own |
 
 ## Layer stack (composition order)
 
@@ -312,7 +312,7 @@ the marker date to the day the wheel was verified.
 
 - **DGL** — `https://data.dgl.ai/wheels/` has no `cu130/` directory
   (verified 2026-05). DGL's release matrix typically lags CUDA by
-  1-2 major versions; source-building inside `archlinux-builder`
+  1-2 major versions; source-building inside `arch-builder`
   would cost 20-40 min of image-build time and is brittle against
   CUDA toolkit-layout assumptions in DGL's CMake.
 - **PyTorch3D** — `https://github.com/facebookresearch/pytorch3d/releases`

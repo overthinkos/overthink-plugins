@@ -37,7 +37,7 @@ CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher
 | Unexpected failure / anomaly | `/ov-internals:root-cause-analyzer` agent |
 | Engineering-discipline trigger (failure / dup pattern / ad-hoc fix / "out of scope" framing) | `/ov-internals:strict-policy` |
 | "What does layer X do?" — pod-specific | `/ov-jupyter:<name>`, `/ov-coder:<name>`, `/ov-selkies:<name>`, `/ov-openclaw:<name>`, `/ov-ollama:<name>`, `/ov-openwebui:<name>`, `/ov-comfyui:<name>`, `/ov-immich:<name>`, `/ov-hermes:<name>`, `/ov-filebrowser:<name>` |
-| "What does layer X do?" — base distros / GPU / bootc | `/ov-distros:<name>` (archlinux, fedora, debian, ubuntu, nvidia, cuda, rocm, bootc-base, …) |
+| "What does layer X do?" — base distros / GPU / bootc | `/ov-distros:<name>` (arch, fedora, debian, ubuntu, nvidia, cuda, rocm, bootc-base, …) |
 | "What does layer X do?" — language runtime | `/ov-languages:<name>` (python, python-ml, pixi) |
 | "What does layer X do?" — infrastructure service | `/ov-infrastructure:<name>` (postgresql, redis, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, …) |
 | "What does layer X do?" — CLI utility | `/ov-tools:<name>` (ripgrep, himalaya, whisper, ov, ov-full, …) |

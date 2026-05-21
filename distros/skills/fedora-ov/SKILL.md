@@ -144,7 +144,7 @@ ov image inspect fedora-ov --format tags
 
 Both `fedora-ov` and `/ov-coder:arch-ov` use the exact same layer
 list. The tag system (`build: [rpm]` + `distro: ["fedora:43", fedora]`
-vs `build: [pac]` + `distro: [archlinux]`) selects the right packages
+vs `build: [pac]` + `distro: [arch]`) selects the right packages
 and scripts per distro.
 
 ## Key Layers

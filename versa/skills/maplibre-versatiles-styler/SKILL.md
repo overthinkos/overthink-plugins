@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `supervisord` (transitive; no service of its own) |
-| Distros | `archlinux` + `fedora` |
+| Distros | `arch` + `fedora` |
 | Build deps | nodejs, npm, curl, jq |
 | Install path | `/opt/maplibre-versatiles-styler/` |
 | Re-exported at | `/opt/versatiles-frontend/styler/` (by the versatiles-frontend layer) |

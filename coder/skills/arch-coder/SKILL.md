@@ -12,13 +12,24 @@ description: |
 
 # arch-coder
 
+> **Relocated (2026-05):** the `arch-coder` image now lives in the dedicated
+> **`overthinkos/arch`** repo, mounted as a git submodule at **`image/arch`**.
+> It composes the layers below by **git reference** to this repo
+> (`@github.com/overthinkos/overthink/layers/<name>:<tag>`) rather than copying
+> them; the `arch` base + `arch-builder` stay in this repo and are
+> pulled into the submodule via a remote `include:` of `arch-base.yml`. Build /
+> deploy from the submodule, e.g. `cd image/arch && ov image build arch-coder`
+> (the build verb defaults to the submodule's `overthink.yml`), or
+> `ov --repo overthinkos/arch image build arch-coder`. The commands below assume
+> you are inside `image/arch` (or pass `-C image/arch`).
+
 Arch Linux counterpart of `/ov-coder:fedora-coder`. Same daily-development surface (AI CLIs, language runtimes, DevOps stack), same rootless posture (uid 1000 + passwordless sudo), same shape of tests — only the package manager (`pac:` / `aur:`) and a handful of Arch-specific package names differ.
 
 ## Definition
 
 ```yaml
 arch-coder:
-  base: archlinux
+  base: arch
   ports:
     - "2222:2222"                 # sshd-wrapper
     - "18765:18765"               # ov-mcp (Streamable HTTP)
@@ -66,7 +77,7 @@ arch-coder:
     - grafana-tools
 ```
 
-No explicit `user:` / `uid:` / `gid:` — inherits the defaults. `user_policy:` defaults to `auto`; the `archlinux` base image declares no `base_user:` in `build.yml`, so the policy falls through to create mode — the bootstrap emits an idempotent `useradd -m -u 1000 -g 1000 user`. See `/ov-image:image` "user_policy" and `/ov-build:build` "base_user".
+No explicit `user:` / `uid:` / `gid:` — inherits the defaults. `user_policy:` defaults to `auto`; the `arch` base image declares no `base_user:` in `build.yml`, so the policy falls through to create mode — the bootstrap emits an idempotent `useradd -m -u 1000 -g 1000 user`. See `/ov-image:image` "user_policy" and `/ov-build:build` "base_user".
 
 ## Resolved security posture
 
@@ -84,9 +95,9 @@ No explicit `user:` / `uid:` / `gid:` — inherits the defaults. `user_policy:` 
 
 ## AUR via yay (Arch-specific builder chain)
 
-Unlike fedora-coder (which only uses `pixi`/`npm`/`cargo` builders), `arch-coder` can also pull from the AUR — because the `archlinux-builder` image ships `yay` and declares `builds: [pixi, npm, cargo, aur]`. Layers with `aur:` sections route through `archlinux-builder` as their `aur` builder. Currently no layer in the arch-coder stack uses AUR, but the capability exists for future additions (e.g. niche tools not in `[core]`/`[extra]`).
+Unlike fedora-coder (which only uses `pixi`/`npm`/`cargo` builders), `arch-coder` can also pull from the AUR — because the `arch-builder` image ships `yay` and declares `builds: [pixi, npm, cargo, aur]`. Layers with `aur:` sections route through `arch-builder` as their `aur` builder. Currently no layer in the arch-coder stack uses AUR, but the capability exists for future additions (e.g. niche tools not in `[core]`/`[extra]`).
 
-See `/ov-distros:archlinux-builder` and `/ov-tools:yay`.
+See `/ov-distros:arch-builder` and `/ov-tools:yay`.
 
 ## Cross-distro siblings
 
@@ -147,8 +158,8 @@ Conflicts with `/ov-coder:fedora-coder` / `/ov-coder:debian-coder` / `/ov-coder:
 
 ## Related images
 
-- `/ov-distros:archlinux` — base image (pacman bootstrap, `user_policy: auto` → create).
-- `/ov-distros:archlinux-builder` — pixi/npm/cargo/aur multi-stage builder.
+- `/ov-distros:arch` — base image (pacman bootstrap, `user_policy: auto` → create).
+- `/ov-distros:arch-builder` — pixi/npm/cargo/aur multi-stage builder.
 - `/ov-coder:fedora-coder` — canonical RPM-family sibling.
 - `/ov-coder:debian-coder` — deb-family sibling on Debian 13.
 - `/ov-coder:ubuntu-coder` — deb-family sibling on Ubuntu 24.04 (adopt mode).
@@ -167,7 +178,7 @@ Conflicts with `/ov-coder:fedora-coder` / `/ov-coder:debian-coder` / `/ov-coder:
 
 - `/ov-core:shell`, `/ov-core:ov-config`, `/ov-core:start`, `/ov-core:stop`, `/ov-eval:eval`
 - `/ov-image:image` — `user_policy:` field reference
-- `/ov-build:build` — `base_user:` declaration (absent for archlinux)
+- `/ov-build:build` — `base_user:` declaration (absent for arch)
 - `/ov-image:layer` — authoring reference
 
 ## When to use this skill

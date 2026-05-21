@@ -365,7 +365,7 @@ points.
 - id: openssh-server-package
   package: openssh-server              # Fedora / Debian default
   package_map:
-    archlinux: openssh                 # Arch ships the metapackage as 'openssh'
+    arch: openssh                 # Arch ships the metapackage as 'openssh'
     fedora: openssh-server
     fedora:43: openssh-server          # explicit version tag — matches before 'fedora'
   installed: true

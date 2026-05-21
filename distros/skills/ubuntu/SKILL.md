@@ -114,7 +114,7 @@ id                                    # uid=1000(ubuntu) gid=1000(ubuntu)
 - `/ov-distros:ubuntu-builder` — multi-stage builder.
 - `/ov-coder:ubuntu-coder` — kitchen-sink dev image.
 - `/ov-distros:fedora` — RPM-family counterpart.
-- `/ov-distros:archlinux` — pacman-family counterpart.
+- `/ov-distros:arch` — pacman-family counterpart.
 
 ## Related commands
 

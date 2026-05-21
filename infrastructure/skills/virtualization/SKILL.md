@@ -166,7 +166,7 @@ The fix — introduced 2026-04 during Phase E — probes package presence with d
 - id: virtqemud-package
   package: libvirt-daemon-driver-qemu     # rpm name on Fedora
   package_map:
-    archlinux: libvirt                    # Arch bundles into 'libvirt' metapackage
+    arch: libvirt                    # Arch bundles into 'libvirt' metapackage
     debian: libvirt-daemon-system         # deb bundles all drivers here
     ubuntu: libvirt-daemon-system
   installed: true

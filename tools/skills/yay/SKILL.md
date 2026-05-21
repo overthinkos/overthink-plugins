@@ -52,11 +52,11 @@ Not used directly in end-user images. Instead, it's part of the builder image th
 
 ## Used In Images
 
-- `/ov-distros:archlinux-builder` — Arch build infrastructure image
+- `/ov-distros:arch-builder` — Arch build infrastructure image
 
 ## Related Layers
 
-- `/ov-coder:build-toolchain` — C/C++ build tools (also in archlinux-builder)
+- `/ov-coder:build-toolchain` — C/C++ build tools (also in arch-builder)
 - `/ov-distros:arch-aur-test` — test layer that validates AUR builds
 
 ## When to Use This Skill
@@ -65,7 +65,7 @@ Use when the user asks about:
 - AUR package support in Overthink
 - The `yay` layer or AUR helper installation
 - How `aur:` packages in layer.yml get built
-- The `archlinux-builder` image's AUR capability
+- The `arch-builder` image's AUR capability
 
 ## Related
 

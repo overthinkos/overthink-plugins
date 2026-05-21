@@ -11,6 +11,13 @@ description: |
 
 # arch-ov
 
+> **Relocated (2026-05):** `arch-ov` now lives in the **`overthinkos/arch`**
+> repo (git submodule at **`image/arch`**) and composes its layers by git
+> reference to this repo. Build from the submodule: `cd image/arch && ov image
+> build arch-ov` (or `ov --repo overthinkos/arch image build arch-ov`). The
+> `arch` base + `arch-builder` stay in this repo (pulled in via the
+> submodule's remote `include:` of `arch-base.yml`).
+
 Arch Linux container with the full ov toolchain. Uses the same shared
 layer list as `/ov-distros:fedora-ov` — the tag system handles
 Arch-specific packages and scripts via `pac:` sections. Composes
@@ -21,8 +28,8 @@ can drive build/test/deploy via Streamable HTTP on port 18765.
 
 | Property | Value |
 |----------|-------|
-| Base | archlinux (docker.io/library/archlinux:latest) |
-| Tags | `[all, pac, archlinux]` |
+| Base | arch (docker.io/library/archlinux:latest) |
+| Tags | `[all, pac, arch]` |
 | Layers | agent-forwarding, ov-full, **ov-mcp**, golang, gh, sshd, container-nesting, nvidia |
 | Platforms | linux/amd64 |
 | UID / user | **1000 / user** (rootless-first since 2026-04) |
@@ -177,7 +184,7 @@ ov shell arch-ov -c "which nvidia-ctk"
 ## Unified with fedora-ov
 
 Both `arch-ov` and `/ov-distros:fedora-ov` use the exact same layer
-list. The tag system (`build: [pac]` + `distro: [archlinux]` vs
+list. The tag system (`build: [pac]` + `distro: [arch]` vs
 `build: [rpm]` + `distro: ["fedora:43", fedora]`) selects the right
 packages and scripts per distro.
 
@@ -192,7 +199,7 @@ packages and scripts per distro.
 
 ## Related Images
 
-- `/ov-distros:archlinux` — parent base image
+- `/ov-distros:arch` — parent base image
 - `/ov-distros:fedora-ov` — Fedora counterpart, same layers, same rootless posture
 - `/ov-coder:fedora-coder` — kitchen-sink dev sibling (32 layers vs 8; adds coding CLIs + DevOps)
 - `/ov-selkies:selkies-desktop-ov` — streaming-desktop counterpart (ov toolchain + browser-accessible Wayland); shares the rootless-first posture
