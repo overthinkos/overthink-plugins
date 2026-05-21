@@ -61,7 +61,7 @@ ov shell cachyos -c "pacman --version"
 ## Derived / sibling entries (all in overthinkos/cachyos)
 
 - `/ov-distros:cachyos-pacstrap-builder` — privileged pacstrap builder (`base: arch`)
-- `/ov-distros:cachyos-pacstrap` — bootstrap-from-scratch rootfs (GPGME caveat)
+- `/ov-distros:cachyos-pacstrap` — bootstrap-from-scratch rootfs (builds; ov 2026.141.1850 fix)
 - `/ov-vm:cachyos` — bootstrap VM (`cachyos-vm`) + `cachyos-vm-deploy` bed
 - `/ov-local:ov-cachyos` — the operator CachyOS workstation profile
 - `/ov-versa:versa` — the main-repo consumer (`base: cachyos`)
@@ -69,10 +69,11 @@ ov shell cachyos -c "pacman --version"
 ## Why Docker Hub instead of pacstrap
 
 The canonical base pulls the upstream OCI image (the path the CachyOS project
-itself recommends — see https://github.com/CachyOS/docker). The
-pacstrap-from-scratch variant (`/ov-distros:cachyos-pacstrap`) is retained for
-offline/air-gapped builds but is known to fail under sudo podman + pacman 7.x
-(GPGME context init). Prefer this base.
+itself recommends — see https://github.com/CachyOS/docker). It's the faster
+default (no privileged pacstrap, no kernel build). The pacstrap-from-scratch
+variant (`/ov-distros:cachyos-pacstrap`) is retained for offline/air-gapped
+builds and now builds end-to-end too (the ov 2026.141.1850 pacstrap-renderer
+fix — Architecture + SigLevel).
 
 ## Verification
 

@@ -39,18 +39,22 @@ the main repo's `build.yml`, remote-included by the submodule.
 `cachyos-vm-deploy` (`target: vm`, `vm: cachyos-vm`) carries `disposable: true`,
 so `ov -C image/cachyos update cachyos-vm-deploy` rebuilds it unattended.
 
-## Known limitation (pacstrap not usable)
+## pacstrap path (fixed — builds a bootable disk)
 
-The pacstrap bootstrap path shares `/ov-distros:cachyos-pacstrap`'s two
-pre-existing failure modes (both observed during R10): an intermittent GPGME
-keyring/DB-sync error (`GPGME error: No data` — this is the one `ov vm build
-cachyos-vm` hit) and, when keyring init succeeds, an `x86_64_v3` architecture
-rejection (`package architecture is not valid`). Both originate in the shared
-`build.yml` cachyos distro config, **not** introduced by the submodule split —
-proven via an empty `git diff main` on `build.yml` + the pacstrap runner
-(`ov/vm_bootstrap.go` is byte-identical). The Docker-Hub `/ov-distros:cachyos`
-base is the reliable container path; a fully working CachyOS VM (pacstrap
-keyring + `Architecture` fix, or a cloud-image source) is a separate enhancement.
+`ov vm build cachyos-vm` builds end-to-end as of **ov 2026.141.1850**. The
+`vm_bootstrap.go` path now uses the same `renderPacstrapExtraConf` helper as the
+image path (it previously open-coded the repo loop and *dropped* `SigLevel`,
+which is exactly why `ov vm build cachyos-vm` hit `GPGME error: No data` while
+the image build didn't). The helper emits the per-repo `SigLevel` (fixes GPGME)
+and an `[options] Architecture = x86_64 x86_64_v3` directive (fixes the
+`package architecture is not valid` rejection of `linux-cachyos`).
+
+Verified live: pacstrap installs `linux-cachyos` (x86_64_v3), mkinitcpio
+generates the initramfs (its `autodetect` hook warns in the chroot and falls
+back to all-modules — non-fatal), and a bootable `disk.qcow2` (~3.5 GB) + cloud-init
+`seed.iso` are written. Requires an `ov` with this fix (newer than the published
+release). The Docker-Hub `/ov-distros:cachyos` container base remains the faster
+path when you don't need a VM disk.
 
 ## Cross-References
 
