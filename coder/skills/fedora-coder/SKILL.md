@@ -19,6 +19,17 @@ no streaming. Distinct from `selkies-desktop-ov` (which adds the
 browser-streamed Wayland desktop) — `fedora-coder` is headless and
 meant to be accessed via `ssh -p 2222` or `ov shell`.
 
+> **Relocated (2026-05):** lives in the **`overthinkos/fedora`** repo (git
+> submodule at **`image/fedora`**), in that repo's `image.yml`. Its base stack
+> (`fedora-nonfree` → `fedora`) is remote-included from the main repo's
+> `fedora-base.yml` (the Fedora base stays in main — the ecosystem default
+> base), and its 32 layers are pulled by github reference (none moved).
+> Build/validate from the submodule:
+> `ov -C image/fedora image build fedora-coder`, or
+> `ov --repo overthinkos/fedora image build fedora-coder`. Deploy-mode verbs
+> (`ov config`/`ov start`/`ov eval image`) read the built image's OCI labels and
+> work from anywhere once it's in local storage.
+
 ## Definition
 
 ```yaml
@@ -149,12 +160,12 @@ with `base: nvidia` + the same layer list.
 ## Verification recipe (build + test + deploy-test)
 
 ```bash
-# 1. Validate config
-ov image validate
+# 1. Validate config (from the overthinkos/fedora submodule)
+ov -C image/fedora image validate
 
 # 2. Build (first time ≈ 15–30 min; cached rebuilds are fast thanks to
 # LABEL-at-end ordering — test edits rebuild in seconds)
-ov image build fedora-coder
+ov -C image/fedora image build fedora-coder
 
 # 3. Build-scope tests (disposable container)
 ov eval image ghcr.io/overthinkos/fedora-coder:latest

@@ -91,7 +91,6 @@ my-image:
 
 - `/ov-distros:fedora-builder`
 - `/ov-distros:arch-builder`
-- `/ov-distros:fedora-remote` (via remote layer ref)
 - Also used in `bazzite-ai` (disabled)
 
 ## Related Layers

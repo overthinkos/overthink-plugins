@@ -77,7 +77,6 @@ my-dev:
 
 ## Used In Images
 
-- `/ov-distros:fedora-remote` (via remote layer ref)
 - `bazzite-ai` (disabled, via `devops-tools` which is separate)
 
 ## Related Layers

@@ -9,6 +9,17 @@ description: |
 
 Root base image built from `quay.io/fedora/fedora:43`. Foundation for all RPM-based Overthink images.
 
+> **Defined in `fedora-base.yml` (2026-05).** The Fedora base stack — `fedora`,
+> `/ov-distros:fedora-builder`, `/ov-distros:fedora-nonfree` — lives in the main
+> repo's `fedora-base.yml` (single source of truth, moved out of `image.yml`),
+> included locally by main AND remote-included by the **`overthinkos/fedora`**
+> submodule (mounted at `image/fedora`). The base stack STAYS in main because
+> fedora is the ecosystem default base (~40 main images root on it,
+> `fedora-builder` is `defaults.builder`); only the Fedora consumer showcase
+> images (`/ov-coder:fedora-coder`, `/ov-distros:fedora-ov`,
+> `/ov-distros:fedora-test`) moved into the submodule. `ov image build fedora`
+> from the main repo is unchanged.
+
 ## Image Properties
 
 | Property | Value |

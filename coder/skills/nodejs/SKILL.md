@@ -40,7 +40,6 @@ my-image:
 
 - `/ov-distros:fedora-builder`
 - `/ov-distros:arch-builder`
-- `/ov-distros:fedora-remote` (via remote layer ref)
 - Transitive dependency for `openclaw`, `claude-code`, `pre-commit`, and other layers
 
 ## Related Layers

@@ -10,6 +10,14 @@ description: |
 
 Fedora base with RPM Fusion free and non-free repositories enabled.
 
+> **Defined in `fedora-base.yml` (2026-05).** Lives in the main repo's
+> `fedora-base.yml` (single source of truth, moved out of `image.yml`), alongside
+> `/ov-distros:fedora` + `/ov-distros:fedora-builder`, and is remote-included by
+> the `overthinkos/fedora` submodule. It STAYS in main because in-main consumers
+> (`/ov-immich:immich`, `/ov-distros:nvidia`, `/ov-selkies:selkies-desktop`) base
+> on it. Its `rpmfusion` layer is pinned as a github ref so the same definition
+> resolves in both main and the submodule.
+
 ## Image Properties
 
 | Property | Value |
