@@ -37,9 +37,9 @@ manager UI.
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
 | **ov-image** | 2 | — | Schema for `kind: image` and `kind: layer` (image.yml / layer.yml authoring). |
-| **ov-vm** | 7 | — | Schema for `kind: vm` + bootc VM catalog (cloud_image vs bootc, libvirt/QEMU). |
+| **ov-vm** | 8 | — | Schema for `kind: vm` + bootc VM catalog (cloud_image vs bootc, libvirt/QEMU). Includes `cachyos` (bootstrap VM, in the `overthinkos/cachyos` submodule). |
 | **ov-kubernetes** | 2 | — | Schema for `kind: k8s` + cluster probes via `ov eval k8s`. |
-| **ov-local** | 2 | — | Schema for `kind: local` + ssh-host deploys + managed ssh-config fragment. |
+| **ov-local** | 3 | — | Schema for `kind: local` + ssh-host deploys + managed ssh-config fragment. Includes `ov-cachyos` (operator CachyOS workstation profile, in the `overthinkos/cachyos` submodule). |
 | **ov-pod** | 1 | — | Schema for `kind: pod` and `kind: deploy` — thin pointer to `/ov-core:deploy` for verb details. |
 
 ### development — contributor-only internals
@@ -54,7 +54,7 @@ manager UI.
 
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
-| **ov-distros** | 34 | — | Base OS images, GPU runtime, bootc bootstrap, per-distro builders. arch, fedora, debian, ubuntu, aurora, bazzite-ai, nvidia, cuda, rocm, bootc-base, bootc-config, fedora-builder, arch-builder, ubuntu-builder, debian-builder, etc. |
+| **ov-distros** | 37 | — | Base OS images, GPU runtime, bootc bootstrap, per-distro builders. arch, fedora, debian, ubuntu, cachyos (+ cachyos-pacstrap/-builder, owned by the `overthinkos/cachyos` submodule), aurora, bazzite-ai, nvidia, cuda, rocm, bootc-base, bootc-config, fedora-builder, arch-builder, ubuntu-builder, debian-builder, etc. |
 | **ov-languages** | 4 | — | Programming language runtimes — pixi, python, python-ml, python-ml-layer. (golang/rust/nodejs live in `ov-coder` because they're tightly coupled to dev images.) |
 | **ov-infrastructure** | 22 | — | Databases, networking, security, system services. postgresql, redis, valkey, vectorchord, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, ssh-client, gnupg, etc. |
 | **ov-tools** | 19 | — | CLI utilities and the `ov` binary — ripgrep, himalaya, whisper, nano-pdf, summarize, ordercli, gogcli, sherpa-onnx, songsee, blogwatcher, sag, xurl, goplaces, mcporter, yay, ujust, vscode, ov, ov-full. |

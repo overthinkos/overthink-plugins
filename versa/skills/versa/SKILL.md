@@ -24,14 +24,14 @@ image bundles. The `layers/marimo/` directory + the
 
 | Property | Value |
 |----------|-------|
-| Base | `cachyos` (CUDA 13 / cuDNN / python-onnxruntime-cpu via CachyOS `extra` repo) |
+| Base | `cachyos` — owned by the **`overthinkos/cachyos`** submodule (`image/cachyos`) since the 2026-05 split; main pulls it back via a remote `include:` of `cachyos-base.yml` (this is the deliberate main → cachyos coupling). CUDA 13 / cuDNN / python-onnxruntime-cpu via CachyOS `extra` repo |
 | Platforms | `linux/amd64` only (cuDF + cu130 torch are amd64-only) |
 | Layers | 19 (see "Layer stack" below) |
 | Ports | 7 (see "Ports + host mappings") |
 | MCP servers | 1 (marimo @ container 2718) — the upstream airflow MCP wrapper was removed in 2026-05 (no Airflow-3 / `/api/v2` release exists) |
 | Registry | `ghcr.io/overthinkos` |
 | Image tag pattern | CalVer (`YYYY.DDD.HHMM`) |
-| Builder | `arch-builder` (pixi/npm/cargo/aur) — overrides the fedora-builder default since cachyos has no `builder:` of its own |
+| Builder | `arch-builder` (pixi/npm/cargo/aur) — **inherited** from the cachyos base's `builder:` map (declared in `cachyos-base.yml`); versa carries no per-image override (the override was removed in the 2026-05 CachyOS migration once the base declared the map). See `/ov-distros:cachyos`. |
 
 ## Layer stack (composition order)
 
