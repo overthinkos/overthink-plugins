@@ -42,7 +42,7 @@ description: |
 (`ov/layer_secrets.go` — `ensureLayerSecret`) detects the missing
 `secret_require:` entry, generates a 32-byte hex token via
 `generateAndStoreSecret`, and persists it to the active credential
-backend (keyring / kdbx / config-file fallback). Every subsequent
+backend (keyring / config-file fallback). Every subsequent
 `k3s-server` and `k3s-agent` deploy reads the same persisted value —
 zero operator setup, server and agents automatically share the token.
 

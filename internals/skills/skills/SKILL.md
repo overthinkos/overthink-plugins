@@ -26,7 +26,7 @@ CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher
 | Editing `image.yml` / image composition | `/ov-image:image` |
 | `ov image build` / `ov image generate` / Containerfile | `/ov-build:build` + `/ov-build:generate` + `/ov-internals:generate-source` |
 | `ov image validate` / schema error | `/ov-build:validate` |
-| Secret management / `ov secrets` / `.kdbx` | `/ov-build:secrets` |
+| Secret management / `ov secrets` / Secret Service / GPG `.secrets` | `/ov-build:secrets` |
 | Schema v4 migration / legacy → new format | `/ov-build:migrate` |
 | Hard-cutover concerns / rename sweeps | `/ov-internals:cutover-policy` |
 | `disposable: true` semantics | `/ov-internals:disposable` |

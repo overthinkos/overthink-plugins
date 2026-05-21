@@ -194,7 +194,6 @@ pair where the source string is one of:
 |---|---|---|
 | `env`         | Resolved from an env var override (e.g. `GOCRYPTFS_PASSWORD`) | Terminal: use the value |
 | `keyring`     | Found in the system keyring via the iteration-capable read path | Terminal: use the value |
-| `kdbx`        | Found in the configured KeePass file | Terminal: use the value |
 | `config`      | Found in `~/.config/ov/config.yml` (fallback or explicit backend) | Terminal: use the value |
 | `locked`      | Primary backend is present but locked (e.g. keyring not yet unlocked after login) | **Retry** — backend may unlock shortly |
 | `unavailable` | Primary backend probe failed (e.g. ssClient saw every collection error out); fell back to `ConfigFileStore` but the credential isn't stored there either | **Retry with backoff** — may be transient at early boot |
@@ -210,12 +209,12 @@ used to wedge `ov-<image>.service` under `TimeoutStartSec=0`.
 
 - `default` → **fail immediately** with an actionable error ("encryption
   passphrase not stored for ov/enc/<image>; store with `ov secrets set ov/enc
-  <image>`, or switch backend with `ov config set secret_backend config|kdbx`").
+  <image>`, or switch backend with `ov config set secret_backend config`").
 - `locked` / `unavailable` → **retry** up to `encMountDeadline` (package
   variable in `ov/enc.go`, default `2 * time.Minute`, poll period
   `encMountPollPeriod = 5 * time.Second`). After the deadline elapses, fail
   with a diagnostic listing backend, source, and remediation.
-- `env` / `keyring` / `kdbx` / `config` with a non-empty value → return
+- `env` / `keyring` / `config` with a non-empty value → return
   immediately.
 
 **In interactive mode** (no `INVOCATION_ID`), `resolveEncPassphraseForMount`
@@ -292,13 +291,20 @@ busctl --user call org.freedesktop.secrets <collection-path> \
 
 A healthy collection returns its label; a broken stub returns an I/O error.
 
-## KeePass Integration
+## Storing the gocryptfs passphrase
 
-Use the `--kdbx` global flag to specify a KeePass database for password storage:
+Store an encrypted-volume passphrase explicitly in the active credential store
+(Secret Service when available, config-file fallback otherwise):
 
 ```bash
-ov --kdbx ~/.config/ov/secrets.kdbx config my-app --encrypt secrets
+ov secrets set ov/enc my-app <passphrase>
 ```
+
+To serve credentials from an existing KeePass database, open it in KeePassXC and
+enable the FdoSecrets plugin so its entries appear on the Secret Service bus —
+ov's keyring backend reads them like any other collection. (The direct `.kdbx`
+file backend and the `--kdbx` flag were removed in the 2026-05-21 cutover; see
+`/ov-build:secrets`.)
 
 ## Scope Unit Architecture
 
@@ -329,7 +335,6 @@ Rootless podman with `--userns=keep-id` creates a two-level user namespace. Duri
 | Credential Backend | Quadlet Behavior | User Action on Reboot |
 |---|---|---|
 | **Secret Service (keyring)** | `WantedBy=default.target` + `ExecStartPre` (waits for keyring) + `TimeoutStartSec=0` | None — auto-starts after login |
-| **KeePass (.kdbx)** | `ExecStartPre` (guard) + NO `WantedBy` | `ov start <image>` (prompts for kdbx master) |
 | **Config file / none** | `ExecStartPre` (guard) + NO `WantedBy` | `ov start <image>` (prompts interactively) |
 
 **Secret Service flow on reboot:**
@@ -451,7 +456,7 @@ Plain bind mounts do not use encrypted storage commands. They are direct host di
 - `/ov-core:deploy` -- Quadlet integration, volume backing configuration, deploy.yml
 - `/ov-core:ov-config` -- `encrypted_storage_path` and `volumes_path` settings, `ov config mount` short-circuit fast-path documented there too
 - `/ov-core:service` -- Container lifecycle, `ov start` inline mount
-- `/ov-build:secrets` -- Credential store hierarchy (env → keyring → kdbx → config), `ov secrets set ov/enc <image>` to store a gocryptfs passphrase explicitly, `ov secrets list` to inspect indexed keys
+- `/ov-build:secrets` -- Credential store hierarchy (env → keyring → config), `ov secrets set ov/enc <image>` to store a gocryptfs passphrase explicitly, `ov secrets list` to inspect indexed keys
 - `/ov-build:settings` -- `secret_backend`, `keyring_collection_label`, `encrypted_storage_path`, and other runtime config keys that control credential + volume resolution
 - `/ov-core:ov-doctor` -- "Secret Service collections" health check, "Keyring index consistency" cross-check; invoke `ov doctor` when diagnosing broken-collection symptoms
 

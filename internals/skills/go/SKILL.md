@@ -169,7 +169,7 @@ Submodule convention: `plugins/` is a submodule rooted at the
 
 | File | Purpose |
 |------|---------|
-| `main.go` | CLI entry point (Kong framework). `CLI` struct carries three global fields: `Kdbx` (`--kdbx`), `Dir` (`-C` / `--dir` / env `OV_PROJECT_DIR`), and `Repo` (`--repo` / env `OV_PROJECT_REPO`). When `Repo` is set, `main()` resolves it via `ResolveProjectRepo` and assigns the cache path back into `Dir`; when `Dir` is non-empty (after that resolution), `main()` calls `os.Chdir(Dir)` **before** `ctx.Run()` — one-line intervention that propagates to every `os.Getwd()` call site throughout build-mode commands without requiring per-command plumbing. `--repo` and `--dir` are mutually exclusive (fast-fail). Covered by `TestOvDir_FlagChdir`, `TestOvDir_Errors`, `TestOvRepo_FlagChdir`, `TestOvRepo_DirConflict`, `TestOvRepo_DefaultExpansion` in `main_dir_test.go` + `main_repo_test.go`. Load-bearing for `ov mcp serve` inside a container where cwd resolves to `/workspace` (the `ov-mcp` layer default) — either bind-mounted with the project, or empty in which case `bootstrapProject()` auto-falls back to the upstream repo. |
+| `main.go` | CLI entry point (Kong framework). `CLI` struct carries two global path fields: `Dir` (`-C` / `--dir` / env `OV_PROJECT_DIR`) and `Repo` (`--repo` / env `OV_PROJECT_REPO`). When `Repo` is set, `main()` resolves it via `ResolveProjectRepo` and assigns the cache path back into `Dir`; when `Dir` is non-empty (after that resolution), `main()` calls `os.Chdir(Dir)` **before** `ctx.Run()` — one-line intervention that propagates to every `os.Getwd()` call site throughout build-mode commands without requiring per-command plumbing. `--repo` and `--dir` are mutually exclusive (fast-fail). Covered by `TestOvDir_FlagChdir`, `TestOvDir_Errors`, `TestOvRepo_FlagChdir`, `TestOvRepo_DirConflict`, `TestOvRepo_DefaultExpansion` in `main_dir_test.go` + `main_repo_test.go`. Load-bearing for `ov mcp serve` inside a container where cwd resolves to `/workspace` (the `ov-mcp` layer default) — either bind-mounted with the project, or empty in which case `bootstrapProject()` auto-falls back to the upstream repo. |
 | `main_repo.go` | `--repo` resolver. `DefaultProjectRepo = "github.com/overthinkos/overthink"`. `normalizeRepoSpec(spec)` handles four spec shapes: `"default"` literal, bare `owner/repo` (auto-prefix `github.com/` when first segment has no dot), bare `owner/repo@ref`, host-qualified `host.tld/owner/repo[@ref]`. `ResolveProjectRepo(spec)` reuses `EnsureRepoDownloaded` from `refs.go` so the project-repo cache shares `~/.cache/ov/repos/` (override `OV_REPO_CACHE`) with the existing remote-layer cache. Empty version triggers `GitDefaultBranch` resolution. |
 | `config.go` | `image.yml` parsing, inheritance resolution. `BuildFormats` type. `Distro` field. `ResolvedImage.Tags` (union). `SupportsTag()`, `SupportsBuild()` methods |
 | `format_config.go` | `DistroConfig` (with per-distro `Formats`), `BuilderConfig` types. `BuildFile` loader struct matches the three top-level sections of `build.yml` (`distro:`, `builder:`, `init:`). `LoadBuildConfigForImage` resolves a single `format_config: build.yml` ref and splits it into `DistroConfig` / `BuilderConfig` / `InitConfig` views. Per-image config resolution with remote ref support |
@@ -288,11 +288,11 @@ See `/ov-image:image` "user_policy" for the user-facing decision matrix, `/ov-bu
 | `tunnel.go` | Tunnel providers (Tailscale, Cloudflare), backend scheme helpers (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`), scheme validation maps (`validTailscaleSchemes`, `validCloudflareSchemes`), start/stop for each provider |
 | `quadlet.go` | Quadlet .container file generation, `Secret=` directives |
 | `credential_store.go` | `CredentialStore` interface, `ResolveCredential()`, `DefaultCredentialStore()`, `ConfigMigrateSecretsCmd` |
-| `credential_keyring.go` | System keyring backend (`go-keyring`: GNOME Keyring, KDE Wallet, KeePassXC) |
+| `credential_keyring.go` | System keyring backend (`go-keyring`: GNOME Keyring, KDE Wallet, KeePassXC via FdoSecrets / Secret Service) |
 | `credential_config.go` | Config file credential backend (plaintext fallback for headless) |
-| `credential_kdbx.go` | KeePass .kdbx backend (`gokeepasslib`: KDBX 4, Argon2, encrypted at rest) |
+| `migrate_secrets_kdbx.go` | `ov migrate drop-kdbx` — strips residual `secret_backend: kdbx` + `secrets_kdbx_*` keys from `~/.config/ov/config.yml` (2026-05-21 cutover that deleted the `.kdbx` backend; `credential_kdbx.go` + `keyctl.go` removed) |
 | `secrets.go` | Container secret collection from labels, Podman secret provisioning, `SecretArgs()` |
-| `secrets_cmd.go` | `ov secrets` CLI commands (init, list, get, set, delete, import, export, path) |
+| `secrets_cmd.go` | `ov secrets` CLI commands (list, get, set, delete, import, export — all retargeted to `DefaultCredentialStore()`) + the `gpg` subgroup |
 | `secrets_gpg.go` | `ov secrets gpg` commands (show, env, edit, encrypt, decrypt, set, unset, add-recipient, recipients) |
 
 ### Remote Layer Refs
@@ -335,7 +335,7 @@ section is the Go-implementation map.
 ## Go Module Info
 
 - Go version: 1.25.3
-- Key dependencies: `kong` (CLI), `go-containerregistry` (OCI), `go-keyring` (Secret Service API), `gokeepasslib` (KeePass .kdbx)
+- Key dependencies: `kong` (CLI), `go-containerregistry` (OCI), `go-keyring` (Secret Service API)
 - Module path: `ov/go.mod`
 
 ## Common Workflows

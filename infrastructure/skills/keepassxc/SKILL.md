@@ -48,10 +48,10 @@ No deploy-scope tests: KeePassXC is a GUI app launched on-demand by the user ins
 
 ## Relationship to `/ov-build:secrets`
 
-This layer is the **GUI** for editing `.kdbx` databases. It is **distinct** from `/ov-build:secrets`, which is the ov CLI for a KeePass-backed credential store (separate `ov-secrets.kdbx` file, headless automation, kernel-keyring master-password cache).
+This layer is the **GUI** for editing `.kdbx` databases. `/ov-build:secrets` is the ov CLI credential store — which talks to the **Secret Service** (system keyring), NOT to a `.kdbx` file directly (the direct `.kdbx` backend was removed in the 2026-05-21 cutover).
 
-- Author a `.kdbx` file in KeePassXC (GUI) → use it with `ov secrets init --kdbx path/to/file.kdbx` (CLI).
-- The GUI and CLI share nothing except the KeePass file format.
+- Author a `.kdbx` file in KeePassXC (GUI) → enable its **FdoSecrets** plugin (Settings → Secret Service Integration) and mark the group "Secret Service exposed" → its entries appear on the Secret Service bus, where `ov`'s keyring backend reads them. No `ov`-side `.kdbx` configuration is involved.
+- See `/ov-infrastructure:keepassxc-keyring` for the layer that wires KeePassXC as the host's Secret Service provider.
 
 ## Alternative: bundled placement in `desktop-apps`
 
@@ -62,7 +62,7 @@ Before this layer existed, `keepassxc` shipped inside `/ov-selkies:desktop-apps`
 - `/ov-selkies:desktop-apps` — bundle that also includes keepassxc (use when you want the full desktop-app set)
 - `/ov-selkies:selkies-desktop-bootc` — primary consumer of this standalone layer
 - `/ov-selkies:selkies-desktop` — desktop composition this layer pairs with
-- `/ov-build:secrets` — ov CLI credential store (shares `.kdbx` format only; different tool)
+- `/ov-build:secrets` — ov CLI credential store (Secret Service + GPG; reads a KeePassXC database only via its FdoSecrets / Secret Service exposure)
 - `/ov-image:layer` — layer authoring reference
 - `/ov-eval:eval` — declarative testing reference
 

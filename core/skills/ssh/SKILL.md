@@ -42,7 +42,7 @@ target needs a specific key, set it in `~/.ssh/config` — `ov` stays out
 of SSH authentication.
 
 **Client-only flags stripped** before re-exec: `--host`, `--dir` / `-C`,
-`--repo`, `--kdbx`. These are workstation-local concerns and must not be
+`--repo`. These are workstation-local concerns and must not be
 forwarded to the remote side.
 
 ### 2. `ov ssh tunnel` — expose a remote VM's display for external GUI apps

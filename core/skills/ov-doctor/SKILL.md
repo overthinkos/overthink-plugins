@@ -57,7 +57,7 @@ At least one must be installed:
 
 ### Secret Storage
 
-- **Secret backend availability** — keyring, kdbx, or config. Reports which backend is active and whether it probed healthy.
+- **Secret backend availability** — keyring or config. Reports which backend is active and whether it probed healthy.
 - **Config file permissions** — warns if `~/.config/ov/config.yml` is not `0600`.
 - **Plaintext credential count** — warns if `> 0` plaintext entries are in `config.yml` (suggests `ov settings migrate-secrets`).
 - **Secret Service collections** (since 2026-04) — iterates the Secret Service provider's collections and reads the `Label` property on each. A *broken* collection is one whose `org.freedesktop.DBus.Properties.Get` returns `NoSuchObject` or a DBus I/O error — the hallmark of KeePassXC FdoSecrets stubs or a corrupt keyring. Status is `CheckOK` when all collections respond, `CheckWarning` when any are broken (ov iterates past them automatically — see `/ov-automation:enc`). The `Detail` field names the broken path(s) so the user can act on them (KeePassXC → Tools → Settings → Secret Service Integration → Exposed Databases).

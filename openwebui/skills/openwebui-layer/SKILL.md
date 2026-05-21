@@ -54,7 +54,7 @@ description: |
 
 ### Tier 1: Infrastructure secrets (podman secrets via `secret:` field)
 
-Auto-generated, stored in credential store (keyring/kdbx/config-file fallback):
+Auto-generated, stored in credential store (keyring/config-file fallback):
 
 | Secret | Env Fallback | Purpose | Auto-gen path |
 |--------|-------------|---------|---------------|
@@ -153,7 +153,7 @@ openwebui:
 ## Related Commands
 
 - `/ov-core:ov-config` -- `ov config openwebui --update-all` for service discovery
-- `/ov-build:secrets` -- `ov secrets` for kdbx/keyring credential management
+- `/ov-build:secrets` -- `ov secrets` for Secret Service / GPG credential management
 - `/ov-core:service` -- `ov service status openwebui` for runtime management
 - `/ov-build:ov-mcp-cmd` -- probe the MCP servers openwebui consumes (auto-configured into `TOOL_SERVER_CONNECTIONS` from `OV_MCP_SERVERS`): `ov eval mcp list-tools <provider-image>` shows what tools openwebui will see, and `ov eval mcp ping` verifies liveness before debugging openwebui itself.
 

@@ -789,7 +789,7 @@ See `/ov-core:ov-config` (`--update-all` flag, provides filtering) and `/ov-core
 
 ## secret_accepts / secret_requires
 
-Credential-backed env vars. Same YAML shape as `env_accepts` / `env_requires`, but values flow through the credential store (keyring → kdbx → config) and arrive via Podman secrets — **never plaintext in deploy.yml or the quadlet**.
+Credential-backed env vars. Same YAML shape as `env_accepts` / `env_requires`, but values flow through the credential store (keyring → config) and arrive via Podman secrets — **never plaintext in deploy.yml or the quadlet**.
 
 ```yaml
 secret_requires:

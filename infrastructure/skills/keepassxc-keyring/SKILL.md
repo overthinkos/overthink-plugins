@@ -4,7 +4,7 @@ description: |
   Configure KeePassXC as the freedesktop.org Secret Service provider on a
   target:local host: enable FdoSecrets, autostart KeePassXC, disable
   competing daemons (gnome-keyring + kwallet) at the per-user XDG-autostart
-  and systemd-user-unit layers, install pinentry/libsecret/keyutils, and
+  and systemd-user-unit layers, install pinentry/libsecret, and
   install generic direnv shell hooks for bash/zsh/fish.
   Use when adding KeePassXC as the Secret Service backend on a host (NOT
   for adding the binary to a container image — use /ov-infrastructure:keepassxc
@@ -25,11 +25,11 @@ description: |
 
 ## Packages
 
-- Arch (`pac:`): `pinentry`, `libsecret`, `keyutils`
-- Fedora (`rpm:`): `pinentry-qt`, `libsecret`, `keyutils`
-- Debian/Ubuntu (`deb:`): `pinentry-qt`, `libsecret-tools`, `keyutils`
+- Arch (`pac:`): `pinentry`, `libsecret`
+- Fedora (`rpm:`): `pinentry-qt`, `libsecret`
+- Debian/Ubuntu (`deb:`): `pinentry-qt`, `libsecret-tools`
 
-`pinentry` provides the GUI passphrase dialog that gpg-agent spawns; `libsecret` provides `secret-tool` and the C client lib that pinentry-qt uses to query KeePassXC; `keyutils` provides `keyctl` for the kernel-keyring caching of `ov`'s kdbx-master-password.
+`pinentry` provides the GUI passphrase dialog that gpg-agent spawns; `libsecret` provides `secret-tool` and the C client lib that pinentry-qt uses to query KeePassXC.
 
 ## What this layer changes on the host
 
@@ -46,7 +46,7 @@ description: |
 ## What this layer DOES NOT do
 
 - **Marking a `.kdbx` group as "Secret Service exposed"** — this is per-database state inside the `.kdbx` file itself, not in `keepassxc.ini`. It is a one-time GUI action (right-click group → "Mark as Secret Service exposed") performed by the user once per database.
-- **`ov secrets gpg setup`** — the gpg-agent.conf, systemd socket, and Secret-Service passphrase storage are still wired by the user-invoked `ov secrets gpg setup` command. This layer just installs the packages that command requires (`pinentry-qt`, `libsecret`, `keyutils`).
+- **`ov secrets gpg setup`** — the gpg-agent.conf, systemd socket, and Secret-Service passphrase storage are still wired by the user-invoked `ov secrets gpg setup` command. This layer just installs the packages that command requires (`pinentry-qt`, `libsecret`).
 - **Removing or downgrading** any system package. All competitor disabling is per-user, reversible.
 
 ## Usage
@@ -76,7 +76,6 @@ Build-scope (run on package install):
 - `keepassxc-binary` — `/usr/bin/keepassxc` exists.
 - `pinentry-qt-installed` — at least one of `pinentry-qt`, `pinentry-qt5`, `pinentry-qt6` resolvable on PATH.
 - `secret-tool-installed` — `secret-tool` resolvable on PATH.
-- `keyutils-installed` — `keyctl` resolvable on PATH.
 
 Deploy-scope (run on the host post-`ov deploy add` against the running user's HOME):
 
@@ -93,7 +92,7 @@ Deploy-scope (run on the host post-`ov deploy add` against the running user's HO
 | `/ov-infrastructure:keepassxc` | The package-only layer. `keepassxc-keyring` `require:` on it; never composes it. |
 | `/ov-infrastructure:gnupg` | Same — keepassxc-keyring `require:` on gnupg, never composes. |
 | `/ov-distros:agent-forwarding` | Distinct concern. agent-forwarding is for FORWARDING the host's GPG/SSH agents INTO containers via socket bind-mounts. keepassxc-keyring is about turning the host itself into a Secret Service server. Both can be active simultaneously. |
-| `/ov-build:secrets` | The CLI surface that talks to KeePassXC after this layer is in place. `ov secrets gpg setup` and `ov secrets gpg doctor` find pinentry-qt + libsecret + keyutils on PATH because this layer installed them. |
+| `/ov-build:secrets` | The CLI surface that talks to KeePassXC after this layer is in place. `ov secrets gpg setup` and `ov secrets gpg doctor` find pinentry-qt + libsecret on PATH because this layer installed them. |
 | `/ov-coder:direnv` | Installs the direnv binary. This layer adds the missing piece (the shell hook) for `.envrc` to actually trigger on `cd`. |
 | `/ov-image:layer` | Layer authoring reference. |
 | `/ov-eval:eval` | `eval:` block format reference. |

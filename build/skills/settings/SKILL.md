@@ -32,13 +32,10 @@ Manage ov's runtime configuration stored in `~/.config/ov/settings.yml`. Control
 | `bind_address` | `127.0.0.1` | `OV_BIND_ADDRESS` | Default bind address for ports |
 | `encrypted_storage_path` | `~/.local/share/ov/encrypted` | `OV_ENCRYPTED_STORAGE_PATH` | Base path for gocryptfs volumes |
 | `volumes_path` | `~/.local/share/ov/volumes` | `OV_VOLUMES_PATH` | Base path for bind-mounted volumes |
-| `secret_backend` | `auto` | `OV_SECRET_BACKEND` | Credential backend (auto/keyring/kdbx/config) |
+| `secret_backend` | `auto` | `OV_SECRET_BACKEND` | Credential backend (auto/keyring/config) |
 | `keyring_collection_label` | *(empty)* | `OV_KEYRING_COLLECTION_LABEL` | Preferred Secret Service collection label. Empty = iterate naturally (default alias → listing order). Set to pin ov to a specific collection in multi-database setups (e.g. KeePassXC with multiple open databases). See `/ov-automation:enc` for the full iteration order. |
 | `forward_gpg_agent` | `true` | `OV_FORWARD_GPG_AGENT` | Forward GPG agent into containers |
 | `forward_ssh_agent` | `true` | `OV_FORWARD_SSH_AGENT` | Forward SSH agent into containers |
-| `secrets.kdbx_path` | *(none)* | `OV_KDBX_PATH` | Path to KeePass .kdbx database |
-| `secrets.kdbx_cache` | `true` | `OV_KDBX_CACHE` | Cache kdbx password in kernel keyring |
-| `secrets.kdbx_cache_timeout` | `3600` | `OV_KDBX_CACHE_TIMEOUT` | Kernel keyring cache TTL (seconds) |
 | `hosts.<alias>` | *(none)* | — | SSH target for `ov --host <alias>` remote execution. Free-form: `host`, `user@host`, `user@host:port`. Consulted by the top-level `--host` flag to re-exec `ov` commands on another machine over SSH. See `/ov-core:ssh`. |
 
 ## Usage
@@ -67,10 +64,13 @@ ov settings set encrypted_storage_path /mnt/encrypted/ov
 ### Secret Backend
 
 ```bash
-# Force KeePass backend
-ov settings set secret_backend kdbx
+# Force the Secret Service keyring backend (incl. KeePassXC via FdoSecrets)
+ov settings set secret_backend keyring
 
-# Migrate plaintext secrets from settings.yml to keyring
+# Force the config-file plaintext fallback (headless hosts)
+ov settings set secret_backend config
+
+# Migrate plaintext secrets from config.yml to the keyring
 ov settings migrate-secrets
 
 # Preview migration without changes

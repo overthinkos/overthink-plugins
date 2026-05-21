@@ -1,14 +1,30 @@
 ---
 name: secrets
 description: |
-  MUST be invoked before any work involving: ov secrets commands, KeePass .kdbx credential management, credential import/export, or secret database administration.
+  MUST be invoked before any work involving: ov secrets commands, Secret Service / config-file credential management, GPG-encrypted .secrets files, credential import/export, or secret administration.
 ---
 
-# Secrets - KeePass Credential Management
+# Secrets - Secret Service & GPG Credential Management
 
 ## Overview
 
-Manage credentials in a KeePass `.kdbx` database. Part of ov's credential store hierarchy — the kdbx backend is used when the system keyring is unavailable (headless servers, SSH sessions) or when explicitly selected via `ov settings set secret_backend kdbx`.
+`ov` has two distinct secret systems:
+
+1. **Credential store** (`ov secrets get/set/list/delete/import/export`) — keyed
+   `service/key` credentials (VNC passwords, layer `secret_*` values) resolved
+   from the **Secret Service** (system keyring) with a config-file plaintext
+   fallback for headless hosts. Provisioned into Podman secrets at `ov config`
+   time.
+2. **GPG `.secrets` files** (`ov secrets gpg …`) — project-level shell env vars
+   in a GPG-encrypted `.secrets` file, decrypted by direnv on `cd`.
+
+> The direct KeePass `.kdbx` file backend was **removed** in the 2026-05-21
+> cutover. KeePassXC is still fully supported — but as a **Secret Service**
+> provider (via its FdoSecrets plugin), i.e. the keyring backend below, not a
+> `.kdbx` file ov reads directly. An existing `.kdbx` keeps serving the same
+> secrets with zero data copy once exposed through FdoSecrets. Residual
+> `secret_backend: kdbx` / `secrets_kdbx_*` config keys raise a hard load-time
+> error pointing at `ov migrate drop-kdbx`.
 
 ## Credential Store Hierarchy
 
@@ -17,9 +33,10 @@ Resolution order (first match wins):
 | Priority | Backend | When used |
 |----------|---------|-----------|
 | 1 | Environment variable | `OV_VNC_PASSWORD`, etc. |
-| 2 | System keyring | GNOME Keyring, KDE Wallet, KeePassXC |
-| 3 | KeePass .kdbx | Headless/SSH or `secret_backend: kdbx` |
-| 4 | Config file | Plaintext fallback in `config.yml` |
+| 2 | System keyring (Secret Service) | GNOME Keyring, KDE Wallet, KeePassXC (FdoSecrets) |
+| 3 | Config file | Plaintext fallback in `config.yml` (headless last-resort) |
+
+`secret_backend` ∈ {`auto` (default; keyring then config), `keyring`, `config`}.
 
 **Iteration-capable keyring read path** (since 2026-04): when the system
 keyring backend is active, `ov`'s read path (`KeyringStore.Get` →
@@ -38,44 +55,31 @@ behavior, and troubleshooting.
 
 ## Quick Reference
 
+All commands below operate on the **active credential store** (Secret Service,
+or the config-file fallback) — never a `.kdbx` file.
+
 | Action | Command | Description |
 |--------|---------|-------------|
-| Create database | `ov secrets init [path]` | Create new .kdbx, auto-set config |
-| List entries | `ov secrets list [service]` | List entries, optionally filter by service |
+| List entries | `ov secrets list [service]` | List credentials, optionally filter by service prefix |
 | Get value | `ov secrets get <service> <key>` | Print credential value |
 | Set value | `ov secrets set <service> <key> [value]` | Set credential (prompts if no value) |
 | Generate value | `ov secrets set <service> <key> --generate` | Generate 32-char hex random value |
 | Delete entry | `ov secrets delete <service> <key>` | Remove an entry |
-| Import | `ov secrets import [--dry-run]` | Import from config.yml + keyring |
+| Import | `ov secrets import [--dry-run]` | Copy config.yml + keyring credentials into the active store |
 | Export | `ov secrets export [--format yaml\|json]` | Export all entries (plaintext!) |
-| Show path | `ov secrets path` | Print resolved .kdbx file path |
 
 ## Subcommand Details
-
-### Init
-
-```bash
-ov secrets init                          # Default: ~/.config/ov/secrets.kdbx
-ov secrets init /path/to/secrets.kdbx    # Custom path
-ov secrets init --force                  # Overwrite existing database
-```
-
-Creates a new .kdbx database with password confirmation. Automatically sets `secrets.kdbx_path` in config. After init, activate with:
-
-```bash
-ov settings set secret_backend kdbx
-```
-
-Or it auto-activates when the system keyring is unavailable.
 
 ### List
 
 ```bash
-ov secrets list              # All ov entries
+ov secrets list              # All ov entries (keyring shadow index + config)
 ov secrets list ov/vnc       # Filter by service prefix
 ```
 
-Prints `service/key` pairs, one per line.
+Prints `service/key` pairs, one per line. The listing is the union of the
+keyring shadow index (`keyring_keys` in `config.yml`) and the config-file
+plaintext entries, so it reflects everything regardless of the active backend.
 
 ### Get / Set / Delete
 
@@ -87,20 +91,24 @@ ov secrets set ov/vnc my-image --generate   # Generate and print random value
 ov secrets delete ov/vnc my-image           # Remove entry
 ```
 
-The `--generate` flag produces 16 random bytes as 32-character hex string, printed to stdout.
+`set`/`delete` operate on the active store (`DefaultCredentialStore()`); `get`
+reads the active store. The `--generate` flag produces 16 random bytes as a
+32-character hex string, printed to stdout.
 
 ### Import
 
 ```bash
 ov secrets import --dry-run    # Preview what would be imported
-ov secrets import              # Import from config.yml + keyring
+ov secrets import              # Copy config.yml + keyring entries into the active store
 ```
 
 Collects credentials from:
 1. **Config file** — plaintext credentials in `config.yml`
 2. **System keyring** — entries tracked in `keyring_keys` config list
 
-Shows source and success/failure for each entry.
+Copies (does NOT clear the source) into the active store. This differs from
+`ov settings migrate-secrets`, which *moves* config plaintext into the keyring
+and strips the plaintext copies.
 
 ### Export
 
@@ -109,23 +117,21 @@ ov secrets export                  # YAML format (default)
 ov secrets export --format json    # JSON format
 ```
 
-**WARNING:** Exports plaintext credentials. Outputs nested map: `service -> key -> value`.
-
-### Path
-
-```bash
-ov secrets path    # Prints resolved path or default location
-```
+**WARNING:** Exports plaintext credentials. Outputs nested map: `service -> key -> value`. Values are resolved through the active store (with config fallback).
 
 ## Common Workflows
 
 ### First-Time Setup
 
+A running Secret Service provider (GNOME Keyring, KDE Wallet, or KeePassXC with
+FdoSecrets enabled) is all that's needed — `secret_backend: auto` finds it. On a
+headless host with no Secret Service, ov falls back to the config-file store
+automatically.
+
 ```bash
-ov secrets init                         # Create database
-ov settings set secret_backend kdbx     # Activate kdbx backend
-ov secrets import --dry-run             # Preview migration
-ov secrets import                       # Migrate existing credentials
+ov settings set secret_backend keyring   # (optional) force the keyring backend
+ov secrets set ov/secret MY_TOKEN xyz    # store a credential
+ov secrets get ov/secret MY_TOKEN        # read it back
 ```
 
 ### Credential-backed layer env vars (`secret_accepts` / `secret_requires`)
@@ -189,14 +195,15 @@ ov secrets set ov/secret K3S_CLUSTER_TOKEN <value>
 ```
 
 The auto-gen path is skipped whenever any non-empty value is already
-resolvable (env var, keyring, kdbx, or config-file fallback).
+resolvable (env var, keyring, or config-file fallback).
 
-**Persistence venue.** When no kdbx and no keyring are available
-(headless first-boot, fresh CI runner), the auto-generated token
-lands in `~/.config/ov/config.yml` via `ConfigFileStore` (mode 0600).
-Operators on multi-user hosts should run `ov secrets init` BEFORE
-the first deploy to land subsequent secrets in an encrypted kdbx
-instead.
+**Persistence venue.** When no keyring is available (headless
+first-boot, fresh CI runner), the auto-generated token lands in
+`~/.config/ov/config.yml` via `ConfigFileStore` (mode 0600).
+Operators on multi-user hosts should run a Secret Service provider
+(e.g. KeePassXC with FdoSecrets enabled) BEFORE the first deploy so
+subsequent secrets land in the keyring instead of the plaintext
+config file.
 
 **Rotation:** update the store and re-run `ov config`. The
 `RotateOnConfig` flag on credential-backed secrets bypasses the
@@ -238,85 +245,22 @@ across consumers, and refreshed on every `ov config`. Both flow through
 the same `Secret=<name>,type=env,target=<var>` quadlet emission; only the
 rotation semantics differ. See `/ov-image:layer` (secret_accepts / secret_requires).
 
-### Backup / Restore
-
-The `.kdbx` file is a standard KeePass database. You can open it with KeePassXC or any KeePass-compatible tool for backup or manual editing.
-
-## Password Caching
-
-The kdbx master password is cached in the Linux kernel keyring (user keyring, key `ov-kdbx-password`) after the first interactive prompt. All subsequent `ov` commands within the timeout window reuse the cached password automatically -- no re-prompting.
-
-**Password resolution chain (first attempt):**
-1. `OV_KDBX_PASSWORD` environment variable (CI/automation)
-2. Linux kernel keyring lookup
-3. Interactive prompt (systemd-ask-password or terminal)
-4. After prompting, auto-store in kernel keyring with configured TTL
-
-**Configuration:**
-
-```bash
-ov settings set secrets.kdbx_cache false       # Disable caching entirely
-ov settings set secrets.kdbx_cache_timeout 7200 # Cache for 2 hours instead of 1
-```
-
-Default: enabled, 3600 seconds (1 hour) TTL. Uses `keyctl` syscalls via `golang.org/x/sys/unix`. Source: `ov/keyctl.go`.
-
-## Wrong-Password Retry + Non-TTY Guard
-
-The master-password prompt has two safeguards that match standard CLI conventions:
-
-### Three attempts before giving up
-
-When `openKdbx` rejects the supplied password (`Wrong password? Database integrity check failed`), `ov` re-prompts up to **3 times total** (matching sudo's `passwd_tries=3` default). Between attempts you see:
-
-```
-Sorry, try again.
-```
-
-Retries bypass both the `OV_KDBX_PASSWORD` env var AND the kernel-keyring cache, so a stale cached value or a wrong-env-var setup doesn't loop forever — every retry forces a fresh interactive prompt. After the third failed attempt, the underlying `decoding kdbx: Wrong password?` error is returned and the command exits non-zero. Errors other than wrong-password (file not found, malformed blob, I/O error) return immediately without retry.
-
-### Non-TTY fail-fast
-
-When stdin is not a terminal AND `OV_KDBX_PASSWORD` is unset, `ov` aborts immediately with:
-
-```
-ov: error: kdbx password required but stdin is not a terminal; set OV_KDBX_PASSWORD=<password> or run interactively
-```
-
-This catches CI runs, SSH-non-interactive contexts, systemd service units, and tooling that loses TTY (like agent shells). Previously such contexts hung forever on `term.ReadPassword`. The guard fires unconditionally on no-TTY — `systemd-ask-password` is NOT a graceful fallback because `askPassword` invokes it with `--timeout=0` AND passes our stdin through, so it inherits the same no-TTY hang.
-
-The acceptance contract:
-
-| Context | Behaviour |
-|---|---|
-| Interactive terminal | Prompt; on wrong, "Sorry, try again." up to 3× |
-| `OV_KDBX_PASSWORD` set, correct | Use env value, succeed silently |
-| `OV_KDBX_PASSWORD` set, wrong | Try env value (1st), then re-prompt — but if no TTY, fail-fast on the retry |
-| Non-TTY, no env var | Fail-fast within ~50 ms, actionable error |
-| systemd unit (`INVOCATION_ID` set), no env var | Fail-fast (same code path as non-TTY) |
-
-Source: `ov/credential_kdbx.go` (`defaultKdbxAskPassword`, `openKdbxWithRetry`, `isWrongKdbxPassword`, `KdbxStore.openValidated`). Tests: `ov/credential_kdbx_test.go` (`TestOpenKdbxWithRetry_*`, `TestIsWrongKdbxPassword`, `TestKdbxStore_OpenValidated_ReusesCachedPassword`).
-
 ## Config Keys
 
 | Key | Description |
 |-----|-------------|
-| `secret_backend` | Force backend: `keyring`, `kdbx`, or `config` |
+| `secret_backend` | Force backend: `auto` (default; keyring then config), `keyring`, or `config` |
 | `keyring_collection_label` | Preferred Secret Service collection label (empty = iterate naturally). Pin ov to a specific collection in multi-database setups. |
-| `secrets.kdbx_path` | Path to .kdbx file |
-| `secrets.kdbx_key_file` | Optional key file for .kdbx |
-| `secrets.kdbx_cache` | Enable/disable kernel keyring caching (default: `true`) |
-| `secrets.kdbx_cache_timeout` | TTL in seconds for cached password (default: `3600`) |
 
 ## Project-Level Secrets (.secrets + direnv)
 
 Separate from ov's credential store, project-level environment variables (e.g., `GMAIL_USER`, `GMAIL_PASSWORD`) are stored in `.secrets` — a GPG-encrypted file at the project root. direnv decrypts it in memory via `ov secrets gpg env` when entering the directory (`eval "$(ov secrets gpg env)"` in `.envrc`).
 
-**This is NOT managed by `ov secrets` (kdbx).** The two systems serve different purposes:
+**This is NOT managed by the `ov secrets` credential store.** The two systems serve different purposes:
 
 | System | What it manages | How it works |
 |--------|----------------|--------------|
-| `ov secrets` (kdbx/keyring) | Container-level credentials (VNC passwords, service secrets) | Provisioned at `ov config` time into Podman secrets |
+| `ov secrets` (Secret Service / config) | Container-level credentials (VNC passwords, service secrets) | Provisioned at `ov config` time into Podman secrets |
 | `ov secrets gpg` + direnv | Project-level shell env vars (API keys, credentials) | GPG-encrypted `.secrets` file, decrypted by direnv on `cd` |
 
 ## `ov secrets gpg` — GPG-Encrypted .secrets Management
@@ -551,7 +495,7 @@ For GPG agent forwarding into containers (so `gpg --decrypt` works inside), use 
 
 ## Cross-References
 
-- `/ov-core:ov-config` — `secret_backend`, `secrets.kdbx_path` settings keys
+- `/ov-core:ov-config` — `secret_backend` and other settings keys
 - `/ov-automation:enc` — encrypted volume credential lookup, iteration-capable ssClient, broken-collection troubleshooting, source classification (`env`/`keyring`/`config`/`locked`/`unavailable`/`default`)
 - `/ov-build:settings` — `keyring_collection_label`, `secret_backend`, and other runtime config keys
 - `/ov-core:ov-doctor` — Secret Service collection health + shadow index consistency checks
@@ -563,8 +507,8 @@ For GPG agent forwarding into containers (so `gpg --decrypt` works inside), use 
 
 ## Source
 
-`ov/secrets_cmd.go` (CLI commands), `ov/secrets_gpg.go` (GPG .secrets commands, key management, diagnostics), `ov/credential_kdbx.go` (KdbxStore backend).
+`ov/secrets_cmd.go` (CLI commands), `ov/secrets_gpg.go` (GPG .secrets commands, key management, diagnostics), `ov/credential_store.go` + `ov/credential_keyring.go` + `ov/credential_config.go` (credential backends), `ov/migrate_secrets_kdbx.go` (`ov migrate drop-kdbx`).
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves `ov secrets` commands, KeePass .kdbx credential management, GPG-encrypted `.secrets` file management, GPG key management, Secret Service integration, credential import/export, or secret database administration. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves `ov secrets` commands, Secret Service / config-file credential management, GPG-encrypted `.secrets` file management, GPG key management, Secret Service integration, or credential import/export. Invoke this skill BEFORE reading source code or launching Explore agents.
