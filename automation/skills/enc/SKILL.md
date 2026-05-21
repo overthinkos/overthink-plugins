@@ -409,7 +409,7 @@ kicks in.
 encrypted volume "library": cipher dir at /home/.../ov-immich-library/cipher is populated but plain mount at /home/.../ov-immich-library/plain is empty — refusing to start (would write plaintext over encrypted data); run 'ov config mount immich' first
 ```
 
-This is the immich-2026-04-incident shape. A pre-cutover quadlet (one missing the `ExecStartPre=ov config mount <image>` auto-mount hook — see "Boot Behavior: Backend-Gated" above and `/ov-build:migrate` "ov migrate quadlets") would silently bind an empty `plain/` over a populated cipher tree, the container's services would `initdb` / first-run-wizard against the empty dir, and 2 weeks of plaintext data would accumulate on top of an encrypted vault. The new error class fails the start IMMEDIATELY when `ov start` detects that exact pre-start state.
+This is the immich-2026-04-incident shape. A pre-cutover quadlet (one missing the `ExecStartPre=ov config mount <image>` auto-mount hook — see "Boot Behavior: Backend-Gated" above and `/ov-build:migrate` "ov migrate") would silently bind an empty `plain/` over a populated cipher tree, the container's services would `initdb` / first-run-wizard against the empty dir, and 2 weeks of plaintext data would accumulate on top of an encrypted vault. The new error class fails the start IMMEDIATELY when `ov start` detects that exact pre-start state.
 
 **Important caveat on quadlet-managed services.** This check runs only in the direct-mode (CLI) path. systemd-managed quadlet services bypass it — they go straight to `podman` after `ExecStartPre=ov config mount <image>` succeeds. The actual root-cause fix for those is the `ExecStartPre` hook itself; verifyBindMounts is a belt-and-suspenders safety net for the direct path.
 

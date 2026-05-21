@@ -1,356 +1,92 @@
 ---
 name: migrate
 description: |
-  MUST be invoked before any work involving: `ov migrate unified` command (converting legacy image.yml/layer.yml/build.yml into unified overthink.yml, rewriting flat-form layer.yml, migrating legacy service:|...| raw-INI and system_services: entries), or `ov migrate vm-spec` (harvesting legacy image.bootc/image.vm/image.libvirt fields into kind:vm entities in vms.yml).
+  MUST be invoked before any work involving: the `ov migrate` command (the single idempotent migration that brings any overthink config up to the latest schema CalVer), the CalVer schema-version stamp (`version: YYYY.DDD.HHMM`), the ordered migration chain / registry (ov/migrate_registry.go), the `LatestSchemaVersion()` load-time gate, adding a new schema cutover as a migration step, or the calver-schema int→CalVer transition.
 ---
 
-# ov migrate -- Schema migration commands
+# ov migrate — single-command schema migration
 
-One-shot, idempotent migrators for every hard-cutover schema change the project has shipped. All `ov migrate <name>` commands follow the same contract (see `/ov-internals:cutover-policy`): running them twice is a no-op, running them once fully transforms the legacy surface into the new one. Legacy forms raise hard load-time errors at runtime — `LoadUnified` / `LoadConfig` errors point at the relevant `ov migrate` sub-verb.
+`ov migrate` is **one idempotent command** that brings any overthink config — however old — up to the **latest schema CalVer**, and only to the latest. There are no sub-verbs to choose between: `ov migrate` always runs the whole ordered migration chain to HEAD.
 
-## Sub-verbs
+```bash
+ov migrate            # migrate every reachable config to the latest schema CalVer
+ov migrate --dry-run  # print every change the chain would make; touch nothing
+```
 
-| Sub-verb | Purpose | Skills covering the produced schema |
+The project directory is the current working directory; use the top-level `-C` / `--dir` / `OV_PROJECT_DIR` global to point elsewhere (`main()` chdir's before dispatch).
+
+## CalVer schema versioning
+
+The YAML schema version is a **CalVer string** — `version: YYYY.DDD.HHMM`, the same `ComputeCalVer` scheme as image tags (e.g. `version: 2026.141.1530`). It replaced the pre-2026-05 integer `version: 4`. Every versioned file carries the stamp:
+
+- `overthink.yml` + the per-kind siblings `image.yml` / `deploy.yml` / `vm.yml` / `pod.yml` / `k8s.yml` / `local.yml` (and `eval.yml` when present)
+- the per-host `~/.config/ov/deploy.yml`
+
+`ov/version.go` provides `ParseCalVer(string) (CalVer, bool)` and `CalVer.Less` (generation-only `ComputeCalVer` is unchanged). `LatestSchemaVersion()` (in `ov/migrate_registry.go`) is the curated **HEAD** value — the constant every file is stamped to and the value the load-time gate requires.
+
+## The migration chain (registry)
+
+Every hard-cutover schema change the project has ever shipped is **one `MigrationStep`** in the ordered registry `migrationSteps()` (`ov/migrate_registry.go`), stamped with the CalVer of the date it landed and listed **chronologically** — the order the cutovers were authored in, which is the only correct replay order for an arbitrarily-old config. `ov migrate` runs the whole chain; each step's own idempotency guard makes running it whole safe (already-current files are no-ops).
+
+| CalVer | Step | What it does |
 |---|---|---|
-| `ov migrate unified` | Legacy `image.yml` + `build.yml` + flat-form `layer.yml` → `overthink.yml` with kind-keyed wrappers + `include:` | `/ov-image:layer`, `/ov-image:image` |
-| `ov migrate vm-spec` | Legacy `image.bootc: true` + `image.vm: {...}` + `image.libvirt: [...]` + layer-level `libvirt:` → `vms.yml` `kind: vm` entities | `/ov-vm:vms-catalog`, `/ov-internals:vm-spec` |
-| `ov migrate merge-vms` | Separate `vms.yml` → `deploy.yml` top-level `vm:` key; rename `vms:` → `vm:`, `arch-cloud-base` → `arch`; bump schema v1 → v2 | `/ov-vm:vms-catalog` |
-| `ov migrate deploy-schema-v-3` | Schema v2 → v3: rename `vm:<name>` deploy keys → `<name>-vm`, normalize `target: container` → `pod`, `target: kubernetes` → `k8s`, rename `vm_source:` → `vm:`, bump `version: 2` → `3`. Idempotent (second run = no-op). | `/ov-core:deploy`, `/ov-vm:vm`, `/ov-internals:disposable` |
-| `ov migrate shell-schema` | Convert legacy `cmd:` shell-rc heredoc tasks (matching the `# overthink:begin direnv-hook` / `# overthink:begin ssh-auth-sock` fence patterns) into the structured `shell:` schema. Idempotent. Distinguishes install-style heredocs (`cat >`) from cleanup-style strips (`sed -i`) — only rewrites the former. 2026-05 cutover. | `/ov-image:layer`, `/ov-coder:direnv` |
-| `ov migrate ov-cachyos` | Rename the operator-specific CachyOS deployment to its 2026-05 canonical form `ov-cachyos`. Collapses the qc → cachyos-dx → ov-cachyos chain into a single hop — handles BOTH legacy keys (`qc`, `cachyos-dx`) AND moves the matching kind:local template name. Walks `overthink.yml` and `~/.config/ov/deploy.yml`. Idempotent; line-oriented edits preserve comments. Residual `deploy.qc`, `deploy.cachyos-dx`, `local.cachyos-dx` raise hard load-time errors all pointing at this command. Demonstrates the cross-kind name reuse policy (CLAUDE.md): the kind:local template and the kind:deploy entry that applies it share one name. | `/ov-local:local-spec`, `/ov-core:deploy` |
-| `ov migrate kind-files` | Per-kind file split + `kind: deployment` → `kind: deploy` rename in one combined idempotent hop. (a) Extracts inline `image:` and `vm:` maps from `overthink.yml` into sibling `image.yml` / `vm.yml`. (b) Creates empty `pod.yml` / `k8s.yml` stubs if absent. (c) Appends each new file to `overthink.yml`'s `include:` list (preserving any existing entries). (d) Renames the root-key `deployment:` → `deploy:` in `deploy.yml`. (e) Walks every reachable YAML doc and renames `kind: deployment` → `kind: deploy` in place. Re-runs are no-ops. Implementation: `ov/migrate_kind_files.go`. Pairs with hard load-time errors in `unified.go` for residual `kind: deployment` docs and root `deployment:` keys, both pointing at this command. | `/ov-image:image`, `/ov-local:local-spec`, `/ov-core:deploy`, `/ov-build:validate` |
-| `ov migrate local-deploy` | Migrate the per-host file `~/.config/ov/deploy.yml` from the pre-2026-04 legacy schema (top-level `image:` map + per-entry `bind_mounts:` field with `path:`/`encrypted:` + `workspace:` scalar) to schema v4 (`deploy:` map + per-entry `volume:` with `type: encrypted` / `type: bind`). The `workspace:` scalar is promoted to a `volume:` entry of `type: bind` with `host: <legacy-value>` + `path: /workspace`. `target: pod` is added to every entry (legacy schema only supported container deploys). Idempotent: re-running on a v4 file is a no-op. Writes a `<file>.bak.<unix-ts>` rollback before rewriting. Implementation: `ov/migrate_local_deploy.go`. Pairs with a hard load-time error in `LoadDeployConfig` (`ov/deploy.go:hasLegacyImagesKey`) that fires on any residual `image:` root key, pointing at this command. | `/ov-core:deploy` |
-| `ov migrate quadlets` | Walk `~/.config/containers/systemd/ov-*.container` and regenerate any quadlet whose deploy declares `type: encrypted` volumes but whose on-disk unit lacks the `ExecStartPre=ov config mount <image>` auto-mount hook (added 2026-04-16). Pre-cutover quadlets silently boot containers against empty `plain/` FUSE mountpoints whenever gocryptfs is unmounted — the actual root cause of the 2026-04-18 immich incident. Detection is INI-tolerant (matches `/usr/bin/ov` / bare `ov` / `~/.local/bin/ov`); regeneration shells out to `ov config <image>`. Idempotent. Implementation: `ov/migrate_quadlets.go`. Pairs with the `verifyBindMounts` cipher-populated-plain-empty discrimination in `/ov-automation:enc`. | `/ov-core:deploy`, `/ov-automation:enc`, `/ov-core:start` |
-| `ov migrate drop-kdbx` | 2026-05-21 cutover: drop the direct KeePass `.kdbx` credential backend. Strips `secret_backend: kdbx` and the legacy `secrets_kdbx_path` / `secrets_kdbx_key_file` / `kdbx_cache` / `kdbx_cache_timeout` keys from `~/.config/ov/config.yml` (read/written via the `yaml.Node` API, so order + comments survive). Idempotent; writes a `<file>.bak.<unix-ts>` rollback before rewriting. Existing `.kdbx` secrets stay available via KeePassXC's FdoSecrets (Secret Service) — the keyring backend is unaffected. Implementation: `ov/migrate_secrets_kdbx.go`. Pairs with a hard load-time error in `LoadRuntimeConfig` (`validateNoKdbxResiduals`) that fires on any residual key, pointing at this command. | `/ov-build:secrets`, `/ov-build:settings` |
+| 2026.112.522 | unified | legacy `image.yml`+`build.yml`+flat `layer.yml` → `overthink.yml` (kind-keyed wrappers + `include:`); raw-INI `service:` / `system_services:` → structured `service:` list |
+| 2026.114.1558 | schema-v4 | v3 → v4: flatten `deployments.images.*` → `deployment.*`, plural→singular root keys, `children:`→`nested:`, `target: container`→`pod` etc. |
+| 2026.114.2207 | description | scaffold a Gherkin `description:` block from legacy `info:`/`status:` |
+| 2026.123.114 | target-local | `kind: host`→`kind: local`, `host.yml`→`local.yml`, `target: host`→`target: local` |
+| 2026.123.1351 | calamares | layer.yml: `depends:`→`requires:`, collapse `rpm:`/`deb:`/`pac:`/`aur:` + per-distro tag sections into `packages:` + `distros:` map |
+| 2026.124.1942 | shell-schema | legacy shell-rc heredoc `cmd:` tasks → structured `shell:` schema |
+| 2026.125.702 | ov-cachyos | collapse `qc` → `cachyos-dx` → `ov-cachyos` deployment + kind:local template names |
+| 2026.125.1107 | local-images | kind:local `images:` field → dated comment fence (deploy-fetch narrowing) |
+| 2026.125.2355 | kind-files | split inline `image:`/`vm:` into sibling files, stub `pod.yml`/`k8s.yml`, `kind: deployment`→`kind: deploy`, root `deployment:`→`deploy:` |
+| 2026.128.255 | local-deploy | `~/.config/ov/deploy.yml`: `images:`→`deploy:`, `bind_mounts:`→`volumes:`, `workspace:` scalar → bind volume |
+| 2026.128.306 | quadlets | regenerate encrypted-volume quadlets missing the `ExecStartPre=ov config mount` auto-mount hook |
+| 2026.130.1530 | field-singular | singularize every plural overthink-NATIVE authoring key project-wide (`layers:`→`layer:`, `ports:`→`port:`, `platforms:`→`platform:`, `env_provides:`→`env_provide:`, …; `builds:`→`produce:`). EXTERNAL-schema keys are kept PLURAL — fields rendered to cloud-init / Kubernetes / libvirt config use those schemas' own plural keys (`users:`, `labels:`, `resources:`, `<devices>`, `<topology sockets= cores=>`), so authoring them in the same plural spelling keeps a 1:1 mapping. The kept-plural set = keys living in `cloud_init_types.go` / `k8s_spec.go` / `k8s_config.go` / `libvirt_yaml.go`. Verb-collision carve-outs: `groups`/`addrs` |
+| 2026.131.857 | marimo-rename | `marimo-ml` image + `marimo-ml-pod` deploy → `versa` (cross-kind name reuse) |
+| 2026.132.1009 | require-image | inject the required `image:` field on every `target: pod` deploy entry |
+| 2026.132.2311 | tailscale-secrets | rename flat `TS_AUTHKEY` → per-tailnet `TS_AUTHKEY_<TAILNET>` (non-interactive: auto-detect from a running sidecar or warn) |
+| 2026.141.1326 | drop-kdbx | strip residual `secret_backend: kdbx` + `secrets_kdbx_*` keys from `~/.config/ov/config.yml` |
+| **2026.141.1530** | **calver-schema** (HEAD) | **the universal stamper**: rewrite the top-level `version:` line of every versioned file to the HEAD CalVer (line-oriented, comment-preserving). This is the integer→CalVer transition (`version: 4` → the HEAD CalVer). **Always stays last** so `LatestSchemaVersion()` tracks it. |
 
-# ov migrate local-deploy
+Step `Name`s are for `--dry-run` / progress output only — they are no longer CLI sub-verbs. Steps that mutate per-host state (`~/.config/ov`, quadlets, `.secrets`) are flagged `TouchesHost`; see "Remote-cache auto-migration" below.
 
-Invoked as `ov migrate local-deploy`. Converts the per-host deploy file `~/.config/ov/deploy.yml` from the pre-2026-04 legacy schema to schema v4.
+## How it runs
 
-## Why this exists
+`RunMigrations(ctx)` walks `migrationSteps()` in order, calling each `Apply(ctx)`. Each step reports whether it changed anything; nothing-changed across the whole chain prints `nothing to migrate (already at schema <HEAD>)`. Per-step backups follow the established `<file>.bak.<unix-ts>` convention (field-singular, local-deploy, require-image, drop-kdbx, and the calver-schema stamp write them). `MigrateContext` (built by `NewMigrateContext`) carries the project dir, the per-host paths, the quadlet dir, the `.secrets` path, and `DryRun`.
 
-The 2026-04 unified-config cutover renamed the top-level `image:` map to `deploy:` and replaced the per-entry `bind_mounts:` field with a structured `volume:` list that distinguishes `type: encrypted` / `type: bind` / `type: volume`. **`yaml.Unmarshal` silently drops unknown root keys**, so a pre-cutover file with `image:` parses to an empty `DeployConfig.Deploy` map — and downstream commands behave as if nothing was deployed. The most dangerous symptom: encrypted-volume entries declared under the legacy `bind_mounts: [{encrypted: true}]` shape are invisible to `loadEncryptedVolumes`, so the encryption guarantee silently disappears (the immich-recovery session that motivated this fix found a 2-week-5-day window of plaintext data accumulation against an unmounted gocryptfs vault). This migration closes that gap.
+### Remote-cache auto-migration (project-only)
 
-## What it converts
+`ov/refs.go` auto-runs `RunProjectMigrations(ctx)` on a freshly-cloned remote-repo cache so external repos pull through at the latest schema. `RunProjectMigrations` skips every `TouchesHost` step and leaves `HostDeployPath` empty, so a remote fetch **never mutates the user's per-host state** — even the calver-schema stamp touches only the cache's project files.
 
-| Legacy field | → | Modern field |
-|---|---|---|
-| `image:` (root) | → | `deploy:` (root) |
-| (none) | → | `version: 4` (added if absent) |
-| (none) | → | `target: pod` (per entry) |
-| `images.<name>.bind_mounts: [{name, path, encrypted: true}]` | → | `deploy.<name>.volumes: [{name, type: encrypted}]` (path dropped — encrypted volumes derive their host path from `encrypted_storage_path/ov-<image>-<name>`) |
-| `images.<name>.bind_mounts: [{name, path}]` (plain) | → | `deploy.<name>.volumes: [{name, type: bind, path}]` |
-| `images.<name>.workspace: <host-path>` (scalar) | → | `deploy.<name>.volumes: [{name: workspace, type: bind, host: <host-path>, path: /workspace}]` |
-| `images.<name>.tunnel`, `dns`, `ports`, `env_file`, `security`, `network` | → | passed through verbatim under `deploy.<name>.*` |
+## Load-time gate
+
+`LoadUnified` (`ov/unified.go`) parses the merged `version:` and rejects anything older than HEAD:
+
+```
+overthink.yml: schema 2026.141.1530 is required (found "4"). Run: ov migrate
+```
+
+A non-CalVer value (the legacy integer `4`, empty, or garbage) parses as "older than every real CalVer", so a pre-CalVer config flows into the chain with no special case. Residual-key checks (e.g. `kind: deployment`, `target: host`, `secret_backend: kdbx`) remain as defense-in-depth, but **every** remediation hint now points uniformly at bare `ov migrate`.
+
+## Adding a future cutover
+
+1. Write the transform as an idempotent `Migrate*` function (its own file, like the existing migrators).
+2. Append ONE `MigrationStep` to `migrationSteps()` with a CalVer **strictly greater** than the current HEAD. Keep the `calver-schema` stamp **last**.
+3. Bump `latestSchemaVersion` to the new step's CalVer (the two are asserted equal by `TestRegistryHeadMatchesLatest`).
+4. Update the HEAD-CalVer fixtures (the LoadUnified test fixtures + `testdata/*.yml` carry the stamp) and the repo's own versioned YAML.
+
+The operator command never changes — it stays `ov migrate`.
 
 ## Idempotency
 
-Running on a v4 file (top-level `deploy:` and no legacy `image:`) is a no-op — exit 0, message `nothing to migrate (already on schema v4)`, no backup written. Detection uses `hasLegacyImagesKey(data)` on the raw YAML body (a yaml.v3 `Node` walk on root-level mapping keys), so it correctly ignores nested `image:` keys that legitimately appear inside test fixtures or comment text under modern-schema entries.
-
-## Backup
-
-Before rewriting, `<file>.bak.<unix-timestamp>` is written with the original content (mode 0600). Match the plaintext-secret migration pattern in `ov/config_secret_migration.go`. There is no automatic cleanup of old backups — the operator deletes them when satisfied with the migration.
-
-## Flags
-
-- `--dry-run` — print the proposed transformation summary, leave the filesystem untouched, no backup written.
-- `--path <file>` — override the default `~/.config/ov/deploy.yml` (used by tests and for migrating saved snapshots from a different machine).
-
-## Typical flow
-
-```bash
-ov migrate local-deploy --dry-run                          # preview
-ov migrate local-deploy                                    # apply
-ov deploy show <name>                                      # confirm load works
-ls ~/.config/ov/deploy.yml.bak.*                           # rollback file present
-```
-
-## Hard load-time error
-
-When a legacy file is present and the user runs ANY ov command that reads `~/.config/ov/deploy.yml` (`ov status`, `ov deploy show`, `ov config status`, `ov start`, …), `LoadDeployConfig` returns:
-
-```
-deploy.yml at <path>: legacy top-level `image:` field detected — run `ov migrate local-deploy` to convert; the field was renamed to `deploy:` in the 2026-04 unified-config cutover (encryption guarantees disappear silently otherwise)
-```
-
-`ov status` surfaces this as a non-fatal warning (graceful degradation falls back to image-label-driven display); the strictly-deploy.yml-driven verbs (`ov deploy show`, `ov config status`) hard-fail.
-
-# ov migrate quadlets
-
-Invoked as `ov migrate quadlets`. Walks the per-host quadlet directory (`~/.config/containers/systemd/ov-*.container`) and regenerates any unit whose deploy declares `type: encrypted` volumes but whose on-disk quadlet lacks the `ExecStartPre=ov config mount <image>` auto-mount hook.
-
-## Why this exists
-
-The auto-mount hook was added 2026-04-16. Pre-cutover quadlets that include encrypted-volume bindings (`Volume=<cipher-dir>/plain:<container-path>`) silently boot containers against empty `plain/` FUSE mountpoints whenever gocryptfs has been unmounted (host reboot, manual `fusermount3 -u`, scope-unit crash). The container's services then write plaintext data into `plain/` on top of the populated cipher tree — the encryption guarantee silently disappears. This is the actual root cause of the 2026-04-18 immich incident (2 weeks 5 days of plaintext data accumulated on top of the original encrypted vault before anyone noticed).
-
-The fix has TWO components:
-
-1. **`ov migrate quadlets`** (this command) regenerates the on-disk quadlet so future restarts go through the auto-mount hook.
-2. **`verifyBindMounts` cipher-populated-plain-empty discrimination** (`ov/enc.go`, see `/ov-automation:enc` "Pre-start safety check") catches the dangerous state in the direct-mode CLI path before the container is started.
-
-## Detection
-
-For each entry in `~/.config/ov/deploy.yml` `deploy:` map:
-
-- Skip if `target` is anything other than empty / `pod` / `container` (only container-class deploys have quadlets).
-- Skip if no volume entry has `type: encrypted` (the hook is encryption-specific).
-- Skip if the on-disk quadlet at `~/.config/containers/systemd/ov-<name>.container` does not exist (the user hasn't run `ov config <name>` yet for this deploy — nothing to migrate, stay quiet).
-- For each remaining entry: scan the quadlet body for an `ExecStartPre=…ov config mount <name>` line. Tolerant to ov-binary path variations (`/usr/bin/ov`, `~/.local/bin/ov`, bare `ov`) and trailing flags. If the hook is missing, the entry is stale.
-
-## Regeneration
-
-Stale quadlets are regenerated by re-invoking the running ov binary as `ov config <name>` (self-exec via `os.Args[0]`, the same pattern documented in `/ov-internals:go` "Self-exec coordination"). This re-runs the entire `ov config` codepath — quadlet write + secret provisioning + encrypted-volume init + data seeding + daemon-reload — so every concomitant state stays in sync. Secrets are resolved from the active credential store (Secret Service or config-file fallback) with no interactive master-password prompt.
-
-## Flags
-
-- `--dry-run` — list stale quadlets and their regeneration commands without modifying anything.
-
-## Idempotency
-
-A quadlet that already carries the hook is silently skipped. Running `ov migrate quadlets` twice produces the same output as running it once on a fully-migrated tree:
-
-```
-ov migrate quadlets: nothing to migrate (all encrypted-volume quadlets carry ExecStartPre=ov config mount …)
-```
-
-## Tests
-
-`ov/migrate_quadlets_test.go`:
-
-- `TestQuadletHasMountHook` — 8 sub-cases covering hook presence/absence/prefix-collision/path-variation.
-- `TestDetectStaleEncryptedQuadlets` — full scratch-deploy.yml + scratch-quadlet-dir end-to-end: encrypted-needing-migration / encrypted-already-migrated / non-encrypted-irrelevant. Asserts only the stale entry is returned.
-- `TestDetectStaleEncryptedQuadlets_NoQuadletOnDisk` — encrypted deploy with no quadlet file → empty result, no spurious "missing" warnings.
-- `TestCipherPopulatedPlainEmpty` (in the same file) — discrimination helper used by `verifyBindMounts`; 5 sub-cases.
-
-# ov migrate kind-files
-
-Invoked as `ov migrate kind-files`. Combined idempotent migration that performs the 2026-05-XX per-kind file split AND the `kind: deployment` → `kind: deploy` schema-key rename in a single atomic hop.
-
-## What it does
-
-1. **Extract inline kind maps from `overthink.yml`.** If `overthink.yml` carries an inline `image:` map, write the entries to a sibling `image.yml`; ditto for an inline `vm:` map → `vm.yml`. Existing per-kind files are left untouched.
-2. **Create stubs for missing per-kind files.** Empty `pod.yml` and `k8s.yml` files are created if absent (the recommended layout has all six per-kind files as siblings of `overthink.yml` regardless of whether they have content yet).
-3. **Re-wire `include:`.** Each newly created file is appended to `overthink.yml`'s `include:` list, preserving any existing entries and any existing comments.
-4. **Rename root key `deployment:` → `deploy:` in `deploy.yml`.** Line-oriented edit, comments preserved.
-5. **Rename `kind: deployment` → `kind: deploy` in every reachable YAML doc.** Walks `overthink.yml` plus every file in its `include:` and rewrites the kind discriminator.
-
-Re-runs are no-ops: every step is idempotent (extractions are gated on inline-map presence, stub creation is gated on file absence, `include:` entries are dedup'd, root-key and kind renames are gated on the legacy form being present).
-
-## Implementation
-
-Code lives in `ov/migrate_kind_files.go`. Pairs with hard load-time errors in `ov/unified.go` (and the validator) that fire on any residual `kind: deployment` doc OR any root-key `deployment:` map — each error points the operator at `ov migrate kind-files`.
-
-## Why combined
-
-The file-split and the kind rename land together because the filename and the kind name now match by convention (`kind: deploy` lives in `deploy.yml`, `kind: image` in `image.yml`, etc.) — splitting into per-kind files without renaming the discriminator would leave `kind: deployment` docs in `deploy.yml`, contradicting the convention immediately. R3 (no duplication) demands one migration command for the one cutover.
-
-# ov migrate unified
-
-Invoked as `ov migrate unified`. One-shot converter from legacy scattered config (`image.yml` + `build.yml` + per-layer flat `layer.yml`) into the canonical unified `overthink.yml` format.
-
-The new format is what every other `ov` command reads (`LoadUnified` in `ov/unified.go`). See `/ov-image:layer` (authoring reference) and `/ov-image:image` (umbrella) for the format documentation itself.
-
-## Quick Reference
-
-| Action | Command | Description |
-|--------|---------|-------------|
-| Convert project | `ov migrate unified` | Emit `overthink.yml` (via `include:`) next to existing legacy files. Non-destructive by default. |
-| Convert + rewrite layers | `ov migrate unified --rewrite-layers` | Also rewrite every `layers/<name>/layer.yml` into kind-keyed form (`layer: {...}`). |
-| Monolithic output | `ov migrate unified --monolithic` | Emit a single flat `overthink.yml` instead of using `include:` to reference existing files. |
-| Preview | `ov migrate unified --dry-run` | Print what would be written; touch nothing. Combines with `--rewrite-layers` and `--monolithic`. |
-
-## What it converts
-
-### 1. Project structure
-
-`image.yml` + `build.yml` at the repo root → `overthink.yml` with `include:` referencing them (or a monolithic flattened body with `--monolithic`). Each entry becomes kind-keyed: `build:`, `image:`, `layer:` — matching the types that `LoadUnified` expects.
-
-### 2. Flat-form `layer.yml` → kind-keyed `layer:` wrapper
-
-Legacy flat form:
-
-```yaml
-name: redis
-depends: [base]
-packages: [redis]
-```
-
-New form (required — the flat form is rejected by `parseLayerYAML` after migration with a hard error pointing to `--rewrite-layers`):
-
-```yaml
-layer:
-  name: redis
-  requires: [base]
-  packages: [redis]
-```
-
-Run with `--rewrite-layers` to convert every `layers/*/layer.yml` in the project in one pass.
-
-### 3. Raw-INI `service:` → structured list
-
-Legacy supervisord-style scalar:
-
-```yaml
-service: |
-  [program:redis]
-  command=/usr/bin/redis-server
-  autostart=true
-  startretries=3
-```
-
-Becomes the structured form with all fidelity preserved (including the 8 supervisord directives added to `ServiceEntry` in 2026-04 — `kind`, `events`, `auto_start`, `start_retries`, `start_secs`, `stop_signal`, `exit_codes`, `priority`):
-
-```yaml
-service:
-  - name: redis
-    exec: "/usr/bin/redis-server"
-    auto_start: true
-    start_retries: 3
-    restart: always
-```
-
-`[eventlistener:...]` blocks are recognized and emitted with `kind: eventlistener` + `events:` + the original `command:` mapped to `exec:`. The rewrite is driven by `rewriteServiceKeys` in `ov/migrate_unified.go:397`.
-
-### 4. `services:` (plural) → `service:` (singular)
-
-A pure field rename. The unified schema uses the singular `service:` key. External layer repos authored against the plural form are transparently fixed.
-
-### 5. `system_services: [foo, bar]` → structured entries
-
-```yaml
-# Before
-system_services:
-  - sshd
-  - cockpit
-```
-
-```yaml
-# After
-service:
-  - name: sshd
-    use_packaged: sshd.service
-  - name: cockpit
-    use_packaged: cockpit.service
-```
-
-`use_packaged:` tells the generator to reuse the distro-shipped systemd unit rather than render a new one (see `/ov-image:layer` "Service Declaration" and `/ov-internals:capabilities` for how this flows through the init-system schema in `build.yml`).
-
-## Idempotency
-
-Running `ov migrate unified --rewrite-layers` twice produces byte-identical output (enforced by `TestMigrateUnified_IncludesSplit` and `TestMigrateUnified_Monolithic` in `ov/migrate_unified_test.go`). CI can safely re-run the migrator as a guardrail without churn.
-
-## Auto-invocation on remote-cache downloads
-
-`ov/refs.go:164` invokes `MigrateUnified(... RewriteLayers: true)` automatically whenever a remote `@host/org/repo:version` include lands in the repo cache (`~/.cache/ov/repos/`). This means external projects that still ship the legacy layout pull-through cleanly — no manual step required before the local build can consume the remote layers. See `/ov-build:pull` for the remote-ref lifecycle.
-
-Downside: the cache directory silently gets rewritten on first fetch. If you want to inspect a remote project's on-disk layout untouched, clone it directly instead of relying on the cache.
-
-## Typical flow
-
-```bash
-# Inspect what will change
-ov migrate unified --rewrite-layers --dry-run
-
-# Apply the rewrite
-ov migrate unified --rewrite-layers
-
-# Confirm the build still works
-ov image validate
-ov image build <image>
-```
-
-After a successful migration, the project's legacy `image.yml` / `build.yml` stay in place (referenced via `include:` in the new `overthink.yml`). To fully collapse into a single file, re-run with `--monolithic` and then remove the originals.
-
----
-
-# ov migrate vm-spec
-
-Invoked as `ov migrate vm-spec`. One-shot converter from the legacy per-image VM fields (`image.bootc: true` + `image.vm: {...}` + `image.libvirt: [...]` + layer-level `libvirt:` snippets) into the post-cutover `kind: vm` entity format in `vms.yml`. See `/ov-vm:vms-catalog` for the produced schema and `/ov-internals:vm-spec` for the Go types.
-
-## Quick Reference
-
-| Action | Command | Description |
-|--------|---------|-------------|
-| Convert project | `ov migrate vm-spec` | Harvest legacy VM fields into `vms.yml`. Idempotent; preserves pre-existing `vms:` keys. |
-| Preview | `ov migrate vm-spec --dry-run` | Print what would be written to `vms.yml`; touch nothing. |
-| Target file override | `ov migrate vm-spec --output vms-legacy.yml` | Write to a different file instead of `vms.yml`. |
-
-## What it converts
-
-### Per-image fields (kind:image → kind:vm)
-
-| Legacy location | → | New location (vms.yml) |
-|---|---|---|
-| `images.<name>.bootc: true` | → | `vms.<name>.source.kind: bootc` + `source.image: <name>` |
-| `images.<name>.vm.disk_size` | → | `vms.<name>.disk_size` |
-| `images.<name>.vm.ram`, `.cpus` | → | `vms.<name>.ram`, `.cpus` |
-| `images.<name>.vm.rootfs`, `.root_size`, `.kernel_args` | → | `vms.<name>.source.rootfs`, `.root_size`, `.kernel_args` |
-| `images.<name>.vm.ssh_port` | → | `vms.<name>.ssh.port` |
-| `images.<name>.vm.firmware` | → | `vms.<name>.firmware` |
-| `images.<name>.vm.network` (string) | → | `vms.<name>.network.mode` |
-| `images.<name>.vm.transport` | → | `vms.<name>.source.transport` |
-
-### Layer-level libvirt snippets
-
-Layer-level `libvirt: ["<xml>", ...]` on the **contributing layer** is preserved (still supported post-cutover — that's where `/ov-distros:qemu-guest-agent` contributes its virtio-serial channel, for example). Image-level `libvirt: [...]` on the `kind: image` entry is **deleted** — it had no home in the new VM model. The migrator does NOT move image-level libvirt into the VM entity automatically; it emits a warning listing each deleted snippet with a suggestion to re-home it on the produced `vms.<name>.libvirt.snippets:` if still needed.
-
-## Naming convention
-
-Bootc VMs pair 1:1 with their container image. The migrator names produced entries `<image-name>-bootc` or `<image-name>` depending on whether the image name already ends in `-bootc`:
-
-- `image: aurora` (`bootc: true`) → `vms: aurora-bootc`
-- `image: selkies-desktop-bootc` (`bootc: true`) → `vms: selkies-desktop-bootc-bootc` (doubled suffix distinguishes VM entity from container image)
-
-## Preservation semantics
-
-**Never clobbers pre-existing `vms:` keys.** If `vms.aurora-bootc:` already exists in `vms.yml`, the migrator skips emission for that key and prints a notice. Lets authors hand-customize entries (adding `libvirt.devices.*`, `cloud_init.packages`, etc.) without losing work on re-run.
-
-**Idempotent.** Running twice produces byte-identical `vms.yml` (enforced by test fixtures in `ov/migrate_vm_spec_test.go`).
-
-## Auto-invocation
-
-Like `ov migrate unified`, `vm-spec` is auto-invoked during remote-cache downloads when `ov/refs.go` detects legacy VM fields in a fetched `@github.com/org/repo:version` include. External repos on the old schema pull through cleanly without a manual migration step.
-
-## Typical flow
-
-```bash
-# Inspect what will change
-ov migrate vm-spec --dry-run
-
-# Apply the migration
-ov migrate vm-spec
-
-# Include the new file from overthink.yml
-# (edit overthink.yml to add `vms.yml` under `include:`)
-
-# Confirm VM builds still work
-ov vm build <name>
-ov vm create <name>
-```
-
-## Post-migration load errors
-
-Once the legacy fields are gone from the schema, old projects loading under the new `ov` binary get hard load errors pointing at this migration:
-
-```
-Error: image entry "foo" declares legacy field "bootc: true".
-Run: ov migrate vm-spec
-```
-
-Remediation hint points at the command directly — no docs reading required.
-
----
+Running `ov migrate` twice is a no-op (`TestMigrateCalverSchema_StampsAndIdempotent`, plus each migrator's own idempotency tests). The registry invariants (HEAD == `LatestSchemaVersion()`, strictly-ascending order, unique names) are enforced by `ov/migrate_registry_test.go`.
 
 ## See Also
 
-- `/ov-image:layer` — authoring reference for the `layer:` kind-keyed schema and the full `service:` / 22-field `ServiceEntry`
-- `/ov-image:image` — umbrella skill for `image:` entries and `ov image build/validate/inspect`
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems) that `overthink.yml` references
-- `/ov-build:pull` — remote `@...` refs and the auto-migration hook
-- `/ov-vm:vm` — `ov vm` command family; reads the `vms.yml` produced by `migrate vm-spec`
-- `/ov-vm:vms-catalog` — authoring reference for the `kind: vm` entities produced by `migrate vm-spec`
-- `/ov-internals:install-plan` — the IR that the loader feeds into the build/deploy pipelines
-- `/ov-internals:capabilities` — OCI label contract (`LabelServices`) that consumes the migrated service list
-- `/ov-internals:vm-spec` — Go types produced by `migrate vm-spec`
-- `/ov-internals:cutover-policy` — policy governing why hard-cutover + idempotent migrator is the required shape
-- `/ov-internals:go` — loader internals (`LoadUnified`, `parseLayerYAML`, `MigrateUnified`, `MigrateVmSpec`)
+- `/ov-image:layer` — the `layer:` kind-keyed schema the chain produces
+- `/ov-image:image` — `image:` entries + `ov image build/validate/inspect`
+- `/ov-core:deploy` — `deploy:` entries the chain migrates (require-image, ov-cachyos)
+- `/ov-local:local-spec` — `kind: local` templates (target-local, local-images)
+- `/ov-build:secrets`, `/ov-build:settings` — credential schema (drop-kdbx, tailscale-secrets)
+- `/ov-internals:go` — loader internals (`LoadUnified`, `ParseCalVer`, `RunMigrations`, `migrationSteps`)
+- `/ov-internals:cutover-policy` — why hard-cutover + a single idempotent `ov migrate` is the required shape

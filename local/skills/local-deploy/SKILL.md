@@ -15,7 +15,7 @@ description: |
 
 The same `InstallPlan` IR that drives `ov image build` (via OCITarget) and container deploys (via PodDeployTarget) is consumed by `LocalDeployTarget`, which translates each IR step into shell commands, `podman run <builder>` invocations for compile-needing work, and systemd unit writes.
 
-The deploy applies host packages + configs ONLY. Container images required for `ov eval run` / `ov eval live` are ensured by the eval preflight (see `/ov-eval:eval` "Image preflight"), not by the deploy. Deploys (any target) emit zero image-pull / image-build steps — that's the CLAUDE.md "Deploy fetches NOTHING speculative" Key Rule, codified at the type level since the 2026-05 deploy-fetch-narrowing cutover. Migration of legacy `image:` blocks: `ov migrate local-images` (idempotent).
+The deploy applies host packages + configs ONLY. Container images required for `ov eval run` / `ov eval live` are ensured by the eval preflight (see `/ov-eval:eval` "Image preflight"), not by the deploy. Deploys (any target) emit zero image-pull / image-build steps — that's the CLAUDE.md "Deploy fetches NOTHING speculative" Key Rule, codified at the type level since the 2026-05 deploy-fetch-narrowing cutover. Migration of legacy `image:` blocks: `ov migrate` (idempotent).
 
 Use cases:
 - Installing a focused tool set (ripgrep + uv + direnv) on your workstation without a container.

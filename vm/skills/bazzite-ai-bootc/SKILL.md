@@ -44,4 +44,4 @@ See `/ov-vm:vm` "Known bootc-VM caveats" for the privileged-container `-v /dev:/
 - `/ov-distros:bazzite-ai` — **composition authority**: layer stack, NVIDIA/CUDA wiring, OCI labels
 - `/ov-vm:vms-catalog` — VmSpec authoring reference, bootc branch authoring recipe
 - `/ov-vm:vm` — VM lifecycle commands + bootc-specific caveats
-- `/ov-build:migrate` — `ov migrate vm-spec` legacy conversion
+- `/ov-build:migrate` — `ov migrate` legacy conversion

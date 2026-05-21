@@ -24,7 +24,7 @@ description: |
 > `.kdbx` file ov reads directly. An existing `.kdbx` keeps serving the same
 > secrets with zero data copy once exposed through FdoSecrets. Residual
 > `secret_backend: kdbx` / `secrets_kdbx_*` config keys raise a hard load-time
-> error pointing at `ov migrate drop-kdbx`.
+> error pointing at `ov migrate`.
 
 ## Credential Store Hierarchy
 
@@ -507,7 +507,7 @@ For GPG agent forwarding into containers (so `gpg --decrypt` works inside), use 
 
 ## Source
 
-`ov/secrets_cmd.go` (CLI commands), `ov/secrets_gpg.go` (GPG .secrets commands, key management, diagnostics), `ov/credential_store.go` + `ov/credential_keyring.go` + `ov/credential_config.go` (credential backends), `ov/migrate_secrets_kdbx.go` (`ov migrate drop-kdbx`).
+`ov/secrets_cmd.go` (CLI commands), `ov/secrets_gpg.go` (GPG .secrets commands, key management, diagnostics), `ov/credential_store.go` + `ov/credential_keyring.go` + `ov/credential_config.go` (credential backends), `ov/migrate_secrets_kdbx.go` (`ov migrate`).
 
 ## When to Use This Skill
 

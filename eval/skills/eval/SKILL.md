@@ -219,7 +219,7 @@ This is the **only** image-fetch surface in the system: deploys (any
 target — `local`, `pod`, `vm`, `k8s`) emit zero image-pull steps.
 The retired `kind: local` `image:` field was deleted in the 2026-05
 deploy-fetch-narrowing cutover; image preflight moved to this verb.
-Operators with legacy YAML run `ov migrate local-images`. See
+Operators with legacy YAML run `ov migrate`. See
 `/ov-local:local-spec` "What the deploy does NOT do" and CLAUDE.md
 "Deploy fetches NOTHING speculative".
 
@@ -1117,7 +1117,7 @@ deliberately.
 - `/ov-build:build` — how eval entries are embedded into the OCI label at build
   time; LABELs-at-end cache behavior.
 - `/ov-build:inspect` — view the merged 3-section eval structure as JSON.
-- `/ov-build:migrate` — `ov migrate eval` (forward-only harness.yml→eval.yml
+- `/ov-build:migrate` — `ov migrate` (forward-only harness.yml→eval.yml
   migration) when upgrading from the pre-2026-04 schema.
 - `/ov-internals:go` — implementation map: `evalspec.go`, `evalvars.go`,
   `evalrun.go`, `evalrun_verbs.go`, `evalrun_ov_verbs.go`,

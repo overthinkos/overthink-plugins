@@ -45,7 +45,7 @@ Each of these has a specific failure mode that has occurred historically: the fi
 
 ## Required for every breaking change
 
-- A one-shot **`ov migrate <name>`** command that transforms legacy configs in-place. Migration commands are **idempotent** — running twice is a no-op. See `/ov-build:migrate`.
+- A new **`MigrationStep`** appended to the single `ov migrate` chain (`ov/migrate_registry.go`), stamped with the cutover's CalVer (strictly greater than the current HEAD; the `calver-schema` stamp stays last). Every cutover is one idempotent step on the one `ov migrate` command — there are no per-cutover sub-verbs. Running `ov migrate` twice is a no-op. See `/ov-build:migrate`.
 - **Hard load-time errors** for any residual legacy field, with a one-line remediation hint pointing at the migration command.
 - **Deletion — in the same PR** — of every Go type, function, CLI flag, OCI label, YAML field, skill doc paragraph, and test fixture that references the removed surface.
 - **Stale-reference sweep (R5).** Every reference, comment, docstring, error message, skill paragraph, migration help-text, test fixture, and hook string naming a deleted identifier MUST be updated or deleted in the same commit. After commit, `git grep '<deleted-id>'` returns ONLY historical mentions in changelog/history-note/migration-help-text context.
@@ -107,7 +107,7 @@ Good reference implementation. Deliverables in one PR:
 
 ### Migration
 
-- **`ov migrate vm-spec`** in `ov/migrate_vm_spec.go`. Idempotent. Harvests legacy fields into `vms:` entries, preserves pre-existing `vms:` keys, never clobbers user customizations.
+- **`ov migrate`** in `ov/migrate_vm_spec.go`. Idempotent. Harvests legacy fields into `vms:` entries, preserves pre-existing `vms:` keys, never clobbers user customizations.
 
 ### Load-time error
 
@@ -115,7 +115,7 @@ Old projects loading under new code get:
 
 ```
 Error: image entry "foo" declares legacy field "bootc: true".
-Run: ov migrate vm-spec
+Run: ov migrate
 ```
 
 Remediation hint points at the migration command directly.
@@ -140,14 +140,16 @@ b249ee4 (arch live-tested + migrate vm-spec authored)
 3087e0a feat(ov)!: hard cutover — delete VmConfig, ImageConfig.Vm/Libvirt, OCI labels
 ```
 
-The `!` in the last commit marker is the Conventional Commits breaking-change indicator. The commit body lists every deleted identifier, every deleted YAML field, every updated test. `ov migrate vm-spec` is runnable against old projects from the point of this commit forward, no additional steps.
+The `!` in the last commit marker is the Conventional Commits breaking-change indicator. The commit body lists every deleted identifier, every deleted YAML field, every updated test. `ov migrate` is runnable against old projects from the point of this commit forward, no additional steps.
 
 ## Historical cutovers that followed this policy
 
-- Unified YAML cutover (legacy `image.yml`/`build.yml`/flat-form `layer.yml` → `overthink.yml` with kind-keyed wrappers + `include:` + `discover:`) — `ov migrate unified`.
-- Unified `service:` schema cutover (legacy `service: |...|` raw INI and `system_services:` → structured `service:` list with 22 fields incl. `kind: eventlistener`) — folded into `ov migrate unified`.
+- Unified YAML cutover (legacy `image.yml`/`build.yml`/flat-form `layer.yml` → `overthink.yml` with kind-keyed wrappers + `include:` + `discover:`) — `ov migrate`.
+- Unified `service:` schema cutover (legacy `service: |...|` raw INI and `system_services:` → structured `service:` list with 22 fields incl. `kind: eventlistener`) — folded into `ov migrate`.
 - User policy cutover (rename-based user renaming → `base_user:` + `user_policy:` declarative matrix) — no separate migration; hard cutover delete + skill updates.
-- **Per-kind file split + `kind: deployment` → `kind: deploy` rename (2026-05-XX)**: a "filename-discriminator-symmetry" hard cutover that bundled three transforms into one atomic commit: (1) split `overthink.yml`'s inline `image:` / `vm:` maps into sibling `image.yml` / `vm.yml` files (plus stubs for `pod.yml` / `k8s.yml`); (2) renamed schema kind `deployment` → `deploy` so the filename and the kind discriminator match (`kind: deploy` lives in `deploy.yml`); (3) added a new dispatcher verb `ov eval kind <kind>` for fast per-kind R10 sweeps. Migration: `ov migrate kind-files` (idempotent; one command covers all three transforms). Residual `kind: deployment` docs + root-key `deployment:` raise hard load-time errors pointing at the migration command.
+- **Per-kind file split + `kind: deployment` → `kind: deploy` rename (2026-05-XX)**: a "filename-discriminator-symmetry" hard cutover that bundled three transforms into one atomic commit: (1) split `overthink.yml`'s inline `image:` / `vm:` maps into sibling `image.yml` / `vm.yml` files (plus stubs for `pod.yml` / `k8s.yml`); (2) renamed schema kind `deployment` → `deploy` so the filename and the kind discriminator match (`kind: deploy` lives in `deploy.yml`); (3) added a new dispatcher verb `ov eval kind <kind>` for fast per-kind R10 sweeps. Migration: `ov migrate` (idempotent; one command covers all three transforms). Residual `kind: deployment` docs + root-key `deployment:` raise hard load-time errors pointing at the migration command.
+
+- **CalVer schema versioning + single `ov migrate` (2026-05-21)**: the schema version moved from the integer `version: 4` to a CalVer string (`version: 2026.141.1530`, same scheme as image tags), and the ~16 hand-invoked `ov migrate <name>` sub-verbs collapsed into ONE idempotent `ov migrate` that runs an ordered, CalVer-keyed chain (`migrationSteps()` in `ov/migrate_registry.go`) to HEAD (`LatestSchemaVersion()`). Every prior cutover became one `MigrationStep`; future cutovers append one step. The load gate compares the file's CalVer against HEAD and every residual-key error points uniformly at bare `ov migrate`. Migration: `ov migrate` (the final `calver-schema` step does the integer→CalVer transition).
 
 Each followed the same three-step shape: **delete old surface + publish migration + hard load error**. See `/ov-build:migrate` for the command surface.
 
@@ -161,7 +163,7 @@ The policy kicks in when the change is **visible to consumers** (YAML authors, o
 
 ## Cross-References
 
-- `/ov-build:migrate` — command-surface reference; lists all `ov migrate <name>` sub-verbs
+- `/ov-build:migrate` — the single `ov migrate` command, its CalVer schema versioning, and the ordered migration chain (registry)
 - `/ov-internals:vm-spec` — example output of a cutover (new types replacing deleted ones)
 - `/ov-internals:capabilities` — example of coordinated label-map cleanup during a cutover
 - `/ov-internals:install-plan` — shared IR that survived the cutover unchanged (non-example — additive extension of the DeployTarget surface)

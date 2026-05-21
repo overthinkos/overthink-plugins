@@ -215,7 +215,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `security` | `null` | Container security options. Overrides layer-level security |
 | `network` | `string` | Container network mode (default: shared `ov` network; set `host` for host networking) |
 
-VM-related fields (`vm`, `libvirt`) were **removed** from kind:image entries in the hard cutover. VMs are declared as `kind: vm` entities in `vms.yml` — see `/ov-vm:vms-catalog` for authoring, `/ov-build:migrate` for `ov migrate vm-spec` conversion, and `/ov-internals:cutover-policy` for the hard-cutover rationale. `bootc: true` stays on kind:image entries (marks the image as a bootable container); a separate `kind: vm` entity with `source.kind: bootc` references it.
+VM-related fields (`vm`, `libvirt`) were **removed** from kind:image entries in the hard cutover. VMs are declared as `kind: vm` entities in `vms.yml` — see `/ov-vm:vms-catalog` for authoring, `/ov-build:migrate` for `ov migrate` conversion, and `/ov-internals:cutover-policy` for the hard-cutover rationale. `bootc: true` stays on kind:image entries (marks the image as a bootable container); a separate `kind: vm` entity with `source.kind: bootc` references it.
 
 ## Builder and Builds
 
@@ -451,7 +451,7 @@ vms:
         filesystems: [{type: mount, source: ..., target: ...}]
 ```
 
-See `/ov-vm:vms-catalog` for the full VmSpec schema, `/ov-vm:vm` for the `ov vm build/create/ssh` command family, and `/ov-build:migrate` for `ov migrate vm-spec` to convert legacy `image.vm:` / `image.libvirt:` fields to the new schema.
+See `/ov-vm:vms-catalog` for the full VmSpec schema, `/ov-vm:vm` for the `ov vm build/create/ssh` command family, and `/ov-build:migrate` for `ov migrate` to convert legacy `image.vm:` / `image.libvirt:` fields to the new schema.
 
 ## OCI Labels
 
@@ -547,15 +547,15 @@ images:
 - `/ov-selkies:selkies-desktop-bootc` — canonical worked example for the external-base + explicit-`distro:` pattern.
 - `/ov-vm:vm` — `ov vm build/create/start/stop/ssh` command family; reads `vms.yml`, not `image.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
 - `/ov-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema (replaces legacy `image.vm:` / `image.libvirt:`).
-- `/ov-build:migrate` — `ov migrate vm-spec` converts legacy VM fields to `vms.yml`.
+- `/ov-build:migrate` — `ov migrate` converts legacy VM fields to `vms.yml`.
 
 ## Cross-kind name reuse (2026-05-05)
 
-The `image:` map's namespace is independent of `layers/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`ov image set`, `ov image new image`, `ov image add-layer`, `ov image rm-layer`, `ov image new project`) write exclusively to `overthink.yml` — per-kind `image.yml` is reachable only via `include:` from `overthink.yml`, never as a default authoring target. Missing `overthink.yml` → hard error pointing at `ov image new project .` or `ov migrate unified`. See CLAUDE.md "Cross-kind name reuse" and `/ov-build:migrate` for `ov migrate ov-cachyos` (the demonstrative migration that paired a kind:local template with a same-named kind:deploy entry).
+The `image:` map's namespace is independent of `layers/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`ov image set`, `ov image new image`, `ov image add-layer`, `ov image rm-layer`, `ov image new project`) write exclusively to `overthink.yml` — per-kind `image.yml` is reachable only via `include:` from `overthink.yml`, never as a default authoring target. Missing `overthink.yml` → hard error pointing at `ov image new project .` or `ov migrate`. See CLAUDE.md "Cross-kind name reuse" and `/ov-build:migrate` for `ov migrate` (the demonstrative migration that paired a kind:local template with a same-named kind:deploy entry).
 
 ### Per-kind file convention (2026-05-XX)
 
-`overthink.yml` SHOULD use `include:` to pull in sibling per-kind files: `image.yml` (kind:image entries), `pod.yml` (kind:pod), `vm.yml` (kind:vm), `k8s.yml` (kind:k8s), `local.yml` (kind:local), `deploy.yml` (kind:deploy). Filename and kind name match exactly — `kind: deploy` lives in `deploy.yml`, not the legacy `kind: deployment`. The 2026-05-XX cutover renamed `kind: deployment` → `kind: deploy` and split inline `overthink.yml` maps into per-kind sibling files in one atomic hop. Migration: `ov migrate kind-files` (idempotent). Inline maps inside `overthink.yml` remain valid (it's still a single canonical authoring target), but per-kind sibling files are the recommended layout. See `/ov-build:migrate`.
+`overthink.yml` SHOULD use `include:` to pull in sibling per-kind files: `image.yml` (kind:image entries), `pod.yml` (kind:pod), `vm.yml` (kind:vm), `k8s.yml` (kind:k8s), `local.yml` (kind:local), `deploy.yml` (kind:deploy). Filename and kind name match exactly — `kind: deploy` lives in `deploy.yml`, not the legacy `kind: deployment`. The 2026-05-XX cutover renamed `kind: deployment` → `kind: deploy` and split inline `overthink.yml` maps into per-kind sibling files in one atomic hop. Migration: `ov migrate` (idempotent). Inline maps inside `overthink.yml` remain valid (it's still a single canonical authoring target), but per-kind sibling files are the recommended layout. See `/ov-build:migrate`.
 
 ## When to Use This Skill
 
@@ -565,7 +565,7 @@ The `image:` map's namespace is independent of `layers/`, `pod:`, `vm:`, `k8s:`,
 
 ## Related skills
 
-- `/ov-build:migrate` — `ov migrate unified` converts legacy `image.yml` into `image:` entries in `overthink.yml`
+- `/ov-build:migrate` — `ov migrate` converts legacy `image.yml` into `image:` entries in `overthink.yml`
 - `/ov-internals:capabilities` — OCI label contract emitted at build time and consumed by deploy commands
 
 ## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)

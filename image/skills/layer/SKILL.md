@@ -35,7 +35,7 @@ Resolution rule:
 
 ## Kind-keyed standalone form (`layer: {name, …}`)
 
-Post-migration (via `ov migrate unified`), every layer.yml is self-describing: a single `layer:` wrapper with an explicit `name:` field + the body. This makes layer files bundle-mergeable — concatenate with `---` separators to form a single file containing many layers.
+Post-migration (via `ov migrate`), every layer.yml is self-describing: a single `layer:` wrapper with an explicit `name:` field + the body. This makes layer files bundle-mergeable — concatenate with `---` separators to form a single file containing many layers.
 
 ```yaml
 # layers/chrome/layer.yml  (post-migration shape)
@@ -47,7 +47,7 @@ layer:
     - copy: policies.json
 ```
 
-The runtime parser accepts only the kind-keyed form. `ov migrate unified --rewrite-layers` converts any author-authored files to the canonical shape in a single idempotent pass.
+The runtime parser accepts only the kind-keyed form. `ov migrate` converts any author-authored files to the canonical shape in a single idempotent pass.
 
 ## Quick Reference
 
@@ -1056,7 +1056,7 @@ target — same precedent as how `aur:` skips on non-Arch.
 `ExtractMetadata` at deploy. `deploy.yml` `shell:` overlays merge by
 id (same replace/skip/append semantics as `eval:`).
 
-**Migration:** `ov migrate shell-schema` rewrites legacy `cmd:` shell-rc
+**Migration:** `ov migrate` rewrites legacy `cmd:` shell-rc
 heredoc tasks (matching the `# overthink:begin direnv-hook` /
 `# overthink:begin ssh-auth-sock` fence patterns) into the structured
 shell: schema. Idempotent.
@@ -1099,6 +1099,6 @@ A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `
 
 ## Related skills
 
-- `/ov-build:migrate` — `ov migrate unified` converts legacy flat-form `layer.yml` + raw-INI `service:` blocks into the canonical schema
+- `/ov-build:migrate` — `ov migrate` converts legacy flat-form `layer.yml` + raw-INI `service:` blocks into the canonical schema
 - `/ov-internals:capabilities` — how the `service:` list is baked into the `LabelServices` OCI label
 - `/ov-internals:install-plan` — internal IR the loader feeds into build/deploy pipelines

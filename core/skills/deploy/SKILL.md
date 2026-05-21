@@ -275,7 +275,7 @@ target an instance of `versa`, which is a different deploy).
 
 - **`image:` is REQUIRED on every `target: pod` deploy entry.** Hard
   load-time error if absent, with a remediation hint pointing at
-  `ov migrate require-image` (the one-shot migration that injects
+  `ov migrate` (the one-shot migration that injects
   the field into legacy entries).
 - **The `image:` value is either**:
   - a **short name** (e.g. `versa`) — resolved against `image:`
@@ -535,10 +535,10 @@ Source: `ov/tunnel.go` (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`, `validTa
 Schema v4 renamed the top-level `image:` map to `deploy:` and replaced the per-entry `bind_mounts:` field with a structured `volume:` list. **`yaml.Unmarshal` silently drops unknown root keys**, so a pre-cutover file with `image:` would parse to an empty `DeployConfig.Deploy` map and downstream commands would behave as if nothing was deployed — including the dangerous case where `bind_mounts: [{encrypted: true}]` entries become invisible to `loadEncryptedVolumes` and the encryption guarantee silently disappears. `LoadDeployConfig` (`ov/deploy.go:hasLegacyImagesKey`) detects the legacy root shape and fails loud with:
 
 ```
-deploy.yml at <path>: legacy top-level `image:` field detected — run `ov migrate local-deploy` to convert; the field was renamed to `deploy:` in the 2026-04 unified-config cutover (encryption guarantees disappear silently otherwise)
+deploy.yml at <path>: legacy top-level `image:` field detected — run `ov migrate` to convert; the field was renamed to `deploy:` in the 2026-04 unified-config cutover (encryption guarantees disappear silently otherwise)
 ```
 
-`ov status` surfaces this as a non-fatal warning (graceful degradation falls back to image-label-driven display); the strictly-deploy.yml-driven verbs (`ov deploy show`, `ov config status`, `ov start`) hard-fail. Run `ov migrate local-deploy` to convert in place — it backs the original up to `<file>.bak.<unix-ts>` and rewrites to schema v4. See `/ov-build:migrate` "ov migrate local-deploy".
+`ov status` surfaces this as a non-fatal warning (graceful degradation falls back to image-label-driven display); the strictly-deploy.yml-driven verbs (`ov deploy show`, `ov config status`, `ov start`) hard-fail. Run `ov migrate` to convert in place — it backs the original up to `<file>.bak.<unix-ts>` and rewrites to schema v4. See `/ov-build:migrate` "ov migrate".
 
 ### Structure (schema v4)
 
@@ -961,7 +961,7 @@ A deploy entry's key in `deploy:` lives in its own namespace. The same name MAY 
 
 `ResolveDeployRef` (used by `ov deploy add <name> <ref>`): when a name exists as BOTH an image and a layer, image-first precedence wins for the primary `<ref>` positional. The `--add-layer <ref>` path goes through `ResolveDeployRefAsLayer` which is layer-first. The retired image+layer ambiguity error is gone — same-name image and layer is permitted.
 
-Migration for the operator-specific `qc` → `ov-cachyos` rename: `ov migrate ov-cachyos` (idempotent). Residual `deploy.qc` / `deploy.cachyos-dx` keys raise a hard load-time error. The 2026-05-XX per-kind file split also renamed the schema kind itself: `kind: deployment` → `kind: deploy`; root-key `deployment:` → `deploy:`; migration `ov migrate kind-files`. See `/ov-build:migrate`.
+Migration for the operator-specific `qc` → `ov-cachyos` rename: `ov migrate` (idempotent). Residual `deploy.qc` / `deploy.cachyos-dx` keys raise a hard load-time error. The 2026-05-XX per-kind file split also renamed the schema kind itself: `kind: deployment` → `kind: deploy`; root-key `deployment:` → `deploy:`; migration `ov migrate`. See `/ov-build:migrate`.
 
 ## When to Use This Skill
 

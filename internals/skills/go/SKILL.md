@@ -100,7 +100,7 @@ The VM refactor introduced 12 new Go files + deleted 6 legacy structures in a si
 | `ov/deploy_target_vm.go` | `VmDeployTarget.Emit` |
 | `ov/deploy_add_cmd_vm.go` | CLI dispatch: `runVM` / `runVmDel` for `ov deploy add vm:<name>` |
 | `ov/vm_create_spec.go` + `vm_build.go` | CLI command wiring for `ov vm build/create` reading `kind: vm` entities |
-| `ov/migrate_vm_spec.go` | `ov migrate vm-spec` one-shot conversion from legacy image.bootc/image.vm/image.libvirt |
+| `ov/migrate_vm_spec.go` | `ov migrate` one-shot conversion from legacy image.bootc/image.vm/image.libvirt |
 
 **`unified.go` changes**: added `"vm"` to the `entityKind` enum, `VmDoc` loader struct, `mergeVmMap` merger, and `"vms"` to `rootShapeKeys` (so `vms.yml` is recognized as a valid entity-shape include file).
 
@@ -290,7 +290,7 @@ See `/ov-image:image` "user_policy" for the user-facing decision matrix, `/ov-bu
 | `credential_store.go` | `CredentialStore` interface, `ResolveCredential()`, `DefaultCredentialStore()`, `ConfigMigrateSecretsCmd` |
 | `credential_keyring.go` | System keyring backend (`go-keyring`: GNOME Keyring, KDE Wallet, KeePassXC via FdoSecrets / Secret Service) |
 | `credential_config.go` | Config file credential backend (plaintext fallback for headless) |
-| `migrate_secrets_kdbx.go` | `ov migrate drop-kdbx` — strips residual `secret_backend: kdbx` + `secrets_kdbx_*` keys from `~/.config/ov/config.yml` (2026-05-21 cutover that deleted the `.kdbx` backend; `credential_kdbx.go` + `keyctl.go` removed) |
+| `migrate_secrets_kdbx.go` | `ov migrate` — strips residual `secret_backend: kdbx` + `secrets_kdbx_*` keys from `~/.config/ov/config.yml` (2026-05-21 cutover that deleted the `.kdbx` backend; `credential_kdbx.go` + `keyctl.go` removed) |
 | `secrets.go` | Container secret collection from labels, Podman secret provisioning, `SecretArgs()` |
 | `secrets_cmd.go` | `ov secrets` CLI commands (list, get, set, delete, import, export — all retargeted to `DefaultCredentialStore()`) + the `gpg` subgroup |
 | `secrets_gpg.go` | `ov secrets gpg` commands (show, env, edit, encrypt, decrypt, set, unset, add-recipient, recipients) |
@@ -327,7 +327,7 @@ section is the Go-implementation map.
 | `eval_loop.go` | The AI iteration loop core: per-iter dispatch, scoring, plateau bookkeeping, watchdog integration, NOTES.md memory, `commitIterationBestEffort` (where the post-cutover orphan-bash defense kills issue-52328 deadlock leftovers between iterations), result-file emission. |
 | `eval_runner_live.go` | `RunEvalLive` — the live scenario-by-scenario probe driver invoked at iter end by the harness scorer. Buckets scenarios by `pod:`, resolves chains via `ResolveDeployChain` for dotted paths, dispatches to the right `DeployExecutor`. Same code path used by `ov eval self-evaluate` (the AI-side mid-iter sanity check). |
 | `eval_watchdog.go` | `ProgressWatchdog` — per-iteration scoring-progress monitor. Every `progress_check_interval` (default 5m), runs `RunEvalLive` against in-scope scenarios, records a `WatchdogSample`, emits a `harness: progress [phase X/N iter Y] elapsed Nm — current score A/B` stderr line. Cancels the AI runner's context if `progress_no_improvement_timeout` (default 30m) of zero score delta passes. |
-| `migrate_eval.go` | `ov migrate eval` — strict forward-only migrator from the pre-2026-04 `harness.yml` shape to `eval.yml` (file/dir/labels/tokens/env renames, `tests:`→`eval:` rewriting in layer.yml/image.yml/deploy.yml/overthink.yml, well-known bench/fixture project-data renames). Idempotent. NO chain-aware handling of pre-April-2026 `benchmark:` blocks. |
+| `migrate_eval.go` | `ov migrate` — strict forward-only migrator from the pre-2026-04 `harness.yml` shape to `eval.yml` (file/dir/labels/tokens/env renames, `tests:`→`eval:` rewriting in layer.yml/image.yml/deploy.yml/overthink.yml, well-known bench/fixture project-data renames). Idempotent. NO chain-aware handling of pre-April-2026 `benchmark:` blocks. |
 | `validate_eval.go` | `validateEval(cfg, layers, errs)` hooked into `Validate` in `validate.go`. Enforces: exactly-one-verb per Check, attribute types, port range (1-65535), `time.Duration` parse on `timeout`, `scope` ∈ {build,deploy}, build-scope checks can't reference runtime-only variables (via `IsRuntimeOnlyVar`), `id:` uniqueness per section (including cross-layer collisions via `validateCollectedIDUniqueness` → `CollectEval`), matcher-op allowlist (kept in lockstep with `matchOne`), per-verb method-allowlist and required-modifier checks for `cdp`/`wl`/`dbus`/`vnc`/`mcp` (via `validateOvVerb` — deploy-scope-only enforcement, method validation against `cdpMethods`/`wlMethods`/`dbusMethods`/`vncMethods`/`mcpMethods` maps in `evalrun_ov_verbs.go`). |
 
 **Related skill**: `/ov-eval:eval` is the authoring-facing reference.

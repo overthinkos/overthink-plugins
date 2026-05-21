@@ -55,7 +55,7 @@ ssh -p 2250 root@localhost
 - `/ov-selkies:selkies-desktop-bootc` — **canonical worked example**: full 9-layer stack, port remaps, Fedora 43 external base, known caveats, end-to-end verification recipes
 - `/ov-vm:vms-catalog` — VmSpec authoring reference, bootc branch authoring recipe
 - `/ov-vm:vm` — VM lifecycle commands + bootc-specific caveats (rootful storage split, loopback device requirements, nested-container transport)
-- `/ov-build:migrate` — `ov migrate vm-spec` legacy conversion
+- `/ov-build:migrate` — `ov migrate` legacy conversion
 - `/ov-selkies:selkies-desktop` — Selkies streaming desktop metalayer
 - `/ov-distros:bootc-base` — sshd + qemu-guest-agent + bootc-config bundle
 - `/ov-infrastructure:tailscale` — mesh VPN (included in composition)

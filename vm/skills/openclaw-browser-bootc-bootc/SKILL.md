@@ -57,5 +57,5 @@ ssh -p 2222 root@localhost
 - `/ov-openclaw:openclaw-browser-bootc` — **composition authority**: layer stack, OpenClaw gateway, Chrome, VNC, OCI labels
 - `/ov-vm:vms-catalog` — VmSpec authoring reference, bootc branch authoring recipe
 - `/ov-vm:vm` — VM lifecycle commands + bootc-specific caveats
-- `/ov-build:migrate` — `ov migrate vm-spec` legacy conversion
+- `/ov-build:migrate` — `ov migrate` legacy conversion
 - `/ov-openclaw:openclaw` — OpenClaw gateway layer

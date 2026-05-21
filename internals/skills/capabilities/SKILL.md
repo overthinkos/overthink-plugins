@@ -122,7 +122,7 @@ The long-term direction (documented in `ov/capabilities.go:17-22`) is to split `
 
 Today these co-exist in a single `ImageConfig`. The `Capabilities` alias is the stepping stone — once the schema split lands, `Capabilities` will point at the `capabilities:` subsection directly instead of aliasing the whole struct. The `CapabilityLabelMap` completeness test will keep the contract honest across the migration.
 
-See `/ov-image:image` for current user-facing structure and `/ov-build:migrate` for the one-shot `ov migrate unified` converter that emits the new schema when the split lands.
+See `/ov-image:image` for current user-facing structure and `/ov-build:migrate` for the one-shot `ov migrate` converter that emits the new schema when the split lands.
 
 ## Adding a new OCI label — checklist
 
@@ -142,6 +142,6 @@ See `/ov-image:image` for current user-facing structure and `/ov-build:migrate` 
 - `/ov-core:deploy` — `ov deploy add` / `from-image` / `sync` commands
 - `/ov-kubernetes:kubernetes` — K8s deploy target that reads `LabelServices` to generate Kustomize
 - `/ov-eval:eval` — three-section `LabelEval` (layer/image/deploy) — same label-contract pattern
-- `/ov-build:migrate` — `ov migrate unified` — emits the schema that populates these labels
+- `/ov-build:migrate` — `ov migrate` — emits the schema that populates these labels
 - `/ov-internals:go` — Go architecture overview, `LoadUnified`, `parseLayerYAML`
 - `/ov-internals:install-plan` — internal IR shared across build and deploy pipelines

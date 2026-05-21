@@ -21,7 +21,7 @@ description: |
 - **`source.kind: cloud_image`** — fetches a pre-built qcow2 from an external URL (Arch, Fedora, Ubuntu, Debian, CentOS Cloud images). Renders a NoCloud seed ISO with cloud-init. Canonical example: `/ov-vm:arch`.
 - **`source.kind: bootc`** — pairs with a `kind: image` entry that has `bootc: true`. Runs `bootc install to-disk` inside a privileged container. Canonical example: `/ov-vm:selkies-desktop-bootc-bootc`.
 
-The legacy `image.bootc: true` + `image.vm: {...}` + `image.libvirt: [...]` fields were **deleted in the hard cutover**. Legacy projects convert in one shot with `ov migrate vm-spec` (see `/ov-build:migrate`). For the YAML authoring reference, see `/ov-vm:vms-catalog`; for the Go types, see `/ov-internals:vm-spec`.
+The legacy `image.bootc: true` + `image.vm: {...}` + `image.libvirt: [...]` fields were **deleted in the hard cutover**. Legacy projects convert in one shot with `ov migrate` (see `/ov-build:migrate`). For the YAML authoring reference, see `/ov-vm:vms-catalog`; for the Go types, see `/ov-internals:vm-spec`.
 
 ## Quick Reference
 
@@ -356,7 +356,7 @@ Expected. The agent needs a `virtio-serial` channel that ov's QEMU backend doesn
 - `/ov-internals:vm-deploy-target` — VmDeployTarget / SSHExecutor / VmDeployState
 - `/ov-internals:ovmf` — UEFI firmware path resolution; per-VM NVRAM; bios-skips-loader sentinel
 - `/ov-internals:cutover-policy` — hard cutover policy — why the legacy surface was deleted
-- `/ov-build:migrate` — `ov migrate vm-spec` legacy conversion
+- `/ov-build:migrate` — `ov migrate` legacy conversion
 - `/ov-core:deploy` — `ov deploy add vm:<name> <ref>` in-guest layer application
 - `/ov-build:pull` — fetch container images into local storage (prereq for bootc VM builds)
 - `/ov-build:build` — building container images before VM disk builds

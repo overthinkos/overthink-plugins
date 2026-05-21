@@ -10,7 +10,7 @@ description: |
 
 `kind: local` declares a reusable layer-stack template that gets applied to a Linux filesystem (target:local deployments). Unlike `kind: pod` / `kind: vm` / `kind: k8s` which wrap an image, a `kind: local` is defined entirely by its `layers` + `install_opts` + `env` — there's no OCI artifact backing it. The convention file is `local.yml`; templates may also be authored inline in the `local:` map of `overthink.yml`.
 
-Replaces the legacy `kind: host`. Migration: `ov migrate target-local`.
+Replaces the legacy `kind: host`. Migration: `ov migrate`.
 
 ## Schema
 
@@ -77,7 +77,7 @@ There is **no** `status:` or `info:` field — those were removed in the local-c
 A `kind: local` deploy emits **zero** container-image fetch / build
 steps. The deploy applies host packages + configs only. There is no
 `image:` field; declaring one in legacy YAML hard-errors at
-`ov image validate` time with a pointer to `ov migrate local-images`.
+`ov image validate` time with a pointer to `ov migrate`.
 
 Test-bed image preflight is the **eval entry point's** job, not the
 deploy's. When `ov eval run --on-host <name>` resolves to a host
@@ -92,7 +92,7 @@ preflight" and `ov/eval_image_preflight.go`.
 This invariant — "deploy fetches NOTHING speculative" — is codified
 as a CLAUDE.md Key Rule and enforced at the type level: the
 `LocalSpec` Go struct has no `Images` field, so the surface is
-unreachable from any new code. Migration: `ov migrate local-images`
+unreachable from any new code. Migration: `ov migrate`
 (idempotent; rewrites legacy `image:` blocks under `local.<name>`
 to a dated comment fence).
 
@@ -132,7 +132,7 @@ local:
 - `/ov-local:local-deploy` — the `target: local` deployment surface that consumes this template.
 - `/ov-internals:local-infra` — Go file map (`local_spec.go`, `LocalSpec` struct, `findLocalSpec` lookup).
 - `/ov-image:layer` — layer authoring (the building blocks composed by templates).
-- `/ov-build:migrate` — `ov migrate target-local` migrates legacy `kind: host`/`host.yml` projects; `ov migrate ov-cachyos` renames the operator-specific `qc` / `cachyos-dx` deployment key to `ov-cachyos` (demonstrating that a kind:local template and a kind:deploy entry can share a name — cross-kind reuse, 2026-05-05); `ov migrate kind-files` splits `overthink.yml`'s inline `image:` / `vm:` / `pod:` / `k8s:` / `local:` / `deploy:` maps into sibling per-kind files AND renames `kind: deployment` → `kind: deploy` in the same hop.
+- `/ov-build:migrate` — `ov migrate` migrates legacy `kind: host`/`host.yml` projects; `ov migrate` renames the operator-specific `qc` / `cachyos-dx` deployment key to `ov-cachyos` (demonstrating that a kind:local template and a kind:deploy entry can share a name — cross-kind reuse, 2026-05-05); `ov migrate` splits `overthink.yml`'s inline `image:` / `vm:` / `pod:` / `k8s:` / `local:` / `deploy:` maps into sibling per-kind files AND renames `kind: deployment` → `kind: deploy` in the same hop.
 
 ## Cross-kind name reuse (2026-05-05)
 

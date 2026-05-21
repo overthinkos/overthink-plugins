@@ -137,7 +137,7 @@ type VmOvInstall struct {
 - `ssh.key_injection.{smbios,cloud_init}` ∈ {`auto`, `enabled`, `disabled`}.
 - `Libvirt` structure routed to `ValidateLibvirtConfig`.
 
-Failed validation → hard load-time error with a one-line remediation hint pointing at `/ov-vm:vms-catalog` or `ov migrate vm-spec`.
+Failed validation → hard load-time error with a one-line remediation hint pointing at `/ov-vm:vms-catalog` or `ov migrate`.
 
 ## Migration from legacy VmConfig
 
@@ -152,7 +152,7 @@ The legacy `VmConfig` type + `ImageConfig.Vm` + `ImageConfig.Libvirt` + `Resolve
 | `image.vm.network` (string) | `vms.<name>.network.mode` |
 | `image.libvirt: ["<xml>", …]` (list of strings) | `vms.<name>.libvirt.snippets: […]` + structured `libvirt.devices.*` |
 
-`ov migrate vm-spec` performs this mapping idempotently. See `/ov-build:migrate` for the command and `/ov-internals:cutover-policy` for the policy.
+`ov migrate` performs this mapping idempotently. See `/ov-build:migrate` for the command and `/ov-internals:cutover-policy` for the policy.
 
 ## Cross-References
 
@@ -163,5 +163,5 @@ The legacy `VmConfig` type + `ImageConfig.Vm` + `ImageConfig.Libvirt` + `Resolve
 - `/ov-internals:ovmf` — `ResolveOvmfForSpec` reads `spec.Firmware`
 - `/ov-internals:cutover-policy` — why the legacy surface was deleted in one PR
 - `/ov-vm:vm` — command-family skill; reads vms.yml through VmSpec
-- `/ov-build:migrate` — `ov migrate vm-spec` command
+- `/ov-build:migrate` — `ov migrate` command
 - `/ov-internals:go` — Go CLI development overview

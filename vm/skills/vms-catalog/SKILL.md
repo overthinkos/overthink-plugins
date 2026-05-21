@@ -187,7 +187,7 @@ Load-time errors raised by `ValidateVmSpec` (`ov/libvirt_validate.go`, see `/ov-
 Projects predating this schema had three coupled fields on `kind: image` entries: `bootc: true`, `vm: {...}`, `libvirt: [...]`. All three were deleted in the hard cutover. Conversion is one-shot:
 
 ```bash
-ov migrate vm-spec
+ov migrate
 ```
 
 Idempotent. Harvests the legacy fields into `vms:` entries, preserving any pre-existing `vms:` keys. See `/ov-build:migrate` for the full command reference and `/ov-internals:cutover-policy` for why hard-cutover was the chosen policy.
@@ -195,7 +195,7 @@ Idempotent. Harvests the legacy fields into `vms:` entries, preserving any pre-e
 ## Cross-References
 
 - `/ov-vm:vm` — the `ov vm build/create/start/stop/ssh/console` command family
-- `/ov-build:migrate` — `ov migrate vm-spec` conversion from legacy
+- `/ov-build:migrate` — `ov migrate` conversion from legacy
 - `/ov-core:deploy` — `ov deploy add vm:<name>` for in-guest layer application
 - `/ov-vm:arch` — canonical cloud_image VM
 - `/ov-vm:aurora-bootc`, `/ov-vm:bazzite-ai-bootc`, `/ov-vm:openclaw-browser-bootc-bootc`, `/ov-vm:selkies-desktop-bootc-bootc` — bootc VMs

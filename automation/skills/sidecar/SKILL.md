@@ -187,7 +187,7 @@ The retired flat schema used a single `TS_AUTHKEY` env var, conflating
 multi-tailnet hosts. Run the one-shot migration after upgrading:
 
 ```bash
-ov migrate tailscale-secrets
+ov migrate
 # Prompts for the tailnet the existing TS_AUTHKEY belongs to (auto-detects
 # from a running sidecar when present), renames the .secrets entry to the
 # per-tailnet form, and warns about deploy.yml entries that need
@@ -201,7 +201,7 @@ rename. Idempotent.
 After migration, any deploy with a tailscale sidecar that doesn't supply
 `parameter.tailnet:` fails at `ov config` time with the message:
 
-> sidecar "tailscale": sidecar secret "ts-authkey" references parameter "tailnet" which is unset. Set `sidecars.<sidecar-name>.parameter.tailnet: <value>` in deploy.yml or run `ov migrate tailscale-secrets`
+> sidecar "tailscale": sidecar secret "ts-authkey" references parameter "tailnet" which is unset. Set `sidecars.<sidecar-name>.parameter.tailnet: <value>` in deploy.yml or run `ov migrate`
 
 ### Environment Variables
 

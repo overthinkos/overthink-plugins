@@ -329,7 +329,7 @@ Pass: `active` + version printed.
 
 - `/ov-vm:vms-catalog` — VmSpec authoring reference (schema, source.kind, adopt pattern)
 - `/ov-vm:vm` — VM lifecycle commands + BIOS/UEFI decision matrix + video model choice
-- `/ov-build:migrate` — `ov migrate vm-spec` legacy conversion
+- `/ov-build:migrate` — `ov migrate` legacy conversion
 - `/ov-core:deploy` — `ov deploy add vm:arch <layer>` for in-guest layer application
 - `/ov-internals:vm-spec` — Go types and validation rules
 - `/ov-internals:libvirt-renderer` — `<backend type='passt'/>` for portForward, virtio-gpu video model
