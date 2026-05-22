@@ -182,6 +182,27 @@ check written once works unchanged when `deploy.yml` remaps ports.
 | Filter by section | `ov eval live <name> --section deploy` | One of: layer / image / deploy |
 | Output format | `ov eval live <name> --format json\|tap\|text` | Default text |
 
+## Exit codes
+
+`ov eval` uses a goss/pytest-style three-way exit convention so automation
+(and `ov eval run <bed>`) can tell "the thing under test is broken" apart from
+"the eval couldn't run":
+
+| Code | Meaning |
+|---|---|
+| `0` | All checks passed. |
+| `1` | Command / usage / infra error — bad args, undeclared deploy, container not running, image build/deploy/vm-create failed. The eval never produced a pass/fail verdict. |
+| `2` | The eval RAN and one or more **checks FAILED** (`EvalCheckFailExitCode`). |
+
+`ov eval image` / `ov eval live` return `2` directly when checks fail.
+`ov eval run <bed>` propagates `2` when the bed's **eval step** (eval-image /
+eval-live) fails on checks, but `1` when an **infra step** (build / deploy /
+vm-create) fails — so a broken bed image is distinguishable from a genuine
+test failure. `ov eval run --all-beds` returns `2` only when *every* failing
+bed failed on checks; any infra failure makes it `1`. Implementation:
+`EvalFailedError` + `EvalCheckFailExitCode` (ov/eval_cmd.go), mapped to the
+process exit code in `main()` via `errors.As`.
+
 ## Image preflight (host-target runs only)
 
 When `ov eval run --on-host <name>` (or any score whose target
