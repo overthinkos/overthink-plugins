@@ -120,7 +120,7 @@ Resolution chain: deploy.yml per-image > global setting > default (true).
 
 ## Used In Images
 
-arch-ov, arch-test, aurora, bazzite, comfyui, eval-sway-browser-vnc, fedora-ov, fedora-test, githubrunner, immich, immich-ml, jupyter, nvidia, ollama, openclaw, openclaw-full, openclaw-ollama, python-ml, selkies-desktop, selkies-desktop-nvidia, sway-browser-vnc, unsloth-studio, valkey-test
+arch-ov, arch-test, aurora, bazzite, comfyui, fedora-ov, fedora-test, githubrunner, immich, immich-ml, jupyter, nvidia, ollama, openclaw, openclaw-full, openclaw-ollama, python-ml, selkies-desktop, selkies-desktop-nvidia, sway-browser-vnc, unsloth-studio, valkey-test
 
 ## Related Layers
 

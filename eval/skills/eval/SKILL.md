@@ -106,7 +106,7 @@ The project's `deploy.yml` defines four canonical disposable beds covering the f
 |---|---|---|
 | `arch-vm` | `target: vm, vm_source: arch` | libvirt/spice/ssh/cloud-init/guest OS (command/libvirt/spice/file/service/port/process/package/user/group/interface/kernel-param/mount/addr/dns/http/matching) |
 | `arch-vm.arch-host` | `target: host` nested child | HostDeployTarget code path inside arch-vm guest FS — zero operator FS writes |
-| `eval-sway-browser-vnc-pod` | `target: pod, image: eval-sway-browser-vnc` | cdp/wl/vnc/dbus/mcp/record (live-container verbs) |
+| `eval-sway-browser-vnc-pod` | `target: pod, image: sway-browser-vnc` | cdp/wl/vnc/dbus/mcp/record (live-container verbs) |
 | `k3s-pod` | `target: pod, image: fedora-ov + k3s-server layer` | k8s verbs (all 13 methods) against the pod-hosted cluster |
 
 Run a full-stack smoke with `ov eval live arch && ov eval live <eval-sway-browser-vnc-pod> && ov eval live <k3s-pod>`. Fresh-rebuild via `ov update <name>` first (R10 acceptance gate). The bed-to-verb coverage map is a top-of-file comment in `deploy.yml`.
