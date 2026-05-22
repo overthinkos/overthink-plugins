@@ -24,6 +24,10 @@ The YAML schema version is a **CalVer string** — `version: YYYY.DDD.HHMM`, the
 
 `ov/version.go` provides `ParseCalVer(string) (CalVer, bool)` and `CalVer.Less` (generation-only `ComputeCalVer` is unchanged). `LatestSchemaVersion()` (in `ov/migrate_registry.go`) is the curated **HEAD** value — the constant every file is stamped to and the value the load-time gate requires.
 
+### `version:` is also the per-repo git-tag source
+
+The CalVer `version:` doubles as the **release git tag** for any ov-project repo (one with an `overthink.yml`): every push of such a repo carries an **immutable** annotated tag `v<version>` matching that repo's current `overthink.yml` `version:` (e.g. `version: 2026.141.1600` → tag `v2026.141.1600`). Each repo uses its OWN `version:` — the main repo and every `image/<distro>` submodule are tagged independently, even when they happen to share a value. The tag is created once, the first time a `version:` value lands on a pushed commit, and is never moved or force-pushed. A new tag appears only when `ov migrate` bumps `version:` to a new `LatestSchemaVersion()` — a push at an unchanged `version:` adds no new tag (the existing `v<version>` already marks that schema version, which is why the load-time gate never sees a "newer than supported" CalVer from a re-tag). Repos without an `overthink.yml` (`plugins`, `pkg/arch`) are out of scope. See CLAUDE.md "Post-Execution Policies".
+
 ## The migration chain (registry)
 
 Every hard-cutover schema change the project has ever shipped is **one `MigrationStep`** in the ordered registry `migrationSteps()` (`ov/migrate_registry.go`), stamped with the CalVer of the date it landed and listed **chronologically** — the order the cutovers were authored in, which is the only correct replay order for an arbitrarily-old config. `ov migrate` runs the whole chain; each step's own idempotency guard makes running it whole safe (already-current files are no-ops).
