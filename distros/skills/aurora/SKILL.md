@@ -8,17 +8,19 @@ description: |
 
 # aurora
 
-Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH access, full ov toolchain, and Go compiler.
+Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH access, full ov toolchain, and Go compiler. Lives in the `overthinkos/bootc` submodule (2026-05).
 
 ## Image Properties
 
 | Property | Value |
 |----------|-------|
+| Location | `overthinkos/bootc` submodule (`image/bootc`) — composed by `@github` ref |
 | Base | ghcr.io/ublue-os/aurora-dx-nvidia-open:stable-daily-43.20260305 |
 | Bootc | true |
-| Layers | agent-forwarding, sshd, ov-full, golang |
+| Distro | `fedora:43`, `fedora` (declared — external base inherits no distro tags) |
+| Layers | agent-forwarding, bootc-base, sshd, ov-full, golang |
 | Platforms | linux/amd64 |
-| Status | **disabled** (set `enabled: true` in image.yml) |
+| Status | **disabled** (build with `--include-disabled`) |
 | Registry | ghcr.io/overthinkos |
 
 ## VM Configuration
@@ -39,12 +41,12 @@ Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH acce
 ## Quick Start
 
 ```bash
-# Enable in image.yml first (remove enabled: false)
-ov image build aurora
-ov vm build aurora --type qcow2
-ov vm create aurora --ram 12G --cpus 4
-ov vm start aurora
-ov vm ssh aurora
+# Built from the bootc submodule; all images ship enabled:false.
+ov -C image/bootc image build aurora --include-disabled
+ov -C image/bootc vm build aurora-bootc --transport containers-storage
+ov -C image/bootc vm create aurora-bootc --ram 12G --cpus 4
+ov -C image/bootc vm start aurora-bootc
+ov -C image/bootc vm ssh aurora-bootc
 ```
 
 ## Key Layers

@@ -43,7 +43,7 @@ At build time, the contents are staged into `/data/workspace/llms_on_supercomput
 
 | Notebook | Topic |
 |----------|-------|
-| `D0_00_Bazzite_AI_Setup.ipynb` | Environment setup, GPU verification, Ollama connectivity |
+| `D0_00_Bazzite_Setup.ipynb` | Environment setup, GPU verification, Ollama connectivity |
 
 ### D1 — Prompt Engineering (6 notebooks)
 

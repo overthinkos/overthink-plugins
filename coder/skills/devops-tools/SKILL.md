@@ -36,7 +36,7 @@ my-image:
 
 ## Used In Images
 
-- `/ov-distros:bazzite-ai` (disabled)
+- `/ov-distros:bazzite` (disabled)
 
 ## Related Layers
 

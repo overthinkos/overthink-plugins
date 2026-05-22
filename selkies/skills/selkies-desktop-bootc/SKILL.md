@@ -16,14 +16,15 @@ Bootable container image: Fedora 43 bootc + Selkies browser-streamed desktop + T
 
 | Property | Value |
 |----------|-------|
+| Location | `overthinkos/bootc` submodule (`image/bootc`) — composed by `@github` ref |
 | Base | `quay.io/fedora/fedora-bootc:43` |
 | Bootc | `true` |
 | Distro tags | `["fedora:43", fedora]` **(must be declared — external bases do not inherit)** |
 | Layers | agent-forwarding, bootc-base, rpmfusion, selkies-desktop, tailscale, keepassxc, dbus, ov |
 | Platforms | linux/amd64 |
 | Ports (host → container) | 13000 → 3000, 19222 → 9222, 19224 → 9224 |
-| VM ssh_port (host → VM:22) | 2250 |
-| Status | **enabled by default** during this worked-example iteration; revert to `enabled: false` once shipped |
+| VM entity / ssh_port | `selkies-desktop-bootc-bootc` / host 2250 → VM:22 |
+| Status | **disabled** (build with `--include-disabled`) — canonical worked example + R10 build target for the bootc submodule |
 | Registry | ghcr.io/overthinkos |
 
 ## VM Configuration
@@ -64,8 +65,8 @@ Host ports are intentionally shifted into 13xxx/19xxx so the VM can run **alongs
 ## Quick Start
 
 ```bash
-# 1. Build the image.
-ov image build selkies-desktop-bootc
+# 1. Build the image (from the bootc submodule; disabled by default).
+ov -C image/bootc image build selkies-desktop-bootc --include-disabled
 
 # 2. Refresh rootful podman storage (ov vm build uses sudo podman).
 podman save ghcr.io/overthinkos/selkies-desktop-bootc:latest -o /tmp/sdb.tar
@@ -73,10 +74,11 @@ sudo podman load -i /tmp/sdb.tar
 rm -f /tmp/sdb.tar
 
 # 3. Build the bootc disk image (QCOW2, via bootc install to-disk).
-ov vm build selkies-desktop-bootc --transport containers-storage
+#    The kind:vm entity is selkies-desktop-bootc-bootc.
+ov -C image/bootc vm build selkies-desktop-bootc-bootc --transport containers-storage
 
 # 4. Create + start the VM (injects your ~/.ssh/id_*.pub via SMBIOS credentials).
-ov vm create selkies-desktop-bootc
+ov -C image/bootc vm create selkies-desktop-bootc-bootc
 
 # 5. SSH into the running VM.
 ssh -p 2250 root@localhost
@@ -109,7 +111,7 @@ curl -sS  -X POST http://127.0.0.1:19224/mcp \
 
 ### 1. External bases require explicit `distro:`
 
-`base: "quay.io/fedora/fedora-bootc:43"` is an **external** base (URL, not the name of another image in `image.yml`). Unlike internal bases, it does **not** inherit distro tags. Without `distro: ["fedora:43", fedora]`, `ov image inspect` shows `"Distro": null`, the generator skips every layer's `rpm:` install (the install_template's Phase-2 branch requires `img.DistroDef != nil`), and the final image has zero packages installed from layer `rpm:` sections. See `/ov-image:image` for the resolution chain. This was the first bug encountered during the build; the sibling bootc templates (`/ov-openclaw:openclaw-browser-bootc`, `/ov-distros:bazzite-ai`, `/ov-distros:aurora`) have the same latent issue but haven't tripped it because they're still `enabled: false`.
+`base: "quay.io/fedora/fedora-bootc:43"` is an **external** base (URL, not the name of another image in `image.yml`). Unlike internal bases, it does **not** inherit distro tags. Without `distro: ["fedora:43", fedora]`, `ov image inspect` shows `"Distro": null`, the generator skips every layer's `rpm:` install (the install_template's Phase-2 branch requires `img.DistroDef != nil`), and the final image has zero packages installed from layer `rpm:` sections. See `/ov-image:image` for the resolution chain. This was the first bug encountered during the build; as of the 2026-05 bootc-submodule extraction the sibling bootc images (`/ov-openclaw:openclaw-browser-bootc`, `/ov-distros:bazzite`, `/ov-distros:aurora`) all declare `distro:` too — and all four bootc images now live in the `overthinkos/bootc` submodule (`image/bootc`).
 
 ### 2. `dnf5-plugins` prepend is required for URL repos
 
@@ -153,7 +155,7 @@ Rebuild + redeploy the VM.
 - `/ov-selkies:selkies-desktop-nvidia` — GPU-accelerated container sibling (`nvidia` base)
 - `/ov-selkies:selkies-desktop-ov` — GPU-accelerated container sibling + full ov toolchain (nested rootless podman + rootless libvirt VMs). The non-bootc counterpart of this bootc image when you want the desktop to itself build images / launch pods / spawn VMs.
 - `/ov-openclaw:openclaw-browser-bootc` — sibling bootc template (disabled; latent `distro:` bug per Caveat 1)
-- `/ov-distros:bazzite-ai` — ublue-based bootc template
+- `/ov-distros:bazzite` — ublue-based bootc template
 - `/ov-distros:aurora` — ublue-based bootc template
 
 ## Related Skills

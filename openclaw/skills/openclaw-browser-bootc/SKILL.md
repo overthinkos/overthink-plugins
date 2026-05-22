@@ -14,29 +14,19 @@ Bootable container (bootc) VM image with OpenClaw AI gateway, Chrome browser, VN
 
 | Property | Value |
 |----------|-------|
+| Location | `overthinkos/bootc` submodule (`image/bootc`) — composed by `@github` ref |
 | Base | quay.io/fedora/fedora-bootc:43 |
 | Bootc | true |
+| Distro | `fedora:43`, `fedora` (declared — external base inherits no distro tags) |
 | Layers | agent-forwarding, bootc-base, openclaw, pipewire, wayvnc, chrome-sway |
 | Platforms | linux/amd64 |
 | Ports | 18789 (gateway), 5900 (VNC), 9222 (CDP) |
-| Status | **disabled** (set `enabled: true` in image.yml) |
+| Status | **disabled** (build with `--include-disabled`) |
 | Registry | ghcr.io/overthinkos |
 
-## Known latent bug — missing `distro:` declaration
+## External base requires explicit `distro:` (declared)
 
-This image's `image.yml` entry does **not** declare `distro:`. Because `base: "quay.io/fedora/fedora-bootc:43"` is an external URL (not the name of another `image.yml` entry), the generator resolves `Distro` to `null`, which short-circuits the install_template's Phase-2 branch — **no layer `rpm:` install RUNs are emitted**. The image will build cleanly but every layer's declarative `rpm:` packages are missing; only `cmd: dnf install …` tasks survive.
-
-This hasn't tripped because the image is `enabled: false`. Before enabling, add:
-
-```yaml
-openclaw-browser-bootc:
-  base: "quay.io/fedora/fedora-bootc:43"
-  bootc: true
-  distro: ["fedora:43", fedora]   # ← add this
-  ...
-```
-
-The same latent bug affects `/ov-distros:bazzite-ai` and `/ov-distros:aurora` (both external ublue bases). See `/ov-image:image` "External Bases Require Explicit `distro:`" for the full mechanism; `/ov-selkies:selkies-desktop-bootc` is the canonical working reference.
+`base: "quay.io/fedora/fedora-bootc:43"` is an external URL, so it inherits no distro tags — without `distro:` the generator short-circuits the install_template's Phase-2 branch and emits **zero** layer `rpm:` installs. This image now declares `distro: ["fedora:43", fedora]` (added during the 2026-05 bootc-submodule extraction), matching the `/ov-selkies:selkies-desktop-bootc` working pattern. The sibling ublue images `/ov-distros:bazzite` and `/ov-distros:aurora` declare it too. See `/ov-image:image` "External Bases Require Explicit `distro:`" for the mechanism.
 
 ## VM Configuration
 
@@ -67,12 +57,12 @@ The same latent bug affects `/ov-distros:bazzite-ai` and `/ov-distros:aurora` (b
 ## Quick Start
 
 ```bash
-# Enable in image.yml first (remove enabled: false)
-ov image build openclaw-browser-bootc
-ov vm build openclaw-browser-bootc --type qcow2
-ov vm create openclaw-browser-bootc --ram 4G --cpus 2
-ov vm start openclaw-browser-bootc
-ov vm ssh openclaw-browser-bootc -p 2222
+# Built from the bootc submodule; all images ship enabled:false.
+ov -C image/bootc image build openclaw-browser-bootc --include-disabled
+ov -C image/bootc vm build openclaw-browser-bootc-bootc --transport containers-storage
+ov -C image/bootc vm create openclaw-browser-bootc-bootc --ram 4G --cpus 2
+ov -C image/bootc vm start openclaw-browser-bootc-bootc
+ov -C image/bootc vm ssh openclaw-browser-bootc-bootc
 ```
 
 ## Key Layers
@@ -85,8 +75,8 @@ ov vm ssh openclaw-browser-bootc -p 2222
 
 - `/ov-openclaw:openclaw-sway-browser` — container variant (enabled)
 - `/ov-openclaw:openclaw-ollama-sway-browser` — with Ollama LLM (enabled)
-- `/ov-selkies:selkies-desktop-bootc` — sibling bootc image with `distro:` correctly declared; follow its pattern when enabling this one
-- `/ov-distros:bazzite-ai`, `/ov-distros:aurora` — share the same latent `distro:` bug
+- `/ov-selkies:selkies-desktop-bootc` — sibling bootc image (canonical worked example); same `image/bootc` submodule
+- `/ov-distros:bazzite`, `/ov-distros:aurora` — sibling ublue bootc images; same `image/bootc` submodule
 
 ## Related Skills
 

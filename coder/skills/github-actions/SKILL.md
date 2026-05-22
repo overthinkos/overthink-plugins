@@ -32,7 +32,7 @@ my-ci:
 
 ## Used In Images
 
-- `bazzite-ai` (disabled)
+- `bazzite` (disabled)
 
 ## Related Layers
 - `/ov-distros:github-runner` — distinct self-hosted runner layer (not act)

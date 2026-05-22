@@ -32,7 +32,7 @@ my-image:
 
 ## Used In Images
 
-- `bazzite-ai` (disabled)
+- `bazzite` (disabled)
 
 ## Related Layers
 - `/ov-distros:container-nesting` — Alternative podman-based nested container support

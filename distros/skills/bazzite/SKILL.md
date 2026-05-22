@@ -1,23 +1,25 @@
 ---
-name: bazzite-ai
+name: bazzite
 description: |
   Bazzite NVIDIA bootc image with dev tools, CUDA, Kubernetes, Docker, and desktop apps.
   Currently disabled. Enable in image.yml to build.
-  MUST be invoked before building, deploying, or troubleshooting the bazzite-ai image.
+  MUST be invoked before building, deploying, or troubleshooting the bazzite image.
 ---
 
-# bazzite-ai
+# bazzite
 
-Bootc VM image based on Universal Blue's Bazzite (gaming-focused) with NVIDIA drivers, comprehensive dev tools, CUDA, Kubernetes, Docker, and desktop applications.
+Bootc VM image based on Universal Blue's Bazzite (gaming-focused) with NVIDIA drivers, comprehensive dev tools, CUDA, Kubernetes, Docker, and desktop applications. Renamed from `bazzite-ai` and relocated to the `overthinkos/bootc` submodule (2026-05).
 
 ## Image Properties
 
 | Property | Value |
 |----------|-------|
+| Location | `overthinkos/bootc` submodule (`image/bootc`) — composed by `@github` ref |
 | Base | ghcr.io/ublue-os/bazzite-nvidia-open:stable-43.20260120.1 |
 | Bootc | true |
+| Distro | `fedora:43`, `fedora` (declared — external base inherits no distro tags) |
 | Platforms | linux/amd64 |
-| Status | **disabled** (set `enabled: true` in image.yml) |
+| Status | **disabled** (build with `--include-disabled`) |
 | Registry | ghcr.io/overthinkos |
 
 ## Full Layer Stack
@@ -44,11 +46,11 @@ Bootc VM image based on Universal Blue's Bazzite (gaming-focused) with NVIDIA dr
 ## Quick Start
 
 ```bash
-# Enable in image.yml first (remove enabled: false)
-ov image build bazzite-ai
-ov vm build bazzite-ai --type qcow2
-ov vm create bazzite-ai
-ov vm start bazzite-ai
+# Built from the bootc submodule; all images ship enabled:false.
+ov -C image/bootc image build bazzite --include-disabled
+ov -C image/bootc vm build bazzite-bootc --transport containers-storage
+ov -C image/bootc vm create bazzite-bootc
+ov -C image/bootc vm start bazzite-bootc
 ```
 
 ## Known Issues
@@ -65,7 +67,7 @@ ov vm start bazzite-ai
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the bazzite-ai bootc image or the Bazzite-based AI workstation VM.
+**MUST be invoked** when the task involves the bazzite bootc image or the Bazzite-based AI workstation VM.
 
 ## Related
 

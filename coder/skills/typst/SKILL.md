@@ -24,10 +24,10 @@ my-image:
 
 ## Used In Images
 
-- `/ov-distros:bazzite-ai` (disabled)
+- `/ov-distros:bazzite` (disabled)
 
 ## Related Layers
-- `/ov-tools:vscode` — editor sibling in bazzite-ai
+- `/ov-tools:vscode` — editor sibling in bazzite
 - `/ov-selkies:desktop-apps` — desktop tooling sibling
 
 ## Related Commands

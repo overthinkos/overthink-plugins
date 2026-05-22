@@ -28,7 +28,7 @@ my-vr:
 
 ## Used In Images
 
-- `/ov-distros:bazzite-ai` (disabled)
+- `/ov-distros:bazzite` (disabled)
 
 ## Related Layers
 - `/ov-distros:cuda` — GPU compute sibling for ML/streaming workloads

@@ -25,7 +25,7 @@ my-bootc-image:
 
 ## Used In Images
 
-- `/ov-distros:bazzite-ai` (disabled)
+- `/ov-distros:bazzite` (disabled)
 
 ## Related Layers
 - `/ov-distros:os-system-files` -- companion file overlay layer for bootc images

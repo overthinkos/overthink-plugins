@@ -142,7 +142,7 @@ my-polyglot:
 - `/ov-coder:fedora-coder` — kitchen-sink dev image, canonical RPM consumer.
 - `/ov-coder:arch-coder` — pacman-based sibling.
 - `/ov-coder:debian-coder`, `/ov-coder:ubuntu-coder` — deb-based siblings, consumers of the dotnet-install.sh task.
-- `/ov-distros:bazzite-ai` (disabled).
+- `/ov-distros:bazzite` (disabled).
 
 ## Related Layers
 

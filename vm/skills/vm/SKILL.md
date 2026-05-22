@@ -349,7 +349,7 @@ Expected. The agent needs a `virtio-serial` channel that ov's QEMU backend doesn
 
 - `/ov-vm:vms-catalog` — **vms.yml authoring reference** (VmSpec schema, source.kind, adopt pattern)
 - `/ov-vm:arch` — canonical cloud_image VM (BIOS / virtio-gpu / resource sizing / stale BOOTX64.EFI RCA)
-- `/ov-vm:aurora-bootc`, `/ov-vm:bazzite-ai-bootc`, `/ov-vm:openclaw-browser-bootc-bootc`, `/ov-vm:selkies-desktop-bootc-bootc` — bootc VMs
+- `/ov-vm:aurora-bootc`, `/ov-vm:bazzite-bootc`, `/ov-vm:openclaw-browser-bootc-bootc`, `/ov-vm:selkies-desktop-bootc-bootc` — bootc VMs
 - `/ov-internals:vm-spec` — Go type reference; validation rules; legacy migration map
 - `/ov-internals:libvirt-renderer` — RenderDomain + device emission + passt backend + virtio-gpu
 - `/ov-internals:cloud-init-renderer` — RenderCloudInit + composeUsers + seed ISO + ov_install

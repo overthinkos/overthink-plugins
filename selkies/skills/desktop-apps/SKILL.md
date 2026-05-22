@@ -28,7 +28,7 @@ my-desktop:
 
 ## Used In Images
 
-- `bazzite-ai` (disabled)
+- `bazzite` (disabled)
 
 ## Related Layers
 - `/ov-distros:copr-desktop` — Sibling COPR desktop packages (Ghostty, Nerd Fonts)

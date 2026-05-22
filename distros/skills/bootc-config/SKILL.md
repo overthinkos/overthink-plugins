@@ -70,7 +70,7 @@ Part of the `/ov-distros:bootc-base` composition layer. Used transitively in eve
 
 - `/ov-selkies:selkies-desktop-bootc` — **canonical worked example** (exercises every piece of the supervisord + tty1 autologin + graphical target flow end-to-end)
 - `/ov-openclaw:openclaw-browser-bootc`
-- `/ov-distros:bazzite-ai`
+- `/ov-distros:bazzite`
 - `/ov-distros:aurora`
 
 ## Related Layers

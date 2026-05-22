@@ -51,7 +51,7 @@ The primary use case in Overthink is the `.secrets` workflow: `.envrc` calls `ev
 
 Part of `agent-forwarding` composition layer, used in 27 application images.
 
-Also available in `dev-tools` layer (used in `bazzite-ai`).
+Also available in `dev-tools` layer (used in `bazzite`).
 
 ## Related Layers
 

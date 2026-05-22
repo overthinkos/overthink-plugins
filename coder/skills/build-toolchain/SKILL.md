@@ -91,7 +91,7 @@ my-image:
 
 - `/ov-distros:fedora-builder`
 - `/ov-distros:arch-builder`
-- Also used in `bazzite-ai` (disabled)
+- Also used in `bazzite` (disabled)
 
 ## Related Layers
 - `/ov-languages:pixi` — Sibling in builder images for conda-forge package builds

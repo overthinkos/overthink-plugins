@@ -100,7 +100,7 @@ The Ollama notebooks require a running `ollama` deployment. When deployed via `o
   llms_on_supercomputers/                   (from notebook-llm-on-supercomputers)
     notebooks.yaml
     datasets/
-    D0_00_Bazzite_AI_Setup.ipynb
+    D0_00_Bazzite_Setup.ipynb
     D1_01_Prompting_with_LangChain.ipynb
     D1_02_Prompt_templates_and_parsing.ipynb
     ... (15 notebooks total)

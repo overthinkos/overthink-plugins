@@ -131,7 +131,7 @@
     {
       "name": "ov-distros",
       "source": "./distros",
-      "description": "Base OS images and hardware runtime — arch, fedora, debian, ubuntu, aurora, bazzite-ai, GPU runtime (nvidia/cuda/rocm), bootc bootstrap, per-distro builders.",
+      "description": "Base OS images and hardware runtime — arch, fedora, debian, ubuntu, aurora, bazzite, GPU runtime (nvidia/cuda/rocm), bootc bootstrap, per-distro builders.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
