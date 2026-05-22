@@ -67,7 +67,7 @@ kernel-level RCA.
 
 | Image | Base | Extra layers vs selkies-desktop-nvidia | Security | Purpose |
 |---|---|---|---|---|
-| `selkies-desktop` | `fedora-nonfree` | — | zero-cap baseline | CPU-encoded streaming desktop |
+| `selkies-desktop` | `cachyos` | — | zero-cap baseline | CPU-encoded streaming desktop |
 | `selkies-desktop-nvidia` | `nvidia` | — | zero-cap baseline | NVENC streaming desktop |
 | **`selkies-desktop-ov`** | `nvidia` | **ov-full + container-nesting + golang + gh** | `unmask=/proc/*` + `/dev/fuse,/dev/net/tun` | Streaming desktop that can build images + run nested pods + launch VMs |
 | `selkies-desktop-bootc` | `fedora-bootc:43` | tailscale + keepassxc + bootc-base + rpmfusion | systemd on a bootc VM | Bootable streaming desktop VM |
@@ -268,7 +268,7 @@ this mirror.
 ## Related Images
 
 - `/ov-selkies:selkies-desktop-nvidia` — same streaming desktop, WITHOUT the ov toolchain (no nested podman, no VMs). Prefer this variant if you just need a GPU-accelerated browser desktop.
-- `/ov-selkies:selkies-desktop` — CPU-encoded variant on `fedora-nonfree`.
+- `/ov-selkies:selkies-desktop` — CPU-encoded variant on `cachyos`.
 - `/ov-selkies:selkies-desktop-bootc` — bootable VM flavor of the streaming desktop (no ov toolchain).
 - `/ov-distros:fedora-ov` — root-mode ov toolchain WITHOUT the streaming desktop (traditional `cap_add:[ALL] + host networking` posture).
 - `/ov-coder:arch-ov` — Arch Linux counterpart of fedora-ov.

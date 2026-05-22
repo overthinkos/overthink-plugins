@@ -53,6 +53,13 @@ pac:
   packages: [neovim]     # Arch
 ```
 
+AUR packages are authored under `distro.arch.aur.package` and built via
+`arch-builder` (`yay`); the consuming image must add `aur` to its `build:` list
+(`build: [pac, aur]`) — the base declares only `build: [pac]`. The
+`/ov-distros:cachyos` base shares this exact AUR path (it routes `aur` →
+`arch-builder` too), so AUR support is identical on `arch` and `cachyos`. See
+`/ov-image:layer` "AUR (`aur:`)" for the authoring reference.
+
 ## Verification
 
 After `ov image build`:

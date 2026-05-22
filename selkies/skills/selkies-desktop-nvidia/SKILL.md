@@ -50,7 +50,7 @@ selkies-desktop-nvidia:
 
 ## Difference from selkies-desktop
 
-Same layers, but the `nvidia` base includes the full CUDA toolkit which may resolve the NVENC encoder initialization failure seen with the `fedora-nonfree` base. Use this variant for GPU-accelerated H.264 encoding via NVENC.
+Same layers, but the `nvidia` base includes the full CUDA toolkit which may resolve the NVENC encoder initialization failure seen without a GPU runtime. Use this variant for GPU-accelerated H.264 encoding via NVENC. (The CPU sibling `selkies-desktop` runs on the `cachyos` base; this GPU variant stays on the Fedora `nvidia` base.)
 
 ## Recording
 
@@ -58,7 +58,7 @@ Desktop video recording included via `wl-record-pixelflux` (part of selkies-desk
 
 ## Status
 
-Not yet tested. The `fedora-nonfree` variant works with CPU encoding. This variant needs verification for NVENC hardware encoding.
+Not yet tested. The CPU variant (`selkies-desktop`, cachyos base) works with CPU encoding. This variant needs verification for NVENC hardware encoding.
 
 ## Key Layers
 - `/ov-selkies:selkies-desktop` — full Selkies streaming desktop metalayer
@@ -69,7 +69,7 @@ Not yet tested. The `fedora-nonfree` variant works with CPU encoding. This varia
 - `/ov-distros:agent-forwarding` — SSH/GPG/direnv agent forwarding
 
 ## Related Images
-- `/ov-selkies:selkies-desktop` — CPU-encoding sibling on fedora-nonfree
+- `/ov-selkies:selkies-desktop` — CPU-encoding sibling on cachyos
 - `/ov-selkies:selkies-desktop-ov` — same streaming desktop stack + full ov toolchain (ov-full + container-nesting + golang + gh). Use this variant if you want to build images / start nested pods / launch VMs from inside the browser-accessible desktop.
 - `/ov-selkies:selkies-desktop-bootc` — bootable VM flavor
 - `/ov-distros:nvidia` — parent base image with CUDA toolkit

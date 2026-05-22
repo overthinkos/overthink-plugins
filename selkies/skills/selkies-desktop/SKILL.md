@@ -6,7 +6,8 @@ Browser-accessible Wayland desktop streamed via Selkies/pixelflux WebSocket at `
 
 ```yaml
 selkies-desktop:
-  base: fedora-nonfree
+  base: cachyos
+  build: [pac, aur]          # aur required: chrome (google-chrome) + wl-tools (wlrctl)
   layers:
     - agent-forwarding
     - selkies-desktop
@@ -24,7 +25,16 @@ Tunnel config is in `deploy.yml` (not image.yml): `tunnel: {provider: tailscale,
 
 ## Base
 
-`fedora-nonfree` — Fedora 43 with RPM Fusion (needed for multimedia codecs).
+`cachyos` — the Arch-derived, x86_64_v3-optimized base (owned by the
+`overthinkos/cachyos` submodule, remote-included in `overthink.yml`).
+Multimedia codecs (ffmpeg, x264, libva) come from Arch's `extra` repo; Chrome
+installs from the AUR (`google-chrome`). The image declares `build: [pac, aur]`
+so the AUR builder (`arch-builder`, inherited via the cachyos `builder:` map)
+compiles `google-chrome` (chrome layer) and `wlrctl` (wl-tools layer); inheriting
+plain `[pac]` would silently skip both. The GPU siblings
+(`selkies-desktop-nvidia`, `selkies-desktop-ov`) remain on the Fedora `nvidia`
+base — the shared `selkies-desktop` metalayer carries both `fedora:` and `arch:`
+package sections, and the generator picks per the image's `distro:` tags.
 
 ## Layers
 
@@ -304,8 +314,9 @@ See `/ov-core:ov-config` for `--update-all` propagation, `/ov-selkies:chrome` fo
 
 ## Build Pipeline Note
 
-The selkies-desktop image now compiles `pixelflux_wayland` from source in the
-fedora-builder stage. This is because pixelflux's upstream wheel does not include the
+The selkies-desktop image compiles `pixelflux_wayland` from source in the pixi
+builder stage (`arch-builder` on the cachyos base; `fedora-builder` on the Fedora
+GPU siblings). This is because pixelflux's upstream wheel does not include the
 **dmabuf cache cleanup fix** (`renderer.cleanup_texture_cache()` per frame) that
 prevents a Wayland compositor shmem leak under sustained heavy streaming. The patch is
 applied at build time via inline source patching in `layers/selkies/build.sh`. See
@@ -314,7 +325,7 @@ diagnostic recipe that found the leak.
 
 ## Related Images
 
-- `/ov-selkies:selkies-desktop-nvidia` — GPU-accelerated variant with NVIDIA CUDA toolkit (base: nvidia instead of fedora-nonfree)
+- `/ov-selkies:selkies-desktop-nvidia` — GPU-accelerated variant with NVIDIA CUDA toolkit (base: nvidia; this CPU sibling is on cachyos)
 - `/ov-selkies:selkies-desktop-ov` — GPU-accelerated variant + full ov toolchain (build images, run nested pods, launch rootless libvirt VMs from inside the streaming desktop). Uses `/ov-distros:container-nesting`'s `unmask=/proc/*` posture — no `--privileged`, still uid 1000.
 - `/ov-selkies:selkies-desktop-bootc` — bootable VM flavor
 - `/ov-selkies:sway-browser-vnc` — VNC-based alternative using Sway compositor instead of Selkies/labwc streaming

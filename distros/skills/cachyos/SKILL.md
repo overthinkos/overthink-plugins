@@ -50,6 +50,30 @@ includes; the image DAG `versa → cachyos → docker.io/cachyos-v3` is acyclic)
 `versa` inherits its `builder:` map (pixi/npm/cargo/aur → `arch-builder`) from
 this base — it carries no per-image builder override.
 
+## AUR support — full parity with `arch`
+
+CachyOS has the **same AUR capability as the `arch` base**, because it is
+Arch-derived and its `builder.aur` points at the shared `arch-builder` (which
+ships `yay`). Anything that builds on arch builds on cachyos:
+
+- An image based on `cachyos` that needs AUR packages declares
+  `build: [pac, aur]` (exactly as an `arch`-based image would — the base itself
+  declares only `build: [pac]`, so the consumer opts in). The AUR builder stage
+  (`<layer>-aur-build` via `arch-builder`) then compiles the packages and
+  `pacman -U`-installs the `.pkg.tar.zst` artifacts. Worked example: the
+  `selkies-desktop` image (`base: cachyos`, `build: [pac, aur]`) builds
+  `google-chrome` (chrome layer) + `wlrctl` (wl-tools layer) from the AUR.
+- Layers author AUR packages under `distro.arch.aur.package` (see
+  `/ov-image:layer` "AUR"); the `arch` distro tag is what cachyos images match
+  (their `distro:` is `[cachyos, arch]`), so the same `distro.arch` sections used
+  by every Arch image apply unchanged.
+- The `cachyos` base declares `produce: [pixi, npm, cargo, aur]` (identical to
+  `arch`), advertising the same builder-capability profile as every other base
+  distro.
+
+There is **no cachyos-specific AUR path** and no cachyos-only builder — AUR on
+cachyos and AUR on arch are the same code path through `arch-builder`.
+
 ## Quick Start
 
 ```bash

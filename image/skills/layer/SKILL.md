@@ -486,25 +486,54 @@ pac:
 
 ### AUR (`aur:`)
 
-AUR packages installed via yay in a multi-stage build. The image must have `aur` in its `build` list and `builders.aur` configured (typically `arch-builder`). The builder compiles AUR packages; resulting `.pkg.tar.zst` files are copied into the final image and installed via `pacman -U`.
+AUR packages are compiled by `yay` in a multi-stage build, then the resulting
+`.pkg.tar.zst` artifacts are `pacman -U`-installed into the final image. Two
+conditions must BOTH hold for the AUR stage to be emitted:
+
+1. The consuming **image declares `aur` in its `build:` list** (e.g.
+   `build: [pac, aur]`). The `arch` AND `cachyos` bases both declare only
+   `build: [pac]`, so a consumer that needs AUR MUST add `aur` itself (the
+   `arch-test` and `selkies-desktop` precedents). Without it the AUR section is
+   silently skipped — by design, so a multi-distro layer can carry `aur:` for
+   Arch consumers without forcing every Fedora consumer to invoke a builder.
+2. **`builder.aur` is configured** — `arch-builder` for BOTH the `arch` and
+   `cachyos` bases. CachyOS is Arch-derived and routes all four
+   pixi/npm/cargo/aur formats to `arch-builder`, so an `aur:` layer builds
+   **identically on arch and cachyos** — there is no cachyos-specific AUR path.
+
+**Canonical form — nested under `distro.arch`** (how the repo's layers author it:
+`chrome`, `vscode`, `wl-tools`). The `aur:` block sits beside the regular
+`package:` list inside the arch distro section, so ONE layer carries Fedora RPMs
+and Arch repo + AUR packages together; the generator picks the section matching
+the image's `distro:` tags:
 
 ```yaml
-aur:
-  packages:
-    - yay-bin
-    - neovim-nightly-bin
-  options:
-    - --nocheck
-  # `replaces:` lists distro-repo packages whose file paths conflict
-  # with the AUR build artifact. Each entry is removed via
-  # `pacman -Rs --noconfirm <pkg>` BEFORE the AUR `pacman -U` install.
-  # Idempotent — entries that aren't installed are silently skipped,
-  # so re-runs of the deploy don't error. Required when the AUR build
-  # owns paths also owned by an Arch repo package (e.g.
-  # `visual-studio-code-bin` and `code` both own /usr/bin/code).
-  replaces:
-    - code
+distro:
+  arch:
+    package:                 # Arch repo (core/extra) packages
+      - vulkan-icd-loader
+    aur:                     # AUR packages — need build: [pac, aur] on the image
+      package:
+        - google-chrome
+      options:
+        - --nocheck
+      # `replaces:` lists distro-repo packages whose file paths conflict
+      # with the AUR build artifact. Each entry is removed via
+      # `pacman -Rs --noconfirm <pkg>` BEFORE the AUR `pacman -U` install.
+      # Idempotent — entries that aren't installed are silently skipped.
+      # Required when the AUR build owns paths also owned by an Arch repo
+      # package (e.g. `visual-studio-code-bin` and `code` both own /usr/bin/code).
+      replaces:
+        - code
+  fedora:
+    package:
+      - vulkan-loader
 ```
+
+A top-level `aur:` block (sibling of `pac:`, with a plural `packages:` list) is
+the single-distro shorthand for an Arch-only layer; both forms flatten to the
+same internal `aur` format section (`ov/layers.go` `derivePackageSectionsFromCalamares`).
+Prefer the nested `distro.arch.aur.package` form for multi-distro layers.
 
 The `replaces:` mechanism applies to host (`target: local`) deploys; in OCI image builds the layer is applied to a fresh rootfs that never has the conflicting package, so `replaces:` is a no-op there.
 
