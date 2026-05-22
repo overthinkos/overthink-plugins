@@ -96,7 +96,7 @@ ov remove githubrunner -e RUNNER_TOKEN=<token>
 - `/ov-distros:fedora-ov` — sibling uid=1000 ov toolchain (includes `container-nesting` directly)
 - `/ov-coder:arch-ov` — Arch counterpart of fedora-ov
 - `/ov-coder:fedora-coder` — kitchen-sink dev image sharing the same security posture
-- `/ov-selkies:selkies-desktop-ov` — non-desktop alternative streaming-desktop with the same rootless posture
+- `/ov-openclaw:openclaw-desktop` — non-desktop alternative streaming-desktop with the same rootless posture
 
 ## Related Commands
 

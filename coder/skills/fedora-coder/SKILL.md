@@ -5,7 +5,7 @@ description: |
   in one container. Fedora-nonfree base, 32 direct layers spanning language
   runtimes, build tooling, five AI coding CLIs, and the full cloud/devops
   stack. Runs as uid 1000 with passwordless sudo — rootless-first, matches
-  the /ov-selkies:selkies-desktop-ov security posture.
+  the /ov-openclaw:openclaw-desktop security posture.
   Use when working with the fedora-coder image — specifically any task that
   involves SSH-ing into a single container and having every tool a polyglot
   engineer reaches for during a working day already installed.
@@ -15,7 +15,7 @@ description: |
 
 The everyday-development counterpart to `/ov-distros:fedora-ov`: all the
 coding + AI + DevOps tooling a developer needs in one image, no desktop,
-no streaming. Distinct from `selkies-desktop-ov` (which adds the
+no streaming. Distinct from `openclaw-desktop` (which adds the
 browser-streamed Wayland desktop) — `fedora-coder` is headless and
 meant to be accessed via `ssh -p 2222` or `ov shell`.
 
@@ -89,7 +89,7 @@ normal `-p host:container` remapping (e.g. running `arch-coder` alongside
 No `uid:` / `gid:` / `user:` / `security:` override — inherits
 `1000/1000/user` from `defaults` and the layer-level security from
 `/ov-distros:container-nesting`. Rootless-first by design (shares this
-posture with `/ov-selkies:selkies-desktop-ov`).
+posture with `/ov-openclaw:openclaw-desktop`).
 
 ## Resolved security posture (OCI label)
 
@@ -254,7 +254,7 @@ All four produce the same daily-dev surface (sshd on 2222, ov-mcp on 18765, 5 AI
 
 ## Related Images
 
-- `/ov-selkies:selkies-desktop-ov` — sibling rootless-first power-user image; same security posture + container-nesting, but adds the streaming desktop. Prefer when you want browser-accessible GUI + dev tools.
+- `/ov-openclaw:openclaw-desktop` — sibling rootless-first power-user image; same security posture + container-nesting, but adds the streaming desktop. Prefer when you want browser-accessible GUI + dev tools.
 - `/ov-distros:fedora-ov` — minimal ov toolchain (no coding CLIs, no DevOps), also uid=1000 with sudo.
 - `/ov-coder:arch-ov` — Arch Linux counterpart of fedora-ov.
 - `/ov-distros:githubrunner` — self-hosted GitHub Actions runner; same uid=1000 posture.
@@ -276,7 +276,7 @@ All four produce the same daily-dev surface (sshd on 2222, ov-mcp on 18765, 5 AI
 
 - Building, deploying, or troubleshooting the `fedora-coder` image.
 - Picking the right power-user base image for a coding/dev workload (this
-  vs. `fedora-ov` vs. `arch-ov` vs. `selkies-desktop-ov`).
+  vs. `fedora-ov` vs. `arch-ov` vs. `openclaw-desktop`).
 - Understanding the rootless-first architectural pattern shared by the
   four power-user images (kernel RCA belongs in
   `/ov-distros:container-nesting`; the composition that proves it works

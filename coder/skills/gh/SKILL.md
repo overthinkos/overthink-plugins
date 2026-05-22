@@ -79,7 +79,7 @@ layers:
 ## Used In Images
 
 - `/ov-coder:arch-ov`, `/ov-distros:fedora-ov`, `/ov-coder:fedora-coder` — power-user images that compose gh explicitly
-- `/ov-selkies:selkies-desktop-ov` — streaming-desktop sibling
+- `/ov-openclaw:openclaw-desktop` — streaming-desktop sibling
 - Any image composing `hermes-full`
 
 ## Related Layers

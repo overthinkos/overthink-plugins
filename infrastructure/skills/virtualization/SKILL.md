@@ -119,7 +119,7 @@ Two deliberate choices:
 - **No `user=` directive.** The supervisord programs inherit the parent
   supervisord's uid. On `fedora-ov`/`arch-ov`/`githubrunner`,
   supervisord runs as uid 0 → daemons run as uid 0 →
-  `qemu:///session` targets root's session. On `selkies-desktop-ov`,
+  `qemu:///session` targets root's session. On `openclaw-desktop`,
   supervisord runs as uid 1000 → daemons run as uid 1000 →
   `qemu:///session` targets user's session. Both work because the
   session URI keys off `$XDG_RUNTIME_DIR` rather than a fixed socket
@@ -145,7 +145,7 @@ This layer makes that URI actually work inside a container at uid
   gets KVM acceleration.
 - `virsh -c qemu:///session domcapabilities` reports
   `<domain>kvm</domain>` once the daemons are running — verified
-  on `selkies-desktop-ov` at uid 1000.
+  on `openclaw-desktop` at uid 1000.
 
 ## Tests baked into the layer
 
@@ -185,7 +185,7 @@ See `/ov-eval:eval` "`package:` + `package_map:` pattern" for the resolution ord
 
 ```yaml
 # image.yml — rootless nested VM image
-selkies-desktop-ov:
+openclaw-desktop:
   layers:
     - ...
     - ov-full             # transitively pulls virtualization
@@ -212,7 +212,7 @@ Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networ
 
 ## Used In Images
 
-- `/ov-selkies:selkies-desktop-ov` — rootless VM host inside a streaming desktop
+- `/ov-openclaw:openclaw-desktop` — rootless VM host inside a streaming desktop
 - `/ov-distros:fedora-ov` — root VM host (same daemons, uid 0)
 - `/ov-coder:arch-ov` — Arch counterpart
 - `/ov-coder:debian-coder`, `/ov-coder:ubuntu-coder` — deb-based consumers (via `ov-full`)

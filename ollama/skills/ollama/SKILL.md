@@ -26,6 +26,20 @@ GPU-accelerated Ollama LLM inference server.
 2. `pixi` → `python` → `supervisord` (transitive)
 3. `ollama` — LLM server, models volume
 
+## GPU is image-level — the `ollama` layer is GPU-agnostic
+
+The `ollama` **layer** installs the distro-agnostic Ollama binary (a tarball
+extracted to `/usr`) and a supervisord `ollama serve` service. The binary
+auto-detects the GPU at runtime and falls back to CPU inference when none is
+present, so the layer carries **no `cuda` dependency** — it only `require:`s
+`supervisord`. GPU support is a **composition choice made at the image level**:
+
+- This `ollama` image keeps GPU acceleration via `base: nvidia` (the `nvidia`
+  image composes the `cuda` layer, inherited through the base chain).
+- CPU-only consumers compose the `ollama` layer on a non-NVIDIA base and get
+  CPU inference for free — e.g. `/ov-openclaw:openclaw-desktop` (cachyos base,
+  no `cuda`).
+
 ## Ports
 
 | Port | Service | Protocol |
@@ -73,6 +87,7 @@ This means containers like `jupyter-ml-notebook` automatically discover the Olla
 ## Related Images
 
 - `/ov-distros:nvidia` — parent (GPU without Ollama)
+- `/ov-openclaw:openclaw-desktop` — composes the `ollama` layer CPU-only (cachyos base, no `cuda`) alongside a streaming desktop + the openclaw gateway + the nested ov toolchain
 - `/ov-jupyter:jupyter-ml-notebook` — Jupyter with Ollama integration notebooks (receives `OLLAMA_HOST` automatically via env_provides when ollama is deployed)
 - `/ov-openwebui:openwebui` — Open WebUI (receives `OLLAMA_HOST` via env_provides, auto-configures as `OLLAMA_BASE_URL`)
 

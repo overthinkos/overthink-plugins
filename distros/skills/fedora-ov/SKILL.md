@@ -58,7 +58,7 @@ Resolved OCI security label:
 | `devices` | `[/dev/fuse, /dev/net/tun]` (from `/ov-distros:container-nesting`) |
 | `privileged` | `false` |
 
-See `/ov-selkies:selkies-desktop-ov` (streaming-desktop sibling) and
+See `/ov-openclaw:openclaw-desktop` (streaming-desktop sibling) and
 `/ov-coder:fedora-coder` (kitchen-sink dev sibling) for other images
 sharing this posture, and `/ov-distros:container-nesting` for the
 kernel `mount_too_revealing()` RCA.
@@ -166,7 +166,7 @@ and scripts per distro.
 - `/ov-distros:fedora` — parent base image
 - `/ov-coder:arch-ov` — Arch counterpart, same layers, same rootless posture
 - `/ov-coder:fedora-coder` — kitchen-sink dev sibling (32 layers, adds coding CLIs + DevOps)
-- `/ov-selkies:selkies-desktop-ov` — streaming-desktop counterpart (ov toolchain + browser-accessible Wayland); shares the rootless-first posture
+- `/ov-openclaw:openclaw-desktop` — streaming-desktop counterpart (ov toolchain + browser-accessible Wayland); shares the rootless-first posture
 - `/ov-distros:githubrunner` — self-hosted GitHub Actions runner; same uid=1000 posture
 
 ## Related Commands

@@ -907,16 +907,16 @@ Worked example: `/ov-coder:sshd` ships exactly the `-u user --` pattern. Alterna
 `ov eval image` resolves its positional argument against **local podman storage**, not `image.yml`. When the host has accumulated many CalVer tags for the same image (a normal consequence of iterative `ov image build` runs), the short form errors out:
 
 ```
-ov: error: ambiguous short name "selkies-desktop-ov" in local storage;
-           candidates: ghcr.io/overthinkos/selkies-desktop-ov:latest,
-           ghcr.io/overthinkos/selkies-desktop-ov:2026.109.1418,
+ov: error: ambiguous short name "openclaw-desktop" in local storage;
+           candidates: ghcr.io/overthinkos/openclaw-desktop:latest,
+           ghcr.io/overthinkos/openclaw-desktop:2026.109.1418,
            ... Re-run with a full ref.
 ```
 
 Use the fully-qualified registry ref:
 
 ```bash
-ov eval image ghcr.io/overthinkos/selkies-desktop-ov:latest
+ov eval image ghcr.io/overthinkos/openclaw-desktop:latest
 ```
 
 This is different from `ov image inspect`, `ov image build`, and `ov eval live` (the live-service runner), which key off `image.yml` and accept short names unambiguously. Only the disposable-container runner has this restriction because it does not consult `image.yml` at all.

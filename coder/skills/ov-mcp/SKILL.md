@@ -123,7 +123,7 @@ Six deploy-scope tests ship with the layer:
 
 All `mcp:` checks pass `mcp_name: ov` so they stay unambiguous on
 images that also expose `jupyter` or `chrome-devtools` servers
-(e.g. `/ov-selkies:selkies-desktop-ov`).
+(e.g. `/ov-openclaw:openclaw-desktop`).
 
 ## Host networking caveat
 

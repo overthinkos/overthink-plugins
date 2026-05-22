@@ -61,7 +61,7 @@ Resolved OCI security label:
 | `devices` | `[/dev/fuse, /dev/net/tun]` (from `/ov-distros:container-nesting`) |
 | `privileged` | `false` |
 
-See `/ov-selkies:selkies-desktop-ov` for the sibling rootless-first
+See `/ov-openclaw:openclaw-desktop` for the sibling rootless-first
 image that proves this posture works under streaming-desktop +
 nested-VM load, and `/ov-distros:container-nesting` for the kernel
 `mount_too_revealing()` RCA.
@@ -73,7 +73,7 @@ rewriting (`rewriteMCPURLForHost` in `ov/mcp_client.go`) has published port
 mappings to work with. (That function also handles host-networked containers
 via `HostConfig.NetworkMode` detection, so the bridge isn't strictly required
 — but it remains the portable default.) If host-port 2222 is already taken by
-another running image (canonical conflict: `/ov-selkies:selkies-desktop-ov`
+another running image (canonical conflict: `/ov-openclaw:openclaw-desktop`
 or any `selkies-desktop-*` variant), remap at config time:
 `ov config arch-ov -p 2223:2222`.
 
@@ -197,7 +197,7 @@ packages and scripts per distro.
 - `/ov-distros:arch` — parent base image
 - `/ov-distros:fedora-ov` — Fedora counterpart, same layers, same rootless posture
 - `/ov-coder:fedora-coder` — kitchen-sink dev sibling (32 layers vs 8; adds coding CLIs + DevOps)
-- `/ov-selkies:selkies-desktop-ov` — streaming-desktop counterpart (ov toolchain + browser-accessible Wayland); shares the rootless-first posture
+- `/ov-openclaw:openclaw-desktop` — streaming-desktop counterpart (ov toolchain + browser-accessible Wayland); shares the rootless-first posture
 - `/ov-distros:githubrunner` — self-hosted GitHub Actions runner; same uid=1000 posture
 
 ## Related Commands

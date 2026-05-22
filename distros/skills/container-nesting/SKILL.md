@@ -292,7 +292,7 @@ The resolved OCI label then unions to
 `cap_add:[ALL] + security_opt:[unmask=/proc/*, label=disable, seccomp=unconfined]`,
 which matches their historical posture.
 
-Rootless images like `/ov-selkies:selkies-desktop-ov` don't add an
+Rootless images like `/ov-openclaw:openclaw-desktop` don't add an
 image-level `security:` block, so the resolved posture stays at
 `security_opt:[unmask=/proc/*]` only — zero capability escalation.
 
@@ -304,10 +304,12 @@ image-level `security:` block, so the resolved posture stays at
 
 ```yaml
 # image.yml
-selkies-desktop-ov:
-  base: nvidia
+openclaw-desktop:
+  base: cachyos
   layers:
     - selkies-desktop
+    - openclaw-full
+    - ollama
     - ov-full
     - container-nesting   # donates unmask + devices + config + env
     - ...
@@ -340,16 +342,16 @@ Both paths work; they just resolve to different OCI security labels.
 ## Verification
 
 ```bash
-# Rootless posture on selkies-desktop-ov
-ov image inspect selkies-desktop-ov | jq '.HostConfig? // .Config.Labels."org.overthinkos.security"'
+# Rootless posture on openclaw-desktop
+ov image inspect openclaw-desktop | jq '.HostConfig? // .Config.Labels."org.overthinkos.security"'
 # → cap_add:[], security_opt:[unmask=/proc/*], devices:[/dev/fuse,/dev/net/tun]
 
 # Nested podman smoke (inside the running container)
-ov shell selkies-desktop-ov -c 'podman run --rm quay.io/libpod/alpine:latest true'
+ov shell openclaw-desktop -c 'podman run --rm quay.io/libpod/alpine:latest true'
 # → exit 0, NO "mount proc to proc: Operation not permitted"
 
 # Diagnostic: inspect the OCI spec generated for a nested container
-ov shell selkies-desktop-ov -c '
+ov shell openclaw-desktop -c '
   podman create --name t quay.io/libpod/alpine:latest /bin/true >/dev/null
   sf=$(find ~/.local/share/containers -name config.json -path "*/userdata/*" | head -1)
   jq ".linux.maskedPaths" "$sf"'
@@ -366,7 +368,7 @@ this order:
 
 ## Used In Images
 
-- `/ov-selkies:selkies-desktop-ov` — rootless path; image-level adds nothing
+- `/ov-openclaw:openclaw-desktop` — rootless path; image-level adds nothing
 - `/ov-distros:fedora-ov` — root path; image-level adds `cap_add:[ALL] + security_opt:[label=disable, seccomp=unconfined]`
 - `/ov-coder:arch-ov` — same root path as fedora-ov
 - `/ov-distros:githubrunner` — same root path; doesn't compose the full ov toolchain but keeps nested podman for CI workloads
@@ -391,7 +393,7 @@ this order:
 - Authoring or debugging any layer/image that needs nested podman, buildah, or skopeo.
 - Chasing `mount_too_revealing` / `mount proc to proc: Operation not permitted` errors — this is the authoritative RCA.
 - Choosing between `--privileged`, `cap_add: ALL`, and `unmask=/proc/*` — this skill documents why the surgical `unmask` fix is the minimum-privilege path and the others are hammers.
-- Evaluating the security posture of `/ov-selkies:selkies-desktop-ov`, `/ov-distros:fedora-ov`, `/ov-coder:arch-ov`, or `/ov-distros:githubrunner`.
+- Evaluating the security posture of `/ov-openclaw:openclaw-desktop`, `/ov-distros:fedora-ov`, `/ov-coder:arch-ov`, or `/ov-distros:githubrunner`.
 
 ## Related
 

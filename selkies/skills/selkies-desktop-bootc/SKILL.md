@@ -153,7 +153,7 @@ Rebuild + redeploy the VM.
 
 - `/ov-selkies:selkies-desktop` — non-bootc container sibling (`cachyos` base, supervisord as PID 1)
 - `/ov-selkies:selkies-desktop-nvidia` — GPU-accelerated container sibling (`nvidia` base)
-- `/ov-selkies:selkies-desktop-ov` — GPU-accelerated container sibling + full ov toolchain (nested rootless podman + rootless libvirt VMs). The non-bootc counterpart of this bootc image when you want the desktop to itself build images / launch pods / spawn VMs.
+- `/ov-openclaw:openclaw-desktop` — the CachyOS/CPU all-in-one container sibling: full ov toolchain (nested rootless podman + rootless libvirt VMs) + openclaw gateway + ollama. The non-bootc counterpart of this bootc image when you want the desktop to itself build images / launch pods / spawn VMs.
 - `/ov-distros:bazzite` — ublue-based bootc template
 - `/ov-distros:aurora` — ublue-based bootc template
 

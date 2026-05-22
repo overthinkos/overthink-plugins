@@ -327,7 +327,7 @@ rm /tmp/bootc.tar
 ov vm build <name> --transport containers-storage
 ```
 
-`--transport containers-storage` forces `bootc install` to pull from the machine's local store. Worked example: `/ov-selkies:selkies-desktop-ov` "Two-level nested-virtualization proof".
+`--transport containers-storage` forces `bootc install` to pull from the machine's local store. Worked example: `/ov-openclaw:openclaw-desktop` "Two-level nested-virtualization proof".
 
 ### `ov vm stop` state-sync race under QEMU backend
 
@@ -362,7 +362,7 @@ Expected. The agent needs a `virtio-serial` channel that ov's QEMU backend doesn
 - `/ov-build:build` — building container images before VM disk builds
 - `/ov-image:layer` — `libvirt.snippets:` field in layer.yml
 - `/ov-selkies:selkies-desktop-bootc` — canonical end-to-end bootc worked example
-- `/ov-selkies:selkies-desktop-ov` — two-level nested-virtualization proof
+- `/ov-openclaw:openclaw-desktop` — two-level nested-virtualization proof
 - `/ov-distros:bootc-base` — sshd + qemu-guest-agent + bootc-config bundle
 - `/ov-distros:bootc-config` — bootc-side boot wiring (tty1 autologin, graphical target, systemd-user supervisord)
 - `/ov-distros:cloud-init` — guest-side cloud-init package (complements host-side seed ISO rendering)

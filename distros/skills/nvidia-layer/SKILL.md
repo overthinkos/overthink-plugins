@@ -74,7 +74,7 @@ See `/ov-core:ov-doctor` (Hardware Detection) for the detection probe and `/ov-d
 
 ### Cross-GPU portability (nvidia-base images on AMD hosts)
 
-Images that declare `base: nvidia` (e.g., `/ov-selkies:selkies-desktop-nvidia`, `/ov-selkies:selkies-desktop-ov`) still run cleanly on hosts with a different GPU vendor — the NVIDIA runtime libraries ride along as benign passengers. `ov config` auto-detects whatever the host actually exposes (e.g., `/dev/dri/renderD128` + `/dev/kfd` for an AMD RDNA3), injects those device nodes + `DRINODE`, and Mesa handles rendering. For example, `selkies-desktop-ov` (base: nvidia) runs on an AMD `gfx 11.0.0` host — 15/15 supervisord programs RUNNING, selkies streaming over Mesa, no CUDA calls attempted. The CUDA toolkit in the image simply goes unused.
+Images that declare `base: nvidia` (e.g., `/ov-selkies:selkies-desktop-nvidia`) still run cleanly on hosts with a different GPU vendor — the NVIDIA runtime libraries ride along as benign passengers. `ov config` auto-detects whatever the host actually exposes (e.g., `/dev/dri/renderD128` + `/dev/kfd` for an AMD RDNA3), injects those device nodes + `DRINODE`, and Mesa handles rendering. For example, `selkies-desktop-nvidia` (base: nvidia) runs on an AMD `gfx 11.0.0` host — all supervisord programs RUNNING, selkies streaming over Mesa, no CUDA calls attempted. The CUDA toolkit in the image simply goes unused.
 
 ## Install tasks
 

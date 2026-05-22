@@ -164,7 +164,7 @@ Conflicts with `/ov-coder:fedora-coder` / `/ov-coder:debian-coder` / `/ov-coder:
 - `/ov-coder:debian-coder` — deb-family sibling on Debian 13.
 - `/ov-coder:ubuntu-coder` — deb-family sibling on Ubuntu 24.04 (adopt mode).
 - `/ov-coder:arch-ov` — slimmer Arch alternative with just the ov toolchain (no AI CLIs or DevOps tooling).
-- `/ov-selkies:selkies-desktop-ov` — adds a browser-streamed Wayland desktop on the fedora-ov baseline.
+- `/ov-openclaw:openclaw-desktop` — adds a browser-streamed Wayland desktop (plus the openclaw gateway, AI CLIs, and a CPU ollama) with the same rootless ov toolchain.
 
 ## Related layers
 

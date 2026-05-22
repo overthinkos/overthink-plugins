@@ -31,8 +31,8 @@ Multimedia codecs (ffmpeg, x264, libva) come from Arch's `extra` repo; Chrome
 installs from the AUR (`google-chrome`). The image declares `build: [pac, aur]`
 so the AUR builder (`arch-builder`, inherited via the cachyos `builder:` map)
 compiles `google-chrome` (chrome layer) and `wlrctl` (wl-tools layer); inheriting
-plain `[pac]` would silently skip both. The GPU siblings
-(`selkies-desktop-nvidia`, `selkies-desktop-ov`) remain on the Fedora `nvidia`
+plain `[pac]` would silently skip both. The GPU sibling
+(`selkies-desktop-nvidia`) remains on the Fedora `nvidia`
 base — the shared `selkies-desktop` metalayer carries both `fedora:` and `arch:`
 package sections, and the generator picks per the image's `distro:` tags.
 
@@ -326,7 +326,7 @@ diagnostic recipe that found the leak.
 ## Related Images
 
 - `/ov-selkies:selkies-desktop-nvidia` — GPU-accelerated variant with NVIDIA CUDA toolkit (base: nvidia; this CPU sibling is on cachyos)
-- `/ov-selkies:selkies-desktop-ov` — GPU-accelerated variant + full ov toolchain (build images, run nested pods, launch rootless libvirt VMs from inside the streaming desktop). Uses `/ov-distros:container-nesting`'s `unmask=/proc/*` posture — no `--privileged`, still uid 1000.
+- `/ov-openclaw:openclaw-desktop` — all-in-one CachyOS variant: this streaming desktop fused with the openclaw-full gateway + AI CLIs, a CPU ollama, and the full ov toolchain (build images, run nested pods, launch rootless libvirt VMs from inside the streaming desktop). Uses `/ov-distros:container-nesting`'s `unmask=/proc/*` posture — no `--privileged`, still uid 1000.
 - `/ov-selkies:selkies-desktop-bootc` — bootable VM flavor
 - `/ov-selkies:sway-browser-vnc` — VNC-based alternative using Sway compositor instead of Selkies/labwc streaming
 
