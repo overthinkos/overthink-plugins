@@ -42,7 +42,7 @@ openclaw config              # uses the alias
 ## Used In Images
 
 - `/ov-openclaw:openclaw`
-- `/ov-openclaw:openclaw-ollama`
+- `/ov-openclaw:openclaw-full`
 
 ## Port Relay
 

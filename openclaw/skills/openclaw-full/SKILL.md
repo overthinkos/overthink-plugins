@@ -2,7 +2,6 @@
 name: openclaw-full
 description: |
   Headless OpenClaw with all tool layers. No desktop environment.
-  Currently disabled. Enable in image.yml to build.
   MUST be invoked before building, deploying, or troubleshooting the openclaw-full image.
 ---
 
@@ -14,19 +13,17 @@ Headless OpenClaw image with maximal tool/skill coverage. No desktop, no VNC.
 
 | Property | Value |
 |----------|-------|
-| Base | fedora |
+| Base | cachyos |
 | Layers | agent-forwarding, openclaw-full |
-| Platforms | linux/amd64, linux/arm64 |
-| Ports | 18789 (gateway), 9222 (CDP) |
-| Status | **disabled** (set `enabled: true` in image.yml) |
+| Platforms | linux/amd64 |
+| Ports | 18789 (gateway) |
 | Registry | ghcr.io/overthinkos |
 
 ## Full Layer Stack
 
-1. `fedora` (external base)
-2. `openclaw-full` metalayer (28 layers):
+1. `cachyos` (external base, Arch-derived — pacman/AUR)
+2. `openclaw-full` metalayer (27 layers, no system browser):
    - `openclaw` — AI gateway
-   - `chrome` — headless browser + CDP
    - `claude-code` — Claude Code CLI
    - 25 tool layers (codex, gemini, clawhub, mcporter, oracle, xurl, summarize, playwright, blogwatcher, gifgrep, wacli, goplaces, songsee, sag, camsnap, gogcli, ordercli, himalaya, uv, nano-pdf, gh, tmux, ffmpeg, ripgrep, sqlite)
 
@@ -35,12 +32,10 @@ Headless OpenClaw image with maximal tool/skill coverage. No desktop, no VNC.
 | Port | Service | Protocol |
 |------|---------|----------|
 | 18789 | OpenClaw gateway | HTTP |
-| 9222 | Chrome DevTools | HTTP |
 
 ## Quick Start
 
 ```bash
-# Enable in image.yml first (remove enabled: false)
 ov image build openclaw-full
 ov config openclaw-full
 ov start openclaw-full

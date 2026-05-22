@@ -43,7 +43,6 @@ ov shell nvidia
 - `/ov-jupyter:jupyter` — Jupyter notebook server
 - `/ov-ollama:ollama` — LLM inference server
 - `/ov-comfyui:comfyui` — image generation UI
-- `/ov-openclaw:openclaw-ollama` — OpenClaw + Ollama
 
 ## Related Images
 

@@ -73,7 +73,6 @@ This means containers like `jupyter-ml-notebook` automatically discover the Olla
 ## Related Images
 
 - `/ov-distros:nvidia` — parent (GPU without Ollama)
-- `/ov-openclaw:openclaw-ollama` — OpenClaw gateway + Ollama
 - `/ov-jupyter:jupyter-ml-notebook` — Jupyter with Ollama integration notebooks (receives `OLLAMA_HOST` automatically via env_provides when ollama is deployed)
 - `/ov-openwebui:openwebui` — Open WebUI (receives `OLLAMA_HOST` via env_provides, auto-configures as `OLLAMA_BASE_URL`)
 

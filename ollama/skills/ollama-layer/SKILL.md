@@ -52,7 +52,6 @@ ollama run llama3          # uses the alias
 ## Used In Images
 
 - `/ov-ollama:ollama`
-- `/ov-openclaw:openclaw-ollama`
 
 ## Cross-Container Integration
 

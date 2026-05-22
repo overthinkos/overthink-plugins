@@ -14,18 +14,19 @@ Headless OpenClaw AI gateway — no desktop, no browser, just the gateway servic
 
 | Property | Value |
 |----------|-------|
-| Base | fedora |
-| Layers | agent-forwarding, openclaw |
+| Base | cachyos |
+| Layers | agent-forwarding, openclaw, dbus, ov |
 | Platforms | linux/amd64 |
 | Ports | 18789 |
 | Registry | ghcr.io/overthinkos |
 
 ## Full Layer Stack
 
-1. `fedora` (quay.io/fedora/fedora:43)
+1. `cachyos` (docker.io/cachyos/cachyos-v3:latest, Arch-derived)
 2. `pixi` → `python` → `supervisord` (transitive)
 3. `nodejs` (transitive via openclaw)
 4. `openclaw` — gateway on :18789, data volume
+5. `dbus` — message bus; `ov` — ov CLI toolchain
 
 ## Ports
 
@@ -48,7 +49,7 @@ ov start openclaw
 
 ## Related Images
 
-- `/ov-openclaw:openclaw-ollama` — adds local LLM inference
+- `/ov-openclaw:openclaw-full` — maximal variant (gateway + browser + all tools)
 
 ## Verification
 

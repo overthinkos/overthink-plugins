@@ -66,7 +66,7 @@ manager UI.
 | **ov-jupyter** | 15 | jupyter @ 8888 | Jupyter image family (jupyter, jupyter-ml, jupyter-ml-notebook, unsloth-studio) + notebook templates + jupyter-mcp server. |
 | **ov-coder** | 33 | ov @ 18765 | ov coder/dev images (fedora-coder in the `overthinkos/fedora` submodule; arch-coder/arch-ov in `overthinkos/arch`; debian-coder in `overthinkos/debian`; ubuntu-coder in `overthinkos/ubuntu`) + language runtimes (golang/rust/nodejs/docker-ce). |
 | **ov-selkies** | 41 | chrome-devtools @ 9224 | Selkies-desktop family (Wayland in container with VNC + Chrome). |
-| **ov-openclaw** | 7 | chrome-devtools @ 9224 | OpenClaw AI gateway family: the `openclaw` layer + headless `openclaw`/`openclaw-ollama` images + composition layers (`openclaw-full`, `openclaw-full-ml`). |
+| **ov-openclaw** | 6 | — | OpenClaw AI gateway family (CachyOS base): the `openclaw` layer + headless non-browser `openclaw` / `openclaw-full` images + composition layers (`openclaw-full`, `openclaw-full-ml`). |
 | **ov-versa** | 9 | marimo @ 22718, airflow @ 29999 | Versa image — marimo notebook + Airflow + OSM/GTFS analytics + martin vector tiles. |
 | **ov-ollama** | 2 | — | Ollama LLM-server image. Pair with `ov-jupyter` to expose to notebooks. |
 | **ov-openwebui** | 2 | — | OpenWebUI chat frontend. Consumes the jupyter MCP. |
