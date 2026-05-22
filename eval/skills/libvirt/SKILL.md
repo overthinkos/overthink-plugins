@@ -176,8 +176,8 @@ systemctl --user enable --now libvirtd.service
 ```
 
 `ov vm create` best-effort starts these units before resolving the
-VM backend (see `/ov-vm:vm` "Prereq"). The `ov eval kind vm`
-and `ov eval kind k8s` dispatcher paths invoke the same hook. If the
+VM backend (see `/ov-vm:vm` "Prereq"). The `ov eval run <bed>` path
+for VM-targeting beds (e.g. `eval-k3s-vm`) invokes the same hook. If the
 unit doesn't exist (libvirt not installed), the explicit-backend
 gate in `resolveVmBackend()` surfaces a clear error pointing at the
 remediation.

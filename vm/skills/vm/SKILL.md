@@ -164,7 +164,7 @@ backend explicitly via `backend: libvirt` on the kind:vm entity —
 is missing, breaking every libvirt-RPC probe with a confusing
 "no such file or directory" error 5+ minutes into the eval-live
 timeout. The 2026-05-06 R10 follow-up landed this pin on
-`arch:` and `k3s-vm:` (see `/ov-eval:eval` "ov eval kind").
+`arch:` and `k3s-vm:` (see `/ov-eval:eval` "kind: eval beds").
 
 Source: `ov/vm.go` (`resolveVmBackend`, `startLibvirtUserSession`),
 `ov/vm_libvirt.go`, `ov/vm_qemu.go`.

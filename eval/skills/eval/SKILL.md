@@ -4,7 +4,8 @@ description: |
   MUST be invoked before any work involving: `ov eval` (image / live / run),
   the `eval:` / `deploy_eval:` fields in layer.yml / image.yml / deploy.yml,
   the `org.overthinkos.eval` OCI label, the AI iteration harness loop,
-  `kind: ai` / `kind: recipe` / `kind: score` in eval.yml, or any declarative
+  `kind: ai` / `kind: recipe` / `kind: score` / `kind: eval` (disposable R10
+  beds run via `ov eval run <bed>`) in eval.yml, or any declarative
   check authoring. Covers the unified post-2026-04 `ov eval` surface
   (which replaced the legacy `ov test` + `ov harness` commands): three
   primary modes (image / live / run),
@@ -21,95 +22,85 @@ description: |
 
 # Eval — unified declarative + AI-iteration evaluation
 
-## ov eval kind <kind> — fast per-kind R10 dispatcher
+## kind: eval beds + `ov eval run <bed>` — config-driven R10 acceptance
 
-Added in the 2026-05-XX per-kind file-split / `kind: deployment` → `kind: deploy` cutover. `ov eval kind <kind>` is the recommended fast entry point for R10 acceptance: it runs the full per-kind build → eval-image → deploy → eval-live → rebuild → remove cycle on a dedicated disposable bed for exactly one schema kind, with zero ceremony.
+The disposable R10 test beds are **`kind: eval` entities in `eval.yml`** (NOT a
+hardcoded table — the retired `ov eval kind <subkind>` and its Go `bedTable`
+were dropped 2026-05). A `kind: eval` entity is a deploy-shaped node folded
+into the Deploy map at load time, so every deploy verb resolves it by name;
+`ov eval run <bed>` drives the full R10 sequence on it:
 
-### Subkinds
-
-| Subkind | Coverage |
-|---|---|
-| `image` | Image-level schema + Containerfile emission + OCI-label contract for one canonical image. |
-| `layer` | Layer authoring schema + per-layer task verbs + per-layer eval probes. |
-| `pod` | `kind: pod` entity composition + multi-container pod startup + intra-pod networking. |
-| `vm` | `kind: vm` entity → libvirt domain → boot to steady state via `ov vm create` + start. |
-| `k8s` | `kind: k8s` cluster definition → k3s control-plane reach + addon health. |
-| `local` | `kind: local` template merge with deploy + `target: local` ShellExecutor path. |
-| `deploy` | `kind: deploy` entity (post-cutover schema kind) → end-to-end add/del + ledger cleanup. |
-| `all` | Runs every kind serially, in dependency order. |
-
-### Per-kind sequence (applied for each subkind except `all`)
-
-1. `ov image build <image>` — build the test artifact.
+1. `ov image build <image>` — build the test artifact (pod beds only).
 2. `ov eval image <image>` — image-section + baked layer-section probes.
-3. `ov deploy add <bed> <ref>` — apply the test bed (or `ov vm create <bed>` + `ov vm start <bed>` for the VM kind).
-4. `ov eval live <bed>` — full three-section live probe pass.
-5. `ov update <bed>` — fresh-rebuild re-verification (R10 acceptance gate).
-6. `ov remove <bed>` — leave the host clean.
+3. `ov deploy add <bed> <ref>` — apply the bed (or `ov vm create` for vm beds).
+4. (pod beds) `ov config <bed>` + `ov start <bed>`.
+5. `ov eval live <bed>` — full three-section live probe pass.
+6. `ov update <bed>` — fresh-rebuild re-verification (R10 acceptance gate).
+7. `ov remove <bed>` (or `ov vm destroy`) — leave the host clean.
 
-### Bed table — which test bed each subkind targets
+`ov eval run --all-beds` runs every bed name-sorted (the replacement for the
+old `ov eval kind all`). Flags: `--keep` (don't tear down), `--no-rebuild`
+(skip step 6 — FORBIDDEN for an R10 acceptance run; needs explicit operator
+authorization per CLAUDE.md). Per-run logs land in `.eval/<bed>/<calver>/`
+(per-step `.log` files + `summary.yml`).
 
-| Subkind | Bed | Notes |
-|---|---|---|
-| `image` | `eval-image-pod` | Dedicated pod purpose-built for image-section probes. |
-| `layer` | `eval-layer-pod` | Dedicated pod for layer-section probes. |
-| `pod` | `eval-pod-pod` | Dedicated pod for `kind: pod` entity validation. |
-| `vm` | `arch-vm` (template `arch`) | **REUSED** from the existing arch cloud-image bed — no new VM image. |
-| `k8s` | `k3s-vm` | **REUSED** from the existing k3s test VM. |
-| `local` | `eval-local-deploy` | Dedicated `target: local` deploy on a disposable scratch dir. |
-| `deploy` | `eval-deploy-pod` | Dedicated pod exercising the `kind: deploy` end-to-end. |
+### The repo's `kind: eval` beds (eval.yml)
 
-### Wall-clock budget (approximate, on the 10-CPU 32-GB reference host)
+| Bed | Target | Ref | Surface |
+|---|---|---|---|
+| `eval-sway-browser-vnc-pod` | pod | `image: sway-browser-vnc` | cdp/wl/vnc/dbus/mcp/record + pod-side file/service/port/process/http |
+| `eval-k3s-vm` | vm | `vm: k3s-vm` | k8s (all 13 methods) + guest-side file/service/port/process, http via port-forward, VmDeployTarget end-to-end |
+| `eval-image-pod` | pod | `image: eval-image` | `kind: image` build + eval image + pod deploy |
+| `eval-layer-pod` | pod | `image: eval-layer` | `kind: layer` composition order |
+| `eval-pod-pod` | pod | `image: eval-pod` | `kind: pod` runtime + ports + supervisord render |
+| `eval-deploy-pod` | pod | `image: eval-deploy` | every DeployTarget rendering path |
+| `eval-local` | local | `local: eval-local` | `kind: local` layer apply via ShellExecutor |
+| `eval-jupyter-pod` | pod | `image: jupyter` | jupyter-mcp regression coverage |
+| `eval-jupyter-ml-pod` | pod | `image: jupyter-ml` | jupyter-ml spacy/quarto + GPU MCP probes |
+| `eval-versa-pod` | pod | `image: versa` | versa OSM analytics + vector-tile + marimo MCP |
+| `eval-android-emulator-pod` | pod | `image: android-emulator` | Android 14 emulator (/dev/kvm) + adb/appium |
 
-| Subkind | Budget |
-|---|---|
-| `image` | ~75 s |
-| `layer` | ~105 s |
-| `pod` | ~85 s |
-| `vm` | ~3–4 min |
-| `k8s` | ~5–7 min |
-| `local` | ~45 s |
-| `deploy` | ~85 s |
-| `all` (serial) | ~10–15 min |
+Naming: `eval-<descriptor>-<kind>`, dropping a redundant suffix when the
+descriptor already equals the kind AND the short form is free (`eval-local`;
+the kind:pod bed stays `eval-pod-pod` because `eval-pod` is the reserved
+harness AI-sandbox pod name — the score `pod:` target). The supporting
+`vm: k3s-vm` + `k8s: vm-k3s-vm` entities live in `eval.yml` alongside the
+beds (the `k3s-vm` vm entity + `vm-k3s-vm` k8s entity keep their names — only
+the bed got the `eval-` prefix). `disposable: true` is the sole authorization
+for the unattended destroy+rebuild (see `/ov-internals:disposable`); load-time
+validation (`validateEvalBeds`) enforces target ∈ {pod,vm,local}, a resolvable
+cross-ref, `disposable: true`, and a name space disjoint from `kind: deploy`.
 
-### Flags
+### Approximate wall-clock (10-CPU 32-GB reference host)
 
-- `--no-rebuild` — skip step 5 (the fresh-rebuild re-verification). Useful only for fast smoke; FORBIDDEN for an R10 acceptance run.
-- `--keep` — skip step 6 (don't tear the bed down). Useful for follow-up exploration; the next `ov eval kind` invocation will detect and reuse.
-- `--timeout=<duration>` — override the wall-clock budget. Default `1200s`. Per-kind defaults match the table above.
+`eval-image-pod` ~75s · `eval-layer-pod` ~105s · `eval-pod-pod` ~85s ·
+`eval-deploy-pod` ~85s · `eval-local` ~45s · `eval-k3s-vm` ~5–7 min · the
+heavy feature beds (`eval-sway-browser-vnc-pod` ~14 min incl. image build)
+longer. `ov eval run --all-beds` ≈ the sum.
 
-### Per-run output
+### Prereq for the vm bed
 
-`.eval/kind/<kind>/<calver>/summary.yml` carries the structured pass/fail rollup; per-step `.log` files (build.log, eval-image.log, deploy-add.log, eval-live.log, rebuild.log, remove.log) live in the same directory. Newest run is symlinked at `.eval/kind/<kind>/latest`.
-
-### Prereq for `vm` and `k8s` subkinds
-
-Both VM-targeting subkinds depend on the **libvirt user-session daemon** running on the operator's machine — every `ov eval libvirt …` and `ov eval spice …` probe in the bed's eval list routes through that daemon's session socket. Enable it once with:
+`eval-k3s-vm` depends on the **libvirt user-session daemon**. Enable once:
 
 ```bash
-systemctl --user enable --now virtqemud.service     # libvirt ≥ 8 (modular)
+systemctl --user enable --now virtqemud.service     # libvirt >= 8 (modular)
 # OR (older monolithic):
 systemctl --user enable --now libvirtd.service
 ```
 
-`ov eval kind <vm|k8s>` best-effort starts the unit before invoking `ov vm create` (via `startLibvirtUserSession()` in `ov/vm.go`); `resolveVmBackend()` surfaces a clear `"libvirt backend requires libvirt session daemon"` error when the unit isn't installed at all (libvirt missing entirely on a CI runner / air-gapped host). The `arch:` and `k3s-vm:` templates pin `backend: libvirt` explicitly so the silent `auto → qemu` fallback can't mask a missing daemon. See `/ov-vm:vm` "Prereq" and `/ov-eval:libvirt` "Daemon prerequisite".
+`ov eval run eval-k3s-vm` best-effort starts the unit before `ov vm create`
+(via `startLibvirtUserSession()` in `ov/vm.go`); `resolveVmBackend()` surfaces
+a clear error when libvirt is absent. The `k3s-vm:` vm template pins
+`backend: libvirt` explicitly so the silent `auto -> qemu` fallback can't mask
+a missing daemon. See `/ov-vm:vm` "Prereq", `/ov-eval:libvirt`.
 
-### Why this verb exists
+### Why this is config-driven
 
-R10 acceptance has historically required the operator to assemble the build → eval-image → deploy → eval-live → rebuild sequence by hand for each affected kind. The 2026-05-XX file-split cutover added six new per-kind YAML files, multiplying the surfaces an R10 sweep must cover; a dedicated dispatcher cut the per-cutover R10 ceremony from N hand-rolled command sequences to ONE invocation per kind. See `/ov-internals:cutover-policy` "Historical cutovers that followed this policy".
-
-## Schema v4 — four disposable test beds in this repo's `deploy.yml`
-
-The project's `deploy.yml` defines four canonical disposable beds covering the full ov verb surface with zero operator-side-effects:
-
-| Bed | Target | Surface |
-|---|---|---|
-| `arch-vm` | `target: vm, vm_source: arch` | libvirt/spice/ssh/cloud-init/guest OS (command/libvirt/spice/file/service/port/process/package/user/group/interface/kernel-param/mount/addr/dns/http/matching) |
-| `arch-vm.arch-host` | `target: host` nested child | HostDeployTarget code path inside arch-vm guest FS — zero operator FS writes |
-| `eval-sway-browser-vnc-pod` | `target: pod, image: sway-browser-vnc` | cdp/wl/vnc/dbus/mcp/record (live-container verbs) |
-| `k3s-pod` | `target: pod, image: fedora-ov + k3s-server layer` | k8s verbs (all 13 methods) against the pod-hosted cluster |
-
-Run a full-stack smoke with `ov eval live arch && ov eval live <eval-sway-browser-vnc-pod> && ov eval live <k3s-pod>`. Fresh-rebuild via `ov update <name>` first (R10 acceptance gate). The bed-to-verb coverage map is a top-of-file comment in `deploy.yml`.
+A pre-2026-05 hardcoded Go `bedTable` (walked by `ov eval kind`) duplicated the
+image/vm/local/target data that already lived on each bed. Making the beds
+`kind: eval` config and reading the node directly removed that duplication AND
+made the runner work for ANY bed an operator defines — `ov eval run <name>`.
+See `/ov-internals:cutover-policy`.
 
 ## The 10 Testing Standards (READ FIRST — referenced by CLAUDE.md R1–R10)
 
@@ -183,6 +174,7 @@ check written once works unchanged when `deploy.yml` remaps ports.
 |--------|---------|-------------|
 | Pure-image eval (disposable, build-scope) | `ov eval image <image>` | Layer + image sections only, in `podman run --rm` (no host port mappings, no volumes attached) |
 | Live full-stack eval (running deployment) | `ov eval live <name> [-i instance]` | All three sections run via `podman exec` / SSH / nested chain, with full runtime variable resolution |
+| R10 bed (full sequence) | `ov eval run <bed>` / `ov eval run --all-beds` | Build → eval image → deploy → eval live → fresh update → tear down on a `kind: eval` disposable bed. Canonical R10 gate |
 | AI iteration loop | `ov eval run <score>` | Drives an AI through plateau-bounded iterations against `kind: score` |
 | Validate authored tests at config time | `ov image validate` | Schema, scope/variable consistency, id uniqueness |
 | Inspect effective spec | `ov image inspect <image>` | JSON includes merged eval structure |
@@ -1136,5 +1128,6 @@ deliberately.
 behavior at any level. Triggers: `ov eval` (any subcommand), `ov eval
 run`, `ov eval image`, `ov eval live`, the `eval:` / `deploy_eval:`
 YAML fields, the `org.overthinkos.eval` OCI label, `kind: ai` /
-`kind: recipe` / `kind: score` in `eval.yml`, or any check verb by
-name (file/port/http/command/package/service/cdp/wl/dbus/vnc/mcp/...).
+`kind: recipe` / `kind: score` / `kind: eval` in `eval.yml`,
+`ov eval run <bed>` / `--all-beds` (kind:eval R10 beds), or any check
+verb by name (file/port/http/command/package/service/cdp/wl/dbus/vnc/mcp/...).

@@ -14,12 +14,12 @@ live-container test verbs (cdp / wl / vnc / dbus / mcp / record) on the Sway
 stack. It deploys the **shipping `/ov-selkies:sway-browser-vnc` image directly**
 — there is no separate eval image. It sits alongside the other `eval-*` smoke
 beds (`eval-image-pod`, `eval-layer-pod`, `eval-pod-pod`, `eval-deploy-pod`,
-`eval-local-deploy`) in this repo's `deploy.yml`.
+`eval-local`) — all `kind: eval` entities in this repo's `eval.yml`.
 
-## Bed (`deploy.yml`)
+## Bed (`eval.yml`)
 
 ```yaml
-deploy:
+eval:
   eval-sway-browser-vnc-pod:
     target: pod
     image: sway-browser-vnc        # the shipping image, deployed as-is
@@ -50,13 +50,14 @@ cdp/wl/vnc/dbus/mcp/record surface.
 ## Usage
 
 ```bash
-# Deploy the disposable bed (first time): config + start.
+# Canonical one-shot — the FULL R10 acceptance sequence (build → eval image →
+# deploy → config → start → eval live → fresh update → tear down):
+ov eval run eval-sway-browser-vnc-pod
+# Or drive the steps manually:
 ov config eval-sway-browser-vnc-pod
 ov start  eval-sway-browser-vnc-pod
-# Full live R10 (deploy-scope cdp/wl/vnc/dbus/mcp/record):
-ov eval live eval-sway-browser-vnc-pod
-# Fresh-rebuild re-verification (disposable):
-ov update eval-sway-browser-vnc-pod && ov eval live eval-sway-browser-vnc-pod
+ov eval live eval-sway-browser-vnc-pod        # deploy-scope cdp/wl/vnc/dbus/mcp/record
+ov update eval-sway-browser-vnc-pod && ov eval live eval-sway-browser-vnc-pod  # fresh-rebuild re-verify
 ```
 
 Note: `ov config <key>` persists `image: <key>` (it assumes deploy-key ==

@@ -172,7 +172,7 @@ writes; every subsequent deploy reads the persisted value. Race-free
 across multi-layer declarations because `DefaultCredentialStore` caches
 via `sync.Once` — when k3s-server and k3s-agent both declare
 `K3S_CLUSTER_TOKEN`, whichever resolves first writes, and the other
-reads. No operator setup required for `ov update k3s-vm` to succeed
+reads. No operator setup required for `ov update eval-k3s-vm` to succeed
 on a fresh host.
 
 `secret_accept:` entries do NOT auto-generate (they're optional by

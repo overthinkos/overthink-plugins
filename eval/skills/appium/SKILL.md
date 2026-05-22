@@ -11,7 +11,7 @@ description: |
 `ov eval appium <method>` is the host-side Appium WebDriver client. It
 talks W3C WebDriver to the container's host-published Appium port
 (container `:4723` → host's `HOST_PORT:4723`, e.g. `35001` on the
-`android-emulator-pod` deploy) at base path `/wd/hub`.
+`eval-android-emulator-pod` deploy) at base path `/wd/hub`.
 
 Session lifecycle uses a persistent JSON session file at
 `~/.cache/ov/appium/sessions/<image>[_<instance>].json` so multi-step
@@ -105,7 +105,7 @@ wrapping.
 - `adb: install` reads `apk:` from the host filesystem (the host `ov`
   binary pushes via the ADB sync protocol).
 - `appium: install-app` passes `apk:` to the in-container Appium server,
-  which reads it. The android-emulator-pod deploy bind-mounts
+  which reads it. The eval-android-emulator-pod deploy bind-mounts
   `./tests/data` → `/workspace` so the canonical path is
   `/workspace/ApiDemos-debug.apk` from Appium's perspective.
 
@@ -136,7 +136,7 @@ sees, not the host path.
   "session_id": "37e8f3c1-a9b2-4d8e-b6c5-9a4f7c8b1e2d",
   "base_url": "http://127.0.0.1:35001/wd/hub",
   "created_at": "2026-05-16T14:32:17.481Z",
-  "image": "android-emulator-pod",
+  "image": "eval-android-emulator-pod",
   "instance": "",
   "caps": { ... }
 }

@@ -11,7 +11,7 @@ description: |
 `ov eval adb <method>` is the host-side ADB client. The host `ov` binary
 connects to the running container's host-published ADB server port
 (container `:5037` → host's `HOST_PORT:5037`, e.g. `35002` on the
-`android-emulator-pod` deploy) using `github.com/zach-klippenstein/goadb`
+`eval-android-emulator-pod` deploy) using `github.com/zach-klippenstein/goadb`
 and dispatches operations against the emulator backing that server.
 
 Same architecture pattern as `ov eval mcp`: host-side protocol client, no
