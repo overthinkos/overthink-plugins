@@ -243,7 +243,7 @@ gained a TUNNEL column and the IMAGE column now merges `image[/instance]`
 
 ```
 IMAGE                              STATUS   PORTS                 TUNNEL                  DEVICES  TOOLS
-openclaw-sway-browser              running  5900,8000,8080,18789  -                       dri,gpu  cdp:9222,dbus,ov,supervisord,sway,vnc:5900,wl
+sway-browser-vnc                   running  5900,9222,9224        -                       dri,gpu  cdp:9222,dbus,ov,supervisord,sway,vnc:5900,wl
 selkies-desktop/work               running  3001,9240             tailscale (all ports)   -        cdp:9240,dbus,ov,supervisord,wl
 selkies-desktop/personal           running  3002,9241             tailscale (all ports)   -        cdp:9241,dbus,ov,supervisord,wl
 ollama                             running  11434                 -                       gpu      dbus,ov,supervisord

@@ -32,7 +32,6 @@ my-os:
 
 ## Used In Images
 
-- `/ov-openclaw:openclaw-browser-bootc` (disabled image)
 
 ## When to Use This Skill
 

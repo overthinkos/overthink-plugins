@@ -25,8 +25,6 @@ layers:
 ## Used In Images
 
 - `openclaw-full` (via `openclaw-full` metalayer)
-- `openclaw-full-sway` (via `openclaw-full` metalayer)
-- `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
 ## Related Layers
 - `/ov-coder:nodejs` — Required Node.js runtime parent dependency

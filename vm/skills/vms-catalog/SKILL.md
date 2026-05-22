@@ -130,7 +130,6 @@ The 4 bootc VMs currently shipped (each with a dedicated thin skill):
 |---|---|---|
 | `aurora-bootc` | `/ov-distros:aurora` | `/ov-vm:aurora-bootc` |
 | `bazzite-bootc` | `/ov-distros:bazzite` | `/ov-vm:bazzite-bootc` |
-| `openclaw-browser-bootc-bootc` | `/ov-openclaw:openclaw-browser-bootc` | `/ov-vm:openclaw-browser-bootc-bootc` |
 | `selkies-desktop-bootc-bootc` | `/ov-selkies:selkies-desktop-bootc` | `/ov-vm:selkies-desktop-bootc-bootc` |
 
 The `-bootc` suffix is doubled on some entries because the paired container image already ends in `-bootc` (the VM is distinguished from an equivalent container-form deploy by the `vms:` namespacing, not by the name).
@@ -198,7 +197,7 @@ Idempotent. Harvests the legacy fields into `vms:` entries, preserving any pre-e
 - `/ov-build:migrate` — `ov migrate` conversion from legacy
 - `/ov-core:deploy` — `ov deploy add vm:<name>` for in-guest layer application
 - `/ov-vm:arch` — canonical cloud_image VM
-- `/ov-vm:aurora-bootc`, `/ov-vm:bazzite-bootc`, `/ov-vm:openclaw-browser-bootc-bootc`, `/ov-vm:selkies-desktop-bootc-bootc` — bootc VMs
+- `/ov-vm:aurora-bootc`, `/ov-vm:bazzite-bootc`, `/ov-vm:selkies-desktop-bootc-bootc` — bootc VMs
 - `/ov-internals:vm-spec` — Go type reference
 - `/ov-internals:libvirt-renderer` — libvirt XML emission
 - `/ov-internals:cloud-init-renderer` — NoCloud seed ISO + user-data emission

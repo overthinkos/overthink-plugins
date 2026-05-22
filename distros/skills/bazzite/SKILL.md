@@ -59,7 +59,6 @@ ov -C image/bootc vm start bazzite-bootc
 
 ## Related Images
 - `/ov-distros:aurora` — sibling Universal Blue bootc image with ov toolchain
-- `/ov-openclaw:openclaw-browser-bootc` — sibling fedora-bootc image
 
 ## Related Commands
 - `/ov-vm:vm` — build and run as a bootc VM

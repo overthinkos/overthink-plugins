@@ -48,9 +48,7 @@ ov start openclaw
 
 ## Related Images
 
-- `/ov-openclaw:openclaw-sway-browser` — adds desktop + Chrome for browser automation
 - `/ov-openclaw:openclaw-ollama` — adds local LLM inference
-- `/ov-openclaw:openclaw-ollama-sway-browser` — full stack with desktop + LLM
 
 ## Verification
 

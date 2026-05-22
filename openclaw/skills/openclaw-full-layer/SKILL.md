@@ -58,12 +58,9 @@ layers:
 ## Used In Images
 
 - `openclaw-full`
-- `openclaw-full-sway` (with `sway-desktop`)
-- `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
 ## Related Layers
 - `/ov-openclaw:openclaw` — base gateway layer included in this metalayer
-- `/ov-openclaw:openclaw-full-ml` — superset adding whisper, sherpa-onnx, CUDA
 - `/ov-selkies:sway-desktop-vnc` — desktop layer paired in sway-browser images
 
 ## Related Commands

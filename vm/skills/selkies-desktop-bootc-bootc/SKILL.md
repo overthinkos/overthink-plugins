@@ -33,7 +33,7 @@ vms:
 
 | Setting | Value | Rationale |
 |---|---|---|
-| Disk size | 40 GiB | Selkies + Chrome + PipeWire + toolchain transitives — more than openclaw-browser-bootc's 20 GiB |
+| Disk size | 40 GiB | Selkies + Chrome + PipeWire + toolchain transitives need a roomy rootfs |
 | RAM | 8G | Chrome + compositor + recorder want headroom |
 | CPUs | 4 | 8 G/4 cpus rule of thumb for streaming desktop VMs |
 | SSH user | `root` | bootc default |

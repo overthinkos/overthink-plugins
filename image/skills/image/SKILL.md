@@ -360,7 +360,7 @@ my-bootc-image:
 
 Symptom without `distro:`: `ov image inspect <image>` shows `"Distro": null`. The generator's install_template Phase-2 branch short-circuits on `img.DistroDef == nil`, so **no layer `rpm:` install RUN steps are emitted**. The image builds cleanly but is missing every package from every layer that uses declarative `rpm:` sections. Explicit `cmd: dnf install …` tasks still run; the bug affects only declarative `rpm:`/`deb:`/`pac:` sections.
 
-Internal bases (`base: fedora`) inherit `distro:` and `build:` from the parent image automatically — you only need explicit tags on images whose `base:` is a URL. Canonical worked example: `/ov-selkies:selkies-desktop-bootc`. The sibling bootc images (`/ov-openclaw:openclaw-browser-bootc`, `/ov-distros:bazzite`, `/ov-distros:aurora`) all declare `distro:` as of the 2026-05 bootc-submodule extraction (they live in the `overthinkos/bootc` submodule).
+Internal bases (`base: fedora`) inherit `distro:` and `build:` from the parent image automatically — you only need explicit tags on images whose `base:` is a URL. Canonical worked example: `/ov-selkies:selkies-desktop-bootc`. The sibling bootc images (`/ov-distros:bazzite`, `/ov-distros:aurora`) all declare `distro:` as of the 2026-05 bootc-submodule extraction (they live in the `overthinkos/bootc` submodule).
 
 ## Intermediate Images
 

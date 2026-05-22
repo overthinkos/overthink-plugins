@@ -247,7 +247,7 @@ curl -s "http://localhost:9222/json/list"
 
 ## Used In Images
 
-- Part of `chrome-sway` / `sway-desktop` composition (used in `openclaw-sway-browser`, `openclaw-ollama-sway-browser`)
+- Part of `chrome-sway` / `sway-desktop` composition (used in `sway-browser-vnc`)
 
 ## Related Layers
 

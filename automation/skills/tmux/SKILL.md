@@ -41,14 +41,14 @@ The user-friendly entry point. Creates or reattaches to a persistent shell sessi
 
 ```bash
 # First call creates a "shell" session and attaches
-ov tmux shell openclaw-ollama-sway-browser
+ov tmux shell sway-browser-vnc
 
 # After detaching (Ctrl-b d) or disconnect, reattach:
-ov tmux shell openclaw-ollama-sway-browser
+ov tmux shell sway-browser-vnc
 # → Picks up right where you left off
 
 # Use a custom session name:
-ov tmux shell openclaw-ollama-sway-browser -s dev
+ov tmux shell sway-browser-vnc -s dev
 ```
 
 **Behavior:**
@@ -63,7 +63,7 @@ ov tmux shell openclaw-ollama-sway-browser -s dev
 Sends a command (text + Enter) to an existing tmux session. Returns immediately after sending. Sends a desktop notification by default (disable with `--no-notify`).
 
 ```bash
-ov tmux cmd openclaw-ollama-sway-browser "ls -la" -s oauth
+ov tmux cmd sway-browser-vnc "ls -la" -s oauth
 ov tmux cmd jupyter "python train.py" -s training --no-notify
 ```
 
@@ -79,7 +79,7 @@ Starts a command in a new named tmux session. Returns immediately — the comman
 
 ```bash
 # Run OAuth flow in background with real terminal
-ov tmux run openclaw-ollama-sway-browser -s oauth \
+ov tmux run sway-browser-vnc -s oauth \
   "openclaw models auth login --provider openai-codex --set-default"
 
 # Run any long-lived command
@@ -97,7 +97,7 @@ ov tmux run jupyter -s training "python train.py --epochs 100"
 Attaches to an existing session. Use when you want to interact with a running command.
 
 ```bash
-ov tmux attach openclaw-ollama-sway-browser -s oauth
+ov tmux attach sway-browser-vnc -s oauth
 # Detach with Ctrl-b d
 ```
 
@@ -108,7 +108,7 @@ ov tmux attach openclaw-ollama-sway-browser -s oauth
 ### `ov tmux list` — List Sessions
 
 ```bash
-ov tmux list openclaw-ollama-sway-browser
+ov tmux list sway-browser-vnc
 # shell: 1 windows (created Sat Mar 21 16:54:15 2026)
 # oauth: 1 windows (created Sat Mar 21 17:01:22 2026)
 ```
@@ -121,10 +121,10 @@ Reads the current pane content without attaching. Essential for automation — C
 
 ```bash
 # Read visible pane content
-ov tmux capture openclaw-ollama-sway-browser -s oauth
+ov tmux capture sway-browser-vnc -s oauth
 
 # Read last 50 lines of history
-ov tmux capture openclaw-ollama-sway-browser -s oauth -n 50
+ov tmux capture sway-browser-vnc -s oauth -n 50
 ```
 
 **Flags:**
@@ -136,14 +136,14 @@ Sends keystrokes to a running session. For automation when you need to respond t
 
 ```bash
 # Type text and press Enter
-ov tmux send openclaw-ollama-sway-browser -s oauth "yes" --enter
+ov tmux send sway-browser-vnc -s oauth "yes" --enter
 
 # Send literal text (disable tmux key name interpretation)
-ov tmux send openclaw-ollama-sway-browser -s oauth -l "C-c is not ctrl-c here"
+ov tmux send sway-browser-vnc -s oauth -l "C-c is not ctrl-c here"
 
 # Send special keys
-ov tmux send openclaw-ollama-sway-browser -s oauth Enter
-ov tmux send openclaw-ollama-sway-browser -s oauth C-c
+ov tmux send sway-browser-vnc -s oauth Enter
+ov tmux send sway-browser-vnc -s oauth C-c
 ```
 
 **Flags:**
@@ -153,8 +153,8 @@ ov tmux send openclaw-ollama-sway-browser -s oauth C-c
 ### `ov tmux kill` — Kill Session
 
 ```bash
-ov tmux kill openclaw-ollama-sway-browser -s oauth
-# Killed tmux session "oauth" in ov-openclaw-ollama-sway-browser
+ov tmux kill sway-browser-vnc -s oauth
+# Killed tmux session "oauth" in ov-sway-browser-vnc
 ```
 
 ## Use Case: OpenAI Codex OAuth
@@ -162,7 +162,7 @@ ov tmux kill openclaw-ollama-sway-browser -s oauth
 The primary use case that motivated `ov tmux`. The `openclaw models auth login` TUI requires a real terminal to complete the post-callback token exchange. `ov shell --tty` piped through `tee` or backgrounded breaks the TUI event loop — the callback is received but tokens are never saved.
 
 ```bash
-IMG=openclaw-ollama-sway-browser
+IMG=sway-browser-vnc
 
 # 1. Start OAuth in a tmux session (real terminal)
 ov tmux run $IMG -s oauth \

@@ -39,8 +39,6 @@ sway-browser-vnc:
 ## Used In Images
 
 - `/ov-selkies:sway-browser-vnc` (via `sway-desktop-vnc` metalayer)
-- `/ov-openclaw:openclaw-sway-browser` (via `sway-desktop-vnc` metalayer)
-- `/ov-openclaw:openclaw-ollama-sway-browser` (via `sway-desktop-vnc` metalayer)
 
 ## When to Use This Skill
 

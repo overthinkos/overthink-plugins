@@ -25,13 +25,11 @@ layers:
 ## Used In Images
 
 - `openclaw-full` (via `openclaw-full` metalayer)
-- `openclaw-full-sway` (via `openclaw-full` metalayer)
-- `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
 ## Related Layers
 - `/ov-coder:nodejs` — runtime dependency
 - `/ov-openclaw:openclaw-full` — metalayer that bundles summarize
-- `/ov-tools:whisper` — speech-to-text companion in openclaw-full-ml
+- `/ov-tools:whisper` — speech-to-text companion in the `openclaw-full-ml` layer
 
 ## Related Commands
 - `/ov-core:shell` — run summarize CLI inside the container

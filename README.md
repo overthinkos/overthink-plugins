@@ -29,7 +29,7 @@ manager UI.
 |---|--:|---|---|
 | **ov-core** | 14 | — | Lifecycle: start, stop, restart, ov-status, logs, shell, ssh, deploy, ov-update, remove, ov-config, cmd, ov-version, ov-doctor. |
 | **ov-build** | 12 | — | Build/authoring: build, generate, list, inspect, merge, new, pull, validate, secrets, settings, migrate, ov-mcp-cmd. |
-| **ov-eval** | 9 | — | Live-container evaluation: `eval` orchestrator + cdp, wl, wl-overlay, dbus, vnc, spice, libvirt, record probes. |
+| **ov-eval** | 12 | — | Live-container evaluation: `eval` orchestrator + cdp, wl, wl-overlay, dbus, vnc, spice, libvirt, record, adb, appium probes + the `eval-sway-browser-vnc` R10 bed. |
 | **ov-automation** | 6 | — | tmux verb, host-side wrappers (alias, udev), topic flags (enc, sidecar, openclaw-deploy). |
 
 ### kind — schema-kind authoring
@@ -66,7 +66,7 @@ manager UI.
 | **ov-jupyter** | 15 | jupyter @ 8888 | Jupyter image family (jupyter, jupyter-ml, jupyter-ml-notebook, unsloth-studio) + notebook templates + jupyter-mcp server. |
 | **ov-coder** | 33 | ov @ 18765 | ov coder/dev images (fedora-coder in the `overthinkos/fedora` submodule; arch-coder/arch-ov in `overthinkos/arch`; debian-coder in `overthinkos/debian`; ubuntu-coder in `overthinkos/ubuntu`) + language runtimes (golang/rust/nodejs/docker-ce). |
 | **ov-selkies** | 41 | chrome-devtools @ 9224 | Selkies-desktop family (Wayland in container with VNC + Chrome). |
-| **ov-openclaw** | 12 | chrome-devtools @ 9224 | OpenClaw AI workstation family (bootc, full, ml, sway, ollama, browser variants). |
+| **ov-openclaw** | 7 | chrome-devtools @ 9224 | OpenClaw AI gateway family: the `openclaw` layer + headless `openclaw`/`openclaw-ollama` images + composition layers (`openclaw-full`, `openclaw-full-ml`). |
 | **ov-versa** | 9 | marimo @ 22718, airflow @ 29999 | Versa image — marimo notebook + Airflow + OSM/GTFS analytics + martin vector tiles. |
 | **ov-ollama** | 2 | — | Ollama LLM-server image. Pair with `ov-jupyter` to expose to notebooks. |
 | **ov-openwebui** | 2 | — | OpenWebUI chat frontend. Consumes the jupyter MCP. |

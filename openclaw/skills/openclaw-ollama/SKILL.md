@@ -54,7 +54,6 @@ ov shell openclaw-ollama -c "ollama pull llama3"
 
 - `/ov-openclaw:openclaw` — gateway only (no LLM, no GPU)
 - `/ov-ollama:ollama` — LLM only (no gateway)
-- `/ov-openclaw:openclaw-ollama-sway-browser` — adds desktop + Chrome
 
 ## Verification
 

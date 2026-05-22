@@ -192,10 +192,10 @@ Complete flow for deploying openclaw with Codex OAuth. **All browser interaction
 **Critical:** The `openclaw models auth login` TUI requires a real terminal. Do NOT pipe through `tee` or redirect stdout. Use **`ov tmux`** (see `/ov-automation:tmux`).
 
 ```bash
-IMG=openclaw-sway-browser  # or openclaw-ollama-sway-browser
+IMG=sway-browser-vnc   # any image composing chrome-cdp + a Wayland desktop + VNC
 
 # 1. Prerequisites: Chrome signed into Google with sync enabled
-#    See /ov-openclaw:openclaw-ollama-sway-browser for full Chrome sign-in procedure
+#    See /ov-automation:openclaw-deploy for full Chrome sign-in procedure
 
 # 2. Start OAuth in a tmux session (real terminal)
 ov tmux run $IMG -s oauth "openclaw models auth login --provider openai-codex --set-default"

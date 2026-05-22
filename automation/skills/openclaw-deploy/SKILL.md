@@ -1,7 +1,7 @@
 ---
 name: openclaw-deploy
 description: |
-  Topic skill (no dedicated `ov openclaw` command — the surface is layer composition + image deployment). MUST be invoked before any work involving: OpenClaw gateway configuration, model auth, browser integration, channel setup, or any image composing `openclaw-*` layers (`openclaw`, `openclaw-ollama`, `openclaw-sway-browser`, `openclaw-full`, `openclaw-full-ml`, `openclaw-full-sway`, `openclaw-ollama-sway-browser`, `openclaw-browser-bootc`).
+  Topic skill (no dedicated `ov openclaw` command — the surface is layer composition + image deployment). MUST be invoked before any work involving: OpenClaw gateway configuration, model auth, browser integration, channel setup, or any image composing `openclaw-*` layers (`openclaw`, `openclaw-ollama`, `openclaw-full`, or a custom image composing `openclaw`/`openclaw-full` + `sway-desktop`).
 ---
 
 # OpenClaw - AI Gateway Configuration
@@ -10,7 +10,7 @@ description: |
 
 OpenClaw is an AI gateway that connects LLM agents to messaging channels (WhatsApp, Telegram, Discord, Slack, Signal, iMessage, IRC, Teams) and exposes them via a WebSocket API, CLI, and web Control UI. It runs as a Node.js process with an embedded agent runtime, model failover, browser automation, and multi-agent routing.
 
-In Overthink, OpenClaw runs as a supervisord service inside containers. The `openclaw` layer provides the npm package, and `openclaw-sway-browser` combines it with a full Sway desktop, Chrome browser, and VNC server for browser-based workflows like OAuth and web automation.
+In Overthink, OpenClaw runs as a supervisord service inside containers. The `openclaw` layer provides the npm package; compose it with the `sway-desktop` metalayer (full Sway desktop + Chrome browser + VNC) for browser-based workflows like OAuth and web automation. The prebuilt desktop+browser convenience images (`openclaw-sway-browser`, `openclaw-ollama-sway-browser`, …) were retired in 2026-05 — compose your own from the layers (shown below), or use the headless `openclaw` / `openclaw-ollama` images for non-browser channels.
 
 The gateway listens on port 18789 (WebSocket + HTTP). All CLI commands (`openclaw *`) connect to the gateway WebSocket. The Control UI is served at the gateway root URL. Config is stored in `~/.openclaw/openclaw.json` (JSON5 format).
 
@@ -51,7 +51,17 @@ The gateway binds to loopback only (no `--bind lan`). External access is handled
 
 ### Image
 
-The `openclaw-sway-browser` image combines `openclaw` + `sway-desktop` on a Fedora base:
+Compose your own desktop+browser image — e.g. an `openclaw-desktop` entry in `image.yml` combining `openclaw-full` + `sway-desktop` on a Fedora base:
+
+```yaml
+image:
+  openclaw-desktop:
+    base: fedora
+    layer: [agent-forwarding, openclaw-full, sway-desktop, dbus, ov]
+    port: ["18789:18789", "5900:5900", "9222:9222", "9224:9224"]
+```
+
+The resulting image exposes:
 
 | Port | Service | Protocol |
 |------|---------|----------|
@@ -64,19 +74,19 @@ Tunnel config exposes all ports via Tailscale (`ports: all`). Platform: linux/am
 ### Host Alias
 
 ```bash
-ov alias add openclaw openclaw-sway-browser
+ov alias add openclaw openclaw-desktop
 # Now: openclaw --help  (runs inside the container)
 ```
 
 ### Lifecycle
 
 ```bash
-ov image build openclaw-sway-browser         # Build image
-ov config openclaw-sway-browser        # Generate quadlet, daemon-reload
-ov start openclaw-sway-browser         # Start via systemd
-ov stop openclaw-sway-browser          # Stop
-ov status openclaw-sway-browser        # Check systemd status
-ov logs openclaw-sway-browser -f       # Follow container logs
+ov image build openclaw-desktop         # Build image
+ov config openclaw-desktop        # Generate quadlet, daemon-reload
+ov start openclaw-desktop         # Start via systemd
+ov stop openclaw-desktop          # Stop
+ov status openclaw-desktop        # Check systemd status
+ov logs openclaw-desktop -f       # Follow container logs
 ```
 
 ## Gateway Configuration
@@ -176,7 +186,7 @@ ov tmux capture $IMG -s oauth
 # Should show: "OpenAI OAuth complete", "Default model set to openai-codex/gpt-5.4"
 ```
 
-**Prerequisites:** Chrome must have an active Google session. The "Continue with Google" button on OpenAI's auth page uses Chrome's Google cookies. See `/ov-openclaw:openclaw-ollama-sway-browser` for the full Chrome sign-in procedure.
+**Prerequisites:** Chrome must have an active Google session. The "Continue with Google" button on OpenAI's auth page uses Chrome's Google cookies — sign Chrome into Google (with sync enabled) via the VNC desktop before starting the OAuth flow.
 
 **Callback architecture:** The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container. Chrome and `openclaw-models` share the same network namespace — no port mapping needed for 1455. The `BROWSER=browser-open` env var (set by the chrome layer) auto-opens URLs via CDP, but may not trigger in all TTY contexts — open the URL manually via `ov eval cdp open` as a fallback.
 
@@ -219,7 +229,7 @@ models: {
 
 ### Connecting to Existing Chrome
 
-In `openclaw-sway-browser`, Chrome already runs as a supervisord service on port 9222. OpenClaw must connect to it rather than launching a new instance:
+In a composed openclaw desktop image (e.g. `openclaw-desktop`), Chrome already runs as a supervisord service on port 9222. OpenClaw must connect to it rather than launching a new instance:
 
 ```bash
 openclaw config set browser.cdpUrl "http://127.0.0.1:9222"

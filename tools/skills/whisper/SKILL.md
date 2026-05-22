@@ -24,7 +24,6 @@ layers:
 
 ## Used In Images
 
-- `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
 ## Related Layers
 

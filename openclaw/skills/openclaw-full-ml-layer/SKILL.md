@@ -27,12 +27,10 @@ This metalayer extends `openclaw-full` with ML capabilities:
 ```yaml
 # image.yml
 layers:
-  - openclaw-full-ml
 ```
 
 ## Used In Images
 
-- `openclaw-full-ml` (with `sway-desktop` and `ollama`)
 
 ## Related Layers
 - `/ov-openclaw:openclaw-full` -- base composition with all OpenClaw tools

@@ -53,7 +53,6 @@ ollama run llama3          # uses the alias
 
 - `/ov-ollama:ollama`
 - `/ov-openclaw:openclaw-ollama`
-- `/ov-openclaw:openclaw-ollama-sway-browser`
 
 ## Cross-Container Integration
 

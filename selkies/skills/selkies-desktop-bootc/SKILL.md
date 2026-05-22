@@ -32,7 +32,7 @@ Bootable container image: Fedora 43 bootc + Selkies browser-streamed desktop + T
 | Setting | Value | Rationale |
 |---------|-------|-----------|
 | SSH port | 2250 | Non-default to avoid colliding with `ov-selkies-desktop*` containers that claim host :2222 |
-| Disk size | 40 GiB | Selkies + Chrome + PipeWire + toolchain transitives need more than openclaw-browser-bootc's 20 GiB |
+| Disk size | 40 GiB | Selkies + Chrome + PipeWire + toolchain transitives need a roomy rootfs |
 | RAM | 8 G | Chrome + compositor + recorder want headroom |
 | CPUs | 4 | Matches 8 G/4 rule of thumb for a streaming desktop VM |
 | Rootfs | ext4 | Default (fallback when image.yml omits `rootfs:`) |
@@ -111,7 +111,7 @@ curl -sS  -X POST http://127.0.0.1:19224/mcp \
 
 ### 1. External bases require explicit `distro:`
 
-`base: "quay.io/fedora/fedora-bootc:43"` is an **external** base (URL, not the name of another image in `image.yml`). Unlike internal bases, it does **not** inherit distro tags. Without `distro: ["fedora:43", fedora]`, `ov image inspect` shows `"Distro": null`, the generator skips every layer's `rpm:` install (the install_template's Phase-2 branch requires `img.DistroDef != nil`), and the final image has zero packages installed from layer `rpm:` sections. See `/ov-image:image` for the resolution chain. This was the first bug encountered during the build; as of the 2026-05 bootc-submodule extraction the sibling bootc images (`/ov-openclaw:openclaw-browser-bootc`, `/ov-distros:bazzite`, `/ov-distros:aurora`) all declare `distro:` too — and all four bootc images now live in the `overthinkos/bootc` submodule (`image/bootc`).
+`base: "quay.io/fedora/fedora-bootc:43"` is an **external** base (URL, not the name of another image in `image.yml`). Unlike internal bases, it does **not** inherit distro tags. Without `distro: ["fedora:43", fedora]`, `ov image inspect` shows `"Distro": null`, the generator skips every layer's `rpm:` install (the install_template's Phase-2 branch requires `img.DistroDef != nil`), and the final image has zero packages installed from layer `rpm:` sections. See `/ov-image:image` for the resolution chain. This was the first bug encountered during the build; as of the 2026-05 bootc-submodule extraction the sibling bootc images (`/ov-distros:bazzite`, `/ov-distros:aurora`) all declare `distro:` too — and all four bootc images now live in the `overthinkos/bootc` submodule (`image/bootc`).
 
 ### 2. `dnf5-plugins` prepend is required for URL repos
 
@@ -154,7 +154,6 @@ Rebuild + redeploy the VM.
 - `/ov-selkies:selkies-desktop` — non-bootc container sibling (`fedora-nonfree` base, supervisord as PID 1)
 - `/ov-selkies:selkies-desktop-nvidia` — GPU-accelerated container sibling (`nvidia` base)
 - `/ov-selkies:selkies-desktop-ov` — GPU-accelerated container sibling + full ov toolchain (nested rootless podman + rootless libvirt VMs). The non-bootc counterpart of this bootc image when you want the desktop to itself build images / launch pods / spawn VMs.
-- `/ov-openclaw:openclaw-browser-bootc` — sibling bootc template (disabled; latent `distro:` bug per Caveat 1)
 - `/ov-distros:bazzite` — ublue-based bootc template
 - `/ov-distros:aurora` — ublue-based bootc template
 

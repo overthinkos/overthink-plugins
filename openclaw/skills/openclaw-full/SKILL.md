@@ -54,9 +54,6 @@ ov start openclaw-full
 ## Related Images
 
 - `/ov-openclaw:openclaw` — minimal (gateway only)
-- `/ov-openclaw:openclaw-sway-browser` — full tools + Sway desktop + VNC
-- `/ov-openclaw:openclaw-full-sway` — full tools + Sway desktop (disabled)
-- `/ov-openclaw:openclaw-full-ml` — full tools + ML + Ollama (disabled)
 
 ## When to Use This Skill
 

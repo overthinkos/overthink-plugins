@@ -42,9 +42,7 @@ openclaw config              # uses the alias
 ## Used In Images
 
 - `/ov-openclaw:openclaw`
-- `/ov-openclaw:openclaw-sway-browser`
 - `/ov-openclaw:openclaw-ollama`
-- `/ov-openclaw:openclaw-ollama-sway-browser`
 
 ## Port Relay
 

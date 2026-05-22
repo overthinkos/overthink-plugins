@@ -31,10 +31,8 @@ layers:
 
 ## Used In Images
 
-- `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 
 ## Related Layers
-- `/ov-openclaw:openclaw-full-ml` -- parent metalayer that bundles sherpa-onnx
 - `/ov-tools:whisper` -- speech-to-text counterpart
 - `/ov-tools:sag` -- ElevenLabs TTS alternative
 

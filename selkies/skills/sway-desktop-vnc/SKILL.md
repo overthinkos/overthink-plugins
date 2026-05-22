@@ -21,8 +21,6 @@ Forces `WLR_RENDERER=pixman` (software rendering) via layer env. This ensures VN
 ## Used In Images
 
 - `/ov-selkies:sway-browser-vnc`
-- `/ov-openclaw:openclaw-sway-browser`
-- `/ov-openclaw:openclaw-ollama-sway-browser`
 
 ## Related Layers
 

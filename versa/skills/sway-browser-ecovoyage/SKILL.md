@@ -21,7 +21,7 @@ Verifying these from a sandboxed agent context requires a browser
 that can reach the dynamic tile URLs (e.g.
 `https://ac.armadillo-quail.ts.net:33000/monaco/{z}/{x}/{y}`).
 
-The existing `openclaw-sway-browser-pod` is general-purpose and
+The existing `eval-sway-browser-vnc-pod` is general-purpose and
 isn't preconfigured with the ecovoyage URLs — and its loopback
 isn't the same loopback as the host, so 127.0.0.1 references to
 versa/ecovoyage's host ports don't resolve. Tailnet URLs solve
@@ -120,7 +120,7 @@ can plug it into its MCP config:
 In overthink's `provides:` registry this server is published as
 `chrome-devtools-ecovoyage` (instance-suffixed by `ov config`'s
 MCP name-disambiguation rule — see `/ov-core:deploy`) so it
-doesn't collide with the `openclaw-sway-browser-pod`'s base
+doesn't collide with the `eval-sway-browser-vnc-pod`'s base
 `chrome-devtools` provide.
 
 ## Hard-won lessons (carried over from this skill's authoring session)
@@ -146,7 +146,7 @@ identifiers (hyphens in `const` names was the canonical bug:
 ### Container chrome ≠ host chrome on `127.0.0.1`
 
 If you debug from a container-sandboxed chrome
-(e.g. `openclaw-sway-browser-pod`), `127.0.0.1` is **that pod's
+(e.g. `eval-sway-browser-vnc-pod`), `127.0.0.1` is **that pod's
 loopback**, not the host's. Maps with `http://127.0.0.1:<host-port>`
 tile URLs will silently fail to fetch tiles even though MapLibre
 instantiates the canvas. This is why every `*_PUBLIC_URL` env var

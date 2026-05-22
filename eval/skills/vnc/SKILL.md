@@ -48,48 +48,48 @@ Custom RFC 6143 VNC client implementation (no external dependency). Supports Non
 
 ### Screenshot
 ```bash
-ov eval vnc screenshot openclaw-sway-browser              # saves screenshot.png
-ov eval vnc screenshot openclaw-sway-browser desktop.png   # custom filename
-ov eval vnc screenshot openclaw-sway-browser -i prod       # specific instance
+ov eval vnc screenshot sway-browser-vnc              # saves screenshot.png
+ov eval vnc screenshot sway-browser-vnc desktop.png   # custom filename
+ov eval vnc screenshot sway-browser-vnc -i prod       # specific instance
 ```
 
 ### Click
 ```bash
-ov eval vnc click openclaw-sway-browser 960 540             # left click at center of 1920x1080
-ov eval vnc click openclaw-sway-browser 100 200 --button right  # right click
-ov eval vnc click openclaw-sway-browser 100 200 --button middle # middle click
-ov eval vnc click openclaw-sway-browser 100 200 --from-cdp $TAB   # translate from CDP viewport
-ov eval vnc click openclaw-sway-browser 100 200 --from-sway google-chrome  # translate from sway window
-ov eval vnc click openclaw-sway-browser 100 200 --from-x11 Steam  # translate from X11 window (XWayland)
+ov eval vnc click sway-browser-vnc 960 540             # left click at center of 1920x1080
+ov eval vnc click sway-browser-vnc 100 200 --button right  # right click
+ov eval vnc click sway-browser-vnc 100 200 --button middle # middle click
+ov eval vnc click sway-browser-vnc 100 200 --from-cdp $TAB   # translate from CDP viewport
+ov eval vnc click sway-browser-vnc 100 200 --from-sway google-chrome  # translate from sway window
+ov eval vnc click sway-browser-vnc 100 200 --from-x11 Steam  # translate from X11 window (XWayland)
 ```
 
 **`--from-x11 <class-or-title>`** translates coordinates from X11 window-internal space to desktop-absolute VNC coordinates. Works the same as `ov eval wl click --from-x11` -- queries X11 geometry via xdotool, finds the sway node, and scales to desktop coordinates. Essential for XWayland windows (Steam, Heroic) where the X11 resolution differs from the compositor resolution.
 
 ### Type
 ```bash
-ov eval vnc type openclaw-sway-browser "hello world"    # types each character as key events
+ov eval vnc type sway-browser-vnc "hello world"    # types each character as key events
 ```
 Only supports ASCII/Latin-1 characters. For special keys, use `ov eval vnc key`.
 
 ### Key
 ```bash
-ov eval vnc key openclaw-sway-browser Return       # press Enter
-ov eval vnc key openclaw-sway-browser Escape       # press Escape
-ov eval vnc key openclaw-sway-browser Tab          # press Tab
-ov eval vnc key openclaw-sway-browser F5           # press F5
-ov eval vnc key openclaw-sway-browser Control_L    # press left Ctrl
+ov eval vnc key sway-browser-vnc Return       # press Enter
+ov eval vnc key sway-browser-vnc Escape       # press Escape
+ov eval vnc key sway-browser-vnc Tab          # press Tab
+ov eval vnc key sway-browser-vnc F5           # press F5
+ov eval vnc key sway-browser-vnc Control_L    # press left Ctrl
 ```
 
 Valid key names: Return, Escape, Tab, BackSpace, Delete, Home, End, Page_Up, Page_Down, Up, Down, Left, Right, Insert, F1-F12, Shift_L, Shift_R, Control_L, Control_R, Alt_L, Alt_R, Super_L, Super_R, Meta_L, Meta_R, Caps_Lock, space.
 
 ### Mouse
 ```bash
-ov eval vnc mouse openclaw-sway-browser 500 300    # move mouse to (500, 300)
+ov eval vnc mouse sway-browser-vnc 500 300    # move mouse to (500, 300)
 ```
 
 ### Status
 ```bash
-ov eval vnc status openclaw-sway-browser
+ov eval vnc status sway-browser-vnc
 # Output:
 # Desktop:    sway
 # Resolution: 1920x1080
@@ -97,8 +97,8 @@ ov eval vnc status openclaw-sway-browser
 
 ### Password
 ```bash
-ov eval vnc passwd openclaw-sway-browser              # prompts for password
-ov eval vnc passwd openclaw-sway-browser --generate   # generates random password, prints to stdout
+ov eval vnc passwd sway-browser-vnc              # prompts for password
+ov eval vnc passwd sway-browser-vnc --generate   # generates random password, prints to stdout
 ```
 
 Sets up VNC authentication (VeNCrypt/TLS):
@@ -122,23 +122,23 @@ When connecting, password is resolved in this order:
 
 ```bash
 # One-off password override via env
-VNC_PASSWORD=secret ov eval vnc screenshot openclaw-sway-browser out.png
+VNC_PASSWORD=secret ov eval vnc screenshot sway-browser-vnc out.png
 
 # Set password programmatically (alternative to ov eval vnc passwd)
-ov settings set vnc.password.openclaw-sway-browser mysecret
+ov settings set vnc.password.sway-browser-vnc mysecret
 
 # Instance-specific password
-ov settings set vnc.password.openclaw-sway-browser-prod prodpassword
+ov settings set vnc.password.sway-browser-vnc-prod prodpassword
 ```
 
 Requires `openssl` inside the container for TLS cert and RSA key generation.
 
 ### Raw RFB
 ```bash
-ov eval vnc rfb openclaw-sway-browser key '{"key": 65293, "down": true}'           # raw key event
-ov eval vnc rfb openclaw-sway-browser pointer '{"x": 100, "y": 200, "button": 1}'  # raw pointer
-ov eval vnc rfb openclaw-sway-browser cut-text '{"text": "clipboard"}'              # clipboard
-ov eval vnc rfb openclaw-sway-browser fbupdate-request                              # get dimensions
+ov eval vnc rfb sway-browser-vnc key '{"key": 65293, "down": true}'           # raw key event
+ov eval vnc rfb sway-browser-vnc pointer '{"x": 100, "y": 200, "button": 1}'  # raw pointer
+ov eval vnc rfb sway-browser-vnc cut-text '{"text": "clipboard"}'              # clipboard
+ov eval vnc rfb sway-browser-vnc fbupdate-request                              # get dimensions
 ```
 
 ## Differences from CDP Commands

@@ -34,8 +34,6 @@ All layers that need ffmpeg should declare it as a dependency rather than indepe
 ## Used In Images
 
 - `openclaw-full` (via `openclaw-full` metalayer)
-- `openclaw-full-sway` (via `openclaw-full` metalayer)
-- `openclaw-full-ml` (via `openclaw-full-ml` metalayer)
 - `hermes` (via `hermes` layer `requires: ffmpeg`)
 - `hermes-playwright` (via `hermes` layer `requires: ffmpeg`)
 - `immich` (via `immich` layer `requires: ffmpeg`)

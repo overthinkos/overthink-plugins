@@ -43,7 +43,6 @@ ov shell fedora
 - `/ov-distros:fedora-builder` — adds pixi, nodejs, build-toolchain
 - `/ov-distros:nvidia` — adds CUDA toolkit
 - `/ov-openclaw:openclaw` — adds OpenClaw gateway
-- `/ov-openclaw:openclaw-sway-browser` — adds OpenClaw + desktop
 - `/ov-distros:githubrunner` — adds GitHub Actions runner
 
 ## Verification

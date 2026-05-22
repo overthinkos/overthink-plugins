@@ -74,7 +74,6 @@ The `PLAYWRIGHT_BROWSERS_PATH=/tmp/.cache/ms-playwright` env var is set automati
 ## Related Images
 
 - `/ov-hermes:hermes` -- full-featured standalone hermes (no browser, uses cross-container CDP)
-- `/ov-openclaw:openclaw-sway-browser` -- alternative: OpenClaw with full desktop + Chrome
 
 ## Verification
 

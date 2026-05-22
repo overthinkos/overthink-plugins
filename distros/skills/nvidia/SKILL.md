@@ -44,7 +44,6 @@ ov shell nvidia
 - `/ov-ollama:ollama` — LLM inference server
 - `/ov-comfyui:comfyui` — image generation UI
 - `/ov-openclaw:openclaw-ollama` — OpenClaw + Ollama
-- `/ov-openclaw:openclaw-ollama-sway-browser` — OpenClaw + Ollama + desktop
 
 ## Related Images
 

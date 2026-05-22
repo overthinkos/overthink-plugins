@@ -63,8 +63,6 @@ ov eval record stop sway-browser-vnc -n demo -o demo.mp4
 ## Used In Images
 
 - `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
-- `/ov-openclaw:openclaw-sway-browser` (via `sway-desktop` metalayer)
-- `/ov-openclaw:openclaw-ollama-sway-browser` (via `sway-desktop` metalayer)
 
 ## Cross-References
 

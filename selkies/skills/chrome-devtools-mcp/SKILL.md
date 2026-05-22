@@ -83,8 +83,6 @@ This layer is auto-included by the `chrome` base layer via `layers: [chrome-devt
 - `/ov-selkies:selkies-desktop`
 - `/ov-selkies:selkies-desktop-nvidia`
 - `/ov-selkies:sway-browser-vnc`
-- `/ov-openclaw:openclaw-sway-browser`
-- `/ov-openclaw:openclaw-ollama-sway-browser`
 - All other images containing a chrome variant
 
 ## Related Skills
