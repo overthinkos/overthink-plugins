@@ -19,7 +19,7 @@ Schema sources (read these for the canonical truth):
 
 ## Nested deploys
 
-`deploy` entries can nest via `nested:` (formerly `children:`). A parent `deploy` and its nested entries share the pod and the tunnel; each nested entry is a separate quadlet/process inside the same pod namespace.
+`deploy` entries can nest via `nested:`. A parent `deploy` and its nested entries share the pod and the tunnel; each nested entry is a separate quadlet/process inside the same pod namespace.
 
 ## Sidecars
 

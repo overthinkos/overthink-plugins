@@ -13,12 +13,12 @@ description: |
 `debootstrap` (using `/ov-distros:debian-debootstrap-builder`), then boots it
 under libvirt/QEMU.
 
-> **Relocated (2026-05):** the `debian-debootstrap` VM entity and its
-> `debian-debootstrap-vm` bed live in the **`overthinkos/debian`** repo (git
-> submodule at **`image/debian`**), in that repo's `vm.yml` / `deploy.yml`.
-> Drive them from the submodule: `ov -C image/debian vm build debian-debootstrap`
-> + `ov -C image/debian vm create debian-debootstrap` (or
-> `ov --repo overthinkos/debian …`).
+The `debian-debootstrap` VM entity and its `debian-debootstrap-vm` bed live in
+the **`overthinkos/debian`** repo (git submodule at **`image/debian`**), in that
+repo's `vm.yml` / `deploy.yml`. Drive them from the submodule:
+`ov -C image/debian vm build debian-debootstrap` +
+`ov -C image/debian vm create debian-debootstrap` (or
+`ov --repo overthinkos/debian …`).
 
 ## VM Configuration (from image/debian/vm.yml)
 

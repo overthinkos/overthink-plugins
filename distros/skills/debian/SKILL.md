@@ -3,8 +3,8 @@ name: debian
 description: |
   Base Debian 13 trixie image. Root of the image hierarchy for Debian builds
   that run as uid 1000 `user` (create mode — Debian 13 ships no pre-existing
-  uid-1000 account). Owned by the overthinkos/debian submodule (image/debian)
-  since the 2026-05 split; consumed by no main-repo image.
+  uid-1000 account). Owned by the overthinkos/debian submodule (image/debian);
+  consumed by no main-repo image.
   MUST be invoked before building, deploying, configuring, or troubleshooting
   any Debian-based image.
 ---
@@ -13,16 +13,15 @@ description: |
 
 Base Debian 13 (trixie) image. Root of the Debian image hierarchy.
 
-> **Relocated (2026-05):** the Debian family was split out of the main repo into
-> the **`overthinkos/debian`** repo (git submodule at **`image/debian`**). The
-> `debian` base is **owned there** (in that repo's `image.yml`) and composes the
-> main repo's layers + shared `build.yml` (which keeps the `debian` distro
-> config + the `deb` format + the `debootstrap` builder template) by git
-> reference. Build it from the submodule:
-> `ov -C image/debian image build debian` (or `ov --repo overthinkos/debian image build debian`).
-> Ubuntu — the deb-family sibling — split into its own **`overthinkos/ubuntu`**
-> repo at the same time (see `/ov-distros:ubuntu`). Nothing in main consumes any
-> Debian image, so there is **no main ↔ debian coupling**.
+The Debian family lives in the **`overthinkos/debian`** repo (git submodule at
+**`image/debian`**). The `debian` base is **owned there** (in that repo's
+`image.yml`) and composes the main repo's layers + shared `build.yml` (which
+keeps the `debian` distro config + the `deb` format + the `debootstrap` builder
+template) by git reference. Build it from the submodule:
+`ov -C image/debian image build debian` (or `ov --repo overthinkos/debian image build debian`).
+Ubuntu — the deb-family sibling — lives in its own **`overthinkos/ubuntu`** repo
+(see `/ov-distros:ubuntu`). Nothing in main consumes any Debian image, so there
+is **no main ↔ debian coupling**.
 
 ## Image Properties
 

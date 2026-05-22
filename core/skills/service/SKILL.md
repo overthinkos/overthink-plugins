@@ -6,9 +6,9 @@ description: |
 
 # Service - Service Management
 
-## Schema v4 terminology note
+## Terminology note
 
-The schema-v3 rename settled on **"pod"** as the user-visible term for a single-container deployment (matches podman's vocabulary and the `target: pod` deploy-yml value). Internally, the Go struct is `PodDeployTarget` (formerly `ContainerDeployTarget`) and the file is `ov/deploy_target_pod.go`. This skill's body still uses the word "container" in many places because it's also the generic runtime artifact — read "container" as the runtime concept and "pod" as the schema-v3 target/deployment kind.
+**"pod"** is the user-visible term for a single-container deployment (matches podman's vocabulary and the `target: pod` deploy-yml value). Internally, the Go struct is `PodDeployTarget` and the file is `ov/deploy_target_pod.go`. This skill's body uses the word "container" in many places because it's also the generic runtime artifact — read "container" as the runtime concept and "pod" as the target/deployment kind.
 
 `ov start/stop/status/logs/shell` operate on named pod deployments (the unit a user cares about); the underlying runtime is podman/docker (containers), managed via systemd user quadlet.
 
@@ -238,8 +238,7 @@ ov shell <image> -c "<service-command>"
 ## Status Output
 
 `ov status` shows a structured table of all ov containers. The table
-gained a TUNNEL column and the IMAGE column now merges `image[/instance]`
-(2026-05-02 redesign):
+has a TUNNEL column and the IMAGE column merges `image[/instance]`:
 
 ```
 IMAGE                              STATUS   PORTS                 TUNNEL                  DEVICES  TOOLS
@@ -323,9 +322,7 @@ Tunnel:    tailscale (all ports)
 ### JSON Output
 
 `ov status --json` emits an array; `ov status <image> --json` emits a
-single object. The 2026-05-02 redesign changed `ports` from `[]string`
-to a structured array (no compat shim — programmatic consumers must
-read the new shape):
+single object. `ports` is a structured array (not `[]string`):
 
 ```json
 {
@@ -338,8 +335,7 @@ read the new shape):
 
 ### Reaping Orphans
 
-`ov status --reap-orphans` was removed. Use the top-level
-`ov reap-orphans` command instead. Same semantics: walks deploy.yml
+Use the top-level `ov reap-orphans` command. It walks deploy.yml
 ephemeral entries marked `active`, probes the underlying engine
 (libvirt for VM, podman for pod, kubectl for k8s) and runs `ov deploy
 del <name> --force` for orphans.

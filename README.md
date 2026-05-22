@@ -50,7 +50,7 @@ manager UI.
 
 ### images — deployable image catalog
 
-#### Foundation layers (split from the old `ov-foundation` mega-plugin)
+#### Foundation layers (`ov-distros` / `ov-languages` / `ov-infrastructure` / `ov-tools`)
 
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
@@ -89,55 +89,20 @@ plugin name carries the `ov-` prefix; the skill name does not. Examples:
 
 ## Skill name uniqueness
 
-Every skill in this marketplace has a globally-unique folder name. Five
-former collisions were resolved during the 2026-05-XX reorganization:
+Every skill in this marketplace has a globally-unique folder name. Where a
+short name could be ambiguous, the canonical names are:
 
-- `tmux` (was a foundation layer + an advanced verb) → foundation's
-  package layer is now `ov-infrastructure:tmux-layer`; the verb stays
-  `ov-automation:tmux`.
-- `dbus` (was a foundation layer + an advanced verb) → foundation's
-  service layer is now `ov-infrastructure:dbus-layer`; the verb stays
-  `ov-eval:dbus`.
-- `openclaw` (was an advanced topic + an image plugin's image skill) →
-  the topic is now `ov-automation:openclaw-deploy`; the image keeps
-  `ov-openclaw:openclaw`.
-- `vms` (was the catalog skill in the old `ov-vms` plugin) → renamed to
-  `ov-vm:vms-catalog` for clarity vs the kind-name `vm`.
-- `generate` (was a build verb + a dev source-reading reference) → the
-  verb stays `ov-build:generate`; the dev reference is now
-  `ov-internals:generate-source`.
+- `ov-infrastructure:tmux-layer` (the tmux package layer) vs `ov-automation:tmux` (the verb).
+- `ov-infrastructure:dbus-layer` (the D-Bus service layer) vs `ov-eval:dbus` (the verb).
+- `ov-automation:openclaw-deploy` (the deployment topic) vs `ov-openclaw:openclaw` (the image).
+- `ov-vm:vms-catalog` (the VM catalog skill) vs the kind-name `vm`.
+- `ov-build:generate` (the build verb) vs `ov-internals:generate-source` (the source-reading reference).
 
 ## Recent changes
 
-- **2026-05-XX** — Use-case reorganization (this cutover). Plugins
-  sorted into four buckets (commands / kind / development / images).
-  `ov-foundation` (79-skill mega-plugin) split into `ov-distros` /
-  `ov-languages` / `ov-infrastructure` / `ov-tools`. `ov-vms` folded into
-  `ov-vm`. `ov-advanced` retired; its skills split between `ov-eval`
-  (probes), `ov-automation` (topic flags + tmux/alias/udev), and the
-  kind plugins (`ov-vm`, `ov-kubernetes`, `ov-local`). `ov-build`
-  schema-authoring skills (`image`, `layer`, `local-spec`) moved to
-  dedicated kind plugins; `ov-build:eval` orchestrator moved to
-  `ov-eval`. `ov-dev` renamed to `ov-internals`. Directory names
-  dropped the `ov-` prefix while plugin.json `name:` fields kept it;
-  result is the same `/ov-<plugin>:<skill>` invocation surface with a
-  cleaner `ls plugins/`. Skill-name collisions (`tmux`, `dbus`,
-  `openclaw`, `vms`, `generate`) renamed for global uniqueness.
-- **2026-05-05** — Engineering-discipline cutover. R1–R10 reordered.
-  R1–R5 = engineering discipline; R6–R9 = runtime verification; R10 =
-  final acceptance. New skill `/ov-internals:strict-policy`. AI
-  Attribution: any rule violation FORBIDS commit at any tier.
-- **2026-05-XX** — Init-system polymorphism. The `*-host` sibling-layer
-  pattern (`virtualization-host`, `ov-full-host`) deleted; unified
-  layers carry both supervisord and systemd renders via mixed `service:`
-  entries.
-- **2026-05-05** — Cross-kind name reuse + `overthink.yml`-only
-  authoring. Same name MAY exist across layer / image / pod / vm / k8s /
-  local / deploy. All authoring verbs default to `overthink.yml`.
-- **2026-04-30** — Three-tier marketplace v2.0.0: `ov-core` / `ov-build` /
-  `ov-advanced` (split from the original monolithic `ov` plugin) +
-  per-pod plugins + `ov-foundation` reference. (This 2026-05-XX cutover
-  supersedes that structure.)
+See the repo-root [`CHANGELOG.md`](../CHANGELOG.md) for the full history of
+plugin reorganizations, skill renames, and marketplace version bumps. This
+index and the skill docs themselves describe only the current structure.
 
 ## Installation
 

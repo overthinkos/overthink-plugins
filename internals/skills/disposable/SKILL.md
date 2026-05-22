@@ -38,7 +38,7 @@ therefore be:
 - **Per-deploy.** Set on the running deployment, not on the image.
   The same image can be deployed as disposable on one host and
   non-disposable on another.
-- **Multi-instance aware.** Each deploy entry (vms.yml kind:vm, or
+- **Multi-instance aware.** Each deploy entry (vm.yml kind:vm, or
   deploy.yml entry under `deploy:`) carries its own flag — two
   instances of the same image can sit at different tiers with
   different disposability.
@@ -103,14 +103,14 @@ necessarily ephemeral; ephemeral resources are always disposable.
 
 ## Where the fields live
 
-- `kind: vm` entries in `vms.yml` — the VM template. Applies to
+- `kind: vm` entries in `vm.yml` — the VM template. Applies to
   every instance unless overridden.
 - `deploy:` entries in `deploy.yml` — the container per-deploy
   counterpart. Each instance of a container image has its own
   entry, so per-instance classifications are natural.
 - Per-instance VM overrides (deferred to a follow-up): will live at
   `~/.local/share/ov/vm/<domain-name>/instance.yml`. Until then,
-  VMs inherit the vms.yml template classification for every
+  VMs inherit the vm.yml template classification for every
   instance.
 
 ## Visible from outside the source tree
@@ -126,7 +126,7 @@ libvirt domain XML carries:
 ```
 
 `virsh dumpxml <domain> | grep ov:` tells you the classification
-without opening vms.yml.
+without opening vm.yml.
 
 For container deploys, the authoritative source is `deploy.yml` —
 `ov status <name>` reflects it at runtime.
@@ -134,7 +134,7 @@ For container deploys, the authoritative source is `deploy.yml` —
 ## `ov update <name> [-i <instance>]`
 
 The autonomous path. Resolves `<name>` as either a kind:vm entity
-(vms.yml) or a deploys entry (deploy.yml). Refuses if effective
+(vm.yml) or a deploys entry (deploy.yml). Refuses if effective
 disposable is `false` or unset, with a pointed remediation message.
 Otherwise: destroy → rebuild → restart in a single orchestrated
 sequence.
@@ -171,7 +171,7 @@ This writes both fields to the deploy.yml entry (flags can also be
 passed independently). Omitting `--disposable` means the entry
 stays non-disposable — safe default.
 
-For VMs, edit `vms.yml` directly on the `kind: vm` entity. The
+For VMs, edit `vm.yml` directly on the `kind: vm` entity. The
 `disposable: true` field lives alongside `ram:`, `cpus:`, etc. Any
 synced host picks up the change on next `ov vm create` / `ov
 rebuild`.
@@ -244,7 +244,7 @@ on shared hosts.
 - `ov update <name>` (determining which targets can be rebuilt
   unattended).
 - Authoring / editing `disposable:` or `lifecycle:` fields in
-  vms.yml or deploy.yml.
+  vm.yml or deploy.yml.
 - Running live verification on a rebuildable target (CLAUDE.md R10).
 - Adding a feature that checks disposability (must use
   `IsDisposable()` / `IsDisposableFields()`, never derive from

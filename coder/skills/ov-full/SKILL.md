@@ -3,8 +3,7 @@ name: ov-full
 description: |
   Full ov toolchain composition with CLI, virtualization, encrypted storage, and console access.
   Works identically on container/pod targets AND on host/local/bootc targets via the unified
-  virtualization layer's mixed-`service:` schema. The previous ov-full-host sibling was
-  deleted in the 2026-05 init-system-polymorphism cutover.
+  virtualization layer's mixed-`service:` schema — one layer for every target, no `-host` sibling.
 ---
 
 # ov-full -- Full ov toolchain (single layer for both pod and host targets)
@@ -17,11 +16,9 @@ description: |
 | Install files | none (pure composition) |
 | Target context | works for `kind: image` (container/pod), `kind: vm` (bootc/cloud_image), AND `kind: local` (host install) — the underlying `virtualization` layer handles init-system polymorphism via the mixed-entry `service:` pattern |
 
-## What changed in the 2026-05 polymorphism cutover
+## How one layer serves both pod and host targets
 
-Before: two sibling layers — `ov-full` (container/pod, used `virtualization` + `gvisor-tap-vsock` + `podman-machine`) and `ov-full-host` (host installs, used `virtualization-host` and dropped the container-only artifacts). They drifted because every change had to be applied twice.
-
-After: ONE `ov-full` layer for both contexts. The container-only `gvisor-tap-vsock` + `podman-machine` packages were dropped entirely (legacy/unused per audit; nothing in the codebase invoked them). The unified `virtualization` layer carries BOTH a supervisord-rendered form (custom `exec:` for virtqemud/virtnetworkd) AND a systemd-rendered form (`use_packaged: virtqemud.socket` / `virtnetworkd.socket`) under the same `name:` — the init system at deploy time picks the matching form. See CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the rule and `/ov-infrastructure:virtualization` for the canonical worked example.
+ONE `ov-full` layer covers both contexts. The unified `virtualization` layer carries BOTH a supervisord-rendered form (custom `exec:` for virtqemud/virtnetworkd) AND a systemd-rendered form (`use_packaged: virtqemud.socket` / `virtnetworkd.socket`) under the same `name:` — the init system at deploy time picks the matching form. See CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the rule and `/ov-infrastructure:virtualization` for the canonical worked example.
 
 ## Usage
 
@@ -54,7 +51,7 @@ The same layer reference works for both shapes; no `-host` variant is needed or 
 - `/ov-distros:fedora-ov`
 - `/ov-distros:githubrunner`
 - `/ov-distros:aurora` (disabled)
-- Operator host install via the `ov-cachyos` kind:local template (post-2026-05)
+- Operator host install via the `ov-cachyos` kind:local template
 
 ## When to Use This Skill
 
@@ -64,7 +61,7 @@ Use when the user asks about:
 - VM management toolchain composition
 - Encrypted storage support
 - The "I need ov tools available" composition
-- Why the previous `ov-full-host` no longer exists
+- Why one `ov-full` layer serves pod, VM, and host targets (no `-host` variant)
 
 ## Related
 

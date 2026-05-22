@@ -148,7 +148,7 @@ If you start `claude` first and then `ov start jupyter`, you'll need
 to exit and restart the claude session before the jupyter MCP tools
 become available.
 
-### 11 MCP tools (`<noun>_<verb>` form, post-2026-05-06)
+### 11 MCP tools (`<noun>_<verb>` form)
 
 | Category | Tools |
 |----------|-------|
@@ -156,7 +156,7 @@ become available.
 | Cell operations (CRDT) | `cell_get`, `cell_update`, `cell_insert`, `cell_delete`, `cell_execute` |
 | Read-only diagnostic | `room_list` |
 
-**Clients no longer manage CRDT rooms.** The server auto-attaches each notebook_*/cell_* call to whichever room exists for that path (UI tab, another MCP session, or this one), or creates a fresh room if none exists. The pre-cutover client-side room management tools (`room_open`, `room_close`, `room_close_all`, `room_pick`) were deleted in the 2026-05-06 cutover. Idle rooms are flushed and closed by a server-side sweeper after `MCP_ROOM_IDLE_TIMEOUT_SEC` (default 600s).
+**Clients do not manage CRDT rooms.** The server auto-attaches each notebook_*/cell_* call to whichever room exists for that path (UI tab, another MCP session, or this one), or creates a fresh room if none exists. Idle rooms are flushed and closed by a server-side sweeper after `MCP_ROOM_IDLE_TIMEOUT_SEC` (default 600s).
 
 See `/ov-jupyter:jupyter-mcp` "Usage philosophy and caveats" for the full design principles + caveats. See `/ov-jupyter:jupyter` for full parameter and return type documentation.
 
@@ -165,8 +165,8 @@ See `/ov-jupyter:jupyter-mcp` "Usage philosophy and caveats" for the full design
 ```bash
 # Prerequisites: ov start jupyter
 
-# Create and work with a notebook. No room_open / room_close needed —
-# the server auto-attaches on every cell_*/notebook_* call.
+# Create and work with a notebook. The server auto-attaches on every
+# cell_*/notebook_* call — no client-side room management needed.
 claude -p "Call notebook_create with path 'test.ipynb'"
 claude -p "Call cell_insert with path 'test.ipynb', index 0, source 'print(42)', cell_type 'code'"
 claude -p "Call cell_execute with path 'test.ipynb' and index 0"
@@ -179,12 +179,12 @@ Multiple `claude -p` sessions (or any MCP client) can edit the same notebook sim
 
 ```bash
 # Client A watches for changes
-claude -p "Call watch_notebook with path 'test.ipynb' and timeout 30" &
+claude -p "Call notebook_watch with path 'test.ipynb' and timeout 30" &
 
 # Client B makes a change
-claude -p "Call update_cell with path 'test.ipynb', index 0, source 'print(\"hello\")'"
+claude -p "Call cell_update with path 'test.ipynb', index 0, source 'print(\"hello\")'"
 
-# Client A's watch_notebook returns: {"changed": true, "cell_count": 1}
+# Client A's notebook_watch returns: {"changed": true, "cell_count": 1}
 ```
 
 ## Verification
@@ -215,8 +215,8 @@ curl -s http://localhost:8888/mcp -X POST \
 ov shell jupyter -c "jupyter server extension list 2>&1 | grep -E 'ydoc|colab_mcp'"
 # Expected: jupyter_server_ydoc enabled OK, jupyter_mcp 0.1.0 OK
 
-# In-container PATH includes the pixi env (post-2026-04-29 fix —
-# pixi runtime env now flows through the BUILDER, not the LAYER)
+# In-container PATH includes the pixi env (the pixi runtime env
+# flows through the BUILDER, not the LAYER)
 ov shell jupyter -c 'echo PATH=$PATH'
 # Expected: PATH starts with /home/user/.pixi/bin:/home/user/.pixi/envs/default/bin:...
 
@@ -269,7 +269,7 @@ See `/ov-eval:eval` for the framework and author-facing gotchas.
 - `/ov-jupyter:jupyter`, `/ov-jupyter:jupyter-mcp`, `/ov-jupyter:notebook-templates`
 - `/ov-eval:eval` — declarative testing framework
 - `/ov-core:ov-config` — deploy setup
-- `/ov-build:ov-mcp-cmd` — the image inherits 3 deploy-scope `mcp:` declarative checks from the `jupyter` layer (`ping`, `list-tools` asserting all 15 prefixed tool names, `call notebook_list`). Run `ov eval live jupyter --filter mcp` to exercise them against a live deployment, or `ov eval mcp list-tools jupyter` for ad-hoc inspection
+- `/ov-build:ov-mcp-cmd` — the image inherits 3 deploy-scope `mcp:` declarative checks from the `jupyter` layer (`ping`, `list-tools` asserting all 11 prefixed tool names, `call notebook_list`). Run `ov eval live jupyter --filter mcp` to exercise them against a live deployment, or `ov eval mcp list-tools jupyter` for ad-hoc inspection
 - `/ov-jupyter:jupyter-ml`, `/ov-jupyter:jupyter-ml-notebook` — GPU variants that inherit the same MCP test suite
 
 ## When to Use This Skill

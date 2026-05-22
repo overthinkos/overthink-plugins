@@ -75,7 +75,7 @@ QEMUDomainAgentCommand passthrough). The command name mirrors the
 libvirt/virsh vocabulary so skills translate cleanly. Design
 choices:
 
-- **Target resolution** identical to `ov eval spice`: vms.yml entity
+- **Target resolution** identical to `ov eval spice`: vm.yml entity
   name → libvirt domain → live XML via `libvirtxml.Domain`. Errors
   are the same across both commands.
 - **Framebuffer screenshot** goes through `DomainScreenshot` —

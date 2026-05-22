@@ -25,30 +25,27 @@ description: |
 - `supervisor` (pac) — same package name on Arch (`extra/` repo), same
   system-Python dependency.
 
-### The vestigial `depends: python` removed in 2026-04
+### No `depends: python`
 
-The layer used to declare `depends: python`, which pulled in the
-`python` ov-layer → `pixi` ov-layer → a conda-forge Python env
-(~500 MB). Nothing in supervisord's runtime touched that env — it's
-pure system-Python all the way. The dep was dropped in 2026-04.
-Every image in the catalog that uses supervisord (which is nearly all
-of them) got an image-size drop of several hundred MB. See CLAUDE.md
+This layer declares no `depends: python`. supervisord's runtime is
+pure system-Python (the `supervisor` RPM brings `/usr/bin/python3`
+as its own dependency), so it needs no `python` ov-layer → `pixi`
+ov-layer → conda-forge Python env (~500 MB). See CLAUDE.md
 "Key Rules" → *"Don't declare defensive deps"* for the general rule.
 
-**Arch note:** the `pac: [supervisor]` section was added alongside the
-intermediates-inheritance fix so that Arch-based images with
-`build: [pac]` actually install supervisord. Previously only `rpm:` was
-declared, so Arch images silently got a `/etc/supervisord.conf` with no
-`supervisord` binary — the quadlet's `supervisord -n -c /etc/supervisord.conf`
-exited 127 (command not found) at container start. Every Arch-rooted
-auto-intermediate that composes `supervisord` was affected.
+**Arch note:** the `pac: [supervisor]` section is required so that
+Arch-based images with `build: [pac]` actually install supervisord.
+Without it, an Arch image gets a `/etc/supervisord.conf` with no
+`supervisord` binary, and the quadlet's `supervisord -n -c /etc/supervisord.conf`
+exits 127 (command not found) at container start. Every Arch-rooted
+auto-intermediate that composes `supervisord` needs it.
 
 ## How `ov` Generates Supervisord Configs
 
 Layers declare processes via the unified **`service:`** schema in `layer.yml` (see `/ov-image:layer` "Service Declaration"). Each entry is rendered through supervisord's `service_schema.service_template` in `build.yml`, which produces a `[program:<name>]` INI fragment. `ov image generate` collects all rendered fragments across the layer chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `build.yml init:` section).
 
 ```yaml
-# layers/chrome/layer.yml — unified schema (post-2026-04 migration)
+# layers/chrome/layer.yml — unified schema
 service:
   - name: chrome
     exec: /home/user/.local/bin/chrome-wrapper --force-renderer-accessibility --no-first-run --start-maximized
@@ -78,7 +75,7 @@ The render template maps the abstract spec to supervisord INI:
 | `stdout: file:/path` | `stdout_logfile=/path` (helper `supervisordLog`) |
 | `stdout: journal` / unset | `stdout_logfile=/dev/stdout` |
 
-**Supervisord does NOT support `use_packaged:`** — it doesn't consume systemd units. Entries with `use_packaged:` are skipped with a warning when rendering into a supervisord-init image. Use a custom entry (with explicit `exec:`) on supervisord-init images, or target a systemd init (bootc / host-deploy) where `use_packaged:` is honored.
+**Supervisord does NOT support `use_packaged:`** — it doesn't consume systemd units. Entries with `use_packaged:` are skipped with a warning when rendering into a supervisord-init image. Use a custom entry (with explicit `exec:`) on supervisord-init images, or target a systemd init (bootc / `target: local`) where `use_packaged:` is honored.
 
 The rendered INI lands at `/etc/supervisord.d/<layer>-<name>.conf` and is assembled into `/etc/supervisord.conf` at container-build time via the init system's fragment pipeline (`build.yml init.supervisord.fragment_template` + `stage_fragment_copy`).
 
@@ -105,9 +102,9 @@ See `/ov-selkies:chrome` for the canonical consumer (3-strike circuit breaker + 
 
 ## Polymorphism: a layer that runs on BOTH supervisord and systemd
 
-A layer that needs the SAME service to run under supervisord (container/pod targets) AND systemd (host installs / bootc / VMs) must NOT spin up a `<name>-host` sibling layer. The supported pattern is **mixed entries in one `service:` list**: same `name:`, two entries — one with `use_packaged: <unit>.service` (or `.socket`) for the systemd render, the other with custom `exec:` for the supervisord render. Init system at deploy time picks the matching form; the other entry is silently skipped. See `/ov-image:layer` "Service Declaration" → "Mixed entries in one layer" for the schema, CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the project-wide rule, and `/ov-infrastructure:virtualization` for the canonical worked example (post-2026-05 polymorphism cutover, which deleted the deprecated `virtualization-host` and `ov-full-host` siblings).
+A layer that needs the SAME service to run under supervisord (container/pod targets) AND systemd (host installs / bootc / VMs) must NOT spin up a `<name>-host` sibling layer. The supported pattern is **mixed entries in one `service:` list**: same `name:`, two entries — one with `use_packaged: <unit>.service` (or `.socket`) for the systemd render, the other with custom `exec:` for the supervisord render. Init system at deploy time picks the matching form; the other entry is silently skipped. See `/ov-image:layer` "Service Declaration" → "Mixed entries in one layer" for the schema, CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the project-wide rule, and `/ov-infrastructure:virtualization` for the canonical worked example.
 
-The 2026-05 cutover made this rule explicit precisely because it was tempting to copy-paste-and-rename a layer with a `-host` suffix when the schema already supported polymorphism via mixed entries. If you find yourself reaching for `-host`, reach for a second `service:` entry instead.
+It is tempting to copy-paste-and-rename a layer with a `-host` suffix when the schema already supports polymorphism via mixed entries. If you find yourself reaching for `-host`, reach for a second `service:` entry instead.
 
 ## Service Priority & Ordering
 
@@ -259,9 +256,9 @@ Container-mode logs are unaffected — supervisord is still PID 1 there.
 
 ## Related Layers
 
-- `/ov-languages:python` -- Optional pixi-python env (NOT a dep of this layer as of 2026-04; supervisord uses system python3 from RPM)
+- `/ov-languages:python` -- Optional pixi-python env (NOT a dep of this layer; supervisord uses system python3 from RPM)
 - `/ov-selkies:chrome` -- Canonical consumer of the crash-loop circuit breaker pattern (chrome-crash-listener, resource caps)
-- `/ov-selkies:labwc` -- Uses `supervisorctl avail` + `supervisorctl start chrome` to hand off to supervisord with a TOCTOU-safe sequence (autostart race fix in commit `febb9bd`)
+- `/ov-selkies:labwc` -- Uses `supervisorctl avail` + `supervisorctl start chrome` to hand off to supervisord with a TOCTOU-safe sequence (avoids the autostart Chrome-duplication race)
 - `/ov-infrastructure:traefik` -- Reverse proxy (depends on supervisord)
 - `/ov-infrastructure:dbus-layer` -- D-Bus session bus (depends on supervisord)
 - `/ov-distros:bootc-config` -- ships the systemd-user supervisord autostart wrapper for bootc images

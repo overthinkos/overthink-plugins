@@ -13,12 +13,12 @@ description: |
 `debootstrap` (using `/ov-distros:ubuntu-debootstrap-builder`), then boots it
 under libvirt/QEMU.
 
-> **Relocated (2026-05):** the `ubuntu-debootstrap` VM entity and its
-> `ubuntu-debootstrap-vm` bed live in the **`overthinkos/ubuntu`** repo (git
-> submodule at **`image/ubuntu`**), in that repo's `vm.yml` / `deploy.yml`.
-> Drive them from the submodule: `ov -C image/ubuntu vm build ubuntu-debootstrap`
-> + `ov -C image/ubuntu vm create ubuntu-debootstrap` (or
-> `ov --repo overthinkos/ubuntu …`).
+The `ubuntu-debootstrap` VM entity and its `ubuntu-debootstrap-vm` bed live in
+the **`overthinkos/ubuntu`** repo (git submodule at **`image/ubuntu`**), in that
+repo's `vm.yml` / `deploy.yml`. Drive them from the submodule:
+`ov -C image/ubuntu vm build ubuntu-debootstrap` +
+`ov -C image/ubuntu vm create ubuntu-debootstrap` (or
+`ov --repo overthinkos/ubuntu …`).
 
 ## VM Configuration (from image/ubuntu/vm.yml)
 

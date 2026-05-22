@@ -11,7 +11,7 @@ description: |
 
 # virtualization — QEMU/KVM/libvirt for both supervisord and systemd init systems
 
-## Canonical worked example: mixed-`service:` polymorphism (2026-05)
+## Canonical worked example: mixed-`service:` polymorphism
 
 This layer is the canonical demonstration that ONE layer can serve BOTH container/pod targets (supervisord init) AND host/bootc/VM targets (systemd init) without spawning a `<name>-host` sibling. The mechanism is the **mixed `service:` schema pattern**: each daemon (`virtqemud`, `virtnetworkd`) appears TWICE in the layer's `service:` list — once with `use_packaged: <unit>.socket` (rendered only on systemd-init targets) and once with custom `exec:` (rendered only on supervisord-init targets). The init system at deploy time picks the matching form; the other entry is silently skipped.
 
@@ -44,7 +44,7 @@ service:
     scope: system
 ```
 
-Why this matters: the previous design had a `virtualization-host` sibling layer that duplicated package lists, eval probes, and tasks for systemd targets. Drift between the two siblings was inevitable. The mixed-entry pattern eliminates the sibling — ONE layer covers both contexts; the schema does the polymorphism. The 2026-05 polymorphism cutover deleted the `-host` sibling along with `ov-full-host`. See CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the rule and `/ov-image:layer` "Service Declaration" → "Anti-pattern: `<name>-host` / `<name>-pod` sibling layers" for what NOT to do.
+Why this matters: a `<name>-host` sibling layer would duplicate package lists, eval probes, and tasks for systemd targets, and drift between the two siblings would be inevitable. The mixed-entry pattern eliminates the sibling — ONE layer covers both contexts; the schema does the polymorphism. See CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the rule and `/ov-image:layer` "Service Declaration" → "Anti-pattern: `<name>-host` / `<name>-pod` sibling layers" for what NOT to do.
 
 ## Overview
 
@@ -144,8 +144,8 @@ This layer makes that URI actually work inside a container at uid
   `crw-rw-rw-` (world-readable/writable), so any uid that can `open()` it
   gets KVM acceleration.
 - `virsh -c qemu:///session domcapabilities` reports
-  `<domain>kvm</domain>` once the daemons are running — empirically
-  verified (2026-04-19) on `selkies-desktop-ov` at uid 1000.
+  `<domain>kvm</domain>` once the daemons are running — verified
+  on `selkies-desktop-ov` at uid 1000.
 
 ## Tests baked into the layer
 
@@ -160,7 +160,7 @@ This layer makes that URI actually work inside a container at uid
 
 Debian/Ubuntu and Fedora/Arch bundle libvirt drivers differently. On Fedora/Arch the `libvirt-daemon-driver-qemu` / `libvirt-daemon-driver-network` subpackages ship `/usr/sbin/virtqemud` and `/usr/sbin/virtnetworkd` as standalone binaries. On Debian/Ubuntu those drivers are bundled inside `libvirt-daemon-system`, and the monolithic `libvirtd` binary replaces the per-driver split daemons — so a `file: /usr/sbin/virtqemud` probe hard-fails on deb even when the functionality is present.
 
-The fix — introduced 2026-04 during Phase E — probes package presence with distro-specific names:
+The fix probes package presence with distro-specific names:
 
 ```yaml
 - id: virtqemud-package
@@ -244,7 +244,7 @@ Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networ
   (check `ls -la /dev/kvm` inside the container).
 - Running `ov vm` from inside a rootless container (the
   supervisord-managed daemons here are what makes that work).
-- Understanding why the layer no longer just installs packages — the
-  2026-04-19 refactor added the supervisord programs + `requires:
-  supervisord` + the deploy-scope tests, turning it from a
-  package-only layer into a service provider.
+- Understanding why this layer is a service provider, not just a
+  package installer — it ships the supervisord programs + `requires:
+  supervisord` + the deploy-scope tests on top of the QEMU/libvirt
+  packages.

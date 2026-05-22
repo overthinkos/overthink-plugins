@@ -4,7 +4,7 @@ description: |
   kind:vm entity pairing with the /ov-distros:aurora bootc container image.
   source.kind: bootc. Thin pointer skill — composition + layer stack authority
   lives in /ov-distros:aurora. This skill documents only the VM resource sizing.
-  MUST be invoked before editing aurora-bootc in vms.yml.
+  MUST be invoked before editing aurora-bootc in vm.yml.
 ---
 
 # aurora-bootc
@@ -13,7 +13,7 @@ description: |
 
 **Composition authority: `/ov-distros:aurora`.** Layer stack, base image, tests, and OCI labels all live there. This skill is a pointer; it only documents the VM-specific delta (disk_size / ram / cpus).
 
-## VmSpec (from vms.yml)
+## VmSpec (from vm.yml)
 
 ```yaml
 vms:
@@ -34,7 +34,7 @@ vms:
 | RAM | 12G | KDE desktop + NVIDIA stack + ov toolchain working set |
 | CPUs | 4 | Standard workstation-class dev VM allocation |
 
-Firmware, machine, network, and SSH settings fall back to VmSpec defaults (see `/ov-vm:vms-catalog`). Override locally in vms.yml if the paired image changes its init system or boot requirements.
+Firmware, machine, network, and SSH settings fall back to VmSpec defaults (see `/ov-vm:vms-catalog`). Override locally in vm.yml if the paired image changes its init system or boot requirements.
 
 ## Build + run
 

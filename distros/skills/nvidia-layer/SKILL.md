@@ -68,13 +68,13 @@ NVIDIA VAAPI acceleration requires the container to know which DRM render node t
 
 Selkies is the primary consumer: pixelflux's Wayland compositor uses `DRINODE` to open the render node and set up the VAAPI H.264 encoder. Without the injection, selkies would fall back to software encode (`libx264`) and lose ~40% of its streaming bandwidth budget.
 
-The injection replaces 10 previously-scattered GPU device injection blocks across the `ov` source tree — see commit `8f6f322` for the consolidation history. If you see `DRINODE` referenced in layer scripts, you can assume it was auto-detected and injected by `ov`, not set by the user.
+GPU device injection is consolidated into the single `appendAutoDetectedEnv()` function rather than scattered across the `ov` source tree. If you see `DRINODE` referenced in layer scripts, you can assume it was auto-detected and injected by `ov`, not set by the user.
 
 See `/ov-core:ov-doctor` (Hardware Detection) for the detection probe and `/ov-distros:rocm` for the AMD-side counterpart using the same mechanism.
 
 ### Cross-GPU portability (nvidia-base images on AMD hosts)
 
-Images that declare `base: nvidia` (e.g., `/ov-selkies:selkies-desktop-nvidia`, `/ov-selkies:selkies-desktop-ov`) still run cleanly on hosts with a different GPU vendor — the NVIDIA runtime libraries ride along as benign passengers. `ov config` auto-detects whatever the host actually exposes (e.g., `/dev/dri/renderD128` + `/dev/kfd` for an AMD RDNA3), injects those device nodes + `DRINODE`, and Mesa handles rendering. Confirmed 2026-04-19: `selkies-desktop-ov` (base: nvidia) on an AMD `gfx 11.0.0` host — 15/15 supervisord programs RUNNING, selkies streaming over Mesa, no CUDA calls attempted. The CUDA toolkit in the image simply goes unused.
+Images that declare `base: nvidia` (e.g., `/ov-selkies:selkies-desktop-nvidia`, `/ov-selkies:selkies-desktop-ov`) still run cleanly on hosts with a different GPU vendor — the NVIDIA runtime libraries ride along as benign passengers. `ov config` auto-detects whatever the host actually exposes (e.g., `/dev/dri/renderD128` + `/dev/kfd` for an AMD RDNA3), injects those device nodes + `DRINODE`, and Mesa handles rendering. For example, `selkies-desktop-ov` (base: nvidia) runs on an AMD `gfx 11.0.0` host — 15/15 supervisord programs RUNNING, selkies streaming over Mesa, no CUDA calls attempted. The CUDA toolkit in the image simply goes unused.
 
 ## Install tasks
 

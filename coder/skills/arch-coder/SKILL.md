@@ -12,14 +12,14 @@ description: |
 
 # arch-coder
 
-> **Relocated (2026-05):** the `arch-coder` image now lives in the dedicated
+> **Location:** the `arch-coder` image lives in the dedicated
 > **`overthinkos/arch`** repo, mounted as a git submodule at **`image/arch`**.
 > It composes the layers below by **git reference** to this repo
 > (`@github.com/overthinkos/overthink/layers/<name>:<tag>`) rather than copying
-> them; the `arch` base + `arch-builder` stay in this repo and are
-> pulled into the submodule via a remote `include:` of `arch-base.yml`. Build /
-> deploy from the submodule, e.g. `cd image/arch && ov image build arch-coder`
-> (the build verb defaults to the submodule's `overthink.yml`), or
+> them; the `arch` base + `arch-builder` live in this repo and are pulled into
+> the submodule via a remote `include:` of `arch-base.yml`. Build / deploy from
+> the submodule, e.g. `cd image/arch && ov image build arch-coder` (the build
+> verb defaults to the submodule's `overthink.yml`), or
 > `ov --repo overthinkos/arch image build arch-coder`. The commands below assume
 > you are inside `image/arch` (or pass `-C image/arch`).
 
@@ -91,7 +91,7 @@ No explicit `user:` / `uid:` / `gid:` — inherits the defaults. `user_policy:` 
 | UID / user | `1000 / user` | create mode |
 | sudo | passwordless via `/etc/sudoers.d/ov-user` | `/ov-coder:sshd` |
 
-**No `--privileged`, no `cap_add: ALL`, no `seccomp=unconfined`.** The rootless posture is shared with the three sibling power-user images (`fedora-coder`, `fedora-ov`, `arch-ov`) — dropped the legacy privileged posture in 2026-04 once `/ov-distros:container-nesting` proved it was unnecessary.
+**No `--privileged`, no `cap_add: ALL`, no `seccomp=unconfined`.** The rootless posture is shared with the three sibling power-user images (`fedora-coder`, `fedora-ov`, `arch-ov`); `/ov-distros:container-nesting` proves a privileged posture is unnecessary.
 
 ## AUR via yay (Arch-specific builder chain)
 

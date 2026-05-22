@@ -4,7 +4,7 @@ description: |
   Kitchen-sink development image on Debian 13 trixie: coding + AI-coding
   CLIs + DevOps tooling in one container. Debian base, 30+ direct layers
   mirroring fedora-coder's stack but with deb: sections. Runs as uid 1000
-  (`user`) with passwordless sudo. 143/0 tests pass as of 2026-04-20.
+  (`user`) with passwordless sudo. 143/0 tests pass.
   Use when working with the debian-coder image — or when comparing
   cross-distro parity across the four coder-family images.
 ---
@@ -13,10 +13,10 @@ description: |
 
 Debian 13 trixie counterpart of `/ov-coder:fedora-coder`. Same 80-line `eval:` block, same ~30 layers, same rootless posture (uid 1000 + passwordless sudo). Key wrinkles are all Debian-specific packaging quirks handled inside individual layers: `bat → batcat` symlink, Microsoft's `dotnet-install.sh` cross-distro installer, and package-existence tests (vs binary-path tests) for `virtualization` because Debian bundles libvirt drivers differently.
 
-> **Relocated (2026-05):** lives in the **`overthinkos/debian`** repo (git
-> submodule at **`image/debian`**), in that repo's `image.yml`. Its ~31 layers
-> are pulled by github reference from the main repo (none moved). Build/validate
-> from the submodule: `ov -C image/debian image build debian-coder`, or
+> **Location:** lives in the **`overthinkos/debian`** repo (git submodule at
+> **`image/debian`**), in that repo's `image.yml`. Its ~31 layers are pulled by
+> github reference from the main repo. Build/validate from the submodule:
+> `ov -C image/debian image build debian-coder`, or
 > `ov --repo overthinkos/debian image build debian-coder`. Deploy-mode verbs
 > (`ov config`/`ov start`/`ov eval image`) read the built image's OCI labels and
 > work from anywhere once it's in local storage.
@@ -104,14 +104,14 @@ See `/ov-image:image` "user_policy" and `/ov-build:build` "base_user" for the fu
 
 - **bat → batcat symlink** (`/ov-coder:dev-tools`). Debian and Ubuntu rename `bat` → `batcat` to avoid a namespace collision with a legacy `bacula` utility. The dev-tools layer ships a distro-tolerant cmd task that creates `/usr/bin/bat -> /usr/bin/batcat` when only batcat is present; no-op on Fedora/Arch.
 - **dotnet-sdk-9.0 via Microsoft's `dotnet-install.sh`** (`/ov-coder:language-runtimes`). Debian 13 main ships no .NET; Microsoft's trixie apt repo has dotnet-sdk-9.0, but using the official cross-distro `dotnet-install.sh` channel-pin to `9.0` gives version parity with Ubuntu (whose Microsoft noble repo only ships 10.0). Installs to `/usr/share/dotnet` + symlinks `/usr/bin/dotnet`.
-- **libvirt tests use `package:` not `file:`** (`/ov-infrastructure:virtualization`). Debian bundles libvirt drivers differently from Fedora's split packaging, so `file: /usr/sbin/virtqemud` would false-fail. The layer now probes via `package: libvirt-daemon-driver-qemu` + `package_map:` per-distro package name.
+- **libvirt tests use `package:` not `file:`** (`/ov-infrastructure:virtualization`). Debian bundles libvirt drivers differently from Fedora's split packaging, so `file: /usr/sbin/virtqemud` would false-fail. The layer probes via `package: libvirt-daemon-driver-qemu` + `package_map:` per-distro package name.
 - **sudoers via `getent`** (`/ov-coder:sshd`). Instead of hardcoding `user ALL=…`, the layer runs `getent passwd 1000 | cut -d: -f1` at build time to discover the actual uid-1000 account. On debian-coder that returns `user`; on ubuntu-coder it returns `ubuntu`. One cross-distro implementation, no special cases.
 
-## Empirical test results (2026-04-20)
+## Test results
 
 `ov eval image ghcr.io/overthinkos/debian-coder:latest` — **143 passed · 0 failed · 0 skipped**.
 
-`ov eval image ghcr.io/overthinkos/debian-coder:latest` — live-service extension tests (sshd on 2222, supervisord, dbus, ov-mcp, virtqemud session) — not run in Phase F (disk-constrained CI environment), but expected to mirror fedora-coder's +18 additions.
+Against a live running container, the same command adds live-service extension tests (sshd on 2222, supervisord, dbus, ov-mcp, virtqemud session), mirroring fedora-coder's +18 deploy-scope additions.
 
 ## Verification recipe
 

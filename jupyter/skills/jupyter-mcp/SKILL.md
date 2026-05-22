@@ -23,13 +23,13 @@ This is a **Tier 1 "post-install"** layer — it has no `pixi.toml` and installs
 
 **Single source of truth:** The `jupyter_mcp` Python package lives only in this layer. Both `jupyter` (lightweight) and `jupyter-ml` (GPU ML) compose it via their `layer:` field. This prevents code duplication and ensures bug fixes propagate to all images.
 
-## Usage philosophy and caveats (post-2026-05-06 cutover)
+## Usage philosophy and caveats
 
 The MCP server **manages CRDT rooms invisibly**. Clients see notebooks and cells; the server takes care of room lifecycle. Reading or mutating any notebook just works — call `cell_get`, `cell_update`, `notebook_get` directly.
 
 - **MCP works WITH the user.** Every `notebook_*` and `cell_*` tool auto-attaches to whichever CRDT room exists for the path (JupyterLab UI tab, another MCP session, or this one), or creates a fresh room if none exists. Calling `cell_update` on a notebook the user has open in JupyterLab edits THAT EXACT Y.Doc — the user sees changes in real time. **There is no scenario where MCP and UI work in parallel rooms.**
-- **No client-side room management.** The pre-cutover `room_open` / `room_close` / `room_close_all` / `room_pick` tools were deleted. Idle rooms (no clients, no MCP activity for `MCP_ROOM_IDLE_TIMEOUT_SEC`, default 600s) are flushed and closed by a server-side sweeper. Configure the timeout via env var on the layer for fast tests.
-- **`cell_update` is atomic by `cell_id`.** The cell's stable identifier is preserved across the update — pre-cutover versions minted a fresh UUID on every update, producing silent cell duplication when the room had any concurrent state. If you ever observe duplicate cells appearing during a sequence of `cell_update` calls on a build older than this commit, that's the bug.
+- **No client-side room management.** Clients do not open or close CRDT rooms. Idle rooms (no clients, no MCP activity for `MCP_ROOM_IDLE_TIMEOUT_SEC`, default 600s) are flushed and closed by a server-side sweeper. Configure the timeout via env var on the layer for fast tests.
+- **`cell_update` is atomic by `cell_id`.** The cell's stable identifier is preserved across the update, so a sequence of `cell_update` calls never duplicates cells even when the room has concurrent state.
 - **Path canonicalization.** Any path you pass — `"foo.ipynb"`, `"./foo.ipynb"`, `"/workspace/foo.ipynb"` — is normalized to the workspace-relative form before reaching `file_id_manager.index()`. All three converge on the same room. Host paths and `..` escapes are rejected with a clear error.
 - **Single room per notebook is an INVARIANT.** Two MCP sessions plus the JupyterLab UI editing the same notebook ALL share one Y.Doc. If `room_list` ever shows two entries for the same logical file, that's a regression — open a bug.
 - **Don't mix MCP cell-mutations with direct disk writes on the same notebook concurrently.** The upstream `jupyter_server_ydoc` file watcher CRDT-merges external writes against the in-memory state, producing hybrid cells. Pick one writer per session — either MCP or direct file edit, not both.
@@ -74,13 +74,13 @@ The extension registers a Streamable HTTP MCP server at `http://localhost:8888/m
 
 Cell operations mutate the live CRDT document — changes appear instantly in all connected JupyterLab clients. Multiple MCP clients and browser users can edit the same notebook simultaneously. The server uses `jupyter-server-ydoc` for CRDT document management. The single-room invariant means MCP and UI clients ALWAYS share one Y.Doc per logical file — calls converge through deterministic `room_id = json:notebook:<file_id_manager.index(canonical_path)>`.
 
-**Key implementation details (post-2026-05-06):**
+**Key implementation details:**
 
 1. **Auto-attach in `_resolve_notebook_doc`.** Every path-accepting adapter method routes through this single resolve point. It computes the canonical path, looks up the deterministic room_id, and either attaches to the existing `server.rooms[room_id]` (UI-created or MCP-created) or constructs a new room mirroring `YDocWebSocketHandler.prepare()`. Same code path → same room → no parallel state.
 
-2. **In-place `set_cell`.** Cell mutations operate on the existing Y.Map's `source` (Y.Text), `metadata` (Y.Map), and `outputs` (Y.Array) IN PLACE. The cell's `id` and its position in `_ycells` are structurally untouched. Compare with the pre-cutover code that delegated to upstream `YNotebook.set_cell`, which calls `create_ycell(value)` (mints a fresh UUID when value lacks `id`) and `set_ycell(index, ycell)` (a `pycrdt.Array.__setitem__` that decomposes into delete-then-insert at the CRDT level — phantom-cell residue). A post-condition verify ensures `id` stability after every mutation.
+2. **In-place `set_cell`.** Cell mutations operate on the existing Y.Map's `source` (Y.Text), `metadata` (Y.Map), and `outputs` (Y.Array) IN PLACE. The cell's `id` and its position in `_ycells` are structurally untouched (no fresh UUID minted, no delete-then-insert at the CRDT level). A post-condition verify ensures `id` stability after every mutation.
 
-3. **Path canonicalization at the boundary.** `_canonical_notebook_path(path)` resolves host paths and `..` escapes BEFORE any call to `file_id_manager.index()`. Prevents the 2026-05 host-path-leak bug pattern where `/home/atrawog/...` got minted into the container's file_id manager from a stray client call.
+3. **Path canonicalization at the boundary.** `_canonical_notebook_path(path)` resolves host paths and `..` escapes BEFORE any call to `file_id_manager.index()`. Prevents host-path leaks where an absolute host path could be minted into the container's file_id manager from a stray client call.
 
 4. **Server-side idle-room sweeper.** A background asyncio task runs every `MCP_ROOM_SWEEP_INTERVAL_SEC` (default 60), flushes and closes rooms with zero connected clients and idle for > `MCP_ROOM_IDLE_TIMEOUT_SEC` (default 600). Activity tracking via `_room_last_active`: every CRDT mutation through the adapter bumps the timestamp, so an actively-mutated MCP-only room (no WS clients) is not reaped.
 

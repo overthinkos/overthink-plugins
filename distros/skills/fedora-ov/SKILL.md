@@ -1,9 +1,9 @@
 ---
 name: fedora-ov
 description: |
-  Fedora image with the full ov toolchain using shared layers. Rootless-first
-  since 2026-04 — runs as uid=1000 with passwordless sudo (no root, no
-  cap_add: ALL). Same layer list as arch-ov. Includes NVIDIA GPU runtime.
+  Fedora image with the full ov toolchain using shared layers. Rootless-first —
+  runs as uid=1000 with passwordless sudo (no root, no cap_add: ALL). Same layer
+  list as arch-ov. Includes NVIDIA GPU runtime.
   MUST be invoked before building, deploying, configuring, or troubleshooting
   the fedora-ov image.
 ---
@@ -15,12 +15,12 @@ layer list as `/ov-coder:arch-ov` — the tag system handles
 Fedora-specific packages and scripts via `rpm:` sections. Supports
 nested containers at any depth via `/ov-distros:container-nesting`.
 
-> **Relocated (2026-05):** lives in the **`overthinkos/fedora`** repo (git
-> submodule at **`image/fedora`**), `enabled: false`. Its `fedora` base is
-> remote-included from the main repo's `fedora-base.yml`; its layers (incl. the
-> `nvidia` layer) are pulled by github reference. Build from the submodule:
-> `ov -C image/fedora image build fedora-ov --include-disabled`. Deploy-mode
-> verbs work from anywhere once the image is in local storage.
+Lives in the **`overthinkos/fedora`** repo (git submodule at **`image/fedora`**),
+`enabled: false`. Its `fedora` base is remote-included from the main repo's
+`fedora-base.yml`; its layers (incl. the `nvidia` layer) are pulled by github
+reference. Build from the submodule:
+`ov -C image/fedora image build fedora-ov --include-disabled`. Deploy-mode verbs
+work from anywhere once the image is in local storage.
 
 ## Image Properties
 
@@ -30,20 +30,20 @@ nested containers at any depth via `/ov-distros:container-nesting`.
 | Tags | `[all, rpm, fedora, fedora:43]` |
 | Layers | agent-forwarding, ov-full, golang, gh, sshd, container-nesting, nvidia |
 | Platforms | linux/amd64 |
-| UID / user | **1000 / user** (rootless-first since 2026-04) |
+| UID / user | **1000 / user** (rootless-first) |
 | Network | host |
 | Security | layer-level only (from `/ov-distros:container-nesting`) |
 | Registry | ghcr.io/overthinkos |
 
-### Rootless-first posture (2026-04 refactor)
+### Rootless-first posture
 
-Previously ran as `uid: 0 / user: root` with `cap_add: [ALL]` +
-`security_opt: [label=disable, seccomp=unconfined]`. All four
-power-user images (`fedora-ov`, `/ov-coder:arch-ov`,
-`/ov-coder:fedora-coder`, `/ov-distros:githubrunner`) dropped that
-posture once the `/ov-distros:container-nesting` kernel RCA proved
-that `unmask=/proc/*` + subuid/subgid delegation is sufficient for
-rootless nested containers + rootless libvirt VMs.
+Runs as uid=1000 / `user` with no added capabilities. The
+`/ov-distros:container-nesting` kernel RCA establishes that
+`unmask=/proc/*` + subuid/subgid delegation is sufficient for rootless
+nested containers + rootless libvirt VMs, so this image — like its
+power-user siblings (`/ov-coder:arch-ov`, `/ov-coder:fedora-coder`,
+`/ov-distros:githubrunner`) — needs no `cap_add: [ALL]` or
+`label=disable` / `seccomp=unconfined`.
 
 The `/ov-coder:sshd` layer installs `/etc/sudoers.d/ov-user` with
 passwordless sudo for `user`, so anything that genuinely needs root
@@ -65,13 +65,12 @@ kernel `mount_too_revealing()` RCA.
 
 ### Why still `network: host`
 
-Host networking is kept on `fedora-ov` (unlike `arch-ov` which moved
-to bridge) so the image can reach host services and the host
-namespace directly. As of 2026-04, ov-mcp's `rewriteMCPURLForHost`
-also handles host-networked containers via
+`fedora-ov` uses host networking (unlike `arch-ov`, which uses bridge)
+so the image can reach host services and the host namespace directly.
+ov-mcp's `rewriteMCPURLForHost` handles host-networked containers via
 `HostConfig.NetworkMode=host` detection (see
-`ov/mcp_client.go:lookupHostPort`), so host networking no longer
-breaks MCP URL rewriting. If you want ov-mcp on fedora-ov, compose it
+`ov/mcp_client.go:lookupHostPort`), so host networking does not break
+MCP URL rewriting. If you want ov-mcp on fedora-ov, compose it
 into the layer list — it will work on either networking mode.
 
 ## What's Installed
@@ -80,7 +79,7 @@ Full ov toolchain via shared layers:
 
 - **ov-full** — ov binary + VM tools (qemu-kvm, qemu-img, libvirt tools) + gocryptfs + socat + gvisor-tap-vsock + podman-machine
 - **golang** — Go compiler (`golang-bin`)
-- **gh** — GitHub CLI + `git` + `git-lfs` (single-responsibility since 2026-04; see `/ov-coder:gh`)
+- **gh** — GitHub CLI + `git` + `git-lfs` (single-responsibility; see `/ov-coder:gh`)
 - **sshd** — SSH server/client (`openssh-server`, `openssh-clients`) + passwordless sudo for `user`
 - **container-nesting** — buildah, fuse-overlayfs, shadow-utils, skopeo, tailscale, libsecret + nested container config (Tailscale from `tailscale-stable` repo)
 - **nvidia** — nvidia-container-toolkit, libva-nvidia-driver (from negativo17 repo; driver libs provided by CDI at runtime)
@@ -159,7 +158,7 @@ and scripts per distro.
 - `/ov-coder:ov-full` — ov binary plus VM/encryption tools
 - `/ov-distros:container-nesting` — nested rootless podman/buildah (authoritative RCA for `mount_too_revealing()` + `unmask=/proc/*`)
 - `/ov-coder:sshd` — SSH daemon + passwordless sudo for `user`
-- `/ov-coder:gh` — GitHub CLI + git + git-lfs (owns all git tooling as of 2026-04)
+- `/ov-coder:gh` — GitHub CLI + git + git-lfs (owns all git tooling)
 - `/ov-distros:nvidia` — NVIDIA GPU runtime
 
 ## Related Images

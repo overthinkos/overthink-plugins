@@ -1,7 +1,7 @@
 ---
 name: local-spec
 description: |
-  MUST be invoked before any work involving: authoring `kind: local` templates (the post-cutover replacement for `kind: host`), `local.yml` files, the inline `local:` map in `overthink.yml`, or the merge semantics between a `kind: local` template and a `target: local` deployment.
+  MUST be invoked before any work involving: authoring `kind: local` templates, `local.yml` files, the inline `local:` map in `overthink.yml`, or the merge semantics between a `kind: local` template and a `target: local` deployment.
 ---
 
 # kind: local — Authoring Reference
@@ -10,7 +10,7 @@ description: |
 
 `kind: local` declares a reusable layer-stack template that gets applied to a Linux filesystem (target:local deployments). Unlike `kind: pod` / `kind: vm` / `kind: k8s` which wrap an image, a `kind: local` is defined entirely by its `layers` + `install_opts` + `env` — there's no OCI artifact backing it. The convention file is `local.yml`; templates may also be authored inline in the `local:` map of `overthink.yml`.
 
-Replaces the legacy `kind: host`. Migration: `ov migrate`.
+Legacy `kind: host` projects migrate via `ov migrate`.
 
 ## Schema
 
@@ -37,7 +37,7 @@ spec:
 ## Inline form in overthink.yml
 
 ```yaml
-version: 4
+version: 2026.141.1530
 local:
   dev-workstation:
     layers: [ripgrep, direnv]
@@ -70,7 +70,7 @@ local:
 | `eval` | No | Deploy-scope checks; merged with deployment.eval. |
 | `deploy_eval` | No | Same as `eval` but reserved for image-style deploy-tests propagation. |
 
-There is **no** `status:` or `info:` field — those were removed in the local-cutover. Status lives in `description.tag` (one of `working`/`testing`/`broken`); the human-facing description lives in `description.feature` + `description.narrative`.
+There is **no** `status:` or `info:` field. Status lives in `description.tag` (one of `working`/`testing`/`broken`); the human-facing description lives in `description.feature` + `description.narrative`.
 
 ## What the deploy does NOT do
 
@@ -132,9 +132,9 @@ local:
 - `/ov-local:local-deploy` — the `target: local` deployment surface that consumes this template.
 - `/ov-internals:local-infra` — Go file map (`local_spec.go`, `LocalSpec` struct, `findLocalSpec` lookup).
 - `/ov-image:layer` — layer authoring (the building blocks composed by templates).
-- `/ov-build:migrate` — `ov migrate` migrates legacy `kind: host`/`host.yml` projects; `ov migrate` renames the operator-specific `qc` / `cachyos-dx` deployment key to `ov-cachyos` (demonstrating that a kind:local template and a kind:deploy entry can share a name — cross-kind reuse, 2026-05-05); `ov migrate` splits `overthink.yml`'s inline `image:` / `vm:` / `pod:` / `k8s:` / `local:` / `deploy:` maps into sibling per-kind files AND renames `kind: deployment` → `kind: deploy` in the same hop.
+- `/ov-build:migrate` — `ov migrate` migrates legacy `kind: host`/`host.yml` projects and splits `overthink.yml`'s inline `image:` / `vm:` / `pod:` / `k8s:` / `local:` / `deploy:` maps into sibling per-kind files. The `ov-cachyos` deploy key + `local.ov-cachyos` template share a name — a concrete demonstration of cross-kind name reuse (a `kind: local` template and a `kind: deploy` entry can share a name).
 
-## Cross-kind name reuse (2026-05-05)
+## Cross-kind name reuse
 
 A `kind: local` template's name lives in the `local:` namespace, independent of layer / image / pod / vm / k8s / deploy. The canonical example is `ov-cachyos` — `local.ov-cachyos` is the template; `deploy.ov-cachyos` is the deployment entry that applies it; both share the name without conflict. Verbs disambiguate: `ov update ov-cachyos` resolves to the deploy entry; the template is referenced internally via the deploy's `local: ov-cachyos` field. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged".
 

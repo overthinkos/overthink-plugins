@@ -13,7 +13,7 @@ description: |
 
 `ov image generate` reads `image.yml` and `layers/`, resolves dependency graphs, and writes Containerfiles to `.build/`. Generation is idempotent and `.build/` is disposable (gitignored). Understanding the generated output is essential for debugging build issues.
 
-**2026-04 refactor**: generation now runs through the shared `DeployTarget` interface. `OCITarget` is the build-mode implementation; it consumes the `InstallPlan` IR emitted by `BuildDeployPlan` and writes Containerfile text. `ContainerDeployTarget` and `HostDeployTarget` are the deploy-mode siblings consuming the same IR. For the IR shape and step kinds, see **`/ov-internals:install-plan`**. For host-deploy supporting files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref), see **`/ov-internals:local-infra`**.
+Generation runs through the shared `DeployTarget` interface. `OCITarget` is the build-mode implementation; it consumes the `InstallPlan` IR emitted by `BuildDeployPlan` and writes Containerfile text. `PodDeployTarget` and `LocalDeployTarget` are the deploy-mode siblings consuming the same IR. For the IR shape and step kinds, see **`/ov-internals:install-plan`**. For local-deploy supporting files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref), see **`/ov-internals:local-infra`**.
 
 ## Quick Reference
 
@@ -130,7 +130,7 @@ putting the value in scope for the downstream URL expansion.
 `resolveUserSpec(userField, img)` → `(directive, chownPair)`:
 
 - `root` / `0` / empty → `("0", "")` (root is COPY's default; skip `--chown`)
-- `${USER}` → `(strconv.Itoa(img.UID), fmt.Sprintf("%d:%d", img.UID, img.GID))` — **numeric** directive, matching the pre-refactor `USER <UID>` convention and avoiding `/etc/passwd` dependencies at the switch point
+- `${USER}` → `(strconv.Itoa(img.UID), fmt.Sprintf("%d:%d", img.UID, img.GID))` — **numeric** `USER <UID>` directive, avoiding `/etc/passwd` dependencies at the switch point
 - `<uid>:<gid>` → pass through
 - bare numeric `<uid>` → `(u, u + ":" + u)`
 - literal name → `(u, u + ":" + u)` (COPY `--chown=<name>:<name>` works when the user exists in the image)
@@ -213,19 +213,18 @@ FROM scratch AS mylib-ctx
 COPY layers/mylib/ /
 ```
 
-## Auto-Intermediate Images — grouping by `(Base, UID)` (2026-04)
+## Auto-Intermediate Images — grouping by `(Base, UID)`
 
 Sibling images that share the same base are grouped by
 `ComputeIntermediates` in `ov/intermediates.go` so repeated layer
 prefixes become shared intermediate images (the `fedora-nonfree-ssh-client-dbus`
-pattern). Before 2026-04 the grouping key was just `img.Base`; that
-collapsed images with **different UIDs** into one intermediate whose
-resolved `HOME` was always the default (`/home/user`). For a child
-image with `uid: 0` (`/home/root`), this baked `/home/user/.pixi/bin`
-into the intermediate's `ENV PATH`, which the child then inherited as
-dead PATH entries it couldn't override.
+pattern). The grouping key is `siblingKey{base, uid}`, not a bare base
+string: grouping on base alone would collapse images with **different
+UIDs** into one intermediate whose resolved `HOME` is always the
+default (`/home/user`), so a child image with `uid: 0` (`/home/root`)
+would inherit `/home/user/.pixi/bin` as dead `ENV PATH` entries it
+can't override.
 
-The fix: `siblingKey{base, uid}` instead of a bare base string.
 Per-UID sibling groups get their own intermediate chains. When the UID
 differs from `cfg.Defaults.UID` (typically 1000), `pickAutoName`
 appends `-uid<N>` to the intermediate name so OCI tags don't collide
@@ -252,20 +251,17 @@ UID (uid=0 → `root`/`/root`; else default user + `/home/<user>`)
 instead of always using defaults. This keeps HOME-relative
 `env:` / `path_append:` expansion consistent with the child images.
 
-Blast radius: uid=1000 images (the overwhelming majority) see no
-change — they still share all the intermediates they shared before.
-Uid=0 images (pre-2026-04 outliers: `fedora-coder`, `fedora-ov`,
-`arch-ov`, `githubrunner`) got their own `-uid0`-suffixed
-intermediates — but as of 2026-04 all four of those images
-transitioned to uid=1000 + sudo (see `/ov-coder:fedora-coder`), so
-the fix is currently dormant protection against any future uid=0
-image. It remains in place because the defensive grouping is cheap
-(one extra struct field) and prevents a whole class of silent PATH
-regressions from reappearing.
+Blast radius: uid=1000 images (the overwhelming majority) share their
+intermediates as usual. Uid=0 images get their own `-uid0`-suffixed
+intermediates. The ecosystem's coder/ov images run as uid=1000 + sudo
+(see `/ov-coder:fedora-coder`), so the per-UID split is dormant
+protection against any future uid=0 image — it stays in place because
+the defensive grouping is cheap (one extra struct field) and prevents
+a whole class of silent PATH regressions.
 
-Verified via the existing `ov/intermediates_test.go` suite (the
-test images construct `ResolvedImage{}` without an explicit UID, so
-they trip `uid=0` → `-uid0` naming; all assertions still pass).
+Covered by `ov/intermediates_test.go` (the test images construct
+`ResolvedImage{}` without an explicit UID, so they trip `uid=0` →
+`-uid0` naming).
 
 ## LABEL Placement — Cache Efficiency
 
@@ -276,12 +272,11 @@ after `writeLayerSteps` + the final `USER` emission.
 
 Why it matters: the `org.overthinkos.eval` LABEL is the most-volatile
 piece of image metadata — it changes every time a test is added, edited,
-or removed. If LABELs appeared BEFORE the RUN/COPY install steps (as
-before the relocation), buildkit's cache invalidated at the first
-changed LABEL and every downstream instruction rebuilt from scratch.
-For a 138-step stack like `immich-ml`, that meant re-running pnpm
-install, the Immich server build, geodata downloads — minutes to hours
-for a one-line test edit.
+or removed. If LABELs appeared BEFORE the RUN/COPY install steps,
+buildkit's cache would invalidate at the first changed LABEL and every
+downstream instruction would rebuild from scratch. For a 138-step stack
+like `immich-ml`, that means re-running pnpm install, the Immich server
+build, geodata downloads — minutes to hours for a one-line test edit.
 
 With LABELs at the end, a test/label edit only re-runs the LABEL
 instructions themselves (pure manifest metadata, no filesystem work).
@@ -326,10 +321,6 @@ FROM), a layer's scratch-stage content (`COPY layers/<name>/ /`
 source bytes), or an instruction's text (package list, cmd body).
 See `/ov-build:build` "Cache Efficiency" for the full list.
 
-Historical note: earlier revisions of this skill called this a
-"CalVer cascade cost" — that framing was incorrect. The cost is
-always in genuine content changes, never in tag shifts.
-
 ## Intermediate Images
 
 Auto-generated at branch points where multiple images share common layer prefixes:
@@ -353,7 +344,7 @@ The current code resolves `inheritedDistro` / `inheritedBuilds` from the parent 
 
 Configurable via `user`, `uid`, `gid`, and `user_policy` fields in `image.yml` (defaults: `"user"`, 1000, 1000, `"auto"`).
 
-### Declarative adopt: `build.yml distro.<name>.base_user:` (2026-04)
+### Declarative adopt: `build.yml distro.<name>.base_user:`
 
 Some base images ship a pre-existing uid-1000 account (Ubuntu 24.04 ships `ubuntu:ubuntu`). The `base_user:` declaration in `build.yml` tells ov about it:
 
@@ -394,19 +385,17 @@ WORKDIR /home/<user>
 USER <UID>
 ```
 
-The old `getent passwd <UID> >/dev/null 2>&1 ||` short-circuit-based form is superseded — the `if !` form is functionally equivalent for create-mode distros but composes better with the adopt branch (no risk of silently short-circuiting on an unexpectedly-pre-existing user).
+The create branch uses the `if !` form (rather than a `getent passwd <UID> >/dev/null 2>&1 ||` short-circuit) because it composes better with the adopt branch — no risk of silently short-circuiting on an unexpectedly-pre-existing user.
 
-### Legacy path: `registry.go:InspectImageUser`
+### Fallback path: `registry.go:InspectImageUser`
 
-Pre-2026-04 code that pulled the base image via go-containerregistry and extracted `/etc/passwd` to auto-detect home dir. Still present; now largely superseded by the declarative `base_user:` approach (simpler, no network round-trip, explicit intent).
+Pulls the base image via go-containerregistry and extracts `/etc/passwd` to auto-detect the home dir. The declarative `base_user:` approach is preferred (simpler, no network round-trip, explicit intent); `InspectImageUser` remains as a fallback for bases without a `base_user:` declaration.
 
-Source: `ov/config.go:ResolveImage` (policy reconciliation), `ov/generate.go:writeBootstrap` (emission), `ov/format_config.go:BaseUserDef` (struct), `ov/registry.go:InspectImageUser` (legacy).
+Source: `ov/config.go:ResolveImage` (policy reconciliation), `ov/generate.go:writeBootstrap` (emission), `ov/format_config.go:BaseUserDef` (struct), `ov/registry.go:InspectImageUser` (fallback).
 
 ## Tag-section install emission
 
-Distro-version tag sections (`debian:13:`, `ubuntu:24.04:`, etc.) are resolved via first-match-wins on the image's `distro:` priority list. Since 2026-04, tag sections use the primary format's **full** install template — so they can carry `repos:`, `keys:`, `options:`, and `package:`, not just packages alone. The generator reads each tag section's full YAML map via `ov/layers.go:TagPkgConfig.Raw`.
-
-Example: `layers/language-runtimes/layer.yml` had (before Phase F) a `debian:13:` section with a Microsoft apt repo entry — though ultimately dropped in favor of the `dotnet-install.sh` cmd: task for cross-distro consistency (see `/ov-coder:language-runtimes`).
+Distro-version tag sections (`debian:13:`, `ubuntu:24.04:`, etc.) are resolved via first-match-wins on the image's `distro:` priority list. Tag sections use the primary format's **full** install template — so they can carry `repos:`, `keys:`, `options:`, and `package:`, not just packages alone. The generator reads each tag section's full YAML map via `ov/layers.go:TagPkgConfig.Raw`.
 
 ## OCI Labels
 
@@ -425,7 +414,6 @@ Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), maki
 | `org.overthinkos.aliases` | JSON | `[{"name":"openclaw","command":"openclaw"}]` |
 | `org.overthinkos.security` | JSON | `{"privileged":false,"cap_add":["SYS_PTRACE"]}` |
 | `org.overthinkos.network` | string | `"host"` (omitted if default) |
-| ~~`org.overthinkos.tunnel`~~ | | Removed — tunnel is a deploy-time concern (deploy.yml only) |
 | `org.overthinkos.fqdn` | string | FQDN for tunnel routing |
 | `org.overthinkos.acme_email` | string | ACME certificate email |
 | `org.overthinkos.env` | JSON | `["KEY=VALUE"]` runtime env vars |
@@ -448,6 +436,8 @@ Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), maki
 | `org.overthinkos.info` | string | Aggregated status info from image + non-working layers (omitted if empty) |
 | `org.overthinkos.layer_versions` | JSON | `{"chrome":"2026.83.1430"}` layer name → CalVer (only versioned layers) |
 | `org.overthinkos.skills` | string | Skill documentation URL (omitted if no skill exists) |
+
+Tunnel configuration is NOT an OCI label — it is a deploy-time concern carried in `deploy.yml` only.
 
 Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `ov/labels.go`) plus `deploy.yml` overlay — they never touch `image.yml` at runtime. That's why `ov shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `ov image pull`). See `/ov-image:image` for the build/deploy boundary and `/ov-build:pull` for the sentinel pattern. Labels also include `org.overthinkos.init` for init system identification and `org.overthinkos.services.<init>` for per-init service lists.
 

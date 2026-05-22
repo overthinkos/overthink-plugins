@@ -135,7 +135,7 @@ sees, not the host path.
 {
   "session_id": "37e8f3c1-a9b2-4d8e-b6c5-9a4f7c8b1e2d",
   "base_url": "http://127.0.0.1:35001/wd/hub",
-  "created_at": "2026-05-16T14:32:17.481Z",
+  "created_at": "2025-01-15T14:32:17.481Z",
   "image": "eval-android-emulator-pod",
   "instance": "",
   "caps": { ... }

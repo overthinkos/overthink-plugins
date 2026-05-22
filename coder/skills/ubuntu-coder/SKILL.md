@@ -5,7 +5,7 @@ description: |
   CLIs + DevOps tooling in one container. Ubuntu base, 30+ direct layers
   mirroring fedora-coder's stack. Runs as uid 1000 `ubuntu` — the upstream
   ubuntu:24.04 account, adopted verbatim via build.yml's base_user
-  declaration. 142/0/1-skip tests pass as of 2026-04-20.
+  declaration. 142/0/1-skip tests pass.
   Use when working with the ubuntu-coder image — especially when the
   `${USER}` / `${HOME}` / sudoers differ from the other three coder images.
 ---
@@ -14,11 +14,10 @@ description: |
 
 Ubuntu 24.04 noble counterpart of `/ov-coder:fedora-coder`. Same 80-line test block, same ~30 layers, same rootless posture — but **the resolved user is `ubuntu` (not `user`)** because the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` to adopt it. Everything that touches the user account — `${HOME}`, npm prefix, pixi env, sudoers — derives from `resolved.User = "ubuntu"`.
 
-> **Relocated (2026-05):** lives in the **`overthinkos/ubuntu`** repo (git
-> submodule at **`image/ubuntu`**) — a SEPARATE repo from `overthinkos/debian`.
-> Its ~31 layers are pulled by github reference from the main repo (none moved).
-> Build/validate from the submodule:
-> `ov -C image/ubuntu image build ubuntu-coder`, or
+> **Location:** lives in the **`overthinkos/ubuntu`** repo (git submodule at
+> **`image/ubuntu`**) — a SEPARATE repo from `overthinkos/debian`. Its ~31
+> layers are pulled by github reference from the main repo. Build/validate from
+> the submodule: `ov -C image/ubuntu image build ubuntu-coder`, or
 > `ov --repo overthinkos/ubuntu image build ubuntu-coder`. Deploy-mode verbs
 > read the built image's OCI labels and work from anywhere once it's local.
 
@@ -90,7 +89,7 @@ Resolved identity: `User=ubuntu, UID=1000, GID=1000, Home=/home/ubuntu`. The ima
 
 **Why adopt over rename?** Ubuntu's cloud-init tooling, documentation, and `/etc/passwd` metadata all expect the user to be named `ubuntu`. Renaming fights the upstream contract. Adopting honors it. See `/ov-image:image` "user_policy" for the full rationale and the 3-value policy table.
 
-## Live verification (2026-04-20)
+## Live verification
 
 ```
 $ podman run --rm ghcr.io/overthinkos/ubuntu-coder:latest bash -c 'id; /usr/bin/dotnet --version; sudo -l'
@@ -116,11 +115,11 @@ Identical to `/ov-coder:debian-coder` — the only diff is `User` field.
 
 ## Ubuntu-specific layer quirks (differences vs debian-coder)
 
-- **fastfetch test is skipped** via `exclude_distros: [ubuntu:24.04]` (`/ov-coder:dev-tools`). Ubuntu 24.04 noble main does not ship `fastfetch` (Debian 13 trixie does, and so do Fedora/Arch). Skipping is cleaner than failing — `exclude_distros:` is a 2026-04 addition to the declarative-test schema (see `/ov-eval:eval`).
+- **fastfetch test is skipped** via `exclude_distros: [ubuntu:24.04]` (`/ov-coder:dev-tools`). Ubuntu 24.04 noble main does not ship `fastfetch` (Debian 13 trixie does, and so do Fedora/Arch). Skipping is cleaner than failing — see `/ov-eval:eval` for the `exclude_distros:` field of the declarative-test schema.
 - **dotnet-sdk-9.0 source**: uses Microsoft's `dotnet-install.sh` (same as debian-coder). Note: Canonical's noble main/universe ships `dotnet-sdk-8.0` and `dotnet-sdk-10.0` but NOT 9.0; Microsoft's noble apt repo ships 10.0 only. `dotnet-install.sh --channel 9.0` is the only cross-distro-consistent path to .NET 9. See `/ov-coder:language-runtimes`.
 - **Everything else** is identical to debian-coder. The sudoers `getent` discovery, bat→batcat symlink, virtualization package-existence tests — all are implemented once in the respective layers and work uniformly on both debian-coder and ubuntu-coder.
 
-## Empirical test results (2026-04-20)
+## Test results
 
 `ov eval image ghcr.io/overthinkos/ubuntu-coder:latest` — **142 passed · 0 failed · 1 skipped** (fastfetch, by design).
 

@@ -1,7 +1,7 @@
 ---
 name: airflow-layer
 description: |
-  Apache Airflow 3.x with LocalExecutor + SQLite (single-node, dev-friendly), 4 supervisord services (init, scheduler, dag-processor, webserver). Layer is service-only — its Python deps live in /ov-versa:versa-layer's pixi env. NB: the upstream MCP wrapper was removed in 2026-05 (no v2 release exists; consumers drive Airflow via direct REST /api/v2 calls).
+  Apache Airflow 3.x with LocalExecutor + SQLite (single-node, dev-friendly), 4 supervisord services (init, scheduler, dag-processor, webserver). Layer is service-only — its Python deps live in /ov-versa:versa-layer's pixi env. No MCP wrapper (no upstream v2 release exists; consumers drive Airflow via direct REST /api/v2 calls).
   Use when working with the airflow layer, Airflow 3.x compatibility findings, the SimpleAuthManager auth-fix pattern, the dag-processor split-from-scheduler architecture change, or the JWT-issuance + REST API trigger flow used by self-authoring notebooks.
 ---
 
@@ -26,7 +26,7 @@ Python environment.
 | Services | `airflow-init` (one-shot) + `airflow-scheduler` + `airflow-dag-processor` + `airflow-webserver` |
 | Volumes | `airflow-data` at `~/airflow` |
 | Secrets | `airflow-fernet-key`, `airflow-webserver-secret`, `airflow-admin-password` |
-| MCP provides | none (the upstream `mcp-server-apache-airflow` package was removed in 2026-05 — no Airflow-3 / `/api/v2` release exists; consumers drive the REST API directly via JWT + `/api/v2/`) |
+| MCP provides | none (no Airflow-3 / `/api/v2` release of the upstream `mcp-server-apache-airflow` package exists; consumers drive the REST API directly via JWT + `/api/v2/`) |
 | DAG folder | `/workspace/dags` (`AIRFLOW__CORE__DAGS_FOLDER`) |
 
 ## Airflow 3.x compatibility — 8 RCA findings

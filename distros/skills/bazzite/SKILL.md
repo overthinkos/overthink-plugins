@@ -8,7 +8,7 @@ description: |
 
 # bazzite
 
-Bootc VM image based on Universal Blue's Bazzite (gaming-focused) with NVIDIA drivers, comprehensive dev tools, CUDA, Kubernetes, Docker, and desktop applications. Renamed from `bazzite-ai` and relocated to the `overthinkos/bootc` submodule (2026-05).
+Bootc VM image based on Universal Blue's Bazzite (gaming-focused) with NVIDIA drivers, comprehensive dev tools, CUDA, Kubernetes, Docker, and desktop applications. Lives in the `overthinkos/bootc` submodule (`image/bootc`).
 
 ## Image Properties
 

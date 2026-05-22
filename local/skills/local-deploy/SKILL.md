@@ -1,7 +1,7 @@
 ---
 name: local-deploy
 description: |
-  MUST be invoked before any work involving: `target: local` deployments (was `target: host`), the Ansible-style `host:` destination field (literal `local` for direct shell, anything else routes through ssh(1) reading `~/.ssh/config` + ssh-agent), the `local:` template reference, the `user:` and `ssh_args:` Ansible-shaped overrides, the managed `~/.config/ov/ssh_config` fragment, the install ledger at `~/.config/overthink/installed/`, ReverseOp teardown, or the `--with-services`/`--allow-repo-changes`/`--allow-root-tasks` gates.
+  MUST be invoked before any work involving: `target: local` deployments, the Ansible-style `host:` destination field (literal `local` for direct shell, anything else routes through ssh(1) reading `~/.ssh/config` + ssh-agent), the `local:` template reference, the `user:` and `ssh_args:` Ansible-shaped overrides, the managed `~/.config/ov/ssh_config` fragment, the install ledger at `~/.config/overthink/installed/`, ReverseOp teardown, or the `--with-services`/`--allow-repo-changes`/`--allow-root-tasks` gates.
 ---
 
 # Local Deploy — Applying Layers Directly to a Linux Filesystem
@@ -15,7 +15,7 @@ description: |
 
 The same `InstallPlan` IR that drives `ov image build` (via OCITarget) and container deploys (via PodDeployTarget) is consumed by `LocalDeployTarget`, which translates each IR step into shell commands, `podman run <builder>` invocations for compile-needing work, and systemd unit writes.
 
-The deploy applies host packages + configs ONLY. Container images required for `ov eval run` / `ov eval live` are ensured by the eval preflight (see `/ov-eval:eval` "Image preflight"), not by the deploy. Deploys (any target) emit zero image-pull / image-build steps — that's the CLAUDE.md "Deploy fetches NOTHING speculative" Key Rule, codified at the type level since the 2026-05 deploy-fetch-narrowing cutover. Migration of legacy `image:` blocks: `ov migrate` (idempotent).
+The deploy applies host packages + configs ONLY. Container images required for `ov eval run` / `ov eval live` are ensured by the eval preflight (see `/ov-eval:eval` "Image preflight"), not by the deploy. Deploys (any target) emit zero image-pull / image-build steps — that's the CLAUDE.md "Deploy fetches NOTHING speculative" Key Rule, codified at the type level. Migration of legacy `image:` blocks: `ov migrate` (idempotent).
 
 Use cases:
 - Installing a focused tool set (ripgrep + uv + direnv) on your workstation without a container.
@@ -43,7 +43,7 @@ For VM destinations, `ov vm create <name>` writes a managed Host stanza into `~/
 Reserved literal: `local`. Anything else (including `localhost`, `127.0.0.1`) goes through SSH.
 
 ```yaml
-deployment:
+deploy:
   # Direct local — host: omitted == "local".
   my-laptop:
     target: local
@@ -148,4 +148,4 @@ Remote `target: local` deploys assume **passwordless sudo** on the destination. 
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves `target: local` (or legacy `target: host`), the Ansible-style `host:` field, the `user:`/`ssh_args:` overrides, the managed ssh-config fragment, the install ledger, or ReverseOp teardown. Invoke this skill BEFORE reading Go source or launching Explore agents.
+**MUST be invoked** when the task involves `target: local`, the Ansible-style `host:` field, the `user:`/`ssh_args:` overrides, the managed ssh-config fragment, the install ledger, or ReverseOp teardown. Invoke this skill BEFORE reading Go source or launching Explore agents.

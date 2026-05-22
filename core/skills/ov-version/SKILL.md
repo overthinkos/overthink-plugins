@@ -3,7 +3,7 @@ name: ov-version
 description: |
   Show ov CLI version information.
   MUST be invoked before any work involving: ov version command or checking installed ov version.
-  Renamed from `version` to `ov-version` to disambiguate from Claude Code's built-in `/version` slash command.
+  Named `ov-version` (not `version`) to disambiguate from Claude Code's built-in `/version` slash command.
 ---
 
 # ov version -- CLI Version
@@ -38,13 +38,11 @@ Declarative tests should match `stdout:` — for example
     - matches: "[0-9]{4}\\.[0-9]+"
 ```
 
-Historical note: `VersionCmd` originally used Go's builtin
-`println(version)` which routes to stderr (the builtin bypasses
-`os.Stderr` and writes directly to fd 2). The move to `fmt.Println`
-landed with the MCP server work so the in-process tool-call path —
-which captures `os.Stdout` — can surface the version correctly. See
-`/ov-eval:eval` Authoring Gotcha #5 and `/ov-build:ov-mcp-cmd` "Capture model" for the
-full story.
+`VersionCmd` writes via `fmt.Println` (not Go's builtin `println`,
+which bypasses `os.Stderr` and writes directly to fd 2) so the
+in-process MCP tool-call path — which captures `os.Stdout` — surfaces
+the version correctly. See `/ov-eval:eval` Authoring Gotcha #5 and
+`/ov-build:ov-mcp-cmd` "Capture model" for the capture-pipeline detail.
 
 ## Cross-References
 

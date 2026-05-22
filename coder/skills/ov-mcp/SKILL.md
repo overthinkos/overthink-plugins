@@ -23,17 +23,16 @@ description: |
 | Env | `OV_PROJECT_DIR: "/workspace"` |
 | mcp_provides | `{name: ov, url: http://{{.ContainerName}}:18765/mcp, transport: http}` |
 
-**Volume naming note:** the volume NAME stays `project` (deployer-facing
+**Volume naming note:** the volume NAME is `project` (deployer-facing
 API: `ov config <image> --bind project=/path`) but the in-container PATH
-is `/workspace`. Renamed from `/project` → `/workspace` in 2026-04 for a
-more neutral term that works regardless of whether the bind mount is an
-overthink checkout or any other dev workspace.
+is `/workspace` — a neutral term that works regardless of whether the bind
+mount is an overthink checkout or any other dev workspace.
 
 ## What It Provides
 
 Deploys `ov mcp serve --listen :18765` inside the container under
 supervisord. The server exposes the entire ov CLI (auto-generated from
-Kong reflection, currently ~192 tools including the 2026 authoring
+Kong reflection, currently ~192 tools including the authoring
 surface — project scaffolding, YAML editing, file-write verbs) as MCP
 over Streamable HTTP. Any image composing `ov-mcp` advertises itself
 via the `org.overthinkos.mcp_provides` OCI label, so consumers —
@@ -88,7 +87,7 @@ At serve-startup, `ov mcp serve` clones into
 there. No bind mount needed. Good for CI, headless dev, or shipping
 an agent that always drives a specific upstream version.
 
-**3. Auto-fallback** (zero setup — the 2026-04 default):
+**3. Auto-fallback** (zero setup — the default):
 
 ```bash
 ov config <image>
@@ -102,15 +101,12 @@ ov start <image>
 Opt out with `--no-default-repo` (hard-fail instead of falling back).
 The top-level ov CLI never auto-fetches — only `ov mcp serve` does.
 
-**Subtle 2026-04 change:** previously the layer set `OV_PROJECT_DIR=/workspace`
-in the container env and `bootstrapProject()` early-returned on that env
-being set. Now `bootstrapProject()` ignores `OV_PROJECT_DIR` by itself
-and checks for an actual `image.yml` in the resolved cwd — falling
-back to the default repo if missing. This matters because
-`OV_PROJECT_DIR=/workspace` is permanently set by this layer's `env:`
-block, so the old early-return meant the auto-fallback was dead code
-for any ov-mcp container. The new logic makes pattern 3 genuinely work
-by default. See `/ov-build:ov-mcp-cmd` "Project-dir wiring" for the full RCA.
+**How the fallback fires:** this layer's `env:` block permanently sets
+`OV_PROJECT_DIR=/workspace`, but `bootstrapProject()` does NOT early-return on
+that env being set — it checks for an actual `image.yml` in the resolved cwd
+and falls back to the default repo if missing. That is what makes pattern 3
+work by default even though `OV_PROJECT_DIR` is always populated. See
+`/ov-build:ov-mcp-cmd` "Project-dir wiring" for the full RCA.
 
 ## Tests
 
@@ -129,17 +125,16 @@ All `mcp:` checks pass `mcp_name: ov` so they stay unambiguous on
 images that also expose `jupyter` or `chrome-devtools` servers
 (e.g. `/ov-selkies:selkies-desktop-ov`).
 
-## Host networking caveat (resolved 2026-04)
+## Host networking caveat
 
-Previously `rewriteMCPURLForHost` hard-failed on host-networked
-containers because their `NetworkSettings.Ports` is empty. The
-`ov/mcp_client.go` `lookupHostPort()` function now detects
+Host-networked containers have an empty `NetworkSettings.Ports`. The
+`ov/mcp_client.go` `lookupHostPort()` function detects
 `HostConfig.NetworkMode == "host"` and returns the container port
 verbatim (container ports ARE host ports under `network: host`). See
-`ov/testvars.go` `IsHostNetworked()` + the mirror fix in
-`mergeRuntimeVars()` for `HOST_PORT:<N>` env-var population.
+`ov/testvars.go` `IsHostNetworked()` + the matching `mergeRuntimeVars()`
+handling for `HOST_PORT:<N>` env-var population.
 
-Practical impact: ov-mcp now works on both bridge-networked images
+Practical impact: ov-mcp works on both bridge-networked images
 (e.g. `/ov-coder:arch-ov`) and host-networked ones (e.g.
 `/ov-coder:fedora-coder`, `/ov-distros:fedora-ov`).
 
@@ -177,7 +172,7 @@ in `image.yml`). Both `network: host` and the default ov bridge work.
 - `/ov-image:image` — "Project directory resolution" covers the `-C` / `--dir` / `OV_PROJECT_DIR` global flag and `--repo` / `OV_PROJECT_REPO`.
 - `/ov-core:ov-config` — `--bind project=<path>` is the deployer's handshake with this layer's `volume:` declaration.
 - `/ov-eval:eval` — Deploy-scope `mcp:` test verb methods used here.
-- `/ov-internals:go` — `ov/mcp_server.go` `bootstrapProject()` implementation, including the env-var proxy detection of top-level flags and the unconditional image.yml check (new in 2026-04).
+- `/ov-internals:go` — `ov/mcp_server.go` `bootstrapProject()` implementation, including the env-var proxy detection of top-level flags and the unconditional image.yml check.
 
 ## When to Use This Skill
 

@@ -13,11 +13,11 @@ description: |
 
 Ubuntu 24.04 (noble) counterpart of `/ov-distros:fedora-builder` and `/ov-distros:debian-builder`. Same role — pixi/npm/cargo multi-stage builder — with one important difference: the builder runs as `ubuntu` (uid 1000) because the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu.base_user` adopts it.
 
-> **Relocated (2026-05):** lives in the **`overthinkos/ubuntu`** repo (git
-> submodule at **`image/ubuntu`**). Build it from the submodule:
-> `ov -C image/ubuntu image build ubuntu-builder` (normally builds implicitly as
-> a dependency of `ubuntu-coder`). Its `pixi`/`nodejs`/`build-toolchain` layers
-> are pulled by github reference from the main repo.
+Lives in the **`overthinkos/ubuntu`** repo (git submodule at **`image/ubuntu`**).
+Build it from the submodule: `ov -C image/ubuntu image build ubuntu-builder`
+(normally builds implicitly as a dependency of `ubuntu-coder`). Its
+`pixi`/`nodejs`/`build-toolchain` layers are pulled by github reference from the
+main repo.
 
 ## Image Properties
 

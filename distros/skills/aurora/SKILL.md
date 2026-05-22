@@ -8,7 +8,7 @@ description: |
 
 # aurora
 
-Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH access, full ov toolchain, and Go compiler. Lives in the `overthinkos/bootc` submodule (2026-05).
+Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH access, full ov toolchain, and Go compiler. Lives in the `overthinkos/bootc` submodule (`image/bootc`).
 
 ## Image Properties
 

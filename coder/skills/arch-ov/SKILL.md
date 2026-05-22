@@ -1,8 +1,8 @@
 ---
 name: arch-ov
 description: |
-  Arch Linux image with the full ov toolchain. Rootless-first since 2026-04
-  — runs as uid=1000 with passwordless sudo (no root, no cap_add: ALL).
+  Arch Linux image with the full ov toolchain. Rootless-first — runs as
+  uid=1000 with passwordless sudo (no root, no cap_add: ALL).
   Composes /ov-coder:ov-mcp so the image is reachable as an MCP gateway
   on port 18765. NVIDIA GPU runtime composed in.
   MUST be invoked before building, deploying, configuring, or troubleshooting
@@ -11,12 +11,12 @@ description: |
 
 # arch-ov
 
-> **Relocated (2026-05):** `arch-ov` now lives in the **`overthinkos/arch`**
-> repo (git submodule at **`image/arch`**) and composes its layers by git
-> reference to this repo. Build from the submodule: `cd image/arch && ov image
-> build arch-ov` (or `ov --repo overthinkos/arch image build arch-ov`). The
-> `arch` base + `arch-builder` stay in this repo (pulled in via the
-> submodule's remote `include:` of `arch-base.yml`).
+> **Location:** `arch-ov` lives in the **`overthinkos/arch`** repo (git
+> submodule at **`image/arch`**) and composes its layers by git reference to
+> this repo. Build from the submodule: `cd image/arch && ov image build arch-ov`
+> (or `ov --repo overthinkos/arch image build arch-ov`). The `arch` base +
+> `arch-builder` live in this repo (pulled in via the submodule's remote
+> `include:` of `arch-base.yml`).
 
 Arch Linux container with the full ov toolchain. Uses the same shared
 layer list as `/ov-distros:fedora-ov` — the tag system handles
@@ -32,21 +32,19 @@ can drive build/test/deploy via Streamable HTTP on port 18765.
 | Tags | `[all, pac, arch]` |
 | Layers | agent-forwarding, ov-full, **ov-mcp**, golang, gh, sshd, container-nesting, nvidia |
 | Platforms | linux/amd64 |
-| UID / user | **1000 / user** (rootless-first since 2026-04) |
+| UID / user | **1000 / user** (rootless-first) |
 | Network | default `ov` bridge |
 | Ports | `2222:2222` (sshd), `18765:18765` (ov-mcp) |
 | Security | layer-level only (from `/ov-distros:container-nesting`) |
 | Registry | ghcr.io/overthinkos |
 
-### Rootless-first posture (2026-04 refactor)
+### Rootless-first posture
 
-Previously ran as `uid: 0 / user: root` with `cap_add: [ALL]` +
-`security_opt: [label=disable, seccomp=unconfined]`. All four
-power-user images (`arch-ov`, `/ov-distros:fedora-ov`,
-`/ov-coder:fedora-coder`, `/ov-distros:githubrunner`) dropped that
-posture once the `/ov-distros:container-nesting` kernel-level RCA
-proved that `unmask=/proc/*` + uid-delegation via subuid/subgid ranges
-is sufficient for rootless nested containers + rootless libvirt VMs.
+All four power-user images (`arch-ov`, `/ov-distros:fedora-ov`,
+`/ov-coder:fedora-coder`, `/ov-distros:githubrunner`) run rootless because
+the `/ov-distros:container-nesting` kernel-level RCA proves that
+`unmask=/proc/*` + uid-delegation via subuid/subgid ranges is sufficient for
+rootless nested containers + rootless libvirt VMs.
 
 The `/ov-coder:sshd` layer installs `/etc/sudoers.d/ov-user` with
 passwordless sudo for `user`, so anything that truly needs root inside
@@ -70,13 +68,11 @@ nested-VM load, and `/ov-distros:container-nesting` for the kernel
 
 ### Network + port publishing
 
-`network: host` was dropped pre-2026 in favour of the project-default
-`ov` bridge — so `ov-mcp`'s MCP URL rewriting
-(`rewriteMCPURLForHost` in `ov/mcp_client.go`) has published port
-mappings to work with. (As of 2026-04 that function also handles
-host-networked containers via `HostConfig.NetworkMode` detection, so
-this isn't strictly necessary anymore — but the bridge-network pattern
-remains the portable default.) If host-port 2222 is already taken by
+`arch-ov` uses the project-default `ov` bridge — so `ov-mcp`'s MCP URL
+rewriting (`rewriteMCPURLForHost` in `ov/mcp_client.go`) has published port
+mappings to work with. (That function also handles host-networked containers
+via `HostConfig.NetworkMode` detection, so the bridge isn't strictly required
+— but it remains the portable default.) If host-port 2222 is already taken by
 another running image (canonical conflict: `/ov-selkies:selkies-desktop-ov`
 or any `selkies-desktop-*` variant), remap at config time:
 `ov config arch-ov -p 2223:2222`.
@@ -86,10 +82,9 @@ or any `selkies-desktop-*` variant), remap at config time:
 The `/ov-coder:ov-mcp` layer deploys `ov mcp serve --listen :18765`
 inside the container under supervisord, advertising ~192 MCP tools
 (the full Kong CLI surface, including the project-scaffolding +
-YAML-editing + file-write authoring verbs added in 2026). Three
-deployment patterns work — bind-mount your project, pin an
-`OV_PROJECT_REPO`, or rely on the 2026-04 auto-fallback to
-`overthinkos/overthink`:
+YAML-editing + file-write authoring verbs). Three deployment patterns
+work — bind-mount your project, pin an `OV_PROJECT_REPO`, or rely on the
+auto-fallback to `overthinkos/overthink`:
 
 ```bash
 # Pattern 1: bind your local checkout
@@ -116,7 +111,7 @@ Full ov toolchain via shared layers:
 - **ov-full** — ov binary + VM tools (qemu-full, virtiofsd, libvirt) + gocryptfs + socat
 - **ov-mcp** — MCP server exposing the full ov CLI as tools on :18765 (supervisord-managed; bind `project=` for build-mode tools or rely on auto-fallback)
 - **golang** — Go compiler (`go`)
-- **gh** — GitHub CLI + `git` + `git-lfs` (single-responsibility since 2026-04; see `/ov-coder:gh`)
+- **gh** — GitHub CLI + `git` + `git-lfs` (single-responsibility; see `/ov-coder:gh`)
 - **sshd** — SSH server/client (`openssh` on Arch — `package_map` handles the Fedora/Arch name split) + passwordless sudo for `user`
 - **container-nesting** — podman, buildah, crun, fuse-overlayfs, skopeo, tailscale, libsecret + nested container config
 - **nvidia** — nvidia-utils, nvidia-container-toolkit (CDI generation; benign pacman-hook NVML noise on GPU-less hosts — see `/ov-distros:nvidia`)
@@ -194,7 +189,7 @@ packages and scripts per distro.
 - `/ov-coder:ov-mcp` — MCP server gateway (port 18765; `/workspace` bind-mount or auto-fallback)
 - `/ov-distros:container-nesting` — nested podman/buildah (pac: podman + crun + buildah; `docker` is RPM-only — Arch gets podman directly)
 - `/ov-coder:sshd` — SSH server/client with `package_map` for cross-distro package names + the passwordless-sudo sudoers drop-in
-- `/ov-coder:gh` — GitHub CLI + git + git-lfs (owns all git tooling as of 2026-04)
+- `/ov-coder:gh` — GitHub CLI + git + git-lfs (owns all git tooling)
 - `/ov-distros:nvidia` — NVIDIA GPU runtime
 
 ## Related Images

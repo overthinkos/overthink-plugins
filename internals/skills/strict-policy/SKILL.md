@@ -18,7 +18,7 @@ description: |
 
 R1–R5 in CLAUDE.md are the **engineering-discipline gate**. They sit ABOVE the runtime-verification rules R6–R9 and ABOVE the final acceptance gate R10. The order is deliberate: discipline failures are what produce the runtime failures that R6–R9 catch — so the rules that prevent discipline failures must come first.
 
-This skill is the operational reference for R1–R5. Each section below restates the rule, lists what it forbids precisely, lists what it permits, gives a worked example drawn from this project's commit history, and notes how it interacts with the other rules. The cautionary tales are deliberately drawn from recent commits in the same session — the rules exist because these specific failure modes happened, not because they are theoretical risks.
+This skill is the operational reference for R1–R5. Each section below restates the rule, lists what it forbids precisely, lists what it permits, explains why it matters, and notes how it interacts with the other rules. The rules exist because these specific failure modes actually happened — see `CHANGELOG.md` for the commit-referenced incidents that motivated each one.
 
 A violation of any R1–R5 rule (or any of R6–R10, or the "Prioritize Clean Architecture Above All Else" section in CLAUDE.md) FORBIDS commit. There is no "downgrade tier and ship anyway" path. The agent fixes the violation in the same working tree and re-runs all verification, OR escalates to the operator and STOPS. No commit ships at any tier with a known violation. See CLAUDE.md "AI Attribution" section.
 
@@ -45,11 +45,11 @@ A violation of any R1–R5 rule (or any of R6–R10, or the "Prioritize Clean Ar
 1. **Fix in the same working tree.** Same commit as the active cutover; same atomic change. The fix lands with the rest of the cutover.
 2. **Escalate to the operator** with an explicit ask: "I encountered $X during this cutover. Per R2 I cannot defer it. Should I (a) fix it now in this same commit, (b) abort the active cutover and address $X first, or (c) explicitly re-scope?" The operator's response authorizes the path; silence does not.
 
-**Cautionary tale.** Commit `8a275e8` (cachyos-dx rename) deferred `TestRenderTaskCommandMkdir` as "pre-existing, unrelated". The fix actually landed in the next commit `22b5d0d` — meaning the test was failing in production for the duration between those two commits. Per R2, the fix should have been part of `8a275e8`. The cost of deferring was a window of broken tests on `main`. The cost of fixing-in-place would have been ~5 lines of code and 30 seconds of attention. R2 closes this escape hatch absolutely.
+**Why the escape hatch is closed.** Deferring a surfaced test failure as "pre-existing, unrelated" leaves brokenness on `main` for the window between the deferral and the eventual fix — when fixing in place would have cost a few lines and 30 seconds of attention. R2 closes this escape hatch absolutely. (See `CHANGELOG.md` for the incident that motivated this.)
 
 **Why it matters.** "Pre-existing" is the most common AI-agent escape hatch — it lets the agent claim the work is complete while leaving brokenness in the tree. Every "pre-existing" deferral compounds: the next cutover finds two pre-existing issues, the third finds three, and the codebase entropy grows monotonically. R2 forces the agent to either pay the small fix-cost now OR escalate to a human; it removes the silent third option of "leave it".
 
-**Interaction with other rules.** R2 extends old-R6 ("I'll fix it in Phase 2 is not in the approved plan unless the plan says so"). Old-R6 covered approved-plan phasing; new-R2 extends to incidentally-surfaced issues mid-session. Together they say: **no deferral, neither planned nor incidental.**
+**Interaction with other rules.** R2 covers both approved-plan phasing AND incidentally-surfaced issues mid-session: **no deferral, neither planned nor incidental.**
 
 ## R3. No code duplication; generic, reusable solutions over ad-hoc patches
 
@@ -59,9 +59,7 @@ A violation of any R1–R5 rule (or any of R6–R10, or the "Prioritize Clean Ar
 
 **What is permitted.** ONE shared abstraction, in the obvious shared location. If the abstraction is unclear, the answer is to think harder, ask the operator, or escalate — not duplicate. If the cost of the refactor is high enough to warrant a discussion, escalate; do not silently duplicate.
 
-**Cautionary tale.** The `*-host` sibling-layer pattern (`virtualization`/`virtualization-host`, `ov-full`/`ov-full-host`) accumulated for months because no rule banned the duplication on day one. Each time a new host-vs-container difference came up, the response was "spawn a sibling layer" instead of "extend the existing layer with init-system-aware logic". By 2026-05 the duplication had crystallized into divergent surfaces that drifted in their package lists, eval probes, and service definitions. Commit `22b5d0d` deleted the entire `*-host` namespace and replaced it with the unified `service:` schema mixed-entry pattern — but the deletion would not have been necessary if R3 had been in force from day one.
-
-**Worked example.** Commit `22b5d0d` collapsed three previously-divergent service-filter paths — `LocalDeployTarget` silent-skip, `VmDeployTarget` lazy render, `OCITarget` per-entry filter — into ONE compile-time filter in `compileServiceSteps`. The first attempt at the polymorphism fix added a band-aid in just `LocalDeployTarget`; the operator caught it and demanded the canonical compile-time filter. That demand IS R3 — applied retroactively because R3 was not yet codified. With R3 in place, the band-aid attempt would have been forbidden from the start.
+**Why it bites.** Sibling-layer duplication (a `<name>-host` spawned for every host-vs-container difference instead of extending the one layer with init-system-aware logic) crystallizes into divergent surfaces that drift in their package lists, eval probes, and service definitions — and the eventual unification deletes far more than the original duplicate. The canonical fix is ONE compile-time filter, not a per-call-site band-aid: when the same predicate appears on N targets, it collapses to one shared filter, applied to all N in the same commit. (See `CHANGELOG.md` for the worked examples that motivated this.)
 
 **Why it matters.** Duplication has compounding cost. Two divergent copies become three, then four, then eight; each copy hides bugs the others fixed. The cost of the unification grows superlinearly with the number of copies. R3 enforces unification at copy-count = 2 — the cheapest possible moment.
 
@@ -84,7 +82,7 @@ A violation of any R1–R5 rule (or any of R6–R10, or the "Prioritize Clean Ar
 | Environment-specific path | Standard XDG/FHS path resolved at startup |
 | "Works on my machine" fix | Cross-environment validation before the fix ships |
 
-**Cautionary tale.** None in this session yet — the rule is preventive. R4 exists to forbid the patterns BEFORE they crystallize. Each forbidden pattern is the kind of "quick fix" that, once accepted, becomes tribal knowledge ("oh, that test always needs a sleep; that's just how it is"). R4 closes the door before the tribe forms.
+**The rule is preventive.** R4 exists to forbid the patterns BEFORE they crystallize. Each forbidden pattern is the kind of "quick fix" that, once accepted, becomes tribal knowledge ("oh, that test always needs a sleep; that's just how it is"). R4 closes the door before the tribe forms.
 
 **Why it matters.** "Temporary" fixes never get removed. Every sleep loop in the codebase was added with a "this is just for now" justification that was never revisited. R4 forbids the pattern at addition time, before the temporary becomes permanent.
 
@@ -92,21 +90,17 @@ A violation of any R1–R5 rule (or any of R6–R10, or the "Prioritize Clean Ar
 
 ## R5. Hard cutover: deprecated path AND every stale reference deleted in the same change
 
-**The rule.** When a cutover introduces a replacement, the SAME commit deletes (a) the deprecated code path, (b) every comment / TODO / DEPRECATED marker referencing the old path, AND (c) every reference, comment, docstring, error message, skill paragraph, migration help-text, test fixture, or hook string naming a deleted identifier. After commit, `git grep '<deleted-id>'` returns ONLY historical mentions in changelog / history-note / migration-help-text contexts.
+**The rule.** When a cutover introduces a replacement, the SAME commit deletes (a) the deprecated code path, (b) every comment / TODO / DEPRECATED marker referencing the old path, AND (c) every reference, comment, docstring, error message, skill paragraph, migration help-text, test fixture, or hook string naming a deleted identifier. After commit, `git grep '<deleted-id>'` returns ONLY historical mentions in `CHANGELOG.md` or migration help-text.
 
-**The acceptance test.** A cutover is not "clean" until you can run `git grep '<deleted-id>'` and have ZERO live (non-historical) hits. Historical hits in changelog entries, history-note paragraphs, migration command help-text, and explicit "renamed from X" / "previously called X" cautionary-tale text are permitted — these intentionally preserve the old name to help users migrate. Everything else is a violation.
+**The acceptance test.** A cutover is not "clean" until you can run `git grep '<deleted-id>'` and have ZERO live (non-historical) hits. Historical hits in `CHANGELOG.md` and migration command help-text that names the legacy form for the user's benefit are permitted — these intentionally preserve the old name to help users migrate. Everything else is a violation.
 
-**Cautionary tales.**
+**The regression classes R5 prevents.** Two motivate the rule. First, a *silent-skip regression*: deleting the old artifact (e.g. `image.yml`) while the replacement path quietly drops a stage it used to wire produces an artifact that builds but misbehaves at runtime — which is why the acceptance test is "rebuild from the new config, run the resulting image, observe the service reach steady-state", not just "it compiles". Second, *stale references*: a rename that doesn't sweep every mention in the same commit leaves a code search returning matches that imply the retired thing is still live. (See `CHANGELOG.md` for the incidents that motivated this.)
 
-1. **`image.yml` silent-skip regression.** The unified-yaml cutover deleted `image.yml` from the schema but the new `overthink.yml` path silently skipped a build stage that the old `image.yml` path had wired. The test of the cutover was supposed to be "rebuild from the new config, run the resulting image, observe the service reach steady-state" — but because the build skipped a stage, the resulting image was missing the init-system config. R5 specifies "verify zero stale references via the grep self-test" precisely to catch this class of regression.
-
-2. **Stale references in this session.** Both `8a275e8` and `22b5d0d` had to do significant grep-and-fix work on stale references because the prior schema didn't enforce R5's same-commit-sweep requirement. Commit `8a275e8` introduced `cachyos-dx` and had to delete every reference to `qc`. Commit `22b5d0d` introduced `ov-cachyos` and had to delete every reference to `cachyos-dx` AND `qc` (since both retired in the same window). Each cutover ran a `git grep` self-test before commit; R5 codifies this self-test as a non-negotiable acceptance criterion.
-
-**What is permitted in historical contexts.** Changelogs, history-note paragraphs in CLAUDE.md, migration-command help-text that names the legacy form for the user's benefit ("rename `qc` to `ov-cachyos`"), cautionary-tale paragraphs in skills that name the legacy form for instructional purposes. The grep self-test should distinguish these via context.
+**What is permitted in historical contexts.** `CHANGELOG.md` entries and migration-command help-text that names the legacy form for the user's benefit ("rename `qc` to `ov-cachyos`"). The grep self-test distinguishes these via context.
 
 **Why it matters.** Stale references confuse new contributors and AI agents. A code search for `qc` that returns matches in `deploy.yml` suggests the deployment is still live; a search that returns matches only in `CHANGELOG.md` suggests it was retired. R5's grep self-test enforces this distinction.
 
-**Interaction with other rules.** R5 extends old-R5 ("Never claim the cutover is clean until the old artifact is gone AND the new one runs") to cover stale references everywhere, not just the deleted artifact itself. R5 is the cleanup discipline that R3 enables — once you've refactored to the unified abstraction, R5 ensures every old reference points to the new one.
+**Interaction with other rules.** R5 covers stale references everywhere, not just the deleted artifact itself. R5 is the cleanup discipline that R3 enables — once you've refactored to the unified abstraction, R5 ensures every old reference points to the new one.
 
 ## How R1–R5 interact with R6–R10
 

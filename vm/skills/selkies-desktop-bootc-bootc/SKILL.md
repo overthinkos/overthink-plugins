@@ -4,7 +4,7 @@ description: |
   kind:vm entity pairing with the /ov-selkies:selkies-desktop-bootc container image.
   source.kind: bootc. Thin pointer skill — composition + layer stack authority
   lives in /ov-selkies:selkies-desktop-bootc (the canonical bootc-VM worked example).
-  MUST be invoked before editing selkies-desktop-bootc-bootc in vms.yml.
+  MUST be invoked before editing selkies-desktop-bootc-bootc in vm.yml.
 ---
 
 # selkies-desktop-bootc-bootc
@@ -13,7 +13,7 @@ description: |
 
 **Composition authority: `/ov-selkies:selkies-desktop-bootc`.** This is the **canonical worked example** for the full bootc-VM flow in the project — layer stack (9 layers), port remaps (13000/19222/19224/2250), Fedora 43 external base, distro tags, known caveats, verification recipes. Read it end-to-end before touching this VM.
 
-## VmSpec (from vms.yml)
+## VmSpec (from vm.yml)
 
 ```yaml
 vms:

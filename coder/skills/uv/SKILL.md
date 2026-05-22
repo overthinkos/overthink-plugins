@@ -1,9 +1,9 @@
 ---
 name: uv
 description: |
-  uv + uvx — Astral's fast Python package/project manager. Rewritten 2026-04
-  to install as a direct-download binary (no pixi env, no Python dep). Pulled
-  via the `download:` verb with `strip_components: 1` to handle the upstream
+  uv + uvx — Astral's fast Python package/project manager. Installs as a
+  direct-download binary (no pixi env, no Python dep). Pulled via the
+  `download:` verb with `strip_components: 1` to handle the upstream
   tarball's arch-prefixed top-level directory.
   Use when working with the uv layer or when deciding whether to install a
   CLI tool via pixi vs. direct binary download.
@@ -22,26 +22,25 @@ description: |
 
 ## Why direct download (not pixi)
 
-Pre-2026-04 the layer shipped a `pixi.toml` with `uv = "*"` and
-`requires: python`. That installed uv into `$HOME/.pixi/envs/default/bin/`
-as part of a conda-forge Python environment — despite uv being a
-completely self-contained Rust binary needing no Python runtime. The
-side effects:
+uv is a completely self-contained Rust binary needing no Python runtime, so
+installing it via pixi (`pixi.toml` with `uv = "*"` + `requires: python`,
+landing it in `$HOME/.pixi/envs/default/bin/` inside a conda-forge Python
+environment) would be the wrong fit. Pixi would bring three problems uv
+doesn't warrant:
 
 - Image bloat — the pixi env drags in ~500 MB of Python stdlib + numpy
   transitively, nothing of which uv actually uses.
-- HOME-dependency — the binary path varied per-image's `$HOME`, and
-  HOME-relative PATH entries in child images got subtly wrong when the
-  `ov` auto-intermediate machinery baked uid=1000 paths into images
-  deployed at uid=0 (fixed in `ov/intermediates.go` — see
+- HOME-dependency — the binary path would vary per-image's `$HOME`, and
+  HOME-relative PATH entries in child images go subtly wrong when the
+  `ov` auto-intermediate machinery bakes uid=1000 paths into images
+  deployed at uid=0 (handled in `ov/intermediates.go` — see
   `/ov-internals:generate-source` "UID-keyed sibling grouping").
 - Confusion — "uv is installed but `which uv` says not found" for
-  anyone who wasn't in a pixi shell.
+  anyone who isn't in a pixi shell.
 
-The rewrite installs uv the way `/ov-coder:typst` and
-`/ov-languages:pixi` itself already did — fetch the upstream binary,
-unpack to `/usr/local/bin`, done. System-wide reachable, always on
-PATH, no HOME gymnastics.
+So uv installs the way `/ov-coder:typst` and `/ov-languages:pixi` itself do
+— fetch the upstream binary, unpack to `/usr/local/bin`, done. System-wide
+reachable, always on PATH, no HOME gymnastics.
 
 ## Install task
 
@@ -57,9 +56,9 @@ tasks:
 `${BUILD_ARCH}` expands to `x86_64` / `aarch64` at build time. Upstream
 ships per-arch tarballs under stable latest-download URLs, nested one
 level deep (`uv-x86_64-unknown-linux-gnu/uv`, `…/uvx`). The
-`strip_components: 1` modifier (new in 2026-04, see `/ov-image:layer`
-"Download verb") collapses that wrapper so both binaries land
-directly at `/usr/local/bin/uv` and `/usr/local/bin/uvx`.
+`strip_components: 1` modifier (see `/ov-image:layer` "Download verb")
+collapses that wrapper so both binaries land directly at
+`/usr/local/bin/uv` and `/usr/local/bin/uvx`.
 
 ## Tests
 
@@ -80,7 +79,7 @@ Three build-scope tests ship with the layer:
 
 - `/ov-languages:pixi` — direct-download pattern this layer now mirrors. Pixi remains a legitimate multi-binary Python env manager for images that genuinely need one (jupyter, whisper, openwebui); uv is too small to justify the overhead.
 - `/ov-coder:typst` — sibling direct-download binary pattern.
-- `/ov-languages:python` — the pixi-python meta-layer this layer **no longer** depends on.
+- `/ov-languages:python` — the pixi-python meta-layer this layer does **not** depend on.
 - `/ov-coder:rust` — system Rust toolchain, if you want to build uv from source instead (`cargo install uv`). Usually not worth it — the Astral binary is pre-optimized.
 
 ## Related Commands

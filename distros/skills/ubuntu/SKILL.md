@@ -5,7 +5,6 @@ description: |
   based builds. Runs as uid 1000 `ubuntu` via ADOPT mode — the upstream
   ubuntu:24.04 base image ships a pre-existing ubuntu:ubuntu account,
   and build.yml distro.ubuntu declares base_user to adopt it verbatim.
-  Enabled 2026-04 as part of Phase A–F.
   MUST be invoked before building, deploying, configuring, or troubleshooting
   any Ubuntu-based image.
 ---
@@ -14,17 +13,15 @@ description: |
 
 Base Ubuntu 24.04 (noble) image. Distinguished from `/ov-distros:debian` by **adopt mode**: the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` so the `ov` generator honors that account rather than creating a new one.
 
-> **Relocated (2026-05):** the Ubuntu family was split out of the main repo into
-> its own **`overthinkos/ubuntu`** repo (git submodule at **`image/ubuntu`**) —
-> a SEPARATE repo from `overthinkos/debian` (Debian and Ubuntu each got their
-> own repo, matching the per-distro precedent set by arch ≠ cachyos). The
-> `ubuntu` base is **owned there** and composes the main repo's layers + shared
-> `build.yml` by git reference. Because `distro.ubuntu` is `inherits: debian`,
-> the single remote `build.yml` (which carries BOTH distro configs) resolves the
-> inheritance — `overthinkos/ubuntu` needs no reference to `overthinkos/debian`.
-> Build from the submodule:
-> `ov -C image/ubuntu image build ubuntu` (or `ov --repo overthinkos/ubuntu image build ubuntu`).
-> Nothing in main consumes any Ubuntu image, so there is **no main ↔ ubuntu coupling**.
+The Ubuntu family lives in its own **`overthinkos/ubuntu`** repo (git submodule
+at **`image/ubuntu`**) — a SEPARATE repo from `overthinkos/debian` (Debian and
+Ubuntu each have their own repo). The `ubuntu` base is **owned there** and
+composes the main repo's layers + shared `build.yml` by git reference. Because
+`distro.ubuntu` is `inherits: debian`, the single remote `build.yml` (which
+carries BOTH distro configs) resolves the inheritance — `overthinkos/ubuntu`
+needs no reference to `overthinkos/debian`. Build from the submodule:
+`ov -C image/ubuntu image build ubuntu` (or `ov --repo overthinkos/ubuntu image build ubuntu`).
+Nothing in main consumes any Ubuntu image, so there is **no main ↔ ubuntu coupling**.
 
 ## Image Properties
 
@@ -74,7 +71,7 @@ See `/ov-image:image` "user_policy" and `/ov-build:build` "base_user" for the fu
 
 ## Why adopt over rename?
 
-An earlier draft renamed the existing `ubuntu` account to `user` via `usermod -l`. That was rejected because:
+Adopt mode honors the existing `ubuntu` account rather than renaming it to `user` via `usermod -l`, because:
 
 1. Ubuntu's cloud-init tooling, docs, and `/etc/passwd` metadata assume the account is named `ubuntu`.
 2. Renaming is an invisible base-image mutation — breaks in hard-to-debug ways.

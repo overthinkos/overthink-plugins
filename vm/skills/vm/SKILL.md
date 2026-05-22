@@ -2,26 +2,26 @@
 name: vm
 description: |
   MUST be invoked before any work involving: virtual machines, ov vm commands,
-  kind:vm entities in vms.yml, cloud_image vs bootc source types,
+  kind:vm entities in vm.yml, cloud_image vs bootc source types,
   libvirt/QEMU backends, BIOS vs UEFI firmware, virtio-gpu video, or VM lifecycle.
 ---
 
 # VM — Virtual Machine Management
 
-## Schema v4 notes
+## Disposability + deploy cross-ref
 
-- **Disposability is a deploy property only.** `VmSpec.Disposable` / `VmSpec.Lifecycle` were deleted in the schema-v3 cutover. Put `disposable: true` on the matching `deployments.<name>-vm` entry in `deploy.yml`; that's what `ov update <vm-name>` checks. The `vm:` entity entry only describes VM shape (disk, RAM, SSH, cloud-init, libvirt), never authorization.
-- **Deploy-level cross-ref**: a deployment with `target: vm` references its VM entity via `vm_source: <entity-name>` (migration command `ov migrate deploy-schema-v-3` renames legacy field names in place).
-- **`ov update <vm-entity-name>`** searches `deployments.images` for any entry with `target: vm` + `vm_source: <entity>`; disposable iff ANY such entry carries `disposable: true`. Absence of a matching disposable deploy entry → rebuild refused.
+- **Disposability is a deploy property only.** A `kind: vm` entity carries no `disposable:` / `lifecycle:` field. Put `disposable: true` on the matching `deploy.<name>-vm` entry; that's what `ov update <vm-name>` checks. The `vm:` entity entry only describes VM shape (disk, RAM, SSH, cloud-init, libvirt), never authorization.
+- **Deploy-level cross-ref**: a deployment with `target: vm` references its VM entity via `vm_source: <entity-name>`.
+- **`ov update <vm-entity-name>`** searches `deploy:` for any entry with `target: vm` + `vm_source: <entity>`; disposable iff ANY such entry carries `disposable: true`. Absence of a matching disposable deploy entry → rebuild refused.
 
 ## Overview
 
-`ov vm` commands build disk images and manage virtual machines via libvirt (default) or direct QEMU. VMs are declared as **`kind: vm` entities in `vms.yml`** — a first-class primitive alongside `kind: image` entries. Two source types:
+`ov vm` commands build disk images and manage virtual machines via libvirt (default) or direct QEMU. VMs are declared as **`kind: vm` entities in `vm.yml`** — a first-class primitive alongside `kind: image` entries. Two source types:
 
 - **`source.kind: cloud_image`** — fetches a pre-built qcow2 from an external URL (Arch, Fedora, Ubuntu, Debian, CentOS Cloud images). Renders a NoCloud seed ISO with cloud-init. Canonical example: `/ov-vm:arch`.
 - **`source.kind: bootc`** — pairs with a `kind: image` entry that has `bootc: true`. Runs `bootc install to-disk` inside a privileged container. Canonical example: `/ov-vm:selkies-desktop-bootc-bootc`.
 
-The legacy `image.bootc: true` + `image.vm: {...}` + `image.libvirt: [...]` fields were **deleted in the hard cutover**. Legacy projects convert in one shot with `ov migrate` (see `/ov-build:migrate`). For the YAML authoring reference, see `/ov-vm:vms-catalog`; for the Go types, see `/ov-internals:vm-spec`.
+VMs are not configured on kind:image entries — `image.vm:` / `image.libvirt:` are rejected at load time. `bootc: true` stays on a kind:image entry to mark it bootable. Legacy projects convert in one shot with `ov migrate` (see `/ov-build:migrate`). For the YAML authoring reference, see `/ov-vm:vms-catalog`; for the Go types, see `/ov-internals:vm-spec`.
 
 ## Quick Reference
 
@@ -46,7 +46,7 @@ VM name convention: `ov-<name>[-<instance>]`. Default libvirt URI: `qemu:///sess
 ```bash
 ov vm build arch          # cloud_image: fetch qcow2, resize, render seed ISO
 ov vm build selkies-desktop-bootc-bootc --type qcow2   # bootc: bootc install to-disk
-ov vm build <name> --size 40G        # disk_size override (CLI wins over vms.yml)
+ov vm build <name> --size 40G        # disk_size override (CLI wins over vm.yml)
 ov vm build <name> --root-size 10G   # bootc only: cap root partition
 ov vm build <name> --console         # enable console output for debugging
 ov vm build <name> --transport containers-storage   # bootc: local podman storage
@@ -61,7 +61,7 @@ Source: `ov/vm_build.go`, `ov/vm_cloud_image.go`.
 ## VM Lifecycle
 
 ```bash
-ov vm create arch                        # default resources from vms.yml
+ov vm create arch                        # default resources from vm.yml
 ov vm create <name> --ram 8G --cpus 4               # CLI overrides
 ov vm create <name> --ssh-key auto                  # auto-detect SSH key (default)
 ov vm create <name> --ssh-key generate              # generate new keypair
@@ -75,13 +75,13 @@ ov vm destroy <name>                                # remove VM definition
 ov vm destroy <name> --disk                         # also delete disk image
 ov vm list [-a]
 ov vm console <name>                                # serial console
-ov vm ssh <name>                                    # SSH with resolved user/port from vms.yml
+ov vm ssh <name>                                    # SSH with resolved user/port from vm.yml
 ov vm ssh <name> -p 2224 -l arch                    # override user/port
 ov vm ssh <name> -- ls /tmp                         # run command via SSH
 ```
 
 **`ov vm create` regenerates the cloud-init seed ISO** (cloud_image sources
-only). Edits to `vms.yml`'s `cloud_init:` block — runcmd entries, packages,
+only). Edits to `vm.yml`'s `cloud_init:` block — runcmd entries, packages,
 ov_install strategy, network-config — take effect on the next `ov vm create`
 without requiring a full `ov vm build`. The qcow2 disk is left alone; only
 the seed ISO is rewritten (via `RegenerateSeedISO` in `ov/vm_cloud_image.go`).
@@ -90,7 +90,7 @@ Use `ov vm destroy --disk` + `ov vm build` when you need a truly fresh disk
 
 ## `kind: vm` entity reference
 
-Canonical `vms.yml` shape, condensed from `/ov-vm:vms-catalog`:
+Canonical `vm.yml` shape, condensed from `/ov-vm:vms-catalog`:
 
 ```yaml
 vms:
@@ -163,8 +163,8 @@ backend explicitly via `backend: libvirt` on the kind:vm entity —
 `backend: auto` would silently fall through to qemu when the daemon
 is missing, breaking every libvirt-RPC probe with a confusing
 "no such file or directory" error 5+ minutes into the eval-live
-timeout. The 2026-05-06 R10 follow-up landed this pin on
-`arch:` and `k3s-vm:` (see `/ov-eval:eval` "kind: eval beds").
+timeout. `arch:` and `k3s-vm:` carry this pin (see `/ov-eval:eval`
+"kind: eval beds").
 
 Source: `ov/vm.go` (`resolveVmBackend`, `startLibvirtUserSession`),
 `ov/vm_libvirt.go`, `ov/vm_qemu.go`.
@@ -220,7 +220,7 @@ Set via `ov settings set`:
 |-----|---------|---------|
 | `vm.backend` | `OV_VM_BACKEND` | `auto` |
 
-Per-VM overrides live in `vms.yml`. The user-level defaults exist only for fields that don't have a per-VM equivalent (backend is the main one). For anything else, declare it in `vms.<name>`.
+Per-VM overrides live in `vm.yml`. The user-level defaults exist only for fields that don't have a per-VM equivalent (backend is the main one). For anything else, declare it in `vms.<name>`.
 
 ## Libvirt XML configuration
 
@@ -228,7 +228,7 @@ Primary surface is structured `LibvirtConfig` in `vms.<name>.libvirt:` (features
 
 Raw-XML escape hatch: `vms.<name>.libvirt.snippets:` (list of strings) — classified by element name. Device-scoped elements go into `<devices>`, domain-scoped before `</domain>`. Deduplicated by exact string match.
 
-Layer-level raw snippets: `layer.yml` `libvirt.snippets:` still supported for layers that contribute device XML (e.g., `/ov-distros:qemu-guest-agent` contributes the virtio-serial channel). Image-level `libvirt: [...]` was **removed** in the hard cutover — it had no home in the new VM model.
+Layer-level raw snippets: `layer.yml` `libvirt.snippets:` is supported for layers that contribute device XML (e.g., `/ov-distros:qemu-guest-agent` contributes the virtio-serial channel). Image-level `libvirt: [...]` is not a valid field — VM XML lives on the `kind: vm` entity.
 
 Source: `ov/libvirt.go`, `ov/libvirt_render.go`, `ov/libvirt_render_devices.go`.
 
@@ -295,7 +295,7 @@ Modular libvirt daemons: the session socket moved from `libvirt-sock` to `virtqe
 
 ### `<backend type='passt'/>` required for `<portForward>`
 
-libvirt ≥ 9.x `<portForward>` on `<interface type='user'>` only activates with `<backend type='passt'/>`. Emitted automatically by `renderDefaultInterface`; if you author a custom interface, include the backend line. Debugged live in April 2026: ssh on port 2224 accepted TCP but landed in the wrong guest port when the backend was missing. See `/ov-internals:libvirt-renderer`.
+libvirt ≥ 9.x `<portForward>` on `<interface type='user'>` only activates with `<backend type='passt'/>`. Emitted automatically by `renderDefaultInterface`; if you author a custom interface, include the backend line. Symptom when missing: ssh on port 2224 accepts TCP but lands in the wrong guest port. See `/ov-internals:libvirt-renderer`.
 
 ### Per-VM NVRAM required for UEFI
 
@@ -331,7 +331,7 @@ ov vm build <name> --transport containers-storage
 
 ### `ov vm stop` state-sync race under QEMU backend
 
-Observed 2026-04-19: `ov vm stop <name>` returns success + exit 0, but `ov vm list -a` still reports the VM as `running` until `ov vm destroy` runs. Libvirt backend unaffected. Workaround: proceed to `ov vm destroy` rather than treating residual "running" as a stop failure.
+Under the QEMU backend, `ov vm stop <name>` returns success + exit 0, but `ov vm list -a` still reports the VM as `running` until `ov vm destroy` runs. Libvirt backend unaffected. Workaround: proceed to `ov vm destroy` rather than treating residual "running" as a stop failure.
 
 ### Host kernel/module-dir mismatch
 
@@ -347,15 +347,15 @@ Expected. The agent needs a `virtio-serial` channel that ov's QEMU backend doesn
 
 ## Cross-References
 
-- `/ov-vm:vms-catalog` — **vms.yml authoring reference** (VmSpec schema, source.kind, adopt pattern)
+- `/ov-vm:vms-catalog` — **vm.yml authoring reference** (VmSpec schema, source.kind, adopt pattern)
 - `/ov-vm:arch` — canonical cloud_image VM (BIOS / virtio-gpu / resource sizing / stale BOOTX64.EFI RCA)
 - `/ov-vm:aurora-bootc`, `/ov-vm:bazzite-bootc`, `/ov-vm:selkies-desktop-bootc-bootc` — bootc VMs
-- `/ov-internals:vm-spec` — Go type reference; validation rules; legacy migration map
+- `/ov-internals:vm-spec` — Go type reference; validation rules; migration map
 - `/ov-internals:libvirt-renderer` — RenderDomain + device emission + passt backend + virtio-gpu
 - `/ov-internals:cloud-init-renderer` — RenderCloudInit + composeUsers + seed ISO + ov_install
 - `/ov-internals:vm-deploy-target` — VmDeployTarget / SSHExecutor / VmDeployState
 - `/ov-internals:ovmf` — UEFI firmware path resolution; per-VM NVRAM; bios-skips-loader sentinel
-- `/ov-internals:cutover-policy` — hard cutover policy — why the legacy surface was deleted
+- `/ov-internals:cutover-policy` — hard cutover policy
 - `/ov-build:migrate` — `ov migrate` legacy conversion
 - `/ov-core:deploy` — `ov deploy add vm:<name> <ref>` in-guest layer application
 - `/ov-build:pull` — fetch container images into local storage (prereq for bootc VM builds)
@@ -376,7 +376,7 @@ Expected. The agent needs a `virtio-serial` channel that ov's QEMU backend doesn
 
 ## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
 **After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 

@@ -7,7 +7,7 @@ description: |
 
 # agent-forwarding -- SSH/GPG Agent Forwarding Support
 
-**Pure composition layer (post-2026-05 cutover).** This layer carries no
+**Pure composition layer.** This layer carries no
 shell config of its own; per-tool shell init lives in each tool's home
 layer and is inherited transitively via `require:`. Specifically:
 

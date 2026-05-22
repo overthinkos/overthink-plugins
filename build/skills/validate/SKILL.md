@@ -188,9 +188,9 @@ ov image list layers                       # Verify layer exists
 - `/ov-build:ov-mcp-cmd` — the standalone reference for the `mcp:` verb: required modifiers (`tool:` for `call`, `uri:` for `read`), the 7-method allowlist, and the URL-rewrite / port-publishing behavior that authors occasionally hit.
 - `/ov-eval:cdp`, `/ov-eval:wl`, `/ov-eval:dbus`, `/ov-eval:vnc` — per-verb references for the other four live-container verbs.
 
-## Cross-kind name reuse — NOT a uniqueness violation (2026-05-05)
+## Cross-kind name reuse — NOT a uniqueness violation
 
-`ov image validate` does NOT enforce global name uniqueness across kinds. The same name MAY exist simultaneously as a layer (`layers/<name>/`), an `image:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry, AND a `deploy:` entry. Uniqueness is scoped to each kind. Do not write a validator that flags `image.foo + vm.foo` as ambiguous — verbs disambiguate by command context. Hard load-time errors this cutover added: (a) the retired `deploy.qc` / `deploy.cachyos-dx` keys hard-fail with a remediation hint pointing at `ov migrate`; (b) any residual `kind: deployment` doc or root-key `deployment:` (the schema kind was renamed to `deploy` in the 2026-05-XX per-kind file split) hard-fails with a hint pointing at `ov migrate`. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/ov-build:migrate`.
+`ov image validate` does NOT enforce global name uniqueness across kinds. The same name MAY exist simultaneously as a layer (`layers/<name>/`), an `image:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry, AND a `deploy:` entry. Uniqueness is scoped to each kind. Do not write a validator that flags `image.foo + vm.foo` as ambiguous — verbs disambiguate by command context. The loader raises hard load-time errors on: (a) the obsolete `deploy.qc` / `deploy.cachyos-dx` keys; (b) any obsolete `kind: deployment` doc or root-key `deployment:` (the deploy kind is `kind: deploy`). Every such error points at `ov migrate`. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/ov-build:migrate`.
 
 ## When to Use This Skill
 

@@ -3,7 +3,7 @@ name: ov-update
 description: |
   Update image and restart service with data sync.
   MUST be invoked before any work involving: ov update command, pulling new image versions, data seeding, force-seed, or updating deployed services.
-  Renamed from `update` to `ov-update` to disambiguate from Claude Code's built-in `/update`/`/upgrade` slash commands.
+  Named `ov-update` (not `update`) to disambiguate from Claude Code's built-in `/update`/`/upgrade` slash commands.
 ---
 
 # ov update -- Update Image and Restart
@@ -81,10 +81,10 @@ User-side state in those volumes (Chrome cookies, profile, history, selkies clie
 settings) **survives the restart**. The cgroup is recreated fresh, so any in-memory
 state — including any leaked memfd-backed shmem from the old container — is released.
 
-This was the rollout pattern used in commit `7977b91` (pixelflux dmabuf cache leak
-fix): all 13 selkies-desktop instances were updated via a `for ip in ...; do ov update
-selkies-desktop -i $ip; done` loop, and every active streaming session resumed cleanly
-on the new image with state intact.
+To roll a fleet of instances forward, loop the per-instance update:
+`for ip in ...; do ov update selkies-desktop -i $ip; done` — each active
+streaming session resumes cleanly on the new image with its per-instance
+volume state intact.
 
 ### Rollback via `podman tag`
 
@@ -151,12 +151,6 @@ Both backings are seeded:
   *without* `--userns=keep-id`, so the files match the rootless
   subuid identity the runtime container uses.
 
-Before the fix in `fix/data-seeding-complete`, seeding ran only for
-bind mounts — named volumes were silently skipped. Hosts running that
-pre-fix code will see their previously-empty named volumes populated
-with starter content on the first `ov config` or `ov update` after
-upgrading. Existing user-modified content is preserved in all cases.
-
 ### Mode semantics
 
 - **`DataProvisionInitial`** (the default for `ov config`) — only
@@ -170,13 +164,8 @@ upgrading. Existing user-modified content is preserved in all cases.
   `ov config --force-seed`) — runs `cp -a` unconditionally,
   overwriting existing files.
 
-### Upgrade note
-
-The first `ov config` or `ov update` after upgrading to the fix will
-seed data into named volumes that previously had none — you'll see
-`  <volume> (named): provisioning from /data/<volume>/ ...` in the
-output. This is the intended behavior; operator action is only
-needed if the seeding reports an error.
+When seeding populates a named volume, the output shows
+`  <volume> (named): provisioning from /data/<volume>/ ...`.
 
 ## Cross-References
 
@@ -189,7 +178,7 @@ needed if the seeding reports an error.
 
 ## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
 **After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 

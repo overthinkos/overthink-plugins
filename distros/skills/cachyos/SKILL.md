@@ -2,8 +2,8 @@
 name: cachyos
 description: |
   CachyOS base image (docker.io/cachyos/cachyos-v3) — x86_64_v3-optimized Arch
-  derivative. Owned by the overthinkos/cachyos submodule (image/cachyos) since
-  the 2026-05 split; consumed by main's versa image via remote include.
+  derivative. Owned by the overthinkos/cachyos submodule (image/cachyos);
+  consumed by main's versa image via remote include.
   MUST be invoked before building, deploying, or troubleshooting cachyos images.
 ---
 
@@ -14,12 +14,11 @@ CachyOS base image, pulled from the upstream-published OCI image
 CachyOS is an Arch derivative, so it shares the Arch toolchain, `pacman`, and the
 `arch-builder` multi-stage builder.
 
-> **Relocated (2026-05):** the CachyOS family was split out of the main repo into
-> the **`overthinkos/cachyos`** repo (git submodule at **`image/cachyos`**). The
-> `cachyos` base image is **owned there** (in that repo's `cachyos-base.yml`) and
-> composes the main repo's layers + shared `build.yml` + `arch-base.yml` by git
-> reference. Build it from the submodule:
-> `ov -C image/cachyos image build cachyos` (or `ov --repo overthinkos/cachyos image build cachyos`).
+The CachyOS family lives in the **`overthinkos/cachyos`** repo (git submodule at
+**`image/cachyos`**). The `cachyos` base image is **owned there** (in that
+repo's `cachyos-base.yml`) and composes the main repo's layers + shared
+`build.yml` + `arch-base.yml` by git reference. Build it from the submodule:
+`ov -C image/cachyos image build cachyos` (or `ov --repo overthinkos/cachyos image build cachyos`).
 
 ## Image Properties
 
@@ -61,7 +60,7 @@ ov shell cachyos -c "pacman --version"
 ## Derived / sibling entries (all in overthinkos/cachyos)
 
 - `/ov-distros:cachyos-pacstrap-builder` — privileged pacstrap builder (`base: arch`)
-- `/ov-distros:cachyos-pacstrap` — bootstrap-from-scratch rootfs (builds; ov 2026.141.1850 fix)
+- `/ov-distros:cachyos-pacstrap` — bootstrap-from-scratch rootfs (builds end-to-end)
 - `/ov-vm:cachyos` — bootstrap VM (`cachyos-vm`) + `cachyos-vm-deploy` bed
 - `/ov-local:ov-cachyos` — the operator CachyOS workstation profile
 - `/ov-versa:versa` — the main-repo consumer (`base: cachyos`)
@@ -72,8 +71,9 @@ The canonical base pulls the upstream OCI image (the path the CachyOS project
 itself recommends — see https://github.com/CachyOS/docker). It's the faster
 default (no privileged pacstrap, no kernel build). The pacstrap-from-scratch
 variant (`/ov-distros:cachyos-pacstrap`) is retained for offline/air-gapped
-builds and now builds end-to-end too (the ov 2026.141.1850 pacstrap-renderer
-fix — Architecture + SigLevel).
+builds and also builds end-to-end (the pacstrap renderer derives
+`[options] Architecture` from the cachyos-v3 microarch repos and emits per-repo
+`SigLevel`).
 
 ## Verification
 
@@ -96,4 +96,4 @@ Invoke this skill BEFORE reading source code or launching Explore agents.
 
 - `/ov-distros:arch` — the Arch base (`cachyos-pacstrap-builder` is `base: arch`)
 - `/ov-image:image` — image family umbrella (composition, build/validate/inspect)
-- `/ov-internals:cutover-policy` — the hard-cutover that split the family out
+- `/ov-internals:cutover-policy` — the hard-cutover policy governing submodule splits

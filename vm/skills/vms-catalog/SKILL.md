@@ -1,22 +1,22 @@
 ---
 name: vms-catalog
 description: |
-  Authoring reference for kind:vm entities in vms.yml. Parallel to /ov-image:layer and /ov-image:image.
+  Authoring reference for kind:vm entities in vm.yml. Parallel to /ov-image:layer and /ov-image:image.
   Covers the VmSpec schema, source.kind discriminator (cloud_image vs bootc),
   base_user adopt pattern, and step-by-step recipes for both source kinds.
-  MUST be invoked before authoring or editing vms.yml entries.
+  MUST be invoked before authoring or editing vm.yml entries.
 ---
 
 # vms
 
-`vms.yml` is the authoring surface for `kind: vm` entities — VM primitives that pair with either a remote cloud-image URL (`source.kind: cloud_image`) or an in-repo bootc container image (`source.kind: bootc`). Loaded through `overthink.yml includes:` alongside `image.yml`. Entries are resolved by `LoadUnified` into `VmSpec` Go types (`ov/vm_spec.go`) and consumed by `ov vm build`, `ov vm create`, and `ov deploy add vm:<name>`.
+`vm.yml` is the authoring surface for `kind: vm` entities — VM primitives that pair with either a remote cloud-image URL (`source.kind: cloud_image`) or an in-repo bootc container image (`source.kind: bootc`). Loaded through `overthink.yml includes:` alongside `image.yml`. Entries are resolved by `LoadUnified` into `VmSpec` Go types (`ov/vm_spec.go`) and consumed by `ov vm build`, `ov vm create`, and `ov deploy add vm:<name>`.
 
 The VM surface parallels the `kind: image` surface: one YAML entry per entity, kind-keyed, discovered through includes. The Go types that back it live in `/ov-internals:vm-spec`; the rendering paths in `/ov-internals:libvirt-renderer` and `/ov-internals:cloud-init-renderer`.
 
 ## File layout
 
 ```yaml
-# vms.yml
+# vm.yml
 vms:
   <name>:
     source:
@@ -209,7 +209,7 @@ Idempotent. Harvests the legacy fields into `vms:` entries, preserving any pre-e
 
 ## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
 **After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 

@@ -5,19 +5,18 @@ description: |
   qcow2 from pkgbuild.com, applies cloud-init, boots under libvirt/QEMU via BIOS
   firmware + virtio-gpu. Documents the stale-BOOTX64.EFI RCA, the
   simpledrm→qxldrmfb takeover race, the adopt-user pattern, and resource sizing.
-  MUST be invoked before editing arch in vms.yml or authoring another
+  MUST be invoked before editing arch in vm.yml or authoring another
   cloud_image VM from a template.
 ---
 
 # arch
 
-> **Relocated (2026-05):** the `arch` VM entity and its `arch-vm` /
-> `arch-pacstrap-vm` deploy beds (plus the nested `arch-host` host bed) now live
-> in the **`overthinkos/arch`** repo (git submodule at **`image/arch`**), in that
-> repo's `vm.yml` / `deploy.yml`. Drive them from the submodule, e.g.
-> `ov -C image/arch vm create arch` and `ov -C image/arch eval live arch-vm`
-> (or `ov --repo overthinkos/arch …`). Any layers applied via `add_layer:` are
-> pulled from this repo by git ref.
+The `arch` VM entity and its `arch-vm` / `arch-pacstrap-vm` deploy beds (plus
+the nested `arch-host` host bed) live in the **`overthinkos/arch`** repo (git
+submodule at **`image/arch`**), in that repo's `vm.yml` / `deploy.yml`. Drive
+them from the submodule, e.g. `ov -C image/arch vm create arch` and
+`ov -C image/arch eval live arch-vm` (or `ov --repo overthinkos/arch …`). Any
+layers applied via `add_layer:` are pulled from this repo by git ref.
 
 Canonical `source.kind: cloud_image` VM in the repo. Boots an Arch Linux cloud image as a full VM with SSH + SPICE console access, cloud-init-provisioned SSH keys, virtio-gpu graphics, and the `ov` toolchain auto-installed inside the guest.
 
@@ -40,12 +39,12 @@ This skill is the **decision log** for every non-obvious choice in the entry —
 | SSH key source | `generate` | Stable `~/.local/share/ov/vm/ov-arch/id_ed25519` across rebuilds |
 | Video model | `virtio-gpu` | Modern default for Linux guests (Finding B, secondary) |
 | SPICE listener | `type: socket` (UNIX, auto-path) | Enables zero-config remote GUI via `qemu+ssh://` (see "Connecting from a remote workstation" below). virt-manager and `remote-viewer` auto-forward UNIX sockets through libvirt RPC fd-passing; TCP-loopback listeners are never auto-tunneled. No TCP port bound. |
-| `disposable` | `true` (LOAD-BEARING) | Authorizes `ov update arch` to destroy + rebuild + restart unattended. This VM exists for live verification and rebuild-at-will. See `/ov-internals:disposable`. |
-| `lifecycle` | `dev` (INFORMATIONAL) | Human-facing tier tag. Zero effect on disposability — the flag above is what matters. |
 
-## Marked `disposable: true`
+Disposability is **not** a field on the VM entity — the `arch-vm` deploy bed carries `disposable: true` (LOAD-BEARING), which authorizes `ov update arch` to destroy + rebuild + restart unattended. See `/ov-internals:disposable`.
 
-This is the repo's canonical verification target. It carries `disposable: true` in vms.yml, which means `ov update arch` runs the destroy → build → create → start loop unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
+## Disposable verification target
+
+This is the repo's canonical verification target. The `arch-vm` deploy bed carries `disposable: true`, which means `ov update arch` runs the destroy → build → create → start loop unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
 
 If you're implementing something that touches VM config, libvirt rendering, cloud-init, SPICE, or any VM-adjacent behavior, the expected verification loop is:
 
@@ -57,9 +56,9 @@ ov update arch       # fresh-rebuild re-verification (R10)
 # paste BOTH outputs into the conversation
 ```
 
-No other VM in this repo is disposable by default. To make another one rebuildable unattended, add `disposable: true` to its kind:vm entry (no derivation from `lifecycle:` — the flag is always explicit).
+No other VM in this repo is disposable by default. To make another one rebuildable unattended, add `disposable: true` to its `target: vm` deploy entry (the flag is always explicit; never derived).
 
-## Full VmSpec (from vms.yml)
+## Full VmSpec (from vm.yml)
 
 ```yaml
 vms:
@@ -336,7 +335,7 @@ Pass: `active` + version printed.
 ## Cross-References
 
 - `/ov-vm:vms-catalog` — VmSpec authoring reference (schema, source.kind, adopt pattern)
-- `/ov-vm:vm` — VM lifecycle commands + BIOS/UEFI decision matrix + video model choice
+- `/ov-vm:vm` — VM lifecycle commands + BIOS/UEFI decision matrix + video model choice (disposability lives on the deploy bed)
 - `/ov-build:migrate` — `ov migrate` legacy conversion
 - `/ov-core:deploy` — `ov deploy add vm:arch <layer>` for in-guest layer application
 - `/ov-internals:vm-spec` — Go types and validation rules

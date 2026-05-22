@@ -39,17 +39,13 @@ can compose it.
 **Pacman:** `buildah`, `crun`, `fuse-overlayfs`, `libsecret`, `podman`,
 `shadow`, `skopeo`, `tailscale`.
 
-**Arch correction (current):** the pac list previously held `docker`
-instead of `podman` and omitted `crun`. Neither was right — the layer's
-whole purpose is **rootless nested podman**, and the `containers.conf`
-shipped by this layer explicitly sets `runtime = "crun"`. The correction
-was caught when `ov mcp serve`'s `status` tool failed inside `arch-ov`
-with `executable file "podman" not found in $PATH`, because the fedora
-pacman population incorrectly pulled `docker` and no podman binary ever
-made it into the Arch-based image. Rpm users have always gotten
-`podman` transitively via the Fedora base image; Arch has no such
-transitive pull, so both `podman` and `crun` must be declared
-explicitly.
+**Arch must declare `podman` and `crun` explicitly:** the layer's whole
+purpose is **rootless nested podman**, and the `containers.conf` shipped
+by this layer explicitly sets `runtime = "crun"`. RPM users get `podman`
+transitively via the Fedora base image; Arch has no such transitive
+pull, so both `podman` and `crun` are declared explicitly in the `pac:`
+list (declaring `docker` instead, or omitting `crun`, leaves the
+Arch-based image with no `podman` binary in `$PATH`).
 
 ## The kernel-level RCA (why none of the obvious fixes work)
 
@@ -101,7 +97,7 @@ its own fresh `/proc`, the kernel sees that would reveal those paths
 
 ### Why capability-based fixes don't work
 
-Empirically tested on 2026-04-19:
+Empirically tested:
 
 | Attempt | Result |
 |---|---|
@@ -163,9 +159,9 @@ root:1:65535
 ```
 
 This pattern matches `quay.io/podman/stable`'s `/etc/subuid` layout
-exactly. Older revisions of this layer used `524288:65536` — that range
-falls outside the outer namespace's mapped window and was the cause of
-an obscure `newuidmap` write failure during the 2026-04-19 RCA.
+exactly. A range like `524288:65536` would fall outside the outer
+namespace's mapped window and cause an obscure `newuidmap` write
+failure — the delegation ranges MUST fit inside the keep-id window.
 
 The `newuidmap`/`newgidmap` binaries get `cap_setuid=ep` / `cap_setgid=ep`
 file capabilities (via a dedicated task) so any uid invoking them can

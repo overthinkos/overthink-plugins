@@ -2,7 +2,7 @@
 name: versa
 description: |
   versa — image bundling marimo reactive notebook environment with Apache Airflow + GPU-accelerated OSM/GTFS analytics + martin vector tiles + 3D terrain via MapLibre + Polars geospatial extensions (polars-st, geopolars) + GeoArrow + deck.gl rendering via lonboard.
-  Composes 12 layers (agent-forwarding, nvidia, cuda, marimo, airflow, osm-tools, maputnik, notebook-osm, notebook-graph, debug-tools, dbus, ov) on a CachyOS / Arch base into a single pod that exposes 5 host ports and 2 MCP servers.
+  Composes a marimo + airflow + OSM/GTFS analytics stack (agent-forwarding, nvidia, cuda, marimo, airflow, osm-tools, maputnik, notebook-osm, notebook-graph, debug-tools, dbus, ov, plus the versatiles tile-serving layers) on a CachyOS / Arch base into a single pod that exposes 7 host ports and 1 MCP server.
   MUST be invoked before building, deploying, configuring, or troubleshooting the versa image.
 ---
 
@@ -12,39 +12,37 @@ GPU-accelerated marimo notebook environment that composes a full
 analytics + visualisation stack: marimo notebooks (also acting as MCP
 server), Apache Airflow (LocalExecutor + SQLite), OSM data pipeline
 (quackosm → tippecanoe → martin), GTFS transit pipeline (gtfs-parquet),
-and a MapLibre style editor (maputnik). Two MCP servers are exposed
-(marimo for notebook diagnostics, airflow for REST-API orchestration).
+and a MapLibre style editor (maputnik). One MCP server is exposed
+(marimo for notebook diagnostics).
 
-The image was renamed from `marimo` to `versa` in 2026-05 to decouple
-OUR image identity from the upstream marimo notebook software the
-image bundles. The `layers/marimo/` directory + the
-`mcp_provide.name: marimo` MCP-server identity stayed unchanged.
+The `versa` image name is OUR image identity, deliberately decoupled
+from the upstream marimo notebook software the image bundles. The
+`layers/marimo/` directory + the `mcp_provide.name: marimo`
+MCP-server identity reflect that upstream software identity.
 
 ## Image properties
 
 | Property | Value |
 |----------|-------|
-| Base | `cachyos` — owned by the **`overthinkos/cachyos`** submodule (`image/cachyos`) since the 2026-05 split; main pulls it back via a remote `include:` of `cachyos-base.yml` (this is the deliberate main → cachyos coupling). CUDA 13 / cuDNN / python-onnxruntime-cpu via CachyOS `extra` repo |
+| Base | `cachyos` — owned by the **`overthinkos/cachyos`** submodule (`image/cachyos`); main pulls it back via a remote `include:` of `cachyos-base.yml` (the deliberate main → cachyos coupling). CUDA 13 / cuDNN / python-onnxruntime-cpu via CachyOS `extra` repo |
 | Platforms | `linux/amd64` only (cuDF + cu130 torch are amd64-only) |
 | Layers | 19 (see "Layer stack" below) |
 | Ports | 7 (see "Ports + host mappings") |
-| MCP servers | 1 (marimo @ container 2718) — the upstream airflow MCP wrapper was removed in 2026-05 (no Airflow-3 / `/api/v2` release exists) |
+| MCP servers | 1 (marimo @ container 2718). No airflow MCP wrapper — no Airflow-3 / `/api/v2` release of the upstream package exists; consumers drive Airflow via direct REST `/api/v2/` calls |
 | Registry | `ghcr.io/overthinkos` |
 | Image tag pattern | CalVer (`YYYY.DDD.HHMM`) |
-| Builder | `arch-builder` (pixi/npm/cargo/aur) — **inherited** from the cachyos base's `builder:` map (declared in `cachyos-base.yml`); versa carries no per-image override (the override was removed in the 2026-05 CachyOS migration once the base declared the map). See `/ov-distros:cachyos`. |
+| Builder | `arch-builder` (pixi/npm/cargo/aur) — **inherited** from the cachyos base's `builder:` map (declared in `cachyos-base.yml`); versa carries no per-image override. See `/ov-distros:cachyos`. |
 
 ## Layer stack (composition order)
 
 1. `cachyos` (base — `docker.io/cachyos/cachyos-v3:latest` OCI image, matches the upstream CachyOS docker repo workflow)
 2. `agent-forwarding` — SSH/GPG agent forwarding for in-container git push
 3. `nvidia` — driver runtime (`nvidia-utils`, `nvidia-container-toolkit`)
-   — formerly inherited via `base: nvidia` (Fedora image), now an
-   explicit layer entry since the cachyos base doesn't bundle it
+   — an explicit layer entry because the cachyos base doesn't bundle it
 4. `cuda` — CUDA toolkit (`cuda` + `cudnn` + `python-onnxruntime-cpu`
    from CachyOS extra repo; `/opt/cuda` symlinked into
    `/usr/{bin,include,lib64}` for path compatibility with the Fedora
-   layout). No AUR builds remain in this image after the osm-tools
-   rename — `build:` is `[pac]` only.
+   layout). No AUR builds in this image — `build:` is `[pac]` only.
 5. `marimo` — `/ov-versa:versa-layer` — pixi env (cudf-polars-cu13,
    torch cu130, geopandas, quackosm, gtfs-parquet, folium, marimo,
    airflow Python deps, plus polars-st / geopolars / geoarrow-pyarrow /
@@ -55,10 +53,9 @@ image bundles. The `layers/marimo/` directory + the
    and the pixi env's `no-build = true` blocks sdist resolution),
    supervisord service `marimo edit … --mcp`
 6. `airflow` — `/ov-versa:airflow-layer` — 4 supervisord services
-   (init/scheduler/dag-processor/webserver). NB: airflow-mcp wrapper
-   removed 2026-05 — no Airflow-3 v2 release of
-   `mcp-server-apache-airflow` exists; consumers drive Airflow via
-   direct REST `/api/v2/` calls.
+   (init/scheduler/dag-processor/webserver). No airflow-mcp wrapper —
+   no Airflow-3 v2 release of `mcp-server-apache-airflow` exists;
+   consumers drive Airflow via direct REST `/api/v2/` calls.
 7. `osm-tools` — `/ov-versa:osm-tools-layer` — tippecanoe (built from
    source), gdal, jq, martin (Rust binary), pmtiles CLI (Go binary),
    gpq-tiles (cargo-installed Rust binary; v0.6.0 from crates.io —
@@ -116,11 +113,11 @@ from the host.
 
 ## Required deploy.yml entry
 
-Starting with the 2026-05 port + env automation cutover, the versa
-deploy entry is minimal — the seven URL env vars the notebook reads
-are all auto-injected via per-producing-layer `env_provides:` blocks,
-and the eight container ports are auto-allocated to free host ports
-when the operator writes `port: [auto]`. The user's browser is on the
+The versa deploy entry is minimal — the seven URL env vars the
+notebook reads are all auto-injected via per-producing-layer
+`env_provides:` blocks, and the eight container ports are
+auto-allocated to free host ports when the operator writes
+`port: [auto]`. The user's browser is on the
 host; container-internal `localhost:N` URLs do NOT resolve there —
 but the auto-derived `*_PUBLIC_URL` vars correctly carry the
 host-side mapping, so the browser-bound and kernel-bound URL spaces
@@ -243,13 +240,11 @@ This image publishes one MCP endpoint (registered by this plugin's
 |---|---|---:|---|
 | marimo | `http://localhost:2718/mcp/server` | 10 (read-only inspection) | `/ov-versa:versa-mcp` |
 
-The marimo MCP server name deliberately did NOT change in the
-2026-05 image rename — it reflects the upstream software identity,
-not OUR image identity. (Prior versions also published an `airflow`
-MCP via `mcp-server-apache-airflow`; that wrapper was removed in
-2026-05 because no Airflow-3 / `/api/v2` release of the upstream
-package exists. Consumers drive Airflow via direct REST `/api/v2/`
-calls instead.)
+The marimo MCP server name reflects the upstream software identity,
+not OUR image identity. There is no `airflow` MCP — no Airflow-3 /
+`/api/v2` release of the upstream `mcp-server-apache-airflow` package
+exists, so consumers drive Airflow via direct REST `/api/v2/` calls
+instead.
 
 ## R10 acceptance
 
@@ -258,10 +253,9 @@ ov update --build --force-seed versa
 ov eval live versa         # → 97 passed · 0 failed · 0 skipped
 ```
 
-The 4 GPU-library probes (added in the 2026-05 cuGraph/cuML/PyG/graphistry
-cutover; brings 93 → 97) live alongside the 11 OSM/GTFS probes
-under the `image.versa.deploy_eval` block in `overthink.yml` so
-they run AFTER every per-layer eval section:
+The 4 GPU-library probes (cuGraph/cuML/PyG/graphistry) live alongside
+the 11 OSM/GTFS probes under the `image.versa.deploy_eval` block in
+`overthink.yml` so they run AFTER every per-layer eval section:
 
 | probe id | what it checks |
 |---|---|
@@ -304,33 +298,29 @@ Expected outputs (verified end-to-end):
 
 ## Deferred GPU libraries
 
-The 2026-05 cuGraph / cuML / PyG / graphistry cutover installed every
-library that had a working Linux-cp313 CUDA-13 wheel upstream. These
-were requested but skipped because no compatible wheel exists at
-build time. Re-add via a follow-up cutover when wheels ship — bump
-the marker date to the day the wheel was verified.
+The image installs every GPU library that has a working Linux-cp313
+CUDA-13 wheel upstream. The following are skipped because no
+compatible wheel exists at build time; re-add them once wheels ship.
 
-- **DGL** — `https://data.dgl.ai/wheels/` has no `cu130/` directory
-  (verified 2026-05). DGL's release matrix typically lags CUDA by
-  1-2 major versions; source-building inside `arch-builder`
-  would cost 20-40 min of image-build time and is brittle against
-  CUDA toolkit-layout assumptions in DGL's CMake.
+- **DGL** — `https://data.dgl.ai/wheels/` has no `cu130/` directory.
+  DGL's release matrix typically lags CUDA by 1-2 major versions;
+  source-building inside `arch-builder` would cost 20-40 min of
+  image-build time and is brittle against CUDA toolkit-layout
+  assumptions in DGL's CMake.
 - **PyTorch3D** — `https://github.com/facebookresearch/pytorch3d/releases`
-  has no cu130 wheel (verified 2026-05). Source-building would
-  break the pixi `no-build = true` invariant load-bearing for the
-  apache-airflow pin.
-- **FAISS GPU** — `https://pypi.org/project/faiss-gpu-cu13/` 404s
-  (verified 2026-05). conda-forge ships `faiss-gpu` but pinned to
-  CUDA 11/12, which would force a conflicting conda-forge CUDA
-  stack alongside the existing PyPI cu130 install. `faiss-cpu`
-  is functional but the user-facing decision was "skip rather
-  than CPU fallback".
+  has no cu130 wheel. Source-building would break the pixi
+  `no-build = true` invariant load-bearing for the apache-airflow pin.
+- **FAISS GPU** — `https://pypi.org/project/faiss-gpu-cu13/` 404s.
+  conda-forge ships `faiss-gpu` but pinned to CUDA 11/12, which would
+  force a conflicting conda-forge CUDA stack alongside the existing
+  PyPI cu130 install. `faiss-cpu` is functional but the user-facing
+  decision is "skip rather than CPU fallback".
 - **pyg-lib** — only a Windows-cp313 wheel exists at
-  `https://data.pyg.org/whl/torch-2.11.0+cu130.html` (verified
-  2026-05). PyG falls back to pure-Python message-passing without
-  it; the visible API is unchanged.
-- **torch-spline-conv** — no cp313 wheel at all (verified 2026-05).
-  Niche convolution layer; PyG's other layer types are unaffected.
+  `https://data.pyg.org/whl/torch-2.11.0+cu130.html`. PyG falls back
+  to pure-Python message-passing without it; the visible API is
+  unchanged.
+- **torch-spline-conv** — no cp313 wheel at all. Niche convolution
+  layer; PyG's other layer types are unaffected.
 
 ## Known gotchas
 
@@ -357,6 +347,6 @@ the marker date to the day the wheel was verified.
 - `/ov-versa:maputnik-layer` — Vite `--base=/` build pattern
 - `/ov-versa:osm-tools-layer` — martin reload pattern
 - `/ov-versa:debug-tools-layer` — debug toolkit
-- `/ov-eval:eval` — eval verbs used by the 83 probes
+- `/ov-eval:eval` — eval verbs used by the live probes
 - `/ov-core:deploy` — env block authoring + cross-pod topology
 - `/ov-internals:disposable` — `disposable: true` semantics

@@ -3,7 +3,7 @@ name: ov-cachyos
 description: |
   Operator CachyOS workstation profile — a kind:local template + target:local
   deploy that installs the full dev stack (30 layers) onto a CachyOS host via
-  ShellExecutor. Relocated 2026-05 into the overthinkos/cachyos submodule.
+  ShellExecutor. Lives in the overthinkos/cachyos submodule.
   MUST be invoked before editing or applying the ov-cachyos workstation profile.
 ---
 
@@ -14,15 +14,15 @@ The operator's CachyOS developer-workstation profile: a `kind: local` template
 (`deploy.ov-cachyos`) that applies a kitchen-sink dev stack directly to the
 current machine via `ShellExecutor` — no SSH, no VM, no container.
 
-> **Relocated (2026-05):** moved out of the main repo into the
-> **`overthinkos/cachyos`** repo (git submodule at **`image/cachyos`**), in that
-> repo's `local.yml` (template) + `deploy.yml` (deploy entry). Apply it with:
-> ```bash
-> ov -C image/cachyos update ov-cachyos
-> # or, anywhere:
-> ov --repo overthinkos/cachyos update ov-cachyos
-> ```
-> (Before the migration it ran as `ov update ov-cachyos` from the main repo root.)
+It lives in the **`overthinkos/cachyos`** repo (git submodule at
+**`image/cachyos`**), in that repo's `local.yml` (template) + `deploy.yml`
+(deploy entry). Apply it with:
+
+```bash
+ov -C image/cachyos update ov-cachyos
+# or, anywhere:
+ov --repo overthinkos/cachyos update ov-cachyos
+```
 
 ## What it installs
 
@@ -53,10 +53,9 @@ current machine via `ShellExecutor` — no SSH, no VM, no container.
 ## Composition-by-reference note
 
 `local.ov-cachyos`'s remote layer refs are collected and materialized by the
-same `CollectRemoteRefs` walk as image layer refs (the kind:local-template walk
-added in the 2026-05 CachyOS migration so `ov image validate` /
-`ov update ov-cachyos` resolve the github-ref'd layers). Validating the
-submodule requires an `ov` recent enough to include that walk.
+same `CollectRemoteRefs` walk as image layer refs — the walk covers
+`kind: local` template `layer:` lists, so `ov image validate` /
+`ov update ov-cachyos` resolve the github-ref'd layers.
 
 ## Cross-References
 

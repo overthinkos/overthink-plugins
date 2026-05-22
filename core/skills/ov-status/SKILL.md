@@ -3,7 +3,7 @@ name: ov-status
 description: |
   Service status display with tool probes and device detection.
   MUST be invoked before any work involving: ov status command, checking container state, tool availability, port mapping, or JSON status output.
-  Renamed from `status` to `ov-status` to disambiguate from Claude Code's built-in `/status` slash command.
+  Named `ov-status` (not `status`) to disambiguate from Claude Code's built-in `/status` slash command.
 ---
 
 # ov status -- Service Status Display
@@ -16,8 +16,7 @@ inspect` for every ov-* container, then fans containers out across a
 `runtime.NumCPU()*2` worker pool. Each container's host probes (CDP HTTP,
 VNC TCP) run in parallel goroutines; all in-container ("guest") probes
 (supervisord, dbus, ov, wl, sway) batch into a single `podman exec sh -c`
-invocation. End-to-end wall-clock for ~20 containers is ~1–3 s (was ~55 s
-before the 2026-05-02 redesign).
+invocation. End-to-end wall-clock for ~20 containers is ~1–3 s.
 
 Source layout:
 
@@ -33,8 +32,8 @@ Source layout:
   per-probe markers and splits the stdout chunks back out.
 - `ov/status_render.go` — `RenderTable` / `RenderDetail` / `RenderJSON`
   + cell formatters; `formatTunnelSummary`.
-- `ov/status_reap.go` — `ReapOrphansCmd` (was `ov status --reap-orphans`,
-  now its own top-level `ov reap-orphans` command).
+- `ov/status_reap.go` — `ReapOrphansCmd` (the top-level `ov reap-orphans`
+  command).
 
 ## Quick Reference
 
@@ -101,9 +100,9 @@ Adding a new probe: implement `HostProbe` (network) or `GuestProbe`
 
 ## JSON output schema
 
-`ov status --json` emits an array of `ContainerStatus` objects. The
-2026-05-02 redesign changed `ports` from `[]string` to a structured
-array — programmatic consumers must read the new shape (no compat shim):
+`ov status --json` emits an array of `ContainerStatus` objects. `ports`
+is a structured array (not `[]string`) — programmatic consumers read the
+structured shape:
 
 ```json
 {
@@ -133,8 +132,7 @@ not an array.
 3. Image-label fallback (`ResolveNewestLocalCalVer` + `ExtractMetadata`)
    — last resort for stopped/enabled rows. **Lookup uses the BASE image
    name from the parsed quadlet description** (e.g. `selkies-desktop`),
-   not the joined container name (`selkies-desktop-185.52.136.164`),
-   which was the 2026-05-02 bug.
+   not the joined container name (`selkies-desktop-185.52.136.164`).
 
 ## `Volumes:` field — live mounts vs label fallback
 
@@ -144,7 +142,7 @@ The `Volumes:` field is rendered from THREE sources, in priority order:
 2. **deploy.yml** volume names — fallback for stopped/enabled containers when no live mounts are available. Lists just the volume names from the deploy entry.
 3. **Image OCI label** (`ExtractMetadata`) — last-resort fallback when neither runtime nor deploy data is present. Format: `<volume-name> -> <container-path>` (the layer-declared default).
 
-This means a volume deployed with `--bind <name>=<path>` or `--encrypt <name>` shows up in the live form for running containers — what the container is ACTUALLY mounting, including the gocryptfs FUSE plain dir for encrypted volumes. Pre-cutover behavior went straight to the image-label fallback even for running containers, which was load-bearing in misdiagnosing the immich-2026-04-18 incident: `ov status` reported `ov-immich-cache -> /home/user/.immich/cache` (the OCI label default) when the container was actually binding `<...>/ov-immich-cache/plain -> /home/user/.immich/cache` and the gocryptfs FUSE was unmounted, so the operator couldn't see from `ov status` alone that they were writing plaintext over the cipher tree.
+This means a volume deployed with `--bind <name>=<path>` or `--encrypt <name>` shows up in the live form for running containers — what the container is ACTUALLY mounting, including the gocryptfs FUSE plain dir for encrypted volumes. Showing live mounts (rather than the image-label default) is what lets the operator tell, from `ov status` alone, whether an encrypted volume's gocryptfs FUSE is actually mounted: a running container binding `<...>/ov-immich-cache/plain -> /home/user/.immich/cache` with the FUSE unmounted would otherwise be writing plaintext over the cipher tree, and the live form makes that visible.
 
 For programmatic queries the same data is in `ov status --json`'s `volumes` array. Source: `ov/status_collector.go:formatLiveMounts` + `ov/status_engine.go:mountsFromInspect`. Tested by `ov/status_live_mounts_test.go` (17 sub-cases covering the JSON parser, the encryption-path detector, the renderer, and an end-to-end JSON → MountInfo → display chain).
 
@@ -182,7 +180,7 @@ ov status --json | jq '.[] | select(.status == "running")'
 
 ## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
 **After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 

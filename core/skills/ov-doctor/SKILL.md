@@ -3,7 +3,7 @@ name: ov-doctor
 description: |
   Host dependency checker and hardware detector for the `ov doctor` CLI verb.
   Use when diagnosing host setup, checking dependencies, or verifying GPU detection.
-  Renamed from `doctor` to disambiguate from Claude Code's built-in `/doctor` slash command.
+  Named `ov-doctor` (not `doctor`) to disambiguate from Claude Code's built-in `/doctor` slash command.
 ---
 
 # Doctor - Host Dependency Check
@@ -60,8 +60,8 @@ At least one must be installed:
 - **Secret backend availability** — keyring or config. Reports which backend is active and whether it probed healthy.
 - **Config file permissions** — warns if `~/.config/ov/config.yml` is not `0600`.
 - **Plaintext credential count** — warns if `> 0` plaintext entries are in `config.yml` (suggests `ov settings migrate-secrets`).
-- **Secret Service collections** (since 2026-04) — iterates the Secret Service provider's collections and reads the `Label` property on each. A *broken* collection is one whose `org.freedesktop.DBus.Properties.Get` returns `NoSuchObject` or a DBus I/O error — the hallmark of KeePassXC FdoSecrets stubs or a corrupt keyring. Status is `CheckOK` when all collections respond, `CheckWarning` when any are broken (ov iterates past them automatically — see `/ov-automation:enc`). The `Detail` field names the broken path(s) so the user can act on them (KeePassXC → Tools → Settings → Secret Service Integration → Exposed Databases).
-- **Keyring index consistency** (since 2026-04) — cross-checks the `keyring_keys` shadow index in `config.yml` against the live Secret Service via `findItemAnyCollection`. For every indexed `service/key` entry, looks it up through the iteration-capable read path. Status is `CheckOK` if `N/N` indexed keys resolve, `CheckWarning` with the stale entries listed otherwise. Remediation hint: `ov secrets set <service> <key>` to re-store, or prune the shadow index.
+- **Secret Service collections** — iterates the Secret Service provider's collections and reads the `Label` property on each. A *broken* collection is one whose `org.freedesktop.DBus.Properties.Get` returns `NoSuchObject` or a DBus I/O error — the hallmark of KeePassXC FdoSecrets stubs or a corrupt keyring. Status is `CheckOK` when all collections respond, `CheckWarning` when any are broken (ov iterates past them automatically — see `/ov-automation:enc`). The `Detail` field names the broken path(s) so the user can act on them (KeePassXC → Tools → Settings → Secret Service Integration → Exposed Databases).
+- **Keyring index consistency** — cross-checks the `keyring_keys` shadow index in `config.yml` against the live Secret Service via `findItemAnyCollection`. For every indexed `service/key` entry, looks it up through the iteration-capable read path. Status is `CheckOK` if `N/N` indexed keys resolve, `CheckWarning` with the stale entries listed otherwise. Remediation hint: `ov secrets set <service> <key>` to re-store, or prune the shadow index.
 
 ### Tunnels
 
@@ -102,7 +102,7 @@ AMD GPU detection also reports the GFX version (e.g., `gfx 11.0.0`) from KFD top
 
 **DRINODE auto-detection:** `ov` automatically finds the first `/dev/dri/renderD*` device and injects it as `DRINODE` and `DRI_NODE` environment variables into `ov config`, `ov start`, and `ov shell` sessions. This ensures GPU render node selection is consistent across all operations without manual configuration. The detection is centralized in `ov/devices.go` (`DetectedDevices.RenderNode`); the injection is centralized in `appendAutoDetectedEnv()` in the same file.
 
-**Why centralized:** before commit `8f6f322`, DRINODE injection was scattered across 10 separate call sites across `ov`'s source tree — one in `config_image.go`, one in `shell.go`, one in `start.go`, and 7 more in various layer-authored scripts. This led to drift: a fix applied to `ov config` wouldn't reach `ov shell`, and `DRINODE=/dev/dri/renderD129` hardcoded in some selkies scripts masked the auto-detection entirely. The consolidation into `appendAutoDetectedEnv()` means `/ov-core:ov-config`, `/ov-core:start`, and `/ov-core:shell` all produce the identical env set, and `/ov-distros:nvidia` + `/ov-distros:rocm` stopped shipping hardcoded render nodes in their layer.yml.
+**Why centralized:** DRINODE injection lives in the single `appendAutoDetectedEnv()` helper so `/ov-core:ov-config`, `/ov-core:start`, and `/ov-core:shell` all produce the identical env set — a fix applied to one reaches all three. `/ov-distros:nvidia` and `/ov-distros:rocm` ship no hardcoded render nodes in their layer.yml; they rely on this detection instead.
 
 **Disabling auto-detection:** Pass `--no-autodetect` to `ov config` to skip all of DRINODE, DRI_NODE, and HSA_OVERRIDE_GFX_VERSION injection. Useful when you want to set these values explicitly or test a layer without host device dependence. See `/ov-core:ov-config` flag table.
 

@@ -18,13 +18,13 @@ description: |
 2. **GPG `.secrets` files** (`ov secrets gpg …`) — project-level shell env vars
    in a GPG-encrypted `.secrets` file, decrypted by direnv on `cd`.
 
-> The direct KeePass `.kdbx` file backend was **removed** in the 2026-05-21
-> cutover. KeePassXC is still fully supported — but as a **Secret Service**
-> provider (via its FdoSecrets plugin), i.e. the keyring backend below, not a
-> `.kdbx` file ov reads directly. An existing `.kdbx` keeps serving the same
-> secrets with zero data copy once exposed through FdoSecrets. Residual
-> `secret_backend: kdbx` / `secrets_kdbx_*` config keys raise a hard load-time
-> error pointing at `ov migrate`.
+> There is no direct KeePass `.kdbx` file backend. KeePassXC is fully
+> supported — but as a **Secret Service** provider (via its FdoSecrets
+> plugin), i.e. the keyring backend below, not a `.kdbx` file ov reads
+> directly. An existing `.kdbx` serves its secrets with zero data copy once
+> exposed through FdoSecrets. The obsolete `secret_backend: kdbx` /
+> `secrets_kdbx_*` config keys raise a hard load-time error pointing at
+> `ov migrate`.
 
 ## Credential Store Hierarchy
 
@@ -38,7 +38,7 @@ Resolution order (first match wins):
 
 `secret_backend` ∈ {`auto` (default; keyring then config), `keyring`, `config`}.
 
-**Iteration-capable keyring read path** (since 2026-04): when the system
+**Iteration-capable keyring read path:** when the system
 keyring backend is active, `ov`'s read path (`KeyringStore.Get` →
 `keyringGetViaSSClient` → `ssClient.findItemAnyCollection`) does NOT rely on
 the Secret Service `default` alias alone. It iterates all healthy collections,
@@ -163,7 +163,7 @@ ov secrets set ov/api-key ollama gsk-yyyyyyyy
 ov secrets set ov/api-key immich <immich-key-from-web-ui>
 ```
 
-**Auto-generated `secret_require:` tokens.** Since 2026-05-06,
+**Auto-generated `secret_require:` tokens.**
 `secret_require:` entries that miss everywhere (env + credential
 store) auto-generate a 32-byte hex token via `generateRandomHex(32)` +
 `DefaultCredentialStore.Set`, persisted at `ov/secret/<NAME>` (or the
@@ -229,13 +229,12 @@ ov config openwebui -e WEBUI_ADMIN_PASSWORD=<password> -e OPENROUTER_API_KEY=sk-
 Subsequent `ov config openwebui` resolves from the store without needing
 `-e` again.
 
-**Migration from legacy plaintext:** on the first `ov config` after
-upgrading to a version with this feature, any pre-existing `NAME=VAL`
-entry in `deploy.yml` whose NAME is now a `secret_accepts` /
-`secret_requires` declaration on the image is automatically moved to the
-credential store. The plaintext is stripped, `deploy.yml.bak.<ts>` is
-written as a rollback point, and the migration logs each entry on stderr.
-Idempotent — safe to run on a clean host.
+**Migration from legacy plaintext:** `ov config` automatically moves any
+`NAME=VAL` entry in `deploy.yml` whose NAME is a `secret_accepts` /
+`secret_requires` declaration on the image into the credential store.
+The plaintext is stripped, `deploy.yml.bak.<ts>` is written as a rollback
+point, and the migration logs each entry on stderr. Idempotent — safe to
+run on a clean host.
 
 **Distinction from layer-owned `secret:`:** the layer.yml `secret:`
 field (e.g., immich's `db-password`) creates per-image secrets that are

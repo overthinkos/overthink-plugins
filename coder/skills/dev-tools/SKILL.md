@@ -1,7 +1,7 @@
 ---
 name: dev-tools
 description: |
-  Developer tools including bat, ripgrep, neovim, gh, direnv, fd-find, htop,
+  Developer tools including bat, ripgrep, neovim, direnv, fd-find, htop,
   podman-compose, and many more CLI utilities.
   Use when working with developer tooling, CLI utilities, or container dev environments.
 ---
@@ -57,14 +57,13 @@ The `fastfetch-binary` test is declared with an `exclude_distros:` filter:
 
 On images whose `org.overthinkos.platform.distro` OCI label includes `ubuntu:24.04`, the test runner skips this check with a reason — see `/ov-eval:eval` "`exclude_distros:` field". This was added because dropping fastfetch from the `ubuntu:24.04:` tag section is clean, but the baked test probe would otherwise false-fail.
 
-### Single-responsibility split: git tooling lives in `/ov-coder:gh`
+### Git tooling lives in `/ov-coder:gh`
 
-In 2026-04 the `gh`, `git`, and `git-lfs` packages were moved out of
-dev-tools and into `/ov-coder:gh` (which is the dedicated GitHub /
-git tooling layer). Before that, dev-tools duplicated what gh was
-responsible for — two layers installing gh, two layers testing it,
-with unclear ownership. If you want the git tooling, compose
-`/ov-coder:gh` alongside `/ov-coder:dev-tools`.
+dev-tools does NOT install `gh`, `git`, or `git-lfs` — those belong
+exclusively to `/ov-coder:gh`, the dedicated GitHub / git tooling layer.
+That keeps ownership unambiguous (one layer installs and tests them). If
+you want the git tooling, compose `/ov-coder:gh` alongside
+`/ov-coder:dev-tools`.
 
 ## Usage
 
@@ -99,6 +98,6 @@ my-dev:
 Use when the user asks about:
 
 - Developer tools in containers
-- CLI utilities (bat, ripgrep, fd-find, neovim, gh, etc.)
+- CLI utilities (bat, ripgrep, fd-find, neovim, etc.)
 - Podman tooling inside containers
 - The `dev-tools` layer or its packages

@@ -74,7 +74,7 @@ The hermes entrypoint auto-discovers MCP servers from the `OV_MCP_SERVERS` envir
 - Tools are registered as `mcp_<server_name>_<tool_name>`
 - Reload MCP servers at runtime: `/reload-mcp` in interactive chat
 
-**Example:** The `jupyter` layer provides 11 tools (notebook_list, cell_execute, cell_update, etc.) via its MCP server at `http://<container>:8888/mcp`. Post-2026-05-06 cutover: noun-shaped surface (notebook_*/cell_* + notebook_list_users + room_list); clients no longer manage CRDT rooms.
+**Example:** The `jupyter` layer provides 11 tools (notebook_list, cell_execute, cell_update, etc.) via its MCP server at `http://<container>:8888/mcp`. Noun-shaped surface (notebook_*/cell_* + notebook_list_users + room_list); clients do not manage CRDT rooms.
 
 ## Architecture
 

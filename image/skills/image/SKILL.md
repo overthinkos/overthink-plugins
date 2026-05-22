@@ -14,9 +14,9 @@ inspect, pull) under a single namespace. All other `ov` commands read
 exclusively from OCI labels embedded into built images + `deploy.yml` for
 deployment overrides.
 
-This scope boundary was introduced by the `ov image` refactor. Old top-level
-invocations (`ov build`, `ov validate`, `ov list images`, `ov inspect`, etc.)
-return Kong's `unexpected argument` error — there are no backward-compat shims.
+Build-mode operations live only under `ov image`. Top-level invocations like
+`ov build`, `ov validate`, `ov list images`, or `ov inspect` return Kong's
+`unexpected argument` error.
 
 An **image** is a named build target in `image.yml`. Images compose layers
 into container images with configurable defaults, inheritance chains,
@@ -96,7 +96,7 @@ Remote repos are cloned into `~/.cache/ov/repos/<repoPath>@<version>/` (override
 
 2. **Remote pin** — set `OV_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env. The agent reads from a pinned upstream version. No bind mount required.
 
-3. **Auto-default** — `ov mcp serve` with no `image.yml` reachable at cwd silently falls back to `github.com/overthinkos/overthink`. **Refined in 2026-04**: the fallback now fires whenever cwd lacks `image.yml`, regardless of whether `OV_PROJECT_DIR` is set (previously the fallback only fired when the env var was empty — but the `ov-mcp` layer permanently sets `OV_PROJECT_DIR=/workspace`, so the fallback was effectively dead code). Pass `--no-default-repo` on the serve command to opt out. Only `ov mcp serve` auto-fetches; the top-level CLI stays opt-in.
+3. **Auto-default** — `ov mcp serve` with no `image.yml` reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires whenever cwd lacks `image.yml`, regardless of whether `OV_PROJECT_DIR` is set (the `ov-mcp` layer permanently sets `OV_PROJECT_DIR=/workspace`, so a fallback gated on the env var being empty would never fire). Pass `--no-default-repo` on the serve command to opt out. Only `ov mcp serve` auto-fetches; the top-level CLI stays opt-in.
 
 The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory`. See `/ov-build:ov-mcp-cmd` "Deployment: the `ov-mcp` layer" for the full bind-mount pattern and `/ov-internals:go` "main.go" for the implementation note (guarded by `TestOvDir_FlagChdir` + `TestOvDir_Errors` in `main_dir_test.go`, and `TestNormalizeRepoSpec` + `TestOvRepo_*` in `main_repo_test.go`).
 
@@ -205,7 +205,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `user` | `"user"` | Username for non-root operations. See `user_policy:` — may be overridden at resolve time when adopt mode fires |
 | `uid` | `1000` | User ID (may be overridden by `base_user:` under adopt) |
 | `gid` | `1000` | Group ID (may be overridden by `base_user:` under adopt) |
-| `user_policy` | `"auto"` | How to reconcile `user:` against the base image's pre-existing uid-1000 account. Values: `auto` / `adopt` / `create`. See "user_policy" section below. Wired 2026-04 |
+| `user_policy` | `"auto"` | How to reconcile `user:` against the base image's pre-existing uid-1000 account. Values: `auto` / `adopt` / `create`. See "user_policy" section below |
 | `merge` | `null` | Layer merge settings |
 | `aliases` | `[]` | Command aliases |
 | `builder` | `{}` | Build type → builder image map (inherited from base image + defaults). Keys match the `build.yml` `builder:` section — e.g., `builder.pixi` selects which image to use as the pixi builder |
@@ -215,7 +215,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `security` | `null` | Container security options. Overrides layer-level security |
 | `network` | `string` | Container network mode (default: shared `ov` network; set `host` for host networking) |
 
-VM-related fields (`vm`, `libvirt`) were **removed** from kind:image entries in the hard cutover. VMs are declared as `kind: vm` entities in `vms.yml` — see `/ov-vm:vms-catalog` for authoring, `/ov-build:migrate` for `ov migrate` conversion, and `/ov-internals:cutover-policy` for the hard-cutover rationale. `bootc: true` stays on kind:image entries (marks the image as a bootable container); a separate `kind: vm` entity with `source.kind: bootc` references it.
+VM-related fields (`vm`, `libvirt`) are not valid on kind:image entries — the loader rejects them. VMs are declared as `kind: vm` entities in `vm.yml` — see `/ov-vm:vms-catalog` for authoring and `/ov-build:migrate` for `ov migrate` conversion of legacy configs. `bootc: true` stays on kind:image entries (marks the image as a bootable container); a separate `kind: vm` entity with `source.kind: bootc` references it.
 
 ## Builder and Builds
 
@@ -284,9 +284,9 @@ images:
 
 ## user_policy: adopt vs create
 
-Added 2026-04 to cleanly handle base images that ship a pre-existing uid-1000 account (notably Ubuntu 24.04's `ubuntu:ubuntu`). Previously the bootstrap's `getent passwd $UID || useradd …` short-circuited on such accounts, leaving the image's configured `user:` never created — sudoers, `${HOME}`, npm prefix, etc. all broke because they assumed the configured name existed.
+`user_policy:` cleanly handles base images that ship a pre-existing uid-1000 account (notably Ubuntu 24.04's `ubuntu:ubuntu`). A plain `getent passwd $UID || useradd …` bootstrap short-circuits on such accounts, leaving the image's configured `user:` never created — sudoers, `${HOME}`, npm prefix, etc. would then break because they assume the configured name exists.
 
-The fix: a **declarative** fact (what the base image ships, in `build.yml distro.<name>.base_user:` — see `/ov-build:build`) + an **image-level policy** (how to reconcile with the image's `user:` field).
+The mechanism: a **declarative** fact (what the base image ships, in `build.yml distro.<name>.base_user:` — see `/ov-build:build`) + an **image-level policy** (how to reconcile with the image's `user:` field).
 
 ### Policy values
 
@@ -360,7 +360,7 @@ my-bootc-image:
 
 Symptom without `distro:`: `ov image inspect <image>` shows `"Distro": null`. The generator's install_template Phase-2 branch short-circuits on `img.DistroDef == nil`, so **no layer `rpm:` install RUN steps are emitted**. The image builds cleanly but is missing every package from every layer that uses declarative `rpm:` sections. Explicit `cmd: dnf install …` tasks still run; the bug affects only declarative `rpm:`/`deb:`/`pac:` sections.
 
-Internal bases (`base: fedora`) inherit `distro:` and `build:` from the parent image automatically — you only need explicit tags on images whose `base:` is a URL. Canonical worked example: `/ov-selkies:selkies-desktop-bootc`. The sibling bootc images (`/ov-distros:bazzite`, `/ov-distros:aurora`) all declare `distro:` as of the 2026-05 bootc-submodule extraction (they live in the `overthinkos/bootc` submodule).
+Internal bases (`base: fedora`) inherit `distro:` and `build:` from the parent image automatically — you only need explicit tags on images whose `base:` is a URL. Canonical worked example: `/ov-selkies:selkies-desktop-bootc`. The sibling bootc images (`/ov-distros:bazzite`, `/ov-distros:aurora`) all declare `distro:` and live in the `overthinkos/bootc` submodule.
 
 ## Intermediate Images
 
@@ -434,10 +434,10 @@ Source: `ov/security.go` (`CollectSecurity`).
 
 ## VM Configuration
 
-VMs are **not** configured on kind:image entries. As of the 2026-04 hard cutover, `image.vm:` and `image.libvirt:` fields are removed and rejected at load time. VM primitives are declared as `kind: vm` entities in `vms.yml`:
+VMs are **not** configured on kind:image entries. The `image.vm:` and `image.libvirt:` fields are rejected at load time. VM primitives are declared as `kind: vm` entities in `vm.yml`:
 
 ```yaml
-# vms.yml
+# vm.yml
 vms:
   my-bootc-vm:
     source:
@@ -545,17 +545,17 @@ images:
 - `/ov-eval:eval` — Image-level `eval:` (cross-layer invariants) and `deploy_eval:` (deploy-default checks shipped with the image). Both are embedded in the `org.overthinkos.eval` OCI label.
 - `/ov-build:ov-mcp-cmd` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `ov eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
 - `/ov-selkies:selkies-desktop-bootc` — canonical worked example for the external-base + explicit-`distro:` pattern.
-- `/ov-vm:vm` — `ov vm build/create/start/stop/ssh` command family; reads `vms.yml`, not `image.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
-- `/ov-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema (replaces legacy `image.vm:` / `image.libvirt:`).
-- `/ov-build:migrate` — `ov migrate` converts legacy VM fields to `vms.yml`.
+- `/ov-vm:vm` — `ov vm build/create/start/stop/ssh` command family; reads `vm.yml`, not `image.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
+- `/ov-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema.
+- `/ov-build:migrate` — `ov migrate` converts legacy VM fields to `vm.yml`.
 
-## Cross-kind name reuse (2026-05-05)
+## Cross-kind name reuse
 
-The `image:` map's namespace is independent of `layers/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`ov image set`, `ov image new image`, `ov image add-layer`, `ov image rm-layer`, `ov image new project`) write exclusively to `overthink.yml` — per-kind `image.yml` is reachable only via `include:` from `overthink.yml`, never as a default authoring target. Missing `overthink.yml` → hard error pointing at `ov image new project .` or `ov migrate`. See CLAUDE.md "Cross-kind name reuse" and `/ov-build:migrate` for `ov migrate` (the demonstrative migration that paired a kind:local template with a same-named kind:deploy entry).
+The `image:` map's namespace is independent of `layers/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`ov image set`, `ov image new image`, `ov image add-layer`, `ov image rm-layer`, `ov image new project`) write exclusively to `overthink.yml` — per-kind `image.yml` is reachable only via `include:` from `overthink.yml`, never as a default authoring target. Missing `overthink.yml` → hard error pointing at `ov image new project .` or `ov migrate`. See CLAUDE.md "Cross-kind name reuse".
 
-### Per-kind file convention (2026-05-XX)
+### Per-kind file convention
 
-`overthink.yml` SHOULD use `include:` to pull in sibling per-kind files: `image.yml` (kind:image entries), `pod.yml` (kind:pod), `vm.yml` (kind:vm), `k8s.yml` (kind:k8s), `local.yml` (kind:local), `deploy.yml` (kind:deploy). Filename and kind name match exactly — `kind: deploy` lives in `deploy.yml`, not the legacy `kind: deployment`. The 2026-05-XX cutover renamed `kind: deployment` → `kind: deploy` and split inline `overthink.yml` maps into per-kind sibling files in one atomic hop. Migration: `ov migrate` (idempotent). Inline maps inside `overthink.yml` remain valid (it's still a single canonical authoring target), but per-kind sibling files are the recommended layout. See `/ov-build:migrate`.
+`overthink.yml` SHOULD use `include:` to pull in sibling per-kind files: `image.yml` (kind:image entries), `pod.yml` (kind:pod), `vm.yml` (kind:vm), `k8s.yml` (kind:k8s), `local.yml` (kind:local), `deploy.yml` (kind:deploy). Filename and kind name match exactly — `kind: deploy` lives in `deploy.yml`. Inline maps inside `overthink.yml` remain valid (it's still a single canonical authoring target), but per-kind sibling files are the recommended layout. Migration of legacy configs: `ov migrate` (idempotent). See `/ov-build:migrate`.
 
 ## When to Use This Skill
 
@@ -570,7 +570,7 @@ The `image:` map's namespace is independent of `layers/`, `pod:`, `vm:`, `k8s:`,
 
 ## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
 **After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 

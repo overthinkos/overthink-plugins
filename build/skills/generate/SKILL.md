@@ -15,9 +15,9 @@ Parses `image.yml`, scans `layers/`, resolves the dependency graph, and emits al
 
 The generator is **config-driven** — distro format templates, builder stage templates, and init system fragments all come from a single `build.yml` (three top-level sections: `distro:`, `builder:`, `init:`) — and **declarative per-task** for install logic — each task verb (see `/ov-image:layer`) has a dedicated emitter that writes the right Containerfile directive.
 
-**IR-driven since 2026-04**: `ov image generate` now drives emission through the shared `DeployTarget` interface. `image.yml` + `layer.yml` compile into an `InstallPlan` IR (one per layer); `OCITarget.Emit` walks the IR and writes Containerfile text. The same IR backs `ContainerDeployTarget` (overlay-Containerfile synthesis when `add_layer:` is set) and `HostDeployTarget` (host-target execution). See `/ov-internals:install-plan` for the type catalog and `/ov-internals:generate-source` for the Go-level call graph.
+**IR-driven emission**: `ov image generate` drives emission through the shared `DeployTarget` interface. `image.yml` + `layer.yml` compile into an `InstallPlan` IR (one per layer); `OCITarget.Emit` walks the IR and writes Containerfile text. The same IR backs `PodDeployTarget` (overlay-Containerfile synthesis when `add_layer:` is set) and `LocalDeployTarget` (local-target execution). See `/ov-internals:install-plan` for the type catalog and `/ov-internals:generate-source` for the Go-level call graph.
 
-**Three-phase templates**: `build.yml` format (`formats.<fmt>`) and builder (`builders.<name>`) definitions carry a new `phases: { prepare, install, cleanup }.{ container, host }` structure. The generator reads `phases.install.container` when set and falls back to the legacy top-level `install_template:` otherwise. The `host:` cell is consumed only by `HostDeployTarget` (`ov deploy add host`) — the generator ignores it. Template migration is layer-by-layer; both paths coexist during the transition.
+**Three-phase templates**: `build.yml` format (`formats.<fmt>`) and builder (`builders.<name>`) definitions carry a `phases: { prepare, install, cleanup }.{ container, host }` structure. The generator reads `phases.install.container` when set and falls back to the top-level `install_template:` otherwise. The `host:` cell is consumed only by `LocalDeployTarget` (`target: local` deploys) — the generator ignores it.
 
 ## Quick Reference
 
@@ -103,13 +103,13 @@ The `/ctx` bind mount exposes the layer's own directory tree to `cmd:` tasks —
 ## USER emission
 
 - `user: root` → `USER 0`
-- `user: ${USER}` → `USER <numeric UID>` (matches the pre-refactor convention; avoids `/etc/passwd` dependency at the switch point)
+- `user: ${USER}` → `USER <numeric UID>` (numeric form avoids an `/etc/passwd` dependency at the switch point)
 - `user: <uid>:<gid>` → `USER <uid>:<gid>` (e.g. `1010:1010`)
 - `user: <name>` → `USER <name>` (literal; requires user to exist — create via earlier `cmd: useradd` task)
 
 `COPY --chown=` uses numeric `<UID>:<GID>` for `${USER}` (BuildKit-safe), name-pairs for literal users.
 
-## writeBootstrap — adopt vs create (2026-04)
+## writeBootstrap — adopt vs create
 
 `writeBootstrap` emits the user-creation section of the base-image Containerfile and branches on `ResolvedImage.UserAdopted`:
 
@@ -179,8 +179,8 @@ the final stage, after the last `USER` directive. This means a test or
 label edit only re-runs the LABEL steps themselves (metadata-only, ~2
 sec) instead of invalidating the buildkit cache for every upstream
 RUN/COPY. Particularly important for test authoring: `eval:` edits on
-a 138-step stack like `immich-ml` used to cost minutes per iteration;
-they now cost seconds. See `/ov-internals:generate-source` "LABEL Placement" for the
+a 138-step stack like `immich-ml` cost seconds, not minutes per
+iteration. See `/ov-internals:generate-source` "LABEL Placement" for the
 rationale and `/ov-eval:eval` for author-facing workflow implications.
 
 ## Bootc-specific generator behaviour

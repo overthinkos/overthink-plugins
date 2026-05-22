@@ -136,18 +136,17 @@ When an image has multiple encrypted volumes, `ov config`, `ov config mount`, an
 
 ## Credential lookup — iteration-capable `ssClient`
 
-**Historical problem:** the `zalando/go-keyring` library `ov` originally
-depended on looks up credentials via the Secret Service `default` alias
-**only** — no iteration. If that alias resolved to a broken or stub
-collection (commonly seen with KeePassXC's FdoSecrets plugin when a
-previously-exposed database is unloaded), every credential lookup failed,
-and `ov config mount` would hang forever polling for a keyring that couldn't
-serve the secret. The polling loop had no deadline, and quadlet units with
-`TimeoutStartSec=0` would wedge in `activating (start-pre)` indefinitely.
+**Why iteration matters:** a Secret Service client that looks up credentials
+via the `default` alias **only** (no iteration) fails entirely when that alias
+resolves to a broken or stub collection — commonly seen with KeePassXC's
+FdoSecrets plugin when a previously-exposed database is unloaded. Such a client
+would hang `ov config mount` forever polling for a keyring that can't serve the
+secret, and a quadlet unit with `TimeoutStartSec=0` would wedge in
+`activating (start-pre)` indefinitely.
 
-**Since 2026-04,** `ov` ships its own minimal godbus-based Secret Service
-client (`ov/secret_service.go`, the `ssClient` type) with a three-step
-iteration in `findItemAcrossCollections`:
+`ov` ships its own minimal godbus-based Secret Service client
+(`ov/secret_service.go`, the `ssClient` type) with a three-step iteration in
+`findItemAcrossCollections`:
 
 1. Try the collection at the `default` alias (if healthy — skipped if its
    property reads error out).
@@ -201,9 +200,9 @@ pair where the source string is one of:
 
 **The critical distinction** is between `default` and `unavailable`: both
 look identical from the ConfigFileStore return value (empty string, nil
-error), but they have opposite recovery semantics. The previous ov code
-conflated them and polled forever on both, which is why a broken keyring
-used to wedge `ov-<image>.service` under `TimeoutStartSec=0`.
+error), but they have opposite recovery semantics. Conflating them — polling
+forever on both — would wedge `ov-<image>.service` under `TimeoutStartSec=0`
+whenever the keyring is broken, so the two are kept distinct.
 
 **Under systemd (`INVOCATION_ID` set, typical for `ExecStartPre`):**
 
@@ -302,9 +301,9 @@ ov secrets set ov/enc my-app <passphrase>
 
 To serve credentials from an existing KeePass database, open it in KeePassXC and
 enable the FdoSecrets plugin so its entries appear on the Secret Service bus —
-ov's keyring backend reads them like any other collection. (The direct `.kdbx`
-file backend and the `--kdbx` flag were removed in the 2026-05-21 cutover; see
-`/ov-build:secrets`.)
+ov's keyring backend reads them like any other collection. See `/ov-build:secrets`
+for the full credential-store chain (env → Secret Service keyring → config-file
+fallback).
 
 ## Scope Unit Architecture
 
@@ -348,7 +347,7 @@ Rootless podman with `--userns=keep-id` creates a two-level user namespace. Duri
 5. The wait is **unbounded** — ov blocks until the keyring unlocks or
    systemd sends SIGTERM on `systemctl stop`. No arbitrary deadline.
 
-**Event-driven keyring waiting** (since 2026-04-16): when
+**Event-driven keyring waiting:** when
 `source=locked` under a keyring-capable backend, ov subscribes to DBus
 `org.freedesktop.DBus.Properties.PropertiesChanged` signals on the
 `/org/freedesktop/secrets/collection/*` namespace. The wait loop blocks
@@ -373,8 +372,8 @@ zero CPU cost between events. No polling.
 Source: `ov/enc.go` (`waitForKeyringUnlock`, `waitForKeyringUnlockLoop`,
 `waitForKeyringUnlockBackstopOnly`).
 
-**Bounded retry for `source=unavailable`** (since 2026-04): transient
-backend-probe failures (`source=unavailable`) still use a bounded poll
+**Bounded retry for `source=unavailable`:** transient
+backend-probe failures (`source=unavailable`) use a bounded poll
 loop with two package-level variables in `ov/enc.go`:
 
 - `encMountDeadline` — total wall-clock cap (default `2 * time.Minute`)
@@ -386,8 +385,7 @@ a credential that was never stored.
 
 **Crash recovery:** FUSE mounts survive container restarts because scope
 units are independent of the container service cgroup. On restart, the
-`ExecStartPre=ov config mount` step hits the **fast-path short-circuit**
-added in 2026-04:
+`ExecStartPre=ov config mount` step hits the **fast-path short-circuit**:
 
     All encrypted volumes for <image> already mounted (N/N)
 
@@ -409,7 +407,7 @@ kicks in.
 encrypted volume "library": cipher dir at /home/.../ov-immich-library/cipher is populated but plain mount at /home/.../ov-immich-library/plain is empty — refusing to start (would write plaintext over encrypted data); run 'ov config mount immich' first
 ```
 
-This is the immich-2026-04-incident shape. A pre-cutover quadlet (one missing the `ExecStartPre=ov config mount <image>` auto-mount hook — see "Boot Behavior: Backend-Gated" above and `/ov-build:migrate` "ov migrate") would silently bind an empty `plain/` over a populated cipher tree, the container's services would `initdb` / first-run-wizard against the empty dir, and 2 weeks of plaintext data would accumulate on top of an encrypted vault. The new error class fails the start IMMEDIATELY when `ov start` detects that exact pre-start state.
+This guards against a real data-loss shape: a quadlet missing the `ExecStartPre=ov config mount <image>` auto-mount hook (see "Boot Behavior: Backend-Gated" above and `/ov-build:migrate` "ov migrate") would silently bind an empty `plain/` over a populated cipher tree, the container's services would `initdb` / first-run-wizard against the empty dir, and plaintext data would accumulate on top of an encrypted vault. This error class fails the start IMMEDIATELY when `ov start` detects that exact pre-start state.
 
 **Important caveat on quadlet-managed services.** This check runs only in the direct-mode (CLI) path. systemd-managed quadlet services bypass it — they go straight to `podman` after `ExecStartPre=ov config mount <image>` succeeds. The actual root-cause fix for those is the `ExecStartPre` hook itself; verifyBindMounts is a belt-and-suspenders safety net for the direct path.
 
@@ -442,7 +440,7 @@ ov config my-app --bind data                   # Auto path: ~/.local/share/ov/vo
 
 Plain bind mounts do not use encrypted storage commands. They are direct host directory mounts.
 
-**Source files (as of 2026-04-16):**
+**Source files:**
 
 - `ov/enc.go` — `encMount` (with all-mounted short-circuit), `ensureEncryptedMounts`, `encUnmount`, scope unit lifecycle, `resolveEncPassphraseForMount` (bounded retry for `source=unavailable` via `retryUnavailable`), `waitForKeyringUnlock` (event-driven DBus signal wait for `source=locked`), `waitForKeyringUnlockLoop`, `waitForKeyringUnlockBackstopOnly`, `encMountSignalBackstop` (30s), `encMountProgressLogInterval` (1h)
 - `ov/secret_service.go` — godbus-based ssClient, `findItemAcrossCollections` (with locked-vs-broken tracking), `ssOps` interface for test injection, `ErrSSNotFound` / `ErrSSAllBroken` / `ErrSSInteractiveUnlockRequired` sentinel errors, `isCollectionUnlockedSignal` (DBus signal filter)

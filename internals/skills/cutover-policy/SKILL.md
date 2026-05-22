@@ -12,7 +12,7 @@ description: |
 
 # cutover-policy
 
-Every schema change, API rename, or deprecation in Overthink ships as a **single hard-cutover PR**. This applies to BOTH code (Go types, exported functions, CLI flags, OCI labels) AND config (overthink.yml, deploy.yml, layer.yml, vms.yml field names and shapes).
+Every schema change, API rename, or deprecation in Overthink ships as a **single hard-cutover PR**. This applies to BOTH code (Go types, exported functions, CLI flags, OCI labels) AND config (overthink.yml, deploy.yml, layer.yml, vm.yml field names and shapes).
 
 A cutover may NEVER be phased — not at plan authoring, not at execution. There is no pre-approval split, no post-approval split, no phased rollout, no grace period, no "author it as two plans" fallback. Plans are authored as full-scope, single-phase cutovers regardless of estimated time, scope, or context. Every cutover executes end-to-end through R10 in the SAME conversation. ALWAYS push as far as you can; compact context and continue, as many times as it takes. An approved plan is a CONTRACT; implement it as written.
 
@@ -49,7 +49,8 @@ Each of these has a specific failure mode that has occurred historically: the fi
 - A **release git tag** `v<version>` on the cutover's push, matching the bumped `overthink.yml` `version:` (the new `LatestSchemaVersion()`). The tag is **immutable** — one per `version:` value, created the first time it lands on a pushed commit, never moved or force-pushed. A change that does NOT bump `version:` (content removal — a submodule extraction, an image drop) creates no new tag; the existing `v<version>` already marks that schema version. Each ov-project repo (one with `overthink.yml`) is tagged with its own `version:`; `plugins` / `pkg/arch` are exempt. See `/ov-build:migrate` "version: is also the per-repo git-tag source" and CLAUDE.md "Post-Execution Policies".
 - **Hard load-time errors** for any residual legacy field, with a one-line remediation hint pointing at the migration command.
 - **Deletion — in the same PR** — of every Go type, function, CLI flag, OCI label, YAML field, skill doc paragraph, and test fixture that references the removed surface.
-- **Stale-reference sweep (R5).** Every reference, comment, docstring, error message, skill paragraph, migration help-text, test fixture, and hook string naming a deleted identifier MUST be updated or deleted in the same commit. After commit, `git grep '<deleted-id>'` returns ONLY historical mentions in changelog/history-note/migration-help-text context.
+- **Stale-reference sweep (R5).** Every reference, comment, docstring, error message, skill paragraph, migration help-text, test fixture, and hook string naming a deleted identifier MUST be updated or deleted in the same commit. After commit, `git grep '<deleted-id>'` returns ONLY historical mentions in `CHANGELOG.md` or migration help-text.
+- **A `CHANGELOG.md` entry** (repo root) recording the cutover narrative. Historical content lives ONLY in `CHANGELOG.md`; CLAUDE.md and the skills state the new standing rules forward-looking, with no history. See CLAUDE.md "Where things are documented".
 - **Engineering-discipline gates (R1–R5).** See `/ov-internals:strict-policy`. Every failure during the cutover triggers `/ov-internals:root-cause-analyzer` BEFORE any remediation (R1). Every issue surfaced is fixed in the cutover or escalated (R2). Duplication is refactored on first surface (R3). Workarounds are forbidden (R4). Stale references are swept (R5).
 
 ## Rationale
@@ -81,78 +82,22 @@ Forbidden internal-voice triggers (each is a confession, NOT a defence):
 
 If you catch yourself forming any of those: STOP forming them. The plan executes as written.
 
-## Worked example: the VM refactor (this cutover)
+## What a clean cutover PR looks like
 
-Good reference implementation. Deliverables in one PR:
+One PR, one commit, with these deliverables:
 
-### Code deletions
+- **Code deletions** — every Go type, struct field, function, and label constant for the removed surface, deleted (not deprecated).
+- **Schema deletions** — every removed YAML field rejected by the loader with a hard error.
+- **Replacement surface** — the new types / schema / deploy target that supersede the deleted ones.
+- **Migration** — one idempotent `MigrationStep` on the `ov migrate` chain that harvests legacy fields into the new shape, preserves pre-existing user keys, and never clobbers customizations.
+- **Load-time error** — old projects loading under the new code get a hard error naming the legacy field and pointing at `ov migrate`.
+- **Documentation refresh** — every referring skill revised in the same sweep; no stale references to any deleted identifier in `plugins/`, `README.md`, or `CLAUDE.md` (R5 grep self-test).
+- **Test deletions** — fixtures and assertions exercising the legacy surface removed; new fixtures exercise the replacement.
+- **CHANGELOG entry** — the cutover narrative appended to `CHANGELOG.md` (the only place the history lives).
 
-- `VmConfig` struct — deleted from `ov/config.go`.
-- `ImageConfig.Vm`, `ImageConfig.Libvirt` fields — deleted.
-- `ResolvedImage.Vm` — deleted.
-- `resolveVmConfig` function — deleted.
-- `LabelVm`, `LabelLibvirt` label constants — deleted from `ov/labels.go`.
-- `CapabilityLabelMap` entries for `Vm` and `Libvirt` — deleted.
-- Image-level libvirt snippet validation in `ov/validate.go` — deleted.
-- Image-level libvirt iteration in `ov/libvirt.go` — deleted.
+The commit uses the Conventional Commits `!` breaking-change marker; the body lists every deleted identifier, every removed YAML field, and every updated test. `ov migrate` is runnable against old projects from that commit forward, with no additional steps.
 
-### Schema deletions
-
-- `image.bootc: true` + `image.vm: {...}` + `image.libvirt: [...]` — all three rejected by the loader with hard errors.
-
-### Replacement surface
-
-- `vms.yml` with `kind: vm` entities.
-- `VmSpec` + `VmSource` + `LibvirtConfig` + `VmCloudInit` + friends in `ov/vm_spec.go`, `ov/cloud_init_types.go`, `ov/libvirt_schema.go`.
-- `vm:<name>` deploy target via `VmDeployTarget`.
-
-### Migration
-
-- **`ov migrate`** in `ov/migrate_vm_spec.go`. Idempotent. Harvests legacy fields into `vms:` entries, preserves pre-existing `vms:` keys, never clobbers user customizations.
-
-### Load-time error
-
-Old projects loading under new code get:
-
-```
-Error: image entry "foo" declares legacy field "bootc: true".
-Run: ov migrate
-```
-
-Remediation hint points at the migration command directly.
-
-### Documentation refresh
-
-All referring skills revised in the same sweep (this documentation-update PR). No stale references to `VmConfig`/`LabelVm`/`LabelLibvirt`/`image.bootc`/`image.vm:`/`image.libvirt:` anywhere in `plugins/`, `README.md`, or `CLAUDE.md`.
-
-### Test deletions
-
-`labels_test.go`, `libvirt_test.go`, `config_test.go` lost the fixtures and assertions that exercised the legacy surface. New fixtures exercise VmSpec instead.
-
-## What a cutover PR looks like
-
-The commit graph for this VM cutover:
-
-```
-089f375 (initial D1-D17 tasks — new VmSpec surface lands alongside legacy)
- ↓
-b249ee4 (arch live-tested + migrate vm-spec authored)
- ↓
-3087e0a feat(ov)!: hard cutover — delete VmConfig, ImageConfig.Vm/Libvirt, OCI labels
-```
-
-The `!` in the last commit marker is the Conventional Commits breaking-change indicator. The commit body lists every deleted identifier, every deleted YAML field, every updated test. `ov migrate` is runnable against old projects from the point of this commit forward, no additional steps.
-
-## Historical cutovers that followed this policy
-
-- Unified YAML cutover (legacy `image.yml`/`build.yml`/flat-form `layer.yml` → `overthink.yml` with kind-keyed wrappers + `include:` + `discover:`) — `ov migrate`.
-- Unified `service:` schema cutover (legacy `service: |...|` raw INI and `system_services:` → structured `service:` list with 22 fields incl. `kind: eventlistener`) — folded into `ov migrate`.
-- User policy cutover (rename-based user renaming → `base_user:` + `user_policy:` declarative matrix) — no separate migration; hard cutover delete + skill updates.
-- **Per-kind file split + `kind: deployment` → `kind: deploy` rename (2026-05-XX)**: a "filename-discriminator-symmetry" hard cutover that bundled three transforms into one atomic commit: (1) split `overthink.yml`'s inline `image:` / `vm:` maps into sibling `image.yml` / `vm.yml` files (plus stubs for `pod.yml` / `k8s.yml`); (2) renamed schema kind `deployment` → `deploy` so the filename and the kind discriminator match (`kind: deploy` lives in `deploy.yml`); (3) added a new dispatcher verb `ov eval kind <kind>` for fast per-kind R10 sweeps (the `ov eval kind` verb was later RETIRED in the 2026-05 kind:eval cutover — the per-kind beds became `kind: eval` entities in `eval.yml`, run via `ov eval run <bed>`). Migration: `ov migrate` (idempotent; one command covers all three transforms). Residual `kind: deployment` docs + root-key `deployment:` raise hard load-time errors pointing at the migration command.
-
-- **CalVer schema versioning + single `ov migrate` (2026-05-21)**: the schema version moved from the integer `version: 4` to a CalVer string (`version: 2026.141.1530`, same scheme as image tags), and the ~16 hand-invoked `ov migrate <name>` sub-verbs collapsed into ONE idempotent `ov migrate` that runs an ordered, CalVer-keyed chain (`migrationSteps()` in `ov/migrate_registry.go`) to HEAD (`LatestSchemaVersion()`). Every prior cutover became one `MigrationStep`; future cutovers append one step. The load gate compares the file's CalVer against HEAD and every residual-key error points uniformly at bare `ov migrate`. Migration: `ov migrate` (the final `calver-schema` step does the integer→CalVer transition).
-
-Each followed the same three-step shape: **delete old surface + publish migration + hard load error**. See `/ov-build:migrate` for the command surface.
+See `CHANGELOG.md` for the catalog of past cutovers that followed this shape — each took the same three steps: **delete old surface + publish migration + hard load error**.
 
 ## When the policy might not apply
 
@@ -172,7 +117,7 @@ The policy kicks in when the change is **visible to consumers** (YAML authors, o
 
 ## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
 **After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 

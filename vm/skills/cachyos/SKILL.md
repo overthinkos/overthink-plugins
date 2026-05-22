@@ -13,11 +13,11 @@ description: |
 `pacstrap` (using `/ov-distros:cachyos-pacstrap-builder`), then boots it under
 libvirt/QEMU.
 
-> **Relocated (2026-05):** the `cachyos-vm` entity and its `cachyos-vm-deploy`
-> bed live in the **`overthinkos/cachyos`** repo (git submodule at
-> **`image/cachyos`**), in that repo's `vm.yml` / `deploy.yml`. Drive them from
-> the submodule: `ov -C image/cachyos vm build cachyos-vm` +
-> `ov -C image/cachyos vm create cachyos-vm` (or `ov --repo overthinkos/cachyos …`).
+The `cachyos-vm` entity and its `cachyos-vm-deploy` bed live in the
+**`overthinkos/cachyos`** repo (git submodule at **`image/cachyos`**), in that
+repo's `vm.yml` / `deploy.yml`. Drive them from the submodule:
+`ov -C image/cachyos vm build cachyos-vm` +
+`ov -C image/cachyos vm create cachyos-vm` (or `ov --repo overthinkos/cachyos …`).
 
 ## VM Configuration (from image/cachyos/vm.yml)
 
@@ -39,22 +39,19 @@ the main repo's `build.yml`, remote-included by the submodule.
 `cachyos-vm-deploy` (`target: vm`, `vm: cachyos-vm`) carries `disposable: true`,
 so `ov -C image/cachyos update cachyos-vm-deploy` rebuilds it unattended.
 
-## pacstrap path (fixed — builds a bootable disk)
+## pacstrap path
 
-`ov vm build cachyos-vm` builds end-to-end as of **ov 2026.141.1850**. The
-`vm_bootstrap.go` path now uses the same `renderPacstrapExtraConf` helper as the
-image path (it previously open-coded the repo loop and *dropped* `SigLevel`,
-which is exactly why `ov vm build cachyos-vm` hit `GPGME error: No data` while
-the image build didn't). The helper emits the per-repo `SigLevel` (fixes GPGME)
-and an `[options] Architecture = x86_64 x86_64_v3` directive (fixes the
-`package architecture is not valid` rejection of `linux-cachyos`).
+`ov vm build cachyos-vm` builds a bootable disk end-to-end. The
+`vm_bootstrap.go` path uses the same `renderPacstrapExtraConf` helper as the
+image path, which emits the per-repo `SigLevel` (required for GPGME) and an
+`[options] Architecture = x86_64 x86_64_v3` directive (so `linux-cachyos`
+passes the architecture check).
 
-Verified live: pacstrap installs `linux-cachyos` (x86_64_v3), mkinitcpio
-generates the initramfs (its `autodetect` hook warns in the chroot and falls
-back to all-modules — non-fatal), and a bootable `disk.qcow2` (~3.5 GB) + cloud-init
-`seed.iso` are written. Requires an `ov` with this fix (newer than the published
-release). The Docker-Hub `/ov-distros:cachyos` container base remains the faster
-path when you don't need a VM disk.
+pacstrap installs `linux-cachyos` (x86_64_v3), mkinitcpio generates the
+initramfs (its `autodetect` hook warns in the chroot and falls back to
+all-modules — non-fatal), and a bootable `disk.qcow2` (~3.5 GB) + cloud-init
+`seed.iso` are written. The Docker-Hub `/ov-distros:cachyos` container base
+remains the faster path when you don't need a VM disk.
 
 ## Cross-References
 

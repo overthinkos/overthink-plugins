@@ -10,7 +10,7 @@ description: |
 
 A **layer** is a directory under `layers/<name>/` that installs a single concern. Layers are the building blocks of container images in overthink. Each layer declares its packages, environment variables, services, volumes, and **install tasks** in a single `layer.yml` file.
 
-Since the `task:` refactor, there is **one YAML file per layer** for install logic — no separate Taskfiles, no `task:` / `task:`. Everything an author needs to install flows through `task:` and auto-detected package manifests (`pixi.toml`, `package.json`, `Cargo.toml`).
+There is **one YAML file per layer** for install logic — no separate Taskfiles. Everything an author needs to install flows through `task:` and auto-detected package manifests (`pixi.toml`, `package.json`, `Cargo.toml`).
 
 ## `directory:` — where the layer's config files live
 
@@ -27,7 +27,7 @@ tasks:
 ```
 
 Resolution rule:
-- `""` or `"."` → same dir as layer.yml (today's behavior, fully backward compatible)
+- `""` or `"."` → same dir as layer.yml (the default)
 - relative path → joined onto layer.yml's dir
 - absolute path → used as-is
 
@@ -35,10 +35,10 @@ Resolution rule:
 
 ## Kind-keyed standalone form (`layer: {name, …}`)
 
-Post-migration (via `ov migrate`), every layer.yml is self-describing: a single `layer:` wrapper with an explicit `name:` field + the body. This makes layer files bundle-mergeable — concatenate with `---` separators to form a single file containing many layers.
+Every layer.yml is self-describing: a single `layer:` wrapper with an explicit `name:` field + the body. This makes layer files bundle-mergeable — concatenate with `---` separators to form a single file containing many layers.
 
 ```yaml
-# layers/chrome/layer.yml  (post-migration shape)
+# layers/chrome/layer.yml
 layer:
   name: chrome
   directory: .
@@ -47,7 +47,7 @@ layer:
     - copy: policies.json
 ```
 
-The runtime parser accepts only the kind-keyed form. `ov migrate` converts any author-authored files to the canonical shape in a single idempotent pass.
+The runtime parser accepts only this kind-keyed form. `ov migrate` converts any legacy layer files to the canonical shape in a single idempotent pass.
 
 ## Quick Reference
 
@@ -118,7 +118,7 @@ Every task in `task:` is a YAML map with **exactly one verb key** (the discrimin
 | `copy:` | source relative to layer dir | `to:` | `user`, `mode`, `comment` | `COPY --from=<layer-stage> --chmod= [--chown=]` — no RUN |
 | `write:` | destination path | `content:` | `user`, `mode`, `comment` | Write inline content — staged + COPY, no shell heredoc |
 | `link:` | symlink path (where the link lives) | `target:` | `user`, `comment` | `ln -sf <target> <link>` (coalesces with adjacent) |
-| `download:` | URL | — (`to:` unless `extract: sh`) | `user`, `extract`, `to`, `include`, `strip_components`, `mode`, `env`, `comment` | `curl` + optional extract (`tar.gz`/`tar.xz`/`tar.zst`/`zip`/`none`/`sh`). `strip_components: N` (2026-04) emits `tar --strip-components=N` for tar.* — drops leading path segments so tarballs that nest under a top-level arch/version dir (Go, Rust, Node binary releases) land files directly at `to:`. See `/ov-coder:uv` for the canonical uv-x86_64-unknown-linux-gnu/uv → /usr/local/bin/uv example. |
+| `download:` | URL | — (`to:` unless `extract: sh`) | `user`, `extract`, `to`, `include`, `strip_components`, `mode`, `env`, `comment` | `curl` + optional extract (`tar.gz`/`tar.xz`/`tar.zst`/`zip`/`none`/`sh`). `strip_components: N` emits `tar --strip-components=N` for tar.* — drops leading path segments so tarballs that nest under a top-level arch/version dir (Go, Rust, Node binary releases) land files directly at `to:`. See `/ov-coder:uv` for the canonical uv-x86_64-unknown-linux-gnu/uv → /usr/local/bin/uv example. |
 | `setcap:` | file path | — | `user` (implicit root), `caps`, `comment` | File capabilities (`setcap -r` strip if `caps` empty) |
 | `build:` | `"all"` | — | `user` (default `${USER}`), `comment` | Run auto-detected builders (pixi/npm/cargo/aur) at this point (instead of end-of-layer) |
 
@@ -349,7 +349,7 @@ The `user:` field accepts:
 | bare numeric `<uid>` | `USER <uid>` | `<uid>:<uid>` |
 | literal name (`postgres`, `immich`) | `USER <name>` | `<name>:<name>` |
 
-**Why `${USER}` resolves to a numeric UID:** matches the pre-refactor `USER <UID>` convention and avoids a `/etc/passwd` dependency at the instant the switch happens. Base images create the named user, but numeric always works even if `/etc/passwd` hasn't been read yet by whatever shell the RUN spawns.
+**Why `${USER}` resolves to a numeric UID:** avoids a `/etc/passwd` dependency at the instant the switch happens. Base images create the named user, but numeric always works even if `/etc/passwd` hasn't been read yet by whatever shell the RUN spawns.
 
 **User creation is explicit.** If you reference a literal username, an earlier `cmd:` task (as root) must `useradd` them. The generator does not auto-create users. Example:
 
@@ -400,7 +400,7 @@ tasks:
 | `mcp_provides` / `mcp_requires` / `mcp_accepts` | various | MCP server discovery analogous to `env_*`. |
 | `service` | `[]ServiceEntry` | Unified service list — see "Service Declaration" below. |
 
-Field details for non-`task:` sections are below; they're unchanged from the pre-refactor schema.
+Field details for non-`task:` sections are below.
 
 ---
 
@@ -442,7 +442,7 @@ Debian/Ubuntu-specific capabilities:
 
 Distro-version tag sections work too — `debian:13:` and `ubuntu:24.04:` carry full install-template surface (packages, repos, options). Useful when upstream apt-repo URLs differ per codename (e.g. `/ov-coder:docker-ce`, `/ov-coder:kubernetes-layer`).
 
-### Distro-version tag sections (2026-04 extension)
+### Distro-version tag sections
 
 ```yaml
 rpm:
@@ -467,7 +467,7 @@ ubuntu:24.04:
   packages: []              # ubuntu 24.04 keeps the generic deb: packages (implicit)
 ```
 
-Match order: the image's `distro:` priority list (e.g. `["ubuntu:24.04", "ubuntu", "debian"]`) is walked in order; the first matching tag section wins. All tag sections now support the full install-template surface (not just `package:`) via `TagPkgConfig.Raw` in `ov/layers.go:214-219` — see `/ov-internals:go`.
+Match order: the image's `distro:` priority list (e.g. `["ubuntu:24.04", "ubuntu", "debian"]`) is walked in order; the first matching tag section wins. Every tag section supports the full install-template surface (not just `package:`) via `TagPkgConfig.Raw` in `ov/layers.go:214-219` — see `/ov-internals:go`.
 
 ### Pac (`pac:`)
 
@@ -569,7 +569,7 @@ The `ov-mcp` layer is the canonical example of the map form used to thread a con
 
 ## Service Declaration — unified `service:` schema
 
-A layer declares services via the **unified `service:` list** (introduced 2026-04; all 40 previously-using layers migrated). One schema covers both distro-packaged systemd units and fully custom entries, rendered to supervisord INI (for container init) or systemd unit files (for bootc images + host deploys) by the init-system's `service_schema` in `build.yml`.
+A layer declares services via the **unified `service:` list**. One schema covers both distro-packaged systemd units and fully custom entries, rendered to supervisord INI (for container init) or systemd unit files (for bootc images + host deploys) by the init-system's `service_schema` in `build.yml`.
 
 Every entry has one `name:` plus either a `use_packaged:` reference (reuse a distro-shipped unit) OR a structured custom spec (`exec`, `env`, `restart`, ...). The two forms are mutually exclusive.
 
@@ -671,16 +671,16 @@ See `/ov-infrastructure:supervisord` for the supervisord ServiceSchemaDef templa
 - `/ov-ollama:ollama` — single custom entry (common shape)
 - `/ov-hermes:hermes` — custom entry with complex env and ordering
 - `/ov-coder:sshd` — mixed (packaged + custom) within one layer
-- `/ov-infrastructure:virtualization` — mixed entries for virtqemud/virtnetworkd (canonical post-2026-05 polymorphism example)
+- `/ov-infrastructure:virtualization` — mixed entries for virtqemud/virtnetworkd (canonical polymorphism example)
 - `/ov-infrastructure:traefik` — multiple custom entries for a multi-service layer
 
 ### Anti-pattern: `<name>-host` / `<name>-pod` sibling layers
 
-Do **NOT** split a polymorphic service into two layers like `myservice` (supervisord variant) + `myservice-host` (systemd variant). The mixed-entries pattern above (same `name:`, one `use_packaged:` entry, one `exec:` entry — init system at deploy time picks) is the supported way to carry both. The 2026-05 polymorphism cutover deleted exactly two such sibling pairs — `virtualization{,host}` and `ov-full{,host}` — for this reason.
+Do **NOT** split a polymorphic service into two layers like `myservice` (supervisord variant) + `myservice-host` (systemd variant). The mixed-entries pattern above (same `name:`, one `use_packaged:` entry, one `exec:` entry — init system at deploy time picks) is the supported way to carry both.
 
 If you find yourself reaching for a `-host` suffix on a layer name, reach for a second `service:` entry instead. The same rule applies to `-pod` suffixes for the inverse case (a layer that needs container-only behavior under systemd targets).
 
-`ov image validate` does NOT (yet) statically reject `*-host` / `*-pod` layer names, because some legitimate uses might exist (a layer whose package literally only exists on host distros). The rule lives in CLAUDE.md "Init-system polymorphism via mixed `service:` entries" + this skill + `/ov-infrastructure:supervisord` — agents that load any of those before authoring will see the guidance. Canonical worked examples: `/ov-coder:sshd` (mixed), `/ov-infrastructure:virtualization` (mixed; CANONICAL post-cutover example), `/ov-infrastructure:postgresql` (use_packaged-only).
+`ov image validate` does NOT (yet) statically reject `*-host` / `*-pod` layer names, because some legitimate uses might exist (a layer whose package literally only exists on host distros). The rule lives in CLAUDE.md "Init-system polymorphism via mixed `service:` entries" + this skill + `/ov-infrastructure:supervisord` — agents that load any of those before authoring will see the guidance. Canonical worked examples: `/ov-coder:sshd` (mixed), `/ov-infrastructure:virtualization` (mixed; CANONICAL example), `/ov-infrastructure:postgresql` (use_packaged-only).
 
 ## Volume Declaration
 
@@ -979,8 +979,8 @@ Declare `service:` with a supervisord `[program:<name>]` fragment and add `super
 
 ## Shell Init Surface (`shell:`)
 
-Layers declare per-shell init snippets via the structured `shell:` field
-(2026-05 cutover). Same body shape as per-distro `rpm:`/`pac:`/`deb:`:
+Layers declare per-shell init snippets via the structured `shell:` field.
+Same body shape as per-distro `rpm:`/`pac:`/`deb:`:
 intrinsic fields apply to every shell, optional sub-blocks named after a
 shell allowlist key (`bash` / `zsh` / `fish` / `sh`) override the
 intrinsic for that one shell.
@@ -1085,9 +1085,9 @@ shell: schema. Idempotent.
 
 ---
 
-## Cross-kind name reuse (2026-05-05)
+## Cross-kind name reuse
 
-A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `k8s:`, `local:`, and `deployment:`. The same identifier (e.g. `ov-cachyos`) MAY exist as a layer at `layers/ov-cachyos/` AND an image entry `image.ov-cachyos` AND a deployment row `deployment.ov-cachyos` simultaneously. Verbs disambiguate by context. When `ov deploy add <name>` resolves a ref where both an image AND a layer with that name exist, image wins (image-first precedence); use `--add-layer <name>` to explicitly select the layer for an overlay. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/ov-core:deploy`.
+A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same identifier (e.g. `ov-cachyos`) MAY exist as a layer at `layers/ov-cachyos/` AND an image entry `image.ov-cachyos` AND a deploy row `deploy.ov-cachyos` simultaneously. Verbs disambiguate by context. When `ov deploy add <name>` resolves a ref where both an image AND a layer with that name exist, image wins (image-first precedence); use `--add-layer <name>` to explicitly select the layer for an overlay. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/ov-core:deploy`.
 
 ---
 

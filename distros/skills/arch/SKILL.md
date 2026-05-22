@@ -30,16 +30,16 @@ ov shell arch
 
 ## Derived Images
 
-`arch` (this base) and `/ov-distros:arch-builder` **stay in this
-repo**. The consumer Arch images were **relocated (2026-05)** to the
-**`overthinkos/arch`** repo (git submodule at **`image/arch`**), where they
-compose this repo's layers by git reference and pull `arch` /
-`arch-builder` via a remote `include:` of `arch-base.yml`:
+`arch` (this base) and `/ov-distros:arch-builder` **live in this
+repo**. The consumer Arch images live in the **`overthinkos/arch`** repo (git
+submodule at **`image/arch`**), where they compose this repo's layers by git
+reference and pull `arch` / `arch-builder` via a remote `include:` of
+`arch-base.yml`:
 
-- `/ov-distros:arch-builder` — adds pixi, nodejs, build-toolchain, yay (stays here)
-- `/ov-coder:arch-coder` — kitchen-sink dev image (now in `image/arch`)
-- `/ov-coder:arch-ov` — full ov toolchain on Arch (now in `image/arch`)
-- `/ov-distros:arch-test` — pacman + AUR packaging test (now in `image/arch`)
+- `/ov-distros:arch-builder` — adds pixi, nodejs, build-toolchain, yay (in this repo)
+- `/ov-coder:arch-coder` — kitchen-sink dev image (in `image/arch`)
+- `/ov-coder:arch-ov` — full ov toolchain on Arch (in `image/arch`)
+- `/ov-distros:arch-test` — pacman + AUR packaging test (in `image/arch`)
 
 ## Multi-Distro Support
 

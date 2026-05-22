@@ -2,7 +2,7 @@
 name: ov-config
 description: |
   MUST be invoked before any work involving: ov config commands, image deployment setup, quadlet generation, secrets provisioning, encrypted volumes, data seeding, or volume backing configuration.
-  Renamed from `config` to `ov-config` to disambiguate from Claude Code's built-in `/config` slash command.
+  Named `ov-config` (not `config`) to disambiguate from Claude Code's built-in `/config` slash command.
 ---
 
 # ov config -- Image Deployment Configuration
@@ -119,7 +119,7 @@ Auto-path for bind without explicit host path: `<volumes_path>/<image>/<name>` (
 
 ### Bind-mounting a project checkout for `ov mcp serve`
 
-The `ov-mcp` layer declares a `project` volume at `/workspace` (renamed from `/project` in 2026-04 for a more neutral term; the volume NAME stays `project` for a stable deployer API) and sets `env: OV_PROJECT_DIR=/workspace`. Bind-mount your overthink checkout at config time so build-mode MCP tools (`image.build`, `image.list.images`, `image.inspect`) can read `image.yml`. Alternatively, skip the bind-mount and `ov mcp serve` will auto-fall back to the upstream `overthinkos/overthink` repo (see `/ov-build:ov-mcp-cmd` "Project-dir wiring"):
+The `ov-mcp` layer declares a `project` volume at `/workspace` (the volume NAME stays `project` for a stable deployer API) and sets `env: OV_PROJECT_DIR=/workspace`. Bind-mount your overthink checkout at config time so build-mode MCP tools (`image.build`, `image.list.images`, `image.inspect`) can read `image.yml`. Alternatively, skip the bind-mount and `ov mcp serve` will auto-fall back to the upstream `overthinkos/overthink` repo (see `/ov-build:ov-mcp-cmd` "Project-dir wiring"):
 
 ```bash
 ov config arch-ov --bind project=/home/you/overthink
@@ -169,10 +169,6 @@ For `FROM scratch` data images (`data_image: true`), bind-mount targets use `pod
 For **bind-mounted** targets, data layers that target the volume **root** (`dest:` absent or empty — e.g. `notebook-templates`, which drops `getting-started.ipynb` directly into `~/workspace/`) should be listed **first** in the image's `layer:` list. A root-targeted layer ordered after subdirectory-targeted layers will see the root as non-empty (because subdirs from earlier layers exist) and skip. This is a convention, not a hard-enforced rule.
 
 This ordering caveat does not apply to named-volume targets, where the initial seed runs against the whole volume regardless of sub-paths.
-
-### Upgrade note
-
-Hosts that ran ov versions prior to `fix/data-seeding-complete` had their data layers silently skipped whenever the target volume was a named volume — the common default. On the first `ov config` or `ov update` after upgrading, those previously-unseeded volumes will finally be populated with their starter content. Existing user-modified content is preserved by the emptiness check; operator action is only needed if seeding reports an error.
 
 ## Encrypted Volumes
 
@@ -273,7 +269,7 @@ The quadlet is still written with the conflicting port, so `ov start` will fail 
 All configuration is persisted to `~/.config/ov/deploy.yml`:
 
 ```yaml
-images:
+deploy:
   my-app:
     tag: latest
     volumes:
@@ -361,7 +357,7 @@ provides:
       url: http://ov-jupyter:8888/mcp
       transport: http
       source: jupyter
-images:
+deploy:
   ollama: { ... }
   jupyter: { ... }
 ```
@@ -603,7 +599,7 @@ Source: `ov/config_image.go` (command structs), `ov/quadlet.go` (quadlet generat
 
 ## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
 **After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 

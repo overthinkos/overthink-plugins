@@ -31,7 +31,7 @@ then runs analysis + visualisation cells.
 | # | Purpose | Returns |
 |---|---|---|
 | 1 | imports | mo, os, time, textwrap, requests, Path, polars, folium |
-| 2 | **`_resolved_urls`** — diagnostic cell: renders a polars DataFrame of the seven URL env vars (purpose / env_var / value / side / is_default) and exports each as a typed value so downstream map cells consume them as parameters instead of re-reading `os.environ` per cell. The user's first window into "what URLs am I actually using" — verifies `port: [auto]` allocations and any cross-pod URL overrides without inspecting deploy.yml. **Added 2026-05.** | `urls`, `martin`, `airflow_api_internal`, `airflow_public`, `airflow_dags_dir`, `versatiles_public`, `versatiles_style`, `versatiles_assets` |
+| 2 | **`_resolved_urls`** — diagnostic cell: renders a polars DataFrame of the seven URL env vars (purpose / env_var / value / side / is_default) and exports each as a typed value so downstream map cells consume them as parameters instead of re-reading `os.environ` per cell. The user's first window into "what URLs am I actually using" — verifies `port: [auto]` allocations and any cross-pod URL overrides without inspecting deploy.yml. | `urls`, `martin`, `airflow_api_internal`, `airflow_public`, `airflow_dags_dir`, `versatiles_public`, `versatiles_style`, `versatiles_assets` |
 | 3 | markdown header (mo.md) | rendered intro + URL strategy table |
 | 4 | self-author **all six** DAG files (osm + gtfs + gpqtiles + duckdb-mvt + duckdb-freestiler + shortbread) | `dag_files`, `dag_ids = [6 ids]`, `dags_dir` |
 | 5 | trigger ALL SIX DAGs in parallel + poll until each succeeds | `dag_run_states = {6 ids → success}` |
@@ -54,8 +54,8 @@ then runs analysis + visualisation cells.
 
 **The four MapLibre cells (11, 13, 14, 15) share the `martin` URL via
 cell #2's exports** — no per-cell `os.environ.get("MARTIN_PUBLIC_URL")`
-re-reads. This is the post-2026-05 DRY refactor: the diagnostic cell
-is the single source of truth for all seven URL env vars (R3).
+re-reads. The diagnostic cell is the single source of truth for all
+seven URL env vars (R3).
 
 The five DAGs are independent (`notebook_osm_pipeline`,
 `notebook_gtfs_pipeline`, `notebook_osm_gpqtiles_pipeline`,
@@ -180,7 +180,7 @@ podman exec ov-versa /home/user/.pixi/envs/default/bin/marimo \
 
 Expected results (verified):
 
-- Cell 2 (NEW): polars DataFrame shape (7, 5) — resolved URLs table
+- Cell 2: polars DataFrame shape (7, 5) — resolved URLs table
 - Cell 5: `{"notebook_osm_pipeline": "success", "notebook_gtfs_pipeline": "success", ...}`
 - Cell 6: polars DataFrame shape (9, 2) — geom_kb histogram
 - Cell 7: polars DataFrame shape (20, 2), top key `'highway'` count 4571

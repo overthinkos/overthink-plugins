@@ -16,8 +16,6 @@ description: |
 
 The `InstallPlan` IR (see `/ov-internals:install-plan`) is the central data type. `LocalDeployTarget` (the executor) consumes the IR and invokes a handful of supporting files for each concrete concern: distro detection, ledger I/O, builder-container invocation, shell profile writes, ReverseOp execution, service rendering, ref resolution, and the managed ssh-config fragment that VMs publish on create.
 
-Renamed from `host-infra` in the local-cutover. `HostDeployTarget` → `LocalDeployTarget`, `HostUnifiedTarget` → `LocalUnifiedTarget`, `LocalDeployExecutor` → `ShellExecutor`, `findHostSpec` → `findLocalSpec` (relocated from `k8s_cmd.go` to `local_spec.go`).
-
 ## File map
 
 | File | Purpose | Key exports |
@@ -27,7 +25,7 @@ Renamed from `host-infra` in the local-cutover. `HostDeployTarget` → `LocalDep
 | `ov/unified_targets_local.go` | `LocalUnifiedTarget` adapter (Add/Del/Test/Update/Status/Shell/Rebuild) | `LocalUnifiedTarget` |
 | `ov/ssh_managed_config.go` | `~/.config/ov/ssh_config` fragment writer (managed-block protocol) | `WriteVmSshStanza`, `RemoveVmSshStanza`, `ListVmSshAliases`, `EnsureSshConfigInclude`, `RemoveSshConfigInclude`, `VmSshAlias`, `SshFragmentPath`, `SshConfigPath` |
 | `ov/deploy_executor_ssh.go` | Credential-free `SSHExecutor` (no `-i`, no host-key overrides) | `SSHExecutor` |
-| `ov/deploy_executor.go` | `ShellExecutor` (was `LocalDeployExecutor`) — local shell venue | `ShellExecutor` |
+| `ov/deploy_executor.go` | `ShellExecutor` — local shell venue | `ShellExecutor` |
 | `ov/hostdistro.go` | Detect host distro from `/etc/os-release`; glibc preflight | `HostDistro`, `DetectHostDistro`, `DetectHostGlibc`, `CompareGlibc`, `distroIDAliases` |
 | `ov/install_ledger.go` | Flock-serialized JSON ledger at `~/.config/overthink/installed/` | `LedgerPaths`, `LedgerLock`, `DeployRecord`, `LayerRecord`, `StepRecord`, `AcquireLedgerLock`, `AddLayerDeployment`, `RemoveLayerDeployment` |
 | `ov/builder_run.go` | `podman run <builder>` wrapper for compile-needing layers | `BuilderRun`, `BuilderRunOpts`, `UserScopeBindMounts`, `UserScopeEnv` |
@@ -55,7 +53,7 @@ Pattern mirrors `ov/shell_profile.go` (the env.d managed block in `~/.profile` /
 
 ## Ledger at `~/.config/overthink/installed/`
 
-Unchanged from host-infra — every target:local deploy writes a `DeployRecord` and per-layer `LayerRecord`s with `deployed_by:` refcount semantics. See file map above; the JSON shapes did not change.
+Every target:local deploy writes a `DeployRecord` and per-layer `LayerRecord`s with `deployed_by:` refcount semantics. See the file map above for the JSON shapes.
 
 ## Cross-References
 

@@ -72,7 +72,7 @@ kernel-level RCA.
 | **`selkies-desktop-ov`** | `nvidia` | **ov-full + container-nesting + golang + gh** | `unmask=/proc/*` + `/dev/fuse,/dev/net/tun` | Streaming desktop that can build images + run nested pods + launch VMs |
 | `selkies-desktop-bootc` | `fedora-bootc:43` | tailscale + keepassxc + bootc-base + rpmfusion | systemd on a bootc VM | Bootable streaming desktop VM |
 
-The `ov-full` layer transitively adds `ov` + `virtualization` (now
+The `ov-full` layer transitively adds `ov` + `virtualization` (which
 ships `virtqemud` + `virtnetworkd` supervisord programs) + `gocryptfs` +
 `socat` + `podman-machine` + `gvisor-tap-vsock`. The `container-nesting`
 layer adds `buildah` + `fuse-overlayfs` + `skopeo` + `tailscale` +
@@ -93,8 +93,7 @@ short version:
 3. `unmask=/proc/*` tells podman NOT to emit those masks on the outer,
    so the inner `/proc` mount has nothing to mismatch with.
 
-Empirically verified on this host (2026-04-19) against
-`quay.io/libpod/alpine:latest`:
+Empirically verified against `quay.io/libpod/alpine:latest`:
 
 ```bash
 ov shell selkies-desktop-ov -c 'podman run --rm quay.io/libpod/alpine:latest /bin/true'
@@ -152,7 +151,7 @@ All run as uid 1000 inside the container sandbox. From the host's
 perspective, the container never escalates — it stays pinned to the
 invoking user (via `ov shell`'s `--userns=keep-id:uid=1000,gid=1000`).
 
-## Empirical test results (2026-04-19)
+## Empirical test results
 
 - `ov eval image ghcr.io/overthinkos/selkies-desktop-ov:latest` — **91 passed · 0 failed · 0 skipped**.
 - `ov eval live selkies-desktop-ov -i test` (live service, port-remapped) — **118 passed · 0 failed · 0 skipped** (adds deploy-scope verification: nested podman alpine, libvirt session list, KVM domcaps, in-container `ov version` / `ov doctor`).
@@ -162,7 +161,7 @@ invoking user (via `ov shell`'s `--userns=keep-id:uid=1000,gid=1000`).
 
 ### Two-level nested-virtualization proof (end-to-end `ov vm` run-through)
 
-Verified on 2026-04-19: the full `ov vm build/create/ssh/stop/destroy` lifecycle completes inside the rootless pod, **two levels of KVM nesting deep**:
+Verified: the full `ov vm build/create/ssh/stop/destroy` lifecycle completes inside the rootless pod, **two levels of KVM nesting deep**:
 
 1. Host (rootless podman, uid 1000) runs `ov-selkies-desktop-ov-test`.
 2. Inside that container, `ov vm build selkies-desktop-bootc --transport containers-storage` auto-falls back to `engine.rootful=machine` (no host `sudo` in reach), which spawns a **podman-machine VM (nested VM #1)** via KVM passthrough, mounts `/home/user`, and runs `bootc install to-disk`.
@@ -195,7 +194,7 @@ against `quay.io/podman/stable` for comparison.
 
 ### Full supervisord program roster on `ov-selkies-desktop-ov-test`
 
-All 15 programs RUNNING under uid 1000 on a healthy container (2026-04-19):
+All 15 programs RUNNING under uid 1000 on a healthy container:
 
 ```
 cdp-proxy            chrome               chrome-crash

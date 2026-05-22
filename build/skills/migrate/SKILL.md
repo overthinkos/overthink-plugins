@@ -17,7 +17,7 @@ The project directory is the current working directory; use the top-level `-C` /
 
 ## CalVer schema versioning
 
-The YAML schema version is a **CalVer string** — `version: YYYY.DDD.HHMM`, the same `ComputeCalVer` scheme as image tags (e.g. `version: 2026.141.1530`). It replaced the pre-2026-05 integer `version: 4`. Every versioned file carries the stamp:
+The YAML schema version is a **CalVer string** — `version: YYYY.DDD.HHMM`, the same `ComputeCalVer` scheme as image tags (e.g. `version: 2026.141.1530`). The `calver-schema` migration step (registry HEAD) converts the legacy integer `version: 4` to this form. Every versioned file carries the stamp:
 
 - `overthink.yml` + the per-kind siblings `image.yml` / `deploy.yml` / `vm.yml` / `pod.yml` / `k8s.yml` / `local.yml` (and `eval.yml` when present)
 - the per-host `~/.config/ov/deploy.yml`

@@ -56,8 +56,8 @@ contributions** for the pixi env (`~/.pixi/bin`,
 `RATTLER_CACHE_DIR`) come from the **pixi BUILDER** (declared in
 `build.yml` / `overthink.yml` under `builder.pixi.runtime_env:` and
 `path_contributions:`) — see `/ov-internals:generate-source` for the
-`writeLayerEnv` flow. This was moved from the pixi LAYER to the pixi
-BUILDER on 2026-04-29 so images that consume pixi via
+`writeLayerEnv` flow. The pixi runtime env flows through the pixi
+BUILDER (not the pixi LAYER) so images that consume pixi via
 pixi.toml-triggered builds (jupyter, openwebui, immich-ml, …) get the
 env contract automatically without needing pixi as a top-level layer
 for sibling-grouped auto-intermediate inheritance.
@@ -125,15 +125,15 @@ Tornado (Jupyter Server, :8888)
 
 - **FastMCP v3.x** (standalone, by Prefect) with Streamable HTTP transport (MCP spec 2025-11-25)
 - **Tornado-ASGI bridge** — custom handler translates Tornado requests to ASGI scope/receive/send (both share the same asyncio event loop)
-- **Auto-attach + path canonicalization (post-2026-05-06)** — every `notebook_*`/`cell_*` call routes through `_resolve_notebook_doc(canonical_path)` which attaches to whichever room exists for the deterministic `room_id` (UI tab, another MCP session, this one) or creates one. Single room per notebook is an enforced invariant.
-- **In-place `set_cell` (post-2026-05-06)** — cell mutations operate on the existing Y.Map's `source`/`metadata`/`outputs` IN PLACE, preserving the cell's `id` and its position in the underlying `Y.Array`. Pre-cutover code delegated to upstream `YNotebook.set_cell` which decomposed into delete-then-insert at the CRDT level (phantom-cell residue).
+- **Auto-attach + path canonicalization** — every `notebook_*`/`cell_*` call routes through `_resolve_notebook_doc(canonical_path)` which attaches to whichever room exists for the deterministic `room_id` (UI tab, another MCP session, this one) or creates one. Single room per notebook is an enforced invariant.
+- **In-place `set_cell`** — cell mutations operate on the existing Y.Map's `source`/`metadata`/`outputs` IN PLACE, preserving the cell's `id` and its position in the underlying `Y.Array`.
 - **Per-notebook asyncio locks** — serializes mutations on the same notebook to prevent index-based race conditions during concurrent access
-- **Server-side idle-room sweeper** — periodically flushes and closes rooms with zero clients idle for `MCP_ROOM_IDLE_TIMEOUT_SEC` (default 600s); replaces the pre-cutover client-side `room_close` semantic
+- **Server-side idle-room sweeper** — periodically flushes and closes rooms with zero clients idle for `MCP_ROOM_IDLE_TIMEOUT_SEC` (default 600s)
 - **Lazy YDocExtension resolution** — resolved on first tool call, not at extension load time (avoids load-order dependency)
 
-### MCP Tools (11 total — `<noun>_<verb>` form, post-2026-05-06)
+### MCP Tools (11 total — `<noun>_<verb>` form)
 
-Clients no longer manage CRDT rooms. The server auto-attaches every `notebook_*`/`cell_*` call to whichever room exists, or creates one. The pre-cutover client-side management tools (`room_open`, `room_close`, `room_close_all`, `room_pick`) were deleted. See `/ov-jupyter:jupyter-mcp` "Usage philosophy and caveats".
+Clients do not manage CRDT rooms. The server auto-attaches every `notebook_*`/`cell_*` call to whichever room exists, or creates one. See `/ov-jupyter:jupyter-mcp` "Usage philosophy and caveats".
 
 **Notebook operations:**
 | Tool | Parameters | Returns |
@@ -213,7 +213,7 @@ OCI label (see `/ov-eval:eval` for the full schema):
     (the `${HOST_PORT:8888}` substitution means the check works
     unchanged when `deploy.yml` remaps the host port)
   - `mcp-jupyter-ping` — MCP server responds to `ping`
-  - `mcp-jupyter-list-tools` — assertion that all 15 documented MCP
+  - `mcp-jupyter-list-tools` — assertion that all 11 documented MCP
     tools are present in `tools/list`
   - `mcp-jupyter-call-list-notebooks` — actually invokes
     `notebook_list` and verifies the response shape
@@ -225,7 +225,7 @@ OCI label (see `/ov-eval:eval` for the full schema):
 ## Related Layers
 
 - `/ov-jupyter:jupyter-ml` -- GPU-accelerated variant with full CUDA ML stack + same CRDT MCP server
-- `/ov-jupyter:jupyter-mcp` -- MCP server implementation (sub-layer, 11 tools for programmatic notebook access using `<noun>_<verb>` naming; post-2026-05-06 cutover dropped client-side room management — server auto-attaches)
+- `/ov-jupyter:jupyter-mcp` -- MCP server implementation (sub-layer, 11 tools for programmatic notebook access using `<noun>_<verb>` naming; clients don't manage CRDT rooms — the server auto-attaches)
 - `/ov-jupyter:notebook-templates` -- Starter notebooks (data layer, used alongside this layer in images)
 - `/ov-hermes:hermes` -- MCP consumer (auto-discovers via `OV_MCP_SERVERS` env var; uses `jupyter` server tools to read/edit/execute cells)
 - `/ov-openwebui:openwebui` -- MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code-block execution into the Jupyter kernel)

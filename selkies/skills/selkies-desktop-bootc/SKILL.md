@@ -111,7 +111,7 @@ curl -sS  -X POST http://127.0.0.1:19224/mcp \
 
 ### 1. External bases require explicit `distro:`
 
-`base: "quay.io/fedora/fedora-bootc:43"` is an **external** base (URL, not the name of another image in `image.yml`). Unlike internal bases, it does **not** inherit distro tags. Without `distro: ["fedora:43", fedora]`, `ov image inspect` shows `"Distro": null`, the generator skips every layer's `rpm:` install (the install_template's Phase-2 branch requires `img.DistroDef != nil`), and the final image has zero packages installed from layer `rpm:` sections. See `/ov-image:image` for the resolution chain. This was the first bug encountered during the build; as of the 2026-05 bootc-submodule extraction the sibling bootc images (`/ov-distros:bazzite`, `/ov-distros:aurora`) all declare `distro:` too — and all four bootc images now live in the `overthinkos/bootc` submodule (`image/bootc`).
+`base: "quay.io/fedora/fedora-bootc:43"` is an **external** base (URL, not the name of another image in `image.yml`). Unlike internal bases, it does **not** inherit distro tags. Without `distro: ["fedora:43", fedora]`, `ov image inspect` shows `"Distro": null`, the generator skips every layer's `rpm:` install (the install_template's Phase-2 branch requires `img.DistroDef != nil`), and the final image has zero packages installed from layer `rpm:` sections. See `/ov-image:image` for the resolution chain. The sibling bootc images (`/ov-distros:bazzite`, `/ov-distros:aurora`) all declare `distro:` for the same reason; all four bootc images live in the `overthinkos/bootc` submodule (`image/bootc`).
 
 ### 2. `dnf5-plugins` prepend is required for URL repos
 

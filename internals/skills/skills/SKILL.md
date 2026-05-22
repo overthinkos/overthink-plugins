@@ -27,7 +27,7 @@ CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher
 | `ov image build` / `ov image generate` / Containerfile | `/ov-build:build` + `/ov-build:generate` + `/ov-internals:generate-source` |
 | `ov image validate` / schema error | `/ov-build:validate` |
 | Secret management / `ov secrets` / Secret Service / GPG `.secrets` | `/ov-build:secrets` |
-| Schema v4 migration / legacy → new format | `/ov-build:migrate` |
+| Schema migration / legacy → latest CalVer | `/ov-build:migrate` |
 | Hard-cutover concerns / rename sweeps | `/ov-internals:cutover-policy` |
 | `disposable: true` semantics | `/ov-internals:disposable` |
 | Go source work | `/ov-internals:go` |
@@ -64,6 +64,7 @@ If multiple triggers apply, load ALL matching skills in ONE message (parallel `S
 - **User-specific config** — use Claude Code memory system
 - **Bug fixes in ov code** — the fix is in git; document behavioral changes in skills only
 - **Anything derivable from code** — skills document *usage*, not implementation details
+- **Historical / version-history content** — dated change notes, "renamed from", "previously / formerly / was", completed cutovers, retired / relocated identifiers → `CHANGELOG.md` (repo root), NEVER a skill or CLAUDE.md. Skills describe current behavior in present tense only. When a cutover lands, append its narrative to `CHANGELOG.md` and state the new standing rule forward-looking in the skill, with no history.
 
 ## How to Update
 
@@ -100,6 +101,7 @@ description: |
 | Image composition, deployment, verification | per-pod plugin or `/ov-distros:<name>` / `/ov-infrastructure:<name>` for base images |
 | Skill disambiguation (which skill to use) | CLAUDE.md (brief table) |
 | Detailed operational patterns | Relevant `/ov-core:*` / `/ov-build:*` / `/ov-eval:*` / `/ov-automation:*` / kind-plugin skill |
+| Version history / past changes / renames / cutover narration | `CHANGELOG.md` (repo root) — never CLAUDE.md or a skill |
 
 ## Command skills vs topic skills
 
@@ -118,7 +120,7 @@ or layer composition. Today's topic skills:
 
 When adding a new command, always create a matching command skill. Consider a topic skill when a concept spans multiple commands or layers and the natural home isn't any single command's skill. Keep the frontmatter `description:` explicit about the topic nature (the blocking `Skill:` tool dispatcher matches on description keywords).
 
-## Plugin Structure (post 2026-05-XX use-case reorganization)
+## Plugin Structure
 
 Plugins are sorted into four use-case buckets. Directory names live at
 `plugins/<name>/` (no `ov-` prefix); plugin.json `name:` fields keep the

@@ -5,7 +5,7 @@ description: |
   (VmSource cloud_image | bootc). Documents every field, validation rules,
   and the adopt-user decision. Source files: ov/vm_spec.go, ov/cloud_init_types.go,
   ov/libvirt_validate.go.
-  MUST be invoked before editing VmSpec Go code or authoring vms.yml entries.
+  MUST be invoked before editing VmSpec Go code or authoring vm.yml entries.
 ---
 
 # vm-spec
@@ -162,6 +162,6 @@ The legacy `VmConfig` type + `ImageConfig.Vm` + `ImageConfig.Libvirt` + `Resolve
 - `/ov-internals:vm-deploy-target` — VmDeployTarget consuming VmSpec via DeployExecutor
 - `/ov-internals:ovmf` — `ResolveOvmfForSpec` reads `spec.Firmware`
 - `/ov-internals:cutover-policy` — why the legacy surface was deleted in one PR
-- `/ov-vm:vm` — command-family skill; reads vms.yml through VmSpec
+- `/ov-vm:vm` — command-family skill; reads vm.yml through VmSpec
 - `/ov-build:migrate` — `ov migrate` command
 - `/ov-internals:go` — Go CLI development overview

@@ -44,7 +44,7 @@ Drops on Arch: `python3-ramalama` (not packaged — install via `uv tool install
 
 `dotnet-sdk-9.0` is **not** in the `deb:` package list. It's installed by a cross-distro `cmd:` task via Microsoft's official `dotnet-install.sh` — see the next subsection. `python3-ramalama`, `golang-bazil-fuse-devel`, `nodejs-devel` are dropped (not packaged on Debian/Ubuntu).
 
-### dotnet-sdk-9.0 via Microsoft's `dotnet-install.sh` (2026-04)
+### dotnet-sdk-9.0 via Microsoft's `dotnet-install.sh`
 
 Cross-distro parity for .NET 9 requires juggling three asymmetric availability windows:
 
@@ -75,7 +75,7 @@ tasks:
     user: root
 ```
 
-Verified 2026-04-20 on `ghcr.io/overthinkos/ubuntu-coder:latest`:
+On `ghcr.io/overthinkos/ubuntu-coder:latest`:
 
 ```
 $ /usr/bin/dotnet --version
@@ -93,21 +93,19 @@ See `/ov-image:layer` for general cross-distro task-authoring patterns.
 
 Both exist so future Microsoft-apt-repo-based installs can be slotted into tag sections via `repos:` + `package:` without disturbing the generic `deb:` fallback.
 
-## The vestigial `requires: python` removed in 2026-04
+## No pixi-python dependency — system Python only
 
-The layer used to declare `requires: python`, pulling in the
-`python` ov-layer → `pixi` ov-layer → a conda-forge Python env
-(~500 MB). But this layer installs `python3-devel` + `python3-ramalama`
-via RPM — **system Python**. The pixi-python env was never referenced
-by anything this layer installs. The dep was dropped in 2026-04;
-consumers of `language-runtimes` now get only the RPM Python stack.
+This layer does NOT declare `requires: python`, so it pulls in neither the
+`python` ov-layer nor the `pixi` ov-layer (and hence no ~500 MB conda-forge
+Python env). It installs `python3-devel` + `python3-ramalama` via RPM —
+**system Python** — which is all its content references. Consumers of
+`language-runtimes` get only the RPM Python stack.
 
-Consequence for `/ov-coder:fedora-coder` (the biggest consumer): the
-whole `python` / `pixi` ov-layer chain drops out of the resolved layer
-set (since `/ov-coder:uv` also dropped its vestigial python dep and
-`/ov-infrastructure:supervisord` also removed its). Image size dropped by
-several hundred MB. See CLAUDE.md "Key Rules" → *"Don't declare
-defensive deps"* for the general rule.
+Consequence for `/ov-coder:fedora-coder` (the biggest consumer): the whole
+`python` / `pixi` ov-layer chain stays out of the resolved layer set (because
+`/ov-coder:uv` and `/ov-infrastructure:supervisord` likewise carry no python
+dep). See CLAUDE.md "Key Rules" → *"Don't declare defensive deps"* for the
+general rule.
 
 If you genuinely need the pixi-python env (e.g. a layer that
 installs a Python package from conda-forge via pixi), declare
@@ -148,9 +146,9 @@ my-polyglot:
 
 - `/ov-coder:nodejs` — Node.js runtime (direct dependency)
 - `/ov-coder:rust` — Rust toolchain (direct dependency)
-- `/ov-languages:python` — Pixi-python env. **Not a dep of this layer** as of 2026-04.
+- `/ov-languages:python` — Pixi-python env. **Not a dep of this layer.**
 - `/ov-coder:golang` — Go toolchain (may be added separately for clarity even though `golang-bin` is already in this layer's RPM list)
-- `/ov-coder:uv` — direct-download Rust binary (also dropped its vestigial pixi-python dep in 2026-04)
+- `/ov-coder:uv` — direct-download Rust binary (also carries no pixi-python dep)
 
 ## Related Commands
 
@@ -166,7 +164,7 @@ my-polyglot:
 - Debating pixi-python vs. system python3 — this layer is the canonical
   "system python3 only" example.
 - Understanding why the `python` ov-layer is missing from an image that
-  uses language-runtimes (that's by design since 2026-04).
+  uses language-runtimes (that's by design).
 
 ## Related
 

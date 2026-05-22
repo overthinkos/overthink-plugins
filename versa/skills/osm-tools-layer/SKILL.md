@@ -39,8 +39,8 @@ upstream ships only source. Build is small (~200 MB clone, <1 min
 `make -j`); cleanup keeps the image lean.
 
 gpq-tiles is cargo-installed because its PyPI wheels cover only
-Python 3.8 / Linux x86_64 (v0.6.0; verified 2026-05) — the marimo
-pixi env is Python `<3.14` and its `[pypi-options] no-build = true`
+Python 3.8 / Linux x86_64 (v0.6.0) — the marimo pixi env is
+Python `<3.14` and its `[pypi-options] no-build = true`
 (load-bearing for the apache-airflow resolution) blocks sdist
 builds. Cargo builds the binary from crates.io directly; the
 ~/.cargo/registry + .cargo/git caches are dropped after install to

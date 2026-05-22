@@ -14,9 +14,9 @@ Invoked as `ov image build`. See `/ov-image:image` for the family overview.
 
 **Mode purity**: `ov image build` reads `image.yml` + `build.yml` + `layer.yml` only. `deploy.yml` is never read during build — this is enforced by `LoadConfig` in `ov/config.go`, which calls `LoadConfigRaw` (no `MergeDeployOverlay`) to guarantee OCI labels are baked strictly from authored configuration, never from local deploy-time overrides. See `/ov-internals:go` "Mode purity" for the architectural invariant this protects and the bug it prevents.
 
-**IR-driven emission**: since the 2026-04 refactor, `ov image build` emits Containerfiles via `OCITarget` — the build-mode implementation of the shared `DeployTarget` interface. Internally the flow is: `image.yml` + `layer.yml` → `BuildDeployPlan` (pure compiler) → `InstallPlan` IR → `OCITarget.Emit` → Containerfile text. The same IR backs `ContainerDeployTarget` and `HostDeployTarget` used by `ov deploy add`. See `/ov-internals:install-plan` for the IR and `/ov-internals:generate-source` for the Go call graph.
+**IR-driven emission**: `ov image build` emits Containerfiles via `OCITarget` — the build-mode implementation of the shared `DeployTarget` interface. Internally the flow is: `image.yml` + `layer.yml` → `BuildDeployPlan` (pure compiler) → `InstallPlan` IR → `OCITarget.Emit` → Containerfile text. The same IR backs `PodDeployTarget` and `LocalDeployTarget` used by `ov deploy add`. See `/ov-internals:install-plan` for the IR and `/ov-internals:generate-source` for the Go call graph.
 
-**Three-phase templates**: `build.yml` format and builder definitions split each install operation into `phases.{prepare, install, cleanup}.{container, host}` — three phases × two venues. Build-mode emission reads the `container` cell; host deploys read `host`. The legacy `install_template:` field still works and serves as the `(install, container)` fallback when `phases:` is absent, so migration is incremental. See `/ov-image:layer` "Service Declaration" for the analogue at the init-system level (`init.<name>.service_schema`).
+**Three-phase templates**: `build.yml` format and builder definitions split each install operation into `phases.{prepare, install, cleanup}.{container, host}` — three phases × two venues. Build-mode emission reads the `container` cell; local deploys read `host`. A top-level `install_template:` field serves as the `(install, container)` fallback when `phases:` is absent. See `/ov-image:layer` "Service Declaration" for the analogue at the init-system level (`init.<name>.service_schema`).
 
 ## Quick Reference
 
@@ -91,7 +91,7 @@ All sections use Go `text/template` syntax with access to layer config data. Sou
 
 ### `base_user:` — declaring a pre-existing base-image account
 
-Added 2026-04 to handle Ubuntu 24.04's `ubuntu:ubuntu` pre-existing account (and future distros that ship something similar). Declare it under the distro when the upstream base image ships a uid-1000 account; leave it out otherwise.
+`base_user:` handles upstream base images that ship a pre-existing uid-1000 account (e.g. Ubuntu 24.04's `ubuntu:ubuntu`). Declare it under the distro when the upstream base image ships a uid-1000 account; leave it out otherwise.
 
 ```yaml
 distro:
@@ -214,9 +214,8 @@ Rationale:
    tag is a permanent nameable handle you have to garbage-collect;
    a CalVer tag is self-describing and rotates naturally.
 
-Migration note: existing `:latest` tags from pre-cutover builds stay
-in local storage until the operator prunes them (`podman image prune`);
-they're just not refreshed by new builds.
+Any stray `:latest` tag in local storage is never refreshed by a new
+build; prune it with `podman image prune` if you want it gone.
 
 ## Cache Efficiency
 
@@ -236,7 +235,7 @@ Three kinds of source changes are real cache invalidators — if you see a long 
 
 ### What does NOT invalidate cache
 
-- **CalVer tag shifts alone.** The Containerfile emits `ARG BASE_IMAGE=<registry>/<name>:<calver>` with a fresh CalVer on every generate. That ARG default appears in the Containerfile text but is not part of the cache key for subsequent RUN/COPY steps — podman/buildah resolves the FROM to an image SHA first, and caches downstream steps off that SHA. If the SHA is unchanged, cache hits. (Historical note: earlier skill revisions called this a "CalVer cascade cost"; that was a misdiagnosis. The real cost is content changes in the layer itself, not the tag.)
+- **CalVer tag shifts alone.** The Containerfile emits `ARG BASE_IMAGE=<registry>/<name>:<calver>` with a fresh CalVer on every generate. That ARG default appears in the Containerfile text but is not part of the cache key for subsequent RUN/COPY steps — podman/buildah resolves the FROM to an image SHA first, and caches downstream steps off that SHA. If the SHA is unchanged, cache hits. The cache cost comes from content changes in the layer itself, not the tag.
 - **`eval:` edits.** LABEL directives are emitted last in every final stage (after the last USER). A `eval:` edit — the most common layer mutation — only re-runs the final LABEL block (~2 seconds on a 138-step stack like `immich-ml`). See `/ov-internals:generate-source` for the rationale.
 - **Re-running `ov image build` without source changes.** Fully cached; seconds to complete.
 
@@ -511,7 +510,7 @@ Next step: `/ov-core:deploy` (quadlet setup, tunnels) → `/ov-core:service` (st
 
 ## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
 **After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 

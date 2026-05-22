@@ -106,7 +106,7 @@ images:
 
 The built-in tailscale sidecar template (validated against `tailscale/tailscale` containerboot source):
 
-### Multi-tailnet auth-key store (2026-05-13)
+### Multi-tailnet auth-key store
 
 The sidecar is parameterized on a `tailnet:` field declaring the target
 tailnet's MagicDNS suffix. Each tailnet's auth-key lives in `.secrets`
@@ -181,10 +181,11 @@ podman exec ov-<image>[-<instance>]-tailscale tailscale status --json \
 # Expected: armadillo-quail.ts.net
 ```
 
-**Migration from the pre-2026-05-13 flat schema:**
+**Migrating a legacy single-`TS_AUTHKEY` config:**
 
-The retired flat schema used a single `TS_AUTHKEY` env var, conflating
-multi-tailnet hosts. Run the one-shot migration after upgrading:
+A legacy flat config used a single `TS_AUTHKEY` env var, which can't
+distinguish multiple tailnets. `ov migrate` upgrades it to the per-tailnet
+form:
 
 ```bash
 ov migrate
@@ -198,7 +199,7 @@ Use `--tailnet armadillo-quail.ts.net` to skip the prompt, or
 `--delete-legacy` to remove the original `TS_AUTHKEY` entry after the
 rename. Idempotent.
 
-After migration, any deploy with a tailscale sidecar that doesn't supply
+Any deploy with a tailscale sidecar that doesn't supply
 `parameter.tailnet:` fails at `ov config` time with the message:
 
 > sidecar "tailscale": sidecar secret "ts-authkey" references parameter "tailnet" which is unset. Set `sidecars.<sidecar-name>.parameter.tailnet: <value>` in deploy.yml or run `ov migrate`

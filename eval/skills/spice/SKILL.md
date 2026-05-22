@@ -23,8 +23,8 @@ ov eval spice cursor     <vm> [FILE]       # capture cursor bitmap + position
 
 Global flags on every subcommand:
 
-- `--address host:port` — bypass vms.yml lookup; targets an arbitrary TCP SPICE server.
-- `--socket /path` — bypass vms.yml lookup; targets an arbitrary UNIX-socket SPICE server.
+- `--address host:port` — bypass vm.yml lookup; targets an arbitrary TCP SPICE server.
+- `--socket /path` — bypass vm.yml lookup; targets an arbitrary UNIX-socket SPICE server.
 - `--password SECRET` — SPICE ticket for `--address` mode.
 - `--uri qemu+ssh://[user@]host/session` — resolve the VM on a remote libvirt host. `ov` auto-opens an SSH tunnel and forwards the remote SPICE socket (or TCP port) to a local endpoint for the lifetime of the command. Also accepts the `OV_LIBVIRT_URI` env var.
 
@@ -70,7 +70,7 @@ remote workstation" for the complete story.
   listed in `pkg/arch/PKGBUILD`); these are required at build + run
   time but the CLI itself never plays/records audio.
 - **Target resolution.** Default path: `ov eval spice <vm>` loads
-  vms.yml, finds the running libvirt domain, parses live XML via
+  vm.yml, finds the running libvirt domain, parses live XML via
   `libvirtxml.Domain`, and extracts the SPICE host/port/passwd from
   the `<graphics type="spice">` element (honoring autoport='yes').
 - **Not implemented.** Audio playback/record (no user story).
@@ -126,7 +126,7 @@ the guest framebuffer agree.
   `Connector`/`Driver` interfaces. The Driver stub captures
   display/cursor updates into a sync.Mutex-guarded field; the CLI
   reads them back for screenshot/cursor verbs.
-- `ov/vm_target.go` — shared target resolution (vms.yml → libvirt
+- `ov/vm_target.go` — shared target resolution (vm.yml → libvirt
   domain → live XML → SPICE address).
 - PC-AT scancode table is inline in `ov/spice.go` (friendly keyname
   → scancode for `type` and `key`).

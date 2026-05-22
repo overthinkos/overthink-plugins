@@ -19,13 +19,12 @@ no streaming. Distinct from `selkies-desktop-ov` (which adds the
 browser-streamed Wayland desktop) — `fedora-coder` is headless and
 meant to be accessed via `ssh -p 2222` or `ov shell`.
 
-> **Relocated (2026-05):** lives in the **`overthinkos/fedora`** repo (git
-> submodule at **`image/fedora`**), in that repo's `image.yml`. Its base stack
+> **Location:** lives in the **`overthinkos/fedora`** repo (git submodule at
+> **`image/fedora`**), in that repo's `image.yml`. Its base stack
 > (`fedora-nonfree` → `fedora`) is remote-included from the main repo's
-> `fedora-base.yml` (the Fedora base stays in main — the ecosystem default
-> base), and its 32 layers are pulled by github reference (none moved).
-> Build/validate from the submodule:
-> `ov -C image/fedora image build fedora-coder`, or
+> `fedora-base.yml` (the Fedora base lives in main — the ecosystem default
+> base), and its 32 layers are pulled by github reference. Build/validate from
+> the submodule: `ov -C image/fedora image build fedora-coder`, or
 > `ov --repo overthinkos/fedora image build fedora-coder`. Deploy-mode verbs
 > (`ov config`/`ov start`/`ov eval image`) read the built image's OCI labels and
 > work from anywhere once it's in local storage.
@@ -82,11 +81,10 @@ fedora-coder:
     - grafana-tools
 ```
 
-Network: default `ov` bridge. `network: host` was dropped 2026-04 once the
-sibling `/ov-coder:arch-coder` landed — the `port:` mapping is the
-right way to expose sshd/ov-mcp, and bridge networking lets dev boxes
-coexist on one host via normal `-p host:container` remapping (e.g.
-running `arch-coder` alongside `fedora-coder` on the same machine).
+Network: default `ov` bridge. The `port:` mapping is the right way to expose
+sshd/ov-mcp, and bridge networking lets dev boxes coexist on one host via
+normal `-p host:container` remapping (e.g. running `arch-coder` alongside
+`fedora-coder` on the same machine).
 
 No `uid:` / `gid:` / `user:` / `security:` override — inherits
 `1000/1000/user` from `defaults` and the layer-level security from
@@ -101,24 +99,22 @@ posture with `/ov-selkies:selkies-desktop-ov`).
 | `security_opt` | `[unmask=/proc/*]` | `/ov-distros:container-nesting` |
 | `devices` | `[/dev/fuse, /dev/net/tun]` | `/ov-distros:container-nesting` |
 | `privileged` | `false` | — |
-| Network | **host** (host namespace) | image.yml |
+| Network | default `ov` bridge | image.yml |
 | UID / user | `1000 / user` | defaults |
 | sudo | passwordless via `/etc/sudoers.d/ov-user` | `/ov-coder:sshd` |
 
 **No `--privileged`. No `cap_add: ALL`. No `seccomp=unconfined`. No
-`label=disable`.** All four outliers (`fedora-coder`, `fedora-ov`,
-`arch-ov`, `githubrunner`) dropped the legacy root posture in 2026-04
-once it was proven redundant by the `container-nesting` kernel RCA —
-see `/ov-distros:container-nesting` for the `mount_too_revealing()` +
-`unmask=/proc/*` derivation.
+`label=disable`.** All four power-user images (`fedora-coder`, `fedora-ov`,
+`arch-ov`, `githubrunner`) run the rootless posture proven sufficient by the
+`container-nesting` kernel RCA — see `/ov-distros:container-nesting` for the
+`mount_too_revealing()` + `unmask=/proc/*` derivation.
 
 ## Network posture
 
-Default `ov` bridge. `network: host` was dropped 2026-04 — it prevented
-running `fedora-coder` alongside `/ov-coder:arch-coder` on the same host
-(both want sshd on 2222 and ov-mcp on 18765). Bridge networking plus
-normal `-p host:container` remapping is the right pattern for dev boxes.
-To run two dev images side by side:
+Default `ov` bridge. Bridge networking plus normal `-p host:container`
+remapping is the right pattern for dev boxes — it lets `fedora-coder` run
+alongside `/ov-coder:arch-coder` on the same host (both want sshd on 2222 and
+ov-mcp on 18765). To run two dev images side by side:
 
 ```bash
 ov config arch-coder -p 2223:2222 -p 18766:18765     # alt-instance ports
@@ -138,15 +134,15 @@ image that uses `build-toolchain` either bases on `fedora-nonfree` or
 includes `rpmfusion` explicitly.
 
 **Python story** — `python` (the pixi-python ov-layer) is NOT pulled in.
-As of 2026-04, `supervisord`, `language-runtimes`, and `uv` all dropped
-their vestigial `requires: python` (they use system python3 from RPM, not
-the conda-forge pixi env). System Python is available via
-`language-runtimes` (`python3-devel` + `python3-ramalama`). See the
-"Key Rules" note in `CLAUDE.md` ("don't declare defensive deps").
+`supervisord`, `language-runtimes`, and `uv` all use system python3 from RPM,
+not the conda-forge pixi env, so none of them declares `requires: python`.
+System Python is available via `language-runtimes` (`python3-devel` +
+`python3-ramalama`). See the "Key Rules" note in `CLAUDE.md` ("don't declare
+defensive deps").
 
-**`uv` is a direct-download binary** now (no pixi involvement). Lives at
+**`uv` is a direct-download binary** (no pixi involvement). Lives at
 `/usr/local/bin/uv` and `/usr/local/bin/uvx`, extracted from the
-upstream astral-sh/uv tarball via the new `download:` verb
+upstream astral-sh/uv tarball via the `download:` verb's
 `strip_components: 1` modifier. See `/ov-coder:uv` and `/ov-image:layer`.
 
 **`gh` owns all git tooling** — the `gh` layer installs `gh` + `git` +
@@ -208,7 +204,7 @@ Conflicts with `/ov-coder:arch-ov` (identical ports) and several
 selkies-desktop variants on 2222. Use `-i <instance>` or `-p <remap>`
 if running alongside.
 
-## Empirical test results (2026-04-20)
+## Test results
 
 - `ov eval image fedora-coder` — **149 passed · 0 failed · 0 skipped**.
 - `ov eval image fedora-coder` against a live running
@@ -238,10 +234,10 @@ google-cloud-npm) by forking image.yml. See `/ov-image:image` for authoring.
 - `/ov-coder:ov-mcp` — MCP gateway; auto-falls back to `overthinkos/overthink` when no bind-mount present
 - `/ov-distros:container-nesting` — rootless nested podman recipe (authoritative RCA for `mount_too_revealing()` + `unmask=/proc/*`)
 - `/ov-coder:sshd` — SSH daemon + passwordless sudo for the `user` account
-- `/ov-coder:forgecode` — the 5th AI coding CLI (new in 2026-04)
+- `/ov-coder:forgecode` — the 5th AI coding CLI
 - `/ov-coder:language-runtimes` — Go + PHP + .NET + nodejs-devel + python3-devel (system-python stack, no pixi)
-- `/ov-coder:uv` — direct-download binary at /usr/local/bin/uv (rewritten 2026-04)
-- `/ov-coder:gh` — GitHub CLI + git + git-lfs (single-responsibility, 2026-04)
+- `/ov-coder:uv` — direct-download binary at /usr/local/bin/uv
+- `/ov-coder:gh` — GitHub CLI + git + git-lfs (single-responsibility)
 
 ## Cross-distro siblings
 

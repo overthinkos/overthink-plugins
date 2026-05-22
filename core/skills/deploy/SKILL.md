@@ -6,31 +6,27 @@ description: |
 
 # Deploy - Deployment Configuration
 
-## Schema v4 (in-progress cutover)
+## Schema overview
 
-The repo is migrating `deploy.yml` to schema v4 per `/home/atrawog/.claude/plans/can-you-have-a-recursive-axolotl.md`. Key changes:
-
-- **Dispatch via explicit `target:` only** — legacy name-prefix (`vm:<name>`, literal `host`) is deprecated. Schema-v3 target values: `host | vm | pod | k8s` (short, matches ov command verbs).
-- **Cross-ref fields on `DeploymentNode`** — `vm: <entity>` for target: vm, `image: <name>` for target: pod, `cluster: <name>` for target: k8s, `inside: <deploy>` for nested host-deploy.
-- **Disposability is a deploy property** — `DeploymentNode.Disposable` is the sole source of truth. `VmSpec.Disposable` is retained during transition and removed in Phase 5.
-- **Disposable R10 test beds are `kind: eval` entities in `eval.yml`** (run via `ov eval run <bed>`), NOT `deploy:` entries — the repo's `deploy.yml` was DELETED in the 2026-05 kind:eval cutover. The repo ships only eval beds (`eval-image-pod`, `eval-k3s-vm`, `eval-sway-browser-vnc-pod`, …); operator deployments live in the per-host `~/.config/ov/deploy.yml`. See `/ov-eval:eval` "kind: eval beds".
-
-Legacy spellings `container` / `kubernetes` / `vm:<name>` still work; `ov migrate deploy-schema-v3` (Phase 6) converts legacy files.
+- **Dispatch via explicit `target:`** — `local | vm | pod | k8s` (short, matches ov command verbs).
+- **Cross-ref fields on `DeploymentNode`** — `vm: <entity>` for target: vm, `image: <name>` for target: pod, `cluster: <name>` for target: k8s, `inside: <deploy>` for nested local-deploy. Deploy nesting uses `nested:`.
+- **Disposability is a deploy property** — `DeploymentNode.Disposable` is the sole source of truth.
+- **Disposable R10 test beds are `kind: eval` entities in `eval.yml`** (run via `ov eval run <bed>`), NOT `deploy:` entries. The main repo ships only eval beds (`eval-image-pod`, `eval-k3s-vm`, `eval-sway-browser-vnc-pod`, …); operator deployments live in the per-host `~/.config/ov/deploy.yml`. See `/ov-eval:eval` "kind: eval beds".
 
 ## Overview
 
 `ov deploy` is the parent verb for applying and tearing down deployments, plus managing `deploy.yml` overrides. The command family has two distinct surfaces:
 
-1. **Execution verbs** — `ov deploy add <name>` / `ov deploy del <name>`. Apply or reverse a deployment. Four targets are dispatched by the `target:` field (schema v4) or the `<name>` prefix (legacy):
-   - `target: host` → `HostDeployTarget` on the local filesystem (or, with `inside: <deploy>`, via NestedExecutor into the referenced deployment). See `/ov-local:local-deploy`.
+1. **Execution verbs** — `ov deploy add <name>` / `ov deploy del <name>`. Apply or reverse a deployment. Four targets are dispatched by the `target:` field:
+   - `target: local` → `LocalDeployTarget` on the local filesystem (or, with `inside: <deploy>`, via NestedExecutor into the referenced deployment). See `/ov-local:local-deploy`.
    - `target: vm` (+ `vm: <entity>`) → `VmDeployTarget` inside a running VM via SSH. See "VM target" section below and `/ov-internals:vm-deploy-target`.
-   - `target: pod` (+ `image: <image>`) → `PodDeployTarget` (today's `ContainerDeployTarget`, renamed in Phase 4): overlay Containerfile + quadlet/podman.
+   - `target: pod` (+ `image: <image>`) → `PodDeployTarget`: overlay Containerfile + quadlet/podman.
    - `target: k8s` (+ `cluster: <name>`) → Kustomize base/overlays tree. See `/ov-kubernetes:kubernetes`.
 2. **Config-file management** — `ov deploy show/export/import/reset/path/status`. Read and mutate `~/.config/ov/deploy.yml` itself.
 
 ## Four targets, one schema
 
-The same `DeployImageConfig` shape feeds all four targets (`container`, `host`, `vm`, `kubernetes`) — authors describe *what the workload needs* (ports, volumes, env, security, tests); the generator per target decides *how K8s / quadlet / host apply / VM over SSH* realizes it. K8s-specific choices (storage class, ingress class, cert issuer, secret backend) live in a **cluster profile** file (`~/.config/ov/clusters/<name>.yaml` or in-repo `clusters/<name>.yaml`), *not* in the deployment. This means one deployment spec targets dev/staging/prod clusters with zero schema changes — only the cluster profile differs.
+The same `DeployImageConfig` shape feeds all four targets (`pod`, `local`, `vm`, `k8s`) — authors describe *what the workload needs* (ports, volumes, env, security, tests); the generator per target decides *how K8s / quadlet / local apply / VM over SSH* realizes it. K8s-specific choices (storage class, ingress class, cert issuer, secret backend) live in a **cluster profile** file (`~/.config/ov/clusters/<name>.yaml` or in-repo `clusters/<name>.yaml`), *not* in the deployment. This means one deployment spec targets dev/staging/prod clusters with zero schema changes — only the cluster profile differs.
 
 `ov start` / `ov stop` remain as ergonomic wrappers: `ov start <image>` is equivalent to `ov deploy add <image> <image>` with the container target; `ov stop <name>` is `ov deploy del <name>`. New scripts should prefer the explicit `ov deploy add`/`ov deploy del` forms, especially when using `--add-layer` overlays or the `host` target.
 
@@ -39,7 +35,7 @@ The same `DeployImageConfig` shape feeds all four targets (`container`, `host`, 
 | Action | Command | Description |
 |--------|---------|-------------|
 | Apply container deploy | `ov deploy add <name> <ref>` | Compile layers + build overlay if `add_layer:` present + run via quadlet |
-| Apply host deploy | `ov deploy add host <ref>` | Apply layers directly to local filesystem (see `/ov-local:local-deploy`) |
+| Apply local deploy | `ov deploy add <name> <ref>` (entry `target: local`) | Apply layers directly to local filesystem (see `/ov-local:local-deploy`) |
 | Tear down deploy | `ov deploy del <name>` | Stop container + reverse ReverseOps (host) + ledger cleanup |
 | Dry-run | `ov deploy add <name> <ref> --dry-run [--format=json]` | Print the InstallPlan without executing |
 | Layer overlay | `ov deploy add <name> <ref> --add-layer <ref>` | Extra layer(s) applied on top; repeatable |
@@ -61,12 +57,12 @@ For service lifecycle commands (start/stop/status/logs/update/remove), see `/ov-
 
 ### `ov deploy add <name> [<ref>]`
 
-Applies a deployment. `<name>` selects the target:
+Applies a deployment. The deploy entry's `target:` field selects the target:
 
-- **`host`** (literal) — apply layers to the local filesystem via `HostDeployTarget`. One host deploy per machine (singleton). See `/ov-local:local-deploy`.
-- **`vm:<vm-name>`** — apply layers inside a running `kind: vm` entity via SSH (`VmDeployTarget`). `<vm-name>` must match an entry in `vms.yml`; the VM must already be created (`ov vm create <vm-name>`). See "VM target" section below.
-- **`kubernetes`** — emit a Kustomize base/overlays tree. See `/ov-kubernetes:kubernetes`.
-- **Any other string** — container deployment. Multiple container deploys coexist (`my-dev`, `postgres-staging`, etc.); each gets its own quadlet, container name, and deploy.yml entry.
+- **`target: local`** — apply layers to the local filesystem via `LocalDeployTarget`. With `host: local` (default) the apply runs directly; with `host: <user@machine>` it runs over SSH. See `/ov-local:local-deploy`.
+- **`target: vm`** (+ `vm: <entity>`) — apply layers inside a running `kind: vm` entity via SSH (`VmDeployTarget`). `<vm-name>` must match an entry in `vm.yml`; the VM must already be created (`ov vm create <vm-name>`). See "VM target" section below.
+- **`target: k8s`** (+ `cluster: <name>`) — emit a Kustomize base/overlays tree. See `/ov-kubernetes:kubernetes`.
+- **`target: pod`** (default, + `image: <image>`) — container deployment. Multiple pod deploys coexist (`my-dev`, `postgres-staging`, etc.); each gets its own quadlet, container name, and deploy.yml entry.
 
 `<ref>` accepts four forms, auto-detected:
 
@@ -91,7 +87,7 @@ When `<ref>` is omitted, the ref falls back to `deploy.yml['deploys'][<name>]['i
 - `--verify` — run layer `eval:` post-deploy
 - `--add-layer <ref>` — repeatable; extra layer(s) applied on top (all 4 ref forms)
 
-**Host-target-specific** (silently ignored on container deploys):
+**Local-target-specific** (silently ignored on pod deploys):
 - `--with-services` — opt-in for systemd unit installation (packaged-unit enable + drop-ins)
 - `--allow-repo-changes` — opt-in for repo config mutations (rpmfusion, copr, external `.repo` files)
 - `--allow-root-tasks` — opt-in for arbitrary `cmd: user: root` task bodies
@@ -123,9 +119,9 @@ ov deploy del vm:arch                        # reverse all applied layers (VM st
 When `ov deploy add vm:<name>` completes, a `vm_state` sub-object lands in the deploy.yml entry:
 
 ```yaml
-images:
+deploy:
   vm:arch:
-    target: vm                             # optional; inferred from the vm: prefix
+    target: vm
     vm_source:                             # persisted copy of VmSpec.Source for re-apply
       kind: cloud_image
       url: https://fastly.mirror.pkgbuild.com/...
@@ -137,7 +133,6 @@ images:
       verify: true
     vm_state:
       instance_id: 7b3a8f42-...             # stable UUID across rebuilds
-      ssh_key_path: ~/.local/share/ov/vm/ov-arch/id_ed25519
       nvram_path: ""                         # empty for firmware=bios
       last_build: 2026-04-22T10:14:27Z
       last_deploy: 2026-04-22T10:18:55Z
@@ -145,7 +140,7 @@ images:
       base_image_sha256: a8c9e0f1...         # cloud_image integrity trace
 ```
 
-`vm_state` is persisted so re-applies pick up `instance_id` (cloud-init uses it as a stable identifier) and so `ov deploy del vm:<name>` knows which SSH key + NVRAM to use.
+`vm_state` is persisted so re-applies pick up `instance_id` (cloud-init uses it as a stable identifier) and so `ov deploy del vm:<name>` knows which NVRAM to use. SSH access uses the managed `ov-<vmname>` ssh-config alias written by `ov vm create`.
 
 ### `target: vm` explicit declaration vs `vm:` prefix
 
@@ -160,7 +155,7 @@ Using both is redundant but harmless. Using `target: vm` on a non-`vm:`-prefixed
 
 When `ov deploy add vm:<name> <ref>` runs with `--add-layer`, the extra layers are applied **inside the guest** alongside the primary ref. The compiler merges `<ref>` + `add_layer:` into a single topo-sorted `InstallPlan`; `VmDeployTarget.Emit` walks it over SSH. The guest-side ledger records both the base and overlay layers so `ov deploy del vm:<name>` reverses the full set.
 
-This is the same merge semantics as `HostDeployTarget` — just with SSH-wrapped execution. See `/ov-internals:install-plan` for the compiler and `/ov-internals:vm-deploy-target` for the execution model.
+This is the same merge semantics as `LocalDeployTarget` — just with SSH-wrapped execution. See `/ov-internals:install-plan` for the compiler and `/ov-internals:vm-deploy-target` for the execution model.
 
 ### VM-relevant `install_opts:` fields
 
@@ -179,7 +174,7 @@ This is the same merge semantics as `HostDeployTarget` — just with SSH-wrapped
 ### Prerequisite chain
 
 ```
-vms.yml declares kind:vm entity
+vm.yml declares kind:vm entity
     → ov vm build <name>         (cloud_image: fetch+resize+seed ISO; bootc: install to-disk)
     → ov vm create <name>        (libvirt domain + SMBIOS ssh key + passt portForward)
     → ov vm start <name>         (boot)
@@ -188,7 +183,7 @@ vms.yml declares kind:vm entity
     → ov vm destroy <name>       (remove libvirt domain; --disk to also delete qcow2)
 ```
 
-See `/ov-vm:vms-catalog` for vms.yml authoring, `/ov-vm:vm` for the lifecycle commands, `/ov-internals:vm-deploy-target` for the Emit flow.
+See `/ov-vm:vms-catalog` for vm.yml authoring, `/ov-vm:vm` for the lifecycle commands, `/ov-internals:vm-deploy-target` for the Emit flow.
 
 ### `add_layer:` overlay mechanism
 
@@ -201,10 +196,10 @@ Ref forms for `--add-layer` are identical to the primary `<ref>` positional (loc
 
 ## Two supported deploy patterns
 
-Per the 2026-05-12 cutover, every `target: pod` deploy entry MUST
-declare its `image:` field explicitly (hard load-time error if
-absent — see "Required `image:` field" below). With that contract
-locked, two distinct patterns are supported:
+Every `target: pod` deploy entry MUST declare its `image:` field
+explicitly (hard load-time error if absent — see "Why `image:` is
+required" below). With that contract locked, two distinct patterns
+are supported:
 
 ### Pattern A — Multiple instances of the same image
 
@@ -295,38 +290,35 @@ target an instance of `versa`, which is a different deploy).
   For Pattern B (arbitrary name), only the single `<key>` form
   works.
 
-### Known issue (2026-05-12) — quadlet-port lookup keyed by image, not deploy-key
+### Known issue — quadlet-port lookup keyed by image, not deploy-key
 
-Pattern B's first end-to-end test surfaced a pre-existing `ov config`
-bug: when two deploys share the same image (or use the same image
+When two deploys share the same image (or use the same image
 short-name), the second `ov config <deploy-key>` invocation writes
 the FIRST deploy's `resolved_port:` set to the new deploy's quadlet.
-The image-ref resolution (which side this cutover changes) is
-correct — `Image=` in the emitted quadlet matches the deploy entry's
-`image:` field — but the `PublishPort=` lines are sourced via an
-image-keyed lookup rather than the deploy-entry's own
-`port:`/`resolved_port:`. Reproduction: `ov config versa-pinned-X`
-when `versa` is already deployed → quadlet's PublishPorts == versa's
-ports.
+The image-ref resolution is correct — `Image=` in the emitted quadlet
+matches the deploy entry's `image:` field — but the `PublishPort=`
+lines are sourced via an image-keyed lookup rather than the
+deploy-entry's own `port:`/`resolved_port:`. Reproduction:
+`ov config versa-pinned-X` when `versa` is already deployed →
+quadlet's PublishPorts == versa's ports.
 
 **Workaround**: don't deploy two pod entries off the same image short-
 name on the same host. For Pattern B with a pinned version of an
 already-deployed image, the workflow has to bypass the auto-allocator
-entirely — and even explicit `port:` lists are ignored. This is a
-separate cutover (touches `ov config` port resolution); the schema
-+ eval-runner side of Pattern B works correctly.
+entirely — and even explicit `port:` lists are ignored. This issue is
+confined to `ov config` port resolution; the schema + eval-runner side
+of Pattern B works correctly.
 
 ### Why `image:` is required (R10 implication)
 
-Pre-2026-05-12 the eval runner resolved the running container's
-image ref via `containerImageRef()` when the deploy entry had no
-explicit `image:` field. For volume-pinned deploys (where
-`data_source:` seeds workspace from a specific image tag), the
-running container ended up at the seed-version, not the current
-image — and the eval runner read the older OCI label, silently
-dropping any probes added since. The cutover deletes the implicit
-fallback so the eval runner inspects what the operator declared,
-not what the container happens to be.
+The eval runner inspects exactly the image the operator declared in
+`image:`, never what the container happens to be. Without an explicit
+`image:` field the runner would resolve the running container's image
+ref via `containerImageRef()`; for volume-pinned deploys (where
+`data_source:` seeds workspace from a specific image tag) the running
+container sits at the seed-version, not the current image, so the
+runner would read the older OCI label and silently drop any probes
+added since. Requiring `image:` makes the inspected image deterministic.
 
 ## Examples
 
@@ -423,7 +415,7 @@ tunnel:
 
 **`bind_address` must be `127.0.0.1` (the default).** Setting `0.0.0.0` causes the container to bind on the Tailscale interface, preventing Tailscale from intercepting TLS. Result: HTTPS fails with `wrong version number`.
 
-**Port form in `deploy.yml`.** The canonical form is bare `H:C` (e.g. `8888:8888`); `ov config` prepends `127.0.0.1:` automatically when a tunnel is set. Since 2026-04-29 the IP-prefixed form `127.0.0.1:8888:8888` (and IPv6 `[::1]:8888:8888`) is also accepted — the canonical `ParsePortMapping` helper in `ov/ports.go` normalizes both shapes to a single-prefixed `PublishPort=` line, so neither form produces the doubled `127.0.0.1:127.0.0.1:8888:8888` quadlet that earlier versions emitted. Unparseable port strings are now logged loudly to stderr instead of being silently dropped (the silent-skip used to suppress the entire `ExecStartPost=tailscale serve` block when even one port couldn't be parsed).
+**Port form in `deploy.yml`.** The canonical form is bare `H:C` (e.g. `8888:8888`); `ov config` prepends `127.0.0.1:` automatically when a tunnel is set. The IP-prefixed form `127.0.0.1:8888:8888` (and IPv6 `[::1]:8888:8888`) is also accepted — the canonical `ParsePortMapping` helper in `ov/ports.go` normalizes both shapes to a single-prefixed `PublishPort=` line, so neither form produces a doubled `127.0.0.1:127.0.0.1:8888:8888` quadlet. Unparseable port strings are logged loudly to stderr rather than silently dropped (a silent skip would otherwise suppress the entire `ExecStartPost=tailscale serve` block when even one port couldn't be parsed).
 
 ### Tailscale Funnel (public internet)
 
@@ -504,7 +496,7 @@ tunnel:
 
 Quadlet generates multiple `ExecStartPost=` and `ExecStopPost=` lines. Requires `tailscale set --operator=$USER` for non-root access.
 
-Port protocols are stored in the `org.overthinkos.port_protos` image label so deploy-mode commands work without access to the original layer definitions. (Pre-refactor, `ov shell @github.com/...` could fetch a remote repo and build on the fly; that path was deleted. Remote refs now require `ov image pull` first — see `/ov-build:pull`.)
+Port protocols are stored in the `org.overthinkos.port_protos` image label so deploy-mode commands work without access to the original layer definitions. Remote refs require `ov image pull` first — see `/ov-build:pull`.
 
 ### Instance Tunnel Inheritance
 
@@ -530,20 +522,16 @@ Source: `ov/tunnel.go` (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`, `validTa
 2. **`ov deploy import`** merges pre-provisioned config (tunnel, volumes, DNS) from files
 3. **`ov remove`** cleans the entry (use `--keep-deploy` to preserve for re-config)
 
-### Legacy-schema rejection (2026-04 cutover)
+### Legacy-schema rejection
 
-Schema v4 renamed the top-level `image:` map to `deploy:` and replaced the per-entry `bind_mounts:` field with a structured `volume:` list. **`yaml.Unmarshal` silently drops unknown root keys**, so a pre-cutover file with `image:` would parse to an empty `DeployConfig.Deploy` map and downstream commands would behave as if nothing was deployed — including the dangerous case where `bind_mounts: [{encrypted: true}]` entries become invisible to `loadEncryptedVolumes` and the encryption guarantee silently disappears. `LoadDeployConfig` (`ov/deploy.go:hasLegacyImagesKey`) detects the legacy root shape and fails loud with:
+The top-level deploy map is `deploy:`, and per-entry storage uses a structured `volume:` list. **`yaml.Unmarshal` silently drops unknown root keys**, so a file with the obsolete `image:` root key would parse to an empty `DeployConfig.Deploy` map and downstream commands would behave as if nothing was deployed — including the dangerous case where `bind_mounts: [{encrypted: true}]` entries become invisible to `loadEncryptedVolumes` and the encryption guarantee silently disappears. `LoadDeployConfig` (`ov/deploy.go:hasLegacyImagesKey`) detects the legacy root shape and fails loud, pointing at `ov migrate`.
 
-```
-deploy.yml at <path>: legacy top-level `image:` field detected — run `ov migrate` to convert; the field was renamed to `deploy:` in the 2026-04 unified-config cutover (encryption guarantees disappear silently otherwise)
-```
+`ov status` surfaces this as a non-fatal warning (graceful degradation falls back to image-label-driven display); the strictly-deploy.yml-driven verbs (`ov deploy show`, `ov config status`, `ov start`) hard-fail. Run `ov migrate` to convert in place — it backs the original up to `<file>.bak.<unix-ts>` and rewrites to the latest schema. See `/ov-build:migrate` "ov migrate".
 
-`ov status` surfaces this as a non-fatal warning (graceful degradation falls back to image-label-driven display); the strictly-deploy.yml-driven verbs (`ov deploy show`, `ov config status`, `ov start`) hard-fail. Run `ov migrate` to convert in place — it backs the original up to `<file>.bak.<unix-ts>` and rewrites to schema v4. See `/ov-build:migrate` "ov migrate".
-
-### Structure (schema v4)
+### Structure
 
 ```yaml
-version: 4
+version: 2026.141.1530
 deploy:
   my-app:
     target: pod
@@ -573,23 +561,23 @@ deploy:
     engine: podman
 ```
 
-Allowed fields: `workspace`, `version`, `status`, `info`, `tunnel`, `fqdn`, `acme_email`, `volumes`, `ports`, `env`, `env_file`, `security`, `network`, `engine`, `secrets`, `target`, `add_layers`, `install_opts` (new fields described below).
+Allowed fields: `workspace`, `version`, `tunnel`, `fqdn`, `acme_email`, `volumes`, `ports`, `env`, `env_file`, `security`, `network`, `engine`, `secrets`, `target`, `add_layers`, `install_opts`.
 
-### New fields from the `ov deploy add` surface
+### `target` / `add_layer` / `install_opts` fields
 
-The `ov deploy add`/`del` refactor introduced three fields on every deploy.yml image entry. They're honored only when relevant to the deploy target.
+The `ov deploy add`/`del` surface carries three fields on every deploy.yml entry. They're honored only when relevant to the deploy target.
 
-**`target:`** — `""` or `"container"` (default, existing pipeline) or `"host"` (local filesystem apply). The deploy name `host` typically also sets this explicitly for clarity. When `target: host` is set on a non-`host` deploy name, `ov deploy add` errors cleanly — container deploy names can't secretly target the host.
+**`target:`** — `pod` (default, container pipeline) or `local` (local filesystem apply). When `target: local` is set, `ov deploy add` routes to the local executor; `host: local` (default) runs directly, `host: <user@machine>` runs over SSH.
 
-**`add_layer:`** — list of extra layer refs applied on top of the image's base layers. Each entry accepts the same 4 ref forms as the command-line `--add-layer` flag (local name / local YAML path / remote `github.com/.../layers/<n>[@ref]`). See "add_layers: overlay mechanism" above for container vs host semantics.
+**`add_layer:`** — list of extra layer refs applied on top of the image's base layers. Each entry accepts the same 4 ref forms as the command-line `--add-layer` flag (local name / local YAML path / remote `github.com/.../layers/<n>[@ref]`). See "add_layers: overlay mechanism" above for pod vs local semantics.
 
-**`install_opts:`** — host-target defaults that mirror the CLI flags on `ov deploy add`. CLI flags win on conflict; deploy.yml provides defaults so you don't have to repeat `--with-services --allow-repo-changes` on every invocation.
+**`install_opts:`** — local-target defaults that mirror the CLI flags on `ov deploy add`. CLI flags win on conflict; deploy.yml provides defaults so you don't have to repeat `--with-services --allow-repo-changes` on every invocation.
 
 ```yaml
-images:
-  host:
+deploy:
+  my-host:
     image: fedora-coder
-    target: host
+    target: local
     add_layers:
       - my-team-vimrc                                     # local layer
       - github.com/team-acme/configs/layers/sshkeys       # remote layer
@@ -605,14 +593,14 @@ images:
       OVERTHINK_DEV: "true"
 ```
 
-Fields ignored on container deploys: `install_opts` (host-only). Fields ignored on host deploys: `volumes`, `ports`, `tunnel`, `sidecars`, `security`'s container-runtime bits.
+Fields ignored on pod deploys: `install_opts` (local-only). Fields ignored on local deploys: `volumes`, `ports`, `tunnel`, `sidecars`, `security`'s container-runtime bits.
 
 ### Resource Caps
 
 Cgroup memory and CPU limits are stored in the `security:` block of deploy.yml and persist across `ov config` re-runs (a `--memory-max` flag applied once stays in effect until explicitly changed). The fields are:
 
 ```yaml
-images:
+deploy:
   selkies-desktop:
     security:
       shm_size: "1g"
@@ -662,7 +650,7 @@ provides:
       url: http://ov-jupyter:8888/mcp
       transport: http
       source: jupyter
-images:
+deploy:
   my-app: { ... }
 ```
 
@@ -732,7 +720,7 @@ ov start selkies-desktop -i personal
 **Deploy.yml structure with instances:**
 
 ```yaml
-images:
+deploy:
   selkies-desktop:
     ports: [3000:3000]
   selkies-desktop/work:
@@ -915,7 +903,7 @@ Host `tunnel: tailscale` (ExecStartPost=tailscale serve) and the sidecar are **i
 ### deploy.yml Sidecar Config
 
 ```yaml
-images:
+deploy:
   selkies-desktop:
     sidecars:
       tailscale:
@@ -926,10 +914,10 @@ images:
 
 ## Cross-References
 
-**Deploy surface (new):**
-- `/ov-local:local-deploy` — Host-target execution model: HostDeployTarget, ledger, gates, 15 ReverseOp kinds, sudo batching
-- `/ov-internals:install-plan` — The InstallPlan IR shared by `ov image build` (OCITarget), container deploys (ContainerDeployTarget), and host deploys (HostDeployTarget)
-- `/ov-internals:local-infra` — Supporting Go files for host deploys: hostdistro, ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref
+**Deploy surface:**
+- `/ov-local:local-deploy` — Local-target execution model: LocalDeployTarget, ledger, gates, 15 ReverseOp kinds, sudo batching
+- `/ov-internals:install-plan` — The InstallPlan IR shared by `ov image build` (OCITarget), pod deploys (PodDeployTarget), and local deploys (LocalDeployTarget)
+- `/ov-internals:local-infra` — Supporting Go files for local deploys: hostdistro, ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref
 
 **Deploy-adjacent commands:**
 - `/ov-build:pull` — Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
@@ -955,13 +943,13 @@ images:
 - `/ov-ollama:ollama`, `/ov-hermes:hermes` — Custom `service:` entries
 - `/ov-selkies:selkies-desktop` — Multi-instance proxy deployment, tunnel inheritance workaround
 
-## Cross-kind name reuse + ResolveDeployRef precedence (2026-05-05)
+## Cross-kind name reuse + ResolveDeployRef precedence
 
 A deploy entry's key in `deploy:` lives in its own namespace. The same name MAY simultaneously be a layer, an `image:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry — and the deploy entry's cross-reference fields (`image:`, `vm:`, `local:`, `cluster:`) are scoped to the matching kind, no fall-through. Concrete worked example: this repo's `deploy.ov-cachyos` references `local.ov-cachyos` via `local: ov-cachyos` — same name across two namespaces.
 
-`ResolveDeployRef` (used by `ov deploy add <name> <ref>`): when a name exists as BOTH an image and a layer, image-first precedence wins for the primary `<ref>` positional. The `--add-layer <ref>` path goes through `ResolveDeployRefAsLayer` which is layer-first. The retired image+layer ambiguity error is gone — same-name image and layer is permitted.
+`ResolveDeployRef` (used by `ov deploy add <name> <ref>`): when a name exists as BOTH an image and a layer, image-first precedence wins for the primary `<ref>` positional. The `--add-layer <ref>` path goes through `ResolveDeployRefAsLayer` which is layer-first. Same-name image and layer is permitted.
 
-Migration for the operator-specific `qc` → `ov-cachyos` rename: `ov migrate` (idempotent). Residual `deploy.qc` / `deploy.cachyos-dx` keys raise a hard load-time error. The 2026-05-XX per-kind file split also renamed the schema kind itself: `kind: deployment` → `kind: deploy`; root-key `deployment:` → `deploy:`; migration `ov migrate`. See `/ov-build:migrate`.
+The loader raises a hard load-time error on the obsolete `deploy.qc` / `deploy.cachyos-dx` keys, and on the obsolete `kind: deployment` doc / root-key `deployment:` (the deploy kind is `kind: deploy`); every such error points at `ov migrate`. See `/ov-build:migrate`.
 
 ## When to Use This Skill
 
@@ -972,7 +960,7 @@ Previous step: `/ov-build:build` (build the image). Next step: `/ov-core:service
 
 ## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vms.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
 **After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 

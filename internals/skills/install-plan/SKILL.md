@@ -2,13 +2,13 @@
 name: install-plan
 description: |
   The InstallPlan IR — the shared intermediate representation consumed by build-mode
-  Containerfile emission (OCITarget), container deploys (ContainerDeployTarget),
-  host deploys (HostDeployTarget), VM deploys (VmDeployTarget over SSH), and
-  Kubernetes deploys (KubernetesDeployTarget).
+  Containerfile emission (OCITarget), pod deploys (PodDeployTarget),
+  local deploys (LocalDeployTarget), VM deploys (VmDeployTarget over SSH), and
+  Kubernetes deploys (K8sDeployTarget).
   MUST be invoked before reading or modifying any of:
   ov/install_plan.go, ov/install_build.go, ov/build_target_oci.go,
-  ov/deploy_target_host.go, ov/deploy_target_container.go, ov/deploy_target_vm.go,
-  ov/deploy_target_k8s.go, or when adding
+  ov/deploy_target_local.go, ov/deploy_target_pod.go, ov/deploy_target_vm.go,
+  ov/k8s_target.go, or when adding
   a new step kind / deploy target / reverse-op kind.
 ---
 
@@ -19,12 +19,12 @@ description: |
 `ov` has five code paths that all need to know "what does applying this layer mean?":
 
 1. **Build mode** — `ov image build` / `ov image generate` emit Containerfiles.
-2. **Container deploy** — `ov deploy add <name> <ref>` runs the image via quadlet, optionally building an overlay image when `add_layer:` is set.
-3. **Host deploy** — `ov deploy add host <ref>` applies the recipe to the invoking user's filesystem.
-4. **VM deploy** — `ov deploy add vm:<name> <ref>` applies the recipe inside a running VM over SSH.
-5. **Kubernetes deploy** — `ov deploy add <name> --target kubernetes` emits a Kustomize base/overlays tree.
+2. **Pod deploy** (`target: pod`, default) — `ov deploy add <name> <ref>` runs the image via quadlet, optionally building an overlay image when `add_layer:` is set.
+3. **Local deploy** (`target: local`) — `ov deploy add <name> <ref> --target local` applies the recipe to the destination machine's filesystem (`host: local` → direct shell; `host: <user@machine>` → SSH).
+4. **VM deploy** (`target: vm`) — `ov deploy add vm:<name> <ref>` applies the recipe inside a running VM over SSH.
+5. **Kubernetes deploy** (`target: k8s`) — `ov deploy add <name> --target k8s` emits a Kustomize base/overlays tree.
 
-Before the 2026-04 refactor these were separate walks over `Layer` / `ResolvedImage`. The refactor unifies them behind one IR. A pure compiler (`BuildDeployPlan`) turns `Layer + ResolvedImage + HostContext` into an `InstallPlan`; each code path becomes a `DeployTarget` consuming the plan.
+All five paths are unified behind one IR. A pure compiler (`BuildDeployPlan`) turns `Layer + ResolvedImage + HostContext` into an `InstallPlan`; each code path is a `DeployTarget` consuming the plan.
 
 This skill is the single source of truth for the IR shape. Add a new step kind by editing `install_plan.go`, the compiler in `install_build.go`, and each target's `emit*` method — this skill lists every place that needs to stay in sync.
 
@@ -35,11 +35,11 @@ This skill is the single source of truth for the IR shape. Add a new step kind b
 | `ov/install_plan.go` | IR types, enums, `InstallStep` interface, `ReverseOp`, `DeployTarget` interface, `EmitOpts`, `GateEnabled` |
 | `ov/install_build.go` | `BuildDeployPlan` pure compiler: `Layer` → `InstallPlan` |
 | `ov/build_target_oci.go` | `OCITarget` — emits Containerfile text |
-| `ov/deploy_target_container.go` | `ContainerDeployTarget` — synthesizes overlay Containerfile when `add_layer:` present, delegates to quadlet/start |
-| `ov/deploy_target_host.go` | `HostDeployTarget` — executes plan on host via shell + `podman run <builder>` |
+| `ov/deploy_target_pod.go` | `PodDeployTarget` — synthesizes overlay Containerfile when `add_layer:` present, delegates to quadlet/start |
+| `ov/deploy_target_local.go` | `LocalDeployTarget` — executes plan on the destination machine via shell + `podman run <builder>` |
 | `ov/deploy_target_vm.go` | `VmDeployTarget` — executes plan inside a running VM via SSH + scp |
-| `ov/deploy_target_k8s.go` | `KubernetesDeployTarget` — emits Kustomize base/overlays tree |
-| `ov/deploy_executor*.go` | `DeployExecutor` interface + `LocalExecutor` + `SSHExecutor` — shell + file-copy abstraction shared by Host/VM targets |
+| `ov/k8s_target.go` | `K8sDeployTarget` — emits Kustomize base/overlays tree |
+| `ov/deploy_executor*.go` | `DeployExecutor` interface + `ShellExecutor` + `SSHExecutor` — shell + file-copy abstraction shared by Local/VM targets |
 | `ov/install_plan_test.go` | IR unit tests (scope/venue/gate/reverse derivations) |
 | `ov/install_build_test.go` | Compiler integration tests (ripgrep, dev-tools, pixi layer) |
 
@@ -76,7 +76,7 @@ type InstallStep interface {
 }
 ```
 
-All eight concrete step kinds implement this interface. `Reverse()` is called at install time (not teardown) so the ledger records the exact reversal ops tied to the specific artifacts created.
+All nine concrete step kinds implement this interface. `Reverse()` is called at install time (not teardown) so the ledger records the exact reversal ops tied to the specific artifacts created.
 
 ### Enums
 
@@ -110,12 +110,8 @@ Gates apply only to the host target. `EmitOpts.AssumeYes` enables all three. See
 
 The IR carries no image-fetch step kind. Deploys (any target) emit
 zero image-pull / image-build steps; test-bed image preflight is a
-separate, eval-time concern handled by `ov/eval_image_preflight.go`.
-The retired `EnsureImageStep` / `compileImagesSteps` /
-`runImagesPrePass` surface and its `ReverseOpRemoveImage` /
-`--reclaim-images` flag were deleted in the 2026-05
-deploy-fetch-narrowing cutover (CLAUDE.md "Deploy fetches NOTHING
-speculative").
+separate, eval-time concern handled by `ov/eval_image_preflight.go`
+(CLAUDE.md "Deploy fetches NOTHING speculative").
 
 ## The nine step kinds
 
@@ -131,14 +127,14 @@ speculative").
 | `ShellSnippetStep` | LayerName, Origin, Shell (bash/zsh/fish/sh), Snippet, PathAppend, Destination, Marker, UseDropin, Priority | HostNative | `pathIsSystemScoped(Destination)` (system for container drop-ins, user-profile for ~/.bashrc etc.) |
 | `RepoChangeStep` | Format, File, Content, Checksum, LayerName | HostNative | Always system |
 
-**`ShellSnippetStep` notes (2026-05 cutover):**
+**`ShellSnippetStep` notes:**
 - Compiled by `compileShellSnippetSteps` in `install_build.go` — applies the per-shell-wins-over-generic selection rule from `layer.Shell()`.
 - OCITarget emits a `RUN mkdir -p ... && cat > <dest> <<EOF` heredoc with a sha256-derived end-marker (anti-collision).
 - LocalDeployTarget / VmDeployTarget probe `command -v <shell>` once at the top of `Emit()`; absent shells become VenueSkip-style no-ops with a logged reason. UseDropin=true → whole-file write; UseDropin=false → `replaceOrAppendManagedBlock` against the existing rc file with a per-layer marker.
 - Reverse: `ReverseOpRmFileSystem` / `ReverseOpRmFileUser` for drop-ins; `ReverseOpRemoveManaged` (with `Extra["marker"]=LayerName`) for managed-block append.
 - Round-trip: `LabelShell` (`org.overthinkos.shell`) carries the merged set; `CollectShell` builds it at `ov image build` time, `ExtractMetadata` parses it at deploy time, `MergeDeployShell` overlays deploy.yml entries by id.
 
-Each step's `Reverse()` emits typed `ReverseOp` values. Adding a step kind means: (a) define the struct in `install_plan.go`, (b) decide its Scope/Venue/Gate/Reverse, (c) add a case to each target's step dispatch (`emit*` in OCITarget; `exec*` in HostDeployTarget), (d) ensure the compiler in `install_build.go` emits it.
+Each step's `Reverse()` emits typed `ReverseOp` values. Adding a step kind means: (a) define the struct in `install_plan.go`, (b) decide its Scope/Venue/Gate/Reverse, (c) add a case to each target's step dispatch (`emit*` in OCITarget; `exec*` in LocalDeployTarget), (d) ensure the compiler in `install_build.go` emits it.
 
 ## The compiler — `BuildDeployPlan`
 
@@ -148,8 +144,8 @@ func BuildDeployPlan(layer *Layer, img *ResolvedImage, hostCtx HostContext) (*In
 
 Pure — no I/O, no side effects. Given the same inputs, produces the same plan. Called:
 - Once per layer during `ov image build` (OCITarget walks the combined output).
-- Once per layer during `ov deploy add <container>` (ContainerDeployTarget filters to `add_layer:` for overlay synthesis).
-- Once per layer during `ov deploy add host` (HostDeployTarget walks the combined output).
+- Once per layer during a pod deploy (PodDeployTarget filters to `add_layer:` for overlay synthesis).
+- Once per layer during a local deploy (LocalDeployTarget walks the combined output).
 
 Pass `HostContext{Target: "host", Distro: ..., GlibcVersion: ...}` for host compilation; zero-value for build/container compilation.
 
@@ -166,7 +162,7 @@ Step emission order (mirrors today's `writeLayerSteps`):
 
 ```go
 type DeployTarget interface {
-    Name() string                 // "oci" | "container" | "host" | "vm:<name>" | "kubernetes"
+    Name() string                 // "oci" | "pod" | "host" | "vm:<name>" | "k8s"
     Emit(plans []*InstallPlan, opts EmitOpts) error
 }
 ```
@@ -176,33 +172,33 @@ Five implementations:
 ### `OCITarget` (`ov/build_target_oci.go`)
 Emits Containerfile text. Consumes `phases.install.container` from build.yml (falls back to `install_template:`). For multi-stage builders, delegates to `Generator.buildStageContext` for the existing `BuildStageContext` template rendering. For tasks, delegates to `Generator.emitTasks` with a temporary layer-tasks swap so the existing per-verb emitters (`emitCopy`, `emitWrite`, `emitCmd`, `emitMkdirBatch`, ...) run unchanged.
 
-Used by: `ov image build`, `ov image generate`, `ov deploy add <container>` (overlay Containerfile synthesis).
+Used by: `ov image build`, `ov image generate`, pod deploys with `add_layer:` (overlay Containerfile synthesis).
 
-### `ContainerDeployTarget` (`ov/deploy_target_container.go`)
-Wraps the existing quadlet/podman pipeline with overlay-Containerfile synthesis for `add_layer:`. Picks an overlay tag deterministically from `(base-image, sorted-layer-set)`. Removed on `ov deploy del` unless `--keep-image`.
+### `PodDeployTarget` (`ov/deploy_target_pod.go`)
+Wraps the quadlet/podman pipeline with overlay-Containerfile synthesis for `add_layer:`. Picks an overlay tag deterministically from `(base-image, sorted-layer-set)`. Removed on `ov deploy del` unless `--keep-image`.
 
-Used by: `ov deploy add <container>` with `add_layer:` present.
+Used by: `ov deploy add <name>` (default `target: pod`) with `add_layer:` present.
 
-### `HostDeployTarget` (`ov/deploy_target_host.go`)
+### `LocalDeployTarget` (`ov/deploy_target_local.go`)
 Walks the IR; groups contiguous same-`(Scope, Venue)` steps via `plan.StepsByVenue()`; emits one heredoc per batch. Full executor: writes service units (packaged + custom), env.d files, managed blocks, ledger entries. Invokes builder containers via `builder_run.go` for `VenueContainerBuilder` steps. Gates (`GateEnabled`) applied per step; skipped steps logged.
 
 See `/ov-internals:local-infra` for supporting files (hostdistro, ledger, reverse_ops, shell_profile, builder_run, service_render, deploy_ref).
 
 ### `VmDeployTarget` (`ov/deploy_target_vm.go`)
-Same IR walking as HostDeployTarget, but shell bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` instead of local `sudo bash`. Ledger writes land on the **guest** filesystem; teardown runs in the guest via SSH. Preflight: `WaitForSSH` (120s) → `WaitForCloudInit` (cloud_image sources only) → `EnsureOvInGuest` (scp the `ov` binary per `VmOvInstall.Strategy`) → ensure guest ledger dir exists.
+Same IR walking as LocalDeployTarget, but shell bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` instead of local `sudo bash`. Ledger writes land on the **guest** filesystem; teardown runs in the guest via SSH. Preflight: `WaitForSSH` (120s) → `WaitForCloudInit` (cloud_image sources only) → `EnsureOvInGuest` (scp the `ov` binary per `VmOvInstall.Strategy`) → ensure guest ledger dir exists.
 
-`DeployExecutor` is the abstraction that lets the same Emit logic retarget from local → SSH. `LocalExecutor` wraps local `bash -c` + file copy; `SSHExecutor` wraps ssh/scp via `golang.org/x/crypto/ssh` with persistent connection. Builder-container invocations (`VenueContainerBuilder` steps) run on the **host**, then artifacts scp into the guest — guests don't need podman installed.
+`DeployExecutor` is the abstraction that lets the same Emit logic retarget from local → SSH. `ShellExecutor` wraps local `bash -c` + file copy; `SSHExecutor` wraps ssh/scp via `golang.org/x/crypto/ssh` with persistent connection. Builder-container invocations (`VenueContainerBuilder` steps) run on the **host**, then artifacts scp into the guest — guests don't need podman installed.
 
 Used by: `ov deploy add vm:<name> <ref>` / `ov deploy del vm:<name>`. See `/ov-internals:vm-deploy-target` for the full flow, `VmDeployState` persistence, and SSH-key idempotency.
 
-### `KubernetesDeployTarget` (`ov/deploy_target_k8s.go`)
+### `K8sDeployTarget` (`ov/k8s_target.go`)
 Emits a Kustomize `base/` + `overlays/` tree under `.overthink/k8s/<name>/`. Does NOT execute anything; the generated manifests are applied via `kubectl apply -k` out-of-band. Cluster-specific choices (storage class, ingress class, cert issuer, secret backend) come from a **cluster profile** (`~/.config/ov/clusters/<name>.yaml`), NOT the InstallPlan — the plan describes what the workload needs; the profile describes how K8s provides it.
 
 See `/ov-kubernetes:kubernetes` for the user-facing surface and profile layout.
 
 ## `StepBatch` batching
 
-`InstallPlan.StepsByVenue()` partitions `Steps` into contiguous same-`(Scope, Venue)` runs. HostDeployTarget uses this to emit one shell heredoc per batch:
+`InstallPlan.StepsByVenue()` partitions `Steps` into contiguous same-`(Scope, Venue)` runs. LocalDeployTarget uses this to emit one shell heredoc per batch:
 
 | Batch | Emission form |
 |---|---|
@@ -250,7 +246,7 @@ CLI flags on `DeployAddCmd` / `DeployDelCmd` populate this struct; each target r
 When you add a step kind, add:
 1. A scope/venue/gate/reverse unit test in `install_plan_test.go`.
 2. An integration test in `install_build_test.go` exercising the compiler path.
-3. Target-specific tests in `build_target_oci_test.go` and `deploy_target_host_test.go`.
+3. Target-specific tests in `build_target_oci_test.go` and `deploy_target_local_test.go`.
 
 ## Cross-References
 

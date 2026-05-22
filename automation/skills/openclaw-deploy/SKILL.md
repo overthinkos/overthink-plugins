@@ -10,7 +10,7 @@ description: |
 
 OpenClaw is an AI gateway that connects LLM agents to messaging channels (WhatsApp, Telegram, Discord, Slack, Signal, iMessage, IRC, Teams) and exposes them via a WebSocket API, CLI, and web Control UI. It runs as a Node.js process with an embedded agent runtime, model failover, browser automation, and multi-agent routing.
 
-In Overthink, OpenClaw runs as a supervisord service inside containers. The `openclaw` layer provides the npm package; compose it with the `sway-desktop` metalayer (full Sway desktop + Chrome browser + VNC) for browser-based workflows like OAuth and web automation. The prebuilt desktop+browser convenience images (`openclaw-sway-browser`, `openclaw-ollama-sway-browser`, …) were retired in 2026-05 — compose your own from the layers (shown below), or use the headless `openclaw` / `openclaw-ollama` images for non-browser channels.
+In Overthink, OpenClaw runs as a supervisord service inside containers. The `openclaw` layer provides the npm package; compose it with the `sway-desktop` metalayer (full Sway desktop + Chrome browser + VNC) for browser-based workflows like OAuth and web automation. For a desktop+browser image, compose your own from the layers (shown below); for non-browser channels use the headless `openclaw` / `openclaw-ollama` images.
 
 The gateway listens on port 18789 (WebSocket + HTTP). All CLI commands (`openclaw *`) connect to the gateway WebSocket. The Control UI is served at the gateway root URL. Config is stored in `~/.openclaw/openclaw.json` (JSON5 format).
 

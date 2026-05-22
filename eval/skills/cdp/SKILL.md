@@ -224,7 +224,7 @@ ov shell $IMG -c "supervisorctl restart openclaw"
 ov shell $IMG -c "openclaw models status"
 ```
 
-**Tested selectors** (OpenAI auth page as of 2026-03-21):
+**Tested selectors** (OpenAI auth page):
 - "Continue with Google": `button._buttonStyleFix_wvuha_65` (first matching social button)
 - "Continue" (consent): `button._primary_3rdp0_107` (black primary button)
 - These are CSS class selectors specific to OpenAI's auth UI — may change over time

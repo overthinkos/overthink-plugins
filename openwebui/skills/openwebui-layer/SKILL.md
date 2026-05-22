@@ -63,7 +63,7 @@ Auto-generated, stored in credential store (keyring/config-file fallback):
 
 Provisioned as `Secret=ov-openwebui-<name>,type=env,target=<ENV>` in the quadlet. The entrypoint checks env vars first (from `type=env` injection), then file mounts at `/run/secrets/` as fallback.
 
-**First-run admin login:** since 2026-05-06, `WEBUI_ADMIN_PASSWORD` auto-generates as a 32-byte hex random value if not pre-set. To retrieve the auto-generated password and log in for the first time:
+**First-run admin login:** `WEBUI_ADMIN_PASSWORD` auto-generates as a 32-byte hex random value if not pre-set. To retrieve the auto-generated password and log in for the first time:
 
 ```bash
 ov secrets get ov/secret WEBUI_ADMIN_PASSWORD

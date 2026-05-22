@@ -2,8 +2,8 @@
 name: gh
 description: |
   GitHub CLI, git, and git-lfs — the single-responsibility home for all
-  git/GitHub tooling as of 2026-04. Ships the noscripts + post-install
-  dance for git-lfs so the RPM's systemd trigger doesn't fail at build time.
+  git/GitHub tooling. Ships the noscripts + post-install dance for git-lfs
+  so the RPM's systemd trigger doesn't fail at build time.
   Use when composing git + gh + git-lfs into an image, or when deciding
   which layer should own a git-related binary.
 ---
@@ -26,9 +26,8 @@ description: |
 
 The `git-lfs` RPM's `%post` scriptlet runs `git-lfs install --system`
 which tries to modify `/etc/` and talk to systemd — operations that
-fail (loudly or silently) inside a buildah container. Per the same
-pattern `dev-tools` used to carry, we install with noscripts and then
-run the git-lfs hook configuration manually:
+fail (loudly or silently) inside a buildah container. We install with
+noscripts and then run the git-lfs hook configuration manually:
 
 ```yaml
 tasks:
@@ -40,20 +39,17 @@ The `|| true` tolerates distros/versions where the command layout
 differs; `--skip-repo` prevents git-lfs from trying to touch a repo
 that doesn't exist in the build container.
 
-## Single-responsibility split (2026-04)
+## Single-responsibility ownership
 
-Previously `/ov-coder:dev-tools` ALSO installed `gh` and `git-lfs`
-— two layers with overlapping responsibility, duplicate test ids
-(`gh-binary` collision), and unclear ownership ("which layer do I
-look at to update the git-lfs version?"). In 2026-04 the git tooling
-was moved exclusively here; dev-tools dropped `gh`, `git-lfs`, and
-the git-lfs post-install task.
+This layer is the exclusive home for `gh`, `git`, and `git-lfs` — no other
+layer (including `/ov-coder:dev-tools`) installs them. That keeps ownership
+unambiguous ("which layer do I look at to update the git-lfs version?" — this
+one) and avoids duplicate test ids (`gh-binary` collisions).
 
-Effect for layer authors: anywhere an image previously got git
-tooling via `dev-tools`, it now needs to compose `gh` explicitly.
-The four power-user images (`arch-ov`, `fedora-ov`, `fedora-coder`,
-`githubrunner` via the `ov-full` chain) already list `gh`
-explicitly so they were unaffected.
+Effect for layer authors: any image that wants git tooling composes `gh`
+explicitly. The four power-user images (`arch-ov`, `fedora-ov`,
+`fedora-coder`, `githubrunner` via the `ov-full` chain) all list `gh`
+explicitly.
 
 ## Tests
 
@@ -88,7 +84,7 @@ layers:
 
 ## Related Layers
 
-- `/ov-coder:dev-tools` — no longer installs git/gh/git-lfs (2026-04 split)
+- `/ov-coder:dev-tools` — does not install git/gh/git-lfs (this layer owns them)
 - `/ov-distros:agent-forwarding` — pairs with gh for SSH/GPG agent access (you usually want both when driving gh from inside a container with the host's GPG keys forwarded)
 - `/ov-distros:github-runner` — self-hosted Actions runner; different layer, different purpose
 - `/ov-coder:github-actions` — installs `act` + `actionlint` for local Actions testing; also different from this layer
@@ -106,8 +102,8 @@ layers:
   DO NOT add `gh`, `git`, or `git-lfs` to any other layer's packages).
 - Debugging why `git-lfs install` fails at build time (the noscripts +
   post-install pattern here is the fix).
-- Understanding why `/ov-coder:dev-tools` no longer installs gh
-  (the 2026-04 single-responsibility split lives here).
+- Understanding why `/ov-coder:dev-tools` does not install gh
+  (this layer holds single-responsibility ownership of git tooling).
 
 ## Related
 

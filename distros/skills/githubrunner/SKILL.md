@@ -2,8 +2,8 @@
 name: githubrunner
 description: |
   Self-hosted GitHub Actions runner with the full Overthink toolchain.
-  Rootless-first since 2026-04 — runs as uid=1000 with passwordless sudo
-  (no root, no cap_add: ALL). Host networking retained for reachability.
+  Rootless-first — runs as uid=1000 with passwordless sudo (no root, no
+  cap_add: ALL). Host networking retained for reachability.
   MUST be invoked before building, deploying, configuring, or troubleshooting
   the githubrunner image.
 ---
@@ -21,7 +21,7 @@ Shares the rootless-first posture with `/ov-distros:fedora-ov`,
 | Base | fedora |
 | Layers | agent-forwarding, github-runner, ov-full, dbus |
 | Platforms | linux/amd64 |
-| UID / user | **1000 / user** (rootless-first since 2026-04) |
+| UID / user | **1000 / user** (rootless-first) |
 | Network | host |
 | Security | layer-level only |
 | Registry | ghcr.io/overthinkos |
@@ -33,14 +33,13 @@ Shares the rootless-first posture with `/ov-distros:fedora-ov`,
 3. `github-runner` — Actions runner agent, skopeo, podman, buildah
 4. `dbus` — session bus (for runner hooks)
 
-## Rootless-first posture (2026-04 refactor)
+## Rootless-first posture
 
-Previously ran as `uid: 0 / user: root` with `cap_add: [ALL]` +
-`security_opt: [label=disable, seccomp=unconfined]`. That legacy
-posture was dropped once the `/ov-distros:container-nesting` kernel
-RCA proved surgical `unmask=/proc/*` works without caps. See
-`/ov-distros:fedora-ov` for the full rationale and
-`/ov-distros:container-nesting` for the `mount_too_revealing()` RCA.
+Runs as uid=1000 / `user` with no added capabilities. The
+`/ov-distros:container-nesting` kernel RCA establishes that surgical
+`unmask=/proc/*` works without caps. See `/ov-distros:fedora-ov` for the
+full rationale and `/ov-distros:container-nesting` for the
+`mount_too_revealing()` RCA.
 
 The `/ov-distros:github-runner` layer and runner-hook scripts still
 invoke `sudo` where they genuinely need root (e.g. for system-level

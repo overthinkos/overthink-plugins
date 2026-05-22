@@ -25,7 +25,7 @@ Why this matters: adding a field anywhere in `ImageMetadata` automatically becom
 
 `ov/capabilities.go:35` names every label that participates in the contract. Entry grouping (identity / account / ports / security / networking / env / engine+init / distro+builder / hooks+vm / skills / data / dependency-graph / tests) mirrors the `ImageMetadata` field ordering so the map reads as a spec of the on-disk format.
 
-Key entries (post-services-cutover):
+Key entries:
 
 | Field | Label const | What it stores |
 |---|---|---|
@@ -33,7 +33,7 @@ Key entries (post-services-cutover):
 | `Init` | `LabelInit` | Init system name (supervisord / systemd / none). |
 | `ServiceNames` | `LabelInit` | Per-init active-name list; baked alongside `LabelInit` for CLI ergonomics (e.g., `ov service status`). |
 | `Tests` | `LabelEval` | Three-section `{layer, image, deploy}` JSON — the tests baked into the image, consumed by `ov eval live` / `ov eval image`. See `/ov-eval:eval`. |
-| `Shell` | `LabelShell` | Three-section `{layer, image, deploy}` JSON shell-init manifest. Each entry carries an Origin (layer name / "image" / "deploy"), an ID for overlay keying, an optional Generic body (intrinsic init + path_append) and a per-shell ByShell map (bash/zsh/fish/sh sub-blocks). Consumed by `ov image inspect`, `ov deploy from-image`, and `MergeDeployShell` for deploy.yml `shell:` overlay merging. See `/ov-image:layer` "Shell Init Surface". 2026-05 cutover. |
+| `Shell` | `LabelShell` | Three-section `{layer, image, deploy}` JSON shell-init manifest. Each entry carries an Origin (layer name / "image" / "deploy"), an ID for overlay keying, an optional Generic body (intrinsic init + path_append) and a per-shell ByShell map (bash/zsh/fish/sh sub-blocks). Consumed by `ov image inspect`, `ov deploy from-image`, and `MergeDeployShell` for deploy.yml `shell:` overlay merging. See `/ov-image:layer` "Shell Init Surface". |
 | `EnvProvides` / `MCPProvides` | `LabelEnvProvides` / `LabelMCPProvides` | Cross-container discovery: what env vars / MCP servers this image advertises to pod peers. |
 | `EnvRequires` / `MCPRequires` | `LabelEnvRequires` / `LabelMCPRequires` | What this image *needs* from peers — validated at `ov config` time. |
 
@@ -68,7 +68,7 @@ Skip step 3 and the test fails with `ImageMetadata fields without CapabilityLabe
 
 ## `LabelServices` — structured per-entry service data
 
-Before the 2026-04 services-schema cutover, the services label was a flat list of names. After the cutover, it's a full structured round-trip:
+The services label is a full structured round-trip — not a flat list of names:
 
 ```go
 // ov/labels.go (CapabilityService struct, paraphrased)
@@ -99,7 +99,7 @@ type CapabilityService struct {
 }
 ```
 
-**Why this matters**: `ov deploy from-image` (see below) reconstructs the full deploy surface from OCI labels alone. Pre-cutover, `Services` was just names — deploy-time K8s manifest generation couldn't know a process needed `start_retries: 3` or was an eventlistener. Now the label carries every supervisord directive faithfully, and the K8s Kustomize generator (see `/ov-kubernetes:kubernetes`) reads from it without touching the source repo.
+**Why this matters**: `ov deploy from-image` (see below) reconstructs the full deploy surface from OCI labels alone. A names-only `Services` label would leave deploy-time K8s manifest generation blind to whether a process needs `start_retries: 3` or is an eventlistener. The structured label carries every supervisord directive faithfully, and the K8s Kustomize generator (see `/ov-kubernetes:kubernetes`) reads from it without touching the source repo.
 
 ## Source-less deploy: `ov deploy from-image`
 
@@ -118,7 +118,7 @@ The long-term direction (documented in `ov/capabilities.go:17-22`) is to split `
 
 - `image.build:` — Containerfile inputs (base image, layers, distro/builder selection). Consumed only by `ov image build`.
 - `image.capabilities:` — the runtime contract documented here. Emitted as OCI labels.
-- `image.deployment:` — target-specific defaults (K8s storage class, container-target port defaults). Consumed by `ov deploy add`.
+- `image.deploy:` — target-specific defaults (K8s storage class, container-target port defaults). Consumed by `ov deploy add`.
 
 Today these co-exist in a single `ImageConfig`. The `Capabilities` alias is the stepping stone — once the schema split lands, `Capabilities` will point at the `capabilities:` subsection directly instead of aliasing the whole struct. The `CapabilityLabelMap` completeness test will keep the contract honest across the migration.
 
