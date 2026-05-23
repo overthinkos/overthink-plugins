@@ -32,7 +32,7 @@ my-devops:
 
 ## Used In Images
 
-- `bazzite` (disabled)
+- `bazzite`
 
 ## Related Layers
 - `/ov-coder:docker-ce` — common companion for local container builds

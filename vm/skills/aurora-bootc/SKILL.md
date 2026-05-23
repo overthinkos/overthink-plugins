@@ -39,7 +39,7 @@ Firmware, machine, network, and SSH settings fall back to VmSpec defaults (see `
 ## Build + run
 
 ```bash
-# Enable aurora in image.yml first (disabled by default)
+# Build the aurora container image first (the VM disk install consumes it)
 ov image build aurora          # container image must exist before the VM disk install step
 ov vm build aurora-bootc
 ov vm create aurora-bootc

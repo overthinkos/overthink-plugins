@@ -19,7 +19,7 @@ Bootc VM image based on Universal Blue's Bazzite (gaming-focused) with NVIDIA dr
 | Bootc | true |
 | Distro | `fedora:43`, `fedora` (declared — external base inherits no distro tags) |
 | Platforms | linux/amd64 |
-| Status | **disabled** (build with `--include-disabled`) |
+| Status | enabled |
 | Registry | ghcr.io/overthinkos |
 
 ## Full Layer Stack
@@ -46,8 +46,8 @@ Bootc VM image based on Universal Blue's Bazzite (gaming-focused) with NVIDIA dr
 ## Quick Start
 
 ```bash
-# Built from the bootc submodule; all images ship enabled:false.
-ov -C image/bootc image build bazzite --include-disabled
+# Built from the bootc submodule.
+ov -C image/bootc image build bazzite
 ov -C image/bootc vm build bazzite-bootc --transport containers-storage
 ov -C image/bootc vm create bazzite-bootc
 ov -C image/bootc vm start bazzite-bootc

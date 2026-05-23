@@ -20,7 +20,7 @@ Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH acce
 | Distro | `fedora:43`, `fedora` (declared — external base inherits no distro tags) |
 | Layers | agent-forwarding, bootc-base, sshd, ov-full, golang |
 | Platforms | linux/amd64 |
-| Status | **disabled** (build with `--include-disabled`) |
+| Status | enabled |
 | Registry | ghcr.io/overthinkos |
 
 ## VM Configuration
@@ -41,8 +41,8 @@ Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH acce
 ## Quick Start
 
 ```bash
-# Built from the bootc submodule; all images ship enabled:false.
-ov -C image/bootc image build aurora --include-disabled
+# Built from the bootc submodule.
+ov -C image/bootc image build aurora
 ov -C image/bootc vm build aurora-bootc --transport containers-storage
 ov -C image/bootc vm create aurora-bootc --ram 12G --cpus 4
 ov -C image/bootc vm start aurora-bootc

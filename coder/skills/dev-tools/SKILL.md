@@ -76,7 +76,7 @@ my-dev:
 
 ## Used In Images
 
-- `bazzite` (disabled, via `devops-tools` which is separate)
+- `bazzite` (via `devops-tools` which is separate)
 
 ## Related Layers
 - `/ov-coder:gh` — Sibling GitHub CLI commonly paired with dev-tools

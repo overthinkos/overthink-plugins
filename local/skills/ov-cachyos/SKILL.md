@@ -27,8 +27,10 @@ ov --repo overthinkos/cachyos update ov-cachyos
 
 ## What it installs
 
-30 layers, all pulled from the main repo by **git reference**
-(`@github.com/overthinkos/overthink/layers/<name>:<tag>`) — nothing is vendored:
+30 layers. Most are pulled from the main repo by **git reference**
+(`@github.com/overthinkos/overthink/layers/<name>:<tag>`); the cachyos-exclusive
+`ghostty`, `keepassxc-keyring`, and `wheel-nopasswd` are vendored locally in this
+repo's `layers/` (resolved via its `discover:` block):
 
 `wheel-nopasswd`, `yay`, `dev-tools`, `gh`, `pre-commit`, `tmux`, `direnv`,
 `gnupg`, `keepassxc`, `keepassxc-keyring`, `tailscale`, `tailscale-up`,

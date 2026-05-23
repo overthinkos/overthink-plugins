@@ -28,7 +28,7 @@ fedora-test:
 
 ## Used In Images
 
-- `/ov-distros:fedora-test` (disabled)
+- `/ov-distros:fedora-test`
 
 ## Related Layers
 

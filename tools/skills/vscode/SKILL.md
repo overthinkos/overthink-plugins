@@ -28,7 +28,7 @@ my-image:
 
 ## Used In Images
 
-- `/ov-distros:bazzite` (disabled)
+- `/ov-distros:bazzite`
 
 ## Related Layers
 - `/ov-selkies:desktop-apps` — desktop tooling sibling

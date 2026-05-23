@@ -217,7 +217,7 @@ Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networ
 - `/ov-coder:arch-ov` — Arch counterpart
 - `/ov-coder:debian-coder`, `/ov-coder:ubuntu-coder` — deb-based consumers (via `ov-full`)
 - `/ov-distros:githubrunner` — VMs for CI workloads
-- `/ov-distros:aurora`, `/ov-distros:bazzite` — bootc siblings (currently `enabled: false`)
+- `/ov-distros:aurora`, `/ov-distros:bazzite` — bootc siblings
 
 ## Related Layers
 

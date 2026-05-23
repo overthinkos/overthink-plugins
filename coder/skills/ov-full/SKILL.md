@@ -50,7 +50,7 @@ The same layer reference works for both shapes; no `-host` variant is needed or 
 - `/ov-coder:arch-ov`
 - `/ov-distros:fedora-ov`
 - `/ov-distros:githubrunner`
-- `/ov-distros:aurora` (disabled)
+- `/ov-distros:aurora`
 - Operator host install via the `ov-cachyos` kind:local template
 
 ## When to Use This Skill

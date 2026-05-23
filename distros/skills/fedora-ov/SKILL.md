@@ -15,13 +15,12 @@ layer list as `/ov-coder:arch-ov` — the tag system handles
 Fedora-specific packages and scripts via `rpm:` sections. Supports
 nested containers at any depth via `/ov-distros:container-nesting`.
 
-Lives in the **`overthinkos/fedora`** repo (git submodule at **`image/fedora`**),
-`enabled: false`. Its `fedora` base comes from the main repo's `base.yml`,
-reached as `ov.fedora` via the submodule's `import:` of the main repo under the
-`ov` namespace; its layers (incl. the `nvidia` layer) are pulled by github
-reference. Build from the submodule:
-`ov -C image/fedora image build fedora-ov --include-disabled`. Deploy-mode verbs
-work from anywhere once the image is in local storage.
+Lives in the **`overthinkos/fedora`** repo (git submodule at **`image/fedora`**).
+Its `fedora` base comes from the main repo's `base.yml`, reached as `ov.fedora`
+via the submodule's `import:` of the main repo under the `ov` namespace; its
+layers (incl. the `nvidia` layer) are pulled by github reference. Build from the
+submodule: `ov -C image/fedora image build fedora-ov`. Deploy-mode verbs work
+from anywhere once the image is in local storage.
 
 ## Image Properties
 
@@ -88,8 +87,8 @@ Full ov toolchain via shared layers:
 ## Lifecycle
 
 ```bash
-# Build (from the overthinkos/fedora submodule; disabled image)
-ov -C image/fedora image build fedora-ov --include-disabled
+# Build (from the overthinkos/fedora submodule)
+ov -C image/fedora image build fedora-ov
 
 # Interactive shell (as uid=1000)
 ov shell fedora-ov

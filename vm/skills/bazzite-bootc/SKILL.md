@@ -30,8 +30,8 @@ Bazzite's full image definition carries a NVIDIA + CUDA + Kubernetes + Docker st
 ## Build + run
 
 ```bash
-# Built from the bootc submodule; the image ships enabled:false.
-ov -C image/bootc image build bazzite --include-disabled
+# Built from the bootc submodule.
+ov -C image/bootc image build bazzite
 ov -C image/bootc vm build bazzite-bootc --transport containers-storage
 ov -C image/bootc vm create bazzite-bootc --ram 16G --cpus 6
 ov -C image/bootc vm start bazzite-bootc

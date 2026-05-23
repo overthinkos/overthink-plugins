@@ -24,7 +24,7 @@ my-image:
 
 ## Used In Images
 
-- `/ov-distros:bazzite` (disabled)
+- `/ov-distros:bazzite`
 
 ## Related Layers
 - `/ov-coder:devops-tools` — common companion bundle in observability images

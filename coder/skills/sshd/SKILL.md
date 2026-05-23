@@ -83,7 +83,7 @@ my-image:
 ## Used In Images
 
 - Part of the `bootc-base` composition layer (used in bootc images)
-- `/ov-distros:aurora` (disabled)
+- `/ov-distros:aurora`
 - `/ov-selkies:selkies-desktop-bootc` (via bootc-base) — worked example exercising the dual-mode sudo test below
 
 ## Testing Notes

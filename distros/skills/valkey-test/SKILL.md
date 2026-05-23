@@ -31,7 +31,7 @@ Used for testing the Valkey layer (Redis-compatible fork). Runs as a supervisord
 
 ## Related Images
 - `/ov-distros:fedora` — parent base image
-- `/ov-distros:fedora-test` — sibling test image (also disabled)
+- `/ov-distros:fedora-test` — sibling test image
 
 ## Related Commands
 - `/ov-build:build` — build the valkey-test image

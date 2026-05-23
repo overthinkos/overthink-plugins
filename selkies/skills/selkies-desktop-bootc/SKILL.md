@@ -24,7 +24,7 @@ Bootable container image: Fedora 43 bootc + Selkies browser-streamed desktop + T
 | Platforms | linux/amd64 |
 | Ports (host → container) | 13000 → 3000, 19222 → 9222, 19224 → 9224 |
 | VM entity / ssh_port | `selkies-desktop-bootc-bootc` / host 2250 → VM:22 |
-| Status | **disabled** (build with `--include-disabled`) — canonical worked example + R10 build target for the bootc submodule |
+| Status | enabled — canonical worked example + R10 build target for the bootc submodule |
 | Registry | ghcr.io/overthinkos |
 
 ## VM Configuration
@@ -65,8 +65,8 @@ Host ports are intentionally shifted into 13xxx/19xxx so the VM can run **alongs
 ## Quick Start
 
 ```bash
-# 1. Build the image (from the bootc submodule; disabled by default).
-ov -C image/bootc image build selkies-desktop-bootc --include-disabled
+# 1. Build the image (from the bootc submodule).
+ov -C image/bootc image build selkies-desktop-bootc
 
 # 2. Refresh rootful podman storage (ov vm build uses sudo podman).
 podman save ghcr.io/overthinkos/selkies-desktop-bootc:latest -o /tmp/sdb.tar
