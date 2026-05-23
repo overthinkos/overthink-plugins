@@ -38,8 +38,8 @@ ov image build --cache registry [image...]         # Registry cache (read+write)
 ov image build --cache image [image...]           # Image cache (read-only, default)
 ov image build --cache gha [image...]             # GitHub Actions cache
 ov image build --no-cache [image...]              # Disable cache entirely
-ov image build --jobs N [image...]                # Max concurrent images per DAG level (default: 4)
-ov image build --podman-jobs N [image...]         # Max concurrent stages within a single podman build (default: min(NCPU, 4))
+ov image build --jobs N [image...]                # Max concurrent images per DAG level (0=auto from defaults.jobs, else 4)
+ov image build --podman-jobs N [image...]         # Max concurrent stages within a single podman build (0=auto: min(NCPU, defaults.podman_jobs_cap))
 ov image build <image> --include-disabled         # Build an `enabled: false` image without flipping authored config
 ```
 
@@ -147,34 +147,65 @@ cat .build/my-image/Containerfile    # Inspect generated output
 
 ov exposes **two** parallelism knobs with distinct meanings:
 
-| Flag | Env var | Default | What it controls |
+| Flag | Env var | `defaults:` key | What it controls |
 |---|---|---|---|
-| `--jobs N` | `OV_BUILD_JOBS` | `4` | **Outer** concurrency: how many ov-level images to build in parallel within a DAG level (e.g., when `ov image build` rebuilds the whole graph). |
-| `--podman-jobs N` | `OV_PODMAN_JOBS` | auto = `min(NCPU, 4)` | **Inner** concurrency: passed to `podman build --jobs N`, controls how many stages of a *single* multi-stage build run concurrently. |
+| `--jobs N` | `OV_BUILD_JOBS` | `jobs` | **Outer** concurrency: how many ov-level images to build in parallel within a DAG level (e.g., when `ov image build` rebuilds the whole graph). |
+| `--podman-jobs N` | `OV_PODMAN_JOBS` | `podman_jobs` (+ `podman_jobs_cap`) | **Inner** concurrency: passed to `podman build --jobs N`, controls how many stages of a *single* multi-stage build run concurrently. |
 
-The inner default is **capped at 4** because podman-5.7.x races under high
-concurrency in its blob-reuse code path (`storage_dest.go:TryReusingBlobWithOptions`
-and `queueOrCommit`). Observed reproducibly on `selkies-desktop` (29-stage
-DAG) with `--jobs runtime.NumCPU()` (16 on a 16-core host) and `--cache-from`:
-podman SIGABRTs with a core dump in the middle of the blob-reuse path. The cap
-narrows the race window enough that the bug has not been observed to fire in
-practice. Core dumps are captured by `systemd-coredump` at
-`/var/lib/systemd/coredump/core.podman.*.zst` — inspect with `coredumpctl info`
-to confirm which build was faulting.
+Both knobs are **config-driven**: precedence is **CLI flag → env → `defaults:`
+in `overthink.yml` → built-in fallback** (4). The inner auto value (when
+`--podman-jobs` / `OV_PODMAN_JOBS` / `defaults.podman_jobs` are all unset) is
+CPU-proportional, capped at `defaults.podman_jobs_cap`: `min(NCPU, cap)`. The
+cap is the operative ceiling; the repo ships `podman_jobs_cap: 8`. (A
+high-concurrency `--cache-from` SIGABRT race in podman ≤ 5.7.x originally
+motivated a hard cap of 4 — see `CHANGELOG.md` for that history and the 20-run
+race gate required before raising the cap on a new podman version.)
 
-Override the cap if your podman version is known-good (upstream upgrades
-may eventually fix it):
+```yaml
+# overthink.yml — defaults: block
+defaults:
+  jobs: 4              # outer: images per DAG level
+  podman_jobs: 0       # inner: 0 = auto = min(NCPU, podman_jobs_cap)
+  podman_jobs_cap: 8   # ceiling for the auto calc
+```
 
 ```bash
-ov image build <image> --podman-jobs 16             # fully parallel stages
+ov image build <image> --podman-jobs 16             # fully parallel stages (override)
 OV_PODMAN_JOBS=8 ov update <image> --build    # via env
 ov image build <image> --podman-jobs 1              # fully serialised, worst-case debugging
 ```
 
-Source: `ov/build.go:resolvePodmanJobs` + `podmanJobsDefault`. Covered by
-`ov/build_jobs_test.go` (12 unit + integration cases). The outer `--jobs` knob
-lives on the `BuildCmd` struct; the inner `--podman-jobs` was added as a
-separate field so the two semantics don't get conflated.
+Source: `ov/build.go:resolvePodmanJobs(override, cap)` + `podmanJobsCapFallback`
+/ `jobsFallback`; config fill in `BuildCmd.Run`. Covered by
+`ov/build_jobs_test.go`. The outer `--jobs` knob and the inner `--podman-jobs`
+are separate fields so the two semantics don't get conflated.
+
+## Build-context excludes (`defaults.context_ignore`)
+
+`ov image generate` writes BOTH `.containerignore` and `.dockerignore` at the
+project root from a single source: a built-in baseline (`.git`, `bin`, `ov`,
+`*.md`, plus editor/python/node cache-bust globs) **plus** every entry in
+`defaults.context_ignore`. Both files are generated artifacts (gitignored) — do
+not hand-edit them; add excludes to `defaults.context_ignore` instead.
+
+```yaml
+# overthink.yml — defaults: block
+defaults:
+  context_ignore:        # heavy dirs never COPYed by any Containerfile
+    - image
+    - .eval
+    - output
+    - pkg
+    - tests
+```
+
+Why it matters: the build context tar is streamed to the engine on **every**
+build regardless of cache state, so excluding large never-COPYed directories is
+the dominant warm-rebuild win. podman reads `.containerignore`; docker reads
+`.dockerignore` — emitting both keeps the two engines in lockstep. Only add a
+directory you've confirmed no Containerfile COPY/ADDs from (generated
+Containerfiles COPY only from `layers/`, `templates/`, `.build/`). Source:
+`ov/generate.go:writeContextIgnore` + `baselineContextIgnore`.
 
 ## Build Cache
 
@@ -190,6 +221,11 @@ ov image build --cache registry my-image        # Read+write registry cache
 ov image build --cache image my-image          # Read-only from registry image
 OV_BUILD_CACHE=registry ov image build         # Via environment variable
 ```
+
+The default cache mode is also config-driven: precedence is `--cache` →
+`OV_BUILD_CACHE` → `defaults.cache` in `overthink.yml` → auto (`image` for local
+builds, `registry` for `--push`). Set `defaults.cache: image` to make the
+read-only registry cache the project default without per-invocation flags.
 
 ## CalVer-only tagging (no `:latest`)
 

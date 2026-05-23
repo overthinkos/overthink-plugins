@@ -98,7 +98,7 @@ ov: error: post-build merge optimization failed (image is functional but unmerge
 - 0 broken hardlinks (all `Linkname` targets present in their own layer)
 - 0 cross-layer typeflag conflicts (no path is regular-file in one layer + directory in another)
 
-The trigger appears to be a podman-side overlay-unpack quirk under specific layer-content patterns — multi-stage RPM-installed images that touch `/usr/lib/sysimage/rpm/*` in 6+ source layers consistently reproduce. Possibly related to the known podman-5.7.x blob-reuse race (`storage_dest.go:TryReusingBlobWithOptions`) documented in `/ov-build:build`, but unconfirmed against 5.8.x.
+The trigger appears to be a podman-side overlay-unpack quirk under specific layer-content patterns — multi-stage RPM-installed images that touch `/usr/lib/sysimage/rpm/*` in 6+ source layers consistently reproduce. Possibly related to the known podman-5.7.x blob-reuse race (`storage_dest.go:TryReusingBlobWithOptions`) recorded in `CHANGELOG.md`, but unconfirmed against 5.8.x.
 
 ### Operational impact
 

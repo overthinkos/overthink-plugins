@@ -38,6 +38,27 @@ ov image build fedora
 ov shell fedora
 ```
 
+## dnf download tuning (`distro.fedora.dnf`)
+
+`build.yml` `distro.fedora.dnf` writes dnf download-speed knobs to
+`/etc/dnf/dnf.conf` during the bootstrap, so they apply to the bootstrap install
+AND every per-layer dnf install in this image and its descendants:
+
+```yaml
+# build.yml
+distro:
+  fedora:
+    dnf:
+      max_parallel_downloads: 10   # concurrent package downloads
+      fastestmirror: true          # sort mirrors by measured speed
+```
+
+These are **speed-only** — they never change which packages are selected
+(`install_weak_deps` stays on the bootstrap `install_cmd`'s
+`--setopt=install_weak_deps=False`). The block is a `DnfConfig` on `DistroDef`
+and inherits across distro inheritance like the other sub-blocks. Source:
+`ov/generate.go:renderDnfConfWrite`.
+
 ## Derived Images
 
 - `/ov-distros:fedora-nonfree` — adds RPM Fusion repos

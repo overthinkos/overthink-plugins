@@ -42,6 +42,30 @@ my-image:
 - `/ov-languages:python` -- depends on pixi for Python 3.13 installation
 - `/ov-coder:pre-commit` -- uses pixi for pre-commit installation
 
+## Committed `pixi.lock` → `pixi install --frozen`
+
+Every pixi layer ships a committed `pixi.lock` next to its `pixi.toml`. When a
+lock is present, generation auto-flips the build stage from `pixi install` (a
+full SAT solve over the conda + PyPI indexes on every cache miss) to
+`pixi install --frozen` (install straight from the lock — no solve,
+deterministic, better cache reuse). The flip is automatic via `HasPixiLock`
+detection (`ov/layers.go`) → the `pixi.toml+lock` install command in
+`build.yml`; no per-layer config.
+
+**Regenerate the lock whenever you change `pixi.toml`** — `--frozen` fails the
+build loudly if the lock is stale (no silent skew). Generate with the builder's
+own pixi so the lock format matches what installs it, e.g.:
+
+```bash
+podman run --rm --userns=keep-id \
+  -v "$PWD/layers/<name>:/m" -w /m \
+  ghcr.io/overthinkos/fedora-builder:<calver> \
+  bash -c 'grep -q system-requirements pixi.toml || printf "\n[system-requirements]\nlibc = { family = \"glibc\", version = \"2.39\" }\n" >> pixi.toml; pixi lock'
+```
+
+The `[system-requirements]` glibc fix mirrors what the build stage injects, so
+the committed lock resolves the same manylinux wheels the build installs.
+
 ## When to Use This Skill
 
 Use when the user asks about:
