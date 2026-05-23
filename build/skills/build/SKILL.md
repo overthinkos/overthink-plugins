@@ -207,6 +207,24 @@ directory you've confirmed no Containerfile COPY/ADDs from (generated
 Containerfiles COPY only from `layers/`, `templates/`, `.build/`). Source:
 `ov/generate.go:writeContextIgnore` + `baselineContextIgnore`.
 
+## Image-tag retention (`defaults.keep_images`)
+
+After `ov image build` (push runs excluded), ov prunes old CalVer tags per image
+down to `defaults.keep_images` — keeping the newest N builds per
+`org.overthinkos.image` group, ordered by the `org.overthinkos.version` label.
+Images referenced by a container (`podman ps -a`) are skipped, and `rmi` runs
+without `-f` as a backstop, so a running deploy's image is never removed.
+
+```yaml
+# overthink.yml — defaults:
+defaults:
+  keep_images: 3   # newest CalVer tags to keep per image; 0 (or absent) disables
+```
+
+This stops the iterative-build tag accumulation that otherwise reclaims
+nothing. Run it on demand (and clear a backlog) with `ov clean` — see
+`/ov-core:clean` for the full retention surface (images + eval runs + makepkg).
+
 ## Build Cache
 
 | Mode | Backend | Use Case |

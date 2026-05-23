@@ -51,6 +51,14 @@ tear down), `--no-rebuild` (skip step 6 — FORBIDDEN for an R10 acceptance run;
 needs explicit operator authorization per CLAUDE.md). Per-run logs land in
 `.eval/<bed>/<calver>/` (per-step `.log` files + `summary.yml`).
 
+**Run retention (`defaults.keep_eval_runs`).** After `ov eval run` (any path —
+bed / `--all-beds` / score), `.eval/<bed|score>/` is trimmed to the newest N run
+artifacts (CalVer run dirs, `runs/<id>/` dirs, `result-<calver>.yml`) so harness
+output doesn't accumulate unbounded. `NOTES.md` (the durable Syncthing-replicated
+memory) is ALWAYS preserved. Set `defaults.keep_eval_runs` in `overthink.yml`
+(`0`/absent disables); apply on demand with `ov clean --eval`. See
+`/ov-core:clean`.
+
 ### The repo's `kind: eval` beds (eval.yml)
 
 | Bed | Target | Ref | Surface |

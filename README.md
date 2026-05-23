@@ -27,7 +27,7 @@ manager UI.
 
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
-| **ov-core** | 14 | — | Lifecycle: start, stop, restart, ov-status, logs, shell, ssh, deploy, ov-update, remove, ov-config, cmd, ov-version, ov-doctor. |
+| **ov-core** | 15 | — | Lifecycle: start, stop, restart, ov-status, logs, shell, ssh, deploy, ov-update, remove, ov-config, cmd, ov-version, ov-doctor, clean. |
 | **ov-build** | 12 | — | Build/authoring: build, generate, list, inspect, merge, new, pull, validate, secrets, settings, migrate, ov-mcp-cmd. |
 | **ov-eval** | 12 | — | Live-container evaluation: `eval` orchestrator + cdp, wl, wl-overlay, dbus, vnc, spice, libvirt, record, adb, appium probes + the `eval-sway-browser-vnc-pod` R10 bed. |
 | **ov-automation** | 6 | — | tmux verb, host-side wrappers (alias, udev), topic flags (enc, sidecar, openclaw-deploy). |
