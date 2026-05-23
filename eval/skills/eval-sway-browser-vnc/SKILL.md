@@ -13,8 +13,8 @@ description: |
 live-container test verbs (cdp / wl / vnc / dbus / mcp / record) on the Sway
 stack. It deploys the **shipping `/ov-selkies:sway-browser-vnc` image directly**
 — there is no separate eval image. It sits alongside the other `eval-*` smoke
-beds (`eval-image-pod`, `eval-layer-pod`, `eval-pod-pod`, `eval-deploy-pod`,
-`eval-local`) — all `kind: eval` entities in this repo's `eval.yml`.
+beds (`eval-pod` — the combined image/layer/pod/DeployTarget mechanism bed —
+and `eval-local`) — all `kind: eval` entities in this repo's `eval.yml`.
 
 ## Bed (`eval.yml`)
 

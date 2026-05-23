@@ -65,10 +65,7 @@ memory) is ALWAYS preserved. Set `defaults.keep_eval_runs` in `overthink.yml`
 |---|---|---|---|
 | `eval-sway-browser-vnc-pod` | pod | `image: sway-browser-vnc` | cdp/wl/vnc/dbus/mcp/record + pod-side file/service/port/process/http |
 | `eval-k3s-vm` | vm | `vm: k3s-vm` | k8s (all 13 methods) + guest-side file/service/port/process, http via port-forward, VmDeployTarget end-to-end |
-| `eval-image-pod` | pod | `image: eval-image` | `kind: image` build + eval image + pod deploy |
-| `eval-layer-pod` | pod | `image: eval-layer` | `kind: layer` composition order |
-| `eval-pod-pod` | pod | `image: eval-pod` | `kind: pod` runtime + ports + supervisord render |
-| `eval-deploy-pod` | pod | `image: eval-deploy` | every DeployTarget rendering path |
+| `eval-pod` | pod | `image: eval-pod` | combined mechanism bed: `kind: image` build + `kind: layer` composition order + `kind: pod` runtime (nc :18794 + supervisord) + every DeployTarget rendering path |
 | `eval-local` | local | `local: eval-local` | `kind: local` layer apply via ShellExecutor |
 | `eval-jupyter-pod` | pod | `image: jupyter` | jupyter-mcp regression coverage |
 | `eval-jupyter-ml-pod` | pod | `image: jupyter-ml` | jupyter-ml spacy/quarto + GPU MCP probes |
@@ -76,9 +73,12 @@ memory) is ALWAYS preserved. Set `defaults.keep_eval_runs` in `overthink.yml`
 | `eval-android-emulator-pod` | pod | `image: android-emulator` | Android 14 emulator (/dev/kvm) + adb/appium |
 
 Naming: `eval-<descriptor>-<kind>`, dropping a redundant suffix when the
-descriptor already equals the kind AND the short form is free (`eval-local`;
-the kind:pod bed stays `eval-pod-pod` because `eval-pod` is the reserved
-harness AI-sandbox pod name — the score `pod:` target). The supporting
+descriptor already equals the kind AND the short form is free (`eval-local`,
+`eval-pod`). The harness AI-sandbox pod (the score `pod:` target) is named
+`eval-sandbox`, kept disjoint from these beds. Nothing in the `ov` Go code
+hardcodes that name — it flows from the score's `pod:` field through
+`ResolveScoreTarget`, and prompts reference it via the `${TARGET_NAME}`
+substitution token. The supporting
 `vm: k3s-vm` + `k8s: vm-k3s-vm` entities live in `eval.yml` alongside the
 beds. `disposable: true` is the sole authorization
 for the unattended destroy+rebuild (see `/ov-internals:disposable`); load-time
@@ -87,8 +87,8 @@ cross-ref, `disposable: true`, and a name space disjoint from `kind: deploy`.
 
 ### Approximate wall-clock (10-CPU 32-GB reference host)
 
-`eval-image-pod` ~75s · `eval-layer-pod` ~105s · `eval-pod-pod` ~85s ·
-`eval-deploy-pod` ~85s · `eval-local` ~45s · `eval-k3s-vm` ~5–7 min · the
+`eval-pod` ~110s (one build → deploy → eval → fresh-update → teardown cycle
+covering all four mechanisms) · `eval-local` ~45s · `eval-k3s-vm` ~5–7 min · the
 heavy feature beds (`eval-sway-browser-vnc-pod` ~14 min incl. image build)
 longer. `ov eval run --all-beds` ≈ the sum.
 
@@ -1072,7 +1072,7 @@ ports.
 
 `ov eval run default` is a multi-phase AI-iteration loop. Representative
 per-phase durations (measured solving all 92/92 across 9 iterations on a
-`disposable: true` eval-pod):
+`disposable: true` eval-sandbox):
 
 | Phase | Recipe | Typical iter1 duration | Notes |
 |---|---|---|---|
@@ -1112,7 +1112,7 @@ deadlocks waiting on claude.
 The harness defends against this pattern between iterations: at every
 iter end (in `eval_loop.go`'s `commitIterationBestEffort`), the
 orchestrator runs
-`podman exec ov-eval-pod pkill -f "while true.*sleep [0-9]+"` to
+`podman exec ov-eval-sandbox pkill -f "while true.*sleep [0-9]+"` to
 clean up orphaned keepalive bashes left dangling by the AI's
 `TaskOutput`-timeout pattern, and logs the kill count.
 
