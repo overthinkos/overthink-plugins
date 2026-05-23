@@ -23,7 +23,7 @@ libvirt VMs, drive the OpenClaw gateway on :18789, and hit a local Ollama on
 
 ```yaml
 openclaw-desktop:
-  base: cachyos                # Arch-derived, pacman/AUR, x86_64_v3
+  base: cachyos.cachyos        # Arch-derived, pacman/AUR, x86_64_v3 (via the `cachyos` import namespace)
   build: [pac, aur]            # required — selkies' chrome (AUR google-chrome) + wl-tools (AUR wlrctl)
   layer:
     - agent-forwarding
@@ -51,7 +51,8 @@ default `ov` bridge network. Rootless is the whole design.
 
 ## Base — CachyOS, CPU
 
-`base: cachyos` (`/ov-distros:cachyos`) is the Arch-derived `x86_64_v3` base. The
+`base: cachyos.cachyos` (`/ov-distros:cachyos`, reached via the `cachyos` import
+namespace) is the Arch-derived `x86_64_v3` base. The
 image is **CPU-only** — there is no `nvidia`/`cuda` layer. Ollama auto-detects
 the absence of a GPU and runs CPU inference; selkies streams via the CPU x264
 encoder. `build: [pac, aur]` is mandatory (not inherited): selkies' `chrome`

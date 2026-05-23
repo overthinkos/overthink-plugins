@@ -14,15 +14,37 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 
 ### Unified YAML loader (`LoadUnified`)
 
-The unified format's entry point is `LoadUnified(dir)` at `ov/unified.go`. It reads `<dir>/overthink.yml`, recursively resolves `include:` (max depth 8, cycle-safe via visited set), parses every file as a **YAML multi-document stream** (so bundle files with `---` separators work), and routes each document by shape:
+The unified format's entry point is `LoadUnified(dir)` at `ov/unified.go`. It reads `<dir>/overthink.yml`, recursively resolves the `import:` statement (max depth 8, cycle-safe via visited set), parses every file as a **YAML multi-document stream** (so bundle files with `---` separators work), and routes each document by shape:
 
-- **Root-shape doc** — has any of `version:`, `include:`, `discover:`, `defaults:`, `distro:`, `builder:`, `init:`, `image:`, `layer:`, `deploy:` → parsed as `UnifiedFile`, merged root-wins.
+- **Root-shape doc** — has any of `version:`, `import:`, `discover:`, `defaults:`, `distro:`, `builder:`, `init:`, `image:`, `layer:`, `deploy:` → parsed as `UnifiedFile`, merged root-wins.
 - **Kind-keyed doc** — has exactly one of `layer:`, `image:`, `deploy:`, `builder:`, `distro:`, `init:` + a `name:` inside → registered under `name:` in the matching map.
 - **Ambiguous** (both root and kind keys) → loader error with file + doc-index.
 
 `UnifiedFile.ApplyDiscover(rootDir)` walks `discover:` roots after initial merge — generic over six entity kinds via a single `applyScanSpecsKindKeyed` + `applyScanSpecsLayers` pair. Explicit map entries always win over discovered entries.
 
 Projections to today's concrete types: `ProjectConfig()` → `*Config`, `ProjectDistroConfig()` → `*DistroConfig`, etc. Existing `LoadConfig` / `LoadBuildConfigForImage` / `LoadDeployConfig` continue to work unchanged — migration to the unified entry point is incremental.
+
+### import-namespace loader (`UnifiedFile.Import` + `Namespaces`)
+
+`UnifiedFile.Import` (type `ImportList`, YAML tag `import`) is the single composition statement. Its custom `UnmarshalYAML` accepts a mixed-shape sequence: a scalar item → `ImportEntry{Ref: …}` (flat, `Namespace == ""`); a single-key mapping item → `ImportEntry{Namespace: alias, Ref: …}` (namespaced). A matching `MarshalYAML` round-trips both shapes (migrators rely on it). `validateNamespaceAlias` enforces a bare lowercase-hyphenated alias (no dots).
+
+`loadUnifiedInto` processes the queue:
+
+- **Flat entries** are loaded and root-merged into the importing `UnifiedFile` (same root-wins merge that drives same-repo file splits + shared `build.yml`).
+- **Namespaced entries** call `loadNamespaceCached(ref, base, nsCache)`, which loads the target as a fully-resolved, **isolated** `UnifiedFile` (its own flat imports + its own namespaced imports, with a FRESH `visited` set for its file-cycle detection) and mounts it under `merged.Namespaces[alias]`. These entries are NOT flat-merged into the root maps — they are referenced qualified.
+
+`UnifiedFile.Namespaces` (`map[string]*UnifiedFile`, YAML tag `-`, never authored directly) holds the mounted children; `projectConfigCached` projects it to `Config.Namespaces` (`map[string]*Config`). The shared `nsCache` is the **cycle-break**: `loadNamespaceCached` records an in-progress node in `nsCache[key]` BEFORE recursing, so the intentional main ↔ cachyos mutual import (main imports `cachyos`; cachyos imports `ov`, i.e. main) terminates instead of looping. `canonicalRef` keys the cache; a whole-repo ref with an empty sub-path resolves to that repo's `overthink.yml`.
+
+### Namespace resolver (`ov/namespace.go`)
+
+The resolver implements Go-package-member semantics over `Config.Namespaces`:
+
+- `splitNamespaceRef(ref)` — splits a qualified ref on its FIRST `.` into `(ns, rest)`; a bare ref returns `ok=false`; the remainder may itself be qualified (`a.b.c` → `"a"`, `"b.c"`).
+- `resolveImageRef(ref)` / `resolveLocalRef(ref)` — bare names resolve in the current `Config`; `ns.name` descends into `c.Namespaces[ns]` recursively, returning the entry plus the `Config` (namespace context) it lives in.
+- `resolveNamespacedBases(out, …)` — after the local image set resolves, pulls every namespace-qualified `base:` (and qualified `builder:` ref, but only for images that actually have layers to build) into `out`, keyed by fully-qualified name, iterating to a fixpoint (a pulled-in image may reference a deeper namespaced base).
+- `pullNamespacedImage(from, ref, keyPrefix, …)` — descends the namespace chain to the leaf, re-keys the entry's own internal base to the fully-qualified ancestor so the build graph references it correctly, and recurses to pull that ancestor.
+
+The inheritance rule lives here: `distro:`/`build:` are VALUES → inherited across a namespace boundary; `builder:` is a map of namespace-relative REFS → NOT inherited (the consumer declares its own). See the file header comment for the rationale (avoid leaking a base-namespace-relative ref into a consumer where that namespace doesn't exist).
 
 ### Capabilities — `ImageMetadata` alias + label completeness check
 

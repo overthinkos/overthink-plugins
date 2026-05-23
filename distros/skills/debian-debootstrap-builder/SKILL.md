@@ -32,8 +32,8 @@ The `debootstrap-builder` layer (debootstrap + arch-install-scripts equivalents,
 grub, parted) **stays in the main repo** and is shared with
 `/ov-distros:ubuntu-debootstrap-builder` — both pull it by github reference. The
 `debian` distro config (debootstrap suite/mirror/base packages, bootloader
-template) lives in the main repo's `build.yml` and is remote-included by the
-submodule.
+template) lives in the main repo's `build.yml` and is flat-imported by the
+submodule (a bare-string `import:` item).
 
 ## Cross-References
 

@@ -10,10 +10,11 @@ description: |
 
 Builder image with package managers and compilation tools. Default builder for pixi, npm, and cargo multi-stage builds (declared via `builds: [pixi, npm, cargo]`).
 
-**Defined in `fedora-base.yml`.** Lives in the main repo's `fedora-base.yml`
+**Defined in `base.yml`.** Lives in the main repo's combined `base.yml`
 (single source of truth), alongside `/ov-distros:fedora` +
-`/ov-distros:fedora-nonfree`, and is remote-included by the `overthinkos/fedora`
-submodule. Its `rpmfusion`/`pixi`/`nodejs`/`build-toolchain` layers are pinned as
+`/ov-distros:fedora-nonfree`, and is imported under the `ov` namespace by the
+`overthinkos/fedora` submodule (referenced as `ov.fedora-builder`). Its
+`rpmfusion`/`pixi`/`nodejs`/`build-toolchain` layers are pinned as
 github refs (`@github.com/overthinkos/overthink/layers/<name>:<tag>`) so the same
 definition resolves in both main and the submodule. Build with
 `ov image build fedora-builder` from main.

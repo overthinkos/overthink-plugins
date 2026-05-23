@@ -32,7 +32,7 @@ The `debootstrap-builder` layer **stays in the main repo** and is shared with
 `/ov-distros:debian-debootstrap-builder` — both pull it by github reference. The
 `ubuntu` distro config (`inherits: debian`; debootstrap suite `noble`, mirror
 `http://archive.ubuntu.com/ubuntu`, base packages) lives in the main repo's
-`build.yml` and is remote-included by the submodule.
+`build.yml` and is flat-imported by the submodule (a bare-string `import:` item).
 
 ## Cross-References
 

@@ -24,14 +24,14 @@ MCP-server identity reflect that upstream software identity.
 
 | Property | Value |
 |----------|-------|
-| Base | `cachyos` — owned by the **`overthinkos/cachyos`** submodule (`image/cachyos`); main pulls it back via a remote `include:` of `cachyos-base.yml` (the deliberate main → cachyos coupling). CUDA 13 / cuDNN / python-onnxruntime-cpu via CachyOS `extra` repo |
+| Base | `cachyos.cachyos` — owned by the **`overthinkos/cachyos`** submodule (`image/cachyos`); main reaches it via the `cachyos` import namespace (the deliberate main → cachyos coupling). CUDA 13 / cuDNN / python-onnxruntime-cpu via CachyOS `extra` repo |
 | Platforms | `linux/amd64` only (cuDF + cu130 torch are amd64-only) |
 | Layers | 19 (see "Layer stack" below) |
 | Ports | 7 (see "Ports + host mappings") |
 | MCP servers | 1 (marimo @ container 2718). No airflow MCP wrapper — no Airflow-3 / `/api/v2` release of the upstream package exists; consumers drive Airflow via direct REST `/api/v2/` calls |
 | Registry | `ghcr.io/overthinkos` |
 | Image tag pattern | CalVer (`YYYY.DDD.HHMM`) |
-| Builder | `arch-builder` (pixi/npm/cargo/aur) — **inherited** from the cachyos base's `builder:` map (declared in `cachyos-base.yml`); versa carries no per-image override. See `/ov-distros:cachyos`. |
+| Builder | `arch-builder` (pixi/npm/cargo/aur) — declared as versa's OWN explicit `builder:` map. The cachyos base is reached via the `cachyos` import namespace, and a `builder:` map does NOT cross a namespace boundary; `arch-builder` is a name local to main's `base.yml`, so the bare ref resolves in the root namespace. See `/ov-distros:cachyos`. |
 
 ## Layer stack (composition order)
 

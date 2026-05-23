@@ -16,8 +16,9 @@ description: |
 > **`overthinkos/arch`** repo, mounted as a git submodule at **`image/arch`**.
 > It composes the layers below by **git reference** to this repo
 > (`@github.com/overthinkos/overthink/layers/<name>:<tag>`) rather than copying
-> them; the `arch` base + `arch-builder` live in this repo and are pulled into
-> the submodule via a remote `include:` of `arch-base.yml`. Build / deploy from
+> them; the `arch` base + `arch-builder` live in this repo (in `base.yml`) and
+> are reached by the submodule importing this repo under the `ov` namespace
+> (`base: ov.arch`, `builder: {…: ov.arch-builder}`). Build / deploy from
 > the submodule, e.g. `cd image/arch && ov image build arch-coder` (the build
 > verb defaults to the submodule's `overthink.yml`), or
 > `ov --repo overthinkos/arch image build arch-coder`. The commands below assume
@@ -29,7 +30,7 @@ Arch Linux counterpart of `/ov-coder:fedora-coder`. Same daily-development surfa
 
 ```yaml
 arch-coder:
-  base: arch
+  base: ov.arch                  # via the `ov` import namespace
   ports:
     - "2222:2222"                 # sshd-wrapper
     - "18765:18765"               # ov-mcp (Streamable HTTP)

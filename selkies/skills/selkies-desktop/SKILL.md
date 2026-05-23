@@ -6,7 +6,7 @@ Browser-accessible Wayland desktop streamed via Selkies/pixelflux WebSocket at `
 
 ```yaml
 selkies-desktop:
-  base: cachyos
+  base: cachyos.cachyos       # via the `cachyos` import namespace
   build: [pac, aur]          # aur required: chrome (google-chrome) + wl-tools (wlrctl)
   layers:
     - agent-forwarding
@@ -25,13 +25,15 @@ Tunnel config is in `deploy.yml` (not image.yml): `tunnel: {provider: tailscale,
 
 ## Base
 
-`cachyos` — the Arch-derived, x86_64_v3-optimized base (owned by the
-`overthinkos/cachyos` submodule, remote-included in `overthink.yml`).
+`cachyos.cachyos` — the Arch-derived, x86_64_v3-optimized base (owned by the
+`overthinkos/cachyos` submodule, mounted under main's `cachyos` import namespace).
 Multimedia codecs (ffmpeg, x264, libva) come from Arch's `extra` repo; Chrome
 installs from the AUR (`google-chrome`). The image declares `build: [pac, aur]`
-so the AUR builder (`arch-builder`, inherited via the cachyos `builder:` map)
-compiles `google-chrome` (chrome layer) and `wlrctl` (wl-tools layer); inheriting
-plain `[pac]` would silently skip both. The GPU sibling
+so the AUR builder compiles `google-chrome` (chrome layer) and `wlrctl`
+(wl-tools layer); inheriting plain `[pac]` would silently skip both. Because a
+`builder:` map does NOT cross a namespace boundary, the image declares its OWN
+`builder:` map (pixi/npm/cargo/aur → `arch-builder`, a name local to main's
+`base.yml`) rather than inheriting one from the cachyos base. The GPU sibling
 (`selkies-desktop-nvidia`) remains on the Fedora `nvidia`
 base — the shared `selkies-desktop` metalayer carries both `fedora:` and `arch:`
 package sections, and the generator picks per the image's `distro:` tags.

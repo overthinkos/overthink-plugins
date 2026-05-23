@@ -16,8 +16,9 @@ Fedora-specific packages and scripts via `rpm:` sections. Supports
 nested containers at any depth via `/ov-distros:container-nesting`.
 
 Lives in the **`overthinkos/fedora`** repo (git submodule at **`image/fedora`**),
-`enabled: false`. Its `fedora` base is remote-included from the main repo's
-`fedora-base.yml`; its layers (incl. the `nvidia` layer) are pulled by github
+`enabled: false`. Its `fedora` base comes from the main repo's `base.yml`,
+reached as `ov.fedora` via the submodule's `import:` of the main repo under the
+`ov` namespace; its layers (incl. the `nvidia` layer) are pulled by github
 reference. Build from the submodule:
 `ov -C image/fedora image build fedora-ov --include-disabled`. Deploy-mode verbs
 work from anywhere once the image is in local storage.

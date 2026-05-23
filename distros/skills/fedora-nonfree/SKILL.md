@@ -10,10 +10,11 @@ description: |
 
 Fedora base with RPM Fusion free and non-free repositories enabled.
 
-**Defined in `fedora-base.yml`.** Lives in the main repo's `fedora-base.yml`
+**Defined in `base.yml`.** Lives in the main repo's combined `base.yml`
 (single source of truth), alongside `/ov-distros:fedora` +
-`/ov-distros:fedora-builder`, and is remote-included by the `overthinkos/fedora`
-submodule. It lives in main because in-main consumers (`/ov-immich:immich`,
+`/ov-distros:fedora-builder`, and is imported under the `ov` namespace by the
+`overthinkos/fedora` submodule (referenced as `ov.fedora-nonfree`). It lives in
+main because in-main consumers (`/ov-immich:immich`,
 `/ov-distros:nvidia`, `/ov-selkies:selkies-desktop`) base on it. Its `rpmfusion`
 layer is pinned as a github ref so the same definition resolves in both main and
 the submodule.

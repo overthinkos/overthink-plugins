@@ -31,10 +31,12 @@ ov shell arch
 ## Derived Images
 
 `arch` (this base) and `/ov-distros:arch-builder` **live in this
-repo**. The consumer Arch images live in the **`overthinkos/arch`** repo (git
-submodule at **`image/arch`**), where they compose this repo's layers by git
-reference and pull `arch` / `arch-builder` via a remote `include:` of
-`arch-base.yml`:
+repo** (in the combined `base.yml`). The consumer Arch images live in the
+**`overthinkos/arch`** repo (git submodule at **`image/arch`**), which is a
+single `overthink.yml` (all per-kind entries inlined). It composes this repo's
+layers by git reference and reaches `arch` / `arch-builder` by importing the
+main repo under the `ov` namespace (`import: [{ov: ../..}]`), so its images
+write `base: ov.arch` and route builders to `ov.arch-builder`:
 
 - `/ov-distros:arch-builder` — adds pixi, nodejs, build-toolchain, yay (in this repo)
 - `/ov-coder:arch-coder` — kitchen-sink dev image (in `image/arch`)

@@ -3,8 +3,8 @@ name: cachyos
 description: |
   CachyOS bootstrap VM (kind:vm cachyos-vm) — source.kind: bootstrap via
   cachyos-pacstrap-builder + pacstrap, btrfs rootfs, uefi-insecure. Plus the
-  disposable cachyos-vm-deploy bed. Lives in the overthinkos/cachyos submodule.
-  MUST be invoked before editing cachyos-vm or its deploy bed.
+  disposable cachyos-vm-deploy kind:eval bed. Lives in the overthinkos/cachyos submodule.
+  MUST be invoked before editing cachyos-vm or its eval bed.
 ---
 
 # cachyos (VM)
@@ -13,10 +13,12 @@ description: |
 `pacstrap` (using `/ov-distros:cachyos-pacstrap-builder`), then boots it under
 libvirt/QEMU.
 
-The `cachyos-vm` entity and its `cachyos-vm-deploy` bed live in the
-**`overthinkos/cachyos`** repo (git submodule at **`image/cachyos`**), in that
-repo's `vm.yml` / `deploy.yml`. Drive them from the submodule:
-`ov -C image/cachyos vm build cachyos-vm` +
+The `cachyos-vm` entity and its `cachyos-vm-deploy` disposable test bed live in
+the **`overthinkos/cachyos`** repo (git submodule at **`image/cachyos`**),
+inlined in that repo's single `overthink.yml`. The bed is a `kind: eval` entity
+(the 2026-05 deploy→eval unification moved repo-shipped disposable beds out of
+`deploy.yml`), driven by `ov eval run cachyos-vm-deploy`. Drive the VM lifecycle
+from the submodule: `ov -C image/cachyos vm build cachyos-vm` +
 `ov -C image/cachyos vm create cachyos-vm` (or `ov --repo overthinkos/cachyos …`).
 
 ## VM Configuration (from image/cachyos/vm.yml)
@@ -32,12 +34,16 @@ repo's `vm.yml` / `deploy.yml`. Drive them from the submodule:
 | SSH | user `cachy`, port 12226, key_source generate |
 
 The `cachyos` distro config (base packages, keyring, mirrors, repos) comes from
-the main repo's `build.yml`, remote-included by the submodule.
+the main repo's `build.yml`, flat-imported by the submodule (a bare-string
+`import:` item).
 
-## Deploy bed
+## Eval bed
 
-`cachyos-vm-deploy` (`target: vm`, `vm: cachyos-vm`) carries `disposable: true`,
-so `ov -C image/cachyos update cachyos-vm-deploy` rebuilds it unattended.
+`cachyos-vm-deploy` is a `kind: eval` bed (`target: vm`, `vm: cachyos-vm`) that
+carries `disposable: true`, so `ov -C image/cachyos eval run cachyos-vm-deploy`
+runs the full R10 sequence unattended (the equivalent `ov update
+cachyos-vm-deploy` rebuild also works, since the eval bed is folded into the
+Deploy map).
 
 ## pacstrap path
 
@@ -63,5 +69,5 @@ remains the faster path when you don't need a VM disk.
 
 ## When to Use This Skill
 
-**MUST be invoked** when editing `cachyos-vm` or its deploy bed, or authoring a
+**MUST be invoked** when editing `cachyos-vm` or its eval bed, or authoring a
 CachyOS VM. Invoke BEFORE reading source code or launching Explore agents.

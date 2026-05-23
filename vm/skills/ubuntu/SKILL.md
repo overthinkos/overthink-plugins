@@ -3,8 +3,8 @@ name: ubuntu
 description: |
   Ubuntu bootstrap VM (kind:vm ubuntu-debootstrap) — source.kind: bootstrap via
   ubuntu-debootstrap-builder + debootstrap, ext4 rootfs, uefi-insecure. Plus the
-  disposable ubuntu-debootstrap-vm bed. Lives in the overthinkos/ubuntu submodule.
-  MUST be invoked before editing ubuntu-debootstrap or its deploy bed.
+  disposable ubuntu-debootstrap-vm kind:eval bed. Lives in the overthinkos/ubuntu submodule.
+  MUST be invoked before editing ubuntu-debootstrap or its eval bed.
 ---
 
 # ubuntu (VM)
@@ -13,9 +13,12 @@ description: |
 `debootstrap` (using `/ov-distros:ubuntu-debootstrap-builder`), then boots it
 under libvirt/QEMU.
 
-The `ubuntu-debootstrap` VM entity and its `ubuntu-debootstrap-vm` bed live in
-the **`overthinkos/ubuntu`** repo (git submodule at **`image/ubuntu`**), in that
-repo's `vm.yml` / `deploy.yml`. Drive them from the submodule:
+The `ubuntu-debootstrap` VM entity and its `ubuntu-debootstrap-vm` disposable
+test bed live in the **`overthinkos/ubuntu`** repo (git submodule at
+**`image/ubuntu`**), inlined in that repo's single `overthink.yml`. The bed is a
+`kind: eval` entity (the 2026-05 deploy→eval unification moved repo-shipped
+disposable beds out of `deploy.yml`), driven by `ov eval run
+ubuntu-debootstrap-vm`. Drive the VM lifecycle from the submodule:
 `ov -C image/ubuntu vm build ubuntu-debootstrap` +
 `ov -C image/ubuntu vm create ubuntu-debootstrap` (or
 `ov --repo overthinkos/ubuntu …`).
@@ -33,15 +36,18 @@ repo's `vm.yml` / `deploy.yml`. Drive them from the submodule:
 | SSH | user `ubuntu`, port 12228, key_source generate |
 
 The `ubuntu` distro config (`inherits: debian`; debootstrap suite `noble`,
-mirror, base packages) comes from the main repo's `build.yml`, remote-included
-by the submodule. The single remote `build.yml` carries BOTH distro configs, so
-`inherits: debian` resolves without referencing `overthinkos/debian`.
+mirror, base packages) comes from the main repo's `build.yml`, flat-imported
+by the submodule (a bare-string `import:` item). The single imported `build.yml`
+carries BOTH distro configs, so `inherits: debian` resolves without referencing
+`overthinkos/debian`.
 
-## Deploy bed
+## Eval bed
 
-`ubuntu-debootstrap-vm` (`target: vm`, `vm: ubuntu-debootstrap`) carries
-`disposable: true`, so `ov -C image/ubuntu update ubuntu-debootstrap-vm`
-rebuilds it unattended.
+`ubuntu-debootstrap-vm` is a `kind: eval` bed (`target: vm`,
+`vm: ubuntu-debootstrap`) that carries `disposable: true`, so
+`ov -C image/ubuntu eval run ubuntu-debootstrap-vm` runs the full R10 sequence
+unattended (the equivalent `ov update ubuntu-debootstrap-vm` rebuild also works,
+since the eval bed is folded into the Deploy map).
 
 ## debootstrap path
 
@@ -63,5 +69,5 @@ don't need a VM disk.
 
 ## When to Use This Skill
 
-**MUST be invoked** when editing `ubuntu-debootstrap` or its deploy bed, or
+**MUST be invoked** when editing `ubuntu-debootstrap` or its eval bed, or
 authoring an Ubuntu VM. Invoke BEFORE reading source code or launching Explore agents.

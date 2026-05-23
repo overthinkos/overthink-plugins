@@ -4,7 +4,7 @@ description: |
   kind:vm entity pairing with the /ov-distros:bazzite bootc container image.
   source.kind: bootc. Thin pointer skill — composition + layer stack authority
   lives in /ov-distros:bazzite. This skill documents only the VM-specific fields.
-  MUST be invoked before editing bazzite-bootc in vm.yml.
+  MUST be invoked before editing bazzite-bootc in image/bootc/overthink.yml.
 ---
 
 # bazzite-bootc
@@ -13,7 +13,7 @@ description: |
 
 **Composition authority: `/ov-distros:bazzite`.** Layer stack, NVIDIA/CUDA wiring, Kubernetes/Docker tools, desktop apps, OCI labels all live there. This skill is a pointer.
 
-## VmSpec (from image/bootc/vm.yml)
+## VmSpec (from image/bootc/overthink.yml)
 
 ```yaml
 vm:

@@ -551,11 +551,48 @@ images:
 
 ## Cross-kind name reuse
 
-The `image:` map's namespace is independent of `layers/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`ov image set`, `ov image new image`, `ov image add-layer`, `ov image rm-layer`, `ov image new project`) write exclusively to `overthink.yml` — per-kind `image.yml` is reachable only via `include:` from `overthink.yml`, never as a default authoring target. Missing `overthink.yml` → hard error pointing at `ov image new project .` or `ov migrate`. See CLAUDE.md "Cross-kind name reuse".
+The `image:` map's namespace is independent of `layers/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`ov image set`, `ov image new image`, `ov image add-layer`, `ov image rm-layer`, `ov image new project`) write exclusively to `overthink.yml` — per-kind `image.yml` is reachable only via the `import:` statement from `overthink.yml`, never as a default authoring target. Missing `overthink.yml` → hard error pointing at `ov image new project .` or `ov migrate`. See CLAUDE.md "Cross-kind name reuse".
 
 ### Per-kind file convention
 
-`overthink.yml` SHOULD use `include:` to pull in sibling per-kind files: `image.yml` (kind:image entries), `pod.yml` (kind:pod), `vm.yml` (kind:vm), `k8s.yml` (kind:k8s), `local.yml` (kind:local), `deploy.yml` (kind:deploy). Filename and kind name match exactly — `kind: deploy` lives in `deploy.yml`. Inline maps inside `overthink.yml` remain valid (it's still a single canonical authoring target), but per-kind sibling files are the recommended layout. Migration of legacy configs: `ov migrate` (idempotent). See `/ov-build:migrate`.
+`overthink.yml` SHOULD use the `import:` statement to pull in sibling per-kind files: `image.yml` (kind:image entries), `pod.yml` (kind:pod), `vm.yml` (kind:vm), `k8s.yml` (kind:k8s), `local.yml` (kind:local), `deploy.yml` (kind:deploy). Filename and kind name match exactly — `kind: deploy` lives in `deploy.yml`. Inline maps inside `overthink.yml` remain valid (it's still a single canonical authoring target), but per-kind sibling files are the recommended layout. Migration of legacy configs: `ov migrate` (idempotent). See `/ov-build:migrate`.
+
+## The `import:` statement (composition + namespaces)
+
+`import:` is the **single** composition statement — a **list**, one statement per project. Each list item is one of two shapes:
+
+| Shape | YAML | Semantics |
+|---|---|---|
+| **Flat** | a bare string — `- build.yml`, `- '@github.com/owner/repo/build.yml:vTAG'` | Merge the referenced file's entities into THIS project's root namespace (root-wins). Use for same-repo per-kind file splits AND the shared `build.yml` distro/builder/init vocabulary. |
+| **Namespaced** | a single-key map — `- {cachyos: image/cachyos}`, `- {ov: ../..}`, `- {base: '@github.com/owner/repo:vTAG'}` | Mount another project as an isolated child namespace under `alias`; its entries are NOT flat-merged, they're referenced QUALIFIED as `alias.entry`. |
+
+### Qualified refs (`ns.entry`)
+
+A namespaced import is reached through a dotted ref everywhere a name is resolved — `base:`, `builder:` map values, deploy cross-refs:
+
+```yaml
+import:
+  - build.yml                       # flat — shared vocabulary
+  - image.yml                       # flat — this repo's own kind:image entries
+  - cachyos: image/cachyos          # namespaced child import
+
+image:
+  versa:
+    base: cachyos.cachyos           # the `cachyos` image inside the `cachyos` namespace
+```
+
+Resolution is **namespace-relative**, exactly like Go package-member access: a bare ref inside a namespace resolves within that namespace first; a qualified ref descends one level per dot (`a.b.c` → namespace `a`, then `b`, then leaf `c`). Submodules import the main repo under the `ov` namespace, so a submodule image writes `base: ov.arch` / `base: ov.fedora` and routes its builders to `ov.arch-builder` / `ov.fedora-builder`.
+
+### Inheritance across a namespace boundary
+
+- **`distro:` / `build:`** are VALUES (distro tags, package formats) → inherited across a namespace boundary, so a `base: cachyos.cachyos` image still picks up cachyos's `distro:`/`build:`.
+- **`builder:`** is a map of REFS relative to the BASE's namespace → it does **NOT** cross the boundary. A consumer image that builds a multi-stage format declares its OWN `builder:` map, qualified to the right builder (`builder: {pixi: ov.arch-builder}`). This avoids leaking a base-namespace-relative ref into a consumer where that namespace doesn't exist.
+
+Cycles between two projects that import each other (the intentional main ↔ cachyos mutual import: main imports `cachyos`, cachyos imports `ov`) are broken at load time — see `/ov-internals:go` "import-namespace loader".
+
+## `base.yml` — the combined arch + fedora base stack
+
+The main repo ships a single `base.yml` carrying both base-distro stacks: `arch`, `arch-builder`, `fedora`, `fedora-builder`, `fedora-nonfree`. It is flat-imported by `overthink.yml` (`- base.yml`) and imported under the `ov` namespace by the per-distro submodules (`ov.arch`, `ov.fedora`, `ov.arch-builder`, `ov.fedora-builder`). The cachyos base is NOT in `base.yml` — it lives inline in `image/cachyos/overthink.yml` and is reached through the `cachyos` import namespace (`base: cachyos.cachyos`). See `/ov-distros:arch`, `/ov-distros:fedora`, `/ov-distros:cachyos`.
 
 ## When to Use This Skill
 

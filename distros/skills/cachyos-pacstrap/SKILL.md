@@ -57,7 +57,7 @@ base is still the faster default (no privileged build).
 
 The `cachyos` distro config (pacstrap base packages, CachyOS keyring
 `F3B607488DB35A47`, mirrorlist, `cachyos*` repos) lives in the main repo's
-`build.yml` and is remote-included by the submodule.
+`build.yml` and is flat-imported by the submodule (a bare-string `import:` item).
 
 ## Cross-References
 

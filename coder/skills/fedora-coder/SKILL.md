@@ -20,10 +20,12 @@ browser-streamed Wayland desktop) — `fedora-coder` is headless and
 meant to be accessed via `ssh -p 2222` or `ov shell`.
 
 > **Location:** lives in the **`overthinkos/fedora`** repo (git submodule at
-> **`image/fedora`**), in that repo's `image.yml`. Its base stack
-> (`fedora-nonfree` → `fedora`) is remote-included from the main repo's
-> `fedora-base.yml` (the Fedora base lives in main — the ecosystem default
-> base), and its 32 layers are pulled by github reference. Build/validate from
+> **`image/fedora`**), in that repo's single `overthink.yml` (all per-kind
+> entries inlined). Its base stack (`fedora-nonfree` → `fedora`) is reached by
+> importing the main repo under the `ov` namespace — `base: ov.fedora-nonfree`,
+> which itself roots on `ov.fedora` (the Fedora base lives in main's `base.yml`,
+> the ecosystem default base), and its 32 layers are pulled by github reference.
+> Build/validate from
 > the submodule: `ov -C image/fedora image build fedora-coder`, or
 > `ov --repo overthinkos/fedora image build fedora-coder`. Deploy-mode verbs
 > (`ov config`/`ov start`/`ov eval image`) read the built image's OCI labels and

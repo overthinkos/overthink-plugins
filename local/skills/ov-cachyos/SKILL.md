@@ -15,8 +15,9 @@ The operator's CachyOS developer-workstation profile: a `kind: local` template
 current machine via `ShellExecutor` — no SSH, no VM, no container.
 
 It lives in the **`overthinkos/cachyos`** repo (git submodule at
-**`image/cachyos`**), in that repo's `local.yml` (template) + `deploy.yml`
-(deploy entry). Apply it with:
+**`image/cachyos`**), inlined in that repo's single `overthink.yml` — both the
+`kind: local` template and the `kind: deploy` entry (the lone `kind: deploy` in
+that repo; every disposable test bed there is `kind: eval`). Apply it with:
 
 ```bash
 ov -C image/cachyos update ov-cachyos

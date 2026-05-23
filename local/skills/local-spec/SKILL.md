@@ -37,7 +37,7 @@ spec:
 ## Inline form in overthink.yml
 
 ```yaml
-version: 2026.141.1530
+version: 2026.143.844
 local:
   dev-workstation:
     layers: [ripgrep, direnv]

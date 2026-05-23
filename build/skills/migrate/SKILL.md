@@ -17,7 +17,7 @@ The project directory is the current working directory; use the top-level `-C` /
 
 ## CalVer schema versioning
 
-The YAML schema version is a **CalVer string** — `version: YYYY.DDD.HHMM`, the same `ComputeCalVer` scheme as image tags (e.g. `version: 2026.141.1530`). The `calver-schema` migration step (registry HEAD) converts the legacy integer `version: 4` to this form. Every versioned file carries the stamp:
+The YAML schema version is a **CalVer string** — `version: YYYY.DDD.HHMM`, the same `ComputeCalVer` scheme as image tags (e.g. the current HEAD `version: 2026.143.844`). The `calver-schema` migration step (registry HEAD) converts the legacy integer `version: 4` to this form. Every versioned file carries the stamp:
 
 - `overthink.yml` + the per-kind siblings `image.yml` / `deploy.yml` / `vm.yml` / `pod.yml` / `k8s.yml` / `local.yml` (and `eval.yml` when present)
 - the per-host `~/.config/ov/deploy.yml`
@@ -34,7 +34,7 @@ Every hard-cutover schema change the project has ever shipped is **one `Migratio
 
 | CalVer | Step | What it does |
 |---|---|---|
-| 2026.112.522 | unified | legacy `image.yml`+`build.yml`+flat `layer.yml` → `overthink.yml` (kind-keyed wrappers + `include:`); raw-INI `service:` / `system_services:` → structured `service:` list |
+| 2026.112.522 | unified | legacy `image.yml`+`build.yml`+flat `layer.yml` → `overthink.yml` (kind-keyed wrappers + the then-current composition key, since renamed to `import:` by the 2026.143.843 step); raw-INI `service:` / `system_services:` → structured `service:` list |
 | 2026.114.1558 | schema-v4 | v3 → v4: flatten `deployments.images.*` → `deployment.*`, plural→singular root keys, `children:`→`nested:`, `target: container`→`pod` etc. |
 | 2026.114.2207 | description | scaffold a Gherkin `description:` block from legacy `info:`/`status:` |
 | 2026.123.114 | target-local | `kind: host`→`kind: local`, `host.yml`→`local.yml`, `target: host`→`target: local` |
@@ -50,7 +50,9 @@ Every hard-cutover schema change the project has ever shipped is **one `Migratio
 | 2026.132.1009 | require-image | inject the required `image:` field on every `target: pod` deploy entry |
 | 2026.132.2311 | tailscale-secrets | rename flat `TS_AUTHKEY` → per-tailnet `TS_AUTHKEY_<TAILNET>` (non-interactive: auto-detect from a running sidecar or warn) |
 | 2026.141.1326 | drop-kdbx | strip residual `secret_backend: kdbx` + `secrets_kdbx_*` keys from `~/.config/ov/config.yml` |
-| **2026.141.1530** | **calver-schema** (HEAD) | **the universal stamper**: rewrite the top-level `version:` line of every versioned file to the HEAD CalVer (line-oriented, comment-preserving). This is the integer→CalVer transition (`version: 4` → the HEAD CalVer). **Always stays last** so `LatestSchemaVersion()` tracks it. |
+| 2026.141.1559 | arch-rename | rename the `archlinux` distro tag + `archlinux` / `archlinux-builder` / `archlinux-pacstrap*` image identifiers to `arch` / `arch-builder` / `arch-pacstrap*` project-wide (overthink.yml + siblings + build.yml + base.yml + every layer.yml + per-host deploy.yml). EXTERNAL Arch strings stay verbatim: `docker.io/library/archlinux`, `pacman-key --populate archlinux`, `archlinux.org` mirror URLs, `archlinux-keyring`. Idempotent (a renamed config has no non-external `archlinux` left) |
+| 2026.143.843 | import-namespace | the **2026-05 import-namespace cutover**: rename the deleted top-level `include:` composition key to `import:` in `overthink.yml` + every per-kind sibling + `build.yml` / `base.yml` (and the legacy `arch-base.yml` / `fedora-base.yml` / `cachyos-base.yml` if present), preserving the value list verbatim (a flat include → a flat import, same root-namespace-merge). Comment-preserving (yaml.v3 node API); idempotent (a config already on `import:` is a no-op). Repo-specific reshaping — combining `arch-base.yml` + `fedora-base.yml` into `base.yml`, mounting the `cachyos` namespace, the deploy→eval bed move — is hand-authored in the cutover (recorded in `CHANGELOG.md`), NOT done by this step; a third-party config that only flat-includes its own files migrates cleanly with no behavior change |
+| **2026.143.844** | **calver-schema** (HEAD) | **the universal stamper**: rewrite the top-level `version:` line of every versioned file to the HEAD CalVer (line-oriented, comment-preserving). This is the integer→CalVer transition (`version: 4` → the HEAD CalVer). **Always stays last** so `LatestSchemaVersion()` tracks it. |
 
 Step `Name`s are for `--dry-run` / progress output only — they are no longer CLI sub-verbs. Steps that mutate per-host state (`~/.config/ov`, quadlets, `.secrets`) are flagged `TouchesHost`; see "Remote-cache auto-migration" below.
 
@@ -67,7 +69,7 @@ Step `Name`s are for `--dry-run` / progress output only — they are no longer C
 `LoadUnified` (`ov/unified.go`) parses the merged `version:` and rejects anything older than HEAD:
 
 ```
-overthink.yml: schema 2026.141.1530 is required (found "4"). Run: ov migrate
+overthink.yml: schema 2026.143.844 is required (found "4"). Run: ov migrate
 ```
 
 A non-CalVer value (the legacy integer `4`, empty, or garbage) parses as "older than every real CalVer", so a pre-CalVer config flows into the chain with no special case. Residual-key checks (e.g. `kind: deployment`, `target: host`, `secret_backend: kdbx`) remain as defense-in-depth, but **every** remediation hint now points uniformly at bare `ov migrate`.
@@ -80,6 +82,13 @@ A non-CalVer value (the legacy integer `4`, empty, or garbage) parses as "older 
 4. Update the HEAD-CalVer fixtures (the LoadUnified test fixtures + `testdata/*.yml` carry the stamp) and the repo's own versioned YAML.
 
 The operator command never changes — it stays `ov migrate`.
+
+### Standing rule: a schema/format change bumps `version:` AND mints a git tag
+
+Any change to the YAML schema or composition format (a key rename, a deleted key, a new key shape — e.g. the 2026-05 `include:` → `import:` cutover) is a hard-cutover that MUST:
+
+1. **Bump the `version:` CalVer** by appending a `MigrationStep` that raises `LatestSchemaVersion()` (the `calver-schema` stamp stays last). The load-time gate then rejects any not-yet-migrated config with a `Run: ov migrate` hint, so every reader sees the new format. Bumping `version:` WITHOUT a step that raises HEAD is forbidden — and `version:` is NEVER set above `LatestSchemaVersion()` (newer configs hard-fail at load).
+2. **Mint a fresh per-push git tag** on the landing push — `v<YYYY.DDD.HHMM>` from the push moment (see "Per-push release git tags" above). The tag and the `version:` bump are decoupled: the tag marks the push, `version:` marks the schema. A schema cutover happens to do BOTH at once, but a content-only push (no schema change) still mints a tag at an unchanged `version:`.
 
 ## Idempotency
 

@@ -305,7 +305,7 @@ image-level `security:` block, so the resolved posture stays at
 ```yaml
 # image.yml
 openclaw-desktop:
-  base: cachyos
+  base: cachyos.cachyos
   layers:
     - selkies-desktop
     - openclaw-full

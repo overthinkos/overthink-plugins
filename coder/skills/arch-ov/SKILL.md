@@ -15,8 +15,8 @@ description: |
 > submodule at **`image/arch`**) and composes its layers by git reference to
 > this repo. Build from the submodule: `cd image/arch && ov image build arch-ov`
 > (or `ov --repo overthinkos/arch image build arch-ov`). The `arch` base +
-> `arch-builder` live in this repo (pulled in via the submodule's remote
-> `include:` of `arch-base.yml`).
+> `arch-builder` live in this repo (in `base.yml`; reached via the submodule's
+> `import:` of this repo under the `ov` namespace — `base: ov.arch`).
 
 Arch Linux container with the full ov toolchain. Uses the same shared
 layer list as `/ov-distros:fedora-ov` — the tag system handles

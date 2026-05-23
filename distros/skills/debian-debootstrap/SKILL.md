@@ -39,7 +39,8 @@ air-gapped** builds and as a worked example of the `from: builder:debootstrap` +
 
 The `debian` distro config (debootstrap suite `trixie`, mirror
 `http://deb.debian.org/debian`, base packages, bootloader template) lives in the
-main repo's `build.yml` and is remote-included by the submodule.
+main repo's `build.yml` and is flat-imported by the submodule (a bare-string
+`import:` item).
 
 ## Cross-References
 
