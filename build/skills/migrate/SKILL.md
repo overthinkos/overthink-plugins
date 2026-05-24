@@ -17,7 +17,7 @@ The project directory is the current working directory; use the top-level `-C` /
 
 ## CalVer schema versioning
 
-The YAML schema version is a **CalVer string** — `version: YYYY.DDD.HHMM`, the same `ComputeCalVer` scheme as image tags (e.g. the current HEAD `version: 2026.143.844`). The `calver-schema` migration step (registry HEAD) converts the legacy integer `version: 4` to this form. Every versioned file carries the stamp:
+The YAML schema version is a **CalVer string** — `version: YYYY.DDD.HHMM`, the same `ComputeCalVer` scheme as image tags (e.g. the current HEAD `version: 2026.144.1443`). The `calver-schema` migration step (registry HEAD) converts the legacy integer `version: 4` to this form. Every versioned file carries the stamp:
 
 - `overthink.yml` + the per-kind siblings `image.yml` / `deploy.yml` / `vm.yml` / `pod.yml` / `k8s.yml` / `local.yml` (and `eval.yml` when present)
 - the per-host `~/.config/ov/deploy.yml`
@@ -50,9 +50,10 @@ Every hard-cutover schema change the project has ever shipped is **one `Migratio
 | 2026.132.1009 | require-image | inject the required `image:` field on every `target: pod` deploy entry |
 | 2026.132.2311 | tailscale-secrets | rename flat `TS_AUTHKEY` → per-tailnet `TS_AUTHKEY_<TAILNET>` (non-interactive: auto-detect from a running sidecar or warn) |
 | 2026.141.1326 | drop-kdbx | strip residual `secret_backend: kdbx` + `secrets_kdbx_*` keys from `~/.config/ov/config.yml` |
-| 2026.141.1559 | arch-rename | rename the `archlinux` distro tag + `archlinux` / `archlinux-builder` / `archlinux-pacstrap*` image identifiers to `arch` / `arch-builder` / `arch-pacstrap*` project-wide (overthink.yml + siblings + build.yml + base.yml + every layer.yml + per-host deploy.yml). EXTERNAL Arch strings stay verbatim: `docker.io/library/archlinux`, `pacman-key --populate archlinux`, `archlinux.org` mirror URLs, `archlinux-keyring`. Idempotent (a renamed config has no non-external `archlinux` left) |
+| 2026.141.1559 | arch-rename | rename the `archlinux` distro tag + `archlinux` / `archlinux-builder` / `archlinux-pacstrap*` image identifiers to `arch` / `arch-builder` / `arch-pacstrap*` project-wide (overthink.yml + siblings + build.yml + base.yml + every layer.yml + per-host deploy.yml). EXTERNAL Arch strings stay verbatim: ANY external registry ref whose path contains `archlinux` is protected by SHAPE (`archRenameExternalRefRe` — covers `quay.io/archlinux/archlinux`, `docker.io/library/archlinux`, `ghcr.io/<ns>/archlinux-*`, `host:port/.../archlinux`), plus `pacman-key --populate archlinux`, `archlinux.org` mirror URLs, `archlinux-keyring`. Idempotent (a renamed config has no non-external `archlinux` left) |
 | 2026.143.843 | import-namespace | the **2026-05 import-namespace cutover**: rename the deleted top-level `include:` composition key to `import:` in `overthink.yml` + every per-kind sibling + `build.yml` / `base.yml` (and the legacy `arch-base.yml` / `fedora-base.yml` / `cachyos-base.yml` if present), preserving the value list verbatim (a flat include → a flat import, same root-namespace-merge). Comment-preserving (yaml.v3 node API); idempotent (a config already on `import:` is a no-op). Repo-specific reshaping — combining `arch-base.yml` + `fedora-base.yml` into `base.yml`, mounting the `cachyos` namespace, the deploy→eval bed move — is hand-authored in the cutover (recorded in `CHANGELOG.md`), NOT done by this step; a third-party config that only flat-includes its own files migrates cleanly with no behavior change |
-| **2026.143.844** | **calver-schema** (HEAD) | **the universal stamper**: rewrite the top-level `version:` line of every versioned file to the HEAD CalVer (line-oriented, comment-preserving). This is the integer→CalVer transition (`version: 4` → the HEAD CalVer). **Always stays last** so `LatestSchemaVersion()` tracks it. |
+| 2026.144.1442 | entity-version | the **2026-05 per-kind versioning cutover**: backfill the per-entity `version:` field that became load-bearing. Injects `version: <HEAD>` on EVERY `layers/<name>/layer.yml` (the layer kind now requires it) + every BARE-BASE image entry (no `layer:` field AND an external registry `base:`, e.g. `arch`/`fedora`). Layered + internal-base images are left UNVERSIONED (they derive the highest layer version). Skips the `image/` submodules (each migrates in its own repo) + `testdata`. Comment-preserving (yaml.v3 node API); idempotent; never touches the document-root schema stamp. `TouchesHost: false` so remote-cache auto-migration backfills fetched remote layers (the runtime then hard-errors on an unversioned fetched layer instead of carrying a fallback). See CHANGELOG.md |
+| **2026.144.1443** | **calver-schema** (HEAD) | **the universal stamper**: rewrite the top-level `version:` line of every versioned file to the HEAD CalVer (line-oriented, comment-preserving). This is the integer→CalVer transition (`version: 4` → the HEAD CalVer). **Always stays last** so `LatestSchemaVersion()` tracks it. |
 
 Step `Name`s are for `--dry-run` / progress output only — they are no longer CLI sub-verbs. Steps that mutate per-host state (`~/.config/ov`, quadlets, `.secrets`) are flagged `TouchesHost`; see "Remote-cache auto-migration" below.
 
@@ -69,7 +70,7 @@ Step `Name`s are for `--dry-run` / progress output only — they are no longer C
 `LoadUnified` (`ov/unified.go`) parses the merged `version:` and rejects anything older than HEAD:
 
 ```
-overthink.yml: schema 2026.143.844 is required (found "4"). Run: ov migrate
+overthink.yml: schema 2026.144.1443 is required (found "4"). Run: ov migrate
 ```
 
 A non-CalVer value (the legacy integer `4`, empty, or garbage) parses as "older than every real CalVer", so a pre-CalVer config flows into the chain with no special case. Residual-key checks (e.g. `kind: deployment`, `target: host`, `secret_backend: kdbx`) remain as defense-in-depth, but **every** remediation hint now points uniformly at bare `ov migrate`.

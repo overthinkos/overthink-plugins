@@ -531,7 +531,7 @@ The top-level deploy map is `deploy:`, and per-entry storage uses a structured `
 ### Structure
 
 ```yaml
-version: 2026.143.844
+version: 2026.144.1443
 deploy:
   my-app:
     target: pod

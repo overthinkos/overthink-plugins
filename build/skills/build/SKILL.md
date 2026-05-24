@@ -211,9 +211,13 @@ Containerfiles COPY only from `layers/`, `templates/`, `.build/`). Source:
 
 After `ov image build` (push runs excluded), ov prunes old CalVer tags per image
 down to `defaults.keep_images` — keeping the newest N builds per
-`org.overthinkos.image` group, ordered by the `org.overthinkos.version` label.
-Images referenced by a container (`podman ps -a`) are skipped, and `rmi` runs
-without `-f` as a backstop, so a running deploy's image is never removed.
+`org.overthinkos.image` group, ordered by the `org.overthinkos.version` label
+(the content-derived EffectiveVersion) as the PRIMARY key, with the `:YYYY.DDD.HHMM`
+build TAG as the tiebreaker. The tag tiebreak is load-bearing: the label is
+content-stable, so many builds of an unchanged image share one label-CalVer and
+the tag is what distinguishes (and retains) the newest BUILDS. Images referenced
+by a container (`podman ps -a`) are skipped, and `rmi` runs without `-f` as a
+backstop, so a running deploy's image is never removed.
 
 ```yaml
 # overthink.yml — defaults:

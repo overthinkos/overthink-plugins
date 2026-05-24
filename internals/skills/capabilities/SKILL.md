@@ -29,6 +29,7 @@ Key entries:
 
 | Field | Label const | What it stores |
 |---|---|---|
+| `Version` | `LabelVersion` (`org.overthinkos.version`) | The image's content-derived **`EffectiveVersion`** — its dedicated `version:` if set, else the highest layer `version:` across the chain (`ov/effective_version.go`). NOT the per-build tag; stable when no layer changed. Short-name resolution + `ov clean` retention prefer this label over the tag. Also the "is this an ov image?" presence sentinel (`ExtractMetadata` returns nil when empty). |
 | `Services` | `LabelServices` (`org.overthinkos.services`) | **Structured JSON array of `CapabilityService`** — not just names. 22 per-entry fields including `kind`, `events`, `auto_start`, `start_retries`, `priority`, `init`, `layer`. See "LabelServices" below. |
 | `Init` | `LabelInit` | Init system name (supervisord / systemd / none). |
 | `ServiceNames` | `LabelInit` | Per-init active-name list; baked alongside `LabelInit` for CLI ergonomics (e.g., `ov service status`). |

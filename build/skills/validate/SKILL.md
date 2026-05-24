@@ -126,10 +126,13 @@ See `/ov-image:layer` for the full verb catalog. The validator enforces:
 
 - Two remote repos exporting the same layer name is an error
 - Local layers shadow remote layers with same name (note emitted)
-- A layer (bare `@github` ref) referenced at conflicting versions is **not** an
-  error — the resolver warns once and resolves to the **newest** (highest
-  CalVer/semver). Validation surfaces the warning, not a failure. Run
-  `ov image reconcile` to align the pins and clear the warning.
+- A layer (bare `@github` ref) referenced via two different git tags is **not**
+  an error — the git tag is only the FETCH coordinate. The resolver reads each
+  fetched layer's OWN `version:` and dedups by it: same per-entity version → no
+  warning (a re-tag of an unchanged layer is silent); different per-entity
+  versions → warns once and resolves to the **newest** (highest CalVer). Run
+  `ov image reconcile` to align the pins and clear any warning. A fetched layer
+  with no `version:` IS a hard error (the layer kind requires one).
 - Different layers from the same repo can use different versions
 - Collection is reachability-scoped: only layers reachable from the enabled
   images' `base:`/`builder:` chains are fetched. See `/ov-internals:go`

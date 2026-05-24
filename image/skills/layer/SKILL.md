@@ -406,7 +406,7 @@ tasks:
 
 | Field | Type | Purpose |
 |-------|------|---------|
-| `version` | `string` | CalVer (`YYYY.DDD.HHMM`) of this layer definition. Set manually. |
+| `version` | `string` | **MANDATORY** CalVer (`YYYY.DDD.HHMM`) of this layer definition — the layer kind requires it (`ov image validate` hard-errors when absent; `ov migrate` backfills it). The authoritative per-entity identity: it drives cross-repo layer resolution (`pickLayerVersion`) and, as the highest layer version, the consuming image's content-stable `org.overthinkos.version` label. Bump it when the layer's content changes. |
 | `status` | `string` | `working`, `testing`, or `broken`. Default: `testing`. |
 | `info` | `string` | Free-form description of what works / doesn't. Recommended for `testing` / `broken`. |
 | `requires` | `[]string` | Layer dependencies. Resolved transitively, topologically sorted. |

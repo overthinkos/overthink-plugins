@@ -13,13 +13,16 @@ Invoked as `ov image reconcile`. See `/ov-image:image` for the family overview.
 
 ## Overview
 
-The layer resolver is **warn-and-newest-wins**: when a layer (bare `@github` ref)
-is referenced at more than one version, it warns once and uses the newest (see
-`/ov-internals:go` "Remote-layer resolver", `/ov-build:validate`). `ov image
-reconcile` makes the on-disk pins match that resolution — for each distinct repo
-referenced by the project's versioned YAML, it rewrites EVERY pin of that repo to
-ONE target version, so the next `ov image generate` emits **zero** newest-wins
-warnings. Edits are comment-preserving (yaml.v3 node API) and idempotent.
+The layer resolver compares each layer's PER-ENTITY `version:` (read after fetch),
+not the repo git tag — so a repo re-tag of an UNCHANGED layer does NOT warn. When
+a layer DOES resolve to two different per-entity versions (a family pinned to a
+genuinely newer layer than the shared infra it composes), it **warns once and uses
+the newest** (see `/ov-internals:go` "Remote-layer resolver", `/ov-build:validate`).
+The git `:vTAG` is only the FETCH coordinate. `ov image reconcile` aligns the
+on-disk git-tag pins — for each distinct repo referenced by the project's
+versioned YAML, it rewrites EVERY pin of that repo to ONE target tag, so every
+reference fetches one commit per repo and the next `ov image generate` emits
+**zero** version warnings. Edits are comment-preserving (yaml.v3 node API) and idempotent.
 
 The **zero-warnings R10 gate** (CLAUDE.md R1) makes this load-bearing: a change
 that introduces a version mismatch is not landable until `ov image reconcile`

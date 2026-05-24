@@ -190,7 +190,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | Field | Default | Description |
 |-------|---------|-------------|
 | `enabled` | `true` | Set `false` to disable (skipped by generate, validate, list) |
-| `version` | `""` | CalVer version (`YYYY.DDD.HHMM`) of this image definition. Set manually |
+| `version` | `""` | OPTIONAL dedicated CalVer (`YYYY.DDD.HHMM`). When set it IS the image's `org.overthinkos.version` label; when unset the label is derived as the highest layer version across the chain (`EffectiveVersion`, `ov/effective_version.go`). Layered images leave it unset (they derive — keeps the label content-stable); a layerless bare base on an EXTERNAL registry base needs it (else the label can't be derived) — `ov migrate` backfills those |
 | `status` | `""` (= `testing`) | `working`, `testing`, or `broken`. Effective status = worst of image + all layers |
 | `info` | `""` | Free-form description. Aggregated with layer-level info in OCI labels |
 | `base` | `quay.io/fedora/fedora:43` | External OCI image or name of another image |
@@ -590,9 +590,9 @@ Resolution is **namespace-relative**, exactly like Go package-member access: a b
 
 Cycles between two projects that import each other (the intentional main ↔ cachyos mutual import: main imports `cachyos`, cachyos imports `ov`) are broken at load time — see `/ov-internals:go` "import-namespace loader".
 
-### Layer-version resolution across namespaces — warn-and-newest-wins
+### Layer-version resolution across namespaces — per-entity version
 
-A namespace is imported to provide bases/builders; the resolver fetches ONLY the layers reachable from the enabled images' `base:`/`builder:` chains (reachability-scoped collection) — a namespace's unreferenced images and its `kind:local` templates are not pulled. When the SAME layer (bare `@github` ref) ends up referenced at MORE THAN ONE version anywhere in the graph (e.g. a family pinned at a newer tag than the shared infra it transitively composes), the resolver does NOT fail: it **warns once** (naming both versions) and uses the **newest** (highest CalVer/semver). So different families pinning different ecosystem tags is supported — the resolver picks the newest per layer. Run `ov image reconcile` to rewrite the stale pins to the newest tag and clear the warnings. See `/ov-internals:go` "Remote-layer resolver", `/ov-build:reconcile`.
+A namespace is imported to provide bases/builders; the resolver fetches ONLY the layers reachable from the enabled images' `base:`/`builder:` chains (reachability-scoped collection) — a namespace's unreferenced images and its `kind:local` templates are not pulled. The git `:vTAG` on a layer ref is only the FETCH coordinate; the layer's OWN `version:` (read after fetch) is the identity. So when the SAME layer is referenced via two different repo git tags but its `version:` is unchanged (a re-tag for an unrelated push), the resolver picks one materialization with NO warning. Only when a layer resolves to two genuinely different per-entity versions (a family pinned to a newer layer than the shared infra it composes) does it **warn once** (naming both per-entity versions) and use the **newest** (highest CalVer). Run `ov image reconcile` to align the on-disk git-tag pins and clear any warning. See `/ov-internals:go` "Remote-layer resolver", `/ov-build:reconcile`.
 
 ## `base.yml` — the combined arch + fedora base stack
 

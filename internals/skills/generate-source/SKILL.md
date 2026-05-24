@@ -82,7 +82,7 @@ Flat struct with verb-discriminator fields. Exactly one of `Cmd` / `Mkdir` / `Co
 func (t *Task) Kind() (string, error)   // returns verb or error ("no action" / "conflicting actions")
 ```
 
-The `Layer` struct that feeds emission carries its `require:` / `layer:` refs as `[]LayerRef` (one typed list each — no parallel bare/raw arrays), and its `Has*` predicates (`HasEnv`/`HasPorts`/`HasVolumes`/…) are derived methods (only the filesystem-probe caches like `HasPixiToml` stay fields). Layers are populated by the single `populateLayerFromYAML`. Which layers reach this emission pipeline is decided upstream by the reachability-scoped, warn-and-newest-wins resolver — see `/ov-internals:go` "Remote-layer resolver".
+The `Layer` struct that feeds emission carries its `require:` / `layer:` refs as `[]LayerRef` (one typed list each — no parallel bare/raw arrays), and its `Has*` predicates (`HasEnv`/`HasPorts`/`HasVolumes`/…) are derived methods (only the filesystem-probe caches like `HasPixiToml` stay fields). Layers are populated by the single `populateLayerFromYAML`. Which layers reach this emission pipeline is decided upstream by the reachability-scoped, per-entity-version resolver (the git tag is the fetch coordinate; the layer's own `version:` is the identity) — see `/ov-internals:go` "Remote-layer resolver".
 
 ### Emitter helpers (all in `ov/tasks.go`)
 
@@ -317,6 +317,14 @@ content. If the SHA is the same as a cached build's parent (because
 the upstream image's content is unchanged), the whole rest of the
 build cache-hits. A CalVer bump on an unchanged upstream is free.
 
+The `org.overthinkos.version` LABEL baked into each image is likewise NOT a
+per-build timestamp — it's the content-derived `EffectiveVersion` (the image's
+dedicated `version:`, else the highest layer `version:` across the chain; computed
+by `computeEffectiveVersions` in `ov/effective_version.go`). It is STABLE across
+builds when no layer changed, so it does not shift the image's config → SHA and
+therefore does not cascade cache-misses to children via `FROM`. Only a real
+content change (a bumped layer `version:`) moves it.
+
 Cache-miss only happens when something in the build input genuinely
 changes: the parent image's content (different SHA resolved by the
 FROM), a layer's scratch-stage content (`COPY layers/<name>/ /`
@@ -405,7 +413,7 @@ Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), maki
 
 | Label | Type | Example |
 |-------|------|---------|
-| `org.overthinkos.version` | string | build CalVer == the image tag (e.g. `"2026.143.1234"`); also the "is this an ov image?" presence sentinel read by `ExtractMetadata` |
+| `org.overthinkos.version` | string | content-derived `EffectiveVersion` (the image's dedicated `version:`, else the highest layer `version:` across the chain — NOT the per-build tag), e.g. `"2026.144.1443"`. Resolution prefers this label over the tag (`local_image.go`); also the "is this an ov image?" presence sentinel read by `ExtractMetadata` |
 | `org.overthinkos.image` | string | `"openclaw"` |
 | `org.overthinkos.registry` | string | `"ghcr.io/overthinkos"` (omitted if empty) |
 | `org.overthinkos.bootc` | string | `"true"` (omitted if false) |
