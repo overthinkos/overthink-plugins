@@ -328,6 +328,7 @@ diagnostic recipe that found the leak.
 ## Related Images
 
 - `/ov-selkies:selkies-desktop-nvidia` — GPU-accelerated variant with NVIDIA CUDA toolkit (base: nvidia; this CPU sibling is on cachyos)
+- **CachyOS GPU variant** — `cachyos.selkies-desktop-nvidia` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base, `build: [pac, aur]`) in the `overthinkos/cachyos` submodule. See `/ov-distros:cachyos`.
 - `/ov-openclaw:openclaw-desktop` — all-in-one CachyOS variant: this streaming desktop fused with the openclaw-full gateway + AI CLIs, a CPU ollama, and the full ov toolchain (build images, run nested pods, launch rootless libvirt VMs from inside the streaming desktop). Uses `/ov-distros:container-nesting`'s `unmask=/proc/*` posture — no `--privileged`, still uid 1000.
 - `/ov-selkies:selkies-desktop-bootc` — bootable VM flavor
 - `/ov-selkies:sway-browser-vnc` — VNC-based alternative using Sway compositor instead of Selkies/labwc streaming

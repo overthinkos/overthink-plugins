@@ -33,7 +33,7 @@ main repo.
 
 1. `/ov-distros:debian` — Debian 13 + our `apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg` bootstrap + go-task binary + `user:user` uid 1000.
 2. `/ov-languages:pixi` — pixi package manager + env paths.
-3. `/ov-coder:nodejs` — Node.js + npm (generic `nodejs`, not `nodejs24` — Debian packages a current-enough version).
+3. `/ov-coder:nodejs` — Node.js + npm (generic `nodejs` — Debian's packaged Node).
 4. `/ov-coder:build-toolchain` — gcc, g++, cmake, autoconf, ninja, pkg-config, and the full set of `-dev` libraries (Debian equivalents of Fedora's `-devel`). Used by cargo crates that link system libs (libva, x264, ffmpeg, wayland, xkbcommon, etc.).
 
 ## Role in the build system

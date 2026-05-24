@@ -103,6 +103,23 @@ ov shell cachyos -c "pacman --version"
 - `/ov-local:ov-cachyos` — the operator CachyOS workstation profile
 - `/ov-versa:versa` — the main-repo consumer (`base: cachyos.cachyos`)
 
+### CachyOS GPU image family
+
+The submodule also carries a CachyOS GPU image family — the Arch/CachyOS siblings
+of the Fedora GPU images (which stay in `image/nvidia` / main). They build on the
+`cachyos.nvidia` GPU base, which is `cachyos` + `agent-forwarding` + `nvidia` +
+`cuda` (the `nvidia` and `cuda` layers are multi-distro — Fedora rpm + Arch pac —
+so they compose unchanged on CachyOS):
+
+- `cachyos.nvidia` — the GPU base (cachyos + agent-forwarding + nvidia + cuda)
+- `cachyos.python-ml` — ML Python environment
+- `cachyos.jupyter-ml` — CUDA ML JupyterLab
+- `cachyos.ollama` — Ollama LLM server
+- `cachyos.comfyui` — ComfyUI image generation
+- `cachyos.unsloth-studio` — Unsloth Studio fine-tuning UI
+- `cachyos.immich-ml` — Immich with the CUDA ML backend
+- `cachyos.selkies-desktop-nvidia` — GPU-accelerated Selkies streaming desktop
+
 ## Why Docker Hub instead of pacstrap
 
 The canonical base pulls the upstream OCI image (the path the CachyOS project

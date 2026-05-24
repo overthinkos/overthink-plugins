@@ -44,7 +44,7 @@ debian-coder:
     # Language runtimes
     - language-runtimes           # Go + PHP + .NET 9 (via Microsoft dotnet-install.sh)
     - golang
-    - nodejs                      # plain nodejs — Debian ships no nodejs24
+    - nodejs                      # nodejs — Debian's packaged Node
     - rust
     - pixi
     - uv

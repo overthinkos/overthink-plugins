@@ -19,8 +19,13 @@ description: |
 
 ## Packages
 
-- `aria2` (RPM) -- download manager for model files
-- `git-lfs` (RPM) -- large file support for model repos
+The layer is multi-distro:
+
+- `aria2` (RPM / PAC) -- download manager for model files
+- `git-lfs` (RPM / PAC) -- large file support for model repos
+
+On Arch/CachyOS the `distro.arch` section installs `aria2` and `git-lfs` from the
+Arch repos (same package names).
 
 ## Environment Variables
 

@@ -82,7 +82,8 @@ Creates Vulkan ICD compatibility symlinks for nvidia-ctk CDI device injection.
 
 ## Used In Images
 
-- `/ov-distros:nvidia` — NVIDIA GPU base image (nvidia + cuda layers)
+- `/ov-distros:nvidia` — Fedora NVIDIA GPU base image (nvidia + cuda layers)
+- `/ov-distros:cachyos` — `cachyos.nvidia`, the CachyOS GPU base (cachyos + agent-forwarding + nvidia + cuda); the nvidia/cuda layers being multi-distro (rpm + pac) is what lets this Arch/CachyOS GPU base reuse them unchanged
 - `/ov-coder:arch-ov` — Arch Linux ov toolchain (shared layers + nvidia)
 - `/ov-distros:fedora-ov` — Fedora ov toolchain (shared layers + nvidia)
 

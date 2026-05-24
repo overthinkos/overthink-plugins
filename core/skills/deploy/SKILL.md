@@ -290,24 +290,18 @@ target an instance of `versa`, which is a different deploy).
   For Pattern B (arbitrary name), only the single `<key>` form
   works.
 
-### Known issue — quadlet-port lookup keyed by image, not deploy-key
+### Port resolution is keyed by deploy-key, not image short-name
 
-When two deploys share the same image (or use the same image
-short-name), the second `ov config <deploy-key>` invocation writes
-the FIRST deploy's `resolved_port:` set to the new deploy's quadlet.
-The image-ref resolution is correct — `Image=` in the emitted quadlet
-matches the deploy entry's `image:` field — but the `PublishPort=`
-lines are sourced via an image-keyed lookup rather than the
-deploy-entry's own `port:`/`resolved_port:`. Reproduction:
-`ov config versa-pinned-X` when `versa` is already deployed →
-quadlet's PublishPorts == versa's ports.
-
-**Workaround**: don't deploy two pod entries off the same image short-
-name on the same host. For Pattern B with a pinned version of an
-already-deployed image, the workflow has to bypass the auto-allocator
-entirely — and even explicit `port:` lists are ignored. This issue is
-confined to `ov config` port resolution; the schema + eval-runner side
-of Pattern B works correctly.
+Each deploy entry's quadlet `PublishPort=` is sourced from THAT entry's own
+`port:`/`resolved_port:`, looked up by its deploy key. Multiple deploys backed
+by the same image short-name on one host (Pattern A instances, Pattern B
+pinned/canary deploys, and `kind: eval` beds whose `image:` matches a running
+production deploy) each get their own independent ports — a bed remapping
+`45434:11434` keeps that mapping even while a sibling `ollama` deploy publishes
+`11434`. `MergeDeployOntoMetadata` and `dc.Lookup` both take the deploy key
+(typically `c.Image`), never a value derived from the baked
+`org.overthinkos.image` label, so an entry's explicit `port:` is never clobbered
+by a sibling that merely shares the image.
 
 ### Why `image:` is required (R10 implication)
 

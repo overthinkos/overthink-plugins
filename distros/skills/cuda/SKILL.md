@@ -27,13 +27,22 @@ CUDA compiler, cuDNN, ONNX Runtime, and GPU development libraries. Depends on th
 
 RPM: `cuda-nvcc`, `cuda-cudart-devel`, `cuda-cudart-static`, `cuda-nvrtc-devel`, `cuda-cupti-devel`, `cuda-cccl-devel`, `cuda-cudnn`, `libcurand-devel`, `libcufile-devel`, `onnxruntime`, `libaio-devel`, `cpio`
 
-**Note:** FFmpeg codec libraries are provided via the `ffmpeg` dependency layer rather than installed directly. CUDA packages come from the negativo17 `fedora-nvidia` repo (added by the `nvidia` layer).
+PAC: `cuda`, `cudnn`, `python-onnxruntime-cpu`
 
-**Note:** No pac section — CUDA development is Fedora-only. The `nvidia` layer provides Arch Linux GPU runtime support.
+**Note:** FFmpeg codec libraries are provided via the `ffmpeg` dependency layer rather than installed directly. On Fedora, CUDA packages come from the negativo17 `fedora-nvidia` repo (added by the `nvidia` layer); on Arch/CachyOS they come from the standard repos.
+
+## Multi-distro (Fedora + Arch)
+
+The layer is multi-distro. The `distro.arch` section installs `cuda`, `cudnn`,
+and `python-onnxruntime-cpu` from the Arch repos. Arch installs CUDA under
+`/opt/cuda`, while `CUDA_HOME` is `/usr`, so the Arch path symlinks
+`/opt/cuda/*` into `/usr/*` to stitch the Arch layout into the Fedora layout.
+With that stitch in place, the same `nvcc`, header, and library paths resolve
+identically on Fedora and on Arch/CachyOS.
 
 ## Install tasks
 
-Extracts cuDNN headers from `cuda-cudnn-devel` RPM (bypasses driver dependency via rpm2cpio).
+Extracts cuDNN headers from `cuda-cudnn-devel` RPM (bypasses driver dependency via rpm2cpio) on Fedora; the `/opt/cuda → /usr` symlink stitch runs on Arch/CachyOS.
 
 ## Usage
 

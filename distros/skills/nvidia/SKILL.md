@@ -10,6 +10,13 @@ description: |
 
 NVIDIA GPU base image — provides GPU runtime (driver libs, CDI toolkit) and CUDA development toolkit on Fedora.
 
+The `nvidia` and `cuda` layers are multi-distro (Fedora rpm + Arch pac), so a
+CachyOS GPU base exists alongside this Fedora `nvidia` image: `cachyos.nvidia`
+(cachyos + agent-forwarding + nvidia + cuda) in the `overthinkos/cachyos`
+submodule. The two are siblings — pick the Fedora `nvidia` image for the
+RPM-based GPU stack, `cachyos.nvidia` for the Arch/CachyOS GPU stack. See
+`/ov-distros:cachyos`.
+
 ## Image Properties
 
 | Property | Value |
@@ -47,6 +54,7 @@ ov shell nvidia
 ## Related Images
 
 - `/ov-distros:fedora` — parent base (no GPU)
+- `/ov-distros:cachyos` — `cachyos.nvidia` is the CachyOS GPU-base sibling (Arch/CachyOS GPU stack)
 - `/ov-coder:arch-ov` — Arch Linux ov toolchain with nvidia (shared layers)
 - `/ov-distros:fedora-ov` — Fedora ov toolchain with nvidia (shared layers)
 

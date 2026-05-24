@@ -78,6 +78,7 @@ ov start unsloth-studio
 - `/ov-jupyter:jupyter-ml` — alternative ML UI with JupyterLab + CRDT MCP (same Tier 1 sub-layers)
 - `/ov-languages:python-ml` — ML libraries without any UI
 - `/ov-jupyter:jupyter` — legacy Jupyter with ML (shares port 8888)
+- **CachyOS variant** — `cachyos.unsloth-studio` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base) in the `overthinkos/cachyos` submodule. See `/ov-distros:cachyos`.
 
 ## Verification
 

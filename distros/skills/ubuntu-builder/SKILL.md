@@ -34,7 +34,7 @@ main repo.
 
 1. `/ov-distros:ubuntu` — Ubuntu 24.04 + bootstrap. Inherits Debian's `apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg` pattern because `build.yml distro.ubuntu` declares `inherits: debian`. Ubuntu-specific: `base_user: { name: ubuntu, uid: 1000, gid: 1000, home: /home/ubuntu }` — no `useradd` step emitted.
 2. `/ov-languages:pixi` — pixi package manager + env paths (`/home/ubuntu/.pixi`).
-3. `/ov-coder:nodejs` — Node.js + npm (generic `nodejs`, not `nodejs24`).
+3. `/ov-coder:nodejs` — Node.js + npm (generic `nodejs`).
 4. `/ov-coder:build-toolchain` — same Debian `-dev` packages as `/ov-distros:debian-builder`.
 
 ## Adopt-mode semantics

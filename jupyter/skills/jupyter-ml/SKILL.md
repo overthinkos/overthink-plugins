@@ -125,6 +125,7 @@ ov shell jupyter-ml -c "pixi run verify-collaboration"
 - `/ov-jupyter:jupyter-ml-notebook` — Same stack with fine-tuning notebooks
 - `/ov-jupyter:jupyter` — Lightweight variant (no CUDA, multi-arch)
 - `/ov-languages:python-ml` — ML base without Jupyter
+- **CachyOS variant** — `cachyos.jupyter-ml` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base) in the `overthinkos/cachyos` submodule. See `/ov-distros:cachyos`.
 
 **MCP testing:** inherits 3 deploy-scope `mcp:` checks from the `jupyter-ml` layer (`ping`, `list-tools`, `call list_notebooks`). Run `ov eval live jupyter-ml --filter mcp` or probe ad-hoc with `ov eval mcp list-tools jupyter-ml`. See `/ov-build:ov-mcp-cmd`.
 

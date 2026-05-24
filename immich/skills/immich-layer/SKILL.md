@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Dependencies | `supervisord`, `nodejs24`, `postgresql`, `redis`, `ffmpeg` |
+| Dependencies | `supervisord`, `nodejs`, `postgresql`, `redis`, `ffmpeg` |
 | Ports | 2283 |
 | Volumes | `library` -> `~/.immich/library`, `cache` -> `~/.immich/cache`, `import` -> `~/.immich/import`, `external` -> `~/.immich/external` |
 | Service | `immich-db-init` (oneshot, priority 15), `immich-server` (priority 30) |
@@ -33,10 +33,12 @@ description: |
 
 ## Packages
 
-- `vips`, `vips-devel`, `perl-Image-ExifTool` (RPM)
-- `libheif`, `LibRaw`, `gcc-c++`, `make`, `unzip` (RPM)
+The layer is multi-distro — image libraries are declared per distro:
 
-**Note:** FFmpeg is provided via the `ffmpeg` dependency layer (negativo17 nonfree build) rather than installed directly.
+- RPM: `vips`, `vips-devel`, `perl-Image-ExifTool`, `libheif`, `LibRaw`, `gcc-c++`, `make`, `unzip`
+- PAC: `libvips` (no separate `-devel` split — headers ship in the same package), `libheif`, `libraw`, `perl-image-exiftool`, `gcc` (includes `g++`), `make`, `unzip`
+
+**Note:** FFmpeg is provided via the `ffmpeg` dependency layer rather than installed directly.
 
 ## Build Process (tasks:)
 
@@ -75,7 +77,7 @@ immich:
 ## Related Layers
 
 - `/ov-infrastructure:supervisord` -- process manager dependency
-- `/ov-coder:nodejs24` -- Node.js runtime dependency
+- `/ov-coder:nodejs` -- Node.js runtime dependency (provides pnpm for the Immich build)
 - `/ov-infrastructure:postgresql` -- database dependency
 - `/ov-infrastructure:redis` -- cache dependency
 - `/ov-selkies:ffmpeg` -- FFmpeg multimedia (nonfree codecs) — required dependency

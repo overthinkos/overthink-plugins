@@ -44,9 +44,10 @@ See `/ov-image:layer` for `env_provides` field docs.
 
 ## Packages
 
-- `postgresql-server` (RPM)
-- `postgresql-contrib` (RPM)
-- `pgvector` (RPM) -- vector similarity search extension
+The layer is multi-distro:
+
+- **RPM (Fedora):** `postgresql-server`, `postgresql-contrib`, `pgvector` (vector similarity search extension)
+- **PAC (Arch/CachyOS):** `postgresql`, `postgresql-libs` — the Arch `postgresql` package ships the server + contrib tooling; pgvector on Arch is built from the AUR (see `/ov-infrastructure:vectorchord`).
 
 ## Usage
 

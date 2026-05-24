@@ -50,7 +50,12 @@ selkies-desktop-nvidia:
 
 ## Difference from selkies-desktop
 
-Same layers, but the `nvidia` base includes the full CUDA toolkit which may resolve the NVENC encoder initialization failure seen without a GPU runtime. Use this variant for GPU-accelerated H.264 encoding via NVENC. (The CPU sibling `selkies-desktop` runs on the `cachyos` base; this GPU variant stays on the Fedora `nvidia` base.)
+Same layers, but on a GPU base that includes the full CUDA toolkit. Use a GPU
+variant for GPU-accelerated H.264 encoding. The CPU sibling `selkies-desktop`
+runs on the `cachyos` base. There are two GPU siblings: this `selkies-desktop-nvidia`
+on the Fedora `nvidia` base, and `cachyos.selkies-desktop-nvidia` in the
+`overthinkos/cachyos` submodule, built on the CachyOS GPU base (`cachyos.nvidia`)
+with `build: [pac, aur]`. See `/ov-distros:cachyos`.
 
 ## Recording
 
@@ -69,6 +74,7 @@ Not yet tested. The CPU variant (`selkies-desktop`, cachyos base) works with CPU
 - `/ov-distros:agent-forwarding` — SSH/GPG/direnv agent forwarding
 
 ## Related Images
+- **CachyOS variant** — `cachyos.selkies-desktop-nvidia` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base, `build: [pac, aur]`) in the `overthinkos/cachyos` submodule. See `/ov-distros:cachyos`.
 - `/ov-selkies:selkies-desktop` — CPU-encoding sibling on cachyos
 - `/ov-openclaw:openclaw-desktop` — the CachyOS/CPU all-in-one: this streaming desktop stack + the openclaw-full gateway + AI CLIs + a CPU ollama + the full ov toolchain (ov-full + container-nesting + golang + gh). Use it if you want to build images / start nested pods / launch VMs from inside the browser-accessible desktop.
 - `/ov-selkies:selkies-desktop-bootc` — bootable VM flavor

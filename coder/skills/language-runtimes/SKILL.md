@@ -123,7 +123,7 @@ Six build-scope tests ship with the layer:
 | `system-python3` + `system-python3-version` | `/usr/bin/python3` is the system interpreter (the RPM-installed one; explicitly NOT a pixi-env path) |
 
 Go and Node.js testing is delegated to the `/ov-coder:golang` and
-`/ov-coder:nodejs` / `/ov-coder:nodejs24` layer skills — those are
+`/ov-coder:nodejs` layer skills — those are
 the single sources of truth for their respective binaries.
 
 ## Usage

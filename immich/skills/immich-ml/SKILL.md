@@ -15,7 +15,7 @@ Immich photo management with GPU-accelerated machine learning for face recogniti
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | agent-forwarding, nodejs24, cuda, python-ml, supervisord, postgresql, vectorchord, redis, immich, immich-ml |
+| Layers | agent-forwarding, nodejs, cuda, python-ml, supervisord, postgresql, vectorchord, redis, immich, immich-ml |
 | Platforms | linux/amd64 |
 | Ports | 2283 |
 | Registry | ghcr.io/overthinkos |
@@ -24,7 +24,7 @@ Immich photo management with GPU-accelerated machine learning for face recogniti
 
 1. `fedora` (quay.io/fedora/fedora:43)
 2. `pixi` → `python` → `supervisord` (transitive)
-3. `nodejs24` — Node.js 24 runtime
+3. `nodejs` — Node.js runtime + pnpm
 4. `cuda` — CUDA toolkit, cuDNN
 5. `python-ml` — ML Python environment
 6. `postgresql` — database on :5432
@@ -73,6 +73,9 @@ ov start immich-ml
 
 - `/ov-immich:immich` — CPU-only (no ML, no face recognition)
 - `/ov-distros:nvidia` — GPU base without Immich
+- **CachyOS variant** — `cachyos.immich-ml` is the CachyOS GPU sibling in the
+  `overthinkos/cachyos` submodule (built on the `cachyos.nvidia` GPU base). See
+  `/ov-distros:cachyos`.
 
 ## Verification
 
@@ -91,7 +94,7 @@ to the pod). Correct skip behavior; no authoring action needed.
 
 Covers postgres binaries + pg_isready, `valkey-compat-redis` package
 (Fedora 43 rename — see `/ov-infrastructure:redis`), pytorch + vllm importable
-in python-ml pixi env, nodejs24 + cuda, Immich server `dist/main.js`,
+in python-ml pixi env, nodejs + cuda, Immich server `dist/main.js`,
 DB migrate script, geodata init SQL, ML venv + `immich_ml/` module.
 Deploy-scope: port 2283 host-reachable, `/api/server/ping` returns 200
 with `pong`, internal ML endpoint reachable via in-container
@@ -102,7 +105,7 @@ postgresql + redis + immich-server + immich-ml all RUNNING.
 
 - `/ov-immich:immich`, `/ov-immich:immich-ml`, `/ov-infrastructure:postgresql`,
   `/ov-infrastructure:vectorchord`, `/ov-infrastructure:redis`, `/ov-distros:nvidia`,
-  `/ov-distros:cuda`, `/ov-languages:python-ml`, `/ov-coder:nodejs24`,
+  `/ov-distros:cuda`, `/ov-languages:python-ml`, `/ov-coder:nodejs`,
   `/ov-infrastructure:supervisord`, `/ov-infrastructure:dbus-layer`, `/ov-tools:ov`,
   `/ov-distros:agent-forwarding`
 - `/ov-eval:eval` — framework + runtime variable rules (why skips happen)

@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml` (packages only) |
+| Install files | `layer.yml`, `task:` |
 
 ## Environment Variables
 
@@ -26,6 +26,18 @@ PATH additions: `~/.npm-global/bin`
 
 RPM: `nodejs`, `npm`
 DEB: `nodejs`, `npm`
+PAC: `nodejs`, `npm`
+
+## pnpm (standalone binary)
+
+The layer installs the **pnpm** standalone binary (self-contained — it bundles
+its own node) to `/usr/local/bin/pnpm` via a `task:` download. It is deliberately
+NOT a `package.json` dependency: a `package.json` would trigger the npm
+multi-stage builder on this layer, and the builder images that COMPOSE nodejs
+(`arch-builder` / `fedora-builder`) cannot self-provide the npm builder. The
+binary on `/usr/local/bin` is on the default system PATH for every user (incl.
+root — Immich runs its pnpm build as root). Immich and other pnpm consumers use
+this pnpm to drive their build.
 
 ## Usage
 
@@ -44,9 +56,9 @@ my-image:
 
 ## Related Layers
 
-- `/ov-coder:nodejs24` -- alternative Node.js 24 version
 - `/ov-coder:claude-code` -- depends on nodejs
 - `/ov-coder:pre-commit` -- depends on nodejs
+- `/ov-immich:immich-layer` -- uses the layer's pnpm to build Immich
 
 ## When to Use This Skill
 

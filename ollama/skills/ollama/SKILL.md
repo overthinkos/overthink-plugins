@@ -87,6 +87,7 @@ This means containers like `jupyter-ml-notebook` automatically discover the Olla
 ## Related Images
 
 - `/ov-distros:nvidia` — parent (GPU without Ollama)
+- **CachyOS variant** — `cachyos.ollama` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base) in the `overthinkos/cachyos` submodule. See `/ov-distros:cachyos`.
 - `/ov-openclaw:openclaw-desktop` — composes the `ollama` layer CPU-only (cachyos base, no `cuda`) alongside a streaming desktop + the openclaw gateway + the nested ov toolchain
 - `/ov-jupyter:jupyter-ml-notebook` — Jupyter with Ollama integration notebooks (receives `OLLAMA_HOST` automatically via env_provides when ollama is deployed)
 - `/ov-openwebui:openwebui` — Open WebUI (receives `OLLAMA_HOST` via env_provides, auto-configures as `OLLAMA_BASE_URL`)

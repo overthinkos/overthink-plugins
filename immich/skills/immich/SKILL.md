@@ -15,7 +15,7 @@ Self-hosted photo and video management server with full codec support.
 | Property | Value |
 |----------|-------|
 | Base | fedora-nonfree |
-| Layers | agent-forwarding, nodejs24, supervisord, postgresql, vectorchord, redis, immich |
+| Layers | agent-forwarding, nodejs, supervisord, postgresql, vectorchord, redis, immich |
 | Platforms | linux/amd64 |
 | Ports | 2283 |
 | Registry | ghcr.io/overthinkos |
@@ -24,7 +24,7 @@ Self-hosted photo and video management server with full codec support.
 
 1. `fedora` → `fedora-nonfree` (RPM Fusion for codecs)
 2. `pixi` → `python` → `supervisord` (transitive)
-3. `nodejs24` — Node.js 24 runtime
+3. `nodejs` — Node.js runtime + pnpm
 4. `postgresql` — database on :5432
 5. `vectorchord` — VectorChord vector similarity extension
 6. `redis` — cache on :6379

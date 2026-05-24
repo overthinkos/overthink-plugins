@@ -53,6 +53,7 @@ ov start comfyui
 ## Related Images
 
 - `/ov-distros:nvidia` — parent (GPU without ComfyUI)
+- **CachyOS variant** — `cachyos.comfyui` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base) in the `overthinkos/cachyos` submodule. See `/ov-distros:cachyos`.
 
 ## Verification
 

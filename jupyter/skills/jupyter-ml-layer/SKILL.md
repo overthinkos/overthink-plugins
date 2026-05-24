@@ -46,7 +46,9 @@ Build order: pixi environment → llama-cpp (binaries) → unsloth (vllm wheel +
 
 **PyPI (Collaboration):** jupyter-collaboration >= 4.1.0
 
-**RPM:** git, gcc, gcc-c++
+**RPM (Fedora):** git, gcc, gcc-c++
+
+**PAC (Arch/CachyOS):** git, gcc (includes g++) — the layer is multi-distro
 
 ## Environment
 

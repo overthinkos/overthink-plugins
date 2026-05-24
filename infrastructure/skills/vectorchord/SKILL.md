@@ -26,14 +26,20 @@ description: |
 
 ## Packages
 
-- `unzip` (RPM) -- for extracting VectorChord release archives
+- `unzip` (RPM / PAC) -- for extracting VectorChord release archives
+
+The layer is multi-distro (Fedora + Arch/CachyOS). On Arch, pgvector comes from
+the AUR (see `/ov-infrastructure:postgresql`).
 
 ## Build Process (tasks:)
 
 Downloads VectorChord from GitHub releases (tensorchord/VectorChord) and installs the extension:
 
 1. Detects PostgreSQL major version via `postgres --version`
-2. Detects extension directories via `plpgsql.so` anchor and standard Fedora paths
+2. Detects extension directories via `pg_config --pkglibdir` and
+   `pg_config --sharedir` — this resolves correctly on both Fedora
+   (`/usr/lib64/pgsql`, `/usr/share/pgsql`) and Arch/CachyOS
+   (`/usr/lib/postgresql`, `/usr/share/postgresql`)
 3. Downloads `postgresql-<PG_MAJOR>-vchord_<VERSION>_<ARCH>-linux-gnu.zip`
 4. Extracts `vchord.so` to `pkglibdir` and `.control`/`.sql` files to `sharedir/extension/`
 

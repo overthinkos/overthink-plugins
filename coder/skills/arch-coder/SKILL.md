@@ -47,7 +47,7 @@ arch-coder:
     # Language runtimes + managers
     - language-runtimes           # Go + PHP + .NET 9 + python3-devel
     - golang
-    - nodejs                      # NOT nodejs24 — Arch's nodejs is already current
+    - nodejs                      # Arch ships a current Node (v26)
     - rust
     - pixi
     - uv
@@ -115,7 +115,7 @@ All four produce the same developer surface. Pick based on which distro family y
 
 Layers in roughly the same groups as fedora-coder, with these Arch-specific notes:
 
-- `nodejs` (not `nodejs24`) — Arch's `nodejs` package is already current enough; no LTS pinning.
+- `nodejs` — Arch's `nodejs` package ships a current Node (v26); no LTS pinning.
 - `language-runtimes` — Arch ships `dotnet-sdk` in `[extra]` (no Microsoft repo needed, unlike Debian/Ubuntu). Also drops `python3-ramalama` (not packaged on Arch — install via `uv tool install ramalama`).
 - `dev-tools` — `/usr/bin/bat` ships directly from the `bat` package (no Debian-style batcat rename needed).
 - `gh` — GitHub CLI from Arch's `extra` repo (no third-party apt repo needed).

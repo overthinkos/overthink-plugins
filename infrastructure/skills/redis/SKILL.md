@@ -34,11 +34,17 @@ See `/ov-image:layer` for `env_provides` field docs.
 
 ## Packages
 
-- `redis` (dnf request) → installed as **`valkey-compat-redis`** on
-  Fedora 43. The old `redis` package was replaced; dnf resolves the
-  name via `Provides:`, but `rpm -q redis` returns "not installed".
-  Any `package:` test must query the real installed name. See
+The layer is multi-distro:
+
+- **RPM (Fedora):** `redis` (dnf request) → installed as
+  **`valkey-compat-redis`** on Fedora 43. The old `redis` package was replaced;
+  dnf resolves the name via `Provides:`, but `rpm -q redis` returns "not
+  installed". Any `package:` test must query the real installed name. See
   `/ov-eval:eval` Authoring Gotcha #8.
+- **PAC (Arch/CachyOS):** `valkey` — the Arch `valkey` package provides the
+  Redis server and CLI binaries (`/usr/bin/redis-server`, `/usr/bin/redis-cli`),
+  so the same service spec and binary paths work on Arch/CachyOS. A `package:`
+  test on Arch queries `valkey`.
 
 ## Usage
 

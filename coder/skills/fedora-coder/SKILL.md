@@ -52,7 +52,7 @@ fedora-coder:
     # Language runtimes + managers
     - language-runtimes           # Go + PHP + .NET 9 + nodejs-devel + python3-devel
     - golang
-    - nodejs24
+    - nodejs                       # generic nodejs layer (Node 22 on Fedora)
     - rust
     - pixi
     - uv                          # direct-download binary (no pixi env)
