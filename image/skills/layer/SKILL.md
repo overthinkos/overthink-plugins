@@ -135,7 +135,41 @@ Every task in `task:` is a YAML map with **exactly one verb key** (the discrimin
 | `include` | `download` | — | Extract only these paths (archive formats) |
 | `env` | `download` | — | Env vars for install scripts (`sh` extract) |
 | `caps` | `setcap` | empty (= strip) | Capability spec (e.g. `cap_setuid=ep`) |
+| `cache` | `cmd`, `download` | — | List of absolute BuildKit cache-mount paths for this task's RUN. Ownership follows `user:` (root → shared/locked, non-root → uid/gid-owned). Persists heavy downloads/build artifacts across builds the SAME way package caches do — surviving an upstream layer cache-miss. The cache-USE logic (sentinel guards, copy-into-place) lives in the task body; ov only mounts the cache. See "Caching downloads" below. |
 | `comment` | all | — | Emitted as a Containerfile comment above the task |
+
+### Caching downloads (`download:` auto-caches; `cache:` for heavy installers)
+
+Every `download:` task is **content-addressed cached automatically**: the file
+is fetched ONCE into the shared `/tmp/downloads` BuildKit cache mount (keyed by
+the URL's sha256), reused across builds, and integrity-safe (curl writes
+`<hash>.part`, atomically renamed only on success — a partial/corrupt download,
+e.g. from a flaky CDN, is never reused). No author action needed; prefer
+`download:` over a hand-rolled `cmd: curl …`.
+
+For a `cmd:` task that downloads/builds via its own tool (an SDK installer, a
+source build) and so can't use `download:`, declare a `cache:` mount and route
+the tool's downloads into it. Canonical worked example — caching the Android SDK
+so an upstream base cache-miss doesn't re-download ~1.5GB from Google's CDN:
+
+```yaml
+- cmd: |
+    SDK_CACHE=/var/cache/ov-android-sdk
+    if [ ! -f "${SDK_CACHE}/.ov-sdk-complete" ]; then
+      rm -rf "${SDK_CACHE}"; mkdir -p "${SDK_CACHE}"
+      sdkmanager --sdk_root="${SDK_CACHE}" "platform-tools" "emulator" "system-images;…"
+      touch "${SDK_CACHE}/.ov-sdk-complete"   # sentinel: only after full success
+    fi
+    cp -a "${SDK_CACHE}/." /opt/android-sdk/   # materialize into the image
+  user: user
+  cache:
+    - /var/cache/ov-android-sdk                 # owned (uid) because user: user
+```
+
+The sentinel (`.ov-sdk-complete`, written only after a fully-successful install)
+guards against a partial/interrupted download populating the cache. AUR builds
+get the same treatment via `build.yml`'s `aur` builder (owned `cache_mount`
+entries for makepkg `SRCDEST` + yay's clone cache) — see `/ov-build:build`.
 
 ### Verb examples
 

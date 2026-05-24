@@ -43,7 +43,7 @@ inside an `eval:` block. **Deploy-scope only**.
 - id: install
   scope: deploy
   appium: install-app
-  apk: /workspace/ApiDemos-debug.apk
+  apk: ./tests/data/ApiDemos-debug.apk   # HOST path; staged into the container by the verb
 - id: tap-animation
   scope: deploy
   appium: click
@@ -100,18 +100,22 @@ The selenium SDK we use (`github.com/tebeka/selenium`) handles the
 We unwrap the user's `alwaysMatch` key if present to avoid double-
 wrapping.
 
-### `apk:` is in-container for Appium, host-side for adb
+### `apk:` is a HOST path for BOTH adb and appium
 
 - `adb: install` reads `apk:` from the host filesystem (the host `ov`
   binary pushes via the ADB sync protocol).
-- `appium: install-app` passes `apk:` to the in-container Appium server,
-  which reads it. The eval-android-emulator-pod deploy bind-mounts
-  `./tests/data` → `/workspace` so the canonical path is
-  `/workspace/ApiDemos-debug.apk` from Appium's perspective.
+- `appium: install-app` ALSO reads `apk:` from the host filesystem. Because
+  the in-container Appium server's `mobile: installApp` requires an
+  `appPath` it can read (the base64 `{"app": …}` form is rejected with HTTP
+  400 "required parameter is missing: appPath"), the verb stages the host
+  APK INTO the container via `<engine> cp` to a temp path, calls installApp
+  with that in-container path, then removes the temp file. No bind-mount and
+  no external staging step are needed — `apk:` is the host path, end to end.
 
-This is the load-bearing distinction. If `appium: install-app` returns
-"file not found", check the path is what Appium (inside the container)
-sees, not the host path.
+Both install verbs are therefore symmetric: `apk:` is always a host path
+(typically `./tests/data/<app>.apk`, resolved against the project root).
+If `appium: install-app` fails, check the host path exists, not a container
+path.
 
 ## Method allowlist + required modifiers
 
@@ -120,7 +124,7 @@ sees, not the host path.
 | `status` | — | Bypasses the SDK — plain `http.Get` against `/status`. |
 | `session-create` | `Caps` | Accepts both flat `{"k":"v"}` and pre-wrapped `{"alwaysMatch":{"k":"v"}}`. Use `--caps @path.json` to read from file. Deletes any pre-existing session for the same image+instance first (best-effort), then `selenium.NewRemote` + persist. |
 | `session-delete` | — | Best-effort `DELETE /session/<id>` + `rm` of session file. No-op if no session exists. |
-| `install-app` | `Apk` | `POST /session/<id>/execute/sync` with `mobile: installApp` script + `{appPath: <apk>}` arg. `Apk` is the path Appium sees (in-container, typically under `/workspace`). |
+| `install-app` | `Apk` | `Apk` is a HOST path. The verb stages it into the container via `<engine> cp`, then `POST /session/<id>/execute/sync` with `mobile: installApp` + `{appPath: <in-container-temp>}`, then removes the temp file. Symmetric with `adb: install`. |
 | `find` | `Selector` | `POST /session/<id>/element`, prints the W3C element id (a UUID-ish string). |
 | `click` | `Selector` | Find + `POST /session/<id>/element/<eid>/click`. Atomic. |
 | `send-keys` | `Selector`+`Text` | Find + `POST /session/<id>/element/<eid>/value` with `{text: <Text>}`. |

@@ -93,7 +93,7 @@ The `Layer` struct that feeds emission carries its `require:` / `layer:` refs as
 | `emitCopy(b, Task, layerStage, img)` | `COPY --from=<layerStage> --chmod= [--chown=] <src> <to>` |
 | `emitWrite(b, Task, srcPath, img)` | `COPY [--chown=] --chmod= <srcPath> <path>` where `srcPath` is the staged inline-content file |
 | `emitLinkBatch(b, []Task, img)` | One `RUN ln -sf t1 l1 && ln -sf t2 l2 …` |
-| `emitDownload(b, Task, img)` | `RUN --mount=type=cache,dst=/tmp/downloads bash -c 'export BUILD_ARCH=$(uname -m); curl … \| <extractor>'` |
+| `emitDownload(b, Task, img)` | `RUN --mount=type=cache,dst=/tmp/downloads [+ task cache:] bash -c '… curl -o "$__c.part" && mv → /tmp/downloads/<sha256>; <extractor> "$__c"'` — content-addressed, fetch-once, integrity-safe |
 | `emitSetcapBatch(b, []Task, img)` | `RUN setcap -r … && setcap caps path …` |
 | `emitCmd(b, Task, layerStage, img, userIsRoot)` | `RUN --mount=type=bind,from=<layerStage>,source=/,target=/ctx [--mount=type=cache,…] bash -c $'BUILD_ARCH=$(uname -m)\nset -e\n<command>'` (ANSI-C `$'...'` quoting — see below) |
 
@@ -456,14 +456,38 @@ Security configuration (`security:` in layer.yml/image.yml) and environment vari
 | `rpm.packages` | `/var/cache/libdnf5` | `sharing=locked` |
 | `deb.packages` | `/var/cache/apt` + `/var/lib/apt` | `sharing=locked` |
 | `pac.packages` + `aur` | `/var/cache/pacman/pkg` | `sharing=locked` |
-| `cmd:` as root | Distro-format caches (above) + `/ctx` bind to layer stage | — |
-| `cmd:` as non-root | `/tmp/npm-cache` (UID-scoped) + `/ctx` bind to layer stage | `uid=<UID>,gid=<GID>` |
-| `download:` | `/tmp/downloads` (shared across layers) | — |
+| `cmd:` as root | Distro-format caches (above) + `/ctx` bind to layer stage + any `cache:` (shared) | — |
+| `cmd:` as non-root | `/tmp/npm-cache` (UID-scoped) + `/ctx` bind to layer stage + any `cache:` (owned) | `uid=<UID>,gid=<GID>` |
+| `download:` | `/tmp/downloads` (shared) — **content-addressed**: file fetched once, reused across builds + any `cache:` | — |
+| `task: cache:` | each declared path; ownership from the task `user:` (root → shared/locked, else uid/gid-owned) | per-user |
+| AUR builder stage | `/var/cache/pacman/pkg` (shared) + `/tmp/aur-srcdest` + `/tmp/aur-xdg-cache` (owned: makepkg SRCDEST + yay clones) | mixed |
 | pixi builder stage | `/tmp/pixi-cache` + `/tmp/rattler-cache` | `uid=<UID>,gid=<GID>` |
 | npm builder stage | `/tmp/npm-cache` | `uid=<UID>,gid=<GID>` |
 | cargo inline | `/tmp/cargo-cache` | `uid=<UID>,gid=<GID>` |
 
 UID/GID in cache mounts are dynamic (from resolved image config). All non-root cache mounts use flat `/tmp/<tool>-cache` paths to avoid buildah permission issues with nested paths.
+
+### Download caching + the generic `cache:` modifier (`emitDownload` / `taskCacheMounts`)
+
+`emitDownload` (`ov/tasks.go`) writes every `download:` to a **content-addressed**
+file in the `/tmp/downloads` cache mount: `__c=/tmp/downloads/$(printf %s "$url"
+| sha256sum | cut -c1-64)`, fetched only when absent (`[ -s "$__c" ] ||`), via
+`curl -o "$__c.part" && mv -f "$__c.part" "$__c"` (atomic rename — a
+partial/corrupt download is never reused), then the extractor reads `"$__c"`.
+So a file fetched once survives an upstream layer cache-miss instead of
+re-downloading (the prior code declared the mount but streamed curl past it).
+
+`taskCacheMounts(t, img)` (`ov/tasks.go`) renders a task's layer-declared
+`cache:` paths as cache-mount flags, ownership derived from the task's `user:`
+via `resolveUserSpec` (root → `SharedCacheMount`, else → `OwnedCacheMount`).
+Honored by `emitCmd` and `emitDownload`. Lets any task persist heavy
+downloads/build artifacts the same way package caches do (config-driven; the
+cache-USE logic lives in the layer.yml task body).
+
+`CacheMountDef.Owned` + `RenderCacheMountsAuto` (`cacheMountsAuto` template
+func) let a single builder `cache_mount` list mix shared (root, e.g. pacman) and
+owned (user, e.g. makepkg SRCDEST / yay clones) entries — used by the `aur`
+builder in `build.yml` to cache AUR source downloads + clones across builds.
 
 ## Common Workflows
 

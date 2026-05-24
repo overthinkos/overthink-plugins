@@ -57,6 +57,7 @@ See `/ov-image:layer` for the full verb catalog. The validator enforces:
 - **Path rules:** paths must be absolute, `~/`-prefixed, or `${HOME}`-prefixed. `copy:` source must exist under the layer directory at generate time.
 - **Mode rules:** `mode:` must match `^0[0-7]{3,4}$` (octal) if present.
 - **Download extract values:** must be one of `tar.gz` / `tar.xz` / `tar.zst` / `zip` / `none` / `sh` or empty.
+- **`cache:` rules:** only valid on `cmd:` / `download:` tasks; each path must be absolute (or `~/` / `${HOME}`-prefixed). Declares extra BuildKit cache mounts (owned per the task `user:`).
 - **`build:` value:** must be `"all"` (initial implementation; specific builder names reserved for future use).
 - **`user:` format:** must be `root`, `${USER}`, a literal name matching `^[a-z_][a-z0-9_-]*$`, or numeric `<uid>:<gid>`. Unresolved `${VAR}` in `user:` errors.
 
