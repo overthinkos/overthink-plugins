@@ -125,8 +125,14 @@ See `/ov-image:layer` for the full verb catalog. The validator enforces:
 
 - Two remote repos exporting the same layer name is an error
 - Local layers shadow remote layers with same name (note emitted)
-- Same bare ref at conflicting versions is an error
+- A layer (bare `@github` ref) referenced at conflicting versions is **not** an
+  error — the resolver warns once and resolves to the **newest** (highest
+  CalVer/semver). Validation surfaces the warning, not a failure. Run
+  `ov image reconcile` to align the pins and clear the warning.
 - Different layers from the same repo can use different versions
+- Collection is reachability-scoped: only layers reachable from the enabled
+  images' `base:`/`builder:` chains are fetched. See `/ov-internals:go`
+  "Remote-layer resolver" and `/ov-build:reconcile`.
 
 ## Common Validation Errors
 

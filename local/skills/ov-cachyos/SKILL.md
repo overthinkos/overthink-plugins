@@ -56,9 +56,12 @@ repo's `layers/` (resolved via its `discover:` block):
 ## Composition-by-reference note
 
 `local.ov-cachyos`'s remote layer refs are collected and materialized by the
-same `CollectRemoteRefs` walk as image layer refs — the walk covers
-`kind: local` template `layer:` lists, so `ov image validate` /
-`ov update ov-cachyos` resolve the github-ref'd layers.
+same `CollectRemoteRefs` walk as image layer refs: the walk collects the layer
+refs of the ROOT project's own `kind: local` templates (ov-cachyos is the root
+here), so `ov image validate` / `ov update ov-cachyos` resolve the github-ref'd
+layers. (Collection is reachability-scoped — a namespace's `kind:local`
+templates, imported only as a dependency, are NOT collected by an importer; only
+the root's own locals are. See `/ov-internals:go` "Remote-layer resolver".)
 
 ## Cross-References
 

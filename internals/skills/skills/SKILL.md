@@ -28,6 +28,8 @@ CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher
 | `ov image validate` / schema error | `/ov-build:validate` |
 | Secret management / `ov secrets` / Secret Service / GPG `.secrets` | `/ov-build:secrets` |
 | Schema migration / legacy → latest CalVer | `/ov-build:migrate` |
+| Git/`gh` workflow — `feat/` branch, commit, push, ff-merge, tag, worktree, sync, prune, PR, approve | `/ov-internals:git-workflow` |
+| `ov image reconcile` / cross-repo `@github` pin alignment | `/ov-build:reconcile` |
 | Hard-cutover concerns / rename sweeps | `/ov-internals:cutover-policy` |
 | `disposable: true` semantics | `/ov-internals:disposable` |
 | Go source work | `/ov-internals:go` |
@@ -129,7 +131,7 @@ Plugins are sorted into four use-case buckets. Directory names live at
 | Bucket | Plugin | Skills | Purpose |
 |---|---|---:|---|
 | commands | `ov-core` | 14 | Lifecycle verbs (start/stop/status/logs/shell/ssh/deploy/update/...) |
-| commands | `ov-build` | 12 | Build/authoring verbs (build/generate/list/inspect/merge/new/pull/validate/secrets/settings/migrate/mcp) |
+| commands | `ov-build` | 13 | Build/authoring verbs (build/generate/list/inspect/merge/new/pull/validate/secrets/settings/migrate/reconcile/mcp) |
 | commands | `ov-eval` | 9 | `ov eval` orchestrator + live probes (cdp/wl/wl-overlay/dbus/vnc/spice/libvirt/record) |
 | commands | `ov-automation` | 6 | tmux verb, host-side helpers (alias/udev), topic flags (enc/sidecar/openclaw-deploy) |
 | kind | `ov-image` | 2 | `kind: image` and `kind: layer` schema reference |
@@ -137,7 +139,7 @@ Plugins are sorted into four use-case buckets. Directory names live at
 | kind | `ov-kubernetes` | 2 | `kind: k8s` schema + cluster probes |
 | kind | `ov-local` | 2 | `kind: local` schema + ssh-host deploys |
 | kind | `ov-pod` | 1 | `kind: pod` and `kind: deploy` schema (thin pointer) |
-| development | `ov-internals` | 14 + 3 agents | Go source / IR / capabilities / vm-spec / renderers / cutover-policy / strict-policy / disposable + enforcement agents + github MCP |
+| development | `ov-internals` | 15 + 3 agents | Go source / IR / capabilities / vm-spec / renderers / cutover-policy / strict-policy / disposable / git-workflow + enforcement agents + github MCP |
 | images | `ov-distros` | 34 | Base OS, GPU runtime, bootc, distro builders |
 | images | `ov-languages` | 4 | python, python-ml, pixi |
 | images | `ov-infrastructure` | 22 | postgres, redis, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, ... |

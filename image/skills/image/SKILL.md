@@ -590,6 +590,10 @@ Resolution is **namespace-relative**, exactly like Go package-member access: a b
 
 Cycles between two projects that import each other (the intentional main ↔ cachyos mutual import: main imports `cachyos`, cachyos imports `ov`) are broken at load time — see `/ov-internals:go` "import-namespace loader".
 
+### Layer-version resolution across namespaces — warn-and-newest-wins
+
+A namespace is imported to provide bases/builders; the resolver fetches ONLY the layers reachable from the enabled images' `base:`/`builder:` chains (reachability-scoped collection) — a namespace's unreferenced images and its `kind:local` templates are not pulled. When the SAME layer (bare `@github` ref) ends up referenced at MORE THAN ONE version anywhere in the graph (e.g. a family pinned at a newer tag than the shared infra it transitively composes), the resolver does NOT fail: it **warns once** (naming both versions) and uses the **newest** (highest CalVer/semver). So different families pinning different ecosystem tags is supported — the resolver picks the newest per layer. Run `ov image reconcile` to rewrite the stale pins to the newest tag and clear the warnings. See `/ov-internals:go` "Remote-layer resolver", `/ov-build:reconcile`.
+
 ## `base.yml` — the combined arch + fedora base stack
 
 The main repo ships a single `base.yml` carrying both base-distro stacks: `arch`, `arch-builder`, `fedora`, `fedora-builder`, `fedora-nonfree`. It is flat-imported by `overthink.yml` (`- base.yml`) and imported under the `ov` namespace by the per-distro submodules (`ov.arch`, `ov.fedora`, `ov.arch-builder`, `ov.fedora-builder`). The cachyos base is NOT in `base.yml` — it lives inline in `image/cachyos/overthink.yml` and is reached through the `cachyos` import namespace (`base: cachyos.cachyos`). See `/ov-distros:arch`, `/ov-distros:fedora`, `/ov-distros:cachyos`.
