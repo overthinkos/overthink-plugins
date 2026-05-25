@@ -71,12 +71,41 @@ inside an `eval:` block. **Deploy-scope only**.
 | `click` | `ov eval appium click <image> --selector <s>` | `selector:` | Find + click |
 | `send-keys` | `ov eval appium send-keys <image> --selector <s> --text <t>` | `selector:`+`text:` | Find + type |
 | `screenshot` | `ov eval appium screenshot <image> --artifact <png>` | `artifact:` | GET /screenshot, decode base64, write PNG |
+| `get-text` | `ov eval appium get-text <image> --selector <s>` | `selector:` | find + GET .../text, prints element text |
+| `get-attribute` | `ov eval appium get-attribute <image> --selector <s> --attribute <a>` | `selector:`+`attribute:` | find + GET .../attribute/<a> (checked/enabled/text/...) |
+| `clear` | `ov eval appium clear <image> --selector <s>` | `selector:` | find + POST .../clear |
+| `find-all` | `ov eval appium find-all <image> --selector <s>` | `selector:` | POST /elements; prints count + ids |
+| `source` | `ov eval appium source <image>` | — | GET /source (UI hierarchy XML) |
+| `back` | `ov eval appium back <image>` | — | POST /back (navigate back) |
+
+### Tier 2 — per-class sugar groups (nested CLI; flat `<group>-<op>` in eval YAML)
+
+Mirrors `wl`'s `sway-*` / `overlay-*` pattern — `ov eval appium gesture tap …`
+on the CLI is `appium: gesture-tap` in an `eval:` block.
+
+| Group | Ops (eval-YAML method names) | Key modifiers |
+|---|---|---|
+| `gesture` | `gesture-tap`, `gesture-double-tap`, `gesture-long-press`, `gesture-drag`, `gesture-swipe`, `gesture-scroll`, `gesture-fling`, `gesture-pinch-open`, `gesture-pinch-close` | `selector`(+`strategy`) **or** `x`+`y`; `direction`+`percent` (swipe/scroll/fling); `params` (JSON: speed/duration/endX/endY/left/top/width/height) |
+| `app` | `app-start-activity`, `app-activate`, `app-terminate`, `app-remove`, `app-clear`, `app-is-installed`, `app-state`, `app-current-activity`, `app-current-package` | `app_id` (lifecycle ops); `activity` (`pkg/.activity`, start-activity, intent form) |
+| `key` | `key-press`, `key-hide`, `key-shown` | `keycode` (press; 4=BACK, 66=ENTER); `params` (metastate/flags) |
+| `device` | `device-info`, `device-battery`, `device-time`, `device-orientation`, `device-set-orientation`, `device-notifications`, `device-get-clipboard`, `device-set-clipboard`, `device-contexts`, `device-context` | `params` (value/name for set-orientation / set-clipboard / context switch) |
+
+### Tier 3 — generic escape hatch (the cdp-`raw` equivalent — 100% coverage)
+
+| Method | CLI form | Required | Description |
+|---|---|---|---|
+| `execute` | `ov eval appium execute <image> --expression <s> [--request-body <json>]` | `expression:` | `POST /execute/sync` — any `mobile:` command or JS. Object `request_body` → `[obj]`; array → as-is. Optional `selector:` resolves an element id for `{element}` substitution in `request_body`. |
+| `raw` | `ov eval appium raw <image> --method <verb> --path <p> [--request-body <json>]` | `method:`+`path:` | Any W3C call relative to `/session/<id>` (ov prepends it). `path:`/`request_body:` support the `{element}` token when `selector:` is set. Reaches **everything** including `mobile:` via `/execute/sync`. |
+
+**`raw` is the coverage guarantee** — anything not covered by a typed method or
+sugar group is reachable here (e.g. `raw GET /element/{element}/rect`,
+`raw POST /timeouts {"implicit":10000}`).
 
 `--strategy` accepts: `xpath` (default), `id`, `accessibility-id`,
 `class-name`, `android-uiautomator`, `name`, `css`. Mapped to W3C / Appium
 locator strings inside the implementation.
 
-## Two critical gotchas
+## Gotchas
 
 ### W3C capabilities (not legacy JSONWire)
 
@@ -117,6 +146,65 @@ Both install verbs are therefore symmetric: `apk:` is always a host path
 If `appium: install-app` fails, check the host path exists, not a container
 path.
 
+### `app-start-activity` uses the intent form (verified)
+
+`appium: app-start-activity` with `activity: io.appium.android.apis/.view.X`
+sends `mobile: startActivity {"intent":"<activity>"}`. The intent form
+(`pkg/.activity`) is what works on this UiAutomator2 build (verified live) —
+NOT a split `{appPackage,appActivity}`. Extra intent args go in `params:`.
+
+### Set a W3C implicit wait, or finds race the activity
+
+`app-start-activity` returns before the activity's UI is laid out, so a `find`
+fired immediately after it returns "no such element". Set an implicit wait once
+after `session-create` so every `find` polls until the element renders:
+
+```yaml
+- appium: raw
+  method: POST
+  path: /timeouts
+  request_body: '{"implicit":10000}'
+```
+
+(Verified: without it, ~half the per-screen checks fail the layout race; with
+it, all pass. The `eval-android-emulator-pod` bed does exactly this.)
+
+### `{element}` substitution in execute/raw
+
+`execute` / `raw` resolve an element host-side when `selector:` is set and
+substitute its W3C id for the literal token `{element}` in `request_body:`
+(execute) and `path:`+`request_body:` (raw), e.g.
+`raw method: GET path: /element/{element}/text selector: …`. Single-brace
+`{element}` (deliberately NOT `${…}`) so the eval runtime-variable resolver
+leaves it untouched. `ov image validate` errors if `{element}` appears with no
+`selector:`.
+
+### Android-14 permission dialog covers the app
+
+On API 34, ApiDemos (and many apps) raise a runtime POST_NOTIFICATIONS dialog
+(`com.google.android.permissioncontroller`) on first launch that covers the
+app, so every find returns "no such element". Pre-grant the permission before
+driving the app: `adb: shell arg: [pm, grant, <pkg>, android.permission.POST_NOTIFICATIONS]`
+then `adb: shell arg: [am, force-stop, <pkg>]` for a clean launch.
+
+### WebView context switch needs a pinned chromedriver (NOT --allow-insecure)
+
+The API-34 google_apis System WebView is **Chrome 113**. UiAutomator2's
+chromedriver autodownload was verified slow/hanging. Instead the `appium-server`
+layer pre-bakes chromedriver 113 at `/opt/chromedriver/113` and the WebView
+session sets `appium:chromedriverExecutableDir:"/opt/chromedriver/113"` +
+`appium:chromedriverDisableBuildCheck:true` (both plain caps, NOT insecure-
+gated). `device-contexts` (presence) works with no chromedriver and is the
+reliable floor; the `device-context` switch needs the pinned chromedriver.
+
+### Base path `/wd/hub`; AUR-provisioned toolchain
+
+The container's Appium server (`/usr/bin/appium`, from the CachyOS/AUR `appium`
+package) listens at base path **`/wd/hub`**. The whole Android toolchain comes
+from CachyOS/AUR packages (`appium`, `android-sdk-*`, `android-emulator`,
+`android-sdk-build-tools-34` for aapt2) under `/opt/android-sdk`; only the
+API-34 system image is sdkmanager-fetched (no package exists).
+
 ## Method allowlist + required modifiers
 
 | Method | Required modifiers | Notes |
@@ -129,6 +217,21 @@ path.
 | `click` | `Selector` | Find + `POST /session/<id>/element/<eid>/click`. Atomic. |
 | `send-keys` | `Selector`+`Text` | Find + `POST /session/<id>/element/<eid>/value` with `{text: <Text>}`. |
 | `screenshot` | `Artifact` | `GET /session/<id>/screenshot`, base64-decode, write to `Artifact`. Pairs with `artifact_min_bytes:`. |
+| `get-text` / `clear` / `find-all` | `Selector` | find-then-act over `/element[s]/<id>/{text,clear}` (find-all → `/elements`). |
+| `get-attribute` | `Selector`+`Attribute` | find + `GET .../attribute/<name>`. |
+| `source` / `back` | — | `GET /source` / `POST /back`. |
+| `gesture-*` | — (element-or-xy enforced in `Run()`); `gesture-swipe`/`scroll`/`fling` need `Direction` | `mobile: <name>Gesture`; element id from `Selector`, else `X`/`Y`; `Percent`+`Params` merged into args. |
+| `app-start-activity` | `Activity` | `mobile: startActivity {intent}`. |
+| `app-activate`/`terminate`/`remove`/`clear`/`is-installed`/`state` | `AppId` | `mobile: <name>App {appId}`. |
+| `app-current-activity`/`current-package` | — | `mobile: getCurrent{Activity,Package}`. |
+| `key-press` | `Keycode` | `mobile: pressKey {keycode}` (+`Params`). |
+| `key-hide`/`key-shown` | — | `mobile: hideKeyboard` / `isKeyboardShown`. |
+| `device-info`/`battery`/`time`/`notifications` | — | `mobile: deviceInfo`/`batteryInfo`/`getDeviceTime`/`openNotifications`. |
+| `device-orientation`/`contexts` | — | `GET /orientation` / `GET /contexts`. |
+| `device-set-orientation`/`set-clipboard` | `Params` | `POST /orientation` / `mobile: setClipboard`. |
+| `device-context`/`get-clipboard` | — | `device-context`: empty `Params` → `GET /context`, set → `POST /context {name}`. |
+| `execute` | `Expression` | `POST /execute/sync {script,args:[<RequestBody>]}`; `{element}` from `Selector`. |
+| `raw` | `Method`+`Path` | arbitrary W3C call under `/session/<id>`; `{element}` from `Selector`. |
 
 ## Session-file format + location
 
