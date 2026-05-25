@@ -147,6 +147,10 @@ expose the container port AS the host port.
 
 - `/ov-eval:appium` — sibling verb for higher-level UI automation against the
   same emulator (W3C WebDriver).
+- `/ov-eval:android` — the `kind: android` device + `apk:` package format +
+  `target: android` deploy. `ov eval adb install` / `install-app` are thin
+  wrappers over the SAME shared installer (`ov/android_install.go`) the apk
+  format drives — so the verb, the format, and the deploy target never drift.
 - `/ov-eval:eval` — the unified eval system and the Check struct that holds
   every verb discriminator + modifier.
 - `/ov-tools:android-emulator` (when authored) — the image these verbs target.

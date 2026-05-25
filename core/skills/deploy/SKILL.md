@@ -24,9 +24,18 @@ description: |
    - `target: k8s` (+ `cluster: <name>`) → Kustomize base/overlays tree. See `/ov-kubernetes:kubernetes`.
 2. **Config-file management** — `ov deploy show/export/import/reset/path/status`. Read and mutate `~/.config/ov/deploy.yml` itself.
 
-## Four targets, one schema
+## Targets, one schema
 
-The same `DeployImageConfig` shape feeds all four targets (`pod`, `local`, `vm`, `k8s`) — authors describe *what the workload needs* (ports, volumes, env, security, tests); the generator per target decides *how K8s / quadlet / local apply / VM over SSH* realizes it. K8s-specific choices (storage class, ingress class, cert issuer, secret backend) live in a **cluster profile** file (`~/.config/ov/clusters/<name>.yaml` or in-repo `clusters/<name>.yaml`), *not* in the deployment. This means one deployment spec targets dev/staging/prod clusters with zero schema changes — only the cluster profile differs.
+The same `DeployImageConfig` shape feeds every target (`pod`, `local`, `vm`, `k8s`, `android`) — authors describe *what the workload needs* (ports, volumes, env, security, tests); the generator per target decides *how K8s / quadlet / local apply / VM over SSH / Android apk-install* realizes it.
+
+**`target: android`** installs a deploy's `add_layer:` layers' `apk:` packages
+onto a `kind: android` device (an in-pod emulator or a remote/physical adb
+endpoint) via `AndroidDeployTarget` — the Android analogue of `target: k8s`
+emitting workloads onto a cluster. The cross-ref is `android: <device>`; apps
+ride in on `add_layer:` (no apk-list field). Nested `pod → android` (the device
+on its emulator pod) mirrors `vm → k8s`; a pod's android children deploy AFTER
+`ov start` (use `--node-only` on the pod's deploy-add, then dotted-path
+`ov deploy add pod.device`). See `/ov-eval:android`. K8s-specific choices (storage class, ingress class, cert issuer, secret backend) live in a **cluster profile** file (`~/.config/ov/clusters/<name>.yaml` or in-repo `clusters/<name>.yaml`), *not* in the deployment. This means one deployment spec targets dev/staging/prod clusters with zero schema changes — only the cluster profile differs.
 
 `ov start` / `ov stop` remain as ergonomic wrappers: `ov start <image>` is equivalent to `ov deploy add <image> <image>` with the container target; `ov stop <name>` is `ov deploy del <name>`. New scripts should prefer the explicit `ov deploy add`/`ov deploy del` forms, especially when using `--add-layer` overlays or the `host` target.
 

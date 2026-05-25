@@ -299,6 +299,8 @@ mitigation if it stops working.
 
 - `/ov-eval:adb` — sibling verb for low-level Android Debug Bridge
   control (install / shell / screencap / logcat).
+- `/ov-eval:android` — the `kind: android` device + `apk:` package format +
+  `target: android` deploy this UI automation runs against.
 - `/ov-eval:eval` — the unified eval system and the Check struct that
   holds every verb discriminator + modifier.
 - `/ov-tools:android-emulator` (when authored) — the image these verbs target.

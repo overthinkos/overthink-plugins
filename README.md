@@ -29,7 +29,7 @@ manager UI.
 |---|--:|---|---|
 | **ov-core** | 15 | — | Lifecycle: start, stop, restart, ov-status, logs, shell, ssh, deploy, ov-update, remove, ov-config, cmd, ov-version, ov-doctor, clean. |
 | **ov-build** | 13 | — | Build/authoring: build, generate, list, inspect, merge, new, pull, validate, secrets, settings, migrate, reconcile, ov-mcp-cmd. |
-| **ov-eval** | 12 | — | Live-container evaluation: `eval` orchestrator + cdp, wl, wl-overlay, dbus, vnc, spice, libvirt, record, adb, appium probes + the `eval-sway-browser-vnc-pod` R10 bed. |
+| **ov-eval** | 13 | — | Live-container evaluation: `eval` orchestrator + cdp, wl, wl-overlay, dbus, vnc, spice, libvirt, record, adb, appium probes + `android` (the `kind: android` device + `apk:` package format + `target: android` deploy) + the `eval-sway-browser-vnc-pod` R10 bed. |
 | **ov-automation** | 6 | — | tmux verb, host-side wrappers (alias, udev), topic flags (enc, sidecar, openclaw-deploy). |
 
 ### kind — schema-kind authoring
