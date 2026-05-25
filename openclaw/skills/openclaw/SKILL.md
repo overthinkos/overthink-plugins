@@ -22,7 +22,7 @@ Headless OpenClaw AI gateway — no desktop, no browser, just the gateway servic
 
 ## Full Layer Stack
 
-1. `cachyos` (docker.io/cachyos/cachyos-v3:latest, Arch-derived)
+1. `cachyos` (docker.io/cachyos/cachyos-v3, digest-pinned, Arch-derived)
 2. `pixi` → `python` → `supervisord` (transitive)
 3. `nodejs` (transitive via openclaw)
 4. `openclaw` — gateway on :18789, data volume

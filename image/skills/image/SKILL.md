@@ -240,7 +240,7 @@ images:
     layers: [pixi, nodejs, build-toolchain]
 
   arch:
-    base: "docker.io/library/archlinux:latest"
+    base: "quay.io/archlinux/archlinux:base-20260525.0.535911"
     distro: [arch]
     build: [pac]
     builder:

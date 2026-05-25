@@ -35,7 +35,7 @@ MCP-server identity reflect that upstream software identity.
 
 ## Layer stack (composition order)
 
-1. `cachyos` (base — `docker.io/cachyos/cachyos-v3:latest` OCI image, matches the upstream CachyOS docker repo workflow)
+1. `cachyos` (base — `docker.io/cachyos/cachyos-v3` OCI image, digest-pinned; matches the upstream CachyOS docker repo workflow)
 2. `agent-forwarding` — SSH/GPG agent forwarding for in-container git push
 3. `nvidia` — driver runtime (`nvidia-utils`, `nvidia-container-toolkit`)
    — an explicit layer entry because the cachyos base doesn't bundle it

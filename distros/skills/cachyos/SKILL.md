@@ -10,7 +10,9 @@ description: |
 # cachyos
 
 CachyOS base image, pulled from the upstream-published OCI image
-`docker.io/cachyos/cachyos-v3:latest` (optimized for modern `x86_64_v3` CPUs).
+`docker.io/cachyos/cachyos-v3` (optimized for modern `x86_64_v3` CPUs), pinned
+by digest in `image/cachyos/image.yml` — Docker Hub publishes only a `:latest`
+tag for `cachyos-v3`, so a digest is the most precise pin available.
 CachyOS is an Arch derivative, so it shares the Arch toolchain, `pacman`, and the
 `arch-builder` multi-stage builder.
 
@@ -27,7 +29,7 @@ from the submodule: `ov -C image/cachyos image build cachyos` (or
 
 | Property | Value |
 |----------|-------|
-| Base | docker.io/cachyos/cachyos-v3:latest |
+| Base | docker.io/cachyos/cachyos-v3 (pinned by digest in image.yml) |
 | Layers | (none) |
 | Platforms | linux/amd64 |
 | Distro | cachyos, arch |

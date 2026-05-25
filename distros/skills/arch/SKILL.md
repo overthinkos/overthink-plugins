@@ -7,13 +7,13 @@ description: |
 
 # arch
 
-Root base image built from `docker.io/library/archlinux:latest`. Foundation for all Arch Linux-based Overthink images.
+Root base image built from `quay.io/archlinux/archlinux`, pinned to a precise `base-*` date-serial tag in `base.yml` (the quay mirror has the same content as `docker.io/library/archlinux` without Docker Hub's pull-rate limit). Foundation for all Arch Linux-based Overthink images.
 
 ## Image Properties
 
 | Property | Value |
 |----------|-------|
-| Base | docker.io/library/archlinux:latest |
+| Base | quay.io/archlinux/archlinux (pinned `base-*` tag in base.yml) |
 | Layers | (none) |
 | Platforms | linux/amd64 |
 | Distro | arch |

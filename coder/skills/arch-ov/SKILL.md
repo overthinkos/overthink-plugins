@@ -28,7 +28,7 @@ can drive build/test/deploy via Streamable HTTP on port 18765.
 
 | Property | Value |
 |----------|-------|
-| Base | arch (docker.io/library/archlinux:latest) |
+| Base | arch (quay.io/archlinux/archlinux, pinned in base.yml) |
 | Tags | `[all, pac, arch]` |
 | Layers | agent-forwarding, ov-full, **ov-mcp**, golang, gh, sshd, container-nesting, nvidia |
 | Platforms | linux/amd64 |
