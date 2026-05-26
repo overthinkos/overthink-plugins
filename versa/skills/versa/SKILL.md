@@ -322,6 +322,29 @@ compatible wheel exists at build time; re-add them once wheels ship.
 - **torch-spline-conv** — no cp313 wheel at all. Niche convolution
   layer; PyG's other layer types are unaffected.
 
+## Load-bearing transitive: pytest in the pixi env
+
+`pytest` is an explicit `[pypi-dependencies]` entry in
+`layers/marimo/pixi.toml` despite no code in this env using pytest as a
+test framework. It is an **involuntary runtime dep** of the cupy + torch
+2.11 combination:
+
+- cupy ships `testing` as `importlib.util.LazyLoader`
+  (`cupy/__init__.py`), and `cupy/testing/__init__.py` eagerly imports
+  `cupy.testing._random` which does `import pytest` at module top.
+- torch 2.11's `library.custom_op` decorator runs
+  `inspect.getmodule(frame) → hasattr(module, "__file__")` during
+  fake-op registration, which trips the LazyLoader and forces the
+  cupy.testing chain.
+- Joint import sequence `import cugraph; import torch_geometric`
+  therefore needs `pytest` available in the env, or it
+  `ModuleNotFoundError`s deep in torch's fake-op registration.
+
+Upstream cupy packaging defect (a runtime testing helper should not
+eagerly `import pytest`); the downstream fix is supplying pytest. Pure-
+Python wheel — does not break the `no-build = true` invariant the
+`apache-airflow` pin requires.
+
 ## Known gotchas
 
 - **User deploy.yml needs `image:` field.** `~/.config/ov/deploy.yml`
