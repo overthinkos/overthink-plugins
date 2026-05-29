@@ -38,8 +38,40 @@ VMs are not configured on kind:image entries — `image.vm:` / `image.libvirt:` 
 | List VMs | `ov vm list [-a]` | List running (or all) VMs |
 | Console | `ov vm console <name>` | Attach to serial console |
 | SSH | `ov vm ssh <name>` | SSH into VM |
+| GPU passthrough readiness | `ov vm gpu status` | Host IOMMU + vfio-pci + per-GPU group/driver report |
+| GPU passthrough block | `ov vm gpu list` | Emit a ready-to-paste `libvirt.devices.hostdevs:` block (whole IOMMU group, `managed: "yes"`) |
+| Load image into guest | `ov vm cp-image <vm> <ref> [--as <tag>]` | `podman save | scp | podman load` a host image into a running guest (idempotent) |
 
 VM name convention: `ov-<name>[-<instance>]`. Default libvirt URI: `qemu:///session`.
+
+## GPU passthrough (VFIO)
+
+To pass a physical GPU through to a VM and (e.g.) run a CUDA container inside it:
+
+1. **Host readiness** — `ov vm gpu status` confirms IOMMU is on (`intel_iommu=on`
+   / `amd_iommu=on iommu=pt` on the kernel cmdline) and shows each GPU's IOMMU
+   group + current driver. `ov doctor` reports the same under "VFIO / GPU
+   passthrough".
+2. **Author the hostdev** — `ov vm gpu list` prints a `libvirt.devices.hostdevs:`
+   block covering **every** function in the GPU's IOMMU group (the GPU + its
+   audio function + any bridge sibling — they must pass through together), each
+   `managed: "yes"` (libvirt auto-binds them to vfio-pci on VM start and rebinds
+   the host driver on stop). Paste it under the `kind: vm` entity. Use
+   `firmware: uefi-insecure` and `backend: libvirt` (the qemu backend does not
+   render `<hostdev>`). A PCI address is host-specific — do not commit it to a
+   shared repo; keep it in a local/uncommitted entity or overlay.
+3. **In-guest driver** — a passthrough guest needs the actual kernel module, not
+   just the userspace container toolkit. Apply a kernel-driver layer (it
+   blacklists the in-tree driver, regenerates the initramfs, and declares
+   `reboot: true` so `ov deploy add vm:<name>` reboots the guest and waits for it
+   to return). The `nvidia`-toolkit layer + `nvidia-ctk cdi generate` then makes
+   the GPU available to containers via CDI (`--device nvidia.com/gpu=all`).
+
+Code-43 workarounds for consumer NVIDIA cards are first-class libvirt fields:
+`libvirt.features.kvm.hidden: on` and `libvirt.features.hyperv.vendor_id`.
+Optional per-hostdev `rom: {bar: off}` / `driver: {name: vfio}` are supported.
+Worked end-to-end example: the CachyOS `eval-cachyos-gpu-vm` bed (see
+`/ov-vm:cachyos`, `/ov-eval:eval`).
 
 ## Building Disk Images
 

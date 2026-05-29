@@ -68,6 +68,25 @@ Document rationale for *every* cloud_image VM author:
 
 SPICE graphics protocol is video-model-agnostic — it streams pixels from virtio-gpu just as it does from QXL.
 
+### PCI passthrough (`<hostdev>`) + NVIDIA Code-43 features
+
+`mapHostdev` (`libvirt_yaml_bridge.go`) renders `libvirt.devices.hostdevs[]`. For
+`type: pci` it emits `<hostdev managed='…' type='pci'><source><address …/></source>`
+plus — when set — the optional `<rom bar='off'/file='…'/>` (from `rom:`) and
+`<driver name='vfio'/>` (from `driver:`). `managed='yes'` makes libvirt auto-bind
+the device to vfio-pci on VM start and rebind the host driver on stop. Every
+function in the GPU's IOMMU group must be a separate hostdev entry (`ov vm gpu
+list` emits the whole group). Passthrough wants `firmware: uefi-insecure` and the
+libvirt backend (the QEMU-argv renderer skips PCI hostdev — see below).
+
+`buildDomainFeatures` renders the two NVIDIA Code-43 workarounds for consumer
+GPUs: `libvirt.features.kvm.hidden: on` → `<kvm><hidden state='on'/></kvm>`, and
+`libvirt.features.hyperv.vendor_id: {state, value}` → `<hyperv><vendor_id …/>`.
+`features.ibs` and the rest of the KVM struct (hint_dedicated / poll_control /
+pv_ipi / dirty_ring) render too; other HyperV enlightenments stay available via
+`libvirt.snippets`. `ValidateLibvirtDomain` checks hostdev type/managed enums and
+hex PCI source fields. Worked example: the CachyOS `eval-cachyos-gpu-vm` bed.
+
 ## Firmware plumbing (D17)
 
 `RenderDomain` reads `spec.Firmware` and, for UEFI, calls `ResolveOvmfForSpec` (see `/ov-internals:ovmf`) to get `(CodePath, NVRAMPath)`. Emits:

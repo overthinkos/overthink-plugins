@@ -60,6 +60,28 @@ Five preflight steps before walking plans:
 4. **Ensure guest ledger dir exists.** `ssh -- mkdir -p ~/.config/overthink/installed/{deploys,layers}`.
 5. **Walk plans.** Same batched `(Scope, Venue)` logic as `LocalDeployTarget`, but with `sudo bash -s` wrapped in `ssh`. See `/ov-local:local-deploy` for the grouping rules.
 
+## RebootStep — the one step only this target executes
+
+When a layer declares `reboot: true`, `BuildDeployPlan` appends a trailing
+`RebootStep`. `VmDeployTarget.execReboot` is the sole executor that acts on it
+(OCI/pod/k8s skip; `LocalDeployTarget` skips + warns — it never reboots the
+operator host). It records the guest's `/proc/sys/kernel/random/boot_id`, fires
+`(sleep 1; systemctl reboot) &` so the ssh session closes cleanly, then polls
+until SSH answers AND the boot_id has changed — deterministic, not a fixed sleep,
+so the still-up pre-reboot sshd can't be mistaken for "back up". This is what
+lets a kernel-module layer (e.g. the CachyOS `nvidia-driver` layer) load its
+module on a clean boot mid-deploy. See `/ov-internals:install-plan` RebootStep.
+
+## Host→guest image transfer (`ov vm cp-image`)
+
+`ov vm cp-image <vm> <ref> [--as <tag>]` (and the reusable `TransferImageToGuest`
+helper) load a host-built image into a running guest's rootful podman storage via
+`podman save | scp | podman load`, idempotent (skips when the guest already has
+it) and offline (no registry). The `kind: eval` VM-bed runner calls it for each
+nested pod child's image — so a locally-built image (e.g. `cuda-eval`) is present
+in the guest before the in-guest container runs. Loaded into ROOT podman so a
+`sudo podman run --device nvidia.com/gpu=all` (which needs `/dev/nvidia*`) finds it.
+
 ## VmDeployState persistence
 
 ```go

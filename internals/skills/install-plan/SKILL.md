@@ -76,7 +76,7 @@ type InstallStep interface {
 }
 ```
 
-All nine concrete step kinds implement this interface. `Reverse()` is called at install time (not teardown) so the ledger records the exact reversal ops tied to the specific artifacts created.
+All eleven concrete step kinds implement this interface. `Reverse()` is called at install time (not teardown) so the ledger records the exact reversal ops tied to the specific artifacts created.
 
 ### Enums
 
@@ -106,14 +106,14 @@ Each `SystemPackagesStep` carries one phase; `--allow-repo-changes` gating is a 
 Gates apply only to the host target. `EmitOpts.AssumeYes` enables all three. See `GateEnabled(gate, opts)` in `install_plan.go`.
 
 **`StepKind`** — discriminator for concrete types:
-- `SystemPackages`, `Builder`, `Task`, `File`, `ServicePackaged`, `ServiceCustom`, `ShellHook`, `ShellSnippet`, `RepoChange`.
+- `SystemPackages`, `Builder`, `Task`, `File`, `ServicePackaged`, `ServiceCustom`, `ShellHook`, `ShellSnippet`, `RepoChange`, `ApkInstall`, `Reboot`.
 
 The IR carries no image-fetch step kind. Deploys (any target) emit
 zero image-pull / image-build steps; test-bed image preflight is a
 separate, eval-time concern handled by `ov/eval_image_preflight.go`
 (CLAUDE.md "Deploy fetches NOTHING speculative").
 
-## The nine step kinds
+## The eleven step kinds
 
 | Kind | What it carries | Venue default | Scope derivation |
 |---|---|---|---|
@@ -126,6 +126,8 @@ separate, eval-time concern handled by `ov/eval_image_preflight.go`
 | `ShellHookStep` | LayerName, EnvVars, PathAdd, EnvFile | HostNative | Always user-profile |
 | `ShellSnippetStep` | LayerName, Origin, Shell (bash/zsh/fish/sh), Snippet, PathAppend, Destination, Marker, UseDropin, Priority | HostNative | `pathIsSystemScoped(Destination)` (system for container drop-ins, user-profile for ~/.bashrc etc.) |
 | `RepoChangeStep` | Format, File, Content, Checksum, LayerName | HostNative | Always system |
+| `ApkInstallStep` | Packages (apk specs), LayerName, LayerDir | HostNative | Always system. Only `target: android` executes it; every other target records a skip. |
+| `RebootStep` | LayerName | HostNative | Always system; `Reverse()` empty. Emitted last when a layer sets `reboot: true`. Only `VmDeployTarget` acts on it (reboot guest + wait for return); OCI/pod/k8s skip; `LocalDeployTarget` skips + warns (never reboots the operator host). |
 
 **`ShellSnippetStep` notes:**
 - Compiled by `compileShellSnippetSteps` in `install_build.go` — applies the per-shell-wins-over-generic selection rule from `layer.Shell()`.

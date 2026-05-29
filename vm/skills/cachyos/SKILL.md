@@ -45,6 +45,21 @@ runs the full R10 sequence unattended (the equivalent `ov update
 cachyos-vm-deploy` rebuild also works, since the eval bed is folded into the
 Deploy map).
 
+`eval-cachyos-gpu-vm` is the **nested GPU passthrough** bed: a `cachyos-gpu-vm`
+guest (bootstrap VM, UEFI, `backend: libvirt`, podman) that receives a physical
+NVIDIA GPU via a VFIO `<hostdev>` and runs a CUDA container inside it. It applies
+the `nvidia` toolkit + the locally-vendored `nvidia-driver` kernel layer (whose
+`reboot: true` reboots the guest mid-deploy so the open module loads on a clean
+boot), loads the `cuda-eval` image into the guest as `localhost/ov-cuda-pod:latest`
+(via `ov vm cp-image`, driven by the bed's `nested: cuda-pod` entry), then a
+deploy-scope check runs `podman run --device nvidia.com/gpu=all … cuda-smoke` →
+`CUDA-OK`. The committed `cachyos-gpu-vm` is **portable** — it carries NO hostdev
+block (a PCI address is host-specific); generate one with `ov vm gpu list` and add
+it locally before a live GPU run. Every GPU/CUDA check gates on an active in-guest
+driver and passes with an N/A note otherwise, so the bed runs anywhere. The
+`cuda-smoke` layer compiles its kernel with `g++-15` (CUDA 13.2 rejects gcc 16).
+See `/ov-vm:vm` "GPU passthrough", `/ov-distros:cuda`.
+
 ## pacstrap path
 
 `ov vm build cachyos-vm` builds a bootable disk end-to-end. The

@@ -28,10 +28,13 @@ Rules are written to `/etc/udev/rules.d/99-ov-container-access.rules`:
 SUBSYSTEM=="drm", KERNEL=="card[0-9]*", GROUP="render", MODE="0660"
 # AMD KFD: ROCm compute access
 SUBSYSTEM=="kfd", KERNEL=="kfd", GROUP="render", MODE="0660"
+# VFIO group nodes: rootless GPU passthrough to VMs
+SUBSYSTEM=="vfio", GROUP="kvm", MODE="0660"
 ```
 
 - **DRM card nodes** (`/dev/dri/card*`) — set group to `render`, mode `0660`. Render nodes (`renderD*`) are already world-accessible; card nodes need explicit rules for NVENC
 - **AMD KFD** (`/dev/kfd`) — set group to `render`, mode `0660`. Required for ROCm GPU compute
+- **VFIO group nodes** (`/dev/vfio/<group>`) — set group to `kvm`, mode `0660`. Lets rootless `qemu:///session` open the group node for GPU passthrough to a VM (`ov vm gpu` / a `libvirt.devices.hostdevs:` block). The user must be in the `kvm` group. Passthrough also needs a raised memlock limit — `ov vm gpu status` / `ov doctor` report both.
 
 Rootless Podman's user namespace mapping prevents DRM master abuse, making this safe.
 
