@@ -29,8 +29,10 @@ The `InstallPlan` IR (see `/ov-internals:install-plan`) is the central data type
 | `ov/hostdistro.go` | Detect host distro from `/etc/os-release`; glibc preflight | `HostDistro`, `DetectHostDistro`, `DetectHostGlibc`, `CompareGlibc`, `distroIDAliases` |
 | `ov/install_ledger.go` | Flock-serialized JSON ledger at `~/.config/overthink/installed/` | `LedgerPaths`, `LedgerLock`, `DeployRecord`, `LayerRecord`, `StepRecord`, `AcquireLedgerLock`, `AddLayerDeployment`, `RemoveLayerDeployment` |
 | `ov/builder_run.go` | `podman run <builder>` wrapper for compile-needing layers | `BuilderRun`, `BuilderRunOpts`, `UserScopeBindMounts`, `UserScopeEnv` |
-| `ov/shell_profile.go` | bash/zsh/fish detection + managed-block fencing + env.d I/O | `ShellKind`, `DetectLoginShell`, `EnvdDir`, `WriteEnvdFile`, `RemoveEnvdFile`, `EnsureManagedBlock`, `RemoveManagedBlock`, `ShellInitFilePath` |
+| `ov/shell_profile.go` | bash/zsh/fish detection + managed-block fencing + env.d I/O | `ShellKind`, `DetectLoginShell`, `EnvdDir`, `WriteEnvdFile`, `RemoveEnvdFile`, `EnsureManagedBlockVia`, `EnsureManagedBlock`, `RemoveManagedBlock`, `ShellInitFilePath` |
 | `ov/reverse_ops.go` | Execute `ReverseOp` slices in LIFO order via per-kind handlers | `runReverseOps`, `ReverseExecutor` interface, 15 reverse handlers |
+
+**Managed block is executor-based.** `EnsureManagedBlockVia(ctx, exec, shell, home, opts)` is the single writer for the env.d-sourcing block: `GetFile` the existing rc, merge the fenced block, `PutFile` it back. `LocalDeployTarget` calls it with a `ShellExecutor` (host fs); `VmDeployTarget` with an `SSHExecutor` (guest fs) — so the block lands in the right user's rc on local AND vm deploys (R3, one path). `EnsureManagedBlock(shell, home)` is a thin wrapper over it with a local `ShellExecutor`. `home` is the DESTINATION user's home — the guest home for a VM deploy (see `/ov-internals:vm-deploy-target`).
 | `ov/service_render.go` | Render `ServiceEntry` → systemd unit / supervisord INI | `ServiceEntry`, `ServiceOverrides`, `RenderService`, `RenderedService` |
 | `ov/deploy_ref.go` | Unified 4-form ref resolver | `DeployRef`, `RefKind`, `RefSource`, `ResolveDeployRef`, `classifyYAMLFile` |
 

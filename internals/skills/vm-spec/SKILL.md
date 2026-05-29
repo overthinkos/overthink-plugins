@@ -48,6 +48,16 @@ Every field except `Source`, `CloudInit`, and `Source`-branch-specific subfields
 
 `DiskSize` is the **virtual** size: the bootstrap path's `truncate` + `qemu-img convert -O qcow2` (no `preallocation`) produces a sparse qcow2 that grows on demand, so `disk_size: 1T` costs only the bytes actually written.
 
+### virtiofs shares — guest-user idmap
+
+A `libvirt.devices.filesystems[]` entry with `driver: virtiofs` +
+`accessmode: passthrough` + a host-path `source` is auto-given a guest-user
+`<idmap>` at render time so the share is owned by the guest's interactive user
+(uid 1000), not guest-root. This is what makes `source: /home/<you>` →
+`target: workspace` usable as the SSH user inside the guest. Mechanism +
+the exact id partition live in `/ov-internals:libvirt-renderer` "virtiofs
+guest-user idmap"; shared-memory auto-pairing is in the same skill.
+
 ## VmSource (discriminated union)
 
 ```go

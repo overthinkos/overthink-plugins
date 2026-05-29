@@ -58,7 +58,53 @@ Five preflight steps before walking plans:
 2. **Wait for cloud-init** (cloud_image sources only). `SSHExecutor.WaitForCloudInit` polls `cloud-init status --wait` until status is `done`. Bootc guests skip this step unless the `cloud-init` layer is present.
 3. **EnsureOvInGuest.** Runs the `VmOvInstall.Strategy` state machine (see `/ov-internals:cloud-init-renderer`).
 4. **Ensure guest ledger dir exists.** `ssh -- mkdir -p ~/.config/overthink/installed/{deploys,layers}`.
-5. **Walk plans.** Same batched `(Scope, Venue)` logic as `LocalDeployTarget`, but with `sudo bash -s` wrapped in `ssh`. See `/ov-local:local-deploy` for the grouping rules.
+5. **Resolve the guest home** once (`t.Exec.ResolveHome(ctx, "")`) and cache it on `t.guestHome`. Every home-bearing step field is resolved against THIS home, not the host operator's — see below.
+6. **Walk plans.** Same batched `(Scope, Venue)` logic as `LocalDeployTarget`, but with `sudo bash -s` wrapped in `ssh`. See `/ov-local:local-deploy` for the grouping rules.
+7. **Write the env.d-sourcing managed block** into the guest's detected login-shell init (`EnsureManagedBlockVia`) so the env.d files actually get sourced at login.
+
+## Guest-home resolution (deploy-time `{{.Home}}`)
+
+Home-bearing step fields — `ShellHookStep` env values + `path_append`,
+`ShellSnippetStep` snippet/destination, `FileStep.Dest` — are compiled with the
+deferred `{{.Home}}` token (`HomeToken`), NOT a baked compile-time home. Each
+target resolves the token at emit via `InstallPlan.ResolveHome(home)`:
+`img.Home` for OCI/pod-overlay, the host home for `LocalDeployTarget`, and the
+**GUEST** home (`t.guestHome`) for `VmDeployTarget`. This is why a `target: vm`
+deploy writes `/home/<guest-user>/.config/overthink/env.d/<layer>.env` whose
+contents point at `/home/<guest-user>/…` rather than the host operator's home.
+`cmd:` task bodies are left untouched — `~`/`$HOME` there shell-expand at
+runtime on the guest as the deploy user, already correct. See
+`/ov-internals:install-plan` "Deferred home resolution".
+
+## env.d-sourcing managed block (guest login shell)
+
+`VmDeployTarget` calls `EnsureManagedBlockVia(ctx, t.Exec, shell, t.guestHome,
+opts)` after the plan loop — the SAME executor-based writer `LocalDeployTarget`
+uses (`shell_profile.go`; the os-based `EnsureManagedBlock` is a thin wrapper
+over it). Without this block the per-layer env.d files exist but are never
+sourced, so PATH never picks up `~/.npm-global/bin` etc. The shell is detected
+from the GUEST `/etc/passwd` via `detectGuestShell` (getent), because the
+guest's interactive default may differ from the operator's (CachyOS ships fish)
+— writing bash syntax to `~/.profile` when the guest runs fish would never load.
+
+## Cross-host builders (npm / pixi / cargo / aur)
+
+`execBuilder` runs every builder on the HOST (podman) and ships the result into
+the guest — guests never need a container runtime:
+
+- **aur** → builds `.pkg.tar.zst` in a host staging dir, scp's them in, `pacman -U`.
+- **npm / pixi / cargo** (`execHomeArtifactBuilder`) → bind-mounts a host staging
+  dir AS the **guest home path** so npm shebangs / cargo rpaths / pixi activation
+  scripts bake the path the guest will actually use, runs the same
+  `renderBuilderScript` body as the local path, then tars the produced home
+  subdirs (`~/.npm-global`, `~/.pixi`, `~/.cargo`; caches excluded), scp's the
+  tarball in, and extracts it into the guest `$HOME` **as the guest user** so
+  ownership + baked paths are correct. The builder image resolves via
+  `resolveBuilderImage` (`--builder-image` → compiled `BuilderStep.BuilderImage`
+  → `BuilderImageResolver`). Unknown builders honor `--skip-incompatible`.
+
+This is what makes the full ov-cachyos stack — including the npm-builder AI CLIs
+(`claude-code`, `codex`, `gemini`, `oracle`, `forgecode`) — install on a VM.
 
 ## RebootStep — the one step only this target executes
 

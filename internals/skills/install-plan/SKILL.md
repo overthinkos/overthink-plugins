@@ -211,6 +211,32 @@ See `/ov-kubernetes:kubernetes` for the user-facing surface and profile layout.
 
 OCITarget doesn't batch — it emits each step in order as Containerfile directives; adjacent same-`USER` steps collapse naturally via the existing `USER` switching logic in `emitTasks`.
 
+## Deferred home resolution (`{{.Home}}` + `InstallPlan.ResolveHome`)
+
+Home-bearing step fields carry the deferred `HomeToken` (`{{.Home}}`) rather
+than a home expanded at compile time. `compileShellHookStep` always emits the
+token; `compileShellSnippetSteps` emits it for deploy targets (`hostCtx.Target`
+== `host`/`vm`) and keeps `img.Home` for the container build. Each
+`DeployTarget` calls `plan.ResolveHome(home)` once at emit with the home of the
+**actual** destination:
+
+| Target | Home used |
+|---|---|
+| `OCITarget` (build + pod-overlay) | `img.Home` (the image's runtime home) |
+| `LocalDeployTarget` | host home (`ShellExecutor.ResolveHome`) |
+| `VmDeployTarget` | GUEST home (`SSHExecutor.ResolveHome`) |
+
+`ResolveHome` substitutes the token in `ShellHookStep` (EnvVars + PathAdd),
+`ShellSnippetStep` (Snippet + Destination + PathAppend), and `FileStep.Dest`;
+it deliberately skips `TaskStep` cmd/content bodies (`~`/`$HOME` there
+shell-expand at runtime on the destination as the deploy user) and
+`BuilderStep` (home resolved separately by `renderBuilderScript`). It is
+idempotent. Baking `img.Home` at compile time was the VM `$HOME` bug: the
+synthetic plan's Home was the host operator's, so a guest deploy wrote env.d
+pointing at `/home/<operator>` and user-scope installs (npm -g, cargo) landed
+in a root-owned path the guest user couldn't write. See
+`/ov-internals:vm-deploy-target` "Guest-home resolution".
+
 ## `ReverseOp` catalogue
 
 See `/ov-local:local-deploy` for the user-facing reverse-op table. The Go-level source of truth is `ReverseOpKind` in `install_plan.go`; each step's `Reverse()` method emits ops tagged with kind + targets + scope. Execution lives in `ov/reverse_ops.go` — one handler per kind, all routed through `runReverseOps(ops, executor)` in LIFO order.

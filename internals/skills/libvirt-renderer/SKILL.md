@@ -105,6 +105,34 @@ requires `source`+`target` and checks the driver/accessmode enums — a literal
 `/home/...` source is allowed (a share's purpose is to expose a host dir). The
 guest mounts the tag with the `workspace-mount` layer (or `mount -t virtiofs`).
 
+### virtiofs guest-user idmap (auto-paired, like shared memory)
+
+`ensureVirtiofsIdmap` (`libvirt_yaml_bridge.go`, called right after
+`ensureVirtiofsSharedMemory`) auto-injects a `<filesystem><idmap>` onto every
+**passthrough** virtiofs share that doesn't already declare one. libvirt's
+DEFAULT rootless idmap maps **guest-root → the host operator**, so a host-home
+passthrough share is `root:root` inside the guest and the interactive guest
+user (uid 1000) gets `Permission denied` — the "/workspace is mounted but I
+can't read it" footgun. The injected idmap instead maps the guest's primary
+user (uid/gid 1000, the cloud-init/pacstrap/debootstrap first-user convention)
+to the host operator, with all other ids in the operator's `/etc/subuid` +
+`/etc/subgid` range:
+
+```
+<idmap>
+  <uid start='0'    target='100000' count='1000'/>   <!-- guest 0-999  → subuid -->
+  <uid start='1000' target='1000'   count='1'/>       <!-- guest user   → host operator -->
+  <uid start='1001' target='101000' count='64536'/>   <!-- guest 1001+  → subuid -->
+  <gid …/>  <!-- same partition for gids -->
+</idmap>
+```
+
+Built by `guestOwnerIDMap(guestID, hostID, subStart, subCount)` from
+`subIDRange("/etc/subuid", …)`. An author-declared idmap, a non-passthrough
+accessmode (`mapped`/`squash`), or a missing subordinate-ID range all leave
+libvirt's own default untouched. This makes "mount /home/X into the VM" usable
+by the guest's interactive user, which is what the operator means in practice.
+
 ### guest-agent unix channel
 
 `mapChannel` renders `libvirt.devices.channels[]`. The qemu-guest-agent idiom is
