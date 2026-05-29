@@ -85,7 +85,7 @@ GPUs: `libvirt.features.kvm.hidden: on` → `<kvm><hidden state='on'/></kvm>`, a
 `features.ibs` and the rest of the KVM struct (hint_dedicated / poll_control /
 pv_ipi / dirty_ring) render too; other HyperV enlightenments stay available via
 `libvirt.snippets`. `ValidateLibvirtDomain` checks hostdev type/managed enums and
-hex PCI source fields. Worked example: the CachyOS `eval-cachyos-gpu-vm` bed.
+hex PCI source fields. Worked example: the CachyOS `eval-cachyos-coder-vm` bed.
 
 ### virtiofs filesystem shares + auto-paired shared memory
 

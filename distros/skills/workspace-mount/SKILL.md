@@ -46,7 +46,7 @@ memory backing virtiofs requires is auto-paired by the renderer (see
 
 ## Used in
 
-The `ov-cachyos-gpu` operator workstation VM (`image/cachyos`), mounting the
+The `cachyos-coder` operator workstation VM (`image/cachyos`), mounting the
 operator's `/home/atrawog` → `/workspace`. Generic for any pod-in-VM share.
 
 ## Related

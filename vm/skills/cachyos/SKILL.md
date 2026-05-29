@@ -45,7 +45,7 @@ runs the full R10 sequence unattended (the equivalent `ov update
 cachyos-vm-deploy` rebuild also works, since the eval bed is folded into the
 Deploy map).
 
-`eval-cachyos-gpu-vm` is the **nested GPU passthrough** bed: a `cachyos-gpu-vm`
+`eval-cachyos-coder-vm` is the **full KDE GPU workstation** bed: a `cachyos-gpu-vm`
 guest (bootstrap VM, UEFI, `backend: libvirt`, podman) that receives a physical
 NVIDIA GPU via a VFIO `<hostdev>` and runs a CUDA container inside it. It applies
 the `nvidia` toolkit + the locally-vendored `nvidia-driver` kernel layer (whose

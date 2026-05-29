@@ -70,7 +70,7 @@ To pass a physical GPU through to a VM and (e.g.) run a CUDA container inside it
 Code-43 workarounds for consumer NVIDIA cards are first-class libvirt fields:
 `libvirt.features.kvm.hidden: on` and `libvirt.features.hyperv.vendor_id`.
 Optional per-hostdev `rom: {bar: off}` / `driver: {name: vfio}` are supported.
-Worked end-to-end example: the CachyOS `eval-cachyos-gpu-vm` bed (see
+Worked end-to-end example: the CachyOS `eval-cachyos-coder-vm` bed (see
 `/ov-vm:cachyos`, `/ov-eval:eval`).
 
 ## Building Disk Images
