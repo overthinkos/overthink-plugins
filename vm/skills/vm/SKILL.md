@@ -11,8 +11,8 @@ description: |
 ## Disposability + deploy cross-ref
 
 - **Disposability is a deploy property only.** A `kind: vm` entity carries no `disposable:` / `lifecycle:` field. Put `disposable: true` on the matching `deploy.<name>-vm` entry; that's what `ov update <vm-name>` checks. The `vm:` entity entry only describes VM shape (disk, RAM, SSH, cloud-init, libvirt), never authorization.
-- **Deploy-level cross-ref**: a deployment with `target: vm` references its VM entity via `vm_source: <entity-name>`.
-- **`ov update <vm-entity-name>`** searches `deploy:` for any entry with `target: vm` + `vm_source: <entity>`; disposable iff ANY such entry carries `disposable: true`. Absence of a matching disposable deploy entry → rebuild refused.
+- **Deploy-level cross-ref**: a deployment with `target: vm` references its VM entity via `vm: <entity-name>`.
+- **`ov update <vm-entity-name>`** searches `deploy:` for any entry with `target: vm` + `vm: <entity>`; disposable iff ANY such entry carries `disposable: true`. Absence of a matching disposable deploy entry → rebuild refused.
 
 ## Overview
 
@@ -119,6 +119,15 @@ without requiring a full `ov vm build`. The qcow2 disk is left alone; only
 the seed ISO is rewritten (via `RegenerateSeedISO` in `ov/vm_cloud_image.go`).
 Use `ov vm destroy --disk` + `ov vm build` when you need a truly fresh disk
 (e.g. when a previous failed cloud-init left stale state in `/home/<user>/`).
+
+**`autostart: true`** on the entity makes `ov vm create` set libvirt's domain
+autostart flag AND wire the session-boot trigger (`loginctl enable-linger` + a
+generated per-VM user unit `ov-autostart-<domain>.service` that `virsh start`s
+the domain at boot), so the VM starts at host boot. Requires the libvirt backend.
+**`disk_size: 1T`** (or larger) is cheap — the qcow2 is sparse, so the virtual
+size is just a ceiling and physical bytes grow on demand. A host directory can be
+shared into the guest via `libvirt.devices.filesystems` (virtiofs) and mounted by
+the `/ov-distros:workspace-mount` layer. See `/ov-vm:vms-catalog`.
 
 ## `kind: vm` entity reference
 

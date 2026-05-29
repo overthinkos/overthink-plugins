@@ -87,6 +87,34 @@ pv_ipi / dirty_ring) render too; other HyperV enlightenments stay available via
 `libvirt.snippets`. `ValidateLibvirtDomain` checks hostdev type/managed enums and
 hex PCI source fields. Worked example: the CachyOS `eval-cachyos-gpu-vm` bed.
 
+### virtiofs filesystem shares + auto-paired shared memory
+
+`mapFilesystem` (`libvirt_yaml_bridge.go`) renders `libvirt.devices.filesystems[]`
+— `{driver: virtiofs|9p|path, accessmode, source: <host dir>, target: <mount tag>}`
+→ `<filesystem type='mount' accessmode='…'><driver type='virtiofs'/><source dir='…'/><target dir='…'/></filesystem>`,
+plus the optional virtiofsd `binary:` knobs (`path`, `xattr`, `cache`, `sandbox`,
+`thread_pool` → `<binary …>`), useful for tuning the rootless `qemu:///session`
+virtiofsd. **virtiofs requires shared guest memory** — `BuildLibvirtDomainXML`
+calls `ensureVirtiofsSharedMemory`, which auto-injects
+`<memoryBacking><source type='memfd'/><access mode='shared'/></memoryBacking>`
+whenever a virtiofs share is present and no shared backing was declared (an
+explicit backing, e.g. hugepages, is honored — only the missing source/access
+bits are filled). Without this libvirt refuses to start the domain; auto-pairing
+means an author never has to remember the coupling. `ValidateLibvirtDomain`
+requires `source`+`target` and checks the driver/accessmode enums — a literal
+`/home/...` source is allowed (a share's purpose is to expose a host dir). The
+guest mounts the tag with the `workspace-mount` layer (or `mount -t virtiofs`).
+
+### guest-agent unix channel
+
+`mapChannel` renders `libvirt.devices.channels[]`. The qemu-guest-agent idiom is
+`{type: unix, name: org.qemu.guest_agent.0}` with **no** explicit path → a
+libvirt-managed socket (`<channel type='unix'><source mode='bind'/><target
+type='virtio' name='org.qemu.guest_agent.0'/></channel>`); libvirt auto-assigns
+the socket path under the per-VM lib dir. `extractChannelSocketPaths` pre-creates
+the parent dir. (The same channel is also contributed as a raw snippet by the
+`/ov-distros:qemu-guest-agent` layer for image-composed VMs.)
+
 ## Firmware plumbing (D17)
 
 `RenderDomain` reads `spec.Firmware` and, for UEFI, calls `ResolveOvmfForSpec` (see `/ov-internals:ovmf`) to get `(CodePath, NVRAMPath)`. Emits:

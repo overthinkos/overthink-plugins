@@ -33,11 +33,13 @@ vms:
       root_size: 10G                      # optional cap; rest of disk stays unpartitioned
       kernel_args: "…"
     # Hardware (both branches):
-    disk_size: 20G | "10 GiB"
+    disk_size: 20G | "10 GiB" | 1T         # VIRTUAL size; qcow2 is lazily/sparsely allocated (grows on demand)
     ram: 4G | "8192M"
     cpus: 4
     machine: q35 | virt | i440fx           # default: host-native
     firmware: bios | uefi-insecure | uefi-secure  # default: bios
+    backend: auto | libvirt | qemu         # default: auto
+    autostart: true                        # start at host boot (libvirt only — see below)
     # Network:
     network:
       mode: user | bridge | nat
@@ -62,12 +64,37 @@ vms:
     # Libvirt XML knobs (see /ov-internals:libvirt-renderer):
     libvirt:
       devices:
-        channels: […]
+        channels: [{type: unix, name: org.qemu.guest_agent.0}]   # qemu-guest-agent
         graphics: […]
         video: [{model: virtio, vram: 65536, heads: 1, accel3d: false}]
         rng: [{model: virtio, backend: /dev/urandom}]
         memballoon: {model: virtio}
+        hostdevs: […]                                            # PCI passthrough (ov vm gpu list)
+        filesystems:                                             # virtiofs/9p host↔guest shares
+          - {driver: virtiofs, accessmode: passthrough, source: /home/me, target: workspace}
+      # memory_backing is auto-paired (memfd + shared) for any virtiofs share
 ```
+
+### autostart — start the VM at host boot
+
+`autostart: true` sets libvirt's domain autostart flag. Because ov VMs run under
+`qemu:///session` (no portable user-level `virtqemud.socket` to socket-activate at
+boot), `ov vm create` also enables `loginctl enable-linger` (idempotent) and
+writes + enables a per-VM user oneshot `ov-autostart-<domain>.service` that
+`virsh -c qemu:///session start`s the domain at boot (`ov vm destroy` removes it).
+**Requires `backend: libvirt`** — validation rejects `autostart: true` with
+`backend: qemu`. Reapplied on every `ov vm create` / `ov update`. Pair with a
+1 TB+ `disk_size` freely — the qcow2 is sparse, so a large virtual disk costs only
+the bytes written.
+
+### filesystems — virtiofs host directory shares
+
+`libvirt.devices.filesystems[]` exposes a host directory inside the guest:
+`{driver: virtiofs, accessmode: passthrough, source: <host dir>, target: <tag>}`.
+The shared-memory backing virtiofs requires (`memfd`/`shared`) is **auto-paired**
+— you don't declare `memory_backing` yourself. The guest mounts the `target:` tag
+with the `/ov-distros:workspace-mount` layer (a systemd `.mount` unit for the
+`workspace` tag → `/workspace`) or any `mount -t virtiofs <tag> <dir>`.
 
 ### graphics `listen:` field — three accepted shapes
 

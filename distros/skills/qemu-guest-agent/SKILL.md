@@ -15,7 +15,24 @@ description: |
 
 ## Packages
 
-- `qemu-guest-agent` (RPM) -- QEMU guest agent daemon
+- `qemu-guest-agent` -- QEMU guest agent daemon. The package name is identical on
+  Arch/CachyOS (`pac`) and Fedora (`rpm`), so the top-level `package:` covers both
+  — this is a cross-distro layer, not RPM-only.
+
+## Full functionality (all RPCs + fsfreeze)
+
+The layer exposes the **complete** guest-agent surface — `guest-exec`,
+`guest-file-*`, `guest-fsfreeze-*`, `guest-set-*`. The package default blocks no
+RPCs; the layer's `/etc/qemu/qemu-ga.conf` makes that explicit and turns on the
+**fsfreeze hook** (the one capability not active by default), so the host can take
+application-consistent snapshots. The hook is a standard dispatcher
+(`/etc/qemu/fsfreeze-hook`) that runs every executable in
+`/etc/qemu/fsfreeze-hook.d/` with `freeze`/`thaw`; drop per-app scripts there.
+
+The layer also enables the `qemu-guest-agent.service` (system scope) and
+contributes the virtio-serial channel (below). On a `kind: vm` entity the channel
+is usually declared structurally instead — `channels: [{type: unix, name:
+org.qemu.guest_agent.0}]` (see `/ov-internals:libvirt-renderer`).
 
 ## Usage
 
@@ -25,6 +42,8 @@ my-vm-image:
   bootc: true
   layers:
     - bootc-base
+# or applied to a VM guest at deploy time:
+#   ov deploy add vm:<name> qemu-guest-agent
 ```
 
 ## Used In Images

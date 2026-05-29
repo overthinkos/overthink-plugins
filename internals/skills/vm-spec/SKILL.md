@@ -26,11 +26,13 @@ Go type reference for the VM surface. `VmSpec` + `VmSource` + `VmChecksum` + `Vm
 ```go
 type VmSpec struct {
     Source VmSource       // discriminated union: kind = cloud_image | bootc
-    DiskSize string       // "20G", "10 GiB"
+    DiskSize string       // "20G", "10 GiB", "1T" — virtual size; the qcow2 is lazily/sparsely allocated
     Ram      string       // "4G", "8192M"
     Cpus     int
     Machine  string       // q35 | virt | i440fx — default: host-native
     Firmware string       // bios | uefi-insecure | uefi-secure — default: bios
+    Backend  string       // auto | libvirt | qemu — pins the backend for this entity
+    Autostart bool        // libvirt domain autostart (libvirt backend only)
     Network  *VmNetwork
     SSH      *VmSSH
     CloudInit *VmCloudInit
@@ -39,6 +41,12 @@ type VmSpec struct {
 ```
 
 Every field except `Source`, `CloudInit`, and `Source`-branch-specific subfields applies equally to both source kinds — the parity guarantee. Anything configurable for cloud_image VMs is configurable for bootc VMs, and vice versa.
+
+### Autostart (boot-start)
+
+`autostart: true` sets libvirt's per-domain autostart flag (`DomainSetAutostart`, in `runVmSpecCreate` after define). Because VMs run under `qemu:///session`, that flag only fires at host boot once the session daemon is running — and there is no portable user-level `virtqemud.socket` to socket-activate it (Arch/CachyOS ships none). So `ensureBootAutostartPrereqs` (`ov/vm.go`) (a) runs `loginctl enable-linger <user>` (idempotent) and (b) writes + enables a per-VM user systemd oneshot `ov-autostart-<domain>.service` that runs `virsh -c qemu:///session start <domain>` at boot (`WantedBy=default.target`); virsh spawns the session daemon on demand and starts the already-defined domain — deterministic and cross-distro. `ov vm destroy` removes the unit (`removeAutostartUserUnit`). The libvirt flag is a domain property (not XML), so it survives `DomainDefineXML` redefinitions; `runVmSpecCreate` re-asserts both on every create/rebuild. `ValidateVmSpec` rejects `autostart: true` with `backend: qemu`. Additive optional field — no schema-version bump.
+
+`DiskSize` is the **virtual** size: the bootstrap path's `truncate` + `qemu-img convert -O qcow2` (no `preallocation`) produces a sparse qcow2 that grows on demand, so `disk_size: 1T` costs only the bytes actually written.
 
 ## VmSource (discriminated union)
 
