@@ -45,7 +45,7 @@ repo's `layers/` (resolved via its `discover:` block):
 | `install_opts.builder_image` | `ghcr.io/overthinkos/arch-builder:2026.122.2252` (OCI ref, not a layer) |
 | `install_opts` | with_service, allow_repo_changes, allow_root_tasks all true |
 | `env` | `EDITOR=nvim`, `PAGER=less` |
-| `disposable` (deploy) | `true` — `ov rebuild ov-cachyos` is authorized |
+| `disposable` (deploy) | `true` — `ov update ov-cachyos` is authorized |
 
 ## Deploy-scope eval probes
 
