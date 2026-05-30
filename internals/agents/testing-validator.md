@@ -59,18 +59,38 @@ bin/ov image validate                # CLI works
 ov start <image>                     # Service starts
 ov status <image>                    # Shows running
 ov logs <image>                      # No errors in logs
-# Test actual functionality
+ov eval live <image>                 # Three-section live probe pass
 ov stop <image>                      # Clean shutdown
 ```
 
-## Confidence Levels
+### For R10 acceptance (the gate, not a smoke test)
+
+The acceptance gate is a fresh-rebuild run on a `disposable: true` bed —
+delegate it to the `eval-bed-runner` agent, or run it directly:
+
+```bash
+ov eval image <image>                # build-scope checks (disposable run)
+ov eval run <bed>                    # full R10 sequence on a kind:eval bed:
+                                     # build → eval image → deploy →
+                                     # eval live → fresh ov update → teardown
+```
+
+Exit codes: `0` pass · `1` infra/usage error (never ran a verdict) · `2`
+checks failed. A `--dry-run`, a green `go test`, or `ov image validate`
+alone is NOT R10 — only a real `ov eval run <bed>` / `ov eval live` against
+a fresh rebuild counts.
+
+## Confidence Levels (must match CLAUDE.md "AI Attribution" exactly)
 
 | Level | Requirements |
 |-------|-------------|
-| `fully tested and validated` | All checklist items pass, tested on local system |
-| `analysed on a live system` | Observed on running system, partial testing |
-| `syntax check only` | Validation passes but no build/runtime test |
-| `theoretical suggestion` | No testing performed (AVOID) |
+| `fully tested and validated` | All 10 standards + a fresh-rebuild R10 (`ov eval run <bed>` / `ov eval live` on a `disposable: true` target) for EVERY affected target + the new/changed code path actually exercised + R10 output pasted |
+| `analysed on a live system` | A live invocation of the runner / verb evaluation / deploy probe the change touched actually ran AND its output is pasted. A bed *rebuild alone* (no eval run) and a `--dry-run` are NOT this tier — they are `syntax check only` |
+| `syntax check only` | Compile + unit tests + validators / dry-run passed; the live runner did NOT execute. Honest default when R10 hasn't run — pair with "R10 not yet run, awaiting authorization" AND do NOT commit |
+| `theoretical suggestion` | No validation — FORBIDDEN as a shipped-code tier |
+
+A known rule violation FORBIDS commit at ANY tier — there is no "downgrade
+and ship" path. Fix in the same tree or escalate. See CLAUDE.md.
 
 ## Output Format
 

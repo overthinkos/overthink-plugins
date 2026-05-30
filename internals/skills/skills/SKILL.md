@@ -139,7 +139,7 @@ Plugins are sorted into four use-case buckets. Directory names live at
 | kind | `ov-kubernetes` | 2 | `kind: k8s` schema + cluster probes |
 | kind | `ov-local` | 2 | `kind: local` schema + ssh-host deploys |
 | kind | `ov-pod` | 1 | `kind: pod` and `kind: deploy` schema (thin pointer) |
-| development | `ov-internals` | 15 + 3 agents | Go source / IR / capabilities / vm-spec / renderers / cutover-policy / strict-policy / disposable / git-workflow + enforcement agents + github MCP |
+| development | `ov-internals` | 16 + 5 agents | Go source / IR / capabilities / vm-spec / renderers / cutover-policy / strict-policy / disposable / git-workflow / agents (the agents/workflows/teams guide) + 5 agents (3 enforcers + 2 eval executors) + github MCP |
 | images | `ov-distros` | 34 | Base OS, GPU runtime, bootc, distro builders |
 | images | `ov-languages` | 4 | python, python-ml, pixi |
 | images | `ov-infrastructure` | 22 | postgres, redis, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, ... |
@@ -155,6 +155,32 @@ Plugins are sorted into four use-case buckets. Directory names live at
 | images | `ov-immich` | 4 | immich photo management |
 | images | `ov-hermes` | 6 | hermes agent image |
 | images | `ov-filebrowser` | 2 | filebrowser web file management |
+
+## Agent & signpost conventions
+
+### Agents (`plugins/<plugin>/agents/<name>.md`)
+
+Sub-agents are markdown + YAML frontmatter (`name`, `description`, `tools`,
+`model`, …), discovered from a plugin's `agents/` directory (currently only
+`ov-internals/agents/`). **Plugin-loaded agents IGNORE the `hooks`,
+`mcpServers`, and `permissionMode` frontmatter fields** — keep those out of
+plugin agents (use `.claude/agents/` or `settings.json` if you genuinely
+need them). The ov roster splits into **enforcers** (root-cause-analyzer,
+layer-validator, testing-validator — gate claims) and **executors**
+(eval-bed-runner, deploy-verifier — drive `ov eval` and return verbatim
+proof). Full story: `/ov-internals:agents`. Dynamic workflows are NOT plugin
+content — they live in the superproject's `.claude/workflows/*.js`.
+
+### Per-directory CLAUDE.md signposts (hybrid)
+
+The repo-root `CLAUDE.md` is the single canonical R0–R10 rule-set.
+Per-directory `CLAUDE.md` files (`ov/`, `layers/`, `plugins/`, and each
+`image/<distro>` submodule) are THIN signposts only: they name the skills to
+load for that area and point back to root. They MUST NOT restate any rule —
+duplication drifts (the hooks and an earlier layer-validator both drifted
+exactly this way). Subagents and teammates load the full `CLAUDE.md`
+hierarchy from their working directory, so a signpost reaches a worker scoped
+to that subtree without bloating root.
 
 ## Two-Layer Sync Architecture
 
@@ -181,6 +207,7 @@ Syncthing-synced half** (memory, personal settings).
 
 - `/ov-internals:go` — Source code structure, adding new commands
 - `/ov-internals:generate-source` — Understanding generated Containerfiles
+- `/ov-internals:agents` — Sub-agents, dynamic workflows, agent teams; how they drive the `ov eval` beds; the hooks doctrine; the signpost convention
 - `/ov-build:validate` — Validation rules
 - All `/ov:*` skills — Individual command documentation
 

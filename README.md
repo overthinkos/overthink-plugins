@@ -46,7 +46,7 @@ manager UI.
 
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
-| **ov-internals** | 15 + 3 agents | github (stdio) | Go source map, install-plan IR, capabilities/OCI labels, vm-spec, libvirt/cloud-init renderers, cutover-policy, strict-policy, disposable, ovmf, generate-source, git-workflow, skills. Ships enforcement agents (root-cause-analyzer, layer-validator, testing-validator). |
+| **ov-internals** | 16 + 5 agents | github (stdio) | Go source map, install-plan IR, capabilities/OCI labels, vm-spec, libvirt/cloud-init renderers, cutover-policy, strict-policy, disposable, ovmf, generate-source, git-workflow, skills, agents (the agents/workflows/teams guide). Ships 5 agents — enforcers root-cause-analyzer, layer-validator, testing-validator; executors eval-bed-runner, deploy-verifier (drive the `ov eval` beds). The `/verify-beds` + `/audit-deploy-configs` dynamic workflows live in the superproject's `.claude/workflows/`. |
 
 ### images — deployable image catalog
 

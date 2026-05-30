@@ -71,6 +71,10 @@ ov image build <image> 2>&1 | tail -50
 # Check runtime
 ov status <image>
 ov logs <image>
+
+# Check declarative test verdicts (which checks fail, and why)
+ov eval image <image>                # build-scope checks, disposable run
+ov eval live <image>                 # live three-section probe pass
 ```
 
 ### Step 5: FORM HYPOTHESIS

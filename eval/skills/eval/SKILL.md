@@ -1145,6 +1145,10 @@ deliberately.
   final stage.
 - `/ov-internals:capabilities` — the `LabelEval` three-section OCI label is
   part of the same capability contract as `LabelServices`.
+- `/ov-internals:agents` — the sub-agents (`eval-bed-runner`,
+  `deploy-verifier`) and dynamic workflows (`/verify-beds`,
+  `/audit-deploy-configs`) that DRIVE these beds, and the R10/disposable/
+  paste-proof rules that bind any agent or workflow running `ov eval run`.
 
 ## When to Use This Skill
 

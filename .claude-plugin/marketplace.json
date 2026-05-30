@@ -119,13 +119,13 @@
     {
       "name": "ov-internals",
       "source": "./internals",
-      "description": "Development internals for ov contributors — Go source map, install-plan IR, capabilities/OCI labels, vm-spec, libvirt/cloud-init renderers, cutover-policy, strict-policy, disposable, ovmf, generate-source. Ships enforcement agents and the github MCP server.",
-      "version": "1.0.0",
+      "description": "Development internals for ov contributors — Go source map, install-plan IR, capabilities/OCI labels, vm-spec, libvirt/cloud-init renderers, cutover-policy, strict-policy, disposable, ovmf, generate-source, skill maintenance, and the agents/workflows/teams guide. Ships five agents (root-cause-analyzer, layer-validator, testing-validator, eval-bed-runner, deploy-verifier) and the github MCP server.",
+      "version": "1.1.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "development", "internals", "go", "ir"],
+      "keywords": ["ov", "development", "internals", "go", "ir", "agents", "workflows"],
       "category": "development"
     },
     {
