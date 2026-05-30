@@ -3,7 +3,7 @@ name: cachyos
 description: |
   CachyOS bootstrap VM (kind:vm cachyos-vm) — source.kind: bootstrap via
   cachyos-pacstrap-builder + pacstrap, btrfs rootfs, uefi-insecure. Plus the
-  disposable cachyos-vm-deploy kind:eval bed. Lives in the overthinkos/cachyos submodule.
+  disposable eval-cachyos-vm kind:eval bed. Lives in the overthinkos/cachyos submodule.
   MUST be invoked before editing cachyos-vm or its eval bed.
 ---
 
@@ -13,11 +13,11 @@ description: |
 `pacstrap` (using `/ov-distros:cachyos-pacstrap-builder`), then boots it under
 libvirt/QEMU.
 
-The `cachyos-vm` entity and its `cachyos-vm-deploy` disposable test bed live in
+The `cachyos-vm` entity and its `eval-cachyos-vm` disposable test bed live in
 the **`overthinkos/cachyos`** repo (git submodule at **`image/cachyos`**),
 inlined in that repo's single `overthink.yml`. The bed is a `kind: eval` entity
 (the 2026-05 deploy→eval unification moved repo-shipped disposable beds out of
-`deploy.yml`), driven by `ov eval run cachyos-vm-deploy`. Drive the VM lifecycle
+`deploy.yml`), driven by `ov eval run eval-cachyos-vm`. Drive the VM lifecycle
 from the submodule: `ov -C image/cachyos vm build cachyos-vm` +
 `ov -C image/cachyos vm create cachyos-vm` (or `ov --repo overthinkos/cachyos …`).
 
@@ -39,10 +39,10 @@ the main repo's `build.yml`, flat-imported by the submodule (a bare-string
 
 ## Eval bed
 
-`cachyos-vm-deploy` is a `kind: eval` bed (`target: vm`, `vm: cachyos-vm`) that
-carries `disposable: true`, so `ov -C image/cachyos eval run cachyos-vm-deploy`
+`eval-cachyos-vm` is a `kind: eval` bed (`target: vm`, `vm: cachyos-vm`) that
+carries `disposable: true`, so `ov -C image/cachyos eval run eval-cachyos-vm`
 runs the full R10 sequence unattended (the equivalent `ov update
-cachyos-vm-deploy` rebuild also works, since the eval bed is folded into the
+eval-cachyos-vm` rebuild also works, since the eval bed is folded into the
 Deploy map).
 
 `eval-cachyos-coder-vm` is the **full KDE GPU workstation** bed: a `cachyos-gpu-vm`

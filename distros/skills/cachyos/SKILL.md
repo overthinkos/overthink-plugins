@@ -101,7 +101,7 @@ ov shell cachyos -c "pacman --version"
 
 - `/ov-distros:cachyos-pacstrap-builder` — privileged pacstrap builder (`base: ov.arch`)
 - `/ov-distros:cachyos-pacstrap` — bootstrap-from-scratch rootfs (builds end-to-end)
-- `/ov-vm:cachyos` — bootstrap VM (`cachyos-vm`) + `cachyos-vm-deploy` eval bed
+- `/ov-vm:cachyos` — bootstrap VM (`cachyos-vm`) + `eval-cachyos-vm` eval bed
 - `/ov-local:ov-cachyos` — the operator CachyOS workstation profile
 - `/ov-versa:versa` — the main-repo consumer (`base: cachyos.cachyos`)
 
