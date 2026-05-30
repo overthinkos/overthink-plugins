@@ -51,7 +51,7 @@ Pattern mirrors `ov/shell_profile.go` (the env.d managed block in `~/.profile` /
 - `EnsureSshConfigInclude` ensures `Include ~/.config/ov/ssh_config` is present in `~/.ssh/config` (also fenced).
 - `RemoveVmSshStanza` returns the count of remaining stanzas; when zero the fragment file is deleted.
 - `RemoveSshConfigInclude` strips the Include line; when `~/.ssh/config` becomes empty after stripping, the file is deleted.
-- `VmSshAlias("arch-vm")` → `"ov-arch-vm"`. Unique within the managed fragment.
+- `VmSshAlias("eval-arch-vm")` → `"ov-eval-arch-vm"`. Unique within the managed fragment.
 
 ## Ledger at `~/.config/overthink/installed/`
 

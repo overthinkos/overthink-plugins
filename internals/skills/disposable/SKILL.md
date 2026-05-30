@@ -15,7 +15,7 @@ description: |
 
 ## Schema v4 note (in-progress cutover)
 
-Schema v4 makes `DeploymentNode.Disposable` the **sole source of truth** for disposability. `VmSpec.Disposable` is retained during the Phase 1-5 transition for backward compatibility with the legacy `ov update arch` / `ov vm destroy --disk` paths, but the canonical field on any deployment entry (e.g. `deployments.images.arch-vm.disposable: true`) is what the unified dispatcher reads.
+Schema v4 makes `DeploymentNode.Disposable` the **sole source of truth** for disposability. `VmSpec.Disposable` is retained during the Phase 1-5 transition for backward compatibility with the legacy `ov update arch` / `ov vm destroy --disk` paths, but the canonical field on any deployment entry (e.g. `deployments.images.eval-arch-vm.disposable: true`) is what the unified dispatcher reads.
 
 A latent bug was fixed alongside the refactor: `MergeDeployConfigs` previously dropped the `Disposable` and `Lifecycle` fields during project ↔ per-machine overlay merge — meaning a disposable flag on the project `deploy.yml` would vanish after merge with a user's `~/.config/ov/deploy.yml`. That's now an explicit merge (project-set OR overlay-set → true), with the same "later wins" rule when both set it.
 

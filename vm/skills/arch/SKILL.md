@@ -11,13 +11,13 @@ description: |
 
 # arch
 
-The `arch` VM entity and its `arch-vm` / `arch-pacstrap-vm` disposable test beds
+The `arch` VM entity and its `eval-arch-vm` / `eval-arch-pacstrap-vm` disposable test beds
 (plus the nested `arch-host` bed) live in the **`overthinkos/arch`** repo (git
 submodule at **`image/arch`**), inlined in that repo's single `overthink.yml`.
 The beds are `kind: eval` entities (the 2026-05 deploy→eval unification moved
 every repo-shipped disposable bed out of `deploy.yml`), driven by `ov eval run
 <bed>`. Drive them from the submodule, e.g. `ov -C image/arch vm create arch`
-and `ov -C image/arch eval run arch-vm` (or `ov --repo overthinkos/arch …`). Any
+and `ov -C image/arch eval run eval-arch-vm` (or `ov --repo overthinkos/arch …`). Any
 layers applied via `add_layer:` are pulled from this repo by git ref.
 
 Canonical `source.kind: cloud_image` VM in the repo. Boots an Arch Linux cloud image as a full VM with SSH + SPICE console access, cloud-init-provisioned SSH keys, virtio-gpu graphics, and the `ov` toolchain auto-installed inside the guest.
@@ -42,11 +42,11 @@ This skill is the **decision log** for every non-obvious choice in the entry —
 | Video model | `virtio-gpu` | Modern default for Linux guests (Finding B, secondary) |
 | SPICE listener | `type: socket` (UNIX, auto-path) | Enables zero-config remote GUI via `qemu+ssh://` (see "Connecting from a remote workstation" below). virt-manager and `remote-viewer` auto-forward UNIX sockets through libvirt RPC fd-passing; TCP-loopback listeners are never auto-tunneled. No TCP port bound. |
 
-Disposability is **not** a field on the VM entity — the `arch-vm` `kind: eval` bed carries `disposable: true` (LOAD-BEARING), which authorizes the unattended destroy + rebuild + restart driven by `ov eval run arch-vm` (and the equivalent `ov update arch-vm`, since the eval bed is folded into the Deploy map). See `/ov-internals:disposable`.
+Disposability is **not** a field on the VM entity — the `eval-arch-vm` `kind: eval` bed carries `disposable: true` (LOAD-BEARING), which authorizes the unattended destroy + rebuild + restart driven by `ov eval run eval-arch-vm` (and the equivalent `ov update eval-arch-vm`, since the eval bed is folded into the Deploy map). See `/ov-internals:disposable`.
 
 ## Disposable verification target
 
-This is the repo's canonical verification target. The `arch-vm` `kind: eval` bed carries `disposable: true`, which means `ov eval run arch-vm` runs the full R10 sequence (build → create → eval live → fresh rebuild → tear down) unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
+This is the repo's canonical verification target. The `eval-arch-vm` `kind: eval` bed carries `disposable: true`, which means `ov eval run eval-arch-vm` runs the full R10 sequence (build → create → eval live → fresh rebuild → tear down) unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
 
 If you're implementing something that touches VM config, libvirt rendering, cloud-init, SPICE, or any VM-adjacent behavior, the expected verification loop is:
 

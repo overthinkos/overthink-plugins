@@ -76,7 +76,7 @@ The layer's single cmd task:
    so a logged-out daemon doesn't fail the deploy).
 5. Reads `/etc/hostname` directly (NOT `hostname -s` — the `hostname`
    binary lives in Arch's `inetutils` package, which is NOT in the
-   minimal cloud-image base used by the `arch-vm` R10 bed; reading the
+   minimal cloud-image base used by the `eval-arch-vm` R10 bed; reading the
    file is binary-dependency-free and works on every distro). Calls
    `tailscale set --hostname=<short-form>` (also suppressed) to keep
    the tailnet device name in sync with the system hostname; the short

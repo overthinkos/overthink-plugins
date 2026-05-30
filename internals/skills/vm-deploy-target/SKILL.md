@@ -15,7 +15,7 @@ description: |
 ## Implementation notes
 
 - The pod deploy target is `PodDeployTarget` (`ov/deploy_target_pod.go`); ledger target keying uses `pod:<name>`.
-- `vmNameFromDeployName` strips the `vm:` prefix. The dispatch upstream (`deploy_add_cmd.go`) rewrites a plain deploy key like `arch-vm` to `vm:<vm-name>` before calling `runVM` / `runVmDel`, so internal VM code always sees the prefixed form.
+- `vmNameFromDeployName` strips the `vm:` prefix. The dispatch upstream (`deploy_add_cmd.go`) rewrites a plain deploy key like `eval-arch-vm` to `vm:<vm-name>` before calling `runVM` / `runVmDel`, so internal VM code always sees the prefixed form.
 - `UnifiedDeployTarget` / `LifecycleTarget` interfaces (`ov/deploy_target_unified.go`) + the `ResolveTarget` dispatcher (`ov/unified_targets.go`) provide the full lifecycle contract (`Add` / `Del` / `Test` / `Update` / `Start` / `Stop` / `Status` / `Logs` / `Shell` / `Rebuild`).
 - Disposability for `ov update <vm>` reads from the `DeploymentNode` with `target: vm` + matching `vm:` (see `rebuild.go::vmDisposableFromDeployments`); it is NOT a `VmSpec` field.
 
