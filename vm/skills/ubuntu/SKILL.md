@@ -3,7 +3,7 @@ name: ubuntu
 description: |
   Ubuntu bootstrap VM (kind:vm ubuntu-debootstrap) — source.kind: bootstrap via
   ubuntu-debootstrap-builder + debootstrap, ext4 rootfs, uefi-insecure. Plus the
-  disposable ubuntu-debootstrap-vm kind:eval bed. Lives in the overthinkos/ubuntu submodule.
+  disposable eval-ubuntu-debootstrap-vm kind:eval bed. Lives in the overthinkos/ubuntu submodule.
   MUST be invoked before editing ubuntu-debootstrap or its eval bed.
 ---
 
@@ -13,12 +13,12 @@ description: |
 `debootstrap` (using `/ov-distros:ubuntu-debootstrap-builder`), then boots it
 under libvirt/QEMU.
 
-The `ubuntu-debootstrap` VM entity and its `ubuntu-debootstrap-vm` disposable
+The `ubuntu-debootstrap` VM entity and its `eval-ubuntu-debootstrap-vm` disposable
 test bed live in the **`overthinkos/ubuntu`** repo (git submodule at
 **`image/ubuntu`**), inlined in that repo's single `overthink.yml`. The bed is a
 `kind: eval` entity (the 2026-05 deploy→eval unification moved repo-shipped
 disposable beds out of `deploy.yml`), driven by `ov eval run
-ubuntu-debootstrap-vm`. Drive the VM lifecycle from the submodule:
+eval-ubuntu-debootstrap-vm`. Drive the VM lifecycle from the submodule:
 `ov -C image/ubuntu vm build ubuntu-debootstrap` +
 `ov -C image/ubuntu vm create ubuntu-debootstrap` (or
 `ov --repo overthinkos/ubuntu …`).
@@ -33,7 +33,7 @@ ubuntu-debootstrap-vm`. Drive the VM lifecycle from the submodule:
 | Disk / RAM / CPU | 20G / 4G / 2 |
 | Machine / firmware | q35 / uefi-insecure |
 | Network | user mode |
-| SSH | user `ubuntu`, port 12228, key_source generate |
+| SSH | user `ubuntu`, port 12229, key_source generate |
 
 The `ubuntu` distro config (`inherits: debian`; debootstrap suite `noble`,
 mirror, base packages) comes from the main repo's `build.yml`, flat-imported
@@ -43,10 +43,10 @@ carries BOTH distro configs, so `inherits: debian` resolves without referencing
 
 ## Eval bed
 
-`ubuntu-debootstrap-vm` is a `kind: eval` bed (`target: vm`,
+`eval-ubuntu-debootstrap-vm` is a `kind: eval` bed (`target: vm`,
 `vm: ubuntu-debootstrap`) that carries `disposable: true`, so
-`ov -C image/ubuntu eval run ubuntu-debootstrap-vm` runs the full R10 sequence
-unattended (the equivalent `ov update ubuntu-debootstrap-vm` rebuild also works,
+`ov -C image/ubuntu eval run eval-ubuntu-debootstrap-vm` runs the full R10 sequence
+unattended (the equivalent `ov update eval-ubuntu-debootstrap-vm` rebuild also works,
 since the eval bed is folded into the Deploy map).
 
 ## debootstrap path

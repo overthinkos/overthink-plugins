@@ -110,7 +110,7 @@ ECR Public mirrors the Dockerhub library namespace without rate-limiting.
 - `/ov-coder:ubuntu-coder` — kitchen-sink dev image.
 - `/ov-distros:ubuntu-debootstrap-builder` — privileged debootstrap builder (`base: debian:13`).
 - `/ov-distros:ubuntu-debootstrap` — bootstrap-from-scratch rootfs.
-- `/ov-vm:ubuntu` — the `ubuntu-debootstrap` bootstrap VM + `ubuntu-debootstrap-vm` bed.
+- `/ov-vm:ubuntu` — the `ubuntu-debootstrap` bootstrap VM + `eval-ubuntu-debootstrap-vm` bed.
 
 ## Verification
 
