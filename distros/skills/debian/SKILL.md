@@ -68,7 +68,7 @@ USER 1000
 - `/ov-coder:debian-coder` — kitchen-sink dev image on this base.
 - `/ov-distros:debian-debootstrap-builder` — privileged debootstrap builder (`base: debian:13`).
 - `/ov-distros:debian-debootstrap` — bootstrap-from-scratch rootfs (`from: builder:debootstrap`).
-- `/ov-vm:debian` — the `debian-debootstrap` bootstrap VM + `debian-debootstrap-vm` bed.
+- `/ov-vm:debian` — the `debian-debootstrap` bootstrap VM + `eval-debian-debootstrap-vm` bed.
 
 ## Verification
 

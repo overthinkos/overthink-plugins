@@ -3,7 +3,7 @@ name: debian
 description: |
   Debian bootstrap VM (kind:vm debian-debootstrap) — source.kind: bootstrap via
   debian-debootstrap-builder + debootstrap, ext4 rootfs, uefi-insecure. Plus the
-  disposable debian-debootstrap-vm kind:eval bed. Lives in the overthinkos/debian submodule.
+  disposable eval-debian-debootstrap-vm kind:eval bed. Lives in the overthinkos/debian submodule.
   MUST be invoked before editing debian-debootstrap or its eval bed.
 ---
 
@@ -13,12 +13,12 @@ description: |
 `debootstrap` (using `/ov-distros:debian-debootstrap-builder`), then boots it
 under libvirt/QEMU.
 
-The `debian-debootstrap` VM entity and its `debian-debootstrap-vm` disposable
+The `debian-debootstrap` VM entity and its `eval-debian-debootstrap-vm` disposable
 test bed live in the **`overthinkos/debian`** repo (git submodule at
 **`image/debian`**), inlined in that repo's single `overthink.yml`. The bed is a
 `kind: eval` entity (the 2026-05 deploy→eval unification moved repo-shipped
 disposable beds out of `deploy.yml`), driven by `ov eval run
-debian-debootstrap-vm`. Drive the VM lifecycle from the submodule:
+eval-debian-debootstrap-vm`. Drive the VM lifecycle from the submodule:
 `ov -C image/debian vm build debian-debootstrap` +
 `ov -C image/debian vm create debian-debootstrap` (or
 `ov --repo overthinkos/debian …`).
@@ -41,10 +41,10 @@ submodule (a bare-string `import:` item).
 
 ## Eval bed
 
-`debian-debootstrap-vm` is a `kind: eval` bed (`target: vm`,
+`eval-debian-debootstrap-vm` is a `kind: eval` bed (`target: vm`,
 `vm: debian-debootstrap`) that carries `disposable: true`, so
-`ov -C image/debian eval run debian-debootstrap-vm` runs the full R10 sequence
-unattended (the equivalent `ov update debian-debootstrap-vm` rebuild also works,
+`ov -C image/debian eval run eval-debian-debootstrap-vm` runs the full R10 sequence
+unattended (the equivalent `ov update eval-debian-debootstrap-vm` rebuild also works,
 since the eval bed is folded into the Deploy map).
 
 ## debootstrap path
