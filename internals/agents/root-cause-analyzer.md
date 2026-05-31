@@ -13,6 +13,8 @@ When unexpected behavior occurs, you MUST perform deep root cause analysis. **Ne
 
 **R1 mandatory invocation.** Per CLAUDE.md R1, EVERY failure / error / anomaly / warning observed during a session triggers immediate invocation of this agent BEFORE any remediation attempt. The invocation precedes "rerun and see" / "probably a flake" / "transient" classifications — those classifications are FORBIDDEN as the first response. The agent's 8-step process below is the only authorized first response to a failure.
 
+**Proactive twin — verify before you change.** The same discipline runs FORWARD, not only after a failure. Before editing code or config on an assumption — "this layer installs X", "this service binds that port", "this field flows through here" — VALIDATE the assumption on a live `disposable: true` bed FIRST (run the bed, inspect the running deployment, read the emitted artifact), so you are never disproven hours of work later. A blind edit on an unverified assumption is the failure this agent exists to prevent — catching it before the edit is cheaper than diagnosing it after.
+
 ## What Qualifies as Unexpected
 
 **ANY of the following requires immediate investigation:**

@@ -46,8 +46,9 @@ git fetch origin --prune --tags
 git switch main && git merge --ff-only origin/main
 git switch -c feat/<slug>            # slug = kebab summary of the change
 
-# ... implement the whole cutover; cheap smoke (go build / go test / validate)
-#     between tasks is fine; R10-class verbs run ONCE at the end ...
+# ... implement the whole cutover; run beds freely throughout to VERIFY
+#     (verify before you change); the COMMIT is gated on the full final-code
+#     live test (pasted), which runs at the end ...
 
 # on R10 PASS, automatically and in order:
 git add <only the cutover's files>   # never the in-flight state of unrelated work
@@ -102,6 +103,22 @@ This mirrors the submodules-first push order. A change developed in a git worktr
 keeps its `feat/` branch in the worktree; the ff-merge targets the canonical
 repo's `main`; the worktree is removed after. Concurrent worktrees on one repo
 each use a distinct `feat/` slug.
+
+## B3 — agent teams on ONE shared tree (no worktree)
+
+When an agent team parallelizes work, **the eval bed is the unit of isolation,
+not a worktree**. Each teammate owns a disjoint `kind: eval` bed; distinct beds
+have disjoint container/VM/image names + ports (`validateEvalBeds` guarantees
+it), and a bed pins an image → layers → files, so bed-ownership already isolates
+the source files each teammate touches. Teammates therefore share ONE working
+tree on ONE `feat/<slug>` branch:
+
+- Teammates run their beds and edit their bed-scoped files in the shared tree;
+  they **never commit or push** — the lead owns the single atomic commit, gated
+  on the consolidated full final-code live test (B1).
+- Reserve a real `git worktree` (per `isolation: worktree`) only for genuine
+  **same-file** concurrency that bed-ownership does not separate — not as the
+  default for team parallelism.
 
 ## B5 — PR path (no write access) + `gh` auto-approve
 

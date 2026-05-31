@@ -8,8 +8,10 @@ description: |
 
 Overthink is built to be driven from Claude Code's multi-agent primitives.
 This skill is the authoritative reference for the three primitives, the ov
-agent roster, the two shipped workflows, and the one rule that binds them
-all: **anything that runs an `ov eval` bed is R10-class** (CLAUDE.md Law 5).
+agent roster, the shipped workflows, the bed-scoped parallel-testing model for
+teams, and the one rule that binds them all: **a bed run is R10-class — the
+commit is gated on a full final-code bed test (pasted), but beds run freely
+throughout to verify** (CLAUDE.md Law 5).
 
 ## The three primitives — when to use which
 
@@ -64,20 +66,20 @@ teammate.
 
 ## The shipped workflows (`.claude/workflows/`)
 
-- **`/verify-beds [bed …]`** — the R10 fan-out. Runs each `kind: eval` bed
-  (default: all) and aggregates pass/fail. **Resource-aware:** light
-  pod/local beds pipeline; the VM/KVM beds (`eval-k3s-vm`,
-  `eval-android-emulator-pod`) run sequentially to avoid libvirt/`/dev/kvm`
-  contention; beds skipped for a missing host prereq are logged, never
-  silently dropped.
+- **`/verify-beds [bed …]`** — the commit-gating full-live-test fan-out, also
+  usable for continuous verification throughout development. Runs each
+  `kind: eval` bed (default: all) **in parallel** via `parallel()`, bounded by
+  the runtime's 16-concurrent agent ceiling (KVM/libvirt are multi-tenant,
+  podman builds distinct image tags concurrently), and aggregates pass/fail.
+  Beds skipped for a missing host prereq are logged, never silently dropped.
 - **`/audit-deploy-configs [image|deploy …]`** — validates + `ov eval image`
   + optional `ov eval live` + `deploy-verifier` over a set of deploy configs;
   aggregates a health report. Serves the "evaluate deployment configs, for AI
   and humans" goal.
-
-A third **competing-hypotheses triage** pattern (parallel
-`root-cause-analyzer`-style agents converging on an eval failure, per R1) is
-a recommended composition — author it as a workflow if/when needed.
+- **`/triage-eval-failure <bed>`** — competing-hypotheses RCA of a failed bed
+  run: parallel `root-cause-analyzer`-style agents each validate a hypothesis
+  on the live bed, cross-check adversarially, converge on the root cause, and
+  hand back a fix to re-run the real bed (per R1).
 
 ## The binding rule: running a bed is R10-class
 
@@ -86,10 +88,13 @@ Therefore, for ANY agent or workflow that runs them:
 
 - **Disposable-only (Law 4).** The sole authorization is the bed's explicit
   `disposable: true`. Agents run `kind: eval` beds, never arbitrary deploys.
-- **R10 is the last step, never a parallel/background track (Law 5).** Do NOT
-  launch `/verify-beds`, `eval-bed-runner`, or any `ov eval run` while
-  implementation tasks are still open. It is the dedicated verification phase
-  AFTER the cutover's code is complete.
+- **The commit is gated, not the run (Law 5).** The git commit happens ONLY
+  after a full live test of EVERYTHING — the FINAL code, on `disposable: true`
+  beds — passes and is pasted. Running `/verify-beds`, `eval-bed-runner`, or
+  any `ov eval run` THROUGHOUT development — in parallel or in the background,
+  to validate assumptions before you change and to diagnose errors — is
+  ENCOURAGED. A run that passes on an *intermediate* state simply does not
+  authorize the commit; only the full final-code run does.
 - **No scope-shrinking flags (Law 3.6).** Never pass `--no-rebuild` / `--keep`
   / `--on-*` / scenario filters unless the user named the flag this turn.
 - **Paste-proof survives delegation.** Sub-agents are built to *summarize*,
@@ -116,15 +121,56 @@ judge proof.** Whether a tier is *justified* by the evidence is a reasoning
 task — that stays with `testing-validator` + the pasted-proof rule, NOT a
 regex in a hook. Never re-bloat the hooks back into CLAUDE.md copies.
 
-## Agent teams (experimental — opt-in only)
+## Agent teams (experimental — enabled in committed settings)
 
-Agent teams (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`) reuse the same agent
-definitions as teammates (their `tools` + `model` apply; `skills`/`mcpServers`
-frontmatter does NOT on the team path). With teams on, the `TaskCreated` /
-`TaskCompleted` / `TeammateIdle` hooks can enforce R10/skills-first as
-quality gates (exit 2 = block + feedback). Not enabled in committed settings
-(experimental: no session resume, one team at a time, no nested teams) — turn
-it on per-session if you want parallel review/triage.
+Agent teams (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`) are **enabled in the
+committed `.claude/settings.json`** (`env` block). The experimental caveats
+remain: no in-process session resume (`/resume`/`/rewind` don't restore
+teammates), one team at a time (clean up before creating another), no nested
+teams (only the lead manages the team), and the lead is fixed for the team's
+lifetime. Enabling requires a `claude` restart, because the `env` flag is read
+at process start.
+
+Teammates reuse the same agent definitions as roles — their `tools` + `model`
+apply; the `skills`/`mcpServers` frontmatter does NOT on the team path (each
+teammate loads `CLAUDE.md` + project/user skills on spawn, like any session).
+Set the **Default teammate model** in `/config` (pick "Default (leader's
+model)" to inherit). The `TaskCreated` / `TaskCompleted` / `TeammateIdle` hooks
+can enforce gates (exit 2 = block + feedback); the shipped
+`team-coordination-reminder.sh` is a soft pointer (exit 0).
+
+### Bed-scoped parallel real-deployment testing
+
+The **eval bed is the unit of ownership AND isolation** — it replaces the git
+worktree. `validateEvalBeds` guarantees each `kind: eval` bed has a name
+disjoint from every other deploy, `target ∈ {pod,vm,local}`, and
+`disposable: true`; distinct beds therefore get distinct `ov-<bed>`
+container / libvirt-domain / image names and disjoint ports, so they are
+concurrent-safe. A bed pins an image → layers → files, so owning a bed owns
+those source files.
+
+The playbook:
+
+1. **Lead partitions the beds** so no two teammates own the same bed.
+2. **Each teammate is a bed-owner**: it runs its bed's full `ov eval run <bed>`
+   (build → eval image → deploy → eval live → fresh `ov update` → teardown) on
+   a real deployment via the `eval-bed-runner` role, and triages failures via
+   `root-cause-analyzer`. Review/RCA are auxiliary — never a substitute for the
+   live run.
+3. **Verify before you change**: each teammate validates its assumptions on its
+   standing bed BEFORE editing, so it is never disproven hours later.
+4. **Default parallel.** Beds run concurrently, bounded by the runtime's
+   documented 16-concurrent / 1000-total dynamic-workflow agent ceiling, which
+   queues excess. KVM and libvirt are multi-tenant and podman builds distinct
+   image tags concurrently, so pod and VM beds run alongside each other.
+5. **The lead owns the single commit**, gated on the consolidated full
+   final-code live test (the beds in parallel). Teammates never commit/push.
+
+Worked partition (illustrative): A→`{eval-pod, eval-local}`,
+B→`{eval-jupyter-pod, eval-versa-pod}`, C→`{eval-k3s-vm}` (VM, needs the
+libvirt user session), D→`{eval-sway-browser-vnc-pod}` (heavy). All concurrent
+→ multiple pods *and* a VM live at once; wall-clock ≈ the slowest chain, not
+the sum.
 
 ## Cross-References
 

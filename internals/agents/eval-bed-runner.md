@@ -86,9 +86,11 @@ FAILING-STEP LOG (tail, if any):
 
 ## When to invoke
 
-- As the R10 acceptance executor for a cutover that touches Containerfile
-  generation, OCI labels, init systems, service startup, or deploy code —
-  AFTER every implementation task is complete (CLAUDE.md Law 5: R10 is the
-  last step, never a parallel/background track).
-- From the `/verify-beds` workflow, one instance per bed.
+- As the commit-gating full final-code run for a cutover that touches
+  Containerfile generation, OCI labels, init systems, service startup, or
+  deploy code (CLAUDE.md Law 5: the commit is gated on a full final-code bed
+  test, pasted). The bed may also be run anytime during development to verify —
+  only the commit is gated, never the act of running it.
+- From the `/verify-beds` workflow, one instance per bed (in parallel).
+- As a teammate role in a bed-scoped agent team — one bed-owner per bed.
 - Whenever a caller needs a single bed proved on a fresh rebuild.

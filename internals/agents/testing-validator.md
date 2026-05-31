@@ -23,6 +23,10 @@ Before declaring "working", verify ALL of these:
 6. No unexpected errors or warnings in output
 7. Behavior matches CLAUDE.md documentation
 8. No workarounds or hacks needed
+9. Assumptions were **bed-validated during development** — the change's key
+   assumptions + any error diagnoses were confirmed on a live `disposable: true`
+   bed BEFORE the edits that depend on them (verify before you change), not only
+   asserted after the fact
 
 ## Evidence Required
 
