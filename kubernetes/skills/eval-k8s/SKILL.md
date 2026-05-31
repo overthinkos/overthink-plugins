@@ -66,7 +66,7 @@ eval:
   - id: cluster-nodes-ready
     scope: deploy
     k8s: wait-nodes
-    cluster: "${deploy_name}"
+    cluster: "${DEPLOY_NAME}"
     k8s_count: 1
     timeout: 180s
     stdout: { contains: "Ready" }
@@ -74,15 +74,23 @@ eval:
   - id: traefik-ingressclass
     scope: deploy
     k8s: ingressclass
-    cluster: "${deploy_name}"
+    cluster: "${DEPLOY_NAME}"
     stdout: { contains: "traefik" }
 
   - id: addons-healthy
     scope: deploy
     k8s: addons
-    cluster: "${deploy_name}"
+    cluster: "${DEPLOY_NAME}"
     timeout: 240s
 ```
+
+`cluster: "${DEPLOY_NAME}"` lets a layer's deploy-scope check address its own
+cluster generically: `${DEPLOY_NAME}` is a **runtime-only eval var** resolving to
+the sanitized deploy name (`:`/`.`/`/` → `-`) — the SAME identifier
+`K3sPostProvision` uses for the kubeconfig context + ClusterProfile. It is
+UPPERCASE because the eval-var expander only recognizes uppercase names; a
+lowercase `${deploy_name}` (the artifact-path token) is NOT an eval var and is
+rejected by `ov image validate` in k8s identifier fields.
 
 `wait-nodes` with `name:` set matches a single specific node (used by
 `k3s-agent`'s join-confirmation test). Without `name:`, it waits until
