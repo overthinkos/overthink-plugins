@@ -44,7 +44,7 @@ The discriminator: *would shipping the current cutover WITHOUT this fix leave th
 
 **Objective test for "separable".** The issue is separable ONLY if the current cutover's OWN R10 (its eval-coverage + fresh-rebuild) passes and proves the cutover's claim WITHOUT the fix — the fix is neither exercised by, nor changes the verdict of, this cutover's test coverage. A fix that would alter this cutover's R10 result or its eval-coverage gate is BLOCKING.
 
-**This does not loosen the no-split rule.** "No pre/post-approval split" and "no author-it-as-two-plans" forbid carving ONE change's scope into two to avoid doing it all now. The non-blocking path applies only to a DIFFERENT change that this cutover happened to surface — never to the current change's own scope. Mislabeling a blocking issue "non-blocking" to ship faster is the forbidden split wearing a disguise; when unsure, it is blocking. (See CLAUDE.md R2 — this section operationalizes the blocking/non-blocking half of it.)
+**This does not loosen the no-split rule.** "No pre/post-approval split" and "no author-it-as-two-plans" forbid carving ONE change's scope into two to avoid doing it all now. The non-blocking path applies to a DIFFERENT, separable change — one this cutover surfaced, or any other issue the AI finds — never to the current change's own scope. The AI opens that next cutover autonomously (it does not wait for authorization); it pauses to ask only at a genuine unexpected/unplanned crossroad. Mislabeling a blocking issue "non-blocking" to ship faster is the forbidden split wearing a disguise; when unsure, it is blocking. (See CLAUDE.md R2 — this section operationalizes the blocking/non-blocking half of it.)
 
 ## Forbidden patterns (by default)
 

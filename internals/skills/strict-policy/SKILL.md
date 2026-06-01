@@ -40,10 +40,10 @@ A violation of any R1–R5 rule (or any of R6–R10, or the "Prioritize Clean Ar
 
 **Forbidden phrasings.** "this was already failing before my change" / "unrelated to this PR" / "out of scope for this cutover" / "I'll file a follow-up issue" / "this is tracked separately" / "we can address that later" / "noted but not required for this commit" / "intentionally deferred to keep the diff focused".
 
-**What is permitted — classify BLOCKING vs NON-BLOCKING first.** A **blocking** issue (the current change is incorrect, incomplete, or unsafe without it) takes one of two paths:
+**What is permitted — classify BLOCKING vs NON-BLOCKING first.** A **blocking** issue (the current change is incorrect, incomplete, or unsafe without it) is, by DEFAULT, **fixed in the same working tree** — the AI does not ask permission to fix what it found:
 
-1. **Fix in the same working tree.** Same commit as the active cutover; same atomic change; proved under the CURRENT cutover's R10.
-2. **Escalate to the operator** with an explicit ask: "I encountered $X during this cutover. Per R2 I cannot defer it. Should I (a) fix it now in this same commit, (b) abort the active cutover and address $X first, or (c) explicitly re-scope?" The operator's response authorizes the path; silence does not.
+1. **Fix in the same working tree** (the default). Same commit as the active cutover; same atomic change; proved under the CURRENT cutover's R10.
+2. **Escalate to the operator — only when the blocking issue is itself a genuine crossroad** the AI cannot resolve from the request, code, skills, or sensible defaults. The ask is explicit: "I encountered $X during this cutover. Per R2 I cannot defer it, and it is a decision I cannot make alone. Should I (a) fix it now in this same commit, (b) abort the active cutover and address $X first, or (c) explicitly re-scope?" The operator's response authorizes the path; silence does not. Escalation is the narrow crossroad exception, never the default — a blocking issue with a clear fix is just fixed.
 
 A **non-blocking** issue (the current change is correct AND complete without it, and it is genuinely separable from this change) takes a third path:
 
