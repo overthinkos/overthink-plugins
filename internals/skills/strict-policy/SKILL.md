@@ -40,10 +40,14 @@ A violation of any R1–R5 rule (or any of R6–R10, or the "Prioritize Clean Ar
 
 **Forbidden phrasings.** "this was already failing before my change" / "unrelated to this PR" / "out of scope for this cutover" / "I'll file a follow-up issue" / "this is tracked separately" / "we can address that later" / "noted but not required for this commit" / "intentionally deferred to keep the diff focused".
 
-**What is permitted.** Two paths:
+**What is permitted — classify BLOCKING vs NON-BLOCKING first.** A **blocking** issue (the current change is incorrect, incomplete, or unsafe without it) takes one of two paths:
 
-1. **Fix in the same working tree.** Same commit as the active cutover; same atomic change. The fix lands with the rest of the cutover.
+1. **Fix in the same working tree.** Same commit as the active cutover; same atomic change; proved under the CURRENT cutover's R10.
 2. **Escalate to the operator** with an explicit ask: "I encountered $X during this cutover. Per R2 I cannot defer it. Should I (a) fix it now in this same commit, (b) abort the active cutover and address $X first, or (c) explicitly re-scope?" The operator's response authorizes the path; silence does not.
+
+A **non-blocking** issue (the current change is correct AND complete without it, and it is genuinely separable from this change) takes a third path:
+
+3. **Its OWN immediate-next cutover.** Fixed right away — but as a separate cutover with its OWN full R10, opened the moment the current cutover is R10-passed and committed. This is NOT the forbidden "follow-up / tracked separately / someday" deferral: there is no window of unverified brokenness on `main`, and no indefinite parking. The discriminator: *would shipping the current cutover WITHOUT this fix leave the tree correct and the cutover's claim true?* Yes → non-blocking (own immediate-next cutover); No → blocking (paths 1–2); unsure → blocking. **Objective test for "separable":** the current cutover's OWN R10 (eval-coverage + fresh-rebuild) passes and proves its claim WITHOUT the fix — the fix is neither exercised by nor changes the verdict of this cutover's test coverage; a fix that would alter this cutover's R10 result or eval-coverage gate is BLOCKING. Mislabeling a blocking issue "non-blocking" to ship faster — or carving the current change's OWN scope into two cutovers — is the forbidden split; a genuinely separate concern getting its own cutover is not.
 
 **Why the escape hatch is closed.** Deferring a surfaced test failure as "pre-existing, unrelated" leaves brokenness on `main` for the window between the deferral and the eventual fix — when fixing in place would have cost a few lines and 30 seconds of attention. R2 closes this escape hatch absolutely. (See `CHANGELOG.md` for the incident that motivated this.)
 

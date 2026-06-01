@@ -92,6 +92,23 @@ covering all four mechanisms) · `eval-local` ~45s · `eval-k3s-vm` ~5–7 min �
 heavy feature beds (`eval-sway-browser-vnc-pod` ~14 min incl. image build)
 longer. `ov eval run --all-beds` ≈ the sum.
 
+**Handling a long-running bed — by mechanism, not by who owns it.** A VM/emulator
+bed's `ov eval run` orchestrator runs for minutes-to-tens-of-minutes AND the
+libvirt domain / emulator it spawns outlives a single turn. (1) **Launch it as a
+harness-tracked background task** (`run_in_background`) — never foreground (the
+Bash 120s/600s timeout kills the call mid-`vm-create`, orphaning the domain) and
+never a sleep/poll loop (the R4 bandaid). (2) **Let the completion notification
+drive the next step** — the harness re-invokes the LAUNCHING session when the run
+exits, so the launcher must SURVIVE to completion to be notified: the persistent
+main session does; an ephemeral sub-agent (returns synchronously) and an idle
+teammate (torn down on idle) do NOT, and orphan the bed. Long beds belong to a
+session that lives to be notified; short beds (within one turn / the 600s budget)
+can be sub-agent/teammate-owned. (3) **Reconnect via durable state** —
+`.eval/<bed>/<calver>/summary.yml` + the live domain ARE the truth: "done" =
+summary.yml present; "alive" = the orchestrator is in the process table; clean up
+an orphan (`running` domain, no live orchestrator) with `ov vm destroy <entity>`
+before re-running. See `/ov-internals:agents` "The binding rule".
+
 ### Prereq for the vm bed
 
 `eval-k3s-vm` depends on the **libvirt user-session daemon**. Enable once:

@@ -33,6 +33,19 @@ This skill is the source of truth for the policy. `CLAUDE.md` links here rather 
 
 Do not propose phasing, narrowing, or scope reduction at plan-authoring time. Do not negotiate a split mid-execution. Do not silently downgrade. An approved plan is a CONTRACT; implement it as written. The ONLY valid stop conditions, at any stage, are (a) an error you cannot resolve that requires user input, or (b) the plan contradicts itself, CLAUDE.md, or a loaded skill — STOP and ask in either case; do NOT commit a partial state.
 
+## Blocking vs non-blocking surfaced issues — what stays in this cutover, what spawns the next
+
+The one-phase rule forbids splitting a SINGLE cutover's scope across turns or plans. It does NOT forbid a genuinely separate issue, surfaced mid-cutover, from getting its own cutover. Classify every issue the cutover surfaces:
+
+- **Blocking** — the current change is incorrect, incomplete, or unsafe without the fix. It is part of THIS change's scope. Fix it in the SAME working tree and prove it under the CURRENT cutover's R10. It can NEVER be split out — that is the forbidden phasing.
+- **Non-blocking** — the current change is correct AND complete without the fix, and the issue is genuinely separable from it. Fix it IMMEDIATELY — but as its OWN cutover with its OWN full R10, opened the moment the current cutover is R10-passed and committed. This is not "Phase 2" and not a "follow-up / someday" TODO: it is a distinct change, done now, fully verified, leaving no window of unverified brokenness on `main`.
+
+The discriminator: *would shipping the current cutover WITHOUT this fix leave the tree correct and the cutover's claim true?* Yes → non-blocking (its own immediate-next cutover). No → blocking (this cutover). Unsure → blocking.
+
+**Objective test for "separable".** The issue is separable ONLY if the current cutover's OWN R10 (its eval-coverage + fresh-rebuild) passes and proves the cutover's claim WITHOUT the fix — the fix is neither exercised by, nor changes the verdict of, this cutover's test coverage. A fix that would alter this cutover's R10 result or its eval-coverage gate is BLOCKING.
+
+**This does not loosen the no-split rule.** "No pre/post-approval split" and "no author-it-as-two-plans" forbid carving ONE change's scope into two to avoid doing it all now. The non-blocking path applies only to a DIFFERENT change that this cutover happened to surface — never to the current change's own scope. Mislabeling a blocking issue "non-blocking" to ship faster is the forbidden split wearing a disguise; when unsure, it is blocking. (See CLAUDE.md R2 — this section operationalizes the blocking/non-blocking half of it.)
+
 ## Forbidden patterns (by default)
 
 - **Backcompat unmarshalers** that accept both old and new YAML forms.

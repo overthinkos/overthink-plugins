@@ -33,6 +33,23 @@ throughout to verify** (CLAUDE.md Law 5).
   each other (competing-hypotheses triage of an eval failure). Experimental;
   opt-in only (see "Agent teams" below).
 
+**Preference (default): agents over background tasks — everything that CAN run as
+an agent SHOULD run as an agent.** Prefer an addressable, operator-visible
+**sub-agent** or **agent-team teammate** over an opaque background **dynamic
+workflow**. **Team agents are the DEFAULT for parallel work** — the operator
+watches and messages them live, which is exactly the visibility/control a
+background workflow hides. Reach for a background `Workflow` only as a LAST
+RESORT, when deterministic scripted control flow (loops / conditionals / large
+fan-out) genuinely cannot be expressed as a team — and even then it surfaces its
+work as agents and stays bed-scoped (see "Implementation workflows are bed-scoped
+too"). Operator-facing agents beat opaque background tasks every time. **The one
+exception is long-running work that outlives a single turn** (a VM/emulator eval
+bed): no agent can reliably hold it — a sub-agent returns synchronously (its
+background children die on return) and a teammate is torn down on idle — so it
+runs as a harness-tracked background task owned by the persistent session, driven
+by the completion notification (see "Handling a long-running bed — by mechanism"
+under the binding rule). "Prefer agents" governs BOUNDED work.
+
 ## The ov agent roster (`plugins/internals/agents/`)
 
 **Executors** — they RUN `ov eval` and return verbatim proof:
@@ -81,6 +98,36 @@ teammate.
   on the live bed, cross-check adversarially, converge on the root cause, and
   hand back a fix to re-run the real bed (per R1).
 
+## Implementation workflows are bed-scoped too — never sequential codegen + review
+
+The shipped workflows above VERIFY. A dynamic workflow that **implements** a
+cutover (fans the coding out across `agent()` calls) obeys the SAME bed-scoped
+discipline as an agent team — it is the workflow expression of the B3 model
+(`/ov-internals:git-workflow`), not an exemption from it:
+
+- **Partition the parallel work by `kind: eval` bed.** One disjoint disposable
+  bed per parallel owner (`eval-pod` / `eval-k3s-vm` / `eval-local` /
+  `eval-android-emulator-pod` / …). Disjoint beds = disjoint container/VM/image
+  names + ports, so they run concurrently and safely.
+- **Eval-test at EVERY stage, never only at the end.** Each parallel owner
+  **verifies before it changes** (validate assumptions on its live bed/backend
+  first) and runs its bed's real `ov eval run <bed>` as the fresh-rebuild R10.
+- **Read-only review is an ADDITIONAL layer, NEVER a substitute.** A workflow
+  that replaces real-deployment bed runs with a read-only diff-review phase is a
+  protocol violation — the opposite of this skill and of CLAUDE.md "Agents,
+  Workflows & Teams". Adversarial diff review is welcome ON TOP of the beds.
+- **Compile-coherence is solved structurally, not by serializing.** A single Go
+  package can't have N agents edit-and-build at once, but that is handled by
+  shape, not by abandoning parallelism: the lead lands the **shared core first**
+  (compile-clean), each parallel unit is an **independent `init()`-registered
+  file** (no shared-file edits), and the one shared host **`ov` binary rebuild is
+  a single barrier** between the parallel-implement and parallel-bed-R10 phases.
+  Canonical shape: `Core (seq) → Implement (parallel by bed) → Integrate+build
+  (seq barrier) → BedR10 (parallel by bed) → Review (parallel, read-only,
+  optional)`.
+- **Same binding rule** as below: disposable-only, commit-gated-not-run,
+  no-scope-shrinking-flags, paste-proof survives delegation.
+
 ## The binding rule: running a bed is R10-class
 
 `ov eval run <bed>` and `ov update` perform an unattended destroy + rebuild.
@@ -102,6 +149,32 @@ Therefore, for ANY agent or workflow that runs them:
   code + failing-log tail; the **delegating (main) agent pastes it** into the
   conversation. A delegated bed run whose failure is summarized away is the
   exact fraud pattern the project bans.
+- **Handling a long-running bed — by mechanism, not by who owns it.** A
+  VM/emulator bed (`eval-k3s-vm`, `eval-android-emulator-pod`, the bootstrap-VM
+  beds) runs for minutes-to-tens-of-minutes and its libvirt domain / emulator
+  OUTLIVES a single turn. Run it by the mechanism, not a who-owns-it rule:
+  - **Launch as a harness-tracked background task** (`run_in_background`). NEVER
+    foreground — the Bash 120s/600s timeout kills the call mid-`vm-create`,
+    orphaning the domain. NEVER a sleep/poll loop to "keep it alive" — that
+    busy-poll is the exact R4 bandaid this replaces.
+  - **The completion notification is the signal, not polling.** The harness
+    re-invokes the LAUNCHING session with a `<task-notification>` when the run
+    exits, so the launcher must SURVIVE to completion to receive it. The
+    persistent main session does. An ephemeral sub-agent does NOT (the `Agent`
+    tool returns synchronously — its background children die when it returns),
+    and an idle teammate does NOT (its process tree is torn down on idle) — both
+    orphan the bed. **Long beds belong to a session that lives to be notified;
+    short beds (done within one turn / the 600s foreground budget) can be
+    sub-agent- or teammate-owned.**
+  - **Reconnect via durable state, never a held process handle.**
+    `.eval/<bed>/<calver>/summary.yml` (overall `ok:` + per-step status) + the
+    live domain/container ARE the source of truth: "done + verdict" =
+    `summary.yml` exists; "still alive" = the `ov eval run` orchestrator is in
+    the process table. On a suspected orphan — a `running` domain with NO live
+    orchestrator — `ov vm destroy <entity>` (or remove the container) before
+    re-running. You re-derive state from disk; you never "lose" a run.
+  - **Paste-proof survives (Law 5).** The owner reports the verbatim
+    `summary.yml` verdict + exit code; the lead pastes it.
 
 ## Hooks: lean pointers + deterministic gates (not walls of text)
 
