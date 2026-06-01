@@ -11,6 +11,7 @@ description: |
 - **Dispatch via explicit `target:`** — `local | vm | pod | k8s` (short, matches ov command verbs).
 - **Cross-ref fields on `DeploymentNode`** — `vm: <entity>` for target: vm, `image: <name>` for target: pod, `cluster: <name>` for target: k8s, `inside: <deploy>` for nested local-deploy. Deploy nesting uses `nested:`.
 - **Disposability is a deploy property** — `DeploymentNode.Disposable` is the sole source of truth.
+- **Resource arbitration is a deploy property** — `preemptible:` (holder; occupies exclusive host-resource token(s), may be gracefully stopped + restored) and `requires_exclusive:` (claimant; needs sole use) on `DeploymentNode` drive the arbiter (`ov preempt`). A fourth axis ORTHOGONAL to disposable/ephemeral/lifecycle. See "Preemptible resource arbitration" below + `/ov-internals:disposable`.
 - **Disposable R10 test beds are `kind: eval` entities** (run via `ov eval run <bed>`), NOT `deploy:` entries — ecosystem-wide. The main repo's beds (`eval-pod`, `eval-k3s-vm`, `eval-sway-browser-vnc-pod`, …) AND every `image/<distro>` submodule's beds (the arch / cachyos / debian / ubuntu / fedora bootstrap-VM + pacstrap/debootstrap beds, inlined in each submodule's single `overthink.yml`) are `kind: eval`. Repos ship NO `kind: deploy` test beds; the one `kind: deploy` exception is the cachyos submodule's `ov-cachyos` operator workstation profile (a profile, not a test bed). Operator deployments otherwise live in the per-host `~/.config/ov/deploy.yml`. See `/ov-eval:eval` "kind: eval beds".
 
 ## Overview
@@ -914,6 +915,52 @@ deploy:
           TS_HOSTNAME: selkies-desktop
           TS_EXTRA_ARGS: "--exit-node=100.80.254.4 --exit-node-allow-lan-access"
 ```
+
+## Preemptible resource arbitration (`preemptible` / `requires_exclusive` / `ov preempt`)
+
+A physical host resource can be held by only ONE deployment at a time — the
+canonical case is a GPU passed through to a VM via VFIO. The resource arbiter
+(`ov/preempt.go`) frees such a resource on demand and gives it back.
+
+```yaml
+deploy:
+  gpu-workstation:                 # HOLDER — a long-running operator VM
+    target: vm
+    vm: gpu-workstation-vm
+    preemptible:
+      holds: [nvidia-gpu]          # exclusive-resource token(s) it occupies (shorthand: preemptible: [nvidia-gpu])
+      stop: shutdown               # graceful shutdown (default & only) — frees a VFIO device
+      restore: always              # always (default) | on-success
+
+# CLAIMANT (a deploy or a kind:eval bed) that needs sole use while it runs:
+eval:
+  eval-gpu-bed:
+    target: vm
+    vm: gpu-eval-vm
+    disposable: true
+    requires_exclusive: [nvidia-gpu]
+```
+
+- **When the arbiter acts.** Before a claimant is brought up — `ov eval run <bed>`
+  (transient claim, auto-released at teardown), or a standalone `ov vm create` /
+  `ov start` (persistent claim, released on `ov vm stop`/`vm destroy`/`ov stop`/
+  `ov remove`) — it gracefully stops every running preemptible holder whose
+  `holds:` intersects the claimant's `requires_exclusive:`, waits for it to
+  actually power off (so the resource is truly released), records a crash-safe
+  lease, then proceeds. Nested `ov` subprocesses inherit the lease
+  (`OV_PREEMPT_LEASE`) and never re-acquire.
+- **Token = a name, not a mechanism** — operator-chosen (`nvidia-gpu`), decoupled
+  from how each side reaches it (VM hostdev vs pod `--device`); pure
+  set-intersection unifies pod-vs-VM contention.
+- **`ov preempt status`** lists active leases + flags STRANDED ones (claimant
+  gone). **`ov preempt restore [claimant]`** reconciles stranded leases (also run
+  automatically at the next acquire) / force-releases a named one. A holder is
+  NEVER left permanently stopped — the ledger
+  (`~/.local/share/ov/preemption/leases.yml`) is written before any stop, and
+  restore = "start every listed holder that isn't running".
+- **Orthogonal to disposable/ephemeral** — no derivation either way; a deploy may
+  be both preemptible and disposable. Full reference: `/ov-internals:disposable`
+  "The resource-arbitration axis".
 
 ## Cross-References
 

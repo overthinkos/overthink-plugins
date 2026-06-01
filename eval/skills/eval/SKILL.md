@@ -54,6 +54,16 @@ never by stripping the candy.
 6. `ov update <bed>` — fresh-rebuild re-verification (R10 acceptance gate).
 7. `ov remove <bed>` (or `ov vm destroy`) — leave the host clean.
 
+**Exclusive-resource preemption wraps the sequence.** When a bed declares
+`requires_exclusive: [token...]` (e.g. a GPU-passthrough bed needing the one
+physical card), `runEvalBed` acquires a resource-arbitration lease BEFORE step 1
+and `defer`-releases it after teardown: any running `preemptible` holder of the
+token (e.g. the operator's GPU workstation VM) is gracefully stopped — and the
+arbiter waits until it actually powers off so the device is freed — then restored
+when the bed finishes (even on failure, for `restore: always`). A holder is never
+left stopped: `ov preempt status` / `ov preempt restore` recover a crashed run.
+See `/ov-internals:disposable` "The resource-arbitration axis" + `/ov-core:deploy`.
+
 `ov eval run --all-beds` runs every bed name-sorted. Flags: `--keep` (don't
 tear down), `--no-rebuild` (skip step 6 — FORBIDDEN for an R10 acceptance run;
 needs explicit operator authorization per CLAUDE.md). Per-run logs land in

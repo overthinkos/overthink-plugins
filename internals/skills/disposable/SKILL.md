@@ -49,7 +49,7 @@ therefore be:
   instances of the same image can sit at different tiers with
   different disposability.
 
-## Schema — three fields, clear roles
+## Schema — four orthogonal fields, clear roles
 
 ```yaml
 # DEPLOY-shaped YAML (deploy.yml entry):
@@ -66,6 +66,15 @@ ephemeral: <block>    # LOAD-BEARING operational mandate. Default absent.
                       #   `disposable: true` automatically (the one
                       #   documented exception to anti-derivation —
                       #   see "The ephemeral exception" below).
+preemptible: <l|blk>  # LOAD-BEARING resource-arbitration. Default absent.
+                      #   HOLDER side: occupies the exclusive host-resource
+                      #   token(s) in `holds:`; MAY be gracefully stopped to
+                      #   free them for a claimant, then MUST be restarted
+                      #   (disk + definition preserved). The INVERSE of
+                      #   disposable. ORTHOGONAL to the three above — no
+                      #   derivation either way. The claimant side is the
+                      #   sibling `requires_exclusive: [token...]` list.
+                      #   See "The resource-arbitration axis" below.
 ```
 
 **Anti-derivation invariant — with one named exception**:
@@ -106,6 +115,61 @@ Specifically:
 
 The implication arrow is one-way. Disposable resources are not
 necessarily ephemeral; ephemeral resources are always disposable.
+
+## The resource-arbitration axis — `preemptible` + `requires_exclusive`
+
+A physical host resource can sometimes be held by only ONE deployment at a
+time — the canonical case is a GPU passed through to a VM via VFIO (exactly one
+VM can bind the card). `preemptible` (HOLDER side) + `requires_exclusive`
+(CLAIMANT side) let the resource arbiter (`ov/preempt.go`) free such a resource
+on demand and give it back afterward.
+
+```yaml
+# HOLDER — a long-running deploy that occupies an exclusive resource and may
+# yield it. Authored as a token-list shorthand or a block:
+preemptible: [nvidia-gpu]            # shorthand → holds, default stop/restore
+preemptible:
+  holds: [nvidia-gpu]                # REQUIRED, non-empty: operator-chosen token name(s)
+  stop: shutdown                     # graceful shutdown (default & only) — frees a VFIO device
+  restore: always                    # always (default) | on-success
+
+# CLAIMANT — a deploy/eval bed that needs sole use of the resource while it runs:
+requires_exclusive: [nvidia-gpu]
+```
+
+**How it works.** Before a claimant is brought up (`ov eval run <bed>`, or a
+standalone `ov vm create` / `ov start`), the arbiter finds every RUNNING
+preemptible holder whose `holds:` intersects the claimant's
+`requires_exclusive:`, **gracefully stops** each (waiting until it actually
+powers off so the resource is truly released), records a crash-safe **lease**,
+and lets the claim proceed. When the claim is released — the eval bed tears down,
+or the persistent claimant is stopped/destroyed — the arbiter **restarts** the
+holders. A transient (eval) claim auto-releases via `defer`; a persistent claim
+releases on the claimant's teardown command.
+
+**The token is a name, not a mechanism.** `nvidia-gpu` is an operator-chosen
+label for the physical resource, deliberately decoupled from HOW each side
+reaches it (a VM via a PCI hostdev, a pod via `--device`/CDI). The arbiter does
+pure set-intersection on tokens, so the same token unifies pod-vs-VM contention.
+
+**Crash-safety (the restore guarantee).** A holder is NEVER left permanently
+stopped. The lease ledger (`~/.local/share/ov/preemption/leases.yml`) is written
+*before* any holder is stopped, and "restore" means "start every listed holder
+that isn't running" — so a crash at any point is recoverable. `ov preempt status`
+lists active leases and flags STRANDED ones (claimant gone); `ov preempt restore
+[claimant]` reconciles them (also run automatically at the next acquire).
+
+**`restore:` policy.** `always` (default) restarts the holder regardless of the
+claim's outcome — the holder MUST survive, so it comes back even if the eval
+failed. `on-success` leaves the holder stopped on a FAILED claim (for operator
+inspection); recover it with `ov preempt restore`.
+
+**Orthogonal to disposable/ephemeral — no derivation.** `preemptible` neither
+implies nor is implied by any other axis. A deploy may legitimately be BOTH
+preemptible (the arbiter stops it) AND disposable (R10 may rebuild it); a test
+holder is often both. Stopping a holder is graceful + reversible (disk + state
+preserved) — the OPPOSITE of `disposable`'s destroy authorization. Enforced by
+`ov/classification.go` (`IsPreemptible()` is independent of `IsDisposable()`).
 
 ## Where the fields live
 
