@@ -109,9 +109,10 @@ each use a distinct `feat/` slug.
 
 When an agent team parallelizes work, **the eval bed is the unit of isolation,
 not a worktree**. Each teammate owns a disjoint `kind: eval` bed; distinct beds
-have disjoint container/VM/image names + ports (`validateEvalBeds` guarantees
-it), and a bed pins an image → layers → files, so bed-ownership already isolates
-the source files each teammate touches. Teammates therefore share ONE working
+get distinct container/VM/image names; the lead assigns each disjoint host ports
+too (the loader does NOT check ports — an overlap fails the second bed at
+deploy), and a bed pins an image → layers → files, so bed-ownership already
+isolates the source files each teammate touches. Teammates therefore share ONE working
 tree on ONE `feat/<slug>` branch:
 
 - Teammates run their beds and edit their bed-scoped files in the shared tree;
@@ -120,6 +121,17 @@ tree on ONE `feat/<slug>` branch:
 - Reserve a real `git worktree` (per `isolation: worktree`) only for genuine
   **same-file** concurrency that bed-ownership does not separate — not as the
   default for team parallelism.
+- **Schedule longest-pole-first.** `ov eval run` has no bed-level concurrency and
+  no `ov` cap — the limit is host CPU/RAM/podman. Partition by expected DURATION,
+  not bed count: start the slow VM/desktop beds first (long beds as
+  persistent-session background tasks) and overlap the cheap pod beds, so
+  wall-clock ≈ the slowest single bed, not the sum.
+- **Freeze `ov/*.go` during the bed phase.** `ov`'s stale-binary freshness guard
+  gates every heavy verb the instant any `ov/*.go` is newer than `/usr/bin/ov`,
+  so a teammate editing Go mid-bed-run aborts every other agent's next
+  build/deploy/eval. For a SHARED-CORE (Go) cutover the lead lands the core
+  first, runs ONE `task build:ov`, then fans out beds with Go frozen; a BED-LOCAL
+  (YAML/layers/skills) cutover has no shared binary and needs no such barrier.
 
 ## B5 — PR path (no write access) + `gh` auto-approve
 

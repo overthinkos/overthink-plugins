@@ -54,11 +54,14 @@ under the binding rule). "Prefer agents" governs BOUNDED work.
 
 **Executors** — they RUN `ov eval` and return verbatim proof:
 
-- **`eval-bed-runner`** — runs `ov eval run <bed>` (the full R10 sequence:
-  build → eval image → deploy → eval live → fresh `ov update` → teardown) on
-  a `kind: eval` disposable bed; returns per-step status, exit code (0 pass /
-  1 infra / 2 checks-failed), and the failing-step log tail. The R10
-  acceptance executor.
+- **`eval-bed-runner`** — runs `ov eval run <bed>` ONE-SHOT (the full R10
+  sequence: build → eval image → deploy → eval live → fresh `ov update` →
+  teardown) on a `kind: eval` disposable bed; returns per-step status, exit code
+  (0 pass / 1 infra / 2 checks-failed), and the failing-step log tail. The R10
+  acceptance EXECUTOR — distinct from the bed's iterating OWNER (a teammate for a
+  bounded bed, or the persistent session for a long VM/emulator bed) that loops
+  edit→build→deploy→eval→fix; the owner delegates the final R10 run to this
+  executor and pastes its verbatim verdict.
 - **`deploy-verifier`** — read-mostly: `ov eval image` / `ov eval live` /
   `ov status` against an image or a running deploy (the ov repo's images OR a
   user's own deploy config). Answers "does this deploy config work?" without
@@ -97,6 +100,12 @@ teammate.
   run: parallel `root-cause-analyzer`-style agents each validate a hypothesis
   on the live bed, cross-check adversarially, converge on the root cause, and
   hand back a fix to re-run the real bed (per R1).
+- **`/verify-status [substrate …]`** — substrate-coverage fan-out for the
+  unified `ov status` surface: for each substrate (pod / vm / local / android) it
+  runs the bed that exercises it (`eval-pod` / `eval-k3s-vm` / `eval-local` /
+  `eval-android-emulator-pod`) to completion and aggregates a verdict keyed on
+  that bed's `status-shows-*` deploy-scope assertion. Same parallel +
+  skip-logging discipline as `/verify-beds`.
 
 ## Implementation workflows are bed-scoped too — never sequential codegen + review
 
@@ -107,8 +116,10 @@ discipline as an agent team — it is the workflow expression of the B3 model
 
 - **Partition the parallel work by `kind: eval` bed.** One disjoint disposable
   bed per parallel owner (`eval-pod` / `eval-k3s-vm` / `eval-local` /
-  `eval-android-emulator-pod` / …). Disjoint beds = disjoint container/VM/image
-  names + ports, so they run concurrently and safely.
+  `eval-android-emulator-pod` / …). Distinct beds get distinct container/VM/image
+  names; the author assigns each disjoint host ports too (the loader does NOT
+  check ports — an overlap fails the second bed at deploy), so they run
+  concurrently and safely.
 - **Eval-test at EVERY stage, never only at the end.** Each parallel owner
   **verifies before it changes** (Risk Driven Development — proves its bed's
   high-risk assumptions, above all the composition, on its live bed/backend
@@ -126,7 +137,12 @@ discipline as an agent team — it is the workflow expression of the B3 model
   a single barrier** between the parallel-implement and parallel-bed-R10 phases.
   Canonical shape: `Core (seq) → Implement (parallel by bed) → Integrate+build
   (seq barrier) → BedR10 (parallel by bed) → Review (parallel, read-only,
-  optional)`.
+  optional)`. **The barrier is load-bearing because `ov` enforces a stale-binary
+  freshness guard** — it refuses heavy ops (`image build`, `deploy add`) whenever
+  any `ov/*.go` source is newer than the installed `/usr/bin/ov` (remediation:
+  `task build:ov`). A teammate editing `ov/*.go` WHILE another's bed is mid-run
+  trips that guard on the bed's deploy step, so rebuild ONCE at the barrier, then
+  run every bed against the now-stable binary.
 - **Same binding rule** as below: disposable-only, commit-gated-not-run,
   no-scope-shrinking-flags, paste-proof survives delegation.
 
@@ -156,7 +172,8 @@ Therefore, for ANY agent or workflow that runs them:
   beds) runs for minutes-to-tens-of-minutes and its libvirt domain / emulator
   OUTLIVES a single turn. Run it by the mechanism, not a who-owns-it rule:
   - **Launch as a harness-tracked background task** (`run_in_background`). NEVER
-    foreground — the Bash 120s/600s timeout kills the call mid-`vm-create`,
+    foreground — the Bash tool's `timeout` (120s default, 600s maximum, its
+    `max` setting — NOT any ov constant) kills the call mid-`vm-create`,
     orphaning the domain. NEVER a sleep/poll loop to "keep it alive" — that
     busy-poll is the exact R4 bandaid this replaces.
   - **The completion notification is the signal, not polling.** The harness
@@ -166,8 +183,9 @@ Therefore, for ANY agent or workflow that runs them:
     tool returns synchronously — its background children die when it returns),
     and an idle teammate does NOT (its process tree is torn down on idle) — both
     orphan the bed. **Long beds belong to a session that lives to be notified;
-    short beds (done within one turn / the 600s foreground budget) can be
-    sub-agent- or teammate-owned.**
+    short beds (whose `ov eval run` finishes inside a single foreground Bash
+    call — under that 600s `timeout` ceiling) can be sub-agent- or
+    teammate-owned.**
   - **Reconnect via durable state, never a held process handle.**
     `.eval/<bed>/<calver>/summary.yml` (overall `ok:` + per-step status) + the
     live domain/container ARE the source of truth: "done + verdict" =
@@ -216,13 +234,23 @@ can enforce gates (exit 2 = block + feedback); the shipped
 
 ### Bed-scoped parallel real-deployment testing
 
-The **eval bed is the unit of ownership AND isolation** — it replaces the git
-worktree. `validateEvalBeds` guarantees each `kind: eval` bed has a name
-disjoint from every other deploy, `target ∈ {pod,vm,local}`, and
-`disposable: true`; distinct beds therefore get distinct `ov-<bed>`
-container / libvirt-domain / image names and disjoint ports, so they are
-concurrent-safe. A bed pins an image → layers → files, so owning a bed owns
-those source files.
+The **eval bed is the unit of ownership, isolation, AND throughput** — it
+replaces the git worktree. `ov eval run --all-beds` is strictly SEQUENTIAL (a
+plain loop in `eval_runner_cmd.go`; `ov` spawns no goroutines for beds), so the
+ONLY way to compress a multi-bed cutover's wall-clock is the agent layer: **one
+agent ⇄ one bed**, N beds running as N concurrent `ov eval run <bed>` processes.
+Two load-time guards back the isolation: `foldEvalBeds` rejects any
+`kind: eval` bed whose name collides with a `kind: deploy` entry, and
+`validateEvalBeds` requires every bed to set `disposable: true` and to declare a
+`target ∈ {pod, vm, local, android}` (with the referenced vm/local/android
+entity present). Distinct beds therefore get distinct `ov-<bed>`
+container / libvirt-domain / image names. **Host-port disjointness is NOT
+statically guaranteed** — neither guard checks ports; assigning each bed
+non-overlapping host ports is the AUTHOR's responsibility, and an overlap
+surfaces only at deploy time when `CheckPortAvailability` fails the SECOND bed's
+`start`. Partition beds with disjoint ports BY CONSTRUCTION — the loader will
+not catch an overlap for you. A bed pins an image → layers → files, so owning a
+bed owns those source files.
 
 Each bed is the teammate's **candybox** (CLAUDE.md "Candyboxing"): a disposable,
 secured deployment stocked with the FULL `ov` + MCP + `ov eval` toolset, so the
@@ -241,10 +269,15 @@ The playbook:
    its bed's HIGH-RISK assumptions — above all the composition — on its standing
    bed BEFORE editing, never trusting a doc or the code for a high-risk call, so
    it is never disproven hours later.
-4. **Default parallel.** Beds run concurrently, bounded by the runtime's
-   documented 16-concurrent / 1000-total dynamic-workflow agent ceiling, which
-   queues excess. KVM and libvirt are multi-tenant and podman builds distinct
-   image tags concurrently, so pod and VM beds run alongside each other.
+4. **Default parallel, longest-pole-first.** Beds run concurrently — there is NO
+   `ov` concurrency cap (the "16-concurrent / 1000-total" figure is only the
+   dynamic-workflow harness ceiling); the real limit is host CPU/RAM/podman, and
+   there is no global build lock (pod beds take no ledger flock, `.build/<image>`
+   is per-image). KVM/libvirt are multi-tenant and podman builds distinct image
+   tags concurrently, so pod and VM beds run alongside each other. Partition by
+   expected DURATION, not bed count: start the long poles (VM/desktop beds, as
+   persistent-session background tasks) FIRST and overlap the cheap pod beds
+   underneath, so wall-clock ≈ the slowest single bed.
 5. **The lead owns the single commit**, gated on the consolidated full
    final-code live test (the beds in parallel). Teammates never commit/push.
 
@@ -253,6 +286,37 @@ B→`{eval-jupyter-pod, eval-versa-pod}`, C→`{eval-k3s-vm}` (VM, needs the
 libvirt user session), D→`{eval-sway-browser-vnc-pod}` (heavy). All concurrent
 → multiple pods *and* a VM live at once; wall-clock ≈ the slowest chain, not
 the sum.
+
+### Speed levers (grounded in the real bed cycle)
+
+One-agent-per-bed is the headline speedup; these compound it, each grounded in
+how `ov eval run` actually behaves:
+
+- **A pod bed builds the image ONCE.** Step 1 (`ov image build`) is the only
+  build; the "fresh `ov update`" R10 gate is a `systemctl restart` onto the
+  already-built image (`ov update` carries no `--build`, and `EnsureImage`
+  short-circuits on `LocalImageExists`). The cost model is ~1 build/bed — never
+  pessimistically assume two.
+- **Pre-warm the shared base ONCE.** Same-base beds (e.g. two `cachyos` images)
+  share cached base layers in podman storage, and the content-derived
+  `EffectiveVersion` keeps the base `FROM`-SHA stable so cache misses don't
+  cascade. Build the base (or the first same-base bed) once before fan-out →
+  every sibling bed's build is incremental, rebuilding only changed layers.
+- **`eval:`-check iteration is nearly free.** LABELs are emitted LAST in the
+  Containerfile, so a check-only edit rebuilds in seconds (every upstream
+  RUN/COPY cache-hits). Write eval coverage aggressively; only layer/package
+  edits pay a full rebuild.
+- **`context_ignore` + `--podman-jobs` / `--jobs`** are the legitimate
+  build-speed levers (trim the build-context tar; parallelize stages within one
+  build and images across a DAG level). On by default.
+
+**Flag discipline — speed levers vs scope-shrinking (never confuse them).** A
+"go faster" mandate tempts the forbidden shortcut. LEGITIMATE: `--podman-jobs`,
+`--jobs`, `context_ignore`, pre-warming, agent-layer parallelism, longest-pole
+scheduling. R10-SCOPE-SHRINKING (need explicit per-turn operator authorization,
+CLAUDE.md Law 3.6): `--no-rebuild` (skips the R10 fresh-update gate), `--keep`,
+`--skip-rebuild`. "To go faster / to fit the session" is the confession, not the
+defense.
 
 ## Cross-References
 

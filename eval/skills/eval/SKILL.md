@@ -99,29 +99,42 @@ hardcodes that name — it flows from the score's `pod:` field through
 substitution token. The supporting
 `vm: k3s-vm` + `k8s: vm-k3s-vm` entities live in `eval.yml` alongside the
 beds. `disposable: true` is the sole authorization
-for the unattended destroy+rebuild (see `/ov-internals:disposable`); load-time
-validation (`validateEvalBeds`) enforces target ∈ {pod,vm,local}, a resolvable
-cross-ref, `disposable: true`, and a name space disjoint from `kind: deploy`.
+for the unattended destroy+rebuild (see `/ov-internals:disposable`). Two
+load-time guards back the beds: `validateEvalBeds` enforces `target ∈ {pod, vm,
+local, android}`, a resolvable cross-ref, and `disposable: true`; `foldEvalBeds`
+enforces the name-disjointness from `kind: deploy`. Neither checks host ports —
+disjoint ports across beds are the AUTHOR's responsibility (an overlap fails the
+second bed at deploy via `CheckPortAvailability`).
 
 ### Approximate wall-clock (10-CPU 32-GB reference host)
 
 `eval-pod` ~110s (one build → deploy → eval → fresh-update → teardown cycle
 covering all four mechanisms) · `eval-local` ~45s · `eval-k3s-vm` ~5–7 min · the
 heavy feature beds (`eval-sway-browser-vnc-pod` ~14 min incl. image build)
-longer. `ov eval run --all-beds` ≈ the sum.
+longer. **`ov eval run --all-beds` runs beds STRICTLY SEQUENTIALLY (a plain loop
+— no concurrency in `ov`), so its wall-clock ≈ the SUM.** To collapse that to ≈
+the slowest single bed, parallelize at the AGENT layer — one agent/teammate per
+bed, N concurrent `ov eval run <bed>` processes (`/verify-beds` and an agent team
+both do this; see `/ov-internals:agents` "Speed levers"). The dominant cost is
+the step-1 `ov image build`: a pod bed builds the image ONCE — the "fresh
+`ov update`" R10 step is a `systemctl restart` onto the already-built image, not
+a second build — and same-base beds share cached layers, so pre-warming a shared
+base once makes every sibling bed's build incremental.
 
 **Handling a long-running bed — by mechanism, not by who owns it.** A VM/emulator
 bed's `ov eval run` orchestrator runs for minutes-to-tens-of-minutes AND the
 libvirt domain / emulator it spawns outlives a single turn. (1) **Launch it as a
 harness-tracked background task** (`run_in_background`) — never foreground (the
-Bash 120s/600s timeout kills the call mid-`vm-create`, orphaning the domain) and
+Bash tool's `timeout`, 120s default / 600s max, kills the call mid-`vm-create`,
+orphaning the domain) and
 never a sleep/poll loop (the R4 bandaid). (2) **Let the completion notification
 drive the next step** — the harness re-invokes the LAUNCHING session when the run
 exits, so the launcher must SURVIVE to completion to be notified: the persistent
 main session does; an ephemeral sub-agent (returns synchronously) and an idle
 teammate (torn down on idle) do NOT, and orphan the bed. Long beds belong to a
-session that lives to be notified; short beds (within one turn / the 600s budget)
-can be sub-agent/teammate-owned. (3) **Reconnect via durable state** —
+session that lives to be notified; short beds (whose `ov eval run` fits a single
+foreground Bash call, under that 600s `timeout` ceiling) can be
+sub-agent/teammate-owned. (3) **Reconnect via durable state** —
 `.eval/<bed>/<calver>/summary.yml` + the live domain ARE the truth: "done" =
 summary.yml present; "alive" = the orchestrator is in the process table; clean up
 an orphan (`running` domain, no live orchestrator) with `ov vm destroy <entity>`
