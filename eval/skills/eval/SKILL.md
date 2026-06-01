@@ -131,10 +131,11 @@ never a sleep/poll loop (the R4 bandaid). (2) **Let the completion notification
 drive the next step** — the harness re-invokes the LAUNCHING session when the run
 exits, so the launcher must SURVIVE to completion to be notified: the persistent
 main session does; an ephemeral sub-agent (returns synchronously) and an idle
-teammate (torn down on idle) do NOT, and orphan the bed. Long beds belong to a
-session that lives to be notified; short beds (whose `ov eval run` fits a single
-foreground Bash call, under that 600s `timeout` ceiling) can be
-sub-agent/teammate-owned. (3) **Reconnect via durable state** —
+teammate (torn down on idle) do NOT, and orphan the bed. EVERY full `ov eval run <bed>`
+is a background task owned by the persistent session (the only session that
+survives across turns to be notified) — duration-independent; the 600s is a Bash
+FOREGROUND cap, irrelevant to a backgrounded bed. Teammates/sub-agents do
+bed-local edits + short foreground checks (`ov eval image`), never the full run. (3) **Reconnect via durable state** —
 `.eval/<bed>/<calver>/summary.yml` + the live domain ARE the truth: "done" =
 summary.yml present; "alive" = the orchestrator is in the process table; clean up
 an orphan (`running` domain, no live orchestrator) with `ov vm destroy <entity>`

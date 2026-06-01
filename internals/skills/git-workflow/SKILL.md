@@ -108,24 +108,27 @@ each use a distinct `feat/` slug.
 ## B3 — agent teams on ONE shared tree (no worktree)
 
 When an agent team parallelizes work, **the eval bed is the unit of isolation,
-not a worktree**. Each teammate owns a disjoint `kind: eval` bed; distinct beds
-get distinct container/VM/image names; the lead assigns each disjoint host ports
-too (the loader does NOT check ports — an overlap fails the second bed at
-deploy), and a bed pins an image → layers → files, so bed-ownership already
-isolates the source files each teammate touches. Teammates therefore share ONE working
-tree on ONE `feat/<slug>` branch:
+not a worktree**. Each teammate owns a disjoint `kind: eval` bed's SOURCE files;
+distinct beds get distinct container/VM/image names; the lead assigns each
+disjoint host ports too (the loader does NOT check ports — an overlap fails the
+second bed at deploy), and a bed pins an image → layers → files, so bed-ownership
+already isolates the source files each teammate edits. **Teammates edit; the LEAD
+runs every full `ov eval run <bed>`** as a background task (the only session that
+survives across turns to be notified). Teammates therefore share ONE working tree
+on ONE `feat/<slug>` branch:
 
-- Teammates run their beds and edit their bed-scoped files in the shared tree;
-  they **never commit or push** — the lead owns the single atomic commit, gated
-  on the consolidated full final-code live test (B1).
+- Teammates edit their bed-scoped files in the shared tree + run short foreground
+  checks (`ov eval image`) — never the full `ov eval run`, and **never commit or
+  push**. The lead runs the full beds and owns the single atomic commit, gated on
+  the consolidated full final-code bed run (B1).
 - Reserve a real `git worktree` (per `isolation: worktree`) only for genuine
   **same-file** concurrency that bed-ownership does not separate — not as the
   default for team parallelism.
 - **Schedule longest-pole-first.** `ov eval run` has no bed-level concurrency and
-  no `ov` cap — the limit is host CPU/RAM/podman. Partition by expected DURATION,
-  not bed count: start the slow VM/desktop beds first (long beds as
-  persistent-session background tasks) and overlap the cheap pod beds, so
-  wall-clock ≈ the slowest single bed, not the sum.
+  no `ov` cap — the limit is host CPU/RAM/podman. The lead runs ALL full beds as
+  concurrent background tasks; order by expected DURATION, not bed count: launch
+  the slow VM/desktop beds first and overlap the cheap pod beds, so wall-clock ≈
+  the slowest single bed, not the sum.
 - **Freeze `ov/*.go` during the bed phase.** `ov`'s stale-binary freshness guard
   gates every heavy verb the instant any `ov/*.go` is newer than `/usr/bin/ov`,
   so a teammate editing Go mid-bed-run aborts every other agent's next
