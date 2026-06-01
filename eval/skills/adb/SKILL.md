@@ -62,6 +62,9 @@ adb-specific method reference.
 | `screencap` | `ov eval adb screencap <image> --artifact <png>` | `artifact:` | Capture a PNG screenshot to a host file |
 | `logcat-tail` | `ov eval adb logcat-tail <image> [--lines N] [--filter F]` | — | Dump recent logcat lines (uses `logcat -d`) |
 | `wait-for-device` | `ov eval adb wait-for-device <image> [--timeout 60s]` | — | Block until `sys.boot_completed=1` |
+| `wait-ui-settled` | `ov eval adb wait-ui-settled <image> [--timeout 600s]` | — | Block until the foreground is not an ANR dialog (dismissing via HOME) |
+| `current-focus` | `ov eval adb current-focus <image>` | — | Print the foreground window line (`mCurrentFocus`) |
+| `keyevent` | `ov eval adb keyevent <image> <key>` | `key:` (arg) | Send a key event (`input keyevent KEYCODE_…`) |
 
 `--serial <serial>` selects a specific device (default `emulator-5554`).
 `-i <instance>` addresses a `<base>/<instance>` pod deploy.
@@ -78,6 +81,9 @@ adb-specific method reference.
 | `screencap` | `Artifact` | Runs `screencap -p \| base64` on the device, decodes host-side, writes to `Artifact`. The `base64` round-trip is mandatory — raw binary stdout gets mangled by goadb's shell stream on some emulator builds. Pairs with `artifact_min_bytes:` for size assertion. |
 | `logcat-tail` | — | Uses `logcat -d` (dump-and-exit). `Amount` (`--lines`) trims to the last N lines host-side; `Query` (`--filter`) is the literal filter spec (e.g. `MyApp:I *:S`). |
 | `wait-for-device` | — | Polls `getprop sys.boot_completed` every 2s up to `Timeout` (default 60s). Lighter than the wire-protocol `wait-for-device` because that returns the moment the device ATTACHES (well before sys.boot_completed). |
+| `wait-ui-settled` | — | Polls `mCurrentFocus` (`dumpsys window`); while a system "Application Not Responding" dialog holds focus it dismisses it with `KEYCODE_HOME` and keeps polling, up to `Timeout`. Prints `settled` on success. **Set `timeout:` generously** (the android-emulator gate uses 600s) — the shared 30s default is too short for a churning emulator. Pure goadb — no in-container shell. |
+| `current-focus` | — | Prints the `mCurrentFocus` window line. Assert the foreground app (`stdout: contains: io.appium.android.apis`) or detect a stuck ANR dialog. |
+| `keyevent` | `KeyName` | `input keyevent <key>` via `key: KEYCODE_HOME` / `KEYCODE_BACK` / a numeric code. Generic input building block; `wait-ui-settled` uses the same call internally to dismiss dialogs. |
 
 ## Authoring gotchas
 
@@ -113,6 +119,37 @@ A raw `screencap -p` produces binary PNG bytes that goadb's shell
 stream may mangle. The implementation always pipes through base64 and
 decodes host-side. This is invisible to authors — `adb: screencap`
 "just works" — but worth knowing when debugging.
+
+### `wait-ui-settled` — UI readiness past `sys.boot_completed`
+
+A freshly-booted `google_apis_playstore` emulator runs minutes of GMS
+post-boot churn (Play Store auto-update, Chimera config, Heterodyne sync)
+that starves the GMS-coupled system UI (Pixel Launcher via AiAi,
+systemui). It ANRs, and the "Application Not Responding" dialog occludes
+whatever app is foreground — so a UI probe (appium find, `monkey`)
+fired right after `sys.boot_completed` silently fails. `sys.boot_completed`
+is necessary-but-not-sufficient readiness; `wait-ui-settled` is the
+sufficient half: it polls the focused window and dismisses any ANR dialog
+with `KEYCODE_HOME` until the foreground is clean. It is **load-independent**
+(the ANR is GMS churn, not host load) and adapts to a load-dilated churn
+purely via `timeout:`. Pure Go over goadb — no in-container shell, so it
+is immune to the stdin-heredoc hazard that breaks shell-based settle loops
+(see `/ov-eval:eval` "in-container `command:` stdin").
+
+```yaml
+# Order matters — wait-for-device (boot) BEFORE wait-ui-settled (UI),
+# wait-ui-settled BEFORE any UI-interacting check (appium / monkey).
+- id: emulator-ui-settled
+  scope: deploy
+  adb: wait-ui-settled
+  timeout: 600s
+  stdout:
+    - contains: settled
+```
+
+`current-focus` and `keyevent` are the building blocks `wait-ui-settled`
+composes — usable on their own to assert the foreground app or inject a
+key (`adb: keyevent` + `key: KEYCODE_BACK`).
 
 ### `--filter` is a free-form logcat spec
 

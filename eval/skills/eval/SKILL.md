@@ -975,6 +975,20 @@ The routing table lives in `ov/testrun.go` (`runOne` switch) and
 reachable` under `ov eval image`), the runner reports it as **skipped**
 with a reason rather than failing the run.
 
+### in-container `command:` stdin is guarded
+
+An in-container `command:` script (`in_container: true`, the default) is
+delivered to the pod shell over a stdin heredoc (`NestedExecutor.wrapWithJump`,
+"stdin-attached exec"). The runner wraps every such script in
+`{ <script>; } </dev/null` (`wrapContainerCommand`, `ov/evalrun.go`) so a
+subcommand that reads stdin — `adb shell`, `ssh`, `read`, `cat` — cannot consume
+the rest of the heredoc (the not-yet-run script lines, which would otherwise
+truncate the check to its first command). Authors write plain multi-line
+scripts; **no per-call-site `</dev/null` is needed**. Host-side `command:`
+(`in_container: false`) runs via `sh -c` argv and is unaffected. For Android UI
+readiness, prefer the typed `adb: wait-ui-settled` / `current-focus` / `keyevent`
+verbs (`/ov-eval:adb`) over shell entirely.
+
 ## Runtime variables
 
 `ov eval live` resolves these via `podman inspect` on the running container

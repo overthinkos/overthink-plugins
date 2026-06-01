@@ -10,28 +10,70 @@ description: |
 
 ## Overview
 
-Display running container status in table or detail mode. Built around a
-**Collector** that does one batched `podman ps` + one batched `podman
-inspect` for every ov-* container, then fans containers out across a
-`runtime.NumCPU()*2` worker pool. Each container's host probes (CDP HTTP,
-VNC TCP) run in parallel goroutines; all in-container ("guest") probes
-(supervisord, dbus, ov, wl, sway) batch into a single `podman exec sh -c`
-invocation. End-to-end wall-clock for ~20 containers is ~1–3 s.
+`ov status` is the **unified deployment-status surface**: one table (or one
+JSON array, or a single-deployment detail view) showing every ov deployment
+across all five substrates — **pod, vm, k8s, local, android** — side by side.
+A leading **KIND** column / `"kind"` JSON field discriminates which substrate
+each row came from.
+
+The architecture is a **substrate-collector registry**. `Collector.All` builds
+one read-only `CollectOpts`, fans the available collectors out across a
+`runtime.NumCPU()*2`-bounded goroutine pool, merges their rows, applies the
+nested overlay, and sorts by `(Kind, image)`. Each substrate is one
+`SubstrateCollector` living in its OWN file and self-registering via an
+`init()` → `registerSubstrate` — there is NO central registry slice to edit
+when a substrate is added. The pod collector still does the batched `podman
+ps` + `podman inspect` + worker-pool probe fan-out (host probes — CDP/VNC — in
+parallel goroutines; guest probes — supervisord/dbus/ov/wl/sway — batched into
+one `podman exec sh -c`); the other collectors read their own backends
+(libvirt for vm, client-go for live k8s, the install ledger for local, adb for
+android).
+
+**Graceful degradation is the contract.** A collector whose backend is
+unreachable on this host (`Available(opts) == false` — e.g. the libvirt vm
+collector with no libvirt session) is skipped SILENTLY — no rows, no error. A
+collector that errors mid-collect logs a single `WARNING:` to stderr and
+contributes zero rows, but NEVER aborts the whole command. So `ov status` on a
+host with only podman shows the pod rows and silently omits vm/k8s/android;
+the surface always renders what it can.
 
 Source layout:
 
-- `ov/status.go` — thin `StatusCmd` + dispatch.
+- `ov/status.go` — thin `StatusCmd` + dispatch (the `--nested` and `--json`
+  flags live here).
+- `ov/status_substrate.go` — the `SubstrateKind` discriminator
+  (`pod`/`vm`/`k8s`/`local`/`android`), the `CollectOpts` read-only input, the
+  `SubstrateCollector` interface, and the `init()`-time `registerSubstrate`
+  registry.
 - `ov/status_engine.go` — `EngineClient` (only place that touches
   podman/docker), `ContainerSnapshot`, structured `PortMapping`.
-- `ov/status_collector.go` — `Collector.All` / `Collector.Single` +
-  worker pool; `parseQuadletDescription`; deploy.yml lookup.
+- `ov/status_collector.go` — `Collector.All` (substrate fan-out + merge +
+  nested overlay + sort) / `Collector.Single`; the pod row builder
+  (`collectOne`, stamps `Kind=SubstratePod`, `Source="podman"`); the
+  worker-pool probe fan-out; `parseQuadletDescription`; deploy.yml lookup;
+  `formatLiveMounts`.
+- `ov/status_collect_pod.go` — the `PodCollector` (wraps the engine snapshot +
+  the `collectOne` row builder).
+- `ov/status_collect_vm.go` — the `VMCollector` (libvirt domains → vm rows,
+  `Source="libvirt"`).
+- `ov/status_collect_k8s.go` — the `K8sCollector` (cluster workloads; live
+  client-go probing under `--nested`).
+- `ov/status_collect_local.go` — the `LocalCollector` (install-ledger →
+  `target: local` rows, `Source="ledger"`).
+- `ov/status_collect_adb.go` — the `AndroidCollector` (declared
+  `target: android` devices → rows via adb `host:devices`, `Source="adb"`).
+- `ov/status_nested.go` — the nested overlay (`applyNestedOverlay`): folds the
+  DECLARED nested tree onto parent rows and, under `--nested`, probes each
+  child's live multi-hop venue via the same `ResolveDeployChain` +
+  `NestedExecutor` primitive `ov deploy add` / `ov eval live parent.child` use.
 - `ov/status_probes.go` — `Probe` / `HostProbe` / `GuestProbe` interfaces
   and the 7 concrete probes (`SupervisordProbe`, `DbusProbe`, `OvProbe`,
   `WlProbe`, `SwayProbe` are guest; `CdpProbe`, `VncProbe` are host).
   `runGuestProbes` builds a single concatenated shell script with
   per-probe markers and splits the stdout chunks back out.
-- `ov/status_render.go` — `RenderTable` / `RenderDetail` / `RenderJSON`
-  + cell formatters; `formatTunnelSummary`.
+- `ov/status_render.go` — the unified `DeploymentStatus` rendered shape +
+  `RenderTable` / `RenderDetail` / `RenderJSON` / `RenderJSONOne` + cell
+  formatters (`cellKind`, …); `formatTunnelSummary`.
 - `ov/status_reap.go` — `ReapOrphansCmd` (the top-level `ov reap-orphans`
   command).
 
@@ -39,19 +81,25 @@ Source layout:
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Table (running) | `ov status` | Show all running services |
+| Table (running) | `ov status` | Show all deployments across every substrate (pod/vm/k8s/local/android) |
 | Table (all) | `ov status --all` | Include stopped and enabled services |
+| Nested probe | `ov status --nested` | Probe nested children + live k8s workloads (multi-hop, slower) |
 | Detail | `ov status <image>` | Key-value detail for one service |
 | Detail (instance) | `ov status <image> -i <inst>` | Key-value detail for one instance |
-| JSON output | `ov status --json` | Machine-readable JSON (structured ports) |
+| JSON output | `ov status --json` | Machine-readable JSON (KIND-discriminated, structured ports, nested tree) |
 | Reap orphans | `ov reap-orphans` | Clean up ephemerals whose underlying resource is gone |
 
 ## Table Mode Columns
 
+Columns: `KIND  IMAGE  STATUS  PORTS  TUNNEL  DEVICES  TOOLS`. Rows are sorted
+by `(KIND, IMAGE)` so all rows of one substrate group together. Nested children
+render as indented IMAGE-cell rows (`  └─ <child>`) under their parent.
+
 | Column | Description |
 |--------|-------------|
-| IMAGE | `image` for base deploys, `image/instance` for multi-instance (matches `deployKey` shape) |
-| STATUS | `running` / `stopped` / `enabled` / `failed` / `dead` / `paused` |
+| KIND | Substrate discriminator: `pod` / `vm` / `k8s` / `local` / `android` (`-` when unset). Names which collector produced the row |
+| IMAGE | `image` for base deploys, `image/instance` for multi-instance (matches `deployKey` shape); for a vm/local/android row it is the vm name / local-template label / declared android device key |
+| STATUS | `running` / `stopped` / `enabled` / `failed` / `dead` / `paused`; substrate-specific values: `applied` (local ledger), `online` / `offline` / `absent` (android), `declared` / `reachable` / `unreachable` (nested children) |
 | PORTS | Sorted, deduped host port numbers from runtime `podman ps` (deploy.yml / image labels are fallbacks for non-running rows) |
 | TUNNEL | `provider (all ports)` / `provider (ports H,H,H)` / `-` — read from deploy.yml |
 | DEVICES | Compact tokens (`gpu`, `dri`, `kvm`, `fuse`, `tun`) sorted alphabetically |
@@ -63,6 +111,7 @@ Source layout:
 
 | Field | Example |
 |-------|---------|
+| Kind | `pod` (omitted when unset) |
 | Image | `ghcr.io/overthinkos/jupyter:latest` |
 | Status | `running` |
 | Container | `ov-jupyter` |
@@ -73,6 +122,48 @@ Source layout:
 | Volumes | `data: bind /home/user/data` |
 | Network | `host` |
 | Tunnel | `cloudflare: jupyter.example.com` |
+| Nested | `android device (online)` — one line per declared nested child |
+
+The single-image detail path is pod-scoped (`Collector.Single` covers the
+podman/docker substrate). For the cross-substrate view use the table.
+
+## Nested deployments
+
+A deploy can declare a nested tree (`pod → android`, `vm → pod`, `vm → host`,
+…). `ov status` reflects it WITHOUT a dedicated "nested" collector — a nested
+child's venue is always REACHED THROUGH its parent, so `applyNestedOverlay`
+post-processes the already-merged flat rows: it reads the DECLARED tree from
+the merged deploy config (project `overthink.yml` incl. folded `kind: eval`
+beds + `~/.config/ov/deploy.yml`) and attaches each declared child to its
+parent row's `Nested[]`.
+
+**Dedup — a declared nested child appears exactly once.** A child substrate
+collector may ALSO surface a flat top-level row for the same deployment: an
+`AndroidCollector` row keyed on the dotted path (`<parent>.device`), or a
+nested-pod row keyed on the flattened container name (`NestedContainerName` →
+`<seg1>_<seg2>`). When the overlay finds such a flat row, it **MOVES** that
+row's real collected data (status / uptime / container / ports / devices /
+tools / volumes / network / tunnel) into the nested position — preserving its
+real `Source` (`adb`, `podman`, …), NOT restamping `nested` — and **REMOVES**
+the flat row from the top level. So a nested android device shows ONLY under
+its parent pod's `nested[]`, never also as a flat row. A child with NO flat
+match keeps the synthesized declared row (`Source="nested"`).
+
+- **Default** (`ov status`): a child with a flat match inherits that flat row's
+  live `status`/`uptime`/… (and real `Source`); a child with no flat match
+  reads `declared` (`Source="nested"`). No multi-hop work, no extra
+  subprocesses.
+- **`ov status --nested`**: each child's LIVE venue is probed through the real
+  multi-hop chain (`ResolveDeployChain` → `NestedExecutor`, the SAME primitive
+  `ov deploy add` and `ov eval live parent.child` use — no bespoke nested dial)
+  under a STRICT 4-second per-child context deadline. A timed-out / failing
+  child renders `unreachable`; the table is NEVER blocked. The deadline is a
+  context cancellation, never a sleep/retry loop. `--nested` also turns on live
+  k8s-workload probing and the android `sys.boot_completed` readiness poll.
+
+A synthesized (no-flat-match) child carries `Source="nested"` in JSON so a
+consumer tells a declared-only child apart from a natively-collected substrate
+row; a MOVED child carries its origin collector's real `Source`.
 
 ## Tool Probes
 
@@ -100,12 +191,15 @@ Adding a new probe: implement `HostProbe` (network) or `GuestProbe`
 
 ## JSON output schema
 
-`ov status --json` emits an array of `ContainerStatus` objects. `ports`
-is a structured array (not `[]string`) — programmatic consumers read the
-structured shape:
+`ov status --json` emits an array of `DeploymentStatus` objects — one per row,
+across every substrate. The leading `"kind"` field is the substrate
+discriminator; `"source"` records provenance (`podman` / `libvirt` / `ledger` /
+`adb` / `nested`); `"ports"` is a structured array (not `[]string`); `"nested"`
+is the recursive child tree (omitted when empty):
 
 ```json
 {
+  "kind": "pod",
   "image": "selkies-desktop",
   "instance": "work",
   "status": "running",
@@ -115,9 +209,37 @@ structured shape:
   ],
   "tunnel": "tailscale (all ports)",
   "tools": [ { "name": "cdp", "status": "ok", "port": 9240, "detail": "3 tabs" } ],
-  "run_mode": "quadlet"
+  "run_mode": "quadlet",
+  "source": "podman"
 }
 ```
+
+A deployment with a declared nested tree (e.g. `pod → android`) carries its
+children under `"nested"`. A child that surfaced as a flat substrate row is
+MOVED here with its real `"source"` (`adb`) and its collected data; a child
+with no flat row is synthesized (`"source": "nested"`, `"status": "declared"`):
+
+```json
+{
+  "kind": "pod",
+  "image": "android-emulator",
+  "status": "running",
+  "container": "ov-android-emulator",
+  "run_mode": "quadlet",
+  "source": "podman",
+  "nested": [
+    { "kind": "android", "image": "device", "status": "online", "container": "emulator-5554", "source": "adb" },
+    { "kind": "android", "image": "device-net", "status": "declared", "source": "nested" }
+  ]
+}
+```
+
+Because the JSON encoder indents (`SetIndent("", "  ")`), the on-the-wire
+substring for a substrate row is `"kind": "pod"` — a SPACE after the colon.
+Eval `command` checks that grep `ov status --json` output assert on the spaced
+form (e.g. `contains: '"kind": "vm"'`). The four `kind: eval` beds each carry a
+`status-shows-*` deploy-scope check that proves the live `ov status --json`
+reports the right kind (and, for android, the `"nested"` tree).
 
 Single-image (`ov status <image> -i <inst> --json`) emits one object,
 not an array.
@@ -156,17 +278,26 @@ ov deploy show <image>
 ## Usage
 
 ```bash
-# Quick overview of all running services
+# Quick overview of all deployments across every substrate
 ov status
 
 # Include stopped services
 ov status --all
+
+# Probe nested children + live k8s workloads (multi-hop, slower)
+ov status --nested
 
 # Detailed info for one service
 ov status jupyter
 
 # JSON for scripting
 ov status --json | jq '.[] | select(.status == "running")'
+
+# Filter to one substrate
+ov status --json | jq '.[] | select(.kind == "vm")'
+
+# List declared nested children
+ov status --json | jq '.[] | select(.nested) | .nested[].image'
 ```
 
 ## Cross-References
