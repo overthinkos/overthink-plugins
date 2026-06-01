@@ -34,6 +34,20 @@ A violation of any R1–R5 rule (or any of R6–R10, or the "Prioritize Clean Ar
 
 **Interaction with other rules.** R1 is the first response to ANY failure surfaced by any other rule's verification step. R7 (mandatory end-to-end gate) produces failures that R1 must investigate. R8 (generated-artifact invariants) produces failures that R1 must investigate. R10 (disposable + fresh-rebuild) produces failures that R1 must investigate. R1 is also the first response to a self-detected anomaly mid-session — including during planning, exploration, or normal coding.
 
+## RDD. Risk Driven Development — prove the highest-risk unknowns EARLY (the proactive twin of R1)
+
+**The rule.** ALWAYS validate ANY HIGH-RISK assumption empirically on a live `disposable: true` bed (`/ov-internals:disposable`) in the planning / early-coding phase, BEFORE the edits that depend on it. R1 runs RCA on every failure AFTER it happens; RDD runs the validation FORWARD so wrong assumptions, unnecessary cautions, and erroneous root-cause theories never survive into the final plan or code. **Never accept the skills, CLAUDE.md, or the current code as automatically correct** — docs drift and code has bugs; for a high-risk call, reality is the only ground truth. RDD is the COMPLEMENT of skills-first (R0), not a substitute for a lookup: you still load the skill first, you just don't treat its high-risk claims as proven until a bed confirms them. *Never trust, verify.*
+
+**Risk — not documentation status — is the trigger.** Low-risk orientation ("roughly what does this layer do") is a zero-risk skill lookup (R0) — do NOT burn a bed on it. High-risk (being wrong invalidates the plan, is costly / hard-to-reverse, or would mislead RCA) is proven on a bed REGARDLESS of what any doc or code asserts. The archetypal high-risk unknown: whether a SPECIFIC layer composition, at the LATEST available versions the resolver picks, builds / deploys / runs TOGETHER — no skill can certify a never-composed combination.
+
+**Forbidden internal-voice triggers.** "the layers probably compose, I'll find out at R10" / "the newest version is surely drop-in" / "each layer works alone, so the stack is fine" / "the skill says so, it's true" / "the code does X, so it's safe" / "I'll add a guard to be safe" (without proving the danger is real) / "let me bed-test what the skill already says" (for a LOW-risk item). Each either defers proving the riskiest unknown to the most expensive moment, or wastes a bed on a settled one.
+
+**What is permitted / required.** Building the real composition, running the bed, inspecting the running deployment, reading the emitted artifact, or a focused `ov eval image` / `ov eval live` probe — riskiest-assumption first — to PROVE a high-risk claim before editing on it. When the bed contradicts a skill or CLAUDE.md, the DOC IS STALE — fix it in the same change (skills are living documents).
+
+**Why it matters.** The most expensive bug is an edit built on a false premise validated only at the end — the cutover is large, the dependent edits many, and the disproof arrives after hours of work. RDD validates the premise when disproving it is cheap. It also kills over-engineering: a "guard to be safe" added without a proven need is an unvalidated CAUTION — the over-engineering twin of an unvalidated assumption.
+
+**Interaction with other rules.** RDD precedes R1: validate forward so RCA is rarely needed, and so the RCA that does run reasons from a real bed, not a guess. It feeds R10 (`/ov-eval:eval`): the riskiest assumptions are proven on a disposable bed early, so the final fresh-rebuild gate confirms a design already de-risked. Canonical definition in CLAUDE.md "Risk Driven Development (RDD)". Its enforcement surfaces are `testing-validator` standard #9, the `root-cause-analyzer` forbidden-rationalization, and the soft End-of-turn / post-execution checklists — never a blocking gate, because "highest-risk, validated early" is a judgment, not a mechanical invariant.
+
 ## R2. No "pre-existing" / "out of scope" / "unrelated" / "follow-up PR" classifications
 
 **The rule.** Every issue surfaced during the active cutover — failing test, validator warning, runtime crash, deprecated-marker hit, dead-code reference, stale doc paragraph — is fixed in the SAME working tree as the cutover, OR escalated to the operator for explicit re-scoping. The classifications "pre-existing", "unrelated to this change", "out of scope", "follow-up PR", "tracked separately", "we'll get to it later" are FORBIDDEN.
@@ -133,6 +147,7 @@ Per CLAUDE.md "AI Attribution" section: a violation at any layer FORBIDS commit.
 **MUST be invoked** when:
 
 - A failure / error / anomaly / warning surfaces from any tool, at any time during a session. R1's RCA mandate fires immediately.
+- You are about to edit on a HIGH-RISK assumption — a layer composition, a newest-wins version bump, or anything a skill / CLAUDE.md / code merely *asserts* that the plan depends on. RDD's prove-it-on-a-bed-first mandate fires (never trust a doc or code reading for a high-risk call).
 - A pattern, predicate, or filter is about to land in a second place. R3's first-surface refactor mandate fires.
 - A sleep, retry, magic number, or environment-specific shim is tempting. R4's forbidden-patterns list fires.
 - A cutover commit is about to ship. R5's grep self-test mandate fires.

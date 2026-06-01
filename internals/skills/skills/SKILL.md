@@ -58,6 +58,7 @@ If multiple triggers apply, load ALL matching skills in ONE message (parallel `S
 | New layer or image added | Create skill via `ov image new layer` scaffold or manual SKILL.md |
 | Bug fix changes behavior | Document the fix in affected skills |
 | Cross-skill behavior discovered | Update Cross-References in all affected skills |
+| A live bed contradicts a skill's claim (Risk Driven Development found it stale) | Fix the stale skill in the SAME change — RDD keeps the living docs honest; for a high-risk claim the running system is ground truth, not the doc |
 | Removed identifier still referenced in skill paragraph (R5 self-test failed) | Update / delete the paragraph in the SAME commit as the removal (R5) |
 
 ## When NOT to Update Skills

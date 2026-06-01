@@ -47,7 +47,8 @@ git switch main && git merge --ff-only origin/main
 git switch -c feat/<slug>            # slug = kebab summary of the change
 
 # ... implement the whole cutover; run beds freely throughout to VERIFY
-#     (verify before you change); the COMMIT is gated on the full final-code
+#     (verify before you change — Risk Driven Development: prove high-risk
+#     assumptions on a bed first); the COMMIT is gated on the full final-code
 #     live test (pasted), which runs at the end ...
 
 # on R10 PASS, automatically and in order:

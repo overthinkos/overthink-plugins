@@ -23,7 +23,7 @@ This skill is the source of truth for the policy. `CLAUDE.md` links here rather 
 **A "phase" is the whole cutover. "Tasks" are the breakdown inside it.** Never treat tasks as separate phases with their own sign-off.
 
 1. **Plan**: write a plan file that describes the cutover as ONE phase. Decompose into tasks with `TaskCreate`. The plan file names the cutover, not a sequence of cutovers.
-2. **Implement**: execute every task in the same working tree. Transitional aliases, legacy-accepting code paths, or temporary dual-dispatch are permitted DURING implementation. They MUST be deleted before the end of the same cutover.
+2. **Implement**: execute every task in the same working tree. **Prove the highest-risk unknowns on a live `disposable: true` bed FIRST (Risk Driven Development — never trust a skill / CLAUDE.md / code for a high-risk call; the archetypal one is whether this layer composition, at its latest versions, builds / deploys / runs together).** Transitional aliases, legacy-accepting code paths, or temporary dual-dispatch are permitted DURING implementation. They MUST be deleted before the end of the same cutover.
 3. **Test at the end, not between tasks**: run unit tests, `ov image build`, `ov deploy add` + `ov eval live`, and the R10 fresh-rebuild re-verification AFTER all tasks are marked complete. Testing between tasks is cheap smoke-confirmation; the acceptance gate is the full-stack run against the final code.
 4. **Ship or fix**: if any verification step fails, fix it in the same working tree and re-run the full verification. Do NOT commit a partial state.
 

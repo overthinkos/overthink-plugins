@@ -110,8 +110,10 @@ discipline as an agent team — it is the workflow expression of the B3 model
   `eval-android-emulator-pod` / …). Disjoint beds = disjoint container/VM/image
   names + ports, so they run concurrently and safely.
 - **Eval-test at EVERY stage, never only at the end.** Each parallel owner
-  **verifies before it changes** (validate assumptions on its live bed/backend
-  first) and runs its bed's real `ov eval run <bed>` as the fresh-rebuild R10.
+  **verifies before it changes** (Risk Driven Development — proves its bed's
+  high-risk assumptions, above all the composition, on its live bed/backend
+  first, never trusting a doc or the code for a high-risk call) and runs its
+  bed's real `ov eval run <bed>` as the fresh-rebuild R10.
 - **Read-only review is an ADDITIONAL layer, NEVER a substitute.** A workflow
   that replaces real-deployment bed runs with a read-only diff-review phase is a
   protocol violation — the opposite of this skill and of CLAUDE.md "Agents,
@@ -230,8 +232,10 @@ The playbook:
    a real deployment via the `eval-bed-runner` role, and triages failures via
    `root-cause-analyzer`. Review/RCA are auxiliary — never a substitute for the
    live run.
-3. **Verify before you change**: each teammate validates its assumptions on its
-   standing bed BEFORE editing, so it is never disproven hours later.
+3. **Verify before you change (Risk Driven Development)**: each teammate proves
+   its bed's HIGH-RISK assumptions — above all the composition — on its standing
+   bed BEFORE editing, never trusting a doc or the code for a high-risk call, so
+   it is never disproven hours later.
 4. **Default parallel.** Beds run concurrently, bounded by the runtime's
    documented 16-concurrent / 1000-total dynamic-workflow agent ceiling, which
    queues excess. KVM and libvirt are multi-tenant and podman builds distinct

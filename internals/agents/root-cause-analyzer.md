@@ -13,7 +13,7 @@ When unexpected behavior occurs, you MUST perform deep root cause analysis. **Ne
 
 **R1 mandatory invocation.** Per CLAUDE.md R1, EVERY failure / error / anomaly / warning observed during a session triggers immediate invocation of this agent BEFORE any remediation attempt. The invocation precedes "rerun and see" / "probably a flake" / "transient" classifications — those classifications are FORBIDDEN as the first response. The agent's 8-step process below is the only authorized first response to a failure.
 
-**Proactive twin — verify before you change.** The same discipline runs FORWARD, not only after a failure. Before editing code or config on an assumption — "this layer installs X", "this service binds that port", "this field flows through here" — VALIDATE the assumption on a live `disposable: true` bed FIRST (run the bed, inspect the running deployment, read the emitted artifact), so you are never disproven hours of work later. A blind edit on an unverified assumption is the failure this agent exists to prevent — catching it before the edit is cheaper than diagnosing it after.
+**Risk Driven Development (RDD) — the proactive twin: never trust, verify.** The same discipline runs FORWARD, not only after a failure — and it is the COMPLEMENT of skills-first, not a substitute for a lookup. What a layer does, installs, or binds is answered by its skill (zero risk — look it up). RDD targets the unknown no skill can certify: whether a SPECIFIC COMPOSITION of layers, at the latest versions the resolver picks, actually builds, deploys, and reaches steady-state TOGETHER. ALWAYS validate a HIGH-RISK assumption on a live `disposable: true` bed FIRST (build the composition, run the bed, inspect the running deployment, read the emitted artifact) — do NOT accept a skill, CLAUDE.md, or the current code as automatically correct, because docs drift and code has bugs. A high-risk claim is a HYPOTHESIS until a bed confirms it; this keeps the 8-step process below honest — it reasons from a real bed run, never from a stale doc, buggy code, or speculation. If the bed contradicts the doc, the doc is stale — fix it. Canonical definition in CLAUDE.md "Risk Driven Development (RDD)".
 
 ## What Qualifies as Unexpected
 
@@ -117,6 +117,15 @@ ov shell <image> -c "test"     # Must run
 - "The code is fine, environment is different"
 - "This is good enough for now"
 - "Most of it works, close enough"
+
+**An RDD violation — a high-risk conclusion accepted from a doc, from the code, or from a guess without a bed run — is equally forbidden:**
+
+- "The skill says X, so it's true" (the skill may be stale — confirm a high-risk X on a bed)
+- "The code does Y, so my change is safe" (code has bugs — run it; the emitted artifact / live run is the arbiter)
+- "The layers probably compose; I'll find out at the end" / "the newest version is surely drop-in"
+- "The root cause is probably the X layer" (asserted from the code, never composed and run)
+
+Step 5 (HYPOTHESIS) and Step 7 (FIX) MUST rest on a real bed run (Step 6) — never on documentation, a code reading, or an assumption that was never built and `ov eval`'d.
 
 **ALWAYS say and do:**
 

@@ -23,10 +23,16 @@ Before declaring "working", verify ALL of these:
 6. No unexpected errors or warnings in output
 7. Behavior matches CLAUDE.md documentation
 8. No workarounds or hacks needed
-9. Assumptions were **bed-validated during development** — the change's key
-   assumptions + any error diagnoses were confirmed on a live `disposable: true`
-   bed BEFORE the edits that depend on them (verify before you change), not only
-   asserted after the fact
+9. **Risk Driven Development (RDD) was applied** — every HIGH-RISK assumption was
+   proven on a live bed, not accepted from docs or code. Low-risk orientation
+   ("what does layer X do") was a skill lookup (R0). Every high-risk assumption the
+   change rests on — including anything a skill or the code merely *asserts*, and
+   above all whether this layer composition at its latest available versions
+   builds/deploys/runs TOGETHER — was confirmed on a live `disposable: true` bed
+   DURING development, BEFORE the edits that depend on it (verify before you
+   change). A "works" claim resting on "the docs say so", "the code does X", or an
+   unproven composition is BLOCKED; docs drift and code has bugs, so for a
+   high-risk claim the live system is the only ground truth
 
 ## Evidence Required
 

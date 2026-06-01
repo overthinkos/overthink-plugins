@@ -138,6 +138,8 @@ An earlier agent claimed "cutover complete, all tests pass" after green `go test
 
 These are the 10 standards referenced in CLAUDE.md's AI attribution tier ("fully tested and validated"). Each is keyed to a CLAUDE.md R-rule. Apply them whenever a change could affect Containerfile generation, OCI labels, init systems, service startup, or deploy code.
 
+0. **Prove every HIGH-RISK assumption BEFORE you edit (RDD — Risk Driven Development)** — the proactive bookend to Standard 10's fresh-rebuild gate. Low-risk orientation ("what does layer X do") is a skill lookup (R0, zero risk); every high-risk assumption — including any a skill or the code merely *asserts*, and above all whether this layer composition at its latest available versions builds / deploys / runs TOGETHER — is proven on a `disposable: true` bed FIRST (`ov eval` it). Never accept docs or code as ground truth for a high-risk decision; if the bed disagrees with a skill, the skill is stale — fix it. Standard 0 (validate forward, riskiest-first) and Standard 10 (re-verify on a fresh rebuild) are the two ends of the same loop.
+
 1. **Build a real artifact** (R1) — `ov image build <image>` / `go build` / `ov vm build <vm>`. Not just `go test`. Not just `ov image generate`.
 2. **Verify the emitted artifact's content** (R3) — `grep -c supervisord-conf .build/<image>/Containerfile` for any image that uses supervisord; `virsh dumpxml` for a VM; `podman inspect --format '{{.Created}}'` to confirm the image was just rebuilt.
 3. **Verify critical OCI / capability labels post-build** (R4) — `podman inspect <ref> --format '{{index .Config.Labels "org.overthinkos.init"}}'` returns the expected value. Empty / missing → the detection path silently returned nil → regression.
@@ -179,6 +181,7 @@ authoring surface in eval recipes (`kind: recipe`).
 - **"This is a dev box so I can just nuke it"** — no. The only authorization for autonomous destroy is the explicit `disposable: true` field on a specific deploy. Everything else requires user confirmation, regardless of hostname.
 - **"I tested on the VM I've been patching all afternoon, looks fine"** — incomplete. Run `ov update <disposable-target>` once more from clean and re-verify before claiming success. Without the fresh-rebuild re-verification, your "fix" may be latent on hand-patched state.
 - **"I'll test it later / Phase 2"** — no. If the plan said "clean cutover in one PR", don't invent a Phase 2.
+- **"The skill/code says so, so I don't need to test it"** — for a HIGH-RISK assumption, no: docs drift and code has bugs; prove it on a disposable bed FIRST (Standard 0). Conversely, do NOT bed-test a LOW-risk orientation fact a skill already states — that's wasted effort. Risk, not documentation status, is the trigger.
 
 If the container needs state that's only available in deploy (volumes, env, tunnel), author the test at `scope: deploy`. If it needs something at build only (binary path, package presence), author at `scope: build`. Both scopes must pass for the cutover to be real.
 

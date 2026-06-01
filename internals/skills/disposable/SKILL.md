@@ -21,8 +21,8 @@ A latent bug was fixed alongside the refactor: `MergeDeployConfigs` previously d
 
 ## Why this exists
 
-Live-deploy verification (CLAUDE.md R1, R10) is mandatory — and it's
-much easier to carry out aggressively when you can freely `destroy →
+Live-deploy verification (CLAUDE.md R1, R10, and Risk Driven Development) is
+mandatory — and it's much easier to carry out aggressively when you can freely `destroy →
 rebuild → retest` a target without asking the user for permission
 every time. But autonomous destroy is only safe on resources whose
 owner explicitly authorized it. The `disposable: true` flag is that
@@ -226,8 +226,11 @@ on shared hosts.
 ## Cross-references
 
 - `CLAUDE.md` — R10 "Verify on a `disposable: true` target; prove
-  it on a fresh rebuild", plus the "Disposable-Only Autonomy"
-  section.
+  it on a fresh rebuild", plus the "Disposable-Only Autonomy" and
+  "Risk Driven Development (RDD)" sections. Disposable beds are the
+  vehicle that makes RDD fearless: the live surface you prove a
+  high-risk assumption on BEFORE editing, never trusting a doc or the
+  code for a high-risk call.
 - `/ov-eval:eval` — the 10 testing standards; disposable-only deployment
   is Standard 4, fresh-rebuild re-verification is Standard 10.
 - `/ov-vm:vms-catalog` — kind:vm schema, including `disposable:` and
