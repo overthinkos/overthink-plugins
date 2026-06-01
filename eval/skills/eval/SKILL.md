@@ -38,6 +38,14 @@ workstation profile); operator deployments otherwise live in the per-host
 `~/.config/ov/deploy.yml`. `disposable: true` is the sole authorization for the
 unattended destroy + rebuild on any of them.
 
+A bed is a **candybox** (CLAUDE.md "Candyboxing"): a disposable, secured
+container / VM stocked with the FULL toolset — the entire `ov eval` probe surface
+(cdp/wl/dbus/vnc/mcp/adb/appium/k8s), nested podman, real package managers, the
+whole layer/image library — so the AI can build, deploy, and prove the *real*
+composition inside it (the substance of RDD), and `disposable: true` makes
+tearing it down and rebuilding fearless. The box is restricted at the boundary,
+never by stripping the candy.
+
 1. `ov image build <image>` — build the test artifact (pod beds only).
 2. `ov eval image <image>` — image-section + baked layer-section probes.
 3. `ov deploy add <bed> <ref>` — apply the bed (or `ov vm create` for vm beds).

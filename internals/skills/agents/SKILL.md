@@ -224,6 +224,11 @@ container / libvirt-domain / image names and disjoint ports, so they are
 concurrent-safe. A bed pins an image → layers → files, so owning a bed owns
 those source files.
 
+Each bed is the teammate's **candybox** (CLAUDE.md "Candyboxing"): a disposable,
+secured deployment stocked with the FULL `ov` + MCP + `ov eval` toolset, so the
+owner can build / deploy / prove the real thing inside its boundary and rebuild
+it fearlessly — never a tool-restricted sandbox.
+
 The playbook:
 
 1. **Lead partitions the beds** so no two teammates own the same bed.

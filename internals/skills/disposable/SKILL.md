@@ -28,6 +28,12 @@ every time. But autonomous destroy is only safe on resources whose
 owner explicitly authorized it. The `disposable: true` flag is that
 authorization. Nothing else is.
 
+`disposable: true` is the **lifecycle boundary of the candybox** (CLAUDE.md
+"Candyboxing"): Overthink secures the box as a whole and stocks it with the full
+toolset, and this flag is what makes that fully-stocked box safe to tear down and
+rebuild unattended. The candy inside can be generous *because* the wall — and its
+authorized teardown — is explicit.
+
 On a shared host, unrelated production services with live users may
 run alongside ov-managed resources. The `disposable: true` flag must
 therefore be:
@@ -226,11 +232,12 @@ on shared hosts.
 ## Cross-references
 
 - `CLAUDE.md` — R10 "Verify on a `disposable: true` target; prove
-  it on a fresh rebuild", plus the "Disposable-Only Autonomy" and
-  "Risk Driven Development (RDD)" sections. Disposable beds are the
-  vehicle that makes RDD fearless: the live surface you prove a
-  high-risk assumption on BEFORE editing, never trusting a doc or the
-  code for a high-risk call.
+  it on a fresh rebuild", plus the "Candyboxing", "Disposable-Only
+  Autonomy", and "Risk Driven Development (RDD)" sections. `disposable: true`
+  is the lifecycle boundary of the candybox — the wall that makes a
+  fully-stocked, secured box safe to destroy and rebuild — and the live surface
+  you prove a high-risk assumption on BEFORE editing (RDD), never trusting a doc
+  or the code for a high-risk call.
 - `/ov-eval:eval` — the 10 testing standards; disposable-only deployment
   is Standard 4, fresh-rebuild re-verification is Standard 10.
 - `/ov-vm:vms-catalog` — kind:vm schema, including `disposable:` and
