@@ -31,7 +31,7 @@ full R10 sequence on it:
 This is the **ecosystem-wide** rule: every repo-shipped disposable test bed —
 the main repo's beds AND every `image/<distro>` submodule's beds (the arch /
 cachyos / debian / ubuntu / fedora bootstrap-VM and pacstrap/debootstrap beds) —
-is a `kind: eval` entity, inlined in that repo's single `overthink.yml`. Repos
+is a `kind: eval` entity, in that repo's config (its `overthink.yml` + per-kind sibling files). Repos
 ship NO `kind: deploy` test beds. The lone `kind: deploy` exception is an
 operator profile, not a test bed (the cachyos submodule's `ov-cachyos`
 workstation profile); operator deployments otherwise live in the per-host

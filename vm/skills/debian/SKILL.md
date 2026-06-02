@@ -15,7 +15,7 @@ under libvirt/QEMU.
 
 The `debian-debootstrap` VM entity and its `eval-debian-debootstrap-vm` disposable
 test bed live in the **`overthinkos/debian`** repo (git submodule at
-**`image/debian`**), inlined in that repo's single `overthink.yml`. The bed is a
+**`image/debian`**), in that repo's config (its `overthink.yml` + per-kind sibling files). The bed is a
 `kind: eval` entity (the 2026-05 deploy→eval unification moved repo-shipped
 disposable beds out of `deploy.yml`), driven by `ov eval run
 eval-debian-debootstrap-vm`. Drive the VM lifecycle from the submodule:

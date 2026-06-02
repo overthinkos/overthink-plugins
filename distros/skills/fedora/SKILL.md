@@ -18,7 +18,8 @@ them as `ov.fedora` / `ov.fedora-builder`. The base stack lives in main because
 fedora is the ecosystem default base (~40 main images root on it,
 `fedora-builder` is `defaults.builder`); the Fedora consumer showcase images
 (`/ov-coder:fedora-coder`, `/ov-distros:fedora-ov`, `/ov-distros:fedora-test`)
-live in the submodule (a single `overthink.yml`, all per-kind entries inlined).
+live in the submodule (its `overthink.yml` plus per-kind sibling files
+(`image.yml`/`pod.yml`/`k8s.yml`), flat-imported via `import:`).
 Build with `ov image build fedora` from the main repo.
 
 ## Image Properties

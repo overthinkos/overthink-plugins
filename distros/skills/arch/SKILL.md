@@ -32,8 +32,9 @@ ov shell arch
 
 `arch` (this base) and `/ov-distros:arch-builder` **live in this
 repo** (in the combined `base.yml`). The consumer Arch images live in the
-**`overthinkos/arch`** repo (git submodule at **`image/arch`**), which is a
-single `overthink.yml` (all per-kind entries inlined). It composes this repo's
+**`overthinkos/arch`** repo (git submodule at **`image/arch`**), whose config is
+`overthink.yml` plus its per-kind sibling files (`image.yml`/`pod.yml`/`k8s.yml`,
+and `vm.yml` where it has VMs), flat-imported via `import:`. It composes this repo's
 layers by git reference and reaches `arch` / `arch-builder` by importing the
 main repo under the `ov` namespace (`import: [{ov: ../..}]`), so its images
 write `base: ov.arch` and route builders to `ov.arch-builder`:

@@ -17,9 +17,9 @@ CachyOS is an Arch derivative, so it shares the Arch toolchain, `pacman`, and th
 `arch-builder` multi-stage builder.
 
 The CachyOS family lives in the **`overthinkos/cachyos`** repo (git submodule at
-**`image/cachyos`**), which is a single `overthink.yml` (all per-kind entries
-inlined). The `cachyos` base image is **owned there**, inline in that
-`overthink.yml`. It composes the main repo's layers by git reference, flat-imports
+**`image/cachyos`**), whose config is `overthink.yml` plus its per-kind sibling
+files (`image.yml`/`pod.yml`/`k8s.yml`/`vm.yml`), flat-imported via `import:`. The
+`cachyos` base image is **owned there**. It composes the main repo's layers by git reference, flat-imports
 the shared `build.yml`, and imports the main repo under the `ov` namespace
 (`import: [{ov: ../..}]`) so it reaches `ov.arch` / `ov.arch-builder`. Build it
 from the submodule: `ov -C image/cachyos image build cachyos` (or

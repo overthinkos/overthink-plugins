@@ -13,7 +13,7 @@ description: |
 
 The `arch` VM entity and its `eval-arch-vm` / `eval-arch-pacstrap-vm` disposable test beds
 (plus the nested `arch-host` bed) live in the **`overthinkos/arch`** repo (git
-submodule at **`image/arch`**), inlined in that repo's single `overthink.yml`.
+submodule at **`image/arch`**), in that repo's config (its `overthink.yml` + per-kind sibling files).
 The beds are `kind: eval` entities (the 2026-05 deploy→eval unification moved
 every repo-shipped disposable bed out of `deploy.yml`), driven by `ov eval run
 <bed>`. Drive them from the submodule, e.g. `ov -C image/arch vm create arch`

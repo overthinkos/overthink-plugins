@@ -16,7 +16,7 @@ Privileged builder image used to bootstrap a CachyOS root filesystem via
 
 > **Lives in `overthinkos/cachyos`** (git submodule at `image/cachyos`). It is
 > `base: ov.arch` — the `arch` base from main's `base.yml`, reached because the
-> submodule's single `overthink.yml` imports the main repo under the `ov`
+> submodule's `overthink.yml` imports the main repo under the `ov`
 > namespace. Its single layer, `pacstrap-builder`, stays in the main repo
 > (shared with `/ov-distros:arch-builder`'s pacstrap path) and is pulled by git
 > reference.
