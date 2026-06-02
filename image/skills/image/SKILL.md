@@ -360,7 +360,7 @@ my-bootc-image:
 
 Symptom without `distro:`: `ov image inspect <image>` shows `"Distro": null`. The generator's install_template Phase-2 branch short-circuits on `img.DistroDef == nil`, so **no layer `rpm:` install RUN steps are emitted**. The image builds cleanly but is missing every package from every layer that uses declarative `rpm:` sections. Explicit `cmd: dnf install …` tasks still run; the bug affects only declarative `rpm:`/`deb:`/`pac:` sections.
 
-Internal bases (`base: fedora`) inherit `distro:` and `build:` from the parent image automatically — you only need explicit tags on images whose `base:` is a URL. Canonical worked example: `/ov-selkies:selkies-desktop-bootc`. The sibling bootc images (`/ov-distros:bazzite`, `/ov-distros:aurora`) all declare `distro:` and live in the `overthinkos/bootc` submodule.
+Internal bases (`base: fedora`) inherit `distro:` and `build:` from the parent image automatically — you only need explicit tags on images whose `base:` is a URL. Canonical worked example: `/ov-distros:bazzite`. The sibling bootc image `/ov-distros:aurora` likewise declares `distro:`; both live in the `overthinkos/bootc` submodule.
 
 ## Intermediate Images
 
@@ -544,7 +544,7 @@ images:
 - `/ov-internals:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
 - `/ov-eval:eval` — Image-level `eval:` (cross-layer invariants) and `deploy_eval:` (deploy-default checks shipped with the image). Both are embedded in the `org.overthinkos.eval` OCI label.
 - `/ov-build:ov-mcp-cmd` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `ov eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
-- `/ov-selkies:selkies-desktop-bootc` — canonical worked example for the external-base + explicit-`distro:` pattern.
+- `/ov-distros:bazzite` — canonical worked example for the external-base + explicit-`distro:` pattern.
 - `/ov-vm:vm` — `ov vm build/create/start/stop/ssh` command family; reads `vm.yml`, not `image.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
 - `/ov-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema.
 - `/ov-build:migrate` — `ov migrate` converts legacy VM fields to `vm.yml`.

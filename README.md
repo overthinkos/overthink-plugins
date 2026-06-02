@@ -37,7 +37,7 @@ manager UI.
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
 | **ov-image** | 2 | — | Schema for `kind: image` and `kind: layer` (image.yml / layer.yml authoring). |
-| **ov-vm** | 10 | — | Schema for `kind: vm` + bootc VM catalog (cloud_image vs bootc, libvirt/QEMU). Includes `cachyos` (bootstrap VM, in the `overthinkos/cachyos` submodule) and `debian` / `ubuntu` (debootstrap bootstrap VMs, in the `overthinkos/debian` / `overthinkos/ubuntu` submodules). |
+| **ov-vm** | 8 | — | Schema for `kind: vm` + bootc VM catalog (cloud_image vs bootc, libvirt/QEMU). Includes `cachyos` (bootstrap VM, in the `overthinkos/cachyos` submodule) and `debian` / `ubuntu` (debootstrap bootstrap VMs, in the `overthinkos/debian` / `overthinkos/ubuntu` submodules). |
 | **ov-kubernetes** | 2 | — | Schema for `kind: k8s` + cluster probes via `ov eval k8s`. |
 | **ov-local** | 3 | — | Schema for `kind: local` + ssh-host deploys + managed ssh-config fragment. Includes `ov-cachyos` (operator CachyOS workstation profile, in the `overthinkos/cachyos` submodule). |
 | **ov-pod** | 1 | — | Schema for `kind: pod` and `kind: deploy` — thin pointer to `/ov-core:deploy` for verb details. |
@@ -65,7 +65,7 @@ manager UI.
 |---|--:|---|---|
 | **ov-jupyter** | 15 | jupyter @ 8888 | Jupyter image family (jupyter, jupyter-ml, jupyter-ml-notebook, unsloth-studio) + notebook templates + jupyter-mcp server. |
 | **ov-coder** | 33 | ov @ 18765 | ov coder/dev images (fedora-coder in the `overthinkos/fedora` submodule; arch-coder/arch-ov in `overthinkos/arch`; debian-coder in `overthinkos/debian`; ubuntu-coder in `overthinkos/ubuntu`) + language runtimes (golang/rust/nodejs/docker-ce). |
-| **ov-selkies** | 40 | chrome-devtools @ 9224 | Selkies-desktop family (Wayland in container with VNC + Chrome). |
+| **ov-selkies** | 43 | chrome-devtools @ 9224 | Selkies-desktop family — labwc and full-KDE-Plasma flavors of the browser-streamed Wayland desktop, always a headless pod, per-GPU encode (VAAPI / NVENC / x264 auto-selected at runtime). |
 | **ov-openclaw** | 7 | — | OpenClaw AI gateway family (CachyOS base): the `openclaw` layer + headless `openclaw` / `openclaw-full` images + the all-in-one `openclaw-desktop` (streaming desktop + gateway + CPU ollama + nested ov toolchain) + composition layers (`openclaw-full`, `openclaw-full-ml`). |
 | **ov-versa** | 9 | marimo @ 22718, airflow @ 29999 | Versa image — marimo notebook + Airflow + OSM/GTFS analytics + martin vector tiles. |
 | **ov-ollama** | 2 | — | Ollama LLM-server image. Pair with `ov-jupyter` to expose to notebooks. |

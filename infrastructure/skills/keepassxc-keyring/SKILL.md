@@ -99,7 +99,7 @@ Deploy-scope (run on the host post-`ov deploy add` against the running user's HO
 
 ## Why a separate layer (and not edits to `keepassxc` or `agent-forwarding`)
 
-- The `keepassxc` layer is consumed by container images (`/ov-selkies:selkies-desktop-bootc`) where FdoSecrets and autostart make no sense.
+- The `keepassxc` layer is consumed by container images (`/ov-selkies:desktop-apps`) where FdoSecrets and autostart make no sense.
 - `agent-forwarding` is a clean metalayer (`gnupg + direnv + ssh-client`) used by 27 application images. Adding host-only behavior there would polute every container build that composes it.
 - Keeping host-only secret-service wiring in its own layer means containers stay containers and hosts stay hosts.
 

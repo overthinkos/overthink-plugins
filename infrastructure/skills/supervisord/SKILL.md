@@ -239,7 +239,7 @@ Adding a `service:` block to a layer automatically pulls in `supervisord` via `b
 ## Used In Images
 
 Transitive dependency for all images with managed services, including:
-`openclaw`, `jupyter`, `jupyter-ml`, `jupyter-ml-notebook`, `ollama`, `comfyui`, `immich`, `immich-ml`, `selkies-desktop`, `selkies-desktop-nvidia`, `selkies-desktop-bootc`, `hermes`, `openwebui`, `filebrowser`.
+`openclaw`, `jupyter`, `jupyter-ml`, `jupyter-ml-notebook`, `ollama`, `comfyui`, `immich`, `immich-ml`, `selkies-desktop`, `selkies-desktop-nvidia`, `hermes`, `openwebui`, `filebrowser`.
 
 ## Running supervisord under systemd (bootc mode)
 
@@ -262,7 +262,7 @@ Container-mode logs are unaffected — supervisord is still PID 1 there.
 - `/ov-infrastructure:traefik` -- Reverse proxy (depends on supervisord)
 - `/ov-infrastructure:dbus-layer` -- D-Bus session bus (depends on supervisord)
 - `/ov-distros:bootc-config` -- ships the systemd-user supervisord autostart wrapper for bootc images
-- `/ov-selkies:selkies-desktop-bootc` -- canonical worked example of supervisord running under systemd
+- `/ov-distros:bazzite` -- canonical worked example of supervisord running under systemd
 - `/ov-ollama:ollama`, `/ov-openclaw:openclaw`, `/ov-infrastructure:postgresql`, `/ov-infrastructure:redis`, `/ov-selkies:sway` -- All ship `service:` blocks
 
 ## Related Commands

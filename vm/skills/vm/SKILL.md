@@ -19,7 +19,7 @@ description: |
 `ov vm` commands build disk images and manage virtual machines via libvirt (default) or direct QEMU. VMs are declared as **`kind: vm` entities in `vm.yml`** — a first-class primitive alongside `kind: image` entries. Two source types:
 
 - **`source.kind: cloud_image`** — fetches a pre-built qcow2 from an external URL (Arch, Fedora, Ubuntu, Debian, CentOS Cloud images). Renders a NoCloud seed ISO with cloud-init. Canonical example: `/ov-vm:arch`.
-- **`source.kind: bootc`** — pairs with a `kind: image` entry that has `bootc: true`. Runs `bootc install to-disk` inside a privileged container. Canonical example: `/ov-vm:selkies-desktop-bootc-bootc`.
+- **`source.kind: bootc`** — pairs with a `kind: image` entry that has `bootc: true`. Runs `bootc install to-disk` inside a privileged container. Canonical example: `/ov-vm:bazzite-bootc`.
 
 VMs are not configured on kind:image entries — `image.vm:` / `image.libvirt:` are rejected at load time. `bootc: true` stays on a kind:image entry to mark it bootable. Legacy projects convert in one shot with `ov migrate` (see `/ov-build:migrate`). For the YAML authoring reference, see `/ov-vm:vms-catalog`; for the Go types, see `/ov-internals:vm-spec`.
 
@@ -77,7 +77,7 @@ Worked end-to-end example: the CachyOS `eval-cachyos-coder-vm` bed (see
 
 ```bash
 ov vm build arch          # cloud_image: fetch qcow2, resize, render seed ISO
-ov vm build selkies-desktop-bootc-bootc --type qcow2   # bootc: bootc install to-disk
+ov vm build bazzite-bootc --type qcow2   # bootc: bootc install to-disk
 ov vm build <name> --size 40G        # disk_size override (CLI wins over vm.yml)
 ov vm build <name> --root-size 10G   # bootc only: cap root partition
 ov vm build <name> --console         # enable console output for debugging
@@ -158,13 +158,13 @@ vms:
         graphics: [{type: spice, autoport: "yes", listen: 127.0.0.1}]
 
   # bootc source
-  selkies-desktop-bootc-bootc:
+  bazzite-bootc:
     source:
       kind: bootc
-      image: selkies-desktop-bootc                  # kind:image entry
-    disk_size: 40 GiB
-    ram: 8G
-    cpus: 4
+      image: bazzite                                # kind:image entry
+    disk_size: 80 GiB
+    ram: 16G
+    cpus: 6
     ssh: {user: root, port: 2250}
 ```
 
@@ -286,11 +286,11 @@ ssh -p 2224 -i ~/.local/share/ov/vm/ov-arch/id_ed25519 arch@127.0.0.1
 ### Build and run a bootc VM
 
 ```bash
-ov image build selkies-desktop-bootc             # container image must exist first
-ov vm build selkies-desktop-bootc-bootc
-ov vm create selkies-desktop-bootc-bootc
-ov vm start selkies-desktop-bootc-bootc
-ov vm ssh selkies-desktop-bootc-bootc
+ov image build bazzite             # container image must exist first
+ov vm build bazzite-bootc
+ov vm create bazzite-bootc
+ov vm start bazzite-bootc
+ov vm ssh bazzite-bootc
 ```
 
 ### Apply layers inside a VM
@@ -324,7 +324,7 @@ ov vm ssh <name> -i dev
 
 ## Known live-tested caveats
 
-Non-obvious issues that surface only when VMs actually boot. `/ov-selkies:selkies-desktop-bootc` is the canonical end-to-end bootc worked example; `/ov-vm:arch` is the canonical cloud_image worked example.
+Non-obvious issues that surface only when VMs actually boot. `/ov-vm:bazzite-bootc` is the canonical end-to-end bootc worked example; `/ov-vm:arch` is the canonical cloud_image worked example.
 
 ### Privileged container needs `-v /dev:/dev` (bootc)
 
@@ -390,7 +390,7 @@ Expected. The agent needs a `virtio-serial` channel that ov's QEMU backend doesn
 
 - `/ov-vm:vms-catalog` — **vm.yml authoring reference** (VmSpec schema, source.kind, adopt pattern)
 - `/ov-vm:arch` — canonical cloud_image VM (BIOS / virtio-gpu / resource sizing / stale BOOTX64.EFI RCA)
-- `/ov-vm:aurora-bootc`, `/ov-vm:bazzite-bootc`, `/ov-vm:selkies-desktop-bootc-bootc` — bootc VMs
+- `/ov-vm:aurora-bootc`, `/ov-vm:bazzite-bootc` — bootc VMs
 - `/ov-internals:vm-spec` — Go type reference; validation rules; migration map
 - `/ov-internals:libvirt-renderer` — RenderDomain + device emission + passt backend + virtio-gpu
 - `/ov-internals:cloud-init-renderer` — RenderCloudInit + composeUsers + seed ISO + ov_install
@@ -402,7 +402,6 @@ Expected. The agent needs a `virtio-serial` channel that ov's QEMU backend doesn
 - `/ov-build:pull` — fetch container images into local storage (prereq for bootc VM builds)
 - `/ov-build:build` — building container images before VM disk builds
 - `/ov-image:layer` — `libvirt.snippets:` field in layer.yml
-- `/ov-selkies:selkies-desktop-bootc` — canonical end-to-end bootc worked example
 - `/ov-openclaw:openclaw-desktop` — two-level nested-virtualization proof
 - `/ov-distros:bootc-base` — sshd + qemu-guest-agent + bootc-config bundle
 - `/ov-distros:bootc-config` — bootc-side boot wiring (tty1 autologin, graphical target, systemd-user supervisord)

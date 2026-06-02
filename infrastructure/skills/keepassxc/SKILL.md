@@ -36,7 +36,7 @@ my-desktop-image:
 
 ## Used In Images
 
-- `/ov-selkies:selkies-desktop-bootc` — Fedora bootc VM with selkies + Tailscale + KeePassXC
+- `/ov-selkies:selkies-desktop` — selkies streaming desktop composition that brings up KeePassXC in-session
 
 ## Tests
 
@@ -60,8 +60,7 @@ This layer is the **GUI** for editing `.kdbx` databases. `/ov-build:secrets` is 
 ## Related Skills
 
 - `/ov-selkies:desktop-apps` — bundle that also includes keepassxc (use when you want the full desktop-app set)
-- `/ov-selkies:selkies-desktop-bootc` — primary consumer of this standalone layer
-- `/ov-selkies:selkies-desktop` — desktop composition this layer pairs with
+- `/ov-selkies:selkies-desktop` — desktop composition this layer pairs with (primary consumer of this standalone layer)
 - `/ov-build:secrets` — ov CLI credential store (Secret Service + GPG; reads a KeePassXC database only via its FdoSecrets / Secret Service exposure)
 - `/ov-image:layer` — layer authoring reference
 - `/ov-eval:eval` — declarative testing reference

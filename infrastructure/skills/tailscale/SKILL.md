@@ -49,7 +49,7 @@ For `target: local` host deploys (canonical: `local.ov-cachyos`), pair this laye
 
 ## Used In Images
 
-- `/ov-selkies:selkies-desktop-bootc` — primary consumer (bootc VM that wants a tailnet identity at boot).
+- Available to any bootc/VM image that wants its own tailnet identity baked in at boot (no enabled image currently composes it).
 
 ## Tests
 
@@ -70,7 +70,6 @@ All three can coexist, but for most cases you want exactly one.
 
 - `/ov-infrastructure:tailscale-up` — runtime-config sibling for `target: local` host deploys (sets `--operator` + `--hostname`). Use both layers together on host targets that need `tailscale serve` to work without sudo.
 - `/ov-distros:container-nesting` — the previous home of the tailscale package (bundled with buildah/skopeo/docker for nested podman; separate concern)
-- `/ov-selkies:selkies-desktop-bootc` — primary consumer
 - `/ov-distros:bootc-config` — companion layer for bootc boot wiring (autologin, graphical target, supervisord user service)
 - `/ov-automation:sidecar` — deploy-time Tailscale sidecar pattern (alternative, not a replacement)
 - `/ov-core:deploy` — `deploy.yml` tunnel/sidecar configuration

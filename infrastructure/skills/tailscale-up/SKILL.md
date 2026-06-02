@@ -17,9 +17,8 @@ description: |
 ## Why this layer exists separately from `tailscale`
 
 The `tailscale` layer installs the daemon and enables the systemd unit.
-That's a **build-time** concern shared by bootc images
-(`/ov-selkies:selkies-desktop-bootc`), VMs, and any other image that
-wants its own tailnet identity at boot.
+That's a **build-time** concern shared by bootc images, VMs, and any
+other image that wants its own tailnet identity at boot.
 
 The `--operator` and `--hostname` settings, however, are **runtime
 state** that:

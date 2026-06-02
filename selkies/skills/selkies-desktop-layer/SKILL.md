@@ -94,7 +94,6 @@ A browser-accessible desktop at `http://localhost:3000` with:
 
 - `/ov-selkies:selkies-desktop`
 - `/ov-selkies:selkies-desktop-nvidia`
-- `/ov-selkies:selkies-desktop-bootc` -- Fedora 43 bootc VM with added Tailscale + KeePassXC
 
 ## Known bootc caveat — labwc ↔ pixelflux start-order race
 
@@ -112,7 +111,7 @@ Fix options for a follow-up pass (none implemented yet — this layer is shared 
 2. Add an explicit `priority:` ordering via supervisord's eventlistener hooks — a `PROCESS_STATE_RUNNING` listener on selkies that `supervisorctl start`s labwc only after pixelflux publishes its socket.
 3. Have labwc-wrapper spawn pixelflux directly as a child (the container-mode start order without relying on supervisord for ordering).
 
-Canonical worked example and diagnostic recipes: `/ov-selkies:selkies-desktop-bootc`.
+This race is a property of the layer's bootc mode (supervisord-under-systemd); no enabled image currently composes this layer in bootc mode, so the caveat is documented here from the layer's behavior rather than a live exemplar.
 
 ## Multi-Instance Proxy Deployment
 

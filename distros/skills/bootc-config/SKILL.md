@@ -68,8 +68,7 @@ my-bootc-image:
 
 Part of the `/ov-distros:bootc-base` composition layer. Used transitively in every bootc image:
 
-- `/ov-selkies:selkies-desktop-bootc` — **canonical worked example** (exercises every piece of the supervisord + tty1 autologin + graphical target flow end-to-end)
-- `/ov-distros:bazzite`
+- `/ov-distros:bazzite` — **canonical worked example** (exercises every piece of the supervisord + tty1 autologin + graphical target flow end-to-end)
 - `/ov-distros:aurora`
 
 ## Related Layers
@@ -79,7 +78,6 @@ Part of the `/ov-distros:bootc-base` composition layer. Used transitively in eve
 - `/ov-distros:qemu-guest-agent` -- QEMU agent (also in bootc-base)
 - `/ov-infrastructure:supervisord` -- the init system that this layer wires into systemd on bootc
 - `/ov-selkies:selkies-desktop` -- the 19-sublayer desktop metalayer that this autostart brings up
-- `/ov-selkies:selkies-desktop-bootc` -- worked example
 
 ## Related Skills
 

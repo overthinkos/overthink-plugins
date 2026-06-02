@@ -185,7 +185,7 @@ rationale and `/ov-eval:eval` for author-facing workflow implications.
 
 ## Bootc-specific generator behaviour
 
-Three emission rules matter specifically for bootc images. The canonical worked example is `/ov-selkies:selkies-desktop-bootc`.
+Three emission rules matter specifically for bootc images. The canonical worked example is `/ov-distros:bazzite`.
 
 ### 1. `initHasFragments` pre-scan gates empty init stages
 
@@ -222,6 +222,6 @@ The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUIL
 - `/ov-eval:eval` — test-authoring workflow; `eval:` blocks are embedded via `writeJSONLabel` and benefit directly from LABELs-at-end cache efficiency.
 - `/ov-internals:generate-source` — Deep dive on Containerfile emission internals, `Task` struct, per-verb emitters, `stageInlineContent`, `shellSingleQuote` + `shellAnsiQuote` helpers, LABEL-placement rationale.
 - `/ov-internals:go` — Source-code map: `ov/tasks.go` (~430 lines), `ov/generate.go:writeLayerSteps` + `writeLabels`, `ov/layers.go` struct definitions.
-- `/ov-selkies:selkies-desktop-bootc` — canonical worked example exercising all three bootc-specific emission rules above.
+- `/ov-distros:bazzite` — canonical worked example exercising all three bootc-specific emission rules above.
 - `/ov-selkies:ffmpeg` — canonical URL-repo consumer (triggers the `dnf5-plugins` prepend).
 - `/ov-distros:bootc-config` — bootc boot wiring that depends on the empty-init-stage fix (only `use_packaged:` entries, no custom-exec rendered bodies).

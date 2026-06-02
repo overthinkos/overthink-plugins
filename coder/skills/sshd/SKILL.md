@@ -84,7 +84,7 @@ my-image:
 
 - Part of the `bootc-base` composition layer (used in bootc images)
 - `/ov-distros:aurora`
-- `/ov-selkies:selkies-desktop-bootc` (via bootc-base) — worked example exercising the dual-mode sudo test below
+- `/ov-distros:bazzite` (via bootc-base) — worked example exercising the dual-mode sudo test below
 
 ## Testing Notes
 
@@ -127,7 +127,7 @@ caught during `arch-ov` bring-up. See `/ov-eval:eval` Authoring Gotcha #11.
 - `/ov-distros:bootc-base` -- composition that includes this layer
 - `/ov-distros:bootc-config` -- the bootc boot wiring (tty1 autologin + systemd-user supervisord) that typically runs alongside this layer
 - `/ov-distros:cloud-init` -- depends on sshd for VM provisioning
-- `/ov-selkies:selkies-desktop-bootc` -- canonical bootc worked example that exercises the dual-mode sudo test
+- `/ov-distros:bazzite` -- canonical bootc worked example that exercises the dual-mode sudo test
 - `/ov-coder:ubuntu-coder` -- canonical adopt-mode example; sudoers correctly targets `ubuntu` via getent
 - `/ov-coder:debian-coder` -- canonical create-mode deb-family example; sudoers targets `user`
 - `/ov-distros:ubuntu` -- declares the `base_user:` block that makes ubuntu-coder run as `ubuntu`

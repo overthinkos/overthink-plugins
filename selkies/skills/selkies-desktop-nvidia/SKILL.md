@@ -7,7 +7,7 @@ description: |
 
 # selkies-desktop-nvidia
 
-GPU-accelerated variant of selkies-desktop using the NVIDIA base image with CUDA toolkit.
+The NVIDIA-GPU build of the **labwc flavor** (`/ov-selkies:selkies-desktop`) — same `selkies-desktop` metalayer on the NVIDIA base image with CUDA toolkit, for NVENC-capable hosts. Always runs as a headless pod; the pixelflux encoder is auto-selected per GPU at runtime (NVENC on NVIDIA, falling back to x264).
 
 ## Definition
 
@@ -77,7 +77,6 @@ Not yet tested. The CPU variant (`selkies-desktop`, cachyos base) works with CPU
 - **CachyOS variant** — `cachyos.selkies-desktop-nvidia` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base, `build: [pac, aur]`) in the `overthinkos/cachyos` submodule. See `/ov-distros:cachyos`.
 - `/ov-selkies:selkies-desktop` — CPU-encoding sibling on cachyos
 - `/ov-openclaw:openclaw-desktop` — the CachyOS/CPU all-in-one: this streaming desktop stack + the openclaw-full gateway + AI CLIs + a CPU ollama + the full ov toolchain (ov-full + container-nesting + golang + gh). Use it if you want to build images / start nested pods / launch VMs from inside the browser-accessible desktop.
-- `/ov-selkies:selkies-desktop-bootc` — bootable VM flavor
 - `/ov-distros:nvidia` — parent base image with CUDA toolkit
 
 ## Related Commands
