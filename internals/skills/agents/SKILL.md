@@ -58,9 +58,10 @@ under the binding rule). "Prefer agents" governs BOUNDED work.
   sequence: build → eval image → deploy → eval live → fresh `ov update` →
   teardown) on a `kind: eval` disposable bed; returns per-step status, exit code
   (0 pass / 1 infra / 2 checks-failed), and the failing-step log tail. The R10
-  acceptance discipline. The **persistent session runs every full bed as a
-  background task** (the only session that survives across turns to be notified)
-  and pastes the verbatim verdict; teammates/sub-agents do bed-local edits + short
+  acceptance discipline. A **persistent owner runs every full bed as a
+  `run_in_background` task** (main session / background agent / split-pane
+  teammate — see "Bed-scoped" below; an in-process teammate CANNOT, its bg dies
+  on yield) and pastes the verbatim verdict; teammates do bed-local edits + short
   foreground checks (`ov eval image`), never the full run. There is no
   duration/600s carve-out — the 600s is a Bash FOREGROUND cap, irrelevant to a
   backgrounded bed.
@@ -242,17 +243,35 @@ The **eval bed is the unit of ownership, isolation, AND throughput** — it
 replaces the git worktree. `ov eval run --all-beds` is strictly SEQUENTIAL (a
 plain loop in `eval_runner_cmd.go`; `ov` spawns no goroutines for beds), so the
 ONLY way to compress a multi-bed cutover's wall-clock is to run the beds
-concurrently — and **every full `ov eval run <bed>` is a background task owned by
-the persistent main session.** A bed run is launched with `run_in_background` and
-re-invokes its launcher on completion; only the persistent session survives
-across turns to be notified (a sub-agent returns synchronously → its background
-children die; an idle teammate is torn down). This is duration-independent: there
-is NO time budget, and the Bash 600s figure is a FOREGROUND cap that never
-applies to a backgrounded bed. So **"one agent ⇄ one bed" = the persistent
-session multiplexing N concurrent background bed tasks**, launched
-longest-pole-first. Teammates do NOT run full beds — a teammate owns a disjoint
-bed's SOURCE files (parallel bed-local editing) and may run short foreground
-checks (`ov eval image`, `ov image validate`), never the full `ov eval run`.
+concurrently — and **every full `ov eval run <bed>` is a long, multi-turn
+background task whose OWNER must survive across turns to receive the completion
+notification.** A bed run is launched with `run_in_background` (uncapped — it runs
+across turns; the Bash 600s figure is a FOREGROUND cap that never applies) and
+re-invokes its launching context when it exits. **Empirically verified (2026-06,
+this host) which contexts can own a bed:**
+
+- ✓ **The persistent main session** — launches each bed as its own
+  `run_in_background` task; re-invoked on completion (proven by surviving
+  wake-timers). The headless default mechanism.
+- ✓ **A background agent** (`Agent` tool, `run_in_background`) — a separate
+  supervisor-managed process that persists, runs to completion, and reports
+  (proven: a 100s task completed + reported back). A per-bed out-of-process owner
+  that works headless. Caveat: its INTERNAL `ov eval run` is one foreground call
+  (600s-capped), so for a long bed prefer the main-session `run_in_background`
+  task or step the bed.
+- ✓ **A split-pane teammate** — a separate persistent process, so it CAN own a
+  bed. ONLY in an interactive **tmux/iTerm2** run (`teammateMode: tmux` AND the
+  lead's own process launched inside tmux, `TMUX` set). NOT available headless.
+- ✗ **An in-process teammate** (the headless `teammateMode: auto` default) —
+  CANNOT own a bed that outlives a turn: its `run_in_background` task is TORN DOWN
+  the instant it yields (verified 4× — marker absent, no process, never
+  re-invoked). It runs bed-local EDITS + short foreground checks (`ov eval image`,
+  `ov image validate`) only, never the full `ov eval run`.
+
+So **"one agent ⇄ one bed" = one PERSISTENT owner per bed**, launched
+longest-pole-first: headless → the persistent session runs N concurrent
+`run_in_background` bed tasks (or a background agent per bed); interactive tmux →
+a split-pane teammate per bed. NEVER an in-process teammate.
 Two load-time guards back the isolation: `foldEvalBeds` rejects any
 `kind: eval` bed whose name collides with a `kind: deploy` entry, and
 `validateEvalBeds` requires every bed to set `disposable: true` and to declare a
@@ -267,21 +286,23 @@ not catch an overlap for you. A bed pins an image → layers → files, so ownin
 bed owns those source files.
 
 Each bed is a **candybox** (CLAUDE.md "Candyboxing"): a disposable, secured
-deployment stocked with the FULL `ov` + MCP + `ov eval` toolset, so the lead can
-build / deploy / prove the real thing inside its boundary and rebuild it
-fearlessly — never a tool-restricted sandbox.
+deployment stocked with the FULL `ov` + MCP + `ov eval` toolset, so the bed's
+owner can build / deploy / prove the real thing inside its boundary and rebuild
+it fearlessly — never a tool-restricted sandbox.
 
 The playbook:
 
 1. **Lead partitions the beds** so no two teammates own the same bed's source.
-2. **Teammates edit in parallel (bed-local); the lead RUNS the beds.** Each
-   teammate owns a disjoint bed's source files + may run short foreground checks
-   (`ov eval image`, `ov image validate`) — never the full `ov eval run`. The
-   LEAD (persistent session) runs every full `ov eval run <bed>` (build → eval
-   image → deploy → eval live → fresh `ov update` → teardown) as a background
-   task, following the `eval-bed-runner` verbatim-verdict discipline, and triages
-   failures via `root-cause-analyzer`. Review/RCA are auxiliary — never a
-   substitute for the live run.
+2. **A PERSISTENT owner runs each bed; in-process teammates edit + short-check.**
+   The full `ov eval run <bed>` (build → eval image → deploy → eval live → fresh
+   `ov update` → teardown) runs as a `run_in_background` task on a PERSISTENT
+   owner: headless → the lead/persistent session (one `run_in_background` task per
+   bed, or a background agent per bed); interactive tmux → a split-pane teammate
+   per bed. It follows the `eval-bed-runner` verbatim-verdict discipline; failures
+   triage via `root-cause-analyzer`. IN-PROCESS teammates (the headless default)
+   do bed-local EDITS + short foreground checks (`ov eval image`,
+   `ov image validate`) ONLY — they cannot run a full bed (their bg dies on
+   yield). Review/RCA are auxiliary — never a substitute for the live run.
 3. **Verify before you change (Risk Driven Development)**: each teammate proves
    its bed's HIGH-RISK assumptions — above all the composition — on its standing
    bed BEFORE editing, never trusting a doc or the code for a high-risk call, so

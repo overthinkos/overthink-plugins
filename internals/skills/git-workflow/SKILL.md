@@ -112,10 +112,11 @@ not a worktree**. Each teammate owns a disjoint `kind: eval` bed's SOURCE files;
 distinct beds get distinct container/VM/image names; the lead assigns each
 disjoint host ports too (the loader does NOT check ports — an overlap fails the
 second bed at deploy), and a bed pins an image → layers → files, so bed-ownership
-already isolates the source files each teammate edits. **Teammates edit; the LEAD
-runs every full `ov eval run <bed>`** as a background task (the only session that
-survives across turns to be notified). Teammates therefore share ONE working tree
-on ONE `feat/<slug>` branch:
+already isolates the source files each teammate edits. **Teammates edit; a
+PERSISTENT owner runs every full `ov eval run <bed>`** as a `run_in_background`
+task — the lead's persistent session, a background agent, or (interactive tmux) a
+split-pane teammate; an in-process teammate CANNOT (its bg dies on yield).
+Teammates therefore share ONE working tree on ONE `feat/<slug>` branch:
 
 - Teammates edit their bed-scoped files in the shared tree + run short foreground
   checks (`ov eval image`) — never the full `ov eval run`, and **never commit or
