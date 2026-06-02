@@ -77,7 +77,7 @@ Part of the `/ov-distros:bootc-base` composition layer. Used transitively in eve
 - `/ov-coder:sshd` -- SSH server (also in bootc-base; NOPASSWD-sudo test handles the dual USER=root/1000 context)
 - `/ov-distros:qemu-guest-agent` -- QEMU agent (also in bootc-base)
 - `/ov-infrastructure:supervisord` -- the init system that this layer wires into systemd on bootc
-- `/ov-selkies:selkies-desktop` -- the 19-sublayer desktop metalayer that this autostart brings up
+- `/ov-selkies:selkies-desktop-layer` -- the 19-sublayer desktop metalayer that this autostart brings up
 
 ## Related Skills
 

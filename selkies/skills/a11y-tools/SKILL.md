@@ -46,7 +46,7 @@ Chrome needs `--force-renderer-accessibility` flag to expose DOM elements via AT
 
 ## Used In Images
 
-- `/ov-selkies:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Testing Notes
@@ -63,6 +63,6 @@ Chrome needs `--force-renderer-accessibility` flag to expose DOM elements via AT
 
 - `/ov-eval:wl` — `ov eval wl atspi tree/find/click` commands
 - `/ov-infrastructure:dbus-layer` — Required dependency (D-Bus session bus)
-- `/ov-selkies:selkies-desktop` — Desktop metalayer that includes this layer
+- `/ov-selkies:selkies-desktop-layer` — Desktop metalayer that includes this layer
 - `/ov-eval:eval` — declarative testing framework
 - `/ov-image:layer` — layer authoring

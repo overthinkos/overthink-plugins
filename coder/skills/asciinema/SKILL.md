@@ -59,7 +59,7 @@ Also available via the `dev-tools` layer (which includes asciinema among many ot
 ## Used In Images
 
 - `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
-- `/ov-selkies:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Related Commands

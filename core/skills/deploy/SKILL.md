@@ -991,7 +991,7 @@ eval:
 - `/ov-infrastructure:supervisord` — Event listener pattern triggered by the caps; ServiceSchemaDef that renders `service:` entries to supervisord INI
 - `/ov-infrastructure:postgresql` — Canonical `use_packaged:` entry (packaged unit reuse)
 - `/ov-ollama:ollama`, `/ov-hermes:hermes` — Custom `service:` entries
-- `/ov-selkies:selkies-desktop` — Multi-instance proxy deployment, tunnel inheritance workaround
+- `/ov-selkies:selkies-labwc` — Multi-instance proxy deployment, tunnel inheritance workaround
 
 ## Cross-kind name reuse + ResolveDeployRef precedence
 

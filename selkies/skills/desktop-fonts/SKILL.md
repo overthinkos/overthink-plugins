@@ -44,12 +44,12 @@ Included in desktop metalayers. Not typically added directly:
 ## Used In
 
 - `/ov-selkies:sway-desktop` -- via metalayer composition
-- `/ov-selkies:selkies-desktop` -- via metalayer composition
+- `/ov-selkies:selkies-desktop-layer` -- via metalayer composition
 
 ## Used In Images
 
 - `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
-- `/ov-selkies:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Related Skills

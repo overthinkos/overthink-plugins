@@ -74,7 +74,7 @@ All packages are in Fedora official repos.
 ## Used In Images
 
 - `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
-- `/ov-selkies:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Cross-References
@@ -83,7 +83,7 @@ All packages are in Fedora official repos.
 - `/ov-selkies:wl-screenshot-grim` — Screenshot layer for sway (grim)
 - `/ov-selkies:wl-screenshot-pixelflux` — Screenshot layer for selkies (pixelflux pipeline)
 - `/ov-selkies:sway-desktop` — Desktop metalayer that includes this layer
-- `/ov-selkies:selkies-desktop` — Desktop metalayer that includes this layer
+- `/ov-selkies:selkies-desktop-layer` — Desktop metalayer that includes this layer
 
 ## Related
 

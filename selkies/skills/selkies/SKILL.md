@@ -83,7 +83,7 @@ Pixelflux is compiled **from source** in the selkies build stage (`layers/selkie
 
 - `/ov-selkies:wl-screenshot-pixelflux` — Reuses the singleton capture path for screenshots
 - `/ov-selkies:wl-record-pixelflux` — Reuses the singleton capture path for recording
-- `/ov-selkies:selkies-desktop` — Build Pipeline Note explaining the patched pixelflux compilation
+- `/ov-selkies:selkies-labwc` — Build Pipeline Note explaining the patched pixelflux compilation
 
 ## Installation
 
@@ -187,7 +187,7 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 
 ## Used In Images
 
-- `/ov-selkies:selkies-desktop`
+- `/ov-selkies:selkies-labwc`
 - `/ov-selkies:selkies-labwc-nvidia`
 
 ## Related Layers
@@ -197,7 +197,7 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 - `/ov-infrastructure:supervisord` — Service ordering, event listeners, crash-loop escalation
 - `/ov-selkies:wl-screenshot-pixelflux` — Screenshot path via the shared ScreenCapture singleton
 - `/ov-selkies:wl-record-pixelflux` — Recording path via the shared ScreenCapture singleton
-- `/ov-selkies:selkies-desktop` — Metalayer composing selkies with labwc, Chrome, waybar, desktop tools
+- `/ov-selkies:selkies-desktop-layer` — Metalayer composing selkies with labwc, Chrome, waybar, desktop tools
 - `/ov-distros:nvidia`, `/ov-distros:rocm` — GPU runtime layers feeding DRINODE into the selkies VAAPI encoder
 - `/ov-selkies:ffmpeg` — Codec dep used by the capture bridge for H.264→PNG decode
 - `/ov-coder:build-toolchain` — Builder-stage packages (smithay, bindgen, codec devel) that compile the patched pixelflux
@@ -205,7 +205,7 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 
 ## Related Images
 
-- `/ov-selkies:selkies-desktop`, `/ov-selkies:selkies-labwc-nvidia` — Images that bundle this layer
+- `/ov-selkies:selkies-labwc`, `/ov-selkies:selkies-labwc-nvidia` — Images that bundle this layer
 - `/ov-distros:fedora-builder` — Builder image for the pixelflux from-source compilation
 
 ## Related Commands

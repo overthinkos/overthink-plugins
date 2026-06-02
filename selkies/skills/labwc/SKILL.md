@@ -127,13 +127,13 @@ All windows open maximized (ideal for streaming desktop):
 
 ## Used In Images
 
-- `/ov-selkies:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Related Skills
 
 - `/ov-selkies:selkies` — pixelflux streaming engine (provides `wayland-1` that labwc connects to)
-- `/ov-selkies:selkies-desktop` — desktop metalayer that composes labwc + chrome + waybar + selkies
+- `/ov-selkies:selkies-desktop-layer` — desktop metalayer that composes labwc + chrome + waybar + selkies
 - `/ov-selkies:waybar-labwc` — status bar configured for labwc
 - `/ov-selkies:chrome` — Chrome browser (auto-started by labwc's autostart)
 - `/ov-eval:wl` — Wayland automation commands (screenshots, input, window management)

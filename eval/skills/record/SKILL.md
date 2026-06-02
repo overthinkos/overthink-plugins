@@ -141,7 +141,7 @@ ov eval record stop selkies-desktop -n walkthrough -o walkthrough.mp4
 - `/ov-coder:asciinema` — Terminal recording layer
 - `/ov-selkies:wl-record-pixelflux` — Pixelflux video recording layer
 - `/ov-selkies:wf-recorder` — wf-recorder video recording layer
-- `/ov-selkies:selkies-desktop` — Desktop metalayer with pixelflux recording
+- `/ov-selkies:selkies-desktop-layer` — Desktop metalayer with pixelflux recording
 - `/ov-selkies:sway-desktop` — Desktop metalayer with wf-recorder
 - `/ov-infrastructure:dbus-layer` — D-Bus session bus (required for notification delivery)
 - `/ov-selkies:swaync` — Notification daemon (displays the notifications)

@@ -87,7 +87,7 @@ selkies process (single ScreenCapture singleton — process-wide)
 
 ## Used In Images
 
-- `/ov-selkies:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Cross-References
@@ -97,7 +97,7 @@ selkies process (single ScreenCapture singleton — process-wide)
 - `/ov-selkies:wl-screenshot-pixelflux` -- Screenshot companion (same capture bridge, same singleton)
 - `/ov-selkies:wf-recorder` -- Alternative for sway-desktop (wlr-screencopy)
 - `/ov-selkies:selkies` -- Parent layer (provides capture bridge, WebSocket stream, and the ScreenCapture singleton — see Pixelflux Memory Management)
-- `/ov-selkies:selkies-desktop` -- Metalayer that composes this recorder into the full browser-accessible desktop
+- `/ov-selkies:selkies-desktop-layer` -- Metalayer that composes this recorder into the full browser-accessible desktop
 - `/ov-selkies:ffmpeg` -- Required dependency (MP4 muxing)
 
 ## When to Use This Skill

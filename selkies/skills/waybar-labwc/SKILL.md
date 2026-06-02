@@ -48,7 +48,7 @@ Catppuccin Mocha theme — semi-transparent dark background, JetBrains Mono + Sy
 
 ## Used In Images
 
-- `/ov-selkies:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Note: Difference from `waybar` Layer
@@ -62,7 +62,7 @@ Both layers use the same config. The only differences are:
 
 - `/ov-selkies:waybar` — the sway-native sibling with the same config
 - `/ov-selkies:labwc` — compositor this layer targets
-- `/ov-selkies:selkies-desktop` — metalayer that composes this layer
+- `/ov-selkies:selkies-desktop-layer` — metalayer that composes this layer
 - `/ov-selkies:swaync` + `/ov-selkies:chrome` — consumers of the status-bar modules
 
 ## Related

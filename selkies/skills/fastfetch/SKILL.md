@@ -38,12 +38,12 @@ layers:
 ## Used In Images
 
 - `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
-- `/ov-selkies:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Related Layers
 - `/ov-selkies:sway-desktop` — Metalayer that pulls fastfetch in
-- `/ov-selkies:selkies-desktop` — Metalayer that pulls fastfetch in
+- `/ov-selkies:selkies-desktop-layer` — Metalayer that pulls fastfetch in
 - `/ov-coder:dev-tools` — Sibling that also packages fastfetch via dnf
 
 ## Related Commands

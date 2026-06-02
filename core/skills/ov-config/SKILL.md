@@ -262,7 +262,7 @@ Warning: port conflicts detected:
 Wrote /home/atrawog/.config/containers/systemd/ov-<image>-<instance>.container
 ```
 
-The quadlet is still written with the conflicting port, so `ov start` will fail at bind time unless you either free the port, re-run `ov config` with a remap, or edit `deploy.yml`. Detection uses a local `net.Listen` probe per published port at configure time. Handy for multi-instance deployments alongside a production fleet (e.g., running `/ov-openclaw:openclaw-desktop` as a test instance while `/ov-selkies:selkies-desktop` holds the canonical 3000/9222/9224/2222 range).
+The quadlet is still written with the conflicting port, so `ov start` will fail at bind time unless you either free the port, re-run `ov config` with a remap, or edit `deploy.yml`. Detection uses a local `net.Listen` probe per published port at configure time. Handy for multi-instance deployments alongside a production fleet (e.g., running `/ov-openclaw:openclaw-desktop` as a test instance while `/ov-selkies:selkies-labwc` holds the canonical 3000/9222/9224/2222 range).
 
 ## Deploy State
 

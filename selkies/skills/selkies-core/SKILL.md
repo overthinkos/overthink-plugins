@@ -49,6 +49,6 @@ between flavors (the `labwc` vs `kde-selkies` layer), across every GPU config
 ## Related
 
 - `/ov-selkies:selkies` — the pixelflux transport at the heart of the core.
-- `/ov-selkies:selkies-desktop` — the labwc flavor metalayer.
+- `/ov-selkies:selkies-desktop-layer` — the labwc flavor metalayer.
 - `/ov-selkies:selkies-kde-desktop` — the KDE Plasma flavor metalayer.
 - `/ov-image:layer` — layer authoring; the unified `service:` schema.

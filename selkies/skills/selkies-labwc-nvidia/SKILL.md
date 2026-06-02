@@ -7,7 +7,7 @@ description: |
 
 # selkies-labwc-nvidia
 
-The NVIDIA-GPU build of the **labwc flavor** (`/ov-selkies:selkies-desktop`) — the
+The NVIDIA-GPU build of the **labwc flavor** (`/ov-selkies:selkies-labwc`) — the
 same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`) with the
 full CUDA toolkit, for NVENC-capable hosts. Always runs as a headless pod; the
 pixelflux encoder is auto-selected per GPU at runtime (NVENC on NVIDIA, software
@@ -93,7 +93,7 @@ Desktop video recording included via `wl-record-pixelflux` (part of the
 encoding (zero CPU overhead).
 
 ## Key Layers
-- `/ov-selkies:selkies-desktop` — full Selkies labwc streaming desktop metalayer
+- `/ov-selkies:selkies-desktop-layer` — full Selkies labwc streaming desktop metalayer
 - `/ov-distros:nvidia` — GPU runtime and CDI device auto-detection
 - `/ov-distros:cuda` — CUDA toolkit and libraries (via the CachyOS GPU base)
 - `/ov-infrastructure:dbus-layer` — session bus for desktop services
@@ -101,7 +101,7 @@ encoding (zero CPU overhead).
 - `/ov-distros:agent-forwarding` — SSH/GPG/direnv agent forwarding
 
 ## Related Images
-- `/ov-selkies:selkies-desktop` — the labwc desktop metalayer this image is the GPU build of
+- `/ov-selkies:selkies-desktop-layer` — the labwc desktop metalayer this image is the GPU build of
 - `selkies-labwc` (in the `overthinkos/selkies` submodule) — the CPU-encoding labwc sibling
 - `selkies-kde-nvidia` — the KDE-Plasma GPU sibling (same `cachyos.nvidia` base + CUDA arch-builder)
 - `/ov-openclaw:openclaw-desktop` — the CachyOS/CPU all-in-one: this streaming desktop stack + the openclaw-full gateway + AI CLIs + a CPU ollama + the full ov toolchain (ov-full + container-nesting + golang + gh). Use it if you want to build images / start nested pods / launch VMs from inside the browser-accessible desktop.

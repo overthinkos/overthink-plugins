@@ -254,7 +254,7 @@ curl -s "http://localhost:9222/json/list"
 - `/ov-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-included via `layer:`)
 - `/ov-infrastructure:supervisord` — required dependency for cdp-proxy service
 - `/ov-hermes:hermes` — consumes `BROWSER_CDP_URL` via `env_accepts` and `chrome-devtools` via `mcp_accepts`
-- `/ov-selkies:selkies-desktop` — desktop metalayer composing chrome with labwc, pipewire, waybar, etc.
+- `/ov-selkies:selkies-desktop-layer` — desktop metalayer composing chrome with labwc, pipewire, waybar, etc.
 
 ## Related Commands
 

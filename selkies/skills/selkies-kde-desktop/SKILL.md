@@ -79,7 +79,7 @@ on the `selkies-desktop` metalayer.
 ## Related
 
 - `/ov-selkies:selkies` — the pixelflux/selkies streaming transport (the core).
-- `/ov-selkies:selkies-desktop` — the labwc sibling flavor.
+- `/ov-selkies:selkies-desktop-layer` — the labwc sibling flavor.
 - `/ov-selkies:labwc` — the labwc nested-compositor primitive (the other seam).
 - `/ov-distros:cachyos`, `/ov-distros:nvidia` — the CPU + GPU bases.
 - `/ov-eval:eval` — the disposable `kind: eval` beds that prove each flavor.

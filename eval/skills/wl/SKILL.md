@@ -209,4 +209,4 @@ Source: `ov/wl.go`.
 - `/ov-selkies:a11y-tools` — AT-SPI2 accessibility (python3-pyatspi, python3-gobject)
 - `/ov-selkies:xterm` — X11 terminal for XWayland testing
 - `/ov-selkies:sway-desktop` — Desktop metalayer (wl-tools + wl-screenshot-grim)
-- `/ov-selkies:selkies-desktop` — Desktop metalayer (wl-tools + wl-screenshot-pixelflux + a11y-tools + xterm)
+- `/ov-selkies:selkies-desktop-layer` — Desktop metalayer (wl-tools + wl-screenshot-pixelflux + a11y-tools + xterm)

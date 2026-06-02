@@ -219,7 +219,7 @@ ollama API, chrome-devtools-mcp port). The R10 bed is
 
 ## Key Layers
 
-- `/ov-selkies:selkies-desktop` — the streaming desktop metalayer
+- `/ov-selkies:selkies-desktop-layer` — the streaming desktop metalayer
 - `/ov-openclaw:openclaw-full` — gateway + 27 tools (claude-code/codex/gemini)
 - `/ov-ollama:ollama` — CPU/GPU-agnostic Ollama layer (GPU is image-level)
 - `/ov-coder:ov-full` — ov + virtualization + gocryptfs + socat
@@ -231,7 +231,7 @@ ollama API, chrome-devtools-mcp port). The R10 bed is
 
 - `/ov-openclaw:openclaw-full` — the headless gateway + tools WITHOUT the desktop / ollama / ov toolchain.
 - `/ov-openclaw:openclaw` — minimal gateway only.
-- `/ov-selkies:selkies-desktop` — the CPU streaming desktop WITHOUT openclaw / ollama / ov toolchain.
+- `/ov-selkies:selkies-labwc` — the CPU streaming desktop WITHOUT openclaw / ollama / ov toolchain.
 - `/ov-selkies:selkies-labwc-nvidia` — GPU streaming desktop (base nvidia), no openclaw/ollama/ov toolchain.
 - `/ov-distros:fedora-ov` / `/ov-coder:arch-ov` — root-mode ov toolchain WITHOUT a streaming desktop.
 

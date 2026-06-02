@@ -201,6 +201,6 @@ Socket: `/tmp/ov-overlay.sock` (Unix domain, JSON-line)
 - `/ov-eval:cdp` — Chrome DevTools Protocol (DOM-level interaction)
 - `/ov-selkies:wl-overlay-layer` — Layer reference (RPM packages, dependencies)
 - `/ov-selkies:sway-desktop` — Desktop metalayer (includes wl-overlay)
-- `/ov-selkies:selkies-desktop` — Desktop metalayer (includes wl-overlay)
+- `/ov-selkies:selkies-desktop-layer` — Desktop metalayer (includes wl-overlay)
 
 Source: `ov/wl_overlay.go` (Go commands), `layers/wl-overlay/ov-overlay` (Python daemon/client).

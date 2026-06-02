@@ -173,7 +173,7 @@ hermes:
 - `/ov-hermes:hermes` -- full-featured standalone (claude-code + codex + gemini + dev-tools + devops-tools + ov)
 - `/ov-hermes:hermes-playwright` -- agent with Playwright Chromium (standalone headless)
 - `/ov-openwebui:openwebui` -- alternative web UI frontend with similar MCP/LLM auto-config pattern
-- `/ov-selkies:selkies-desktop` -- deploy alongside for shared Chrome browser (cross-container CDP)
+- `/ov-selkies:selkies-labwc` -- deploy alongside for shared Chrome browser (cross-container CDP)
 - `/ov-jupyter:jupyter` -- deploy alongside for MCP notebook access (cross-container MCP)
 
 ## When to Use This Skill

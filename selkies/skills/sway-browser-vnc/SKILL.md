@@ -93,7 +93,7 @@ ov eval cdp open sway-browser-vnc "https://ov-selkies-desktop:3000"
 - Ctrl+T/W consumed by local Chrome (open/close tabs locally, not remotely)
 - Clipboard permission dialog appears on first connection — dismiss with `ov eval vnc key Return` or CDP `Browser.grantPermissions`
 
-See `/ov-selkies:selkies-desktop` for detailed SPA interaction documentation.
+See `/ov-selkies:selkies-labwc` for detailed SPA interaction documentation.
 
 ## Test Coverage
 

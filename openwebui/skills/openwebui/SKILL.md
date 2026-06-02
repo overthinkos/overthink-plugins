@@ -115,7 +115,7 @@ Open WebUI receives:
 - `/ov-jupyter:jupyter` — deploy alongside for MCP notebooks and code execution
 - `/ov-ollama:ollama` — deploy alongside for local LLM inference
 - `/ov-hermes:hermes` — alternative AI frontend (CLI agent vs web UI)
-- `/ov-selkies:selkies-desktop` — deploy alongside for shared Chrome browser
+- `/ov-selkies:selkies-labwc` — deploy alongside for shared Chrome browser
 
 ## Verification
 

@@ -122,7 +122,7 @@ ov shell hermes -c "hermes mcp test jupyter"      # Tests connection (expects 11
 ## Related Images
 
 - `/ov-hermes:hermes-playwright` — Hermes with local Playwright Chromium
-- `/ov-selkies:selkies-desktop` — Desktop with Chrome (cross-container browser provider)
+- `/ov-selkies:selkies-labwc` — Desktop with Chrome (cross-container browser provider)
 - `/ov-jupyter:jupyter` — JupyterLab with MCP (cross-container MCP provider)
 
 ## Verification
@@ -158,7 +158,7 @@ liveness (hermes-whatsapp is autostart=false — see `/ov-eval:eval` Gotcha #4).
 - `/ov-eval:eval` — declarative testing framework + supervisord gotchas
 - `/ov-core:ov-config` — `OV_MCP_SERVERS` auto-discovery + secret provisioning
 - `/ov-build:ov-mcp-cmd` — verify each MCP server in `OV_MCP_SERVERS` is actually alive before debugging hermes tool-call failures; `ov eval mcp list-tools <provider-image>` shows exactly what hermes will see
-- `/ov-selkies:selkies-desktop` — companion for shared browser (CDP)
+- `/ov-selkies:selkies-labwc` — companion for shared browser (CDP)
 - `/ov-jupyter:jupyter` — MCP notebook tools auto-discovered
 
 ## When to Use This Skill

@@ -481,7 +481,7 @@ All of the above round-trip via `ov config`: the label is read from the image ma
 
 1. **Per-instance divergence.** One selkies-desktop image may be deployed with a Tailscale tunnel in one environment and no tunnel in another. Baking the tunnel choice into the image forecloses that.
 2. **`--update-all` safety.** Propagating config changes across deployed services must not accidentally rewrite tunnel settings from image labels and blow away per-instance overrides.
-3. **Instance inheritance gap.** Tunnel config is **not** auto-inherited from the base `ov config <image>` call to an `ov config <image> -i <instance>` call. This is a deliberate gap — see `/ov-selkies:selkies-desktop` (Multi-Instance Proxy Deployment) for the manual workaround and `/ov-core:deploy` (Instance Tunnel Inheritance) for the full lifecycle.
+3. **Instance inheritance gap.** Tunnel config is **not** auto-inherited from the base `ov config <image>` call to an `ov config <image> -i <instance>` call. This is a deliberate gap — see `/ov-selkies:selkies-labwc` (Multi-Instance Proxy Deployment) for the manual workaround and `/ov-core:deploy` (Instance Tunnel Inheritance) for the full lifecycle.
 
 **Practical implication:** you can inspect an image's tunnel declaration with `ov image inspect <image>` and see nothing useful — that's correct. To see a tunnel's actual state, read `deploy.yml` directly (`ov deploy show <image>`) or the generated quadlet (`ov status <image>`).
 

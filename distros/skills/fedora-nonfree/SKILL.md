@@ -15,7 +15,7 @@ Fedora base with RPM Fusion free and non-free repositories enabled.
 `/ov-distros:fedora-builder`, and is imported under the `ov` namespace by the
 `overthinkos/fedora` submodule (referenced as `ov.fedora-nonfree`). It lives in
 main because in-main consumers (`/ov-immich:immich`,
-`/ov-distros:nvidia`, `/ov-selkies:selkies-desktop`) base on it. Its `rpmfusion`
+`/ov-distros:nvidia`) base on it. Its `rpmfusion`
 layer is pinned as a github ref so the same definition resolves in both main and
 the submodule.
 

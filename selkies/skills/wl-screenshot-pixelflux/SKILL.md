@@ -74,7 +74,7 @@ selkies process (single ScreenCapture singleton)
 
 ## Used In Images
 
-- `/ov-selkies:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Cross-References
@@ -83,7 +83,7 @@ selkies process (single ScreenCapture singleton)
 - `/ov-selkies:wl-record-pixelflux` — Recording companion (same capture bridge + same singleton)
 - `/ov-selkies:wl-screenshot-grim` — Alternative for sway-desktop (wlr-screencopy)
 - `/ov-selkies:selkies` — Parent layer providing the ScreenCapture singleton and capture bridge
-- `/ov-selkies:selkies-desktop` — Metalayer that composes this screenshot path into the selkies-desktop image
+- `/ov-selkies:selkies-desktop-layer` — Metalayer that composes this screenshot path into the selkies-labwc image
 - `/ov-eval:record` — Uses `/ov-selkies:wl-record-pixelflux` via the same singleton
 
 ## Related

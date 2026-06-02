@@ -285,7 +285,7 @@ Chrome requires large `/dev/shm`. In pod mode, per-container `ShmSize=` is ignor
 - `/ov-core:ov-config` — `--sidecar` and `--list-sidecars` flags, Provides Filtering, resource caps, NO_PROXY auto-enrichment
 - `/ov-image:layer` — `env_accepts` / `env_requires` authoring and the full provides filtering contract
 - `/ov-build:secrets` — `ov secrets gpg set TS_AUTHKEY` for auth key storage
-- `/ov-selkies:selkies-desktop` — Full deployment example with Tailscale exit node
+- `/ov-selkies:selkies-labwc` — Full deployment example with Tailscale exit node
 - `/ov-selkies:chrome` — Proxy deployment pattern (Tailscale exit node + HTTP_PROXY) and NO_PROXY auto-enrichment
 - `/ov-automation:enc` — Encrypted volumes in pod deployments
 

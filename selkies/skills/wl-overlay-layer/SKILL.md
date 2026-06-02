@@ -60,12 +60,12 @@ ov eval wl overlay hide my-image --all
 ## Used In
 
 - `/ov-selkies:sway-desktop` — sway desktop composition
-- `/ov-selkies:selkies-desktop` — selkies streaming desktop composition
+- `/ov-selkies:selkies-desktop-layer` — selkies streaming desktop composition
 
 ## Used In Images
 
 - `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
-- `/ov-selkies:selkies-desktop` (via `selkies-desktop` metalayer)
+- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Related Layers
