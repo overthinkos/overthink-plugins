@@ -81,7 +81,7 @@ This layer is auto-included by the `chrome` base layer via `layers: [chrome-devt
 ## Used In Images (via chrome dependency chain)
 
 - `/ov-selkies:selkies-desktop`
-- `/ov-selkies:selkies-desktop-nvidia`
+- `/ov-selkies:selkies-labwc-nvidia`
 - `/ov-selkies:sway-browser-vnc`
 - All other images containing a chrome variant
 

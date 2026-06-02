@@ -88,7 +88,7 @@ ov cmd <image> "swaync-client -d"    # toggle DnD
 
 - `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
 - `/ov-selkies:selkies-desktop` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
+- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Related Layers
 

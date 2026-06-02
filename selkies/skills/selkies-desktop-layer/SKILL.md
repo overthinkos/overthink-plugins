@@ -93,7 +93,7 @@ A browser-accessible desktop at `http://localhost:3000` with:
 ## Used In Images
 
 - `/ov-selkies:selkies-desktop`
-- `/ov-selkies:selkies-desktop-nvidia`
+- `/ov-selkies:selkies-labwc-nvidia`
 
 ## Known bootc caveat — labwc ↔ pixelflux start-order race
 

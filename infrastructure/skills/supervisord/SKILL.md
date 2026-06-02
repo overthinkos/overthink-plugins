@@ -239,7 +239,7 @@ Adding a `service:` block to a layer automatically pulls in `supervisord` via `b
 ## Used In Images
 
 Transitive dependency for all images with managed services, including:
-`openclaw`, `jupyter`, `jupyter-ml`, `jupyter-ml-notebook`, `ollama`, `comfyui`, `immich`, `immich-ml`, `selkies-desktop`, `selkies-desktop-nvidia`, `hermes`, `openwebui`, `filebrowser`.
+`openclaw`, `jupyter`, `jupyter-ml`, `jupyter-ml-notebook`, `ollama`, `comfyui`, `immich`, `immich-ml`, `selkies-desktop`, `selkies-labwc-nvidia`, `hermes`, `openwebui`, `filebrowser`.
 
 ## Running supervisord under systemd (bootc mode)
 

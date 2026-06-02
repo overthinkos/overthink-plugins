@@ -34,9 +34,10 @@ so the AUR builder compiles `google-chrome` (chrome layer) and `wlrctl`
 `builder:` map does NOT cross a namespace boundary, the image declares its OWN
 `builder:` map (pixi/npm/cargo/aur → `arch-builder`, a name local to main's
 `base.yml`) rather than inheriting one from the cachyos base. The GPU sibling
-(`selkies-desktop-nvidia`) remains on the Fedora `nvidia`
-base — the shared `selkies-desktop` metalayer carries both `fedora:` and `arch:`
-package sections, and the generator picks per the image's `distro:` tags.
+(`selkies-labwc-nvidia`, in the `overthinkos/cachyos` submodule) is the same
+`selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`), with
+`builder.pixi: ov.cuda-arch-builder` so the selkies layer compiles pixelflux's
+real NVENC encoder.
 
 ## Layers
 
@@ -327,8 +328,7 @@ diagnostic recipe that found the leak.
 
 ## Related Images
 
-- `/ov-selkies:selkies-desktop-nvidia` — GPU-accelerated variant with NVIDIA CUDA toolkit (base: nvidia; this CPU sibling is on cachyos)
-- **CachyOS GPU variant** — `cachyos.selkies-desktop-nvidia` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base, `build: [pac, aur]`) in the `overthinkos/cachyos` submodule. See `/ov-distros:cachyos`.
+- `/ov-selkies:selkies-labwc-nvidia` — the GPU sibling of this CPU image: the same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`, `build: [pac, aur]`) with `builder.pixi: ov.cuda-arch-builder` for real NVENC, in the `overthinkos/cachyos` submodule. See `/ov-distros:cachyos`.
 - `/ov-openclaw:openclaw-desktop` — all-in-one CachyOS variant: this streaming desktop fused with the openclaw-full gateway + AI CLIs, a CPU ollama, and the full ov toolchain (build images, run nested pods, launch rootless libvirt VMs from inside the streaming desktop). Uses `/ov-distros:container-nesting`'s `unmask=/proc/*` posture — no `--privileged`, still uid 1000.
 - `/ov-selkies:sway-browser-vnc` — VNC-based alternative using Sway compositor instead of Selkies/labwc streaming
 

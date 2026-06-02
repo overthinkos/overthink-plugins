@@ -425,7 +425,7 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 - `/ov-hermes:hermes` — a consumer (`mcp_accepts: jupyter, chrome-devtools`); use `ov eval mcp` to verify the services hermes discovers are actually alive.
 - `/ov-openwebui:openwebui` — another consumer (`mcp_accepts: jupyter, chrome-devtools`).
 - `/ov-jupyter:jupyter`, `/ov-jupyter:jupyter-ml`, `/ov-jupyter:jupyter-ml-notebook` — images bundling `jupyter-mcp`; `ov eval live <image> --filter mcp` exercises the verb end-to-end.
-- `/ov-selkies:sway-browser-vnc`, `/ov-selkies:selkies-desktop`, `/ov-selkies:selkies-desktop-nvidia` — images bundling `chrome-devtools-mcp` (transitively via the chrome metalayer).
+- `/ov-selkies:sway-browser-vnc`, `/ov-selkies:selkies-desktop`, `/ov-selkies:selkies-labwc-nvidia` — images bundling `chrome-devtools-mcp` (transitively via the chrome metalayer).
 - `/ov-internals:go` — implementation map: `mcp.go` (client Kong subcommand tree), `mcp_client.go` (client SDK wrapper + URL rewriter), `mcp_server.go` (server: Kong→MCP reflection, destructive-hint set, `captureAndRun`), `testrun_ov_verbs.go` (declarative dispatcher entry `mcpMethods`), `validate_tests.go` (`validateOvVerb` case for `mcp`).
 - `/ov-coder:ov-mcp` — the deployment layer that wires `ov mcp serve` into an image via supervisord. Includes the `/workspace` bind-mount (volume NAME `project`) + `OV_PROJECT_DIR` env var pattern for build-mode tools.
 - `/ov-tools:ov` — the underlying binary layer; required by `ov-mcp`.

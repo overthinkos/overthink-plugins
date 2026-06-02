@@ -188,7 +188,7 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 ## Used In Images
 
 - `/ov-selkies:selkies-desktop`
-- `/ov-selkies:selkies-desktop-nvidia`
+- `/ov-selkies:selkies-labwc-nvidia`
 
 ## Related Layers
 
@@ -205,7 +205,7 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 
 ## Related Images
 
-- `/ov-selkies:selkies-desktop`, `/ov-selkies:selkies-desktop-nvidia` — Images that bundle this layer
+- `/ov-selkies:selkies-desktop`, `/ov-selkies:selkies-labwc-nvidia` — Images that bundle this layer
 - `/ov-distros:fedora-builder` — Builder image for the pixelflux from-source compilation
 
 ## Related Commands

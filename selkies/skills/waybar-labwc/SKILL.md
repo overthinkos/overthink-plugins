@@ -49,7 +49,7 @@ Catppuccin Mocha theme — semi-transparent dark background, JetBrains Mono + Sy
 ## Used In Images
 
 - `/ov-selkies:selkies-desktop` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
+- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Note: Difference from `waybar` Layer
 

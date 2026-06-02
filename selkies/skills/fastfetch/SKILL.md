@@ -39,7 +39,7 @@ layers:
 
 - `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
 - `/ov-selkies:selkies-desktop` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
+- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Related Layers
 - `/ov-selkies:sway-desktop` — Metalayer that pulls fastfetch in

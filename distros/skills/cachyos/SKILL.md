@@ -120,7 +120,9 @@ so they compose unchanged on CachyOS):
 - `cachyos.comfyui` — ComfyUI image generation
 - `cachyos.unsloth-studio` — Unsloth Studio fine-tuning UI
 - `cachyos.immich-ml` — Immich with the CUDA ML backend
-- `cachyos.selkies-desktop-nvidia` — GPU-accelerated Selkies streaming desktop
+- `cachyos.selkies-labwc-nvidia` — GPU NVENC Selkies streaming desktop (labwc flavor)
+- `cachyos.selkies-kde-nvidia` — GPU NVENC Selkies streaming desktop (full KDE Plasma flavor)
+- `cachyos.selkies-kde` — full KDE Plasma Selkies flavor on the plain cachyos base (VAAPI on an AMD/Intel render node, software x264 otherwise; the `-nvidia` sibling adds NVENC). The labwc cpu/amd flavor (`selkies-labwc`) lives in image/selkies.
 
 ## Why Docker Hub instead of pacstrap
 

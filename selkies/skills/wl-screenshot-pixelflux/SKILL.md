@@ -75,7 +75,7 @@ selkies process (single ScreenCapture singleton)
 ## Used In Images
 
 - `/ov-selkies:selkies-desktop` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
+- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Cross-References
 

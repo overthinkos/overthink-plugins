@@ -47,7 +47,7 @@ Chrome needs `--force-renderer-accessibility` flag to expose DOM elements via AT
 ## Used In Images
 
 - `/ov-selkies:selkies-desktop` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-desktop-nvidia` (via `selkies-desktop` metalayer)
+- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Testing Notes
 
