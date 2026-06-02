@@ -147,7 +147,7 @@ Plugins are sorted into four use-case buckets. Directory names live at
 | images | `ov-tools` | 19 | CLI utilities + ov binary deploy |
 | images | `ov-jupyter` | 15 | jupyter image family + jupyter MCP @ 8888 |
 | images | `ov-coder` | 33 | coder/dev images + ov MCP @ 18765 |
-| images | `ov-selkies` | 41 | selkies-desktop family + chrome-devtools MCP @ 9224 |
+| images | `ov-selkies` | 45 | selkies-desktop family + chrome-devtools MCP @ 9224 |
 | images | `ov-openclaw` | 12 | openclaw AI workstation + chrome-devtools MCP @ 9224 |
 | images | `ov-versa` | 9 | versa image — marimo + airflow + OSM analytics + 2 MCP servers |
 | images | `ov-ollama` | 2 | ollama LLM-server image |
