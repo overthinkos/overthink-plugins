@@ -92,7 +92,7 @@ A browser-accessible desktop at `http://localhost:3000` with:
 
 ## Used In Images
 
-- `/ov-selkies:selkies-desktop`
+- `/ov-selkies:selkies-labwc`
 - `/ov-selkies:selkies-labwc-nvidia`
 
 ## Known bootc caveat — labwc ↔ pixelflux start-order race
@@ -127,7 +127,7 @@ Deploy multiple instances with different HTTP proxies. Each instance gets a port
 
 **Chrome 147+ CDP:** The `/json/new` endpoint requires the PUT HTTP method (not GET). Use `curl -X PUT "http://localhost:<cdp-port>/json/new?<url>"` to create new tabs programmatically.
 
-See `/ov-selkies:selkies-desktop` for full multi-instance deployment examples.
+See `/ov-selkies:selkies-labwc` for full multi-instance deployment examples.
 
 ## Related Skills
 
@@ -137,8 +137,8 @@ See `/ov-selkies:selkies-desktop` for full multi-instance deployment examples.
 - `/ov-infrastructure:supervisord` — Event listener pattern (chrome-crash-listener) that owns Chrome's PID 1 escalation
 - `/ov-selkies:wl-record-pixelflux` — Desktop video recording via the shared capture singleton
 - `/ov-selkies:wl-screenshot-pixelflux` — Screenshots via the shared capture singleton
-- `/ov-distros:fedora-builder` — Builder image that compiles patched pixelflux from source (rpmfusion + build-toolchain codec devel libs)
-- `/ov-selkies:selkies-desktop` — Image that bundles this metalayer
+- `/ov-distros:arch-builder` — Builder image that compiles patched pixelflux from source on the cachyos base (`cuda-arch-builder` on the GPU build)
+- `/ov-selkies:selkies-labwc` — CPU labwc image that bundles this metalayer (with `/ov-selkies:selkies-labwc-nvidia` for the GPU build)
 - `/ov-eval:wl` — Wayland automation (screenshots, input, windows)
 - `/ov-eval:cdp` — Chrome DevTools Protocol automation
 - `/ov-eval:record` — Desktop video recording via capture bridge

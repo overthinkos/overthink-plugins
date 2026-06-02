@@ -326,8 +326,8 @@ See `/ov-core:ov-config` for `--update-all` propagation, `/ov-selkies:chrome` fo
 ## Build Pipeline Note
 
 The selkies-labwc image compiles `pixelflux_wayland` from source in the pixi
-builder stage (`arch-builder` on the cachyos base; `fedora-builder` on the Fedora
-GPU siblings). This is because pixelflux's upstream wheel does not include the
+builder stage (`arch-builder` on the cachyos base; `cuda-arch-builder` on the GPU
+build, `cachyos.nvidia`). This is because pixelflux's upstream wheel does not include the
 **dmabuf cache cleanup fix** (`renderer.cleanup_texture_cache()` per frame) that
 prevents a Wayland compositor shmem leak under sustained heavy streaming. The patch is
 applied at build time via inline source patching in `layers/selkies/build.sh`. See

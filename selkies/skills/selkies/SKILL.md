@@ -77,7 +77,7 @@ This fix was rolled out via `ov update -i INSTANCE` across all live selkies-desk
 
 ### Rebuild cadence
 
-Pixelflux is compiled **from source** in the selkies build stage (`layers/selkies/build.sh`), not installed from PyPI, because these fixes live on a fork not yet merged upstream. The build stage clones from a pinned commit, applies four inline source patches, and runs `pip install .` against the fedora-builder image. See `/ov-distros:fedora-builder` (rpmfusion is applied first so codec devel libs install) and `/ov-coder:build-toolchain` (5 package categories — smithay backend headers, codec devel, bindgen runtime, rust, generic C/C++) for the builder-stage dependency story.
+Pixelflux is compiled **from source** in the selkies build stage (`layers/selkies/build.sh`), not installed from PyPI, because these fixes live on a fork not yet merged upstream. The build stage clones from a pinned commit, applies four inline source patches, and runs `pip install .` against the image's pixi builder (`arch-builder` on the cachyos base, `cuda-arch-builder` on the GPU build). See `/ov-distros:arch-builder` and `/ov-coder:build-toolchain` (5 package categories — smithay backend headers, codec devel, bindgen runtime, rust, generic C/C++) for the builder-stage dependency story.
 
 ### Related fixes
 
@@ -206,7 +206,7 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 ## Related Images
 
 - `/ov-selkies:selkies-labwc`, `/ov-selkies:selkies-labwc-nvidia` — Images that bundle this layer
-- `/ov-distros:fedora-builder` — Builder image for the pixelflux from-source compilation
+- `/ov-distros:arch-builder` — Builder image for the pixelflux from-source compilation (`cuda-arch-builder` on the GPU build)
 
 ## Related Commands
 
