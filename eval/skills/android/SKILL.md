@@ -151,8 +151,10 @@ results (`apk-fdroid-present`/`-launch`, `apk-net-apidemos-present`).
   `AndroidGoogleAccount` / `ApkPackageSpec`.
 - `ov/android_install.go` — `AndroidDevice` + the shared installer.
 - `ov/android_target.go` — `AndroidDeployTarget` (consumes the IR).
-- `ov/android_deploy_cmd.go` — `runAndroid` / `runAndroidDel` / `findAndroidSpec`
-  / `resolveAndroidDevice`.
+- `ov/unified_targets_apk.go` — `AndroidUnifiedTarget.Add`/`.Del` (the android
+  deploy + teardown logic, reached via `ResolveTarget`).
+- `ov/android_deploy_cmd.go` — `findAndroidSpec` + the device-resolution helpers
+  (`resolveAndroidDevice`, `androidApkPackageIDs`).
 - `ov/install_plan.go` — `ApkInstallStep`; `ov/install_build.go` —
   `compileApkStep`.
 - `ov/unified.go` — loader wiring (mirrors every `k8s` site).

@@ -15,7 +15,7 @@ description: |
 ## Implementation notes
 
 - The pod deploy target is `PodDeployTarget` (`ov/deploy_target_pod.go`); ledger target keying uses `pod:<name>`.
-- `vmNameFromDeployName` strips the `vm:` prefix. The dispatch upstream (`deploy_add_cmd.go`) rewrites a plain deploy key like `eval-arch-vm` to `vm:<vm-name>` before calling `runVM` / `runVmDel`, so internal VM code always sees the prefixed form.
+- `vmNameFromDeployName` strips the `vm:` prefix. The dispatch upstream (`deploy_add_cmd.go`) rewrites a plain deploy key like `eval-arch-vm` to `vm:<vm-name>` before resolving via `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del`, so internal VM code always sees the prefixed form.
 - `UnifiedDeployTarget` / `LifecycleTarget` interfaces (`ov/deploy_target_unified.go`) + the `ResolveTarget` dispatcher (`ov/unified_targets.go`) provide the full lifecycle contract (`Add` / `Del` / `Test` / `Update` / `Start` / `Stop` / `Status` / `Logs` / `Shell` / `Rebuild`).
 - Disposability for `ov update <vm>` reads from the `DeploymentNode` with `target: vm` + matching `vm:` (see `rebuild.go::vmDisposableFromDeployments`); it is NOT a `VmSpec` field.
 
@@ -30,7 +30,7 @@ description: |
 | `ov/deploy_target_vm.go` | `VmDeployTarget` struct + `Emit` flow |
 | `ov/deploy_executor.go` | `DeployExecutor` interface (RunShell, Scp, Close) + `ShellExecutor` — local shell exec (reused by `LocalDeployTarget` for the builder-image step) |
 | `ov/deploy_executor_ssh.go` | `SSHExecutor` — ssh client with passt-friendly timeouts + WaitForSSH + WaitForCloudInit |
-| `ov/deploy_add_cmd_vm.go` | CLI dispatch: `runVM` + `runVmDel` for `ov deploy add/del vm:<name>` |
+| `ov/deploy_add_cmd_vm.go` | VM-only deploy helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`); `ov deploy add/del vm:<name>` dispatches through `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del` |
 | `ov/vm_create_spec.go` | `VmCreateCmd.runVmSpecCreate` — prereq: VM must be created before deploy |
 
 ## DeployExecutor interface
@@ -120,13 +120,49 @@ module on a clean boot mid-deploy. See `/ov-internals:install-plan` RebootStep.
 
 ## Host→guest image transfer (`ov vm cp-image`)
 
-`ov vm cp-image <vm> <ref> [--as <tag>]` (and the reusable `TransferImageToGuest`
-helper) load a host-built image into a running guest's rootful podman storage via
-`podman save | scp | podman load`, idempotent (skips when the guest already has
-it) and offline (no registry). The `kind: eval` VM-bed runner calls it for each
-nested pod child's image — so a locally-built image (e.g. `cuda-eval`) is present
-in the guest before the in-guest container runs. Loaded into ROOT podman so a
-`sudo podman run --device nvidia.com/gpu=all` (which needs `/dev/nvidia*`) finds it.
+`ov vm cp-image <vm> <ref> [--as <tag>] [--rootless]` (and the reusable
+`TransferImageToGuest` helper) stream a host-built image into a running guest's
+podman storage via `podman save | ssh podman load` (NO intermediate tarball —
+the guest `/tmp` tmpfs is too small for a multi-GB image), idempotent (skips an
+intact present image, re-streams a torn-overlay one — a name-only check would
+wrongly skip a corrupt image) and offline (no registry). `--rootless` selects the
+storage, and ALL of the load / integrity-probe / tag steps follow it consistently
+(via the `podmanCmd(rootless)` helper):
+
+- **default** → the guest's ROOT podman (`sudo podman`), for a `sudo podman run
+  --device nvidia.com/gpu=all` consumer that needs `/dev/nvidia*` via root.
+- **`--rootless`** → the SSH user's ROOTLESS podman (`podman`, no sudo; the tag
+  runs via `RunUser`, not `RunSystem`). This is what `deployNestedPodsInGuest`
+  uses: the nested pod comes up via the guest user's own `ov deploy from-image`
+  (a `--user` quadlet) which reads the USER's storage, so the image MUST land
+  there — a root-loaded image would be invisible to it.
+
+## Nested pod-in-VM — persistent in-guest quadlet (`deployNestedPodsInGuest`)
+
+A `target: vm` deploy whose `nested:` map has `target: pod` children brings each
+child up as a PERSISTENT in-guest quadlet — the nested-pod-in-VM capability.
+`VmUnifiedTarget.Add` constructs the `VmDeployTarget` and calls `deployNestedPodsInGuest` AFTER `VmDeployTarget.Emit` (so the guest's
+own layers, including any kernel-driver reboot + the boot-time
+`nvidia-ctk cdi generate`, are already applied). For each child it:
+
+1. `ov image build <child.Image>` on the HOST (the guest needs no project).
+2. `ov vm cp-image <vm> <child.Image> --as localhost/ov-<childKey>:latest
+   --rootless` — into the guest USER's rootless podman.
+3. over SSH as the guest user: `loginctl enable-linger` (so the `--user` quadlet
+   auto-starts at boot and survives reboot), then `export
+   XDG_RUNTIME_DIR=/run/user/$(id -u)` (so `systemctl --user` reaches the
+   lingering user bus over the non-login SSH session — same requirement as
+   VmDeployTarget's own user services), then the guest's own project-free
+   `ov deploy from-image localhost/ov-<childKey>:latest <childKey>` — which
+   generates + starts the quadlet from the image's baked OCI labels (ports,
+   services, GPU device auto-detected in the guest; rootless GPU via CDI —
+   `/dev/nvidia*` are world-rw and the CDI spec is world-readable).
+
+Idempotent (cp-image skips an intact image; from-image re-applies on `ov update`).
+The dispatch routes a VM-root deploy node-only (its pod children deploy in-guest
+here, never via a host tree walk). The existing `ov eval live <vm>.<child>`
+multi-hop chain reaches the running nested pod unchanged. `ov vm cp-image` is the
+host→guest delivery for it.
 
 ## VmDeployState persistence
 
@@ -152,9 +188,9 @@ Persisted in `~/.config/ov/deploy.yml` as the `vm_state:` field on the VM's depl
 
 `generateSSHKeypair` in `ov/vm.go` checks for `<vmStateDir>/id_ed25519.pub` before creating. Rebuilding a VM doesn't regenerate the keypair. First `ov vm build` writes the keypair; subsequent calls leave it untouched — so iterated rebuilds keep a stable pubkey and SSH stays valid.
 
-## CLI dispatch: runVM / runVmDel
+## CLI dispatch: ResolveTarget → VmUnifiedTarget.Add / .Del
 
-`deploy_add_cmd_vm.go::runVM` is called when the deploy name starts with `vm:` (or `target: vm` is set in `deploy.yml`):
+`ov deploy add vm:<name>` resolves via `deploy_add_cmd.go::dispatchNode` → `ResolveTarget` → `VmUnifiedTarget.Add` when the deploy name starts with `vm:` (or `target: vm` is set in `deploy.yml`):
 
 ```
 ov deploy add vm:arch ripgrep           # apply ripgrep layer in the guest
@@ -164,7 +200,7 @@ ov deploy add vm:arch fedora-coder \    # apply full fedora-coder layer set
 ov deploy del vm:arch                   # reverse all applied layers in the guest
 ```
 
-Prereq: VM must exist (`ov vm create arch` first). `runVM` does NOT auto-provision the VM — keeps the "provision" step explicit. If the VM is undefined, the dispatch returns a clean error pointing at `ov vm create`.
+Prereq: VM must exist (`ov vm create arch` first). `VmUnifiedTarget.Add` does NOT auto-provision the VM — keeps the "provision" step explicit. If the VM is undefined, the dispatch returns a clean error pointing at `ov vm create`.
 
 ## passt backend + SSH port forwarding
 

@@ -45,20 +45,30 @@ runs the full R10 sequence unattended (the equivalent `ov update
 eval-cachyos-vm` rebuild also works, since the eval bed is folded into the
 Deploy map).
 
-`eval-cachyos-coder-vm` is the **full KDE GPU workstation** bed: a `cachyos-gpu-vm`
-guest (bootstrap VM, UEFI, `backend: libvirt`, podman) that receives a physical
-NVIDIA GPU via a VFIO `<hostdev>` and runs a CUDA container inside it. It applies
-the `nvidia` toolkit + the locally-vendored `nvidia-driver` kernel layer (whose
-`reboot: true` reboots the guest mid-deploy so the open module loads on a clean
-boot), loads the `cuda-eval` image into the guest as `localhost/ov-cuda-pod:latest`
-(via `ov vm cp-image`, driven by the bed's `nested: cuda-pod` entry), then a
-deploy-scope check runs `podman run --device nvidia.com/gpu=all … cuda-smoke` →
-`CUDA-OK`. The committed `cachyos-gpu-vm` is **portable** — it carries NO hostdev
-block (a PCI address is host-specific); generate one with `ov vm gpu list` and add
-it locally before a live GPU run. Every GPU/CUDA check gates on an active in-guest
-driver and passes with an N/A note otherwise, so the bed runs anywhere. The
-`cuda-smoke` layer compiles its kernel with `g++-15` (CUDA 13.2 rejects gcc 16).
-See `/ov-vm:vm` "GPU passthrough", `/ov-distros:cuda`.
+`eval-cachyos-gpu-vm` is the **full KDE GPU workstation** bed — it mirrors the
+operator `cachyos-gpu` workstation's dual-desktop config and is the acceptance gate
+for migrating it. A `cachyos-gpu-vm` guest (bootstrap VM, UEFI, `backend: libvirt`,
+podman) receives a physical NVIDIA GPU via a VFIO `<hostdev>` and runs BOTH (a) a
+bare-metal KDE Plasma SDDM seat as in-guest layers, AND (b) a nested
+`selkies-kde-nvidia` streaming pod (real NVENC). It applies the `nvidia` toolkit +
+the locally-vendored `nvidia-driver` kernel layer (whose `reboot: true` reboots the
+guest mid-deploy so the open module loads on a clean boot and the boot-time
+`nvidia-ctk cdi generate` writes `/etc/cdi/nvidia.yaml`), then `VmUnifiedTarget.Add`
+(`deployNestedPodsInGuest`) host-builds `selkies-kde-nvidia`, `ov vm cp-image
+--rootless`s it into the guest user's podman as `localhost/ov-selkies-kde:latest`,
+and runs the guest's own project-free `ov deploy from-image
+localhost/ov-selkies-kde:latest selkies-kde` — a PERSISTENT in-guest `--user`
+quadlet (GPU device auto-detected; `loginctl enable-linger` so it survives the
+guest reboot the fresh-rebuild leg recreates). Deploy-scope checks run in-guest over
+SSH: the quadlet is active + lingering, the stream answers on
+`https://localhost:3000` (an in-guest `curl`, since the pod publishes `:3000` only
+on the guest), and the nvidia encoder is queryable. The committed `cachyos-gpu-vm`
+is **portable** — it carries NO hostdev block (a PCI address is host-specific);
+generate one with `ov vm gpu list` and add it locally before a live GPU run. The
+GPU-gated checks pass with an N/A note when no card is passed through, so the bed
+runs anywhere. This is the R10 gate for the nested-pod-in-VM capability
+(`/ov-internals:vm-deploy-target`). See `/ov-vm:vm` "GPU passthrough",
+`/ov-distros:cuda`.
 
 ## pacstrap path
 

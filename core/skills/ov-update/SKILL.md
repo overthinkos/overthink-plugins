@@ -10,9 +10,11 @@ description: |
 
 ## Overview
 
-Pull or build a new image version, optionally sync data from data layers into the image's volumes (bind mounts AND podman named volumes — both kinds are seeded), then restart the service. Data sync uses MERGE mode by default -- adds new files without overwriting existing user modifications.
+Redeploy the current artifact and restart the service — for EVERY deploy kind through ONE codepath. `ov update <name>` resolves the deploy via `ResolveTarget` and calls `LifecycleTarget.Rebuild` (`ov/unified_targets_*.go`); there is no per-kind update code. The unified contract is **redeploy the current artifact + restart by default; `--build` rebuilds the artifact first** — realized per substrate: pod → `deploy add → config → start` (`--build` rebuilds the image); vm → destroy→create the domain (reuse the qcow2 disk unless `--build`); local → re-apply layers idempotently. k8s has no live runtime to rebuild (apply it via `kubectl apply -k`), so `ov update <k8s>` errors uniformly. Data sync uses MERGE mode by default — adds new files without overwriting existing user modifications.
 
-**Relationship to `ov deploy add --pull`** — `ov update <name>` is the container-deploy equivalent of `ov deploy add <name> --pull`. For host deploys, the same semantics are reached via `ov deploy add host --pull`. See `/ov-core:deploy` for the unified command family and `/ov-local:local-deploy` for host-target specifics.
+**`ov update` does NOT auto-pull.** It redeploys the image already in local storage. To advance a deploy to a newer published image, `ov image pull <ref>` first, then `ov update`; or `ov update --build` to rebuild locally. (This consistency with vm's reuse-disk default replaced the former pod-only auto-pull, so `ov update` behaves identically across kinds.) See `/ov-core:deploy` for the unified command family and `/ov-local:local-deploy` for host-target specifics.
+
+**`ov update` obeys an EXPLICIT invocation on ANY target.** It does NOT refuse a non-`disposable: true` deploy — for a target that is neither disposable nor ephemeral it prints a one-line transparency note (`noteUpdateDisposability`, naming the deploy key + lifecycle, so the operator can catch a mistyped name) and proceeds with the rebuild. The `disposable:` flag stays load-bearing as the authorization for the AI's AUTONOMOUS destroy + rebuild (CLAUDE.md R10) and for the eval-runner's unattended fresh-rebuild (`validateEvalBeds`); it does NOT gate this human-driven verb. See `/ov-internals:disposable`.
 
 ## Quick Reference
 

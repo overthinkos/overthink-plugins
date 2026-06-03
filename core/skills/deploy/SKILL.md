@@ -156,7 +156,7 @@ deploy:
 
 Two ways to mark a deploy entry as VM-targeted:
 
-1. **Name prefix (preferred)**: the deploy key is `vm:<vm-name>`. CLI dispatch reads the prefix and routes to `runVM`.
+1. **Name prefix (preferred)**: the deploy key is `vm:<vm-name>`. CLI dispatch reads the prefix and routes through `ResolveTarget` → `VmUnifiedTarget.Add`.
 2. **Explicit field**: the deploy key is anything + `target: vm`. Useful when you want a non-prefixed deploy name (e.g., for readability in `deploy.yml`).
 
 Using both is redundant but harmless. Using `target: vm` on a non-`vm:`-prefixed deploy whose underlying VM doesn't exist errors at `ov deploy add` time.

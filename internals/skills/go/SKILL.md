@@ -69,7 +69,7 @@ The inheritance rule lives here: `distro:`/`build:` are VALUES → inherited acr
 
 `VmDeployTarget` (`ov/deploy_target_vm.go`) executes InstallPlans inside a running VM over SSH. Same IR as LocalDeployTarget, but bash bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` (`ov/deploy_executor_ssh.go`). Ledger writes land on the **guest** filesystem. The `DeployExecutor` interface (`ov/deploy_executor.go`) decouples "how shell commands run" from the target walking logic — `ShellExecutor` + `SSHExecutor` are the two implementations.
 
-Dispatched via `deploy_add_cmd_vm.go::runVM` when the deploy name starts with `vm:`. Full architecture + preflight flow lives in `/ov-internals:vm-deploy-target`.
+`ov deploy add vm:<name>` dispatches through `deploy_add_cmd.go::dispatchNode` → `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del` (no per-kind dispatch function); `deploy_add_cmd_vm.go` carries the VM-only helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`). Full architecture + preflight flow lives in `/ov-internals:vm-deploy-target`.
 
 ### YAML surface ↔ Go identifier convention
 
@@ -131,7 +131,7 @@ The VM path spans the following module topology:
 | `ov/libvirt_validate.go` | `ValidateVmSpec` + `ValidateLibvirtConfig` |
 | `ov/deploy_executor*.go` | `DeployExecutor` interface + `ShellExecutor` + `SSHExecutor` with `WaitForSSH` + `WaitForCloudInit` |
 | `ov/deploy_target_vm.go` | `VmDeployTarget.Emit` |
-| `ov/deploy_add_cmd_vm.go` | CLI dispatch: `runVM` / `runVmDel` for `ov deploy add vm:<name>` |
+| `ov/deploy_add_cmd_vm.go` | VM-only deploy helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`); `ov deploy add vm:<name>` itself dispatches through `dispatchNode` → `ResolveTarget` → `VmUnifiedTarget.Add` |
 | `ov/vm_create_spec.go` + `vm_build.go` | CLI command wiring for `ov vm build/create` reading `kind: vm` entities |
 | `ov/migrate_vm_spec.go` | `ov migrate` one-shot conversion from legacy image.bootc/image.vm/image.libvirt |
 
