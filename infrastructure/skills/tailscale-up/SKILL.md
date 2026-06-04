@@ -65,7 +65,7 @@ The layer's single cmd task:
    isn't running (image build, masked unit, etc.).
 3. Resolves the human deploy user via `getent passwd 1000 | cut -d: -f1`.
    This matches the `wheel-nopasswd` layer and the
-   `renderAurScript` helper in `ov/deploy_target_local.go` — uid 1000
+   `renderBuilderScript` helper in `ov/deploy_target_local.go` — uid 1000
    is the canonical "first human user" in this repo across CachyOS,
    Arch, Fedora, Debian, and Ubuntu base images. `SUDO_USER` is
    intentionally NOT used: `runSudoShell` calls `sudo -n bash -s`
