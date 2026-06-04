@@ -1165,5 +1165,5 @@ A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `
 ## Related skills
 
 - `/ov-build:migrate` — `ov migrate` converts legacy flat-form `layer.yml` + raw-INI `service:` blocks into the canonical schema
-- `/ov-internals:capabilities` — how the `service:` list is baked into the `LabelServices` OCI label
+- `/ov-internals:capabilities` — how the `service:` list is baked into the `LabelService` OCI label
 - `/ov-internals:install-plan` — internal IR the loader feeds into build/deploy pipelines

@@ -454,7 +454,7 @@ fqdn: "app.example.com"
 
 ### Backend Schemes
 
-Port protocols declared in `layer.yml` control the backend URL scheme used by tunnel commands. The protocol flows from layer → OCI label (`org.overthinkos.port_protos`) → tunnel command.
+Port protocols declared in `layer.yml` control the backend URL scheme used by tunnel commands. The protocol flows from layer → OCI label (`org.overthinkos.port_proto`) → tunnel command.
 
 **Tailscale serve/funnel schemes:**
 
@@ -500,7 +500,7 @@ tunnel:
 
 Quadlet generates multiple `ExecStartPost=` and `ExecStopPost=` lines. Requires `tailscale set --operator=$USER` for non-root access.
 
-Port protocols are stored in the `org.overthinkos.port_protos` image label so deploy-mode commands work without access to the original layer definitions. Remote refs require `ov image pull` first — see `/ov-build:pull`.
+Port protocols are stored in the `org.overthinkos.port_proto` image label so deploy-mode commands work without access to the original layer definitions. Remote refs require `ov image pull` first — see `/ov-build:pull`.
 
 ### Instance Tunnel Inheritance
 
@@ -797,7 +797,7 @@ volumes:
 
 `ResolveVolumeBacking()` in `ov/deploy.go` splits image volumes into named volumes and bind-backed mounts:
 
-1. Load all volumes from image labels (`org.overthinkos.volumes`)
+1. Load all volumes from image labels (`org.overthinkos.volume`)
 2. Load deploy.yml volume overrides for this image
 3. For each declared volume:
    - If deploy.yml says `type=bind` → host bind mount (explicit path or auto path)

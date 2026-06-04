@@ -164,7 +164,7 @@ ov service restart my-app traefik      # Restart a specific service
 ov service status my-app -i prod       # Named instance
 ```
 
-The service name must match an entry in the image's init system config. Available services are validated against the image's `org.overthinkos.services.<init>` label (e.g., `org.overthinkos.services.supervisord`). The management tool and commands are defined in build.yml `init:` section.
+The service name must match an entry in the image's init system config. Available services are validated against the image's `org.overthinkos.service.<init>` label (e.g., `org.overthinkos.service.supervisord`). The management tool and commands are defined in build.yml `init:` section.
 
 Source: `ov/service.go`.
 
@@ -174,7 +174,7 @@ Layers can declare hooks that run on the host at specific points:
 
 ```yaml
 # In layer.yml:
-hooks:
+hook:
   post_enable: |
     echo "Service enabled for $OV_IMAGE"
   pre_remove: |
@@ -254,7 +254,7 @@ jupyter                            stopped  8888                  tailscale (all
   `-i <inst>` flags.
 - **PORTS**: Sorted, deduped host port numbers. **Source priority**:
   runtime `podman ps` mappings → `deploy.yml` `port:` → image OCI label
-  `org.overthinkos.ports`. The runtime path uses the structured
+  `org.overthinkos.port`. The runtime path uses the structured
   `[]PortMapping` carried on `ContainerSnapshot`; deploy/label paths go
   through canonical `ParsePortMapping` so the IPv4-prefixed
   `127.0.0.1:H:C/proto` form parses correctly.

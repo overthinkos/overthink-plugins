@@ -459,19 +459,19 @@ Every image `ov` builds carries a set of `org.overthinkos.*` OCI labels embeddin
 
 | Label | Contents |
 |---|---|
-| `org.overthinkos.volumes` | Volume declarations from the layer chain |
-| `org.overthinkos.ports` | Ports + protocol annotations |
+| `org.overthinkos.volume` | Volume declarations from the layer chain |
+| `org.overthinkos.port` | Ports + protocol annotations |
 | `org.overthinkos.security` | `cap_add`, `devices`, `security_opt`, `mounts`, resource caps |
 | `org.overthinkos.env` | Runtime env keys |
-| `org.overthinkos.env_provides` | Cross-container env provides (resolved at deploy time) |
-| `org.overthinkos.env_requires` | Declared env contracts (used for `ov config` hard-fail checks) |
-| `org.overthinkos.env_accepts` | Opt-in allowlist for provides filtering |
-| `org.overthinkos.mcp_provides` | Cross-container MCP server provides |
-| `org.overthinkos.port_protos` | Port protocol annotations (non-default only) |
+| `org.overthinkos.env_provide` | Cross-container env provides (resolved at deploy time) |
+| `org.overthinkos.env_require` | Declared env contracts (used for `ov config` hard-fail checks) |
+| `org.overthinkos.env_accept` | Opt-in allowlist for provides filtering |
+| `org.overthinkos.mcp_provide` | Cross-container MCP server provides |
+| `org.overthinkos.port_proto` | Port protocol annotations (non-default only) |
 | `org.overthinkos.platform.distro` | Distro identity (e.g. `["arch"]`) — first match picks bootstrap/format templates |
-| `org.overthinkos.platform.formats` | Package formats installed (`pac`, `rpm`, `deb`, `pixi`, `aur`, …) |
-| `org.overthinkos.builder.uses` | Consumer-side routing map: format → builder-image name |
-| `org.overthinkos.builder.provides` | Producer-side capability list: formats this image can build for others |
+| `org.overthinkos.platform.format` | Package formats installed (`pac`, `rpm`, `deb`, `pixi`, `aur`, …) |
+| `org.overthinkos.builder.use` | Consumer-side routing map: format → builder-image name |
+| `org.overthinkos.builder.provide` | Producer-side capability list: formats this image can build for others |
 
 All of the above round-trip via `ov config`: the label is read from the image manifest and applied to deploy.yml + the quadlet. There is one deliberate exception.
 

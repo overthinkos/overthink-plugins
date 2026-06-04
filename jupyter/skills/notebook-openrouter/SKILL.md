@@ -42,7 +42,7 @@ At build time, the contents of `data/openrouter/` are staged into `/data/workspa
 
 At deploy time, `ov config` copies the staged data into the workspace volume at `<workspace>/openrouter/`. The `dest: openrouter` field places the notebooks in a subdirectory rather than the volume root.
 
-The `env_require` declaration is stored as an OCI label (`org.overthinkos.env_requires`). At `ov config` time, if `OPENROUTER_API_KEY` is not present in the resolved environment, a warning is printed:
+The `env_require` declaration is stored as an OCI label (`org.overthinkos.env_require`). At `ov config` time, if `OPENROUTER_API_KEY` is not present in the resolved environment, a warning is printed:
 ```
 Warning: jupyter-ml-notebook requires OPENROUTER_API_KEY (API key for OpenRouter LLM inference) — not set
 ```

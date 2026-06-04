@@ -651,7 +651,7 @@ Actions: `call`.
 
 The `mcp` verb speaks the Model Context Protocol to any server advertised
 via `mcp_provide`. URL resolution is automatic — the runner reads the
-image's `org.overthinkos.mcp_provides` OCI label, substitutes
+image's `org.overthinkos.mcp_provide` OCI label, substitutes
 `{{.ContainerName}}`, runs the entries through `podAwareMCPProvides`, and
 then rewrites the host portion to `127.0.0.1:<published-host-port>` using
 the same port-mapping data that powers `${HOST_PORT:N}`. No URL argument
@@ -1212,7 +1212,7 @@ deliberately.
   via `writeJSONLabel`, and why the LABEL block lives at the end of the
   final stage.
 - `/ov-internals:capabilities` — the `LabelEval` three-section OCI label is
-  part of the same capability contract as `LabelServices`.
+  part of the same capability contract as `LabelService`.
 - `/ov-internals:agents` — the sub-agents (`eval-bed-runner`,
   `deploy-verifier`) and dynamic workflows (`/verify-beds`,
   `/audit-deploy-configs`) that DRIVE these beds, and the R10/disposable/

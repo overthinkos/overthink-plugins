@@ -20,7 +20,7 @@ Both surfaces share the same SDK: `github.com/modelcontextprotocol/go-sdk v1.5.0
 
 ## Overview
 
-`ov eval mcp` connects to Model Context Protocol servers declared by running containers via `mcp_provide`, using [github.com/modelcontextprotocol/go-sdk](https://pkg.go.dev/github.com/modelcontextprotocol/go-sdk) (v1.5.0). Seven leaf subcommands cover the full MCP client surface: `ping`, `servers`, `list-tools`, `list-resources`, `list-prompts`, `call`, `read`. No MCP URL argument is ever typed by the user — the verb reads the target image's `org.overthinkos.mcp_provides` OCI label, resolves `{{.ContainerName}}` templates, applies pod-aware `localhost` rewriting, and maps the container-network URL to the published host port automatically.
+`ov eval mcp` connects to Model Context Protocol servers declared by running containers via `mcp_provide`, using [github.com/modelcontextprotocol/go-sdk](https://pkg.go.dev/github.com/modelcontextprotocol/go-sdk) (v1.5.0). Seven leaf subcommands cover the full MCP client surface: `ping`, `servers`, `list-tools`, `list-resources`, `list-prompts`, `call`, `read`. No MCP URL argument is ever typed by the user — the verb reads the target image's `org.overthinkos.mcp_provide` OCI label, resolves `{{.ContainerName}}` templates, applies pod-aware `localhost` rewriting, and maps the container-network URL to the published host port automatically.
 
 ### Also as a declarative verb
 
@@ -57,7 +57,7 @@ Every leaf accepts:
 The verb runs entirely on the host — no delegation into the container — and builds a single `*mcp.ClientSession` per invocation.
 
 1. **Container resolution**: `resolveContainer(image, instance)` → `ov-<image>[-<instance>]`.
-2. **Image ref + metadata**: `containerImageRef` → `ExtractMetadata` → `meta.MCPProvides` (read from OCI label `org.overthinkos.mcp_provides`).
+2. **Image ref + metadata**: `containerImageRef` → `ExtractMetadata` → `meta.MCPProvide` (read from OCI label `org.overthinkos.mcp_provide`).
 3. **Template substitution**: any `{{.ContainerName}}` in the URL is replaced with the resolved container name.
 4. **Pod-aware rewrite**: `podAwareMCPProvides` folds same-image entries so the URL host becomes `localhost` (identical to the OV_MCP_SERVERS path used by `ov config`).
 5. **Host-side port rewrite**: the load-bearing piece. `rewriteMCPURLForHost` parses the URL; if the host is the container name or `localhost`, it looks up the published host port for the URL's port via `podman inspect` (same `NetworkSettings.Ports` data that powers `${HOST_PORT:N}` in declarative tests) and rewrites to `127.0.0.1:<host-port>`. Non-matching hosts (external URLs) pass through unchanged.

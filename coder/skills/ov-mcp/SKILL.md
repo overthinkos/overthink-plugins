@@ -35,7 +35,7 @@ supervisord. The server exposes the entire ov CLI (auto-generated from
 Kong reflection, currently ~192 tools including the authoring
 surface — project scaffolding, YAML editing, file-write verbs) as MCP
 over Streamable HTTP. Any image composing `ov-mcp` advertises itself
-via the `org.overthinkos.mcp_provides` OCI label, so consumers —
+via the `org.overthinkos.mcp_provide` OCI label, so consumers —
 Claude Code, Open WebUI, OpenClaw, or the in-repo `ov eval mcp` client
 — can drive it without any out-of-band URL configuration.
 

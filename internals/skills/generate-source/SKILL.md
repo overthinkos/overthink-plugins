@@ -419,37 +419,37 @@ Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), maki
 | `org.overthinkos.bootc` | string | `"true"` (omitted if false) |
 | `org.overthinkos.uid` / `.gid` | string | `"1000"` |
 | `org.overthinkos.user` / `.home` | string | `"user"` / `"/home/user"` |
-| `org.overthinkos.ports` | JSON | `["18789:18789"]` |
-| `org.overthinkos.volumes` | JSON | `[{"name":"data","path":"/home/user/.openclaw"}]` |
-| `org.overthinkos.aliases` | JSON | `[{"name":"openclaw","command":"openclaw"}]` |
+| `org.overthinkos.port` | JSON | `["18789:18789"]` |
+| `org.overthinkos.volume` | JSON | `[{"name":"data","path":"/home/user/.openclaw"}]` |
+| `org.overthinkos.alias` | JSON | `[{"name":"openclaw","command":"openclaw"}]` |
 | `org.overthinkos.security` | JSON | `{"privileged":false,"cap_add":["SYS_PTRACE"]}` |
 | `org.overthinkos.network` | string | `"host"` (omitted if default) |
 | `org.overthinkos.fqdn` | string | FQDN for tunnel routing |
 | `org.overthinkos.acme_email` | string | ACME certificate email |
 | `org.overthinkos.env` | JSON | `["KEY=VALUE"]` runtime env vars |
-| `org.overthinkos.hooks` | JSON | lifecycle hooks config |
+| `org.overthinkos.hook` | JSON | lifecycle hooks config |
 | `org.overthinkos.vm` | JSON | VM config (bootc images) |
 | `org.overthinkos.libvirt` | JSON | libvirt XML snippets |
-| `org.overthinkos.routes` | JSON | `[{"host":"app.localhost","port":8080}]` |
+| `org.overthinkos.route` | JSON | `[{"host":"app.localhost","port":8080}]` |
 | `org.overthinkos.init` | string | active init system name |
-| `org.overthinkos.services.<init>` | JSON | service names per init system |
-| `org.overthinkos.env_layers` | JSON | layer-level env vars (merged) |
+| `org.overthinkos.service.<init>` | JSON | service names per init system |
+| `org.overthinkos.env_layer` | JSON | layer-level env vars (merged) |
 | `org.overthinkos.path_append` | JSON | PATH append entries |
 | `org.overthinkos.engine` | string | Required run engine (`docker`/`podman`, omitted if any) |
 | `org.overthinkos.platform.distro` | JSON | `["arch"]` distro identity (first match picks bootstrap/format templates) |
-| `org.overthinkos.platform.formats` | JSON | `["pac"]` package formats installed (`pac`, `rpm`, `deb`, `pixi`, `aur`, …) |
-| `org.overthinkos.builder.uses` | JSON | `{"aur":"arch-builder","pixi":"default-builder"}` consumer-side routing: format → builder image |
-| `org.overthinkos.builder.provides` | JSON | `["pac","aur"]` producer-side capability: formats this image can build for others (builder images only) |
-| `org.overthinkos.port_protos` | JSON | `{"9222":"tcp"}` port protocol overrides (non-http only) |
+| `org.overthinkos.platform.format` | JSON | `["pac"]` package formats installed (`pac`, `rpm`, `deb`, `pixi`, `aur`, …) |
+| `org.overthinkos.builder.use` | JSON | `{"aur":"arch-builder","pixi":"default-builder"}` consumer-side routing: format → builder image |
+| `org.overthinkos.builder.provide` | JSON | `["pac","aur"]` producer-side capability: formats this image can build for others (builder images only) |
+| `org.overthinkos.port_proto` | JSON | `{"9222":"tcp"}` port protocol overrides (non-http only) |
 | `org.overthinkos.port_relay` | JSON | `[9222]` ports with socat relay |
 | `org.overthinkos.status` | string | Effective status: `working`, `testing`, or `broken` (always emitted) |
 | `org.overthinkos.info` | string | Aggregated status info from image + non-working layers (omitted if empty) |
-| `org.overthinkos.layer_versions` | JSON | `{"chrome":"2026.83.1430"}` layer name → CalVer (only versioned layers) |
-| `org.overthinkos.skills` | string | Skill documentation URL (omitted if no skill exists) |
+| `org.overthinkos.layer_version` | JSON | `{"chrome":"2026.83.1430"}` layer name → CalVer (only versioned layers) |
+| `org.overthinkos.skill` | string | Skill documentation URL (omitted if no skill exists) |
 
 Tunnel configuration is NOT an OCI label — it is a deploy-time concern carried in `deploy.yml` only.
 
-Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `ov/labels.go`) plus `deploy.yml` overlay — they never touch `image.yml` at runtime. That's why `ov shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `ov image pull`). See `/ov-image:image` for the build/deploy boundary and `/ov-build:pull` for the sentinel pattern. Labels also include `org.overthinkos.init` for init system identification and `org.overthinkos.services.<init>` for per-init service lists.
+Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `ov/labels.go`) plus `deploy.yml` overlay — they never touch `image.yml` at runtime. That's why `ov shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `ov image pull`). See `/ov-image:image` for the build/deploy boundary and `/ov-build:pull` for the sentinel pattern. Labels also include `org.overthinkos.init` for init system identification and `org.overthinkos.service.<init>` for per-init service lists.
 
 Source: `ov/labels.go`, `ov/generate.go` (`writeLabels`).
 

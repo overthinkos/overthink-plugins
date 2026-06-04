@@ -83,7 +83,7 @@ This is the **single entry point** for **container** deployment setup. `ov start
 3. Ensures image exists in run engine (transfers if needed)
 4. Extracts metadata from OCI image labels
 5. Generates quadlet `.container` file in `~/.config/containers/systemd/`
-6. Provisions container secrets (from `org.overthinkos.secrets` label)
+6. Provisions container secrets (from `org.overthinkos.secret` label)
 7. Resolves volume backing (named, bind, or encrypted)
 8. Initializes encrypted volumes (gocryptfs) if configured
 9. Seeds data layers into the image's volumes (bind mounts AND podman named volumes)
