@@ -203,31 +203,41 @@ For container deploys, the authoritative source is `deploy.yml` —
 
 ## `ov update <name> [-i <instance>]`
 
-The autonomous path. Resolves `<name>` as either a kind:vm entity
-(vm.yml) or a deploys entry (deploy.yml). Refuses if effective
-disposable is `false` or unset, with a pointed remediation message.
-Otherwise: destroy → rebuild → restart in a single orchestrated
-sequence.
+Resolves `<name>` as either a kind:vm entity (vm.yml) or a deploys entry
+(deploy.yml). It **NEVER refuses** on disposability: an explicit
+`ov update` rebuilds ANY target — for a non-disposable, non-ephemeral
+target it prints a one-line transparency note
+(`noteUpdateDisposability` in `ov/update_deploy_dispatch.go`) and
+proceeds. Sequence: destroy → rebuild → restart, ending in the shared
+`ov deploy add <node>` layer re-apply for every live substrate (so a
+config change — a newly-added layer or nested pod — takes effect on the
+rebuilt target). `disposable: true` stays load-bearing as the
+authorization for the **AI's AUTONOMOUS** destroy + rebuild (CLAUDE.md
+R10) and the eval-runner's unattended fresh rebuild — NOT as an
+`ov update` capability check. A human (or the AI WITH explicit
+authorization) may `ov update` a non-disposable target directly.
 
 ```bash
-# Allowed (disposable: true):
+# Disposable: the AI may run this autonomously (no human in the loop):
 ov update arch
 
-# Refused (no disposable flag, or disposable: false):
+# Non-disposable: the command still proceeds — with a transparency note.
+# (The AI needs explicit human authorization to run it; a human running
+#  it directly is always fine.)
 $ ov update production-api
-ov update: "production-api" is not marked `disposable: true` in
-deploy.yml (current lifecycle: (unset)).
-  `ov update` only acts on explicitly disposable deploys —
-  lifecycle tags alone do NOT authorize autonomous destroy.
-  To opt in: edit deploy.yml and add `disposable: true` to the
-  entry, or run: ov deploy add production-api <ref> --disposable
+Note: "production-api" is not marked `disposable: true` (lifecycle: (unset));
+rebuilding it anyway per your explicit `ov update`.
 ```
 
-Flags:
-- `--dry-run` — print the sequence without executing.
-- `--rebuild-image` — also rebuild the underlying image (default:
-  reuse).
-- `-i <instance>` — target a named instance.
+Flags (authoritative list: `ov update --help`):
+- `--build` — rebuild the artifact first instead of reusing it (pod:
+  rebuild the image; vm: rebuild the qcow2 disk; local: n/a). Without
+  it, `ov update` redeploys the artifact already in local storage (it
+  does NOT auto-pull).
+- `--tag <calver>` — pin the image CalVer tag.
+- `-i, --instance <name>` — target a named instance.
+- `--seed` / `--no-seed` / `--force-seed` / `--data-from <image>` —
+  bind-backed-volume data-sync control.
 
 ## Opting a deploy in
 
@@ -267,10 +277,15 @@ deploys:
     disposable: true
 ```
 
-Running `ov update fedora-coder-dev` fails with the refusal
-message — the `lifecycle: dev` tag is informational; the deploy
-still needs an explicit `disposable: true` to be rebuildable.
-`ov update fedora-coder-qa` succeeds.
+`ov update` itself runs on ANY of these — a human can rebuild
+`fedora-coder-dev` directly and it proceeds with the
+`noteUpdateDisposability` transparency note (the `lifecycle: dev`
+tag is informational, never an authorization). What the
+`disposable: true` flag gates is AUTONOMOUS rebuild: the AI (and the
+eval-runner) may unattended-rebuild only `fedora-coder-qa` and
+`fedora-coder-scratch`; rebuilding `fedora-coder-dev` autonomously
+requires explicit human authorization, because a lifecycle tag does
+NOT authorize autonomous destroy.
 
 ### VMs
 

@@ -71,17 +71,23 @@ eval:
     timeout: 180s
     stdout: { contains: "Ready" }
 
-  - id: traefik-ingressclass
-    scope: deploy
-    k8s: ingressclass
-    cluster: "${DEPLOY_NAME}"
-    stdout: { contains: "traefik" }
-
+  # `addons` BLOCKS until Traefik + ServiceLB + local-path are all Ready, so it
+  # MUST precede any ingressclass/storageclass check — those resources are
+  # registered by the addon stack. Ordering matters: `ingressclass`/`storageclass`
+  # are one-shot list verbs with no internal wait, and they exit 0 on an EMPTY
+  # list, so a `contains` matcher run before the addons settle FAILS rather than
+  # waits. Gate first, assert second.
   - id: addons-healthy
     scope: deploy
     k8s: addons
     cluster: "${DEPLOY_NAME}"
     timeout: 240s
+
+  - id: traefik-ingressclass
+    scope: deploy
+    k8s: ingressclass
+    cluster: "${DEPLOY_NAME}"
+    stdout: { contains: "traefik" }
 ```
 
 `cluster: "${DEPLOY_NAME}"` lets a layer's deploy-scope check address its own

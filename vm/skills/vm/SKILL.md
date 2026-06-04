@@ -10,9 +10,9 @@ description: |
 
 ## Disposability + deploy cross-ref
 
-- **Disposability is a deploy property only.** A `kind: vm` entity carries no `disposable:` / `lifecycle:` field. Put `disposable: true` on the matching `deploy.<name>-vm` entry; that's what `ov update <vm-name>` checks. The `vm:` entity entry only describes VM shape (disk, RAM, SSH, cloud-init, libvirt), never authorization.
+- **Disposability is a deploy property only.** A `kind: vm` entity carries no `disposable:` / `lifecycle:` field. Put `disposable: true` on the matching `deploy.<name>-vm` entry. The `vm:` entity entry only describes VM shape (disk, RAM, SSH, cloud-init, libvirt), never authorization.
 - **Deploy-level cross-ref**: a deployment with `target: vm` references its VM entity via `vm: <entity-name>`.
-- **`ov update <vm-entity-name>`** searches `deploy:` for any entry with `target: vm` + `vm: <entity>`; disposable iff ANY such entry carries `disposable: true`. Absence of a matching disposable deploy entry → rebuild refused.
+- **`ov update <vm-entity-name>`** does NOT gate on `disposable:` — an explicit human invocation rebuilds ANY target (destroy→create the domain, reuse the qcow2 disk unless `--build`, then re-apply the deploy node's layers via the shared `deploy add` path). For a non-disposable, non-ephemeral target it prints a one-line transparency note (`noteUpdateDisposability`) and proceeds. The `disposable: true` flag stays load-bearing as the authorization for the AI's AUTONOMOUS destroy + rebuild (CLAUDE.md R10) and the eval-runner's unattended fresh rebuild, NOT as an `ov update` capability check. See `/ov-internals:disposable` and `/ov-core:ov-update`.
 
 ## Overview
 
