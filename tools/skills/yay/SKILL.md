@@ -23,8 +23,8 @@ PAC: `base-devel`, `git`
 The `task:` task downloads the latest `yay` binary from GitHub releases:
 
 ```yaml
-# tasks: (in layer.yml)
-tasks:
+# task: (in layer.yml)
+task:
   all:
     cmds:
       - |

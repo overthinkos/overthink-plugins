@@ -56,7 +56,7 @@ LLM provider based on which env var is set:
 | 2 | `OLLAMA_API_KEY` | Ollama Cloud | `kimi-k2.5:cloud` |
 | 3 | `OPENROUTER_API_KEY` | OpenRouter | `qwen/qwen3.6-plus:free` |
 
-Override the default model with `HERMES_MODEL` env var. Additional `env_accepts`:
+Override the default model with `HERMES_MODEL` env var. Additional `env_accept`:
 
 | Variable | Description |
 |----------|-------------|
@@ -104,7 +104,7 @@ Hermes receives:
 
 ## MCP Server Discovery
 
-When co-deployed with services that declare `mcp_provides` (e.g., jupyter), hermes auto-discovers and connects to their MCP servers at first start. The `OV_MCP_SERVERS` JSON env var is injected by `ov config` and the entrypoint writes the servers into `config.yaml` under `mcp_servers:`.
+When co-deployed with services that declare `mcp_provide` (e.g., jupyter), hermes auto-discovers and connects to their MCP servers at first start. The `OV_MCP_SERVERS` JSON env var is injected by `ov config` and the entrypoint writes the servers into `config.yaml` under `mcp_servers:`.
 
 ```bash
 # Verify MCP connection
@@ -115,7 +115,7 @@ ov shell hermes -c "hermes mcp test jupyter"      # Tests connection (expects 11
 ## Key Layers
 
 - `/ov-hermes:hermes-full-layer` — Metalayer composition details
-- `/ov-hermes:hermes` — Core agent (env_accepts, browser dispatch, LLM config)
+- `/ov-hermes:hermes` — Core agent (env_accept, browser dispatch, LLM config)
 - `/ov-selkies:chrome` — Provides `BROWSER_CDP_URL` (from selkies-desktop)
 - `/ov-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server on port 9224 (from selkies-desktop)
 

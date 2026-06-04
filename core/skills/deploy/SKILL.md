@@ -638,7 +638,7 @@ Direct-mode emission (podman run flags, for `engine.run=direct`): `--memory`, `-
 
 ### Provides (Top-Level)
 
-The `provides:` section holds all resolved env and MCP provides entries from deployed images. Managed automatically by `ov config` when images with `env_provides` or `mcp_provides` layers are deployed.
+The `provides:` section holds all resolved env and MCP provides entries from deployed images. Managed automatically by `ov config` when images with `env_provide` or `mcp_provide` layers are deployed.
 
 ```yaml
 provides:
@@ -658,14 +658,14 @@ deploy:
   my-app: { ... }
 ```
 
-- `provides.env:` — resolved env_provides entries with `{name, value, source}` (self-excluded per consumer)
-- `provides.mcp:` — resolved mcp_provides entries with `{name, url, transport, source}` (pod-aware, no self-exclusion)
+- `provides.env:` — resolved env_provide entries with `{name, value, source}` (self-excluded per consumer)
+- `provides.mcp:` — resolved mcp_provide entries with `{name, url, transport, source}` (pod-aware, no self-exclusion)
 - `source` tracks which image injected each entry — used for cleanup on `ov remove`
 - Priority for env (last wins): provides.env < per-image deploy env < deploy env_file < workspace .env < CLI --env-file < CLI -e
 - `ov config remove` / `ov remove` automatically cleans up entries from the removed image
 - Instance-aware cleanup: removing an instance (e.g., `ov remove selkies-desktop -i work`) only cleans provides entries sourced from that specific instance (`selkies-desktop/work`), not from other instances of the same base image. Base image removal requires no other instances to exist before cleaning provides
 
-See `/ov-image:layer` for `env_provides`/`mcp_provides` field declarations and `/ov-core:ov-config` for `--update-all` propagation.
+See `/ov-image:layer` for `env_provide`/`mcp_provide` field declarations and `/ov-core:ov-config` for `--update-all` propagation.
 
 ### Secrets
 
@@ -870,12 +870,12 @@ provides:
       source: jupyter
 ```
 
-- `provides.env:` — resolved env_provides entries with `{name, value, source}`
-- `provides.mcp:` — resolved mcp_provides entries with `{name, url, transport, source}`
+- `provides.env:` — resolved env_provide entries with `{name, value, source}`
+- `provides.mcp:` — resolved mcp_provide entries with `{name, url, transport, source}`
 - `source` field tracks which image contributed each entry (used for cleanup on `ov remove`)
-- Entries resolved at `ov config` time from layer `env_provides:` and `mcp_provide:` declarations
+- Entries resolved at `ov config` time from layer `env_provide:` and `mcp_provide:` declarations
 - `GlobalEnvForImage()` in `provides.go` resolves both env and MCP provides for each consumer image
-- Env provides: self-excluded (prevents own env_provides from overriding service bind addresses)
+- Env provides: self-excluded (prevents own env_provide from overriding service bind addresses)
 - MCP provides: pod-aware (same-container entries resolve to `localhost`, no self-exclusion)
 - Consumer containers receive `OV_MCP_SERVERS` JSON env var with resolved MCP server entries
 
@@ -898,7 +898,7 @@ The pod owns the shared network namespace. Port mappings and ShmSize move from t
 ### Dual Networking (Tailscale)
 
 When a Tailscale sidecar is attached, the pod has dual networking:
-- **"ov" bridge** — container-to-container connectivity, `env_provides` discovery
+- **"ov" bridge** — container-to-container connectivity, `env_provide` discovery
 - **Tailscale tun** — exit node routing for outbound internet traffic
 - `--exit-node-allow-lan-access` exempts bridge subnets from the tunnel
 
@@ -976,14 +976,14 @@ eval:
 - `/ov-core:start` — Ergonomic alias for `ov deploy add <image> <image>` (container target)
 - `/ov-core:stop` — Ergonomic alias for `ov deploy del <name>`
 - `/ov-core:ov-update` — Per-instance update pattern; equivalent to `ov deploy add <name> --pull`
-- `/ov-core:ov-config` — Resource cap flags (`--memory-max/high/swap/cpus`), provides filtering, env_requires enforcement, NO_PROXY auto-enrichment, `--sidecar`, `-i` instance support, MCP name disambiguation
+- `/ov-core:ov-config` — Resource cap flags (`--memory-max/high/swap/cpus`), provides filtering, env_require enforcement, NO_PROXY auto-enrichment, `--sidecar`, `-i` instance support, MCP name disambiguation
 - `/ov-automation:enc` — Encrypted storage commands (ov config mount/unmount)
 - `/ov-eval:vnc` — VNC password setup for desktop containers
 - `/ov-vm:vm` — Virtual machine deployment (ov vm)
 - `/ov-build:build` — Building images before deployment (+ the `--no-cache` intermediate scratch-stage caveat)
 - `/ov-build:ov-mcp-cmd` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`ov eval mcp ping <image>`); note the **port-publishing gotcha** when a `port:` override in deploy.yml predates a newly-added mcp-providing layer
 - `/ov-image:image` — Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
-- `/ov-image:layer` — Unified `service:` schema (use_packaged + structured custom), `env_provides`/`env_requires`/`env_accepts` field declarations, security resource caps
+- `/ov-image:layer` — Unified `service:` schema (use_packaged + structured custom), `env_provide`/`env_require`/`env_accept` field declarations, security resource caps
 - `/ov-eval:eval` — Local `eval:` in deploy.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.
 
 **Canonical layer worked examples:**

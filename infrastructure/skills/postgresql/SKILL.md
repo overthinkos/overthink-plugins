@@ -40,7 +40,7 @@ The entrypoint also reads these variables (with defaults, not set in layer.yml):
 
 Pod-aware: same-container consumers receive `PGHOST=localhost`, cross-container consumers receive `PGHOST=ov-postgresql`. When `ov config` runs, these are automatically injected into the global `deploy.yml` env for PostgreSQL service discovery.
 
-See `/ov-image:layer` for `env_provides` field docs.
+See `/ov-image:layer` for `env_provide` field docs.
 
 ## Packages
 

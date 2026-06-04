@@ -134,7 +134,7 @@ ov secrets set ov/secret MY_TOKEN xyz    # store a credential
 ov secrets get ov/secret MY_TOKEN        # read it back
 ```
 
-### Credential-backed layer env vars (`secret_accepts` / `secret_requires`)
+### Credential-backed layer env vars (`secret_accept` / `secret_require`)
 
 A layer can declare credential-backed env vars in `layer.yml` via the
 `secret_accept:` / `secret_require:` sections. At `ov config` time, the
@@ -142,7 +142,7 @@ declared values are resolved from the credential store, provisioned as
 per-image podman secrets, and injected into the container at runtime via
 `Secret=<name>,type=env,target=<var>` directives — **never landing in
 `deploy.yml` or the generated quadlet as plaintext**. See `/ov-image:layer`
-(secret_accepts / secret_requires) for the authoring side.
+(secret_accept / secret_require) for the authoring side.
 
 The credential store namespace for these entries defaults to `ov/secret`
 with the env var name as the key. Layer authors can override with an
@@ -154,7 +154,7 @@ openwebui and hermes both pointing at `ov/api-key/openrouter` so one
 **Storage commands:**
 
 ```bash
-# Default path (matches layer.yml `secret_accepts: [{name: WEBUI_ADMIN_PASSWORD}]`)
+# Default path (matches layer.yml `secret_accept: [{name: WEBUI_ADMIN_PASSWORD}]`)
 ov secrets set ov/secret WEBUI_ADMIN_PASSWORD <password>
 
 # Explicit key path (matches layer.yml `key: ov/api-key/openrouter`)
@@ -218,7 +218,7 @@ systemctl --user restart ov-openwebui.service
 
 **One-shot `-e` import:** the `-e NAME=VAL` CLI flag on `ov config`
 auto-imports the value into the credential store when NAME matches a
-`secret_accepts` / `secret_requires` declaration on the target image. The
+`secret_accept` / `secret_require` declaration on the target image. The
 plaintext is stripped from `c.Env` before it can reach `saveDeployState`
 or the quadlet writer. First-time setup:
 
@@ -230,8 +230,8 @@ Subsequent `ov config openwebui` resolves from the store without needing
 `-e` again.
 
 **Migration from legacy plaintext:** `ov config` automatically moves any
-`NAME=VAL` entry in `deploy.yml` whose NAME is a `secret_accepts` /
-`secret_requires` declaration on the image into the credential store.
+`NAME=VAL` entry in `deploy.yml` whose NAME is a `secret_accept` /
+`secret_require` declaration on the image into the credential store.
 The plaintext is stripped, `deploy.yml.bak.<ts>` is written as a rollback
 point, and the migration logs each entry on stderr. Idempotent — safe to
 run on a clean host.
@@ -239,10 +239,10 @@ run on a clean host.
 **Distinction from layer-owned `secret:`:** the layer.yml `secret:`
 field (e.g., immich's `db-password`) creates per-image secrets that are
 auto-generated once at `ov config` time and never rotated. Credential-
-backed `secret_accepts` / `secret_requires` are user-owned, shareable
+backed `secret_accept` / `secret_require` are user-owned, shareable
 across consumers, and refreshed on every `ov config`. Both flow through
 the same `Secret=<name>,type=env,target=<var>` quadlet emission; only the
-rotation semantics differ. See `/ov-image:layer` (secret_accepts / secret_requires).
+rotation semantics differ. See `/ov-image:layer` (secret_accept / secret_require).
 
 ## Config Keys
 

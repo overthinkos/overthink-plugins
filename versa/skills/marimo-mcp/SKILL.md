@@ -94,7 +94,7 @@ ov eval mcp call versa get_lightweight_cell_map "{\"args\":{\"session_id\":\"$SI
 ## MCP name decoupling
 
 The MCP server name `marimo` is the service contract — declared in
-`layers/marimo/layer.yml` `mcp_provides.name: marimo`. This plugin's
+`layers/marimo/layer.yml` `mcp_provide.name: marimo`. This plugin's
 `.mcp.json` keys off the same name. Renames of the layer / Python
 package / image MUST NOT change this name unless the contract is
 explicitly broken in a hard cutover.

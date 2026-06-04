@@ -50,7 +50,7 @@ match).
 The sudoers drop-in at `/etc/sudoers.d/ov-user` targets the **actual uid-1000 account**, whatever it happens to be named on the running base image. The layer no longer hardcodes a literal `user` — instead it discovers the account name at build time via `getent passwd 1000`:
 
 ```yaml
-tasks:
+task:
   - cmd: |
       account=$(getent passwd 1000 | cut -d: -f1)
       if [ -z "$account" ]; then

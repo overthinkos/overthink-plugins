@@ -104,7 +104,7 @@ jupyter:
 
 ## MCP Server Discovery
 
-The `jupyter` layer declares `mcp_provides` for cross-container and pod MCP discovery. The URL template `http://{{.ContainerName}}:8888/mcp` resolves to the actual container name at deploy time (e.g., `http://ov-jupyter:8888/mcp`), or to `http://localhost:8888/mcp` in combined images where both services run in the same container.
+The `jupyter` layer declares `mcp_provide` for cross-container and pod MCP discovery. The URL template `http://{{.ContainerName}}:8888/mcp` resolves to the actual container name at deploy time (e.g., `http://ov-jupyter:8888/mcp`), or to `http://localhost:8888/mcp` in combined images where both services run in the same container.
 
 - **Transport:** Streamable HTTP (`http`)
 - **11 tools** available via the `jupyter-mcp` extension (see below)

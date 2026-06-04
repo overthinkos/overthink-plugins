@@ -31,7 +31,7 @@ description: |
 
 Pod-aware: same-container consumers receive `redis://localhost:6379`, cross-container consumers receive `redis://ov-valkey:6379`. When `ov config` runs, `REDIS_URL` is automatically injected into the global `deploy.yml` env for service discovery (Redis-compatible protocol).
 
-See `/ov-image:layer` for `env_provides` field docs.
+See `/ov-image:layer` for `env_provide` field docs.
 
 ## Packages
 
@@ -66,5 +66,5 @@ Use when the user asks about:
 
 ## Author + Test References
 
-- `/ov-image:layer` — layer authoring reference (tasks, vars, env_provides, tests block syntax)
+- `/ov-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
 - `/ov-eval:eval` — declarative testing framework for the `eval:` block

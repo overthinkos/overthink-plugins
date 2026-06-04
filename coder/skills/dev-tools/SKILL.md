@@ -33,7 +33,7 @@ RPM (with `--setopt=tsflags=noscripts`): `android-tools`, `apptainer`, `apptaine
 Both Debian and Ubuntu rename `bat` → `batcat` in their archives to avoid a namespace collision with a legacy `bacula` utility. The `bat` package installs only `/usr/bin/batcat`; nothing lives at `/usr/bin/bat`. To keep downstream scripts, docs, and declarative tests portable, the layer ships a distro-tolerant symlink task:
 
 ```yaml
-tasks:
+task:
   - cmd: |
       if [ -f /usr/bin/batcat ] && [ ! -e /usr/bin/bat ]; then
         ln -sf /usr/bin/batcat /usr/bin/bat

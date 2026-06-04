@@ -107,7 +107,7 @@ Open WebUI receives:
 
 ## Key Layers
 
-- `/ov-openwebui:openwebui` — Auto-config entrypoint, secrets, env_accepts, TOOL_SERVER_CONNECTIONS format
+- `/ov-openwebui:openwebui` — Auto-config entrypoint, secrets, env_accept, TOOL_SERVER_CONNECTIONS format
 - `/ov-distros:agent-forwarding` — SSH/GPG forwarding
 
 ## Related Images

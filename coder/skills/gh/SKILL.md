@@ -30,7 +30,7 @@ fail (loudly or silently) inside a buildah container. We install with
 noscripts and then run the git-lfs hook configuration manually:
 
 ```yaml
-tasks:
+task:
   - cmd: /usr/bin/git-lfs install --system --skip-repo 2>/dev/null || true
     user: root
 ```

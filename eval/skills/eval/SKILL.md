@@ -361,7 +361,7 @@ explicit subcommand names below take over when matched.
 | `ov eval wl …` | `/ov-eval:wl` | Wayland desktop input/windows/clipboard + sway IPC |
 | `ov eval dbus …` | `/ov-eval:dbus` | D-Bus calls, introspection, desktop notifications |
 | `ov eval vnc …` | `/ov-eval:vnc` | VNC framebuffer screenshot + click/key/type/passwd |
-| `ov eval mcp …` | (this skill) | MCP client — ping/list-tools/list-resources/list-prompts/call/read/servers against any `mcp_provides` endpoint. Speaks `github.com/modelcontextprotocol/go-sdk` (Streamable HTTP by default, SSE when `transport: sse`). |
+| `ov eval mcp …` | (this skill) | MCP client — ping/list-tools/list-resources/list-prompts/call/read/servers against any `mcp_provide` endpoint. Speaks `github.com/modelcontextprotocol/go-sdk` (Streamable HTTP by default, SSE when `transport: sse`). |
 | `ov eval record …` | `/ov-eval:record` | Recording sessions — start/stop/list/cmd. Terminal (asciinema) or desktop (pixelflux/wf-recorder). Container-only. |
 | `ov eval spice …` | `/ov-eval:spice` | SPICE wire client for VMs — handshake, native-SPICE framebuffer screenshot, input injection. VM-only. |
 | `ov eval libvirt …` | `/ov-eval:libvirt` | libvirt-RPC test commands for VMs — info, domain XML, QMP, qemu-guest-agent, snapshots, events. VM-only. |
@@ -474,7 +474,7 @@ naturally. An empty-string map value falls through to the next tag
 | `wl` | Method name (screenshot/status/click/type/key/key-combo/mouse/scroll/drag/clipboard/toplevel/windows/focus/close/geometry/xprop/atspi/exec/resolution + overlay-*/sway-*) + method-specific modifiers (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `ov eval wl <method>` (including `sway` and `overlay` nested subgroups). See Live-container verb catalog below. |
 | `dbus` | Method name (list/call/introspect/notify) + method-specific modifiers (`dest`, `path`, `method`, `args`, `text`) + shared matchers | **Deploy-scope only.** Wraps `ov eval dbus <method>`. |
 | `vnc` | Method name (status/screenshot/click/mouse/type/key/rfb/passwd) + method-specific modifiers (`x`, `y`, `text`, `key`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `ov eval vnc <method>`. |
-| `mcp` | Method name (ping/servers/list-tools/list-resources/list-prompts/call/read) + method-specific modifiers (`tool`, `uri`, `input`, `mcp_name`) + shared matchers | **Deploy-scope only.** Speaks `github.com/modelcontextprotocol/go-sdk` to any `mcp_provides` endpoint. See "Method allowlist — mcp" below. |
+| `mcp` | Method name (ping/servers/list-tools/list-resources/list-prompts/call/read) + method-specific modifiers (`tool`, `uri`, `input`, `mcp_name`) + shared matchers | **Deploy-scope only.** Speaks `github.com/modelcontextprotocol/go-sdk` to any `mcp_provide` endpoint. See "Method allowlist — mcp" below. |
 
 ### Shared modifiers
 
@@ -650,7 +650,7 @@ Queries: `ping`, `servers`, `list-tools`, `list-resources`, `list-prompts`,
 Actions: `call`.
 
 The `mcp` verb speaks the Model Context Protocol to any server advertised
-via `mcp_provides`. URL resolution is automatic — the runner reads the
+via `mcp_provide`. URL resolution is automatic — the runner reads the
 image's `org.overthinkos.mcp_provides` OCI label, substitutes
 `{{.ContainerName}}`, runs the entries through `podAwareMCPProvides`, and
 then rewrites the host portion to `127.0.0.1:<published-host-port>` using
@@ -660,7 +660,7 @@ is needed in YAML.
 Transport dispatch: `transport: http` (or empty) → Streamable HTTP;
 `transport: sse` → SSE. Anything else is rejected at dial time.
 
-Disambiguation: if an image declares multiple `mcp_provides` entries,
+Disambiguation: if an image declares multiple `mcp_provide` entries,
 add `mcp_name: <server>` on the check; otherwise the single entry
 auto-picks.
 

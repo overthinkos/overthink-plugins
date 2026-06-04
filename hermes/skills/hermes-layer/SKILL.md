@@ -27,7 +27,7 @@ description: |
 | `HERMES_HOME` | `/opt/data` |
 | `TERMINAL_ENV` | `local` |
 
-## Optional Environment Variables (env_accepts)
+## Optional Environment Variables (env_accept)
 
 These env vars are declared via `env_accept:` in `layer.yml` — hermes can use any LLM provider, so none are required:
 
@@ -35,12 +35,12 @@ These env vars are declared via `env_accept:` in `layer.yml` — hermes can use 
 |----------|-------------|
 | `OPENROUTER_API_KEY` | API key for OpenRouter LLM inference |
 | `OLLAMA_API_KEY` | API key for Ollama Cloud inference (https://ollama.com) |
-| `OLLAMA_HOST` | Local Ollama server URL (auto-injected by ollama layer `env_provides`) |
+| `OLLAMA_HOST` | Local Ollama server URL (auto-injected by ollama layer `env_provide`) |
 | `HERMES_MODEL` | Override default Hermes model (default depends on detected provider) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token for messaging |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `DISCORD_BOT_TOKEN` | Discord bot token |
-| `OV_MCP_SERVERS` | JSON array of MCP servers (auto-injected by mcp_provides layers) |
+| `OV_MCP_SERVERS` | JSON array of MCP servers (auto-injected by mcp_provide layers) |
 
 Provide via `ov config hermes -e OLLAMA_API_KEY=...` or workspace `.secrets` / `.env` file.
 
@@ -115,13 +115,13 @@ Hermes has browser tools (`browser_navigate`, `browser_click`, `browser_snapshot
 | 3 | Browserbase configured | Cloud session | Remote cloud browser |
 | 4 | *(default)* | Local headless (`agent-browser --session`) | Requires Playwright Chromium |
 
-**Cross-container with selkies-desktop:** Deploy `hermes` alongside `selkies-desktop` as separate pods. The chrome layer's `env_provides: BROWSER_CDP_URL` injects `http://ov-selkies-desktop:9222` into the hermes quadlet via `ov config --update-all`. Hermes uses the desktop Chrome — the user sees hermes browsing in real-time at `:3000`. The `cdp-proxy` in the chrome layer rewrites Host headers for Chrome 146+ compatibility.
+**Cross-container with selkies-desktop:** Deploy `hermes` alongside `selkies-desktop` as separate pods. The chrome layer's `env_provide: BROWSER_CDP_URL` injects `http://ov-selkies-desktop:9222` into the hermes quadlet via `ov config --update-all`. Hermes uses the desktop Chrome — the user sees hermes browsing in real-time at `:3000`. The `cdp-proxy` in the chrome layer rewrites Host headers for Chrome 146+ compatibility.
 
 **In standalone images** (`hermes-playwright`): The `hermes-playwright` layer provides Playwright Chromium for local headless mode (backend #4).
 
-**In headless images** (`hermes`): No browser binary installed. Browser tools fail unless `BROWSER_CDP_URL` points to an external Chrome (cross-container via `env_provides`).
+**In headless images** (`hermes`): No browser binary installed. Browser tools fail unless `BROWSER_CDP_URL` points to an external Chrome (cross-container via `env_provide`).
 
-**Cross-container:** Deploy Chrome/Selkies in one container and hermes in another. `ov config` injects `BROWSER_CDP_URL=http://ov-<chrome-image>:9222` into hermes's quadlet via `env_provides`. Port 9222 is reachable via the chrome layer's `port_relay`.
+**Cross-container:** Deploy Chrome/Selkies in one container and hermes in another. `ov config` injects `BROWSER_CDP_URL=http://ov-<chrome-image>:9222` into hermes's quadlet via `env_provide`. Port 9222 is reachable via the chrome layer's `port_relay`.
 
 Runtime commands: `/browser connect [url]`, `/browser disconnect`, `/browser status`.
 
@@ -158,14 +158,14 @@ hermes:
 - `/ov-selkies:ffmpeg` -- audio/video processing (negativo17 nonfree codecs)
 - `/ov-selkies:pipewire` -- audio support for voice features
 - `/ov-hermes:hermes-playwright` -- optional Playwright Chromium browser (standalone headless mode)
-- `/ov-selkies:chrome` -- provides `BROWSER_CDP_URL` via `env_provides` for shared browser in desktop images
-- `/ov-jupyter:jupyter` -- MCP server provider (`mcp_provides: jupyter`)
-- `/ov-selkies:chrome-devtools-mcp` -- Chrome DevTools MCP server (`mcp_provides: chrome-devtools`, 29 tools)
+- `/ov-selkies:chrome` -- provides `BROWSER_CDP_URL` via `env_provide` for shared browser in desktop images
+- `/ov-jupyter:jupyter` -- MCP server provider (`mcp_provide: jupyter`)
+- `/ov-selkies:chrome-devtools-mcp` -- Chrome DevTools MCP server (`mcp_provide: chrome-devtools`, 29 tools)
 
 ## Related Commands
 
 - `/ov-eval:cdp` — CDP automation; hermes uses the same Chrome endpoint via `BROWSER_CDP_URL`
-- `/ov-core:ov-config` — Injects `BROWSER_CDP_URL` and `OV_MCP_SERVERS` via pod-aware `env_provides`/`mcp_provides`
+- `/ov-core:ov-config` — Injects `BROWSER_CDP_URL` and `OV_MCP_SERVERS` via pod-aware `env_provide`/`mcp_provide`
 - `/ov-build:ov-mcp-cmd` — verify that the MCP servers hermes discovers (`jupyter`, `chrome-devtools`) are alive and exposing expected tools before hermes tries to call them: `ov eval mcp ping jupyter`, `ov eval mcp list-tools <image>`. Useful when hermes reports tool-call failures and you need to isolate whether the server or the agent is at fault.
 
 ## Related Images

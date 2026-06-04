@@ -88,10 +88,10 @@ This is the **single entry point** for **container** deployment setup. `ov start
 8. Initializes encrypted volumes (gocryptfs) if configured
 9. Seeds data layers into the image's volumes (bind mounts AND podman named volumes)
 10. Runs `systemctl --user daemon-reload`
-11. Injects `env_provides` entries from image labels into deploy.yml `provides.env:` (resolves `{{.ContainerName}}` templates)
-12. Injects `mcp_provides` entries from image labels into deploy.yml `provides.mcp:` (resolves templates, defaults transport to `http`)
+11. Injects `env_provide` entries from image labels into deploy.yml `provides.env:` (resolves `{{.ContainerName}}` templates)
+12. Injects `mcp_provide` entries from image labels into deploy.yml `provides.mcp:` (resolves templates, defaults transport to `http`)
 13. Synthesizes `OV_MCP_SERVERS` JSON env var for consumer containers (pod-aware: same-image entries resolve to `localhost`)
-14. Warns about missing `mcp_requires` servers (same pattern as `env_requires` warnings)
+14. Warns about missing `mcp_require` servers (same pattern as `env_require` warnings)
 15. If `--update-all`, regenerates quadlets for all other deployed images (preserving Instance, Tunnel, PodName, Sidecars, and instance-scoped volume names) and reloads systemd
 
 ## Volume Backing
@@ -343,7 +343,7 @@ ov eval cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
 
 ## Service Environment Injection
 
-When a configured image declares `env_provides` or `mcp_provides` in its layers (stored in OCI labels), `ov config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `ov eval mcp ping <image>` — see `/ov-build:ov-mcp-cmd` for the full verb surface.
+When a configured image declares `env_provide` or `mcp_provide` in its layers (stored in OCI labels), `ov config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `ov eval mcp ping <image>` — see `/ov-build:ov-mcp-cmd` for the full verb surface.
 
 ```yaml
 # deploy.yml after `ov config ollama && ov config jupyter`
@@ -362,7 +362,7 @@ deploy:
   jupyter: { ... }
 ```
 
-**Self-exclusion (env):** An image's own env_provides vars are filtered out of its own environment — the image uses its own `env:` (e.g., `OLLAMA_HOST=0.0.0.0`), not the service discovery URL.
+**Self-exclusion (env):** An image's own env_provide vars are filtered out of its own environment — the image uses its own `env:` (e.g., `OLLAMA_HOST=0.0.0.0`), not the service discovery URL.
 
 **Pod-aware (MCP):** When provider and consumer share a container, MCP URLs resolve to `localhost` instead of container hostname. No self-exclusion for MCP — same-container consumers always see their own MCP servers.
 
@@ -370,7 +370,7 @@ deploy:
 
 **Cleanup:** `ov config remove` and `ov remove` automatically remove the service's injected vars from the global env.
 
-See `/ov-image:layer` for `env_provides` field documentation.
+See `/ov-image:layer` for `env_provide` field documentation.
 
 ### Instance-Aware MCP Server Naming
 
@@ -420,7 +420,7 @@ All providers whose keys are present get registered simultaneously. Priority (`O
 
 ## Open WebUI Auto-Configuration Example
 
-Open WebUI uses `env_requires` for mandatory admin credentials and `env_accepts` for optional LLM providers:
+Open WebUI uses `env_require` for mandatory admin credentials and `env_accept` for optional LLM providers:
 
 ```bash
 # Minimal: admin credentials required (hard error if missing)
@@ -438,11 +438,11 @@ ov config jupyter --update-all
 ov config openwebui ... --update-all
 ```
 
-The entrypoint auto-configures: OpenRouter + Ollama Cloud as semicolon-separated `OPENAI_API_BASE_URLS`, MCP servers from `OV_MCP_SERVERS` → `TOOL_SERVER_CONNECTIONS`, Jupyter code execution from co-deployed jupyter container. `ENABLE_OLLAMA_API` is disabled unless a local Ollama is deployed via `env_provides`. See `/ov-openwebui:openwebui` for details.
+The entrypoint auto-configures: OpenRouter + Ollama Cloud as semicolon-separated `OPENAI_API_BASE_URLS`, MCP servers from `OV_MCP_SERVERS` → `TOOL_SERVER_CONNECTIONS`, Jupyter code execution from co-deployed jupyter container. `ENABLE_OLLAMA_API` is disabled unless a local Ollama is deployed via `env_provide`. See `/ov-openwebui:openwebui` for details.
 
-## env_requires Enforcement
+## env_require Enforcement
 
-Layers can declare `env_requires` in `layer.yml` for mandatory environment variables. `ov config` performs a hard check after resolving all env vars — if any required var is missing, it aborts before writing the quadlet and prints clear instructions:
+Layers can declare `env_require` in `layer.yml` for mandatory environment variables. `ov config` performs a hard check after resolving all env vars — if any required var is missing, it aborts before writing the quadlet and prints clear instructions:
 
 ```
 Error: openwebui requires the following environment variable(s):
@@ -456,9 +456,9 @@ Set them with -e flags, --env-file, or deploy.yml env:
 
 Source: `ov/config_image.go` (`checkMissingEnvRequires`).
 
-## secret_requires Enforcement
+## secret_require Enforcement
 
-Parallel to `env_requires` but for credential-backed env vars. Layers declare `secret_requires` in `layer.yml` (see `/ov-image:layer`). `ov config` resolves each entry from the credential store via `ResolveCredential` and, if any required value is not stored, aborts with a clear remediation message:
+Parallel to `env_require` but for credential-backed env vars. Layers declare `secret_require` in `layer.yml` (see `/ov-image:layer`). `ov config` resolves each entry from the credential store via `ResolveCredential` and, if any required value is not stored, aborts with a clear remediation message:
 
 ```
 Error: openwebui requires the following credential-backed secret(s):
@@ -478,7 +478,7 @@ Source: `ov/config_image.go` (`checkMissingSecretRequires`).
 
 ## Plaintext-to-Credential Migration Hook
 
-When `ov config <image>` runs, it automatically migrates any existing plaintext `NAME=VAL` entry in `deploy.yml`'s `env:` list whose NAME is now declared as `secret_accepts` / `secret_requires` on the image. The sequence:
+When `ov config <image>` runs, it automatically migrates any existing plaintext `NAME=VAL` entry in `deploy.yml`'s `env:` list whose NAME is now declared as `secret_accept` / `secret_require` on the image. The sequence:
 
 1. Scan `dc.Images[deployKey(image, instance)].Env` for names that match `meta.SecretAccepts` / `meta.SecretRequires`
 2. For each match: copy the value to the credential store at the layer-declared `(service, key)` path (default `ov/secret/<NAME>`), remove the entry from `dc.Env`, mark the deploy config dirty
@@ -490,9 +490,9 @@ Idempotent — running on a clean host is a no-op. This gives pre-upgrade hosts 
 
 Source: `ov/config_secret_migration.go` (`MigratePlaintextEnvSecrets`).
 
-## `-e` Auto-Import for `secret_accepts` / `secret_requires`
+## `-e` Auto-Import for `secret_accept` / `secret_require`
 
-When a `-e NAME=VAL` flag targets an env var declared as `secret_accepts` / `secret_requires` on the image, `ov config` auto-imports the value into the credential store and strips it from `c.Env` before the plaintext env merge runs. The stderr output shows each imported key:
+When a `-e NAME=VAL` flag targets an env var declared as `secret_accept` / `secret_require` on the image, `ov config` auto-imports the value into the credential store and strips it from `c.Env` before the plaintext env merge runs. The stderr output shows each imported key:
 
 ```
 Imported WEBUI_ADMIN_PASSWORD into credential store (ov/secret/WEBUI_ADMIN_PASSWORD)
@@ -501,31 +501,31 @@ Imported OPENROUTER_API_KEY into credential store (ov/api-key/openrouter)
 
 The normal secret resolution path then picks up the value from the backend on the same `ov config` invocation. First-time setup is a single command; subsequent runs don't need `-e`.
 
-Plain `env_accepts` / `env_requires` entries are unaffected — their `-e` values continue to flow through the plaintext env merge into `deploy.yml` and the quadlet as before.
+Plain `env_accept` / `env_require` entries are unaffected — their `-e` values continue to flow through the plaintext env merge into `deploy.yml` and the quadlet as before.
 
 Source: `ov/config_secret_migration.go` (`scrubSecretCLIEnv`).
 
-## Provides Filtering (env_accepts / env_requires opt-in)
+## Provides Filtering (env_accept / env_require opt-in)
 
-`env_provides` is the **supply** side of cross-container env discovery. `env_accepts` and `env_requires` are the **demand** side. The provide-resolution pipeline in `provides.go` intersects the two sets per consumer, so env vars flow through deploy.yml's `provides:` section only to consumers that explicitly asked for them.
+`env_provide` is the **supply** side of cross-container env discovery. `env_accept` and `env_require` are the **demand** side. The provide-resolution pipeline in `provides.go` intersects the two sets per consumer, so env vars flow through deploy.yml's `provides:` section only to consumers that explicitly asked for them.
 
-**Why filtering exists.** Without it, every deployed service would see every other service's `env_provides` — a chrome layer would receive tailscale sidecar `TS_*` vars, a postgres layer would receive ollama's `OLLAMA_HOST`, and the env table would quickly become noise. Explicit opt-in via `env_accepts`/`env_requires` is how we enforce the principle that services must declare the contracts they rely on.
+**Why filtering exists.** Without it, every deployed service would see every other service's `env_provide` — a chrome layer would receive tailscale sidecar `TS_*` vars, a postgres layer would receive ollama's `OLLAMA_HOST`, and the env table would quickly become noise. Explicit opt-in via `env_accept`/`env_require` is how we enforce the principle that services must declare the contracts they rely on.
 
 **Resolution per variable:**
 
 | Consumer declared | Provider deployed | Result |
 |---|---|---|
-| `env_requires: [X]` (no default) | yes (X in `env_provides`) | X resolved, injected via `provides:` |
-| `env_requires: [X]` (no default) | **no** | **`ov config` aborts with a hard error** |
-| `env_requires: [X]` with default | no | default used |
-| `env_accepts: [X]` | yes | X resolved, injected |
-| `env_accepts: [X]` | no | var silently omitted |
+| `env_require: [X]` (no default) | yes (X in `env_provide`) | X resolved, injected via `provides:` |
+| `env_require: [X]` (no default) | **no** | **`ov config` aborts with a hard error** |
+| `env_require: [X]` with default | no | default used |
+| `env_accept: [X]` | yes | X resolved, injected |
+| `env_accept: [X]` | no | var silently omitted |
 | neither accepts nor requires X | yes | **var is silently dropped** (filtering in action) |
 | neither accepts nor requires X | no | nothing happens |
 
-**Sidecar interaction.** Sidecars (e.g., the tailscale sidecar) participate in the same filtering pipeline — their `TS_*` env set is routed to the sidecar container, not auto-merged into the app container. For the app to see anything from the sidecar, it must declare `env_accepts: [<var>]` or `env_requires: [<var>]`. See `/ov-automation:sidecar` (Environment Contract) for the pattern.
+**Sidecar interaction.** Sidecars (e.g., the tailscale sidecar) participate in the same filtering pipeline — their `TS_*` env set is routed to the sidecar container, not auto-merged into the app container. For the app to see anything from the sidecar, it must declare `env_accept: [<var>]` or `env_require: [<var>]`. See `/ov-automation:sidecar` (Environment Contract) for the pattern.
 
-**`--update-all` effect.** When filtering rules change (e.g., a layer adds a new `env_accepts` entry), `ov config <any-image> --update-all` re-runs the resolution pipeline for every deployed image and writes updated `provides:` blocks to their quadlets. Propagation is atomic per-image.
+**`--update-all` effect.** When filtering rules change (e.g., a layer adds a new `env_accept` entry), `ov config <any-image> --update-all` re-runs the resolution pipeline for every deployed image and writes updated `provides:` blocks to their quadlets. Propagation is atomic per-image.
 
 Source: `ov/provides.go` (resolution, filtering, `{{.ContainerName}}` templating), `ov/config_image.go` (`injectEnvProvides`, `injectMCPProvides`, `checkMissingEnvRequires`).
 
@@ -580,11 +580,11 @@ Source: `ov/envfile.go` (`normalizeNoProxy`), `ov/deploy.go` (`mergeEnvVars`, `s
 - `/ov-build:secrets` — Container secret management, `ov secrets gpg set TS_AUTHKEY`
 - `/ov-build:settings` — Runtime settings (engine, run_mode, encrypted_storage_path)
 - `/ov-core:service` — Service lifecycle (start, stop, status, logs)
-- `/ov-image:layer` — Volume, secret, `env_provides` / `env_requires` / `env_accepts` declarations, security resource cap fields, `service:` blocks
+- `/ov-image:layer` — Volume, secret, `env_provide` / `env_require` / `env_accept` declarations, security resource cap fields, `service:` blocks
 - `/ov-image:image` — Image composition, inheritance, OCI label emission, tunnel deploy.yml-only note (`labels.go:238`)
 - `/ov-core:ov-doctor` — Host GPU/device detection driving `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
 - `/ov-core:shell` — Interactive shells share the same `appendAutoDetectedEnv()` path
-- `/ov-selkies:chrome` — Chrome HTTP proxy (`env_accepts`), NO_PROXY auto-enrichment, resource caps, crash-loop circuit breaker
+- `/ov-selkies:chrome` — Chrome HTTP proxy (`env_accept`), NO_PROXY auto-enrichment, resource caps, crash-loop circuit breaker
 - `/ov-infrastructure:supervisord` — Event listener pattern that pairs with the resource caps
 - `/ov-distros:nvidia`, `/ov-distros:rocm` — GPU layers that consume DRINODE auto-injection
 - `/ov-selkies:selkies` — Pixelflux DRINODE consumer + ScreenCapture singleton

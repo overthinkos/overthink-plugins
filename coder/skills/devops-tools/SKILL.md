@@ -54,5 +54,5 @@ Use when the user asks about:
 
 ## Author + Test References
 
-- `/ov-image:layer` — layer authoring reference (tasks, vars, env_provides, tests block syntax)
+- `/ov-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
 - `/ov-eval:eval` — declarative testing framework for the `eval:` block

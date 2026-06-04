@@ -23,7 +23,7 @@ Schema sources (read these for the canonical truth):
 
 ## Sidecars
 
-`sidecar:` declares co-running containers with their own env-var routing (`env_accepts` / `env_requires`). See `/ov-automation:sidecar` for the topic skill.
+`sidecar:` declares co-running containers with their own env-var routing (`env_accept` / `env_require`). See `/ov-automation:sidecar` for the topic skill.
 
 ## Cross-references
 

@@ -45,7 +45,7 @@ reachable, always on PATH, no HOME gymnastics.
 ## Install task
 
 ```yaml
-tasks:
+task:
   - download: "https://github.com/astral-sh/uv/releases/latest/download/uv-${BUILD_ARCH}-unknown-linux-gnu.tar.gz"
     extract: tar.gz
     strip_components: 1

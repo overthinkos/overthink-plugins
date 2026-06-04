@@ -1,7 +1,7 @@
 ---
 name: layer
 description: |
-  MUST be invoked before any work involving: layer authoring, layer.yml, tasks, pixi.toml, package.json, Cargo.toml, or any file under layers/. This skill is the authoritative reference for the `task:` verb catalog, `vars:` substitution, execution order, and per-verb validation. Every other skill defers here for install-schema questions.
+  MUST be invoked before any work involving: layer authoring, layer.yml, tasks, pixi.toml, package.json, Cargo.toml, or any file under layers/. This skill is the authoritative reference for the `task:` verb catalog, `var:` substitution, execution order, and per-verb validation. Every other skill defers here for install-schema questions.
 ---
 
 # Layer - Layer Authoring
@@ -14,7 +14,7 @@ There is **one YAML file per layer** for install logic — no separate Taskfiles
 
 ## `directory:` — where the layer's config files live
 
-A layer.yml's relative file references (`tasks.copy`, `tasks.write` inline paths, `data.src`, install-file probes like `pixi.toml` / `package.json`, service-file globs) resolve against **`directory:`**, which defaults to `.` (the directory containing layer.yml).
+A layer.yml's relative file references (`task.copy`, `task.write` inline paths, `data.src`, install-file probes like `pixi.toml` / `package.json`, service-file globs) resolve against **`directory:`**, which defaults to `.` (the directory containing layer.yml).
 
 Use `directory:` to keep layer.yml and its supporting config files in separate directories:
 
@@ -22,7 +22,7 @@ Use `directory:` to keep layer.yml and its supporting config files in separate d
 # layers/my-app/layer.yml
 directory: ../../configs/my-app       # resolves relative to layer.yml's dir
 rpm: { packages: [foo] }
-tasks:
+task:
   - copy: policies.json                # found at configs/my-app/policies.json
 ```
 
@@ -43,7 +43,7 @@ layer:
   name: chrome
   directory: .
   rpm: { packages: [chromium] }
-  tasks:
+  task:
     - copy: policies.json
 ```
 
@@ -78,8 +78,8 @@ ov layer add-pac sshd openssh
 # Set any field by dot-path (value is parsed as YAML):
 ov layer set sshd env.SSHD_PORT 22
 ov layer set sshd service.name sshd
-ov layer set sshd ports '["22:22"]'
-ov layer set sshd requires '[supervisord]'
+ov layer set sshd port '["22:22"]'
+ov layer set sshd require '[supervisord]'
 
 # Free-form files (layer scripts, pixi.toml, root.yml, *.service):
 ov image write layers/sshd/root.yml --content 'tasks:\n  - cmd: echo configured\n'
@@ -258,15 +258,15 @@ They happen to emit `COPY` directives under the hood, but they have entirely dis
 
 ---
 
-## `vars:` and `${VAR}` Substitution
+## `var:` and `${VAR}` Substitution
 
-`vars:` is a layer-local `map[string]string`. Values are emitted as `ENV` before the layer's tasks, so every subsequent directive in the layer (including `COPY --chmod=` paths) sees them as shell-resolvable `${VAR}` references.
+`var:` is a layer-local `map[string]string`. Values are emitted as `ENV` before the layer's tasks, so every subsequent directive in the layer (including `COPY --chmod=` paths) sees them as shell-resolvable `${VAR}` references.
 
 ```yaml
-vars:
+var:
   TRAEFIK_VERSION: v3.4.0
 
-tasks:
+task:
   - download: "https://github.com/traefik/traefik/releases/download/${TRAEFIK_VERSION}/traefik_${TRAEFIK_VERSION}_linux_${ARCH}.tar.gz"
     extract: tar.gz
     to: /usr/local/bin
@@ -276,7 +276,7 @@ tasks:
 
 ### Auto-exports
 
-These names are reserved — `vars:` may not shadow them:
+These names are reserved — `var:` may not shadow them:
 
 | Name | Value | Resolution |
 |---|---|---|
@@ -302,7 +302,7 @@ Everything else (paths, URLs, modes, `to`, `target`, `user`, etc.) resolves via 
 
 ### Validation
 
-- `vars:` keys must match `^[A-Z_][A-Z0-9_]*$` (standard shell identifier)
+- `var:` keys must match `^[A-Z_][A-Z0-9_]*$` (standard shell identifier)
 - Keys may not collide with auto-exports or with the layer's own `env:` keys
 - Unresolved `${VAR}` in non-shell fields (paths, URLs, etc.) errors at `ov image validate`
 
@@ -314,7 +314,7 @@ Every task — root or user — must be written out in full. Do **not** use YAML
 
 ```yaml
 # Style across the repo — root and user tasks look identical in shape:
-tasks:
+task:
   - mkdir: /etc/traefik
     user: root
     mode: "0755"
@@ -388,7 +388,7 @@ The `user:` field accepts:
 **User creation is explicit.** If you reference a literal username, an earlier `cmd:` task (as root) must `useradd` them. The generator does not auto-create users. Example:
 
 ```yaml
-tasks:
+task:
   - cmd: |
       useradd -r -u 1010 -g root -s /sbin/nologin immich
       mkdir -p /srv/immich && chown -R immich:root /srv/immich
@@ -409,12 +409,12 @@ tasks:
 | `version` | `string` | **MANDATORY** CalVer (`YYYY.DDD.HHMM`) of this layer definition — the layer kind requires it (`ov image validate` hard-errors when absent; `ov migrate` backfills it). The authoritative per-entity identity: it drives cross-repo layer resolution (`pickLayerVersion`) and, as the highest layer version, the consuming image's content-stable `org.overthinkos.version` label. Bump it when the layer's content changes. |
 | `status` | `string` | `working`, `testing`, or `broken`. Default: `testing`. |
 | `info` | `string` | Free-form description of what works / doesn't. Recommended for `testing` / `broken`. |
-| `requires` | `[]string` | Layer dependencies. Resolved transitively, topologically sorted. |
-| `layers` | `[]string` | Compose other layers into this one (splicing). |
+| `require` | `[]string` | Layer dependencies. Resolved transitively, topologically sorted. |
+| `layer` | `[]string` | Compose other layers into this one (splicing). |
 | `env` | `map[string]string` | Container-runtime environment variables. Merged across layers. |
 | `path_append` | `[]string` | Paths appended to `$PATH`. Deduplicated. |
-| `vars` | `map[string]string` | **Build-time** layer-local variables for `${VAR}` substitution. Emitted as `ENV` before tasks. |
-| `tasks` | `[]Task` | **Ordered** install operations. See Task Verb Catalog above. |
+| `var` | `map[string]string` | **Build-time** layer-local variables for `${VAR}` substitution. Emitted as `ENV` before tasks. |
+| `task` | `[]Task` | **Ordered** install operations. See Task Verb Catalog above. |
 | `ports` | `[]int \| []PortSpec` | Exposed ports (1-65535). Protocol-annotated form: `tcp:5900`, `https+insecure:3000`, etc. |
 | `route` | `{host, port}` | Traefik reverse proxy route. |
 | `service` | multiline string | Supervisord `[program:<name>]` fragment. |
@@ -429,11 +429,11 @@ tasks:
 | `hooks` | `HooksConfig` | Lifecycle hooks: `post_enable` (after `ov config`), `pre_remove` (before `ov remove`). |
 | `libvirt` | `[]string` | Raw libvirt XML snippets for VM domain XML injection. |
 | `data` | `[]DataYAML` | Data mappings (`src` → volume `dest`) for volume staging. |
-| `env_provides` | `map[string]string` | Env vars injected into OTHER containers when this service is deployed. Template: `{{.ContainerName}}`. |
-| `env_requires` | `[]EnvDependency` | Plaintext env vars this layer MUST have. Hard error at `ov config` if missing. |
-| `env_accepts` | `[]EnvDependency` | Plaintext env vars this layer CAN optionally use. Opt-in allowlist for `env_provides` injection. |
-| `secret_accepts` / `secret_requires` | `[]EnvDependency` | Credential-backed env vars. Values live in credential store, never in deploy.yml/quadlet. |
-| `mcp_provides` / `mcp_requires` / `mcp_accepts` | various | MCP server discovery analogous to `env_*`. |
+| `env_provide` | `map[string]string` | Env vars injected into OTHER containers when this service is deployed. Template: `{{.ContainerName}}`. |
+| `env_require` | `[]EnvDependency` | Plaintext env vars this layer MUST have. Hard error at `ov config` if missing. |
+| `env_accept` | `[]EnvDependency` | Plaintext env vars this layer CAN optionally use. Opt-in allowlist for `env_provide` injection. |
+| `secret_accept` / `secret_require` | `[]EnvDependency` | Credential-backed env vars. Values live in credential store, never in deploy.yml/quadlet. |
+| `mcp_provide` / `mcp_require` / `mcp_accept` | various | MCP server discovery analogous to `env_*`. |
 | `service` | `[]ServiceEntry` | Unified service list — see "Service Declaration" below. |
 
 Field details for non-`task:` sections are below.
@@ -577,24 +577,24 @@ The `replaces:` mechanism applies to host (`target: local`) deploys; in OCI imag
 
 ## Dependencies
 
-Layers declare dependencies via `requires`. The generator resolves transitively, topologically sorts, and pulls missing dependencies automatically. Circular dependencies are a validation error.
+Layers declare dependencies via `require`. The generator resolves transitively, topologically sorts, and pulls missing dependencies automatically. Circular dependencies are a validation error.
 
 ```yaml
-requires:
+require:
   - python
   - supervisord
 ```
 
-### `requires` vs `layers`
+### `require` vs `layer`
 
-| | `requires` | `layers` |
+| | `require` | `layer` |
 |---|---|---|
 | Purpose | Prerequisite ordering | Group composition |
 | Effect | Ensures dependency is installed first | Splices layers at this layer's position |
 | Transitive | Yes — pulls in sub-dependencies | Yes — recursively expands |
 | Typical use | Runtime/build prerequisites | Metalayers, layer bundles |
 
-**Common mistake:** `requires: [pixi]` when you mean `requires: [python]`. The `pixi` layer installs the pixi binary (build tool). The `python` layer installs Python via pixi. Your layer needs Python.
+**Common mistake:** `require: [pixi]` when you mean `require: [python]`. The `pixi` layer installs the pixi binary (build tool). The `python` layer installs Python via pixi. Your layer needs Python.
 
 ---
 
@@ -612,7 +612,7 @@ path_append:
 
 `~` and `$HOME` expand to the resolved home directory at generation time. Setting `PATH` directly in `env` is a validation error — use `path_append`. Later layers override earlier for the same key.
 
-**`env:` vs `vars:`:** `env:` is container **runtime** environment (emitted as `ENV` and persists into the running container). `vars:` is **build-time** substitution for `${VAR}` references inside `task:` — also emitted as `ENV` so BuildKit can substitute in COPY paths, but conceptually scoped to the layer's install. There's no hard rule against using `env:` for both purposes, but keeping them separate makes intent clearer.
+**`env:` vs `var:`:** `env:` is container **runtime** environment (emitted as `ENV` and persists into the running container). `var:` is **build-time** substitution for `${VAR}` references inside `task:` — also emitted as `ENV` so BuildKit can substitute in COPY paths, but conceptually scoped to the layer's install. There's no hard rule against using `env:` for both purposes, but keeping them separate makes intent clearer.
 
 **`env:` is a MAP, not a list.** The YAML parser decodes it as `map[string]string`, not `[]string`. Authoring it as `- KEY=value` fails with `cannot unmarshal !!seq into map[string]string` at `ov image validate`. Always use map form:
 
@@ -750,7 +750,7 @@ If you find yourself reaching for a `-host` suffix on a layer name, reach for a 
 ## Volume Declaration
 
 ```yaml
-volumes:
+volume:
   - name: data
     path: "~/.myapp"
 ```
@@ -802,7 +802,7 @@ Note: the chrome layer uses a dedicated `cdp-proxy` supervisord service instead 
 Ports support a protocol prefix that controls tunnel backend scheme and EXPOSE format:
 
 ```yaml
-ports:
+port:
   - 18789                   # http (default) → tailscale --https, cloudflared http://
   - "https+insecure:3000"   # https+insecure → HTTPS tunnel with self-signed OK
   - tcp:5900                # raw TCP
@@ -818,50 +818,50 @@ Tailscale schemes: `http`, `https`, `https+insecure`, `tcp`, `tls-terminated-tcp
 ## secrets (image-owned)
 
 ```yaml
-secrets:
+secret:
   - name: api-key                # Podman secret `ov-<image>-<name>`
     target: /run/secrets/api_key # mount path (default: /run/secrets/<name>)
     env: API_KEY                 # fallback env var if Podman secrets unavailable
 ```
 
-Metadata only lives in OCI labels. Values are auto-generated per instance at `ov config` time. Use for image-internal secrets (like `db-password`). For user-owned credentials (API keys, auth tokens), use `secret_accepts` / `secret_requires` instead.
+Metadata only lives in OCI labels. Values are auto-generated per instance at `ov config` time. Use for image-internal secrets (like `db-password`). For user-owned credentials (API keys, auth tokens), use `secret_accept` / `secret_require` instead.
 
 ---
 
-## env_provides / env_requires / env_accepts
+## env_provide / env_require / env_accept
 
-Cross-container environment-variable service discovery. `env_provides` is the supply side; `env_requires` (mandatory) and `env_accepts` (opt-in) are the demand side.
+Cross-container environment-variable service discovery. `env_provide` is the supply side; `env_require` (mandatory) and `env_accept` (opt-in) are the demand side.
 
 ```yaml
-env_provides:
+env_provide:
   OLLAMA_HOST: "http://{{.ContainerName}}:11434"
   PGHOST: "{{.ContainerName}}"
   PGPORT: "5432"
 
-env_requires:
+env_require:
   - name: DATABASE_URL
     description: "Postgres connection URL"
     default: "postgres://localhost:5432/app"
 
-env_accepts:
+env_accept:
   - name: HTTP_PROXY
     description: "Upstream HTTP proxy (optional)"
 ```
 
-`{{.ContainerName}}` resolves at `ov config` time. `env_provides` values are injected only into consumers that declare matching `env_accepts` or `env_requires` (opt-in filtering — prevents env var leakage). Missing `env_requires` without a default is a hard error at `ov config`; missing `env_accepts` silently drops the var.
+`{{.ContainerName}}` resolves at `ov config` time. `env_provide` values are injected only into consumers that declare matching `env_accept` or `env_require` (opt-in filtering — prevents env var leakage). Missing `env_require` without a default is a hard error at `ov config`; missing `env_accept` silently drops the var.
 
 See `/ov-core:ov-config` (`--update-all` flag, provides filtering) and `/ov-core:deploy` (deploy.yml `provides:` section) for the full lifecycle.
 
-## secret_accepts / secret_requires
+## secret_accept / secret_require
 
-Credential-backed env vars. Same YAML shape as `env_accepts` / `env_requires`, but values flow through the credential store (keyring → config) and arrive via Podman secrets — **never plaintext in deploy.yml or the quadlet**.
+Credential-backed env vars. Same YAML shape as `env_accept` / `env_require`, but values flow through the credential store (keyring → config) and arrive via Podman secrets — **never plaintext in deploy.yml or the quadlet**.
 
 ```yaml
-secret_requires:
+secret_require:
   - name: WEBUI_ADMIN_PASSWORD
     description: "Initial admin account password"
 
-secret_accepts:
+secret_accept:
   - name: OPENROUTER_API_KEY
     description: "API key for OpenRouter LLM inference"
     key: ov/api-key/openrouter     # optional override; default ov/secret/<NAME>
@@ -869,17 +869,17 @@ secret_accepts:
 
 Use for API keys, passwords, auth tokens. `key:` override must match `^ov/<service>/<key>$` (lowercase). Multiple layers sharing the same upstream credential (e.g. `ov/api-key/openrouter`) all resolve to the same stored value. See `/ov-build:secrets` for the credential-store chain, rotation, and `-e NAME=VAL` auto-import.
 
-## mcp_provides / mcp_requires / mcp_accepts
+## mcp_provide / mcp_require / mcp_accept
 
 Cross-container MCP server discovery. Consumers receive `OV_MCP_SERVERS` as a JSON env var at `ov config` time.
 
 ```yaml
-mcp_provides:
+mcp_provide:
   - name: jupyter
     url: "http://{{.ContainerName}}:8888/mcp"
     transport: http                # or "sse"
 
-mcp_accepts:
+mcp_accept:
   - name: jupyter
     description: "JupyterLab CRDT MCP server for notebook manipulation"
 ```
@@ -895,7 +895,7 @@ mcp_accepts:
 Data layers stage files from the layer directory into volume bind-mount areas. Build-time: files COPY into `/data/<volume>/[dest/]`. Deploy-time: `ov config --bind <volume>` provisions them into bind directories; `ov update` merges non-destructively.
 
 ```yaml
-volumes:
+volume:
   - name: workspace
     path: "~/workspace"
 
@@ -958,7 +958,7 @@ Create `package.json` in the layer directory; `layer.yml` depends on `nodejs`. T
 Go has no declarative manifest for global installs, so use `cmd:`:
 
 ```yaml
-requires:
+require:
   - golang
 
 env:
@@ -967,7 +967,7 @@ env:
 path_append:
   - "~/go/bin"
 
-tasks:
+task:
   - cmd: |
       go install github.com/org/tool/cmd/tool@latest
       go clean -cache
@@ -979,10 +979,10 @@ For cgo dependencies, add the required `-devel` packages to `rpm:`. Always `go c
 ### Add a binary download
 
 ```yaml
-vars:
+var:
   TOOL_VERSION: v1.2.3
 
-tasks:
+task:
   - download: "https://github.com/org/tool/releases/download/${TOOL_VERSION}/tool-linux-${ARCH}.tar.gz"
     extract: tar.gz
     to: /usr/local/bin
@@ -995,7 +995,7 @@ Use `${ARCH}` (BuildKit-style) if the release URL uses `amd64`/`arm64`; use `${B
 ### Install a wrapper script + make it the default
 
 ```yaml
-tasks:
+task:
   - mkdir: "${HOME}/.local/bin"
     user: "${USER}"
   - copy: my-wrapper
@@ -1012,7 +1012,7 @@ tasks:
 Use `write:` — never shell heredoc:
 
 ```yaml
-tasks:
+task:
   - write: /etc/my-app/config.yml
     mode: "0644"
     user: root
@@ -1136,12 +1136,12 @@ shell: schema. Idempotent.
 - `/ov-build:validate` — Validation rules (including per-verb task requirements).
 - `/ov-build:new` — Scaffolding a new layer directory.
 - `/ov-build:build` — Building images (`--no-cache` caveat; multi-stage scratch).
-- `/ov-core:ov-config` — Cross-container `env_provides` / `mcp_provides` injection; `env_requires` enforcement; `--update-all`; resource caps.
+- `/ov-core:ov-config` — Cross-container `env_provide` / `mcp_provide` injection; `env_require` enforcement; `--update-all`; resource caps.
 - `/ov-core:deploy` — `deploy.yml` `provides:` section; tunnel is deploy.yml-only.
 - `/ov-eval:eval` — `eval:` field for declarative layer checks (file/port/http/...); embedded in the `org.overthinkos.eval` OCI label under the `layer` section. Layer eval checks default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `layers/sshd/layer.yml`.
-- `/ov-automation:sidecar` — Sidecars as `env_provides` participants (tailscale `TS_*` filtering).
-- `/ov-build:secrets` — Credential store chain for `secret_accepts` / `secret_requires`.
-- `/ov-selkies:chrome` — Canonical consumer of `env_accepts` (proxy vars), resource caps (crash-loop circuit breaker), and heavy user-phase copy/mkdir task list.
+- `/ov-automation:sidecar` — Sidecars as `env_provide` participants (tailscale `TS_*` filtering).
+- `/ov-build:secrets` — Credential store chain for `secret_accept` / `secret_require`.
+- `/ov-selkies:chrome` — Canonical consumer of `env_accept` (proxy vars), resource caps (crash-loop circuit breaker), and heavy user-phase copy/mkdir task list.
 - `/ov-infrastructure:supervisord` — Event listener pattern triggered by resource caps.
 - `/ov-tools:ov` — The ov-binary layer (composed by every ov-driving image). Paired with `/ov-coder:ov-mcp` which turns any image into an MCP server exposing the full ov CLI.
 - `/ov-coder:ov-mcp` — Reference implementation of a meta-layer composition (`layers: [ov, supervisord]` — no install of its own, just wiring) with bind-mounted project directory and `OV_PROJECT_DIR` env-var plumbing.
@@ -1158,7 +1158,7 @@ A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `
 
 ## When to Use This Skill
 
-**MUST be invoked** for any task involving layer authoring, `layer.yml`, `task:`, `vars:`, `pixi.toml`, `package.json`, `Cargo.toml`, or any file under `layers/`. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** for any task involving layer authoring, `layer.yml`, `task:`, `var:`, `pixi.toml`, `package.json`, `Cargo.toml`, or any file under `layers/`. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Author layers before adding them to images. See `/ov-image:image` (composition), `/ov-build:build` (building), `/ov-build:generate` (emission internals).
 

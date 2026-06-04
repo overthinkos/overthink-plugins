@@ -321,7 +321,7 @@ ov eval cdp open selkies-labwc -i 45.39.130.21 "https://httpbin.org/ip"
 
 **MCP auto-disambiguation:** Each instance provides `chrome-devtools-<instance>` MCP server. Consumers (hermes) receive all instances in `OV_MCP_SERVERS` JSON after `--update-all`.
 
-See `/ov-core:ov-config` for `--update-all` propagation, `/ov-selkies:chrome` for `env_accepts` (HTTP_PROXY/HTTPS_PROXY/NO_PROXY).
+See `/ov-core:ov-config` for `--update-all` propagation, `/ov-selkies:chrome` for `env_accept` (HTTP_PROXY/HTTPS_PROXY/NO_PROXY).
 
 ## Build Pipeline Note
 

@@ -65,7 +65,7 @@ ov remove selkies-desktop -i 192.241.92.221          # Remove instance
 ov remove selkies-desktop -i 192.241.92.221 --purge  # Also purge volumes
 ```
 
-Instance removal automatically cleans the instance's `env_provides` and `mcp_provides` from `deploy.yml` provides section. Other instances of the same base image are unaffected.
+Instance removal automatically cleans the instance's `env_provide` and `mcp_provide` from `deploy.yml` provides section. Other instances of the same base image are unaffected.
 
 ## Cross-References
 
@@ -75,4 +75,4 @@ Instance removal automatically cleans the instance's `env_provides` and `mcp_pro
 - `/ov-core:ov-config` -- Configure/reconfigure services (see "Full instance removal" for 3-step cleanup)
 - `/ov-core:deploy` -- Deploy.yml management, tunnel configuration
 - `/ov-core:service` -- Full service lifecycle
-- `/ov-build:ov-mcp-cmd` -- after `ov config remove` cleans this instance's `mcp_provides` from the global `provides.mcp:` list, consumers' `OV_MCP_SERVERS` no longer lists it; use `ov eval mcp servers <consumer>` to confirm the cleanup propagated
+- `/ov-build:ov-mcp-cmd` -- after `ov config remove` cleans this instance's `mcp_provide` from the global `provides.mcp:` list, consumers' `OV_MCP_SERVERS` no longer lists it; use `ov eval mcp servers <consumer>` to confirm the cleanup propagated

@@ -71,7 +71,7 @@ ov alias install ollama
 
 ## Service Environment
 
-When deployed via `ov config ollama`, this image automatically provides `OLLAMA_HOST=http://ov-ollama:11434` to all other deployed containers via the `env_provides` mechanism. Use `--update-all` to propagate to already-deployed services:
+When deployed via `ov config ollama`, this image automatically provides `OLLAMA_HOST=http://ov-ollama:11434` to all other deployed containers via the `env_provide` mechanism. Use `--update-all` to propagate to already-deployed services:
 
 ```bash
 ov config ollama --update-all
@@ -89,8 +89,8 @@ This means containers like `jupyter-ml-notebook` automatically discover the Olla
 - `/ov-distros:nvidia` — parent (GPU without Ollama)
 - **CachyOS variant** — `cachyos.ollama` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base) in the `overthinkos/cachyos` submodule. See `/ov-distros:cachyos`.
 - `/ov-openclaw:openclaw-desktop` — composes the `ollama` layer CPU-only (cachyos base, no `cuda`) alongside a streaming desktop + the openclaw gateway + the nested ov toolchain
-- `/ov-jupyter:jupyter-ml-notebook` — Jupyter with Ollama integration notebooks (receives `OLLAMA_HOST` automatically via env_provides when ollama is deployed)
-- `/ov-openwebui:openwebui` — Open WebUI (receives `OLLAMA_HOST` via env_provides, auto-configures as `OLLAMA_BASE_URL`)
+- `/ov-jupyter:jupyter-ml-notebook` — Jupyter with Ollama integration notebooks (receives `OLLAMA_HOST` automatically via env_provide when ollama is deployed)
+- `/ov-openwebui:openwebui` — Open WebUI (receives `OLLAMA_HOST` via env_provide, auto-configures as `OLLAMA_BASE_URL`)
 
 ## Related Layers
 

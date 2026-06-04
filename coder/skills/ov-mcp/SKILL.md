@@ -21,7 +21,7 @@ description: |
 | Service | supervisord-managed `ov-mcp` program |
 | Volumes | `project` → `/workspace` (bind-mount the project root from the host) |
 | Env | `OV_PROJECT_DIR: "/workspace"` |
-| mcp_provides | `{name: ov, url: http://{{.ContainerName}}:18765/mcp, transport: http}` |
+| mcp_provide | `{name: ov, url: http://{{.ContainerName}}:18765/mcp, transport: http}` |
 
 **Volume naming note:** the volume NAME is `project` (deployer-facing
 API: `ov config <image> --bind project=/path`) but the in-container PATH
@@ -52,7 +52,7 @@ distinction:
 - `layer:` says "I *am* these layers plus my additions."
 
 `ov-mcp` installs no packages and copies no files — it's pure wiring
-(service block, mcp_provides declaration, volumes/env, one mkdir
+(service block, mcp_provide declaration, volumes/env, one mkdir
 task to create `/workspace` with 0777 so `ov version` works even
 when no bind-mount is attached). A meta-layer composition (`layer:`)
 captures that exactly. The validator requires every layer to ship

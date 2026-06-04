@@ -142,10 +142,10 @@ putting the value in scope for the downstream URL expansion.
 Two-tier:
 
 - **Generate-time:** `taskSubstPath` expands `~/` to `img.Home` and substitutes `${USER}` / `${UID}` / `${GID}` / `${HOME}` literally (values known at generate time). Applied to paths, URLs, modes, `to`, `target`, etc.
-- **Build-time (Docker):** `${ARCH}` comes from BuildKit's `TARGETARCH` via `ARG TARGETARCH` + `ENV ARCH=${TARGETARCH}` emitted at layer top. Layer-local `vars:` become `ENV` directives too. Docker substitutes these in COPY paths, RUN commands, and ENV values.
+- **Build-time (Docker):** `${ARCH}` comes from BuildKit's `TARGETARCH` via `ARG TARGETARCH` + `ENV ARCH=${TARGETARCH}` emitted at layer top. Layer-local `var:` become `ENV` directives too. Docker substitutes these in COPY paths, RUN commands, and ENV values.
 - **Build-time (shell):** `${BUILD_ARCH}` is auto-injected as a local shell variable at the top of each `cmd:` / `download:` RUN (`BUILD_ARCH=$(uname -m)`). Unlike `${ARCH}`, it isn't available in non-shell fields.
 
-`taskUnresolvedRefs(s, known)` returns `${NAME}` references that don't resolve against auto-exports ∪ layer `vars:` — used by `validateLayerTasks` to error on typos.
+`taskUnresolvedRefs(s, known)` returns `${NAME}` references that don't resolve against auto-exports ∪ layer `var:` — used by `validateLayerTasks` to error on typos.
 
 ### Adjacent-coalescing (`taskCoalescesWith`)
 
@@ -517,7 +517,7 @@ ov image inspect my-image --format layers      # Shows layer list for an image
 
 ## Cross-References
 
-- `/ov-image:layer` — **Canonical author-facing reference** for the task verb catalog, `vars:` substitution, YAML anchors, execution order. The emitter pipeline here implements what's documented there.
+- `/ov-image:layer` — **Canonical author-facing reference** for the task verb catalog, `var:` substitution, YAML anchors, execution order. The emitter pipeline here implements what's documented there.
 - `/ov-build:generate` — User-facing `ov image generate` command.
 - `/ov-internals:go` — Source code map: `ov/tasks.go` (emitter pipeline), `ov/generate.go:writeLayerSteps` (orchestrator call site), `ov/layers.go:Task` struct, `ov/validate.go:validateLayerTasks`.
 - `/ov-build:validate` — User-facing validation rules (what `validateLayerTasks` enforces).

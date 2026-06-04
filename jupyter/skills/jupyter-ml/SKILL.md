@@ -63,7 +63,7 @@ quay.io/fedora/fedora:43
 
 ## Service Environment Integration
 
-This image receives env_provides variables from infrastructure layers when they are deployed:
+This image receives env_provide variables from infrastructure layers when they are deployed:
 
 | Variable | Injected by | Value |
 |----------|------------|-------|

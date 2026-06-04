@@ -438,7 +438,7 @@ This pattern works for any page content extraction via JS. The `cdp eval` comman
 - `/ov-image:layer` -- Chrome layer configuration (cdp-proxy service, port declarations)
 - `/ov-selkies:selkies-labwc` -- Full SPA DOM structure, coordinate mapping, session resilience
 - `/ov-selkies:chrome-devtools-mcp` -- MCP-based browser automation (29 tools via Streamable HTTP)
-- `/ov-selkies:chrome` -- Chrome layer with cdp-proxy, env_accepts (HTTP_PROXY)
+- `/ov-selkies:chrome` -- Chrome layer with cdp-proxy, env_accept (HTTP_PROXY)
 
 ## When to Use This Skill
 

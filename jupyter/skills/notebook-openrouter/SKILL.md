@@ -3,7 +3,7 @@ name: notebook-openrouter
 description: |
   OpenRouter API integration notebook collection provisioned into the workspace volume at deploy time.
   3 Jupyter notebooks demonstrating OpenRouter API basics, model discovery, and practical inference.
-  Data-only layer with env_requires — first layer to use the env_requires feature.
+  Data-only layer with env_require — first layer to use the env_require feature.
   Use when working with notebook-openrouter, OpenRouter API tutorials, or Jupyter+OpenRouter integration.
 ---
 
@@ -18,17 +18,17 @@ description: |
 | Services | *(none)* |
 | Volumes | `workspace` -> `/workspace` (from jupyter) |
 | Data | `data/openrouter` -> `workspace` volume, dest: `openrouter` |
-| env_requires | `OPENROUTER_API_KEY` — API key for OpenRouter LLM inference |
+| env_require | `OPENROUTER_API_KEY` — API key for OpenRouter LLM inference |
 | Install files | *(none)* |
 
 ## How It Works
 
-This is a **data layer** with an **env_requires** declaration — it uses the `data:` field to map notebooks to a volume, and `env_require:` to declare that the `OPENROUTER_API_KEY` environment variable must be present:
+This is a **data layer** with an **env_require** declaration — it uses the `data:` field to map notebooks to a volume, and `env_require:` to declare that the `OPENROUTER_API_KEY` environment variable must be present:
 
 ```yaml
 info: "OpenRouter API integration notebook collection"
 
-env_requires:
+env_require:
   - name: OPENROUTER_API_KEY
     description: "API key for OpenRouter LLM inference"
 
@@ -42,12 +42,12 @@ At build time, the contents of `data/openrouter/` are staged into `/data/workspa
 
 At deploy time, `ov config` copies the staged data into the workspace volume at `<workspace>/openrouter/`. The `dest: openrouter` field places the notebooks in a subdirectory rather than the volume root.
 
-The `env_requires` declaration is stored as an OCI label (`org.overthinkos.env_requires`). At `ov config` time, if `OPENROUTER_API_KEY` is not present in the resolved environment, a warning is printed:
+The `env_require` declaration is stored as an OCI label (`org.overthinkos.env_requires`). At `ov config` time, if `OPENROUTER_API_KEY` is not present in the resolved environment, a warning is printed:
 ```
 Warning: jupyter-ml-notebook requires OPENROUTER_API_KEY (API key for OpenRouter LLM inference) — not set
 ```
 
-This is the first layer in the project to use the `env_requires` feature.
+This is the first layer in the project to use the `env_require` feature.
 
 ## Included Notebooks
 
@@ -123,8 +123,8 @@ ov start jupyter-ml-notebook
 
 ## Related Skills
 
-- `/ov-image:layer` — data field documentation, env_requires/env_accepts field documentation
-- `/ov-core:ov-config` — data provisioning and env_requires warning during `ov config` setup
+- `/ov-image:layer` — data field documentation, env_require/env_accept field documentation
+- `/ov-core:ov-config` — data provisioning and env_require warning during `ov config` setup
 - `/ov-core:deploy` — volume backing configuration
 - `/ov-jupyter:notebook-ollama` — sibling data layer pattern (Ollama integration notebooks)
 - `/ov-jupyter:notebook-finetuning` — sibling data layer pattern (Unsloth fine-tuning notebooks)
@@ -139,7 +139,7 @@ Use when the user asks about:
 - The notebook-openrouter layer or its contents
 - OpenRouter API tutorial notebooks or integration examples
 - How to provide `OPENROUTER_API_KEY` to Jupyter containers
-- The `env_requires` feature (this is the first real consumer)
+- The `env_require` feature (this is the first real consumer)
 - Free tier rate limits on `qwen/qwen3.6-plus:free`
 - Structured output, reasoning with thinking tokens, or model comparison via OpenRouter
 

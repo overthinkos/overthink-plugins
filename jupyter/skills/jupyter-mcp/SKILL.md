@@ -118,9 +118,9 @@ layers/jupyter-mcp/
       tornado_asgi.py    # Tornado-to-ASGI bridge for FastMCP
 ```
 
-## Integration with mcp_provides
+## Integration with mcp_provide
 
-The parent `jupyter` layer declares `mcp_provides` to make this MCP server discoverable to other services at deploy time. The hermes service auto-discovers this server via the `OV_MCP_SERVERS` env var and registers all 11 tools as `mcp_jupyter_<tool_name>`.
+The parent `jupyter` layer declares `mcp_provide` to make this MCP server discoverable to other services at deploy time. The hermes service auto-discovers this server via the `OV_MCP_SERVERS` env var and registers all 11 tools as `mcp_jupyter_<tool_name>`.
 
 ## MCP Name Decoupling (design principle)
 
@@ -129,7 +129,7 @@ The `jupyter` MCP server name is **deliberately decoupled** from the layer name,
 | File | Field | Value | Purpose |
 |---|---|---|---|
 | `layers/jupyter/layer.yml` | `env.MCP_SERVER_NAME` | `"jupyter"` | Runtime advertisement |
-| `layers/jupyter/layer.yml` | `mcp_provides[0].name` | `jupyter` | Cross-container discovery (hermes, openwebui) |
+| `layers/jupyter/layer.yml` | `mcp_provide[0].name` | `jupyter` | Cross-container discovery (hermes, openwebui) |
 | `plugins/ov-jupyter/.mcp.json` | `mcpServers.jupyter` | — | Claude Code static registration |
 
 **Package/layer/image names describe the artifact; the MCP name describes the service contract.** Rename the artifact freely; the contract is stable.
@@ -151,7 +151,7 @@ The `jupyter` MCP server name is **deliberately decoupled** from the layer name,
 - `/ov-jupyter:jupyter-ml` — GPU ML Tier 2 parent layer
 - `/ov-image:layer` — layer authoring rules (Tier 1 pattern)
 - `/ov-build:ov-mcp-cmd` — client-side verb for probing this server's tool catalog (ping, list-tools, call); use `ov eval mcp list-tools jupyter` to see all 11 tools this layer registers
-- `/ov-selkies:chrome-devtools-mcp` — sibling MCP-server-provider layer for Chrome DevTools (different domain, same `mcp_provides` pattern)
+- `/ov-selkies:chrome-devtools-mcp` — sibling MCP-server-provider layer for Chrome DevTools (different domain, same `mcp_provide` pattern)
 - `/ov-hermes:hermes` — downstream MCP consumer (auto-discovers `jupyter` via `OV_MCP_SERVERS`; uses the 11 tools to read/edit/execute notebook cells programmatically)
 - `/ov-openwebui:openwebui` — downstream MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI's in-chat code blocks to the Jupyter kernel)
 

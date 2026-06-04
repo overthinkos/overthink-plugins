@@ -115,7 +115,7 @@ from the host.
 
 The versa deploy entry is minimal — the seven URL env vars the
 notebook reads are all auto-injected via per-producing-layer
-`env_provides:` blocks, and the eight container ports are
+`env_provide:` blocks, and the eight container ports are
 auto-allocated to free host ports when the operator writes
 `port: [auto]`. The user's browser is on the
 host; container-internal `localhost:N` URLs do NOT resolve there —
@@ -136,7 +136,7 @@ versa:
 ```
 
 That's the entire entry. No `env:` block — the seven URL env vars
-flow from layer `env_provides:`:
+flow from layer `env_provide:`:
 
 | env var | Producer layer | Template |
 |---|---|---|
@@ -150,7 +150,7 @@ flow from layer `env_provides:`:
 
 If you need stable host ports across rebuilds (e.g. browser
 bookmarks), replace `port: [auto]` with an explicit list — the
-`env_provides:` templates substitute against whichever ports you
+`env_provide:` templates substitute against whichever ports you
 chose, so the URL env vars stay correct either way:
 
 ```yaml
@@ -174,7 +174,7 @@ only rewrites to `localhost` when consumer and producer share a pod.
 **To verify the resolved URLs once the deploy is running**, open the
 notebook — the new diagnostic cell at the top (`_resolved_urls`)
 renders a polars DataFrame listing every URL env var, its current
-value, and whether it came from `env_provides` injection or the
+value, and whether it came from `env_provide` injection or the
 fallback default. See `/ov-versa:notebook-osm` cell #2.
 
 ### Multi-instance pattern (Pattern A from /ov-core:deploy)

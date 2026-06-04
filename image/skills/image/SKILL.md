@@ -538,7 +538,7 @@ images:
 
 ### Related skills
 
-- `/ov-image:layer` -- Layer definitions that compose into images (env_provides, env_requires, env_accepts, security resource caps)
+- `/ov-image:layer` -- Layer definitions that compose into images (env_provide, env_require, env_accept, security resource caps)
 - `/ov-core:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
 - `/ov-core:ov-config` -- `ov config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
 - `/ov-internals:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations

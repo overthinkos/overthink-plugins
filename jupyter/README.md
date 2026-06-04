@@ -18,7 +18,7 @@ No skills of its own — the backing documentation lives in `/ov-jupyter:jupyter
 
 ## MCP Name Decoupling
 
-The MCP server name `jupyter` is deliberately stable across renames of the underlying layer, Python package, and image. The `/ov-jupyter:jupyter-mcp` skill documents this pattern in detail ("MCP Name Decoupling" section). Short version: `mcp_provides.name: jupyter` in `layers/jupyter/layer.yml` is the service contract — consumers (`hermes`, `openwebui`, this plugin's `.mcp.json`) all key off that name, not off the layer/package/image name.
+The MCP server name `jupyter` is deliberately stable across renames of the underlying layer, Python package, and image. The `/ov-jupyter:jupyter-mcp` skill documents this pattern in detail ("MCP Name Decoupling" section). Short version: `mcp_provide.name: jupyter` in `layers/jupyter/layer.yml` is the service contract — consumers (`hermes`, `openwebui`, this plugin's `.mcp.json`) all key off that name, not off the layer/package/image name.
 
 ## Related Skills
 
@@ -28,5 +28,5 @@ The MCP server name `jupyter` is deliberately stable across renames of the under
 - `/ov-jupyter:jupyter` — lightweight CPU image
 - `/ov-jupyter:jupyter-ml` — GPU image
 - `/ov-jupyter:jupyter-ml-notebook` — GPU image + seeded finetuning/ollama/openrouter/llms_on_supercomputers notebooks
-- `/ov-hermes:hermes` — another MCP consumer that discovers the `jupyter` server via cross-container `env_provides` / `mcp_provides`
+- `/ov-hermes:hermes` — another MCP consumer that discovers the `jupyter` server via cross-container `env_provide` / `mcp_provide`
 - `/ov-build:ov-mcp-cmd` — the host-side CLI/test verb for probing this MCP server directly (`ov eval mcp ping jupyter`, `ov eval mcp list-tools jupyter`, `ov eval mcp call jupyter list_notebooks '{}'`). Useful for diagnosing whether a failed `mcp__jupyter__*` tool call is a server issue or a Claude Code session-registration issue.

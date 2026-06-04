@@ -34,7 +34,7 @@ PATH additions: `~/.local/bin`
 |----------|---------------|
 | `BROWSER_CDP_URL` | `http://{{.ContainerName}}:9222` |
 
-Pod-aware: same-container consumers receive `http://localhost:9222`, cross-container consumers receive `http://ov-<image>:9222`. Consumed by hermes (`env_accepts: BROWSER_CDP_URL`) for shared browser automation.
+Pod-aware: same-container consumers receive `http://localhost:9222`, cross-container consumers receive `http://ov-<image>:9222`. Consumed by hermes (`env_accept: BROWSER_CDP_URL`) for shared browser automation.
 
 ## MCP Provides
 
@@ -42,7 +42,7 @@ Pod-aware: same-container consumers receive `http://localhost:9222`, cross-conta
 |------|-------------|-----------|
 | `chrome-devtools` | `http://{{.ContainerName}}:9224/mcp` | http |
 
-Provided by the auto-included `chrome-devtools-mcp` sub-layer (29 Chrome DevTools tools via mcp-proxy). Consumed by hermes (`mcp_accepts: chrome-devtools`) for MCP-based browser inspection and automation. See `/ov-selkies:chrome-devtools-mcp` for tool list and architecture.
+Provided by the auto-included `chrome-devtools-mcp` sub-layer (29 Chrome DevTools tools via mcp-proxy). Consumed by hermes (`mcp_accept: chrome-devtools`) for MCP-based browser inspection and automation. See `/ov-selkies:chrome-devtools-mcp` for tool list and architecture.
 
 When deploying with `-i <instance>`, the MCP server name is automatically disambiguated to `chrome-devtools-<instance>` (e.g., `chrome-devtools-31.58.9.4`). See `/ov-core:ov-config` for MCP name disambiguation details.
 
@@ -118,7 +118,7 @@ The detection uses `pgrep -x sway` (exact process name match — NOT `pgrep -f` 
 
 ## CDP Proxy
 
-Chrome 146+ rejects HTTP requests to the DevTools API when the `Host` header contains a non-localhost, non-IP hostname (e.g., `ov-selkies-desktop:9222`). This breaks cross-container CDP access via `env_provides: BROWSER_CDP_URL`.
+Chrome 146+ rejects HTTP requests to the DevTools API when the `Host` header contains a non-localhost, non-IP hostname (e.g., `ov-selkies-desktop:9222`). This breaks cross-container CDP access via `env_provide: BROWSER_CDP_URL`.
 
 **Architecture:** A `cdp-proxy` Python supervisord service listens on `0.0.0.0:9222` and forwards requests to Chrome on `127.0.0.1:9223`. Chrome binds only to the internal loopback address.
 
@@ -253,7 +253,7 @@ curl -s "http://localhost:9222/json/list"
 
 - `/ov-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-included via `layer:`)
 - `/ov-infrastructure:supervisord` — required dependency for cdp-proxy service
-- `/ov-hermes:hermes` — consumes `BROWSER_CDP_URL` via `env_accepts` and `chrome-devtools` via `mcp_accepts`
+- `/ov-hermes:hermes` — consumes `BROWSER_CDP_URL` via `env_accept` and `chrome-devtools` via `mcp_accept`
 - `/ov-selkies:selkies-desktop-layer` — desktop metalayer composing chrome with labwc, pipewire, waybar, etc.
 
 ## Related Commands

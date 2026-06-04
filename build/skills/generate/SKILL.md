@@ -57,7 +57,7 @@ For each layer, `writeLayerSteps` runs this sequence:
 
 ```
 1. Comment header:    # Layer: <name>
-2. ENV from `vars:` + ARG TARGETARCH + ENV ARCH=${TARGETARCH} (once per layer)
+2. ENV from `var:` + ARG TARGETARCH + ENV ARCH=${TARGETARCH} (once per layer)
 3. Package install (rpm/deb/pac/aur) — always USER root
 4. tasks: iterated in author order:
    a. Resolve ${VAR} in non-verbatim fields
@@ -218,7 +218,7 @@ The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUIL
 
 ### Related skills
 
-- `/ov-image:layer` — **Canonical task verb catalog, `vars:` substitution, YAML anchors, execution order.** Read this first for authoring questions.
+- `/ov-image:layer` — **Canonical task verb catalog, `var:` substitution, YAML anchors, execution order.** Read this first for authoring questions.
 - `/ov-eval:eval` — test-authoring workflow; `eval:` blocks are embedded via `writeJSONLabel` and benefit directly from LABELs-at-end cache efficiency.
 - `/ov-internals:generate-source` — Deep dive on Containerfile emission internals, `Task` struct, per-verb emitters, `stageInlineContent`, `shellSingleQuote` + `shellAnsiQuote` helpers, LABEL-placement rationale.
 - `/ov-internals:go` — Source-code map: `ov/tasks.go` (~430 lines), `ov/generate.go:writeLayerSteps` + `writeLabels`, `ov/layers.go` struct definitions.

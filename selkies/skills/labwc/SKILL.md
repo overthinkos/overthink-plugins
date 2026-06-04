@@ -47,7 +47,7 @@ labwc-wrapper exports all XKB environment variables with defaults, making keyboa
 | `XKB_DEFAULT_OPTIONS` | (empty) | XKB options (compose:ralt, caps:escape) |
 | `XKB_DEFAULT_RULES` | `evdev` | XKB rules (always evdev, not configurable) |
 
-All except RULES are declared as `env_accepts` — override via `ov config -e`:
+All except RULES are declared as `env_accept` — override via `ov config -e`:
 
 ```bash
 # German QWERTZ layout

@@ -29,7 +29,7 @@ description: |
 
 ### Keyboard Configuration
 
-Keyboard layout defaults to US. Override with `env_accepts` vars:
+Keyboard layout defaults to US. Override with `env_accept` vars:
 
 | Variable | Default | Purpose |
 |----------|---------|---------|

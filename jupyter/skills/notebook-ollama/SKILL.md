@@ -60,18 +60,18 @@ The notebooks default to `http://localhost:11434` for the Ollama API endpoint. E
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 ```
 
-When the `ollama` image is deployed via `ov config ollama`, its `env_provides` automatically injects `OLLAMA_HOST=http://ov-ollama:11434` into the global `deploy.yml` env. Any container configured after ollama (or reconfigured with `--update-all`) automatically gets the correct Ollama endpoint — no manual environment setup needed.
+When the `ollama` image is deployed via `ov config ollama`, its `env_provide` automatically injects `OLLAMA_HOST=http://ov-ollama:11434` into the global `deploy.yml` env. Any container configured after ollama (or reconfigured with `--update-all`) automatically gets the correct Ollama endpoint — no manual environment setup needed.
 
 **Setup:**
 ```bash
 ov config ollama --update-all    # deploys ollama + propagates OLLAMA_HOST to all
 ov start ollama
-ov start jupyter-ml-notebook   # OLLAMA_HOST already set via env_provides
+ov start jupyter-ml-notebook   # OLLAMA_HOST already set via env_provide
 ```
 
 Both containers must be on the same `ov` Podman network for DNS resolution to work.
 
-See `/ov-core:ov-config` for `--update-all` and `/ov-ollama:ollama` for env_provides details.
+See `/ov-core:ov-config` for `--update-all` and `/ov-ollama:ollama` for env_provide details.
 
 ## Notebook Compatibility Notes
 

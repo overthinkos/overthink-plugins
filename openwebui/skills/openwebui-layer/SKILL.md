@@ -30,18 +30,18 @@ description: |
 | `ENABLE_CODE_EXECUTION` | `true` |
 | `ENABLE_PERSISTENT_CONFIG` | `false` |
 
-## Optional Environment Variables (env_accepts)
+## Optional Environment Variables (env_accept)
 
 | Variable | Description |
 |----------|-------------|
 | `OPENROUTER_API_KEY` | API key for OpenRouter (maps to `OPENAI_API_KEY` with OpenRouter base URL) |
 | `OLLAMA_API_KEY` | API key for Ollama Cloud inference |
-| `OLLAMA_HOST` | Local Ollama server URL (auto-injected by ollama layer `env_provides`) |
+| `OLLAMA_HOST` | Local Ollama server URL (auto-injected by ollama layer `env_provide`) |
 | `OPENAI_API_KEY` | Direct OpenAI API key |
 | `OPENAI_API_BASE_URL` | OpenAI-compatible API base URL |
 | `WEBUI_AUTH` | Enable authentication (default: true) |
 | `WEBUI_ADMIN_EMAIL` | Admin account email for first-start setup |
-| `OV_MCP_SERVERS` | JSON array of MCP servers (auto-injected by `mcp_provides` layers) |
+| `OV_MCP_SERVERS` | JSON array of MCP servers (auto-injected by `mcp_provide` layers) |
 
 ## MCP Accepts
 

@@ -7,7 +7,7 @@ description: |
 
 # Layer: hermes-full
 
-Metalayer composing Hermes AI agent with a complete tool suite for standalone deployment. No browser included — use with `selkies-desktop` via cross-container `env_provides: BROWSER_CDP_URL` for shared browser automation.
+Metalayer composing Hermes AI agent with a complete tool suite for standalone deployment. No browser included — use with `selkies-desktop` via cross-container `env_provide: BROWSER_CDP_URL` for shared browser automation.
 
 ## Composition
 
@@ -25,7 +25,7 @@ layers:
 
 ## Browser Integration
 
-The hermes layer declares `env_accepts: BROWSER_CDP_URL`. When deployed alongside a `selkies-desktop` container, the chrome layer's `env_provides` injects `BROWSER_CDP_URL=http://ov-selkies-desktop:9222` into the hermes quadlet via `ov config --update-all`. Hermes browser tools (`browser_navigate`, `browser_click`, `browser_snapshot`) then control the desktop Chrome across the container network.
+The hermes layer declares `env_accept: BROWSER_CDP_URL`. When deployed alongside a `selkies-desktop` container, the chrome layer's `env_provide` injects `BROWSER_CDP_URL=http://ov-selkies-desktop:9222` into the hermes quadlet via `ov config --update-all`. Hermes browser tools (`browser_navigate`, `browser_click`, `browser_snapshot`) then control the desktop Chrome across the container network.
 
 Without a browser provider, hermes browser tools fall back to local headless mode (requires `hermes-playwright` layer) or are unavailable.
 
@@ -52,8 +52,8 @@ hermes:
 - `/ov-tools:ov` — Overthink CLI binary
 - `/ov-infrastructure:tmux-layer` — Terminal multiplexer for persistent sessions (`ov tmux` commands)
 - `/ov-selkies:chrome` — Provides `BROWSER_CDP_URL` (cross-container, from selkies-desktop)
-- `/ov-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-discovered via `mcp_provides`, 29 tools)
-- `/ov-jupyter:jupyter-mcp` — JupyterLab CRDT MCP server (auto-discovered via `mcp_provides`, 11 tools: notebook_*/cell_* + notebook_list_users + room_list; auto-attach single-room invariant)
+- `/ov-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-discovered via `mcp_provide`, 29 tools)
+- `/ov-jupyter:jupyter-mcp` — JupyterLab CRDT MCP server (auto-discovered via `mcp_provide`, 11 tools: notebook_*/cell_* + notebook_list_users + room_list; auto-attach single-room invariant)
 - `/ov-build:ov-mcp-cmd` — host-side MCP client (`ov eval mcp ping|list-tools|call|...`) to verify either of the above is alive and exposing the expected tool catalog before hermes tries to invoke them
 
 ## Related Images

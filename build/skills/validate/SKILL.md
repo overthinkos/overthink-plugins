@@ -61,7 +61,7 @@ See `/ov-image:layer` for the full verb catalog. The validator enforces:
 - **`build:` value:** must be `"all"` (initial implementation; specific builder names reserved for future use).
 - **`user:` format:** must be `root`, `${USER}`, a literal name matching `^[a-z_][a-z0-9_-]*$`, or numeric `<uid>:<gid>`. Unresolved `${VAR}` in `user:` errors.
 
-### `vars:` Rules
+### `var:` Rules
 
 - Keys must match `^[A-Z_][A-Z0-9_]*$` (shell identifier).
 - Keys may not collide with reserved auto-exports (`USER`, `UID`, `GID`, `HOME`, `ARCH`, `BUILD_ARCH`).
@@ -69,7 +69,7 @@ See `/ov-image:layer` for the full verb catalog. The validator enforces:
 
 ### `${VAR}` Reference Resolution
 
-- In non-shell fields (paths, URLs, `to`, `target`, etc.), every `${NAME}` reference must resolve against `vars:` ∪ auto-exports. Unresolved references error at validate time.
+- In non-shell fields (paths, URLs, `to`, `target`, etc.), every `${NAME}` reference must resolve against `var:` ∪ auto-exports. Unresolved references error at validate time.
 - In shell fields (`cmd:` values, `write: content:`), references are passed through verbatim and resolved by bash at build time.
 
 ### Image Rules
@@ -191,7 +191,7 @@ ov image list layers                       # Verify layer exists
 
 ### Related skills
 
-- `/ov-image:layer` — **Canonical reference** for the task verb catalog, `vars:` substitution, YAML anchors, execution order. The validator rules above enforce what's documented there.
+- `/ov-image:layer` — **Canonical reference** for the task verb catalog, `var:` substitution, YAML anchors, execution order. The validator rules above enforce what's documented there.
 - `/ov-build:generate` — What the generator emits from validated input (per-verb emitters, cache-mount inheritance, inline-content staging).
 - `/ov-internals:generate-source` — Internal architecture of the task emission pipeline.
 - `/ov-eval:eval` — `ov image validate` schema-checks every `eval:` entry: exactly-one-verb, attribute types, scope/variable consistency (build-scope can't reference runtime-only vars), `id:` uniqueness per section, matcher operator allowlist, unroutable-check rejection. The five live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`) also get per-verb method-allowlist + required-modifier enforcement via `validateOvVerb` (deploy-scope-only; unknown methods rejected with the allowed set listed).

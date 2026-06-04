@@ -58,7 +58,7 @@ Cross-distro parity for .NET 9 requires juggling three asymmetric availability w
 Rather than carrying that asymmetry in layer code, the layer uses Microsoft's official cross-distro installer script, channel-pinned to `9.0`. It installs to `/usr/share/dotnet` and symlinks `/usr/bin/dotnet`:
 
 ```yaml
-tasks:
+task:
   - cmd: |
       if command -v dotnet >/dev/null 2>&1; then
         exit 0                        # already installed by distro rpm/pac

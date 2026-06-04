@@ -33,7 +33,7 @@ description: |
 
 Pod-aware: same-container consumers receive `http://localhost:11434`, cross-container consumers receive `http://ov-ollama:11434`. When `ov config ollama` runs, `OLLAMA_HOST` is automatically injected into the global `deploy.yml` env. Use `ov config ollama --update-all` to propagate to already-deployed services immediately.
 
-See `/ov-image:layer` for `env_provides` field docs and `/ov-core:ov-config` for `--update-all`.
+See `/ov-image:layer` for `env_provide` field docs and `/ov-core:ov-config` for `--update-all`.
 
 ## Usage
 
@@ -55,7 +55,7 @@ ollama run llama3          # uses the alias
 
 ## Cross-Container Integration
 
-The `env_provides` mechanism makes `OLLAMA_HOST` available to all containers. The `hermes` layer auto-detects this variable and configures itself to use local Ollama as its LLM provider (highest priority in the auto-detection chain: `OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`). See `/ov-hermes:hermes` for details on the auto-provider-configuration.
+The `env_provide` mechanism makes `OLLAMA_HOST` available to all containers. The `hermes` layer auto-detects this variable and configures itself to use local Ollama as its LLM provider (highest priority in the auto-detection chain: `OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`). See `/ov-hermes:hermes` for details on the auto-provider-configuration.
 
 ## Tests
 
@@ -79,7 +79,7 @@ OCI label (see `/ov-eval:eval` for the full schema):
 
 ## Related Commands
 
-- `/ov-core:ov-config` — Deploy with quadlet (secrets, volumes, env_provides injection)
+- `/ov-core:ov-config` — Deploy with quadlet (secrets, volumes, env_provide injection)
 - `/ov-core:start` — Start the Ollama service
 - `/ov-core:service` — Manage Ollama service inside container
 

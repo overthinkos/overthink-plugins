@@ -30,7 +30,7 @@ description: |
 
 Pod-aware: same-container consumers receive `redis://localhost:6379`, cross-container consumers receive `redis://ov-redis:6379`. When `ov config` runs, `REDIS_URL` is automatically injected into the global `deploy.yml` env for Redis service discovery.
 
-See `/ov-image:layer` for `env_provides` field docs.
+See `/ov-image:layer` for `env_provide` field docs.
 
 ## Packages
 
@@ -88,7 +88,7 @@ host, the deploy-scope tests correctly skip with
 - `/ov-immich:immich` -- primary consumer (depends on redis)
 - `/ov-infrastructure:postgresql` -- often paired with redis in service stacks
 - `/ov-eval:eval` -- declarative testing framework (this layer is the gold-standard pattern)
-- `/ov-image:layer` -- layer authoring + `env_provides` field docs
+- `/ov-image:layer` -- layer authoring + `env_provide` field docs
 - `/ov-infrastructure:valkey` -- Remi-repo Valkey 9 package (separate layer; different version than Fedora's default valkey-compat-redis)
 
 ## When to Use This Skill
