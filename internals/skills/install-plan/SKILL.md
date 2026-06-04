@@ -76,7 +76,7 @@ type InstallStep interface {
 }
 ```
 
-All eleven concrete step kinds implement this interface. `Reverse()` is called at install time (not teardown) so the ledger records the exact reversal ops tied to the specific artifacts created.
+All twelve concrete step kinds implement this interface. `Reverse()` is called at install time (not teardown) so the ledger records the exact reversal ops tied to the specific artifacts created.
 
 ### Enums
 
@@ -106,14 +106,14 @@ Each `SystemPackagesStep` carries one phase; `--allow-repo-changes` gating is a 
 Gates apply only to the host target. `EmitOpts.AssumeYes` enables all three. See `GateEnabled(gate, opts)` in `install_plan.go`.
 
 **`StepKind`** — discriminator for concrete types:
-- `SystemPackages`, `Builder`, `Task`, `File`, `ServicePackaged`, `ServiceCustom`, `ShellHook`, `ShellSnippet`, `RepoChange`, `ApkInstall`, `Reboot`.
+- `SystemPackages`, `Builder`, `Task`, `File`, `ServicePackaged`, `ServiceCustom`, `ShellHook`, `ShellSnippet`, `RepoChange`, `ApkInstall`, `LocalPkgInstall`, `Reboot`.
 
 The IR carries no image-fetch step kind. Deploys (any target) emit
 zero image-pull / image-build steps; test-bed image preflight is a
 separate, eval-time concern handled by `ov/eval_image_preflight.go`
 (CLAUDE.md "Deploy fetches NOTHING speculative").
 
-## The eleven step kinds
+## The twelve step kinds
 
 | Kind | What it carries | Venue default | Scope derivation |
 |---|---|---|---|
@@ -127,6 +127,7 @@ separate, eval-time concern handled by `ov/eval_image_preflight.go`
 | `ShellSnippetStep` | LayerName, Origin, Shell (bash/zsh/fish/sh), Snippet, PathAppend, Destination, Marker, UseDropin, Priority | HostNative | `pathIsSystemScoped(Destination)` (system for container drop-ins, user-profile for ~/.bashrc etc.) |
 | `RepoChangeStep` | Format, File, Content, Checksum, LayerName | HostNative | Always system |
 | `ApkInstallStep` | Packages (apk specs), LayerName, LayerDir | HostNative | Always system. Only `target: android` executes it; every other target records a skip. |
+| `LocalPkgInstallStep` | PkgbuildRef, LayerName, LayerDir, ProjectDir | HostNative | Always system. Compiled from a layer's `localpkg: <dir>` field at "step 2.5" (before tasks). On a pac deploy target (`target: local` on a pac host / `target: vm` into a pac guest) the HOST builds the referenced PKGBUILD via `makepkg -sf` (PKGDEST temp) and `pacman -U`'s the result onto the target via the SHARED transfer+install leg the aur builder also uses (R3). `resolveLocalPkgDir` walks up from `ProjectDir`, so a consumer nested under `image/<distro>` finds the superproject `pkg/arch`. Skipped at image build (`OCITarget`) + on non-pac targets (the layer's own curl/COPY task is the fallback there). Machinery: `ov/localpkg.go`. |
 | `RebootStep` | LayerName | HostNative | Always system; `Reverse()` empty. Emitted last when a layer sets `reboot: true`. Only `VmDeployTarget` acts on it (reboot guest + wait for return); OCI/pod/k8s skip; `LocalDeployTarget` skips + warns (never reboots the operator host). |
 
 **`ShellSnippetStep` notes:**

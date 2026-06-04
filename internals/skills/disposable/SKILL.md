@@ -280,6 +280,24 @@ with different classification than `-i prod`), that requires the
 per-instance override file at `~/.local/share/ov/vm/ov-<name>-<instance>/instance.yml`
 — planned follow-up.
 
+### Per-host device overlay (`instance.yml` `libvirt:`)
+
+The same per-domain `~/.local/share/ov/vm/<domain>/instance.yml` also carries a
+`libvirt:` block — a per-host device overlay merged onto the `VmSpec` at
+`ov vm create` (`VmInstanceOverride.ApplyToVmSpec`, before `RenderDomainXML`).
+Only the HOST-SPECIFIC device categories merge — `devices.hostdevs` (a PCI
+`<hostdev>` whose bus/slot address is host-specific) and `devices.filesystems`
+(a virtiofs share rooted at an absolute host path) — appended to whatever the
+committed `vm.yml` declares. This is where a GPU passthrough address and an
+operator-home share live, OUTSIDE version control, so the project's `kind: vm`
+entities stay PORTABLE: no PCI address, no operator-home path committed (a
+card-less host simply omits the overlay, and the GPU-gated checks report N/A).
+The overlay reuses the `kind: vm` `libvirt:` schema verbatim — the block is
+identical to what `vm.yml` would carry; generate a hostdev block with
+`ov vm gpu list`. The file still also carries `disposable:` / `lifecycle:`
+(above), and yaml.v3 unknown-key tolerance keeps the formats independent. See
+`/ov-internals:vm-spec` (`VmSpec.Libvirt`) and `/ov-vm:vm` (GPU passthrough).
+
 ## Extensibility
 
 `lifecycle:` is free-form string — `scratch`, `dev`, `test`, `qa`,

@@ -379,7 +379,7 @@ ov settings set engine.run docker     # or podman
 
 ## Host Bootstrap (First Time)
 
-Requires: `go-task`, `go`, `docker` (or `podman`). On Arch the recommended install is `yay -S overthink-git` (or `cd pkg/arch && makepkg -si`) — the PKGBUILD pulls every dep, including `task` itself, and the bundled pacman post-install hook enables docker/tailscaled/virtqemud automatically. On other distros, run `task build:ov` from the checkout to compile and install `ov` to `~/.local/bin/ov`.
+Requires: `go-task`, `go`, `docker` (or `podman`). On Arch the recommended install is `cd pkg/arch && makepkg -si` — the bundled `overthink-git` PKGBUILD is LOCAL-ONLY (it is NOT published to the AUR, so there is no `yay -S overthink-git`); it pulls every dep, and the bundled pacman post-install hook enables docker/tailscaled/virtqemud automatically. (`makepkg -si` resolves the AUR-only mandatory deps via an AUR helper, or pre-install them — see the PKGBUILD's `makedepends`/AUR notes.) On other distros, run `task build:ov` from the checkout to compile and install `ov` to `~/.local/bin/ov`.
 
 ```bash
 task build:ov        # Build + install ov; on Arch delegates to makepkg -si, elsewhere installs portable to ~/.local/bin
@@ -416,7 +416,7 @@ ov image build --push
 
 ### "ov not found"
 
-On Arch run `yay -S overthink-git` (or `cd pkg/arch && makepkg -si`) to install system-wide. Elsewhere run `task build:ov` from the checkout — `task` itself is required (install via your distro package manager or download from go-task/task releases).
+On Arch run `cd pkg/arch && makepkg -si` to install the bundled `overthink-git` package system-wide (it is LOCAL-ONLY — NOT on the AUR — so `yay -S overthink-git` will not find it). Elsewhere run `task build:ov` from the checkout — `task` itself is required (install via your distro package manager or download from go-task/task releases).
 
 ### Build Fails with Missing Base
 
