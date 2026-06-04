@@ -17,8 +17,11 @@ current machine via `ShellExecutor` — no SSH, no VM, no container.
 It lives in the **`overthinkos/cachyos`** repo (git submodule at
 **`image/cachyos`**), in that repo's config (its `overthink.yml` + per-kind
 sibling files) — both the
-`kind: local` template and the `kind: deploy` entry (the lone `kind: deploy` in
-that repo; every disposable test bed there is `kind: eval`). Apply it with:
+`kind: local` template and its `kind: deploy` entry (`deploy.ov-cachyos`). The
+repo also carries a sibling `kind: deploy`, `deploy.cachyos-gpu` — the
+**persistent** operator GPU-workstation VM (`target: vm`, **not** `disposable`;
+see `/ov-vm:cachyos`) — so ov-cachyos is no longer the only `kind: deploy`
+there; every disposable test bed remains `kind: eval`. Apply it with:
 
 ```bash
 ov -C image/cachyos update ov-cachyos
@@ -53,6 +56,10 @@ repo's `layers/` (resolved via its `discover:` block):
 - `passwordless-sudo-host` — `sudo -n true` (wheel-nopasswd layer must have run)
 - `nvidia-ctk-present` — `command -v nvidia-ctk`
 - `nvidia-cdi-spec` — `/etc/cdi/nvidia.yaml` exists
+
+Both `nvidia-*` probes gate on an active host NVIDIA driver
+(`[ -e /dev/nvidiactl ] || nvidia-smi`) and pass with an N/A note on a
+card-less or VFIO-passthrough host, so the profile applies cleanly anywhere.
 
 ## Composition-by-reference note
 
