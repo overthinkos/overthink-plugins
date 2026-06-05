@@ -105,6 +105,7 @@ description: |
 | Skill disambiguation (which skill to use) | CLAUDE.md (brief table) |
 | Detailed operational patterns | Relevant `/ov-core:*` / `/ov-build:*` / `/ov-eval:*` / `/ov-automation:*` / kind-plugin skill |
 | Version history / past changes / renames / cutover narration | `CHANGELOG.md` (repo root) — never CLAUDE.md or a skill |
+| Long-term thesis / vision / aspiration ("why & where it's going") | `VISION.md` (repo root) — never restating command usage, architecture, or history |
 
 ## Command skills vs topic skills
 
