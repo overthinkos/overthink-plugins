@@ -126,7 +126,7 @@ The VM path spans the following module topology:
 | `ov/qemu_render.go` | `RenderQemuArgv` for direct-QEMU backend |
 | `ov/cloud_init_render.go` + `cloud_init_iso.go` | `RenderCloudInit` + `ResolveKeyInjectionChannels` + `composeUsers` (adopt-merge) + `WriteSeedISO` via xorriso/genisoimage/mkisofs |
 | `ov/vm_cloud_image.go` + `http_fetch.go` | `BuildCloudImage` pipeline: fetch URL + sha256 sidecar + resize + seed ISO render |
-| `ov/ov_install.go` | `EnsureOvInGuest` — strategy state machine for installing the `ov` binary in the guest |
+| `ov/ov_install.go` | `EnsureOvInVenue` — the GENERIC "copy ov into a running venue" mechanism (container `podman cp` / VM-SSH `scp` / host `install`, all via `DeployExecutor.PutFile`): returns the `ov` invocation command, copying the host `os.Executable()` to a non-`$PATH` `/tmp/ov-<calver>` on absence/older (idempotent, never shadows a packaged ov). Used by the explicit `ov eval dbus notify`/`call` paths + nested from-image delegation, so an image need not bake the `ov` layer. `EnsureOvInGuest` is the VM-deploy strategy wrapper (auto/scp/url/skip) layered on top |
 | `ov/ovmf_paths.go` | `ResolveOvmfPaths` (per-distro OVMF_CODE/VARS paths) + `EnsurePerVmNvram` + `ResolveOvmfForSpec` (bios-sentinel returning empty strings) |
 | `ov/libvirt_validate.go` | `ValidateVmSpec` + `ValidateLibvirtConfig` |
 | `ov/deploy_executor*.go` | `DeployExecutor` interface + `ShellExecutor` + `SSHExecutor` with `WaitForSSH` + `WaitForCloudInit` |

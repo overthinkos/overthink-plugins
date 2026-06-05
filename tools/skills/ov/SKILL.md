@@ -17,7 +17,7 @@ description: |
 
 The `ov` binary inside containers serves two purposes:
 
-1. **Native D-Bus agent** — `ov eval dbus` commands on the host delegate to the in-container binary via `engine exec container ov eval dbus <cmd> . <args>`. The in-container ov connects to the local D-Bus session bus using `godbus/dbus/v5` (pure Go, no external tools needed). This is the primary path for `ov eval dbus notify`, `ov eval dbus call`, `ov eval dbus list`, and `ov eval dbus introspect`.
+1. **Native D-Bus agent** — `ov eval dbus` commands on the host delegate to an in-venue `ov` via `engine exec container ov eval dbus <cmd> . <args>`, which connects to the local D-Bus session bus using `godbus/dbus/v5` (pure Go, no external tools needed). The primary path for `ov eval dbus notify`, `ov eval dbus call`, `ov eval dbus list`, and `ov eval dbus introspect`. **The image need NOT bake the `ov` layer for this:** when the venue lacks `ov`, the explicit dbus commands COPY the host's own binary in on demand (the generic copy-`ov`-into-a-running-venue mechanism, `EnsureOvInVenue` over `DeployExecutor.PutFile` — `podman cp` for a container, `scp` for a VM/host) and invoke the delivered copy. Baking the layer only pre-stages the binary so the first call skips the copy.
 
 2. **In-container CLI** — full ov functionality available inside the container for scripting, service management, and automation.
 
