@@ -1,6 +1,6 @@
 # Overthink Plugins
 
-Claude Code plugins for Overthink — the container management experience for you and your Oompa-Loompas.
+Claude Code plugins for Overthink — the container management experience for you and your agents.
 
 ## How this marketplace is organized
 
