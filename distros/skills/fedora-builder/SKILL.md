@@ -15,9 +15,9 @@ Builder image with package managers and compilation tools. Default builder for p
 `/ov-distros:fedora-nonfree`, and is imported under the `ov` namespace by the
 `overthinkos/fedora` submodule (referenced as `ov.fedora-builder`). Its
 `rpmfusion`/`pixi`/`nodejs`/`build-toolchain` layers are pinned as
-github refs (`@github.com/overthinkos/overthink/layers/<name>:<tag>`) so the same
+github refs (`@github.com/overthinkos/overthink/candy/<name>:<tag>`) so the same
 definition resolves in both main and the submodule. Build with
-`ov image build fedora-builder` from main.
+`ov box build fedora-builder` from main.
 
 ## Image Properties
 
@@ -51,7 +51,7 @@ This image is referenced in `defaults.builders` as the builder for `pixi`, `npm`
 ## Quick Start
 
 ```bash
-ov image build fedora-builder
+ov box build fedora-builder
 ov shell fedora-builder
 ```
 
@@ -67,8 +67,8 @@ ov shell fedora-builder
 
 ## Verification
 
-After `ov image build`:
-- `ov image list` — image appears in list
+After `ov box build`:
+- `ov box list` — image appears in list
 - `ov shell fedora-builder` — interactive shell works
 
 ## When to Use This Skill

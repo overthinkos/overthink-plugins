@@ -20,7 +20,7 @@ vm:
   bazzite-bootc:
     source:
       kind: bootc
-      image: bazzite
+      box: bazzite
     # disk_size, ram, cpus inherit from VmSpec defaults — override locally if the
     # image's workload demands something heavier than 4 GiB / 2 cpus / 20 GiB.
 ```

@@ -18,7 +18,7 @@ description: |
 | Service | `jupyter` (supervisord) |
 | Volume | `workspace` at `/workspace` |
 | MCP provides | `jupyter` at `http://{{.ContainerName}}:8888/mcp` (streamable HTTP) |
-| Install files | `layer.yml` (rpm: git), `pixi.toml` |
+| Install files | `candy.yml` (rpm: git), `pixi.toml` |
 
 ## Key Packages
 
@@ -43,7 +43,7 @@ doc = nlp("Apple is looking at buying a U.K. startup for $1 billion")
 [(e.text, e.label_) for e in doc.ents]  # named entities
 ```
 
-The `spacy-import` build-scope eval check (in `layer.yml`) verifies the
+The `spacy-import` build-scope eval check (in `candy.yml`) verifies the
 package + model load successfully on every image build — a future
 upstream rename or version bump that breaks the model load fails the
 build loudly.
@@ -79,7 +79,7 @@ The `workspace` volume is mounted at `/workspace`. JupyterLab serves notebooks f
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 jupyter:
   base: fedora
   layers:
@@ -168,7 +168,7 @@ The MCP extension is installed by the `jupyter-mcp` sub-layer (composed via `lay
 ### Source files
 
 ```
-layers/jupyter-mcp/
+candy/jupyter-mcp/
 ├── jupyter_mcp/
 │   ├── pyproject.toml              # hatchling package, no deps (--no-deps install)
 │   └── jupyter_mcp/
@@ -177,8 +177,8 @@ layers/jupyter-mcp/
 │       ├── tornado_asgi.py         # Tornado↔ASGI bridge (SSE streaming, disconnect handling)
 │       ├── mcp_server.py           # FastMCP tool definitions (11 tools)
 │       └── rtc_adapter.py          # CRDT access via YNotebook + kernel execution
-# (in layer.yml tasks:)  # Build-time: pip install fastmcp + extension + enable
-└── layer.yml
+# (in candy.yml tasks:)  # Build-time: pip install fastmcp + extension + enable
+└── candy.yml
 ```
 
 ### Multi-client support
@@ -199,7 +199,7 @@ Multiple MCP clients can edit the same notebook simultaneously:
 The layer ships declarative checks embedded in the `org.overthinkos.eval`
 OCI label (see `/ov-eval:eval` for the full schema):
 
-- **Build-scope** (run under `ov eval image`):
+- **Build-scope** (run under `ov eval box`):
   - `jupyter-lab-binary` — `${HOME}/.pixi/envs/default/bin/jupyter-lab`
     exists (proves pixi env install succeeded)
   - `spacy-import` — `python -c "import spacy;
@@ -249,4 +249,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)

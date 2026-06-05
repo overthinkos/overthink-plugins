@@ -29,7 +29,7 @@ selkies-labwc:
     - linux/amd64
 ```
 
-Tunnel config is in `deploy.yml` (not image.yml): `tunnel: {provider: tailscale, private: all}`. See `/ov-core:deploy`.
+Tunnel config is in `deploy.yml` (not box.yml): `tunnel: {provider: tailscale, private: all}`. See `/ov-core:deploy`.
 
 ## Base
 
@@ -68,7 +68,7 @@ HTTPS is required for the WebCodecs API (`VideoDecoder`) used by the Selkies JS 
 ## Quick Start
 
 ```bash
-ov image build selkies-labwc
+ov box build selkies-labwc
 ov config selkies-labwc
 ov start selkies-labwc
 # Access: https://localhost:3000 (accept cert warning)
@@ -330,7 +330,7 @@ builder stage (`arch-builder` on the cachyos base; `cuda-arch-builder` on the GP
 build, `cachyos.nvidia`). This is because pixelflux's upstream wheel does not include the
 **dmabuf cache cleanup fix** (`renderer.cleanup_texture_cache()` per frame) that
 prevents a Wayland compositor shmem leak under sustained heavy streaming. The patch is
-applied at build time via inline source patching in `layers/selkies/build.sh`. See
+applied at build time via inline source patching in `candy/selkies/build.sh`. See
 `/ov-selkies:selkies` (Patched pixelflux build pipeline) for the full pipeline and the
 diagnostic recipe that found the leak.
 

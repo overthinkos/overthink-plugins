@@ -149,7 +149,7 @@ This layer makes that URI actually work inside a container at uid
 
 ## Tests baked into the layer
 
-**Build-scope (run by `ov eval image <image>` without deploying):**
+**Build-scope (run by `ov eval box <image>` without deploying):**
 
 - `virtqemud-package` / `virtnetworkd-package` — package-existence probes using `package:` + `package_map:` (see below).
 - `virsh-binary` — `/usr/bin/virsh` exists.
@@ -184,7 +184,7 @@ See `/ov-eval:eval` "`package:` + `package_map:` pattern" for the resolution ord
 ## Usage
 
 ```yaml
-# image.yml — rootless nested VM image
+# box.yml — rootless nested VM image
 openclaw-desktop:
   layers:
     - ...

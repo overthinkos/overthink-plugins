@@ -20,7 +20,7 @@ vms:
   aurora-bootc:
     source:
       kind: bootc
-      image: aurora
+      box: aurora
     disk_size: 80 GiB
     ram: 12G
     cpus: 4
@@ -40,7 +40,7 @@ Firmware, machine, network, and SSH settings fall back to VmSpec defaults (see `
 
 ```bash
 # Build the aurora container image first (the VM disk install consumes it)
-ov image build aurora          # container image must exist before the VM disk install step
+ov box build aurora          # container image must exist before the VM disk install step
 ov vm build aurora-bootc
 ov vm create aurora-bootc
 ov vm start aurora-bootc

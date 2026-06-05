@@ -20,7 +20,7 @@ description: |
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 fedora-test:
   layers:
     - traefik
@@ -37,7 +37,7 @@ fedora-test:
 
 ## Related Commands
 
-- `/ov-build:list` — `ov image list routes` shows Traefik route configuration
+- `/ov-build:list` — `ov box list routes` shows Traefik route configuration
 
 ## When to Use This Skill
 
@@ -51,5 +51,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

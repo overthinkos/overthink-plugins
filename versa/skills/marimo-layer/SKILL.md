@@ -23,7 +23,7 @@ UI and the MCP server.
 | Ports | `2718` (marimo edit + MCP — host-mapped to `22718`) |
 | Service | `marimo` (supervisord, `restart: always`) |
 | MCP provides | `marimo` at `http://{{.ContainerName}}:2718/mcp/server` (Streamable HTTP) |
-| Install files | `layer.yml`, `pixi.toml`, `marimo-skills.tar.gz` (curriculum bundle) |
+| Install files | `candy.yml`, `pixi.toml`, `marimo-skills.tar.gz` (curriculum bundle) |
 | Env (runtime) | `MARIMO_SKILLS_DIR=/opt/marimo-skills`, `NVIDIA_PYTHON_PROJECT=~/.pixi`, `LD_LIBRARY_PATH=/usr/lib64` |
 
 ## Pixi env — version-pin rationale

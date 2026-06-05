@@ -36,7 +36,7 @@ manager UI.
 
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
-| **ov-image** | 2 | — | Schema for `kind: image` and `kind: layer` (image.yml / layer.yml authoring). |
+| **ov-image** | 2 | — | Schema for `kind: box` and `kind: candy` (box.yml / candy.yml authoring). |
 | **ov-vm** | 8 | — | Schema for `kind: vm` + bootc VM catalog (cloud_image vs bootc, libvirt/QEMU). Includes `cachyos` (bootstrap VM, in the `overthinkos/cachyos` submodule) and `debian` / `ubuntu` (debootstrap bootstrap VMs, in the `overthinkos/debian` / `overthinkos/ubuntu` submodules). |
 | **ov-kubernetes** | 2 | — | Schema for `kind: k8s` + cluster probes via `ov eval k8s`. |
 | **ov-local** | 3 | — | Schema for `kind: local` + ssh-host deploys + managed ssh-config fragment. Includes `ov-cachyos` (operator CachyOS workstation profile, in the `overthinkos/cachyos` submodule). |
@@ -82,7 +82,7 @@ Every skill uses the namespaced form `/<plugin-name>:<skill-name>` per the
 plugin name carries the `ov-` prefix; the skill name does not. Examples:
 
 - `/ov-core:ssh` — open an interactive shell into a pod.
-- `/ov-image:layer` — schema authoring for `kind: layer`.
+- `/ov-image:layer` — schema authoring for `kind: candy`.
 - `/ov-distros:arch` — Arch Linux base image reference.
 - `/ov-jupyter:notebook-templates` — bundled notebook starter content.
 - `/ov-eval:cdp` — Chrome DevTools Protocol live probe.

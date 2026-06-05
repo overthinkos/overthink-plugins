@@ -15,11 +15,11 @@ description: |
 > **Location:** the `arch-coder` image lives in the dedicated
 > **`overthinkos/arch`** repo, mounted as a git submodule at **`image/arch`**.
 > It composes the layers below by **git reference** to this repo
-> (`@github.com/overthinkos/overthink/layers/<name>:<tag>`) rather than copying
+> (`@github.com/overthinkos/overthink/candy/<name>:<tag>`) rather than copying
 > them; the `arch` base + `arch-builder` live in this repo (in `base.yml`) and
 > are reached by the submodule importing this repo under the `ov` namespace
 > (`base: ov.arch`, `builder: {…: ov.arch-builder}`). Build / deploy from
-> the submodule, e.g. `cd image/arch && ov image build arch-coder` (the build
+> the submodule, e.g. `cd image/arch && ov box build arch-coder` (the build
 > verb defaults to the submodule's `overthink.yml`), or
 > `ov --repo overthinkos/arch image build arch-coder`. The commands below assume
 > you are inside `image/arch` (or pass `-C image/arch`).
@@ -126,7 +126,7 @@ The remaining 25+ layers are identical to fedora-coder at the *composition* leve
 ## Quick start
 
 ```bash
-ov image build arch-coder
+ov box build arch-coder
 ov shell arch-coder
 # or as a service:
 ov config arch-coder
@@ -137,13 +137,13 @@ ssh -p 2222 user@localhost           # passwordless sudo
 ## Verification recipe
 
 ```bash
-ov image build arch-coder
-ov eval image ghcr.io/overthinkos/arch-coder:latest
+ov box build arch-coder
+ov eval box ghcr.io/overthinkos/arch-coder:latest
 # disposable-container tests against the baked OCI label
 
 ov config arch-coder
 ov start arch-coder
-ov eval image ghcr.io/overthinkos/arch-coder:latest
+ov eval box ghcr.io/overthinkos/arch-coder:latest
 # adds deploy-scope checks: sshd reachable, supervisord, dbus, ov-mcp,
 # virtqemud, libvirt session list, KVM domcaps, MCP tool-call probes.
 ```

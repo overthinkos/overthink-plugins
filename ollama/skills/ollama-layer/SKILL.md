@@ -38,7 +38,7 @@ See `/ov-image:layer` for `env_provide` field docs and `/ov-core:ov-config` for 
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 ollama:
   layers:
     - ollama
@@ -62,7 +62,7 @@ The `env_provide` mechanism makes `OLLAMA_HOST` available to all containers. The
 The layer ships 3 declarative checks embedded in the `org.overthinkos.eval`
 OCI label (see `/ov-eval:eval` for the full schema):
 
-- **Build-scope** (run under `ov eval image`):
+- **Build-scope** (run under `ov eval box`):
   - `ollama-binary` — `/usr/bin/ollama` exists
 - **Deploy-scope** (run under `ov eval live` against a live service; uses
   `${HOST_PORT:11434}` / `${CONTAINER_IP}` so deploy-time port remapping

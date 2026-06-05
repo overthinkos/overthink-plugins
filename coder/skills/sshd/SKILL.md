@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Ports | 22 |
-| Install files | `layer.yml` |
+| Install files | `candy.yml` |
 
 ## Packages
 
@@ -74,7 +74,7 @@ Why not `${USER}` substitution? The generator substitutes `${USER}` in task fiel
 ## Usage
 
 ```yaml
-# image.yml -- typically used via bootc-base composition
+# box.yml -- typically used via bootc-base composition
 my-image:
   layers:
     - sshd
@@ -99,7 +99,7 @@ my-image:
 
 ### Dual-mode sudo check — the `runuser -u user --` wrapper
 
-`ov eval image` runs with USER=1000 on container images but USER=0 on bootc images (bootc intentionally keeps USER=root because systemd manages user sessions via login). A naïve `sudo -n -l; contains: NOPASSWD` check fails on bootc — running as root prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`. The layer's current test drops to `user` explicitly when running as root:
+`ov eval box` runs with USER=1000 on container images but USER=0 on bootc images (bootc intentionally keeps USER=root because systemd manages user sessions via login). A naïve `sudo -n -l; contains: NOPASSWD` check fails on bootc — running as root prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`. The layer's current test drops to `user` explicitly when running as root:
 
 ```yaml
 - id: sudoers-ov-user

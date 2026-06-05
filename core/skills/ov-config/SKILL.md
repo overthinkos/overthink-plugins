@@ -13,9 +13,9 @@ description: |
 
 This is the **single entry point** for **container** deployment setup. `ov start` requires `ov config` to have been run first in quadlet mode.
 
-**Relationship to `ov deploy add`** — `ov config` remains the primary way to create/update a quadlet and provision secrets/volumes/sidecars for a container deploy. `ov deploy add <name> <ref>` (container target) wraps both `ov config` and `ov start` and additionally handles `--add-layer` overlay synthesis (an overlay Containerfile is built before the quadlet references the resulting overlay image). `ov deploy add host` bypasses `ov config` entirely — the host target has no quadlet; it writes systemd units directly (when `--with-services` is enabled) and records every action in the ledger at `~/.config/overthink/installed/`. See `/ov-core:deploy` for the command family and `/ov-local:local-deploy` for host-target semantics.
+**Relationship to `ov deploy add`** — `ov config` remains the primary way to create/update a quadlet and provision secrets/volumes/sidecars for a container deploy. `ov deploy add <name> <ref>` (container target) wraps both `ov config` and `ov start` and additionally handles `--add-candy` overlay synthesis (an overlay Containerfile is built before the quadlet references the resulting overlay image). `ov deploy add host` bypasses `ov config` entirely — the host target has no quadlet; it writes systemd units directly (when `--with-services` is enabled) and records every action in the ledger at `~/.config/overthink/installed/`. See `/ov-core:deploy` for the command family and `/ov-local:local-deploy` for host-target semantics.
 
-**`ov config` vs `ov settings` — common verb confusion.** `ov config <image>` configures an image for deployment (quadlet + secrets + volumes + data seed). `ov settings list` shows runtime config keys (secret_backend, vm.backend, etc.). A trailing `ov config show` parses as `ov config setup show` with `show` as the image positional — and errors with `image "show" is not available locally`. To inspect runtime configuration use `ov settings list`; to inspect a configured image's resolved deploy state use `ov image inspect <image>` or `ov deploy show <name>`.
+**`ov config` vs `ov settings` — common verb confusion.** `ov config <image>` configures an image for deployment (quadlet + secrets + volumes + data seed). `ov settings list` shows runtime config keys (secret_backend, vm.backend, etc.). A trailing `ov config show` parses as `ov config setup show` with `show` as the image positional — and errors with `image "show" is not available locally`. To inspect runtime configuration use `ov settings list`; to inspect a configured image's resolved deploy state use `ov box inspect <image>` or `ov deploy show <name>`.
 
 ## Quick Reference
 
@@ -96,7 +96,7 @@ This is the **single entry point** for **container** deployment setup. `ov start
 
 ## Volume Backing
 
-Volumes declared in layer.yml default to named volumes. At `ov config` time, backing can be changed per-volume:
+Volumes declared in candy.yml default to named volumes. At `ov config` time, backing can be changed per-volume:
 
 ```bash
 # Named volume (default)
@@ -119,7 +119,7 @@ Auto-path for bind without explicit host path: `<volumes_path>/<image>/<name>` (
 
 ### Bind-mounting a project checkout for `ov mcp serve`
 
-The `ov-mcp` layer declares a `project` volume at `/workspace` (the volume NAME stays `project` for a stable deployer API) and sets `env: OV_PROJECT_DIR=/workspace`. Bind-mount your overthink checkout at config time so build-mode MCP tools (`image.build`, `image.list.images`, `image.inspect`) can read `image.yml`. Alternatively, skip the bind-mount and `ov mcp serve` will auto-fall back to the upstream `overthinkos/overthink` repo (see `/ov-build:ov-mcp-cmd` "Project-dir wiring"):
+The `ov-mcp` layer declares a `project` volume at `/workspace` (the volume NAME stays `project` for a stable deployer API) and sets `env: OV_PROJECT_DIR=/workspace`. Bind-mount your overthink checkout at config time so build-mode MCP tools (`image.build`, `image.list.images`, `image.inspect`) can read `box.yml`. Alternatively, skip the bind-mount and `ov mcp serve` will auto-fall back to the upstream `overthinkos/overthink` repo (see `/ov-build:ov-mcp-cmd` "Project-dir wiring"):
 
 ```bash
 ov config arch-ov --bind project=/home/you/overthink
@@ -132,7 +132,7 @@ The `OV_PROJECT_DIR` env var is consumed by the ov binary's global `-C` / `--dir
 
 ## Secret Provisioning
 
-Secrets declared in `layer.yml` `secret:` field are stored as OCI label metadata. At config time:
+Secrets declared in `candy.yml` `secret:` field are stored as OCI label metadata. At config time:
 
 - `--password auto` (default): generates random passwords for all secrets
 - `--password manual`: prompts for each secret
@@ -442,7 +442,7 @@ The entrypoint auto-configures: OpenRouter + Ollama Cloud as semicolon-separated
 
 ## env_require Enforcement
 
-Layers can declare `env_require` in `layer.yml` for mandatory environment variables. `ov config` performs a hard check after resolving all env vars — if any required var is missing, it aborts before writing the quadlet and prints clear instructions:
+Layers can declare `env_require` in `candy.yml` for mandatory environment variables. `ov config` performs a hard check after resolving all env vars — if any required var is missing, it aborts before writing the quadlet and prints clear instructions:
 
 ```
 Error: openwebui requires the following environment variable(s):
@@ -458,7 +458,7 @@ Source: `ov/config_image.go` (`checkMissingEnvRequires`).
 
 ## secret_require Enforcement
 
-Parallel to `env_require` but for credential-backed env vars. Layers declare `secret_require` in `layer.yml` (see `/ov-image:layer`). `ov config` resolves each entry from the credential store via `ResolveCredential` and, if any required value is not stored, aborts with a clear remediation message:
+Parallel to `env_require` but for credential-backed env vars. Layers declare `secret_require` in `candy.yml` (see `/ov-image:layer`). `ov config` resolves each entry from the credential store via `ResolveCredential` and, if any required value is not stored, aborts with a clear remediation message:
 
 ```
 Error: openwebui requires the following credential-backed secret(s):
@@ -569,7 +569,7 @@ Source: `ov/envfile.go` (`normalizeNoProxy`), `ov/deploy.go` (`mergeEnvVars`, `s
 
 ### Prerequisites
 
-- `/ov-build:pull` — Required before `ov config` can read OCI labels. Remote refs (`@github.com/...`) are rejected with a redirect to `ov image pull`. If the image isn't local, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI prompts for a pull.
+- `/ov-build:pull` — Required before `ov config` can read OCI labels. Remote refs (`@github.com/...`) are rejected with a redirect to `ov box pull`. If the image isn't local, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI prompts for a pull.
 
 ### Deploy-mode neighbors
 
@@ -593,7 +593,7 @@ Source: `ov/envfile.go` (`normalizeNoProxy`), `ov/deploy.go` (`mergeEnvVars`, `s
 
 **MUST be invoked** when the task involves `ov config` commands, image deployment setup, quadlet generation, sidecar attachment, secret provisioning, encrypted volumes, data seeding, or volume backing configuration. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** After build, before start. `ov image build` → `ov config` → `ov start`.
+**Workflow position:** After build, before start. `ov box build` → `ov config` → `ov start`.
 
 Source: `ov/config_image.go` (command structs), `ov/quadlet.go` (quadlet generation), `ov/deploy.go` (deploy state), `ov/enc.go` (encrypted volumes), `ov/secrets.go` (secret provisioning), `ov/data.go` (data seeding).
 

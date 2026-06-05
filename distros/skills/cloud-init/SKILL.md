@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `sshd` |
-| Install files | `task:`, `layer.yml` |
+| Install files | `task:`, `candy.yml` |
 
 ## Packages
 
@@ -22,8 +22,8 @@ description: |
 ## Usage
 
 ```yaml
-# overthink.yml or image.yml
-image:
+# overthink.yml or box.yml
+box:
   my-cloud-image:
     base: "quay.io/fedora/fedora-bootc:43"
     bootc: true
@@ -69,4 +69,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

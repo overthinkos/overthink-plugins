@@ -17,7 +17,7 @@ description: |
 | Ports | 8888 |
 | Service | `jupyter-ml` (supervisord) |
 | Volume | `workspace` at `/workspace` |
-| Install files | `layer.yml`, `pixi.toml`, `task:` |
+| Install files | `candy.yml`, `pixi.toml`, `task:` |
 
 ## Architecture: Environment-Owning Meta-Layer
 
@@ -103,5 +103,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

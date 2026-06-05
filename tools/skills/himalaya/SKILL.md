@@ -11,13 +11,13 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `task:` |
+| Install files | `candy.yml`, `task:` |
 | Depends | `rust` |
 
 ## Usage
 
 ```yaml
-# image.yml or layer.yml
+# box.yml or candy.yml
 layers:
   - himalaya
 ```
@@ -45,5 +45,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

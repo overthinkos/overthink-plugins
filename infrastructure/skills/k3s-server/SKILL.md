@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `task:`, `service:`, `artifact:`, `secret_require:` |
+| Install files | `candy.yml`, `task:`, `service:`, `artifact:`, `secret_require:` |
 | Depends on | `/ov-infrastructure:k3s` |
 | Service | `k3s.service` (system scope, enabled) |
 

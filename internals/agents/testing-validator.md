@@ -15,9 +15,9 @@ Before any claim that a feature, fix, or change "works", verify that actual LOCA
 
 Before declaring "working", verify ALL of these:
 
-1. `ov image validate` passes with no errors
-2. `ov image generate` produces valid Containerfiles
-3. `ov image build <image>` succeeds (if applicable)
+1. `ov box validate` passes with no errors
+2. `ov box generate` produces valid Containerfiles
+3. `ov box build <image>` succeeds (if applicable)
 4. `ov shell <image>` runs successfully (if applicable)
 5. Services start and respond correctly (if applicable)
 6. No unexpected errors or warnings in output
@@ -40,18 +40,18 @@ Before declaring "working", verify ALL of these:
 
 ```bash
 # Must show:
-ov image validate                          # Exit 0
-ov image generate                          # No errors
-ov image build <affected-image> # Build succeeds
+ov box validate                          # Exit 0
+ov box generate                          # No errors
+ov box build <affected-image> # Build succeeds
 ov shell <affected-image> -c "..."   # Verify installation
 ```
 
 ### For Image Configuration Changes
 
 ```bash
-ov image validate                          # Exit 0
-ov image inspect <image>                   # Config is correct
-ov image build <image>          # Build succeeds
+ov box validate                          # Exit 0
+ov box inspect <image>                   # Config is correct
+ov box build <image>          # Build succeeds
 ```
 
 ### For Go CLI Changes
@@ -60,7 +60,7 @@ ov image build <image>          # Build succeeds
 cd ov && go test ./...               # All tests pass
 cd ov && go vet ./...                # No issues
 task build:ov                        # Binary compiles
-bin/ov image validate                # CLI works
+bin/ov box validate                # CLI works
 ```
 
 ### For Runtime/Service Changes
@@ -79,14 +79,14 @@ The acceptance gate is a fresh-rebuild run on a `disposable: true` bed —
 delegate it to the `eval-bed-runner` agent, or run it directly:
 
 ```bash
-ov eval image <image>                # build-scope checks (disposable run)
+ov eval box <image>                # build-scope checks (disposable run)
 ov eval run <bed>                    # full R10 sequence on a kind:eval bed:
                                      # build → eval image → deploy →
                                      # eval live → fresh ov update → teardown
 ```
 
 Exit codes: `0` pass · `1` infra/usage error (never ran a verdict) · `2`
-checks failed. A `--dry-run`, a green `go test`, or `ov image validate`
+checks failed. A `--dry-run`, a green `go test`, or `ov box validate`
 alone is NOT R10 — only a real `ov eval run <bed>` / `ov eval live` against
 a fresh rebuild counts.
 

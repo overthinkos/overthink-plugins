@@ -118,9 +118,9 @@ so the still-up pre-reboot sshd can't be mistaken for "back up". This is what
 lets a kernel-module layer (e.g. the CachyOS `nvidia-driver` layer) load its
 module on a clean boot mid-deploy. See `/ov-internals:install-plan` RebootStep.
 
-## Host→guest image transfer (`ov vm cp-image`)
+## Host→guest image transfer (`ov vm cp-box`)
 
-`ov vm cp-image <vm> <ref> [--as <tag>] [--rootless]` (and the reusable
+`ov vm cp-box <vm> <ref> [--as <tag>] [--rootless]` (and the reusable
 `TransferImageToGuest` helper) stream a host-built image into a running guest's
 podman storage via `podman save | ssh podman load` (NO intermediate tarball —
 the guest `/tmp` tmpfs is too small for a multi-GB image), idempotent (skips an
@@ -133,7 +133,7 @@ storage, and ALL of the load / integrity-probe / tag steps follow it consistentl
   --device nvidia.com/gpu=all` consumer that needs `/dev/nvidia*` via root.
 - **`--rootless`** → the SSH user's ROOTLESS podman (`podman`, no sudo; the tag
   runs via `RunUser`, not `RunSystem`). This is what `deployNestedPodsInGuest`
-  uses: the nested pod comes up via the guest user's own `ov deploy from-image`
+  uses: the nested pod comes up via the guest user's own `ov deploy from-box`
   (a `--user` quadlet) which reads the USER's storage, so the image MUST land
   there — a root-loaded image would be invisible to it.
 
@@ -145,15 +145,15 @@ child up as a PERSISTENT in-guest quadlet — the nested-pod-in-VM capability.
 own layers, including any kernel-driver reboot + the boot-time
 `nvidia-ctk cdi generate`, are already applied). For each child it:
 
-1. `ov image build <child.Image>` on the HOST (the guest needs no project).
-2. `ov vm cp-image <vm> <child.Image> --as localhost/ov-<childKey>:latest
+1. `ov box build <child.Image>` on the HOST (the guest needs no project).
+2. `ov vm cp-box <vm> <child.Image> --as localhost/ov-<childKey>:latest
    --rootless` — into the guest USER's rootless podman.
 3. over SSH as the guest user: `loginctl enable-linger` (so the `--user` quadlet
    auto-starts at boot and survives reboot), then `export
    XDG_RUNTIME_DIR=/run/user/$(id -u)` (so `systemctl --user` reaches the
    lingering user bus over the non-login SSH session — same requirement as
    VmDeployTarget's own user services), then the guest's own project-free
-   `ov deploy from-image localhost/ov-<childKey>:latest <childKey>` — which
+   `ov deploy from-box localhost/ov-<childKey>:latest <childKey>` — which
    generates + starts the quadlet from the image's baked OCI labels (ports,
    services, GPU device auto-detected in the guest; rootless GPU via CDI —
    `/dev/nvidia*` are world-rw and the CDI spec is world-readable).
@@ -161,7 +161,7 @@ own layers, including any kernel-driver reboot + the boot-time
 Idempotent (cp-image skips an intact image; from-image re-applies on `ov update`).
 The dispatch routes a VM-root deploy node-only (its pod children deploy in-guest
 here, never via a host tree walk). The existing `ov eval live <vm>.<child>`
-multi-hop chain reaches the running nested pod unchanged. `ov vm cp-image` is the
+multi-hop chain reaches the running nested pod unchanged. `ov vm cp-box` is the
 host→guest delivery for it.
 
 ## VmDeployState persistence
@@ -195,8 +195,8 @@ Persisted in `~/.config/ov/deploy.yml` as the `vm_state:` field on the VM's depl
 ```
 ov deploy add vm:arch ripgrep           # apply ripgrep layer in the guest
 ov deploy add vm:arch fedora-coder \    # apply full fedora-coder layer set
-    --add-layer team-extras \
-    --add-layer github.com/team/configs/layers/sshkeys
+    --add-candy team-extras \
+    --add-candy github.com/team/configs/candy/sshkeys
 ov deploy del vm:arch                   # reverse all applied layers in the guest
 ```
 

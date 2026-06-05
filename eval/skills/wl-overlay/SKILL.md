@@ -203,4 +203,4 @@ Socket: `/tmp/ov-overlay.sock` (Unix domain, JSON-line)
 - `/ov-selkies:sway-desktop` — Desktop metalayer (includes wl-overlay)
 - `/ov-selkies:selkies-desktop-layer` — Desktop metalayer (includes wl-overlay)
 
-Source: `ov/wl_overlay.go` (Go commands), `layers/wl-overlay/ov-overlay` (Python daemon/client).
+Source: `ov/wl_overlay.go` (Go commands), `candy/wl-overlay/ov-overlay` (Python daemon/client).

@@ -27,12 +27,12 @@ description: |
 | Force build | `ov shell <image> --build` | Build locally before running |
 
 **Note:** `ov shell` does not accept remote refs (`@github.com/...`). Remote
-refs are handled exclusively by `ov image pull` (build-mode). Pull first,
+refs are handled exclusively by `ov box pull` (build-mode). Pull first,
 then `ov shell <image-name>` works via labels. See `/ov-build:pull`.
 
 ## How It Works
 
-1. Resolves image from OCI labels via `ExtractMetadata` (never `image.yml`)
+1. Resolves image from OCI labels via `ExtractMetadata` (never `box.yml`)
 2. Applies `deploy.yml` overlay (volumes, env, sidecars, tunnel)
 3. Ensures image exists in run engine (transfers from build engine if needed)
 4. Resolves volumes (with deploy-time backing), ports, security, environment
@@ -43,7 +43,7 @@ If the image isn't in local storage, `ExtractMetadata`/`EnsureImage` return
 `ErrImageNotLocal` and the CLI surfaces:
 ```
 Error: image "X" is not available locally.
-       Run 'ov image pull X' to fetch it first
+       Run 'ov box pull X' to fetch it first
 ```
 See `/ov-build:pull` for the full sentinel pattern.
 
@@ -85,10 +85,10 @@ ov shell my-app                            # Interactive shell in running contai
 
 ## Port Relay
 
-The `port_relay` field in layer.yml solves the problem of services that bind only to 127.0.0.1 inside the container (e.g., Chrome 146+ DevTools). Container port mappings only forward to interfaces visible from outside, so a loopback-only service is unreachable from the host.
+The `port_relay` field in candy.yml solves the problem of services that bind only to 127.0.0.1 inside the container (e.g., Chrome 146+ DevTools). Container port mappings only forward to interfaces visible from outside, so a loopback-only service is unreachable from the host.
 
 ```yaml
-# In layer.yml:
+# In candy.yml:
 port_relay:
   - 9222
 ```
@@ -127,8 +127,8 @@ Source: `ov/devices.go` (`DetectHostDevices`, `DetectGPU`, `DetectAMDGPU`, `appe
 
 Runtime environment variables are injected from multiple sources. Resolution priority (last wins for duplicate keys):
 
-1. **Deploy config `env:`** (image.yml / deploy.yml) -- lowest priority
-2. **Deploy config `env_file:`** (image.yml / deploy.yml)
+1. **Deploy config `env:`** (box.yml / deploy.yml) -- lowest priority
+2. **Deploy config `env_file:`** (box.yml / deploy.yml)
 3. **Workspace `.env`** file -- auto-loaded from `-w` directory
 4. **CLI `--env-file`** flag
 5. **CLI `-e`** flags -- highest priority
@@ -152,11 +152,11 @@ labels, so remote refs are rejected with a redirect:
 
 ```
 Error: remote refs are not accepted here;
-       run 'ov image pull @github.com/org/repo/my-app' first,
+       run 'ov box pull @github.com/org/repo/my-app' first,
        then 'ov shell my-app'
 ```
 
-To run a shell on a remote image, pull it first (via `ov image pull`) and
+To run a shell on a remote image, pull it first (via `ov box pull`) and
 then invoke `ov shell <short-name>`. See `/ov-build:pull` for the full remote-ref
 workflow.
 
@@ -168,7 +168,7 @@ Source: `ov/transfer.go`.
 
 ## Container Networking
 
-All containers are connected to a shared `ov` network by default, enabling inter-container DNS resolution by container name. Override with `network: host` in image.yml.
+All containers are connected to a shared `ov` network by default, enabling inter-container DNS resolution by container name. Override with `network: host` in box.yml.
 
 Source: `ov/network.go`.
 
@@ -208,7 +208,7 @@ Use `ov cmd` for quick operations on running services. Use `ov shell -c` when yo
 
 ### Build-mode references
 
-- `/ov-image:image` -- Image definitions (ports, volumes, env) in `image.yml`; authoritative source before a pull
+- `/ov-image:image` -- Image definitions (ports, volumes, env) in `box.yml`; authoritative source before a pull
 - `/ov-build:build` -- Build the image you intend to shell into
 
 ### Layer skills

@@ -7,7 +7,7 @@ allowed-tools: Bash, Read
 MUST be invoked before any work involving: `ov eval k8s` commands,
 cluster-readiness probes from test scripts, ingress / storage class
 assertions, k3s default-addon health checks, or declarative `k8s:`
-checks on `eval:` blocks in layer.yml.
+checks on `eval:` blocks in candy.yml.
 
 ## Command surface
 
@@ -59,7 +59,7 @@ name; shared modifiers (`name:`, `namespace:`, `cluster:`, `timeout:`,
 `kubeconfig:`, `k8s_kind:`, `k8s_count:`, `manifest:`, `k8s_resource:`,
 `k8s_group:`, `k8s_version:`) are available.
 
-Example from `layers/k3s-server/layer.yml`:
+Example from `candy/k3s-server/candy.yml`:
 
 ```yaml
 eval:
@@ -96,7 +96,7 @@ the sanitized deploy name (`:`/`.`/`/` → `-`) — the SAME identifier
 `K3sPostProvision` uses for the kubeconfig context + ClusterProfile. It is
 UPPERCASE because the eval-var expander only recognizes uppercase names; a
 lowercase `${deploy_name}` (the artifact-path token) is NOT an eval var and is
-rejected by `ov image validate` in k8s identifier fields.
+rejected by `ov box validate` in k8s identifier fields.
 
 `wait-nodes` with `name:` set matches a single specific node (used by
 `k3s-agent`'s join-confirmation test). Without `name:`, it waits until

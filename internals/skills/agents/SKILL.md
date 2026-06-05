@@ -62,10 +62,10 @@ under the binding rule). "Prefer agents" governs BOUNDED work.
   `run_in_background` task** (main session / background agent / split-pane
   teammate — see "Bed-scoped" below; an in-process teammate CANNOT, its bg dies
   on yield) and pastes the verbatim verdict; teammates do bed-local edits + short
-  foreground checks (`ov eval image`), never the full run. There is no
+  foreground checks (`ov eval box`), never the full run. There is no
   duration/600s carve-out — the 600s is a Bash FOREGROUND cap, irrelevant to a
   backgrounded bed.
-- **`deploy-verifier`** — read-mostly: `ov eval image` / `ov eval live` /
+- **`deploy-verifier`** — read-mostly: `ov eval box` / `ov eval live` /
   `ov status` against an image or a running deploy (the ov repo's images OR a
   user's own deploy config). Answers "does this deploy config work?" without
   mutating anything.
@@ -76,8 +76,8 @@ under the binding rule). "Prefer agents" governs BOUNDED work.
   8-step RCA before any fix.
 - **`testing-validator`** — blocks "it works" claims lacking the R10 proof;
   owns the 4-tier confidence table (must match CLAUDE.md).
-- **`layer-validator`** — pre-edit `layer.yml` sanity gate; defers the full
-  schema to `/ov-image:layer` + `ov image validate`.
+- **`layer-validator`** — pre-edit `candy.yml` sanity gate; defers the full
+  schema to `/ov-image:layer` + `ov box validate`.
 
 Invoke by name in a prompt, `@`-mention, or the `Agent` tool (scoped id
 `ov-internals:<name>`). Custom agents load at SESSION START, so the shipped
@@ -95,7 +95,7 @@ teammate.
   the runtime's 16-concurrent agent ceiling (KVM/libvirt are multi-tenant,
   podman builds distinct image tags concurrently), and aggregates pass/fail.
   Beds skipped for a missing host prereq are logged, never silently dropped.
-- **`/audit-deploy-configs [image|deploy …]`** — validates + `ov eval image`
+- **`/audit-deploy-configs [image|deploy …]`** — validates + `ov eval box`
   + optional `ov eval live` + `deploy-verifier` over a set of deploy configs;
   aggregates a health report. Serves the "evaluate deployment configs, for AI
   and humans" goal.
@@ -190,7 +190,7 @@ Therefore, for ANY agent or workflow that runs them:
     be notified.** Duration-independent: there is no time budget, and the Bash
     600s figure is a FOREGROUND cap that never applies to a backgrounded bed.
     Sub-agents/teammates do bed-local edits + short foreground checks
-    (`ov eval image`), never the full run.
+    (`ov eval box`), never the full run.
   - **Reconnect via durable state, never a held process handle.**
     `.eval/<bed>/<calver>/summary.yml` (overall `ok:` + per-step status) + the
     live domain/container ARE the source of truth: "done + verdict" =
@@ -265,8 +265,8 @@ this host) which contexts can own a bed:**
 - ✗ **An in-process teammate** (the headless `teammateMode: auto` default) —
   CANNOT own a bed that outlives a turn: its `run_in_background` task is TORN DOWN
   the instant it yields (verified 4× — marker absent, no process, never
-  re-invoked). It runs bed-local EDITS + short foreground checks (`ov eval image`,
-  `ov image validate`) only, never the full `ov eval run`.
+  re-invoked). It runs bed-local EDITS + short foreground checks (`ov eval box`,
+  `ov box validate`) only, never the full `ov eval run`.
 
 So **"one agent ⇄ one bed" = one PERSISTENT owner per bed**, launched
 longest-pole-first: headless → the persistent session runs N concurrent
@@ -300,8 +300,8 @@ The playbook:
    bed, or a background agent per bed); interactive tmux → a split-pane teammate
    per bed. It follows the `eval-bed-runner` verbatim-verdict discipline; failures
    triage via `root-cause-analyzer`. IN-PROCESS teammates (the headless default)
-   do bed-local EDITS + short foreground checks (`ov eval image`,
-   `ov image validate`) ONLY — they cannot run a full bed (their bg dies on
+   do bed-local EDITS + short foreground checks (`ov eval box`,
+   `ov box validate`) ONLY — they cannot run a full bed (their bg dies on
    yield). Review/RCA are auxiliary — never a substitute for the live run.
 3. **Verify before you change (Risk Driven Development)**: each teammate proves
    its bed's HIGH-RISK assumptions — above all the composition — on its standing
@@ -330,7 +330,7 @@ the sum.
 One-agent-per-bed is the headline speedup; these compound it, each grounded in
 how `ov eval run` actually behaves:
 
-- **A pod bed builds the image ONCE.** Step 1 (`ov image build`) is the only
+- **A pod bed builds the image ONCE.** Step 1 (`ov box build`) is the only
   build; the "fresh `ov update`" R10 gate is a `systemctl restart` onto the
   already-built image (`ov update` carries no `--build`, and `EnsureImage`
   short-circuits on `LocalImageExists`). The cost model is ~1 build/bed — never

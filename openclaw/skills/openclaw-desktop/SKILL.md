@@ -15,7 +15,7 @@ desktop** that also runs the **OpenClaw gateway + its full tool/skill stack**,
 a **CPU Ollama** inference server, and the **complete `ov` toolchain** — all as
 uid 1000 `user` with no `--privileged` and no added capabilities. Open
 `https://localhost:3000`, get a labwc desktop with Chrome, and from a terminal
-inside it you can `ov image build`, run nested rootless pods, launch rootless
+inside it you can `ov box build`, run nested rootless pods, launch rootless
 libvirt VMs, drive the OpenClaw gateway on :18789, and hit a local Ollama on
 :11434.
 
@@ -25,7 +25,7 @@ libvirt VMs, drive the OpenClaw gateway on :18789, and hit a local Ollama on
 openclaw-desktop:
   base: cachyos.cachyos        # Arch-derived, pacman/AUR, x86_64_v3 (via the `cachyos` import namespace)
   build: [pac, aur]            # required — selkies' chrome (AUR google-chrome) + wl-tools (AUR wlrctl)
-  layer:
+  candy:
     - agent-forwarding
     - selkies-desktop          # full streaming desktop stack
     - openclaw-full            # gateway + 27 tools incl. claude-code/codex/gemini
@@ -85,7 +85,7 @@ documented in `/ov-distros:container-nesting` with the full kernel-level RCA.
 | Streaming desktop | `selkies-desktop` (chrome, chrome-cdp, labwc, waybar, pipewire, swaync, pavucontrol, wl-tools, selkies, sshd, …) | labwc Wayland desktop streamed over HTTPS:3000; Chrome + CDP:9222 + chrome-devtools-mcp:9224; sshd:2222 |
 | OpenClaw + tools | `openclaw-full` (openclaw gateway + claude-code, codex, gemini + 24 more tools) | AI gateway on :18789; `claude` / `codex` / `gemini` CLIs at `${HOME}/.npm-global/bin/`; playwright now drives the desktop's real Chrome (synergy) |
 | LLM inference | `ollama` | CPU Ollama API on :11434; `ollama` host alias; `models` volume at `~/.ollama` |
-| Nested ov toolchain | `ov-full` + `container-nesting` + `golang` + `gh` | `ov image build`, nested rootless podman/buildah/skopeo, rootless libvirt VMs, gocryptfs encrypted volumes, socat relays |
+| Nested ov toolchain | `ov-full` + `container-nesting` + `golang` + `gh` | `ov box build`, nested rootless podman/buildah/skopeo, rootless libvirt VMs, gocryptfs encrypted volumes, socat relays |
 
 **Browser synergy:** `openclaw-full` ships `playwright` but deliberately omits a
 system browser (it's normally headless). Fusing it with `selkies-desktop`'s
@@ -110,7 +110,7 @@ running selkies/openclaw instance holding these host ports, remap via
 ## Quick Start
 
 ```bash
-ov image build openclaw-desktop
+ov box build openclaw-desktop
 ov config openclaw-desktop
 ov start openclaw-desktop
 # Desktop:  https://localhost:3000 (accept the self-signed cert)
@@ -185,12 +185,12 @@ uses this mirror.
 ## What works from inside the desktop
 
 Every `ov` verb family runs as uid 1000 inside the container sandbox:
-`ov image build/generate/validate/merge/inspect/list/pull`,
-`ov eval image/live/cdp/wl/dbus/vnc/mcp`,
+`ov box build/generate/validate/merge/inspect/list/pull`,
+`ov eval box/live/cdp/wl/dbus/vnc/mcp`,
 `ov config/deploy/start/stop/update/remove/shell/cmd/service/status/logs`,
 `ov vm list/create/start/stop/ssh/destroy` (rootless libvirt session),
 `ov doctor/secrets/settings/alias`. The `ov` layer bakes only the binary — for
-build-mode verbs that read `image.yml`, mount or `podman cp` the project in.
+build-mode verbs that read `box.yml`, mount or `podman cp` the project in.
 
 ## Volumes
 

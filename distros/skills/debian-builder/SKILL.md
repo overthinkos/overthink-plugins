@@ -48,7 +48,7 @@ debian:
     cargo: debian-builder
 ```
 
-During `ov image build debian-coder`, any layer that ships `pixi.toml` / `package.json` / `Cargo.toml` gets a multi-stage `FROM debian-builder AS <layer>-<builder>-build` section emitted by the generator, then `COPY --from=<stage> --chown=${UID}:${GID}` into the final image. See `/ov-internals:generate-source` for the template.
+During `ov box build debian-coder`, any layer that ships `pixi.toml` / `package.json` / `Cargo.toml` gets a multi-stage `FROM debian-builder AS <layer>-<builder>-build` section emitted by the generator, then `COPY --from=<stage> --chown=${UID}:${GID}` into the final image. See `/ov-internals:generate-source` for the template.
 
 No AUR equivalent (unlike `/ov-distros:arch-builder`) — AUR is an Arch-only concept.
 

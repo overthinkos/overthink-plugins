@@ -50,7 +50,7 @@ Key details:
 
 ## Declaration
 
-### In layer.yml
+### In candy.yml
 
 Layer aliases require both `name` and `command`:
 
@@ -62,7 +62,7 @@ aliases:
     command: "ollama run"
 ```
 
-### In image.yml
+### In box.yml
 
 Image-level aliases default `command` to `name` if omitted. Image-level aliases override layer aliases with the same name.
 
@@ -139,7 +139,7 @@ Scans `~/.local/bin/` for files with the `# ov-alias` marker.
 - `/ov-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
 - `/ov-core:shell` -- How aliases execute commands via `ov shell -c`
-- `/ov-image:layer` -- Declaring aliases in layer.yml
+- `/ov-image:layer` -- Declaring aliases in candy.yml
 - `/ov-image:image` -- Image-level alias overrides
 
 ## When to Use This Skill

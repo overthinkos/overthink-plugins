@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml` |
+| Install files | `candy.yml` |
 
 ## Environment Variables
 
@@ -60,7 +60,7 @@ Run `ov doctor` to verify detection. Run `ov udev install` to set up device perm
 ## Usage
 
 ```yaml
-# image.yml -- standalone AMD GPU image
+# box.yml -- standalone AMD GPU image
 my-amd-app:
   base: fedora
   layers:
@@ -112,5 +112,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

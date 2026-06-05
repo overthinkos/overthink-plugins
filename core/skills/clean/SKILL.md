@@ -13,7 +13,7 @@ description: |
 
 `ov clean` reclaims disk by applying the project's configured retention to
 **reusable** build artifacts and removing **one-time** transient leftovers. It is
-the on-demand counterpart to the auto-pruning that runs after `ov image build`
+the on-demand counterpart to the auto-pruning that runs after `ov box build`
 and `ov eval run`.
 
 Two artifact classes, two policies (operator principle):
@@ -29,7 +29,7 @@ Two artifact classes, two policies (operator principle):
 
 ```yaml
 defaults:
-  keep_images: 3      # newest CalVer tags to keep per image after `ov image build`
+  keep_images: 3      # newest CalVer tags to keep per image after `ov box build`
   keep_eval_runs: 3   # newest run dirs to keep per bed/score after `ov eval run`
 ```
 
@@ -77,7 +77,7 @@ backstop refuses it). The real run silently retains such in-use images.
 
 The same retention runs automatically (no flag needed):
 
-- After `ov image build` (push runs excluded) → `keep_images`.
+- After `ov box build` (push runs excluded) → `keep_images`.
 - After `ov eval run` (any path: bed / `--all-beds` / score) → `keep_eval_runs`,
   after the new run's output is written so the newest run is kept.
 
@@ -94,13 +94,13 @@ the qcow2 build.
 
 `ov/clean.go` — `pruneImagesByRetention`, `pruneEvalRuns`,
 `cleanMakepkgArtifacts`, `CleanCmd`. Hooks in `BuildCmd.Run` (`ov/build.go`) and
-`EvalRunCmd.Run` (`ov/eval_runner_cmd.go`). Retention keys live on `ImageConfig`
+`EvalRunCmd.Run` (`ov/eval_runner_cmd.go`). Retention keys live on `BoxConfig`
 (`ov/config.go`), merged via `mergeImageConfig` (`ov/unified.go`), validated in
 `validateBuildTunables` (`ov/validate.go`).
 
 ## Cross-References
 
-- `/ov-build:build` — `ov image build` + the `keep_images` auto-prune.
+- `/ov-build:build` — `ov box build` + the `keep_images` auto-prune.
 - `/ov-eval:eval` — `ov eval run` + the `keep_eval_runs` auto-prune.
 - `/ov-vm:vm` — `ov vm destroy --disk` for VM disk removal.
 - `/ov-image:image` — the `defaults:` block where retention keys live.

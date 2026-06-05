@@ -17,7 +17,7 @@ and a MapLibre style editor (maputnik). One MCP server is exposed
 
 The `versa` image name is OUR image identity, deliberately decoupled
 from the upstream marimo notebook software the image bundles. The
-`layers/marimo/` directory + the `mcp_provide.name: marimo`
+`candy/marimo/` directory + the `mcp_provide.name: marimo`
 MCP-server identity reflect that upstream software identity.
 
 ## Image properties
@@ -126,7 +126,7 @@ stay in sync automatically:
 ```yaml
 versa:
   target: pod
-  image: versa
+  box: versa
   disposable: true
   lifecycle: dev
   port: [auto]    # auto-allocate one free host port per image-declared
@@ -187,13 +187,13 @@ volume, and its own host-port mappings:
 ```yaml
 deploy:
   versa:
-    image: versa
+    box: versa
     target: pod
     disposable: true
     port: [auto]               # auto-allocated host ports
 
   versa/ecovoyage:
-    image: versa               # SAME image, explicit field required
+    box: versa               # SAME image, explicit field required
     target: pod
     disposable: true
     volume:
@@ -220,7 +220,7 @@ canaries, regression bisection, or holding back a specific version):
 ```yaml
 deploy:
   versa-pinned-2026.131.2134:
-    image: ghcr.io/overthinkos/versa:2026.131.2134  # exact ref, never re-resolved
+    box: ghcr.io/overthinkos/versa:2026.131.2134  # exact ref, never re-resolved
     target: pod
     disposable: true
     port: [auto]
@@ -325,7 +325,7 @@ compatible wheel exists at build time; re-add them once wheels ship.
 ## Load-bearing transitive: pytest in the pixi env
 
 `pytest` is an explicit `[pypi-dependencies]` entry in
-`layers/marimo/pixi.toml` despite no code in this env using pytest as a
+`candy/marimo/pixi.toml` despite no code in this env using pytest as a
 test framework. It is an **involuntary runtime dep** of the cupy + torch
 2.11 combination:
 

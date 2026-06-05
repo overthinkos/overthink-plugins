@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml` (packages only) |
+| Install files | `candy.yml` (packages only) |
 | Depends | none |
 
 ## Packages
@@ -25,7 +25,7 @@ Validates that the `aur:` package format works correctly on Arch Linux images. I
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 layers:
   - arch-aur-test
 ```
@@ -45,10 +45,10 @@ Requires an Arch-based image with `build: [pac, aur]` so the builder can resolve
 
 Use when the user asks about:
 - Arch Linux AUR package testing
-- The `aur:` package format in layer.yml
+- The `aur:` package format in candy.yml
 - The `arch-aur-test` layer
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

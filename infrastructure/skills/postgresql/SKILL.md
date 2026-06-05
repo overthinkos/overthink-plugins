@@ -26,7 +26,7 @@ description: |
 | `POSTGRES_HOST_AUTH_METHOD` | `scram-sha-256` |
 | `POSTGRES_SHARED_PRELOAD_LIBRARIES` | *(optional)* — comma-separated `.so` names loaded at startup |
 
-The entrypoint also reads these variables (with defaults, not set in layer.yml):
+The entrypoint also reads these variables (with defaults, not set in candy.yml):
 - `POSTGRES_USER` (default: `postgres`) — set by consuming layers (e.g., immich sets `immich`)
 - `POSTGRES_DB` (default: `$POSTGRES_USER`) — set by consuming layers
 - `POSTGRES_PASSWORD` — required unless `POSTGRES_HOST_AUTH_METHOD=trust`
@@ -52,7 +52,7 @@ The layer is multi-distro:
 ## Usage
 
 ```yaml
-# image.yml -- typically used as dependency of immich
+# box.yml -- typically used as dependency of immich
 my-image:
   layers:
     - postgresql
@@ -94,4 +94,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

@@ -55,7 +55,7 @@ present, so the layer carries **no `cuda` dependency** — it only `require:`s
 ## Quick Start
 
 ```bash
-ov image build ollama
+ov box build ollama
 ov config ollama
 ov start ollama
 ov shell ollama -c "ollama pull llama3"

@@ -1,7 +1,7 @@
 ---
 name: kubernetes
 description: |
-  MUST be invoked before any work involving: `ov deploy add --target kubernetes`, `ov deploy from-image`, Kustomize manifest generation, cluster profiles, K8s deployments, `kubernetes:` block in deploy spec, or OCI-label capabilities.
+  MUST be invoked before any work involving: `ov deploy add --target kubernetes`, `ov deploy from-box`, Kustomize manifest generation, cluster profiles, K8s deployments, `kubernetes:` block in deploy spec, or OCI-label capabilities.
 ---
 
 # Kubernetes — Deploying Overthink Images to K8s Clusters
@@ -10,14 +10,14 @@ description: |
 
 Overthink can deploy built images to a Kubernetes cluster by emitting a Kustomize `base/` + `overlays/` tree. The deployment schema stays **target-agnostic** — authors describe *what the workload needs* (kind, replicas, resources, exposure, storage, probes); a per-cluster **cluster profile** file supplies the K8s-specific knobs (storage class, ingress class, cert issuer, secret backend).
 
-Every image's runtime contract is baked into OCI labels at build time, so **a K8s deploy is possible without access to `overthink.yml`** — the `ov deploy from-image` verb reads capabilities from the pushed image alone.
+Every image's runtime contract is baked into OCI labels at build time, so **a K8s deploy is possible without access to `overthink.yml`** — the `ov deploy from-box` verb reads capabilities from the pushed image alone.
 
 ## Quick reference
 
 | Action | Command | Description |
 |---|---|---|
-| Add K8s deploy | `ov deploy add <name> <ref> --target kubernetes` | Read ImageConfig + deployment + cluster profile; emit `.overthink/k8s/<name>/` Kustomize tree |
-| Source-less deploy | `ov deploy from-image <registry/name:tag> [name] --cluster <name>` | Deploy from OCI labels only — no `overthink.yml` needed (see Part F.10) |
+| Add K8s deploy | `ov deploy add <name> <ref> --target kubernetes` | Read BoxConfig + deployment + cluster profile; emit `.overthink/k8s/<name>/` Kustomize tree |
+| Source-less deploy | `ov deploy from-box <registry/name:tag> [name] --cluster <name>` | Deploy from OCI labels only — no `overthink.yml` needed (see Part F.10) |
 | Sync to cluster | `ov deploy sync <name>` | `kubectl apply -k .overthink/k8s/<name>/overlays/default` |
 | Show generated manifests | `ov deploy show <name>` | `kubectl kustomize …` — see what would apply |
 | Delete K8s deploy | `ov deploy del <name>` | Remove overlay dir; base stays if other instances reference it |
@@ -26,11 +26,11 @@ Every image's runtime contract is baked into OCI labels at build time, so **a K8
 
 | Concern | Schema slot | OCI label home |
 |---|---|---|
-| **Build** — what goes INTO the image | `image.build:` (or legacy `ImageConfig`) | no (consumed at build) |
+| **Build** — what goes INTO the image | `image.build:` (or legacy `BoxConfig`) | no (consumed at build) |
 | **Capabilities** — image's runtime contract | `image.capabilities:` (or layer rollups) | **yes** — every field under `org.overthinkos.*` |
 | **Deployment** — how to run the image | `overthink.yml:deployments.<name>` + `~/.config/ov/deploy.yml` overlay | no |
 
-The completeness invariant: every exported field on `ImageMetadata`/`Capabilities` has a `CapabilityLabelMap` entry. A compile-time test enforces this — a new capability field without a label mapping fails the build. See `ov/capabilities.go`.
+The completeness invariant: every exported field on `BoxMetadata`/`Capabilities` has a `CapabilityLabelMap` entry. A compile-time test enforces this — a new capability field without a label mapping fails the build. See `ov/capabilities.go`.
 
 ## Deployment schema — target-agnostic fields
 
@@ -141,13 +141,13 @@ New cluster = write a new profile; zero deployment-spec changes.
 
 Apply: `kubectl apply -k .overthink/k8s/<name>/overlays/<instance>` (or `ov deploy sync <name>`).
 
-## Source-less deploy — `ov deploy from-image`
+## Source-less deploy — `ov deploy from-box`
 
 Proves the self-contained image invariant: a deploy pipeline with **no access to `overthink.yml`** can still produce a correct Kustomize tree.
 
 ```bash
 # On a machine that doesn't have the source repo:
-ov deploy from-image quay.io/myorg/openclaw:v2 openclaw \
+ov deploy from-box quay.io/myorg/openclaw:v2 openclaw \
     --target kubernetes --cluster production --namespace apps
 # Reads: OCI labels (capabilities) + ~/.config/ov/clusters/production.yaml
 #        + ~/.config/ov/deploy.yml (if present, for per-machine overrides)
@@ -161,7 +161,7 @@ ov deploy sync openclaw                   # kubectl apply -k ...
 - `ov/k8s_target.go` — `K8sDeployTarget` (fourth DeployTarget alongside OCI / container / host)
 - `ov/k8s_generate.go` — `GenerateK8sKustomize` + workload-kind heuristic + Ingress/PVC emission
 - `ov/k8s_deploy_from_image.go` — `DeployFromImage`
-- `ov/capabilities.go` — `Capabilities` (alias of `ImageMetadata`) + `CapabilityLabelMap` + completeness check
+- `ov/capabilities.go` — `Capabilities` (alias of `BoxMetadata`) + `CapabilityLabelMap` + completeness check
 
 ## Related skills
 

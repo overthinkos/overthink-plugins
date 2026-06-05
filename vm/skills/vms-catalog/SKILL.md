@@ -9,9 +9,9 @@ description: |
 
 # vms
 
-`vm.yml` is the authoring surface for `kind: vm` entities — VM primitives that pair with either a remote cloud-image URL (`source.kind: cloud_image`) or an in-repo bootc container image (`source.kind: bootc`). Loaded through `overthink.yml includes:` alongside `image.yml`. Entries are resolved by `LoadUnified` into `VmSpec` Go types (`ov/vm_spec.go`) and consumed by `ov vm build`, `ov vm create`, and `ov deploy add vm:<name>`.
+`vm.yml` is the authoring surface for `kind: vm` entities — VM primitives that pair with either a remote cloud-image URL (`source.kind: cloud_image`) or an in-repo bootc container image (`source.kind: bootc`). Loaded through `overthink.yml includes:` alongside `box.yml`. Entries are resolved by `LoadUnified` into `VmSpec` Go types (`ov/vm_spec.go`) and consumed by `ov vm build`, `ov vm create`, and `ov deploy add vm:<name>`.
 
-The VM surface parallels the `kind: image` surface: one YAML entry per entity, kind-keyed, discovered through includes. The Go types that back it live in `/ov-internals:vm-spec`; the rendering paths in `/ov-internals:libvirt-renderer` and `/ov-internals:cloud-init-renderer`.
+The VM surface parallels the `kind: box` surface: one YAML entry per entity, kind-keyed, discovered through includes. The Go types that back it live in `/ov-internals:vm-spec`; the rendering paths in `/ov-internals:libvirt-renderer` and `/ov-internals:cloud-init-renderer`.
 
 ## File layout
 
@@ -27,7 +27,7 @@ vms:
       base_user: arch                     # adopt this account (see Adopt pattern below)
       cache: ~/.cache/ov/vm-images/       # optional override
       # bootc branch:
-      image: <kind:image entry name>
+      box: <kind:image entry name>
       transport: registry | containers-storage | oci | oci-archive
       rootfs: ext4 | xfs | btrfs
       root_size: 10G                      # optional cap; rest of disk stays unpartitioned
@@ -149,7 +149,7 @@ Canonical example: `/ov-vm:arch`. Only existing cloud_image VM in the repo — *
 
 ## source.kind: bootc
 
-Use when the VM is built from an **in-repo bootc container image** (a `kind: image` entry with `bootc: true`). `ov vm build` runs `bootc install to-disk --via-loopback` inside a privileged container to produce the qcow2/raw disk.
+Use when the VM is built from an **in-repo bootc container image** (a `kind: box` entry with `bootc: true`). `ov vm build` runs `bootc install to-disk --via-loopback` inside a privileged container to produce the qcow2/raw disk.
 
 The 4 bootc VMs currently shipped (each with a dedicated thin skill):
 
@@ -209,7 +209,7 @@ Load-time errors raised by `ValidateVmSpec` (`ov/libvirt_validate.go`, see `/ov-
 
 ## Migration from legacy (image.bootc / image.vm / image.libvirt)
 
-Projects predating this schema had three coupled fields on `kind: image` entries: `bootc: true`, `vm: {...}`, `libvirt: [...]`. All three were deleted in the hard cutover. Conversion is one-shot:
+Projects predating this schema had three coupled fields on `kind: box` entries: `bootc: true`, `vm: {...}`, `libvirt: [...]`. All three were deleted in the hard cutover. Conversion is one-shot:
 
 ```bash
 ov migrate

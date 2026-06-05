@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml` |
+| Install files | `candy.yml` |
 
 ## Packages
 
@@ -37,7 +37,7 @@ org.qemu.guest_agent.0}]` (see `/ov-internals:libvirt-renderer`).
 ## Usage
 
 ```yaml
-# image.yml -- typically used via bootc-base composition
+# box.yml -- typically used via bootc-base composition
 my-vm-image:
   bootc: true
   layers:
@@ -60,7 +60,7 @@ The layer contributes a raw libvirt XML snippet that the libvirt renderer places
 </channel>
 ```
 
-Emitted in `layer.yml` as:
+Emitted in `candy.yml` as:
 
 ```yaml
 libvirt:
@@ -87,8 +87,8 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations, `libvirt.snippets:`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations, `libvirt.snippets:`)
 - `/ov-vm:vm` — VM lifecycle; bootc VM caveats; QEMU-user-net limitation
 - `/ov-vm:vms-catalog` — `kind: vm` entity schema that consumes this layer's contribution
 - `/ov-internals:libvirt-renderer` — renderer that injects this layer's snippet into `<devices>`
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

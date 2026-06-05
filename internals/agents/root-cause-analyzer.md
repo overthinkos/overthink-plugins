@@ -21,7 +21,7 @@ When unexpected behavior occurs, you MUST perform deep root cause analysis. **Ne
 
 - Error messages (any kind)
 - Build failures
-- `ov image validate` errors
+- `ov box validate` errors
 - Services that fail to start
 - Commands that should work but don't
 - Container runtime errors
@@ -59,23 +59,23 @@ IMPACT: [Why this matters / what it blocks]
 
 ```bash
 # Check validation
-ov image validate
+ov box validate
 
 # Check generated output
 cat .build/<image>/Containerfile
 
 # Check image config
-ov image inspect <image>
+ov box inspect <image>
 
 # Check build logs
-ov image build <image> 2>&1 | tail -50
+ov box build <image> 2>&1 | tail -50
 
 # Check runtime
 ov status <image>
 ov logs <image>
 
 # Check declarative test verdicts (which checks fail, and why)
-ov eval image <image>                # build-scope checks, disposable run
+ov eval box <image>                # build-scope checks, disposable run
 ov eval live <image>                 # live three-section probe pass
 ```
 
@@ -103,9 +103,9 @@ Fix ROOT CAUSE, not symptoms:
 ### Step 8: VERIFY FIX COMPLETELY
 
 ```bash
-ov image validate                    # Must pass
-ov image generate                    # Must succeed
-ov image build <image>    # Must build
+ov box validate                    # Must pass
+ov box generate                    # Must succeed
+ov box build <image>    # Must build
 ov shell <image> -c "test"     # Must run
 ```
 
@@ -163,7 +163,7 @@ Verification:
 **Automatically trigger on:**
 
 - Any error message in build or runtime output
-- Any `ov image validate` failure
+- Any `ov box validate` failure
 - Unexpected build behavior
 - Service startup failures
 - Container runtime errors

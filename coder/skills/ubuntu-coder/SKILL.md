@@ -85,7 +85,7 @@ WORKDIR /home/ubuntu
 USER 1000
 ```
 
-Resolved identity: `User=ubuntu, UID=1000, GID=1000, Home=/home/ubuntu`. The image's OCI labels carry these values (`org.overthinkos.user="ubuntu"`, `org.overthinkos.home="/home/ubuntu"`) so deploy-mode quadlets and `ov shell` find them without re-reading `image.yml`.
+Resolved identity: `User=ubuntu, UID=1000, GID=1000, Home=/home/ubuntu`. The image's OCI labels carry these values (`org.overthinkos.user="ubuntu"`, `org.overthinkos.home="/home/ubuntu"`) so deploy-mode quadlets and `ov shell` find them without re-reading `box.yml`.
 
 **Why adopt over rename?** Ubuntu's cloud-init tooling, documentation, and `/etc/passwd` metadata all expect the user to be named `ubuntu`. Renaming fights the upstream contract. Adopting honors it. See `/ov-image:image` "user_policy" for the full rationale and the 3-value policy table.
 
@@ -121,7 +121,7 @@ Identical to `/ov-coder:debian-coder` — the only diff is `User` field.
 
 ## Test results
 
-`ov eval image ghcr.io/overthinkos/ubuntu-coder:latest` — **142 passed · 0 failed · 1 skipped** (fastfetch, by design).
+`ov eval box ghcr.io/overthinkos/ubuntu-coder:latest` — **142 passed · 0 failed · 1 skipped** (fastfetch, by design).
 
 ## Verification recipe
 
@@ -133,7 +133,7 @@ ov -C image/ubuntu image validate
 ov -C image/ubuntu image build ubuntu-coder
 
 # 3. Disposable-container tests
-ov eval image ghcr.io/overthinkos/ubuntu-coder:latest
+ov eval box ghcr.io/overthinkos/ubuntu-coder:latest
 
 # 4. Confirm adopt mode at runtime
 podman run --rm ghcr.io/overthinkos/ubuntu-coder:latest id
@@ -142,7 +142,7 @@ podman run --rm ghcr.io/overthinkos/ubuntu-coder:latest id
 # 5. Deploy + live tests
 ov config ubuntu-coder
 ov start ubuntu-coder
-ov eval image ghcr.io/overthinkos/ubuntu-coder:latest
+ov eval box ghcr.io/overthinkos/ubuntu-coder:latest
 ```
 
 ## Gotcha: Dockerhub rate-limits during base pulls
@@ -152,7 +152,7 @@ Rebuilding the `ubuntu` base image pulls from `docker.io/library/ubuntu:24.04`. 
 ```bash
 podman pull public.ecr.aws/docker/library/ubuntu:24.04
 podman tag public.ecr.aws/docker/library/ubuntu:24.04 docker.io/library/ubuntu:24.04
-ov image build ubuntu-coder
+ov box build ubuntu-coder
 ```
 
 AWS ECR Public mirrors the Dockerhub library namespace without rate-limiting unauthenticated pulls.

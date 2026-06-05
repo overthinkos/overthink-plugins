@@ -54,9 +54,9 @@ bare-metal KDE Plasma SDDM seat as in-guest layers, AND (b) a nested
 the locally-vendored `nvidia-driver` kernel layer (whose `reboot: true` reboots the
 guest mid-deploy so the open module loads on a clean boot and the boot-time
 `nvidia-ctk cdi generate` writes `/etc/cdi/nvidia.yaml`), then `VmUnifiedTarget.Add`
-(`deployNestedPodsInGuest`) host-builds `selkies-kde-nvidia`, `ov vm cp-image
+(`deployNestedPodsInGuest`) host-builds `selkies-kde-nvidia`, `ov vm cp-box
 --rootless`s it into the guest user's podman as `localhost/ov-selkies-kde:latest`,
-and runs the guest's own project-free `ov deploy from-image
+and runs the guest's own project-free `ov deploy from-box
 localhost/ov-selkies-kde:latest selkies-kde` — a PERSISTENT in-guest `--user`
 quadlet (GPU device auto-detected; `loginctl enable-linger` so it survives the
 guest reboot the fresh-rebuild leg recreates). Deploy-scope checks run in-guest over

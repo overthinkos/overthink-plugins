@@ -11,7 +11,7 @@ description: |
 
 Start a container image as a background service. In quadlet mode, `ov config <image>` MUST be run first to generate the systemd quadlet unit. In direct mode, start creates an ephemeral container directly.
 
-**Relationship to `ov deploy add`** — `ov start <image>` is the ergonomic wrapper for `ov deploy add <image> <image>` (container target). New scripts should prefer `ov deploy add <name> <ref>` directly when they need explicit deploy names, `--add-layer` overlays, or the host target. `ov start` covers the common single-image case and is retained for backwards compatibility. See `/ov-core:deploy` for the unified command family and `/ov-local:local-deploy` for the host target.
+**Relationship to `ov deploy add`** — `ov start <image>` is the ergonomic wrapper for `ov deploy add <image> <image>` (container target). New scripts should prefer `ov deploy add <name> <ref>` directly when they need explicit deploy names, `--add-candy` overlays, or the host target. `ov start` covers the common single-image case and is retained for backwards compatibility. See `/ov-core:deploy` for the unified command family and `/ov-local:local-deploy` for the host target.
 
 ## Quick Reference
 
@@ -38,11 +38,11 @@ Start a container image as a background service. In quadlet mode, `ov config <im
 ## Label-Only Policy
 
 `ov start` reads only OCI labels (via `ExtractMetadata`) + `deploy.yml`. It
-does not touch `image.yml`. Remote refs (`@github.com/...`) are rejected
-with a redirect to `ov image pull`.
+does not touch `box.yml`. Remote refs (`@github.com/...`) are rejected
+with a redirect to `ov box pull`.
 
 If the image isn't in local storage, startup fails with the standard
-`ErrImageNotLocal` recommendation pointing to `ov image pull`. See
+`ErrImageNotLocal` recommendation pointing to `ov box pull`. See
 `/ov-build:pull`.
 
 ## Important: Quadlet Mode Requires Prior Configuration
@@ -117,7 +117,7 @@ ov start jupyter --build
 
 ### Build-mode references
 
-- `/ov-image:image` -- Image definitions (ports, volumes, env) in `image.yml`
+- `/ov-image:image` -- Image definitions (ports, volumes, env) in `box.yml`
 - `/ov-build:build` -- Build the image you intend to start
 
 ## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)

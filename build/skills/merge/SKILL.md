@@ -2,12 +2,12 @@
 name: merge
 description: |
   Post-build layer optimization via merging consecutive small layers.
-  MUST be invoked before any work involving: ov image merge command, image layer reduction, merge configuration, or post-build optimization.
+  MUST be invoked before any work involving: ov box merge command, image layer reduction, merge configuration, or post-build optimization.
 ---
 
-# ov image merge -- Post-Build Layer Optimization
+# ov box merge -- Post-Build Layer Optimization
 
-Invoked as `ov image merge [<image>]`. See `/ov-image:image` for the family overview.
+Invoked as `ov box merge [<image>]`. See `/ov-image:image` for the family overview.
 
 ## Overview
 
@@ -17,10 +17,10 @@ Reduces image layer count by merging consecutive small layers. Uses `go-containe
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Merge single image | `ov image merge <image>` | Merge layers in specified image |
-| Dry run | `ov image merge <image> --dry-run` | Show what would be merged without changing anything |
-| Custom threshold | `ov image merge <image> --max-mb N` | Set max layer size for merge candidates (default: 128 MB) |
-| Merge all auto | `ov image merge --all` | Merge all images that have `merge.auto: true` |
+| Merge single image | `ov box merge <image>` | Merge layers in specified image |
+| Dry run | `ov box merge <image> --dry-run` | Show what would be merged without changing anything |
+| Custom threshold | `ov box merge <image> --max-mb N` | Set max layer size for merge candidates (default: 128 MB) |
+| Merge all auto | `ov box merge --all` | Merge all images that have `merge.auto: true` |
 
 ## Usage
 
@@ -28,33 +28,33 @@ Reduces image layer count by merging consecutive small layers. Uses `go-containe
 
 ```bash
 # Merge consecutive small layers in an image
-ov image merge sway-browser-vnc
+ov box merge sway-browser-vnc
 
 # Preview without changing
-ov image merge sway-browser-vnc --dry-run
+ov box merge sway-browser-vnc --dry-run
 ```
 
 ### Custom Size Threshold
 
 ```bash
 # Only merge layers smaller than 64 MB
-ov image merge sway-browser-vnc --max-mb 64
+ov box merge sway-browser-vnc --max-mb 64
 ```
 
 ### Automatic Merge for All Configured Images
 
 ```bash
-# Merge all images that opt in via image.yml
-ov image merge --all
+# Merge all images that opt in via box.yml
+ov box merge --all
 ```
 
-## Configuration in image.yml
+## Configuration in box.yml
 
 ```yaml
 images:
   sway-browser-vnc:
     merge:
-      auto: true      # Include in `ov image merge --all`
+      auto: true      # Include in `ov box merge --all`
       max_mb: 128     # Size threshold (default: 128)
 ```
 
@@ -64,7 +64,7 @@ images:
 2. Group consecutive layers where each is below `max_mb`
 3. Deduplicate filesystem entries across merged layers (last writer wins) and suppress whiteout conflicts
 4. Reconstruct image with merged layers
-5. Inline merge also runs automatically after each build level during `ov image build`
+5. Inline merge also runs automatically after each build level during `ov box build`
 
 ## Whiteout Handling
 
@@ -87,7 +87,7 @@ In some images (observed empirically against `immich:2026.128.x`), the post-buil
 ```
 unpacking failed (error: exit status 1; output: file exists)
 ov: error: post-build merge optimization failed (image is functional but unmerged): podman load: exit status 125
-  Diagnostic: set OV_MERGE_KEEP_TMP=1 and re-run `ov image merge <name>` to capture the failing /tmp/ov-merge-*.tar.
+  Diagnostic: set OV_MERGE_KEEP_TMP=1 and re-run `ov box merge <name>` to capture the failing /tmp/ov-merge-*.tar.
   This is a known limitation against multi-stage RPM-installed images; the build itself succeeded and the image at this tag is correct.
 ```
 
@@ -109,7 +109,7 @@ The trigger appears to be a podman-side overlay-unpack quirk under specific laye
 When merge fails and you want to capture the failing tarball for inspection or forensic analysis, set `OV_MERGE_KEEP_TMP=1`:
 
 ```bash
-OV_MERGE_KEEP_TMP=1 ov image merge <name>
+OV_MERGE_KEEP_TMP=1 ov box merge <name>
 ```
 
 On failure the tarball is left at `/tmp/ov-merge-<random>.tar` (path printed to stderr) instead of being cleaned up. The tar is a docker-archive — extract `manifest.json` to see the layer chain, then `tar -xzf <hash>.tar.gz` on individual layers to inspect their contents.
@@ -130,13 +130,13 @@ Source: `ov/merge.go:saveImageToDaemon` (the keep-on-fail logic; `loaded` flag g
 
 ## Project directory override
 
-`ov image merge` resolves `image.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov-image:image` "Project directory resolution".
+`ov box merge` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov-image:image` "Project directory resolution".
 
 ## Cross-References
 
 ### `ov image` family siblings
 
-- `/ov-image:image` -- Family overview + image.yml composition reference
+- `/ov-image:image` -- Family overview + box.yml composition reference
 - `/ov-build:build` -- Building images (merge runs inline after each build level)
 - `/ov-build:generate` -- Containerfile generation
 - `/ov-build:inspect` -- Inspect merged images

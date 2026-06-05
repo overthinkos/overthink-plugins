@@ -1,7 +1,7 @@
 ---
 name: generate-source
 description: |
-  Containerfile generation: understanding ov image generate output, multi-stage builds,
+  Containerfile generation: understanding ov box generate output, multi-stage builds,
   intermediate images, and the .build/ directory. Use when debugging or understanding
   generated Containerfiles.
   MUST be invoked before reading or modifying any Go source file in ov/.
@@ -11,7 +11,7 @@ description: |
 
 ## Overview
 
-`ov image generate` reads `image.yml` and `layers/`, resolves dependency graphs, and writes Containerfiles to `.build/`. Generation is idempotent and `.build/` is disposable (gitignored). Understanding the generated output is essential for debugging build issues.
+`ov box generate` reads `box.yml` and `candy/`, resolves dependency graphs, and writes Containerfiles to `.build/`. Generation is idempotent and `.build/` is disposable (gitignored). Understanding the generated output is essential for debugging build issues.
 
 Generation runs through the shared `DeployTarget` interface. `OCITarget` is the build-mode implementation; it consumes the `InstallPlan` IR emitted by `BuildDeployPlan` and writes Containerfile text. `PodDeployTarget` and `LocalDeployTarget` are the deploy-mode siblings consuming the same IR. For the IR shape and step kinds, see **`/ov-internals:install-plan`**. For local-deploy supporting files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref), see **`/ov-internals:local-infra`**.
 
@@ -19,10 +19,10 @@ Generation runs through the shared `DeployTarget` interface. `OCITarget` is the 
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Generate all | `ov image generate` | Write .build/ (Containerfiles) |
-| Generate with tag | `ov image generate --tag v1.0.0` | Override CalVer tag |
-| List targets | `ov image list targets` | Build targets in dependency order |
-| Inspect config | `ov image inspect <image>` | Show resolved config JSON |
+| Generate all | `ov box generate` | Write .build/ (Containerfiles) |
+| Generate with tag | `ov box generate --tag v1.0.0` | Override CalVer tag |
+| List targets | `ov box list targets` | Build targets in dependency order |
+| Inspect config | `ov box inspect <image>` | Show resolved config JSON |
 
 ## Generated Output Structure
 
@@ -46,11 +46,11 @@ The generated Containerfile follows this order:
 5. **Per-layer install steps** — see "Task emission pipeline" below. `USER` toggles as each task's `user:` field requires.
 6. **Final assembly** — init system config assembly, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only)
 
-**Config-driven generation:** All format-specific install commands, cache mounts, repo setup, builder stages, and init fragments are defined in `build.yml` at the project root as Go `text/template` strings — three top-level sections: `distro:`, `builder:`, `init:`. Each distro entry contains both bootstrap config and its package format definitions. Referenced via `format_config: build.yml` in `image.yml` — supports local paths and remote `@github.com/org/repo/path:version` refs. Adding a new format (e.g., `apk` for Alpine) requires only YAML changes — zero Go code modifications.
+**Config-driven generation:** All format-specific install commands, cache mounts, repo setup, builder stages, and init fragments are defined in `build.yml` at the project root as Go `text/template` strings — three top-level sections: `distro:`, `builder:`, `init:`. Each distro entry contains both bootstrap config and its package format definitions. Referenced via `format_config: build.yml` in `box.yml` — supports local paths and remote `@github.com/org/repo/path:version` refs. Adding a new format (e.g., `apk` for Alpine) requires only YAML changes — zero Go code modifications.
 
 ## Task emission pipeline
 
-All install-task logic lives in a single file: `ov/tasks.go` (~380 lines). Authored layer-side as `task:` list in `layer.yml`; emitted as Containerfile directives via this sequence per layer inside `writeLayerSteps` (`ov/generate.go:1021`):
+All install-task logic lives in a single file: `ov/tasks.go` (~380 lines). Authored layer-side as `task:` list in `candy.yml`; emitted as Containerfile directives via this sequence per layer inside `writeLayerSteps` (`ov/generate.go:1021`):
 
 ```
 1. # Layer: <name>                 (comment header)
@@ -82,7 +82,7 @@ Flat struct with verb-discriminator fields. Exactly one of `Cmd` / `Mkdir` / `Co
 func (t *Task) Kind() (string, error)   // returns verb or error ("no action" / "conflicting actions")
 ```
 
-The `Layer` struct that feeds emission carries its `require:` / `layer:` refs as `[]LayerRef` (one typed list each — no parallel bare/raw arrays), and its `Has*` predicates (`HasEnv`/`HasPorts`/`HasVolumes`/…) are derived methods (only the filesystem-probe caches like `HasPixiToml` stay fields). Layers are populated by the single `populateLayerFromYAML`. Which layers reach this emission pipeline is decided upstream by the reachability-scoped, per-entity-version resolver (the git tag is the fetch coordinate; the layer's own `version:` is the identity) — see `/ov-internals:go` "Remote-layer resolver".
+The `Layer` struct that feeds emission carries its `require:` / `layer:` refs as `[]CandyRef` (one typed list each — no parallel bare/raw arrays), and its `Has*` predicates (`HasEnv`/`HasPorts`/`HasVolumes`/…) are derived methods (only the filesystem-probe caches like `HasPixiToml` stay fields). Layers are populated by the single `populateLayerFromYAML`. Which layers reach this emission pipeline is decided upstream by the reachability-scoped, per-entity-version resolver (the git tag is the fetch coordinate; the layer's own `version:` is the identity) — see `/ov-internals:go` "Remote-layer resolver".
 
 ### Emitter helpers (all in `ov/tasks.go`)
 
@@ -162,7 +162,7 @@ For `copy:` and `write:` tasks, if the destination's parent directory isn't alre
 ```dockerfile
 FROM ghcr.io/overthinkos/fedora-builder:2026.48.1808 AS supervisord-pixi-build
 WORKDIR /home/user
-COPY layers/supervisord/pixi.toml pixi.toml
+COPY candy/supervisord/pixi.toml pixi.toml
 RUN pixi install
 ```
 
@@ -172,7 +172,7 @@ Uses the configured builder image. No `apt-get install` needed — builder has p
 
 ```dockerfile
 FROM <builder> AS openclaw-npm-build
-COPY layers/openclaw/package.json package.json
+COPY candy/openclaw/package.json package.json
 RUN npm install -g --prefix /npm-global
 ```
 
@@ -212,7 +212,7 @@ Key details: passwordless sudo is required because yay calls `pacman -U` as root
 
 ```dockerfile
 FROM scratch AS mylib-ctx
-COPY layers/mylib/ /
+COPY candy/mylib/ /
 ```
 
 ## Auto-Intermediate Images — grouping by `(Base, UID)`
@@ -304,7 +304,7 @@ the JSON payload.
 
 ### CalVer tag shifts do NOT invalidate cache
 
-Each `ov image build` generate assigns a fresh CalVer timestamp and
+Each `ov box build` generate assigns a fresh CalVer timestamp and
 emits it as the default of `ARG BASE_IMAGE=<registry>/<name>:<calver>`
 at the top of every intermediate Containerfile. The ARG default
 appears in the Containerfile text but is NOT part of the cache key
@@ -327,7 +327,7 @@ content change (a bumped layer `version:`) moves it.
 
 Cache-miss only happens when something in the build input genuinely
 changes: the parent image's content (different SHA resolved by the
-FROM), a layer's scratch-stage content (`COPY layers/<name>/ /`
+FROM), a layer's scratch-stage content (`COPY candy/<name>/ /`
 source bytes), or an instruction's text (package list, cmd body).
 See `/ov-build:build` "Cache Efficiency" for the full list.
 
@@ -346,13 +346,13 @@ fedora (external)
 
 ### Parent-vs-defaults inheritance (critical)
 
-`createIntermediate()` must inherit `Distro` and `BuildFormats` **from the parent image first**, with `cfg.Defaults.*` as the fallback only when the parent is external or empty. The inverse — defaults winning over an explicit parent — is a silent-failure bug: an `arch`-rooted auto-intermediate would get re-tagged as `build: [rpm]` (because `defaults.Build=[rpm]` in `image.yml`), then the layer emitter would scan each layer for an `rpm:` section and find nothing (the layers only declare `pac:`) — emitting empty RUN steps. Symptom: the intermediate built fine but shipped without any of its layers' packages (e.g. `arch-ssh-client` without direnv/gnupg/openssh).
+`createIntermediate()` must inherit `Distro` and `BuildFormats` **from the parent image first**, with `cfg.Defaults.*` as the fallback only when the parent is external or empty. The inverse — defaults winning over an explicit parent — is a silent-failure bug: an `arch`-rooted auto-intermediate would get re-tagged as `build: [rpm]` (because `defaults.Build=[rpm]` in `box.yml`), then the layer emitter would scan each layer for an `rpm:` section and find nothing (the layers only declare `pac:`) — emitting empty RUN steps. Symptom: the intermediate built fine but shipped without any of its layers' packages (e.g. `arch-ssh-client` without direnv/gnupg/openssh).
 
 The current code resolves `inheritedDistro` / `inheritedBuilds` from the parent first and only falls back to defaults when both are empty. Regression guard: `TestComputeIntermediates_InheritDistroFromParent` constructs a config with `defaults.Build=[rpm]` but an `arch` parent carrying `[pac]`, and asserts that the auto-intermediate comes out `[pac]`. See `/ov-internals:go` `intermediates.go` row for the file-level note.
 
 ## User Resolution
 
-Configurable via `user`, `uid`, `gid`, and `user_policy` fields in `image.yml` (defaults: `"user"`, 1000, 1000, `"auto"`).
+Configurable via `user`, `uid`, `gid`, and `user_policy` fields in `box.yml` (defaults: `"user"`, 1000, 1000, `"auto"`).
 
 ### Declarative adopt: `build.yml distro.<name>.base_user:`
 
@@ -449,13 +449,13 @@ Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), maki
 
 Tunnel configuration is NOT an OCI label — it is a deploy-time concern carried in `deploy.yml` only.
 
-Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `ov/labels.go`) plus `deploy.yml` overlay — they never touch `image.yml` at runtime. That's why `ov shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `ov image pull`). See `/ov-image:image` for the build/deploy boundary and `/ov-build:pull` for the sentinel pattern. Labels also include `org.overthinkos.init` for init system identification and `org.overthinkos.service.<init>` for per-init service lists.
+Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `ov/labels.go`) plus `deploy.yml` overlay — they never touch `box.yml` at runtime. That's why `ov shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `ov box pull`). See `/ov-image:image` for the build/deploy boundary and `/ov-build:pull` for the sentinel pattern. Labels also include `org.overthinkos.init` for init system identification and `org.overthinkos.service.<init>` for per-init service lists.
 
 Source: `ov/labels.go`, `ov/generate.go` (`writeLabels`).
 
 ## Runtime-Only Features
 
-Security configuration (`security:` in layer.yml/image.yml) and environment variable injection (`env:`, `env_file:`) are **runtime-only** features. They affect container run arguments (`--privileged`, `--cap-add`, `-e`) but do not appear in generated Containerfiles.
+Security configuration (`security:` in candy.yml/box.yml) and environment variable injection (`env:`, `env_file:`) are **runtime-only** features. They affect container run arguments (`--privileged`, `--cap-add`, `-e`) but do not appear in generated Containerfiles.
 
 ## Cache Mounts
 
@@ -490,7 +490,7 @@ re-downloading (the prior code declared the mount but streamed curl past it).
 via `resolveUserSpec` (root → `SharedCacheMount`, else → `OwnedCacheMount`).
 Honored by `emitCmd` and `emitDownload`. Lets any task persist heavy
 downloads/build artifacts the same way package caches do (config-driven; the
-cache-USE logic lives in the layer.yml task body).
+cache-USE logic lives in the candy.yml task body).
 
 `CacheMountDef.Owned` + `RenderCacheMountsAuto` (`cacheMountsAuto` template
 func) let a single builder `cache_mount` list mix shared (root, e.g. pacman) and
@@ -502,23 +502,23 @@ builder in `build.yml` to cache AUR source downloads + clones across builds.
 ### Debug Why a Build Fails
 
 ```bash
-ov image generate                              # Generate Containerfiles
+ov box generate                              # Generate Containerfiles
 cat .build/my-image/Containerfile        # Inspect the generated Containerfile
-ov image validate                              # Check for validation errors
-ov image inspect my-image                      # See resolved config
+ov box validate                              # Check for validation errors
+ov box inspect my-image                      # See resolved config
 ```
 
 ### Understand Layer Ordering
 
 ```bash
-ov image list targets                          # Shows dependency-ordered build sequence
-ov image inspect my-image --format layers      # Shows layer list for an image
+ov box list targets                          # Shows dependency-ordered build sequence
+ov box inspect my-image --format layers      # Shows layer list for an image
 ```
 
 ## Cross-References
 
 - `/ov-image:layer` — **Canonical author-facing reference** for the task verb catalog, `var:` substitution, YAML anchors, execution order. The emitter pipeline here implements what's documented there.
-- `/ov-build:generate` — User-facing `ov image generate` command.
+- `/ov-build:generate` — User-facing `ov box generate` command.
 - `/ov-internals:go` — Source code map: `ov/tasks.go` (emitter pipeline), `ov/generate.go:writeLayerSteps` (orchestrator call site), `ov/layers.go:Task` struct, `ov/validate.go:validateLayerTasks`.
 - `/ov-build:validate` — User-facing validation rules (what `validateLayerTasks` enforces).
 - `/ov-build:build` — Building from generated Containerfiles.

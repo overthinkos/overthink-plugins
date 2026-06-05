@@ -14,7 +14,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `task:`, `layer.yml` |
+| Install files | `task:`, `candy.yml` |
 
 ## Packages
 
@@ -54,7 +54,7 @@ These aren't for log collection — they're **required** for supervisord's per-p
 ## Usage
 
 ```yaml
-# image.yml — this layer is included transitively via bootc-base
+# box.yml — this layer is included transitively via bootc-base
 my-bootc-image:
   base: "quay.io/fedora/fedora-bootc:43"
   bootc: true

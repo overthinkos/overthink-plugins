@@ -98,12 +98,12 @@ ov remove my-app -e KEY=VALUE      # Set env vars for lifecycle hooks
 - Ports bound to configured `bind_address`
 - Entrypoint: determined by build.yml `init:` section config (e.g., `supervisord -n -c /etc/supervisord.conf` for supervisord, `sleep infinity` if no init system)
 - Auto-restart on failure via `WantedBy=default.target` (encrypted services with Secret Service backend include `ExecStartPre=ov config mount` + `TimeoutStartSec=0` for keyring wait; KeePass/no backend omit `WantedBy` — require `ov start`)
-- `ov image validate` enforces: images with init system layers MUST include the required dependency layer (defined by build.yml `init:` section `depends_layer`)
+- `ov box validate` enforces: images with init system layers MUST include the required dependency layer (defined by build.yml `init:` section `depends_layer`)
 - `Secret=ov-<image>-<name>,target=/run/secrets/<name>` for each layer-declared secret (Podman only)
 
 ### Container Secrets
 
-When image labels declare secrets (from `layer.yml` `secrets` field), `ov config` provisions them:
+When image labels declare secrets (from `candy.yml` `secrets` field), `ov config` provisions them:
 1. Checks if Podman secret already exists — **if so, keeps it** (never overwrites)
 2. If missing: resolves secret values from the credential store (env var > keyring > config file)
 3. Creates Podman secrets via `podman secret create ov-<image>-<name>`
@@ -173,7 +173,7 @@ Source: `ov/service.go`.
 Layers can declare hooks that run on the host at specific points:
 
 ```yaml
-# In layer.yml:
+# In candy.yml:
 hook:
   post_enable: |
     echo "Service enabled for $OV_IMAGE"

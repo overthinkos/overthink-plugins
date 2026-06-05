@@ -28,7 +28,7 @@ specific args are sibling fields (`apk:`, `property:`, `args:`,
 `artifact:`). Shared matchers (`stdout:`, `stderr:`, `exit_status:`,
 `artifact_min_bytes:`) work like other verbs. **Deploy-scope only** —
 needs a running container with a host-mapped ADB server port; the
-validator rejects build-scope use at `ov image validate` time.
+validator rejects build-scope use at `ov box validate` time.
 
 Example:
 

@@ -98,7 +98,7 @@ ov secrets gpg set OPENROUTER_API_KEY sk-or-v1-...
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 jupyter-ml-notebook:
   layers:
     - jupyter-ml
@@ -145,4 +145,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

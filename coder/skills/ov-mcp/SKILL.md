@@ -5,7 +5,7 @@ description: |
   18765). Meta-layer composition — layers: [ov, supervisord] — ships only
   service wiring + `/workspace` bind-mount + OV_PROJECT_DIR env plumbing.
   Auto-falls back to the upstream overthinkos/overthink repo when /workspace
-  has no image.yml. Use when composing an MCP gateway into any image so LLM
+  has no box.yml. Use when composing an MCP gateway into any image so LLM
   agents can drive ov remotely.
 ---
 
@@ -62,7 +62,7 @@ pulling in the children's install files.
 ## Three deployment patterns
 
 Build-mode MCP tools (`image.build`, `image.list.images`,
-`image.inspect`, etc.) need to read `image.yml`. The ov-mcp layer
+`image.inspect`, etc.) need to read `box.yml`. The ov-mcp layer
 supports three paths, in order of "how much local setup":
 
 **1. Bind-mount a local project** (maximal local iteration):
@@ -72,7 +72,7 @@ ov config <image> --bind project=/home/you/overthink
 ov start <image>
 ```
 
-The agent reads image.yml + layers/ directly from the host — any
+The agent reads box.yml + candy/ directly from the host — any
 local edit is immediately visible.
 
 **2. Pin a remote repo** (reproducible, no local checkout):
@@ -93,7 +93,7 @@ an agent that always drives a specific upstream version.
 ov config <image>
 ov start <image>
 # Nothing bound to /workspace; /workspace is world-writable but empty.
-# ov mcp serve's bootstrapProject() detects no image.yml in cwd and
+# ov mcp serve's bootstrapProject() detects no box.yml in cwd and
 # silently clones + chdirs into the default overthinkos/overthink
 # cache. Logs a single line naming the reason.
 ```
@@ -103,7 +103,7 @@ The top-level ov CLI never auto-fetches — only `ov mcp serve` does.
 
 **How the fallback fires:** this layer's `env:` block permanently sets
 `OV_PROJECT_DIR=/workspace`, but `bootstrapProject()` does NOT early-return on
-that env being set — it checks for an actual `image.yml` in the resolved cwd
+that env being set — it checks for an actual `box.yml` in the resolved cwd
 and falls back to the default repo if missing. That is what makes pattern 3
 work by default even though `OV_PROJECT_DIR` is always populated. See
 `/ov-build:ov-mcp-cmd` "Project-dir wiring" for the full RCA.
@@ -157,7 +157,7 @@ gateway. Current users:
 Images composing `ov-mcp` must publish port 18765 (either via
 layer-declared `ports: [18765]` that auto-collects into the
 container's EXPOSE, or an image-level `ports: ["18765:18765"]` block
-in `image.yml`). Both `network: host` and the default ov bridge work.
+in `box.yml`). Both `network: host` and the default ov bridge work.
 
 ## Related Layers
 
@@ -172,7 +172,7 @@ in `image.yml`). Both `network: host` and the default ov bridge work.
 - `/ov-image:image` — "Project directory resolution" covers the `-C` / `--dir` / `OV_PROJECT_DIR` global flag and `--repo` / `OV_PROJECT_REPO`.
 - `/ov-core:ov-config` — `--bind project=<path>` is the deployer's handshake with this layer's `volume:` declaration.
 - `/ov-eval:eval` — Deploy-scope `mcp:` test verb methods used here.
-- `/ov-internals:go` — `ov/mcp_server.go` `bootstrapProject()` implementation, including the env-var proxy detection of top-level flags and the unconditional image.yml check.
+- `/ov-internals:go` — `ov/mcp_server.go` `bootstrapProject()` implementation, including the env-var proxy detection of top-level flags and the unconditional box.yml check.
 
 ## When to Use This Skill
 
@@ -188,4 +188,4 @@ in `image.yml`). Both `network: host` and the default ov bridge work.
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)

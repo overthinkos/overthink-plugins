@@ -18,7 +18,7 @@ Adds everything needed to run **rootless** podman/buildah/skopeo **inside
 a rootless outer container** — at the default uid 1000, with zero added
 capabilities, no `--privileged`, no `seccomp=unconfined`, no
 `label=disable`. The recipe is a direct port of `quay.io/podman/stable`'s
-canonical configuration, ported into the ov layer system so any image
+canonical configuration, ported into the ov candy system so any image
 can compose it.
 
 ## Layer Properties
@@ -277,7 +277,7 @@ values can only ADD, never strip.
 
 Consequence: images that want the old full-hammer posture
 (`fedora-ov`, `arch-ov`, `githubrunner`) must assert it at the image
-level, not expect this layer to donate it. Their `image.yml` entries
+level, not expect this layer to donate it. Their `box.yml` entries
 carry:
 
 ```yaml
@@ -303,7 +303,7 @@ image-level `security:` block, so the resolved posture stays at
 ## Usage — rootless image (uid 1000)
 
 ```yaml
-# image.yml
+# box.yml
 openclaw-desktop:
   base: cachyos.cachyos
   layers:
@@ -319,7 +319,7 @@ openclaw-desktop:
 ## Usage — root image (uid 0)
 
 ```yaml
-# image.yml
+# box.yml
 fedora-ov:
   base: fedora
   uid: 0
@@ -343,7 +343,7 @@ Both paths work; they just resolve to different OCI security labels.
 
 ```bash
 # Rootless posture on openclaw-desktop
-ov image inspect openclaw-desktop | jq '.HostConfig? // .Config.Labels."org.overthinkos.security"'
+ov box inspect openclaw-desktop | jq '.HostConfig? // .Config.Labels."org.overthinkos.security"'
 # → cap_add:[], security_opt:[unmask=/proc/*], devices:[/dev/fuse,/dev/net/tun]
 
 # Nested podman smoke (inside the running container)
@@ -397,5 +397,5 @@ this order:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

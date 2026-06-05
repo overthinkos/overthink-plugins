@@ -12,7 +12,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `task:` |
+| Install files | `candy.yml`, `task:` |
 
 ## Packages
 
@@ -20,7 +20,7 @@ RPM (with `--setopt=tsflags=noscripts`): `android-tools`, `apptainer`, `apptaine
 
 ### Cross-distro coverage
 
-`rpm:` (Fedora), `pac:` (Arch), `deb:` (Debian + generic Ubuntu), with a `ubuntu:24.04:` tag-section override. Not every package is available everywhere; per-distro drops are documented inline in `layer.yml`.
+`rpm:` (Fedora), `pac:` (Arch), `deb:` (Debian + generic Ubuntu), with a `ubuntu:24.04:` tag-section override. Not every package is available everywhere; per-distro drops are documented inline in `candy.yml`.
 
 **Packages dropped per distro** (non-exhaustive):
 
@@ -68,7 +68,7 @@ you want the git tooling, compose `/ov-coder:gh` alongside
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 my-dev:
   layers:
     - dev-tools

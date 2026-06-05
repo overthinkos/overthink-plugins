@@ -28,7 +28,7 @@ Owned by the `overthinkos/cachyos` submodule (`image/cachyos`).
 selkies-kde:
   base: cachyos              # plain CachyOS base (x86_64_v3 Arch derivative)
   build: [pac, aur]          # aur: chrome (google-chrome) + wl-tools (wlrctl)
-  layer:
+  candy:
     - agent-forwarding
     - selkies-kde-desktop    # the KDE metalayer (selkies-core + kde-selkies → kde-shell)
     - dbus
@@ -66,7 +66,7 @@ ov eval wl screenshot selkies-kde screenshot.png
 
 ## Verification
 
-- `ov eval image selkies-kde` — build-scope (binaries: `plasmashell`, `kwin_wayland`, chrome, selkies).
+- `ov eval box selkies-kde` — build-scope (binaries: `plasmashell`, `kwin_wayland`, chrome, selkies).
 - `ov eval run eval-selkies-kde-pod` — the disposable R10 bed: compositor renders
   (plasmashell + kwin_wayland present, `wayland-0` up), live :3000 stream
   (traefik HTTPS + capture STATUS-socket `frames>0`), `kde-selkies-stable` ≥20s uptime.

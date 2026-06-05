@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `task:` |
+| Install files | `candy.yml`, `task:` |
 
 ## Packages
 
@@ -24,7 +24,7 @@ RPM (from COPR `goncalossilva/act`): `act-cli`, `guestfs-tools`
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 my-ci:
   layers:
     - github-actions
@@ -53,5 +53,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

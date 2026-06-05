@@ -17,7 +17,7 @@ Two cooperating concepts:
 - **`apk` package format** — Android apps declared in LAYERS (NOT a kind),
   parallel to `package:`/`aur:`. A `target: android` deploy applies its layers'
   `apk:` packages onto the device. The app is the deployable workload, the way a
-  `kind: image` is the workload for a pod/k8s deploy.
+  `kind: box` is the workload for a pod/k8s deploy.
 
 This sits ABOVE the device-interaction verbs: `ov eval adb` (`/ov-eval:adb`)
 and `ov eval appium` (`/ov-eval:appium`) drive a running device; `kind: android`
@@ -30,7 +30,7 @@ it. The install machinery is shared — see "One installer (R3)".
 # android.yml (or inline in overthink.yml)
 android:
   pixel9a-36:                    # in-pod emulator device
-    image: android-emulator      # the kind:image that BAKES the emulator + system image
+    box: android-emulator      # the kind:image that BAKES the emulator + system image
     device: pixel_9a             # informational (documents the baked AVD profile)
     api_level: 36                # informational (the API level is a BUILD property of image:)
     google_account:              # credential-store secret-key refs for apkeep google-play
@@ -53,7 +53,7 @@ android:
   the committed-`apk:` path needs neither (pure goadb push).
 
 **Build-vs-runtime boundary (load-bearing).** The Android system image + API
-level are baked into the referenced `kind: image` at BUILD time (sdkmanager in
+level are baked into the referenced `kind: box` at BUILD time (sdkmanager in
 the android-sdk layer). `kind: android` REFERENCES that image — it never drives
 a build. `device:`/`api_level:` are documentation, not assertions or build
 drivers. Two API levels = two images, each with its own `kind: android`.
@@ -61,8 +61,8 @@ drivers. Two API levels = two images, each with its own `kind: android`.
 ## `apk:` — the package format (declared in layers)
 
 ```yaml
-# layers/<name>/layer.yml
-layer:
+# candy/<name>/candy.yml
+candy:
   version: 2026.145.1700
   name: my-android-apps
   apk:
@@ -90,18 +90,18 @@ image (preinstalled) instead.
 deploy:
   android-stack:
     target: pod
-    image: android-emulator
+    box: android-emulator
     nested:
       device:
         target: android
         android: pixel9a-36          # → kind:android device
-        add_layer:
+        add_candy:
           - my-android-apps          # layers whose apk: packages install onto the device
 ```
 
 `ov deploy add android-stack.device` resolves the device, gates on
-`sys.boot_completed`, and installs the `add_layer:` layers' `apk:` packages via
-`AndroidDeployTarget`. Apps ride in on `add_layer:` (the same overlay mechanism
+`sys.boot_completed`, and installs the `add_candy:` layers' `apk:` packages via
+`AndroidDeployTarget`. Apps ride in on `add_candy:` (the same overlay mechanism
 local/vm targets use) — there is no separate apk-list field. `ov deploy del`
 best-effort `pm uninstall`s each `package:` id (the device/pod lifecycle is
 owned by the pod deploy).

@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `task:`, `pixelflux-record` (Python script) |
+| Install files | `candy.yml`, `task:`, `pixelflux-record` (Python script) |
 | Depends | `selkies` (capture bridge + WebSocket stream), `ffmpeg` (MP4 muxing) |
 
 ## What It Does
@@ -109,5 +109,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

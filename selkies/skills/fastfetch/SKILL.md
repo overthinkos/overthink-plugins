@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml` (packages only) |
+| Install files | `candy.yml` (packages only) |
 | Depends | none |
 
 ## Packages
@@ -25,7 +25,7 @@ Displays system information (OS, kernel, CPU, GPU, memory, etc.) with ASCII art 
 ## Usage
 
 ```yaml
-# image.yml or layer.yml
+# box.yml or candy.yml
 layers:
   - fastfetch
 ```
@@ -59,5 +59,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

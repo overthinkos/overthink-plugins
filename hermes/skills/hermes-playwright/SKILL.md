@@ -30,7 +30,7 @@ Builds on the base `hermes` layer (not the hermes image), adding Playwright Chro
 ## Quick Start
 
 ```bash
-ov image build hermes-playwright
+ov box build hermes-playwright
 ov config hermes-playwright -e OLLAMA_API_KEY=your-key   # or OPENROUTER_API_KEY
 ov start hermes-playwright
 ```
@@ -66,7 +66,7 @@ ov shell hermes-playwright -c "npx playwright --version"
 ## Fedora Compatibility Note
 
 Playwright's `--with-deps` flag does not support Fedora (falls back to Ubuntu's `apt-get`). The `hermes-playwright` layer works around this by:
-1. Installing Chromium's system library dependencies via rpm packages in `layer.yml`
+1. Installing Chromium's system library dependencies via rpm packages in `candy.yml`
 2. Installing only the browser binary via `npx playwright install chromium` in `task:`
 
 The `PLAYWRIGHT_BROWSERS_PATH=/tmp/.cache/ms-playwright` env var is set automatically.

@@ -77,14 +77,14 @@ There is **no** `status:` or `info:` field. Status lives in `description.tag` (o
 A `kind: local` deploy emits **zero** container-image fetch / build
 steps. The deploy applies host packages + configs only. There is no
 `image:` field; declaring one in legacy YAML hard-errors at
-`ov image validate` time with a pointer to `ov migrate`.
+`ov box validate` time with a pointer to `ov migrate`.
 
 Test-bed image preflight is the **eval entry point's** job, not the
 deploy's. When `ov eval run --on-host <name>` resolves to a host
 target, the runner walks the score's recipes, collects every distinct
 `scenario.pod` value plus `score.target_image`, and ensures each
 image is present in local podman storage (LocalImageExists →
-`ov image pull` → fall back to `ov image build` for short names that
+`ov box pull` → fall back to `ov box build` for short names that
 resolve via `cfg.Images`). Operators who never run `ov eval run`
 never pay the image-fetch cost. See `/ov-eval:eval` "Image
 preflight" and `ov/eval_image_preflight.go`.
@@ -103,7 +103,7 @@ When a deployment carries `local: <template-name>`:
 | Field | Template provides | Deployment overrides | CLI overrides | Effective value |
 |---|---|---|---|---|
 | `layers` | base list | — | — | `template.Layers` |
-| `add_layers` | — | extra list | `--add-layer` | `deployment.AddLayers ++ CLI.AddLayer` |
+| `add_layers` | — | extra list | `--add-candy` | `deployment.AddLayers ++ CLI.AddLayer` |
 | effective layer order | — | — | — | `template.Layers ++ deployment.AddLayers ++ CLI.AddLayer` |
 | `install_opts.*` (bool) | default | wins over template | wins over both | CLI > deployment > template |
 | `install_opts.builder_image` | default `""` | wins | wins over both | CLI > deployment > template |
@@ -125,7 +125,7 @@ local:
     description: {feature: CachyOS DX (placeholder), tag: [testing]}
 ```
 
-`ov image validate` emits a WARNING but does not error. A missing `layer:` field entirely IS an error — the field's presence is the signal that the author intended a template.
+`ov box validate` emits a WARNING but does not error. A missing `layer:` field entirely IS an error — the field's presence is the signal that the author intended a template.
 
 ## Cross-References
 

@@ -16,7 +16,7 @@ description: |
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 my-image:
   layers:
     - google-cloud

@@ -11,14 +11,14 @@ description: |
 
 CachyOS base image, pulled from the upstream-published OCI image
 `docker.io/cachyos/cachyos-v3` (optimized for modern `x86_64_v3` CPUs), pinned
-by digest in `image/cachyos/image.yml` — Docker Hub publishes only a `:latest`
+by digest in `image/cachyos/box.yml` — Docker Hub publishes only a `:latest`
 tag for `cachyos-v3`, so a digest is the most precise pin available.
 CachyOS is an Arch derivative, so it shares the Arch toolchain, `pacman`, and the
 `arch-builder` multi-stage builder.
 
 The CachyOS family lives in the **`overthinkos/cachyos`** repo (git submodule at
 **`image/cachyos`**), whose config is `overthink.yml` plus its per-kind sibling
-files (`image.yml`/`pod.yml`/`k8s.yml`/`vm.yml`), flat-imported via `import:`. The
+files (`box.yml`/`pod.yml`/`k8s.yml`/`vm.yml`), flat-imported via `import:`. The
 `cachyos` base image is **owned there**. It composes the main repo's layers by git reference, flat-imports
 the shared `build.yml`, and imports the main repo under the `ov` namespace
 (`import: [{ov: ../..}]`) so it reaches `ov.arch` / `ov.arch-builder`. Build it
@@ -29,7 +29,7 @@ from the submodule: `ov -C image/cachyos image build cachyos` (or
 
 | Property | Value |
 |----------|-------|
-| Base | docker.io/cachyos/cachyos-v3 (pinned by digest in image.yml) |
+| Base | docker.io/cachyos/cachyos-v3 (pinned by digest in box.yml) |
 | Layers | (none) |
 | Platforms | linux/amd64 |
 | Distro | cachyos, arch |
@@ -49,7 +49,7 @@ base now lives in the submodule, main's `overthink.yml` mounts it under the
 import:
   - cachyos: image/cachyos        # namespaced child import → cachyos.<entry>
 
-image:
+box:
   versa:
     base: cachyos.cachyos         # the `cachyos` image inside the `cachyos` namespace
 ```
@@ -137,10 +137,10 @@ builds and also builds end-to-end (the pacstrap renderer derives
 ## Verification
 
 After `ov -C image/cachyos image build cachyos`:
-- `ov image list` — image appears
+- `ov box list` — image appears
 - `ov shell cachyos -c "pacman --version"` — pacman available
-- `ov image inspect versa --format base` (from main) → `cachyos.cachyos` (the `cachyos` import namespace resolves)
-- `ov eval image cachyos` — build-scope eval: 3 probes pass (os-release `ID=cachyos`,
+- `ov box inspect versa --format base` (from main) → `cachyos.cachyos` (the `cachyos` import namespace resolves)
+- `ov eval box cachyos` — build-scope eval: 3 probes pass (os-release `ID=cachyos`,
   `pacman --version`, `pacman-conf --repo-list` contains `cachyos-v3`). These also
   pass when `cachyos` is built from main via the `cachyos` import namespace, and are
   inherited by `versa` through the base chain.

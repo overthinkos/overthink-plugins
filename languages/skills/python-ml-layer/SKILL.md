@@ -14,7 +14,7 @@ description: |
 |----------|-------|
 | Dependencies | `cuda` |
 | Sub-layers | `llama-cpp` |
-| Install files | `layer.yml`, `pixi.toml`, `task:` |
+| Install files | `candy.yml`, `pixi.toml`, `task:` |
 
 ## Architecture: Tier 2 Environment-Owner Meta-Layer
 
@@ -66,5 +66,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

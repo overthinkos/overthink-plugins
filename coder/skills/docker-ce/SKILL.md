@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `task:` |
+| Install files | `candy.yml`, `task:` |
 
 ## Packages
 
@@ -24,7 +24,7 @@ RPM (from `docker-ce-stable` repo): `containerd.io`, `docker-buildx-plugin`, `do
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 my-image:
   layers:
     - docker-ce
@@ -53,4 +53,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

@@ -61,7 +61,7 @@ ubuntu:
     cargo: ubuntu-builder
 ```
 
-During `ov image build ubuntu-coder`, cargo/npm/pixi-owning layers get their `FROM ubuntu-builder AS <layer>-<type>-build` stages from this image, then `COPY --from=<stage> --chown=1000:1000 /home/ubuntu /home/ubuntu` into the final ubuntu-coder. (The `--chown=1000:1000` numeric form works uniformly regardless of user name — see `/ov-coder:build-toolchain` for the builder-artifact COPY pattern.)
+During `ov box build ubuntu-coder`, cargo/npm/pixi-owning layers get their `FROM ubuntu-builder AS <layer>-<type>-build` stages from this image, then `COPY --from=<stage> --chown=1000:1000 /home/ubuntu /home/ubuntu` into the final ubuntu-coder. (The `--chown=1000:1000` numeric form works uniformly regardless of user name — see `/ov-coder:build-toolchain` for the builder-artifact COPY pattern.)
 
 ## Cross-distro sibling builders
 

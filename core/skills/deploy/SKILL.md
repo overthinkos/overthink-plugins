@@ -1,7 +1,7 @@
 ---
 name: deploy
 description: |
-  MUST be invoked before any work involving: `ov deploy add`/`ov deploy del` commands, quadlet generation, volume backing, tunnels (Tailscale/Cloudflare), `add_layer:` overlay, or per-machine deploy overlays.
+  MUST be invoked before any work involving: `ov deploy add`/`ov deploy del` commands, quadlet generation, volume backing, tunnels (Tailscale/Cloudflare), `add_candy:` overlay, or per-machine deploy overlays.
 ---
 
 # Deploy - Deployment Configuration
@@ -29,26 +29,26 @@ description: |
 
 The same `DeployImageConfig` shape feeds every target (`pod`, `local`, `vm`, `k8s`, `android`) — authors describe *what the workload needs* (ports, volumes, env, security, tests); the generator per target decides *how K8s / quadlet / local apply / VM over SSH / Android apk-install* realizes it.
 
-**`target: android`** installs a deploy's `add_layer:` layers' `apk:` packages
+**`target: android`** installs a deploy's `add_candy:` layers' `apk:` packages
 onto a `kind: android` device (an in-pod emulator or a remote/physical adb
 endpoint) via `AndroidDeployTarget` — the Android analogue of `target: k8s`
 emitting workloads onto a cluster. The cross-ref is `android: <device>`; apps
-ride in on `add_layer:` (no apk-list field). Nested `pod → android` (the device
+ride in on `add_candy:` (no apk-list field). Nested `pod → android` (the device
 on its emulator pod) mirrors `vm → k8s`; a pod's android children deploy AFTER
 `ov start` (use `--node-only` on the pod's deploy-add, then dotted-path
 `ov deploy add pod.device`). See `/ov-eval:android`. K8s-specific choices (storage class, ingress class, cert issuer, secret backend) live in a **cluster profile** file (`~/.config/ov/clusters/<name>.yaml` or in-repo `clusters/<name>.yaml`), *not* in the deployment. This means one deployment spec targets dev/staging/prod clusters with zero schema changes — only the cluster profile differs.
 
-`ov start` / `ov stop` remain as ergonomic wrappers: `ov start <image>` is equivalent to `ov deploy add <image> <image>` with the container target; `ov stop <name>` is `ov deploy del <name>`. New scripts should prefer the explicit `ov deploy add`/`ov deploy del` forms, especially when using `--add-layer` overlays or the `host` target.
+`ov start` / `ov stop` remain as ergonomic wrappers: `ov start <image>` is equivalent to `ov deploy add <image> <image>` with the container target; `ov stop <name>` is `ov deploy del <name>`. New scripts should prefer the explicit `ov deploy add`/`ov deploy del` forms, especially when using `--add-candy` overlays or the `host` target.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Apply container deploy | `ov deploy add <name> <ref>` | Compile layers + build overlay if `add_layer:` present + run via quadlet |
+| Apply container deploy | `ov deploy add <name> <ref>` | Compile layers + build overlay if `add_candy:` present + run via quadlet |
 | Apply local deploy | `ov deploy add <name> <ref>` (entry `target: local`) | Apply layers directly to local filesystem (see `/ov-local:local-deploy`) |
 | Tear down deploy | `ov deploy del <name>` | Stop container + reverse ReverseOps (host) + ledger cleanup |
 | Dry-run | `ov deploy add <name> <ref> --dry-run [--format=json]` | Print the InstallPlan without executing |
-| Layer overlay | `ov deploy add <name> <ref> --add-layer <ref>` | Extra layer(s) applied on top; repeatable |
+| Layer overlay | `ov deploy add <name> <ref> --add-candy <ref>` | Extra layer(s) applied on top; repeatable |
 | Configure deployment | `ov config <image>` | Generate .container file + save deploy.yml |
 | Configure instance | `ov config <image> -i <instance>` | Generate instance-specific quadlet + deploy entry |
 | Configure volume backing | `ov config <image> --bind name` | Set volume as host bind mount |
@@ -59,7 +59,7 @@ on its emulator pod) mirrors `vm → k8s`; a pod's android children deploy AFTER
 | Import config | `ov deploy import <files>` | Merge files into deploy.yml |
 | Reset config | `ov deploy reset [image]` | Remove deploy.yml overrides |
 | Reset instance config | `ov deploy reset <image> -i <instance>` | Remove instance overrides |
-| Push to registry | `ov image build --push` | Multi-platform push |
+| Push to registry | `ov box build --push` | Multi-platform push |
 
 For service lifecycle commands (start/stop/status/logs/update/remove), see `/ov-core:service`. For VM lifecycle (build/create/start/stop/ssh), see `/ov-vm:vm`; for in-VM layer deploys via `ov deploy add vm:<name>`, see the "VM target" section below and `/ov-internals:vm-deploy-target`. For encrypted storage, see `/ov-automation:enc`. For host-target semantics, see `/ov-local:local-deploy`. For Kubernetes targets, see `/ov-kubernetes:kubernetes`. For the Go IR that drives all four targets, see `/ov-internals:install-plan`.
 
@@ -78,12 +78,12 @@ Applies a deployment. The deploy entry's `target:` field selects the target:
 
 | Form | Example | Resolution |
 |---|---|---|
-| Local image name | `fedora-coder` | Looked up in current project's `image.yml` |
-| Local layer name | `pre-commit` | Looked up in current project's `layers/` directory |
-| Local YAML path | `./custom.yml`, `/abs/path/layer.yml` | File's top-level keys classify image vs layer |
-| Remote repo | `github.com/owner/repo[/images/<n>\|/layers/<n>][@ref]` | Fetched via existing `--repo` cache |
+| Local image name | `fedora-coder` | Looked up in current project's `box.yml` |
+| Local layer name | `pre-commit` | Looked up in current project's `candy/` directory |
+| Local YAML path | `./custom.yml`, `/abs/path/candy.yml` | File's top-level keys classify image vs layer |
+| Remote repo | `github.com/owner/repo[/images/<n>\|/candy/<n>][@ref]` | Fetched via existing `--repo` cache |
 
-Disambiguation: a ref containing `/layers/` resolves to a layer; `/images/` to an image. For local names, `image.yml` is checked before `layers/`; same-named entries in both are a hard error. The legacy `@host/org/repo:version` form (used by `depends:` and `layer:` in layer.yml) is also accepted.
+Disambiguation: a ref containing `/candy/` resolves to a layer; `/images/` to an image. For local names, `box.yml` is checked before `candy/`; same-named entries in both are a hard error. The legacy `@host/org/repo:version` form (used by `depends:` and `layer:` in candy.yml) is also accepted.
 
 When `<ref>` is omitted, the ref falls back to `deploy.yml['deploys'][<name>]['image']` (or the deploy key itself if no explicit image is declared).
 
@@ -95,7 +95,7 @@ When `<ref>` is omitted, the ref falls back to `deploy.yml['deploys'][<name>]['i
 - `--format table|json` — with `--dry-run`
 - `--pull` — force re-fetch of remote refs / image pull
 - `--verify` — run layer `eval:` post-deploy
-- `--add-layer <ref>` — repeatable; extra layer(s) applied on top (all 4 ref forms)
+- `--add-candy <ref>` — repeatable; extra layer(s) applied on top (all 4 ref forms)
 
 **Local-target-specific** (silently ignored on pod deploys):
 - `--with-services` — opt-in for systemd unit installation (packaged-unit enable + drop-ins)
@@ -119,8 +119,8 @@ Applies layer recipes **inside a running VM** over SSH. Same `InstallPlan` IR as
 ov vm create arch                            # provision VM first
 ov deploy add vm:arch ripgrep                # then apply layer in guest
 ov deploy add vm:arch fedora-coder \
-    --add-layer team-extras \
-    --add-layer github.com/team/configs/layers/sshkeys
+    --add-candy team-extras \
+    --add-candy github.com/team/configs/candy/sshkeys
 ov deploy del vm:arch                        # reverse all applied layers (VM stays up)
 ```
 
@@ -138,7 +138,7 @@ deploy:
       base_user: arch
     add_layers:
       - ripgrep
-      - github.com/team/configs/layers/sshkeys
+      - github.com/team/configs/candy/sshkeys
     install_opts:
       verify: true
     vm_state:
@@ -161,9 +161,9 @@ Two ways to mark a deploy entry as VM-targeted:
 
 Using both is redundant but harmless. Using `target: vm` on a non-`vm:`-prefixed deploy whose underlying VM doesn't exist errors at `ov deploy add` time.
 
-### `add_layer:` overlay semantics for VM targets
+### `add_candy:` overlay semantics for VM targets
 
-When `ov deploy add vm:<name> <ref>` runs with `--add-layer`, the extra layers are applied **inside the guest** alongside the primary ref. The compiler merges `<ref>` + `add_layer:` into a single topo-sorted `InstallPlan`; `VmDeployTarget.Emit` walks it over SSH. The guest-side ledger records both the base and overlay layers so `ov deploy del vm:<name>` reverses the full set.
+When `ov deploy add vm:<name> <ref>` runs with `--add-candy`, the extra layers are applied **inside the guest** alongside the primary ref. The compiler merges `<ref>` + `add_candy:` into a single topo-sorted `InstallPlan`; `VmDeployTarget.Emit` walks it over SSH. The guest-side ledger records both the base and overlay layers so `ov deploy del vm:<name>` reverses the full set.
 
 This is the same merge semantics as `LocalDeployTarget` — just with SSH-wrapped execution. See `/ov-internals:install-plan` for the compiler and `/ov-internals:vm-deploy-target` for the execution model.
 
@@ -195,14 +195,14 @@ vm.yml declares kind:vm entity
 
 See `/ov-vm:vms-catalog` for vm.yml authoring, `/ov-vm:vm` for the lifecycle commands, `/ov-internals:vm-deploy-target` for the Emit flow.
 
-### `add_layer:` overlay mechanism
+### `add_candy:` overlay mechanism
 
-Both container and host targets accept extra layers at deploy time via `--add-layer <ref>` (repeatable) or a `deploy.yml['deploys'][<name>]['add_layers']` list. Semantics:
+Both container and host targets accept extra layers at deploy time via `--add-candy <ref>` (repeatable) or a `deploy.yml['deploys'][<name>]['add_layers']` list. Semantics:
 
 - **Container target**: synthesizes an overlay Containerfile (`FROM <base-image>` + the extra layers' build steps) and builds a deterministic overlay image tagged `<deploy-name>-overlay:<short-hash>`. The deploy runs the overlay, not the base image. Re-running with different overlays rebuilds. `ov deploy del <name>` removes the overlay unless `--keep-image`.
-- **Host target**: the compiler merges the image's layers with `add_layer:`, topo-sorts the union, and compiles one `InstallPlan` covering the combined set. The ledger records which layers (base + overlay) were applied so teardown reverses everything.
+- **Host target**: the compiler merges the image's layers with `add_candy:`, topo-sorts the union, and compiles one `InstallPlan` covering the combined set. The ledger records which layers (base + overlay) were applied so teardown reverses everything.
 
-Ref forms for `--add-layer` are identical to the primary `<ref>` positional (local name / local path / remote / legacy `@` form).
+Ref forms for `--add-candy` are identical to the primary `<ref>` positional (local name / local path / remote / legacy `@` form).
 
 ## Two supported deploy patterns
 
@@ -220,11 +220,11 @@ per workspace, per environment, …):
 ```yaml
 deploy:
   versa:                       # base instance — deploy key == image name (just convention)
-    image: versa
+    box: versa
     target: pod
 
   versa/ecovoyage:             # `<base>/<instance>` deploy key
-    image: versa               # SAME image; explicit (no inference)
+    box: versa               # SAME image; explicit (no inference)
     target: pod
     volume:
       - name: workspace
@@ -235,7 +235,7 @@ deploy:
       - ...
 
   versa/another-tenant:        # second instance of versa
-    image: versa
+    box: versa
     target: pod
     volume:
       - name: workspace
@@ -259,15 +259,15 @@ itself:
 ```yaml
 deploy:
   versa-prod:                                 # arbitrary deploy key
-    image: versa                              # short name → resolves to current build
+    box: versa                              # short name → resolves to current build
     target: pod
 
   versa-pinned-2026.131.2134:                 # pinned-version deploy
-    image: ghcr.io/overthinkos/versa:2026.131.2134  # explicit ref, never re-resolved
+    box: ghcr.io/overthinkos/versa:2026.131.2134  # explicit ref, never re-resolved
     target: pod
 
   versa-canary:                               # canary deploy on a rolling tag
-    image: ghcr.io/overthinkos/versa:next
+    box: ghcr.io/overthinkos/versa:next
     target: pod
 ```
 
@@ -342,15 +342,15 @@ ov deploy del host --yes
 **Deploy from a remote repo:**
 ```bash
 ov deploy add my-coder github.com/overthinkos/overthink/images/fedora-coder@main
-ov deploy add host github.com/team-acme/private-configs/layers/my-team-tools
+ov deploy add host github.com/team-acme/private-configs/candy/my-team-tools
 ```
 
 **Add overlay layers:**
 ```bash
 ov deploy add host fedora-coder \
-    --add-layer team-extras \
-    --add-layer github.com/team/configs/layers/sshkeys \
-    --add-layer ./private.yml \
+    --add-candy team-extras \
+    --add-candy github.com/team/configs/candy/sshkeys \
+    --add-candy ./private.yml \
     --with-services
 ```
 
@@ -403,7 +403,7 @@ Source: `ov/quadlet.go` (generation), `ov/commands.go` (command structs).
 
 ## Tunnel Configuration
 
-Expose services outside the container host via tunnels. Tunnel config lives exclusively in `deploy.yml` — it is NOT in `image.yml` or OCI image labels. `ov config setup` persists tunnel config automatically via `saveDeployState`.
+Expose services outside the container host via tunnels. Tunnel config lives exclusively in `deploy.yml` — it is NOT in `box.yml` or OCI image labels. `ov config setup` persists tunnel config automatically via `saveDeployState`.
 
 ### Tailscale Serve (tailnet-private, default)
 
@@ -454,7 +454,7 @@ fqdn: "app.example.com"
 
 ### Backend Schemes
 
-Port protocols declared in `layer.yml` control the backend URL scheme used by tunnel commands. The protocol flows from layer → OCI label (`org.overthinkos.port_proto`) → tunnel command.
+Port protocols declared in `candy.yml` control the backend URL scheme used by tunnel commands. The protocol flows from layer → OCI label (`org.overthinkos.port_proto`) → tunnel command.
 
 **Tailscale serve/funnel schemes:**
 
@@ -479,9 +479,9 @@ Port protocols declared in `layer.yml` control the backend URL scheme used by tu
 
 **UDP** ports are never tunneled — a warning is printed. UDP traffic works directly between tailnet nodes.
 
-`ov image validate` checks port schemes against provider capabilities. For example, `ssh` is valid for Cloudflare but not Tailscale; `tls-terminated-tcp` is valid for Tailscale but not Cloudflare.
+`ov box validate` checks port schemes against provider capabilities. For example, `ssh` is valid for Cloudflare but not Tailscale; `tls-terminated-tcp` is valid for Tailscale but not Cloudflare.
 
-See `/ov-image:layer` for port protocol syntax in `layer.yml`.
+See `/ov-image:layer` for port protocol syntax in `candy.yml`.
 
 ### Multi-Port Tailscale Serve
 
@@ -500,7 +500,7 @@ tunnel:
 
 Quadlet generates multiple `ExecStartPost=` and `ExecStopPost=` lines. Requires `tailscale set --operator=$USER` for non-root access.
 
-Port protocols are stored in the `org.overthinkos.port_proto` image label so deploy-mode commands work without access to the original layer definitions. Remote refs require `ov image pull` first — see `/ov-build:pull`.
+Port protocols are stored in the `org.overthinkos.port_proto` image label so deploy-mode commands work without access to the original layer definitions. Remote refs require `ov box pull` first — see `/ov-build:pull`.
 
 ### Instance Tunnel Inheritance
 
@@ -518,7 +518,7 @@ Source: `ov/tunnel.go` (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`, `validTa
 
 ## deploy.yml — Source of Truth
 
-`~/.config/ov/deploy.yml` is the **source of truth** for per-machine deployment configuration (not checked into git). All deployment commands read from image labels + deploy.yml — no `image.yml` needed.
+`~/.config/ov/deploy.yml` is the **source of truth** for per-machine deployment configuration (not checked into git). All deployment commands read from image labels + deploy.yml — no `box.yml` needed.
 
 ### How it gets populated
 
@@ -573,18 +573,18 @@ The `ov deploy add`/`del` surface carries three fields on every deploy.yml entry
 
 **`target:`** — `pod` (default, container pipeline) or `local` (local filesystem apply). When `target: local` is set, `ov deploy add` routes to the local executor; `host: local` (default) runs directly, `host: <user@machine>` runs over SSH.
 
-**`add_layer:`** — list of extra layer refs applied on top of the image's base layers. Each entry accepts the same 4 ref forms as the command-line `--add-layer` flag (local name / local YAML path / remote `github.com/.../layers/<n>[@ref]`). See "add_layers: overlay mechanism" above for pod vs local semantics.
+**`add_candy:`** — list of extra layer refs applied on top of the image's base layers. Each entry accepts the same 4 ref forms as the command-line `--add-candy` flag (local name / local YAML path / remote `github.com/.../candy/<n>[@ref]`). See "add_layers: overlay mechanism" above for pod vs local semantics.
 
 **`install_opts:`** — local-target defaults that mirror the CLI flags on `ov deploy add`. CLI flags win on conflict; deploy.yml provides defaults so you don't have to repeat `--with-services --allow-repo-changes` on every invocation.
 
 ```yaml
 deploy:
   my-host:
-    image: fedora-coder
+    box: fedora-coder
     target: local
     add_layers:
       - my-team-vimrc                                     # local layer
-      - github.com/team-acme/configs/layers/sshkeys       # remote layer
+      - github.com/team-acme/configs/candy/sshkeys       # remote layer
       - ./private-overlay.yml                             # local file
     install_opts:
       with_services: true
@@ -619,7 +619,7 @@ deploy:
 | Source | Merge rule |
 |---|---|
 | Layer → layer | Smallest value wins (tightest cap is the safer default) |
-| Layers → image-level `security:` in image.yml | Image-level **replaces** the merged layer value |
+| Layers → image-level `security:` in box.yml | Image-level **replaces** the merged layer value |
 | Image-level → deploy-level `security:` in deploy.yml | Deploy-level **replaces** the image-level value |
 | CLI flag → deploy-level | CLI flag **writes** directly to deploy.yml (`--memory-max=...` on `ov config`) |
 
@@ -669,7 +669,7 @@ See `/ov-image:layer` for `env_provide`/`mcp_provide` field declarations and `/o
 
 ### Secrets
 
-Per-deployment secret source overrides. Secrets declared in image labels (from `layer.yml`) are provisioned as Podman secrets at `ov config` time. Deploy.yml can override where the value comes from:
+Per-deployment secret source overrides. Secrets declared in image labels (from `candy.yml`) are provisioned as Podman secrets at `ov config` time. Deploy.yml can override where the value comes from:
 
 ```yaml
 secrets:
@@ -700,9 +700,9 @@ ov deploy status
 
 ### Labels-only architecture
 
-Deployment commands (`ov config`, `start`, `status`, `logs`, `update`, `remove`, `seed`, `service`) resolve all configuration from **OCI image labels** + **deploy.yml** — no `image.yml` dependency. This means you can deploy on any machine with just `ov image pull` + `ov config`.
+Deployment commands (`ov config`, `start`, `status`, `logs`, `update`, `remove`, `seed`, `service`) resolve all configuration from **OCI image labels** + **deploy.yml** — no `box.yml` dependency. This means you can deploy on any machine with just `ov box pull` + `ov config`.
 
-**Local-storage requirement.** Because deploy-mode commands read OCI labels directly from local container storage (via `ExtractMetadata` → `podman inspect`), the image must be pulled first. If it isn't, the command fails with `ErrImageNotLocal` and the CLI suggests `ov image pull`. See `/ov-build:pull` for the sentinel pattern and remote-ref (`@github.com/...`) handling.
+**Local-storage requirement.** Because deploy-mode commands read OCI labels directly from local container storage (via `ExtractMetadata` → `podman inspect`), the image must be pulled first. If it isn't, the command fails with `ErrImageNotLocal` and the CLI suggests `ov box pull`. See `/ov-build:pull` for the sentinel pattern and remote-ref (`@github.com/...`) handling.
 
 **`MergeDeployOntoMetadata` ordering gotcha.** When extending deploy-mode code, remember that deploy-overlay fields like `meta.Tunnel` are nil until `MergeDeployOntoMetadata` runs. A `if meta.Tunnel != nil` check before the merge is unreachable code — this was the actual bug fixed in `start.go` by the refactor.
 
@@ -742,7 +742,7 @@ deploy:
 
 ## Volume Backing
 
-Layers declare what persistent storage they need via `volume:` in `layer.yml`. By default, all volumes are Docker/Podman named volumes. At `ov config` time, any volume's backing can be changed to a host bind mount or encrypted gocryptfs mount.
+Layers declare what persistent storage they need via `volume:` in `candy.yml`. By default, all volumes are Docker/Podman named volumes. At `ov config` time, any volume's backing can be changed to a host bind mount or encrypted gocryptfs mount.
 
 ### Per-Volume Configuration via `ov config`
 
@@ -811,7 +811,7 @@ volumes:
 - **`ov shell`/`ov start`**: resolves volume backing, verifies bind dirs exist and encrypted volumes are mounted, generates `-v` flags
 - **`ov config` (quadlet)**: bind-backed volumes become `Volume=` lines with host paths. `--userns=keep-id` added when bind-backed volumes exist
 - **`ov remove --purge`**: removes named volumes
-- **`ov image inspect --format bind_mounts`**: outputs deploy-configured volume backing
+- **`ov box inspect --format bind_mounts`**: outputs deploy-configured volume backing
 
 Source: `ov/deploy.go` (`DeployVolumeConfig`, `ResolveVolumeBacking`), `ov/enc.go` (`ResolvedBindMount`).
 
@@ -837,10 +837,10 @@ See `/ov-eval:vnc` for full VNC authentication documentation.
 
 ## Port Relay Pattern
 
-Some services (OpenClaw) bind only to loopback for security. The `port_relay` field in `layer.yml` creates a socat relay from the container's network interface to loopback, making the service accessible externally without weakening its security model.
+Some services (OpenClaw) bind only to loopback for security. The `port_relay` field in `candy.yml` creates a socat relay from the container's network interface to loopback, making the service accessible externally without weakening its security model.
 
 ```yaml
-# In layer.yml
+# In candy.yml
 ports:
   - 18789
 port_relay:
@@ -966,7 +966,7 @@ eval:
 
 **Deploy surface:**
 - `/ov-local:local-deploy` — Local-target execution model: LocalDeployTarget, ledger, gates, 15 ReverseOp kinds, sudo batching
-- `/ov-internals:install-plan` — The InstallPlan IR shared by `ov image build` (OCITarget), pod deploys (PodDeployTarget), and local deploys (LocalDeployTarget)
+- `/ov-internals:install-plan` — The InstallPlan IR shared by `ov box build` (OCITarget), pod deploys (PodDeployTarget), and local deploys (LocalDeployTarget)
 - `/ov-internals:local-infra` — Supporting Go files for local deploys: hostdistro, ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref
 
 **Deploy-adjacent commands:**
@@ -997,7 +997,7 @@ eval:
 
 A deploy entry's key in `deploy:` lives in its own namespace. The same name MAY simultaneously be a layer, an `image:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry — and the deploy entry's cross-reference fields (`image:`, `vm:`, `local:`, `cluster:`) are scoped to the matching kind, no fall-through. Concrete worked example: this repo's `deploy.ov-cachyos` references `local.ov-cachyos` via `local: ov-cachyos` — same name across two namespaces.
 
-`ResolveDeployRef` (used by `ov deploy add <name> <ref>`): when a name exists as BOTH an image and a layer, image-first precedence wins for the primary `<ref>` positional. The `--add-layer <ref>` path goes through `ResolveDeployRefAsLayer` which is layer-first. Same-name image and layer is permitted.
+`ResolveDeployRef` (used by `ov deploy add <name> <ref>`): when a name exists as BOTH an image and a layer, image-first precedence wins for the primary `<ref>` positional. The `--add-candy <ref>` path goes through `ResolveDeployRefAsLayer` which is layer-first. Same-name image and layer is permitted.
 
 The loader raises a hard load-time error on the obsolete `deploy.qc` / `deploy.cachyos-dx` keys, and on the obsolete `kind: deployment` doc / root-key `deployment:` (the deploy kind is `kind: deploy`); every such error points at `ov migrate`. See `/ov-build:migrate`.
 

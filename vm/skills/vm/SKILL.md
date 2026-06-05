@@ -16,10 +16,10 @@ description: |
 
 ## Overview
 
-`ov vm` commands build disk images and manage virtual machines via libvirt (default) or direct QEMU. VMs are declared as **`kind: vm` entities in `vm.yml`** — a first-class primitive alongside `kind: image` entries. Two source types:
+`ov vm` commands build disk images and manage virtual machines via libvirt (default) or direct QEMU. VMs are declared as **`kind: vm` entities in `vm.yml`** — a first-class primitive alongside `kind: box` entries. Two source types:
 
 - **`source.kind: cloud_image`** — fetches a pre-built qcow2 from an external URL (Arch, Fedora, Ubuntu, Debian, CentOS Cloud images). Renders a NoCloud seed ISO with cloud-init. Canonical example: `/ov-vm:arch`.
-- **`source.kind: bootc`** — pairs with a `kind: image` entry that has `bootc: true`. Runs `bootc install to-disk` inside a privileged container. Canonical example: `/ov-vm:bazzite-bootc`.
+- **`source.kind: bootc`** — pairs with a `kind: box` entry that has `bootc: true`. Runs `bootc install to-disk` inside a privileged container. Canonical example: `/ov-vm:bazzite-bootc`.
 
 VMs are not configured on kind:image entries — `image.vm:` / `image.libvirt:` are rejected at load time. `bootc: true` stays on a kind:image entry to mark it bootable. Legacy projects convert in one shot with `ov migrate` (see `/ov-build:migrate`). For the YAML authoring reference, see `/ov-vm:vms-catalog`; for the Go types, see `/ov-internals:vm-spec`.
 
@@ -40,7 +40,7 @@ VMs are not configured on kind:image entries — `image.vm:` / `image.libvirt:` 
 | SSH | `ov vm ssh <name>` | SSH into VM |
 | GPU passthrough readiness | `ov vm gpu status` | Host IOMMU + vfio-pci + per-GPU group/driver report |
 | GPU passthrough block | `ov vm gpu list` | Emit a ready-to-paste `libvirt.devices.hostdevs:` block (whole IOMMU group, `managed: "yes"`) |
-| Load image into guest | `ov vm cp-image <vm> <ref> [--as <tag>]` | `podman save | scp | podman load` a host image into a running guest (idempotent) |
+| Load image into guest | `ov vm cp-box <vm> <ref> [--as <tag>]` | `podman save | scp | podman load` a host image into a running guest (idempotent) |
 
 VM name convention: `ov-<name>[-<instance>]`. Default libvirt URI: `qemu:///session`.
 
@@ -161,7 +161,7 @@ vms:
   bazzite-bootc:
     source:
       kind: bootc
-      image: bazzite                                # kind:image entry
+      box: bazzite                                # kind:image entry
     disk_size: 80 GiB
     ram: 16G
     cpus: 6
@@ -269,7 +269,7 @@ Primary surface is structured `LibvirtConfig` in `vms.<name>.libvirt:` (features
 
 Raw-XML escape hatch: `vms.<name>.libvirt.snippets:` (list of strings) — classified by element name. Device-scoped elements go into `<devices>`, domain-scoped before `</domain>`. Deduplicated by exact string match.
 
-Layer-level raw snippets: `layer.yml` `libvirt.snippets:` is supported for layers that contribute device XML (e.g., `/ov-distros:qemu-guest-agent` contributes the virtio-serial channel). Image-level `libvirt: [...]` is not a valid field — VM XML lives on the `kind: vm` entity.
+Layer-level raw snippets: `candy.yml` `libvirt.snippets:` is supported for layers that contribute device XML (e.g., `/ov-distros:qemu-guest-agent` contributes the virtio-serial channel). Image-level `libvirt: [...]` is not a valid field — VM XML lives on the `kind: vm` entity.
 
 Source: `ov/libvirt.go`, `ov/libvirt_render.go`, `ov/libvirt_render_devices.go`.
 
@@ -286,7 +286,7 @@ ssh -p 2224 -i ~/.local/share/ov/vm/ov-arch/id_ed25519 arch@127.0.0.1
 ### Build and run a bootc VM
 
 ```bash
-ov image build bazzite             # container image must exist first
+ov box build bazzite             # container image must exist first
 ov vm build bazzite-bootc
 ov vm create bazzite-bootc
 ov vm start bazzite-bootc
@@ -298,7 +298,7 @@ ov vm ssh bazzite-bootc
 ```bash
 ov vm create arch
 ov deploy add vm:arch ripgrep         # apply ripgrep layer over SSH
-ov deploy add vm:arch fedora-coder --add-layer team-extras
+ov deploy add vm:arch fedora-coder --add-candy team-extras
 ov deploy del vm:arch                 # reverse all applied layers
 ```
 
@@ -348,7 +348,7 @@ Cloud-init `packages: [spice-vdagent]` pulls GTK3 + X11 (~200 MB download, ~1 GB
 
 ### Rootful ↔ rootless podman storage split (bootc)
 
-Under `engine.rootful=sudo`, `ov vm build` invokes `sudo podman` which reads from `/var/lib/containers/storage`, not your rootless storage. After every `ov image build`, refresh:
+Under `engine.rootful=sudo`, `ov vm build` invokes `sudo podman` which reads from `/var/lib/containers/storage`, not your rootless storage. After every `ov box build`, refresh:
 
 ```bash
 podman save ghcr.io/<registry>/<image>:latest -o /tmp/img.tar
@@ -401,7 +401,7 @@ Expected. The agent needs a `virtio-serial` channel that ov's QEMU backend doesn
 - `/ov-core:deploy` — `ov deploy add vm:<name> <ref>` in-guest layer application
 - `/ov-build:pull` — fetch container images into local storage (prereq for bootc VM builds)
 - `/ov-build:build` — building container images before VM disk builds
-- `/ov-image:layer` — `libvirt.snippets:` field in layer.yml
+- `/ov-image:layer` — `libvirt.snippets:` field in candy.yml
 - `/ov-openclaw:openclaw-desktop` — two-level nested-virtualization proof
 - `/ov-distros:bootc-base` — sshd + qemu-guest-agent + bootc-config bundle
 - `/ov-distros:bootc-config` — bootc-side boot wiring (tty1 autologin, graphical target, systemd-user supervisord)

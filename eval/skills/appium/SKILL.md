@@ -176,7 +176,7 @@ substitute its W3C id for the literal token `{element}` in `request_body:`
 (execute) and `path:`+`request_body:` (raw), e.g.
 `raw method: GET path: /element/{element}/text selector: …`. Single-brace
 `{element}` (deliberately NOT `${…}`) so the eval runtime-variable resolver
-leaves it untouched. `ov image validate` errors if `{element}` appears with no
+leaves it untouched. `ov box validate` errors if `{element}` appears with no
 `selector:`.
 
 ### Android-14 permission dialog covers the app

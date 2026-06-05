@@ -2,12 +2,12 @@
 name: inspect
 description: |
   Image inspection showing resolved configuration as JSON.
-  MUST be invoked before any work involving: ov image inspect command, viewing image configuration, or querying image metadata.
+  MUST be invoked before any work involving: ov box inspect command, viewing image configuration, or querying image metadata.
 ---
 
-# ov image inspect -- Image Inspection
+# ov box inspect -- Image Inspection
 
-Invoked as `ov image inspect <image>`. See `/ov-image:image` for the family overview.
+Invoked as `ov box inspect <image>`. See `/ov-image:image` for the family overview.
 
 ## Overview
 
@@ -17,33 +17,33 @@ Displays the fully resolved configuration of an image as JSON. Shows base image,
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Full inspect | `ov image inspect <image>` | Show complete resolved config as JSON |
-| Specific field | `ov image inspect <image> --format FIELD` | Extract a specific field |
-| Disabled image | `ov image inspect <image> --include-disabled` | Operate on `enabled: false` images without flipping authored config |
+| Full inspect | `ov box inspect <image>` | Show complete resolved config as JSON |
+| Specific field | `ov box inspect <image> --format FIELD` | Extract a specific field |
+| Disabled image | `ov box inspect <image> --include-disabled` | Operate on `enabled: false` images without flipping authored config |
 
 ## Usage
 
 ```bash
 # Inspect full image configuration
-ov image inspect fedora
+ov box inspect fedora
 
 # Get specific field
-ov image inspect jupyter --format ports
+ov box inspect jupyter --format ports
 
 # Get the base image
-ov image inspect sway-browser-vnc --format base
+ov box inspect sway-browser-vnc --format base
 
 # Get layer list
-ov image inspect ollama --format layers
+ov box inspect ollama --format layers
 
 # Get platforms
-ov image inspect fedora --format platforms
+ov box inspect fedora --format platforms
 
 # Get the builder map (build-type → builder image)
-ov image inspect arch --format builder
+ov box inspect arch --format builder
 
 # Get the builder capabilities this image declares
-ov image inspect fedora-builder --format builds
+ov box inspect fedora-builder --format builds
 ```
 
 ## Output Fields
@@ -67,17 +67,17 @@ The JSON output includes:
 
 All `--format` values are the JSON field names from the `inspect` output. When passing `--format` to select a map (like `builder`) or list, the CLI prints one entry per line.
 
-**Caveat — `--format bind_mounts`**: this one format option reads `deploy.yml` (not `image.yml`), because bind-mount backings are a deploy-time concept (`ov config --bind <volume>` writes them to `deploy.yml`). The output is display-only — no OCI label contamination, no build-mode state leak. All other `--format` values (`ports`, `volumes`, `layers`, `base`, `builder`, …) are strictly `image.yml`-derived per the mode-purity invariant (see `/ov-build:build` and `/ov-internals:go` "Mode purity").
+**Caveat — `--format bind_mounts`**: this one format option reads `deploy.yml` (not `box.yml`), because bind-mount backings are a deploy-time concept (`ov config --bind <volume>` writes them to `deploy.yml`). The output is display-only — no OCI label contamination, no build-mode state leak. All other `--format` values (`ports`, `volumes`, `layers`, `base`, `builder`, …) are strictly `box.yml`-derived per the mode-purity invariant (see `/ov-build:build` and `/ov-internals:go` "Mode purity").
 
 ## Project directory override
 
-`ov image inspect` resolves `image.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov-image:image` "Project directory resolution".
+`ov box inspect` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov-image:image` "Project directory resolution".
 
 ## Cross-References
 
 ### `ov image` family siblings
 
-- `/ov-image:image` -- Family overview + image.yml composition reference
+- `/ov-image:image` -- Family overview + box.yml composition reference
 - `/ov-build:build` -- Build the inspected image
 - `/ov-build:generate` -- Containerfile generation for the inspected image
 - `/ov-build:list` -- Enumerate images before inspecting one

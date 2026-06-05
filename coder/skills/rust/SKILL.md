@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml` (packages only) |
+| Install files | `candy.yml` (packages only) |
 
 PATH additions: `~/.cargo/bin`
 
@@ -23,7 +23,7 @@ DEB: `rustc`, `cargo`
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 my-image:
   layers:
     - rust

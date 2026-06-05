@@ -1,21 +1,21 @@
 ---
 name: generate
 description: |
-  Containerfile generation from image.yml and layers.
-  MUST be invoked before any work involving: ov image generate command, Containerfile generation, .build/ directory contents, the task-verb emission pipeline, or understanding generated output.
+  Containerfile generation from box.yml and layers.
+  MUST be invoked before any work involving: ov box generate command, Containerfile generation, .build/ directory contents, the task-verb emission pipeline, or understanding generated output.
 ---
 
-# ov image generate -- Containerfile Generation
+# ov box generate -- Containerfile Generation
 
-Invoked as `ov image generate`. See `/ov-image:image` for the family overview.
+Invoked as `ov box generate`. See `/ov-image:image` for the family overview.
 
 ## Overview
 
-Parses `image.yml`, scans `layers/`, resolves the dependency graph, and emits all build artifacts into the `.build/` directory. Called internally by `ov image build` but can be run standalone to inspect generated output before a build.
+Parses `box.yml`, scans `candy/`, resolves the dependency graph, and emits all build artifacts into the `.build/` directory. Called internally by `ov box build` but can be run standalone to inspect generated output before a build.
 
 The generator is **config-driven** — distro format templates, builder stage templates, and init system fragments all come from a single `build.yml` (three top-level sections: `distro:`, `builder:`, `init:`) — and **declarative per-task** for install logic — each task verb (see `/ov-image:layer`) has a dedicated emitter that writes the right Containerfile directive.
 
-**IR-driven emission**: `ov image generate` drives emission through the shared `DeployTarget` interface. `image.yml` + `layer.yml` compile into an `InstallPlan` IR (one per layer); `OCITarget.Emit` walks the IR and writes Containerfile text. The same IR backs `PodDeployTarget` (overlay-Containerfile synthesis when `add_layer:` is set) and `LocalDeployTarget` (local-target execution). See `/ov-internals:install-plan` for the type catalog and `/ov-internals:generate-source` for the Go-level call graph.
+**IR-driven emission**: `ov box generate` drives emission through the shared `DeployTarget` interface. `box.yml` + `candy.yml` compile into an `InstallPlan` IR (one per layer); `OCITarget.Emit` walks the IR and writes Containerfile text. The same IR backs `PodDeployTarget` (overlay-Containerfile synthesis when `add_candy:` is set) and `LocalDeployTarget` (local-target execution). See `/ov-internals:install-plan` for the type catalog and `/ov-internals:generate-source` for the Go-level call graph.
 
 **Three-phase templates**: `build.yml` format (`formats.<fmt>`) and builder (`builders.<name>`) definitions carry a `phases: { prepare, install, cleanup }.{ container, host }` structure. The generator reads `phases.install.container` when set and falls back to the top-level `install_template:` otherwise. The `host:` cell is consumed only by `LocalDeployTarget` (`target: local` deploys) — the generator ignores it.
 
@@ -23,17 +23,17 @@ The generator is **config-driven** — distro format templates, builder stage te
 
 | Action | Command | Description |
 |---|---|---|
-| Generate all | `ov image generate` | Generate Containerfiles for all enabled images |
-| With tag | `ov image generate --tag TAG` | Override the image tag |
+| Generate all | `ov box generate` | Generate Containerfiles for all enabled images |
+| With tag | `ov box generate --tag TAG` | Override the image tag |
 
-`ov image generate` takes **no positional image argument** — it always writes the full `.build/` tree for every enabled image in `image.yml`. To inspect a single image's output, run `ov image generate` (fast — it reuses scratch-stage caches) and then `cat .build/<image>/Containerfile`. Filtering to one image happens implicitly via `ov image build <image>`, which invokes generate internally and then builds only the requested image + its dependencies.
+`ov box generate` takes **no positional image argument** — it always writes the full `.build/` tree for every enabled image in `box.yml`. To inspect a single image's output, run `ov box generate` (fast — it reuses scratch-stage caches) and then `cat .build/<image>/Containerfile`. Filtering to one image happens implicitly via `ov box build <image>`, which invokes generate internally and then builds only the requested image + its dependencies.
 
 ```bash
 # Generate all Containerfiles
-ov image generate
+ov box generate
 
 # Generate with a custom tag
-ov image generate --tag v1.2.3
+ov box generate --tag v1.2.3
 
 # Inspect generated output
 cat .build/fedora/Containerfile
@@ -166,7 +166,7 @@ The Containerfile references the file by its relative path: `COPY --from=<layer-
 ## Behavior
 
 - Generation is idempotent — safe to run repeatedly.
-- `.build/` is disposable and gitignored; `ov image generate` will recreate it from scratch.
+- `.build/` is disposable and gitignored; `ov box generate` will recreate it from scratch.
 - Layer dependencies resolve transitively and topologically; circular `require:` is a validation error (surfaced by `/ov-build:validate`).
 - Pixi manylinux fix is injected into `pixi.toml` files during the pixi builder stage.
 - Multi-stage builds use builder images declared in `build.yml` `builder:` section (`pixi-builder`, `npm-builder`, `arch-builder` for AUR, etc.).
@@ -201,13 +201,13 @@ The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUIL
 
 ## Project directory override
 
-`ov image generate` resolves `image.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov-image:image` "Project directory resolution".
+`ov box generate` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov-image:image` "Project directory resolution".
 
 ## Cross-References
 
 ### `ov image` family siblings
 
-- `/ov-image:image` -- Family overview + image.yml composition reference
+- `/ov-image:image` -- Family overview + box.yml composition reference
 - `/ov-build:build` -- Building images (calls generate internally)
 - `/ov-build:inspect` -- Inspect generated output for a specific image
 - `/ov-build:list` -- Enumerate targets before generation

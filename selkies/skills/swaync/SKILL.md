@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `dbus` |
 | Service | `swaync` (supervisord, priority 14, startsecs=2) |
-| Install files | `layer.yml`, `task:`, `swaync-wrapper`, `config.json`, `style.css` |
+| Install files | `candy.yml`, `task:`, `swaync-wrapper`, `config.json`, `style.css` |
 
 ## Packages
 
@@ -109,5 +109,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

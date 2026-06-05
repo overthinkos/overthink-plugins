@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml` (packages only) |
+| Install files | `candy.yml` (packages only) |
 | Depends | none |
 
 ## Packages
@@ -25,7 +25,7 @@ Validates that the `pac:` package format works correctly on Arch Linux images. I
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 layers:
   - arch-pac-test
 ```
@@ -44,7 +44,7 @@ Requires an Arch-based image with `build: [pac]` (or `[pac, aur]`).
 
 Use when the user asks about:
 - Arch Linux pacman package testing
-- The `pac:` package format in layer.yml
+- The `pac:` package format in candy.yml
 - The `arch-pac-test` layer
 
 ## Author + Test References

@@ -2,7 +2,7 @@
 name: aurora
 description: |
   Aurora DX bootc image with NVIDIA, SSH, ov toolchain, and Go.
-  Currently disabled. Enable in image.yml to build.
+  Currently disabled. Enable in box.yml to build.
   MUST be invoked before building, deploying, or troubleshooting the aurora image.
 ---
 

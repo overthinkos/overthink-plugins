@@ -23,29 +23,29 @@ The `ov` binary inside containers serves two purposes:
 
 ## Updating the Binary — dual-path gotcha
 
-The `ov` layer's `copy: bin/ov` task is resolved **relative to the layer directory**, so the image build reads `layers/ov/bin/ov` — NOT the repo-root `bin/ov`. Two independent paths need to stay in sync:
+The `ov` layer's `copy: bin/ov` task is resolved **relative to the layer directory**, so the image build reads `candy/ov/bin/ov` — NOT the repo-root `bin/ov`. Two independent paths need to stay in sync:
 
 | Path | Who reads it |
 |------|-------------|
 | `bin/ov` (repo root) | Host-side `ov` invocations; users running `/tmp/ov` style tests |
-| `layers/ov/bin/ov` | The `ov` layer's COPY into images during `ov image build` |
+| `candy/ov/bin/ov` | The `ov` layer's COPY into images during `ov box build` |
 
 **Canonical workflow** — `task build:ov` compiles to repo-root AND syncs to the layer:
 
 ```bash
 task build:ov                              # Builds + syncs both paths; rebuild images after.
-ov image build <image>                     # Rebuild affected images.
+ov box build <image>                     # Rebuild affected images.
 ```
 
 **Manual workflow** — if you skip `task build:ov` and build with `go build` directly, you MUST sync the layer path, or images will bake the previous binary:
 
 ```bash
 cd ov && go build -o ../bin/ov .           # Only updates repo-root bin/ov.
-cp bin/ov layers/ov/bin/ov                 # REQUIRED — sync to layer path.
-ov image build <image>                     # Rebuild affected images.
+cp bin/ov candy/ov/bin/ov                 # REQUIRED — sync to layer path.
+ov box build <image>                     # Rebuild affected images.
 ```
 
-**Why this bites**: `ov image build` uses auto-generated intermediate images (e.g., `ghcr.io/overthinkos/fedora-ov-2-dbus-nodejs`) that cache the `ov` layer. If you update `bin/ov` in repo-root but forget the layer copy, the intermediate's cache hit serves stale content. After cleaning up a stale dual-path situation, `podman rmi 'ghcr.io/overthinkos/fedora-ov-2*'` forces a clean intermediate rebuild.
+**Why this bites**: `ov box build` uses auto-generated intermediate images (e.g., `ghcr.io/overthinkos/fedora-ov-2-dbus-nodejs`) that cache the `ov` layer. If you update `bin/ov` in repo-root but forget the layer copy, the intermediate's cache hit serves stale content. After cleaning up a stale dual-path situation, `podman rmi 'ghcr.io/overthinkos/fedora-ov-2*'` forces a clean intermediate rebuild.
 
 ## `ov status` Probe
 
@@ -59,14 +59,14 @@ Shows as `ov:ok (2026.94.1417)` in `ov status` detail view. Returns `-` for imag
 `println(version)` emitted to stderr; the move to `fmt.Println` landed
 with the MCP server work so the in-process tool-call path — which
 captures `os.Stdout` — returns the CalVer correctly). The layer test at
-`layers/ov/layer.yml` asserts `stdout:` matches `[0-9]{4}\.[0-9]+`. The
+`candy/ov/candy.yml` asserts `stdout:` matches `[0-9]{4}\.[0-9]+`. The
 `ov status` probe uses `CombinedOutput()` so it's agnostic to the
 stream.
 
 ## Usage
 
 ```yaml
-# image.yml -- now included in all images with supervisord
+# box.yml -- now included in all images with supervisord
 my-image:
   layers:
     - ov
@@ -92,9 +92,9 @@ Use when the user asks about:
 - The ov-full composition layer
 - In-container ov CLI usage
 - Native D-Bus support (ov eval dbus commands delegate to in-container binary)
-- Updating the ov layer binary after code changes
+- Updating the ov candy binary after code changes
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

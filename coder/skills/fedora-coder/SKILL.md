@@ -28,7 +28,7 @@ meant to be accessed via `ssh -p 2222` or `ov shell`.
 > Build/validate from
 > the submodule: `ov -C image/fedora image build fedora-coder`, or
 > `ov --repo overthinkos/fedora image build fedora-coder`. Deploy-mode verbs
-> (`ov config`/`ov start`/`ov eval image`) read the built image's OCI labels and
+> (`ov config`/`ov start`/`ov eval box`) read the built image's OCI labels and
 > work from anywhere once it's in local storage.
 
 ## Definition
@@ -101,7 +101,7 @@ posture with `/ov-openclaw:openclaw-desktop`).
 | `security_opt` | `[unmask=/proc/*]` | `/ov-distros:container-nesting` |
 | `devices` | `[/dev/fuse, /dev/net/tun]` | `/ov-distros:container-nesting` |
 | `privileged` | `false` | — |
-| Network | default `ov` bridge | image.yml |
+| Network | default `ov` bridge | box.yml |
 | UID / user | `1000 / user` | defaults |
 | sudo | passwordless via `/etc/sudoers.d/ov-user` | `/ov-coder:sshd` |
 
@@ -166,7 +166,7 @@ ov -C image/fedora image validate
 ov -C image/fedora image build fedora-coder
 
 # 3. Build-scope tests (disposable container)
-ov eval image ghcr.io/overthinkos/fedora-coder:latest
+ov eval box ghcr.io/overthinkos/fedora-coder:latest
 # target: 149 passed · 0 failed · 0 skipped
 
 # 4. Deploy (no bind-mount needed; ov-mcp auto-falls back to overthinkos/overthink)
@@ -175,7 +175,7 @@ ov start fedora-coder
 
 # 5. Full-scope tests — prefers the running container automatically
 # (see /ov-eval:eval "Live vs disposable executor selection")
-ov eval image ghcr.io/overthinkos/fedora-coder:latest
+ov eval box ghcr.io/overthinkos/fedora-coder:latest
 # target: 167 passed · 0 failed · 0 skipped
 
 # 6. Clean up
@@ -208,8 +208,8 @@ if running alongside.
 
 ## Test results
 
-- `ov eval image fedora-coder` — **149 passed · 0 failed · 0 skipped**.
-- `ov eval image fedora-coder` against a live running
+- `ov eval box fedora-coder` — **149 passed · 0 failed · 0 skipped**.
+- `ov eval box fedora-coder` against a live running
   container — **167 passed · 0 failed · 0 skipped** (adds deploy-scope:
   sshd reachable, supervisord responding, dbus+ov-mcp+virtqemud+
   virtnetworkd services running, libvirt session list + KVM domcaps,
@@ -228,7 +228,7 @@ if running alongside.
 - `language-runtimes` — .NET 9 SDK is ~600 MB on its own.
 
 To slim: drop the layer groups you don't need (AI CLIs, kubernetes,
-google-cloud-npm) by forking image.yml. See `/ov-image:image` for authoring.
+google-cloud-npm) by forking box.yml. See `/ov-image:image` for authoring.
 
 ## Key Layers
 
@@ -267,7 +267,7 @@ All four produce the same daily-dev surface (sshd on 2222, ov-mcp on 18765, 5 AI
 - `/ov-core:shell` — open an interactive shell inside the container (as user, with sudo)
 - `/ov-core:ov-config` — deploy setup (--bind project=…, tunnel, --update-all)
 - `/ov-core:start`, `/ov-core:stop` — lifecycle
-- `/ov-eval:eval` — live-service tests (`ov eval live <name>`) and build-scope tests (`ov eval image <ref>`)
+- `/ov-eval:eval` — live-service tests (`ov eval live <name>`) and build-scope tests (`ov eval box <ref>`)
 - `/ov-build:ov-mcp-cmd` — MCP gateway documentation; `--no-default-repo` to disable auto-fallback
 - `/ov-vm:vm` — nested libvirt VMs (via virtqemud inside the container)
 - `/ov-image:layer` — authoring reference (covers the new `strip_components:` modifier)

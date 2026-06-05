@@ -44,7 +44,7 @@ Installed to `~/.local/bin/ov-overlay` via `task:`. Dual-mode script (daemon + c
 ## Usage
 
 ```yaml
-# image.yml — typically included via desktop metalayers
+# box.yml — typically included via desktop metalayers
 # Already part of sway-desktop, selkies-desktop
 my-desktop:
   layers:
@@ -83,5 +83,5 @@ ov eval wl overlay hide my-image --all
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

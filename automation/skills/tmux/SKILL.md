@@ -16,7 +16,7 @@ description: |
 1. **Persistent shells** — SSH drops, terminal closes, network interruption? Just run `ov tmux shell <image>` again and you're back where you left off.
 2. **TTY-dependent background commands** — TUI programs like `openclaw models auth login` need a real terminal to function. `ov shell --tty` piped through `tee` or redirected breaks the TUI event loop. `ov tmux run` provides a real tmux terminal that the TUI can use, while `ov tmux capture` reads the output without attaching.
 
-All operations translate to `engine exec container tmux <args>`. The tmux layer must be present in the image (`layers/tmux/layer.yml` — installs the `tmux` RPM).
+All operations translate to `engine exec container tmux <args>`. The tmux layer must be present in the image (`candy/tmux/candy.yml` — installs the `tmux` RPM).
 
 ## Quick Reference
 
@@ -212,7 +212,7 @@ ov shell <image> -c "which tmux"
 
 If tmux is not installed, `ov tmux` returns: `"tmux is not installed in container <name> (add the tmux layer to your image)"`.
 
-The tmux layer is already a dependency of `openclaw-full` (and all derivative images). For other images, add `tmux` to the layers list in `image.yml`.
+The tmux layer is already a dependency of `openclaw-full` (and all derivative images). For other images, add `tmux` to the layers list in `box.yml`.
 
 ## tmux Basics
 

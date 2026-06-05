@@ -33,7 +33,7 @@ Builder image for Arch Linux multi-stage builds. Counterpart to `/ov-distros:fed
 When an Arch-based image has layers with `pixi.toml`, `package.json`, `Cargo.toml`, or `aur:` packages, the build system uses this image as the builder for multi-stage builds. Configured via the `arch` image's `builder:` field (a map of build-type → builder-image):
 
 ```yaml
-# image.yml
+# box.yml
 arch:
   builder:
     pixi: arch-builder
@@ -47,7 +47,7 @@ The builder definitions themselves (pixi/npm/cargo/aur) live in `build.yml`'s `b
 ## Quick Start
 
 ```bash
-ov image build arch-builder
+ov box build arch-builder
 ov shell arch-builder -c "pixi --version"
 ov shell arch-builder -c "node --version"
 ov shell arch-builder -c "yay --version"

@@ -13,7 +13,7 @@ description: |
 - `host: local` (literal) or absent → `ShellExecutor` (run on this machine).
 - Anything else → `SSHExecutor` (ssh(1) reads `~/.ssh/config` + ssh-agent for keys, host-key checking, options).
 
-The same `InstallPlan` IR that drives `ov image build` (via OCITarget) and container deploys (via PodDeployTarget) is consumed by `LocalDeployTarget`, which translates each IR step into shell commands, `podman run <builder>` invocations for compile-needing work, and systemd unit writes.
+The same `InstallPlan` IR that drives `ov box build` (via OCITarget) and container deploys (via PodDeployTarget) is consumed by `LocalDeployTarget`, which translates each IR step into shell commands, `podman run <builder>` invocations for compile-needing work, and systemd unit writes.
 
 The deploy applies host packages + configs ONLY. Container images required for `ov eval run` / `ov eval live` are ensured by the eval preflight (see `/ov-eval:eval` "Image preflight"), not by the deploy. Deploys (any target) emit zero image-pull / image-build steps — that's the CLAUDE.md "Deploy fetches NOTHING speculative" Key Rule, codified at the type level. Migration of legacy `image:` blocks: `ov migrate` (idempotent).
 
@@ -129,7 +129,7 @@ Remote `target: local` deploys assume **passwordless sudo** on the destination. 
 
 ## Validation
 
-`ov image validate` checks every `target: local` deployment:
+`ov box validate` checks every `target: local` deployment:
 
 - `local: <name>` references a `kind: local` template that exists.
 - `host:` field, when non-`local`, parses via `ParseSSHTarget`.

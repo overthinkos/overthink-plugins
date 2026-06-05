@@ -49,7 +49,7 @@ The layer is multi-distro:
 ## Usage
 
 ```yaml
-# image.yml -- typically used as dependency of immich
+# box.yml -- typically used as dependency of immich
 my-image:
   layers:
     - redis
@@ -66,7 +66,7 @@ The layer ships 5 declarative checks embedded in the `org.overthinkos.eval`
 OCI label (see `/ov-eval:eval` for the full schema — this layer is the
 **gold-standard pattern** referenced there):
 
-- **Build-scope** (run under `ov eval image`, via `podman run --rm`):
+- **Build-scope** (run under `ov eval box`, via `podman run --rm`):
   - `redis-binary` — `/usr/bin/redis-server` exists
   - `redis-cli-binary` — `/usr/bin/redis-cli` exists
   - `redis-package` — `valkey-compat-redis` package installed (real

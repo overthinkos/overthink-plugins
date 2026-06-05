@@ -22,7 +22,7 @@ description: |
 
 ## How It Works
 
-This is a **data layer** — it uses the `data:` field in `layer.yml` to map a directory of notebooks to a named volume with a subdirectory destination:
+This is a **data layer** — it uses the `data:` field in `candy.yml` to map a directory of notebooks to a named volume with a subdirectory destination:
 
 ```yaml
 info: "LLMs on Supercomputers course notebooks (TU Wien AI Factory Austria)"
@@ -130,4 +130,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

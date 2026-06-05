@@ -40,7 +40,7 @@ For container lifecycle, use `ov` commands -- see `/ov-core:service`.
 
 ### Layer
 
-The `openclaw` layer (`layers/openclaw/`) depends on `nodejs` and `supervisord`. It installs the `openclaw` npm package globally, exposes port 18789, declares a `data` volume at `~/.openclaw`, and runs as a supervisord service:
+The `openclaw` layer (`candy/openclaw/`) depends on `nodejs` and `supervisord`. It installs the `openclaw` npm package globally, exposes port 18789, declares a `data` volume at `~/.openclaw`, and runs as a supervisord service:
 
 ```
 [program:openclaw]
@@ -51,13 +51,13 @@ The gateway binds to loopback only (no `--bind lan`). External access is handled
 
 ### Image
 
-Compose your own desktop+browser image — e.g. an `openclaw-desktop` entry in `image.yml` combining `openclaw-full` + `sway-desktop` on a Fedora base:
+Compose your own desktop+browser image — e.g. an `openclaw-desktop` entry in `box.yml` combining `openclaw-full` + `sway-desktop` on a Fedora base:
 
 ```yaml
-image:
+box:
   openclaw-desktop:
     base: fedora
-    layer: [agent-forwarding, openclaw-full, sway-desktop, dbus, ov]
+    candy: [agent-forwarding, openclaw-full, sway-desktop, dbus, ov]
     port: ["18789:18789", "5900:5900", "9222:9222", "9224:9224"]
 ```
 
@@ -81,7 +81,7 @@ ov alias add openclaw openclaw-desktop
 ### Lifecycle
 
 ```bash
-ov image build openclaw-desktop         # Build image
+ov box build openclaw-desktop         # Build image
 ov config openclaw-desktop        # Generate quadlet, daemon-reload
 ov start openclaw-desktop         # Start via systemd
 ov stop openclaw-desktop          # Stop

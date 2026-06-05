@@ -1,0 +1,9 @@
+# Editor / OS scratch
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Migration rollback backups (`ov migrate` writes <file>.bak.<unix-ts>)
+*.bak
+*.bak.*

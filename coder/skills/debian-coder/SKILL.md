@@ -20,7 +20,7 @@ Debian 13 trixie counterpart of `/ov-coder:fedora-coder`. Same 80-line `eval:` b
 > the submodule:
 > `ov -C image/debian image build debian-coder`, or
 > `ov --repo overthinkos/debian image build debian-coder`. Deploy-mode verbs
-> (`ov config`/`ov start`/`ov eval image`) read the built image's OCI labels and
+> (`ov config`/`ov start`/`ov eval box`) read the built image's OCI labels and
 > work from anywhere once it's in local storage.
 
 ## Definition
@@ -111,7 +111,7 @@ See `/ov-image:image` "user_policy" and `/ov-build:build` "base_user" for the fu
 
 ## Test results
 
-`ov eval image ghcr.io/overthinkos/debian-coder:latest` — **143 passed · 0 failed · 0 skipped**.
+`ov eval box ghcr.io/overthinkos/debian-coder:latest` — **143 passed · 0 failed · 0 skipped**.
 
 Against a live running container, the same command adds live-service extension tests (sshd on 2222, supervisord, dbus, ov-mcp, virtqemud session), mirroring fedora-coder's +18 deploy-scope additions.
 
@@ -125,12 +125,12 @@ ov -C image/debian image validate
 ov -C image/debian image build debian-coder
 
 # 3. Disposable-container tests
-ov eval image ghcr.io/overthinkos/debian-coder:latest
+ov eval box ghcr.io/overthinkos/debian-coder:latest
 
 # 4. Deploy + live tests
 ov config debian-coder
 ov start debian-coder
-ov eval image ghcr.io/overthinkos/debian-coder:latest
+ov eval box ghcr.io/overthinkos/debian-coder:latest
 
 # 5. Clean up
 ov stop debian-coder

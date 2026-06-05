@@ -32,7 +32,7 @@ Without a browser provider, hermes browser tools fall back to local headless mod
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 hermes:
   base: fedora
   layers:
@@ -67,5 +67,5 @@ Use when working with the `hermes-full` metalayer, full-featured standalone herm
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

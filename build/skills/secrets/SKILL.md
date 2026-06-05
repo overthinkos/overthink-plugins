@@ -136,7 +136,7 @@ ov secrets get ov/secret MY_TOKEN        # read it back
 
 ### Credential-backed layer env vars (`secret_accept` / `secret_require`)
 
-A layer can declare credential-backed env vars in `layer.yml` via the
+A layer can declare credential-backed env vars in `candy.yml` via the
 `secret_accept:` / `secret_require:` sections. At `ov config` time, the
 declared values are resolved from the credential store, provisioned as
 per-image podman secrets, and injected into the container at runtime via
@@ -146,7 +146,7 @@ per-image podman secrets, and injected into the container at runtime via
 
 The credential store namespace for these entries defaults to `ov/secret`
 with the env var name as the key. Layer authors can override with an
-explicit `key: ov/api-key/openrouter` in layer.yml, which is useful when
+explicit `key: ov/api-key/openrouter` in candy.yml, which is useful when
 multiple consumers should resolve the same upstream credential (e.g.,
 openwebui and hermes both pointing at `ov/api-key/openrouter` so one
 `ov secrets set` populates both).
@@ -154,10 +154,10 @@ openwebui and hermes both pointing at `ov/api-key/openrouter` so one
 **Storage commands:**
 
 ```bash
-# Default path (matches layer.yml `secret_accept: [{name: WEBUI_ADMIN_PASSWORD}]`)
+# Default path (matches candy.yml `secret_accept: [{name: WEBUI_ADMIN_PASSWORD}]`)
 ov secrets set ov/secret WEBUI_ADMIN_PASSWORD <password>
 
-# Explicit key path (matches layer.yml `key: ov/api-key/openrouter`)
+# Explicit key path (matches candy.yml `key: ov/api-key/openrouter`)
 ov secrets set ov/api-key openrouter sk-or-xxxxxxxx
 ov secrets set ov/api-key ollama gsk-yyyyyyyy
 ov secrets set ov/api-key immich <immich-key-from-web-ui>
@@ -236,7 +236,7 @@ The plaintext is stripped, `deploy.yml.bak.<ts>` is written as a rollback
 point, and the migration logs each entry on stderr. Idempotent — safe to
 run on a clean host.
 
-**Distinction from layer-owned `secret:`:** the layer.yml `secret:`
+**Distinction from layer-owned `secret:`:** the candy.yml `secret:`
 field (e.g., immich's `db-password`) creates per-image secrets that are
 auto-generated once at `ov config` time and never rotated. Credential-
 backed `secret_accept` / `secret_require` are user-owned, shareable
@@ -498,7 +498,7 @@ For GPG agent forwarding into containers (so `gpg --decrypt` works inside), use 
 - `/ov-automation:enc` — encrypted volume credential lookup, iteration-capable ssClient, broken-collection troubleshooting, source classification (`env`/`keyring`/`config`/`locked`/`unavailable`/`default`)
 - `/ov-build:settings` — `keyring_collection_label`, `secret_backend`, and other runtime config keys
 - `/ov-core:ov-doctor` — Secret Service collection health + shadow index consistency checks
-- `/ov-core:service` — container secrets (`secrets` field in layer.yml, provisioned at `ov config`)
+- `/ov-core:service` — container secrets (`secrets` field in candy.yml, provisioned at `ov config`)
 - `/ov-distros:agent-forwarding` — SSH/GPG agent forwarding into containers
 - `/ov-infrastructure:gnupg` — GnuPG package layer
 - `/ov-openwebui:openwebui` — two-tier secrets pattern: podman secrets (`WEBUI_SECRET_KEY` auto-generated) + GPG `.secrets` (API keys)

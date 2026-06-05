@@ -26,7 +26,7 @@ Privileged builder image used to bootstrap a CachyOS root filesystem via
 | Property | Value |
 |----------|-------|
 | Base | `ov.arch` (from main's `base.yml`, via the `ov` import namespace) |
-| Layer | pacstrap-builder (`@github.com/overthinkos/overthink/layers/pacstrap-builder:<tag>`) |
+| Layer | pacstrap-builder (`@github.com/overthinkos/overthink/candy/pacstrap-builder:<tag>`) |
 | Distro | arch |
 | Build | pac |
 | Home repo | overthinkos/cachyos (`image/cachyos`) |
@@ -43,7 +43,7 @@ build proves the `ov` import namespace resolves the `arch` base from main's
 flat-imported `build.yml` (pacstrap builder definition + cachyos distro config)
 is reachable.
 
-`ov eval image cachyos-pacstrap-builder` runs the build-scope eval: 4 probes pass
+`ov eval box cachyos-pacstrap-builder` runs the build-scope eval: 4 probes pass
 (`/usr/sbin/pacstrap`, `arch-install-scripts` installed, `/usr/sbin/grub-install`,
 `/usr/sbin/parted`) — i.e. the pacstrap toolchain the builder must ship.
 

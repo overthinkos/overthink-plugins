@@ -68,7 +68,7 @@ CLI `-e KEY=VALUE` flags are automatically routed: env vars matching a sidecar t
 
 ## Environment Contract (env_provide / env_accept / env_require)
 
-Sidecars participate in the same cross-container env discovery pipeline as regular layers, with one critical caveat: **routing is explicit, not implicit**. A sidecar's env (e.g., the tailscale sidecar's `TS_*` vars) is **not** auto-injected into the app container, and vice versa — the app only sees what it explicitly opts in to via `env_accept` or `env_require` in its `layer.yml`.
+Sidecars participate in the same cross-container env discovery pipeline as regular layers, with one critical caveat: **routing is explicit, not implicit**. A sidecar's env (e.g., the tailscale sidecar's `TS_*` vars) is **not** auto-injected into the app container, and vice versa — the app only sees what it explicitly opts in to via `env_accept` or `env_require` in its `candy.yml`.
 
 This matters for two reasons:
 

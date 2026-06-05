@@ -15,7 +15,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `nodejs`, `rust` |
-| Install files | `layer.yml` (packages only) |
+| Install files | `candy.yml` (packages only) |
 
 ## Packages (RPM)
 
@@ -129,7 +129,7 @@ the single sources of truth for their respective binaries.
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 my-polyglot:
   layers:
     - language-runtimes
@@ -168,4 +168,4 @@ my-polyglot:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

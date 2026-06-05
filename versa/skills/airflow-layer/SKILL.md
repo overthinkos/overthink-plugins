@@ -10,7 +10,7 @@ description: |
 LocalExecutor + SQLite — zero external services. Suitable for
 single-node dev / R10 verification. For multi-node production swap
 in CeleryExecutor + Postgres + Valkey (those layers stayed available
-under `layers/postgresql/` + `layers/valkey/`).
+under `candy/postgresql/` + `candy/valkey/`).
 
 This layer is **service-only**: it ships no `pixi.toml`. Its Python
 deps (`apache-airflow`) live in `/ov-versa:versa-layer`'s pixi env,

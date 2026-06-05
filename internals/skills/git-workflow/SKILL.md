@@ -26,9 +26,9 @@ Policies" carries the mandate, `/ov-internals:cutover-policy` the one-phase rule
 - **R10-gated.** Commit/push/merge/tag happen only after R10 PASS. A rule
   violation or R10 FAIL ⇒ none of them happen (fix in the same tree, re-run R10).
 - **Zero warnings.** R10 is NOT successful while ANY warning remains — resolver
-  newest-wins warnings, build, `ov image validate`, `ov eval`, or deploy
+  newest-wins warnings, build, `ov box validate`, `ov eval`, or deploy
   warnings. Every warning is fixed before R10 passes (a version-mismatch warning
-  is cleared with `ov image reconcile`; any other warning triggers
+  is cleared with `ov box reconcile`; any other warning triggers
   `/ov-internals:root-cause-analyzer` then a real fix). "Warning" is never an
   acceptable end state — it is an R10 failure (strengthens R1).
 - **Atomic.** One commit per repo per cutover (the cutover-policy "one phase").
@@ -119,7 +119,7 @@ split-pane teammate; an in-process teammate CANNOT (its bg dies on yield).
 Teammates therefore share ONE working tree on ONE `feat/<slug>` branch:
 
 - Teammates edit their bed-scoped files in the shared tree + run short foreground
-  checks (`ov eval image`) — never the full `ov eval run`, and **never commit or
+  checks (`ov eval box`) — never the full `ov eval run`, and **never commit or
   push**. The lead runs the full beds and owns the single atomic commit, gated on
   the consolidated full final-code bed run (B1).
 - Reserve a real `git worktree` (per `isolation: worktree`) only for genuine
@@ -135,7 +135,7 @@ Teammates therefore share ONE working tree on ONE `feat/<slug>` branch:
   so a teammate editing Go mid-bed-run aborts every other agent's next
   build/deploy/eval. For a SHARED-CORE (Go) cutover the lead lands the core
   first, runs ONE `task build:ov`, then fans out beds with Go frozen; a BED-LOCAL
-  (YAML/layers/skills) cutover has no shared binary and needs no such barrier.
+  (YAML/candy/skills) cutover has no shared binary and needs no such barrier.
 
 ## B5 — PR path (no write access) + `gh` auto-approve
 
@@ -167,14 +167,14 @@ local-override):
 1. Develop producer (A) + consumer (B) on the same `feat/<slug>`.
 2. **Land the producer FIRST:** run A's own R10, ff-merge, **tag A `v<CalVer_A>`**,
    push — now an immutable, fetchable remote tag.
-3. **Repoint the consumer:** `ov image reconcile` rewrites B's `@github.../A:...`
+3. **Repoint the consumer:** `ov box reconcile` rewrites B's `@github.../A:...`
    pins to `v<CalVer_A>` (see `/ov-build:reconcile`).
 4. **Authoritative consumer R10 against the real tag:** B's R10 now fetches A from
    the pushed `v<CalVer_A>` — verified against exactly what ships.
 5. **Land the consumer** (ff-merge, tag B, push).
 6. **New layer:** a new layer has no standalone R10 — its gate is the consuming
    image's build. A lands a **provisional** `v<CalVer_A>` (layer + `go test` /
-   `ov image generate` smoke); step 4 (B's image R10 against that tag) is the real
+   `ov box generate` smoke); step 4 (B's image R10 against that tag) is the real
    gate. On failure, fix A, land a **new** tag (immutable + accumulate — never
    move the old one), re-reconcile, re-run step 4.
 

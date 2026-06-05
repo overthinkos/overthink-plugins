@@ -35,7 +35,7 @@ RPM-based GPU stack, `cachyos.nvidia` for the Arch/CachyOS GPU stack. See
 ## Quick Start
 
 ```bash
-ov image build nvidia
+ov box build nvidia
 ov shell nvidia
 ```
 
@@ -60,7 +60,7 @@ ov shell nvidia
 
 ## Verification
 
-After `ov image build`:
+After `ov box build`:
 - `ov shell nvidia -c "nvidia-smi"` — GPU info
 - `ov shell nvidia -c "nvidia-ctk --version"` — CDI toolkit
 - `ov shell nvidia -c "nvcc --version"` — CUDA compiler

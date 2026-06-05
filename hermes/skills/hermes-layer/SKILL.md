@@ -29,7 +29,7 @@ description: |
 
 ## Optional Environment Variables (env_accept)
 
-These env vars are declared via `env_accept:` in `layer.yml` — hermes can use any LLM provider, so none are required:
+These env vars are declared via `env_accept:` in `candy.yml` — hermes can use any LLM provider, so none are required:
 
 | Variable | Description |
 |----------|-------------|
@@ -141,7 +141,7 @@ ov service start hermes hermes-whatsapp
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 hermes:
   base: fedora
   layers:
@@ -182,5 +182,5 @@ hermes:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

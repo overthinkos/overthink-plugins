@@ -11,10 +11,10 @@ Test image that validates both `pac:` (pacman) and `aur:` (AUR) package formats 
 
 `arch-test` lives in the **`overthinkos/arch`** repo (git submodule at
 **`image/arch`**). The test layers `arch-pac-test` / `arch-aur-test` are vendored
-locally in this repo's `layers/` (resolved via its `discover:` block); the `arch`
+locally in this repo's `candy/` (resolved via its `discover:` block); the `arch`
 base + `arch-builder` come from main's `base.yml`, reached via the submodule's
 `import:` of the main repo under the `ov` namespace — `base: ov.arch`. Build from
-the submodule: `cd image/arch && ov image build arch-test`.
+the submodule: `cd image/arch && ov box build arch-test`.
 
 ## Image Properties
 
@@ -34,7 +34,7 @@ the submodule: `cd image/arch && ov image build arch-test`.
 ## Quick Start
 
 ```bash
-ov image build arch-test
+ov box build arch-test
 ov shell arch-test
 ```
 

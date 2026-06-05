@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | none |
 | Service | none |
-| Install files | `layer.yml` only |
+| Install files | `candy.yml` only |
 
 ## Packages
 

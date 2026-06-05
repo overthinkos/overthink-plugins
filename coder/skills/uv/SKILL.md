@@ -16,7 +16,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Kind | Direct-download binary layer |
-| Install files | `layer.yml` (no pixi.toml, no dependencies) |
+| Install files | `candy.yml` (no pixi.toml, no dependencies) |
 | Depends | **(none)** — uv is a self-contained Rust binary |
 | Binaries | `/usr/local/bin/uv`, `/usr/local/bin/uvx` |
 
@@ -101,4 +101,4 @@ Three build-scope tests ship with the layer:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

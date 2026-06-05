@@ -22,7 +22,7 @@ and `eval-local`) — all `kind: eval` entities in this repo's `eval.yml`.
 eval:
   eval-sway-browser-vnc-pod:
     target: pod
-    image: sway-browser-vnc        # the shipping image, deployed as-is
+    box: sway-browser-vnc        # the shipping image, deployed as-is
     disposable: true
     lifecycle: dev
     eval:                          # delta probes sway-browser-vnc doesn't bake
@@ -36,7 +36,7 @@ eval:
 destroy + rebuild the bed unattended (see `/ov-internals:disposable`). The bed
 publishes `sway-browser-vnc`'s canonical ports `5900/9222/9224`, so it shares
 those host ports with a real `sway-browser-vnc` deployment — only one runs at a
-time (`ov image validate` notes this).
+time (`ov box validate` notes this).
 
 ## Probe coverage
 

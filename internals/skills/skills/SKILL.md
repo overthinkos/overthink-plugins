@@ -22,14 +22,14 @@ CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher
 | host-target / nested host deploy | `/ov-local:local-deploy` + `/ov-internals:local-infra` |
 | `ov eval live` / `ov eval cdp/wl/dbus/vnc/mcp/record/spice/libvirt` | `/ov-eval:eval` |
 | `ov eval k8s <verb>` | `/ov-kubernetes:eval-k8s` |
-| Editing `layer.yml` / layer authoring | `/ov-image:layer` |
-| Editing `image.yml` / image composition | `/ov-image:image` |
-| `ov image build` / `ov image generate` / Containerfile | `/ov-build:build` + `/ov-build:generate` + `/ov-internals:generate-source` |
-| `ov image validate` / schema error | `/ov-build:validate` |
+| Editing `candy.yml` / layer authoring | `/ov-image:layer` |
+| Editing `box.yml` / image composition | `/ov-image:image` |
+| `ov box build` / `ov box generate` / Containerfile | `/ov-build:build` + `/ov-build:generate` + `/ov-internals:generate-source` |
+| `ov box validate` / schema error | `/ov-build:validate` |
 | Secret management / `ov secrets` / Secret Service / GPG `.secrets` | `/ov-build:secrets` |
 | Schema migration / legacy → latest CalVer | `/ov-build:migrate` |
 | Git/`gh` workflow — `feat/` branch, commit, push, ff-merge, tag, worktree, sync, prune, PR, approve | `/ov-internals:git-workflow` |
-| `ov image reconcile` / cross-repo `@github` pin alignment | `/ov-build:reconcile` |
+| `ov box reconcile` / cross-repo `@github` pin alignment | `/ov-build:reconcile` |
 | Hard-cutover concerns / rename sweeps | `/ov-internals:cutover-policy` |
 | `disposable: true` semantics | `/ov-internals:disposable` |
 | Go source work | `/ov-internals:go` |
@@ -55,7 +55,7 @@ If multiple triggers apply, load ALL matching skills in ONE message (parallel `S
 | Verification check missing from image skill | Add to the image skill's Verification section |
 | Skill's recommended defaults are wrong | Fix in the skill, not CLAUDE.md |
 | New feature added to ov CLI | Update `/ov-core:<cmd>` or `/ov-build:<cmd>` skill + `/ov-internals:go` source map |
-| New layer or image added | Create skill via `ov image new layer` scaffold or manual SKILL.md |
+| New layer or image added | Create skill via `ov box new candy` scaffold or manual SKILL.md |
 | Bug fix changes behavior | Document the fix in affected skills |
 | Cross-skill behavior discovered | Update Cross-References in all affected skills |
 | A live bed contradicts a skill's claim (Risk Driven Development found it stale) | Fix the stale skill in the SAME change — RDD keeps the living docs honest; for a high-risk claim the running system is ground truth, not the doc |
@@ -109,7 +109,7 @@ description: |
 ## Command skills vs topic skills
 
 Most skills under `plugins/ov-core/skills/` and `plugins/ov-build/skills/`
-map 1:1 to a top-level ov command (e.g. `/ov-build:build` ↔ `ov image build`,
+map 1:1 to a top-level ov command (e.g. `/ov-build:build` ↔ `ov box build`,
 `/ov-core:ov-status` ↔ `ov status`).
 **Topic skills** are the exception: they don't correspond to a
 top-level command but cover a cross-cutting concept surfaced by flags
@@ -135,7 +135,7 @@ Plugins are sorted into four use-case buckets. Directory names live at
 | commands | `ov-build` | 13 | Build/authoring verbs (build/generate/list/inspect/merge/new/pull/validate/secrets/settings/migrate/reconcile/mcp) |
 | commands | `ov-eval` | 9 | `ov eval` orchestrator + live probes (cdp/wl/wl-overlay/dbus/vnc/spice/libvirt/record) |
 | commands | `ov-automation` | 6 | tmux verb, host-side helpers (alias/udev), topic flags (enc/sidecar/openclaw-deploy) |
-| kind | `ov-image` | 2 | `kind: image` and `kind: layer` schema reference |
+| kind | `ov-image` | 2 | `kind: box` and `kind: candy` schema reference |
 | kind | `ov-vm` | 7 | `kind: vm` schema + bootc VM catalog |
 | kind | `ov-kubernetes` | 2 | `kind: k8s` schema + cluster probes |
 | kind | `ov-local` | 2 | `kind: local` schema + ssh-host deploys |
@@ -175,7 +175,7 @@ content — they live in the superproject's `.claude/workflows/*.js`.
 ### Per-directory CLAUDE.md signposts (hybrid)
 
 The repo-root `CLAUDE.md` is the single canonical R0–R10 rule-set.
-Per-directory `CLAUDE.md` files (`ov/`, `layers/`, `plugins/`, and each
+Per-directory `CLAUDE.md` files (`ov/`, `candy/`, `plugins/`, and each
 `image/<distro>` submodule) are THIN signposts only: they name the skills to
 load for that area and point back to root. They MUST NOT restate any rule —
 duplication drifts (the hooks and an earlier layer-validator both drifted

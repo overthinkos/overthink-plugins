@@ -27,7 +27,7 @@ Single package, no custom repos. Ships the KeePassXC GUI binary at `/usr/bin/kee
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 my-desktop-image:
   layers:
     - selkies-desktop      # or another desktop base

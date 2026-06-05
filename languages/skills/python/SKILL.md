@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `pixi` |
-| Install files | `layer.yml`, `pixi.toml` |
+| Install files | `candy.yml`, `pixi.toml` |
 
 ## Packages
 
@@ -21,7 +21,7 @@ Pixi (conda-forge): `python >=3.13,<3.14`
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 my-image:
   layers:
     - python
@@ -48,5 +48,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

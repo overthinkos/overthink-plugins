@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml` (metalayer, layers only) |
+| Install files | `candy.yml` (metalayer, layers only) |
 | Depends | none (composes other layers) |
 
 ## Composed Layers
@@ -25,7 +25,7 @@ This metalayer extends `openclaw-full` with ML capabilities:
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 layers:
 ```
 
@@ -51,5 +51,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

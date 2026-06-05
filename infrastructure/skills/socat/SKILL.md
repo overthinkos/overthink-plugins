@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `task:` |
+| Install files | `candy.yml`, `task:` |
 
 ## Packages
 
@@ -24,13 +24,13 @@ RPM: `socat`, `iproute`
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 my-image:
   layers:
     - socat
 ```
 
-Typically not added directly. Auto-included when a layer uses `port_relay:` in its `layer.yml`.
+Typically not added directly. Auto-included when a layer uses `port_relay:` in its `candy.yml`.
 
 **Note:** Chrome no longer uses socat for its DevTools port relay. Chrome now uses a `cdp-proxy` Python supervisord service (see `/ov-selkies:chrome`). Socat is still used by other `port_relay` consumers.
 

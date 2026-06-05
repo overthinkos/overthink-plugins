@@ -15,7 +15,7 @@ description: |
 | Dependencies | None (requires pixi env from parent) |
 | Volumes | `models` -> `~/.cache/huggingface` |
 | Aliases | `unsloth` -> `unsloth` |
-| Install files | `layer.yml`, `task:` |
+| Install files | `candy.yml`, `task:` |
 
 ## Architecture: Tier 1 Post-Install Layer
 
@@ -69,5 +69,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml`, `task:` |
+| Install files | `candy.yml`, `task:` |
 
 ## Environment Variables
 
@@ -25,7 +25,7 @@ PATH additions: `~/.pixi/bin`, `~/.pixi/envs/default/bin`
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 my-image:
   layers:
     - pixi
@@ -58,7 +58,7 @@ own pixi so the lock format matches what installs it, e.g.:
 
 ```bash
 podman run --rm --userns=keep-id \
-  -v "$PWD/layers/<name>:/m" -w /m \
+  -v "$PWD/candy/<name>:/m" -w /m \
   ghcr.io/overthinkos/fedora-builder:<calver> \
   bash -c 'grep -q system-requirements pixi.toml || printf "\n[system-requirements]\nlibc = { family = \"glibc\", version = \"2.39\" }\n" >> pixi.toml; pixi lock'
 ```
@@ -77,5 +77,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

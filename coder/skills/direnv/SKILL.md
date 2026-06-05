@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml` (packages only) |
+| Install files | `candy.yml` (packages only) |
 
 ## Packages
 
@@ -20,7 +20,7 @@ RPM: `direnv` · PAC: `direnv` · DEB: `direnv` — full cross-distro parity.
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 my-image:
   layers:
     - direnv
@@ -43,7 +43,7 @@ shell:
       direnv hook fish | source            # fish — different syntax
 ```
 
-Container images get `/etc/profile.d/ov-direnv-<shell>.sh` and `/etc/fish/conf.d/ov-direnv.fish` emitted at `ov image build` time. `target: local` host deploys get a managed-block in `~/.bashrc` / `~/.zshrc` plus `~/.config/fish/conf.d/ov-direnv.fish` at `ov deploy add` time, only for shells the runtime probe finds. The fish hook lands in `~/.config/fish/conf.d/ov-direnv.fish` (its own conf.d drop-in), so it works without editing `~/.config/fish/config.fish`.
+Container images get `/etc/profile.d/ov-direnv-<shell>.sh` and `/etc/fish/conf.d/ov-direnv.fish` emitted at `ov box build` time. `target: local` host deploys get a managed-block in `~/.bashrc` / `~/.zshrc` plus `~/.config/fish/conf.d/ov-direnv.fish` at `ov deploy add` time, only for shells the runtime probe finds. The fish hook lands in `~/.config/fish/conf.d/ov-direnv.fish` (its own conf.d drop-in), so it works without editing `~/.config/fish/config.fish`.
 
 The primary use case in Overthink is the `.secrets` workflow: `.envrc` calls `eval "$(ov secrets gpg env)"` which decrypts a GPG-encrypted `.secrets` file in memory and exports the variables — no plaintext on disk. No external `direnvrc` dependency needed.
 
@@ -74,5 +74,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

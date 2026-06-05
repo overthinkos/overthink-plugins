@@ -27,8 +27,8 @@ Given a `kind: eval` bed name (e.g. `eval-pod`, `eval-local`, `eval-k3s-vm`,
 ov eval run <bed>
 ```
 
-This executes the entire R10 sequence on the bed: `ov image build` (pod
-beds) → `ov eval image` → `ov deploy add` / `ov vm create` → `ov config` +
+This executes the entire R10 sequence on the bed: `ov box build` (pod
+beds) → `ov eval box` → `ov deploy add` / `ov vm create` → `ov config` +
 `ov start` (pod beds) → `ov eval live` → fresh `ov update` (the R10
 fresh-rebuild acceptance gate) → teardown. The runner writes
 `.eval/<bed>/<calver>/summary.yml` and per-step `.log` files.

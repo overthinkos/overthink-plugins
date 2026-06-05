@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml` (packages only) |
+| Install files | `candy.yml` (packages only) |
 | Depends | none |
 | Repo | negativo17 `fedora-multimedia` |
 
@@ -24,7 +24,7 @@ RPM: `ffmpeg` (from negativo17 `fedora-multimedia` repo — full nonfree build w
 ## Usage
 
 ```yaml
-# image.yml or layer.yml
+# box.yml or candy.yml
 layers:
   - ffmpeg
 ```
@@ -60,5 +60,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

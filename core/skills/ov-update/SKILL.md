@@ -12,7 +12,7 @@ description: |
 
 Redeploy the current artifact and restart the service — for EVERY deploy kind through ONE codepath. `ov update <name>` resolves the deploy via `ResolveTarget` and calls `LifecycleTarget.Rebuild` (`ov/unified_targets_*.go`); there is no per-kind update code. The unified contract is **redeploy the current artifact + restart by default; `--build` rebuilds the artifact first** — realized per substrate: pod → `deploy add → config → start` (`--build` rebuilds the image); vm → destroy→create the domain (reuse the qcow2 disk unless `--build`) **then re-apply the deploy node's layers idempotently** via the shared `deploy add` path (so a config change — a newly-added layer or nested pod — takes effect on the rebuilt guest, exactly like local/pod); local → re-apply layers idempotently. All three live substrates end in the SAME `ov deploy add <node>` layer-apply step. k8s has no live runtime to rebuild (apply it via `kubectl apply -k`), so `ov update <k8s>` errors uniformly. Data sync uses MERGE mode by default — adds new files without overwriting existing user modifications.
 
-**`ov update` does NOT auto-pull.** It redeploys the image already in local storage. To advance a deploy to a newer published image, `ov image pull <ref>` first, then `ov update`; or `ov update --build` to rebuild locally. (This consistency with vm's reuse-disk default replaced the former pod-only auto-pull, so `ov update` behaves identically across kinds.) See `/ov-core:deploy` for the unified command family and `/ov-local:local-deploy` for host-target specifics.
+**`ov update` does NOT auto-pull.** It redeploys the image already in local storage. To advance a deploy to a newer published image, `ov box pull <ref>` first, then `ov update`; or `ov update --build` to rebuild locally. (This consistency with vm's reuse-disk default replaced the former pod-only auto-pull, so `ov update` behaves identically across kinds.) See `/ov-core:deploy` for the unified command family and `/ov-local:local-deploy` for host-target specifics.
 
 **`ov update` obeys an EXPLICIT invocation on ANY target.** It does NOT refuse a non-`disposable: true` deploy — for a target that is neither disposable nor ephemeral it prints a one-line transparency note (`noteUpdateDisposability`, naming the deploy key + lifecycle, so the operator can catch a mistyped name) and proceeds with the rebuild. The `disposable:` flag stays load-bearing as the authorization for the AI's AUTONOMOUS destroy + rebuild (CLAUDE.md R10) and for the eval-runner's unattended fresh-rebuild (`validateEvalBeds`); it does NOT gate this human-driven verb. See `/ov-internals:disposable`.
 
@@ -91,7 +91,7 @@ volume state intact.
 ### Rollback via `podman tag`
 
 `ov update` does not have a built-in rollback flag, but the previous CalVer-tagged image
-is left in the local podman image store after each `ov image build`. To roll back:
+is left in the local podman image store after each `ov box build`. To roll back:
 
 ```bash
 # Find the previous tag
@@ -133,7 +133,7 @@ local registry pointer moves.
 
 ## Data Seeding
 
-Data layers (layers that declare a `data:` block in `layer.yml`) ship
+Data layers (layers that declare a `data:` block in `candy.yml`) ship
 starter content that gets copied into the runtime volume on first
 deployment. Examples: `notebook-templates` ships
 `getting-started.ipynb` into jupyter's `workspace` volume;

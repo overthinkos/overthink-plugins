@@ -14,7 +14,7 @@ description: |
 |----------|-------|
 | Layers (composition) | `ov`, `virtualization`, `gocryptfs`, `socat` |
 | Install files | none (pure composition) |
-| Target context | works for `kind: image` (container/pod), `kind: vm` (bootc/cloud_image), AND `kind: local` (host install) — the underlying `virtualization` layer handles init-system polymorphism via the mixed-entry `service:` pattern |
+| Target context | works for `kind: box` (container/pod), `kind: vm` (bootc/cloud_image), AND `kind: local` (host install) — the underlying `virtualization` layer handles init-system polymorphism via the mixed-entry `service:` pattern |
 
 ## How one layer serves both pod and host targets
 
@@ -24,7 +24,7 @@ ONE `ov-full` layer covers both contexts. The unified `virtualization` layer car
 
 ```yaml
 # overthink.yml
-image:
+box:
   my-vm-host:
     layers:
       - ov-full           # works on pod images
@@ -67,5 +67,5 @@ Use when the user asks about:
 
 - `/ov-image:layer` — layer authoring; "Service Declaration" + "Anti-pattern: `<name>-host` / `<name>-pod` sibling layers" subsections
 - `/ov-infrastructure:supervisord` — init system documentation for container-side rendering
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
 - CLAUDE.md "Init-system polymorphism via mixed `service:` entries" Key Rule

@@ -19,8 +19,8 @@ fedora is the ecosystem default base (~40 main images root on it,
 `fedora-builder` is `defaults.builder`); the Fedora consumer showcase images
 (`/ov-coder:fedora-coder`, `/ov-distros:fedora-ov`, `/ov-distros:fedora-test`)
 live in the submodule (its `overthink.yml` plus per-kind sibling files
-(`image.yml`/`pod.yml`/`k8s.yml`), flat-imported via `import:`).
-Build with `ov image build fedora` from the main repo.
+(`box.yml`/`pod.yml`/`k8s.yml`), flat-imported via `import:`).
+Build with `ov box build fedora` from the main repo.
 
 ## Image Properties
 
@@ -35,7 +35,7 @@ Build with `ov image build fedora` from the main repo.
 ## Quick Start
 
 ```bash
-ov image build fedora
+ov box build fedora
 ov shell fedora
 ```
 
@@ -70,8 +70,8 @@ and inherits across distro inheritance like the other sub-blocks. Source:
 
 ## Verification
 
-After `ov image build`:
-- `ov image list` — image appears in list
+After `ov box build`:
+- `ov box list` — image appears in list
 - `ov shell fedora` — interactive shell works
 
 ## Related Images

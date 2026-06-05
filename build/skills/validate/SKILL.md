@@ -1,25 +1,25 @@
 ---
 name: validate
 description: |
-  MUST be invoked before any work involving: ov image validate command, validation rules, common validation errors, or checking image.yml and layer definitions.
+  MUST be invoked before any work involving: ov box validate command, validation rules, common validation errors, or checking box.yml and layer definitions.
 ---
 
-# ov image validate -- Validation Commands
+# ov box validate -- Validation Commands
 
-Invoked as `ov image validate`. See `/ov-image:image` for the family overview.
+Invoked as `ov box validate`. See `/ov-image:image` for the family overview.
 
 ## Overview
 
-`ov image validate` checks `image.yml` and all layer definitions for errors. Validation collects all errors at once rather than failing on the first.
+`ov box validate` checks `box.yml` and all layer definitions for errors. Validation collects all errors at once rather than failing on the first.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Validate all | `ov image validate` | Check image.yml + all layers (enabled images only) |
-| Validate disabled too | `ov image validate --include-disabled` | Extend the validation pass to images marked `enabled: false` (does not modify image.yml) |
+| Validate all | `ov box validate` | Check box.yml + all layers (enabled images only) |
+| Validate disabled too | `ov box validate --include-disabled` | Extend the validation pass to images marked `enabled: false` (does not modify box.yml) |
 | Check version | `ov version` | Verify CalVer computation |
-| Inspect image | `ov image inspect <image>` | Show resolved config |
+| Inspect image | `ov box inspect <image>` | Show resolved config |
 
 ## Exit Codes
 
@@ -33,12 +33,12 @@ Invoked as `ov image validate`. See `/ov-image:image` for the family overview.
 
 ### Layer Rules
 
-- Layer directory must contain at least one install source — `layer.yml` with a non-empty `task:` list or a `rpm:` / `deb:` / `pac:` / `aur:` packages section; an auto-detected builder manifest (`pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, `Cargo.toml`); or a `layer:` composition field (pure composition layers are valid).
+- Layer directory must contain at least one install source — `candy.yml` with a non-empty `task:` list or a `rpm:` / `deb:` / `pac:` / `aur:` packages section; an auto-detected builder manifest (`pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, `Cargo.toml`); or a `layer:` composition field (pure composition layers are valid).
 - `depends` must reference existing layers (local or remote).
 - Circular dependencies are errors.
 - `volumes` names must match `^[a-z0-9]+(-[a-z0-9]+)*$`.
 - Volume names must be unique within a layer.
-- `aliases` in layer.yml require both `name` and `command`.
+- `aliases` in candy.yml require both `name` and `command`.
 - Alias names must match `^[a-zA-Z0-9][a-zA-Z0-9._-]*$`.
 - Setting `PATH` directly in `env` is an error (use `path_append`).
 - Only one pixi manifest per layer (`pixi.toml`, `pyproject.toml`, or `environment.yml`).
@@ -74,7 +74,7 @@ See `/ov-image:layer` for the full verb catalog. The validator enforces:
 
 ### Image Rules
 
-- `base` must reference a valid external image or another image in image.yml
+- `base` must reference a valid external image or another image in box.yml
 - `layers` field is required
 - `builder` must reference an existing image
 - Self-referencing builder is allowed (skipped by generator)
@@ -131,7 +131,7 @@ See `/ov-image:layer` for the full verb catalog. The validator enforces:
   fetched layer's OWN `version:` and dedups by it: same per-entity version → no
   warning (a re-tag of an unchanged layer is silent); different per-entity
   versions → warns once and resolves to the **newest** (highest CalVer). Run
-  `ov image reconcile` to align the pins and clear any warning. A fetched layer
+  `ov box reconcile` to align the pins and clear any warning. A fetched layer
   with no `version:` IS a hard error (the layer kind requires one).
 - Different layers from the same repo can use different versions
 - Collection is reachability-scoped: only layers reachable from the enabled
@@ -146,11 +146,11 @@ Layers form a dependency cycle. Check `depends` fields.
 
 ### "layer X not found"
 
-A `depends` entry or `image.yml` layer references a non-existent layer.
+A `depends` entry or `box.yml` layer references a non-existent layer.
 
 ### "PATH must not be set directly"
 
-Use `path_append` in layer.yml instead of `env: PATH: ...`.
+Use `path_append` in candy.yml instead of `env: PATH: ...`.
 
 ### "duplicate volume name"
 
@@ -161,26 +161,26 @@ Volume names must be unique within a layer.
 ### Validate Before Building
 
 ```bash
-ov image validate && ov image build my-image
+ov box validate && ov box build my-image
 ```
 
 ### Debug Validation Errors
 
 ```bash
-ov image validate 2>&1                     # See all errors at once
-ov image inspect <image>                   # Check resolved config
-ov image list layers                       # Verify layer exists
+ov box validate 2>&1                     # See all errors at once
+ov box inspect <image>                   # Check resolved config
+ov box list candies                       # Verify layer exists
 ```
 
 ## Project directory override
 
-`ov image validate` resolves `image.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov-image:image` "Project directory resolution".
+`ov box validate` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov-image:image` "Project directory resolution".
 
 ## Cross-References
 
 ### `ov image` family siblings
 
-- `/ov-image:image` -- Family overview + image.yml composition reference
+- `/ov-image:image` -- Family overview + box.yml composition reference
 - `/ov-build:build` -- Building validated images
 - `/ov-build:generate` -- Containerfile generation after validation
 - `/ov-build:inspect` -- Inspect a specific image after validation
@@ -194,16 +194,16 @@ ov image list layers                       # Verify layer exists
 - `/ov-image:layer` — **Canonical reference** for the task verb catalog, `var:` substitution, YAML anchors, execution order. The validator rules above enforce what's documented there.
 - `/ov-build:generate` — What the generator emits from validated input (per-verb emitters, cache-mount inheritance, inline-content staging).
 - `/ov-internals:generate-source` — Internal architecture of the task emission pipeline.
-- `/ov-eval:eval` — `ov image validate` schema-checks every `eval:` entry: exactly-one-verb, attribute types, scope/variable consistency (build-scope can't reference runtime-only vars), `id:` uniqueness per section, matcher operator allowlist, unroutable-check rejection. The five live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`) also get per-verb method-allowlist + required-modifier enforcement via `validateOvVerb` (deploy-scope-only; unknown methods rejected with the allowed set listed).
+- `/ov-eval:eval` — `ov box validate` schema-checks every `eval:` entry: exactly-one-verb, attribute types, scope/variable consistency (build-scope can't reference runtime-only vars), `id:` uniqueness per section, matcher operator allowlist, unroutable-check rejection. The five live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`) also get per-verb method-allowlist + required-modifier enforcement via `validateOvVerb` (deploy-scope-only; unknown methods rejected with the allowed set listed).
 - `/ov-build:ov-mcp-cmd` — the standalone reference for the `mcp:` verb: required modifiers (`tool:` for `call`, `uri:` for `read`), the 7-method allowlist, and the URL-rewrite / port-publishing behavior that authors occasionally hit.
 - `/ov-eval:cdp`, `/ov-eval:wl`, `/ov-eval:dbus`, `/ov-eval:vnc` — per-verb references for the other four live-container verbs.
 
 ## Cross-kind name reuse — NOT a uniqueness violation
 
-`ov image validate` does NOT enforce global name uniqueness across kinds. The same name MAY exist simultaneously as a layer (`layers/<name>/`), an `image:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry, AND a `deploy:` entry. Uniqueness is scoped to each kind. Do not write a validator that flags `image.foo + vm.foo` as ambiguous — verbs disambiguate by command context. The loader raises hard load-time errors on: (a) the obsolete `deploy.qc` / `deploy.cachyos-dx` keys; (b) any obsolete `kind: deployment` doc or root-key `deployment:` (the deploy kind is `kind: deploy`). Every such error points at `ov migrate`. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/ov-build:migrate`.
+`ov box validate` does NOT enforce global name uniqueness across kinds. The same name MAY exist simultaneously as a layer (`candy/<name>/`), an `image:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry, AND a `deploy:` entry. Uniqueness is scoped to each kind. Do not write a validator that flags `image.foo + vm.foo` as ambiguous — verbs disambiguate by command context. The loader raises hard load-time errors on: (a) the obsolete `deploy.qc` / `deploy.cachyos-dx` keys; (b) any obsolete `kind: deployment` doc or root-key `deployment:` (the deploy kind is `kind: deploy`). Every such error points at `ov migrate`. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/ov-build:migrate`.
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves ov image validate command, validation rules, common validation errors, or checking image.yml and layer definitions. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves ov box validate command, validation rules, common validation errors, or checking box.yml and layer definitions. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Validate before building to catch errors early.

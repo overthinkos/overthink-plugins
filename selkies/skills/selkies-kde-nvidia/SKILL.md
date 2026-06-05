@@ -25,7 +25,7 @@ selkies-kde-nvidia:
   base: nvidia                            # the CachyOS GPU base (cachyos.nvidia)
   build: [pac, aur]
   builder: {pixi: ov.cuda-arch-builder}   # nvcc + ffnvcodec headers → real NVENC
-  layer:
+  candy:
     - agent-forwarding
     - selkies-kde-desktop
     - dbus
@@ -53,7 +53,7 @@ x264 when the GPU is unavailable.
 
 ```bash
 ov -C image/cachyos image build selkies-kde-nvidia
-ov eval image selkies-kde-nvidia            # build-scope incl. pixelflux-nvenc-compiled
+ov eval box selkies-kde-nvidia            # build-scope incl. pixelflux-nvenc-compiled
 ```
 
 NVENC at runtime requires a passed-through NVIDIA GPU — proven on the

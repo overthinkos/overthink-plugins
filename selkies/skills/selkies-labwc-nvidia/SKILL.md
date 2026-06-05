@@ -25,7 +25,7 @@ selkies-labwc-nvidia:
     - aur
   builder:
     pixi: ov.cuda-arch-builder
-  layer:
+  candy:
     - agent-forwarding
     - selkies-desktop
     - dbus

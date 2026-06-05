@@ -1,45 +1,45 @@
 ---
 name: layer
 description: |
-  MUST be invoked before any work involving: layer authoring, layer.yml, tasks, pixi.toml, package.json, Cargo.toml, or any file under layers/. This skill is the authoritative reference for the `task:` verb catalog, `var:` substitution, execution order, and per-verb validation. Every other skill defers here for install-schema questions.
+  MUST be invoked before any work involving: layer authoring, candy.yml, tasks, pixi.toml, package.json, Cargo.toml, or any file under candy/. This skill is the authoritative reference for the `task:` verb catalog, `var:` substitution, execution order, and per-verb validation. Every other skill defers here for install-schema questions.
 ---
 
 # Layer - Layer Authoring
 
 ## Overview
 
-A **layer** is a directory under `layers/<name>/` that installs a single concern. Layers are the building blocks of container images in overthink. Each layer declares its packages, environment variables, services, volumes, and **install tasks** in a single `layer.yml` file.
+A **layer** is a directory under `candy/<name>/` that installs a single concern. Layers are the building blocks of container images in overthink. Each layer declares its packages, environment variables, services, volumes, and **install tasks** in a single `candy.yml` file.
 
 There is **one YAML file per layer** for install logic — no separate Taskfiles. Everything an author needs to install flows through `task:` and auto-detected package manifests (`pixi.toml`, `package.json`, `Cargo.toml`).
 
 ## `directory:` — where the layer's config files live
 
-A layer.yml's relative file references (`task.copy`, `task.write` inline paths, `data.src`, install-file probes like `pixi.toml` / `package.json`, service-file globs) resolve against **`directory:`**, which defaults to `.` (the directory containing layer.yml).
+A candy.yml's relative file references (`task.copy`, `task.write` inline paths, `data.src`, install-file probes like `pixi.toml` / `package.json`, service-file globs) resolve against **`directory:`**, which defaults to `.` (the directory containing candy.yml).
 
-Use `directory:` to keep layer.yml and its supporting config files in separate directories:
+Use `directory:` to keep candy.yml and its supporting config files in separate directories:
 
 ```yaml
-# layers/my-app/layer.yml
-directory: ../../configs/my-app       # resolves relative to layer.yml's dir
+# candy/my-app/candy.yml
+directory: ../../configs/my-app       # resolves relative to candy.yml's dir
 rpm: { packages: [foo] }
 task:
   - copy: policies.json                # found at configs/my-app/policies.json
 ```
 
 Resolution rule:
-- `""` or `"."` → same dir as layer.yml (the default)
-- relative path → joined onto layer.yml's dir
+- `""` or `"."` → same dir as candy.yml (the default)
+- relative path → joined onto candy.yml's dir
 - absolute path → used as-is
 
-`ov image validate` fails when `directory:` points at a path that doesn't exist.
+`ov box validate` fails when `directory:` points at a path that doesn't exist.
 
 ## Kind-keyed standalone form (`layer: {name, …}`)
 
-Every layer.yml is self-describing: a single `layer:` wrapper with an explicit `name:` field + the body. This makes layer files bundle-mergeable — concatenate with `---` separators to form a single file containing many layers.
+Every candy.yml is self-describing: a single `layer:` wrapper with an explicit `name:` field + the body. This makes layer files bundle-mergeable — concatenate with `---` separators to form a single file containing many layers.
 
 ```yaml
-# layers/chrome/layer.yml
-layer:
+# candy/chrome/candy.yml
+candy:
   name: chrome
   directory: .
   rpm: { packages: [chromium] }
@@ -53,37 +53,37 @@ The runtime parser accepts only this kind-keyed form. `ov migrate` converts any 
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Scaffold new layer | `ov image new layer <name>` | Create layer directory with starter `layer.yml` (see `/ov-build:new`) |
-| Edit a layer field | `ov layer set <name> <dotpath> <value>` | Comment-preserving YAML edit by dot-path |
-| Append rpm/deb/pac/aur packages | `ov layer add-rpm <name> <pkg…>` (plus `add-deb`, `add-pac`, `add-aur`) | Idempotent append; auto-upgrades scaffold's null `package:` to a sequence |
-| Write a free-form file (`pixi.toml`, `root.yml`, …) | `ov image write <rel-path> --content X` | Escape hatch for files the schema setters don't cover; guarded against `..` traversal |
-| List all layers | `ov image list layers` | Show available layers from filesystem |
-| List services | `ov image list services` | Layers with `service` in layer.yml |
-| List volumes | `ov image list volumes` | Layers with `volumes` in layer.yml |
-| List aliases | `ov image list aliases` | Layers with `aliases` in layer.yml |
-| Validate | `ov image validate` | Check all layers and images |
+| Scaffold new layer | `ov box new candy <name>` | Create layer directory with starter `candy.yml` (see `/ov-build:new`) |
+| Edit a layer field | `ov candy set <name> <dotpath> <value>` | Comment-preserving YAML edit by dot-path |
+| Append rpm/deb/pac/aur packages | `ov candy add-rpm <name> <pkg…>` (plus `add-deb`, `add-pac`, `add-aur`) | Idempotent append; auto-upgrades scaffold's null `package:` to a sequence |
+| Write a free-form file (`pixi.toml`, `root.yml`, …) | `ov box write <rel-path> --content X` | Escape hatch for files the schema setters don't cover; guarded against `..` traversal |
+| List all layers | `ov box list candies` | Show available layers from filesystem |
+| List services | `ov box list services` | Layers with `service` in candy.yml |
+| List volumes | `ov box list volumes` | Layers with `volumes` in candy.yml |
+| List aliases | `ov box list aliases` | Layers with `aliases` in candy.yml |
+| Validate | `ov box validate` | Check all layers and images |
 
 Every editor verb above auto-becomes an MCP tool via Kong reflection (`layer.set`, `layer.add-rpm`, `image.write`, …) so an agent driving `ov mcp serve` can author layers from scratch over RPC without touching the filesystem directly. See `/ov-build:ov-mcp-cmd` "Authoring tools" for the worked end-to-end example, and `/ov-build:new` for the project / image / layer scaffolders that bootstrap the flow.
 
-### Editing layer.yml via the CLI (no hand-edit required)
+### Editing candy.yml via the CLI (no hand-edit required)
 
-The `ov layer …` group edits `layers/<name>/layer.yml` through the `yaml.v3` Node API, so **comments and key order are preserved** across edits. Unlike unmarshal-then-marshal, nothing gets scrambled when an agent (or a shell script) touches the file:
+The `ov candy …` group edits `candy/<name>/candy.yml` through the `yaml.v3` Node API, so **comments and key order are preserved** across edits. Unlike unmarshal-then-marshal, nothing gets scrambled when an agent (or a shell script) touches the file:
 
 ```bash
 # Append packages (idempotent; handles scaffold's null `package:` value):
-ov layer add-rpm sshd openssh-server openssh-clients
-ov layer add-deb sshd openssh-server
-ov layer add-pac sshd openssh
+ov candy add-rpm sshd openssh-server openssh-clients
+ov candy add-deb sshd openssh-server
+ov candy add-pac sshd openssh
 
 # Set any field by dot-path (value is parsed as YAML):
-ov layer set sshd env.SSHD_PORT 22
-ov layer set sshd service.name sshd
-ov layer set sshd port '["22:22"]'
-ov layer set sshd require '[supervisord]'
+ov candy set sshd env.SSHD_PORT 22
+ov candy set sshd service.name sshd
+ov candy set sshd port '["22:22"]'
+ov candy set sshd require '[supervisord]'
 
 # Free-form files (layer scripts, pixi.toml, root.yml, *.service):
-ov image write layers/sshd/root.yml --content 'tasks:\n  - cmd: echo configured\n'
-ov image cat layers/sshd/root.yml
+ov box write candy/sshd/root.yml --content 'tasks:\n  - cmd: echo configured\n'
+ov box cat candy/sshd/root.yml
 ```
 
 Implementation: `ov/scaffold_cmds.go` (verbs) + `ov/yaml_setter.go` (`SetByDotPath`). Tested in `ov/yaml_setter_test.go` — the comment-preservation guarantee is explicitly exercised (leading file comments, sibling keys, and per-key inline comments all survive round trips). See `/ov-internals:go` "Implementation insights" for the full rationale.
@@ -94,8 +94,8 @@ A layer directory can contain any combination of these:
 
 | Artifact | Runs as | Purpose |
 |---|---|---|
-| `layer.yml` `rpm:`/`deb:`/`pac:`/`aur:` sections | root | System packages declared declaratively |
-| `layer.yml` `task:` list | per-task `user:` | Ordered install operations — the primary extension point (see catalog below) |
+| `candy.yml` `rpm:`/`deb:`/`pac:`/`aur:` sections | root | System packages declared declaratively |
+| `candy.yml` `task:` list | per-task `user:` | Ordered install operations — the primary extension point (see catalog below) |
 | `pixi.toml` / `pyproject.toml` / `environment.yml` | user (builder stage) | Python/conda packages. Multi-stage build. Only one per layer |
 | `package.json` | user (builder stage) | npm packages — installed globally via `npm install -g` |
 | `Cargo.toml` + `src/` | user (builder stage) | Rust crate — built via `cargo install --path` |
@@ -109,7 +109,7 @@ A layer directory can contain any combination of these:
 
 ## Task Verb Catalog
 
-Every task in `task:` is a YAML map with **exactly one verb key** (the discriminator) plus optional sibling modifiers. The verb's value is the primary argument. `ov image validate` rejects tasks with zero verbs or multiple verbs.
+Every task in `task:` is a YAML map with **exactly one verb key** (the discriminator) plus optional sibling modifiers. The verb's value is the primary argument. `ov box validate` rejects tasks with zero verbs or multiple verbs.
 
 | Verb | Value | Required modifiers | Optional modifiers | Purpose |
 |---|---|---|---|---|
@@ -248,7 +248,7 @@ They happen to emit `COPY` directives under the hood, but they have entirely dis
 
 | | `copy` | `write` |
 |---|---|---|
-| Source of bytes | File on disk under `layers/<name>/` | Inline `content:` block in `layer.yml` |
+| Source of bytes | File on disk under `candy/<name>/` | Inline `content:` block in `candy.yml` |
 | Replaces old pattern | `cp /ctx/foo bar` + `chmod` | `cat > foo << 'EOF' … EOF` |
 | Validation check | `src` must exist under layer dir at generate time | `content` must be non-empty |
 | Cache key | Layer-stage file content | Content-addressed staged file at `.build/<image>/_inline/<layer>/<sha256>` |
@@ -280,7 +280,7 @@ These names are reserved — `var:` may not shadow them:
 
 | Name | Value | Resolution |
 |---|---|---|
-| `USER` | image's configured username | Generate-time (from image.yml resolution) |
+| `USER` | image's configured username | Generate-time (from box.yml resolution) |
 | `UID` | numeric user ID | Generate-time |
 | `GID` | numeric group ID | Generate-time |
 | `HOME` | resolved home directory | Generate-time |
@@ -304,13 +304,13 @@ Everything else (paths, URLs, modes, `to`, `target`, `user`, etc.) resolves via 
 
 - `var:` keys must match `^[A-Z_][A-Z0-9_]*$` (standard shell identifier)
 - Keys may not collide with auto-exports or with the layer's own `env:` keys
-- Unresolved `${VAR}` in non-shell fields (paths, URLs, etc.) errors at `ov image validate`
+- Unresolved `${VAR}` in non-shell fields (paths, URLs, etc.) errors at `ov box validate`
 
 ---
 
 ## Style: Explicit Tasks, No YAML Anchors
 
-Every task — root or user — must be written out in full. Do **not** use YAML anchors (`&name`, `<<: *name`) to share `user:` / `mode:` across tasks. `gopkg.in/yaml.v3` parses anchors correctly, but the repo convention is that every `layer.yml` task reads end-to-end without indirection.
+Every task — root or user — must be written out in full. Do **not** use YAML anchors (`&name`, `<<: *name`) to share `user:` / `mode:` across tasks. `gopkg.in/yaml.v3` parses anchors correctly, but the repo convention is that every `candy.yml` task reads end-to-end without indirection.
 
 ```yaml
 # Style across the repo — root and user tasks look identical in shape:
@@ -402,11 +402,11 @@ task:
 
 ---
 
-## layer.yml Field Reference
+## candy.yml Field Reference
 
 | Field | Type | Purpose |
 |-------|------|---------|
-| `version` | `string` | **MANDATORY** CalVer (`YYYY.DDD.HHMM`) of this layer definition — the layer kind requires it (`ov image validate` hard-errors when absent; `ov migrate` backfills it). The authoritative per-entity identity: it drives cross-repo layer resolution (`pickLayerVersion`) and, as the highest layer version, the consuming image's content-stable `org.overthinkos.version` label. Bump it when the layer's content changes. |
+| `version` | `string` | **MANDATORY** CalVer (`YYYY.DDD.HHMM`) of this layer definition — the layer kind requires it (`ov box validate` hard-errors when absent; `ov migrate` backfills it). The authoritative per-entity identity: it drives cross-repo layer resolution (`pickLayerVersion`) and, as the highest layer version, the consuming image's content-stable `org.overthinkos.version` label. Bump it when the layer's content changes. |
 | `status` | `string` | `working`, `testing`, or `broken`. Default: `testing`. |
 | `info` | `string` | Free-form description of what works / doesn't. Recommended for `testing` / `broken`. |
 | `require` | `[]string` | Layer dependencies. Resolved transitively, topologically sorted. |
@@ -614,7 +614,7 @@ path_append:
 
 **`env:` vs `var:`:** `env:` is container **runtime** environment (emitted as `ENV` and persists into the running container). `var:` is **build-time** substitution for `${VAR}` references inside `task:` — also emitted as `ENV` so BuildKit can substitute in COPY paths, but conceptually scoped to the layer's install. There's no hard rule against using `env:` for both purposes, but keeping them separate makes intent clearer.
 
-**`env:` is a MAP, not a list.** The YAML parser decodes it as `map[string]string`, not `[]string`. Authoring it as `- KEY=value` fails with `cannot unmarshal !!seq into map[string]string` at `ov image validate`. Always use map form:
+**`env:` is a MAP, not a list.** The YAML parser decodes it as `map[string]string`, not `[]string`. Authoring it as `- KEY=value` fails with `cannot unmarshal !!seq into map[string]string` at `ov box validate`. Always use map form:
 
 ```yaml
 # ❌ WRONG — parser rejects the list shape
@@ -745,7 +745,7 @@ Do **NOT** split a polymorphic service into two layers like `myservice` (supervi
 
 If you find yourself reaching for a `-host` suffix on a layer name, reach for a second `service:` entry instead. The same rule applies to `-pod` suffixes for the inverse case (a layer that needs container-only behavior under systemd targets).
 
-`ov image validate` does NOT (yet) statically reject `*-host` / `*-pod` layer names, because some legitimate uses might exist (a layer whose package literally only exists on host distros). The rule lives in CLAUDE.md "Init-system polymorphism via mixed `service:` entries" + this skill + `/ov-infrastructure:supervisord` — agents that load any of those before authoring will see the guidance. Canonical worked examples: `/ov-coder:sshd` (mixed), `/ov-infrastructure:virtualization` (mixed; CANONICAL example), `/ov-infrastructure:postgresql` (use_packaged-only).
+`ov box validate` does NOT (yet) statically reject `*-host` / `*-pod` layer names, because some legitimate uses might exist (a layer whose package literally only exists on host distros). The rule lives in CLAUDE.md "Init-system polymorphism via mixed `service:` entries" + this skill + `/ov-infrastructure:supervisord` — agents that load any of those before authoring will see the guidance. Canonical worked examples: `/ov-coder:sshd` (mixed), `/ov-infrastructure:virtualization` (mixed; CANONICAL example), `/ov-infrastructure:postgresql` (use_packaged-only).
 
 ## Volume Declaration
 
@@ -780,7 +780,7 @@ security:
   cpus: "4.0"                # CPU quota
 ```
 
-Security settings merge across layers (union for lists; `privileged` true if any layer sets it; smallest-wins for resource caps). Image-level `security:` in `image.yml` overrides `privileged` and replaces resource caps.
+Security settings merge across layers (union for lists; `privileged` true if any layer sets it; smallest-wins for resource caps). Image-level `security:` in `box.yml` overrides `privileged` and replaces resource caps.
 
 Resource caps (memory / cpus) bound the blast radius of a Chrome crash loop on the chrome layer. See `/ov-selkies:chrome` (Resource Caps) and `/ov-infrastructure:supervisord` for the (generic) eventlistener pattern.
 
@@ -905,7 +905,7 @@ data:
     dest: ""                 # optional subdirectory within volume
 ```
 
-**Data layers** are layers with only `data:` + `volume:` — no packages, no services, no tasks. Valid standalone. **Data images** (`data_image: true` in image.yml) are scratch-based — consumed via `ov config --data-from <image>`. See `/ov-jupyter:notebook-templates` for a worked example.
+**Data layers** are layers with only `data:` + `volume:` — no packages, no services, no tasks. Valid standalone. **Data images** (`data_image: true` in box.yml) are scratch-based — consumed via `ov config --data-from <image>`. See `/ov-jupyter:notebook-templates` for a worked example.
 
 ---
 
@@ -934,24 +934,24 @@ UID/GID in non-root cache mounts are dynamic (from resolved image config). Flat 
 ### Create a new layer
 
 ```bash
-ov image new layer my-tool
-# Edit layers/my-tool/layer.yml — add packages, deps, env, tasks
-ov image validate
+ov box new candy my-tool
+# Edit candy/my-tool/candy.yml — add packages, deps, env, tasks
+ov box validate
 ```
 
 ### Add system packages
 
-Add an `rpm:` / `deb:` / `pac:` / `aur:` section to `layer.yml`. Multi-distro layers declare all sections — the generator picks the one matching the image's `build:` list. For distro-version overrides, use a tag section like `fedora:43:` (checked first; first match wins).
+Add an `rpm:` / `deb:` / `pac:` / `aur:` section to `candy.yml`. Multi-distro layers declare all sections — the generator picks the one matching the image's `build:` list. For distro-version overrides, use a tag section like `fedora:43:` (checked first; first match wins).
 
 ### Add Python packages
 
-Create `pixi.toml` in the layer directory. **`layer.yml` must depend on `python`, not `pixi`** (the `pixi` layer installs the pixi binary; the `python` layer installs Python via pixi). Never use `pip install`, `conda install`, `pixi global install`, or `uv tool install` inside a `cmd:` task. Always use `pixi.toml`.
+Create `pixi.toml` in the layer directory. **`candy.yml` must depend on `python`, not `pixi`** (the `pixi` layer installs the pixi binary; the `python` layer installs Python via pixi). Never use `pip install`, `conda install`, `pixi global install`, or `uv tool install` inside a `cmd:` task. Always use `pixi.toml`.
 
-**In-tree Python packages** shipped by a layer live at `layers/<layer-name>/<pkg-name>/<pkg-name>/` with `pyproject.toml` at the distribution root. Internal imports must be relative (`from .app import X`) so the package directory can be renamed without editing every `.py` file.
+**In-tree Python packages** shipped by a layer live at `candy/<layer-name>/<pkg-name>/<pkg-name>/` with `pyproject.toml` at the distribution root. Internal imports must be relative (`from .app import X`) so the package directory can be renamed without editing every `.py` file.
 
 ### Add npm packages
 
-Create `package.json` in the layer directory; `layer.yml` depends on `nodejs`. The build system runs `npm install -g` in a multi-stage build. Do **not** put `npm install -g` inside a `cmd:` task — `package.json` is the declarative path.
+Create `package.json` in the layer directory; `candy.yml` depends on `nodejs`. The build system runs `npm install -g` in a multi-stage build. Do **not** put `npm install -g` inside a `cmd:` task — `package.json` is the declarative path.
 
 ### Add Go packages
 
@@ -1032,7 +1032,7 @@ Declare `service:` with a supervisord `[program:<name>]` fragment and add `super
 ## Style Guide
 
 - Lowercase-hyphenated names for layers.
-- System packages in `layer.yml` `rpm:`/`deb:`/`pac:`/`aur:` sections — not in `cmd:`.
+- System packages in `candy.yml` `rpm:`/`deb:`/`pac:`/`aur:` sections — not in `cmd:`.
 - Python in `pixi.toml`, npm in `package.json`, Rust in `Cargo.toml`. Never `pip install` / `conda install` / `dnf install python3-*`.
 - Binary downloads via `download:` verb; use `${ARCH}` or `${BUILD_ARCH}` for multi-arch URL templates.
 - Never `dnf clean all` / `pacman -Scc` inside a `cmd:` — cache mounts handle it.
@@ -1051,7 +1051,7 @@ shell allowlist key (`bash` / `zsh` / `fish` / `sh`) override the
 intrinsic for that one shell.
 
 ```yaml
-# layer.yml — generic + override (the canonical shape)
+# candy.yml — generic + override (the canonical shape)
 shell:
   init: |
     # Applies to bash, zsh, sh — ${SHELL_NAME} substituted at install time.
@@ -1081,7 +1081,7 @@ shell:
 
 **Where snippets land** — destination is target-aware:
 
-| Shell | Container image (`ov image build`) | `target: local` host / `target: vm` guest |
+| Shell | Container image (`ov box build`) | `target: local` host / `target: vm` guest |
 |---|---|---|
 | bash | `/etc/profile.d/ov-<layer>-bash.sh` | managed-block in `~/.bashrc` |
 | zsh  | `/etc/profile.d/ov-<layer>-zsh.sh`  | managed-block in `~/.zshrc`  |
@@ -1117,7 +1117,7 @@ target — same precedent as how `aur:` skips on non-Arch.
 | `priority` | int | Optional load order across layers contributing to the same shell. Default 50. |
 
 **OCI label round-trip:** the merged shell config is baked into
-`org.overthinkos.shell` at `ov image build` time and parsed back via
+`org.overthinkos.shell` at `ov box build` time and parsed back via
 `ExtractMetadata` at deploy. `deploy.yml` `shell:` overlays merge by
 id (same replace/skip/append semantics as `eval:`).
 
@@ -1132,13 +1132,13 @@ shell: schema. Idempotent.
 
 - `/ov-image:image` — Adding layers to image definitions; image composition; `data_image:` for data-only bundles; the full MCP-first authoring table including `image set`, `image add-layer`, `image rm-layer`, `image write`, `image cat`.
 - `/ov-build:ov-mcp-cmd` — "Authoring tools" table exposing `layer.set`, `layer.add-rpm`, `layer.add-deb`, `layer.add-pac`, `layer.add-aur` as MCP tools; end-to-end build-from-scratch worked example.
-- `/ov-build:generate` — What `ov image generate` actually emits; the per-verb emitter pipeline; `.build/<image>/` layout.
+- `/ov-build:generate` — What `ov box generate` actually emits; the per-verb emitter pipeline; `.build/<image>/` layout.
 - `/ov-build:validate` — Validation rules (including per-verb task requirements).
 - `/ov-build:new` — Scaffolding a new layer directory.
 - `/ov-build:build` — Building images (`--no-cache` caveat; multi-stage scratch).
 - `/ov-core:ov-config` — Cross-container `env_provide` / `mcp_provide` injection; `env_require` enforcement; `--update-all`; resource caps.
 - `/ov-core:deploy` — `deploy.yml` `provides:` section; tunnel is deploy.yml-only.
-- `/ov-eval:eval` — `eval:` field for declarative layer checks (file/port/http/...); embedded in the `org.overthinkos.eval` OCI label under the `layer` section. Layer eval checks default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `layers/sshd/layer.yml`.
+- `/ov-eval:eval` — `eval:` field for declarative layer checks (file/port/http/...); embedded in the `org.overthinkos.eval` OCI label under the `layer` section. Layer eval checks default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `candy/sshd/candy.yml`.
 - `/ov-automation:sidecar` — Sidecars as `env_provide` participants (tailscale `TS_*` filtering).
 - `/ov-build:secrets` — Credential store chain for `secret_accept` / `secret_require`.
 - `/ov-selkies:chrome` — Canonical consumer of `env_accept` (proxy vars), cgroup resource caps, and a heavy user-phase copy/mkdir task list.
@@ -1152,18 +1152,18 @@ shell: schema. Idempotent.
 
 ## Cross-kind name reuse
 
-A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same identifier (e.g. `ov-cachyos`) MAY exist as a layer at `layers/ov-cachyos/` AND an image entry `image.ov-cachyos` AND a deploy row `deploy.ov-cachyos` simultaneously. Verbs disambiguate by context. When `ov deploy add <name>` resolves a ref where both an image AND a layer with that name exist, image wins (image-first precedence); use `--add-layer <name>` to explicitly select the layer for an overlay. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/ov-core:deploy`.
+A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same identifier (e.g. `ov-cachyos`) MAY exist as a layer at `candy/ov-cachyos/` AND an image entry `image.ov-cachyos` AND a deploy row `deploy.ov-cachyos` simultaneously. Verbs disambiguate by context. When `ov deploy add <name>` resolves a ref where both an image AND a layer with that name exist, image wins (image-first precedence); use `--add-candy <name>` to explicitly select the layer for an overlay. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/ov-core:deploy`.
 
 ---
 
 ## When to Use This Skill
 
-**MUST be invoked** for any task involving layer authoring, `layer.yml`, `task:`, `var:`, `pixi.toml`, `package.json`, `Cargo.toml`, or any file under `layers/`. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** for any task involving layer authoring, `candy.yml`, `task:`, `var:`, `pixi.toml`, `package.json`, `Cargo.toml`, or any file under `candy/`. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Author layers before adding them to images. See `/ov-image:image` (composition), `/ov-build:build` (building), `/ov-build:generate` (emission internals).
 
 ## Related skills
 
-- `/ov-build:migrate` — `ov migrate` converts legacy flat-form `layer.yml` + raw-INI `service:` blocks into the canonical schema
+- `/ov-build:migrate` — `ov migrate` converts legacy flat-form `candy.yml` + raw-INI `service:` blocks into the canonical schema
 - `/ov-internals:capabilities` — how the `service:` list is baked into the `LabelService` OCI label
 - `/ov-internals:install-plan` — internal IR the loader feeds into build/deploy pipelines

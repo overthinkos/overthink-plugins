@@ -2,7 +2,7 @@
 name: eval
 description: |
   MUST be invoked before any work involving: `ov eval` (image / live / run),
-  the `eval:` / `deploy_eval:` fields in layer.yml / image.yml / deploy.yml,
+  the `eval:` / `deploy_eval:` fields in candy.yml / box.yml / deploy.yml,
   the `org.overthinkos.eval` OCI label, the AI iteration harness loop,
   `kind: ai` / `kind: recipe` / `kind: score` / `kind: eval` (disposable R10
   beds run via `ov eval run <bed>`) in eval.yml, or any declarative
@@ -46,8 +46,8 @@ composition inside it (the substance of RDD), and `disposable: true` makes
 tearing it down and rebuilding fearless. The box is restricted at the boundary,
 never by stripping the candy.
 
-1. `ov image build <image>` — build the test artifact (pod beds only).
-2. `ov eval image <image>` — image-section + baked layer-section probes.
+1. `ov box build <image>` — build the test artifact (pod beds only).
+2. `ov eval box <image>` — image-section + baked layer-section probes.
 3. `ov deploy add <bed> <ref>` — apply the bed (or `ov vm create` for vm beds).
 4. (pod beds) `ov config <bed>` + `ov start <bed>`.
 5. `ov eval live <bed>` — full three-section live probe pass.
@@ -83,7 +83,7 @@ memory) is ALWAYS preserved. Set `defaults.keep_eval_runs` in `overthink.yml`
 |---|---|---|---|
 | `eval-sway-browser-vnc-pod` | pod | `image: sway-browser-vnc` | cdp/wl/vnc/dbus/mcp/record + pod-side file/service/port/process/http |
 | `eval-k3s-vm` | vm | `vm: k3s-vm` | k8s (all 13 methods) + guest-side file/service/port/process, http via port-forward, VmDeployTarget end-to-end |
-| `eval-pod` | pod | `image: eval-pod` | combined mechanism bed: `kind: image` build + `kind: layer` composition order + `kind: pod` runtime (nc :18794 + supervisord) + every DeployTarget rendering path |
+| `eval-pod` | pod | `image: eval-pod` | combined mechanism bed: `kind: box` build + `kind: candy` composition order + `kind: pod` runtime (nc :18794 + supervisord) + every DeployTarget rendering path |
 | `eval-local` | local | `local: eval-local` | `kind: local` layer apply via ShellExecutor |
 | `eval-jupyter-pod` | pod | `image: jupyter` | jupyter-mcp regression coverage |
 | `eval-jupyter-ml-pod` | pod | `image: jupyter-ml` | jupyter-ml spacy/quarto + GPU MCP probes |
@@ -116,7 +116,7 @@ longer. **`ov eval run --all-beds` runs beds STRICTLY SEQUENTIALLY (a plain loop
 the slowest single bed, parallelize at the AGENT layer — one agent/teammate per
 bed, N concurrent `ov eval run <bed>` processes (`/verify-beds` and an agent team
 both do this; see `/ov-internals:agents` "Speed levers"). The dominant cost is
-the step-1 `ov image build`: a pod bed builds the image ONCE — the "fresh
+the step-1 `ov box build`: a pod bed builds the image ONCE — the "fresh
 `ov update`" R10 step is a `systemctl restart` onto the already-built image, not
 a second build — and same-base beds share cached layers, so pre-warming a shared
 base once makes every sibling bed's build incremental.
@@ -174,7 +174,7 @@ These are the 10 standards referenced in CLAUDE.md's AI attribution tier ("fully
 
 0. **Prove every HIGH-RISK assumption BEFORE you edit (RDD — Risk Driven Development)** — the proactive bookend to Standard 10's fresh-rebuild gate. Low-risk orientation ("what does layer X do") is a skill lookup (R0, zero risk); every high-risk assumption — including any a skill or the code merely *asserts*, and above all whether this layer composition at its latest available versions builds / deploys / runs TOGETHER — is proven on a `disposable: true` bed FIRST (`ov eval` it). Never accept docs or code as ground truth for a high-risk decision; if the bed disagrees with a skill, the skill is stale — fix it. Standard 0 (validate forward, riskiest-first) and Standard 10 (re-verify on a fresh rebuild) are the two ends of the same loop.
 
-1. **Build a real artifact** (R1) — `ov image build <image>` / `go build` / `ov vm build <vm>`. Not just `go test`. Not just `ov image generate`.
+1. **Build a real artifact** (R1) — `ov box build <image>` / `go build` / `ov vm build <vm>`. Not just `go test`. Not just `ov box generate`.
 2. **Verify the emitted artifact's content** (R3) — `grep -c supervisord-conf .build/<image>/Containerfile` for any image that uses supervisord; `virsh dumpxml` for a VM; `podman inspect --format '{{.Created}}'` to confirm the image was just rebuilt.
 3. **Verify critical OCI / capability labels post-build** (R4) — `podman inspect <ref> --format '{{index .Config.Labels "org.overthinkos.init"}}'` returns the expected value. Empty / missing → the detection path silently returned nil → regression.
 4. **Deploy to a DISPOSABLE target** (R10) — NEVER experiment on a resource that doesn't carry `disposable: true`. If no suitable disposable target exists, create one first (`ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml and `ov vm create`). The setup is part of the task. On a disposable target: `ov update <name>` (unattended). On anything else: confirm with the user before any destroy.
@@ -225,7 +225,7 @@ If the container needs state that's only available in deploy (volumes, env, tunn
 
 `ov` ships a goss-inspired declarative testing framework built into the
 CLI. Eval checks are authored inline under `eval:` (or `deploy_eval:`) in
-`layer.yml`, `image.yml`, or `deploy.yml`. They are **embedded as a
+`candy.yml`, `box.yml`, or `deploy.yml`. They are **embedded as a
 three-section OCI label** (`org.overthinkos.eval` → `{layer, image, deploy}`)
 so any pulled image is self-testable without its source repo. A local
 `deploy.yml` overlay can add checks or override baked ones by `id:`.
@@ -238,12 +238,12 @@ check written once works unchanged when `deploy.yml` remaps ports.
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Pure-image eval (disposable, build-scope) | `ov eval image <image>` | Layer + image sections only, in `podman run --rm` (no host port mappings, no volumes attached) |
+| Pure-image eval (disposable, build-scope) | `ov eval box <image>` | Layer + image sections only, in `podman run --rm` (no host port mappings, no volumes attached) |
 | Live full-stack eval (running deployment) | `ov eval live <name> [-i instance]` | All three sections run via `podman exec` / SSH / nested chain, with full runtime variable resolution |
 | R10 bed (full sequence) | `ov eval run <bed>` / `ov eval run --all-beds` | Build → eval image → deploy → eval live → fresh update → tear down on a `kind: eval` disposable bed. Canonical R10 gate |
 | AI iteration loop | `ov eval run <score>` | Drives an AI through plateau-bounded iterations against `kind: score` |
-| Validate authored tests at config time | `ov image validate` | Schema, scope/variable consistency, id uniqueness |
-| Inspect effective spec | `ov image inspect <image>` | JSON includes merged eval structure |
+| Validate authored tests at config time | `ov box validate` | Schema, scope/variable consistency, id uniqueness |
+| Inspect effective spec | `ov box inspect <image>` | JSON includes merged eval structure |
 | Filter by verb | `ov eval live <name> --filter file --filter port` | Repeatable |
 | Filter by section | `ov eval live <name> --section deploy` | One of: layer / image / deploy |
 | Output format | `ov eval live <name> --format json\|tap\|text` | Default text |
@@ -260,7 +260,7 @@ check written once works unchanged when `deploy.yml` remaps ports.
 | `1` | Command / usage / infra error — bad args, undeclared deploy, container not running, image build/deploy/vm-create failed. The eval never produced a pass/fail verdict. |
 | `2` | The eval RAN and one or more **checks FAILED** (`EvalCheckFailExitCode`). |
 
-`ov eval image` / `ov eval live` return `2` directly when checks fail.
+`ov eval box` / `ov eval live` return `2` directly when checks fail.
 `ov eval run <bed>` propagates `2` when the bed's **eval step** (eval-image /
 eval-live) fails on checks, but `1` when an **infra step** (build / deploy /
 vm-create) fails — so a broken bed image is distinguishable from a genuine
@@ -282,12 +282,12 @@ For each discovered image, the algorithm is:
 
 1. `LocalImageExists(podman, ref)` — short-circuit if already
    present. Idempotent on re-runs.
-2. `ov image pull <ref>` — preferred path. Resolves short names via
+2. `ov box pull <ref>` — preferred path. Resolves short names via
    `cfg.Images[<name>]`, full registry refs pass-through, remote
    `@github.com/...` refs walk through `ResolveRemoteImage`.
-3. `ov image build <name>` — fallback when pull fails AND the
+3. `ov box build <name>` — fallback when pull fails AND the
    identifier is a short name resolvable via the project's
-   `image.yml`. Build fallback is local-only; for any non-short
+   `box.yml`. Build fallback is local-only; for any non-short
    identifier that fails to pull, the preflight aborts with an
    actionable error.
 
@@ -307,11 +307,11 @@ Lives in `ov/eval_image_preflight.go`
 targets carry their own image inside their respective deploy schema
 and never trigger the preflight.
 
-## Three primary modes (`ov eval image` / `live` / `run`)
+## Three primary modes (`ov eval box` / `live` / `run`)
 
 The surface is three orthogonal verbs, each named for what it evaluates:
 
-- **`ov eval image <image>`** — evaluates the image **artifact** in
+- **`ov eval box <image>`** — evaluates the image **artifact** in
   isolation. Spawns a disposable container via `podman run --rm
   <image-ref>` (`ImageExecutor`). Only `eval:`-block checks at
   `scope: build` run; deploy-scope checks are skipped with a clear
@@ -336,7 +336,7 @@ The surface is three orthogonal verbs, each named for what it evaluates:
 The mode is **explicit in the verb**; there is no autodetect or
 implicit fallback. Choose the mode by picking the right verb.
 
-The banner after `ov eval image` reports the image ref:
+The banner after `ov eval box` reports the image ref:
 
 ```
 Image: ghcr.io/overthinkos/fedora-coder:latest
@@ -374,26 +374,26 @@ runner composes when it executes checks.
 matched, an image literally named `cdp`, `wl`, `dbus`, `vnc`, `mcp`,
 `record`, `spice`, or `libvirt` cannot be run via `ov eval live <name>` —
 use the explicit `ov eval live <name>` form or rename the image. No such
-images currently exist in `image.yml`.
+images currently exist in `box.yml`.
 
 **Gotcha — stale container-baked `ov` binary:** `ov eval dbus notify` and
 `ov eval dbus call` delegate to the container's own `ov` binary (see
 `ov/notify.go:20`, `ov/dbus.go:195,229`). If the container bakes an `ov`
 binary too old to know the `ov eval <verb>` subcommand path, the delegation
 fails. Fix by rebuilding and redeploying any image that bakes `ov` (grep
-`image.yml` for `- ov$` to find them). Test runner itself is unaffected —
+`box.yml` for `- ov$` to find them). Test runner itself is unaffected —
 this only bites the host→container delegation paths.
 
 ## Authoring: the `eval:` list
 
 Every check is a **list entry with exactly one verb discriminator** plus
 shared modifiers and verb-specific attributes. This mirrors the `task:`
-pattern in `layer.yml`.
+pattern in `candy.yml`.
 
 ### Gold-standard pattern (redis layer)
 
 ```yaml
-# layers/redis/layer.yml
+# candy/redis/candy.yml
 eval:
   # Build-scope — run inside the built image via `podman run --rm`.
   - id: redis-binary
@@ -435,7 +435,7 @@ fallback. Source: `ov/testrun_verbs.go:resolvePackageName` + the
 points.
 
 ```yaml
-# layers/sshd/layer.yml — cross-distro authoring
+# candy/sshd/candy.yml — cross-distro authoring
 - id: openssh-server-package
   package: openssh-server              # Fedora / Debian default
   package_map:
@@ -461,14 +461,14 @@ naturally. An empty-string map value falls through to the next tag
 | `port` | `listening`, `ip`, `reachable` | **`listening` needs `ss`/`netstat` inside the container** — absent from minimal images |
 | `process` | `running` | **Needs `pgrep`** — absent from minimal images |
 | `command` | `exit_status`, `stdout`, `stderr`, `in_container` | Default runs via `podman exec`; set `in_container: false` to run from host |
-| `http` | `status` (int, single value), `body`, `headers`, `method`, `request_body`, `allow_insecure`, `no_follow_redirects`, `ca_file`, `timeout` | Host-side under `ov eval live`; curl-in-container under `ov eval image` |
-| `dns` | `resolvable`, `addrs`, `server` | Host resolver for `ov eval live`; `getent hosts` for `ov eval image` |
+| `http` | `status` (int, single value), `body`, `headers`, `method`, `request_body`, `allow_insecure`, `no_follow_redirects`, `ca_file`, `timeout` | Host-side under `ov eval live`; curl-in-container under `ov eval box` |
+| `dns` | `resolvable`, `addrs`, `server` | Host resolver for `ov eval live`; `getent hosts` for `ov eval box` |
 | `user` | `uid`, `gid`, `home`, `shell` | `getent passwd` |
 | `group` | `gid`, `groups` | `getent group` |
 | `interface` | `mtu`, `addrs` | `ip -o addr show` |
 | `kernel-param` | `value` (scalar or matcher) | `sysctl -n` |
 | `mount` | `mount_source`, `filesystem`, `opts` | `findmnt` |
-| `addr` | `reachable`, `timeout` | Pure Go-native `net.DialTimeout` for `ov eval live`; `nc` for `ov eval image` |
+| `addr` | `reachable`, `timeout` | Pure Go-native `net.DialTimeout` for `ov eval live`; `nc` for `ov eval box` |
 | `matching` | `contains` | Pure in-process value matching — no target probe |
 | `cdp` | Method name (status/list/eval/text/html/url/axtree/screenshot/open/click/type/raw/wait/coords + spa-*) + method-specific modifiers (`tab`, `expression`, `url`, `selector`, `text`, `artifact`, `x`, `y`) + shared `stdout`/`stderr`/`exit_status`/`artifact_min_bytes` | **Deploy-scope only.** Wraps `ov eval cdp <method>`. See Live-container verb catalog below. |
 | `wl` | Method name (screenshot/status/click/type/key/key-combo/mouse/scroll/drag/clipboard/toplevel/windows/focus/close/geometry/xprop/atspi/exec/resolution + overlay-*/sway-*) + method-specific modifiers (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `ov eval wl <method>` (including `sway` and `overlay` nested subgroups). See Live-container verb catalog below. |
@@ -531,7 +531,7 @@ subcommands so every live-container operation (browser automation, Wayland
 input/screenshot, D-Bus calls, VNC framebuffer capture, MCP protocol
 probes) is authorable as a declarative check. All five are **deploy-scope
 only** — they need a running container with port mappings; `ov image
-validate` rejects them in build scope, and `ov eval image` skips them at
+validate` rejects them in build scope, and `ov eval box` skips them at
 runtime with a clear message.
 
 **Assertion semantics:** subprocess delegation — the runner executes
@@ -765,7 +765,7 @@ threshold that wasn't met.
 The `dbus:` verb invokes the container's `ov` binary via delegation. If
 the container bakes an `ov` binary too old to know the `ov eval <verb>`
 subcommand path, the delegation fails. Rebuild and redeploy any image that
-bakes `ov` (grep `image.yml` for `- ov$`). The test runner itself is
+bakes `ov` (grep `box.yml` for `- ov$`). The test runner itself is
 unaffected; this only bites the host→container delegation paths in the
 `dbus` verb.
 
@@ -843,7 +843,7 @@ in_container: true
 ### 5. Know which stream a `--version`-style command writes to
 
 `ov version` writes to **stdout** (via `fmt.Println`) — the canonical
-`layers/ov/layer.yml` test asserts a `stdout:` matcher.
+`candy/ov/candy.yml` test asserts a `stdout:` matcher.
 
 ```yaml
 - id: ov-version
@@ -857,7 +857,7 @@ in_container: true
 some `*-config --version` scripts. Always probe first
 (`ov cmd <image> '<cmd> 2>&1 >/dev/null'` — if the output shows up here
 it was stderr; if silent, it's stdout). See also the `ssh-version`
-check in `layers/ssh-client/layer.yml` which IS a real stderr case.
+check in `candy/ssh-client/candy.yml` which IS a real stderr case.
 
 ### 6. Drop `$` anchor in `matches:` regexes on command output
 
@@ -907,10 +907,10 @@ Always verify with `podman run --rm <image> rpm -qf /path/to/binary`.
 
 `/workspace`, `${VOLUME_CONTAINER_PATH:name}`, and similar paths
 are provisioned by `ov config` at deploy time. A build-scope test on
-them fails in `ov eval image` because the mount isn't attached.
+them fails in `ov eval box` because the mount isn't attached.
 
 ```yaml
-# ❌ Fails under `ov eval image` — workspace isn't mounted
+# ❌ Fails under `ov eval box` — workspace isn't mounted
 - id: workspace-dir
   file: /workspace
   filetype: directory
@@ -924,7 +924,7 @@ them fails in `ov eval image` because the mount isn't attached.
 
 ### 10. Disposable tests run as the image's default USER — not root
 
-`ov eval image` runs `podman run --rm <image>` with the image's USER
+`ov eval box` runs `podman run --rm <image>` with the image's USER
 directive (typically uid 1000 for containers). Root-only files
 (e.g. `/etc/sudoers.d/*` is root:root 0750) report as "missing" because
 the user can't traverse the parent directory.
@@ -945,7 +945,7 @@ the user can't traverse the parent directory.
 
 ### 11. **Bootc images keep USER=root** — tests must cover both modes
 
-Gotcha 10 flips for bootc. `ov/generate.go` deliberately omits the final `USER <uid>` directive on bootc images because systemd (PID 1 in a bootc VM) manages user sessions via login, so the container's own USER directive is irrelevant. Result: the same `ov eval image` that runs as uid 1000 in a container runs as **uid 0** in a bootc image.
+Gotcha 10 flips for bootc. `ov/generate.go` deliberately omits the final `USER <uid>` directive on bootc images because systemd (PID 1 in a bootc VM) manages user sessions via login, so the container's own USER directive is irrelevant. Result: the same `ov eval box` that runs as uid 1000 in a container runs as **uid 0** in a bootc image.
 
 That breaks any test that assumes the user-context default. A `sudo -n -l` check that expects `NOPASSWD` in the output works for non-bootc (USER=1000 → sudo lists the user's NOPASSWD rule) but fails for bootc (USER=0 → sudo prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`). Same failure mode for any `test -f ~/.config/foo` that depends on `$HOME=/home/user`.
 
@@ -974,9 +974,9 @@ form of the test; the sshd layer now uses `-u … --`.
 
 Worked example: `/ov-coder:sshd` ships exactly the `-u user --` pattern. Alternative: make the check `scope: deploy` so it runs against a live container where you control the user-switch externally.
 
-### 12. **`ov eval image <short-name>` is ambiguous with multiple CalVer tags** — use the full registry ref
+### 12. **`ov eval box <short-name>` is ambiguous with multiple CalVer tags** — use the full registry ref
 
-`ov eval image` resolves its positional argument against **local podman storage**, not `image.yml`. When the host has accumulated many CalVer tags for the same image (a normal consequence of iterative `ov image build` runs), the short form errors out:
+`ov eval box` resolves its positional argument against **local podman storage**, not `box.yml`. When the host has accumulated many CalVer tags for the same image (a normal consequence of iterative `ov box build` runs), the short form errors out:
 
 ```
 ov: error: ambiguous short name "openclaw-desktop" in local storage;
@@ -988,18 +988,18 @@ ov: error: ambiguous short name "openclaw-desktop" in local storage;
 Use the fully-qualified registry ref:
 
 ```bash
-ov eval image ghcr.io/overthinkos/openclaw-desktop:latest
+ov eval box ghcr.io/overthinkos/openclaw-desktop:latest
 ```
 
-This is different from `ov image inspect`, `ov image build`, and `ov eval live` (the live-service runner), which key off `image.yml` and accept short names unambiguously. Only the disposable-container runner has this restriction because it does not consult `image.yml` at all.
+This is different from `ov box inspect`, `ov box build`, and `ov eval live` (the live-service runner), which key off `box.yml` and accept short names unambiguously. Only the disposable-container runner has this restriction because it does not consult `box.yml` at all.
 
 ## Three levels, three sections
 
 | Section | Authored in | When it runs |
 |---------|-------------|--------------|
-| `layer` | `eval:` in `layers/<name>/layer.yml` (scope:"build") | `ov eval image` + `ov eval live` |
-| `image` | `eval:` in `image.yml` per image (scope:"build") | `ov eval image` + `ov eval live` |
-| `deploy` | `eval:` with `scope: deploy`, or `deploy_eval:` in `image.yml`, or local `deploy.yml` `eval:` | `ov eval live <name>` only (deploy-scope checks need a running deployment with port mappings, volumes, and resolved runtime variables) |
+| `layer` | `eval:` in `candy/<name>/candy.yml` (scope:"build") | `ov eval box` + `ov eval live` |
+| `image` | `eval:` in `box.yml` per image (scope:"build") | `ov eval box` + `ov eval live` |
+| `deploy` | `eval:` with `scope: deploy`, or `deploy_eval:` in `box.yml`, or local `deploy.yml` `eval:` | `ov eval live <name>` only (deploy-scope checks need a running deployment with port mappings, volumes, and resolved runtime variables) |
 
 The build label `org.overthinkos.eval` contains all three sections with
 `origin:` annotations (`layer:<name>`, `image:<name>`, `deploy-default`,
@@ -1012,9 +1012,9 @@ pathological config.
 
 Every verb dispatches through one of two executors depending on the run
 mode — this is what makes the same `eval:` list work both against a
-disposable container (`ov eval image`) and a running service (`ov eval live`):
+disposable container (`ov eval box`) and a running service (`ov eval live`):
 
-| Verb + attributes | Under `ov eval live` (running service) | Under `ov eval image` (disposable) |
+| Verb + attributes | Under `ov eval live` (running service) | Under `ov eval box` (disposable) |
 |-------------------|-----------------------------------|------------------------------------|
 | file, package, service, process, user, group, interface, kernel-param, mount | `ContainerExecutor` (`podman exec`) | `ImageExecutor` (`podman run --rm`) |
 | port with `listening` | `ContainerExecutor` (`ss`/`netstat` inside) | `ImageExecutor` |
@@ -1026,7 +1026,7 @@ disposable container (`ov eval image`) and a running service (`ov eval live`):
 
 The routing table lives in `ov/testrun.go` (`runOne` switch) and
 `ov/testrun_verbs.go`. When a check is unroutable (e.g. `port:
-reachable` under `ov eval image`), the runner reports it as **skipped**
+reachable` under `ov eval box`), the runner reports it as **skipped**
 with a reason rather than failing the run.
 
 ### in-container `command:` stdin is guarded
@@ -1061,7 +1061,7 @@ before any check executes. `${NAME:arg}` is parameterized form.
 | `${ENV_NAME}` | Effective env var value on the running container | deploy |
 
 Build-scope checks may **not** reference deploy-scope variables — the
-validator flags this at `ov image validate` time.
+validator flags this at `ov box validate` time.
 
 **No bash-style defaults**: `${VAR:-fallback}` is unsupported (see
 Authoring Gotcha #7). Plain `${VAR}` only.
@@ -1094,17 +1094,17 @@ images:
 ## Typical workflow
 
 ```bash
-# 1. Author tests in layers/<name>/layer.yml.
+# 1. Author tests in candy/<name>/candy.yml.
 # 2. Validate schema + references.
-ov image validate
+ov box validate
 
 # 3. Build the image (tests are auto-embedded as LabelEval).
 #    LABELs are emitted LAST in the final stage — a test edit rebuilds
 #    in ~2 sec (cache hits every upstream RUN/COPY).
-ov image build redis-ml
+ov box build redis-ml
 
 # 4. Run against a disposable container (build-scope checks only).
-ov eval image redis-ml
+ov eval box redis-ml
 
 # 5. Start the service and test end-to-end.
 ov start redis-ml
@@ -1193,11 +1193,11 @@ deliberately.
 ## Related skills
 
 - **Live-container probe verbs under `ov eval`** — `/ov-eval:cdp`, `/ov-eval:wl`, `/ov-eval:dbus`, `/ov-eval:vnc`, `/ov-build:ov-mcp-cmd`, `/ov-eval:record`, `/ov-eval:spice`, `/ov-eval:libvirt`, `/ov-kubernetes:eval-k8s` are dispatched as `ov eval cdp|wl|dbus|vnc|mcp|record|spice|libvirt|k8s`. See the Subcommands section above.
-- `/ov-image:layer` — layer authoring; `eval:` field is part of every `layer.yml`.
+- `/ov-image:layer` — layer authoring; `eval:` field is part of every `candy.yml`.
 - `/ov-image:image` — image-level `eval:` and `deploy_eval:` at composition time.
 - `/ov-core:deploy` — local `deploy.yml` overlay rules and the `eval:` merge.
 - `/ov-build:validate` — static schema + cross-scope variable checks; the first
-  gate before `ov image build`.
+  gate before `ov box build`.
 - `/ov-build:build` — how eval entries are embedded into the OCI label at build
   time; LABELs-at-end cache behavior.
 - `/ov-build:inspect` — view the merged 3-section eval structure as JSON.
@@ -1222,7 +1222,7 @@ deliberately.
 
 **MUST be invoked** before authoring, running, or debugging eval
 behavior at any level. Triggers: `ov eval` (any subcommand), `ov eval
-run`, `ov eval image`, `ov eval live`, the `eval:` / `deploy_eval:`
+run`, `ov eval box`, `ov eval live`, the `eval:` / `deploy_eval:`
 YAML fields, the `org.overthinkos.eval` OCI label, `kind: ai` /
 `kind: recipe` / `kind: score` / `kind: eval` in `eval.yml`,
 `ov eval run <bed>` / `--all-beds` (kind:eval R10 beds), or any check

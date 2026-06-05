@@ -94,12 +94,12 @@ USER 1000
 
 ## Dockerhub rate-limit caveat
 
-The upstream `ubuntu:24.04` pull from Dockerhub is unauthenticated-rate-limited (100 pulls / 6h / IP). If `ov image build ubuntu` fails with `toomanyrequests`, pull from AWS ECR Public and retag:
+The upstream `ubuntu:24.04` pull from Dockerhub is unauthenticated-rate-limited (100 pulls / 6h / IP). If `ov box build ubuntu` fails with `toomanyrequests`, pull from AWS ECR Public and retag:
 
 ```bash
 podman pull public.ecr.aws/docker/library/ubuntu:24.04
 podman tag public.ecr.aws/docker/library/ubuntu:24.04 docker.io/library/ubuntu:24.04
-ov image build ubuntu
+ov box build ubuntu
 ```
 
 ECR Public mirrors the Dockerhub library namespace without rate-limiting.

@@ -77,7 +77,7 @@ This fix was rolled out via `ov update -i INSTANCE` across all live selkies-desk
 
 ### Rebuild cadence
 
-Pixelflux is compiled **from source** in the selkies build stage (`layers/selkies/build.sh`), not installed from PyPI, because these fixes live on a fork not yet merged upstream. The build stage clones from a pinned commit, applies four inline source patches, and runs `pip install .` against the image's pixi builder (`arch-builder` on the cachyos base, `cuda-arch-builder` on the GPU build). See `/ov-distros:arch-builder` and `/ov-coder:build-toolchain` (5 package categories — smithay backend headers, codec devel, bindgen runtime, rust, generic C/C++) for the builder-stage dependency story.
+Pixelflux is compiled **from source** in the selkies build stage (`candy/selkies/build.sh`), not installed from PyPI, because these fixes live on a fork not yet merged upstream. The build stage clones from a pinned commit, applies four inline source patches, and runs `pip install .` against the image's pixi builder (`arch-builder` on the cachyos base, `cuda-arch-builder` on the GPU build). See `/ov-distros:arch-builder` and `/ov-coder:build-toolchain` (5 package categories — smithay backend headers, codec devel, bindgen runtime, rust, generic C/C++) for the builder-stage dependency story.
 
 ### Related fixes
 
@@ -175,7 +175,7 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 | Intel | Mesa VA-API via auto-detected renderD | VAAPI available | Untested |
 | CPU | pixman fallback | x264enc / x264enc-striped / jpeg | Working but causes flickering at high resolutions |
 
-**DRINODE auto-detection:** `ov config` detects the first `/dev/dri/renderD*` device on the host and injects `DRINODE` and `DRI_NODE` env vars at runtime via `appendAutoDetectedEnv()`. Previously these were hardcoded to `renderD129` in `layer.yml`, causing VAAPI encoder failure on hosts with `renderD128` — the encoder fell back to CPU software encoding, which caused labwc swapchain buffer exhaustion (`No free output buffer slot`) and visible stream flickering. See `/ov-internals:go` for implementation details.
+**DRINODE auto-detection:** `ov config` detects the first `/dev/dri/renderD*` device on the host and injects `DRINODE` and `DRI_NODE` env vars at runtime via `appendAutoDetectedEnv()`. Previously these were hardcoded to `renderD129` in `candy.yml`, causing VAAPI encoder failure on hosts with `renderD128` — the encoder fell back to CPU software encoding, which caused labwc swapchain buffer exhaustion (`No free output buffer slot`) and visible stream flickering. See `/ov-internals:go` for implementation details.
 
 **NVENC note:** pixelflux detects the GPU, CUDA initializes, but NVENC encoder init fails. All NVIDIA libraries load correctly (libnvidia-encode, libcuda, libnvrtc). Likely a pixelflux compatibility issue with driver 590.48. CPU x264enc at 60fps with striped mode (16 parallel stripes) provides acceptable performance.
 
@@ -223,5 +223,5 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

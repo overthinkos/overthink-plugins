@@ -2,7 +2,7 @@
 name: bazzite
 description: |
   Bazzite NVIDIA bootc image with dev tools, CUDA, Kubernetes, Docker, and desktop apps.
-  Currently disabled. Enable in image.yml to build.
+  Currently disabled. Enable in box.yml to build.
   MUST be invoked before building, deploying, or troubleshooting the bazzite image.
 ---
 

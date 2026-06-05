@@ -76,7 +76,7 @@ The compositor and selkies input handler both read `XKB_DEFAULT_LAYOUT` from the
 ## Chrome ownership (selkies-core, not labwc)
 
 Chrome is owned by a supervised `[program:chrome]` service declared in the
-**selkies-core** layer (`layers/selkies-core/layer.yml` `service:` block) — NOT by the
+**selkies-core** layer (`candy/selkies-core/candy.yml` `service:` block) — NOT by the
 labwc layer and NOT by labwc's autostart. Both selkies flavors (labwc via
 `selkies-desktop`, KDE Plasma via `selkies-kde-desktop`) compose selkies-core and get the
 same supervised browser. The per-flavor compositor autostart (labwc's `autostart`,
@@ -133,5 +133,5 @@ All windows open maximized (ideal for streaming desktop):
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

@@ -12,14 +12,14 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `nodejs` |
-| Install files | `layer.yml`, `task:` |
+| Install files | `candy.yml`, `task:` |
 
 PATH additions: `~/.local/bin`
 
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 my-dev:
   layers:
     - claude-code

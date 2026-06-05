@@ -40,7 +40,7 @@ description: |
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 githubrunner:
   layers:
     - github-runner

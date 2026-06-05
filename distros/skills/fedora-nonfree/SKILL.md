@@ -36,7 +36,7 @@ the submodule.
 ## Quick Start
 
 ```bash
-ov image build fedora-nonfree
+ov box build fedora-nonfree
 ov shell fedora-nonfree
 ```
 
@@ -54,8 +54,8 @@ ov shell fedora-nonfree
 
 ## Verification
 
-After `ov image build`:
-- `ov image list` — image appears in list
+After `ov box build`:
+- `ov box list` — image appears in list
 - `ov shell fedora-nonfree` — interactive shell works
 
 ## When to Use This Skill

@@ -45,7 +45,7 @@ Lightweight JupyterLab with real-time collaboration via jupyter-collaboration (Y
 ## Quick Start
 
 ```bash
-ov image build jupyter
+ov box build jupyter
 ov config jupyter
 ov start jupyter
 # Open http://localhost:8888
@@ -69,7 +69,7 @@ polars / numpy / scipy / scikit-learn / matplotlib / seaborn for data
 work; pyarrow / duckdb for column-store interop; **spacy 3.8.x +
 `en_core_web_sm`** for NLP (tokenization, NER, POS, dependency
 parsing); black / pytest / graphviz / pyyaml / tqdm as utilities. Full
-list and version pins live in `layers/jupyter/pixi.toml` — see
+list and version pins live in `candy/jupyter/pixi.toml` — see
 `/ov-jupyter:jupyter` for the package matrix.
 
 ## Key Layers

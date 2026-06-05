@@ -14,7 +14,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `layer.yml` (packages + one post-install task) |
+| Install files | `candy.yml` (packages + one post-install task) |
 | Depends | **(none)** |
 
 ## Packages
@@ -71,7 +71,7 @@ Six build-scope tests:
 ## Usage
 
 ```yaml
-# image.yml or layer.yml
+# box.yml or candy.yml
 layers:
   - gh
 ```
@@ -107,5 +107,5 @@ layers:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`layer.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

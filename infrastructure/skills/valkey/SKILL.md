@@ -15,7 +15,7 @@ description: |
 | Ports | `6379` |
 | Service | `valkey` (supervisord, priority 20) |
 | Volume | `valkey-data` -> `~/.valkey` |
-| Install files | `layer.yml` only |
+| Install files | `candy.yml` only |
 
 ## Environment Variables
 
@@ -40,7 +40,7 @@ See `/ov-image:layer` for `env_provide` field docs.
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 my-app:
   layers:
     - valkey

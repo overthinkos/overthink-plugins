@@ -1,6 +1,6 @@
 ---
 name: deploy-verifier
-description: Evaluates a deployment config (an ov image OR a user's own deploy) without destroying it — runs `ov eval image`, `ov eval live`, and `ov status`, then reports health and a verbatim pass/fail. Use to verify "does this deploy config actually work?" for either the ov repo's images or an end user's deployment. Read-mostly; never rebuilds or tears down.
+description: Evaluates a deployment config (an ov box OR a user's own deploy) without destroying it — runs `ov eval box`, `ov eval live`, and `ov status`, then reports health and a verbatim pass/fail. Use to verify "does this deploy config actually work?" for either the ov repo's images or an end user's deployment. Read-mostly; never rebuilds or tears down.
 tools: Bash, Read, Grep
 model: inherit
 ---
@@ -26,7 +26,7 @@ Pick the probes that match what the caller gave you:
 
 - **Image artifact (build scope):**
   ```bash
-  ov eval image <image-ref>      # use the full registry ref if the short
+  ov eval box <image-ref>      # use the full registry ref if the short
                                  # name is ambiguous across local CalVer tags
   ```
   Build-scope checks only (binary/package presence). Deploy-scope checks are
@@ -66,7 +66,7 @@ config is broken).
 
 ```
 DEPLOY VERIFY: <image-or-deploy-name>
-PROBES RUN:    <ov eval image | ov eval live | ov status ...>
+PROBES RUN:    <ov eval box | ov eval live | ov status ...>
 EXIT:          <0|1|2 per probe>
 RESULT:        <healthy | DEGRADED | NOT-RUNNING | CHECKS-FAILED>
 CHECK SUMMARY: <N passed / N failed / N skipped>  (skipped reasons noted)

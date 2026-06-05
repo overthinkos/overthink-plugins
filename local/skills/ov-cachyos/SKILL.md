@@ -32,9 +32,9 @@ ov --repo overthinkos/cachyos update ov-cachyos
 ## What it installs
 
 30 layers. Most are pulled from the main repo by **git reference**
-(`@github.com/overthinkos/overthink/layers/<name>:<tag>`); the cachyos-exclusive
+(`@github.com/overthinkos/overthink/candy/<name>:<tag>`); the cachyos-exclusive
 `ghostty`, `keepassxc-keyring`, and `wheel-nopasswd` are vendored locally in this
-repo's `layers/` (resolved via its `discover:` block):
+repo's `candy/` (resolved via its `discover:` block):
 
 `wheel-nopasswd`, `yay`, `dev-tools`, `gh`, `pre-commit`, `tmux`, `direnv`,
 `gnupg`, `keepassxc`, `keepassxc-keyring`, `tailscale`, `tailscale-up`,
@@ -66,7 +66,7 @@ card-less or VFIO-passthrough host, so the profile applies cleanly anywhere.
 `local.ov-cachyos`'s remote layer refs are collected and materialized by the
 same `CollectRemoteRefs` walk as image layer refs: the walk collects the layer
 refs of the ROOT project's own `kind: local` templates (ov-cachyos is the root
-here), so `ov image validate` / `ov update ov-cachyos` resolve the github-ref'd
+here), so `ov box validate` / `ov update ov-cachyos` resolve the github-ref'd
 layers. (Collection is reachability-scoped — a namespace's `kind:local`
 templates, imported only as a dependency, are NOT collected by an importer; only
 the root's own locals are. See `/ov-internals:go` "Remote-layer resolver".)

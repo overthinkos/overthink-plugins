@@ -28,7 +28,7 @@ ov version
 
 `ov version` writes the CalVer tag to **stdout** via `fmt.Println`.
 Declarative tests should match `stdout:` — for example
-`layers/ov/layer.yml` uses:
+`candy/ov/candy.yml` uses:
 
 ```yaml
 - id: ov-version

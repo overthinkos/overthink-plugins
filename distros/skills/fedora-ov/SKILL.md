@@ -142,7 +142,7 @@ ov shell fedora-ov -c "podman run --rm quay.io/libpod/alpine:latest echo OK"
 ov shell fedora-ov -c "which nvidia-ctk"
 
 # Verify OCI tags
-ov image inspect fedora-ov --format tags
+ov box inspect fedora-ov --format tags
 # ["all","rpm","fedora","fedora:43"]
 ```
 

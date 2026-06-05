@@ -13,7 +13,7 @@ description: |
 
 > **Location:** `arch-ov` lives in the **`overthinkos/arch`** repo (git
 > submodule at **`image/arch`**) and composes its layers by git reference to
-> this repo. Build from the submodule: `cd image/arch && ov image build arch-ov`
+> this repo. Build from the submodule: `cd image/arch && ov box build arch-ov`
 > (or `ov --repo overthinkos/arch image build arch-ov`). The `arch` base +
 > `arch-builder` live in this repo (in `base.yml`; reached via the submodule's
 > `import:` of this repo under the `ov` namespace — `base: ov.arch`).
@@ -120,7 +120,7 @@ Full ov toolchain via shared layers:
 
 ```bash
 # Build
-ov image build arch-ov
+ov box build arch-ov
 
 # Interactive shell (as uid=1000)
 ov shell arch-ov
@@ -205,7 +205,7 @@ packages and scripts per distro.
 - `/ov-core:shell` — open an interactive shell in arch-ov (as uid=1000 with sudo)
 - `/ov-core:service` — manage arch-ov as a service
 - `/ov-vm:vm` — nested libvirt VMs via `qemu:///session` (rootless)
-- `/ov-eval:eval` — three modes: `ov eval image <ref>` (build-scope, disposable container), `ov eval live <name>` (full-stack against running deployment), `ov eval run <score>` (AI iteration loop)
+- `/ov-eval:eval` — three modes: `ov eval box <ref>` (build-scope, disposable container), `ov eval live <name>` (full-stack against running deployment), `ov eval run <score>` (AI iteration loop)
 - `/ov-build:ov-mcp-cmd` — MCP gateway + auto-fallback behavior
 
 ## Related

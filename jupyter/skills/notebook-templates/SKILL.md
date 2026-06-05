@@ -21,7 +21,7 @@ description: |
 
 ## How It Works
 
-This is a **data layer** — the first of its kind in the project. It uses the `data:` field in `layer.yml` to map a directory of files to a named volume:
+This is a **data layer** — the first of its kind in the project. It uses the `data:` field in `candy.yml` to map a directory of files to a named volume:
 
 ```yaml
 info: "Starter notebook templates for jupyter"
@@ -44,7 +44,7 @@ At deploy time, when the volume is configured as a bind mount (`ov config --bind
 ## Usage
 
 ```yaml
-# image.yml
+# box.yml
 jupyter:
   layers:
     - notebook-templates
@@ -78,11 +78,11 @@ ov start jupyter
 Use when the user asks about:
 
 - The notebook-templates layer or its contents
-- Data layers and the `data:` field in `layer.yml`
+- Data layers and the `data:` field in `candy.yml`
 - How starter content gets provisioned into volumes
 - The `getting-started.ipynb` notebook
 - How `ov config` seeds bind-backed volumes with image data
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval image`, `ov eval live`)
+- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)

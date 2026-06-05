@@ -1,7 +1,7 @@
 ---
 name: ov-mcp-cmd
 description: |
-  MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `ov eval mcp` client: probing MCP servers declared via mcp_provide, testing MCP tool catalogs, debugging the URL-rewriter (including host-networked containers via `HostConfig.NetworkMode` detection) or port-publishing behavior. (2) `ov mcp serve` server: running the ov CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (~192 tools including the MCP-first authoring surface — image/layer scaffolding, comment-preserving YAML edits, free-form file writes), destructive-hint annotations, the `--read-only` filter, auto-fallback to `overthinkos/overthink` when cwd has no `image.yml` (always fires regardless of OV_PROJECT_DIR being set), and the `ov-mcp` deployment layer with its `/workspace` bind mount.
+  MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `ov eval mcp` client: probing MCP servers declared via mcp_provide, testing MCP tool catalogs, debugging the URL-rewriter (including host-networked containers via `HostConfig.NetworkMode` detection) or port-publishing behavior. (2) `ov mcp serve` server: running the ov CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (~192 tools including the MCP-first authoring surface — image/layer scaffolding, comment-preserving YAML edits, free-form file writes), destructive-hint annotations, the `--read-only` filter, auto-fallback to `overthinkos/overthink` when cwd has no `box.yml` (always fires regardless of OV_PROJECT_DIR being set), and the `ov-mcp` deployment layer with its `/workspace` bind mount.
   Named `ov-mcp-cmd` (not `mcp`) to disambiguate from Claude Code's built-in `/mcp` slash command (the `-cmd` suffix avoids collision with the existing `/ov-coder:ov-mcp` image skill).
 ---
 
@@ -207,7 +207,7 @@ Every leaf's default format is author-friendly plaintext with one record per lin
 
 ## Declarative authoring examples
 
-Tests currently shipping in the three provider layers (`layers/jupyter/layer.yml`, `layers/jupyter-ml/layer.yml`, `layers/chrome-devtools-mcp/layer.yml`):
+Tests currently shipping in the three provider layers (`candy/jupyter/candy.yml`, `candy/jupyter-ml/candy.yml`, `candy/chrome-devtools-mcp/candy.yml`):
 
 ```yaml
 # Liveness check — fastest sanity verification
@@ -250,11 +250,11 @@ Tests currently shipping in the three provider layers (`layers/jupyter/layer.yml
     - matches: "."
 ```
 
-**Deploy-scope only.** `mcp:` checks require a running container with the mcp port published; `ov image validate` rejects build-scope mcp checks at authoring time, and `ov eval image` skips them at runtime with the message `"mcp: <method> requires a running container (skip under ov eval image)"`. Follow the same rule as the other four live-container verbs — `cdp`, `wl`, `dbus`, `vnc`.
+**Deploy-scope only.** `mcp:` checks require a running container with the mcp port published; `ov box validate` rejects build-scope mcp checks at authoring time, and `ov eval box` skips them at runtime with the message `"mcp: <method> requires a running container (skip under ov eval box)"`. Follow the same rule as the other four live-container verbs — `cdp`, `wl`, `dbus`, `vnc`.
 
 ## Validator coverage
 
-`ov image validate` enforces at the `validateOvVerb` dispatch in `ov/validate_tests.go`:
+`ov box validate` enforces at the `validateOvVerb` dispatch in `ov/validate_tests.go`:
 
 - Method name must be in `mcpMethods` (7 entries); unknown methods list the allowed set in the error.
 - `scope` must be `deploy`; build-scope raises `"mcp: verb requires scope:\"deploy\""`.
@@ -306,8 +306,8 @@ The server lives in a single file: `ov/mcp_server.go`.
 Composing `ov-mcp` into an image deploys the server via supervisord:
 
 ```yaml
-# layers/ov-mcp/layer.yml (summary)
-layer:
+# candy/ov-mcp/candy.yml (summary)
+candy:
   - ov
   - supervisord
 ports:
@@ -329,13 +329,13 @@ service:
     scope: system
 ```
 
-**Project-dir wiring** — build-mode tools (`image.build`, `image.inspect`, `image.list.*`) resolve `image.yml` via `os.Getwd()`. Inside the container, cwd is `/workspace` (set by the `ov-mcp` layer's `OV_PROJECT_DIR` env + `volume:` declaration). Three deployment patterns, in order of progressively less local setup:
+**Project-dir wiring** — build-mode tools (`image.build`, `image.inspect`, `image.list.*`) resolve `box.yml` via `os.Getwd()`. Inside the container, cwd is `/workspace` (set by the `ov-mcp` layer's `OV_PROJECT_DIR` env + `volume:` declaration). Three deployment patterns, in order of progressively less local setup:
 
 1. **Bind-mount** — the canonical `ov-mcp` pattern. The layer ships `env: OV_PROJECT_DIR: /workspace` + `volumes: project → /workspace`; the deployer attaches a host checkout via `ov config <image> --bind project=/path/to/overthink`. The ov CLI's global `-C` / `--dir` / `OV_PROJECT_DIR` flag honours the env var before Kong dispatch, calling `os.Chdir(OV_PROJECT_DIR)` once. Use this when the agent should see your in-flight local edits. The volume NAME is `project` (stable bind-mount API); the in-container PATH is `/workspace` (the generic name works whether the contents are an overthink checkout or any other workspace).
 
 2. **Remote pin** — set `OV_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env (e.g. via `ov config <image> -e OV_PROJECT_REPO=...`). The ov CLI clones (or hits its `~/.cache/ov/repos/` cache) and chdirs into the cache path before Kong dispatch. No bind mount required. Use this for reproducible agent runs against a pinned upstream.
 
-3. **Auto-default** — `ov mcp serve` with no image.yml reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires regardless of `OV_PROJECT_DIR` being set — it checks whether the resolved cwd actually contains `image.yml`, not whether the env var is populated. This matters because the `ov-mcp` layer permanently sets `OV_PROJECT_DIR=/workspace`: a deployer who forgets the `--bind` still gets a working MCP server backed by the upstream repo, with a log line naming the reason (`ov mcp: OV_PROJECT_DIR=/workspace has no image.yml; falling back to default repo …`). Pass `--no-default-repo` on the serve command to opt out (hard-fail with a clear message). This is the only command in the entire CLI that auto-fetches; the top-level CLI stays opt-in. Implementation: `McpServeCmd.bootstrapProject()` in `ov/mcp_server.go`.
+3. **Auto-default** — `ov mcp serve` with no box.yml reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires regardless of `OV_PROJECT_DIR` being set — it checks whether the resolved cwd actually contains `box.yml`, not whether the env var is populated. This matters because the `ov-mcp` layer permanently sets `OV_PROJECT_DIR=/workspace`: a deployer who forgets the `--bind` still gets a working MCP server backed by the upstream repo, with a log line naming the reason (`ov mcp: OV_PROJECT_DIR=/workspace has no box.yml; falling back to default repo …`). Pass `--no-default-repo` on the serve command to opt out (hard-fail with a clear message). This is the only command in the entire CLI that auto-fetches; the top-level CLI stays opt-in. Implementation: `McpServeCmd.bootstrapProject()` in `ov/mcp_server.go`.
 
 See `/ov-image:image` "Project directory resolution" for the flag/env semantics, and `ov/mcp_serve_default_repo_test.go` for the auto-fallback behaviour test.
 
@@ -345,7 +345,7 @@ See `/ov-image:image` "Project directory resolution" for the flag/env semantics,
 
 ```bash
 # Build an ov-mcp-bearing image (e.g. arch-ov) and start it:
-ov image build arch-ov
+ov box build arch-ov
 ov config arch-ov --bind project=/home/you/overthink
 ov start arch-ov
 
@@ -357,25 +357,25 @@ ov eval mcp list-tools arch-ov --name ov | wc -l
 ov eval mcp call arch-ov version '{}' --name ov
 # 2026.nnn.nnnn          (the container's own ov version)
 ov eval mcp call arch-ov image.list.images '{}' --name ov
-# arch-ov [testing]      (reads image.yml from the bind-mounted /workspace)
+# arch-ov [testing]      (reads box.yml from the bind-mounted /workspace)
 # arch [testing]
 # …
 ```
 
-The deploy-scope tests in `layers/ov-mcp/layer.yml` cover this exact sequence: service-running, port-reachable, `mcp: ping`, `mcp: list-tools`, `mcp: call tool=version`, `mcp: call tool=image.list.images` (the last proves the bind-mount + OV_PROJECT_DIR wiring).
+The deploy-scope tests in `candy/ov-mcp/candy.yml` cover this exact sequence: service-running, port-reachable, `mcp: ping`, `mcp: list-tools`, `mcp: call tool=version`, `mcp: call tool=image.list.images` (the last proves the bind-mount + OV_PROJECT_DIR wiring).
 
 ## Authoring tools (build-from-scratch over MCP)
 
-Every CLI verb under `ov image …` and `ov layer …` auto-becomes an MCP tool via Kong reflection. The authoring surface added for "build a project from scratch using only `ov mcp`" exposes these tools:
+Every CLI verb under `ov box …` and `ov candy …` auto-becomes an MCP tool via Kong reflection. The authoring surface added for "build a project from scratch using only `ov mcp`" exposes these tools:
 
 | MCP tool | What it does |
 |---|---|
-| `image.new.project` | Scaffold `image.yml` (referencing the upstream `build.yml` remotely), `layers/`, `.gitignore`. |
-| `image.new.image` | Append a new image entry to `image.yml`. |
-| `image.new.layer` | Scaffold `layers/<name>/layer.yml` with a stub. |
-| `image.set` | Set any value in `image.yml` by dot-path (`defaults.tag`, `images.foo.layers`, …). Value is parsed as YAML. |
+| `image.new.project` | Scaffold `box.yml` (referencing the upstream `build.yml` remotely), `candy/`, `.gitignore`. |
+| `image.new.image` | Append a new image entry to `box.yml`. |
+| `image.new.layer` | Scaffold `candy/<name>/candy.yml` with a stub. |
+| `image.set` | Set any value in `box.yml` by dot-path (`defaults.tag`, `images.foo.layers`, …). Value is parsed as YAML. |
 | `image.add-layer` / `image.rm-layer` | Append / remove a layer from an image's `layer:` list (idempotent). |
-| `layer.set` | Set any value in `layers/<name>/layer.yml` by dot-path. |
+| `layer.set` | Set any value in `candy/<name>/candy.yml` by dot-path. |
 | `layer.add-rpm` / `layer.add-deb` / `layer.add-pac` / `layer.add-aur` | Append packages to a layer's `<format>.packages` list. Idempotent. Upgrades scaffold's null `package:` value to a real sequence. |
 | `image.fetch` / `image.refresh` | Pre-prime / re-clone the remote-repo cache. Spec defaults to `default` (overthinkos/overthink). |
 | `image.write` / `image.cat` | Write / read any file under the project root — escape hatch for free-form auxiliary files (`pixi.toml`, `package.json`, `root.yml`, scripts, `*.service`). Path is resolved against `os.Getwd()` and rejected if it escapes the project root. |

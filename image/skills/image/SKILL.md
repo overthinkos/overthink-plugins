@@ -1,14 +1,14 @@
 ---
 name: image
 description: |
-  MUST be invoked before any work involving: the `ov image` command family, image definitions in image.yml, image inheritance, defaults, platforms, builder configuration, the image dependency graph, or the build/deploy scope boundary.
+  MUST be invoked before any work involving: the `ov image` command family, image definitions in box.yml, image inheritance, defaults, platforms, builder configuration, the image dependency graph, or the build/deploy scope boundary.
 ---
 
-# ov image -- Family Overview + Image Composition
+# ov box -- Family Overview + Image Composition
 
 ## Overview
 
-`ov image` is the **only** command family that reads `image.yml`. It groups
+`ov image` is the **only** command family that reads `box.yml`. It groups
 every build-mode operation (build, generate, validate, list, merge, new,
 inspect, pull) under a single namespace. All other `ov` commands read
 exclusively from OCI labels embedded into built images + `deploy.yml` for
@@ -18,7 +18,7 @@ Build-mode operations live only under `ov image`. Top-level invocations like
 `ov build`, `ov validate`, `ov list images`, or `ov inspect` return Kong's
 `unexpected argument` error.
 
-An **image** is a named build target in `image.yml`. Images compose layers
+An **image** is a named build target in `box.yml`. Images compose layers
 into container images with configurable defaults, inheritance chains,
 platform targets, and builder configurations. The `ov` CLI resolves
 dependencies, generates Containerfiles, and builds images in the correct
@@ -28,21 +28,21 @@ order.
 
 | Subcommand | Purpose | Skill |
 |---|---|---|
-| `ov image build` | Build container images from image.yml | `/ov-build:build` |
-| `ov image generate` | Write `.build/` Containerfiles | `/ov-build:generate` |
-| `ov image inspect` | Print resolved image config as JSON | `/ov-build:inspect` |
-| `ov image list {images,layers,targets,services,routes,volumes,aliases}` | List components from image.yml | `/ov-build:list` |
-| `ov image merge` | Merge small layers in a built image | `/ov-build:merge` |
-| `ov image new layer <name>` | Scaffold a new layer directory | `/ov-build:new` |
-| `ov image pull` | Fetch an image into local storage | `/ov-build:pull` |
-| `ov eval image` | Run declarative tests against a disposable container from a built image (reads the `org.overthinkos.eval` OCI label) | `/ov-eval:eval` |
-| `ov image validate` | Check image.yml + layers | `/ov-build:validate` |
+| `ov box build` | Build container images from box.yml | `/ov-build:build` |
+| `ov box generate` | Write `.build/` Containerfiles | `/ov-build:generate` |
+| `ov box inspect` | Print resolved image config as JSON | `/ov-build:inspect` |
+| `ov box list {images,layers,targets,services,routes,volumes,aliases}` | List components from box.yml | `/ov-build:list` |
+| `ov box merge` | Merge small layers in a built image | `/ov-build:merge` |
+| `ov box new candy <name>` | Scaffold a new layer directory | `/ov-build:new` |
+| `ov box pull` | Fetch an image into local storage | `/ov-build:pull` |
+| `ov eval box` | Run declarative tests against a disposable container from a built image (reads the `org.overthinkos.eval` OCI label) | `/ov-eval:eval` |
+| `ov box validate` | Check box.yml + layers | `/ov-build:validate` |
 
 ## Scope Boundary (Build vs. Deploy)
 
-| | Reads `image.yml` | Reads OCI labels | Reads `deploy.yml` |
+| | Reads `box.yml` | Reads OCI labels | Reads `deploy.yml` |
 |---|---|---|---|
-| `ov image …` | **Yes** (required) | Rarely | No |
+| `ov box …` | **Yes** (required) | Rarely | No |
 | Everything else | **No** | Yes (required for deploy-mode) | Yes (overlay) |
 
 If a new command needs to resolve layer dependencies, image inheritance, or
@@ -53,24 +53,24 @@ operates on a running container or deployed image must go through
 When a deploy-mode command is run against an image that isn't in local
 storage, `ExtractMetadata`/`EnsureImage` return `ErrImageNotLocal` and the
 top-level error handler renders: *"image 'X' is not available locally. Run
-'ov image pull X' to fetch it first."* See `/ov-build:pull` for the full sentinel
+'ov box pull X' to fetch it first."* See `/ov-build:pull` for the full sentinel
 pattern.
 
 ## Project directory resolution
 
-Every `ov image …` command resolves `image.yml` (and `build.yml`, `layers/`, etc.) **relative to the current working directory** — internally via `os.Getwd()` on every entry point. Five ways to override that default — three local, two remote:
+Every `ov box …` command resolves `box.yml` (and `build.yml`, `candy/`, etc.) **relative to the current working directory** — internally via `os.Getwd()` on every entry point. Five ways to override that default — three local, two remote:
 
 ```bash
 # Local project — pick a directory on disk:
 ov -C /path/to/overthink image list images          # short flag
 ov --dir /path/to/overthink image list images       # long flag
-OV_PROJECT_DIR=/path/to/overthink ov image list images   # env var
+OV_PROJECT_DIR=/path/to/overthink ov box list boxes   # env var
 
 # Remote project — clone (or hit cache) and chdir into it:
 ov --repo overthinkos/overthink image list images        # bare owner/repo → github.com/owner/repo@<default-branch>
 ov --repo overthinkos/overthink@main image list images   # pinned ref
 ov --repo default image list images                      # literal "default" → overthinkos/overthink
-OV_PROJECT_REPO=overthinkos/overthink ov image list images
+OV_PROJECT_REPO=overthinkos/overthink ov box list boxes
 ```
 
 `--repo` and `--dir` are mutually exclusive (passing both exits with `ov: --repo and --dir are mutually exclusive`). All five paths are declared on the top-level `CLI` struct in `ov/main.go` and resolved by a single `os.Chdir(cli.Dir)` call **before** Kong dispatches the subcommand, so every existing `os.Getwd()` site picks up the new cwd — no per-command plumbing needed.
@@ -96,7 +96,7 @@ Remote repos are cloned into `~/.cache/ov/repos/<repoPath>@<version>/` (override
 
 2. **Remote pin** — set `OV_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env. The agent reads from a pinned upstream version. No bind mount required.
 
-3. **Auto-default** — `ov mcp serve` with no `image.yml` reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires whenever cwd lacks `image.yml`, regardless of whether `OV_PROJECT_DIR` is set (the `ov-mcp` layer permanently sets `OV_PROJECT_DIR=/workspace`, so a fallback gated on the env var being empty would never fire). Pass `--no-default-repo` on the serve command to opt out. Only `ov mcp serve` auto-fetches; the top-level CLI stays opt-in.
+3. **Auto-default** — `ov mcp serve` with no `box.yml` reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires whenever cwd lacks `box.yml`, regardless of whether `OV_PROJECT_DIR` is set (the `ov-mcp` layer permanently sets `OV_PROJECT_DIR=/workspace`, so a fallback gated on the env var being empty would never fire). Pass `--no-default-repo` on the serve command to opt out. Only `ov mcp serve` auto-fetches; the top-level CLI stays opt-in.
 
 The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory`. See `/ov-build:ov-mcp-cmd` "Deployment: the `ov-mcp` layer" for the full bind-mount pattern and `/ov-internals:go` "main.go" for the implementation note (guarded by `TestOvDir_FlagChdir` + `TestOvDir_Errors` in `main_dir_test.go`, and `TestNormalizeRepoSpec` + `TestOvRepo_*` in `main_repo_test.go`).
 
@@ -104,15 +104,15 @@ The error messages are explicit when misconfigured: `cannot chdir to --dir "/mis
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| List images | `ov image list images` | Images from image.yml |
-| List build targets | `ov image list targets` | Build targets in dependency order (includes auto-intermediates) |
-| Inspect image | `ov image inspect <image>` | Print resolved config as JSON |
-| Inspect field | `ov image inspect <image> --format <field>` | Print single field (tag, base, layers, ports, etc.) |
-| Validate | `ov image validate` | Check image.yml + layers |
-| Pull into local storage | `ov image pull <image>` | Fetch from registry so deploy-mode commands work |
-| Run build-time tests | `ov eval image <image>` | Runs the baked layer + image test sections in a disposable `podman run --rm` container (build-scope only). For full-stack live eval against a running deployment, use `ov eval live <name>`. See `/ov-eval:eval`. |
-| Pre-prime remote repo cache | `ov image fetch [<spec>]` | Clones (or hits cache) for the spec — defaults to `default` (overthinkos/overthink). Prints the cache path. |
-| Force re-clone | `ov image refresh [<spec>]` | Removes the cache entry and re-clones. |
+| List images | `ov box list boxes` | Images from box.yml |
+| List build targets | `ov box list targets` | Build targets in dependency order (includes auto-intermediates) |
+| Inspect image | `ov box inspect <image>` | Print resolved config as JSON |
+| Inspect field | `ov box inspect <image> --format <field>` | Print single field (tag, base, layers, ports, etc.) |
+| Validate | `ov box validate` | Check box.yml + layers |
+| Pull into local storage | `ov box pull <image>` | Fetch from registry so deploy-mode commands work |
+| Run build-time tests | `ov eval box <image>` | Runs the baked layer + image test sections in a disposable `podman run --rm` container (build-scope only). For full-stack live eval against a running deployment, use `ov eval live <name>`. See `/ov-eval:eval`. |
+| Pre-prime remote repo cache | `ov box fetch [<spec>]` | Clones (or hits cache) for the spec — defaults to `default` (overthinkos/overthink). Prints the cache path. |
+| Force re-clone | `ov box refresh [<spec>]` | Removes the cache entry and re-clones. |
 
 ### Authoring (the MCP-first surface)
 
@@ -120,24 +120,24 @@ Each verb below is also auto-exposed as an MCP tool (`image.new.project`, `image
 
 | Action | Command |
 |--------|---------|
-| Scaffold a fresh project | `ov image new project <dir>` |
-| Add an image entry | `ov image new image <name> --base <ref> --layers <a,b,c>` |
-| Add a layer dir (stub `layer.yml`) | `ov image new layer <name>` |
-| Edit a value in `image.yml` | `ov image set <dotpath> <yaml-value>` |
-| Append a layer to an image | `ov image add-layer <image> <layer>` |
-| Remove a layer from an image | `ov image rm-layer <image> <layer>` |
-| Edit a value in `layers/<name>/layer.yml` | `ov layer set <name> <dotpath> <yaml-value>` |
-| Append rpm/deb/pac/aur packages to a layer | `ov layer add-rpm <name> <pkg…>` (and `add-deb`, `add-pac`, `add-aur`) |
-| Write any file under the project root | `ov image write <rel-path> [--content X \| --from-stdin]` |
-| Read any file under the project root | `ov image cat <rel-path>` |
+| Scaffold a fresh project | `ov box new project <dir>` |
+| Add an image entry | `ov box new box <name> --base <ref> --layers <a,b,c>` |
+| Add a layer dir (stub `candy.yml`) | `ov box new candy <name>` |
+| Edit a value in `box.yml` | `ov box set <dotpath> <yaml-value>` |
+| Append a layer to an image | `ov box add-candy <image> <layer>` |
+| Remove a layer from an image | `ov box rm-candy <image> <layer>` |
+| Edit a value in `candy/<name>/candy.yml` | `ov candy set <name> <dotpath> <yaml-value>` |
+| Append rpm/deb/pac/aur packages to a layer | `ov candy add-rpm <name> <pkg…>` (and `add-deb`, `add-pac`, `add-aur`) |
+| Write any file under the project root | `ov box write <rel-path> [--content X \| --from-stdin]` |
+| Read any file under the project root | `ov box cat <rel-path>` |
 
-**Safety boundary**: `ov image write` / `ov image cat` resolve the path against `os.Getwd()` (the project root) and reject absolute paths or `..` traversal that would escape the root. They are the deliberate escape hatch for free-form auxiliary files (`pixi.toml`, `package.json`, `root.yml`, `*.service`, scripts) that the schema-aware setters don't cover.
+**Safety boundary**: `ov box write` / `ov box cat` resolve the path against `os.Getwd()` (the project root) and reject absolute paths or `..` traversal that would escape the root. They are the deliberate escape hatch for free-form auxiliary files (`pixi.toml`, `package.json`, `root.yml`, `*.service`, scripts) that the schema-aware setters don't cover.
 
 **Comment preservation**: every YAML edit (`set`, `add-layer`, `rm-layer`, `add-rpm`, etc.) goes through the `yaml.v3` *node* API rather than the value API, so human-authored comments and key order are preserved across edits. Tested in `ov/yaml_setter_test.go` and `ov/scaffold_project_test.go`.
 
-**Project scaffold contents**: `ov image new project` writes a minimal `image.yml` whose `defaults.format_config` references the upstream `build.yml` remotely (`@github.com/overthinkos/overthink/build.yml`), so new projects don't have to copy the canonical 1k-line build.yml. Replace with a local `build.yml` + drop the `format_config` field if you need custom distro/builder/init definitions.
+**Project scaffold contents**: `ov box new project` writes a minimal `box.yml` whose `defaults.format_config` references the upstream `build.yml` remotely (`@github.com/overthinkos/overthink/build.yml`), so new projects don't have to copy the canonical 1k-line build.yml. Replace with a local `build.yml` + drop the `format_config` field if you need custom distro/builder/init definitions.
 
-## image.yml Structure
+## box.yml Structure
 
 ```yaml
 defaults:
@@ -270,7 +270,7 @@ Source: `ov/generate.go` (`builderRefForFormat`), `ov/graph.go` (`ResolveImageOr
 
 ## Internal Base Images
 
-When `base` references another image in `image.yml`, the generator resolves it to the full registry/tag and creates a build dependency. The referenced image must be built first.
+When `base` references another image in `box.yml`, the generator resolves it to the full registry/tag and creates a build dependency. The referenced image must be built first.
 
 ```yaml
 images:
@@ -305,7 +305,7 @@ The mechanism: a **declarative** fact (what the base image ships, in `build.yml 
 | `/ov-distros:debian` | no | create | `user` |
 | `/ov-distros:ubuntu` | **yes** (`ubuntu:1000:/home/ubuntu`) | adopt | `ubuntu` |
 
-This is why `ubuntu-coder`'s resolved identity is `ubuntu:/home/ubuntu` while the other three coder images are `user:/home/user`. The image.yml for all four coder images is identical on the user-related fields (no explicit `user:`); the policy + base_user together decide the outcome.
+This is why `ubuntu-coder`'s resolved identity is `ubuntu:/home/ubuntu` while the other three coder images are `user:/home/user`. The box.yml for all four coder images is identical on the user-related fields (no explicit `user:`); the policy + base_user together decide the outcome.
 
 ### How resolution flows (`ov/config.go ResolveImage`)
 
@@ -320,13 +320,13 @@ This is why `ubuntu-coder`'s resolved identity is `ubuntu:/home/ubuntu` while th
 ### Live verification
 
 ```bash
-ov image inspect ubuntu-coder | grep -E '"User"|"UID"|"Home"|UserAdopted'
+ov box inspect ubuntu-coder | grep -E '"User"|"UID"|"Home"|UserAdopted'
 # "User": "ubuntu",
 # "UID": 1000,
 # "Home": "/home/ubuntu",
 # "UserAdopted": true,
 
-ov image inspect debian-coder | grep -E '"User"|"UID"|"Home"|UserAdopted'
+ov box inspect debian-coder | grep -E '"User"|"UID"|"Home"|UserAdopted'
 # "User": "user",
 # "UID": 1000,
 # "Home": "/home/user",
@@ -341,7 +341,7 @@ See also `/ov-distros:ubuntu` (canonical adopt consumer), `/ov-build:build` "bas
 
 ## External Bases Require Explicit `distro:`
 
-When `base` is a URL string (not the name of another image in `image.yml`), the generator treats it as **external** and does not inherit distro tags or build formats. This is the canonical gotcha for bootc images, which typically use `quay.io/fedora/fedora-bootc:43`:
+When `base` is a URL string (not the name of another image in `box.yml`), the generator treats it as **external** and does not inherit distro tags or build formats. This is the canonical gotcha for bootc images, which typically use `quay.io/fedora/fedora-bootc:43`:
 
 ```yaml
 # ❌ BROKEN — Distro resolves to null, no RPM installs emitted
@@ -358,7 +358,7 @@ my-bootc-image:
   layers: [sshd, qemu-guest-agent, ffmpeg]
 ```
 
-Symptom without `distro:`: `ov image inspect <image>` shows `"Distro": null`. The generator's install_template Phase-2 branch short-circuits on `img.DistroDef == nil`, so **no layer `rpm:` install RUN steps are emitted**. The image builds cleanly but is missing every package from every layer that uses declarative `rpm:` sections. Explicit `cmd: dnf install …` tasks still run; the bug affects only declarative `rpm:`/`deb:`/`pac:` sections.
+Symptom without `distro:`: `ov box inspect <image>` shows `"Distro": null`. The generator's install_template Phase-2 branch short-circuits on `img.DistroDef == nil`, so **no layer `rpm:` install RUN steps are emitted**. The image builds cleanly but is missing every package from every layer that uses declarative `rpm:` sections. Explicit `cmd: dnf install …` tasks still run; the bug affects only declarative `rpm:`/`deb:`/`pac:` sections.
 
 Internal bases (`base: fedora`) inherit `distro:` and `build:` from the parent image automatically — you only need explicit tags on images whose `base:` is a URL. Canonical worked example: `/ov-distros:bazzite`. The sibling bootc image `/ov-distros:aurora` likewise declares `distro:`; both live in the `overthinkos/bootc` submodule.
 
@@ -373,7 +373,7 @@ fedora (external)
      -> openclaw (adds: nodejs, openclaw)
 ```
 
-Auto-intermediates are marked with `Auto: true` and appear in `ov image list targets`.
+Auto-intermediates are marked with `Auto: true` and appear in `ov box list targets`.
 
 ### Algorithm
 
@@ -387,7 +387,7 @@ Source: `ov/intermediates.go` (`ComputeIntermediates`, `GlobalLayerOrder`, `walk
 
 ## Versioning
 
-CalVer: `YYYY.DDD.HHMM` (year, day-of-year, UTC time). Computed once per `ov image generate`.
+CalVer: `YYYY.DDD.HHMM` (year, day-of-year, UTC time). Computed once per `ov box generate`.
 
 | `tag` value | Generated tag(s) |
 |-------------|-----------------|
@@ -395,7 +395,7 @@ CalVer: `YYYY.DDD.HHMM` (year, day-of-year, UTC time). Computed once per `ov ima
 | `"nightly"` | `nightly` only |
 | `"1.2.3"` | `1.2.3` only |
 
-Override: `ov image generate --tag <value>`.
+Override: `ov box generate --tag <value>`.
 
 ## Runtime Environment Variables
 
@@ -442,7 +442,7 @@ vms:
   my-bootc-vm:
     source:
       kind: bootc
-      image: my-bootc-image        # references the kind:image entry above (must have bootc: true)
+      box: my-bootc-image        # references the kind:image entry above (must have bootc: true)
     disk_size: 10 GiB
     ram: 4G
     cpus: 2
@@ -483,18 +483,18 @@ All of the above round-trip via `ov config`: the label is read from the image ma
 2. **`--update-all` safety.** Propagating config changes across deployed services must not accidentally rewrite tunnel settings from image labels and blow away per-instance overrides.
 3. **Instance inheritance gap.** Tunnel config is **not** auto-inherited from the base `ov config <image>` call to an `ov config <image> -i <instance>` call. This is a deliberate gap — see `/ov-selkies:selkies-labwc` (Multi-Instance Proxy Deployment) for the manual workaround and `/ov-core:deploy` (Instance Tunnel Inheritance) for the full lifecycle.
 
-**Practical implication:** you can inspect an image's tunnel declaration with `ov image inspect <image>` and see nothing useful — that's correct. To see a tunnel's actual state, read `deploy.yml` directly (`ov deploy show <image>`) or the generated quadlet (`ov status <image>`).
+**Practical implication:** you can inspect an image's tunnel declaration with `ov box inspect <image>` and see nothing useful — that's correct. To see a tunnel's actual state, read `deploy.yml` directly (`ov deploy show <image>`) or the generated quadlet (`ov status <image>`).
 
 ## Common Workflows
 
 ### Add a New Image
 
-Add an entry to `image.yml` with `base` and `layers`, then build:
+Add an entry to `box.yml` with `base` and `layers`, then build:
 
 ```bash
-# Edit image.yml
+# Edit box.yml
 # Then:
-ov image build my-new-image
+ov box build my-new-image
 ```
 
 ### Layer Images (inheritance)
@@ -527,14 +527,14 @@ images:
 
 ### Family subcommand skills
 
-- `/ov-build:build` -- `ov image build` (+ the `--no-cache` intermediate scratch-stage caveat)
-- `/ov-build:generate` -- `ov image generate` (Containerfile generation including OCI label emission)
-- `/ov-build:inspect` -- `ov image inspect` (resolved OCI label set)
-- `/ov-build:list` -- `ov image list {images,layers,targets,services,routes,volumes,aliases}`
-- `/ov-build:merge` -- `ov image merge` (post-build layer consolidation)
-- `/ov-build:new` -- `ov image new layer <name>` (scaffold new layer directory)
-- `/ov-build:pull` -- `ov image pull` (fetch into local storage; `ErrImageNotLocal` recovery)
-- `/ov-build:validate` -- `ov image validate` (image.yml + layers consistency check)
+- `/ov-build:build` -- `ov box build` (+ the `--no-cache` intermediate scratch-stage caveat)
+- `/ov-build:generate` -- `ov box generate` (Containerfile generation including OCI label emission)
+- `/ov-build:inspect` -- `ov box inspect` (resolved OCI label set)
+- `/ov-build:list` -- `ov box list {images,layers,targets,services,routes,volumes,aliases}`
+- `/ov-build:merge` -- `ov box merge` (post-build layer consolidation)
+- `/ov-build:new` -- `ov box new candy <name>` (scaffold new layer directory)
+- `/ov-build:pull` -- `ov box pull` (fetch into local storage; `ErrImageNotLocal` recovery)
+- `/ov-build:validate` -- `ov box validate` (box.yml + layers consistency check)
 
 ### Related skills
 
@@ -545,17 +545,17 @@ images:
 - `/ov-eval:eval` — Image-level `eval:` (cross-layer invariants) and `deploy_eval:` (deploy-default checks shipped with the image). Both are embedded in the `org.overthinkos.eval` OCI label.
 - `/ov-build:ov-mcp-cmd` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `ov eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
 - `/ov-distros:bazzite` — canonical worked example for the external-base + explicit-`distro:` pattern.
-- `/ov-vm:vm` — `ov vm build/create/start/stop/ssh` command family; reads `vm.yml`, not `image.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
+- `/ov-vm:vm` — `ov vm build/create/start/stop/ssh` command family; reads `vm.yml`, not `box.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
 - `/ov-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema.
 - `/ov-build:migrate` — `ov migrate` converts legacy VM fields to `vm.yml`.
 
 ## Cross-kind name reuse
 
-The `image:` map's namespace is independent of `layers/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`ov image set`, `ov image new image`, `ov image add-layer`, `ov image rm-layer`, `ov image new project`) write exclusively to `overthink.yml` — per-kind `image.yml` is reachable only via the `import:` statement from `overthink.yml`, never as a default authoring target. Missing `overthink.yml` → hard error pointing at `ov image new project .` or `ov migrate`. See CLAUDE.md "Cross-kind name reuse".
+The `image:` map's namespace is independent of `candy/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`ov box set`, `ov box new box`, `ov box add-candy`, `ov box rm-candy`, `ov box new project`) write exclusively to `overthink.yml` — per-kind `box.yml` is reachable only via the `import:` statement from `overthink.yml`, never as a default authoring target. Missing `overthink.yml` → hard error pointing at `ov box new project .` or `ov migrate`. See CLAUDE.md "Cross-kind name reuse".
 
 ### Per-kind file convention
 
-`overthink.yml` SHOULD use the `import:` statement to pull in sibling per-kind files: `image.yml` (kind:image entries), `pod.yml` (kind:pod), `vm.yml` (kind:vm), `k8s.yml` (kind:k8s), `local.yml` (kind:local), `deploy.yml` (kind:deploy). Filename and kind name match exactly — `kind: deploy` lives in `deploy.yml`. Inline maps inside `overthink.yml` remain valid (it's still a single canonical authoring target), but per-kind sibling files are the recommended layout. Migration of legacy configs: `ov migrate` (idempotent). See `/ov-build:migrate`.
+`overthink.yml` SHOULD use the `import:` statement to pull in sibling per-kind files: `box.yml` (kind:image entries), `pod.yml` (kind:pod), `vm.yml` (kind:vm), `k8s.yml` (kind:k8s), `local.yml` (kind:local), `deploy.yml` (kind:deploy). Filename and kind name match exactly — `kind: deploy` lives in `deploy.yml`. Inline maps inside `overthink.yml` remain valid (it's still a single canonical authoring target), but per-kind sibling files are the recommended layout. Migration of legacy configs: `ov migrate` (idempotent). See `/ov-build:migrate`.
 
 ## The `import:` statement (composition + namespaces)
 
@@ -573,10 +573,10 @@ A namespaced import is reached through a dotted ref everywhere a name is resolve
 ```yaml
 import:
   - build.yml                       # flat — shared vocabulary
-  - image.yml                       # flat — this repo's own kind:image entries
+  - box.yml                       # flat — this repo's own kind:image entries
   - cachyos: image/cachyos          # namespaced child import
 
-image:
+box:
   versa:
     base: cachyos.cachyos           # the `cachyos` image inside the `cachyos` namespace
 ```
@@ -592,7 +592,7 @@ Cycles between two projects that import each other (the intentional main ↔ cac
 
 ### Layer-version resolution across namespaces — per-entity version
 
-A namespace is imported to provide bases/builders; the resolver fetches ONLY the layers reachable from the enabled images' `base:`/`builder:` chains (reachability-scoped collection) — a namespace's unreferenced images and its `kind:local` templates are not pulled. The git `:vTAG` on a layer ref is only the FETCH coordinate; the layer's OWN `version:` (read after fetch) is the identity. So when the SAME layer is referenced via two different repo git tags but its `version:` is unchanged (a re-tag for an unrelated push), the resolver picks one materialization with NO warning. Only when a layer resolves to two genuinely different per-entity versions (a family pinned to a newer layer than the shared infra it composes) does it **warn once** (naming both per-entity versions) and use the **newest** (highest CalVer). Run `ov image reconcile` to align the on-disk git-tag pins and clear any warning. See `/ov-internals:go` "Remote-layer resolver", `/ov-build:reconcile`.
+A namespace is imported to provide bases/builders; the resolver fetches ONLY the layers reachable from the enabled images' `base:`/`builder:` chains (reachability-scoped collection) — a namespace's unreferenced images and its `kind:local` templates are not pulled. The git `:vTAG` on a layer ref is only the FETCH coordinate; the layer's OWN `version:` (read after fetch) is the identity. So when the SAME layer is referenced via two different repo git tags but its `version:` is unchanged (a re-tag for an unrelated push), the resolver picks one materialization with NO warning. Only when a layer resolves to two genuinely different per-entity versions (a family pinned to a newer layer than the shared infra it composes) does it **warn once** (naming both per-entity versions) and use the **newest** (highest CalVer). Run `ov box reconcile` to align the on-disk git-tag pins and clear any warning. See `/ov-internals:go` "Remote-layer resolver", `/ov-build:reconcile`.
 
 ## `base.yml` — the combined arch + fedora base stack
 
@@ -600,13 +600,13 @@ The main repo ships a single `base.yml` carrying both base-distro stacks: `arch`
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves image definitions in image.yml, image inheritance, defaults, platforms, builder configuration, or the image dependency graph. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves image definitions in box.yml, image inheritance, defaults, platforms, builder configuration, or the image dependency graph. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Define images before building. See also `/ov-image:layer` (layer authoring), `/ov-build:build` (building).
 
 ## Related skills
 
-- `/ov-build:migrate` — `ov migrate` converts legacy `image.yml` into `image:` entries in `overthink.yml`
+- `/ov-build:migrate` — `ov migrate` converts legacy `box.yml` into `image:` entries in `overthink.yml`
 - `/ov-internals:capabilities` — OCI label contract emitted at build time and consumed by deploy commands
 
 ## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)

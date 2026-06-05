@@ -36,7 +36,7 @@ Headless OpenClaw image with maximal tool/skill coverage. No desktop, no VNC.
 ## Quick Start
 
 ```bash
-ov image build openclaw-full
+ov box build openclaw-full
 ov config openclaw-full
 ov start openclaw-full
 ```
