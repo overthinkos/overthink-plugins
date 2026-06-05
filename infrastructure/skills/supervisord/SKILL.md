@@ -91,14 +91,14 @@ Layers declare services under a single `service:` key (singular; value is a list
 |---|---|
 | `kind: eventlistener` | Emits `[eventlistener:...]` instead of `[program:...]`; use with `events:`. |
 | `events:` | Supervisord eventlistener trigger list (e.g. `PROCESS_STATE_FATAL`). |
-| `auto_start:` | Tri-state bool. `false` for services started manually (Chrome waits for Wayland). |
-| `start_retries:` | Max restart attempts before FATAL. Chrome uses `3` as circuit breaker. |
+| `auto_start:` | Tri-state bool. `false` for services hand-started by another program. |
+| `start_retries:` | Max restart attempts before FATAL. The selkies `[program:chrome]` uses `3`. |
 | `start_secs:` | Seconds the process must stay up to count as "started." |
 | `stop_signal:` | TERM (default), INT, HUP, … |
 | `exit_code:` | Success codes for `restart: no` / `on-failure`. |
 | `priority:` | Startup order; lower = earlier. |
 
-See `/ov-selkies:chrome` for the canonical consumer (3-strike circuit breaker + eventlistener).
+See `/ov-selkies:selkies-core` for the canonical consumer (the supervised `[program:chrome]` service: `restart: always` + `start_secs`/`start_retries`).
 
 ## Polymorphism: a layer that runs on BOTH supervisord and systemd
 
@@ -125,7 +125,7 @@ Programs with no `priority=` default to 999 and start last.
 
 The knobs that shape crash-recovery behavior:
 
-- `autostart=true` (default) — Start at container boot. Use `autostart=false` for services that must be hand-started (e.g., Chrome needs the compositor up first, so labwc's autostart does `supervisorctl start chrome`).
+- `autostart=true` (default) — Start at container boot. Use `autostart=false` only for services that must be hand-started by another program. (Services that just need a Wayland compositor up first don't need this — e.g. the selkies `[program:chrome]` service in `selkies-core` stays `autostart=true` and self-synchronizes by polling for the compositor's `wayland-0` socket inside `chrome-wrapper`.)
 - `autorestart=true` (default) — Restart the program when it exits non-zero. Combined with `startretries`, this creates a crash-retry loop.
 - `startretries=N` (default 3) — How many consecutive restarts supervisord will attempt before declaring the program `FATAL`. Once FATAL, supervisord stops trying.
 - `startsecs=N` (default 1) — How long the program must stay up before supervisord considers the start "successful." Crashes within `startsecs` count against `startretries`; crashes after reset the counter.
@@ -136,13 +136,17 @@ The knobs that shape crash-recovery behavior:
 
 Supervisord supports a **plugin model** for reacting to process state changes: event listeners are separate programs that subscribe to events and can take arbitrary action. They run as supervisord programs themselves (using `[eventlistener:<name>]` instead of `[program:<name>]`) and communicate with supervisord over stdin/stdout using a simple protocol.
 
-### Chrome crash-loop circuit breaker (canonical example)
+### Crash-escalation eventlistener (the pattern)
 
-The chrome layer (`/ov-selkies:chrome`) ships `chrome-crash-listener`, which subscribes to `PROCESS_STATE_FATAL` and terminates supervisord (PID 1) with `SIGTERM` when Chrome enters the FATAL state.
+A `PROCESS_STATE_FATAL` listener is the supervisord pattern for escalating a
+program that has exhausted its `startretries` budget. The classic action is to
+terminate supervisord (PID 1) so the systemd quadlet's `Restart=always` rebuilds
+the whole container — the only way to flush cgroup-level orphan memfd shmem (from
+e.g. a Chrome crash loop) that a per-program restart can't release:
 
 ```ini
-[eventlistener:chrome-crash-listener]
-command=/home/user/.local/bin/chrome-crash-listener
+[eventlistener:crash-escalate]
+command=/path/to/crash-escalate-listener
 events=PROCESS_STATE_FATAL
 autostart=true
 autorestart=true
@@ -150,9 +154,14 @@ priority=200
 user=user
 ```
 
-**Why terminate PID 1?** Because Chrome's failure mode is typically a cgroup-level memory pressure problem — orphan shmem from prior crashes (memfd-backed IPC buffers, Skia texture pools) accumulates inside the container's cgroup and cannot be released by restarting Chrome alone (`chrome-restart` won't help). The only way to flush the cgroup is to tear down the container. By terminating supervisord, the container exits, the systemd quadlet's `Restart=always` rebuilds it, and the memory namespace is reset from scratch.
-
-Pairs with the chrome layer's `security.memory_max`/`memory_high`/`memory_swap_max` cgroup caps — the cgroup triggers OOM-kill before the host runs out of memory, supervisord sees `autorestart=true` hit `startretries`, and the event listener escalates to container rebuild. See `/ov-selkies:chrome` (Resource Caps & Circuit Breaker) for the full pattern and `/ov-image:layer` (Security Declaration → resource caps) for the merge semantics.
+No layer ships such a listener today. The selkies `[program:chrome]` service
+(in `selkies-core`, `restart: always`, `start_secs: 5`/`start_retries: 3`) relies
+on supervisord's ordinary relaunch for ordinary exits; a genuinely wedged crash
+loop is cleared by restarting the container (`ov update` / `systemctl --user
+restart`), which tears down the cgroup. The chrome layer's
+`security.memory_max`/`memory_high`/`memory_swap_max` caps bound the blast radius.
+See `/ov-selkies:chrome` (Chrome supervision) and `/ov-image:layer` (Security
+Declaration → resource caps).
 
 ### Event listener protocol (for authoring your own)
 
@@ -257,8 +266,8 @@ Container-mode logs are unaffected — supervisord is still PID 1 there.
 ## Related Layers
 
 - `/ov-languages:python` -- Optional pixi-python env (NOT a dep of this layer; supervisord uses system python3 from RPM)
-- `/ov-selkies:chrome` -- Canonical consumer of the crash-loop circuit breaker pattern (chrome-crash-listener, resource caps)
-- `/ov-selkies:labwc` -- Uses `supervisorctl avail` + `supervisorctl start chrome` to hand off to supervisord with a TOCTOU-safe sequence (avoids the autostart Chrome-duplication race)
+- `/ov-selkies:selkies-core` -- owns the supervised `[program:chrome]` service (`restart: always`, `start_secs`/`start_retries`) for both selkies flavors
+- `/ov-selkies:chrome` -- the chrome layer's cgroup resource caps (bound a Chrome crash loop's blast radius)
 - `/ov-infrastructure:traefik` -- Reverse proxy (depends on supervisord)
 - `/ov-infrastructure:dbus-layer` -- D-Bus session bus (depends on supervisord)
 - `/ov-distros:bootc-config` -- ships the systemd-user supervisord autostart wrapper for bootc images
@@ -271,7 +280,7 @@ Container-mode logs are unaffected — supervisord is still PID 1 there.
 - `/ov-core:logs` — Container-level log access (shows supervisord-aggregated stdout/stderr)
 - `/ov-core:ov-status` — Container status including service probe results
 - `/ov-build:generate` — Containerfile generation: where `service:` blocks get written to `/etc/supervisord.conf`
-- `/ov-image:layer` — `service:` field authoring + `security:` resource caps that drive the circuit breaker
+- `/ov-image:layer` — `service:` field authoring + `security:` cgroup resource caps
 
 ## When to Use This Skill
 
@@ -281,7 +290,7 @@ Use when the user asks about:
 - Running multiple services in a container
 - Service startup order (priority ordering)
 - autostart / autorestart / startretries behavior and crash-loop recovery
-- Event listeners (especially the chrome-crash-listener circuit breaker pattern)
+- Event listeners (the `PROCESS_STATE_FATAL` crash-escalation pattern)
 - `supervisorctl` commands (`status`, `avail`, `start`, `tail`, `restart`)
 - The `ov service` commands (start/stop/restart/status)
 - The `supervisor` RPM package or `/tmp/supervisor.sock`

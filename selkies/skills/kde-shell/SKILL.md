@@ -23,7 +23,10 @@ is common to BOTH KDE consumers, so the package list is defined once (R3):
 **kwin_wayland + plasmashell** + kf6 + qt6 + breeze) + `xorg-xwayland` + the core
 session components (plasma-pa, plasma-nm, powerdevil, kscreen, kde-gtk-config,
 breeze-gtk, kdialog, kio-admin) + curated apps usable in both venues (ark,
-dolphin, konsole, kate, kcalc, gwenview, spectacle). `require: [dbus]`.
+dolphin, konsole, kate, kcalc, gwenview, spectacle) + `kdotool` (AUR) — the
+KWin window-management automation `ov eval wl` drives on KWin (the KWin analogue
+of wlroots' `wlrctl toplevel`; KWin-only, so it lives here not in `wl-tools`).
+`require: [dbus]`.
 
 `kde-desktop` KEEPS the **workstation-only** extras that would only bloat the
 headless streaming pod: sddm, plasma-systemmonitor, plasma-browser-integration,
@@ -33,5 +36,6 @@ bluedevil, kinfocenter, partitionmanager, kdeconnect, media players.
 ## Related
 
 - `/ov-selkies:kde-selkies` — headless streamed Plasma consumer (pod).
+- `/ov-eval:wl` — uses this layer's `kdotool` for KWin window management.
 - `/ov-distros:cachyos` — the CachyOS/Arch base (Plasma packages are pac/AUR).
 - `/ov-image:layer` — package-section authoring (`distro.arch.package`).

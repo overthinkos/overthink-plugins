@@ -1,14 +1,16 @@
 ---
 name: wl
 description: |
-  MUST be invoked before any work involving: Wayland / wlroots desktop automation — `ov eval wl` commands (screenshots, click/type/scroll/drag, window management via wlrctl, clipboard, resolution control, AT-SPI2 introspection, window geometry), nested `wl sway` / `wl overlay` subcommands, or `wl:` declarative verbs inside `eval:` blocks. Covers sway-desktop and selkies-desktop image automation on both sway and labwc compositors.
+  MUST be invoked before any work involving: Wayland desktop automation — `ov eval wl` commands (screenshots, click/type/scroll/drag, window management, clipboard, resolution control, AT-SPI2 introspection, window geometry), nested `wl sway` / `wl overlay` subcommands, or `wl:` declarative verbs inside `eval:` blocks. Covers sway-desktop and selkies-desktop image automation on sway, labwc, AND KWin (KDE Plasma) — window management routes to wlrctl on wlroots and kdotool on KWin.
 ---
 
-# WL - Compositor-Agnostic Desktop Automation
+# WL - Wayland Desktop Automation
 
 ## Overview
 
-`ov eval wl` is the unified desktop automation command for all wlroots-based compositors (sway, labwc). It provides screenshots, input (click, type, key combos, scroll, drag), window management (via `wlrctl toplevel`), clipboard, resolution control, accessibility introspection (AT-SPI2), and window geometry queries. Works on both sway-desktop and selkies-desktop images.
+`ov eval wl` is the unified desktop automation command for wlroots compositors (sway, labwc) **and KWin (KDE Plasma)**. It provides screenshots, input (click, type, key combos, scroll, drag), window management, clipboard, resolution control, accessibility introspection (AT-SPI2), and window geometry queries. Works on sway-desktop, selkies-desktop (labwc), and selkies-kde-desktop (KWin) images.
+
+**Per-compositor routing.** `detectCompositor` picks the backend per method. On wlroots: `wlrctl` (pointer + `wlrctl toplevel` window management), `wlr-randr` (resolution). On **KWin**: window management (toplevel/windows/focus/close/fullscreen/minimize/geometry) via **`kdotool`** (KWin scripting), keyboard via `wtype`, clipboard via `wl-clipboard`, screenshot via `pixelflux`; `status` reports `compositor: kwin`. KWin **pointer** (click/double-click/mouse/scroll/drag) and **resolution** have no host-safe backend on the headless nested KWin and return a clear "unsupported on KWin" error (not a hang) — see the Compositor Compatibility table below.
 
 ### Also as a declarative verb
 
@@ -47,19 +49,27 @@ Every `ov eval wl <method>` (including nested `wl overlay <method>` and `wl sway
 
 ## Compositor Compatibility
 
-All commands work on any wlroots-based compositor:
+Backend availability per compositor (`ov eval wl` routes to the available one):
 
-| Tool | Protocol | sway | labwc (selkies) |
-|------|----------|------|-----------------|
-| grim | wlr-screencopy | YES | NO (nested compositor) |
-| pixelflux-screenshot | pixelflux API | NO | YES |
-| wtype | zwp_virtual_keyboard_v1 | YES | YES |
-| wlrctl pointer | wlr-virtual-pointer | YES | YES |
-| wlrctl toplevel | wlr-foreign-toplevel-management | YES | YES |
-| wlr-randr | wlr-output-management | YES | YES |
-| wl-copy/paste | wlr-data-control | YES | YES |
-| xdotool | X11 (XWayland) | YES | YES (on-demand) |
-| swaymsg | i3 IPC | YES | NO |
+| Tool | Protocol | sway | labwc (selkies) | KWin (KDE Plasma) |
+|------|----------|------|-----------------|-------------------|
+| grim | wlr-screencopy | YES | NO (nested compositor) | NO |
+| pixelflux-screenshot | pixelflux API | NO | YES | YES |
+| wtype | zwp_virtual_keyboard_v1 | YES | YES | YES (KWin implements it) |
+| wlrctl pointer | wlr-virtual-pointer | YES | YES | NO — pointer unsupported on KWin |
+| wlrctl toplevel | wlr-foreign-toplevel-management | YES | YES | NO — window mgmt via `kdotool` |
+| kdotool | KWin scripting (D-Bus) | NO | NO | YES (toplevel/focus/close/fullscreen/minimize/geometry) |
+| wlr-randr | wlr-output-management | YES | YES | NO — resolution unsupported on KWin |
+| wl-copy/paste | wlr-data-control | YES | YES | YES (KWin implements it) |
+| xdotool | X11 (XWayland) | YES | YES (on-demand) | YES (on-demand) |
+| swaymsg | i3 IPC | YES | NO | NO |
+
+**KWin (selkies-kde-desktop) notes.** Window management routes to `kdotool` (the
+`kde-shell` layer); keyboard/clipboard/screenshot reuse `wtype`/`wl-clipboard`/
+`pixelflux`. Pointer (click/double-click/mouse/scroll/drag) and resolution have no
+host-safe backend on the headless nested KWin (`org_kde_kwin_fake_input` is removed
+in KWin 6, the RemoteDesktop portal is approval-gated, `/dev/uinput` leaks into the
+host, `kscreen-doctor` hangs) and return a clear "unsupported on KWin" error.
 
 **Coordinate translation flags:**
 - `--from-cdp` — Works on all compositors (uses `window.screenX/Y`)

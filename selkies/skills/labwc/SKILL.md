@@ -69,52 +69,41 @@ The compositor and selkies input handler both read `XKB_DEFAULT_LAYOUT` from the
 
 - `labwc-wrapper` — Waits for pixelflux's `wayland-1` socket, exports XKB_DEFAULT_* from env with defaults, then starts labwc
 - `rc.xml` — labwc configuration: server-side decorations, maximize-all window rule, keyboard shortcuts (Alt+F4 close, Super+E terminal)
-- `autostart` — Hands off to supervisord (`supervisorctl start chrome`) so the chrome-crash-listener circuit breaker supervises the browser. **Waits up to 10 s for `/tmp/supervisor.sock` and uses `supervisorctl avail | grep chrome` to confirm chrome is a defined program** before starting it; only falls through to a direct `chrome-wrapper` launch when chrome is not defined at all (minimal image variants without the chrome layer). CDP: internal 9223, external 9222 via cdp-proxy.
+- `autostart` — Does NOT launch Chrome. Chrome is launched + supervised by the
+  `[program:chrome]` service in the **selkies-core** layer (shared by both selkies
+  flavors). CDP: internal 9223, external 9222 via cdp-proxy.
 
-### autostart Chrome-duplication race (fixed in febb9bd)
+## Chrome ownership (selkies-core, not labwc)
 
-The previous autostart logic was a one-liner:
+Chrome is owned by a supervised `[program:chrome]` service declared in the
+**selkies-core** layer (`layers/selkies-core/layer.yml` `service:` block) — NOT by the
+labwc layer and NOT by labwc's autostart. Both selkies flavors (labwc via
+`selkies-desktop`, KDE Plasma via `selkies-kde-desktop`) compose selkies-core and get the
+same supervised browser. The per-flavor compositor autostart (labwc's `autostart`,
+KDE's `kde-selkies-session`) does not start Chrome.
 
-```sh
-if ! supervisorctl start chrome 2>/dev/null; then
-    chrome-wrapper --force-renderer-accessibility --no-first-run --start-maximized &
-fi
-```
+The supervised service uses:
 
-This had a TOCTOU race: if labwc's autostart ran before supervisord's unix socket
-(`/tmp/supervisor.sock`) was reachable, the `supervisorctl start chrome` call failed
-silently with stderr suppressed, and the fallback launched a background `chrome-wrapper`
-**not managed by supervisord**. Then later, supervisord's own `[program:chrome]` could
-also bring chrome up via a separate code path (e.g., a subsequent `supervisorctl start`
-call from another script, or autorestart after a crash), leaving **two Chrome browser
-mains** on the same `--user-data-dir=/home/user/.chrome-debug`. Because
-`chrome-wrapper` deletes Chrome's `SingletonLock`/`SingletonSocket`/`SingletonCookie`
-files at exec time (see `/ov-selkies:chrome` — chrome-wrapper SingletonLock removal),
-Chrome's own duplicate-detection cannot save us. The two parallel Chrome processes then
-share GPU contexts, both render through the pixelflux Wayland compositor, both feed the
-selkies-capture pipeline, and resource usage roughly doubles.
+- `restart: always` → `autorestart=true`. The selkies flavors nest the compositor inside
+  pixelflux's `wayland-1`; a Chrome started during the nested compositor's startup-race
+  self-exits once (clean exit 0, the window-less browser's sole window going away on the
+  early color-manager re-init). `autorestart=true` relaunches it post-settle, where it
+  stays up indefinitely.
+- `autostart=true` (default) and **self-synchronizing**: `chrome-wrapper` itself polls for
+  the `wayland-0` client socket (created by the nested compositor), so no per-flavor
+  handoff is needed.
+- `start_secs: 5` + `start_retries: 3`: the single startup-race self-exit runs longer than
+  `start_secs`, so it resets the retry budget and never trips `FATAL`.
+- `priority: 30`, env `WAYLAND_DISPLAY=wayland-0`.
 
-The race was observed in the wild on `ov-selkies-desktop-207.228.33.28` during the
-pixelflux leak investigation: `ps axo comm,args | grep '^chrome ' | grep -v -- --type=`
-showed two PIDs with distinct crashpad-handler-pids and identical command lines.
+There is no Chrome eventlistener and no `PROCESS_STATE_FATAL` circuit breaker — relaunch is
+handled entirely by `restart: always` on the supervised service. The chrome layer's cgroup
+resource caps (`memory_max`/`memory_high`/`memory_swap_max`/`shm_size`) still apply. See
+`/ov-selkies:selkies-desktop-layer` and `/ov-infrastructure:supervisord` for the
+supervised-service pattern, and `/ov-selkies:chrome` for the resource caps.
 
-The fix (commit `febb9bd`) replaces the silent fallback with:
-
-1. Wait up to 10 s for `/tmp/supervisor.sock` to appear (`for _ in $(seq 1 20); do
-   [ -S /tmp/supervisor.sock ] && break; sleep 0.5; done`).
-2. Use `supervisorctl avail | grep -q '^chrome\b'` to ask whether chrome is actually a
-   defined program (works because `avail` lists all programs whether running or not,
-   distinct from `start` which is a state-changing call).
-3. If chrome is defined → `supervisorctl start chrome`. Supervisord becomes the single
-   owner; the chrome-crash-listener circuit breaker handles failures.
-4. If chrome is **not** defined (minimal image without the chrome layer) → fall through
-   to the direct `chrome-wrapper &` launch.
-
-The fix is purely a labwc-side hardening; chrome-wrapper's SingletonLock removal is
-preserved. The combination is: chrome-wrapper still removes stale singleton state on
-launch (defensive against crash residue), and the labwc autostart now refuses to launch
-chrome twice. See `/ov-selkies:chrome` for the SingletonLock and crash-listener side of
-the story.
+**sway-browser-vnc is unaffected:** it launches Chrome via the chrome-sway layer (not
+selkies-core), is not pixelflux-nested, and does not hit the startup-race.
 
 ## Window Rules
 
@@ -135,8 +124,8 @@ All windows open maximized (ideal for streaming desktop):
 - `/ov-selkies:selkies` — pixelflux streaming engine (provides `wayland-1` that labwc connects to)
 - `/ov-selkies:selkies-desktop-layer` — desktop metalayer that composes labwc + chrome + waybar + selkies
 - `/ov-selkies:waybar-labwc` — status bar configured for labwc
-- `/ov-selkies:chrome` — Chrome browser (auto-started by labwc's autostart)
-- `/ov-eval:wl` — Wayland automation commands (screenshots, input, window management)
+- `/ov-selkies:chrome` — Chrome browser (supervised by the selkies-core `[program:chrome]` service)
+- `/ov-eval:wl` — Wayland automation commands (screenshots, input, window management). Supports KWin (KDE Plasma) in addition to wlroots (sway/labwc); on labwc it uses the wlroots backends (wlrctl pointer/toplevel, wlr-randr, wtype, wl-clipboard, pixelflux-screenshot)
 
 ## When to Use This Skill
 

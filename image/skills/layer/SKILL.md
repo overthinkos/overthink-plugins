@@ -782,7 +782,7 @@ security:
 
 Security settings merge across layers (union for lists; `privileged` true if any layer sets it; smallest-wins for resource caps). Image-level `security:` in `image.yml` overrides `privileged` and replaces resource caps.
 
-Resource caps (memory / cpus) are used by the chrome layer's crash-loop circuit breaker. See `/ov-selkies:chrome` and `/ov-infrastructure:supervisord` for the event-listener pattern.
+Resource caps (memory / cpus) bound the blast radius of a Chrome crash loop on the chrome layer. See `/ov-selkies:chrome` (Resource Caps) and `/ov-infrastructure:supervisord` for the (generic) eventlistener pattern.
 
 ---
 
@@ -1141,7 +1141,7 @@ shell: schema. Idempotent.
 - `/ov-eval:eval` — `eval:` field for declarative layer checks (file/port/http/...); embedded in the `org.overthinkos.eval` OCI label under the `layer` section. Layer eval checks default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `layers/sshd/layer.yml`.
 - `/ov-automation:sidecar` — Sidecars as `env_provide` participants (tailscale `TS_*` filtering).
 - `/ov-build:secrets` — Credential store chain for `secret_accept` / `secret_require`.
-- `/ov-selkies:chrome` — Canonical consumer of `env_accept` (proxy vars), resource caps (crash-loop circuit breaker), and heavy user-phase copy/mkdir task list.
+- `/ov-selkies:chrome` — Canonical consumer of `env_accept` (proxy vars), cgroup resource caps, and a heavy user-phase copy/mkdir task list.
 - `/ov-infrastructure:supervisord` — Event listener pattern triggered by resource caps.
 - `/ov-tools:ov` — The ov-binary layer (composed by every ov-driving image). Paired with `/ov-coder:ov-mcp` which turns any image into an MCP server exposing the full ov CLI.
 - `/ov-coder:ov-mcp` — Reference implementation of a meta-layer composition (`layers: [ov, supervisord]` — no install of its own, just wiring) with bind-mounted project directory and `OV_PROJECT_DIR` env-var plumbing.

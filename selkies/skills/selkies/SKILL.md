@@ -193,7 +193,7 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 ## Related Layers
 
 - `/ov-selkies:labwc` — Nested compositor that selkies hosts inside `wayland-1` (autostart Chrome-duplication race + keyboard layout)
-- `/ov-selkies:chrome` — Chrome browser managed by supervisord, paired with the crash-loop circuit breaker
+- `/ov-selkies:chrome` — Chrome browser (supervised by the `[program:chrome]` service in `selkies-core`) + cgroup resource caps
 - `/ov-infrastructure:supervisord` — Service ordering, event listeners, crash-loop escalation
 - `/ov-selkies:wl-screenshot-pixelflux` — Screenshot path via the shared ScreenCapture singleton
 - `/ov-selkies:wl-record-pixelflux` — Recording path via the shared ScreenCapture singleton

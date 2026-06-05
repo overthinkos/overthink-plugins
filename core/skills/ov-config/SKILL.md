@@ -584,7 +584,7 @@ Source: `ov/envfile.go` (`normalizeNoProxy`), `ov/deploy.go` (`mergeEnvVars`, `s
 - `/ov-image:image` — Image composition, inheritance, OCI label emission, tunnel deploy.yml-only note (`labels.go:238`)
 - `/ov-core:ov-doctor` — Host GPU/device detection driving `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
 - `/ov-core:shell` — Interactive shells share the same `appendAutoDetectedEnv()` path
-- `/ov-selkies:chrome` — Chrome HTTP proxy (`env_accept`), NO_PROXY auto-enrichment, resource caps, crash-loop circuit breaker
+- `/ov-selkies:chrome` — Chrome HTTP proxy (`env_accept`), NO_PROXY auto-enrichment, cgroup resource caps
 - `/ov-infrastructure:supervisord` — Event listener pattern that pairs with the resource caps
 - `/ov-distros:nvidia`, `/ov-distros:rocm` — GPU layers that consume DRINODE auto-injection
 - `/ov-selkies:selkies` — Pixelflux DRINODE consumer + ScreenCapture singleton

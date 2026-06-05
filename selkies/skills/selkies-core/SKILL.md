@@ -46,6 +46,26 @@ between flavors (the `labwc` vs `kde-selkies` layer), across every GPU config
 (the encoder is auto-selected at runtime by pixelflux — see
 `/ov-selkies:selkies-kde-desktop` "Encoder is auto-selected").
 
+## Chrome supervision
+
+selkies-core owns the **supervised `[program:chrome]` supervisord service** that
+runs the streaming desktop's browser for BOTH flavors — declared in
+`layers/selkies-core/layer.yml`'s `service:` block, so labwc and KWin share one
+launcher (R3). Fields: `restart: always` relaunches Chrome on any exit (including
+the clean self-exit a Chrome started during the nested compositor's startup-race
+produces — the relaunch lands post-settle, where Chrome stays up); `autostart`
+defaults true and is **self-synchronizing** because `chrome-wrapper` polls for the
+`wayland-0` client socket itself (no per-flavor `supervisorctl start` handoff);
+`start_secs: 5` + `start_retries: 3` let the one startup-race exit reset the retry
+budget rather than trip `FATAL`; `priority: 30`; `env WAYLAND_DISPLAY=wayland-0`.
+
+Because selkies-core owns Chrome, the per-flavor compositor autostarts
+(`layers/labwc/autostart`, `layers/kde-selkies/kde-selkies-session`) do NOT launch
+it. `sway-browser-vnc` is NOT a selkies flavor (it uses the `chrome-sway` layer,
+not selkies-core, and is not pixelflux-nested) and is unaffected. There is no
+Chrome eventlistener / crash-listener; a wedged crash loop is cleared by
+restarting the container (see `/ov-selkies:chrome` "Chrome supervision").
+
 ## Related
 
 - `/ov-selkies:selkies` — the pixelflux transport at the heart of the core.

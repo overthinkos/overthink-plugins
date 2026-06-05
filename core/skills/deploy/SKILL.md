@@ -634,7 +634,7 @@ Direct-mode emission (podman run flags, for `engine.run=direct`): `--memory`, `-
 
 **Unset fields pass through** — setting `--memory-max=6g` alone will not wipe an existing `shm_size` from deploy.yml. Only the fields you pass on the CLI get overwritten; everything else is preserved from the current deploy.yml state.
 
-**Canonical consumer:** the chrome layer. See `/ov-selkies:chrome` (Resource Caps & Circuit Breaker) for the pattern that pairs these caps with supervisord's `chrome-crash-listener` event listener to trigger container rebuild on FATAL state — the only way to release orphan memfd shmem across a Chrome crash loop. See `/ov-infrastructure:supervisord` (Event Listeners) for the event listener pattern in full and `/ov-image:layer` (Security Declaration) for the authoring side.
+**Canonical consumer:** the chrome layer's cgroup caps. See `/ov-selkies:chrome` (Resource Caps) — the caps bound a Chrome crash loop's blast radius; a wedged loop (orphan memfd shmem) is cleared by restarting the container, which tears down the cgroup. See `/ov-infrastructure:supervisord` (Event Listeners) for the eventlistener pattern in general and `/ov-image:layer` (Security Declaration) for the authoring side.
 
 ### Provides (Top-Level)
 
@@ -987,7 +987,7 @@ eval:
 - `/ov-eval:eval` — Local `eval:` in deploy.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.
 
 **Canonical layer worked examples:**
-- `/ov-selkies:chrome` — Resource caps consumer + crash-loop circuit breaker
+- `/ov-selkies:chrome` — cgroup resource-caps consumer (caps bound a Chrome crash loop)
 - `/ov-infrastructure:supervisord` — Event listener pattern triggered by the caps; ServiceSchemaDef that renders `service:` entries to supervisord INI
 - `/ov-infrastructure:postgresql` — Canonical `use_packaged:` entry (packaged unit reuse)
 - `/ov-ollama:ollama`, `/ov-hermes:hermes` — Custom `service:` entries

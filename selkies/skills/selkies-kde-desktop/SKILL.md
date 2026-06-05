@@ -44,12 +44,17 @@ renders INTO pixelflux's `wayland-1` and creates `wayland-0` for Plasma's own
 clients. This headless-no-seat path is PROVEN on a real pod (`eval-selkies-kde-pod`:
 `kde-selkies-session` RUNNING ≥20s, `https://:3000/` → 200, full live-eval pass).
 
-**Chrome autostart.** Chrome is launched by the compositor, not supervisord (no
-`chrome` supervisord program exists — same as labwc). `kde-selkies-session`
-backgrounds a poll-for-`wayland-0` launcher that runs `chrome-wrapper` with
-`WAYLAND_DISPLAY=wayland-0` once kwin publishes the client socket — the KDE
-analogue of labwc's autostart. Without it, `cdp-proxy` listens but Chrome's CDP
-backend is dead (`/json/version` → EOF). Chrome itself works headless under KDE.
+**Chrome is a supervised `selkies-core` service.** Chrome is launched and
+supervised by the `[program:chrome]` supervisord service defined in `selkies-core`
+(shared by both flavors — labwc and KDE) — NOT by `kde-selkies-session` and not
+by the compositor autostart. The service runs `chrome-wrapper` with
+`WAYLAND_DISPLAY=wayland-0`, `restart: always` (relaunches on any exit, including
+the clean exit 0 of the nested-compositor startup race), `start_secs: 5` +
+`start_retries: 3` (the single >5s startup-race self-exit resets the retry budget
+so it never trips FATAL), and `priority: 30`. `autostart` defaults true and is
+self-synchronizing — `chrome-wrapper` itself polls for the `wayland-0` client
+socket that kwin publishes, so no per-flavor handoff is needed. Chrome works
+headless under KDE; `cdp-proxy` proxies its CDP backend.
 
 ## Encoder is auto-selected at runtime (one image, every GPU config)
 

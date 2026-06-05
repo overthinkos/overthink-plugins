@@ -17,7 +17,7 @@ description: |
 | CDP Proxy | `cdp-proxy` on 0.0.0.0:9222 → Chrome on 127.0.0.1:9223 |
 | Volumes | `chrome-data` -> `~/.chrome-debug` |
 | Security | `shm_size: 1g`, `memory_max: 6g`, `memory_high: 5g`, `memory_swap_max: 2g` |
-| Install files | `layer.yml`, `task:`, `cdp-proxy`, `chrome-wrapper`, `chrome-restart`, `browser-open`, `chrome-crash-listener` |
+| Install files | `layer.yml`, `task:`, `cdp-proxy`, `chrome-wrapper`, `chrome-restart`, `browser-open` |
 
 ## Environment Variables
 
@@ -177,10 +177,11 @@ systemctl --user restart ov-selkies-desktop.service
 systemctl --user restart ov-selkies-desktop-192.241.92.221.service
 ```
 
-See the circuit-breaker section below — it automates exactly this when
-Chrome enters a crash loop.
+This container restart is manual (or via `ov update`); see "Chrome supervision
+(selkies-core)" below for how the `[program:chrome]` service relaunches Chrome on
+ordinary exits.
 
-## Resource Caps & Circuit Breaker
+## Resource Caps
 
 The chrome layer ships cgroup caps in its `security:` block:
 
@@ -194,22 +195,27 @@ The chrome layer ships cgroup caps in its `security:` block:
 Override per image or per instance via `ov config` flags (see `/ov-core:ov-config`
 "Resource Caps"). Merging follows the smallest-wins rule.
 
-Chrome is a supervisord service in this layer (`[program:chrome]`):
+## Chrome supervision (selkies-core)
 
-- `autostart=false` — Chrome needs a Wayland compositor up first, so
-  labwc's autostart hands off with `supervisorctl start chrome`.
-- `autorestart=true startretries=3 startsecs=5` — Chrome may crash three
-  times within 5 s of startup before supervisord gives up.
-- After the 3-strike budget is exhausted supervisord marks Chrome `FATAL`
-  and emits a `PROCESS_STATE_FATAL` event.
+On the selkies streaming desktop, Chrome is launched + supervised by a
+`[program:chrome]` supervisord service declared in the **`selkies-core`** layer
+(`/ov-selkies:selkies-core`) — shared by both selkies flavors (labwc via
+`selkies-desktop`, KDE Plasma via `selkies-kde-desktop`). `sway-browser-vnc`
+launches Chrome via the separate `chrome-sway` layer and is not supervised this way.
+The selkies-core service:
 
-The `chrome-crash-listener` eventlistener (`~/.local/bin/chrome-crash-listener`,
-installed by `task:`) subscribes to `PROCESS_STATE_FATAL` and terminates
-supervisord (PID 1) with `SIGTERM`. The container exits, the systemd
-quadlet's `Restart=always` rebuilds the whole container, and the memory
-namespace — including any orphan memfd shmem from the crash loop — is
-rebuilt from scratch. This is the only way to actually break a memfd
-leak cycle; see the "orphan shmem" note under `chrome-restart` above.
+- `restart: always` (autorestart) — relaunches Chrome on any exit, including the
+  clean self-exit a Chrome started during the nested compositor's startup-race
+  produces (the relaunch lands post-settle, where Chrome stays up).
+- `autostart` defaults true and is **self-synchronizing**: `chrome-wrapper` polls
+  for the `wayland-0` client socket itself, so no per-flavor `supervisorctl start`
+  handoff is needed.
+- `start_secs: 5` + `start_retries: 3` — a run that lasts longer than 5 s resets
+  the retry budget, so the single startup-race self-exit never trips `FATAL`.
+
+A genuinely wedged crash loop (orphan memfd shmem accumulation) is cleared by
+restarting the whole container, which tears down the cgroup — see "When
+`chrome-restart` is not enough" above.
 
 ## Windows Platform Spoofing
 

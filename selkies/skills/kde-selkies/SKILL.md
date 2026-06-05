@@ -28,16 +28,17 @@ no DRM seat, no SDDM, no `graphical.target`. So:
   `WAYLAND_DISPLAY=wayland-1` (so kwin renders INTO pixelflux), then
   `exec dbus-run-session startplasma-wayland`. kwin creates `wayland-0` for
   Plasma's own clients.
-- **Chrome autostart:** the script ALSO backgrounds a poll-for-`wayland-0`
-  launcher that runs `chrome-wrapper` with `WAYLAND_DISPLAY=wayland-0` once kwin
-  publishes the client socket — the KDE analogue of labwc's autostart. Chrome is
-  NOT a supervisord program (compositor-launched, same as labwc); without this
-  launcher `cdp-proxy` listens but Chrome's CDP backend is dead (`/json/version`
-  → EOF). Chrome works headless under KDE once launched into `wayland-0`.
+- **Chrome:** this session script does NOT launch Chrome. The supervised
+  `[program:chrome]` service in the shared `selkies-core` layer
+  (`/ov-selkies:selkies-core` "Chrome supervision", `restart: always`) owns it for
+  both selkies flavors — `chrome-wrapper` self-polls for the `wayland-0` client
+  socket kwin publishes, so it needs no per-flavor handoff and supervisord
+  relaunches Chrome if it self-exits during the startup-race. Chrome works headless
+  under KDE.
 
-This headless-no-seat path is PROVEN on a real pod (`eval-selkies-kde-pod`,
-97/97): `kde-selkies-session` RUNNING ≥20s, `https://:3000/` → 200, Chrome CDP
-`/json/version` → 200.
+This headless-no-seat path is exercised by the `eval-selkies-kde-pod` bed:
+`kde-selkies-session` RUNNING ≥20s, `https://:3000/` → 200, Chrome CDP
+`/json/version` → 200, plus the deploy-scope `wl` KWin checks this layer ships.
 
 ## Encoder
 

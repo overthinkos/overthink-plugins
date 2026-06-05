@@ -86,7 +86,7 @@ A browser-accessible desktop at `http://localhost:3000` with:
 | 15 | waybar | Top panel (on wayland-0) |
 | 18 | nginx | Web UI on :3000 |
 
-**Chrome ownership:** Chrome is managed exclusively by supervisord, not by labwc's direct exec. labwc's autostart calls `supervisorctl start chrome` after a TOCTOU-safe `supervisorctl avail | grep chrome` check to avoid a race that could launch two Chrome processes against the same `--user-data-dir`. The fix is commit `febb9bd`; see `/ov-selkies:labwc` (autostart Chrome-duplication race) for the full analysis and `/ov-selkies:chrome` (Resource Caps & Circuit Breaker) for the crash-loop supervision pattern paired with the cgroup memory caps.
+**Chrome ownership:** Chrome is launched + supervised by the `[program:chrome]` supervisord service in the shared `selkies-core` layer (`restart: always`), NOT by labwc's autostart — labwc's `autostart` no longer starts Chrome. The service is `autostart=true` and self-synchronizing (`chrome-wrapper` polls for the `wayland-0` client socket itself), so a single launcher serves both selkies flavors and there is no per-flavor `supervisorctl start` handoff to race. See `/ov-selkies:selkies-core` (Chrome supervision) and `/ov-selkies:chrome` (Chrome supervision) — the chrome layer supplies the cgroup memory caps.
 
 **Capture singleton:** the selkies process owns a single process-wide `ScreenCapture` instance. Screenshot requests (`/ov-selkies:wl-screenshot-pixelflux`) and recording requests (`/ov-selkies:wl-record-pixelflux`) both attach to the same capture bridge at `/tmp/ov-capture.sock` — there is never a second capture process. This is the state enforced by commit `6be85eb` after the `WaylandBackend` leak investigation; the per-frame cleanup fix in commit `7977b91` is the paired memory-management step. See `/ov-selkies:selkies` (Pixelflux Memory Management) for the leak diagnosis, rollout recipe, and diagnostic commands.
 
@@ -132,9 +132,10 @@ See `/ov-selkies:selkies-labwc` for full multi-instance deployment examples.
 ## Related Skills
 
 - `/ov-selkies:selkies` — Streaming engine, Pixelflux Memory Management, ScreenCapture singleton, DRINODE auto-detection, keyboard layout support
-- `/ov-selkies:labwc` — Nested Wayland compositor + autostart Chrome-duplication race fix (commit `febb9bd`)
-- `/ov-selkies:chrome` — Chrome browser with CDP proxy, HTTP proxy support, resource caps, and crash-loop circuit breaker
-- `/ov-infrastructure:supervisord` — Event listener pattern (chrome-crash-listener) that owns Chrome's PID 1 escalation
+- `/ov-selkies:labwc` — Nested Wayland compositor (its autostart no longer launches Chrome — selkies-core supervises it)
+- `/ov-selkies:selkies-core` — owns the supervised `[program:chrome]` service shared by both selkies flavors
+- `/ov-selkies:chrome` — Chrome browser with CDP proxy, HTTP proxy support, cgroup resource caps
+- `/ov-infrastructure:supervisord` — supervisord process model (the selkies `[program:chrome]` uses `restart: always`)
 - `/ov-selkies:wl-record-pixelflux` — Desktop video recording via the shared capture singleton
 - `/ov-selkies:wl-screenshot-pixelflux` — Screenshots via the shared capture singleton
 - `/ov-distros:arch-builder` — Builder image that compiles patched pixelflux from source on the cachyos base (`cuda-arch-builder` on the GPU build)
