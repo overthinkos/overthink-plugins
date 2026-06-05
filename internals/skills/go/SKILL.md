@@ -16,11 +16,11 @@ The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framew
 
 The unified format's entry point is `LoadUnified(dir)` at `ov/unified.go`. It reads `<dir>/overthink.yml`, recursively resolves the `import:` statement (max depth 8, cycle-safe via visited set), parses every file as a **YAML multi-document stream** (so bundle files with `---` separators work), and routes each document by shape:
 
-- **Root-shape doc** — has any of `version:`, `import:`, `discover:`, `defaults:`, `distro:`, `builder:`, `init:`, `image:`, `layer:`, `deploy:` → parsed as `UnifiedFile`, merged root-wins.
-- **Kind-keyed doc** — has exactly one of `layer:`, `image:`, `deploy:`, `builder:`, `distro:`, `init:` + a `name:` inside → registered under `name:` in the matching map.
+- **Root-shape doc** — has any of `version:`, `import:`, `discover:`, `defaults:`, `distro:`, `builder:`, `init:`, `box:`, `candy:`, `deploy:` → parsed as `UnifiedFile`, merged root-wins.
+- **Kind-keyed doc** — has exactly one of `candy:`, `box:`, `deploy:`, `builder:`, `distro:`, `init:` (and the other kinds) + a `name:` inside → registered under `name:` in the matching map.
 - **Ambiguous** (both root and kind keys) → loader error with file + doc-index.
 
-`UnifiedFile.ApplyDiscover(rootDir)` walks `discover:` roots after initial merge — generic over six entity kinds via a single `applyScanSpecsKindKeyed` + `applyScanSpecsLayers` pair. Explicit map entries always win over discovered entries.
+`UnifiedFile.ApplyDiscover(rootDir)` walks the **flat generic `discover:` list** after initial merge. `discover:` is `DiscoverConfig` = `[]ScanSpec` (`{path, recursive, manifest}`) — no kind dimension. For each spec, `findEntityDirs` finds directories containing the spec's `manifest` (default `DefaultManifest`, overridable per spec), and `applyDiscoveredManifest` routes each discovered document BY SHAPE via `firstKindKey`: a `candy:`-shaped doc registers a lazy `From:` directory reference (`scanLayer` parses + validates it later), every other shape decodes + merges via `mergeKindDoc`. Explicit map entries always win over discovered entries. There is no per-kind discovery function and no `entityKind.Filename` — both were deleted; the kind vocabulary lives only in `kindKeys`/`kindKeysSet` for shape classification.
 
 Projections to today's concrete types: `ProjectConfig()` → `*Config`, `ProjectDistroConfig()` → `*DistroConfig`, etc. Existing `LoadConfig` / `LoadBuildConfigForImage` / `LoadDeployConfig` continue to work unchanged — migration to the unified entry point is incremental.
 

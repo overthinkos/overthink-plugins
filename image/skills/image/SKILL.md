@@ -553,9 +553,9 @@ images:
 
 The `image:` map's namespace is independent of `candy/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`ov box set`, `ov box new box`, `ov box add-candy`, `ov box rm-candy`, `ov box new project`) write exclusively to `overthink.yml` — per-kind `box.yml` is reachable only via the `import:` statement from `overthink.yml`, never as a default authoring target. Missing `overthink.yml` → hard error pointing at `ov box new project .` or `ov migrate`. See CLAUDE.md "Cross-kind name reuse".
 
-### Per-kind file convention
+### Files are generic kind-containers (per-kind filenames are a convenience)
 
-`overthink.yml` SHOULD use the `import:` statement to pull in sibling per-kind files: `box.yml` (kind:image entries), `pod.yml` (kind:pod), `vm.yml` (kind:vm), `k8s.yml` (kind:k8s), `local.yml` (kind:local), `deploy.yml` (kind:deploy). Filename and kind name match exactly — `kind: deploy` lives in `deploy.yml`. Inline maps inside `overthink.yml` remain valid (it's still a single canonical authoring target), but per-kind sibling files are the recommended layout. Migration of legacy configs: `ov migrate` (idempotent). See `/ov-build:migrate`.
+Every YAML file is a generic, kind-agnostic container — the loader routes each document by its top-level kind-key (its SHAPE), **NEVER by filename**. So ANY file may hold ANY mix of kinds. Splitting entities into per-kind sibling files named for their kind (`box.yml` for boxes, `vm.yml` for VMs, `deploy.yml` for deploys, …) is a pure user **CONVENIENCE** you express in `overthink.yml`'s `import:` (and, for candy directories, `discover:`) — it is never required, and the code hardcodes no per-kind filename. **`overthink.yml` is the only filename the code knows**; everything else (which files to `import:`, which directories + manifest names to `discover:`) is configured there. Inline maps in `overthink.yml` and per-kind splits load identically. `discover:` is a flat generic scan-spec list (`- {path, recursive, manifest}`); the manifest defaults to `candy.yml` but is overridable per spec. Migration of legacy configs: `ov migrate` (idempotent). See `/ov-build:migrate`, `/ov-internals:go`.
 
 ## The `import:` statement (composition + namespaces)
 
