@@ -56,6 +56,7 @@ The runtime parser accepts only this kind-keyed form. `ov migrate` converts any 
 | Scaffold new layer | `ov box new candy <name>` | Create layer directory with starter `candy.yml` (see `/ov-build:new`) |
 | Edit a layer field | `ov candy set <name> <dotpath> <value>` | Comment-preserving YAML edit by dot-path |
 | Append rpm/deb/pac/aur packages | `ov candy add-rpm <name> <pkg…>` (plus `add-deb`, `add-pac`, `add-aur`) | Idempotent append; auto-upgrades scaffold's null `package:` to a sequence |
+| Append a Gherkin acceptance scenario (Agent Driven Development) | `ov candy add-scenario <name> <scenario> --given/--when/--then [--pod --tag]` | Idempotent append (dedupe by name) to the layer's `description.scenario`. Writes prose-only steps; bind a deterministic check verb by editing the step, or leave it prose for the agent grader. See `/ov-eval:eval` "Agent Driven Development" |
 | Write a free-form file (`pixi.toml`, `root.yml`, …) | `ov box write <rel-path> --content X` | Escape hatch for files the schema setters don't cover; guarded against `..` traversal |
 | List all layers | `ov box list candies` | Show available layers from filesystem |
 | List services | `ov box list services` | Layers with `service` in candy.yml |

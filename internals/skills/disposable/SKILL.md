@@ -110,7 +110,7 @@ Specifically:
   autonomously by `ov update`" — a permission.
 - `ephemeral: true` (or block form) says "this resource MUST be
   destroyed autonomously when no longer needed" — a requirement,
-  enforced by the eval-runner / BDD step keywords / TTL transient
+  enforced by the eval-runner / Gherkin (ADD) step keywords / TTL transient
   timer registered in `ov deploy add`.
 
 The implication arrow is one-way. Disposable resources are not

@@ -348,6 +348,107 @@ lookup — full image refs like `ghcr.io/overthinkos/fedora-coder:latest`
 are correctly mapped to `ov-fedora-coder`. Implementation:
 `ov/eval_cmd.go` `EvalImageCmd.Run()` and `EvalLiveCmd.Run()`.
 
+## Agent Driven Development (ADD) — `ov box/eval feature run` + the agent grader
+
+ADD runs an entity's OWN baked Gherkin scenarios (the `description.scenario`
+blocks, shipped in the `org.overthinkos.description` OCI label) as acceptance
+tests. It is the canonical Gherkin acceptance pattern, named for the agent that drives it: a
+prose-only step is verified by an AI agent, and the whole red→green loop can be
+driven by an agent. This complements the flat `eval:` checks — `ov eval box` /
+`ov eval live` run the `eval:` list; `ov box/eval feature run` run the
+`description.scenario` list.
+
+### The six-stage loop
+
+| Stage | Who | Command | What |
+|---|---|---|---|
+| **Specify** | you / an agent | `ov candy add-scenario <layer> <name> --given/--when/--then` (idempotent; MCP tool `candy.add-scenario`) | Author the goal (`feature:`/`narrative:`) + scenarios on the LAYER that provides the behaviour (it bakes into every image that composes the layer — R3). |
+| **Bind** | author (implicit) | `ov feature pending <entity>` lists the gaps | Embed a check verb → deterministic; leave the step prose → agent-graded. |
+| **Run** | you / CI | `ov box feature run <image>` / `ov eval feature run <deployment>` | Execute the scenarios; per-scenario pass/fail + grader evidence. |
+| **Iterate** | you / an agent | edit + re-run, OR `ov eval run <score>` | Drive red→green by hand, or let the plateau-bounded AI loop write the code until scenarios pass. |
+| **Bake** | the build | `ov box build` | Goal + scenarios bake into `org.overthinkos.description`; runs source-less against a pulled image. |
+| **Gate** | R10 | `ov eval run <bed>` | Runs the bed image's deterministic scenarios as an opt-in gate (no-op pass when none authored). |
+
+### The BIND contract — a step binds to its verifier BY SHAPE
+
+```yaml
+description:
+  scenario:
+    - name: dashboard-loads
+      step:
+        - then: the page title is Dashboard
+          cdp: eval
+          expression: document.title        # DETERMINISTIC — embedded check verb
+        - then: the chart looks populated, not empty   # PROSE-ONLY — agent-graded
+```
+
+A step with an embedded check verb (`file`/`http`/`command`/`cdp`/`mcp`/…) runs
+that check. A step with only Gherkin prose (`then:` and no verb) binds to the
+agent grader. `ov feature pending` lists every prose-only step so an author sees
+the still-unbound work.
+
+### The two run verbs
+
+- **`ov box feature run <image>`** — BUILD scope. A disposable container
+  (`podman run --rm` per check), deterministic steps only. A prose-only step has
+  no stable target to probe, so it reports unbound (advisory skip; `--strict`
+  fails it). Resolves the image against local storage (never `overthink.yml`),
+  like `ov eval box`.
+- **`ov eval feature run <deployment>`** — DEPLOY scope. Against a running
+  image-backed (pod) deployment; deterministic steps run their checks and
+  prose-only steps bind to the **agent grader** (unless `--no-agent`). Flags:
+  `-i/--instance`, `--format text|json|tap|junit`, `--tag <expr>`,
+  `--ai <name>`, `--timeout <dur>`, `--no-agent`, `--strict`.
+
+Exit codes follow the 0/1/2 convention (a scenario fail → exit 2 via
+`EvalFailedError`; an infra error → 1). No scenarios baked → a no-op pass.
+
+### The agent grader contract
+
+For a prose-only step (when grading is enabled), the runner spawns the
+configured `kind: ai` CLI ONCE (bounded — never the plateau loop), handing it the
+scenario goal (`feature`/`narrative`), the step's Given/When/Then, the live
+target name, and the instruction that it MAY probe via `ov cmd <target> …`,
+`ov eval mcp/cdp/wl <target> …`, `ov status <target>`. The agent returns a
+single-line JSON verdict `{"verdict":"pass|fail","evidence":"…"}`; the runner
+parses it (plain or `stream-json`) into a pass/fail with evidence. An
+unparseable / timed-out / launch-failed grader is a **FAIL** with the raw output
+— never a silent pass. The grader wall-clock cap is `--timeout` → the ai entry's
+`timeout:` → a 5m default. Which AI: `--ai <name>` → the sole configured `ai:`
+entry → an explicit "specify --ai" error.
+
+`--no-agent` is the deterministic-only mode (CI): prose-only steps report
+`unbound` (visible, never silently green). The unattended `ov eval run <bed>`
+gate runs `ov eval feature run <bed> --no-agent` so a bed stays deterministic and
+free; exercise the live grader with an explicit `ov eval feature run <name>`.
+
+### Worked example (end to end)
+
+```bash
+# 1. Specify two scenarios on the layer that provides the behaviour.
+ov candy add-scenario web-layer dashboard-loads \
+  --then "the dashboard renders without a 500"          # prose → agent-graded
+$EDITOR candy/web-layer/candy.yml                        # add a deterministic step with cdp: eval
+
+# 2. See what's still prose-only (the authoring gaps).
+ov feature pending layer:web-layer
+
+# 3. Build → run build-scope acceptance (deterministic steps).
+ov box build web
+ov box feature run web
+
+# 4. Deploy, then run deploy-scope acceptance with the agent grader.
+ov start web
+ov eval feature run web                # prose steps agent-graded against the live pod
+ov eval feature run web --no-agent     # deterministic-only (CI): prose reports unbound
+```
+
+Implementation: `ov/eval_feature_run.go` (the verbs), `ov/eval_feature_grader.go`
+(`AgentGrader` + `RunAIOnce` + `parseVerdict`), the `Runner.Grader` dispatch in
+`ov/description_run.go`, and `ov/description_cmd.go` (`ov feature
+list/pending/validate`). The scenario engine (`RunScenarios`) and target
+resolution are shared with the harness loop and `ov eval box`/`live` (R3).
+
 ## Subcommands: live-container verbs
 
 `ov eval live` is both the declarative test runner AND the grouping point for the
