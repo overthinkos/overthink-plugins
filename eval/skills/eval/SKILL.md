@@ -1160,12 +1160,120 @@ before any check executes. `${NAME:arg}` is parameterized form.
 | `${VOLUME_PATH:name}` | Host path backing the named volume (bind source, encrypted mount, or `_data` dir) | deploy |
 | `${VOLUME_CONTAINER_PATH:name}` | In-container mount path for a volume | deploy |
 | `${ENV_NAME}` | Effective env var value on the running container | deploy |
+| `${PEER_HOST:name}` | A SEPARATE deployment's container DNS name on the shared `ov` net (`ov-<name>`); cross-deployment addressing (see below) | deploy |
+| `${PEER_ENDPOINT:name:port}` | A host-reachable `127.0.0.1:NNNN` for a separate deployment's `port` (published port / VM ssh-forward); host-vantage cross-deployment addressing | deploy |
 
 Build-scope checks may **not** reference deploy-scope variables — the
 validator flags this at `ov box validate` time.
 
 **No bash-style defaults**: `${VAR:-fallback}` is unsupported (see
 Authoring Gotcha #7). Plain `${VAR}` only.
+
+## Cross-deployment probing — `on:` driver, `peer:` siblings, `${PEER_*}`
+
+A check normally probes **the deployment under test**. Cross-deployment probing
+lets ONE deployment act as a test DRIVER against a SEPARATE deployment as the
+SUBJECT — the canonical case being a **Chrome DRIVER pod that CDP-probes a
+separate web-server SUBJECT pod**, so a real browser tests the subject without
+baking Chrome into the subject image. "A different kind of deployment tests
+another kind" — pod→pod, local→pod, and local→VM, all through one mechanism.
+
+Three pieces compose it:
+
+- **`on: <driver>`** (the step modifier) — DISPATCH this probe against a named
+  DRIVER deployment instead of the subject. For a `cdp:`/`vnc:`/`mcp:` check it
+  connects to the driver's CDP/VNC/MCP endpoint (`ov eval cdp <method> <driver>`);
+  for a `command:` check it runs in the driver's venue. Works in `ov eval live`,
+  `kind: eval` beds, and recipes (the driver's own `${HOST_PORT}`/`${CONTAINER_IP}`
+  resolve too).
+- **`peer:` siblings** — bring the driver up ALONGSIDE the subject on the shared
+  `ov` network (see `/ov-core:deploy` "Sibling peers"). A `kind: eval` bed (or a
+  `kind: deploy`) declares the driver under `peer:`; it is brought up by the same
+  deploy verbs and is NEVER eval-live'd (an instrument, not a subject).
+- **`${PEER_*}` address variables** — let the driven probe TARGET the subject:
+  - **`${PEER_HOST:<name>}`** → the deployment's container DNS name on the shared
+    `ov` net (`ov-<name>`; also verifies it is running). The pod→pod address:
+    `http://${PEER_HOST:<subject>}:8080`. Reference the subject by its OWN deploy
+    name (for a bed, that's the bed name — the container is `ov-<bedname>`).
+  - **`${PEER_ENDPOINT:<name>:<port>}`** → a host-reachable `127.0.0.1:NNNN` for
+    that deployment's `<port>` (container published port, or an ssh `-L` forward
+    for a VM/host subject). The host-vantage address a `local`/host driver uses to
+    reach a pod/VM subject. (Both are runtime-only — a build-scope check can't use
+    them.)
+
+  An unresolvable `${PEER_*}` — the peer/subject is unreachable (not running, bad
+  port, VM ssh-forward refused) — **FAILS** the referencing check, never SKIPs it.
+  A skip on an unreachable dependency is a fake pass: it would let a bed go green
+  even though the cross-deployment probe never reached its target. (Legitimate
+  skips — `skip: true`, `exclude_distros`, a deploy-only var under build scope —
+  are unaffected; only an unresolved mandatory `${PEER_*}` is treated as a failure.)
+
+### Worked example — a Chrome pod CDP-probes a web-server pod (pod→pod)
+
+```yaml
+# eval.yml — kind:eval bed: web SUBJECT (root) + chrome DRIVER (peer)
+eval-cross-pod-cdp:
+    target: pod
+    box: web                       # the SUBJECT under test (nginx fixture on :8080)
+    disposable: true
+    port: [auto]
+    peer:
+        chrome:                    # the DRIVER, a sibling on the ov net
+            target: pod
+            box: chrome-headless   # headless Chrome + cdp-proxy (publishes 9222)
+            port: [auto]
+    eval:
+        - id: web-fixture-up       # the subject serves its marker
+          scope: deploy
+          http: http://127.0.0.1:${HOST_PORT:8080}/
+          status: 200
+          body: [{contains: ov-fixture-web-content-marker}]
+        - id: cdp-open-web-subject # DRIVE: chrome navigates to the subject over the ov net
+          scope: deploy
+          cdp: open
+          on: chrome
+          url: http://${PEER_HOST:eval-cross-pod-cdp}:8080
+          eventually: 45s
+          retry_interval: 3s
+        - id: cdp-web-fixture-rendered  # ASSERT: the rendered page carries the marker
+          scope: deploy
+          cdp: text
+          on: chrome
+          tab: "1"                 # the first page (cdp `open` lands on tab 1)
+          eventually: 30s
+          retry_interval: 3s
+          stdout: [{contains: ov-fixture-web-content-marker}]
+```
+
+`bringUpPeers` config+starts the chrome peer alongside the web root; the
+`on: chrome` checks dispatch `ov eval cdp <method> chrome` (connecting to chrome's
+published 9222) while `${PEER_HOST:eval-cross-pod-cdp}` resolves to the web
+subject's `ov-eval-cross-pod-cdp` container, reached over the shared net.
+
+**Driver-box requirement (CDP):** a headless Chrome CDP driver MUST launch with
+`--remote-allow-origins='*'` (Chrome 146+ rejects the CDP WebSocket upgrade
+otherwise — `cdp open` via HTTP works, but `cdp text`/`eval`/`screenshot` fail).
+The `chrome-headless` box sets it; see `/ov-eval:cdp` "Requirements".
+
+### Cross-kind: a host driver reaching a pod OR a VM subject (`${PEER_ENDPOINT}`)
+
+`${PEER_ENDPOINT}` is **kind-agnostic** — it routes through the ONE host-vantage
+port resolver (`resolveEvalEndpoint`): a pod subject resolves to its auto-
+published port (`podman port`); a VM subject resolves to an `ssh -L
+127.0.0.1:<rand>:127.0.0.1:<guestport>` forward over the managed `ov-<vm>` alias
+(the SAME forward `eval-k3s-vm` uses to reach the cluster API host-side). So the
+identical check — `command: curl …${PEER_ENDPOINT:<subject>:<port>}` dispatched
+`on:` a `kind: local` host driver — proves a pod subject (`eval-cross-local-http`)
+and a VM subject (`eval-cross-vm-http`) with ZERO kind-specific eval code; only
+the subject kind differs.
+
+**The VM subject is driven from a host-side (`target: local`) peer, NOT a pod
+driver.** `${PEER_ENDPOINT}` is a host-vantage `127.0.0.1:NNNN` address; a pod
+driver can't reach it (that loopback is the pod's own netns), and a rootless
+`qemu:///session` VM shares no L2 bridge with rootless pods. The generic, no-hack
+VM cell therefore uses a local driver peer — the host where both the published
+port and the ssh-forward live. (`${PEER_HOST}` — pod-net container DNS — is the
+pod→pod address and does NOT reach a VM.)
 
 ## Deploy.yml overlay rules
 

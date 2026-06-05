@@ -335,8 +335,8 @@ ov deploy del my-dev
 
 **Deploy directly to the host:**
 ```bash
-ov deploy add host fedora-coder --with-services --yes
-ov deploy del host --yes
+ov deploy add host fedora-coder --with-services --assume-yes
+ov deploy del host --assume-yes
 ```
 
 **Deploy from a remote repo:**
@@ -961,6 +961,56 @@ eval:
 - **Orthogonal to disposable/ephemeral** — no derivation either way; a deploy may
   be both preemptible and disposable. Full reference: `/ov-internals:disposable`
   "The resource-arbitration axis".
+
+## Sibling peers (`peer:`) — companion deployments brought up alongside
+
+`peer:` on a `DeploymentNode` declares **companion deployments brought up
+ALONGSIDE** it on the shared `ov` network — *siblings*, not children. Contrast
+`nested:`, whose children run **inside** this node's venue and are addressed by a
+dotted path (`parent.child`). A peer is a companion **instrument**: the canonical
+case is a Chrome DRIVER pod that CDP-probes a SEPARATE web-server SUBJECT, where a
+check on the subject carries `on: <peer>` (see `/ov-eval:eval` "Cross-deployment
+probing"). The SAME field + lifecycle serve a `kind: eval` bed and a `kind: deploy`
+operator deployment — one codebase.
+
+```yaml
+deploy:
+  webapp:                          # an operator deployment + a companion
+    target: pod
+    image: web
+    peer:
+      chrome:                      # a SIBLING brought up on the shared ov net
+        target: pod
+        image: chrome-headless     # a full DeploymentNode (its own target/image/port/…)
+        port: [auto]
+```
+
+- **Folded to addressable top-level entries.** At load time `foldPeers` registers
+  each peer as a top-level Deploy entry (so `ov config <peer>` / `ov start <peer>`
+  resolve it through the exact path any deploy uses) carrying a derived `PeerOf:
+  <owner>`. A peer name must be **globally unique** (a collision with any
+  deploy/bed/peer is a hard load error) and carry **no `.`** (same rules as
+  `nested:` keys + bed names); the author keeps peer **host ports disjoint** (the
+  loader does not check ports — `[auto]` avoids fixed-port collisions).
+- **One shared lifecycle (R3).** `bringUpPeers` / `tearDownPeers` (`ov/deploy_peers.go`)
+  bring peers up after the owner and tear them down with it, by shelling out to the
+  SAME verbs — a pod peer via `ov config` + `ov start` (+ readiness wait), a
+  non-pod peer via `ov deploy add` / `ov deploy del`. Wired into `ov deploy add` /
+  `ov deploy del` (operator path) AND the `kind: eval` bed runner (the bed's
+  `--node-only` add never double-deploys; the runner brings peers up after the root
+  starts). A bed's `ov update` (destroy + rebuild) tears peers down and back up too.
+- **Disposability is inherited, never invented.** `foldPeers` promotes a peer to
+  `disposable: true` only when its OWNER is disposable (so a disposable bed's
+  rebuild is authorized to tear the peer down); a peer of a non-disposable operator
+  deploy stays non-disposable. No new autonomy is granted — peers are components of
+  their owner, touched only by the owner's explicit add/del/update (R6,
+  `/ov-internals:disposable`).
+- **Peers are NOT eval-live'd.** A `kind: eval` bed evaluates its SUBJECT (root +
+  any `nested:` children via `bedEvalLiveRefs`); peers are instruments, never
+  evaluated themselves — the subject's `on: <peer>` checks drive *through* them.
+- **Addressing the subject from a driven probe** uses the `${PEER_HOST:<name>}` /
+  `${PEER_ENDPOINT:<name>:<port>}` variables — see `/ov-eval:eval` "Cross-deployment
+  probing".
 
 ## Cross-References
 
