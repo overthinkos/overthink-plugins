@@ -104,7 +104,7 @@ encoding (zero CPU overhead).
 - `/ov-selkies:selkies-desktop-layer` — the labwc desktop metalayer this image is the GPU build of
 - `selkies-labwc` (in the `overthinkos/selkies` submodule) — the CPU-encoding labwc sibling
 - `selkies-kde-nvidia` — the KDE-Plasma GPU sibling (same `cachyos.nvidia` base + CUDA arch-builder)
-- `/ov-openclaw:openclaw-desktop` — the CachyOS/CPU all-in-one: this streaming desktop stack + the openclaw-full gateway + AI CLIs + a CPU ollama + the full ov toolchain (ov-full + container-nesting + golang + gh). Use it if you want to build images / start nested pods / launch VMs from inside the browser-accessible desktop.
+- `/ov-openclaw:openclaw-desktop` — the CachyOS/CPU all-in-one: this streaming desktop stack + the openclaw-full gateway + AI CLIs + a CPU ollama + the full ov toolchain (ov + container-nesting + golang + gh). Use it if you want to build images / start nested pods / launch VMs from inside the browser-accessible desktop.
 - `/ov-distros:cachyos` — the CachyOS base image family (owns this image's submodule)
 
 ## Related Commands

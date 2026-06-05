@@ -30,7 +30,7 @@ openclaw-desktop:
     - selkies-desktop          # full streaming desktop stack
     - openclaw-full            # gateway + 27 tools incl. claude-code/codex/gemini
     - ollama                   # CPU ollama (GPU-agnostic layer)
-    - ov-full                  # ov + virtualization + gocryptfs + socat
+    - ov                       # the full toolchain: ov binary + virtualization + gocryptfs + socat
     - container-nesting        # nested rootless podman/buildah/skopeo
     - golang
     - gh
@@ -85,7 +85,7 @@ documented in `/ov-distros:container-nesting` with the full kernel-level RCA.
 | Streaming desktop | `selkies-desktop` (chrome, chrome-cdp, labwc, waybar, pipewire, swaync, pavucontrol, wl-tools, selkies, sshd, …) | labwc Wayland desktop streamed over HTTPS:3000; Chrome + CDP:9222 + chrome-devtools-mcp:9224; sshd:2222 |
 | OpenClaw + tools | `openclaw-full` (openclaw gateway + claude-code, codex, gemini + 24 more tools) | AI gateway on :18789; `claude` / `codex` / `gemini` CLIs at `${HOME}/.npm-global/bin/`; playwright now drives the desktop's real Chrome (synergy) |
 | LLM inference | `ollama` | CPU Ollama API on :11434; `ollama` host alias; `models` volume at `~/.ollama` |
-| Nested ov toolchain | `ov-full` + `container-nesting` + `golang` + `gh` | `ov box build`, nested rootless podman/buildah/skopeo, rootless libvirt VMs, gocryptfs encrypted volumes, socat relays |
+| Nested ov toolchain | `ov` + `container-nesting` + `golang` + `gh` | `ov box build`, nested rootless podman/buildah/skopeo, rootless libvirt VMs, gocryptfs encrypted volumes, socat relays |
 
 **Browser synergy:** `openclaw-full` ships `playwright` but deliberately omits a
 system browser (it's normally headless). Fusing it with `selkies-desktop`'s
@@ -222,7 +222,7 @@ ollama API, chrome-devtools-mcp port). The R10 bed is
 - `/ov-selkies:selkies-desktop-layer` — the streaming desktop metalayer
 - `/ov-openclaw:openclaw-full` — gateway + 27 tools (claude-code/codex/gemini)
 - `/ov-ollama:ollama` — CPU/GPU-agnostic Ollama layer (GPU is image-level)
-- `/ov-coder:ov-full` — ov + virtualization + gocryptfs + socat
+- `/ov-tools:ov` — the full toolchain: ov binary + virtualization + gocryptfs + socat
 - `/ov-distros:container-nesting` — rootless nested podman recipe (RCA for `unmask=/proc/*`)
 - `/ov-infrastructure:virtualization` — supervisord-managed virtqemud/virtnetworkd
 - `/ov-distros:agent-forwarding` — GPG/SSH/direnv agent sockets

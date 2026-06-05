@@ -42,7 +42,7 @@ CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher
 | "What does layer X do?" — base distros / GPU / bootc | `/ov-distros:<name>` (arch, fedora, debian, ubuntu, nvidia, cuda, rocm, bootc-base, …) |
 | "What does layer X do?" — language runtime | `/ov-languages:<name>` (python, python-ml, pixi) |
 | "What does layer X do?" — infrastructure service | `/ov-infrastructure:<name>` (postgresql, redis, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, …) |
-| "What does layer X do?" — CLI utility | `/ov-tools:<name>` (ripgrep, himalaya, whisper, ov, ov-full, …) |
+| "What does layer X do?" — CLI utility | `/ov-tools:<name>` (ripgrep, himalaya, whisper, ov, …) |
 | Skill authoring / maintenance | `/ov-internals:skills` (this skill) |
 
 If multiple triggers apply, load ALL matching skills in ONE message (parallel `Skill` calls). Full index: `plugins/README.md` (250+ skills).
@@ -147,7 +147,7 @@ Plugins are sorted into four use-case buckets. Directory names live at
 | images | `ov-infrastructure` | 22 | postgres, redis, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, ... |
 | images | `ov-tools` | 19 | CLI utilities + ov binary deploy |
 | images | `ov-jupyter` | 15 | jupyter image family + jupyter MCP @ 8888 |
-| images | `ov-coder` | 33 | coder/dev images + ov MCP @ 18765 |
+| images | `ov-coder` | 31 | coder/dev images + ov MCP @ 18765 |
 | images | `ov-selkies` | 45 | selkies-desktop family + chrome-devtools MCP @ 9224 |
 | images | `ov-openclaw` | 12 | openclaw AI workstation + chrome-devtools MCP @ 9224 |
 | images | `ov-versa` | 9 | versa image — marimo + airflow + OSM analytics + 2 MCP servers |

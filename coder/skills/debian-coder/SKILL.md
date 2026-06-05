@@ -35,7 +35,7 @@ debian-coder:
     # Baseline
     - agent-forwarding
     - sshd
-    - ov-full
+    - ov
     - ov-mcp
     - container-nesting
     - dbus

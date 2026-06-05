@@ -38,7 +38,7 @@ arch-coder:
     # Baseline — identical to fedora-coder
     - agent-forwarding
     - sshd
-    - ov-full
+    - ov
     - ov-mcp
     - container-nesting
     - dbus
@@ -170,7 +170,7 @@ Conflicts with `/ov-coder:fedora-coder` / `/ov-coder:debian-coder` / `/ov-coder:
 ## Related layers
 
 - `/ov-tools:yay` — AUR helper, required for any `aur:` section
-- `/ov-coder:ov-full`, `/ov-coder:ov-mcp`, `/ov-distros:container-nesting` — shared rootless baseline
+- `/ov-tools:ov`, `/ov-coder:ov-mcp`, `/ov-distros:container-nesting` — shared rootless baseline
 - `/ov-coder:sshd` — cross-distro sudoers via `getent passwd 1000`
 - `/ov-coder:language-runtimes`, `/ov-coder:dev-tools`, `/ov-coder:gh`
 - `/ov-coder:claude-code`, `/ov-coder:codex`, `/ov-coder:gemini`, `/ov-coder:forgecode`, `/ov-coder:oracle`

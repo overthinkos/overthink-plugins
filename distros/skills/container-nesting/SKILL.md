@@ -310,7 +310,7 @@ openclaw-desktop:
     - selkies-desktop
     - openclaw-full
     - ollama
-    - ov-full
+    - ov
     - container-nesting   # donates unmask + devices + config + env
     - ...
   # NO uid/gid/user/network override
@@ -332,7 +332,7 @@ fedora-ov:
       - label=disable
       - seccomp=unconfined
   layers:
-    - ov-full
+    - ov
     - container-nesting
     - ...
 ```
@@ -375,7 +375,7 @@ this order:
 
 ## Related Layers
 
-- `/ov-coder:ov-full` — pairs with container-nesting in ov-toolchain images (adds the `ov` binary + VM + encrypted storage tools)
+- `/ov-tools:ov` — pairs with container-nesting in ov-toolchain images (the full toolchain: `ov` binary + VM + encrypted storage tools)
 - `/ov-infrastructure:virtualization` — supervisord-managed rootless libvirt (`virtqemud`, `virtnetworkd`). Pairs with container-nesting for images that need both nested containers AND nested VMs
 - `/ov-coder:sshd` — sibling enabling remote access to nested-container hosts
 

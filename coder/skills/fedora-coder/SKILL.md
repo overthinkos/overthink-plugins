@@ -43,7 +43,7 @@ fedora-coder:
     # Baseline (matches the ov-ov power-user pattern)
     - agent-forwarding
     - sshd
-    - ov-full                     # ov + virtualization + gocryptfs + socat
+    - ov                          # the full toolchain: ov binary + virtualization + gocryptfs + socat
     - ov-mcp                      # MCP gateway for the entire ov CLI
     - container-nesting           # rootless nested podman/buildah/skopeo
     - dbus
@@ -232,7 +232,7 @@ google-cloud-npm) by forking box.yml. See `/ov-image:image` for authoring.
 
 ## Key Layers
 
-- `/ov-coder:ov-full` — composition: ov + virtualization + gocryptfs + socat (+ podman-machine, gvisor-tap-vsock for nested VMs)
+- `/ov-tools:ov` — the full toolchain: ov binary + virtualization + gocryptfs + socat (+ podman-machine, gvisor-tap-vsock for nested VMs)
 - `/ov-coder:ov-mcp` — MCP gateway; auto-falls back to `overthinkos/overthink` when no bind-mount present
 - `/ov-distros:container-nesting` — rootless nested podman recipe (authoritative RCA for `mount_too_revealing()` + `unmask=/proc/*`)
 - `/ov-coder:sshd` — SSH daemon + passwordless sudo for the `user` account

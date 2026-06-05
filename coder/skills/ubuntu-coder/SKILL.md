@@ -33,7 +33,7 @@ ubuntu-coder:
     # Same stack as debian-coder — see that skill for the full list
     - agent-forwarding
     - sshd
-    - ov-full
+    - ov
     - ov-mcp
     - container-nesting
     - dbus
@@ -188,7 +188,7 @@ Conflicts with the other three coder-family images on these ports.
 - `/ov-coder:dev-tools` — bat→batcat + fastfetch `exclude_distros`.
 - `/ov-coder:language-runtimes` — Microsoft `dotnet-install.sh` for .NET 9.
 - `/ov-infrastructure:virtualization` — `package:` + `package_map:` tests.
-- `/ov-distros:container-nesting`, `/ov-coder:ov-full`, `/ov-coder:ov-mcp` — shared rootless baseline.
+- `/ov-distros:container-nesting`, `/ov-tools:ov`, `/ov-coder:ov-mcp` — shared rootless baseline.
 
 ## Related commands
 

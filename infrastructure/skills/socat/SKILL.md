@@ -36,12 +36,12 @@ Typically not added directly. Auto-included when a layer uses `port_relay:` in i
 
 ## Used In Images
 
-- Part of `ov-full` composition layer (used in `githubrunner`)
+- Part of the `ov` layer's full toolchain (used in `githubrunner`)
 
 ## Related Layers
 
-- `/ov-infrastructure:virtualization` -- part of `ov-full` alongside socat
-- `/ov-infrastructure:gocryptfs` -- part of `ov-full` alongside socat
+- `/ov-infrastructure:virtualization` -- part of the `ov` layer alongside socat
+- `/ov-infrastructure:gocryptfs` -- part of the `ov` layer alongside socat
 
 ## When to Use This Skill
 

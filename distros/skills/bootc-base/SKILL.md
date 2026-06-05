@@ -28,7 +28,7 @@ my-os:
 - `/ov-coder:sshd` -- SSH server (included)
 - `/ov-distros:qemu-guest-agent` -- QEMU guest agent (included)
 - `/ov-distros:bootc-config` -- bootc system configuration (included)
-- `/ov-coder:ov-full` -- often paired for full VM toolchain
+- `/ov-tools:ov` -- often paired for the full VM toolchain (ov binary + virtualization + gocryptfs + socat)
 
 ## Used In Images
 

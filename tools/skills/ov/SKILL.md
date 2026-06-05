@@ -2,7 +2,7 @@
 name: ov
 description: |
   Overthink CLI (ov) binary installed into container/VM images for in-container use.
-  Use when working with ov binary deployment inside containers, native D-Bus support, or the ov-full composition.
+  Use when working with ov binary deployment inside containers, native D-Bus support, or the full ov toolchain (ov binary + virtualization + gocryptfs + socat).
 ---
 
 # ov -- Overthink CLI binary
@@ -74,12 +74,12 @@ my-image:
 
 ## Used In Images
 
-- Part of the `ov-full` composition layer (githubrunner, fedora-ov, arch-ov)
+- The `ov` layer is the full toolchain (ov binary + virtualization + gocryptfs + socat); composed into githubrunner, fedora-ov, arch-ov
 - Now directly added to all images with supervisord (openclaw, jupyter, ollama, sway-browser-vnc, selkies-desktop, immich, etc.)
 
 ## Related Layers
 
-- `/ov-coder:ov-full` -- composition that includes ov + virtualization + gocryptfs + socat
+- `/ov-infrastructure:virtualization`, `/ov-infrastructure:gocryptfs`, `/ov-infrastructure:socat` -- the layers the `ov` layer composes alongside the binary to form the full toolchain
 - `/ov-coder:ov-mcp` -- layers: [ov, supervisord] meta-composition that deploys `ov mcp serve` (~192-tool MCP gateway) with a `/workspace` bind mount (volume NAME `project`) for build-mode tools + auto-fallback to overthinkos/overthink when nothing is bound
 - `/ov-infrastructure:dbus-layer` -- D-Bus session bus (ov eval dbus commands need this)
 - `/ov-selkies:swaync` -- notification daemon (needed for ov eval dbus notify to show popups)
@@ -89,7 +89,7 @@ my-image:
 Use when the user asks about:
 
 - Installing the ov binary inside containers
-- The ov-full composition layer
+- The full ov toolchain composition (ov binary + virtualization + gocryptfs + socat)
 - In-container ov CLI usage
 - Native D-Bus support (ov eval dbus commands delegate to in-container binary)
 - Updating the ov candy binary after code changes

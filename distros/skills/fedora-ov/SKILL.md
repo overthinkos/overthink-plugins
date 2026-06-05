@@ -28,7 +28,7 @@ from anywhere once the image is in local storage.
 |----------|-------|
 | Base | fedora (quay.io/fedora/fedora:43) |
 | Tags | `[all, rpm, fedora, fedora:43]` |
-| Layers | agent-forwarding, ov-full, golang, gh, sshd, container-nesting, nvidia |
+| Layers | agent-forwarding, ov, golang, gh, sshd, container-nesting, nvidia |
 | Platforms | linux/amd64 |
 | UID / user | **1000 / user** (rootless-first) |
 | Network | host |
@@ -77,7 +77,7 @@ into the layer list — it will work on either networking mode.
 
 Full ov toolchain via shared layers:
 
-- **ov-full** — ov binary + VM tools (qemu-kvm, qemu-img, libvirt tools) + gocryptfs + socat + gvisor-tap-vsock + podman-machine
+- **ov** — the full toolchain: ov binary + VM tools (qemu-kvm, qemu-img, libvirt tools) + gocryptfs + socat + gvisor-tap-vsock + podman-machine
 - **golang** — Go compiler (`golang-bin`)
 - **gh** — GitHub CLI + `git` + `git-lfs` (single-responsibility; see `/ov-coder:gh`)
 - **sshd** — SSH server/client (`openssh-server`, `openssh-clients`) + passwordless sudo for `user`
@@ -155,7 +155,7 @@ and scripts per distro.
 
 ## Key Layers
 
-- `/ov-coder:ov-full` — ov binary plus VM/encryption tools
+- `/ov-tools:ov` — the full toolchain: ov binary plus VM/encryption tools
 - `/ov-distros:container-nesting` — nested rootless podman/buildah (authoritative RCA for `mount_too_revealing()` + `unmask=/proc/*`)
 - `/ov-coder:sshd` — SSH daemon + passwordless sudo for `user`
 - `/ov-coder:gh` — GitHub CLI + git + git-lfs (owns all git tooling)

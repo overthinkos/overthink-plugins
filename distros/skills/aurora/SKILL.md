@@ -18,7 +18,7 @@ Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH acce
 | Base | ghcr.io/ublue-os/aurora-dx-nvidia-open:stable-daily-43.20260305 |
 | Bootc | true |
 | Distro | `fedora:43`, `fedora` (declared — external base inherits no distro tags) |
-| Layers | agent-forwarding, bootc-base, sshd, ov-full, golang |
+| Layers | agent-forwarding, bootc-base, sshd, ov, golang |
 | Platforms | linux/amd64 |
 | Status | enabled |
 | Registry | ghcr.io/overthinkos |
@@ -35,7 +35,7 @@ Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH acce
 
 1. `aurora-dx-nvidia-open` (external bootc base — full KDE desktop with NVIDIA)
 2. `sshd` — SSH server for remote access
-3. `ov-full` — ov CLI + virtualization + encrypted storage + console
+3. `ov` — the full toolchain: ov CLI + virtualization + encrypted storage + console
 4. `golang` — Go compiler
 
 ## Quick Start
@@ -57,7 +57,7 @@ ov -C image/bootc vm ssh aurora-bootc
 
 ## Related Images
 
-- `/ov-distros:githubrunner` — another image with ov-full (enabled)
+- `/ov-distros:githubrunner` — another image with the full `ov` toolchain (enabled)
 
 ## When to Use This Skill
 

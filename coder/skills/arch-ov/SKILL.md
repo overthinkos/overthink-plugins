@@ -30,7 +30,7 @@ can drive build/test/deploy via Streamable HTTP on port 18765.
 |----------|-------|
 | Base | arch (quay.io/archlinux/archlinux, pinned in base.yml) |
 | Tags | `[all, pac, arch]` |
-| Layers | agent-forwarding, ov-full, **ov-mcp**, golang, gh, sshd, container-nesting, nvidia |
+| Layers | agent-forwarding, ov, **ov-mcp**, golang, gh, sshd, container-nesting, nvidia |
 | Platforms | linux/amd64 |
 | UID / user | **1000 / user** (rootless-first) |
 | Network | default `ov` bridge |
@@ -108,7 +108,7 @@ bind-mount handshake.
 
 Full ov toolchain via shared layers:
 
-- **ov-full** — ov binary + VM tools (qemu-full, virtiofsd, libvirt) + gocryptfs + socat
+- **ov** — the full toolchain: ov binary + VM tools (qemu-full, virtiofsd, libvirt) + gocryptfs + socat
 - **ov-mcp** — MCP server exposing the full ov CLI as tools on :18765 (supervisord-managed; bind `project=` for build-mode tools or rely on auto-fallback)
 - **golang** — Go compiler (`go`)
 - **gh** — GitHub CLI + `git` + `git-lfs` (single-responsibility; see `/ov-coder:gh`)
@@ -185,7 +185,7 @@ packages and scripts per distro.
 
 ## Key Layers
 
-- `/ov-coder:ov-full` — ov binary plus VM/encryption tools
+- `/ov-tools:ov` — the full toolchain: ov binary plus VM/encryption tools
 - `/ov-coder:ov-mcp` — MCP server gateway (port 18765; `/workspace` bind-mount or auto-fallback)
 - `/ov-distros:container-nesting` — nested podman/buildah (pac: podman + crun + buildah; `docker` is RPM-only — Arch gets podman directly)
 - `/ov-coder:sshd` — SSH server/client with `package_map` for cross-distro package names + the passwordless-sudo sudoers drop-in

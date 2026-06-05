@@ -30,7 +30,7 @@ my-image:
     - gocryptfs
 ```
 
-Typically used as part of the `ov-full` composition layer rather than directly.
+Typically used as part of the `ov` layer (the full toolchain: ov binary + virtualization + gocryptfs + socat) rather than directly.
 
 ## Runtime Behavior
 
@@ -42,12 +42,12 @@ See `/ov-automation:enc` for full encrypted volume operations documentation.
 
 ## Used In Images
 
-- Part of `ov-full` composition layer (used in `githubrunner`)
+- Part of the `ov` layer's full toolchain (used in `githubrunner`)
 
 ## Related Layers
 
-- `/ov-infrastructure:virtualization` -- part of `ov-full` alongside gocryptfs
-- `/ov-infrastructure:socat` -- part of `ov-full` alongside gocryptfs
+- `/ov-infrastructure:virtualization` -- part of the `ov` layer alongside gocryptfs
+- `/ov-infrastructure:socat` -- part of the `ov` layer alongside gocryptfs
 
 ## When to Use This Skill
 

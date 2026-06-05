@@ -167,7 +167,7 @@
     {
       "name": "ov-tools",
       "source": "./tools",
-      "description": "CLI utilities and the ov binary deploy artifacts — ripgrep, himalaya, whisper, nano-pdf, summarize, ordercli, gogcli, sherpa-onnx, plus the `ov`/`ov-full` binary deployment skills.",
+      "description": "CLI utilities and the ov binary deploy artifacts — ripgrep, himalaya, whisper, nano-pdf, summarize, ordercli, gogcli, sherpa-onnx, plus the `ov` binary deployment skill.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",

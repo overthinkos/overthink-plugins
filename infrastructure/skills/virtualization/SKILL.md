@@ -188,7 +188,7 @@ See `/ov-eval:eval` "`package:` + `package_map:` pattern" for the resolution ord
 openclaw-desktop:
   layers:
     - ...
-    - ov-full             # transitively pulls virtualization
+    - ov                  # the full toolchain — pulls virtualization
     - container-nesting   # donates /dev/fuse + /dev/net/tun devices (VMs only need /dev/kvm)
 ```
 
@@ -199,10 +199,10 @@ openclaw-desktop:
 
 ## Composition chain
 
-`ov-full` → composes `virtualization` (this layer) + `ov` + `gocryptfs` +
-`socat` + `podman-machine` + `gvisor-tap-vsock`. So any image that pulls
-`ov-full` automatically gets the supervisord-managed virtqemud/virtnetworkd
-programs.
+The `ov` layer (the full toolchain) composes `virtualization` (this layer) +
+the ov binary + `gocryptfs` + `socat` + `podman-machine` + `gvisor-tap-vsock`.
+So any image that pulls `ov` automatically gets the supervisord-managed
+virtqemud/virtnetworkd programs.
 
 ## Cross-distro coverage
 
@@ -215,16 +215,16 @@ Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networ
 - `/ov-openclaw:openclaw-desktop` — rootless VM host inside a streaming desktop
 - `/ov-distros:fedora-ov` — root VM host (same daemons, uid 0)
 - `/ov-coder:arch-ov` — Arch counterpart
-- `/ov-coder:debian-coder`, `/ov-coder:ubuntu-coder` — deb-based consumers (via `ov-full`)
+- `/ov-coder:debian-coder`, `/ov-coder:ubuntu-coder` — deb-based consumers (via the `ov` layer)
 - `/ov-distros:githubrunner` — VMs for CI workloads
 - `/ov-distros:aurora`, `/ov-distros:bazzite` — bootc siblings
 
 ## Related Layers
 
-- `/ov-coder:ov-full` — composition that pulls this layer into ov-toolchain images
+- `/ov-tools:ov` — the full toolchain that pulls this layer into ov-toolchain images
 - `/ov-distros:container-nesting` — pairs with this layer for images that need both nested containers AND nested VMs; also donates `/dev/kvm`-adjacent devices
-- `/ov-infrastructure:socat` — part of `ov-full` alongside virtualization; used for VM console/hostfwd relays
-- `/ov-infrastructure:gocryptfs` — part of `ov-full`; for encrypting VM disk storage
+- `/ov-infrastructure:socat` — part of the `ov` layer alongside virtualization; used for VM console/hostfwd relays
+- `/ov-infrastructure:gocryptfs` — part of the `ov` layer; for encrypting VM disk storage
 
 ## Related Commands
 

@@ -48,7 +48,7 @@ one) and avoids duplicate test ids (`gh-binary` collisions).
 
 Effect for layer authors: any image that wants git tooling composes `gh`
 explicitly. The four power-user images (`arch-ov`, `fedora-ov`,
-`fedora-coder`, `githubrunner` via the `ov-full` chain) all list `gh`
+`fedora-coder`, `githubrunner` via the `ov` chain) all list `gh`
 explicitly.
 
 ## Tests

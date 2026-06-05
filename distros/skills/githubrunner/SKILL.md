@@ -19,7 +19,7 @@ Shares the rootless-first posture with `/ov-distros:fedora-ov`,
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | agent-forwarding, github-runner, ov-full, dbus |
+| Layers | agent-forwarding, github-runner, ov, dbus |
 | Platforms | linux/amd64 |
 | UID / user | **1000 / user** (rootless-first) |
 | Network | host |
@@ -29,7 +29,7 @@ Shares the rootless-first posture with `/ov-distros:fedora-ov`,
 ## Full Layer Stack
 
 1. `fedora` (quay.io/fedora/fedora:43)
-2. Transitive (via `ov-full`): `ov` + `virtualization` + `gocryptfs` + `socat`
+2. `ov` — the full toolchain: ov binary + `virtualization` + `gocryptfs` + `socat`
 3. `github-runner` — Actions runner agent, skopeo, podman, buildah
 4. `dbus` — session bus (for runner hooks)
 
@@ -51,8 +51,8 @@ layer list (it installs `/etc/sudoers.d/ov-user`).
 
 Unlike `/ov-distros:fedora-ov` and `/ov-coder:arch-ov`, `githubrunner`
 does NOT compose `/ov-distros:container-nesting` directly. Nested
-rootless podman works only via `ov-full`'s transitive dependency
-chain. If your Actions workflows need first-class rootless nested
+rootless podman works only via the `ov` layer's `virtualization`
+dependency. If your Actions workflows need first-class rootless nested
 containers (with `/dev/fuse` + `unmask=/proc/*` security opts), add
 `container-nesting` to the layer list explicitly.
 
@@ -86,7 +86,7 @@ ov remove githubrunner -e RUNNER_TOKEN=<token>
 ## Key Layers
 
 - `/ov-distros:github-runner` — runner agent, hooks, security config
-- `/ov-coder:ov-full` — ov + virtualization + gocryptfs + socat
+- `/ov-tools:ov` — the full toolchain: ov binary + virtualization + gocryptfs + socat
 - `/ov-infrastructure:virtualization` — QEMU/KVM + rootless libvirt session daemon
 - `/ov-distros:container-nesting` — not composed here by default (add if workflows need first-class rootless nested containers)
 
