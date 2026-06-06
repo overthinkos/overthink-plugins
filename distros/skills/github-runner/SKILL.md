@@ -23,7 +23,14 @@ description: |
 - Toolchain: `jq`, `git`, `go`, `cloud-guest-utils`, `cosign`
 - Cross-arch CI: `qemu-user-static`, `qemu-user-static-binfmt` (aarch64 binfmt)
 - .NET runtime deps for the runner binary (its `installdependencies.sh` has no
-  Arch branch): `icu`, `krb5`, `openssl`, `zlib`, `libunwind`, `lttng-ust`
+  Arch branch): `icu`, `krb5`, `openssl`, `libunwind`, `lttng-ust` (NOT `zlib` —
+  CachyOS ships `zlib-ng-compat`, which Provides it; an explicit `zlib` conflicts)
+- ov-host `depends=` completion: `slirp4netns`, `libisoburn`, `cdrtools`, `swtpm`
+  — the part of the `ov` PKGBUILD `depends=` set the ov/virtualization layers do
+  not already install. With these present, `ov box pkg pac` builds the pac release
+  artifact NATIVELY on the runner (`makepkg -sf` resolves every dep and never
+  shells out to `sudo pacman`). See `/ov-distros:githubrunner` "CI: builds the
+  org's release packages on itself".
 
 `podman`/`buildah`/`skopeo`/`crun`/`fuse-overlayfs` are provided by the
 `container-nesting` dependency (not redeclared here — R3).

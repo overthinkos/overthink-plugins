@@ -60,6 +60,26 @@ rootless image cache lives under `${HOME}/.local/share/containers`. Cross-arch
 container builds (aarch64) work via the repo `qemu-user-static` +
 `qemu-user-static-binfmt` packages.
 
+## CI: builds the org's release packages on itself
+
+The repo's `release-packages` workflow (`.github/workflows/release-packages.yml`)
+runs on this runner via `runs-on: [self-hosted, overthink]` — no GitHub-hosted
+runner. Because the runner is an Arch (CachyOS) host carrying the FULL `ov`
+PKGBUILD `depends=` set, all three package formats build here:
+
+- **pac** builds NATIVELY — `ov box pkg pac` → `makepkg -sf` as uid 1000 (makepkg
+  refuses root; the rootless runner's non-root uid is exactly right). Every
+  `depends=` is pre-installed, so makepkg resolves them without `sudo pacman` (the
+  runner has no passwordless sudo). No `archlinux:latest` container.
+- **rpm + deb** build distro-natively in the runner's rootless nested podman
+  (`ov box pkg rpm deb`).
+
+`workflow_dispatch` runs the build jobs from a branch (the release-upload step is
+tag-guarded), so the build is exercisable without minting a tag. The `github-runner`
+layer completes the `ov` runtime on the runner — beyond the .NET/runner deps it adds
+the `depends=` packages the ov/virtualization layers don't already provide
+(`slirp4netns`, `libisoburn`, `cdrtools`, `swtpm`).
+
 ## Token mechanism (credential-backed; obtained via `gh`)
 
 `RUNNER_TOKEN` is a `secret_accept` (credential-store-backed — never written to
@@ -96,7 +116,7 @@ ov remove githubrunner -e RUNNER_TOKEN=<remove-token>
 
 ## Key Layers
 
-- `/ov-distros:github-runner` — runner agent, hooks, registration, ghcr mirror, .NET deps
+- `/ov-distros:github-runner` — runner agent, hooks, registration, ghcr mirror, .NET deps + the ov-host `depends=` completion (native pac builds in CI)
 - `/ov-distros:container-nesting` — rootless nested podman/buildah/skopeo, subuid layout, caps
 - `/ov-tools:ov` — the ov binary + virtualization + gocryptfs + socat
 - `/ov-distros:agent-forwarding` — GPG/SSH/direnv for the `.secrets` workflow
