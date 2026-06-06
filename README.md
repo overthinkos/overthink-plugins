@@ -1,6 +1,6 @@
 # Overthink Plugins
 
-Claude Code plugins for Overthink — the container management experience for you and your agents.
+Claude Code plugins for Overthink — the candy factory for you and your agents.
 
 ## How this marketplace is organized
 
