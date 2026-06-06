@@ -7,3 +7,6 @@ Thumbs.db
 # Migration rollback backups (`ov migrate` writes <file>.bak.<unix-ts>)
 *.bak
 *.bak.*
+
+# Syncthing conflict copies — per-machine, ephemeral, resolved by hand; never versioned.
+*.sync-conflict-*
