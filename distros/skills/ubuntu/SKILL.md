@@ -29,7 +29,7 @@ Nothing in main consumes any Ubuntu image, so there is **no main ↔ ubuntu coup
 |----------|-------|
 | Base | `ubuntu:24.04` |
 | Pkg | `deb` |
-| Distro tags | `["ubuntu:24.04", "ubuntu", "debian"]` (falls back to debian for package resolution) |
+| Distro tags | `["ubuntu:24.04", "ubuntu"]` (symmetric with a `target: vm` deploy's `distroTagChain`; NO `debian` fallback — every deb-family layer carries an explicit `ubuntu` section, and the cascade would otherwise UNION debian-only packages onto ubuntu) |
 | Layers | (none — base image only) |
 | Platforms | `linux/amd64` |
 | User | `ubuntu` / uid 1000 (**adopt mode**) |

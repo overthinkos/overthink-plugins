@@ -154,7 +154,7 @@ Pass `HostContext{Target: "host", Distro: ..., GlibcVersion: ...}` for host comp
 
 Step emission order (mirrors today's `writeLayerSteps`):
 1. `ShellHookStep` for `env:` + `path_append:` (deterministic map ordering).
-2. `SystemPackagesStep`(s) — distro-tag section wins over build-format section (first-match precedence from `ResolvedImage.Distro` order).
+2. ONE `SystemPackagesStep` for the image's primary format — resolved via the most-specific-first distro CASCADE over `ResolvedImage.Distro` (e.g. `[ubuntu:24.04, ubuntu]`) plus the layer's top-level `package:` base: packages UNION across every matching per-distro tag section, while `repo`/`copr`/`option`/`exclude`/`module` resolve most-specific-wins. No per-distro section ever shares a mutable format section, so a deb-family repo (trixie vs noble) resolves deterministically. The cascade lives in **ONE shared function `resolveCascadePackages` (`install_build.go`)** called by BOTH the deploy compiler (`compileSystemPackageSteps`) AND the image-build Containerfile emitter (`generate.go writeLayerSteps`) — there is exactly one package-resolution path, so a layer's packages are identical whether built into an image or applied at deploy. (Non-primary build formats like `aur` are a separate multi-stage builder concern, not a distro tag, and emit from their own format section.)
 3. `TaskStep`(s) in YAML order.
 4. `BuilderStep`(s) for each matching multi-stage or inline builder.
 5. `ServicePackagedStep` / `ServiceCustomStep` from the `service:` list — per-entry routing via `IsPackaged()` + `ServiceSchema.SupportsPackaged`.

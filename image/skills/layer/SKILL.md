@@ -95,7 +95,7 @@ A layer directory can contain any combination of these:
 
 | Artifact | Runs as | Purpose |
 |---|---|---|
-| `candy.yml` `rpm:`/`deb:`/`pac:`/`aur:` sections | root | System packages declared declaratively |
+| `candy.yml` `distro:` map (+ top-level `package:` base) | root | System packages declared declaratively (see Package Surface below) |
 | `candy.yml` `task:` list | per-task `user:` | Ordered install operations — the primary extension point (see catalog below) |
 | `pixi.toml` / `pyproject.toml` / `environment.yml` | user (builder stage) | Python/conda packages. Multi-stage build. Only one per layer |
 | `package.json` | user (builder stage) | npm packages — installed globally via `npm install -g` |
@@ -419,7 +419,7 @@ task:
 | `ports` | `[]int \| []PortSpec` | Exposed ports (1-65535). Protocol-annotated form: `tcp:5900`, `https+insecure:3000`, etc. |
 | `route` | `{host, port}` | Traefik reverse proxy route. |
 | `service` | multiline string | Supervisord `[program:<name>]` fragment. |
-| `rpm` / `deb` / `pac` / `aur` | object | Per-format package declarations (see Package Manager Sections). |
+| `package` / `distro` | list / map | The package surface: top-level `package:` base + per-distro/version `distro:` map (bare / versioned / compound keys). Resolved via the most-specific-first cascade (see Package Surface). |
 | `apk` | `[]ApkPackageSpec` | **Android app-install package format** — apps installed onto a `kind: android` device by a `target: android` deploy (NOT into the image). Each entry is `package:` (apkeep download by id, with `source`/`arch`/`version`) XOR `apk:` (committed local APK). Device-scoped (top-level, not under `distro:`); compiles to an `ApkInstallStep` that ONLY `target: android` executes (skipped at image-build + on every other target). See `/ov-eval:android`. |
 | `localpkg` | map (format→dir) | **Native-package deploy format** (sibling of `apk`). A per-format map (`pac`/`rpm`/`deb` → a bundled package SOURCE dir, e.g. the `ov` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`). Compiles to a `LocalPkgInstallStep` (`/ov-internals:install-plan`) emitted at "step 2.5", BEFORE the layer's `task:`. On a DEPLOY target (`target: local` / `target: vm`) ov picks the entry matching the target distro's package format, builds the package on the HOST (pac via `makepkg`; rpm/deb distro-natively in a podman container), and installs it via the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`) — so the package's repo dependencies resolve automatically and there is NO dependency-closure builder. Every command (build / install / probe / glob / `source_sentinel`) is rendered from the distro's `format.<fmt>.local_pkg:` block in `build.yml` — zero hardcoded package-manager literals in Go. The legacy scalar form (`localpkg: pkg/arch`) is rejected at load with an `ov migrate` hint. Resolution walks up from the deploy project dir, so a consumer under `image/<distro>` finds the superproject's `pkg/<fmt>`. Skipped at image build — the layer's own `task:` (curl/COPY) is the fallback. The `ov` layer uses this to install `ov` as the native OS package at `/usr/bin/ov` on every distro instead of a curl'd binary. |
 | `volumes` | `[]{name, path}` | Persistent named volumes. |
@@ -441,70 +441,82 @@ Field details for non-`task:` sections are below.
 
 ---
 
-## Package Manager Sections
+## Package Surface — the `distro:` map (single canonical surface)
 
-### RPM (`rpm:`)
-
-```yaml
-rpm:
-  packages:
-    - neovim
-    - ripgrep
-  copr:
-    - owner/project       # Enabled before install, disabled after
-  repos:
-    - name: myrepo
-      url: https://example.com/repo
-      gpgkey: https://example.com/key.gpg
-  exclude:
-    - pattern-to-exclude
-  options:
-    - --setopt=tsflags=noscripts
-```
-
-### Deb (`deb:`)
+Packages are declared ONLY under the `distro:` map, plus an optional top-level
+`package:` base. There is NO top-level `rpm:` / `deb:` / `pac:` package-format
+key and NO top-level `debian:13:` / `debian,ubuntu:` tag key — those legacy forms
+are removed (a stray one is a hard load error pointing at `ov migrate`, which the
+existing `calamares` step rewrites into the `distro:` map). The arch `aur:`
+sub-block is the one exception that stays a build format — see AUR below.
 
 ```yaml
-deb:
-  packages:
-    - neovim
-    - ripgrep
+package:                 # the always-included BASE — installed on EVERY distro
+  - git                  #   (top-level list of cross-distro-valid package names)
+
+distro:
+  fedora:                # bare distro name → applies to every fedora version
+    package: [vim, ripgrep]
+    copr: [owner/project]
+    option: ["--setopt=tsflags=noscripts"]
+  arch:
+    package: [vim, ripgrep]
+  "debian,ubuntu":       # COMPOUND → shared by both (split into one tag each)
+    package: [vim, ripgrep]
+    repo:                # /etc/apt/sources.list.d/<name>.list + keyring
+      - name: myrepo
+        url: "https://example.com/repo"
+        key: "https://example.com/key.gpg"   # ASCII-armored; gpg --dearmor'd
+        suite: stable
+        components: main
+  ubuntu-24.04:          # VERSIONED (dash form) → overrides for that version only
+    repo: [{name: nodesource, url: "...", suite: nodistro, components: main}]
 ```
 
-Debian/Ubuntu-specific capabilities:
+### Key forms (all under `distro:`)
 
-- **`repos:`** — add `/etc/apt/sources.list.d/<name>.list` entries with GPG key management via `gpg --dearmor -o /etc/apt/keyrings/<name>.gpg`. Supports `url:`, `suite:`, `components:`, `key:` (URL to an ASCII-armored key), `signed_by:` (explicit keyring path), and PPA entries via `ppa:`. The install template auto-injects `signed-by=...` into `sources.list` when a key is configured.
-- **`options:`** — extra `apt-get install` flags (e.g. `--no-install-recommends` — already the default).
-- **`debian,ubuntu:` compound tag** — a shared section for packages that are identical on both Debian and Ubuntu; avoids duplication across `debian:13:` / `ubuntu:24.04:` sections. First-match-wins; if a version-specific tag also matches the image's distro list, that wins over the compound.
+| Form | Example | Means |
+|---|---|---|
+| bare distro | `fedora` / `debian` / `ubuntu` / `arch` | every version of that distro |
+| versioned | `debian-13` / `ubuntu-24.04` | that specific version (dash form — robust YAML) |
+| compound | `"debian,ubuntu"` / `"debian-13,ubuntu-24.04"` | shared across the listed distros/versions (split into one per distro) |
 
-Distro-version tag sections work too — `debian:13:` and `ubuntu:24.04:` carry full install-template surface (packages, repos, options). Useful when upstream apt-repo URLs differ per codename (e.g. `/ov-coder:docker-ce`, `/ov-coder:kubernetes-layer`).
+Each carries the full surface: `package` + `repo` + `copr` + `option` + `exclude`
++ `module` (and `aur` under `arch`). `repo` is the canonical key (singular).
 
-### Distro-version tag sections
+### Resolution is a most-specific-first CASCADE
 
-```yaml
-rpm:
-  packages: [...]            # Fedora fallback
+For an image, the resolver walks the image's `distro:` tag chain — most-specific
+first (e.g. `[ubuntu:24.04, ubuntu]` or `[debian:13, debian]`) — plus the
+top-level `package:` base:
 
-pac:
-  packages: [...]            # Arch fallback
+- **packages = UNION** across the base + every matching level (deduped). A shared
+  package on a broad level plus extras on a specific level accumulate.
+- **repo / copr / option / exclude / module = MOST-SPECIFIC matching level wins**
+  (a `ubuntu-24.04` repo overrides the bare `ubuntu` repo).
 
-deb:
-  packages: [golang-go, libicu-dev]   # Debian-family fallback
+This is what makes per-distro repos DETERMINISTIC: each distro owns its own tag
+section, so debian and ubuntu can never race over one shared section (the old
+collapse that made the apt suite — trixie vs noble — depend on Go map order).
+Canonical examples: `/ov-tools:ov` (tailscale `debian`→trixie / `ubuntu`→noble),
+`/ov-coder:docker-ce` (per-version repos), `/ov-tools:gh` (compound shared repo).
 
-debian:13:
-  repos:
-    - name: microsoft-prod
-      url: "https://packages.microsoft.com/debian/13/prod"
-      key: "https://packages.microsoft.com/keys/microsoft.asc"
-      suite: trixie
-      components: main
-  packages: [dotnet-sdk-9.0]
+### The cascade cannot SUBTRACT — express exclusions structurally
 
-ubuntu:24.04:
-  packages: []              # ubuntu 24.04 keeps the generic deb: packages (implicit)
-```
+Because packages UNION across the chain, you cannot have a specific level REMOVE a
+package a broader level added. To keep a package OFF a distro/version, simply
+never list it on any level that distro resolves. Worked example: `/ov-coder:dev-tools`
+keeps `fastfetch` (absent from Ubuntu's repos) only under `debian` + `fedora` +
+`arch` — NOT under `ubuntu` — so the ubuntu cascade never includes it.
 
-Match order: the image's `distro:` priority list (e.g. `["ubuntu:24.04", "ubuntu", "debian"]`) is walked in order; the first matching tag section wins. Every tag section supports the full install-template surface (not just `package:`) via `TagPkgConfig.Raw` in `ov/layers.go:214-219` — see `/ov-internals:go`.
+### Image distro chains (where the most-specific-first order comes from)
+
+An image declares its chain in `box.yml` `distro:` (e.g. `[debian:13, debian]`,
+`[ubuntu:24.04, ubuntu]`); a `target: vm` deploy synthesizes the SAME chain from
+the distro's canonical `version:` in `build.yml` via `distroTagChain` — so
+per-version selection works identically on image builds and VM deploys. fedora /
+arch carry only a bare tag (`[fedora]` / `[arch]`) and reach their packages via
+the bare-distro tag section. See `/ov-build:build` and `/ov-internals:install-plan`.
 
 ### Pac (`pac:`)
 
@@ -942,7 +954,7 @@ ov box validate
 
 ### Add system packages
 
-Add an `rpm:` / `deb:` / `pac:` / `aur:` section to `candy.yml`. Multi-distro layers declare all sections — the generator picks the one matching the image's `build:` list. For distro-version overrides, use a tag section like `fedora:43:` (checked first; first match wins).
+Add a `distro:` section to `candy.yml` keyed by distro name (`distro.fedora`, `distro.debian`, `"debian,ubuntu"` compound, `debian-13` versioned), and/or a top-level `package:` base for cross-distro names. The resolver cascades most-specific-first (packages union, repo/options most-specific-wins). `ov candy add-rpm`/`add-deb`/`add-pac`/`add-aur` append into the right `distro:` section for you.
 
 ### Add Python packages
 
@@ -1033,7 +1045,7 @@ Declare `service:` with a supervisord `[program:<name>]` fragment and add `super
 ## Style Guide
 
 - Lowercase-hyphenated names for layers.
-- System packages in `candy.yml` `rpm:`/`deb:`/`pac:`/`aur:` sections — not in `cmd:`.
+- System packages in the `candy.yml` `distro:` map (+ top-level `package:` base) — not in `cmd:`.
 - Python in `pixi.toml`, npm in `package.json`, Rust in `Cargo.toml`. Never `pip install` / `conda install` / `dnf install python3-*`.
 - Binary downloads via `download:` verb; use `${ARCH}` or `${BUILD_ARCH}` for multi-arch URL templates.
 - Never `dnf clean all` / `pacman -Scc` inside a `cmd:` — cache mounts handle it.

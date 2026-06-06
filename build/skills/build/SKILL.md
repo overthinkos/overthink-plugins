@@ -111,6 +111,10 @@ Consumed by the `user_policy:` reconciliation in `ov/config.go:ResolveImage` —
 
 No `base_user:` currently declared for Fedora, Arch, or Debian (their canonical base images ship no pre-existing uid-1000 account). Add one in your project's `build.yml` override if you're basing on a distro-cloud variant that DOES ship one (e.g. `debian:13-cloud`).
 
+### `version:` — the canonical distro version (for VM per-version reach)
+
+Each distro may declare a canonical `version:` (`distro.debian.version: "13"`, `distro.ubuntu.version: "24.04"`, `distro.fedora.version: "43"`; arch/cachyos are rolling and omit it). It is the single source for synthesizing the most-specific-first tag chain `[<distro>:<version>, <distro>]` on a target that carries only a bare distro name — a `target: vm` deploy, where no image-authored `distro:` tag supplies the version. `syntheticVmImage` + the `distroTagChain` helper consume it so a VM deploy of an ubuntu guest reaches per-version `distro:` sections (e.g. `ubuntu-24.04`) exactly like an image build does. Inherited child-wins via `resolveInherits` (cachyos inherits arch → stays version-less). Image builds carry the version in their own `box.yml` `distro:` tags and don't need it. See `/ov-image:layer` "Package Surface" and `/ov-internals:install-plan`.
+
 ### The `builder:` name in two places
 
 `builder:` appears in both `build.yml` (top-level section) and `box.yml` (per-image map, plus `defaults.builder`). They share the name on purpose — both maps key on the same slot (the build-type name, e.g. `pixi`, `npm`, `cargo`, `aur`):
