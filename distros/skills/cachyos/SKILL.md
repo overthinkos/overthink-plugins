@@ -57,9 +57,13 @@ box:
 This is a deliberate **main → cachyos** dependency — building `versa` on main
 needs the cachyos repo reachable. The submodule, in turn, imports the main repo
 under the `ov` namespace (for `ov.arch-builder`), so the two repos import each
-other. That mutual import is NOT a deadlock: the loader records an in-progress
-namespace node in its shared `nsCache` BEFORE recursing, breaking the cycle (see
-`/ov-internals:go` "import-namespace loader"). The image DAG
+other. That mutual import is NOT a deadlock: the loader breaks the cycle **by
+repo identity, not pinned version** — cachyos's `ov:` back-reference to main
+resolves to the LOCAL main working tree (registered under its `repo:` identity),
+even when cachyos's published release pins an older main. So main's namespace
+pins win, and a stale transitive pin inside a cachyos release never drags a
+divergent main snapshot into the load (see `/ov-internals:go`
+"import-namespace loader"). The image DAG
 `versa → cachyos → docker.io/cachyos-v3` is itself acyclic. `versa` inherits its
 `distro:`/`build:` (values) from this base across the namespace boundary; its
 `builder:` map (pixi/npm/cargo/aur → `arch-builder`) is namespace-relative, so

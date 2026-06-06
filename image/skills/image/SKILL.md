@@ -588,7 +588,9 @@ Resolution is **namespace-relative**, exactly like Go package-member access: a b
 - **`distro:` / `build:`** are VALUES (distro tags, package formats) → inherited across a namespace boundary, so a `base: cachyos.cachyos` image still picks up cachyos's `distro:`/`build:`.
 - **`builder:`** is a map of REFS relative to the BASE's namespace → it does **NOT** cross the boundary. A consumer image that builds a multi-stage format declares its OWN `builder:` map, qualified to the right builder (`builder: {pixi: ov.arch-builder}`). This avoids leaking a base-namespace-relative ref into a consumer where that namespace doesn't exist.
 
-Cycles between two projects that import each other (the intentional main ↔ cachyos mutual import: main imports `cachyos`, cachyos imports `ov`) are broken at load time — see `/ov-internals:go` "import-namespace loader".
+Cycles between two projects that import each other (the intentional main ↔ cachyos mutual import: main imports `cachyos`, cachyos imports `ov`) are broken at load time **by repo identity, not pinned version** — see `/ov-internals:go` "import-namespace loader". The consequence for authors: **the importing project's namespace pins win**. When an imported namespace's release imports your repo back (`ov: @…/overthink:<someOldPin>`), that back-reference resolves to YOUR local working tree (the root), NOT the old pinned snapshot — so a stale transitive pin in a published submodule release can never drag a divergent (or stale-schema) version of your own repo into the load.
+
+**`repo:` (optional root-only field).** Declare your project's canonical repo identity at the top of `overthink.yml` (`repo: github.com/overthinkos/overthink`) so the loader recognizes a transitive back-import of your repo and short-circuits it to the local tree. When omitted, the loader infers it from `git remote origin`; absent both, the cycle-break degrades to version-keyed behavior. The field is purely additive (no migration needed).
 
 ### Layer-version resolution across namespaces — per-entity version
 

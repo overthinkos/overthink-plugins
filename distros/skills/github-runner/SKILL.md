@@ -1,7 +1,8 @@
 ---
 name: github-runner
 description: |
-  GitHub Actions self-hosted runner as a supervised container service.
+  GitHub Actions self-hosted runner as a supervised container service — rootless
+  (uid 1000), Arch/CachyOS packages, credential-backed registration token.
   Use when working with GitHub Actions runners, CI/CD infrastructure, or runner registration.
 ---
 
@@ -11,44 +12,58 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Dependencies | `supervisord` |
-| Volumes | `state` -> `/opt/actions-runner`, `storage` -> `/var/lib/containers/storage` |
-| Service | `github-runner` (supervisord) |
-| Security | `privileged: true` |
-| Install files | `task:` |
+| Dependencies | `supervisord`, `container-nesting` |
+| Volume | `state` -> `${HOME}/actions-runner` |
+| Service | `github-runner` (supervisord; runs `run.sh` as uid 1000) |
+| Security | none of its own — rootless nested podman comes from `container-nesting` (no `privileged`) |
+| Install files | `task:` — declarative pinned `download:` of the runner tarball + `write:` of the ghcr mirror config; the runner tree is root-extracted (the shared download cache is root-owned) then `chown -R`ed to uid 1000 (the one ownership `cmd:`) |
 
-## Environment Variables
+## Packages (`distro.arch`, all in the official core/extra repos)
 
-| Variable | Value |
-|----------|-------|
-| `RUNNER_ALLOW_RUNASROOT` | `1` |
-| `RUNNER_WORK_DIR` | `/opt/actions-runner/_work` |
+- Toolchain: `jq`, `git`, `go`, `cloud-guest-utils`, `cosign`
+- Cross-arch CI: `qemu-user-static`, `qemu-user-static-binfmt` (aarch64 binfmt)
+- .NET runtime deps for the runner binary (its `installdependencies.sh` has no
+  Arch branch): `icu`, `krb5`, `openssl`, `zlib`, `libunwind`, `lttng-ust`
+
+`podman`/`buildah`/`skopeo`/`crun`/`fuse-overlayfs` are provided by the
+`container-nesting` dependency (not redeclared here — R3).
+
+## Environment / token contract
+
+| Variable | Mechanism |
+|----------|-----------|
+| `RUNNER_ORG` | `env_accept` (plaintext identifier; supplied at deploy) |
+| `RUNNER_TOKEN` | `secret_accept` (credential-store-backed; never in deploy.yml/quadlet) |
+| `RUNNER_WORK_DIR` | `${HOME}/actions-runner/_work` |
 | `RUNNER_GROUP` | `Default` |
-| `OV_BUILD_ENGINE` | `podman` |
-| `OV_RUN_ENGINE` | `podman` |
 
-## Packages
+The runner installs under `${HOME}/actions-runner` and runs as uid 1000. The
+ghcr.io pull-through mirror (`127.0.0.1:5000`) config is written to the user
+location `${HOME}/.config/containers/registries.conf.d/` (rootless podman).
 
-- `skopeo`, `jq`, `libcap`, `podman`, `buildah`, `golang`, `git` (RPM)
-- `openssh-clients`, `systemd-container`, `qemu-user-static-aarch64` (RPM)
+## Lifecycle Hooks (token-guarded)
 
-## Lifecycle Hooks
-
-- **post_enable** -- Registers runner with `RUNNER_ORG` and `RUNNER_TOKEN`
-- **pre_remove** -- Deregisters runner (requires `RUNNER_TOKEN`)
+- **post_enable** — registers the runner with `RUNNER_ORG` + `RUNNER_TOKEN`.
+  Skips (no-op) when `RUNNER_TOKEN` is empty — so a token-less deploy (an eval
+  bed) brings the image up without registering.
+- **pre_remove** — deregisters; needs a **remove**-token (distinct from the
+  registration token). Also skips when the token is empty.
 
 ## Usage
 
 ```yaml
-# box.yml
+# box.yml — rootless, CachyOS
 githubrunner:
-  layers:
-    - github-runner
+  base: cachyos.cachyos
+  build: [pac]
+  candy: [agent-forwarding, github-runner, ov, dbus, container-nesting]
+  network: host          # no uid/privileged override → rootless
 ```
 
 ```bash
-ov config githubrunner -e RUNNER_ORG=myorg -e RUNNER_TOKEN=xxx
-ov remove githubrunner -e RUNNER_TOKEN=xxx
+TOKEN=$(gh api -X POST /orgs/myorg/actions/runners/registration-token --jq .token)
+ov config githubrunner -e RUNNER_ORG=myorg -e RUNNER_TOKEN="$TOKEN"
+ov remove githubrunner -e RUNNER_TOKEN=$(gh api -X POST /orgs/myorg/actions/runners/remove-token --jq .token)
 ```
 
 ## Used In Images
@@ -57,7 +72,8 @@ ov remove githubrunner -e RUNNER_TOKEN=xxx
 
 ## Related Layers
 
-- `/ov-infrastructure:supervisord` -- process manager dependency
+- `/ov-infrastructure:supervisord` — process manager dependency
+- `/ov-distros:container-nesting` — rootless nested podman/buildah/skopeo + subuid layout + caps
 
 ## When to Use This Skill
 
@@ -70,5 +86,6 @@ Use when the user asks about:
 
 ## Author + Test References
 
-- `/ov-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
-- `/ov-eval:eval` — declarative testing framework for the `eval:` block
+- `/ov-image:layer` — layer authoring reference (tasks, vars, secret_accept, eval block syntax)
+- `/ov-eval:eval` — declarative testing framework for the `eval:` block + the `eval-githubrunner-pod` bed
+- `/ov-build:secrets` — the credential store backing `RUNNER_TOKEN`

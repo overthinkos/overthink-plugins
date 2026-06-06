@@ -1,117 +1,134 @@
 ---
 name: githubrunner
 description: |
-  Self-hosted GitHub Actions runner with the full Overthink toolchain.
-  Rootless-first — runs as uid=1000 with passwordless sudo (no root, no
-  cap_add: ALL). Host networking retained for reachability.
-  MUST be invoked before building, deploying, configuring, or troubleshooting
-  the githubrunner image.
+  Self-hosted GitHub Actions runner on CachyOS, fully rootless — runs as
+  uid=1000 with zero added capabilities (no root, no privileged) via
+  container-nesting, with rootless nested podman/buildah/skopeo for CI.
+  Host networking retained for reachability. MUST be invoked before building,
+  deploying, configuring, or troubleshooting the githubrunner image.
 ---
 
 # githubrunner
 
-Self-hosted GitHub Actions runner with the full Overthink toolchain.
-Shares the rootless-first posture with `/ov-distros:fedora-ov`,
-`/ov-coder:arch-ov`, and `/ov-coder:fedora-coder`.
+Self-hosted GitHub Actions runner on **CachyOS**, fully rootless. Shares the
+rootless nested-container posture with `/ov-openclaw:openclaw-desktop` (uid=1000,
+no caps, `unmask=/proc/*` via `/ov-distros:container-nesting`).
 
 ## Image Properties
 
 | Property | Value |
 |----------|-------|
-| Base | fedora |
-| Layers | agent-forwarding, github-runner, ov, dbus |
+| Base | cachyos (`cachyos.cachyos`) |
+| Layers | agent-forwarding, github-runner, ov, dbus, container-nesting |
+| Build | pac |
 | Platforms | linux/amd64 |
-| UID / user | **1000 / user** (rootless-first) |
-| Network | host |
-| Security | layer-level only |
+| UID / user | **1000 / user** (rootless — NO uid/privileged override) |
+| Network | host (reach the host-side ghcr pull-through mirror) |
+| Security | container-nesting's posture: `cap_add:[]`, `security_opt:[unmask=/proc/*]`, devices `/dev/fuse` + `/dev/net/tun` |
 | Registry | ghcr.io/overthinkos |
 
 ## Full Layer Stack
 
-1. `fedora` (quay.io/fedora/fedora:43)
-2. `ov` — the full toolchain: ov binary + `virtualization` + `gocryptfs` + `socat`
-3. `github-runner` — Actions runner agent, skopeo, podman, buildah
-4. `dbus` — session bus (for runner hooks)
+1. `cachyos` (`docker.io/cachyos/cachyos-v3`, via the `cachyos` import namespace)
+2. `agent-forwarding` — GPG/SSH/direnv (composes gnupg + direnv + ssh-client)
+3. `github-runner` — the Actions runner agent (under `${HOME}/actions-runner`),
+   cosign, go/git/jq, qemu-user-static (aarch64 cross-arch CI), the .NET runtime
+   deps, the credential-backed registration, the ghcr mirror config
+4. `ov` — the ov binary + `virtualization` + `gocryptfs` + `socat`
+5. `dbus` — session bus (for runner hooks)
+6. `container-nesting` — rootless nested podman/buildah/skopeo + the subuid/subgid
+   layout + newuidmap/newgidmap file-caps + containers/storage/policy configs
 
-## Rootless-first posture
+## Rootless posture (genuinely uid 1000, no caps)
 
-Runs as uid=1000 / `user` with no added capabilities. The
-`/ov-distros:container-nesting` kernel RCA establishes that surgical
-`unmask=/proc/*` works without caps. See `/ov-distros:fedora-ov` for the
-full rationale and `/ov-distros:container-nesting` for the
-`mount_too_revealing()` RCA.
+The image carries **no uid/user/privileged override**, so it resolves to
+`container-nesting`'s posture: uid=1000, `cap_add:[]`, `security_opt:[unmask=/proc/*]`,
+devices `/dev/fuse` + `/dev/net/tun`. The runner process (`run.sh`), all CI jobs,
+and rootless nested podman all run as `user` (uid 1000). See
+`/ov-distros:container-nesting` for the `mount_too_revealing()` kernel RCA that
+makes nested podman work without caps or `--privileged`.
 
-The `/ov-distros:github-runner` layer and runner-hook scripts still
-invoke `sudo` where they genuinely need root (e.g. for system-level
-docker setup). Passwordless sudo is provided indirectly — if you
-need it for your workflows, compose `/ov-coder:sshd` into the
-layer list (it installs `/etc/sudoers.d/ov-user`).
+`/ov-coder:sshd` (passwordless `/etc/sudoers.d/ov-user`) is composable if a
+workflow genuinely needs sudo; it is not composed by default.
 
 ## Nested container support
 
-Unlike `/ov-distros:fedora-ov` and `/ov-coder:arch-ov`, `githubrunner`
-does NOT compose `/ov-distros:container-nesting` directly. Nested
-rootless podman works only via the `ov` layer's `virtualization`
-dependency. If your Actions workflows need first-class rootless nested
-containers (with `/dev/fuse` + `unmask=/proc/*` security opts), add
-`container-nesting` to the layer list explicitly.
+`githubrunner` composes `/ov-distros:container-nesting` directly, so CI jobs get
+first-class **rootless nested podman/buildah/skopeo** (uid 1000, `/dev/fuse` +
+`unmask=/proc/*`, `crun` + `fuse-overlayfs`, `BUILDAH_ISOLATION=chroot`). The
+rootless image cache lives under `${HOME}/.local/share/containers`. Cross-arch
+container builds (aarch64) work via the repo `qemu-user-static` +
+`qemu-user-static-binfmt` packages.
 
-For most CI workloads that spawn containers via docker/podman against
-the host socket (host networking covers it), the current composition
-is enough.
+## Token mechanism (credential-backed; obtained via `gh`)
 
-## Registration
+`RUNNER_TOKEN` is a `secret_accept` (credential-store-backed — never written to
+deploy.yml or the quadlet); `RUNNER_ORG` is an `env_accept`. The registration
+token is short-lived and only consumed once at `ov config` time (the registered
+runner persists its own `.credentials` on the `state` volume), so it is obtained
+fresh from `gh`. The `post_enable`/`pre_remove` hooks are guarded — they skip
+when `RUNNER_TOKEN` is empty, so a token-less deploy (e.g. an eval bed) brings the
+image up without registering, and a stale token never errors a teardown.
 
 ```bash
-ov config githubrunner -e RUNNER_ORG=myorg -e RUNNER_TOKEN=<token>
-# post_enable hook runs config.sh --unattended
+# Obtain a fresh org registration token and register:
+TOKEN=$(gh api -X POST /orgs/<org>/actions/runners/registration-token --jq .token)
+ov config githubrunner -e RUNNER_ORG=<org> -e RUNNER_TOKEN="$TOKEN"   # token scrubbed → credential store
+ov start githubrunner
 ```
 
-Removal deregisters via `pre_remove` hook:
+Removal deregisters via the `pre_remove` hook, which needs a **remove**-token
+(distinct from the registration token):
 
 ```bash
-ov remove githubrunner -e RUNNER_TOKEN=<token>
+ov remove githubrunner -e RUNNER_TOKEN=$(gh api -X POST /orgs/<org>/actions/runners/remove-token --jq .token)
 ```
 
 ## Lifecycle
 
 ```bash
 ov box build githubrunner
-ov config githubrunner -e RUNNER_ORG=myorg -e RUNNER_TOKEN=<token>
+ov config githubrunner -e RUNNER_ORG=<org> -e RUNNER_TOKEN="$TOKEN"
 ov start githubrunner
 ov stop githubrunner
-ov remove githubrunner -e RUNNER_TOKEN=<token>
+ov remove githubrunner -e RUNNER_TOKEN=<remove-token>
 ```
 
 ## Key Layers
 
-- `/ov-distros:github-runner` — runner agent, hooks, security config
-- `/ov-tools:ov` — the full toolchain: ov binary + virtualization + gocryptfs + socat
-- `/ov-infrastructure:virtualization` — QEMU/KVM + rootless libvirt session daemon
-- `/ov-distros:container-nesting` — not composed here by default (add if workflows need first-class rootless nested containers)
+- `/ov-distros:github-runner` — runner agent, hooks, registration, ghcr mirror, .NET deps
+- `/ov-distros:container-nesting` — rootless nested podman/buildah/skopeo, subuid layout, caps
+- `/ov-tools:ov` — the ov binary + virtualization + gocryptfs + socat
+- `/ov-distros:agent-forwarding` — GPG/SSH/direnv for the `.secrets` workflow
 
 ## Related Images
 
-- `/ov-distros:fedora` — parent base
-- `/ov-distros:fedora-ov` — sibling uid=1000 ov toolchain (includes `container-nesting` directly)
-- `/ov-coder:arch-ov` — Arch counterpart of fedora-ov
-- `/ov-coder:fedora-coder` — kitchen-sink dev image sharing the same security posture
-- `/ov-openclaw:openclaw-desktop` — non-desktop alternative streaming-desktop with the same rootless posture
+- `/ov-distros:cachyos` — the CachyOS base (parent, via the `cachyos` namespace)
+- `/ov-openclaw:openclaw-desktop` — same rootless container-nesting posture (uid 1000, no caps)
+- `/ov-distros:fedora-ov`, `/ov-coder:arch-ov` — the ov-toolchain siblings (root path, image-level full-hammer security)
 
 ## Related Commands
 
-- `/ov-core:ov-config` — deploy setup with RUNNER_ORG / RUNNER_TOKEN
+- `/ov-core:ov-config` — deploy setup with RUNNER_ORG (env) / RUNNER_TOKEN (secret)
 - `/ov-core:start`, `/ov-core:stop`, `/ov-core:remove` — lifecycle + pre-remove deregistration
 - `/ov-core:ov-status`, `/ov-core:logs` — verify runner is idle + troubleshoot
+- `/ov-build:secrets` — the credential store backing `RUNNER_TOKEN`
 
 ## Verification
 
-After `ov start`:
+Build-scope (`ov eval box githubrunner`) + deploy-scope (`ov eval live`) checks
+ship on the `github-runner` layer (functional: `config.sh --version` proves the
+.NET deps resolved; rootless nested `podman run` proves the posture). The
+disposable R10 bed is **`eval-githubrunner-pod`** (`ov eval run eval-githubrunner-pod`)
+— it proves the rootless composition WITHOUT GitHub registration (no token →
+guarded hooks no-op).
+
+After `ov start` against a registered deploy:
 
 - `ov status githubrunner` — container running
-- `ov service status githubrunner` — all services RUNNING
-- `ov shell githubrunner -c "id"` — uid=1000(user)
-- Check runner appears as "Idle" in GitHub org/repo Settings > Actions > Runners
+- `ov shell githubrunner -c "id"` — uid=1000(user) (rootless)
+- `ov shell githubrunner -c "podman run --rm quay.io/libpod/alpine:latest true"` — rootless nested podman works
+- Runner appears as "Idle" in the org's Settings > Actions > Runners
 
 ## When to Use This Skill
 
@@ -123,3 +140,4 @@ reading source code or launching Explore agents.
 
 - `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
 - `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/ov-eval:eval` — the `eval:` checks + the `eval-githubrunner-pod` R10 bed
