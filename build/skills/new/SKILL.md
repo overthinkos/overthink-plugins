@@ -2,7 +2,7 @@
 name: new
 description: |
   Scaffold new layers, images, and whole projects with template files.
-  MUST be invoked before any work involving: ov box new {project, image, layer} commands, creating new projects/images/layers, or scaffolding directories.
+  MUST be invoked before any work involving: ov box new {project, box, candy} commands, creating new projects/images/layers, or scaffolding directories.
 ---
 
 # ov box new -- Scaffold New Projects, Images, and Layers
@@ -21,7 +21,7 @@ Three verbs, in decreasing scope:
 
 All three are **comment-preserving**: the YAML edits route through the `yaml.v3` Node API rather than the value API, so human-authored comments and key order survive round trips. Implementation lives in `ov/scaffold_project.go` + `ov/yaml_setter.go`.
 
-Each verb also auto-becomes an MCP tool (`image.new.project`, `image.new.image`, `image.new.layer`) via Kong reflection in `ov/mcp_server.go` — so an LLM agent driving `ov mcp serve` can scaffold a project from scratch over RPC. See `/ov-build:ov-mcp-cmd` "Authoring tools".
+Each verb also auto-becomes an MCP tool (`box.new.project`, `box.new.box`, `box.new.candy`) via Kong reflection in `ov/mcp_server.go` — so an LLM agent driving `ov mcp serve` can scaffold a project from scratch over RPC. See `/ov-build:ov-mcp-cmd` "Authoring tools".
 
 ## Quick Reference
 
@@ -95,7 +95,7 @@ The end-to-end scaffold → build flow:
 6. `ov box validate` — check for errors
 7. `ov box build my-app` — build the image
 
-All six steps are also callable as MCP tools (`image.new.project`, `image.new.layer`, `layer.add-rpm`, …), so an agent driving `ov mcp serve` can run this entire flow over RPC. See `/ov-build:ov-mcp-cmd` "Authoring tools" for the worked MCP-only example.
+All six steps are also callable as MCP tools (`box.new.project`, `box.new.candy`, `candy.add-rpm`, …), so an agent driving `ov mcp serve` can run this entire flow over RPC. See `/ov-build:ov-mcp-cmd` "Authoring tools" for the worked MCP-only example.
 
 The scaffolded `candy.yml` from step 3 is minimal (a null `rpm.packages:` list with a placeholder comment). Add sections as needed: `rpm:` / `deb:` / `pac:` / `aur:` for system packages, `env:` for runtime environment, `port:` / `service:` / `volume:` for services, and `task:` for install operations (mkdir, copy, write, download, link, setcap, cmd, build). The scaffolder does not create separate Taskfile shell scripts — all install logic flows through `task:` in `candy.yml`.
 
@@ -110,7 +110,7 @@ The scaffolded `candy.yml` from step 3 is minimal (a null `rpm.packages:` list w
 
 ## Cross-References
 
-### `ov image` family siblings
+### `ov box` family siblings
 
 - `/ov-image:image` -- Family overview + box.yml composition reference
 - `/ov-build:build` -- Build images containing the new layer

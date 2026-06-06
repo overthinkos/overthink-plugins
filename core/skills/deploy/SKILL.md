@@ -81,9 +81,9 @@ Applies a deployment. The deploy entry's `target:` field selects the target:
 | Local image name | `fedora-coder` | Looked up in current project's `box.yml` |
 | Local layer name | `pre-commit` | Looked up in current project's `candy/` directory |
 | Local YAML path | `./custom.yml`, `/abs/path/candy.yml` | File's top-level keys classify image vs layer |
-| Remote repo | `github.com/owner/repo[/images/<n>\|/candy/<n>][@ref]` | Fetched via existing `--repo` cache |
+| Remote repo | `github.com/owner/repo[/box/<n>\|/candy/<n>][@ref]` | Fetched via existing `--repo` cache |
 
-Disambiguation: a ref containing `/candy/` resolves to a layer; `/images/` to an image. For local names, `box.yml` is checked before `candy/`; same-named entries in both are a hard error. The legacy `@host/org/repo:version` form (used by `depends:` and `layer:` in candy.yml) is also accepted.
+Disambiguation: a ref containing `/candy/` resolves to a layer; `/box/` to an image. For local names, `box.yml` is checked before `candy/`; same-named entries in both are a hard error. The legacy `@host/org/repo:version` form (used by `depends:` and `layer:` in candy.yml) is also accepted.
 
 When `<ref>` is omitted, the ref falls back to `deploy.yml['deploys'][<name>]['image']` (or the deploy key itself if no explicit image is declared).
 
@@ -341,7 +341,7 @@ ov deploy del host --assume-yes
 
 **Deploy from a remote repo:**
 ```bash
-ov deploy add my-coder github.com/overthinkos/overthink/images/fedora-coder@main
+ov deploy add my-coder github.com/overthinkos/overthink/box/fedora-coder@main
 ov deploy add host github.com/team-acme/private-configs/candy/my-team-tools
 ```
 

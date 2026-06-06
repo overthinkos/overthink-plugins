@@ -64,7 +64,7 @@ The runtime parser accepts only this kind-keyed form. `ov migrate` converts any 
 | List aliases | `ov box list aliases` | Layers with `aliases` in candy.yml |
 | Validate | `ov box validate` | Check all layers and images |
 
-Every editor verb above auto-becomes an MCP tool via Kong reflection (`layer.set`, `layer.add-rpm`, `image.write`, …) so an agent driving `ov mcp serve` can author layers from scratch over RPC without touching the filesystem directly. See `/ov-build:ov-mcp-cmd` "Authoring tools" for the worked end-to-end example, and `/ov-build:new` for the project / image / layer scaffolders that bootstrap the flow.
+Every editor verb above auto-becomes an MCP tool via Kong reflection (`candy.set`, `candy.add-rpm`, `box.write`, …) so an agent driving `ov mcp serve` can author layers from scratch over RPC without touching the filesystem directly. See `/ov-build:ov-mcp-cmd` "Authoring tools" for the worked end-to-end example, and `/ov-build:new` for the project / image / layer scaffolders that bootstrap the flow.
 
 ### Editing candy.yml via the CLI (no hand-edit required)
 
@@ -1132,7 +1132,7 @@ shell: schema. Idempotent.
 ## Cross-References
 
 - `/ov-image:image` — Adding layers to image definitions; image composition; `data_image:` for data-only bundles; the full MCP-first authoring table including `image set`, `image add-layer`, `image rm-layer`, `image write`, `image cat`.
-- `/ov-build:ov-mcp-cmd` — "Authoring tools" table exposing `layer.set`, `layer.add-rpm`, `layer.add-deb`, `layer.add-pac`, `layer.add-aur` as MCP tools; end-to-end build-from-scratch worked example.
+- `/ov-build:ov-mcp-cmd` — "Authoring tools" table exposing `candy.set`, `candy.add-rpm`, `candy.add-deb`, `candy.add-pac`, `candy.add-aur` as MCP tools; end-to-end build-from-scratch worked example.
 - `/ov-build:generate` — What `ov box generate` actually emits; the per-verb emitter pipeline; `.build/<image>/` layout.
 - `/ov-build:validate` — Validation rules (including per-verb task requirements).
 - `/ov-build:new` — Scaffolding a new layer directory.

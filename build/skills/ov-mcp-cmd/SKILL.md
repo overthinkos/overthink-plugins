@@ -269,7 +269,7 @@ No other required modifiers — `ping`, `servers`, `list-*` take only the option
 
 ## Overview
 
-`ov mcp serve` runs the ov CLI *as* an MCP server. Every leaf command in the Kong CLI tree — `image.build`, `status`, `test.mcp.ping`, `config.setup`, `image.new.project`, `layer.add-rpm`, etc. — becomes a callable MCP tool. Tool catalogs are **auto-generated from Kong struct tags** by reflection; there is no hand-written schema per command. Result: **190 tools** covering the entire build + test + deploy surface, including the MCP-first authoring verbs (`image.{new.project, new.image, set, add-layer, rm-layer, fetch, refresh, write, cat}` + `layer.{set, add-rpm, add-deb, add-pac, add-aur}`).
+`ov mcp serve` runs the ov CLI *as* an MCP server. Every leaf command in the Kong CLI tree — `image.build`, `status`, `test.mcp.ping`, `config.setup`, `box.new.project`, `candy.add-rpm`, etc. — becomes a callable MCP tool. Tool catalogs are **auto-generated from Kong struct tags** by reflection; there is no hand-written schema per command. Result: **190 tools** covering the entire build + test + deploy surface, including the MCP-first authoring verbs (`image.{new.project, new.image, set, add-layer, rm-layer, fetch, refresh, write, cat}` + `layer.{set, add-rpm, add-deb, add-pac, add-aur}`).
 
 ```bash
 ov mcp serve                                # Streamable HTTP on :18765/mcp
@@ -291,7 +291,7 @@ The server lives in a single file: `ov/mcp_server.go`.
    - **InputSchema**: JSON schema built from `long:""`, `help:""`, `enum:""`, `default:""`, `required:""` struct tags. Positional args become required properties; flags become optional properties. **Every schema has `additionalProperties: false`** — unknown keys are rejected by the SDK's input validation before the handler runs. The schema validator is LLM-honest about the allowed surface.
    - **Annotations**: destructive tools get `DestructiveHint: &true`; everything else gets `ReadOnlyHint: true`.
 
-2. **Destructive gating** — `mcpDestructivePaths` is an explicit 63-entry allowlist of mutating tools (lifecycle: `remove`/`stop`/`start`/`update`/`cmd`/`shell`/`service.*`; config: `config.setup`/`mount`/`unmount`/`passwd`/`remove`; secrets: `set`/`delete`/`import`/`init`/`gpg.setup`/`gpg.set`/`gpg.unset`/`gpg.edit`/`gpg.encrypt`/`gpg.add-recipient`/`gpg.import-key`; deploy: `import`/`reset`; image build/scaffold/edit: `image.build`/`merge`/`new.{layer,project,image}`/`set`/`add-layer`/`rm-layer`/`refresh`/`write`; layer edit: `layer.set`/`add-rpm`/`add-deb`/`add-pac`/`add-aur`; VM: `create`/`destroy`/`start`/`stop`/`build`; udev: `install`/`remove`; alias: `install`/`uninstall`/`add`/`remove`; record: `start`/`stop`/`cmd`; tmux: `kill`/`run`/`send`/`cmd`; settings: `set`/`reset`/`migrate-secrets`). When `--read-only` is set, `buildMcpServer` skips registration entirely rather than gating at runtime — read-only servers expose **127 tools** (190 − 63). `image.fetch` (idempotent, additive cache prime) and `image.cat` (read-only file read) are **not** in the destructive set despite living in the authoring family — they're safe under `--read-only`.
+2. **Destructive gating** — `mcpDestructivePaths` is an explicit 63-entry allowlist of mutating tools (lifecycle: `remove`/`stop`/`start`/`update`/`cmd`/`shell`/`service.*`; config: `config.setup`/`mount`/`unmount`/`passwd`/`remove`; secrets: `set`/`delete`/`import`/`init`/`gpg.setup`/`gpg.set`/`gpg.unset`/`gpg.edit`/`gpg.encrypt`/`gpg.add-recipient`/`gpg.import-key`; deploy: `import`/`reset`; image build/scaffold/edit: `image.build`/`merge`/`new.{layer,project,image}`/`set`/`add-layer`/`rm-layer`/`refresh`/`write`; layer edit: `candy.set`/`add-rpm`/`add-deb`/`add-pac`/`add-aur`; VM: `create`/`destroy`/`start`/`stop`/`build`; udev: `install`/`remove`; alias: `install`/`uninstall`/`add`/`remove`; record: `start`/`stop`/`cmd`; tmux: `kill`/`run`/`send`/`cmd`; settings: `set`/`reset`/`migrate-secrets`). When `--read-only` is set, `buildMcpServer` skips registration entirely rather than gating at runtime — read-only servers expose **127 tools** (190 − 63). `image.fetch` (idempotent, additive cache prime) and `box.cat` (read-only file read) are **not** in the destructive set despite living in the authoring family — they're safe under `--read-only`.
 
 3. **Tool invocation** — `makeToolHandler(path, leaf)` returns a closure. On call: decode the MCP JSON arguments, reconstruct a `[]string` argv via `argvFromJSON(…)` (booleans → bare flag, slices → repeated `--flag=value`, positionals in Kong order), then `captureAndRun(argv)` builds a fresh `kong.New(&CLI{})`, calls `k.Parse(argv)`, invokes `kctx.Run()`, and returns captured stdout/stderr as a single `TextContent`. Errors become `IsError: true` tool results, not MCP-protocol errors — the LLM sees the failure text.
 
@@ -356,13 +356,13 @@ ov eval mcp list-tools arch-ov --name ov | wc -l
 # 190
 ov eval mcp call arch-ov version '{}' --name ov
 # 2026.nnn.nnnn          (the container's own ov version)
-ov eval mcp call arch-ov image.list.images '{}' --name ov
+ov eval mcp call arch-ov box.list.boxes '{}' --name ov
 # arch-ov [testing]      (reads box.yml from the bind-mounted /workspace)
 # arch [testing]
 # …
 ```
 
-The deploy-scope tests in `candy/ov-mcp/candy.yml` cover this exact sequence: service-running, port-reachable, `mcp: ping`, `mcp: list-tools`, `mcp: call tool=version`, `mcp: call tool=image.list.images` (the last proves the bind-mount + OV_PROJECT_DIR wiring).
+The deploy-scope tests in `candy/ov-mcp/candy.yml` cover this exact sequence: service-running, port-reachable, `mcp: ping`, `mcp: list-tools`, `mcp: call tool=version`, `mcp: call tool=box.list.boxes` (the last proves the bind-mount + OV_PROJECT_DIR wiring).
 
 ## Authoring tools (build-from-scratch over MCP)
 
@@ -370,15 +370,15 @@ Every CLI verb under `ov box …` and `ov candy …` auto-becomes an MCP tool vi
 
 | MCP tool | What it does |
 |---|---|
-| `image.new.project` | Scaffold `box.yml` (referencing the upstream `build.yml` remotely), `candy/`, `.gitignore`. |
-| `image.new.image` | Append a new image entry to `box.yml`. |
-| `image.new.layer` | Scaffold `candy/<name>/candy.yml` with a stub. |
-| `image.set` | Set any value in `box.yml` by dot-path (`defaults.tag`, `images.foo.layers`, …). Value is parsed as YAML. |
-| `image.add-layer` / `image.rm-layer` | Append / remove a layer from an image's `layer:` list (idempotent). |
-| `layer.set` | Set any value in `candy/<name>/candy.yml` by dot-path. |
-| `layer.add-rpm` / `layer.add-deb` / `layer.add-pac` / `layer.add-aur` | Append packages to a layer's `<format>.packages` list. Idempotent. Upgrades scaffold's null `package:` value to a real sequence. |
+| `box.new.project` | Scaffold `box.yml` (referencing the upstream `build.yml` remotely), `candy/`, `.gitignore`. |
+| `box.new.box` | Append a new image entry to `box.yml`. |
+| `box.new.candy` | Scaffold `candy/<name>/candy.yml` with a stub. |
+| `box.set` | Set any value in `box.yml` by dot-path (`defaults.tag`, `images.foo.layers`, …). Value is parsed as YAML. |
+| `box.add-candy` / `box.rm-candy` | Append / remove a layer from an image's `layer:` list (idempotent). |
+| `candy.set` | Set any value in `candy/<name>/candy.yml` by dot-path. |
+| `candy.add-rpm` / `candy.add-deb` / `candy.add-pac` / `candy.add-aur` | Append packages to a layer's `<format>.packages` list. Idempotent. Upgrades scaffold's null `package:` value to a real sequence. |
 | `image.fetch` / `image.refresh` | Pre-prime / re-clone the remote-repo cache. Spec defaults to `default` (overthinkos/overthink). |
-| `image.write` / `image.cat` | Write / read any file under the project root — escape hatch for free-form auxiliary files (`pixi.toml`, `package.json`, `root.yml`, scripts, `*.service`). Path is resolved against `os.Getwd()` and rejected if it escapes the project root. |
+| `box.write` / `box.cat` | Write / read any file under the project root — escape hatch for free-form auxiliary files (`pixi.toml`, `package.json`, `root.yml`, scripts, `*.service`). Path is resolved against `os.Getwd()` and rejected if it escapes the project root. |
 
 All YAML edits go through the `yaml.v3` *node* API (not value unmarshal) so comments and key order are preserved across edits. Implementation in `ov/scaffold_project.go`, `ov/yaml_setter.go`, and `ov/scaffold_cmds.go`. Tested in `ov/scaffold_project_test.go` and `ov/yaml_setter_test.go`.
 
@@ -386,11 +386,11 @@ End-to-end MCP-only worked example:
 
 ```jsonc
 // All called as MCP tool calls (e.g. via `ov eval mcp call <ctr> <tool> '<args>'`):
-image.new.project   {"dir": "/tmp/hello"}
-image.new.image     {"name": "hello", "base": "quay.io/fedora/fedora:43"}
-image.new.layer     {"name": "hello-svc"}
-layer.add-rpm       {"name": "hello-svc", "packages": ["openssh-server"]}
-image.add-layer     {"image": "hello", "layer": "hello-svc"}
+box.new.project   {"dir": "/tmp/hello"}
+box.new.box     {"name": "hello", "base": "quay.io/fedora/fedora:43"}
+box.new.candy     {"name": "hello-svc"}
+candy.add-rpm       {"name": "hello-svc", "packages": ["openssh-server"]}
+box.add-candy     {"image": "hello", "layer": "hello-svc"}
 image.validate      {}
 image.build         {"image": "hello"}
 image.inspect       {"image": "hello"}

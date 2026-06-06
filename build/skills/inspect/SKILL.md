@@ -75,7 +75,7 @@ All `--format` values are the JSON field names from the `inspect` output. When p
 
 ## Cross-References
 
-### `ov image` family siblings
+### `ov box` family siblings
 
 - `/ov-image:image` -- Family overview + box.yml composition reference
 - `/ov-build:build` -- Build the inspected image

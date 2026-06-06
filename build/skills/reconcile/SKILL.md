@@ -68,7 +68,7 @@ consumer's authoritative R10.
 
 ## Implementation
 
-`ov/reconcile.go` — `ImageReconcileCmd` (wired under `ov image` in `ov/image.go`).
+`ov/reconcile.go` — `ImageReconcileCmd` (wired under `ov box` in `ov/image.go`).
 Reuses `ParseRemoteRef` / `IsRemoteLayerRef` / `StripVersion` (`ov/refs.go`),
 `compareSemver` / `GitLatestTag` / `RepoGitURL` (`ov/refs_git.go`), and the
 comment-preserving load/`yaml.Marshal` pattern from `ov/yaml_setter.go`. Covered

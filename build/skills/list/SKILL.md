@@ -77,7 +77,7 @@ ov box list aliases
 
 ## Cross-References
 
-### `ov image` family siblings
+### `ov box` family siblings
 
 - `/ov-image:image` -- Family overview + box.yml composition reference
 - `/ov-build:build` -- Build enumerated images

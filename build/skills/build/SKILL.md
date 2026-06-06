@@ -535,7 +535,7 @@ for the `--build` flag that also picks up this caveat.
 
 ## Cross-References
 
-### `ov image` family siblings
+### `ov box` family siblings
 
 - `/ov-image:image` -- Family overview + box.yml composition reference
 - `/ov-build:generate` -- Containerfile generation (called internally; stale `:latest` FROM lives there)

@@ -119,12 +119,12 @@ Auto-path for bind without explicit host path: `<volumes_path>/<image>/<name>` (
 
 ### Bind-mounting a project checkout for `ov mcp serve`
 
-The `ov-mcp` layer declares a `project` volume at `/workspace` (the volume NAME stays `project` for a stable deployer API) and sets `env: OV_PROJECT_DIR=/workspace`. Bind-mount your overthink checkout at config time so build-mode MCP tools (`image.build`, `image.list.images`, `image.inspect`) can read `box.yml`. Alternatively, skip the bind-mount and `ov mcp serve` will auto-fall back to the upstream `overthinkos/overthink` repo (see `/ov-build:ov-mcp-cmd` "Project-dir wiring"):
+The `ov-mcp` layer declares a `project` volume at `/workspace` (the volume NAME stays `project` for a stable deployer API) and sets `env: OV_PROJECT_DIR=/workspace`. Bind-mount your overthink checkout at config time so build-mode MCP tools (`image.build`, `box.list.boxes`, `image.inspect`) can read `box.yml`. Alternatively, skip the bind-mount and `ov mcp serve` will auto-fall back to the upstream `overthinkos/overthink` repo (see `/ov-build:ov-mcp-cmd` "Project-dir wiring"):
 
 ```bash
 ov config arch-ov --bind project=/home/you/overthink
 ov start arch-ov
-ov eval mcp call arch-ov image.list.images '{}' --name ov
+ov eval mcp call arch-ov box.list.boxes '{}' --name ov
 # → lists images from the bind-mounted /home/you/overthink
 ```
 

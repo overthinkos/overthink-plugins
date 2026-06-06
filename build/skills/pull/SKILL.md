@@ -20,7 +20,7 @@ engine's storage so deploy-mode commands (`ov shell`, `ov start`, `ov config`,
 service. That's `ov update`'s job (see `/ov-core:ov-update`).
 
 This command is the prerequisite for every deploy-mode operation on a fresh
-host. Since the `ov image` refactor, deploy-mode commands no longer read
+host. Since the `ov box` refactor, deploy-mode commands no longer read
 `box.yml` — they read OCI labels + `deploy.yml` only. If an image isn't
 in local storage, the label read fails and the CLI surfaces a friendly
 recommendation pointing here.
@@ -108,7 +108,7 @@ Error: image "X" is not available locally.
 Any deploy-mode command that calls `ExtractMetadata` or `EnsureImage`
 (shell, start, stop, config, deploy, update, remove, alias, vm, service,
 cdp, wl, vnc, tmux, record, dbus, logs — essentially everything outside
-`ov image`) automatically participates. If you're authoring a new command
+`ov box`) automatically participates. If you're authoring a new command
 that reads image metadata, just call `ExtractMetadata` and the
 recommendation falls out for free.
 
@@ -163,7 +163,7 @@ ov shell jupyter                      # now works
 
 ## Why this command exists
 
-Before the `ov image` refactor, deploy-mode commands had dual-mode logic:
+Before the `ov box` refactor, deploy-mode commands had dual-mode logic:
 try `box.yml` first, fall back to OCI labels. That produced drift (the
 two paths could diverge) and silently pulled-and-built remote refs as a
 side effect of what looked like a simple `ov shell @github.com/...` call.

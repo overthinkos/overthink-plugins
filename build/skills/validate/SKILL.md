@@ -178,7 +178,7 @@ ov box list candies                       # Verify layer exists
 
 ## Cross-References
 
-### `ov image` family siblings
+### `ov box` family siblings
 
 - `/ov-image:image` -- Family overview + box.yml composition reference
 - `/ov-build:build` -- Building validated images

@@ -413,7 +413,7 @@ Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), maki
 
 | Label | Type | Example |
 |-------|------|---------|
-| `org.overthinkos.version` | string | content-derived `EffectiveVersion` (the image's dedicated `version:`, else the highest layer `version:` across the chain — NOT the per-build tag), e.g. `"2026.144.1443"`. Resolution prefers this label over the tag (`local_image.go`); also the "is this an ov image?" presence sentinel read by `ExtractMetadata` |
+| `org.overthinkos.version` | string | content-derived `EffectiveVersion` (the image's dedicated `version:`, else the highest layer `version:` across the chain — NOT the per-build tag), e.g. `"2026.144.1443"`. Resolution prefers this label over the tag (`local_image.go`); also the "is this an ov box?" presence sentinel read by `ExtractMetadata` |
 | `org.overthinkos.image` | string | `"openclaw"` |
 | `org.overthinkos.registry` | string | `"ghcr.io/overthinkos"` (omitted if empty) |
 | `org.overthinkos.bootc` | string | `"true"` (omitted if false) |

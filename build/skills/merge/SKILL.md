@@ -134,7 +134,7 @@ Source: `ov/merge.go:saveImageToDaemon` (the keep-on-fail logic; `loaded` flag g
 
 ## Cross-References
 
-### `ov image` family siblings
+### `ov box` family siblings
 
 - `/ov-image:image` -- Family overview + box.yml composition reference
 - `/ov-build:build` -- Building images (merge runs inline after each build level)

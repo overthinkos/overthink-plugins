@@ -61,7 +61,7 @@ pulling in the children's install files.
 
 ## Three deployment patterns
 
-Build-mode MCP tools (`image.build`, `image.list.images`,
+Build-mode MCP tools (`image.build`, `box.list.boxes`,
 `image.inspect`, etc.) need to read `box.yml`. The ov-mcp layer
 supports three paths, in order of "how much local setup":
 
@@ -119,7 +119,7 @@ Six deploy-scope tests ship with the layer:
 | `mcp-ov-ping` | MCP `ping` succeeds over the in-repo client (URL rewritten via `rewriteMCPURLForHost`, host-networked containers included) |
 | `mcp-ov-list-tools` | MCP `list-tools` returns a catalog containing the canonical `image.build`, `status`, `test.mcp.ping` entries |
 | `mcp-ov-call-version` | MCP `call version` returns the in-container CalVer (proves round-trip of a safe tool) |
-| `mcp-ov-call-list-images` | MCP `call image.list.images` returns images — **proves the bind-mount OR auto-fallback is working** (matches "fedora" either way, since upstream overthinkos/overthink always has a `fedora` image) |
+| `mcp-ov-call-list-images` | MCP `call box.list.boxes` returns images — **proves the bind-mount OR auto-fallback is working** (matches "fedora" either way, since upstream overthinkos/overthink always has a `fedora` image) |
 
 All `mcp:` checks pass `mcp_name: ov` so they stay unambiguous on
 images that also expose `jupyter` or `chrome-devtools` servers

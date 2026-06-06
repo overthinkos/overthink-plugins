@@ -182,7 +182,7 @@ ov eval box ghcr.io/overthinkos/fedora-coder:latest
 ov stop fedora-coder
 ```
 
-If you want `image.list.images` over the MCP surface to list YOUR
+If you want `box.list.boxes` over the MCP surface to list YOUR
 local checkout's images (rather than upstream overthinkos/overthink),
 bind-mount the project:
 

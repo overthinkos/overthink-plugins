@@ -631,7 +631,7 @@ These five verbs wrap the corresponding `ov eval <verb> <method>` CLI
 subcommands so every live-container operation (browser automation, Wayland
 input/screenshot, D-Bus calls, VNC framebuffer capture, MCP protocol
 probes) is authorable as a declarative check. All five are **deploy-scope
-only** — they need a running container with port mappings; `ov image
+only** — they need a running container with port mappings; `ov box
 validate` rejects them in build scope, and `ov eval box` skips them at
 runtime with a clear message.
 

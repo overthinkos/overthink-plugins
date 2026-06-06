@@ -1,20 +1,20 @@
 ---
 name: image
 description: |
-  MUST be invoked before any work involving: the `ov image` command family, image definitions in box.yml, image inheritance, defaults, platforms, builder configuration, the image dependency graph, or the build/deploy scope boundary.
+  MUST be invoked before any work involving: the `ov box` command family, image definitions in box.yml, image inheritance, defaults, platforms, builder configuration, the image dependency graph, or the build/deploy scope boundary.
 ---
 
 # ov box -- Family Overview + Image Composition
 
 ## Overview
 
-`ov image` is the **only** command family that reads `box.yml`. It groups
+`ov box` is the **only** command family that reads `box.yml`. It groups
 every build-mode operation (build, generate, validate, list, merge, new,
 inspect, pull) under a single namespace. All other `ov` commands read
 exclusively from OCI labels embedded into built images + `deploy.yml` for
 deployment overrides.
 
-Build-mode operations live only under `ov image`. Top-level invocations like
+Build-mode operations live only under `ov box`. Top-level invocations like
 `ov build`, `ov validate`, `ov list images`, or `ov inspect` return Kong's
 `unexpected argument` error.
 
@@ -24,7 +24,7 @@ platform targets, and builder configurations. The `ov` CLI resolves
 dependencies, generates Containerfiles, and builds images in the correct
 order.
 
-## The `ov image` Command Family
+## The `ov box` Command Family
 
 | Subcommand | Purpose | Skill |
 |---|---|---|
@@ -46,7 +46,7 @@ order.
 | Everything else | **No** | Yes (required for deploy-mode) | Yes (overlay) |
 
 If a new command needs to resolve layer dependencies, image inheritance, or
-registry tag configuration, it must live under `ov image`. Any command that
+registry tag configuration, it must live under `ov box`. Any command that
 operates on a running container or deployed image must go through
 `ExtractMetadata` (labels) + deploy.yml — never `LoadConfig`.
 
@@ -91,7 +91,7 @@ Remote repos are cloned into `~/.cache/ov/repos/<repoPath>@<version>/` (override
    ```bash
    ov config arch-ov --bind project=/home/you/overthink
    ov start arch-ov
-   ov eval mcp call arch-ov image.list.images '{}' --name ov
+   ov eval mcp call arch-ov box.list.boxes '{}' --name ov
    ```
 
 2. **Remote pin** — set `OV_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env. The agent reads from a pinned upstream version. No bind mount required.
@@ -116,7 +116,7 @@ The error messages are explicit when misconfigured: `cannot chdir to --dir "/mis
 
 ### Authoring (the MCP-first surface)
 
-Each verb below is also auto-exposed as an MCP tool (`image.new.project`, `image.new.image`, `image.set`, `image.add-layer`, `image.rm-layer`, `image.write`, `image.cat`, `layer.set`, `layer.add-rpm`, …) via `ov/mcp_server.go`'s Kong reflection. So an LLM agent driving `ov mcp serve` can author a project from scratch over RPC.
+Each verb below is also auto-exposed as an MCP tool (`box.new.project`, `box.new.box`, `box.set`, `box.add-candy`, `box.rm-candy`, `box.write`, `box.cat`, `candy.set`, `candy.add-rpm`, …) via `ov/mcp_server.go`'s Kong reflection. So an LLM agent driving `ov mcp serve` can author a project from scratch over RPC.
 
 | Action | Command |
 |--------|---------|
