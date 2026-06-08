@@ -100,6 +100,23 @@ change is verified before anything merges. Then land in **dependency order**:
 3. the superproject — stage the now-merged submodule pointers → atomic commit →
    `--ff-only` merge → tag `main` → push.
 
+**Submodule-pointer-bump safety (step 3) — bump AFTER the switch, then stage AND
+verify.** A `git switch` / `git checkout` re-materializes each submodule at the
+gitlink the *target branch* records, silently discarding an **unstaged**
+working-tree pointer bump (it happens even with `submodule.recurse` unset — an
+unstaged gitlink is not carried across the switch). So bumping the pointer
+*before* `git switch -c feat/<slug>` — or merely `git -C <sub> checkout <new>`
+without `git add` — drops it from the commit, and a `git add <sub>; git commit`
+afterward stages nothing because the working tree was reset to the old pointer.
+Always, in order: (a) create/switch to the landing branch FIRST; (b) THEN
+`git -C <sub> checkout <new-commit>` + `git add <sub>`; (c) VERIFY it is staged —
+`git diff --cached --submodule=short <sub>` must print `<old>...<new>`; (d) after
+committing, confirm the commit records it — `git show --stat` lists `<sub>` and
+`git ls-tree HEAD <sub>` shows `<new>`. A pointer-bump commit whose `--stat` omits
+the submodule is the silent-drop failure. If it was already pushed, land a NEW
+pointer-bump commit (NEVER amend/force-push). See `CHANGELOG.md` 2026-06-08 for
+the incident this rule prevents.
+
 This mirrors the submodules-first push order. A change developed in a git worktree
 keeps its `feat/` branch in the worktree; the ff-merge targets the canonical
 repo's `main`; the worktree is removed after. Concurrent worktrees on one repo
