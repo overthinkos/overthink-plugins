@@ -4,14 +4,14 @@
     "name": "overthinkos"
   },
   "metadata": {
-    "description": "Claude Code plugins for Overthink — sorted into four use-case buckets: schema-kind authoring, contributor internals, runtime CLI verbs, and deployable images.",
+    "description": "Claude Code plugins for OpenCharly — sorted into four use-case buckets: schema-kind authoring, contributor internals, runtime CLI verbs, and deployable images.",
     "version": "3.0.0"
   },
   "plugins": [
     {
       "name": "charly-core",
       "source": "./core",
-      "description": "Runtime/lifecycle CLI verbs — start, stop, restart, ov-status, logs, shell, ssh, deploy, ov-update, remove, ov-config, cmd, ov-version, ov-doctor.",
+      "description": "Runtime/lifecycle CLI verbs — start, stop, restart, charly-status, logs, shell, ssh, deploy, charly-update, remove, charly-config, cmd, charly-version, charly-doctor.",
       "version": "1.0.2",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
@@ -23,7 +23,7 @@
     {
       "name": "charly-build",
       "source": "./build",
-      "description": "Build/authoring CLI verbs — build, generate, list, inspect, merge, new, pull, validate, secrets, settings, migrate, ov-mcp-cmd.",
+      "description": "Build/authoring CLI verbs — build, generate, list, inspect, merge, new, pull, validate, secrets, settings, migrate, charly-mcp-cmd.",
       "version": "1.0.1",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
@@ -143,7 +143,7 @@
     {
       "name": "charly-languages",
       "source": "./languages",
-      "description": "Programming language runtimes and package managers — python, python-ml, pixi (others like golang/rust/nodejs live in `ov-coder`).",
+      "description": "Programming language runtimes and package managers — python, python-ml, pixi (others like golang/rust/nodejs live in `charly-coder`).",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
@@ -167,7 +167,7 @@
     {
       "name": "charly-tools",
       "source": "./tools",
-      "description": "CLI utilities and the charly binary deploy artifacts — ripgrep, himalaya, whisper, nano-pdf, summarize, ordercli, gogcli, sherpa-onnx, plus the `ov` binary deployment skill.",
+      "description": "CLI utilities and the charly binary deploy artifacts — ripgrep, himalaya, whisper, nano-pdf, summarize, ordercli, gogcli, sherpa-onnx, plus the `charly` binary deployment skill.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
@@ -239,7 +239,7 @@
     {
       "name": "charly-ollama",
       "source": "./ollama",
-      "description": "Self-contained skills for running the ollama LLM-server image. Pair with ov-jupyter to expose Ollama models to Jupyter notebooks via the jupyter MCP.",
+      "description": "Self-contained skills for running the ollama LLM-server image. Pair with charly-jupyter to expose Ollama models to Jupyter notebooks via the jupyter MCP.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
@@ -251,7 +251,7 @@
     {
       "name": "charly-openwebui",
       "source": "./openwebui",
-      "description": "Self-contained skills for the openwebui chat-frontend image. Consumes the jupyter MCP server (enable ov-jupyter alongside) for in-chat code execution.",
+      "description": "Self-contained skills for the openwebui chat-frontend image. Consumes the jupyter MCP server (enable charly-jupyter alongside) for in-chat code execution.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
@@ -287,7 +287,7 @@
     {
       "name": "charly-hermes",
       "source": "./hermes",
-      "description": "Self-contained skills for the hermes agent image (hermes + hermes-playwright variants). Consumes the jupyter MCP server for notebook manipulation — enable ov-jupyter alongside.",
+      "description": "Self-contained skills for the hermes agent image (hermes + hermes-playwright variants). Consumes the jupyter MCP server for notebook manipulation — enable charly-jupyter alongside.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",

@@ -40,7 +40,7 @@ repo's `candy/` (resolved via its `discover:` block):
 `gnupg`, `keepassxc`, `keepassxc-keyring`, `tailscale`, `tailscale-up`,
 `build-toolchain`, `golang`, `rust`, `nodejs`, `uv`, `claude-code`, `codex`,
 `gemini`, `oracle`, `forgecode`, `devops-tools`, `docker-ce`, `kubernetes`,
-`vscode`, `ghostty`, `chrome`, `nvidia`, `ov`.
+`vscode`, `ghostty`, `chrome`, `nvidia`, `charly`.
 
 ## Key fields
 

@@ -30,11 +30,11 @@ my-image:
     - gocryptfs
 ```
 
-Typically used as part of the `ov` layer (the full toolchain: charly binary + virtualization + gocryptfs + socat) rather than directly.
+Typically used as part of the `charly` layer (the full toolchain: charly binary + virtualization + gocryptfs + socat) rather than directly.
 
 ## Runtime Behavior
 
-When `charly config mount` or `charly start` mounts encrypted volumes, each gocryptfs daemon runs inside a `systemd-run --scope --user --unit=ov-enc-<image>-<volume>` scope unit. This decouples the FUSE mount lifecycle from the container service — mounts survive container stop/restart and remain browsable on the host.
+When `charly config mount` or `charly start` mounts encrypted volumes, each gocryptfs daemon runs inside a `systemd-run --scope --user --unit=charly-enc-<image>-<volume>` scope unit. This decouples the FUSE mount lifecycle from the container service — mounts survive container stop/restart and remain browsable on the host.
 
 The `-allow_other` flag is always passed to gocryptfs (required for rootless podman with `--userns=keep-id`). gocryptfs auto-enables `default_permissions`, so kernel UNIX permission checks still apply.
 
@@ -42,12 +42,12 @@ See `/charly-automation:enc` for full encrypted volume operations documentation.
 
 ## Used In Images
 
-- Part of the `ov` layer's full toolchain (used in `githubrunner`)
+- Part of the `charly` layer's full toolchain (used in `githubrunner`)
 
 ## Related Layers
 
-- `/charly-infrastructure:virtualization` -- part of the `ov` layer alongside gocryptfs
-- `/charly-infrastructure:socat` -- part of the `ov` layer alongside gocryptfs
+- `/charly-infrastructure:virtualization` -- part of the `charly` layer alongside gocryptfs
+- `/charly-infrastructure:socat` -- part of the `charly` layer alongside gocryptfs
 
 ## When to Use This Skill
 
@@ -56,7 +56,7 @@ Use when the user asks about:
 - Encrypted volumes or filesystems
 - `charly config` encrypted volume operations (mount, unmount, status, passwd)
 - The `gocryptfs` layer
-- systemd scope units for encrypted mounts (`ov-enc-*`)
+- systemd scope units for encrypted mounts (`charly-enc-*`)
 
 ## Author + Test References
 

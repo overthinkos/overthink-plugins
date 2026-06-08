@@ -85,8 +85,8 @@ Agent socket paths are **session-bound** — they live under `$XDG_RUNTIME_DIR` 
 
 | Setting | Default | Env Var | Description |
 |---------|---------|---------|-------------|
-| `forward_gpg_agent` | `true` | `OV_FORWARD_GPG_AGENT` | Forward host GPG agent socket |
-| `forward_ssh_agent` | `true` | `OV_FORWARD_SSH_AGENT` | Forward host SSH agent socket |
+| `forward_gpg_agent` | `true` | `CH_FORWARD_GPG_AGENT` | Forward host GPG agent socket |
+| `forward_ssh_agent` | `true` | `CH_FORWARD_SSH_AGENT` | Forward host SSH agent socket |
 
 ```bash
 charly settings set forward_gpg_agent false    # Disable GPG forwarding globally
@@ -135,7 +135,7 @@ arch-ov, arch-test, aurora, bazzite, comfyui, fedora-ov, fedora-test, githubrunn
 - `/charly-build:secrets` -- `charly secrets gpg` for managing `.secrets` files, GPG key management (`import-key`, `export-key`, `setup`, `doctor`), KeePassXC integration; credential store for container secrets
 - `/charly-core:shell` -- where SSH/GPG agent forwarding happens at runtime
 - `/charly-core:service` -- `charly start` direct mode forwarding
-- `/charly-core:ov-config` -- `forward_gpg_agent`, `forward_ssh_agent` settings
+- `/charly-core:charly-config` -- `forward_gpg_agent`, `forward_ssh_agent` settings
 - `/charly-core:deploy` -- per-image forwarding overrides in deploy.yml
 
 ## Source

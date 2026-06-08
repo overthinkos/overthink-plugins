@@ -1,9 +1,9 @@
 ---
-name: ov-status
+name: charly-status
 description: |
   Service status display with tool probes and device detection.
   MUST be invoked before any work involving: charly status command, checking container state, tool availability, port mapping, or JSON status output.
-  Named `ov-status` (not `status`) to disambiguate from Claude Code's built-in `/status` slash command.
+  Named `charly-status` (not `status`) to disambiguate from Claude Code's built-in `/status` slash command.
 ---
 
 # charly status -- Service Status Display
@@ -114,7 +114,7 @@ render as indented IMAGE-cell rows (`  └─ <child>`) under their parent.
 | Kind | `pod` (omitted when unset) |
 | Image | `ghcr.io/overthinkos/jupyter:latest` |
 | Status | `running` |
-| Container | `ov-jupyter` |
+| Container | `charly-jupyter` |
 | Mode | `quadlet` |
 | Ports | `8888/tcp -> 127.0.0.1:8888` |
 | Devices | `nvidia (CUDA)` |
@@ -179,7 +179,7 @@ markers.
 |------|------|-----------------|---------|
 | supervisord | guest | `command -v supervisorctl && supervisorctl status` | `supervisord` (with `N/M running` detail in detail view) |
 | dbus | guest | `pgrep -x dbus-daemon` + scan for `swaync`/`mako`/`dunst` | `dbus` (notifier list in detail view) |
-| charly | guest | `command -v charly && charly version` | `ov` (CalVer detail) |
+| charly | guest | `command -v charly && charly version` | `charly` (CalVer detail) |
 | wl | guest | `command -v wtype/wlrctl/grim/pixelflux-screenshot` | `wl` (detail lists available tools) |
 | sway | guest | discover SWAYSOCK then `swaymsg -t get_outputs` | `sway` (output dimensions in detail) |
 | cdp | host | HTTP GET `:HOST_PORT/json` (port from snapshot) | `cdp:HOST_PORT` |

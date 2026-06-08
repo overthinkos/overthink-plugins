@@ -27,6 +27,6 @@ Schema sources (read these for the canonical truth):
 
 ## Cross-references
 
-- Verb-level: `/charly-core:deploy`, `/charly-core:ov-update`, `/charly-core:remove`.
+- Verb-level: `/charly-core:deploy`, `/charly-core:charly-update`, `/charly-core:remove`.
 - Sibling kinds: `/charly-image:image`, `/charly-vm:vm`, `/charly-kubernetes:kubernetes`, `/charly-local:local-spec`.
 - Topics: `/charly-automation:sidecar`, `/charly-automation:enc`.

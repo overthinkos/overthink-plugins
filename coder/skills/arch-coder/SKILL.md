@@ -33,13 +33,13 @@ arch-coder:
   base: ov.arch                  # via the `ov` import namespace
   ports:
     - "2222:2222"                 # sshd-wrapper
-    - "18765:18765"               # ov-mcp (Streamable HTTP)
+    - "18765:18765"               # charly-mcp (Streamable HTTP)
   layers:
     # Baseline — identical to fedora-coder
     - agent-forwarding
     - sshd
     - charly
-    - ov-mcp
+    - charly-mcp
     - container-nesting
     - dbus
     - tmux
@@ -144,7 +144,7 @@ charly eval box ghcr.io/overthinkos/arch-coder:latest
 charly config arch-coder
 charly start arch-coder
 charly eval box ghcr.io/overthinkos/arch-coder:latest
-# adds deploy-scope checks: sshd reachable, supervisord, dbus, ov-mcp,
+# adds deploy-scope checks: sshd reachable, supervisord, dbus, charly-mcp,
 # virtqemud, libvirt session list, KVM domcaps, MCP tool-call probes.
 ```
 
@@ -153,7 +153,7 @@ charly eval box ghcr.io/overthinkos/arch-coder:latest
 | Port | Service | Bound by |
 |---|---|---|
 | 2222 | sshd-wrapper (SSH access as `user` with sudo) | `/charly-coder:sshd` |
-| 18765 | ov-mcp (entire `ov` CLI as MCP tools, Streamable HTTP) | `/charly-coder:charly-mcp` |
+| 18765 | charly-mcp (entire `charly` CLI as MCP tools, Streamable HTTP) | `/charly-coder:charly-mcp` |
 
 Conflicts with `/charly-coder:fedora-coder` / `/charly-coder:debian-coder` / `/charly-coder:ubuntu-coder` on both ports (all coder-family images use the same canonical ports). Use `-i <instance>` or `-p <remap>` to run alongside.
 
@@ -177,7 +177,7 @@ Conflicts with `/charly-coder:fedora-coder` / `/charly-coder:debian-coder` / `/c
 
 ## Related commands
 
-- `/charly-core:shell`, `/charly-core:ov-config`, `/charly-core:start`, `/charly-core:stop`, `/charly-eval:eval`
+- `/charly-core:shell`, `/charly-core:charly-config`, `/charly-core:start`, `/charly-core:stop`, `/charly-eval:eval`
 - `/charly-image:image` — `user_policy:` field reference
 - `/charly-build:build` — `base_user:` declaration (absent for arch)
 - `/charly-image:layer` — authoring reference

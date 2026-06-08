@@ -93,7 +93,7 @@ selkies process (single ScreenCapture singleton — process-wide)
 ## Cross-References
 
 - `/charly-eval:record` -- `charly eval record start --mode desktop` auto-detects pixelflux-record
-- `/charly-core:ov-update` -- Per-instance update pattern used to roll out the per-frame `cleanup_texture_cache()` fix across live instances
+- `/charly-core:charly-update` -- Per-instance update pattern used to roll out the per-frame `cleanup_texture_cache()` fix across live instances
 - `/charly-selkies:wl-screenshot-pixelflux` -- Screenshot companion (same capture bridge, same singleton)
 - `/charly-selkies:wf-recorder` -- Alternative for sway-desktop (wlr-screencopy)
 - `/charly-selkies:selkies` -- Parent layer (provides capture bridge, WebSocket stream, and the ScreenCapture singleton — see Pixelflux Memory Management)

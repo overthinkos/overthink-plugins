@@ -21,7 +21,7 @@ description: |
 Arch Linux container with the full charly toolchain. Uses the same shared
 layer list as `/charly-distros:fedora-ov` — the tag system handles
 Arch-specific packages and scripts via `pac:` sections. Composes
-`ov-mcp` so the image is addressable as an MCP gateway — LLM agents
+`charly-mcp` so the image is addressable as an MCP gateway — LLM agents
 can drive build/test/deploy via Streamable HTTP on port 18765.
 
 ## Image Properties
@@ -30,11 +30,11 @@ can drive build/test/deploy via Streamable HTTP on port 18765.
 |----------|-------|
 | Base | arch (quay.io/archlinux/archlinux, pinned in base.yml) |
 | Tags | `[all, pac, arch]` |
-| Layers | agent-forwarding, ov, **ov-mcp**, golang, gh, sshd, container-nesting, nvidia |
+| Layers | agent-forwarding, ov, **charly-mcp**, golang, gh, sshd, container-nesting, nvidia |
 | Platforms | linux/amd64 |
 | UID / user | **1000 / user** (rootless-first) |
-| Network | default `ov` bridge |
-| Ports | `2222:2222` (sshd), `18765:18765` (ov-mcp) |
+| Network | default `charly` bridge |
+| Ports | `2222:2222` (sshd), `18765:18765` (charly-mcp) |
 | Security | layer-level only (from `/charly-distros:container-nesting`) |
 | Registry | ghcr.io/overthinkos |
 
@@ -49,7 +49,7 @@ rootless nested containers + rootless libvirt VMs.
 The `/charly-coder:sshd` layer installs `/etc/sudoers.d/charly-user` with
 passwordless sudo for `user`, so anything that truly needs root inside
 the container is one `sudo` prefix away — but the default user for
-every process (sshd session, `ov` commands, nested `podman run`) is
+every process (sshd session, `charly` commands, nested `podman run`) is
 uid=1000.
 
 Resolved OCI security label:
@@ -68,7 +68,7 @@ nested-VM load, and `/charly-distros:container-nesting` for the kernel
 
 ### Network + port publishing
 
-`arch-ov` uses the project-default `ov` bridge — so `ov-mcp`'s MCP URL
+`arch-ov` uses the project-default `charly` bridge — so `charly-mcp`'s MCP URL
 rewriting (`rewriteMCPURLForHost` in `ov/mcp_client.go`) has published port
 mappings to work with. (That function also handles host-networked containers
 via `HostConfig.NetworkMode` detection, so the bridge isn't strictly required
@@ -77,13 +77,13 @@ another running image (canonical conflict: `/charly-openclaw:openclaw-desktop`
 or any `selkies-desktop-*` variant), remap at config time:
 `charly config arch-charly -p 2223:2222`.
 
-### MCP gateway (ov-mcp)
+### MCP gateway (charly-mcp)
 
 The `/charly-coder:charly-mcp` layer deploys `charly mcp serve --listen :18765`
 inside the container under supervisord, advertising ~192 MCP tools
 (the full Kong CLI surface, including the project-scaffolding +
 YAML-editing + file-write authoring verbs). Three deployment patterns
-work — bind-mount your project, pin an `OV_PROJECT_REPO`, or rely on the
+work — bind-mount your project, pin an `CH_PROJECT_REPO`, or rely on the
 auto-fallback to `overthinkos/opencharly`:
 
 ```bash
@@ -100,7 +100,7 @@ charly eval mcp call arch-charly box.list.boxes '{}' --name charly  # lists upst
 
 Volume NAME is `project` (stable bind-mount API); container PATH is
 `/workspace`. See `/charly-coder:charly-mcp` for full deployment patterns,
-`/charly-build:ov-mcp-cmd` Part 2 for the server architecture, and `/charly-core:ov-config`
+`/charly-build:charly-mcp-cmd` Part 2 for the server architecture, and `/charly-core:charly-config`
 "Bind-mounting a project checkout for charly mcp serve" for the
 bind-mount handshake.
 
@@ -109,7 +109,7 @@ bind-mount handshake.
 Full charly toolchain via shared layers:
 
 - **ov** — the full toolchain: charly binary + VM tools (qemu-full, virtiofsd, libvirt) + gocryptfs + socat
-- **ov-mcp** — MCP server exposing the full charly CLI as tools on :18765 (supervisord-managed; bind `project=` for build-mode tools or rely on auto-fallback)
+- **charly-mcp** — MCP server exposing the full charly CLI as tools on :18765 (supervisord-managed; bind `project=` for build-mode tools or rely on auto-fallback)
 - **golang** — Go compiler (`go`)
 - **gh** — GitHub CLI + `git` + `git-lfs` (single-responsibility; see `/charly-coder:gh`)
 - **sshd** — SSH server/client (`openssh` on Arch — `package_map` handles the Fedora/Arch name split) + passwordless sudo for `user`
@@ -161,7 +161,7 @@ The `/charly-distros:nvidia` layer provides NVIDIA GPU runtime:
 - `nvidia-utils` — `nvidia-smi` and driver userspace
 - `nvidia-container-toolkit` — `nvidia-ctk` for CDI spec generation
 
-`ov` automatically calls `EnsureCDI()` before launching GPU
+`charly` automatically calls `EnsureCDI()` before launching GPU
 containers. GPU access works at any nesting depth.
 
 ## Verification
@@ -206,7 +206,7 @@ packages and scripts per distro.
 - `/charly-core:service` — manage arch-charly as a service
 - `/charly-vm:vm` — nested libvirt VMs via `qemu:///session` (rootless)
 - `/charly-eval:eval` — three modes: `charly eval box <ref>` (build-scope, disposable container), `charly eval live <name>` (full-stack against running deployment), `charly eval run <score>` (AI iteration loop)
-- `/charly-build:ov-mcp-cmd` — MCP gateway + auto-fallback behavior
+- `/charly-build:charly-mcp-cmd` — MCP gateway + auto-fallback behavior
 
 ## Related
 

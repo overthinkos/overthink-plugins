@@ -25,7 +25,7 @@ vms:
       url: https://…
       checksum: { type: sha256, value?: <hex> }
       base_user: arch                     # adopt this account (see Adopt pattern below)
-      cache: ~/.cache/ov/vm-images/       # optional override
+      cache: ~/.cache/charly/vm-images/       # optional override
       # bootc branch:
       box: <kind:image entry name>
       transport: registry | containers-storage | oci | oci-archive
@@ -121,7 +121,7 @@ listen:
     address: 127.0.0.1
 ```
 
-**Prefer `type: socket` for ov-managed VMs.** virt-manager and
+**Prefer `type: socket` for charly-managed VMs.** virt-manager and
 `remote-viewer --connect qemu+ssh://…` auto-forward UNIX sockets over
 the libvirt RPC channel — GUI clients work out of the box against a
 remote libvirt with zero `ssh -L` setup. TCP loopback listeners are
@@ -190,9 +190,9 @@ Leave `base_user:` empty **only** when the upstream has no default account — i
 
 ## ov_install.strategy: auto (cloud_image)
 
-`ov_install.strategy: auto` in `cloud_init:` wires `ov`'s in-guest installer (`/charly-internals:cloud-init-renderer` → emitted `runcmd:` entries) so the provisioned VM comes up with `ov` already installed. Lets `charly deploy add vm:<name>` apply host-deploy-style layer recipes inside the VM over SSH without a bootstrap round-trip. See `/charly-internals:cloud-init-renderer` for the emission + handshake.
+`ov_install.strategy: auto` in `cloud_init:` wires `charly`'s in-guest installer (`/charly-internals:cloud-init-renderer` → emitted `runcmd:` entries) so the provisioned VM comes up with `charly` already installed. Lets `charly deploy add vm:<name>` apply host-deploy-style layer recipes inside the VM over SSH without a bootstrap round-trip. See `/charly-internals:cloud-init-renderer` for the emission + handshake.
 
-`strategy: none` skips the step entirely — useful when the VM will be managed by something other than `ov` after provisioning.
+`strategy: none` skips the step entirely — useful when the VM will be managed by something other than `charly` after provisioning.
 
 ## Validation rules
 

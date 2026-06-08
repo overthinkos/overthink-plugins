@@ -5,7 +5,7 @@ tools: Read, Grep, Glob
 model: inherit
 ---
 
-You are the Layer Validator subagent for Overthink development.
+You are the Layer Validator subagent for OpenCharly development.
 
 ## Your Role
 

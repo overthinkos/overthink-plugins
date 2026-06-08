@@ -59,7 +59,7 @@ charly -C image/selkies image reconcile   # reconcile a submodule's pins
 ## Scope — one project per invocation
 
 `charly box reconcile` operates on the CURRENT project (cwd; honors the top-level
-`-C` / `--dir` / `OV_PROJECT_DIR`). For a multi-repo tree (the main repo + its
+`-C` / `--dir` / `CH_PROJECT_DIR`). For a multi-repo tree (the main repo + its
 `image/<distro>` submodules), run it per repo, or per submodule via `-C
 image/<name>`. This pairs with the cross-repo landing order in
 `/charly-internals:git-workflow` B6: land + tag the producer FIRST, then

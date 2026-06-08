@@ -143,8 +143,8 @@ See `/charly-selkies:selkies-labwc` for full multi-instance deployment examples.
 - `/charly-eval:wl` — Wayland automation (screenshots, input, windows)
 - `/charly-eval:cdp` — Chrome DevTools Protocol automation
 - `/charly-eval:record` — Desktop video recording via capture bridge
-- `/charly-core:ov-update` — Per-instance update pattern used to roll out pixelflux/Chrome fixes
-- `/charly-core:ov-config` — Multi-instance deployment, resource caps, tunnel, proxy env vars, NO_PROXY auto-enrichment
+- `/charly-core:charly-update` — Per-instance update pattern used to roll out pixelflux/Chrome fixes
+- `/charly-core:charly-config` — Multi-instance deployment, resource caps, tunnel, proxy env vars, NO_PROXY auto-enrichment
 - `/charly-core:deploy` — Tunnel configuration (deploy.yml-only, instance inheritance gap)
 
 ## Related

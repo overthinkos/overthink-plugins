@@ -199,9 +199,9 @@ openclaw-desktop:
 
 ## Composition chain
 
-The `ov` layer (the full toolchain) composes `virtualization` (this layer) +
+The `charly` layer (the full toolchain) composes `virtualization` (this layer) +
 the charly binary + `gocryptfs` + `socat` + `podman-machine` + `gvisor-tap-vsock`.
-So any image that pulls `ov` automatically gets the supervisord-managed
+So any image that pulls `charly` automatically gets the supervisord-managed
 virtqemud/virtnetworkd programs.
 
 ## Cross-distro coverage
@@ -215,16 +215,16 @@ Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networ
 - `/charly-openclaw:openclaw-desktop` — rootless VM host inside a streaming desktop
 - `/charly-distros:fedora-ov` — root VM host (same daemons, uid 0)
 - `/charly-coder:arch-ov` — Arch counterpart
-- `/charly-coder:debian-coder`, `/charly-coder:ubuntu-coder` — deb-based consumers (via the `ov` layer)
+- `/charly-coder:debian-coder`, `/charly-coder:ubuntu-coder` — deb-based consumers (via the `charly` layer)
 - `/charly-distros:githubrunner` — VMs for CI workloads
 - `/charly-distros:aurora`, `/charly-distros:bazzite` — bootc siblings
 
 ## Related Layers
 
-- `/charly-tools:charly` — the full toolchain that pulls this layer into ov-toolchain images
+- `/charly-tools:charly` — the full toolchain that pulls this layer into charly-toolchain images
 - `/charly-distros:container-nesting` — pairs with this layer for images that need both nested containers AND nested VMs; also donates `/dev/kvm`-adjacent devices
-- `/charly-infrastructure:socat` — part of the `ov` layer alongside virtualization; used for VM console/hostfwd relays
-- `/charly-infrastructure:gocryptfs` — part of the `ov` layer; for encrypting VM disk storage
+- `/charly-infrastructure:socat` — part of the `charly` layer alongside virtualization; used for VM console/hostfwd relays
+- `/charly-infrastructure:gocryptfs` — part of the `charly` layer; for encrypting VM disk storage
 
 ## Related Commands
 

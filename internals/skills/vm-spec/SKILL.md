@@ -138,7 +138,7 @@ type VmOvInstall struct {
 
 | Strategy | Behavior |
 |---|---|
-| `auto` (default) | scp the local `ov` binary (`os.Executable()`) into the guest post-boot via VmDeployTarget |
+| `auto` (default) | scp the local `charly` binary (`os.Executable()`) into the guest post-boot via VmDeployTarget |
 | `scp` | explicit form of auto |
 | `url` | cloud-init runcmd downloads charly from URL at first boot |
 | `skip` | user manages charly install; VmDeployTarget verifies presence only |

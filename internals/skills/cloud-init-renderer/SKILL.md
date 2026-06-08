@@ -12,7 +12,7 @@ description: |
 
 Host-side renderer producing NoCloud seed ISOs for cloud_image VMs (and bootc VMs that include the `cloud-init` layer). Pure transformation — given `VmSpec` + `VmCloudInit`, produces three files (user-data, meta-data, network-config) and packages them into a FAT-labeled `cidata` ISO via xorriso.
 
-Lives **host-side**, in the `ov` binary. The **guest-side** `/charly-distros:cloud-init` layer is complementary: it puts the cloud-init package into the bootc guest OS so that guest reads the seed ISO. The two sides cooperate across the host/guest boundary.
+Lives **host-side**, in the `charly` binary. The **guest-side** `/charly-distros:cloud-init` layer is complementary: it puts the cloud-init package into the bootc guest OS so that guest reads the seed ISO. The two sides cooperate across the host/guest boundary.
 
 ## Source files
 
@@ -123,7 +123,7 @@ Runs post-boot inside `VmDeployTarget.Emit` after cloud-init completes. Dispatch
 | `url` | ssh-execute `curl -L <url> -o /usr/local/bin/charly && sha256sum -c` (verified against `VmOvInstall.Checksum`) |
 | `skip` | `ssh 'which ov'` — fails if missing, returns early if present |
 
-Idempotent. If `ov` is already present at the target version, the function returns without re-scp'ing. See `/charly-internals:vm-deploy-target` for how this plugs into the overall deploy flow.
+Idempotent. If `charly` is already present at the target version, the function returns without re-scp'ing. See `/charly-internals:vm-deploy-target` for how this plugs into the overall deploy flow.
 
 ## Network config
 

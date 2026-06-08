@@ -89,7 +89,7 @@ Endpoint: `http://localhost:8888/mcp` (Streamable HTTP, MCP spec 2025-11-25)
 - `/charly-jupyter:unsloth` — Sub-layer: vLLM wheel + fine-tuning + vLLM patch
 - `/charly-jupyter:jupyter-mcp` — Sub-layer: CRDT MCP extension
 - `/charly-jupyter:notebook-templates` — Starter notebooks (data layer, used alongside this layer in images)
-- `/charly-hermes:hermes` — MCP consumer (auto-discovers via `OV_MCP_SERVERS`; uses jupyter tools to read/edit/execute cells)
+- `/charly-hermes:hermes` — MCP consumer (auto-discovers via `CH_MCP_SERVERS`; uses jupyter tools to read/edit/execute cells)
 - `/charly-openwebui:openwebui` — MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code blocks to the Jupyter kernel)
 
 ## When to Use This Skill

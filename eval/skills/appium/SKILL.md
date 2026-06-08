@@ -14,7 +14,7 @@ talks W3C WebDriver to the container's host-published Appium port
 `eval-android-emulator-pod` deploy) at base path `/wd/hub`.
 
 Session lifecycle uses a persistent JSON session file at
-`~/.cache/ov/appium/sessions/<image>[_<instance>].json` so multi-step
+`~/.cache/charly/appium/sessions/<image>[_<instance>].json` so multi-step
 tests share one WebDriver session across separate `charly eval appium`
 invocations. `session-create` writes the file; the other operations
 load it; `session-delete` removes it and best-effort closes the remote
@@ -131,7 +131,7 @@ wrapping.
 
 ### `apk:` is a HOST path for BOTH adb and appium
 
-- `adb: install` reads `apk:` from the host filesystem (the host `ov`
+- `adb: install` reads `apk:` from the host filesystem (the host `charly`
   binary pushes via the ADB sync protocol).
 - `appium: install-app` ALSO reads `apk:` from the host filesystem. Because
   the in-container Appium server's `mobile: installApp` requires an
@@ -235,7 +235,7 @@ API-34 system image is sdkmanager-fetched (no package exists).
 
 ## Session-file format + location
 
-`~/.cache/ov/appium/sessions/<image>[_<instance>].json` (XDG-cache; honours
+`~/.cache/charly/appium/sessions/<image>[_<instance>].json` (XDG-cache; honours
 `XDG_CACHE_HOME`):
 
 ```json

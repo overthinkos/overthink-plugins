@@ -12,8 +12,8 @@ viewers, or managing host aliases via `charly settings set hosts.<alias>`.
 
 ### 1. `charly --host <alias>` — re-exec any charly command on a remote machine
 
-Set `--host` (or `OV_HOST`) at the **top level** of any `ov` invocation.
-`ov` shells out to the system `ssh` binary, runs `charly <rest of argv>` on
+Set `--host` (or `CH_HOST`) at the **top level** of any `charly` invocation.
+`charly` shells out to the system `ssh` binary, runs `charly <rest of argv>` on
 the remote host, and streams stdin/stdout/stderr through. Exit code
 propagates.
 
@@ -38,7 +38,7 @@ would be meaningless on the remote host.
 
 **Transport:** system `ssh` binary via `os/exec`, so `~/.ssh/config`,
 agent forwarding, and ControlMaster all work transparently. If your
-target needs a specific key, set it in `~/.ssh/config` — `ov` stays out
+target needs a specific key, set it in `~/.ssh/config` — `charly` stays out
 of SSH authentication.
 
 **Client-only flags stripped** before re-exec: `--host`, `--dir` / `-C`,
@@ -47,7 +47,7 @@ forwarded to the remote side.
 
 ### 2. `charly ssh tunnel` — expose a remote VM's display for external GUI apps
 
-For apps that aren't `ov` (virt-viewer, remote-viewer with a bare URL,
+For apps that aren't `charly` (virt-viewer, remote-viewer with a bare URL,
 TigerVNC, Spicy), open an SSH-forwarded local endpoint:
 
 ```bash
@@ -93,7 +93,7 @@ and passed through.
 - When you want artifacts (screenshots, recordings) to land in the local
   filesystem → use `charly eval libvirt|spice|vnc --uri qemu+ssh://…`
   instead; it runs charly locally and forwards the display channel over SSH.
-- When `ov` isn't installed on the remote machine → use `--uri` or
+- When `charly` isn't installed on the remote machine → use `--uri` or
   `charly ssh tunnel`.
 
 ## Cross-References

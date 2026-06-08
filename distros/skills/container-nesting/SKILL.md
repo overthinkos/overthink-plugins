@@ -29,7 +29,7 @@ can compose it.
 | `security_opt` | `unmask=/proc/*` |
 | `devices` | `/dev/fuse`, `/dev/net/tun` |
 | Volumes | `storage` at `/var/lib/containers/storage` (only used by root images) |
-| Env | `OV_BUILD_ENGINE=podman`, `OV_RUN_ENGINE=podman`, `_CONTAINERS_USERNS_CONFIGURED=""`, `BUILDAH_ISOLATION=chroot` |
+| Env | `CH_BUILD_ENGINE=podman`, `CH_RUN_ENGINE=podman`, `_CONTAINERS_USERNS_CONFIGURED=""`, `BUILDAH_ISOLATION=chroot` |
 
 ## Packages
 
@@ -375,7 +375,7 @@ this order:
 
 ## Related Layers
 
-- `/charly-tools:charly` — pairs with container-nesting in ov-toolchain images (the full toolchain: `ov` binary + VM + encrypted storage tools)
+- `/charly-tools:charly` — pairs with container-nesting in charly-toolchain images (the full toolchain: `charly` binary + VM + encrypted storage tools)
 - `/charly-infrastructure:virtualization` — supervisord-managed rootless libvirt (`virtqemud`, `virtnetworkd`). Pairs with container-nesting for images that need both nested containers AND nested VMs
 - `/charly-coder:sshd` — sibling enabling remote access to nested-container hosts
 
@@ -384,7 +384,7 @@ this order:
 - `/charly-build:build` — build images that ship nested podman
 - `/charly-core:shell` — run nested podman/buildah commands inside the outer
 - `/charly-build:generate` — Containerfile generation (the `service:` supervisord fragments for container-nesting consumers go through the fragment_assembly init model)
-- `/charly-core:ov-config` — image-level `security:` union with layer-level when deploying
+- `/charly-core:charly-config` — image-level `security:` union with layer-level when deploying
 
 ## When to Use This Skill
 

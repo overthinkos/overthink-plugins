@@ -37,7 +37,7 @@ Used in bootc images for VM/cloud deployments. Depends on `sshd`.
 
 ## Host-side pairing with `kind: vm` entities
 
-This layer installs the **guest-side** cloud-init package — the daemon that reads a NoCloud seed ISO at first boot. The **host-side** companion is the `RenderCloudInit` path in the `ov` binary itself (`/charly-internals:cloud-init-renderer`), which produces that seed ISO from the structured `VmSpec.CloudInit` block on a `kind: vm` entity.
+This layer installs the **guest-side** cloud-init package — the daemon that reads a NoCloud seed ISO at first boot. The **host-side** companion is the `RenderCloudInit` path in the `charly` binary itself (`/charly-internals:cloud-init-renderer`), which produces that seed ISO from the structured `VmSpec.CloudInit` block on a `kind: vm` entity.
 
 The two sides cooperate across the host/guest boundary:
 

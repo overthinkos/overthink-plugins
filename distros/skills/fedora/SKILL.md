@@ -7,7 +7,7 @@ description: |
 
 # fedora
 
-Root base image built from `quay.io/fedora/fedora:43`. Foundation for all RPM-based Overthink images.
+Root base image built from `quay.io/fedora/fedora:43`. Foundation for all RPM-based OpenCharly images.
 
 **Defined in the combined `base.yml`.** The Fedora base stack — `fedora`,
 `/charly-distros:fedora-builder`, `/charly-distros:fedora-nonfree` — lives in the main

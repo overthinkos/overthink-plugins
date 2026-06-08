@@ -26,7 +26,7 @@ description: |
   Arch branch): `icu`, `krb5`, `openssl`, `libunwind`, `lttng-ust` (NOT `zlib` —
   CachyOS ships `zlib-ng-compat`, which Provides it; an explicit `zlib` conflicts)
 - ov-host `depends=` completion: `slirp4netns`, `libisoburn`, `cdrtools`, `swtpm`
-  — the part of the `ov` PKGBUILD `depends=` set the ov/virtualization layers do
+  — the part of the `charly` PKGBUILD `depends=` set the ov/virtualization layers do
   not already install. With these present, `charly box pkg pac` builds the pac release
   artifact NATIVELY on the runner (`makepkg -sf` resolves every dep and never
   shells out to `sudo pacman`). See `/charly-distros:githubrunner` "CI: builds the

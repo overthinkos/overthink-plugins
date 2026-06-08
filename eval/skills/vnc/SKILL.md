@@ -222,7 +222,7 @@ charly eval wl screenshot <image> out.png            # Wayland screenshot (grim,
 - `/charly-eval:cdp` — Chrome DevTools Protocol automation (sibling verb; same container, different protocol).
 - `/charly-eval:dbus` — D-Bus calls and desktop notifications (sibling verb under `charly eval`).
 - `/charly-eval:wl` (sway subgroup) — Sway compositor control (window management, workspaces)
-- `/charly-core:ov-config` — VNC password storage, `secret_backend` setting, `migrate-secrets` command
+- `/charly-core:charly-config` — VNC password storage, `secret_backend` setting, `migrate-secrets` command
 - `/charly-core:service` — Managing wayvnc supervisord service
 - `/charly-core:deploy` — VNC password setup in deployment workflows
 - `/charly-core:shell` — Executing commands inside containers

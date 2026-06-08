@@ -26,7 +26,7 @@ Global flags on every subcommand:
 - `--address host:port` — bypass vm.yml lookup; targets an arbitrary TCP SPICE server.
 - `--socket /path` — bypass vm.yml lookup; targets an arbitrary UNIX-socket SPICE server.
 - `--password SECRET` — SPICE ticket for `--address` mode.
-- `--uri qemu+ssh://[user@]host/session` — resolve the VM on a remote libvirt host. `ov` auto-opens an SSH tunnel and forwards the remote SPICE socket (or TCP port) to a local endpoint for the lifetime of the command. Also accepts the `OV_LIBVIRT_URI` env var.
+- `--uri qemu+ssh://[user@]host/session` — resolve the VM on a remote libvirt host. `charly` auto-opens an SSH tunnel and forwards the remote SPICE socket (or TCP port) to a local endpoint for the lifetime of the command. Also accepts the `CH_LIBVIRT_URI` env var.
 
 Screenshot/cursor `<file>` args accept `-` to write PNG bytes to stdout:
 `charly eval spice screenshot arch - > /tmp/shot.png`. Status messages
@@ -36,7 +36,7 @@ go to stderr so stdout stays binary-clean — pipeline-friendly.
 
 When `--uri qemu+ssh://…` is set, `charly eval spice` runs locally but pokes a
 remote libvirt. Libvirt RPC is tunneled over the SSH control channel for
-free; the SPICE display channel needs a side tunnel, which `ov` opens
+free; the SPICE display channel needs a side tunnel, which `charly` opens
 transparently:
 
 ```bash
@@ -46,10 +46,10 @@ charly eval spice status arch --uri qemu+ssh://o.atrawog.org/session
 ```
 
 For VMs that declare `<listen type='socket'/>` (the default for
-arch after the socket-listen cutover), `ov` forwards the UNIX
-socket. For TCP-listener VMs, `ov` opens a 127.0.0.1:<random> forward.
+arch after the socket-listen cutover), `charly` forwards the UNIX
+socket. For TCP-listener VMs, `charly` opens a 127.0.0.1:<random> forward.
 
-Alternative: `charly --host o test spice status arch` runs `ov` on
+Alternative: `charly --host o test spice status arch` runs `charly` on
 the remote machine itself — no side tunnel needed because the VM's SPICE
 socket is local to the remote host. Useful when you want artifacts to stay
 remote, or when the SPICE server doesn't bind loopback on the remote side.

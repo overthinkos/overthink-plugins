@@ -11,7 +11,7 @@ description: |
 
 # ubuntu
 
-Base Ubuntu 24.04 (noble) image. Distinguished from `/charly-distros:debian` by **adopt mode**: the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` so the `ov` generator honors that account rather than creating a new one.
+Base Ubuntu 24.04 (noble) image. Distinguished from `/charly-distros:debian` by **adopt mode**: the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` so the `charly` generator honors that account rather than creating a new one.
 
 The Ubuntu family lives in its own **`overthinkos/ubuntu`** repo (git submodule
 at **`image/ubuntu`**) — a SEPARATE repo from `overthinkos/debian` (Debian and

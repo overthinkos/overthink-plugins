@@ -33,7 +33,7 @@ description: |
 
 Pod-aware: same-container consumers receive `http://localhost:11434`, cross-container consumers receive `http://charly-ollama:11434`. When `charly config ollama` runs, `OLLAMA_HOST` is automatically injected into the global `deploy.yml` env. Use `charly config ollama --update-all` to propagate to already-deployed services immediately.
 
-See `/charly-image:layer` for `env_provide` field docs and `/charly-core:ov-config` for `--update-all`.
+See `/charly-image:layer` for `env_provide` field docs and `/charly-core:charly-config` for `--update-all`.
 
 ## Usage
 
@@ -79,7 +79,7 @@ OCI label (see `/charly-eval:eval` for the full schema):
 
 ## Related Commands
 
-- `/charly-core:ov-config` — Deploy with quadlet (secrets, volumes, env_provide injection)
+- `/charly-core:charly-config` — Deploy with quadlet (secrets, volumes, env_provide injection)
 - `/charly-core:start` — Start the Ollama service
 - `/charly-core:service` — Manage Ollama service inside container
 

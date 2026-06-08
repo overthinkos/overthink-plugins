@@ -153,12 +153,12 @@ charly exposes **two** parallelism knobs with distinct meanings:
 
 | Flag | Env var | `defaults:` key | What it controls |
 |---|---|---|---|
-| `--jobs N` | `OV_BUILD_JOBS` | `jobs` | **Outer** concurrency: how many ov-level images to build in parallel within a DAG level (e.g., when `charly box build` rebuilds the whole graph). |
-| `--podman-jobs N` | `OV_PODMAN_JOBS` | `podman_jobs` (+ `podman_jobs_cap`) | **Inner** concurrency: passed to `podman build --jobs N`, controls how many stages of a *single* multi-stage build run concurrently. |
+| `--jobs N` | `CH_BUILD_JOBS` | `jobs` | **Outer** concurrency: how many ov-level images to build in parallel within a DAG level (e.g., when `charly box build` rebuilds the whole graph). |
+| `--podman-jobs N` | `CH_PODMAN_JOBS` | `podman_jobs` (+ `podman_jobs_cap`) | **Inner** concurrency: passed to `podman build --jobs N`, controls how many stages of a *single* multi-stage build run concurrently. |
 
 Both knobs are **config-driven**: precedence is **CLI flag → env → `defaults:`
 in `charly.yml` → built-in fallback** (4). The inner auto value (when
-`--podman-jobs` / `OV_PODMAN_JOBS` / `defaults.podman_jobs` are all unset) is
+`--podman-jobs` / `CH_PODMAN_JOBS` / `defaults.podman_jobs` are all unset) is
 CPU-proportional, capped at `defaults.podman_jobs_cap`: `min(NCPU, cap)`. The
 cap is the operative ceiling; the repo ships `podman_jobs_cap: 8`. (A
 high-concurrency `--cache-from` SIGABRT race in podman ≤ 5.7.x originally
@@ -175,7 +175,7 @@ defaults:
 
 ```bash
 charly box build <image> --podman-jobs 16             # fully parallel stages (override)
-OV_PODMAN_JOBS=8 charly update <image> --build    # via env
+CH_PODMAN_JOBS=8 charly update <image> --build    # via env
 charly box build <image> --podman-jobs 1              # fully serialised, worst-case debugging
 ```
 
@@ -187,7 +187,7 @@ are separate fields so the two semantics don't get conflated.
 ## Build-context excludes (`defaults.context_ignore`)
 
 `charly box generate` writes BOTH `.containerignore` and `.dockerignore` at the
-project root from a single source: a built-in baseline (`.git`, `bin`, `ov`,
+project root from a single source: a built-in baseline (`.git`, `bin`, `charly`,
 `*.md`, plus editor/python/node cache-bust globs) **plus** every entry in
 `defaults.context_ignore`. Both files are generated artifacts (gitignored) — do
 not hand-edit them; add excludes to `defaults.context_ignore` instead.
@@ -245,11 +245,11 @@ nothing. Run it on demand (and clear a backlog) with `charly clean` — see
 ```bash
 charly box build --cache registry my-image        # Read+write registry cache
 charly box build --cache image my-image          # Read-only from registry image
-OV_BUILD_CACHE=registry charly box build         # Via environment variable
+CH_BUILD_CACHE=registry charly box build         # Via environment variable
 ```
 
 The default cache mode is also config-driven: precedence is `--cache` →
-`OV_BUILD_CACHE` → `defaults.cache` in `charly.yml` → auto (`image` for local
+`CH_BUILD_CACHE` → `defaults.cache` in `charly.yml` → auto (`image` for local
 builds, `registry` for `--push`). Set `defaults.cache: image` to make the
 read-only registry cache the project default without per-invocation flags.
 
@@ -316,7 +316,7 @@ Three kinds of source changes are real cache invalidators — if you see a long 
 | A `copy:` source file's content | Rebuild from that layer's COPY onward + downstream |
 | A `cmd:` / `download:` task body | Rebuild from that RUN onward + downstream |
 | A package added/removed in `rpm:`/`deb:`/`pac:` | Rebuild from the install RUN onward + downstream |
-| `task build:ov` → new `candy/ov/bin/charly` | Rebuild the `ov` layer + every image that includes it |
+| `task build:ov` → new `candy/ov/bin/charly` | Rebuild the `charly` layer + every image that includes it |
 | An upstream image got content-changed and rebuilt | Rebuild from the FROM step onward in every descendant |
 
 ## Build Flow Details
@@ -383,7 +383,7 @@ charly settings set engine.run docker     # or podman
 
 ## Host Bootstrap (First Time)
 
-Requires: `go-task`, `go`, `docker` (or `podman`). On Arch the recommended install is `cd pkg/arch && makepkg -si` — the bundled `opencharly-git` PKGBUILD is LOCAL-ONLY (it is NOT published to the AUR, so there is no `yay -S opencharly-git`); it pulls every dep, and the bundled pacman post-install hook enables docker/tailscaled/virtqemud automatically. (`makepkg -si` resolves the AUR-only mandatory deps via an AUR helper, or pre-install them — see the PKGBUILD's `makedepends`/AUR notes.) On other distros, run `task build:ov` from the checkout to compile and install `ov` to `~/.local/bin/charly`.
+Requires: `go-task`, `go`, `docker` (or `podman`). On Arch the recommended install is `cd pkg/arch && makepkg -si` — the bundled `opencharly-git` PKGBUILD is LOCAL-ONLY (it is NOT published to the AUR, so there is no `yay -S opencharly-git`); it pulls every dep, and the bundled pacman post-install hook enables docker/tailscaled/virtqemud automatically. (`makepkg -si` resolves the AUR-only mandatory deps via an AUR helper, or pre-install them — see the PKGBUILD's `makedepends`/AUR notes.) On other distros, run `task build:ov` from the checkout to compile and install `charly` to `~/.local/bin/charly`.
 
 ```bash
 task build:charly        # Build + install ov; on Arch delegates to makepkg -si, elsewhere installs portable to ~/.local/bin
@@ -436,17 +436,17 @@ If a build fails with `conflicting requests` involving `libavcodec-free` vs `lib
 
 ### YAML Unmarshal Error on candy.yml
 
-If you see `cannot unmarshal !!str ... into int` or similar YAML parsing errors on layer fields, the installed `ov` binary is likely stale. Rebuild with `task build:install` or `cp bin/charly ~/.local/bin/charly`. Verify with `charly box validate`.
+If you see `cannot unmarshal !!str ... into int` or similar YAML parsing errors on layer fields, the installed `charly` binary is likely stale. Rebuild with `task build:install` or `cp bin/charly ~/.local/bin/charly`. Verify with `charly box validate`.
 
-### Stale `ov` binary produces stale Containerfiles
+### Stale `charly` binary produces stale Containerfiles
 
-Beyond the YAML-unmarshal symptom above, a stale `ov` binary can produce *syntactically valid but outdated* Containerfile output — e.g. emitting an old broken form of a template that HEAD's source has already fixed. Symptom: build fails on a step whose generated shell clearly doesn't match the source you see in `git grep`. Quick diagnostic: `ls -la $(which ov)` vs. `git log -1 ov/generate.go` — if the binary predates the fix, rebuild:
+Beyond the YAML-unmarshal symptom above, a stale `charly` binary can produce *syntactically valid but outdated* Containerfile output — e.g. emitting an old broken form of a template that HEAD's source has already fixed. Symptom: build fails on a step whose generated shell clearly doesn't match the source you see in `git grep`. Quick diagnostic: `ls -la $(which ov)` vs. `git log -1 ov/generate.go` — if the binary predates the fix, rebuild:
 
 ```bash
 task build:charly        # rebuild + pacman-reinstall on Arch (opencharly-git package)
 ```
 
-Common on Arch where `opencharly-git` is pacman-installed and HEAD moves faster than rebuilds. If you find yourself rebuilding `ov` to chase a bug and the symptom persists, the binary path on $PATH may not be the one `task build:ov` updated — confirm with `which ov`.
+Common on Arch where `opencharly-git` is pacman-installed and HEAD moves faster than rebuilds. If you find yourself rebuilding `charly` to chase a bug and the symptom persists, the binary path on $PATH may not be the one `task build:ov` updated — confirm with `which ov`.
 
 ### Buildah cache-mount corruption (pixi tzdata et al.)
 
@@ -530,12 +530,12 @@ CalVer tags for builder `FROM` clauses (e.g.,
 `--pull=never` to podman so local tags aren't resolved from the remote.
 Tracked as a follow-up.
 
-See also: `/charly-build:generate` for the Containerfile generation path, `/charly-core:ov-update`
+See also: `/charly-build:generate` for the Containerfile generation path, `/charly-core:charly-update`
 for the `--build` flag that also picks up this caveat.
 
 ## Project directory override
 
-`charly box build` (like every build-mode command) resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>` — honoured before Kong dispatch. See `/charly-image:image` "Project directory resolution" for the canonical reference and the `charly mcp serve` use case. Typical use: building from an `charly mcp serve` MCP tool where the container cwd doesn't hold the project.
+`charly box build` (like every build-mode command) resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CH_PROJECT_DIR=<dir>` — honoured before Kong dispatch. See `/charly-image:image` "Project directory resolution" for the canonical reference and the `charly mcp serve` use case. Typical use: building from an `charly mcp serve` MCP tool where the container cwd doesn't hold the project.
 
 ## Cross-References
 
@@ -554,9 +554,9 @@ for the `--build` flag that also picks up this caveat.
 
 - `/charly-image:layer` -- Layer definitions that get built
 - `/charly-eval:eval` -- Tests are embedded as `ai.opencharly.eval` OCI label at build time; LABEL-at-end optimization (see Cache Efficiency above) makes test edits cheap.
-- `/charly-core:ov-update` -- `charly update <image> --build` invokes `BuildCmd.Run` and picks up the same `--jobs` cap and stale-`:latest` caveat
+- `/charly-core:charly-update` -- `charly update <image> --build` invokes `BuildCmd.Run` and picks up the same `--jobs` cap and stale-`:latest` caveat
 - `/charly-vm:vm` -- Building bootc disk images (`charly vm build`)
-- `/charly-core:ov-config` -- Engine configuration
+- `/charly-core:charly-config` -- Engine configuration
 - `/charly-automation:enc` -- Encrypted-volume restart path interacts with the `--build` flow (`charly config mount` short-circuit means builds can restart services without touching the keyring)
 
 ## When to Use This Skill

@@ -32,7 +32,7 @@ doesn't warrant:
   transitively, nothing of which uv actually uses.
 - HOME-dependency — the binary path would vary per-image's `$HOME`, and
   HOME-relative PATH entries in child images go subtly wrong when the
-  `ov` auto-intermediate machinery bakes uid=1000 paths into images
+  `charly` auto-intermediate machinery bakes uid=1000 paths into images
   deployed at uid=0 (handled in `ov/intermediates.go` — see
   `/charly-internals:generate-source` "UID-keyed sibling grouping").
 - Confusion — "uv is installed but `which uv` says not found" for

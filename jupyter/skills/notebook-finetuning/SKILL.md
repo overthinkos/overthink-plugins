@@ -93,7 +93,7 @@ The notebooks include several workarounds for upstream library changes:
 ## Related Skills
 
 - `/charly-image:layer` -- data field documentation and layer authoring rules
-- `/charly-core:ov-config` -- data provisioning during `charly config` setup
+- `/charly-core:charly-config` -- data provisioning during `charly config` setup
 - `/charly-core:deploy` -- volume backing configuration (bind, named, encrypted)
 - `/charly-jupyter:unsloth-studio` -- the Tier 2 meta-layer that owns the workspace volume
 - `/charly-jupyter:notebook-templates` -- sibling data layer pattern (starter notebooks for jupyter)

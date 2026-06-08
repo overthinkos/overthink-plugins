@@ -10,7 +10,7 @@ description: |
 
 OpenClaw is an AI gateway that connects LLM agents to messaging channels (WhatsApp, Telegram, Discord, Slack, Signal, iMessage, IRC, Teams) and exposes them via a WebSocket API, CLI, and web Control UI. It runs as a Node.js process with an embedded agent runtime, model failover, browser automation, and multi-agent routing.
 
-In Overthink, OpenClaw runs as a supervisord service inside containers. The `openclaw` layer provides the npm package; compose it with the `sway-desktop` metalayer (full Sway desktop + Chrome browser + VNC) for browser-based workflows like OAuth and web automation. For a desktop+browser image, compose your own from the layers (shown below); for non-browser channels use the headless `openclaw` / `openclaw-full` images.
+In OpenCharly, OpenClaw runs as a supervisord service inside containers. The `openclaw` layer provides the npm package; compose it with the `sway-desktop` metalayer (full Sway desktop + Chrome browser + VNC) for browser-based workflows like OAuth and web automation. For a desktop+browser image, compose your own from the layers (shown below); for non-browser channels use the headless `openclaw` / `openclaw-full` images.
 
 The gateway listens on port 18789 (WebSocket + HTTP). All CLI commands (`openclaw *`) connect to the gateway WebSocket. The Control UI is served at the gateway root URL. Config is stored in `~/.openclaw/openclaw.json` (JSON5 format).
 
@@ -34,9 +34,9 @@ The gateway listens on port 18789 (WebSocket + HTTP). All CLI commands (`opencla
 | Setup wizard | `openclaw configure` | Interactive config wizard |
 | Logs | `openclaw logs --follow` | Tail gateway logs |
 
-For container lifecycle, use `ov` commands -- see `/charly-core:service`.
+For container lifecycle, use `charly` commands -- see `/charly-core:service`.
 
-## Overthink Integration
+## OpenCharly Integration
 
 ### Layer
 

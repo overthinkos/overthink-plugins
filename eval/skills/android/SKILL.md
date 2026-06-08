@@ -8,7 +8,7 @@ description: |
 
 ## Overview
 
-Android is a first-class deploy **substrate** in `ov`, modeled on `kind: k8s`.
+Android is a first-class deploy **substrate** in `charly`, modeled on `kind: k8s`.
 Two cooperating concepts:
 
 - **`kind: android`** — a DEVICE (the substrate). Either an in-pod emulator

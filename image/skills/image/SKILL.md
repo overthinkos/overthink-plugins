@@ -10,7 +10,7 @@ description: |
 
 `charly box` is the **only** command family that reads `box.yml`. It groups
 every build-mode operation (build, generate, validate, list, merge, new,
-inspect, pull) under a single namespace. All other `ov` commands read
+inspect, pull) under a single namespace. All other `charly` commands read
 exclusively from OCI labels embedded into built images + `deploy.yml` for
 deployment overrides.
 
@@ -20,7 +20,7 @@ Build-mode operations live only under `charly box`. Top-level invocations like
 
 An **image** is a named build target in `box.yml`. Images compose layers
 into container images with configurable defaults, inheritance chains,
-platform targets, and builder configurations. The `ov` CLI resolves
+platform targets, and builder configurations. The `charly` CLI resolves
 dependencies, generates Containerfiles, and builds images in the correct
 order.
 
@@ -64,13 +64,13 @@ Every `charly box …` command resolves `box.yml` (and `build.yml`, `candy/`, et
 # Local project — pick a directory on disk:
 charly -C /path/to/opencharly image list images          # short flag
 charly --dir /path/to/opencharly image list images       # long flag
-OV_PROJECT_DIR=/path/to/opencharly charly box list boxes   # env var
+CH_PROJECT_DIR=/path/to/opencharly charly box list boxes   # env var
 
 # Remote project — clone (or hit cache) and chdir into it:
 charly --repo overthinkos/opencharly image list images        # bare owner/repo → github.com/owner/repo@<default-branch>
 charly --repo overthinkos/opencharly@main image list images   # pinned ref
 charly --repo default image list images                      # literal "default" → overthinkos/opencharly
-OV_PROJECT_REPO=overthinkos/opencharly charly box list boxes
+CH_PROJECT_REPO=overthinkos/opencharly charly box list boxes
 ```
 
 `--repo` and `--dir` are mutually exclusive (passing both exits with `ov: --repo and --dir are mutually exclusive`). All five paths are declared on the top-level `CLI` struct in `ov/main.go` and resolved by a single `os.Chdir(cli.Dir)` call **before** Kong dispatches the subcommand, so every existing `os.Getwd()` site picks up the new cwd — no per-command plumbing needed.
@@ -82,11 +82,11 @@ OV_PROJECT_REPO=overthinkos/opencharly charly box list boxes
 - bare `owner/repo@ref` → pinned to `ref`
 - `host.tld/owner/repo[@ref]` → used literally (the dot in the host disambiguates)
 
-Remote repos are cloned into `~/.cache/ov/repos/<repoPath>@<version>/` (override via `OV_REPO_CACHE`). The cache is shared with the existing remote-layer fetcher (`ov/refs.go`, `ov/refs_git.go`) — both go through `EnsureRepoDownloaded`.
+Remote repos are cloned into `~/.cache/charly/repos/<repoPath>@<version>/` (override via `CH_REPO_CACHE`). The cache is shared with the existing remote-layer fetcher (`ov/refs.go`, `ov/refs_git.go`) — both go through `EnsureRepoDownloaded`.
 
-**Canonical use case**: running `charly mcp serve` inside a container. The container's cwd is `/workspace` (set by the `ov-mcp` layer's env + volume declaration). There are three deployment patterns, in order of progressively less local setup:
+**Canonical use case**: running `charly mcp serve` inside a container. The container's cwd is `/workspace` (set by the `charly-mcp` layer's env + volume declaration). There are three deployment patterns, in order of progressively less local setup:
 
-1. **Bind-mount** — the canonical `ov-mcp` pattern. Host project bind-mounted to the container's `/workspace`; volume NAME stays `project` for a stable deployer API. Use this when you want the agent to read your in-flight local edits.
+1. **Bind-mount** — the canonical `charly-mcp` pattern. Host project bind-mounted to the container's `/workspace`; volume NAME stays `project` for a stable deployer API. Use this when you want the agent to read your in-flight local edits.
 
    ```bash
    charly config arch-charly --bind project=/home/you/opencharly
@@ -94,11 +94,11 @@ Remote repos are cloned into `~/.cache/ov/repos/<repoPath>@<version>/` (override
    charly eval mcp call arch-charly box.list.boxes '{}' --name charly
    ```
 
-2. **Remote pin** — set `OV_PROJECT_REPO=overthinkos/opencharly@<sha-or-ref>` in the container env. The agent reads from a pinned upstream version. No bind mount required.
+2. **Remote pin** — set `CH_PROJECT_REPO=overthinkos/opencharly@<sha-or-ref>` in the container env. The agent reads from a pinned upstream version. No bind mount required.
 
-3. **Auto-default** — `charly mcp serve` with no `box.yml` reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires whenever cwd lacks `box.yml`, regardless of whether `OV_PROJECT_DIR` is set (the `ov-mcp` layer permanently sets `OV_PROJECT_DIR=/workspace`, so a fallback gated on the env var being empty would never fire). Pass `--no-default-repo` on the serve command to opt out. Only `charly mcp serve` auto-fetches; the top-level CLI stays opt-in.
+3. **Auto-default** — `charly mcp serve` with no `box.yml` reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires whenever cwd lacks `box.yml`, regardless of whether `CH_PROJECT_DIR` is set (the `charly-mcp` layer permanently sets `CH_PROJECT_DIR=/workspace`, so a fallback gated on the env var being empty would never fire). Pass `--no-default-repo` on the serve command to opt out. Only `charly mcp serve` auto-fetches; the top-level CLI stays opt-in.
 
-The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory`. See `/charly-build:ov-mcp-cmd` "Deployment: the `ov-mcp` layer" for the full bind-mount pattern and `/charly-internals:go` "main.go" for the implementation note (guarded by `TestOvDir_FlagChdir` + `TestOvDir_Errors` in `main_dir_test.go`, and `TestNormalizeRepoSpec` + `TestOvRepo_*` in `main_repo_test.go`).
+The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory`. See `/charly-build:charly-mcp-cmd` "Deployment: the `charly-mcp` layer" for the full bind-mount pattern and `/charly-internals:go` "main.go" for the implementation note (guarded by `TestOvDir_FlagChdir` + `TestOvDir_Errors` in `main_dir_test.go`, and `TestNormalizeRepoSpec` + `TestOvRepo_*` in `main_repo_test.go`).
 
 ## Quick Reference
 
@@ -213,7 +213,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `env` | `[]` | Runtime env vars (`KEY=VALUE`). Not inherited from defaults |
 | `env_file` | `""` | Path to `.env` file for runtime injection. Not inherited |
 | `security` | `null` | Container security options. Overrides layer-level security |
-| `network` | `string` | Container network mode (default: shared `ov` network; set `host` for host networking) |
+| `network` | `string` | Container network mode (default: shared `charly` network; set `host` for host networking) |
 
 VM-related fields (`vm`, `libvirt`) are not valid on kind:image entries — the loader rejects them. VMs are declared as `kind: vm` entities in `vm.yml` — see `/charly-vm:vms-catalog` for authoring and `/charly-build:migrate` for `charly migrate` conversion of legacy configs. `bootc: true` stays on kind:image entries (marks the image as a bootable container); a separate `kind: vm` entity with `source.kind: bootc` references it.
 
@@ -364,7 +364,7 @@ Internal bases (`base: fedora`) inherit `distro:` and `build:` from the parent i
 
 ## Intermediate Images
 
-When multiple images share the same base and common layer prefixes, `ov` auto-generates intermediate images at branch points to maximize cache reuse.
+When multiple images share the same base and common layer prefixes, `charly` auto-generates intermediate images at branch points to maximize cache reuse.
 
 ```
 fedora (external)
@@ -410,7 +410,7 @@ images:
     env_file: "~/.config/my-app/.env"
 ```
 
-These are the lowest priority in the env resolution chain. CLI flags (`-e`, `--env-file`) and workspace `.env` take precedence. See `/charly-core:ov-config` and `/charly-core:start` for the full priority chain at config-time and run-time respectively.
+These are the lowest priority in the env resolution chain. CLI flags (`-e`, `--env-file`) and workspace `.env` take precedence. See `/charly-core:charly-config` and `/charly-core:start` for the full priority chain at config-time and run-time respectively.
 
 Source: `ov/envfile.go` (`ResolveEnvVars`).
 
@@ -455,7 +455,7 @@ See `/charly-vm:vms-catalog` for the full VmSpec schema, `/charly-vm:vm` for the
 
 ## OCI Labels
 
-Every image `ov` builds carries a set of `ai.opencharly.*` OCI labels embedding the resolved image config so that `charly config` and `charly deploy` can work without the project source tree. The full list is assembled in `ov/labels.go`:
+Every image `charly` builds carries a set of `ai.opencharly.*` OCI labels embedding the resolved image config so that `charly config` and `charly deploy` can work without the project source tree. The full list is assembled in `ov/labels.go`:
 
 | Label | Contents |
 |---|---|
@@ -540,10 +540,10 @@ images:
 
 - `/charly-image:layer` -- Layer definitions that compose into images (env_provide, env_require, env_accept, security resource caps)
 - `/charly-core:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
-- `/charly-core:ov-config` -- `charly config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
+- `/charly-core:charly-config` -- `charly config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
 - `/charly-internals:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
 - `/charly-eval:eval` — Image-level `eval:` (cross-layer invariants) and `deploy_eval:` (deploy-default checks shipped with the image). Both are embedded in the `ai.opencharly.eval` OCI label.
-- `/charly-build:ov-mcp-cmd` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `charly eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
+- `/charly-build:charly-mcp-cmd` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `charly eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
 - `/charly-distros:bazzite` — canonical worked example for the external-base + explicit-`distro:` pattern.
 - `/charly-vm:vm` — `charly vm build/create/start/stop/ssh` command family; reads `vm.yml`, not `box.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
 - `/charly-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema.

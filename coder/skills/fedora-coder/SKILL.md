@@ -38,13 +38,13 @@ fedora-coder:
   base: fedora-nonfree            # = fedora + rpmfusion (for x264/ffmpeg-devel)
   ports:
     - "2222:2222"                 # sshd-wrapper
-    - "18765:18765"               # ov-mcp (Streamable HTTP)
+    - "18765:18765"               # charly-mcp (Streamable HTTP)
   layers:
     # Baseline (matches the ov-charly power-user pattern)
     - agent-forwarding
     - sshd
     - charly                          # the full toolchain: charly binary + virtualization + gocryptfs + socat
-    - ov-mcp                      # MCP gateway for the entire charly CLI
+    - charly-mcp                      # MCP gateway for the entire charly CLI
     - container-nesting           # rootless nested podman/buildah/skopeo
     - dbus
     - tmux
@@ -83,7 +83,7 @@ fedora-coder:
     - grafana-tools
 ```
 
-Network: default `ov` bridge. The `port:` mapping is the right way to expose
+Network: default `charly` bridge. The `port:` mapping is the right way to expose
 sshd/charly-mcp, and bridge networking lets dev boxes coexist on one host via
 normal `-p host:container` remapping (e.g. running `arch-coder` alongside
 `fedora-coder` on the same machine).
@@ -101,7 +101,7 @@ posture with `/charly-openclaw:openclaw-desktop`).
 | `security_opt` | `[unmask=/proc/*]` | `/charly-distros:container-nesting` |
 | `devices` | `[/dev/fuse, /dev/net/tun]` | `/charly-distros:container-nesting` |
 | `privileged` | `false` | — |
-| Network | default `ov` bridge | box.yml |
+| Network | default `charly` bridge | box.yml |
 | UID / user | `1000 / user` | defaults |
 | sudo | passwordless via `/etc/sudoers.d/charly-user` | `/charly-coder:sshd` |
 
@@ -113,10 +113,10 @@ posture with `/charly-openclaw:openclaw-desktop`).
 
 ## Network posture
 
-Default `ov` bridge. Bridge networking plus normal `-p host:container`
+Default `charly` bridge. Bridge networking plus normal `-p host:container`
 remapping is the right pattern for dev boxes — it lets `fedora-coder` run
 alongside `/charly-coder:arch-coder` on the same host (both want sshd on 2222 and
-ov-mcp on 18765). To run two dev images side by side:
+charly-mcp on 18765). To run two dev images side by side:
 
 ```bash
 charly config arch-coder -p 2223:2222 -p 18766:18765     # alt-instance ports
@@ -126,7 +126,7 @@ charly config fedora-coder                               # canonical 2222/18765
 Reaching host services from inside a bridge-networked container: use
 the host's LAN IP or `host.containers.internal` (podman) rather than
 `127.0.0.1`. For selkies-style sibling-container discovery, the deploy.yml
-`provides.env:` and `OV_MCP_SERVERS` auto-injection give explicit hostnames.
+`provides.env:` and `CH_MCP_SERVERS` auto-injection give explicit hostnames.
 
 ## The 32-layer composition explained
 
@@ -169,7 +169,7 @@ charly -C image/fedora image build fedora-coder
 charly eval box ghcr.io/overthinkos/fedora-coder:latest
 # target: 149 passed · 0 failed · 0 skipped
 
-# 4. Deploy (no bind-mount needed; ov-mcp auto-falls back to overthinkos/opencharly)
+# 4. Deploy (no bind-mount needed; charly-mcp auto-falls back to overthinkos/opencharly)
 charly config fedora-coder
 charly start fedora-coder
 
@@ -193,14 +193,14 @@ charly start fedora-coder
 
 The volume NAME is `project` (stable bind-mount API); the in-container
 mount path is `/workspace`. See `/charly-coder:charly-mcp` for the three
-deployment patterns (bind-mount / `OV_PROJECT_REPO` / auto-fallback).
+deployment patterns (bind-mount / `CH_PROJECT_REPO` / auto-fallback).
 
 ## Ports
 
 | Port | Service | Bound by |
 |---|---|---|
 | 2222 | sshd-wrapper (SSH access as user with sudo) | `/charly-coder:sshd` |
-| 18765 | ov-mcp (entire `ov` CLI as MCP tools, Streamable HTTP) | `/charly-coder:charly-mcp` |
+| 18765 | charly-mcp (entire `charly` CLI as MCP tools, Streamable HTTP) | `/charly-coder:charly-mcp` |
 
 Conflicts with `/charly-coder:arch-ov` (identical ports) and several
 selkies-desktop variants on 2222. Use `-i <instance>` or `-p <remap>`
@@ -211,9 +211,9 @@ if running alongside.
 - `charly eval box fedora-coder` — **149 passed · 0 failed · 0 skipped**.
 - `charly eval box fedora-coder` against a live running
   container — **167 passed · 0 failed · 0 skipped** (adds deploy-scope:
-  sshd reachable, supervisord responding, dbus+ov-mcp+virtqemud+
+  sshd reachable, supervisord responding, dbus+charly-mcp+virtqemud+
   virtnetworkd services running, libvirt session list + KVM domcaps,
-  mcp ping/list-tools/call-version/call-list-images via the ov-mcp
+  mcp ping/list-tools/call-version/call-list-images via the charly-mcp
   auto-fallback).
 
 ## Image size
@@ -252,7 +252,7 @@ google-cloud-npm) by forking box.yml. See `/charly-image:image` for authoring.
 | `/charly-coder:debian-coder` | `debian:13` | deb | `user:user` (create) |
 | `/charly-coder:ubuntu-coder` | `ubuntu:24.04` | deb | `user:ubuntu` (**adopt** from base) |
 
-All four produce the same daily-dev surface (sshd on 2222, ov-mcp on 18765, 5 AI CLIs, full language runtimes, DevOps tooling). Pick based on distro-family alignment with your team/CI. See `/charly-image:image` "user_policy" for the adopt-vs-create reconciliation that gives ubuntu-coder its `ubuntu` username.
+All four produce the same daily-dev surface (sshd on 2222, charly-mcp on 18765, 5 AI CLIs, full language runtimes, DevOps tooling). Pick based on distro-family alignment with your team/CI. See `/charly-image:image` "user_policy" for the adopt-vs-create reconciliation that gives ubuntu-coder its `ubuntu` username.
 
 ## Related Images
 
@@ -265,10 +265,10 @@ All four produce the same daily-dev surface (sshd on 2222, ov-mcp on 18765, 5 AI
 ## Related Commands
 
 - `/charly-core:shell` — open an interactive shell inside the container (as user, with sudo)
-- `/charly-core:ov-config` — deploy setup (--bind project=…, tunnel, --update-all)
+- `/charly-core:charly-config` — deploy setup (--bind project=…, tunnel, --update-all)
 - `/charly-core:start`, `/charly-core:stop` — lifecycle
 - `/charly-eval:eval` — live-service tests (`charly eval live <name>`) and build-scope tests (`charly eval box <ref>`)
-- `/charly-build:ov-mcp-cmd` — MCP gateway documentation; `--no-default-repo` to disable auto-fallback
+- `/charly-build:charly-mcp-cmd` — MCP gateway documentation; `--no-default-repo` to disable auto-fallback
 - `/charly-vm:vm` — nested libvirt VMs (via virtqemud inside the container)
 - `/charly-image:layer` — authoring reference (covers the new `strip_components:` modifier)
 

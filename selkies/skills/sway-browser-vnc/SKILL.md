@@ -29,7 +29,7 @@ charly eval wl screenshot sway-browser-vnc screenshot.png
 
 ## D-Bus and Notification Support
 
-This image includes `dbus` and `ov` layers, enabling:
+This image includes `dbus` and `charly` layers, enabling:
 - `charly eval dbus notify` — native Go D-Bus notifications via in-container charly binary
 - `charly eval dbus list/call/introspect` — full D-Bus interaction
 - `charly cmd` — single command execution with desktop notification on completion
@@ -117,8 +117,8 @@ port 5900 reachable, Chrome CDP on port 9250→9222 with `/json/version`
 - `/charly-eval:vnc` — VNC automation on this image
 - `/charly-eval:cdp` — Chrome automation (CDP on host port 9250)
 - `/charly-eval:wl` — Wayland input/windows/clipboard (sway subgroup for compositor control)
-- `/charly-eval:dbus` — D-Bus notifications via in-container `ov` binary
-- `/charly-build:ov-mcp-cmd` — the image inherits 2 deploy-scope `mcp:` checks from the `chrome-devtools-mcp` layer (ping + list-tools asserting `navigate_page`/`take_screenshot`). `charly eval live sway-browser-vnc --filter mcp` runs them; note the **port-publishing gotcha** — if your `deploy.yml` has an explicit `port:` override that predates `chrome-devtools-mcp`, port 9224 may not be published. See `/charly-build:ov-mcp-cmd` for the fix.
+- `/charly-eval:dbus` — D-Bus notifications via in-container `charly` binary
+- `/charly-build:charly-mcp-cmd` — the image inherits 2 deploy-scope `mcp:` checks from the `chrome-devtools-mcp` layer (ping + list-tools asserting `navigate_page`/`take_screenshot`). `charly eval live sway-browser-vnc --filter mcp` runs them; note the **port-publishing gotcha** — if your `deploy.yml` has an explicit `port:` override that predates `chrome-devtools-mcp`, port 9224 may not be published. See `/charly-build:charly-mcp-cmd` for the fix.
 
 ## Related Images
 

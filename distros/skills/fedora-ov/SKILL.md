@@ -67,10 +67,10 @@ kernel `mount_too_revealing()` RCA.
 
 `fedora-ov` uses host networking (unlike `arch-ov`, which uses bridge)
 so the image can reach host services and the host namespace directly.
-ov-mcp's `rewriteMCPURLForHost` handles host-networked containers via
+charly-mcp's `rewriteMCPURLForHost` handles host-networked containers via
 `HostConfig.NetworkMode=host` detection (see
 `ov/mcp_client.go:lookupHostPort`), so host networking does not break
-MCP URL rewriting. If you want ov-mcp on fedora-ov, compose it
+MCP URL rewriting. If you want charly-mcp on fedora-ov, compose it
 into the layer list — it will work on either networking mode.
 
 ## What's Installed
@@ -127,7 +127,7 @@ The `/charly-distros:nvidia` layer provides NVIDIA GPU runtime:
 - `nvidia-container-toolkit` — CDI spec generation (driver userspace libs provided by CDI at runtime, matching host kernel module)
 - `libva-nvidia-driver` — VA-API acceleration
 
-`ov` automatically calls `EnsureCDI()` before launching GPU
+`charly` automatically calls `EnsureCDI()` before launching GPU
 containers. GPU access works at any nesting depth.
 
 ## Verification
@@ -174,7 +174,7 @@ and scripts per distro.
 - `/charly-core:shell` — open an interactive shell in fedora-charly (as uid=1000 with sudo)
 - `/charly-core:service` — manage fedora-charly as a service
 - `/charly-vm:vm` — nested libvirt VMs via `qemu:///session` (rootless)
-- `/charly-build:ov-mcp-cmd` — MCP gateway deployment patterns (if you add `ov-mcp` to the layers)
+- `/charly-build:charly-mcp-cmd` — MCP gateway deployment patterns (if you add `charly-mcp` to the layers)
 
 ## Related
 

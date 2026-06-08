@@ -46,7 +46,7 @@ The Ollama notebooks require a running `ollama` deployment. When deployed via `c
 - `notebook-llm-on-supercomputers` — 15 LLM course notebooks (data layer, seeds /workspace/llms_on_supercomputers/)
 - `agent-forwarding` — SSH/GPG agent forwarding
 - `dbus` — D-Bus session bus
-- `ov` — Overthink CLI
+- `charly` — OpenCharly CLI
 
 ## Ports
 
@@ -156,7 +156,7 @@ charly shell jupyter-ml-notebook -c "ls /workspace/llms_on_supercomputers/"
 - `/charly-jupyter:jupyter` — Lightweight variant (no CUDA, multi-arch)
 - `/charly-jupyter:unsloth-studio` — Unsloth Studio UI (different pixi env, same finetuning notebooks)
 
-**MCP testing:** same 3 deploy-scope `mcp:` checks as `jupyter-ml` are inherited here. See `/charly-build:ov-mcp-cmd` for the verb reference.
+**MCP testing:** same 3 deploy-scope `mcp:` checks as `jupyter-ml` are inherited here. See `/charly-build:charly-mcp-cmd` for the verb reference.
 
 ## When to Use This Skill
 

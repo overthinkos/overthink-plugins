@@ -1,7 +1,7 @@
 ---
 name: enc
 description: |
-  Topic skill (no dedicated `charly enc` command — the surface is flags + subcommands on `charly config`). MUST be invoked before any work involving: encrypted storage, gocryptfs, or the `--encrypt` / `-v <name>:encrypted` backing flags on `charly config`, the `charly config mount` / `unmount` / `status` / `passwd` subcommands, or `ov-enc-<image>-<volume>.scope` systemd units.
+  Topic skill (no dedicated `charly enc` command — the surface is flags + subcommands on `charly config`). MUST be invoked before any work involving: encrypted storage, gocryptfs, or the `--encrypt` / `-v <name>:encrypted` backing flags on `charly config`, the `charly config mount` / `unmount` / `status` / `passwd` subcommands, or `charly-enc-<image>-<volume>.scope` systemd units.
 ---
 
 # Enc - Encrypted Storage
@@ -35,7 +35,7 @@ charly config immich --encrypt library
 charly config immich -v library:encrypted
 
 # Or via env var
-OV_VOLUMES_IMMICH="library:encrypted" charly config immich --password auto
+CH_VOLUMES_IMMICH="library:encrypted" charly config immich --password auto
 ```
 
 This saves to deploy.yml:
@@ -76,13 +76,13 @@ Without an explicit path, the global `encrypted_storage_path` is used with an `o
 
 ### Default (no explicit path)
 ```
-~/.local/share/ov/encrypted/
+~/.local/share/charly/encrypted/
   ov-<image>-<name>/
     cipher/    # Encrypted data (always on disk)
     plain/     # Decrypted mount point (mounted on demand)
 ```
 
-Override base path: `charly settings set encrypted_storage_path /path/to/storage` or `OV_ENCRYPTED_STORAGE_PATH=/path`.
+Override base path: `charly settings set encrypted_storage_path /path/to/storage` or `CH_ENCRYPTED_STORAGE_PATH=/path`.
 
 ## Commands
 
@@ -103,7 +103,7 @@ charly config mount my-app                    # Mount all encrypted volumes
 charly config mount my-app --volume secrets   # Mount specific volume
 ```
 
-Prompts for password (or reuses from keyring). Each volume is mounted inside a transient systemd scope unit (`ov-enc-<image>-<volume>.scope`) via `systemd-run --scope --user`. The plain directory becomes available for container use. Scope units can be listed with `systemctl --user list-units 'ov-enc-*'`.
+Prompts for password (or reuses from keyring). Each volume is mounted inside a transient systemd scope unit (`charly-enc-<image>-<volume>.scope`) via `systemd-run --scope --user`. The plain directory becomes available for container use. Scope units can be listed with `systemctl --user list-units 'charly-enc-*'`.
 
 ### Unmount
 
@@ -112,7 +112,7 @@ charly config unmount my-app                    # Unmount all
 charly config unmount my-app --volume secrets   # Unmount specific
 ```
 
-Unmount calls `fusermount3 -u` then stops the scope unit (`systemctl --user stop ov-enc-<image>-<volume>.scope`) to clean up the gocryptfs daemon.
+Unmount calls `fusermount3 -u` then stops the scope unit (`systemctl --user stop charly-enc-<image>-<volume>.scope`) to clean up the gocryptfs daemon.
 
 ### Status
 
@@ -144,7 +144,7 @@ would hang `charly config mount` forever polling for a keyring that can't serve 
 secret, and a quadlet unit with `TimeoutStartSec=0` would wedge in
 `activating (start-pre)` indefinitely.
 
-`ov` ships its own minimal godbus-based Secret Service client
+`charly` ships its own minimal godbus-based Secret Service client
 (`ov/secret_service.go`, the `ssClient` type) with a three-step iteration in
 `findItemAcrossCollections`:
 
@@ -246,7 +246,7 @@ pattern has been observed when a KeePassXC database was previously exposed
 via FdoSecrets but later unloaded or renamed, while the collection entry
 lingers in KeePassXC's internal state.
 
-**Fix (nothing to do on the `ov` side):** `ssClient` iterates past the broken
+**Fix (nothing to do on the `charly` side):** `ssClient` iterates past the broken
 collection automatically and finds the credential in the healthy sibling.
 The credential lookup just works. No configuration change needed.
 
@@ -259,14 +259,14 @@ The credential lookup just works. No configuration change needed.
    report "N healthy collection(s)" with no broken count.
 
 **Pinning a preferred collection:** if your setup has multiple healthy
-collections and you want `ov` to prefer one by label (e.g. to avoid
+collections and you want `charly` to prefer one by label (e.g. to avoid
 iteration overhead), set:
 
     charly settings set keyring_collection_label "<collection-label>"
 
 `findItemAnyCollection` will try that label-matched collection after the
 default alias (if healthy) and before untargeted iteration. Environment
-override: `OV_KEYRING_COLLECTION_LABEL`. See `/charly-build:settings` for the full
+override: `CH_KEYRING_COLLECTION_LABEL`. See `/charly-build:settings` for the full
 runtime-config interface.
 
 **Diagnostic direct query (busctl):** to check a specific collection by
@@ -307,16 +307,16 @@ fallback).
 
 ## Scope Unit Architecture
 
-Each encrypted volume is mounted via `systemd-run --scope --user --unit=ov-enc-<image>-<volume> -- gocryptfs -allow_other <cipherdir> <plaindir>`. This creates a transient systemd scope unit that:
+Each encrypted volume is mounted via `systemd-run --scope --user --unit=charly-enc-<image>-<volume> -- gocryptfs -allow_other <cipherdir> <plaindir>`. This creates a transient systemd scope unit that:
 
 - **Survives container stop/restart** — scope units are independent of the container service's cgroup, so `KillMode=mixed` on service stop does not kill gocryptfs
 - **Keeps mounts browsable on host** — the host user can access `plain/` directories even when the container is stopped
 - **Handles stale scopes** — if a scope persists from a crash, the next mount attempt stops the stale scope and retries
-- **Cleans up on unmount** — `charly config unmount` calls `fusermount3 -u` then `systemctl --user stop ov-enc-<image>-<volume>.scope`. The same teardown is available as a one-shot from the stop verb via `charly stop <image> --unmount` (see `/charly-core:stop`); plain `charly stop` deliberately leaves scopes running because the next start fast-paths through the `charly config mount` short-circuit.
+- **Cleans up on unmount** — `charly config unmount` calls `fusermount3 -u` then `systemctl --user stop charly-enc-<image>-<volume>.scope`. The same teardown is available as a one-shot from the stop verb via `charly stop <image> --unmount` (see `/charly-core:stop`); plain `charly stop` deliberately leaves scopes running because the next start fast-paths through the `charly config mount` short-circuit.
 
-Scope unit naming: `ov-enc-<image>-<volume>.scope` (e.g., `ov-enc-immich-ml-library.scope`).
+Scope unit naming: `charly-enc-<image>-<volume>.scope` (e.g., `charly-enc-immich-ml-library.scope`).
 
-List active scopes: `systemctl --user list-units 'ov-enc-*'`
+List active scopes: `systemctl --user list-units 'charly-enc-*'`
 
 ### Why `-allow_other` is Required
 
@@ -435,7 +435,7 @@ For comparison, plain bind mounts use `type: bind`:
 
 ```bash
 charly config my-app --bind data=/mnt/nas/data    # Explicit host path
-charly config my-app --bind data                   # Auto path: ~/.local/share/ov/volumes/my-app/data
+charly config my-app --bind data                   # Auto path: ~/.local/share/charly/volumes/my-app/data
 ```
 
 Plain bind mounts do not use encrypted storage commands. They are direct host directory mounts.
@@ -452,11 +452,11 @@ Plain bind mounts do not use encrypted storage commands. They are direct host di
 ## Cross-References
 
 - `/charly-core:deploy` -- Quadlet integration, volume backing configuration, deploy.yml
-- `/charly-core:ov-config` -- `encrypted_storage_path` and `volumes_path` settings, `charly config mount` short-circuit fast-path documented there too
+- `/charly-core:charly-config` -- `encrypted_storage_path` and `volumes_path` settings, `charly config mount` short-circuit fast-path documented there too
 - `/charly-core:service` -- Container lifecycle, `charly start` inline mount
 - `/charly-build:secrets` -- Credential store hierarchy (env → keyring → config), `charly secrets set ov/enc <image>` to store a gocryptfs passphrase explicitly, `charly secrets list` to inspect indexed keys
 - `/charly-build:settings` -- `secret_backend`, `keyring_collection_label`, `encrypted_storage_path`, and other runtime config keys that control credential + volume resolution
-- `/charly-core:ov-doctor` -- "Secret Service collections" health check, "Keyring index consistency" cross-check; invoke `charly doctor` when diagnosing broken-collection symptoms
+- `/charly-core:charly-doctor` -- "Secret Service collections" health check, "Keyring index consistency" cross-check; invoke `charly doctor` when diagnosing broken-collection symptoms
 
 ## When to Use This Skill
 

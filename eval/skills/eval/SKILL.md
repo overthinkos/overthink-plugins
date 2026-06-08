@@ -93,7 +93,7 @@ memory) is ALWAYS preserved. Set `defaults.keep_eval_runs` in `charly.yml`
 Naming: `eval-<descriptor>-<kind>`, dropping a redundant suffix when the
 descriptor already equals the kind AND the short form is free (`eval-local`,
 `eval-pod`). The harness AI-sandbox pod (the score `pod:` target) is named
-`eval-sandbox`, kept disjoint from these beds. Nothing in the `ov` Go code
+`eval-sandbox`, kept disjoint from these beds. Nothing in the `charly` Go code
 hardcodes that name — it flows from the score's `pod:` field through
 `ResolveScoreTarget`, and prompts reference it via the `${TARGET_NAME}`
 substitution token. The supporting
@@ -112,7 +112,7 @@ second bed at deploy via `CheckPortAvailability`).
 covering all four mechanisms) · `eval-local` ~45s · `eval-k3s-vm` ~5–7 min · the
 heavy feature beds (`eval-sway-browser-vnc-pod` ~14 min incl. image build)
 longer. **`charly eval run --all-beds` runs beds STRICTLY SEQUENTIALLY (a plain loop
-— no concurrency in `ov`), so its wall-clock ≈ the SUM.** To collapse that to ≈
+— no concurrency in `charly`), so its wall-clock ≈ the SUM.** To collapse that to ≈
 the slowest single bed, parallelize at the AGENT layer — one agent/teammate per
 bed, N concurrent `charly eval run <bed>` processes (`/verify-beds` and an agent team
 both do this; see `/charly-internals:agents` "Speed levers"). The dominant cost is
@@ -223,7 +223,7 @@ If the container needs state that's only available in deploy (volumes, env, tunn
 
 ## Overview
 
-`ov` ships a goss-inspired declarative testing framework built into the
+`charly` ships a goss-inspired declarative testing framework built into the
 CLI. Eval checks are authored inline under `eval:` (or `deploy_eval:`) in
 `candy.yml`, `box.yml`, or `deploy.yml`. They are **embedded as a
 three-section OCI label** (`ai.opencharly.eval` → `{layer, image, deploy}`)
@@ -477,11 +477,11 @@ matched, an image literally named `cdp`, `wl`, `dbus`, `vnc`, `mcp`,
 use the explicit `charly eval live <name>` form or rename the image. No such
 images currently exist in `box.yml`.
 
-**Gotcha — stale container-baked `ov` binary:** `charly eval dbus notify` and
-`charly eval dbus call` delegate to the container's own `ov` binary (see
-`ov/notify.go:20`, `ov/dbus.go:195,229`). If the container bakes an `ov`
+**Gotcha — stale container-baked `charly` binary:** `charly eval dbus notify` and
+`charly eval dbus call` delegate to the container's own `charly` binary (see
+`ov/notify.go:20`, `ov/dbus.go:195,229`). If the container bakes an `charly`
 binary too old to know the `charly eval <verb>` subcommand path, the delegation
-fails. Fix by rebuilding and redeploying any image that bakes `ov` (grep
+fails. Fix by rebuilding and redeploying any image that bakes `charly` (grep
 `box.yml` for `- ov$` to find them). Test runner itself is unaffected —
 this only bites the host→container delegation paths.
 
@@ -813,7 +813,7 @@ can `contains:` without JSON decoding. `list-tools` emits
 
 For artifact-producing methods (`cdp: screenshot`, `wl: screenshot`,
 `vnc: screenshot`, `libvirt: screenshot`, `spice: screenshot`,
-`record: stop`), set `artifact: <path>` to tell `ov` where to write the
+`record: stop`), set `artifact: <path>` to tell `charly` where to write the
 output AND any combination of the modifiers below to assert the
 artifact's correctness post-run.
 
@@ -861,12 +861,12 @@ combine all four for the strongest "the artifact is real" assertion.
 Failure messages identify the specific artifact and the specific
 threshold that wasn't met.
 
-#### Gotcha — stale container-baked `ov` binary
+#### Gotcha — stale container-baked `charly` binary
 
-The `dbus:` verb invokes the container's `ov` binary via delegation. If
-the container bakes an `ov` binary too old to know the `charly eval <verb>`
+The `dbus:` verb invokes the container's `charly` binary via delegation. If
+the container bakes an `charly` binary too old to know the `charly eval <verb>`
 subcommand path, the delegation fails. Rebuild and redeploy any image that
-bakes `ov` (grep `box.yml` for `- ov$`). The test runner itself is
+bakes `charly` (grep `box.yml` for `- ov$`). The test runner itself is
 unaffected; this only bites the host→container delegation paths in the
 `dbus` verb.
 
@@ -947,7 +947,7 @@ in_container: true
 `candy/ov/candy.yml` test asserts a `stdout:` matcher.
 
 ```yaml
-- id: ov-version
+- id: charly-version
   command: /usr/local/bin/charly version
   exit_status: 0
   stdout:
@@ -1122,7 +1122,7 @@ disposable container (`charly eval box`) and a running service (`charly eval liv
 | port with `reachable` | Host-side `net.DialTimeout` | Skipped (no host port binding on a disposable run) |
 | command (`in_container: true`, default) | `ContainerExecutor` | `ImageExecutor` |
 | command (`in_container: false`) | Host-side `exec.Command` | Skipped |
-| http, dns, addr | Host-side (from the `ov` process) | In-container `curl` / `getent hosts` / `nc` |
+| http, dns, addr | Host-side (from the `charly` process) | In-container `curl` / `getent hosts` / `nc` |
 | matching | In-process matcher eval | Same |
 
 The routing table lives in `ov/testrun.go` (`runOne` switch) and
@@ -1160,7 +1160,7 @@ before any check executes. `${NAME:arg}` is parameterized form.
 | `${VOLUME_PATH:name}` | Host path backing the named volume (bind source, encrypted mount, or `_data` dir) | deploy |
 | `${VOLUME_CONTAINER_PATH:name}` | In-container mount path for a volume | deploy |
 | `${ENV_NAME}` | Effective env var value on the running container | deploy |
-| `${PEER_HOST:name}` | A SEPARATE deployment's container DNS name on the shared `ov` net (`ov-<name>`); cross-deployment addressing (see below) | deploy |
+| `${PEER_HOST:name}` | A SEPARATE deployment's container DNS name on the shared `charly` net (`ov-<name>`); cross-deployment addressing (see below) | deploy |
 | `${PEER_ENDPOINT:name:port}` | A host-reachable `127.0.0.1:NNNN` for a separate deployment's `port` (published port / VM ssh-forward); host-vantage cross-deployment addressing | deploy |
 
 Build-scope checks may **not** reference deploy-scope variables — the
@@ -1187,12 +1187,12 @@ Three pieces compose it:
   `kind: eval` beds, and recipes (the driver's own `${HOST_PORT}`/`${CONTAINER_IP}`
   resolve too).
 - **`peer:` siblings** — bring the driver up ALONGSIDE the subject on the shared
-  `ov` network (see `/charly-core:deploy` "Sibling peers"). A `kind: eval` bed (or a
+  `charly` network (see `/charly-core:deploy` "Sibling peers"). A `kind: eval` bed (or a
   `kind: deploy`) declares the driver under `peer:`; it is brought up by the same
   deploy verbs and is NEVER eval-live'd (an instrument, not a subject).
 - **`${PEER_*}` address variables** — let the driven probe TARGET the subject:
   - **`${PEER_HOST:<name>}`** → the deployment's container DNS name on the shared
-    `ov` net (`ov-<name>`; also verifies it is running). The pod→pod address:
+    `charly` net (`ov-<name>`; also verifies it is running). The pod→pod address:
     `http://${PEER_HOST:<subject>}:8080`. Reference the subject by its OWN deploy
     name (for a bed, that's the bed name — the container is `ov-<bedname>`).
   - **`${PEER_ENDPOINT:<name>:<port>}`** → a host-reachable `127.0.0.1:NNNN` for
@@ -1401,7 +1401,7 @@ deliberately.
 
 ## Related skills
 
-- **Live-container probe verbs under `charly eval`** — `/charly-eval:cdp`, `/charly-eval:wl`, `/charly-eval:dbus`, `/charly-eval:vnc`, `/charly-build:ov-mcp-cmd`, `/charly-eval:record`, `/charly-eval:spice`, `/charly-eval:libvirt`, `/charly-kubernetes:eval-k8s` are dispatched as `charly eval cdp|wl|dbus|vnc|mcp|record|spice|libvirt|k8s`. See the Subcommands section above.
+- **Live-container probe verbs under `charly eval`** — `/charly-eval:cdp`, `/charly-eval:wl`, `/charly-eval:dbus`, `/charly-eval:vnc`, `/charly-build:charly-mcp-cmd`, `/charly-eval:record`, `/charly-eval:spice`, `/charly-eval:libvirt`, `/charly-kubernetes:eval-k8s` are dispatched as `charly eval cdp|wl|dbus|vnc|mcp|record|spice|libvirt|k8s`. See the Subcommands section above.
 - `/charly-image:layer` — layer authoring; `eval:` field is part of every `candy.yml`.
 - `/charly-image:image` — image-level `eval:` and `deploy_eval:` at composition time.
 - `/charly-core:deploy` — local `deploy.yml` overlay rules and the `eval:` merge.

@@ -27,7 +27,7 @@ description: |
 3. Emits `/etc/systemd/system/k3s.service` running `k3s server`.
 4. After setup, the runtime publishes `/etc/rancher/k3s/k3s.yaml` back to
    the operator via the new `artifact:` layer-schema feature. The
-   retrieved file lands at `~/.cache/ov/clusters/<deploy_name>/kubeconfig.yaml`
+   retrieved file lands at `~/.cache/charly/clusters/<deploy_name>/kubeconfig.yaml`
    with `127.0.0.1` rewritten to `${K3S_SERVER_HOSTNAME}` so the operator
    can `kubectl` the cluster from their machine.
 5. The `K3sPostProvision` hook (Go, runs after artifact retrieval)

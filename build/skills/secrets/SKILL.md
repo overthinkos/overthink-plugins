@@ -8,7 +8,7 @@ description: |
 
 ## Overview
 
-`ov` has two distinct secret systems:
+`charly` has two distinct secret systems:
 
 1. **Credential store** (`charly secrets get/set/list/delete/import/export`) — keyed
    `service/key` credentials (VNC passwords, layer `secret_*` values) resolved
@@ -32,14 +32,14 @@ Resolution order (first match wins):
 
 | Priority | Backend | When used |
 |----------|---------|-----------|
-| 1 | Environment variable | `OV_VNC_PASSWORD`, etc. |
+| 1 | Environment variable | `CH_VNC_PASSWORD`, etc. |
 | 2 | System keyring (Secret Service) | GNOME Keyring, KDE Wallet, KeePassXC (FdoSecrets) |
 | 3 | Config file | Plaintext fallback in `config.yml` (headless last-resort) |
 
 `secret_backend` ∈ {`auto` (default; keyring then config), `keyring`, `config`}.
 
 **Iteration-capable keyring read path:** when the system
-keyring backend is active, `ov`'s read path (`KeyringStore.Get` →
+keyring backend is active, `charly`'s read path (`KeyringStore.Get` →
 `keyringGetViaSSClient` → `ssClient.findItemAnyCollection`) does NOT rely on
 the Secret Service `default` alias alone. It iterates all healthy collections,
 skipping any that return DBus errors on property reads. This makes charly
@@ -213,7 +213,7 @@ with the new value on every `charly config`:
 ```bash
 charly secrets set ov/api-key/openrouter <new-value>
 charly config openwebui --update-all
-systemctl --user restart ov-openwebui.service
+systemctl --user restart charly-openwebui.service
 ```
 
 **One-shot `-e` import:** the `-e NAME=VAL` CLI flag on `charly config`
@@ -494,10 +494,10 @@ For GPG agent forwarding into containers (so `gpg --decrypt` works inside), use 
 
 ## Cross-References
 
-- `/charly-core:ov-config` — `secret_backend` and other settings keys
+- `/charly-core:charly-config` — `secret_backend` and other settings keys
 - `/charly-automation:enc` — encrypted volume credential lookup, iteration-capable ssClient, broken-collection troubleshooting, source classification (`env`/`keyring`/`config`/`locked`/`unavailable`/`default`)
 - `/charly-build:settings` — `keyring_collection_label`, `secret_backend`, and other runtime config keys
-- `/charly-core:ov-doctor` — Secret Service collection health + shadow index consistency checks
+- `/charly-core:charly-doctor` — Secret Service collection health + shadow index consistency checks
 - `/charly-core:service` — container secrets (`secrets` field in candy.yml, provisioned at `charly config`)
 - `/charly-distros:agent-forwarding` — SSH/GPG agent forwarding into containers
 - `/charly-infrastructure:gnupg` — GnuPG package layer

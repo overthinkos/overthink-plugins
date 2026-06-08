@@ -87,7 +87,7 @@ At build time, the contents are staged into `/data/workspace/llms_on_supercomput
 
 ## Network Connectivity
 
-9 notebooks (D0, D1, D2 series) connect to Ollama via the `OLLAMA_HOST` environment variable (default: `http://localhost:11434`). When Ollama is deployed via `charly config ollama --update-all`, the `OLLAMA_HOST` env var is auto-injected via `env_provide` to `http://charly-ollama:11434` — both containers must be on the same `ov` Podman network. The D3 fine-tuning notebooks work locally with GPU — no Ollama needed.
+9 notebooks (D0, D1, D2 series) connect to Ollama via the `OLLAMA_HOST` environment variable (default: `http://localhost:11434`). When Ollama is deployed via `charly config ollama --update-all`, the `OLLAMA_HOST` env var is auto-injected via `env_provide` to `http://charly-ollama:11434` — both containers must be on the same `charly` Podman network. The D3 fine-tuning notebooks work locally with GPU — no Ollama needed.
 
 ## Notebook Compatibility Notes
 
@@ -111,7 +111,7 @@ The same `importlib.reload(ollama)` pattern from `/charly-jupyter:notebook-ollam
 ## Related Skills
 
 - `/charly-image:layer` — data field documentation and layer authoring rules
-- `/charly-core:ov-config` — data provisioning during `charly config` setup
+- `/charly-core:charly-config` — data provisioning during `charly config` setup
 - `/charly-jupyter:notebook-finetuning` — sibling data layer (Unsloth fine-tuning notebooks)
 - `/charly-jupyter:notebook-ollama` — sibling data layer (Ollama API tutorials)
 - `/charly-jupyter:notebook-templates` — sibling data layer (starter notebooks)

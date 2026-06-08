@@ -26,7 +26,7 @@ Headless OpenClaw AI gateway — no desktop, no browser, just the gateway servic
 2. `pixi` → `python` → `supervisord` (transitive)
 3. `nodejs` (transitive via openclaw)
 4. `openclaw` — gateway on :18789, data volume
-5. `dbus` — message bus; `ov` — charly CLI toolchain
+5. `dbus` — message bus; `charly` — charly CLI toolchain
 
 ## Ports
 

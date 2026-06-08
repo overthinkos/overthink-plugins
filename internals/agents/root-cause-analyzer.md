@@ -5,7 +5,7 @@ tools: Read, Bash, Grep
 model: inherit
 ---
 
-You are the Root Cause Analyzer subagent for Overthink development.
+You are the Root Cause Analyzer subagent for OpenCharly development.
 
 ## Your Role
 

@@ -25,8 +25,8 @@ charly eval libvirt events     [<vm>]                   # poll lifecycle state t
 ```
 
 **Remote libvirt via `--uri`.** Every verb accepts `--uri
-qemu+ssh://[user@]host/session` (also honored as `OV_LIBVIRT_URI`). When
-set, `ov` opens an SSH connection to the remote host, discovers the
+qemu+ssh://[user@]host/session` (also honored as `CH_LIBVIRT_URI`). When
+set, `charly` opens an SSH connection to the remote host, discovers the
 remote virtqemud session socket via `id -u`, and forwards it over the
 SSH channel — so `DomainScreenshot`, `DomainSendKey`, QMP, etc. all
 work against the remote hypervisor. Example:
@@ -36,7 +36,7 @@ charly eval libvirt info arch --uri qemu+ssh://o.atrawog.org/session
 charly eval libvirt screenshot arch --uri qemu+ssh://o.atrawog.org/session - > /tmp/shot.png
 ```
 
-`<file>` args accept `-` for stdout. Alternatively, run `ov` on the
+`<file>` args accept `-` for stdout. Alternatively, run `charly` on the
 remote machine with the top-level `--host` flag: `charly --host o test
 libvirt info arch`.
 
@@ -144,7 +144,7 @@ not reachable.
 ### Cloud-image VM packages: also include `portaudio`
 
 When a cloud-image VM uses `ov_install.strategy: auto` (the modern
-default), VmDeployTarget scps the **host** `ov` binary into the guest
+default), VmDeployTarget scps the **host** `charly` binary into the guest
 post-boot. The host binary is built with cgo (the
 `gordonklaus/portaudio` binding for SPICE audio — see
 `pkg/arch/PKGBUILD` `depends=()`), so the guest needs

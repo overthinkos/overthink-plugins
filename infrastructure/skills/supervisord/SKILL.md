@@ -40,7 +40,7 @@ Without it, an Arch image gets a `/etc/supervisord.conf` with no
 exits 127 (command not found) at container start. Every Arch-rooted
 auto-intermediate that composes `supervisord` needs it.
 
-## How `ov` Generates Supervisord Configs
+## How `charly` Generates Supervisord Configs
 
 Layers declare processes via the unified **`service:`** schema in `candy.yml` (see `/charly-image:layer` "Service Declaration"). Each entry is rendered through supervisord's `service_schema.service_template` in `build.yml`, which produces a `[program:<name>]` INI fragment. `charly box generate` collects all rendered fragments across the layer chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `build.yml init:` section).
 
@@ -278,7 +278,7 @@ Container-mode logs are unaffected — supervisord is still PID 1 there.
 
 - `/charly-core:service` — Start/stop/restart/status for individual services inside the container
 - `/charly-core:logs` — Container-level log access (shows supervisord-aggregated stdout/stderr)
-- `/charly-core:ov-status` — Container status including service probe results
+- `/charly-core:charly-status` — Container status including service probe results
 - `/charly-build:generate` — Containerfile generation: where `service:` blocks get written to `/etc/supervisord.conf`
 - `/charly-image:layer` — `service:` field authoring + `security:` cgroup resource caps
 

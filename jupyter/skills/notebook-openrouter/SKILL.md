@@ -124,7 +124,7 @@ charly start jupyter-ml-notebook
 ## Related Skills
 
 - `/charly-image:layer` — data field documentation, env_require/env_accept field documentation
-- `/charly-core:ov-config` — data provisioning and env_require warning during `charly config` setup
+- `/charly-core:charly-config` — data provisioning and env_require warning during `charly config` setup
 - `/charly-core:deploy` — volume backing configuration
 - `/charly-jupyter:notebook-ollama` — sibling data layer pattern (Ollama integration notebooks)
 - `/charly-jupyter:notebook-finetuning` — sibling data layer pattern (Unsloth fine-tuning notebooks)

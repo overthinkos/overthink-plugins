@@ -19,7 +19,7 @@ Stops a running service container. In quadlet mode, stops the systemd user servi
 |--------|---------|-------------|
 | Stop service | `charly stop <image>` | Stop the running container |
 | With instance | `charly stop <image> -i 2` | Stop a specific instance |
-| Stop + tear down FUSE | `charly stop <image> --unmount` | Stop the container AND unmount encrypted volumes (drops `ov-enc-<image>-<volume>.scope` units) |
+| Stop + tear down FUSE | `charly stop <image> --unmount` | Stop the container AND unmount encrypted volumes (drops `charly-enc-<image>-<volume>.scope` units) |
 
 ## Usage
 
@@ -39,7 +39,7 @@ charly stop immich --unmount
 | Flag | Description |
 |------|-------------|
 | `-i, --instance INSTANCE` | Target a specific container instance |
-| `--unmount` | After the container stop succeeds, also tear down `ov-enc-<image>-<volume>.scope` units via `encUnmount`. Best-effort: per-volume unmount failures emit a warning but don't propagate (the container has already stopped; the user can retry with `charly config unmount <image>`). Default `false` — plain `charly stop` leaves gocryptfs scopes running so they survive container restart (the original load-bearing design from `/charly-automation:enc`). |
+| `--unmount` | After the container stop succeeds, also tear down `charly-enc-<image>-<volume>.scope` units via `encUnmount`. Best-effort: per-volume unmount failures emit a warning but don't propagate (the container has already stopped; the user can retry with `charly config unmount <image>`). Default `false` — plain `charly stop` leaves gocryptfs scopes running so they survive container restart (the original load-bearing design from `/charly-automation:enc`). |
 
 ## Behavior
 
@@ -48,7 +48,7 @@ charly stop immich --unmount
 - Does not remove the container or its configuration -- use `charly remove` for that
 - Does not disable the service -- the container may restart on next login if enabled
 - To stop and disable: `charly start <image> --enable=false` then `charly stop <image>`
-- **By design**, plain `charly stop` does NOT tear down encrypted FUSE mounts — the `ov-enc-*.scope` units are deliberately decoupled from the container service cgroup so they survive `KillMode=mixed` on stop and let the next start fast-path through the `charly config mount` short-circuit. Use `--unmount` for the full teardown semantics.
+- **By design**, plain `charly stop` does NOT tear down encrypted FUSE mounts — the `charly-enc-*.scope` units are deliberately decoupled from the container service cgroup so they survive `KillMode=mixed` on stop and let the next start fast-path through the `charly config mount` short-circuit. Use `--unmount` for the full teardown semantics.
 
 ## Cross-References
 
@@ -56,4 +56,4 @@ charly stop immich --unmount
 
 - `/charly-core:start` -- Start services
 - `/charly-core:remove` -- Remove containers, quadlets, and deploy config
-- `/charly-core:ov-status` -- Check service status
+- `/charly-core:charly-status` -- Check service status

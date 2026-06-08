@@ -68,7 +68,7 @@ charly start jupyter
 ## Related Skills
 
 - `/charly-image:layer` -- data field documentation and layer authoring rules
-- `/charly-core:ov-config` -- data provisioning during `charly config` setup
+- `/charly-core:charly-config` -- data provisioning during `charly config` setup
 - `/charly-core:deploy` -- volume backing configuration (bind, named, encrypted)
 - `/charly-jupyter:jupyter` -- the JupyterLab layer that consumes the workspace volume
 - `/charly-jupyter:jupyter` -- the image that includes this layer

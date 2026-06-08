@@ -201,7 +201,7 @@ The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUIL
 
 ## Project directory override
 
-`charly box generate` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
+`charly box generate` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CH_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 

@@ -61,7 +61,7 @@ Two paths to execute notebook content programmatically:
    osm-monaco-viz.py notebook:
 
    ```bash
-   podman exec ov-versa /home/user/.pixi/envs/default/bin/marimo \
+   podman exec charly-versa /home/user/.pixi/envs/default/bin/marimo \
      export ipynb /workspace/notebooks/osm-monaco-viz.py \
      --include-outputs --sort topological -o /tmp/notebook-run.ipynb -f
    ```
@@ -104,5 +104,5 @@ explicitly broken in a hard cutover.
 - `/charly-versa:versa-layer` — layer that runs the server
 - `/charly-versa:airflow-mcp` — the OTHER MCP server in the same pod
 - `/charly-versa:notebook-osm` — example notebook diagnosed via this MCP
-- `/charly-build:ov-mcp-cmd` — MCP probe verb authoring + URL rewriter
+- `/charly-build:charly-mcp-cmd` — MCP probe verb authoring + URL rewriter
 - `/charly-eval:eval` — `charly eval mcp` subcommand reference

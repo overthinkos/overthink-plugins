@@ -90,7 +90,7 @@ MCP-server identity reflect that upstream software identity.
 18. `debug-tools` — `/charly-versa:debug-tools-layer` — 49 standard
     debug utilities (network/process/file/system/session)
 19. `dbus` — D-Bus session bus
-20. `ov` — `ov` CLI binary inside the container
+20. `charly` — `charly` CLI binary inside the container
 
 ## Ports + host mappings
 
@@ -165,7 +165,7 @@ port:
 ```
 
 For cross-pod topologies (airflow in a separate pod on the shared
-`ov` podman network), no special handling needed — the
+`charly` podman network), no special handling needed — the
 `AIRFLOW_API_INTERNAL_URL` template renders to
 `http://<airflow-pod-name>:8080` because `{{.ContainerName}}`
 resolves to the airflow image's container, and `podAwareEnvProvides`
@@ -181,7 +181,7 @@ fallback default. See `/charly-versa:notebook-osm` cell #2.
 
 Run multiple instances of versa side-by-side using the
 `<base>/<instance>` deploy-key form. Each instance gets its own
-container (`ov-versa`, `ov-versa-ecovoyage`, …), its own workspace
+container (`charly-versa`, `ov-versa-ecovoyage`, …), its own workspace
 volume, and its own host-port mappings:
 
 ```yaml
@@ -279,7 +279,7 @@ End-to-end notebook test (executes all 13 cells via marimo's own
 export):
 
 ```bash
-podman exec ov-versa /home/user/.pixi/envs/default/bin/marimo \
+podman exec charly-versa /home/user/.pixi/envs/default/bin/marimo \
   export ipynb /workspace/notebooks/osm-monaco-viz.py \
   --include-outputs --sort topological -o /tmp/notebook-run.ipynb -f
 ```

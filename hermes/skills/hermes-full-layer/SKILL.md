@@ -19,7 +19,7 @@ layers:
   - gemini          # Google Gemini CLI
   - dev-tools       # bat, ripgrep, neovim, gh, direnv, fd-find, htop, etc.
   - devops-tools    # AWS CLI, Scaleway, kubectx, OpenTofu, wrangler, jq, rsync
-  - charly              # Overthink CLI for in-container management
+  - charly              # OpenCharly CLI for in-container management
   - tmux            # Terminal multiplexer for persistent sessions
 ```
 
@@ -49,12 +49,12 @@ hermes:
 - `/charly-coder:gemini` — Google Gemini CLI
 - `/charly-coder:dev-tools` — Developer CLI utilities
 - `/charly-coder:devops-tools` — Cloud and infrastructure tools
-- `/charly-tools:charly` — Overthink CLI binary
+- `/charly-tools:charly` — OpenCharly CLI binary
 - `/charly-infrastructure:tmux-layer` — Terminal multiplexer for persistent sessions (`charly tmux` commands)
 - `/charly-selkies:chrome` — Provides `BROWSER_CDP_URL` (cross-container, from selkies-desktop)
 - `/charly-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-discovered via `mcp_provide`, 29 tools)
 - `/charly-jupyter:jupyter-mcp` — JupyterLab CRDT MCP server (auto-discovered via `mcp_provide`, 11 tools: notebook_*/cell_* + notebook_list_users + room_list; auto-attach single-room invariant)
-- `/charly-build:ov-mcp-cmd` — host-side MCP client (`charly eval mcp ping|list-tools|call|...`) to verify either of the above is alive and exposing the expected tool catalog before hermes tries to invoke them
+- `/charly-build:charly-mcp-cmd` — host-side MCP client (`charly eval mcp ping|list-tools|call|...`) to verify either of the above is alive and exposing the expected tool catalog before hermes tries to invoke them
 
 ## Related Images
 

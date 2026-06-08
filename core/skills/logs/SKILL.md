@@ -58,6 +58,6 @@ charly logs comfyui -f -n 50
 
 - `/charly-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
-- `/charly-core:ov-status` -- Check service status
+- `/charly-core:charly-status` -- Check service status
 - `/charly-core:service` -- Service lifecycle management
 - `/charly-core:start` -- Starting services

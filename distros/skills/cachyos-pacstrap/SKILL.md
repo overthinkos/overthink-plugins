@@ -41,7 +41,7 @@ used by both `runPrivilegedBootstrap` and `ov/vm_bootstrap.go`):
    (R3), so they can't diverge again.
 
 Verified live: `charly -C image/cachyos image build cachyos-pacstrap` produces a
-rootfs with `linux-cachyos` (`%ARCH% = x86_64_v3`) installed. (Requires an `ov`
+rootfs with `linux-cachyos` (`%ARCH% = x86_64_v3`) installed. (Requires an `charly`
 with this fix — newer than the published release.) The Docker-Hub `/charly-distros:cachyos`
 base is still the faster default (no privileged build).
 

@@ -34,7 +34,7 @@ no caps, `unmask=/proc/*` via `/charly-distros:container-nesting`).
 3. `github-runner` — the Actions runner agent (under `${HOME}/actions-runner`),
    cosign, go/git/jq, qemu-user-static (aarch64 cross-arch CI), the .NET runtime
    deps, the credential-backed registration, the ghcr mirror config
-4. `ov` — the charly binary + `virtualization` + `gocryptfs` + `socat`
+4. `charly` — the charly binary + `virtualization` + `gocryptfs` + `socat`
 5. `dbus` — session bus (for runner hooks)
 6. `container-nesting` — rootless nested podman/buildah/skopeo + the subuid/subgid
    layout + newuidmap/newgidmap file-caps + containers/storage/policy configs
@@ -64,7 +64,7 @@ container builds (aarch64) work via the repo `qemu-user-static` +
 
 The repo's `release-packages` workflow (`.github/workflows/release-packages.yml`)
 runs on this runner via `runs-on: [self-hosted, opencharly]` — no GitHub-hosted
-runner. Because the runner is an Arch (CachyOS) host carrying the FULL `ov`
+runner. Because the runner is an Arch (CachyOS) host carrying the FULL `charly`
 PKGBUILD `depends=` set, all three package formats build here:
 
 - **pac** builds NATIVELY — `charly box pkg pac` → `makepkg -sf` as uid 1000 (makepkg
@@ -76,7 +76,7 @@ PKGBUILD `depends=` set, all three package formats build here:
 
 `workflow_dispatch` runs the build jobs from a branch (the release-upload step is
 tag-guarded), so the build is exercisable without minting a tag. The `github-runner`
-layer completes the `ov` runtime on the runner — beyond the .NET/runner deps it adds
+layer completes the `charly` runtime on the runner — beyond the .NET/runner deps it adds
 the `depends=` packages the ov/virtualization layers don't already provide
 (`slirp4netns`, `libisoburn`, `cdrtools`, `swtpm`).
 
@@ -125,13 +125,13 @@ charly remove githubrunner -e RUNNER_TOKEN=<remove-token>
 
 - `/charly-distros:cachyos` — the CachyOS base (parent, via the `cachyos` namespace)
 - `/charly-openclaw:openclaw-desktop` — same rootless container-nesting posture (uid 1000, no caps)
-- `/charly-distros:fedora-ov`, `/charly-coder:arch-ov` — the ov-toolchain siblings (root path, image-level full-hammer security)
+- `/charly-distros:fedora-ov`, `/charly-coder:arch-ov` — the charly-toolchain siblings (root path, image-level full-hammer security)
 
 ## Related Commands
 
-- `/charly-core:ov-config` — deploy setup with RUNNER_ORG (env) / RUNNER_TOKEN (secret)
+- `/charly-core:charly-config` — deploy setup with RUNNER_ORG (env) / RUNNER_TOKEN (secret)
 - `/charly-core:start`, `/charly-core:stop`, `/charly-core:remove` — lifecycle + pre-remove deregistration
-- `/charly-core:ov-status`, `/charly-core:logs` — verify runner is idle + troubleshoot
+- `/charly-core:charly-status`, `/charly-core:logs` — verify runner is idle + troubleshoot
 - `/charly-build:secrets` — the credential store backing `RUNNER_TOKEN`
 
 ## Verification

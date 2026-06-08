@@ -64,7 +64,7 @@ The runtime parser accepts only this kind-keyed form. `charly migrate` converts 
 | List aliases | `charly box list aliases` | Layers with `aliases` in candy.yml |
 | Validate | `charly box validate` | Check all layers and images |
 
-Every editor verb above auto-becomes an MCP tool via Kong reflection (`candy.set`, `candy.add-rpm`, `box.write`, …) so an agent driving `charly mcp serve` can author layers from scratch over RPC without touching the filesystem directly. See `/charly-build:ov-mcp-cmd` "Authoring tools" for the worked end-to-end example, and `/charly-build:new` for the project / image / layer scaffolders that bootstrap the flow.
+Every editor verb above auto-becomes an MCP tool via Kong reflection (`candy.set`, `candy.add-rpm`, `box.write`, …) so an agent driving `charly mcp serve` can author layers from scratch over RPC without touching the filesystem directly. See `/charly-build:charly-mcp-cmd` "Authoring tools" for the worked end-to-end example, and `/charly-build:new` for the project / image / layer scaffolders that bootstrap the flow.
 
 ### Editing candy.yml via the CLI (no hand-edit required)
 
@@ -421,7 +421,7 @@ task:
 | `service` | multiline string | Supervisord `[program:<name>]` fragment. |
 | `package` / `distro` | list / map | The package surface: top-level `package:` base + per-distro/version `distro:` map (bare / versioned / compound keys). Resolved via the most-specific-first cascade (see Package Surface). |
 | `apk` | `[]ApkPackageSpec` | **Android app-install package format** — apps installed onto a `kind: android` device by a `target: android` deploy (NOT into the image). Each entry is `package:` (apkeep download by id, with `source`/`arch`/`version`) XOR `apk:` (committed local APK). Device-scoped (top-level, not under `distro:`); compiles to an `ApkInstallStep` that ONLY `target: android` executes (skipped at image-build + on every other target). See `/charly-eval:android`. |
-| `localpkg` | map (format→dir) | **Native-package deploy format** (sibling of `apk`). A per-format map (`pac`/`rpm`/`deb` → a bundled package SOURCE dir, e.g. the `ov` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`). Compiles to a `LocalPkgInstallStep` (`/charly-internals:install-plan`) emitted at "step 2.5", BEFORE the layer's `task:`. On a DEPLOY target (`target: local` / `target: vm`) charly picks the entry matching the target distro's package format, builds the package on the HOST (pac via `makepkg`; rpm/deb distro-natively in a podman container), and installs it via the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`) — so the package's repo dependencies resolve automatically and there is NO dependency-closure builder. Every command (build / install / probe / glob / `source_sentinel`) is rendered from the distro's `format.<fmt>.local_pkg:` block in `build.yml` — zero hardcoded package-manager literals in Go. The legacy scalar form (`localpkg: pkg/arch`) is rejected at load with an `charly migrate` hint. Resolution walks up from the deploy project dir, so a consumer under `image/<distro>` finds the superproject's `pkg/<fmt>`. Skipped at image build — the layer's own `task:` (curl/COPY) is the fallback. The `ov` layer uses this to install `ov` as the native OS package at `/usr/bin/charly` on every distro instead of a curl'd binary. |
+| `localpkg` | map (format→dir) | **Native-package deploy format** (sibling of `apk`). A per-format map (`pac`/`rpm`/`deb` → a bundled package SOURCE dir, e.g. the `charly` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`). Compiles to a `LocalPkgInstallStep` (`/charly-internals:install-plan`) emitted at "step 2.5", BEFORE the layer's `task:`. On a DEPLOY target (`target: local` / `target: vm`) charly picks the entry matching the target distro's package format, builds the package on the HOST (pac via `makepkg`; rpm/deb distro-natively in a podman container), and installs it via the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`) — so the package's repo dependencies resolve automatically and there is NO dependency-closure builder. Every command (build / install / probe / glob / `source_sentinel`) is rendered from the distro's `format.<fmt>.local_pkg:` block in `build.yml` — zero hardcoded package-manager literals in Go. The legacy scalar form (`localpkg: pkg/arch`) is rejected at load with an `charly migrate` hint. Resolution walks up from the deploy project dir, so a consumer under `image/<distro>` finds the superproject's `pkg/<fmt>`. Skipped at image build — the layer's own `task:` (curl/COPY) is the fallback. The `charly` layer uses this to install `charly` as the native OS package at `/usr/bin/charly` on every distro instead of a curl'd binary. |
 | `volumes` | `[]{name, path}` | Persistent named volumes. |
 | `aliases` | `[]{name, command}` | Host command aliases. |
 | `security` | object | Container security: `privileged`, `cap_add`, `devices`, `security_opt`, `shm_size`, resource caps. |
@@ -632,16 +632,16 @@ path_append:
 ```yaml
 # ❌ WRONG — parser rejects the list shape
 env:
-  - OV_PROJECT_DIR=/workspace
+  - CH_PROJECT_DIR=/workspace
   - GOPATH=~/go
 
 # ✓ RIGHT — map form
 env:
-  OV_PROJECT_DIR: "/workspace"
+  CH_PROJECT_DIR: "/workspace"
   GOPATH: "~/go"
 ```
 
-The `ov-mcp` layer is the canonical example of the map form used to thread a container-level env var into the MCP server process via supervisord.
+The `charly-mcp` layer is the canonical example of the map form used to thread a container-level env var into the MCP server process via supervisord.
 
 ---
 
@@ -863,7 +863,7 @@ env_accept:
 
 `{{.ContainerName}}` resolves at `charly config` time. `env_provide` values are injected only into consumers that declare matching `env_accept` or `env_require` (opt-in filtering — prevents env var leakage). Missing `env_require` without a default is a hard error at `charly config`; missing `env_accept` silently drops the var.
 
-See `/charly-core:ov-config` (`--update-all` flag, provides filtering) and `/charly-core:deploy` (deploy.yml `provides:` section) for the full lifecycle.
+See `/charly-core:charly-config` (`--update-all` flag, provides filtering) and `/charly-core:deploy` (deploy.yml `provides:` section) for the full lifecycle.
 
 ## secret_accept / secret_require
 
@@ -884,7 +884,7 @@ Use for API keys, passwords, auth tokens. `key:` override must match `^ov/<servi
 
 ## mcp_provide / mcp_require / mcp_accept
 
-Cross-container MCP server discovery. Consumers receive `OV_MCP_SERVERS` as a JSON env var at `charly config` time.
+Cross-container MCP server discovery. Consumers receive `CH_MCP_SERVERS` as a JSON env var at `charly config` time.
 
 ```yaml
 mcp_provide:
@@ -899,7 +899,7 @@ mcp_accept:
 
 **Pod-aware:** when provider and consumer share a container, URLs resolve to `localhost` (local wins over remote for same-named entries). **Naming is the service contract** — keep `name:` stable across layer/package/image renames.
 
-**Testing the endpoint:** once a layer is deployed, `charly eval mcp ping <image>` verifies the server is alive, and `charly eval mcp list-tools <image>` enumerates the tool catalog. Both are authorable as deploy-scope `mcp:` declarative checks inside the layer's `eval:` block. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/charly-build:ov-mcp-cmd`.
+**Testing the endpoint:** once a layer is deployed, `charly eval mcp ping <image>` verifies the server is alive, and `charly eval mcp list-tools <image>` enumerates the tool catalog. Both are authorable as deploy-scope `mcp:` declarative checks inside the layer's `eval:` block. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/charly-build:charly-mcp-cmd`.
 
 ---
 
@@ -1144,20 +1144,20 @@ shell: schema. Idempotent.
 ## Cross-References
 
 - `/charly-image:image` — Adding layers to image definitions; image composition; `data_image:` for data-only bundles; the full MCP-first authoring table including `image set`, `image add-layer`, `image rm-layer`, `image write`, `image cat`.
-- `/charly-build:ov-mcp-cmd` — "Authoring tools" table exposing `candy.set`, `candy.add-rpm`, `candy.add-deb`, `candy.add-pac`, `candy.add-aur` as MCP tools; end-to-end build-from-scratch worked example.
+- `/charly-build:charly-mcp-cmd` — "Authoring tools" table exposing `candy.set`, `candy.add-rpm`, `candy.add-deb`, `candy.add-pac`, `candy.add-aur` as MCP tools; end-to-end build-from-scratch worked example.
 - `/charly-build:generate` — What `charly box generate` actually emits; the per-verb emitter pipeline; `.build/<image>/` layout.
 - `/charly-build:validate` — Validation rules (including per-verb task requirements).
 - `/charly-build:new` — Scaffolding a new layer directory.
 - `/charly-build:build` — Building images (`--no-cache` caveat; multi-stage scratch).
-- `/charly-core:ov-config` — Cross-container `env_provide` / `mcp_provide` injection; `env_require` enforcement; `--update-all`; resource caps.
+- `/charly-core:charly-config` — Cross-container `env_provide` / `mcp_provide` injection; `env_require` enforcement; `--update-all`; resource caps.
 - `/charly-core:deploy` — `deploy.yml` `provides:` section; tunnel is deploy.yml-only.
 - `/charly-eval:eval` — `eval:` field for declarative layer checks (file/port/http/...); embedded in the `ai.opencharly.eval` OCI label under the `layer` section. Layer eval checks default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `candy/sshd/candy.yml`.
 - `/charly-automation:sidecar` — Sidecars as `env_provide` participants (tailscale `TS_*` filtering).
 - `/charly-build:secrets` — Credential store chain for `secret_accept` / `secret_require`.
 - `/charly-selkies:chrome` — Canonical consumer of `env_accept` (proxy vars), cgroup resource caps, and a heavy user-phase copy/mkdir task list.
 - `/charly-infrastructure:supervisord` — Event listener pattern triggered by resource caps.
-- `/charly-tools:charly` — The ov-binary layer (composed by every ov-driving image). Paired with `/charly-coder:charly-mcp` which turns any image into an MCP server exposing the full charly CLI.
-- `/charly-coder:charly-mcp` — Reference implementation of a meta-layer composition (`layers: [ov, supervisord]` — no install of its own, just wiring) with bind-mounted project directory and `OV_PROJECT_DIR` env-var plumbing.
+- `/charly-tools:charly` — The ov-binary layer (composed by every charly-driving image). Paired with `/charly-coder:charly-mcp` which turns any image into an MCP server exposing the full charly CLI.
+- `/charly-coder:charly-mcp` — Reference implementation of a meta-layer composition (`layers: [ov, supervisord]` — no install of its own, just wiring) with bind-mounted project directory and `CH_PROJECT_DIR` env-var plumbing.
 - `/charly-jupyter:notebook-templates` — Data-layer example.
 - `/charly-internals:generate-source` — Internal architecture of the task emission pipeline (Go side).
 

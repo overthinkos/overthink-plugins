@@ -1,12 +1,12 @@
 ---
 name: agents
 description: |
-  Claude Code multi-agent support in Overthink — sub-agents, dynamic workflows, and agent teams, and how each drives the existing `charly eval` disposable beds to test and verify. MUST be invoked before authoring or invoking an charly sub-agent / dynamic workflow / agent team, wiring agent-lifecycle hooks, or asking "which primitive should drive the R10 beds?".
+  Claude Code multi-agent support in OpenCharly — sub-agents, dynamic workflows, and agent teams, and how each drives the existing `charly eval` disposable beds to test and verify. MUST be invoked before authoring or invoking an charly sub-agent / dynamic workflow / agent team, wiring agent-lifecycle hooks, or asking "which primitive should drive the R10 beds?".
 ---
 
 # Agents, Workflows & Teams
 
-Overthink is built to be driven from Claude Code's multi-agent primitives.
+OpenCharly is built to be driven from Claude Code's multi-agent primitives.
 This skill is the authoritative reference for the three primitives, the charly
 agent roster, the shipped workflows, the bed-scoped parallel-testing model for
 teams, and the one rule that binds them all: **a bed run is R10-class — the
@@ -80,7 +80,7 @@ under the binding rule). "Prefer agents" governs BOUNDED work.
   schema to `/charly-image:layer` + `charly box validate`.
 
 Invoke by name in a prompt, `@`-mention, or the `Agent` tool (scoped id
-`ov-internals:<name>`). Custom agents load at SESSION START, so the shipped
+`charly-internals:<name>`). Custom agents load at SESSION START, so the shipped
 workflows do NOT depend on `agentType:` — they inline each agent's role in a
 self-contained `agent()` prompt + `schema`, which runs even before a reload
 registers a newly-added agent. Reach for `agentType:` only once the agent is
@@ -136,11 +136,11 @@ discipline as an agent team — it is the workflow expression of the B3 model
   package can't have N agents edit-and-build at once, but that is handled by
   shape, not by abandoning parallelism: the lead lands the **shared core first**
   (compile-clean), each parallel unit is an **independent `init()`-registered
-  file** (no shared-file edits), and the one shared host **`ov` binary rebuild is
+  file** (no shared-file edits), and the one shared host **`charly` binary rebuild is
   a single barrier** between the parallel-implement and parallel-bed-R10 phases.
   Canonical shape: `Core (seq) → Implement (parallel by bed) → Integrate+build
   (seq barrier) → BedR10 (parallel by bed) → Review (parallel, read-only,
-  optional)`. **The barrier is load-bearing because `ov` enforces a stale-binary
+  optional)`. **The barrier is load-bearing because `charly` enforces a stale-binary
   freshness guard** — it refuses heavy ops (`image build`, `deploy add`) whenever
   any `ov/*.go` source is newer than the installed `/usr/bin/charly` (remediation:
   `task build:ov`). A teammate editing `ov/*.go` WHILE another's bed is mid-run
@@ -241,7 +241,7 @@ can enforce gates (exit 2 = block + feedback); the shipped
 
 The **eval bed is the unit of ownership, isolation, AND throughput** — it
 replaces the git worktree. `charly eval run --all-beds` is strictly SEQUENTIAL (a
-plain loop in `eval_runner_cmd.go`; `ov` spawns no goroutines for beds), so the
+plain loop in `eval_runner_cmd.go`; `charly` spawns no goroutines for beds), so the
 ONLY way to compress a multi-bed cutover's wall-clock is to run the beds
 concurrently — and **every full `charly eval run <bed>` is a long, multi-turn
 background task whose OWNER must survive across turns to receive the completion
@@ -286,7 +286,7 @@ not catch an overlap for you. A bed pins an image → layers → files, so ownin
 bed owns those source files.
 
 Each bed is a **candybox** (CLAUDE.md "Candyboxing"): a disposable, secured
-deployment stocked with the FULL `ov` + MCP + `charly eval` toolset, so the bed's
+deployment stocked with the FULL `charly` + MCP + `charly eval` toolset, so the bed's
 owner can build / deploy / prove the real thing inside its boundary and rebuild
 it fearlessly — never a tool-restricted sandbox.
 
@@ -308,7 +308,7 @@ The playbook:
    bed BEFORE editing, never trusting a doc or the code for a high-risk call, so
    it is never disproven hours later.
 4. **Default parallel, longest-pole-first.** Beds run concurrently — there is NO
-   `ov` concurrency cap (the "16-concurrent / 1000-total" figure is only the
+   `charly` concurrency cap (the "16-concurrent / 1000-total" figure is only the
    dynamic-workflow harness ceiling); the real limit is host CPU/RAM/podman, and
    there is no global build lock (pod beds take no ledger flock, `.build/<image>`
    is per-image). KVM/libvirt are multi-tenant and podman builds distinct image

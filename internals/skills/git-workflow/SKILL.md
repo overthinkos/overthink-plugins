@@ -34,7 +34,7 @@ Policies" carries the mandate, `/charly-internals:cutover-policy` the one-phase 
 - **Atomic.** One commit per repo per cutover (the cutover-policy "one phase").
 - **Eval-coverage.** R10 does not pass unless the change ships the test coverage
   that PROVES its functionality (`eval:` checks for new/changed layers & images,
-  Go tests for `ov` code) AND the live run exercised it. A change whose new
+  Go tests for `charly` code) AND the live run exercised it. A change whose new
   functionality has no test that would FAIL without it is not landable.
 - **Tags only on `charly.yml` repos.** `plugins` and `pkg/arch` are tag-exempt.
 
@@ -126,11 +126,11 @@ Teammates therefore share ONE working tree on ONE `feat/<slug>` branch:
   **same-file** concurrency that bed-ownership does not separate — not as the
   default for team parallelism.
 - **Schedule longest-pole-first.** `charly eval run` has no bed-level concurrency and
-  no `ov` cap — the limit is host CPU/RAM/podman. The lead runs ALL full beds as
+  no `charly` cap — the limit is host CPU/RAM/podman. The lead runs ALL full beds as
   concurrent background tasks; order by expected DURATION, not bed count: launch
   the slow VM/desktop beds first and overlap the cheap pod beds, so wall-clock ≈
   the slowest single bed, not the sum.
-- **Freeze `ov/*.go` during the bed phase.** `ov`'s stale-binary freshness guard
+- **Freeze `ov/*.go` during the bed phase.** `charly`'s stale-binary freshness guard
   gates every heavy verb the instant any `ov/*.go` is newer than `/usr/bin/charly`,
   so a teammate editing Go mid-bed-run aborts every other agent's next
   build/deploy/eval. For a SHARED-CORE (Go) cutover the lead lands the core

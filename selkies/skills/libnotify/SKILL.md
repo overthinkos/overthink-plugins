@@ -34,7 +34,7 @@ Provides `notify-send` as a convenience CLI for sending desktop notifications fr
 
 | | `notify-send` | `charly eval dbus notify` |
 |---|--------------|-----------------|
-| Requires | `libnotify` layer | `ov` layer (or `gdbus` fallback) |
+| Requires | `libnotify` layer | `charly` layer (or `gdbus` fallback) |
 | Implementation | Shell command, libnotify C library | Native Go `godbus/dbus/v5` |
 | Use case | Shell scripts inside container | Host-side automation, `charly cmd`/`charly tmux cmd` notifications |
 

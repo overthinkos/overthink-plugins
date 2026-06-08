@@ -27,7 +27,7 @@ Web file manager accessible via Tailscale private tunnel.
 3. `agent-forwarding` -- SSH/GPG agent forwarding
 4. `filebrowser` -- web file manager, data + files volumes
 5. `dbus` -- D-Bus session bus
-6. `ov` -- charly CLI inside container
+6. `charly` -- charly CLI inside container
 
 ## Ports
 
@@ -108,7 +108,7 @@ See `/charly-eval:eval` for the framework and author-facing gotchas.
 
 - `/charly-filebrowser:filebrowser` — layer authoring
 - `/charly-eval:eval` — declarative testing framework
-- `/charly-core:ov-config` — deploy-mode setup with volume backing and tunnels
+- `/charly-core:charly-config` — deploy-mode setup with volume backing and tunnels
 - `/charly-build:build` — LABELs-at-end cache efficiency
 
 ## When to Use This Skill

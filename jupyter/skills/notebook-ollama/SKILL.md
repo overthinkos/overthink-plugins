@@ -69,9 +69,9 @@ charly start ollama
 charly start jupyter-ml-notebook   # OLLAMA_HOST already set via env_provide
 ```
 
-Both containers must be on the same `ov` Podman network for DNS resolution to work.
+Both containers must be on the same `charly` Podman network for DNS resolution to work.
 
-See `/charly-core:ov-config` for `--update-all` and `/charly-ollama:ollama` for env_provide details.
+See `/charly-core:charly-config` for `--update-all` and `/charly-ollama:ollama` for env_provide details.
 
 ## Notebook Compatibility Notes
 
@@ -139,7 +139,7 @@ charly shell ollama -c "ollama pull llama3.2"
 ## Related Skills
 
 - `/charly-image:layer` — data field documentation and layer authoring rules
-- `/charly-core:ov-config` — data provisioning during `charly config` setup
+- `/charly-core:charly-config` — data provisioning during `charly config` setup
 - `/charly-core:deploy` — volume backing configuration
 - `/charly-jupyter:notebook-finetuning` — sibling data layer pattern (Unsloth fine-tuning notebooks)
 - `/charly-jupyter:notebook-templates` — sibling data layer pattern (starter notebooks)

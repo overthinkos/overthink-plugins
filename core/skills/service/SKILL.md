@@ -176,7 +176,7 @@ Layers can declare hooks that run on the host at specific points:
 # In candy.yml:
 hook:
   post_enable: |
-    echo "Service enabled for $OV_IMAGE"
+    echo "Service enabled for $CH_IMAGE"
   pre_remove: |
     echo "Cleaning up before removal"
 ```
@@ -211,7 +211,7 @@ Source: `ov/volumes.go` (`InstanceVolumes`), `ov/quadlet.go`.
 
 ## Data Provisioning
 
-Data from data layers is automatically provisioned into bind-backed volumes during `charly config` and synced during `charly update`. See `/charly-core:ov-config` for `--seed`/`--force-seed`/`--data-from` flags. Source: `ov/data.go`.
+Data from data layers is automatically provisioned into bind-backed volumes during `charly config` and synced during `charly update`. See `/charly-core:charly-config` for `--seed`/`--force-seed`/`--data-from` flags. Source: `ov/data.go`.
 
 ## Troubleshooting
 
@@ -350,7 +350,7 @@ Source: `ov/status.go`, `ov/status_engine.go`, `ov/status_collector.go`,
 - `/charly-core:shell` -- Interactive shells and exec into running containers
 - `/charly-core:deploy` -- Quadlet generation details, tunnels, volume backing
 - `/charly-automation:enc` -- Encrypted storage (mounted inline by charly start)
-- `/charly-core:ov-config` -- `run_mode`, `auto_enable`, `engine.run` settings
+- `/charly-core:charly-config` -- `run_mode`, `auto_enable`, `engine.run` settings
 - `/charly-eval:cdp` -- CDP status subcommand (`charly eval cdp status`)
 - `/charly-eval:vnc` -- VNC status subcommand (`charly eval vnc status`)
 - `/charly-eval:wl` -- Desktop automation + sway subgroup (`charly eval wl sway status`)

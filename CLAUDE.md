@@ -1,6 +1,6 @@
 # plugins/ — signpost (not the rule-set)
 
-You are in the Overthink **plugins** tree: Claude Code skills, sub-agents,
+You are in the OpenCharly **plugins** tree: Claude Code skills, sub-agents,
 and the marketplace/plugin manifests.
 
 **Load these skills FIRST (R0):**

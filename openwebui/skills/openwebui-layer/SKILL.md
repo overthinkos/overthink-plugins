@@ -41,7 +41,7 @@ description: |
 | `OPENAI_API_BASE_URL` | OpenAI-compatible API base URL |
 | `WEBUI_AUTH` | Enable authentication (default: true) |
 | `WEBUI_ADMIN_EMAIL` | Admin account email for first-start setup |
-| `OV_MCP_SERVERS` | JSON array of MCP servers (auto-injected by `mcp_provide` layers) |
+| `CH_MCP_SERVERS` | JSON array of MCP servers (auto-injected by `mcp_provide` layers) |
 
 ## MCP Accepts
 
@@ -94,13 +94,13 @@ The `openwebui-entrypoint` runs on EVERY start (no sentinel — `ENABLE_PERSISTE
    - `OLLAMA_HOST` -> `OLLAMA_BASE_URL` (Ollama server)
    - `OPENROUTER_API_KEY` -> `OPENAI_API_KEY` + `OPENAI_API_BASE_URL=https://openrouter.ai/api/v1`
    - `OLLAMA_API_KEY` -> `OPENAI_API_KEY` + `OPENAI_API_BASE_URL=https://api.ollama.com/v1`
-3. **MCP server discovery** from `OV_MCP_SERVERS` JSON -> builds `TOOL_SERVER_CONNECTIONS` JSON for Open WebUI
+3. **MCP server discovery** from `CH_MCP_SERVERS` JSON -> builds `TOOL_SERVER_CONNECTIONS` JSON for Open WebUI
 4. **Jupyter detection** — if a jupyter MCP server URL is found, sets `CODE_EXECUTION_ENGINE=jupyter`
 5. **Execs** `open-webui serve`
 
 ### TOOL_SERVER_CONNECTIONS Format
 
-The entrypoint translates ov's `OV_MCP_SERVERS` format into Open WebUI's expected `TOOL_SERVER_CONNECTIONS` JSON:
+The entrypoint translates ov's `CH_MCP_SERVERS` format into Open WebUI's expected `TOOL_SERVER_CONNECTIONS` JSON:
 
 ```json
 [{
@@ -152,10 +152,10 @@ openwebui:
 
 ## Related Commands
 
-- `/charly-core:ov-config` -- `charly config openwebui --update-all` for service discovery
+- `/charly-core:charly-config` -- `charly config openwebui --update-all` for service discovery
 - `/charly-build:secrets` -- `charly secrets` for Secret Service / GPG credential management
 - `/charly-core:service` -- `charly service status openwebui` for runtime management
-- `/charly-build:ov-mcp-cmd` -- probe the MCP servers openwebui consumes (auto-configured into `TOOL_SERVER_CONNECTIONS` from `OV_MCP_SERVERS`): `charly eval mcp list-tools <provider-image>` shows what tools openwebui will see, and `charly eval mcp ping` verifies liveness before debugging openwebui itself.
+- `/charly-build:charly-mcp-cmd` -- probe the MCP servers openwebui consumes (auto-configured into `TOOL_SERVER_CONNECTIONS` from `CH_MCP_SERVERS`): `charly eval mcp list-tools <provider-image>` shows what tools openwebui will see, and `charly eval mcp ping` verifies liveness before debugging openwebui itself.
 
 ## Related Images
 

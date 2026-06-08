@@ -30,7 +30,7 @@ openwebui:
 | `agent-forwarding` | SSH + GPG agent forwarding into container |
 | `openwebui` | Open WebUI with auto-config entrypoint |
 | `dbus` | D-Bus session bus |
-| `ov` | Overthink CLI for in-container management |
+| `charly` | OpenCharly CLI for in-container management |
 
 ## Quick Start
 
@@ -129,7 +129,7 @@ charly shell openwebui -c "open-webui version"
 podman secret ls | grep openwebui              # webui-secret-key, admin-password
 
 # Verify MCP (inside container process)
-podman exec ov-openwebui cat /proc/3/environ | tr '\0' '\n' | grep TOOL_SERVER_CONNECTIONS
+podman exec charly-openwebui cat /proc/3/environ | tr '\0' '\n' | grep TOOL_SERVER_CONNECTIONS
 ```
 
 ## Test Coverage
@@ -145,7 +145,7 @@ email env var injected. See `/charly-eval:eval` for the framework.
 - `/charly-openwebui:openwebui` — layer authoring
 - `/charly-eval:eval` — declarative testing framework
 - `/charly-build:secrets` — WEBUI_ADMIN_PASSWORD + provider API keys
-- `/charly-core:ov-config` — `-e WEBUI_ADMIN_EMAIL=...` deploy-time env setup
+- `/charly-core:charly-config` — `-e WEBUI_ADMIN_EMAIL=...` deploy-time env setup
 
 ## When to Use This Skill
 

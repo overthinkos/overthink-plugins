@@ -50,7 +50,7 @@ No deploy-scope tests: KeePassXC is a GUI app launched on-demand by the user ins
 
 This layer is the **GUI** for editing `.kdbx` databases. `/charly-build:secrets` is the charly CLI credential store — which talks to the **Secret Service** (system keyring), NOT to a `.kdbx` file directly.
 
-- Author a `.kdbx` file in KeePassXC (GUI) → enable its **FdoSecrets** plugin (Settings → Secret Service Integration) and mark the group "Secret Service exposed" → its entries appear on the Secret Service bus, where `ov`'s keyring backend reads them. No `ov`-side `.kdbx` configuration is involved.
+- Author a `.kdbx` file in KeePassXC (GUI) → enable its **FdoSecrets** plugin (Settings → Secret Service Integration) and mark the group "Secret Service exposed" → its entries appear on the Secret Service bus, where `charly`'s keyring backend reads them. No `charly`-side `.kdbx` configuration is involved.
 - See `/charly-infrastructure:keepassxc-keyring` for the layer that wires KeePassXC as the host's Secret Service provider.
 
 ## Alternative: bundled placement in `desktop-apps`

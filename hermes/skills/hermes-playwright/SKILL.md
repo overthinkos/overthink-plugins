@@ -24,7 +24,7 @@ Hermes AI agent with Playwright Chromium — web scraping, browser automation, a
 
 Builds on the base `hermes` layer (not the hermes image), adding Playwright Chromium:
 
-1. `fedora` base + `agent-forwarding` + `hermes` + `hermes-playwright` + `dbus` + `ov`
+1. `fedora` base + `agent-forwarding` + `hermes` + `hermes-playwright` + `dbus` + `charly`
 2. `hermes-playwright` -- Playwright npm package + Chromium Headless Shell + system deps
 
 ## Quick Start

@@ -161,6 +161,6 @@ sandboxed pods.
 - `/charly-selkies:sway-browser-vnc` — the base image this deploy instantiates
 - `/charly-selkies:chrome-devtools-mcp` — the layer providing the MCP server
 - `/charly-eval:cdp` — the verb catalog driving Chrome
-- `/charly-build:ov-mcp-cmd` — verifying the MCP endpoint via `charly eval mcp ping/list-tools/call`
+- `/charly-build:charly-mcp-cmd` — verifying the MCP endpoint via `charly eval mcp ping/list-tools/call`
 - `/charly-core:deploy` — Pattern A multi-instance + MCP name disambiguation
 - `/charly-automation:sidecar` — alternative tailscale sidecar pattern (not used here; this skill uses host-serve)

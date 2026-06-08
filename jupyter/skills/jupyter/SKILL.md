@@ -28,7 +28,7 @@ Lightweight JupyterLab with real-time collaboration via jupyter-collaboration (Y
 4. `notebook-templates` — Starter notebooks (data layer, seeds /workspace)
 5. `agent-forwarding` — SSH/GPG agent forwarding
 5. `dbus` — D-Bus session bus
-6. `ov` — charly CLI binary
+6. `charly` — charly CLI binary
 
 ## Ports
 
@@ -126,13 +126,13 @@ yourself:
 claude mcp add --transport http --scope project jupyter http://localhost:8888/mcp
 ```
 
-**The `ov-jupyter` plugin** (`plugins/charly-jupyter/.mcp.json`) — declares
+**The `charly-jupyter` plugin** (`plugins/charly-jupyter/.mcp.json`) — declares
 the same server at the project level for the opencharly repo itself.
 Suitable when you're working IN the opencharly checkout (the file is
 gitignored downstream of `.claude-plugin/plugin.json`).
 
 **Container must be running BEFORE `claude` starts.** Claude Code
-discovers MCP servers at session-start time. If `ov-jupyter.service`
+discovers MCP servers at session-start time. If `charly-jupyter.service`
 is not running when `claude` launches, the server registration shows
 "failed to connect" and `claude` will not auto-reconnect mid-session.
 Start jupyter first, then start the claude session:
@@ -268,8 +268,8 @@ See `/charly-eval:eval` for the framework and author-facing gotchas.
 
 - `/charly-jupyter:jupyter`, `/charly-jupyter:jupyter-mcp`, `/charly-jupyter:notebook-templates`
 - `/charly-eval:eval` — declarative testing framework
-- `/charly-core:ov-config` — deploy setup
-- `/charly-build:ov-mcp-cmd` — the image inherits 3 deploy-scope `mcp:` declarative checks from the `jupyter` layer (`ping`, `list-tools` asserting all 11 prefixed tool names, `call notebook_list`). Run `charly eval live jupyter --filter mcp` to exercise them against a live deployment, or `charly eval mcp list-tools jupyter` for ad-hoc inspection
+- `/charly-core:charly-config` — deploy setup
+- `/charly-build:charly-mcp-cmd` — the image inherits 3 deploy-scope `mcp:` declarative checks from the `jupyter` layer (`ping`, `list-tools` asserting all 11 prefixed tool names, `call notebook_list`). Run `charly eval live jupyter --filter mcp` to exercise them against a live deployment, or `charly eval mcp list-tools jupyter` for ad-hoc inspection
 - `/charly-jupyter:jupyter-ml`, `/charly-jupyter:jupyter-ml-notebook` — GPU variants that inherit the same MCP test suite
 
 ## When to Use This Skill

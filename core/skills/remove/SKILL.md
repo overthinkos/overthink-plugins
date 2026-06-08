@@ -72,7 +72,7 @@ Instance removal automatically cleans the instance's `env_provide` and `mcp_prov
 - `/charly-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
 - `/charly-core:stop` -- Stop without removing
-- `/charly-core:ov-config` -- Configure/reconfigure services (see "Full instance removal" for 3-step cleanup)
+- `/charly-core:charly-config` -- Configure/reconfigure services (see "Full instance removal" for 3-step cleanup)
 - `/charly-core:deploy` -- Deploy.yml management, tunnel configuration
 - `/charly-core:service` -- Full service lifecycle
-- `/charly-build:ov-mcp-cmd` -- after `charly config remove` cleans this instance's `mcp_provide` from the global `provides.mcp:` list, consumers' `OV_MCP_SERVERS` no longer lists it; use `charly eval mcp servers <consumer>` to confirm the cleanup propagated
+- `/charly-build:charly-mcp-cmd` -- after `charly config remove` cleans this instance's `mcp_provide` from the global `provides.mcp:` list, consumers' `CH_MCP_SERVERS` no longer lists it; use `charly eval mcp servers <consumer>` to confirm the cleanup propagated

@@ -1,8 +1,8 @@
 ---
-name: ov-config
+name: charly-config
 description: |
   MUST be invoked before any work involving: charly config commands, image deployment setup, quadlet generation, secrets provisioning, encrypted volumes, data seeding, or volume backing configuration.
-  Named `ov-config` (not `config`) to disambiguate from Claude Code's built-in `/config` slash command.
+  Named `charly-config` (not `config`) to disambiguate from Claude Code's built-in `/config` slash command.
 ---
 
 # charly config -- Image Deployment Configuration
@@ -90,7 +90,7 @@ This is the **single entry point** for **container** deployment setup. `charly s
 10. Runs `systemctl --user daemon-reload`
 11. Injects `env_provide` entries from image labels into deploy.yml `provides.env:` (resolves `{{.ContainerName}}` templates)
 12. Injects `mcp_provide` entries from image labels into deploy.yml `provides.mcp:` (resolves templates, defaults transport to `http`)
-13. Synthesizes `OV_MCP_SERVERS` JSON env var for consumer containers (pod-aware: same-image entries resolve to `localhost`)
+13. Synthesizes `CH_MCP_SERVERS` JSON env var for consumer containers (pod-aware: same-image entries resolve to `localhost`)
 14. Warns about missing `mcp_require` servers (same pattern as `env_require` warnings)
 15. If `--update-all`, regenerates quadlets for all other deployed images (preserving Instance, Tunnel, PodName, Sidecars, and instance-scoped volume names) and reloads systemd
 
@@ -115,11 +115,11 @@ charly config my-app -v data:encrypt:/mnt/ssd       # With explicit path
 charly config my-app --bind workspace=~/project --encrypt data -v models:bind
 ```
 
-Auto-path for bind without explicit host path: `<volumes_path>/<image>/<name>` (default: `~/.local/share/ov/volumes/`).
+Auto-path for bind without explicit host path: `<volumes_path>/<image>/<name>` (default: `~/.local/share/charly/volumes/`).
 
 ### Bind-mounting a project checkout for `charly mcp serve`
 
-The `ov-mcp` layer declares a `project` volume at `/workspace` (the volume NAME stays `project` for a stable deployer API) and sets `env: OV_PROJECT_DIR=/workspace`. Bind-mount your opencharly checkout at config time so build-mode MCP tools (`image.build`, `box.list.boxes`, `image.inspect`) can read `box.yml`. Alternatively, skip the bind-mount and `charly mcp serve` will auto-fall back to the upstream `overthinkos/opencharly` repo (see `/charly-build:ov-mcp-cmd` "Project-dir wiring"):
+The `charly-mcp` layer declares a `project` volume at `/workspace` (the volume NAME stays `project` for a stable deployer API) and sets `env: CH_PROJECT_DIR=/workspace`. Bind-mount your opencharly checkout at config time so build-mode MCP tools (`image.build`, `box.list.boxes`, `image.inspect`) can read `box.yml`. Alternatively, skip the bind-mount and `charly mcp serve` will auto-fall back to the upstream `overthinkos/opencharly` repo (see `/charly-build:charly-mcp-cmd` "Project-dir wiring"):
 
 ```bash
 charly config arch-charly --bind project=/home/you/opencharly
@@ -128,7 +128,7 @@ charly eval mcp call arch-charly box.list.boxes '{}' --name charly
 # → lists images from the bind-mounted /home/you/opencharly
 ```
 
-The `OV_PROJECT_DIR` env var is consumed by the charly binary's global `-C` / `--dir` / `OV_PROJECT_DIR` flag (`ov/main.go` calls `os.Chdir(Dir)` before Kong dispatch). See `/charly-image:image` "Project directory resolution" and `/charly-build:ov-mcp-cmd` "Deployment: the `ov-mcp` layer" for the full pattern.
+The `CH_PROJECT_DIR` env var is consumed by the charly binary's global `-C` / `--dir` / `CH_PROJECT_DIR` flag (`ov/main.go` calls `os.Chdir(Dir)` before Kong dispatch). See `/charly-image:image` "Project directory resolution" and `/charly-build:charly-mcp-cmd` "Deployment: the `charly-mcp` layer" for the full pattern.
 
 ## Secret Provisioning
 
@@ -183,7 +183,7 @@ Encrypted volumes use gocryptfs. Each volume gets `{cipher,plain}` subdirectorie
 ### Fast path: `charly config mount` short-circuit
 
 When every requested encrypted volume for an image is already mounted — the
-typical state on service restart, because `ov-enc-<image>-<volume>.scope`
+typical state on service restart, because `charly-enc-<image>-<volume>.scope`
 units survive container stop/restart independently of the service's cgroup —
 `charly config mount <image>` short-circuits and returns without touching the
 credential store at all. Output is:
@@ -343,7 +343,7 @@ charly eval cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
 
 ## Service Environment Injection
 
-When a configured image declares `env_provide` or `mcp_provide` in its layers (stored in OCI labels), `charly config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `charly eval mcp ping <image>` — see `/charly-build:ov-mcp-cmd` for the full verb surface.
+When a configured image declares `env_provide` or `mcp_provide` in its layers (stored in OCI labels), `charly config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `charly eval mcp ping <image>` — see `/charly-build:charly-mcp-cmd` for the full verb surface.
 
 ```yaml
 # deploy.yml after `charly config ollama && charly config jupyter`
@@ -396,7 +396,7 @@ Result in `deploy.yml` `provides.mcp`:
   source: selkies-desktop/31.58.9.4
 ```
 
-Consumers (e.g., hermes) see both as distinct MCP servers in `OV_MCP_SERVERS`. On re-config, stale MCP entries from the same source are automatically cleaned before new entries are injected.
+Consumers (e.g., hermes) see both as distinct MCP servers in `CH_MCP_SERVERS`. On re-config, stale MCP entries from the same source are automatically cleaned before new entries are injected.
 
 Source: `ov/config_image.go` (`injectMCPProvides`).
 
@@ -438,7 +438,7 @@ charly config jupyter --update-all
 charly config openwebui ... --update-all
 ```
 
-The entrypoint auto-configures: OpenRouter + Ollama Cloud as semicolon-separated `OPENAI_API_BASE_URLS`, MCP servers from `OV_MCP_SERVERS` → `TOOL_SERVER_CONNECTIONS`, Jupyter code execution from co-deployed jupyter container. `ENABLE_OLLAMA_API` is disabled unless a local Ollama is deployed via `env_provide`. See `/charly-openwebui:openwebui` for details.
+The entrypoint auto-configures: OpenRouter + Ollama Cloud as semicolon-separated `OPENAI_API_BASE_URLS`, MCP servers from `CH_MCP_SERVERS` → `TOOL_SERVER_CONNECTIONS`, Jupyter code execution from co-deployed jupyter container. `ENABLE_OLLAMA_API` is disabled unless a local Ollama is deployed via `env_provide`. See `/charly-openwebui:openwebui` for details.
 
 ## env_require Enforcement
 
@@ -582,7 +582,7 @@ Source: `ov/envfile.go` (`normalizeNoProxy`), `ov/deploy.go` (`mergeEnvVars`, `s
 - `/charly-core:service` — Service lifecycle (start, stop, status, logs)
 - `/charly-image:layer` — Volume, secret, `env_provide` / `env_require` / `env_accept` declarations, security resource cap fields, `service:` blocks
 - `/charly-image:image` — Image composition, inheritance, OCI label emission, tunnel deploy.yml-only note (`labels.go:238`)
-- `/charly-core:ov-doctor` — Host GPU/device detection driving `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
+- `/charly-core:charly-doctor` — Host GPU/device detection driving `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
 - `/charly-core:shell` — Interactive shells share the same `appendAutoDetectedEnv()` path
 - `/charly-selkies:chrome` — Chrome HTTP proxy (`env_accept`), NO_PROXY auto-enrichment, cgroup resource caps
 - `/charly-infrastructure:supervisord` — Event listener pattern that pairs with the resource caps

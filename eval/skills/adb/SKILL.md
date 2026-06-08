@@ -8,7 +8,7 @@ description: |
 
 ## Overview
 
-`charly eval adb <method>` is the host-side ADB client. The host `ov` binary
+`charly eval adb <method>` is the host-side ADB client. The host `charly` binary
 connects to the running container's host-published ADB server port
 (container `:5037` → host's `HOST_PORT:5037`, e.g. `35002` on the
 `eval-android-emulator-pod` deploy) using `github.com/zach-klippenstein/goadb`
@@ -89,8 +89,8 @@ adb-specific method reference.
 
 ### `apk:` must be a host-side path
 
-The host `ov` binary reads the APK from its own filesystem and pushes
-via the sync protocol — `apk:` is a path on the host running `ov`, NOT
+The host `charly` binary reads the APK from its own filesystem and pushes
+via the sync protocol — `apk:` is a path on the host running `charly`, NOT
 a container-internal path. (Compare with `appium: install-app` where
 `apk:` is the in-container Appium server's view of the path because
 Appium reads the file itself.)

@@ -12,7 +12,7 @@ description: |
 
 - **Disposability is a deploy property only.** A `kind: vm` entity carries no `disposable:` / `lifecycle:` field. Put `disposable: true` on the matching `deploy.<name>-vm` entry. The `vm:` entity entry only describes VM shape (disk, RAM, SSH, cloud-init, libvirt), never authorization.
 - **Deploy-level cross-ref**: a deployment with `target: vm` references its VM entity via `vm: <entity-name>`.
-- **`charly update <vm-entity-name>`** does NOT gate on `disposable:` — an explicit human invocation rebuilds ANY target (destroy→create the domain, reuse the qcow2 disk unless `--build`, then re-apply the deploy node's layers via the shared `deploy add` path). For a non-disposable, non-ephemeral target it prints a one-line transparency note (`noteUpdateDisposability`) and proceeds. The `disposable: true` flag stays load-bearing as the authorization for the AI's AUTONOMOUS destroy + rebuild (CLAUDE.md R10) and the eval-runner's unattended fresh rebuild, NOT as an `charly update` capability check. See `/charly-internals:disposable` and `/charly-core:ov-update`.
+- **`charly update <vm-entity-name>`** does NOT gate on `disposable:` — an explicit human invocation rebuilds ANY target (destroy→create the domain, reuse the qcow2 disk unless `--build`, then re-apply the deploy node's layers via the shared `deploy add` path). For a non-disposable, non-ephemeral target it prints a one-line transparency note (`noteUpdateDisposability`) and proceeds. The `disposable: true` flag stays load-bearing as the authorization for the AI's AUTONOMOUS destroy + rebuild (CLAUDE.md R10) and the eval-runner's unattended fresh rebuild, NOT as an `charly update` capability check. See `/charly-internals:disposable` and `/charly-core:charly-update`.
 
 ## Overview
 
@@ -247,7 +247,7 @@ The `--ssh-key` flag (and `vms.<name>.ssh.key_source`) controls the source of th
 | Value | Behavior |
 |-------|----------|
 | `auto` (default) | Uses first `~/.ssh/*.pub` found |
-| `generate` | Creates new keypair in `~/.local/share/ov/vm/charly-<name>/id_ed25519`. Idempotent across rebuilds. |
+| `generate` | Creates new keypair in `~/.local/share/charly/vm/charly-<name>/id_ed25519`. Idempotent across rebuilds. |
 | `none` | No key injection |
 | `/path/to/key.pub` | Uses the specified public key |
 
@@ -259,7 +259,7 @@ Set via `charly settings set`:
 
 | Key | Env Var | Default |
 |-----|---------|---------|
-| `vm.backend` | `OV_VM_BACKEND` | `auto` |
+| `vm.backend` | `CH_VM_BACKEND` | `auto` |
 
 Per-VM overrides live in `vm.yml`. The user-level defaults exist only for fields that don't have a per-VM equivalent (backend is the main one). For anything else, declare it in `vms.<name>`.
 
@@ -280,7 +280,7 @@ Source: `ov/libvirt.go`, `ov/libvirt_render.go`, `ov/libvirt_render_devices.go`.
 ```bash
 charly vm build arch              # fetches qcow2, resizes, renders seed ISO
 charly vm create arch
-ssh -p 2224 -i ~/.local/share/ov/vm/charly-arch/id_ed25519 arch@127.0.0.1
+ssh -p 2224 -i ~/.local/share/charly/vm/charly-arch/id_ed25519 arch@127.0.0.1
 ```
 
 ### Build and run a bootc VM
@@ -340,7 +340,7 @@ libvirt ≥ 9.x `<portForward>` on `<interface type='user'>` only activates with
 
 ### Per-VM NVRAM required for UEFI
 
-When `firmware: uefi-insecure` or `firmware: uefi-secure`, each VM gets its own NVRAM file under `~/.local/share/ov/vm/charly-<name>/nvram.fd`, copied from the OVMF_VARS template. Preserves UEFI variable state across reboots. See `/charly-internals:ovmf`.
+When `firmware: uefi-insecure` or `firmware: uefi-secure`, each VM gets its own NVRAM file under `~/.local/share/charly/vm/charly-<name>/nvram.fd`, copied from the OVMF_VARS template. Preserves UEFI variable state across reboots. See `/charly-internals:ovmf`.
 
 ### Resource sizing over package pruning (cloud_image)
 

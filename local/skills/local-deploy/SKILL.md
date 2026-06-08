@@ -24,7 +24,7 @@ Use cases:
 
 ## SSH config + agent are the configuration
 
-charly contains **zero** custom SSH-key resolution. We do not read `~/.ssh/config`, we do not detect ssh-agent, we do not prompt for keys. `ssh(1)` does it all. Configure your destinations via `~/.ssh/config` `Host` stanzas, load keys into `ssh-agent`, and `ov` shells out to `ssh` with no `-i` / `-o StrictHostKeyChecking=` / `-o UserKnownHostsFile=` overrides.
+charly contains **zero** custom SSH-key resolution. We do not read `~/.ssh/config`, we do not detect ssh-agent, we do not prompt for keys. `ssh(1)` does it all. Configure your destinations via `~/.ssh/config` `Host` stanzas, load keys into `ssh-agent`, and `charly` shells out to `ssh` with no `-i` / `-o StrictHostKeyChecking=` / `-o UserKnownHostsFile=` overrides.
 
 For VM destinations, `charly vm create <name>` writes a managed Host stanza into `~/.config/charly/ssh_config` (one per VM, fenced with `# opencharly:begin` markers) and ensures your `~/.ssh/config` has `Include ~/.config/charly/ssh_config` (also managed). After that, `ssh ov-<vmname>` works from any terminal — and `LocalDeployTarget` constructs `&SSHExecutor{Host: "charly-<vmname>"}` with no User/Port/Key.
 

@@ -66,7 +66,7 @@ layers:
 ## Related Commands
 - `/charly-automation:openclaw-deploy` — gateway configuration, model auth, and channel setup
 - `/charly-build:build` — builds the metalayer composition into an image
-- `/charly-core:ov-config` — sets up secrets and quadlets for openclaw-full images
+- `/charly-core:charly-config` — sets up secrets and quadlets for openclaw-full images
 
 ## When to Use This Skill
 

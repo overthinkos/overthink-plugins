@@ -35,7 +35,7 @@ NVIDIA runtime layer providing `nvidia-container-toolkit` for CDI device injecti
 
 ## CDI Support
 
-The `nvidia-container-toolkit` provides `nvidia-ctk` which generates CDI (Container Device Interface) specs. `ov` calls `EnsureCDI()` before launching containers with GPU — if CDI specs don't exist at `/etc/cdi/nvidia.yaml`, it runs `nvidia-ctk cdi generate` to create them. This enables GPU access in nested containers where host CDI specs are not inherited.
+The `nvidia-container-toolkit` provides `nvidia-ctk` which generates CDI (Container Device Interface) specs. `charly` calls `EnsureCDI()` before launching containers with GPU — if CDI specs don't exist at `/etc/cdi/nvidia.yaml`, it runs `nvidia-ctk cdi generate` to create them. This enables GPU access in nested containers where host CDI specs are not inherited.
 
 ### Build-time noise on GPU-less hosts (Arch)
 
@@ -64,13 +64,13 @@ nvidia-ctk skips CDI gen.
 
 NVIDIA VAAPI acceleration requires the container to know which DRM render node to bind the EGL context against. On multi-GPU hosts there may be `/dev/dri/renderD128`, `/dev/dri/renderD129`, … and the correct one depends on which physical card backs the NVIDIA driver.
 
-`ov` does **not** bake a hardcoded `DRINODE=/dev/dri/renderD128` into this layer. Instead, it auto-detects the correct render node at container-launch time and injects it as an environment variable. The detection + injection is consolidated in a single function, `appendAutoDetectedEnv()` in `ov/devices.go`, which is called by `charly config`, `charly start`, and `charly shell` — so the three commands always produce the same env set.
+`charly` does **not** bake a hardcoded `DRINODE=/dev/dri/renderD128` into this layer. Instead, it auto-detects the correct render node at container-launch time and injects it as an environment variable. The detection + injection is consolidated in a single function, `appendAutoDetectedEnv()` in `ov/devices.go`, which is called by `charly config`, `charly start`, and `charly shell` — so the three commands always produce the same env set.
 
 Selkies is the primary consumer: pixelflux's Wayland compositor uses `DRINODE` to open the render node and set up the VAAPI H.264 encoder. Without the injection, selkies would fall back to software encode (`libx264`) and lose ~40% of its streaming bandwidth budget.
 
-GPU device injection is consolidated into the single `appendAutoDetectedEnv()` function rather than scattered across the `ov` source tree. If you see `DRINODE` referenced in layer scripts, you can assume it was auto-detected and injected by `ov`, not set by the user.
+GPU device injection is consolidated into the single `appendAutoDetectedEnv()` function rather than scattered across the `charly` source tree. If you see `DRINODE` referenced in layer scripts, you can assume it was auto-detected and injected by `charly`, not set by the user.
 
-See `/charly-core:ov-doctor` (Hardware Detection) for the detection probe and `/charly-distros:rocm` for the AMD-side counterpart using the same mechanism.
+See `/charly-core:charly-doctor` (Hardware Detection) for the detection probe and `/charly-distros:rocm` for the AMD-side counterpart using the same mechanism.
 
 ### Cross-GPU portability (nvidia-base images on AMD hosts)
 
@@ -96,10 +96,10 @@ Creates Vulkan ICD compatibility symlinks for nvidia-ctk CDI device injection.
 
 ## Related Commands
 
-- `/charly-core:ov-doctor` — Host NVIDIA detection (GPU probe, CDI spec status, driver version)
+- `/charly-core:charly-doctor` — Host NVIDIA detection (GPU probe, CDI spec status, driver version)
 - `/charly-core:shell` — DRINODE auto-injection applies to interactive shells too
 - `/charly-automation:udev` — Device permission management for `/dev/dri/*` and `/dev/nvidia*`
-- `/charly-core:ov-config` — Runtime GPU device injection at deployment time (same `appendAutoDetectedEnv()` path)
+- `/charly-core:charly-config` — Runtime GPU device injection at deployment time (same `appendAutoDetectedEnv()` path)
 - `/charly-core:start` — Runtime GPU device injection at service start time
 
 ## Related

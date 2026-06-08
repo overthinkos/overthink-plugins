@@ -1,4 +1,4 @@
-# ov-versa
+# charly-versa
 
 MCP server registration + skill coverage for the **versa** image — a
 marimo reactive notebooks + Apache Airflow (LocalExecutor + SQLite) +
@@ -73,7 +73,7 @@ image rename (`marimo` → `versa`) did NOT touch the MCP server name.
 
 In single-pod deployments (the default) `airflow` runs alongside
 `marimo` inside the versa container. For cross-pod topologies —
-separate `airflow-pod` reachable via the shared `ov` podman network —
+separate `airflow-pod` reachable via the shared `charly` podman network —
 the notebook reads `AIRFLOW_API_INTERNAL_URL` from env (defaults
 `http://localhost:8080`; override to `http://airflow-pod:8080`).
 The marimo notebook's self-authored DAG goes into the shared

@@ -173,7 +173,7 @@ End-to-end run via marimo's own export (executes every cell
 server-side):
 
 ```bash
-podman exec ov-versa /home/user/.pixi/envs/default/bin/marimo \
+podman exec charly-versa /home/user/.pixi/envs/default/bin/marimo \
   export ipynb /workspace/notebooks/osm-monaco-viz.py \
   --include-outputs --sort topological -o /tmp/notebook-run.ipynb -f
 ```

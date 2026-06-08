@@ -20,7 +20,7 @@ every repo-shipped disposable bed out of `deploy.yml`), driven by `charly eval r
 and `charly -C image/arch eval run eval-arch-vm` (or `charly --repo overthinkos/arch …`). Any
 layers applied via `add_candy:` are pulled from this repo by git ref.
 
-Canonical `source.kind: cloud_image` VM in the repo. Boots an Arch Linux cloud image as a full VM with SSH + SPICE console access, cloud-init-provisioned SSH keys, virtio-gpu graphics, and the `ov` toolchain auto-installed inside the guest.
+Canonical `source.kind: cloud_image` VM in the repo. Boots an Arch Linux cloud image as a full VM with SSH + SPICE console access, cloud-init-provisioned SSH keys, virtio-gpu graphics, and the `charly` toolchain auto-installed inside the guest.
 
 This skill is the **decision log** for every non-obvious choice in the entry — BIOS vs UEFI, virtio-gpu vs QXL, resource sizing vs package list pruning, adopt-user vs create-user. Every decision traces to a live-test RCA; the rationales belong here permanently so a future editor (human or agent) doesn't reopen the same questions.
 
@@ -38,7 +38,7 @@ This skill is the **decision log** for every non-obvious choice in the entry —
 | CPUs | `4` | Parallel xz decompression + `pacman-key --populate` benefit from SMP |
 | Network mode | `user` | QEMU user-mode with port forwards |
 | SSH port | `2224` | Non-default to coexist with other dev VMs on 2222 |
-| SSH key source | `generate` | Stable `~/.local/share/ov/vm/charly-arch/id_ed25519` across rebuilds |
+| SSH key source | `generate` | Stable `~/.local/share/charly/vm/charly-arch/id_ed25519` across rebuilds |
 | Video model | `virtio-gpu` | Modern default for Linux guests (Finding B, secondary) |
 | SPICE listener | `type: socket` (UNIX, auto-path) | Enables zero-config remote GUI via `qemu+ssh://` (see "Connecting from a remote workstation" below). virt-manager and `remote-viewer` auto-forward UNIX sockets through libvirt RPC fd-passing; TCP-loopback listeners are never auto-tunneled. No TCP port bound. |
 
@@ -154,9 +154,9 @@ charly eval spice screenshot arch --uri qemu+ssh://o.atrawog.org/session /tmp/sh
 charly eval libvirt info arch --uri qemu+ssh://o.atrawog.org/session
 ```
 
-`ov` opens an SSH connection, forwards the remote SPICE UNIX socket to a
+`charly` opens an SSH connection, forwards the remote SPICE UNIX socket to a
 local socket, and dials it — all transparent to the user. Set
-`OV_LIBVIRT_URI=qemu+ssh://o.atrawog.org/session` to avoid repeating the flag.
+`CH_LIBVIRT_URI=qemu+ssh://o.atrawog.org/session` to avoid repeating the flag.
 
 ### `charly --host o` (run charly on the remote machine)
 
@@ -170,7 +170,7 @@ charly --host o test spice status arch
 charly --host o test spice screenshot arch - > /tmp/shot.png
 ```
 
-`ov` re-execs itself over SSH (via your system's `ssh`, so `~/.ssh/config`
+`charly` re-execs itself over SSH (via your system's `ssh`, so `~/.ssh/config`
 and agent forwarding just work). `-` as a screenshot path writes PNG bytes
 to stdout so the pipeline composes naturally.
 
@@ -261,7 +261,7 @@ Root cause: `pacman -S spice-vdagent` pulls in GTK3 + X11 (~200 MB download, ~1 
 
 ## Finding D — SSH key idempotency across rebuilds
 
-`charly vm build` + `charly vm create` called repeatedly should NOT regenerate the SSH keypair. Implementation idempotency lives in `ov/vm_cloud_image.go::generateSSHKeypair` — it checks for `~/.local/share/ov/vm/charly-<name>/id_ed25519.pub` before creating. See `/charly-internals:vm-deploy-target` for the state persistence flow (VmDeployState in `deploy.yml`).
+`charly vm build` + `charly vm create` called repeatedly should NOT regenerate the SSH keypair. Implementation idempotency lives in `ov/vm_cloud_image.go::generateSSHKeypair` — it checks for `~/.local/share/charly/vm/charly-<name>/id_ed25519.pub` before creating. See `/charly-internals:vm-deploy-target` for the state persistence flow (VmDeployState in `deploy.yml`).
 
 ## Adopt pattern in action
 
@@ -273,7 +273,7 @@ users:
   - default                               # cloud-init keeps distro-default account untouched
   - name: arch
     ssh_authorized_keys:
-      - ssh-ed25519 AAAA…                 # generated pubkey from ~/.local/share/ov/vm/charly-arch/id_ed25519.pub
+      - ssh-ed25519 AAAA…                 # generated pubkey from ~/.local/share/charly/vm/charly-arch/id_ed25519.pub
 ```
 
 cloud-init appends the pubkey to `/home/arch/.ssh/authorized_keys` without calling `useradd`, rewriting sudoers, or changing the shell. `spec.ssh.user` defaults to `arch`, so `charly vm ssh arch` connects as `arch@127.0.0.1:2224`. Full parity with the container-side `base_user:` + `user_policy: adopt` pattern (`/charly-image:image` "user_policy").
@@ -284,7 +284,7 @@ cloud-init appends the pubkey to `/home/arch/.ssh/authorized_keys` without calli
 ```bash
 virsh -c qemu:///session destroy ov-arch 2>/dev/null
 virsh -c qemu:///session undefine --nvram ov-arch 2>/dev/null
-rm -f ~/.local/share/ov/vm/charly-arch/nvram.fd
+rm -f ~/.local/share/charly/vm/charly-arch/nvram.fd
 rm -f output/qcow2/{disk.qcow2,seed.iso}
 charly vm build arch
 charly vm create arch --no-auto-detect
@@ -299,7 +299,7 @@ Pass: NO `<loader>` / `<nvram>` / `<firmware>` elements; `<model type='virtio'>`
 
 ### No simpledrm race
 ```bash
-ssh -i ~/.local/share/ov/vm/charly-arch/id_ed25519 -p 2224 arch@127.0.0.1 \
+ssh -i ~/.local/share/charly/vm/charly-arch/id_ed25519 -p 2224 arch@127.0.0.1 \
   'sudo dmesg | grep -iE "simpledrm|virtio_gpu|drm"' | head -10
 ```
 Pass: `virtio_gpu` as primary, NO `simpledrm` lines, NO `fbcon: Deferring console take-over`.
@@ -308,7 +308,7 @@ Pass: `virtio_gpu` as primary, NO `simpledrm` lines, NO `fbcon: Deferring consol
 ```bash
 START=$(date +%s)
 for i in $(seq 1 20); do
-  ssh -i ~/.local/share/ov/vm/charly-arch/id_ed25519 -p 2224 -o ConnectTimeout=3 -o BatchMode=yes \
+  ssh -i ~/.local/share/charly/vm/charly-arch/id_ed25519 -p 2224 -o ConnectTimeout=3 -o BatchMode=yes \
       arch@127.0.0.1 'echo UP' 2>&1 | grep -q UP && break
   sleep 5
 done

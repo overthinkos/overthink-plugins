@@ -49,7 +49,7 @@ real NVENC encoder.
 
 ## Layers
 
-`agent-forwarding` (gnupg + direnv + ssh-client) + `selkies-desktop` metalayer (pipewire + chrome + labwc + waybar-labwc + desktop-fonts + swaync + pavucontrol + wl-tools + wl-screenshot-pixelflux + wl-overlay + wl-record-pixelflux + a11y-tools + xterm + tmux + asciinema + fastfetch + selkies) + `dbus` + `ov`
+`agent-forwarding` (gnupg + direnv + ssh-client) + `selkies-desktop` metalayer (pipewire + chrome + labwc + waybar-labwc + desktop-fonts + swaync + pavucontrol + wl-tools + wl-screenshot-pixelflux + wl-overlay + wl-record-pixelflux + a11y-tools + xterm + tmux + asciinema + fastfetch + selkies) + `dbus` + `charly`
 
 ## Ports
 
@@ -213,7 +213,7 @@ Chrome remembers the self-signed cert exception in the `chrome-data` volume, so 
 
 ### Inter-Container Access
 
-From another container on the `ov` bridge network:
+From another container on the `charly` bridge network:
 
 ```bash
 # URL: https://charly-selkies-labwc:3000
@@ -276,7 +276,7 @@ podman exec ov-selkies-labwc-tailscale \
 podman exec ov-selkies-labwc curl -s ifconfig.me
 
 # Bridge connectivity — other charly containers reachable
-podman exec ov-selkies-labwc getent hosts ov-ollama
+podman exec ov-selkies-labwc getent hosts charly-ollama
 
 # Host tailnet — accessible via host's tailscale serve
 curl -sk https://o.armadillo-quail.ts.net:3000/ | head -1
@@ -319,9 +319,9 @@ charly eval cdp open selkies-labwc -i 45.39.130.21 "https://httpbin.org/ip"
 
 **Tailscale access (no sidecar needed):** The deploy.yml `tunnel: tailscale` config generates `tailscale serve` commands for host-mapped ports. All instances are accessible via the host's Tailscale IP on their respective ports (`https://<host>:3001`, etc.). Use sidecars only when per-instance exit node routing is needed.
 
-**MCP auto-disambiguation:** Each instance provides `chrome-devtools-<instance>` MCP server. Consumers (hermes) receive all instances in `OV_MCP_SERVERS` JSON after `--update-all`.
+**MCP auto-disambiguation:** Each instance provides `chrome-devtools-<instance>` MCP server. Consumers (hermes) receive all instances in `CH_MCP_SERVERS` JSON after `--update-all`.
 
-See `/charly-core:ov-config` for `--update-all` propagation, `/charly-selkies:chrome` for `env_accept` (HTTP_PROXY/HTTPS_PROXY/NO_PROXY).
+See `/charly-core:charly-config` for `--update-all` propagation, `/charly-selkies:chrome` for `env_accept` (HTTP_PROXY/HTTPS_PROXY/NO_PROXY).
 
 ## Build Pipeline Note
 
@@ -374,8 +374,8 @@ for `/etc/sudoers.d/charly-user` because it's root-only (`/charly-eval:eval` Got
   `/charly-selkies:chrome-devtools-mcp`, `/charly-selkies:pipewire`
 - `/charly-eval:eval` — declarative testing framework + testing gotchas
 - `/charly-eval:cdp`, `/charly-eval:wl` — desktop automation on this image
-- `/charly-core:ov-config` — deploy setup (tunnel, port remapping, instances)
-- `/charly-build:ov-mcp-cmd` — the image bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `charly eval live selkies-labwc --filter mcp` runs them; `charly eval mcp list-tools selkies-labwc` enumerates the 29 chrome-devtools tools ad-hoc.
+- `/charly-core:charly-config` — deploy setup (tunnel, port remapping, instances)
+- `/charly-build:charly-mcp-cmd` — the image bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `charly eval live selkies-labwc --filter mcp` runs them; `charly eval mcp list-tools selkies-labwc` enumerates the 29 chrome-devtools tools ad-hoc.
 
 ## Related
 

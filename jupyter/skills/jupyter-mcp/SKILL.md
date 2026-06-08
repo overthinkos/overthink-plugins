@@ -120,7 +120,7 @@ candy/jupyter-mcp/
 
 ## Integration with mcp_provide
 
-The parent `jupyter` layer declares `mcp_provide` to make this MCP server discoverable to other services at deploy time. The hermes service auto-discovers this server via the `OV_MCP_SERVERS` env var and registers all 11 tools as `mcp_jupyter_<tool_name>`.
+The parent `jupyter` layer declares `mcp_provide` to make this MCP server discoverable to other services at deploy time. The hermes service auto-discovers this server via the `CH_MCP_SERVERS` env var and registers all 11 tools as `mcp_jupyter_<tool_name>`.
 
 ## MCP Name Decoupling (design principle)
 
@@ -150,9 +150,9 @@ The `jupyter` MCP server name is **deliberately decoupled** from the layer name,
 - `/charly-jupyter:jupyter` — lightweight Tier 2 parent layer
 - `/charly-jupyter:jupyter-ml` — GPU ML Tier 2 parent layer
 - `/charly-image:layer` — layer authoring rules (Tier 1 pattern)
-- `/charly-build:ov-mcp-cmd` — client-side verb for probing this server's tool catalog (ping, list-tools, call); use `charly eval mcp list-tools jupyter` to see all 11 tools this layer registers
+- `/charly-build:charly-mcp-cmd` — client-side verb for probing this server's tool catalog (ping, list-tools, call); use `charly eval mcp list-tools jupyter` to see all 11 tools this layer registers
 - `/charly-selkies:chrome-devtools-mcp` — sibling MCP-server-provider layer for Chrome DevTools (different domain, same `mcp_provide` pattern)
-- `/charly-hermes:hermes` — downstream MCP consumer (auto-discovers `jupyter` via `OV_MCP_SERVERS`; uses the 11 tools to read/edit/execute notebook cells programmatically)
+- `/charly-hermes:hermes` — downstream MCP consumer (auto-discovers `jupyter` via `CH_MCP_SERVERS`; uses the 11 tools to read/edit/execute notebook cells programmatically)
 - `/charly-openwebui:openwebui` — downstream MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI's in-chat code blocks to the Jupyter kernel)
 
 ## When to Use This Skill

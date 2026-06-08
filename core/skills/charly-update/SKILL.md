@@ -1,9 +1,9 @@
 ---
-name: ov-update
+name: charly-update
 description: |
   Update image and restart service with data sync.
   MUST be invoked before any work involving: charly update command, pulling new image versions, data seeding, force-seed, or updating deployed services.
-  Named `ov-update` (not `update`) to disambiguate from Claude Code's built-in `/update`/`/upgrade` slash commands.
+  Named `charly-update` (not `update`) to disambiguate from Claude Code's built-in `/update`/`/upgrade` slash commands.
 ---
 
 # charly update -- Update Image and Restart
@@ -173,10 +173,10 @@ When seeding populates a named volume, the output shows
 
 - `/charly-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
-- `/charly-core:ov-config` -- initial deployment setup
+- `/charly-core:charly-config` -- initial deployment setup
 - `/charly-core:start` -- start a service
 - `/charly-build:build` -- building images locally
-- `/charly-core:ov-status` -- check service status after update
+- `/charly-core:charly-status` -- check service status after update
 
 ## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
 

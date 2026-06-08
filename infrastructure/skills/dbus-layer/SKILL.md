@@ -42,7 +42,7 @@ my-image:
 
 The `charly eval dbus` command provides native Go D-Bus interaction with containers via `godbus/dbus/v5`. It operates in two modes:
 
-- **Remote mode** (`charly eval dbus notify myimage "title" "body"`): delegates to the container's `ov` binary via `engine exec container charly eval dbus notify . "title" "body"`. Falls back to `gdbus call` if `ov` binary is not in the container.
+- **Remote mode** (`charly eval dbus notify myimage "title" "body"`): delegates to the container's `charly` binary via `engine exec container charly eval dbus notify . "title" "body"`. Falls back to `gdbus call` if `charly` binary is not in the container.
 - **Local mode** (`charly eval dbus notify . "title" "body"`): connects directly to the local session bus. This is what runs inside the container when delegated from the host.
 
 ### Commands
@@ -61,14 +61,14 @@ charly eval dbus introspect <image> <dest> <path>  # Service introspection
 For notifications to work, the image needs:
 1. **`dbus` layer** — D-Bus session bus (this layer)
 2. **`swaync` layer** — notification daemon
-3. **`ov` layer** — in-container charly binary for native D-Bus (falls back to `gdbus` from `glib2`)
+3. **`charly` layer** — in-container charly binary for native D-Bus (falls back to `gdbus` from `glib2`)
 
 ### Error Messages
 
 `charly eval dbus` provides explanatory errors when D-Bus is unavailable:
 - No session bus → suggests adding the `dbus` layer
 - No notification daemon → suggests adding `swaync`
-- No `ov` binary → falls back to `gdbus`, warns about adding `ov` layer
+- No `charly` binary → falls back to `gdbus`, warns about adding `charly` layer
 
 ## `charly status` Probe
 

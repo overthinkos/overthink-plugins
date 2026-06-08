@@ -79,7 +79,7 @@ The custom entrypoint (`/usr/local/bin/postgresql-entrypoint.sh`) supports:
 
 ## Related Commands
 
-- `/charly-core:ov-config` — Deploy with secrets provisioning (db-password)
+- `/charly-core:charly-config` — Deploy with secrets provisioning (db-password)
 - `/charly-build:secrets` — Manage database credentials
 
 ## When to Use This Skill

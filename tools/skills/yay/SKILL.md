@@ -62,7 +62,7 @@ Not used directly in end-user images. Instead, it's part of the builder image th
 ## When to Use This Skill
 
 Use when the user asks about:
-- AUR package support in Overthink
+- AUR package support in OpenCharly
 - The `yay` layer or AUR helper installation
 - How `aur:` packages in candy.yml get built
 - The `arch-builder` image's AUR capability

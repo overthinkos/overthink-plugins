@@ -108,7 +108,7 @@ The `jupyter` layer declares `mcp_provide` for cross-container and pod MCP disco
 
 - **Transport:** Streamable HTTP (`http`)
 - **11 tools** available via the `jupyter-mcp` extension (see below)
-- **Hermes auto-configures** via the `OV_MCP_SERVERS` env var -- no manual MCP registration needed
+- **Hermes auto-configures** via the `CH_MCP_SERVERS` env var -- no manual MCP registration needed
 - **Pod-aware:** resolves to `localhost` in combined images where hermes and jupyter share a container
 
 ## MCP Server Extension (`jupyter_mcp`)
@@ -227,11 +227,11 @@ OCI label (see `/charly-eval:eval` for the full schema):
 - `/charly-jupyter:jupyter-ml` -- GPU-accelerated variant with full CUDA ML stack + same CRDT MCP server
 - `/charly-jupyter:jupyter-mcp` -- MCP server implementation (sub-layer, 11 tools for programmatic notebook access using `<noun>_<verb>` naming; clients don't manage CRDT rooms — the server auto-attaches)
 - `/charly-jupyter:notebook-templates` -- Starter notebooks (data layer, used alongside this layer in images)
-- `/charly-hermes:hermes` -- MCP consumer (auto-discovers via `OV_MCP_SERVERS` env var; uses `jupyter` server tools to read/edit/execute cells)
+- `/charly-hermes:hermes` -- MCP consumer (auto-discovers via `CH_MCP_SERVERS` env var; uses `jupyter` server tools to read/edit/execute cells)
 - `/charly-openwebui:openwebui` -- MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code-block execution into the Jupyter kernel)
 - `/charly-infrastructure:supervisord` -- process manager dependency
 - `/charly-languages:python` -- Python runtime (transitive via supervisord)
-- `/charly-build:ov-mcp-cmd` -- end-to-end testing of the layer's MCP endpoint (`charly eval mcp ping`, `list-tools`, `call`); the layer ships 3 deploy-scope `mcp:` declarative checks against `list_notebooks`/`insert_cell`/`execute_cell`
+- `/charly-build:charly-mcp-cmd` -- end-to-end testing of the layer's MCP endpoint (`charly eval mcp ping`, `list-tools`, `call`); the layer ships 3 deploy-scope `mcp:` declarative checks against `list_notebooks`/`insert_cell`/`execute_cell`
 
 ## When to Use This Skill
 

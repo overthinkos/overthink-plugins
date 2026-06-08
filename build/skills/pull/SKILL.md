@@ -17,7 +17,7 @@ description: |
 engine's storage so deploy-mode commands (`charly shell`, `charly start`, `charly config`,
 `charly alias add`, etc.) can read its OCI labels via `ExtractMetadata`. It is a
 **pull-only** operation — it does not start, configure, or restart any
-service. That's `charly update`'s job (see `/charly-core:ov-update`).
+service. That's `charly update`'s job (see `/charly-core:charly-update`).
 
 This command is the prerequisite for every deploy-mode operation on a fresh
 host. Since the `charly box` refactor, deploy-mode commands no longer read
@@ -73,7 +73,7 @@ charly box pull @github.com/overthinkos/overthink/jupyter          # latest git 
 
 Downloads and caches the repo, reads its `box.yml`, then pulls the
 registry ref declared there. This is the **only** place `@github.com/...`
-refs are accepted in `ov`. Deploy-mode commands (`charly shell`, `charly start`,
+refs are accepted in `charly`. Deploy-mode commands (`charly shell`, `charly start`,
 `charly config`, etc.) reject them with a message pointing users here.
 
 ## Semantics
@@ -118,7 +118,7 @@ recommendation falls out for free.
 |---|---|---|
 | Side effects | None. Pulls bytes, prints digest. | Pulls, seeds data into volumes, restarts active service. |
 | Required before deploy | Yes (first time only). | No — it calls `pull` internally if needed. |
-| Use when | You want labels available but aren't ready to deploy. Or just installed `ov` on a fresh host. | You have a running service and want to roll to a new image version. |
+| Use when | You want labels available but aren't ready to deploy. Or just installed `charly` on a fresh host. | You have a running service and want to roll to a new image version. |
 
 Rule of thumb: **`pull` is the prerequisite; `update` is the refresh.**
 Use `charly box pull <image>` once to seed local storage; use `charly update
@@ -176,17 +176,17 @@ storage).
 
 ## Project directory override
 
-`charly box pull` resolves `box.yml` via `os.Getwd()` when given a short name (to resolve registry + tag). Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. Fully-qualified refs and `@github.com/...` remote refs don't need a project dir. See `/charly-image:image` "Project directory resolution".
+`charly box pull` resolves `box.yml` via `os.Getwd()` when given a short name (to resolve registry + tag). Override with `-C <dir>` / `--dir <dir>` / `CH_PROJECT_DIR=<dir>`. Fully-qualified refs and `@github.com/...` remote refs don't need a project dir. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
 - `/charly-image:image` — family overview; `charly box pull` is one of 8 subcommands.
 - `/charly-build:build` — pulls and builds are orthogonal; build creates images,
   pull fetches existing ones.
-- `/charly-core:ov-update` — rolls deployed services to a new image version
+- `/charly-core:charly-update` — rolls deployed services to a new image version
   (pulls + data-seeds + restarts).
 - `/charly-build:inspect` — print resolved ref from `box.yml` without pulling.
-- `/charly-core:shell`, `/charly-core:start`, `/charly-core:ov-config`, `/charly-automation:alias`, `/charly-vm:vm` —
+- `/charly-core:shell`, `/charly-core:start`, `/charly-core:charly-config`, `/charly-automation:alias`, `/charly-vm:vm` —
   deploy-mode commands that require a pulled image.
 - `/charly-core:deploy` — deploy.yml overlay semantics applied on top of the
   labels `pull` materializes.

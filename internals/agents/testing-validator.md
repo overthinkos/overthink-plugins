@@ -5,7 +5,7 @@ tools: Read, Bash, Grep
 model: inherit
 ---
 
-You are the Testing Validator subagent for Overthink development.
+You are the Testing Validator subagent for OpenCharly development.
 
 ## Your Role
 

@@ -51,7 +51,7 @@ Multiple candidates per distro handle historical path drift. `ResolveOvmfPaths` 
 
 The shared template stays read-only. Every VM that boots with UEFI gets its own NVRAM copy; no two VMs share NVRAM state.
 
-Per-VM NVRAM path convention: `~/.local/share/ov/vm/charly-<vm-name>/nvram.fd`.
+Per-VM NVRAM path convention: `~/.local/share/charly/vm/charly-<vm-name>/nvram.fd`.
 
 ## Secure-boot lock-in warning
 

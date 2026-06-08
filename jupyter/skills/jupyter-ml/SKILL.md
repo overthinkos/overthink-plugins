@@ -36,7 +36,7 @@ Additional layers from the image:
 - `agent-forwarding` — SSH/GPG agent forwarding
 - `notebook-templates` — Starter notebooks (data layer, seeds /workspace)
 - `dbus` — D-Bus session bus
-- `ov` — Overthink CLI
+- `charly` — OpenCharly CLI
 
 ## Base Chain
 
@@ -127,7 +127,7 @@ charly shell jupyter-ml -c "pixi run verify-collaboration"
 - `/charly-languages:python-ml` — ML base without Jupyter
 - **CachyOS variant** — `cachyos.jupyter-ml` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base) in the `overthinkos/cachyos` submodule. See `/charly-distros:cachyos`.
 
-**MCP testing:** inherits 3 deploy-scope `mcp:` checks from the `jupyter-ml` layer (`ping`, `list-tools`, `call list_notebooks`). Run `charly eval live jupyter-ml --filter mcp` or probe ad-hoc with `charly eval mcp list-tools jupyter-ml`. See `/charly-build:ov-mcp-cmd`.
+**MCP testing:** inherits 3 deploy-scope `mcp:` checks from the `jupyter-ml` layer (`ping`, `list-tools`, `call list_notebooks`). Run `charly eval live jupyter-ml --filter mcp` or probe ad-hoc with `charly eval mcp list-tools jupyter-ml`. See `/charly-build:charly-mcp-cmd`.
 
 ## When to Use This Skill
 

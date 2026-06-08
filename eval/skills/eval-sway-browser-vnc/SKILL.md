@@ -64,7 +64,7 @@ Note: `charly config <key>` persists `image: <key>` (it assumes deploy-key ==
 image-name; see `/charly-core:deploy`). Because this bed's key
 (`eval-sway-browser-vnc-pod`) differs from its image (`sway-browser-vnc`), set
 the operator ref to `sway-browser-vnc` in `~/.config/charly/deploy.yml` (the eval
-runner / `charly deploy add` does this for you — `ov` "never clobbers
+runner / `charly deploy add` does this for you — `charly` "never clobbers
 operator-authored refs").
 
 ## Related Skills
@@ -72,7 +72,7 @@ operator-authored refs").
 - `/charly-selkies:sway-browser-vnc` — the shipping image this bed deploys
 - `/charly-eval:eval` — the eval framework + the disposable test-bed table
 - `/charly-eval:cdp`, `/charly-eval:wl`, `/charly-eval:vnc`, `/charly-eval:dbus`, `/charly-eval:record`,
-  `/charly-build:ov-mcp-cmd` — the live-container verbs this bed covers
+  `/charly-build:charly-mcp-cmd` — the live-container verbs this bed covers
 - `/charly-core:deploy` — `disposable:` bed semantics, the deploy-key vs image-name caveat
 - `/charly-internals:disposable` — the `disposable: true` authorization model
 

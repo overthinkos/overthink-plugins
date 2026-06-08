@@ -111,14 +111,14 @@ description: |
 
 Most skills under `plugins/charly-core/skills/` and `plugins/charly-build/skills/`
 map 1:1 to a top-level charly command (e.g. `/charly-build:build` ↔ `charly box build`,
-`/charly-core:ov-status` ↔ `charly status`).
+`/charly-core:charly-status` ↔ `charly status`).
 **Topic skills** are the exception: they don't correspond to a
 top-level command but cover a cross-cutting concept surfaced by flags
 or layer composition. Today's topic skills:
 
 | Skill | Surfaced via | What it covers |
 |---|---|---|
-| `/charly-automation:enc` | `charly config --encrypt`, `charly config mount`, `charly config unmount`, `charly config passwd` | Encrypted-volume (gocryptfs) semantics, keyring resolution, `ov-enc-<image>-<volume>.scope` lifecycle |
+| `/charly-automation:enc` | `charly config --encrypt`, `charly config mount`, `charly config unmount`, `charly config passwd` | Encrypted-volume (gocryptfs) semantics, keyring resolution, `charly-enc-<image>-<volume>.scope` lifecycle |
 | `/charly-automation:openclaw-deploy` | Composing `openclaw-*` layers | OpenClaw AI gateway deployment story |
 | `/charly-automation:sidecar` | `charly config --sidecar tailscale` | Sidecar-container model, pod networking, env-var routing |
 
@@ -132,31 +132,31 @@ Plugins are sorted into four use-case buckets. Directory names live at
 
 | Bucket | Plugin | Skills | Purpose |
 |---|---|---:|---|
-| commands | `ov-core` | 14 | Lifecycle verbs (start/stop/status/logs/shell/ssh/deploy/update/...) |
-| commands | `ov-build` | 13 | Build/authoring verbs (build/generate/list/inspect/merge/new/pull/validate/secrets/settings/migrate/reconcile/mcp) |
-| commands | `ov-eval` | 9 | `charly eval` orchestrator + live probes (cdp/wl/wl-overlay/dbus/vnc/spice/libvirt/record) |
-| commands | `ov-automation` | 6 | tmux verb, host-side helpers (alias/udev), topic flags (enc/sidecar/openclaw-deploy) |
-| kind | `ov-image` | 2 | `kind: box` and `kind: candy` schema reference |
-| kind | `ov-vm` | 7 | `kind: vm` schema + bootc VM catalog |
-| kind | `ov-kubernetes` | 2 | `kind: k8s` schema + cluster probes |
-| kind | `ov-local` | 2 | `kind: local` schema + ssh-host deploys |
-| kind | `ov-pod` | 1 | `kind: pod` and `kind: deploy` schema (thin pointer) |
-| development | `ov-internals` | 16 + 5 agents | Go source / IR / capabilities / vm-spec / renderers / cutover-policy / strict-policy / disposable / git-workflow / agents (the agents/workflows/teams guide) + 5 agents (3 enforcers + 2 eval executors) + github MCP |
-| images | `ov-distros` | 34 | Base OS, GPU runtime, bootc, distro builders |
-| images | `ov-languages` | 4 | python, python-ml, pixi |
-| images | `ov-infrastructure` | 22 | postgres, redis, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, ... |
-| images | `ov-tools` | 19 | CLI utilities + charly binary deploy |
-| images | `ov-jupyter` | 15 | jupyter image family + jupyter MCP @ 8888 |
-| images | `ov-coder` | 31 | coder/dev images + charly MCP @ 18765 |
-| images | `ov-selkies` | 45 | selkies-desktop family + chrome-devtools MCP @ 9224 |
-| images | `ov-openclaw` | 12 | openclaw AI workstation + chrome-devtools MCP @ 9224 |
-| images | `ov-versa` | 9 | versa image — marimo + airflow + OSM analytics + 2 MCP servers |
-| images | `ov-ollama` | 2 | ollama LLM-server image |
-| images | `ov-openwebui` | 2 | openwebui chat frontend |
-| images | `ov-comfyui` | 2 | comfyui image generation |
-| images | `ov-immich` | 4 | immich photo management |
-| images | `ov-hermes` | 6 | hermes agent image |
-| images | `ov-filebrowser` | 2 | filebrowser web file management |
+| commands | `charly-core` | 14 | Lifecycle verbs (start/stop/status/logs/shell/ssh/deploy/update/...) |
+| commands | `charly-build` | 13 | Build/authoring verbs (build/generate/list/inspect/merge/new/pull/validate/secrets/settings/migrate/reconcile/mcp) |
+| commands | `charly-eval` | 9 | `charly eval` orchestrator + live probes (cdp/wl/wl-overlay/dbus/vnc/spice/libvirt/record) |
+| commands | `charly-automation` | 6 | tmux verb, host-side helpers (alias/udev), topic flags (enc/sidecar/openclaw-deploy) |
+| kind | `charly-image` | 2 | `kind: box` and `kind: candy` schema reference |
+| kind | `charly-vm` | 7 | `kind: vm` schema + bootc VM catalog |
+| kind | `charly-kubernetes` | 2 | `kind: k8s` schema + cluster probes |
+| kind | `charly-local` | 2 | `kind: local` schema + ssh-host deploys |
+| kind | `charly-pod` | 1 | `kind: pod` and `kind: deploy` schema (thin pointer) |
+| development | `charly-internals` | 16 + 5 agents | Go source / IR / capabilities / vm-spec / renderers / cutover-policy / strict-policy / disposable / git-workflow / agents (the agents/workflows/teams guide) + 5 agents (3 enforcers + 2 eval executors) + github MCP |
+| images | `charly-distros` | 34 | Base OS, GPU runtime, bootc, distro builders |
+| images | `charly-languages` | 4 | python, python-ml, pixi |
+| images | `charly-infrastructure` | 22 | postgres, redis, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, ... |
+| images | `charly-tools` | 19 | CLI utilities + charly binary deploy |
+| images | `charly-jupyter` | 15 | jupyter image family + jupyter MCP @ 8888 |
+| images | `charly-coder` | 31 | coder/dev images + charly MCP @ 18765 |
+| images | `charly-selkies` | 45 | selkies-desktop family + chrome-devtools MCP @ 9224 |
+| images | `charly-openclaw` | 12 | openclaw AI workstation + chrome-devtools MCP @ 9224 |
+| images | `charly-versa` | 9 | versa image — marimo + airflow + OSM analytics + 2 MCP servers |
+| images | `charly-ollama` | 2 | ollama LLM-server image |
+| images | `charly-openwebui` | 2 | openwebui chat frontend |
+| images | `charly-comfyui` | 2 | comfyui image generation |
+| images | `charly-immich` | 4 | immich photo management |
+| images | `charly-hermes` | 6 | hermes agent image |
+| images | `charly-filebrowser` | 2 | filebrowser web file management |
 
 ## Agent & signpost conventions
 
@@ -164,7 +164,7 @@ Plugins are sorted into four use-case buckets. Directory names live at
 
 Sub-agents are markdown + YAML frontmatter (`name`, `description`, `tools`,
 `model`, …), discovered from a plugin's `agents/` directory (currently only
-`ov-internals/agents/`). **Plugin-loaded agents IGNORE the `hooks`,
+`charly-internals/agents/`). **Plugin-loaded agents IGNORE the `hooks`,
 `mcpServers`, and `permissionMode` frontmatter fields** — keep those out of
 plugin agents (use `.claude/agents/` or `settings.json` if you genuinely
 need them). The charly roster splits into **enforcers** (root-cause-analyzer,

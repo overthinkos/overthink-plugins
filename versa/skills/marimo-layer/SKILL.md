@@ -134,7 +134,7 @@ header lands at the bottom; etc.
 Surgical reset (kill marimo, restore from `/data/`, restart):
 
 ```bash
-podman exec ov-versa bash -c '
+podman exec charly-versa bash -c '
   supervisorctl stop marimo
   cp /data/workspace/notebooks/osm-monaco-viz.py \
      /workspace/notebooks/osm-monaco-viz.py

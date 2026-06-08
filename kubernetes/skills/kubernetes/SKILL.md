@@ -4,11 +4,11 @@ description: |
   MUST be invoked before any work involving: `charly deploy add --target kubernetes`, `charly deploy from-box`, Kustomize manifest generation, cluster profiles, K8s deployments, `kubernetes:` block in deploy spec, or OCI-label capabilities.
 ---
 
-# Kubernetes — Deploying Overthink Images to K8s Clusters
+# Kubernetes — Deploying OpenCharly Images to K8s Clusters
 
 ## Overview
 
-Overthink can deploy built images to a Kubernetes cluster by emitting a Kustomize `base/` + `overlays/` tree. The deployment schema stays **target-agnostic** — authors describe *what the workload needs* (kind, replicas, resources, exposure, storage, probes); a per-cluster **cluster profile** file supplies the K8s-specific knobs (storage class, ingress class, cert issuer, secret backend).
+OpenCharly can deploy built images to a Kubernetes cluster by emitting a Kustomize `base/` + `overlays/` tree. The deployment schema stays **target-agnostic** — authors describe *what the workload needs* (kind, replicas, resources, exposure, storage, probes); a per-cluster **cluster profile** file supplies the K8s-specific knobs (storage class, ingress class, cert issuer, secret backend).
 
 Every image's runtime contract is baked into OCI labels at build time, so **a K8s deploy is possible without access to `charly.yml`** — the `charly deploy from-box` verb reads capabilities from the pushed image alone.
 

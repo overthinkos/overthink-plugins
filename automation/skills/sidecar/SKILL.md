@@ -8,7 +8,7 @@ description: |
 
 ## Overview
 
-Sidecars are additional containers that run alongside an application container in a shared Podman pod. They share the network namespace (localhost connectivity) while maintaining separate filesystems. Sidecar templates are embedded in the `ov` binary — any image can get any sidecar at deploy time without image rebuilds.
+Sidecars are additional containers that run alongside an application container in a shared Podman pod. They share the network namespace (localhost connectivity) while maintaining separate filesystems. Sidecar templates are embedded in the `charly` binary — any image can get any sidecar at deploy time without image rebuilds.
 
 ## Quick Reference
 
@@ -21,7 +21,7 @@ Sidecars are additional containers that run alongside an application container i
 
 ## Architecture
 
-Sidecar templates are compiled into the `ov` binary via `go:embed` (`ov/sidecar.yml`). At deploy time, `charly config --sidecar <name>` merges the template with per-machine overrides from `deploy.yml`, then generates quadlet files.
+Sidecar templates are compiled into the `charly` binary via `go:embed` (`ov/sidecar.yml`). At deploy time, `charly config --sidecar <name>` merges the template with per-machine overrides from `deploy.yml`, then generates quadlet files.
 
 ```
 charly binary (embedded templates)     deploy.yml (per-machine overrides)
@@ -86,7 +86,7 @@ If a future sidecar needs to forward auth tokens or service URLs into the app, t
 - App layer declares `env_accept: [<var>]` or `env_require: [<var>]`
 - `charly config` resolves the provide at deploy time and writes it to `deploy.yml` under `provides:`
 
-Missing `env_accept` on the consumer side silently drops the var. Missing `env_require` is a hard fail. See `/charly-image:layer` (env_require / env_accept) for the authoring side, `/charly-core:ov-config` (Provides Filtering) for the resolution pipeline, and `provides.go` in the `ov` source for the implementation.
+Missing `env_accept` on the consumer side silently drops the var. Missing `env_require` is a hard fail. See `/charly-image:layer` (env_require / env_accept) for the authoring side, `/charly-core:charly-config` (Provides Filtering) for the resolution pipeline, and `provides.go` in the `charly` source for the implementation.
 
 ### deploy.yml Persistence
 
@@ -282,7 +282,7 @@ Chrome requires large `/dev/shm`. In pod mode, per-container `ShmSize=` is ignor
 ## Cross-References
 
 - `/charly-core:deploy` — Quadlet generation, deploy.yml, tunnel configuration (tunnel is deploy.yml-only, not auto-inherited by instances)
-- `/charly-core:ov-config` — `--sidecar` and `--list-sidecars` flags, Provides Filtering, resource caps, NO_PROXY auto-enrichment
+- `/charly-core:charly-config` — `--sidecar` and `--list-sidecars` flags, Provides Filtering, resource caps, NO_PROXY auto-enrichment
 - `/charly-image:layer` — `env_accept` / `env_require` authoring and the full provides filtering contract
 - `/charly-build:secrets` — `charly secrets gpg set TS_AUTHKEY` for auth key storage
 - `/charly-selkies:selkies-labwc` — Full deployment example with Tailscale exit node

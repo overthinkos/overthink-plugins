@@ -28,13 +28,13 @@ ubuntu-coder:
   base: ubuntu
   ports:
     - "2222:2222"                 # sshd-wrapper
-    - "18765:18765"               # ov-mcp (Streamable HTTP)
+    - "18765:18765"               # charly-mcp (Streamable HTTP)
   layers:
     # Same stack as debian-coder — see that skill for the full list
     - agent-forwarding
     - sshd
     - charly
-    - ov-mcp
+    - charly-mcp
     - container-nesting
     - dbus
     - tmux
@@ -162,7 +162,7 @@ AWS ECR Public mirrors the Dockerhub library namespace without rate-limiting una
 | Port | Service | Bound by |
 |---|---|---|
 | 2222 | sshd-wrapper (SSH as `ubuntu` with sudo) | `/charly-coder:sshd` |
-| 18765 | ov-mcp | `/charly-coder:charly-mcp` |
+| 18765 | charly-mcp | `/charly-coder:charly-mcp` |
 
 Conflicts with the other three coder-family images on these ports.
 
@@ -196,7 +196,7 @@ Conflicts with the other three coder-family images on these ports.
 - `/charly-build:build` — **`base_user:` declaration** (where `ubuntu:1000` is declared).
 - `/charly-eval:eval` — `exclude_distros:` field reference.
 - `/charly-build:generate` — adopt-vs-create writeBootstrap emission.
-- `/charly-core:shell`, `/charly-core:ov-config`, `/charly-core:start`, `/charly-core:stop`.
+- `/charly-core:shell`, `/charly-core:charly-config`, `/charly-core:start`, `/charly-core:stop`.
 
 ## When to use this skill
 

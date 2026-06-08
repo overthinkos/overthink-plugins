@@ -13,7 +13,7 @@ charly migrate            # migrate every reachable config to the latest schema 
 charly migrate --dry-run  # print every change the chain would make; touch nothing
 ```
 
-The project directory is the current working directory; use the top-level `-C` / `--dir` / `OV_PROJECT_DIR` global to point elsewhere (`main()` chdir's before dispatch).
+The project directory is the current working directory; use the top-level `-C` / `--dir` / `CH_PROJECT_DIR` global to point elsewhere (`main()` chdir's before dispatch).
 
 ## CalVer schema versioning
 

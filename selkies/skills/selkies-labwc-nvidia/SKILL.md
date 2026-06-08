@@ -41,7 +41,7 @@ selkies-labwc-nvidia:
 
 ## Layers
 
-`agent-forwarding` (gnupg + direnv + ssh-client) + `selkies-desktop` metalayer (pipewire + chrome + labwc + waybar-labwc + desktop-fonts + swaync + pavucontrol + wl-tools + wl-screenshot-pixelflux + wl-overlay + wl-record-pixelflux + a11y-tools + xterm + tmux + asciinema + fastfetch + selkies) + `dbus` + `ov`
+`agent-forwarding` (gnupg + direnv + ssh-client) + `selkies-desktop` metalayer (pipewire + chrome + labwc + waybar-labwc + desktop-fonts + swaync + pavucontrol + wl-tools + wl-screenshot-pixelflux + wl-overlay + wl-record-pixelflux + a11y-tools + xterm + tmux + asciinema + fastfetch + selkies) + `dbus` + `charly`
 
 ## Ports
 
@@ -97,7 +97,7 @@ encoding (zero CPU overhead).
 - `/charly-distros:nvidia` — GPU runtime and CDI device auto-detection
 - `/charly-distros:cuda` — CUDA toolkit and libraries (via the CachyOS GPU base)
 - `/charly-infrastructure:dbus-layer` — session bus for desktop services
-- `/charly-tools:charly` — in-container `ov` binary (enables `charly eval dbus notify`)
+- `/charly-tools:charly` — in-container `charly` binary (enables `charly eval dbus notify`)
 - `/charly-distros:agent-forwarding` — SSH/GPG/direnv agent forwarding
 
 ## Related Images
@@ -111,8 +111,8 @@ encoding (zero CPU overhead).
 - `/charly-eval:eval` — parent router for live-container verbs (`charly eval cdp|wl|dbus|vnc|mcp`)
 - `/charly-eval:cdp` — drive Chrome inside the streaming desktop
 - `/charly-eval:wl` — interact with the labwc Wayland session
-- `/charly-eval:dbus` — D-Bus notifications via in-container `ov` binary
-- `/charly-build:ov-mcp-cmd` — inherits chrome-devtools-mcp's 2 deploy-scope `mcp:` checks; use `charly eval mcp list-tools selkies-labwc-nvidia` to verify the MCP server is alive and exposing the full tool catalog.
+- `/charly-eval:dbus` — D-Bus notifications via in-container `charly` binary
+- `/charly-build:charly-mcp-cmd` — inherits chrome-devtools-mcp's 2 deploy-scope `mcp:` checks; use `charly eval mcp list-tools selkies-labwc-nvidia` to verify the MCP server is alive and exposing the full tool catalog.
 
 ## Related
 

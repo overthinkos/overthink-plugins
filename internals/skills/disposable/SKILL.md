@@ -29,13 +29,13 @@ owner explicitly authorized it. The `disposable: true` flag is that
 authorization. Nothing else is.
 
 `disposable: true` is the **lifecycle boundary of the candybox** (CLAUDE.md
-"Candyboxing"): Overthink secures the box as a whole and stocks it with the full
+"Candyboxing"): OpenCharly secures the box as a whole and stocks it with the full
 toolset, and this flag is what makes that fully-stocked box safe to tear down and
 rebuild unattended. The candy inside can be generous *because* the wall — and its
 authorized teardown — is explicit.
 
 On a shared host, unrelated production services with live users may
-run alongside ov-managed resources. The `disposable: true` flag must
+run alongside charly-managed resources. The `disposable: true` flag must
 therefore be:
 
 - **Explicit.** Default false. No derivation from anything else. A
@@ -153,7 +153,7 @@ reaches it (a VM via a PCI hostdev, a pod via `--device`/CDI). The arbiter does
 pure set-intersection on tokens, so the same token unifies pod-vs-VM contention.
 
 **Crash-safety (the restore guarantee).** A holder is NEVER left permanently
-stopped. The lease ledger (`~/.local/share/ov/preemption/leases.yml`) is written
+stopped. The lease ledger (`~/.local/share/charly/preemption/leases.yml`) is written
 *before* any holder is stopped, and "restore" means "start every listed holder
 that isn't running" — so a crash at any point is recoverable. `charly preempt status`
 lists active leases and flags STRANDED ones (claimant gone); `charly preempt restore
@@ -179,7 +179,7 @@ preserved) — the OPPOSITE of `disposable`'s destroy authorization. Enforced by
   counterpart. Each instance of a container image has its own
   entry, so per-instance classifications are natural.
 - Per-instance VM overrides (deferred to a follow-up): will live at
-  `~/.local/share/ov/vm/<domain-name>/instance.yml`. Until then,
+  `~/.local/share/charly/vm/<domain-name>/instance.yml`. Until then,
   VMs inherit the vm.yml template classification for every
   instance.
 
@@ -292,12 +292,12 @@ NOT authorize autonomous destroy.
 Today, classification applies to all instances of a kind:vm entity.
 If you need per-instance overrides (e.g., `charly vm create arch -i test`
 with different classification than `-i prod`), that requires the
-per-instance override file at `~/.local/share/ov/vm/charly-<name>-<instance>/instance.yml`
+per-instance override file at `~/.local/share/charly/vm/charly-<name>-<instance>/instance.yml`
 — planned follow-up.
 
 ### Per-host device overlay (`instance.yml` `libvirt:`)
 
-The same per-domain `~/.local/share/ov/vm/<domain>/instance.yml` also carries a
+The same per-domain `~/.local/share/charly/vm/<domain>/instance.yml` also carries a
 `libvirt:` block — a per-host device overlay merged onto the `VmSpec` at
 `charly vm create` (`VmInstanceOverride.ApplyToVmSpec`, before `RenderDomainXML`).
 Only the HOST-SPECIFIC device categories merge — `devices.hostdevs` (a PCI

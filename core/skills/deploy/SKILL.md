@@ -243,7 +243,7 @@ deploy:
         host: /srv/another-tenant/workspace
 ```
 
-Container names: `ov-versa`, `ov-versa-ecovoyage`,
+Container names: `charly-versa`, `ov-versa-ecovoyage`,
 `ov-versa-another-tenant`. Equivalent CLI invocations:
 `charly update versa -i ecovoyage` ↔ `charly update versa/ecovoyage` (the
 `-i <inst>` flag and the `/` suffix are interchangeable for
@@ -294,7 +294,7 @@ target an instance of `versa`, which is a different deploy).
   to match `image:`. `versa-old`, `versa-canary`, and
   `my-tenant/staging` are all valid deploy keys.
 - **Container name rule**: `ov-<key-with-slash-replaced-by-dash>`
-  (e.g. `ov-versa`, `ov-versa-ecovoyage`, `ov-versa-canary`).
+  (e.g. `charly-versa`, `ov-versa-ecovoyage`, `ov-versa-canary`).
 - **`charly update <key>` and `charly update <base> -i <inst>`** are
   equivalent ways to address a `<base>/<inst>` deploy (Pattern A).
   For Pattern B (arbitrary name), only the single `<key>` form
@@ -382,7 +382,7 @@ Contents include:
 - `Environment=` / `EnvironmentFile=` for env vars
 - `ExecStartPost=` / `ExecStopPost=` for tunnel commands
 
-Service name: `ov-<image>.service`. Container name: `ov-<image>`. Entrypoint: determined by build.yml `init:` section for the configured init system. Encrypted volumes are mounted via `ExecStartPre=charly config mount` in the quadlet, which creates transient `ov-enc-<image>-<volume>.scope` units for each encrypted volume. These scope units are independent of the container service — they survive stop/restart (see `/charly-automation:enc`). With Secret Service backend: auto-starts after login (ExecStartPre waits for keyring unlock, `TimeoutStartSec=0`). With KeePass or no backend: requires `charly start` (no `WantedBy=default.target`).
+Service name: `ov-<image>.service`. Container name: `ov-<image>`. Entrypoint: determined by build.yml `init:` section for the configured init system. Encrypted volumes are mounted via `ExecStartPre=charly config mount` in the quadlet, which creates transient `charly-enc-<image>-<volume>.scope` units for each encrypted volume. These scope units are independent of the container service — they survive stop/restart (see `/charly-automation:enc`). With Secret Service backend: auto-starts after login (ExecStartPre waits for keyring unlock, `TimeoutStartSec=0`). With KeePass or no backend: requires `charly start` (no `WantedBy=default.target`).
 
 ### Security in Quadlet
 
@@ -665,7 +665,7 @@ deploy:
 - `charly config remove` / `charly remove` automatically cleans up entries from the removed image
 - Instance-aware cleanup: removing an instance (e.g., `charly remove selkies-desktop -i work`) only cleans provides entries sourced from that specific instance (`selkies-desktop/work`), not from other instances of the same base image. Base image removal requires no other instances to exist before cleaning provides
 
-See `/charly-image:layer` for `env_provide`/`mcp_provide` field declarations and `/charly-core:ov-config` for `--update-all` propagation.
+See `/charly-image:layer` for `env_provide`/`mcp_provide` field declarations and `/charly-core:charly-config` for `--update-all` propagation.
 
 ### Secrets
 
@@ -736,9 +736,9 @@ deploy:
 
 **Instance lifecycle:** All commands accept `-i`: `charly start/stop/status/logs/remove <image> -i <instance>`, `charly deploy show/reset <image> -i <instance>`. Removing an instance only cleans its deploy.yml entry — the base and other instances are unaffected. Provides cleanup waits until the last entry for a base image is removed.
 
-**Instance removal gotcha:** `charly config remove` disables the systemd service but does NOT remove the deploy.yml entry. You MUST also run `charly deploy reset <image> -i <instance>` and delete the quadlet file. If you run `charly config --update-all` before cleaning deploy.yml, stale quadlet files will be re-created. See `/charly-core:ov-config` for the full 3-step cleanup workflow.
+**Instance removal gotcha:** `charly config remove` disables the systemd service but does NOT remove the deploy.yml entry. You MUST also run `charly deploy reset <image> -i <instance>` and delete the quadlet file. If you run `charly config --update-all` before cleaning deploy.yml, stale quadlet files will be re-created. See `/charly-core:charly-config` for the full 3-step cleanup workflow.
 
-**MCP name disambiguation:** When an instance provides MCP servers, the server name gets `-<instance>` appended (e.g., `chrome-devtools-work`). See `/charly-core:ov-config` for details.
+**MCP name disambiguation:** When an instance provides MCP servers, the server name gets `-<instance>` appended (e.g., `chrome-devtools-work`). See `/charly-core:charly-config` for details.
 
 ## Volume Backing
 
@@ -763,7 +763,7 @@ charly config immich --encrypt library
 charly config immich -v library:bind:/mnt/nas -v import:bind -v cache:encrypted
 
 # Fully automated via env vars (no prompts)
-OV_VOLUMES_IMMICH="library:bind:/mnt/nas,import:bind" charly config immich --password auto
+CH_VOLUMES_IMMICH="library:bind:/mnt/nas,import:bind" charly config immich --password auto
 ```
 
 ### deploy.yml Volume Config
@@ -789,7 +789,7 @@ volumes:
 - `data_seeded`: `bool` — tracks whether data from image data layers was provisioned (set by `charly config`)
 - `data_source`: `string` — image:tag that provided the data (updated by `charly config` and `charly update`)
 
-**Auto path:** When `type: bind` and no `host` is specified, the host path is computed at runtime: `<volumes_path>/<image>/<name>`. Default volumes_path: `~/.local/share/ov/volumes/`. Configurable: `charly settings set volumes_path /mnt/nas/ov` (env: `OV_VOLUMES_PATH`).
+**Auto path:** When `type: bind` and no `host` is specified, the host path is computed at runtime: `<volumes_path>/<image>/<name>`. Default volumes_path: `~/.local/share/charly/volumes/`. Configurable: `charly settings set volumes_path /mnt/nas/ov` (env: `CH_VOLUMES_PATH`).
 
 **Unconfigured volumes** remain named volumes — no deploy.yml entry needed.
 
@@ -807,7 +807,7 @@ volumes:
 
 ### Integration
 
-- **Data provisioning**: `charly config` automatically provisions data from data layers into bind-backed volumes (via `--seed`, default true). `charly update` merges new data non-destructively. See `/charly-core:ov-config` and `/charly-core:ov-update`
+- **Data provisioning**: `charly config` automatically provisions data from data layers into bind-backed volumes (via `--seed`, default true). `charly update` merges new data non-destructively. See `/charly-core:charly-config` and `/charly-core:charly-update`
 - **`charly shell`/`charly start`**: resolves volume backing, verifies bind dirs exist and encrypted volumes are mounted, generates `-v` flags
 - **`charly config` (quadlet)**: bind-backed volumes become `Volume=` lines with host paths. `--userns=keep-id` added when bind-backed volumes exist
 - **`charly remove --purge`**: removes named volumes
@@ -877,9 +877,9 @@ provides:
 - `GlobalEnvForImage()` in `provides.go` resolves both env and MCP provides for each consumer image
 - Env provides: self-excluded (prevents own env_provide from overriding service bind addresses)
 - MCP provides: pod-aware (same-container entries resolve to `localhost`, no self-exclusion)
-- Consumer containers receive `OV_MCP_SERVERS` JSON env var with resolved MCP server entries
+- Consumer containers receive `CH_MCP_SERVERS` JSON env var with resolved MCP server entries
 
-See `/charly-core:ov-config` for setup workflow and `/charly-image:layer` for declaration format.
+See `/charly-core:charly-config` for setup workflow and `/charly-image:layer` for declaration format.
 
 ## Sidecar Pod Deployment
 
@@ -947,8 +947,8 @@ eval:
   `charly remove`) — it gracefully stops every running preemptible holder whose
   `holds:` intersects the claimant's `requires_exclusive:`, waits for it to
   actually power off (so the resource is truly released), records a crash-safe
-  lease, then proceeds. Nested `ov` subprocesses inherit the lease
-  (`OV_PREEMPT_LEASE`) and never re-acquire.
+  lease, then proceeds. Nested `charly` subprocesses inherit the lease
+  (`CH_PREEMPT_LEASE`) and never re-acquire.
 - **Token = a name, not a mechanism** — operator-chosen (`nvidia-gpu`), decoupled
   from how each side reaches it (VM hostdev vs pod `--device`); pure
   set-intersection unifies pod-vs-VM contention.
@@ -956,7 +956,7 @@ eval:
   gone). **`charly preempt restore [claimant]`** reconciles stranded leases (also run
   automatically at the next acquire) / force-releases a named one. A holder is
   NEVER left permanently stopped — the ledger
-  (`~/.local/share/ov/preemption/leases.yml`) is written before any stop, and
+  (`~/.local/share/charly/preemption/leases.yml`) is written before any stop, and
   restore = "start every listed holder that isn't running".
 - **Orthogonal to disposable/ephemeral** — no derivation either way; a deploy may
   be both preemptible and disposable. Full reference: `/charly-internals:disposable`
@@ -965,7 +965,7 @@ eval:
 ## Sibling peers (`peer:`) — companion deployments brought up alongside
 
 `peer:` on a `DeploymentNode` declares **companion deployments brought up
-ALONGSIDE** it on the shared `ov` network — *siblings*, not children. Contrast
+ALONGSIDE** it on the shared `charly` network — *siblings*, not children. Contrast
 `nested:`, whose children run **inside** this node's venue and are addressed by a
 dotted path (`parent.child`). A peer is a companion **instrument**: the canonical
 case is a Chrome DRIVER pod that CDP-probes a SEPARATE web-server SUBJECT, where a
@@ -1025,13 +1025,13 @@ deploy:
 - `/charly-core:service` — Service lifecycle (start/stop/update/remove)
 - `/charly-core:start` — Ergonomic alias for `charly deploy add <image> <image>` (container target)
 - `/charly-core:stop` — Ergonomic alias for `charly deploy del <name>`
-- `/charly-core:ov-update` — Per-instance update pattern; equivalent to `charly deploy add <name> --pull`
-- `/charly-core:ov-config` — Resource cap flags (`--memory-max/high/swap/cpus`), provides filtering, env_require enforcement, NO_PROXY auto-enrichment, `--sidecar`, `-i` instance support, MCP name disambiguation
+- `/charly-core:charly-update` — Per-instance update pattern; equivalent to `charly deploy add <name> --pull`
+- `/charly-core:charly-config` — Resource cap flags (`--memory-max/high/swap/cpus`), provides filtering, env_require enforcement, NO_PROXY auto-enrichment, `--sidecar`, `-i` instance support, MCP name disambiguation
 - `/charly-automation:enc` — Encrypted storage commands (charly config mount/unmount)
 - `/charly-eval:vnc` — VNC password setup for desktop containers
 - `/charly-vm:vm` — Virtual machine deployment (charly vm)
 - `/charly-build:build` — Building images before deployment (+ the `--no-cache` intermediate scratch-stage caveat)
-- `/charly-build:ov-mcp-cmd` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`charly eval mcp ping <image>`); note the **port-publishing gotcha** when a `port:` override in deploy.yml predates a newly-added mcp-providing layer
+- `/charly-build:charly-mcp-cmd` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`charly eval mcp ping <image>`); note the **port-publishing gotcha** when a `port:` override in deploy.yml predates a newly-added mcp-providing layer
 - `/charly-image:image` — Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
 - `/charly-image:layer` — Unified `service:` schema (use_packaged + structured custom), `env_provide`/`env_require`/`env_accept` field declarations, security resource caps
 - `/charly-eval:eval` — Local `eval:` in deploy.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.

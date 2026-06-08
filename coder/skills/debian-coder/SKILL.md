@@ -30,13 +30,13 @@ debian-coder:
   base: debian
   ports:
     - "2222:2222"                 # sshd-wrapper
-    - "18765:18765"               # ov-mcp (Streamable HTTP)
+    - "18765:18765"               # charly-mcp (Streamable HTTP)
   layers:
     # Baseline
     - agent-forwarding
     - sshd
     - charly
-    - ov-mcp
+    - charly-mcp
     - container-nesting
     - dbus
     - tmux
@@ -113,7 +113,7 @@ See `/charly-image:image` "user_policy" and `/charly-build:build` "base_user" fo
 
 `charly eval box ghcr.io/overthinkos/debian-coder:latest` — **143 passed · 0 failed · 0 skipped**.
 
-Against a live running container, the same command adds live-service extension tests (sshd on 2222, supervisord, dbus, ov-mcp, virtqemud session), mirroring fedora-coder's +18 deploy-scope additions.
+Against a live running container, the same command adds live-service extension tests (sshd on 2222, supervisord, dbus, charly-mcp, virtqemud session), mirroring fedora-coder's +18 deploy-scope additions.
 
 ## Verification recipe
 
@@ -141,7 +141,7 @@ charly stop debian-coder
 | Port | Service | Bound by |
 |---|---|---|
 | 2222 | sshd-wrapper (SSH access as `user` with sudo) | `/charly-coder:sshd` |
-| 18765 | ov-mcp (entire `ov` CLI as MCP tools, Streamable HTTP) | `/charly-coder:charly-mcp` |
+| 18765 | charly-mcp (entire `charly` CLI as MCP tools, Streamable HTTP) | `/charly-coder:charly-mcp` |
 
 Conflicts with the other three coder-family images on the same ports — use `-i <instance>` or `-p <remap>` to run alongside.
 
@@ -174,7 +174,7 @@ All four coder-family images share the identical 80-line `eval:` block + ~30 ide
 
 ## Related commands
 
-- `/charly-core:shell`, `/charly-core:ov-config`, `/charly-core:start`, `/charly-core:stop`, `/charly-eval:eval`
+- `/charly-core:shell`, `/charly-core:charly-config`, `/charly-core:start`, `/charly-core:stop`, `/charly-eval:eval`
 - `/charly-image:image` — `user_policy:` field reference
 - `/charly-build:build` — `base_user:` declaration (absent for Debian)
 - `/charly-image:layer` — authoring reference (covers `exclude_distros:`, tag-section `repos:`, Microsoft dotnet-install pattern)

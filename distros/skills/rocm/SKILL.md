@@ -31,7 +31,7 @@ Both variables are **not baked into the layer** — they are auto-detected from 
 - `HSA_OVERRIDE_GFX_VERSION` is read from `/sys/class/kfd/kfd/topology/nodes/*/properties` (gfx_target_version field).
 - `DRINODE` is selected by walking `/dev/dri/renderD*` and picking the node that matches the AMD PCI device exposed to the container.
 
-Override either with `-e HSA_OVERRIDE_GFX_VERSION=X.Y.Z` or `-e DRINODE=/dev/dri/renderD129`. See `/charly-core:ov-doctor` (Hardware Detection) for how the probe runs on the host side, and `/charly-distros:nvidia` (DRINODE Auto-Injection) for the NVIDIA counterpart using the same mechanism.
+Override either with `-e HSA_OVERRIDE_GFX_VERSION=X.Y.Z` or `-e DRINODE=/dev/dri/renderD129`. See `/charly-core:charly-doctor` (Hardware Detection) for how the probe runs on the host side, and `/charly-distros:nvidia` (DRINODE Auto-Injection) for the NVIDIA counterpart using the same mechanism.
 
 ## Security
 
@@ -50,7 +50,7 @@ RPM (Fedora system repos): `rocm-hip-runtime`, `rocm-opencl`, `rocm-clinfo`, `ro
 ## Host Requirements
 
 AMD GPU support requires:
-1. `/dev/kfd` device (auto-detected by `ov`)
+1. `/dev/kfd` device (auto-detected by `charly`)
 2. `/dev/dri/renderD*` render nodes (auto-detected)
 3. User in `video` and `render` groups (`charly udev status` to check)
 4. `amdgpu` kernel driver loaded
@@ -88,10 +88,10 @@ charly shell my-amd-app -c "echo \$HSA_OVERRIDE_GFX_VERSION"
 
 ## Related Commands
 
-- `/charly-core:ov-doctor` -- Host AMD GPU detection (`/dev/kfd`, render nodes, driver status)
+- `/charly-core:charly-doctor` -- Host AMD GPU detection (`/dev/kfd`, render nodes, driver status)
 - `/charly-core:shell` -- Interactive shells receive the same auto-detected HSA_OVERRIDE_GFX_VERSION + DRINODE envs
 - `/charly-automation:udev` -- Device permission management for `/dev/kfd` and `/dev/dri/renderD*`
-- `/charly-core:ov-config` -- Runtime GPU env injection at deployment time (same auto-detect path)
+- `/charly-core:charly-config` -- Runtime GPU env injection at deployment time (same auto-detect path)
 - `/charly-core:start` -- Runtime GPU env injection at service start time
 
 ## Used In Images

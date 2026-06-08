@@ -40,7 +40,7 @@ These env vars are declared via `env_accept:` in `candy.yml` — hermes can use 
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token for messaging |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `DISCORD_BOT_TOKEN` | Discord bot token |
-| `OV_MCP_SERVERS` | JSON array of MCP servers (auto-injected by mcp_provide layers) |
+| `CH_MCP_SERVERS` | JSON array of MCP servers (auto-injected by mcp_provide layers) |
 
 Provide via `charly config hermes -e OLLAMA_API_KEY=...` or workspace `.secrets` / `.env` file.
 
@@ -55,8 +55,8 @@ The `hermes-entrypoint` performs a **single-phase, first-start-only** configurat
 | 3 | `OPENROUTER_API_KEY` | OpenRouter (built-in) | `qwen/qwen3.6-plus:free` |
 
 **How it works:**
-- **First start:** Registers ALL providers whose env vars are set into `config.yaml` as `custom_providers` entries, and configures any discovered MCP servers from `OV_MCP_SERVERS` (e.g., `jupyter` at `:8888/mcp`, `chrome-devtools` at `:9224/mcp`). Priority determines only the default model and auxiliary task routing. Writes a `# ov:auto-configured` sentinel to prevent re-patching after user customization
-- **Key insight:** When new MCP servers are added to `OV_MCP_SERVERS` after initial configuration, hermes will NOT pick them up automatically. Delete `config.yaml` and restart: `charly shell <image> -c "rm /opt/data/config.yaml" && charly service restart <image> hermes`
+- **First start:** Registers ALL providers whose env vars are set into `config.yaml` as `custom_providers` entries, and configures any discovered MCP servers from `CH_MCP_SERVERS` (e.g., `jupyter` at `:8888/mcp`, `chrome-devtools` at `:9224/mcp`). Priority determines only the default model and auxiliary task routing. Writes a `# ov:auto-configured` sentinel to prevent re-patching after user customization
+- **Key insight:** When new MCP servers are added to `CH_MCP_SERVERS` after initial configuration, hermes will NOT pick them up automatically. Delete `config.yaml` and restart: `charly shell <image> -c "rm /opt/data/config.yaml" && charly service restart <image> hermes`
 - **Every start:** Syncs API keys to `.env` to handle key rotation
 - Override the default model with `HERMES_MODEL` env var
 - Switch between registered providers mid-session: `/model custom:ollama-cloud:kimi-k2.5:cloud` or `hermes chat --provider openrouter`
@@ -64,7 +64,7 @@ The `hermes-entrypoint` performs a **single-phase, first-start-only** configurat
 
 ## MCP Server Discovery
 
-The hermes entrypoint auto-discovers MCP servers from the `OV_MCP_SERVERS` environment variable at first start. Servers are configured in `config.yaml` under the `mcp_servers:` key (hermes native YAML map format).
+The hermes entrypoint auto-discovers MCP servers from the `CH_MCP_SERVERS` environment variable at first start. Servers are configured in `config.yaml` under the `mcp_servers:` key (hermes native YAML map format).
 
 **Diagnostics:**
 - `hermes mcp list` -- shows registered MCP servers
@@ -165,8 +165,8 @@ hermes:
 ## Related Commands
 
 - `/charly-eval:cdp` — CDP automation; hermes uses the same Chrome endpoint via `BROWSER_CDP_URL`
-- `/charly-core:ov-config` — Injects `BROWSER_CDP_URL` and `OV_MCP_SERVERS` via pod-aware `env_provide`/`mcp_provide`
-- `/charly-build:ov-mcp-cmd` — verify that the MCP servers hermes discovers (`jupyter`, `chrome-devtools`) are alive and exposing expected tools before hermes tries to call them: `charly eval mcp ping jupyter`, `charly eval mcp list-tools <image>`. Useful when hermes reports tool-call failures and you need to isolate whether the server or the agent is at fault.
+- `/charly-core:charly-config` — Injects `BROWSER_CDP_URL` and `CH_MCP_SERVERS` via pod-aware `env_provide`/`mcp_provide`
+- `/charly-build:charly-mcp-cmd` — verify that the MCP servers hermes discovers (`jupyter`, `chrome-devtools`) are alive and exposing expected tools before hermes tries to call them: `charly eval mcp ping jupyter`, `charly eval mcp list-tools <image>`. Useful when hermes reports tool-call failures and you need to isolate whether the server or the agent is at fault.
 
 ## Related Images
 
