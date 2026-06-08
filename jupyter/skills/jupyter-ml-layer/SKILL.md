@@ -62,7 +62,7 @@ Build order: pixi environment → llama-cpp (binaries) → unsloth (vllm wheel +
 
 ## MCP Server Extension
 
-Same CRDT MCP server as `/ov-jupyter:jupyter` — 11 tools for programmatic notebook access (notebook_list/create/get/watch/list_users, cell_get/update/insert/delete/execute, room_list). Clients no longer manage CRDT rooms — every notebook_*/cell_* call auto-attaches. See `/ov-jupyter:jupyter-mcp` "Usage philosophy and caveats" for the design principles.
+Same CRDT MCP server as `/charly-jupyter:jupyter` — 11 tools for programmatic notebook access (notebook_list/create/get/watch/list_users, cell_get/update/insert/delete/execute, room_list). Clients no longer manage CRDT rooms — every notebook_*/cell_* call auto-attaches. See `/charly-jupyter:jupyter-mcp` "Usage philosophy and caveats" for the design principles.
 
 Endpoint: `http://localhost:8888/mcp` (Streamable HTTP, MCP spec 2025-11-25)
 
@@ -79,18 +79,18 @@ Endpoint: `http://localhost:8888/mcp` (Streamable HTTP, MCP spec 2025-11-25)
 
 ## Used In Images
 
-- `/ov-jupyter:jupyter-ml`
-- `/ov-jupyter:jupyter-ml-notebook`
+- `/charly-jupyter:jupyter-ml`
+- `/charly-jupyter:jupyter-ml-notebook`
 
 ## Related Layers
 
-- `/ov-jupyter:jupyter` — Lightweight variant (no CUDA, multi-arch)
-- `/ov-jupyter:llama-cpp` — Sub-layer: llama.cpp binaries
-- `/ov-jupyter:unsloth` — Sub-layer: vLLM wheel + fine-tuning + vLLM patch
-- `/ov-jupyter:jupyter-mcp` — Sub-layer: CRDT MCP extension
-- `/ov-jupyter:notebook-templates` — Starter notebooks (data layer, used alongside this layer in images)
-- `/ov-hermes:hermes` — MCP consumer (auto-discovers via `OV_MCP_SERVERS`; uses jupyter tools to read/edit/execute cells)
-- `/ov-openwebui:openwebui` — MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code blocks to the Jupyter kernel)
+- `/charly-jupyter:jupyter` — Lightweight variant (no CUDA, multi-arch)
+- `/charly-jupyter:llama-cpp` — Sub-layer: llama.cpp binaries
+- `/charly-jupyter:unsloth` — Sub-layer: vLLM wheel + fine-tuning + vLLM patch
+- `/charly-jupyter:jupyter-mcp` — Sub-layer: CRDT MCP extension
+- `/charly-jupyter:notebook-templates` — Starter notebooks (data layer, used alongside this layer in images)
+- `/charly-hermes:hermes` — MCP consumer (auto-discovers via `OV_MCP_SERVERS`; uses jupyter tools to read/edit/execute cells)
+- `/charly-openwebui:openwebui` — MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code blocks to the Jupyter kernel)
 
 ## When to Use This Skill
 
@@ -103,5 +103,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

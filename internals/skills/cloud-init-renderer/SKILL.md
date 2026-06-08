@@ -12,7 +12,7 @@ description: |
 
 Host-side renderer producing NoCloud seed ISOs for cloud_image VMs (and bootc VMs that include the `cloud-init` layer). Pure transformation — given `VmSpec` + `VmCloudInit`, produces three files (user-data, meta-data, network-config) and packages them into a FAT-labeled `cidata` ISO via xorriso.
 
-Lives **host-side**, in the `ov` binary. The **guest-side** `/ov-distros:cloud-init` layer is complementary: it puts the cloud-init package into the bootc guest OS so that guest reads the seed ISO. The two sides cooperate across the host/guest boundary.
+Lives **host-side**, in the `ov` binary. The **guest-side** `/charly-distros:cloud-init` layer is complementary: it puts the cloud-init package into the bootc guest OS so that guest reads the seed ISO. The two sides cooperate across the host/guest boundary.
 
 ## Source files
 
@@ -45,7 +45,7 @@ users:
       - <pubkey>
 ```
 
-No `useradd`, no sudoers write, no shell change — cloud-init interprets "name: X" on an existing account as "append ssh_authorized_keys". The parity is exact with the container-side `base_user:` + `user_policy: adopt` pattern (`/ov-image:image` "user_policy").
+No `useradd`, no sudoers write, no shell change — cloud-init interprets "name: X" on an existing account as "append ssh_authorized_keys". The parity is exact with the container-side `base_user:` + `user_policy: adopt` pattern (`/charly-image:image` "user_policy").
 
 **When `BaseUser` is empty and `VmSSH.User` is non-empty** (create pattern):
 
@@ -67,7 +67,7 @@ Full account provisioning. Used by bootc VMs where no `base_user:` applies.
 
 ## ResolveKeyInjectionChannels
 
-Applies the per-source-kind auto-defaults documented in `/ov-internals:vm-spec`:
+Applies the per-source-kind auto-defaults documented in `/charly-internals:vm-spec`:
 
 ```go
 func ResolveKeyInjectionChannels(spec *VmSpec) (smbios bool, cloudInit bool) {
@@ -119,11 +119,11 @@ Runs post-boot inside `VmDeployTarget.Emit` after cloud-init completes. Dispatch
 
 | Strategy | Action |
 |---|---|
-| `auto` / `scp` | `scp $(os.Executable()) guest:/usr/local/bin/ov; chmod +x` |
-| `url` | ssh-execute `curl -L <url> -o /usr/local/bin/ov && sha256sum -c` (verified against `VmOvInstall.Checksum`) |
+| `auto` / `scp` | `scp $(os.Executable()) guest:/usr/local/bin/charly; chmod +x` |
+| `url` | ssh-execute `curl -L <url> -o /usr/local/bin/charly && sha256sum -c` (verified against `VmOvInstall.Checksum`) |
 | `skip` | `ssh 'which ov'` — fails if missing, returns early if present |
 
-Idempotent. If `ov` is already present at the target version, the function returns without re-scp'ing. See `/ov-internals:vm-deploy-target` for how this plugs into the overall deploy flow.
+Idempotent. If `ov` is already present at the target version, the function returns without re-scp'ing. See `/charly-internals:vm-deploy-target` for how this plugs into the overall deploy flow.
 
 ## Network config
 
@@ -135,10 +135,10 @@ Explicitly supported — not either/or. `VmKeyInjection.SMBIOS: enabled` + `VmKe
 
 ## Cross-References
 
-- `/ov-internals:vm-spec` — `VmCloudInit`, `VmSSH.KeyInjection`, `VmOvInstall` types
-- `/ov-internals:libvirt-renderer` — SMBIOS-channel emission (domain XML side)
-- `/ov-internals:vm-deploy-target` — `EnsureOvInGuest` caller; SSH/cloud-init readiness waits
-- `/ov-vm:vm` — command-family; cloud-init flow
-- `/ov-vm:vms-catalog` — YAML-authoring reference
-- `/ov-vm:arch` — `ov_install.strategy: auto` worked example; adopt-user pattern
-- `/ov-distros:cloud-init` — **guest-side pairing**: the cloud-init package installed inside bootc images reads the seed ISO this renderer produces
+- `/charly-internals:vm-spec` — `VmCloudInit`, `VmSSH.KeyInjection`, `VmOvInstall` types
+- `/charly-internals:libvirt-renderer` — SMBIOS-channel emission (domain XML side)
+- `/charly-internals:vm-deploy-target` — `EnsureOvInGuest` caller; SSH/cloud-init readiness waits
+- `/charly-vm:vm` — command-family; cloud-init flow
+- `/charly-vm:vms-catalog` — YAML-authoring reference
+- `/charly-vm:arch` — `ov_install.strategy: auto` worked example; adopt-user pattern
+- `/charly-distros:cloud-init` — **guest-side pairing**: the cloud-init package installed inside bootc images reads the seed ISO this renderer produces

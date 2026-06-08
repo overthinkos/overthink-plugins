@@ -34,8 +34,8 @@ my-dev:
 
 ## Related Layers
 
-- `/ov-coder:nodejs` -- required dependency (provides npm for markdownlint-cli)
-- `/ov-languages:pixi` -- transitive (provides pixi for pre-commit installation)
+- `/charly-coder:nodejs` -- required dependency (provides npm for markdownlint-cli)
+- `/charly-languages:pixi` -- transitive (provides pixi for pre-commit installation)
 
 ## When to Use This Skill
 
@@ -48,5 +48,5 @@ Use when the user asks about:
 
 ## Author + Test References
 
-- `/ov-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
-- `/ov-eval:eval` — declarative testing framework for the `eval:` block
+- `/charly-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
+- `/charly-eval:eval` — declarative testing framework for the `eval:` block

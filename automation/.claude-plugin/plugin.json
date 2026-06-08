@@ -1,5 +1,5 @@
 {
-  "name": "ov-automation",
+  "name": "charly-automation",
   "description": "Automation and customization knobs for running deployments — tmux verb, host-side wrappers (alias, udev), and topic flags (encryption, sidecars, openclaw deployment).",
   "version": "1.0.0",
   "author": { "name": "overthinkos" },

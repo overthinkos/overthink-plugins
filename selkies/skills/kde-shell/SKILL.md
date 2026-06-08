@@ -24,7 +24,7 @@ is common to BOTH KDE consumers, so the package list is defined once (R3):
 session components (plasma-pa, plasma-nm, powerdevil, kscreen, kde-gtk-config,
 breeze-gtk, kdialog, kio-admin) + curated apps usable in both venues (ark,
 dolphin, konsole, kate, kcalc, gwenview, spectacle) + `kdotool` (AUR) — the
-KWin window-management automation `ov eval wl` drives on KWin (the KWin analogue
+KWin window-management automation `charly eval wl` drives on KWin (the KWin analogue
 of wlroots' `wlrctl toplevel`; KWin-only, so it lives here not in `wl-tools`).
 `require: [dbus]`.
 
@@ -35,7 +35,7 @@ bluedevil, kinfocenter, partitionmanager, kdeconnect, media players.
 
 ## Related
 
-- `/ov-selkies:kde-selkies` — headless streamed Plasma consumer (pod).
-- `/ov-eval:wl` — uses this layer's `kdotool` for KWin window management.
-- `/ov-distros:cachyos` — the CachyOS/Arch base (Plasma packages are pac/AUR).
-- `/ov-image:layer` — package-section authoring (`distro.arch.package`).
+- `/charly-selkies:kde-selkies` — headless streamed Plasma consumer (pod).
+- `/charly-eval:wl` — uses this layer's `kdotool` for KWin window management.
+- `/charly-distros:cachyos` — the CachyOS/Arch base (Plasma packages are pac/AUR).
+- `/charly-image:layer` — package-section authoring (`distro.arch.package`).

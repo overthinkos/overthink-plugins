@@ -42,18 +42,18 @@ wf-recorder -f output.mp4 -r 60        # 60fps
 # Stop with Ctrl-C
 ```
 
-## Integration with `ov eval record`
+## Integration with `charly eval record`
 
 ```bash
 # Start recording sway desktop (auto-detects wf-recorder)
-ov eval record start sway-browser-vnc -n demo --mode desktop
+charly eval record start sway-browser-vnc -n demo --mode desktop
 
 # Interact with desktop
-ov eval wl click sway-browser-vnc 640 360
-ov eval record cmd sway-browser-vnc "neofetch" -n demo
+charly eval wl click sway-browser-vnc 640 360
+charly eval record cmd sway-browser-vnc "neofetch" -n demo
 
 # Stop and copy to host
-ov eval record stop sway-browser-vnc -n demo -o demo.mp4
+charly eval record stop sway-browser-vnc -n demo -o demo.mp4
 ```
 
 ## Included In
@@ -62,14 +62,14 @@ ov eval record stop sway-browser-vnc -n demo -o demo.mp4
 
 ## Used In Images
 
-- `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
 
 ## Cross-References
 
-- `/ov-eval:record` — `ov eval record start --mode desktop` auto-detects wf-recorder
-- `/ov-selkies:wl-record-pixelflux` — Alternative for selkies-desktop (pixelflux pipeline)
-- `/ov-selkies:wl-screenshot-grim` — Screenshot companion (same wlr-screencopy protocol)
-- `/ov-selkies:sway-desktop` — Parent metalayer
+- `/charly-eval:record` — `charly eval record start --mode desktop` auto-detects wf-recorder
+- `/charly-selkies:wl-record-pixelflux` — Alternative for selkies-desktop (pixelflux pipeline)
+- `/charly-selkies:wl-screenshot-grim` — Screenshot companion (same wlr-screencopy protocol)
+- `/charly-selkies:sway-desktop` — Parent metalayer
 
 ## When to Use This Skill
 
@@ -80,5 +80,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

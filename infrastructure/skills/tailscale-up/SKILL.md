@@ -4,7 +4,7 @@ description: |
   Tailscale runtime wiring for target:local hosts. Sets `--operator=$account`
   + `--hostname=$(hostname -s)` so user-systemd ExecStartPost can run
   `tailscale serve` without sudo, and the tailnet device name stays in sync
-  with the system hostname. Depends on /ov-infrastructure:tailscale (which
+  with the system hostname. Depends on /charly-infrastructure:tailscale (which
   installs the daemon). Self-gates on `systemctl is-active tailscaled`
   so it's a no-op in image-build / pre-auth contexts.
   Use when adding deploy-runtime tailscale wiring to a target:local host
@@ -54,7 +54,7 @@ the daemon is actually up. Bootc consumers don't include it.
 The layer's single cmd task:
 
 1. **Starts `tailscaled.service`** via `systemctl start ... || true`.
-   The `/ov-infrastructure:tailscale` layer is `systemctl enable`-only
+   The `/charly-infrastructure:tailscale` layer is `systemctl enable`-only
    (no `--now`) because the same task body runs at image-build time
    where systemd isn't PID 1 and `--now` would fail; starting the
    service is therefore a deploy-runtime concern that belongs in this
@@ -115,9 +115,9 @@ NOT used in:
 
 - Any `target: pod` deployment — pod tunnels go through the
   `tunnel: tailscale` mechanism in `deploy.yml` (handled by the host's
-  tailscale, not in-pod). See `/ov-core:deploy` "Tailscale Serve".
+  tailscale, not in-pod). See `/charly-core:deploy` "Tailscale Serve".
 - Bootc images — they need fresh-boot semantics that don't match the
-  deploy-runtime contract here. Use `/ov-infrastructure:tailscale` alone.
+  deploy-runtime contract here. Use `/charly-infrastructure:tailscale` alone.
 
 ## Renaming an already-registered device — and why the layer doesn't auto-fix
 
@@ -137,7 +137,7 @@ stable across reconfigurations. The local prefs are updated correctly
 `tailscale status` keeps showing the old name.
 
 The layer surfaces this divergence as a hard-fail eval probe
-(`tailscale-up-device-name-matches-hostname`). On every `ov eval live
+(`tailscale-up-device-name-matches-hostname`). On every `charly eval live
 <deploy>` against a logged-in tailnet member, the probe compares the
 short form of `tailscale status --self --json | .DNSName` against
 `/etc/hostname` (cut to short form). If they differ, the probe fails
@@ -186,7 +186,7 @@ manual remediation covers the actual single-host case.
 # 1. Apply the ov-cachyos template — installs everything, including
 #    tailscale (daemon enabled) + tailscale-up (operator/hostname
 #    setters armed for next-time-up state changes).
-ov deploy add ov-cachyos
+charly deploy add ov-cachyos
 
 # 2. Authenticate the daemon via the user's tailnet (browser SSO):
 sudo tailscale up
@@ -197,10 +197,10 @@ tailscale status | head -2
 
 # 4. Optional re-apply (idempotent) to confirm the runtime task takes
 #    effect now that the daemon is logged in:
-ov deploy add ov-cachyos
+charly deploy add ov-cachyos
 ```
 
-Subsequent `ov deploy add ov-cachyos` invocations re-run the runtime
+Subsequent `charly deploy add ov-cachyos` invocations re-run the runtime
 task and re-confirm the operator + hostname state. Hostname changes
 (`sudo hostnamectl set-hostname new-name`) propagate to the tailnet
 on the next deploy.
@@ -257,35 +257,35 @@ args is idempotent (replaces the existing entry verbatim).
 
 ### Compared to the per-pod `tunnel: tailscale` deploy.yml mechanism
 
-`/ov-core:deploy` documents a `tunnel: tailscale` field that emits
+`/charly-core:deploy` documents a `tunnel: tailscale` field that emits
 `ExecStartPost=tailscale serve ...` into the pod's quadlet. That
 also works and is the right answer when (a) you want the serve
-config tied to the pod's lifecycle (added on `ov config`, removed
-on `ov remove`), or (b) you're willing to regenerate the quadlet
+config tied to the pod's lifecycle (added on `charly config`, removed
+on `charly remove`), or (b) you're willing to regenerate the quadlet
 and restart the pod. For the more common "I have running pods, I
 want them on the tailnet right now" case, the direct `tailscale
 serve` workflow above is faster, restartless, and doesn't touch
 any source-tree state.
 
-See `/ov-core:deploy` "Tailscale Serve" for the per-pod tunnel
-matrix and `/ov-automation:sidecar` for the tailscale-sidecar pattern
+See `/charly-core:deploy` "Tailscale Serve" for the per-pod tunnel
+matrix and `/charly-automation:sidecar` for the tailscale-sidecar pattern
 (an alternative when a pod needs its own tailnet identity, not just
 host-level serve).
 
 ## Related Skills
 
-- `/ov-infrastructure:tailscale` — the install-side companion (daemon
+- `/charly-infrastructure:tailscale` — the install-side companion (daemon
   install + systemctl enable). `tailscale-up` `require:` it.
-- `/ov-core:deploy` — `deploy.yml` `tunnel: tailscale` mechanism that
+- `/charly-core:deploy` — `deploy.yml` `tunnel: tailscale` mechanism that
   consumes the `--operator` permission.
-- `/ov-local:local-deploy` — the `target: local` execution model
+- `/charly-local:local-deploy` — the `target: local` execution model
   this layer is designed for.
-- `/ov-local:local-spec` — `local.yml` template authoring; the
+- `/charly-local:local-spec` — `local.yml` template authoring; the
   canonical consumer is `local.ov-cachyos`.
 - the `wheel-nopasswd` layer — provides the passwordless sudo
   used by the eval probe's `tailscale debug prefs` chain.
-- `/ov-image:layer` — layer authoring reference.
-- `/ov-eval:eval` — declarative testing reference (three-state
+- `/charly-image:layer` — layer authoring reference.
+- `/charly-eval:eval` — declarative testing reference (three-state
   pattern used here).
 
 ## When to Use This Skill

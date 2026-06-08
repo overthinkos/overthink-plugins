@@ -19,7 +19,7 @@ RPM (from `docker-ce-stable` repo): `containerd.io`, `docker-buildx-plugin`, `do
 
 ## Cross-distro coverage
 
-`rpm:` (Fedora — Docker's yum repo), `pac:` (Arch — `docker` metapackage from `extra`), `deb:` — via distro-version tag sections `debian:13:` and `ubuntu:24.04:` because the upstream apt repo URL differs per distro codename (`https://download.docker.com/linux/debian trixie` vs `.../ubuntu noble`). Each tag section declares its own `repos:` block with the correct URL + GPG key; packages (`docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, `docker-compose-plugin`) are identical. See `/ov-image:layer` "distro-version tag sections".
+`rpm:` (Fedora — Docker's yum repo), `pac:` (Arch — `docker` metapackage from `extra`), `deb:` — via distro-version tag sections `debian:13:` and `ubuntu:24.04:` because the upstream apt repo URL differs per distro codename (`https://download.docker.com/linux/debian trixie` vs `.../ubuntu noble`). Each tag section declares its own `repos:` block with the correct URL + GPG key; packages (`docker-ce`, `docker-ce-cli`, `containerd.io`, `docker-buildx-plugin`, `docker-compose-plugin`) are identical. See `/charly-image:layer` "distro-version tag sections".
 
 ## Usage
 
@@ -35,13 +35,13 @@ my-image:
 - `bazzite`
 
 ## Related Layers
-- `/ov-distros:container-nesting` — Alternative podman-based nested container support
-- `/ov-coder:kubernetes-layer` — Sibling kubectl/Helm commonly paired with docker-ce
-- `/ov-coder:github-actions` — Sibling layer needing a container engine for act runs
+- `/charly-distros:container-nesting` — Alternative podman-based nested container support
+- `/charly-coder:kubernetes-layer` — Sibling kubectl/Helm commonly paired with docker-ce
+- `/charly-coder:github-actions` — Sibling layer needing a container engine for act runs
 
 ## Related Commands
-- `/ov-build:build` — Build the bootc image including docker-ce packages
-- `/ov-vm:vm` — Run the bootc image as a VM to test the docker engine
+- `/charly-build:build` — Build the bootc image including docker-ce packages
+- `/charly-vm:vm` — Run the bootc image as a VM to test the docker engine
 
 ## When to Use This Skill
 
@@ -53,4 +53,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

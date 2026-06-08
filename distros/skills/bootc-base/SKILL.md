@@ -25,10 +25,10 @@ my-os:
 
 ## Related Layers
 
-- `/ov-coder:sshd` -- SSH server (included)
-- `/ov-distros:qemu-guest-agent` -- QEMU guest agent (included)
-- `/ov-distros:bootc-config` -- bootc system configuration (included)
-- `/ov-tools:ov` -- often paired for the full VM toolchain (ov binary + virtualization + gocryptfs + socat)
+- `/charly-coder:sshd` -- SSH server (included)
+- `/charly-distros:qemu-guest-agent` -- QEMU guest agent (included)
+- `/charly-distros:bootc-config` -- bootc system configuration (included)
+- `/charly-tools:charly` -- often paired for the full VM toolchain (charly binary + virtualization + gocryptfs + socat)
 
 ## Used In Images
 
@@ -44,5 +44,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

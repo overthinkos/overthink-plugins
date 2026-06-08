@@ -24,10 +24,10 @@ rpm:
 
 ## Usage
 
-Used by `ov eval wl screenshot` — auto-detected when `grim` is available in the container.
+Used by `charly eval wl screenshot` — auto-detected when `grim` is available in the container.
 
 ```bash
-ov eval wl screenshot <image> [output.png]
+charly eval wl screenshot <image> [output.png]
 ```
 
 ## Included In
@@ -36,15 +36,15 @@ ov eval wl screenshot <image> [output.png]
 
 ## Used In Images
 
-- `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
 
 ## Cross-References
 
-- `/ov-eval:wl` — `ov eval wl screenshot` auto-detects grim
-- `/ov-selkies:wl-screenshot-pixelflux` — Alternative for selkies-desktop
-- `/ov-selkies:wl-tools` — Companion layer (input, window mgmt, clipboard)
+- `/charly-eval:wl` — `charly eval wl screenshot` auto-detects grim
+- `/charly-selkies:wl-screenshot-pixelflux` — Alternative for selkies-desktop
+- `/charly-selkies:wl-tools` — Companion layer (input, window mgmt, clipboard)
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

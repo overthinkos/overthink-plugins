@@ -45,7 +45,7 @@ StandardOutput=file:/tmp/supervisord-stdout.log
 StandardError=file:/tmp/supervisord-stderr.log
 ```
 
-These aren't for log collection — they're **required** for supervisord's per-program `stdout_logfile=/dev/fd/1` entries to resolve. Under a systemd user service without this redirect, fd 1 points at the journal pipe; per-program dispatchers call `open("/dev/fd/1")` on that pipe and get `ENXIO: No such device or address`, causing every program to enter FATAL with the message `unknown error making dispatchers for <name>: ENXIO`. Redirecting stdout to a real file makes `/dev/fd/1` openable. Also: the supervisord header template was separately changed from `logfile=/dev/stdout` to `logfile=/tmp/supervisord.log` for the same reason — see `/ov-infrastructure:supervisord`.
+These aren't for log collection — they're **required** for supervisord's per-program `stdout_logfile=/dev/fd/1` entries to resolve. Under a systemd user service without this redirect, fd 1 points at the journal pipe; per-program dispatchers call `open("/dev/fd/1")` on that pipe and get `ENXIO: No such device or address`, causing every program to enter FATAL with the message `unknown error making dispatchers for <name>: ENXIO`. Redirecting stdout to a real file makes `/dev/fd/1` openable. Also: the supervisord header template was separately changed from `logfile=/dev/stdout` to `logfile=/tmp/supervisord.log` for the same reason — see `/charly-infrastructure:supervisord`.
 
 ### Linger sentinel file trick
 
@@ -58,7 +58,7 @@ These aren't for log collection — they're **required** for supervisord's per-p
 my-bootc-image:
   base: "quay.io/fedora/fedora-bootc:43"
   bootc: true
-  distro: ["fedora:43", fedora]   # external bases need this — see /ov-image:image
+  distro: ["fedora:43", fedora]   # external bases need this — see /charly-image:image
   layers:
     - bootc-base
     - <other desktop layers>
@@ -66,26 +66,26 @@ my-bootc-image:
 
 ## Used In Images
 
-Part of the `/ov-distros:bootc-base` composition layer. Used transitively in every bootc image:
+Part of the `/charly-distros:bootc-base` composition layer. Used transitively in every bootc image:
 
-- `/ov-distros:bazzite` — **canonical worked example** (exercises every piece of the supervisord + tty1 autologin + graphical target flow end-to-end)
-- `/ov-distros:aurora`
+- `/charly-distros:bazzite` — **canonical worked example** (exercises every piece of the supervisord + tty1 autologin + graphical target flow end-to-end)
+- `/charly-distros:aurora`
 
 ## Related Layers
 
-- `/ov-distros:bootc-base` -- composition that includes this layer + sshd + qemu-guest-agent
-- `/ov-coder:sshd` -- SSH server (also in bootc-base; NOPASSWD-sudo test handles the dual USER=root/1000 context)
-- `/ov-distros:qemu-guest-agent` -- QEMU agent (also in bootc-base)
-- `/ov-infrastructure:supervisord` -- the init system that this layer wires into systemd on bootc
-- `/ov-selkies:selkies-desktop-layer` -- the 19-sublayer desktop metalayer that this autostart brings up
+- `/charly-distros:bootc-base` -- composition that includes this layer + sshd + qemu-guest-agent
+- `/charly-coder:sshd` -- SSH server (also in bootc-base; NOPASSWD-sudo test handles the dual USER=root/1000 context)
+- `/charly-distros:qemu-guest-agent` -- QEMU agent (also in bootc-base)
+- `/charly-infrastructure:supervisord` -- the init system that this layer wires into systemd on bootc
+- `/charly-selkies:selkies-desktop-layer` -- the 19-sublayer desktop metalayer that this autostart brings up
 
 ## Related Skills
 
-- `/ov-vm:vm` -- VM lifecycle + the `/dev:/dev` mount requirement for `bootc install to-disk`
-- `/ov-image:image` -- the external-base `distro:` requirement
-- `/ov-build:generate` -- the empty-`systemd-services`-stage fix that makes bootc images with only packaged systemd units (unified `service:` entries using `use_packaged:`) build cleanly
-- `/ov-eval:eval` -- dual-mode USER context authoring gotcha (test #11)
-- `/ov-image:layer` -- layer authoring reference
+- `/charly-vm:vm` -- VM lifecycle + the `/dev:/dev` mount requirement for `bootc install to-disk`
+- `/charly-image:image` -- the external-base `distro:` requirement
+- `/charly-build:generate` -- the empty-`systemd-services`-stage fix that makes bootc images with only packaged systemd units (unified `service:` entries using `use_packaged:`) build cleanly
+- `/charly-eval:eval` -- dual-mode USER context authoring gotcha (test #11)
+- `/charly-image:layer` -- layer authoring reference
 
 ## When to Use This Skill
 

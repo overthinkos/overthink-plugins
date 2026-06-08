@@ -24,15 +24,15 @@ my-image:
 
 ## Used In Images
 
-- `/ov-distros:bazzite`
+- `/charly-distros:bazzite`
 
 ## Related Layers
-- `/ov-tools:vscode` — editor sibling in bazzite
-- `/ov-selkies:desktop-apps` — desktop tooling sibling
+- `/charly-tools:vscode` — editor sibling in bazzite
+- `/charly-selkies:desktop-apps` — desktop tooling sibling
 
 ## Related Commands
-- `/ov-core:shell` — run typst inside the container
-- `/ov-build:build` — rebuild after layer changes
+- `/charly-core:shell` — run typst inside the container
+- `/charly-build:build` — rebuild after layer changes
 
 ## When to Use This Skill
 
@@ -44,5 +44,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

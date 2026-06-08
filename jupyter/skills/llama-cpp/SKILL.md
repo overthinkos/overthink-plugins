@@ -39,21 +39,21 @@ The user-phase tasks run after the pixi environment is established by the parent
 
 ## Used In Layers
 
-- `/ov-languages:python-ml` — via `layers: [llama-cpp]`
-- `/ov-jupyter:jupyter-ml` — via `layers: [llama-cpp, unsloth]`
-- `/ov-jupyter:unsloth-studio` — via `layers: [llama-cpp, unsloth]`
+- `/charly-languages:python-ml` — via `layers: [llama-cpp]`
+- `/charly-jupyter:jupyter-ml` — via `layers: [llama-cpp, unsloth]`
+- `/charly-jupyter:unsloth-studio` — via `layers: [llama-cpp, unsloth]`
 
 ## Related Layers
 
-- `/ov-jupyter:unsloth` — Fine-tuning (depends on llama.cpp for GGUF conversion)
+- `/charly-jupyter:unsloth` — Fine-tuning (depends on llama.cpp for GGUF conversion)
 
 ## Used In Images
 
-- `/ov-languages:python-ml` (via `python-ml` metalayer)
-- `/ov-immich:immich-ml` (via `python-ml` metalayer)
-- `/ov-jupyter:jupyter-ml` (via `jupyter-ml` metalayer)
-- `/ov-jupyter:jupyter-ml-notebook` (via `jupyter-ml` metalayer)
-- `/ov-jupyter:unsloth-studio` (via `unsloth-studio` metalayer)
+- `/charly-languages:python-ml` (via `python-ml` metalayer)
+- `/charly-immich:immich-ml` (via `python-ml` metalayer)
+- `/charly-jupyter:jupyter-ml` (via `jupyter-ml` metalayer)
+- `/charly-jupyter:jupyter-ml-notebook` (via `jupyter-ml` metalayer)
+- `/charly-jupyter:unsloth-studio` (via `unsloth-studio` metalayer)
 
 ## When to Use This Skill
 
@@ -66,5 +66,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -40,7 +40,7 @@ widget on the right edge of the map. Operators can:
 
 ## Two-tier install
 
-Same pattern as `/ov-versa:versatiles-style`:
+Same pattern as `/charly-versa:versatiles-style`:
 
 1. **Tier 1**: GitHub release tarball if available.
 2. **Tier 2** (fallback): `npm install maplibre-versatiles-styler` and
@@ -58,11 +58,11 @@ Build-scope:
 
 ## Cross-references
 
-- `/ov-versa:versa` — image composing this layer
-- `/ov-versa:versatiles-style` — the style generator whose output
+- `/charly-versa:versa` — image composing this layer
+- `/charly-versa:versatiles-style` — the style generator whose output
   this control mutates at runtime
-- `/ov-versa:versatiles-fonts` — the font bundle the control's
+- `/charly-versa:versatiles-fonts` — the font bundle the control's
   language-switcher references
-- `/ov-versa:versatiles-frontend` — re-exports this bundle at `/styler/`
-- `/ov-versa:notebook-osm` — the shortbread MapLibre cell that
+- `/charly-versa:versatiles-frontend` — re-exports this bundle at `/styler/`
+- `/charly-versa:notebook-osm` — the shortbread MapLibre cell that
   attaches this control to its map instance

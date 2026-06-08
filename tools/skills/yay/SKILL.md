@@ -52,12 +52,12 @@ Not used directly in end-user images. Instead, it's part of the builder image th
 
 ## Used In Images
 
-- `/ov-distros:arch-builder` — Arch build infrastructure image
+- `/charly-distros:arch-builder` — Arch build infrastructure image
 
 ## Related Layers
 
-- `/ov-coder:build-toolchain` — C/C++ build tools (also in arch-builder)
-- `/ov-distros:arch-aur-test` — test layer that validates AUR builds
+- `/charly-coder:build-toolchain` — C/C++ build tools (also in arch-builder)
+- `/charly-distros:arch-aur-test` — test layer that validates AUR builds
 
 ## When to Use This Skill
 
@@ -69,5 +69,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

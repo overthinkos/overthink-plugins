@@ -1,12 +1,12 @@
 ---
 name: eval
 description: |
-  MUST be invoked before any work involving: `ov eval` (image / live / run),
+  MUST be invoked before any work involving: `charly eval` (image / live / run),
   the `eval:` / `deploy_eval:` fields in candy.yml / box.yml / deploy.yml,
-  the `org.overthinkos.eval` OCI label, the AI iteration harness loop,
+  the `ai.opencharly.eval` OCI label, the AI iteration harness loop,
   `kind: ai` / `kind: recipe` / `kind: score` / `kind: eval` (disposable R10
-  beds run via `ov eval run <bed>`) in eval.yml, or any declarative
-  check authoring. Covers the unified `ov eval` surface: three
+  beds run via `charly eval run <bed>`) in eval.yml, or any declarative
+  check authoring. Covers the unified `charly eval` surface: three
   primary modes (image / live / run),
   9 live-container probe verbs (cdp/wl/dbus/vnc/mcp/record/spice/libvirt/k8s),
   verb catalog (file/port/command/http/package/service/process/dns/user/
@@ -21,38 +21,38 @@ description: |
 
 # Eval — unified declarative + AI-iteration evaluation
 
-## kind: eval beds + `ov eval run <bed>` — config-driven R10 acceptance
+## kind: eval beds + `charly eval run <bed>` — config-driven R10 acceptance
 
 The disposable R10 test beds are **`kind: eval` entities in `eval.yml`**. A
 `kind: eval` entity is a deploy-shaped node folded into the Deploy map at load
-time, so every deploy verb resolves it by name; `ov eval run <bed>` drives the
+time, so every deploy verb resolves it by name; `charly eval run <bed>` drives the
 full R10 sequence on it:
 
 This is the **ecosystem-wide** rule: every repo-shipped disposable test bed —
 the main repo's beds AND every `image/<distro>` submodule's beds (the arch /
 cachyos / debian / ubuntu / fedora bootstrap-VM and pacstrap/debootstrap beds) —
-is a `kind: eval` entity, in that repo's config (its `overthink.yml` + per-kind sibling files). Repos
+is a `kind: eval` entity, in that repo's config (its `charly.yml` + per-kind sibling files). Repos
 ship NO `kind: deploy` test beds. The lone `kind: deploy` exception is an
 operator profile, not a test bed (the cachyos submodule's `ov-cachyos`
 workstation profile); operator deployments otherwise live in the per-host
-`~/.config/ov/deploy.yml`. `disposable: true` is the sole authorization for the
+`~/.config/charly/deploy.yml`. `disposable: true` is the sole authorization for the
 unattended destroy + rebuild on any of them.
 
 A bed is a **candybox** (CLAUDE.md "Candyboxing"): a disposable, secured
-container / VM stocked with the FULL toolset — the entire `ov eval` probe surface
+container / VM stocked with the FULL toolset — the entire `charly eval` probe surface
 (cdp/wl/dbus/vnc/mcp/adb/appium/k8s), nested podman, real package managers, the
 whole layer/image library — so the AI can build, deploy, and prove the *real*
 composition inside it (the substance of RDD), and `disposable: true` makes
 tearing it down and rebuilding fearless. The box is restricted at the boundary,
 never by stripping the candy.
 
-1. `ov box build <image>` — build the test artifact (pod beds only).
-2. `ov eval box <image>` — image-section + baked layer-section probes.
-3. `ov deploy add <bed> <ref>` — apply the bed (or `ov vm create` for vm beds).
-4. (pod beds) `ov config <bed>` + `ov start <bed>`.
-5. `ov eval live <bed>` — full three-section live probe pass.
-6. `ov update <bed>` — fresh-rebuild re-verification (R10 acceptance gate).
-7. `ov remove <bed>` (or `ov vm destroy`) — leave the host clean.
+1. `charly box build <image>` — build the test artifact (pod beds only).
+2. `charly eval box <image>` — image-section + baked layer-section probes.
+3. `charly deploy add <bed> <ref>` — apply the bed (or `charly vm create` for vm beds).
+4. (pod beds) `charly config <bed>` + `charly start <bed>`.
+5. `charly eval live <bed>` — full three-section live probe pass.
+6. `charly update <bed>` — fresh-rebuild re-verification (R10 acceptance gate).
+7. `charly remove <bed>` (or `charly vm destroy`) — leave the host clean.
 
 **Exclusive-resource preemption wraps the sequence.** When a bed declares
 `requires_exclusive: [token...]` (e.g. a GPU-passthrough bed needing the one
@@ -61,21 +61,21 @@ and `defer`-releases it after teardown: any running `preemptible` holder of the
 token (e.g. the operator's GPU workstation VM) is gracefully stopped — and the
 arbiter waits until it actually powers off so the device is freed — then restored
 when the bed finishes (even on failure, for `restore: always`). A holder is never
-left stopped: `ov preempt status` / `ov preempt restore` recover a crashed run.
-See `/ov-internals:disposable` "The resource-arbitration axis" + `/ov-core:deploy`.
+left stopped: `charly preempt status` / `charly preempt restore` recover a crashed run.
+See `/charly-internals:disposable` "The resource-arbitration axis" + `/charly-core:deploy`.
 
-`ov eval run --all-beds` runs every bed name-sorted. Flags: `--keep` (don't
+`charly eval run --all-beds` runs every bed name-sorted. Flags: `--keep` (don't
 tear down), `--no-rebuild` (skip step 6 — FORBIDDEN for an R10 acceptance run;
 needs explicit operator authorization per CLAUDE.md). Per-run logs land in
 `.eval/<bed>/<calver>/` (per-step `.log` files + `summary.yml`).
 
-**Run retention (`defaults.keep_eval_runs`).** After `ov eval run` (any path —
+**Run retention (`defaults.keep_eval_runs`).** After `charly eval run` (any path —
 bed / `--all-beds` / score), `.eval/<bed|score>/` is trimmed to the newest N run
 artifacts (CalVer run dirs, `runs/<id>/` dirs, `result-<calver>.yml`) so harness
 output doesn't accumulate unbounded. `NOTES.md` (the durable Syncthing-replicated
-memory) is ALWAYS preserved. Set `defaults.keep_eval_runs` in `overthink.yml`
-(`0`/absent disables); apply on demand with `ov clean --eval`. See
-`/ov-core:clean`.
+memory) is ALWAYS preserved. Set `defaults.keep_eval_runs` in `charly.yml`
+(`0`/absent disables); apply on demand with `charly clean --eval`. See
+`/charly-core:clean`.
 
 ### The repo's `kind: eval` beds (eval.yml)
 
@@ -99,7 +99,7 @@ hardcodes that name — it flows from the score's `pod:` field through
 substitution token. The supporting
 `vm: k3s-vm` + `k8s: vm-k3s-vm` entities live in `eval.yml` alongside the
 beds. `disposable: true` is the sole authorization
-for the unattended destroy+rebuild (see `/ov-internals:disposable`). Two
+for the unattended destroy+rebuild (see `/charly-internals:disposable`). Two
 load-time guards back the beds: `validateEvalBeds` enforces `target ∈ {pod, vm,
 local, android}`, a resolvable cross-ref, and `disposable: true`; `foldEvalBeds`
 enforces the name-disjointness from `kind: deploy`. Neither checks host ports —
@@ -111,18 +111,18 @@ second bed at deploy via `CheckPortAvailability`).
 `eval-pod` ~110s (one build → deploy → eval → fresh-update → teardown cycle
 covering all four mechanisms) · `eval-local` ~45s · `eval-k3s-vm` ~5–7 min · the
 heavy feature beds (`eval-sway-browser-vnc-pod` ~14 min incl. image build)
-longer. **`ov eval run --all-beds` runs beds STRICTLY SEQUENTIALLY (a plain loop
+longer. **`charly eval run --all-beds` runs beds STRICTLY SEQUENTIALLY (a plain loop
 — no concurrency in `ov`), so its wall-clock ≈ the SUM.** To collapse that to ≈
 the slowest single bed, parallelize at the AGENT layer — one agent/teammate per
-bed, N concurrent `ov eval run <bed>` processes (`/verify-beds` and an agent team
-both do this; see `/ov-internals:agents` "Speed levers"). The dominant cost is
-the step-1 `ov box build`: a pod bed builds the image ONCE — the "fresh
-`ov update`" R10 step is a `systemctl restart` onto the already-built image, not
+bed, N concurrent `charly eval run <bed>` processes (`/verify-beds` and an agent team
+both do this; see `/charly-internals:agents` "Speed levers"). The dominant cost is
+the step-1 `charly box build`: a pod bed builds the image ONCE — the "fresh
+`charly update`" R10 step is a `systemctl restart` onto the already-built image, not
 a second build — and same-base beds share cached layers, so pre-warming a shared
 base once makes every sibling bed's build incremental.
 
 **Handling a long-running bed — by mechanism, not by who owns it.** A VM/emulator
-bed's `ov eval run` orchestrator runs for minutes-to-tens-of-minutes AND the
+bed's `charly eval run` orchestrator runs for minutes-to-tens-of-minutes AND the
 libvirt domain / emulator it spawns outlives a single turn. (1) **Launch it as a
 harness-tracked background task** (`run_in_background`) — never foreground (the
 Bash tool's `timeout`, 120s default / 600s max, kills the call mid-`vm-create`,
@@ -131,17 +131,17 @@ never a sleep/poll loop (the R4 bandaid). (2) **Let the completion notification
 drive the next step** — the harness re-invokes the LAUNCHING session when the run
 exits, so the launcher must SURVIVE to completion to be notified: the persistent
 main session does; an ephemeral sub-agent (returns synchronously) and an idle
-teammate (torn down on idle) do NOT, and orphan the bed. EVERY full `ov eval run <bed>`
+teammate (torn down on idle) do NOT, and orphan the bed. EVERY full `charly eval run <bed>`
 is a `run_in_background` task owned by a PERSISTENT owner that survives across
 turns to be notified — the main session, a background agent, or (interactive
 tmux) a split-pane teammate; an in-process teammate CANNOT. Duration-independent;
 the 600s is a Bash FOREGROUND cap, irrelevant to a backgrounded bed.
-Teammates/sub-agents do bed-local edits + short foreground checks (`ov eval
+Teammates/sub-agents do bed-local edits + short foreground checks (`charly eval
 image`), never the full run. (3) **Reconnect via durable state** —
 `.eval/<bed>/<calver>/summary.yml` + the live domain ARE the truth: "done" =
 summary.yml present; "alive" = the orchestrator is in the process table; clean up
-an orphan (`running` domain, no live orchestrator) with `ov vm destroy <entity>`
-before re-running. See `/ov-internals:agents` "The binding rule".
+an orphan (`running` domain, no live orchestrator) with `charly vm destroy <entity>`
+before re-running. See `/charly-internals:agents` "The binding rule".
 
 ### Prereq for the vm bed
 
@@ -153,16 +153,16 @@ systemctl --user enable --now virtqemud.service     # libvirt >= 8 (modular)
 systemctl --user enable --now libvirtd.service
 ```
 
-`ov eval run eval-k3s-vm` best-effort starts the unit before `ov vm create`
+`charly eval run eval-k3s-vm` best-effort starts the unit before `charly vm create`
 (via `startLibvirtUserSession()` in `ov/vm.go`); `resolveVmBackend()` surfaces
 a clear error when libvirt is absent. The `k3s-vm:` vm template pins
 `backend: libvirt` explicitly so the silent `auto -> qemu` fallback can't mask
-a missing daemon. See `/ov-vm:vm` "Prereq", `/ov-eval:libvirt`.
+a missing daemon. See `/charly-vm:vm` "Prereq", `/charly-eval:libvirt`.
 
 ### Why this is config-driven
 
 Beds are `kind: eval` config; the runner reads the bed node directly. This
-means the runner works for ANY bed an operator defines — `ov eval run <name>`
+means the runner works for ANY bed an operator defines — `charly eval run <name>`
 resolves the bed by name through the same path every deploy verb uses, with no
 hardcoded bed table to keep in sync.
 
@@ -172,37 +172,37 @@ An earlier agent claimed "cutover complete, all tests pass" after green `go test
 
 These are the 10 standards referenced in CLAUDE.md's AI attribution tier ("fully tested and validated"). Each is keyed to a CLAUDE.md R-rule. Apply them whenever a change could affect Containerfile generation, OCI labels, init systems, service startup, or deploy code.
 
-0. **Prove every HIGH-RISK assumption BEFORE you edit (RDD — Risk Driven Development)** — the proactive bookend to Standard 10's fresh-rebuild gate. Low-risk orientation ("what does layer X do") is a skill lookup (R0, zero risk); every high-risk assumption — including any a skill or the code merely *asserts*, and above all whether this layer composition at its latest available versions builds / deploys / runs TOGETHER — is proven on a `disposable: true` bed FIRST (`ov eval` it). Never accept docs or code as ground truth for a high-risk decision; if the bed disagrees with a skill, the skill is stale — fix it. Standard 0 (validate forward, riskiest-first) and Standard 10 (re-verify on a fresh rebuild) are the two ends of the same loop.
+0. **Prove every HIGH-RISK assumption BEFORE you edit (RDD — Risk Driven Development)** — the proactive bookend to Standard 10's fresh-rebuild gate. Low-risk orientation ("what does layer X do") is a skill lookup (R0, zero risk); every high-risk assumption — including any a skill or the code merely *asserts*, and above all whether this layer composition at its latest available versions builds / deploys / runs TOGETHER — is proven on a `disposable: true` bed FIRST (`charly eval` it). Never accept docs or code as ground truth for a high-risk decision; if the bed disagrees with a skill, the skill is stale — fix it. Standard 0 (validate forward, riskiest-first) and Standard 10 (re-verify on a fresh rebuild) are the two ends of the same loop.
 
-1. **Build a real artifact** (R1) — `ov box build <image>` / `go build` / `ov vm build <vm>`. Not just `go test`. Not just `ov box generate`.
+1. **Build a real artifact** (R1) — `charly box build <image>` / `go build` / `charly vm build <vm>`. Not just `go test`. Not just `charly box generate`.
 2. **Verify the emitted artifact's content** (R3) — `grep -c supervisord-conf .build/<image>/Containerfile` for any image that uses supervisord; `virsh dumpxml` for a VM; `podman inspect --format '{{.Created}}'` to confirm the image was just rebuilt.
-3. **Verify critical OCI / capability labels post-build** (R4) — `podman inspect <ref> --format '{{index .Config.Labels "org.overthinkos.init"}}'` returns the expected value. Empty / missing → the detection path silently returned nil → regression.
-4. **Deploy to a DISPOSABLE target** (R10) — NEVER experiment on a resource that doesn't carry `disposable: true`. If no suitable disposable target exists, create one first (`ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml and `ov vm create`). The setup is part of the task. On a disposable target: `ov update <name>` (unattended). On anything else: confirm with the user before any destroy.
+3. **Verify critical OCI / capability labels post-build** (R4) — `podman inspect <ref> --format '{{index .Config.Labels "ai.opencharly.init"}}'` returns the expected value. Empty / missing → the detection path silently returned nil → regression.
+4. **Deploy to a DISPOSABLE target** (R10) — NEVER experiment on a resource that doesn't carry `disposable: true`. If no suitable disposable target exists, create one first (`charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml and `charly vm create`). The setup is part of the task. On a disposable target: `charly update <name>` (unattended). On anything else: confirm with the user before any destroy.
 5. **Target must reach steady-state** — `systemctl --user status ov-<image>.service` → `Active: active (running)`; `virsh domstate <vm>` → `running (booted)`; SPICE socket file exists and accepts a handshake. If `start-limit-hit` appears, the container is crashing — reproduce directly via `podman run --rm <image> <entrypoint>`.
-6. **Run the declarative test suite** — `ov eval live <image>` full three-section pass against the live container (or `--uri` / `--host` remote equivalent for a remote target).
-7. **Verify the deployed binary is the one you built** (R8) — `ov version` on the target matches the expected CalVer; `podman inspect <ref> --format '{{.Created}}'` timestamp is from THIS build, not the prior one. Source-only changes (Syncthing, git push) do NOT update the deployed binary; you must build AND deploy on the target host.
+6. **Run the declarative test suite** — `charly eval live <image>` full three-section pass against the live container (or `--uri` / `--host` remote equivalent for a remote target).
+7. **Verify the deployed binary is the one you built** (R8) — `charly version` on the target matches the expected CalVer; `podman inspect <ref> --format '{{.Created}}'` timestamp is from THIS build, not the prior one. Source-only changes (Syncthing, git push) do NOT update the deployed binary; you must build AND deploy on the target host.
 8. **Verify runtime deps are installed via package management** (R9) — `which nc`, `rpm -q <pkg>`, `pacman -Q <pkg>`. Manual installs do NOT count — they won't survive a fresh install on a synced host. Every runtime dep must live in `setup.sh` + `pkg/arch/PKGBUILD`.
-9. **Leave the target healthy, not paused/errored** — final snapshot of `virsh domstate` / `systemctl status` / `podman ps` is healthy. If the target is in a broken state during exploration, `ov update` it back to the committed config before continuing — never layer experiments on broken state.
-10. **Re-verify on a FRESH rebuild after committing the source-level fix** (R10) — `ov update <disposable-target>` one more time from clean, with the new source applied. Run standards 1–9 again against this fresh rebuild. **THIS IS THE ACCEPTANCE GATE.** A fix that works on a hand-patched target but not on a fresh rebuild is a regression waiting for the next unrelated rebuild to wipe your patch. Paste BOTH the exploratory-pass output AND the fresh-rebuild-pass output into the conversation — the user sees both.
+9. **Leave the target healthy, not paused/errored** — final snapshot of `virsh domstate` / `systemctl status` / `podman ps` is healthy. If the target is in a broken state during exploration, `charly update` it back to the committed config before continuing — never layer experiments on broken state.
+10. **Re-verify on a FRESH rebuild after committing the source-level fix** (R10) — `charly update <disposable-target>` one more time from clean, with the new source applied. Run standards 1–9 again against this fresh rebuild. **THIS IS THE ACCEPTANCE GATE.** A fix that works on a hand-patched target but not on a fresh rebuild is a regression waiting for the next unrelated rebuild to wipe your patch. Paste BOTH the exploratory-pass output AND the fresh-rebuild-pass output into the conversation — the user sees both.
 
-### `ov eval live parent.child` reaches the actual leaf
+### `charly eval live parent.child` reaches the actual leaf
 
-`ov eval live <parent>.<child>` walks the dotted deployment path through
+`charly eval live <parent>.<child>` walks the dotted deployment path through
 `ResolveDeployChain` (`ov/deploy_chain.go`) and constructs a multi-hop
 `DeployExecutor` chain that lands probes inside the leaf's actual
 venue — `command: id` for a pod-in-VM leaf returns the inner pod's user, not
 the parent VM's. Live-eval and AI-iteration-scoring chain construction go
-through the same code path `ov deploy add` uses.
+through the same code path `charly deploy add` uses.
 For deeply-nested paths, each segment adds one hop:
 
 ```bash
-ov eval live eval-vm                            # → SSHExecutor (1 hop)
-ov eval live eval-vm.inner                      # → SSH + podman exec ov-eval-vm_inner (2 hops)
-ov eval live eval-vm.inner.deeper               # → SSH + 2× podman exec (3 hops)
+charly eval live eval-vm                            # → SSHExecutor (1 hop)
+charly eval live eval-vm.inner                      # → SSH + podman exec ov-eval-vm_inner (2 hops)
+charly eval live eval-vm.inner.deeper               # → SSH + 2× podman exec (3 hops)
 ```
 
-Same chain primitive (`NestedExecutor`) used everywhere — `ov deploy
-add`, `ov eval live`, `ov eval run` (AI iteration scoring). See "ONE
+Same chain primitive (`NestedExecutor`) used everywhere — `charly deploy
+add`, `charly eval live`, `charly eval run` (AI iteration scoring). See "ONE
 primitive: scenario.pod (flat or dotted)" below for the symmetric
 authoring surface in eval recipes (`kind: recipe`).
 
@@ -211,9 +211,9 @@ authoring surface in eval recipes (`kind: recipe`).
 - **"Unit tests pass → cutover done"** — no. Build + deploy + run + test, every time.
 - **"Retested after update → still passing!"** but the pre-update test was against the old running image and the post-update container failed to come up — see the `is not running` error and conclude the update broke it, not that "tests pass in aggregate."
 - **"Service start failed, probably a transient"** — no. `A dependency job for X failed` + immediate exit is a real error. Read the service log: `podman run --rm <image> <entrypoint>` will reproduce the failure directly.
-- **"Lifecycle: dev implies disposable"** — no. `disposable: true` is the ONE authorization for autonomous destroy + rebuild. Lifecycle tags are human-facing metadata; they do not authorize anything. See `/ov-internals:disposable`.
+- **"Lifecycle: dev implies disposable"** — no. `disposable: true` is the ONE authorization for autonomous destroy + rebuild. Lifecycle tags are human-facing metadata; they do not authorize anything. See `/charly-internals:disposable`.
 - **"This is a dev box so I can just nuke it"** — no. The only authorization for autonomous destroy is the explicit `disposable: true` field on a specific deploy. Everything else requires user confirmation, regardless of hostname.
-- **"I tested on the VM I've been patching all afternoon, looks fine"** — incomplete. Run `ov update <disposable-target>` once more from clean and re-verify before claiming success. Without the fresh-rebuild re-verification, your "fix" may be latent on hand-patched state.
+- **"I tested on the VM I've been patching all afternoon, looks fine"** — incomplete. Run `charly update <disposable-target>` once more from clean and re-verify before claiming success. Without the fresh-rebuild re-verification, your "fix" may be latent on hand-patched state.
 - **"I'll test it later / Phase 2"** — no. If the plan said "clean cutover in one PR", don't invent a Phase 2.
 - **"The skill/code says so, so I don't need to test it"** — for a HIGH-RISK assumption, no: docs drift and code has bugs; prove it on a disposable bed FIRST (Standard 0). Conversely, do NOT bed-test a LOW-risk orientation fact a skill already states — that's wasted effort. Risk, not documentation status, is the trigger.
 
@@ -226,7 +226,7 @@ If the container needs state that's only available in deploy (volumes, env, tunn
 `ov` ships a goss-inspired declarative testing framework built into the
 CLI. Eval checks are authored inline under `eval:` (or `deploy_eval:`) in
 `candy.yml`, `box.yml`, or `deploy.yml`. They are **embedded as a
-three-section OCI label** (`org.overthinkos.eval` → `{layer, image, deploy}`)
+three-section OCI label** (`ai.opencharly.eval` → `{layer, image, deploy}`)
 so any pulled image is self-testable without its source repo. A local
 `deploy.yml` overlay can add checks or override baked ones by `id:`.
 
@@ -238,20 +238,20 @@ check written once works unchanged when `deploy.yml` remaps ports.
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Pure-image eval (disposable, build-scope) | `ov eval box <image>` | Layer + image sections only, in `podman run --rm` (no host port mappings, no volumes attached) |
-| Live full-stack eval (running deployment) | `ov eval live <name> [-i instance]` | All three sections run via `podman exec` / SSH / nested chain, with full runtime variable resolution |
-| R10 bed (full sequence) | `ov eval run <bed>` / `ov eval run --all-beds` | Build → eval image → deploy → eval live → fresh update → tear down on a `kind: eval` disposable bed. Canonical R10 gate |
-| AI iteration loop | `ov eval run <score>` | Drives an AI through plateau-bounded iterations against `kind: score` |
-| Validate authored tests at config time | `ov box validate` | Schema, scope/variable consistency, id uniqueness |
-| Inspect effective spec | `ov box inspect <image>` | JSON includes merged eval structure |
-| Filter by verb | `ov eval live <name> --filter file --filter port` | Repeatable |
-| Filter by section | `ov eval live <name> --section deploy` | One of: layer / image / deploy |
-| Output format | `ov eval live <name> --format json\|tap\|text` | Default text |
+| Pure-image eval (disposable, build-scope) | `charly eval box <image>` | Layer + image sections only, in `podman run --rm` (no host port mappings, no volumes attached) |
+| Live full-stack eval (running deployment) | `charly eval live <name> [-i instance]` | All three sections run via `podman exec` / SSH / nested chain, with full runtime variable resolution |
+| R10 bed (full sequence) | `charly eval run <bed>` / `charly eval run --all-beds` | Build → eval image → deploy → eval live → fresh update → tear down on a `kind: eval` disposable bed. Canonical R10 gate |
+| AI iteration loop | `charly eval run <score>` | Drives an AI through plateau-bounded iterations against `kind: score` |
+| Validate authored tests at config time | `charly box validate` | Schema, scope/variable consistency, id uniqueness |
+| Inspect effective spec | `charly box inspect <image>` | JSON includes merged eval structure |
+| Filter by verb | `charly eval live <name> --filter file --filter port` | Repeatable |
+| Filter by section | `charly eval live <name> --section deploy` | One of: layer / image / deploy |
+| Output format | `charly eval live <name> --format json\|tap\|text` | Default text |
 
 ## Exit codes
 
-`ov eval` uses a goss/pytest-style three-way exit convention so automation
-(and `ov eval run <bed>`) can tell "the thing under test is broken" apart from
+`charly eval` uses a goss/pytest-style three-way exit convention so automation
+(and `charly eval run <bed>`) can tell "the thing under test is broken" apart from
 "the eval couldn't run":
 
 | Code | Meaning |
@@ -260,18 +260,18 @@ check written once works unchanged when `deploy.yml` remaps ports.
 | `1` | Command / usage / infra error — bad args, undeclared deploy, container not running, image build/deploy/vm-create failed. The eval never produced a pass/fail verdict. |
 | `2` | The eval RAN and one or more **checks FAILED** (`EvalCheckFailExitCode`). |
 
-`ov eval box` / `ov eval live` return `2` directly when checks fail.
-`ov eval run <bed>` propagates `2` when the bed's **eval step** (eval-image /
+`charly eval box` / `charly eval live` return `2` directly when checks fail.
+`charly eval run <bed>` propagates `2` when the bed's **eval step** (eval-image /
 eval-live) fails on checks, but `1` when an **infra step** (build / deploy /
 vm-create) fails — so a broken bed image is distinguishable from a genuine
-test failure. `ov eval run --all-beds` returns `2` only when *every* failing
+test failure. `charly eval run --all-beds` returns `2` only when *every* failing
 bed failed on checks; any infra failure makes it `1`. Implementation:
 `EvalFailedError` + `EvalCheckFailExitCode` (ov/eval_cmd.go), mapped to the
 process exit code in `main()` via `errors.As`.
 
 ## Image preflight (host-target runs only)
 
-When `ov eval run --on-host <name>` (or any score whose target
+When `charly eval run --on-host <name>` (or any score whose target
 resolves to `TargetKindHost`) dispatches the runner, an image
 preflight runs FIRST: walk the score's recipes, collect every
 distinct `scenario.pod` plus `score.target_image`, deduplicate, and
@@ -282,10 +282,10 @@ For each discovered image, the algorithm is:
 
 1. `LocalImageExists(podman, ref)` — short-circuit if already
    present. Idempotent on re-runs.
-2. `ov box pull <ref>` — preferred path. Resolves short names via
+2. `charly box pull <ref>` — preferred path. Resolves short names via
    `cfg.Images[<name>]`, full registry refs pass-through, remote
    `@github.com/...` refs walk through `ResolveRemoteImage`.
-3. `ov box build <name>` — fallback when pull fails AND the
+3. `charly box build <name>` — fallback when pull fails AND the
    identifier is a short name resolvable via the project's
    `box.yml`. Build fallback is local-only; for any non-short
    identifier that fails to pull, the preflight aborts with an
@@ -297,8 +297,8 @@ problems early rather than mid-scenario.
 This is the **only** image-fetch surface in the system: deploys (any
 target — `local`, `pod`, `vm`, `k8s`) emit zero image-pull steps. A
 `kind: local` template has no `image:` field; image preflight lives on this
-verb. Operators with legacy YAML run `ov migrate`. See
-`/ov-local:local-spec` "What the deploy does NOT do" and CLAUDE.md
+verb. Operators with legacy YAML run `charly migrate`. See
+`/charly-local:local-spec` "What the deploy does NOT do" and CLAUDE.md
 "Deploy fetches NOTHING speculative".
 
 Lives in `ov/eval_image_preflight.go`
@@ -307,11 +307,11 @@ Lives in `ov/eval_image_preflight.go`
 targets carry their own image inside their respective deploy schema
 and never trigger the preflight.
 
-## Three primary modes (`ov eval box` / `live` / `run`)
+## Three primary modes (`charly eval box` / `live` / `run`)
 
 The surface is three orthogonal verbs, each named for what it evaluates:
 
-- **`ov eval box <image>`** — evaluates the image **artifact** in
+- **`charly eval box <image>`** — evaluates the image **artifact** in
   isolation. Spawns a disposable container via `podman run --rm
   <image-ref>` (`ImageExecutor`). Only `eval:`-block checks at
   `scope: build` run; deploy-scope checks are skipped with a clear
@@ -319,55 +319,55 @@ The surface is three orthogonal verbs, each named for what it evaluates:
   binary land at this path?", "is this package installed?") where a
   running service would only add noise.
 
-- **`ov eval live <name>`** — evaluates a **running deployment**
+- **`charly eval live <name>`** — evaluates a **running deployment**
   (pod / vm / host / k8s; auto-resolved by `<name>` against
   deploy.yml). Uses `ContainerExecutor` / `SSHExecutor` /
   `NestedExecutor` (for dotted-path children) + `ResolveEvalVarsRuntime`
   so deploy-scope checks see real supervisord state, real
   `HOST_PORT:<N>` mappings (including host-networked containers via
   `HostConfig.NetworkMode` detection), and real in-container env.
-  Same dispatcher that powers `ov eval live parent.child` for
+  Same dispatcher that powers `charly eval live parent.child` for
   pod-in-vm topologies.
 
-- **`ov eval run <score>`** — drives an AI runner through
+- **`charly eval run <score>`** — drives an AI runner through
   plateau-bounded iterations against a `kind: score`. See "AI
   iteration loop semantics" below.
 
 The mode is **explicit in the verb**; there is no autodetect or
 implicit fallback. Choose the mode by picking the right verb.
 
-The banner after `ov eval box` reports the image ref:
+The banner after `charly eval box` reports the image ref:
 
 ```
 Image: ghcr.io/overthinkos/fedora-coder:latest
 ```
 
-The `meta.Image` short-name (from the `org.overthinkos.image` OCI
-label) is used by `ov eval live` for the `ov-<image>` container-name
+The `meta.Image` short-name (from the `ai.opencharly.image` OCI
+label) is used by `charly eval live` for the `ov-<image>` container-name
 lookup — full image refs like `ghcr.io/overthinkos/fedora-coder:latest`
 are correctly mapped to `ov-fedora-coder`. Implementation:
 `ov/eval_cmd.go` `EvalImageCmd.Run()` and `EvalLiveCmd.Run()`.
 
-## Agent Driven Development (ADD) — `ov box/eval feature run` + the agent grader
+## Agent Driven Development (ADD) — `charly box/eval feature run` + the agent grader
 
 ADD runs an entity's OWN baked Gherkin scenarios (the `description.scenario`
-blocks, shipped in the `org.overthinkos.description` OCI label) as acceptance
+blocks, shipped in the `ai.opencharly.description` OCI label) as acceptance
 tests. It is the canonical Gherkin acceptance pattern, named for the agent that drives it: a
 prose-only step is verified by an AI agent, and the whole red→green loop can be
-driven by an agent. This complements the flat `eval:` checks — `ov eval box` /
-`ov eval live` run the `eval:` list; `ov box/eval feature run` run the
+driven by an agent. This complements the flat `eval:` checks — `charly eval box` /
+`charly eval live` run the `eval:` list; `charly box/eval feature run` run the
 `description.scenario` list.
 
 ### The six-stage loop
 
 | Stage | Who | Command | What |
 |---|---|---|---|
-| **Specify** | you / an agent | `ov candy add-scenario <layer> <name> --given/--when/--then` (idempotent; MCP tool `candy.add-scenario`) | Author the goal (`feature:`/`narrative:`) + scenarios on the LAYER that provides the behaviour (it bakes into every image that composes the layer — R3). |
-| **Bind** | author (implicit) | `ov feature pending <entity>` lists the gaps | Embed a check verb → deterministic; leave the step prose → agent-graded. |
-| **Run** | you / CI | `ov box feature run <image>` / `ov eval feature run <deployment>` | Execute the scenarios; per-scenario pass/fail + grader evidence. |
-| **Iterate** | you / an agent | edit + re-run, OR `ov eval run <score>` | Drive red→green by hand, or let the plateau-bounded AI loop write the code until scenarios pass. |
-| **Bake** | the build | `ov box build` | Goal + scenarios bake into `org.overthinkos.description`; runs source-less against a pulled image. |
-| **Gate** | R10 | `ov eval run <bed>` | Runs the bed image's deterministic scenarios as an opt-in gate (no-op pass when none authored). |
+| **Specify** | you / an agent | `charly candy add-scenario <layer> <name> --given/--when/--then` (idempotent; MCP tool `candy.add-scenario`) | Author the goal (`feature:`/`narrative:`) + scenarios on the LAYER that provides the behaviour (it bakes into every image that composes the layer — R3). |
+| **Bind** | author (implicit) | `charly feature pending <entity>` lists the gaps | Embed a check verb → deterministic; leave the step prose → agent-graded. |
+| **Run** | you / CI | `charly box feature run <image>` / `charly eval feature run <deployment>` | Execute the scenarios; per-scenario pass/fail + grader evidence. |
+| **Iterate** | you / an agent | edit + re-run, OR `charly eval run <score>` | Drive red→green by hand, or let the plateau-bounded AI loop write the code until scenarios pass. |
+| **Bake** | the build | `charly box build` | Goal + scenarios bake into `ai.opencharly.description`; runs source-less against a pulled image. |
+| **Gate** | R10 | `charly eval run <bed>` | Runs the bed image's deterministic scenarios as an opt-in gate (no-op pass when none authored). |
 
 ### The BIND contract — a step binds to its verifier BY SHAPE
 
@@ -384,17 +384,17 @@ description:
 
 A step with an embedded check verb (`file`/`http`/`command`/`cdp`/`mcp`/…) runs
 that check. A step with only Gherkin prose (`then:` and no verb) binds to the
-agent grader. `ov feature pending` lists every prose-only step so an author sees
+agent grader. `charly feature pending` lists every prose-only step so an author sees
 the still-unbound work.
 
 ### The two run verbs
 
-- **`ov box feature run <image>`** — BUILD scope. A disposable container
+- **`charly box feature run <image>`** — BUILD scope. A disposable container
   (`podman run --rm` per check), deterministic steps only. A prose-only step has
   no stable target to probe, so it reports unbound (advisory skip; `--strict`
-  fails it). Resolves the image against local storage (never `overthink.yml`),
-  like `ov eval box`.
-- **`ov eval feature run <deployment>`** — DEPLOY scope. Against a running
+  fails it). Resolves the image against local storage (never `charly.yml`),
+  like `charly eval box`.
+- **`charly eval feature run <deployment>`** — DEPLOY scope. Against a running
   image-backed (pod) deployment; deterministic steps run their checks and
   prose-only steps bind to the **agent grader** (unless `--no-agent`). Flags:
   `-i/--instance`, `--format text|json|tap|junit`, `--tag <expr>`,
@@ -408,8 +408,8 @@ Exit codes follow the 0/1/2 convention (a scenario fail → exit 2 via
 For a prose-only step (when grading is enabled), the runner spawns the
 configured `kind: ai` CLI ONCE (bounded — never the plateau loop), handing it the
 scenario goal (`feature`/`narrative`), the step's Given/When/Then, the live
-target name, and the instruction that it MAY probe via `ov cmd <target> …`,
-`ov eval mcp/cdp/wl <target> …`, `ov status <target>`. The agent returns a
+target name, and the instruction that it MAY probe via `charly cmd <target> …`,
+`charly eval mcp/cdp/wl <target> …`, `charly status <target>`. The agent returns a
 single-line JSON verdict `{"verdict":"pass|fail","evidence":"…"}`; the runner
 parses it (plain or `stream-json`) into a pass/fail with evidence. An
 unparseable / timed-out / launch-failed grader is a **FAIL** with the raw output
@@ -418,69 +418,69 @@ unparseable / timed-out / launch-failed grader is a **FAIL** with the raw output
 entry → an explicit "specify --ai" error.
 
 `--no-agent` is the deterministic-only mode (CI): prose-only steps report
-`unbound` (visible, never silently green). The unattended `ov eval run <bed>`
-gate runs `ov eval feature run <bed> --no-agent` so a bed stays deterministic and
-free; exercise the live grader with an explicit `ov eval feature run <name>`.
+`unbound` (visible, never silently green). The unattended `charly eval run <bed>`
+gate runs `charly eval feature run <bed> --no-agent` so a bed stays deterministic and
+free; exercise the live grader with an explicit `charly eval feature run <name>`.
 
 ### Worked example (end to end)
 
 ```bash
 # 1. Specify two scenarios on the layer that provides the behaviour.
-ov candy add-scenario web-layer dashboard-loads \
+charly candy add-scenario web-layer dashboard-loads \
   --then "the dashboard renders without a 500"          # prose → agent-graded
 $EDITOR candy/web-layer/candy.yml                        # add a deterministic step with cdp: eval
 
 # 2. See what's still prose-only (the authoring gaps).
-ov feature pending layer:web-layer
+charly feature pending layer:web-layer
 
 # 3. Build → run build-scope acceptance (deterministic steps).
-ov box build web
-ov box feature run web
+charly box build web
+charly box feature run web
 
 # 4. Deploy, then run deploy-scope acceptance with the agent grader.
-ov start web
-ov eval feature run web                # prose steps agent-graded against the live pod
-ov eval feature run web --no-agent     # deterministic-only (CI): prose reports unbound
+charly start web
+charly eval feature run web                # prose steps agent-graded against the live pod
+charly eval feature run web --no-agent     # deterministic-only (CI): prose reports unbound
 ```
 
 Implementation: `ov/eval_feature_run.go` (the verbs), `ov/eval_feature_grader.go`
 (`AgentGrader` + `RunAIOnce` + `parseVerdict`), the `Runner.Grader` dispatch in
-`ov/description_run.go`, and `ov/description_cmd.go` (`ov feature
+`ov/description_run.go`, and `ov/description_cmd.go` (`charly feature
 list/pending/validate`). The scenario engine (`RunScenarios`) and target
-resolution are shared with the harness loop and `ov eval box`/`live` (R3).
+resolution are shared with the harness loop and `charly eval box`/`live` (R3).
 
 ## Subcommands: live-container verbs
 
-`ov eval live` is both the declarative test runner AND the grouping point for the
+`charly eval live` is both the declarative test runner AND the grouping point for the
 interactive verbs that drive a running service. Kong's `default:"withargs"`
-tag means `ov eval live <image>` still dispatches to the runner — only the
+tag means `charly eval live <image>` still dispatches to the runner — only the
 explicit subcommand names below take over when matched.
 
 | Subcommand | Skill | Purpose |
 |-----------|-------|---------|
-| `ov eval cdp …` | `/ov-eval:cdp` | Chrome DevTools Protocol — open/list/close tabs, click, type, eval, screenshot, axtree |
-| `ov eval wl …` | `/ov-eval:wl` | Wayland desktop input/windows/clipboard + sway IPC |
-| `ov eval dbus …` | `/ov-eval:dbus` | D-Bus calls, introspection, desktop notifications |
-| `ov eval vnc …` | `/ov-eval:vnc` | VNC framebuffer screenshot + click/key/type/passwd |
-| `ov eval mcp …` | (this skill) | MCP client — ping/list-tools/list-resources/list-prompts/call/read/servers against any `mcp_provide` endpoint. Speaks `github.com/modelcontextprotocol/go-sdk` (Streamable HTTP by default, SSE when `transport: sse`). |
-| `ov eval record …` | `/ov-eval:record` | Recording sessions — start/stop/list/cmd. Terminal (asciinema) or desktop (pixelflux/wf-recorder). Container-only. |
-| `ov eval spice …` | `/ov-eval:spice` | SPICE wire client for VMs — handshake, native-SPICE framebuffer screenshot, input injection. VM-only. |
-| `ov eval libvirt …` | `/ov-eval:libvirt` | libvirt-RPC test commands for VMs — info, domain XML, QMP, qemu-guest-agent, snapshots, events. VM-only. |
+| `charly eval cdp …` | `/charly-eval:cdp` | Chrome DevTools Protocol — open/list/close tabs, click, type, eval, screenshot, axtree |
+| `charly eval wl …` | `/charly-eval:wl` | Wayland desktop input/windows/clipboard + sway IPC |
+| `charly eval dbus …` | `/charly-eval:dbus` | D-Bus calls, introspection, desktop notifications |
+| `charly eval vnc …` | `/charly-eval:vnc` | VNC framebuffer screenshot + click/key/type/passwd |
+| `charly eval mcp …` | (this skill) | MCP client — ping/list-tools/list-resources/list-prompts/call/read/servers against any `mcp_provide` endpoint. Speaks `github.com/modelcontextprotocol/go-sdk` (Streamable HTTP by default, SSE when `transport: sse`). |
+| `charly eval record …` | `/charly-eval:record` | Recording sessions — start/stop/list/cmd. Terminal (asciinema) or desktop (pixelflux/wf-recorder). Container-only. |
+| `charly eval spice …` | `/charly-eval:spice` | SPICE wire client for VMs — handshake, native-SPICE framebuffer screenshot, input injection. VM-only. |
+| `charly eval libvirt …` | `/charly-eval:libvirt` | libvirt-RPC test commands for VMs — info, domain XML, QMP, qemu-guest-agent, snapshots, events. VM-only. |
 
-These eight verbs live under `ov eval` because every one of them is a "probe or
+These eight verbs live under `charly eval` because every one of them is a "probe or
 drive a running service" operation — the same surface the declarative test
 runner composes when it executes checks.
 
 **Reserved image names:** because subcommand names take priority when
 matched, an image literally named `cdp`, `wl`, `dbus`, `vnc`, `mcp`,
-`record`, `spice`, or `libvirt` cannot be run via `ov eval live <name>` —
-use the explicit `ov eval live <name>` form or rename the image. No such
+`record`, `spice`, or `libvirt` cannot be run via `charly eval live <name>` —
+use the explicit `charly eval live <name>` form or rename the image. No such
 images currently exist in `box.yml`.
 
-**Gotcha — stale container-baked `ov` binary:** `ov eval dbus notify` and
-`ov eval dbus call` delegate to the container's own `ov` binary (see
+**Gotcha — stale container-baked `ov` binary:** `charly eval dbus notify` and
+`charly eval dbus call` delegate to the container's own `ov` binary (see
 `ov/notify.go:20`, `ov/dbus.go:195,229`). If the container bakes an `ov`
-binary too old to know the `ov eval <verb>` subcommand path, the delegation
+binary too old to know the `charly eval <verb>` subcommand path, the delegation
 fails. Fix by rebuilding and redeploying any image that bakes `ov` (grep
 `box.yml` for `- ov$` to find them). Test runner itself is unaffected —
 this only bites the host→container delegation paths.
@@ -562,19 +562,19 @@ naturally. An empty-string map value falls through to the next tag
 | `port` | `listening`, `ip`, `reachable` | **`listening` needs `ss`/`netstat` inside the container** — absent from minimal images |
 | `process` | `running` | **Needs `pgrep`** — absent from minimal images |
 | `command` | `exit_status`, `stdout`, `stderr`, `in_container` | Default runs via `podman exec`; set `in_container: false` to run from host |
-| `http` | `status` (int, single value), `body`, `headers`, `method`, `request_body`, `allow_insecure`, `no_follow_redirects`, `ca_file`, `timeout` | Host-side under `ov eval live`; curl-in-container under `ov eval box` |
-| `dns` | `resolvable`, `addrs`, `server` | Host resolver for `ov eval live`; `getent hosts` for `ov eval box` |
+| `http` | `status` (int, single value), `body`, `headers`, `method`, `request_body`, `allow_insecure`, `no_follow_redirects`, `ca_file`, `timeout` | Host-side under `charly eval live`; curl-in-container under `charly eval box` |
+| `dns` | `resolvable`, `addrs`, `server` | Host resolver for `charly eval live`; `getent hosts` for `charly eval box` |
 | `user` | `uid`, `gid`, `home`, `shell` | `getent passwd` |
 | `group` | `gid`, `groups` | `getent group` |
 | `interface` | `mtu`, `addrs` | `ip -o addr show` |
 | `kernel-param` | `value` (scalar or matcher) | `sysctl -n` |
 | `mount` | `mount_source`, `filesystem`, `opts` | `findmnt` |
-| `addr` | `reachable`, `timeout` | Pure Go-native `net.DialTimeout` for `ov eval live`; `nc` for `ov eval box` |
+| `addr` | `reachable`, `timeout` | Pure Go-native `net.DialTimeout` for `charly eval live`; `nc` for `charly eval box` |
 | `matching` | `contains` | Pure in-process value matching — no target probe |
-| `cdp` | Method name (status/list/eval/text/html/url/axtree/screenshot/open/click/type/raw/wait/coords + spa-*) + method-specific modifiers (`tab`, `expression`, `url`, `selector`, `text`, `artifact`, `x`, `y`) + shared `stdout`/`stderr`/`exit_status`/`artifact_min_bytes` | **Deploy-scope only.** Wraps `ov eval cdp <method>`. See Live-container verb catalog below. |
-| `wl` | Method name (screenshot/status/click/type/key/key-combo/mouse/scroll/drag/clipboard/toplevel/windows/focus/close/geometry/xprop/atspi/exec/resolution + overlay-*/sway-*) + method-specific modifiers (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `ov eval wl <method>` (including `sway` and `overlay` nested subgroups). See Live-container verb catalog below. |
-| `dbus` | Method name (list/call/introspect/notify) + method-specific modifiers (`dest`, `path`, `method`, `args`, `text`) + shared matchers | **Deploy-scope only.** Wraps `ov eval dbus <method>`. |
-| `vnc` | Method name (status/screenshot/click/mouse/type/key/rfb/passwd) + method-specific modifiers (`x`, `y`, `text`, `key`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `ov eval vnc <method>`. |
+| `cdp` | Method name (status/list/eval/text/html/url/axtree/screenshot/open/click/type/raw/wait/coords + spa-*) + method-specific modifiers (`tab`, `expression`, `url`, `selector`, `text`, `artifact`, `x`, `y`) + shared `stdout`/`stderr`/`exit_status`/`artifact_min_bytes` | **Deploy-scope only.** Wraps `charly eval cdp <method>`. See Live-container verb catalog below. |
+| `wl` | Method name (screenshot/status/click/type/key/key-combo/mouse/scroll/drag/clipboard/toplevel/windows/focus/close/geometry/xprop/atspi/exec/resolution + overlay-*/sway-*) + method-specific modifiers (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `charly eval wl <method>` (including `sway` and `overlay` nested subgroups). See Live-container verb catalog below. |
+| `dbus` | Method name (list/call/introspect/notify) + method-specific modifiers (`dest`, `path`, `method`, `args`, `text`) + shared matchers | **Deploy-scope only.** Wraps `charly eval dbus <method>`. |
+| `vnc` | Method name (status/screenshot/click/mouse/type/key/rfb/passwd) + method-specific modifiers (`x`, `y`, `text`, `key`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `charly eval vnc <method>`. |
 | `mcp` | Method name (ping/servers/list-tools/list-resources/list-prompts/call/read) + method-specific modifiers (`tool`, `uri`, `input`, `mcp_name`) + shared matchers | **Deploy-scope only.** Speaks `github.com/modelcontextprotocol/go-sdk` to any `mcp_provide` endpoint. See "Method allowlist — mcp" below. |
 
 ### Shared modifiers
@@ -627,16 +627,16 @@ verb. One code per test. See Authoring Gotcha #2.
 
 ### Live-container verb catalog: `cdp`, `wl`, `dbus`, `vnc`, `mcp`
 
-These five verbs wrap the corresponding `ov eval <verb> <method>` CLI
+These five verbs wrap the corresponding `charly eval <verb> <method>` CLI
 subcommands so every live-container operation (browser automation, Wayland
 input/screenshot, D-Bus calls, VNC framebuffer capture, MCP protocol
 probes) is authorable as a declarative check. All five are **deploy-scope
-only** — they need a running container with port mappings; `ov box
-validate` rejects them in build scope, and `ov eval box` skips them at
+only** — they need a running container with port mappings; `charly box
+validate` rejects them in build scope, and `charly eval box` skips them at
 runtime with a clear message.
 
 **Assertion semantics:** subprocess delegation — the runner executes
-`ov eval <verb> <method> <image> <args…> [-i <instance>]` on the host,
+`charly eval <verb> <method> <image> <args…> [-i <instance>]` on the host,
 captures stdout/stderr/exit, and feeds the output through the existing
 matcher pipeline. Queries (status/list/eval/text/html/url/axtree/screenshot/…)
 produce assertable output. Side-effect actions (click/type/open/close/…) pass
@@ -752,7 +752,7 @@ Actions: `call`.
 
 The `mcp` verb speaks the Model Context Protocol to any server advertised
 via `mcp_provide`. URL resolution is automatic — the runner reads the
-image's `org.overthinkos.mcp_provide` OCI label, substitutes
+image's `ai.opencharly.mcp_provide` OCI label, substitutes
 `{{.ContainerName}}`, runs the entries through `podAwareMCPProvides`, and
 then rewrites the host portion to `127.0.0.1:<published-host-port>` using
 the same port-mapping data that powers `${HOST_PORT:N}`. No URL argument
@@ -797,11 +797,11 @@ Ad-hoc CLI equivalents (each leaf also supports `--json` for programmatic
 use and `--name <server>` for multi-server images):
 
 ```bash
-ov eval mcp ping       <image> [-i <instance>] [--name <server>]
-ov eval mcp servers    <image> [-i <instance>]
-ov eval mcp list-tools <image> [-i <instance>] [--name <server>]
-ov eval mcp call       <image> <tool> '<json-args>' [-i <instance>]
-ov eval mcp read       <image> <uri>            [-i <instance>]
+charly eval mcp ping       <image> [-i <instance>] [--name <server>]
+charly eval mcp servers    <image> [-i <instance>]
+charly eval mcp list-tools <image> [-i <instance>] [--name <server>]
+charly eval mcp call       <image> <tool> '<json-args>' [-i <instance>]
+charly eval mcp read       <image> <uri>            [-i <instance>]
 ```
 
 Output format: tab-separated plaintext (one record per line) so matchers
@@ -864,7 +864,7 @@ threshold that wasn't met.
 #### Gotcha — stale container-baked `ov` binary
 
 The `dbus:` verb invokes the container's `ov` binary via delegation. If
-the container bakes an `ov` binary too old to know the `ov eval <verb>`
+the container bakes an `ov` binary too old to know the `charly eval <verb>`
 subcommand path, the delegation fails. Rebuild and redeploy any image that
 bakes `ov` (grep `box.yml` for `- ov$`). The test runner itself is
 unaffected; this only bites the host→container delegation paths in the
@@ -943,12 +943,12 @@ in_container: true
 
 ### 5. Know which stream a `--version`-style command writes to
 
-`ov version` writes to **stdout** (via `fmt.Println`) — the canonical
+`charly version` writes to **stdout** (via `fmt.Println`) — the canonical
 `candy/ov/candy.yml` test asserts a `stdout:` matcher.
 
 ```yaml
 - id: ov-version
-  command: /usr/local/bin/ov version
+  command: /usr/local/bin/charly version
   exit_status: 0
   stdout:
     - matches: "[0-9]{4}\\.[0-9]+"
@@ -956,7 +956,7 @@ in_container: true
 
 **But other tools genuinely write to stderr** — `ssh -V`, `openssl version`,
 some `*-config --version` scripts. Always probe first
-(`ov cmd <image> '<cmd> 2>&1 >/dev/null'` — if the output shows up here
+(`charly cmd <image> '<cmd> 2>&1 >/dev/null'` — if the output shows up here
 it was stderr; if silent, it's stdout). See also the `ssh-version`
 check in `candy/ssh-client/candy.yml` which IS a real stderr case.
 
@@ -1007,11 +1007,11 @@ Always verify with `podman run --rm <image> rpm -qf /path/to/binary`.
 ### 9. Volume paths don't exist at build-scope
 
 `/workspace`, `${VOLUME_CONTAINER_PATH:name}`, and similar paths
-are provisioned by `ov config` at deploy time. A build-scope test on
-them fails in `ov eval box` because the mount isn't attached.
+are provisioned by `charly config` at deploy time. A build-scope test on
+them fails in `charly eval box` because the mount isn't attached.
 
 ```yaml
-# ❌ Fails under `ov eval box` — workspace isn't mounted
+# ❌ Fails under `charly eval box` — workspace isn't mounted
 - id: workspace-dir
   file: /workspace
   filetype: directory
@@ -1025,7 +1025,7 @@ them fails in `ov eval box` because the mount isn't attached.
 
 ### 10. Disposable tests run as the image's default USER — not root
 
-`ov eval box` runs `podman run --rm <image>` with the image's USER
+`charly eval box` runs `podman run --rm <image>` with the image's USER
 directive (typically uid 1000 for containers). Root-only files
 (e.g. `/etc/sudoers.d/*` is root:root 0750) report as "missing" because
 the user can't traverse the parent directory.
@@ -1033,7 +1033,7 @@ the user can't traverse the parent directory.
 ```yaml
 # ❌ Reports "exists=false" even though the file IS there (0750 dir)
 - id: sudoers-ov-user
-  file: /etc/sudoers.d/ov-user
+  file: /etc/sudoers.d/charly-user
   exists: true
 
 # ✓ Verify the semantic (can I sudo?) instead of the file bit
@@ -1046,7 +1046,7 @@ the user can't traverse the parent directory.
 
 ### 11. **Bootc images keep USER=root** — tests must cover both modes
 
-Gotcha 10 flips for bootc. `ov/generate.go` deliberately omits the final `USER <uid>` directive on bootc images because systemd (PID 1 in a bootc VM) manages user sessions via login, so the container's own USER directive is irrelevant. Result: the same `ov eval box` that runs as uid 1000 in a container runs as **uid 0** in a bootc image.
+Gotcha 10 flips for bootc. `ov/generate.go` deliberately omits the final `USER <uid>` directive on bootc images because systemd (PID 1 in a bootc VM) manages user sessions via login, so the container's own USER directive is irrelevant. Result: the same `charly eval box` that runs as uid 1000 in a container runs as **uid 0** in a bootc image.
 
 That breaks any test that assumes the user-context default. A `sudo -n -l` check that expects `NOPASSWD` in the output works for non-bootc (USER=1000 → sudo lists the user's NOPASSWD rule) but fails for bootc (USER=0 → sudo prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`). Same failure mode for any `test -f ~/.config/foo` that depends on `$HOME=/home/user`.
 
@@ -1073,11 +1073,11 @@ the shell is a login shell — reproduced: `runuser -l user -s /bin/bash
 -n -l` prints the full NOPASSWD listing. This bit the earlier shipping
 form of the test; the sshd layer now uses `-u … --`.
 
-Worked example: `/ov-coder:sshd` ships exactly the `-u user --` pattern. Alternative: make the check `scope: deploy` so it runs against a live container where you control the user-switch externally.
+Worked example: `/charly-coder:sshd` ships exactly the `-u user --` pattern. Alternative: make the check `scope: deploy` so it runs against a live container where you control the user-switch externally.
 
-### 12. **`ov eval box <short-name>` is ambiguous with multiple CalVer tags** — use the full registry ref
+### 12. **`charly eval box <short-name>` is ambiguous with multiple CalVer tags** — use the full registry ref
 
-`ov eval box` resolves its positional argument against **local podman storage**, not `box.yml`. When the host has accumulated many CalVer tags for the same image (a normal consequence of iterative `ov box build` runs), the short form errors out:
+`charly eval box` resolves its positional argument against **local podman storage**, not `box.yml`. When the host has accumulated many CalVer tags for the same image (a normal consequence of iterative `charly box build` runs), the short form errors out:
 
 ```
 ov: error: ambiguous short name "openclaw-desktop" in local storage;
@@ -1089,20 +1089,20 @@ ov: error: ambiguous short name "openclaw-desktop" in local storage;
 Use the fully-qualified registry ref:
 
 ```bash
-ov eval box ghcr.io/overthinkos/openclaw-desktop:latest
+charly eval box ghcr.io/overthinkos/openclaw-desktop:latest
 ```
 
-This is different from `ov box inspect`, `ov box build`, and `ov eval live` (the live-service runner), which key off `box.yml` and accept short names unambiguously. Only the disposable-container runner has this restriction because it does not consult `box.yml` at all.
+This is different from `charly box inspect`, `charly box build`, and `charly eval live` (the live-service runner), which key off `box.yml` and accept short names unambiguously. Only the disposable-container runner has this restriction because it does not consult `box.yml` at all.
 
 ## Three levels, three sections
 
 | Section | Authored in | When it runs |
 |---------|-------------|--------------|
-| `layer` | `eval:` in `candy/<name>/candy.yml` (scope:"build") | `ov eval box` + `ov eval live` |
-| `image` | `eval:` in `box.yml` per image (scope:"build") | `ov eval box` + `ov eval live` |
-| `deploy` | `eval:` with `scope: deploy`, or `deploy_eval:` in `box.yml`, or local `deploy.yml` `eval:` | `ov eval live <name>` only (deploy-scope checks need a running deployment with port mappings, volumes, and resolved runtime variables) |
+| `layer` | `eval:` in `candy/<name>/candy.yml` (scope:"build") | `charly eval box` + `charly eval live` |
+| `image` | `eval:` in `box.yml` per image (scope:"build") | `charly eval box` + `charly eval live` |
+| `deploy` | `eval:` with `scope: deploy`, or `deploy_eval:` in `box.yml`, or local `deploy.yml` `eval:` | `charly eval live <name>` only (deploy-scope checks need a running deployment with port mappings, volumes, and resolved runtime variables) |
 
-The build label `org.overthinkos.eval` contains all three sections with
+The build label `ai.opencharly.eval` contains all three sections with
 `origin:` annotations (`layer:<name>`, `image:<name>`, `deploy-default`,
 `deploy-local`). `CollectEval` walks the base-image chain with a
 visited-image guard: cycles are reported by `validateImageDAG` at validate
@@ -1113,9 +1113,9 @@ pathological config.
 
 Every verb dispatches through one of two executors depending on the run
 mode — this is what makes the same `eval:` list work both against a
-disposable container (`ov eval box`) and a running service (`ov eval live`):
+disposable container (`charly eval box`) and a running service (`charly eval live`):
 
-| Verb + attributes | Under `ov eval live` (running service) | Under `ov eval box` (disposable) |
+| Verb + attributes | Under `charly eval live` (running service) | Under `charly eval box` (disposable) |
 |-------------------|-----------------------------------|------------------------------------|
 | file, package, service, process, user, group, interface, kernel-param, mount | `ContainerExecutor` (`podman exec`) | `ImageExecutor` (`podman run --rm`) |
 | port with `listening` | `ContainerExecutor` (`ss`/`netstat` inside) | `ImageExecutor` |
@@ -1127,7 +1127,7 @@ disposable container (`ov eval box`) and a running service (`ov eval live`):
 
 The routing table lives in `ov/testrun.go` (`runOne` switch) and
 `ov/testrun_verbs.go`. When a check is unroutable (e.g. `port:
-reachable` under `ov eval box`), the runner reports it as **skipped**
+reachable` under `charly eval box`), the runner reports it as **skipped**
 with a reason rather than failing the run.
 
 ### in-container `command:` stdin is guarded
@@ -1142,11 +1142,11 @@ truncate the check to its first command). Authors write plain multi-line
 scripts; **no per-call-site `</dev/null` is needed**. Host-side `command:`
 (`in_container: false`) runs via `sh -c` argv and is unaffected. For Android UI
 readiness, prefer the typed `adb: wait-ui-settled` / `current-focus` / `keyevent`
-verbs (`/ov-eval:adb`) over shell entirely.
+verbs (`/charly-eval:adb`) over shell entirely.
 
 ## Runtime variables
 
-`ov eval live` resolves these via `podman inspect` on the running container
+`charly eval live` resolves these via `podman inspect` on the running container
 before any check executes. `${NAME:arg}` is parameterized form.
 
 | Variable | Source | Scope |
@@ -1164,7 +1164,7 @@ before any check executes. `${NAME:arg}` is parameterized form.
 | `${PEER_ENDPOINT:name:port}` | A host-reachable `127.0.0.1:NNNN` for a separate deployment's `port` (published port / VM ssh-forward); host-vantage cross-deployment addressing | deploy |
 
 Build-scope checks may **not** reference deploy-scope variables — the
-validator flags this at `ov box validate` time.
+validator flags this at `charly box validate` time.
 
 **No bash-style defaults**: `${VAR:-fallback}` is unsupported (see
 Authoring Gotcha #7). Plain `${VAR}` only.
@@ -1182,12 +1182,12 @@ Three pieces compose it:
 
 - **`on: <driver>`** (the step modifier) — DISPATCH this probe against a named
   DRIVER deployment instead of the subject. For a `cdp:`/`vnc:`/`mcp:` check it
-  connects to the driver's CDP/VNC/MCP endpoint (`ov eval cdp <method> <driver>`);
-  for a `command:` check it runs in the driver's venue. Works in `ov eval live`,
+  connects to the driver's CDP/VNC/MCP endpoint (`charly eval cdp <method> <driver>`);
+  for a `command:` check it runs in the driver's venue. Works in `charly eval live`,
   `kind: eval` beds, and recipes (the driver's own `${HOST_PORT}`/`${CONTAINER_IP}`
   resolve too).
 - **`peer:` siblings** — bring the driver up ALONGSIDE the subject on the shared
-  `ov` network (see `/ov-core:deploy` "Sibling peers"). A `kind: eval` bed (or a
+  `ov` network (see `/charly-core:deploy` "Sibling peers"). A `kind: eval` bed (or a
   `kind: deploy`) declares the driver under `peer:`; it is brought up by the same
   deploy verbs and is NEVER eval-live'd (an instrument, not a subject).
 - **`${PEER_*}` address variables** — let the driven probe TARGET the subject:
@@ -1218,7 +1218,7 @@ eval-cross-pod-cdp:
     disposable: true
     port: [auto]
     peer:
-        chrome:                    # the DRIVER, a sibling on the ov net
+        chrome:                    # the DRIVER, a sibling on the charly net
             target: pod
             box: chrome-headless   # headless Chrome + cdp-proxy (publishes 9222)
             port: [auto]
@@ -1228,7 +1228,7 @@ eval-cross-pod-cdp:
           http: http://127.0.0.1:${HOST_PORT:8080}/
           status: 200
           body: [{contains: ov-fixture-web-content-marker}]
-        - id: cdp-open-web-subject # DRIVE: chrome navigates to the subject over the ov net
+        - id: cdp-open-web-subject # DRIVE: chrome navigates to the subject over the charly net
           scope: deploy
           cdp: open
           on: chrome
@@ -1246,14 +1246,14 @@ eval-cross-pod-cdp:
 ```
 
 `bringUpPeers` config+starts the chrome peer alongside the web root; the
-`on: chrome` checks dispatch `ov eval cdp <method> chrome` (connecting to chrome's
+`on: chrome` checks dispatch `charly eval cdp <method> chrome` (connecting to chrome's
 published 9222) while `${PEER_HOST:eval-cross-pod-cdp}` resolves to the web
 subject's `ov-eval-cross-pod-cdp` container, reached over the shared net.
 
 **Driver-box requirement (CDP):** a headless Chrome CDP driver MUST launch with
 `--remote-allow-origins='*'` (Chrome 146+ rejects the CDP WebSocket upgrade
 otherwise — `cdp open` via HTTP works, but `cdp text`/`eval`/`screenshot` fail).
-The `chrome-headless` box sets it; see `/ov-eval:cdp` "Requirements".
+The `chrome-headless` box sets it; see `/charly-eval:cdp` "Requirements".
 
 ### Cross-kind: a host driver reaching a pod OR a VM subject (`${PEER_ENDPOINT}`)
 
@@ -1278,14 +1278,14 @@ pod→pod address and does NOT reach a VM.)
 ## Deploy.yml overlay rules
 
 A local `deploy.yml` can contribute its own `eval:` list per image.
-Merge rules applied by `ov eval live`:
+Merge rules applied by `charly eval live`:
 
 1. Local entries with an `id:` matching a baked entry replace that entry.
 2. Entries without a matching `id:` are appended.
 3. To disable a baked check, reference it with `id:` and `skip: true`.
 
 ```yaml
-# ~/.config/ov/deploy.yml
+# ~/.config/charly/deploy.yml
 images:
   redis-ml:
     eval:
@@ -1305,23 +1305,23 @@ images:
 ```bash
 # 1. Author tests in candy/<name>/candy.yml.
 # 2. Validate schema + references.
-ov box validate
+charly box validate
 
 # 3. Build the image (tests are auto-embedded as LabelEval).
 #    LABELs are emitted LAST in the final stage — a test edit rebuilds
 #    in ~2 sec (cache hits every upstream RUN/COPY).
-ov box build redis-ml
+charly box build redis-ml
 
 # 4. Run against a disposable container (build-scope checks only).
-ov eval box redis-ml
+charly eval box redis-ml
 
 # 5. Start the service and test end-to-end.
-ov start redis-ml
-ov eval live redis-ml
+charly start redis-ml
+charly eval live redis-ml
 
 # 6. Override a baked deploy check via local deploy.yml, re-test.
-$EDITOR ~/.config/ov/deploy.yml    # add tests: entry with matching id
-ov eval live redis-ml
+$EDITOR ~/.config/charly/deploy.yml    # add tests: entry with matching id
+charly eval live redis-ml
 ```
 
 ## Coverage snapshot (7 currently-tested images)
@@ -1347,7 +1347,7 @@ ports.
 
 ## Realistic run-time expectations
 
-`ov eval run default` is a multi-phase AI-iteration loop. Representative
+`charly eval run default` is a multi-phase AI-iteration loop. Representative
 per-phase durations (measured solving all 92/92 across 9 iterations on a
 `disposable: true` eval-sandbox):
 
@@ -1362,11 +1362,11 @@ per-phase durations (measured solving all 92/92 across 9 iterations on a
 | 7 | vm-control-libvirt-spice | ~40-50 min | libvirt domain (cloud-init, qemu-guest-agent) + 9 scenarios |
 | 8 | nested-deployment-chain | ~40 min | socket-passthrough nested pods + 9 cross-hop scenarios |
 
-**Total wall-clock for a fresh `ov eval run default`**: typically
+**Total wall-clock for a fresh `charly eval run default`**: typically
 **5-7 hours** on dev-class hardware. Set expectations accordingly — this
 is NOT a quick smoke. For a fast canary that exercises the loader +
 scoring paths end-to-end without real AI work, run
-`ov eval run scaffolding-selftest` (~5 min, single recipe
+`charly eval run scaffolding-selftest` (~5 min, single recipe
 `composition-import-selftest`).
 
 The plateau bound is `score.<name>.plateau_iteration` (default 3). In
@@ -1401,38 +1401,38 @@ deliberately.
 
 ## Related skills
 
-- **Live-container probe verbs under `ov eval`** — `/ov-eval:cdp`, `/ov-eval:wl`, `/ov-eval:dbus`, `/ov-eval:vnc`, `/ov-build:ov-mcp-cmd`, `/ov-eval:record`, `/ov-eval:spice`, `/ov-eval:libvirt`, `/ov-kubernetes:eval-k8s` are dispatched as `ov eval cdp|wl|dbus|vnc|mcp|record|spice|libvirt|k8s`. See the Subcommands section above.
-- `/ov-image:layer` — layer authoring; `eval:` field is part of every `candy.yml`.
-- `/ov-image:image` — image-level `eval:` and `deploy_eval:` at composition time.
-- `/ov-core:deploy` — local `deploy.yml` overlay rules and the `eval:` merge.
-- `/ov-build:validate` — static schema + cross-scope variable checks; the first
-  gate before `ov box build`.
-- `/ov-build:build` — how eval entries are embedded into the OCI label at build
+- **Live-container probe verbs under `charly eval`** — `/charly-eval:cdp`, `/charly-eval:wl`, `/charly-eval:dbus`, `/charly-eval:vnc`, `/charly-build:ov-mcp-cmd`, `/charly-eval:record`, `/charly-eval:spice`, `/charly-eval:libvirt`, `/charly-kubernetes:eval-k8s` are dispatched as `charly eval cdp|wl|dbus|vnc|mcp|record|spice|libvirt|k8s`. See the Subcommands section above.
+- `/charly-image:layer` — layer authoring; `eval:` field is part of every `candy.yml`.
+- `/charly-image:image` — image-level `eval:` and `deploy_eval:` at composition time.
+- `/charly-core:deploy` — local `deploy.yml` overlay rules and the `eval:` merge.
+- `/charly-build:validate` — static schema + cross-scope variable checks; the first
+  gate before `charly box build`.
+- `/charly-build:build` — how eval entries are embedded into the OCI label at build
   time; LABELs-at-end cache behavior.
-- `/ov-build:inspect` — view the merged 3-section eval structure as JSON.
-- `/ov-build:migrate` — `ov migrate` brings legacy configs (including
+- `/charly-build:inspect` — view the merged 3-section eval structure as JSON.
+- `/charly-build:migrate` — `charly migrate` brings legacy configs (including
   any residual `harness.yml`) up to the current `eval.yml` schema.
-- `/ov-internals:go` — implementation map: `evalspec.go`, `evalvars.go`,
+- `/charly-internals:go` — implementation map: `evalspec.go`, `evalvars.go`,
   `evalrun.go`, `evalrun_verbs.go`, `evalrun_ov_verbs.go`,
   `evalcollect.go`, `eval_cmd.go`, `eval_runner_cmd.go`, `eval_loop.go`,
   `eval_runner_live.go`, `eval_watchdog.go`, `validate_eval.go`,
   `mcp.go`, `mcp_client.go`, plus the `LabelEval` constant in `labels.go`.
-- `/ov-internals:generate-source` — how `LabelEval` is written into the Containerfile
+- `/charly-internals:generate-source` — how `LabelEval` is written into the Containerfile
   via `writeJSONLabel`, and why the LABEL block lives at the end of the
   final stage.
-- `/ov-internals:capabilities` — the `LabelEval` three-section OCI label is
+- `/charly-internals:capabilities` — the `LabelEval` three-section OCI label is
   part of the same capability contract as `LabelService`.
-- `/ov-internals:agents` — the sub-agents (`eval-bed-runner`,
+- `/charly-internals:agents` — the sub-agents (`eval-bed-runner`,
   `deploy-verifier`) and dynamic workflows (`/verify-beds`,
   `/audit-deploy-configs`) that DRIVE these beds, and the R10/disposable/
-  paste-proof rules that bind any agent or workflow running `ov eval run`.
+  paste-proof rules that bind any agent or workflow running `charly eval run`.
 
 ## When to Use This Skill
 
 **MUST be invoked** before authoring, running, or debugging eval
-behavior at any level. Triggers: `ov eval` (any subcommand), `ov eval
-run`, `ov eval box`, `ov eval live`, the `eval:` / `deploy_eval:`
-YAML fields, the `org.overthinkos.eval` OCI label, `kind: ai` /
+behavior at any level. Triggers: `charly eval` (any subcommand), `charly eval
+run`, `charly eval box`, `charly eval live`, the `eval:` / `deploy_eval:`
+YAML fields, the `ai.opencharly.eval` OCI label, `kind: ai` /
 `kind: recipe` / `kind: score` / `kind: eval` in `eval.yml`,
-`ov eval run <bed>` / `--all-beds` (kind:eval R10 beds), or any check
+`charly eval run <bed>` / `--all-beds` (kind:eval R10 beds), or any check
 verb by name (file/port/http/command/package/service/cdp/wl/dbus/vnc/mcp/...).

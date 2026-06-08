@@ -44,15 +44,15 @@ Plus from `llama-cpp` sub-layer:
 
 ## Used In Images
 
-- `/ov-languages:python-ml`
-- `/ov-immich:immich-ml`
+- `/charly-languages:python-ml`
+- `/charly-immich:immich-ml`
 
 ## Related Layers
 
-- `/ov-jupyter:llama-cpp` — Sub-layer: llama.cpp binaries (composed via `layer:`)
-- `/ov-distros:cuda` — CUDA toolkit dependency
-- `/ov-jupyter:jupyter-ml` — Full ML + Jupyter variant (superset of python-ml's pixi env)
-- `/ov-jupyter:unsloth-studio` — Fine-tuning variant (similar pixi env + unsloth)
+- `/charly-jupyter:llama-cpp` — Sub-layer: llama.cpp binaries (composed via `layer:`)
+- `/charly-distros:cuda` — CUDA toolkit dependency
+- `/charly-jupyter:jupyter-ml` — Full ML + Jupyter variant (superset of python-ml's pixi env)
+- `/charly-jupyter:unsloth-studio` — Fine-tuning variant (similar pixi env + unsloth)
 
 ## When to Use This Skill
 
@@ -66,5 +66,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -2,8 +2,8 @@
 name: disposable
 description: |
   `disposable: true` is the ONE and ONLY authorization for autonomous
-  destroy + rebuild via `ov update`. MUST be invoked before any task
-  involving `ov update`, live verification on rebuildable targets, or
+  destroy + rebuild via `charly update`. MUST be invoked before any task
+  involving `charly update`, live verification on rebuildable targets, or
   marking a VM / container deploy as safe-to-nuke. Explains why
   disposability is a DEPLOY property (not an image property), the
   separation between load-bearing `disposable:` and informational
@@ -15,9 +15,9 @@ description: |
 
 ## Schema v4 note (in-progress cutover)
 
-Schema v4 makes `DeploymentNode.Disposable` the **sole source of truth** for disposability. `VmSpec.Disposable` is retained during the Phase 1-5 transition for backward compatibility with the legacy `ov update arch` / `ov vm destroy --disk` paths, but the canonical field on any deployment entry (e.g. `deployments.images.eval-arch-vm.disposable: true`) is what the unified dispatcher reads.
+Schema v4 makes `DeploymentNode.Disposable` the **sole source of truth** for disposability. `VmSpec.Disposable` is retained during the Phase 1-5 transition for backward compatibility with the legacy `charly update arch` / `charly vm destroy --disk` paths, but the canonical field on any deployment entry (e.g. `deployments.images.eval-arch-vm.disposable: true`) is what the unified dispatcher reads.
 
-A latent bug was fixed alongside the refactor: `MergeDeployConfigs` previously dropped the `Disposable` and `Lifecycle` fields during project ↔ per-machine overlay merge — meaning a disposable flag on the project `deploy.yml` would vanish after merge with a user's `~/.config/ov/deploy.yml`. That's now an explicit merge (project-set OR overlay-set → true), with the same "later wins" rule when both set it.
+A latent bug was fixed alongside the refactor: `MergeDeployConfigs` previously dropped the `Disposable` and `Lifecycle` fields during project ↔ per-machine overlay merge — meaning a disposable flag on the project `deploy.yml` would vanish after merge with a user's `~/.config/charly/deploy.yml`. That's now an explicit merge (project-set OR overlay-set → true), with the same "later wins" rule when both set it.
 
 ## Why this exists
 
@@ -55,7 +55,7 @@ therefore be:
 # DEPLOY-shaped YAML (deploy.yml entry):
 
 disposable: <bool>    # LOAD-BEARING authorization. Default false.
-                      #   `true` authorizes `ov update <name>` to
+                      #   `true` authorizes `charly update <name>` to
                       #   destroy + rebuild + restart unattended.
 lifecycle: <tier>     # INFORMATIONAL ONLY. Free-form human tag.
                       #   scratch|dev|test|qa|staging|prod|custom.
@@ -98,7 +98,7 @@ Specifically:
 - `LoadDeployConfig` auto-promotes `Disposable=true` when an entry
   carries `ephemeral: ...`.
 - `DeploymentNode.IsDisposable()` returns `Disposable || IsEphemeral()`
-  so every consumer (including `ov update`) treats ephemerals as
+  so every consumer (including `charly update`) treats ephemerals as
   authorized.
 - Authoring `disposable: false` together with `ephemeral: ...` is
   contradictory; the loader rejects (or auto-promotes; bool fields
@@ -107,11 +107,11 @@ Specifically:
 
 `ephemeral:` itself is the operational counterpart to `disposable:`:
 - `disposable: true` says "this resource MAY be destroyed
-  autonomously by `ov update`" — a permission.
+  autonomously by `charly update`" — a permission.
 - `ephemeral: true` (or block form) says "this resource MUST be
   destroyed autonomously when no longer needed" — a requirement,
   enforced by the eval-runner / Gherkin (ADD) step keywords / TTL transient
-  timer registered in `ov deploy add`.
+  timer registered in `charly deploy add`.
 
 The implication arrow is one-way. Disposable resources are not
 necessarily ephemeral; ephemeral resources are always disposable.
@@ -137,8 +137,8 @@ preemptible:
 requires_exclusive: [nvidia-gpu]
 ```
 
-**How it works.** Before a claimant is brought up (`ov eval run <bed>`, or a
-standalone `ov vm create` / `ov start`), the arbiter finds every RUNNING
+**How it works.** Before a claimant is brought up (`charly eval run <bed>`, or a
+standalone `charly vm create` / `charly start`), the arbiter finds every RUNNING
 preemptible holder whose `holds:` intersects the claimant's
 `requires_exclusive:`, **gracefully stops** each (waiting until it actually
 powers off so the resource is truly released), records a crash-safe **lease**,
@@ -155,14 +155,14 @@ pure set-intersection on tokens, so the same token unifies pod-vs-VM contention.
 **Crash-safety (the restore guarantee).** A holder is NEVER left permanently
 stopped. The lease ledger (`~/.local/share/ov/preemption/leases.yml`) is written
 *before* any holder is stopped, and "restore" means "start every listed holder
-that isn't running" — so a crash at any point is recoverable. `ov preempt status`
-lists active leases and flags STRANDED ones (claimant gone); `ov preempt restore
+that isn't running" — so a crash at any point is recoverable. `charly preempt status`
+lists active leases and flags STRANDED ones (claimant gone); `charly preempt restore
 [claimant]` reconciles them (also run automatically at the next acquire).
 
 **`restore:` policy.** `always` (default) restarts the holder regardless of the
 claim's outcome — the holder MUST survive, so it comes back even if the eval
 failed. `on-success` leaves the holder stopped on a FAILED claim (for operator
-inspection); recover it with `ov preempt restore`.
+inspection); recover it with `charly preempt restore`.
 
 **Orthogonal to disposable/ephemeral — no derivation.** `preemptible` neither
 implies nor is implied by any other axis. A deploy may legitimately be BOTH
@@ -199,40 +199,40 @@ libvirt domain XML carries:
 without opening vm.yml.
 
 For container deploys, the authoritative source is `deploy.yml` —
-`ov status <name>` reflects it at runtime.
+`charly status <name>` reflects it at runtime.
 
-## `ov update <name> [-i <instance>]`
+## `charly update <name> [-i <instance>]`
 
 Resolves `<name>` as either a kind:vm entity (vm.yml) or a deploys entry
 (deploy.yml). It **NEVER refuses** on disposability: an explicit
-`ov update` rebuilds ANY target — for a non-disposable, non-ephemeral
+`charly update` rebuilds ANY target — for a non-disposable, non-ephemeral
 target it prints a one-line transparency note
 (`noteUpdateDisposability` in `ov/update_deploy_dispatch.go`) and
 proceeds. Sequence: destroy → rebuild → restart, ending in the shared
-`ov deploy add <node>` layer re-apply for every live substrate (so a
+`charly deploy add <node>` layer re-apply for every live substrate (so a
 config change — a newly-added layer or nested pod — takes effect on the
 rebuilt target). `disposable: true` stays load-bearing as the
 authorization for the **AI's AUTONOMOUS** destroy + rebuild (CLAUDE.md
 R10) and the eval-runner's unattended fresh rebuild — NOT as an
-`ov update` capability check. A human (or the AI WITH explicit
-authorization) may `ov update` a non-disposable target directly.
+`charly update` capability check. A human (or the AI WITH explicit
+authorization) may `charly update` a non-disposable target directly.
 
 ```bash
 # Disposable: the AI may run this autonomously (no human in the loop):
-ov update arch
+charly update arch
 
 # Non-disposable: the command still proceeds — with a transparency note.
 # (The AI needs explicit human authorization to run it; a human running
 #  it directly is always fine.)
-$ ov update production-api
+$ charly update production-api
 Note: "production-api" is not marked `disposable: true` (lifecycle: (unset));
-rebuilding it anyway per your explicit `ov update`.
+rebuilding it anyway per your explicit `charly update`.
 ```
 
-Flags (authoritative list: `ov update --help`):
+Flags (authoritative list: `charly update --help`):
 - `--build` — rebuild the artifact first instead of reusing it (pod:
   rebuild the image; vm: rebuild the qcow2 disk; local: n/a). Without
-  it, `ov update` redeploys the artifact already in local storage (it
+  it, `charly update` redeploys the artifact already in local storage (it
   does NOT auto-pull).
 - `--tag <calver>` — pin the image CalVer tag.
 - `-i, --instance <name>` — target a named instance.
@@ -241,10 +241,10 @@ Flags (authoritative list: `ov update --help`):
 
 ## Opting a deploy in
 
-For containers, pass `--disposable` to `ov deploy add`:
+For containers, pass `--disposable` to `charly deploy add`:
 
 ```bash
-ov deploy add my-test fedora-test --disposable --lifecycle test
+charly deploy add my-test fedora-test --disposable --lifecycle test
 ```
 
 This writes both fields to the deploy.yml entry (flags can also be
@@ -253,7 +253,7 @@ stays non-disposable — safe default.
 
 For VMs, edit `vm.yml` directly on the `kind: vm` entity. The
 `disposable: true` field lives alongside `ram:`, `cpus:`, etc. Any
-synced host picks up the change on next `ov vm create` / `ov
+synced host picks up the change on next `charly vm create` / `charly
 rebuild`.
 
 ## Multi-instance examples
@@ -277,7 +277,7 @@ deploys:
     disposable: true
 ```
 
-`ov update` itself runs on ANY of these — a human can rebuild
+`charly update` itself runs on ANY of these — a human can rebuild
 `fedora-coder-dev` directly and it proceeds with the
 `noteUpdateDisposability` transparency note (the `lifecycle: dev`
 tag is informational, never an authorization). What the
@@ -290,16 +290,16 @@ NOT authorize autonomous destroy.
 ### VMs
 
 Today, classification applies to all instances of a kind:vm entity.
-If you need per-instance overrides (e.g., `ov vm create arch -i test`
+If you need per-instance overrides (e.g., `charly vm create arch -i test`
 with different classification than `-i prod`), that requires the
-per-instance override file at `~/.local/share/ov/vm/ov-<name>-<instance>/instance.yml`
+per-instance override file at `~/.local/share/ov/vm/charly-<name>-<instance>/instance.yml`
 — planned follow-up.
 
 ### Per-host device overlay (`instance.yml` `libvirt:`)
 
 The same per-domain `~/.local/share/ov/vm/<domain>/instance.yml` also carries a
 `libvirt:` block — a per-host device overlay merged onto the `VmSpec` at
-`ov vm create` (`VmInstanceOverride.ApplyToVmSpec`, before `RenderDomainXML`).
+`charly vm create` (`VmInstanceOverride.ApplyToVmSpec`, before `RenderDomainXML`).
 Only the HOST-SPECIFIC device categories merge — `devices.hostdevs` (a PCI
 `<hostdev>` whose bus/slot address is host-specific) and `devices.filesystems`
 (a virtiofs share rooted at an absolute host path) — appended to whatever the
@@ -309,9 +309,9 @@ entities stay PORTABLE: no PCI address, no operator-home path committed (a
 card-less host simply omits the overlay, and the GPU-gated checks report N/A).
 The overlay reuses the `kind: vm` `libvirt:` schema verbatim — the block is
 identical to what `vm.yml` would carry; generate a hostdev block with
-`ov vm gpu list`. The file still also carries `disposable:` / `lifecycle:`
+`charly vm gpu list`. The file still also carries `disposable:` / `lifecycle:`
 (above), and yaml.v3 unknown-key tolerance keeps the formats independent. See
-`/ov-internals:vm-spec` (`VmSpec.Libvirt`) and `/ov-vm:vm` (GPU passthrough).
+`/charly-internals:vm-spec` (`VmSpec.Libvirt`) and `/charly-vm:vm` (GPU passthrough).
 
 ## Extensibility
 
@@ -335,20 +335,20 @@ on shared hosts.
   fully-stocked, secured box safe to destroy and rebuild — and the live surface
   you prove a high-risk assumption on BEFORE editing (RDD), never trusting a doc
   or the code for a high-risk call.
-- `/ov-eval:eval` — the 10 testing standards; disposable-only deployment
+- `/charly-eval:eval` — the 10 testing standards; disposable-only deployment
   is Standard 4, fresh-rebuild re-verification is Standard 10.
-- `/ov-vm:vms-catalog` — kind:vm schema, including `disposable:` and
+- `/charly-vm:vms-catalog` — kind:vm schema, including `disposable:` and
   `lifecycle:` fields.
-- `/ov-vm:arch` — canonical worked example.
-- `/ov-core:deploy` — `--disposable` / `--lifecycle` flags on
-  `ov deploy add`.
+- `/charly-vm:arch` — canonical worked example.
+- `/charly-core:deploy` — `--disposable` / `--lifecycle` flags on
+  `charly deploy add`.
 - `/ov:rebuild` — the rebuild verb command reference (not yet
   authored — currently living in this skill).
 
 ## When to Use This Skill
 
 **MUST be invoked** for any task that involves:
-- `ov update <name>` (determining which targets can be rebuilt
+- `charly update <name>` (determining which targets can be rebuilt
   unattended).
 - Authoring / editing `disposable:` or `lifecycle:` fields in
   vm.yml or deploy.yml.

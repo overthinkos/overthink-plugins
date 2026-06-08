@@ -27,12 +27,12 @@ layers:
 - `openclaw-full` (via `openclaw-full` metalayer)
 
 ## Related Layers
-- `/ov-coder:nodejs` -- runtime dependency
-- `/ov-openclaw:openclaw-full` -- parent metalayer that bundles oracle
+- `/charly-coder:nodejs` -- runtime dependency
+- `/charly-openclaw:openclaw-full` -- parent metalayer that bundles oracle
 
 ## Related Commands
-- `/ov-automation:openclaw-deploy` -- gateway/skill configuration
-- `/ov-core:shell` -- run oracle CLI inside the container
+- `/charly-automation:openclaw-deploy` -- gateway/skill configuration
+- `/charly-core:shell` -- run oracle CLI inside the container
 
 ## When to Use This Skill
 
@@ -43,5 +43,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

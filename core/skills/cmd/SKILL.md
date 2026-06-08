@@ -2,10 +2,10 @@
 name: cmd
 description: |
   Single command execution in a running container with D-Bus notification.
-  MUST be invoked before any work involving: ov cmd command, running commands in containers, or container exec with notifications.
+  MUST be invoked before any work involving: charly cmd command, running commands in containers, or container exec with notifications.
 ---
 
-# ov cmd -- Single Command Execution
+# charly cmd -- Single Command Execution
 
 ## Overview
 
@@ -15,21 +15,21 @@ Runs a single command inside a running container via `<engine> exec` and sends a
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Run command | `ov cmd <image> "command"` | Execute command in running container |
-| With instance | `ov cmd <image> "command" -i 2` | Target specific instance |
-| With env vars | `ov cmd <image> "command" -e KEY=VALUE` | Pass environment variables |
+| Run command | `charly cmd <image> "command"` | Execute command in running container |
+| With instance | `charly cmd <image> "command" -i 2` | Target specific instance |
+| With env vars | `charly cmd <image> "command" -e KEY=VALUE` | Pass environment variables |
 
 ## Usage
 
 ```bash
 # Run a command in a running container
-ov cmd fedora "uname -a"
+charly cmd fedora "uname -a"
 
 # Run with environment variables
-ov cmd jupyter "python script.py" -e CUDA_VISIBLE_DEVICES=0
+charly cmd jupyter "python script.py" -e CUDA_VISIBLE_DEVICES=0
 
 # Target a specific instance
-ov cmd ollama "ollama list" -i 2
+charly cmd ollama "ollama list" -i 2
 ```
 
 ## Flags
@@ -41,16 +41,16 @@ ov cmd ollama "ollama list" -i 2
 
 ## Behavior
 
-- The container must already be running (`ov start <image>`)
+- The container must already be running (`charly start <image>`)
 - Agent forwarding (SSH/GPG) env vars are injected automatically if enabled
 - A D-Bus desktop notification is sent on command completion (success or failure)
-- For interactive shells, use `ov shell` instead
-- For persistent sessions or long-running commands, use `ov tmux cmd`
+- For interactive shells, use `charly shell` instead
+- For persistent sessions or long-running commands, use `charly tmux cmd`
 
 ## Cross-References
 
-- `/ov-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
+- `/charly-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
-- `/ov-core:shell` -- Interactive shell sessions with workspace mounts
-- `/ov-eval:dbus` -- D-Bus interaction inside containers
-- `/ov-automation:tmux` -- Persistent tmux sessions for long-running commands
+- `/charly-core:shell` -- Interactive shell sessions with workspace mounts
+- `/charly-eval:dbus` -- D-Bus interaction inside containers
+- `/charly-automation:tmux` -- Persistent tmux sessions for long-running commands

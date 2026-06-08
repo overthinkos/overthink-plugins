@@ -2,10 +2,10 @@
 name: remove
 description: |
   Remove service container, quadlet file, and deploy.yml entry.
-  MUST be invoked before any work involving: ov remove command, cleaning up containers, removing quadlets, or purging volumes.
+  MUST be invoked before any work involving: charly remove command, cleaning up containers, removing quadlets, or purging volumes.
 ---
 
-# ov remove -- Remove Service Container
+# charly remove -- Remove Service Container
 
 ## Overview
 
@@ -15,25 +15,25 @@ Removes a service container along with its quadlet file and deploy.yml entry. Op
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Remove container | `ov remove <image>` | Remove container, quadlet, and deploy entry |
-| Purge volumes | `ov remove <image> --purge` | Also remove named volumes |
-| Keep deploy entry | `ov remove <image> --keep-deploy` | Keep deploy.yml entry for re-configuration |
-| With env vars | `ov remove <image> -e KEY=VALUE` | Pass env vars to pre_remove hooks |
+| Remove container | `charly remove <image>` | Remove container, quadlet, and deploy entry |
+| Purge volumes | `charly remove <image> --purge` | Also remove named volumes |
+| Keep deploy entry | `charly remove <image> --keep-deploy` | Keep deploy.yml entry for re-configuration |
+| With env vars | `charly remove <image> -e KEY=VALUE` | Pass env vars to pre_remove hooks |
 
 ## Usage
 
 ```bash
 # Remove a service (container + quadlet + deploy.yml entry)
-ov remove jupyter
+charly remove jupyter
 
 # Remove and purge all named volumes
-ov remove ollama --purge
+charly remove ollama --purge
 
 # Remove but keep deploy.yml entry for later re-configuration
-ov remove immich --keep-deploy
+charly remove immich --keep-deploy
 
 # Pass environment variables to pre_remove hooks
-ov remove openclaw -e CLEANUP_MODE=full
+charly remove openclaw -e CLEANUP_MODE=full
 ```
 
 ## Flags
@@ -41,7 +41,7 @@ ov remove openclaw -e CLEANUP_MODE=full
 | Flag | Description |
 |------|-------------|
 | `--purge` | Also remove named volumes associated with the image |
-| `--keep-deploy` | Preserve the deploy.yml entry (useful for re-running `ov config`) |
+| `--keep-deploy` | Preserve the deploy.yml entry (useful for re-running `charly config`) |
 | `-e, --env KEY=VALUE` | Pass environment variables to pre_remove lifecycle hooks |
 
 ## Behavior
@@ -61,18 +61,18 @@ Images can define `pre_remove` hooks that run before the container is removed. T
 Remove specific instances with `-i`:
 
 ```bash
-ov remove selkies-desktop -i 192.241.92.221          # Remove instance
-ov remove selkies-desktop -i 192.241.92.221 --purge  # Also purge volumes
+charly remove selkies-desktop -i 192.241.92.221          # Remove instance
+charly remove selkies-desktop -i 192.241.92.221 --purge  # Also purge volumes
 ```
 
 Instance removal automatically cleans the instance's `env_provide` and `mcp_provide` from `deploy.yml` provides section. Other instances of the same base image are unaffected.
 
 ## Cross-References
 
-- `/ov-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
+- `/charly-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
-- `/ov-core:stop` -- Stop without removing
-- `/ov-core:ov-config` -- Configure/reconfigure services (see "Full instance removal" for 3-step cleanup)
-- `/ov-core:deploy` -- Deploy.yml management, tunnel configuration
-- `/ov-core:service` -- Full service lifecycle
-- `/ov-build:ov-mcp-cmd` -- after `ov config remove` cleans this instance's `mcp_provide` from the global `provides.mcp:` list, consumers' `OV_MCP_SERVERS` no longer lists it; use `ov eval mcp servers <consumer>` to confirm the cleanup propagated
+- `/charly-core:stop` -- Stop without removing
+- `/charly-core:ov-config` -- Configure/reconfigure services (see "Full instance removal" for 3-step cleanup)
+- `/charly-core:deploy` -- Deploy.yml management, tunnel configuration
+- `/charly-core:service` -- Full service lifecycle
+- `/charly-build:ov-mcp-cmd` -- after `charly config remove` cleans this instance's `mcp_provide` from the global `provides.mcp:` list, consumers' `OV_MCP_SERVERS` no longer lists it; use `charly eval mcp servers <consumer>` to confirm the cleanup propagated

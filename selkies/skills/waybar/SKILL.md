@@ -29,9 +29,9 @@ Unified config shared with the `waybar-labwc` layer (Catppuccin Mocha, bottom ba
 
 | Position | Module | Purpose |
 |----------|--------|---------|
-| Left | `custom/chrome` | (Re)start Chrome button — calls `chrome-restart` (see `/ov-selkies:chrome`) |
+| Left | `custom/chrome` | (Re)start Chrome button — calls `chrome-restart` (see `/charly-selkies:chrome`) |
 | Center | `wlr/taskbar` | Running app icons — click to activate, middle-click to close, right-click to minimize |
-| Right | `custom/notification` | swaync notification toggle — click to open notification panel (see `/ov-selkies:swaync`) |
+| Right | `custom/notification` | swaync notification toggle — click to open notification panel (see `/charly-selkies:swaync`) |
 
 ### Style
 
@@ -46,19 +46,19 @@ Catppuccin Mocha theme — semi-transparent dark background, JetBrains Mono + Sy
 
 ## Used In Images
 
-Part of `/ov-selkies:sway-desktop` composition.
+Part of `/charly-selkies:sway-desktop` composition.
 
 ## Related Layers
 
-- `/ov-selkies:sway` -- compositor dependency
-- `/ov-selkies:sway-desktop` -- composition that includes waybar
-- `/ov-selkies:swaync` -- notification daemon (notification bell module)
-- `/ov-selkies:pavucontrol` -- volume control (pulseaudio on-click)
-- `/ov-selkies:desktop-fonts` -- JetBrains Mono + Nerd Font icons
+- `/charly-selkies:sway` -- compositor dependency
+- `/charly-selkies:sway-desktop` -- composition that includes waybar
+- `/charly-selkies:swaync` -- notification daemon (notification bell module)
+- `/charly-selkies:pavucontrol` -- volume control (pulseaudio on-click)
+- `/charly-selkies:desktop-fonts` -- JetBrains Mono + Nerd Font icons
 
 ## Related Commands
-- `/ov-eval:wl` — interact with the Wayland session hosting waybar
-- `/ov-core:shell` — restart waybar via supervisorctl
+- `/charly-eval:wl` — interact with the Wayland session hosting waybar
+- `/charly-core:shell` — restart waybar via supervisorctl
 
 ## When to Use This Skill
 
@@ -71,5 +71,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

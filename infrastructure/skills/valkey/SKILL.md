@@ -27,11 +27,11 @@ description: |
 
 | Variable | Template Value | Resolved Example |
 |----------|---------------|-----------------|
-| `REDIS_URL` | `redis://{{.ContainerName}}:6379` | `redis://ov-valkey:6379` |
+| `REDIS_URL` | `redis://{{.ContainerName}}:6379` | `redis://charly-valkey:6379` |
 
-Pod-aware: same-container consumers receive `redis://localhost:6379`, cross-container consumers receive `redis://ov-valkey:6379`. When `ov config` runs, `REDIS_URL` is automatically injected into the global `deploy.yml` env for service discovery (Redis-compatible protocol).
+Pod-aware: same-container consumers receive `redis://localhost:6379`, cross-container consumers receive `redis://charly-valkey:6379`. When `charly config` runs, `REDIS_URL` is automatically injected into the global `deploy.yml` env for service discovery (Redis-compatible protocol).
 
-See `/ov-image:layer` for `env_provide` field docs.
+See `/charly-image:layer` for `env_provide` field docs.
 
 ## Packages
 
@@ -50,11 +50,11 @@ my-app:
 
 ## Related Layers
 
-- `/ov-infrastructure:redis` -- Redis alternative (same port 6379)
+- `/charly-infrastructure:redis` -- Redis alternative (same port 6379)
 
 ## Used In Images
 
-- `/ov-distros:valkey-test` (disabled image)
+- `/charly-distros:valkey-test` (disabled image)
 
 ## When to Use This Skill
 
@@ -66,5 +66,5 @@ Use when the user asks about:
 
 ## Author + Test References
 
-- `/ov-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
-- `/ov-eval:eval` — declarative testing framework for the `eval:` block
+- `/charly-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
+- `/charly-eval:eval` — declarative testing framework for the `eval:` block

@@ -42,7 +42,7 @@ These env vars are declared via `env_accept:` in `candy.yml` — hermes can use 
 | `DISCORD_BOT_TOKEN` | Discord bot token |
 | `OV_MCP_SERVERS` | JSON array of MCP servers (auto-injected by mcp_provide layers) |
 
-Provide via `ov config hermes -e OLLAMA_API_KEY=...` or workspace `.secrets` / `.env` file.
+Provide via `charly config hermes -e OLLAMA_API_KEY=...` or workspace `.secrets` / `.env` file.
 
 ## Automatic LLM Provider Configuration
 
@@ -56,7 +56,7 @@ The `hermes-entrypoint` performs a **single-phase, first-start-only** configurat
 
 **How it works:**
 - **First start:** Registers ALL providers whose env vars are set into `config.yaml` as `custom_providers` entries, and configures any discovered MCP servers from `OV_MCP_SERVERS` (e.g., `jupyter` at `:8888/mcp`, `chrome-devtools` at `:9224/mcp`). Priority determines only the default model and auxiliary task routing. Writes a `# ov:auto-configured` sentinel to prevent re-patching after user customization
-- **Key insight:** When new MCP servers are added to `OV_MCP_SERVERS` after initial configuration, hermes will NOT pick them up automatically. Delete `config.yaml` and restart: `ov shell <image> -c "rm /opt/data/config.yaml" && ov service restart <image> hermes`
+- **Key insight:** When new MCP servers are added to `OV_MCP_SERVERS` after initial configuration, hermes will NOT pick them up automatically. Delete `config.yaml` and restart: `charly shell <image> -c "rm /opt/data/config.yaml" && charly service restart <image> hermes`
 - **Every start:** Syncs API keys to `.env` to handle key rotation
 - Override the default model with `HERMES_MODEL` env var
 - Switch between registered providers mid-session: `/model custom:ollama-cloud:kimi-k2.5:cloud` or `hermes chat --provider openrouter`
@@ -115,13 +115,13 @@ Hermes has browser tools (`browser_navigate`, `browser_click`, `browser_snapshot
 | 3 | Browserbase configured | Cloud session | Remote cloud browser |
 | 4 | *(default)* | Local headless (`agent-browser --session`) | Requires Playwright Chromium |
 
-**Cross-container with selkies-desktop:** Deploy `hermes` alongside `selkies-desktop` as separate pods. The chrome layer's `env_provide: BROWSER_CDP_URL` injects `http://ov-selkies-desktop:9222` into the hermes quadlet via `ov config --update-all`. Hermes uses the desktop Chrome — the user sees hermes browsing in real-time at `:3000`. The `cdp-proxy` in the chrome layer rewrites Host headers for Chrome 146+ compatibility.
+**Cross-container with selkies-desktop:** Deploy `hermes` alongside `selkies-desktop` as separate pods. The chrome layer's `env_provide: BROWSER_CDP_URL` injects `http://charly-selkies-desktop:9222` into the hermes quadlet via `charly config --update-all`. Hermes uses the desktop Chrome — the user sees hermes browsing in real-time at `:3000`. The `cdp-proxy` in the chrome layer rewrites Host headers for Chrome 146+ compatibility.
 
 **In standalone images** (`hermes-playwright`): The `hermes-playwright` layer provides Playwright Chromium for local headless mode (backend #4).
 
 **In headless images** (`hermes`): No browser binary installed. Browser tools fail unless `BROWSER_CDP_URL` points to an external Chrome (cross-container via `env_provide`).
 
-**Cross-container:** Deploy Chrome/Selkies in one container and hermes in another. `ov config` injects `BROWSER_CDP_URL=http://ov-<chrome-image>:9222` into hermes's quadlet via `env_provide`. Port 9222 is reachable via the chrome layer's `port_relay`.
+**Cross-container:** Deploy Chrome/Selkies in one container and hermes in another. `charly config` injects `BROWSER_CDP_URL=http://charly-<chrome-image>:9222` into hermes's quadlet via `env_provide`. Port 9222 is reachable via the chrome layer's `port_relay`.
 
 Runtime commands: `/browser connect [url]`, `/browser disconnect`, `/browser status`.
 
@@ -129,7 +129,7 @@ Runtime commands: `/browser connect [url]`, `/browser disconnect`, `/browser sta
 
 The WhatsApp bridge is a separate Node.js service with `autostart=false` in supervisord. Enable via:
 ```bash
-ov service start hermes hermes-whatsapp
+charly service start hermes hermes-whatsapp
 ```
 
 ## Excluded Dependencies
@@ -152,29 +152,29 @@ hermes:
 
 ## Related Layers
 
-- `/ov-coder:nodejs` -- Node.js runtime dependency
-- `/ov-infrastructure:supervisord` -- process manager dependency
-- `/ov-tools:ripgrep` -- fast search dependency
-- `/ov-selkies:ffmpeg` -- audio/video processing (negativo17 nonfree codecs)
-- `/ov-selkies:pipewire` -- audio support for voice features
-- `/ov-hermes:hermes-playwright` -- optional Playwright Chromium browser (standalone headless mode)
-- `/ov-selkies:chrome` -- provides `BROWSER_CDP_URL` via `env_provide` for shared browser in desktop images
-- `/ov-jupyter:jupyter` -- MCP server provider (`mcp_provide: jupyter`)
-- `/ov-selkies:chrome-devtools-mcp` -- Chrome DevTools MCP server (`mcp_provide: chrome-devtools`, 29 tools)
+- `/charly-coder:nodejs` -- Node.js runtime dependency
+- `/charly-infrastructure:supervisord` -- process manager dependency
+- `/charly-tools:ripgrep` -- fast search dependency
+- `/charly-selkies:ffmpeg` -- audio/video processing (negativo17 nonfree codecs)
+- `/charly-selkies:pipewire` -- audio support for voice features
+- `/charly-hermes:hermes-playwright` -- optional Playwright Chromium browser (standalone headless mode)
+- `/charly-selkies:chrome` -- provides `BROWSER_CDP_URL` via `env_provide` for shared browser in desktop images
+- `/charly-jupyter:jupyter` -- MCP server provider (`mcp_provide: jupyter`)
+- `/charly-selkies:chrome-devtools-mcp` -- Chrome DevTools MCP server (`mcp_provide: chrome-devtools`, 29 tools)
 
 ## Related Commands
 
-- `/ov-eval:cdp` — CDP automation; hermes uses the same Chrome endpoint via `BROWSER_CDP_URL`
-- `/ov-core:ov-config` — Injects `BROWSER_CDP_URL` and `OV_MCP_SERVERS` via pod-aware `env_provide`/`mcp_provide`
-- `/ov-build:ov-mcp-cmd` — verify that the MCP servers hermes discovers (`jupyter`, `chrome-devtools`) are alive and exposing expected tools before hermes tries to call them: `ov eval mcp ping jupyter`, `ov eval mcp list-tools <image>`. Useful when hermes reports tool-call failures and you need to isolate whether the server or the agent is at fault.
+- `/charly-eval:cdp` — CDP automation; hermes uses the same Chrome endpoint via `BROWSER_CDP_URL`
+- `/charly-core:ov-config` — Injects `BROWSER_CDP_URL` and `OV_MCP_SERVERS` via pod-aware `env_provide`/`mcp_provide`
+- `/charly-build:ov-mcp-cmd` — verify that the MCP servers hermes discovers (`jupyter`, `chrome-devtools`) are alive and exposing expected tools before hermes tries to call them: `charly eval mcp ping jupyter`, `charly eval mcp list-tools <image>`. Useful when hermes reports tool-call failures and you need to isolate whether the server or the agent is at fault.
 
 ## Related Images
 
-- `/ov-hermes:hermes` -- full-featured standalone (claude-code + codex + gemini + dev-tools + devops-tools + ov)
-- `/ov-hermes:hermes-playwright` -- agent with Playwright Chromium (standalone headless)
-- `/ov-openwebui:openwebui` -- alternative web UI frontend with similar MCP/LLM auto-config pattern
-- `/ov-selkies:selkies-labwc` -- deploy alongside for shared Chrome browser (cross-container CDP)
-- `/ov-jupyter:jupyter` -- deploy alongside for MCP notebook access (cross-container MCP)
+- `/charly-hermes:hermes` -- full-featured standalone (claude-code + codex + gemini + dev-tools + devops-tools + ov)
+- `/charly-hermes:hermes-playwright` -- agent with Playwright Chromium (standalone headless)
+- `/charly-openwebui:openwebui` -- alternative web UI frontend with similar MCP/LLM auto-config pattern
+- `/charly-selkies:selkies-labwc` -- deploy alongside for shared Chrome browser (cross-container CDP)
+- `/charly-jupyter:jupyter` -- deploy alongside for MCP notebook access (cross-container MCP)
 
 ## When to Use This Skill
 
@@ -182,5 +182,5 @@ hermes:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

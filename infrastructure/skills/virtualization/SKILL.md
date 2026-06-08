@@ -44,7 +44,7 @@ service:
     scope: system
 ```
 
-Why this matters: a `<name>-host` sibling layer would duplicate package lists, eval probes, and tasks for systemd targets, and drift between the two siblings would be inevitable. The mixed-entry pattern eliminates the sibling — ONE layer covers both contexts; the schema does the polymorphism. See CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the rule and `/ov-image:layer` "Service Declaration" → "Anti-pattern: `<name>-host` / `<name>-pod` sibling layers" for what NOT to do.
+Why this matters: a `<name>-host` sibling layer would duplicate package lists, eval probes, and tasks for systemd targets, and drift between the two siblings would be inevitable. The mixed-entry pattern eliminates the sibling — ONE layer covers both contexts; the schema does the polymorphism. See CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the rule and `/charly-image:layer` "Service Declaration" → "Anti-pattern: `<name>-host` / `<name>-pod` sibling layers" for what NOT to do.
 
 ## Overview
 
@@ -61,7 +61,7 @@ work end-to-end from a rootless outer container.
 |----------|-------|
 | `require:` | `supervisord` |
 | Services registered | `virtqemud` (priority 5), `virtnetworkd` (priority 6) |
-| Devices | `/dev/kvm` is required by consumers; declared at the image level or via `/ov-distros:container-nesting` |
+| Devices | `/dev/kvm` is required by consumers; declared at the image level or via `/charly-distros:container-nesting` |
 
 ## Packages (RPM)
 
@@ -129,17 +129,17 @@ Priority 5/6 places both daemons ahead of every desktop program
 (labwc=12, selkies=18) so the session socket is available by the time
 any later service or shell tries to connect.
 
-See `/ov-build:generate` for the supervisord `fragment_assembly` init model
+See `/charly-build:generate` for the supervisord `fragment_assembly` init model
 that emits these program blocks into `.build/<image>/supervisor/NN-virtualization.conf`.
 
 ## Rootless libvirt — `qemu:///session`
 
-`ov/vm.go:22` already hardcodes `qemu:///session` as the ov default.
+`ov/vm.go:22` already hardcodes `qemu:///session` as the charly default.
 This layer makes that URI actually work inside a container at uid
 1000:
 
 - No `CAP_SYS_ADMIN` required on the outer container.
-- No `security_opt` relaxation beyond what `/ov-distros:container-nesting` contributes (and even that isn't needed for VMs alone).
+- No `security_opt` relaxation beyond what `/charly-distros:container-nesting` contributes (and even that isn't needed for VMs alone).
 - Only `/dev/kvm` must be passed through. On the host, it's typically
   `crw-rw-rw-` (world-readable/writable), so any uid that can `open()` it
   gets KVM acceleration.
@@ -149,7 +149,7 @@ This layer makes that URI actually work inside a container at uid
 
 ## Tests baked into the layer
 
-**Build-scope (run by `ov eval box <image>` without deploying):**
+**Build-scope (run by `charly eval box <image>` without deploying):**
 
 - `virtqemud-package` / `virtnetworkd-package` — package-existence probes using `package:` + `package_map:` (see below).
 - `virsh-binary` — `/usr/bin/virsh` exists.
@@ -172,9 +172,9 @@ The fix probes package presence with distro-specific names:
   installed: true
 ```
 
-See `/ov-eval:eval` "`package:` + `package_map:` pattern" for the resolution order (tag > base name > fallback).
+See `/charly-eval:eval` "`package:` + `package_map:` pattern" for the resolution order (tag > base name > fallback).
 
-**Deploy-scope (run against a live `ov start`ed container):**
+**Deploy-scope (run against a live `charly start`ed container):**
 
 - `virtqemud-running` — supervisorctl reports RUNNING.
 - `virtnetworkd-running` — supervisorctl reports RUNNING.
@@ -188,11 +188,11 @@ See `/ov-eval:eval` "`package:` + `package_map:` pattern" for the resolution ord
 openclaw-desktop:
   layers:
     - ...
-    - ov                  # the full toolchain — pulls virtualization
+    - charly                  # the full toolchain — pulls virtualization
     - container-nesting   # donates /dev/fuse + /dev/net/tun devices (VMs only need /dev/kvm)
 ```
 
-`/dev/kvm` is auto-detected at `ov shell`/`ov start` time by
+`/dev/kvm` is auto-detected at `charly shell`/`charly start` time by
 `ov/devices.go` (scans `/dev/kvm`, `/dev/fuse`, `/dev/dri/renderD*`,
 `/dev/net/tun`, `/dev/vhost-*`, `/dev/hwrng`) — no image-level
 `security.devices:` entry needed for the typical deployment.
@@ -200,7 +200,7 @@ openclaw-desktop:
 ## Composition chain
 
 The `ov` layer (the full toolchain) composes `virtualization` (this layer) +
-the ov binary + `gocryptfs` + `socat` + `podman-machine` + `gvisor-tap-vsock`.
+the charly binary + `gocryptfs` + `socat` + `podman-machine` + `gvisor-tap-vsock`.
 So any image that pulls `ov` automatically gets the supervisord-managed
 virtqemud/virtnetworkd programs.
 
@@ -212,26 +212,26 @@ Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networ
 
 ## Used In Images
 
-- `/ov-openclaw:openclaw-desktop` — rootless VM host inside a streaming desktop
-- `/ov-distros:fedora-ov` — root VM host (same daemons, uid 0)
-- `/ov-coder:arch-ov` — Arch counterpart
-- `/ov-coder:debian-coder`, `/ov-coder:ubuntu-coder` — deb-based consumers (via the `ov` layer)
-- `/ov-distros:githubrunner` — VMs for CI workloads
-- `/ov-distros:aurora`, `/ov-distros:bazzite` — bootc siblings
+- `/charly-openclaw:openclaw-desktop` — rootless VM host inside a streaming desktop
+- `/charly-distros:fedora-ov` — root VM host (same daemons, uid 0)
+- `/charly-coder:arch-ov` — Arch counterpart
+- `/charly-coder:debian-coder`, `/charly-coder:ubuntu-coder` — deb-based consumers (via the `ov` layer)
+- `/charly-distros:githubrunner` — VMs for CI workloads
+- `/charly-distros:aurora`, `/charly-distros:bazzite` — bootc siblings
 
 ## Related Layers
 
-- `/ov-tools:ov` — the full toolchain that pulls this layer into ov-toolchain images
-- `/ov-distros:container-nesting` — pairs with this layer for images that need both nested containers AND nested VMs; also donates `/dev/kvm`-adjacent devices
-- `/ov-infrastructure:socat` — part of the `ov` layer alongside virtualization; used for VM console/hostfwd relays
-- `/ov-infrastructure:gocryptfs` — part of the `ov` layer; for encrypting VM disk storage
+- `/charly-tools:charly` — the full toolchain that pulls this layer into ov-toolchain images
+- `/charly-distros:container-nesting` — pairs with this layer for images that need both nested containers AND nested VMs; also donates `/dev/kvm`-adjacent devices
+- `/charly-infrastructure:socat` — part of the `ov` layer alongside virtualization; used for VM console/hostfwd relays
+- `/charly-infrastructure:gocryptfs` — part of the `ov` layer; for encrypting VM disk storage
 
 ## Related Commands
 
-- `/ov-vm:vm` — VM lifecycle (build, create, start, stop, ssh, console, destroy); defaults to `qemu:///session` at ov/vm.go:22
-- `/ov-build:generate` — Containerfile generation; emits the supervisord `NN-virtualization.conf` fragment via `fragment_assembly` init model
-- `/ov-image:layer` — layer authoring reference (tasks, vars, service blocks, tests syntax)
-- `/ov-eval:eval` — declarative testing framework for the layer's `eval:` block (file, service, command verbs)
+- `/charly-vm:vm` — VM lifecycle (build, create, start, stop, ssh, console, destroy); defaults to `qemu:///session` at ov/vm.go:22
+- `/charly-build:generate` — Containerfile generation; emits the supervisord `NN-virtualization.conf` fragment via `fragment_assembly` init model
+- `/charly-image:layer` — layer authoring reference (tasks, vars, service blocks, tests syntax)
+- `/charly-eval:eval` — declarative testing framework for the layer's `eval:` block (file, service, command verbs)
 
 ## When to Use This Skill
 
@@ -242,7 +242,7 @@ Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networ
   most common causes are supervisord not yet started the daemons (check
   `supervisorctl status virtqemud`) or `/dev/kvm` not passed through
   (check `ls -la /dev/kvm` inside the container).
-- Running `ov vm` from inside a rootless container (the
+- Running `charly vm` from inside a rootless container (the
   supervisord-managed daemons here are what makes that work).
 - Understanding why this layer is a service provider, not just a
   package installer — it ships the supervisord programs + `requires:

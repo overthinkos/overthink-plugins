@@ -33,12 +33,12 @@ layers:
 
 
 ## Related Layers
-- `/ov-tools:whisper` -- speech-to-text counterpart
-- `/ov-tools:sag` -- ElevenLabs TTS alternative
+- `/charly-tools:whisper` -- speech-to-text counterpart
+- `/charly-tools:sag` -- ElevenLabs TTS alternative
 
 ## Related Commands
-- `/ov-core:shell` -- run sherpa-onnx CLI inside the container
-- `/ov-automation:openclaw-deploy` -- TTS skill registration in OpenClaw
+- `/charly-core:shell` -- run sherpa-onnx CLI inside the container
+- `/charly-automation:openclaw-deploy` -- TTS skill registration in OpenClaw
 
 ## When to Use This Skill
 
@@ -50,5 +50,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

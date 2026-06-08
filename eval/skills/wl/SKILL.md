@@ -1,55 +1,55 @@
 ---
 name: wl
 description: |
-  MUST be invoked before any work involving: Wayland desktop automation — `ov eval wl` commands (screenshots, click/type/scroll/drag, window management, clipboard, resolution control, AT-SPI2 introspection, window geometry), nested `wl sway` / `wl overlay` subcommands, or `wl:` declarative verbs inside `eval:` blocks. Covers sway-desktop and selkies-desktop image automation on sway, labwc, AND KWin (KDE Plasma) — window management routes to wlrctl on wlroots and kdotool on KWin.
+  MUST be invoked before any work involving: Wayland desktop automation — `charly eval wl` commands (screenshots, click/type/scroll/drag, window management, clipboard, resolution control, AT-SPI2 introspection, window geometry), nested `wl sway` / `wl overlay` subcommands, or `wl:` declarative verbs inside `eval:` blocks. Covers sway-desktop and selkies-desktop image automation on sway, labwc, AND KWin (KDE Plasma) — window management routes to wlrctl on wlroots and kdotool on KWin.
 ---
 
 # WL - Wayland Desktop Automation
 
 ## Overview
 
-`ov eval wl` is the unified desktop automation command for wlroots compositors (sway, labwc) **and KWin (KDE Plasma)**. It provides screenshots, input (click, type, key combos, scroll, drag), window management, clipboard, resolution control, accessibility introspection (AT-SPI2), and window geometry queries. Works on sway-desktop, selkies-desktop (labwc), and selkies-kde-desktop (KWin) images.
+`charly eval wl` is the unified desktop automation command for wlroots compositors (sway, labwc) **and KWin (KDE Plasma)**. It provides screenshots, input (click, type, key combos, scroll, drag), window management, clipboard, resolution control, accessibility introspection (AT-SPI2), and window geometry queries. Works on sway-desktop, selkies-desktop (labwc), and selkies-kde-desktop (KWin) images.
 
 **Per-compositor routing.** `detectCompositor` picks the backend per method. On wlroots: `wlrctl` (pointer + `wlrctl toplevel` window management), `wlr-randr` (resolution). On **KWin**: window management (toplevel/windows/focus/close/fullscreen/minimize/geometry) via **`kdotool`** (KWin scripting), keyboard via `wtype`, clipboard via `wl-clipboard`, screenshot via `pixelflux`; `status` reports `compositor: kwin`. KWin **pointer** (click/double-click/mouse/scroll/drag) and **resolution** have no host-safe backend on the headless nested KWin and return a clear "unsupported on KWin" error (not a hang) — see the Compositor Compatibility table below.
 
 ### Also as a declarative verb
 
-Every `ov eval wl <method>` (including nested `wl overlay <method>` and `wl sway <method>`) is authorable as a `wl:` verb inside a `eval:` block. Nested subcommands are hyphenated in YAML: `wl: overlay-show`, `wl: sway-tree`, `wl: sway-workspaces`. Method-specific fields (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) are siblings of the verb line. See `/ov-eval:eval` for the full method allowlist. Example: `- wl: screenshot\n  artifact: /tmp/desktop.png\n  artifact_min_bytes: 10000`.
+Every `charly eval wl <method>` (including nested `wl overlay <method>` and `wl sway <method>`) is authorable as a `wl:` verb inside a `eval:` block. Nested subcommands are hyphenated in YAML: `wl: overlay-show`, `wl: sway-tree`, `wl: sway-workspaces`. Method-specific fields (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) are siblings of the verb line. See `/charly-eval:eval` for the full method allowlist. Example: `- wl: screenshot\n  artifact: /tmp/desktop.png\n  artifact_min_bytes: 10000`.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Screenshot | `ov eval wl screenshot <image> [file]` | Capture desktop as PNG via grim |
-| Click | `ov eval wl click <image> <x> <y>` | Click at absolute coordinates via wlrctl |
-| Double-click | `ov eval wl double-click <image> <x> <y>` | Double-click with configurable delay |
-| Type text | `ov eval wl type <image> <text>` | Send keyboard input via wtype |
-| Send key | `ov eval wl key <image> <key-name>` | Press a named key via wtype |
-| Key combo | `ov eval wl key-combo <image> <keys>` | Send key combination (ctrl+c, alt+tab) |
-| Move mouse | `ov eval wl mouse <image> <x> <y>` | Move pointer to absolute coordinates |
-| Scroll | `ov eval wl scroll <image> <x> <y> <dir>` | Scroll at coordinates (up/down/left/right) |
-| Drag | `ov eval wl drag <image> <x1> <y1> <x2> <y2>` | Drag between coordinates (experimental) |
-| List windows | `ov eval wl windows <image>` | List windows (wlrctl toplevel, xdotool fallback) |
-| List toplevel | `ov eval wl toplevel <image>` | List Wayland toplevel windows via wlrctl |
-| Focus window | `ov eval wl focus <image> <title>` | Focus window (wlrctl toplevel, xdotool fallback) |
-| Close window | `ov eval wl close <image> <title>` | Close window via wlrctl toplevel |
-| Fullscreen | `ov eval wl fullscreen <image> <title>` | Toggle fullscreen via wlrctl toplevel |
-| Minimize | `ov eval wl minimize <image> <title>` | Toggle minimize via wlrctl toplevel |
-| Launch app | `ov eval wl exec <image> <command>` | Launch application in container |
-| Resolution | `ov eval wl resolution <image> <WxH>` | Set output resolution via wlr-randr |
-| Clipboard | `ov eval wl clipboard <image> get/set/clear` | Read/write Wayland clipboard |
-| Window props | `ov eval wl xprop <image> [target]` | Query X11 window properties |
-| Window rect | `ov eval wl geometry <image> <target>` | Get window position/size as JSON |
-| A11y tree | `ov eval wl atspi <image> tree` | Dump accessibility tree as JSON |
-| A11y find | `ov eval wl atspi <image> find <query>` | Find elements by name/role |
-| A11y click | `ov eval wl atspi <image> click <query>` | Click element by name/role |
-| Status | `ov eval wl status <image>` | Check all tool availability |
-| Overlay show | `ov eval wl overlay show <image> --type text --text "Hello"` | Show recording overlay (see `/ov-eval:wl-overlay`) |
-| Overlay hide | `ov eval wl overlay hide <image> --all` | Remove all overlays |
+| Screenshot | `charly eval wl screenshot <image> [file]` | Capture desktop as PNG via grim |
+| Click | `charly eval wl click <image> <x> <y>` | Click at absolute coordinates via wlrctl |
+| Double-click | `charly eval wl double-click <image> <x> <y>` | Double-click with configurable delay |
+| Type text | `charly eval wl type <image> <text>` | Send keyboard input via wtype |
+| Send key | `charly eval wl key <image> <key-name>` | Press a named key via wtype |
+| Key combo | `charly eval wl key-combo <image> <keys>` | Send key combination (ctrl+c, alt+tab) |
+| Move mouse | `charly eval wl mouse <image> <x> <y>` | Move pointer to absolute coordinates |
+| Scroll | `charly eval wl scroll <image> <x> <y> <dir>` | Scroll at coordinates (up/down/left/right) |
+| Drag | `charly eval wl drag <image> <x1> <y1> <x2> <y2>` | Drag between coordinates (experimental) |
+| List windows | `charly eval wl windows <image>` | List windows (wlrctl toplevel, xdotool fallback) |
+| List toplevel | `charly eval wl toplevel <image>` | List Wayland toplevel windows via wlrctl |
+| Focus window | `charly eval wl focus <image> <title>` | Focus window (wlrctl toplevel, xdotool fallback) |
+| Close window | `charly eval wl close <image> <title>` | Close window via wlrctl toplevel |
+| Fullscreen | `charly eval wl fullscreen <image> <title>` | Toggle fullscreen via wlrctl toplevel |
+| Minimize | `charly eval wl minimize <image> <title>` | Toggle minimize via wlrctl toplevel |
+| Launch app | `charly eval wl exec <image> <command>` | Launch application in container |
+| Resolution | `charly eval wl resolution <image> <WxH>` | Set output resolution via wlr-randr |
+| Clipboard | `charly eval wl clipboard <image> get/set/clear` | Read/write Wayland clipboard |
+| Window props | `charly eval wl xprop <image> [target]` | Query X11 window properties |
+| Window rect | `charly eval wl geometry <image> <target>` | Get window position/size as JSON |
+| A11y tree | `charly eval wl atspi <image> tree` | Dump accessibility tree as JSON |
+| A11y find | `charly eval wl atspi <image> find <query>` | Find elements by name/role |
+| A11y click | `charly eval wl atspi <image> click <query>` | Click element by name/role |
+| Status | `charly eval wl status <image>` | Check all tool availability |
+| Overlay show | `charly eval wl overlay show <image> --type text --text "Hello"` | Show recording overlay (see `/charly-eval:wl-overlay`) |
+| Overlay hide | `charly eval wl overlay hide <image> --all` | Remove all overlays |
 
 ## Compositor Compatibility
 
-Backend availability per compositor (`ov eval wl` routes to the available one):
+Backend availability per compositor (`charly eval wl` routes to the available one):
 
 | Tool | Protocol | sway | labwc (selkies) | KWin (KDE Plasma) |
 |------|----------|------|-----------------|-------------------|
@@ -99,102 +99,102 @@ Uses `exec` into the container. All tools use native Wayland protocols — no da
 
 ### Key Combo
 ```bash
-ov eval wl key-combo my-app ctrl+c          # Ctrl+C
-ov eval wl key-combo my-app alt+tab         # Alt+Tab
-ov eval wl key-combo my-app ctrl+shift+t    # Ctrl+Shift+T
-ov eval wl key-combo my-app super+l         # Super+L (lock)
+charly eval wl key-combo my-app ctrl+c          # Ctrl+C
+charly eval wl key-combo my-app alt+tab         # Alt+Tab
+charly eval wl key-combo my-app ctrl+shift+t    # Ctrl+Shift+T
+charly eval wl key-combo my-app super+l         # Super+L (lock)
 ```
 
 Modifiers: `ctrl`/`control`, `alt`, `shift`, `super`/`win`/`logo`, `meta`. Uses `wtype -M`.
 
 ### Scroll
 ```bash
-ov eval wl scroll my-app 960 540 down              # scroll down 3 steps at center
-ov eval wl scroll my-app 960 540 up --amount 10    # scroll up 10 steps
+charly eval wl scroll my-app 960 540 down              # scroll down 3 steps at center
+charly eval wl scroll my-app 960 540 up --amount 10    # scroll up 10 steps
 ```
 
 Uses xdotool click 4/5/6/7 (X11 scroll buttons) for XWayland windows. Falls back to wtype Page_Up/Page_Down.
 
 ### Drag (Experimental)
 ```bash
-ov eval wl drag my-app 100 100 500 500                # drag left to right
-ov eval wl drag my-app 100 100 500 500 --duration 500  # slower drag (500ms)
+charly eval wl drag my-app 100 100 500 500                # drag left to right
+charly eval wl drag my-app 100 100 500 500 --duration 500  # slower drag (500ms)
 ```
 
 Requires XWayland (uses `xdotool mousemove + mousedown/mouseup`).
 
 ### Window Management (wlrctl toplevel)
 ```bash
-ov eval wl toplevel my-app                  # list all windows
-ov eval wl focus my-app "Chrome"            # focus by title
-ov eval wl close my-app "Chrome"            # close by title
-ov eval wl fullscreen my-app "Chrome"       # toggle fullscreen
-ov eval wl minimize my-app "Chrome"         # toggle minimize
-ov eval wl exec my-app foot                 # launch terminal
+charly eval wl toplevel my-app                  # list all windows
+charly eval wl focus my-app "Chrome"            # focus by title
+charly eval wl close my-app "Chrome"            # close by title
+charly eval wl fullscreen my-app "Chrome"       # toggle fullscreen
+charly eval wl minimize my-app "Chrome"         # toggle minimize
+charly eval wl exec my-app foot                 # launch terminal
 ```
 
 ### Resolution
 ```bash
-ov eval wl resolution my-app 1920x1080              # auto-detect output
-ov eval wl resolution my-app 2560x1440 -o WL-1      # specific output
+charly eval wl resolution my-app 1920x1080              # auto-detect output
+charly eval wl resolution my-app 2560x1440 -o WL-1      # specific output
 ```
 
 ### Clipboard
 ```bash
-ov eval wl clipboard my-app get                   # read clipboard
-ov eval wl clipboard my-app set "hello"           # write clipboard
-ov eval wl clipboard my-app clear                 # clear clipboard
-ov eval wl clipboard my-app get --primary         # read primary selection
+charly eval wl clipboard my-app get                   # read clipboard
+charly eval wl clipboard my-app set "hello"           # write clipboard
+charly eval wl clipboard my-app clear                 # clear clipboard
+charly eval wl clipboard my-app get --primary         # read primary selection
 ```
 
 ### Window Geometry
 ```bash
-ov eval wl geometry my-app "Chrome"    # returns JSON: {"x":0,"y":0,"width":1920,"height":1080}
-ov eval wl xprop my-app                # active window properties
-ov eval wl xprop my-app "Chrome"      # specific window properties
+charly eval wl geometry my-app "Chrome"    # returns JSON: {"x":0,"y":0,"width":1920,"height":1080}
+charly eval wl xprop my-app                # active window properties
+charly eval wl xprop my-app "Chrome"      # specific window properties
 ```
 
 ### AT-SPI2 Accessibility
 ```bash
-ov eval wl atspi my-app tree                    # dump full accessibility tree
-ov eval wl atspi my-app find "Save"             # find elements named "Save"
-ov eval wl atspi my-app find "button"           # find elements with role "button"
-ov eval wl atspi my-app find "Save:button"      # find by name AND role
-ov eval wl atspi my-app click "Save:button"     # click element by name/role
+charly eval wl atspi my-app tree                    # dump full accessibility tree
+charly eval wl atspi my-app find "Save"             # find elements named "Save"
+charly eval wl atspi my-app find "button"           # find elements with role "button"
+charly eval wl atspi my-app find "Save:button"      # find by name AND role
+charly eval wl atspi my-app click "Save:button"     # click element by name/role
 ```
 
 Requires `a11y-tools` layer. Chrome needs `--force-renderer-accessibility` flag.
 
 ### CDP → WL Bridge
 
-Use `ov eval cdp click --wl` to find elements by CSS selector in Chrome and deliver clicks via wlrctl (critical for selkies-desktop which has no VNC):
+Use `charly eval cdp click --wl` to find elements by CSS selector in Chrome and deliver clicks via wlrctl (critical for selkies-desktop which has no VNC):
 
 ```bash
-ov eval cdp click selkies-desktop $TAB '#submit-button' --wl
+charly eval cdp click selkies-desktop $TAB '#submit-button' --wl
 ```
 
-## Sway-Specific Commands (`ov eval wl sway`)
+## Sway-Specific Commands (`charly eval wl sway`)
 
-Sway IPC commands are grouped under `ov eval wl sway <subcommand>`. These require a sway compositor and use swaymsg. They will error on labwc.
+Sway IPC commands are grouped under `charly eval wl sway <subcommand>`. These require a sway compositor and use swaymsg. They will error on labwc.
 
 ```bash
-ov eval wl sway tree <image>              # Get sway window tree (JSON)
-ov eval wl sway msg <image> 'focus left'  # Run any swaymsg command
-ov eval wl sway workspaces <image>        # List workspaces (JSON)
-ov eval wl sway outputs <image>           # List outputs (JSON)
-ov eval wl sway focus <image> left        # Focus by direction or [criteria]
-ov eval wl sway move <image> right        # Move focused window
-ov eval wl sway resize <image> width 10px # Resize focused window
-ov eval wl sway kill <image>              # Close focused window
-ov eval wl sway floating <image>          # Toggle floating
-ov eval wl sway layout <image> tabbed     # Set layout mode
-ov eval wl sway workspace <image> 2       # Switch workspace
-ov eval wl sway reload <image>            # Reload sway config
+charly eval wl sway tree <image>              # Get sway window tree (JSON)
+charly eval wl sway msg <image> 'focus left'  # Run any swaymsg command
+charly eval wl sway workspaces <image>        # List workspaces (JSON)
+charly eval wl sway outputs <image>           # List outputs (JSON)
+charly eval wl sway focus <image> left        # Focus by direction or [criteria]
+charly eval wl sway move <image> right        # Move focused window
+charly eval wl sway resize <image> width 10px # Resize focused window
+charly eval wl sway kill <image>              # Close focused window
+charly eval wl sway floating <image>          # Toggle floating
+charly eval wl sway layout <image> tabbed     # Set layout mode
+charly eval wl sway workspace <image> 2       # Switch workspace
+charly eval wl sway reload <image>            # Reload sway config
 ```
 
 ## Differences from VNC
 
-| Aspect | `ov eval wl` | `ov eval vnc` |
+| Aspect | `charly eval wl` | `charly eval vnc` |
 |--------|---------|----------|
 | Compositors | All wlroots (+ sway subgroup) | Requires wayvnc |
 | Transport | exec into container | TCP port 5900 |
@@ -207,16 +207,16 @@ Source: `ov/wl.go`.
 
 ## Cross-References
 
-- `/ov-eval:eval` — parent router; `ov eval wl …` is how every invocation is dispatched.
-- `/ov-eval:vnc` — VNC/RFB protocol alternative (sibling verb; TCP-based, works remotely).
-- `/ov-eval:cdp` — Chrome DevTools Protocol (sibling verb; DOM-level interaction, `--wl` flag for click, `axtree` for accessibility).
-- `/ov-eval:dbus` — D-Bus calls and desktop notifications (sibling verb under `ov eval`).
-- `/ov-selkies:wl-tools` — Compositor-agnostic tools (wtype, wlrctl, wl-clipboard, wlr-randr, xdotool, ydotool)
-- `/ov-eval:wl-overlay` — Fullscreen overlays for recordings (title cards, lower-thirds, countdowns, highlights, fades)
-- `/ov-selkies:wl-overlay-layer` — Overlay layer (gtk4-layer-shell, python3-gobject)
-- `/ov-selkies:wl-screenshot-grim` — Screenshot layer for sway (grim, wlr-screencopy)
-- `/ov-selkies:wl-screenshot-pixelflux` — Screenshot layer for selkies (pixelflux rendering pipeline)
-- `/ov-selkies:a11y-tools` — AT-SPI2 accessibility (python3-pyatspi, python3-gobject)
-- `/ov-selkies:xterm` — X11 terminal for XWayland testing
-- `/ov-selkies:sway-desktop` — Desktop metalayer (wl-tools + wl-screenshot-grim)
-- `/ov-selkies:selkies-desktop-layer` — Desktop metalayer (wl-tools + wl-screenshot-pixelflux + a11y-tools + xterm)
+- `/charly-eval:eval` — parent router; `charly eval wl …` is how every invocation is dispatched.
+- `/charly-eval:vnc` — VNC/RFB protocol alternative (sibling verb; TCP-based, works remotely).
+- `/charly-eval:cdp` — Chrome DevTools Protocol (sibling verb; DOM-level interaction, `--wl` flag for click, `axtree` for accessibility).
+- `/charly-eval:dbus` — D-Bus calls and desktop notifications (sibling verb under `charly eval`).
+- `/charly-selkies:wl-tools` — Compositor-agnostic tools (wtype, wlrctl, wl-clipboard, wlr-randr, xdotool, ydotool)
+- `/charly-eval:wl-overlay` — Fullscreen overlays for recordings (title cards, lower-thirds, countdowns, highlights, fades)
+- `/charly-selkies:wl-overlay-layer` — Overlay layer (gtk4-layer-shell, python3-gobject)
+- `/charly-selkies:wl-screenshot-grim` — Screenshot layer for sway (grim, wlr-screencopy)
+- `/charly-selkies:wl-screenshot-pixelflux` — Screenshot layer for selkies (pixelflux rendering pipeline)
+- `/charly-selkies:a11y-tools` — AT-SPI2 accessibility (python3-pyatspi, python3-gobject)
+- `/charly-selkies:xterm` — X11 terminal for XWayland testing
+- `/charly-selkies:sway-desktop` — Desktop metalayer (wl-tools + wl-screenshot-grim)
+- `/charly-selkies:selkies-desktop-layer` — Desktop metalayer (wl-tools + wl-screenshot-pixelflux + a11y-tools + xterm)

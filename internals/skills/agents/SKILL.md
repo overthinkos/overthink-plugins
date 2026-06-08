@@ -1,13 +1,13 @@
 ---
 name: agents
 description: |
-  Claude Code multi-agent support in Overthink — sub-agents, dynamic workflows, and agent teams, and how each drives the existing `ov eval` disposable beds to test and verify. MUST be invoked before authoring or invoking an ov sub-agent / dynamic workflow / agent team, wiring agent-lifecycle hooks, or asking "which primitive should drive the R10 beds?".
+  Claude Code multi-agent support in Overthink — sub-agents, dynamic workflows, and agent teams, and how each drives the existing `charly eval` disposable beds to test and verify. MUST be invoked before authoring or invoking an charly sub-agent / dynamic workflow / agent team, wiring agent-lifecycle hooks, or asking "which primitive should drive the R10 beds?".
 ---
 
 # Agents, Workflows & Teams
 
 Overthink is built to be driven from Claude Code's multi-agent primitives.
-This skill is the authoritative reference for the three primitives, the ov
+This skill is the authoritative reference for the three primitives, the charly
 agent roster, the shipped workflows, the bed-scoped parallel-testing model for
 teams, and the one rule that binds them all: **a bed run is R10-class — the
 commit is gated on a full final-code bed test (pasted), but beds run freely
@@ -50,23 +50,23 @@ runs as a harness-tracked background task owned by the persistent session, drive
 by the completion notification (see "Handling a long-running bed — by mechanism"
 under the binding rule). "Prefer agents" governs BOUNDED work.
 
-## The ov agent roster (`plugins/internals/agents/`)
+## The charly agent roster (`plugins/internals/agents/`)
 
-**Executors** — they RUN `ov eval` and return verbatim proof:
+**Executors** — they RUN `charly eval` and return verbatim proof:
 
-- **`eval-bed-runner`** — runs `ov eval run <bed>` ONE-SHOT (the full R10
-  sequence: build → eval image → deploy → eval live → fresh `ov update` →
+- **`eval-bed-runner`** — runs `charly eval run <bed>` ONE-SHOT (the full R10
+  sequence: build → eval image → deploy → eval live → fresh `charly update` →
   teardown) on a `kind: eval` disposable bed; returns per-step status, exit code
   (0 pass / 1 infra / 2 checks-failed), and the failing-step log tail. The R10
   acceptance discipline. A **persistent owner runs every full bed as a
   `run_in_background` task** (main session / background agent / split-pane
   teammate — see "Bed-scoped" below; an in-process teammate CANNOT, its bg dies
   on yield) and pastes the verbatim verdict; teammates do bed-local edits + short
-  foreground checks (`ov eval box`), never the full run. There is no
+  foreground checks (`charly eval box`), never the full run. There is no
   duration/600s carve-out — the 600s is a Bash FOREGROUND cap, irrelevant to a
   backgrounded bed.
-- **`deploy-verifier`** — read-mostly: `ov eval box` / `ov eval live` /
-  `ov status` against an image or a running deploy (the ov repo's images OR a
+- **`deploy-verifier`** — read-mostly: `charly eval box` / `charly eval live` /
+  `charly status` against an image or a running deploy (the charly repo's images OR a
   user's own deploy config). Answers "does this deploy config work?" without
   mutating anything.
 
@@ -77,7 +77,7 @@ under the binding rule). "Prefer agents" governs BOUNDED work.
 - **`testing-validator`** — blocks "it works" claims lacking the R10 proof;
   owns the 4-tier confidence table (must match CLAUDE.md).
 - **`layer-validator`** — pre-edit `candy.yml` sanity gate; defers the full
-  schema to `/ov-image:layer` + `ov box validate`.
+  schema to `/charly-image:layer` + `charly box validate`.
 
 Invoke by name in a prompt, `@`-mention, or the `Agent` tool (scoped id
 `ov-internals:<name>`). Custom agents load at SESSION START, so the shipped
@@ -95,8 +95,8 @@ teammate.
   the runtime's 16-concurrent agent ceiling (KVM/libvirt are multi-tenant,
   podman builds distinct image tags concurrently), and aggregates pass/fail.
   Beds skipped for a missing host prereq are logged, never silently dropped.
-- **`/audit-deploy-configs [image|deploy …]`** — validates + `ov eval box`
-  + optional `ov eval live` + `deploy-verifier` over a set of deploy configs;
+- **`/audit-deploy-configs [image|deploy …]`** — validates + `charly eval box`
+  + optional `charly eval live` + `deploy-verifier` over a set of deploy configs;
   aggregates a health report. Serves the "evaluate deployment configs, for AI
   and humans" goal.
 - **`/triage-eval-failure <bed>`** — competing-hypotheses RCA of a failed bed
@@ -104,7 +104,7 @@ teammate.
   on the live bed, cross-check adversarially, converge on the root cause, and
   hand back a fix to re-run the real bed (per R1).
 - **`/verify-status [substrate …]`** — substrate-coverage fan-out for the
-  unified `ov status` surface: for each substrate (pod / vm / local / android) it
+  unified `charly status` surface: for each substrate (pod / vm / local / android) it
   runs the bed that exercises it (`eval-pod` / `eval-k3s-vm` / `eval-local` /
   `eval-android-emulator-pod`) to completion and aggregates a verdict keyed on
   that bed's `status-shows-*` deploy-scope assertion. Same parallel +
@@ -115,7 +115,7 @@ teammate.
 The shipped workflows above VERIFY. A dynamic workflow that **implements** a
 cutover (fans the coding out across `agent()` calls) obeys the SAME bed-scoped
 discipline as an agent team — it is the workflow expression of the B3 model
-(`/ov-internals:git-workflow`), not an exemption from it:
+(`/charly-internals:git-workflow`), not an exemption from it:
 
 - **Partition the parallel work by `kind: eval` bed.** One disjoint disposable
   bed per parallel owner (`eval-pod` / `eval-k3s-vm` / `eval-local` /
@@ -127,7 +127,7 @@ discipline as an agent team — it is the workflow expression of the B3 model
   **verifies before it changes** (Risk Driven Development — proves its bed's
   high-risk assumptions, above all the composition, on its live bed/backend
   first, never trusting a doc or the code for a high-risk call) and runs its
-  bed's real `ov eval run <bed>` as the fresh-rebuild R10.
+  bed's real `charly eval run <bed>` as the fresh-rebuild R10.
 - **Read-only review is an ADDITIONAL layer, NEVER a substitute.** A workflow
   that replaces real-deployment bed runs with a read-only diff-review phase is a
   protocol violation — the opposite of this skill and of CLAUDE.md "Agents,
@@ -142,7 +142,7 @@ discipline as an agent team — it is the workflow expression of the B3 model
   (seq barrier) → BedR10 (parallel by bed) → Review (parallel, read-only,
   optional)`. **The barrier is load-bearing because `ov` enforces a stale-binary
   freshness guard** — it refuses heavy ops (`image build`, `deploy add`) whenever
-  any `ov/*.go` source is newer than the installed `/usr/bin/ov` (remediation:
+  any `ov/*.go` source is newer than the installed `/usr/bin/charly` (remediation:
   `task build:ov`). A teammate editing `ov/*.go` WHILE another's bed is mid-run
   trips that guard on the bed's deploy step, so rebuild ONCE at the barrier, then
   run every bed against the now-stable binary.
@@ -151,7 +151,7 @@ discipline as an agent team — it is the workflow expression of the B3 model
 
 ## The binding rule: running a bed is R10-class
 
-`ov eval run <bed>` and `ov update` perform an unattended destroy + rebuild.
+`charly eval run <bed>` and `charly update` perform an unattended destroy + rebuild.
 Therefore, for ANY agent or workflow that runs them:
 
 - **Disposable-only (Law 4).** The sole authorization is the bed's explicit
@@ -159,7 +159,7 @@ Therefore, for ANY agent or workflow that runs them:
 - **The commit is gated, not the run (Law 5).** The git commit happens ONLY
   after a full live test of EVERYTHING — the FINAL code, on `disposable: true`
   beds — passes and is pasted. Running `/verify-beds`, `eval-bed-runner`, or
-  any `ov eval run` THROUGHOUT development — in parallel or in the background,
+  any `charly eval run` THROUGHOUT development — in parallel or in the background,
   to validate assumptions before you change and to diagnose errors — is
   ENCOURAGED. A run that passes on an *intermediate* state simply does not
   authorize the commit; only the full final-code run does.
@@ -176,7 +176,7 @@ Therefore, for ANY agent or workflow that runs them:
   OUTLIVES a single turn. Run it by the mechanism, not a who-owns-it rule:
   - **Launch as a harness-tracked background task** (`run_in_background`). NEVER
     foreground — the Bash tool's `timeout` (120s default, 600s maximum, its
-    `max` setting — NOT any ov constant) kills the call mid-`vm-create`,
+    `max` setting — NOT any charly constant) kills the call mid-`vm-create`,
     orphaning the domain. NEVER a sleep/poll loop to "keep it alive" — that
     busy-poll is the exact R4 bandaid this replaces.
   - **The completion notification is the signal, not polling.** The harness
@@ -185,18 +185,18 @@ Therefore, for ANY agent or workflow that runs them:
     persistent main session does. An ephemeral sub-agent does NOT (the `Agent`
     tool returns synchronously — its background children die when it returns),
     and an idle teammate does NOT (its process tree is torn down on idle) — both
-    orphan the bed. **Every full `ov eval run <bed>` belongs to the persistent
+    orphan the bed. **Every full `charly eval run <bed>` belongs to the persistent
     session as a background task — the only session that survives across turns to
     be notified.** Duration-independent: there is no time budget, and the Bash
     600s figure is a FOREGROUND cap that never applies to a backgrounded bed.
     Sub-agents/teammates do bed-local edits + short foreground checks
-    (`ov eval box`), never the full run.
+    (`charly eval box`), never the full run.
   - **Reconnect via durable state, never a held process handle.**
     `.eval/<bed>/<calver>/summary.yml` (overall `ok:` + per-step status) + the
     live domain/container ARE the source of truth: "done + verdict" =
-    `summary.yml` exists; "still alive" = the `ov eval run` orchestrator is in
+    `summary.yml` exists; "still alive" = the `charly eval run` orchestrator is in
     the process table. On a suspected orphan — a `running` domain with NO live
-    orchestrator — `ov vm destroy <entity>` (or remove the container) before
+    orchestrator — `charly vm destroy <entity>` (or remove the container) before
     re-running. You re-derive state from disk; you never "lose" a run.
   - **Paste-proof survives (Law 5).** The owner reports the verbatim
     `summary.yml` verdict + exit code; the lead pastes it.
@@ -240,10 +240,10 @@ can enforce gates (exit 2 = block + feedback); the shipped
 ### Bed-scoped parallel real-deployment testing
 
 The **eval bed is the unit of ownership, isolation, AND throughput** — it
-replaces the git worktree. `ov eval run --all-beds` is strictly SEQUENTIAL (a
+replaces the git worktree. `charly eval run --all-beds` is strictly SEQUENTIAL (a
 plain loop in `eval_runner_cmd.go`; `ov` spawns no goroutines for beds), so the
 ONLY way to compress a multi-bed cutover's wall-clock is to run the beds
-concurrently — and **every full `ov eval run <bed>` is a long, multi-turn
+concurrently — and **every full `charly eval run <bed>` is a long, multi-turn
 background task whose OWNER must survive across turns to receive the completion
 notification.** A bed run is launched with `run_in_background` (uncapped — it runs
 across turns; the Bash 600s figure is a FOREGROUND cap that never applies) and
@@ -256,7 +256,7 @@ this host) which contexts can own a bed:**
 - ✓ **A background agent** (`Agent` tool, `run_in_background`) — a separate
   supervisor-managed process that persists, runs to completion, and reports
   (proven: a 100s task completed + reported back). A per-bed out-of-process owner
-  that works headless. Caveat: its INTERNAL `ov eval run` is one foreground call
+  that works headless. Caveat: its INTERNAL `charly eval run` is one foreground call
   (600s-capped), so for a long bed prefer the main-session `run_in_background`
   task or step the bed.
 - ✓ **A split-pane teammate** — a separate persistent process, so it CAN own a
@@ -265,8 +265,8 @@ this host) which contexts can own a bed:**
 - ✗ **An in-process teammate** (the headless `teammateMode: auto` default) —
   CANNOT own a bed that outlives a turn: its `run_in_background` task is TORN DOWN
   the instant it yields (verified 4× — marker absent, no process, never
-  re-invoked). It runs bed-local EDITS + short foreground checks (`ov eval box`,
-  `ov box validate`) only, never the full `ov eval run`.
+  re-invoked). It runs bed-local EDITS + short foreground checks (`charly eval box`,
+  `charly box validate`) only, never the full `charly eval run`.
 
 So **"one agent ⇄ one bed" = one PERSISTENT owner per bed**, launched
 longest-pole-first: headless → the persistent session runs N concurrent
@@ -286,7 +286,7 @@ not catch an overlap for you. A bed pins an image → layers → files, so ownin
 bed owns those source files.
 
 Each bed is a **candybox** (CLAUDE.md "Candyboxing"): a disposable, secured
-deployment stocked with the FULL `ov` + MCP + `ov eval` toolset, so the bed's
+deployment stocked with the FULL `ov` + MCP + `charly eval` toolset, so the bed's
 owner can build / deploy / prove the real thing inside its boundary and rebuild
 it fearlessly — never a tool-restricted sandbox.
 
@@ -294,14 +294,14 @@ The playbook:
 
 1. **Lead partitions the beds** so no two teammates own the same bed's source.
 2. **A PERSISTENT owner runs each bed; in-process teammates edit + short-check.**
-   The full `ov eval run <bed>` (build → eval image → deploy → eval live → fresh
-   `ov update` → teardown) runs as a `run_in_background` task on a PERSISTENT
+   The full `charly eval run <bed>` (build → eval image → deploy → eval live → fresh
+   `charly update` → teardown) runs as a `run_in_background` task on a PERSISTENT
    owner: headless → the lead/persistent session (one `run_in_background` task per
    bed, or a background agent per bed); interactive tmux → a split-pane teammate
    per bed. It follows the `eval-bed-runner` verbatim-verdict discipline; failures
    triage via `root-cause-analyzer`. IN-PROCESS teammates (the headless default)
-   do bed-local EDITS + short foreground checks (`ov eval box`,
-   `ov box validate`) ONLY — they cannot run a full bed (their bg dies on
+   do bed-local EDITS + short foreground checks (`charly eval box`,
+   `charly box validate`) ONLY — they cannot run a full bed (their bg dies on
    yield). Review/RCA are auxiliary — never a substitute for the live run.
 3. **Verify before you change (Risk Driven Development)**: each teammate proves
    its bed's HIGH-RISK assumptions — above all the composition — on its standing
@@ -328,11 +328,11 @@ the sum.
 ### Speed levers (grounded in the real bed cycle)
 
 One-agent-per-bed is the headline speedup; these compound it, each grounded in
-how `ov eval run` actually behaves:
+how `charly eval run` actually behaves:
 
-- **A pod bed builds the image ONCE.** Step 1 (`ov box build`) is the only
-  build; the "fresh `ov update`" R10 gate is a `systemctl restart` onto the
-  already-built image (`ov update` carries no `--build`, and `EnsureImage`
+- **A pod bed builds the image ONCE.** Step 1 (`charly box build`) is the only
+  build; the "fresh `charly update`" R10 gate is a `systemctl restart` onto the
+  already-built image (`charly update` carries no `--build`, and `EnsureImage`
   short-circuits on `LocalImageExists`). The cost model is ~1 build/bed — never
   pessimistically assume two.
 - **Pre-warm the shared base ONCE.** Same-base beds (e.g. two `cachyos` images)
@@ -358,17 +358,17 @@ defense.
 
 ## Cross-References
 
-- `/ov-eval:eval` — the bed surface these agents/workflows drive (`ov eval
+- `/charly-eval:eval` — the bed surface these agents/workflows drive (`charly eval
   run`/`image`/`live`, the `kind: eval` bed inventory, exit codes).
-- `/ov-internals:disposable` — why `disposable: true` is the sole destroy
+- `/charly-internals:disposable` — why `disposable: true` is the sole destroy
   authorization.
-- `/ov-internals:git-workflow` — the R10-gated landing the executors feed.
-- `/ov-internals:skills` — agent/skill discovery + the signpost convention.
+- `/charly-internals:git-workflow` — the R10-gated landing the executors feed.
+- `/charly-internals:skills` — agent/skill discovery + the signpost convention.
 - CLAUDE.md "Agents, Workflows & Teams" + Laws 4/5 + AI Attribution.
 
 ## When to Use This Skill
 
-Invoke before authoring or invoking an ov sub-agent / dynamic workflow /
+Invoke before authoring or invoking an charly sub-agent / dynamic workflow /
 agent team, before wiring agent-lifecycle or commit/push gate hooks, and
-whenever deciding which primitive should drive the `ov eval` beds for a given
+whenever deciding which primitive should drive the `charly eval` beds for a given
 verification.

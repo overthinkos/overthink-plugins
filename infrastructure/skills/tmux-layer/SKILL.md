@@ -32,12 +32,12 @@ layers:
 
 ## Related Skills
 
-- `/ov-automation:tmux` — Persistent shell sessions, send commands, capture output
-- `/ov-hermes:hermes-full-layer`, `/ov-selkies:sway-desktop`, `/ov-selkies:selkies-desktop-layer` — metalayers that include this
-- `/ov-hermes:hermes`, `/ov-selkies:selkies-labwc`, `/ov-selkies:sway-browser-vnc` — primary consumers
-- `/ov-core:shell` — interactive container shell (often wrapped in tmux)
-- `/ov-image:layer` — layer authoring
-- `/ov-eval:eval` — declarative testing framework (this layer tests `/usr/bin/tmux -V`)
+- `/charly-automation:tmux` — Persistent shell sessions, send commands, capture output
+- `/charly-hermes:hermes-full-layer`, `/charly-selkies:sway-desktop`, `/charly-selkies:selkies-desktop-layer` — metalayers that include this
+- `/charly-hermes:hermes`, `/charly-selkies:selkies-labwc`, `/charly-selkies:sway-browser-vnc` — primary consumers
+- `/charly-core:shell` — interactive container shell (often wrapped in tmux)
+- `/charly-image:layer` — layer authoring
+- `/charly-eval:eval` — declarative testing framework (this layer tests `/usr/bin/tmux -V`)
 
 ## When to Use This Skill
 

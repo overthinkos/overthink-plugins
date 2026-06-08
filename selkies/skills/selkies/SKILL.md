@@ -20,7 +20,7 @@ Browser → Traefik (:3000 HTTPS, self-signed cert)
                                     ├── pixelflux: Wayland capture → H.264
                                     ├── pcmflux: PulseAudio → Opus audio
                                     ├── xkbcommon: keyboard/mouse → Wayland inject
-                                    └── capture bridge → /tmp/ov-capture.sock
+                                    └── capture bridge → /tmp/charly-capture.sock
                                           ↓
                                labwc (wayland-0, nested in pixelflux wayland-1)
 ```
@@ -41,7 +41,7 @@ This is the ONLY working capture path for screenshots and recording on selkies-d
 
 **H.264 frame filtering:** The selkies server broadcasts both H.264 video (`0x04` prefix + 10-byte header) and Opus audio (`0x01 0x00` prefix) as binary WebSocket messages. The bridge filters by prefix, only buffering H.264 video frames and stripping the 10-byte selkies header before storing. Audio for recording is captured separately via PulseAudio.
 
-**Protocol on `/tmp/ov-capture.sock`:**
+**Protocol on `/tmp/charly-capture.sock`:**
 - `SCREENSHOT\n` → 4-byte length + PNG data (or 0 + reason string on failure)
 - `STREAM\n` → continuous (4-byte length + raw H.264 frame data)
 - `STATUS\n` → 4-byte length + JSON status (`connected`, `mode`, `frames`, `seq`, `active_streams`, `last_error`)
@@ -58,13 +58,13 @@ Diagnostic recipe (use this when investigating a suspected selkies memory leak):
 
 ```bash
 # Virtual address-space size (VmSize) of the selkies process
-ov shell selkies-desktop -c "grep VmSize /proc/\$(pgrep -f selkies_core)/status"
+charly shell selkies-desktop -c "grep VmSize /proc/\$(pgrep -f selkies_core)/status"
 
 # Count WaylandBackend instances in heap state (should always be 1)
-ov shell selkies-desktop -c "ls -la /proc/\$(pgrep -f selkies_core)/map_files/ | wc -l"
+charly shell selkies-desktop -c "ls -la /proc/\$(pgrep -f selkies_core)/map_files/ | wc -l"
 
 # Watch the above repeatedly while a browser reconnects / resizes
-watch -n5 "ov shell selkies-desktop -c 'grep VmSize /proc/\$(pgrep -f selkies_core)/status'"
+watch -n5 "charly shell selkies-desktop -c 'grep VmSize /proc/\$(pgrep -f selkies_core)/status'"
 ```
 
 If `VmSize` grows monotonically across reconfigure events, the singleton is broken — investigate `reconfigure_displays()` for regressions.
@@ -73,17 +73,17 @@ If `VmSize` grows monotonically across reconfigure events, the singleton is brok
 
 `cleanup_texture_cache()` runs **per frame** (not per capture session) in pixelflux's renderer main loop. It releases dmabuf imports whose Wayland buffer reference has already been dropped — these accumulate across frames because the EGL image-dmabuf import cache holds a GPU-side reference that the CPU-side `wl_buffer_release` does not clear. Without per-frame cleanup, a 60 fps stream leaks ~60 dmabuf handles per second even though `VmSize` stays flat (the leak is GPU-side, visible as increasing `nvidia-smi` memory usage on NVIDIA, `radeontop` on AMD).
 
-This fix was rolled out via `ov update -i INSTANCE` across all live selkies-desktop instances — see `/ov-core:ov-update` for the per-instance update pattern. The rollback recipe there also applies if a pixelflux patch regresses.
+This fix was rolled out via `charly update -i INSTANCE` across all live selkies-desktop instances — see `/charly-core:ov-update` for the per-instance update pattern. The rollback recipe there also applies if a pixelflux patch regresses.
 
 ### Rebuild cadence
 
-Pixelflux is compiled **from source** in the selkies build stage (`candy/selkies/build.sh`), not installed from PyPI, because these fixes live on a fork not yet merged upstream. The build stage clones from a pinned commit, applies four inline source patches, and runs `pip install .` against the image's pixi builder (`arch-builder` on the cachyos base, `cuda-arch-builder` on the GPU build). See `/ov-distros:arch-builder` and `/ov-coder:build-toolchain` (5 package categories — smithay backend headers, codec devel, bindgen runtime, rust, generic C/C++) for the builder-stage dependency story.
+Pixelflux is compiled **from source** in the selkies build stage (`candy/selkies/build.sh`), not installed from PyPI, because these fixes live on a fork not yet merged upstream. The build stage clones from a pinned commit, applies four inline source patches, and runs `pip install .` against the image's pixi builder (`arch-builder` on the cachyos base, `cuda-arch-builder` on the GPU build). See `/charly-distros:arch-builder` and `/charly-coder:build-toolchain` (5 package categories — smithay backend headers, codec devel, bindgen runtime, rust, generic C/C++) for the builder-stage dependency story.
 
 ### Related fixes
 
-- `/ov-selkies:wl-screenshot-pixelflux` — Reuses the singleton capture path for screenshots
-- `/ov-selkies:wl-record-pixelflux` — Reuses the singleton capture path for recording
-- `/ov-selkies:selkies-labwc` — Build Pipeline Note explaining the patched pixelflux compilation
+- `/charly-selkies:wl-screenshot-pixelflux` — Reuses the singleton capture path for screenshots
+- `/charly-selkies:wl-record-pixelflux` — Reuses the singleton capture path for recording
+- `/charly-selkies:selkies-labwc` — Build Pipeline Note explaining the patched pixelflux compilation
 
 ## Installation
 
@@ -109,7 +109,7 @@ Port 3000 uses `https+insecure` backend scheme because Traefik terminates TLS wi
 | Variable | Value | Purpose |
 |----------|-------|---------|
 | `PIXELFLUX_WAYLAND` | `true` | Enable Wayland capture mode |
-| `DRINODE` | Auto-detected | GPU render node — injected at runtime by `ov config` from first `/dev/dri/renderD*` device. See `/ov-core:ov-config` |
+| `DRINODE` | Auto-detected | GPU render node — injected at runtime by `charly config` from first `/dev/dri/renderD*` device. See `/charly-core:ov-config` |
 | `DRI_NODE` | Auto-detected | Same as DRINODE — required by selkies VAAPI encoder. Override with `-e DRINODE=/dev/dri/renderDN` |
 | `PULSE_SERVER` | `unix:/tmp/pulse/native` | PipeWire PulseAudio socket |
 | `LANG` | `C.UTF-8` | UTF-8 locale — enables wtype to handle non-ASCII characters (ö, é, å, ñ, etc.) |
@@ -119,11 +119,11 @@ Port 3000 uses `https+insecure` backend scheme because Traefik terminates TLS wi
 Selkies supports any keyboard layout via XKB environment variables. The compositor (labwc/sway) and the selkies input handler both read `XKB_DEFAULT_LAYOUT` from the environment. Set the layout at deploy time:
 
 ```bash
-ov config selkies-desktop -e XKB_DEFAULT_LAYOUT=de    # German QWERTZ
-ov config selkies-desktop -e XKB_DEFAULT_LAYOUT=fr    # French AZERTY
+charly config selkies-desktop -e XKB_DEFAULT_LAYOUT=de    # German QWERTZ
+charly config selkies-desktop -e XKB_DEFAULT_LAYOUT=fr    # French AZERTY
 ```
 
-See `/ov-selkies:labwc` for the full list of XKB variables (LAYOUT, VARIANT, MODEL, OPTIONS).
+See `/charly-selkies:labwc` for the full list of XKB variables (LAYOUT, VARIANT, MODEL, OPTIONS).
 
 ### Input Pipeline
 
@@ -171,11 +171,11 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 | GPU | Rendering | Encoding | Status |
 |-----|-----------|----------|--------|
 | NVIDIA (CDI) | GL via auto-detected renderD | NVENC attempted but fails (pixelflux compat issue with driver 590.48) | Working GL, CPU encoding fallback |
-| AMD | Mesa VA-API via auto-detected renderD | VAAPI hardware H264 encoding | Working — requires correct DRINODE (auto-detected by `ov config`) |
+| AMD | Mesa VA-API via auto-detected renderD | VAAPI hardware H264 encoding | Working — requires correct DRINODE (auto-detected by `charly config`) |
 | Intel | Mesa VA-API via auto-detected renderD | VAAPI available | Untested |
 | CPU | pixman fallback | x264enc / x264enc-striped / jpeg | Working but causes flickering at high resolutions |
 
-**DRINODE auto-detection:** `ov config` detects the first `/dev/dri/renderD*` device on the host and injects `DRINODE` and `DRI_NODE` env vars at runtime via `appendAutoDetectedEnv()`. Previously these were hardcoded to `renderD129` in `candy.yml`, causing VAAPI encoder failure on hosts with `renderD128` — the encoder fell back to CPU software encoding, which caused labwc swapchain buffer exhaustion (`No free output buffer slot`) and visible stream flickering. See `/ov-internals:go` for implementation details.
+**DRINODE auto-detection:** `charly config` detects the first `/dev/dri/renderD*` device on the host and injects `DRINODE` and `DRI_NODE` env vars at runtime via `appendAutoDetectedEnv()`. Previously these were hardcoded to `renderD129` in `candy.yml`, causing VAAPI encoder failure on hosts with `renderD128` — the encoder fell back to CPU software encoding, which caused labwc swapchain buffer exhaustion (`No free output buffer slot`) and visible stream flickering. See `/charly-internals:go` for implementation details.
 
 **NVENC note:** pixelflux detects the GPU, CUDA initializes, but NVENC encoder init fails. All NVIDIA libraries load correctly (libnvidia-encode, libcuda, libnvrtc). Likely a pixelflux compatibility issue with driver 590.48. CPU x264enc at 60fps with striped mode (16 parallel stripes) provides acceptable performance.
 
@@ -187,35 +187,35 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 
 ## Used In Images
 
-- `/ov-selkies:selkies-labwc`
-- `/ov-selkies:selkies-labwc-nvidia`
+- `/charly-selkies:selkies-labwc`
+- `/charly-selkies:selkies-labwc-nvidia`
 
 ## Related Layers
 
-- `/ov-selkies:labwc` — Nested compositor that selkies hosts inside `wayland-1` (autostart Chrome-duplication race + keyboard layout)
-- `/ov-selkies:chrome` — Chrome browser (supervised by the `[program:chrome]` service in `selkies-core`) + cgroup resource caps
-- `/ov-infrastructure:supervisord` — Service ordering, event listeners, crash-loop escalation
-- `/ov-selkies:wl-screenshot-pixelflux` — Screenshot path via the shared ScreenCapture singleton
-- `/ov-selkies:wl-record-pixelflux` — Recording path via the shared ScreenCapture singleton
-- `/ov-selkies:selkies-desktop-layer` — Metalayer composing selkies with labwc, Chrome, waybar, desktop tools
-- `/ov-distros:nvidia`, `/ov-distros:rocm` — GPU runtime layers feeding DRINODE into the selkies VAAPI encoder
-- `/ov-selkies:ffmpeg` — Codec dep used by the capture bridge for H.264→PNG decode
-- `/ov-coder:build-toolchain` — Builder-stage packages (smithay, bindgen, codec devel) that compile the patched pixelflux
-- `/ov-distros:rpmfusion` — Applied before build-toolchain so codec devel libs (libva-devel, x264-devel, ffmpeg-devel) install
+- `/charly-selkies:labwc` — Nested compositor that selkies hosts inside `wayland-1` (autostart Chrome-duplication race + keyboard layout)
+- `/charly-selkies:chrome` — Chrome browser (supervised by the `[program:chrome]` service in `selkies-core`) + cgroup resource caps
+- `/charly-infrastructure:supervisord` — Service ordering, event listeners, crash-loop escalation
+- `/charly-selkies:wl-screenshot-pixelflux` — Screenshot path via the shared ScreenCapture singleton
+- `/charly-selkies:wl-record-pixelflux` — Recording path via the shared ScreenCapture singleton
+- `/charly-selkies:selkies-desktop-layer` — Metalayer composing selkies with labwc, Chrome, waybar, desktop tools
+- `/charly-distros:nvidia`, `/charly-distros:rocm` — GPU runtime layers feeding DRINODE into the selkies VAAPI encoder
+- `/charly-selkies:ffmpeg` — Codec dep used by the capture bridge for H.264→PNG decode
+- `/charly-coder:build-toolchain` — Builder-stage packages (smithay, bindgen, codec devel) that compile the patched pixelflux
+- `/charly-distros:rpmfusion` — Applied before build-toolchain so codec devel libs (libva-devel, x264-devel, ffmpeg-devel) install
 
 ## Related Images
 
-- `/ov-selkies:selkies-labwc`, `/ov-selkies:selkies-labwc-nvidia` — Images that bundle this layer
-- `/ov-distros:arch-builder` — Builder image for the pixelflux from-source compilation (`cuda-arch-builder` on the GPU build)
+- `/charly-selkies:selkies-labwc`, `/charly-selkies:selkies-labwc-nvidia` — Images that bundle this layer
+- `/charly-distros:arch-builder` — Builder image for the pixelflux from-source compilation (`cuda-arch-builder` on the GPU build)
 
 ## Related Commands
 
-- `/ov-eval:wl` — Wayland automation (screenshot via capture bridge, input, windows)
-- `/ov-eval:cdp` — Chrome DevTools and SPA bridge (click, type, key-combo through remote desktop)
-- `/ov-eval:record` — Desktop video recording via capture bridge
-- `/ov-core:ov-update` — Per-instance update pattern used to roll out pixelflux memory fixes
-- `/ov-core:ov-config` — DRINODE auto-injection, resource caps, NO_PROXY auto-enrichment, keyboard layout XKB env
-- `/ov-core:ov-doctor` — Host GPU probe feeding `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
+- `/charly-eval:wl` — Wayland automation (screenshot via capture bridge, input, windows)
+- `/charly-eval:cdp` — Chrome DevTools and SPA bridge (click, type, key-combo through remote desktop)
+- `/charly-eval:record` — Desktop video recording via capture bridge
+- `/charly-core:ov-update` — Per-instance update pattern used to roll out pixelflux memory fixes
+- `/charly-core:ov-config` — DRINODE auto-injection, resource caps, NO_PROXY auto-enrichment, keyboard layout XKB env
+- `/charly-core:ov-doctor` — Host GPU probe feeding `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
 
 ## Security
 
@@ -223,5 +223,5 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

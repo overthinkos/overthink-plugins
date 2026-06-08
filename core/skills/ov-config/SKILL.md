@@ -1,41 +1,41 @@
 ---
 name: ov-config
 description: |
-  MUST be invoked before any work involving: ov config commands, image deployment setup, quadlet generation, secrets provisioning, encrypted volumes, data seeding, or volume backing configuration.
+  MUST be invoked before any work involving: charly config commands, image deployment setup, quadlet generation, secrets provisioning, encrypted volumes, data seeding, or volume backing configuration.
   Named `ov-config` (not `config`) to disambiguate from Claude Code's built-in `/config` slash command.
 ---
 
-# ov config -- Image Deployment Configuration
+# charly config -- Image Deployment Configuration
 
 ## Overview
 
-`ov config` configures an image for deployment. In `run_mode=quadlet` (the default on systemd-user hosts) it generates a systemd quadlet unit, provisions container secrets, initializes encrypted volumes, and seeds data from data layers into the image's volumes. In `run_mode=direct` (auto-selected on nested environments without systemd-user — eval-sandbox pods, supervisord-only containers, sysvinit hosts) it skips quadlet+systemctl and runs the container via `podman run -d`, recording a marker file at `~/.config/ov/direct/<name>.json` so `ov start`/`ov remove` can find it. Direct mode does NOT support sidecars, encrypted volumes, or cloudflare tunnel companion services (those require systemd) — warnings are emitted and the operation proceeds without those features.
+`charly config` configures an image for deployment. In `run_mode=quadlet` (the default on systemd-user hosts) it generates a systemd quadlet unit, provisions container secrets, initializes encrypted volumes, and seeds data from data layers into the image's volumes. In `run_mode=direct` (auto-selected on nested environments without systemd-user — eval-sandbox pods, supervisord-only containers, sysvinit hosts) it skips quadlet+systemctl and runs the container via `podman run -d`, recording a marker file at `~/.config/charly/direct/<name>.json` so `charly start`/`charly remove` can find it. Direct mode does NOT support sidecars, encrypted volumes, or cloudflare tunnel companion services (those require systemd) — warnings are emitted and the operation proceeds without those features.
 
-This is the **single entry point** for **container** deployment setup. `ov start` requires `ov config` to have been run first in quadlet mode.
+This is the **single entry point** for **container** deployment setup. `charly start` requires `charly config` to have been run first in quadlet mode.
 
-**Relationship to `ov deploy add`** — `ov config` remains the primary way to create/update a quadlet and provision secrets/volumes/sidecars for a container deploy. `ov deploy add <name> <ref>` (container target) wraps both `ov config` and `ov start` and additionally handles `--add-candy` overlay synthesis (an overlay Containerfile is built before the quadlet references the resulting overlay image). `ov deploy add host` bypasses `ov config` entirely — the host target has no quadlet; it writes systemd units directly (when `--with-services` is enabled) and records every action in the ledger at `~/.config/overthink/installed/`. See `/ov-core:deploy` for the command family and `/ov-local:local-deploy` for host-target semantics.
+**Relationship to `charly deploy add`** — `charly config` remains the primary way to create/update a quadlet and provision secrets/volumes/sidecars for a container deploy. `charly deploy add <name> <ref>` (container target) wraps both `charly config` and `charly start` and additionally handles `--add-candy` overlay synthesis (an overlay Containerfile is built before the quadlet references the resulting overlay image). `charly deploy add host` bypasses `charly config` entirely — the host target has no quadlet; it writes systemd units directly (when `--with-services` is enabled) and records every action in the ledger at `~/.config/opencharly/installed/`. See `/charly-core:deploy` for the command family and `/charly-local:local-deploy` for host-target semantics.
 
-**`ov config` vs `ov settings` — common verb confusion.** `ov config <image>` configures an image for deployment (quadlet + secrets + volumes + data seed). `ov settings list` shows runtime config keys (secret_backend, vm.backend, etc.). A trailing `ov config show` parses as `ov config setup show` with `show` as the image positional — and errors with `image "show" is not available locally`. To inspect runtime configuration use `ov settings list`; to inspect a configured image's resolved deploy state use `ov box inspect <image>` or `ov deploy show <name>`.
+**`charly config` vs `charly settings` — common verb confusion.** `charly config <image>` configures an image for deployment (quadlet + secrets + volumes + data seed). `charly settings list` shows runtime config keys (secret_backend, vm.backend, etc.). A trailing `charly config show` parses as `charly config setup show` with `show` as the image positional — and errors with `image "show" is not available locally`. To inspect runtime configuration use `charly settings list`; to inspect a configured image's resolved deploy state use `charly box inspect <image>` or `charly deploy show <name>`.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Full setup | `ov config <image>` | Quadlet + secrets + volumes + data seed |
-| Instance setup | `ov config <image> -i <instance>` | Deploy named instance with separate config |
-| With bind mount | `ov config <image> --bind workspace=~/project` | Bind workspace to host dir |
-| With encryption | `ov config <image> --encrypt data` | Encrypted volume via gocryptfs |
-| Volume config | `ov config <image> -v data:bind:/mnt/nas` | Explicit volume backing |
-| Manual passwords | `ov config <image> --password manual` | Prompt for each secret |
-| Re-seed data | `ov config <image> --force-seed` | Overwrite existing data |
-| Seed from other image | `ov config <image> --data-from data-image:v1` | Use separate data image |
-| No data seed | `ov config <image> --no-seed` | Skip data provisioning |
-| Keep mounts | `ov config <image> --keep-mounted` | Keep encrypted volumes mounted after setup |
-| Show status | `ov config status <image>` | Show encrypted volume status |
-| Mount volumes | `ov config mount <image>` | Mount encrypted volumes |
-| Unmount volumes | `ov config unmount <image>` | Unmount encrypted volumes |
-| Change password | `ov config passwd <image>` | Change gocryptfs password |
-| Remove config | `ov config remove <image>` | Remove quadlet and disable service |
+| Full setup | `charly config <image>` | Quadlet + secrets + volumes + data seed |
+| Instance setup | `charly config <image> -i <instance>` | Deploy named instance with separate config |
+| With bind mount | `charly config <image> --bind workspace=~/project` | Bind workspace to host dir |
+| With encryption | `charly config <image> --encrypt data` | Encrypted volume via gocryptfs |
+| Volume config | `charly config <image> -v data:bind:/mnt/nas` | Explicit volume backing |
+| Manual passwords | `charly config <image> --password manual` | Prompt for each secret |
+| Re-seed data | `charly config <image> --force-seed` | Overwrite existing data |
+| Seed from other image | `charly config <image> --data-from data-image:v1` | Use separate data image |
+| No data seed | `charly config <image> --no-seed` | Skip data provisioning |
+| Keep mounts | `charly config <image> --keep-mounted` | Keep encrypted volumes mounted after setup |
+| Show status | `charly config status <image>` | Show encrypted volume status |
+| Mount volumes | `charly config mount <image>` | Mount encrypted volumes |
+| Unmount volumes | `charly config unmount <image>` | Unmount encrypted volumes |
+| Change password | `charly config passwd <image>` | Change gocryptfs password |
+| Remove config | `charly config remove <image>` | Remove quadlet and disable service |
 
 ## Subcommands
 
@@ -83,7 +83,7 @@ This is the **single entry point** for **container** deployment setup. `ov start
 3. Ensures image exists in run engine (transfers if needed)
 4. Extracts metadata from OCI image labels
 5. Generates quadlet `.container` file in `~/.config/containers/systemd/`
-6. Provisions container secrets (from `org.overthinkos.secret` label)
+6. Provisions container secrets (from `ai.opencharly.secret` label)
 7. Resolves volume backing (named, bind, or encrypted)
 8. Initializes encrypted volumes (gocryptfs) if configured
 9. Seeds data layers into the image's volumes (bind mounts AND podman named volumes)
@@ -96,39 +96,39 @@ This is the **single entry point** for **container** deployment setup. `ov start
 
 ## Volume Backing
 
-Volumes declared in candy.yml default to named volumes. At `ov config` time, backing can be changed per-volume:
+Volumes declared in candy.yml default to named volumes. At `charly config` time, backing can be changed per-volume:
 
 ```bash
 # Named volume (default)
-ov config my-app
+charly config my-app
 
 # Bind mount to host directory
-ov config my-app --bind workspace=~/project
-ov config my-app -v workspace:bind:~/project    # Equivalent
+charly config my-app --bind workspace=~/project
+charly config my-app -v workspace:bind:~/project    # Equivalent
 
 # Encrypted (gocryptfs)
-ov config my-app --encrypt data
-ov config my-app -v data:encrypted              # Equivalent
-ov config my-app -v data:encrypt:/mnt/ssd       # With explicit path
+charly config my-app --encrypt data
+charly config my-app -v data:encrypted              # Equivalent
+charly config my-app -v data:encrypt:/mnt/ssd       # With explicit path
 
 # Multiple volumes
-ov config my-app --bind workspace=~/project --encrypt data -v models:bind
+charly config my-app --bind workspace=~/project --encrypt data -v models:bind
 ```
 
 Auto-path for bind without explicit host path: `<volumes_path>/<image>/<name>` (default: `~/.local/share/ov/volumes/`).
 
-### Bind-mounting a project checkout for `ov mcp serve`
+### Bind-mounting a project checkout for `charly mcp serve`
 
-The `ov-mcp` layer declares a `project` volume at `/workspace` (the volume NAME stays `project` for a stable deployer API) and sets `env: OV_PROJECT_DIR=/workspace`. Bind-mount your overthink checkout at config time so build-mode MCP tools (`image.build`, `box.list.boxes`, `image.inspect`) can read `box.yml`. Alternatively, skip the bind-mount and `ov mcp serve` will auto-fall back to the upstream `overthinkos/overthink` repo (see `/ov-build:ov-mcp-cmd` "Project-dir wiring"):
+The `ov-mcp` layer declares a `project` volume at `/workspace` (the volume NAME stays `project` for a stable deployer API) and sets `env: OV_PROJECT_DIR=/workspace`. Bind-mount your opencharly checkout at config time so build-mode MCP tools (`image.build`, `box.list.boxes`, `image.inspect`) can read `box.yml`. Alternatively, skip the bind-mount and `charly mcp serve` will auto-fall back to the upstream `overthinkos/opencharly` repo (see `/charly-build:ov-mcp-cmd` "Project-dir wiring"):
 
 ```bash
-ov config arch-ov --bind project=/home/you/overthink
-ov start arch-ov
-ov eval mcp call arch-ov box.list.boxes '{}' --name ov
-# → lists images from the bind-mounted /home/you/overthink
+charly config arch-charly --bind project=/home/you/opencharly
+charly start arch-charly
+charly eval mcp call arch-charly box.list.boxes '{}' --name charly
+# → lists images from the bind-mounted /home/you/opencharly
 ```
 
-The `OV_PROJECT_DIR` env var is consumed by the ov binary's global `-C` / `--dir` / `OV_PROJECT_DIR` flag (`ov/main.go` calls `os.Chdir(Dir)` before Kong dispatch). See `/ov-image:image` "Project directory resolution" and `/ov-build:ov-mcp-cmd` "Deployment: the `ov-mcp` layer" for the full pattern.
+The `OV_PROJECT_DIR` env var is consumed by the charly binary's global `-C` / `--dir` / `OV_PROJECT_DIR` flag (`ov/main.go` calls `os.Chdir(Dir)` before Kong dispatch). See `/charly-image:image` "Project directory resolution" and `/charly-build:ov-mcp-cmd` "Deployment: the `ov-mcp` layer" for the full pattern.
 
 ## Secret Provisioning
 
@@ -137,7 +137,7 @@ Secrets declared in `candy.yml` `secret:` field are stored as OCI label metadata
 - `--password auto` (default): generates random passwords for all secrets
 - `--password manual`: prompts for each secret
 
-**Idempotent:** existing Podman secrets are never overwritten. To re-provision: `podman secret rm <name> && ov config setup <image>`.
+**Idempotent:** existing Podman secrets are never overwritten. To re-provision: `podman secret rm <name> && charly config setup <image>`.
 
 ## Data Seeding
 
@@ -174,18 +174,18 @@ This ordering caveat does not apply to named-volume targets, where the initial s
 
 Encrypted volumes use gocryptfs. Each volume gets `{cipher,plain}` subdirectories:
 
-- Default path: `<encrypted_storage_path>/ov-<image>-<name>/`
+- Default path: `<encrypted_storage_path>/charly-<image>-<name>/`
 - Explicit path: `--volume name:encrypt:/path` stores directly at `/path/{cipher,plain}`
-- Mounted via `ExecStartPre=ov config mount` in the quadlet
+- Mounted via `ExecStartPre=charly config mount` in the quadlet
 - Each mount runs in a `systemd-run --scope` unit (survives container restart)
 - `-allow_other` flag for rootless podman with `--userns=keep-id`
 
-### Fast path: `ov config mount` short-circuit
+### Fast path: `charly config mount` short-circuit
 
 When every requested encrypted volume for an image is already mounted — the
 typical state on service restart, because `ov-enc-<image>-<volume>.scope`
 units survive container stop/restart independently of the service's cgroup —
-`ov config mount <image>` short-circuits and returns without touching the
+`charly config mount <image>` short-circuits and returns without touching the
 credential store at all. Output is:
 
     All encrypted volumes for <image> already mounted (N/N)
@@ -201,7 +201,7 @@ When a volume IS unmounted and needs to be remounted, the normal path runs:
 `resolveEncPassphraseForMount` queries the credential store via the
 iteration-capable `ssClient` (not just the Secret Service default alias), so
 even then the broken-stub scenario still resolves automatically by finding
-the credential in a sibling healthy collection. See `/ov-automation:enc` for the full
+the credential in a sibling healthy collection. See `/charly-automation:enc` for the full
 iteration order, the bounded `encMountDeadline` retry behavior, and the
 source classification (`env`/`keyring`/`config`/`locked`/`unavailable`/`default`).
 
@@ -209,18 +209,18 @@ source classification (`env`/`keyring`/`config`/`locked`/`unavailable`/`default`
 
 Memory and CPU caps flow through the same `security:` block as `shm_size`.
 Layers can declare defaults; image/deploy overrides replace them. CLI flags
-on `ov config` persist to `deploy.yml` and take effect on the next quadlet
+on `charly config` persist to `deploy.yml` and take effect on the next quadlet
 regeneration.
 
 ```bash
 # Image-level default (all instances)
-ov config selkies-desktop --memory-max=6g --memory-high=5g --memory-swap-max=2g
+charly config selkies-desktop --memory-max=6g --memory-high=5g --memory-swap-max=2g
 
 # Per-instance override (tighter cap for one instance)
-ov config selkies-desktop -i 192.241.92.221 --memory-max=8g
+charly config selkies-desktop -i 192.241.92.221 --memory-max=8g
 
 # CPU quota on an unrelated image
-ov config jupyter --memory-max=16g --cpus=8
+charly config jupyter --memory-max=16g --cpus=8
 ```
 
 Merge rules (see `ov/security.go`):
@@ -232,7 +232,7 @@ Merge rules (see `ov/security.go`):
 
 Emitted as native systemd cgroup directives (`MemoryMax=`, `MemoryHigh=`,
 `MemorySwapMax=`, `CPUQuota=`) in the quadlet's `[Service]` section,
-guaranteed to work on every systemd version ov targets. For the runtime
+guaranteed to work on every systemd version charly targets. For the runtime
 (non-quadlet) path, `SecurityArgs` also emits the equivalent
 `podman run --memory / --memory-reservation / --memory-swap / --cpus` flags.
 
@@ -242,7 +242,7 @@ guaranteed to work on every systemd version ov targets. For the runtime
 ### Gotchas
 
 - Lowercase suffixes (`6g`) are auto-normalized to `6G`. systemd silently
-  parses lowercase as `infinity` — no error, just no limit — so ov coerces
+  parses lowercase as `infinity` — no error, just no limit — so charly coerces
   everything to the canonical uppercase form before emitting the quadlet.
 - Field-level merge in deploy means `--memory-max` won't wipe co-set fields
   like `shm_size`. Unset CLI fields fall through to layer/image defaults
@@ -252,21 +252,21 @@ guaranteed to work on every systemd version ov targets. For the runtime
 
 ## Port-conflict detection
 
-When a `-p HOST:CONTAINER` flag publishes onto a host port that another listener already holds, `ov config` emits a **soft warning** (does not abort) and suggests a remap:
+When a `-p HOST:CONTAINER` flag publishes onto a host port that another listener already holds, `charly config` emits a **soft warning** (does not abort) and suggests a remap:
 
 ```
 Warning: port conflicts detected:
   Port 13000 is in use
     Fix: find and stop the process using port 13000
-    Or remap: ov start openclaw-desktop --port 13001:3000
-Wrote /home/atrawog/.config/containers/systemd/ov-<image>-<instance>.container
+    Or remap: charly start openclaw-desktop --port 13001:3000
+Wrote /home/atrawog/.config/containers/systemd/charly-<image>-<instance>.container
 ```
 
-The quadlet is still written with the conflicting port, so `ov start` will fail at bind time unless you either free the port, re-run `ov config` with a remap, or edit `deploy.yml`. Detection uses a local `net.Listen` probe per published port at configure time. Handy for multi-instance deployments alongside a production fleet (e.g., running `/ov-openclaw:openclaw-desktop` as a test instance while `/ov-selkies:selkies-labwc` holds the canonical 3000/9222/9224/2222 range).
+The quadlet is still written with the conflicting port, so `charly start` will fail at bind time unless you either free the port, re-run `charly config` with a remap, or edit `deploy.yml`. Detection uses a local `net.Listen` probe per published port at configure time. Handy for multi-instance deployments alongside a production fleet (e.g., running `/charly-openclaw:openclaw-desktop` as a test instance while `/charly-selkies:selkies-labwc` holds the canonical 3000/9222/9224/2222 range).
 
 ## Deploy State
 
-All configuration is persisted to `~/.config/ov/deploy.yml`:
+All configuration is persisted to `~/.config/charly/deploy.yml`:
 
 ```yaml
 deploy:
@@ -285,76 +285,76 @@ deploy:
 ### Deploy a Jupyter notebook server
 
 ```bash
-ov config jupyter-ml-notebook --bind workspace=~/notebooks
-ov start jupyter-ml-notebook
+charly config jupyter-ml-notebook --bind workspace=~/notebooks
+charly start jupyter-ml-notebook
 # Open http://localhost:8888
 ```
 
 ### Deploy with encrypted model cache
 
 ```bash
-ov config ollama --encrypt models
+charly config ollama --encrypt models
 # Prompted for gocryptfs password on first setup
-ov start ollama
+charly start ollama
 ```
 
 ### Remove and reconfigure
 
 ```bash
-ov config remove my-app
-ov config my-app --bind workspace=/new/path
+charly config remove my-app
+charly config my-app --bind workspace=/new/path
 ```
 
 ### Full instance removal (important: 3-step cleanup)
 
-`ov config remove` disables the systemd service but does NOT clean the deploy.yml entry. Running `--update-all` before cleaning deploy.yml will re-create quadlets from stale entries. Full cleanup requires:
+`charly config remove` disables the systemd service but does NOT clean the deploy.yml entry. Running `--update-all` before cleaning deploy.yml will re-create quadlets from stale entries. Full cleanup requires:
 
 ```bash
-ov config remove <image> -i <instance>     # 1. Stop & disable service
-ov deploy reset <image> -i <instance>       # 2. Remove deploy.yml entry
-rm ~/.config/containers/systemd/ov-<image>-<instance>.container  # 3. Delete quadlet
+charly config remove <image> -i <instance>     # 1. Stop & disable service
+charly deploy reset <image> -i <instance>       # 2. Remove deploy.yml entry
+rm ~/.config/containers/systemd/charly-<image>-<instance>.container  # 3. Delete quadlet
 systemctl --user daemon-reload              # 4. Reload systemd
 systemctl --user reset-failed               # 5. Clear ghost units (optional)
 ```
 
-Only THEN run `ov config <image> --update-all` to propagate the clean state.
+Only THEN run `charly config <image> --update-all` to propagate the clean state.
 
 ### Multi-instance proxy deployment
 
 Deploy multiple browser instances with different HTTP proxies (e.g., for selkies-desktop):
 
 ```bash
-ov config selkies-desktop -i 198.145.102.110 \
+charly config selkies-desktop -i 198.145.102.110 \
   -e HTTP_PROXY=http://198.145.102.110:5466 \
   -e HTTPS_PROXY=http://198.145.102.110:5466 \
   -e "NO_PROXY=localhost,127.0.0.1" \
   -p 3006:3000 -p 9236:9222
-ov start selkies-desktop -i 198.145.102.110
+charly start selkies-desktop -i 198.145.102.110
 ```
 
 Each instance gets unique host ports. The Chrome layer's `chrome-wrapper` translates `HTTP_PROXY`/`HTTPS_PROXY` into Chrome's `--proxy-server` flag. Verify with CDP:
 
 ```bash
-ov eval cdp status selkies-desktop -i 198.145.102.110
-ov eval cdp open selkies-desktop -i 198.145.102.110 "https://ip.me"
-ov eval cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
+charly eval cdp status selkies-desktop -i 198.145.102.110
+charly eval cdp open selkies-desktop -i 198.145.102.110 "https://ip.me"
+charly eval cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
   "document.querySelector('#ip-lookup').value"
 ```
 
 ## Service Environment Injection
 
-When a configured image declares `env_provide` or `mcp_provide` in its layers (stored in OCI labels), `ov config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `ov eval mcp ping <image>` — see `/ov-build:ov-mcp-cmd` for the full verb surface.
+When a configured image declares `env_provide` or `mcp_provide` in its layers (stored in OCI labels), `charly config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `charly eval mcp ping <image>` — see `/charly-build:ov-mcp-cmd` for the full verb surface.
 
 ```yaml
-# deploy.yml after `ov config ollama && ov config jupyter`
+# deploy.yml after `charly config ollama && charly config jupyter`
 provides:
   env:
     - name: OLLAMA_HOST
-      value: http://ov-ollama:11434
+      value: http://charly-ollama:11434
       source: ollama
   mcp:
     - name: jupyter
-      url: http://ov-jupyter:8888/mcp
+      url: http://charly-jupyter:8888/mcp
       transport: http
       source: jupyter
 deploy:
@@ -366,11 +366,11 @@ deploy:
 
 **Pod-aware (MCP):** When provider and consumer share a container, MCP URLs resolve to `localhost` instead of container hostname. No self-exclusion for MCP — same-container consumers always see their own MCP servers.
 
-**Propagation:** Use `--update-all` to regenerate quadlets for all other deployed images so they pick up the new env vars immediately. Without `--update-all`, other images pick up the env vars on their next `ov config` or `ov update`.
+**Propagation:** Use `--update-all` to regenerate quadlets for all other deployed images so they pick up the new env vars immediately. Without `--update-all`, other images pick up the env vars on their next `charly config` or `charly update`.
 
-**Cleanup:** `ov config remove` and `ov remove` automatically remove the service's injected vars from the global env.
+**Cleanup:** `charly config remove` and `charly remove` automatically remove the service's injected vars from the global env.
 
-See `/ov-image:layer` for `env_provide` field documentation.
+See `/charly-image:layer` for `env_provide` field documentation.
 
 ### Instance-Aware MCP Server Naming
 
@@ -378,10 +378,10 @@ When deploying with `-i <instance>`, `injectMCPProvides` appends `-<instance>` t
 
 ```bash
 # Base deployment — MCP name: "chrome-devtools"
-ov config selkies-desktop --update-all
+charly config selkies-desktop --update-all
 
 # Instance deployment — MCP name: "chrome-devtools-31.58.9.4"
-ov config selkies-desktop -i 31.58.9.4 \
+charly config selkies-desktop -i 31.58.9.4 \
   -e HTTP_PROXY=http://31.58.9.4:6077 \
   -p 3001:3000 --update-all
 ```
@@ -389,10 +389,10 @@ ov config selkies-desktop -i 31.58.9.4 \
 Result in `deploy.yml` `provides.mcp`:
 ```yaml
 - name: chrome-devtools
-  url: http://ov-selkies-desktop:9224/mcp
+  url: http://charly-selkies-desktop:9224/mcp
   source: selkies-desktop
 - name: chrome-devtools-31.58.9.4
-  url: http://ov-selkies-desktop-31.58.9.4:9224/mcp
+  url: http://charly-selkies-desktop-31.58.9.4:9224/mcp
   source: selkies-desktop/31.58.9.4
 ```
 
@@ -406,17 +406,17 @@ The hermes layer uses `-e` env vars to auto-configure its LLM provider on first 
 
 ```bash
 # Ollama Cloud
-ov config hermes -e OLLAMA_API_KEY=your-key
+charly config hermes -e OLLAMA_API_KEY=your-key
 
 # OpenRouter
-ov config hermes -e OPENROUTER_API_KEY=sk-or-xxx
+charly config hermes -e OPENROUTER_API_KEY=sk-or-xxx
 
-# Local Ollama (OLLAMA_HOST auto-injected by ov config ollama --update-all)
-ov config ollama --update-all
-ov config hermes
+# Local Ollama (OLLAMA_HOST auto-injected by charly config ollama --update-all)
+charly config ollama --update-all
+charly config hermes
 ```
 
-All providers whose keys are present get registered simultaneously. Priority (`OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`) only determines the default. Override model with `-e HERMES_MODEL=...`. See `/ov-hermes:hermes` for auto-provider-config details.
+All providers whose keys are present get registered simultaneously. Priority (`OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`) only determines the default. Override model with `-e HERMES_MODEL=...`. See `/charly-hermes:hermes` for auto-provider-config details.
 
 ## Open WebUI Auto-Configuration Example
 
@@ -424,8 +424,8 @@ Open WebUI uses `env_require` for mandatory admin credentials and `env_accept` f
 
 ```bash
 # Minimal: admin credentials required (hard error if missing)
-eval "$(ov secrets gpg env)"
-ov config openwebui \
+eval "$(charly secrets gpg env)"
+charly config openwebui \
   -e "WEBUI_ADMIN_EMAIL=$WEBUI_ADMIN_EMAIL" \
   -e "WEBUI_ADMIN_PASSWORD=$WEBUI_ADMIN_PASSWORD" \
   -e "OPENROUTER_API_KEY=$OPENROUTER_API_KEY" \
@@ -433,32 +433,32 @@ ov config openwebui \
   --update-all
 
 # Full workstation: Ollama + Jupyter + OpenWebUI
-ov config ollama
-ov config jupyter --update-all
-ov config openwebui ... --update-all
+charly config ollama
+charly config jupyter --update-all
+charly config openwebui ... --update-all
 ```
 
-The entrypoint auto-configures: OpenRouter + Ollama Cloud as semicolon-separated `OPENAI_API_BASE_URLS`, MCP servers from `OV_MCP_SERVERS` → `TOOL_SERVER_CONNECTIONS`, Jupyter code execution from co-deployed jupyter container. `ENABLE_OLLAMA_API` is disabled unless a local Ollama is deployed via `env_provide`. See `/ov-openwebui:openwebui` for details.
+The entrypoint auto-configures: OpenRouter + Ollama Cloud as semicolon-separated `OPENAI_API_BASE_URLS`, MCP servers from `OV_MCP_SERVERS` → `TOOL_SERVER_CONNECTIONS`, Jupyter code execution from co-deployed jupyter container. `ENABLE_OLLAMA_API` is disabled unless a local Ollama is deployed via `env_provide`. See `/charly-openwebui:openwebui` for details.
 
 ## env_require Enforcement
 
-Layers can declare `env_require` in `candy.yml` for mandatory environment variables. `ov config` performs a hard check after resolving all env vars — if any required var is missing, it aborts before writing the quadlet and prints clear instructions:
+Layers can declare `env_require` in `candy.yml` for mandatory environment variables. `charly config` performs a hard check after resolving all env vars — if any required var is missing, it aborts before writing the quadlet and prints clear instructions:
 
 ```
 Error: openwebui requires the following environment variable(s):
 
-  WEBUI_ADMIN_EMAIL — Admin email — pass via: ov config openwebui -e WEBUI_ADMIN_EMAIL=you@example.com
+  WEBUI_ADMIN_EMAIL — Admin email — pass via: charly config openwebui -e WEBUI_ADMIN_EMAIL=you@example.com
 
 Set them with -e flags, --env-file, or deploy.yml env:
 
-  ov config openwebui -e WEBUI_ADMIN_EMAIL=...
+  charly config openwebui -e WEBUI_ADMIN_EMAIL=...
 ```
 
 Source: `ov/config_image.go` (`checkMissingEnvRequires`).
 
 ## secret_require Enforcement
 
-Parallel to `env_require` but for credential-backed env vars. Layers declare `secret_require` in `candy.yml` (see `/ov-image:layer`). `ov config` resolves each entry from the credential store via `ResolveCredential` and, if any required value is not stored, aborts with a clear remediation message:
+Parallel to `env_require` but for credential-backed env vars. Layers declare `secret_require` in `candy.yml` (see `/charly-image:layer`). `charly config` resolves each entry from the credential store via `ResolveCredential` and, if any required value is not stored, aborts with a clear remediation message:
 
 ```
 Error: openwebui requires the following credential-backed secret(s):
@@ -467,18 +467,18 @@ Error: openwebui requires the following credential-backed secret(s):
 
 Store them in the credential backend. For each entry:
 
-  ov secrets set ov/secret WEBUI_ADMIN_PASSWORD <value>
+  charly secrets set ov/secret WEBUI_ADMIN_PASSWORD <value>
 
 Alternatively, pass the value once via -e; it will be auto-imported:
 
-  ov config openwebui -e WEBUI_ADMIN_PASSWORD=...
+  charly config openwebui -e WEBUI_ADMIN_PASSWORD=...
 ```
 
 Source: `ov/config_image.go` (`checkMissingSecretRequires`).
 
 ## Plaintext-to-Credential Migration Hook
 
-When `ov config <image>` runs, it automatically migrates any existing plaintext `NAME=VAL` entry in `deploy.yml`'s `env:` list whose NAME is now declared as `secret_accept` / `secret_require` on the image. The sequence:
+When `charly config <image>` runs, it automatically migrates any existing plaintext `NAME=VAL` entry in `deploy.yml`'s `env:` list whose NAME is now declared as `secret_accept` / `secret_require` on the image. The sequence:
 
 1. Scan `dc.Images[deployKey(image, instance)].Env` for names that match `meta.SecretAccepts` / `meta.SecretRequires`
 2. For each match: copy the value to the credential store at the layer-declared `(service, key)` path (default `ov/secret/<NAME>`), remove the entry from `dc.Env`, mark the deploy config dirty
@@ -492,14 +492,14 @@ Source: `ov/config_secret_migration.go` (`MigratePlaintextEnvSecrets`).
 
 ## `-e` Auto-Import for `secret_accept` / `secret_require`
 
-When a `-e NAME=VAL` flag targets an env var declared as `secret_accept` / `secret_require` on the image, `ov config` auto-imports the value into the credential store and strips it from `c.Env` before the plaintext env merge runs. The stderr output shows each imported key:
+When a `-e NAME=VAL` flag targets an env var declared as `secret_accept` / `secret_require` on the image, `charly config` auto-imports the value into the credential store and strips it from `c.Env` before the plaintext env merge runs. The stderr output shows each imported key:
 
 ```
 Imported WEBUI_ADMIN_PASSWORD into credential store (ov/secret/WEBUI_ADMIN_PASSWORD)
 Imported OPENROUTER_API_KEY into credential store (ov/api-key/openrouter)
 ```
 
-The normal secret resolution path then picks up the value from the backend on the same `ov config` invocation. First-time setup is a single command; subsequent runs don't need `-e`.
+The normal secret resolution path then picks up the value from the backend on the same `charly config` invocation. First-time setup is a single command; subsequent runs don't need `-e`.
 
 Plain `env_accept` / `env_require` entries are unaffected — their `-e` values continue to flow through the plaintext env merge into `deploy.yml` and the quadlet as before.
 
@@ -516,16 +516,16 @@ Source: `ov/config_secret_migration.go` (`scrubSecretCLIEnv`).
 | Consumer declared | Provider deployed | Result |
 |---|---|---|
 | `env_require: [X]` (no default) | yes (X in `env_provide`) | X resolved, injected via `provides:` |
-| `env_require: [X]` (no default) | **no** | **`ov config` aborts with a hard error** |
+| `env_require: [X]` (no default) | **no** | **`charly config` aborts with a hard error** |
 | `env_require: [X]` with default | no | default used |
 | `env_accept: [X]` | yes | X resolved, injected |
 | `env_accept: [X]` | no | var silently omitted |
 | neither accepts nor requires X | yes | **var is silently dropped** (filtering in action) |
 | neither accepts nor requires X | no | nothing happens |
 
-**Sidecar interaction.** Sidecars (e.g., the tailscale sidecar) participate in the same filtering pipeline — their `TS_*` env set is routed to the sidecar container, not auto-merged into the app container. For the app to see anything from the sidecar, it must declare `env_accept: [<var>]` or `env_require: [<var>]`. See `/ov-automation:sidecar` (Environment Contract) for the pattern.
+**Sidecar interaction.** Sidecars (e.g., the tailscale sidecar) participate in the same filtering pipeline — their `TS_*` env set is routed to the sidecar container, not auto-merged into the app container. For the app to see anything from the sidecar, it must declare `env_accept: [<var>]` or `env_require: [<var>]`. See `/charly-automation:sidecar` (Environment Contract) for the pattern.
 
-**`--update-all` effect.** When filtering rules change (e.g., a layer adds a new `env_accept` entry), `ov config <any-image> --update-all` re-runs the resolution pipeline for every deployed image and writes updated `provides:` blocks to their quadlets. Propagation is atomic per-image.
+**`--update-all` effect.** When filtering rules change (e.g., a layer adds a new `env_accept` entry), `charly config <any-image> --update-all` re-runs the resolution pipeline for every deployed image and writes updated `provides:` blocks to their quadlets. Propagation is atomic per-image.
 
 Source: `ov/provides.go` (resolution, filtering, `{{.ContainerName}}` templating), `ov/config_image.go` (`injectEnvProvides`, `injectMCPProvides`, `checkMissingEnvRequires`).
 
@@ -534,9 +534,9 @@ Source: `ov/provides.go` (resolution, filtering, `{{.ContainerName}}` templating
 Attach a sidecar container at deploy time:
 
 ```bash
-ov config --list-sidecars                    # List built-in sidecar templates
-ov config <image> --sidecar tailscale        # Attach tailscale sidecar
-ov config <image> --sidecar tailscale \
+charly config --list-sidecars                    # List built-in sidecar templates
+charly config <image> --sidecar tailscale        # Attach tailscale sidecar
+charly config <image> --sidecar tailscale \
   -e TS_HOSTNAME=my-app \
   -e "TS_EXTRA_ARGS=--exit-node=<ip> --exit-node-allow-lan-access"
 ```
@@ -545,11 +545,11 @@ ov config <image> --sidecar tailscale \
 - CLI `-e` env vars matching sidecar template keys (e.g., `TS_*`) are auto-routed to the sidecar, not the app container
 - Generates pod + sidecar + app quadlet files (3 instead of 1)
 
-See `/ov-automation:sidecar` for full sidecar documentation.
+See `/charly-automation:sidecar` for full sidecar documentation.
 
 ## Environment Variable Handling
 
-**Merge behavior (default):** `-e` performs upsert — new vars override existing vars with the same key; existing vars not in the new set are preserved. This means `ov config setup -e HTTP_PROXY=...` adds the proxy without dropping existing vars like `SSH_AUTHORIZED_KEYS`.
+**Merge behavior (default):** `-e` performs upsert — new vars override existing vars with the same key; existing vars not in the new set are preserved. This means `charly config setup -e HTTP_PROXY=...` adds the proxy without dropping existing vars like `SSH_AUTHORIZED_KEYS`.
 
 **Clean behavior (`-c`):** `-c`/`--clean` replaces the entire env list in deploy.yml. Use when you want to reset env vars to exactly what's specified on the command line.
 
@@ -557,11 +557,11 @@ Kong `sep:"none"` on all `-e` flags means commas in values are preserved (no spl
 
 `normalizeNoProxy()` auto-converts semicolons to commas in `NO_PROXY`/`no_proxy` values during env resolution. Legacy semicolon values in deploy.yml are auto-healed.
 
-**NO_PROXY enrichment:** When `HTTP_PROXY` or `HTTPS_PROXY` is present, `ov config` automatically appends all deployed container hostnames to `NO_PROXY`. This is necessary because Chrome does not support CIDR ranges in NO_PROXY (unlike curl) — without explicit hostnames, Chrome routes internal traffic like `http://ov-immich-ml:2283` through the external proxy, causing Bad Gateway errors. Applied in both the main config path and `--update-all`. Source: `ov/envfile.go` (`enrichNoProxy`), `ov/deploy.go` (`DeployedContainerNames`).
+**NO_PROXY enrichment:** When `HTTP_PROXY` or `HTTPS_PROXY` is present, `charly config` automatically appends all deployed container hostnames to `NO_PROXY`. This is necessary because Chrome does not support CIDR ranges in NO_PROXY (unlike curl) — without explicit hostnames, Chrome routes internal traffic like `http://charly-immich-ml:2283` through the external proxy, causing Bad Gateway errors. Applied in both the main config path and `--update-all`. Source: `ov/envfile.go` (`enrichNoProxy`), `ov/deploy.go` (`DeployedContainerNames`).
 
-**Tunnel persistence:** `ov config setup` automatically persists tunnel config from deploy.yml back to deploy.yml via `saveDeployState`. Tunnel is a deploy-time concern — see `/ov-core:deploy` for tunnel configuration.
+**Tunnel persistence:** `charly config setup` automatically persists tunnel config from deploy.yml back to deploy.yml via `saveDeployState`. Tunnel is a deploy-time concern — see `/charly-core:deploy` for tunnel configuration.
 
-**Tunnel is deploy.yml-only:** `labels.go:238` deliberately skips parsing the `org.overthinkos.tunnel` OCI image label. Tunnel config is ONLY sourced from `deploy.yml`. New instances created with `ov config setup -i <name>` do NOT inherit tunnel config from the base image's deploy.yml entry — you must manually add `tunnel: {provider: tailscale, private: all}` to the instance's deploy.yml entry, then re-run `ov config setup` to regenerate the quadlet with `ExecStartPost=tailscale serve` commands.
+**Tunnel is deploy.yml-only:** `labels.go:238` deliberately skips parsing the `ai.opencharly.tunnel` OCI image label. Tunnel config is ONLY sourced from `deploy.yml`. New instances created with `charly config setup -i <name>` do NOT inherit tunnel config from the base image's deploy.yml entry — you must manually add `tunnel: {provider: tailscale, private: all}` to the instance's deploy.yml entry, then re-run `charly config setup` to regenerate the quadlet with `ExecStartPost=tailscale serve` commands.
 
 Source: `ov/envfile.go` (`normalizeNoProxy`), `ov/deploy.go` (`mergeEnvVars`, `saveDeployState`), `sep:"none"` in config_image.go/shell.go/commands.go/start.go.
 
@@ -569,38 +569,38 @@ Source: `ov/envfile.go` (`normalizeNoProxy`), `ov/deploy.go` (`mergeEnvVars`, `s
 
 ### Prerequisites
 
-- `/ov-build:pull` — Required before `ov config` can read OCI labels. Remote refs (`@github.com/...`) are rejected with a redirect to `ov box pull`. If the image isn't local, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI prompts for a pull.
+- `/charly-build:pull` — Required before `charly config` can read OCI labels. Remote refs (`@github.com/...`) are rejected with a redirect to `charly box pull`. If the image isn't local, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI prompts for a pull.
 
 ### Deploy-mode neighbors
 
-- `/ov-automation:sidecar` — Sidecar containers, pod networking, Tailscale exit nodes, Environment Contract (how sidecars participate in provides filtering)
-- `/ov-core:start` — Requires `ov config` first in quadlet mode
-- `/ov-core:deploy` — Deploy state file (deploy.yml), sidecar pod deployment, tunnel lifecycle, instance tunnel inheritance, resource caps persistence
-- `/ov-automation:enc` — Encrypted storage details
-- `/ov-build:secrets` — Container secret management, `ov secrets gpg set TS_AUTHKEY`
-- `/ov-build:settings` — Runtime settings (engine, run_mode, encrypted_storage_path)
-- `/ov-core:service` — Service lifecycle (start, stop, status, logs)
-- `/ov-image:layer` — Volume, secret, `env_provide` / `env_require` / `env_accept` declarations, security resource cap fields, `service:` blocks
-- `/ov-image:image` — Image composition, inheritance, OCI label emission, tunnel deploy.yml-only note (`labels.go:238`)
-- `/ov-core:ov-doctor` — Host GPU/device detection driving `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
-- `/ov-core:shell` — Interactive shells share the same `appendAutoDetectedEnv()` path
-- `/ov-selkies:chrome` — Chrome HTTP proxy (`env_accept`), NO_PROXY auto-enrichment, cgroup resource caps
-- `/ov-infrastructure:supervisord` — Event listener pattern that pairs with the resource caps
-- `/ov-distros:nvidia`, `/ov-distros:rocm` — GPU layers that consume DRINODE auto-injection
-- `/ov-selkies:selkies` — Pixelflux DRINODE consumer + ScreenCapture singleton
+- `/charly-automation:sidecar` — Sidecar containers, pod networking, Tailscale exit nodes, Environment Contract (how sidecars participate in provides filtering)
+- `/charly-core:start` — Requires `charly config` first in quadlet mode
+- `/charly-core:deploy` — Deploy state file (deploy.yml), sidecar pod deployment, tunnel lifecycle, instance tunnel inheritance, resource caps persistence
+- `/charly-automation:enc` — Encrypted storage details
+- `/charly-build:secrets` — Container secret management, `charly secrets gpg set TS_AUTHKEY`
+- `/charly-build:settings` — Runtime settings (engine, run_mode, encrypted_storage_path)
+- `/charly-core:service` — Service lifecycle (start, stop, status, logs)
+- `/charly-image:layer` — Volume, secret, `env_provide` / `env_require` / `env_accept` declarations, security resource cap fields, `service:` blocks
+- `/charly-image:image` — Image composition, inheritance, OCI label emission, tunnel deploy.yml-only note (`labels.go:238`)
+- `/charly-core:ov-doctor` — Host GPU/device detection driving `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
+- `/charly-core:shell` — Interactive shells share the same `appendAutoDetectedEnv()` path
+- `/charly-selkies:chrome` — Chrome HTTP proxy (`env_accept`), NO_PROXY auto-enrichment, cgroup resource caps
+- `/charly-infrastructure:supervisord` — Event listener pattern that pairs with the resource caps
+- `/charly-distros:nvidia`, `/charly-distros:rocm` — GPU layers that consume DRINODE auto-injection
+- `/charly-selkies:selkies` — Pixelflux DRINODE consumer + ScreenCapture singleton
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves `ov config` commands, image deployment setup, quadlet generation, sidecar attachment, secret provisioning, encrypted volumes, data seeding, or volume backing configuration. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves `charly config` commands, image deployment setup, quadlet generation, sidecar attachment, secret provisioning, encrypted volumes, data seeding, or volume backing configuration. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** After build, before start. `ov box build` → `ov config` → `ov start`.
+**Workflow position:** After build, before start. `charly box build` → `charly config` → `charly start`.
 
 Source: `ov/config_image.go` (command structs), `ov/quadlet.go` (quadlet generation), `ov/deploy.go` (deploy state), `ov/enc.go` (encrypted volumes), `ov/secrets.go` (secret provisioning), `ov/data.go` (data seeding).
 
-## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
-**After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
+**After committing the source-level fix, `charly update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 
 Unit tests + a clean compile are necessary but not sufficient. See CLAUDE.md R1–R10.

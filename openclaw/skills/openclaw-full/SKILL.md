@@ -36,19 +36,19 @@ Headless OpenClaw image with maximal tool/skill coverage. No desktop, no VNC.
 ## Quick Start
 
 ```bash
-ov box build openclaw-full
-ov config openclaw-full
-ov start openclaw-full
+charly box build openclaw-full
+charly config openclaw-full
+charly start openclaw-full
 ```
 
 ## Key Layers
 
-- `/ov-openclaw:openclaw-full` — Metalayer composition (all tools)
-- `/ov-openclaw:openclaw` — AI gateway service
+- `/charly-openclaw:openclaw-full` — Metalayer composition (all tools)
+- `/charly-openclaw:openclaw` — AI gateway service
 
 ## Related Images
 
-- `/ov-openclaw:openclaw` — minimal (gateway only)
+- `/charly-openclaw:openclaw` — minimal (gateway only)
 
 ## When to Use This Skill
 
@@ -56,5 +56,5 @@ ov start openclaw-full
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

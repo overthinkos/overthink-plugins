@@ -33,14 +33,14 @@ my-image:
 
 ## Used In Images
 
-- `/ov-distros:fedora-builder` (direct)
-- `/ov-distros:arch-builder` (direct)
+- `/charly-distros:fedora-builder` (direct)
+- `/charly-distros:arch-builder` (direct)
 - Transitive dependency via `python` / `supervisord` in most service images
 
 ## Related Layers
 
-- `/ov-languages:python` -- depends on pixi for Python 3.13 installation
-- `/ov-coder:pre-commit` -- uses pixi for pre-commit installation
+- `/charly-languages:python` -- depends on pixi for Python 3.13 installation
+- `/charly-coder:pre-commit` -- uses pixi for pre-commit installation
 
 ## Committed `pixi.lock` → `pixi install --frozen`
 
@@ -77,5 +77,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

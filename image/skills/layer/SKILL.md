@@ -8,7 +8,7 @@ description: |
 
 ## Overview
 
-A **layer** is a directory under `candy/<name>/` that installs a single concern. Layers are the building blocks of container images in overthink. Each layer declares its packages, environment variables, services, volumes, and **install tasks** in a single `candy.yml` file.
+A **layer** is a directory under `candy/<name>/` that installs a single concern. Layers are the building blocks of container images in opencharly. Each layer declares its packages, environment variables, services, volumes, and **install tasks** in a single `candy.yml` file.
 
 There is **one YAML file per layer** for install logic — no separate Taskfiles. Everything an author needs to install flows through `task:` and auto-detected package manifests (`pixi.toml`, `package.json`, `Cargo.toml`).
 
@@ -31,7 +31,7 @@ Resolution rule:
 - relative path → joined onto candy.yml's dir
 - absolute path → used as-is
 
-`ov box validate` fails when `directory:` points at a path that doesn't exist.
+`charly box validate` fails when `directory:` points at a path that doesn't exist.
 
 ## Kind-keyed standalone form (`layer: {name, …}`)
 
@@ -47,47 +47,47 @@ candy:
     - copy: policies.json
 ```
 
-The runtime parser accepts only this kind-keyed form. `ov migrate` converts any legacy layer files to the canonical shape in a single idempotent pass.
+The runtime parser accepts only this kind-keyed form. `charly migrate` converts any legacy layer files to the canonical shape in a single idempotent pass.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Scaffold new layer | `ov box new candy <name>` | Create layer directory with starter `candy.yml` (see `/ov-build:new`) |
-| Edit a layer field | `ov candy set <name> <dotpath> <value>` | Comment-preserving YAML edit by dot-path |
-| Append rpm/deb/pac/aur packages | `ov candy add-rpm <name> <pkg…>` (plus `add-deb`, `add-pac`, `add-aur`) | Idempotent append; auto-upgrades scaffold's null `package:` to a sequence |
-| Append a Gherkin acceptance scenario (Agent Driven Development) | `ov candy add-scenario <name> <scenario> --given/--when/--then [--pod --tag]` | Idempotent append (dedupe by name) to the layer's `description.scenario`. Writes prose-only steps; bind a deterministic check verb by editing the step, or leave it prose for the agent grader. See `/ov-eval:eval` "Agent Driven Development" |
-| Write a free-form file (`pixi.toml`, `root.yml`, …) | `ov box write <rel-path> --content X` | Escape hatch for files the schema setters don't cover; guarded against `..` traversal |
-| List all layers | `ov box list candies` | Show available layers from filesystem |
-| List services | `ov box list services` | Layers with `service` in candy.yml |
-| List volumes | `ov box list volumes` | Layers with `volumes` in candy.yml |
-| List aliases | `ov box list aliases` | Layers with `aliases` in candy.yml |
-| Validate | `ov box validate` | Check all layers and images |
+| Scaffold new layer | `charly box new candy <name>` | Create layer directory with starter `candy.yml` (see `/charly-build:new`) |
+| Edit a layer field | `charly candy set <name> <dotpath> <value>` | Comment-preserving YAML edit by dot-path |
+| Append rpm/deb/pac/aur packages | `charly candy add-rpm <name> <pkg…>` (plus `add-deb`, `add-pac`, `add-aur`) | Idempotent append; auto-upgrades scaffold's null `package:` to a sequence |
+| Append a Gherkin acceptance scenario (Agent Driven Development) | `charly candy add-scenario <name> <scenario> --given/--when/--then [--pod --tag]` | Idempotent append (dedupe by name) to the layer's `description.scenario`. Writes prose-only steps; bind a deterministic check verb by editing the step, or leave it prose for the agent grader. See `/charly-eval:eval` "Agent Driven Development" |
+| Write a free-form file (`pixi.toml`, `root.yml`, …) | `charly box write <rel-path> --content X` | Escape hatch for files the schema setters don't cover; guarded against `..` traversal |
+| List all layers | `charly box list candies` | Show available layers from filesystem |
+| List services | `charly box list services` | Layers with `service` in candy.yml |
+| List volumes | `charly box list volumes` | Layers with `volumes` in candy.yml |
+| List aliases | `charly box list aliases` | Layers with `aliases` in candy.yml |
+| Validate | `charly box validate` | Check all layers and images |
 
-Every editor verb above auto-becomes an MCP tool via Kong reflection (`candy.set`, `candy.add-rpm`, `box.write`, …) so an agent driving `ov mcp serve` can author layers from scratch over RPC without touching the filesystem directly. See `/ov-build:ov-mcp-cmd` "Authoring tools" for the worked end-to-end example, and `/ov-build:new` for the project / image / layer scaffolders that bootstrap the flow.
+Every editor verb above auto-becomes an MCP tool via Kong reflection (`candy.set`, `candy.add-rpm`, `box.write`, …) so an agent driving `charly mcp serve` can author layers from scratch over RPC without touching the filesystem directly. See `/charly-build:ov-mcp-cmd` "Authoring tools" for the worked end-to-end example, and `/charly-build:new` for the project / image / layer scaffolders that bootstrap the flow.
 
 ### Editing candy.yml via the CLI (no hand-edit required)
 
-The `ov candy …` group edits `candy/<name>/candy.yml` through the `yaml.v3` Node API, so **comments and key order are preserved** across edits. Unlike unmarshal-then-marshal, nothing gets scrambled when an agent (or a shell script) touches the file:
+The `charly candy …` group edits `candy/<name>/candy.yml` through the `yaml.v3` Node API, so **comments and key order are preserved** across edits. Unlike unmarshal-then-marshal, nothing gets scrambled when an agent (or a shell script) touches the file:
 
 ```bash
 # Append packages (idempotent; handles scaffold's null `package:` value):
-ov candy add-rpm sshd openssh-server openssh-clients
-ov candy add-deb sshd openssh-server
-ov candy add-pac sshd openssh
+charly candy add-rpm sshd openssh-server openssh-clients
+charly candy add-deb sshd openssh-server
+charly candy add-pac sshd openssh
 
 # Set any field by dot-path (value is parsed as YAML):
-ov candy set sshd env.SSHD_PORT 22
-ov candy set sshd service.name sshd
-ov candy set sshd port '["22:22"]'
-ov candy set sshd require '[supervisord]'
+charly candy set sshd env.SSHD_PORT 22
+charly candy set sshd service.name sshd
+charly candy set sshd port '["22:22"]'
+charly candy set sshd require '[supervisord]'
 
 # Free-form files (layer scripts, pixi.toml, root.yml, *.service):
-ov box write candy/sshd/root.yml --content 'tasks:\n  - cmd: echo configured\n'
-ov box cat candy/sshd/root.yml
+charly box write candy/sshd/root.yml --content 'tasks:\n  - cmd: echo configured\n'
+charly box cat candy/sshd/root.yml
 ```
 
-Implementation: `ov/scaffold_cmds.go` (verbs) + `ov/yaml_setter.go` (`SetByDotPath`). Tested in `ov/yaml_setter_test.go` — the comment-preservation guarantee is explicitly exercised (leading file comments, sibling keys, and per-key inline comments all survive round trips). See `/ov-internals:go` "Implementation insights" for the full rationale.
+Implementation: `ov/scaffold_cmds.go` (verbs) + `ov/yaml_setter.go` (`SetByDotPath`). Tested in `ov/yaml_setter_test.go` — the comment-preservation guarantee is explicitly exercised (leading file comments, sibling keys, and per-key inline comments all survive round trips). See `/charly-internals:go` "Implementation insights" for the full rationale.
 
 ## Install Surface (what a layer directory holds)
 
@@ -110,7 +110,7 @@ A layer directory can contain any combination of these:
 
 ## Task Verb Catalog
 
-Every task in `task:` is a YAML map with **exactly one verb key** (the discriminator) plus optional sibling modifiers. The verb's value is the primary argument. `ov box validate` rejects tasks with zero verbs or multiple verbs.
+Every task in `task:` is a YAML map with **exactly one verb key** (the discriminator) plus optional sibling modifiers. The verb's value is the primary argument. `charly box validate` rejects tasks with zero verbs or multiple verbs.
 
 | Verb | Value | Required modifiers | Optional modifiers | Purpose |
 |---|---|---|---|---|
@@ -119,7 +119,7 @@ Every task in `task:` is a YAML map with **exactly one verb key** (the discrimin
 | `copy:` | source relative to layer dir | `to:` | `user`, `mode`, `comment` | `COPY --from=<layer-stage> --chmod= [--chown=]` — no RUN |
 | `write:` | destination path | `content:` | `user`, `mode`, `comment` | Write inline content — staged + COPY, no shell heredoc |
 | `link:` | symlink path (where the link lives) | `target:` | `user`, `comment` | `ln -sf <target> <link>` (coalesces with adjacent) |
-| `download:` | URL | — (`to:` unless `extract: sh`) | `user`, `extract`, `to`, `include`, `strip_components`, `mode`, `env`, `comment` | `curl` + optional extract (`tar.gz`/`tar.xz`/`tar.zst`/`zip`/`none`/`sh`). `strip_components: N` emits `tar --strip-components=N` for tar.* — drops leading path segments so tarballs that nest under a top-level arch/version dir (Go, Rust, Node binary releases) land files directly at `to:`. See `/ov-coder:uv` for the canonical uv-x86_64-unknown-linux-gnu/uv → /usr/local/bin/uv example. |
+| `download:` | URL | — (`to:` unless `extract: sh`) | `user`, `extract`, `to`, `include`, `strip_components`, `mode`, `env`, `comment` | `curl` + optional extract (`tar.gz`/`tar.xz`/`tar.zst`/`zip`/`none`/`sh`). `strip_components: N` emits `tar --strip-components=N` for tar.* — drops leading path segments so tarballs that nest under a top-level arch/version dir (Go, Rust, Node binary releases) land files directly at `to:`. See `/charly-coder:uv` for the canonical uv-x86_64-unknown-linux-gnu/uv → /usr/local/bin/uv example. |
 | `setcap:` | file path | — | `user` (implicit root), `caps`, `comment` | File capabilities (`setcap -r` strip if `caps` empty) |
 | `build:` | `"all"` | — | `user` (default `${USER}`), `comment` | Run auto-detected builders (pixi/npm/cargo/aur) at this point (instead of end-of-layer) |
 
@@ -136,7 +136,7 @@ Every task in `task:` is a YAML map with **exactly one verb key** (the discrimin
 | `include` | `download` | — | Extract only these paths (archive formats) |
 | `env` | `download` | — | Env vars for install scripts (`sh` extract) |
 | `caps` | `setcap` | empty (= strip) | Capability spec (e.g. `cap_setuid=ep`) |
-| `cache` | `cmd`, `download` | — | List of absolute BuildKit cache-mount paths for this task's RUN. Ownership follows `user:` (root → shared/locked, non-root → uid/gid-owned). Persists heavy downloads/build artifacts across builds the SAME way package caches do — surviving an upstream layer cache-miss. The cache-USE logic (sentinel guards, copy-into-place) lives in the task body; ov only mounts the cache. See "Caching downloads" below. |
+| `cache` | `cmd`, `download` | — | List of absolute BuildKit cache-mount paths for this task's RUN. Ownership follows `user:` (root → shared/locked, non-root → uid/gid-owned). Persists heavy downloads/build artifacts across builds the SAME way package caches do — surviving an upstream layer cache-miss. The cache-USE logic (sentinel guards, copy-into-place) lives in the task body; charly only mounts the cache. See "Caching downloads" below. |
 | `comment` | all | — | Emitted as a Containerfile comment above the task |
 
 ### Caching downloads (`download:` auto-caches; `cache:` for heavy installers)
@@ -155,7 +155,7 @@ so an upstream base cache-miss doesn't re-download ~1.5GB from Google's CDN:
 
 ```yaml
 - cmd: |
-    SDK_CACHE=/var/cache/ov-android-sdk
+    SDK_CACHE=/var/cache/charly-android-sdk
     if [ ! -f "${SDK_CACHE}/.ov-sdk-complete" ]; then
       rm -rf "${SDK_CACHE}"; mkdir -p "${SDK_CACHE}"
       sdkmanager --sdk_root="${SDK_CACHE}" "platform-tools" "emulator" "system-images;…"
@@ -164,13 +164,13 @@ so an upstream base cache-miss doesn't re-download ~1.5GB from Google's CDN:
     cp -a "${SDK_CACHE}/." /opt/android-sdk/   # materialize into the image
   user: user
   cache:
-    - /var/cache/ov-android-sdk                 # owned (uid) because user: user
+    - /var/cache/charly-android-sdk                 # owned (uid) because user: user
 ```
 
 The sentinel (`.ov-sdk-complete`, written only after a fully-successful install)
 guards against a partial/interrupted download populating the cache. AUR builds
 get the same treatment via `build.yml`'s `aur` builder (owned `cache_mount`
-entries for makepkg `SRCDEST` + yay's clone cache) — see `/ov-build:build`.
+entries for makepkg `SRCDEST` + yay's clone cache) — see `/charly-build:build`.
 
 ### Verb examples
 
@@ -295,17 +295,17 @@ These names are reserved — `var:` may not shadow them:
 `${VAR}` is resolved in every task field **except**:
 
 - `cmd:` command text — passed verbatim to bash so shell-style `${VAR:-default}`, `$(command)`, and `$NAME` all work the way you'd expect. **But** RUN shells don't have `$USER` exported by default — use `getent passwd <UID>` for user-name discovery inside `cmd:`, not `$USER`.
-- `write: content:` — the file body is verbatim bytes (never substituted, never heredoc'd). If you need the resolved `${USER}` inside a file, use a `cmd:` task that writes via shell redirect after discovering the name via `getent passwd 1000 | cut -d: -f1`. Canonical worked example: `/ov-coder:sshd`'s sudoers drop-in.
+- `write: content:` — the file body is verbatim bytes (never substituted, never heredoc'd). If you need the resolved `${USER}` inside a file, use a `cmd:` task that writes via shell redirect after discovering the name via `getent passwd 1000 | cut -d: -f1`. Canonical worked example: `/charly-coder:sshd`'s sudoers drop-in.
 
 Everything else (paths, URLs, modes, `to`, `target`, `user`, etc.) resolves via the Docker-level ENV mechanism, so BuildKit sees the values and substitutes in COPY/RUN/ENV directives.
 
-**Why `$USER` isn't reliable in `cmd:`** — the generator resolves `${USER}` in task fields (paths, `user:` directive, COPY --chown) at generate time. But `cmd:` body text is passed through to bash at RUN time, and bash at RUN time doesn't export `$USER` unless the image explicitly set it via an `ENV USER=` directive (which we don't). `getent passwd <UID>` is the robust, fully-generic alternative that works equally under create mode (`user`) and adopt mode (`ubuntu`) — see `/ov-image:image` "user_policy".
+**Why `$USER` isn't reliable in `cmd:`** — the generator resolves `${USER}` in task fields (paths, `user:` directive, COPY --chown) at generate time. But `cmd:` body text is passed through to bash at RUN time, and bash at RUN time doesn't export `$USER` unless the image explicitly set it via an `ENV USER=` directive (which we don't). `getent passwd <UID>` is the robust, fully-generic alternative that works equally under create mode (`user`) and adopt mode (`ubuntu`) — see `/charly-image:image` "user_policy".
 
 ### Validation
 
 - `var:` keys must match `^[A-Z_][A-Z0-9_]*$` (standard shell identifier)
 - Keys may not collide with auto-exports or with the layer's own `env:` keys
-- Unresolved `${VAR}` in non-shell fields (paths, URLs, etc.) errors at `ov box validate`
+- Unresolved `${VAR}` in non-shell fields (paths, URLs, etc.) errors at `charly box validate`
 
 ---
 
@@ -407,7 +407,7 @@ task:
 
 | Field | Type | Purpose |
 |-------|------|---------|
-| `version` | `string` | **MANDATORY** CalVer (`YYYY.DDD.HHMM`) of this layer definition — the layer kind requires it (`ov box validate` hard-errors when absent; `ov migrate` backfills it). The authoritative per-entity identity: it drives cross-repo layer resolution (`pickLayerVersion`) and, as the highest layer version, the consuming image's content-stable `org.overthinkos.version` label. Bump it when the layer's content changes. |
+| `version` | `string` | **MANDATORY** CalVer (`YYYY.DDD.HHMM`) of this layer definition — the layer kind requires it (`charly box validate` hard-errors when absent; `charly migrate` backfills it). The authoritative per-entity identity: it drives cross-repo layer resolution (`pickLayerVersion`) and, as the highest layer version, the consuming image's content-stable `ai.opencharly.version` label. Bump it when the layer's content changes. |
 | `status` | `string` | `working`, `testing`, or `broken`. Default: `testing`. |
 | `info` | `string` | Free-form description of what works / doesn't. Recommended for `testing` / `broken`. |
 | `require` | `[]string` | Layer dependencies. Resolved transitively, topologically sorted. |
@@ -420,18 +420,18 @@ task:
 | `route` | `{host, port}` | Traefik reverse proxy route. |
 | `service` | multiline string | Supervisord `[program:<name>]` fragment. |
 | `package` / `distro` | list / map | The package surface: top-level `package:` base + per-distro/version `distro:` map (bare / versioned / compound keys). Resolved via the most-specific-first cascade (see Package Surface). |
-| `apk` | `[]ApkPackageSpec` | **Android app-install package format** — apps installed onto a `kind: android` device by a `target: android` deploy (NOT into the image). Each entry is `package:` (apkeep download by id, with `source`/`arch`/`version`) XOR `apk:` (committed local APK). Device-scoped (top-level, not under `distro:`); compiles to an `ApkInstallStep` that ONLY `target: android` executes (skipped at image-build + on every other target). See `/ov-eval:android`. |
-| `localpkg` | map (format→dir) | **Native-package deploy format** (sibling of `apk`). A per-format map (`pac`/`rpm`/`deb` → a bundled package SOURCE dir, e.g. the `ov` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`). Compiles to a `LocalPkgInstallStep` (`/ov-internals:install-plan`) emitted at "step 2.5", BEFORE the layer's `task:`. On a DEPLOY target (`target: local` / `target: vm`) ov picks the entry matching the target distro's package format, builds the package on the HOST (pac via `makepkg`; rpm/deb distro-natively in a podman container), and installs it via the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`) — so the package's repo dependencies resolve automatically and there is NO dependency-closure builder. Every command (build / install / probe / glob / `source_sentinel`) is rendered from the distro's `format.<fmt>.local_pkg:` block in `build.yml` — zero hardcoded package-manager literals in Go. The legacy scalar form (`localpkg: pkg/arch`) is rejected at load with an `ov migrate` hint. Resolution walks up from the deploy project dir, so a consumer under `image/<distro>` finds the superproject's `pkg/<fmt>`. Skipped at image build — the layer's own `task:` (curl/COPY) is the fallback. The `ov` layer uses this to install `ov` as the native OS package at `/usr/bin/ov` on every distro instead of a curl'd binary. |
+| `apk` | `[]ApkPackageSpec` | **Android app-install package format** — apps installed onto a `kind: android` device by a `target: android` deploy (NOT into the image). Each entry is `package:` (apkeep download by id, with `source`/`arch`/`version`) XOR `apk:` (committed local APK). Device-scoped (top-level, not under `distro:`); compiles to an `ApkInstallStep` that ONLY `target: android` executes (skipped at image-build + on every other target). See `/charly-eval:android`. |
+| `localpkg` | map (format→dir) | **Native-package deploy format** (sibling of `apk`). A per-format map (`pac`/`rpm`/`deb` → a bundled package SOURCE dir, e.g. the `ov` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`). Compiles to a `LocalPkgInstallStep` (`/charly-internals:install-plan`) emitted at "step 2.5", BEFORE the layer's `task:`. On a DEPLOY target (`target: local` / `target: vm`) charly picks the entry matching the target distro's package format, builds the package on the HOST (pac via `makepkg`; rpm/deb distro-natively in a podman container), and installs it via the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`) — so the package's repo dependencies resolve automatically and there is NO dependency-closure builder. Every command (build / install / probe / glob / `source_sentinel`) is rendered from the distro's `format.<fmt>.local_pkg:` block in `build.yml` — zero hardcoded package-manager literals in Go. The legacy scalar form (`localpkg: pkg/arch`) is rejected at load with an `charly migrate` hint. Resolution walks up from the deploy project dir, so a consumer under `image/<distro>` finds the superproject's `pkg/<fmt>`. Skipped at image build — the layer's own `task:` (curl/COPY) is the fallback. The `ov` layer uses this to install `ov` as the native OS package at `/usr/bin/charly` on every distro instead of a curl'd binary. |
 | `volumes` | `[]{name, path}` | Persistent named volumes. |
 | `aliases` | `[]{name, command}` | Host command aliases. |
 | `security` | object | Container security: `privileged`, `cap_add`, `devices`, `security_opt`, `shm_size`, resource caps. |
 | `port_relay` | `[]int` | Ports needing eth0 → loopback socat relay. Auto-adds `socat` dependency. |
 | `secrets` | `[]SecretYAML` | Image-owned container secrets (auto-generated per instance). |
-| `hooks` | `HooksConfig` | Lifecycle hooks: `post_enable` (after `ov config`), `pre_remove` (before `ov remove`). |
+| `hooks` | `HooksConfig` | Lifecycle hooks: `post_enable` (after `charly config`), `pre_remove` (before `charly remove`). |
 | `libvirt` | `[]string` | Raw libvirt XML snippets for VM domain XML injection. |
 | `data` | `[]DataYAML` | Data mappings (`src` → volume `dest`) for volume staging. |
 | `env_provide` | `map[string]string` | Env vars injected into OTHER containers when this service is deployed. Template: `{{.ContainerName}}`. |
-| `env_require` | `[]EnvDependency` | Plaintext env vars this layer MUST have. Hard error at `ov config` if missing. |
+| `env_require` | `[]EnvDependency` | Plaintext env vars this layer MUST have. Hard error at `charly config` if missing. |
 | `env_accept` | `[]EnvDependency` | Plaintext env vars this layer CAN optionally use. Opt-in allowlist for `env_provide` injection. |
 | `secret_accept` / `secret_require` | `[]EnvDependency` | Credential-backed env vars. Values live in credential store, never in deploy.yml/quadlet. |
 | `mcp_provide` / `mcp_require` / `mcp_accept` | various | MCP server discovery analogous to `env_*`. |
@@ -446,7 +446,7 @@ Field details for non-`task:` sections are below.
 Packages are declared ONLY under the `distro:` map, plus an optional top-level
 `package:` base. There is NO top-level `rpm:` / `deb:` / `pac:` package-format
 key and NO top-level `debian:13:` / `debian,ubuntu:` tag key — those legacy forms
-are removed (a stray one is a hard load error pointing at `ov migrate`, which the
+are removed (a stray one is a hard load error pointing at `charly migrate`, which the
 existing `calamares` step rewrites into the `distro:` map). The arch `aur:`
 sub-block is the one exception that stays a build format — see AUR below.
 
@@ -498,14 +498,14 @@ top-level `package:` base:
 This is what makes per-distro repos DETERMINISTIC: each distro owns its own tag
 section, so debian and ubuntu can never race over one shared section (the old
 collapse that made the apt suite — trixie vs noble — depend on Go map order).
-Canonical examples: `/ov-tools:ov` (tailscale `debian`→trixie / `ubuntu`→noble),
-`/ov-coder:docker-ce` (per-version repos), `/ov-tools:gh` (compound shared repo).
+Canonical examples: `/charly-tools:charly` (tailscale `debian`→trixie / `ubuntu`→noble),
+`/charly-coder:docker-ce` (per-version repos), `/charly-tools:gh` (compound shared repo).
 
 ### The cascade cannot SUBTRACT — express exclusions structurally
 
 Because packages UNION across the chain, you cannot have a specific level REMOVE a
 package a broader level added. To keep a package OFF a distro/version, simply
-never list it on any level that distro resolves. Worked example: `/ov-coder:dev-tools`
+never list it on any level that distro resolves. Worked example: `/charly-coder:dev-tools`
 keeps `fastfetch` (absent from Ubuntu's repos) only under `debian` + `fedora` +
 `arch` — NOT under `ubuntu` — so the ubuntu cascade never includes it.
 
@@ -516,7 +516,7 @@ An image declares its chain in `box.yml` `distro:` (e.g. `[debian:13, debian]`,
 the distro's canonical `version:` in `build.yml` via `distroTagChain` — so
 per-version selection works identically on image builds and VM deploys. fedora /
 arch carry only a bare tag (`[fedora]` / `[arch]`) and reach their packages via
-the bare-distro tag section. See `/ov-build:build` and `/ov-internals:install-plan`.
+the bare-distro tag section. See `/charly-build:build` and `/charly-internals:install-plan`.
 
 ### Pac (`pac:`)
 
@@ -627,7 +627,7 @@ path_append:
 
 **`env:` vs `var:`:** `env:` is container **runtime** environment (emitted as `ENV` and persists into the running container). `var:` is **build-time** substitution for `${VAR}` references inside `task:` — also emitted as `ENV` so BuildKit can substitute in COPY paths, but conceptually scoped to the layer's install. There's no hard rule against using `env:` for both purposes, but keeping them separate makes intent clearer.
 
-**`env:` is a MAP, not a list.** The YAML parser decodes it as `map[string]string`, not `[]string`. Authoring it as `- KEY=value` fails with `cannot unmarshal !!seq into map[string]string` at `ov box validate`. Always use map form:
+**`env:` is a MAP, not a list.** The YAML parser decodes it as `map[string]string`, not `[]string`. Authoring it as `- KEY=value` fails with `cannot unmarshal !!seq into map[string]string` at `charly box validate`. Always use map form:
 
 ```yaml
 # ❌ WRONG — parser rejects the list shape
@@ -653,7 +653,7 @@ Every entry has one `name:` plus either a `use_packaged:` reference (reuse a dis
 
 ### Form 1 — reuse a packaged systemd unit
 
-For services shipped by a distro package (postgresql, nginx, redis, sshd, ...). ov enables the packaged unit with optional drop-in overrides — it never regenerates the unit file. The packaged unit at `/usr/lib/systemd/system/<unit>.service` stays untouched; override config lands at `/etc/systemd/system/<unit>.service.d/ov-<layer>.conf`.
+For services shipped by a distro package (postgresql, nginx, redis, sshd, ...). charly enables the packaged unit with optional drop-in overrides — it never regenerates the unit file. The packaged unit at `/usr/lib/systemd/system/<unit>.service` stays untouched; override config lands at `/etc/systemd/system/<unit>.service.d/charly-<layer>.conf`.
 
 ```yaml
 service:
@@ -671,7 +671,7 @@ service:
 
 ### Form 2 — custom service
 
-For services that aren't distro-packaged (ollama, custom daemons, layer-provided binaries). ov renders the spec through the init-system's `service_template` in `build.yml` — supervisord-init containers get INI fragments, systemd-init containers and bootc/host deploys get `.service` unit files.
+For services that aren't distro-packaged (ollama, custom daemons, layer-provided binaries). charly renders the spec through the init-system's `service_template` in `build.yml` — supervisord-init containers get INI fragments, systemd-init containers and bootc/host deploys get `.service` unit files.
 
 ```yaml
 service:
@@ -732,25 +732,25 @@ service:
 
 ### Lifecycle-directive overlay (supervisord-only fields)
 
-Beyond the core `service:` schema above, supervisord-rendered entries accept additional lifecycle fields: `auto_start`, `start_retries`, `start_secs`, `stop_signal`, `exit_codes`, `priority`, `kind: eventlistener` + `events:`. See `/ov-infrastructure:supervisord` for the directive table and `/ov-selkies:chrome` for the eventlistener worked example.
+Beyond the core `service:` schema above, supervisord-rendered entries accept additional lifecycle fields: `auto_start`, `start_retries`, `start_secs`, `stop_signal`, `exit_codes`, `priority`, `kind: eventlistener` + `events:`. See `/charly-infrastructure:supervisord` for the directive table and `/charly-selkies:chrome` for the eventlistener worked example.
 
 ### Rendering to init systems
 
 The actual unit text is rendered by the init-system's `service_schema` block in `build.yml`:
 
 - **Supervisord init** — `service_template` produces `[program:NAME]` INI fragments with `autorestart` / `environment` / etc.; fragments go to `/etc/supervisord.d/<layer>-<name>.conf` and are assembled at container-build time.
-- **Systemd init (bootc + host deploys)** — `service_template` produces `[Unit]` / `[Service]` / `[Install]` blocks; the rendered file goes to `/etc/systemd/system/ov-<layer>-<name>.service` (or the user-scope path when `scope: user`). For `use_packaged:` entries, `dropin_template` + `dropin_path_template` produce an override file alongside the packaged unit.
+- **Systemd init (bootc + host deploys)** — `service_template` produces `[Unit]` / `[Service]` / `[Install]` blocks; the rendered file goes to `/etc/systemd/system/charly-<layer>-<name>.service` (or the user-scope path when `scope: user`). For `use_packaged:` entries, `dropin_template` + `dropin_path_template` produce an override file alongside the packaged unit.
 
-See `/ov-infrastructure:supervisord` for the supervisord ServiceSchemaDef template, `/ov-build:build` for the three-phase template model, and `/ov-local:local-deploy` for how the host target consumes `service:` entries.
+See `/charly-infrastructure:supervisord` for the supervisord ServiceSchemaDef template, `/charly-build:build` for the three-phase template model, and `/charly-local:local-deploy` for how the host target consumes `service:` entries.
 
 ### Worked examples in-tree
 
-- `/ov-infrastructure:postgresql` — canonical `use_packaged:` entry with drop-in overrides
-- `/ov-ollama:ollama` — single custom entry (common shape)
-- `/ov-hermes:hermes` — custom entry with complex env and ordering
-- `/ov-coder:sshd` — mixed (packaged + custom) within one layer
-- `/ov-infrastructure:virtualization` — mixed entries for virtqemud/virtnetworkd (canonical polymorphism example)
-- `/ov-infrastructure:traefik` — multiple custom entries for a multi-service layer
+- `/charly-infrastructure:postgresql` — canonical `use_packaged:` entry with drop-in overrides
+- `/charly-ollama:ollama` — single custom entry (common shape)
+- `/charly-hermes:hermes` — custom entry with complex env and ordering
+- `/charly-coder:sshd` — mixed (packaged + custom) within one layer
+- `/charly-infrastructure:virtualization` — mixed entries for virtqemud/virtnetworkd (canonical polymorphism example)
+- `/charly-infrastructure:traefik` — multiple custom entries for a multi-service layer
 
 ### Anti-pattern: `<name>-host` / `<name>-pod` sibling layers
 
@@ -758,7 +758,7 @@ Do **NOT** split a polymorphic service into two layers like `myservice` (supervi
 
 If you find yourself reaching for a `-host` suffix on a layer name, reach for a second `service:` entry instead. The same rule applies to `-pod` suffixes for the inverse case (a layer that needs container-only behavior under systemd targets).
 
-`ov box validate` does NOT (yet) statically reject `*-host` / `*-pod` layer names, because some legitimate uses might exist (a layer whose package literally only exists on host distros). The rule lives in CLAUDE.md "Init-system polymorphism via mixed `service:` entries" + this skill + `/ov-infrastructure:supervisord` — agents that load any of those before authoring will see the guidance. Canonical worked examples: `/ov-coder:sshd` (mixed), `/ov-infrastructure:virtualization` (mixed; CANONICAL example), `/ov-infrastructure:postgresql` (use_packaged-only).
+`charly box validate` does NOT (yet) statically reject `*-host` / `*-pod` layer names, because some legitimate uses might exist (a layer whose package literally only exists on host distros). The rule lives in CLAUDE.md "Init-system polymorphism via mixed `service:` entries" + this skill + `/charly-infrastructure:supervisord` — agents that load any of those before authoring will see the guidance. Canonical worked examples: `/charly-coder:sshd` (mixed), `/charly-infrastructure:virtualization` (mixed; CANONICAL example), `/charly-infrastructure:postgresql` (use_packaged-only).
 
 ## Volume Declaration
 
@@ -795,7 +795,7 @@ security:
 
 Security settings merge across layers (union for lists; `privileged` true if any layer sets it; smallest-wins for resource caps). Image-level `security:` in `box.yml` overrides `privileged` and replaces resource caps.
 
-Resource caps (memory / cpus) bound the blast radius of a Chrome crash loop on the chrome layer. See `/ov-selkies:chrome` (Resource Caps) and `/ov-infrastructure:supervisord` for the (generic) eventlistener pattern.
+Resource caps (memory / cpus) bound the blast radius of a Chrome crash loop on the chrome layer. See `/charly-selkies:chrome` (Resource Caps) and `/charly-infrastructure:supervisord` for the (generic) eventlistener pattern.
 
 ---
 
@@ -837,7 +837,7 @@ secret:
     env: API_KEY                 # fallback env var if Podman secrets unavailable
 ```
 
-Metadata only lives in OCI labels. Values are auto-generated per instance at `ov config` time. Use for image-internal secrets (like `db-password`). For user-owned credentials (API keys, auth tokens), use `secret_accept` / `secret_require` instead.
+Metadata only lives in OCI labels. Values are auto-generated per instance at `charly config` time. Use for image-internal secrets (like `db-password`). For user-owned credentials (API keys, auth tokens), use `secret_accept` / `secret_require` instead.
 
 ---
 
@@ -861,9 +861,9 @@ env_accept:
     description: "Upstream HTTP proxy (optional)"
 ```
 
-`{{.ContainerName}}` resolves at `ov config` time. `env_provide` values are injected only into consumers that declare matching `env_accept` or `env_require` (opt-in filtering — prevents env var leakage). Missing `env_require` without a default is a hard error at `ov config`; missing `env_accept` silently drops the var.
+`{{.ContainerName}}` resolves at `charly config` time. `env_provide` values are injected only into consumers that declare matching `env_accept` or `env_require` (opt-in filtering — prevents env var leakage). Missing `env_require` without a default is a hard error at `charly config`; missing `env_accept` silently drops the var.
 
-See `/ov-core:ov-config` (`--update-all` flag, provides filtering) and `/ov-core:deploy` (deploy.yml `provides:` section) for the full lifecycle.
+See `/charly-core:ov-config` (`--update-all` flag, provides filtering) and `/charly-core:deploy` (deploy.yml `provides:` section) for the full lifecycle.
 
 ## secret_accept / secret_require
 
@@ -880,11 +880,11 @@ secret_accept:
     key: ov/api-key/openrouter     # optional override; default ov/secret/<NAME>
 ```
 
-Use for API keys, passwords, auth tokens. `key:` override must match `^ov/<service>/<key>$` (lowercase). Multiple layers sharing the same upstream credential (e.g. `ov/api-key/openrouter`) all resolve to the same stored value. See `/ov-build:secrets` for the credential-store chain, rotation, and `-e NAME=VAL` auto-import.
+Use for API keys, passwords, auth tokens. `key:` override must match `^ov/<service>/<key>$` (lowercase). Multiple layers sharing the same upstream credential (e.g. `ov/api-key/openrouter`) all resolve to the same stored value. See `/charly-build:secrets` for the credential-store chain, rotation, and `-e NAME=VAL` auto-import.
 
 ## mcp_provide / mcp_require / mcp_accept
 
-Cross-container MCP server discovery. Consumers receive `OV_MCP_SERVERS` as a JSON env var at `ov config` time.
+Cross-container MCP server discovery. Consumers receive `OV_MCP_SERVERS` as a JSON env var at `charly config` time.
 
 ```yaml
 mcp_provide:
@@ -899,13 +899,13 @@ mcp_accept:
 
 **Pod-aware:** when provider and consumer share a container, URLs resolve to `localhost` (local wins over remote for same-named entries). **Naming is the service contract** — keep `name:` stable across layer/package/image renames.
 
-**Testing the endpoint:** once a layer is deployed, `ov eval mcp ping <image>` verifies the server is alive, and `ov eval mcp list-tools <image>` enumerates the tool catalog. Both are authorable as deploy-scope `mcp:` declarative checks inside the layer's `eval:` block. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/ov-build:ov-mcp-cmd`.
+**Testing the endpoint:** once a layer is deployed, `charly eval mcp ping <image>` verifies the server is alive, and `charly eval mcp list-tools <image>` enumerates the tool catalog. Both are authorable as deploy-scope `mcp:` declarative checks inside the layer's `eval:` block. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/charly-build:ov-mcp-cmd`.
 
 ---
 
 ## data
 
-Data layers stage files from the layer directory into volume bind-mount areas. Build-time: files COPY into `/data/<volume>/[dest/]`. Deploy-time: `ov config --bind <volume>` provisions them into bind directories; `ov update` merges non-destructively.
+Data layers stage files from the layer directory into volume bind-mount areas. Build-time: files COPY into `/data/<volume>/[dest/]`. Deploy-time: `charly config --bind <volume>` provisions them into bind directories; `charly update` merges non-destructively.
 
 ```yaml
 volume:
@@ -918,7 +918,7 @@ data:
     dest: ""                 # optional subdirectory within volume
 ```
 
-**Data layers** are layers with only `data:` + `volume:` — no packages, no services, no tasks. Valid standalone. **Data images** (`data_image: true` in box.yml) are scratch-based — consumed via `ov config --data-from <image>`. See `/ov-jupyter:notebook-templates` for a worked example.
+**Data layers** are layers with only `data:` + `volume:` — no packages, no services, no tasks. Valid standalone. **Data images** (`data_image: true` in box.yml) are scratch-based — consumed via `charly config --data-from <image>`. See `/charly-jupyter:notebook-templates` for a worked example.
 
 ---
 
@@ -947,14 +947,14 @@ UID/GID in non-root cache mounts are dynamic (from resolved image config). Flat 
 ### Create a new layer
 
 ```bash
-ov box new candy my-tool
+charly box new candy my-tool
 # Edit candy/my-tool/candy.yml — add packages, deps, env, tasks
-ov box validate
+charly box validate
 ```
 
 ### Add system packages
 
-Add a `distro:` section to `candy.yml` keyed by distro name (`distro.fedora`, `distro.debian`, `"debian,ubuntu"` compound, `debian-13` versioned), and/or a top-level `package:` base for cross-distro names. The resolver cascades most-specific-first (packages union, repo/options most-specific-wins). `ov candy add-rpm`/`add-deb`/`add-pac`/`add-aur` append into the right `distro:` section for you.
+Add a `distro:` section to `candy.yml` keyed by distro name (`distro.fedora`, `distro.debian`, `"debian,ubuntu"` compound, `debian-13` versioned), and/or a top-level `package:` base for cross-distro names. The resolver cascades most-specific-first (packages union, repo/options most-specific-wins). `charly candy add-rpm`/`add-deb`/`add-pac`/`add-aur` append into the right `distro:` section for you.
 
 ### Add Python packages
 
@@ -1094,23 +1094,23 @@ shell:
 
 **Where snippets land** — destination is target-aware:
 
-| Shell | Container image (`ov box build`) | `target: local` host / `target: vm` guest |
+| Shell | Container image (`charly box build`) | `target: local` host / `target: vm` guest |
 |---|---|---|
-| bash | `/etc/profile.d/ov-<layer>-bash.sh` | managed-block in `~/.bashrc` |
-| zsh  | `/etc/profile.d/ov-<layer>-zsh.sh`  | managed-block in `~/.zshrc`  |
-| sh   | `/etc/profile.d/ov-<layer>-sh.sh`   | managed-block in `~/.profile` |
-| fish | `/etc/fish/conf.d/ov-<layer>.fish`  | `~/.config/fish/conf.d/ov-<layer>.fish` |
+| bash | `/etc/profile.d/charly-<layer>-bash.sh` | managed-block in `~/.bashrc` |
+| zsh  | `/etc/profile.d/charly-<layer>-zsh.sh`  | managed-block in `~/.zshrc`  |
+| sh   | `/etc/profile.d/charly-<layer>-sh.sh`   | managed-block in `~/.profile` |
+| fish | `/etc/fish/conf.d/charly-<layer>.fish`  | `~/.config/fish/conf.d/charly-<layer>.fish` |
 
 Bash/zsh/sh on host targets use a per-layer fence pair so multiple
 layers coexist in one rc file:
 
 ```
-# overthink:begin <layer> (managed by ov; do not edit inside this block)
+# opencharly:begin <layer> (managed by ov; do not edit inside this block)
 <body>
-# overthink:end <layer>
+# opencharly:end <layer>
 ```
 
-`ov deploy del` strips just the layer's fence pair from the rc file
+`charly deploy del` strips just the layer's fence pair from the rc file
 (without touching unrelated content). Fish always uses a per-layer
 drop-in file (`conf.d/` is auto-sourced — no fence needed).
 
@@ -1130,42 +1130,42 @@ target — same precedent as how `aur:` skips on non-Arch.
 | `priority` | int | Optional load order across layers contributing to the same shell. Default 50. |
 
 **OCI label round-trip:** the merged shell config is baked into
-`org.overthinkos.shell` at `ov box build` time and parsed back via
+`ai.opencharly.shell` at `charly box build` time and parsed back via
 `ExtractMetadata` at deploy. `deploy.yml` `shell:` overlays merge by
 id (same replace/skip/append semantics as `eval:`).
 
-**Migration:** `ov migrate` rewrites legacy `cmd:` shell-rc
-heredoc tasks (matching the `# overthink:begin direnv-hook` /
-`# overthink:begin ssh-auth-sock` fence patterns) into the structured
+**Migration:** `charly migrate` rewrites legacy `cmd:` shell-rc
+heredoc tasks (matching the `# opencharly:begin direnv-hook` /
+`# opencharly:begin ssh-auth-sock` fence patterns) into the structured
 shell: schema. Idempotent.
 
 ---
 
 ## Cross-References
 
-- `/ov-image:image` — Adding layers to image definitions; image composition; `data_image:` for data-only bundles; the full MCP-first authoring table including `image set`, `image add-layer`, `image rm-layer`, `image write`, `image cat`.
-- `/ov-build:ov-mcp-cmd` — "Authoring tools" table exposing `candy.set`, `candy.add-rpm`, `candy.add-deb`, `candy.add-pac`, `candy.add-aur` as MCP tools; end-to-end build-from-scratch worked example.
-- `/ov-build:generate` — What `ov box generate` actually emits; the per-verb emitter pipeline; `.build/<image>/` layout.
-- `/ov-build:validate` — Validation rules (including per-verb task requirements).
-- `/ov-build:new` — Scaffolding a new layer directory.
-- `/ov-build:build` — Building images (`--no-cache` caveat; multi-stage scratch).
-- `/ov-core:ov-config` — Cross-container `env_provide` / `mcp_provide` injection; `env_require` enforcement; `--update-all`; resource caps.
-- `/ov-core:deploy` — `deploy.yml` `provides:` section; tunnel is deploy.yml-only.
-- `/ov-eval:eval` — `eval:` field for declarative layer checks (file/port/http/...); embedded in the `org.overthinkos.eval` OCI label under the `layer` section. Layer eval checks default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `candy/sshd/candy.yml`.
-- `/ov-automation:sidecar` — Sidecars as `env_provide` participants (tailscale `TS_*` filtering).
-- `/ov-build:secrets` — Credential store chain for `secret_accept` / `secret_require`.
-- `/ov-selkies:chrome` — Canonical consumer of `env_accept` (proxy vars), cgroup resource caps, and a heavy user-phase copy/mkdir task list.
-- `/ov-infrastructure:supervisord` — Event listener pattern triggered by resource caps.
-- `/ov-tools:ov` — The ov-binary layer (composed by every ov-driving image). Paired with `/ov-coder:ov-mcp` which turns any image into an MCP server exposing the full ov CLI.
-- `/ov-coder:ov-mcp` — Reference implementation of a meta-layer composition (`layers: [ov, supervisord]` — no install of its own, just wiring) with bind-mounted project directory and `OV_PROJECT_DIR` env-var plumbing.
-- `/ov-jupyter:notebook-templates` — Data-layer example.
-- `/ov-internals:generate-source` — Internal architecture of the task emission pipeline (Go side).
+- `/charly-image:image` — Adding layers to image definitions; image composition; `data_image:` for data-only bundles; the full MCP-first authoring table including `image set`, `image add-layer`, `image rm-layer`, `image write`, `image cat`.
+- `/charly-build:ov-mcp-cmd` — "Authoring tools" table exposing `candy.set`, `candy.add-rpm`, `candy.add-deb`, `candy.add-pac`, `candy.add-aur` as MCP tools; end-to-end build-from-scratch worked example.
+- `/charly-build:generate` — What `charly box generate` actually emits; the per-verb emitter pipeline; `.build/<image>/` layout.
+- `/charly-build:validate` — Validation rules (including per-verb task requirements).
+- `/charly-build:new` — Scaffolding a new layer directory.
+- `/charly-build:build` — Building images (`--no-cache` caveat; multi-stage scratch).
+- `/charly-core:ov-config` — Cross-container `env_provide` / `mcp_provide` injection; `env_require` enforcement; `--update-all`; resource caps.
+- `/charly-core:deploy` — `deploy.yml` `provides:` section; tunnel is deploy.yml-only.
+- `/charly-eval:eval` — `eval:` field for declarative layer checks (file/port/http/...); embedded in the `ai.opencharly.eval` OCI label under the `layer` section. Layer eval checks default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `candy/sshd/candy.yml`.
+- `/charly-automation:sidecar` — Sidecars as `env_provide` participants (tailscale `TS_*` filtering).
+- `/charly-build:secrets` — Credential store chain for `secret_accept` / `secret_require`.
+- `/charly-selkies:chrome` — Canonical consumer of `env_accept` (proxy vars), cgroup resource caps, and a heavy user-phase copy/mkdir task list.
+- `/charly-infrastructure:supervisord` — Event listener pattern triggered by resource caps.
+- `/charly-tools:charly` — The ov-binary layer (composed by every ov-driving image). Paired with `/charly-coder:charly-mcp` which turns any image into an MCP server exposing the full charly CLI.
+- `/charly-coder:charly-mcp` — Reference implementation of a meta-layer composition (`layers: [ov, supervisord]` — no install of its own, just wiring) with bind-mounted project directory and `OV_PROJECT_DIR` env-var plumbing.
+- `/charly-jupyter:notebook-templates` — Data-layer example.
+- `/charly-internals:generate-source` — Internal architecture of the task emission pipeline (Go side).
 
 ---
 
 ## Cross-kind name reuse
 
-A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same identifier (e.g. `ov-cachyos`) MAY exist as a layer at `candy/ov-cachyos/` AND an image entry `image.ov-cachyos` AND a deploy row `deploy.ov-cachyos` simultaneously. Verbs disambiguate by context. When `ov deploy add <name>` resolves a ref where both an image AND a layer with that name exist, image wins (image-first precedence); use `--add-candy <name>` to explicitly select the layer for an overlay. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/ov-core:deploy`.
+A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same identifier (e.g. `ov-cachyos`) MAY exist as a layer at `candy/charly-cachyos/` AND an image entry `image.ov-cachyos` AND a deploy row `deploy.ov-cachyos` simultaneously. Verbs disambiguate by context. When `charly deploy add <name>` resolves a ref where both an image AND a layer with that name exist, image wins (image-first precedence); use `--add-candy <name>` to explicitly select the layer for an overlay. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/charly-core:deploy`.
 
 ---
 
@@ -1173,10 +1173,10 @@ A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `
 
 **MUST be invoked** for any task involving layer authoring, `candy.yml`, `task:`, `var:`, `pixi.toml`, `package.json`, `Cargo.toml`, or any file under `candy/`. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Pre-build. Author layers before adding them to images. See `/ov-image:image` (composition), `/ov-build:build` (building), `/ov-build:generate` (emission internals).
+**Workflow position:** Pre-build. Author layers before adding them to images. See `/charly-image:image` (composition), `/charly-build:build` (building), `/charly-build:generate` (emission internals).
 
 ## Related skills
 
-- `/ov-build:migrate` — `ov migrate` converts legacy flat-form `candy.yml` + raw-INI `service:` blocks into the canonical schema
-- `/ov-internals:capabilities` — how the `service:` list is baked into the `LabelService` OCI label
-- `/ov-internals:install-plan` — internal IR the loader feeds into build/deploy pipelines
+- `/charly-build:migrate` — `charly migrate` converts legacy flat-form `candy.yml` + raw-INI `service:` blocks into the canonical schema
+- `/charly-internals:capabilities` — how the `service:` list is baked into the `LabelService` OCI label
+- `/charly-internals:install-plan` — internal IR the loader feeds into build/deploy pipelines

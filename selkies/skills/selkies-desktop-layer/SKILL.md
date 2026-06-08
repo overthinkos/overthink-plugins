@@ -26,7 +26,7 @@ layers:
   - wl-record-pixelflux    # Desktop video recording via selkies capture bridge
   - a11y-tools              # AT-SPI2 accessibility introspection (python3-pyatspi)
   - xterm                   # X11 terminal for XWayland testing
-  - tmux                    # Terminal multiplexer (required by ov eval record)
+  - tmux                    # Terminal multiplexer (required by charly eval record)
   - asciinema               # Terminal session recording
   - fastfetch               # System information display
   - selkies                 # Streaming server (pixelflux + pcmflux + nginx)
@@ -48,18 +48,18 @@ A browser-accessible desktop at `http://localhost:3000` with:
 - **pcmflux** audio capture → Opus encoding at 320kbps
 - **PipeWire** audio server with PulseAudio compatibility
 - **NGINX** web frontend on port 3000
-- **Full `ov eval wl` automation:** 22 subcommands all working — screenshots (pixelflux), input (wtype, wlrctl), window management (wlrctl toplevel), clipboard (wl-copy/paste), resolution (wlr-randr), accessibility (AT-SPI2), XWayland tools (xdotool, xprop)
-- **`ov eval cdp click --wl`:** CSS selector → Wayland pointer click (no VNC needed)
-- **`ov eval cdp axtree`:** Chrome accessibility tree via CDP
-- **Desktop video recording** via `ov eval record start --mode desktop` (capture bridge → H.264 → ffmpeg MP4, with optional audio)
-- **Fullscreen overlays** via `ov eval wl overlay` (title cards, lower-thirds, countdowns, highlights, fades — rendered by compositor with true alpha transparency, no post-production needed)
-- **Configurable keyboard layout** via `XKB_DEFAULT_LAYOUT` — German (de), French (fr), Nordic (no), etc. AltGr characters (@, €, \\, ~) work via direct scancode injection. See `/ov-selkies:labwc`
+- **Full `charly eval wl` automation:** 22 subcommands all working — screenshots (pixelflux), input (wtype, wlrctl), window management (wlrctl toplevel), clipboard (wl-copy/paste), resolution (wlr-randr), accessibility (AT-SPI2), XWayland tools (xdotool, xprop)
+- **`charly eval cdp click --wl`:** CSS selector → Wayland pointer click (no VNC needed)
+- **`charly eval cdp axtree`:** Chrome accessibility tree via CDP
+- **Desktop video recording** via `charly eval record start --mode desktop` (capture bridge → H.264 → ffmpeg MP4, with optional audio)
+- **Fullscreen overlays** via `charly eval wl overlay` (title cards, lower-thirds, countdowns, highlights, fades — rendered by compositor with true alpha transparency, no post-production needed)
+- **Configurable keyboard layout** via `XKB_DEFAULT_LAYOUT` — German (de), French (fr), Nordic (no), etc. AltGr characters (@, €, \\, ~) work via direct scancode injection. See `/charly-selkies:labwc`
 
 ## What Works / What Doesn't
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Screenshots (pixelflux-screenshot) | WORKS | Via capture bridge at /tmp/ov-capture.sock |
+| Screenshots (pixelflux-screenshot) | WORKS | Via capture bridge at /tmp/charly-capture.sock |
 | Screenshots (grim) | BROKEN | labwc nested in pixelflux can't deliver screencopy frames |
 | wtype (keyboard) | WORKS | Wayland virtual keyboard |
 | wlrctl pointer (mouse) | WORKS | Move, click, double-click |
@@ -86,18 +86,18 @@ A browser-accessible desktop at `http://localhost:3000` with:
 | 15 | waybar | Top panel (on wayland-0) |
 | 18 | nginx | Web UI on :3000 |
 
-**Chrome ownership:** Chrome is launched + supervised by the `[program:chrome]` supervisord service in the shared `selkies-core` layer (`restart: always`), NOT by labwc's autostart — labwc's `autostart` no longer starts Chrome. The service is `autostart=true` and self-synchronizing (`chrome-wrapper` polls for the `wayland-0` client socket itself), so a single launcher serves both selkies flavors and there is no per-flavor `supervisorctl start` handoff to race. See `/ov-selkies:selkies-core` (Chrome supervision) and `/ov-selkies:chrome` (Chrome supervision) — the chrome layer supplies the cgroup memory caps.
+**Chrome ownership:** Chrome is launched + supervised by the `[program:chrome]` supervisord service in the shared `selkies-core` layer (`restart: always`), NOT by labwc's autostart — labwc's `autostart` no longer starts Chrome. The service is `autostart=true` and self-synchronizing (`chrome-wrapper` polls for the `wayland-0` client socket itself), so a single launcher serves both selkies flavors and there is no per-flavor `supervisorctl start` handoff to race. See `/charly-selkies:selkies-core` (Chrome supervision) and `/charly-selkies:chrome` (Chrome supervision) — the chrome layer supplies the cgroup memory caps.
 
-**Capture singleton:** the selkies process owns a single process-wide `ScreenCapture` instance. Screenshot requests (`/ov-selkies:wl-screenshot-pixelflux`) and recording requests (`/ov-selkies:wl-record-pixelflux`) both attach to the same capture bridge at `/tmp/ov-capture.sock` — there is never a second capture process. This is the state enforced by commit `6be85eb` after the `WaylandBackend` leak investigation; the per-frame cleanup fix in commit `7977b91` is the paired memory-management step. See `/ov-selkies:selkies` (Pixelflux Memory Management) for the leak diagnosis, rollout recipe, and diagnostic commands.
+**Capture singleton:** the selkies process owns a single process-wide `ScreenCapture` instance. Screenshot requests (`/charly-selkies:wl-screenshot-pixelflux`) and recording requests (`/charly-selkies:wl-record-pixelflux`) both attach to the same capture bridge at `/tmp/charly-capture.sock` — there is never a second capture process. This is the state enforced by commit `6be85eb` after the `WaylandBackend` leak investigation; the per-frame cleanup fix in commit `7977b91` is the paired memory-management step. See `/charly-selkies:selkies` (Pixelflux Memory Management) for the leak diagnosis, rollout recipe, and diagnostic commands.
 
 ## Used In Images
 
-- `/ov-selkies:selkies-labwc`
-- `/ov-selkies:selkies-labwc-nvidia`
+- `/charly-selkies:selkies-labwc`
+- `/charly-selkies:selkies-labwc-nvidia`
 
 ## Known bootc caveat — labwc ↔ pixelflux start-order race
 
-On container images, `ENTRYPOINT=supervisord` with priority-based startup sequences the desktop tier cleanly. On bootc images, supervisord runs under a systemd user service (see `/ov-distros:bootc-config`), and a start-order race surfaces that's invisible in container mode:
+On container images, `ENTRYPOINT=supervisord` with priority-based startup sequences the desktop tier cleanly. On bootc images, supervisord runs under a systemd user service (see `/charly-distros:bootc-config`), and a start-order race surfaces that's invisible in container mode:
 
 - `labwc-wrapper` blocks at startup waiting for `/tmp/wayland-1` (pixelflux's socket).
 - `pixelflux` is started by `selkies` (another supervisord program) which — via its own ordering — comes up alongside labwc, not before it.
@@ -123,31 +123,31 @@ Deploy multiple instances with different HTTP proxies. Each instance gets a port
 | 2 | 3002 | 9232 | 9242 | 2232 |
 | N | 300N | 923N | 924N | 223N |
 
-**Tunnel must be in deploy.yml** for each instance. `ov config setup -i <ip>` does NOT inherit tunnel from the base entry. After config, manually add `tunnel: {provider: tailscale, private: all}` to the instance's deploy.yml entry, then re-run `ov config setup -i <ip>` to regenerate the quadlet with Tailscale serve commands. See `/ov-core:deploy` for details.
+**Tunnel must be in deploy.yml** for each instance. `charly config setup -i <ip>` does NOT inherit tunnel from the base entry. After config, manually add `tunnel: {provider: tailscale, private: all}` to the instance's deploy.yml entry, then re-run `charly config setup -i <ip>` to regenerate the quadlet with Tailscale serve commands. See `/charly-core:deploy` for details.
 
 **Chrome 147+ CDP:** The `/json/new` endpoint requires the PUT HTTP method (not GET). Use `curl -X PUT "http://localhost:<cdp-port>/json/new?<url>"` to create new tabs programmatically.
 
-See `/ov-selkies:selkies-labwc` for full multi-instance deployment examples.
+See `/charly-selkies:selkies-labwc` for full multi-instance deployment examples.
 
 ## Related Skills
 
-- `/ov-selkies:selkies` — Streaming engine, Pixelflux Memory Management, ScreenCapture singleton, DRINODE auto-detection, keyboard layout support
-- `/ov-selkies:labwc` — Nested Wayland compositor (its autostart no longer launches Chrome — selkies-core supervises it)
-- `/ov-selkies:selkies-core` — owns the supervised `[program:chrome]` service shared by both selkies flavors
-- `/ov-selkies:chrome` — Chrome browser with CDP proxy, HTTP proxy support, cgroup resource caps
-- `/ov-infrastructure:supervisord` — supervisord process model (the selkies `[program:chrome]` uses `restart: always`)
-- `/ov-selkies:wl-record-pixelflux` — Desktop video recording via the shared capture singleton
-- `/ov-selkies:wl-screenshot-pixelflux` — Screenshots via the shared capture singleton
-- `/ov-distros:arch-builder` — Builder image that compiles patched pixelflux from source on the cachyos base (`cuda-arch-builder` on the GPU build)
-- `/ov-selkies:selkies-labwc` — CPU labwc image that bundles this metalayer (with `/ov-selkies:selkies-labwc-nvidia` for the GPU build)
-- `/ov-eval:wl` — Wayland automation (screenshots, input, windows)
-- `/ov-eval:cdp` — Chrome DevTools Protocol automation
-- `/ov-eval:record` — Desktop video recording via capture bridge
-- `/ov-core:ov-update` — Per-instance update pattern used to roll out pixelflux/Chrome fixes
-- `/ov-core:ov-config` — Multi-instance deployment, resource caps, tunnel, proxy env vars, NO_PROXY auto-enrichment
-- `/ov-core:deploy` — Tunnel configuration (deploy.yml-only, instance inheritance gap)
+- `/charly-selkies:selkies` — Streaming engine, Pixelflux Memory Management, ScreenCapture singleton, DRINODE auto-detection, keyboard layout support
+- `/charly-selkies:labwc` — Nested Wayland compositor (its autostart no longer launches Chrome — selkies-core supervises it)
+- `/charly-selkies:selkies-core` — owns the supervised `[program:chrome]` service shared by both selkies flavors
+- `/charly-selkies:chrome` — Chrome browser with CDP proxy, HTTP proxy support, cgroup resource caps
+- `/charly-infrastructure:supervisord` — supervisord process model (the selkies `[program:chrome]` uses `restart: always`)
+- `/charly-selkies:wl-record-pixelflux` — Desktop video recording via the shared capture singleton
+- `/charly-selkies:wl-screenshot-pixelflux` — Screenshots via the shared capture singleton
+- `/charly-distros:arch-builder` — Builder image that compiles patched pixelflux from source on the cachyos base (`cuda-arch-builder` on the GPU build)
+- `/charly-selkies:selkies-labwc` — CPU labwc image that bundles this metalayer (with `/charly-selkies:selkies-labwc-nvidia` for the GPU build)
+- `/charly-eval:wl` — Wayland automation (screenshots, input, windows)
+- `/charly-eval:cdp` — Chrome DevTools Protocol automation
+- `/charly-eval:record` — Desktop video recording via capture bridge
+- `/charly-core:ov-update` — Per-instance update pattern used to roll out pixelflux/Chrome fixes
+- `/charly-core:ov-config` — Multi-instance deployment, resource caps, tunnel, proxy env vars, NO_PROXY auto-enrichment
+- `/charly-core:deploy` — Tunnel configuration (deploy.yml-only, instance inheritance gap)
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

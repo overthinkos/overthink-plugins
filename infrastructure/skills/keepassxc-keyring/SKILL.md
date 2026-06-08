@@ -7,7 +7,7 @@ description: |
   and systemd-user-unit layers, install pinentry/libsecret, and
   install generic direnv shell hooks for bash/zsh/fish.
   Use when adding KeePassXC as the Secret Service backend on a host (NOT
-  for adding the binary to a container image — use /ov-infrastructure:keepassxc
+  for adding the binary to a container image — use /charly-infrastructure:keepassxc
   for that).
 ---
 
@@ -35,18 +35,18 @@ description: |
 
 1. `~/.config/keepassxc/keepassxc.ini` — writes `[FdoSecrets] Enabled=true` block (and three plugin-behavior toggles).
 2. `~/.config/autostart/keepassxc.desktop` — XDG autostart entry that launches KeePassXC on every session login.
-3. `~/.config/autostart/<competitor>.desktop` — for each known competing Secret Service daemon (`gnome-keyring-secrets`, `gnome-keyring-ssh`, `gnome-keyring-pkcs11`, `org.kde.kwalletd[5,6]`, `kwalletd[5,6]`), writes an override with `Hidden=true` + `X-GNOME-Autostart-enabled=false`. Per the XDG spec, user-level overrides take precedence over `/etc/xdg/autostart/`, so the system package stays untouched and the change is fully reversible by `ov deploy del`.
+3. `~/.config/autostart/<competitor>.desktop` — for each known competing Secret Service daemon (`gnome-keyring-secrets`, `gnome-keyring-ssh`, `gnome-keyring-pkcs11`, `org.kde.kwalletd[5,6]`, `kwalletd[5,6]`), writes an override with `Hidden=true` + `X-GNOME-Autostart-enabled=false`. Per the XDG spec, user-level overrides take precedence over `/etc/xdg/autostart/`, so the system package stays untouched and the change is fully reversible by `charly deploy del`.
 4. `systemctl --user disable --now <unit>` for the same competitors' systemd user units (`gnome-keyring-daemon.socket`, `gnome-keyring-daemon.service`, the kwallet service variants). Idempotent, silent if a unit doesn't exist.
 5. `~/.gnupg/gpg-agent.conf` — `pinentry-program /usr/bin/pinentry-qt` (the libsecret-linked pinentry that talks to KeePassXC for GPG passphrase storage).
 6. `~/.config/environment.d/ssh-agent.conf` — exports `SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/ssh-agent.socket"` for systemd-bootstrapped sessions.
 7. **Per-shell init exports (via the `shell:` schema):** for non-systemd-bootstrapped shells (tmux from a screen-locked session, ssh-in shells without a fresh login, scripts), the layer's `shell:` block lands managed-block exports of `SSH_AUTH_SOCK` (guarded with `command -v` / socket-existence check), `KEEPASSXC_DATABASE` advisory pointer, and `GPG_TTY=$(tty)`. bash/zsh/sh share one POSIX-style snippet; fish gets a syntactically-correct counterpart via `set -gx`. environment.d (item 6) and the `shell:` block coexist with no conflict — environment.d wins under systemd, the shell-rc lines fill the gap when systemd isn't in the loop.
-8. **Direnv shell hooks come from the `direnv` layer** (declared via `requires: [direnv]`). This layer writes no direnv hooks itself — the responsibility belongs to the direnv layer's own `shell:` block. `ov migrate` cleans up any legacy inline `direnv-hook` blocks left on a host by older configs.
+8. **Direnv shell hooks come from the `direnv` layer** (declared via `requires: [direnv]`). This layer writes no direnv hooks itself — the responsibility belongs to the direnv layer's own `shell:` block. `charly migrate` cleans up any legacy inline `direnv-hook` blocks left on a host by older configs.
 9. **systemd user service for KeePassXC** with `Restart=on-failure` and explicit dependency on `graphical-session.target`.
 
 ## What this layer DOES NOT do
 
 - **Marking a `.kdbx` group as "Secret Service exposed"** — this is per-database state inside the `.kdbx` file itself, not in `keepassxc.ini`. It is a one-time GUI action (right-click group → "Mark as Secret Service exposed") performed by the user once per database.
-- **`ov secrets gpg setup`** — the gpg-agent.conf, systemd socket, and Secret-Service passphrase storage are still wired by the user-invoked `ov secrets gpg setup` command. This layer just installs the packages that command requires (`pinentry-qt`, `libsecret`).
+- **`charly secrets gpg setup`** — the gpg-agent.conf, systemd socket, and Secret-Service passphrase storage are still wired by the user-invoked `charly secrets gpg setup` command. This layer just installs the packages that command requires (`pinentry-qt`, `libsecret`).
 - **Removing or downgrading** any system package. All competitor disabling is per-user, reversible.
 
 ## Usage
@@ -77,7 +77,7 @@ Build-scope (run on package install):
 - `pinentry-qt-installed` — at least one of `pinentry-qt`, `pinentry-qt5`, `pinentry-qt6` resolvable on PATH.
 - `secret-tool-installed` — `secret-tool` resolvable on PATH.
 
-Deploy-scope (run on the host post-`ov deploy add` against the running user's HOME):
+Deploy-scope (run on the host post-`charly deploy add` against the running user's HOME):
 
 - `keepassxc-ini-fdosecrets` — `[FdoSecrets] Enabled=true` written.
 - `keepassxc-autostart` — autostart .desktop file readable.
@@ -89,17 +89,17 @@ Deploy-scope (run on the host post-`ov deploy add` against the running user's HO
 
 | Skill | Relationship |
 |-------|--------------|
-| `/ov-infrastructure:keepassxc` | The package-only layer. `keepassxc-keyring` `require:` on it; never composes it. |
-| `/ov-infrastructure:gnupg` | Same — keepassxc-keyring `require:` on gnupg, never composes. |
-| `/ov-distros:agent-forwarding` | Distinct concern. agent-forwarding is for FORWARDING the host's GPG/SSH agents INTO containers via socket bind-mounts. keepassxc-keyring is about turning the host itself into a Secret Service server. Both can be active simultaneously. |
-| `/ov-build:secrets` | The CLI surface that talks to KeePassXC after this layer is in place. `ov secrets gpg setup` and `ov secrets gpg doctor` find pinentry-qt + libsecret on PATH because this layer installed them. |
-| `/ov-coder:direnv` | Installs the direnv binary. This layer adds the missing piece (the shell hook) for `.envrc` to actually trigger on `cd`. |
-| `/ov-image:layer` | Layer authoring reference. |
-| `/ov-eval:eval` | `eval:` block format reference. |
+| `/charly-infrastructure:keepassxc` | The package-only layer. `keepassxc-keyring` `require:` on it; never composes it. |
+| `/charly-infrastructure:gnupg` | Same — keepassxc-keyring `require:` on gnupg, never composes. |
+| `/charly-distros:agent-forwarding` | Distinct concern. agent-forwarding is for FORWARDING the host's GPG/SSH agents INTO containers via socket bind-mounts. keepassxc-keyring is about turning the host itself into a Secret Service server. Both can be active simultaneously. |
+| `/charly-build:secrets` | The CLI surface that talks to KeePassXC after this layer is in place. `charly secrets gpg setup` and `charly secrets gpg doctor` find pinentry-qt + libsecret on PATH because this layer installed them. |
+| `/charly-coder:direnv` | Installs the direnv binary. This layer adds the missing piece (the shell hook) for `.envrc` to actually trigger on `cd`. |
+| `/charly-image:layer` | Layer authoring reference. |
+| `/charly-eval:eval` | `eval:` block format reference. |
 
 ## Why a separate layer (and not edits to `keepassxc` or `agent-forwarding`)
 
-- The `keepassxc` layer is consumed by container images (`/ov-selkies:desktop-apps`) where FdoSecrets and autostart make no sense.
+- The `keepassxc` layer is consumed by container images (`/charly-selkies:desktop-apps`) where FdoSecrets and autostart make no sense.
 - `agent-forwarding` is a clean metalayer (`gnupg + direnv + ssh-client`) used by 27 application images. Adding host-only behavior there would polute every container build that composes it.
 - Keeping host-only secret-service wiring in its own layer means containers stay containers and hosts stay hosts.
 
@@ -115,12 +115,12 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-infrastructure:keepassxc` — package install (parent dependency)
-- `/ov-infrastructure:gnupg` — gpg binary (parent dependency)
-- `/ov-distros:agent-forwarding` — sibling: container-side agent forwarding metalayer
-- `/ov-build:secrets` — `ov secrets` and `ov secrets gpg` CLI surface
-- `/ov-coder:direnv` — direnv binary layer (the shell hook this layer adds completes the chain)
-- `/ov-image:layer` — layer authoring reference
-- `/ov-eval:eval` — declarative testing reference
-- `/ov-local:local-spec` — `kind: local` template reference (where this layer is composed)
-- `/ov-local:local-deploy` — `target: local` deploy semantics
+- `/charly-infrastructure:keepassxc` — package install (parent dependency)
+- `/charly-infrastructure:gnupg` — gpg binary (parent dependency)
+- `/charly-distros:agent-forwarding` — sibling: container-side agent forwarding metalayer
+- `/charly-build:secrets` — `charly secrets` and `charly secrets gpg` CLI surface
+- `/charly-coder:direnv` — direnv binary layer (the shell hook this layer adds completes the chain)
+- `/charly-image:layer` — layer authoring reference
+- `/charly-eval:eval` — declarative testing reference
+- `/charly-local:local-spec` — `kind: local` template reference (where this layer is composed)
+- `/charly-local:local-deploy` — `target: local` deploy semantics

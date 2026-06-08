@@ -42,15 +42,15 @@ Runs `pixi run start-studio` which executes `unsloth studio -H 0.0.0.0 -p 8888`.
 
 ## Used In Images
 
-- `/ov-jupyter:unsloth-studio`
+- `/charly-jupyter:unsloth-studio`
 
 ## Related Layers
 
-- `/ov-jupyter:llama-cpp` — Sub-layer: llama.cpp binaries
-- `/ov-jupyter:unsloth` — Sub-layer: vLLM + unsloth pip install + patch
-- `/ov-infrastructure:supervisord` — Process manager dependency
-- `/ov-jupyter:jupyter-ml` — Alternative: ML Jupyter with MCP (same Tier 1 sub-layers)
-- `/ov-languages:python-ml` — Alternative: core ML without UI
+- `/charly-jupyter:llama-cpp` — Sub-layer: llama.cpp binaries
+- `/charly-jupyter:unsloth` — Sub-layer: vLLM + unsloth pip install + patch
+- `/charly-infrastructure:supervisord` — Process manager dependency
+- `/charly-jupyter:jupyter-ml` — Alternative: ML Jupyter with MCP (same Tier 1 sub-layers)
+- `/charly-languages:python-ml` — Alternative: core ML without UI
 
 ## When to Use This Skill
 
@@ -64,5 +64,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

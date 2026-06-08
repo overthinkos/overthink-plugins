@@ -15,7 +15,7 @@ GPU-accelerated ComfyUI image generation server with node-based workflow UI.
 | Property | Value |
 |----------|-------|
 | Base | nvidia |
-| Layers | agent-forwarding, comfyui, dbus, ov |
+| Layers | agent-forwarding, comfyui, dbus, charly |
 | Platforms | linux/amd64 |
 | Ports | 8188 |
 | Registry | ghcr.io/overthinkos |
@@ -35,31 +35,31 @@ GPU-accelerated ComfyUI image generation server with node-based workflow UI.
 ## Quick Start
 
 ```bash
-ov box build comfyui
-ov config comfyui
-ov start comfyui
+charly box build comfyui
+charly config comfyui
+charly start comfyui
 # Open http://localhost:8188
 ```
 
 ## Key Layers
 
-- `/ov-comfyui:comfyui` — ComfyUI installation, supervisord service, volume
-- `/ov-distros:nvidia` — GPU runtime and CDI device auto-detection (base)
-- `/ov-distros:cuda` — CUDA toolkit and libraries (via nvidia base)
-- `/ov-infrastructure:dbus-layer` — session bus for desktop notifications
-- `/ov-tools:ov` — in-container `ov` binary (enables `ov eval dbus notify`)
-- `/ov-distros:agent-forwarding` — SSH/GPG/direnv agent forwarding
+- `/charly-comfyui:comfyui` — ComfyUI installation, supervisord service, volume
+- `/charly-distros:nvidia` — GPU runtime and CDI device auto-detection (base)
+- `/charly-distros:cuda` — CUDA toolkit and libraries (via nvidia base)
+- `/charly-infrastructure:dbus-layer` — session bus for desktop notifications
+- `/charly-tools:charly` — in-container `ov` binary (enables `charly eval dbus notify`)
+- `/charly-distros:agent-forwarding` — SSH/GPG/direnv agent forwarding
 
 ## Related Images
 
-- `/ov-distros:nvidia` — parent (GPU without ComfyUI)
-- **CachyOS variant** — `cachyos.comfyui` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base) in the `overthinkos/cachyos` submodule. See `/ov-distros:cachyos`.
+- `/charly-distros:nvidia` — parent (GPU without ComfyUI)
+- **CachyOS variant** — `cachyos.comfyui` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base) in the `overthinkos/cachyos` submodule. See `/charly-distros:cachyos`.
 
 ## Verification
 
-After `ov start`:
-- `ov status comfyui` — container running
-- `ov service status comfyui` — all services RUNNING
+After `charly start`:
+- `charly status comfyui` — container running
+- `charly service status comfyui` — all services RUNNING
 - `curl -s -o /dev/null -w '%{http_code}' http://localhost:8188` — ComfyUI HTTP returns 200
 
 ## When to Use This Skill
@@ -68,5 +68,5 @@ After `ov start`:
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

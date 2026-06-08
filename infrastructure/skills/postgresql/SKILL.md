@@ -38,16 +38,16 @@ The entrypoint also reads these variables (with defaults, not set in candy.yml):
 | `PGHOST` | `{{.ContainerName}}` | `ov-postgresql` |
 | `PGPORT` | `5432` | `5432` |
 
-Pod-aware: same-container consumers receive `PGHOST=localhost`, cross-container consumers receive `PGHOST=ov-postgresql`. When `ov config` runs, these are automatically injected into the global `deploy.yml` env for PostgreSQL service discovery.
+Pod-aware: same-container consumers receive `PGHOST=localhost`, cross-container consumers receive `PGHOST=ov-postgresql`. When `charly config` runs, these are automatically injected into the global `deploy.yml` env for PostgreSQL service discovery.
 
-See `/ov-image:layer` for `env_provide` field docs.
+See `/charly-image:layer` for `env_provide` field docs.
 
 ## Packages
 
 The layer is multi-distro:
 
 - **RPM (Fedora):** `postgresql-server`, `postgresql-contrib`, `pgvector` (vector similarity search extension)
-- **PAC (Arch/CachyOS):** `postgresql`, `postgresql-libs` — the Arch `postgresql` package ships the server + contrib tooling; pgvector on Arch is built from the AUR (see `/ov-infrastructure:vectorchord`).
+- **PAC (Arch/CachyOS):** `postgresql`, `postgresql-libs` — the Arch `postgresql` package ships the server + contrib tooling; pgvector on Arch is built from the AUR (see `/charly-infrastructure:vectorchord`).
 
 ## Usage
 
@@ -60,8 +60,8 @@ my-image:
 
 ## Used In Images
 
-- `/ov-immich:immich`
-- `/ov-immich:immich-ml`
+- `/charly-immich:immich`
+- `/charly-immich:immich-ml`
 
 ## Entrypoint Features
 
@@ -73,14 +73,14 @@ The custom entrypoint (`/usr/local/bin/postgresql-entrypoint.sh`) supports:
 
 ## Related Layers
 
-- `/ov-immich:immich` -- primary consumer (depends on postgresql)
-- `/ov-infrastructure:vectorchord` -- sets `POSTGRES_SHARED_PRELOAD_LIBRARIES=vchord.so`
-- `/ov-infrastructure:redis` -- often paired with postgresql in service stacks
+- `/charly-immich:immich` -- primary consumer (depends on postgresql)
+- `/charly-infrastructure:vectorchord` -- sets `POSTGRES_SHARED_PRELOAD_LIBRARIES=vchord.so`
+- `/charly-infrastructure:redis` -- often paired with postgresql in service stacks
 
 ## Related Commands
 
-- `/ov-core:ov-config` — Deploy with secrets provisioning (db-password)
-- `/ov-build:secrets` — Manage database credentials
+- `/charly-core:ov-config` — Deploy with secrets provisioning (db-password)
+- `/charly-build:secrets` — Manage database credentials
 
 ## When to Use This Skill
 
@@ -94,4 +94,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

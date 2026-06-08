@@ -35,13 +35,13 @@ my-ci:
 - `bazzite`
 
 ## Related Layers
-- `/ov-distros:github-runner` — distinct self-hosted runner layer (not act)
-- `/ov-coder:docker-ce` — common companion for act workflow execution
-- `/ov-coder:dev-tools` — typically paired in CI images
+- `/charly-distros:github-runner` — distinct self-hosted runner layer (not act)
+- `/charly-coder:docker-ce` — common companion for act workflow execution
+- `/charly-coder:dev-tools` — typically paired in CI images
 
 ## Related Commands
-- `/ov-build:build` — installs act-cli from COPR during image build
-- `/ov-core:shell` — run `act` interactively to test workflows locally
+- `/charly-build:build` — installs act-cli from COPR during image build
+- `/charly-core:shell` — run `act` interactively to test workflows locally
 
 ## When to Use This Skill
 
@@ -53,5 +53,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

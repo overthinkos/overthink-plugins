@@ -50,7 +50,7 @@ entry (Claude Code runs on the host). Container-internal ports
 ## Requirements
 
 - A `versa` container must be **running** before Claude Code starts.
-  See `/ov-versa:versa`.
+  See `/charly-versa:versa`.
 - Claude Code registers MCP servers at **session start**. If the
   versa container is launched *after* Claude Code, the auto-connect
   to `localhost:22718/mcp/server` and `localhost:29999/mcp` fails
@@ -78,17 +78,17 @@ the notebook reads `AIRFLOW_API_INTERNAL_URL` from env (defaults
 `http://localhost:8080`; override to `http://airflow-pod:8080`).
 The marimo notebook's self-authored DAG goes into the shared
 `workspace` volume that both pods mount, so DAG drop + scheduler
-pickup work identically. See `/ov-versa:versa` "Cross-pod
+pickup work identically. See `/charly-versa:versa` "Cross-pod
 topology" for the full operator recipe.
 
 ## Related skills
 
-- `/ov-versa:versa` — the image (start here)
-- `/ov-versa:marimo-layer` — marimo's pixi env + service spec
-- `/ov-versa:marimo-mcp` — the marimo MCP server's tool catalog
-- `/ov-versa:airflow-layer` — Airflow 3.x layer wiring + auth
-- `/ov-versa:airflow-mcp` — the airflow MCP server's tool catalog
-- `/ov-versa:notebook-osm` — the dual-DAG OSM+GTFS notebook
-- `/ov-versa:maputnik-layer` — maputnik static-style editor
-- `/ov-versa:osm-tools-layer` — martin + tippecanoe + reload pattern
-- `/ov-versa:debug-tools-layer` — the debug toolkit composed by this image
+- `/charly-versa:versa` — the image (start here)
+- `/charly-versa:marimo-layer` — marimo's pixi env + service spec
+- `/charly-versa:marimo-mcp` — the marimo MCP server's tool catalog
+- `/charly-versa:airflow-layer` — Airflow 3.x layer wiring + auth
+- `/charly-versa:airflow-mcp` — the airflow MCP server's tool catalog
+- `/charly-versa:notebook-osm` — the dual-DAG OSM+GTFS notebook
+- `/charly-versa:maputnik-layer` — maputnik static-style editor
+- `/charly-versa:osm-tools-layer` — martin + tippecanoe + reload pattern
+- `/charly-versa:debug-tools-layer` — the debug toolkit composed by this image

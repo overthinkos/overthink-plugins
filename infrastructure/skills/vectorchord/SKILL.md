@@ -29,7 +29,7 @@ description: |
 - `unzip` (RPM / PAC) -- for extracting VectorChord release archives
 
 The layer is multi-distro (Fedora + Arch/CachyOS). On Arch, pgvector comes from
-the AUR (see `/ov-infrastructure:postgresql`).
+the AUR (see `/charly-infrastructure:postgresql`).
 
 ## Build Process (tasks:)
 
@@ -72,13 +72,13 @@ my-image:
 
 ## Used In Images
 
-- `/ov-immich:immich`
-- `/ov-immich:immich-ml`
+- `/charly-immich:immich`
+- `/charly-immich:immich-ml`
 
 ## Related Layers
 
-- `/ov-infrastructure:postgresql` -- required dependency (provides PostgreSQL server and pgvector)
-- `/ov-immich:immich` -- primary consumer (migration script creates the extension)
+- `/charly-infrastructure:postgresql` -- required dependency (provides PostgreSQL server and pgvector)
+- `/charly-immich:immich` -- primary consumer (migration script creates the extension)
 
 ## When to Use This Skill
 
@@ -92,5 +92,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

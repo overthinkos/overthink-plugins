@@ -15,18 +15,18 @@ The operator's CachyOS developer-workstation profile: a `kind: local` template
 current machine via `ShellExecutor` — no SSH, no VM, no container.
 
 It lives in the **`overthinkos/cachyos`** repo (git submodule at
-**`image/cachyos`**), in that repo's config (its `overthink.yml` + per-kind
+**`image/cachyos`**), in that repo's config (its `charly.yml` + per-kind
 sibling files) — both the
 `kind: local` template and its `kind: deploy` entry (`deploy.ov-cachyos`). The
 repo also carries a sibling `kind: deploy`, `deploy.cachyos-gpu` — the
 **persistent** operator GPU-workstation VM (`target: vm`, **not** `disposable`;
-see `/ov-vm:cachyos`) — so ov-cachyos is no longer the only `kind: deploy`
+see `/charly-vm:cachyos`) — so ov-cachyos is no longer the only `kind: deploy`
 there; every disposable test bed remains `kind: eval`. Apply it with:
 
 ```bash
-ov -C image/cachyos update ov-cachyos
+charly -C image/cachyos update ov-cachyos
 # or, anywhere:
-ov --repo overthinkos/cachyos update ov-cachyos
+charly --repo overthinkos/cachyos update ov-cachyos
 ```
 
 ## What it installs
@@ -49,7 +49,7 @@ repo's `candy/` (resolved via its `discover:` block):
 | `install_opts.builder_image` | `ghcr.io/overthinkos/arch-builder:2026.122.2252` (OCI ref, not a layer) |
 | `install_opts` | with_service, allow_repo_changes, allow_root_tasks all true |
 | `env` | `EDITOR=nvim`, `PAGER=less` |
-| `disposable` (deploy) | `true` — `ov update ov-cachyos` is authorized |
+| `disposable` (deploy) | `true` — `charly update ov-cachyos` is authorized |
 
 ## Deploy-scope eval probes
 
@@ -66,17 +66,17 @@ card-less or VFIO-passthrough host, so the profile applies cleanly anywhere.
 `local.ov-cachyos`'s remote layer refs are collected and materialized by the
 same `CollectRemoteRefs` walk as image layer refs: the walk collects the layer
 refs of the ROOT project's own `kind: local` templates (ov-cachyos is the root
-here), so `ov box validate` / `ov update ov-cachyos` resolve the github-ref'd
+here), so `charly box validate` / `charly update ov-cachyos` resolve the github-ref'd
 layers. (Collection is reachability-scoped — a namespace's `kind:local`
 templates, imported only as a dependency, are NOT collected by an importer; only
-the root's own locals are. See `/ov-internals:go` "Remote-layer resolver".)
+the root's own locals are. See `/charly-internals:go` "Remote-layer resolver".)
 
 ## Cross-References
 
-- `/ov-local:local-spec` — `kind: local` template authoring reference
-- `/ov-local:local-deploy` — the `target: local` deployment surface
-- `/ov-distros:cachyos` — the CachyOS base of the same family
-- `/ov-core:deploy` — deploy entry semantics (cross-kind name reuse: deploy.ov-cachyos ↔ local.ov-cachyos)
+- `/charly-local:local-spec` — `kind: local` template authoring reference
+- `/charly-local:local-deploy` — the `target: local` deployment surface
+- `/charly-distros:cachyos` — the CachyOS base of the same family
+- `/charly-core:deploy` — deploy entry semantics (cross-kind name reuse: deploy.ov-cachyos ↔ local.ov-cachyos)
 
 ## When to Use This Skill
 

@@ -1,5 +1,5 @@
 {
-  "name": "ov-jupyter",
+  "name": "charly-jupyter",
   "description": "MCP server for JupyterLab notebook operations with real-time collaboration",
   "version": "1.0.0",
   "author": { "name": "overthinkos" },

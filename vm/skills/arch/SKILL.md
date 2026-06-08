@@ -5,7 +5,7 @@ description: |
   qcow2 from pkgbuild.com, applies cloud-init, boots under libvirt/QEMU via BIOS
   firmware + virtio-gpu. Documents the stale-BOOTX64.EFI RCA, the
   simpledrm→qxldrmfb takeover race, the adopt-user pattern, and resource sizing.
-  MUST be invoked before editing arch in image/arch/overthink.yml or authoring
+  MUST be invoked before editing arch in image/arch/charly.yml or authoring
   another cloud_image VM from a template.
 ---
 
@@ -13,11 +13,11 @@ description: |
 
 The `arch` VM entity and its `eval-arch-vm` / `eval-arch-pacstrap-vm` disposable test beds
 (plus the nested `arch-host` bed) live in the **`overthinkos/arch`** repo (git
-submodule at **`image/arch`**), in that repo's config (its `overthink.yml` + per-kind sibling files).
+submodule at **`image/arch`**), in that repo's config (its `charly.yml` + per-kind sibling files).
 The beds are `kind: eval` entities (the 2026-05 deploy→eval unification moved
-every repo-shipped disposable bed out of `deploy.yml`), driven by `ov eval run
-<bed>`. Drive them from the submodule, e.g. `ov -C image/arch vm create arch`
-and `ov -C image/arch eval run eval-arch-vm` (or `ov --repo overthinkos/arch …`). Any
+every repo-shipped disposable bed out of `deploy.yml`), driven by `charly eval run
+<bed>`. Drive them from the submodule, e.g. `charly -C image/arch vm create arch`
+and `charly -C image/arch eval run eval-arch-vm` (or `charly --repo overthinkos/arch …`). Any
 layers applied via `add_candy:` are pulled from this repo by git ref.
 
 Canonical `source.kind: cloud_image` VM in the repo. Boots an Arch Linux cloud image as a full VM with SSH + SPICE console access, cloud-init-provisioned SSH keys, virtio-gpu graphics, and the `ov` toolchain auto-installed inside the guest.
@@ -38,29 +38,29 @@ This skill is the **decision log** for every non-obvious choice in the entry —
 | CPUs | `4` | Parallel xz decompression + `pacman-key --populate` benefit from SMP |
 | Network mode | `user` | QEMU user-mode with port forwards |
 | SSH port | `2224` | Non-default to coexist with other dev VMs on 2222 |
-| SSH key source | `generate` | Stable `~/.local/share/ov/vm/ov-arch/id_ed25519` across rebuilds |
+| SSH key source | `generate` | Stable `~/.local/share/ov/vm/charly-arch/id_ed25519` across rebuilds |
 | Video model | `virtio-gpu` | Modern default for Linux guests (Finding B, secondary) |
 | SPICE listener | `type: socket` (UNIX, auto-path) | Enables zero-config remote GUI via `qemu+ssh://` (see "Connecting from a remote workstation" below). virt-manager and `remote-viewer` auto-forward UNIX sockets through libvirt RPC fd-passing; TCP-loopback listeners are never auto-tunneled. No TCP port bound. |
 
-Disposability is **not** a field on the VM entity — the `eval-arch-vm` `kind: eval` bed carries `disposable: true` (LOAD-BEARING), which authorizes the unattended destroy + rebuild + restart driven by `ov eval run eval-arch-vm` (and the equivalent `ov update eval-arch-vm`, since the eval bed is folded into the Deploy map). See `/ov-internals:disposable`.
+Disposability is **not** a field on the VM entity — the `eval-arch-vm` `kind: eval` bed carries `disposable: true` (LOAD-BEARING), which authorizes the unattended destroy + rebuild + restart driven by `charly eval run eval-arch-vm` (and the equivalent `charly update eval-arch-vm`, since the eval bed is folded into the Deploy map). See `/charly-internals:disposable`.
 
 ## Disposable verification target
 
-This is the repo's canonical verification target. The `eval-arch-vm` `kind: eval` bed carries `disposable: true`, which means `ov eval run eval-arch-vm` runs the full R10 sequence (build → create → eval live → fresh rebuild → tear down) unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
+This is the repo's canonical verification target. The `eval-arch-vm` `kind: eval` bed carries `disposable: true`, which means `charly eval run eval-arch-vm` runs the full R10 sequence (build → create → eval live → fresh rebuild → tear down) unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
 
 If you're implementing something that touches VM config, libvirt rendering, cloud-init, SPICE, or any VM-adjacent behavior, the expected verification loop is:
 
 ```bash
-ov update arch       # (destroy + build + create + start)
+charly update arch       # (destroy + build + create + start)
 #  ... exploratory testing ...
 # commit the source-level fix
-ov update arch       # fresh-rebuild re-verification (R10)
+charly update arch       # fresh-rebuild re-verification (R10)
 # paste BOTH outputs into the conversation
 ```
 
 No other VM in this repo is disposable by default. To make another one rebuildable unattended, add `disposable: true` to its `target: vm` deploy entry (the flag is always explicit; never derived).
 
-## Full VmSpec (from image/arch/overthink.yml)
+## Full VmSpec (from image/arch/charly.yml)
 
 ```yaml
 vms:
@@ -116,7 +116,7 @@ vms:
 The VM's SPICE configuration above is specifically chosen so virt-manager on
 another machine Just Works against a libvirt session here.
 
-### virt-manager (zero ov involvement required)
+### virt-manager (zero charly involvement required)
 
 ```
 virt-manager --connect qemu+ssh://o.atrawog.org/session
@@ -133,7 +133,7 @@ ssh <host> nc -U /<remote-socket-path>
 ```
 
 stdio-piping SPICE traffic through the SSH control channel. **No `ssh
--L`, no ov commands, no password, no TCP port bound on the remote
+-L`, no charly commands, no password, no TCP port bound on the remote
 host.**
 
 **Required host dep**: `nc` (openbsd-netcat on Arch, netcat-openbsd on
@@ -143,43 +143,43 @@ Without `nc`, virt-manager hangs at "Connecting to graphical console
 for guest" — no error, just silent failure. Diagnose with
 `ssh <host> which nc` (should return a path).
 
-### `ov eval spice` with `--uri` (for CLI diagnostics / local artifacts)
+### `charly eval spice` with `--uri` (for CLI diagnostics / local artifacts)
 
 To probe the remote VM from the CLI and write screenshots into the local
 filesystem:
 
 ```bash
-ov eval spice status arch --uri qemu+ssh://o.atrawog.org/session
-ov eval spice screenshot arch --uri qemu+ssh://o.atrawog.org/session /tmp/shot.png
-ov eval libvirt info arch --uri qemu+ssh://o.atrawog.org/session
+charly eval spice status arch --uri qemu+ssh://o.atrawog.org/session
+charly eval spice screenshot arch --uri qemu+ssh://o.atrawog.org/session /tmp/shot.png
+charly eval libvirt info arch --uri qemu+ssh://o.atrawog.org/session
 ```
 
 `ov` opens an SSH connection, forwards the remote SPICE UNIX socket to a
 local socket, and dials it — all transparent to the user. Set
 `OV_LIBVIRT_URI=qemu+ssh://o.atrawog.org/session` to avoid repeating the flag.
 
-### `ov --host o` (run ov on the remote machine)
+### `charly --host o` (run charly on the remote machine)
 
 For commands that don't need their output to land locally:
 
 ```bash
-ov settings set hosts.o o.atrawog.org
-ov --host o status
-ov --host o vm list
-ov --host o test spice status arch
-ov --host o test spice screenshot arch - > /tmp/shot.png
+charly settings set hosts.o o.atrawog.org
+charly --host o status
+charly --host o vm list
+charly --host o test spice status arch
+charly --host o test spice screenshot arch - > /tmp/shot.png
 ```
 
 `ov` re-execs itself over SSH (via your system's `ssh`, so `~/.ssh/config`
 and agent forwarding just work). `-` as a screenshot path writes PNG bytes
 to stdout so the pipeline composes naturally.
 
-### `ov ssh tunnel` (for external clients like TigerVNC / bare remote-viewer)
+### `charly ssh tunnel` (for external clients like TigerVNC / bare remote-viewer)
 
 ```bash
-ov ssh tunnel spice arch --uri qemu+ssh://o.atrawog.org/session
-# prints: spice tunnel: spice+unix:///tmp/ov-tunnel-8e4c.sock
-# Connect with: remote-viewer spice+unix:///tmp/ov-tunnel-8e4c.sock
+charly ssh tunnel spice arch --uri qemu+ssh://o.atrawog.org/session
+# prints: spice tunnel: spice+unix:///tmp/charly-tunnel-8e4c.sock
+# Connect with: remote-viewer spice+unix:///tmp/charly-tunnel-8e4c.sock
 ```
 
 Add `--tcp` to force a 127.0.0.1:<random> TCP forward for clients that
@@ -197,7 +197,7 @@ False alarm during live testing — verified at four layers:
 | Guest partition | `/dev/vda3 … 39.7G Linux root (x86-64)` (grew from ~2G base) |
 | Guest filesystem | `btrfs filesystem show` → size 39.70 GiB |
 
-The cloud-utils-growpart + btrfs-online-resize pipeline that cloud-init runs at first boot works as designed. No workaround needed; the `ov vm build` qcow2 overlay resize at `disk_size:` suffices.
+The cloud-utils-growpart + btrfs-online-resize pipeline that cloud-init runs at first boot works as designed. No workaround needed; the `charly vm build` qcow2 overlay resize at `disk_size:` suffices.
 
 ## Finding B — SPICE console blank: BIOS firmware bypasses the race
 
@@ -237,7 +237,7 @@ vda1 is a 1 MB BIOS boot partition — only needed for GRUB's core image under B
 
 **Tradeoff accepted:** no UEFI Secure Boot. Irrelevant for a cloud-server workflow where the OS trust model is based on the qcow2's sha256 anyway.
 
-**Secondary fix: virtio-gpu instead of QXL.** QXL is a legacy SPICE-specific video device (2010-era Red Hat stack, X11-oriented). virtio-gpu is the modern paravirtualized-GPU default for Linux guests under KVM/QEMU (kernel 4.16+, 2018). Native virtio_gpu DRM driver, Wayland-native, simpler config (no QXL ram_size + vram_size + vram64_size_mb + vgamem_mb quartet — just `vram:` and `heads:`). Still fully SPICE-compatible. See `/ov-internals:libvirt-renderer` for the video-model decision matrix.
+**Secondary fix: virtio-gpu instead of QXL.** QXL is a legacy SPICE-specific video device (2010-era Red Hat stack, X11-oriented). virtio-gpu is the modern paravirtualized-GPU default for Linux guests under KVM/QEMU (kernel 4.16+, 2018). Native virtio_gpu DRM driver, Wayland-native, simpler config (no QXL ram_size + vram_size + vram64_size_mb + vgamem_mb quartet — just `vram:` and `heads:`). Still fully SPICE-compatible. See `/charly-internals:libvirt-renderer` for the video-model decision matrix.
 
 **Do NOT attempt the guest-side fix** (regenerate BOOTX64.EFI, add `fbcon=nodefer` via `/etc/default/grub.d/`, sed on `/etc/default/grub`, `grub-install` at first boot, power-cycle reboot). The user explicitly rejected these during plan review: "match libvirt config to the deployed image, not the other way around". The maintainer-authored grub config on vda3 is the source of truth; BIOS boot reads it as-shipped.
 
@@ -261,22 +261,22 @@ Root cause: `pacman -S spice-vdagent` pulls in GTK3 + X11 (~200 MB download, ~1 
 
 ## Finding D — SSH key idempotency across rebuilds
 
-`ov vm build` + `ov vm create` called repeatedly should NOT regenerate the SSH keypair. Implementation idempotency lives in `ov/vm_cloud_image.go::generateSSHKeypair` — it checks for `~/.local/share/ov/vm/ov-<name>/id_ed25519.pub` before creating. See `/ov-internals:vm-deploy-target` for the state persistence flow (VmDeployState in `deploy.yml`).
+`charly vm build` + `charly vm create` called repeatedly should NOT regenerate the SSH keypair. Implementation idempotency lives in `ov/vm_cloud_image.go::generateSSHKeypair` — it checks for `~/.local/share/ov/vm/charly-<name>/id_ed25519.pub` before creating. See `/charly-internals:vm-deploy-target` for the state persistence flow (VmDeployState in `deploy.yml`).
 
 ## Adopt pattern in action
 
 `source.base_user: arch` triggers the cloud-init renderer to emit:
 
 ```yaml
-# Rendered user-data (via /ov-internals:cloud-init-renderer composeUsers)
+# Rendered user-data (via /charly-internals:cloud-init-renderer composeUsers)
 users:
   - default                               # cloud-init keeps distro-default account untouched
   - name: arch
     ssh_authorized_keys:
-      - ssh-ed25519 AAAA…                 # generated pubkey from ~/.local/share/ov/vm/ov-arch/id_ed25519.pub
+      - ssh-ed25519 AAAA…                 # generated pubkey from ~/.local/share/ov/vm/charly-arch/id_ed25519.pub
 ```
 
-cloud-init appends the pubkey to `/home/arch/.ssh/authorized_keys` without calling `useradd`, rewriting sudoers, or changing the shell. `spec.ssh.user` defaults to `arch`, so `ov vm ssh arch` connects as `arch@127.0.0.1:2224`. Full parity with the container-side `base_user:` + `user_policy: adopt` pattern (`/ov-image:image` "user_policy").
+cloud-init appends the pubkey to `/home/arch/.ssh/authorized_keys` without calling `useradd`, rewriting sudoers, or changing the shell. `spec.ssh.user` defaults to `arch`, so `charly vm ssh arch` connects as `arch@127.0.0.1:2224`. Full parity with the container-side `base_user:` + `user_policy: adopt` pattern (`/charly-image:image` "user_policy").
 
 ## Verification recipes
 
@@ -284,10 +284,10 @@ cloud-init appends the pubkey to `/home/arch/.ssh/authorized_keys` without calli
 ```bash
 virsh -c qemu:///session destroy ov-arch 2>/dev/null
 virsh -c qemu:///session undefine --nvram ov-arch 2>/dev/null
-rm -f ~/.local/share/ov/vm/ov-arch/nvram.fd
+rm -f ~/.local/share/ov/vm/charly-arch/nvram.fd
 rm -f output/qcow2/{disk.qcow2,seed.iso}
-ov vm build arch
-ov vm create arch --no-auto-detect
+charly vm build arch
+charly vm create arch --no-auto-detect
 ```
 
 ### BIOS firmware + virtio-gpu took effect
@@ -299,7 +299,7 @@ Pass: NO `<loader>` / `<nvram>` / `<firmware>` elements; `<model type='virtio'>`
 
 ### No simpledrm race
 ```bash
-ssh -i ~/.local/share/ov/vm/ov-arch/id_ed25519 -p 2224 arch@127.0.0.1 \
+ssh -i ~/.local/share/ov/vm/charly-arch/id_ed25519 -p 2224 arch@127.0.0.1 \
   'sudo dmesg | grep -iE "simpledrm|virtio_gpu|drm"' | head -10
 ```
 Pass: `virtio_gpu` as primary, NO `simpledrm` lines, NO `fbcon: Deferring console take-over`.
@@ -308,7 +308,7 @@ Pass: `virtio_gpu` as primary, NO `simpledrm` lines, NO `fbcon: Deferring consol
 ```bash
 START=$(date +%s)
 for i in $(seq 1 20); do
-  ssh -i ~/.local/share/ov/vm/ov-arch/id_ed25519 -p 2224 -o ConnectTimeout=3 -o BatchMode=yes \
+  ssh -i ~/.local/share/ov/vm/charly-arch/id_ed25519 -p 2224 -o ConnectTimeout=3 -o BatchMode=yes \
       arch@127.0.0.1 'echo UP' 2>&1 | grep -q UP && break
   sleep 5
 done
@@ -336,13 +336,13 @@ Pass: `active` + version printed.
 
 ## Cross-References
 
-- `/ov-vm:vms-catalog` — VmSpec authoring reference (schema, source.kind, adopt pattern)
-- `/ov-vm:vm` — VM lifecycle commands + BIOS/UEFI decision matrix + video model choice (disposability lives on the `kind: eval` bed)
-- `/ov-build:migrate` — `ov migrate` legacy conversion
-- `/ov-core:deploy` — `ov deploy add vm:arch <layer>` for in-guest layer application
-- `/ov-internals:vm-spec` — Go types and validation rules
-- `/ov-internals:libvirt-renderer` — `<backend type='passt'/>` for portForward, virtio-gpu video model
-- `/ov-internals:cloud-init-renderer` — `composeUsers` adopt-merge, seed ISO, `ov_install.strategy: auto`
-- `/ov-internals:ovmf` — why `firmware: bios` skips `<loader>`/`<nvram>` emission entirely
-- `/ov-internals:vm-deploy-target` — SSH key idempotency, VmDeployState persistence
-- `/ov-distros:cloud-init` — guest-side cloud-init layer (complementary to host-side emission)
+- `/charly-vm:vms-catalog` — VmSpec authoring reference (schema, source.kind, adopt pattern)
+- `/charly-vm:vm` — VM lifecycle commands + BIOS/UEFI decision matrix + video model choice (disposability lives on the `kind: eval` bed)
+- `/charly-build:migrate` — `charly migrate` legacy conversion
+- `/charly-core:deploy` — `charly deploy add vm:arch <layer>` for in-guest layer application
+- `/charly-internals:vm-spec` — Go types and validation rules
+- `/charly-internals:libvirt-renderer` — `<backend type='passt'/>` for portForward, virtio-gpu video model
+- `/charly-internals:cloud-init-renderer` — `composeUsers` adopt-merge, seed ISO, `ov_install.strategy: auto`
+- `/charly-internals:ovmf` — why `firmware: bios` skips `<loader>`/`<nvram>` emission entirely
+- `/charly-internals:vm-deploy-target` — SSH key idempotency, VmDeployState persistence
+- `/charly-distros:cloud-init` — guest-side cloud-init layer (complementary to host-side emission)

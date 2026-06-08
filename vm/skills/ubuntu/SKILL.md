@@ -10,18 +10,18 @@ description: |
 # ubuntu (VM)
 
 `source.kind: bootstrap` VM that builds an Ubuntu 24.04 rootfs from scratch via
-`debootstrap` (using `/ov-distros:ubuntu-debootstrap-builder`), then boots it
+`debootstrap` (using `/charly-distros:ubuntu-debootstrap-builder`), then boots it
 under libvirt/QEMU.
 
 The `ubuntu-debootstrap` VM entity and its `eval-ubuntu-debootstrap-vm` disposable
 test bed live in the **`overthinkos/ubuntu`** repo (git submodule at
-**`image/ubuntu`**), in that repo's config (its `overthink.yml` + per-kind sibling files). The bed is a
+**`image/ubuntu`**), in that repo's config (its `charly.yml` + per-kind sibling files). The bed is a
 `kind: eval` entity (the 2026-05 deploy→eval unification moved repo-shipped
-disposable beds out of `deploy.yml`), driven by `ov eval run
+disposable beds out of `deploy.yml`), driven by `charly eval run
 eval-ubuntu-debootstrap-vm`. Drive the VM lifecycle from the submodule:
-`ov -C image/ubuntu vm build ubuntu-debootstrap` +
-`ov -C image/ubuntu vm create ubuntu-debootstrap` (or
-`ov --repo overthinkos/ubuntu …`).
+`charly -C image/ubuntu vm build ubuntu-debootstrap` +
+`charly -C image/ubuntu vm create ubuntu-debootstrap` (or
+`charly --repo overthinkos/ubuntu …`).
 
 ## VM Configuration (from image/ubuntu/vm.yml)
 
@@ -45,27 +45,27 @@ carries BOTH distro configs, so `inherits: debian` resolves without referencing
 
 `eval-ubuntu-debootstrap-vm` is a `kind: eval` bed (`target: vm`,
 `vm: ubuntu-debootstrap`) that carries `disposable: true`, so
-`ov -C image/ubuntu eval run eval-ubuntu-debootstrap-vm` runs the full R10 sequence
-unattended (the equivalent `ov update eval-ubuntu-debootstrap-vm` rebuild also works,
+`charly -C image/ubuntu eval run eval-ubuntu-debootstrap-vm` runs the full R10 sequence
+unattended (the equivalent `charly update eval-ubuntu-debootstrap-vm` rebuild also works,
 since the eval bed is folded into the Deploy map).
 
 ## debootstrap path
 
-`ov vm build ubuntu-debootstrap` runs `debootstrap` inside the privileged
+`charly vm build ubuntu-debootstrap` runs `debootstrap` inside the privileged
 `ubuntu-debootstrap-builder` to build the rootfs, then writes a bootable disk +
 cloud-init seed ISO. The bootstrap path is privileged + network-heavy
 (`debootstrap` downloads the base packages from the Ubuntu mirror). The
-Docker-Hub `/ov-distros:ubuntu` container base remains the faster path when you
+Docker-Hub `/charly-distros:ubuntu` container base remains the faster path when you
 don't need a VM disk.
 
 ## Cross-References
 
-- `/ov-distros:ubuntu-debootstrap-builder` — the builder image this VM uses
-- `/ov-distros:ubuntu-debootstrap` — the container equivalent of this bootstrap path
-- `/ov-vm:debian` — the Debian sibling bootstrap VM
-- `/ov-vm:arch` — the canonical cloud_image VM (BIOS/virtio-gpu/sizing rationale)
-- `/ov-vm:vm` — VM lifecycle commands + BIOS/UEFI matrix
-- `/ov-vm:vms-catalog` — VmSpec authoring reference
+- `/charly-distros:ubuntu-debootstrap-builder` — the builder image this VM uses
+- `/charly-distros:ubuntu-debootstrap` — the container equivalent of this bootstrap path
+- `/charly-vm:debian` — the Debian sibling bootstrap VM
+- `/charly-vm:arch` — the canonical cloud_image VM (BIOS/virtio-gpu/sizing rationale)
+- `/charly-vm:vm` — VM lifecycle commands + BIOS/UEFI matrix
+- `/charly-vm:vms-catalog` — VmSpec authoring reference
 
 ## When to Use This Skill
 

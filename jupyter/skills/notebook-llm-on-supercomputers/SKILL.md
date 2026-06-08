@@ -33,7 +33,7 @@ data:
     dest: llms_on_supercomputers
 ```
 
-At build time, the contents are staged into `/data/workspace/llms_on_supercomputers/` inside the image. At deploy time, `ov config` or `ov update` provisions them into the workspace volume.
+At build time, the contents are staged into `/data/workspace/llms_on_supercomputers/` inside the image. At deploy time, `charly config` or `charly update` provisions them into the workspace volume.
 
 ## Included Notebooks
 
@@ -87,13 +87,13 @@ At build time, the contents are staged into `/data/workspace/llms_on_supercomput
 
 ## Network Connectivity
 
-9 notebooks (D0, D1, D2 series) connect to Ollama via the `OLLAMA_HOST` environment variable (default: `http://localhost:11434`). When Ollama is deployed via `ov config ollama --update-all`, the `OLLAMA_HOST` env var is auto-injected via `env_provide` to `http://ov-ollama:11434` — both containers must be on the same `ov` Podman network. The D3 fine-tuning notebooks work locally with GPU — no Ollama needed.
+9 notebooks (D0, D1, D2 series) connect to Ollama via the `OLLAMA_HOST` environment variable (default: `http://localhost:11434`). When Ollama is deployed via `charly config ollama --update-all`, the `OLLAMA_HOST` env var is auto-injected via `env_provide` to `http://charly-ollama:11434` — both containers must be on the same `ov` Podman network. The D3 fine-tuning notebooks work locally with GPU — no Ollama needed.
 
 ## Notebook Compatibility Notes
 
 ### ollama Python library
 
-The same `importlib.reload(ollama)` pattern from `/ov-jupyter:notebook-ollama` is applied to all cleanup cells that use `import ollama` for model unloading.
+The same `importlib.reload(ollama)` pattern from `/charly-jupyter:notebook-ollama` is applied to all cleanup cells that use `import ollama` for model unloading.
 
 ### External services
 
@@ -106,17 +106,17 @@ The same `importlib.reload(ollama)` pattern from `/ov-jupyter:notebook-ollama` i
 
 ## Used In Images
 
-- `/ov-jupyter:jupyter-ml-notebook`
+- `/charly-jupyter:jupyter-ml-notebook`
 
 ## Related Skills
 
-- `/ov-image:layer` — data field documentation and layer authoring rules
-- `/ov-core:ov-config` — data provisioning during `ov config` setup
-- `/ov-jupyter:notebook-finetuning` — sibling data layer (Unsloth fine-tuning notebooks)
-- `/ov-jupyter:notebook-ollama` — sibling data layer (Ollama API tutorials)
-- `/ov-jupyter:notebook-templates` — sibling data layer (starter notebooks)
-- `/ov-ollama:ollama` — the Ollama server image (must be running for D0-D2 notebooks)
-- `/ov-jupyter:jupyter-ml-notebook` — the image that includes this layer
+- `/charly-image:layer` — data field documentation and layer authoring rules
+- `/charly-core:ov-config` — data provisioning during `charly config` setup
+- `/charly-jupyter:notebook-finetuning` — sibling data layer (Unsloth fine-tuning notebooks)
+- `/charly-jupyter:notebook-ollama` — sibling data layer (Ollama API tutorials)
+- `/charly-jupyter:notebook-templates` — sibling data layer (starter notebooks)
+- `/charly-ollama:ollama` — the Ollama server image (must be running for D0-D2 notebooks)
+- `/charly-jupyter:jupyter-ml-notebook` — the image that includes this layer
 
 ## When to Use This Skill
 
@@ -130,4 +130,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

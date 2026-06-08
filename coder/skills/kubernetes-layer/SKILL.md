@@ -35,13 +35,13 @@ my-devops:
 - `bazzite`
 
 ## Related Layers
-- `/ov-coder:docker-ce` — common companion for local container builds
-- `/ov-coder:devops-tools` — provides kubectx/kubens and cloud CLIs
-- `/ov-coder:dev-tools` — typically paired in DevOps images
+- `/charly-coder:docker-ce` — common companion for local container builds
+- `/charly-coder:devops-tools` — provides kubectx/kubens and cloud CLIs
+- `/charly-coder:dev-tools` — typically paired in DevOps images
 
 ## Related Commands
-- `/ov-build:build` — installs kubectl and helm RPMs during image build
-- `/ov-core:shell` — run kubectl/helm interactively against external clusters
+- `/charly-build:build` — installs kubectl and helm RPMs during image build
+- `/charly-core:shell` — run kubectl/helm interactively against external clusters
 
 ## When to Use This Skill
 
@@ -53,5 +53,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

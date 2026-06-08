@@ -11,10 +11,10 @@ description: |
 
 # debian-builder
 
-Debian 13 counterpart of `/ov-distros:fedora-builder`. Provides the pixi / npm / cargo build environments so downstream Debian images (currently `/ov-coder:debian-coder`) get pre-compiled artifacts from a dedicated builder stage without bloating the final image.
+Debian 13 counterpart of `/charly-distros:fedora-builder`. Provides the pixi / npm / cargo build environments so downstream Debian images (currently `/charly-coder:debian-coder`) get pre-compiled artifacts from a dedicated builder stage without bloating the final image.
 
 Lives in the **`overthinkos/debian`** repo (git submodule at **`image/debian`**).
-Build it from the submodule: `ov -C image/debian image build debian-builder`
+Build it from the submodule: `charly -C image/debian image build debian-builder`
 (normally it builds implicitly as a dependency of `debian-coder`). Its
 `pixi`/`nodejs`/`build-toolchain` layers are pulled by github reference from the
 main repo.
@@ -31,10 +31,10 @@ main repo.
 
 ## Full layer stack
 
-1. `/ov-distros:debian` — Debian 13 + our `apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg` bootstrap + go-task binary + `user:user` uid 1000.
-2. `/ov-languages:pixi` — pixi package manager + env paths.
-3. `/ov-coder:nodejs` — Node.js + npm (generic `nodejs` — Debian's packaged Node).
-4. `/ov-coder:build-toolchain` — gcc, g++, cmake, autoconf, ninja, pkg-config, and the full set of `-dev` libraries (Debian equivalents of Fedora's `-devel`). Used by cargo crates that link system libs (libva, x264, ffmpeg, wayland, xkbcommon, etc.).
+1. `/charly-distros:debian` — Debian 13 + our `apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg` bootstrap + go-task binary + `user:user` uid 1000.
+2. `/charly-languages:pixi` — pixi package manager + env paths.
+3. `/charly-coder:nodejs` — Node.js + npm (generic `nodejs` — Debian's packaged Node).
+4. `/charly-coder:build-toolchain` — gcc, g++, cmake, autoconf, ninja, pkg-config, and the full set of `-dev` libraries (Debian equivalents of Fedora's `-devel`). Used by cargo crates that link system libs (libva, x264, ffmpeg, wayland, xkbcommon, etc.).
 
 ## Role in the build system
 
@@ -48,47 +48,47 @@ debian:
     cargo: debian-builder
 ```
 
-During `ov box build debian-coder`, any layer that ships `pixi.toml` / `package.json` / `Cargo.toml` gets a multi-stage `FROM debian-builder AS <layer>-<builder>-build` section emitted by the generator, then `COPY --from=<stage> --chown=${UID}:${GID}` into the final image. See `/ov-internals:generate-source` for the template.
+During `charly box build debian-coder`, any layer that ships `pixi.toml` / `package.json` / `Cargo.toml` gets a multi-stage `FROM debian-builder AS <layer>-<builder>-build` section emitted by the generator, then `COPY --from=<stage> --chown=${UID}:${GID}` into the final image. See `/charly-internals:generate-source` for the template.
 
-No AUR equivalent (unlike `/ov-distros:arch-builder`) — AUR is an Arch-only concept.
+No AUR equivalent (unlike `/charly-distros:arch-builder`) — AUR is an Arch-only concept.
 
 ## Cross-distro sibling builders
 
-- `/ov-distros:fedora-builder` — Fedora 43 equivalent (+ `rpmfusion` for x264/ffmpeg/libva headers).
-- `/ov-distros:arch-builder` — Arch Linux equivalent + `yay` for AUR.
-- `/ov-distros:ubuntu-builder` — Ubuntu 24.04 equivalent; differs from this image mainly in `user:ubuntu` vs `user:user` (adopt mode — see `/ov-distros:ubuntu`).
+- `/charly-distros:fedora-builder` — Fedora 43 equivalent (+ `rpmfusion` for x264/ffmpeg/libva headers).
+- `/charly-distros:arch-builder` — Arch Linux equivalent + `yay` for AUR.
+- `/charly-distros:ubuntu-builder` — Ubuntu 24.04 equivalent; differs from this image mainly in `user:ubuntu` vs `user:user` (adopt mode — see `/charly-distros:ubuntu`).
 
 ## Quick start
 
 ```bash
-ov -C image/debian image build debian-builder
-ov shell debian-builder
+charly -C image/debian image build debian-builder
+charly shell debian-builder
 ```
 
-Typically not invoked directly — it's a build-time dependency of `/ov-coder:debian-coder`.
+Typically not invoked directly — it's a build-time dependency of `/charly-coder:debian-coder`.
 
 ## Verification
 
-- `ov -C image/debian image list | grep debian-builder` — image present.
-- `ov shell debian-builder -- pixi --version && node --version && gcc --version`.
+- `charly -C image/debian image list | grep debian-builder` — image present.
+- `charly shell debian-builder -- pixi --version && node --version && gcc --version`.
 
 ## Related images
 
-- `/ov-distros:debian` — parent base, declares the bootstrap packages in `build.yml`.
-- `/ov-coder:debian-coder` — the consumer that this builder exists to serve.
-- `/ov-distros:fedora-builder` — RPM-family sibling.
-- `/ov-distros:arch-builder` — pacman + AUR sibling.
-- `/ov-distros:ubuntu-builder` — Ubuntu 24.04 sibling.
+- `/charly-distros:debian` — parent base, declares the bootstrap packages in `build.yml`.
+- `/charly-coder:debian-coder` — the consumer that this builder exists to serve.
+- `/charly-distros:fedora-builder` — RPM-family sibling.
+- `/charly-distros:arch-builder` — pacman + AUR sibling.
+- `/charly-distros:ubuntu-builder` — Ubuntu 24.04 sibling.
 
 ## Related layers
 
-- `/ov-languages:pixi`, `/ov-coder:nodejs`, `/ov-coder:build-toolchain`
+- `/charly-languages:pixi`, `/charly-coder:nodejs`, `/charly-coder:build-toolchain`
 
 ## Related commands
 
-- `/ov-build:build` — multi-stage builders, `base_user:` declaration
-- `/ov-image:image` — `produce:` + `builder:` fields
-- `/ov-build:generate` — COPY-from stage emission
+- `/charly-build:build` — multi-stage builders, `base_user:` declaration
+- `/charly-image:image` — `produce:` + `builder:` fields
+- `/charly-build:generate` — COPY-from stage emission
 
 ## When to use this skill
 

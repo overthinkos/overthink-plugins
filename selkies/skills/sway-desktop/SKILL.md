@@ -27,18 +27,18 @@ sway-browser-vnc:
 
 ## Related Layers
 
-- `/ov-selkies:pipewire` -- audio/media server (included)
-- `/ov-selkies:xdg-portal` -- XDG desktop portal infrastructure (included)
-- `/ov-selkies:wl-tools` -- Wayland automation tools: grim, wtype, wlrctl (included)
-- `/ov-selkies:wl-overlay-layer` -- Fullscreen overlays via gtk4-layer-shell for recordings (included)
-- `/ov-selkies:wf-recorder` -- Wayland screen recorder for desktop video (included)
-- `/ov-selkies:chrome-sway` -- Chrome browser on Sway (included)
-- `/ov-selkies:waybar` -- status bar and auto-tiling (included)
-- `/ov-selkies:sway-desktop-vnc` -- VNC variant (adds wayvnc)
+- `/charly-selkies:pipewire` -- audio/media server (included)
+- `/charly-selkies:xdg-portal` -- XDG desktop portal infrastructure (included)
+- `/charly-selkies:wl-tools` -- Wayland automation tools: grim, wtype, wlrctl (included)
+- `/charly-selkies:wl-overlay-layer` -- Fullscreen overlays via gtk4-layer-shell for recordings (included)
+- `/charly-selkies:wf-recorder` -- Wayland screen recorder for desktop video (included)
+- `/charly-selkies:chrome-sway` -- Chrome browser on Sway (included)
+- `/charly-selkies:waybar` -- status bar and auto-tiling (included)
+- `/charly-selkies:sway-desktop-vnc` -- VNC variant (adds wayvnc)
 
 ## Used In Images
 
-- `/ov-selkies:sway-browser-vnc` (via `sway-desktop-vnc` metalayer)
+- `/charly-selkies:sway-browser-vnc` (via `sway-desktop-vnc` metalayer)
 
 ## When to Use This Skill
 
@@ -49,5 +49,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

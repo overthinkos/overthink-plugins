@@ -26,12 +26,12 @@ description: |
 | `HSA_OVERRIDE_GFX_VERSION` | KFD topology sysfs | `10.3.0` (RDNA2), `11.0.0` (RDNA3) |
 | `DRINODE` | DRM render node enumeration | `/dev/dri/renderD128` (typical), `/dev/dri/renderD129` (multi-GPU) |
 
-Both variables are **not baked into the layer** — they are auto-detected from host state at runtime and injected as container environment variables via `appendAutoDetectedEnv()` in `ov/devices.go`. The same function is called by `ov config`, `ov start`, and `ov shell`, so interactive shells and deployed services see the identical env set.
+Both variables are **not baked into the layer** — they are auto-detected from host state at runtime and injected as container environment variables via `appendAutoDetectedEnv()` in `ov/devices.go`. The same function is called by `charly config`, `charly start`, and `charly shell`, so interactive shells and deployed services see the identical env set.
 
 - `HSA_OVERRIDE_GFX_VERSION` is read from `/sys/class/kfd/kfd/topology/nodes/*/properties` (gfx_target_version field).
 - `DRINODE` is selected by walking `/dev/dri/renderD*` and picking the node that matches the AMD PCI device exposed to the container.
 
-Override either with `-e HSA_OVERRIDE_GFX_VERSION=X.Y.Z` or `-e DRINODE=/dev/dri/renderD129`. See `/ov-core:ov-doctor` (Hardware Detection) for how the probe runs on the host side, and `/ov-distros:nvidia` (DRINODE Auto-Injection) for the NVIDIA counterpart using the same mechanism.
+Override either with `-e HSA_OVERRIDE_GFX_VERSION=X.Y.Z` or `-e DRINODE=/dev/dri/renderD129`. See `/charly-core:ov-doctor` (Hardware Detection) for how the probe runs on the host side, and `/charly-distros:nvidia` (DRINODE Auto-Injection) for the NVIDIA counterpart using the same mechanism.
 
 ## Security
 
@@ -52,10 +52,10 @@ RPM (Fedora system repos): `rocm-hip-runtime`, `rocm-opencl`, `rocm-clinfo`, `ro
 AMD GPU support requires:
 1. `/dev/kfd` device (auto-detected by `ov`)
 2. `/dev/dri/renderD*` render nodes (auto-detected)
-3. User in `video` and `render` groups (`ov udev status` to check)
+3. User in `video` and `render` groups (`charly udev status` to check)
 4. `amdgpu` kernel driver loaded
 
-Run `ov doctor` to verify detection. Run `ov udev install` to set up device permissions.
+Run `charly doctor` to verify detection. Run `charly udev install` to set up device permissions.
 
 ## Usage
 
@@ -72,31 +72,31 @@ my-amd-app:
 
 ```bash
 # Check AMD GPU detected on host
-ov doctor | grep "AMD GPU"
+charly doctor | grep "AMD GPU"
 
 # Verify inside container
-ov shell my-amd-app -c "clinfo --list"
-ov shell my-amd-app -c "rocm-smi"
-ov shell my-amd-app -c "echo \$HSA_OVERRIDE_GFX_VERSION"
+charly shell my-amd-app -c "clinfo --list"
+charly shell my-amd-app -c "rocm-smi"
+charly shell my-amd-app -c "echo \$HSA_OVERRIDE_GFX_VERSION"
 ```
 
 ## Related Layers
 
-- `/ov-distros:nvidia` -- NVIDIA GPU counterpart (runtime libs + CDI), shares `appendAutoDetectedEnv()` DRINODE injection
-- `/ov-distros:cuda` -- NVIDIA CUDA toolkit (stacked on nvidia)
-- `/ov-languages:python-ml` -- ML Python environment (currently depends on cuda; ROCm equivalent is a future direction)
+- `/charly-distros:nvidia` -- NVIDIA GPU counterpart (runtime libs + CDI), shares `appendAutoDetectedEnv()` DRINODE injection
+- `/charly-distros:cuda` -- NVIDIA CUDA toolkit (stacked on nvidia)
+- `/charly-languages:python-ml` -- ML Python environment (currently depends on cuda; ROCm equivalent is a future direction)
 
 ## Related Commands
 
-- `/ov-core:ov-doctor` -- Host AMD GPU detection (`/dev/kfd`, render nodes, driver status)
-- `/ov-core:shell` -- Interactive shells receive the same auto-detected HSA_OVERRIDE_GFX_VERSION + DRINODE envs
-- `/ov-automation:udev` -- Device permission management for `/dev/kfd` and `/dev/dri/renderD*`
-- `/ov-core:ov-config` -- Runtime GPU env injection at deployment time (same auto-detect path)
-- `/ov-core:start` -- Runtime GPU env injection at service start time
+- `/charly-core:ov-doctor` -- Host AMD GPU detection (`/dev/kfd`, render nodes, driver status)
+- `/charly-core:shell` -- Interactive shells receive the same auto-detected HSA_OVERRIDE_GFX_VERSION + DRINODE envs
+- `/charly-automation:udev` -- Device permission management for `/dev/kfd` and `/dev/dri/renderD*`
+- `/charly-core:ov-config` -- Runtime GPU env injection at deployment time (same auto-detect path)
+- `/charly-core:start` -- Runtime GPU env injection at service start time
 
 ## Used In Images
 
-Not directly used in any current image definition. Available as a standalone layer for AMD GPU support. The NVIDIA base image (`/ov-distros:nvidia`) is the currently-shipped GPU image; an AMD counterpart can be composed by substituting this layer.
+Not directly used in any current image definition. Available as a standalone layer for AMD GPU support. The NVIDIA base image (`/charly-distros:nvidia`) is the currently-shipped GPU image; an AMD counterpart can be composed by substituting this layer.
 
 ## When to Use This Skill
 
@@ -112,5 +112,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

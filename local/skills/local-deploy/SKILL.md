@@ -1,7 +1,7 @@
 ---
 name: local-deploy
 description: |
-  MUST be invoked before any work involving: `target: local` deployments, the Ansible-style `host:` destination field (literal `local` for direct shell, anything else routes through ssh(1) reading `~/.ssh/config` + ssh-agent), the `local:` template reference, the `user:` and `ssh_args:` Ansible-shaped overrides, the managed `~/.config/ov/ssh_config` fragment, the install ledger at `~/.config/overthink/installed/`, ReverseOp teardown, or the `--with-services`/`--allow-repo-changes`/`--allow-root-tasks` gates.
+  MUST be invoked before any work involving: `target: local` deployments, the Ansible-style `host:` destination field (literal `local` for direct shell, anything else routes through ssh(1) reading `~/.ssh/config` + ssh-agent), the `local:` template reference, the `user:` and `ssh_args:` Ansible-shaped overrides, the managed `~/.config/charly/ssh_config` fragment, the install ledger at `~/.config/opencharly/installed/`, ReverseOp teardown, or the `--with-services`/`--allow-repo-changes`/`--allow-root-tasks` gates.
 ---
 
 # Local Deploy — Applying Layers Directly to a Linux Filesystem
@@ -13,9 +13,9 @@ description: |
 - `host: local` (literal) or absent → `ShellExecutor` (run on this machine).
 - Anything else → `SSHExecutor` (ssh(1) reads `~/.ssh/config` + ssh-agent for keys, host-key checking, options).
 
-The same `InstallPlan` IR that drives `ov box build` (via OCITarget) and container deploys (via PodDeployTarget) is consumed by `LocalDeployTarget`, which translates each IR step into shell commands, `podman run <builder>` invocations for compile-needing work, and systemd unit writes.
+The same `InstallPlan` IR that drives `charly box build` (via OCITarget) and container deploys (via PodDeployTarget) is consumed by `LocalDeployTarget`, which translates each IR step into shell commands, `podman run <builder>` invocations for compile-needing work, and systemd unit writes.
 
-The deploy applies host packages + configs ONLY. Container images required for `ov eval run` / `ov eval live` are ensured by the eval preflight (see `/ov-eval:eval` "Image preflight"), not by the deploy. Deploys (any target) emit zero image-pull / image-build steps — that's the CLAUDE.md "Deploy fetches NOTHING speculative" Key Rule, codified at the type level. Migration of legacy `image:` blocks: `ov migrate` (idempotent).
+The deploy applies host packages + configs ONLY. Container images required for `charly eval run` / `charly eval live` are ensured by the eval preflight (see `/charly-eval:eval` "Image preflight"), not by the deploy. Deploys (any target) emit zero image-pull / image-build steps — that's the CLAUDE.md "Deploy fetches NOTHING speculative" Key Rule, codified at the type level. Migration of legacy `image:` blocks: `charly migrate` (idempotent).
 
 Use cases:
 - Installing a focused tool set (ripgrep + uv + direnv) on your workstation without a container.
@@ -24,19 +24,19 @@ Use cases:
 
 ## SSH config + agent are the configuration
 
-ov contains **zero** custom SSH-key resolution. We do not read `~/.ssh/config`, we do not detect ssh-agent, we do not prompt for keys. `ssh(1)` does it all. Configure your destinations via `~/.ssh/config` `Host` stanzas, load keys into `ssh-agent`, and `ov` shells out to `ssh` with no `-i` / `-o StrictHostKeyChecking=` / `-o UserKnownHostsFile=` overrides.
+charly contains **zero** custom SSH-key resolution. We do not read `~/.ssh/config`, we do not detect ssh-agent, we do not prompt for keys. `ssh(1)` does it all. Configure your destinations via `~/.ssh/config` `Host` stanzas, load keys into `ssh-agent`, and `ov` shells out to `ssh` with no `-i` / `-o StrictHostKeyChecking=` / `-o UserKnownHostsFile=` overrides.
 
-For VM destinations, `ov vm create <name>` writes a managed Host stanza into `~/.config/ov/ssh_config` (one per VM, fenced with `# overthink:begin` markers) and ensures your `~/.ssh/config` has `Include ~/.config/ov/ssh_config` (also managed). After that, `ssh ov-<vmname>` works from any terminal — and `LocalDeployTarget` constructs `&SSHExecutor{Host: "ov-<vmname>"}` with no User/Port/Key.
+For VM destinations, `charly vm create <name>` writes a managed Host stanza into `~/.config/charly/ssh_config` (one per VM, fenced with `# opencharly:begin` markers) and ensures your `~/.ssh/config` has `Include ~/.config/charly/ssh_config` (also managed). After that, `ssh ov-<vmname>` works from any terminal — and `LocalDeployTarget` constructs `&SSHExecutor{Host: "charly-<vmname>"}` with no User/Port/Key.
 
 ## Quick Reference
 
 | Action | Command |
 |---|---|
-| Direct local | `ov deploy add my-laptop` (`host: local` is the default) |
-| SSH to remote | `ov deploy add ci-3` with `host: user@ci-3.lan` in deploy.yml |
+| Direct local | `charly deploy add my-laptop` (`host: local` is the default) |
+| SSH to remote | `charly deploy add ci-3` with `host: user@ci-3.lan` in deploy.yml |
 | Reference a template | `local: dev-workstation` on the deployment |
-| Tear down | `ov deploy del <name>` |
-| Tear down, keep repo changes | `ov deploy del <name> --keep-repo-changes` |
+| Tear down | `charly deploy del <name>` |
+| Tear down, keep repo changes | `charly deploy del <name> --keep-repo-changes` |
 
 ## `host:` destination semantics
 
@@ -106,11 +106,11 @@ via-bastion:
 
 ## Setup: one-time `Include` line
 
-The first `ov vm create` writes:
-- A Host stanza into `~/.config/ov/ssh_config` (managed block, fenced).
-- An `Include ~/.config/ov/ssh_config` line into your `~/.ssh/config` (also fenced).
+The first `charly vm create` writes:
+- A Host stanza into `~/.config/charly/ssh_config` (managed block, fenced).
+- An `Include ~/.config/charly/ssh_config` line into your `~/.ssh/config` (also fenced).
 
-If you prefer to manage your `~/.ssh/config` manually, add the Include line yourself before creating any VMs. `ov vm destroy` removes the matching stanza and, when the fragment is empty, removes the Include line too.
+If you prefer to manage your `~/.ssh/config` manually, add the Include line yourself before creating any VMs. `charly vm destroy` removes the matching stanza and, when the fragment is empty, removes the Include line too.
 
 ## Passwordless sudo on remote SSH targets
 
@@ -129,7 +129,7 @@ Remote `target: local` deploys assume **passwordless sudo** on the destination. 
 
 ## Validation
 
-`ov box validate` checks every `target: local` deployment:
+`charly box validate` checks every `target: local` deployment:
 
 - `local: <name>` references a `kind: local` template that exists.
 - `host:` field, when non-`local`, parses via `ParseSSHTarget`.
@@ -138,13 +138,13 @@ Remote `target: local` deploys assume **passwordless sudo** on the destination. 
 
 ## Cross-References
 
-- `/ov-local:local-spec` — author-facing reference for `kind: local` templates.
-- `/ov-internals:local-infra` — Go file map for the executor/ledger surface.
-- `/ov-core:deploy` — parent command family.
-- `/ov-image:layer` — `service:` schema rendered as systemd units on local-target deploys.
-- `/ov-vm:vm` — managed ssh-config fragment writen on `ov vm create`.
-- `/ov-eval:eval` — `--verify` re-runs layer `eval:` against the deploy post-install.
-- `/ov-internals:install-plan` — shared IR consumed by `LocalDeployTarget`.
+- `/charly-local:local-spec` — author-facing reference for `kind: local` templates.
+- `/charly-internals:local-infra` — Go file map for the executor/ledger surface.
+- `/charly-core:deploy` — parent command family.
+- `/charly-image:layer` — `service:` schema rendered as systemd units on local-target deploys.
+- `/charly-vm:vm` — managed ssh-config fragment writen on `charly vm create`.
+- `/charly-eval:eval` — `--verify` re-runs layer `eval:` against the deploy post-install.
+- `/charly-internals:install-plan` — shared IR consumed by `LocalDeployTarget`.
 
 ## When to Use This Skill
 

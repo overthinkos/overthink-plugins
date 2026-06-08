@@ -16,13 +16,13 @@ description: |
 
 ## What It Does
 
-Provides `pixelflux-record` for recording desktop video on selkies-desktop. Connects to the capture bridge at `/tmp/ov-capture.sock` which relays the same H.264 frames that the browser sees via the selkies WebSocket stream. No direct ScreenCapture API access -- taps into the existing selkies streaming pipeline to avoid creating a second capture instance (the Rust backend only supports one active capture at a time).
+Provides `pixelflux-record` for recording desktop video on selkies-desktop. Connects to the capture bridge at `/tmp/charly-capture.sock` which relays the same H.264 frames that the browser sees via the selkies WebSocket stream. No direct ScreenCapture API access -- taps into the existing selkies streaming pipeline to avoid creating a second capture instance (the Rust backend only supports one active capture at a time).
 
 **Why not wf-recorder?** labwc running nested inside pixelflux can't deliver wlr-screencopy frames. The capture bridge bypasses this by tapping into the selkies WebSocket stream directly.
 
 ## How It Works
 
-1. Connects to Unix socket at `/tmp/ov-capture.sock` (started by `selkies-capture-server`)
+1. Connects to Unix socket at `/tmp/charly-capture.sock` (started by `selkies-capture-server`)
 2. Sends `STREAM\n` to request continuous H.264 frame data
 3. Receives frames as `4-byte length + raw H.264 data` pairs
 4. Pipes raw H.264 data to ffmpeg with `-use_wallclock_as_timestamps 1`
@@ -35,7 +35,7 @@ Provides `pixelflux-record` for recording desktop video on selkies-desktop. Conn
 |----------|-------|
 | Depends | `selkies` (capture bridge + stream), `ffmpeg` (muxing) |
 | Install | `~/.local/bin/pixelflux-record` (Python script) |
-| Capture | Via `/tmp/ov-capture.sock` (selkies WebSocket bridge) |
+| Capture | Via `/tmp/charly-capture.sock` (selkies WebSocket bridge) |
 | Output | MP4 (H.264 video + optional AAC audio) |
 | Audio | PulseAudio monitor source via ffmpeg |
 
@@ -50,21 +50,21 @@ pixelflux-record output.mp4 --fps 60 --audio # 60fps + audio
 # Stop with Ctrl-C
 ```
 
-## Integration with `ov eval record`
+## Integration with `charly eval record`
 
 ```bash
 # Start desktop video recording (auto-detects pixelflux-record)
-ov eval record start selkies-desktop -n demo --mode desktop --audio
+charly eval record start selkies-desktop -n demo --mode desktop --audio
 
 # Run commands (visible in recording)
-ov eval record cmd selkies-desktop "echo hello" -n demo
+charly eval record cmd selkies-desktop "echo hello" -n demo
 
 # Interact with desktop
-ov eval cdp open selkies-desktop "https://example.com"
-ov eval wl click selkies-desktop 640 360
+charly eval cdp open selkies-desktop "https://example.com"
+charly eval wl click selkies-desktop 640 360
 
 # Stop and copy to host
-ov eval record stop selkies-desktop -n demo -o demo.mp4
+charly eval record stop selkies-desktop -n demo -o demo.mp4
 ```
 
 ## Architecture
@@ -74,12 +74,12 @@ selkies process (single ScreenCapture singleton — process-wide)
     ├── ScreenCapture (captures full composited desktop)
     ├── WebSocket server :8081 (broadcasts H.264 frames)
     └── Capture bridge thread (internal WebSocket client)
-        └── Unix socket /tmp/ov-capture.sock
+        └── Unix socket /tmp/charly-capture.sock
             └── pixelflux-record connects here (STREAM mode)
                 └── pipes H.264 frames to ffmpeg
 ```
 
-**Singleton note:** The `ScreenCapture` instance is process-wide and lives inside the selkies Python process. `pixelflux-record` never spawns its own capture; it only attaches to the existing STREAM socket. This is architecturally important because pixelflux's `WaylandBackend` construction is expensive (EGL context + dmabuf allocators + GPU texture pools) and was the subject of a memory leak fix in commits `6be85eb` (singleton enforcement) and `7977b91` (per-frame `cleanup_texture_cache()`). If you ever see two selkies-capture processes inside the container, that's a regression — see `/ov-selkies:selkies` (Pixelflux Memory Management) for the diagnostic recipe.
+**Singleton note:** The `ScreenCapture` instance is process-wide and lives inside the selkies Python process. `pixelflux-record` never spawns its own capture; it only attaches to the existing STREAM socket. This is architecturally important because pixelflux's `WaylandBackend` construction is expensive (EGL context + dmabuf allocators + GPU texture pools) and was the subject of a memory leak fix in commits `6be85eb` (singleton enforcement) and `7977b91` (per-frame `cleanup_texture_cache()`). If you ever see two selkies-capture processes inside the container, that's a regression — see `/charly-selkies:selkies` (Pixelflux Memory Management) for the diagnostic recipe.
 
 ## Included In
 
@@ -87,18 +87,18 @@ selkies process (single ScreenCapture singleton — process-wide)
 
 ## Used In Images
 
-- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Cross-References
 
-- `/ov-eval:record` -- `ov eval record start --mode desktop` auto-detects pixelflux-record
-- `/ov-core:ov-update` -- Per-instance update pattern used to roll out the per-frame `cleanup_texture_cache()` fix across live instances
-- `/ov-selkies:wl-screenshot-pixelflux` -- Screenshot companion (same capture bridge, same singleton)
-- `/ov-selkies:wf-recorder` -- Alternative for sway-desktop (wlr-screencopy)
-- `/ov-selkies:selkies` -- Parent layer (provides capture bridge, WebSocket stream, and the ScreenCapture singleton — see Pixelflux Memory Management)
-- `/ov-selkies:selkies-desktop-layer` -- Metalayer that composes this recorder into the full browser-accessible desktop
-- `/ov-selkies:ffmpeg` -- Required dependency (MP4 muxing)
+- `/charly-eval:record` -- `charly eval record start --mode desktop` auto-detects pixelflux-record
+- `/charly-core:ov-update` -- Per-instance update pattern used to roll out the per-frame `cleanup_texture_cache()` fix across live instances
+- `/charly-selkies:wl-screenshot-pixelflux` -- Screenshot companion (same capture bridge, same singleton)
+- `/charly-selkies:wf-recorder` -- Alternative for sway-desktop (wlr-screencopy)
+- `/charly-selkies:selkies` -- Parent layer (provides capture bridge, WebSocket stream, and the ScreenCapture singleton — see Pixelflux Memory Management)
+- `/charly-selkies:selkies-desktop-layer` -- Metalayer that composes this recorder into the full browser-accessible desktop
+- `/charly-selkies:ffmpeg` -- Required dependency (MP4 muxing)
 
 ## When to Use This Skill
 
@@ -109,5 +109,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

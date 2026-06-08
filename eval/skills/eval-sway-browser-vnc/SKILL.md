@@ -11,7 +11,7 @@ description: |
 
 `eval-sway-browser-vnc-pod` is the canonical **disposable** pod bed for the
 live-container test verbs (cdp / wl / vnc / dbus / mcp / record) on the Sway
-stack. It deploys the **shipping `/ov-selkies:sway-browser-vnc` image directly**
+stack. It deploys the **shipping `/charly-selkies:sway-browser-vnc` image directly**
 — there is no separate eval image. It sits alongside the other `eval-*` smoke
 beds (`eval-pod` — the combined image/layer/pod/DeployTarget mechanism bed —
 and `eval-local`) — all `kind: eval` entities in this repo's `eval.yml`.
@@ -32,11 +32,11 @@ eval:
       - { record: start,    id: esbv-pod-record-start, scope: deploy, record_name: eval-term, record_mode: terminal }
 ```
 
-`disposable: true` is the sole authorization for `ov update`/`ov remove` to
-destroy + rebuild the bed unattended (see `/ov-internals:disposable`). The bed
+`disposable: true` is the sole authorization for `charly update`/`charly remove` to
+destroy + rebuild the bed unattended (see `/charly-internals:disposable`). The bed
 publishes `sway-browser-vnc`'s canonical ports `5900/9222/9224`, so it shares
 those host ports with a real `sway-browser-vnc` deployment — only one runs at a
-time (`ov box validate` notes this).
+time (`charly box validate` notes this).
 
 ## Probe coverage
 
@@ -44,7 +44,7 @@ time (`ov box validate` notes this).
 inherits the two `mcp:` probes from the `chrome-devtools-mcp` layer. The bed's
 `eval:` block above adds the remaining deploy-scope probes — operator-side
 `http:` (CDP `/json/version` via `HOST_PORT`), `cdp: list`, `wl: sway-tree`, and
-`record: start` — so a single `ov eval live` run exercises the full
+`record: start` — so a single `charly eval live` run exercises the full
 cdp/wl/vnc/dbus/mcp/record surface.
 
 ## Usage
@@ -52,29 +52,29 @@ cdp/wl/vnc/dbus/mcp/record surface.
 ```bash
 # Canonical one-shot — the FULL R10 acceptance sequence (build → eval image →
 # deploy → config → start → eval live → fresh update → tear down):
-ov eval run eval-sway-browser-vnc-pod
+charly eval run eval-sway-browser-vnc-pod
 # Or drive the steps manually:
-ov config eval-sway-browser-vnc-pod
-ov start  eval-sway-browser-vnc-pod
-ov eval live eval-sway-browser-vnc-pod        # deploy-scope cdp/wl/vnc/dbus/mcp/record
-ov update eval-sway-browser-vnc-pod && ov eval live eval-sway-browser-vnc-pod  # fresh-rebuild re-verify
+charly config eval-sway-browser-vnc-pod
+charly start  eval-sway-browser-vnc-pod
+charly eval live eval-sway-browser-vnc-pod        # deploy-scope cdp/wl/vnc/dbus/mcp/record
+charly update eval-sway-browser-vnc-pod && charly eval live eval-sway-browser-vnc-pod  # fresh-rebuild re-verify
 ```
 
-Note: `ov config <key>` persists `image: <key>` (it assumes deploy-key ==
-image-name; see `/ov-core:deploy`). Because this bed's key
+Note: `charly config <key>` persists `image: <key>` (it assumes deploy-key ==
+image-name; see `/charly-core:deploy`). Because this bed's key
 (`eval-sway-browser-vnc-pod`) differs from its image (`sway-browser-vnc`), set
-the operator ref to `sway-browser-vnc` in `~/.config/ov/deploy.yml` (the eval
-runner / `ov deploy add` does this for you — `ov` "never clobbers
+the operator ref to `sway-browser-vnc` in `~/.config/charly/deploy.yml` (the eval
+runner / `charly deploy add` does this for you — `ov` "never clobbers
 operator-authored refs").
 
 ## Related Skills
 
-- `/ov-selkies:sway-browser-vnc` — the shipping image this bed deploys
-- `/ov-eval:eval` — the eval framework + the disposable test-bed table
-- `/ov-eval:cdp`, `/ov-eval:wl`, `/ov-eval:vnc`, `/ov-eval:dbus`, `/ov-eval:record`,
-  `/ov-build:ov-mcp-cmd` — the live-container verbs this bed covers
-- `/ov-core:deploy` — `disposable:` bed semantics, the deploy-key vs image-name caveat
-- `/ov-internals:disposable` — the `disposable: true` authorization model
+- `/charly-selkies:sway-browser-vnc` — the shipping image this bed deploys
+- `/charly-eval:eval` — the eval framework + the disposable test-bed table
+- `/charly-eval:cdp`, `/charly-eval:wl`, `/charly-eval:vnc`, `/charly-eval:dbus`, `/charly-eval:record`,
+  `/charly-build:ov-mcp-cmd` — the live-container verbs this bed covers
+- `/charly-core:deploy` — `disposable:` bed semantics, the deploy-key vs image-name caveat
+- `/charly-internals:disposable` — the `disposable: true` authorization model
 
 ## When to Use This Skill
 

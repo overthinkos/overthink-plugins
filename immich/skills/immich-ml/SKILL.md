@@ -53,47 +53,47 @@ Immich photo management with GPU-accelerated machine learning for face recogniti
 ## Quick Start
 
 ```bash
-ov box build immich-ml
-ov config setup immich-ml
-ov start immich-ml
+charly box build immich-ml
+charly config setup immich-ml
+charly start immich-ml
 # Open http://localhost:2283
 ```
 
 ## Key Layers
 
-- `/ov-immich:immich` — Immich server, db init, library/cache volumes
-- `/ov-immich:immich-ml` — ML backend for face recognition and smart search
-- `/ov-distros:cuda` — GPU support
-- `/ov-languages:python-ml` — ML Python environment
-- `/ov-infrastructure:postgresql` — database backend
-- `/ov-infrastructure:vectorchord` — VectorChord for smart search
-- `/ov-infrastructure:redis` — session/cache backend
+- `/charly-immich:immich` — Immich server, db init, library/cache volumes
+- `/charly-immich:immich-ml` — ML backend for face recognition and smart search
+- `/charly-distros:cuda` — GPU support
+- `/charly-languages:python-ml` — ML Python environment
+- `/charly-infrastructure:postgresql` — database backend
+- `/charly-infrastructure:vectorchord` — VectorChord for smart search
+- `/charly-infrastructure:redis` — session/cache backend
 
 ## Related Images
 
-- `/ov-immich:immich` — CPU-only (no ML, no face recognition)
-- `/ov-distros:nvidia` — GPU base without Immich
+- `/charly-immich:immich` — CPU-only (no ML, no face recognition)
+- `/charly-distros:nvidia` — GPU base without Immich
 - **CachyOS variant** — `cachyos.immich-ml` is the CachyOS GPU sibling in the
   `overthinkos/cachyos` submodule (built on the `cachyos.nvidia` GPU base). See
-  `/ov-distros:cachyos`.
+  `/charly-distros:cachyos`.
 
 ## Verification
 
-After `ov start`:
-- `ov status immich-ml` — container running
-- `ov service status immich-ml` — all services RUNNING
+After `charly start`:
+- `charly status immich-ml` — container running
+- `charly service status immich-ml` — all services RUNNING
 - `curl -s -o /dev/null -w '%{http_code}' http://localhost:2283` — Immich HTTP returns 200
 - `curl -s -o /dev/null -w '%{http_code}' http://localhost:3003` — ML backend HTTP returns 200
 
 ## Test Coverage
 
-Latest `ov eval live immich-ml` run: **61 passed, 0 failed, 2 skipped**.
+Latest `charly eval live immich-ml` run: **61 passed, 0 failed, 2 skipped**.
 The 2 skips are `redis-responds` and `redis-port-open` — they reference
 `${HOST_PORT:6379}` which isn't mapped on this image (redis is internal
 to the pod). Correct skip behavior; no authoring action needed.
 
 Covers postgres binaries + pg_isready, `valkey-compat-redis` package
-(Fedora 43 rename — see `/ov-infrastructure:redis`), pytorch + vllm importable
+(Fedora 43 rename — see `/charly-infrastructure:redis`), pytorch + vllm importable
 in python-ml pixi env, nodejs + cuda, Immich server `dist/main.js`,
 DB migrate script, geodata init SQL, ML venv + `immich_ml/` module.
 Deploy-scope: port 2283 host-reachable, `/api/server/ping` returns 200
@@ -103,14 +103,14 @@ postgresql + redis + immich-server + immich-ml all RUNNING.
 
 ## Related Skills
 
-- `/ov-immich:immich`, `/ov-immich:immich-ml`, `/ov-infrastructure:postgresql`,
-  `/ov-infrastructure:vectorchord`, `/ov-infrastructure:redis`, `/ov-distros:nvidia`,
-  `/ov-distros:cuda`, `/ov-languages:python-ml`, `/ov-coder:nodejs`,
-  `/ov-infrastructure:supervisord`, `/ov-infrastructure:dbus-layer`, `/ov-tools:ov`,
-  `/ov-distros:agent-forwarding`
-- `/ov-eval:eval` — framework + runtime variable rules (why skips happen)
-- `/ov-core:ov-config` — deploy setup (pg password secret, volume backing)
-- `/ov-immich:immich` — non-ML variant
+- `/charly-immich:immich`, `/charly-immich:immich-ml`, `/charly-infrastructure:postgresql`,
+  `/charly-infrastructure:vectorchord`, `/charly-infrastructure:redis`, `/charly-distros:nvidia`,
+  `/charly-distros:cuda`, `/charly-languages:python-ml`, `/charly-coder:nodejs`,
+  `/charly-infrastructure:supervisord`, `/charly-infrastructure:dbus-layer`, `/charly-tools:charly`,
+  `/charly-distros:agent-forwarding`
+- `/charly-eval:eval` — framework + runtime variable rules (why skips happen)
+- `/charly-core:ov-config` — deploy setup (pg password secret, volume backing)
+- `/charly-immich:immich` — non-ML variant
 
 ## When to Use This Skill
 
@@ -118,5 +118,5 @@ postgresql + redis + immich-server + immich-ml all RUNNING.
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

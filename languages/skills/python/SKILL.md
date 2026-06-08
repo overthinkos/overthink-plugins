@@ -33,9 +33,9 @@ my-image:
 
 ## Related Layers
 
-- `/ov-languages:pixi` -- required dependency (provides pixi binary)
-- `/ov-languages:python-ml` -- ML-focused Python with CUDA support
-- `/ov-coder:language-runtimes` -- depends on python
+- `/charly-languages:pixi` -- required dependency (provides pixi binary)
+- `/charly-languages:python-ml` -- ML-focused Python with CUDA support
+- `/charly-coder:language-runtimes` -- depends on python
 
 ## When to Use This Skill
 
@@ -48,5 +48,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

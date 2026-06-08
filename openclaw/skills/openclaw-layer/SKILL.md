@@ -35,14 +35,14 @@ openclaw:
 ```
 
 ```bash
-ov alias install openclaw    # install host 'openclaw' command
+charly alias install openclaw    # install host 'openclaw' command
 openclaw config              # uses the alias
 ```
 
 ## Used In Images
 
-- `/ov-openclaw:openclaw`
-- `/ov-openclaw:openclaw-full`
+- `/charly-openclaw:openclaw`
+- `/charly-openclaw:openclaw-full`
 
 ## Port Relay
 
@@ -52,10 +52,10 @@ Same pattern as the `chrome` layer (CDP on port 9222).
 
 ## Related Layers
 
-- `/ov-coder:nodejs` -- Node.js runtime dependency
-- `/ov-infrastructure:socat` -- port relay dependency (eth0 -> loopback)
-- `/ov-infrastructure:supervisord` -- process manager dependency
-- `/ov-ollama:ollama` -- optional local LLM backend
+- `/charly-coder:nodejs` -- Node.js runtime dependency
+- `/charly-infrastructure:socat` -- port relay dependency (eth0 -> loopback)
+- `/charly-infrastructure:supervisord` -- process manager dependency
+- `/charly-ollama:ollama` -- optional local LLM backend
 
 ## When to Use This Skill
 
@@ -69,5 +69,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

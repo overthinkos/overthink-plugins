@@ -39,21 +39,21 @@ This layer has **no pixi.toml** and **no depends**. It installs pip packages int
 
 ## Used In Layers (via `layer:` field)
 
-- `/ov-jupyter:jupyter-ml` — `layers: [llama-cpp, unsloth, jupyter-mcp]`
-- `/ov-jupyter:unsloth-studio` — `layers: [llama-cpp, unsloth]`
+- `/charly-jupyter:jupyter-ml` — `layers: [llama-cpp, unsloth, jupyter-mcp]`
+- `/charly-jupyter:unsloth-studio` — `layers: [llama-cpp, unsloth]`
 
 ## Related Layers
 
-- `/ov-jupyter:llama-cpp` — llama.cpp binaries (often paired as sibling Tier 1 layer)
-- `/ov-jupyter:unsloth-studio` — Studio web UI (Tier 2 parent, owns pixi.toml)
-- `/ov-jupyter:jupyter-ml` — ML Jupyter with MCP (Tier 2 parent, owns pixi.toml)
-- `/ov-languages:python-ml` — Core ML environment (Tier 2, uses vllm pip install in its own tasks: instead)
+- `/charly-jupyter:llama-cpp` — llama.cpp binaries (often paired as sibling Tier 1 layer)
+- `/charly-jupyter:unsloth-studio` — Studio web UI (Tier 2 parent, owns pixi.toml)
+- `/charly-jupyter:jupyter-ml` — ML Jupyter with MCP (Tier 2 parent, owns pixi.toml)
+- `/charly-languages:python-ml` — Core ML environment (Tier 2, uses vllm pip install in its own tasks: instead)
 
 ## Used In Images
 
-- `/ov-jupyter:jupyter-ml` (via `jupyter-ml` metalayer)
-- `/ov-jupyter:jupyter-ml-notebook` (via `jupyter-ml` metalayer)
-- `/ov-jupyter:unsloth-studio` (via `unsloth-studio` metalayer)
+- `/charly-jupyter:jupyter-ml` (via `jupyter-ml` metalayer)
+- `/charly-jupyter:jupyter-ml-notebook` (via `jupyter-ml` metalayer)
+- `/charly-jupyter:unsloth-studio` (via `unsloth-studio` metalayer)
 
 ## When to Use This Skill
 
@@ -69,5 +69,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

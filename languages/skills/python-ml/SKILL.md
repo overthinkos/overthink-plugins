@@ -38,30 +38,30 @@ Build order: pixi environment → llama-cpp (binaries) → vLLM 0.19 wheel
 ## Quick Start
 
 ```bash
-ov box build python-ml
-ov shell python-ml
+charly box build python-ml
+charly shell python-ml
 # python -c "import torch; print(torch.cuda.is_available())"
 ```
 
 ## Key Layers
 
-- `/ov-languages:python-ml` — ML Python packages via pixi (Tier 2 meta-layer)
-- `/ov-jupyter:llama-cpp` — llama.cpp binaries (sub-layer)
-- `/ov-distros:cuda` — GPU support (via nvidia base)
+- `/charly-languages:python-ml` — ML Python packages via pixi (Tier 2 meta-layer)
+- `/charly-jupyter:llama-cpp` — llama.cpp binaries (sub-layer)
+- `/charly-distros:cuda` — GPU support (via nvidia base)
 
 ## Related Images
 
-- `/ov-distros:nvidia` — parent (GPU without ML packages)
-- `/ov-jupyter:jupyter-ml` — adds JupyterLab + collaboration + MCP + unsloth on top of ML stack
-- `/ov-jupyter:jupyter` — legacy Jupyter with ML stack (monolithic)
-- `/ov-jupyter:unsloth-studio` — fine-tuning UI with similar ML stack
+- `/charly-distros:nvidia` — parent (GPU without ML packages)
+- `/charly-jupyter:jupyter-ml` — adds JupyterLab + collaboration + MCP + unsloth on top of ML stack
+- `/charly-jupyter:jupyter` — legacy Jupyter with ML stack (monolithic)
+- `/charly-jupyter:unsloth-studio` — fine-tuning UI with similar ML stack
 
 ## Verification
 
-After `ov box build`:
-- `ov shell python-ml -c "python -c 'import torch; print(torch.cuda.is_available())'"` — CUDA OK
-- `ov shell python-ml -c "python -c 'import vllm; print(vllm.__version__)'"` — vLLM OK
-- `ov shell python-ml -c "ls ~/llama.cpp/llama-quantize"` — llama.cpp OK
+After `charly box build`:
+- `charly shell python-ml -c "python -c 'import torch; print(torch.cuda.is_available())'"` — CUDA OK
+- `charly shell python-ml -c "python -c 'import vllm; print(vllm.__version__)'"` — vLLM OK
+- `charly shell python-ml -c "ls ~/llama.cpp/llama-quantize"` — llama.cpp OK
 
 ## When to Use This Skill
 
@@ -69,5 +69,5 @@ After `ov box build`:
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

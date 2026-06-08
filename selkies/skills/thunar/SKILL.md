@@ -33,9 +33,9 @@ Part of the `sway-desktop` composition layer. Used transitively in all desktop i
 
 ## Related Layers
 
-- `/ov-selkies:sway` -- Sway compositor dependency
-- `/ov-selkies:sway-desktop` -- composition that includes this layer
-- `/ov-selkies:xfce4-terminal` -- terminal emulator (also in sway-desktop)
+- `/charly-selkies:sway` -- Sway compositor dependency
+- `/charly-selkies:sway-desktop` -- composition that includes this layer
+- `/charly-selkies:xfce4-terminal` -- terminal emulator (also in sway-desktop)
 
 ## When to Use This Skill
 
@@ -47,5 +47,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

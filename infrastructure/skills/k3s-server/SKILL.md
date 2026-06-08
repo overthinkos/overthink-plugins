@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Install files | `candy.yml`, `task:`, `service:`, `artifact:`, `secret_require:` |
-| Depends on | `/ov-infrastructure:k3s` |
+| Depends on | `/charly-infrastructure:k3s` |
 | Service | `k3s.service` (system scope, enabled) |
 
 ## What this layer does
@@ -33,7 +33,7 @@ description: |
 5. The `K3sPostProvision` hook (Go, runs after artifact retrieval)
    merges the kubeconfig into `~/.kube/config` under context
    `<deploy_name>` and writes a matching ClusterProfile to
-   `~/.config/ov/clusters/<deploy_name>.yaml` with `ingress.class=traefik`
+   `~/.config/charly/clusters/<deploy_name>.yaml` with `ingress.class=traefik`
    and `storage.class_default=local-path`.
 
 ## Operator setup — none required (auto-generated)
@@ -50,20 +50,20 @@ zero operator setup, server and agents automatically share the token.
 specific cluster identity, e.g., disaster recovery):
 
 ```bash
-ov secrets set ov/secret/K3S_CLUSTER_TOKEN $(openssl rand -hex 32)
+charly secrets set ov/secret/K3S_CLUSTER_TOKEN $(openssl rand -hex 32)
 ```
 
 **Retrieve** the auto-generated token (for debugging or
 out-of-band agent join):
 
 ```bash
-ov secrets get ov/secret K3S_CLUSTER_TOKEN
+charly secrets get ov/secret K3S_CLUSTER_TOKEN
 ```
 
 ## Usage
 
 ```yaml
-# overthink.yml
+# charly.yml
 vm:
   k3s-srv:
     source: { kind: cloud_image, url: "…" }
@@ -82,11 +82,11 @@ deployments:
 ```
 
 ```bash
-ov vm create k3s-srv
-ov deploy add vm:k3s-srv
+charly vm create k3s-srv
+charly deploy add vm:k3s-srv
 # → kubeconfig auto-retrieved + ClusterProfile written
 kubectl --context k3s-srv get nodes
-ov eval k8s addons --cluster k3s-srv
+charly eval k8s addons --cluster k3s-srv
 ```
 
 ## Tests
@@ -95,14 +95,14 @@ Build-scope:
 - `/etc/rancher/k3s/config.yaml` exists, mode 0600.
 - `/etc/systemd/system/k3s.service` exists.
 
-Deploy-scope (using the new `ov eval k8s` verb — see `/ov-kubernetes:eval-k8s`):
+Deploy-scope (using the new `charly eval k8s` verb — see `/charly-kubernetes:eval-k8s`):
 - `k8s: wait-nodes` — at least 1 node Ready.
 - `k8s: ingressclass` — `traefik` present.
 - `k8s: storageclass` — `local-path` present.
 - `k8s: addons` — Traefik + ServiceLB + local-path-provisioner all Ready.
 
 ## Related Layers
-- `/ov-infrastructure:k3s` — Base layer installing the k3s binary (required dep)
-- `/ov-infrastructure:k3s-agent` — Worker nodes joining this server
-- `/ov-coder:kubernetes-layer` — `kubectl`/`helm` on the operator side (not needed in the cluster)
-- `/ov-kubernetes:eval-k8s` — The test verb used by this layer's deploy-scope checks
+- `/charly-infrastructure:k3s` — Base layer installing the k3s binary (required dep)
+- `/charly-infrastructure:k3s-agent` — Worker nodes joining this server
+- `/charly-coder:kubernetes-layer` — `kubectl`/`helm` on the operator side (not needed in the cluster)
+- `/charly-kubernetes:eval-k8s` — The test verb used by this layer's deploy-scope checks

@@ -26,16 +26,16 @@ Used for testing the Valkey layer (Redis-compatible fork). Runs as a supervisord
 
 ## Key Layers
 
-- `/ov-infrastructure:valkey` — Valkey data store
-- `/ov-infrastructure:supervisord` — Process manager
+- `/charly-infrastructure:valkey` — Valkey data store
+- `/charly-infrastructure:supervisord` — Process manager
 
 ## Related Images
-- `/ov-distros:fedora` — parent base image
-- `/ov-distros:fedora-test` — sibling test image
+- `/charly-distros:fedora` — parent base image
+- `/charly-distros:fedora-test` — sibling test image
 
 ## Related Commands
-- `/ov-build:build` — build the valkey-test image
-- `/ov-core:service` — manage the supervised valkey service
+- `/charly-build:build` — build the valkey-test image
+- `/charly-core:service` — manage the supervised valkey service
 
 ## When to Use This Skill
 
@@ -43,4 +43,4 @@ Used for testing the Valkey layer (Redis-compatible fork). Runs as a supervisord
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)

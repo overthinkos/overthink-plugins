@@ -1,5 +1,5 @@
 {
-  "name": "ov-immich",
+  "name": "charly-immich",
   "description": "Self-contained skills for the immich photo-management image (immich + immich-ml variants).",
   "version": "1.0.0",
   "author": { "name": "overthinkos" },

@@ -1,7 +1,7 @@
 ---
 name: android
 description: |
-  MUST be invoked before any work involving: the `kind: android` schema kind, a `target: android` deploy, the `apk:` layer package format (installing Android apps declaratively), AndroidDeployTarget, an in-pod emulator OR a remote/physical adb-endpoint device, or nested `pod → android` deployment. The first-class Android device + app surface that sits above `ov eval adb`/`appium`.
+  MUST be invoked before any work involving: the `kind: android` schema kind, a `target: android` deploy, the `apk:` layer package format (installing Android apps declaratively), AndroidDeployTarget, an in-pod emulator OR a remote/physical adb-endpoint device, or nested `pod → android` deployment. The first-class Android device + app surface that sits above `charly eval adb`/`appium`.
 ---
 
 # kind: android + the `apk` package format
@@ -19,15 +19,15 @@ Two cooperating concepts:
   `apk:` packages onto the device. The app is the deployable workload, the way a
   `kind: box` is the workload for a pod/k8s deploy.
 
-This sits ABOVE the device-interaction verbs: `ov eval adb` (`/ov-eval:adb`)
-and `ov eval appium` (`/ov-eval:appium`) drive a running device; `kind: android`
+This sits ABOVE the device-interaction verbs: `charly eval adb` (`/charly-eval:adb`)
+and `charly eval appium` (`/charly-eval:appium`) drive a running device; `kind: android`
 + `target: android` declaratively describe a device and the apps installed on
 it. The install machinery is shared — see "One installer (R3)".
 
 ## `kind: android` — the device
 
 ```yaml
-# android.yml (or inline in overthink.yml)
+# android.yml (or inline in charly.yml)
 android:
   pixel9a-36:                    # in-pod emulator device
     box: android-emulator      # the kind:image that BAKES the emulator + system image
@@ -86,7 +86,7 @@ image (preinstalled) instead.
 ## `target: android` deploy
 
 ```yaml
-# deploy.yml / overthink.yml — nested under the emulator pod
+# deploy.yml / charly.yml — nested under the emulator pod
 deploy:
   android-stack:
     target: pod
@@ -99,10 +99,10 @@ deploy:
           - my-android-apps          # layers whose apk: packages install onto the device
 ```
 
-`ov deploy add android-stack.device` resolves the device, gates on
+`charly deploy add android-stack.device` resolves the device, gates on
 `sys.boot_completed`, and installs the `add_candy:` layers' `apk:` packages via
 `AndroidDeployTarget`. Apps ride in on `add_candy:` (the same overlay mechanism
-local/vm targets use) — there is no separate apk-list field. `ov deploy del`
+local/vm targets use) — there is no separate apk-list field. `charly deploy del`
 best-effort `pm uninstall`s each `package:` id (the device/pod lifecycle is
 owned by the pod deploy).
 
@@ -115,11 +115,11 @@ talks straight to the endpoint.
 Mirrors `vm → k8s`. The emulator runs in a pod; the device deploys onto it; the
 apps deploy onto the device. `target: android` is a **passthrough** hop in the
 deploy chain (the device shares its host pod's adb venue / the endpoint addr —
-there is no shell venue to "enter"), so `ov eval live pod.android` runs the
+there is no shell venue to "enter"), so `charly eval live pod.android` runs the
 device's checks against the pod's published adb port. A pod's children can only
-deploy AFTER `ov start` (the container doesn't exist at `ov deploy add` time),
-so `ov deploy add --node-only` brings the pod up first and the children deploy
-afterwards by dotted path; `ov eval run <bed>` automates this (deploy pod →
+deploy AFTER `charly start` (the container doesn't exist at `charly deploy add` time),
+so `charly deploy add --node-only` brings the pod up first and the children deploy
+afterwards by dotted path; `charly eval run <bed>` automates this (deploy pod →
 config → start → deploy nested children → eval-live).
 
 ## One installer (R3)
@@ -133,7 +133,7 @@ abstracts where work runs:
   or the credential store (via `google_account:`) on the host.
 - `InstallFromHostApk` — committed APK pushed via goadb, venue-agnostic.
 
-Both `ov eval adb install-app` and `ov eval adb install` are thin wrappers over
+Both `charly eval adb install-app` and `charly eval adb install` are thin wrappers over
 this — so the apk format, the eval verbs, and the deploy target can never drift
 on single/split/`.xapk` handling.
 
@@ -163,12 +163,12 @@ results (`apk-fdroid-present`/`-launch`, `apk-net-apidemos-present`).
 
 ## Related skills
 
-- `/ov-eval:adb` — low-level device control (the verbs the installer shares).
-- `/ov-eval:appium` — UI automation against the device.
-- `/ov-core:deploy` — `target: android` is one of the deploy targets.
-- `/ov-image:layer` — the `apk:` field is part of the layer schema.
-- `/ov-internals:install-plan` — the IR `ApkInstallStep` plugs into.
-- `/ov-kubernetes:kubernetes` — the `kind: k8s` pattern `kind: android` mirrors.
+- `/charly-eval:adb` — low-level device control (the verbs the installer shares).
+- `/charly-eval:appium` — UI automation against the device.
+- `/charly-core:deploy` — `target: android` is one of the deploy targets.
+- `/charly-image:layer` — the `apk:` field is part of the layer schema.
+- `/charly-internals:install-plan` — the IR `ApkInstallStep` plugs into.
+- `/charly-kubernetes:kubernetes` — the `kind: k8s` pattern `kind: android` mirrors.
 
 ## When to Use This Skill
 

@@ -14,8 +14,8 @@ Every change to an ov-project repo follows ONE landing discipline. The **R10
 pass is the sole gate**: nothing is committed, pushed, merged, or tagged on
 unverified state, and once R10 passes the landing is automatic — no per-change
 human "push" step. This skill is the mechanics; CLAUDE.md "Post-Execution
-Policies" carries the mandate, `/ov-internals:cutover-policy` the one-phase rule,
-`/ov-build:migrate` the schema-version/tag coupling.
+Policies" carries the mandate, `/charly-internals:cutover-policy` the one-phase rule,
+`/charly-build:migrate` the schema-version/tag coupling.
 
 ## Non-negotiable invariants
 
@@ -26,17 +26,17 @@ Policies" carries the mandate, `/ov-internals:cutover-policy` the one-phase rule
 - **R10-gated.** Commit/push/merge/tag happen only after R10 PASS. A rule
   violation or R10 FAIL ⇒ none of them happen (fix in the same tree, re-run R10).
 - **Zero warnings.** R10 is NOT successful while ANY warning remains — resolver
-  newest-wins warnings, build, `ov box validate`, `ov eval`, or deploy
+  newest-wins warnings, build, `charly box validate`, `charly eval`, or deploy
   warnings. Every warning is fixed before R10 passes (a version-mismatch warning
-  is cleared with `ov box reconcile`; any other warning triggers
-  `/ov-internals:root-cause-analyzer` then a real fix). "Warning" is never an
+  is cleared with `charly box reconcile`; any other warning triggers
+  `/charly-internals:root-cause-analyzer` then a real fix). "Warning" is never an
   acceptable end state — it is an R10 failure (strengthens R1).
 - **Atomic.** One commit per repo per cutover (the cutover-policy "one phase").
 - **Eval-coverage.** R10 does not pass unless the change ships the test coverage
   that PROVES its functionality (`eval:` checks for new/changed layers & images,
   Go tests for `ov` code) AND the live run exercised it. A change whose new
   functionality has no test that would FAIL without it is not landable.
-- **Tags only on `overthink.yml` repos.** `plugins` and `pkg/arch` are tag-exempt.
+- **Tags only on `charly.yml` repos.** `plugins` and `pkg/arch` are tag-exempt.
 
 ## B1 — the branch-per-change loop (write access)
 
@@ -73,7 +73,7 @@ already pushed and then rebased, update the remote with
 
 - **Sync-before-start / before-landing.** `git fetch origin --prune --tags`; ff
   local `main` to `origin/main`. Never force-reset a diverged local `main` — if it
-  cannot fast-forward, STOP + run `/ov-internals:root-cause-analyzer`.
+  cannot fast-forward, STOP + run `/charly-internals:root-cause-analyzer`.
 - **Switch-to-upstream check.** Before committing, confirm `origin` is the
   canonical upstream and the branch about to merge targets the upstream `main`
   (not a stale fork/branch). On mismatch, STOP and surface it.
@@ -95,8 +95,8 @@ One logical change spanning several repos uses the **same `feat/<slug>` in each*
 change is verified before anything merges. Then land in **dependency order**:
 
 1. each `image/*` submodule — commit → `--ff-only` merge → tag (it has
-   `overthink.yml`) → push;
-2. `plugins` — commit → `--ff-only` merge → push (**no tag**, no `overthink.yml`);
+   `charly.yml`) → push;
+2. `plugins` — commit → `--ff-only` merge → push (**no tag**, no `charly.yml`);
 3. the superproject — stage the now-merged submodule pointers → atomic commit →
    `--ff-only` merge → tag `main` → push.
 
@@ -113,25 +113,25 @@ distinct beds get distinct container/VM/image names; the lead assigns each
 disjoint host ports too (the loader does NOT check ports — an overlap fails the
 second bed at deploy), and a bed pins an image → layers → files, so bed-ownership
 already isolates the source files each teammate edits. **Teammates edit; a
-PERSISTENT owner runs every full `ov eval run <bed>`** as a `run_in_background`
+PERSISTENT owner runs every full `charly eval run <bed>`** as a `run_in_background`
 task — the lead's persistent session, a background agent, or (interactive tmux) a
 split-pane teammate; an in-process teammate CANNOT (its bg dies on yield).
 Teammates therefore share ONE working tree on ONE `feat/<slug>` branch:
 
 - Teammates edit their bed-scoped files in the shared tree + run short foreground
-  checks (`ov eval box`) — never the full `ov eval run`, and **never commit or
+  checks (`charly eval box`) — never the full `charly eval run`, and **never commit or
   push**. The lead runs the full beds and owns the single atomic commit, gated on
   the consolidated full final-code bed run (B1).
 - Reserve a real `git worktree` (per `isolation: worktree`) only for genuine
   **same-file** concurrency that bed-ownership does not separate — not as the
   default for team parallelism.
-- **Schedule longest-pole-first.** `ov eval run` has no bed-level concurrency and
+- **Schedule longest-pole-first.** `charly eval run` has no bed-level concurrency and
   no `ov` cap — the limit is host CPU/RAM/podman. The lead runs ALL full beds as
   concurrent background tasks; order by expected DURATION, not bed count: launch
   the slow VM/desktop beds first and overlap the cheap pod beds, so wall-clock ≈
   the slowest single bed, not the sum.
 - **Freeze `ov/*.go` during the bed phase.** `ov`'s stale-binary freshness guard
-  gates every heavy verb the instant any `ov/*.go` is newer than `/usr/bin/ov`,
+  gates every heavy verb the instant any `ov/*.go` is newer than `/usr/bin/charly`,
   so a teammate editing Go mid-bed-run aborts every other agent's next
   build/deploy/eval. For a SHARED-CORE (Go) cutover the lead lands the core
   first, runs ONE `task build:ov`, then fans out beds with Go frozen; a BED-LOCAL
@@ -167,14 +167,14 @@ local-override):
 1. Develop producer (A) + consumer (B) on the same `feat/<slug>`.
 2. **Land the producer FIRST:** run A's own R10, ff-merge, **tag A `v<CalVer_A>`**,
    push — now an immutable, fetchable remote tag.
-3. **Repoint the consumer:** `ov box reconcile` rewrites B's `@github.../A:...`
-   pins to `v<CalVer_A>` (see `/ov-build:reconcile`).
+3. **Repoint the consumer:** `charly box reconcile` rewrites B's `@github.../A:...`
+   pins to `v<CalVer_A>` (see `/charly-build:reconcile`).
 4. **Authoritative consumer R10 against the real tag:** B's R10 now fetches A from
    the pushed `v<CalVer_A>` — verified against exactly what ships.
 5. **Land the consumer** (ff-merge, tag B, push).
 6. **New layer:** a new layer has no standalone R10 — its gate is the consuming
    image's build. A lands a **provisional** `v<CalVer_A>` (layer + `go test` /
-   `ov box generate` smoke); step 4 (B's image R10 against that tag) is the real
+   `charly box generate` smoke); step 4 (B's image R10 against that tag) is the real
    gate. On failure, fix A, land a **new** tag (immutable + accumulate — never
    move the old one), re-reconcile, re-run step 4.
 
@@ -191,18 +191,18 @@ git tag -a "$(date -u +v%Y).$((10#$(date -u +%j))).$(date -u +%H%M)" -m "<subjec
 ```
 
 ONE fresh tag per push (a repo accumulates many), immutable (only ever added),
-INDEPENDENT of `overthink.yml` `version:` (the schema version, bumped only by a
+INDEPENDENT of `charly.yml` `version:` (the schema version, bumped only by a
 `MigrationStep` raising `LatestSchemaVersion()`). A YAML schema/format change does
-BOTH: raise `LatestSchemaVersion()` AND mint the tag. See `/ov-build:migrate`.
+BOTH: raise `LatestSchemaVersion()` AND mint the tag. See `/charly-build:migrate`.
 
 ## Cross-References
 
 - CLAUDE.md "Post-Execution Policies" — the mandate this skill operationalizes.
-- `/ov-internals:cutover-policy` — one-phase, atomic-commit, R10-at-the-end.
-- `/ov-build:migrate` — `version:` ↔ tag coupling, per-push tags, push order.
-- `/ov-build:reconcile` — cross-repo `@github` pin alignment used by B6.
-- `/ov-eval:eval` — the eval-coverage gate (R10) every change must satisfy.
-- `/ov-internals:root-cause-analyzer` — run on any R10 failure before re-trying.
+- `/charly-internals:cutover-policy` — one-phase, atomic-commit, R10-at-the-end.
+- `/charly-build:migrate` — `version:` ↔ tag coupling, per-push tags, push order.
+- `/charly-build:reconcile` — cross-repo `@github` pin alignment used by B6.
+- `/charly-eval:eval` — the eval-coverage gate (R10) every change must satisfy.
+- `/charly-internals:root-cause-analyzer` — run on any R10 failure before re-trying.
 
 ## When to Use This Skill
 

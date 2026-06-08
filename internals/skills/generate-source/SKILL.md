@@ -1,7 +1,7 @@
 ---
 name: generate-source
 description: |
-  Containerfile generation: understanding ov box generate output, multi-stage builds,
+  Containerfile generation: understanding charly box generate output, multi-stage builds,
   intermediate images, and the .build/ directory. Use when debugging or understanding
   generated Containerfiles.
   MUST be invoked before reading or modifying any Go source file in ov/.
@@ -11,18 +11,18 @@ description: |
 
 ## Overview
 
-`ov box generate` reads `box.yml` and `candy/`, resolves dependency graphs, and writes Containerfiles to `.build/`. Generation is idempotent and `.build/` is disposable (gitignored). Understanding the generated output is essential for debugging build issues.
+`charly box generate` reads `box.yml` and `candy/`, resolves dependency graphs, and writes Containerfiles to `.build/`. Generation is idempotent and `.build/` is disposable (gitignored). Understanding the generated output is essential for debugging build issues.
 
-Generation runs through the shared `DeployTarget` interface. `OCITarget` is the build-mode implementation; it consumes the `InstallPlan` IR emitted by `BuildDeployPlan` and writes Containerfile text. `PodDeployTarget` and `LocalDeployTarget` are the deploy-mode siblings consuming the same IR. For the IR shape and step kinds, see **`/ov-internals:install-plan`**. For local-deploy supporting files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref), see **`/ov-internals:local-infra`**.
+Generation runs through the shared `DeployTarget` interface. `OCITarget` is the build-mode implementation; it consumes the `InstallPlan` IR emitted by `BuildDeployPlan` and writes Containerfile text. `PodDeployTarget` and `LocalDeployTarget` are the deploy-mode siblings consuming the same IR. For the IR shape and step kinds, see **`/charly-internals:install-plan`**. For local-deploy supporting files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref), see **`/charly-internals:local-infra`**.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Generate all | `ov box generate` | Write .build/ (Containerfiles) |
-| Generate with tag | `ov box generate --tag v1.0.0` | Override CalVer tag |
-| List targets | `ov box list targets` | Build targets in dependency order |
-| Inspect config | `ov box inspect <image>` | Show resolved config JSON |
+| Generate all | `charly box generate` | Write .build/ (Containerfiles) |
+| Generate with tag | `charly box generate --tag v1.0.0` | Override CalVer tag |
+| List targets | `charly box list targets` | Build targets in dependency order |
+| Inspect config | `charly box inspect <image>` | Show resolved config JSON |
 
 ## Generated Output Structure
 
@@ -41,7 +41,7 @@ The generated Containerfile follows this order:
 
 1. **Multi-stage build stages** — scratch stages per layer, builder stages from `build.yml` `builder:` templates (pixi, npm, aur, cargo), init system config assembly (driven by `build.yml` `init:` section), traefik routes
 2. **`FROM ${BASE_IMAGE}`** — external bases get bootstrap from `build.yml` `distro:` section (install cmd, cache mounts, workarounds); internal bases get `USER root`
-3. **Image metadata** — consolidated `ENV` directives, `EXPOSE` ports, `org.overthinkos.*` labels
+3. **Image metadata** — consolidated `ENV` directives, `EXPOSE` ports, `ai.opencharly.*` labels
 4. **COPY build artifacts** — config-driven from `build.yml` `builder.<name>.copy_artifacts` and `copy_binary` definitions
 5. **Per-layer install steps** — see "Task emission pipeline" below. `USER` toggles as each task's `user:` field requires.
 6. **Final assembly** — init system config assembly, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only)
@@ -82,7 +82,7 @@ Flat struct with verb-discriminator fields. Exactly one of `Cmd` / `Mkdir` / `Co
 func (t *Task) Kind() (string, error)   // returns verb or error ("no action" / "conflicting actions")
 ```
 
-The `Layer` struct that feeds emission carries its `require:` / `layer:` refs as `[]CandyRef` (one typed list each — no parallel bare/raw arrays), and its `Has*` predicates (`HasEnv`/`HasPorts`/`HasVolumes`/…) are derived methods (only the filesystem-probe caches like `HasPixiToml` stay fields). Layers are populated by the single `populateLayerFromYAML`. Which layers reach this emission pipeline is decided upstream by the reachability-scoped, per-entity-version resolver (the git tag is the fetch coordinate; the layer's own `version:` is the identity) — see `/ov-internals:go` "Remote-layer resolver".
+The `Layer` struct that feeds emission carries its `require:` / `layer:` refs as `[]CandyRef` (one typed list each — no parallel bare/raw arrays), and its `Has*` predicates (`HasEnv`/`HasPorts`/`HasVolumes`/…) are derived methods (only the filesystem-probe caches like `HasPixiToml` stay fields). Layers are populated by the single `populateLayerFromYAML`. Which layers reach this emission pipeline is decided upstream by the reachability-scoped, per-entity-version resolver (the git tag is the fetch coordinate; the layer's own `version:` is the identity) — see `/charly-internals:go` "Remote-layer resolver".
 
 ### Emitter helpers (all in `ov/tasks.go`)
 
@@ -255,8 +255,8 @@ instead of always using defaults. This keeps HOME-relative
 
 Blast radius: uid=1000 images (the overwhelming majority) share their
 intermediates as usual. Uid=0 images get their own `-uid0`-suffixed
-intermediates. The ecosystem's coder/ov images run as uid=1000 + sudo
-(see `/ov-coder:fedora-coder`), so the per-UID split is dormant
+intermediates. The ecosystem's coder/charly images run as uid=1000 + sudo
+(see `/charly-coder:fedora-coder`), so the per-UID split is dormant
 protection against any future uid=0 image — it stays in place because
 the defensive grouping is cheap (one extra struct field) and prevents
 a whole class of silent PATH regressions.
@@ -272,7 +272,7 @@ after the last `USER` directive. This is an intentional cache-efficiency
 choice driven by `ov/generate.go`'s `writeLabels` call being placed
 after `writeLayerSteps` + the final `USER` emission.
 
-Why it matters: the `org.overthinkos.eval` LABEL is the most-volatile
+Why it matters: the `ai.opencharly.eval` LABEL is the most-volatile
 piece of image metadata — it changes every time a test is added, edited,
 or removed. If LABELs appeared BEFORE the RUN/COPY install steps,
 buildkit's cache would invalidate at the first changed LABEL and every
@@ -288,8 +288,8 @@ Measured: ~2 seconds of delta over a no-change rebuild baseline of
 LABELs are safe to move because they have no functional dependency on
 subsequent instructions — they attach to the final image manifest and
 are read only via `podman inspect` (an unordered map). None of the
-runtime consumers (`ov config`, `ov start`, `ov status`, `ov eval live`,
-`ov shell`, `ov alias install`) care about directive order.
+runtime consumers (`charly config`, `charly start`, `charly status`, `charly eval live`,
+`charly shell`, `charly alias install`) care about directive order.
 
 ### LABEL JSON escaping (`writeJSONLabel`)
 
@@ -304,7 +304,7 @@ the JSON payload.
 
 ### CalVer tag shifts do NOT invalidate cache
 
-Each `ov box build` generate assigns a fresh CalVer timestamp and
+Each `charly box build` generate assigns a fresh CalVer timestamp and
 emits it as the default of `ARG BASE_IMAGE=<registry>/<name>:<calver>`
 at the top of every intermediate Containerfile. The ARG default
 appears in the Containerfile text but is NOT part of the cache key
@@ -317,7 +317,7 @@ content. If the SHA is the same as a cached build's parent (because
 the upstream image's content is unchanged), the whole rest of the
 build cache-hits. A CalVer bump on an unchanged upstream is free.
 
-The `org.overthinkos.version` LABEL baked into each image is likewise NOT a
+The `ai.opencharly.version` LABEL baked into each image is likewise NOT a
 per-build timestamp — it's the content-derived `EffectiveVersion` (the image's
 dedicated `version:`, else the highest layer `version:` across the chain; computed
 by `computeEffectiveVersions` in `ov/effective_version.go`). It is STABLE across
@@ -329,7 +329,7 @@ Cache-miss only happens when something in the build input genuinely
 changes: the parent image's content (different SHA resolved by the
 FROM), a layer's scratch-stage content (`COPY candy/<name>/ /`
 source bytes), or an instruction's text (package list, cmd body).
-See `/ov-build:build` "Cache Efficiency" for the full list.
+See `/charly-build:build` "Cache Efficiency" for the full list.
 
 ## Intermediate Images
 
@@ -348,7 +348,7 @@ fedora (external)
 
 `createIntermediate()` must inherit `Distro` and `BuildFormats` **from the parent image first**, with `cfg.Defaults.*` as the fallback only when the parent is external or empty. The inverse — defaults winning over an explicit parent — is a silent-failure bug: an `arch`-rooted auto-intermediate would get re-tagged as `build: [rpm]` (because `defaults.Build=[rpm]` in `box.yml`), then the layer emitter would scan each layer for an `rpm:` section and find nothing (the layers only declare `pac:`) — emitting empty RUN steps. Symptom: the intermediate built fine but shipped without any of its layers' packages (e.g. `arch-ssh-client` without direnv/gnupg/openssh).
 
-The current code resolves `inheritedDistro` / `inheritedBuilds` from the parent first and only falls back to defaults when both are empty. Regression guard: `TestComputeIntermediates_InheritDistroFromParent` constructs a config with `defaults.Build=[rpm]` but an `arch` parent carrying `[pac]`, and asserts that the auto-intermediate comes out `[pac]`. See `/ov-internals:go` `intermediates.go` row for the file-level note.
+The current code resolves `inheritedDistro` / `inheritedBuilds` from the parent first and only falls back to defaults when both are empty. Regression guard: `TestComputeIntermediates_InheritDistroFromParent` constructs a config with `defaults.Build=[rpm]` but an `arch` parent carrying `[pac]`, and asserts that the auto-intermediate comes out `[pac]`. See `/charly-internals:go` `intermediates.go` row for the file-level note.
 
 ## User Resolution
 
@@ -356,7 +356,7 @@ Configurable via `user`, `uid`, `gid`, and `user_policy` fields in `box.yml` (de
 
 ### Declarative adopt: `build.yml distro.<name>.base_user:`
 
-Some base images ship a pre-existing uid-1000 account (Ubuntu 24.04 ships `ubuntu:ubuntu`). The `base_user:` declaration in `build.yml` tells ov about it:
+Some base images ship a pre-existing uid-1000 account (Ubuntu 24.04 ships `ubuntu:ubuntu`). The `base_user:` declaration in `build.yml` tells charly about it:
 
 ```yaml
 distro:
@@ -409,47 +409,47 @@ Distro-version tag sections (`debian:13:`, `ubuntu:24.04:`, etc.) are resolved v
 
 ## OCI Labels
 
-Built images embed runtime metadata as labels (prefix: `org.overthinkos.`), making images self-describing for runtime commands (`ov shell`, `ov start`, `ov config`, `ov alias install`).
+Built images embed runtime metadata as labels (prefix: `ai.opencharly.`), making images self-describing for runtime commands (`charly shell`, `charly start`, `charly config`, `charly alias install`).
 
 | Label | Type | Example |
 |-------|------|---------|
-| `org.overthinkos.version` | string | content-derived `EffectiveVersion` (the image's dedicated `version:`, else the highest layer `version:` across the chain — NOT the per-build tag), e.g. `"2026.144.1443"`. Resolution prefers this label over the tag (`local_image.go`); also the "is this an ov box?" presence sentinel read by `ExtractMetadata` |
-| `org.overthinkos.image` | string | `"openclaw"` |
-| `org.overthinkos.registry` | string | `"ghcr.io/overthinkos"` (omitted if empty) |
-| `org.overthinkos.bootc` | string | `"true"` (omitted if false) |
-| `org.overthinkos.uid` / `.gid` | string | `"1000"` |
-| `org.overthinkos.user` / `.home` | string | `"user"` / `"/home/user"` |
-| `org.overthinkos.port` | JSON | `["18789:18789"]` |
-| `org.overthinkos.volume` | JSON | `[{"name":"data","path":"/home/user/.openclaw"}]` |
-| `org.overthinkos.alias` | JSON | `[{"name":"openclaw","command":"openclaw"}]` |
-| `org.overthinkos.security` | JSON | `{"privileged":false,"cap_add":["SYS_PTRACE"]}` |
-| `org.overthinkos.network` | string | `"host"` (omitted if default) |
-| `org.overthinkos.fqdn` | string | FQDN for tunnel routing |
-| `org.overthinkos.acme_email` | string | ACME certificate email |
-| `org.overthinkos.env` | JSON | `["KEY=VALUE"]` runtime env vars |
-| `org.overthinkos.hook` | JSON | lifecycle hooks config |
-| `org.overthinkos.vm` | JSON | VM config (bootc images) |
-| `org.overthinkos.libvirt` | JSON | libvirt XML snippets |
-| `org.overthinkos.route` | JSON | `[{"host":"app.localhost","port":8080}]` |
-| `org.overthinkos.init` | string | active init system name |
-| `org.overthinkos.service.<init>` | JSON | service names per init system |
-| `org.overthinkos.env_layer` | JSON | layer-level env vars (merged) |
-| `org.overthinkos.path_append` | JSON | PATH append entries |
-| `org.overthinkos.engine` | string | Required run engine (`docker`/`podman`, omitted if any) |
-| `org.overthinkos.platform.distro` | JSON | `["arch"]` distro identity (first match picks bootstrap/format templates) |
-| `org.overthinkos.platform.format` | JSON | `["pac"]` package formats installed (`pac`, `rpm`, `deb`, `pixi`, `aur`, …) |
-| `org.overthinkos.builder.use` | JSON | `{"aur":"arch-builder","pixi":"default-builder"}` consumer-side routing: format → builder image |
-| `org.overthinkos.builder.provide` | JSON | `["pac","aur"]` producer-side capability: formats this image can build for others (builder images only) |
-| `org.overthinkos.port_proto` | JSON | `{"9222":"tcp"}` port protocol overrides (non-http only) |
-| `org.overthinkos.port_relay` | JSON | `[9222]` ports with socat relay |
-| `org.overthinkos.status` | string | Effective status: `working`, `testing`, or `broken` (always emitted) |
-| `org.overthinkos.info` | string | Aggregated status info from image + non-working layers (omitted if empty) |
-| `org.overthinkos.layer_version` | JSON | `{"chrome":"2026.83.1430"}` layer name → CalVer (only versioned layers) |
-| `org.overthinkos.skill` | string | Skill documentation URL (omitted if no skill exists) |
+| `ai.opencharly.version` | string | content-derived `EffectiveVersion` (the image's dedicated `version:`, else the highest layer `version:` across the chain — NOT the per-build tag), e.g. `"2026.144.1443"`. Resolution prefers this label over the tag (`local_image.go`); also the "is this an charly box?" presence sentinel read by `ExtractMetadata` |
+| `ai.opencharly.image` | string | `"openclaw"` |
+| `ai.opencharly.registry` | string | `"ghcr.io/overthinkos"` (omitted if empty) |
+| `ai.opencharly.bootc` | string | `"true"` (omitted if false) |
+| `ai.opencharly.uid` / `.gid` | string | `"1000"` |
+| `ai.opencharly.user` / `.home` | string | `"user"` / `"/home/user"` |
+| `ai.opencharly.port` | JSON | `["18789:18789"]` |
+| `ai.opencharly.volume` | JSON | `[{"name":"data","path":"/home/user/.openclaw"}]` |
+| `ai.opencharly.alias` | JSON | `[{"name":"openclaw","command":"openclaw"}]` |
+| `ai.opencharly.security` | JSON | `{"privileged":false,"cap_add":["SYS_PTRACE"]}` |
+| `ai.opencharly.network` | string | `"host"` (omitted if default) |
+| `ai.opencharly.fqdn` | string | FQDN for tunnel routing |
+| `ai.opencharly.acme_email` | string | ACME certificate email |
+| `ai.opencharly.env` | JSON | `["KEY=VALUE"]` runtime env vars |
+| `ai.opencharly.hook` | JSON | lifecycle hooks config |
+| `ai.opencharly.vm` | JSON | VM config (bootc images) |
+| `ai.opencharly.libvirt` | JSON | libvirt XML snippets |
+| `ai.opencharly.route` | JSON | `[{"host":"app.localhost","port":8080}]` |
+| `ai.opencharly.init` | string | active init system name |
+| `ai.opencharly.service.<init>` | JSON | service names per init system |
+| `ai.opencharly.env_layer` | JSON | layer-level env vars (merged) |
+| `ai.opencharly.path_append` | JSON | PATH append entries |
+| `ai.opencharly.engine` | string | Required run engine (`docker`/`podman`, omitted if any) |
+| `ai.opencharly.platform.distro` | JSON | `["arch"]` distro identity (first match picks bootstrap/format templates) |
+| `ai.opencharly.platform.format` | JSON | `["pac"]` package formats installed (`pac`, `rpm`, `deb`, `pixi`, `aur`, …) |
+| `ai.opencharly.builder.use` | JSON | `{"aur":"arch-builder","pixi":"default-builder"}` consumer-side routing: format → builder image |
+| `ai.opencharly.builder.provide` | JSON | `["pac","aur"]` producer-side capability: formats this image can build for others (builder images only) |
+| `ai.opencharly.port_proto` | JSON | `{"9222":"tcp"}` port protocol overrides (non-http only) |
+| `ai.opencharly.port_relay` | JSON | `[9222]` ports with socat relay |
+| `ai.opencharly.status` | string | Effective status: `working`, `testing`, or `broken` (always emitted) |
+| `ai.opencharly.info` | string | Aggregated status info from image + non-working layers (omitted if empty) |
+| `ai.opencharly.layer_version` | JSON | `{"chrome":"2026.83.1430"}` layer name → CalVer (only versioned layers) |
+| `ai.opencharly.skill` | string | Skill documentation URL (omitted if no skill exists) |
 
 Tunnel configuration is NOT an OCI label — it is a deploy-time concern carried in `deploy.yml` only.
 
-Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `ov/labels.go`) plus `deploy.yml` overlay — they never touch `box.yml` at runtime. That's why `ov shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `ov box pull`). See `/ov-image:image` for the build/deploy boundary and `/ov-build:pull` for the sentinel pattern. Labels also include `org.overthinkos.init` for init system identification and `org.overthinkos.service.<init>` for per-init service lists.
+Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `ov/labels.go`) plus `deploy.yml` overlay — they never touch `box.yml` at runtime. That's why `charly shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `charly box pull`). See `/charly-image:image` for the build/deploy boundary and `/charly-build:pull` for the sentinel pattern. Labels also include `ai.opencharly.init` for init system identification and `ai.opencharly.service.<init>` for per-init service lists.
 
 Source: `ov/labels.go`, `ov/generate.go` (`writeLabels`).
 
@@ -502,26 +502,26 @@ builder in `build.yml` to cache AUR source downloads + clones across builds.
 ### Debug Why a Build Fails
 
 ```bash
-ov box generate                              # Generate Containerfiles
+charly box generate                              # Generate Containerfiles
 cat .build/my-image/Containerfile        # Inspect the generated Containerfile
-ov box validate                              # Check for validation errors
-ov box inspect my-image                      # See resolved config
+charly box validate                              # Check for validation errors
+charly box inspect my-image                      # See resolved config
 ```
 
 ### Understand Layer Ordering
 
 ```bash
-ov box list targets                          # Shows dependency-ordered build sequence
-ov box inspect my-image --format layers      # Shows layer list for an image
+charly box list targets                          # Shows dependency-ordered build sequence
+charly box inspect my-image --format layers      # Shows layer list for an image
 ```
 
 ## Cross-References
 
-- `/ov-image:layer` — **Canonical author-facing reference** for the task verb catalog, `var:` substitution, YAML anchors, execution order. The emitter pipeline here implements what's documented there.
-- `/ov-build:generate` — User-facing `ov box generate` command.
-- `/ov-internals:go` — Source code map: `ov/tasks.go` (emitter pipeline), `ov/generate.go:writeLayerSteps` (orchestrator call site), `ov/layers.go:Task` struct, `ov/validate.go:validateLayerTasks`.
-- `/ov-build:validate` — User-facing validation rules (what `validateLayerTasks` enforces).
-- `/ov-build:build` — Building from generated Containerfiles.
+- `/charly-image:layer` — **Canonical author-facing reference** for the task verb catalog, `var:` substitution, YAML anchors, execution order. The emitter pipeline here implements what's documented there.
+- `/charly-build:generate` — User-facing `charly box generate` command.
+- `/charly-internals:go` — Source code map: `ov/tasks.go` (emitter pipeline), `ov/generate.go:writeLayerSteps` (orchestrator call site), `ov/layers.go:Task` struct, `ov/validate.go:validateLayerTasks`.
+- `/charly-build:validate` — User-facing validation rules (what `validateLayerTasks` enforces).
+- `/charly-build:build` — Building from generated Containerfiles.
 - Source: `ov/generate.go`, `ov/tasks.go`, `ov/intermediates.go`, `ov/graph.go`.
 
 ## When to Use This Skill

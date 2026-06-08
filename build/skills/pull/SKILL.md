@@ -3,24 +3,24 @@ name: pull
 description: |
   Fetch an image from its registry into local container storage so deploy-mode
   commands can read its OCI labels.
-  MUST be invoked before any work involving: ov box pull command, the
+  MUST be invoked before any work involving: charly box pull command, the
   ErrImageNotLocal error, fetching images by short name / fully-qualified ref /
   @github.com/... remote ref, or recovering deploy-mode commands that fail
   with "image X is not available locally".
 ---
 
-# ov box pull -- Fetch Image Into Local Storage
+# charly box pull -- Fetch Image Into Local Storage
 
 ## Overview
 
-`ov box pull` fetches an image from its registry into the local container
-engine's storage so deploy-mode commands (`ov shell`, `ov start`, `ov config`,
-`ov alias add`, etc.) can read its OCI labels via `ExtractMetadata`. It is a
+`charly box pull` fetches an image from its registry into the local container
+engine's storage so deploy-mode commands (`charly shell`, `charly start`, `charly config`,
+`charly alias add`, etc.) can read its OCI labels via `ExtractMetadata`. It is a
 **pull-only** operation — it does not start, configure, or restart any
-service. That's `ov update`'s job (see `/ov-core:ov-update`).
+service. That's `charly update`'s job (see `/charly-core:ov-update`).
 
 This command is the prerequisite for every deploy-mode operation on a fresh
-host. Since the `ov box` refactor, deploy-mode commands no longer read
+host. Since the `charly box` refactor, deploy-mode commands no longer read
 `box.yml` — they read OCI labels + `deploy.yml` only. If an image isn't
 in local storage, the label read fails and the CLI surfaces a friendly
 recommendation pointing here.
@@ -29,26 +29,26 @@ recommendation pointing here.
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Pull short name | `ov box pull jupyter` | Resolves registry + tag via `box.yml` (requires project directory) |
-| Pull fully-qualified ref | `ov box pull ghcr.io/overthinkos/jupyter:2026.108.56` | Pulls as-is, works from anywhere |
-| Pull remote project ref | `ov box pull @github.com/org/repo/image:v1` | Downloads repo, reads its `box.yml`, pulls registry ref |
-| Override tag (short name) | `ov box pull jupyter --tag 2026.108.1` | Pull a specific CalVer tag |
-| Override platform | `ov box pull jupyter --platform linux/arm64` | Pull a specific platform |
+| Pull short name | `charly box pull jupyter` | Resolves registry + tag via `box.yml` (requires project directory) |
+| Pull fully-qualified ref | `charly box pull ghcr.io/overthinkos/jupyter:2026.108.56` | Pulls as-is, works from anywhere |
+| Pull remote project ref | `charly box pull @github.com/org/repo/image:v1` | Downloads repo, reads its `box.yml`, pulls registry ref |
+| Override tag (short name) | `charly box pull jupyter --tag 2026.108.1` | Pull a specific CalVer tag |
+| Override platform | `charly box pull jupyter --platform linux/arm64` | Pull a specific platform |
 
 ## Three Input Forms
 
 ### 1. Short name (requires project directory)
 
 ```bash
-cd ~/overthink && ov box pull jupyter
+cd ~/opencharly && charly box pull jupyter
 ```
 
 Resolves `<registry>/jupyter:<tag>` via `box.yml`. Equivalent to the
 two-step:
 
 ```bash
-ov box inspect jupyter --format registry  # ghcr.io/overthinkos
-ov box inspect jupyter --format tag       # ghcr.io/overthinkos/jupyter:2026.108.56
+charly box inspect jupyter --format registry  # ghcr.io/overthinkos
+charly box inspect jupyter --format tag       # ghcr.io/overthinkos/jupyter:2026.108.56
 # …then podman pull <that-ref>
 ```
 
@@ -57,7 +57,7 @@ ov box inspect jupyter --format tag       # ghcr.io/overthinkos/jupyter:2026.108
 ### 2. Fully-qualified ref (no project required)
 
 ```bash
-ov box pull ghcr.io/overthinkos/jupyter:2026.108.56
+charly box pull ghcr.io/overthinkos/jupyter:2026.108.56
 ```
 
 Runs `podman pull <ref>` directly. Useful from any directory, including
@@ -67,20 +67,20 @@ can authenticate against.
 ### 3. Remote project ref (`@github.com/...`)
 
 ```bash
-ov box pull @github.com/overthinkos/overthink/jupyter:2026.108.56
-ov box pull @github.com/overthinkos/overthink/jupyter          # latest git tag
+charly box pull @github.com/overthinkos/overthink/jupyter:2026.108.56
+charly box pull @github.com/overthinkos/overthink/jupyter          # latest git tag
 ```
 
 Downloads and caches the repo, reads its `box.yml`, then pulls the
 registry ref declared there. This is the **only** place `@github.com/...`
-refs are accepted in `ov`. Deploy-mode commands (`ov shell`, `ov start`,
-`ov config`, etc.) reject them with a message pointing users here.
+refs are accepted in `ov`. Deploy-mode commands (`charly shell`, `charly start`,
+`charly config`, etc.) reject them with a message pointing users here.
 
 ## Semantics
 
-- **Idempotent.** Running `ov box pull jupyter` twice with the image
+- **Idempotent.** Running `charly box pull jupyter` twice with the image
   already local is a no-op (the engine's `pull` is layer-aware).
-- **No side effects on services.** Unlike `ov update`, this command does
+- **No side effects on services.** Unlike `charly update`, this command does
   not restart, reconfigure, or touch any running container.
 - **Prints the resolved ref** on success. One line to stderr.
 - **Respects engine selection.** Uses the run engine from
@@ -102,26 +102,26 @@ per-call-site code:
 
 ```
 Error: image "X" is not available locally.
-       Run 'ov box pull X' to fetch it first
+       Run 'charly box pull X' to fetch it first
 ```
 
 Any deploy-mode command that calls `ExtractMetadata` or `EnsureImage`
 (shell, start, stop, config, deploy, update, remove, alias, vm, service,
 cdp, wl, vnc, tmux, record, dbus, logs — essentially everything outside
-`ov box`) automatically participates. If you're authoring a new command
+`charly box`) automatically participates. If you're authoring a new command
 that reads image metadata, just call `ExtractMetadata` and the
 recommendation falls out for free.
 
-## Interaction with `ov update`
+## Interaction with `charly update`
 
-| Aspect | `ov box pull` | `ov update` |
+| Aspect | `charly box pull` | `charly update` |
 |---|---|---|
 | Side effects | None. Pulls bytes, prints digest. | Pulls, seeds data into volumes, restarts active service. |
 | Required before deploy | Yes (first time only). | No — it calls `pull` internally if needed. |
 | Use when | You want labels available but aren't ready to deploy. Or just installed `ov` on a fresh host. | You have a running service and want to roll to a new image version. |
 
 Rule of thumb: **`pull` is the prerequisite; `update` is the refresh.**
-Use `ov box pull <image>` once to seed local storage; use `ov update
+Use `charly box pull <image>` once to seed local storage; use `charly update
 <image>` every time you bump the version afterward.
 
 ## Flags
@@ -137,58 +137,58 @@ Use `ov box pull <image>` once to seed local storage; use `ov update
 ### Fresh host, new user
 
 ```bash
-# Install ov (see README Install section)
-ov box pull jupyter                # pull once; labels now readable
-ov config jupyter                    # generate quadlet from labels + deploy.yml
-ov start jupyter                     # systemctl --user start
+# Install charly (see README Install section)
+charly box pull jupyter                # pull once; labels now readable
+charly config jupyter                    # generate quadlet from labels + deploy.yml
+charly start jupyter                     # systemctl --user start
 ```
 
 ### Deploying a remote image
 
 ```bash
-ov box pull @github.com/overthinkos/overthink/hermes:latest
-ov config hermes
-ov start hermes
+charly box pull @github.com/overthinkos/overthink/hermes:latest
+charly config hermes
+charly start hermes
 ```
 
 ### Fixing a broken deploy-mode command
 
 ```bash
-ov shell jupyter
+charly shell jupyter
 # Error: image "jupyter:latest" is not available locally.
-#        Run 'ov box pull jupyter:latest' to fetch it first
-ov box pull jupyter:latest          # follow the recommendation
-ov shell jupyter                      # now works
+#        Run 'charly box pull jupyter:latest' to fetch it first
+charly box pull jupyter:latest          # follow the recommendation
+charly shell jupyter                      # now works
 ```
 
 ## Why this command exists
 
-Before the `ov box` refactor, deploy-mode commands had dual-mode logic:
+Before the `charly box` refactor, deploy-mode commands had dual-mode logic:
 try `box.yml` first, fall back to OCI labels. That produced drift (the
 two paths could diverge) and silently pulled-and-built remote refs as a
-side effect of what looked like a simple `ov shell @github.com/...` call.
+side effect of what looked like a simple `charly shell @github.com/...` call.
 
 The refactor drew a hard line: deploy-mode commands read labels only;
-build-mode commands (`ov box …`) read `box.yml` only. `ov box pull`
+build-mode commands (`charly box …`) read `box.yml` only. `charly box pull`
 is the bridge — it takes a build-mode identifier (short name or remote
 repo ref) and produces a deploy-mode-consumable artifact (labels in local
 storage).
 
 ## Project directory override
 
-`ov box pull` resolves `box.yml` via `os.Getwd()` when given a short name (to resolve registry + tag). Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. Fully-qualified refs and `@github.com/...` remote refs don't need a project dir. See `/ov-image:image` "Project directory resolution".
+`charly box pull` resolves `box.yml` via `os.Getwd()` when given a short name (to resolve registry + tag). Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. Fully-qualified refs and `@github.com/...` remote refs don't need a project dir. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
-- `/ov-image:image` — family overview; `ov box pull` is one of 8 subcommands.
-- `/ov-build:build` — pulls and builds are orthogonal; build creates images,
+- `/charly-image:image` — family overview; `charly box pull` is one of 8 subcommands.
+- `/charly-build:build` — pulls and builds are orthogonal; build creates images,
   pull fetches existing ones.
-- `/ov-core:ov-update` — rolls deployed services to a new image version
+- `/charly-core:ov-update` — rolls deployed services to a new image version
   (pulls + data-seeds + restarts).
-- `/ov-build:inspect` — print resolved ref from `box.yml` without pulling.
-- `/ov-core:shell`, `/ov-core:start`, `/ov-core:ov-config`, `/ov-automation:alias`, `/ov-vm:vm` —
+- `/charly-build:inspect` — print resolved ref from `box.yml` without pulling.
+- `/charly-core:shell`, `/charly-core:start`, `/charly-core:ov-config`, `/charly-automation:alias`, `/charly-vm:vm` —
   deploy-mode commands that require a pulled image.
-- `/ov-core:deploy` — deploy.yml overlay semantics applied on top of the
+- `/charly-core:deploy` — deploy.yml overlay semantics applied on top of the
   labels `pull` materializes.
-- `/ov-internals:go` — `ErrImageNotLocal` / `EnsureImage` / `ExtractMetadata`
+- `/charly-internals:go` — `ErrImageNotLocal` / `EnsureImage` / `ExtractMetadata`
   source locations (`ov/labels.go`, `ov/transfer.go`, `ov/image.go`).

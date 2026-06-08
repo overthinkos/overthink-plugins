@@ -36,21 +36,21 @@ Bootc VM image based on Universal Blue's Bazzite (gaming-focused) with NVIDIA dr
 
 ## Key Layers (18 total)
 
-- `/ov-coder:build-toolchain` — gcc, cmake, ninja
-- `/ov-distros:cuda` — NVIDIA CUDA toolkit
-- `/ov-coder:kubernetes-layer` — kubectl + Helm
-- `/ov-coder:docker-ce` — Docker CE + buildx
-- `/ov-tools:vscode` — Visual Studio Code
-- `/ov-distros:os-config` — Bootc system configuration
+- `/charly-coder:build-toolchain` — gcc, cmake, ninja
+- `/charly-distros:cuda` — NVIDIA CUDA toolkit
+- `/charly-coder:kubernetes-layer` — kubectl + Helm
+- `/charly-coder:docker-ce` — Docker CE + buildx
+- `/charly-tools:vscode` — Visual Studio Code
+- `/charly-distros:os-config` — Bootc system configuration
 
 ## Quick Start
 
 ```bash
 # Built from the bootc submodule.
-ov -C image/bootc image build bazzite
-ov -C image/bootc vm build bazzite-bootc --transport containers-storage
-ov -C image/bootc vm create bazzite-bootc
-ov -C image/bootc vm start bazzite-bootc
+charly -C image/bootc image build bazzite
+charly -C image/bootc vm build bazzite-bootc --transport containers-storage
+charly -C image/bootc vm create bazzite-bootc
+charly -C image/bootc vm start bazzite-bootc
 ```
 
 ## Known Issues
@@ -58,11 +58,11 @@ ov -C image/bootc vm start bazzite-bootc
 - Base image `terra-mesa.repo` has corrupt zchunk metadata. The generator auto-removes it (`rm -f /etc/yum.repos.d/terra-mesa.repo`).
 
 ## Related Images
-- `/ov-distros:aurora` — sibling Universal Blue bootc image with ov toolchain
+- `/charly-distros:aurora` — sibling Universal Blue bootc image with charly toolchain
 
 ## Related Commands
-- `/ov-vm:vm` — build and run as a bootc VM
-- `/ov-build:build` — produce the bootc image
+- `/charly-vm:vm` — build and run as a bootc VM
+- `/charly-build:build` — produce the bootc image
 
 ## When to Use This Skill
 
@@ -70,4 +70,4 @@ ov -C image/bootc vm start bazzite-bootc
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)

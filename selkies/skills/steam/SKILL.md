@@ -60,9 +60,9 @@ Steam Guard requires interactive login. Connect via VNC desktop, launch Steam, a
 
 ## Related Layers
 
-- `/ov-selkies:sway` — Wayland compositor (dependency)
-- `/ov-selkies:sway-desktop-vnc` — Desktop composition with VNC
-- `/ov-distros:cuda` — NVIDIA GPU support (via nvidia base)
+- `/charly-selkies:sway` — Wayland compositor (dependency)
+- `/charly-selkies:sway-desktop-vnc` — Desktop composition with VNC
+- `/charly-distros:cuda` — NVIDIA GPU support (via nvidia base)
 
 ## Used In Images
 
@@ -79,5 +79,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

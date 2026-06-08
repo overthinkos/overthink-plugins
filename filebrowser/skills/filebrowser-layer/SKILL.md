@@ -43,8 +43,8 @@ User-accessible files served from the `files` volume (`~/.filebrowser/files`).
 The `files` volume is typically bind-mounted to a host directory at deploy time:
 
 ```bash
-ov config filebrowser --bind files=~/Documents
-ov config filebrowser --bind files=/mnt/nas/shared
+charly config filebrowser --bind files=~/Documents
+charly config filebrowser --bind files=/mnt/nas/shared
 ```
 
 ## Usage
@@ -57,29 +57,29 @@ filebrowser:
     - agent-forwarding
     - filebrowser
     - dbus
-    - ov
+    - charly
   ports:
     - "8085:8080"
 ```
 
-Tunnel config is in `deploy.yml`: `tunnel: {provider: tailscale, private: all}`. See `/ov-core:deploy`.
+Tunnel config is in `deploy.yml`: `tunnel: {provider: tailscale, private: all}`. See `/charly-core:deploy`.
 
 ## Used In Images
 
-- `/ov-filebrowser:filebrowser`
+- `/charly-filebrowser:filebrowser`
 
 ## Related Layers
 
-- `/ov-infrastructure:supervisord` -- process manager dependency
-- `/ov-infrastructure:traefik` -- similar pattern (binary download + config file + supervisord)
-- `/ov-infrastructure:dbus-layer` -- D-Bus session bus (co-deployed in filebrowser image)
-- `/ov-tools:ov` -- ov CLI (co-deployed in filebrowser image)
+- `/charly-infrastructure:supervisord` -- process manager dependency
+- `/charly-infrastructure:traefik` -- similar pattern (binary download + config file + supervisord)
+- `/charly-infrastructure:dbus-layer` -- D-Bus session bus (co-deployed in filebrowser image)
+- `/charly-tools:charly` -- charly CLI (co-deployed in filebrowser image)
 
 ## Related Commands
 
-- `/ov-core:ov-config` -- deployment configuration, `--bind files=<path>` for file volume
-- `/ov-core:start` -- start the service
-- `/ov-core:shell` -- interactive access to the container
+- `/charly-core:ov-config` -- deployment configuration, `--bind files=<path>` for file volume
+- `/charly-core:start` -- start the service
+- `/charly-core:shell` -- interactive access to the container
 
 ## When to Use This Skill
 
@@ -93,5 +93,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

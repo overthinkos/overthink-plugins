@@ -62,18 +62,18 @@ hermes-playwright:
     - hermes
     - hermes-playwright
     - dbus
-    - ov
+    - charly
 ```
 
 ## Used In Images
 
-- `/ov-hermes:hermes-playwright` -- hermes with Playwright Chromium
+- `/charly-hermes:hermes-playwright` -- hermes with Playwright Chromium
 
 ## Related Layers
 
-- `/ov-hermes:hermes` -- base hermes agent (required dependency)
-- `/ov-selkies:chrome` -- similar pattern for Chrome system deps
-- `/ov-hermes:playwright-layer` -- OpenClaw's Playwright layer (npm only, no Chromium binary)
+- `/charly-hermes:hermes` -- base hermes agent (required dependency)
+- `/charly-selkies:chrome` -- similar pattern for Chrome system deps
+- `/charly-hermes:playwright-layer` -- OpenClaw's Playwright layer (npm only, no Chromium binary)
 
 ## When to Use This Skill
 
@@ -81,5 +81,5 @@ hermes-playwright:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

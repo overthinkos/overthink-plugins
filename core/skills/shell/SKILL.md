@@ -1,34 +1,34 @@
 ---
 name: shell
 description: |
-  MUST be invoked before any work involving: ov shell command, interactive shells, command execution in containers, workspace mounts, TTY allocation, or port relay.
+  MUST be invoked before any work involving: charly shell command, interactive shells, command execution in containers, workspace mounts, TTY allocation, or port relay.
 ---
 
 # Shell - Shell & Execution
 
 ## Overview
 
-`ov shell` runs an interactive shell or executes commands inside containers. Supports workspace mounting, device auto-detection, environment injection, and TTY allocation for automation tools.
+`charly shell` runs an interactive shell or executes commands inside containers. Supports workspace mounting, device auto-detection, environment injection, and TTY allocation for automation tools.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Interactive shell | `ov shell <image>` | Bash shell in container |
-| Bind workspace | `ov shell <image> --bind workspace=~/project` | Mount host dir as workspace volume |
-| Volume config | `ov shell <image> -v name:type[:path]` | Configure volume backing (volume\|bind\|encrypted) |
-| Run command | `ov shell <image> -c "cmd"` | Execute command and exit |
-| Force TTY | `ov shell <image> --tty -c "cmd"` | PTY allocation for automation |
-| Specific version | `ov shell <image> --tag v1.0.0` | Use specific image tag |
-| No devices | `ov shell <image> --no-autodetect` | Disable device auto-detection |
-| Set env var | `ov shell <image> -e KEY=VALUE` | Inject environment variable |
-| Load env file | `ov shell <image> --env-file .env` | Load env from file |
-| Named instance | `ov shell <image> -i runner-1` | Use named instance |
-| Force build | `ov shell <image> --build` | Build locally before running |
+| Interactive shell | `charly shell <image>` | Bash shell in container |
+| Bind workspace | `charly shell <image> --bind workspace=~/project` | Mount host dir as workspace volume |
+| Volume config | `charly shell <image> -v name:type[:path]` | Configure volume backing (volume\|bind\|encrypted) |
+| Run command | `charly shell <image> -c "cmd"` | Execute command and exit |
+| Force TTY | `charly shell <image> --tty -c "cmd"` | PTY allocation for automation |
+| Specific version | `charly shell <image> --tag v1.0.0` | Use specific image tag |
+| No devices | `charly shell <image> --no-autodetect` | Disable device auto-detection |
+| Set env var | `charly shell <image> -e KEY=VALUE` | Inject environment variable |
+| Load env file | `charly shell <image> --env-file .env` | Load env from file |
+| Named instance | `charly shell <image> -i runner-1` | Use named instance |
+| Force build | `charly shell <image> --build` | Build locally before running |
 
-**Note:** `ov shell` does not accept remote refs (`@github.com/...`). Remote
-refs are handled exclusively by `ov box pull` (build-mode). Pull first,
-then `ov shell <image-name>` works via labels. See `/ov-build:pull`.
+**Note:** `charly shell` does not accept remote refs (`@github.com/...`). Remote
+refs are handled exclusively by `charly box pull` (build-mode). Pull first,
+then `charly shell <image-name>` works via labels. See `/charly-build:pull`.
 
 ## How It Works
 
@@ -43,16 +43,16 @@ If the image isn't in local storage, `ExtractMetadata`/`EnsureImage` return
 `ErrImageNotLocal` and the CLI surfaces:
 ```
 Error: image "X" is not available locally.
-       Run 'ov box pull X' to fetch it first
+       Run 'charly box pull X' to fetch it first
 ```
-See `/ov-build:pull` for the full sentinel pattern.
+See `/charly-build:pull` for the full sentinel pattern.
 
 ## Volume Binding
 
 ```bash
-ov shell <image> --bind workspace=~/project  # Bind ~/project as workspace volume
-ov shell <image> --bind workspace=.          # Bind PWD as workspace volume
-ov shell <image>                             # No host mount (named volume)
+charly shell <image> --bind workspace=~/project  # Bind ~/project as workspace volume
+charly shell <image> --bind workspace=.          # Bind PWD as workspace volume
+charly shell <image>                             # No host mount (named volume)
 ```
 
 The `--bind` flag overrides volume backing for the session. For finer control, use `-v name:type[:path]` where type is `volume`, `bind`, or `encrypted`. The container working directory is `~/workspace` (resolved from the `workspace` volume). If a `.env` file exists in the bound directory, it is auto-loaded.
@@ -63,10 +63,10 @@ Forces TTY allocation even when stdout is not a terminal. Uses `script(1)` from 
 
 ```bash
 # Without --tty: "not a tty" errors from interactive commands
-ov shell my-app -c "interactive-cli auth login"       # fails in CI/automation
+charly shell my-app -c "interactive-cli auth login"       # fails in CI/automation
 
 # With --tty: script(1) wraps the command in a PTY
-ov shell my-app --tty -c "interactive-cli auth login"  # works everywhere
+charly shell my-app --tty -c "interactive-cli auth login"  # works everywhere
 ```
 
 Essential for automation tools (Claude Code, CI runners) where stdout is a pipe, not a terminal. Many interactive CLI commands (OAuth flows, prompts) require a TTY.
@@ -75,12 +75,12 @@ Works for both new containers (`<engine> run`) and exec into running containers 
 
 ## Exec Into Running Containers
 
-When `ov shell` detects the container is already running (via `<engine> inspect`), it uses `<engine> exec` instead of `<engine> run`. The same flags work:
+When `charly shell` detects the container is already running (via `<engine> inspect`), it uses `<engine> exec` instead of `<engine> run`. The same flags work:
 
 ```bash
-ov start my-app                            # Start background service
-ov shell my-app -c "cat /etc/hostname"     # Exec into running container
-ov shell my-app                            # Interactive shell in running container
+charly start my-app                            # Start background service
+charly shell my-app -c "cat /etc/hostname"     # Exec into running container
+charly shell my-app                            # Interactive shell in running container
 ```
 
 ## Port Relay
@@ -104,7 +104,7 @@ Source: `ov/generate.go` (relay service generation), `ov/layers.go` (`PortRelayY
 
 ## Device Auto-Detection
 
-By default, `ov shell` auto-detects available host devices and passes them through. Use `--no-autodetect` to disable.
+By default, `charly shell` auto-detects available host devices and passes them through. Use `--no-autodetect` to disable.
 
 **Auto-detected devices:**
 - NVIDIA GPU (via `nvidia-smi`) -- `--gpus all` (Docker) or `--device nvidia.com/gpu=all` (Podman)
@@ -119,7 +119,7 @@ By default, `ov shell` auto-detects available host devices and passes them throu
 
 When an AMD GPU is detected, `keep-groups` is auto-added to preserve host supplementary groups (video, render) inside the container, and `HSA_OVERRIDE_GFX_VERSION` is auto-set from the GPU's KFD topology (e.g., `10.3.0` for RDNA2). Additionally, the first detected `/dev/dri/renderD*` device is auto-injected as `DRINODE` and `DRI_NODE` env vars (used by selkies for VAAPI encoding). All auto-detected env vars can be overridden via `-e`.
 
-**Shared code path:** `ov shell` calls `appendAutoDetectedEnv()` in `ov/devices.go` — the same function used by `ov config` and `ov start`. That means the three commands produce an identical env set on every run, eliminating drift that used to exist when DRINODE injection was scattered across 10 different call sites before commit `8f6f322`. See `/ov-core:ov-doctor` (Hardware Detection) for the probe side, `/ov-distros:nvidia` (DRINODE Auto-Injection) for the NVIDIA consumer, and `/ov-distros:rocm` (Runtime Environment) for the AMD consumer.
+**Shared code path:** `charly shell` calls `appendAutoDetectedEnv()` in `ov/devices.go` — the same function used by `charly config` and `charly start`. That means the three commands produce an identical env set on every run, eliminating drift that used to exist when DRINODE injection was scattered across 10 different call sites before commit `8f6f322`. See `/charly-core:ov-doctor` (Hardware Detection) for the probe side, `/charly-distros:nvidia` (DRINODE Auto-Injection) for the NVIDIA consumer, and `/charly-distros:rocm` (Runtime Environment) for the AMD consumer.
 
 Source: `ov/devices.go` (`DetectHostDevices`, `DetectGPU`, `DetectAMDGPU`, `appendAutoDetectedEnv`).
 
@@ -134,8 +134,8 @@ Runtime environment variables are injected from multiple sources. Resolution pri
 5. **CLI `-e`** flags -- highest priority
 
 ```bash
-ov shell <image> -e DB_HOST=localhost -e DB_PORT=5432
-ov shell <image> --env-file production.env
+charly shell <image> -e DB_HOST=localhost -e DB_PORT=5432
+charly shell <image> --env-file production.env
 ```
 
 Kong `sep:"none"` on `-e` means commas in values are safe (e.g., `NO_PROXY=localhost,127.0.0.1`).
@@ -146,18 +146,18 @@ Source: `ov/envfile.go` (`ParseEnvFile`, `ResolveEnvVars`, `LoadWorkspaceEnv`).
 
 ## Remote Image References
 
-`ov shell` **does not** accept `@github.com/...` remote refs. Pre-refactor
+`charly shell` **does not** accept `@github.com/...` remote refs. Pre-refactor
 versions did; post-refactor, deploy-mode commands read only from local OCI
 labels, so remote refs are rejected with a redirect:
 
 ```
 Error: remote refs are not accepted here;
-       run 'ov box pull @github.com/org/repo/my-app' first,
-       then 'ov shell my-app'
+       run 'charly box pull @github.com/org/repo/my-app' first,
+       then 'charly shell my-app'
 ```
 
-To run a shell on a remote image, pull it first (via `ov box pull`) and
-then invoke `ov shell <short-name>`. See `/ov-build:pull` for the full remote-ref
+To run a shell on a remote image, pull it first (via `charly box pull`) and
+then invoke `charly shell <short-name>`. See `/charly-build:pull` for the full remote-ref
 workflow.
 
 ## Cross-Engine Image Transfer
@@ -172,11 +172,11 @@ All containers are connected to a shared `ov` network by default, enabling inter
 
 Source: `ov/network.go`.
 
-## `ov cmd` vs `ov shell -c`
+## `charly cmd` vs `charly shell -c`
 
-`ov cmd <image> "command"` is a dedicated single-command tool for **running containers only**. Key differences from `ov shell -c`:
+`charly cmd <image> "command"` is a dedicated single-command tool for **running containers only**. Key differences from `charly shell -c`:
 
-| | `ov cmd` | `ov shell -c` |
+| | `charly cmd` | `charly shell -c` |
 |---|---------|--------------|
 | Container state | Running only | Running or starts new |
 | Notification | Yes (`--[no-]notify`) | No |
@@ -185,38 +185,38 @@ Source: `ov/network.go`.
 | Device auto-detect | No | Yes |
 | Use case | Quick commands + notification | Full container setup + command |
 
-Use `ov cmd` for quick operations on running services. Use `ov shell -c` when you need workspace mounts, device passthrough, or need to start a new container.
+Use `charly cmd` for quick operations on running services. Use `charly shell -c` when you need workspace mounts, device passthrough, or need to start a new container.
 
 ## Cross-References
 
 ### Prerequisite
 
-- `/ov-build:pull` -- **Required** before `ov shell` can work on a fresh host. Fetches the image into local storage so `ExtractMetadata` can read its OCI labels. Handles remote refs (`@github.com/...`) that `ov shell` itself rejects.
+- `/charly-build:pull` -- **Required** before `charly shell` can work on a fresh host. Fetches the image into local storage so `ExtractMetadata` can read its OCI labels. Handles remote refs (`@github.com/...`) that `charly shell` itself rejects.
 
 ### Deploy-mode neighbors
 
-- `/ov-core:cmd` -- Single command execution with D-Bus notification (running containers only)
-- `/ov-automation:tmux` -- Persistent tmux sessions (survives disconnects, needed for TTY-dependent TUI programs)
-- `/ov-core:service` -- Starting background services before exec
-- `/ov-core:start` -- Same `appendAutoDetectedEnv()` injection at service-start time
-- `/ov-core:ov-config` -- Deployment setup + same `appendAutoDetectedEnv()` at deploy time; `--no-autodetect` flag disables it
-- `/ov-core:deploy` -- `deploy.yml` overlay applied to labels before shell spawns
-- `/ov-eval:cdp` -- Chrome DevTools Protocol automation
-- `/ov-eval:wl` (sway subgroup) -- Sway compositor control
-- `/ov-core:ov-doctor` -- Host hardware probe that feeds `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
-- `/ov-build:settings` -- Engine and bind address settings
+- `/charly-core:cmd` -- Single command execution with D-Bus notification (running containers only)
+- `/charly-automation:tmux` -- Persistent tmux sessions (survives disconnects, needed for TTY-dependent TUI programs)
+- `/charly-core:service` -- Starting background services before exec
+- `/charly-core:start` -- Same `appendAutoDetectedEnv()` injection at service-start time
+- `/charly-core:ov-config` -- Deployment setup + same `appendAutoDetectedEnv()` at deploy time; `--no-autodetect` flag disables it
+- `/charly-core:deploy` -- `deploy.yml` overlay applied to labels before shell spawns
+- `/charly-eval:cdp` -- Chrome DevTools Protocol automation
+- `/charly-eval:wl` (sway subgroup) -- Sway compositor control
+- `/charly-core:ov-doctor` -- Host hardware probe that feeds `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
+- `/charly-build:settings` -- Engine and bind address settings
 
 ### Build-mode references
 
-- `/ov-image:image` -- Image definitions (ports, volumes, env) in `box.yml`; authoritative source before a pull
-- `/ov-build:build` -- Build the image you intend to shell into
+- `/charly-image:image` -- Image definitions (ports, volumes, env) in `box.yml`; authoritative source before a pull
+- `/charly-build:build` -- Build the image you intend to shell into
 
 ### Layer skills
 
-- `/ov-distros:nvidia`, `/ov-distros:rocm` -- GPU layers consuming the auto-injected env
+- `/charly-distros:nvidia`, `/charly-distros:rocm` -- GPU layers consuming the auto-injected env
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves ov shell command, interactive shells, command execution in containers, workspace mounts, TTY allocation, or port relay. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves charly shell command, interactive shells, command execution in containers, workspace mounts, TTY allocation, or port relay. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Any time. Interactive access to running or stopped containers.

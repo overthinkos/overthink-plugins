@@ -24,29 +24,29 @@ Root base image built from `quay.io/archlinux/archlinux`, pinned to a precise `b
 ## Quick Start
 
 ```bash
-ov box build arch
-ov shell arch
+charly box build arch
+charly shell arch
 ```
 
 ## Derived Images
 
-`arch` (this base) and `/ov-distros:arch-builder` **live in this
+`arch` (this base) and `/charly-distros:arch-builder` **live in this
 repo** (in the combined `base.yml`). The consumer Arch images live in the
 **`overthinkos/arch`** repo (git submodule at **`image/arch`**), whose config is
-`overthink.yml` plus its per-kind sibling files (`box.yml`/`pod.yml`/`k8s.yml`,
+`charly.yml` plus its per-kind sibling files (`box.yml`/`pod.yml`/`k8s.yml`,
 and `vm.yml` where it has VMs), flat-imported via `import:`. It composes this repo's
 layers by git reference and reaches `arch` / `arch-builder` by importing the
 main repo under the `ov` namespace (`import: [{ov: ../..}]`), so its images
 write `base: ov.arch` and route builders to `ov.arch-builder`:
 
-- `/ov-distros:arch-builder` — adds pixi, nodejs, build-toolchain, yay (in this repo)
-- `/ov-coder:arch-coder` — kitchen-sink dev image (in `image/arch`)
-- `/ov-coder:arch-ov` — full ov toolchain on Arch (in `image/arch`)
-- `/ov-distros:arch-test` — pacman + AUR packaging test (in `image/arch`)
+- `/charly-distros:arch-builder` — adds pixi, nodejs, build-toolchain, yay (in this repo)
+- `/charly-coder:arch-coder` — kitchen-sink dev image (in `image/arch`)
+- `/charly-coder:arch-ov` — full charly toolchain on Arch (in `image/arch`)
+- `/charly-distros:arch-test` — pacman + AUR packaging test (in `image/arch`)
 
 ## Multi-Distro Support
 
-This is the Arch counterpart to `/ov-distros:fedora`. The tag system (`distro: [arch]`, `build: [pac]`) selects `pac:` package sections and `pac:` tasks in tasks:. Layers shared between Arch and Fedora images use distro-specific sections:
+This is the Arch counterpart to `/charly-distros:fedora`. The tag system (`distro: [arch]`, `build: [pac]`) selects `pac:` package sections and `pac:` tasks in tasks:. Layers shared between Arch and Fedora images use distro-specific sections:
 
 ```yaml
 # candy.yml — multi-distro package declarations
@@ -59,26 +59,26 @@ pac:
 AUR packages are authored under `distro.arch.aur.package` and built via
 `arch-builder` (`yay`); the consuming image must add `aur` to its `build:` list
 (`build: [pac, aur]`) — the base declares only `build: [pac]`. The
-`/ov-distros:cachyos` base shares this exact AUR path (it routes `aur` →
+`/charly-distros:cachyos` base shares this exact AUR path (it routes `aur` →
 `arch-builder` too), so AUR support is identical on `arch` and `cachyos`. See
-`/ov-image:layer` "AUR (`aur:`)" for the authoring reference.
+`/charly-image:layer` "AUR (`aur:`)" for the authoring reference.
 
 ## Verification
 
-After `ov box build`:
-- `ov box list` — image appears in list
-- `ov shell arch` — interactive shell works
-- `ov shell arch -c "pacman --version"` — pacman available
+After `charly box build`:
+- `charly box list` — image appears in list
+- `charly shell arch` — interactive shell works
+- `charly shell arch -c "pacman --version"` — pacman available
 
 ## Related Images
-- `/ov-distros:arch-builder` — adds pixi, nodejs, build-toolchain, yay
-- `/ov-coder:arch-ov` — full ov toolchain on Arch
-- `/ov-distros:arch-test` — pacman + AUR test image
-- `/ov-distros:fedora` — RPM-based counterpart
+- `/charly-distros:arch-builder` — adds pixi, nodejs, build-toolchain, yay
+- `/charly-coder:arch-ov` — full charly toolchain on Arch
+- `/charly-distros:arch-test` — pacman + AUR test image
+- `/charly-distros:fedora` — RPM-based counterpart
 
 ## Related Commands
-- `/ov-build:build` — build the arch base image
-- `/ov-core:shell` — interactive shell in the base image
+- `/charly-build:build` — build the arch base image
+- `/charly-core:shell` — interactive shell in the base image
 
 ## When to Use This Skill
 
@@ -86,4 +86,4 @@ After `ov box build`:
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)

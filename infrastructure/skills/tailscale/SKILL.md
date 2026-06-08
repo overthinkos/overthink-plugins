@@ -36,7 +36,7 @@ my-bootc-image:
     - ...
 ```
 
-The layer's `cmd:` task issues `systemctl enable tailscaled.service` at build time (suffixed with `|| true` because offline bootc assembly can't fully activate a live systemd — same `|| true` pattern used in `/ov-distros:bootc-config` for `systemctl set-default graphical.target`).
+The layer's `cmd:` task issues `systemctl enable tailscaled.service` at build time (suffixed with `|| true` because offline bootc assembly can't fully activate a live systemd — same `|| true` pattern used in `/charly-distros:bootc-config` for `systemctl set-default graphical.target`).
 
 ## Runtime activation
 
@@ -45,7 +45,7 @@ The image does **not** bring up the mesh on first boot — `tailscale up --authk
 - Interactive SSH after boot: `sudo tailscale up` and copy the login URL.
 - Auth key via cloud-init or a systemd drop-in that reads a secret from `/etc/tailscale/authkey` (out of scope for this layer).
 
-For `target: local` host deploys (canonical: `local.ov-cachyos`), pair this layer with `/ov-infrastructure:tailscale-up` — the runtime-config sibling that sets `--operator=$account` so non-root user-systemd quadlets can run `tailscale serve` (the per-pod `tunnel: tailscale` mechanism in `deploy.yml`), and that keeps the tailnet device name in sync with `hostname -s` across hostname changes. `tailscale-up` self-gates on `systemctl is-active tailscaled` so it's a no-op in image-build / pre-auth contexts; bootc consumers don't include it.
+For `target: local` host deploys (canonical: `local.ov-cachyos`), pair this layer with `/charly-infrastructure:tailscale-up` — the runtime-config sibling that sets `--operator=$account` so non-root user-systemd quadlets can run `tailscale serve` (the per-pod `tunnel: tailscale` mechanism in `deploy.yml`), and that keeps the tailnet device name in sync with `hostname -s` across hostname changes. `tailscale-up` self-gates on `systemctl is-active tailscaled` so it's a no-op in image-build / pre-auth contexts; bootc consumers don't include it.
 
 ## Used In Images
 
@@ -60,21 +60,21 @@ Two declarative checks (build-scope):
 
 ## Relationship to the other two places tailscale lives in this repo
 
-1. **This layer** (`/ov-infrastructure:tailscale`) — bakes the **daemon** into a system image as a first-class systemd service. The image runs its own tailnet node. Use for bootc/VM images.
-2. **`/ov-distros:container-nesting`** — also installs the tailscale package, but as a **tool** inside a container-in-container harness (rootless podman with Tailscale-backed outbound). Different use case; don't use both in the same image.
-3. **Deploy-mode tunnel/sidecar** (`/ov-automation:sidecar`, `/ov-core:deploy`) — a separate deployment-time decision that runs tailscale in a **sidecar container** alongside your app pod, giving the app a tailnet identity without baking the daemon into the app image. This is `deploy.yml`-only state and is not affected by whether this layer is present.
+1. **This layer** (`/charly-infrastructure:tailscale`) — bakes the **daemon** into a system image as a first-class systemd service. The image runs its own tailnet node. Use for bootc/VM images.
+2. **`/charly-distros:container-nesting`** — also installs the tailscale package, but as a **tool** inside a container-in-container harness (rootless podman with Tailscale-backed outbound). Different use case; don't use both in the same image.
+3. **Deploy-mode tunnel/sidecar** (`/charly-automation:sidecar`, `/charly-core:deploy`) — a separate deployment-time decision that runs tailscale in a **sidecar container** alongside your app pod, giving the app a tailnet identity without baking the daemon into the app image. This is `deploy.yml`-only state and is not affected by whether this layer is present.
 
 All three can coexist, but for most cases you want exactly one.
 
 ## Related Skills
 
-- `/ov-infrastructure:tailscale-up` — runtime-config sibling for `target: local` host deploys (sets `--operator` + `--hostname`). Use both layers together on host targets that need `tailscale serve` to work without sudo.
-- `/ov-distros:container-nesting` — the previous home of the tailscale package (bundled with buildah/skopeo/docker for nested podman; separate concern)
-- `/ov-distros:bootc-config` — companion layer for bootc boot wiring (autologin, graphical target, supervisord user service)
-- `/ov-automation:sidecar` — deploy-time Tailscale sidecar pattern (alternative, not a replacement)
-- `/ov-core:deploy` — `deploy.yml` tunnel/sidecar configuration
-- `/ov-image:layer` — layer authoring reference
-- `/ov-eval:eval` — declarative testing reference
+- `/charly-infrastructure:tailscale-up` — runtime-config sibling for `target: local` host deploys (sets `--operator` + `--hostname`). Use both layers together on host targets that need `tailscale serve` to work without sudo.
+- `/charly-distros:container-nesting` — the previous home of the tailscale package (bundled with buildah/skopeo/docker for nested podman; separate concern)
+- `/charly-distros:bootc-config` — companion layer for bootc boot wiring (autologin, graphical target, supervisord user service)
+- `/charly-automation:sidecar` — deploy-time Tailscale sidecar pattern (alternative, not a replacement)
+- `/charly-core:deploy` — `deploy.yml` tunnel/sidecar configuration
+- `/charly-image:layer` — layer authoring reference
+- `/charly-eval:eval` — declarative testing reference
 
 ## When to Use This Skill
 

@@ -49,30 +49,30 @@ Self-hosted photo and video management server with full codec support.
 ## Quick Start
 
 ```bash
-ov box build immich
-ov config immich
-ov start immich
+charly box build immich
+charly config immich
+charly start immich
 # Open http://localhost:2283
 ```
 
 ## Key Layers
 
-- `/ov-immich:immich` — Immich server, db init, library/cache volumes
-- `/ov-infrastructure:postgresql` — database backend
-- `/ov-infrastructure:vectorchord` — VectorChord for smart search
-- `/ov-infrastructure:redis` — session/cache backend
-- `/ov-distros:rpmfusion` — non-free codec support (via fedora-nonfree base)
+- `/charly-immich:immich` — Immich server, db init, library/cache volumes
+- `/charly-infrastructure:postgresql` — database backend
+- `/charly-infrastructure:vectorchord` — VectorChord for smart search
+- `/charly-infrastructure:redis` — session/cache backend
+- `/charly-distros:rpmfusion` — non-free codec support (via fedora-nonfree base)
 
 ## Related Images
 
-- `/ov-distros:fedora-nonfree` — parent base
-- `/ov-immich:immich-ml` — adds CUDA ML for face recognition and smart search
+- `/charly-distros:fedora-nonfree` — parent base
+- `/charly-immich:immich-ml` — adds CUDA ML for face recognition and smart search
 
 ## Verification
 
-After `ov start`:
-- `ov status immich` — container running
-- `ov service status immich` — all services RUNNING
+After `charly start`:
+- `charly status immich` — container running
+- `charly service status immich` — all services RUNNING
 - `curl -s -o /dev/null -w '%{http_code}' http://localhost:2283` — Immich HTTP returns 200
 
 ## When to Use This Skill
@@ -81,5 +81,5 @@ After `ov start`:
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

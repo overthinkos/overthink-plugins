@@ -10,7 +10,7 @@ description: |
 
 # vm-spec
 
-Go type reference for the VM surface. `VmSpec` + `VmSource` + `VmChecksum` + `VmNetwork` + `VmSSH` + `VmKeyInjection` + `VmCloudInit` + `VmOvInstall` are the canonical types that drive `ov vm build`, `ov vm create`, and `ov deploy add vm:<name>`. This skill is the authoritative Go reference — field semantics, defaults, validation rules, migration history. The YAML-authoring companion is `/ov-vm:vms-catalog`.
+Go type reference for the VM surface. `VmSpec` + `VmSource` + `VmChecksum` + `VmNetwork` + `VmSSH` + `VmKeyInjection` + `VmCloudInit` + `VmOvInstall` are the canonical types that drive `charly vm build`, `charly vm create`, and `charly deploy add vm:<name>`. This skill is the authoritative Go reference — field semantics, defaults, validation rules, migration history. The YAML-authoring companion is `/charly-vm:vms-catalog`.
 
 ## Source files
 
@@ -44,7 +44,7 @@ Every field except `Source`, `CloudInit`, and `Source`-branch-specific subfields
 
 ### Autostart (boot-start)
 
-`autostart: true` sets libvirt's per-domain autostart flag (`DomainSetAutostart`, in `runVmSpecCreate` after define). Because VMs run under `qemu:///session`, that flag only fires at host boot once the session daemon is running — and there is no portable user-level `virtqemud.socket` to socket-activate it (Arch/CachyOS ships none). So `ensureBootAutostartPrereqs` (`ov/vm.go`) (a) runs `loginctl enable-linger <user>` (idempotent) and (b) writes + enables a per-VM user systemd oneshot `ov-autostart-<domain>.service` that runs `virsh -c qemu:///session start <domain>` at boot (`WantedBy=default.target`); virsh spawns the session daemon on demand and starts the already-defined domain — deterministic and cross-distro. `ov vm destroy` removes the unit (`removeAutostartUserUnit`). The libvirt flag is a domain property (not XML), so it survives `DomainDefineXML` redefinitions; `runVmSpecCreate` re-asserts both on every create/rebuild. `ValidateVmSpec` rejects `autostart: true` with `backend: qemu`. Additive optional field — no schema-version bump.
+`autostart: true` sets libvirt's per-domain autostart flag (`DomainSetAutostart`, in `runVmSpecCreate` after define). Because VMs run under `qemu:///session`, that flag only fires at host boot once the session daemon is running — and there is no portable user-level `virtqemud.socket` to socket-activate it (Arch/CachyOS ships none). So `ensureBootAutostartPrereqs` (`ov/vm.go`) (a) runs `loginctl enable-linger <user>` (idempotent) and (b) writes + enables a per-VM user systemd oneshot `ov-autostart-<domain>.service` that runs `virsh -c qemu:///session start <domain>` at boot (`WantedBy=default.target`); virsh spawns the session daemon on demand and starts the already-defined domain — deterministic and cross-distro. `charly vm destroy` removes the unit (`removeAutostartUserUnit`). The libvirt flag is a domain property (not XML), so it survives `DomainDefineXML` redefinitions; `runVmSpecCreate` re-asserts both on every create/rebuild. `ValidateVmSpec` rejects `autostart: true` with `backend: qemu`. Additive optional field — no schema-version bump.
 
 `DiskSize` is the **virtual** size: the bootstrap path's `truncate` + `qemu-img convert -O qcow2` (no `preallocation`) produces a sparse qcow2 that grows on demand, so `disk_size: 1T` costs only the bytes actually written.
 
@@ -55,7 +55,7 @@ A `libvirt.devices.filesystems[]` entry with `driver: virtiofs` +
 `<idmap>` at render time so the share is owned by the guest's interactive user
 (uid 1000), not guest-root. This is what makes `source: /home/<you>` →
 `target: workspace` usable as the SSH user inside the guest. Mechanism +
-the exact id partition live in `/ov-internals:libvirt-renderer` "virtiofs
+the exact id partition live in `/charly-internals:libvirt-renderer` "virtiofs
 guest-user idmap"; shared-memory auto-pairing is in the same skill.
 
 ## VmSource (discriminated union)
@@ -85,7 +85,7 @@ type VmSource struct {
 
 `BaseUser` mirrors the container-side `base_user:` + `user_policy: adopt` pattern. When set:
 
-1. `/ov-internals:cloud-init-renderer::composeUsers` emits `users: [default, {name: <base_user>, ssh_authorized_keys: [...]}]` — merge-by-name, no `useradd`.
+1. `/charly-internals:cloud-init-renderer::composeUsers` emits `users: [default, {name: <base_user>, ssh_authorized_keys: [...]}]` — merge-by-name, no `useradd`.
 2. `spec.ssh.user` defaults to `BaseUser`.
 3. cloud-init appends the pubkey to `~<base_user>/.ssh/authorized_keys` without touching sudoers/shell/home.
 
@@ -140,12 +140,12 @@ type VmOvInstall struct {
 |---|---|
 | `auto` (default) | scp the local `ov` binary (`os.Executable()`) into the guest post-boot via VmDeployTarget |
 | `scp` | explicit form of auto |
-| `url` | cloud-init runcmd downloads ov from URL at first boot |
-| `skip` | user manages ov install; VmDeployTarget verifies presence only |
+| `url` | cloud-init runcmd downloads charly from URL at first boot |
+| `skip` | user manages charly install; VmDeployTarget verifies presence only |
 
 ## Validation (ov/libvirt_validate.go)
 
-`ValidateVmSpec` enforces the invariants documented in `/ov-vm:vms-catalog`. Key checks:
+`ValidateVmSpec` enforces the invariants documented in `/charly-vm:vms-catalog`. Key checks:
 
 - `source.kind` ∈ {`cloud_image`, `bootc`}.
 - cloud_image branch requires `url:` populated; bootc branch requires `image:`.
@@ -155,7 +155,7 @@ type VmOvInstall struct {
 - `ssh.key_injection.{smbios,cloud_init}` ∈ {`auto`, `enabled`, `disabled`}.
 - `Libvirt` structure routed to `ValidateLibvirtConfig`.
 
-Failed validation → hard load-time error with a one-line remediation hint pointing at `/ov-vm:vms-catalog` or `ov migrate`.
+Failed validation → hard load-time error with a one-line remediation hint pointing at `/charly-vm:vms-catalog` or `charly migrate`.
 
 ## Migration from legacy VmConfig
 
@@ -170,16 +170,16 @@ The legacy `VmConfig` type + `BoxConfig.Vm` + `BoxConfig.Libvirt` + `ResolvedIma
 | `image.vm.network` (string) | `vms.<name>.network.mode` |
 | `image.libvirt: ["<xml>", …]` (list of strings) | `vms.<name>.libvirt.snippets: […]` + structured `libvirt.devices.*` |
 
-`ov migrate` performs this mapping idempotently. See `/ov-build:migrate` for the command and `/ov-internals:cutover-policy` for the policy.
+`charly migrate` performs this mapping idempotently. See `/charly-build:migrate` for the command and `/charly-internals:cutover-policy` for the policy.
 
 ## Cross-References
 
-- `/ov-vm:vms-catalog` — YAML-authoring companion (when to pick cloud_image vs bootc, adopt pattern, step-by-step recipes)
-- `/ov-internals:libvirt-renderer` — `LibvirtConfig` rendering + pure render functions
-- `/ov-internals:cloud-init-renderer` — `RenderCloudInit`, `composeUsers`, seed ISO
-- `/ov-internals:vm-deploy-target` — VmDeployTarget consuming VmSpec via DeployExecutor
-- `/ov-internals:ovmf` — `ResolveOvmfForSpec` reads `spec.Firmware`
-- `/ov-internals:cutover-policy` — why the legacy surface was deleted in one PR
-- `/ov-vm:vm` — command-family skill; reads vm.yml through VmSpec
-- `/ov-build:migrate` — `ov migrate` command
-- `/ov-internals:go` — Go CLI development overview
+- `/charly-vm:vms-catalog` — YAML-authoring companion (when to pick cloud_image vs bootc, adopt pattern, step-by-step recipes)
+- `/charly-internals:libvirt-renderer` — `LibvirtConfig` rendering + pure render functions
+- `/charly-internals:cloud-init-renderer` — `RenderCloudInit`, `composeUsers`, seed ISO
+- `/charly-internals:vm-deploy-target` — VmDeployTarget consuming VmSpec via DeployExecutor
+- `/charly-internals:ovmf` — `ResolveOvmfForSpec` reads `spec.Firmware`
+- `/charly-internals:cutover-policy` — why the legacy surface was deleted in one PR
+- `/charly-vm:vm` — command-family skill; reads vm.yml through VmSpec
+- `/charly-build:migrate` — `charly migrate` command
+- `/charly-internals:go` — Go CLI development overview

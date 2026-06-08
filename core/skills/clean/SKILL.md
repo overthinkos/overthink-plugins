@@ -3,34 +3,34 @@ name: clean
 description: |
   Prune reusable build artifacts to defaults: retention (images, eval runs) and
   sweep one-time makepkg leftovers.
-  MUST be invoked before any work involving: ov clean, build-artifact retention,
+  MUST be invoked before any work involving: charly clean, build-artifact retention,
   keep_images / keep_eval_runs, image-tag pruning, or .eval run cleanup.
 ---
 
-# ov clean -- Build-artifact retention + cleanup
+# charly clean -- Build-artifact retention + cleanup
 
 ## Overview
 
-`ov clean` reclaims disk by applying the project's configured retention to
+`charly clean` reclaims disk by applying the project's configured retention to
 **reusable** build artifacts and removing **one-time** transient leftovers. It is
-the on-demand counterpart to the auto-pruning that runs after `ov box build`
-and `ov eval run`.
+the on-demand counterpart to the auto-pruning that runs after `charly box build`
+and `charly eval run`.
 
 Two artifact classes, two policies (operator principle):
 
 - **One-time / transient → always cleaned immediately.** makepkg leftovers under
   `pkg/arch` (`src/`, `pkg/`, `*.pkg.tar.zst`, `*.log`). `task build:ov` removes
-  these right after install; `ov clean` sweeps any backlog.
+  these right after install; `charly clean` sweeps any backlog.
 - **Reusable → keep-last-N, configurable in `defaults:`.** Container image tags
-  and `.eval` run output. Retention is set in `overthink.yml` `defaults:` and
-  applied automatically at creation; `ov clean` applies it on demand.
+  and `.eval` run output. Retention is set in `charly.yml` `defaults:` and
+  applied automatically at creation; `charly clean` applies it on demand.
 
-## Config (overthink.yml `defaults:`)
+## Config (charly.yml `defaults:`)
 
 ```yaml
 defaults:
-  keep_images: 3      # newest CalVer tags to keep per image after `ov box build`
-  keep_eval_runs: 3   # newest run dirs to keep per bed/score after `ov eval run`
+  keep_images: 3      # newest CalVer tags to keep per image after `charly box build`
+  keep_eval_runs: 3   # newest run dirs to keep per bed/score after `charly eval run`
 ```
 
 `0` (or absent → built-in fallback `0`) **disables** that retention. The repo
@@ -39,11 +39,11 @@ opts in; third-party configs get no surprise pruning until they set a value.
 ## Commands
 
 ```bash
-ov clean              # apply retention now: prune images + eval runs + makepkg leftovers
-ov clean --dry-run    # print everything that WOULD be removed; touch nothing
-ov clean --images     # only image-tag retention
-ov clean --eval       # only eval-run retention
-ov clean --keep N     # override the retention count for this run (0 = use defaults:)
+charly clean              # apply retention now: prune images + eval runs + makepkg leftovers
+charly clean --dry-run    # print everything that WOULD be removed; touch nothing
+charly clean --images     # only image-tag retention
+charly clean --eval       # only eval-run retention
+charly clean --keep N     # override the retention count for this run (0 = use defaults:)
 ```
 
 With neither `--images` nor `--eval`, all three categories run (images + eval +
@@ -52,11 +52,11 @@ makepkg). `--keep N` overrides both counts for the invocation.
 ## What gets pruned (and what never does)
 
 **Image-tag retention** (`keep_images`): images are grouped by the
-`org.overthinkos.image` label and ordered by the `org.overthinkos.version`
+`ai.opencharly.image` label and ordered by the `ai.opencharly.version`
 CalVer label; all but the newest N per group are `podman rmi`'d. **Safety**: any
 image referenced by a container (`podman ps -a`, including stopped/quadlet
 deploys) is skipped, and `rmi` runs WITHOUT `-f` so the engine refuses any
-still-referenced image as a backstop. Non-ov images (no `org.overthinkos.image`
+still-referenced image as a backstop. Non-charly images (no `ai.opencharly.image`
 label) and images with an unparseable version are never touched.
 
 **Eval-run retention** (`keep_eval_runs`): each `.eval/<bed|score>/` dir is
@@ -77,17 +77,17 @@ backstop refuses it). The real run silently retains such in-use images.
 
 The same retention runs automatically (no flag needed):
 
-- After `ov box build` (push runs excluded) → `keep_images`.
-- After `ov eval run` (any path: bed / `--all-beds` / score) → `keep_eval_runs`,
+- After `charly box build` (push runs excluded) → `keep_images`.
+- After `charly eval run` (any path: bed / `--all-beds` / score) → `keep_eval_runs`,
   after the new run's output is written so the newest run is kept.
 
-`ov clean` exists for on-demand sweeps and to clear a pre-existing backlog.
+`charly clean` exists for on-demand sweeps and to clear a pre-existing backlog.
 
 ## Out of scope
 
 VM disk images (`output/`, `image/*/output/`) are single products per type
 (overwritten on rebuild, not accumulated) — remove them on demand with
-`ov vm destroy --disk`. The VM raw intermediate is already auto-cleaned during
+`charly vm destroy --disk`. The VM raw intermediate is already auto-cleaned during
 the qcow2 build.
 
 ## Implementation
@@ -100,7 +100,7 @@ the qcow2 build.
 
 ## Cross-References
 
-- `/ov-build:build` — `ov box build` + the `keep_images` auto-prune.
-- `/ov-eval:eval` — `ov eval run` + the `keep_eval_runs` auto-prune.
-- `/ov-vm:vm` — `ov vm destroy --disk` for VM disk removal.
-- `/ov-image:image` — the `defaults:` block where retention keys live.
+- `/charly-build:build` — `charly box build` + the `keep_images` auto-prune.
+- `/charly-eval:eval` — `charly eval run` + the `keep_eval_runs` auto-prune.
+- `/charly-vm:vm` — `charly vm destroy --disk` for VM disk removal.
+- `/charly-image:image` — the `defaults:` block where retention keys live.

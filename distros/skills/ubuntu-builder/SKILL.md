@@ -11,10 +11,10 @@ description: |
 
 # ubuntu-builder
 
-Ubuntu 24.04 (noble) counterpart of `/ov-distros:fedora-builder` and `/ov-distros:debian-builder`. Same role — pixi/npm/cargo multi-stage builder — with one important difference: the builder runs as `ubuntu` (uid 1000) because the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu.base_user` adopts it.
+Ubuntu 24.04 (noble) counterpart of `/charly-distros:fedora-builder` and `/charly-distros:debian-builder`. Same role — pixi/npm/cargo multi-stage builder — with one important difference: the builder runs as `ubuntu` (uid 1000) because the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu.base_user` adopts it.
 
 Lives in the **`overthinkos/ubuntu`** repo (git submodule at **`image/ubuntu`**).
-Build it from the submodule: `ov -C image/ubuntu image build ubuntu-builder`
+Build it from the submodule: `charly -C image/ubuntu image build ubuntu-builder`
 (normally builds implicitly as a dependency of `ubuntu-coder`). Its
 `pixi`/`nodejs`/`build-toolchain` layers are pulled by github reference from the
 main repo.
@@ -27,15 +27,15 @@ main repo.
 | Layers | `pixi`, `nodejs`, `build-toolchain` |
 | Platforms | `linux/amd64` |
 | Registry | `ghcr.io/overthinkos` |
-| User | `ubuntu` / uid 1000 (**adopt mode** — see `/ov-image:image` "user_policy") |
+| User | `ubuntu` / uid 1000 (**adopt mode** — see `/charly-image:image` "user_policy") |
 | Home | `/home/ubuntu` |
 
 ## Full layer stack
 
-1. `/ov-distros:ubuntu` — Ubuntu 24.04 + bootstrap. Inherits Debian's `apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg` pattern because `build.yml distro.ubuntu` declares `inherits: debian`. Ubuntu-specific: `base_user: { name: ubuntu, uid: 1000, gid: 1000, home: /home/ubuntu }` — no `useradd` step emitted.
-2. `/ov-languages:pixi` — pixi package manager + env paths (`/home/ubuntu/.pixi`).
-3. `/ov-coder:nodejs` — Node.js + npm (generic `nodejs`).
-4. `/ov-coder:build-toolchain` — same Debian `-dev` packages as `/ov-distros:debian-builder`.
+1. `/charly-distros:ubuntu` — Ubuntu 24.04 + bootstrap. Inherits Debian's `apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg` pattern because `build.yml distro.ubuntu` declares `inherits: debian`. Ubuntu-specific: `base_user: { name: ubuntu, uid: 1000, gid: 1000, home: /home/ubuntu }` — no `useradd` step emitted.
+2. `/charly-languages:pixi` — pixi package manager + env paths (`/home/ubuntu/.pixi`).
+3. `/charly-coder:nodejs` — Node.js + npm (generic `nodejs`).
+4. `/charly-coder:build-toolchain` — same Debian `-dev` packages as `/charly-distros:debian-builder`.
 
 ## Adopt-mode semantics
 
@@ -47,7 +47,7 @@ WORKDIR /home/ubuntu
 USER 1000
 ```
 
-No `useradd`, no `groupadd`, no `usermod -l` rename. The upstream `ubuntu:ubuntu` account is honored verbatim — HOME, npm prefix, pixi env, cargo home, sudoers all derive from `resolved.User = "ubuntu"`. See `/ov-image:image` "user_policy" and `/ov-internals:generate-source` "writeBootstrap".
+No `useradd`, no `groupadd`, no `usermod -l` rename. The upstream `ubuntu:ubuntu` account is honored verbatim — HOME, npm prefix, pixi env, cargo home, sudoers all derive from `resolved.User = "ubuntu"`. See `/charly-image:image` "user_policy" and `/charly-internals:generate-source` "writeBootstrap".
 
 ## Role in the build system
 
@@ -61,48 +61,48 @@ ubuntu:
     cargo: ubuntu-builder
 ```
 
-During `ov box build ubuntu-coder`, cargo/npm/pixi-owning layers get their `FROM ubuntu-builder AS <layer>-<type>-build` stages from this image, then `COPY --from=<stage> --chown=1000:1000 /home/ubuntu /home/ubuntu` into the final ubuntu-coder. (The `--chown=1000:1000` numeric form works uniformly regardless of user name — see `/ov-coder:build-toolchain` for the builder-artifact COPY pattern.)
+During `charly box build ubuntu-coder`, cargo/npm/pixi-owning layers get their `FROM ubuntu-builder AS <layer>-<type>-build` stages from this image, then `COPY --from=<stage> --chown=1000:1000 /home/ubuntu /home/ubuntu` into the final ubuntu-coder. (The `--chown=1000:1000` numeric form works uniformly regardless of user name — see `/charly-coder:build-toolchain` for the builder-artifact COPY pattern.)
 
 ## Cross-distro sibling builders
 
-- `/ov-distros:fedora-builder` — RPM-family, `user:user` uid 1000 (create).
-- `/ov-distros:debian-builder` — deb-family, Debian 13, `user:user` (create — Debian 13 ships no pre-existing uid-1000 user).
-- `/ov-distros:arch-builder` — pacman-family, `user:user` + `yay` for AUR.
+- `/charly-distros:fedora-builder` — RPM-family, `user:user` uid 1000 (create).
+- `/charly-distros:debian-builder` — deb-family, Debian 13, `user:user` (create — Debian 13 ships no pre-existing uid-1000 user).
+- `/charly-distros:arch-builder` — pacman-family, `user:user` + `yay` for AUR.
 
 The three builders have near-identical layer stacks (pixi + nodejs + build-toolchain). The only meaningful divergence is this image's adopt-mode `ubuntu:ubuntu` identity.
 
 ## Quick start
 
 ```bash
-ov -C image/ubuntu image build ubuntu-builder
-ov shell ubuntu-builder               # drops you into /home/ubuntu as uid 1000
+charly -C image/ubuntu image build ubuntu-builder
+charly shell ubuntu-builder               # drops you into /home/ubuntu as uid 1000
 id                                    # uid=1000(ubuntu) gid=1000(ubuntu)
 ```
 
-Typically not invoked directly — it's a build-time dependency of `/ov-coder:ubuntu-coder`.
+Typically not invoked directly — it's a build-time dependency of `/charly-coder:ubuntu-coder`.
 
 ## Verification
 
-- `ov -C image/ubuntu image list | grep ubuntu-builder`
-- `ov shell ubuntu-builder -- id` → `uid=1000(ubuntu) gid=1000(ubuntu)`
-- `ov shell ubuntu-builder -- pixi --version && node --version && gcc --version`
+- `charly -C image/ubuntu image list | grep ubuntu-builder`
+- `charly shell ubuntu-builder -- id` → `uid=1000(ubuntu) gid=1000(ubuntu)`
+- `charly shell ubuntu-builder -- pixi --version && node --version && gcc --version`
 
 ## Related images
 
-- `/ov-distros:ubuntu` — parent base; declares `base_user:` in `build.yml`.
-- `/ov-coder:ubuntu-coder` — the consumer that this builder serves.
-- `/ov-distros:debian-builder` — deb-family sibling without adopt mode.
-- `/ov-distros:fedora-builder` — canonical RPM-family sibling.
+- `/charly-distros:ubuntu` — parent base; declares `base_user:` in `build.yml`.
+- `/charly-coder:ubuntu-coder` — the consumer that this builder serves.
+- `/charly-distros:debian-builder` — deb-family sibling without adopt mode.
+- `/charly-distros:fedora-builder` — canonical RPM-family sibling.
 
 ## Related layers
 
-- `/ov-languages:pixi`, `/ov-coder:nodejs`, `/ov-coder:build-toolchain`
+- `/charly-languages:pixi`, `/charly-coder:nodejs`, `/charly-coder:build-toolchain`
 
 ## Related commands
 
-- `/ov-build:build` — `base_user:` declaration format in `build.yml distro.*`
-- `/ov-image:image` — `user_policy:` field (auto / adopt / create) and the decision table
-- `/ov-build:generate` — adopt-vs-create writeBootstrap emission modes
+- `/charly-build:build` — `base_user:` declaration format in `build.yml distro.*`
+- `/charly-image:image` — `user_policy:` field (auto / adopt / create) and the decision table
+- `/charly-build:generate` — adopt-vs-create writeBootstrap emission modes
 
 ## When to use this skill
 

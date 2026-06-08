@@ -24,21 +24,21 @@ rpm:
 ## Usage
 
 ```bash
-ov eval wl exec <image> xterm           # Launch xterm (triggers XWayland)
-ov eval wl focus <image> xterm          # Focus by app_id
-ov eval wl xprop <image> xterm          # Query X11 properties
-ov eval wl geometry <image> xterm       # Get window position/size
-ov eval wl close <image> xterm          # Close window
+charly eval wl exec <image> xterm           # Launch xterm (triggers XWayland)
+charly eval wl focus <image> xterm          # Focus by app_id
+charly eval wl xprop <image> xterm          # Query X11 properties
+charly eval wl geometry <image> xterm       # Get window position/size
+charly eval wl close <image> xterm          # Close window
 ```
 
-**Important:** The `ov eval wl exec` command sets `DISPLAY=:0` automatically for X11 apps.
+**Important:** The `charly eval wl exec` command sets `DISPLAY=:0` automatically for X11 apps.
 
 ## Why It's in selkies-desktop
 
 labwc has XWayland compiled in (`+xwayland`) but starts it on-demand only when an X11 client opens. Without an X11 app like xterm:
 - XWayland never starts
 - xdotool, xprop, xwininfo find no windows
-- `ov eval wl scroll` (xdotool click 4/5) and `ov eval wl drag` (xdotool mousedown/mouseup) can't target X11 windows
+- `charly eval wl scroll` (xdotool click 4/5) and `charly eval wl drag` (xdotool mousedown/mouseup) can't target X11 windows
 
 With xterm installed, users can launch it to enable full XWayland testing.
 
@@ -48,15 +48,15 @@ With xterm installed, users can launch it to enable full XWayland testing.
 
 ## Used In Images
 
-- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Cross-References
 
-- `/ov-eval:wl` — `ov eval wl exec`, `ov eval wl focus`, `ov eval wl close`, `ov eval wl xprop`, `ov eval wl geometry`
-- `/ov-selkies:selkies-desktop-layer` — Desktop metalayer that includes this layer
+- `/charly-eval:wl` — `charly eval wl exec`, `charly eval wl focus`, `charly eval wl close`, `charly eval wl xprop`, `charly eval wl geometry`
+- `/charly-selkies:selkies-desktop-layer` — Desktop metalayer that includes this layer
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

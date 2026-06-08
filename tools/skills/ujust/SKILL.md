@@ -24,16 +24,16 @@ my-image:
 
 ## Used In Images
 
-- `/ov-distros:bazzite`
+- `/charly-distros:bazzite`
 
 ## Related Layers
-- `/ov-distros:bootc-config` — bootc system bring-up
-- `/ov-distros:os-config` — bootc OS configuration sibling
-- `/ov-distros:os-system-files` — system file overlay sibling
+- `/charly-distros:bootc-config` — bootc system bring-up
+- `/charly-distros:os-config` — bootc OS configuration sibling
+- `/charly-distros:os-system-files` — system file overlay sibling
 
 ## Related Commands
-- `/ov-core:shell` — run ujust inside the container
-- `/ov-vm:vm` — bootc VM lifecycle for ujust-managed images
+- `/charly-core:shell` — run ujust inside the container
+- `/charly-vm:vm` — bootc VM lifecycle for ujust-managed images
 
 ## When to Use This Skill
 
@@ -46,5 +46,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

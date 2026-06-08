@@ -15,7 +15,7 @@ Unsloth Studio web UI for LLM fine-tuning with GPU acceleration.
 | Property | Value |
 |----------|-------|
 | Base | nvidia |
-| Layers | agent-forwarding, unsloth-studio, notebook-finetuning, dbus, ov |
+| Layers | agent-forwarding, unsloth-studio, notebook-finetuning, dbus, charly |
 | Platforms | linux/amd64 |
 | Ports | 8888, 8000 |
 | Registry | ghcr.io/overthinkos |
@@ -54,37 +54,37 @@ Build order: pixi environment → llama-cpp (binaries) → unsloth (vLLM 0.19 wh
 ## Quick Start
 
 ```bash
-ov box build unsloth-studio
-ov config unsloth-studio
-ov start unsloth-studio
+charly box build unsloth-studio
+charly config unsloth-studio
+charly start unsloth-studio
 # Open http://localhost:8888
 ```
 
 ## Key Layers
 
-- `/ov-jupyter:unsloth-studio` — Studio web UI service + pixi.toml (Tier 2)
-- `/ov-jupyter:llama-cpp` — llama.cpp binaries (Tier 1 sub-layer)
-- `/ov-jupyter:unsloth` — vLLM 0.19 + unsloth fine-tuning + torch.compile patch (Tier 1 sub-layer)
-- `/ov-jupyter:notebook-finetuning` — 37 Unsloth fine-tuning notebooks provisioned into workspace volume
-- `/ov-distros:nvidia` — GPU runtime and CDI device auto-detection (base)
-- `/ov-distros:cuda` — CUDA toolkit and libraries (via nvidia base)
-- `/ov-infrastructure:dbus-layer` — session bus for desktop notifications
-- `/ov-tools:ov` — in-container `ov` binary (enables `ov eval dbus notify`)
-- `/ov-distros:agent-forwarding` — SSH/GPG/direnv agent forwarding
+- `/charly-jupyter:unsloth-studio` — Studio web UI service + pixi.toml (Tier 2)
+- `/charly-jupyter:llama-cpp` — llama.cpp binaries (Tier 1 sub-layer)
+- `/charly-jupyter:unsloth` — vLLM 0.19 + unsloth fine-tuning + torch.compile patch (Tier 1 sub-layer)
+- `/charly-jupyter:notebook-finetuning` — 37 Unsloth fine-tuning notebooks provisioned into workspace volume
+- `/charly-distros:nvidia` — GPU runtime and CDI device auto-detection (base)
+- `/charly-distros:cuda` — CUDA toolkit and libraries (via nvidia base)
+- `/charly-infrastructure:dbus-layer` — session bus for desktop notifications
+- `/charly-tools:charly` — in-container `ov` binary (enables `charly eval dbus notify`)
+- `/charly-distros:agent-forwarding` — SSH/GPG/direnv agent forwarding
 
 ## Related Images
 
-- `/ov-distros:nvidia` — parent (GPU without Studio)
-- `/ov-jupyter:jupyter-ml` — alternative ML UI with JupyterLab + CRDT MCP (same Tier 1 sub-layers)
-- `/ov-languages:python-ml` — ML libraries without any UI
-- `/ov-jupyter:jupyter` — legacy Jupyter with ML (shares port 8888)
-- **CachyOS variant** — `cachyos.unsloth-studio` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base) in the `overthinkos/cachyos` submodule. See `/ov-distros:cachyos`.
+- `/charly-distros:nvidia` — parent (GPU without Studio)
+- `/charly-jupyter:jupyter-ml` — alternative ML UI with JupyterLab + CRDT MCP (same Tier 1 sub-layers)
+- `/charly-languages:python-ml` — ML libraries without any UI
+- `/charly-jupyter:jupyter` — legacy Jupyter with ML (shares port 8888)
+- **CachyOS variant** — `cachyos.unsloth-studio` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base) in the `overthinkos/cachyos` submodule. See `/charly-distros:cachyos`.
 
 ## Verification
 
-After `ov start`:
-- `ov status unsloth-studio` — container running
-- `ov service status unsloth-studio` — all services RUNNING
+After `charly start`:
+- `charly status unsloth-studio` — container running
+- `charly service status unsloth-studio` — all services RUNNING
 - `curl -s -o /dev/null -w '%{http_code}' http://localhost:8888` — Studio HTTP returns 200
 
 ## When to Use This Skill
@@ -93,5 +93,5 @@ After `ov start`:
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

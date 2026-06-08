@@ -9,7 +9,7 @@ description: |
 
 ## Overview
 
-Provides `pixelflux-screenshot` for capturing screenshots on selkies-desktop. Connects to the in-process capture bridge at `/tmp/ov-capture.sock` (started by `selkies-capture-server` inside the selkies process). The capture bridge taps into the selkies WebSocket stream and decodes H.264 frames to PNG via ffmpeg.
+Provides `pixelflux-screenshot` for capturing screenshots on selkies-desktop. Connects to the in-process capture bridge at `/tmp/charly-capture.sock` (started by `selkies-capture-server` inside the selkies process). The capture bridge taps into the selkies WebSocket stream and decodes H.264 frames to PNG via ffmpeg.
 
 **Why not grim?** labwc running nested inside pixelflux can't deliver wlr-screencopy frames. The capture bridge bypasses this by tapping into the selkies WebSocket stream which has direct access to the composited desktop.
 
@@ -24,7 +24,7 @@ No RPM packages — uses the capture bridge provided by the selkies layer.
 
 ## How It Works
 
-1. Connects to Unix socket at `/tmp/ov-capture.sock`
+1. Connects to Unix socket at `/tmp/charly-capture.sock`
 2. Sends `SCREENSHOT\n`
 3. Receives `4-byte length + PNG data` response (or `0 + reason string` on failure)
 4. Validates PNG completeness (reports incomplete reads)
@@ -47,14 +47,14 @@ Fields: `connected` (WebSocket up), `mode` (controller/viewer/reconnecting), `fr
 |----------|-------|
 | Depends | `selkies` (capture bridge in selkies process) |
 | Install | `~/.local/bin/pixelflux-screenshot` (Python script) |
-| Capture | Via `/tmp/ov-capture.sock` (selkies WebSocket bridge) |
+| Capture | Via `/tmp/charly-capture.sock` (selkies WebSocket bridge) |
 
 ## Usage
 
-Used by `ov eval wl screenshot` — auto-detected when `pixelflux-screenshot` is available (preferred over grim).
+Used by `charly eval wl screenshot` — auto-detected when `pixelflux-screenshot` is available (preferred over grim).
 
 ```bash
-ov eval wl screenshot <image> [output.png]
+charly eval wl screenshot <image> [output.png]
 ```
 
 ## Architecture
@@ -62,11 +62,11 @@ ov eval wl screenshot <image> [output.png]
 ```
 selkies process (single ScreenCapture singleton)
     ├── WebSocket :8081 (H.264 frame broadcast)
-    └── Capture bridge thread → /tmp/ov-capture.sock
+    └── Capture bridge thread → /tmp/charly-capture.sock
         └── SCREENSHOT request → ffmpeg H.264→PNG decode → PNG response
 ```
 
-**Singleton guarantee:** The `ScreenCapture` instance inside selkies is process-wide. `pixelflux-screenshot` taps into the **same** capture path that the browser client uses and that `pixelflux-record` (`/ov-selkies:wl-record-pixelflux`) uses — there is never a second capture process spawned. This matters because pixelflux's `WaylandBackend` is expensive to construct (creates EGL context, dmabuf allocators, GPU texture pools), so spawning a new one per screenshot would leak GBM buffers on every call. The singleton was re-affirmed in commit `6be85eb` (`selkies ScreenCapture singleton to stop pixelflux WaylandBackend leak`) and paired with the per-frame `cleanup_texture_cache()` fix in commit `7977b91`. See `/ov-selkies:selkies` (Pixelflux Memory Management) for the full leak diagnosis and fix.
+**Singleton guarantee:** The `ScreenCapture` instance inside selkies is process-wide. `pixelflux-screenshot` taps into the **same** capture path that the browser client uses and that `pixelflux-record` (`/charly-selkies:wl-record-pixelflux`) uses — there is never a second capture process spawned. This matters because pixelflux's `WaylandBackend` is expensive to construct (creates EGL context, dmabuf allocators, GPU texture pools), so spawning a new one per screenshot would leak GBM buffers on every call. The singleton was re-affirmed in commit `6be85eb` (`selkies ScreenCapture singleton to stop pixelflux WaylandBackend leak`) and paired with the per-frame `cleanup_texture_cache()` fix in commit `7977b91`. See `/charly-selkies:selkies` (Pixelflux Memory Management) for the full leak diagnosis and fix.
 
 ## Included In
 
@@ -74,19 +74,19 @@ selkies process (single ScreenCapture singleton)
 
 ## Used In Images
 
-- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Cross-References
 
-- `/ov-eval:wl` — `ov eval wl screenshot` auto-detects pixelflux-screenshot
-- `/ov-selkies:wl-record-pixelflux` — Recording companion (same capture bridge + same singleton)
-- `/ov-selkies:wl-screenshot-grim` — Alternative for sway-desktop (wlr-screencopy)
-- `/ov-selkies:selkies` — Parent layer providing the ScreenCapture singleton and capture bridge
-- `/ov-selkies:selkies-desktop-layer` — Metalayer that composes this screenshot path into the selkies-labwc image
-- `/ov-eval:record` — Uses `/ov-selkies:wl-record-pixelflux` via the same singleton
+- `/charly-eval:wl` — `charly eval wl screenshot` auto-detects pixelflux-screenshot
+- `/charly-selkies:wl-record-pixelflux` — Recording companion (same capture bridge + same singleton)
+- `/charly-selkies:wl-screenshot-grim` — Alternative for sway-desktop (wlr-screencopy)
+- `/charly-selkies:selkies` — Parent layer providing the ScreenCapture singleton and capture bridge
+- `/charly-selkies:selkies-desktop-layer` — Metalayer that composes this screenshot path into the selkies-labwc image
+- `/charly-eval:record` — Uses `/charly-selkies:wl-record-pixelflux` via the same singleton
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

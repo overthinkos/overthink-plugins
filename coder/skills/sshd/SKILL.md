@@ -29,7 +29,7 @@ description: |
 `openssh-server-package` check uses `package_map:` to resolve the right
 name per distro — `openssh-server` on Fedora/Debian, `openssh` on Arch.
 This is the canonical worked example for the `package_map` feature; see
-`/ov-eval:eval` "Cross-distro package names (`package_map:`)" for the
+`/charly-eval:eval` "Cross-distro package names (`package_map:`)" for the
 mechanics and the priority ordering (`fedora:43` > `fedora` when both
 match).
 
@@ -47,7 +47,7 @@ match).
 
 ### Cross-distro sudoers via `getent passwd 1000`
 
-The sudoers drop-in at `/etc/sudoers.d/ov-user` targets the **actual uid-1000 account**, whatever it happens to be named on the running base image. The layer no longer hardcodes a literal `user` — instead it discovers the account name at build time via `getent passwd 1000`:
+The sudoers drop-in at `/etc/sudoers.d/charly-user` targets the **actual uid-1000 account**, whatever it happens to be named on the running base image. The layer no longer hardcodes a literal `user` — instead it discovers the account name at build time via `getent passwd 1000`:
 
 ```yaml
 task:
@@ -57,8 +57,8 @@ task:
         echo "sshd layer: no uid-1000 account found — refusing to write sudoers" >&2
         exit 1
       fi
-      printf '%s ALL=(ALL) NOPASSWD: ALL\n' "$account" > /etc/sudoers.d/ov-user
-      chmod 0440 /etc/sudoers.d/ov-user
+      printf '%s ALL=(ALL) NOPASSWD: ALL\n' "$account" > /etc/sudoers.d/charly-user
+      chmod 0440 /etc/sudoers.d/charly-user
     user: root
 ```
 
@@ -66,10 +66,10 @@ This works uniformly across both user-policy modes:
 
 | Image | Resolved account | Sudoers content |
 |---|---|---|
-| fedora-coder, arch-coder, debian-coder | `user` (create mode — `/ov-image:image` "user_policy") | `user ALL=(ALL) NOPASSWD: ALL` |
-| ubuntu-coder | `ubuntu` (adopt mode — `/ov-distros:ubuntu` `base_user:`) | `ubuntu ALL=(ALL) NOPASSWD: ALL` |
+| fedora-coder, arch-coder, debian-coder | `user` (create mode — `/charly-image:image` "user_policy") | `user ALL=(ALL) NOPASSWD: ALL` |
+| ubuntu-coder | `ubuntu` (adopt mode — `/charly-distros:ubuntu` `base_user:`) | `ubuntu ALL=(ALL) NOPASSWD: ALL` |
 
-Why not `${USER}` substitution? The generator substitutes `${USER}` in task fields (paths, URLs, etc.) but **not** inside `cmd:` command text — `cmd:` is passed verbatim to bash, and bash at RUN time doesn't have `$USER` exported. `getent` is the robust, fully-generic alternative. See `/ov-image:layer` "`${VAR}` substitution scope" and `/ov-image:image` "user_policy" for the full architectural context.
+Why not `${USER}` substitution? The generator substitutes `${USER}` in task fields (paths, URLs, etc.) but **not** inside `cmd:` command text — `cmd:` is passed verbatim to bash, and bash at RUN time doesn't have `$USER` exported. `getent` is the robust, fully-generic alternative. See `/charly-image:layer` "`${VAR}` substitution scope" and `/charly-image:image` "user_policy" for the full architectural context.
 
 ## Usage
 
@@ -83,23 +83,23 @@ my-image:
 ## Used In Images
 
 - Part of the `bootc-base` composition layer (used in bootc images)
-- `/ov-distros:aurora`
-- `/ov-distros:bazzite` (via bootc-base) — worked example exercising the dual-mode sudo test below
+- `/charly-distros:aurora`
+- `/charly-distros:bazzite` (via bootc-base) — worked example exercising the dual-mode sudo test below
 
 ## Testing Notes
 
-- `/etc/sudoers.d/ov-user` (the NOPASSWD rule written by this layer) is
+- `/etc/sudoers.d/charly-user` (the NOPASSWD rule written by this layer) is
   `root:root 0750` — the non-root test user (uid 1000 in containers)
-  cannot traverse `/etc/sudoers.d/`. A `file: /etc/sudoers.d/ov-user; exists: true`
+  cannot traverse `/etc/sudoers.d/`. A `file: /etc/sudoers.d/charly-user; exists: true`
   test reports "missing" even when the file is present. Use
   `command: sudo -n -l; stdout: [{contains: NOPASSWD}]` to verify the
-  semantic instead. See `/ov-eval:eval` Authoring Gotcha #10.
+  semantic instead. See `/charly-eval:eval` Authoring Gotcha #10.
 - Host-side port reachability uses `127.0.0.1:${HOST_PORT:2222}`, not
-  `${CONTAINER_IP}:${HOST_PORT:2222}`. See `/ov-eval:eval` Gotcha #1.
+  `${CONTAINER_IP}:${HOST_PORT:2222}`. See `/charly-eval:eval` Gotcha #1.
 
 ### Dual-mode sudo check — the `runuser -u user --` wrapper
 
-`ov eval box` runs with USER=1000 on container images but USER=0 on bootc images (bootc intentionally keeps USER=root because systemd manages user sessions via login). A naïve `sudo -n -l; contains: NOPASSWD` check fails on bootc — running as root prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`. The layer's current test drops to `user` explicitly when running as root:
+`charly eval box` runs with USER=1000 on container images but USER=0 on bootc images (bootc intentionally keeps USER=root because systemd manages user sessions via login). A naïve `sudo -n -l; contains: NOPASSWD` check fails on bootc — running as root prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`. The layer's current test drops to `user` explicitly when running as root:
 
 ```yaml
 - id: sudoers-ov-user
@@ -120,20 +120,20 @@ the `-l … -c` form swallows the wrapped command's stdout — reproduced
 cleanly: `runuser -l user -s /bin/bash -c 'sudo -n -l'` prints nothing
 and exits 0, while `runuser -u user -- sudo -n -l` prints the full
 NOPASSWD listing. The layer was fixed to `-u … --` after this was
-caught during `arch-ov` bring-up. See `/ov-eval:eval` Authoring Gotcha #11.
+caught during `arch-ov` bring-up. See `/charly-eval:eval` Authoring Gotcha #11.
 
 ## Related Skills
 
-- `/ov-distros:bootc-base` -- composition that includes this layer
-- `/ov-distros:bootc-config` -- the bootc boot wiring (tty1 autologin + systemd-user supervisord) that typically runs alongside this layer
-- `/ov-distros:cloud-init` -- depends on sshd for VM provisioning
-- `/ov-distros:bazzite` -- canonical bootc worked example that exercises the dual-mode sudo test
-- `/ov-coder:ubuntu-coder` -- canonical adopt-mode example; sudoers correctly targets `ubuntu` via getent
-- `/ov-coder:debian-coder` -- canonical create-mode deb-family example; sudoers targets `user`
-- `/ov-distros:ubuntu` -- declares the `base_user:` block that makes ubuntu-coder run as `ubuntu`
-- `/ov-eval:eval` -- declarative testing framework (gotchas #10 and #11, `package_map:`, `exclude_distros:`)
-- `/ov-image:image` -- `user_policy:` field (create / adopt / auto) that drives which account this layer's sudoers targets
-- `/ov-image:layer` -- layer authoring (`${VAR}` substitution scope, cmd: vs write:)
+- `/charly-distros:bootc-base` -- composition that includes this layer
+- `/charly-distros:bootc-config` -- the bootc boot wiring (tty1 autologin + systemd-user supervisord) that typically runs alongside this layer
+- `/charly-distros:cloud-init` -- depends on sshd for VM provisioning
+- `/charly-distros:bazzite` -- canonical bootc worked example that exercises the dual-mode sudo test
+- `/charly-coder:ubuntu-coder` -- canonical adopt-mode example; sudoers correctly targets `ubuntu` via getent
+- `/charly-coder:debian-coder` -- canonical create-mode deb-family example; sudoers targets `user`
+- `/charly-distros:ubuntu` -- declares the `base_user:` block that makes ubuntu-coder run as `ubuntu`
+- `/charly-eval:eval` -- declarative testing framework (gotchas #10 and #11, `package_map:`, `exclude_distros:`)
+- `/charly-image:image` -- `user_policy:` field (create / adopt / auto) that drives which account this layer's sudoers targets
+- `/charly-image:layer` -- layer authoring (`${VAR}` substitution scope, cmd: vs write:)
 
 ## When to Use This Skill
 

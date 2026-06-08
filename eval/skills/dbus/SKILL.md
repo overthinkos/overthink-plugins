@@ -2,10 +2,10 @@
 name: dbus
 description: |
   D-Bus interaction inside containers via native Go godbus/dbus/v5.
-  MUST be invoked before any work involving: ov eval dbus commands, desktop notifications, D-Bus method calls, service introspection, or session bus interaction.
+  MUST be invoked before any work involving: charly eval dbus commands, desktop notifications, D-Bus method calls, service introspection, or session bus interaction.
 ---
 
-# ov eval dbus -- D-Bus Interaction Inside Containers
+# charly eval dbus -- D-Bus Interaction Inside Containers
 
 ## Overview
 
@@ -13,16 +13,16 @@ Send desktop notifications, call D-Bus methods, list services, and introspect ob
 
 ### Also as a declarative verb
 
-Every `ov eval dbus <method>` (list/call/introspect/notify) is authorable as a `dbus:` verb inside a `eval:` block. Method-specific fields (`dest:`, `path:`, `method:`, `args:`, `text:`) are siblings of the verb line. See `/ov-eval:eval` for the full YAML shape. Example: `- dbus: list\n  stdout:\n    contains: "org.freedesktop.Notifications"`.
+Every `charly eval dbus <method>` (list/call/introspect/notify) is authorable as a `dbus:` verb inside a `eval:` block. Method-specific fields (`dest:`, `path:`, `method:`, `args:`, `text:`) are siblings of the verb line. See `/charly-eval:eval` for the full YAML shape. Example: `- dbus: list\n  stdout:\n    contains: "org.freedesktop.Notifications"`.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Send notification | `ov eval dbus notify <image> "title" "body"` | Desktop notification via Notifications interface |
-| Call method | `ov eval dbus call <image> <dest> <path> <method> [args...]` | Generic D-Bus method call |
-| List services | `ov eval dbus list <image>` | List all registered session bus services |
-| Introspect | `ov eval dbus introspect <image> <dest> <path>` | Introspect a service's interfaces and methods |
+| Send notification | `charly eval dbus notify <image> "title" "body"` | Desktop notification via Notifications interface |
+| Call method | `charly eval dbus call <image> <dest> <path> <method> [args...]` | Generic D-Bus method call |
+| List services | `charly eval dbus list <image>` | List all registered session bus services |
+| Introspect | `charly eval dbus introspect <image> <dest> <path>` | Introspect a service's interfaces and methods |
 
 ## Usage
 
@@ -30,7 +30,7 @@ Every `ov eval dbus <method>` (list/call/introspect/notify) is authorable as a `
 
 ```bash
 # Simple notification
-ov eval dbus notify sway-browser-vnc "Build Complete" "Image built successfully"
+charly eval dbus notify sway-browser-vnc "Build Complete" "Image built successfully"
 
 # Notification appears via swaync or other notification daemon
 ```
@@ -39,36 +39,36 @@ ov eval dbus notify sway-browser-vnc "Build Complete" "Image built successfully"
 
 ```bash
 # Call any D-Bus method on the session bus
-ov eval dbus call sway-browser-vnc org.freedesktop.Notifications /org/freedesktop/Notifications org.freedesktop.Notifications.GetCapabilities
+charly eval dbus call sway-browser-vnc org.freedesktop.Notifications /org/freedesktop/Notifications org.freedesktop.Notifications.GetCapabilities
 ```
 
 ### List Services
 
 ```bash
 # See all registered services on the container's session bus
-ov eval dbus list sway-browser-vnc
+charly eval dbus list sway-browser-vnc
 ```
 
 ### Introspect a Service
 
 ```bash
 # View interfaces, methods, signals, and properties
-ov eval dbus introspect sway-browser-vnc org.freedesktop.Notifications /org/freedesktop/Notifications
+charly eval dbus introspect sway-browser-vnc org.freedesktop.Notifications /org/freedesktop/Notifications
 ```
 
 ## Prerequisites
 
 - Container must have a D-Bus session bus running (provided by the `dbus` layer)
 - For notifications: a notification daemon must be running (e.g., `swaync`)
-- Container must be running (`ov start <image>`)
+- Container must be running (`charly start <image>`)
 
 ## Cross-References
 
-- `/ov-eval:eval` -- parent router; `ov eval dbus …` is how every invocation is dispatched.
-- `/ov-eval:cdp` -- Chrome DevTools Protocol (sibling verb under `ov eval`).
-- `/ov-eval:wl` -- Wayland desktop automation (sibling verb under `ov eval`).
-- `/ov-eval:vnc` -- VNC desktop automation (sibling verb under `ov eval`).
-- `/ov-core:cmd` -- single command execution in running containers
-- `/ov-core:shell` -- interactive shell access
-- `/ov-infrastructure:dbus-layer` -- D-Bus session bus layer configuration
-- `/ov-selkies:swaync` -- notification daemon layer
+- `/charly-eval:eval` -- parent router; `charly eval dbus …` is how every invocation is dispatched.
+- `/charly-eval:cdp` -- Chrome DevTools Protocol (sibling verb under `charly eval`).
+- `/charly-eval:wl` -- Wayland desktop automation (sibling verb under `charly eval`).
+- `/charly-eval:vnc` -- VNC desktop automation (sibling verb under `charly eval`).
+- `/charly-core:cmd` -- single command execution in running containers
+- `/charly-core:shell` -- interactive shell access
+- `/charly-infrastructure:dbus-layer` -- D-Bus session bus layer configuration
+- `/charly-selkies:swaync` -- notification daemon layer

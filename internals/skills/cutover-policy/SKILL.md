@@ -12,7 +12,7 @@ description: |
 
 # cutover-policy
 
-Every schema change, API rename, or deprecation in Overthink ships as a **single hard-cutover PR**. This applies to BOTH code (Go types, exported functions, CLI flags, OCI labels) AND config (overthink.yml, deploy.yml, candy.yml, vm.yml field names and shapes).
+Every schema change, API rename, or deprecation in Overthink ships as a **single hard-cutover PR**. This applies to BOTH code (Go types, exported functions, CLI flags, OCI labels) AND config (charly.yml, deploy.yml, candy.yml, vm.yml field names and shapes).
 
 A cutover may NEVER be phased — not at plan authoring, not at execution. There is no pre-approval split, no post-approval split, no phased rollout, no grace period, no "author it as two plans" fallback. Plans are authored as full-scope, single-phase cutovers regardless of estimated time, scope, or context. Every cutover executes end-to-end through R10 in the SAME conversation. ALWAYS push as far as you can; compact context and continue, as many times as it takes. An approved plan is a CONTRACT; implement it as written.
 
@@ -24,7 +24,7 @@ This skill is the source of truth for the policy. `CLAUDE.md` links here rather 
 
 1. **Plan**: write a plan file that describes the cutover as ONE phase. Decompose into tasks with `TaskCreate`. The plan file names the cutover, not a sequence of cutovers.
 2. **Implement**: execute every task in the same working tree. **Prove the highest-risk unknowns on a live `disposable: true` bed FIRST (Risk Driven Development — never trust a skill / CLAUDE.md / code for a high-risk call; the archetypal one is whether this layer composition, at its latest versions, builds / deploys / runs together).** Transitional aliases, legacy-accepting code paths, or temporary dual-dispatch are permitted DURING implementation. They MUST be deleted before the end of the same cutover.
-3. **Test at the end, not between tasks**: run unit tests, `ov box build`, `ov deploy add` + `ov eval live`, and the R10 fresh-rebuild re-verification AFTER all tasks are marked complete. Testing between tasks is cheap smoke-confirmation; the acceptance gate is the full-stack run against the final code.
+3. **Test at the end, not between tasks**: run unit tests, `charly box build`, `charly deploy add` + `charly eval live`, and the R10 fresh-rebuild re-verification AFTER all tasks are marked complete. Testing between tasks is cheap smoke-confirmation; the acceptance gate is the full-stack run against the final code.
 4. **Ship or fix**: if any verification step fails, fix it in the same working tree and re-run the full verification. Do NOT commit a partial state.
 
 **Forbidden**: "Phase 1 landed, Phase 2 pending" as a stopping point. That leaves the system half-migrated — legacy paths live alongside new paths, migrations not yet run, tests passing for some beds and not others. Every historical instance of that pattern in this project left dead code and untested integration points that bit users later.
@@ -58,13 +58,13 @@ Each of these has a specific failure mode that has occurred historically: the fi
 
 ## Required for every breaking change
 
-- A new **`MigrationStep`** appended to the single `ov migrate` chain (`ov/migrate_registry.go`), stamped with the cutover's CalVer (strictly greater than the current HEAD; the `calver-schema` stamp stays last). Every cutover is one idempotent step on the one `ov migrate` command — there are no per-cutover sub-verbs. Running `ov migrate` twice is a no-op. See `/ov-build:migrate`.
-- A **fresh release git tag** `v<YYYY.DDD.HHMM>` (current UTC push time) on the cutover's push — ONE per push, **decoupled** from the `overthink.yml` `version:` field (the schema version, bumped only when a `MigrationStep` raises `LatestSchemaVersion()`). Tag EVERY push, including one that does NOT bump `version:` (content removal — a submodule extraction, an image drop). Tags are **immutable** — only ever added, never moved or force-pushed. Day-of-year is NOT zero-padded; compute `v$(date -u +%Y).$((10#$(date -u +%j))).$(date -u +%H%M)`. Each ov-project repo (one with `overthink.yml`) is tagged at its own push time; `plugins` / `pkg/arch` are exempt. See `/ov-build:migrate` "Per-push release git tags" and CLAUDE.md "Post-Execution Policies".
+- A new **`MigrationStep`** appended to the single `charly migrate` chain (`ov/migrate_registry.go`), stamped with the cutover's CalVer (strictly greater than the current HEAD; the `calver-schema` stamp stays last). Every cutover is one idempotent step on the one `charly migrate` command — there are no per-cutover sub-verbs. Running `charly migrate` twice is a no-op. See `/charly-build:migrate`.
+- A **fresh release git tag** `v<YYYY.DDD.HHMM>` (current UTC push time) on the cutover's push — ONE per push, **decoupled** from the `charly.yml` `version:` field (the schema version, bumped only when a `MigrationStep` raises `LatestSchemaVersion()`). Tag EVERY push, including one that does NOT bump `version:` (content removal — a submodule extraction, an image drop). Tags are **immutable** — only ever added, never moved or force-pushed. Day-of-year is NOT zero-padded; compute `v$(date -u +%Y).$((10#$(date -u +%j))).$(date -u +%H%M)`. Each ov-project repo (one with `charly.yml`) is tagged at its own push time; `plugins` / `pkg/arch` are exempt. See `/charly-build:migrate` "Per-push release git tags" and CLAUDE.md "Post-Execution Policies".
 - **Hard load-time errors** for any residual legacy field, with a one-line remediation hint pointing at the migration command.
 - **Deletion — in the same PR** — of every Go type, function, CLI flag, OCI label, YAML field, skill doc paragraph, and test fixture that references the removed surface.
 - **Stale-reference sweep (R5).** Every reference, comment, docstring, error message, skill paragraph, migration help-text, test fixture, and hook string naming a deleted identifier MUST be updated or deleted in the same commit. After commit, `git grep '<deleted-id>'` returns ONLY historical mentions in `CHANGELOG.md` or migration help-text.
 - **A `CHANGELOG.md` entry** (repo root) recording the cutover narrative. Historical content lives ONLY in `CHANGELOG.md`; CLAUDE.md and the skills state the new standing rules forward-looking, with no history. See CLAUDE.md "Where things are documented".
-- **Engineering-discipline gates (R1–R5).** See `/ov-internals:strict-policy`. Every failure during the cutover triggers `/ov-internals:root-cause-analyzer` BEFORE any remediation (R1). Every issue surfaced is fixed in the cutover or escalated (R2). Duplication is refactored on first surface (R3). Workarounds are forbidden (R4). Stale references are swept (R5).
+- **Engineering-discipline gates (R1–R5).** See `/charly-internals:strict-policy`. Every failure during the cutover triggers `/charly-internals:root-cause-analyzer` BEFORE any remediation (R1). Every issue surfaced is fixed in the cutover or escalated (R2). Duplication is refactored on first surface (R3). Workarounds are forbidden (R4). Stale references are swept (R5).
 
 ## Rationale
 
@@ -102,13 +102,13 @@ One PR, one commit, with these deliverables:
 - **Code deletions** — every Go type, struct field, function, and label constant for the removed surface, deleted (not deprecated).
 - **Schema deletions** — every removed YAML field rejected by the loader with a hard error.
 - **Replacement surface** — the new types / schema / deploy target that supersede the deleted ones.
-- **Migration** — one idempotent `MigrationStep` on the `ov migrate` chain that harvests legacy fields into the new shape, preserves pre-existing user keys, and never clobbers customizations.
-- **Load-time error** — old projects loading under the new code get a hard error naming the legacy field and pointing at `ov migrate`.
+- **Migration** — one idempotent `MigrationStep` on the `charly migrate` chain that harvests legacy fields into the new shape, preserves pre-existing user keys, and never clobbers customizations.
+- **Load-time error** — old projects loading under the new code get a hard error naming the legacy field and pointing at `charly migrate`.
 - **Documentation refresh** — every referring skill revised in the same sweep; no stale references to any deleted identifier in `plugins/`, `README.md`, or `CLAUDE.md` (R5 grep self-test).
 - **Test deletions** — fixtures and assertions exercising the legacy surface removed; new fixtures exercise the replacement.
 - **CHANGELOG entry** — the cutover narrative appended to `CHANGELOG.md` (the only place the history lives).
 
-The commit uses the Conventional Commits `!` breaking-change marker; the body lists every deleted identifier, every removed YAML field, and every updated test. `ov migrate` is runnable against old projects from that commit forward, with no additional steps.
+The commit uses the Conventional Commits `!` breaking-change marker; the body lists every deleted identifier, every removed YAML field, and every updated test. `charly migrate` is runnable against old projects from that commit forward, with no additional steps.
 
 See `CHANGELOG.md` for the catalog of past cutovers that followed this shape — each took the same three steps: **delete old surface + publish migration + hard load error**.
 
@@ -122,16 +122,16 @@ The policy kicks in when the change is **visible to consumers** (YAML authors, o
 
 ## Cross-References
 
-- `/ov-build:migrate` — the single `ov migrate` command, its CalVer schema versioning, and the ordered migration chain (registry)
-- `/ov-internals:vm-spec` — example output of a cutover (new types replacing deleted ones)
-- `/ov-internals:capabilities` — example of coordinated label-map cleanup during a cutover
-- `/ov-internals:install-plan` — shared IR that survived the cutover unchanged (non-example — additive extension of the DeployTarget surface)
+- `/charly-build:migrate` — the single `charly migrate` command, its CalVer schema versioning, and the ordered migration chain (registry)
+- `/charly-internals:vm-spec` — example output of a cutover (new types replacing deleted ones)
+- `/charly-internals:capabilities` — example of coordinated label-map cleanup during a cutover
+- `/charly-internals:install-plan` — shared IR that survived the cutover unchanged (non-example — additive extension of the DeployTarget surface)
 - CLAUDE.md "Hard Cutover by Default" — summary pointing at this skill
 
-## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
-**After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
+**After committing the source-level fix, `charly update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 
 Unit tests + a clean compile are necessary but not sufficient. See CLAUDE.md R1–R10.

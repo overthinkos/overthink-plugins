@@ -28,25 +28,25 @@ my-image:
 
 ## Purpose
 
-Provides `notify-send` as a convenience CLI for sending desktop notifications from shell scripts and manual use. The `ov eval dbus notify` command uses native Go D-Bus instead and does NOT depend on this layer.
+Provides `notify-send` as a convenience CLI for sending desktop notifications from shell scripts and manual use. The `charly eval dbus notify` command uses native Go D-Bus instead and does NOT depend on this layer.
 
-### When to use `notify-send` vs `ov eval dbus notify`
+### When to use `notify-send` vs `charly eval dbus notify`
 
-| | `notify-send` | `ov eval dbus notify` |
+| | `notify-send` | `charly eval dbus notify` |
 |---|--------------|-----------------|
 | Requires | `libnotify` layer | `ov` layer (or `gdbus` fallback) |
 | Implementation | Shell command, libnotify C library | Native Go `godbus/dbus/v5` |
-| Use case | Shell scripts inside container | Host-side automation, `ov cmd`/`ov tmux cmd` notifications |
+| Use case | Shell scripts inside container | Host-side automation, `charly cmd`/`charly tmux cmd` notifications |
 
 ## Related Layers
 
-- `/ov-infrastructure:dbus-layer` -- D-Bus session bus (required dependency)
-- `/ov-selkies:swaync` -- notification daemon to display the notifications
-- `/ov-tools:ov` -- alternative: native D-Bus via `ov eval dbus notify`
+- `/charly-infrastructure:dbus-layer` -- D-Bus session bus (required dependency)
+- `/charly-selkies:swaync` -- notification daemon to display the notifications
+- `/charly-tools:charly` -- alternative: native D-Bus via `charly eval dbus notify`
 
 ## Used In Images
 
-Not used in any current image definition. Optional notification CLI -- prefer `ov eval dbus notify` which uses native Go D-Bus.
+Not used in any current image definition. Optional notification CLI -- prefer `charly eval dbus notify` which uses native Go D-Bus.
 
 ## When to Use This Skill
 
@@ -58,5 +58,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

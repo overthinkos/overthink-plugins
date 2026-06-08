@@ -78,7 +78,7 @@ source of truth).
 
 The OSM DAG ends with a `reload_martin` task that runs
 `supervisorctl restart martin` after writing pmtiles — see
-`/ov-versa:osm-tools-layer` for why.
+`/charly-versa:osm-tools-layer` for why.
 
 The GTFS DAG uses `gtfs_parquet.parse_gtfs(zip_path)` then
 `write_parquet(dir)` to produce one `.parquet` per GTFS table.
@@ -107,7 +107,7 @@ Returns a `dag_run_states` dict so dependent cells can gate on
 The marimo kernel runs INSIDE the pod (container-internal reach).
 The user's browser runs OUTSIDE the pod (only host-port mappings
 work). Mixing the two is the most common failure mode — see
-`/ov-versa:versa` "Required deploy.yml env block".
+`/charly-versa:versa` "Required deploy.yml env block".
 
 ## Key gotchas (surfaced and fixed)
 
@@ -191,9 +191,9 @@ Expected results (verified):
 
 ## Cross-references
 
-- `/ov-versa:versa` — image composing this layer
-- `/ov-versa:versa-layer` — the runtime kernel
-- `/ov-versa:airflow-layer` — DAG trigger REST API
-- `/ov-versa:osm-tools-layer` — martin + tippecanoe + reload pattern
-- `/ov-versa:maputnik-layer` — companion vector-tile editor
-- `/ov-versa:versa-mcp` — read-only inspection of this notebook's session
+- `/charly-versa:versa` — image composing this layer
+- `/charly-versa:versa-layer` — the runtime kernel
+- `/charly-versa:airflow-layer` — DAG trigger REST API
+- `/charly-versa:osm-tools-layer` — martin + tippecanoe + reload pattern
+- `/charly-versa:maputnik-layer` — companion vector-tile editor
+- `/charly-versa:versa-mcp` — read-only inspection of this notebook's session

@@ -50,15 +50,15 @@ my-image:
 
 ## Used In Images
 
-- `/ov-distros:fedora-builder`
-- `/ov-distros:arch-builder`
+- `/charly-distros:fedora-builder`
+- `/charly-distros:arch-builder`
 - Transitive dependency for `openclaw`, `claude-code`, `pre-commit`, and other layers
 
 ## Related Layers
 
-- `/ov-coder:claude-code` -- depends on nodejs
-- `/ov-coder:pre-commit` -- depends on nodejs
-- `/ov-immich:immich-layer` -- uses the layer's pnpm to build Immich
+- `/charly-coder:claude-code` -- depends on nodejs
+- `/charly-coder:pre-commit` -- depends on nodejs
+- `/charly-immich:immich-layer` -- uses the layer's pnpm to build Immich
 
 ## When to Use This Skill
 
@@ -70,5 +70,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

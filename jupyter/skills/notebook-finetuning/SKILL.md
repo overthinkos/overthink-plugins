@@ -34,7 +34,7 @@ data:
 
 At build time, the contents of `data/finetuning/` are staged into `/data/workspace/finetuning/` inside the image.
 
-At deploy time, when the workspace volume is configured as a bind mount (`ov config --bind workspace`), `ov config` copies the staged data into the host-backed volume directory at `<workspace>/finetuning/`. This seeds the volume with ready-to-use training notebooks.
+At deploy time, when the workspace volume is configured as a bind mount (`charly config --bind workspace`), `charly config` copies the staged data into the host-backed volume directory at `<workspace>/finetuning/`. This seeds the volume with ready-to-use training notebooks.
 
 The `dest: finetuning` field places the notebooks in a subdirectory rather than the volume root, keeping the workspace organized alongside other content.
 
@@ -69,10 +69,10 @@ unsloth-studio:
 
 ```bash
 # Deploy with bind-backed workspace volume
-ov config unsloth-studio --bind workspace
+charly config unsloth-studio --bind workspace
 
 # Notebooks are seeded at <workspace>/finetuning/ on first config
-ov start unsloth-studio
+charly start unsloth-studio
 # Open http://localhost:8888 → navigate to finetuning/
 ```
 
@@ -87,17 +87,17 @@ The notebooks include several workarounds for upstream library changes:
 
 ## Used In Images
 
-- `/ov-jupyter:unsloth-studio`
-- `/ov-jupyter:jupyter-ml-notebook`
+- `/charly-jupyter:unsloth-studio`
+- `/charly-jupyter:jupyter-ml-notebook`
 
 ## Related Skills
 
-- `/ov-image:layer` -- data field documentation and layer authoring rules
-- `/ov-core:ov-config` -- data provisioning during `ov config` setup
-- `/ov-core:deploy` -- volume backing configuration (bind, named, encrypted)
-- `/ov-jupyter:unsloth-studio` -- the Tier 2 meta-layer that owns the workspace volume
-- `/ov-jupyter:notebook-templates` -- sibling data layer pattern (starter notebooks for jupyter)
-- `/ov-jupyter:unsloth-studio` -- the image that includes this layer
+- `/charly-image:layer` -- data field documentation and layer authoring rules
+- `/charly-core:ov-config` -- data provisioning during `charly config` setup
+- `/charly-core:deploy` -- volume backing configuration (bind, named, encrypted)
+- `/charly-jupyter:unsloth-studio` -- the Tier 2 meta-layer that owns the workspace volume
+- `/charly-jupyter:notebook-templates` -- sibling data layer pattern (starter notebooks for jupyter)
+- `/charly-jupyter:unsloth-studio` -- the image that includes this layer
 
 ## When to Use This Skill
 
@@ -111,4 +111,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

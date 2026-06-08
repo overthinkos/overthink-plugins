@@ -20,14 +20,14 @@ Forces `WLR_RENDERER=pixman` (software rendering) via layer env. This ensures VN
 
 ## Used In Images
 
-- `/ov-selkies:sway-browser-vnc`
+- `/charly-selkies:sway-browser-vnc`
 
 ## Related Layers
 
-- `/ov-selkies:sway-desktop` -- base desktop (composed)
-- `/ov-selkies:wayvnc` -- VNC server on tcp:5900 (added)
+- `/charly-selkies:sway-desktop` -- base desktop (composed)
+- `/charly-selkies:wayvnc` -- VNC server on tcp:5900 (added)
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

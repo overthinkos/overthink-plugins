@@ -21,7 +21,7 @@ description: |
 
 `systemed/tilemaker` ships no Arch/Fedora package and no GitHub release
 binaries. Build from source mirrors the existing tippecanoe pattern in
-`/ov-versa:osm-tools-layer`: shallow clone → `make -j$(nproc)` →
+`/charly-versa:osm-tools-layer`: shallow clone → `make -j$(nproc)` →
 `make install PREFIX=/usr/local`. Build duration: ~2-3 minutes on a
 warm package cache; binary lands at `/usr/local/bin/tilemaker`.
 
@@ -72,13 +72,13 @@ Deploy-scope:
 
 ## Cross-references
 
-- `/ov-versa:versa` — image composing this layer
-- `/ov-versa:versatiles` — the tile-server service that auto-discovers
+- `/charly-versa:versa` — image composing this layer
+- `/charly-versa:versatiles` — the tile-server service that auto-discovers
   `/workspace/tiles/shortbread/*.pmtiles` files
-- `/ov-versa:versatiles-style` — MapLibre style generator targeting
+- `/charly-versa:versatiles-style` — MapLibre style generator targeting
   the Shortbread schema (the notebook's shortbread cell renders the
   pipeline output using `colorful()`)
-- `/ov-versa:notebook-osm` — DAG cell 2 self-authors the
+- `/charly-versa:notebook-osm` — DAG cell 2 self-authors the
   `notebook_osm_shortbread_pipeline` that drives this layer
-- `/ov-versa:osm-tools-layer` — sibling tippecanoe pipeline + martin
+- `/charly-versa:osm-tools-layer` — sibling tippecanoe pipeline + martin
   tile server (parallel infrastructure on port 23000)

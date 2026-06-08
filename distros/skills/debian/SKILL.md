@@ -18,9 +18,9 @@ The Debian family lives in the **`overthinkos/debian`** repo (git submodule at
 `box.yml`) and composes the main repo's layers + shared `build.yml` (which
 keeps the `debian` distro config + the `deb` format + the `debootstrap` builder
 template) by git reference. Build it from the submodule:
-`ov -C image/debian image build debian` (or `ov --repo overthinkos/debian image build debian`).
+`charly -C image/debian image build debian` (or `charly --repo overthinkos/debian image build debian`).
 Ubuntu — the deb-family sibling — lives in its own **`overthinkos/ubuntu`** repo
-(see `/ov-distros:ubuntu`). Nothing in main consumes any Debian image, so there
+(see `/charly-distros:ubuntu`). Nothing in main consumes any Debian image, so there
 is **no main ↔ debian coupling**.
 
 ## Image Properties
@@ -40,7 +40,7 @@ is **no main ↔ debian coupling**.
 
 `build.yml distro.debian` **does not** declare a `base_user:` block, because the upstream `debian:13` base image ships no pre-existing uid-1000 account. `user_policy: auto` (the default for any downstream image) falls through to create mode — the generator emits an idempotent `useradd -m -u 1000 -g 1000 user` during bootstrap.
 
-This is the intentional asymmetry vs `/ov-distros:ubuntu`, which DOES ship `ubuntu:ubuntu` at uid 1000 and declares `base_user:` to adopt that identity. See `/ov-image:image` "user_policy" and `/ov-build:build` "base_user" for the full decision table.
+This is the intentional asymmetry vs `/charly-distros:ubuntu`, which DOES ship `ubuntu:ubuntu` at uid 1000 and declares `base_user:` to adopt that identity. See `/charly-image:image` "user_policy" and `/charly-build:build` "base_user" for the full decision table.
 
 If you build a downstream image on `debian:13-cloud` (or a similar variant that ships a pre-existing `debian` account), override this by adding a `base_user:` block in your project's `build.yml` override.
 
@@ -64,34 +64,34 @@ USER 1000
 
 ## Downstream / sibling entries (all in overthinkos/debian)
 
-- `/ov-distros:debian-builder` — pixi/npm/cargo multi-stage builder on this base.
-- `/ov-coder:debian-coder` — kitchen-sink dev image on this base.
-- `/ov-distros:debian-debootstrap-builder` — privileged debootstrap builder (`base: debian:13`).
-- `/ov-distros:debian-debootstrap` — bootstrap-from-scratch rootfs (`from: builder:debootstrap`).
-- `/ov-vm:debian` — the `debian-debootstrap` bootstrap VM + `eval-debian-debootstrap-vm` bed.
+- `/charly-distros:debian-builder` — pixi/npm/cargo multi-stage builder on this base.
+- `/charly-coder:debian-coder` — kitchen-sink dev image on this base.
+- `/charly-distros:debian-debootstrap-builder` — privileged debootstrap builder (`base: debian:13`).
+- `/charly-distros:debian-debootstrap` — bootstrap-from-scratch rootfs (`from: builder:debootstrap`).
+- `/charly-vm:debian` — the `debian-debootstrap` bootstrap VM + `eval-debian-debootstrap-vm` bed.
 
 ## Verification
 
 ```bash
-ov -C image/debian image build debian
-ov shell debian                       # drops into /home/user as uid 1000
+charly -C image/debian image build debian
+charly shell debian                       # drops into /home/user as uid 1000
 id                                    # uid=1000(user) gid=1000(user)
-ov -C image/debian image validate     # remote build.yml + layer refs resolve
+charly -C image/debian image validate     # remote build.yml + layer refs resolve
 ```
 
 ## Related images
 
-- `/ov-distros:ubuntu` — deb-family sibling base in the separate `overthinkos/ubuntu` submodule; ships `base_user:` + adopts ubuntu:ubuntu.
-- `/ov-distros:debian-builder` — multi-stage builder on top of this image.
-- `/ov-coder:debian-coder` — kitchen-sink dev image on this base.
-- `/ov-distros:fedora` — RPM-family counterpart.
-- `/ov-distros:arch` — pacman-family counterpart (separate `overthinkos/arch` submodule).
+- `/charly-distros:ubuntu` — deb-family sibling base in the separate `overthinkos/ubuntu` submodule; ships `base_user:` + adopts ubuntu:ubuntu.
+- `/charly-distros:debian-builder` — multi-stage builder on top of this image.
+- `/charly-coder:debian-coder` — kitchen-sink dev image on this base.
+- `/charly-distros:fedora` — RPM-family counterpart.
+- `/charly-distros:arch` — pacman-family counterpart (separate `overthinkos/arch` submodule).
 
 ## Related commands
 
-- `/ov-build:build` — `base_user:` declaration format + bootstrap packages.
-- `/ov-image:image` — `user_policy:` reconciliation.
-- `/ov-build:generate` — writeBootstrap emission.
+- `/charly-build:build` — `base_user:` declaration format + bootstrap packages.
+- `/charly-image:image` — `user_policy:` reconciliation.
+- `/charly-build:generate` — writeBootstrap emission.
 
 ## When to use this skill
 

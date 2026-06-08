@@ -34,14 +34,14 @@ layers:
 - `openclaw-full` (via `openclaw-full` metalayer)
 
 ## Related Layers
-- `/ov-coder:golang` — required Go toolchain dependency
-- `/ov-openclaw:openclaw-full` — metalayer that includes gogcli
-- `/ov-tools:goplaces` — sibling Google API CLI in openclaw-full
+- `/charly-coder:golang` — required Go toolchain dependency
+- `/charly-openclaw:openclaw-full` — metalayer that includes gogcli
+- `/charly-tools:goplaces` — sibling Google API CLI in openclaw-full
 
 ## Related Commands
-- `/ov-build:secrets` — provision Google OAuth credentials for gogcli
-- `/ov-core:shell` — run gogcli interactively inside a container
-- `/ov-build:build` — compiles gogcli via the Go builder during image build
+- `/charly-build:secrets` — provision Google OAuth credentials for gogcli
+- `/charly-core:shell` — run gogcli interactively inside a container
+- `/charly-build:build` — compiles gogcli via the Go builder during image build
 
 ## When to Use This Skill
 
@@ -52,5 +52,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

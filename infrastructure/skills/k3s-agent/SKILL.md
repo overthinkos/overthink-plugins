@@ -2,7 +2,7 @@
 name: k3s-agent
 description: |
   k3s worker (agent) node — joins an existing k3s-server via pre-shared token.
-  Fully declarative: same ov secrets set once + env K3S_SERVER_URL per agent deploy.
+  Fully declarative: same charly secrets set once + env K3S_SERVER_URL per agent deploy.
 ---
 
 # k3s-agent -- k3s worker node
@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Install files | `candy.yml`, `task:`, `service:`, `secret_require:`, `env_require:` |
-| Depends on | `/ov-infrastructure:k3s` |
+| Depends on | `/charly-infrastructure:k3s` |
 | Service | `k3s-agent.service` (system scope, enabled) |
 
 ## What this layer does
@@ -34,7 +34,7 @@ server URL (declarative, known at author time) and the pre-shared token
 ## Usage
 
 ```yaml
-# overthink.yml (assumes k3s-srv already up; see /ov-infrastructure:k3s-server)
+# charly.yml (assumes k3s-srv already up; see /charly-infrastructure:k3s-server)
 vm:
   k3s-ag1:
     source: { kind: cloud_image, url: "…" }
@@ -56,9 +56,9 @@ deployments:
 ```
 
 ```bash
-ov deploy add vm:k3s-ag1
-# agent registers; ov eval k8s wait-nodes on server confirms the join.
-ov eval k8s wait-nodes --cluster k3s-srv --count 2 --timeout 3m
+charly deploy add vm:k3s-ag1
+# agent registers; charly eval k8s wait-nodes on server confirms the join.
+charly eval k8s wait-nodes --cluster k3s-srv --count 2 --timeout 3m
 ```
 
 ## Tests
@@ -67,11 +67,11 @@ Build-scope:
 - `/etc/rancher/k3s/config.yaml` exists, mode 0600.
 - `/etc/systemd/system/k3s-agent.service` exists.
 
-Deploy-scope (uses `/ov-kubernetes:eval-k8s`):
+Deploy-scope (uses `/charly-kubernetes:eval-k8s`):
 - `k8s: wait-nodes name=${HOSTNAME}` — this node reaches Ready on the
   server.
 
 ## Related Layers
-- `/ov-infrastructure:k3s` — Base layer installing the k3s binary (required dep)
-- `/ov-infrastructure:k3s-server` — Control-plane node this agent joins
-- `/ov-kubernetes:eval-k8s` — Test verb used by the agent-joined check
+- `/charly-infrastructure:k3s` — Base layer installing the k3s binary (required dep)
+- `/charly-infrastructure:k3s-server` — Control-plane node this agent joins
+- `/charly-kubernetes:eval-k8s` — Test verb used by the agent-joined check

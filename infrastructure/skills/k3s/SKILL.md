@@ -24,14 +24,14 @@ runtime dependencies (`iptables`, `conntrack`, `socat`, `ethtool`,
 upstream `curl | sh` installer. Deliberate, per R9.
 
 **No service is started by this layer.** Role selection happens in the
-dependent layers `/ov-infrastructure:k3s-server` and `/ov-infrastructure:k3s-agent`,
+dependent layers `/charly-infrastructure:k3s-server` and `/charly-infrastructure:k3s-agent`,
 which emit systemd units that wrap this binary with the right CLI verb
 (`k3s server` vs `k3s agent`).
 
 ## Usage
 
-Typically not used directly — compose `/ov-infrastructure:k3s-server` or
-`/ov-infrastructure:k3s-agent` (both depend on this layer).
+Typically not used directly — compose `/charly-infrastructure:k3s-server` or
+`/charly-infrastructure:k3s-agent` (both depend on this layer).
 
 ```yaml
 # For a bare binary-only image (rare):
@@ -53,6 +53,6 @@ layers:
 - Each runtime package is installed (per-distro `package_map` handles Debian's `conntrack` rename).
 
 ## Related Layers
-- `/ov-infrastructure:k3s-server` — Control-plane node (depends on this layer)
-- `/ov-infrastructure:k3s-agent` — Worker node (depends on this layer)
-- `/ov-coder:kubernetes-layer` — Distro `kubectl`/`helm` binaries for the operator, not the cluster
+- `/charly-infrastructure:k3s-server` — Control-plane node (depends on this layer)
+- `/charly-infrastructure:k3s-agent` — Worker node (depends on this layer)
+- `/charly-coder:kubernetes-layer` — Distro `kubectl`/`helm` binaries for the operator, not the cluster

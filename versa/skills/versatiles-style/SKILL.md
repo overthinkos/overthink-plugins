@@ -76,11 +76,11 @@ Build-scope:
 
 ## Cross-references
 
-- `/ov-versa:versa` — image composing this layer
-- `/ov-versa:versatiles` — the tile-server backend the generated
+- `/charly-versa:versa` — image composing this layer
+- `/charly-versa:versatiles` — the tile-server backend the generated
   styles point at after URL patching
-- `/ov-versa:versatiles-frontend` — re-exports this bundle at
+- `/charly-versa:versatiles-frontend` — re-exports this bundle at
   `/style/` for iframe consumption
-- `/ov-versa:shortbread` — the tile schema the styles render
-- `/ov-versa:notebook-osm` — the shortbread MapLibre cell that
+- `/charly-versa:shortbread` — the tile schema the styles render
+- `/charly-versa:notebook-osm` — the shortbread MapLibre cell that
   imports `colorful()` from the bundle

@@ -25,19 +25,19 @@ fedora-nonfree:
 
 ## Used In Images
 
-- `/ov-distros:fedora-nonfree` (base for immich and other images needing nonfree packages)
-- `/ov-distros:fedora-builder` — applied **before** `build-toolchain` so cargo crates that
+- `/charly-distros:fedora-nonfree` (base for immich and other images needing nonfree packages)
+- `/charly-distros:fedora-builder` — applied **before** `build-toolchain` so cargo crates that
   need RPM Fusion free system libs (`libva-devel`, `x264-devel`, `ffmpeg-devel`) can install
   via dnf in the builder stage. Required for building pixelflux from source — see
-  `/ov-selkies:selkies` (Patched pixelflux build pipeline).
+  `/charly-selkies:selkies` (Patched pixelflux build pipeline).
 
 ## Related Layers
-- `/ov-selkies:ffmpeg` -- nonfree multimedia codecs installed from RPM Fusion
-- `/ov-immich:immich` -- consumes nonfree codecs via fedora-nonfree
+- `/charly-selkies:ffmpeg` -- nonfree multimedia codecs installed from RPM Fusion
+- `/charly-immich:immich` -- consumes nonfree codecs via fedora-nonfree
 
 ## Related Commands
-- `/ov-build:build` -- build the fedora-nonfree base image
-- `/ov-image:image` -- inspect base/image inheritance
+- `/charly-build:build` -- build the fedora-nonfree base image
+- `/charly-image:image` -- inspect base/image inheritance
 
 ## When to Use This Skill
 
@@ -50,5 +50,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -38,13 +38,13 @@ layers:
 - `openclaw-full` (via `openclaw-full` metalayer)
 
 ## Related Layers
-- `/ov-coder:golang` -- build/runtime dependency
-- `/ov-tools:sherpa-onnx` -- offline TTS sibling
-- `/ov-tools:whisper` -- speech-to-text counterpart
+- `/charly-coder:golang` -- build/runtime dependency
+- `/charly-tools:sherpa-onnx` -- offline TTS sibling
+- `/charly-tools:whisper` -- speech-to-text counterpart
 
 ## Related Commands
-- `/ov-core:shell` -- run sag CLI inside the container
-- `/ov-build:secrets` -- supply ELEVENLABS_API_KEY
+- `/charly-core:shell` -- run sag CLI inside the container
+- `/charly-build:secrets` -- supply ELEVENLABS_API_KEY
 
 ## When to Use This Skill
 
@@ -55,5 +55,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

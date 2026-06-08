@@ -2,10 +2,10 @@
 name: logs
 description: |
   Service log viewing for running containers.
-  MUST be invoked before any work involving: ov logs command, viewing container output, or debugging service issues.
+  MUST be invoked before any work involving: charly logs command, viewing container output, or debugging service issues.
 ---
 
-# ov logs -- Service Log Viewing
+# charly logs -- Service Log Viewing
 
 ## Overview
 
@@ -15,28 +15,28 @@ Displays logs from a running or recently stopped service container. In quadlet m
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| View logs | `ov logs <image>` | Show recent logs |
-| Follow logs | `ov logs <image> -f` | Stream logs in real time |
-| Tail N lines | `ov logs <image> -n 50` | Show last N lines |
-| With instance | `ov logs <image> -i 2` | Logs from specific instance |
+| View logs | `charly logs <image>` | Show recent logs |
+| Follow logs | `charly logs <image> -f` | Stream logs in real time |
+| Tail N lines | `charly logs <image> -n 50` | Show last N lines |
+| With instance | `charly logs <image> -i 2` | Logs from specific instance |
 
 ## Usage
 
 ```bash
 # View recent logs
-ov logs jupyter
+charly logs jupyter
 
 # Follow logs in real time (Ctrl+C to stop)
-ov logs ollama -f
+charly logs ollama -f
 
 # Show last 100 lines
-ov logs immich -n 100
+charly logs immich -n 100
 
 # Logs from a specific instance
-ov logs openclaw -i 2
+charly logs openclaw -i 2
 
 # Combine follow with tail
-ov logs comfyui -f -n 50
+charly logs comfyui -f -n 50
 ```
 
 ## Flags
@@ -56,8 +56,8 @@ ov logs comfyui -f -n 50
 
 ## Cross-References
 
-- `/ov-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
+- `/charly-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
-- `/ov-core:ov-status` -- Check service status
-- `/ov-core:service` -- Service lifecycle management
-- `/ov-core:start` -- Starting services
+- `/charly-core:ov-status` -- Check service status
+- `/charly-core:service` -- Service lifecycle management
+- `/charly-core:start` -- Starting services

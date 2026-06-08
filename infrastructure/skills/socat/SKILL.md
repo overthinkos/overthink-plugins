@@ -32,7 +32,7 @@ my-image:
 
 Typically not added directly. Auto-included when a layer uses `port_relay:` in its `candy.yml`.
 
-**Note:** Chrome no longer uses socat for its DevTools port relay. Chrome now uses a `cdp-proxy` Python supervisord service (see `/ov-selkies:chrome`). Socat is still used by other `port_relay` consumers.
+**Note:** Chrome no longer uses socat for its DevTools port relay. Chrome now uses a `cdp-proxy` Python supervisord service (see `/charly-selkies:chrome`). Socat is still used by other `port_relay` consumers.
 
 ## Used In Images
 
@@ -40,8 +40,8 @@ Typically not added directly. Auto-included when a layer uses `port_relay:` in i
 
 ## Related Layers
 
-- `/ov-infrastructure:virtualization` -- part of the `ov` layer alongside socat
-- `/ov-infrastructure:gocryptfs` -- part of the `ov` layer alongside socat
+- `/charly-infrastructure:virtualization` -- part of the `ov` layer alongside socat
+- `/charly-infrastructure:gocryptfs` -- part of the `ov` layer alongside socat
 
 ## When to Use This Skill
 
@@ -54,5 +54,5 @@ Use when the user asks about:
 
 ## Author + Test References
 
-- `/ov-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
-- `/ov-eval:eval` — declarative testing framework for the `eval:` block
+- `/charly-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
+- `/charly-eval:eval` — declarative testing framework for the `eval:` block

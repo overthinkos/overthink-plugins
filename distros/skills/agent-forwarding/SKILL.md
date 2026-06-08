@@ -43,7 +43,7 @@ Included in all application images (27 total). Not included in base images (`fed
 
 ## How Agent Forwarding Works
 
-Agent forwarding is a **runtime** feature — sockets are bind-mounted from the host into the container at `ov shell` / `ov start` (direct mode) invocation time. This layer provides the container-side binaries (`gpg`, `ssh`, `direnv`) needed to use the forwarded sockets.
+Agent forwarding is a **runtime** feature — sockets are bind-mounted from the host into the container at `charly shell` / `charly start` (direct mode) invocation time. This layer provides the container-side binaries (`gpg`, `ssh`, `direnv`) needed to use the forwarded sockets.
 
 ### SSH Agent Forwarding
 
@@ -55,13 +55,13 @@ Host: $SSH_AUTH_SOCK (any path)
 
 The container's `ssh` and `git` commands automatically use the host's SSH keys. No SSH agent runs inside the container.
 
-**Verification:** `ov shell <image> -c 'ssh-add -l'` lists host SSH keys.
+**Verification:** `charly shell <image> -c 'ssh-add -l'` lists host SSH keys.
 
 ### GPG Agent Forwarding
 
 ```
 Host: S.gpg-agent (detected via gpgconf --list-dirs agent-socket)
-  → Container: $HOME/.gnupg/S.gpg-agent (HOME from org.overthinkos.home label)
+  → Container: $HOME/.gnupg/S.gpg-agent (HOME from ai.opencharly.home label)
 ```
 
 The container's `gpg` finds the forwarded socket at its standard path. Private key operations (signing, decryption) go through the host's agent. No GPG agent or keyboxd runs inside the container.
@@ -70,16 +70,16 @@ The container's `gpg` finds the forwarded socket at its standard path. Private k
 
 ```bash
 # Export from host, import into container
-gpg --export --armor KEY_ID | ov shell <image> -c 'gpg --import'
+gpg --export --armor KEY_ID | charly shell <image> -c 'gpg --import'
 ```
 
-**Verification:** `ov shell <image> -c 'gpg-connect-agent --no-autostart /bye'` connects to the host agent (shows "restricted mode" — this is normal for forwarded agent sockets).
+**Verification:** `charly shell <image> -c 'gpg-connect-agent --no-autostart /bye'` connects to the host agent (shows "restricted mode" — this is normal for forwarded agent sockets).
 
 ### Why NOT Quadlet
 
 Agent socket paths are **session-bound** — they live under `$XDG_RUNTIME_DIR` and change between SSH sessions, reboots, and users. Quadlet `.container` files are static systemd units generated once. Baking socket paths into quadlets would cause boot failures on headless servers managed via SSH.
 
-**Agent forwarding is intentionally excluded from quadlet mode.** Use `ov shell` or `ov start` (direct mode) for agent access.
+**Agent forwarding is intentionally excluded from quadlet mode.** Use `charly shell` or `charly start` (direct mode) for agent access.
 
 ## Settings
 
@@ -89,15 +89,15 @@ Agent socket paths are **session-bound** — they live under `$XDG_RUNTIME_DIR` 
 | `forward_ssh_agent` | `true` | `OV_FORWARD_SSH_AGENT` | Forward host SSH agent socket |
 
 ```bash
-ov settings set forward_gpg_agent false    # Disable GPG forwarding globally
-ov settings set forward_ssh_agent false    # Disable SSH forwarding globally
-ov settings reset forward_gpg_agent        # Re-enable (back to default: true)
+charly settings set forward_gpg_agent false    # Disable GPG forwarding globally
+charly settings set forward_ssh_agent false    # Disable SSH forwarding globally
+charly settings reset forward_gpg_agent        # Re-enable (back to default: true)
 ```
 
 ### Per-Image Override (deploy.yml)
 
 ```yaml
-# ~/.config/ov/deploy.yml
+# ~/.config/charly/deploy.yml
 images:
   immich:
     forward_gpg_agent: false    # No GPG needed for photo management
@@ -112,11 +112,11 @@ Resolution chain: deploy.yml per-image > global setting > default (true).
 
 | Command | Volumes (mounts) | Env vars | Notes |
 |---------|-------------------|----------|-------|
-| `ov shell` (new container) | Yes | Yes | Full forwarding |
-| `ov shell` (exec into running) | No | Yes | Env only; sockets from start time |
-| `ov start` (direct mode) | Yes | Yes | Full forwarding |
-| `ov cmd` | No | Yes | Exec into running container |
-| `ov config` / quadlet | No | No | Intentionally excluded |
+| `charly shell` (new container) | Yes | Yes | Full forwarding |
+| `charly shell` (exec into running) | No | Yes | Env only; sockets from start time |
+| `charly start` (direct mode) | Yes | Yes | Full forwarding |
+| `charly cmd` | No | Yes | Exec into running container |
+| `charly config` / quadlet | No | No | Intentionally excluded |
 
 ## Used In Images
 
@@ -124,19 +124,19 @@ arch-ov, arch-test, aurora, bazzite, comfyui, fedora-ov, fedora-test, githubrunn
 
 ## Related Layers
 
-- `/ov-infrastructure:gnupg` -- GnuPG encryption tools (part of this metalayer)
-- `/ov-coder:direnv` -- direnv environment loader (part of this metalayer)
-- `/ov-infrastructure:ssh-client` -- OpenSSH client (part of this metalayer)
-- `/ov-coder:sshd` -- SSH server (separate, for images that need inbound SSH)
-- `/ov-infrastructure:gocryptfs` -- encrypted filesystem (separate credential system)
+- `/charly-infrastructure:gnupg` -- GnuPG encryption tools (part of this metalayer)
+- `/charly-coder:direnv` -- direnv environment loader (part of this metalayer)
+- `/charly-infrastructure:ssh-client` -- OpenSSH client (part of this metalayer)
+- `/charly-coder:sshd` -- SSH server (separate, for images that need inbound SSH)
+- `/charly-infrastructure:gocryptfs` -- encrypted filesystem (separate credential system)
 
 ## Cross-References
 
-- `/ov-build:secrets` -- `ov secrets gpg` for managing `.secrets` files, GPG key management (`import-key`, `export-key`, `setup`, `doctor`), KeePassXC integration; credential store for container secrets
-- `/ov-core:shell` -- where SSH/GPG agent forwarding happens at runtime
-- `/ov-core:service` -- `ov start` direct mode forwarding
-- `/ov-core:ov-config` -- `forward_gpg_agent`, `forward_ssh_agent` settings
-- `/ov-core:deploy` -- per-image forwarding overrides in deploy.yml
+- `/charly-build:secrets` -- `charly secrets gpg` for managing `.secrets` files, GPG key management (`import-key`, `export-key`, `setup`, `doctor`), KeePassXC integration; credential store for container secrets
+- `/charly-core:shell` -- where SSH/GPG agent forwarding happens at runtime
+- `/charly-core:service` -- `charly start` direct mode forwarding
+- `/charly-core:ov-config` -- `forward_gpg_agent`, `forward_ssh_agent` settings
+- `/charly-core:deploy` -- per-image forwarding overrides in deploy.yml
 
 ## Source
 
@@ -148,5 +148,5 @@ arch-ov, arch-test, aurora, bazzite, comfyui, fedora-ov, fedora-test, githubrunn
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

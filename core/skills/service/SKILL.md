@@ -1,7 +1,7 @@
 ---
 name: service
 description: |
-  MUST be invoked before any work involving: ov start/stop/status/logs/update/remove commands, ov config (deployment), init system service management, or container lifecycle.
+  MUST be invoked before any work involving: charly start/stop/status/logs/update/remove commands, charly config (deployment), init system service management, or container lifecycle.
 ---
 
 # Service - Service Management
@@ -10,7 +10,7 @@ description: |
 
 **"pod"** is the user-visible term for a single-container deployment (matches podman's vocabulary and the `target: pod` deploy-yml value). Internally, the Go struct is `PodDeployTarget` and the file is `ov/deploy_target_pod.go`. This skill's body uses the word "container" in many places because it's also the generic runtime artifact — read "container" as the runtime concept and "pod" as the target/deployment kind.
 
-`ov start/stop/status/logs/shell` operate on named pod deployments (the unit a user cares about); the underlying runtime is podman/docker (containers), managed via systemd user quadlet.
+`charly start/stop/status/logs/shell` operate on named pod deployments (the unit a user cares about); the underlying runtime is podman/docker (containers), managed via systemd user quadlet.
 
 ## Overview
 
@@ -22,28 +22,28 @@ Container service lifecycle management with two modes: **quadlet** (systemd user
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Start service | `ov start <image>` | Start as background service |
-| Stop service | `ov stop <image>` | Stop running service |
-| Configure deployment | `ov config <image>` | Generate .container file, daemon-reload |
-| Remove deployment | `ov config remove <image>` | Remove deployment configuration |
-| Service status | `ov status [<image>]` | Structured status table (IMAGE, STATUS, PORTS, TUNNEL, DEVICES, TOOLS); IMAGE merges `image[/instance]` |
-| All services | `ov status --all` | Include stopped/enabled services in listing |
-| Detailed status | `ov status <image>` | Detailed key-value view with live tool probes |
-| JSON output | `ov status --json` | Machine-readable JSON output |
-| Service logs | `ov logs <image> -f` | Follow service logs |
-| Update service | `ov update <image>` | Update image and restart |
-| Remove service | `ov remove <image>` | Stop, remove service + deploy.yml entry |
-| Purge (+ volumes) | `ov remove <image> --purge` | Also delete named volumes |
-| Remove keep config | `ov remove <image> --keep-deploy` | Remove service but keep deploy.yml entry |
+| Start service | `charly start <image>` | Start as background service |
+| Stop service | `charly stop <image>` | Stop running service |
+| Configure deployment | `charly config <image>` | Generate .container file, daemon-reload |
+| Remove deployment | `charly config remove <image>` | Remove deployment configuration |
+| Service status | `charly status [<image>]` | Structured status table (IMAGE, STATUS, PORTS, TUNNEL, DEVICES, TOOLS); IMAGE merges `image[/instance]` |
+| All services | `charly status --all` | Include stopped/enabled services in listing |
+| Detailed status | `charly status <image>` | Detailed key-value view with live tool probes |
+| JSON output | `charly status --json` | Machine-readable JSON output |
+| Service logs | `charly logs <image> -f` | Follow service logs |
+| Update service | `charly update <image>` | Update image and restart |
+| Remove service | `charly remove <image>` | Stop, remove service + deploy.yml entry |
+| Purge (+ volumes) | `charly remove <image> --purge` | Also delete named volumes |
+| Remove keep config | `charly remove <image> --keep-deploy` | Remove service but keep deploy.yml entry |
 
 ### Supervisord Services
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Service status | `ov service status <image>` | Show all service status |
-| Start service | `ov service start <image> <svc>` | Start a specific service |
-| Stop service | `ov service stop <image> <svc>` | Stop a specific service |
-| Restart service | `ov service restart <image> <svc>` | Restart a specific service |
+| Service status | `charly service status <image>` | Show all service status |
+| Start service | `charly service start <image> <svc>` | Start a specific service |
+| Stop service | `charly service stop <image> <svc>` | Stop a specific service |
+| Restart service | `charly service restart <image> <svc>` | Restart a specific service |
 
 All commands accept `-i INSTANCE` for multi-instance support.
 
@@ -55,8 +55,8 @@ All commands accept `-i INSTANCE` for multi-instance support.
 | `direct` | `run_mode: direct` | `<engine> run -d` / `<engine> stop` (fallback only) |
 
 ```bash
-ov settings set run_mode quadlet  # Recommended -- systemd integration
-ov settings set run_mode direct   # Fallback for platforms without quadlet
+charly settings set run_mode quadlet  # Recommended -- systemd integration
+charly settings set run_mode direct   # Fallback for platforms without quadlet
 ```
 
 ## Quadlet Mode
@@ -66,51 +66,51 @@ User-level systemd services via podman quadlet. No root required.
 ### Setup
 
 ```bash
-ov settings set run_mode quadlet
-ov settings set engine.run podman    # Required
+charly settings set run_mode quadlet
+charly settings set engine.run podman    # Required
 loginctl enable-linger $USER         # Required for user services
 ```
 
 ### Workflow
 
 ```bash
-ov config my-app --bind workspace=~/project              # Generate .container file
-ov config my-app -i prod --bind workspace=~/prod -e ENV=production   # Named instance
-ov start my-app                    # systemctl --user start (config required first)
-ov status my-app                   # systemctl --user status
-ov logs my-app -f                  # journalctl --user -u (follow)
-ov update my-app                   # Re-transfer image, restart
-ov stop my-app                     # systemctl --user stop
-ov config remove my-app            # Remove deployment configuration
-ov remove my-app                   # Stop + remove .container + deploy.yml entry
-ov remove my-app --purge           # Also remove named volumes
-ov remove my-app --keep-deploy     # Remove service but keep deploy.yml for re-config
-ov remove my-app -e KEY=VALUE      # Set env vars for lifecycle hooks
+charly config my-app --bind workspace=~/project              # Generate .container file
+charly config my-app -i prod --bind workspace=~/prod -e ENV=production   # Named instance
+charly start my-app                    # systemctl --user start (config required first)
+charly status my-app                   # systemctl --user status
+charly logs my-app -f                  # journalctl --user -u (follow)
+charly update my-app                   # Re-transfer image, restart
+charly stop my-app                     # systemctl --user stop
+charly config remove my-app            # Remove deployment configuration
+charly remove my-app                   # Stop + remove .container + deploy.yml entry
+charly remove my-app --purge           # Also remove named volumes
+charly remove my-app --keep-deploy     # Remove service but keep deploy.yml for re-config
+charly remove my-app -e KEY=VALUE      # Set env vars for lifecycle hooks
 ```
 
-`ov config` must be run before `ov start` in quadlet mode. If the quadlet file doesn't exist, `ov start` fails with: "not configured; run 'ov config <image>' first".
+`charly config` must be run before `charly start` in quadlet mode. If the quadlet file doesn't exist, `charly start` fails with: "not configured; run 'charly config <image>' first".
 
 ### Generated Files
 
-- Path: `~/.config/containers/systemd/ov-<image>.container` (or `ov-<image>-<instance>.container`)
+- Path: `~/.config/containers/systemd/charly-<image>.container` (or `ov-<image>-<instance>.container`)
 - Service name: `ov-<image>.service`
 - Container name: `ov-<image>`
 - Ports bound to configured `bind_address`
 - Entrypoint: determined by build.yml `init:` section config (e.g., `supervisord -n -c /etc/supervisord.conf` for supervisord, `sleep infinity` if no init system)
-- Auto-restart on failure via `WantedBy=default.target` (encrypted services with Secret Service backend include `ExecStartPre=ov config mount` + `TimeoutStartSec=0` for keyring wait; KeePass/no backend omit `WantedBy` — require `ov start`)
-- `ov box validate` enforces: images with init system layers MUST include the required dependency layer (defined by build.yml `init:` section `depends_layer`)
+- Auto-restart on failure via `WantedBy=default.target` (encrypted services with Secret Service backend include `ExecStartPre=charly config mount` + `TimeoutStartSec=0` for keyring wait; KeePass/no backend omit `WantedBy` — require `charly start`)
+- `charly box validate` enforces: images with init system layers MUST include the required dependency layer (defined by build.yml `init:` section `depends_layer`)
 - `Secret=ov-<image>-<name>,target=/run/secrets/<name>` for each layer-declared secret (Podman only)
 
 ### Container Secrets
 
-When image labels declare secrets (from `candy.yml` `secrets` field), `ov config` provisions them:
+When image labels declare secrets (from `candy.yml` `secrets` field), `charly config` provisions them:
 1. Checks if Podman secret already exists — **if so, keeps it** (never overwrites)
 2. If missing: resolves secret values from the credential store (env var > keyring > config file)
 3. Creates Podman secrets via `podman secret create ov-<image>-<name>`
 4. Generates `Secret=` directives in the quadlet file
 5. Secrets are mounted at `/run/secrets/<name>` inside the container
 
-**Provisioning is idempotent** — existing secrets are never overwritten. This prevents breaking stateful services (e.g., PostgreSQL) that store their own copy of the password. To force re-provisioning: `podman secret rm <name> && ov config setup <image>`.
+**Provisioning is idempotent** — existing secrets are never overwritten. This prevents breaking stateful services (e.g., PostgreSQL) that store their own copy of the password. To force re-provisioning: `podman secret rm <name> && charly config setup <image>`.
 
 For Docker, secrets fall back to `Environment=` injection with a security warning.
 
@@ -134,22 +134,22 @@ Source: `ov/security.go`, `ov/quadlet.go`.
 
 ### Image Transfer
 
-When `engine.build=docker`, `ov config` auto-detects if the image is missing from podman and transfers via `docker save | podman load`. `ov update` re-transfers if needed.
+When `engine.build=docker`, `charly config` auto-detects if the image is missing from podman and transfers via `docker save | podman load`. `charly update` re-transfers if needed.
 
 ## Direct Mode (Fallback)
 
 Only use direct mode on platforms that don't support quadlet (e.g., macOS Docker Desktop).
 
 ```bash
-ov start my-app                  # docker/podman run -d
-ov start my-app --bind workspace=~/project  # With volume binding
-ov start my-app -e LOG=debug     # With env vars
-ov status my-app                 # docker/podman inspect
-ov logs my-app -f                # docker/podman logs -f
-ov stop my-app                   # docker/podman stop
-ov update my-app --build         # Rebuild, stop old, start new
-ov remove my-app                 # Stop + remove container
-ov remove my-app --purge         # Also remove named volumes
+charly start my-app                  # docker/podman run -d
+charly start my-app --bind workspace=~/project  # With volume binding
+charly start my-app -e LOG=debug     # With env vars
+charly status my-app                 # docker/podman inspect
+charly logs my-app -f                # docker/podman logs -f
+charly stop my-app                   # docker/podman stop
+charly update my-app --build         # Rebuild, stop old, start new
+charly remove my-app                 # Stop + remove container
+charly remove my-app --purge         # Also remove named volumes
 ```
 
 ## Init System Service Management
@@ -157,14 +157,14 @@ ov remove my-app --purge         # Also remove named volumes
 Manage individual services inside a running container (uses the init system configured via build.yml `init:` section — supervisord, systemd, etc.):
 
 ```bash
-ov service status my-app               # Show status of all services
-ov service start my-app traefik        # Start a specific service
-ov service stop my-app traefik         # Stop a specific service
-ov service restart my-app traefik      # Restart a specific service
-ov service status my-app -i prod       # Named instance
+charly service status my-app               # Show status of all services
+charly service start my-app traefik        # Start a specific service
+charly service stop my-app traefik         # Stop a specific service
+charly service restart my-app traefik      # Restart a specific service
+charly service status my-app -i prod       # Named instance
 ```
 
-The service name must match an entry in the image's init system config. Available services are validated against the image's `org.overthinkos.service.<init>` label (e.g., `org.overthinkos.service.supervisord`). The management tool and commands are defined in build.yml `init:` section.
+The service name must match an entry in the image's init system config. Available services are validated against the image's `ai.opencharly.service.<init>` label (e.g., `ai.opencharly.service.supervisord`). The management tool and commands are defined in build.yml `init:` section.
 
 Source: `ov/service.go`.
 
@@ -183,10 +183,10 @@ hook:
 
 | Hook | When it runs |
 |------|-------------|
-| `post_enable` | After `ov config` generates the quadlet and reloads systemd |
-| `pre_remove` | Before `ov remove` stops and removes the service |
+| `post_enable` | After `charly config` generates the quadlet and reloads systemd |
+| `pre_remove` | Before `charly remove` stops and removes the service |
 
-Hooks from multiple layers are concatenated in layer order. Scripts run on the host (not inside the container). Use `ov remove -e KEY=VALUE` to pass environment variables to hook scripts.
+Hooks from multiple layers are concatenated in layer order. Scripts run on the host (not inside the container). Use `charly remove -e KEY=VALUE` to pass environment variables to hook scripts.
 
 Source: `ov/hooks.go`.
 
@@ -195,10 +195,10 @@ Source: `ov/hooks.go`.
 The `-i NAME` flag enables running multiple containers of the same image with separate state:
 
 ```bash
-ov config my-app -i prod --bind workspace=~/prod
-ov config my-app -i staging --bind workspace=~/staging
-ov start my-app -i prod
-ov status my-app -i staging
+charly config my-app -i prod --bind workspace=~/prod
+charly config my-app -i staging --bind workspace=~/staging
+charly start my-app -i prod
+charly status my-app -i staging
 ```
 
 Instance naming affects:
@@ -211,13 +211,13 @@ Source: `ov/volumes.go` (`InstanceVolumes`), `ov/quadlet.go`.
 
 ## Data Provisioning
 
-Data from data layers is automatically provisioned into bind-backed volumes during `ov config` and synced during `ov update`. See `/ov-core:ov-config` for `--seed`/`--force-seed`/`--data-from` flags. Source: `ov/data.go`.
+Data from data layers is automatically provisioned into bind-backed volumes during `charly config` and synced during `charly update`. See `/charly-core:ov-config` for `--seed`/`--force-seed`/`--data-from` flags. Source: `ov/data.go`.
 
 ## Troubleshooting
 
 ### Port Already in Use
 
-If `ov start` fails with `bind: address already in use`, another container or host process is using the port. Find the conflict:
+If `charly start` fails with `bind: address already in use`, another container or host process is using the port. Find the conflict:
 
 ```bash
 ss -tlnp | grep <port>           # Find what's listening
@@ -228,16 +228,16 @@ Stop the conflicting container before starting. Common conflicts: standalone `ol
 
 ### Service Crash-Looping
 
-If `ov service status` shows a service cycling STARTING/STOPPED, run it manually to see the error:
+If `charly service status` shows a service cycling STARTING/STOPPED, run it manually to see the error:
 
 ```bash
-ov shell <image> -c "supervisorctl stop <service>"
-ov shell <image> -c "<service-command>"
+charly shell <image> -c "supervisorctl stop <service>"
+charly shell <image> -c "<service-command>"
 ```
 
 ## Status Output
 
-`ov status` shows a structured table of all ov containers. The table
+`charly status` shows a structured table of all charly containers. The table
 has a TUNNEL column and the IMAGE column merges `image[/instance]`:
 
 ```
@@ -254,7 +254,7 @@ jupyter                            stopped  8888                  tailscale (all
   `-i <inst>` flags.
 - **PORTS**: Sorted, deduped host port numbers. **Source priority**:
   runtime `podman ps` mappings → `deploy.yml` `port:` → image OCI label
-  `org.overthinkos.port`. The runtime path uses the structured
+  `ai.opencharly.port`. The runtime path uses the structured
   `[]PortMapping` carried on `ContainerSnapshot`; deploy/label paths go
   through canonical `ParsePortMapping` so the IPv4-prefixed
   `127.0.0.1:H:C/proto` form parses correctly.
@@ -269,7 +269,7 @@ jupyter                            stopped  8888                  tailscale (all
 
 ### Tool Probes
 
-`ov status` runs the probe set per running container with two distinct
+`charly status` runs the probe set per running container with two distinct
 shapes:
 
 - **Host probes** (cdp, vnc) run from the operator's machine using the
@@ -289,10 +289,10 @@ shapes:
 | sway | guest | discover SWAYSOCK then `swaymsg -t get_outputs` | Sway compositor (output dimensions in detail) |
 | wl | guest | `command -v wtype/wlrctl/grim/pixelflux-screenshot` | Wayland tools (one snippet, four checks) |
 | dbus | guest | `pgrep -x dbus-daemon` + scan for swaync/mako/dunst | D-Bus session bus + notifier (one snippet, four checks) |
-| ov | guest | `command -v ov && ov version` | In-container ov binary + CalVer version |
+| charly | guest | `command -v charly && charly version` | In-container charly binary + CalVer version |
 
-Each tool also has its own `status` subcommand: `ov eval cdp status`,
-`ov eval vnc status`, `ov eval wl status`. These commands now use the
+Each tool also has its own `status` subcommand: `charly eval cdp status`,
+`charly eval vnc status`, `charly eval wl status`. These commands now use the
 same probe types via `runGuestProbes` / `cdpProbe.ProbeHost` /
 `vncProbe.ProbeHost`.
 
@@ -303,7 +303,7 @@ classifies output regardless of exit code.
 
 ### Single Image Detail
 
-`ov status <image> -i <inst>` shows a detailed key-value view:
+`charly status <image> -i <inst>` shows a detailed key-value view:
 
 ```
 Image:     selkies-desktop
@@ -313,15 +313,15 @@ Container: ov-selkies-desktop-work
 Mode:      quadlet
 Ports:     3001:3000/tcp, 9240:9222/tcp
 Devices:   nvidia.com/gpu=all, /dev/dri/renderD128
-Tools:     cdp:9240 (ok), dbus (ok), ov (ok), supervisord (ok), wl (ok)
+Tools:     cdp:9240 (ok), dbus (ok), charly (ok), supervisord (ok), wl (ok)
 Volumes:   ov-selkies-desktop-work-data -> /home/abc/data
-Network:   ov
+Network:   charly
 Tunnel:    tailscale (all ports)
 ```
 
 ### JSON Output
 
-`ov status --json` emits an array; `ov status <image> --json` emits a
+`charly status --json` emits an array; `charly status <image> --json` emits a
 single object. `ports` is a structured array (not `[]string`):
 
 ```json
@@ -335,9 +335,9 @@ single object. `ports` is a structured array (not `[]string`):
 
 ### Reaping Orphans
 
-Use the top-level `ov reap-orphans` command. It walks deploy.yml
+Use the top-level `charly reap-orphans` command. It walks deploy.yml
 ephemeral entries marked `active`, probes the underlying engine
-(libvirt for VM, podman for pod, kubectl for k8s) and runs `ov deploy
+(libvirt for VM, podman for pod, kubectl for k8s) and runs `charly deploy
 del <name> --force` for orphans.
 
 Source: `ov/status.go`, `ov/status_engine.go`, `ov/status_collector.go`,
@@ -345,20 +345,20 @@ Source: `ov/status.go`, `ov/status_engine.go`, `ov/status_collector.go`,
 
 ## Cross-References
 
-- `/ov-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
+- `/charly-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
-- `/ov-core:shell` -- Interactive shells and exec into running containers
-- `/ov-core:deploy` -- Quadlet generation details, tunnels, volume backing
-- `/ov-automation:enc` -- Encrypted storage (mounted inline by ov start)
-- `/ov-core:ov-config` -- `run_mode`, `auto_enable`, `engine.run` settings
-- `/ov-eval:cdp` -- CDP status subcommand (`ov eval cdp status`)
-- `/ov-eval:vnc` -- VNC status subcommand (`ov eval vnc status`)
-- `/ov-eval:wl` -- Desktop automation + sway subgroup (`ov eval wl sway status`)
-- `/ov-eval:wl` -- WL status subcommand (`ov eval wl status`)
+- `/charly-core:shell` -- Interactive shells and exec into running containers
+- `/charly-core:deploy` -- Quadlet generation details, tunnels, volume backing
+- `/charly-automation:enc` -- Encrypted storage (mounted inline by charly start)
+- `/charly-core:ov-config` -- `run_mode`, `auto_enable`, `engine.run` settings
+- `/charly-eval:cdp` -- CDP status subcommand (`charly eval cdp status`)
+- `/charly-eval:vnc` -- VNC status subcommand (`charly eval vnc status`)
+- `/charly-eval:wl` -- Desktop automation + sway subgroup (`charly eval wl sway status`)
+- `/charly-eval:wl` -- WL status subcommand (`charly eval wl status`)
 
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves starting, stopping, configuring, or managing container services, init system service management, or container lifecycle. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** After `/ov-build:build` and `/ov-core:deploy`. This skill covers the runtime lifecycle.
-Previous step: `/ov-core:deploy` (quadlet generation, tunnels). Next step: per-pod plugin (`/ov-jupyter:<name>`, `/ov-coder:<name>`, etc.) or `/ov-distros:<name> / /ov-languages:<name> / /ov-infrastructure:<name> / /ov-tools:<name>` for verification.
+**Workflow position:** After `/charly-build:build` and `/charly-core:deploy`. This skill covers the runtime lifecycle.
+Previous step: `/charly-core:deploy` (quadlet generation, tunnels). Next step: per-pod plugin (`/charly-jupyter:<name>`, `/charly-coder:<name>`, etc.) or `/charly-distros:<name> / /charly-languages:<name> / /charly-infrastructure:<name> / /charly-tools:<name>` for verification.

@@ -1,7 +1,7 @@
 ---
 name: vms-catalog
 description: |
-  Authoring reference for kind:vm entities in vm.yml. Parallel to /ov-image:layer and /ov-image:image.
+  Authoring reference for kind:vm entities in vm.yml. Parallel to /charly-image:layer and /charly-image:image.
   Covers the VmSpec schema, source.kind discriminator (cloud_image vs bootc),
   base_user adopt pattern, and step-by-step recipes for both source kinds.
   MUST be invoked before authoring or editing vm.yml entries.
@@ -9,9 +9,9 @@ description: |
 
 # vms
 
-`vm.yml` is the authoring surface for `kind: vm` entities — VM primitives that pair with either a remote cloud-image URL (`source.kind: cloud_image`) or an in-repo bootc container image (`source.kind: bootc`). Loaded through `overthink.yml includes:` alongside `box.yml`. Entries are resolved by `LoadUnified` into `VmSpec` Go types (`ov/vm_spec.go`) and consumed by `ov vm build`, `ov vm create`, and `ov deploy add vm:<name>`.
+`vm.yml` is the authoring surface for `kind: vm` entities — VM primitives that pair with either a remote cloud-image URL (`source.kind: cloud_image`) or an in-repo bootc container image (`source.kind: bootc`). Loaded through `charly.yml includes:` alongside `box.yml`. Entries are resolved by `LoadUnified` into `VmSpec` Go types (`ov/vm_spec.go`) and consumed by `charly vm build`, `charly vm create`, and `charly deploy add vm:<name>`.
 
-The VM surface parallels the `kind: box` surface: one YAML entry per entity, kind-keyed, discovered through includes. The Go types that back it live in `/ov-internals:vm-spec`; the rendering paths in `/ov-internals:libvirt-renderer` and `/ov-internals:cloud-init-renderer`.
+The VM surface parallels the `kind: box` surface: one YAML entry per entity, kind-keyed, discovered through includes. The Go types that back it live in `/charly-internals:vm-spec`; the rendering paths in `/charly-internals:libvirt-renderer` and `/charly-internals:cloud-init-renderer`.
 
 ## File layout
 
@@ -61,7 +61,7 @@ vms:
       runcmd: ["…", …]
       ov_install:
         strategy: auto | none
-    # Libvirt XML knobs (see /ov-internals:libvirt-renderer):
+    # Libvirt XML knobs (see /charly-internals:libvirt-renderer):
     libvirt:
       devices:
         channels: [{type: unix, name: org.qemu.guest_agent.0}]   # qemu-guest-agent
@@ -69,7 +69,7 @@ vms:
         video: [{model: virtio, vram: 65536, heads: 1, accel3d: false}]
         rng: [{model: virtio, backend: /dev/urandom}]
         memballoon: {model: virtio}
-        hostdevs: […]                                            # PCI passthrough (ov vm gpu list)
+        hostdevs: […]                                            # PCI passthrough (charly vm gpu list)
         filesystems:                                             # virtiofs/9p host↔guest shares
           - {driver: virtiofs, accessmode: passthrough, source: /home/me, target: workspace}
       # memory_backing is auto-paired (memfd + shared) for any virtiofs share
@@ -77,13 +77,13 @@ vms:
 
 ### autostart — start the VM at host boot
 
-`autostart: true` sets libvirt's domain autostart flag. Because ov VMs run under
+`autostart: true` sets libvirt's domain autostart flag. Because charly VMs run under
 `qemu:///session` (no portable user-level `virtqemud.socket` to socket-activate at
-boot), `ov vm create` also enables `loginctl enable-linger` (idempotent) and
+boot), `charly vm create` also enables `loginctl enable-linger` (idempotent) and
 writes + enables a per-VM user oneshot `ov-autostart-<domain>.service` that
-`virsh -c qemu:///session start`s the domain at boot (`ov vm destroy` removes it).
+`virsh -c qemu:///session start`s the domain at boot (`charly vm destroy` removes it).
 **Requires `backend: libvirt`** — validation rejects `autostart: true` with
-`backend: qemu`. Reapplied on every `ov vm create` / `ov update`. Pair with a
+`backend: qemu`. Reapplied on every `charly vm create` / `charly update`. Pair with a
 1 TB+ `disk_size` freely — the qcow2 is sparse, so a large virtual disk costs only
 the bytes written.
 
@@ -93,7 +93,7 @@ the bytes written.
 `{driver: virtiofs, accessmode: passthrough, source: <host dir>, target: <tag>}`.
 The shared-memory backing virtiofs requires (`memfd`/`shared`) is **auto-paired**
 — you don't declare `memory_backing` yourself. The guest mounts the `target:` tag
-with the `/ov-distros:workspace-mount` layer (a systemd `.mount` unit for the
+with the `/charly-distros:workspace-mount` layer (a systemd `.mount` unit for the
 `workspace` tag → `/workspace`) or any `mount -t virtiofs <tag> <dir>`.
 
 ### graphics `listen:` field — three accepted shapes
@@ -125,38 +125,38 @@ listen:
 `remote-viewer --connect qemu+ssh://…` auto-forward UNIX sockets over
 the libvirt RPC channel — GUI clients work out of the box against a
 remote libvirt with zero `ssh -L` setup. TCP loopback listeners are
-never auto-tunneled, by design. See `/ov-vm:arch`
+never auto-tunneled, by design. See `/charly-vm:arch`
 "Connecting from a remote workstation".
 
 ## source.kind: cloud_image
 
 Use when the VM is built from an **externally published qcow2** (Arch cloud image from pkgbuild.com, Fedora Cloud, Ubuntu Cloud, Debian Cloud, CentOS Cloud, etc.). The build pipeline fetches the URL, integrity-checks it via sha256 (sidecar auto-resolved when `checksum.value` is empty), creates a qcow2 overlay at `spec.disk_size`, renders a NoCloud seed ISO, and hands off to libvirt/QEMU.
 
-Canonical example: `/ov-vm:arch`. Only existing cloud_image VM in the repo — **read it before authoring another one**. It documents the non-obvious decisions learned the hard way:
+Canonical example: `/charly-vm:arch`. Only existing cloud_image VM in the repo — **read it before authoring another one**. It documents the non-obvious decisions learned the hard way:
 
 - **BIOS firmware is usually the right default.** Distribution cloud images ship both a BIOS boot partition and an EFI System Partition, but the ESP's bootloader binary often has an **embedded grub.cfg that predates the maintainer's latest `/etc/default/grub`** (Arch's upstream issue with `fbcon=nodefer`). BIOS boot reads `/boot/grub/grub.cfg` directly from the root fs, which is always current.
-- **virtio-gpu, not QXL.** See `/ov-internals:libvirt-renderer` "video model choice" — virtio-gpu is the modern default for Linux guests.
+- **virtio-gpu, not QXL.** See `/charly-internals:libvirt-renderer` "video model choice" — virtio-gpu is the modern default for Linux guests.
 - **Generous resource sizing.** `pacman -S spice-vdagent` pulls in GTK3 + X11 (~200 MB download, ~1 GB installed); running at 2 GiB RAM stalls cloud-init. Size for the workload: 8 GiB / 4 cpus is reasonable for a workstation-class dev VM.
 
 ### Authoring a new cloud_image VM
 
 1. Find the upstream qcow2 URL + verify a sha256 sidecar exists (<url>.SHA256 / .sha256 / .sha256sum).
 2. Identify the **pre-existing user account** in the upstream image (`arch`, `ubuntu`, `fedora`, `debian`, `cloud-user`, etc.). This becomes `source.base_user:` — triggers the adopt pattern described below.
-3. Start from `/ov-vm:arch` as a template. Change `url`, `base_user`, distro-specific cloud_init `package:` and `runcmd:`.
+3. Start from `/charly-vm:arch` as a template. Change `url`, `base_user`, distro-specific cloud_init `package:` and `runcmd:`.
 4. Pick firmware: default to `bios` unless the upstream image explicitly requires UEFI (e.g., secure boot lock-in).
-5. Run `ov vm build <name>` — observe the fetched qcow2 sha256 + rendered seed ISO path.
-6. Run `ov vm create <name>` + `ov vm ssh <name>` to verify cloud-init completed.
+5. Run `charly vm build <name>` — observe the fetched qcow2 sha256 + rendered seed ISO path.
+6. Run `charly vm create <name>` + `charly vm ssh <name>` to verify cloud-init completed.
 
 ## source.kind: bootc
 
-Use when the VM is built from an **in-repo bootc container image** (a `kind: box` entry with `bootc: true`). `ov vm build` runs `bootc install to-disk --via-loopback` inside a privileged container to produce the qcow2/raw disk.
+Use when the VM is built from an **in-repo bootc container image** (a `kind: box` entry with `bootc: true`). `charly vm build` runs `bootc install to-disk --via-loopback` inside a privileged container to produce the qcow2/raw disk.
 
 The 4 bootc VMs currently shipped (each with a dedicated thin skill):
 
 | VM entity | Paired container image | Skill |
 |---|---|---|
-| `aurora-bootc` | `/ov-distros:aurora` | `/ov-vm:aurora-bootc` |
-| `bazzite-bootc` | `/ov-distros:bazzite` | `/ov-vm:bazzite-bootc` |
+| `aurora-bootc` | `/charly-distros:aurora` | `/charly-vm:aurora-bootc` |
+| `bazzite-bootc` | `/charly-distros:bazzite` | `/charly-vm:bazzite-bootc` |
 
 The `-bootc` suffix marks the bootc VM entity (distinguished from an equivalent container-form deploy by the `vms:` namespacing, not by the name).
 
@@ -164,14 +164,14 @@ The `-bootc` suffix marks the bootc VM entity (distinguished from an equivalent 
 
 1. Ensure the paired container image has `bootc: true` declared and builds cleanly.
 2. Add a `vms:` entry with `source.kind: bootc` + `source.image: <entry-name>`.
-3. Size disk/ram/cpus for the workload (see the relevant per-pod or `/ov-distros:<name> / /ov-languages:<name> / /ov-infrastructure:<name> / /ov-tools:<name>` skill's VM Configuration section for the authoritative numbers).
-4. Run `ov vm build <vm-name>`. See `/ov-vm:vm` known-caveats section for bootc-specific gotchas (rootful storage split, nested-container `--transport containers-storage`, loopback device mount namespace).
+3. Size disk/ram/cpus for the workload (see the relevant per-pod or `/charly-distros:<name> / /charly-languages:<name> / /charly-infrastructure:<name> / /charly-tools:<name>` skill's VM Configuration section for the authoritative numbers).
+4. Run `charly vm build <vm-name>`. See `/charly-vm:vm` known-caveats section for bootc-specific gotchas (rootful storage split, nested-container `--transport containers-storage`, loopback device mount namespace).
 
 ## Adopt pattern: base_user (cloud_image only)
 
-Mirrors the container-side `base_user:` + `user_policy: adopt` pattern documented in `/ov-image:image` "user_policy". The key insight: **don't recreate accounts cloud-init already shipped** — just append the SSH pubkey and move on.
+Mirrors the container-side `base_user:` + `user_policy: adopt` pattern documented in `/charly-image:image` "user_policy". The key insight: **don't recreate accounts cloud-init already shipped** — just append the SSH pubkey and move on.
 
-When `source.base_user:` is set, the cloud-init renderer (`/ov-internals:cloud-init-renderer::composeUsers`) emits a merge-by-name entry:
+When `source.base_user:` is set, the cloud-init renderer (`/charly-internals:cloud-init-renderer::composeUsers`) emits a merge-by-name entry:
 
 ```yaml
 # Rendered user-data
@@ -184,19 +184,19 @@ users:
 
 cloud-init interprets `users: [default, {name: <base_user>}]` as "keep the distro's default account untouched, append SSH key to the named account". Result: no `useradd`, no sudoers rewrite, no shell change, no home-directory relocation — just the pubkey lands in `~<user>/.ssh/authorized_keys` on first boot.
 
-`spec.ssh.user` defaults to `source.base_user`, so `ov vm ssh <name>` connects as the adopted account without extra declaration.
+`spec.ssh.user` defaults to `source.base_user`, so `charly vm ssh <name>` connects as the adopted account without extra declaration.
 
 Leave `base_user:` empty **only** when the upstream has no default account — in which case author a full custom user entry in `cloud_init.users:` with sudo/groups/shell fields. Don't do this when adopting works; `useradd`-at-first-boot races with other cloud-init modules and is harder to reason about.
 
 ## ov_install.strategy: auto (cloud_image)
 
-`ov_install.strategy: auto` in `cloud_init:` wires `ov`'s in-guest installer (`/ov-internals:cloud-init-renderer` → emitted `runcmd:` entries) so the provisioned VM comes up with `ov` already installed. Lets `ov deploy add vm:<name>` apply host-deploy-style layer recipes inside the VM over SSH without a bootstrap round-trip. See `/ov-internals:cloud-init-renderer` for the emission + handshake.
+`ov_install.strategy: auto` in `cloud_init:` wires `ov`'s in-guest installer (`/charly-internals:cloud-init-renderer` → emitted `runcmd:` entries) so the provisioned VM comes up with `ov` already installed. Lets `charly deploy add vm:<name>` apply host-deploy-style layer recipes inside the VM over SSH without a bootstrap round-trip. See `/charly-internals:cloud-init-renderer` for the emission + handshake.
 
 `strategy: none` skips the step entirely — useful when the VM will be managed by something other than `ov` after provisioning.
 
 ## Validation rules
 
-Load-time errors raised by `ValidateVmSpec` (`ov/libvirt_validate.go`, see `/ov-internals:vm-spec`):
+Load-time errors raised by `ValidateVmSpec` (`ov/libvirt_validate.go`, see `/charly-internals:vm-spec`):
 
 - `source.kind` must be one of `cloud_image`, `bootc`.
 - `cloud_image` branch requires `url:` populated.
@@ -212,31 +212,31 @@ Load-time errors raised by `ValidateVmSpec` (`ov/libvirt_validate.go`, see `/ov-
 Projects predating this schema had three coupled fields on `kind: box` entries: `bootc: true`, `vm: {...}`, `libvirt: [...]`. All three were deleted in the hard cutover. Conversion is one-shot:
 
 ```bash
-ov migrate
+charly migrate
 ```
 
-Idempotent. Harvests the legacy fields into `vms:` entries, preserving any pre-existing `vms:` keys. See `/ov-build:migrate` for the full command reference and `/ov-internals:cutover-policy` for why hard-cutover was the chosen policy.
+Idempotent. Harvests the legacy fields into `vms:` entries, preserving any pre-existing `vms:` keys. See `/charly-build:migrate` for the full command reference and `/charly-internals:cutover-policy` for why hard-cutover was the chosen policy.
 
 ## Cross-References
 
-- `/ov-vm:vm` — the `ov vm build/create/start/stop/ssh/console` command family
-- `/ov-build:migrate` — `ov migrate` conversion from legacy
-- `/ov-core:deploy` — `ov deploy add vm:<name>` for in-guest layer application
-- `/ov-vm:arch` — canonical cloud_image VM
-- `/ov-vm:aurora-bootc`, `/ov-vm:bazzite-bootc` — bootc VMs
-- `/ov-internals:vm-spec` — Go type reference
-- `/ov-internals:libvirt-renderer` — libvirt XML emission
-- `/ov-internals:cloud-init-renderer` — NoCloud seed ISO + user-data emission
-- `/ov-internals:ovmf` — UEFI firmware path resolution (when `firmware:` ≠ `bios`)
-- `/ov-internals:vm-deploy-target` — `VmDeployTarget` in the InstallPlan pipeline
-- `/ov-internals:cutover-policy` — Hard Cutover by Default policy
-- `/ov-distros:cloud-init` — guest-side cloud-init layer (pairs with host-side `cloud_init:` emission)
-- `/ov-distros:qemu-guest-agent` — virtio-serial channel for host↔guest comms
+- `/charly-vm:vm` — the `charly vm build/create/start/stop/ssh/console` command family
+- `/charly-build:migrate` — `charly migrate` conversion from legacy
+- `/charly-core:deploy` — `charly deploy add vm:<name>` for in-guest layer application
+- `/charly-vm:arch` — canonical cloud_image VM
+- `/charly-vm:aurora-bootc`, `/charly-vm:bazzite-bootc` — bootc VMs
+- `/charly-internals:vm-spec` — Go type reference
+- `/charly-internals:libvirt-renderer` — libvirt XML emission
+- `/charly-internals:cloud-init-renderer` — NoCloud seed ISO + user-data emission
+- `/charly-internals:ovmf` — UEFI firmware path resolution (when `firmware:` ≠ `bios`)
+- `/charly-internals:vm-deploy-target` — `VmDeployTarget` in the InstallPlan pipeline
+- `/charly-internals:cutover-policy` — Hard Cutover by Default policy
+- `/charly-distros:cloud-init` — guest-side cloud-init layer (pairs with host-side `cloud_init:` emission)
+- `/charly-distros:qemu-guest-agent` — virtio-serial channel for host↔guest comms
 
-## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
-**After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
+**After committing the source-level fix, `charly update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 
 Unit tests + a clean compile are necessary but not sufficient. See CLAUDE.md R1–R10.

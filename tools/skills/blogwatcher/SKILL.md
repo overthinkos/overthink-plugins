@@ -34,12 +34,12 @@ layers:
 - `openclaw-full` (via `openclaw-full` metalayer)
 
 ## Related Layers
-- `/ov-coder:golang` — Required Go runtime parent dependency
-- `/ov-openclaw:openclaw-full` — Metalayer that bundles blogwatcher with other AI/agent CLIs
+- `/charly-coder:golang` — Required Go runtime parent dependency
+- `/charly-openclaw:openclaw-full` — Metalayer that bundles blogwatcher with other AI/agent CLIs
 
 ## Related Commands
-- `/ov-build:build` — Builds the layer (Go install via a cmd task)
-- `/ov-core:shell` — Interactive shell to run blogwatcher inside the container
+- `/charly-build:build` — Builds the layer (Go install via a cmd task)
+- `/charly-core:shell` — Interactive shell to run blogwatcher inside the container
 
 ## When to Use This Skill
 
@@ -50,5 +50,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

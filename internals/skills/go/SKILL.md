@@ -1,7 +1,7 @@
 ---
 name: go
 description: |
-  Go CLI development: building the ov binary, running tests, understanding
+  Go CLI development: building the charly binary, running tests, understanding
   the source code structure.
   MUST be invoked before reading or modifying any Go source file in ov/.
 ---
@@ -10,11 +10,11 @@ description: |
 
 ## Overview
 
-The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framework, go-containerregistry for OCI operations, and YAML parsing for configuration. All computation, validation, and building logic lives in Go. Taskfiles are used only for bootstrapping (building ov itself).
+The `ov` CLI is a Go program in the `ov/` directory. It uses the Kong CLI framework, go-containerregistry for OCI operations, and YAML parsing for configuration. All computation, validation, and building logic lives in Go. Taskfiles are used only for bootstrapping (building charly itself).
 
 ### Unified YAML loader (`LoadUnified`)
 
-The unified format's entry point is `LoadUnified(dir)` at `ov/unified.go`. It reads `<dir>/overthink.yml`, recursively resolves the `import:` statement (max depth 8, cycle-safe via visited set), parses every file as a **YAML multi-document stream** (so bundle files with `---` separators work), and routes each document by shape:
+The unified format's entry point is `LoadUnified(dir)` at `ov/unified.go`. It reads `<dir>/charly.yml`, recursively resolves the `import:` statement (max depth 8, cycle-safe via visited set), parses every file as a **YAML multi-document stream** (so bundle files with `---` separators work), and routes each document by shape:
 
 - **Root-shape doc** — has any of `version:`, `import:`, `discover:`, `defaults:`, `distro:`, `builder:`, `init:`, `box:`, `candy:`, `deploy:` → parsed as `UnifiedFile`, merged root-wins.
 - **Kind-keyed doc** — has exactly one of `candy:`, `box:`, `deploy:`, `builder:`, `distro:`, `init:` (and the other kinds) + a `name:` inside → registered under `name:` in the matching map.
@@ -35,7 +35,7 @@ Projections to today's concrete types: `ProjectConfig()` → `*Config`, `Project
 
 `UnifiedFile.Namespaces` (`map[string]*UnifiedFile`, YAML tag `-`, never authored directly) holds the mounted children; `projectConfigCached` projects it to `Config.Namespaces` (`map[string]*Config`, pointer-keyed cache → self-references project safely).
 
-**Cycle-break by REPO IDENTITY (`ns_identity.go`), not pinned version.** Two maps cooperate in `loadNamespaceCached`: `nsCache` is the version-keyed (`canonicalRef`: `repo@version/subpath`) *diamond memo* — it dedups identical refs across a load; `loadingRepos` is the *ancestor/cycle* set, keyed by REPO IDENTITY (`nsRepoIdentity`: a remote ref's `RepoPath`, or a local path's `git remote origin`). BEFORE any fetch, if the ref's repo identity is already in `loadingRepos` (an ancestor still on the load stack), the loader returns that in-progress node — so the intentional main ↔ cachyos mutual import (main imports `cachyos`; cachyos imports `ov`, i.e. main) terminates even when **the loop's pins diverge**: a transitive `ov:` back-reference to a DIFFERENT pinned version of an in-progress repo resolves to the in-progress node instead of fetching (and recursing into) a divergent — possibly stale-schema — snapshot. `LoadUnified` seeds `loadingRepos[rootIdentity] = merged` (the root's identity comes from its optional `repo:` field, else `git remote origin`), so any transitive import of the root's OWN repo resolves to the local working tree — **the importing project's namespace pins win**. `loadingRepos` entries are pushed before recursing and popped after (stack-scoped — two SIBLING imports of the same repo at different versions still each load); the root seed is never popped. A whole-repo ref with an empty sub-path resolves to that repo's `overthink.yml`. Covered by `TestImportNamespace_DivergentVersionMutualCycle` + `TestNsRepoIdentity` in `ns_identity_test.go`.
+**Cycle-break by REPO IDENTITY (`ns_identity.go`), not pinned version.** Two maps cooperate in `loadNamespaceCached`: `nsCache` is the version-keyed (`canonicalRef`: `repo@version/subpath`) *diamond memo* — it dedups identical refs across a load; `loadingRepos` is the *ancestor/cycle* set, keyed by REPO IDENTITY (`nsRepoIdentity`: a remote ref's `RepoPath`, or a local path's `git remote origin`). BEFORE any fetch, if the ref's repo identity is already in `loadingRepos` (an ancestor still on the load stack), the loader returns that in-progress node — so the intentional main ↔ cachyos mutual import (main imports `cachyos`; cachyos imports `ov`, i.e. main) terminates even when **the loop's pins diverge**: a transitive `ov:` back-reference to a DIFFERENT pinned version of an in-progress repo resolves to the in-progress node instead of fetching (and recursing into) a divergent — possibly stale-schema — snapshot. `LoadUnified` seeds `loadingRepos[rootIdentity] = merged` (the root's identity comes from its optional `repo:` field, else `git remote origin`), so any transitive import of the root's OWN repo resolves to the local working tree — **the importing project's namespace pins win**. `loadingRepos` entries are pushed before recursing and popped after (stack-scoped — two SIBLING imports of the same repo at different versions still each load); the root seed is never popped. A whole-repo ref with an empty sub-path resolves to that repo's `charly.yml`. Covered by `TestImportNamespace_DivergentVersionMutualCycle` + `TestNsRepoIdentity` in `ns_identity_test.go`.
 
 ### Namespace resolver (`ov/namespace.go`)
 
@@ -55,13 +55,13 @@ The inheritance rule lives here: `distro:`/`build:` are VALUES → inherited acr
 - **`CandyRef` (`ov/refs.go`)** — the single representation of a `require:` / `layer:` ref. It stores the ORIGINAL ref string (`Raw`, with any `@repo` prefix and `:version` suffix); `.Bare()` (the map-key form), `.Version()` (the pinned git tag — the FETCH coordinate, NOT the identity), and `.IsRemote()` are DERIVED. A `resolved` slot carries the qualified sibling key set by `qualifyRemoteSiblingDeps` after a remote layer is fetched, so ONE list serves both the graph (keys on `.Bare()`) and the transitive fetch (keys on the immutable `.Raw`). `Layer.Require` / `Layer.IncludedLayer` are `[]CandyRef` — there are no parallel bare/raw arrays.
 - **Two-phase per-entity-version resolution** — `CollectRemoteRefsOpts` (`ov/refs.go`) collects EVERY distinct `(repo, git-tag)` a bare ref is referenced at — it does NOT collapse to one winning tag and does NOT warn (the git tag is just where to clone from). The `ScanAllLayerWithConfigOpts` fix-point (`ov/layers.go`) fetches each `(repo, git-tag)` (tracking scanned `(repo,git-tag,ref)` triples), reads each materialization's per-entity `version:`, accumulates candidates per bare ref, then `pickLayerVersion` arbitrates: **same per-entity version across different git tags → NO warning**, the newest git tag wins for freshness (`compareSemver`); **different per-entity versions → warn once** (naming both per-entity versions + sources) and the newest per-entity version wins (`compareCalVer`). Exactly one materialization per bare ref reaches the layer map, so the graph + intermediates are unchanged. A fetched layer with NO `version:` is a HARD ERROR (no fallback — first-party remotes are backfilled by remote-cache auto-migration, `EnsureRepoDownloaded` → `RunProjectMigrations`). `pickLayerVersion` is the SOLE arbiter for direct AND transitive refs, so a transitive dep can never silently pull a different version of an already-resolved layer. **This is why a repo re-tag of an UNCHANGED layer no longer warns** — the old resolver compared the repo git tag, which advances on every push.
 - **Reachability-scoped collection (`CollectRemoteRefsOpts.collectImage`)** — collection walks ONLY the enabled root images + the namespaced images reachable via their `base:`/`builder:` edges (`resolveImageRef` + `leafName`), plus local layers' transitive deps. It does NOT scan every image and `kind:local` template of every imported namespace (that over-collection pulled unrelated layers pinned at a different tag — e.g. a namespace's `ov-cachyos` workstation template's `chrome` — and tripped the version policy). Builder edges ARE followed when an image builds (a namespaced `ov.fedora-builder` is built as an intermediate and needs its `rpmfusion`/`yay` layers); dropping them under-collects ("unknown layer").
-- **One unified populator (`populateLayerFromYAML`, `ov/unified.go`)** — both `scanLayer` (discovered-layer-dir path) and `synthesizeInlineLayer` (overthink.yml inline path) call it, so they can't drift. The `Has*` predicates (`HasEnv`/`HasPorts`/`HasVolumes`/…) are derived methods; only the filesystem-probe caches (`HasPixiToml`/`HasSrcDir`/…) stay fields.
+- **One unified populator (`populateLayerFromYAML`, `ov/unified.go`)** — both `scanLayer` (discovered-layer-dir path) and `synthesizeInlineLayer` (charly.yml inline path) call it, so they can't drift. The `Has*` predicates (`HasEnv`/`HasPorts`/`HasVolumes`/…) are derived methods; only the filesystem-probe caches (`HasPixiToml`/`HasSrcDir`/…) stay fields.
 
-`ov box reconcile` (see `/ov-build:reconcile`) is the operator tool that aligns the on-disk git-tag pins so every reference of a repo fetches one commit, clearing any residual per-entity-version warning.
+`charly box reconcile` (see `/charly-build:reconcile`) is the operator tool that aligns the on-disk git-tag pins so every reference of a repo fetches one commit, clearing any residual per-entity-version warning.
 
 ### Capabilities — `BoxMetadata` alias + label completeness check
 
-`Capabilities = BoxMetadata` (type alias in `ov/capabilities.go`). `CapabilityLabelMap` lists every field with its OCI label home; `TestCapabilityLabelCompleteness` fails the build if an `BoxMetadata` field lacks a mapping. This invariant keeps `ov deploy from-box` reliable: every field deploy code might consult is readable from a pushed image's labels alone, independent of `overthink.yml`.
+`Capabilities = BoxMetadata` (type alias in `ov/capabilities.go`). `CapabilityLabelMap` lists every field with its OCI label home; `TestCapabilityLabelCompleteness` fails the build if an `BoxMetadata` field lacks a mapping. This invariant keeps `charly deploy from-box` reliable: every field deploy code might consult is readable from a pushed image's labels alone, independent of `charly.yml`.
 
 ### Kubernetes target (fifth DeployTarget)
 
@@ -71,7 +71,7 @@ The inheritance rule lives here: `distro:`/`build:` are VALUES → inherited acr
 
 `VmDeployTarget` (`ov/deploy_target_vm.go`) executes InstallPlans inside a running VM over SSH. Same IR as LocalDeployTarget, but bash bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` (`ov/deploy_executor_ssh.go`). Ledger writes land on the **guest** filesystem. The `DeployExecutor` interface (`ov/deploy_executor.go`) decouples "how shell commands run" from the target walking logic — `ShellExecutor` + `SSHExecutor` are the two implementations.
 
-`ov deploy add vm:<name>` dispatches through `deploy_add_cmd.go::dispatchNode` → `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del` (no per-kind dispatch function); `deploy_add_cmd_vm.go` carries the VM-only helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`). Full architecture + preflight flow lives in `/ov-internals:vm-deploy-target`.
+`charly deploy add vm:<name>` dispatches through `deploy_add_cmd.go::dispatchNode` → `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del` (no per-kind dispatch function); `deploy_add_cmd_vm.go` carries the VM-only helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`). Full architecture + preflight flow lives in `/charly-internals:vm-deploy-target`.
 
 ### YAML surface ↔ Go identifier convention
 
@@ -79,27 +79,27 @@ The codebase keeps wire format (YAML keys) and internal names (Go fields/types) 
 
 ### Kong `default:"withargs"` for parent+leaf commands
 
-Kong normally treats a struct as either a branch (has child `cmd:""` subcommands) OR a leaf (accepts `arg:""` positionals and has a `Run()` method) — not both. When you want both shapes on the same parent command (e.g., `ov eval live <image>` runs tests AND `ov eval cdp …` dispatches to a subcommand), tag the default child with `default:"withargs"`. Kong then dispatches to that child when the first token doesn't match a subcommand name, passing positional args/flags through.
+Kong normally treats a struct as either a branch (has child `cmd:""` subcommands) OR a leaf (accepts `arg:""` positionals and has a `Run()` method) — not both. When you want both shapes on the same parent command (e.g., `charly eval live <image>` runs tests AND `charly eval cdp …` dispatches to a subcommand), tag the default child with `default:"withargs"`. Kong then dispatches to that child when the first token doesn't match a subcommand name, passing positional args/flags through.
 
 Two uses in the codebase:
-- `ov/config_image.go:14-21` — `ImageConfigCmd.Setup` is the default; `ov config <image>` routes through `ImageConfigSetupCmd` while `ov config mount|status|…` dispatch explicitly.
-- `ov/test_cmd.go:22-31` — `TestCmd.Run` is the default; `ov eval live <image>` runs declarative tests while `ov eval cdp|wl|dbus|vnc …` dispatch explicitly.
+- `ov/config_image.go:14-21` — `ImageConfigCmd.Setup` is the default; `charly config <image>` routes through `ImageConfigSetupCmd` while `charly config mount|status|…` dispatch explicitly.
+- `ov/test_cmd.go:22-31` — `TestCmd.Run` is the default; `charly eval live <image>` runs declarative tests while `charly eval cdp|wl|dbus|vnc …` dispatch explicitly.
 
-Tradeoff: a subcommand name shadows a positional value with the same text. `ov eval cdp` always dispatches to the cdp subcommand — if an image is literally named `cdp`, use the explicit `ov eval live cdp` form.
+Tradeoff: a subcommand name shadows a positional value with the same text. `charly eval cdp` always dispatches to the cdp subcommand — if an image is literally named `cdp`, use the explicit `charly eval live cdp` form.
 
 ### Mode purity: `LoadConfig` must NOT read `deploy.yml`
 
-OCI labels are written exclusively from `box.yml` + `candy.yml` at `ov box build` / `ov box generate` time. `deploy.yml` is deploy-mode state and must never bleed into the baked image. The key guarantee lives in `ov/config.go:LoadConfig` — it calls `LoadConfigRaw` only, with no `MergeDeployOverlay`.
+OCI labels are written exclusively from `box.yml` + `candy.yml` at `charly box build` / `charly box generate` time. `deploy.yml` is deploy-mode state and must never bleed into the baked image. The key guarantee lives in `ov/config.go:LoadConfig` — it calls `LoadConfigRaw` only, with no `MergeDeployOverlay`.
 
-**The rule**: every build-mode command (anything under `ov box …`) calls `LoadConfig`. If you ever re-introduce `MergeDeployOverlay` inside `LoadConfig`, you will silently contaminate OCI labels with whatever is in the user's local `deploy.yml` — exactly the bug that made images bake `ports: ["5900:5900","9250:9222"]` from a stale `deploy.yml` entry instead of the `box.yml`-declared `["5900:5900","9222:9222","9224:9224"]`.
+**The rule**: every build-mode command (anything under `charly box …`) calls `LoadConfig`. If you ever re-introduce `MergeDeployOverlay` inside `LoadConfig`, you will silently contaminate OCI labels with whatever is in the user's local `deploy.yml` — exactly the bug that made images bake `ports: ["5900:5900","9250:9222"]` from a stale `deploy.yml` entry instead of the `box.yml`-declared `["5900:5900","9222:9222","9224:9224"]`.
 
-Deploy-mode commands (`ov config`, `ov start`, `ov stop`, `ov update`, `ov deploy add`, `ov deploy del`, `ov shell`, `ov cmd`, `ov service`, `ov vm create`, …) read labels via `ExtractMetadata` and then apply the deploy overlay explicitly via `MergeDeployOntoMetadata(meta, dc, instance)`. This split is load-bearing — never collapse it.
+Deploy-mode commands (`charly config`, `charly start`, `charly stop`, `charly update`, `charly deploy add`, `charly deploy del`, `charly shell`, `charly cmd`, `charly service`, `charly vm create`, …) read labels via `ExtractMetadata` and then apply the deploy overlay explicitly via `MergeDeployOntoMetadata(meta, dc, instance)`. This split is load-bearing — never collapse it.
 
-**Host-deploy specifics**: `ov deploy add host` is deploy mode (reads both box.yml and deploy.yml), not build mode — despite looking like "install on host, not into an image". The compiler (`BuildDeployPlan` in `install_build.go`) is pure and shared with build mode, but the invocation path reads deploy.yml for `add_candy:` and `install_opts:` like every other deploy-mode command.
+**Host-deploy specifics**: `charly deploy add host` is deploy mode (reads both box.yml and deploy.yml), not build mode — despite looking like "install on host, not into an image". The compiler (`BuildDeployPlan` in `install_build.go`) is pure and shared with build mode, but the invocation path reads deploy.yml for `add_candy:` and `install_opts:` like every other deploy-mode command.
 
 ### InstallPlan IR — the shared intermediate representation
 
-`ov box build`, pod deploys, and local-target deploys all route through a shared IR. Flow:
+`charly box build`, pod deploys, and local-target deploys all route through a shared IR. Flow:
 
 ```
 Layer + ResolvedImage + HostContext
@@ -113,7 +113,7 @@ Layer + ResolvedImage + HostContext
        └── K8sDeployTarget (k8s_target.go)          → Kustomize base/overlays tree
 ```
 
-Full reference lives in **`/ov-internals:install-plan`** — go there before touching any of those files. Supporting Go files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref, hostdistro, migrate_services_tool) are covered in **`/ov-internals:local-infra`**.
+Full reference lives in **`/charly-internals:install-plan`** — go there before touching any of those files. Supporting Go files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref, hostdistro, migrate_services_tool) are covered in **`/charly-internals:local-infra`**.
 
 ### VM-path architecture
 
@@ -128,49 +128,49 @@ The VM path spans the following module topology:
 | `ov/qemu_render.go` | `RenderQemuArgv` for direct-QEMU backend |
 | `ov/cloud_init_render.go` + `cloud_init_iso.go` | `RenderCloudInit` + `ResolveKeyInjectionChannels` + `composeUsers` (adopt-merge) + `WriteSeedISO` via xorriso/genisoimage/mkisofs |
 | `ov/vm_cloud_image.go` + `http_fetch.go` | `BuildCloudImage` pipeline: fetch URL + sha256 sidecar + resize + seed ISO render |
-| `ov/ov_install.go` | `EnsureOvInVenue` — the GENERIC "copy ov into a running venue" mechanism (container `podman cp` / VM-SSH `scp` / host `install`, all via `DeployExecutor.PutFile`): returns the `ov` invocation command, copying the host `os.Executable()` to a non-`$PATH` `/tmp/ov-<calver>` on absence/older (idempotent, never shadows a packaged ov). Used by the explicit `ov eval dbus notify`/`call` paths + nested from-image delegation, so an image need not bake the `ov` layer. `EnsureOvInGuest` is the VM-deploy strategy wrapper (auto/scp/url/skip) layered on top |
+| `ov/ov_install.go` | `EnsureOvInVenue` — the GENERIC "copy charly into a running venue" mechanism (container `podman cp` / VM-SSH `scp` / host `install`, all via `DeployExecutor.PutFile`): returns the `ov` invocation command, copying the host `os.Executable()` to a non-`$PATH` `/tmp/charly-<calver>` on absence/older (idempotent, never shadows a packaged ov). Used by the explicit `charly eval dbus notify`/`call` paths + nested from-image delegation, so an image need not bake the `ov` layer. `EnsureOvInGuest` is the VM-deploy strategy wrapper (auto/scp/url/skip) layered on top |
 | `ov/ovmf_paths.go` | `ResolveOvmfPaths` (per-distro OVMF_CODE/VARS paths) + `EnsurePerVmNvram` + `ResolveOvmfForSpec` (bios-sentinel returning empty strings) |
 | `ov/libvirt_validate.go` | `ValidateVmSpec` + `ValidateLibvirtConfig` |
 | `ov/deploy_executor*.go` | `DeployExecutor` interface + `ShellExecutor` + `SSHExecutor` with `WaitForSSH` + `WaitForCloudInit` |
 | `ov/deploy_target_vm.go` | `VmDeployTarget.Emit` |
-| `ov/deploy_add_cmd_vm.go` | VM-only deploy helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`); `ov deploy add vm:<name>` itself dispatches through `dispatchNode` → `ResolveTarget` → `VmUnifiedTarget.Add` |
-| `ov/vm_create_spec.go` + `vm_build.go` | CLI command wiring for `ov vm build/create` reading `kind: vm` entities |
-| `ov/migrate_vm_spec.go` | `ov migrate` one-shot conversion from legacy image.bootc/image.vm/image.libvirt |
+| `ov/deploy_add_cmd_vm.go` | VM-only deploy helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`); `charly deploy add vm:<name>` itself dispatches through `dispatchNode` → `ResolveTarget` → `VmUnifiedTarget.Add` |
+| `ov/vm_create_spec.go` + `vm_build.go` | CLI command wiring for `charly vm build/create` reading `kind: vm` entities |
+| `ov/migrate_vm_spec.go` | `charly migrate` one-shot conversion from legacy image.bootc/image.vm/image.libvirt |
 
 **`unified.go` VM support**: `"vm"` is in the `entityKind` enum, with a `VmDoc` loader struct, a `mergeVmMap` merger, and `"vm"` in `rootShapeKeys` (so `vm.yml` is recognized as a valid entity-shape include file).
 
-Full subsystem references: `/ov-internals:vm-spec`, `/ov-internals:libvirt-renderer`, `/ov-internals:cloud-init-renderer`, `/ov-internals:vm-deploy-target`, `/ov-internals:ovmf`, `/ov-internals:cutover-policy`.
+Full subsystem references: `/charly-internals:vm-spec`, `/charly-internals:libvirt-renderer`, `/charly-internals:cloud-init-renderer`, `/charly-internals:vm-deploy-target`, `/charly-internals:ovmf`, `/charly-internals:cutover-policy`.
 
 ### Self-exec coordination: host → container AND host → host
 
 The `ov` binary self-execs in two distinct directions.
 
-**Host → container** — the host `ov` delegates to a container-baked `ov` via `exec … ov <subcommand>`. Three sites today:
-- `ov/notify.go:20` — best-effort desktop notification via in-container `ov eval dbus notify`.
-- `ov/dbus.go:195` — strict in-container `ov eval dbus notify` with gdbus fallback.
-- `ov/dbus.go:229` — generic D-Bus call via in-container `ov eval dbus call`.
+**Host → container** — the host `ov` delegates to a container-baked `ov` via `exec … charly <subcommand>`. Three sites today:
+- `ov/notify.go:20` — best-effort desktop notification via in-container `charly eval dbus notify`.
+- `ov/dbus.go:195` — strict in-container `charly eval dbus notify` with gdbus fallback.
+- `ov/dbus.go:229` — generic D-Bus call via in-container `charly eval dbus call`.
 
 **Host → host** — the test runner spawns the same host `ov` binary as a subprocess to execute cdp/wl/dbus/vnc declarative verbs:
-- `ov/testrun_ov_verbs.go` — the `runOvVerb` dispatcher builds `ov eval <verb> <method> <image> [args…]` argv and runs it via `exec.CommandContext`, feeding stdout/stderr through the existing matcher pipeline. `findOvBinary()` prefers `os.Executable()` so tests invoke the same build that collected them, falling back to `$PATH`.
+- `ov/testrun_ov_verbs.go` — the `runOvVerb` dispatcher builds `charly eval <verb> <method> <image> [args…]` argv and runs it via `exec.CommandContext`, feeding stdout/stderr through the existing matcher pipeline. `findOvBinary()` prefers `os.Executable()` so tests invoke the same build that collected them, falling back to `$PATH`.
 
-**The rule:** whenever you rename a subcommand path crossed by any of these self-exec sites, edit the host-side invocation strings AND plan a coordinated rebuild of every image that bakes the `ov` layer (affected images: grep `box.yml` for `- ov$`). For host→host sites the rebuild doesn't matter — it's the same binary — but the method-name allowlists in `testrun_ov_verbs.go` must stay in lockstep with the actual `ov eval cdp|wl|dbus|vnc` subcommand tree.
+**The rule:** whenever you rename a subcommand path crossed by any of these self-exec sites, edit the host-side invocation strings AND plan a coordinated rebuild of every image that bakes the `ov` layer (affected images: grep `box.yml` for `- ov$`). For host→host sites the rebuild doesn't matter — it's the same binary — but the method-name allowlists in `testrun_ov_verbs.go` must stay in lockstep with the actual `charly eval cdp|wl|dbus|vnc` subcommand tree.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Build | `task build:ov` | Compile to `bin/ov` and install as Arch package |
-| Install | `task build:install` | Install ov as Arch package (uses pre-built binary) |
-| Run tests | `cd ov && go test ./...` | Run all tests |
-| Run specific test | `cd ov && go test -run TestName ./...` | Run single test |
-| Vet | `cd ov && go vet ./...` | Static analysis |
-| Format | `cd ov && gofmt -w .` | Format code |
+| Build | `task build:ov` | Compile to `bin/charly` and install as Arch package |
+| Install | `task build:install` | Install charly as Arch package (uses pre-built binary) |
+| Run tests | `cd charly && go test ./...` | Run all tests |
+| Run specific test | `cd charly && go test -run TestName ./...` | Run single test |
+| Vet | `cd charly && go vet ./...` | Static analysis |
+| Format | `cd charly && gofmt -w .` | Format code |
 
 ## Project Directory Structure
 
 ```
 project/
-├── bin/ov                     # Built by `task build:ov` (gitignored)
+├── bin/charly                     # Built by `task build:ov` (gitignored)
 ├── ov/                        # Go module (go 1.25.3, kong CLI, go-containerregistry)
 ├── build.yml                  # Unified build-time config: distro: bootstrap + formats,
 │                              # builder: multi-stage defs, init: supervisord/systemd
@@ -180,14 +180,14 @@ project/
 ├── Taskfile.yml               # Bootstrap tasks only
 ├── taskfiles/                 # Build.yml, Setup.yml
 ├── candy/<name>/             # Layer directories (160 layers)
-├── plugins/                   # Git submodule (overthink-plugins, 5 plugins, 244 skills)
+├── plugins/                   # Git submodule (opencharly-plugins, 5 plugins, 244 skills)
 └── templates/                 # supervisord.header.conf (referenced by init.supervisord.header_file)
 ```
 
 Submodule convention: `plugins/` is a submodule rooted at the
-`overthink-plugins` repo. Clone with `--recurse-submodules` or run
+`opencharly-plugins` repo. Clone with `--recurse-submodules` or run
 `git submodule update --init` after a plain clone. See
-`/ov-internals:skills` for the skill-authoring and sync conventions.
+`/charly-internals:skills` for the skill-authoring and sync conventions.
 
 ## Source Code Map
 
@@ -195,12 +195,12 @@ Submodule convention: `plugins/` is a submodule rooted at the
 
 | File | Purpose |
 |------|---------|
-| `main.go` | CLI entry point (Kong framework). `CLI` struct carries two global path fields: `Dir` (`-C` / `--dir` / env `OV_PROJECT_DIR`) and `Repo` (`--repo` / env `OV_PROJECT_REPO`). When `Repo` is set, `main()` resolves it via `ResolveProjectRepo` and assigns the cache path back into `Dir`; when `Dir` is non-empty (after that resolution), `main()` calls `os.Chdir(Dir)` **before** `ctx.Run()` — one-line intervention that propagates to every `os.Getwd()` call site throughout build-mode commands without requiring per-command plumbing. `--repo` and `--dir` are mutually exclusive (fast-fail). Covered by `TestOvDir_FlagChdir`, `TestOvDir_Errors`, `TestOvRepo_FlagChdir`, `TestOvRepo_DirConflict`, `TestOvRepo_DefaultExpansion` in `main_dir_test.go` + `main_repo_test.go`. Load-bearing for `ov mcp serve` inside a container where cwd resolves to `/workspace` (the `ov-mcp` layer default) — either bind-mounted with the project, or empty in which case `bootstrapProject()` auto-falls back to the upstream repo. |
+| `main.go` | CLI entry point (Kong framework). `CLI` struct carries two global path fields: `Dir` (`-C` / `--dir` / env `OV_PROJECT_DIR`) and `Repo` (`--repo` / env `OV_PROJECT_REPO`). When `Repo` is set, `main()` resolves it via `ResolveProjectRepo` and assigns the cache path back into `Dir`; when `Dir` is non-empty (after that resolution), `main()` calls `os.Chdir(Dir)` **before** `ctx.Run()` — one-line intervention that propagates to every `os.Getwd()` call site throughout build-mode commands without requiring per-command plumbing. `--repo` and `--dir` are mutually exclusive (fast-fail). Covered by `TestOvDir_FlagChdir`, `TestOvDir_Errors`, `TestOvRepo_FlagChdir`, `TestOvRepo_DirConflict`, `TestOvRepo_DefaultExpansion` in `main_dir_test.go` + `main_repo_test.go`. Load-bearing for `charly mcp serve` inside a container where cwd resolves to `/workspace` (the `ov-mcp` layer default) — either bind-mounted with the project, or empty in which case `bootstrapProject()` auto-falls back to the upstream repo. |
 | `main_repo.go` | `--repo` resolver. `DefaultProjectRepo = "github.com/overthinkos/overthink"`. `normalizeRepoSpec(spec)` handles four spec shapes: `"default"` literal, bare `owner/repo` (auto-prefix `github.com/` when first segment has no dot), bare `owner/repo@ref`, host-qualified `host.tld/owner/repo[@ref]`. `ResolveProjectRepo(spec)` reuses `EnsureRepoDownloaded` from `refs.go` so the project-repo cache shares `~/.cache/ov/repos/` (override `OV_REPO_CACHE`) with the existing remote-layer cache. Empty version triggers `GitDefaultBranch` resolution. |
 | `config.go` | `box.yml` parsing, inheritance resolution. `BuildFormats` type. `Distro` field. `ResolvedImage.Tags` (union). `SupportsTag()`, `SupportsBuild()` methods |
 | `format_config.go` | `DistroConfig` (with per-distro `Formats`), `BuilderConfig` types. `BuildFile` loader struct matches the three top-level sections of `build.yml` (`distro:`, `builder:`, `init:`). `LoadBuildConfigForImage` resolves a single `format_config: build.yml` ref and splits it into `DistroConfig` / `BuilderConfig` / `InitConfig` views. Per-image config resolution with remote ref support |
 | `format_template.go` | Go `text/template` rendering engine. Template helpers: `cacheMounts`, `cacheMountsOwned`, `quote`, `default`, `splitFirst`, `replace`, `join`. `InstallContext`, `BuildStageContext` types |
-| `layers.go` | Layer scanning, file detection. `CandyYAML` struct + custom `UnmarshalYAML` (now typo-detection only — no top-level format/tag-key parse path). `Task` struct + `Kind()` method (exactly-one-verb). `derivePackageSectionsFromCalamares` is the SOLE package-surface populator: every `distro:` key (bare / versioned / compound) → a per-distro `tagSections` entry (NOT a shared format section — that collapse caused the non-deterministic deb-repo bug); top-level `package:` → `topPackages` (folded at resolve time); arch `aur:` keeps its `aur` format section. `compileSystemPackageSteps` (`install_build.go`) cascades these — see `/ov-internals:install-plan`. |
+| `layers.go` | Layer scanning, file detection. `CandyYAML` struct + custom `UnmarshalYAML` (now typo-detection only — no top-level format/tag-key parse path). `Task` struct + `Kind()` method (exactly-one-verb). `derivePackageSectionsFromCalamares` is the SOLE package-surface populator: every `distro:` key (bare / versioned / compound) → a per-distro `tagSections` entry (NOT a shared format section — that collapse caused the non-deterministic deb-repo bug); top-level `package:` → `topPackages` (folded at resolve time); arch `aur:` keeps its `aur` format section. `compileSystemPackageSteps` (`install_build.go`) cascades these — see `/charly-internals:install-plan`. |
 | `tasks.go` | **All task emission logic** — per-verb emitters (`emitMkdirBatch`, `emitCopy`, `emitWrite`, `emitLinkBatch`, `emitDownload`, `emitSetcapBatch`, `emitCmd`, `emitBuild`), `emitTasks` orchestrator, `stageInlineContent` (content-addressed), `resolveUserSpec`, `taskSubstPath`, `taskUnresolvedRefs`. Adjacent-coalescing (`taskCoalescesWith`). **Shell-quoting helpers:** `shellSingleQuote(s)` for standard `'...'` escaping (used by LABEL values + `emitDownload` env entries) and `shellAnsiQuote(s)` for bash ANSI-C `$'...'` quoting (used by `emitCmd` so multi-line script bodies survive podman's line-oriented Dockerfile parser). **`emitDownload` env rule:** uses `export VAR=val;` (semicolon-terminated) not `VAR=val cmd`, because bash expands `${VAR}` in URL arguments before the cmd-prefix environment is assembled. ~430 lines, single home for install-task codegen. |
 | `generate.go` | Containerfile generation. `writeLayerSteps` orchestrates per-layer: packages → `emitTasks` (from `tasks.go`) → builders → USER reset. **Package resolution goes through the SAME `resolveCascadePackages` (`install_build.go`) the deploy compiler uses** — ONE distro-specificity cascade for build AND deploy (folds the top-level `package:` base + unions distro tag sections most-specific-first), then renders the primary format's install template; non-primary build formats (`aur`) emit from their own format section. There is no separate build-path Phase1/Phase2 resolution anymore. Config-driven format install, builder stages, and bootstrap from `build.yml` (`distro:` + `builder:` sections). **`writeLabels` is called at the END of the final stage (after the final `USER` directive)** — the volatile `LabelEval` value would otherwise invalidate every downstream RUN/COPY on a test edit; with LABELs-at-end, only the LABEL steps themselves re-emit (cache preserves all install work). `writeJSONLabel` routes every JSON label value through `shellSingleQuote` so embedded `'` chars in test commands (`awk '{print $1}'`) don't break podman's `key=value` LABEL parser. |
 | `validate.go` | All validation rules. `validateLayerTasks` enforces exactly-one-verb, per-verb required modifiers, `var` key rules, path/mode/caps format, `${VAR}` resolution checks. Format/builder validation against config definitions (not hardcoded maps) |
@@ -208,7 +208,7 @@ Submodule convention: `plugins/` is a submodule rooted at the
 | `scaffold.go` | `new layer` scaffolding (single-layer dir creation with stub `candy.yml`) |
 | `scaffold_project.go` | `new project` scaffolding + `box.yml` mutation helpers (`ScaffoldProject`, `AddImage`, `AddLayerToImage`, `RemoveLayerFromImage`). All YAML round-trips go through the `yaml.v3` Node API so comments + key order are preserved. Tested in `scaffold_project_test.go`. |
 | `scaffold_cmds.go` | All Kong command structs for the MCP-first authoring surface: `NewProjectCmd`, `NewImageCmd`, `ImageSetCmd`, `ImageAddLayerCmd`, `ImageRmLayerCmd`, `ImageFetchCmd`, `ImageRefreshCmd`, `ImageWriteCmd`, `ImageCatCmd`, `LayerCmd` (with `Set` + four `add-{rpm,deb,pac,aur}` aliases), `LayerAddPkgCmd`. Houses `resolveProjectFile()` — the path-traversal guard for `image write` / `image cat`. Houses `detectPkgSection(os.Args)` — the workaround for Kong not exposing "which alias triggered me" to a shared struct. Houses `appendLayerPackages()` with the scaffold's null-`package:` → sequence upgrade. |
-| `yaml_setter.go` | `SetByDotPath(path, dotpath, valueYAML)` — generic comment-preserving YAML setter used by `ov box set` and `ov candy set`. Walks `*yaml.Node` trees; creates intermediate mappings on demand; rejects descent into scalars. Tested in `yaml_setter_test.go` (comment preservation, list values, intermediate-mapping creation, scalar-descent error path). |
+| `yaml_setter.go` | `SetByDotPath(path, dotpath, valueYAML)` — generic comment-preserving YAML setter used by `charly box set` and `charly candy set`. Walks `*yaml.Node` trees; creates intermediate mappings on demand; rejects descent into scalars. Tested in `yaml_setter_test.go` (comment preservation, list values, intermediate-mapping creation, scalar-descent error path). |
 
 ### Dependency & Graph
 
@@ -253,7 +253,7 @@ Submodule convention: `plugins/` is a submodule rooted at the
 | `engine.go` | Docker/Podman abstraction, `ResolveImageEngineForDeploy()` |
 | `registry.go` | Remote image inspection (go-containerregistry) |
 | `transfer.go` | Cross-engine image transfer |
-| `runtime_config.go` | `~/.config/ov/config.yml`, `secret_backend` key, credential maps |
+| `runtime_config.go` | `~/.config/charly/config.yml`, `secret_backend` key, credential maps |
 | `network.go` | Shared "ov" container network management |
 | `machine.go` | Podman machine management (rootful VM builds) |
 
@@ -295,7 +295,7 @@ case "create":
 }
 ```
 
-See `/ov-image:image` "user_policy" for the user-facing decision matrix, `/ov-build:build` "base_user:" for the declarative side, and `/ov-build:generate` "writeBootstrap" for the consumer side.
+See `/charly-image:image` "user_policy" for the user-facing decision matrix, `/charly-build:build` "base_user:" for the declarative side, and `/charly-build:generate` "writeBootstrap" for the consumer side.
 
 ### Existing configuration files
 
@@ -316,10 +316,10 @@ See `/ov-image:image` "user_policy" for the user-facing decision matrix, `/ov-bu
 | `credential_store.go` | `CredentialStore` interface, `ResolveCredential()`, `DefaultCredentialStore()`, `ConfigMigrateSecretsCmd` |
 | `credential_keyring.go` | System keyring backend (`go-keyring`: GNOME Keyring, KDE Wallet, KeePassXC via FdoSecrets / Secret Service) |
 | `credential_config.go` | Config file credential backend (plaintext fallback for headless) |
-| `migrate_secrets_kdbx.go` | `ov migrate` — strips residual `secret_backend: kdbx` + `secrets_kdbx_*` keys from `~/.config/ov/config.yml` |
+| `migrate_secrets_kdbx.go` | `charly migrate` — strips residual `secret_backend: kdbx` + `secrets_kdbx_*` keys from `~/.config/charly/config.yml` |
 | `secrets.go` | Container secret collection from labels, Podman secret provisioning, `SecretArgs()` |
-| `secrets_cmd.go` | `ov secrets` CLI commands (list, get, set, delete, import, export — all retargeted to `DefaultCredentialStore()`) + the `gpg` subgroup |
-| `secrets_gpg.go` | `ov secrets gpg` commands (show, env, edit, encrypt, decrypt, set, unset, add-recipient, recipients) |
+| `secrets_cmd.go` | `charly secrets` CLI commands (list, get, set, delete, import, export — all retargeted to `DefaultCredentialStore()`) + the `gpg` subgroup |
+| `secrets_gpg.go` | `charly secrets gpg` commands (show, env, edit, encrypt, decrypt, set, unset, add-recipient, recipients) |
 
 ### Remote Layer Refs
 
@@ -330,9 +330,9 @@ See `/ov-image:image` "user_policy" for the user-facing decision matrix, `/ov-bu
 
 ### Declarative Testing
 
-Implements the `ov eval live` / `ov eval box` commands and the
-`org.overthinkos.eval` OCI label. User-facing authoring, verb catalog,
-runtime variables, and deploy.yml overlay rules live in `/ov-eval:eval` — this
+Implements the `charly eval live` / `charly eval box` commands and the
+`ai.opencharly.eval` OCI label. User-facing authoring, verb catalog,
+runtime variables, and deploy.yml overlay rules live in `/charly-eval:eval` — this
 section is the Go-implementation map.
 
 | File | Purpose |
@@ -341,24 +341,24 @@ section is the Go-implementation map.
 | `evalvars.go` | `ResolveEvalVarsBuild` / `ResolveEvalVarsRuntime`. `InspectContainer` is a swappable package-level `var` (test-friendly pattern matching `InspectLabels` in `labels.go`). Maps `podman inspect` output into `HOST_PORT:<N>`, `VOLUME_PATH:<name>`, `VOLUME_CONTAINER_PATH:<name>`, `CONTAINER_IP`, `CONTAINER_NAME`, `ENV_<NAME>`. |
 | `evalrun.go` | `Runner`, `Executor` interface, `ContainerExecutor` (via `podman exec`), `ImageExecutor` (via `podman run --rm`). `EvalStatus`/`EvalResult` types (named to avoid collision with doctor.go). Per-verb dispatch for `file`/`port`/`command`/`http`. Matcher evaluation: `matchOne` + `matchNumeric` (`lt`/`le`/`gt`/`ge`). `validMatcherOps` allowlist kept in lockstep with the runner switch by `TestMatcher_AllowlistRunnerSync`. Output formatters: text, JSON, TAP. |
 | `evalrun_verbs.go` | Dispatch for the remaining verbs: `package` (rpm/dpkg/pacman), `service` (supervisorctl + systemctl), `process` (pgrep), `dns` (host-side `net.LookupIP` or in-container `getent`), `user`/`group` (getent passwd/group), `interface` (`ip -o addr show` + MTU), `kernel-param` (`sysctl -n`), `mount` (`findmnt`), `addr` (host-side `net.DialTimeout` or in-container `nc -z`), `matching` (pure in-process value matching). **`resolvePackageName(c, distros)`** implements the distro-aware package-map: when `Check.PackageMap` is non-empty, the first entry in `Runner.Distros` that matches a key wins; otherwise `Check.Package` is used as-is. Covered by `TestResolvePackageName` (6 sub-cases including empty-map fallback, first-matching-tag-wins priority, and empty-string-map-value fall-through). `Runner.Distros` is populated from `meta.Distro` at both entry points in `eval_cmd.go`. |
-| `eval_peer.go` | **Cross-deployment probing** — a DRIVER deployment probing a SEPARATE SUBJECT. `liveTargetResolver` is the `on:` TargetResolver for `ov eval live` + beds (resolves a driver via `resolveEvalVenue` + `ResolveEvalVarsRuntime`); wired into `EvalLiveCmd.Run` (pod path) AND `runVm` (VM path). `${PEER_HOST:name}` / `${PEER_ENDPOINT:name:port}` address vars (`applyPeerVars` → `collectPeerRefs` → `resolvePeerVars`) are pre-resolved into `Runner.PeerVars`, overlaid by `effectiveEnv` onto whatever resolver is active (primary / `on:`-swapped / harness — one injection point). `PEER_HOST` = the subject's `ov-<name>` container DNS (via `resolveContainer`, which also verifies running); `PEER_ENDPOINT` = host-reachable `resolveEvalEndpoint`. Registered runtime-only in `evalspec.go` `runtimeOnlyVarPrefixes`. |
-| `deploy_peers.go` | **`peer:` sibling lifecycle** (shared by eval + deploy — R3). `foldPeers` registers each `DeploymentNode.Peer` entry as a top-level addressable Deploy entry (`PeerOf` set, disposability inherited); `validatePeers` enforces dot-free + valid-target peer keys. `bringUpPeers` / `tearDownPeers` shell out (via the package-var `runOvSubcommand`) to `ov config`+`ov start` (pod peers) / `ov deploy add`+`del` (other), invoked by `DeployAddCmd`/`DeployDelCmd` (operator) AND the bed runner (`eval_bed_run.go`, pod + VM paths). Peers are excluded from `bedEvalLiveRefs` (instruments, never eval-live'd). |
-| `evalrun_ov_verbs.go` | Dispatch for the nine live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`/`record`/`spice`/`libvirt`/`k8s`). Hand-enumerated method allowlists (`cdpMethods`/`wlMethods`/`dbusMethods`/`vncMethods`/`mcpMethods` etc.) map each method name to its `ov eval <verb> <method>` subcommand path, required modifier fields, and positional-arg builder. The `runOvVerb` dispatcher handles skip (RunModeImage → skip with message; empty `r.Image` → skip), required-modifier enforcement (via `checkRequiredFields` + `isZeroField`), subprocess exec via `findOvBinary()`, matcher pipeline through `matchAll`, and post-run `artifact_min_bytes` size assertions for screenshot methods. |
-| `mcp.go` | `ov eval mcp …` Kong subcommand tree. `McpCmd` parent + 7 leaves (`ping`, `servers`, `list-tools`, `list-resources`, `list-prompts`, `call`, `read`). Each leaf resolves the image's `mcp_provide` metadata via `ExtractMetadata`, opens a `*mcp.ClientSession` through the swappable `mcpOpenSession` helper, and exercises one SDK operation. Output is tab-separated plaintext by default; `--json` emits the SDK's native result struct. Uses `github.com/modelcontextprotocol/go-sdk/mcp` v1.5.0. |
+| `eval_peer.go` | **Cross-deployment probing** — a DRIVER deployment probing a SEPARATE SUBJECT. `liveTargetResolver` is the `on:` TargetResolver for `charly eval live` + beds (resolves a driver via `resolveEvalVenue` + `ResolveEvalVarsRuntime`); wired into `EvalLiveCmd.Run` (pod path) AND `runVm` (VM path). `${PEER_HOST:name}` / `${PEER_ENDPOINT:name:port}` address vars (`applyPeerVars` → `collectPeerRefs` → `resolvePeerVars`) are pre-resolved into `Runner.PeerVars`, overlaid by `effectiveEnv` onto whatever resolver is active (primary / `on:`-swapped / harness — one injection point). `PEER_HOST` = the subject's `ov-<name>` container DNS (via `resolveContainer`, which also verifies running); `PEER_ENDPOINT` = host-reachable `resolveEvalEndpoint`. Registered runtime-only in `evalspec.go` `runtimeOnlyVarPrefixes`. |
+| `deploy_peers.go` | **`peer:` sibling lifecycle** (shared by eval + deploy — R3). `foldPeers` registers each `DeploymentNode.Peer` entry as a top-level addressable Deploy entry (`PeerOf` set, disposability inherited); `validatePeers` enforces dot-free + valid-target peer keys. `bringUpPeers` / `tearDownPeers` shell out (via the package-var `runOvSubcommand`) to `charly config`+`charly start` (pod peers) / `charly deploy add`+`del` (other), invoked by `DeployAddCmd`/`DeployDelCmd` (operator) AND the bed runner (`eval_bed_run.go`, pod + VM paths). Peers are excluded from `bedEvalLiveRefs` (instruments, never eval-live'd). |
+| `evalrun_ov_verbs.go` | Dispatch for the nine live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`/`record`/`spice`/`libvirt`/`k8s`). Hand-enumerated method allowlists (`cdpMethods`/`wlMethods`/`dbusMethods`/`vncMethods`/`mcpMethods` etc.) map each method name to its `charly eval <verb> <method>` subcommand path, required modifier fields, and positional-arg builder. The `runOvVerb` dispatcher handles skip (RunModeImage → skip with message; empty `r.Image` → skip), required-modifier enforcement (via `checkRequiredFields` + `isZeroField`), subprocess exec via `findOvBinary()`, matcher pipeline through `matchAll`, and post-run `artifact_min_bytes` size assertions for screenshot methods. |
+| `mcp.go` | `charly eval mcp …` Kong subcommand tree. `McpCmd` parent + 7 leaves (`ping`, `servers`, `list-tools`, `list-resources`, `list-prompts`, `call`, `read`). Each leaf resolves the image's `mcp_provide` metadata via `ExtractMetadata`, opens a `*mcp.ClientSession` through the swappable `mcpOpenSession` helper, and exercises one SDK operation. Output is tab-separated plaintext by default; `--json` emits the SDK's native result struct. Uses `github.com/modelcontextprotocol/go-sdk/mcp` v1.5.0. |
 | `mcp_client.go` | SDK wrapper layer: `resolveMCPEntry` / `pickMCPEntry` (disambiguator), `resolveContainerNameTemplate` ({{.ContainerName}} substitution), `rewriteMCPURLForHost` (container-network hostname → `127.0.0.1:<published-host-port>` via the same `NetworkSettings.Ports` data that `mergeRuntimeVars` in `testvars.go:200-213` reads for `HOST_PORT:N`), `buildMCPTransport` (http → StreamableClientTransport, sse → SSEClientTransport), plus formatters (`formatTool` / `formatResource` / `formatPrompt` / `extractToolText`). The rewriter is the load-bearing piece that keeps MCP URLs reachable from the host without authors having to carry separate "internal" vs "external" URL declarations. |
-| `mcp_server.go` | **`ov mcp serve`** — turns the entire ov CLI into an MCP server. `McpCmdGroup` + `McpServeCmd` (flags: `--listen`, `--path`, `--stdio`, `--read-only`, `--no-default-repo`). `buildMcpServer(readOnly)` constructs a fresh `kong.New(&modelCLI)`, walks `k.Model.Leaves(true)` to enumerate every leaf command, and calls `server.AddTool(kongLeafToTool(...), makeToolHandler(...))`. Result: **190 tools** auto-generated from Kong struct tags with zero hand-written schema — `--long` flags become properties, positionals become required properties, `enum:"..."` surfaces as JSON-schema `enum`, `default:"..."` as `default`, and every schema has `additionalProperties: false` (LLM-honest: unknown keys are rejected by the SDK's input validation before the handler runs). The `mcpDestructivePaths` map flags **63 entries** with `DestructiveHint: true` (including the MCP-first authoring verbs that mutate `box.yml` / `candy.yml` / write files); `--read-only` filters these out at registration time (not runtime gating). `bootstrapProject()` runs before the server starts: chains through env vars (`OV_PROJECT_DIR`, `OV_PROJECT_REPO`) → local `box.yml` → auto-fallback to `overthinkos/overthink`; `--no-default-repo` opts out of the fallback. The env-var check is the only way to detect parent-flag state from a subcommand receiver (Kong does not expose `CLI` upward). Tool invocation goes through `captureAndRun(argv)` which redirects **os.Stdout / os.Stderr** (package-level vars, not fd-level via `syscall.Dup2` — see the commentary block for why: the SDK's stdio transport captures `os.Stdout` by pointer at Connect time, and dup2 would silently route JSON-RPC responses into the tool-output buffer). Transport: `mcp.NewStreamableHTTPHandler` for HTTP mode, `&mcp.StdioTransport{}` for stdio. `runMu` serialises calls because os-level stream redirects are global. Test coverage: `mcp_server_test.go` (schema presence, destructive-hint annotation, `--read-only` filter — currently 127 read-only + 63 destructive = 190 — positional/flag schema shape, enum/default surfacing, `additionalProperties: false`, `TestMcpServer_VersionRoundTrip` round-trip) + `mcp_serve_default_repo_test.go` (auto-fallback behaviour, hermetic via `OV_REPO_CACHE` pre-seeding). |
-| `main_dir_test.go` | Integration tests for the `-C` / `--dir` / `OV_PROJECT_DIR` global: spawns a freshly-compiled `ov` binary from `/tmp` with a scratch project, verifies all three flag forms make `ov box list boxes` resolve the scratch `box.yml`. Error cases: missing dir, file-not-dir. |
-| `local_image.go` | `resolveLocalImageRef(engine, input)` — test-mode-only image resolution that never reads `box.yml`. Full refs pass through with a `LocalImageExists` check; short names match against `ListLocalImages()` output using label-preferred matching (`org.overthinkos.image=<name>`) with a repo-name trailing-component fallback. Returns `ErrImageNotLocal` on no-match so `FormatCLIError` renders the "ov box pull / ov box build" recommendation. Used by `EvalImageCmd.Run()` to keep `ov eval box` purely OCI-labels-driven. |
+| `mcp_server.go` | **`charly mcp serve`** — turns the entire charly CLI into an MCP server. `McpCmdGroup` + `McpServeCmd` (flags: `--listen`, `--path`, `--stdio`, `--read-only`, `--no-default-repo`). `buildMcpServer(readOnly)` constructs a fresh `kong.New(&modelCLI)`, walks `k.Model.Leaves(true)` to enumerate every leaf command, and calls `server.AddTool(kongLeafToTool(...), makeToolHandler(...))`. Result: **190 tools** auto-generated from Kong struct tags with zero hand-written schema — `--long` flags become properties, positionals become required properties, `enum:"..."` surfaces as JSON-schema `enum`, `default:"..."` as `default`, and every schema has `additionalProperties: false` (LLM-honest: unknown keys are rejected by the SDK's input validation before the handler runs). The `mcpDestructivePaths` map flags **63 entries** with `DestructiveHint: true` (including the MCP-first authoring verbs that mutate `box.yml` / `candy.yml` / write files); `--read-only` filters these out at registration time (not runtime gating). `bootstrapProject()` runs before the server starts: chains through env vars (`OV_PROJECT_DIR`, `OV_PROJECT_REPO`) → local `box.yml` → auto-fallback to `overthinkos/opencharly`; `--no-default-repo` opts out of the fallback. The env-var check is the only way to detect parent-flag state from a subcommand receiver (Kong does not expose `CLI` upward). Tool invocation goes through `captureAndRun(argv)` which redirects **os.Stdout / os.Stderr** (package-level vars, not fd-level via `syscall.Dup2` — see the commentary block for why: the SDK's stdio transport captures `os.Stdout` by pointer at Connect time, and dup2 would silently route JSON-RPC responses into the tool-output buffer). Transport: `mcp.NewStreamableHTTPHandler` for HTTP mode, `&mcp.StdioTransport{}` for stdio. `runMu` serialises calls because os-level stream redirects are global. Test coverage: `mcp_server_test.go` (schema presence, destructive-hint annotation, `--read-only` filter — currently 127 read-only + 63 destructive = 190 — positional/flag schema shape, enum/default surfacing, `additionalProperties: false`, `TestMcpServer_VersionRoundTrip` round-trip) + `mcp_serve_default_repo_test.go` (auto-fallback behaviour, hermetic via `OV_REPO_CACHE` pre-seeding). |
+| `main_dir_test.go` | Integration tests for the `-C` / `--dir` / `OV_PROJECT_DIR` global: spawns a freshly-compiled `ov` binary from `/tmp` with a scratch project, verifies all three flag forms make `charly box list boxes` resolve the scratch `box.yml`. Error cases: missing dir, file-not-dir. |
+| `local_image.go` | `resolveLocalImageRef(engine, input)` — test-mode-only image resolution that never reads `box.yml`. Full refs pass through with a `LocalImageExists` check; short names match against `ListLocalImages()` output using label-preferred matching (`ai.opencharly.image=<name>`) with a repo-name trailing-component fallback. Returns `ErrImageNotLocal` on no-match so `FormatCLIError` renders the "charly box pull / charly box build" recommendation. Used by `EvalImageCmd.Run()` to keep `charly eval box` purely OCI-labels-driven. |
 | `evalcollect.go` | `CollectEval(cfg, layers, imageName) *LabelEvalSet` walks the base-image chain — mirror of `CollectHooks` in `hooks.go:18-68` — with a visited-image guard so pathological cycles reported by `validateImageDAG` can't hang the collector. Bucketizes checks into `layer`/`image`/`deploy` by source + scope, stamps `Origin` for reporting. `MergeDeployEval(baked, local)` implements id-based replace, append, and `{id: X, skip: true}` disable semantics. |
-| `eval_cmd.go` | `EvalCmd` — the top-level `ov eval` command tree with three primary verbs (`Image EvalImageCmd`, `Live EvalLiveCmd`, `Run EvalRunCmd`) plus 9 live-container probe sub-Cmds (cdp/wl/dbus/vnc/mcp/record/spice/libvirt/k8s) plus the eval-run management subcommands (list-ai/list-recipe/list-score/list/sync-credential/report/scope/last-tag/note/run-local/self-evaluate). `ov eval live` flow: `resolveContainer` → `containerImageRef` → `ExtractMetadata` → load `DeployImageConfig.Eval` overlay → `MergeDeployEval` → `ResolveEvalVarsRuntime` → populate `Runner.Image`/`Instance` (so `cdp`/`wl`/`dbus`/`vnc` verbs can build CLI invocations) → `Runner.Run` → format results. `ov eval box` flow: `resolveLocalImageRef` (never reads box.yml — see `local_image.go`) → `ExtractMetadata` → `ResolveEvalVarsBuild` → disposable `ImageExecutor` → run ONLY `layer`+`image` sections (deploy-scope skipped — for full-stack live eval use `ov eval live <name>`). |
-| `eval_runner_cmd.go` | The eval-run management Cmds: `EvalRunCmd`, `EvalRunLocalCmd`, `EvalListAICmd`, `EvalListRecipeCmd`, `EvalListScoreCmd`, `EvalListRunsCmd`, `EvalSyncCredCmd`, `EvalScopeCmd`, `EvalLastTagCmd`, `EvalSelfEvalCmd`, `EvalReportCmd`, `EvalNoteCmd`. The orchestrator's preflight (`runWithPhaseResync`) restarts the disposable harness sandbox (the score `pod:` target), syncs credentials, and dispatches `ov eval run-local` inside it via `podman exec`. |
+| `eval_cmd.go` | `EvalCmd` — the top-level `charly eval` command tree with three primary verbs (`Image EvalImageCmd`, `Live EvalLiveCmd`, `Run EvalRunCmd`) plus 9 live-container probe sub-Cmds (cdp/wl/dbus/vnc/mcp/record/spice/libvirt/k8s) plus the eval-run management subcommands (list-ai/list-recipe/list-score/list/sync-credential/report/scope/last-tag/note/run-local/self-evaluate). `charly eval live` flow: `resolveContainer` → `containerImageRef` → `ExtractMetadata` → load `DeployImageConfig.Eval` overlay → `MergeDeployEval` → `ResolveEvalVarsRuntime` → populate `Runner.Image`/`Instance` (so `cdp`/`wl`/`dbus`/`vnc` verbs can build CLI invocations) → `Runner.Run` → format results. `charly eval box` flow: `resolveLocalImageRef` (never reads box.yml — see `local_image.go`) → `ExtractMetadata` → `ResolveEvalVarsBuild` → disposable `ImageExecutor` → run ONLY `layer`+`image` sections (deploy-scope skipped — for full-stack live eval use `charly eval live <name>`). |
+| `eval_runner_cmd.go` | The eval-run management Cmds: `EvalRunCmd`, `EvalRunLocalCmd`, `EvalListAICmd`, `EvalListRecipeCmd`, `EvalListScoreCmd`, `EvalListRunsCmd`, `EvalSyncCredCmd`, `EvalScopeCmd`, `EvalLastTagCmd`, `EvalSelfEvalCmd`, `EvalReportCmd`, `EvalNoteCmd`. The orchestrator's preflight (`runWithPhaseResync`) restarts the disposable harness sandbox (the score `pod:` target), syncs credentials, and dispatches `charly eval run-local` inside it via `podman exec`. |
 | `eval_loop.go` | The AI iteration loop core: per-iter dispatch, scoring, plateau bookkeeping, watchdog integration, NOTES.md memory, `commitIterationBestEffort` (where the orphan-bash defense kills issue-52328 deadlock leftovers between iterations), result-file emission. |
-| `eval_runner_live.go` | `RunEvalLive` — the live scenario-by-scenario probe driver invoked at iter end by the harness scorer. Buckets scenarios by `pod:`, resolves chains via `ResolveDeployChain` for dotted paths, dispatches to the right `DeployExecutor`. Same code path used by `ov eval self-evaluate` (the AI-side mid-iter sanity check). |
+| `eval_runner_live.go` | `RunEvalLive` — the live scenario-by-scenario probe driver invoked at iter end by the harness scorer. Buckets scenarios by `pod:`, resolves chains via `ResolveDeployChain` for dotted paths, dispatches to the right `DeployExecutor`. Same code path used by `charly eval self-evaluate` (the AI-side mid-iter sanity check). |
 | `eval_watchdog.go` | `ProgressWatchdog` — per-iteration scoring-progress monitor. Every `progress_check_interval` (default 5m), runs `RunEvalLive` against in-scope scenarios, records a `WatchdogSample`, emits a `harness: progress [phase X/N iter Y] elapsed Nm — current score A/B` stderr line. Cancels the AI runner's context if `progress_no_improvement_timeout` (default 30m) of zero score delta passes. |
-| `migrate_eval.go` | `ov migrate` — strict forward-only migrator from the legacy `harness.yml` shape to `eval.yml` (file/dir/labels/tokens/env renames, `tests:`→`eval:` rewriting in candy.yml/box.yml/deploy.yml/overthink.yml, well-known bench/fixture project-data renames). Idempotent. NO chain-aware handling of legacy `benchmark:` blocks. |
+| `migrate_eval.go` | `charly migrate` — strict forward-only migrator from the legacy `harness.yml` shape to `eval.yml` (file/dir/labels/tokens/env renames, `tests:`→`eval:` rewriting in candy.yml/box.yml/deploy.yml/charly.yml, well-known bench/fixture project-data renames). Idempotent. NO chain-aware handling of legacy `benchmark:` blocks. |
 | `validate_eval.go` | `validateEval(cfg, layers, errs)` hooked into `Validate` in `validate.go`. Enforces: exactly-one-verb per Check, attribute types, port range (1-65535), `time.Duration` parse on `timeout`, `scope` ∈ {build,deploy}, build-scope checks can't reference runtime-only variables (via `IsRuntimeOnlyVar`), `id:` uniqueness per section (including cross-layer collisions via `validateCollectedIDUniqueness` → `CollectEval`), matcher-op allowlist (kept in lockstep with `matchOne`), per-verb method-allowlist and required-modifier checks for `cdp`/`wl`/`dbus`/`vnc`/`mcp` (via `validateOvVerb` — deploy-scope-only enforcement, method validation against `cdpMethods`/`wlMethods`/`dbusMethods`/`vncMethods`/`mcpMethods` maps in `evalrun_ov_verbs.go`). |
 
-**Related skill**: `/ov-eval:eval` is the authoring-facing reference.
+**Related skill**: `/charly-eval:eval` is the authoring-facing reference.
 
 ## Go Module Info
 
@@ -374,7 +374,7 @@ section is the Go-implementation map.
 2. Add to CLI struct in `main.go`
 3. Implement `Run()` method
 4. Add tests in `*_test.go`
-5. Build and test: `cd ov && go test ./... && go build -o ../bin/ov .`
+5. Build and test: `cd charly && go test ./... && go build -o ../bin/charly .`
 
 ### Add a New Validation Rule
 
@@ -384,28 +384,28 @@ Add to `ov/validate.go`. All validation rules are centralized there.
 
 ```bash
 # Generate Containerfiles without building
-bin/ov box generate
+bin/charly box generate
 
 # Inspect generated output
 cat .build/<image>/Containerfile
 
 # Validate configuration
-bin/ov box validate
+bin/charly box validate
 
 # Inspect resolved image config
-bin/ov box inspect <image>
+bin/charly box inspect <image>
 ```
 
 ### Intermediate image cache invalidation
 
-`ov box build` auto-generates intermediate images (e.g., `ghcr.io/overthinkos/fedora-ov-2-dbus-nodejs`) that bundle the `ov` layer plus common layers for cache reuse across many downstream images. These intermediates are aggressively podman-cached. Updating `candy/ov/bin/ov` does invalidate the COPY step inside the intermediate, but if the intermediate tag already exists locally, `ov box build` may reuse it without re-running the build chain. To force a fresh binary propagation after a manual `bin/ov` update:
+`charly box build` auto-generates intermediate images (e.g., `ghcr.io/overthinkos/fedora-ov-2-dbus-nodejs`) that bundle the `ov` layer plus common layers for cache reuse across many downstream images. These intermediates are aggressively podman-cached. Updating `candy/ov/bin/charly` does invalidate the COPY step inside the intermediate, but if the intermediate tag already exists locally, `charly box build` may reuse it without re-running the build chain. To force a fresh binary propagation after a manual `bin/charly` update:
 
 ```bash
 podman rmi 'ghcr.io/overthinkos/fedora-ov-2*' 2>/dev/null || true
-ov box build <image>
+charly box build <image>
 ```
 
-This also interacts with the dual-path gotcha documented in `/ov-tools:ov`: `bin/ov` (repo-root, used by host-side invocations) and `candy/ov/bin/ov` (what the `ov` layer actually copies into images) must stay in sync. The canonical `task build:ov` path does both; a manual `go build -o bin/ov ./ov` needs an explicit `cp bin/ov candy/ov/bin/ov` follow-up.
+This also interacts with the dual-path gotcha documented in `/charly-tools:charly`: `bin/charly` (repo-root, used by host-side invocations) and `candy/ov/bin/charly` (what the `ov` layer actually copies into images) must stay in sync. The canonical `task build:ov` path does both; a manual `go build -o bin/charly ./ov` needs an explicit `cp bin/charly candy/ov/bin/charly` follow-up.
 
 ## Implementation insights
 
@@ -413,7 +413,7 @@ These are hard-won lessons that shape the Go-side architecture. They're not obvi
 
 ### Kong flag-namespace collision
 
-Top-level flags and subcommand flags share one global namespace. Declaring `Repo` on both `CLI` (`ov/main.go`) and `McpServeCmd` (`ov/mcp_server.go`) panics with `duplicate flag --repo` at Kong parse time. Resolution: drop the subcommand flag entirely; users write `ov --repo … mcp serve`. Only keep subcommand flags when they have no top-level twin (e.g. `--no-default-repo` on `McpServeCmd` has no collision and stays).
+Top-level flags and subcommand flags share one global namespace. Declaring `Repo` on both `CLI` (`ov/main.go`) and `McpServeCmd` (`ov/mcp_server.go`) panics with `duplicate flag --repo` at Kong parse time. Resolution: drop the subcommand flag entirely; users write `charly --repo … mcp serve`. Only keep subcommand flags when they have no top-level twin (e.g. `--no-default-repo` on `McpServeCmd` has no collision and stays).
 
 ### Env-var proxy for parent-flag detection
 
@@ -447,24 +447,24 @@ The layer scaffold writes `rpm:\n  packages:\n  # Add RPM packages here\n` — t
 
 ## Cross-References
 
-- `/ov-internals:generate-source` — Understanding generated Containerfiles + deep dive on the task emission pipeline (`ov/tasks.go`).
-- `/ov-image:layer` — **Canonical author-facing reference** for the task verb catalog that `ov/tasks.go` implements.
-- `/ov-build:validate` — Validation rules and error handling (`validateLayerTasks` in `ov/validate.go`).
-- `/ov-build:build` — Using the built CLI.
-- `/ov-eval:eval` — Author-facing reference for the declarative-testing feature that `testspec.go` / `testvars.go` / `testrun.go` / `testrun_verbs.go` / `testrun_ov_verbs.go` / `testcollect.go` / `test_cmd.go` / `local_image.go` / `validate_tests.go` / `mcp.go` / `mcp_client.go` implement.
-- `/ov-build:ov-mcp-cmd` — Author-facing reference for both (a) the `ov eval mcp` client verb (method catalog, URL-rewrite behavior, port-publishing gotcha, transport dispatch — pair with the file table's `mcp.go` + `mcp_client.go` rows above) and (b) the `ov mcp serve` server (190 tools auto-generated from Kong reflection including the MCP-first authoring surface, destructive-hint + `--read-only` filter, Streamable-HTTP + stdio transports, auto-fallback to `overthinkos/overthink` — pair with `mcp_server.go` + `main_repo.go` + `scaffold_cmds.go` + `scaffold_project.go` + `yaml_setter.go` above).
-- `/ov-coder:ov-mcp` — The layer that deploys `ov mcp serve` inside a container: bind-mount volume NAME `project` at the container PATH `/workspace`, `OV_PROJECT_DIR=/workspace` so build-mode MCP tools (`box.list.boxes`, `image.inspect`, etc.) reach `box.yml` from outside the project checkout — or auto-fall back to `overthinkos/overthink` when `/workspace` is empty (the fallback fires on absence of box.yml, not absence of OV_PROJECT_DIR).
-- `/ov-eval:cdp`, `/ov-eval:wl`, `/ov-eval:dbus`, `/ov-eval:vnc` — the four sibling live-container verbs.
+- `/charly-internals:generate-source` — Understanding generated Containerfiles + deep dive on the task emission pipeline (`ov/tasks.go`).
+- `/charly-image:layer` — **Canonical author-facing reference** for the task verb catalog that `ov/tasks.go` implements.
+- `/charly-build:validate` — Validation rules and error handling (`validateLayerTasks` in `ov/validate.go`).
+- `/charly-build:build` — Using the built CLI.
+- `/charly-eval:eval` — Author-facing reference for the declarative-testing feature that `testspec.go` / `testvars.go` / `testrun.go` / `testrun_verbs.go` / `testrun_ov_verbs.go` / `testcollect.go` / `test_cmd.go` / `local_image.go` / `validate_tests.go` / `mcp.go` / `mcp_client.go` implement.
+- `/charly-build:ov-mcp-cmd` — Author-facing reference for both (a) the `charly eval mcp` client verb (method catalog, URL-rewrite behavior, port-publishing gotcha, transport dispatch — pair with the file table's `mcp.go` + `mcp_client.go` rows above) and (b) the `charly mcp serve` server (190 tools auto-generated from Kong reflection including the MCP-first authoring surface, destructive-hint + `--read-only` filter, Streamable-HTTP + stdio transports, auto-fallback to `overthinkos/opencharly` — pair with `mcp_server.go` + `main_repo.go` + `scaffold_cmds.go` + `scaffold_project.go` + `yaml_setter.go` above).
+- `/charly-coder:charly-mcp` — The layer that deploys `charly mcp serve` inside a container: bind-mount volume NAME `project` at the container PATH `/workspace`, `OV_PROJECT_DIR=/workspace` so build-mode MCP tools (`box.list.boxes`, `image.inspect`, etc.) reach `box.yml` from outside the project checkout — or auto-fall back to `overthinkos/opencharly` when `/workspace` is empty (the fallback fires on absence of box.yml, not absence of OV_PROJECT_DIR).
+- `/charly-eval:cdp`, `/charly-eval:wl`, `/charly-eval:dbus`, `/charly-eval:vnc` — the four sibling live-container verbs.
 - Source: `ov/` directory (~79 source + ~55 test .go files).
 
 ## When to Use This Skill
 
 **MUST be invoked** before reading or modifying Go source files. Invoke this skill BEFORE launching Explore agents on ov/ code.
 
-## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM under `vm:` in `vm.yml`.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM under `vm:` in `vm.yml`.
 
-**After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
+**After committing the source-level fix, `charly update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 
 Unit tests + a clean compile are necessary but not sufficient. See CLAUDE.md R1–R10.

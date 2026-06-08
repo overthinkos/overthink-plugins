@@ -1,5 +1,5 @@
 {
-  "name": "ov-pod",
+  "name": "charly-pod",
   "description": "Schema authoring reference for `kind: pod` and `kind: deploy` entities — deploy.yml entry shapes, nested deploys, sidecars, and pod networking.",
   "version": "1.0.0",
   "author": { "name": "overthinkos" },

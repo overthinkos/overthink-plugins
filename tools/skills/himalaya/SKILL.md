@@ -27,14 +27,14 @@ layers:
 - `openclaw-full` (via `openclaw-full` metalayer)
 
 ## Related Layers
-- `/ov-coder:rust` — required Rust toolchain dependency
-- `/ov-openclaw:openclaw-full` — metalayer that includes himalaya
-- `/ov-infrastructure:gnupg` — pairs with himalaya for PGP-encrypted email
+- `/charly-coder:rust` — required Rust toolchain dependency
+- `/charly-openclaw:openclaw-full` — metalayer that includes himalaya
+- `/charly-infrastructure:gnupg` — pairs with himalaya for PGP-encrypted email
 
 ## Related Commands
-- `/ov-build:secrets` — provision IMAP/SMTP credentials for himalaya
-- `/ov-core:shell` — run himalaya interactively inside a container
-- `/ov-build:build` — compiles himalaya via the Cargo builder during image build
+- `/charly-build:secrets` — provision IMAP/SMTP credentials for himalaya
+- `/charly-core:shell` — run himalaya interactively inside a container
+- `/charly-build:build` — compiles himalaya via the Cargo builder during image build
 
 ## When to Use This Skill
 
@@ -45,5 +45,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -9,7 +9,7 @@ description: |
 
 Single-purpose layer that installs ~50 standard debugging utilities
 across 5 categories: network, process, file, system stats, session
-helpers. Composed by `/ov-versa:versa` so operators can debug
+helpers. Composed by `/charly-versa:versa` so operators can debug
 the deployed services (marimo, airflow, martin, maputnik, etc.) from
 INSIDE the running container.
 
@@ -116,8 +116,8 @@ than file path because the binary's location varies across distros
 
 ## Cross-references
 
-- `/ov-versa:versa` — image composing this layer
-- `/ov-versa:airflow-layer` — services this toolkit debugs
-- `/ov-versa:osm-tools-layer` — martin server this toolkit debugs
-- `/ov-versa:versa-layer` — marimo runtime this toolkit debugs
-- `/ov-coder:dev-tools` — overlapping but heavier (includes qemu, AWS CLI, etc.); not composed by versa
+- `/charly-versa:versa` — image composing this layer
+- `/charly-versa:airflow-layer` — services this toolkit debugs
+- `/charly-versa:osm-tools-layer` — martin server this toolkit debugs
+- `/charly-versa:versa-layer` — marimo runtime this toolkit debugs
+- `/charly-coder:dev-tools` — overlapping but heavier (includes qemu, AWS CLI, etc.); not composed by versa

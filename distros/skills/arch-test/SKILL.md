@@ -14,7 +14,7 @@ Test image that validates both `pac:` (pacman) and `aur:` (AUR) package formats 
 locally in this repo's `candy/` (resolved via its `discover:` block); the `arch`
 base + `arch-builder` come from main's `base.yml`, reached via the submodule's
 `import:` of the main repo under the `ov` namespace — `base: ov.arch`. Build from
-the submodule: `cd image/arch && ov box build arch-test`.
+the submodule: `cd image/arch && charly box build arch-test`.
 
 ## Image Properties
 
@@ -34,24 +34,24 @@ the submodule: `cd image/arch && ov box build arch-test`.
 ## Quick Start
 
 ```bash
-ov box build arch-test
-ov shell arch-test
+charly box build arch-test
+charly shell arch-test
 ```
 
 ## Verification
 
 ```bash
-ov shell arch-test -c "nvim --version"     # pac: package installed
-ov shell arch-test -c "rg --version"       # pac: package installed
-ov shell arch-test -c "which yay"          # aur: package installed
+charly shell arch-test -c "nvim --version"     # pac: package installed
+charly shell arch-test -c "rg --version"       # pac: package installed
+charly shell arch-test -c "which yay"          # aur: package installed
 ```
 
 ## Related
 
-- `/ov-distros:arch` — base image
-- `/ov-distros:arch-builder` — builder image (provides yay for AUR builds)
-- `/ov-distros:arch-pac-test` — pacman test layer
-- `/ov-distros:arch-aur-test` — AUR test layer
+- `/charly-distros:arch` — base image
+- `/charly-distros:arch-builder` — builder image (provides yay for AUR builds)
+- `/charly-distros:arch-pac-test` — pacman test layer
+- `/charly-distros:arch-aur-test` — AUR test layer
 
 ## When to Use This Skill
 
@@ -59,5 +59,5 @@ ov shell arch-test -c "which yay"          # aur: package installed
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

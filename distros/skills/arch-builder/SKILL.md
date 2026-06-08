@@ -8,7 +8,7 @@ description: |
 
 # arch-builder
 
-Builder image for Arch Linux multi-stage builds. Counterpart to `/ov-distros:fedora-builder` — provides the same build capabilities (pixi, npm, cargo) plus AUR support via yay.
+Builder image for Arch Linux multi-stage builds. Counterpart to `/charly-distros:fedora-builder` — provides the same build capabilities (pixi, npm, cargo) plus AUR support via yay.
 
 ## Image Properties
 
@@ -47,25 +47,25 @@ The builder definitions themselves (pixi/npm/cargo/aur) live in `build.yml`'s `b
 ## Quick Start
 
 ```bash
-ov box build arch-builder
-ov shell arch-builder -c "pixi --version"
-ov shell arch-builder -c "node --version"
-ov shell arch-builder -c "yay --version"
+charly box build arch-builder
+charly shell arch-builder -c "pixi --version"
+charly shell arch-builder -c "node --version"
+charly shell arch-builder -c "yay --version"
 ```
 
 ## Related
 
-- `/ov-distros:arch` — parent base image
-- `/ov-distros:fedora-builder` — Fedora counterpart (same role, no AUR)
-- `/ov-tools:yay` — AUR helper layer (unique to Arch)
-- `/ov-languages:pixi` — pixi package manager layer
-- `/ov-coder:nodejs` — Node.js layer
-- `/ov-coder:build-toolchain` — C/C++ build tools layer
+- `/charly-distros:arch` — parent base image
+- `/charly-distros:fedora-builder` — Fedora counterpart (same role, no AUR)
+- `/charly-tools:yay` — AUR helper layer (unique to Arch)
+- `/charly-languages:pixi` — pixi package manager layer
+- `/charly-coder:nodejs` — Node.js layer
+- `/charly-coder:build-toolchain` — C/C++ build tools layer
 
 ## Verification
 
 ```bash
-ov shell arch-builder -c "pixi --version && node --version && yay --version && gcc --version"
+charly shell arch-builder -c "pixi --version && node --version && yay --version && gcc --version"
 ```
 
 ## When to Use This Skill
@@ -74,5 +74,5 @@ ov shell arch-builder -c "pixi --version && node --version && yay --version && g
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

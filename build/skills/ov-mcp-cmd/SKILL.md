@@ -1,30 +1,30 @@
 ---
 name: ov-mcp-cmd
 description: |
-  MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `ov eval mcp` client: probing MCP servers declared via mcp_provide, testing MCP tool catalogs, debugging the URL-rewriter (including host-networked containers via `HostConfig.NetworkMode` detection) or port-publishing behavior. (2) `ov mcp serve` server: running the ov CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (~192 tools including the MCP-first authoring surface — image/layer scaffolding, comment-preserving YAML edits, free-form file writes), destructive-hint annotations, the `--read-only` filter, auto-fallback to `overthinkos/overthink` when cwd has no `box.yml` (always fires regardless of OV_PROJECT_DIR being set), and the `ov-mcp` deployment layer with its `/workspace` bind mount.
-  Named `ov-mcp-cmd` (not `mcp`) to disambiguate from Claude Code's built-in `/mcp` slash command (the `-cmd` suffix avoids collision with the existing `/ov-coder:ov-mcp` image skill).
+  MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `charly eval mcp` client: probing MCP servers declared via mcp_provide, testing MCP tool catalogs, debugging the URL-rewriter (including host-networked containers via `HostConfig.NetworkMode` detection) or port-publishing behavior. (2) `charly mcp serve` server: running the charly CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (~192 tools including the MCP-first authoring surface — image/layer scaffolding, comment-preserving YAML edits, free-form file writes), destructive-hint annotations, the `--read-only` filter, auto-fallback to `overthinkos/opencharly` when cwd has no `box.yml` (always fires regardless of OV_PROJECT_DIR being set), and the `ov-mcp` deployment layer with its `/workspace` bind mount.
+  Named `ov-mcp-cmd` (not `mcp`) to disambiguate from Claude Code's built-in `/mcp` slash command (the `-cmd` suffix avoids collision with the existing `/charly-coder:charly-mcp` image skill).
 ---
 
 # MCP - Model Context Protocol (client + server)
 
 `ov` speaks MCP in both directions. This skill covers both:
 
-- **Client** — `ov eval mcp <method>`: connect to any MCP server declared via `mcp_provide` and probe/call/read. Used to test MCP endpoints shipped by `jupyter-mcp`, `chrome-devtools-mcp`, or the ov server itself.
-- **Server** — `ov mcp serve`: expose the entire ov CLI surface (build + test + deploy modes, 190 tools) as MCP over Streamable HTTP or stdio. Used by LLM agents (Claude Code, Open WebUI, OpenClaw) to drive ov remotely. Deployed in-container via the `ov-mcp` layer. The 190-tool catalog now includes a project-scaffolding + YAML-editing + file-write authoring surface, so an agent can build an `ov` project from scratch over RPC — see "Authoring tools" below.
+- **Client** — `charly eval mcp <method>`: connect to any MCP server declared via `mcp_provide` and probe/call/read. Used to test MCP endpoints shipped by `jupyter-mcp`, `chrome-devtools-mcp`, or the charly server itself.
+- **Server** — `charly mcp serve`: expose the entire charly CLI surface (build + test + deploy modes, 190 tools) as MCP over Streamable HTTP or stdio. Used by LLM agents (Claude Code, Open WebUI, OpenClaw) to drive charly remotely. Deployed in-container via the `ov-mcp` layer. The 190-tool catalog now includes a project-scaffolding + YAML-editing + file-write authoring surface, so an agent can build an `ov` project from scratch over RPC — see "Authoring tools" below.
 
 Both surfaces share the same SDK: `github.com/modelcontextprotocol/go-sdk v1.5.0`.
 
 ---
 
-# Part 1 — Client (`ov eval mcp …`)
+# Part 1 — Client (`charly eval mcp …`)
 
 ## Overview
 
-`ov eval mcp` connects to Model Context Protocol servers declared by running containers via `mcp_provide`, using [github.com/modelcontextprotocol/go-sdk](https://pkg.go.dev/github.com/modelcontextprotocol/go-sdk) (v1.5.0). Seven leaf subcommands cover the full MCP client surface: `ping`, `servers`, `list-tools`, `list-resources`, `list-prompts`, `call`, `read`. No MCP URL argument is ever typed by the user — the verb reads the target image's `org.overthinkos.mcp_provide` OCI label, resolves `{{.ContainerName}}` templates, applies pod-aware `localhost` rewriting, and maps the container-network URL to the published host port automatically.
+`charly eval mcp` connects to Model Context Protocol servers declared by running containers via `mcp_provide`, using [github.com/modelcontextprotocol/go-sdk](https://pkg.go.dev/github.com/modelcontextprotocol/go-sdk) (v1.5.0). Seven leaf subcommands cover the full MCP client surface: `ping`, `servers`, `list-tools`, `list-resources`, `list-prompts`, `call`, `read`. No MCP URL argument is ever typed by the user — the verb reads the target image's `ai.opencharly.mcp_provide` OCI label, resolves `{{.ContainerName}}` templates, applies pod-aware `localhost` rewriting, and maps the container-network URL to the published host port automatically.
 
 ### Also as a declarative verb
 
-Every `ov eval mcp <method>` is authorable as an `mcp:` verb inside a `eval:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tool:`, `uri:`, `input:`, `mcp_name:`). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `timeout:`) work like other verbs. See `/ov-eval:eval` for the parent router and the complete method allowlist. Example:
+Every `charly eval mcp <method>` is authorable as an `mcp:` verb inside a `eval:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tool:`, `uri:`, `input:`, `mcp_name:`). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `timeout:`) work like other verbs. See `/charly-eval:eval` for the parent router and the complete method allowlist. Example:
 
 ```yaml
 - mcp: list-tools
@@ -38,13 +38,13 @@ Every `ov eval mcp <method>` is authorable as an `mcp:` verb inside a `eval:` bl
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Ping | `ov eval mcp ping <image>` | Liveness check — returns `ok` on a successful `Ping` RPC |
-| Enumerate | `ov eval mcp servers <image>` | List MCP servers declared by the image (no dial) |
-| List tools | `ov eval mcp list-tools <image>` | Tool name + first-line description per line |
-| List resources | `ov eval mcp list-resources <image>` | URI + name + MIME type per line |
-| List prompts | `ov eval mcp list-prompts <image>` | Prompt name + description per line |
-| Call | `ov eval mcp call <image> <tool> [<input-json>]` | Invoke a tool; prints TextContent payload |
-| Read | `ov eval mcp read <image> <uri>` | Read a resource; prints Text content |
+| Ping | `charly eval mcp ping <image>` | Liveness check — returns `ok` on a successful `Ping` RPC |
+| Enumerate | `charly eval mcp servers <image>` | List MCP servers declared by the image (no dial) |
+| List tools | `charly eval mcp list-tools <image>` | Tool name + first-line description per line |
+| List resources | `charly eval mcp list-resources <image>` | URI + name + MIME type per line |
+| List prompts | `charly eval mcp list-prompts <image>` | Prompt name + description per line |
+| Call | `charly eval mcp call <image> <tool> [<input-json>]` | Invoke a tool; prints TextContent payload |
+| Read | `charly eval mcp read <image> <uri>` | Read a resource; prints Text content |
 
 Every leaf accepts:
 - `-i <instance>` — target a specific instance
@@ -57,21 +57,21 @@ Every leaf accepts:
 The verb runs entirely on the host — no delegation into the container — and builds a single `*mcp.ClientSession` per invocation.
 
 1. **Container resolution**: `resolveContainer(image, instance)` → `ov-<image>[-<instance>]`.
-2. **Image ref + metadata**: `containerImageRef` → `ExtractMetadata` → `meta.MCPProvide` (read from OCI label `org.overthinkos.mcp_provide`).
+2. **Image ref + metadata**: `containerImageRef` → `ExtractMetadata` → `meta.MCPProvide` (read from OCI label `ai.opencharly.mcp_provide`).
 3. **Template substitution**: any `{{.ContainerName}}` in the URL is replaced with the resolved container name.
-4. **Pod-aware rewrite**: `podAwareMCPProvides` folds same-image entries so the URL host becomes `localhost` (identical to the OV_MCP_SERVERS path used by `ov config`).
+4. **Pod-aware rewrite**: `podAwareMCPProvides` folds same-image entries so the URL host becomes `localhost` (identical to the OV_MCP_SERVERS path used by `charly config`).
 5. **Host-side port rewrite**: the load-bearing piece. `rewriteMCPURLForHost` parses the URL; if the host is the container name or `localhost`, it looks up the published host port for the URL's port via `podman inspect` (same `NetworkSettings.Ports` data that powers `${HOST_PORT:N}` in declarative tests) and rewrites to `127.0.0.1:<host-port>`. Non-matching hosts (external URLs) pass through unchanged.
 6. **Transport pick**: `transport: http` (or empty) → `StreamableClientTransport{Endpoint}`; `transport: sse` → `SSEClientTransport{Endpoint}`; any other string errors at dial time with the declared transport echoed.
 7. **Session**: `mcp.NewClient(&mcp.Implementation{Name: "ov", Version: ComputeCalVer()}, nil).Connect(ctx, transport, nil)` — runs the MCP `initialize` handshake and returns an opened `ClientSession`. A `defer session.Close()` always fires.
 
-Source: `ov/mcp.go` (Kong subcommand tree + leaf Run() methods), `ov/mcp_client.go` (resolver, URL rewriter, transport picker, formatters). The URL rewriter is the one truly novel piece; the rest composes existing infrastructure. See `/ov-internals:go` "Declarative Testing" section for the implementation map.
+Source: `ov/mcp.go` (Kong subcommand tree + leaf Run() methods), `ov/mcp_client.go` (resolver, URL rewriter, transport picker, formatters). The URL rewriter is the one truly novel piece; the rest composes existing infrastructure. See `/charly-internals:go` "Declarative Testing" section for the implementation map.
 
 ## Commands
 
 ### Ping
 
 ```bash
-ov eval mcp ping jupyter
+charly eval mcp ping jupyter
 # ok
 ```
 
@@ -80,10 +80,10 @@ Calls `ClientSession.Ping(ctx, nil)`. Exit 0 iff the server responds. Useful as 
 ### Servers (discovery only, no dial)
 
 ```bash
-ov eval mcp servers jupyter
+charly eval mcp servers jupyter
 # jupyter   http://localhost:8888/mcp   http
 
-ov eval mcp servers jupyter --json
+charly eval mcp servers jupyter --json
 # [{"name":"jupyter","url":"http://localhost:8888/mcp","transport":"http","source":"jupyter"}]
 ```
 
@@ -92,13 +92,13 @@ Reads `mcp_provide` from the OCI label, applies template substitution + pod-awar
 ### List tools / resources / prompts
 
 ```bash
-ov eval mcp list-tools jupyter
+charly eval mcp list-tools jupyter
 # list_notebooks       List all notebooks accessible in the workspace.
 # execute_cell         Execute a cell and return its outputs.
 # insert_cell          Insert a new cell at the given position.
 # …
 
-ov eval mcp list-tools jupyter --json | jq '.[].name'
+charly eval mcp list-tools jupyter --json | jq '.[].name'
 ```
 
 Plaintext output is tab-separated (`name\tfirst-line-of-description`) for easy `contains:` matching in declarative tests without JSON parsing. Multi-line descriptions collapse to the first non-empty line. `list-resources` emits `uri\tname\tmime`; `list-prompts` emits `name\tdescription`. The runner automatically pages through `NextCursor` so all results return in a single invocation.
@@ -106,10 +106,10 @@ Plaintext output is tab-separated (`name\tfirst-line-of-description`) for easy `
 ### Call a tool
 
 ```bash
-ov eval mcp call jupyter list_notebooks '{}'
+charly eval mcp call jupyter list_notebooks '{}'
 # [{"path":"finetuning/01_FastInference_Qwen.ipynb",…}]
 
-ov eval mcp call jupyter get_cell '{"path":"intro.ipynb","index":0}'
+charly eval mcp call jupyter get_cell '{"path":"intro.ipynb","index":0}'
 ```
 
 The third positional is the tool's arguments as a JSON object (optional — omit for zero-arg tools). The argument string is parsed with `encoding/json`; parse errors exit 1 immediately with the error location. Returned `TextContent` blocks print one per line; `ImageContent` / `AudioContent` emit a `[image content: <mime>, <N> bytes]` placeholder (use `--json` for the actual payload). If the server sets `IsError: true`, the leaf exits 1 after printing the error text to stderr.
@@ -117,7 +117,7 @@ The third positional is the tool's arguments as a JSON object (optional — omit
 ### Read a resource
 
 ```bash
-ov eval mcp read my-image file:///workspace/data.txt
+charly eval mcp read my-image file:///workspace/data.txt
 ```
 
 Calls `ReadResource(URI: …)`. Text content is printed to stdout; binary blobs emit a `[binary resource … use --json for base64]` placeholder to stderr.
@@ -127,10 +127,10 @@ Calls `ReadResource(URI: …)`. Text content is printed to stdout; binary blobs 
 When an image declares more than one `mcp_provide` entry, every leaf requires `--name`:
 
 ```bash
-ov eval mcp ping my-image
+charly eval mcp ping my-image
 # ov: error: image provides multiple mcp servers; use --name (available: jupyter, chrome-devtools)
 
-ov eval mcp ping my-image --name chrome-devtools
+charly eval mcp ping my-image --name chrome-devtools
 # ok
 ```
 
@@ -146,7 +146,7 @@ No existing image ships multiple providers today — `jupyter` layers expose one
 
 ## Port-publishing gotcha (encountered during live testing)
 
-**Symptom:** `ov eval mcp ping` fails with:
+**Symptom:** `charly eval mcp ping` fails with:
 
 ```
 ov: error: mcp chrome-devtools: container port 9224/tcp is not published to a host port;
@@ -158,7 +158,7 @@ declare `ports: [9224:9224]` in the image or run the test from inside the pod
 **Fix:** either add the mcp port to the instance's `deploy.yml` entry:
 
 ```yaml
-# ~/.config/ov/deploy.yml
+# ~/.config/charly/deploy.yml
 images:
   sway-browser-vnc:
     ports:
@@ -167,14 +167,14 @@ images:
       - 9224:9224   # ← add this
 ```
 
-… or remove the `port:` override entirely so the image default (which already includes 9224) applies. Re-run `ov config <image>` and restart the service (`ov stop && ov start` — `ov update` may no-op if the image tag hasn't changed).
+… or remove the `port:` override entirely so the image default (which already includes 9224) applies. Re-run `charly config <image>` and restart the service (`charly stop && charly start` — `charly update` may no-op if the image tag hasn't changed).
 
 **Verification** that the fix worked:
 
 ```bash
 podman inspect ov-<image> --format '{{json .NetworkSettings.Ports}}' | jq
 # Expect: the mcp port maps to a non-null [{"HostIp":"...","HostPort":"..."}]
-ov eval mcp ping <image>
+charly eval mcp ping <image>
 # ok
 ```
 
@@ -203,7 +203,7 @@ Every leaf's default format is author-friendly plaintext with one record per lin
 - `read` → concatenated `ResourceContents.Text`, one per line
 - `servers` → `<name>\t<url>\t<transport>`
 
-`--json` on any leaf emits the SDK's raw result struct (e.g., `ListToolsResult`, `CallToolResult`) with `json.MarshalIndent`. Declarative tests always receive plaintext — the subprocess dispatcher runs `ov eval mcp …` without `--json`.
+`--json` on any leaf emits the SDK's raw result struct (e.g., `ListToolsResult`, `CallToolResult`) with `json.MarshalIndent`. Declarative tests always receive plaintext — the subprocess dispatcher runs `charly eval mcp …` without `--json`.
 
 ## Declarative authoring examples
 
@@ -250,11 +250,11 @@ Tests currently shipping in the three provider layers (`candy/jupyter/candy.yml`
     - matches: "."
 ```
 
-**Deploy-scope only.** `mcp:` checks require a running container with the mcp port published; `ov box validate` rejects build-scope mcp checks at authoring time, and `ov eval box` skips them at runtime with the message `"mcp: <method> requires a running container (skip under ov eval box)"`. Follow the same rule as the other four live-container verbs — `cdp`, `wl`, `dbus`, `vnc`.
+**Deploy-scope only.** `mcp:` checks require a running container with the mcp port published; `charly box validate` rejects build-scope mcp checks at authoring time, and `charly eval box` skips them at runtime with the message `"mcp: <method> requires a running container (skip under charly eval box)"`. Follow the same rule as the other four live-container verbs — `cdp`, `wl`, `dbus`, `vnc`.
 
 ## Validator coverage
 
-`ov box validate` enforces at the `validateOvVerb` dispatch in `ov/validate_tests.go`:
+`charly box validate` enforces at the `validateOvVerb` dispatch in `ov/validate_tests.go`:
 
 - Method name must be in `mcpMethods` (7 entries); unknown methods list the allowed set in the error.
 - `scope` must be `deploy`; build-scope raises `"mcp: verb requires scope:\"deploy\""`.
@@ -265,21 +265,21 @@ No other required modifiers — `ping`, `servers`, `list-*` take only the option
 
 ---
 
-# Part 2 — Server (`ov mcp serve`)
+# Part 2 — Server (`charly mcp serve`)
 
 ## Overview
 
-`ov mcp serve` runs the ov CLI *as* an MCP server. Every leaf command in the Kong CLI tree — `image.build`, `status`, `test.mcp.ping`, `config.setup`, `box.new.project`, `candy.add-rpm`, etc. — becomes a callable MCP tool. Tool catalogs are **auto-generated from Kong struct tags** by reflection; there is no hand-written schema per command. Result: **190 tools** covering the entire build + test + deploy surface, including the MCP-first authoring verbs (`image.{new.project, new.image, set, add-layer, rm-layer, fetch, refresh, write, cat}` + `layer.{set, add-rpm, add-deb, add-pac, add-aur}`).
+`charly mcp serve` runs the charly CLI *as* an MCP server. Every leaf command in the Kong CLI tree — `image.build`, `status`, `test.mcp.ping`, `config.setup`, `box.new.project`, `candy.add-rpm`, etc. — becomes a callable MCP tool. Tool catalogs are **auto-generated from Kong struct tags** by reflection; there is no hand-written schema per command. Result: **190 tools** covering the entire build + test + deploy surface, including the MCP-first authoring verbs (`image.{new.project, new.image, set, add-layer, rm-layer, fetch, refresh, write, cat}` + `layer.{set, add-rpm, add-deb, add-pac, add-aur}`).
 
 ```bash
-ov mcp serve                                # Streamable HTTP on :18765/mcp
-ov mcp serve --listen 127.0.0.1:9999        # Custom port
-ov mcp serve --path /api/mcp                # Custom HTTP path prefix (default /mcp)
-ov mcp serve --stdio                        # Stdio transport for editor/LLM integration
-ov mcp serve --read-only                    # Skip registering the 51 destructive tools
+charly mcp serve                                # Streamable HTTP on :18765/mcp
+charly mcp serve --listen 127.0.0.1:9999        # Custom port
+charly mcp serve --path /api/mcp                # Custom HTTP path prefix (default /mcp)
+charly mcp serve --stdio                        # Stdio transport for editor/LLM integration
+charly mcp serve --read-only                    # Skip registering the 51 destructive tools
 ```
 
-The server uses the same `github.com/modelcontextprotocol/go-sdk` v1.5.0 as the client, so the wire format is identical and `ov eval mcp ping <image>` works against it unchanged.
+The server uses the same `github.com/modelcontextprotocol/go-sdk` v1.5.0 as the client, so the wire format is identical and `charly eval mcp ping <image>` works against it unchanged.
 
 ## Architecture
 
@@ -295,7 +295,7 @@ The server lives in a single file: `ov/mcp_server.go`.
 
 3. **Tool invocation** — `makeToolHandler(path, leaf)` returns a closure. On call: decode the MCP JSON arguments, reconstruct a `[]string` argv via `argvFromJSON(…)` (booleans → bare flag, slices → repeated `--flag=value`, positionals in Kong order), then `captureAndRun(argv)` builds a fresh `kong.New(&CLI{})`, calls `k.Parse(argv)`, invokes `kctx.Run()`, and returns captured stdout/stderr as a single `TextContent`. Errors become `IsError: true` tool results, not MCP-protocol errors — the LLM sees the failure text.
 
-4. **Capture model — os.Stdout / os.Stderr redirect, NOT fd-level** — capture redirects the `os.Stdout`/`os.Stderr` package variables only, not fd 1/2 via `syscall.Dup2`. Fd-level capture deadlocks: the MCP SDK's `StdioTransport` captures `os.Stdout` by pointer at Connect time, so dup2'ing fd 1 to a capture pipe sends the SDK's JSON-RPC responses into the tool-output buffer instead of to the client. Because the redirect is at the package-variable level, every ov command must write via `fmt.Println`/`fmt.Printf` (not Go's builtin `println`, which bypasses `os.Stderr` and writes directly to fd 2) — `VersionCmd` uses `fmt.Println` for exactly this reason. Subprocess output *is* a known leak — but the `ov` codebase invokes subprocesses via `cmd.Stdout = os.Stderr` etc., so in practice it stays captured.
+4. **Capture model — os.Stdout / os.Stderr redirect, NOT fd-level** — capture redirects the `os.Stdout`/`os.Stderr` package variables only, not fd 1/2 via `syscall.Dup2`. Fd-level capture deadlocks: the MCP SDK's `StdioTransport` captures `os.Stdout` by pointer at Connect time, so dup2'ing fd 1 to a capture pipe sends the SDK's JSON-RPC responses into the tool-output buffer instead of to the client. Because the redirect is at the package-variable level, every charly command must write via `fmt.Println`/`fmt.Printf` (not Go's builtin `println`, which bypasses `os.Stderr` and writes directly to fd 2) — `VersionCmd` uses `fmt.Println` for exactly this reason. Subprocess output *is* a known leak — but the `ov` codebase invokes subprocesses via `cmd.Stdout = os.Stderr` etc., so in practice it stays captured.
 
 5. **Serialisation** — `runMu` (sync.Mutex) serialises handler invocations because `os.Stdout`/`os.Stderr` redirects are global. MCP tool calls on the server run sequentially; most tools are I/O-bound shell-outs to podman so parallelism is not a big loss.
 
@@ -306,14 +306,14 @@ The server lives in a single file: `ov/mcp_server.go`.
 Composing `ov-mcp` into an image deploys the server via supervisord:
 
 ```yaml
-# candy/ov-mcp/candy.yml (summary)
+# candy/charly-mcp/candy.yml (summary)
 candy:
-  - ov
+  - charly
   - supervisord
 ports:
   - 18765
 mcp_provide:
-  - name: ov
+  - name: charly
     url: "http://{{.ContainerName}}:18765/mcp"
     transport: http
 volumes:
@@ -323,7 +323,7 @@ env:
   OV_PROJECT_DIR: "/workspace"
 service:
   - name: ov-mcp
-    exec: /usr/local/bin/ov mcp serve --listen :18765
+    exec: /usr/local/bin/charly mcp serve --listen :18765
     restart: always
     enable: true
     scope: system
@@ -331,42 +331,42 @@ service:
 
 **Project-dir wiring** — build-mode tools (`image.build`, `image.inspect`, `image.list.*`) resolve `box.yml` via `os.Getwd()`. Inside the container, cwd is `/workspace` (set by the `ov-mcp` layer's `OV_PROJECT_DIR` env + `volume:` declaration). Three deployment patterns, in order of progressively less local setup:
 
-1. **Bind-mount** — the canonical `ov-mcp` pattern. The layer ships `env: OV_PROJECT_DIR: /workspace` + `volumes: project → /workspace`; the deployer attaches a host checkout via `ov config <image> --bind project=/path/to/overthink`. The ov CLI's global `-C` / `--dir` / `OV_PROJECT_DIR` flag honours the env var before Kong dispatch, calling `os.Chdir(OV_PROJECT_DIR)` once. Use this when the agent should see your in-flight local edits. The volume NAME is `project` (stable bind-mount API); the in-container PATH is `/workspace` (the generic name works whether the contents are an overthink checkout or any other workspace).
+1. **Bind-mount** — the canonical `ov-mcp` pattern. The layer ships `env: OV_PROJECT_DIR: /workspace` + `volumes: project → /workspace`; the deployer attaches a host checkout via `charly config <image> --bind project=/path/to/opencharly`. The charly CLI's global `-C` / `--dir` / `OV_PROJECT_DIR` flag honours the env var before Kong dispatch, calling `os.Chdir(OV_PROJECT_DIR)` once. Use this when the agent should see your in-flight local edits. The volume NAME is `project` (stable bind-mount API); the in-container PATH is `/workspace` (the generic name works whether the contents are an opencharly checkout or any other workspace).
 
-2. **Remote pin** — set `OV_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env (e.g. via `ov config <image> -e OV_PROJECT_REPO=...`). The ov CLI clones (or hits its `~/.cache/ov/repos/` cache) and chdirs into the cache path before Kong dispatch. No bind mount required. Use this for reproducible agent runs against a pinned upstream.
+2. **Remote pin** — set `OV_PROJECT_REPO=overthinkos/opencharly@<sha-or-ref>` in the container env (e.g. via `charly config <image> -e OV_PROJECT_REPO=...`). The charly CLI clones (or hits its `~/.cache/ov/repos/` cache) and chdirs into the cache path before Kong dispatch. No bind mount required. Use this for reproducible agent runs against a pinned upstream.
 
-3. **Auto-default** — `ov mcp serve` with no box.yml reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires regardless of `OV_PROJECT_DIR` being set — it checks whether the resolved cwd actually contains `box.yml`, not whether the env var is populated. This matters because the `ov-mcp` layer permanently sets `OV_PROJECT_DIR=/workspace`: a deployer who forgets the `--bind` still gets a working MCP server backed by the upstream repo, with a log line naming the reason (`ov mcp: OV_PROJECT_DIR=/workspace has no box.yml; falling back to default repo …`). Pass `--no-default-repo` on the serve command to opt out (hard-fail with a clear message). This is the only command in the entire CLI that auto-fetches; the top-level CLI stays opt-in. Implementation: `McpServeCmd.bootstrapProject()` in `ov/mcp_server.go`.
+3. **Auto-default** — `charly mcp serve` with no box.yml reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires regardless of `OV_PROJECT_DIR` being set — it checks whether the resolved cwd actually contains `box.yml`, not whether the env var is populated. This matters because the `ov-mcp` layer permanently sets `OV_PROJECT_DIR=/workspace`: a deployer who forgets the `--bind` still gets a working MCP server backed by the upstream repo, with a log line naming the reason (`charly mcp: OV_PROJECT_DIR=/workspace has no box.yml; falling back to default repo …`). Pass `--no-default-repo` on the serve command to opt out (hard-fail with a clear message). This is the only command in the entire CLI that auto-fetches; the top-level CLI stays opt-in. Implementation: `McpServeCmd.bootstrapProject()` in `ov/mcp_server.go`.
 
-See `/ov-image:image` "Project directory resolution" for the flag/env semantics, and `ov/mcp_serve_default_repo_test.go` for the auto-fallback behaviour test.
+See `/charly-image:image` "Project directory resolution" for the flag/env semantics, and `ov/mcp_serve_default_repo_test.go` for the auto-fallback behaviour test.
 
-**Composition style** — `ov-mcp` uses `layers: [ov, supervisord]` (meta-layer composition) rather than `require:` (hard prerequisite) because it adds no install of its own — it's pure wiring. Images that want the MCP server add `ov-mcp` to their layer list; images that just want the ov binary continue to use the `ov` layer alone. Both `layer:` and `require:` reference other layers, but only `layer:` lets the using layer ship no install files.
+**Composition style** — `ov-mcp` uses `layers: [ov, supervisord]` (meta-layer composition) rather than `require:` (hard prerequisite) because it adds no install of its own — it's pure wiring. Images that want the MCP server add `ov-mcp` to their layer list; images that just want the charly binary continue to use the `ov` layer alone. Both `layer:` and `require:` reference other layers, but only `layer:` lets the using layer ship no install files.
 
 ## Verifying end to end
 
 ```bash
 # Build an ov-mcp-bearing image (e.g. arch-ov) and start it:
-ov box build arch-ov
-ov config arch-ov --bind project=/home/you/overthink
-ov start arch-ov
+charly box build arch-charly
+charly config arch-charly --bind project=/home/you/opencharly
+charly start arch-charly
 
 # From the host — the container's mcp_provide URL is auto-rewritten to the published host port:
-ov eval mcp ping arch-ov --name ov
+charly eval mcp ping arch-charly --name charly
 # ok
-ov eval mcp list-tools arch-ov --name ov | wc -l
+charly eval mcp list-tools arch-charly --name charly | wc -l
 # 190
-ov eval mcp call arch-ov version '{}' --name ov
-# 2026.nnn.nnnn          (the container's own ov version)
-ov eval mcp call arch-ov box.list.boxes '{}' --name ov
-# arch-ov [testing]      (reads box.yml from the bind-mounted /workspace)
+charly eval mcp call arch-charly version '{}' --name charly
+# 2026.nnn.nnnn          (the container's own charly version)
+charly eval mcp call arch-charly box.list.boxes '{}' --name charly
+# arch-charly [testing]      (reads box.yml from the bind-mounted /workspace)
 # arch [testing]
 # …
 ```
 
-The deploy-scope tests in `candy/ov-mcp/candy.yml` cover this exact sequence: service-running, port-reachable, `mcp: ping`, `mcp: list-tools`, `mcp: call tool=version`, `mcp: call tool=box.list.boxes` (the last proves the bind-mount + OV_PROJECT_DIR wiring).
+The deploy-scope tests in `candy/charly-mcp/candy.yml` cover this exact sequence: service-running, port-reachable, `mcp: ping`, `mcp: list-tools`, `mcp: call tool=version`, `mcp: call tool=box.list.boxes` (the last proves the bind-mount + OV_PROJECT_DIR wiring).
 
 ## Authoring tools (build-from-scratch over MCP)
 
-Every CLI verb under `ov box …` and `ov candy …` auto-becomes an MCP tool via Kong reflection. The authoring surface added for "build a project from scratch using only `ov mcp`" exposes these tools:
+Every CLI verb under `charly box …` and `charly candy …` auto-becomes an MCP tool via Kong reflection. The authoring surface added for "build a project from scratch using only `charly mcp`" exposes these tools:
 
 | MCP tool | What it does |
 |---|---|
@@ -377,7 +377,7 @@ Every CLI verb under `ov box …` and `ov candy …` auto-becomes an MCP tool vi
 | `box.add-candy` / `box.rm-candy` | Append / remove a layer from an image's `layer:` list (idempotent). |
 | `candy.set` | Set any value in `candy/<name>/candy.yml` by dot-path. |
 | `candy.add-rpm` / `candy.add-deb` / `candy.add-pac` / `candy.add-aur` | Append packages to a layer's `<format>.packages` list. Idempotent. Upgrades scaffold's null `package:` value to a real sequence. |
-| `image.fetch` / `image.refresh` | Pre-prime / re-clone the remote-repo cache. Spec defaults to `default` (overthinkos/overthink). |
+| `image.fetch` / `image.refresh` | Pre-prime / re-clone the remote-repo cache. Spec defaults to `default` (overthinkos/opencharly). |
 | `box.write` / `box.cat` | Write / read any file under the project root — escape hatch for free-form auxiliary files (`pixi.toml`, `package.json`, `root.yml`, scripts, `*.service`). Path is resolved against `os.Getwd()` and rejected if it escapes the project root. |
 
 All YAML edits go through the `yaml.v3` *node* API (not value unmarshal) so comments and key order are preserved across edits. Implementation in `ov/scaffold_project.go`, `ov/yaml_setter.go`, and `ov/scaffold_cmds.go`. Tested in `ov/scaffold_project_test.go` and `ov/yaml_setter_test.go`.
@@ -385,7 +385,7 @@ All YAML edits go through the `yaml.v3` *node* API (not value unmarshal) so comm
 End-to-end MCP-only worked example:
 
 ```jsonc
-// All called as MCP tool calls (e.g. via `ov eval mcp call <ctr> <tool> '<args>'`):
+// All called as MCP tool calls (e.g. via `charly eval mcp call <ctr> <tool> '<args>'`):
 box.new.project   {"dir": "/tmp/hello"}
 box.new.box     {"name": "hello", "base": "quay.io/fedora/fedora:43"}
 box.new.candy     {"name": "hello-svc"}
@@ -411,34 +411,34 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 
 ## Cross-References
 
-- `/ov-eval:eval` — parent router; all `ov eval mcp …` invocations are dispatched through it. Full method allowlist for all 5 live-container verbs (cdp/wl/dbus/vnc/mcp) lives in the "Live-container verb catalog" section.
-- `/ov-image:layer` — `mcp_provide` / `mcp_accept` / `mcp_require` field reference for layer authoring.
-- `/ov-core:ov-config` — how `mcp_provide` gets injected into `deploy.yml` `provides.mcp:` and synthesized into `OV_MCP_SERVERS` for consumers at `ov config` time; pod-aware resolution to `localhost`; instance-aware MCP server naming with `-<instance>` suffix.
-- `/ov-build:validate` — authoring-time validation rules (method allowlist, required modifiers, scope enforcement).
-- `/ov-core:deploy` — `deploy.yml` `port:` override semantics (the port-publishing gotcha lives here operationally).
-- `/ov-eval:cdp` — sibling live-container verb (Chrome DevTools Protocol).
-- `/ov-eval:wl` — sibling (Wayland desktop control).
-- `/ov-eval:dbus` — sibling (D-Bus calls/notifications).
-- `/ov-eval:vnc` — sibling (VNC framebuffer / input).
-- `/ov-jupyter:jupyter-mcp` — the FastMCP server implementation layer (11 tools for notebook manipulation over CRDT: notebook_*/cell_* + notebook_list_users + room_list; clients do not manage CRDT rooms — the server auto-attaches).
-- `/ov-selkies:chrome-devtools-mcp` — the mcp-proxy wrapper around chrome-devtools-mcp (29 tools for browser automation).
-- `/ov-hermes:hermes` — a consumer (`mcp_accept: jupyter, chrome-devtools`); use `ov eval mcp` to verify the services hermes discovers are actually alive.
-- `/ov-openwebui:openwebui` — another consumer (`mcp_accept: jupyter, chrome-devtools`).
-- `/ov-jupyter:jupyter`, `/ov-jupyter:jupyter-ml`, `/ov-jupyter:jupyter-ml-notebook` — images bundling `jupyter-mcp`; `ov eval live <image> --filter mcp` exercises the verb end-to-end.
-- `/ov-selkies:sway-browser-vnc`, `/ov-selkies:selkies-labwc`, `/ov-selkies:selkies-labwc-nvidia` — images bundling `chrome-devtools-mcp` (transitively via the chrome metalayer).
-- `/ov-internals:go` — implementation map: `mcp.go` (client Kong subcommand tree), `mcp_client.go` (client SDK wrapper + URL rewriter), `mcp_server.go` (server: Kong→MCP reflection, destructive-hint set, `captureAndRun`), `testrun_ov_verbs.go` (declarative dispatcher entry `mcpMethods`), `validate_tests.go` (`validateOvVerb` case for `mcp`).
-- `/ov-coder:ov-mcp` — the deployment layer that wires `ov mcp serve` into an image via supervisord. Includes the `/workspace` bind-mount (volume NAME `project`) + `OV_PROJECT_DIR` env var pattern for build-mode tools.
-- `/ov-tools:ov` — the underlying binary layer; required by `ov-mcp`.
-- `/ov-image:image` — "Project directory resolution" subsection documents the `-C` / `--dir` / `OV_PROJECT_DIR` global flag that makes the server's project-dir bind-mount work.
-- `/ov-coder:arch-ov`, `/ov-distros:fedora-ov` — canonical images composing `ov-mcp` for remote ov-via-MCP deployments.
+- `/charly-eval:eval` — parent router; all `charly eval mcp …` invocations are dispatched through it. Full method allowlist for all 5 live-container verbs (cdp/wl/dbus/vnc/mcp) lives in the "Live-container verb catalog" section.
+- `/charly-image:layer` — `mcp_provide` / `mcp_accept` / `mcp_require` field reference for layer authoring.
+- `/charly-core:ov-config` — how `mcp_provide` gets injected into `deploy.yml` `provides.mcp:` and synthesized into `OV_MCP_SERVERS` for consumers at `charly config` time; pod-aware resolution to `localhost`; instance-aware MCP server naming with `-<instance>` suffix.
+- `/charly-build:validate` — authoring-time validation rules (method allowlist, required modifiers, scope enforcement).
+- `/charly-core:deploy` — `deploy.yml` `port:` override semantics (the port-publishing gotcha lives here operationally).
+- `/charly-eval:cdp` — sibling live-container verb (Chrome DevTools Protocol).
+- `/charly-eval:wl` — sibling (Wayland desktop control).
+- `/charly-eval:dbus` — sibling (D-Bus calls/notifications).
+- `/charly-eval:vnc` — sibling (VNC framebuffer / input).
+- `/charly-jupyter:jupyter-mcp` — the FastMCP server implementation layer (11 tools for notebook manipulation over CRDT: notebook_*/cell_* + notebook_list_users + room_list; clients do not manage CRDT rooms — the server auto-attaches).
+- `/charly-selkies:chrome-devtools-mcp` — the mcp-proxy wrapper around chrome-devtools-mcp (29 tools for browser automation).
+- `/charly-hermes:hermes` — a consumer (`mcp_accept: jupyter, chrome-devtools`); use `charly eval mcp` to verify the services hermes discovers are actually alive.
+- `/charly-openwebui:openwebui` — another consumer (`mcp_accept: jupyter, chrome-devtools`).
+- `/charly-jupyter:jupyter`, `/charly-jupyter:jupyter-ml`, `/charly-jupyter:jupyter-ml-notebook` — images bundling `jupyter-mcp`; `charly eval live <image> --filter mcp` exercises the verb end-to-end.
+- `/charly-selkies:sway-browser-vnc`, `/charly-selkies:selkies-labwc`, `/charly-selkies:selkies-labwc-nvidia` — images bundling `chrome-devtools-mcp` (transitively via the chrome metalayer).
+- `/charly-internals:go` — implementation map: `mcp.go` (client Kong subcommand tree), `mcp_client.go` (client SDK wrapper + URL rewriter), `mcp_server.go` (server: Kong→MCP reflection, destructive-hint set, `captureAndRun`), `testrun_ov_verbs.go` (declarative dispatcher entry `mcpMethods`), `validate_tests.go` (`validateOvVerb` case for `mcp`).
+- `/charly-coder:charly-mcp` — the deployment layer that wires `charly mcp serve` into an image via supervisord. Includes the `/workspace` bind-mount (volume NAME `project`) + `OV_PROJECT_DIR` env var pattern for build-mode tools.
+- `/charly-tools:charly` — the underlying binary layer; required by `ov-mcp`.
+- `/charly-image:image` — "Project directory resolution" subsection documents the `-C` / `--dir` / `OV_PROJECT_DIR` global flag that makes the server's project-dir bind-mount work.
+- `/charly-coder:arch-ov`, `/charly-distros:fedora-ov` — canonical images composing `ov-mcp` for remote ov-via-MCP deployments.
 
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves Model Context Protocol on either side:
 
-- **Client** — `ov eval mcp` commands, probing/testing MCP servers declared via `mcp_provide`, examining MCP tool/resource/prompt catalogs, debugging the URL-rewriter or port-publishing behavior, or authoring deploy-scope `mcp:` checks in a `eval:` block.
-- **Server** — `ov mcp serve` operation, the `ov-mcp` layer, destructive-hint policy, the `--read-only` filter, Kong-reflection tool generation, the project-dir bind-mount pattern, or symptoms like "MCP tool returned empty output" (check `println` vs `fmt.Println` in the invoked command — the server captures `os.Stdout`, not fd 1).
+- **Client** — `charly eval mcp` commands, probing/testing MCP servers declared via `mcp_provide`, examining MCP tool/resource/prompt catalogs, debugging the URL-rewriter or port-publishing behavior, or authoring deploy-scope `mcp:` checks in a `eval:` block.
+- **Server** — `charly mcp serve` operation, the `ov-mcp` layer, destructive-hint policy, the `--read-only` filter, Kong-reflection tool generation, the project-dir bind-mount pattern, or symptoms like "MCP tool returned empty output" (check `println` vs `fmt.Println` in the invoked command — the server captures `os.Stdout`, not fd 1).
 
 Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Test mode / live service operation. Client: deploy an image with `mcp_provide`, start it, then probe. Server: compose `ov-mcp` into an image, bind `--bind project=/path/to/overthink` at config time, start the container, then consume from any MCP-speaking LLM runtime. Pairs with `/ov-eval:eval` (parent router + declarative-verb catalog), `/ov-core:ov-config` (consumer-side injection + `--bind` for the project dir), `/ov-coder:ov-mcp` (server deployment layer), and the consumer-layer skills (`/ov-hermes:hermes`, `/ov-openwebui:openwebui`).
+**Workflow position:** Test mode / live service operation. Client: deploy an image with `mcp_provide`, start it, then probe. Server: compose `ov-mcp` into an image, bind `--bind project=/path/to/opencharly` at config time, start the container, then consume from any MCP-speaking LLM runtime. Pairs with `/charly-eval:eval` (parent router + declarative-verb catalog), `/charly-core:ov-config` (consumer-side injection + `--bind` for the project dir), `/charly-coder:charly-mcp` (server deployment layer), and the consumer-layer skills (`/charly-hermes:hermes`, `/charly-openwebui:openwebui`).

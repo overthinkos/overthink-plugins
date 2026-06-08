@@ -12,20 +12,20 @@ description: |
 # debian-debootstrap
 
 Bootstrap-from-scratch Debian root filesystem, built via `debootstrap` inside
-the privileged `/ov-distros:debian-debootstrap-builder` container
+the privileged `/charly-distros:debian-debootstrap-builder` container
 (`from: builder:debootstrap`, `bootstrap_builder_image: debian-debootstrap-builder`).
 
 > **Lives in `overthinkos/debian`** (git submodule at `image/debian`). Build:
-> `ov -C image/debian image build debian-debootstrap`.
+> `charly -C image/debian image build debian-debootstrap`.
 
 ## When to use it (and when not)
 
-The canonical Debian base (`/ov-distros:debian`) pulls the upstream-published
+The canonical Debian base (`/charly-distros:debian`) pulls the upstream-published
 `debian:13` OCI image from Docker Hub — that is the recommended, faster path
 (no privileged build). This debootstrap variant exists for **offline /
 air-gapped** builds and as a worked example of the `from: builder:debootstrap` +
 `bootstrap_builder_image:` pattern (the deb-family counterpart of
-`/ov-distros:arch-pacstrap` / `/ov-distros:cachyos-pacstrap`).
+`/charly-distros:arch-pacstrap` / `/charly-distros:cachyos-pacstrap`).
 
 ## Image Properties
 
@@ -44,9 +44,9 @@ main repo's `build.yml` and is flat-imported by the submodule (a bare-string
 
 ## Cross-References
 
-- `/ov-distros:debian` — the recommended Docker-Hub base
-- `/ov-distros:debian-debootstrap-builder` — the privileged builder it uses
-- `/ov-vm:debian` — the VM built via the same debootstrap path
+- `/charly-distros:debian` — the recommended Docker-Hub base
+- `/charly-distros:debian-debootstrap-builder` — the privileged builder it uses
+- `/charly-vm:debian` — the VM built via the same debootstrap path
 
 ## When to Use This Skill
 

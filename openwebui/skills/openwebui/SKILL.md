@@ -7,7 +7,7 @@ description: |
 
 # Image: openwebui
 
-Open WebUI with auto-configured LLM providers (Ollama, OpenRouter), MCP server discovery, and Jupyter code execution. No manual setup needed — secrets auto-managed via `ov secrets`.
+Open WebUI with auto-configured LLM providers (Ollama, OpenRouter), MCP server discovery, and Jupyter code execution. No manual setup needed — secrets auto-managed via `charly secrets`.
 
 ## Definition
 
@@ -18,7 +18,7 @@ openwebui:
     - agent-forwarding
     - openwebui
     - dbus
-    - ov
+    - charly
   ports:
     - "8080:8080"
 ```
@@ -35,9 +35,9 @@ openwebui:
 ## Quick Start
 
 ```bash
-ov box build openwebui
-ov config openwebui -e OPENROUTER_API_KEY=sk-or-xxx
-ov start openwebui
+charly box build openwebui
+charly config openwebui -e OPENROUTER_API_KEY=sk-or-xxx
+charly start openwebui
 # Open http://localhost:8080
 ```
 
@@ -45,41 +45,41 @@ ov start openwebui
 
 ### Standalone with GPG secrets (recommended)
 ```bash
-ov secrets gpg setup
-ov secrets gpg set OPENROUTER_API_KEY sk-or-xxx
-ov box build openwebui
-ov config openwebui --env-file .secrets
-ov start openwebui
+charly secrets gpg setup
+charly secrets gpg set OPENROUTER_API_KEY sk-or-xxx
+charly box build openwebui
+charly config openwebui --env-file .secrets
+charly start openwebui
 ```
 
 ### With local Ollama
 ```bash
-ov config ollama
-ov config openwebui --env-file .secrets --update-all
-ov start ollama openwebui
+charly config ollama
+charly config openwebui --env-file .secrets --update-all
+charly start ollama openwebui
 ```
 
 ### Full workstation (Ollama + Jupyter + Browser)
 ```bash
-ov config ollama
-ov config jupyter --update-all
-ov config selkies-desktop --update-all
-ov config openwebui --env-file .secrets --update-all
-ov start ollama jupyter selkies-desktop openwebui
+charly config ollama
+charly config jupyter --update-all
+charly config selkies-desktop --update-all
+charly config openwebui --env-file .secrets --update-all
+charly start ollama jupyter selkies-desktop openwebui
 ```
 
 ## Secrets Management
 
 ```bash
 # Tier 1: Auto-generated infrastructure secrets
-ov secrets list ov/openwebui
-ov secrets get ov/openwebui webui-secret-key
-ov secrets set ov/openwebui admin-password --generate
+charly secrets list ov/openwebui
+charly secrets get ov/openwebui webui-secret-key
+charly secrets set ov/openwebui admin-password --generate
 
 # Tier 2: User API keys (GPG-encrypted)
-ov secrets gpg set OPENROUTER_API_KEY sk-or-new-key
-ov secrets gpg show
-ov config openwebui --env-file .secrets --update-all
+charly secrets gpg set OPENROUTER_API_KEY sk-or-new-key
+charly secrets gpg show
+charly config openwebui --env-file .secrets --update-all
 ```
 
 ## Cross-Container Service Discovery
@@ -88,42 +88,42 @@ Deploy alongside provider containers for full functionality:
 
 ```bash
 # 1. Deploy ollama (provides OLLAMA_HOST)
-ov config ollama
-ov start ollama
+charly config ollama
+charly start ollama
 
 # 2. Deploy jupyter (provides jupyter MCP server)
-ov config jupyter --update-all
-ov start jupyter
+charly config jupyter --update-all
+charly start jupyter
 
 # 3. Deploy openwebui (consumes both)
-ov config openwebui --env-file .secrets --update-all
-ov start openwebui
+charly config openwebui --env-file .secrets --update-all
+charly start openwebui
 ```
 
 Open WebUI receives:
-- `OLLAMA_BASE_URL=http://ov-ollama:11434` — local LLM inference
+- `OLLAMA_BASE_URL=http://charly-ollama:11434` — local LLM inference
 - `TOOL_SERVER_CONNECTIONS=[...]` — MCP servers (jupyter + chrome-devtools)
 - `CODE_EXECUTION_ENGINE=jupyter` — code execution via Jupyter
 
 ## Key Layers
 
-- `/ov-openwebui:openwebui` — Auto-config entrypoint, secrets, env_accept, TOOL_SERVER_CONNECTIONS format
-- `/ov-distros:agent-forwarding` — SSH/GPG forwarding
+- `/charly-openwebui:openwebui` — Auto-config entrypoint, secrets, env_accept, TOOL_SERVER_CONNECTIONS format
+- `/charly-distros:agent-forwarding` — SSH/GPG forwarding
 
 ## Related Images
 
-- `/ov-jupyter:jupyter` — deploy alongside for MCP notebooks and code execution
-- `/ov-ollama:ollama` — deploy alongside for local LLM inference
-- `/ov-hermes:hermes` — alternative AI frontend (CLI agent vs web UI)
-- `/ov-selkies:selkies-labwc` — deploy alongside for shared Chrome browser
+- `/charly-jupyter:jupyter` — deploy alongside for MCP notebooks and code execution
+- `/charly-ollama:ollama` — deploy alongside for local LLM inference
+- `/charly-hermes:hermes` — alternative AI frontend (CLI agent vs web UI)
+- `/charly-selkies:selkies-labwc` — deploy alongside for shared Chrome browser
 
 ## Verification
 
 ```bash
-ov status openwebui
-ov service status openwebui                    # openwebui: RUNNING
+charly status openwebui
+charly service status openwebui                    # openwebui: RUNNING
 curl -s -o /dev/null -w '%{http_code}' http://localhost:8080   # 200
-ov shell openwebui -c "open-webui version"
+charly shell openwebui -c "open-webui version"
 
 # Verify secrets
 podman secret ls | grep openwebui              # webui-secret-key, admin-password
@@ -134,18 +134,18 @@ podman exec ov-openwebui cat /proc/3/environ | tr '\0' '\n' | grep TOOL_SERVER_C
 
 ## Test Coverage
 
-Latest `ov eval live openwebui` run: **24 passed, 0 failed, 0 skipped**.
-Covers: openwebui entrypoint script presence, pixi python + ov binary,
+Latest `charly eval live openwebui` run: **24 passed, 0 failed, 0 skipped**.
+Covers: openwebui entrypoint script presence, pixi python + charly binary,
 and deploy-scope: service up, port reachable on `127.0.0.1:${HOST_PORT:8080}`,
 HTTP 200 on `/` (30-second timeout for first-request startup), admin
-email env var injected. See `/ov-eval:eval` for the framework.
+email env var injected. See `/charly-eval:eval` for the framework.
 
 ## Related Skills
 
-- `/ov-openwebui:openwebui` — layer authoring
-- `/ov-eval:eval` — declarative testing framework
-- `/ov-build:secrets` — WEBUI_ADMIN_PASSWORD + provider API keys
-- `/ov-core:ov-config` — `-e WEBUI_ADMIN_EMAIL=...` deploy-time env setup
+- `/charly-openwebui:openwebui` — layer authoring
+- `/charly-eval:eval` — declarative testing framework
+- `/charly-build:secrets` — WEBUI_ADMIN_PASSWORD + provider API keys
+- `/charly-core:ov-config` — `-e WEBUI_ADMIN_EMAIL=...` deploy-time env setup
 
 ## When to Use This Skill
 
@@ -153,5 +153,5 @@ email env var injected. See `/ov-eval:eval` for the framework.
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

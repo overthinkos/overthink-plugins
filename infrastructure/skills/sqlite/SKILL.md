@@ -31,12 +31,12 @@ layers:
 - `openclaw-full` (via `openclaw-full` metalayer)
 
 ## Related Layers
-- `/ov-coder:dev-tools` -- common dev CLI bundle that pairs with sqlite
-- `/ov-openclaw:openclaw-full` -- parent metalayer that bundles sqlite
+- `/charly-coder:dev-tools` -- common dev CLI bundle that pairs with sqlite
+- `/charly-openclaw:openclaw-full` -- parent metalayer that bundles sqlite
 
 ## Related Commands
-- `/ov-core:shell` -- run sqlite3 inside the container
-- `/ov-core:cmd` -- one-shot sqlite query in a running service
+- `/charly-core:shell` -- run sqlite3 inside the container
+- `/charly-core:cmd` -- one-shot sqlite query in a running service
 
 ## When to Use This Skill
 
@@ -47,5 +47,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

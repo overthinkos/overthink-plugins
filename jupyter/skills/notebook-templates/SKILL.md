@@ -33,7 +33,7 @@ data:
 
 At build time, the contents of `data/notebooks/` are staged into `/data/workspace/` inside the image.
 
-At deploy time, when the volume is configured as a bind mount (`ov config --bind workspace`), `ov config` copies the staged data from the image into the host-backed volume directory. This seeds the volume with starter content (e.g., `getting-started.ipynb`).
+At deploy time, when the volume is configured as a bind mount (`charly config --bind workspace`), `charly config` copies the staged data from the image into the host-backed volume directory. This seeds the volume with starter content (e.g., `getting-started.ipynb`).
 
 ## Included Data
 
@@ -53,25 +53,25 @@ jupyter:
 
 ```bash
 # Deploy with bind-backed workspace volume
-ov config jupyter --bind workspace
+charly config jupyter --bind workspace
 
 # Data is copied from image to host volume on first config
-ov start jupyter
+charly start jupyter
 ```
 
 ## Used In Images
 
-- `/ov-jupyter:jupyter`
-- `/ov-jupyter:jupyter-ml`
-- `/ov-jupyter:jupyter-ml-notebook`
+- `/charly-jupyter:jupyter`
+- `/charly-jupyter:jupyter-ml`
+- `/charly-jupyter:jupyter-ml-notebook`
 
 ## Related Skills
 
-- `/ov-image:layer` -- data field documentation and layer authoring rules
-- `/ov-core:ov-config` -- data provisioning during `ov config` setup
-- `/ov-core:deploy` -- volume backing configuration (bind, named, encrypted)
-- `/ov-jupyter:jupyter` -- the JupyterLab layer that consumes the workspace volume
-- `/ov-jupyter:jupyter` -- the image that includes this layer
+- `/charly-image:layer` -- data field documentation and layer authoring rules
+- `/charly-core:ov-config` -- data provisioning during `charly config` setup
+- `/charly-core:deploy` -- volume backing configuration (bind, named, encrypted)
+- `/charly-jupyter:jupyter` -- the JupyterLab layer that consumes the workspace volume
+- `/charly-jupyter:jupyter` -- the image that includes this layer
 
 ## When to Use This Skill
 
@@ -81,8 +81,8 @@ Use when the user asks about:
 - Data layers and the `data:` field in `candy.yml`
 - How starter content gets provisioned into volumes
 - The `getting-started.ipynb` notebook
-- How `ov config` seeds bind-backed volumes with image data
+- How `charly config` seeds bind-backed volumes with image data
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

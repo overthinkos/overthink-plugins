@@ -4,7 +4,7 @@
 
 Provides Python AT-SPI2 bindings for querying the accessibility tree of GTK, Qt, and Chrome applications. Enables element-based automation — find buttons, menus, and text fields by name/role instead of pixel coordinates.
 
-Used by `ov eval wl atspi tree/find/click`.
+Used by `charly eval wl atspi tree/find/click`.
 
 ## Layer Definition
 
@@ -28,7 +28,7 @@ rpm:
 
 ## Important: System Python Required
 
-The RPM packages install to system Python (`/usr/bin/python3`). Containers with pixi environments have pixi's python3 first in PATH, but pixi's python3 doesn't see system RPM packages. The `ov eval wl atspi` command explicitly uses `/usr/bin/python3` to ensure AT-SPI2 bindings are found.
+The RPM packages install to system Python (`/usr/bin/python3`). Containers with pixi environments have pixi's python3 first in PATH, but pixi's python3 doesn't see system RPM packages. The `charly eval wl atspi` command explicitly uses `/usr/bin/python3` to ensure AT-SPI2 bindings are found.
 
 ## What You Can Query
 
@@ -46,8 +46,8 @@ Chrome needs `--force-renderer-accessibility` flag to expose DOM elements via AT
 
 ## Used In Images
 
-- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Testing Notes
 
@@ -56,13 +56,13 @@ Chrome needs `--force-renderer-accessibility` flag to expose DOM elements via AT
   Declarative tests must use the absolute path `/usr/bin/python3 -c
   "import pyatspi"`; a bare `python3` invocation resolves to pixi's
   python and fails with `ModuleNotFoundError: No module named 'pyatspi'`.
-  See `/ov-eval:eval` Authoring Gotchas #7 (no bash defaults) and #8
+  See `/charly-eval:eval` Authoring Gotchas #7 (no bash defaults) and #8
   (system vs pixi Python).
 
 ## Related Skills
 
-- `/ov-eval:wl` — `ov eval wl atspi tree/find/click` commands
-- `/ov-infrastructure:dbus-layer` — Required dependency (D-Bus session bus)
-- `/ov-selkies:selkies-desktop-layer` — Desktop metalayer that includes this layer
-- `/ov-eval:eval` — declarative testing framework
-- `/ov-image:layer` — layer authoring
+- `/charly-eval:wl` — `charly eval wl atspi tree/find/click` commands
+- `/charly-infrastructure:dbus-layer` — Required dependency (D-Bus session bus)
+- `/charly-selkies:selkies-desktop-layer` — Desktop metalayer that includes this layer
+- `/charly-eval:eval` — declarative testing framework
+- `/charly-image:layer` — layer authoring

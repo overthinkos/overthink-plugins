@@ -42,14 +42,14 @@ All layers that need ffmpeg should declare it as a dependency rather than indepe
 - Whisper-based images (via `whisper` layer `requires: ffmpeg`)
 
 ## Related Layers
-- `/ov-distros:cuda` — Depends on ffmpeg for GPU video processing
-- `/ov-tools:whisper` — Depends on ffmpeg for audio transcoding
-- `/ov-hermes:hermes` — Depends on ffmpeg for media tooling
-- `/ov-immich:immich` — Depends on ffmpeg for photo/video transcoding
+- `/charly-distros:cuda` — Depends on ffmpeg for GPU video processing
+- `/charly-tools:whisper` — Depends on ffmpeg for audio transcoding
+- `/charly-hermes:hermes` — Depends on ffmpeg for media tooling
+- `/charly-immich:immich` — Depends on ffmpeg for photo/video transcoding
 
 ## Related Commands
-- `/ov-build:build` — Builds the ffmpeg negativo17 RPM into the image
-- `/ov-core:shell` — Interactive shell to run `ffmpeg` for media processing
+- `/charly-build:build` — Builds the ffmpeg negativo17 RPM into the image
+- `/charly-core:shell` — Interactive shell to run `ffmpeg` for media processing
 
 ## When to Use This Skill
 
@@ -60,5 +60,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

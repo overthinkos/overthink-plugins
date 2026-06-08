@@ -18,7 +18,7 @@ jupyter-ml:
     - jupyter-ml
     - notebook-templates
     - dbus
-    - ov
+    - charly
   ports:
     - "8888:8888"
   platforms:
@@ -67,17 +67,17 @@ This image receives env_provide variables from infrastructure layers when they a
 
 | Variable | Injected by | Value |
 |----------|------------|-------|
-| `OLLAMA_HOST` | `/ov-ollama:ollama` | `http://ov-ollama:11434` |
-| `PGHOST` | `/ov-infrastructure:postgresql` | `ov-postgresql` |
-| `PGPORT` | `/ov-infrastructure:postgresql` | `5432` |
-| `REDIS_URL` | `/ov-infrastructure:redis` or `/ov-infrastructure:valkey` | `redis://ov-<image>:6379` |
+| `OLLAMA_HOST` | `/charly-ollama:ollama` | `http://charly-ollama:11434` |
+| `PGHOST` | `/charly-infrastructure:postgresql` | `ov-postgresql` |
+| `PGPORT` | `/charly-infrastructure:postgresql` | `5432` |
+| `REDIS_URL` | `/charly-infrastructure:redis` or `/charly-infrastructure:valkey` | `redis://charly-<image>:6379` |
 
-These variables are injected automatically into the container environment at `ov config` time when the corresponding service is deployed. No manual `-e` flags needed.
+These variables are injected automatically into the container environment at `charly config` time when the corresponding service is deployed. No manual `-e` flags needed.
 
 ## Key Capabilities
 
 - **JupyterLab** with real-time collaboration (jupyter-collaboration, Y-CRDT)
-- **CRDT MCP Server** at `/mcp` — 11 tools for programmatic notebook access (server manages CRDT rooms invisibly; see `/ov-jupyter:jupyter-mcp` for the auto-attach + canonicalization design)
+- **CRDT MCP Server** at `/mcp` — 11 tools for programmatic notebook access (server manages CRDT rooms invisibly; see `/charly-jupyter:jupyter-mcp` for the auto-attach + canonicalization design)
 - **PyTorch** >= 2.10.0 with CUDA 13.0
 - **vLLM** 0.19 inference engine
 - **Unsloth** fine-tuning (LoRA, QLoRA)
@@ -88,11 +88,11 @@ These variables are injected automatically into the container environment at `ov
 ## Quick Start
 
 ```bash
-ov box build jupyter-ml
-ov config jupyter-ml
-ov start jupyter-ml
-ov status jupyter-ml
-ov logs jupyter-ml -f
+charly box build jupyter-ml
+charly config jupyter-ml
+charly start jupyter-ml
+charly status jupyter-ml
+charly logs jupyter-ml -f
 # JupyterLab: http://localhost:8888
 # MCP endpoint: http://localhost:8888/mcp
 ```
@@ -100,11 +100,11 @@ ov logs jupyter-ml -f
 ## Verify
 
 ```bash
-ov shell jupyter-ml -c "pixi run verify-pytorch"
-ov shell jupyter-ml -c "pixi run verify-vllm"
-ov shell jupyter-ml -c "pixi run verify-unsloth"
-ov shell jupyter-ml -c "pixi run verify-mcp"
-ov shell jupyter-ml -c "pixi run verify-collaboration"
+charly shell jupyter-ml -c "pixi run verify-pytorch"
+charly shell jupyter-ml -c "pixi run verify-vllm"
+charly shell jupyter-ml -c "pixi run verify-unsloth"
+charly shell jupyter-ml -c "pixi run verify-mcp"
+charly shell jupyter-ml -c "pixi run verify-collaboration"
 ```
 
 ## Comparison with Other Jupyter Images
@@ -122,12 +122,12 @@ ov shell jupyter-ml -c "pixi run verify-collaboration"
 
 ## Related Images
 
-- `/ov-jupyter:jupyter-ml-notebook` — Same stack with fine-tuning notebooks
-- `/ov-jupyter:jupyter` — Lightweight variant (no CUDA, multi-arch)
-- `/ov-languages:python-ml` — ML base without Jupyter
-- **CachyOS variant** — `cachyos.jupyter-ml` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base) in the `overthinkos/cachyos` submodule. See `/ov-distros:cachyos`.
+- `/charly-jupyter:jupyter-ml-notebook` — Same stack with fine-tuning notebooks
+- `/charly-jupyter:jupyter` — Lightweight variant (no CUDA, multi-arch)
+- `/charly-languages:python-ml` — ML base without Jupyter
+- **CachyOS variant** — `cachyos.jupyter-ml` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base) in the `overthinkos/cachyos` submodule. See `/charly-distros:cachyos`.
 
-**MCP testing:** inherits 3 deploy-scope `mcp:` checks from the `jupyter-ml` layer (`ping`, `list-tools`, `call list_notebooks`). Run `ov eval live jupyter-ml --filter mcp` or probe ad-hoc with `ov eval mcp list-tools jupyter-ml`. See `/ov-build:ov-mcp-cmd`.
+**MCP testing:** inherits 3 deploy-scope `mcp:` checks from the `jupyter-ml` layer (`ping`, `list-tools`, `call list_notebooks`). Run `charly eval live jupyter-ml --filter mcp` or probe ad-hoc with `charly eval mcp list-tools jupyter-ml`. See `/charly-build:ov-mcp-cmd`.
 
 ## When to Use This Skill
 
@@ -135,5 +135,5 @@ MUST be invoked before building, deploying, configuring, or troubleshooting the 
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

@@ -37,7 +37,7 @@ present, so the layer carries **no `cuda` dependency** — it only `require:`s
 - This `ollama` image keeps GPU acceleration via `base: nvidia` (the `nvidia`
   image composes the `cuda` layer, inherited through the base chain).
 - CPU-only consumers compose the `ollama` layer on a non-NVIDIA base and get
-  CPU inference for free — e.g. `/ov-openclaw:openclaw-desktop` (cachyos base,
+  CPU inference for free — e.g. `/charly-openclaw:openclaw-desktop` (cachyos base,
   no `cuda`).
 
 ## Ports
@@ -55,53 +55,53 @@ present, so the layer carries **no `cuda` dependency** — it only `require:`s
 ## Quick Start
 
 ```bash
-ov box build ollama
-ov config ollama
-ov start ollama
-ov shell ollama -c "ollama pull llama3"
-ov shell ollama -c "ollama run llama3 'Hello'"
+charly box build ollama
+charly config ollama
+charly start ollama
+charly shell ollama -c "ollama pull llama3"
+charly shell ollama -c "ollama run llama3 'Hello'"
 ```
 
 ## Host Alias
 
 ```bash
-ov alias install ollama
+charly alias install ollama
 # Now: ollama pull llama3  (runs inside the container)
 ```
 
 ## Service Environment
 
-When deployed via `ov config ollama`, this image automatically provides `OLLAMA_HOST=http://ov-ollama:11434` to all other deployed containers via the `env_provide` mechanism. Use `--update-all` to propagate to already-deployed services:
+When deployed via `charly config ollama`, this image automatically provides `OLLAMA_HOST=http://charly-ollama:11434` to all other deployed containers via the `env_provide` mechanism. Use `--update-all` to propagate to already-deployed services:
 
 ```bash
-ov config ollama --update-all
+charly config ollama --update-all
 ```
 
 This means containers like `jupyter-ml-notebook` automatically discover the Ollama endpoint without manual `OLLAMA_HOST` configuration.
 
 ## Key Layers
 
-- `/ov-ollama:ollama` — Ollama binary, supervisord service, model volume
-- `/ov-distros:cuda` — GPU support (via nvidia base)
+- `/charly-ollama:ollama` — Ollama binary, supervisord service, model volume
+- `/charly-distros:cuda` — GPU support (via nvidia base)
 
 ## Related Images
 
-- `/ov-distros:nvidia` — parent (GPU without Ollama)
-- **CachyOS variant** — `cachyos.ollama` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base) in the `overthinkos/cachyos` submodule. See `/ov-distros:cachyos`.
-- `/ov-openclaw:openclaw-desktop` — composes the `ollama` layer CPU-only (cachyos base, no `cuda`) alongside a streaming desktop + the openclaw gateway + the nested ov toolchain
-- `/ov-jupyter:jupyter-ml-notebook` — Jupyter with Ollama integration notebooks (receives `OLLAMA_HOST` automatically via env_provide when ollama is deployed)
-- `/ov-openwebui:openwebui` — Open WebUI (receives `OLLAMA_HOST` via env_provide, auto-configures as `OLLAMA_BASE_URL`)
+- `/charly-distros:nvidia` — parent (GPU without Ollama)
+- **CachyOS variant** — `cachyos.ollama` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base) in the `overthinkos/cachyos` submodule. See `/charly-distros:cachyos`.
+- `/charly-openclaw:openclaw-desktop` — composes the `ollama` layer CPU-only (cachyos base, no `cuda`) alongside a streaming desktop + the openclaw gateway + the nested charly toolchain
+- `/charly-jupyter:jupyter-ml-notebook` — Jupyter with Ollama integration notebooks (receives `OLLAMA_HOST` automatically via env_provide when ollama is deployed)
+- `/charly-openwebui:openwebui` — Open WebUI (receives `OLLAMA_HOST` via env_provide, auto-configures as `OLLAMA_BASE_URL`)
 
 ## Related Layers
 
-- `/ov-ollama:ollama` — the Ollama binary layer
-- `/ov-jupyter:notebook-ollama` — 6 Jupyter notebooks demonstrating Ollama APIs (requests, OpenAI, ollama lib, Anthropic, HuggingFace, GPU)
+- `/charly-ollama:ollama` — the Ollama binary layer
+- `/charly-jupyter:notebook-ollama` — 6 Jupyter notebooks demonstrating Ollama APIs (requests, OpenAI, ollama lib, Anthropic, HuggingFace, GPU)
 
 ## Verification
 
-After `ov start`:
-- `ov status ollama` — container running
-- `ov service status ollama` — all services RUNNING
+After `charly start`:
+- `charly status ollama` — container running
+- `charly service status ollama` — all services RUNNING
 - `curl -s http://localhost:11434/api/tags` — Ollama API responds
 
 ## When to Use This Skill
@@ -110,5 +110,5 @@ After `ov start`:
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

@@ -1,20 +1,20 @@
 ---
 name: adb
 description: |
-  MUST be invoked before any work involving: ov eval adb commands, Android Debug Bridge interaction, APK install/uninstall, device shell command execution, system property reads, screencap, logcat tailing — anywhere the goal is to drive a running Android emulator from outside the container via the host-published ADB server port.
+  MUST be invoked before any work involving: charly eval adb commands, Android Debug Bridge interaction, APK install/uninstall, device shell command execution, system property reads, screencap, logcat tailing — anywhere the goal is to drive a running Android emulator from outside the container via the host-published ADB server port.
 ---
 
 # ADB — Android Debug Bridge
 
 ## Overview
 
-`ov eval adb <method>` is the host-side ADB client. The host `ov` binary
+`charly eval adb <method>` is the host-side ADB client. The host `ov` binary
 connects to the running container's host-published ADB server port
 (container `:5037` → host's `HOST_PORT:5037`, e.g. `35002` on the
 `eval-android-emulator-pod` deploy) using `github.com/zach-klippenstein/goadb`
 and dispatches operations against the emulator backing that server.
 
-Same architecture pattern as `ov eval mcp`: host-side protocol client, no
+Same architecture pattern as `charly eval mcp`: host-side protocol client, no
 container-side helper, works against any deploy that publishes the
 adb-server port — pod / vm / host / nested all work transparently because
 the connection is plain TCP to `127.0.0.1:<host-port>` and the
@@ -22,13 +22,13 @@ portforward / passt / etc. layer handles the rest.
 
 ### Also as a declarative verb
 
-Every `ov eval adb <method>` is authorable as an `adb:` verb inside a
+Every `charly eval adb <method>` is authorable as an `adb:` verb inside a
 `eval:` block. The method name becomes the verb's YAML value; method-
 specific args are sibling fields (`apk:`, `property:`, `args:`,
 `artifact:`). Shared matchers (`stdout:`, `stderr:`, `exit_status:`,
 `artifact_min_bytes:`) work like other verbs. **Deploy-scope only** —
 needs a running container with a host-mapped ADB server port; the
-validator rejects build-scope use at `ov box validate` time.
+validator rejects build-scope use at `charly box validate` time.
 
 Example:
 
@@ -47,24 +47,24 @@ Example:
   timeout: 300s
 ```
 
-See `/ov-eval:eval` for the full per-verb schema notes; this skill is the
+See `/charly-eval:eval` for the full per-verb schema notes; this skill is the
 adb-specific method reference.
 
 ## Quick Reference
 
 | Subcommand | CLI form | Required modifier | Description |
 |---|---|---|---|
-| `devices` | `ov eval adb devices <image>` | — | List devices/emulators with state |
-| `shell` | `ov eval adb shell <image> -- <cmd...>` | `args:` (list) | Run a shell command on the emulator |
-| `install` | `ov eval adb install <image> --apk <path>` | `apk:` | Install an APK from the host filesystem |
-| `uninstall` | `ov eval adb uninstall <image> <package>` | `args: [pkgid]` | Remove a package by id |
-| `getprop` | `ov eval adb getprop <image> <property>` | `property:` | Read a system property |
-| `screencap` | `ov eval adb screencap <image> --artifact <png>` | `artifact:` | Capture a PNG screenshot to a host file |
-| `logcat-tail` | `ov eval adb logcat-tail <image> [--lines N] [--filter F]` | — | Dump recent logcat lines (uses `logcat -d`) |
-| `wait-for-device` | `ov eval adb wait-for-device <image> [--timeout 60s]` | — | Block until `sys.boot_completed=1` |
-| `wait-ui-settled` | `ov eval adb wait-ui-settled <image> [--timeout 600s]` | — | Block until the foreground is not an ANR dialog (dismissing via HOME) |
-| `current-focus` | `ov eval adb current-focus <image>` | — | Print the foreground window line (`mCurrentFocus`) |
-| `keyevent` | `ov eval adb keyevent <image> <key>` | `key:` (arg) | Send a key event (`input keyevent KEYCODE_…`) |
+| `devices` | `charly eval adb devices <image>` | — | List devices/emulators with state |
+| `shell` | `charly eval adb shell <image> -- <cmd...>` | `args:` (list) | Run a shell command on the emulator |
+| `install` | `charly eval adb install <image> --apk <path>` | `apk:` | Install an APK from the host filesystem |
+| `uninstall` | `charly eval adb uninstall <image> <package>` | `args: [pkgid]` | Remove a package by id |
+| `getprop` | `charly eval adb getprop <image> <property>` | `property:` | Read a system property |
+| `screencap` | `charly eval adb screencap <image> --artifact <png>` | `artifact:` | Capture a PNG screenshot to a host file |
+| `logcat-tail` | `charly eval adb logcat-tail <image> [--lines N] [--filter F]` | — | Dump recent logcat lines (uses `logcat -d`) |
+| `wait-for-device` | `charly eval adb wait-for-device <image> [--timeout 60s]` | — | Block until `sys.boot_completed=1` |
+| `wait-ui-settled` | `charly eval adb wait-ui-settled <image> [--timeout 600s]` | — | Block until the foreground is not an ANR dialog (dismissing via HOME) |
+| `current-focus` | `charly eval adb current-focus <image>` | — | Print the foreground window line (`mCurrentFocus`) |
+| `keyevent` | `charly eval adb keyevent <image> <key>` | `key:` (arg) | Send a key event (`input keyevent KEYCODE_…`) |
 
 `--serial <serial>` selects a specific device (default `emulator-5554`).
 `-i <instance>` addresses a `<base>/<instance>` pod deploy.
@@ -134,7 +134,7 @@ with `KEYCODE_HOME` until the foreground is clean. It is **load-independent**
 (the ANR is GMS churn, not host load) and adapts to a load-dilated churn
 purely via `timeout:`. Pure Go over goadb — no in-container shell, so it
 is immune to the stdin-heredoc hazard that breaks shell-based settle loops
-(see `/ov-eval:eval` "in-container `command:` stdin").
+(see `/charly-eval:eval` "in-container `command:` stdin").
 
 ```yaml
 # Order matters — wait-for-device (boot) BEFORE wait-ui-settled (UI),
@@ -182,18 +182,18 @@ expose the container port AS the host port.
 
 ## Related skills
 
-- `/ov-eval:appium` — sibling verb for higher-level UI automation against the
+- `/charly-eval:appium` — sibling verb for higher-level UI automation against the
   same emulator (W3C WebDriver).
-- `/ov-eval:android` — the `kind: android` device + `apk:` package format +
-  `target: android` deploy. `ov eval adb install` / `install-app` are thin
+- `/charly-eval:android` — the `kind: android` device + `apk:` package format +
+  `target: android` deploy. `charly eval adb install` / `install-app` are thin
   wrappers over the SAME shared installer (`ov/android_install.go`) the apk
   format drives — so the verb, the format, and the deploy target never drift.
-- `/ov-eval:eval` — the unified eval system and the Check struct that holds
+- `/charly-eval:eval` — the unified eval system and the Check struct that holds
   every verb discriminator + modifier.
-- `/ov-tools:android-emulator` (when authored) — the image these verbs target.
+- `/charly-tools:android-emulator` (when authored) — the image these verbs target.
 
 ## When to Use This Skill
 
-**MUST be invoked** for any task involving `ov eval adb` commands or
+**MUST be invoked** for any task involving `charly eval adb` commands or
 `adb:` declarative checks. Invoke this skill BEFORE reading the verb's
 Go source or reaching for `command: adb ...` workarounds.

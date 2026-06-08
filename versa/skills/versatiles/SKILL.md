@@ -24,7 +24,7 @@ versatiles-rs ships pre-built linux-x86_64-gnu binaries on every
 release. `cargo install versatiles` would compile 200+ transitive
 crates inside the versa image — wasteful when the upstream CI
 already publishes a ready binary. Download pattern mirrors martin's
-in `/ov-versa:osm-tools-layer`: GitHub release API → asset URL
+in `/charly-versa:osm-tools-layer`: GitHub release API → asset URL
 matching `versatiles-*linux*x86_64*gnu*.tar.gz` → curl + tar →
 `install -m 0755 versatiles /usr/local/bin/`.
 
@@ -119,7 +119,7 @@ exactly like the four `reload_martin` calls do. The shortbread DAG's
 `reload_versatiles` task uses the same proper synchronization
 primitives:
 
-1. `fcntl.flock("/tmp/ov-versatiles-restart.lock")` — serializes the
+1. `fcntl.flock("/tmp/charly-versatiles-restart.lock")` — serializes the
    supervisorctl invocations globally.
 2. TCP readiness probe (bounded 30s) — waits for port 8090 to accept
    connections after restart.
@@ -127,18 +127,18 @@ primitives:
    supervisorctl exit code (which can be non-zero even when versatiles
    ends up healthy).
 
-See `/ov-versa:osm-tools-layer` "CRITICAL: martin caches pmtiles file
+See `/charly-versa:osm-tools-layer` "CRITICAL: martin caches pmtiles file
 mtime at startup" — same restart-race pattern applies.
 
 ## Cross-references
 
-- `/ov-versa:versa` — image composing this layer
-- `/ov-versa:shortbread` — produces the PMTiles files versatiles serves
-- `/ov-versa:versatiles-style` — MapLibre style generator paired with
+- `/charly-versa:versa` — image composing this layer
+- `/charly-versa:shortbread` — produces the PMTiles files versatiles serves
+- `/charly-versa:versatiles-style` — MapLibre style generator paired with
   versatiles serve as tile backend
-- `/ov-versa:versatiles-frontend` — pre-built SPA on port 28002 for
+- `/charly-versa:versatiles-frontend` — pre-built SPA on port 28002 for
   visually exploring tile content
-- `/ov-versa:osm-tools-layer` — sibling martin tile server (port
+- `/charly-versa:osm-tools-layer` — sibling martin tile server (port
   23000); the two run in parallel for the comparison surface
-- `/ov-versa:notebook-osm` — the versatiles convert round-trip demo
+- `/charly-versa:notebook-osm` — the versatiles convert round-trip demo
   cell + the shortbread MapLibre cell

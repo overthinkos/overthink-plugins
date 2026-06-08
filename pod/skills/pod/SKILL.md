@@ -1,11 +1,11 @@
 ---
 name: pod
-description: Schema reference for `kind: pod` and `kind: deploy` entities — deploy.yml entry shape, nested deploys, sidecars, pod networking. For verb-level operations see /ov-core:deploy.
+description: Schema reference for `kind: pod` and `kind: deploy` entities — deploy.yml entry shape, nested deploys, sidecars, pod networking. For verb-level operations see /charly-core:deploy.
 ---
 
 # `kind: pod` and `kind: deploy` — Schema Reference
 
-This skill is a thin schema pointer. For runtime verbs (`ov deploy add`, `ov deploy del`, `ov update`), see `/ov-core:deploy`.
+This skill is a thin schema pointer. For runtime verbs (`charly deploy add`, `charly deploy del`, `charly update`), see `/charly-core:deploy`.
 
 ## What lives in `kind: pod` / `kind: deploy`
 
@@ -15,7 +15,7 @@ Schema sources (read these for the canonical truth):
 
 - `ov/deploy_spec.go` — `DeploySpec` Go type, `kind: deploy` shape, target discriminator.
 - `ov/pod_spec.go` — `PodSpec` Go type, `kind: pod` shape.
-- `/ov-core:deploy` — the verb-level skill covering `ov deploy add` / `ov deploy del` / `ov update`.
+- `/charly-core:deploy` — the verb-level skill covering `charly deploy add` / `charly deploy del` / `charly update`.
 
 ## Nested deploys
 
@@ -23,10 +23,10 @@ Schema sources (read these for the canonical truth):
 
 ## Sidecars
 
-`sidecar:` declares co-running containers with their own env-var routing (`env_accept` / `env_require`). See `/ov-automation:sidecar` for the topic skill.
+`sidecar:` declares co-running containers with their own env-var routing (`env_accept` / `env_require`). See `/charly-automation:sidecar` for the topic skill.
 
 ## Cross-references
 
-- Verb-level: `/ov-core:deploy`, `/ov-core:ov-update`, `/ov-core:remove`.
-- Sibling kinds: `/ov-image:image`, `/ov-vm:vm`, `/ov-kubernetes:kubernetes`, `/ov-local:local-spec`.
-- Topics: `/ov-automation:sidecar`, `/ov-automation:enc`.
+- Verb-level: `/charly-core:deploy`, `/charly-core:ov-update`, `/charly-core:remove`.
+- Sibling kinds: `/charly-image:image`, `/charly-vm:vm`, `/charly-kubernetes:kubernetes`, `/charly-local:local-spec`.
+- Topics: `/charly-automation:sidecar`, `/charly-automation:enc`.

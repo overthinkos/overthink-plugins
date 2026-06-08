@@ -35,7 +35,7 @@ libvirt:
 
 `target: workspace` (the entity) ↔ `What=workspace` (this layer). The shared
 memory backing virtiofs requires is auto-paired by the renderer (see
-`/ov-internals:libvirt-renderer`), so the entity declares only the filesystem.
+`/charly-internals:libvirt-renderer`), so the entity declares only the filesystem.
 
 ## Eval
 
@@ -51,10 +51,10 @@ operator's `/home/atrawog` → `/workspace`. Generic for any pod-in-VM share.
 
 ## Related
 
-- `/ov-internals:libvirt-renderer` — `mapFilesystem` + `ensureVirtiofsSharedMemory`
-- `/ov-vm:vms-catalog` — `filesystems:` authoring on the kind:vm entity
-- `/ov-vm:cachyos` — the CachyOS VM family that consumes it
-- `/ov-image:layer` — layer authoring reference
+- `/charly-internals:libvirt-renderer` — `mapFilesystem` + `ensureVirtiofsSharedMemory`
+- `/charly-vm:vms-catalog` — `filesystems:` authoring on the kind:vm entity
+- `/charly-vm:cachyos` — the CachyOS VM family that consumes it
+- `/charly-image:layer` — layer authoring reference
 
 ## When to Use This Skill
 

@@ -64,17 +64,17 @@ nvidia-ctk skips CDI gen.
 
 NVIDIA VAAPI acceleration requires the container to know which DRM render node to bind the EGL context against. On multi-GPU hosts there may be `/dev/dri/renderD128`, `/dev/dri/renderD129`, … and the correct one depends on which physical card backs the NVIDIA driver.
 
-`ov` does **not** bake a hardcoded `DRINODE=/dev/dri/renderD128` into this layer. Instead, it auto-detects the correct render node at container-launch time and injects it as an environment variable. The detection + injection is consolidated in a single function, `appendAutoDetectedEnv()` in `ov/devices.go`, which is called by `ov config`, `ov start`, and `ov shell` — so the three commands always produce the same env set.
+`ov` does **not** bake a hardcoded `DRINODE=/dev/dri/renderD128` into this layer. Instead, it auto-detects the correct render node at container-launch time and injects it as an environment variable. The detection + injection is consolidated in a single function, `appendAutoDetectedEnv()` in `ov/devices.go`, which is called by `charly config`, `charly start`, and `charly shell` — so the three commands always produce the same env set.
 
 Selkies is the primary consumer: pixelflux's Wayland compositor uses `DRINODE` to open the render node and set up the VAAPI H.264 encoder. Without the injection, selkies would fall back to software encode (`libx264`) and lose ~40% of its streaming bandwidth budget.
 
 GPU device injection is consolidated into the single `appendAutoDetectedEnv()` function rather than scattered across the `ov` source tree. If you see `DRINODE` referenced in layer scripts, you can assume it was auto-detected and injected by `ov`, not set by the user.
 
-See `/ov-core:ov-doctor` (Hardware Detection) for the detection probe and `/ov-distros:rocm` for the AMD-side counterpart using the same mechanism.
+See `/charly-core:ov-doctor` (Hardware Detection) for the detection probe and `/charly-distros:rocm` for the AMD-side counterpart using the same mechanism.
 
 ### Cross-GPU portability (nvidia-base images on AMD hosts)
 
-Images that declare `base: nvidia` (e.g., `/ov-selkies:selkies-labwc-nvidia`) still run cleanly on hosts with a different GPU vendor — the NVIDIA runtime libraries ride along as benign passengers. `ov config` auto-detects whatever the host actually exposes (e.g., `/dev/dri/renderD128` + `/dev/kfd` for an AMD RDNA3), injects those device nodes + `DRINODE`, and Mesa handles rendering. For example, `selkies-labwc-nvidia` (base: nvidia) runs on an AMD `gfx 11.0.0` host — all supervisord programs RUNNING, selkies streaming over Mesa, no CUDA calls attempted. The CUDA toolkit in the image simply goes unused.
+Images that declare `base: nvidia` (e.g., `/charly-selkies:selkies-labwc-nvidia`) still run cleanly on hosts with a different GPU vendor — the NVIDIA runtime libraries ride along as benign passengers. `charly config` auto-detects whatever the host actually exposes (e.g., `/dev/dri/renderD128` + `/dev/kfd` for an AMD RDNA3), injects those device nodes + `DRINODE`, and Mesa handles rendering. For example, `selkies-labwc-nvidia` (base: nvidia) runs on an AMD `gfx 11.0.0` host — all supervisord programs RUNNING, selkies streaming over Mesa, no CUDA calls attempted. The CUDA toolkit in the image simply goes unused.
 
 ## Install tasks
 
@@ -82,27 +82,27 @@ Creates Vulkan ICD compatibility symlinks for nvidia-ctk CDI device injection.
 
 ## Used In Images
 
-- `/ov-distros:nvidia` — Fedora NVIDIA GPU base image (nvidia + cuda layers)
-- `/ov-distros:cachyos` — `cachyos.nvidia`, the CachyOS GPU base (cachyos + agent-forwarding + nvidia + cuda); the nvidia/cuda layers being multi-distro (rpm + pac) is what lets this Arch/CachyOS GPU base reuse them unchanged
-- `/ov-coder:arch-ov` — Arch Linux ov toolchain (shared layers + nvidia)
-- `/ov-distros:fedora-ov` — Fedora ov toolchain (shared layers + nvidia)
+- `/charly-distros:nvidia` — Fedora NVIDIA GPU base image (nvidia + cuda layers)
+- `/charly-distros:cachyos` — `cachyos.nvidia`, the CachyOS GPU base (cachyos + agent-forwarding + nvidia + cuda); the nvidia/cuda layers being multi-distro (rpm + pac) is what lets this Arch/CachyOS GPU base reuse them unchanged
+- `/charly-coder:arch-ov` — Arch Linux charly toolchain (shared layers + nvidia)
+- `/charly-distros:fedora-ov` — Fedora charly toolchain (shared layers + nvidia)
 
 ## Related Layers
 
-- `/ov-distros:cuda` — CUDA development toolkit (depends on nvidia)
-- `/ov-distros:rocm` — AMD GPU counterpart (ROCm runtime + OpenCL), uses the same `appendAutoDetectedEnv()` DRINODE injection
-- `/ov-selkies:selkies` — Primary consumer of the DRINODE env for VAAPI H.264 encode
-- `/ov-languages:python-ml`, `/ov-jupyter:llama-cpp`, `/ov-jupyter:jupyter-ml` — CUDA ML stacks that depend on this layer
+- `/charly-distros:cuda` — CUDA development toolkit (depends on nvidia)
+- `/charly-distros:rocm` — AMD GPU counterpart (ROCm runtime + OpenCL), uses the same `appendAutoDetectedEnv()` DRINODE injection
+- `/charly-selkies:selkies` — Primary consumer of the DRINODE env for VAAPI H.264 encode
+- `/charly-languages:python-ml`, `/charly-jupyter:llama-cpp`, `/charly-jupyter:jupyter-ml` — CUDA ML stacks that depend on this layer
 
 ## Related Commands
 
-- `/ov-core:ov-doctor` — Host NVIDIA detection (GPU probe, CDI spec status, driver version)
-- `/ov-core:shell` — DRINODE auto-injection applies to interactive shells too
-- `/ov-automation:udev` — Device permission management for `/dev/dri/*` and `/dev/nvidia*`
-- `/ov-core:ov-config` — Runtime GPU device injection at deployment time (same `appendAutoDetectedEnv()` path)
-- `/ov-core:start` — Runtime GPU device injection at service start time
+- `/charly-core:ov-doctor` — Host NVIDIA detection (GPU probe, CDI spec status, driver version)
+- `/charly-core:shell` — DRINODE auto-injection applies to interactive shells too
+- `/charly-automation:udev` — Device permission management for `/dev/dri/*` and `/dev/nvidia*`
+- `/charly-core:ov-config` — Runtime GPU device injection at deployment time (same `appendAutoDetectedEnv()` path)
+- `/charly-core:start` — Runtime GPU device injection at service start time
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

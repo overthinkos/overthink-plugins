@@ -42,7 +42,7 @@ auto-intermediate that composes `supervisord` needs it.
 
 ## How `ov` Generates Supervisord Configs
 
-Layers declare processes via the unified **`service:`** schema in `candy.yml` (see `/ov-image:layer` "Service Declaration"). Each entry is rendered through supervisord's `service_schema.service_template` in `build.yml`, which produces a `[program:<name>]` INI fragment. `ov box generate` collects all rendered fragments across the layer chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `build.yml init:` section).
+Layers declare processes via the unified **`service:`** schema in `candy.yml` (see `/charly-image:layer` "Service Declaration"). Each entry is rendered through supervisord's `service_schema.service_template` in `build.yml`, which produces a `[program:<name>]` INI fragment. `charly box generate` collects all rendered fragments across the layer chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `build.yml init:` section).
 
 ```yaml
 # candy/chrome/candy.yml — unified schema
@@ -98,11 +98,11 @@ Layers declare services under a single `service:` key (singular; value is a list
 | `exit_code:` | Success codes for `restart: no` / `on-failure`. |
 | `priority:` | Startup order; lower = earlier. |
 
-See `/ov-selkies:selkies-core` for the canonical consumer (the supervised `[program:chrome]` service: `restart: always` + `start_secs`/`start_retries`).
+See `/charly-selkies:selkies-core` for the canonical consumer (the supervised `[program:chrome]` service: `restart: always` + `start_secs`/`start_retries`).
 
 ## Polymorphism: a layer that runs on BOTH supervisord and systemd
 
-A layer that needs the SAME service to run under supervisord (container/pod targets) AND systemd (host installs / bootc / VMs) must NOT spin up a `<name>-host` sibling layer. The supported pattern is **mixed entries in one `service:` list**: same `name:`, two entries — one with `use_packaged: <unit>.service` (or `.socket`) for the systemd render, the other with custom `exec:` for the supervisord render. Init system at deploy time picks the matching form; the other entry is silently skipped. See `/ov-image:layer` "Service Declaration" → "Mixed entries in one layer" for the schema, CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the project-wide rule, and `/ov-infrastructure:virtualization` for the canonical worked example.
+A layer that needs the SAME service to run under supervisord (container/pod targets) AND systemd (host installs / bootc / VMs) must NOT spin up a `<name>-host` sibling layer. The supported pattern is **mixed entries in one `service:` list**: same `name:`, two entries — one with `use_packaged: <unit>.service` (or `.socket`) for the systemd render, the other with custom `exec:` for the supervisord render. Init system at deploy time picks the matching form; the other entry is silently skipped. See `/charly-image:layer` "Service Declaration" → "Mixed entries in one layer" for the schema, CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the project-wide rule, and `/charly-infrastructure:virtualization` for the canonical worked example.
 
 It is tempting to copy-paste-and-rename a layer with a `-host` suffix when the schema already supports polymorphism via mixed entries. If you find yourself reaching for `-host`, reach for a second `service:` entry instead.
 
@@ -157,10 +157,10 @@ user=user
 No layer ships such a listener today. The selkies `[program:chrome]` service
 (in `selkies-core`, `restart: always`, `start_secs: 5`/`start_retries: 3`) relies
 on supervisord's ordinary relaunch for ordinary exits; a genuinely wedged crash
-loop is cleared by restarting the container (`ov update` / `systemctl --user
+loop is cleared by restarting the container (`charly update` / `systemctl --user
 restart`), which tears down the cgroup. The chrome layer's
 `security.memory_max`/`memory_high`/`memory_swap_max` caps bound the blast radius.
-See `/ov-selkies:chrome` (Chrome supervision) and `/ov-image:layer` (Security
+See `/charly-selkies:chrome` (Chrome supervision) and `/charly-image:layer` (Security
 Declaration → resource caps).
 
 ### Event listener protocol (for authoring your own)
@@ -187,9 +187,9 @@ supervisorctl tail -f chrome stderr  # Live stderr log for one program
 supervisorctl restart chrome   # Restart a single program (does not reset startretries counter)
 
 # From host
-ov service status <image>      # Wraps supervisorctl status via ov shell
-ov service start/stop/restart <image> <name>   # Per-program control
-ov logs <image>                # Container-level stdout/stderr (supervisord output)
+charly service status <image>      # Wraps supervisorctl status via charly shell
+charly service start/stop/restart <image> <name>   # Per-program control
+charly logs <image>                # Container-level stdout/stderr (supervisord output)
 ```
 
 ### Declarative-testing liveness check
@@ -211,15 +211,15 @@ supervisord for its own PID and exits 0 iff the socket responds:
 ```
 
 This is what the current supervisord layer ships in its `eval:` block.
-See `/ov-eval:eval` Authoring Gotcha #4.
+See `/charly-eval:eval` Authoring Gotcha #4.
 
 **Also note**: `pgrep` is NOT installed by default in minimal images
 (needs `procps-ng`). The `process: <name>; running: true` test verb
 silently fails when pgrep is absent. Prefer `service:` (which uses
-supervisorctl internally) for program-liveness checks. See `/ov-eval:eval`
+supervisorctl internally) for program-liveness checks. See `/charly-eval:eval`
 Authoring Gotcha #3.
 
-`supervisorctl avail | grep -q '^<name>\b'` is the idiomatic way to check whether a program is defined (as opposed to whether it's currently running). This is what labwc's autostart uses to decide whether to hand off Chrome to supervisord or fall back to a direct launch — see `/ov-selkies:labwc` (autostart Chrome-duplication race) for the canonical pattern.
+`supervisorctl avail | grep -q '^<name>\b'` is the idiomatic way to check whether a program is defined (as opposed to whether it's currently running). This is what labwc's autostart uses to decide whether to hand off Chrome to supervisord or fall back to a direct launch — see `/charly-selkies:labwc` (autostart Chrome-duplication race) for the canonical pattern.
 
 ## Header File
 
@@ -252,35 +252,35 @@ Transitive dependency for all images with managed services, including:
 
 ## Running supervisord under systemd (bootc mode)
 
-On non-bootc images, supervisord is container PID 1 (`ENTRYPOINT=supervisord` emitted by the init system definition in `build.yml`). On **bootc** images, systemd is PID 1, which means supervisord needs a systemd unit wrapper — otherwise the whole desktop tier never starts. `/ov-distros:bootc-config` ships that wrapper as a systemd **user** unit at `/etc/systemd/user/supervisord.service`, `systemctl --global enable`d so tty1 autologin brings it up. See `/ov-distros:bootc-config` for the full mechanism (including the linger sentinel file).
+On non-bootc images, supervisord is container PID 1 (`ENTRYPOINT=supervisord` emitted by the init system definition in `build.yml`). On **bootc** images, systemd is PID 1, which means supervisord needs a systemd unit wrapper — otherwise the whole desktop tier never starts. `/charly-distros:bootc-config` ships that wrapper as a systemd **user** unit at `/etc/systemd/user/supervisord.service`, `systemctl --global enable`d so tty1 autologin brings it up. See `/charly-distros:bootc-config` for the full mechanism (including the linger sentinel file).
 
 ### Two gotchas specific to running under a systemd user service
 
 Both involve opening `/dev/stdout` or `/dev/fd/1`, which resolve to the journal pipe under a systemd user service — and `open()` on a pipe returns ENXIO.
 
 1. **Main supervisord logfile.** The header template (`templates/supervisord.header.conf`) was changed from `logfile=/dev/stdout` to `logfile=/tmp/supervisord.log`. `/dev/stdout` works when supervisord is PID 1 in a container (fd 1 is real stdio), but fails with `OSError: [Errno 6] No such device or address: '/dev/stdout'` under a systemd user service where fd 1 is a pipe. Writing to a regular file works everywhere.
-2. **Per-program `stdout_logfile=/dev/fd/1`.** Every layer's `service:` fragment redirects program stdout to `/dev/fd/1` so container logs (`podman logs`) show per-program output. Under a systemd user service this fails with `unknown error making dispatchers for <name>: ENXIO` for every program. The fix lives in the systemd user unit itself — set `StandardOutput=file:/tmp/supervisord-stdout.log` so supervisord's fd 1 backs a real file, not a pipe. Existing per-program `/dev/fd/1` lines then resolve correctly. See `/ov-distros:bootc-config` for the unit definition.
+2. **Per-program `stdout_logfile=/dev/fd/1`.** Every layer's `service:` fragment redirects program stdout to `/dev/fd/1` so container logs (`podman logs`) show per-program output. Under a systemd user service this fails with `unknown error making dispatchers for <name>: ENXIO` for every program. The fix lives in the systemd user unit itself — set `StandardOutput=file:/tmp/supervisord-stdout.log` so supervisord's fd 1 backs a real file, not a pipe. Existing per-program `/dev/fd/1` lines then resolve correctly. See `/charly-distros:bootc-config` for the unit definition.
 
 Container-mode logs are unaffected — supervisord is still PID 1 there.
 
 ## Related Layers
 
-- `/ov-languages:python` -- Optional pixi-python env (NOT a dep of this layer; supervisord uses system python3 from RPM)
-- `/ov-selkies:selkies-core` -- owns the supervised `[program:chrome]` service (`restart: always`, `start_secs`/`start_retries`) for both selkies flavors
-- `/ov-selkies:chrome` -- the chrome layer's cgroup resource caps (bound a Chrome crash loop's blast radius)
-- `/ov-infrastructure:traefik` -- Reverse proxy (depends on supervisord)
-- `/ov-infrastructure:dbus-layer` -- D-Bus session bus (depends on supervisord)
-- `/ov-distros:bootc-config` -- ships the systemd-user supervisord autostart wrapper for bootc images
-- `/ov-distros:bazzite` -- canonical worked example of supervisord running under systemd
-- `/ov-ollama:ollama`, `/ov-openclaw:openclaw`, `/ov-infrastructure:postgresql`, `/ov-infrastructure:redis`, `/ov-selkies:sway` -- All ship `service:` blocks
+- `/charly-languages:python` -- Optional pixi-python env (NOT a dep of this layer; supervisord uses system python3 from RPM)
+- `/charly-selkies:selkies-core` -- owns the supervised `[program:chrome]` service (`restart: always`, `start_secs`/`start_retries`) for both selkies flavors
+- `/charly-selkies:chrome` -- the chrome layer's cgroup resource caps (bound a Chrome crash loop's blast radius)
+- `/charly-infrastructure:traefik` -- Reverse proxy (depends on supervisord)
+- `/charly-infrastructure:dbus-layer` -- D-Bus session bus (depends on supervisord)
+- `/charly-distros:bootc-config` -- ships the systemd-user supervisord autostart wrapper for bootc images
+- `/charly-distros:bazzite` -- canonical worked example of supervisord running under systemd
+- `/charly-ollama:ollama`, `/charly-openclaw:openclaw`, `/charly-infrastructure:postgresql`, `/charly-infrastructure:redis`, `/charly-selkies:sway` -- All ship `service:` blocks
 
 ## Related Commands
 
-- `/ov-core:service` — Start/stop/restart/status for individual services inside the container
-- `/ov-core:logs` — Container-level log access (shows supervisord-aggregated stdout/stderr)
-- `/ov-core:ov-status` — Container status including service probe results
-- `/ov-build:generate` — Containerfile generation: where `service:` blocks get written to `/etc/supervisord.conf`
-- `/ov-image:layer` — `service:` field authoring + `security:` cgroup resource caps
+- `/charly-core:service` — Start/stop/restart/status for individual services inside the container
+- `/charly-core:logs` — Container-level log access (shows supervisord-aggregated stdout/stderr)
+- `/charly-core:ov-status` — Container status including service probe results
+- `/charly-build:generate` — Containerfile generation: where `service:` blocks get written to `/etc/supervisord.conf`
+- `/charly-image:layer` — `service:` field authoring + `security:` cgroup resource caps
 
 ## When to Use This Skill
 
@@ -292,5 +292,5 @@ Use when the user asks about:
 - autostart / autorestart / startretries behavior and crash-loop recovery
 - Event listeners (the `PROCESS_STATE_FATAL` crash-escalation pattern)
 - `supervisorctl` commands (`status`, `avail`, `start`, `tail`, `restart`)
-- The `ov service` commands (start/stop/restart/status)
+- The `charly service` commands (start/stop/restart/status)
 - The `supervisor` RPM package or `/tmp/supervisor.sock`

@@ -10,9 +10,9 @@ description: |
 Maputnik is a pure-JS SPA for visually editing MapLibre GL JS style
 JSON files. Built from upstream source (`felt/maputnik`) via npm at
 image build time, served as a static dist by Python's stdlib
-`http.server`. Composed by `/ov-versa:versa` so operators can
+`http.server`. Composed by `/charly-versa:versa` so operators can
 iterate on the streets-map style against the in-pod martin tile
-server (`/ov-versa:osm-tools-layer`).
+server (`/charly-versa:osm-tools-layer`).
 
 ## Layer properties
 
@@ -99,7 +99,7 @@ Plus the standard probes (also deploy-scope):
 
 ## Use case in versa
 
-The streets-map style in `/ov-versa:notebook-osm` cell 7 is a
+The streets-map style in `/charly-versa:notebook-osm` cell 7 is a
 small inline JSON. Operators iterating on richer styles can:
 
 1. Open maputnik at `http://127.0.0.1:28000/`
@@ -111,7 +111,7 @@ small inline JSON. Operators iterating on richer styles can:
 
 ## Cross-references
 
-- `/ov-versa:versa` — image composing this layer
-- `/ov-versa:osm-tools-layer` — companion martin tile server
-- `/ov-versa:notebook-osm` — uses an inline style; maputnik can author richer ones
-- `/ov-infrastructure:supervisord` — service runtime
+- `/charly-versa:versa` — image composing this layer
+- `/charly-versa:osm-tools-layer` — companion martin tile server
+- `/charly-versa:notebook-osm` — uses an inline style; maputnik can author richer ones
+- `/charly-infrastructure:supervisord` — service runtime

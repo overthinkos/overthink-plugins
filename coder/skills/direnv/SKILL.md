@@ -43,9 +43,9 @@ shell:
       direnv hook fish | source            # fish — different syntax
 ```
 
-Container images get `/etc/profile.d/ov-direnv-<shell>.sh` and `/etc/fish/conf.d/ov-direnv.fish` emitted at `ov box build` time. `target: local` host deploys get a managed-block in `~/.bashrc` / `~/.zshrc` plus `~/.config/fish/conf.d/ov-direnv.fish` at `ov deploy add` time, only for shells the runtime probe finds. The fish hook lands in `~/.config/fish/conf.d/ov-direnv.fish` (its own conf.d drop-in), so it works without editing `~/.config/fish/config.fish`.
+Container images get `/etc/profile.d/charly-direnv-<shell>.sh` and `/etc/fish/conf.d/charly-direnv.fish` emitted at `charly box build` time. `target: local` host deploys get a managed-block in `~/.bashrc` / `~/.zshrc` plus `~/.config/fish/conf.d/charly-direnv.fish` at `charly deploy add` time, only for shells the runtime probe finds. The fish hook lands in `~/.config/fish/conf.d/charly-direnv.fish` (its own conf.d drop-in), so it works without editing `~/.config/fish/config.fish`.
 
-The primary use case in Overthink is the `.secrets` workflow: `.envrc` calls `eval "$(ov secrets gpg env)"` which decrypts a GPG-encrypted `.secrets` file in memory and exports the variables — no plaintext on disk. No external `direnvrc` dependency needed.
+The primary use case in Overthink is the `.secrets` workflow: `.envrc` calls `eval "$(charly secrets gpg env)"` which decrypts a GPG-encrypted `.secrets` file in memory and exports the variables — no plaintext on disk. No external `direnvrc` dependency needed.
 
 ## Used In Images
 
@@ -55,13 +55,13 @@ Also available in `dev-tools` layer (used in `bazzite`).
 
 ## Related Layers
 
-- `/ov-distros:agent-forwarding` -- metalayer that includes gnupg + direnv + ssh-client
-- `/ov-infrastructure:gnupg` -- GPG tools (needed for `.secrets` decryption)
-- `/ov-coder:dev-tools` -- heavyweight layer that also includes direnv (46 packages)
+- `/charly-distros:agent-forwarding` -- metalayer that includes gnupg + direnv + ssh-client
+- `/charly-infrastructure:gnupg` -- GPG tools (needed for `.secrets` decryption)
+- `/charly-coder:dev-tools` -- heavyweight layer that also includes direnv (46 packages)
 
 ## Cross-References
 
-- `/ov-build:secrets` -- `ov secrets gpg` commands for managing `.secrets` files, `ov secrets gpg setup` for GPG agent + KeePassXC configuration, `ov secrets gpg doctor` for health checks
+- `/charly-build:secrets` -- `charly secrets gpg` commands for managing `.secrets` files, `charly secrets gpg setup` for GPG agent + KeePassXC configuration, `charly secrets gpg doctor` for health checks
 
 ## When to Use This Skill
 
@@ -74,5 +74,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

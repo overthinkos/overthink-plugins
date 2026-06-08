@@ -81,7 +81,7 @@ Flag breakdown:
 - `--mcp` — enable the MCP HTTP server on the same port (`/mcp/server`)
 - `--mcp-allow-remote` — **mandatory** with `--host 0.0.0.0`; otherwise
   marimo's MCP endpoint refuses non-localhost requests, breaking the
-  ov host-port-rewrite path
+  charly host-port-rewrite path
 
 ## mo.iframe pattern for inline HTML rendering
 
@@ -96,12 +96,12 @@ mo.iframe(html_string, height="500px")
 
 `mo.iframe` wraps the HTML in a sandboxed `<iframe srcdoc>` that
 loads in the marimo UI. Used by the streets MapLibre cell in
-`/ov-versa:notebook-osm` to render martin's vector tiles
+`/charly-versa:notebook-osm` to render martin's vector tiles
 (folium's TileLayer can't decode PBF).
 
 For folium maps that DON'T need iframe wrapping, return the
 `folium.Map` instance as the cell's last expression. The trust-wrapper
-bypass is documented in `/ov-versa:notebook-osm`.
+bypass is documented in `/charly-versa:notebook-osm`.
 
 ## Cell-display gotcha
 
@@ -126,7 +126,7 @@ def __():
 ## Marimo session persistence (gotcha)
 
 When a marimo session is open and the file on disk changes (e.g.
-`ov update --force-seed` rewrites the notebook), marimo re-persists
+`charly update --force-seed` rewrites the notebook), marimo re-persists
 the file with its session's cell order, NOT the new file's order.
 Symptom: cells appear in scrambled order in the editor; markdown
 header lands at the bottom; etc.
@@ -146,9 +146,9 @@ is dead after the restart anyway).
 
 ## Cross-references
 
-- `/ov-versa:versa` — the image that composes this layer
-- `/ov-versa:versa-mcp` — the MCP server tool catalog
-- `/ov-versa:notebook-osm` — the canonical notebook using this env
-- `/ov-distros:cuda` — required dep
-- `/ov-infrastructure:supervisord` — required dep
-- `/ov-image:layer` — layer authoring conventions
+- `/charly-versa:versa` — the image that composes this layer
+- `/charly-versa:versa-mcp` — the MCP server tool catalog
+- `/charly-versa:notebook-osm` — the canonical notebook using this env
+- `/charly-distros:cuda` — required dep
+- `/charly-infrastructure:supervisord` — required dep
+- `/charly-image:layer` — layer authoring conventions

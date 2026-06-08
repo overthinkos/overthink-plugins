@@ -27,9 +27,9 @@ description: |
   CachyOS ships `zlib-ng-compat`, which Provides it; an explicit `zlib` conflicts)
 - ov-host `depends=` completion: `slirp4netns`, `libisoburn`, `cdrtools`, `swtpm`
   — the part of the `ov` PKGBUILD `depends=` set the ov/virtualization layers do
-  not already install. With these present, `ov box pkg pac` builds the pac release
+  not already install. With these present, `charly box pkg pac` builds the pac release
   artifact NATIVELY on the runner (`makepkg -sf` resolves every dep and never
-  shells out to `sudo pacman`). See `/ov-distros:githubrunner` "CI: builds the
+  shells out to `sudo pacman`). See `/charly-distros:githubrunner` "CI: builds the
   org's release packages on itself".
 
 `podman`/`buildah`/`skopeo`/`crun`/`fuse-overlayfs` are provided by the
@@ -69,18 +69,18 @@ githubrunner:
 
 ```bash
 TOKEN=$(gh api -X POST /orgs/myorg/actions/runners/registration-token --jq .token)
-ov config githubrunner -e RUNNER_ORG=myorg -e RUNNER_TOKEN="$TOKEN"
-ov remove githubrunner -e RUNNER_TOKEN=$(gh api -X POST /orgs/myorg/actions/runners/remove-token --jq .token)
+charly config githubrunner -e RUNNER_ORG=myorg -e RUNNER_TOKEN="$TOKEN"
+charly remove githubrunner -e RUNNER_TOKEN=$(gh api -X POST /orgs/myorg/actions/runners/remove-token --jq .token)
 ```
 
 ## Used In Images
 
-- `/ov-distros:githubrunner`
+- `/charly-distros:githubrunner`
 
 ## Related Layers
 
-- `/ov-infrastructure:supervisord` — process manager dependency
-- `/ov-distros:container-nesting` — rootless nested podman/buildah/skopeo + subuid layout + caps
+- `/charly-infrastructure:supervisord` — process manager dependency
+- `/charly-distros:container-nesting` — rootless nested podman/buildah/skopeo + subuid layout + caps
 
 ## When to Use This Skill
 
@@ -93,6 +93,6 @@ Use when the user asks about:
 
 ## Author + Test References
 
-- `/ov-image:layer` — layer authoring reference (tasks, vars, secret_accept, eval block syntax)
-- `/ov-eval:eval` — declarative testing framework for the `eval:` block + the `eval-githubrunner-pod` bed
-- `/ov-build:secrets` — the credential store backing `RUNNER_TOKEN`
+- `/charly-image:layer` — layer authoring reference (tasks, vars, secret_accept, eval block syntax)
+- `/charly-eval:eval` — declarative testing framework for the `eval:` block + the `eval-githubrunner-pod` bed
+- `/charly-build:secrets` — the credential store backing `RUNNER_TOKEN`

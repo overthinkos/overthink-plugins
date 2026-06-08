@@ -2,13 +2,13 @@
 name: list
 description: |
   List components from box.yml and filesystem.
-  MUST be invoked before any work involving: ov box list commands, enumerating images, layers, build targets, services, routes, volumes, or aliases.
+  MUST be invoked before any work involving: charly box list commands, enumerating images, layers, build targets, services, routes, volumes, or aliases.
 ---
 
-# ov box list -- List Components
+# charly box list -- List Components
 
-Invoked as `ov box list {images,layers,targets,services,routes,volumes,aliases}`.
-See `/ov-image:image` for the family overview.
+Invoked as `charly box list {images,layers,targets,services,routes,volumes,aliases}`.
+See `/charly-image:image` for the family overview.
 
 ## Overview
 
@@ -18,13 +18,13 @@ Enumerate images, layers, build targets, and layer properties from `box.yml` and
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| List images | `ov box list boxes` | All images defined in box.yml |
-| List layers | `ov box list candies` | All layers found on filesystem |
-| List targets | `ov box list targets` | Build targets in dependency order |
-| List services | `ov box list services` | Layers that declare a `service:` field |
-| List routes | `ov box list routes` | Layers that declare a `route:` field |
-| List volumes | `ov box list volumes` | Layers that declare `volume:` |
-| List aliases | `ov box list aliases` | Layers that declare `alias:` |
+| List images | `charly box list boxes` | All images defined in box.yml |
+| List layers | `charly box list candies` | All layers found on filesystem |
+| List targets | `charly box list targets` | Build targets in dependency order |
+| List services | `charly box list services` | Layers that declare a `service:` field |
+| List routes | `charly box list routes` | Layers that declare a `route:` field |
+| List volumes | `charly box list volumes` | Layers that declare `volume:` |
+| List aliases | `charly box list aliases` | Layers that declare `alias:` |
 
 ## Usage
 
@@ -32,7 +32,7 @@ Enumerate images, layers, build targets, and layer properties from `box.yml` and
 
 ```bash
 # Show all images from box.yml
-ov box list boxes
+charly box list boxes
 
 # Output: one image name per line
 # fedora
@@ -45,49 +45,49 @@ ov box list boxes
 
 ```bash
 # Show all layers found in candy/ directory
-ov box list candies
+charly box list candies
 ```
 
 ### Build Targets in Order
 
 ```bash
 # Dependency-ordered list -- useful for scripting builds
-ov box list targets
+charly box list targets
 ```
 
 ### Filter by Property
 
 ```bash
 # Which layers provide services?
-ov box list services
+charly box list services
 
 # Which layers define routes (Traefik)?
-ov box list routes
+charly box list routes
 
 # Which layers declare persistent volumes?
-ov box list volumes
+charly box list volumes
 
 # Which layers provide host command aliases?
-ov box list aliases
+charly box list aliases
 ```
 
 ## Project directory override
 
-`ov box list …` resolves `box.yml` + `candy/` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov-image:image` "Project directory resolution".
+`charly box list …` resolves `box.yml` + `candy/` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
-### `ov box` family siblings
+### `charly box` family siblings
 
-- `/ov-image:image` -- Family overview + box.yml composition reference
-- `/ov-build:build` -- Build enumerated images
-- `/ov-build:generate` -- Containerfile generation
-- `/ov-build:inspect` -- Detailed inspection of a specific image
-- `/ov-build:merge` -- Post-build layer consolidation
-- `/ov-build:new` -- Scaffold a new layer
-- `/ov-build:pull` -- Pull prebuilt images into local storage
-- `/ov-build:validate` -- Validate box.yml and layer definitions
+- `/charly-image:image` -- Family overview + box.yml composition reference
+- `/charly-build:build` -- Build enumerated images
+- `/charly-build:generate` -- Containerfile generation
+- `/charly-build:inspect` -- Detailed inspection of a specific image
+- `/charly-build:merge` -- Post-build layer consolidation
+- `/charly-build:new` -- Scaffold a new layer
+- `/charly-build:pull` -- Pull prebuilt images into local storage
+- `/charly-build:validate` -- Validate box.yml and layer definitions
 
 ### Related skills
 
-- `/ov-image:layer` -- Layer authoring and structure
+- `/charly-image:layer` -- Layer authoring and structure

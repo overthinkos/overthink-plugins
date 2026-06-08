@@ -10,18 +10,18 @@ description: |
 # debian (VM)
 
 `source.kind: bootstrap` VM that builds a Debian rootfs from scratch via
-`debootstrap` (using `/ov-distros:debian-debootstrap-builder`), then boots it
+`debootstrap` (using `/charly-distros:debian-debootstrap-builder`), then boots it
 under libvirt/QEMU.
 
 The `debian-debootstrap` VM entity and its `eval-debian-debootstrap-vm` disposable
 test bed live in the **`overthinkos/debian`** repo (git submodule at
-**`image/debian`**), in that repo's config (its `overthink.yml` + per-kind sibling files). The bed is a
+**`image/debian`**), in that repo's config (its `charly.yml` + per-kind sibling files). The bed is a
 `kind: eval` entity (the 2026-05 deploy→eval unification moved repo-shipped
-disposable beds out of `deploy.yml`), driven by `ov eval run
+disposable beds out of `deploy.yml`), driven by `charly eval run
 eval-debian-debootstrap-vm`. Drive the VM lifecycle from the submodule:
-`ov -C image/debian vm build debian-debootstrap` +
-`ov -C image/debian vm create debian-debootstrap` (or
-`ov --repo overthinkos/debian …`).
+`charly -C image/debian vm build debian-debootstrap` +
+`charly -C image/debian vm create debian-debootstrap` (or
+`charly --repo overthinkos/debian …`).
 
 ## VM Configuration (from image/debian/vm.yml)
 
@@ -43,27 +43,27 @@ submodule (a bare-string `import:` item).
 
 `eval-debian-debootstrap-vm` is a `kind: eval` bed (`target: vm`,
 `vm: debian-debootstrap`) that carries `disposable: true`, so
-`ov -C image/debian eval run eval-debian-debootstrap-vm` runs the full R10 sequence
-unattended (the equivalent `ov update eval-debian-debootstrap-vm` rebuild also works,
+`charly -C image/debian eval run eval-debian-debootstrap-vm` runs the full R10 sequence
+unattended (the equivalent `charly update eval-debian-debootstrap-vm` rebuild also works,
 since the eval bed is folded into the Deploy map).
 
 ## debootstrap path
 
-`ov vm build debian-debootstrap` runs `debootstrap` inside the privileged
+`charly vm build debian-debootstrap` runs `debootstrap` inside the privileged
 `debian-debootstrap-builder` to build the rootfs, then writes a bootable disk +
 cloud-init seed ISO. The bootstrap path is privileged + network-heavy
 (`debootstrap` downloads the base packages from the Debian mirror). The
-Docker-Hub `/ov-distros:debian` container base remains the faster path when you
+Docker-Hub `/charly-distros:debian` container base remains the faster path when you
 don't need a VM disk.
 
 ## Cross-References
 
-- `/ov-distros:debian-debootstrap-builder` — the builder image this VM uses
-- `/ov-distros:debian-debootstrap` — the container equivalent of this bootstrap path
-- `/ov-vm:ubuntu` — the Ubuntu sibling bootstrap VM
-- `/ov-vm:arch` — the canonical cloud_image VM (BIOS/virtio-gpu/sizing rationale)
-- `/ov-vm:vm` — VM lifecycle commands + BIOS/UEFI matrix
-- `/ov-vm:vms-catalog` — VmSpec authoring reference
+- `/charly-distros:debian-debootstrap-builder` — the builder image this VM uses
+- `/charly-distros:debian-debootstrap` — the container equivalent of this bootstrap path
+- `/charly-vm:ubuntu` — the Ubuntu sibling bootstrap VM
+- `/charly-vm:arch` — the canonical cloud_image VM (BIOS/virtio-gpu/sizing rationale)
+- `/charly-vm:vm` — VM lifecycle commands + BIOS/UEFI matrix
+- `/charly-vm:vms-catalog` — VmSpec authoring reference
 
 ## When to Use This Skill
 

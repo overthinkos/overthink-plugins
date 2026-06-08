@@ -44,12 +44,12 @@ comfyui:
 
 ## Used In Images
 
-- `/ov-comfyui:comfyui`
+- `/charly-comfyui:comfyui`
 
 ## Related Layers
 
-- `/ov-distros:cuda` -- CUDA toolkit dependency
-- `/ov-infrastructure:supervisord` -- process manager dependency
+- `/charly-distros:cuda` -- CUDA toolkit dependency
+- `/charly-infrastructure:supervisord` -- process manager dependency
 
 ## When to Use This Skill
 
@@ -63,5 +63,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

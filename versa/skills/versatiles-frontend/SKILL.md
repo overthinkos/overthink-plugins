@@ -27,7 +27,7 @@ set) since the versa image targets interactive exploration, not
 minimal embedding. Build deps (`nodejs`, `npm`, `vite`) are NOT
 needed inside the versa image — saves ~250 MB image size.
 
-This contrasts with `/ov-versa:maputnik-layer` which DOES build
+This contrasts with `/charly-versa:maputnik-layer` which DOES build
 from source (`npm ci` + `npm run build -- --base=/`) because
 maputnik ships no pre-built tarball.
 
@@ -94,11 +94,11 @@ visit `/style/` directly.
 
 ## Cross-references
 
-- `/ov-versa:versa` — image composing this layer
-- `/ov-versa:versatiles` — the tile-server backend the frontend
+- `/charly-versa:versa` — image composing this layer
+- `/charly-versa:versatiles` — the tile-server backend the frontend
   connects to by default
-- `/ov-versa:versatiles-style` — the bundle re-exported under `/style/`
-- `/ov-versa:pmtiles-viewer` — sibling static-SPA layer (port 28001)
-- `/ov-versa:maputnik-layer` — sibling static-SPA layer (port 28000)
-- `/ov-versa:notebook-osm` — the shortbread MapLibre cell that loads
+- `/charly-versa:versatiles-style` — the bundle re-exported under `/style/`
+- `/charly-versa:pmtiles-viewer` — sibling static-SPA layer (port 28001)
+- `/charly-versa:maputnik-layer` — sibling static-SPA layer (port 28000)
+- `/charly-versa:notebook-osm` — the shortbread MapLibre cell that loads
   the re-exported versatiles-style bundle via this layer's http.server

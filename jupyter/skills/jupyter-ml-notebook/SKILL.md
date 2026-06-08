@@ -22,7 +22,7 @@ jupyter-ml-notebook:
     - notebook-llm-on-supercomputers
     - notebook-openrouter
     - dbus
-    - ov
+    - charly
   ports:
     - "8888:8888"
   platforms:
@@ -35,7 +35,7 @@ This image is identical to `jupyter-ml` with two data layer additions:
 - `notebook-finetuning` — seeds 37 Unsloth fine-tuning notebooks into `/workspace/finetuning/`
 - `notebook-ollama` — seeds 6 Ollama integration notebooks into `/workspace/ollama/`
 
-The Ollama notebooks require a running `ollama` deployment. When deployed via `ov config ollama --update-all`, the `OLLAMA_HOST` env var is automatically injected via `env_provide` -- no manual configuration needed.
+The Ollama notebooks require a running `ollama` deployment. When deployed via `charly config ollama --update-all`, the `OLLAMA_HOST` env var is automatically injected via `env_provide` -- no manual configuration needed.
 
 ## Layer Composition
 
@@ -112,23 +112,23 @@ This image is a **consumer** of env_provide variables from infrastructure layers
 
 | Variable | Injected by | Value |
 |----------|------------|-------|
-| `OLLAMA_HOST` | `/ov-ollama:ollama` | `http://ov-ollama:11434` |
+| `OLLAMA_HOST` | `/charly-ollama:ollama` | `http://charly-ollama:11434` |
 
-The notebooks read `OLLAMA_HOST` via `os.getenv("OLLAMA_HOST", "http://localhost:11434")`. When ollama is deployed via `ov config ollama --update-all`, the env_provide mechanism overrides the localhost default automatically.
+The notebooks read `OLLAMA_HOST` via `os.getenv("OLLAMA_HOST", "http://localhost:11434")`. When ollama is deployed via `charly config ollama --update-all`, the env_provide mechanism overrides the localhost default automatically.
 
 ## Quick Start
 
 ```bash
-ov box build jupyter-ml-notebook
-ov config jupyter-ml-notebook
-ov start jupyter-ml-notebook
-ov status jupyter-ml-notebook
-ov logs jupyter-ml-notebook -f
+charly box build jupyter-ml-notebook
+charly config jupyter-ml-notebook
+charly start jupyter-ml-notebook
+charly status jupyter-ml-notebook
+charly logs jupyter-ml-notebook -f
 # JupyterLab: http://localhost:8888
 # MCP endpoint: http://localhost:8888/mcp
 
 # With bind-backed workspace (data seeded into local dir):
-ov config jupyter-ml-notebook --bind workspace=/path/to/project
+charly config jupyter-ml-notebook --bind workspace=/path/to/project
 ```
 
 ## Notebook Workarounds
@@ -142,21 +142,21 @@ The notebook-finetuning include compatibility fixes for current library versions
 ## Verify
 
 ```bash
-ov shell jupyter-ml-notebook -c "pixi run verify-pytorch"
-ov shell jupyter-ml-notebook -c "pixi run verify-unsloth"
-ov shell jupyter-ml-notebook -c "pixi run verify-mcp"
-ov shell jupyter-ml-notebook -c "ls /workspace/finetuning/"
-ov shell jupyter-ml-notebook -c "ls /workspace/ollama/"
-ov shell jupyter-ml-notebook -c "ls /workspace/llms_on_supercomputers/"
+charly shell jupyter-ml-notebook -c "pixi run verify-pytorch"
+charly shell jupyter-ml-notebook -c "pixi run verify-unsloth"
+charly shell jupyter-ml-notebook -c "pixi run verify-mcp"
+charly shell jupyter-ml-notebook -c "ls /workspace/finetuning/"
+charly shell jupyter-ml-notebook -c "ls /workspace/ollama/"
+charly shell jupyter-ml-notebook -c "ls /workspace/llms_on_supercomputers/"
 ```
 
 ## Related Images
 
-- `/ov-jupyter:jupyter-ml` — Same stack without finetuning notebooks
-- `/ov-jupyter:jupyter` — Lightweight variant (no CUDA, multi-arch)
-- `/ov-jupyter:unsloth-studio` — Unsloth Studio UI (different pixi env, same finetuning notebooks)
+- `/charly-jupyter:jupyter-ml` — Same stack without finetuning notebooks
+- `/charly-jupyter:jupyter` — Lightweight variant (no CUDA, multi-arch)
+- `/charly-jupyter:unsloth-studio` — Unsloth Studio UI (different pixi env, same finetuning notebooks)
 
-**MCP testing:** same 3 deploy-scope `mcp:` checks as `jupyter-ml` are inherited here. See `/ov-build:ov-mcp-cmd` for the verb reference.
+**MCP testing:** same 3 deploy-scope `mcp:` checks as `jupyter-ml` are inherited here. See `/charly-build:ov-mcp-cmd` for the verb reference.
 
 ## When to Use This Skill
 
@@ -164,5 +164,5 @@ MUST be invoked before building, deploying, configuring, or troubleshooting the 
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

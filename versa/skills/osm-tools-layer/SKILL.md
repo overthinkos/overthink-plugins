@@ -117,7 +117,7 @@ serves them with `Content-Type: application/x-protobuf`. **Folium's
 fails silently → grey map.
 
 The canonical client for vector tiles is **MapLibre GL JS**.
-`/ov-versa:notebook-osm` cell 10 uses `mo.iframe` with embedded
+`/charly-versa:notebook-osm` cell 10 uses `mo.iframe` with embedded
 MapLibre HTML pointing at martin's TileJSON URL
 (`http://localhost:23000/monaco`) as a vector source, with separate
 polygon/line/circle layers filtered by `geometry-type`. Three
@@ -131,9 +131,9 @@ sibling source URLs:
 | `monaco-duckdb-mvt` | `notebook_osm_duckdb_mvt_pipeline` (DuckDB ST_AsMVT + pmtiles.Writer) | 12 |
 | `monaco-duckdb-freestiler` | `notebook_osm_duckdb_freestiler_pipeline` (DuckDB → freestiler) | 13 |
 
-`/ov-versa:maputnik-layer` is a visual editor for these styles —
+`/charly-versa:maputnik-layer` is a visual editor for these styles —
 useful for iterating on map appearance without notebook rebuilds.
-`/ov-versa:pmtiles-viewer` is a sibling SPA on port 28001 that
+`/charly-versa:pmtiles-viewer` is a sibling SPA on port 28001 that
 inspects any of the four PMTiles archives' bbox / zoom range /
 metadata directly in the browser.
 
@@ -173,7 +173,7 @@ NOT included — they'd false-fail on cold deploys before any DAG ran.
 
 ## Cross-references
 
-- `/ov-versa:versa` — image composing this layer
-- `/ov-versa:notebook-osm` — DAG that produces pmtiles + MapLibre cell consuming them
-- `/ov-versa:maputnik-layer` — visual style editor for the same vector tiles
-- `/ov-infrastructure:supervisord` — service runtime
+- `/charly-versa:versa` — image composing this layer
+- `/charly-versa:notebook-osm` — DAG that produces pmtiles + MapLibre cell consuming them
+- `/charly-versa:maputnik-layer` — visual style editor for the same vector tiles
+- `/charly-infrastructure:supervisord` — service runtime

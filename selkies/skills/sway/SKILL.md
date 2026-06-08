@@ -37,10 +37,10 @@ Keyboard layout defaults to US. Override with `env_accept` vars:
 | `XKB_DEFAULT_VARIANT` | (empty) | Layout variant (dvorak, nodeadkeys, etc.) |
 
 ```bash
-ov config sway-desktop -e XKB_DEFAULT_LAYOUT=de
+charly config sway-desktop -e XKB_DEFAULT_LAYOUT=de
 ```
 
-Sway reads `XKB_DEFAULT_LAYOUT` natively from the environment — no wrapper change needed. See `/ov-selkies:labwc` for full XKB var list (MODEL, OPTIONS).
+Sway reads `XKB_DEFAULT_LAYOUT` natively from the environment — no wrapper change needed. See `/charly-selkies:labwc` for full XKB var list (MODEL, OPTIONS).
 
 The supervisord `[program:sway]` environment sets `WLR_BACKENDS=headless` — headless output only. The `libinput` backend is **not** included by default because it requires a libseat session which fails in rootless containers.
 
@@ -64,15 +64,15 @@ my-desktop:
 
 XWayland is **enabled by default** (`xwayland enable` in the base config). The `xorg-x11-server-Xwayland` package is included in the sway layer. XWayland starts lazily — the Xwayland process only launches when the first X11 client connects (e.g., Steam, Heroic, Qt apps with xcb platform).
 
-X11 tools for interacting with XWayland windows (`xdotool`, `xprop`, `xwininfo`, `import`) are provided by the `/ov-selkies:wl-tools` layer.
+X11 tools for interacting with XWayland windows (`xdotool`, `xprop`, `xwininfo`, `import`) are provided by the `/charly-selkies:wl-tools` layer.
 
 ## Stale IPC Socket Cleanup
 
-Supervisord restarts leave old `/tmp/sway-ipc.1000.<old-pid>.sock` files. If multiple sockets exist, naive discovery (`ls /tmp/sway-ipc.*.sock | head -1`) picks alphabetically -- which selects the smallest PID (oldest = stale socket), causing `ov eval wl sway` commands to fail silently.
+Supervisord restarts leave old `/tmp/sway-ipc.1000.<old-pid>.sock` files. If multiple sockets exist, naive discovery (`ls /tmp/sway-ipc.*.sock | head -1`) picks alphabetically -- which selects the smallest PID (oldest = stale socket), causing `charly eval wl sway` commands to fail silently.
 
-**Fix**: `sway-wrapper` cleans old sockets before starting Sway. Both `sway-wrapper` and `ov eval wl sway` (sway.go) use `ls -t | head -1` (newest modification time first) when discovering the active socket.
+**Fix**: `sway-wrapper` cleans old sockets before starting Sway. Both `sway-wrapper` and `charly eval wl sway` (sway.go) use `ls -t | head -1` (newest modification time first) when discovering the active socket.
 
-**Symptoms of stale socket**: `ov eval wl sway` commands fail, resolution stays at 1280x720 (wlr-randr resize fails), Chrome renders at wrong size.
+**Symptoms of stale socket**: `charly eval wl sway` commands fail, resolution stays at 1280x720 (wlr-randr resize fails), Chrome renders at wrong size.
 
 ## NVIDIA Headless: Renderer
 
@@ -80,7 +80,7 @@ By default, `sway-wrapper` auto-detects GPU hardware and uses `gles2` on NVIDIA.
 
 - **VNC images** (`sway-desktop-vnc`) override to `pixman` (software rendering) — ensures reliable VNC screenshot capture on NVIDIA headless
 - **Non-VNC images** (Sunshine, standalone sway) use `gles2` via auto-detection — Chrome gets full GPU acceleration
-- `grim` (`ov eval wl screenshot`) works with both renderers
+- `grim` (`charly eval wl screenshot`) works with both renderers
 
 ## Used In Images
 
@@ -88,15 +88,15 @@ Transitive dependency via `chrome-sway` and `sway-desktop` in all desktop images
 
 ## Related Layers
 
-- `/ov-infrastructure:dbus-layer` -- D-Bus session bus dependency
-- `/ov-selkies:chrome-sway` -- Chrome on Sway (depends on sway)
-- `/ov-selkies:sway-desktop` -- full desktop composition (VNC)
-- `/ov-selkies:wayvnc` -- VNC access to Sway display
-- `/ov-selkies:waybar` -- status bar (depends on sway)
+- `/charly-infrastructure:dbus-layer` -- D-Bus session bus dependency
+- `/charly-selkies:chrome-sway` -- Chrome on Sway (depends on sway)
+- `/charly-selkies:sway-desktop` -- full desktop composition (VNC)
+- `/charly-selkies:wayvnc` -- VNC access to Sway display
+- `/charly-selkies:waybar` -- status bar (depends on sway)
 
 ## Related Commands
 
-- `/ov-eval:wl` — Wayland desktop automation (screenshot, input, windows, clipboard, AT-SPI2)
+- `/charly-eval:wl` — Wayland desktop automation (screenshot, input, windows, clipboard, AT-SPI2)
 
 ## When to Use This Skill
 
@@ -110,5 +110,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

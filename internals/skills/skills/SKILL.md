@@ -13,37 +13,37 @@ Skills are living documents at `plugins/<plugin>/skills/<name>/SKILL.md`. They a
 
 ## Skill Dispatcher (authoritative in CLAUDE.md R0; mirrored here)
 
-CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher. This section mirrors it so skill-authors already inside `/ov-internals:skills` see the same mapping without having to context-switch back to CLAUDE.md. If this table ever drifts from CLAUDE.md R0, **CLAUDE.md R0 wins** — fix this file, never the other way around.
+CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher. This section mirrors it so skill-authors already inside `/charly-internals:skills` see the same mapping without having to context-switch back to CLAUDE.md. If this table ever drifts from CLAUDE.md R0, **CLAUDE.md R0 wins** — fix this file, never the other way around.
 
 | Trigger | Skills to load BEFORE doing anything |
 |---|---|
-| `ov update` / `ov vm *` / VM entities | `/ov-vm:vm` + `/ov-internals:vm-deploy-target` |
-| `ov deploy add/del` / pod or container deploys | `/ov-core:deploy` |
-| host-target / nested host deploy | `/ov-local:local-deploy` + `/ov-internals:local-infra` |
-| `ov eval live` / `ov eval cdp/wl/dbus/vnc/mcp/record/spice/libvirt` | `/ov-eval:eval` |
-| `ov eval k8s <verb>` | `/ov-kubernetes:eval-k8s` |
-| Editing `candy.yml` / layer authoring | `/ov-image:layer` |
-| Editing `box.yml` / image composition | `/ov-image:image` |
-| `ov box build` / `ov box generate` / Containerfile | `/ov-build:build` + `/ov-build:generate` + `/ov-internals:generate-source` |
-| `ov box validate` / schema error | `/ov-build:validate` |
-| Secret management / `ov secrets` / Secret Service / GPG `.secrets` | `/ov-build:secrets` |
-| Schema migration / legacy → latest CalVer | `/ov-build:migrate` |
-| Git/`gh` workflow — `feat/` branch, commit, push, ff-merge, tag, worktree, sync, prune, PR, approve | `/ov-internals:git-workflow` |
-| `ov box reconcile` / cross-repo `@github` pin alignment | `/ov-build:reconcile` |
-| Hard-cutover concerns / rename sweeps | `/ov-internals:cutover-policy` |
-| `disposable: true` semantics | `/ov-internals:disposable` |
-| Go source work | `/ov-internals:go` |
-| IR / InstallPlan / DeployTarget / OCITarget | `/ov-internals:install-plan` |
-| OCI labels / capabilities contract | `/ov-internals:capabilities` |
-| VmSpec / libvirt / cloud-init / OVMF | `/ov-internals:vm-spec` + renderer skills |
-| Unexpected failure / anomaly | `/ov-internals:root-cause-analyzer` agent |
-| Engineering-discipline trigger (failure / dup pattern / ad-hoc fix / "out of scope" framing) | `/ov-internals:strict-policy` |
-| "What does layer X do?" — pod-specific | `/ov-jupyter:<name>`, `/ov-coder:<name>`, `/ov-selkies:<name>`, `/ov-openclaw:<name>`, `/ov-ollama:<name>`, `/ov-openwebui:<name>`, `/ov-comfyui:<name>`, `/ov-immich:<name>`, `/ov-hermes:<name>`, `/ov-filebrowser:<name>` |
-| "What does layer X do?" — base distros / GPU / bootc | `/ov-distros:<name>` (arch, fedora, debian, ubuntu, nvidia, cuda, rocm, bootc-base, …) |
-| "What does layer X do?" — language runtime | `/ov-languages:<name>` (python, python-ml, pixi) |
-| "What does layer X do?" — infrastructure service | `/ov-infrastructure:<name>` (postgresql, redis, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, …) |
-| "What does layer X do?" — CLI utility | `/ov-tools:<name>` (ripgrep, himalaya, whisper, ov, …) |
-| Skill authoring / maintenance | `/ov-internals:skills` (this skill) |
+| `charly update` / `charly vm *` / VM entities | `/charly-vm:vm` + `/charly-internals:vm-deploy-target` |
+| `charly deploy add/del` / pod or container deploys | `/charly-core:deploy` |
+| host-target / nested host deploy | `/charly-local:local-deploy` + `/charly-internals:local-infra` |
+| `charly eval live` / `charly eval cdp/wl/dbus/vnc/mcp/record/spice/libvirt` | `/charly-eval:eval` |
+| `charly eval k8s <verb>` | `/charly-kubernetes:eval-k8s` |
+| Editing `candy.yml` / layer authoring | `/charly-image:layer` |
+| Editing `box.yml` / image composition | `/charly-image:image` |
+| `charly box build` / `charly box generate` / Containerfile | `/charly-build:build` + `/charly-build:generate` + `/charly-internals:generate-source` |
+| `charly box validate` / schema error | `/charly-build:validate` |
+| Secret management / `charly secrets` / Secret Service / GPG `.secrets` | `/charly-build:secrets` |
+| Schema migration / legacy → latest CalVer | `/charly-build:migrate` |
+| Git/`gh` workflow — `feat/` branch, commit, push, ff-merge, tag, worktree, sync, prune, PR, approve | `/charly-internals:git-workflow` |
+| `charly box reconcile` / cross-repo `@github` pin alignment | `/charly-build:reconcile` |
+| Hard-cutover concerns / rename sweeps | `/charly-internals:cutover-policy` |
+| `disposable: true` semantics | `/charly-internals:disposable` |
+| Go source work | `/charly-internals:go` |
+| IR / InstallPlan / DeployTarget / OCITarget | `/charly-internals:install-plan` |
+| OCI labels / capabilities contract | `/charly-internals:capabilities` |
+| VmSpec / libvirt / cloud-init / OVMF | `/charly-internals:vm-spec` + renderer skills |
+| Unexpected failure / anomaly | `/charly-internals:root-cause-analyzer` agent |
+| Engineering-discipline trigger (failure / dup pattern / ad-hoc fix / "out of scope" framing) | `/charly-internals:strict-policy` |
+| "What does layer X do?" — pod-specific | `/charly-jupyter:<name>`, `/charly-coder:<name>`, `/charly-selkies:<name>`, `/charly-openclaw:<name>`, `/charly-ollama:<name>`, `/charly-openwebui:<name>`, `/charly-comfyui:<name>`, `/charly-immich:<name>`, `/charly-hermes:<name>`, `/charly-filebrowser:<name>` |
+| "What does layer X do?" — base distros / GPU / bootc | `/charly-distros:<name>` (arch, fedora, debian, ubuntu, nvidia, cuda, rocm, bootc-base, …) |
+| "What does layer X do?" — language runtime | `/charly-languages:<name>` (python, python-ml, pixi) |
+| "What does layer X do?" — infrastructure service | `/charly-infrastructure:<name>` (postgresql, redis, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, …) |
+| "What does layer X do?" — CLI utility | `/charly-tools:<name>` (ripgrep, himalaya, whisper, ov, …) |
+| Skill authoring / maintenance | `/charly-internals:skills` (this skill) |
 
 If multiple triggers apply, load ALL matching skills in ONE message (parallel `Skill` calls). Full index: `plugins/README.md` (250+ skills).
 
@@ -51,11 +51,11 @@ If multiple triggers apply, load ALL matching skills in ONE message (parallel `S
 
 | Trigger | Action |
 |---------|--------|
-| Deployment step fails or needs undocumented workaround | Update the relevant `/ov-core:*`, `/ov-build:*`, `/ov-eval:*`, `/ov-automation:*`, kind plugin (`/ov-image:*`, `/ov-vm:*`, `/ov-kubernetes:*`, `/ov-local:*`, `/ov-pod:*`), per-pod plugin (`/ov-jupyter:*`, `/ov-coder:*`, …), or split-foundation plugin (`/ov-distros:*`, `/ov-languages:*`, `/ov-infrastructure:*`, `/ov-tools:*`) |
+| Deployment step fails or needs undocumented workaround | Update the relevant `/charly-core:*`, `/charly-build:*`, `/charly-eval:*`, `/charly-automation:*`, kind plugin (`/charly-image:*`, `/charly-vm:*`, `/charly-kubernetes:*`, `/charly-local:*`, `/charly-pod:*`), per-pod plugin (`/charly-jupyter:*`, `/charly-coder:*`, …), or split-foundation plugin (`/charly-distros:*`, `/charly-languages:*`, `/charly-infrastructure:*`, `/charly-tools:*`) |
 | Verification check missing from image skill | Add to the image skill's Verification section |
 | Skill's recommended defaults are wrong | Fix in the skill, not CLAUDE.md |
-| New feature added to ov CLI | Update `/ov-core:<cmd>` or `/ov-build:<cmd>` skill + `/ov-internals:go` source map |
-| New layer or image added | Create skill via `ov box new candy` scaffold or manual SKILL.md |
+| New feature added to charly CLI | Update `/charly-core:<cmd>` or `/charly-build:<cmd>` skill + `/charly-internals:go` source map |
+| New layer or image added | Create skill via `charly box new candy` scaffold or manual SKILL.md |
 | Bug fix changes behavior | Document the fix in affected skills |
 | Cross-skill behavior discovered | Update Cross-References in all affected skills |
 | A live bed contradicts a skill's claim (Risk Driven Development found it stale) | Fix the stale skill in the SAME change — RDD keeps the living docs honest; for a high-risk claim the running system is ground truth, not the doc |
@@ -65,7 +65,7 @@ If multiple triggers apply, load ALL matching skills in ONE message (parallel `S
 
 - **Ephemeral issues** — use conversation context or memory
 - **User-specific config** — use Claude Code memory system
-- **Bug fixes in ov code** — the fix is in git; document behavioral changes in skills only
+- **Bug fixes in charly code** — the fix is in git; document behavioral changes in skills only
 - **Anything derivable from code** — skills document *usage*, not implementation details
 - **Historical / version-history content** — dated change notes, "renamed from", "previously / formerly / was", completed cutovers, retired / relocated identifiers → `CHANGELOG.md` (repo root), NEVER a skill or CLAUDE.md. Skills describe current behavior in present tense only. When a cutover lands, append its narrative to `CHANGELOG.md` and state the new standing rule forward-looking in the skill, with no history.
 
@@ -99,28 +99,28 @@ description: |
 | Content type | Where it belongs |
 |-------------|-----------------|
 | Project philosophy, architecture, key rules | CLAUDE.md |
-| Command usage, flags, examples | `/ov-core:<cmd>` or `/ov-build:<cmd>` skill |
-| Layer properties, packages, ports | per-pod plugin (`/ov-jupyter:<name>`, `/ov-coder:<name>`, …) or split-foundation plugin (`/ov-distros:*`, `/ov-languages:*`, `/ov-infrastructure:*`, `/ov-tools:*`) for base layers |
-| Image composition, deployment, verification | per-pod plugin or `/ov-distros:<name>` / `/ov-infrastructure:<name>` for base images |
+| Command usage, flags, examples | `/charly-core:<cmd>` or `/charly-build:<cmd>` skill |
+| Layer properties, packages, ports | per-pod plugin (`/charly-jupyter:<name>`, `/charly-coder:<name>`, …) or split-foundation plugin (`/charly-distros:*`, `/charly-languages:*`, `/charly-infrastructure:*`, `/charly-tools:*`) for base layers |
+| Image composition, deployment, verification | per-pod plugin or `/charly-distros:<name>` / `/charly-infrastructure:<name>` for base images |
 | Skill disambiguation (which skill to use) | CLAUDE.md (brief table) |
-| Detailed operational patterns | Relevant `/ov-core:*` / `/ov-build:*` / `/ov-eval:*` / `/ov-automation:*` / kind-plugin skill |
+| Detailed operational patterns | Relevant `/charly-core:*` / `/charly-build:*` / `/charly-eval:*` / `/charly-automation:*` / kind-plugin skill |
 | Version history / past changes / renames / cutover narration | `CHANGELOG.md` (repo root) — never CLAUDE.md or a skill |
 | Long-term thesis / vision / aspiration ("why & where it's going") | `VISION.md` (repo root) — never restating command usage, architecture, or history |
 
 ## Command skills vs topic skills
 
-Most skills under `plugins/ov-core/skills/` and `plugins/ov-build/skills/`
-map 1:1 to a top-level ov command (e.g. `/ov-build:build` ↔ `ov box build`,
-`/ov-core:ov-status` ↔ `ov status`).
+Most skills under `plugins/charly-core/skills/` and `plugins/charly-build/skills/`
+map 1:1 to a top-level charly command (e.g. `/charly-build:build` ↔ `charly box build`,
+`/charly-core:ov-status` ↔ `charly status`).
 **Topic skills** are the exception: they don't correspond to a
 top-level command but cover a cross-cutting concept surfaced by flags
 or layer composition. Today's topic skills:
 
 | Skill | Surfaced via | What it covers |
 |---|---|---|
-| `/ov-automation:enc` | `ov config --encrypt`, `ov config mount`, `ov config unmount`, `ov config passwd` | Encrypted-volume (gocryptfs) semantics, keyring resolution, `ov-enc-<image>-<volume>.scope` lifecycle |
-| `/ov-automation:openclaw-deploy` | Composing `openclaw-*` layers | OpenClaw AI gateway deployment story |
-| `/ov-automation:sidecar` | `ov config --sidecar tailscale` | Sidecar-container model, pod networking, env-var routing |
+| `/charly-automation:enc` | `charly config --encrypt`, `charly config mount`, `charly config unmount`, `charly config passwd` | Encrypted-volume (gocryptfs) semantics, keyring resolution, `ov-enc-<image>-<volume>.scope` lifecycle |
+| `/charly-automation:openclaw-deploy` | Composing `openclaw-*` layers | OpenClaw AI gateway deployment story |
+| `/charly-automation:sidecar` | `charly config --sidecar tailscale` | Sidecar-container model, pod networking, env-var routing |
 
 When adding a new command, always create a matching command skill. Consider a topic skill when a concept spans multiple commands or layers and the natural home isn't any single command's skill. Keep the frontmatter `description:` explicit about the topic nature (the blocking `Skill:` tool dispatcher matches on description keywords).
 
@@ -128,13 +128,13 @@ When adding a new command, always create a matching command skill. Consider a to
 
 Plugins are sorted into four use-case buckets. Directory names live at
 `plugins/<name>/` (no `ov-` prefix); plugin.json `name:` fields keep the
-`ov-` prefix; every skill is invoked as `/ov-<plugin>:<skill>`.
+`ov-` prefix; every skill is invoked as `/charly-<plugin>:<skill>`.
 
 | Bucket | Plugin | Skills | Purpose |
 |---|---|---:|---|
 | commands | `ov-core` | 14 | Lifecycle verbs (start/stop/status/logs/shell/ssh/deploy/update/...) |
 | commands | `ov-build` | 13 | Build/authoring verbs (build/generate/list/inspect/merge/new/pull/validate/secrets/settings/migrate/reconcile/mcp) |
-| commands | `ov-eval` | 9 | `ov eval` orchestrator + live probes (cdp/wl/wl-overlay/dbus/vnc/spice/libvirt/record) |
+| commands | `ov-eval` | 9 | `charly eval` orchestrator + live probes (cdp/wl/wl-overlay/dbus/vnc/spice/libvirt/record) |
 | commands | `ov-automation` | 6 | tmux verb, host-side helpers (alias/udev), topic flags (enc/sidecar/openclaw-deploy) |
 | kind | `ov-image` | 2 | `kind: box` and `kind: candy` schema reference |
 | kind | `ov-vm` | 7 | `kind: vm` schema + bootc VM catalog |
@@ -145,9 +145,9 @@ Plugins are sorted into four use-case buckets. Directory names live at
 | images | `ov-distros` | 34 | Base OS, GPU runtime, bootc, distro builders |
 | images | `ov-languages` | 4 | python, python-ml, pixi |
 | images | `ov-infrastructure` | 22 | postgres, redis, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, ... |
-| images | `ov-tools` | 19 | CLI utilities + ov binary deploy |
+| images | `ov-tools` | 19 | CLI utilities + charly binary deploy |
 | images | `ov-jupyter` | 15 | jupyter image family + jupyter MCP @ 8888 |
-| images | `ov-coder` | 31 | coder/dev images + ov MCP @ 18765 |
+| images | `ov-coder` | 31 | coder/dev images + charly MCP @ 18765 |
 | images | `ov-selkies` | 45 | selkies-desktop family + chrome-devtools MCP @ 9224 |
 | images | `ov-openclaw` | 12 | openclaw AI workstation + chrome-devtools MCP @ 9224 |
 | images | `ov-versa` | 9 | versa image — marimo + airflow + OSM analytics + 2 MCP servers |
@@ -167,10 +167,10 @@ Sub-agents are markdown + YAML frontmatter (`name`, `description`, `tools`,
 `ov-internals/agents/`). **Plugin-loaded agents IGNORE the `hooks`,
 `mcpServers`, and `permissionMode` frontmatter fields** — keep those out of
 plugin agents (use `.claude/agents/` or `settings.json` if you genuinely
-need them). The ov roster splits into **enforcers** (root-cause-analyzer,
+need them). The charly roster splits into **enforcers** (root-cause-analyzer,
 layer-validator, testing-validator — gate claims) and **executors**
-(eval-bed-runner, deploy-verifier — drive `ov eval` and return verbatim
-proof). Full story: `/ov-internals:agents`. Dynamic workflows are NOT plugin
+(eval-bed-runner, deploy-verifier — drive `charly eval` and return verbatim
+proof). Full story: `/charly-internals:agents`. Dynamic workflows are NOT plugin
 content — they live in the superproject's `.claude/workflows/*.js`.
 
 ### Per-directory CLAUDE.md signposts (hybrid)
@@ -207,10 +207,10 @@ Syncthing-synced half** (memory, personal settings).
 
 ## Cross-References
 
-- `/ov-internals:go` — Source code structure, adding new commands
-- `/ov-internals:generate-source` — Understanding generated Containerfiles
-- `/ov-internals:agents` — Sub-agents, dynamic workflows, agent teams; how they drive the `ov eval` beds; the hooks doctrine; the signpost convention
-- `/ov-build:validate` — Validation rules
+- `/charly-internals:go` — Source code structure, adding new commands
+- `/charly-internals:generate-source` — Understanding generated Containerfiles
+- `/charly-internals:agents` — Sub-agents, dynamic workflows, agent teams; how they drive the `charly eval` beds; the hooks doctrine; the signpost convention
+- `/charly-build:validate` — Validation rules
 - All `/ov:*` skills — Individual command documentation
 
 ## When to Use This Skill

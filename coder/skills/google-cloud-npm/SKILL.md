@@ -34,8 +34,8 @@ Not currently used in any enabled images. Depends on `google-cloud` + `nodejs`.
 
 ## Related Layers
 
-- `/ov-coder:google-cloud` -- Google Cloud SDK dependency
-- `/ov-coder:nodejs` -- Node.js runtime dependency
+- `/charly-coder:google-cloud` -- Google Cloud SDK dependency
+- `/charly-coder:nodejs` -- Node.js runtime dependency
 
 ## When to Use This Skill
 
@@ -47,5 +47,5 @@ Use when the user asks about:
 
 ## Author + Test References
 
-- `/ov-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
-- `/ov-eval:eval` — declarative testing framework for the `eval:` block
+- `/charly-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
+- `/charly-eval:eval` — declarative testing framework for the `eval:` block

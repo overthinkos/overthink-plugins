@@ -1,7 +1,7 @@
 ---
 name: openclaw-deploy
 description: |
-  Topic skill (no dedicated `ov openclaw` command — the surface is layer composition + image deployment). MUST be invoked before any work involving: OpenClaw gateway configuration, model auth, browser integration, channel setup, or any image composing `openclaw-*` layers (`openclaw`, `openclaw-full`, or a custom image composing `openclaw`/`openclaw-full` + `sway-desktop`).
+  Topic skill (no dedicated `charly openclaw` command — the surface is layer composition + image deployment). MUST be invoked before any work involving: OpenClaw gateway configuration, model auth, browser integration, channel setup, or any image composing `openclaw-*` layers (`openclaw`, `openclaw-full`, or a custom image composing `openclaw`/`openclaw-full` + `sway-desktop`).
 ---
 
 # OpenClaw - AI Gateway Configuration
@@ -34,7 +34,7 @@ The gateway listens on port 18789 (WebSocket + HTTP). All CLI commands (`opencla
 | Setup wizard | `openclaw configure` | Interactive config wizard |
 | Logs | `openclaw logs --follow` | Tail gateway logs |
 
-For container lifecycle, use `ov` commands -- see `/ov-core:service`.
+For container lifecycle, use `ov` commands -- see `/charly-core:service`.
 
 ## Overthink Integration
 
@@ -74,19 +74,19 @@ Tunnel config exposes all ports via Tailscale (`ports: all`). Platform: linux/am
 ### Host Alias
 
 ```bash
-ov alias add openclaw openclaw-desktop
+charly alias add openclaw openclaw-desktop
 # Now: openclaw --help  (runs inside the container)
 ```
 
 ### Lifecycle
 
 ```bash
-ov box build openclaw-desktop         # Build image
-ov config openclaw-desktop        # Generate quadlet, daemon-reload
-ov start openclaw-desktop         # Start via systemd
-ov stop openclaw-desktop          # Stop
-ov status openclaw-desktop        # Check systemd status
-ov logs openclaw-desktop -f       # Follow container logs
+charly box build openclaw-desktop         # Build image
+charly config openclaw-desktop        # Generate quadlet, daemon-reload
+charly start openclaw-desktop         # Start via systemd
+charly stop openclaw-desktop          # Stop
+charly status openclaw-desktop        # Check systemd status
+charly logs openclaw-desktop -f       # Follow container logs
 ```
 
 ## Gateway Configuration
@@ -161,38 +161,38 @@ agents: {
 
 ### OAuth Auth (OpenAI Codex)
 
-**Critical:** The `openclaw models auth login` TUI requires a real terminal to complete the post-callback token exchange. Do NOT pipe through `tee` or redirect stdout — it breaks the TUI event loop. **Use `ov tmux`** (see `/ov-automation:tmux`):
+**Critical:** The `openclaw models auth login` TUI requires a real terminal to complete the post-callback token exchange. Do NOT pipe through `tee` or redirect stdout — it breaks the TUI event loop. **Use `charly tmux`** (see `/charly-automation:tmux`):
 
 ```bash
 IMG=<image>
 
 # 1. Start OAuth in a tmux session (real terminal)
-ov tmux run $IMG -s oauth "openclaw models auth login --provider openai-codex --set-default"
+charly tmux run $IMG -s oauth "openclaw models auth login --provider openai-codex --set-default"
 
 # 2. Read the OAuth URL from tmux output
 sleep 5
-ov tmux capture $IMG -s oauth | grep -o 'https://auth.openai.com/[^ ]*'
+charly tmux capture $IMG -s oauth | grep -o 'https://auth.openai.com/[^ ]*'
 
 # 3. Open URL in Chrome, click "Continue with Google", then "Continue" on consent
-ov eval cdp open $IMG "<oauth-url>"
-TAB=$(ov eval cdp list $IMG | grep -i "openai" | head -1 | awk '{print $1}')
-ov eval cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc   # Continue with Google
+charly eval cdp open $IMG "<oauth-url>"
+TAB=$(charly eval cdp list $IMG | grep -i "openai" | head -1 | awk '{print $1}')
+charly eval cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc   # Continue with Google
 sleep 5
-ov eval cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc          # Continue (consent)
+charly eval cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc          # Continue (consent)
 
 # 4. Verify completion
 sleep 10
-ov tmux capture $IMG -s oauth
+charly tmux capture $IMG -s oauth
 # Should show: "OpenAI OAuth complete", "Default model set to openai-codex/gpt-5.4"
 ```
 
 **Prerequisites:** Chrome must have an active Google session. The "Continue with Google" button on OpenAI's auth page uses Chrome's Google cookies — sign Chrome into Google (with sync enabled) via the VNC desktop before starting the OAuth flow.
 
-**Callback architecture:** The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container. Chrome and `openclaw-models` share the same network namespace — no port mapping needed for 1455. The `BROWSER=browser-open` env var (set by the chrome layer) auto-opens URLs via CDP, but may not trigger in all TTY contexts — open the URL manually via `ov eval cdp open` as a fallback.
+**Callback architecture:** The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container. Chrome and `openclaw-models` share the same network namespace — no port mapping needed for 1455. The `BROWSER=browser-open` env var (set by the chrome layer) auto-opens URLs via CDP, but may not trigger in all TTY contexts — open the URL manually via `charly eval cdp open` as a fallback.
 
-**Stale port 1455:** If a previous attempt left port 1455 occupied: `ov shell $IMG -c 'kill -9 $(ss -tlnp sport = :1455 | grep -oP "pid=\K\d+")'`
+**Stale port 1455:** If a previous attempt left port 1455 occupied: `charly shell $IMG -c 'kill -9 $(ss -tlnp sport = :1455 | grep -oP "pid=\K\d+")'`
 
-Tokens persist in `~/.openclaw/agents/main/agent/auth-profiles.json` in the `data` volume. Survive `ov stop`/`ov start` and image rebuilds. Only destroyed by `ov remove --purge`.
+Tokens persist in `~/.openclaw/agents/main/agent/auth-profiles.json` in the `data` volume. Survive `charly stop`/`charly start` and image rebuilds. Only destroyed by `charly remove --purge`.
 
 Model name: `openai-codex/gpt-5.4`. The `--set-default` flag sets it as the default model in `openclaw.json`.
 
@@ -401,32 +401,32 @@ supervisorctl restart openclaw
 Use `--tty` for the interactive CLI. The `BROWSER=browser-open` env var auto-opens OAuth URLs in Chrome. The callback URL (`http://127.0.0.1:1455/auth/callback`) is container-internal and needs no port mapping.
 
 ```bash
-ov shell <image> --tty -c "openclaw models auth login --provider openai-codex --set-default"
+charly shell <image> --tty -c "openclaw models auth login --provider openai-codex --set-default"
 ```
 
-For browser-assisted OAuth (Google sign-in), see `/ov-eval:cdp`.
+For browser-assisted OAuth (Google sign-in), see `/charly-eval:cdp`.
 
 ### First-run gateway setup (complete sequence)
 
 After the first container start, configure the gateway:
 
 ```bash
-ov shell <image> -c "openclaw config set gateway.mode local"
-ov shell <image> -c "openclaw config set browser.cdpUrl 'http://127.0.0.1:9222'"
-ov shell <image> -c "supervisorctl restart openclaw"
+charly shell <image> -c "openclaw config set gateway.mode local"
+charly shell <image> -c "openclaw config set browser.cdpUrl 'http://127.0.0.1:9222'"
+charly shell <image> -c "supervisorctl restart openclaw"
 ```
 
 ## Cross-References
 
-- `/ov-eval:cdp` -- `ov eval cdp` CDP commands (lower-level container-external automation)
-- `/ov-core:deploy` -- Quadlet, tunnels, volume backing, VNC password
-- `/ov-core:service` -- `ov start/stop/enable/disable/status/logs/update/remove`
-- `/ov-eval:vnc` -- VNC desktop automation and password management
-- `/ov-automation:alias` -- Host command aliases (`ov alias add openclaw`)
-- `/ov-core:shell` -- `ov shell --tty` for interactive container commands
+- `/charly-eval:cdp` -- `charly eval cdp` CDP commands (lower-level container-external automation)
+- `/charly-core:deploy` -- Quadlet, tunnels, volume backing, VNC password
+- `/charly-core:service` -- `charly start/stop/enable/disable/status/logs/update/remove`
+- `/charly-eval:vnc` -- VNC desktop automation and password management
+- `/charly-automation:alias` -- Host command aliases (`charly alias add openclaw`)
+- `/charly-core:shell` -- `charly shell --tty` for interactive container commands
 
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves OpenClaw gateway configuration, model auth, browser integration, channel setup, or openclaw images. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Post-deployment. Configure the gateway after the container is running. See also `/ov-openclaw:openclaw*` (image variants).
+**Workflow position:** Post-deployment. Configure the gateway after the container is running. See also `/charly-openclaw:openclaw*` (image variants).

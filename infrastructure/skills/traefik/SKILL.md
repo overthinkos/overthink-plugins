@@ -28,16 +28,16 @@ fedora-test:
 
 ## Used In Images
 
-- `/ov-distros:fedora-test`
+- `/charly-distros:fedora-test`
 
 ## Related Layers
 
-- `/ov-infrastructure:supervisord` -- process manager dependency
-- `/ov-infrastructure:testapi` -- test service with Traefik route
+- `/charly-infrastructure:supervisord` -- process manager dependency
+- `/charly-infrastructure:testapi` -- test service with Traefik route
 
 ## Related Commands
 
-- `/ov-build:list` — `ov box list routes` shows Traefik route configuration
+- `/charly-build:list` — `charly box list routes` shows Traefik route configuration
 
 ## When to Use This Skill
 
@@ -51,5 +51,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

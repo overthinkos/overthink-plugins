@@ -11,7 +11,7 @@ description: |
 
 # ubuntu
 
-Base Ubuntu 24.04 (noble) image. Distinguished from `/ov-distros:debian` by **adopt mode**: the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` so the `ov` generator honors that account rather than creating a new one.
+Base Ubuntu 24.04 (noble) image. Distinguished from `/charly-distros:debian` by **adopt mode**: the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` so the `ov` generator honors that account rather than creating a new one.
 
 The Ubuntu family lives in its own **`overthinkos/ubuntu`** repo (git submodule
 at **`image/ubuntu`**) — a SEPARATE repo from `overthinkos/debian` (Debian and
@@ -20,7 +20,7 @@ composes the main repo's layers + shared `build.yml` by git reference. Because
 `distro.ubuntu` is `inherits: debian`, the single remote `build.yml` (which
 carries BOTH distro configs) resolves the inheritance — `overthinkos/ubuntu`
 needs no reference to `overthinkos/debian`. Build from the submodule:
-`ov -C image/ubuntu image build ubuntu` (or `ov --repo overthinkos/ubuntu image build ubuntu`).
+`charly -C image/ubuntu image build ubuntu` (or `charly --repo overthinkos/ubuntu image build ubuntu`).
 Nothing in main consumes any Ubuntu image, so there is **no main ↔ ubuntu coupling**.
 
 ## Image Properties
@@ -67,7 +67,7 @@ This architecture is **declarative** (what the base image ships) + **policy-driv
 | `adopt` | Same as auto here; hard-errors on bases without `base_user:`. |
 | `create` | Override — force-create a different uid-1000 account (fails if `useradd` collides). |
 
-See `/ov-image:image` "user_policy" and `/ov-build:build` "base_user" for the full table covering all four distros.
+See `/charly-image:image` "user_policy" and `/charly-build:build` "base_user" for the full table covering all four distros.
 
 ## Why adopt over rename?
 
@@ -77,7 +77,7 @@ Adopt mode honors the existing `ubuntu` account rather than renaming it to `user
 2. Renaming is an invisible base-image mutation — breaks in hard-to-debug ways.
 3. The rename approach doesn't scale to Debian cloud images (or future distros) that ship their own pre-existing uid-1000 accounts with different names.
 
-Adopt mode respects the base image's contract and scales declaratively. See `/ov-coder:sshd` for the `getent passwd 1000` pattern that makes layer content (sudoers in particular) work uniformly across both create and adopt modes.
+Adopt mode respects the base image's contract and scales declaratively. See `/charly-coder:sshd` for the `getent passwd 1000` pattern that makes layer content (sudoers in particular) work uniformly across both create and adopt modes.
 
 ## Bootstrap
 
@@ -94,51 +94,51 @@ USER 1000
 
 ## Dockerhub rate-limit caveat
 
-The upstream `ubuntu:24.04` pull from Dockerhub is unauthenticated-rate-limited (100 pulls / 6h / IP). If `ov box build ubuntu` fails with `toomanyrequests`, pull from AWS ECR Public and retag:
+The upstream `ubuntu:24.04` pull from Dockerhub is unauthenticated-rate-limited (100 pulls / 6h / IP). If `charly box build ubuntu` fails with `toomanyrequests`, pull from AWS ECR Public and retag:
 
 ```bash
 podman pull public.ecr.aws/docker/library/ubuntu:24.04
 podman tag public.ecr.aws/docker/library/ubuntu:24.04 docker.io/library/ubuntu:24.04
-ov box build ubuntu
+charly box build ubuntu
 ```
 
 ECR Public mirrors the Dockerhub library namespace without rate-limiting.
 
 ## Downstream / sibling entries (all in overthinkos/ubuntu)
 
-- `/ov-distros:ubuntu-builder` — pixi/npm/cargo multi-stage builder.
-- `/ov-coder:ubuntu-coder` — kitchen-sink dev image.
-- `/ov-distros:ubuntu-debootstrap-builder` — privileged debootstrap builder (`base: debian:13`).
-- `/ov-distros:ubuntu-debootstrap` — bootstrap-from-scratch rootfs.
-- `/ov-vm:ubuntu` — the `ubuntu-debootstrap` bootstrap VM + `eval-ubuntu-debootstrap-vm` bed.
+- `/charly-distros:ubuntu-builder` — pixi/npm/cargo multi-stage builder.
+- `/charly-coder:ubuntu-coder` — kitchen-sink dev image.
+- `/charly-distros:ubuntu-debootstrap-builder` — privileged debootstrap builder (`base: debian:13`).
+- `/charly-distros:ubuntu-debootstrap` — bootstrap-from-scratch rootfs.
+- `/charly-vm:ubuntu` — the `ubuntu-debootstrap` bootstrap VM + `eval-ubuntu-debootstrap-vm` bed.
 
 ## Verification
 
 ```bash
-ov -C image/ubuntu image build ubuntu
-ov shell ubuntu                       # drops into /home/ubuntu as uid 1000
+charly -C image/ubuntu image build ubuntu
+charly shell ubuntu                       # drops into /home/ubuntu as uid 1000
 id                                    # uid=1000(ubuntu) gid=1000(ubuntu)
-ov -C image/ubuntu image validate     # remote build.yml resolves distro.ubuntu (inherits debian)
+charly -C image/ubuntu image validate     # remote build.yml resolves distro.ubuntu (inherits debian)
 ```
 
 ## Related images
 
-- `/ov-distros:debian` — sibling deb-family base without adopt mode (Debian 13 ships no pre-existing uid-1000 user).
-- `/ov-distros:ubuntu-builder` — multi-stage builder.
-- `/ov-coder:ubuntu-coder` — kitchen-sink dev image.
-- `/ov-distros:fedora` — RPM-family counterpart.
-- `/ov-distros:arch` — pacman-family counterpart.
+- `/charly-distros:debian` — sibling deb-family base without adopt mode (Debian 13 ships no pre-existing uid-1000 user).
+- `/charly-distros:ubuntu-builder` — multi-stage builder.
+- `/charly-coder:ubuntu-coder` — kitchen-sink dev image.
+- `/charly-distros:fedora` — RPM-family counterpart.
+- `/charly-distros:arch` — pacman-family counterpart.
 
 ## Related commands
 
-- `/ov-build:build` — `base_user:` declaration format, which lives in `build.yml distro.ubuntu`.
-- `/ov-image:image` — `user_policy:` field + reconciliation.
-- `/ov-build:generate` — adopt-vs-create writeBootstrap emission.
+- `/charly-build:build` — `base_user:` declaration format, which lives in `build.yml distro.ubuntu`.
+- `/charly-image:image` — `user_policy:` field + reconciliation.
+- `/charly-build:generate` — adopt-vs-create writeBootstrap emission.
 
 ## Related layers (cross-distro patterns this base enables)
 
-- `/ov-coder:sshd` — `getent passwd 1000`-based sudoers works for both `user` (create) and `ubuntu` (adopt).
-- `/ov-coder:language-runtimes` — Microsoft `dotnet-install.sh` (Ubuntu noble doesn't ship dotnet-sdk-9.0 in main; Microsoft's noble apt repo only has 10.0; the dotnet-install.sh `--channel 9.0` is the cross-distro solution).
+- `/charly-coder:sshd` — `getent passwd 1000`-based sudoers works for both `user` (create) and `ubuntu` (adopt).
+- `/charly-coder:language-runtimes` — Microsoft `dotnet-install.sh` (Ubuntu noble doesn't ship dotnet-sdk-9.0 in main; Microsoft's noble apt repo only has 10.0; the dotnet-install.sh `--channel 9.0` is the cross-distro solution).
 
 ## When to use this skill
 
@@ -147,4 +147,4 @@ ov -C image/ubuntu image validate     # remote build.yml resolves distro.ubuntu 
 - Building or troubleshooting the `ubuntu` base image.
 - Adding any Ubuntu-based image (it will inherit the adopt-mode `ubuntu:ubuntu` identity by default).
 - Debugging `${USER}` / `${HOME}` differences between Ubuntu and other deb-based images (ubuntu-coder → `ubuntu:/home/ubuntu`; debian-coder → `user:/home/user`).
-- Understanding why ubuntu-coder's `/etc/sudoers.d/ov-user` says `ubuntu ALL=(ALL) NOPASSWD: ALL` rather than `user`.
+- Understanding why ubuntu-coder's `/etc/sudoers.d/charly-user` says `ubuntu ALL=(ALL) NOPASSWD: ALL` rather than `user`.

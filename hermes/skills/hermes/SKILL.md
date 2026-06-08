@@ -16,7 +16,7 @@ hermes:
   base: fedora
   layers:
     - agent-forwarding
-    - hermes-full      # hermes + claude-code + codex + gemini + dev-tools + devops-tools + ov + tmux
+    - hermes-full      # hermes + claude-code + codex + gemini + dev-tools + devops-tools + charly + tmux
     - dbus
 ```
 
@@ -38,10 +38,10 @@ hermes:
 ## Quick Start
 
 ```bash
-ov box build hermes
-ov config hermes -e OLLAMA_API_KEY=your-key   # or OPENROUTER_API_KEY
-ov start hermes
-ov shell hermes -c "hermes chat"
+charly box build hermes
+charly config hermes -e OLLAMA_API_KEY=your-key   # or OPENROUTER_API_KEY
+charly start hermes
+charly shell hermes -c "hermes chat"
 ```
 
 ## Configuration
@@ -66,16 +66,16 @@ Override the default model with `HERMES_MODEL` env var. Additional `env_accept`:
 
 ```bash
 # Ollama Cloud
-ov config hermes -e OLLAMA_API_KEY=your-key
+charly config hermes -e OLLAMA_API_KEY=your-key
 
 # OpenRouter with custom model
-ov config hermes -e OPENROUTER_API_KEY=sk-or-xxx -e HERMES_MODEL=google/gemini-2.5-flash
+charly config hermes -e OPENROUTER_API_KEY=sk-or-xxx -e HERMES_MODEL=google/gemini-2.5-flash
 
-# Local Ollama (OLLAMA_HOST auto-injected by ov config ollama --update-all)
-ov config hermes
+# Local Ollama (OLLAMA_HOST auto-injected by charly config ollama --update-all)
+charly config hermes
 
 # Or via .env file in the data volume
-ov shell hermes -c "vi /opt/data/.env"
+charly shell hermes -c "vi /opt/data/.env"
 ```
 
 The data volume (`/opt/data`) persists: sessions, skills, memories, logs, config, and `.env`.
@@ -86,80 +86,80 @@ Deploy alongside provider containers for full functionality:
 
 ```bash
 # 1. Deploy selkies-desktop (provides BROWSER_CDP_URL)
-ov config selkies-desktop
-ov start selkies-desktop
+charly config selkies-desktop
+charly start selkies-desktop
 
 # 2. Deploy jupyter (provides jupyter MCP server)
-ov config jupyter --update-all
-ov start jupyter
+charly config jupyter --update-all
+charly start jupyter
 
 # 3. Deploy hermes (consumes both)
-ov config hermes -e OLLAMA_API_KEY=... --update-all
-ov start hermes
+charly config hermes -e OLLAMA_API_KEY=... --update-all
+charly start hermes
 ```
 
 Hermes receives:
-- `BROWSER_CDP_URL=http://ov-selkies-desktop:9222` — controls desktop Chrome
-- `OV_MCP_SERVERS=[{"name":"jupyter","url":"http://ov-jupyter:8888/mcp"},{"name":"chrome-devtools","url":"http://ov-selkies-desktop:9224/mcp"}]` — notebook manipulation + browser DevTools MCP
+- `BROWSER_CDP_URL=http://charly-selkies-desktop:9222` — controls desktop Chrome
+- `OV_MCP_SERVERS=[{"name":"jupyter","url":"http://charly-jupyter:8888/mcp"},{"name":"chrome-devtools","url":"http://charly-selkies-desktop:9224/mcp"}]` — notebook manipulation + browser DevTools MCP
 
 ## MCP Server Discovery
 
-When co-deployed with services that declare `mcp_provide` (e.g., jupyter), hermes auto-discovers and connects to their MCP servers at first start. The `OV_MCP_SERVERS` JSON env var is injected by `ov config` and the entrypoint writes the servers into `config.yaml` under `mcp_servers:`.
+When co-deployed with services that declare `mcp_provide` (e.g., jupyter), hermes auto-discovers and connects to their MCP servers at first start. The `OV_MCP_SERVERS` JSON env var is injected by `charly config` and the entrypoint writes the servers into `config.yaml` under `mcp_servers:`.
 
 ```bash
 # Verify MCP connection
-ov shell hermes -c "hermes mcp list"                    # Shows registered servers
-ov shell hermes -c "hermes mcp test jupyter"      # Tests connection (expects 11 tools)
+charly shell hermes -c "hermes mcp list"                    # Shows registered servers
+charly shell hermes -c "hermes mcp test jupyter"      # Tests connection (expects 11 tools)
 ```
 
 ## Key Layers
 
-- `/ov-hermes:hermes-full-layer` — Metalayer composition details
-- `/ov-hermes:hermes` — Core agent (env_accept, browser dispatch, LLM config)
-- `/ov-selkies:chrome` — Provides `BROWSER_CDP_URL` (from selkies-desktop)
-- `/ov-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server on port 9224 (from selkies-desktop)
+- `/charly-hermes:hermes-full-layer` — Metalayer composition details
+- `/charly-hermes:hermes` — Core agent (env_accept, browser dispatch, LLM config)
+- `/charly-selkies:chrome` — Provides `BROWSER_CDP_URL` (from selkies-desktop)
+- `/charly-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server on port 9224 (from selkies-desktop)
 
 ## Related Images
 
-- `/ov-hermes:hermes-playwright` — Hermes with local Playwright Chromium
-- `/ov-selkies:selkies-labwc` — Desktop with Chrome (cross-container browser provider)
-- `/ov-jupyter:jupyter` — JupyterLab with MCP (cross-container MCP provider)
+- `/charly-hermes:hermes-playwright` — Hermes with local Playwright Chromium
+- `/charly-selkies:selkies-labwc` — Desktop with Chrome (cross-container browser provider)
+- `/charly-jupyter:jupyter` — JupyterLab with MCP (cross-container MCP provider)
 
 ## Verification
 
 ```bash
-ov status hermes
-ov service status hermes                    # hermes: RUNNING
-ov shell hermes -c "hermes --version"
-ov shell hermes -c "claude --version"
-ov shell hermes -c "codex --version"
-ov shell hermes -c "gemini --version"
-ov shell hermes -c "ov version"
-ov shell hermes -c "echo BROWSER_CDP_URL=\$BROWSER_CDP_URL"
-ov shell hermes -c "echo OV_MCP_SERVERS=\$OV_MCP_SERVERS"
-ov shell hermes -c "hermes mcp list"              # Should show chrome-devtools, jupyter
+charly status hermes
+charly service status hermes                    # hermes: RUNNING
+charly shell hermes -c "hermes --version"
+charly shell hermes -c "claude --version"
+charly shell hermes -c "codex --version"
+charly shell hermes -c "gemini --version"
+charly shell hermes -c "charly version"
+charly shell hermes -c "echo BROWSER_CDP_URL=\$BROWSER_CDP_URL"
+charly shell hermes -c "echo OV_MCP_SERVERS=\$OV_MCP_SERVERS"
+charly shell hermes -c "hermes mcp list"              # Should show chrome-devtools, jupyter
 ```
 
 ## Test Coverage
 
-Latest `ov eval live hermes` run: **50 passed, 0 failed, 0 skipped**.
+Latest `charly eval live hermes` run: **50 passed, 0 failed, 0 skipped**.
 Covers all 4 AI CLIs at `${HOME}/.npm-global/bin/{claude,codex,gemini}`
 + pixi's `hermes` at `${HOME}/.pixi/envs/default/bin/hermes`, plus
 dev-tools (rg, bat, gh, fastfetch, nvim, htop) and devops-tools (aws,
 scw, kubectx, kubens, tofu, jq). Deploy-scope: pipewire + hermes
 services up, `/opt/data` volume mounted. Uses `supervisorctl pid` for
-liveness (hermes-whatsapp is autostart=false — see `/ov-eval:eval` Gotcha #4).
+liveness (hermes-whatsapp is autostart=false — see `/charly-eval:eval` Gotcha #4).
 
 ## Related Skills
 
-- `/ov-hermes:hermes-full-layer`, `/ov-hermes:hermes`, `/ov-coder:claude-code`,
-  `/ov-coder:codex`, `/ov-coder:gemini`, `/ov-coder:dev-tools`,
-  `/ov-coder:devops-tools`
-- `/ov-eval:eval` — declarative testing framework + supervisord gotchas
-- `/ov-core:ov-config` — `OV_MCP_SERVERS` auto-discovery + secret provisioning
-- `/ov-build:ov-mcp-cmd` — verify each MCP server in `OV_MCP_SERVERS` is actually alive before debugging hermes tool-call failures; `ov eval mcp list-tools <provider-image>` shows exactly what hermes will see
-- `/ov-selkies:selkies-labwc` — companion for shared browser (CDP)
-- `/ov-jupyter:jupyter` — MCP notebook tools auto-discovered
+- `/charly-hermes:hermes-full-layer`, `/charly-hermes:hermes`, `/charly-coder:claude-code`,
+  `/charly-coder:codex`, `/charly-coder:gemini`, `/charly-coder:dev-tools`,
+  `/charly-coder:devops-tools`
+- `/charly-eval:eval` — declarative testing framework + supervisord gotchas
+- `/charly-core:ov-config` — `OV_MCP_SERVERS` auto-discovery + secret provisioning
+- `/charly-build:ov-mcp-cmd` — verify each MCP server in `OV_MCP_SERVERS` is actually alive before debugging hermes tool-call failures; `charly eval mcp list-tools <provider-image>` shows exactly what hermes will see
+- `/charly-selkies:selkies-labwc` — companion for shared browser (CDP)
+- `/charly-jupyter:jupyter` — MCP notebook tools auto-discovered
 
 ## When to Use This Skill
 
@@ -167,5 +167,5 @@ liveness (hermes-whatsapp is autostart=false — see `/ov-eval:eval` Gotcha #4).
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

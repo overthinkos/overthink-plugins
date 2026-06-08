@@ -25,7 +25,7 @@ description: |
 package — dnf resolves it to `liberation-sans-fonts` (and sibling
 `-serif-fonts` / `-mono-fonts` packages). Any `package:` test must
 query the real installed name (`liberation-sans-fonts`), not the
-dnf-level request. See `/ov-eval:eval` Authoring Gotcha #8.
+dnf-level request. See `/charly-eval:eval` Authoring Gotcha #8.
 
 ## Usage
 
@@ -43,22 +43,22 @@ Included in desktop metalayers. Not typically added directly:
 
 ## Used In
 
-- `/ov-selkies:sway-desktop` -- via metalayer composition
-- `/ov-selkies:selkies-desktop-layer` -- via metalayer composition
+- `/charly-selkies:sway-desktop` -- via metalayer composition
+- `/charly-selkies:selkies-desktop-layer` -- via metalayer composition
 
 ## Used In Images
 
-- `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
-- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
+- `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Related Skills
 
-- `/ov-selkies:waybar` -- uses JetBrains Mono + Symbols Nerd Font
-- `/ov-selkies:waybar-labwc` -- same fonts
-- `/ov-selkies:swaync` -- uses JetBrains Mono
-- `/ov-eval:eval` -- declarative testing framework (Authoring Gotcha #8 on package renames)
-- `/ov-image:layer` -- layer authoring reference
+- `/charly-selkies:waybar` -- uses JetBrains Mono + Symbols Nerd Font
+- `/charly-selkies:waybar-labwc` -- same fonts
+- `/charly-selkies:swaync` -- uses JetBrains Mono
+- `/charly-eval:eval` -- declarative testing framework (Authoring Gotcha #8 on package renames)
+- `/charly-image:layer` -- layer authoring reference
 
 ## When to Use This Skill
 

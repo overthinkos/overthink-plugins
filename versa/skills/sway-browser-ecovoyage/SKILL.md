@@ -31,11 +31,11 @@ loopback collision, TLS-terminated by tailscaled.
 ## Deploy
 
 ```bash
-ov config sway-browser-vnc/ecovoyage
-ov start sway-browser-vnc/ecovoyage
+charly config sway-browser-vnc/ecovoyage
+charly start sway-browser-vnc/ecovoyage
 ```
 
-The deploy entry is fully specified in `~/.config/ov/deploy.yml` —
+The deploy entry is fully specified in `~/.config/charly/deploy.yml` —
 it pins host ports (5901 VNC, 9230 CDP, 9232 MCP) and forwards
 every `*_PUBLIC_URL` env var so chrome's address bar + scripts
 + chrome-devtools-mcp tooling all see the same tailnet URLs the
@@ -71,19 +71,19 @@ These are passed in as env vars (`MARTIN_PUBLIC_URL`,
 
 ```bash
 # 1. Open the marimo notebook in chrome
-ov eval cdp open sway-browser-vnc/ecovoyage \
+charly eval cdp open sway-browser-vnc/ecovoyage \
   "https://ac.armadillo-quail.ts.net:32718/?file=notebooks/osm-monaco-viz.py"
 
 # 2. Run all stale cells (after the DAGs finish executing)
-ov eval cdp evaluate_script sway-browser-vnc/ecovoyage \
+charly eval cdp evaluate_script sway-browser-vnc/ecovoyage \
   --expression 'document.querySelectorAll("button[data-testid=run-button]").forEach(b => b.click())'
 
 # 3. Wait for the streets MapLibre canvas to appear
-ov eval cdp wait sway-browser-vnc/ecovoyage \
+charly eval cdp wait sway-browser-vnc/ecovoyage \
   --selector ".maplibregl-canvas" --timeout 90s
 
 # 4. Screenshot — validate dimensions + non-uniform content
-ov eval cdp screenshot sway-browser-vnc/ecovoyage \
+charly eval cdp screenshot sway-browser-vnc/ecovoyage \
   --artifact /tmp/ecovoyage-streets.png \
   --artifact-min-bytes 50000 \
   --artifact-min-dimensions 800x600 \
@@ -92,7 +92,7 @@ ov eval cdp screenshot sway-browser-vnc/ecovoyage \
 # 5. Inspect the iframe contents directly (catch JS errors before they
 #    silently produce blank canvases — see the hyphen-in-JS-identifier
 #    bug story below)
-ov eval cdp evaluate_script sway-browser-vnc/ecovoyage \
+charly eval cdp evaluate_script sway-browser-vnc/ecovoyage \
   --expression '[...document.querySelectorAll("iframe")].map(f => ({
     src: f.src, canvas: !!f.contentDocument?.querySelector("canvas"),
     consts: [...(f.contentDocument?.body?.innerHTML?.matchAll(/const map_[a-z_-]+/g) || [])].map(m=>m[0])
@@ -117,9 +117,9 @@ can plug it into its MCP config:
 }
 ```
 
-In overthink's `provides:` registry this server is published as
-`chrome-devtools-ecovoyage` (instance-suffixed by `ov config`'s
-MCP name-disambiguation rule — see `/ov-core:deploy`) so it
+In opencharly's `provides:` registry this server is published as
+`chrome-devtools-ecovoyage` (instance-suffixed by `charly config`'s
+MCP name-disambiguation rule — see `/charly-core:deploy`) so it
 doesn't collide with the `eval-sway-browser-vnc-pod`'s base
 `chrome-devtools` provide.
 
@@ -156,11 +156,11 @@ sandboxed pods.
 
 ## Related
 
-- `/ov-versa:notebook-osm` — the marimo notebook whose 5 maps this skill exists to debug
-- `/ov-versa:versa` — the image hosting the maps (versa/ecovoyage = Pattern A instance)
-- `/ov-selkies:sway-browser-vnc` — the base image this deploy instantiates
-- `/ov-selkies:chrome-devtools-mcp` — the layer providing the MCP server
-- `/ov-eval:cdp` — the verb catalog driving Chrome
-- `/ov-build:ov-mcp-cmd` — verifying the MCP endpoint via `ov eval mcp ping/list-tools/call`
-- `/ov-core:deploy` — Pattern A multi-instance + MCP name disambiguation
-- `/ov-automation:sidecar` — alternative tailscale sidecar pattern (not used here; this skill uses host-serve)
+- `/charly-versa:notebook-osm` — the marimo notebook whose 5 maps this skill exists to debug
+- `/charly-versa:versa` — the image hosting the maps (versa/ecovoyage = Pattern A instance)
+- `/charly-selkies:sway-browser-vnc` — the base image this deploy instantiates
+- `/charly-selkies:chrome-devtools-mcp` — the layer providing the MCP server
+- `/charly-eval:cdp` — the verb catalog driving Chrome
+- `/charly-build:ov-mcp-cmd` — verifying the MCP endpoint via `charly eval mcp ping/list-tools/call`
+- `/charly-core:deploy` — Pattern A multi-instance + MCP name disambiguation
+- `/charly-automation:sidecar` — alternative tailscale sidecar pattern (not used here; this skill uses host-serve)

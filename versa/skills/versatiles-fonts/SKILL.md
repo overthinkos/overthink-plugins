@@ -64,8 +64,8 @@ Build-scope:
 
 ## Cross-references
 
-- `/ov-versa:versa` — image composing this layer
-- `/ov-versa:versatiles-style` — sibling MapLibre style generator; the generated styles reference the glyph URL pattern this layer provides
-- `/ov-versa:versatiles-frontend` — re-exports this bundle at `/fonts/`
-- `/ov-versa:maplibre-versatiles-styler` — UI control that lets users switch between font families exposed by this layer
-- `/ov-versa:notebook-osm` — the shortbread MapLibre cell that patches `style.glyphs` to point at this layer's bundle
+- `/charly-versa:versa` — image composing this layer
+- `/charly-versa:versatiles-style` — sibling MapLibre style generator; the generated styles reference the glyph URL pattern this layer provides
+- `/charly-versa:versatiles-frontend` — re-exports this bundle at `/fonts/`
+- `/charly-versa:maplibre-versatiles-styler` — UI control that lets users switch between font families exposed by this layer
+- `/charly-versa:notebook-osm` — the shortbread MapLibre cell that patches `style.glyphs` to point at this layer's bundle

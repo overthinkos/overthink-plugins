@@ -60,43 +60,43 @@ Works with any wlroots compositor via `wlr-layer-shell` protocol:
 ## Testing Notifications
 
 ```bash
-# Preferred: use ov eval dbus notify (native Go D-Bus, no shell quoting issues)
-ov eval dbus notify <image> "Title" "Body text"
+# Preferred: use charly eval dbus notify (native Go D-Bus, no shell quoting issues)
+charly eval dbus notify <image> "Title" "Body text"
 
-# Alternative: use ov cmd with notification (triggers on completion)
-ov cmd <image> "sleep 2 && echo done"
+# Alternative: use charly cmd with notification (triggers on completion)
+charly cmd <image> "sleep 2 && echo done"
 
 # Check if swaync is receiving notifications
-ov eval dbus list <image> | grep Notifications
+charly eval dbus list <image> | grep Notifications
 
 # Low-level: notify-send (requires libnotify layer)
-ov cmd <image> "notify-send 'Title' 'Body text'" --no-notify
+charly cmd <image> "notify-send 'Title' 'Body text'" --no-notify
 
 # swaync-client operations
-ov cmd <image> "swaync-client -c"    # notification count
-ov cmd <image> "swaync-client -C"    # clear all
-ov cmd <image> "swaync-client -t"    # toggle panel
-ov cmd <image> "swaync-client -d"    # toggle DnD
+charly cmd <image> "swaync-client -c"    # notification count
+charly cmd <image> "swaync-client -C"    # clear all
+charly cmd <image> "swaync-client -t"    # toggle panel
+charly cmd <image> "swaync-client -d"    # toggle DnD
 ```
 
 ## Used In
 
-- `/ov-selkies:sway-desktop` -- via metalayer composition
-- `/ov-selkies:selkies-desktop-layer` -- via metalayer composition
+- `/charly-selkies:sway-desktop` -- via metalayer composition
+- `/charly-selkies:selkies-desktop-layer` -- via metalayer composition
 
 ## Used In Images
 
-- `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
-- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
+- `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Related Layers
 
-- `/ov-infrastructure:dbus-layer` -- D-Bus session bus dependency
-- `/ov-selkies:libnotify` -- `notify-send` CLI (optional; `ov eval dbus notify` uses native Go D-Bus instead)
-- `/ov-selkies:waybar` -- notification bell module
-- `/ov-selkies:waybar-labwc` -- same notification bell module
-- `/ov-selkies:desktop-fonts` -- Nerd Font icons for notification bell
+- `/charly-infrastructure:dbus-layer` -- D-Bus session bus dependency
+- `/charly-selkies:libnotify` -- `notify-send` CLI (optional; `charly eval dbus notify` uses native Go D-Bus instead)
+- `/charly-selkies:waybar` -- notification bell module
+- `/charly-selkies:waybar-labwc` -- same notification bell module
+- `/charly-selkies:desktop-fonts` -- Nerd Font icons for notification bell
 
 ## When to Use This Skill
 
@@ -109,5 +109,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

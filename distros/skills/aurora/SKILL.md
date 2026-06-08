@@ -1,14 +1,14 @@
 ---
 name: aurora
 description: |
-  Aurora DX bootc image with NVIDIA, SSH, ov toolchain, and Go.
+  Aurora DX bootc image with NVIDIA, SSH, charly toolchain, and Go.
   Currently disabled. Enable in box.yml to build.
   MUST be invoked before building, deploying, or troubleshooting the aurora image.
 ---
 
 # aurora
 
-Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH access, full ov toolchain, and Go compiler. Lives in the `overthinkos/bootc` submodule (`image/bootc`).
+Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH access, full charly toolchain, and Go compiler. Lives in the `overthinkos/bootc` submodule (`image/bootc`).
 
 ## Image Properties
 
@@ -35,29 +35,29 @@ Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH acce
 
 1. `aurora-dx-nvidia-open` (external bootc base — full KDE desktop with NVIDIA)
 2. `sshd` — SSH server for remote access
-3. `ov` — the full toolchain: ov CLI + virtualization + encrypted storage + console
+3. `ov` — the full toolchain: charly CLI + virtualization + encrypted storage + console
 4. `golang` — Go compiler
 
 ## Quick Start
 
 ```bash
 # Built from the bootc submodule.
-ov -C image/bootc image build aurora
-ov -C image/bootc vm build aurora-bootc --transport containers-storage
-ov -C image/bootc vm create aurora-bootc --ram 12G --cpus 4
-ov -C image/bootc vm start aurora-bootc
-ov -C image/bootc vm ssh aurora-bootc
+charly -C image/bootc image build aurora
+charly -C image/bootc vm build aurora-bootc --transport containers-storage
+charly -C image/bootc vm create aurora-bootc --ram 12G --cpus 4
+charly -C image/bootc vm start aurora-bootc
+charly -C image/bootc vm ssh aurora-bootc
 ```
 
 ## Key Layers
 
-- `/ov-coder:sshd` — SSH access
-- `/ov-tools:ov` — ov binary in container
-- `/ov-coder:golang` — Go compiler
+- `/charly-coder:sshd` — SSH access
+- `/charly-tools:charly` — charly binary in container
+- `/charly-coder:golang` — Go compiler
 
 ## Related Images
 
-- `/ov-distros:githubrunner` — another image with the full `ov` toolchain (enabled)
+- `/charly-distros:githubrunner` — another image with the full `ov` toolchain (enabled)
 
 ## When to Use This Skill
 
@@ -65,5 +65,5 @@ ov -C image/bootc vm ssh aurora-bootc
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

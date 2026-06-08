@@ -25,15 +25,15 @@ my-bootc-image:
 
 ## Used In Images
 
-- `/ov-distros:bazzite`
+- `/charly-distros:bazzite`
 
 ## Related Layers
-- `/ov-distros:os-system-files` -- companion file overlay layer for bootc images
-- `/ov-distros:bootc-base` -- bootc image base composition
+- `/charly-distros:os-system-files` -- companion file overlay layer for bootc images
+- `/charly-distros:bootc-base` -- bootc image base composition
 
 ## Related Commands
-- `/ov-build:build` -- build the bootc image that consumes this layer
-- `/ov-vm:vm` -- boot the resulting bootc disk image
+- `/charly-build:build` -- build the bootc image that consumes this layer
+- `/charly-vm:vm` -- boot the resulting bootc disk image
 
 ## When to Use This Skill
 
@@ -47,5 +47,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

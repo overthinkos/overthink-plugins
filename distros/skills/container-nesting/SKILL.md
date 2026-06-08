@@ -18,7 +18,7 @@ Adds everything needed to run **rootless** podman/buildah/skopeo **inside
 a rootless outer container** — at the default uid 1000, with zero added
 capabilities, no `--privileged`, no `seccomp=unconfined`, no
 `label=disable`. The recipe is a direct port of `quay.io/podman/stable`'s
-canonical configuration, ported into the ov candy system so any image
+canonical configuration, ported into the charly candy system so any image
 can compose it.
 
 ## Layer Properties
@@ -130,7 +130,7 @@ masking entirely), this is the least-privilege fix available.
 
 ## Subuid / subgid layout (must fit inside the outer namespace)
 
-`ov shell` launches the outer container with `--userns=keep-id:uid=1000,gid=1000`
+`charly shell` launches the outer container with `--userns=keep-id:uid=1000,gid=1000`
 (default — see `ov/shell.go:254`). That creates a uid_map inside the
 outer of:
 
@@ -292,7 +292,7 @@ The resolved OCI label then unions to
 `cap_add:[ALL] + security_opt:[unmask=/proc/*, label=disable, seccomp=unconfined]`,
 which matches their historical posture.
 
-Rootless images like `/ov-openclaw:openclaw-desktop` don't add an
+Rootless images like `/charly-openclaw:openclaw-desktop` don't add an
 image-level `security:` block, so the resolved posture stays at
 `security_opt:[unmask=/proc/*]` only — zero capability escalation.
 
@@ -310,7 +310,7 @@ openclaw-desktop:
     - selkies-desktop
     - openclaw-full
     - ollama
-    - ov
+    - charly
     - container-nesting   # donates unmask + devices + config + env
     - ...
   # NO uid/gid/user/network override
@@ -332,7 +332,7 @@ fedora-ov:
       - label=disable
       - seccomp=unconfined
   layers:
-    - ov
+    - charly
     - container-nesting
     - ...
 ```
@@ -343,15 +343,15 @@ Both paths work; they just resolve to different OCI security labels.
 
 ```bash
 # Rootless posture on openclaw-desktop
-ov box inspect openclaw-desktop | jq '.HostConfig? // .Config.Labels."org.overthinkos.security"'
+charly box inspect openclaw-desktop | jq '.HostConfig? // .Config.Labels."ai.opencharly.security"'
 # → cap_add:[], security_opt:[unmask=/proc/*], devices:[/dev/fuse,/dev/net/tun]
 
 # Nested podman smoke (inside the running container)
-ov shell openclaw-desktop -c 'podman run --rm quay.io/libpod/alpine:latest true'
+charly shell openclaw-desktop -c 'podman run --rm quay.io/libpod/alpine:latest true'
 # → exit 0, NO "mount proc to proc: Operation not permitted"
 
 # Diagnostic: inspect the OCI spec generated for a nested container
-ov shell openclaw-desktop -c '
+charly shell openclaw-desktop -c '
   podman create --name t quay.io/libpod/alpine:latest /bin/true >/dev/null
   sf=$(find ~/.local/share/containers -name config.json -path "*/userdata/*" | head -1)
   jq ".linux.maskedPaths" "$sf"'
@@ -368,23 +368,23 @@ this order:
 
 ## Used In Images
 
-- `/ov-openclaw:openclaw-desktop` — rootless path; image-level adds nothing
-- `/ov-distros:fedora-ov` — root path; image-level adds `cap_add:[ALL] + security_opt:[label=disable, seccomp=unconfined]`
-- `/ov-coder:arch-ov` — same root path as fedora-ov
-- `/ov-distros:githubrunner` — same root path; doesn't compose the full ov toolchain but keeps nested podman for CI workloads
+- `/charly-openclaw:openclaw-desktop` — rootless path; image-level adds nothing
+- `/charly-distros:fedora-ov` — root path; image-level adds `cap_add:[ALL] + security_opt:[label=disable, seccomp=unconfined]`
+- `/charly-coder:arch-ov` — same root path as fedora-charly
+- `/charly-distros:githubrunner` — same root path; doesn't compose the full charly toolchain but keeps nested podman for CI workloads
 
 ## Related Layers
 
-- `/ov-tools:ov` — pairs with container-nesting in ov-toolchain images (the full toolchain: `ov` binary + VM + encrypted storage tools)
-- `/ov-infrastructure:virtualization` — supervisord-managed rootless libvirt (`virtqemud`, `virtnetworkd`). Pairs with container-nesting for images that need both nested containers AND nested VMs
-- `/ov-coder:sshd` — sibling enabling remote access to nested-container hosts
+- `/charly-tools:charly` — pairs with container-nesting in ov-toolchain images (the full toolchain: `ov` binary + VM + encrypted storage tools)
+- `/charly-infrastructure:virtualization` — supervisord-managed rootless libvirt (`virtqemud`, `virtnetworkd`). Pairs with container-nesting for images that need both nested containers AND nested VMs
+- `/charly-coder:sshd` — sibling enabling remote access to nested-container hosts
 
 ## Related Commands
 
-- `/ov-build:build` — build images that ship nested podman
-- `/ov-core:shell` — run nested podman/buildah commands inside the outer
-- `/ov-build:generate` — Containerfile generation (the `service:` supervisord fragments for container-nesting consumers go through the fragment_assembly init model)
-- `/ov-core:ov-config` — image-level `security:` union with layer-level when deploying
+- `/charly-build:build` — build images that ship nested podman
+- `/charly-core:shell` — run nested podman/buildah commands inside the outer
+- `/charly-build:generate` — Containerfile generation (the `service:` supervisord fragments for container-nesting consumers go through the fragment_assembly init model)
+- `/charly-core:ov-config` — image-level `security:` union with layer-level when deploying
 
 ## When to Use This Skill
 
@@ -393,9 +393,9 @@ this order:
 - Authoring or debugging any layer/image that needs nested podman, buildah, or skopeo.
 - Chasing `mount_too_revealing` / `mount proc to proc: Operation not permitted` errors — this is the authoritative RCA.
 - Choosing between `--privileged`, `cap_add: ALL`, and `unmask=/proc/*` — this skill documents why the surgical `unmask` fix is the minimum-privilege path and the others are hammers.
-- Evaluating the security posture of `/ov-openclaw:openclaw-desktop`, `/ov-distros:fedora-ov`, `/ov-coder:arch-ov`, or `/ov-distros:githubrunner`.
+- Evaluating the security posture of `/charly-openclaw:openclaw-desktop`, `/charly-distros:fedora-ov`, `/charly-coder:arch-ov`, or `/charly-distros:githubrunner`.
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

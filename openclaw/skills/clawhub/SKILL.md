@@ -27,13 +27,13 @@ layers:
 - `openclaw-full` (via `openclaw-full` metalayer)
 
 ## Related Layers
-- `/ov-coder:nodejs` — Required Node.js runtime parent dependency
-- `/ov-openclaw:openclaw-full` — Metalayer bundling clawhub with codex/gemini/claude-code
-- `/ov-openclaw:openclaw` — OpenClaw gateway service that consumes installed skills
+- `/charly-coder:nodejs` — Required Node.js runtime parent dependency
+- `/charly-openclaw:openclaw-full` — Metalayer bundling clawhub with codex/gemini/claude-code
+- `/charly-openclaw:openclaw` — OpenClaw gateway service that consumes installed skills
 
 ## Related Commands
-- `/ov-build:build` — Builds the layer (npm global install via package.json)
-- `/ov-automation:openclaw-deploy` — OpenClaw gateway configuration where clawhub installs skills
+- `/charly-build:build` — Builds the layer (npm global install via package.json)
+- `/charly-automation:openclaw-deploy` — OpenClaw gateway configuration where clawhub installs skills
 
 ## When to Use This Skill
 
@@ -44,5 +44,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

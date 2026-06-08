@@ -14,7 +14,7 @@ Web file manager accessible via Tailscale private tunnel.
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | agent-forwarding, filebrowser, dbus, ov |
+| Layers | agent-forwarding, filebrowser, dbus, charly |
 | Platforms | linux/amd64 |
 | Ports | 8085:8080 |
 | Tunnel | tailscale (private: all) |
@@ -27,7 +27,7 @@ Web file manager accessible via Tailscale private tunnel.
 3. `agent-forwarding` -- SSH/GPG agent forwarding
 4. `filebrowser` -- web file manager, data + files volumes
 5. `dbus` -- D-Bus session bus
-6. `ov` -- ov CLI inside container
+6. `ov` -- charly CLI inside container
 
 ## Ports
 
@@ -45,9 +45,9 @@ Web file manager accessible via Tailscale private tunnel.
 ## Quick Start
 
 ```bash
-ov box build filebrowser
-ov config filebrowser --bind files=~/Documents
-ov start filebrowser
+charly box build filebrowser
+charly config filebrowser --bind files=~/Documents
+charly start filebrowser
 # Access at http://localhost:8085
 # Tailscale: https://<hostname>:8085
 # Default login: admin / admin
@@ -57,59 +57,59 @@ ov start filebrowser
 
 ```bash
 # Browse home directory
-ov config filebrowser --bind files=~/
+charly config filebrowser --bind files=~/
 
 # Browse NAS mount
-ov config filebrowser --bind files=/mnt/nas/shared
+charly config filebrowser --bind files=/mnt/nas/shared
 
 # Browse specific project
-ov config filebrowser --bind files=~/projects
+charly config filebrowser --bind files=~/projects
 ```
 
 ## Host Alias
 
 ```bash
-ov alias install filebrowser
+charly alias install filebrowser
 # Now: filebrowser  (runs inside the container)
 ```
 
 ## Key Layers
 
-- `/ov-filebrowser:filebrowser` -- FileBrowser Quantum service, config, volumes
-- `/ov-distros:agent-forwarding` -- SSH/GPG agent forwarding
-- `/ov-infrastructure:dbus-layer` -- D-Bus session bus
-- `/ov-tools:ov` -- ov CLI for in-container management
+- `/charly-filebrowser:filebrowser` -- FileBrowser Quantum service, config, volumes
+- `/charly-distros:agent-forwarding` -- SSH/GPG agent forwarding
+- `/charly-infrastructure:dbus-layer` -- D-Bus session bus
+- `/charly-tools:charly` -- charly CLI for in-container management
 
 ## Related Images
 
-- `/ov-distros:fedora` -- parent base image
-- `/ov-ollama:ollama` -- similar simple service pattern
+- `/charly-distros:fedora` -- parent base image
+- `/charly-ollama:ollama` -- similar simple service pattern
 
 ## Verification
 
-After `ov start`:
-- `ov status filebrowser` -- container running
+After `charly start`:
+- `charly status filebrowser` -- container running
 - `curl -s http://localhost:8085` -- web UI responds (HTTP 200)
 - `curl -s http://localhost:8085/health` -- `{"message":"ok"}`
 - Tailscale: `https://<hostname>:8085` from any tailnet device
 
 ## Test Coverage
 
-Latest `ov eval live filebrowser` run: **24 passed, 0 failed, 0 skipped**.
-All tests embedded in the `org.overthinkos.eval` OCI label, covering
+Latest `charly eval live filebrowser` run: **24 passed, 0 failed, 0 skipped**.
+All tests embedded in the `ai.opencharly.eval` OCI label, covering
 agent-forwarding prerequisites (gpg, ssh, direnv binaries), supervisord
-+ dbus daemon + ov binary presence, filebrowser binary + config, and
++ dbus daemon + charly binary presence, filebrowser binary + config, and
 deploy-scope: service up, port reachable on `127.0.0.1:${HOST_PORT:8080}`,
 HTTP 200 on `/`, data volume mounted.
 
-See `/ov-eval:eval` for the framework and author-facing gotchas.
+See `/charly-eval:eval` for the framework and author-facing gotchas.
 
 ## Related Skills
 
-- `/ov-filebrowser:filebrowser` — layer authoring
-- `/ov-eval:eval` — declarative testing framework
-- `/ov-core:ov-config` — deploy-mode setup with volume backing and tunnels
-- `/ov-build:build` — LABELs-at-end cache efficiency
+- `/charly-filebrowser:filebrowser` — layer authoring
+- `/charly-eval:eval` — declarative testing framework
+- `/charly-core:ov-config` — deploy-mode setup with volume backing and tunnels
+- `/charly-build:build` — LABELs-at-end cache efficiency
 
 ## When to Use This Skill
 
@@ -117,4 +117,4 @@ See `/ov-eval:eval` for the framework and author-facing gotchas.
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)

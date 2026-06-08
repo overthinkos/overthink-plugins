@@ -31,13 +31,13 @@ my-desktop:
 - `bazzite`
 
 ## Related Layers
-- `/ov-distros:copr-desktop` — Sibling COPR desktop packages (Ghostty, Nerd Fonts)
-- `/ov-coder:dev-tools` — Sibling CLI utilities bundled in the same bootc image
-- `/ov-selkies:desktop-fonts` — Sibling font configuration for desktop containers
+- `/charly-distros:copr-desktop` — Sibling COPR desktop packages (Ghostty, Nerd Fonts)
+- `/charly-coder:dev-tools` — Sibling CLI utilities bundled in the same bootc image
+- `/charly-selkies:desktop-fonts` — Sibling font configuration for desktop containers
 
 ## Related Commands
-- `/ov-build:build` — Build the bootc image including these desktop packages
-- `/ov-vm:vm` — Run the bootc image as a VM to test the desktop apps
+- `/charly-build:build` — Build the bootc image including these desktop packages
+- `/charly-vm:vm` — Run the bootc image as a VM to test the desktop apps
 
 ## When to Use This Skill
 
@@ -49,5 +49,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

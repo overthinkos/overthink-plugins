@@ -33,13 +33,13 @@ layers:
 
 
 ## Related Layers
-- `/ov-openclaw:openclaw-full` -- base composition with all OpenClaw tools
-- `/ov-tools:whisper` -- speech-to-text component
-- `/ov-tools:sherpa-onnx` -- offline TTS component
+- `/charly-openclaw:openclaw-full` -- base composition with all OpenClaw tools
+- `/charly-tools:whisper` -- speech-to-text component
+- `/charly-tools:sherpa-onnx` -- offline TTS component
 
 ## Related Commands
-- `/ov-automation:openclaw-deploy` -- gateway configuration and channel setup
-- `/ov-build:build` -- build images composing this metalayer
+- `/charly-automation:openclaw-deploy` -- gateway configuration and channel setup
+- `/charly-build:build` -- build images composing this metalayer
 
 ## When to Use This Skill
 
@@ -51,5 +51,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

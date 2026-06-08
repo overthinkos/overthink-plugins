@@ -12,13 +12,13 @@ description: |
 
 # ubuntu-coder
 
-Ubuntu 24.04 noble counterpart of `/ov-coder:fedora-coder`. Same 80-line test block, same ~30 layers, same rootless posture — but **the resolved user is `ubuntu` (not `user`)** because the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` to adopt it. Everything that touches the user account — `${HOME}`, npm prefix, pixi env, sudoers — derives from `resolved.User = "ubuntu"`.
+Ubuntu 24.04 noble counterpart of `/charly-coder:fedora-coder`. Same 80-line test block, same ~30 layers, same rootless posture — but **the resolved user is `ubuntu` (not `user`)** because the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` to adopt it. Everything that touches the user account — `${HOME}`, npm prefix, pixi env, sudoers — derives from `resolved.User = "ubuntu"`.
 
 > **Location:** lives in the **`overthinkos/ubuntu`** repo (git submodule at
 > **`image/ubuntu`**) — a SEPARATE repo from `overthinkos/debian`. Its ~31
 > layers are pulled by github reference from the main repo. Build/validate from
-> the submodule: `ov -C image/ubuntu image build ubuntu-coder`, or
-> `ov --repo overthinkos/ubuntu image build ubuntu-coder`. Deploy-mode verbs
+> the submodule: `charly -C image/ubuntu image build ubuntu-coder`, or
+> `charly --repo overthinkos/ubuntu image build ubuntu-coder`. Deploy-mode verbs
 > read the built image's OCI labels and work from anywhere once it's local.
 
 ## Definition
@@ -33,7 +33,7 @@ ubuntu-coder:
     # Same stack as debian-coder — see that skill for the full list
     - agent-forwarding
     - sshd
-    - ov
+    - charly
     - ov-mcp
     - container-nesting
     - dbus
@@ -85,9 +85,9 @@ WORKDIR /home/ubuntu
 USER 1000
 ```
 
-Resolved identity: `User=ubuntu, UID=1000, GID=1000, Home=/home/ubuntu`. The image's OCI labels carry these values (`org.overthinkos.user="ubuntu"`, `org.overthinkos.home="/home/ubuntu"`) so deploy-mode quadlets and `ov shell` find them without re-reading `box.yml`.
+Resolved identity: `User=ubuntu, UID=1000, GID=1000, Home=/home/ubuntu`. The image's OCI labels carry these values (`ai.opencharly.user="ubuntu"`, `ai.opencharly.home="/home/ubuntu"`) so deploy-mode quadlets and `charly shell` find them without re-reading `box.yml`.
 
-**Why adopt over rename?** Ubuntu's cloud-init tooling, documentation, and `/etc/passwd` metadata all expect the user to be named `ubuntu`. Renaming fights the upstream contract. Adopting honors it. See `/ov-image:image` "user_policy" for the full rationale and the 3-value policy table.
+**Why adopt over rename?** Ubuntu's cloud-init tooling, documentation, and `/etc/passwd` metadata all expect the user to be named `ubuntu`. Renaming fights the upstream contract. Adopting honors it. See `/charly-image:image` "user_policy" for the full rationale and the 3-value policy table.
 
 ## Live verification
 
@@ -101,48 +101,48 @@ User ubuntu may run the following commands on <host>:
 
 ## Security posture
 
-Identical to `/ov-coder:debian-coder` — the only diff is `User` field.
+Identical to `/charly-coder:debian-coder` — the only diff is `User` field.
 
 | Field | Value | Source |
 |---|---|---|
 | `cap_add` | **(empty)** | — |
-| `security_opt` | `[unmask=/proc/*]` | `/ov-distros:container-nesting` |
-| `devices` | `[/dev/fuse, /dev/net/tun]` | `/ov-distros:container-nesting` |
+| `security_opt` | `[unmask=/proc/*]` | `/charly-distros:container-nesting` |
+| `devices` | `[/dev/fuse, /dev/net/tun]` | `/charly-distros:container-nesting` |
 | `privileged` | `false` | — |
 | Network | bridge | defaults |
 | UID / user | `1000 / ubuntu` | **adopt mode** |
-| sudo | passwordless via `/etc/sudoers.d/ov-user` (discovered via `getent passwd 1000` → `ubuntu`) | `/ov-coder:sshd` |
+| sudo | passwordless via `/etc/sudoers.d/charly-user` (discovered via `getent passwd 1000` → `ubuntu`) | `/charly-coder:sshd` |
 
 ## Ubuntu-specific layer quirks (differences vs debian-coder)
 
-- **fastfetch test is skipped** via `exclude_distros: [ubuntu:24.04]` (`/ov-coder:dev-tools`). Ubuntu 24.04 noble main does not ship `fastfetch` (Debian 13 trixie does, and so do Fedora/Arch). Skipping is cleaner than failing — see `/ov-eval:eval` for the `exclude_distros:` field of the declarative-test schema.
-- **dotnet-sdk-9.0 source**: uses Microsoft's `dotnet-install.sh` (same as debian-coder). Note: Canonical's noble main/universe ships `dotnet-sdk-8.0` and `dotnet-sdk-10.0` but NOT 9.0; Microsoft's noble apt repo ships 10.0 only. `dotnet-install.sh --channel 9.0` is the only cross-distro-consistent path to .NET 9. See `/ov-coder:language-runtimes`.
+- **fastfetch test is skipped** via `exclude_distros: [ubuntu:24.04]` (`/charly-coder:dev-tools`). Ubuntu 24.04 noble main does not ship `fastfetch` (Debian 13 trixie does, and so do Fedora/Arch). Skipping is cleaner than failing — see `/charly-eval:eval` for the `exclude_distros:` field of the declarative-test schema.
+- **dotnet-sdk-9.0 source**: uses Microsoft's `dotnet-install.sh` (same as debian-coder). Note: Canonical's noble main/universe ships `dotnet-sdk-8.0` and `dotnet-sdk-10.0` but NOT 9.0; Microsoft's noble apt repo ships 10.0 only. `dotnet-install.sh --channel 9.0` is the only cross-distro-consistent path to .NET 9. See `/charly-coder:language-runtimes`.
 - **Everything else** is identical to debian-coder. The sudoers `getent` discovery, bat→batcat symlink, virtualization package-existence tests — all are implemented once in the respective layers and work uniformly on both debian-coder and ubuntu-coder.
 
 ## Test results
 
-`ov eval box ghcr.io/overthinkos/ubuntu-coder:latest` — **142 passed · 0 failed · 1 skipped** (fastfetch, by design).
+`charly eval box ghcr.io/overthinkos/ubuntu-coder:latest` — **142 passed · 0 failed · 1 skipped** (fastfetch, by design).
 
 ## Verification recipe
 
 ```bash
 # 1. Validate
-ov -C image/ubuntu image validate
+charly -C image/ubuntu image validate
 
 # 2. Build (auto-chains: ubuntu → ubuntu-builder → ubuntu-coder)
-ov -C image/ubuntu image build ubuntu-coder
+charly -C image/ubuntu image build ubuntu-coder
 
 # 3. Disposable-container tests
-ov eval box ghcr.io/overthinkos/ubuntu-coder:latest
+charly eval box ghcr.io/overthinkos/ubuntu-coder:latest
 
 # 4. Confirm adopt mode at runtime
 podman run --rm ghcr.io/overthinkos/ubuntu-coder:latest id
 # → uid=1000(ubuntu) gid=1000(ubuntu) ...
 
 # 5. Deploy + live tests
-ov config ubuntu-coder
-ov start ubuntu-coder
-ov eval box ghcr.io/overthinkos/ubuntu-coder:latest
+charly config ubuntu-coder
+charly start ubuntu-coder
+charly eval box ghcr.io/overthinkos/ubuntu-coder:latest
 ```
 
 ## Gotcha: Dockerhub rate-limits during base pulls
@@ -152,7 +152,7 @@ Rebuilding the `ubuntu` base image pulls from `docker.io/library/ubuntu:24.04`. 
 ```bash
 podman pull public.ecr.aws/docker/library/ubuntu:24.04
 podman tag public.ecr.aws/docker/library/ubuntu:24.04 docker.io/library/ubuntu:24.04
-ov box build ubuntu-coder
+charly box build ubuntu-coder
 ```
 
 AWS ECR Public mirrors the Dockerhub library namespace without rate-limiting unauthenticated pulls.
@@ -161,42 +161,42 @@ AWS ECR Public mirrors the Dockerhub library namespace without rate-limiting una
 
 | Port | Service | Bound by |
 |---|---|---|
-| 2222 | sshd-wrapper (SSH as `ubuntu` with sudo) | `/ov-coder:sshd` |
-| 18765 | ov-mcp | `/ov-coder:ov-mcp` |
+| 2222 | sshd-wrapper (SSH as `ubuntu` with sudo) | `/charly-coder:sshd` |
+| 18765 | ov-mcp | `/charly-coder:charly-mcp` |
 
 Conflicts with the other three coder-family images on these ports.
 
 ## Image size
 
-~10.2 GB uncompressed, nearly identical to `/ov-coder:debian-coder`.
+~10.2 GB uncompressed, nearly identical to `/charly-coder:debian-coder`.
 
 ## Cross-distro siblings
 
-- `/ov-coder:fedora-coder` — RPM-family, `user:user` create.
-- `/ov-coder:arch-coder` — pacman-family + AUR, `user:user` create.
-- `/ov-coder:debian-coder` — deb on Debian 13, `user:user` create.
-- `/ov-coder:ubuntu-coder` — this image; deb on Ubuntu 24.04, `user:ubuntu` **adopt**.
+- `/charly-coder:fedora-coder` — RPM-family, `user:user` create.
+- `/charly-coder:arch-coder` — pacman-family + AUR, `user:user` create.
+- `/charly-coder:debian-coder` — deb on Debian 13, `user:user` create.
+- `/charly-coder:ubuntu-coder` — this image; deb on Ubuntu 24.04, `user:ubuntu` **adopt**.
 
 ## Related images
 
-- `/ov-distros:ubuntu` — parent base; declares `base_user:` in `build.yml`.
-- `/ov-distros:ubuntu-builder` — multi-stage builder, also runs as `ubuntu:1000`.
+- `/charly-distros:ubuntu` — parent base; declares `base_user:` in `build.yml`.
+- `/charly-distros:ubuntu-builder` — multi-stage builder, also runs as `ubuntu:1000`.
 
 ## Related layers
 
-- `/ov-coder:sshd` — getent-based sudoers (works regardless of whether the uid-1000 account is `user` or `ubuntu`).
-- `/ov-coder:dev-tools` — bat→batcat + fastfetch `exclude_distros`.
-- `/ov-coder:language-runtimes` — Microsoft `dotnet-install.sh` for .NET 9.
-- `/ov-infrastructure:virtualization` — `package:` + `package_map:` tests.
-- `/ov-distros:container-nesting`, `/ov-tools:ov`, `/ov-coder:ov-mcp` — shared rootless baseline.
+- `/charly-coder:sshd` — getent-based sudoers (works regardless of whether the uid-1000 account is `user` or `ubuntu`).
+- `/charly-coder:dev-tools` — bat→batcat + fastfetch `exclude_distros`.
+- `/charly-coder:language-runtimes` — Microsoft `dotnet-install.sh` for .NET 9.
+- `/charly-infrastructure:virtualization` — `package:` + `package_map:` tests.
+- `/charly-distros:container-nesting`, `/charly-tools:charly`, `/charly-coder:charly-mcp` — shared rootless baseline.
 
 ## Related commands
 
-- `/ov-image:image` — **`user_policy:` field** (the pivot for this image's behavior).
-- `/ov-build:build` — **`base_user:` declaration** (where `ubuntu:1000` is declared).
-- `/ov-eval:eval` — `exclude_distros:` field reference.
-- `/ov-build:generate` — adopt-vs-create writeBootstrap emission.
-- `/ov-core:shell`, `/ov-core:ov-config`, `/ov-core:start`, `/ov-core:stop`.
+- `/charly-image:image` — **`user_policy:` field** (the pivot for this image's behavior).
+- `/charly-build:build` — **`base_user:` declaration** (where `ubuntu:1000` is declared).
+- `/charly-eval:eval` — `exclude_distros:` field reference.
+- `/charly-build:generate` — adopt-vs-create writeBootstrap emission.
+- `/charly-core:shell`, `/charly-core:ov-config`, `/charly-core:start`, `/charly-core:stop`.
 
 ## When to use this skill
 

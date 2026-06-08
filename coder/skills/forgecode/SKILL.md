@@ -33,12 +33,12 @@ my-dev:
 
 ## Related Skills
 
-- `/ov-coder:nodejs` -- required dependency (provides npm)
-- `/ov-coder:claude-code`, `/ov-coder:codex`, `/ov-coder:gemini` -- sibling AI CLIs (same npm-global install pattern)
-- `/ov-hermes:hermes-full-layer` -- metalayer that bundles this CLI
-- `/ov-hermes:hermes` -- primary image that ships this CLI
-- `/ov-image:layer` -- layer authoring reference
-- `/ov-eval:eval` -- declarative testing framework (this layer verifies `${HOME}/.npm-global/bin/forge` + `forge --version`)
+- `/charly-coder:nodejs` -- required dependency (provides npm)
+- `/charly-coder:claude-code`, `/charly-coder:codex`, `/charly-coder:gemini` -- sibling AI CLIs (same npm-global install pattern)
+- `/charly-hermes:hermes-full-layer` -- metalayer that bundles this CLI
+- `/charly-hermes:hermes` -- primary image that ships this CLI
+- `/charly-image:layer` -- layer authoring reference
+- `/charly-eval:eval` -- declarative testing framework (this layer verifies `${HOME}/.npm-global/bin/forge` + `forge --version`)
 
 ## When to Use This Skill
 

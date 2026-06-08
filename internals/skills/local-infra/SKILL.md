@@ -14,7 +14,7 @@ description: |
 
 ## Overview
 
-The `InstallPlan` IR (see `/ov-internals:install-plan`) is the central data type. `LocalDeployTarget` (the executor) consumes the IR and invokes a handful of supporting files for each concrete concern: distro detection, ledger I/O, builder-container invocation, shell profile writes, ReverseOp execution, service rendering, ref resolution, and the managed ssh-config fragment that VMs publish on create.
+The `InstallPlan` IR (see `/charly-internals:install-plan`) is the central data type. `LocalDeployTarget` (the executor) consumes the IR and invokes a handful of supporting files for each concrete concern: distro detection, ledger I/O, builder-container invocation, shell profile writes, ReverseOp execution, service rendering, ref resolution, and the managed ssh-config fragment that VMs publish on create.
 
 ## File map
 
@@ -23,16 +23,16 @@ The `InstallPlan` IR (see `/ov-internals:install-plan`) is the central data type
 | `ov/local_spec.go` | `LocalSpec` struct + `findLocalSpec` lookup | `LocalSpec`, `findLocalSpec` |
 | `ov/deploy_target_local.go` | `LocalDeployTarget.Emit` IR consumer | `LocalDeployTarget` |
 | `ov/unified_targets_local.go` | `LocalUnifiedTarget` adapter (Add/Del/Test/Update/Status/Shell/Rebuild) | `LocalUnifiedTarget` |
-| `ov/ssh_managed_config.go` | `~/.config/ov/ssh_config` fragment writer (managed-block protocol) | `WriteVmSshStanza`, `RemoveVmSshStanza`, `ListVmSshAliases`, `EnsureSshConfigInclude`, `RemoveSshConfigInclude`, `VmSshAlias`, `SshFragmentPath`, `SshConfigPath` |
+| `ov/ssh_managed_config.go` | `~/.config/charly/ssh_config` fragment writer (managed-block protocol) | `WriteVmSshStanza`, `RemoveVmSshStanza`, `ListVmSshAliases`, `EnsureSshConfigInclude`, `RemoveSshConfigInclude`, `VmSshAlias`, `SshFragmentPath`, `SshConfigPath` |
 | `ov/deploy_executor_ssh.go` | Credential-free `SSHExecutor` (no `-i`, no host-key overrides) | `SSHExecutor` |
 | `ov/deploy_executor.go` | `ShellExecutor` — local shell venue | `ShellExecutor` |
 | `ov/hostdistro.go` | Detect host distro from `/etc/os-release`; glibc preflight | `HostDistro`, `DetectHostDistro`, `DetectHostGlibc`, `CompareGlibc`, `distroIDAliases` |
-| `ov/install_ledger.go` | Flock-serialized JSON ledger at `~/.config/overthink/installed/` | `LedgerPaths`, `LedgerLock`, `DeployRecord`, `LayerRecord`, `StepRecord`, `AcquireLedgerLock`, `AddLayerDeployment`, `RemoveLayerDeployment` |
+| `ov/install_ledger.go` | Flock-serialized JSON ledger at `~/.config/opencharly/installed/` | `LedgerPaths`, `LedgerLock`, `DeployRecord`, `LayerRecord`, `StepRecord`, `AcquireLedgerLock`, `AddLayerDeployment`, `RemoveLayerDeployment` |
 | `ov/builder_run.go` | `podman run <builder>` wrapper for compile-needing layers | `BuilderRun`, `BuilderRunOpts`, `UserScopeBindMounts`, `UserScopeEnv` |
 | `ov/shell_profile.go` | bash/zsh/fish detection + managed-block fencing + env.d I/O | `ShellKind`, `DetectLoginShell`, `EnvdDir`, `WriteEnvdFile`, `RemoveEnvdFile`, `EnsureManagedBlockVia`, `EnsureManagedBlock`, `RemoveManagedBlock`, `ShellInitFilePath` |
 | `ov/reverse_ops.go` | Execute `ReverseOp` slices in LIFO order via per-kind handlers | `runReverseOps`, `ReverseExecutor` interface, 15 reverse handlers |
 
-**Managed block is executor-based.** `EnsureManagedBlockVia(ctx, exec, shell, home, opts)` is the single writer for the env.d-sourcing block: `GetFile` the existing rc, merge the fenced block, `PutFile` it back. `LocalDeployTarget` calls it with a `ShellExecutor` (host fs); `VmDeployTarget` with an `SSHExecutor` (guest fs) — so the block lands in the right user's rc on local AND vm deploys (R3, one path). `EnsureManagedBlock(shell, home)` is a thin wrapper over it with a local `ShellExecutor`. `home` is the DESTINATION user's home — the guest home for a VM deploy (see `/ov-internals:vm-deploy-target`).
+**Managed block is executor-based.** `EnsureManagedBlockVia(ctx, exec, shell, home, opts)` is the single writer for the env.d-sourcing block: `GetFile` the existing rc, merge the fenced block, `PutFile` it back. `LocalDeployTarget` calls it with a `ShellExecutor` (host fs); `VmDeployTarget` with an `SSHExecutor` (guest fs) — so the block lands in the right user's rc on local AND vm deploys (R3, one path). `EnsureManagedBlock(shell, home)` is a thin wrapper over it with a local `ShellExecutor`. `home` is the DESTINATION user's home — the guest home for a VM deploy (see `/charly-internals:vm-deploy-target`).
 | `ov/service_render.go` | Render `ServiceEntry` → systemd unit / supervisord INI | `ServiceEntry`, `ServiceOverrides`, `RenderService`, `RenderedService` |
 | `ov/deploy_ref.go` | Unified 4-form ref resolver | `DeployRef`, `RefKind`, `RefSource`, `ResolveDeployRef`, `classifyYAMLFile` |
 
@@ -40,30 +40,30 @@ The `InstallPlan` IR (see `/ov-internals:install-plan`) is the central data type
 
 `SSHExecutor` carries `User`, `Host`, `Port`, `Args`, `ConnectTimeout` — no `KeyPath`, no `KnownHostsFile`, no host-key overrides. `sshBaseArgs` emits only `-o LogLevel=ERROR` + `-o ConnectTimeout=…` plus optional `-p <port>` plus the deployment's pass-through `Args` plus the destination. `ssh(1)` reads `~/.ssh/config` + `ssh-agent` for everything else.
 
-For VM destinations the Host field is the managed alias `ov-<vmname>`, written into `~/.config/ov/ssh_config` by `ov vm create`. Both `User` and `Port` are left empty — the alias's Host stanza supplies them.
+For VM destinations the Host field is the managed alias `ov-<vmname>`, written into `~/.config/charly/ssh_config` by `charly vm create`. Both `User` and `Port` are left empty — the alias's Host stanza supplies them.
 
 ## Managed ssh-config fragment
 
-Pattern mirrors `ov/shell_profile.go` (the env.d managed block in `~/.profile` / `~/.zshenv` / `~/.config/fish/conf.d/overthink.fish`):
+Pattern mirrors `ov/shell_profile.go` (the env.d managed block in `~/.profile` / `~/.zshenv` / `~/.config/fish/conf.d/opencharly.fish`):
 
-- Fence markers: `# overthink:begin (managed by ov; do not edit inside this block)` … `# overthink:end`.
-- `WriteVmSshStanza` writes/replaces a Host stanza inside the managed block at `~/.config/ov/ssh_config`. Multiple stanzas coexist, sorted by alias for deterministic output.
-- `EnsureSshConfigInclude` ensures `Include ~/.config/ov/ssh_config` is present in `~/.ssh/config` (also fenced).
+- Fence markers: `# opencharly:begin (managed by ov; do not edit inside this block)` … `# opencharly:end`.
+- `WriteVmSshStanza` writes/replaces a Host stanza inside the managed block at `~/.config/charly/ssh_config`. Multiple stanzas coexist, sorted by alias for deterministic output.
+- `EnsureSshConfigInclude` ensures `Include ~/.config/charly/ssh_config` is present in `~/.ssh/config` (also fenced).
 - `RemoveVmSshStanza` returns the count of remaining stanzas; when zero the fragment file is deleted.
 - `RemoveSshConfigInclude` strips the Include line; when `~/.ssh/config` becomes empty after stripping, the file is deleted.
-- `VmSshAlias("eval-arch-vm")` → `"ov-eval-arch-vm"`. Unique within the managed fragment.
+- `VmSshAlias("eval-arch-vm")` → `"charly-eval-arch-vm"`. Unique within the managed fragment.
 
-## Ledger at `~/.config/overthink/installed/`
+## Ledger at `~/.config/opencharly/installed/`
 
 Every target:local deploy writes a `DeployRecord` and per-layer `LayerRecord`s with `deployed_by:` refcount semantics. See the file map above for the JSON shapes.
 
 ## Cross-References
 
-- `/ov-internals:install-plan` — the IR these files support; full step-kind catalogue.
-- `/ov-internals:go` — overall Go code map; Kong framework; mode-purity invariant.
-- `/ov-local:local-deploy` — user-facing target:local surface.
-- `/ov-core:deploy` — command family overview.
-- `/ov-image:layer` — unified `service:` schema authored by layer authors.
+- `/charly-internals:install-plan` — the IR these files support; full step-kind catalogue.
+- `/charly-internals:go` — overall Go code map; Kong framework; mode-purity invariant.
+- `/charly-local:local-deploy` — user-facing target:local surface.
+- `/charly-core:deploy` — command family overview.
+- `/charly-image:layer` — unified `service:` schema authored by layer authors.
 
 ## When to Use This Skill
 

@@ -40,9 +40,9 @@ data:
 
 At build time, the contents of `data/openrouter/` are staged into `/data/workspace/openrouter/` inside the image.
 
-At deploy time, `ov config` copies the staged data into the workspace volume at `<workspace>/openrouter/`. The `dest: openrouter` field places the notebooks in a subdirectory rather than the volume root.
+At deploy time, `charly config` copies the staged data into the workspace volume at `<workspace>/openrouter/`. The `dest: openrouter` field places the notebooks in a subdirectory rather than the volume root.
 
-The `env_require` declaration is stored as an OCI label (`org.overthinkos.env_require`). At `ov config` time, if `OPENROUTER_API_KEY` is not present in the resolved environment, a warning is printed:
+The `env_require` declaration is stored as an OCI label (`ai.opencharly.env_require`). At `charly config` time, if `OPENROUTER_API_KEY` is not present in the resolved environment, a warning is printed:
 ```
 Warning: jupyter-ml-notebook requires OPENROUTER_API_KEY (API key for OpenRouter LLM inference) — not set
 ```
@@ -85,14 +85,14 @@ The retry helper also handles transient 502 upstream errors from Alibaba (the Qw
 The `OPENROUTER_API_KEY` must be injected into the container environment:
 
 ```bash
-# Via ov config (persisted in quadlet)
-ov config jupyter-ml-notebook -e OPENROUTER_API_KEY=sk-or-v1-...
+# Via charly config (persisted in quadlet)
+charly config jupyter-ml-notebook -e OPENROUTER_API_KEY=sk-or-v1-...
 
 # Via workspace .env file
 echo "OPENROUTER_API_KEY=sk-or-v1-..." >> ~/project/.env
 
 # Via direnv .secrets (GPG-encrypted)
-ov secrets gpg set OPENROUTER_API_KEY sk-or-v1-...
+charly secrets gpg set OPENROUTER_API_KEY sk-or-v1-...
 ```
 
 ## Usage
@@ -112,25 +112,25 @@ jupyter-ml-notebook:
 
 ```bash
 # Deploy with API key
-ov config jupyter-ml-notebook -e OPENROUTER_API_KEY=sk-or-v1-...
-ov start jupyter-ml-notebook
+charly config jupyter-ml-notebook -e OPENROUTER_API_KEY=sk-or-v1-...
+charly start jupyter-ml-notebook
 # Open http://localhost:8888 -> navigate to openrouter/
 ```
 
 ## Used In Images
 
-- `/ov-jupyter:jupyter-ml-notebook`
+- `/charly-jupyter:jupyter-ml-notebook`
 
 ## Related Skills
 
-- `/ov-image:layer` — data field documentation, env_require/env_accept field documentation
-- `/ov-core:ov-config` — data provisioning and env_require warning during `ov config` setup
-- `/ov-core:deploy` — volume backing configuration
-- `/ov-jupyter:notebook-ollama` — sibling data layer pattern (Ollama integration notebooks)
-- `/ov-jupyter:notebook-finetuning` — sibling data layer pattern (Unsloth fine-tuning notebooks)
-- `/ov-jupyter:notebook-templates` — sibling data layer pattern (starter notebooks)
-- `/ov-jupyter:notebook-llm-on-supercomputers` — sibling data layer pattern (TU Wien course notebooks)
-- `/ov-jupyter:jupyter-ml-notebook` — the image that includes this layer
+- `/charly-image:layer` — data field documentation, env_require/env_accept field documentation
+- `/charly-core:ov-config` — data provisioning and env_require warning during `charly config` setup
+- `/charly-core:deploy` — volume backing configuration
+- `/charly-jupyter:notebook-ollama` — sibling data layer pattern (Ollama integration notebooks)
+- `/charly-jupyter:notebook-finetuning` — sibling data layer pattern (Unsloth fine-tuning notebooks)
+- `/charly-jupyter:notebook-templates` — sibling data layer pattern (starter notebooks)
+- `/charly-jupyter:notebook-llm-on-supercomputers` — sibling data layer pattern (TU Wien course notebooks)
+- `/charly-jupyter:jupyter-ml-notebook` — the image that includes this layer
 
 ## When to Use This Skill
 
@@ -145,4 +145,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

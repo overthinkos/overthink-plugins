@@ -1,29 +1,29 @@
 ---
 name: deploy
 description: |
-  MUST be invoked before any work involving: `ov deploy add`/`ov deploy del` commands, quadlet generation, volume backing, tunnels (Tailscale/Cloudflare), `add_candy:` overlay, or per-machine deploy overlays.
+  MUST be invoked before any work involving: `charly deploy add`/`charly deploy del` commands, quadlet generation, volume backing, tunnels (Tailscale/Cloudflare), `add_candy:` overlay, or per-machine deploy overlays.
 ---
 
 # Deploy - Deployment Configuration
 
 ## Schema overview
 
-- **Dispatch via explicit `target:`** — `local | vm | pod | k8s` (short, matches ov command verbs).
+- **Dispatch via explicit `target:`** — `local | vm | pod | k8s` (short, matches charly command verbs).
 - **Cross-ref fields on `DeploymentNode`** — `vm: <entity>` for target: vm, `image: <name>` for target: pod, `cluster: <name>` for target: k8s, `inside: <deploy>` for nested local-deploy. Deploy nesting uses `nested:`.
 - **Disposability is a deploy property** — `DeploymentNode.Disposable` is the sole source of truth.
-- **Resource arbitration is a deploy property** — `preemptible:` (holder; occupies exclusive host-resource token(s), may be gracefully stopped + restored) and `requires_exclusive:` (claimant; needs sole use) on `DeploymentNode` drive the arbiter (`ov preempt`). A fourth axis ORTHOGONAL to disposable/ephemeral/lifecycle. See "Preemptible resource arbitration" below + `/ov-internals:disposable`.
-- **Disposable R10 test beds are `kind: eval` entities** (run via `ov eval run <bed>`), NOT `deploy:` entries — ecosystem-wide. The main repo's beds (`eval-pod`, `eval-k3s-vm`, `eval-sway-browser-vnc-pod`, …) AND every `image/<distro>` submodule's beds (the arch / cachyos / debian / ubuntu / fedora bootstrap-VM + pacstrap/debootstrap beds, in each submodule's config — its `overthink.yml` + per-kind sibling files) are `kind: eval`. Repos ship NO `kind: deploy` test beds; the one `kind: deploy` exception is the cachyos submodule's `ov-cachyos` operator workstation profile (a profile, not a test bed). Operator deployments otherwise live in the per-host `~/.config/ov/deploy.yml`. See `/ov-eval:eval` "kind: eval beds".
+- **Resource arbitration is a deploy property** — `preemptible:` (holder; occupies exclusive host-resource token(s), may be gracefully stopped + restored) and `requires_exclusive:` (claimant; needs sole use) on `DeploymentNode` drive the arbiter (`charly preempt`). A fourth axis ORTHOGONAL to disposable/ephemeral/lifecycle. See "Preemptible resource arbitration" below + `/charly-internals:disposable`.
+- **Disposable R10 test beds are `kind: eval` entities** (run via `charly eval run <bed>`), NOT `deploy:` entries — ecosystem-wide. The main repo's beds (`eval-pod`, `eval-k3s-vm`, `eval-sway-browser-vnc-pod`, …) AND every `image/<distro>` submodule's beds (the arch / cachyos / debian / ubuntu / fedora bootstrap-VM + pacstrap/debootstrap beds, in each submodule's config — its `charly.yml` + per-kind sibling files) are `kind: eval`. Repos ship NO `kind: deploy` test beds; the one `kind: deploy` exception is the cachyos submodule's `ov-cachyos` operator workstation profile (a profile, not a test bed). Operator deployments otherwise live in the per-host `~/.config/charly/deploy.yml`. See `/charly-eval:eval` "kind: eval beds".
 
 ## Overview
 
-`ov deploy` is the parent verb for applying and tearing down deployments, plus managing `deploy.yml` overrides. The command family has two distinct surfaces:
+`charly deploy` is the parent verb for applying and tearing down deployments, plus managing `deploy.yml` overrides. The command family has two distinct surfaces:
 
-1. **Execution verbs** — `ov deploy add <name>` / `ov deploy del <name>`. Apply or reverse a deployment. Four targets are dispatched by the `target:` field:
-   - `target: local` → `LocalDeployTarget` on the local filesystem (or, with `inside: <deploy>`, via NestedExecutor into the referenced deployment). See `/ov-local:local-deploy`.
-   - `target: vm` (+ `vm: <entity>`) → `VmDeployTarget` inside a running VM via SSH. See "VM target" section below and `/ov-internals:vm-deploy-target`.
+1. **Execution verbs** — `charly deploy add <name>` / `charly deploy del <name>`. Apply or reverse a deployment. Four targets are dispatched by the `target:` field:
+   - `target: local` → `LocalDeployTarget` on the local filesystem (or, with `inside: <deploy>`, via NestedExecutor into the referenced deployment). See `/charly-local:local-deploy`.
+   - `target: vm` (+ `vm: <entity>`) → `VmDeployTarget` inside a running VM via SSH. See "VM target" section below and `/charly-internals:vm-deploy-target`.
    - `target: pod` (+ `image: <image>`) → `PodDeployTarget`: overlay Containerfile + quadlet/podman.
-   - `target: k8s` (+ `cluster: <name>`) → Kustomize base/overlays tree. See `/ov-kubernetes:kubernetes`.
-2. **Config-file management** — `ov deploy show/export/import/reset/path/status`. Read and mutate `~/.config/ov/deploy.yml` itself.
+   - `target: k8s` (+ `cluster: <name>`) → Kustomize base/overlays tree. See `/charly-kubernetes:kubernetes`.
+2. **Config-file management** — `charly deploy show/export/import/reset/path/status`. Read and mutate `~/.config/charly/deploy.yml` itself.
 
 ## Targets, one schema
 
@@ -35,43 +35,43 @@ endpoint) via `AndroidDeployTarget` — the Android analogue of `target: k8s`
 emitting workloads onto a cluster. The cross-ref is `android: <device>`; apps
 ride in on `add_candy:` (no apk-list field). Nested `pod → android` (the device
 on its emulator pod) mirrors `vm → k8s`; a pod's android children deploy AFTER
-`ov start` (use `--node-only` on the pod's deploy-add, then dotted-path
-`ov deploy add pod.device`). See `/ov-eval:android`. K8s-specific choices (storage class, ingress class, cert issuer, secret backend) live in a **cluster profile** file (`~/.config/ov/clusters/<name>.yaml` or in-repo `clusters/<name>.yaml`), *not* in the deployment. This means one deployment spec targets dev/staging/prod clusters with zero schema changes — only the cluster profile differs.
+`charly start` (use `--node-only` on the pod's deploy-add, then dotted-path
+`charly deploy add pod.device`). See `/charly-eval:android`. K8s-specific choices (storage class, ingress class, cert issuer, secret backend) live in a **cluster profile** file (`~/.config/charly/clusters/<name>.yaml` or in-repo `clusters/<name>.yaml`), *not* in the deployment. This means one deployment spec targets dev/staging/prod clusters with zero schema changes — only the cluster profile differs.
 
-`ov start` / `ov stop` remain as ergonomic wrappers: `ov start <image>` is equivalent to `ov deploy add <image> <image>` with the container target; `ov stop <name>` is `ov deploy del <name>`. New scripts should prefer the explicit `ov deploy add`/`ov deploy del` forms, especially when using `--add-candy` overlays or the `host` target.
+`charly start` / `charly stop` remain as ergonomic wrappers: `charly start <image>` is equivalent to `charly deploy add <image> <image>` with the container target; `charly stop <name>` is `charly deploy del <name>`. New scripts should prefer the explicit `charly deploy add`/`charly deploy del` forms, especially when using `--add-candy` overlays or the `host` target.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Apply container deploy | `ov deploy add <name> <ref>` | Compile layers + build overlay if `add_candy:` present + run via quadlet |
-| Apply local deploy | `ov deploy add <name> <ref>` (entry `target: local`) | Apply layers directly to local filesystem (see `/ov-local:local-deploy`) |
-| Tear down deploy | `ov deploy del <name>` | Stop container + reverse ReverseOps (host) + ledger cleanup |
-| Dry-run | `ov deploy add <name> <ref> --dry-run [--format=json]` | Print the InstallPlan without executing |
-| Layer overlay | `ov deploy add <name> <ref> --add-candy <ref>` | Extra layer(s) applied on top; repeatable |
-| Configure deployment | `ov config <image>` | Generate .container file + save deploy.yml |
-| Configure instance | `ov config <image> -i <instance>` | Generate instance-specific quadlet + deploy entry |
-| Configure volume backing | `ov config <image> --bind name` | Set volume as host bind mount |
-| Provision data | `ov config <image> --seed` | Auto-provision data layers into bind mounts (default) |
-| Deploy status | `ov deploy status` | Audit deploy.yml vs quadlet sync |
-| Show overrides | `ov deploy show [image]` | Display deploy.yml contents |
-| Show instance overrides | `ov deploy show <image> -i <instance>` | Display instance-specific overrides |
-| Import config | `ov deploy import <files>` | Merge files into deploy.yml |
-| Reset config | `ov deploy reset [image]` | Remove deploy.yml overrides |
-| Reset instance config | `ov deploy reset <image> -i <instance>` | Remove instance overrides |
-| Push to registry | `ov box build --push` | Multi-platform push |
+| Apply container deploy | `charly deploy add <name> <ref>` | Compile layers + build overlay if `add_candy:` present + run via quadlet |
+| Apply local deploy | `charly deploy add <name> <ref>` (entry `target: local`) | Apply layers directly to local filesystem (see `/charly-local:local-deploy`) |
+| Tear down deploy | `charly deploy del <name>` | Stop container + reverse ReverseOps (host) + ledger cleanup |
+| Dry-run | `charly deploy add <name> <ref> --dry-run [--format=json]` | Print the InstallPlan without executing |
+| Layer overlay | `charly deploy add <name> <ref> --add-candy <ref>` | Extra layer(s) applied on top; repeatable |
+| Configure deployment | `charly config <image>` | Generate .container file + save deploy.yml |
+| Configure instance | `charly config <image> -i <instance>` | Generate instance-specific quadlet + deploy entry |
+| Configure volume backing | `charly config <image> --bind name` | Set volume as host bind mount |
+| Provision data | `charly config <image> --seed` | Auto-provision data layers into bind mounts (default) |
+| Deploy status | `charly deploy status` | Audit deploy.yml vs quadlet sync |
+| Show overrides | `charly deploy show [image]` | Display deploy.yml contents |
+| Show instance overrides | `charly deploy show <image> -i <instance>` | Display instance-specific overrides |
+| Import config | `charly deploy import <files>` | Merge files into deploy.yml |
+| Reset config | `charly deploy reset [image]` | Remove deploy.yml overrides |
+| Reset instance config | `charly deploy reset <image> -i <instance>` | Remove instance overrides |
+| Push to registry | `charly box build --push` | Multi-platform push |
 
-For service lifecycle commands (start/stop/status/logs/update/remove), see `/ov-core:service`. For VM lifecycle (build/create/start/stop/ssh), see `/ov-vm:vm`; for in-VM layer deploys via `ov deploy add vm:<name>`, see the "VM target" section below and `/ov-internals:vm-deploy-target`. For encrypted storage, see `/ov-automation:enc`. For host-target semantics, see `/ov-local:local-deploy`. For Kubernetes targets, see `/ov-kubernetes:kubernetes`. For the Go IR that drives all four targets, see `/ov-internals:install-plan`.
+For service lifecycle commands (start/stop/status/logs/update/remove), see `/charly-core:service`. For VM lifecycle (build/create/start/stop/ssh), see `/charly-vm:vm`; for in-VM layer deploys via `charly deploy add vm:<name>`, see the "VM target" section below and `/charly-internals:vm-deploy-target`. For encrypted storage, see `/charly-automation:enc`. For host-target semantics, see `/charly-local:local-deploy`. For Kubernetes targets, see `/charly-kubernetes:kubernetes`. For the Go IR that drives all four targets, see `/charly-internals:install-plan`.
 
 ## Command Family: `add` / `del`
 
-### `ov deploy add <name> [<ref>]`
+### `charly deploy add <name> [<ref>]`
 
 Applies a deployment. The deploy entry's `target:` field selects the target:
 
-- **`target: local`** — apply layers to the local filesystem via `LocalDeployTarget`. With `host: local` (default) the apply runs directly; with `host: <user@machine>` it runs over SSH. See `/ov-local:local-deploy`.
-- **`target: vm`** (+ `vm: <entity>`) — apply layers inside a running `kind: vm` entity via SSH (`VmDeployTarget`). `<vm-name>` must match an entry in `vm.yml`; the VM must already be created (`ov vm create <vm-name>`). See "VM target" section below.
-- **`target: k8s`** (+ `cluster: <name>`) — emit a Kustomize base/overlays tree. See `/ov-kubernetes:kubernetes`.
+- **`target: local`** — apply layers to the local filesystem via `LocalDeployTarget`. With `host: local` (default) the apply runs directly; with `host: <user@machine>` it runs over SSH. See `/charly-local:local-deploy`.
+- **`target: vm`** (+ `vm: <entity>`) — apply layers inside a running `kind: vm` entity via SSH (`VmDeployTarget`). `<vm-name>` must match an entry in `vm.yml`; the VM must already be created (`charly vm create <vm-name>`). See "VM target" section below.
+- **`target: k8s`** (+ `cluster: <name>`) — emit a Kustomize base/overlays tree. See `/charly-kubernetes:kubernetes`.
 - **`target: pod`** (default, + `image: <image>`) — container deployment. Multiple pod deploys coexist (`my-dev`, `postgres-staging`, etc.); each gets its own quadlet, container name, and deploy.yml entry.
 
 `<ref>` accepts four forms, auto-detected:
@@ -87,7 +87,7 @@ Disambiguation: a ref containing `/candy/` resolves to a layer; `/box/` to an im
 
 When `<ref>` is omitted, the ref falls back to `deploy.yml['deploys'][<name>]['image']` (or the deploy key itself if no explicit image is declared).
 
-### `ov deploy add` flags
+### `charly deploy add` flags
 
 **Universal:**
 - `--tag <calver>` — override deploy.yml tag
@@ -105,28 +105,28 @@ When `<ref>` is omitted, the ref falls back to `deploy.yml['deploys'][<name>]['i
 - `--builder-image <ref>` — override the compile-builder image
 - `--yes` / `-y` — all three gates plus skip sudo preflight
 
-### `ov deploy del <name>`
+### `charly deploy del <name>`
 
-Reverses a deployment. Gated host-side reversal respects `--keep-repo-changes` and `--keep-services`. Container teardown: `podman stop` + `rm` + overlay image removal (unless `--keep-image`) + ledger cleanup. VM teardown: SSH-executed ReverseOps in the guest, preserving the VM itself (use `ov vm destroy` separately). See `/ov-local:local-deploy` for the full 15-kind ReverseOp table.
+Reverses a deployment. Gated host-side reversal respects `--keep-repo-changes` and `--keep-services`. Container teardown: `podman stop` + `rm` + overlay image removal (unless `--keep-image`) + ledger cleanup. VM teardown: SSH-executed ReverseOps in the guest, preserving the VM itself (use `charly vm destroy` separately). See `/charly-local:local-deploy` for the full 15-kind ReverseOp table.
 
-## VM target: `ov deploy add vm:<vm-name> <ref>`
+## VM target: `charly deploy add vm:<vm-name> <ref>`
 
-Applies layer recipes **inside a running VM** over SSH. Same `InstallPlan` IR as host and container targets; the difference is that bash bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` (see `/ov-internals:vm-deploy-target`).
+Applies layer recipes **inside a running VM** over SSH. Same `InstallPlan` IR as host and container targets; the difference is that bash bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` (see `/charly-internals:vm-deploy-target`).
 
-**Prerequisite**: the VM must exist before `ov deploy add vm:...` runs. `ov deploy add vm:<name>` does NOT auto-provision; a missing VM produces a clean error pointing at `ov vm create`:
+**Prerequisite**: the VM must exist before `charly deploy add vm:...` runs. `charly deploy add vm:<name>` does NOT auto-provision; a missing VM produces a clean error pointing at `charly vm create`:
 
 ```bash
-ov vm create arch                            # provision VM first
-ov deploy add vm:arch ripgrep                # then apply layer in guest
-ov deploy add vm:arch fedora-coder \
+charly vm create arch                            # provision VM first
+charly deploy add vm:arch ripgrep                # then apply layer in guest
+charly deploy add vm:arch fedora-coder \
     --add-candy team-extras \
     --add-candy github.com/team/configs/candy/sshkeys
-ov deploy del vm:arch                        # reverse all applied layers (VM stays up)
+charly deploy del vm:arch                        # reverse all applied layers (VM stays up)
 ```
 
 ### `VmDeployState` schema in deploy.yml
 
-When `ov deploy add vm:<name>` completes, a `vm_state` sub-object lands in the deploy.yml entry:
+When `charly deploy add vm:<name>` completes, a `vm_state` sub-object lands in the deploy.yml entry:
 
 ```yaml
 deploy:
@@ -150,7 +150,7 @@ deploy:
       base_image_sha256: a8c9e0f1...         # cloud_image integrity trace
 ```
 
-`vm_state` is persisted so re-applies pick up `instance_id` (cloud-init uses it as a stable identifier) and so `ov deploy del vm:<name>` knows which NVRAM to use. SSH access uses the managed `ov-<vmname>` ssh-config alias written by `ov vm create`.
+`vm_state` is persisted so re-applies pick up `instance_id` (cloud-init uses it as a stable identifier) and so `charly deploy del vm:<name>` knows which NVRAM to use. SSH access uses the managed `ov-<vmname>` ssh-config alias written by `charly vm create`.
 
 ### `target: vm` explicit declaration vs `vm:` prefix
 
@@ -159,17 +159,17 @@ Two ways to mark a deploy entry as VM-targeted:
 1. **Name prefix (preferred)**: the deploy key is `vm:<vm-name>`. CLI dispatch reads the prefix and routes through `ResolveTarget` → `VmUnifiedTarget.Add`.
 2. **Explicit field**: the deploy key is anything + `target: vm`. Useful when you want a non-prefixed deploy name (e.g., for readability in `deploy.yml`).
 
-Using both is redundant but harmless. Using `target: vm` on a non-`vm:`-prefixed deploy whose underlying VM doesn't exist errors at `ov deploy add` time.
+Using both is redundant but harmless. Using `target: vm` on a non-`vm:`-prefixed deploy whose underlying VM doesn't exist errors at `charly deploy add` time.
 
 ### `add_candy:` overlay semantics for VM targets
 
-When `ov deploy add vm:<name> <ref>` runs with `--add-candy`, the extra layers are applied **inside the guest** alongside the primary ref. The compiler merges `<ref>` + `add_candy:` into a single topo-sorted `InstallPlan`; `VmDeployTarget.Emit` walks it over SSH. The guest-side ledger records both the base and overlay layers so `ov deploy del vm:<name>` reverses the full set.
+When `charly deploy add vm:<name> <ref>` runs with `--add-candy`, the extra layers are applied **inside the guest** alongside the primary ref. The compiler merges `<ref>` + `add_candy:` into a single topo-sorted `InstallPlan`; `VmDeployTarget.Emit` walks it over SSH. The guest-side ledger records both the base and overlay layers so `charly deploy del vm:<name>` reverses the full set.
 
-This is the same merge semantics as `LocalDeployTarget` — just with SSH-wrapped execution. See `/ov-internals:install-plan` for the compiler and `/ov-internals:vm-deploy-target` for the execution model.
+This is the same merge semantics as `LocalDeployTarget` — just with SSH-wrapped execution. See `/charly-internals:install-plan` for the compiler and `/charly-internals:vm-deploy-target` for the execution model.
 
 ### VM-relevant `install_opts:` fields
 
-`install_opts:` in the deploy.yml entry mirrors the CLI flags on `ov deploy add`. For VM targets, the relevant ones are:
+`install_opts:` in the deploy.yml entry mirrors the CLI flags on `charly deploy add`. For VM targets, the relevant ones are:
 
 | Field | Effect |
 |---|---|
@@ -185,21 +185,21 @@ This is the same merge semantics as `LocalDeployTarget` — just with SSH-wrappe
 
 ```
 vm.yml declares kind:vm entity
-    → ov vm build <name>         (cloud_image: fetch+resize+seed ISO; bootc: install to-disk)
-    → ov vm create <name>        (libvirt domain + SMBIOS ssh key + passt portForward)
-    → ov vm start <name>         (boot)
-    → ov deploy add vm:<name> <ref>  (SSH → cloud-init wait → ov install → layer apply)
-    → ov deploy del vm:<name>    (SSH → ReverseOps; VM stays up)
-    → ov vm destroy <name>       (remove libvirt domain; --disk to also delete qcow2)
+    → charly vm build <name>         (cloud_image: fetch+resize+seed ISO; bootc: install to-disk)
+    → charly vm create <name>        (libvirt domain + SMBIOS ssh key + passt portForward)
+    → charly vm start <name>         (boot)
+    → charly deploy add vm:<name> <ref>  (SSH → cloud-init wait → charly install → layer apply)
+    → charly deploy del vm:<name>    (SSH → ReverseOps; VM stays up)
+    → charly vm destroy <name>       (remove libvirt domain; --disk to also delete qcow2)
 ```
 
-See `/ov-vm:vms-catalog` for vm.yml authoring, `/ov-vm:vm` for the lifecycle commands, `/ov-internals:vm-deploy-target` for the Emit flow.
+See `/charly-vm:vms-catalog` for vm.yml authoring, `/charly-vm:vm` for the lifecycle commands, `/charly-internals:vm-deploy-target` for the Emit flow.
 
 ### `add_candy:` overlay mechanism
 
 Both container and host targets accept extra layers at deploy time via `--add-candy <ref>` (repeatable) or a `deploy.yml['deploys'][<name>]['add_layers']` list. Semantics:
 
-- **Container target**: synthesizes an overlay Containerfile (`FROM <base-image>` + the extra layers' build steps) and builds a deterministic overlay image tagged `<deploy-name>-overlay:<short-hash>`. The deploy runs the overlay, not the base image. Re-running with different overlays rebuilds. `ov deploy del <name>` removes the overlay unless `--keep-image`.
+- **Container target**: synthesizes an overlay Containerfile (`FROM <base-image>` + the extra layers' build steps) and builds a deterministic overlay image tagged `<deploy-name>-overlay:<short-hash>`. The deploy runs the overlay, not the base image. Re-running with different overlays rebuilds. `charly deploy del <name>` removes the overlay unless `--keep-image`.
 - **Host target**: the compiler merges the image's layers with `add_candy:`, topo-sorts the union, and compiles one `InstallPlan` covering the combined set. The ledger records which layers (base + overlay) were applied so teardown reverses everything.
 
 Ref forms for `--add-candy` are identical to the primary `<ref>` positional (local name / local path / remote / legacy `@` form).
@@ -245,7 +245,7 @@ deploy:
 
 Container names: `ov-versa`, `ov-versa-ecovoyage`,
 `ov-versa-another-tenant`. Equivalent CLI invocations:
-`ov update versa -i ecovoyage` ↔ `ov update versa/ecovoyage` (the
+`charly update versa -i ecovoyage` ↔ `charly update versa/ecovoyage` (the
 `-i <inst>` flag and the `/` suffix are interchangeable for
 addressing instance deploys).
 
@@ -273,18 +273,18 @@ deploy:
 
 Container names: `ov-versa-prod`, `ov-versa-pinned-2026.131.2134`,
 `ov-versa-canary`. Only the single `<key>` form addresses these
-(`ov update versa-prod`, NOT `ov update versa -i prod` — that would
+(`charly update versa-prod`, NOT `charly update versa -i prod` — that would
 target an instance of `versa`, which is a different deploy).
 
 ### Schema rules locked down by these patterns
 
 - **`image:` is REQUIRED on every `target: pod` deploy entry.** Hard
   load-time error if absent, with a remediation hint pointing at
-  `ov migrate` (the one-shot migration that injects
+  `charly migrate` (the one-shot migration that injects
   the field into legacy entries).
 - **The `image:` value is either**:
   - a **short name** (e.g. `versa`) — resolved against `image:`
-    entries in `overthink.yml` to the currently-built tag, OR
+    entries in `charly.yml` to the currently-built tag, OR
   - a **fully-qualified registry ref** (e.g.
     `ghcr.io/overthinkos/versa:2026.131.2134` or
     `…@sha256:…`) — pinned to that exact image, never re-resolved.
@@ -295,7 +295,7 @@ target an instance of `versa`, which is a different deploy).
   `my-tenant/staging` are all valid deploy keys.
 - **Container name rule**: `ov-<key-with-slash-replaced-by-dash>`
   (e.g. `ov-versa`, `ov-versa-ecovoyage`, `ov-versa-canary`).
-- **`ov update <key>` and `ov update <base> -i <inst>`** are
+- **`charly update <key>` and `charly update <base> -i <inst>`** are
   equivalent ways to address a `<base>/<inst>` deploy (Pattern A).
   For Pattern B (arbitrary name), only the single `<key>` form
   works.
@@ -310,7 +310,7 @@ production deploy) each get their own independent ports — a bed remapping
 `45434:11434` keeps that mapping even while a sibling `ollama` deploy publishes
 `11434`. `MergeDeployOntoMetadata` and `dc.Lookup` both take the deploy key
 (typically `c.Image`), never a value derived from the baked
-`org.overthinkos.image` label, so an entry's explicit `port:` is never clobbered
+`ai.opencharly.image` label, so an entry's explicit `port:` is never clobbered
 by a sibling that merely shares the image.
 
 ### Why `image:` is required (R10 implication)
@@ -328,26 +328,26 @@ added since. Requiring `image:` makes the inspected image deterministic.
 
 **Deploy a local image as a container:**
 ```bash
-ov deploy add my-dev fedora-coder
+charly deploy add my-dev fedora-coder
 # Uses deploy.yml['deploys']['my-dev'] for volumes/ports/env/tunnel.
-ov deploy del my-dev
+charly deploy del my-dev
 ```
 
 **Deploy directly to the host:**
 ```bash
-ov deploy add host fedora-coder --with-services --assume-yes
-ov deploy del host --assume-yes
+charly deploy add host fedora-coder --with-services --assume-yes
+charly deploy del host --assume-yes
 ```
 
 **Deploy from a remote repo:**
 ```bash
-ov deploy add my-coder github.com/overthinkos/overthink/box/fedora-coder@main
-ov deploy add host github.com/team-acme/private-configs/candy/my-team-tools
+charly deploy add my-coder github.com/overthinkos/overthink/box/fedora-coder@main
+charly deploy add host github.com/team-acme/private-configs/candy/my-team-tools
 ```
 
 **Add overlay layers:**
 ```bash
-ov deploy add host fedora-coder \
+charly deploy add host fedora-coder \
     --add-candy team-extras \
     --add-candy github.com/team/configs/candy/sshkeys \
     --add-candy ./private.yml \
@@ -356,22 +356,22 @@ ov deploy add host fedora-coder \
 
 **Dry-run to preview the plan:**
 ```bash
-ov deploy add host fedora-coder --dry-run --format=json
+charly deploy add host fedora-coder --dry-run --format=json
 ```
 
-**`ov start`/`ov stop` equivalence:**
+**`charly start`/`charly stop` equivalence:**
 ```bash
-ov start fedora-coder            # == ov deploy add fedora-coder fedora-coder (container target)
-ov stop fedora-coder             # == ov deploy del fedora-coder
+charly start fedora-coder            # == charly deploy add fedora-coder fedora-coder (container target)
+charly stop fedora-coder             # == charly deploy del fedora-coder
 ```
 
 ## Quadlet Generation
 
-User-level systemd services via podman quadlet. Generated by `ov config`.
+User-level systemd services via podman quadlet. Generated by `charly config`.
 
 ### Generated File
 
-Path: `~/.config/containers/systemd/ov-<image>.container` (or `ov-<image>-<instance>.container` with `-i`).
+Path: `~/.config/containers/systemd/charly-<image>.container` (or `ov-<image>-<instance>.container` with `-i`).
 
 Contents include:
 - `[Container]` section: image reference, container name, port mappings, volumes, environment
@@ -382,7 +382,7 @@ Contents include:
 - `Environment=` / `EnvironmentFile=` for env vars
 - `ExecStartPost=` / `ExecStopPost=` for tunnel commands
 
-Service name: `ov-<image>.service`. Container name: `ov-<image>`. Entrypoint: determined by build.yml `init:` section for the configured init system. Encrypted volumes are mounted via `ExecStartPre=ov config mount` in the quadlet, which creates transient `ov-enc-<image>-<volume>.scope` units for each encrypted volume. These scope units are independent of the container service — they survive stop/restart (see `/ov-automation:enc`). With Secret Service backend: auto-starts after login (ExecStartPre waits for keyring unlock, `TimeoutStartSec=0`). With KeePass or no backend: requires `ov start` (no `WantedBy=default.target`).
+Service name: `ov-<image>.service`. Container name: `ov-<image>`. Entrypoint: determined by build.yml `init:` section for the configured init system. Encrypted volumes are mounted via `ExecStartPre=charly config mount` in the quadlet, which creates transient `ov-enc-<image>-<volume>.scope` units for each encrypted volume. These scope units are independent of the container service — they survive stop/restart (see `/charly-automation:enc`). With Secret Service backend: auto-starts after login (ExecStartPre waits for keyring unlock, `TimeoutStartSec=0`). With KeePass or no backend: requires `charly start` (no `WantedBy=default.target`).
 
 ### Security in Quadlet
 
@@ -397,13 +397,13 @@ Source: `ov/security.go`, `ov/quadlet.go`.
 
 ### Image Transfer
 
-When `engine.build=docker`, `ov config` auto-detects if the image is missing from podman and transfers via `docker save | podman load`. `ov update` re-transfers if needed.
+When `engine.build=docker`, `charly config` auto-detects if the image is missing from podman and transfers via `docker save | podman load`. `charly update` re-transfers if needed.
 
 Source: `ov/quadlet.go` (generation), `ov/commands.go` (command structs).
 
 ## Tunnel Configuration
 
-Expose services outside the container host via tunnels. Tunnel config lives exclusively in `deploy.yml` — it is NOT in `box.yml` or OCI image labels. `ov config setup` persists tunnel config automatically via `saveDeployState`.
+Expose services outside the container host via tunnels. Tunnel config lives exclusively in `deploy.yml` — it is NOT in `box.yml` or OCI image labels. `charly config setup` persists tunnel config automatically via `saveDeployState`.
 
 ### Tailscale Serve (tailnet-private, default)
 
@@ -419,7 +419,7 @@ tunnel:
 
 **`bind_address` must be `127.0.0.1` (the default).** Setting `0.0.0.0` causes the container to bind on the Tailscale interface, preventing Tailscale from intercepting TLS. Result: HTTPS fails with `wrong version number`.
 
-**Port form in `deploy.yml`.** The canonical form is bare `H:C` (e.g. `8888:8888`); `ov config` prepends `127.0.0.1:` automatically when a tunnel is set. The IP-prefixed form `127.0.0.1:8888:8888` (and IPv6 `[::1]:8888:8888`) is also accepted — the canonical `ParsePortMapping` helper in `ov/ports.go` normalizes both shapes to a single-prefixed `PublishPort=` line, so neither form produces a doubled `127.0.0.1:127.0.0.1:8888:8888` quadlet. Unparseable port strings are logged loudly to stderr rather than silently dropped (a silent skip would otherwise suppress the entire `ExecStartPost=tailscale serve` block when even one port couldn't be parsed).
+**Port form in `deploy.yml`.** The canonical form is bare `H:C` (e.g. `8888:8888`); `charly config` prepends `127.0.0.1:` automatically when a tunnel is set. The IP-prefixed form `127.0.0.1:8888:8888` (and IPv6 `[::1]:8888:8888`) is also accepted — the canonical `ParsePortMapping` helper in `ov/ports.go` normalizes both shapes to a single-prefixed `PublishPort=` line, so neither form produces a doubled `127.0.0.1:127.0.0.1:8888:8888` quadlet. Unparseable port strings are logged loudly to stderr rather than silently dropped (a silent skip would otherwise suppress the entire `ExecStartPost=tailscale serve` block when even one port couldn't be parsed).
 
 ### Tailscale Funnel (public internet)
 
@@ -443,18 +443,18 @@ tunnel:
 fqdn: "app.example.com"
 ```
 
-`ov config` handles the full tunnel lifecycle automatically:
+`charly config` handles the full tunnel lifecycle automatically:
 1. Creates the Cloudflare tunnel (`cloudflared tunnel create`) if it doesn't exist
-2. Writes the tunnel config YAML (`~/.config/ov/tunnels/<name>.yml`) with ingress rules
+2. Writes the tunnel config YAML (`~/.config/charly/tunnels/<name>.yml`) with ingress rules
 3. Routes DNS with `--overwrite-dns` (creates or updates CNAME to tunnel)
 4. Generates a companion systemd service (`ov-<image>-tunnel.service`)
 5. Enables the tunnel service and adds `Wants=` to the container quadlet
 
-`ov start` then starts both the container and the tunnel service together.
+`charly start` then starts both the container and the tunnel service together.
 
 ### Backend Schemes
 
-Port protocols declared in `candy.yml` control the backend URL scheme used by tunnel commands. The protocol flows from layer → OCI label (`org.overthinkos.port_proto`) → tunnel command.
+Port protocols declared in `candy.yml` control the backend URL scheme used by tunnel commands. The protocol flows from layer → OCI label (`ai.opencharly.port_proto`) → tunnel command.
 
 **Tailscale serve/funnel schemes:**
 
@@ -479,9 +479,9 @@ Port protocols declared in `candy.yml` control the backend URL scheme used by tu
 
 **UDP** ports are never tunneled — a warning is printed. UDP traffic works directly between tailnet nodes.
 
-`ov box validate` checks port schemes against provider capabilities. For example, `ssh` is valid for Cloudflare but not Tailscale; `tls-terminated-tcp` is valid for Tailscale but not Cloudflare.
+`charly box validate` checks port schemes against provider capabilities. For example, `ssh` is valid for Cloudflare but not Tailscale; `tls-terminated-tcp` is valid for Tailscale but not Cloudflare.
 
-See `/ov-image:layer` for port protocol syntax in `candy.yml`.
+See `/charly-image:layer` for port protocol syntax in `candy.yml`.
 
 ### Multi-Port Tailscale Serve
 
@@ -500,15 +500,15 @@ tunnel:
 
 Quadlet generates multiple `ExecStartPost=` and `ExecStopPost=` lines. Requires `tailscale set --operator=$USER` for non-root access.
 
-Port protocols are stored in the `org.overthinkos.port_proto` image label so deploy-mode commands work without access to the original layer definitions. Remote refs require `ov box pull` first — see `/ov-build:pull`.
+Port protocols are stored in the `ai.opencharly.port_proto` image label so deploy-mode commands work without access to the original layer definitions. Remote refs require `charly box pull` first — see `/charly-build:pull`.
 
 ### Instance Tunnel Inheritance
 
-**Critical:** When deploying instances with `ov config setup -i <name>`, tunnel config is NOT auto-inherited from the base image's deploy.yml entry. Each instance must have its own `tunnel:` section in deploy.yml. Without it, the generated quadlet will have no `ExecStartPost=tailscale serve` commands and the instance will be unreachable via Tailscale.
+**Critical:** When deploying instances with `charly config setup -i <name>`, tunnel config is NOT auto-inherited from the base image's deploy.yml entry. Each instance must have its own `tunnel:` section in deploy.yml. Without it, the generated quadlet will have no `ExecStartPost=tailscale serve` commands and the instance will be unreachable via Tailscale.
 
-**Root cause:** `labels.go:238` deliberately skips parsing the `org.overthinkos.tunnel` OCI label — tunnel is deploy.yml-only. When `ov config setup` creates a new instance, it writes ports/env/security to deploy.yml but does not copy tunnel from the base entry.
+**Root cause:** `labels.go:238` deliberately skips parsing the `ai.opencharly.tunnel` OCI label — tunnel is deploy.yml-only. When `charly config setup` creates a new instance, it writes ports/env/security to deploy.yml but does not copy tunnel from the base entry.
 
-**Workaround:** After `ov config setup -i <name>`, manually edit `~/.config/ov/deploy.yml` to add `tunnel: {provider: tailscale, private: all}` to the instance entry, then re-run `ov config setup -i <name>` to regenerate the quadlet.
+**Workaround:** After `charly config setup -i <name>`, manually edit `~/.config/charly/deploy.yml` to add `tunnel: {provider: tailscale, private: all}` to the instance entry, then re-run `charly config setup -i <name>` to regenerate the quadlet.
 
 ### Resolution
 
@@ -518,19 +518,19 @@ Source: `ov/tunnel.go` (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`, `validTa
 
 ## deploy.yml — Source of Truth
 
-`~/.config/ov/deploy.yml` is the **source of truth** for per-machine deployment configuration (not checked into git). All deployment commands read from image labels + deploy.yml — no `box.yml` needed.
+`~/.config/charly/deploy.yml` is the **source of truth** for per-machine deployment configuration (not checked into git). All deployment commands read from image labels + deploy.yml — no `box.yml` needed.
 
 ### How it gets populated
 
-1. **`ov config`** automatically persists: workspace, ports, env (CLI -e), env_file, network, security (auto-detected devices), volume backing (--bind/--encrypt)
-2. **`ov deploy import`** merges pre-provisioned config (tunnel, volumes, DNS) from files
-3. **`ov remove`** cleans the entry (use `--keep-deploy` to preserve for re-config)
+1. **`charly config`** automatically persists: workspace, ports, env (CLI -e), env_file, network, security (auto-detected devices), volume backing (--bind/--encrypt)
+2. **`charly deploy import`** merges pre-provisioned config (tunnel, volumes, DNS) from files
+3. **`charly remove`** cleans the entry (use `--keep-deploy` to preserve for re-config)
 
 ### Legacy-schema rejection
 
-The top-level deploy map is `deploy:`, and per-entry storage uses a structured `volume:` list. **`yaml.Unmarshal` silently drops unknown root keys**, so a file with the obsolete `image:` root key would parse to an empty `DeployConfig.Deploy` map and downstream commands would behave as if nothing was deployed — including the dangerous case where `bind_mounts: [{encrypted: true}]` entries become invisible to `loadEncryptedVolumes` and the encryption guarantee silently disappears. `LoadDeployConfig` (`ov/deploy.go:hasLegacyImagesKey`) detects the legacy root shape and fails loud, pointing at `ov migrate`.
+The top-level deploy map is `deploy:`, and per-entry storage uses a structured `volume:` list. **`yaml.Unmarshal` silently drops unknown root keys**, so a file with the obsolete `image:` root key would parse to an empty `DeployConfig.Deploy` map and downstream commands would behave as if nothing was deployed — including the dangerous case where `bind_mounts: [{encrypted: true}]` entries become invisible to `loadEncryptedVolumes` and the encryption guarantee silently disappears. `LoadDeployConfig` (`ov/deploy.go:hasLegacyImagesKey`) detects the legacy root shape and fails loud, pointing at `charly migrate`.
 
-`ov status` surfaces this as a non-fatal warning (graceful degradation falls back to image-label-driven display); the strictly-deploy.yml-driven verbs (`ov deploy show`, `ov config status`, `ov start`) hard-fail. Run `ov migrate` to convert in place — it backs the original up to `<file>.bak.<unix-ts>` and rewrites to the latest schema. See `/ov-build:migrate` "ov migrate".
+`charly status` surfaces this as a non-fatal warning (graceful degradation falls back to image-label-driven display); the strictly-deploy.yml-driven verbs (`charly deploy show`, `charly config status`, `charly start`) hard-fail. Run `charly migrate` to convert in place — it backs the original up to `<file>.bak.<unix-ts>` and rewrites to the latest schema. See `/charly-build:migrate` "charly migrate".
 
 ### Structure
 
@@ -561,7 +561,7 @@ deploy:
     security:
       devices:
         - /dev/dri/renderD128
-    network: ov
+    network: charly
     engine: podman
 ```
 
@@ -569,13 +569,13 @@ Allowed fields: `workspace`, `version`, `tunnel`, `fqdn`, `acme_email`, `volumes
 
 ### `target` / `add_layer` / `install_opts` fields
 
-The `ov deploy add`/`del` surface carries three fields on every deploy.yml entry. They're honored only when relevant to the deploy target.
+The `charly deploy add`/`del` surface carries three fields on every deploy.yml entry. They're honored only when relevant to the deploy target.
 
-**`target:`** — `pod` (default, container pipeline) or `local` (local filesystem apply). When `target: local` is set, `ov deploy add` routes to the local executor; `host: local` (default) runs directly, `host: <user@machine>` runs over SSH.
+**`target:`** — `pod` (default, container pipeline) or `local` (local filesystem apply). When `target: local` is set, `charly deploy add` routes to the local executor; `host: local` (default) runs directly, `host: <user@machine>` runs over SSH.
 
 **`add_candy:`** — list of extra layer refs applied on top of the image's base layers. Each entry accepts the same 4 ref forms as the command-line `--add-candy` flag (local name / local YAML path / remote `github.com/.../candy/<n>[@ref]`). See "add_layers: overlay mechanism" above for pod vs local semantics.
 
-**`install_opts:`** — local-target defaults that mirror the CLI flags on `ov deploy add`. CLI flags win on conflict; deploy.yml provides defaults so you don't have to repeat `--with-services --allow-repo-changes` on every invocation.
+**`install_opts:`** — local-target defaults that mirror the CLI flags on `charly deploy add`. CLI flags win on conflict; deploy.yml provides defaults so you don't have to repeat `--with-services --allow-repo-changes` on every invocation.
 
 ```yaml
 deploy:
@@ -601,7 +601,7 @@ Fields ignored on pod deploys: `install_opts` (local-only). Fields ignored on lo
 
 ### Resource Caps
 
-Cgroup memory and CPU limits are stored in the `security:` block of deploy.yml and persist across `ov config` re-runs (a `--memory-max` flag applied once stays in effect until explicitly changed). The fields are:
+Cgroup memory and CPU limits are stored in the `security:` block of deploy.yml and persist across `charly config` re-runs (a `--memory-max` flag applied once stays in effect until explicitly changed). The fields are:
 
 ```yaml
 deploy:
@@ -621,11 +621,11 @@ deploy:
 | Layer → layer | Smallest value wins (tightest cap is the safer default) |
 | Layers → image-level `security:` in box.yml | Image-level **replaces** the merged layer value |
 | Image-level → deploy-level `security:` in deploy.yml | Deploy-level **replaces** the image-level value |
-| CLI flag → deploy-level | CLI flag **writes** directly to deploy.yml (`--memory-max=...` on `ov config`) |
+| CLI flag → deploy-level | CLI flag **writes** directly to deploy.yml (`--memory-max=...` on `charly config`) |
 
 Quadlet emission (`[Service]` section of `.container` file):
 
-- `memory_max` → `MemoryMax=6G` (lowercase `g` is auto-normalized to `G` because systemd parses lowercase as `infinity` — see `/ov-selkies:chrome` gotcha)
+- `memory_max` → `MemoryMax=6G` (lowercase `g` is auto-normalized to `G` because systemd parses lowercase as `infinity` — see `/charly-selkies:chrome` gotcha)
 - `memory_high` → `MemoryHigh=5G`
 - `memory_swap_max` → `MemorySwapMax=2G`
 - `cpus` → `CPUQuota=400%` (systemd percentage form: 1 core = 100%)
@@ -634,24 +634,24 @@ Direct-mode emission (podman run flags, for `engine.run=direct`): `--memory`, `-
 
 **Unset fields pass through** — setting `--memory-max=6g` alone will not wipe an existing `shm_size` from deploy.yml. Only the fields you pass on the CLI get overwritten; everything else is preserved from the current deploy.yml state.
 
-**Canonical consumer:** the chrome layer's cgroup caps. See `/ov-selkies:chrome` (Resource Caps) — the caps bound a Chrome crash loop's blast radius; a wedged loop (orphan memfd shmem) is cleared by restarting the container, which tears down the cgroup. See `/ov-infrastructure:supervisord` (Event Listeners) for the eventlistener pattern in general and `/ov-image:layer` (Security Declaration) for the authoring side.
+**Canonical consumer:** the chrome layer's cgroup caps. See `/charly-selkies:chrome` (Resource Caps) — the caps bound a Chrome crash loop's blast radius; a wedged loop (orphan memfd shmem) is cleared by restarting the container, which tears down the cgroup. See `/charly-infrastructure:supervisord` (Event Listeners) for the eventlistener pattern in general and `/charly-image:layer` (Security Declaration) for the authoring side.
 
 ### Provides (Top-Level)
 
-The `provides:` section holds all resolved env and MCP provides entries from deployed images. Managed automatically by `ov config` when images with `env_provide` or `mcp_provide` layers are deployed.
+The `provides:` section holds all resolved env and MCP provides entries from deployed images. Managed automatically by `charly config` when images with `env_provide` or `mcp_provide` layers are deployed.
 
 ```yaml
 provides:
   env:
     - name: OLLAMA_HOST
-      value: http://ov-ollama:11434
+      value: http://charly-ollama:11434
       source: ollama
     - name: PGHOST
       value: ov-postgresql
       source: postgresql
   mcp:
     - name: jupyter
-      url: http://ov-jupyter:8888/mcp
+      url: http://charly-jupyter:8888/mcp
       transport: http
       source: jupyter
 deploy:
@@ -660,16 +660,16 @@ deploy:
 
 - `provides.env:` — resolved env_provide entries with `{name, value, source}` (self-excluded per consumer)
 - `provides.mcp:` — resolved mcp_provide entries with `{name, url, transport, source}` (pod-aware, no self-exclusion)
-- `source` tracks which image injected each entry — used for cleanup on `ov remove`
+- `source` tracks which image injected each entry — used for cleanup on `charly remove`
 - Priority for env (last wins): provides.env < per-image deploy env < deploy env_file < workspace .env < CLI --env-file < CLI -e
-- `ov config remove` / `ov remove` automatically cleans up entries from the removed image
-- Instance-aware cleanup: removing an instance (e.g., `ov remove selkies-desktop -i work`) only cleans provides entries sourced from that specific instance (`selkies-desktop/work`), not from other instances of the same base image. Base image removal requires no other instances to exist before cleaning provides
+- `charly config remove` / `charly remove` automatically cleans up entries from the removed image
+- Instance-aware cleanup: removing an instance (e.g., `charly remove selkies-desktop -i work`) only cleans provides entries sourced from that specific instance (`selkies-desktop/work`), not from other instances of the same base image. Base image removal requires no other instances to exist before cleaning provides
 
-See `/ov-image:layer` for `env_provide`/`mcp_provide` field declarations and `/ov-core:ov-config` for `--update-all` propagation.
+See `/charly-image:layer` for `env_provide`/`mcp_provide` field declarations and `/charly-core:ov-config` for `--update-all` propagation.
 
 ### Secrets
 
-Per-deployment secret source overrides. Secrets declared in image labels (from `candy.yml`) are provisioned as Podman secrets at `ov config` time. Deploy.yml can override where the value comes from:
+Per-deployment secret source overrides. Secrets declared in image labels (from `candy.yml`) are provisioned as Podman secrets at `charly config` time. Deploy.yml can override where the value comes from:
 
 ```yaml
 secrets:
@@ -684,15 +684,15 @@ If no source is specified, the credential resolution chain is used: env var > ke
 Volume binding is configured at deploy time via `--bind` flags. The binding is persisted in deploy.yml:
 
 ```bash
-ov config my-app --bind workspace=~/project    # Saves volume config to deploy.yml
-ov remove my-app --keep-deploy                 # Quadlet removed, config preserved
-ov config my-app                               # Picks up volumes from deploy.yml
+charly config my-app --bind workspace=~/project    # Saves volume config to deploy.yml
+charly remove my-app --keep-deploy                 # Quadlet removed, config preserved
+charly config my-app                               # Picks up volumes from deploy.yml
 ```
 
 ### Deploy status audit
 
 ```bash
-ov deploy status
+charly deploy status
 # sway-browser-vnc              deploy.yml: yes  quadlet: yes  (ok)
 # old-service                   deploy.yml: yes  quadlet: no   (stale config)
 # manual-service                deploy.yml: no   quadlet: yes  (no overrides)
@@ -700,9 +700,9 @@ ov deploy status
 
 ### Labels-only architecture
 
-Deployment commands (`ov config`, `start`, `status`, `logs`, `update`, `remove`, `seed`, `service`) resolve all configuration from **OCI image labels** + **deploy.yml** — no `box.yml` dependency. This means you can deploy on any machine with just `ov box pull` + `ov config`.
+Deployment commands (`charly config`, `start`, `status`, `logs`, `update`, `remove`, `seed`, `service`) resolve all configuration from **OCI image labels** + **deploy.yml** — no `box.yml` dependency. This means you can deploy on any machine with just `charly box pull` + `charly config`.
 
-**Local-storage requirement.** Because deploy-mode commands read OCI labels directly from local container storage (via `ExtractMetadata` → `podman inspect`), the image must be pulled first. If it isn't, the command fails with `ErrImageNotLocal` and the CLI suggests `ov box pull`. See `/ov-build:pull` for the sentinel pattern and remote-ref (`@github.com/...`) handling.
+**Local-storage requirement.** Because deploy-mode commands read OCI labels directly from local container storage (via `ExtractMetadata` → `podman inspect`), the image must be pulled first. If it isn't, the command fails with `ErrImageNotLocal` and the CLI suggests `charly box pull`. See `/charly-build:pull` for the sentinel pattern and remote-ref (`@github.com/...`) handling.
 
 **`MergeDeployOntoMetadata` ordering gotcha.** When extending deploy-mode code, remember that deploy-overlay fields like `meta.Tunnel` are nil until `MergeDeployOntoMetadata` runs. A `if meta.Tunnel != nil` check before the merge is unreachable code — this was the actual bug fixed in `start.go` by the refactor.
 
@@ -711,10 +711,10 @@ Deployment commands (`ov config`, `start`, `status`, `logs`, `update`, `remove`,
 Deploy multiple containers of the same image with `-i <instance>`:
 
 ```bash
-ov config selkies-desktop -i work -e TS_HOSTNAME=work -p 3001:3000
-ov config selkies-desktop -i personal -p 3002:3000
-ov start selkies-desktop -i work
-ov start selkies-desktop -i personal
+charly config selkies-desktop -i work -e TS_HOSTNAME=work -p 3001:3000
+charly config selkies-desktop -i personal -p 3002:3000
+charly start selkies-desktop -i work
+charly start selkies-desktop -i personal
 ```
 
 **Deploy key convention:** Base images use `selkies-desktop` as the deploy.yml key. Instances use `selkies-desktop/work` (slash-separated). Functions: `deployKey()` constructs keys, `parseDeployKey()` splits them back. Source: `ov/deploy.go`.
@@ -734,36 +734,36 @@ deploy:
     ports: [3002:3000]
 ```
 
-**Instance lifecycle:** All commands accept `-i`: `ov start/stop/status/logs/remove <image> -i <instance>`, `ov deploy show/reset <image> -i <instance>`. Removing an instance only cleans its deploy.yml entry — the base and other instances are unaffected. Provides cleanup waits until the last entry for a base image is removed.
+**Instance lifecycle:** All commands accept `-i`: `charly start/stop/status/logs/remove <image> -i <instance>`, `charly deploy show/reset <image> -i <instance>`. Removing an instance only cleans its deploy.yml entry — the base and other instances are unaffected. Provides cleanup waits until the last entry for a base image is removed.
 
-**Instance removal gotcha:** `ov config remove` disables the systemd service but does NOT remove the deploy.yml entry. You MUST also run `ov deploy reset <image> -i <instance>` and delete the quadlet file. If you run `ov config --update-all` before cleaning deploy.yml, stale quadlet files will be re-created. See `/ov-core:ov-config` for the full 3-step cleanup workflow.
+**Instance removal gotcha:** `charly config remove` disables the systemd service but does NOT remove the deploy.yml entry. You MUST also run `charly deploy reset <image> -i <instance>` and delete the quadlet file. If you run `charly config --update-all` before cleaning deploy.yml, stale quadlet files will be re-created. See `/charly-core:ov-config` for the full 3-step cleanup workflow.
 
-**MCP name disambiguation:** When an instance provides MCP servers, the server name gets `-<instance>` appended (e.g., `chrome-devtools-work`). See `/ov-core:ov-config` for details.
+**MCP name disambiguation:** When an instance provides MCP servers, the server name gets `-<instance>` appended (e.g., `chrome-devtools-work`). See `/charly-core:ov-config` for details.
 
 ## Volume Backing
 
-Layers declare what persistent storage they need via `volume:` in `candy.yml`. By default, all volumes are Docker/Podman named volumes. At `ov config` time, any volume's backing can be changed to a host bind mount or encrypted gocryptfs mount.
+Layers declare what persistent storage they need via `volume:` in `candy.yml`. By default, all volumes are Docker/Podman named volumes. At `charly config` time, any volume's backing can be changed to a host bind mount or encrypted gocryptfs mount.
 
-### Per-Volume Configuration via `ov config`
+### Per-Volume Configuration via `charly config`
 
 ```bash
 # Default: all volumes as named volumes (no flags needed)
-ov config immich
+charly config immich
 
 # Configure specific volumes as bind mounts
-ov config immich --bind import --bind external
+charly config immich --bind import --bind external
 
 # Bind mount with explicit host path
-ov config immich --bind library=/mnt/nas/photos
+charly config immich --bind library=/mnt/nas/photos
 
 # Configure volume as encrypted (gocryptfs)
-ov config immich --encrypt library
+charly config immich --encrypt library
 
 # Canonical syntax: --volume name:type[:path]
-ov config immich -v library:bind:/mnt/nas -v import:bind -v cache:encrypted
+charly config immich -v library:bind:/mnt/nas -v import:bind -v cache:encrypted
 
 # Fully automated via env vars (no prompts)
-OV_VOLUMES_IMMICH="library:bind:/mnt/nas,import:bind" ov config immich --password auto
+OV_VOLUMES_IMMICH="library:bind:/mnt/nas,import:bind" charly config immich --password auto
 ```
 
 ### deploy.yml Volume Config
@@ -786,10 +786,10 @@ volumes:
 - `type`: `volume` (default, named volume), `bind` (host directory), `encrypted` (gocryptfs)
 - `host`: explicit host path — for `bind` type (optional, omit for auto path); for `encrypted` type, the direct volume directory containing `cipher/` and `plain/` (optional, omit to use global `encrypted_storage_path` with `ov-<image>-<name>` prefix)
 - `path`: container path (only for deploy-only volumes not declared in any layer)
-- `data_seeded`: `bool` — tracks whether data from image data layers was provisioned (set by `ov config`)
-- `data_source`: `string` — image:tag that provided the data (updated by `ov config` and `ov update`)
+- `data_seeded`: `bool` — tracks whether data from image data layers was provisioned (set by `charly config`)
+- `data_source`: `string` — image:tag that provided the data (updated by `charly config` and `charly update`)
 
-**Auto path:** When `type: bind` and no `host` is specified, the host path is computed at runtime: `<volumes_path>/<image>/<name>`. Default volumes_path: `~/.local/share/ov/volumes/`. Configurable: `ov settings set volumes_path /mnt/nas/ov` (env: `OV_VOLUMES_PATH`).
+**Auto path:** When `type: bind` and no `host` is specified, the host path is computed at runtime: `<volumes_path>/<image>/<name>`. Default volumes_path: `~/.local/share/ov/volumes/`. Configurable: `charly settings set volumes_path /mnt/nas/ov` (env: `OV_VOLUMES_PATH`).
 
 **Unconfigured volumes** remain named volumes — no deploy.yml entry needed.
 
@@ -797,7 +797,7 @@ volumes:
 
 `ResolveVolumeBacking()` in `ov/deploy.go` splits image volumes into named volumes and bind-backed mounts:
 
-1. Load all volumes from image labels (`org.overthinkos.volume`)
+1. Load all volumes from image labels (`ai.opencharly.volume`)
 2. Load deploy.yml volume overrides for this image
 3. For each declared volume:
    - If deploy.yml says `type=bind` → host bind mount (explicit path or auto path)
@@ -807,11 +807,11 @@ volumes:
 
 ### Integration
 
-- **Data provisioning**: `ov config` automatically provisions data from data layers into bind-backed volumes (via `--seed`, default true). `ov update` merges new data non-destructively. See `/ov-core:ov-config` and `/ov-core:ov-update`
-- **`ov shell`/`ov start`**: resolves volume backing, verifies bind dirs exist and encrypted volumes are mounted, generates `-v` flags
-- **`ov config` (quadlet)**: bind-backed volumes become `Volume=` lines with host paths. `--userns=keep-id` added when bind-backed volumes exist
-- **`ov remove --purge`**: removes named volumes
-- **`ov box inspect --format bind_mounts`**: outputs deploy-configured volume backing
+- **Data provisioning**: `charly config` automatically provisions data from data layers into bind-backed volumes (via `--seed`, default true). `charly update` merges new data non-destructively. See `/charly-core:ov-config` and `/charly-core:ov-update`
+- **`charly shell`/`charly start`**: resolves volume backing, verifies bind dirs exist and encrypted volumes are mounted, generates `-v` flags
+- **`charly config` (quadlet)**: bind-backed volumes become `Volume=` lines with host paths. `--userns=keep-id` added when bind-backed volumes exist
+- **`charly remove --purge`**: removes named volumes
+- **`charly box inspect --format bind_mounts`**: outputs deploy-configured volume backing
 
 Source: `ov/deploy.go` (`DeployVolumeConfig`, `ResolveVolumeBacking`), `ov/enc.go` (`ResolvedBindMount`).
 
@@ -820,20 +820,20 @@ Source: `ov/deploy.go` (`DeployVolumeConfig`, `ResolveVolumeBacking`), `ov/enc.g
 For images with wayvnc (VNC on tcp:5900), set a VNC password after enabling:
 
 ```bash
-ov config sway-browser-vnc
-ov eval vnc passwd sway-browser-vnc --generate   # auto-generates password, prints to stdout
+charly config sway-browser-vnc
+charly eval vnc passwd sway-browser-vnc --generate   # auto-generates password, prints to stdout
 ```
 
 Or pre-set via settings before deployment:
 
 ```bash
-ov settings set vnc.password.sway-browser-vnc mysecret
-ov config sway-browser-vnc
+charly settings set vnc.password.sway-browser-vnc mysecret
+charly config sway-browser-vnc
 # After container starts, run passwd to configure server-side auth:
-ov eval vnc passwd sway-browser-vnc    # uses stored password (no prompt)
+charly eval vnc passwd sway-browser-vnc    # uses stored password (no prompt)
 ```
 
-See `/ov-eval:vnc` for full VNC authentication documentation.
+See `/charly-eval:vnc` for full VNC authentication documentation.
 
 ## Port Relay Pattern
 
@@ -847,9 +847,9 @@ port_relay:
   - 18789
 ```
 
-Requires the `socat` layer as a dependency. The relay runs as a `relay-<port>` service in the configured init system. See `/ov-openclaw:openclaw` for an example.
+Requires the `socat` layer as a dependency. The relay runs as a `relay-<port>` service in the configured init system. See `/charly-openclaw:openclaw` for an example.
 
-**Chrome CDP exception:** Chrome DevTools no longer uses `port_relay`. Chrome 146+ rejects connections with non-localhost Host headers, so a simple socat relay is insufficient. Instead, Chrome uses a `cdp-proxy` Python supervisord service that listens on `0.0.0.0:9222`, forwards to Chrome on `127.0.0.1:9223` with Host header rewriting, and rewrites response URLs (e.g., `webSocketDebuggerUrl`) with Content-Length correction. See `/ov-selkies:chrome` and `/ov-eval:cdp` for details.
+**Chrome CDP exception:** Chrome DevTools no longer uses `port_relay`. Chrome 146+ rejects connections with non-localhost Host headers, so a simple socat relay is insufficient. Instead, Chrome uses a `cdp-proxy` Python supervisord service that listens on `0.0.0.0:9222`, forwards to Chrome on `127.0.0.1:9223` with Host header rewriting, and rewrites response URLs (e.g., `webSocketDebuggerUrl`) with Content-Length correction. See `/charly-selkies:chrome` and `/charly-eval:cdp` for details.
 
 ## Provides Configuration
 
@@ -861,29 +861,29 @@ Global environment and MCP server injection for all deployed images. Stored in d
 provides:
   env:
     - name: OLLAMA_HOST
-      value: http://ov-ollama:11434
+      value: http://charly-ollama:11434
       source: ollama
   mcp:
     - name: jupyter
-      url: http://ov-jupyter:8888/mcp
+      url: http://charly-jupyter:8888/mcp
       transport: http
       source: jupyter
 ```
 
 - `provides.env:` — resolved env_provide entries with `{name, value, source}`
 - `provides.mcp:` — resolved mcp_provide entries with `{name, url, transport, source}`
-- `source` field tracks which image contributed each entry (used for cleanup on `ov remove`)
-- Entries resolved at `ov config` time from layer `env_provide:` and `mcp_provide:` declarations
+- `source` field tracks which image contributed each entry (used for cleanup on `charly remove`)
+- Entries resolved at `charly config` time from layer `env_provide:` and `mcp_provide:` declarations
 - `GlobalEnvForImage()` in `provides.go` resolves both env and MCP provides for each consumer image
 - Env provides: self-excluded (prevents own env_provide from overriding service bind addresses)
 - MCP provides: pod-aware (same-container entries resolve to `localhost`, no self-exclusion)
 - Consumer containers receive `OV_MCP_SERVERS` JSON env var with resolved MCP server entries
 
-See `/ov-core:ov-config` for setup workflow and `/ov-image:layer` for declaration format.
+See `/charly-core:ov-config` for setup workflow and `/charly-image:layer` for declaration format.
 
 ## Sidecar Pod Deployment
 
-When sidecars are attached via `ov config --sidecar <name>`, deployment generates a Podman **pod** instead of a standalone container. See `/ov-automation:sidecar` for full sidecar documentation.
+When sidecars are attached via `charly config --sidecar <name>`, deployment generates a Podman **pod** instead of a standalone container. See `/charly-automation:sidecar` for full sidecar documentation.
 
 ### Generated Files
 
@@ -916,7 +916,7 @@ deploy:
           TS_EXTRA_ARGS: "--exit-node=100.80.254.4 --exit-node-allow-lan-access"
 ```
 
-## Preemptible resource arbitration (`preemptible` / `requires_exclusive` / `ov preempt`)
+## Preemptible resource arbitration (`preemptible` / `requires_exclusive` / `charly preempt`)
 
 A physical host resource can be held by only ONE deployment at a time — the
 canonical case is a GPU passed through to a VM via VFIO. The resource arbiter
@@ -941,10 +941,10 @@ eval:
     requires_exclusive: [nvidia-gpu]
 ```
 
-- **When the arbiter acts.** Before a claimant is brought up — `ov eval run <bed>`
-  (transient claim, auto-released at teardown), or a standalone `ov vm create` /
-  `ov start` (persistent claim, released on `ov vm stop`/`vm destroy`/`ov stop`/
-  `ov remove`) — it gracefully stops every running preemptible holder whose
+- **When the arbiter acts.** Before a claimant is brought up — `charly eval run <bed>`
+  (transient claim, auto-released at teardown), or a standalone `charly vm create` /
+  `charly start` (persistent claim, released on `charly vm stop`/`vm destroy`/`charly stop`/
+  `charly remove`) — it gracefully stops every running preemptible holder whose
   `holds:` intersects the claimant's `requires_exclusive:`, waits for it to
   actually power off (so the resource is truly released), records a crash-safe
   lease, then proceeds. Nested `ov` subprocesses inherit the lease
@@ -952,14 +952,14 @@ eval:
 - **Token = a name, not a mechanism** — operator-chosen (`nvidia-gpu`), decoupled
   from how each side reaches it (VM hostdev vs pod `--device`); pure
   set-intersection unifies pod-vs-VM contention.
-- **`ov preempt status`** lists active leases + flags STRANDED ones (claimant
-  gone). **`ov preempt restore [claimant]`** reconciles stranded leases (also run
+- **`charly preempt status`** lists active leases + flags STRANDED ones (claimant
+  gone). **`charly preempt restore [claimant]`** reconciles stranded leases (also run
   automatically at the next acquire) / force-releases a named one. A holder is
   NEVER left permanently stopped — the ledger
   (`~/.local/share/ov/preemption/leases.yml`) is written before any stop, and
   restore = "start every listed holder that isn't running".
 - **Orthogonal to disposable/ephemeral** — no derivation either way; a deploy may
-  be both preemptible and disposable. Full reference: `/ov-internals:disposable`
+  be both preemptible and disposable. Full reference: `/charly-internals:disposable`
   "The resource-arbitration axis".
 
 ## Sibling peers (`peer:`) — companion deployments brought up alongside
@@ -969,7 +969,7 @@ ALONGSIDE** it on the shared `ov` network — *siblings*, not children. Contrast
 `nested:`, whose children run **inside** this node's venue and are addressed by a
 dotted path (`parent.child`). A peer is a companion **instrument**: the canonical
 case is a Chrome DRIVER pod that CDP-probes a SEPARATE web-server SUBJECT, where a
-check on the subject carries `on: <peer>` (see `/ov-eval:eval` "Cross-deployment
+check on the subject carries `on: <peer>` (see `/charly-eval:eval` "Cross-deployment
 probing"). The SAME field + lifecycle serve a `kind: eval` bed and a `kind: deploy`
 operator deployment — one codebase.
 
@@ -979,14 +979,14 @@ deploy:
     target: pod
     image: web
     peer:
-      chrome:                      # a SIBLING brought up on the shared ov net
+      chrome:                      # a SIBLING brought up on the shared charly net
         target: pod
         image: chrome-headless     # a full DeploymentNode (its own target/image/port/…)
         port: [auto]
 ```
 
 - **Folded to addressable top-level entries.** At load time `foldPeers` registers
-  each peer as a top-level Deploy entry (so `ov config <peer>` / `ov start <peer>`
+  each peer as a top-level Deploy entry (so `charly config <peer>` / `charly start <peer>`
   resolve it through the exact path any deploy uses) carrying a derived `PeerOf:
   <owner>`. A peer name must be **globally unique** (a collision with any
   deploy/bed/peer is a hard load error) and carry **no `.`** (same rules as
@@ -994,74 +994,74 @@ deploy:
   loader does not check ports — `[auto]` avoids fixed-port collisions).
 - **One shared lifecycle (R3).** `bringUpPeers` / `tearDownPeers` (`ov/deploy_peers.go`)
   bring peers up after the owner and tear them down with it, by shelling out to the
-  SAME verbs — a pod peer via `ov config` + `ov start` (+ readiness wait), a
-  non-pod peer via `ov deploy add` / `ov deploy del`. Wired into `ov deploy add` /
-  `ov deploy del` (operator path) AND the `kind: eval` bed runner (the bed's
+  SAME verbs — a pod peer via `charly config` + `charly start` (+ readiness wait), a
+  non-pod peer via `charly deploy add` / `charly deploy del`. Wired into `charly deploy add` /
+  `charly deploy del` (operator path) AND the `kind: eval` bed runner (the bed's
   `--node-only` add never double-deploys; the runner brings peers up after the root
-  starts). A bed's `ov update` (destroy + rebuild) tears peers down and back up too.
+  starts). A bed's `charly update` (destroy + rebuild) tears peers down and back up too.
 - **Disposability is inherited, never invented.** `foldPeers` promotes a peer to
   `disposable: true` only when its OWNER is disposable (so a disposable bed's
   rebuild is authorized to tear the peer down); a peer of a non-disposable operator
   deploy stays non-disposable. No new autonomy is granted — peers are components of
   their owner, touched only by the owner's explicit add/del/update (R6,
-  `/ov-internals:disposable`).
+  `/charly-internals:disposable`).
 - **Peers are NOT eval-live'd.** A `kind: eval` bed evaluates its SUBJECT (root +
   any `nested:` children via `bedEvalLiveRefs`); peers are instruments, never
   evaluated themselves — the subject's `on: <peer>` checks drive *through* them.
 - **Addressing the subject from a driven probe** uses the `${PEER_HOST:<name>}` /
-  `${PEER_ENDPOINT:<name>:<port>}` variables — see `/ov-eval:eval` "Cross-deployment
+  `${PEER_ENDPOINT:<name>:<port>}` variables — see `/charly-eval:eval` "Cross-deployment
   probing".
 
 ## Cross-References
 
 **Deploy surface:**
-- `/ov-local:local-deploy` — Local-target execution model: LocalDeployTarget, ledger, gates, 15 ReverseOp kinds, sudo batching
-- `/ov-internals:install-plan` — The InstallPlan IR shared by `ov box build` (OCITarget), pod deploys (PodDeployTarget), and local deploys (LocalDeployTarget)
-- `/ov-internals:local-infra` — Supporting Go files for local deploys: hostdistro, ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref
+- `/charly-local:local-deploy` — Local-target execution model: LocalDeployTarget, ledger, gates, 15 ReverseOp kinds, sudo batching
+- `/charly-internals:install-plan` — The InstallPlan IR shared by `charly box build` (OCITarget), pod deploys (PodDeployTarget), and local deploys (LocalDeployTarget)
+- `/charly-internals:local-infra` — Supporting Go files for local deploys: hostdistro, ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref
 
 **Deploy-adjacent commands:**
-- `/ov-build:pull` — Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
-- `/ov-automation:sidecar` — Sidecar containers, pod networking, Tailscale exit nodes, Environment Contract (provides filtering)
-- `/ov-core:service` — Service lifecycle (start/stop/update/remove)
-- `/ov-core:start` — Ergonomic alias for `ov deploy add <image> <image>` (container target)
-- `/ov-core:stop` — Ergonomic alias for `ov deploy del <name>`
-- `/ov-core:ov-update` — Per-instance update pattern; equivalent to `ov deploy add <name> --pull`
-- `/ov-core:ov-config` — Resource cap flags (`--memory-max/high/swap/cpus`), provides filtering, env_require enforcement, NO_PROXY auto-enrichment, `--sidecar`, `-i` instance support, MCP name disambiguation
-- `/ov-automation:enc` — Encrypted storage commands (ov config mount/unmount)
-- `/ov-eval:vnc` — VNC password setup for desktop containers
-- `/ov-vm:vm` — Virtual machine deployment (ov vm)
-- `/ov-build:build` — Building images before deployment (+ the `--no-cache` intermediate scratch-stage caveat)
-- `/ov-build:ov-mcp-cmd` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`ov eval mcp ping <image>`); note the **port-publishing gotcha** when a `port:` override in deploy.yml predates a newly-added mcp-providing layer
-- `/ov-image:image` — Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
-- `/ov-image:layer` — Unified `service:` schema (use_packaged + structured custom), `env_provide`/`env_require`/`env_accept` field declarations, security resource caps
-- `/ov-eval:eval` — Local `eval:` in deploy.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.
+- `/charly-build:pull` — Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
+- `/charly-automation:sidecar` — Sidecar containers, pod networking, Tailscale exit nodes, Environment Contract (provides filtering)
+- `/charly-core:service` — Service lifecycle (start/stop/update/remove)
+- `/charly-core:start` — Ergonomic alias for `charly deploy add <image> <image>` (container target)
+- `/charly-core:stop` — Ergonomic alias for `charly deploy del <name>`
+- `/charly-core:ov-update` — Per-instance update pattern; equivalent to `charly deploy add <name> --pull`
+- `/charly-core:ov-config` — Resource cap flags (`--memory-max/high/swap/cpus`), provides filtering, env_require enforcement, NO_PROXY auto-enrichment, `--sidecar`, `-i` instance support, MCP name disambiguation
+- `/charly-automation:enc` — Encrypted storage commands (charly config mount/unmount)
+- `/charly-eval:vnc` — VNC password setup for desktop containers
+- `/charly-vm:vm` — Virtual machine deployment (charly vm)
+- `/charly-build:build` — Building images before deployment (+ the `--no-cache` intermediate scratch-stage caveat)
+- `/charly-build:ov-mcp-cmd` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`charly eval mcp ping <image>`); note the **port-publishing gotcha** when a `port:` override in deploy.yml predates a newly-added mcp-providing layer
+- `/charly-image:image` — Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
+- `/charly-image:layer` — Unified `service:` schema (use_packaged + structured custom), `env_provide`/`env_require`/`env_accept` field declarations, security resource caps
+- `/charly-eval:eval` — Local `eval:` in deploy.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.
 
 **Canonical layer worked examples:**
-- `/ov-selkies:chrome` — cgroup resource-caps consumer (caps bound a Chrome crash loop)
-- `/ov-infrastructure:supervisord` — Event listener pattern triggered by the caps; ServiceSchemaDef that renders `service:` entries to supervisord INI
-- `/ov-infrastructure:postgresql` — Canonical `use_packaged:` entry (packaged unit reuse)
-- `/ov-ollama:ollama`, `/ov-hermes:hermes` — Custom `service:` entries
-- `/ov-selkies:selkies-labwc` — Multi-instance proxy deployment, tunnel inheritance workaround
+- `/charly-selkies:chrome` — cgroup resource-caps consumer (caps bound a Chrome crash loop)
+- `/charly-infrastructure:supervisord` — Event listener pattern triggered by the caps; ServiceSchemaDef that renders `service:` entries to supervisord INI
+- `/charly-infrastructure:postgresql` — Canonical `use_packaged:` entry (packaged unit reuse)
+- `/charly-ollama:ollama`, `/charly-hermes:hermes` — Custom `service:` entries
+- `/charly-selkies:selkies-labwc` — Multi-instance proxy deployment, tunnel inheritance workaround
 
 ## Cross-kind name reuse + ResolveDeployRef precedence
 
 A deploy entry's key in `deploy:` lives in its own namespace. The same name MAY simultaneously be a layer, an `image:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry — and the deploy entry's cross-reference fields (`image:`, `vm:`, `local:`, `cluster:`) are scoped to the matching kind, no fall-through. Concrete worked example: this repo's `deploy.ov-cachyos` references `local.ov-cachyos` via `local: ov-cachyos` — same name across two namespaces.
 
-`ResolveDeployRef` (used by `ov deploy add <name> <ref>`): when a name exists as BOTH an image and a layer, image-first precedence wins for the primary `<ref>` positional. The `--add-candy <ref>` path goes through `ResolveDeployRefAsLayer` which is layer-first. Same-name image and layer is permitted.
+`ResolveDeployRef` (used by `charly deploy add <name> <ref>`): when a name exists as BOTH an image and a layer, image-first precedence wins for the primary `<ref>` positional. The `--add-candy <ref>` path goes through `ResolveDeployRefAsLayer` which is layer-first. Same-name image and layer is permitted.
 
-The loader raises a hard load-time error on the obsolete `deploy.qc` / `deploy.cachyos-dx` keys, and on the obsolete `kind: deployment` doc / root-key `deployment:` (the deploy kind is `kind: deploy`); every such error points at `ov migrate`. See `/ov-build:migrate`.
+The loader raises a hard load-time error on the obsolete `deploy.qc` / `deploy.cachyos-dx` keys, and on the obsolete `kind: deployment` doc / root-key `deployment:` (the deploy kind is `kind: deploy`); every such error points at `charly migrate`. See `/charly-build:migrate`.
 
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves quadlet generation, tunnels, bind mounts, or deploy overlays. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** After `/ov-build:build`, before `/ov-core:service`.
-Previous step: `/ov-build:build` (build the image). Next step: `/ov-core:service` (start, status, logs).
+**Workflow position:** After `/charly-build:build`, before `/charly-core:service`.
+Previous step: `/charly-build:build` (build the image). Next step: `/charly-core:service` (start, status, logs).
 
-## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
-**After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
+**After committing the source-level fix, `charly update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 
 Unit tests + a clean compile are necessary but not sufficient. See CLAUDE.md R1–R10.

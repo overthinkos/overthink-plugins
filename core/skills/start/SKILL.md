@@ -2,26 +2,26 @@
 name: start
 description: |
   Start a container as a background service.
-  MUST be invoked before any work involving: ov start command, launching containers, quadlet vs direct mode startup, or encrypted volume auto-mounting.
+  MUST be invoked before any work involving: charly start command, launching containers, quadlet vs direct mode startup, or encrypted volume auto-mounting.
 ---
 
-# ov start -- Start Container Service
+# charly start -- Start Container Service
 
 ## Overview
 
-Start a container image as a background service. In quadlet mode, `ov config <image>` MUST be run first to generate the systemd quadlet unit. In direct mode, start creates an ephemeral container directly.
+Start a container image as a background service. In quadlet mode, `charly config <image>` MUST be run first to generate the systemd quadlet unit. In direct mode, start creates an ephemeral container directly.
 
-**Relationship to `ov deploy add`** — `ov start <image>` is the ergonomic wrapper for `ov deploy add <image> <image>` (container target). New scripts should prefer `ov deploy add <name> <ref>` directly when they need explicit deploy names, `--add-candy` overlays, or the host target. `ov start` covers the common single-image case and is retained for backwards compatibility. See `/ov-core:deploy` for the unified command family and `/ov-local:local-deploy` for the host target.
+**Relationship to `charly deploy add`** — `charly start <image>` is the ergonomic wrapper for `charly deploy add <image> <image>` (container target). New scripts should prefer `charly deploy add <name> <ref>` directly when they need explicit deploy names, `--add-candy` overlays, or the host target. `charly start` covers the common single-image case and is retained for backwards compatibility. See `/charly-core:deploy` for the unified command family and `/charly-local:local-deploy` for the host target.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Start (quadlet) | `ov start <image>` | Start via systemd quadlet unit |
-| Start (direct) | `ov start <image>` | Create ephemeral container (when run_mode=direct) |
-| With specific tag | `ov start <image> --tag TAG` | Use specific image tag |
-| Build first | `ov start <image> --build` | Build image before starting |
-| Named instance | `ov start <image> -i INSTANCE` | Start a named instance |
+| Start (quadlet) | `charly start <image>` | Start via systemd quadlet unit |
+| Start (direct) | `charly start <image>` | Create ephemeral container (when run_mode=direct) |
+| With specific tag | `charly start <image> --tag TAG` | Use specific image tag |
+| Build first | `charly start <image> --build` | Build image before starting |
+| Named instance | `charly start <image> -i INSTANCE` | Start a named instance |
 
 ### Direct Mode Only
 
@@ -37,30 +37,30 @@ Start a container image as a background service. In quadlet mode, `ov config <im
 
 ## Label-Only Policy
 
-`ov start` reads only OCI labels (via `ExtractMetadata`) + `deploy.yml`. It
+`charly start` reads only OCI labels (via `ExtractMetadata`) + `deploy.yml`. It
 does not touch `box.yml`. Remote refs (`@github.com/...`) are rejected
-with a redirect to `ov box pull`.
+with a redirect to `charly box pull`.
 
 If the image isn't in local storage, startup fails with the standard
-`ErrImageNotLocal` recommendation pointing to `ov box pull`. See
-`/ov-build:pull`.
+`ErrImageNotLocal` recommendation pointing to `charly box pull`. See
+`/charly-build:pull`.
 
 ## Important: Quadlet Mode Requires Prior Configuration
 
-In quadlet mode (default), `ov config <image>` **MUST** be run before `ov start`. If the quadlet file does not exist, start fails with:
+In quadlet mode (default), `charly config <image>` **MUST** be run before `charly start`. If the quadlet file does not exist, start fails with:
 
 ```
-not configured; run 'ov config <image>' first
+not configured; run 'charly config <image>' first
 ```
 
 The correct workflow is:
 
 ```bash
 # Step 1: Configure (generates quadlet, provisions secrets, sets up volumes)
-ov config sway-browser-vnc
+charly config sway-browser-vnc
 
 # Step 2: Start
-ov start sway-browser-vnc
+charly start sway-browser-vnc
 ```
 
 ## Usage
@@ -69,61 +69,61 @@ ov start sway-browser-vnc
 
 ```bash
 # Configure first
-ov config jupyter --bind workspace --password auto
+charly config jupyter --bind workspace --password auto
 
 # Start the service (systemctl --user start ov-jupyter.service)
-ov start jupyter
+charly start jupyter
 ```
 
 Encrypted volumes declared in the image are auto-mounted at start time. In quadlet mode, `ExecStartPost` commands in the quadlet file register Tailscale serve/funnel rules (if tunnel is configured in deploy.yml). These are automatically cleaned up by `ExecStopPost` on service stop.
 
-**Quadlet auto-mount hook.** Quadlets generated for encrypted-volume images carry an `ExecStartPre=ov config mount <image>` directive. Without it, a host reboot or any other event that drops the gocryptfs FUSE mount would let systemd start the container against an empty `plain/` mountpoint — at which point the container would write plaintext data on top of the populated cipher tree. If you have quadlets generated by an older `ov`, run `ov migrate` to regenerate them in place — see `/ov-build:migrate` "ov migrate". Direct-mode starts have a parallel safety net: `verifyBindMounts` fails loud when the cipher dir is populated and the plain mount is empty (see `/ov-automation:enc` "Pre-start safety check").
+**Quadlet auto-mount hook.** Quadlets generated for encrypted-volume images carry an `ExecStartPre=charly config mount <image>` directive. Without it, a host reboot or any other event that drops the gocryptfs FUSE mount would let systemd start the container against an empty `plain/` mountpoint — at which point the container would write plaintext data on top of the populated cipher tree. If you have quadlets generated by an older `ov`, run `charly migrate` to regenerate them in place — see `/charly-build:migrate` "charly migrate". Direct-mode starts have a parallel safety net: `verifyBindMounts` fails loud when the cipher dir is populated and the plain mount is empty (see `/charly-automation:enc` "Pre-start safety check").
 
 ### Direct Mode
 
 ```bash
 # Start with workspace and env vars
-ov start jupyter -e JUPYTER_TOKEN=mytoken
+charly start jupyter -e JUPYTER_TOKEN=mytoken
 
 # Start with port mapping
-ov start jupyter -p 8888:8888
+charly start jupyter -p 8888:8888
 ```
 
 ### Build and Start
 
 ```bash
 # Build the image first, then start
-ov start jupyter --build
+charly start jupyter --build
 ```
 
 ## Cross-References
 
 ### Prerequisites
 
-- `/ov-build:pull` -- **Required** before `ov start` can work on a fresh host. `ov start` rejects remote refs (`@github.com/...`) — pull first.
-- `/ov-core:ov-config` -- **MUST run first** in quadlet mode (setup: quadlet + secrets + encrypted volumes)
+- `/charly-build:pull` -- **Required** before `charly start` can work on a fresh host. `charly start` rejects remote refs (`@github.com/...`) — pull first.
+- `/charly-core:ov-config` -- **MUST run first** in quadlet mode (setup: quadlet + secrets + encrypted volumes)
 
 ### Deploy-mode neighbors
 
-- `/ov-core:service` -- Full service lifecycle (in-container supervisord/systemd services)
-- `/ov-core:stop` -- Stop a running service
-- `/ov-core:ov-status` -- Check service status
-- `/ov-core:ov-update` -- Update image and restart
-- `/ov-core:logs` -- View service logs
-- `/ov-core:shell` -- Interactive shell into the same image
-- `/ov-core:deploy` -- Tunnel configuration (ExecStartPost commands generated by quadlet)
-- `/ov-automation:enc` -- Encrypted volume mount lifecycle (inline mount in direct mode, `ExecStartPre=ov config mount` in quadlet mode, short-circuit fast path)
-- `/ov-build:secrets` -- Credential store hierarchy for encrypted volume passphrase resolution
+- `/charly-core:service` -- Full service lifecycle (in-container supervisord/systemd services)
+- `/charly-core:stop` -- Stop a running service
+- `/charly-core:ov-status` -- Check service status
+- `/charly-core:ov-update` -- Update image and restart
+- `/charly-core:logs` -- View service logs
+- `/charly-core:shell` -- Interactive shell into the same image
+- `/charly-core:deploy` -- Tunnel configuration (ExecStartPost commands generated by quadlet)
+- `/charly-automation:enc` -- Encrypted volume mount lifecycle (inline mount in direct mode, `ExecStartPre=charly config mount` in quadlet mode, short-circuit fast path)
+- `/charly-build:secrets` -- Credential store hierarchy for encrypted volume passphrase resolution
 
 ### Build-mode references
 
-- `/ov-image:image` -- Image definitions (ports, volumes, env) in `box.yml`
-- `/ov-build:build` -- Build the image you intend to start
+- `/charly-image:image` -- Image definitions (ports, volumes, env) in `box.yml`
+- `/charly-build:build` -- Build the image you intend to start
 
-## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
-**After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
+**After committing the source-level fix, `charly update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 
 Unit tests + a clean compile are necessary but not sufficient. See CLAUDE.md R1–R10.

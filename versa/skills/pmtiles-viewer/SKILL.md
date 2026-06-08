@@ -11,7 +11,7 @@ The PMTiles Viewer is a pure-JS SPA from `protomaps/PMTiles/app/`,
 the same code deployed publicly at https://pmtiles.io. Built from
 upstream source via npm at image build time, served as a static
 dist by Python's stdlib `http.server`. Composed by
-`/ov-versa:versa` so operators can inspect any of the four
+`/charly-versa:versa` so operators can inspect any of the four
 sibling PMTiles archives the image produces — `monaco.pmtiles` (the
 tippecanoe baseline), `monaco-gpqtiles.pmtiles`,
 `monaco-duckdb-mvt.pmtiles`, `monaco-duckdb-freestiler.pmtiles` —
@@ -113,11 +113,11 @@ Deploy-scope:
 
 ## Cross-references
 
-- `/ov-versa:versa` — image composing this layer
-- `/ov-versa:osm-tools-layer` — companion martin tile server (the
+- `/charly-versa:versa` — image composing this layer
+- `/charly-versa:osm-tools-layer` — companion martin tile server (the
   four sibling sources the viewer inspects)
-- `/ov-versa:notebook-osm` — DAGs producing the four PMTiles
+- `/charly-versa:notebook-osm` — DAGs producing the four PMTiles
   archives and the four MapLibre cells consuming them
-- `/ov-versa:maputnik-layer` — sibling static-SPA-via-http.server
+- `/charly-versa:maputnik-layer` — sibling static-SPA-via-http.server
   layer (style editor vs viewer; complementary)
-- `/ov-infrastructure:supervisord` — service runtime
+- `/charly-infrastructure:supervisord` — service runtime

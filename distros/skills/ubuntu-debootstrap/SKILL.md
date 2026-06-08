@@ -11,16 +11,16 @@ description: |
 # ubuntu-debootstrap
 
 Bootstrap-from-scratch Ubuntu 24.04 (noble) root filesystem, built via
-`debootstrap` inside the privileged `/ov-distros:ubuntu-debootstrap-builder`
+`debootstrap` inside the privileged `/charly-distros:ubuntu-debootstrap-builder`
 container (`from: builder:debootstrap`,
 `bootstrap_builder_image: ubuntu-debootstrap-builder`).
 
 > **Lives in `overthinkos/ubuntu`** (git submodule at `image/ubuntu`). Build:
-> `ov -C image/ubuntu image build ubuntu-debootstrap`.
+> `charly -C image/ubuntu image build ubuntu-debootstrap`.
 
 ## When to use it (and when not)
 
-The canonical Ubuntu base (`/ov-distros:ubuntu`) pulls the upstream-published
+The canonical Ubuntu base (`/charly-distros:ubuntu`) pulls the upstream-published
 `ubuntu:24.04` OCI image from Docker Hub — that is the recommended, faster path.
 This debootstrap variant exists for **offline / air-gapped** builds and as a
 worked example of the `from: builder:debootstrap` pattern.
@@ -44,9 +44,9 @@ to `overthinkos/debian`.
 
 ## Cross-References
 
-- `/ov-distros:ubuntu` — the recommended Docker-Hub base
-- `/ov-distros:ubuntu-debootstrap-builder` — the privileged builder it uses
-- `/ov-vm:ubuntu` — the VM built via the same debootstrap path
+- `/charly-distros:ubuntu` — the recommended Docker-Hub base
+- `/charly-distros:ubuntu-debootstrap-builder` — the privileged builder it uses
+- `/charly-vm:ubuntu` — the VM built via the same debootstrap path
 
 ## When to Use This Skill
 

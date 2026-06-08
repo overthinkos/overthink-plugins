@@ -34,7 +34,7 @@ image-specific deps stay in their image's own layer.
 ### 2. Rust toolchain (2)
 
 `rust`, `cargo`. Used by `setuptools-rust` and any layer that compiles a Smithay-based
-Wayland compositor from source. See `/ov-coder:rust` for the disambiguation between
+Wayland compositor from source. See `/charly-coder:rust` for the disambiguation between
 this builder-stage Rust and the runtime `rust` layer.
 
 ### 3. Bindgen runtime + assembler (2)
@@ -65,12 +65,12 @@ Each `backend_*` and `renderer_*` feature pulls a pkg-config lookup against the 
 `libva-devel`, `x264-devel`, `ffmpeg-devel`.
 
 These live in **RPM Fusion free** (not in the base Fedora repos), which is why
-`/ov-distros:fedora-builder` now includes `/ov-distros:rpmfusion` **before**
+`/charly-distros:fedora-builder` now includes `/charly-distros:rpmfusion` **before**
 `build-toolchain` in its layer list. They are required for compiling pixelflux's
 `libva-sys`, `x264-sys`, and `ffmpeg-sys-next` cargo crates against the system
 codec libraries.
 
-See `/ov-selkies:selkies` (Patched pixelflux build pipeline) for the consumer story —
+See `/charly-selkies:selkies` (Patched pixelflux build pipeline) for the consumer story —
 the selkies layer's `build.sh` clones pixelflux from a pinned commit, applies four
 inline source patches, and runs `pip install .` against this builder stage.
 
@@ -89,21 +89,21 @@ my-image:
 
 ## Used In Images
 
-- `/ov-distros:fedora-builder`
-- `/ov-distros:arch-builder`
+- `/charly-distros:fedora-builder`
+- `/charly-distros:arch-builder`
 - Also used in `bazzite`
 
 ## Related Layers
-- `/ov-languages:pixi` — Sibling in builder images for conda-forge package builds
-- `/ov-coder:nodejs` — Sibling in builder images for npm package builds
-- `/ov-tools:yay` — Pairs in arch-builder for AUR builds
-- `/ov-coder:rust` — Disambiguates the builder-stage `rust`+`cargo` packages here from the runtime `rust` layer
-- `/ov-distros:rpmfusion` — Must be applied **before** this layer in fedora-builder so codec dev libs (`x264-devel`, `ffmpeg-devel`) can install
-- `/ov-selkies:selkies` — Primary consumer of all the new cargo/codec deps (Patched pixelflux build pipeline)
+- `/charly-languages:pixi` — Sibling in builder images for conda-forge package builds
+- `/charly-coder:nodejs` — Sibling in builder images for npm package builds
+- `/charly-tools:yay` — Pairs in arch-builder for AUR builds
+- `/charly-coder:rust` — Disambiguates the builder-stage `rust`+`cargo` packages here from the runtime `rust` layer
+- `/charly-distros:rpmfusion` — Must be applied **before** this layer in fedora-builder so codec dev libs (`x264-devel`, `ffmpeg-devel`) can install
+- `/charly-selkies:selkies` — Primary consumer of all the new cargo/codec deps (Patched pixelflux build pipeline)
 
 ## Related Commands
-- `/ov-build:build` — Multi-stage builders consume this layer for pixi/npm/cargo builds
-- `/ov-build:generate` — See how builder stages are generated from this layer
+- `/charly-build:build` — Multi-stage builders consume this layer for pixi/npm/cargo builds
+- `/charly-build:generate` — See how builder stages are generated from this layer
 
 ## When to Use This Skill
 
@@ -116,5 +116,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

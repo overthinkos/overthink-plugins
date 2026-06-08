@@ -32,12 +32,12 @@ my-image:
 
 ## Related Skills
 
-- `/ov-coder:language-runtimes` -- also includes `golang-bin` alongside other runtimes
-- `/ov-coder:rust`, `/ov-coder:nodejs` — sibling language runtimes
-- `/ov-coder:build-toolchain` — C/C++ toolchain often paired with Go builds
-- `/ov-distros:github-runner` — consumes go for Actions workflows
-- `/ov-image:layer` — layer authoring
-- `/ov-internals:go` — ov CLI is itself built from Go — development conventions
+- `/charly-coder:language-runtimes` -- also includes `golang-bin` alongside other runtimes
+- `/charly-coder:rust`, `/charly-coder:nodejs` — sibling language runtimes
+- `/charly-coder:build-toolchain` — C/C++ toolchain often paired with Go builds
+- `/charly-distros:github-runner` — consumes go for Actions workflows
+- `/charly-image:layer` — layer authoring
+- `/charly-internals:go` — charly CLI is itself built from Go — development conventions
 
 ## When to Use This Skill
 
@@ -49,4 +49,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -130,30 +130,30 @@ The `jupyter` MCP server name is **deliberately decoupled** from the layer name,
 |---|---|---|---|
 | `candy/jupyter/candy.yml` | `env.MCP_SERVER_NAME` | `"jupyter"` | Runtime advertisement |
 | `candy/jupyter/candy.yml` | `mcp_provide[0].name` | `jupyter` | Cross-container discovery (hermes, openwebui) |
-| `plugins/ov-jupyter/.mcp.json` | `mcpServers.jupyter` | — | Claude Code static registration |
+| `plugins/charly-jupyter/.mcp.json` | `mcpServers.jupyter` | — | Claude Code static registration |
 
 **Package/layer/image names describe the artifact; the MCP name describes the service contract.** Rename the artifact freely; the contract is stable.
 
 ## Used In Layers
 
-- `/ov-jupyter:jupyter` — lightweight multi-arch JupyterLab (`layers: [jupyter-mcp]`)
-- `/ov-jupyter:jupyter-ml` — GPU ML JupyterLab (`layers: [llama-cpp, unsloth, jupyter-mcp]`)
+- `/charly-jupyter:jupyter` — lightweight multi-arch JupyterLab (`layers: [jupyter-mcp]`)
+- `/charly-jupyter:jupyter-ml` — GPU ML JupyterLab (`layers: [llama-cpp, unsloth, jupyter-mcp]`)
 
 ## Used In Images
 
-- `/ov-jupyter:jupyter`
-- `/ov-jupyter:jupyter-ml`
-- `/ov-jupyter:jupyter-ml-notebook`
+- `/charly-jupyter:jupyter`
+- `/charly-jupyter:jupyter-ml`
+- `/charly-jupyter:jupyter-ml-notebook`
 
 ## Related Skills
 
-- `/ov-jupyter:jupyter` — lightweight Tier 2 parent layer
-- `/ov-jupyter:jupyter-ml` — GPU ML Tier 2 parent layer
-- `/ov-image:layer` — layer authoring rules (Tier 1 pattern)
-- `/ov-build:ov-mcp-cmd` — client-side verb for probing this server's tool catalog (ping, list-tools, call); use `ov eval mcp list-tools jupyter` to see all 11 tools this layer registers
-- `/ov-selkies:chrome-devtools-mcp` — sibling MCP-server-provider layer for Chrome DevTools (different domain, same `mcp_provide` pattern)
-- `/ov-hermes:hermes` — downstream MCP consumer (auto-discovers `jupyter` via `OV_MCP_SERVERS`; uses the 11 tools to read/edit/execute notebook cells programmatically)
-- `/ov-openwebui:openwebui` — downstream MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI's in-chat code blocks to the Jupyter kernel)
+- `/charly-jupyter:jupyter` — lightweight Tier 2 parent layer
+- `/charly-jupyter:jupyter-ml` — GPU ML Tier 2 parent layer
+- `/charly-image:layer` — layer authoring rules (Tier 1 pattern)
+- `/charly-build:ov-mcp-cmd` — client-side verb for probing this server's tool catalog (ping, list-tools, call); use `charly eval mcp list-tools jupyter` to see all 11 tools this layer registers
+- `/charly-selkies:chrome-devtools-mcp` — sibling MCP-server-provider layer for Chrome DevTools (different domain, same `mcp_provide` pattern)
+- `/charly-hermes:hermes` — downstream MCP consumer (auto-discovers `jupyter` via `OV_MCP_SERVERS`; uses the 11 tools to read/edit/execute notebook cells programmatically)
+- `/charly-openwebui:openwebui` — downstream MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI's in-chat code blocks to the Jupyter kernel)
 
 ## When to Use This Skill
 
@@ -170,4 +170,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -32,7 +32,7 @@ Typically used as part of the `agent-forwarding` composition layer rather than d
 
 ## Runtime Behavior
 
-Provides `ssh`, `ssh-add`, `ssh-keygen`, `ssh-agent`, `scp`, `sftp` binaries. When combined with SSH agent forwarding (`ov shell`, `ov start` direct mode), the container's SSH commands use the host's SSH agent via a forwarded socket at `/run/host-ssh-auth.sock`.
+Provides `ssh`, `ssh-add`, `ssh-keygen`, `ssh-agent`, `scp`, `sftp` binaries. When combined with SSH agent forwarding (`charly shell`, `charly start` direct mode), the container's SSH commands use the host's SSH agent via a forwarded socket at `/run/host-ssh-auth.sock`.
 
 No SSH agent runs inside the container — the `SSH_AUTH_SOCK` environment variable points to the forwarded host socket.
 
@@ -42,9 +42,9 @@ Part of `agent-forwarding` composition layer, used in 27 application images.
 
 ## Related Layers
 
-- `/ov-distros:agent-forwarding` -- metalayer that includes gnupg + direnv + ssh-client
-- `/ov-coder:sshd` -- SSH server + client (includes systemd service, port 22)
-- `/ov-coder:gh` -- GitHub CLI + git (uses SSH for git operations)
+- `/charly-distros:agent-forwarding` -- metalayer that includes gnupg + direnv + ssh-client
+- `/charly-coder:sshd` -- SSH server + client (includes systemd service, port 22)
+- `/charly-coder:gh` -- GitHub CLI + git (uses SSH for git operations)
 
 ## When to Use This Skill
 
@@ -57,5 +57,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

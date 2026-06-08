@@ -15,7 +15,7 @@ CachyOS GPU base exists alongside this Fedora `nvidia` image: `cachyos.nvidia`
 (cachyos + agent-forwarding + nvidia + cuda) in the `overthinkos/cachyos`
 submodule. The two are siblings — pick the Fedora `nvidia` image for the
 RPM-based GPU stack, `cachyos.nvidia` for the Arch/CachyOS GPU stack. See
-`/ov-distros:cachyos`.
+`/charly-distros:cachyos`.
 
 ## Image Properties
 
@@ -35,35 +35,35 @@ RPM-based GPU stack, `cachyos.nvidia` for the Arch/CachyOS GPU stack. See
 ## Quick Start
 
 ```bash
-ov box build nvidia
-ov shell nvidia
+charly box build nvidia
+charly shell nvidia
 ```
 
 ## Key Layers
 
-- `/ov-distros:nvidia` — NVIDIA GPU runtime (driver libs, CDI generation via nvidia-ctk)
-- `/ov-distros:cuda` — CUDA toolkit and GPU development libraries
+- `/charly-distros:nvidia` — NVIDIA GPU runtime (driver libs, CDI generation via nvidia-ctk)
+- `/charly-distros:cuda` — CUDA toolkit and GPU development libraries
 
 ## Derived Images
 
-- `/ov-languages:python-ml` — ML Python environment
-- `/ov-jupyter:jupyter` — Jupyter notebook server
-- `/ov-ollama:ollama` — LLM inference server
-- `/ov-comfyui:comfyui` — image generation UI
+- `/charly-languages:python-ml` — ML Python environment
+- `/charly-jupyter:jupyter` — Jupyter notebook server
+- `/charly-ollama:ollama` — LLM inference server
+- `/charly-comfyui:comfyui` — image generation UI
 
 ## Related Images
 
-- `/ov-distros:fedora` — parent base (no GPU)
-- `/ov-distros:cachyos` — `cachyos.nvidia` is the CachyOS GPU-base sibling (Arch/CachyOS GPU stack)
-- `/ov-coder:arch-ov` — Arch Linux ov toolchain with nvidia (shared layers)
-- `/ov-distros:fedora-ov` — Fedora ov toolchain with nvidia (shared layers)
+- `/charly-distros:fedora` — parent base (no GPU)
+- `/charly-distros:cachyos` — `cachyos.nvidia` is the CachyOS GPU-base sibling (Arch/CachyOS GPU stack)
+- `/charly-coder:arch-ov` — Arch Linux charly toolchain with nvidia (shared layers)
+- `/charly-distros:fedora-ov` — Fedora charly toolchain with nvidia (shared layers)
 
 ## Verification
 
-After `ov box build`:
-- `ov shell nvidia -c "nvidia-smi"` — GPU info
-- `ov shell nvidia -c "nvidia-ctk --version"` — CDI toolkit
-- `ov shell nvidia -c "nvcc --version"` — CUDA compiler
+After `charly box build`:
+- `charly shell nvidia -c "nvidia-smi"` — GPU info
+- `charly shell nvidia -c "nvidia-ctk --version"` — CDI toolkit
+- `charly shell nvidia -c "nvcc --version"` — CUDA compiler
 
 ## When to Use This Skill
 
@@ -71,5 +71,5 @@ After `ov box build`:
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

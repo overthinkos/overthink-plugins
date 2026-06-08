@@ -1,21 +1,21 @@
 ---
 name: image
 description: |
-  MUST be invoked before any work involving: the `ov box` command family, image definitions in box.yml, image inheritance, defaults, platforms, builder configuration, the image dependency graph, or the build/deploy scope boundary.
+  MUST be invoked before any work involving: the `charly box` command family, image definitions in box.yml, image inheritance, defaults, platforms, builder configuration, the image dependency graph, or the build/deploy scope boundary.
 ---
 
-# ov box -- Family Overview + Image Composition
+# charly box -- Family Overview + Image Composition
 
 ## Overview
 
-`ov box` is the **only** command family that reads `box.yml`. It groups
+`charly box` is the **only** command family that reads `box.yml`. It groups
 every build-mode operation (build, generate, validate, list, merge, new,
 inspect, pull) under a single namespace. All other `ov` commands read
 exclusively from OCI labels embedded into built images + `deploy.yml` for
 deployment overrides.
 
-Build-mode operations live only under `ov box`. Top-level invocations like
-`ov build`, `ov validate`, `ov list images`, or `ov inspect` return Kong's
+Build-mode operations live only under `charly box`. Top-level invocations like
+`charly build`, `charly validate`, `charly list images`, or `charly inspect` return Kong's
 `unexpected argument` error.
 
 An **image** is a named build target in `box.yml`. Images compose layers
@@ -24,53 +24,53 @@ platform targets, and builder configurations. The `ov` CLI resolves
 dependencies, generates Containerfiles, and builds images in the correct
 order.
 
-## The `ov box` Command Family
+## The `charly box` Command Family
 
 | Subcommand | Purpose | Skill |
 |---|---|---|
-| `ov box build` | Build container images from box.yml | `/ov-build:build` |
-| `ov box generate` | Write `.build/` Containerfiles | `/ov-build:generate` |
-| `ov box inspect` | Print resolved image config as JSON | `/ov-build:inspect` |
-| `ov box list {images,layers,targets,services,routes,volumes,aliases}` | List components from box.yml | `/ov-build:list` |
-| `ov box merge` | Merge small layers in a built image | `/ov-build:merge` |
-| `ov box new candy <name>` | Scaffold a new layer directory | `/ov-build:new` |
-| `ov box pull` | Fetch an image into local storage | `/ov-build:pull` |
-| `ov eval box` | Run declarative tests against a disposable container from a built image (reads the `org.overthinkos.eval` OCI label) | `/ov-eval:eval` |
-| `ov box validate` | Check box.yml + layers | `/ov-build:validate` |
+| `charly box build` | Build container images from box.yml | `/charly-build:build` |
+| `charly box generate` | Write `.build/` Containerfiles | `/charly-build:generate` |
+| `charly box inspect` | Print resolved image config as JSON | `/charly-build:inspect` |
+| `charly box list {images,layers,targets,services,routes,volumes,aliases}` | List components from box.yml | `/charly-build:list` |
+| `charly box merge` | Merge small layers in a built image | `/charly-build:merge` |
+| `charly box new candy <name>` | Scaffold a new layer directory | `/charly-build:new` |
+| `charly box pull` | Fetch an image into local storage | `/charly-build:pull` |
+| `charly eval box` | Run declarative tests against a disposable container from a built image (reads the `ai.opencharly.eval` OCI label) | `/charly-eval:eval` |
+| `charly box validate` | Check box.yml + layers | `/charly-build:validate` |
 
 ## Scope Boundary (Build vs. Deploy)
 
 | | Reads `box.yml` | Reads OCI labels | Reads `deploy.yml` |
 |---|---|---|---|
-| `ov box …` | **Yes** (required) | Rarely | No |
+| `charly box …` | **Yes** (required) | Rarely | No |
 | Everything else | **No** | Yes (required for deploy-mode) | Yes (overlay) |
 
 If a new command needs to resolve layer dependencies, image inheritance, or
-registry tag configuration, it must live under `ov box`. Any command that
+registry tag configuration, it must live under `charly box`. Any command that
 operates on a running container or deployed image must go through
 `ExtractMetadata` (labels) + deploy.yml — never `LoadConfig`.
 
 When a deploy-mode command is run against an image that isn't in local
 storage, `ExtractMetadata`/`EnsureImage` return `ErrImageNotLocal` and the
 top-level error handler renders: *"image 'X' is not available locally. Run
-'ov box pull X' to fetch it first."* See `/ov-build:pull` for the full sentinel
+'charly box pull X' to fetch it first."* See `/charly-build:pull` for the full sentinel
 pattern.
 
 ## Project directory resolution
 
-Every `ov box …` command resolves `box.yml` (and `build.yml`, `candy/`, etc.) **relative to the current working directory** — internally via `os.Getwd()` on every entry point. Five ways to override that default — three local, two remote:
+Every `charly box …` command resolves `box.yml` (and `build.yml`, `candy/`, etc.) **relative to the current working directory** — internally via `os.Getwd()` on every entry point. Five ways to override that default — three local, two remote:
 
 ```bash
 # Local project — pick a directory on disk:
-ov -C /path/to/overthink image list images          # short flag
-ov --dir /path/to/overthink image list images       # long flag
-OV_PROJECT_DIR=/path/to/overthink ov box list boxes   # env var
+charly -C /path/to/opencharly image list images          # short flag
+charly --dir /path/to/opencharly image list images       # long flag
+OV_PROJECT_DIR=/path/to/opencharly charly box list boxes   # env var
 
 # Remote project — clone (or hit cache) and chdir into it:
-ov --repo overthinkos/overthink image list images        # bare owner/repo → github.com/owner/repo@<default-branch>
-ov --repo overthinkos/overthink@main image list images   # pinned ref
-ov --repo default image list images                      # literal "default" → overthinkos/overthink
-OV_PROJECT_REPO=overthinkos/overthink ov box list boxes
+charly --repo overthinkos/opencharly image list images        # bare owner/repo → github.com/owner/repo@<default-branch>
+charly --repo overthinkos/opencharly@main image list images   # pinned ref
+charly --repo default image list images                      # literal "default" → overthinkos/opencharly
+OV_PROJECT_REPO=overthinkos/opencharly charly box list boxes
 ```
 
 `--repo` and `--dir` are mutually exclusive (passing both exits with `ov: --repo and --dir are mutually exclusive`). All five paths are declared on the top-level `CLI` struct in `ov/main.go` and resolved by a single `os.Chdir(cli.Dir)` call **before** Kong dispatches the subcommand, so every existing `os.Getwd()` site picks up the new cwd — no per-command plumbing needed.
@@ -84,58 +84,58 @@ OV_PROJECT_REPO=overthinkos/overthink ov box list boxes
 
 Remote repos are cloned into `~/.cache/ov/repos/<repoPath>@<version>/` (override via `OV_REPO_CACHE`). The cache is shared with the existing remote-layer fetcher (`ov/refs.go`, `ov/refs_git.go`) — both go through `EnsureRepoDownloaded`.
 
-**Canonical use case**: running `ov mcp serve` inside a container. The container's cwd is `/workspace` (set by the `ov-mcp` layer's env + volume declaration). There are three deployment patterns, in order of progressively less local setup:
+**Canonical use case**: running `charly mcp serve` inside a container. The container's cwd is `/workspace` (set by the `ov-mcp` layer's env + volume declaration). There are three deployment patterns, in order of progressively less local setup:
 
 1. **Bind-mount** — the canonical `ov-mcp` pattern. Host project bind-mounted to the container's `/workspace`; volume NAME stays `project` for a stable deployer API. Use this when you want the agent to read your in-flight local edits.
 
    ```bash
-   ov config arch-ov --bind project=/home/you/overthink
-   ov start arch-ov
-   ov eval mcp call arch-ov box.list.boxes '{}' --name ov
+   charly config arch-charly --bind project=/home/you/opencharly
+   charly start arch-charly
+   charly eval mcp call arch-charly box.list.boxes '{}' --name charly
    ```
 
-2. **Remote pin** — set `OV_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env. The agent reads from a pinned upstream version. No bind mount required.
+2. **Remote pin** — set `OV_PROJECT_REPO=overthinkos/opencharly@<sha-or-ref>` in the container env. The agent reads from a pinned upstream version. No bind mount required.
 
-3. **Auto-default** — `ov mcp serve` with no `box.yml` reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires whenever cwd lacks `box.yml`, regardless of whether `OV_PROJECT_DIR` is set (the `ov-mcp` layer permanently sets `OV_PROJECT_DIR=/workspace`, so a fallback gated on the env var being empty would never fire). Pass `--no-default-repo` on the serve command to opt out. Only `ov mcp serve` auto-fetches; the top-level CLI stays opt-in.
+3. **Auto-default** — `charly mcp serve` with no `box.yml` reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires whenever cwd lacks `box.yml`, regardless of whether `OV_PROJECT_DIR` is set (the `ov-mcp` layer permanently sets `OV_PROJECT_DIR=/workspace`, so a fallback gated on the env var being empty would never fire). Pass `--no-default-repo` on the serve command to opt out. Only `charly mcp serve` auto-fetches; the top-level CLI stays opt-in.
 
-The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory`. See `/ov-build:ov-mcp-cmd` "Deployment: the `ov-mcp` layer" for the full bind-mount pattern and `/ov-internals:go` "main.go" for the implementation note (guarded by `TestOvDir_FlagChdir` + `TestOvDir_Errors` in `main_dir_test.go`, and `TestNormalizeRepoSpec` + `TestOvRepo_*` in `main_repo_test.go`).
+The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory`. See `/charly-build:ov-mcp-cmd` "Deployment: the `ov-mcp` layer" for the full bind-mount pattern and `/charly-internals:go` "main.go" for the implementation note (guarded by `TestOvDir_FlagChdir` + `TestOvDir_Errors` in `main_dir_test.go`, and `TestNormalizeRepoSpec` + `TestOvRepo_*` in `main_repo_test.go`).
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| List images | `ov box list boxes` | Images from box.yml |
-| List build targets | `ov box list targets` | Build targets in dependency order (includes auto-intermediates) |
-| Inspect image | `ov box inspect <image>` | Print resolved config as JSON |
-| Inspect field | `ov box inspect <image> --format <field>` | Print single field (tag, base, layers, ports, etc.) |
-| Validate | `ov box validate` | Check box.yml + layers |
-| Pull into local storage | `ov box pull <image>` | Fetch from registry so deploy-mode commands work |
-| Run build-time tests | `ov eval box <image>` | Runs the baked layer + image test sections in a disposable `podman run --rm` container (build-scope only). For full-stack live eval against a running deployment, use `ov eval live <name>`. See `/ov-eval:eval`. |
-| Pre-prime remote repo cache | `ov box fetch [<spec>]` | Clones (or hits cache) for the spec — defaults to `default` (overthinkos/overthink). Prints the cache path. |
-| Force re-clone | `ov box refresh [<spec>]` | Removes the cache entry and re-clones. |
+| List images | `charly box list boxes` | Images from box.yml |
+| List build targets | `charly box list targets` | Build targets in dependency order (includes auto-intermediates) |
+| Inspect image | `charly box inspect <image>` | Print resolved config as JSON |
+| Inspect field | `charly box inspect <image> --format <field>` | Print single field (tag, base, layers, ports, etc.) |
+| Validate | `charly box validate` | Check box.yml + layers |
+| Pull into local storage | `charly box pull <image>` | Fetch from registry so deploy-mode commands work |
+| Run build-time tests | `charly eval box <image>` | Runs the baked layer + image test sections in a disposable `podman run --rm` container (build-scope only). For full-stack live eval against a running deployment, use `charly eval live <name>`. See `/charly-eval:eval`. |
+| Pre-prime remote repo cache | `charly box fetch [<spec>]` | Clones (or hits cache) for the spec — defaults to `default` (overthinkos/opencharly). Prints the cache path. |
+| Force re-clone | `charly box refresh [<spec>]` | Removes the cache entry and re-clones. |
 
 ### Authoring (the MCP-first surface)
 
-Each verb below is also auto-exposed as an MCP tool (`box.new.project`, `box.new.box`, `box.set`, `box.add-candy`, `box.rm-candy`, `box.write`, `box.cat`, `candy.set`, `candy.add-rpm`, …) via `ov/mcp_server.go`'s Kong reflection. So an LLM agent driving `ov mcp serve` can author a project from scratch over RPC.
+Each verb below is also auto-exposed as an MCP tool (`box.new.project`, `box.new.box`, `box.set`, `box.add-candy`, `box.rm-candy`, `box.write`, `box.cat`, `candy.set`, `candy.add-rpm`, …) via `ov/mcp_server.go`'s Kong reflection. So an LLM agent driving `charly mcp serve` can author a project from scratch over RPC.
 
 | Action | Command |
 |--------|---------|
-| Scaffold a fresh project | `ov box new project <dir>` |
-| Add an image entry | `ov box new box <name> --base <ref> --layers <a,b,c>` |
-| Add a layer dir (stub `candy.yml`) | `ov box new candy <name>` |
-| Edit a value in `box.yml` | `ov box set <dotpath> <yaml-value>` |
-| Append a layer to an image | `ov box add-candy <image> <layer>` |
-| Remove a layer from an image | `ov box rm-candy <image> <layer>` |
-| Edit a value in `candy/<name>/candy.yml` | `ov candy set <name> <dotpath> <yaml-value>` |
-| Append rpm/deb/pac/aur packages to a layer | `ov candy add-rpm <name> <pkg…>` (and `add-deb`, `add-pac`, `add-aur`) |
-| Write any file under the project root | `ov box write <rel-path> [--content X \| --from-stdin]` |
-| Read any file under the project root | `ov box cat <rel-path>` |
+| Scaffold a fresh project | `charly box new project <dir>` |
+| Add an image entry | `charly box new box <name> --base <ref> --layers <a,b,c>` |
+| Add a layer dir (stub `candy.yml`) | `charly box new candy <name>` |
+| Edit a value in `box.yml` | `charly box set <dotpath> <yaml-value>` |
+| Append a layer to an image | `charly box add-candy <image> <layer>` |
+| Remove a layer from an image | `charly box rm-candy <image> <layer>` |
+| Edit a value in `candy/<name>/candy.yml` | `charly candy set <name> <dotpath> <yaml-value>` |
+| Append rpm/deb/pac/aur packages to a layer | `charly candy add-rpm <name> <pkg…>` (and `add-deb`, `add-pac`, `add-aur`) |
+| Write any file under the project root | `charly box write <rel-path> [--content X \| --from-stdin]` |
+| Read any file under the project root | `charly box cat <rel-path>` |
 
-**Safety boundary**: `ov box write` / `ov box cat` resolve the path against `os.Getwd()` (the project root) and reject absolute paths or `..` traversal that would escape the root. They are the deliberate escape hatch for free-form auxiliary files (`pixi.toml`, `package.json`, `root.yml`, `*.service`, scripts) that the schema-aware setters don't cover.
+**Safety boundary**: `charly box write` / `charly box cat` resolve the path against `os.Getwd()` (the project root) and reject absolute paths or `..` traversal that would escape the root. They are the deliberate escape hatch for free-form auxiliary files (`pixi.toml`, `package.json`, `root.yml`, `*.service`, scripts) that the schema-aware setters don't cover.
 
 **Comment preservation**: every YAML edit (`set`, `add-layer`, `rm-layer`, `add-rpm`, etc.) goes through the `yaml.v3` *node* API rather than the value API, so human-authored comments and key order are preserved across edits. Tested in `ov/yaml_setter_test.go` and `ov/scaffold_project_test.go`.
 
-**Project scaffold contents**: `ov box new project` writes a minimal `box.yml` whose `defaults.format_config` references the upstream `build.yml` remotely (`@github.com/overthinkos/overthink/build.yml`), so new projects don't have to copy the canonical 1k-line build.yml. Replace with a local `build.yml` + drop the `format_config` field if you need custom distro/builder/init definitions.
+**Project scaffold contents**: `charly box new project` writes a minimal `box.yml` whose `defaults.format_config` references the upstream `build.yml` remotely (`@github.com/overthinkos/overthink/build.yml`), so new projects don't have to copy the canonical 1k-line build.yml. Replace with a local `build.yml` + drop the `format_config` field if you need custom distro/builder/init definitions.
 
 ## box.yml Structure
 
@@ -190,7 +190,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | Field | Default | Description |
 |-------|---------|-------------|
 | `enabled` | `true` | Set `false` to disable (skipped by generate, validate, list) |
-| `version` | `""` | OPTIONAL dedicated CalVer (`YYYY.DDD.HHMM`). When set it IS the image's `org.overthinkos.version` label; when unset the label is derived as the highest layer version across the chain (`EffectiveVersion`, `ov/effective_version.go`). Layered images leave it unset (they derive — keeps the label content-stable); a layerless bare base on an EXTERNAL registry base needs it (else the label can't be derived) — `ov migrate` backfills those |
+| `version` | `""` | OPTIONAL dedicated CalVer (`YYYY.DDD.HHMM`). When set it IS the image's `ai.opencharly.version` label; when unset the label is derived as the highest layer version across the chain (`EffectiveVersion`, `ov/effective_version.go`). Layered images leave it unset (they derive — keeps the label content-stable); a layerless bare base on an EXTERNAL registry base needs it (else the label can't be derived) — `charly migrate` backfills those |
 | `status` | `""` (= `testing`) | `working`, `testing`, or `broken`. Effective status = worst of image + all layers |
 | `info` | `""` | Free-form description. Aggregated with layer-level info in OCI labels |
 | `base` | `quay.io/fedora/fedora:43` | External OCI image or name of another image |
@@ -215,7 +215,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `security` | `null` | Container security options. Overrides layer-level security |
 | `network` | `string` | Container network mode (default: shared `ov` network; set `host` for host networking) |
 
-VM-related fields (`vm`, `libvirt`) are not valid on kind:image entries — the loader rejects them. VMs are declared as `kind: vm` entities in `vm.yml` — see `/ov-vm:vms-catalog` for authoring and `/ov-build:migrate` for `ov migrate` conversion of legacy configs. `bootc: true` stays on kind:image entries (marks the image as a bootable container); a separate `kind: vm` entity with `source.kind: bootc` references it.
+VM-related fields (`vm`, `libvirt`) are not valid on kind:image entries — the loader rejects them. VMs are declared as `kind: vm` entities in `vm.yml` — see `/charly-vm:vms-catalog` for authoring and `/charly-build:migrate` for `charly migrate` conversion of legacy configs. `bootc: true` stays on kind:image entries (marks the image as a bootable container); a separate `kind: vm` entity with `source.kind: bootc` references it.
 
 ## Builder and Builds
 
@@ -286,7 +286,7 @@ images:
 
 `user_policy:` cleanly handles base images that ship a pre-existing uid-1000 account (notably Ubuntu 24.04's `ubuntu:ubuntu`). A plain `getent passwd $UID || useradd …` bootstrap short-circuits on such accounts, leaving the image's configured `user:` never created — sudoers, `${HOME}`, npm prefix, etc. would then break because they assume the configured name exists.
 
-The mechanism: a **declarative** fact (what the base image ships, in `build.yml distro.<name>.base_user:` — see `/ov-build:build`) + an **image-level policy** (how to reconcile with the image's `user:` field).
+The mechanism: a **declarative** fact (what the base image ships, in `build.yml distro.<name>.base_user:` — see `/charly-build:build`) + an **image-level policy** (how to reconcile with the image's `user:` field).
 
 ### Policy values
 
@@ -300,10 +300,10 @@ The mechanism: a **declarative** fact (what the base image ships, in `build.yml 
 
 | Base image | `base_user` declared? | `user_policy: auto` outcome | Resolved user |
 |---|---|---|---|
-| `/ov-distros:fedora` | no | create | `user` |
-| `/ov-distros:arch` | no | create | `user` |
-| `/ov-distros:debian` | no | create | `user` |
-| `/ov-distros:ubuntu` | **yes** (`ubuntu:1000:/home/ubuntu`) | adopt | `ubuntu` |
+| `/charly-distros:fedora` | no | create | `user` |
+| `/charly-distros:arch` | no | create | `user` |
+| `/charly-distros:debian` | no | create | `user` |
+| `/charly-distros:ubuntu` | **yes** (`ubuntu:1000:/home/ubuntu`) | adopt | `ubuntu` |
 
 This is why `ubuntu-coder`'s resolved identity is `ubuntu:/home/ubuntu` while the other three coder images are `user:/home/user`. The box.yml for all four coder images is identical on the user-related fields (no explicit `user:`); the policy + base_user together decide the outcome.
 
@@ -315,18 +315,18 @@ This is why `ubuntu-coder`'s resolved identity is `ubuntu:/home/ubuntu` while th
    - `adopt` → overwrite User/UID/GID/Home with the distro's `BaseUser`, set `ResolvedImage.UserAdopted = true`.
    - `auto` → same overwrite IF `base_user` exists AND the image didn't explicitly set `user:`.
    - `create` → no-op.
-4. `writeBootstrap` (`ov/generate.go`) keys on `UserAdopted`: adopt emits only a comment; create emits an idempotent `useradd` (see `/ov-build:generate`).
+4. `writeBootstrap` (`ov/generate.go`) keys on `UserAdopted`: adopt emits only a comment; create emits an idempotent `useradd` (see `/charly-build:generate`).
 
 ### Live verification
 
 ```bash
-ov box inspect ubuntu-coder | grep -E '"User"|"UID"|"Home"|UserAdopted'
+charly box inspect ubuntu-coder | grep -E '"User"|"UID"|"Home"|UserAdopted'
 # "User": "ubuntu",
 # "UID": 1000,
 # "Home": "/home/ubuntu",
 # "UserAdopted": true,
 
-ov box inspect debian-coder | grep -E '"User"|"UID"|"Home"|UserAdopted'
+charly box inspect debian-coder | grep -E '"User"|"UID"|"Home"|UserAdopted'
 # "User": "user",
 # "UID": 1000,
 # "Home": "/home/user",
@@ -335,9 +335,9 @@ ov box inspect debian-coder | grep -E '"User"|"UID"|"Home"|UserAdopted'
 
 ### Layer consequences
 
-Adopt mode means `resolved.User` is not a stable string across distros. Layers that reference the uid-1000 account by name must NOT hardcode `user` — use `${USER}` where the generator substitutes (task fields like `user: ${USER}`), or use `getent passwd 1000 | cut -d: -f1` inside `cmd:` blocks (where the generator does NOT substitute — bash sees the script verbatim). The canonical getent example is `/ov-coder:sshd`'s sudoers task.
+Adopt mode means `resolved.User` is not a stable string across distros. Layers that reference the uid-1000 account by name must NOT hardcode `user` — use `${USER}` where the generator substitutes (task fields like `user: ${USER}`), or use `getent passwd 1000 | cut -d: -f1` inside `cmd:` blocks (where the generator does NOT substitute — bash sees the script verbatim). The canonical getent example is `/charly-coder:sshd`'s sudoers task.
 
-See also `/ov-distros:ubuntu` (canonical adopt consumer), `/ov-build:build` "base_user:", `/ov-internals:go` "ResolvedImage.UserAdopted".
+See also `/charly-distros:ubuntu` (canonical adopt consumer), `/charly-build:build` "base_user:", `/charly-internals:go` "ResolvedImage.UserAdopted".
 
 ## External Bases Require Explicit `distro:`
 
@@ -358,9 +358,9 @@ my-bootc-image:
   layers: [sshd, qemu-guest-agent, ffmpeg]
 ```
 
-Symptom without `distro:`: `ov box inspect <image>` shows `"Distro": null`. The generator's install_template Phase-2 branch short-circuits on `img.DistroDef == nil`, so **no layer `rpm:` install RUN steps are emitted**. The image builds cleanly but is missing every package from every layer that uses declarative `rpm:` sections. Explicit `cmd: dnf install …` tasks still run; the bug affects only declarative `rpm:`/`deb:`/`pac:` sections.
+Symptom without `distro:`: `charly box inspect <image>` shows `"Distro": null`. The generator's install_template Phase-2 branch short-circuits on `img.DistroDef == nil`, so **no layer `rpm:` install RUN steps are emitted**. The image builds cleanly but is missing every package from every layer that uses declarative `rpm:` sections. Explicit `cmd: dnf install …` tasks still run; the bug affects only declarative `rpm:`/`deb:`/`pac:` sections.
 
-Internal bases (`base: fedora`) inherit `distro:` and `build:` from the parent image automatically — you only need explicit tags on images whose `base:` is a URL. Canonical worked example: `/ov-distros:bazzite`. The sibling bootc image `/ov-distros:aurora` likewise declares `distro:`; both live in the `overthinkos/bootc` submodule.
+Internal bases (`base: fedora`) inherit `distro:` and `build:` from the parent image automatically — you only need explicit tags on images whose `base:` is a URL. Canonical worked example: `/charly-distros:bazzite`. The sibling bootc image `/charly-distros:aurora` likewise declares `distro:`; both live in the `overthinkos/bootc` submodule.
 
 ## Intermediate Images
 
@@ -373,7 +373,7 @@ fedora (external)
      -> openclaw (adds: nodejs, openclaw)
 ```
 
-Auto-intermediates are marked with `Auto: true` and appear in `ov box list targets`.
+Auto-intermediates are marked with `Auto: true` and appear in `charly box list targets`.
 
 ### Algorithm
 
@@ -387,7 +387,7 @@ Source: `ov/intermediates.go` (`ComputeIntermediates`, `GlobalLayerOrder`, `walk
 
 ## Versioning
 
-CalVer: `YYYY.DDD.HHMM` (year, day-of-year, UTC time). Computed once per `ov box generate`.
+CalVer: `YYYY.DDD.HHMM` (year, day-of-year, UTC time). Computed once per `charly box generate`.
 
 | `tag` value | Generated tag(s) |
 |-------------|-----------------|
@@ -395,7 +395,7 @@ CalVer: `YYYY.DDD.HHMM` (year, day-of-year, UTC time). Computed once per `ov box
 | `"nightly"` | `nightly` only |
 | `"1.2.3"` | `1.2.3` only |
 
-Override: `ov box generate --tag <value>`.
+Override: `charly box generate --tag <value>`.
 
 ## Runtime Environment Variables
 
@@ -410,7 +410,7 @@ images:
     env_file: "~/.config/my-app/.env"
 ```
 
-These are the lowest priority in the env resolution chain. CLI flags (`-e`, `--env-file`) and workspace `.env` take precedence. See `/ov-core:ov-config` and `/ov-core:start` for the full priority chain at config-time and run-time respectively.
+These are the lowest priority in the env resolution chain. CLI flags (`-e`, `--env-file`) and workspace `.env` take precedence. See `/charly-core:ov-config` and `/charly-core:start` for the full priority chain at config-time and run-time respectively.
 
 Source: `ov/envfile.go` (`ResolveEnvVars`).
 
@@ -451,29 +451,29 @@ vms:
         filesystems: [{type: mount, source: ..., target: ...}]
 ```
 
-See `/ov-vm:vms-catalog` for the full VmSpec schema, `/ov-vm:vm` for the `ov vm build/create/ssh` command family, and `/ov-build:migrate` for `ov migrate` to convert legacy `image.vm:` / `image.libvirt:` fields to the new schema.
+See `/charly-vm:vms-catalog` for the full VmSpec schema, `/charly-vm:vm` for the `charly vm build/create/ssh` command family, and `/charly-build:migrate` for `charly migrate` to convert legacy `image.vm:` / `image.libvirt:` fields to the new schema.
 
 ## OCI Labels
 
-Every image `ov` builds carries a set of `org.overthinkos.*` OCI labels embedding the resolved image config so that `ov config` and `ov deploy` can work without the project source tree. The full list is assembled in `ov/labels.go`:
+Every image `ov` builds carries a set of `ai.opencharly.*` OCI labels embedding the resolved image config so that `charly config` and `charly deploy` can work without the project source tree. The full list is assembled in `ov/labels.go`:
 
 | Label | Contents |
 |---|---|
-| `org.overthinkos.volume` | Volume declarations from the layer chain |
-| `org.overthinkos.port` | Ports + protocol annotations |
-| `org.overthinkos.security` | `cap_add`, `devices`, `security_opt`, `mounts`, resource caps |
-| `org.overthinkos.env` | Runtime env keys |
-| `org.overthinkos.env_provide` | Cross-container env provides (resolved at deploy time) |
-| `org.overthinkos.env_require` | Declared env contracts (used for `ov config` hard-fail checks) |
-| `org.overthinkos.env_accept` | Opt-in allowlist for provides filtering |
-| `org.overthinkos.mcp_provide` | Cross-container MCP server provides |
-| `org.overthinkos.port_proto` | Port protocol annotations (non-default only) |
-| `org.overthinkos.platform.distro` | Distro identity (e.g. `["arch"]`) — first match picks bootstrap/format templates |
-| `org.overthinkos.platform.format` | Package formats installed (`pac`, `rpm`, `deb`, `pixi`, `aur`, …) |
-| `org.overthinkos.builder.use` | Consumer-side routing map: format → builder-image name |
-| `org.overthinkos.builder.provide` | Producer-side capability list: formats this image can build for others |
+| `ai.opencharly.volume` | Volume declarations from the layer chain |
+| `ai.opencharly.port` | Ports + protocol annotations |
+| `ai.opencharly.security` | `cap_add`, `devices`, `security_opt`, `mounts`, resource caps |
+| `ai.opencharly.env` | Runtime env keys |
+| `ai.opencharly.env_provide` | Cross-container env provides (resolved at deploy time) |
+| `ai.opencharly.env_require` | Declared env contracts (used for `charly config` hard-fail checks) |
+| `ai.opencharly.env_accept` | Opt-in allowlist for provides filtering |
+| `ai.opencharly.mcp_provide` | Cross-container MCP server provides |
+| `ai.opencharly.port_proto` | Port protocol annotations (non-default only) |
+| `ai.opencharly.platform.distro` | Distro identity (e.g. `["arch"]`) — first match picks bootstrap/format templates |
+| `ai.opencharly.platform.format` | Package formats installed (`pac`, `rpm`, `deb`, `pixi`, `aur`, …) |
+| `ai.opencharly.builder.use` | Consumer-side routing map: format → builder-image name |
+| `ai.opencharly.builder.provide` | Producer-side capability list: formats this image can build for others |
 
-All of the above round-trip via `ov config`: the label is read from the image manifest and applied to deploy.yml + the quadlet. There is one deliberate exception.
+All of the above round-trip via `charly config`: the label is read from the image manifest and applied to deploy.yml + the quadlet. There is one deliberate exception.
 
 ### Tunnel is deploy.yml-only
 
@@ -481,9 +481,9 @@ All of the above round-trip via `ov config`: the label is read from the image ma
 
 1. **Per-instance divergence.** One selkies-desktop image may be deployed with a Tailscale tunnel in one environment and no tunnel in another. Baking the tunnel choice into the image forecloses that.
 2. **`--update-all` safety.** Propagating config changes across deployed services must not accidentally rewrite tunnel settings from image labels and blow away per-instance overrides.
-3. **Instance inheritance gap.** Tunnel config is **not** auto-inherited from the base `ov config <image>` call to an `ov config <image> -i <instance>` call. This is a deliberate gap — see `/ov-selkies:selkies-labwc` (Multi-Instance Proxy Deployment) for the manual workaround and `/ov-core:deploy` (Instance Tunnel Inheritance) for the full lifecycle.
+3. **Instance inheritance gap.** Tunnel config is **not** auto-inherited from the base `charly config <image>` call to an `charly config <image> -i <instance>` call. This is a deliberate gap — see `/charly-selkies:selkies-labwc` (Multi-Instance Proxy Deployment) for the manual workaround and `/charly-core:deploy` (Instance Tunnel Inheritance) for the full lifecycle.
 
-**Practical implication:** you can inspect an image's tunnel declaration with `ov box inspect <image>` and see nothing useful — that's correct. To see a tunnel's actual state, read `deploy.yml` directly (`ov deploy show <image>`) or the generated quadlet (`ov status <image>`).
+**Practical implication:** you can inspect an image's tunnel declaration with `charly box inspect <image>` and see nothing useful — that's correct. To see a tunnel's actual state, read `deploy.yml` directly (`charly deploy show <image>`) or the generated quadlet (`charly status <image>`).
 
 ## Common Workflows
 
@@ -494,7 +494,7 @@ Add an entry to `box.yml` with `base` and `layers`, then build:
 ```bash
 # Edit box.yml
 # Then:
-ov box build my-new-image
+charly box build my-new-image
 ```
 
 ### Layer Images (inheritance)
@@ -527,35 +527,35 @@ images:
 
 ### Family subcommand skills
 
-- `/ov-build:build` -- `ov box build` (+ the `--no-cache` intermediate scratch-stage caveat)
-- `/ov-build:generate` -- `ov box generate` (Containerfile generation including OCI label emission)
-- `/ov-build:inspect` -- `ov box inspect` (resolved OCI label set)
-- `/ov-build:list` -- `ov box list {images,layers,targets,services,routes,volumes,aliases}`
-- `/ov-build:merge` -- `ov box merge` (post-build layer consolidation)
-- `/ov-build:new` -- `ov box new candy <name>` (scaffold new layer directory)
-- `/ov-build:pull` -- `ov box pull` (fetch into local storage; `ErrImageNotLocal` recovery)
-- `/ov-build:validate` -- `ov box validate` (box.yml + layers consistency check)
+- `/charly-build:build` -- `charly box build` (+ the `--no-cache` intermediate scratch-stage caveat)
+- `/charly-build:generate` -- `charly box generate` (Containerfile generation including OCI label emission)
+- `/charly-build:inspect` -- `charly box inspect` (resolved OCI label set)
+- `/charly-build:list` -- `charly box list {images,layers,targets,services,routes,volumes,aliases}`
+- `/charly-build:merge` -- `charly box merge` (post-build layer consolidation)
+- `/charly-build:new` -- `charly box new candy <name>` (scaffold new layer directory)
+- `/charly-build:pull` -- `charly box pull` (fetch into local storage; `ErrImageNotLocal` recovery)
+- `/charly-build:validate` -- `charly box validate` (box.yml + layers consistency check)
 
 ### Related skills
 
-- `/ov-image:layer` -- Layer definitions that compose into images (env_provide, env_require, env_accept, security resource caps)
-- `/ov-core:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
-- `/ov-core:ov-config` -- `ov config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
-- `/ov-internals:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
-- `/ov-eval:eval` — Image-level `eval:` (cross-layer invariants) and `deploy_eval:` (deploy-default checks shipped with the image). Both are embedded in the `org.overthinkos.eval` OCI label.
-- `/ov-build:ov-mcp-cmd` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `ov eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
-- `/ov-distros:bazzite` — canonical worked example for the external-base + explicit-`distro:` pattern.
-- `/ov-vm:vm` — `ov vm build/create/start/stop/ssh` command family; reads `vm.yml`, not `box.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
-- `/ov-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema.
-- `/ov-build:migrate` — `ov migrate` converts legacy VM fields to `vm.yml`.
+- `/charly-image:layer` -- Layer definitions that compose into images (env_provide, env_require, env_accept, security resource caps)
+- `/charly-core:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
+- `/charly-core:ov-config` -- `charly config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
+- `/charly-internals:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
+- `/charly-eval:eval` — Image-level `eval:` (cross-layer invariants) and `deploy_eval:` (deploy-default checks shipped with the image). Both are embedded in the `ai.opencharly.eval` OCI label.
+- `/charly-build:ov-mcp-cmd` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `charly eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
+- `/charly-distros:bazzite` — canonical worked example for the external-base + explicit-`distro:` pattern.
+- `/charly-vm:vm` — `charly vm build/create/start/stop/ssh` command family; reads `vm.yml`, not `box.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
+- `/charly-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema.
+- `/charly-build:migrate` — `charly migrate` converts legacy VM fields to `vm.yml`.
 
 ## Cross-kind name reuse
 
-The `image:` map's namespace is independent of `candy/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`ov box set`, `ov box new box`, `ov box add-candy`, `ov box rm-candy`, `ov box new project`) write exclusively to `overthink.yml` — per-kind `box.yml` is reachable only via the `import:` statement from `overthink.yml`, never as a default authoring target. Missing `overthink.yml` → hard error pointing at `ov box new project .` or `ov migrate`. See CLAUDE.md "Cross-kind name reuse".
+The `image:` map's namespace is independent of `candy/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`charly box set`, `charly box new box`, `charly box add-candy`, `charly box rm-candy`, `charly box new project`) write exclusively to `charly.yml` — per-kind `box.yml` is reachable only via the `import:` statement from `charly.yml`, never as a default authoring target. Missing `charly.yml` → hard error pointing at `charly box new project .` or `charly migrate`. See CLAUDE.md "Cross-kind name reuse".
 
 ### Files are generic kind-containers (per-kind filenames are a convenience)
 
-Every YAML file is a generic, kind-agnostic container — the loader routes each document by its top-level kind-key (its SHAPE), **NEVER by filename**. So ANY file may hold ANY mix of kinds. Splitting entities into per-kind sibling files named for their kind (`box.yml` for boxes, `vm.yml` for VMs, `deploy.yml` for deploys, …) is a pure user **CONVENIENCE** you express in `overthink.yml`'s `import:` (and, for candy directories, `discover:`) — it is never required, and the code hardcodes no per-kind filename. **`overthink.yml` is the only filename the code knows**; everything else (which files to `import:`, which directories + manifest names to `discover:`) is configured there. Inline maps in `overthink.yml` and per-kind splits load identically. `discover:` is a flat generic scan-spec list (`- {path, recursive, manifest}`); the manifest defaults to `candy.yml` but is overridable per spec. Migration of legacy configs: `ov migrate` (idempotent). See `/ov-build:migrate`, `/ov-internals:go`.
+Every YAML file is a generic, kind-agnostic container — the loader routes each document by its top-level kind-key (its SHAPE), **NEVER by filename**. So ANY file may hold ANY mix of kinds. Splitting entities into per-kind sibling files named for their kind (`box.yml` for boxes, `vm.yml` for VMs, `deploy.yml` for deploys, …) is a pure user **CONVENIENCE** you express in `charly.yml`'s `import:` (and, for candy directories, `discover:`) — it is never required, and the code hardcodes no per-kind filename. **`charly.yml` is the only filename the code knows**; everything else (which files to `import:`, which directories + manifest names to `discover:`) is configured there. Inline maps in `charly.yml` and per-kind splits load identically. `discover:` is a flat generic scan-spec list (`- {path, recursive, manifest}`); the manifest defaults to `candy.yml` but is overridable per spec. Migration of legacy configs: `charly migrate` (idempotent). See `/charly-build:migrate`, `/charly-internals:go`.
 
 ## The `import:` statement (composition + namespaces)
 
@@ -588,33 +588,33 @@ Resolution is **namespace-relative**, exactly like Go package-member access: a b
 - **`distro:` / `build:`** are VALUES (distro tags, package formats) → inherited across a namespace boundary, so a `base: cachyos.cachyos` image still picks up cachyos's `distro:`/`build:`.
 - **`builder:`** is a map of REFS relative to the BASE's namespace → it does **NOT** cross the boundary. A consumer image that builds a multi-stage format declares its OWN `builder:` map, qualified to the right builder (`builder: {pixi: ov.arch-builder}`). This avoids leaking a base-namespace-relative ref into a consumer where that namespace doesn't exist.
 
-Cycles between two projects that import each other (the intentional main ↔ cachyos mutual import: main imports `cachyos`, cachyos imports `ov`) are broken at load time **by repo identity, not pinned version** — see `/ov-internals:go` "import-namespace loader". The consequence for authors: **the importing project's namespace pins win**. When an imported namespace's release imports your repo back (`ov: @…/overthink:<someOldPin>`), that back-reference resolves to YOUR local working tree (the root), NOT the old pinned snapshot — so a stale transitive pin in a published submodule release can never drag a divergent (or stale-schema) version of your own repo into the load.
+Cycles between two projects that import each other (the intentional main ↔ cachyos mutual import: main imports `cachyos`, cachyos imports `ov`) are broken at load time **by repo identity, not pinned version** — see `/charly-internals:go` "import-namespace loader". The consequence for authors: **the importing project's namespace pins win**. When an imported namespace's release imports your repo back (`ov: @…/opencharly:<someOldPin>`), that back-reference resolves to YOUR local working tree (the root), NOT the old pinned snapshot — so a stale transitive pin in a published submodule release can never drag a divergent (or stale-schema) version of your own repo into the load.
 
-**`repo:` (optional root-only field).** Declare your project's canonical repo identity at the top of `overthink.yml` (`repo: github.com/overthinkos/overthink`) so the loader recognizes a transitive back-import of your repo and short-circuits it to the local tree. When omitted, the loader infers it from `git remote origin`; absent both, the cycle-break degrades to version-keyed behavior. The field is purely additive (no migration needed).
+**`repo:` (optional root-only field).** Declare your project's canonical repo identity at the top of `charly.yml` (`repo: github.com/overthinkos/overthink`) so the loader recognizes a transitive back-import of your repo and short-circuits it to the local tree. When omitted, the loader infers it from `git remote origin`; absent both, the cycle-break degrades to version-keyed behavior. The field is purely additive (no migration needed).
 
 ### Layer-version resolution across namespaces — per-entity version
 
-A namespace is imported to provide bases/builders; the resolver fetches ONLY the layers reachable from the enabled images' `base:`/`builder:` chains (reachability-scoped collection) — a namespace's unreferenced images and its `kind:local` templates are not pulled. The git `:vTAG` on a layer ref is only the FETCH coordinate; the layer's OWN `version:` (read after fetch) is the identity. So when the SAME layer is referenced via two different repo git tags but its `version:` is unchanged (a re-tag for an unrelated push), the resolver picks one materialization with NO warning. Only when a layer resolves to two genuinely different per-entity versions (a family pinned to a newer layer than the shared infra it composes) does it **warn once** (naming both per-entity versions) and use the **newest** (highest CalVer). Run `ov box reconcile` to align the on-disk git-tag pins and clear any warning. See `/ov-internals:go` "Remote-layer resolver", `/ov-build:reconcile`.
+A namespace is imported to provide bases/builders; the resolver fetches ONLY the layers reachable from the enabled images' `base:`/`builder:` chains (reachability-scoped collection) — a namespace's unreferenced images and its `kind:local` templates are not pulled. The git `:vTAG` on a layer ref is only the FETCH coordinate; the layer's OWN `version:` (read after fetch) is the identity. So when the SAME layer is referenced via two different repo git tags but its `version:` is unchanged (a re-tag for an unrelated push), the resolver picks one materialization with NO warning. Only when a layer resolves to two genuinely different per-entity versions (a family pinned to a newer layer than the shared infra it composes) does it **warn once** (naming both per-entity versions) and use the **newest** (highest CalVer). Run `charly box reconcile` to align the on-disk git-tag pins and clear any warning. See `/charly-internals:go` "Remote-layer resolver", `/charly-build:reconcile`.
 
 ## `base.yml` — the combined arch + fedora base stack
 
-The main repo ships a single `base.yml` carrying both base-distro stacks: `arch`, `arch-builder`, `fedora`, `fedora-builder`, `fedora-nonfree`. It is flat-imported by `overthink.yml` (`- base.yml`) and imported under the `ov` namespace by the per-distro submodules (`ov.arch`, `ov.fedora`, `ov.arch-builder`, `ov.fedora-builder`). The cachyos base is NOT in `base.yml` — it lives inline in `image/cachyos/overthink.yml` and is reached through the `cachyos` import namespace (`base: cachyos.cachyos`). See `/ov-distros:arch`, `/ov-distros:fedora`, `/ov-distros:cachyos`.
+The main repo ships a single `base.yml` carrying both base-distro stacks: `arch`, `arch-builder`, `fedora`, `fedora-builder`, `fedora-nonfree`. It is flat-imported by `charly.yml` (`- base.yml`) and imported under the `ov` namespace by the per-distro submodules (`ov.arch`, `ov.fedora`, `ov.arch-builder`, `ov.fedora-builder`). The cachyos base is NOT in `base.yml` — it lives inline in `image/cachyos/charly.yml` and is reached through the `cachyos` import namespace (`base: cachyos.cachyos`). See `/charly-distros:arch`, `/charly-distros:fedora`, `/charly-distros:cachyos`.
 
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves image definitions in box.yml, image inheritance, defaults, platforms, builder configuration, or the image dependency graph. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Pre-build. Define images before building. See also `/ov-image:layer` (layer authoring), `/ov-build:build` (building).
+**Workflow position:** Pre-build. Define images before building. See also `/charly-image:layer` (layer authoring), `/charly-build:build` (building).
 
 ## Related skills
 
-- `/ov-build:migrate` — `ov migrate` converts legacy `box.yml` into `image:` entries in `overthink.yml`
-- `/ov-internals:capabilities` — OCI label contract emitted at build time and consumed by deploy commands
+- `/charly-build:migrate` — `charly migrate` converts legacy `box.yml` into `image:` entries in `charly.yml`
+- `/charly-internals:capabilities` — OCI label contract emitted at build time and consumed by deploy commands
 
-## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
-**After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
+**After committing the source-level fix, `charly update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 
 Unit tests + a clean compile are necessary but not sufficient. See CLAUDE.md R1–R10.

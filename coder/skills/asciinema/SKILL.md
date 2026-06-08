@@ -34,19 +34,19 @@ layers:
   - asciinema
 ```
 
-Used by `ov eval record start --mode terminal` for terminal recording sessions. Also available standalone via `asciinema rec`.
+Used by `charly eval record start --mode terminal` for terminal recording sessions. Also available standalone via `asciinema rec`.
 
-## Integration with `ov eval record`
+## Integration with `charly eval record`
 
 ```bash
 # Start recording a terminal session
-ov eval record start <image> -n demo --mode terminal
+charly eval record start <image> -n demo --mode terminal
 
 # Send commands to the recorded terminal
-ov eval record cmd <image> "echo hello" -n demo
+charly eval record cmd <image> "echo hello" -n demo
 
 # Stop and copy to host
-ov eval record stop <image> -n demo -o demo.cast
+charly eval record stop <image> -n demo -o demo.cast
 
 # Play back
 asciinema play demo.cast
@@ -58,18 +58,18 @@ Also available via the `dev-tools` layer (which includes asciinema among many ot
 
 ## Used In Images
 
-- `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
-- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
+- `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Related Commands
 
-- `/ov-eval:record` — Terminal recording via asciinema (start, stop, cmd)
+- `/charly-eval:record` — Terminal recording via asciinema (start, stop, cmd)
 
 ## Cross-References
 
-- `/ov-eval:record` — `ov eval record start --mode terminal` uses asciinema
-- `/ov-coder:dev-tools` — Also includes asciinema (larger layer)
+- `/charly-eval:record` — `charly eval record start --mode terminal` uses asciinema
+- `/charly-coder:dev-tools` — Also includes asciinema (larger layer)
 
 ## When to Use This Skill
 
@@ -80,5 +80,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -54,8 +54,8 @@ No custom environment variables on the layer itself. **Runtime PATH
 contributions** for the pixi env (`~/.pixi/bin`,
 `~/.pixi/envs/default/bin`) and cache dirs (`PIXI_CACHE_DIR`,
 `RATTLER_CACHE_DIR`) come from the **pixi BUILDER** (declared in
-`build.yml` / `overthink.yml` under `builder.pixi.runtime_env:` and
-`path_contributions:`) — see `/ov-internals:generate-source` for the
+`build.yml` / `charly.yml` under `builder.pixi.runtime_env:` and
+`path_contributions:`) — see `/charly-internals:generate-source` for the
 `writeLayerEnv` flow. The pixi runtime env flows through the pixi
 BUILDER (not the pixi LAYER) so images that consume pixi via
 pixi.toml-triggered builds (jupyter, openwebui, immich-ml, …) get the
@@ -86,7 +86,7 @@ jupyter:
     - agent-forwarding
     - jupyter
     - dbus
-    - ov
+    - charly
   ports:
     - "8888:8888"
 ```
@@ -104,7 +104,7 @@ jupyter:
 
 ## MCP Server Discovery
 
-The `jupyter` layer declares `mcp_provide` for cross-container and pod MCP discovery. The URL template `http://{{.ContainerName}}:8888/mcp` resolves to the actual container name at deploy time (e.g., `http://ov-jupyter:8888/mcp`), or to `http://localhost:8888/mcp` in combined images where both services run in the same container.
+The `jupyter` layer declares `mcp_provide` for cross-container and pod MCP discovery. The URL template `http://{{.ContainerName}}:8888/mcp` resolves to the actual container name at deploy time (e.g., `http://charly-jupyter:8888/mcp`), or to `http://localhost:8888/mcp` in combined images where both services run in the same container.
 
 - **Transport:** Streamable HTTP (`http`)
 - **11 tools** available via the `jupyter-mcp` extension (see below)
@@ -133,7 +133,7 @@ Tornado (Jupyter Server, :8888)
 
 ### MCP Tools (11 total — `<noun>_<verb>` form)
 
-Clients do not manage CRDT rooms. The server auto-attaches every `notebook_*`/`cell_*` call to whichever room exists, or creates one. See `/ov-jupyter:jupyter-mcp` "Usage philosophy and caveats".
+Clients do not manage CRDT rooms. The server auto-attaches every `notebook_*`/`cell_*` call to whichever room exists, or creates one. See `/charly-jupyter:jupyter-mcp` "Usage philosophy and caveats".
 
 **Notebook operations:**
 | Tool | Parameters | Returns |
@@ -196,16 +196,16 @@ Multiple MCP clients can edit the same notebook simultaneously:
 
 ## Tests
 
-The layer ships declarative checks embedded in the `org.overthinkos.eval`
-OCI label (see `/ov-eval:eval` for the full schema):
+The layer ships declarative checks embedded in the `ai.opencharly.eval`
+OCI label (see `/charly-eval:eval` for the full schema):
 
-- **Build-scope** (run under `ov eval box`):
+- **Build-scope** (run under `charly eval box`):
   - `jupyter-lab-binary` — `${HOME}/.pixi/envs/default/bin/jupyter-lab`
     exists (proves pixi env install succeeded)
   - `spacy-import` — `python -c "import spacy;
     spacy.load('en_core_web_sm')"` exits 0 (proves NLP packages + model
     load successfully)
-- **Deploy-scope** (run under `ov eval live` against a live service):
+- **Deploy-scope** (run under `charly eval live` against a live service):
   - `workspace-dir` — `/workspace` exists (mount visible)
   - `jupyter-service` — supervisord program `jupyter` is RUNNING
   - `jupyter-port` — `${CONTAINER_IP}:${HOST_PORT:8888}` reachable
@@ -220,18 +220,18 @@ OCI label (see `/ov-eval:eval` for the full schema):
 
 ## Used In Images
 
-- `/ov-jupyter:jupyter`
+- `/charly-jupyter:jupyter`
 
 ## Related Layers
 
-- `/ov-jupyter:jupyter-ml` -- GPU-accelerated variant with full CUDA ML stack + same CRDT MCP server
-- `/ov-jupyter:jupyter-mcp` -- MCP server implementation (sub-layer, 11 tools for programmatic notebook access using `<noun>_<verb>` naming; clients don't manage CRDT rooms — the server auto-attaches)
-- `/ov-jupyter:notebook-templates` -- Starter notebooks (data layer, used alongside this layer in images)
-- `/ov-hermes:hermes` -- MCP consumer (auto-discovers via `OV_MCP_SERVERS` env var; uses `jupyter` server tools to read/edit/execute cells)
-- `/ov-openwebui:openwebui` -- MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code-block execution into the Jupyter kernel)
-- `/ov-infrastructure:supervisord` -- process manager dependency
-- `/ov-languages:python` -- Python runtime (transitive via supervisord)
-- `/ov-build:ov-mcp-cmd` -- end-to-end testing of the layer's MCP endpoint (`ov eval mcp ping`, `list-tools`, `call`); the layer ships 3 deploy-scope `mcp:` declarative checks against `list_notebooks`/`insert_cell`/`execute_cell`
+- `/charly-jupyter:jupyter-ml` -- GPU-accelerated variant with full CUDA ML stack + same CRDT MCP server
+- `/charly-jupyter:jupyter-mcp` -- MCP server implementation (sub-layer, 11 tools for programmatic notebook access using `<noun>_<verb>` naming; clients don't manage CRDT rooms — the server auto-attaches)
+- `/charly-jupyter:notebook-templates` -- Starter notebooks (data layer, used alongside this layer in images)
+- `/charly-hermes:hermes` -- MCP consumer (auto-discovers via `OV_MCP_SERVERS` env var; uses `jupyter` server tools to read/edit/execute cells)
+- `/charly-openwebui:openwebui` -- MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code-block execution into the Jupyter kernel)
+- `/charly-infrastructure:supervisord` -- process manager dependency
+- `/charly-languages:python` -- Python runtime (transitive via supervisord)
+- `/charly-build:ov-mcp-cmd` -- end-to-end testing of the layer's MCP endpoint (`charly eval mcp ping`, `list-tools`, `call`); the layer ships 3 deploy-scope `mcp:` declarative checks against `list_notebooks`/`insert_cell`/`execute_cell`
 
 ## When to Use This Skill
 
@@ -249,4 +249,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)

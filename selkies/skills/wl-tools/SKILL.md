@@ -2,9 +2,9 @@
 
 ## Overview
 
-Provides CLI tools for desktop automation — Wayland-native, X11, and clipboard. Used by the `ov eval wl` command. Works on all wlroots compositors (sway, labwc). No daemon or special device access needed.
+Provides CLI tools for desktop automation — Wayland-native, X11, and clipboard. Used by the `charly eval wl` command. Works on all wlroots compositors (sway, labwc). No daemon or special device access needed.
 
-On KWin (KDE Plasma) `ov eval wl` reuses this layer's `wtype` (keyboard) and `wl-clipboard` (KWin implements `wlr-data-control`); window management on KWin is driven by `kdotool` (KWin scripting), which is shipped by the `kde-shell` layer (`/ov-selkies:kde-shell`), not this one. See the "What works where" table below.
+On KWin (KDE Plasma) `charly eval wl` reuses this layer's `wtype` (keyboard) and `wl-clipboard` (KWin implements `wlr-data-control`); window management on KWin is driven by `kdotool` (KWin scripting), which is shipped by the `kde-shell` layer (`/charly-selkies:kde-shell`), not this one. See the "What works where" table below.
 
 **Note:** Screenshots are NOT included in this layer. Use `wl-screenshot-grim` (sway) or `wl-screenshot-pixelflux` (selkies) depending on your compositor.
 
@@ -73,25 +73,25 @@ All packages are in Fedora official repos.
 | xdotool | YES (XWayland) | YES (XWayland on-demand) | YES (XWayland on-demand) |
 | ydotool | YES | YES (needs /dev/uinput) | n/a (KWin pointer is unsupported) |
 
-On KWin the screenshot path is `pixelflux` (the same selkies capture bridge), `ov eval wl status` reports `compositor: kwin` + `kdotool: available`, and `ov eval wl` routes window management (toplevel/windows/focus/close/fullscreen/minimize/geometry) through `kdotool`. KWin pointer (click/double-click/mouse/scroll/drag) and resolution are unsupported and return a clear "unsupported on KWin" error rather than hanging. The KWin-specific deploy-scope `wl` eval checks live in the `kde-selkies` layer (`/ov-selkies:kde-selkies`).
+On KWin the screenshot path is `pixelflux` (the same selkies capture bridge), `charly eval wl status` reports `compositor: kwin` + `kdotool: available`, and `charly eval wl` routes window management (toplevel/windows/focus/close/fullscreen/minimize/geometry) through `kdotool`. KWin pointer (click/double-click/mouse/scroll/drag) and resolution are unsupported and return a clear "unsupported on KWin" error rather than hanging. The KWin-specific deploy-scope `wl` eval checks live in the `kde-selkies` layer (`/charly-selkies:kde-selkies`).
 
 ## Used In Images
 
-- `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
-- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
+- `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Cross-References
 
-- `/ov-eval:wl` — CLI command that uses these tools (routes per compositor: wlroots via these tools, KWin via `kdotool`)
-- `/ov-selkies:kde-shell` — KDE Plasma session layer that ships `kdotool` (KWin window-management automation, KWin-only)
-- `/ov-selkies:kde-selkies` — KDE Plasma selkies flavor; hosts the KWin-specific deploy-scope `wl` eval checks
-- `/ov-selkies:wl-screenshot-grim` — Screenshot layer for sway (grim)
-- `/ov-selkies:wl-screenshot-pixelflux` — Screenshot layer for selkies (pixelflux pipeline; also the KWin screenshot path)
-- `/ov-selkies:sway-desktop` — Desktop metalayer that includes this layer
-- `/ov-selkies:selkies-desktop-layer` — Desktop metalayer that includes this layer
+- `/charly-eval:wl` — CLI command that uses these tools (routes per compositor: wlroots via these tools, KWin via `kdotool`)
+- `/charly-selkies:kde-shell` — KDE Plasma session layer that ships `kdotool` (KWin window-management automation, KWin-only)
+- `/charly-selkies:kde-selkies` — KDE Plasma selkies flavor; hosts the KWin-specific deploy-scope `wl` eval checks
+- `/charly-selkies:wl-screenshot-grim` — Screenshot layer for sway (grim)
+- `/charly-selkies:wl-screenshot-pixelflux` — Screenshot layer for selkies (pixelflux pipeline; also the KWin screenshot path)
+- `/charly-selkies:sway-desktop` — Desktop metalayer that includes this layer
+- `/charly-selkies:selkies-desktop-layer` — Desktop metalayer that includes this layer
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

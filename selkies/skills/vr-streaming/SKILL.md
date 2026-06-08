@@ -28,16 +28,16 @@ my-vr:
 
 ## Used In Images
 
-- `/ov-distros:bazzite`
+- `/charly-distros:bazzite`
 
 ## Related Layers
-- `/ov-distros:cuda` — GPU compute sibling for ML/streaming workloads
-- `/ov-distros:nvidia` — NVIDIA runtime sibling
-- `/ov-selkies:pipewire` — audio/media stack pairing
+- `/charly-distros:cuda` — GPU compute sibling for ML/streaming workloads
+- `/charly-distros:nvidia` — NVIDIA runtime sibling
+- `/charly-selkies:pipewire` — audio/media stack pairing
 
 ## Related Commands
-- `/ov-build:build` — rebuild after layer changes
-- `/ov-core:shell` — inspect installed VR libraries
+- `/charly-build:build` — rebuild after layer changes
+- `/charly-core:shell` — inspect installed VR libraries
 
 ## When to Use This Skill
 
@@ -50,5 +50,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

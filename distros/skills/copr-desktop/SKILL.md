@@ -24,16 +24,16 @@ my-image:
 
 ## Used In Images
 
-- `/ov-distros:bazzite`
+- `/charly-distros:bazzite`
 
 ## Related Layers
-- `/ov-selkies:desktop-apps` — Sibling desktop GUI application bundle
-- `/ov-distros:os-config` — Sibling bootc system config layer
-- `/ov-distros:os-system-files` — Sibling bootc system files overlay
+- `/charly-selkies:desktop-apps` — Sibling desktop GUI application bundle
+- `/charly-distros:os-config` — Sibling bootc system config layer
+- `/charly-distros:os-system-files` — Sibling bootc system files overlay
 
 ## Related Commands
-- `/ov-build:build` — Builds the bootc image including these COPR packages
-- `/ov-vm:vm` — Run the bootc image as a VM to test desktop packages
+- `/charly-build:build` — Builds the bootc image including these COPR packages
+- `/charly-vm:vm` — Run the bootc image as a VM to test desktop packages
 
 ## When to Use This Skill
 
@@ -47,5 +47,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

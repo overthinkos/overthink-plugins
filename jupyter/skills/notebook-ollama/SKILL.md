@@ -35,7 +35,7 @@ data:
 
 At build time, the contents of `data/ollama/` are staged into `/data/workspace/ollama/` inside the image.
 
-At deploy time, `ov config` or `ov update` copies the staged data into the workspace volume at `<workspace>/ollama/`. The `dest: ollama` field places the notebooks in a subdirectory rather than the volume root.
+At deploy time, `charly config` or `charly update` copies the staged data into the workspace volume at `<workspace>/ollama/`. The `dest: ollama` field places the notebooks in a subdirectory rather than the volume root.
 
 ## Included Notebooks
 
@@ -60,18 +60,18 @@ The notebooks default to `http://localhost:11434` for the Ollama API endpoint. E
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 ```
 
-When the `ollama` image is deployed via `ov config ollama`, its `env_provide` automatically injects `OLLAMA_HOST=http://ov-ollama:11434` into the global `deploy.yml` env. Any container configured after ollama (or reconfigured with `--update-all`) automatically gets the correct Ollama endpoint — no manual environment setup needed.
+When the `ollama` image is deployed via `charly config ollama`, its `env_provide` automatically injects `OLLAMA_HOST=http://charly-ollama:11434` into the global `deploy.yml` env. Any container configured after ollama (or reconfigured with `--update-all`) automatically gets the correct Ollama endpoint — no manual environment setup needed.
 
 **Setup:**
 ```bash
-ov config ollama --update-all    # deploys ollama + propagates OLLAMA_HOST to all
-ov start ollama
-ov start jupyter-ml-notebook   # OLLAMA_HOST already set via env_provide
+charly config ollama --update-all    # deploys ollama + propagates OLLAMA_HOST to all
+charly start ollama
+charly start jupyter-ml-notebook   # OLLAMA_HOST already set via env_provide
 ```
 
 Both containers must be on the same `ov` Podman network for DNS resolution to work.
 
-See `/ov-core:ov-config` for `--update-all` and `/ov-ollama:ollama` for env_provide details.
+See `/charly-core:ov-config` for `--update-all` and `/charly-ollama:ollama` for env_provide details.
 
 ## Notebook Compatibility Notes
 
@@ -107,7 +107,7 @@ model_names = [m.model for m in models.models]
 - 5 notebooks use `llama3.2:latest` (3.2B, Q4_K_M)
 - `ollama_anthropic.ipynb` uses `ministral-3:3b-instruct-2512-q4_K_M`
 
-Pull models before running: `ov shell ollama -c "ollama pull llama3.2"`
+Pull models before running: `charly shell ollama -c "ollama pull llama3.2"`
 
 ## Usage
 
@@ -124,28 +124,28 @@ jupyter-ml-notebook:
 
 ```bash
 # Deploy and start both services
-ov config ollama && ov start ollama
-ov config jupyter-ml-notebook && ov start jupyter-ml-notebook
+charly config ollama && charly start ollama
+charly config jupyter-ml-notebook && charly start jupyter-ml-notebook
 
 # Pull a model, then open notebooks
-ov shell ollama -c "ollama pull llama3.2"
+charly shell ollama -c "ollama pull llama3.2"
 # Open http://localhost:8888 -> navigate to ollama/
 ```
 
 ## Used In Images
 
-- `/ov-jupyter:jupyter-ml-notebook`
+- `/charly-jupyter:jupyter-ml-notebook`
 
 ## Related Skills
 
-- `/ov-image:layer` — data field documentation and layer authoring rules
-- `/ov-core:ov-config` — data provisioning during `ov config` setup
-- `/ov-core:deploy` — volume backing configuration
-- `/ov-jupyter:notebook-finetuning` — sibling data layer pattern (Unsloth fine-tuning notebooks)
-- `/ov-jupyter:notebook-templates` — sibling data layer pattern (starter notebooks)
-- `/ov-ollama:ollama` — the Ollama binary layer (server side)
-- `/ov-ollama:ollama` — the standalone Ollama image (must be running for notebooks to connect)
-- `/ov-jupyter:jupyter-ml-notebook` — the image that includes this layer
+- `/charly-image:layer` — data field documentation and layer authoring rules
+- `/charly-core:ov-config` — data provisioning during `charly config` setup
+- `/charly-core:deploy` — volume backing configuration
+- `/charly-jupyter:notebook-finetuning` — sibling data layer pattern (Unsloth fine-tuning notebooks)
+- `/charly-jupyter:notebook-templates` — sibling data layer pattern (starter notebooks)
+- `/charly-ollama:ollama` — the Ollama binary layer (server side)
+- `/charly-ollama:ollama` — the standalone Ollama image (must be running for notebooks to connect)
+- `/charly-jupyter:jupyter-ml-notebook` — the image that includes this layer
 
 ## When to Use This Skill
 
@@ -159,4 +159,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

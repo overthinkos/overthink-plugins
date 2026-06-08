@@ -12,11 +12,11 @@ description: |
 
 Privileged builder image that ships the **debootstrap** toolchain (the
 `debootstrap-builder` layer). It is the `from: builder:debootstrap` /
-`bootstrap_builder_image:` target for `/ov-distros:ubuntu-debootstrap` and the
-`/ov-vm:ubuntu` bootstrap VM.
+`bootstrap_builder_image:` target for `/charly-distros:ubuntu-debootstrap` and the
+`/charly-vm:ubuntu` bootstrap VM.
 
 > **Lives in `overthinkos/ubuntu`** (git submodule at `image/ubuntu`). Build:
-> `ov -C image/ubuntu image build ubuntu-debootstrap-builder`.
+> `charly -C image/ubuntu image build ubuntu-debootstrap-builder`.
 
 ## Image Properties
 
@@ -29,17 +29,17 @@ Privileged builder image that ships the **debootstrap** toolchain (the
 | Home repo | overthinkos/ubuntu (`image/ubuntu`) |
 
 The `debootstrap-builder` layer **stays in the main repo** and is shared with
-`/ov-distros:debian-debootstrap-builder` — both pull it by github reference. The
+`/charly-distros:debian-debootstrap-builder` — both pull it by github reference. The
 `ubuntu` distro config (`inherits: debian`; debootstrap suite `noble`, mirror
 `http://archive.ubuntu.com/ubuntu`, base packages) lives in the main repo's
 `build.yml` and is flat-imported by the submodule (a bare-string `import:` item).
 
 ## Cross-References
 
-- `/ov-distros:ubuntu` — the Docker-Hub base (`base: ubuntu:24.04`)
-- `/ov-distros:ubuntu-debootstrap` — the bootstrap-from-scratch rootfs it builds
-- `/ov-vm:ubuntu` — the VM built via the same debootstrap path
-- `/ov-distros:debian-debootstrap-builder` — the Debian sibling (same `base: debian:13`)
+- `/charly-distros:ubuntu` — the Docker-Hub base (`base: ubuntu:24.04`)
+- `/charly-distros:ubuntu-debootstrap` — the bootstrap-from-scratch rootfs it builds
+- `/charly-vm:ubuntu` — the VM built via the same debootstrap path
+- `/charly-distros:debian-debootstrap-builder` — the Debian sibling (same `base: debian:13`)
 
 ## When to Use This Skill
 

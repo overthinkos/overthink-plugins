@@ -27,13 +27,13 @@ layers:
 - `openclaw-full` (via `openclaw-full` metalayer)
 
 ## Related Layers
-- `/ov-coder:nodejs` — runtime dependency
-- `/ov-openclaw:openclaw-full` — metalayer that bundles xurl
-- `/ov-hermes:hermes` — companion social/messaging agent
+- `/charly-coder:nodejs` — runtime dependency
+- `/charly-openclaw:openclaw-full` — metalayer that bundles xurl
+- `/charly-hermes:hermes` — companion social/messaging agent
 
 ## Related Commands
-- `/ov-core:shell` — run xurl inside the container
-- `/ov-build:secrets` — store X/Twitter API credentials
+- `/charly-core:shell` — run xurl inside the container
+- `/charly-build:secrets` — store X/Twitter API credentials
 
 ## When to Use This Skill
 
@@ -44,5 +44,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

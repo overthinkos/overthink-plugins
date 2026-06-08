@@ -39,13 +39,13 @@ my-desktop:
 
 ## Used In Images
 
-Part of `/ov-selkies:sway-desktop` composition.
+Part of `/charly-selkies:sway-desktop` composition.
 
 ## Related Layers
 
-- `/ov-infrastructure:supervisord` -- process manager dependency
-- `/ov-selkies:sway-desktop` -- composition that includes pipewire
-- `/ov-selkies:wayvnc` -- VNC server (sibling in desktop stack)
+- `/charly-infrastructure:supervisord` -- process manager dependency
+- `/charly-selkies:sway-desktop` -- composition that includes pipewire
+- `/charly-selkies:wayvnc` -- VNC server (sibling in desktop stack)
 
 ## When to Use This Skill
 
@@ -58,5 +58,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

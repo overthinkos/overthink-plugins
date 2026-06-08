@@ -1,21 +1,21 @@
 ---
 name: appium
 description: |
-  MUST be invoked before any work involving: ov eval appium commands, Android UI automation, WebDriver session management, APK install via Appium, element find/click/send-keys, mobile-specific WebDriver caps — anywhere the goal is to drive a running Appium 3.x server inside a container via W3C WebDriver from outside.
+  MUST be invoked before any work involving: charly eval appium commands, Android UI automation, WebDriver session management, APK install via Appium, element find/click/send-keys, mobile-specific WebDriver caps — anywhere the goal is to drive a running Appium 3.x server inside a container via W3C WebDriver from outside.
 ---
 
 # Appium — W3C WebDriver client
 
 ## Overview
 
-`ov eval appium <method>` is the host-side Appium WebDriver client. It
+`charly eval appium <method>` is the host-side Appium WebDriver client. It
 talks W3C WebDriver to the container's host-published Appium port
 (container `:4723` → host's `HOST_PORT:4723`, e.g. `35001` on the
 `eval-android-emulator-pod` deploy) at base path `/wd/hub`.
 
 Session lifecycle uses a persistent JSON session file at
 `~/.cache/ov/appium/sessions/<image>[_<instance>].json` so multi-step
-tests share one WebDriver session across separate `ov eval appium`
+tests share one WebDriver session across separate `charly eval appium`
 invocations. `session-create` writes the file; the other operations
 load it; `session-delete` removes it and best-effort closes the remote
 session.
@@ -27,7 +27,7 @@ the W3C escape hatch: `POST /session/<id>/execute/sync` with
 
 ### Also as a declarative verb
 
-Every `ov eval appium <method>` is authorable as an `appium:` verb
+Every `charly eval appium <method>` is authorable as an `appium:` verb
 inside an `eval:` block. **Deploy-scope only**.
 
 ```yaml
@@ -63,24 +63,24 @@ inside an `eval:` block. **Deploy-scope only**.
 
 | Subcommand | CLI form | Required modifier | Description |
 |---|---|---|---|
-| `status` | `ov eval appium status <image>` | — | GET /status, prints JSON, fails on HTTP != 200 |
-| `session-create` | `ov eval appium session-create <image> --caps <json>` | `caps:` | Create W3C session, persist id |
-| `session-delete` | `ov eval appium session-delete <image>` | — | Close session and remove file |
-| `install-app` | `ov eval appium install-app <image> --apk <path>` | `apk:` | mobile:installApp escape hatch |
-| `find` | `ov eval appium find <image> --selector <s> [--strategy STRAT]` | `selector:` | Find element, prints W3C id |
-| `click` | `ov eval appium click <image> --selector <s>` | `selector:` | Find + click |
-| `send-keys` | `ov eval appium send-keys <image> --selector <s> --text <t>` | `selector:`+`text:` | Find + type |
-| `screenshot` | `ov eval appium screenshot <image> --artifact <png>` | `artifact:` | GET /screenshot, decode base64, write PNG |
-| `get-text` | `ov eval appium get-text <image> --selector <s>` | `selector:` | find + GET .../text, prints element text |
-| `get-attribute` | `ov eval appium get-attribute <image> --selector <s> --attribute <a>` | `selector:`+`attribute:` | find + GET .../attribute/<a> (checked/enabled/text/...) |
-| `clear` | `ov eval appium clear <image> --selector <s>` | `selector:` | find + POST .../clear |
-| `find-all` | `ov eval appium find-all <image> --selector <s>` | `selector:` | POST /elements; prints count + ids |
-| `source` | `ov eval appium source <image>` | — | GET /source (UI hierarchy XML) |
-| `back` | `ov eval appium back <image>` | — | POST /back (navigate back) |
+| `status` | `charly eval appium status <image>` | — | GET /status, prints JSON, fails on HTTP != 200 |
+| `session-create` | `charly eval appium session-create <image> --caps <json>` | `caps:` | Create W3C session, persist id |
+| `session-delete` | `charly eval appium session-delete <image>` | — | Close session and remove file |
+| `install-app` | `charly eval appium install-app <image> --apk <path>` | `apk:` | mobile:installApp escape hatch |
+| `find` | `charly eval appium find <image> --selector <s> [--strategy STRAT]` | `selector:` | Find element, prints W3C id |
+| `click` | `charly eval appium click <image> --selector <s>` | `selector:` | Find + click |
+| `send-keys` | `charly eval appium send-keys <image> --selector <s> --text <t>` | `selector:`+`text:` | Find + type |
+| `screenshot` | `charly eval appium screenshot <image> --artifact <png>` | `artifact:` | GET /screenshot, decode base64, write PNG |
+| `get-text` | `charly eval appium get-text <image> --selector <s>` | `selector:` | find + GET .../text, prints element text |
+| `get-attribute` | `charly eval appium get-attribute <image> --selector <s> --attribute <a>` | `selector:`+`attribute:` | find + GET .../attribute/<a> (checked/enabled/text/...) |
+| `clear` | `charly eval appium clear <image> --selector <s>` | `selector:` | find + POST .../clear |
+| `find-all` | `charly eval appium find-all <image> --selector <s>` | `selector:` | POST /elements; prints count + ids |
+| `source` | `charly eval appium source <image>` | — | GET /source (UI hierarchy XML) |
+| `back` | `charly eval appium back <image>` | — | POST /back (navigate back) |
 
 ### Tier 2 — per-class sugar groups (nested CLI; flat `<group>-<op>` in eval YAML)
 
-Mirrors `wl`'s `sway-*` / `overlay-*` pattern — `ov eval appium gesture tap …`
+Mirrors `wl`'s `sway-*` / `overlay-*` pattern — `charly eval appium gesture tap …`
 on the CLI is `appium: gesture-tap` in an `eval:` block.
 
 | Group | Ops (eval-YAML method names) | Key modifiers |
@@ -94,8 +94,8 @@ on the CLI is `appium: gesture-tap` in an `eval:` block.
 
 | Method | CLI form | Required | Description |
 |---|---|---|---|
-| `execute` | `ov eval appium execute <image> --expression <s> [--request-body <json>]` | `expression:` | `POST /execute/sync` — any `mobile:` command or JS. Object `request_body` → `[obj]`; array → as-is. Optional `selector:` resolves an element id for `{element}` substitution in `request_body`. |
-| `raw` | `ov eval appium raw <image> --method <verb> --path <p> [--request-body <json>]` | `method:`+`path:` | Any W3C call relative to `/session/<id>` (ov prepends it). `path:`/`request_body:` support the `{element}` token when `selector:` is set. Reaches **everything** including `mobile:` via `/execute/sync`. |
+| `execute` | `charly eval appium execute <image> --expression <s> [--request-body <json>]` | `expression:` | `POST /execute/sync` — any `mobile:` command or JS. Object `request_body` → `[obj]`; array → as-is. Optional `selector:` resolves an element id for `{element}` substitution in `request_body`. |
+| `raw` | `charly eval appium raw <image> --method <verb> --path <p> [--request-body <json>]` | `method:`+`path:` | Any W3C call relative to `/session/<id>` (charly prepends it). `path:`/`request_body:` support the `{element}` token when `selector:` is set. Reaches **everything** including `mobile:` via `/execute/sync`. |
 
 **`raw` is the coverage guarantee** — anything not covered by a typed method or
 sugar group is reachable here (e.g. `raw GET /element/{element}/rect`,
@@ -176,7 +176,7 @@ substitute its W3C id for the literal token `{element}` in `request_body:`
 (execute) and `path:`+`request_body:` (raw), e.g.
 `raw method: GET path: /element/{element}/text selector: …`. Single-brace
 `{element}` (deliberately NOT `${…}`) so the eval runtime-variable resolver
-leaves it untouched. `ov box validate` errors if `{element}` appears with no
+leaves it untouched. `charly box validate` errors if `{element}` appears with no
 `selector:`.
 
 ### Android-14 permission dialog covers the app
@@ -291,23 +291,23 @@ migrate to a newer library. The blast radius is small — only
 `session-create` uses the SDK; the rest go through `w3cSession` (plain
 HTTP), so an SDK swap is a single Run() method's worth of code.
 
-`github.com/zach-klippenstein/goadb` (used by the sibling `/ov-eval:adb`)
+`github.com/zach-klippenstein/goadb` (used by the sibling `/charly-eval:adb`)
 has the same maintenance posture — pinned to a 2020 release. Same
 mitigation if it stops working.
 
 ## Related skills
 
-- `/ov-eval:adb` — sibling verb for low-level Android Debug Bridge
+- `/charly-eval:adb` — sibling verb for low-level Android Debug Bridge
   control (install / shell / screencap / logcat).
-- `/ov-eval:android` — the `kind: android` device + `apk:` package format +
+- `/charly-eval:android` — the `kind: android` device + `apk:` package format +
   `target: android` deploy this UI automation runs against.
-- `/ov-eval:eval` — the unified eval system and the Check struct that
+- `/charly-eval:eval` — the unified eval system and the Check struct that
   holds every verb discriminator + modifier.
-- `/ov-tools:android-emulator` (when authored) — the image these verbs target.
+- `/charly-tools:android-emulator` (when authored) — the image these verbs target.
 
 ## When to Use This Skill
 
-**MUST be invoked** for any task involving `ov eval appium` commands or
+**MUST be invoked** for any task involving `charly eval appium` commands or
 `appium:` declarative checks. Invoke this skill BEFORE reading the
 verb's Go source or reaching for `command: curl http://localhost:.../wd/hub/...`
 workarounds.

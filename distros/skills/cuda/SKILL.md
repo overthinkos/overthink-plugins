@@ -57,20 +57,20 @@ nvidia:
 
 ## Used In Images
 
-- `/ov-distros:nvidia` (base for all GPU images)
-- `/ov-immich:immich-ml`
+- `/charly-distros:nvidia` (base for all GPU images)
+- `/charly-immich:immich-ml`
 
 ## Related Layers
 
-- `/ov-distros:nvidia` — NVIDIA GPU runtime (driver libs, CDI toolkit) — required dependency
-- `/ov-selkies:ffmpeg` — FFmpeg multimedia (nonfree codecs) — required dependency
-- `/ov-distros:rocm` — AMD GPU counterpart (ROCm runtime + OpenCL)
-- `/ov-languages:python-ml` — ML Python environment (depends on cuda)
-- `/ov-jupyter:jupyter` — Jupyter notebooks (depends on cuda)
-- `/ov-ollama:ollama` — LLM server (depends on cuda)
-- `/ov-comfyui:comfyui` — image generation (depends on cuda)
+- `/charly-distros:nvidia` — NVIDIA GPU runtime (driver libs, CDI toolkit) — required dependency
+- `/charly-selkies:ffmpeg` — FFmpeg multimedia (nonfree codecs) — required dependency
+- `/charly-distros:rocm` — AMD GPU counterpart (ROCm runtime + OpenCL)
+- `/charly-languages:python-ml` — ML Python environment (depends on cuda)
+- `/charly-jupyter:jupyter` — Jupyter notebooks (depends on cuda)
+- `/charly-ollama:ollama` — LLM server (depends on cuda)
+- `/charly-comfyui:comfyui` — image generation (depends on cuda)
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

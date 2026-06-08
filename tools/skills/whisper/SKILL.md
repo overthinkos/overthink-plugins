@@ -27,10 +27,10 @@ layers:
 
 ## Related Layers
 
-- `/ov-languages:python` — Python runtime — required dependency
-- `/ov-distros:cuda` — CUDA toolkit — required dependency
-- `/ov-selkies:ffmpeg` — FFmpeg multimedia (nonfree codecs) — required dependency
-- `/ov-tools:sherpa-onnx` — alternative STT engine (ONNX-based, lighter weight)
+- `/charly-languages:python` — Python runtime — required dependency
+- `/charly-distros:cuda` — CUDA toolkit — required dependency
+- `/charly-selkies:ffmpeg` — FFmpeg multimedia (nonfree codecs) — required dependency
+- `/charly-tools:sherpa-onnx` — alternative STT engine (ONNX-based, lighter weight)
 
 ## When to Use This Skill
 
@@ -42,5 +42,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

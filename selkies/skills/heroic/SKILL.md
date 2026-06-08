@@ -71,9 +71,9 @@ Both are persistent named volumes.
 
 ## Related Layers
 
-- `/ov-selkies:steam` — Steam client (sibling game launcher)
-- `/ov-selkies:sway` — Wayland compositor (dependency)
-- `/ov-selkies:sway-desktop-vnc` — Desktop composition with VNC
+- `/charly-selkies:steam` — Steam client (sibling game launcher)
+- `/charly-selkies:sway` — Wayland compositor (dependency)
+- `/charly-selkies:sway-desktop-vnc` — Desktop composition with VNC
 
 ## Used In Images
 
@@ -91,5 +91,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

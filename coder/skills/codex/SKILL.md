@@ -27,13 +27,13 @@ layers:
 - `openclaw-full` (via `openclaw-full` metalayer)
 
 ## Related Layers
-- `/ov-coder:nodejs` — Required Node.js runtime parent dependency
-- `/ov-coder:claude-code` — Sibling AI coding agent CLI bundled in same metalayers
-- `/ov-coder:gemini` — Sibling Google Gemini CLI bundled alongside
+- `/charly-coder:nodejs` — Required Node.js runtime parent dependency
+- `/charly-coder:claude-code` — Sibling AI coding agent CLI bundled in same metalayers
+- `/charly-coder:gemini` — Sibling Google Gemini CLI bundled alongside
 
 ## Related Commands
-- `/ov-build:build` — Builds the layer (npm global install via package.json)
-- `/ov-core:shell` — Interactive shell to invoke `codex` inside the container
+- `/charly-build:build` — Builds the layer (npm global install via package.json)
+- `/charly-core:shell` — Interactive shell to invoke `codex` inside the container
 
 ## When to Use This Skill
 
@@ -44,5 +44,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

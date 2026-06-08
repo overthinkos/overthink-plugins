@@ -1,7 +1,7 @@
 ---
 name: sidecar
 description: |
-  Topic skill (no dedicated `ov sidecar` command — the surface is the `--sidecar <name>` / `--list-sidecars` flags on `ov config` and the `sidecar:` field in `deploy.yml`). MUST be invoked before any work involving: sidecar containers, pod networking, Tailscale exit nodes, `ov config --sidecar`, the `deploy.yml` `sidecar:` field, or sidecar-env filtering (`env_accept` / `env_require` routing to the sidecar vs the app container).
+  Topic skill (no dedicated `charly sidecar` command — the surface is the `--sidecar <name>` / `--list-sidecars` flags on `charly config` and the `sidecar:` field in `deploy.yml`). MUST be invoked before any work involving: sidecar containers, pod networking, Tailscale exit nodes, `charly config --sidecar`, the `deploy.yml` `sidecar:` field, or sidecar-env filtering (`env_accept` / `env_require` routing to the sidecar vs the app container).
 ---
 
 # Sidecar — Deploy-Time Pod Composition
@@ -14,17 +14,17 @@ Sidecars are additional containers that run alongside an application container i
 
 | Action | Command |
 |--------|---------|
-| List available sidecars | `ov config --list-sidecars` |
-| Attach sidecar | `ov config <image> --sidecar tailscale` |
-| Attach with env | `ov config <image> --sidecar tailscale -e TS_HOSTNAME=my-app` |
+| List available sidecars | `charly config --list-sidecars` |
+| Attach sidecar | `charly config <image> --sidecar tailscale` |
+| Attach with env | `charly config <image> --sidecar tailscale -e TS_HOSTNAME=my-app` |
 | Check sidecar status | `podman exec ov-<image>-tailscale tailscale status` |
 
 ## Architecture
 
-Sidecar templates are compiled into the `ov` binary via `go:embed` (`ov/sidecar.yml`). At deploy time, `ov config --sidecar <name>` merges the template with per-machine overrides from `deploy.yml`, then generates quadlet files.
+Sidecar templates are compiled into the `ov` binary via `go:embed` (`ov/sidecar.yml`). At deploy time, `charly config --sidecar <name>` merges the template with per-machine overrides from `deploy.yml`, then generates quadlet files.
 
 ```
-ov binary (embedded templates)     deploy.yml (per-machine overrides)
+charly binary (embedded templates)     deploy.yml (per-machine overrides)
         ↓                                    ↓
    sidecar templates              env overrides + secrets
         ↓ MergeSidecars()                    ↓
@@ -35,7 +35,7 @@ ov binary (embedded templates)     deploy.yml (per-machine overrides)
 
 ### Generated Files
 
-When sidecars are attached, `ov config` generates **3 files** instead of 1:
+When sidecars are attached, `charly config` generates **3 files** instead of 1:
 
 | File | Purpose |
 |------|---------|
@@ -48,7 +48,7 @@ When sidecars are attached, `ov config` generates **3 files** instead of 1:
 The pod stays on the "ov" bridge network (`Network=ov` in `.pod` file) for container-to-container connectivity. The Tailscale sidecar creates a `tailscale0` tun interface for exit node routing. `--exit-node-allow-lan-access` adds a routing exception (`throw 10.89.0.0/24`) that keeps bridge traffic on the bridge.
 
 ```
-ov bridge (container-to-container)
+charly bridge (container-to-container)
 ┌─────────────────────────────────────┐
 │  ov-<image> pod (Network=ov)        │
 │  ┌───────────┐  ┌────────────────┐  │
@@ -74,7 +74,7 @@ This matters for two reasons:
 
 1. **Prevents env var leakage.** Without opt-in filtering, every deployed service would see every other service's `env_provide`. The chrome layer doesn't want `TS_*` vars in its env; the tailscale sidecar doesn't want `BROWSER_CDP_URL`. The filtering model is the mechanism that enforces this boundary.
 
-2. **Enforces dependency contracts.** When the app declares `env_require` and the provider (or sidecar) is actually deployed, the provide-resolution pipeline (`provides.go`) satisfies the requirement without the user manually setting `-e` flags. When the provider is **not** deployed and no default is set, `ov config` fails hard — deployment does not proceed with a broken env contract.
+2. **Enforces dependency contracts.** When the app declares `env_require` and the provider (or sidecar) is actually deployed, the provide-resolution pipeline (`provides.go`) satisfies the requirement without the user manually setting `-e` flags. When the provider is **not** deployed and no default is set, `charly config` fails hard — deployment does not proceed with a broken env contract.
 
 ### Tailscale sidecar as a provides participant
 
@@ -84,13 +84,13 @@ If a future sidecar needs to forward auth tokens or service URLs into the app, t
 
 - Sidecar template declares `env_provide:` with `{{.ContainerName}}`-templated values
 - App layer declares `env_accept: [<var>]` or `env_require: [<var>]`
-- `ov config` resolves the provide at deploy time and writes it to `deploy.yml` under `provides:`
+- `charly config` resolves the provide at deploy time and writes it to `deploy.yml` under `provides:`
 
-Missing `env_accept` on the consumer side silently drops the var. Missing `env_require` is a hard fail. See `/ov-image:layer` (env_require / env_accept) for the authoring side, `/ov-core:ov-config` (Provides Filtering) for the resolution pipeline, and `provides.go` in the `ov` source for the implementation.
+Missing `env_accept` on the consumer side silently drops the var. Missing `env_require` is a hard fail. See `/charly-image:layer` (env_require / env_accept) for the authoring side, `/charly-core:ov-config` (Provides Filtering) for the resolution pipeline, and `provides.go` in the `ov` source for the implementation.
 
 ### deploy.yml Persistence
 
-`--sidecar` assignments and `-e` overrides are saved to `deploy.yml`. Subsequent `ov config` calls re-read them:
+`--sidecar` assignments and `-e` overrides are saved to `deploy.yml`. Subsequent `charly config` calls re-read them:
 
 ```yaml
 images:
@@ -123,7 +123,7 @@ sidecar:
     secret:
       - name: ts-authkey
         env: TS_AUTHKEY                                                     # container var (what tailscale's binary reads)
-        env_from: "TS_AUTHKEY_{{.Parameter.tailnet | tailnetEnvSuffix}}"    # host-side var (what ov reads from .secrets)
+        env_from: "TS_AUTHKEY_{{.Parameter.tailnet | tailnetEnvSuffix}}"    # host-side var (what charly reads from .secrets)
 ```
 
 **Deploy.yml shape:**
@@ -162,7 +162,7 @@ character with `_`. So:
 #    tags=tag:server (or your ACL), expiration=90d (preference).
 
 # 2. Store under the per-tailnet env var name:
-ov secrets gpg set TS_AUTHKEY_ARMADILLO_QUAIL_TS_NET tskey-auth-XXXXXXXXX
+charly secrets gpg set TS_AUTHKEY_ARMADILLO_QUAIL_TS_NET tskey-auth-XXXXXXXXX
 
 # 3. Wire `parameter.tailnet:` into deploy.yml under sidecar.tailscale:
 #    (operator-edited; no auto-write)
@@ -171,9 +171,9 @@ ov secrets gpg set TS_AUTHKEY_ARMADILLO_QUAIL_TS_NET tskey-auth-XXXXXXXXX
 podman volume rm ov-<image>[-<instance>]-tailscale-state
 
 # 5. Apply:
-ov stop <image> [-i <instance>]
-ov config <image> [-i <instance>]
-ov start <image> [-i <instance>]
+charly stop <image> [-i <instance>]
+charly config <image> [-i <instance>]
+charly start <image> [-i <instance>]
 
 # 6. Verify the right tailnet was joined:
 podman exec ov-<image>[-<instance>]-tailscale tailscale status --json \
@@ -184,11 +184,11 @@ podman exec ov-<image>[-<instance>]-tailscale tailscale status --json \
 **Migrating a legacy single-`TS_AUTHKEY` config:**
 
 A legacy flat config used a single `TS_AUTHKEY` env var, which can't
-distinguish multiple tailnets. `ov migrate` upgrades it to the per-tailnet
+distinguish multiple tailnets. `charly migrate` upgrades it to the per-tailnet
 form:
 
 ```bash
-ov migrate
+charly migrate
 # Prompts for the tailnet the existing TS_AUTHKEY belongs to (auto-detects
 # from a running sidecar when present), renames the .secrets entry to the
 # per-tailnet form, and warns about deploy.yml entries that need
@@ -200,9 +200,9 @@ Use `--tailnet armadillo-quail.ts.net` to skip the prompt, or
 rename. Idempotent.
 
 Any deploy with a tailscale sidecar that doesn't supply
-`parameter.tailnet:` fails at `ov config` time with the message:
+`parameter.tailnet:` fails at `charly config` time with the message:
 
-> sidecar "tailscale": sidecar secret "ts-authkey" references parameter "tailnet" which is unset. Set `sidecars.<sidecar-name>.parameter.tailnet: <value>` in deploy.yml or run `ov migrate`
+> sidecar "tailscale": sidecar secret "ts-authkey" references parameter "tailnet" which is unset. Set `sidecars.<sidecar-name>.parameter.tailnet: <value>` in deploy.yml or run `charly migrate`
 
 ### Environment Variables
 
@@ -227,19 +227,19 @@ Any deploy with a tailscale sidecar that doesn't supply
 ### State & Secrets
 
 - **Volume:** `ov-<image>-tailscale-state` at `/var/lib/tailscale` — node identity persists across restarts
-- **Secret:** `ov-<image>-tailscale-ts-authkey` — provisioned as podman secret from `TS_AUTHKEY` env var (loaded from `.secrets` via `ov secrets gpg env`)
+- **Secret:** `ov-<image>-tailscale-ts-authkey` — provisioned as podman secret from `TS_AUTHKEY` env var (loaded from `.secrets` via `charly secrets gpg env`)
 
 ### Exit Node Routing
 
 ```bash
 # Store auth key for the sidecar's tailnet
-ov secrets gpg set TS_AUTHKEY tskey-auth-xxxxxxxxxxxx
+charly secrets gpg set TS_AUTHKEY tskey-auth-xxxxxxxxxxxx
 
 # Deploy with exit node
-ov config selkies-desktop --sidecar tailscale \
+charly config selkies-desktop --sidecar tailscale \
   -e TS_HOSTNAME=selkies-desktop \
   -e "TS_EXTRA_ARGS=--exit-node=100.80.254.4 --exit-node-allow-lan-access"
-ov start selkies-desktop
+charly start selkies-desktop
 
 # First time only: exit node must be set via tailscale set
 # (TS_EXTRA_ARGS only applies on first auth, not restarts)
@@ -281,13 +281,13 @@ Chrome requires large `/dev/shm`. In pod mode, per-container `ShmSize=` is ignor
 
 ## Cross-References
 
-- `/ov-core:deploy` — Quadlet generation, deploy.yml, tunnel configuration (tunnel is deploy.yml-only, not auto-inherited by instances)
-- `/ov-core:ov-config` — `--sidecar` and `--list-sidecars` flags, Provides Filtering, resource caps, NO_PROXY auto-enrichment
-- `/ov-image:layer` — `env_accept` / `env_require` authoring and the full provides filtering contract
-- `/ov-build:secrets` — `ov secrets gpg set TS_AUTHKEY` for auth key storage
-- `/ov-selkies:selkies-labwc` — Full deployment example with Tailscale exit node
-- `/ov-selkies:chrome` — Proxy deployment pattern (Tailscale exit node + HTTP_PROXY) and NO_PROXY auto-enrichment
-- `/ov-automation:enc` — Encrypted volumes in pod deployments
+- `/charly-core:deploy` — Quadlet generation, deploy.yml, tunnel configuration (tunnel is deploy.yml-only, not auto-inherited by instances)
+- `/charly-core:ov-config` — `--sidecar` and `--list-sidecars` flags, Provides Filtering, resource caps, NO_PROXY auto-enrichment
+- `/charly-image:layer` — `env_accept` / `env_require` authoring and the full provides filtering contract
+- `/charly-build:secrets` — `charly secrets gpg set TS_AUTHKEY` for auth key storage
+- `/charly-selkies:selkies-labwc` — Full deployment example with Tailscale exit node
+- `/charly-selkies:chrome` — Proxy deployment pattern (Tailscale exit node + HTTP_PROXY) and NO_PROXY auto-enrichment
+- `/charly-automation:enc` — Encrypted volumes in pod deployments
 
 ## Source
 

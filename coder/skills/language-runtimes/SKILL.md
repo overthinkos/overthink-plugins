@@ -84,7 +84,7 @@ $ /usr/bin/dotnet --version
 
 Idempotent: the outer `command -v dotnet` guard makes this task a no-op on Fedora/Arch (where the distro package already installed dotnet) and on rebuilds (where the previous run already placed the symlink). Runtime dependency: `libicu-dev` (already installed by the layer's `deb:` section).
 
-See `/ov-image:layer` for general cross-distro task-authoring patterns.
+See `/charly-image:layer` for general cross-distro task-authoring patterns.
 
 ## Tag-section overrides
 
@@ -101,9 +101,9 @@ Python env). It installs `python3-devel` + `python3-ramalama` via RPM —
 **system Python** — which is all its content references. Consumers of
 `language-runtimes` get only the RPM Python stack.
 
-Consequence for `/ov-coder:fedora-coder` (the biggest consumer): the whole
+Consequence for `/charly-coder:fedora-coder` (the biggest consumer): the whole
 `python` / `pixi` ov-layer chain stays out of the resolved layer set (because
-`/ov-coder:uv` and `/ov-infrastructure:supervisord` likewise carry no python
+`/charly-coder:uv` and `/charly-infrastructure:supervisord` likewise carry no python
 dep). See CLAUDE.md "Key Rules" → *"Don't declare defensive deps"* for the
 general rule.
 
@@ -122,8 +122,8 @@ Six build-scope tests ship with the layer:
 | `php-binary` + `php-version` | PHP CLI reachable |
 | `system-python3` + `system-python3-version` | `/usr/bin/python3` is the system interpreter (the RPM-installed one; explicitly NOT a pixi-env path) |
 
-Go and Node.js testing is delegated to the `/ov-coder:golang` and
-`/ov-coder:nodejs` layer skills — those are
+Go and Node.js testing is delegated to the `/charly-coder:golang` and
+`/charly-coder:nodejs` layer skills — those are
 the single sources of truth for their respective binaries.
 
 ## Usage
@@ -137,24 +137,24 @@ my-polyglot:
 
 ## Used In Images
 
-- `/ov-coder:fedora-coder` — kitchen-sink dev image, canonical RPM consumer.
-- `/ov-coder:arch-coder` — pacman-based sibling.
-- `/ov-coder:debian-coder`, `/ov-coder:ubuntu-coder` — deb-based siblings, consumers of the dotnet-install.sh task.
-- `/ov-distros:bazzite`.
+- `/charly-coder:fedora-coder` — kitchen-sink dev image, canonical RPM consumer.
+- `/charly-coder:arch-coder` — pacman-based sibling.
+- `/charly-coder:debian-coder`, `/charly-coder:ubuntu-coder` — deb-based siblings, consumers of the dotnet-install.sh task.
+- `/charly-distros:bazzite`.
 
 ## Related Layers
 
-- `/ov-coder:nodejs` — Node.js runtime (direct dependency)
-- `/ov-coder:rust` — Rust toolchain (direct dependency)
-- `/ov-languages:python` — Pixi-python env. **Not a dep of this layer.**
-- `/ov-coder:golang` — Go toolchain (may be added separately for clarity even though `golang-bin` is already in this layer's RPM list)
-- `/ov-coder:uv` — direct-download Rust binary (also carries no pixi-python dep)
+- `/charly-coder:nodejs` — Node.js runtime (direct dependency)
+- `/charly-coder:rust` — Rust toolchain (direct dependency)
+- `/charly-languages:python` — Pixi-python env. **Not a dep of this layer.**
+- `/charly-coder:golang` — Go toolchain (may be added separately for clarity even though `golang-bin` is already in this layer's RPM list)
+- `/charly-coder:uv` — direct-download Rust binary (also carries no pixi-python dep)
 
 ## Related Commands
 
-- `/ov-image:layer` — authoring reference (tag-section cascade, `cmd:` vs declarative repos)
-- `/ov-build:build` — `base_user:` and bootstrap packages
-- `/ov-core:shell` — verify runtimes inside a container
+- `/charly-image:layer` — authoring reference (tag-section cascade, `cmd:` vs declarative repos)
+- `/charly-build:build` — `base_user:` and bootstrap packages
+- `/charly-core:shell` — verify runtimes inside a container
 
 ## When to Use This Skill
 
@@ -168,4 +168,4 @@ my-polyglot:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

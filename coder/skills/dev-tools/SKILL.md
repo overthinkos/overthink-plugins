@@ -55,15 +55,15 @@ The `fastfetch-binary` test is declared with an `exclude_distros:` filter:
     - ubuntu:24.04
 ```
 
-On images whose `org.overthinkos.platform.distro` OCI label includes `ubuntu:24.04`, the test runner skips this check with a reason — see `/ov-eval:eval` "`exclude_distros:` field". This was added because dropping fastfetch from the `ubuntu:24.04:` tag section is clean, but the baked test probe would otherwise false-fail.
+On images whose `ai.opencharly.platform.distro` OCI label includes `ubuntu:24.04`, the test runner skips this check with a reason — see `/charly-eval:eval` "`exclude_distros:` field". This was added because dropping fastfetch from the `ubuntu:24.04:` tag section is clean, but the baked test probe would otherwise false-fail.
 
-### Git tooling lives in `/ov-coder:gh`
+### Git tooling lives in `/charly-coder:gh`
 
 dev-tools does NOT install `gh`, `git`, or `git-lfs` — those belong
-exclusively to `/ov-coder:gh`, the dedicated GitHub / git tooling layer.
+exclusively to `/charly-coder:gh`, the dedicated GitHub / git tooling layer.
 That keeps ownership unambiguous (one layer installs and tests them). If
-you want the git tooling, compose `/ov-coder:gh` alongside
-`/ov-coder:dev-tools`.
+you want the git tooling, compose `/charly-coder:gh` alongside
+`/charly-coder:dev-tools`.
 
 ## Usage
 
@@ -79,19 +79,19 @@ my-dev:
 - `bazzite` (via `devops-tools` which is separate)
 
 ## Related Layers
-- `/ov-coder:gh` — Sibling GitHub CLI commonly paired with dev-tools
-- `/ov-coder:devops-tools` — Sibling DevOps cloud CLI bundle in bootc images
-- `/ov-coder:build-toolchain` — Sibling C/C++ toolchain in bootc image stacks
+- `/charly-coder:gh` — Sibling GitHub CLI commonly paired with dev-tools
+- `/charly-coder:devops-tools` — Sibling DevOps cloud CLI bundle in bootc images
+- `/charly-coder:build-toolchain` — Sibling C/C++ toolchain in bootc image stacks
 
 ## Related Images
-- `/ov-coder:debian-coder`, `/ov-coder:ubuntu-coder` — canonical consumers of the bat→batcat symlink
-- `/ov-coder:fedora-coder`, `/ov-coder:arch-coder` — consumers where the symlink task is a harmless no-op
+- `/charly-coder:debian-coder`, `/charly-coder:ubuntu-coder` — canonical consumers of the bat→batcat symlink
+- `/charly-coder:fedora-coder`, `/charly-coder:arch-coder` — consumers where the symlink task is a harmless no-op
 
 ## Related Commands
-- `/ov-build:build` — Build images that ship the dev-tools package set
-- `/ov-core:shell` — Interactive shell to use bat/ripgrep/neovim/etc.
-- `/ov-eval:eval` — `exclude_distros:` field reference for the fastfetch-binary test
-- `/ov-image:layer` — authoring reference for distro-tolerant `cmd:` tasks and `exclude_distros:`
+- `/charly-build:build` — Build images that ship the dev-tools package set
+- `/charly-core:shell` — Interactive shell to use bat/ripgrep/neovim/etc.
+- `/charly-eval:eval` — `exclude_distros:` field reference for the fastfetch-binary test
+- `/charly-image:layer` — authoring reference for distro-tolerant `cmd:` tasks and `exclude_distros:`
 
 ## When to Use This Skill
 

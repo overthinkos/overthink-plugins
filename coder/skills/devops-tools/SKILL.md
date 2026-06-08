@@ -36,11 +36,11 @@ my-image:
 
 ## Used In Images
 
-- `/ov-distros:bazzite`
+- `/charly-distros:bazzite`
 
 ## Related Layers
 
-- `/ov-coder:nodejs` -- Node.js dependency for npm packages
+- `/charly-coder:nodejs` -- Node.js dependency for npm packages
 
 ## When to Use This Skill
 
@@ -54,5 +54,5 @@ Use when the user asks about:
 
 ## Author + Test References
 
-- `/ov-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
-- `/ov-eval:eval` — declarative testing framework for the `eval:` block
+- `/charly-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
+- `/charly-eval:eval` — declarative testing framework for the `eval:` block

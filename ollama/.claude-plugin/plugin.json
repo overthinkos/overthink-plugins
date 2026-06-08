@@ -1,5 +1,5 @@
 {
-  "name": "ov-ollama",
+  "name": "charly-ollama",
   "description": "Self-contained skills for running the ollama LLM-server image. Pair with ov-jupyter to expose Ollama models to Jupyter notebooks via the jupyter MCP.",
   "version": "1.0.0",
   "author": { "name": "overthinkos" },

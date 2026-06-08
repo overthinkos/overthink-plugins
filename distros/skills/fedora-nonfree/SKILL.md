@@ -11,11 +11,11 @@ description: |
 Fedora base with RPM Fusion free and non-free repositories enabled.
 
 **Defined in `base.yml`.** Lives in the main repo's combined `base.yml`
-(single source of truth), alongside `/ov-distros:fedora` +
-`/ov-distros:fedora-builder`, and is imported under the `ov` namespace by the
+(single source of truth), alongside `/charly-distros:fedora` +
+`/charly-distros:fedora-builder`, and is imported under the `ov` namespace by the
 `overthinkos/fedora` submodule (referenced as `ov.fedora-nonfree`). It lives in
-main because in-main consumers (`/ov-immich:immich`,
-`/ov-distros:nvidia`) base on it. Its `rpmfusion`
+main because in-main consumers (`/charly-immich:immich`,
+`/charly-distros:nvidia`) base on it. Its `rpmfusion`
 layer is pinned as a github ref so the same definition resolves in both main and
 the submodule.
 
@@ -36,27 +36,27 @@ the submodule.
 ## Quick Start
 
 ```bash
-ov box build fedora-nonfree
-ov shell fedora-nonfree
+charly box build fedora-nonfree
+charly shell fedora-nonfree
 ```
 
 ## Key Layers
 
-- `/ov-distros:rpmfusion` — RPM Fusion repository configuration
+- `/charly-distros:rpmfusion` — RPM Fusion repository configuration
 
 ## Derived Images
 
-- `/ov-immich:immich` — photo management with codec support
+- `/charly-immich:immich` — photo management with codec support
 
 ## Related Images
 
-- `/ov-distros:fedora` — parent base (without non-free repos)
+- `/charly-distros:fedora` — parent base (without non-free repos)
 
 ## Verification
 
-After `ov box build`:
-- `ov box list` — image appears in list
-- `ov shell fedora-nonfree` — interactive shell works
+After `charly box build`:
+- `charly box list` — image appears in list
+- `charly shell fedora-nonfree` — interactive shell works
 
 ## When to Use This Skill
 
@@ -64,5 +64,5 @@ After `ov box build`:
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

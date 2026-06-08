@@ -24,16 +24,16 @@ my-image:
 
 ## Used In Images
 
-- `/ov-distros:bazzite`
+- `/charly-distros:bazzite`
 
 ## Related Layers
-- `/ov-coder:devops-tools` — common companion bundle in observability images
-- `/ov-coder:kubernetes-layer` — pairs with Grafana for cluster observability
-- `/ov-coder:dev-tools` — typically paired in devops images
+- `/charly-coder:devops-tools` — common companion bundle in observability images
+- `/charly-coder:kubernetes-layer` — pairs with Grafana for cluster observability
+- `/charly-coder:dev-tools` — typically paired in devops images
 
 ## Related Commands
-- `/ov-build:build` — fetches Grafana CLI binaries via curl during image build
-- `/ov-core:shell` — run mcp-grafana, logcli, promtool, etc. interactively
+- `/charly-build:build` — fetches Grafana CLI binaries via curl during image build
+- `/charly-core:shell` — run mcp-grafana, logcli, promtool, etc. interactively
 
 ## When to Use This Skill
 
@@ -49,5 +49,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

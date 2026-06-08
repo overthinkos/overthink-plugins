@@ -10,17 +10,17 @@ description: |
 Root base image built from `quay.io/fedora/fedora:43`. Foundation for all RPM-based Overthink images.
 
 **Defined in the combined `base.yml`.** The Fedora base stack — `fedora`,
-`/ov-distros:fedora-builder`, `/ov-distros:fedora-nonfree` — lives in the main
+`/charly-distros:fedora-builder`, `/charly-distros:fedora-nonfree` — lives in the main
 repo's `base.yml` (single source of truth, shared with the arch stack),
 flat-imported locally by main AND imported under the `ov` namespace by the
 **`overthinkos/fedora`** submodule (mounted at `image/fedora`), which references
 them as `ov.fedora` / `ov.fedora-builder`. The base stack lives in main because
 fedora is the ecosystem default base (~40 main images root on it,
 `fedora-builder` is `defaults.builder`); the Fedora consumer showcase images
-(`/ov-coder:fedora-coder`, `/ov-distros:fedora-ov`, `/ov-distros:fedora-test`)
-live in the submodule (its `overthink.yml` plus per-kind sibling files
+(`/charly-coder:fedora-coder`, `/charly-distros:fedora-ov`, `/charly-distros:fedora-test`)
+live in the submodule (its `charly.yml` plus per-kind sibling files
 (`box.yml`/`pod.yml`/`k8s.yml`), flat-imported via `import:`).
-Build with `ov box build fedora` from the main repo.
+Build with `charly box build fedora` from the main repo.
 
 ## Image Properties
 
@@ -35,8 +35,8 @@ Build with `ov box build fedora` from the main repo.
 ## Quick Start
 
 ```bash
-ov box build fedora
-ov shell fedora
+charly box build fedora
+charly shell fedora
 ```
 
 ## dnf download tuning (`distro.fedora.dnf`)
@@ -62,27 +62,27 @@ and inherits across distro inheritance like the other sub-blocks. Source:
 
 ## Derived Images
 
-- `/ov-distros:fedora-nonfree` — adds RPM Fusion repos
-- `/ov-distros:fedora-builder` — adds pixi, nodejs, build-toolchain
-- `/ov-distros:nvidia` — adds CUDA toolkit
-- `/ov-openclaw:openclaw` — adds OpenClaw gateway
-- `/ov-distros:githubrunner` — adds GitHub Actions runner
+- `/charly-distros:fedora-nonfree` — adds RPM Fusion repos
+- `/charly-distros:fedora-builder` — adds pixi, nodejs, build-toolchain
+- `/charly-distros:nvidia` — adds CUDA toolkit
+- `/charly-openclaw:openclaw` — adds OpenClaw gateway
+- `/charly-distros:githubrunner` — adds GitHub Actions runner
 
 ## Verification
 
-After `ov box build`:
-- `ov box list` — image appears in list
-- `ov shell fedora` — interactive shell works
+After `charly box build`:
+- `charly box list` — image appears in list
+- `charly shell fedora` — interactive shell works
 
 ## Related Images
-- `/ov-distros:fedora-nonfree` — adds RPM Fusion repos
-- `/ov-distros:fedora-builder` — adds pixi, nodejs, build-toolchain
-- `/ov-distros:fedora-ov` — full ov toolchain on Fedora
-- `/ov-distros:arch` — pacman-based counterpart base
+- `/charly-distros:fedora-nonfree` — adds RPM Fusion repos
+- `/charly-distros:fedora-builder` — adds pixi, nodejs, build-toolchain
+- `/charly-distros:fedora-ov` — full charly toolchain on Fedora
+- `/charly-distros:arch` — pacman-based counterpart base
 
 ## Related Commands
-- `/ov-build:build` — build the fedora base image
-- `/ov-core:shell` — interactive shell in the base image
+- `/charly-build:build` — build the fedora base image
+- `/charly-core:shell` — interactive shell in the base image
 
 ## When to Use This Skill
 
@@ -90,4 +90,4 @@ After `ov box build`:
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)

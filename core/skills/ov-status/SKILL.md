@@ -2,16 +2,16 @@
 name: ov-status
 description: |
   Service status display with tool probes and device detection.
-  MUST be invoked before any work involving: ov status command, checking container state, tool availability, port mapping, or JSON status output.
+  MUST be invoked before any work involving: charly status command, checking container state, tool availability, port mapping, or JSON status output.
   Named `ov-status` (not `status`) to disambiguate from Claude Code's built-in `/status` slash command.
 ---
 
-# ov status -- Service Status Display
+# charly status -- Service Status Display
 
 ## Overview
 
-`ov status` is the **unified deployment-status surface**: one table (or one
-JSON array, or a single-deployment detail view) showing every ov deployment
+`charly status` is the **unified deployment-status surface**: one table (or one
+JSON array, or a single-deployment detail view) showing every charly deployment
 across all five substrates — **pod, vm, k8s, local, android** — side by side.
 A leading **KIND** column / `"kind"` JSON field discriminates which substrate
 each row came from.
@@ -33,7 +33,7 @@ android).
 unreachable on this host (`Available(opts) == false` — e.g. the libvirt vm
 collector with no libvirt session) is skipped SILENTLY — no rows, no error. A
 collector that errors mid-collect logs a single `WARNING:` to stderr and
-contributes zero rows, but NEVER aborts the whole command. So `ov status` on a
+contributes zero rows, but NEVER aborts the whole command. So `charly status` on a
 host with only podman shows the pod rows and silently omits vm/k8s/android;
 the surface always renders what it can.
 
@@ -65,7 +65,7 @@ Source layout:
 - `ov/status_nested.go` — the nested overlay (`applyNestedOverlay`): folds the
   DECLARED nested tree onto parent rows and, under `--nested`, probes each
   child's live multi-hop venue via the same `ResolveDeployChain` +
-  `NestedExecutor` primitive `ov deploy add` / `ov eval live parent.child` use.
+  `NestedExecutor` primitive `charly deploy add` / `charly eval live parent.child` use.
 - `ov/status_probes.go` — `Probe` / `HostProbe` / `GuestProbe` interfaces
   and the 7 concrete probes (`SupervisordProbe`, `DbusProbe`, `OvProbe`,
   `WlProbe`, `SwayProbe` are guest; `CdpProbe`, `VncProbe` are host).
@@ -74,20 +74,20 @@ Source layout:
 - `ov/status_render.go` — the unified `DeploymentStatus` rendered shape +
   `RenderTable` / `RenderDetail` / `RenderJSON` / `RenderJSONOne` + cell
   formatters (`cellKind`, …); `formatTunnelSummary`.
-- `ov/status_reap.go` — `ReapOrphansCmd` (the top-level `ov reap-orphans`
+- `ov/status_reap.go` — `ReapOrphansCmd` (the top-level `charly reap-orphans`
   command).
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Table (running) | `ov status` | Show all deployments across every substrate (pod/vm/k8s/local/android) |
-| Table (all) | `ov status --all` | Include stopped and enabled services |
-| Nested probe | `ov status --nested` | Probe nested children + live k8s workloads (multi-hop, slower) |
-| Detail | `ov status <image>` | Key-value detail for one service |
-| Detail (instance) | `ov status <image> -i <inst>` | Key-value detail for one instance |
-| JSON output | `ov status --json` | Machine-readable JSON (KIND-discriminated, structured ports, nested tree) |
-| Reap orphans | `ov reap-orphans` | Clean up ephemerals whose underlying resource is gone |
+| Table (running) | `charly status` | Show all deployments across every substrate (pod/vm/k8s/local/android) |
+| Table (all) | `charly status --all` | Include stopped and enabled services |
+| Nested probe | `charly status --nested` | Probe nested children + live k8s workloads (multi-hop, slower) |
+| Detail | `charly status <image>` | Key-value detail for one service |
+| Detail (instance) | `charly status <image> -i <inst>` | Key-value detail for one instance |
+| JSON output | `charly status --json` | Machine-readable JSON (KIND-discriminated, structured ports, nested tree) |
+| Reap orphans | `charly reap-orphans` | Clean up ephemerals whose underlying resource is gone |
 
 ## Table Mode Columns
 
@@ -107,7 +107,7 @@ render as indented IMAGE-cell rows (`  └─ <child>`) under their parent.
 
 ## Detail Mode Fields
 
-`ov status <image>` shows:
+`charly status <image>` shows:
 
 | Field | Example |
 |-------|---------|
@@ -130,11 +130,11 @@ podman/docker substrate). For the cross-substrate view use the table.
 ## Nested deployments
 
 A deploy can declare a nested tree (`pod → android`, `vm → pod`, `vm → host`,
-…). `ov status` reflects it WITHOUT a dedicated "nested" collector — a nested
+…). `charly status` reflects it WITHOUT a dedicated "nested" collector — a nested
 child's venue is always REACHED THROUGH its parent, so `applyNestedOverlay`
 post-processes the already-merged flat rows: it reads the DECLARED tree from
-the merged deploy config (project `overthink.yml` incl. folded `kind: eval`
-beds + `~/.config/ov/deploy.yml`) and attaches each declared child to its
+the merged deploy config (project `charly.yml` incl. folded `kind: eval`
+beds + `~/.config/charly/deploy.yml`) and attaches each declared child to its
 parent row's `Nested[]`.
 
 **Dedup — a declared nested child appears exactly once.** A child substrate
@@ -149,13 +149,13 @@ the flat row from the top level. So a nested android device shows ONLY under
 its parent pod's `nested[]`, never also as a flat row. A child with NO flat
 match keeps the synthesized declared row (`Source="nested"`).
 
-- **Default** (`ov status`): a child with a flat match inherits that flat row's
+- **Default** (`charly status`): a child with a flat match inherits that flat row's
   live `status`/`uptime`/… (and real `Source`); a child with no flat match
   reads `declared` (`Source="nested"`). No multi-hop work, no extra
   subprocesses.
-- **`ov status --nested`**: each child's LIVE venue is probed through the real
+- **`charly status --nested`**: each child's LIVE venue is probed through the real
   multi-hop chain (`ResolveDeployChain` → `NestedExecutor`, the SAME primitive
-  `ov deploy add` and `ov eval live parent.child` use — no bespoke nested dial)
+  `charly deploy add` and `charly eval live parent.child` use — no bespoke nested dial)
   under a STRICT 4-second per-child context deadline. A timed-out / failing
   child renders `unreachable`; the table is NEVER blocked. The deadline is a
   context cancellation, never a sleep/retry loop. `--nested` also turns on live
@@ -179,7 +179,7 @@ markers.
 |------|------|-----------------|---------|
 | supervisord | guest | `command -v supervisorctl && supervisorctl status` | `supervisord` (with `N/M running` detail in detail view) |
 | dbus | guest | `pgrep -x dbus-daemon` + scan for `swaync`/`mako`/`dunst` | `dbus` (notifier list in detail view) |
-| ov | guest | `command -v ov && ov version` | `ov` (CalVer detail) |
+| charly | guest | `command -v charly && charly version` | `ov` (CalVer detail) |
 | wl | guest | `command -v wtype/wlrctl/grim/pixelflux-screenshot` | `wl` (detail lists available tools) |
 | sway | guest | discover SWAYSOCK then `swaymsg -t get_outputs` | `sway` (output dimensions in detail) |
 | cdp | host | HTTP GET `:HOST_PORT/json` (port from snapshot) | `cdp:HOST_PORT` |
@@ -191,7 +191,7 @@ Adding a new probe: implement `HostProbe` (network) or `GuestProbe`
 
 ## JSON output schema
 
-`ov status --json` emits an array of `DeploymentStatus` objects — one per row,
+`charly status --json` emits an array of `DeploymentStatus` objects — one per row,
 across every substrate. The leading `"kind"` field is the substrate
 discriminator; `"source"` records provenance (`podman` / `libvirt` / `ledger` /
 `adb` / `nested`); `"ports"` is a structured array (not `[]string`); `"nested"`
@@ -203,7 +203,7 @@ is the recursive child tree (omitted when empty):
   "image": "selkies-desktop",
   "instance": "work",
   "status": "running",
-  "container": "ov-selkies-desktop-work",
+  "container": "charly-selkies-desktop-work",
   "ports": [
     { "host_ip": "127.0.0.1", "host_port": 9240, "container_port": 9222, "protocol": "tcp" }
   ],
@@ -224,7 +224,7 @@ with no flat row is synthesized (`"source": "nested"`, `"status": "declared"`):
   "kind": "pod",
   "image": "android-emulator",
   "status": "running",
-  "container": "ov-android-emulator",
+  "container": "charly-android-emulator",
   "run_mode": "quadlet",
   "source": "podman",
   "nested": [
@@ -236,12 +236,12 @@ with no flat row is synthesized (`"source": "nested"`, `"status": "declared"`):
 
 Because the JSON encoder indents (`SetIndent("", "  ")`), the on-the-wire
 substring for a substrate row is `"kind": "pod"` — a SPACE after the colon.
-Eval `command` checks that grep `ov status --json` output assert on the spaced
+Eval `command` checks that grep `charly status --json` output assert on the spaced
 form (e.g. `contains: '"kind": "vm"'`). The four `kind: eval` beds each carry a
-`status-shows-*` deploy-scope check that proves the live `ov status --json`
+`status-shows-*` deploy-scope check that proves the live `charly status --json`
 reports the right kind (and, for android, the `"nested"` tree).
 
-Single-image (`ov status <image> -i <inst> --json`) emits one object,
+Single-image (`charly status <image> -i <inst> --json`) emits one object,
 not an array.
 
 ## Source-of-truth priority for the PORTS column
@@ -264,55 +264,55 @@ The `Volumes:` field is rendered from THREE sources, in priority order:
 2. **deploy.yml** volume names — fallback for stopped/enabled containers when no live mounts are available. Lists just the volume names from the deploy entry.
 3. **Image OCI label** (`ExtractMetadata`) — last-resort fallback when neither runtime nor deploy data is present. Format: `<volume-name> -> <container-path>` (the layer-declared default).
 
-This means a volume deployed with `--bind <name>=<path>` or `--encrypt <name>` shows up in the live form for running containers — what the container is ACTUALLY mounting, including the gocryptfs FUSE plain dir for encrypted volumes. Showing live mounts (rather than the image-label default) is what lets the operator tell, from `ov status` alone, whether an encrypted volume's gocryptfs FUSE is actually mounted: a running container binding `<...>/ov-immich-cache/plain -> /home/user/.immich/cache` with the FUSE unmounted would otherwise be writing plaintext over the cipher tree, and the live form makes that visible.
+This means a volume deployed with `--bind <name>=<path>` or `--encrypt <name>` shows up in the live form for running containers — what the container is ACTUALLY mounting, including the gocryptfs FUSE plain dir for encrypted volumes. Showing live mounts (rather than the image-label default) is what lets the operator tell, from `charly status` alone, whether an encrypted volume's gocryptfs FUSE is actually mounted: a running container binding `<...>/charly-immich-cache/plain -> /home/user/.immich/cache` with the FUSE unmounted would otherwise be writing plaintext over the cipher tree, and the live form makes that visible.
 
-For programmatic queries the same data is in `ov status --json`'s `volumes` array. Source: `ov/status_collector.go:formatLiveMounts` + `ov/status_engine.go:mountsFromInspect`. Tested by `ov/status_live_mounts_test.go` (17 sub-cases covering the JSON parser, the encryption-path detector, the renderer, and an end-to-end JSON → MountInfo → display chain).
+For programmatic queries the same data is in `charly status --json`'s `volumes` array. Source: `ov/status_collector.go:formatLiveMounts` + `ov/status_engine.go:mountsFromInspect`. Tested by `ov/status_live_mounts_test.go` (17 sub-cases covering the JSON parser, the encryption-path detector, the renderer, and an end-to-end JSON → MountInfo → display chain).
 
 Authoritative direct queries (when you need the raw inspect data):
 
 ```bash
 podman inspect <container> --format '{{range .Mounts}}{{.Type}}:{{.Source}}->{{.Destination}} {{"\n"}}{{end}}'
-ov deploy show <image>
+charly deploy show <image>
 ```
 
 ## Usage
 
 ```bash
 # Quick overview of all deployments across every substrate
-ov status
+charly status
 
 # Include stopped services
-ov status --all
+charly status --all
 
 # Probe nested children + live k8s workloads (multi-hop, slower)
-ov status --nested
+charly status --nested
 
 # Detailed info for one service
-ov status jupyter
+charly status jupyter
 
 # JSON for scripting
-ov status --json | jq '.[] | select(.status == "running")'
+charly status --json | jq '.[] | select(.status == "running")'
 
 # Filter to one substrate
-ov status --json | jq '.[] | select(.kind == "vm")'
+charly status --json | jq '.[] | select(.kind == "vm")'
 
 # List declared nested children
-ov status --json | jq '.[] | select(.nested) | .nested[].image'
+charly status --json | jq '.[] | select(.nested) | .nested[].image'
 ```
 
 ## Cross-References
 
-- `/ov-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
+- `/charly-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
-- `/ov-core:start` -- start a service
-- `/ov-core:stop` -- stop a service (via `/ov-core:service`)
-- `/ov-core:logs` -- view service logs (via `/ov-core:service`)
-- `/ov-core:service` -- full service lifecycle management
+- `/charly-core:start` -- start a service
+- `/charly-core:stop` -- stop a service (via `/charly-core:service`)
+- `/charly-core:logs` -- view service logs (via `/charly-core:service`)
+- `/charly-core:service` -- full service lifecycle management
 
-## Live-deploy verification is mandatory (see `/ov-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/ov-internals:disposable`). Use `ov update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `ov deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 
-**After committing the source-level fix, `ov update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
+**After committing the source-level fix, `charly update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 
 Unit tests + a clean compile are necessary but not sufficient. See CLAUDE.md R1–R10.

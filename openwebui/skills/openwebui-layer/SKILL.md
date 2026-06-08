@@ -58,31 +58,31 @@ Auto-generated, stored in credential store (keyring/config-file fallback):
 
 | Secret | Env Fallback | Purpose | Auto-gen path |
 |--------|-------------|---------|---------------|
-| `webui-secret-key` | `WEBUI_SECRET_KEY` | JWT + encryption key (CRITICAL: losing it breaks all sessions and OAuth tokens) | `ov config` time, `ProvisionPodmanSecrets` |
-| `admin-password` | `WEBUI_ADMIN_PASSWORD` | Admin account password — declared as `secret_require:` | `ov deploy add` time, `ensureLayerSecret` |
+| `webui-secret-key` | `WEBUI_SECRET_KEY` | JWT + encryption key (CRITICAL: losing it breaks all sessions and OAuth tokens) | `charly config` time, `ProvisionPodmanSecrets` |
+| `admin-password` | `WEBUI_ADMIN_PASSWORD` | Admin account password — declared as `secret_require:` | `charly deploy add` time, `ensureLayerSecret` |
 
 Provisioned as `Secret=ov-openwebui-<name>,type=env,target=<ENV>` in the quadlet. The entrypoint checks env vars first (from `type=env` injection), then file mounts at `/run/secrets/` as fallback.
 
 **First-run admin login:** `WEBUI_ADMIN_PASSWORD` auto-generates as a 32-byte hex random value if not pre-set. To retrieve the auto-generated password and log in for the first time:
 
 ```bash
-ov secrets get ov/secret WEBUI_ADMIN_PASSWORD
+charly secrets get ov/secret WEBUI_ADMIN_PASSWORD
 ```
 
 Override with a specific password before the first deploy:
 
 ```bash
-ov secrets set ov/secret WEBUI_ADMIN_PASSWORD <password>
-ov config openwebui  # picks up the override
+charly secrets set ov/secret WEBUI_ADMIN_PASSWORD <password>
+charly config openwebui  # picks up the override
 ```
 
 ### Tier 2: User API keys (GPG-encrypted `.secrets` file)
 
-User-provided API keys stored via `ov secrets gpg`:
+User-provided API keys stored via `charly secrets gpg`:
 
 ```bash
-ov secrets gpg set OPENROUTER_API_KEY sk-or-xxx
-ov config openwebui --env-file .secrets     # Decrypts + injects at config time
+charly secrets gpg set OPENROUTER_API_KEY sk-or-xxx
+charly config openwebui --env-file .secrets     # Decrypts + injects at config time
 ```
 
 ## Auto-Configuration Entrypoint
@@ -105,7 +105,7 @@ The entrypoint translates ov's `OV_MCP_SERVERS` format into Open WebUI's expecte
 ```json
 [{
   "type": "mcp",
-  "url": "http://ov-jupyter:8888/mcp",
+  "url": "http://charly-jupyter:8888/mcp",
   "spec_type": "url", "spec": "", "path": "",
   "auth_type": "", "key": "",
   "config": {"enable": true},
@@ -139,30 +139,30 @@ openwebui:
     - agent-forwarding
     - openwebui
     - dbus
-    - ov
+    - charly
   ports:
     - "8080:8080"
 ```
 
 ## Related Layers
 
-- `/ov-languages:python` -- Python runtime dependency
-- `/ov-infrastructure:supervisord` -- process manager dependency
-- `/ov-hermes:hermes` -- alternative AI agent with similar MCP/LLM auto-config pattern
+- `/charly-languages:python` -- Python runtime dependency
+- `/charly-infrastructure:supervisord` -- process manager dependency
+- `/charly-hermes:hermes` -- alternative AI agent with similar MCP/LLM auto-config pattern
 
 ## Related Commands
 
-- `/ov-core:ov-config` -- `ov config openwebui --update-all` for service discovery
-- `/ov-build:secrets` -- `ov secrets` for Secret Service / GPG credential management
-- `/ov-core:service` -- `ov service status openwebui` for runtime management
-- `/ov-build:ov-mcp-cmd` -- probe the MCP servers openwebui consumes (auto-configured into `TOOL_SERVER_CONNECTIONS` from `OV_MCP_SERVERS`): `ov eval mcp list-tools <provider-image>` shows what tools openwebui will see, and `ov eval mcp ping` verifies liveness before debugging openwebui itself.
+- `/charly-core:ov-config` -- `charly config openwebui --update-all` for service discovery
+- `/charly-build:secrets` -- `charly secrets` for Secret Service / GPG credential management
+- `/charly-core:service` -- `charly service status openwebui` for runtime management
+- `/charly-build:ov-mcp-cmd` -- probe the MCP servers openwebui consumes (auto-configured into `TOOL_SERVER_CONNECTIONS` from `OV_MCP_SERVERS`): `charly eval mcp list-tools <provider-image>` shows what tools openwebui will see, and `charly eval mcp ping` verifies liveness before debugging openwebui itself.
 
 ## Related Images
 
-- `/ov-openwebui:openwebui` -- the deployed image
-- `/ov-jupyter:jupyter` -- deploy alongside for MCP notebook access and code execution
-- `/ov-ollama:ollama` -- deploy alongside for local LLM inference
-- `/ov-hermes:hermes` -- alternative AI frontend (CLI-based agent vs web UI)
+- `/charly-openwebui:openwebui` -- the deployed image
+- `/charly-jupyter:jupyter` -- deploy alongside for MCP notebook access and code execution
+- `/charly-ollama:ollama` -- deploy alongside for local LLM inference
+- `/charly-hermes:hermes` -- alternative AI frontend (CLI-based agent vs web UI)
 
 ## When to Use This Skill
 
@@ -170,5 +170,5 @@ openwebui:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

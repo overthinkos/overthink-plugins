@@ -1,41 +1,41 @@
 ---
 name: enc
 description: |
-  Topic skill (no dedicated `ov enc` command — the surface is flags + subcommands on `ov config`). MUST be invoked before any work involving: encrypted storage, gocryptfs, or the `--encrypt` / `-v <name>:encrypted` backing flags on `ov config`, the `ov config mount` / `unmount` / `status` / `passwd` subcommands, or `ov-enc-<image>-<volume>.scope` systemd units.
+  Topic skill (no dedicated `charly enc` command — the surface is flags + subcommands on `charly config`). MUST be invoked before any work involving: encrypted storage, gocryptfs, or the `--encrypt` / `-v <name>:encrypted` backing flags on `charly config`, the `charly config mount` / `unmount` / `status` / `passwd` subcommands, or `ov-enc-<image>-<volume>.scope` systemd units.
 ---
 
 # Enc - Encrypted Storage
 
 ## Overview
 
-Encrypted volume backing is configured at deploy time via `ov config --encrypt <volume>`. Gocryptfs-encrypted volumes store sensitive data (credentials, keys, configs) with transparent encryption at rest. The cipher directory lives on disk; the plain directory is mounted on demand. `ov config <image>` handles initialization and mounting during deployment setup. `ov start` mounts encrypted volumes inline before starting the container.
+Encrypted volume backing is configured at deploy time via `charly config --encrypt <volume>`. Gocryptfs-encrypted volumes store sensitive data (credentials, keys, configs) with transparent encryption at rest. The cipher directory lives on disk; the plain directory is mounted on demand. `charly config <image>` handles initialization and mounting during deployment setup. `charly start` mounts encrypted volumes inline before starting the container.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Configure encrypted | `ov config <image> --encrypt <vol>` | Set volume backing to encrypted |
-| Setup (init + mount) | `ov config <image>` | Initialize cipher dirs and mount encrypted volumes |
-| Mount | `ov config mount <image>` | Mount encrypted volumes |
-| Unmount | `ov config unmount <image>` | Unmount encrypted volumes |
-| Status | `ov config status <image>` | Show mount status |
-| Change password | `ov config passwd <image>` | Change encryption password |
+| Configure encrypted | `charly config <image> --encrypt <vol>` | Set volume backing to encrypted |
+| Setup (init + mount) | `charly config <image>` | Initialize cipher dirs and mount encrypted volumes |
+| Mount | `charly config mount <image>` | Mount encrypted volumes |
+| Unmount | `charly config unmount <image>` | Unmount encrypted volumes |
+| Status | `charly config status <image>` | Show mount status |
+| Change password | `charly config passwd <image>` | Change encryption password |
 
 All commands accept `--volume NAME` to target a specific volume (otherwise all encrypted volumes are affected).
 
 ## Configuration
 
-Encrypted volumes are configured at deploy time, not build time. Use `ov config --encrypt` to set a layer-declared volume's backing to encrypted:
+Encrypted volumes are configured at deploy time, not build time. Use `charly config --encrypt` to set a layer-declared volume's backing to encrypted:
 
 ```bash
 # Configure "library" volume as encrypted
-ov config immich --encrypt library
+charly config immich --encrypt library
 
 # Or via canonical syntax
-ov config immich -v library:encrypted
+charly config immich -v library:encrypted
 
 # Or via env var
-OV_VOLUMES_IMMICH="library:encrypted" ov config immich --password auto
+OV_VOLUMES_IMMICH="library:encrypted" charly config immich --password auto
 ```
 
 This saves to deploy.yml:
@@ -55,12 +55,12 @@ Each encrypted volume can specify its own storage directory:
 
 ```bash
 # Explicit per-volume paths (each volume gets its own directory)
-ov config immich-ml \
+charly config immich-ml \
   --volume library:encrypt:/mnt/nas/immich/library \
   --volume pgdata:encrypt:/mnt/nas/immich/pgdata
 
 # Canonical syntax
-ov config immich-ml -v library:encrypted:/mnt/nas/immich/library
+charly config immich-ml -v library:encrypted:/mnt/nas/immich/library
 ```
 
 The path is the **direct volume directory** — `cipher/` and `plain/` are created inside it:
@@ -82,25 +82,25 @@ Without an explicit path, the global `encrypted_storage_path` is used with an `o
     plain/     # Decrypted mount point (mounted on demand)
 ```
 
-Override base path: `ov settings set encrypted_storage_path /path/to/storage` or `OV_ENCRYPTED_STORAGE_PATH=/path`.
+Override base path: `charly settings set encrypted_storage_path /path/to/storage` or `OV_ENCRYPTED_STORAGE_PATH=/path`.
 
 ## Commands
 
-### Setup (ov config)
+### Setup (charly config)
 
 ```bash
-ov config my-app --encrypt secrets              # Set volume as encrypted + init + mount
-ov config my-app --password auto                # Auto-generate password
-ov config my-app --password manual              # Prompt for password
+charly config my-app --encrypt secrets              # Set volume as encrypted + init + mount
+charly config my-app --password auto                # Auto-generate password
+charly config my-app --password manual              # Prompt for password
 ```
 
-`ov config <image>` handles both initialization (creating cipher directories) and mounting in a single step. If volumes are already initialized, it mounts them. Password is cached in kernel keyring for multi-volume images.
+`charly config <image>` handles both initialization (creating cipher directories) and mounting in a single step. If volumes are already initialized, it mounts them. Password is cached in kernel keyring for multi-volume images.
 
 ### Mount
 
 ```bash
-ov config mount my-app                    # Mount all encrypted volumes
-ov config mount my-app --volume secrets   # Mount specific volume
+charly config mount my-app                    # Mount all encrypted volumes
+charly config mount my-app --volume secrets   # Mount specific volume
 ```
 
 Prompts for password (or reuses from keyring). Each volume is mounted inside a transient systemd scope unit (`ov-enc-<image>-<volume>.scope`) via `systemd-run --scope --user`. The plain directory becomes available for container use. Scope units can be listed with `systemctl --user list-units 'ov-enc-*'`.
@@ -108,8 +108,8 @@ Prompts for password (or reuses from keyring). Each volume is mounted inside a t
 ### Unmount
 
 ```bash
-ov config unmount my-app                    # Unmount all
-ov config unmount my-app --volume secrets   # Unmount specific
+charly config unmount my-app                    # Unmount all
+charly config unmount my-app --volume secrets   # Unmount specific
 ```
 
 Unmount calls `fusermount3 -u` then stops the scope unit (`systemctl --user stop ov-enc-<image>-<volume>.scope`) to clean up the gocryptfs daemon.
@@ -117,7 +117,7 @@ Unmount calls `fusermount3 -u` then stops the scope unit (`systemctl --user stop
 ### Status
 
 ```bash
-ov config status my-app
+charly config status my-app
 # secrets: mounted
 # configs: not mounted
 ```
@@ -125,14 +125,14 @@ ov config status my-app
 ### Change Password
 
 ```bash
-ov config passwd my-app
+charly config passwd my-app
 ```
 
 Changes the gocryptfs password for all encrypted volumes of an image.
 
 ## Single Password
 
-When an image has multiple encrypted volumes, `ov config`, `ov config mount`, and `ov start` all use `systemd-ask-password --id=ov-<image>` to cache the passphrase in the kernel keyring. Password is prompted once and reused for all volumes.
+When an image has multiple encrypted volumes, `charly config`, `charly config mount`, and `charly start` all use `systemd-ask-password --id=ov-<image>` to cache the passphrase in the kernel keyring. Password is prompted once and reused for all volumes.
 
 ## Credential lookup — iteration-capable `ssClient`
 
@@ -140,7 +140,7 @@ When an image has multiple encrypted volumes, `ov config`, `ov config mount`, an
 via the `default` alias **only** (no iteration) fails entirely when that alias
 resolves to a broken or stub collection — commonly seen with KeePassXC's
 FdoSecrets plugin when a previously-exposed database is unloaded. Such a client
-would hang `ov config mount` forever polling for a keyring that can't serve the
+would hang `charly config mount` forever polling for a keyring that can't serve the
 secret, and a quadlet unit with `TimeoutStartSec=0` would wedge in
 `activating (start-pre)` indefinitely.
 
@@ -151,7 +151,7 @@ secret, and a quadlet unit with `TimeoutStartSec=0` would wedge in
 1. Try the collection at the `default` alias (if healthy — skipped if its
    property reads error out).
 2. Try a collection matching the `keyring_collection_label` setting (if
-   non-empty — see `/ov-build:settings`). Useful for pinning a specific
+   non-empty — see `/charly-build:settings`). Useful for pinning a specific
    collection by label in multi-database setups.
 3. Try every other healthy collection in listing order.
 
@@ -193,7 +193,7 @@ pair where the source string is one of:
 |---|---|---|
 | `env`         | Resolved from an env var override (e.g. `GOCRYPTFS_PASSWORD`) | Terminal: use the value |
 | `keyring`     | Found in the system keyring via the iteration-capable read path | Terminal: use the value |
-| `config`      | Found in `~/.config/ov/config.yml` (fallback or explicit backend) | Terminal: use the value |
+| `config`      | Found in `~/.config/charly/config.yml` (fallback or explicit backend) | Terminal: use the value |
 | `locked`      | Primary backend is present but locked (e.g. keyring not yet unlocked after login) | **Retry** — backend may unlock shortly |
 | `unavailable` | Primary backend probe failed (e.g. ssClient saw every collection error out); fell back to `ConfigFileStore` but the credential isn't stored there either | **Retry with backoff** — may be transient at early boot |
 | `default`     | Backend queried successfully and the credential is **not stored anywhere** | **Terminal** — prompt the user interactively or fail with remediation |
@@ -207,8 +207,8 @@ whenever the keyring is broken, so the two are kept distinct.
 **Under systemd (`INVOCATION_ID` set, typical for `ExecStartPre`):**
 
 - `default` → **fail immediately** with an actionable error ("encryption
-  passphrase not stored for ov/enc/<image>; store with `ov secrets set ov/enc
-  <image>`, or switch backend with `ov config set secret_backend config`").
+  passphrase not stored for ov/enc/<image>; store with `charly secrets set ov/enc
+  <image>`, or switch backend with `charly config set secret_backend config`").
 - `locked` / `unavailable` → **retry** up to `encMountDeadline` (package
   variable in `ov/enc.go`, default `2 * time.Minute`, poll period
   `encMountPollPeriod = 5 * time.Second`). After the deadline elapses, fail
@@ -227,13 +227,13 @@ non-keyring backend fails fast without polling, reset callback invocation).
 
 ## Troubleshooting: broken Secret Service collection
 
-**Symptom:** `ov config mount <image>` hangs, or a service's `ExecStartPre`
+**Symptom:** `charly config mount <image>` hangs, or a service's `ExecStartPre`
 phase blocks in `activating (start-pre)` state. `journalctl --user -u
 ov-<image>.service` shows lines like:
 
     ov-<image>[...]: ov: Secret Service default alias target <path> is unhealthy; falling back to collection iteration
 
-Or `ov doctor` reports:
+Or `charly doctor` reports:
 
     [!] Secret Service collections -- N healthy + 1 broken. Broken: /org/freedesktop/secrets/collection/<path>. Healthy: "<label>"
     [!] Keyring index consistency -- <N indexed, <M> missing: ov/enc/<image>...
@@ -255,18 +255,18 @@ The credential lookup just works. No configuration change needed.
 2. Tools → Settings → Secret Service Integration → Exposed Databases
 3. Review the list; remove stale entries
 4. Restart KeePassXC
-5. Re-run `ov doctor` — the "Secret Service collections" check should now
+5. Re-run `charly doctor` — the "Secret Service collections" check should now
    report "N healthy collection(s)" with no broken count.
 
 **Pinning a preferred collection:** if your setup has multiple healthy
 collections and you want `ov` to prefer one by label (e.g. to avoid
 iteration overhead), set:
 
-    ov settings set keyring_collection_label "<collection-label>"
+    charly settings set keyring_collection_label "<collection-label>"
 
 `findItemAnyCollection` will try that label-matched collection after the
 default alias (if healthy) and before untargeted iteration. Environment
-override: `OV_KEYRING_COLLECTION_LABEL`. See `/ov-build:settings` for the full
+override: `OV_KEYRING_COLLECTION_LABEL`. See `/charly-build:settings` for the full
 runtime-config interface.
 
 **Diagnostic direct query (busctl):** to check a specific collection by
@@ -296,12 +296,12 @@ Store an encrypted-volume passphrase explicitly in the active credential store
 (Secret Service when available, config-file fallback otherwise):
 
 ```bash
-ov secrets set ov/enc my-app <passphrase>
+charly secrets set ov/enc my-app <passphrase>
 ```
 
 To serve credentials from an existing KeePass database, open it in KeePassXC and
 enable the FdoSecrets plugin so its entries appear on the Secret Service bus —
-ov's keyring backend reads them like any other collection. See `/ov-build:secrets`
+ov's keyring backend reads them like any other collection. See `/charly-build:secrets`
 for the full credential-store chain (env → Secret Service keyring → config-file
 fallback).
 
@@ -312,7 +312,7 @@ Each encrypted volume is mounted via `systemd-run --scope --user --unit=ov-enc-<
 - **Survives container stop/restart** — scope units are independent of the container service's cgroup, so `KillMode=mixed` on service stop does not kill gocryptfs
 - **Keeps mounts browsable on host** — the host user can access `plain/` directories even when the container is stopped
 - **Handles stale scopes** — if a scope persists from a crash, the next mount attempt stops the stale scope and retries
-- **Cleans up on unmount** — `ov config unmount` calls `fusermount3 -u` then `systemctl --user stop ov-enc-<image>-<volume>.scope`. The same teardown is available as a one-shot from the stop verb via `ov stop <image> --unmount` (see `/ov-core:stop`); plain `ov stop` deliberately leaves scopes running because the next start fast-paths through the `ov config mount` short-circuit.
+- **Cleans up on unmount** — `charly config unmount` calls `fusermount3 -u` then `systemctl --user stop ov-enc-<image>-<volume>.scope`. The same teardown is available as a one-shot from the stop verb via `charly stop <image> --unmount` (see `/charly-core:stop`); plain `charly stop` deliberately leaves scopes running because the next start fast-paths through the `charly config mount` short-circuit.
 
 Scope unit naming: `ov-enc-<image>-<volume>.scope` (e.g., `ov-enc-immich-ml-library.scope`).
 
@@ -324,31 +324,31 @@ Rootless podman with `--userns=keep-id` creates a two-level user namespace. Duri
 
 ## Integration with Runtime
 
-- **`ov shell`/`ov start` (direct mode)**: resolves volume backing from deploy.yml, verifies encrypted volumes are mounted, appends `-v <plain>:<container-path>` flags. `ov start` mounts encrypted volumes inline via systemd-run scopes before starting the container
-- **`ov config` (quadlet mode)**: generates quadlet file with `ExecStartPre=ov config mount <image>` for encrypted services. ExecStartPre creates scope units internally — these are independent of the container service. Boot behavior is backend-gated (see below)
-- **`ov remove --purge`**: removes named volumes
-- **Data provisioning**: `ov config --seed` (default) provisions data from data layers into bind-backed directories after mounting encrypted volumes. Works for both bind and encrypted volume types
+- **`charly shell`/`charly start` (direct mode)**: resolves volume backing from deploy.yml, verifies encrypted volumes are mounted, appends `-v <plain>:<container-path>` flags. `charly start` mounts encrypted volumes inline via systemd-run scopes before starting the container
+- **`charly config` (quadlet mode)**: generates quadlet file with `ExecStartPre=charly config mount <image>` for encrypted services. ExecStartPre creates scope units internally — these are independent of the container service. Boot behavior is backend-gated (see below)
+- **`charly remove --purge`**: removes named volumes
+- **Data provisioning**: `charly config --seed` (default) provisions data from data layers into bind-backed directories after mounting encrypted volumes. Works for both bind and encrypted volume types
 
 ### Boot Behavior: Backend-Gated
 
 | Credential Backend | Quadlet Behavior | User Action on Reboot |
 |---|---|---|
 | **Secret Service (keyring)** | `WantedBy=default.target` + `ExecStartPre` (waits for keyring) + `TimeoutStartSec=0` | None — auto-starts after login |
-| **Config file / none** | `ExecStartPre` (guard) + NO `WantedBy` | `ov start <image>` (prompts interactively) |
+| **Config file / none** | `ExecStartPre` (guard) + NO `WantedBy` | `charly start <image>` (prompts interactively) |
 
 **Secret Service flow on reboot:**
 1. Boot → systemd starts user instance (linger) → quadlet service starts
-2. ExecStartPre → `ov config mount` → keyring locked → subscribes to
+2. ExecStartPre → `charly config mount` → keyring locked → subscribes to
    DBus `PropertiesChanged` signals on Secret Service collections, with a
    30-second backstop re-probe (`encMountSignalBackstop`)
 3. User logs in → PAM unlocks GNOME Keyring / KeePassXC unlocks database
 4. DBus signal fires (or backstop re-probes) → passphrase found → volumes
    mount → container starts
-5. The wait is **unbounded** — ov blocks until the keyring unlocks or
+5. The wait is **unbounded** — charly blocks until the keyring unlocks or
    systemd sends SIGTERM on `systemctl stop`. No arbitrary deadline.
 
 **Event-driven keyring waiting:** when
-`source=locked` under a keyring-capable backend, ov subscribes to DBus
+`source=locked` under a keyring-capable backend, charly subscribes to DBus
 `org.freedesktop.DBus.Properties.PropertiesChanged` signals on the
 `/org/freedesktop/secrets/collection/*` namespace. The wait loop blocks
 on `select { case <-sigCh | case <-backstop | case <-ctx.Done() }` —
@@ -385,7 +385,7 @@ a credential that was never stored.
 
 **Crash recovery:** FUSE mounts survive container restarts because scope
 units are independent of the container service cgroup. On restart, the
-`ExecStartPre=ov config mount` step hits the **fast-path short-circuit**:
+`ExecStartPre=charly config mount` step hits the **fast-path short-circuit**:
 
     All encrypted volumes for <image> already mounted (N/N)
 
@@ -395,21 +395,21 @@ live, and returns `nil` **without calling `resolveEncPassphraseForMount`
 or touching the credential store at all**. This means a broken keyring
 backend does NOT block restarts of running services — only fresh mounts
 (e.g., after reboot) need the keyring. If gocryptfs crashes (scope dies),
-the next `ov config mount` or `ov start` detects the stale scope, stops
+the next `charly config mount` or `charly start` detects the stale scope, stops
 it, and remounts fresh — at which point the iteration-capable ssClient
 kicks in.
 
 ## Pre-start safety check: cipher populated + plain empty
 
-`verifyBindMounts` (`ov/enc.go:verifyBindMounts`) runs in the `ov start` / `ov shell` direct-mode code path before the container is started. For any `type: encrypted` volume that does not show up as a FUSE mount, an extra discrimination fires before the generic "not mounted" error: when the cipher dir on disk holds user data (anything beyond the `gocryptfs.conf` + `gocryptfs.diriv` metadata files) AND the plain mount target is empty, the error switches to a louder form spelling out the data-loss risk:
+`verifyBindMounts` (`ov/enc.go:verifyBindMounts`) runs in the `charly start` / `charly shell` direct-mode code path before the container is started. For any `type: encrypted` volume that does not show up as a FUSE mount, an extra discrimination fires before the generic "not mounted" error: when the cipher dir on disk holds user data (anything beyond the `gocryptfs.conf` + `gocryptfs.diriv` metadata files) AND the plain mount target is empty, the error switches to a louder form spelling out the data-loss risk:
 
 ```
-encrypted volume "library": cipher dir at /home/.../ov-immich-library/cipher is populated but plain mount at /home/.../ov-immich-library/plain is empty — refusing to start (would write plaintext over encrypted data); run 'ov config mount immich' first
+encrypted volume "library": cipher dir at /home/.../charly-immich-library/cipher is populated but plain mount at /home/.../charly-immich-library/plain is empty — refusing to start (would write plaintext over encrypted data); run 'charly config mount immich' first
 ```
 
-This guards against a real data-loss shape: a quadlet missing the `ExecStartPre=ov config mount <image>` auto-mount hook (see "Boot Behavior: Backend-Gated" above and `/ov-build:migrate` "ov migrate") would silently bind an empty `plain/` over a populated cipher tree, the container's services would `initdb` / first-run-wizard against the empty dir, and plaintext data would accumulate on top of an encrypted vault. This error class fails the start IMMEDIATELY when `ov start` detects that exact pre-start state.
+This guards against a real data-loss shape: a quadlet missing the `ExecStartPre=charly config mount <image>` auto-mount hook (see "Boot Behavior: Backend-Gated" above and `/charly-build:migrate` "charly migrate") would silently bind an empty `plain/` over a populated cipher tree, the container's services would `initdb` / first-run-wizard against the empty dir, and plaintext data would accumulate on top of an encrypted vault. This error class fails the start IMMEDIATELY when `charly start` detects that exact pre-start state.
 
-**Important caveat on quadlet-managed services.** This check runs only in the direct-mode (CLI) path. systemd-managed quadlet services bypass it — they go straight to `podman` after `ExecStartPre=ov config mount <image>` succeeds. The actual root-cause fix for those is the `ExecStartPre` hook itself; verifyBindMounts is a belt-and-suspenders safety net for the direct path.
+**Important caveat on quadlet-managed services.** This check runs only in the direct-mode (CLI) path. systemd-managed quadlet services bypass it — they go straight to `podman` after `ExecStartPre=charly config mount <image>` succeeds. The actual root-cause fix for those is the `ExecStartPre` hook itself; verifyBindMounts is a belt-and-suspenders safety net for the direct path.
 
 Helper: `cipherPopulatedPlainEmpty(cipherDir, plainDir)` returns true only when both conditions hold. Returns false on any os.ReadDir error (the surrounding error path will surface those — this helper is purely a discrimination hint). Source: `ov/enc.go:cipherPopulatedPlainEmpty`. Tested by `ov/migrate_quadlets_test.go:TestCipherPopulatedPlainEmpty` (5 sub-cases: dangerous, metadata-only, plain-non-empty, missing-cipher, missing-plain).
 
@@ -434,8 +434,8 @@ volumes:
 For comparison, plain bind mounts use `type: bind`:
 
 ```bash
-ov config my-app --bind data=/mnt/nas/data    # Explicit host path
-ov config my-app --bind data                   # Auto path: ~/.local/share/ov/volumes/my-app/data
+charly config my-app --bind data=/mnt/nas/data    # Explicit host path
+charly config my-app --bind data                   # Auto path: ~/.local/share/ov/volumes/my-app/data
 ```
 
 Plain bind mounts do not use encrypted storage commands. They are direct host directory mounts.
@@ -451,15 +451,15 @@ Plain bind mounts do not use encrypted storage commands. They are direct host di
 
 ## Cross-References
 
-- `/ov-core:deploy` -- Quadlet integration, volume backing configuration, deploy.yml
-- `/ov-core:ov-config` -- `encrypted_storage_path` and `volumes_path` settings, `ov config mount` short-circuit fast-path documented there too
-- `/ov-core:service` -- Container lifecycle, `ov start` inline mount
-- `/ov-build:secrets` -- Credential store hierarchy (env → keyring → config), `ov secrets set ov/enc <image>` to store a gocryptfs passphrase explicitly, `ov secrets list` to inspect indexed keys
-- `/ov-build:settings` -- `secret_backend`, `keyring_collection_label`, `encrypted_storage_path`, and other runtime config keys that control credential + volume resolution
-- `/ov-core:ov-doctor` -- "Secret Service collections" health check, "Keyring index consistency" cross-check; invoke `ov doctor` when diagnosing broken-collection symptoms
+- `/charly-core:deploy` -- Quadlet integration, volume backing configuration, deploy.yml
+- `/charly-core:ov-config` -- `encrypted_storage_path` and `volumes_path` settings, `charly config mount` short-circuit fast-path documented there too
+- `/charly-core:service` -- Container lifecycle, `charly start` inline mount
+- `/charly-build:secrets` -- Credential store hierarchy (env → keyring → config), `charly secrets set ov/enc <image>` to store a gocryptfs passphrase explicitly, `charly secrets list` to inspect indexed keys
+- `/charly-build:settings` -- `secret_backend`, `keyring_collection_label`, `encrypted_storage_path`, and other runtime config keys that control credential + volume resolution
+- `/charly-core:ov-doctor` -- "Secret Service collections" health check, "Keyring index consistency" cross-check; invoke `charly doctor` when diagnosing broken-collection symptoms
 
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves encrypted storage, gocryptfs, or encrypted volume backing. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Pre-deployment. Configure encrypted volumes during `ov config`. See also `/ov-core:deploy` (volume backing).
+**Workflow position:** Pre-deployment. Configure encrypted volumes during `charly config`. See also `/charly-core:deploy` (volume backing).

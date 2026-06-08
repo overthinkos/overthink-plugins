@@ -1,16 +1,16 @@
 ---
 name: local-spec
 description: |
-  MUST be invoked before any work involving: authoring `kind: local` templates, `local.yml` files, the inline `local:` map in `overthink.yml`, or the merge semantics between a `kind: local` template and a `target: local` deployment.
+  MUST be invoked before any work involving: authoring `kind: local` templates, `local.yml` files, the inline `local:` map in `charly.yml`, or the merge semantics between a `kind: local` template and a `target: local` deployment.
 ---
 
 # kind: local — Authoring Reference
 
 ## Overview
 
-`kind: local` declares a reusable layer-stack template that gets applied to a Linux filesystem (target:local deployments). Unlike `kind: pod` / `kind: vm` / `kind: k8s` which wrap an image, a `kind: local` is defined entirely by its `layers` + `install_opts` + `env` — there's no OCI artifact backing it. The convention file is `local.yml`; templates may also be authored inline in the `local:` map of `overthink.yml`.
+`kind: local` declares a reusable layer-stack template that gets applied to a Linux filesystem (target:local deployments). Unlike `kind: pod` / `kind: vm` / `kind: k8s` which wrap an image, a `kind: local` is defined entirely by its `layers` + `install_opts` + `env` — there's no OCI artifact backing it. The convention file is `local.yml`; templates may also be authored inline in the `local:` map of `charly.yml`.
 
-Legacy `kind: host` projects migrate via `ov migrate`.
+Legacy `kind: host` projects migrate via `charly migrate`.
 
 ## Schema
 
@@ -34,7 +34,7 @@ spec:
     - {id: rg-version, scope: deploy, command: "rg --version"}
 ```
 
-## Inline form in overthink.yml
+## Inline form in charly.yml
 
 ```yaml
 version: 2026.144.1443
@@ -77,22 +77,22 @@ There is **no** `status:` or `info:` field. Status lives in `description.tag` (o
 A `kind: local` deploy emits **zero** container-image fetch / build
 steps. The deploy applies host packages + configs only. There is no
 `image:` field; declaring one in legacy YAML hard-errors at
-`ov box validate` time with a pointer to `ov migrate`.
+`charly box validate` time with a pointer to `charly migrate`.
 
 Test-bed image preflight is the **eval entry point's** job, not the
-deploy's. When `ov eval run --on-host <name>` resolves to a host
+deploy's. When `charly eval run --on-host <name>` resolves to a host
 target, the runner walks the score's recipes, collects every distinct
 `scenario.pod` value plus `score.target_image`, and ensures each
 image is present in local podman storage (LocalImageExists →
-`ov box pull` → fall back to `ov box build` for short names that
-resolve via `cfg.Images`). Operators who never run `ov eval run`
-never pay the image-fetch cost. See `/ov-eval:eval` "Image
+`charly box pull` → fall back to `charly box build` for short names that
+resolve via `cfg.Images`). Operators who never run `charly eval run`
+never pay the image-fetch cost. See `/charly-eval:eval` "Image
 preflight" and `ov/eval_image_preflight.go`.
 
 This invariant — "deploy fetches NOTHING speculative" — is codified
 as a CLAUDE.md Key Rule and enforced at the type level: the
 `LocalSpec` Go struct has no `Images` field, so the surface is
-unreachable from any new code. Migration: `ov migrate`
+unreachable from any new code. Migration: `charly migrate`
 (idempotent; rewrites legacy `image:` blocks under `local.<name>`
 to a dated comment fence).
 
@@ -125,18 +125,18 @@ local:
     description: {feature: CachyOS DX (placeholder), tag: [testing]}
 ```
 
-`ov box validate` emits a WARNING but does not error. A missing `layer:` field entirely IS an error — the field's presence is the signal that the author intended a template.
+`charly box validate` emits a WARNING but does not error. A missing `layer:` field entirely IS an error — the field's presence is the signal that the author intended a template.
 
 ## Cross-References
 
-- `/ov-local:local-deploy` — the `target: local` deployment surface that consumes this template.
-- `/ov-internals:local-infra` — Go file map (`local_spec.go`, `LocalSpec` struct, `findLocalSpec` lookup).
-- `/ov-image:layer` — layer authoring (the building blocks composed by templates).
-- `/ov-build:migrate` — `ov migrate` migrates legacy `kind: host`/`host.yml` projects and splits `overthink.yml`'s inline `image:` / `vm:` / `pod:` / `k8s:` / `local:` / `deploy:` maps into sibling per-kind files. The `ov-cachyos` deploy key + `local.ov-cachyos` template share a name — a concrete demonstration of cross-kind name reuse (a `kind: local` template and a `kind: deploy` entry can share a name).
+- `/charly-local:local-deploy` — the `target: local` deployment surface that consumes this template.
+- `/charly-internals:local-infra` — Go file map (`local_spec.go`, `LocalSpec` struct, `findLocalSpec` lookup).
+- `/charly-image:layer` — layer authoring (the building blocks composed by templates).
+- `/charly-build:migrate` — `charly migrate` migrates legacy `kind: host`/`host.yml` projects and splits `charly.yml`'s inline `image:` / `vm:` / `pod:` / `k8s:` / `local:` / `deploy:` maps into sibling per-kind files. The `ov-cachyos` deploy key + `local.ov-cachyos` template share a name — a concrete demonstration of cross-kind name reuse (a `kind: local` template and a `kind: deploy` entry can share a name).
 
 ## Cross-kind name reuse
 
-A `kind: local` template's name lives in the `local:` namespace, independent of layer / image / pod / vm / k8s / deploy. The canonical example is `ov-cachyos` — `local.ov-cachyos` is the template; `deploy.ov-cachyos` is the deployment entry that applies it; both share the name without conflict. Verbs disambiguate: `ov update ov-cachyos` resolves to the deploy entry; the template is referenced internally via the deploy's `local: ov-cachyos` field. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged".
+A `kind: local` template's name lives in the `local:` namespace, independent of layer / image / pod / vm / k8s / deploy. The canonical example is `ov-cachyos` — `local.ov-cachyos` is the template; `deploy.ov-cachyos` is the deployment entry that applies it; both share the name without conflict. Verbs disambiguate: `charly update ov-cachyos` resolves to the deploy entry; the template is referenced internally via the deploy's `local: ov-cachyos` field. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged".
 
 ## When to Use This Skill
 

@@ -47,17 +47,17 @@ labwc-wrapper exports all XKB environment variables with defaults, making keyboa
 | `XKB_DEFAULT_OPTIONS` | (empty) | XKB options (compose:ralt, caps:escape) |
 | `XKB_DEFAULT_RULES` | `evdev` | XKB rules (always evdev, not configurable) |
 
-All except RULES are declared as `env_accept` — override via `ov config -e`:
+All except RULES are declared as `env_accept` — override via `charly config -e`:
 
 ```bash
 # German QWERTZ layout
-ov config selkies-desktop -e XKB_DEFAULT_LAYOUT=de
+charly config selkies-desktop -e XKB_DEFAULT_LAYOUT=de
 
 # French AZERTY with no dead keys
-ov config selkies-desktop -e XKB_DEFAULT_LAYOUT=fr -e XKB_DEFAULT_VARIANT=nodeadkeys
+charly config selkies-desktop -e XKB_DEFAULT_LAYOUT=fr -e XKB_DEFAULT_VARIANT=nodeadkeys
 ```
 
-The compositor and selkies input handler both read `XKB_DEFAULT_LAYOUT` from the environment, ensuring the scancode map matches the compositor's layout. See `/ov-selkies:selkies` for the keyboard input pipeline details.
+The compositor and selkies input handler both read `XKB_DEFAULT_LAYOUT` from the environment, ensuring the scancode map matches the compositor's layout. See `/charly-selkies:selkies` for the keyboard input pipeline details.
 
 ## Service (supervisord)
 
@@ -99,8 +99,8 @@ The supervised service uses:
 There is no Chrome eventlistener and no `PROCESS_STATE_FATAL` circuit breaker — relaunch is
 handled entirely by `restart: always` on the supervised service. The chrome layer's cgroup
 resource caps (`memory_max`/`memory_high`/`memory_swap_max`/`shm_size`) still apply. See
-`/ov-selkies:selkies-desktop-layer` and `/ov-infrastructure:supervisord` for the
-supervised-service pattern, and `/ov-selkies:chrome` for the resource caps.
+`/charly-selkies:selkies-desktop-layer` and `/charly-infrastructure:supervisord` for the
+supervised-service pattern, and `/charly-selkies:chrome` for the resource caps.
 
 **sway-browser-vnc is unaffected:** it launches Chrome via the chrome-sway layer (not
 selkies-core), is not pixelflux-nested, and does not hit the startup-race.
@@ -116,16 +116,16 @@ All windows open maximized (ideal for streaming desktop):
 
 ## Used In Images
 
-- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Related Skills
 
-- `/ov-selkies:selkies` — pixelflux streaming engine (provides `wayland-1` that labwc connects to)
-- `/ov-selkies:selkies-desktop-layer` — desktop metalayer that composes labwc + chrome + waybar + selkies
-- `/ov-selkies:waybar-labwc` — status bar configured for labwc
-- `/ov-selkies:chrome` — Chrome browser (supervised by the selkies-core `[program:chrome]` service)
-- `/ov-eval:wl` — Wayland automation commands (screenshots, input, window management). Supports KWin (KDE Plasma) in addition to wlroots (sway/labwc); on labwc it uses the wlroots backends (wlrctl pointer/toplevel, wlr-randr, wtype, wl-clipboard, pixelflux-screenshot)
+- `/charly-selkies:selkies` — pixelflux streaming engine (provides `wayland-1` that labwc connects to)
+- `/charly-selkies:selkies-desktop-layer` — desktop metalayer that composes labwc + chrome + waybar + selkies
+- `/charly-selkies:waybar-labwc` — status bar configured for labwc
+- `/charly-selkies:chrome` — Chrome browser (supervised by the selkies-core `[program:chrome]` service)
+- `/charly-eval:wl` — Wayland automation commands (screenshots, input, window management). Supports KWin (KDE Plasma) in addition to wlroots (sway/labwc); on labwc it uses the wlroots backends (wlrctl pointer/toplevel, wlr-randr, wtype, wl-clipboard, pixelflux-screenshot)
 
 ## When to Use This Skill
 
@@ -133,5 +133,5 @@ All windows open maximized (ideal for streaming desktop):
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

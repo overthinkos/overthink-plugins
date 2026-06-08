@@ -23,7 +23,7 @@ description: |
 |------|-------------|-----------|
 | `chrome-devtools` | `http://{{.ContainerName}}:9224/mcp` | http |
 
-Pod-aware: same-container consumers receive `http://localhost:9224/mcp`, cross-container consumers receive `http://ov-<image>:9224/mcp`. Consumed by hermes (`mcp_accept: chrome-devtools`) for MCP-based browser inspection and automation.
+Pod-aware: same-container consumers receive `http://localhost:9224/mcp`, cross-container consumers receive `http://charly-<image>:9224/mcp`. Consumed by hermes (`mcp_accept: chrome-devtools`) for MCP-based browser inspection and automation.
 
 ## Architecture
 
@@ -64,8 +64,8 @@ Hermes `config.yaml` is guarded by a `# ov:auto-configured` sentinel — it only
 
 **Fix:** Delete config.yaml and restart hermes:
 ```bash
-ov shell <image> -c "rm /opt/data/config.yaml"
-ov service restart <image> hermes
+charly shell <image> -c "rm /opt/data/config.yaml"
+charly service restart <image> hermes
 ```
 
 After restart, `hermes mcp list` should show `chrome-devtools` as enabled with all 29 tools.
@@ -76,23 +76,23 @@ This layer is auto-included by the `chrome` base layer via `layers: [chrome-devt
 
 ## Used In Layers
 
-- `/ov-selkies:chrome` — includes via `layers: [chrome-devtools-mcp]`
+- `/charly-selkies:chrome` — includes via `layers: [chrome-devtools-mcp]`
 
 ## Used In Images (via chrome dependency chain)
 
-- `/ov-selkies:selkies-labwc`
-- `/ov-selkies:selkies-labwc-nvidia`
-- `/ov-selkies:sway-browser-vnc`
+- `/charly-selkies:selkies-labwc`
+- `/charly-selkies:selkies-labwc-nvidia`
+- `/charly-selkies:sway-browser-vnc`
 - All other images containing a chrome variant
 
 ## Related Skills
 
-- `/ov-selkies:chrome` — parent layer, provides Chrome + CDP on port 9222
-- `/ov-jupyter:jupyter-mcp` — analogous MCP server pattern (Tier 1, different domain)
-- `/ov-hermes:hermes` — consumes via `mcp_accept: chrome-devtools`
-- `/ov-tools:mcporter` — MCP server CLI (npm-based, similar npm install pattern)
-- `/ov-eval:cdp` — direct Chrome DevTools Protocol commands (lower-level than MCP)
-- `/ov-build:ov-mcp-cmd` — test-side client for this layer's MCP endpoint (`ov eval mcp ping`, `list-tools`, etc.). The layer ships 2 deploy-scope `mcp:` declarative checks (`mcp-chrome-devtools-ping`, `mcp-chrome-devtools-list-tools` asserting `navigate_page` / `take_screenshot`). **Port-publishing gotcha**: when this layer is added to an image that already has a `deploy.yml` `port:` override (e.g. `sway-browser-vnc`), port 9224 may not be published until the override is updated. `ov eval mcp` surfaces this with the exact `ports: [9224:9224]` remediation message — see `/ov-build:ov-mcp-cmd` for the full fix.
+- `/charly-selkies:chrome` — parent layer, provides Chrome + CDP on port 9222
+- `/charly-jupyter:jupyter-mcp` — analogous MCP server pattern (Tier 1, different domain)
+- `/charly-hermes:hermes` — consumes via `mcp_accept: chrome-devtools`
+- `/charly-tools:mcporter` — MCP server CLI (npm-based, similar npm install pattern)
+- `/charly-eval:cdp` — direct Chrome DevTools Protocol commands (lower-level than MCP)
+- `/charly-build:ov-mcp-cmd` — test-side client for this layer's MCP endpoint (`charly eval mcp ping`, `list-tools`, etc.). The layer ships 2 deploy-scope `mcp:` declarative checks (`mcp-chrome-devtools-ping`, `mcp-chrome-devtools-list-tools` asserting `navigate_page` / `take_screenshot`). **Port-publishing gotcha**: when this layer is added to an image that already has a `deploy.yml` `port:` override (e.g. `sway-browser-vnc`), port 9224 may not be published until the override is updated. `charly eval mcp` surfaces this with the exact `ports: [9224:9224]` remediation message — see `/charly-build:ov-mcp-cmd` for the full fix.
 
 ## When to Use This Skill
 
@@ -107,5 +107,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

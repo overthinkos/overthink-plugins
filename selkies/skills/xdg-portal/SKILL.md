@@ -55,16 +55,16 @@ rpm:
 
 ## Used In Images
 
-- `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
 
 ## Cross-References
 
-- `/ov-selkies:sway-desktop` — Desktop metalayer that includes this layer
-- `/ov-infrastructure:dbus-layer` — D-Bus session bus (required dependency)
-- `/ov-selkies:pipewire` — PipeWire (required for ScreenCast)
-- `/ov-selkies:sway` — Sway compositor (required)
+- `/charly-selkies:sway-desktop` — Desktop metalayer that includes this layer
+- `/charly-infrastructure:dbus-layer` — D-Bus session bus (required dependency)
+- `/charly-selkies:pipewire` — PipeWire (required for ScreenCast)
+- `/charly-selkies:sway` — Sway compositor (required)
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -1,25 +1,25 @@
 ---
 name: validate
 description: |
-  MUST be invoked before any work involving: ov box validate command, validation rules, common validation errors, or checking box.yml and layer definitions.
+  MUST be invoked before any work involving: charly box validate command, validation rules, common validation errors, or checking box.yml and layer definitions.
 ---
 
-# ov box validate -- Validation Commands
+# charly box validate -- Validation Commands
 
-Invoked as `ov box validate`. See `/ov-image:image` for the family overview.
+Invoked as `charly box validate`. See `/charly-image:image` for the family overview.
 
 ## Overview
 
-`ov box validate` checks `box.yml` and all layer definitions for errors. Validation collects all errors at once rather than failing on the first.
+`charly box validate` checks `box.yml` and all layer definitions for errors. Validation collects all errors at once rather than failing on the first.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Validate all | `ov box validate` | Check box.yml + all layers (enabled images only) |
-| Validate disabled too | `ov box validate --include-disabled` | Extend the validation pass to images marked `enabled: false` (does not modify box.yml) |
-| Check version | `ov version` | Verify CalVer computation |
-| Inspect image | `ov box inspect <image>` | Show resolved config |
+| Validate all | `charly box validate` | Check box.yml + all layers (enabled images only) |
+| Validate disabled too | `charly box validate --include-disabled` | Extend the validation pass to images marked `enabled: false` (does not modify box.yml) |
+| Check version | `charly version` | Verify CalVer computation |
+| Inspect image | `charly box inspect <image>` | Show resolved config |
 
 ## Exit Codes
 
@@ -45,7 +45,7 @@ Invoked as `ov box validate`. See `/ov-image:image` for the family overview.
 
 ### `task:` Rules
 
-See `/ov-image:layer` for the full verb catalog. The validator enforces:
+See `/charly-image:layer` for the full verb catalog. The validator enforces:
 
 - **Exactly one verb per task.** A task map must contain exactly one of `cmd` / `mkdir` / `copy` / `write` / `link` / `download` / `setcap` / `build`. Zero verbs → `"task has no action"`; multiple → `"task has conflicting actions: X and Y"`.
 - **Per-verb required modifiers:**
@@ -131,12 +131,12 @@ See `/ov-image:layer` for the full verb catalog. The validator enforces:
   fetched layer's OWN `version:` and dedups by it: same per-entity version → no
   warning (a re-tag of an unchanged layer is silent); different per-entity
   versions → warns once and resolves to the **newest** (highest CalVer). Run
-  `ov box reconcile` to align the pins and clear any warning. A fetched layer
+  `charly box reconcile` to align the pins and clear any warning. A fetched layer
   with no `version:` IS a hard error (the layer kind requires one).
 - Different layers from the same repo can use different versions
 - Collection is reachability-scoped: only layers reachable from the enabled
-  images' `base:`/`builder:` chains are fetched. See `/ov-internals:go`
-  "Remote-layer resolver" and `/ov-build:reconcile`.
+  images' `base:`/`builder:` chains are fetched. See `/charly-internals:go`
+  "Remote-layer resolver" and `/charly-build:reconcile`.
 
 ## Common Validation Errors
 
@@ -161,49 +161,49 @@ Volume names must be unique within a layer.
 ### Validate Before Building
 
 ```bash
-ov box validate && ov box build my-image
+charly box validate && charly box build my-image
 ```
 
 ### Debug Validation Errors
 
 ```bash
-ov box validate 2>&1                     # See all errors at once
-ov box inspect <image>                   # Check resolved config
-ov box list candies                       # Verify layer exists
+charly box validate 2>&1                     # See all errors at once
+charly box inspect <image>                   # Check resolved config
+charly box list candies                       # Verify layer exists
 ```
 
 ## Project directory override
 
-`ov box validate` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov-image:image` "Project directory resolution".
+`charly box validate` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
-### `ov box` family siblings
+### `charly box` family siblings
 
-- `/ov-image:image` -- Family overview + box.yml composition reference
-- `/ov-build:build` -- Building validated images
-- `/ov-build:generate` -- Containerfile generation after validation
-- `/ov-build:inspect` -- Inspect a specific image after validation
-- `/ov-build:list` -- Enumerate images/layers to validate
-- `/ov-build:merge` -- Post-build layer consolidation
-- `/ov-build:new` -- Scaffold new layers before validation
-- `/ov-build:pull` -- Pull prebuilt images (orthogonal to validation)
+- `/charly-image:image` -- Family overview + box.yml composition reference
+- `/charly-build:build` -- Building validated images
+- `/charly-build:generate` -- Containerfile generation after validation
+- `/charly-build:inspect` -- Inspect a specific image after validation
+- `/charly-build:list` -- Enumerate images/layers to validate
+- `/charly-build:merge` -- Post-build layer consolidation
+- `/charly-build:new` -- Scaffold new layers before validation
+- `/charly-build:pull` -- Pull prebuilt images (orthogonal to validation)
 
 ### Related skills
 
-- `/ov-image:layer` — **Canonical reference** for the task verb catalog, `var:` substitution, YAML anchors, execution order. The validator rules above enforce what's documented there.
-- `/ov-build:generate` — What the generator emits from validated input (per-verb emitters, cache-mount inheritance, inline-content staging).
-- `/ov-internals:generate-source` — Internal architecture of the task emission pipeline.
-- `/ov-eval:eval` — `ov box validate` schema-checks every `eval:` entry: exactly-one-verb, attribute types, scope/variable consistency (build-scope can't reference runtime-only vars), `id:` uniqueness per section, matcher operator allowlist, unroutable-check rejection. The five live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`) also get per-verb method-allowlist + required-modifier enforcement via `validateOvVerb` (deploy-scope-only; unknown methods rejected with the allowed set listed).
-- `/ov-build:ov-mcp-cmd` — the standalone reference for the `mcp:` verb: required modifiers (`tool:` for `call`, `uri:` for `read`), the 7-method allowlist, and the URL-rewrite / port-publishing behavior that authors occasionally hit.
-- `/ov-eval:cdp`, `/ov-eval:wl`, `/ov-eval:dbus`, `/ov-eval:vnc` — per-verb references for the other four live-container verbs.
+- `/charly-image:layer` — **Canonical reference** for the task verb catalog, `var:` substitution, YAML anchors, execution order. The validator rules above enforce what's documented there.
+- `/charly-build:generate` — What the generator emits from validated input (per-verb emitters, cache-mount inheritance, inline-content staging).
+- `/charly-internals:generate-source` — Internal architecture of the task emission pipeline.
+- `/charly-eval:eval` — `charly box validate` schema-checks every `eval:` entry: exactly-one-verb, attribute types, scope/variable consistency (build-scope can't reference runtime-only vars), `id:` uniqueness per section, matcher operator allowlist, unroutable-check rejection. The five live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`) also get per-verb method-allowlist + required-modifier enforcement via `validateOvVerb` (deploy-scope-only; unknown methods rejected with the allowed set listed).
+- `/charly-build:ov-mcp-cmd` — the standalone reference for the `mcp:` verb: required modifiers (`tool:` for `call`, `uri:` for `read`), the 7-method allowlist, and the URL-rewrite / port-publishing behavior that authors occasionally hit.
+- `/charly-eval:cdp`, `/charly-eval:wl`, `/charly-eval:dbus`, `/charly-eval:vnc` — per-verb references for the other four live-container verbs.
 
 ## Cross-kind name reuse — NOT a uniqueness violation
 
-`ov box validate` does NOT enforce global name uniqueness across kinds. The same name MAY exist simultaneously as a layer (`candy/<name>/`), an `image:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry, AND a `deploy:` entry. Uniqueness is scoped to each kind. Do not write a validator that flags `image.foo + vm.foo` as ambiguous — verbs disambiguate by command context. The loader raises hard load-time errors on: (a) the obsolete `deploy.qc` / `deploy.cachyos-dx` keys; (b) any obsolete `kind: deployment` doc or root-key `deployment:` (the deploy kind is `kind: deploy`). Every such error points at `ov migrate`. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/ov-build:migrate`.
+`charly box validate` does NOT enforce global name uniqueness across kinds. The same name MAY exist simultaneously as a layer (`candy/<name>/`), an `image:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry, AND a `deploy:` entry. Uniqueness is scoped to each kind. Do not write a validator that flags `image.foo + vm.foo` as ambiguous — verbs disambiguate by command context. The loader raises hard load-time errors on: (a) the obsolete `deploy.qc` / `deploy.cachyos-dx` keys; (b) any obsolete `kind: deployment` doc or root-key `deployment:` (the deploy kind is `kind: deploy`). Every such error points at `charly migrate`. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/charly-build:migrate`.
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves ov box validate command, validation rules, common validation errors, or checking box.yml and layer definitions. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves charly box validate command, validation rules, common validation errors, or checking box.yml and layer definitions. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Validate before building to catch errors early.

@@ -51,7 +51,7 @@ Multiple candidates per distro handle historical path drift. `ResolveOvmfPaths` 
 
 The shared template stays read-only. Every VM that boots with UEFI gets its own NVRAM copy; no two VMs share NVRAM state.
 
-Per-VM NVRAM path convention: `~/.local/share/ov/vm/ov-<vm-name>/nvram.fd`.
+Per-VM NVRAM path convention: `~/.local/share/ov/vm/charly-<vm-name>/nvram.fd`.
 
 ## Secure-boot lock-in warning
 
@@ -61,7 +61,7 @@ Per-VM NVRAM path convention: `~/.local/share/ov/vm/ov-<vm-name>/nvram.fd`.
 
 ## BIOS as an escape valve
 
-From `/ov-vm:arch` Finding B: UEFI boot with a stale BOOTX64.EFI (embedded grub.cfg older than the image's on-disk `/boot/grub/grub.cfg`) is a common failure mode for distribution cloud images. BIOS boot sidesteps it entirely — GRUB reads `/boot/grub/grub.cfg` from the root filesystem, which is always current.
+From `/charly-vm:arch` Finding B: UEFI boot with a stale BOOTX64.EFI (embedded grub.cfg older than the image's on-disk `/boot/grub/grub.cfg`) is a common failure mode for distribution cloud images. BIOS boot sidesteps it entirely — GRUB reads `/boot/grub/grub.cfg` from the root filesystem, which is always current.
 
 When `spec.Firmware == "bios"`:
 
@@ -90,8 +90,8 @@ The libvirt renderer's `RenderDomain` checks for `codePath == ""` and skips `<lo
 
 ## Cross-References
 
-- `/ov-internals:vm-spec` — `spec.Firmware` field
-- `/ov-internals:libvirt-renderer` — `RenderDomain` consumer; `<loader>`/`<nvram>` emission conditions
-- `/ov-vm:vm` — command-family; BIOS vs UEFI decision matrix
-- `/ov-vm:arch` — live-test RCA showing why `firmware: bios` is the right default for Arch cloud image
-- `/ov-vm:bazzite-bootc` — Fedora-based bootc VM, typical UEFI case
+- `/charly-internals:vm-spec` — `spec.Firmware` field
+- `/charly-internals:libvirt-renderer` — `RenderDomain` consumer; `<loader>`/`<nvram>` emission conditions
+- `/charly-vm:vm` — command-family; BIOS vs UEFI decision matrix
+- `/charly-vm:arch` — live-test RCA showing why `firmware: bios` is the right default for Arch cloud image
+- `/charly-vm:bazzite-bootc` — Fedora-based bootc VM, typical UEFI case

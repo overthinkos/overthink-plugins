@@ -34,12 +34,12 @@ Requires an Arch-based image with `build: [pac, aur]` so the builder can resolve
 
 ## Used In Images
 
-- `/ov-distros:arch-test` — Arch packaging test image
+- `/charly-distros:arch-test` — Arch packaging test image
 
 ## Related Layers
 
-- `/ov-distros:arch-pac-test` — companion pacman package test
-- `/ov-tools:yay` — AUR helper that enables `aur:` builds
+- `/charly-distros:arch-pac-test` — companion pacman package test
+- `/charly-tools:yay` — AUR helper that enables `aur:` builds
 
 ## When to Use This Skill
 
@@ -50,5 +50,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

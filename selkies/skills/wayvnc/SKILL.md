@@ -30,8 +30,8 @@ my-desktop:
 ```
 
 ```bash
-ov eval vnc screenshot my-image          # capture desktop
-ov eval vnc passwd my-image --generate   # set up VeNCrypt/TLS auth
+charly eval vnc screenshot my-image          # capture desktop
+charly eval vnc passwd my-image --generate   # set up VeNCrypt/TLS auth
 ```
 
 ## NVIDIA Headless: Fixed via Pixman + DPMS Workaround
@@ -42,7 +42,7 @@ VNC screenshots work correctly on NVIDIA headless when used via `sway-desktop-vn
 
 2. **DPMS workaround** — wayvnc 0.9.1 gates screen capture on `zwlr_output_power_v1` mode events, but sway's headless backend never emits them. The `wayvnc-wrapper` performs a minimal VNC handshake to trigger wayvnc to bind the power manager, then `swaymsg "output HEADLESS-1 power on"` forces the missing event. Fixed in wayvnc git main (post-0.9.1) — remove workaround when Fedora ships the fix.
 
-For images NOT using `sway-desktop-vnc` (custom sway + wayvnc setups), `ov eval wl screenshot` (grim) remains a reliable fallback.
+For images NOT using `sway-desktop-vnc` (custom sway + wayvnc setups), `charly eval wl screenshot` (grim) remains a reliable fallback.
 
 ### Startup Timing
 
@@ -54,18 +54,18 @@ This ensures sway has set the output resolution (default 1920x1080) before wayvn
 
 ## Used In Images
 
-Part of `/ov-selkies:sway-desktop` composition.
+Part of `/charly-selkies:sway-desktop` composition.
 
 ## Related Layers
 
-- `/ov-infrastructure:supervisord` -- process manager dependency
-- `/ov-selkies:sway` -- Wayland compositor (provides display)
-- `/ov-selkies:sway-desktop` -- composition that includes wayvnc
-- `/ov-selkies:pipewire` -- sibling in desktop stack
+- `/charly-infrastructure:supervisord` -- process manager dependency
+- `/charly-selkies:sway` -- Wayland compositor (provides display)
+- `/charly-selkies:sway-desktop` -- composition that includes wayvnc
+- `/charly-selkies:pipewire` -- sibling in desktop stack
 
 ## Related Commands
 
-- `/ov-eval:vnc` — VNC screenshot, click, type, key, mouse commands
+- `/charly-eval:vnc` — VNC screenshot, click, type, key, mouse commands
 
 ## When to Use This Skill
 
@@ -79,5 +79,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

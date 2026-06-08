@@ -5,15 +5,15 @@ and the marketplace/plugin manifests.
 
 **Load these skills FIRST (R0):**
 
-- `/ov-internals:skills` — skill authoring/maintenance, the plugin/skill
+- `/charly-internals:skills` — skill authoring/maintenance, the plugin/skill
   directory conventions, the agent-discovery + per-directory-signpost rules,
   and where content belongs (CLAUDE.md vs skill vs CHANGELOG vs memory).
-- `/ov-internals:agents` — authoring or invoking sub-agents
+- `/charly-internals:agents` — authoring or invoking sub-agents
   (`plugins/internals/agents/*.md`), the dynamic workflows, agent teams, and
   the hooks doctrine.
 
 **Authoritative rules live in the repo-root `CLAUDE.md`** (the superproject's
-`CLAUDE.md`, one level up when this is a submodule of `overthink`). R0–R10,
+`CLAUDE.md`, one level up when this is a submodule of `opencharly`). R0–R10,
 the hard-cutover policy, AI attribution, and the git-workflow are defined
 there — this file only signposts and never restates them. History lives in
 `CHANGELOG.md`; skills describe current behavior in present tense.

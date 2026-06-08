@@ -33,20 +33,20 @@ The waybar `pulseaudio` module has `"on-click": "pavucontrol"` — clicking the 
 
 ## Used In
 
-- `/ov-selkies:sway-desktop` -- via metalayer composition
-- `/ov-selkies:selkies-desktop-layer` -- via metalayer composition
+- `/charly-selkies:sway-desktop` -- via metalayer composition
+- `/charly-selkies:selkies-desktop-layer` -- via metalayer composition
 
 ## Used In Images
 
-- `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
-- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
+- `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Related Layers
 
-- `/ov-selkies:pipewire` -- audio server (provides PulseAudio compatibility)
-- `/ov-selkies:waybar` -- volume indicator with pavucontrol on-click
-- `/ov-selkies:waybar-labwc` -- same volume indicator
+- `/charly-selkies:pipewire` -- audio server (provides PulseAudio compatibility)
+- `/charly-selkies:waybar` -- volume indicator with pavucontrol on-click
+- `/charly-selkies:waybar-labwc` -- same volume indicator
 
 ## When to Use This Skill
 
@@ -58,5 +58,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

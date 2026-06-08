@@ -32,9 +32,9 @@ Unified config shared with the `waybar` layer (Catppuccin Mocha, bottom bar):
 
 | Position | Module | Purpose |
 |----------|--------|---------|
-| Left | `custom/chrome` | (Re)start Chrome button — calls `chrome-restart` (see `/ov-selkies:chrome`) |
+| Left | `custom/chrome` | (Re)start Chrome button — calls `chrome-restart` (see `/charly-selkies:chrome`) |
 | Center | `wlr/taskbar` | Running app icons — click to activate, middle-click to close, right-click to minimize |
-| Right | `custom/notification` | swaync notification toggle — click to open notification panel (see `/ov-selkies:swaync`) |
+| Right | `custom/notification` | swaync notification toggle — click to open notification panel (see `/charly-selkies:swaync`) |
 
 ### Style
 
@@ -48,8 +48,8 @@ Catppuccin Mocha theme — semi-transparent dark background, JetBrains Mono + Sy
 
 ## Used In Images
 
-- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Note: Difference from `waybar` Layer
 
@@ -60,12 +60,12 @@ Both layers use the same config. The only differences are:
 
 ## Related
 
-- `/ov-selkies:waybar` — the sway-native sibling with the same config
-- `/ov-selkies:labwc` — compositor this layer targets
-- `/ov-selkies:selkies-desktop-layer` — metalayer that composes this layer
-- `/ov-selkies:swaync` + `/ov-selkies:chrome` — consumers of the status-bar modules
+- `/charly-selkies:waybar` — the sway-native sibling with the same config
+- `/charly-selkies:labwc` — compositor this layer targets
+- `/charly-selkies:selkies-desktop-layer` — metalayer that composes this layer
+- `/charly-selkies:swaync` + `/charly-selkies:chrome` — consumers of the status-bar modules
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

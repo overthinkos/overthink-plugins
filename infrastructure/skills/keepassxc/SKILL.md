@@ -36,7 +36,7 @@ my-desktop-image:
 
 ## Used In Images
 
-- `/ov-distros:bazzite` — bootc desktop image that bundles KeePassXC via the `/ov-selkies:desktop-apps` layer set
+- `/charly-distros:bazzite` — bootc desktop image that bundles KeePassXC via the `/charly-selkies:desktop-apps` layer set
 
 ## Tests
 
@@ -46,24 +46,24 @@ One declarative check (build-scope):
 
 No deploy-scope tests: KeePassXC is a GUI app launched on-demand by the user inside the desktop session — there's no listening port or headless responder to probe.
 
-## Relationship to `/ov-build:secrets`
+## Relationship to `/charly-build:secrets`
 
-This layer is the **GUI** for editing `.kdbx` databases. `/ov-build:secrets` is the ov CLI credential store — which talks to the **Secret Service** (system keyring), NOT to a `.kdbx` file directly.
+This layer is the **GUI** for editing `.kdbx` databases. `/charly-build:secrets` is the charly CLI credential store — which talks to the **Secret Service** (system keyring), NOT to a `.kdbx` file directly.
 
 - Author a `.kdbx` file in KeePassXC (GUI) → enable its **FdoSecrets** plugin (Settings → Secret Service Integration) and mark the group "Secret Service exposed" → its entries appear on the Secret Service bus, where `ov`'s keyring backend reads them. No `ov`-side `.kdbx` configuration is involved.
-- See `/ov-infrastructure:keepassxc-keyring` for the layer that wires KeePassXC as the host's Secret Service provider.
+- See `/charly-infrastructure:keepassxc-keyring` for the layer that wires KeePassXC as the host's Secret Service provider.
 
 ## Alternative: bundled placement in `desktop-apps`
 
-`keepassxc` also ships inside `/ov-selkies:desktop-apps` alongside `btop`, `chromium`, `cockpit`, `transmission`, `vlc`, `zsh` — the right choice when you want the whole bundle. Use this single-responsibility layer when you want KeePassXC without dragging in the rest.
+`keepassxc` also ships inside `/charly-selkies:desktop-apps` alongside `btop`, `chromium`, `cockpit`, `transmission`, `vlc`, `zsh` — the right choice when you want the whole bundle. Use this single-responsibility layer when you want KeePassXC without dragging in the rest.
 
 ## Related Skills
 
-- `/ov-selkies:desktop-apps` — bundle that also includes keepassxc (use when you want the full desktop-app set)
-- `/ov-distros:bazzite` — bootc desktop image whose `desktop-apps` set is the primary consumer of KeePassXC
-- `/ov-build:secrets` — ov CLI credential store (Secret Service + GPG; reads a KeePassXC database only via its FdoSecrets / Secret Service exposure)
-- `/ov-image:layer` — layer authoring reference
-- `/ov-eval:eval` — declarative testing reference
+- `/charly-selkies:desktop-apps` — bundle that also includes keepassxc (use when you want the full desktop-app set)
+- `/charly-distros:bazzite` — bootc desktop image whose `desktop-apps` set is the primary consumer of KeePassXC
+- `/charly-build:secrets` — charly CLI credential store (Secret Service + GPG; reads a KeePassXC database only via its FdoSecrets / Secret Service exposure)
+- `/charly-image:layer` — layer authoring reference
+- `/charly-eval:eval` — declarative testing reference
 
 ## When to Use This Skill
 
@@ -71,4 +71,4 @@ Use when the user asks about:
 
 - Adding KeePassXC to a container or VM image without pulling in `desktop-apps`
 - Why keepassxc lives in two places (standalone layer vs. desktop-apps bundle)
-- Relationship between the KeePassXC GUI and `ov secrets`
+- Relationship between the KeePassXC GUI and `charly secrets`

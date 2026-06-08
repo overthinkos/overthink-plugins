@@ -2,20 +2,20 @@
 name: generate
 description: |
   Containerfile generation from box.yml and layers.
-  MUST be invoked before any work involving: ov box generate command, Containerfile generation, .build/ directory contents, the task-verb emission pipeline, or understanding generated output.
+  MUST be invoked before any work involving: charly box generate command, Containerfile generation, .build/ directory contents, the task-verb emission pipeline, or understanding generated output.
 ---
 
-# ov box generate -- Containerfile Generation
+# charly box generate -- Containerfile Generation
 
-Invoked as `ov box generate`. See `/ov-image:image` for the family overview.
+Invoked as `charly box generate`. See `/charly-image:image` for the family overview.
 
 ## Overview
 
-Parses `box.yml`, scans `candy/`, resolves the dependency graph, and emits all build artifacts into the `.build/` directory. Called internally by `ov box build` but can be run standalone to inspect generated output before a build.
+Parses `box.yml`, scans `candy/`, resolves the dependency graph, and emits all build artifacts into the `.build/` directory. Called internally by `charly box build` but can be run standalone to inspect generated output before a build.
 
-The generator is **config-driven** — distro format templates, builder stage templates, and init system fragments all come from a single `build.yml` (three top-level sections: `distro:`, `builder:`, `init:`) — and **declarative per-task** for install logic — each task verb (see `/ov-image:layer`) has a dedicated emitter that writes the right Containerfile directive.
+The generator is **config-driven** — distro format templates, builder stage templates, and init system fragments all come from a single `build.yml` (three top-level sections: `distro:`, `builder:`, `init:`) — and **declarative per-task** for install logic — each task verb (see `/charly-image:layer`) has a dedicated emitter that writes the right Containerfile directive.
 
-**IR-driven emission**: `ov box generate` drives emission through the shared `DeployTarget` interface. `box.yml` + `candy.yml` compile into an `InstallPlan` IR (one per layer); `OCITarget.Emit` walks the IR and writes Containerfile text. The same IR backs `PodDeployTarget` (overlay-Containerfile synthesis when `add_candy:` is set) and `LocalDeployTarget` (local-target execution). See `/ov-internals:install-plan` for the type catalog and `/ov-internals:generate-source` for the Go-level call graph.
+**IR-driven emission**: `charly box generate` drives emission through the shared `DeployTarget` interface. `box.yml` + `candy.yml` compile into an `InstallPlan` IR (one per layer); `OCITarget.Emit` walks the IR and writes Containerfile text. The same IR backs `PodDeployTarget` (overlay-Containerfile synthesis when `add_candy:` is set) and `LocalDeployTarget` (local-target execution). See `/charly-internals:install-plan` for the type catalog and `/charly-internals:generate-source` for the Go-level call graph.
 
 **Three-phase templates**: `build.yml` format (`formats.<fmt>`) and builder (`builders.<name>`) definitions carry a `phases: { prepare, install, cleanup }.{ container, host }` structure. The generator reads `phases.install.container` when set and falls back to the top-level `install_template:` otherwise. The `host:` cell is consumed only by `LocalDeployTarget` (`target: local` deploys) — the generator ignores it.
 
@@ -23,17 +23,17 @@ The generator is **config-driven** — distro format templates, builder stage te
 
 | Action | Command | Description |
 |---|---|---|
-| Generate all | `ov box generate` | Generate Containerfiles for all enabled images |
-| With tag | `ov box generate --tag TAG` | Override the image tag |
+| Generate all | `charly box generate` | Generate Containerfiles for all enabled images |
+| With tag | `charly box generate --tag TAG` | Override the image tag |
 
-`ov box generate` takes **no positional image argument** — it always writes the full `.build/` tree for every enabled image in `box.yml`. To inspect a single image's output, run `ov box generate` (fast — it reuses scratch-stage caches) and then `cat .build/<image>/Containerfile`. Filtering to one image happens implicitly via `ov box build <image>`, which invokes generate internally and then builds only the requested image + its dependencies.
+`charly box generate` takes **no positional image argument** — it always writes the full `.build/` tree for every enabled image in `box.yml`. To inspect a single image's output, run `charly box generate` (fast — it reuses scratch-stage caches) and then `cat .build/<image>/Containerfile`. Filtering to one image happens implicitly via `charly box build <image>`, which invokes generate internally and then builds only the requested image + its dependencies.
 
 ```bash
 # Generate all Containerfiles
-ov box generate
+charly box generate
 
 # Generate with a custom tag
-ov box generate --tag v1.2.3
+charly box generate --tag v1.2.3
 
 # Inspect generated output
 cat .build/fedora/Containerfile
@@ -65,7 +65,7 @@ For each layer, `writeLayerSteps` runs this sequence:
    c. Emit USER <value> if different from running USER
    d. Dispatch to the verb-specific emitter
    e. Adjacent same-verb same-user tasks coalesce into one directive
-      (mkdir, link, setcap) — see /ov-image:layer execution-order section
+      (mkdir, link, setcap) — see /charly-image:layer execution-order section
    f. Parent-dir auto-insertion for copy/write when no earlier mkdir covers
 5. Builders (pixi/npm/cargo/aur) — placement is end-of-layer unless an
    explicit `- build: all` task appears in tasks:
@@ -87,7 +87,7 @@ For each layer, `writeLayerSteps` runs this sequence:
 
 ## Cache-mount inheritance
 
-Cache mounts come from `build.yml` — `distro:` section (format caches) and `builder:` section (builder caches). `ov tasks.go` picks the right set based on task context:
+Cache mounts come from `build.yml` — `distro:` section (format caches) and `builder:` section (builder caches). `charly tasks.go` picks the right set based on task context:
 
 | Task context | Cache mount(s) |
 |---|---|
@@ -134,13 +134,13 @@ WORKDIR /home/user
 USER 1000
 ```
 
-The pivot is `ResolvedImage.UserAdopted`, set by the `user_policy:` reconciliation in `ov/config.go:ResolveImage`. See `/ov-image:image` "user_policy" for the policy semantics, `/ov-build:build` "base_user:" for the declaration, and `/ov-distros:ubuntu` for the canonical adopt-mode worked example.
+The pivot is `ResolvedImage.UserAdopted`, set by the `user_policy:` reconciliation in `ov/config.go:ResolveImage`. See `/charly-image:image` "user_policy" for the policy semantics, `/charly-build:build` "base_user:" for the declaration, and `/charly-distros:ubuntu` for the canonical adopt-mode worked example.
 
 Neither branch does destructive metadata mutation (no `usermod -l` rename). Fedora/Arch/Debian always hit the create branch (no `base_user:` declared); Ubuntu under `user_policy: auto` hits the adopt branch.
 
 ## Tag-section install emission
 
-Distro-version tag sections like `debian:13:` and `ubuntu:24.04:` are resolved via first-match-wins on the image's `distro:` priority list (e.g. `["ubuntu:24.04", "ubuntu", "debian"]`). Each matched tag section uses the primary format's full install template — so a tag section can carry `repos:`, `keys:`, `options:`, and `package:`, not just packages alone. See `ov/layers.go:TagPkgConfig.Raw` for the map that captures full tag-section YAML, and `/ov-image:layer` for authoring reference.
+Distro-version tag sections like `debian:13:` and `ubuntu:24.04:` are resolved via first-match-wins on the image's `distro:` priority list (e.g. `["ubuntu:24.04", "ubuntu", "debian"]`). Each matched tag section uses the primary format's full install template — so a tag section can carry `repos:`, `keys:`, `options:`, and `package:`, not just packages alone. See `ov/layers.go:TagPkgConfig.Raw` for the map that captures full tag-section YAML, and `/charly-image:layer` for authoring reference.
 
 ## ARCH / TARGETARCH emission
 
@@ -166,26 +166,26 @@ The Containerfile references the file by its relative path: `COPY --from=<layer-
 ## Behavior
 
 - Generation is idempotent — safe to run repeatedly.
-- `.build/` is disposable and gitignored; `ov box generate` will recreate it from scratch.
-- Layer dependencies resolve transitively and topologically; circular `require:` is a validation error (surfaced by `/ov-build:validate`).
+- `.build/` is disposable and gitignored; `charly box generate` will recreate it from scratch.
+- Layer dependencies resolve transitively and topologically; circular `require:` is a validation error (surfaced by `/charly-build:validate`).
 - Pixi manylinux fix is injected into `pixi.toml` files during the pixi builder stage.
 - Multi-stage builds use builder images declared in `build.yml` `builder:` section (`pixi-builder`, `npm-builder`, `arch-builder` for AUR, etc.).
 - Stale `.build/<image>/` directories (from removed or renamed images) are cleaned at the start of each generation.
 
 ### LABEL placement (cache efficiency)
 
-All `org.overthinkos.*` LABEL directives are emitted at the **end** of
+All `ai.opencharly.*` LABEL directives are emitted at the **end** of
 the final stage, after the last `USER` directive. This means a test or
 label edit only re-runs the LABEL steps themselves (metadata-only, ~2
 sec) instead of invalidating the buildkit cache for every upstream
 RUN/COPY. Particularly important for test authoring: `eval:` edits on
 a 138-step stack like `immich-ml` cost seconds, not minutes per
-iteration. See `/ov-internals:generate-source` "LABEL Placement" for the
-rationale and `/ov-eval:eval` for author-facing workflow implications.
+iteration. See `/charly-internals:generate-source` "LABEL Placement" for the
+rationale and `/charly-eval:eval` for author-facing workflow implications.
 
 ## Bootc-specific generator behaviour
 
-Three emission rules matter specifically for bootc images. The canonical worked example is `/ov-distros:bazzite`.
+Three emission rules matter specifically for bootc images. The canonical worked example is `/charly-distros:bazzite`.
 
 ### 1. `initHasFragments` pre-scan gates empty init stages
 
@@ -193,35 +193,35 @@ Each init system defined in `build.yml` (currently `supervisord` and `systemd`) 
 
 ### 2. `anyRepoHasURL` helper → prepend `dnf5-plugins`
 
-The RPM install_template prepends `dnf install -y dnf5-plugins` whenever any layer `rpm.repos:` entry declares a `url:` (checked via the `anyRepoHasURL` template helper in `ov/format_template.go`). Required because `quay.io/fedora/fedora-bootc:43` strips `dnf5-plugins` (which provides the `config-manager` subcommand) from the default install. Without the prepend, `dnf5 config-manager addrepo --from-repofile=…` — emitted for every URL-based repo — fails with `Unknown argument "config-manager" for command "dnf5"`. `/ov-selkies:ffmpeg` is the canonical URL-repo consumer (adds negativo17's `fedora-multimedia.repo`).
+The RPM install_template prepends `dnf install -y dnf5-plugins` whenever any layer `rpm.repos:` entry declares a `url:` (checked via the `anyRepoHasURL` template helper in `ov/format_template.go`). Required because `quay.io/fedora/fedora-bootc:43` strips `dnf5-plugins` (which provides the `config-manager` subcommand) from the default install. Without the prepend, `dnf5 config-manager addrepo --from-repofile=…` — emitted for every URL-based repo — fails with `Unknown argument "config-manager" for command "dnf5"`. `/charly-selkies:ffmpeg` is the canonical URL-repo consumer (adds negativo17's `fedora-multimedia.repo`).
 
 ### 3. `export BUILD_ARCH=…;` (not prefix assignment) in `download:` tasks
 
-The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUILD_ARCH}…"` with an explicit semicolon-separator `export`, not the prefix form `BUILD_ARCH=$(uname -m) curl ...`. Bash prefix assignments set the variable in the spawned command's environment **after** the shell has already expanded `${BUILD_ARCH}` in the command's arguments — the expansion sees an unset variable, the URL resolves with an empty arch string, and the download 404s. Source: `ov/tasks.go:envPrefix` with the documenting comment. Layers that use `${BUILD_ARCH}` in a `download:` URL: `/ov-languages:pixi`, `/ov-coder:typst`, `/ov-tools:ujust`, `/ov-tools:yay`, `/ov-infrastructure:vectorchord`, `/ov-tools:sherpa-onnx`.
+The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUILD_ARCH}…"` with an explicit semicolon-separator `export`, not the prefix form `BUILD_ARCH=$(uname -m) curl ...`. Bash prefix assignments set the variable in the spawned command's environment **after** the shell has already expanded `${BUILD_ARCH}` in the command's arguments — the expansion sees an unset variable, the URL resolves with an empty arch string, and the download 404s. Source: `ov/tasks.go:envPrefix` with the documenting comment. Layers that use `${BUILD_ARCH}` in a `download:` URL: `/charly-languages:pixi`, `/charly-coder:typst`, `/charly-tools:ujust`, `/charly-tools:yay`, `/charly-infrastructure:vectorchord`, `/charly-tools:sherpa-onnx`.
 
 ## Project directory override
 
-`ov box generate` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov-image:image` "Project directory resolution".
+`charly box generate` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
-### `ov box` family siblings
+### `charly box` family siblings
 
-- `/ov-image:image` -- Family overview + box.yml composition reference
-- `/ov-build:build` -- Building images (calls generate internally)
-- `/ov-build:inspect` -- Inspect generated output for a specific image
-- `/ov-build:list` -- Enumerate targets before generation
-- `/ov-build:merge` -- Post-build layer consolidation
-- `/ov-build:new` -- Scaffold a new layer to generate into
-- `/ov-build:pull` -- Pull prebuilt images (orthogonal to generate)
-- `/ov-build:validate` -- Validation rules for images and layers (including per-verb task rules)
+- `/charly-image:image` -- Family overview + box.yml composition reference
+- `/charly-build:build` -- Building images (calls generate internally)
+- `/charly-build:inspect` -- Inspect generated output for a specific image
+- `/charly-build:list` -- Enumerate targets before generation
+- `/charly-build:merge` -- Post-build layer consolidation
+- `/charly-build:new` -- Scaffold a new layer to generate into
+- `/charly-build:pull` -- Pull prebuilt images (orthogonal to generate)
+- `/charly-build:validate` -- Validation rules for images and layers (including per-verb task rules)
 
 ### Related skills
 
-- `/ov-image:layer` — **Canonical task verb catalog, `var:` substitution, YAML anchors, execution order.** Read this first for authoring questions.
-- `/ov-eval:eval` — test-authoring workflow; `eval:` blocks are embedded via `writeJSONLabel` and benefit directly from LABELs-at-end cache efficiency.
-- `/ov-internals:generate-source` — Deep dive on Containerfile emission internals, `Task` struct, per-verb emitters, `stageInlineContent`, `shellSingleQuote` + `shellAnsiQuote` helpers, LABEL-placement rationale.
-- `/ov-internals:go` — Source-code map: `ov/tasks.go` (~430 lines), `ov/generate.go:writeLayerSteps` + `writeLabels`, `ov/layers.go` struct definitions.
-- `/ov-distros:bazzite` — canonical worked example exercising all three bootc-specific emission rules above.
-- `/ov-selkies:ffmpeg` — canonical URL-repo consumer (triggers the `dnf5-plugins` prepend).
-- `/ov-distros:bootc-config` — bootc boot wiring that depends on the empty-init-stage fix (only `use_packaged:` entries, no custom-exec rendered bodies).
+- `/charly-image:layer` — **Canonical task verb catalog, `var:` substitution, YAML anchors, execution order.** Read this first for authoring questions.
+- `/charly-eval:eval` — test-authoring workflow; `eval:` blocks are embedded via `writeJSONLabel` and benefit directly from LABELs-at-end cache efficiency.
+- `/charly-internals:generate-source` — Deep dive on Containerfile emission internals, `Task` struct, per-verb emitters, `stageInlineContent`, `shellSingleQuote` + `shellAnsiQuote` helpers, LABEL-placement rationale.
+- `/charly-internals:go` — Source-code map: `ov/tasks.go` (~430 lines), `ov/generate.go:writeLayerSteps` + `writeLabels`, `ov/layers.go` struct definitions.
+- `/charly-distros:bazzite` — canonical worked example exercising all three bootc-specific emission rules above.
+- `/charly-selkies:ffmpeg` — canonical URL-repo consumer (triggers the `dnf5-plugins` prepend).
+- `/charly-distros:bootc-config` — bootc boot wiring that depends on the empty-init-stage fix (only `use_packaged:` entries, no custom-exec rendered bodies).

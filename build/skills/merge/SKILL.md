@@ -2,12 +2,12 @@
 name: merge
 description: |
   Post-build layer optimization via merging consecutive small layers.
-  MUST be invoked before any work involving: ov box merge command, image layer reduction, merge configuration, or post-build optimization.
+  MUST be invoked before any work involving: charly box merge command, image layer reduction, merge configuration, or post-build optimization.
 ---
 
-# ov box merge -- Post-Build Layer Optimization
+# charly box merge -- Post-Build Layer Optimization
 
-Invoked as `ov box merge [<image>]`. See `/ov-image:image` for the family overview.
+Invoked as `charly box merge [<image>]`. See `/charly-image:image` for the family overview.
 
 ## Overview
 
@@ -17,10 +17,10 @@ Reduces image layer count by merging consecutive small layers. Uses `go-containe
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Merge single image | `ov box merge <image>` | Merge layers in specified image |
-| Dry run | `ov box merge <image> --dry-run` | Show what would be merged without changing anything |
-| Custom threshold | `ov box merge <image> --max-mb N` | Set max layer size for merge candidates (default: 128 MB) |
-| Merge all auto | `ov box merge --all` | Merge all images that have `merge.auto: true` |
+| Merge single image | `charly box merge <image>` | Merge layers in specified image |
+| Dry run | `charly box merge <image> --dry-run` | Show what would be merged without changing anything |
+| Custom threshold | `charly box merge <image> --max-mb N` | Set max layer size for merge candidates (default: 128 MB) |
+| Merge all auto | `charly box merge --all` | Merge all images that have `merge.auto: true` |
 
 ## Usage
 
@@ -28,24 +28,24 @@ Reduces image layer count by merging consecutive small layers. Uses `go-containe
 
 ```bash
 # Merge consecutive small layers in an image
-ov box merge sway-browser-vnc
+charly box merge sway-browser-vnc
 
 # Preview without changing
-ov box merge sway-browser-vnc --dry-run
+charly box merge sway-browser-vnc --dry-run
 ```
 
 ### Custom Size Threshold
 
 ```bash
 # Only merge layers smaller than 64 MB
-ov box merge sway-browser-vnc --max-mb 64
+charly box merge sway-browser-vnc --max-mb 64
 ```
 
 ### Automatic Merge for All Configured Images
 
 ```bash
 # Merge all images that opt in via box.yml
-ov box merge --all
+charly box merge --all
 ```
 
 ## Configuration in box.yml
@@ -54,7 +54,7 @@ ov box merge --all
 images:
   sway-browser-vnc:
     merge:
-      auto: true      # Include in `ov box merge --all`
+      auto: true      # Include in `charly box merge --all`
       max_mb: 128     # Size threshold (default: 128)
 ```
 
@@ -64,7 +64,7 @@ images:
 2. Group consecutive layers where each is below `max_mb`
 3. Deduplicate filesystem entries across merged layers (last writer wins) and suppress whiteout conflicts
 4. Reconstruct image with merged layers
-5. Inline merge also runs automatically after each build level during `ov box build`
+5. Inline merge also runs automatically after each build level during `charly box build`
 
 ## Whiteout Handling
 
@@ -87,7 +87,7 @@ In some images (observed empirically against `immich:2026.128.x`), the post-buil
 ```
 unpacking failed (error: exit status 1; output: file exists)
 ov: error: post-build merge optimization failed (image is functional but unmerged): podman load: exit status 125
-  Diagnostic: set OV_MERGE_KEEP_TMP=1 and re-run `ov box merge <name>` to capture the failing /tmp/ov-merge-*.tar.
+  Diagnostic: set OV_MERGE_KEEP_TMP=1 and re-run `charly box merge <name>` to capture the failing /tmp/charly-merge-*.tar.
   This is a known limitation against multi-stage RPM-installed images; the build itself succeeded and the image at this tag is correct.
 ```
 
@@ -102,17 +102,17 @@ The trigger appears to be a podman-side overlay-unpack quirk under specific laye
 
 ### Operational impact
 
-**The failure is non-fatal.** `mergeAfterBuild` (`ov/build.go:178-186`) treats merge failure as a non-fatal warning. The build itself returns 0, the image is tagged at its CalVer, every individual layer digest is valid, and `ov start` runs the unmerged image with no functional difference — only the layer count is higher than ideal (~39 layers instead of the ~12 a successful merge would produce).
+**The failure is non-fatal.** `mergeAfterBuild` (`ov/build.go:178-186`) treats merge failure as a non-fatal warning. The build itself returns 0, the image is tagged at its CalVer, every individual layer digest is valid, and `charly start` runs the unmerged image with no functional difference — only the layer count is higher than ideal (~39 layers instead of the ~12 a successful merge would produce).
 
 ### Diagnostic hook: `OV_MERGE_KEEP_TMP=1`
 
 When merge fails and you want to capture the failing tarball for inspection or forensic analysis, set `OV_MERGE_KEEP_TMP=1`:
 
 ```bash
-OV_MERGE_KEEP_TMP=1 ov box merge <name>
+OV_MERGE_KEEP_TMP=1 charly box merge <name>
 ```
 
-On failure the tarball is left at `/tmp/ov-merge-<random>.tar` (path printed to stderr) instead of being cleaned up. The tar is a docker-archive — extract `manifest.json` to see the layer chain, then `tar -xzf <hash>.tar.gz` on individual layers to inspect their contents.
+On failure the tarball is left at `/tmp/charly-merge-<random>.tar` (path printed to stderr) instead of being cleaned up. The tar is a docker-archive — extract `manifest.json` to see the layer chain, then `tar -xzf <hash>.tar.gz` on individual layers to inspect their contents.
 
 For forensic analysis of layer contents:
 
@@ -130,21 +130,21 @@ Source: `ov/merge.go:saveImageToDaemon` (the keep-on-fail logic; `loaded` flag g
 
 ## Project directory override
 
-`ov box merge` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/ov-image:image` "Project directory resolution".
+`charly box merge` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `OV_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
-### `ov box` family siblings
+### `charly box` family siblings
 
-- `/ov-image:image` -- Family overview + box.yml composition reference
-- `/ov-build:build` -- Building images (merge runs inline after each build level)
-- `/ov-build:generate` -- Containerfile generation
-- `/ov-build:inspect` -- Inspect merged images
-- `/ov-build:list` -- Enumerate images before merging
-- `/ov-build:new` -- Scaffold new layers
-- `/ov-build:pull` -- Pull prebuilt images into local storage
-- `/ov-build:validate` -- Validate before merging
+- `/charly-image:image` -- Family overview + box.yml composition reference
+- `/charly-build:build` -- Building images (merge runs inline after each build level)
+- `/charly-build:generate` -- Containerfile generation
+- `/charly-build:inspect` -- Inspect merged images
+- `/charly-build:list` -- Enumerate images before merging
+- `/charly-build:new` -- Scaffold new layers
+- `/charly-build:pull` -- Pull prebuilt images into local storage
+- `/charly-build:validate` -- Validate before merging
 
 ### Related skills
 
-- `/ov-image:layer` -- Layer authoring (layer size affects merge behavior)
+- `/charly-image:layer` -- Layer authoring (layer size affects merge behavior)

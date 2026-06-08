@@ -42,7 +42,7 @@ that doesn't exist in the build container.
 ## Single-responsibility ownership
 
 This layer is the exclusive home for `gh`, `git`, and `git-lfs` — no other
-layer (including `/ov-coder:dev-tools`) installs them. That keeps ownership
+layer (including `/charly-coder:dev-tools`) installs them. That keeps ownership
 unambiguous ("which layer do I look at to update the git-lfs version?" — this
 one) and avoids duplicate test ids (`gh-binary` collisions).
 
@@ -78,21 +78,21 @@ layers:
 
 ## Used In Images
 
-- `/ov-coder:arch-ov`, `/ov-distros:fedora-ov`, `/ov-coder:fedora-coder` — power-user images that compose gh explicitly
-- `/ov-openclaw:openclaw-desktop` — streaming-desktop sibling
+- `/charly-coder:arch-ov`, `/charly-distros:fedora-ov`, `/charly-coder:fedora-coder` — power-user images that compose gh explicitly
+- `/charly-openclaw:openclaw-desktop` — streaming-desktop sibling
 - Any image composing `hermes-full`
 
 ## Related Layers
 
-- `/ov-coder:dev-tools` — does not install git/gh/git-lfs (this layer owns them)
-- `/ov-distros:agent-forwarding` — pairs with gh for SSH/GPG agent access (you usually want both when driving gh from inside a container with the host's GPG keys forwarded)
-- `/ov-distros:github-runner` — self-hosted Actions runner; different layer, different purpose
-- `/ov-coder:github-actions` — installs `act` + `actionlint` for local Actions testing; also different from this layer
+- `/charly-coder:dev-tools` — does not install git/gh/git-lfs (this layer owns them)
+- `/charly-distros:agent-forwarding` — pairs with gh for SSH/GPG agent access (you usually want both when driving gh from inside a container with the host's GPG keys forwarded)
+- `/charly-distros:github-runner` — self-hosted Actions runner; different layer, different purpose
+- `/charly-coder:github-actions` — installs `act` + `actionlint` for local Actions testing; also different from this layer
 
 ## Related Commands
 
-- `/ov-build:secrets` — provision `GITHUB_TOKEN` for `gh auth login`
-- `/ov-core:shell` — run gh interactively inside a container
+- `/charly-build:secrets` — provision `GITHUB_TOKEN` for `gh auth login`
+- `/charly-core:shell` — run gh interactively inside a container
 
 ## When to Use This Skill
 
@@ -102,10 +102,10 @@ layers:
   DO NOT add `gh`, `git`, or `git-lfs` to any other layer's packages).
 - Debugging why `git-lfs install` fails at build time (the noscripts +
   post-install pattern here is the fix).
-- Understanding why `/ov-coder:dev-tools` does not install gh
+- Understanding why `/charly-coder:dev-tools` does not install gh
   (this layer holds single-responsibility ownership of git tooling).
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

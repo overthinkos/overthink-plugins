@@ -31,12 +31,12 @@ layers:
 - `openclaw-full` (via `openclaw-full` metalayer)
 
 ## Related Layers
-- `/ov-coder:dev-tools` -- bundles ripgrep alongside other CLI utilities
-- `/ov-openclaw:openclaw-full` -- parent metalayer that bundles ripgrep
+- `/charly-coder:dev-tools` -- bundles ripgrep alongside other CLI utilities
+- `/charly-openclaw:openclaw-full` -- parent metalayer that bundles ripgrep
 
 ## Related Commands
-- `/ov-core:shell` -- run rg interactively inside the container
-- `/ov-core:cmd` -- one-shot rg invocation in a running service
+- `/charly-core:shell` -- run rg interactively inside the container
+- `/charly-core:cmd` -- one-shot rg invocation in a running service
 
 ## When to Use This Skill
 
@@ -47,5 +47,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

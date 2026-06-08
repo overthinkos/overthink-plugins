@@ -1,10 +1,10 @@
 ---
 name: eval-k8s
-description: Kubernetes cluster probe verb — `ov eval k8s <method>` for nodes, pods, ingress, storage class, addon health, apply/delete, and arbitrary resource GETs. Hermetic via vendored client-go; no external kubectl required.
+description: Kubernetes cluster probe verb — `charly eval k8s <method>` for nodes, pods, ingress, storage class, addon health, apply/delete, and arbitrary resource GETs. Hermetic via vendored client-go; no external kubectl required.
 allowed-tools: Bash, Read
 ---
 
-MUST be invoked before any work involving: `ov eval k8s` commands,
+MUST be invoked before any work involving: `charly eval k8s` commands,
 cluster-readiness probes from test scripts, ingress / storage class
 assertions, k3s default-addon health checks, or declarative `k8s:`
 checks on `eval:` blocks in candy.yml.
@@ -12,19 +12,19 @@ checks on `eval:` blocks in candy.yml.
 ## Command surface
 
 ```
-ov eval k8s nodes                                                       # <name> <Ready|NotReady> per line
-ov eval k8s wait-nodes [--count=N] [--name=<host>] [--timeout=120s]     # block until N (or named) Ready
-ov eval k8s pods [--namespace=<ns>] [--label=<sel>]                     # <ns>/<name> <phase> per line
-ov eval k8s wait-ready --kind <K> --name <N> [--namespace=<ns>] [--timeout=120s]  # block until resource Ready
-ov eval k8s ingress [--namespace=<ns>]                                  # <ns>/<name> class=<c> hosts=<h> backends=<b>
-ov eval k8s ingressclass                                                # <name> default=<bool>
-ov eval k8s storageclass                                                # <name> default=<bool>
-ov eval k8s service [--namespace=<ns>]                                  # <ns>/<name> <type> <clusterIP> <externalIP>
-ov eval k8s lb-external-ip --namespace=<ns> --name=<svc> [--timeout=60s]  # print assigned external IP
-ov eval k8s addons [--namespace=kube-system] [--timeout=180s]           # roll-up: Traefik + ServiceLB + local-path all Ready
-ov eval k8s apply --file=<manifest.yaml> [--namespace=<ns>]             # apply multi-doc YAML via dynamic client
-ov eval k8s delete --file=<manifest.yaml> [--namespace=<ns>]            # delete resources from manifest
-ov eval k8s raw --resource=<plural> [--group=<g>] [--version=v1] [--name=<n>] [--namespace=<ns>]
+charly eval k8s nodes                                                       # <name> <Ready|NotReady> per line
+charly eval k8s wait-nodes [--count=N] [--name=<host>] [--timeout=120s]     # block until N (or named) Ready
+charly eval k8s pods [--namespace=<ns>] [--label=<sel>]                     # <ns>/<name> <phase> per line
+charly eval k8s wait-ready --kind <K> --name <N> [--namespace=<ns>] [--timeout=120s]  # block until resource Ready
+charly eval k8s ingress [--namespace=<ns>]                                  # <ns>/<name> class=<c> hosts=<h> backends=<b>
+charly eval k8s ingressclass                                                # <name> default=<bool>
+charly eval k8s storageclass                                                # <name> default=<bool>
+charly eval k8s service [--namespace=<ns>]                                  # <ns>/<name> <type> <clusterIP> <externalIP>
+charly eval k8s lb-external-ip --namespace=<ns> --name=<svc> [--timeout=60s]  # print assigned external IP
+charly eval k8s addons [--namespace=kube-system] [--timeout=180s]           # roll-up: Traefik + ServiceLB + local-path all Ready
+charly eval k8s apply --file=<manifest.yaml> [--namespace=<ns>]             # apply multi-doc YAML via dynamic client
+charly eval k8s delete --file=<manifest.yaml> [--namespace=<ns>]            # delete resources from manifest
+charly eval k8s raw --resource=<plural> [--group=<g>] [--version=v1] [--name=<n>] [--namespace=<ns>]
 ```
 
 ## Cluster selection
@@ -35,20 +35,20 @@ in this precedence:
 1. `--kubeconfig <path>` — direct kubeconfig file pointer. Overrides
    everything.
 2. `--cluster <name>` — a ClusterProfile name
-   (`~/.config/ov/clusters/<name>.yaml` or `./clusters/<name>.yaml`).
+   (`~/.config/charly/clusters/<name>.yaml` or `./clusters/<name>.yaml`).
    The profile's `kubeconfig_context:` selects the context; kubeconfig
    path defaults to `$KUBECONFIG` then `~/.kube/config`.
 3. `--context <name>` — override the kubeconfig context directly.
 4. Neither given → current-context of the default kubeconfig
    (matches `kubectl` with no flags).
 
-`ov deploy add vm:k3s-srv` (or any deploy whose layers include
+`charly deploy add vm:k3s-srv` (or any deploy whose layers include
 `k3s-server`) automatically writes a ClusterProfile named after the
 deploy, so after provisioning you can do:
 
 ```bash
-ov eval k8s nodes --cluster k3s-srv
-ov eval k8s addons --cluster k3s-srv
+charly eval k8s nodes --cluster k3s-srv
+charly eval k8s addons --cluster k3s-srv
 ```
 
 ## Declarative `k8s:` checks on layer tests
@@ -96,7 +96,7 @@ the sanitized deploy name (`:`/`.`/`/` → `-`) — the SAME identifier
 `K3sPostProvision` uses for the kubeconfig context + ClusterProfile. It is
 UPPERCASE because the eval-var expander only recognizes uppercase names; a
 lowercase `${deploy_name}` (the artifact-path token) is NOT an eval var and is
-rejected by `ov box validate` in k8s identifier fields.
+rejected by `charly box validate` in k8s identifier fields.
 
 `wait-nodes` with `name:` set matches a single specific node (used by
 `k3s-agent`'s join-confirmation test). Without `name:`, it waits until
@@ -109,8 +109,8 @@ rejected by `ov box validate` in k8s identifier fields.
   one-line addition, avoiding the RESTMapper discovery bloat. Documents
   without a namespace inherit `--namespace`.
 - **raw** — escape hatch for any resource not covered by the named
-  verbs. `ov eval k8s raw --resource nodes` lists nodes;
-  `ov eval k8s raw --resource configmaps -n kube-system --name foo`
+  verbs. `charly eval k8s raw --resource nodes` lists nodes;
+  `charly eval k8s raw --resource configmaps -n kube-system --name foo`
   prints one ConfigMap as JSON.
 - **addons** — assumes the stock k3s addon stack (Traefik, ServiceLB,
   local-path-provisioner) in `kube-system`. Explicit `disable:` in a

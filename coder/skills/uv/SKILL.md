@@ -34,11 +34,11 @@ doesn't warrant:
   HOME-relative PATH entries in child images go subtly wrong when the
   `ov` auto-intermediate machinery bakes uid=1000 paths into images
   deployed at uid=0 (handled in `ov/intermediates.go` — see
-  `/ov-internals:generate-source` "UID-keyed sibling grouping").
+  `/charly-internals:generate-source` "UID-keyed sibling grouping").
 - Confusion — "uv is installed but `which uv` says not found" for
   anyone who isn't in a pixi shell.
 
-So uv installs the way `/ov-coder:typst` and `/ov-languages:pixi` itself do
+So uv installs the way `/charly-coder:typst` and `/charly-languages:pixi` itself do
 — fetch the upstream binary, unpack to `/usr/local/bin`, done. System-wide
 reachable, always on PATH, no HOME gymnastics.
 
@@ -56,7 +56,7 @@ task:
 `${BUILD_ARCH}` expands to `x86_64` / `aarch64` at build time. Upstream
 ships per-arch tarballs under stable latest-download URLs, nested one
 level deep (`uv-x86_64-unknown-linux-gnu/uv`, `…/uvx`). The
-`strip_components: 1` modifier (see `/ov-image:layer` "Download verb")
+`strip_components: 1` modifier (see `/charly-image:layer` "Download verb")
 collapses that wrapper so both binaries land directly at
 `/usr/local/bin/uv` and `/usr/local/bin/uvx`.
 
@@ -72,20 +72,20 @@ Three build-scope tests ship with the layer:
 
 ## Used In Images
 
-- `/ov-coder:fedora-coder` — the canonical kitchen-sink dev image.
+- `/charly-coder:fedora-coder` — the canonical kitchen-sink dev image.
 - Any image composing `hermes-full` or directly including `uv`.
 
 ## Related Layers
 
-- `/ov-languages:pixi` — direct-download pattern this layer now mirrors. Pixi remains a legitimate multi-binary Python env manager for images that genuinely need one (jupyter, whisper, openwebui); uv is too small to justify the overhead.
-- `/ov-coder:typst` — sibling direct-download binary pattern.
-- `/ov-languages:python` — the pixi-python meta-layer this layer does **not** depend on.
-- `/ov-coder:rust` — system Rust toolchain, if you want to build uv from source instead (`cargo install uv`). Usually not worth it — the Astral binary is pre-optimized.
+- `/charly-languages:pixi` — direct-download pattern this layer now mirrors. Pixi remains a legitimate multi-binary Python env manager for images that genuinely need one (jupyter, whisper, openwebui); uv is too small to justify the overhead.
+- `/charly-coder:typst` — sibling direct-download binary pattern.
+- `/charly-languages:python` — the pixi-python meta-layer this layer does **not** depend on.
+- `/charly-coder:rust` — system Rust toolchain, if you want to build uv from source instead (`cargo install uv`). Usually not worth it — the Astral binary is pre-optimized.
 
 ## Related Commands
 
-- `/ov-image:layer` — authoring reference (covers `download:` verb + `strip_components:` modifier)
-- `/ov-core:shell` — run `uv` inside a container
+- `/charly-image:layer` — authoring reference (covers `download:` verb + `strip_components:` modifier)
+- `/charly-core:shell` — run `uv` inside a container
 
 ## When to Use This Skill
 
@@ -101,4 +101,4 @@ Three build-scope tests ship with the layer:
 
 ## Related
 
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

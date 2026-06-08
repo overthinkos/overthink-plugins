@@ -15,7 +15,7 @@ Headless OpenClaw AI gateway — no desktop, no browser, just the gateway servic
 | Property | Value |
 |----------|-------|
 | Base | cachyos |
-| Layers | agent-forwarding, openclaw, dbus, ov |
+| Layers | agent-forwarding, openclaw, dbus, charly |
 | Platforms | linux/amd64 |
 | Ports | 18789 |
 | Registry | ghcr.io/overthinkos |
@@ -26,7 +26,7 @@ Headless OpenClaw AI gateway — no desktop, no browser, just the gateway servic
 2. `pixi` → `python` → `supervisord` (transitive)
 3. `nodejs` (transitive via openclaw)
 4. `openclaw` — gateway on :18789, data volume
-5. `dbus` — message bus; `ov` — ov CLI toolchain
+5. `dbus` — message bus; `ov` — charly CLI toolchain
 
 ## Ports
 
@@ -37,25 +37,25 @@ Headless OpenClaw AI gateway — no desktop, no browser, just the gateway servic
 ## Quick Start
 
 ```bash
-ov box build openclaw
-ov config openclaw
-ov start openclaw
+charly box build openclaw
+charly config openclaw
+charly start openclaw
 # Gateway at http://localhost:18789
 ```
 
 ## Key Layers
 
-- `/ov-openclaw:openclaw` — gateway npm package, supervisord service, data volume
+- `/charly-openclaw:openclaw` — gateway npm package, supervisord service, data volume
 
 ## Related Images
 
-- `/ov-openclaw:openclaw-full` — maximal variant (gateway + browser + all tools)
+- `/charly-openclaw:openclaw-full` — maximal variant (gateway + browser + all tools)
 
 ## Verification
 
-After `ov start`:
-- `ov status openclaw` — container running
-- `ov service status openclaw` — all services RUNNING
+After `charly start`:
+- `charly status openclaw` — container running
+- `charly service status openclaw` — all services RUNNING
 - `curl -s http://localhost:18789` — OpenClaw gateway responds
 
 ## Port Relay Architecture
@@ -68,5 +68,5 @@ OpenClaw gateway (18789) uses port relay (socat) — the gateway binds to loopba
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

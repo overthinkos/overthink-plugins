@@ -83,10 +83,10 @@ on the `selkies-desktop` metalayer.
 
 ## Related
 
-- `/ov-selkies:selkies` — the pixelflux/selkies streaming transport (the core).
-- `/ov-selkies:selkies-desktop-layer` — the labwc sibling flavor.
-- `/ov-selkies:labwc` — the labwc nested-compositor primitive (the other seam).
-- `/ov-distros:cachyos`, `/ov-distros:nvidia` — the CPU + GPU bases.
-- `/ov-eval:eval` — the disposable `kind: eval` beds that prove each flavor.
-- `/ov-internals:disposable` — `requires_exclusive`/`preemptible` (the GPU-VM bed
+- `/charly-selkies:selkies` — the pixelflux/selkies streaming transport (the core).
+- `/charly-selkies:selkies-desktop-layer` — the labwc sibling flavor.
+- `/charly-selkies:labwc` — the labwc nested-compositor primitive (the other seam).
+- `/charly-distros:cachyos`, `/charly-distros:nvidia` — the CPU + GPU bases.
+- `/charly-eval:eval` — the disposable `kind: eval` beds that prove each flavor.
+- `/charly-internals:disposable` — `requires_exclusive`/`preemptible` (the GPU-VM bed
   preempts the operator workstation for the single passthrough GPU).

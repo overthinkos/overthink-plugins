@@ -1,5 +1,5 @@
 {
-  "name": "ov-languages",
+  "name": "charly-languages",
   "description": "Programming language runtimes and package managers — python, python-ml, golang, rust, nodejs, pixi, uv.",
   "version": "1.0.0",
   "author": { "name": "overthinkos" },

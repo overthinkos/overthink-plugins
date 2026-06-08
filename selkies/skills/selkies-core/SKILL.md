@@ -44,7 +44,7 @@ fixings + labwc together, so a second flavor (KDE) would have duplicated all 13.
 Factoring `selkies-core` out makes the nested compositor the ONLY swappable seam
 between flavors (the `labwc` vs `kde-selkies` layer), across every GPU config
 (the encoder is auto-selected at runtime by pixelflux — see
-`/ov-selkies:selkies-kde-desktop` "Encoder is auto-selected").
+`/charly-selkies:selkies-kde-desktop` "Encoder is auto-selected").
 
 ## Chrome supervision
 
@@ -64,11 +64,11 @@ Because selkies-core owns Chrome, the per-flavor compositor autostarts
 it. `sway-browser-vnc` is NOT a selkies flavor (it uses the `chrome-sway` layer,
 not selkies-core, and is not pixelflux-nested) and is unaffected. There is no
 Chrome eventlistener / crash-listener; a wedged crash loop is cleared by
-restarting the container (see `/ov-selkies:chrome` "Chrome supervision").
+restarting the container (see `/charly-selkies:chrome` "Chrome supervision").
 
 ## Related
 
-- `/ov-selkies:selkies` — the pixelflux transport at the heart of the core.
-- `/ov-selkies:selkies-desktop-layer` — the labwc flavor metalayer.
-- `/ov-selkies:selkies-kde-desktop` — the KDE Plasma flavor metalayer.
-- `/ov-image:layer` — layer authoring; the unified `service:` schema.
+- `/charly-selkies:selkies` — the pixelflux transport at the heart of the core.
+- `/charly-selkies:selkies-desktop-layer` — the labwc flavor metalayer.
+- `/charly-selkies:selkies-kde-desktop` — the KDE Plasma flavor metalayer.
+- `/charly-image:layer` — layer authoring; the unified `service:` schema.

@@ -2,14 +2,14 @@
 name: reconcile
 description: |
   Use when @github layer/namespace pins drift across repos and the resolver emits
-  "referenced at multiple versions" warnings — `ov box reconcile` aligns every
+  "referenced at multiple versions" warnings — `charly box reconcile` aligns every
   pin of a repo to one version (clearing the warnings). Invoked as
-  `ov box reconcile`.
+  `charly box reconcile`.
 ---
 
-# ov box reconcile — align cross-repo `@github` version pins
+# charly box reconcile — align cross-repo `@github` version pins
 
-Invoked as `ov box reconcile`. See `/ov-image:image` for the family overview.
+Invoked as `charly box reconcile`. See `/charly-image:image` for the family overview.
 
 ## Overview
 
@@ -17,35 +17,35 @@ The layer resolver compares each layer's PER-ENTITY `version:` (read after fetch
 not the repo git tag — so a repo re-tag of an UNCHANGED layer does NOT warn. When
 a layer DOES resolve to two different per-entity versions (a family pinned to a
 genuinely newer layer than the shared infra it composes), it **warns once and uses
-the newest** (see `/ov-internals:go` "Remote-layer resolver", `/ov-build:validate`).
-The git `:vTAG` is only the FETCH coordinate. `ov box reconcile` aligns the
+the newest** (see `/charly-internals:go` "Remote-layer resolver", `/charly-build:validate`).
+The git `:vTAG` is only the FETCH coordinate. `charly box reconcile` aligns the
 on-disk git-tag pins — for each distinct repo referenced by the project's
 versioned YAML, it rewrites EVERY pin of that repo to ONE target tag, so every
-reference fetches one commit per repo and the next `ov box generate` emits
+reference fetches one commit per repo and the next `charly box generate` emits
 **zero** version warnings. Edits are comment-preserving (yaml.v3 node API) and idempotent.
 
 The **zero-warnings R10 gate** (CLAUDE.md R1) makes this load-bearing: a change
-that introduces a version mismatch is not landable until `ov box reconcile`
+that introduces a version mismatch is not landable until `charly box reconcile`
 clears the warning.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |---|---|---|
-| Preview rewrites | `ov box reconcile --dry-run` | Print every pin it would change; touch nothing |
-| Align to newest referenced | `ov box reconcile` | Rewrite each repo's pins to the newest version ALREADY referenced (offline) |
-| Align to newest remote tag | `ov box reconcile --remote` | Query `git ls-remote --tags` per repo and bump to the newest tag |
+| Preview rewrites | `charly box reconcile --dry-run` | Print every pin it would change; touch nothing |
+| Align to newest referenced | `charly box reconcile` | Rewrite each repo's pins to the newest version ALREADY referenced (offline) |
+| Align to newest remote tag | `charly box reconcile --remote` | Query `git ls-remote --tags` per repo and bump to the newest tag |
 
 ```bash
-ov box reconcile --dry-run      # see the plan
-ov box reconcile                # align to newest referenced (no network)
-ov -C image/selkies image reconcile   # reconcile a submodule's pins
+charly box reconcile --dry-run      # see the plan
+charly box reconcile                # align to newest referenced (no network)
+charly -C image/selkies image reconcile   # reconcile a submodule's pins
 ```
 
 ## What it does
 
 1. **Scan** every `@github.com/owner/repo[/path]:vTAG` ref in the project's
-   versioned YAML files (`overthink.yml` + flat-imported `box.yml` / `base.yml` /
+   versioned YAML files (`charly.yml` + flat-imported `box.yml` / `base.yml` /
    `eval.yml` / `local.yml` / `build.yml` / `pod.yml` / `k8s.yml` / `vm.yml` /
    `deploy.yml`). Refs appear in `import:` namespaces, image `base:` / `builder:` /
    `layer:`, and `kind:local` `layer:` lists.
@@ -58,17 +58,17 @@ ov -C image/selkies image reconcile   # reconcile a submodule's pins
 
 ## Scope — one project per invocation
 
-`ov box reconcile` operates on the CURRENT project (cwd; honors the top-level
+`charly box reconcile` operates on the CURRENT project (cwd; honors the top-level
 `-C` / `--dir` / `OV_PROJECT_DIR`). For a multi-repo tree (the main repo + its
 `image/<distro>` submodules), run it per repo, or per submodule via `-C
 image/<name>`. This pairs with the cross-repo landing order in
-`/ov-internals:git-workflow` B6: land + tag the producer FIRST, then
-`ov box reconcile` repoints the consumer to the producer's fresh tag before the
+`/charly-internals:git-workflow` B6: land + tag the producer FIRST, then
+`charly box reconcile` repoints the consumer to the producer's fresh tag before the
 consumer's authoritative R10.
 
 ## Implementation
 
-`ov/reconcile.go` — `ImageReconcileCmd` (wired under `ov box` in `ov/image.go`).
+`ov/reconcile.go` — `ImageReconcileCmd` (wired under `charly box` in `ov/image.go`).
 Reuses `ParseRemoteRef` / `IsRemoteLayerRef` / `StripVersion` (`ov/refs.go`),
 `compareSemver` / `GitLatestTag` / `RepoGitURL` (`ov/refs_git.go`), and the
 comment-preserving load/`yaml.Marshal` pattern from `ov/yaml_setter.go`. Covered
@@ -77,11 +77,11 @@ idempotency, single-version-untouched, no-pins no-op).
 
 ## Cross-References
 
-- `/ov-internals:go` "Remote-layer resolver" — the warn-and-newest-wins resolver this aligns to.
-- `/ov-build:validate` — surfaces the multi-version warning reconcile clears.
-- `/ov-internals:git-workflow` — cross-repo (B6) producer→consumer landing that calls reconcile.
-- `/ov-build:migrate` — per-push CalVer tags that reconcile pins point at.
-- `/ov-image:image` — `import:` / namespace authoring + the family overview.
+- `/charly-internals:go` "Remote-layer resolver" — the warn-and-newest-wins resolver this aligns to.
+- `/charly-build:validate` — surfaces the multi-version warning reconcile clears.
+- `/charly-internals:git-workflow` — cross-repo (B6) producer→consumer landing that calls reconcile.
+- `/charly-build:migrate` — per-push CalVer tags that reconcile pins point at.
+- `/charly-image:image` — `import:` / namespace authoring + the family overview.
 
 ## When to Use This Skill
 

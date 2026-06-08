@@ -8,7 +8,7 @@ description: |
 
 # Image: selkies-labwc
 
-The **labwc flavor** of the selkies streaming desktop — a browser-accessible Wayland desktop streamed via Selkies/pixelflux WebSocket at `https://localhost:3000` (HTTPS with self-signed Traefik certificate). It is the symmetric sibling of the KDE Plasma flavor (`/ov-selkies:selkies-kde-desktop`); both compose the shared `/ov-selkies:selkies-core` spine and differ only in the compositor layer (`labwc` here, `kde-selkies` there). Always runs as a headless pod; the pixelflux encoder is auto-selected per GPU at runtime (VAAPI / NVENC / x264).
+The **labwc flavor** of the selkies streaming desktop — a browser-accessible Wayland desktop streamed via Selkies/pixelflux WebSocket at `https://localhost:3000` (HTTPS with self-signed Traefik certificate). It is the symmetric sibling of the KDE Plasma flavor (`/charly-selkies:selkies-kde-desktop`); both compose the shared `/charly-selkies:selkies-core` spine and differ only in the compositor layer (`labwc` here, `kde-selkies` there). Always runs as a headless pod; the pixelflux encoder is auto-selected per GPU at runtime (VAAPI / NVENC / x264).
 
 ## Definition
 
@@ -20,7 +20,7 @@ selkies-labwc:
     - agent-forwarding
     - selkies-desktop
     - dbus
-    - ov
+    - charly
   ports:
     - "3000:3000"
     - "9222:9222"
@@ -29,7 +29,7 @@ selkies-labwc:
     - linux/amd64
 ```
 
-Tunnel config is in `deploy.yml` (not box.yml): `tunnel: {provider: tailscale, private: all}`. See `/ov-core:deploy`.
+Tunnel config is in `deploy.yml` (not box.yml): `tunnel: {provider: tailscale, private: all}`. See `/charly-core:deploy`.
 
 ## Base
 
@@ -63,16 +63,16 @@ real NVENC encoder.
 
 Open `https://localhost:3000` in a browser. Accept the self-signed certificate warning (Traefik auto-generates a cert with SANs for localhost, selkies.localhost, and ov-selkies-labwc). The Selkies dashboard shows the labwc desktop with Chrome and Waybar at the top.
 
-HTTPS is required for the WebCodecs API (`VideoDecoder`) used by the Selkies JS client. From other containers on the same network, use `https://ov-selkies-labwc:3000`.
+HTTPS is required for the WebCodecs API (`VideoDecoder`) used by the Selkies JS client. From other containers on the same network, use `https://charly-selkies-labwc:3000`.
 
 ## Quick Start
 
 ```bash
-ov box build selkies-labwc
-ov config selkies-labwc
-ov start selkies-labwc
+charly box build selkies-labwc
+charly config selkies-labwc
+charly start selkies-labwc
 # Access: https://localhost:3000 (accept cert warning)
-ov eval wl screenshot selkies-labwc screenshot.png
+charly eval wl screenshot selkies-labwc screenshot.png
 ```
 
 ## Keyboard Configuration
@@ -80,8 +80,8 @@ ov eval wl screenshot selkies-labwc screenshot.png
 Override the default US keyboard layout via environment variables:
 
 ```bash
-ov config selkies-labwc -e XKB_DEFAULT_LAYOUT=de                              # German QWERTZ
-ov config selkies-labwc -e XKB_DEFAULT_LAYOUT=fr -e XKB_DEFAULT_VARIANT=nodeadkeys  # French, no dead keys
+charly config selkies-labwc -e XKB_DEFAULT_LAYOUT=de                              # German QWERTZ
+charly config selkies-labwc -e XKB_DEFAULT_LAYOUT=fr -e XKB_DEFAULT_VARIANT=nodeadkeys  # French, no dead keys
 ```
 
 | Variable | Default | Purpose |
@@ -91,7 +91,7 @@ ov config selkies-labwc -e XKB_DEFAULT_LAYOUT=fr -e XKB_DEFAULT_VARIANT=nodeadke
 | `XKB_DEFAULT_MODEL` | `pc105` | Keyboard model |
 | `XKB_DEFAULT_OPTIONS` | (empty) | XKB options |
 
-All level 0/1 characters (ö, ä, ü, ß, =, ?) and AltGr characters (@, €, \\, ~) work for any layout. See `/ov-selkies:labwc` for details and `/ov-selkies:selkies` for the input pipeline.
+All level 0/1 characters (ö, ä, ü, ß, =, ?) and AltGr characters (@, €, \\, ~) work for any layout. See `/charly-selkies:labwc` for details and `/charly-selkies:selkies` for the input pipeline.
 
 ## Services
 
@@ -109,7 +109,7 @@ All level 0/1 characters (ö, ä, ü, ß, =, ?) and AltGr characters (@, €, \\
 
 ## GPU Support
 
-- **Rendering:** NVIDIA GPU via CDI, AMD/Intel via Mesa. `DRINODE`/`DRI_NODE` auto-detected at runtime by `ov config` (from first `/dev/dri/renderD*`)
+- **Rendering:** NVIDIA GPU via CDI, AMD/Intel via Mesa. `DRINODE`/`DRI_NODE` auto-detected at runtime by `charly config` (from first `/dev/dri/renderD*`)
 - **VAAPI encoding (AMD):** Hardware H264 encoding via VAAPI — requires correct DRINODE (auto-detected). Wrong DRINODE causes CPU fallback → swapchain buffer exhaustion → stream flickering
 - **NVENC (NVIDIA):** Detected but currently fails with driver 590.48 (pixelflux compat issue). Falls back to CPU x264enc
 - **CPU fallback:** x264enc-striped at 60fps (16 parallel stripes) — works but may cause flickering at high resolutions due to compositor buffer pressure
@@ -127,19 +127,19 @@ All level 0/1 characters (ö, ä, ü, ß, =, ?) and AltGr characters (@, €, \\
 
 ## Screenshots and Recording
 
-The capture bridge provides `ov eval wl screenshot` and `ov eval record` support:
+The capture bridge provides `charly eval wl screenshot` and `charly eval record` support:
 
 ```bash
 # Screenshot (works with or without browser connected)
-ov eval wl screenshot selkies-labwc screenshot.png
+charly eval wl screenshot selkies-labwc screenshot.png
 
 # Check bridge status
-ov shell selkies-labwc -c "pixelflux-screenshot --status"
+charly shell selkies-labwc -c "pixelflux-screenshot --status"
 
 # Desktop video recording (with audio via PulseAudio)
-ov eval record start selkies-labwc -n demo --mode desktop --audio
+charly eval record start selkies-labwc -n demo --mode desktop --audio
 # ... interact with desktop ...
-ov eval record stop selkies-labwc -n demo -o demo.mp4
+charly eval record stop selkies-labwc -n demo -o demo.mp4
 ```
 
 The bridge auto-heals: if no valid H.264 frames are available (e.g., after browser disconnect), it reconnects as controller to restart the pipeline.
@@ -165,36 +165,36 @@ The SPA renders the remote desktop on a `<canvas id="videoCanvas">` with an invi
 
 The SPA maps mouse events from the canvas viewport to the remote desktop with a scaling factor. When the canvas is 1908x950 and the remote desktop runs at a different resolution, there is an empirical **~0.824x / 0.836y** ratio between input coordinates and where the remote cursor lands.
 
-Use `ov eval cdp spa click` with `--scale` for automatic correction:
+Use `charly eval cdp spa click` with `--scale` for automatic correction:
 
 ```bash
 # Click at canvas position (990, 375) with scale correction
-ov eval cdp spa click <client> $TAB 990 375 --scale 0.824,0.836
+charly eval cdp spa click <client> $TAB 990 375 --scale 0.824,0.836
 ```
 
 ### Keyboard Passthrough
 
-**Recommended:** Use `ov eval cdp spa` commands for keyboard interaction — they bypass the local compositor and Chrome shortcut handlers:
+**Recommended:** Use `charly eval cdp spa` commands for keyboard interaction — they bypass the local compositor and Chrome shortcut handlers:
 
 ```bash
 # Type text (no double-char issue, bypasses local shortcuts)
-ov eval cdp spa type <client> $TAB "hello world"
+charly eval cdp spa type <client> $TAB "hello world"
 
 # Send modifier combos that reach the REMOTE desktop:
-ov eval cdp spa key-combo <client> $TAB super+e    # Open foot terminal in labwc
-ov eval cdp spa key-combo <client> $TAB ctrl+t     # New tab in remote Chrome
-ov eval cdp spa key-combo <client> $TAB alt+f4     # Close window in labwc
+charly eval cdp spa key-combo <client> $TAB super+e    # Open foot terminal in labwc
+charly eval cdp spa key-combo <client> $TAB ctrl+t     # New tab in remote Chrome
+charly eval cdp spa key-combo <client> $TAB alt+f4     # Close window in labwc
 
 # Send special keys
-ov eval cdp spa key <client> $TAB return
-ov eval cdp spa key <client> $TAB escape
+charly eval cdp spa key <client> $TAB return
+charly eval cdp spa key <client> $TAB escape
 ```
 
 **Alternative methods** (limited — local compositor/Chrome may intercept keys):
 
 ```bash
-ov eval vnc type <client> "text"     # VNC keysym events (Super key intercepted by local compositor)
-ov eval wl type <client> "text"      # wtype via Wayland (same limitation)
+charly eval vnc type <client> "text"     # VNC keysym events (Super key intercepted by local compositor)
+charly eval wl type <client> "text"      # wtype via Wayland (same limitation)
 ```
 
 The SPA's `onkeydown` handler on `#overlayInput` intercepts events with `stopImmediatePropagation()`, converts to keysyms, and sends via WebSocket to the remote labwc compositor.
@@ -202,7 +202,7 @@ The SPA's `onkeydown` handler on `#overlayInput` intercepts events with `stopImm
 ### Known Limitations (Browser-Based RD)
 
 1. **Coordinate scaling requires `--scale` flag** — auto-detection not yet implemented. Determine the scale empirically by comparing cursor position with target.
-2. **Clipboard permission dialog** — On first connection, Chrome prompts "ov-selkies-labwc:3000 wants to See text and images copied to the clipboard". Click Allow or dismiss via keyboard/CDP (`Browser.grantPermissions`).
+2. **Clipboard permission dialog** — On first connection, Chrome prompts "charly-selkies-labwc:3000 wants to See text and images copied to the clipboard". Click Allow or dismiss via keyboard/CDP (`Browser.grantPermissions`).
 3. **Closing the last tab exits Chrome** — If the client browser's last tab (the Selkies tab) is closed, Chrome exits. The client container may need a restart to recover Chrome.
 
 ### Session Resilience
@@ -216,13 +216,13 @@ Chrome remembers the self-signed cert exception in the `chrome-data` volume, so 
 From another container on the `ov` bridge network:
 
 ```bash
-# URL: https://ov-selkies-labwc:3000
+# URL: https://charly-selkies-labwc:3000
 # TLS cert SAN includes DNS:ov-selkies-labwc
 # Verify connectivity:
-curl -kso /dev/null -w '%{http_code}' https://ov-selkies-labwc:3000/
+curl -kso /dev/null -w '%{http_code}' https://charly-selkies-labwc:3000/
 # Expected: 200
 
-curl -kso /dev/null -w '%{http_code}' https://ov-selkies-labwc:3000/websockets
+curl -kso /dev/null -w '%{http_code}' https://charly-selkies-labwc:3000/websockets
 # Expected: 426 (WebSocket Upgrade Required — correct, not an error)
 ```
 
@@ -244,7 +244,7 @@ typeof AudioDecoder !== "undefined"            // true (Opus)
 
 ## Deploy with Tailscale Exit Node
 
-Route all outbound internet traffic (Chrome browsing) through a Tailscale exit node while keeping the desktop accessible on the host's tailnet and the ov bridge.
+Route all outbound internet traffic (Chrome browsing) through a Tailscale exit node while keeping the desktop accessible on the host's tailnet and the charly bridge.
 
 ### Prerequisites
 
@@ -255,14 +255,14 @@ Route all outbound internet traffic (Chrome browsing) through a Tailscale exit n
 
 ```bash
 # Store auth key
-ov secrets gpg set TS_AUTHKEY tskey-auth-xxxxxxxxxxxx
-ov secrets gpg set TS_EXIT_NODE 100.80.254.4    # exit node's Tailscale IP
+charly secrets gpg set TS_AUTHKEY tskey-auth-xxxxxxxxxxxx
+charly secrets gpg set TS_EXIT_NODE 100.80.254.4    # exit node's Tailscale IP
 
 # Deploy with sidecar
-ov config selkies-labwc --sidecar tailscale \
+charly config selkies-labwc --sidecar tailscale \
   -e TS_HOSTNAME=selkies-labwc \
   -e "TS_EXTRA_ARGS=--exit-node=${TS_EXIT_NODE} --exit-node-allow-lan-access"
-ov start selkies-labwc
+charly start selkies-labwc
 
 # First time: set exit node inside sidecar (persists in state volume)
 podman exec ov-selkies-labwc-tailscale \
@@ -275,7 +275,7 @@ podman exec ov-selkies-labwc-tailscale \
 # Exit node routing — shows exit node's public IP, not host's
 podman exec ov-selkies-labwc curl -s ifconfig.me
 
-# Bridge connectivity — other ov containers reachable
+# Bridge connectivity — other charly containers reachable
 podman exec ov-selkies-labwc getent hosts ov-ollama
 
 # Host tailnet — accessible via host's tailscale serve
@@ -295,7 +295,7 @@ The pod has dual networking: `Network=ov` (bridge for container-to-container) + 
 - Exit node device must be **approved** on the sidecar's tailnet admin console
 - First-time exit node: use `tailscale set --exit-node` inside sidecar (persists in state volume for restarts)
 
-See `/ov-automation:sidecar` for full sidecar documentation.
+See `/charly-automation:sidecar` for full sidecar documentation.
 
 ## Multi-Instance Proxy Deployment
 
@@ -303,25 +303,25 @@ Deploy multiple instances with different HTTP proxies for IP-diverse browsing. E
 
 ```bash
 # Deploy 3 instances with different proxies (ports 3001-3003, CDP 9231-9233)
-ov config selkies-labwc -i 45.39.130.21 \
+charly config selkies-labwc -i 45.39.130.21 \
   -e HTTP_PROXY=http://45.39.130.21:6753 \
   -e HTTPS_PROXY=http://45.39.130.21:6753 \
   -e 'NO_PROXY=localhost,127.0.0.1' \
   -p 3001:3000 -p 9231:9222
 
 # Propagate MCP to hermes, then start
-ov config hermes --update-all
-ov start selkies-labwc -i 45.39.130.21
+charly config hermes --update-all
+charly start selkies-labwc -i 45.39.130.21
 
 # Verify proxy IP
-ov eval cdp open selkies-labwc -i 45.39.130.21 "https://httpbin.org/ip"
+charly eval cdp open selkies-labwc -i 45.39.130.21 "https://httpbin.org/ip"
 ```
 
 **Tailscale access (no sidecar needed):** The deploy.yml `tunnel: tailscale` config generates `tailscale serve` commands for host-mapped ports. All instances are accessible via the host's Tailscale IP on their respective ports (`https://<host>:3001`, etc.). Use sidecars only when per-instance exit node routing is needed.
 
 **MCP auto-disambiguation:** Each instance provides `chrome-devtools-<instance>` MCP server. Consumers (hermes) receive all instances in `OV_MCP_SERVERS` JSON after `--update-all`.
 
-See `/ov-core:ov-config` for `--update-all` propagation, `/ov-selkies:chrome` for `env_accept` (HTTP_PROXY/HTTPS_PROXY/NO_PROXY).
+See `/charly-core:ov-config` for `--update-all` propagation, `/charly-selkies:chrome` for `env_accept` (HTTP_PROXY/HTTPS_PROXY/NO_PROXY).
 
 ## Build Pipeline Note
 
@@ -331,27 +331,27 @@ build, `cachyos.nvidia`). This is because pixelflux's upstream wheel does not in
 **dmabuf cache cleanup fix** (`renderer.cleanup_texture_cache()` per frame) that
 prevents a Wayland compositor shmem leak under sustained heavy streaming. The patch is
 applied at build time via inline source patching in `candy/selkies/build.sh`. See
-`/ov-selkies:selkies` (Patched pixelflux build pipeline) for the full pipeline and the
+`/charly-selkies:selkies` (Patched pixelflux build pipeline) for the full pipeline and the
 diagnostic recipe that found the leak.
 
 ## Related Images
 
-- `/ov-selkies:selkies-labwc-nvidia` — the GPU sibling of this CPU image: the same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`, `build: [pac, aur]`) with `builder.pixi: ov.cuda-arch-builder` for real NVENC, in the `overthinkos/cachyos` submodule. See `/ov-distros:cachyos`.
-- `/ov-openclaw:openclaw-desktop` — all-in-one CachyOS variant: this streaming desktop fused with the openclaw-full gateway + AI CLIs, a CPU ollama, and the full ov toolchain (build images, run nested pods, launch rootless libvirt VMs from inside the streaming desktop). Uses `/ov-distros:container-nesting`'s `unmask=/proc/*` posture — no `--privileged`, still uid 1000.
-- `/ov-selkies:sway-browser-vnc` — VNC-based alternative using Sway compositor instead of Selkies/labwc streaming
+- `/charly-selkies:selkies-labwc-nvidia` — the GPU sibling of this CPU image: the same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`, `build: [pac, aur]`) with `builder.pixi: ov.cuda-arch-builder` for real NVENC, in the `overthinkos/cachyos` submodule. See `/charly-distros:cachyos`.
+- `/charly-openclaw:openclaw-desktop` — all-in-one CachyOS variant: this streaming desktop fused with the openclaw-full gateway + AI CLIs, a CPU ollama, and the full charly toolchain (build images, run nested pods, launch rootless libvirt VMs from inside the streaming desktop). Uses `/charly-distros:container-nesting`'s `unmask=/proc/*` posture — no `--privileged`, still uid 1000.
+- `/charly-selkies:sway-browser-vnc` — VNC-based alternative using Sway compositor instead of Selkies/labwc streaming
 
 ## Verification
 
 ```bash
-ov status selkies-labwc              # All services RUNNING
+charly status selkies-labwc              # All services RUNNING
 curl -k https://localhost:3000         # HTTPS 200, Selkies dashboard HTML
-ov eval wl screenshot selkies-labwc t.png # Screenshot via capture bridge
-ov eval cdp status selkies-labwc          # CDP available on port 9222
+charly eval wl screenshot selkies-labwc t.png # Screenshot via capture bridge
+charly eval cdp status selkies-labwc          # CDP available on port 9222
 ```
 
 ## Test Coverage
 
-Latest `ov eval live selkies-labwc` run: **91 passed, 0 failed, 0 skipped**
+Latest `charly eval live selkies-labwc` run: **91 passed, 0 failed, 0 skipped**
 — the largest test suite in the project. Covers all 21 transitive
 layers (selkies, chrome, sshd, chrome-devtools-mcp primary; labwc,
 waybar-labwc, pipewire, swaync, pavucontrol, wl-tools, wl-*-pixelflux,
@@ -365,19 +365,19 @@ Deploy-scope: ports 3000 (HTTPS selkies), 9222 (Chrome CDP), 9224
 (labwc, selkies, traefik, chrome via event-listener handoff, sshd).
 
 Note: the sshd layer uses `sudo -n -l` rather than `file:` existence
-for `/etc/sudoers.d/ov-user` because it's root-only (`/ov-eval:eval` Gotcha #10).
+for `/etc/sudoers.d/charly-user` because it's root-only (`/charly-eval:eval` Gotcha #10).
 
 ## Related Skills
 
-- `/ov-selkies:selkies-desktop-layer` (metalayer), `/ov-selkies:selkies`,
-  `/ov-selkies:chrome`, `/ov-selkies:labwc`, `/ov-coder:sshd`,
-  `/ov-selkies:chrome-devtools-mcp`, `/ov-selkies:pipewire`
-- `/ov-eval:eval` — declarative testing framework + testing gotchas
-- `/ov-eval:cdp`, `/ov-eval:wl` — desktop automation on this image
-- `/ov-core:ov-config` — deploy setup (tunnel, port remapping, instances)
-- `/ov-build:ov-mcp-cmd` — the image bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `ov eval live selkies-labwc --filter mcp` runs them; `ov eval mcp list-tools selkies-labwc` enumerates the 29 chrome-devtools tools ad-hoc.
+- `/charly-selkies:selkies-desktop-layer` (metalayer), `/charly-selkies:selkies`,
+  `/charly-selkies:chrome`, `/charly-selkies:labwc`, `/charly-coder:sshd`,
+  `/charly-selkies:chrome-devtools-mcp`, `/charly-selkies:pipewire`
+- `/charly-eval:eval` — declarative testing framework + testing gotchas
+- `/charly-eval:cdp`, `/charly-eval:wl` — desktop automation on this image
+- `/charly-core:ov-config` — deploy setup (tunnel, port remapping, instances)
+- `/charly-build:ov-mcp-cmd` — the image bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `charly eval live selkies-labwc --filter mcp` runs them; `charly eval mcp list-tools selkies-labwc` enumerates the 29 chrome-devtools tools ad-hoc.
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

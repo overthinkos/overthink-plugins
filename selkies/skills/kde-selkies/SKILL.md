@@ -30,7 +30,7 @@ no DRM seat, no SDDM, no `graphical.target`. So:
   Plasma's own clients.
 - **Chrome:** this session script does NOT launch Chrome. The supervised
   `[program:chrome]` service in the shared `selkies-core` layer
-  (`/ov-selkies:selkies-core` "Chrome supervision", `restart: always`) owns it for
+  (`/charly-selkies:selkies-core` "Chrome supervision", `restart: always`) owns it for
   both selkies flavors — `chrome-wrapper` self-polls for the `wayland-0` client
   socket kwin publishes, so it needs no per-flavor handoff and supervisord
   relaunches Chrome if it self-exits during the startup-race. Chrome works headless
@@ -50,7 +50,7 @@ GPU eval beds, not here.
 
 ## Related
 
-- `/ov-selkies:labwc` — the other nested-compositor primitive (the labwc seam).
-- `/ov-selkies:kde-shell` — the SDDM-free Plasma session packages kde-selkies requires.
-- `/ov-selkies:selkies-kde-desktop` — the flavor metalayer composing this.
-- `/ov-distros:cachyos` — CachyOS/Arch base where the KDE Plasma stack lives.
+- `/charly-selkies:labwc` — the other nested-compositor primitive (the labwc seam).
+- `/charly-selkies:kde-shell` — the SDDM-free Plasma session packages kde-selkies requires.
+- `/charly-selkies:selkies-kde-desktop` — the flavor metalayer composing this.
+- `/charly-distros:cachyos` — CachyOS/Arch base where the KDE Plasma stack lives.

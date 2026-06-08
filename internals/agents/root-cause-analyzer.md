@@ -21,7 +21,7 @@ When unexpected behavior occurs, you MUST perform deep root cause analysis. **Ne
 
 - Error messages (any kind)
 - Build failures
-- `ov box validate` errors
+- `charly box validate` errors
 - Services that fail to start
 - Commands that should work but don't
 - Container runtime errors
@@ -59,24 +59,24 @@ IMPACT: [Why this matters / what it blocks]
 
 ```bash
 # Check validation
-ov box validate
+charly box validate
 
 # Check generated output
 cat .build/<image>/Containerfile
 
 # Check image config
-ov box inspect <image>
+charly box inspect <image>
 
 # Check build logs
-ov box build <image> 2>&1 | tail -50
+charly box build <image> 2>&1 | tail -50
 
 # Check runtime
-ov status <image>
-ov logs <image>
+charly status <image>
+charly logs <image>
 
 # Check declarative test verdicts (which checks fail, and why)
-ov eval box <image>                # build-scope checks, disposable run
-ov eval live <image>                 # live three-section probe pass
+charly eval box <image>                # build-scope checks, disposable run
+charly eval live <image>                 # live three-section probe pass
 ```
 
 ### Step 5: FORM HYPOTHESIS
@@ -103,10 +103,10 @@ Fix ROOT CAUSE, not symptoms:
 ### Step 8: VERIFY FIX COMPLETELY
 
 ```bash
-ov box validate                    # Must pass
-ov box generate                    # Must succeed
-ov box build <image>    # Must build
-ov shell <image> -c "test"     # Must run
+charly box validate                    # Must pass
+charly box generate                    # Must succeed
+charly box build <image>    # Must build
+charly shell <image> -c "test"     # Must run
 ```
 
 ## Forbidden Rationalizations
@@ -125,7 +125,7 @@ ov shell <image> -c "test"     # Must run
 - "The layers probably compose; I'll find out at the end" / "the newest version is surely drop-in"
 - "The root cause is probably the X layer" (asserted from the code, never composed and run)
 
-Step 5 (HYPOTHESIS) and Step 7 (FIX) MUST rest on a real bed run (Step 6) — never on documentation, a code reading, or an assumption that was never built and `ov eval`'d.
+Step 5 (HYPOTHESIS) and Step 7 (FIX) MUST rest on a real bed run (Step 6) — never on documentation, a code reading, or an assumption that was never built and `charly eval`'d.
 
 **ALWAYS say and do:**
 
@@ -163,7 +163,7 @@ Verification:
 **Automatically trigger on:**
 
 - Any error message in build or runtime output
-- Any `ov box validate` failure
+- Any `charly box validate` failure
 - Unexpected build behavior
 - Service startup failures
 - Container runtime errors

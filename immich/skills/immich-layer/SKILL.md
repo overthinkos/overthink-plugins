@@ -71,18 +71,18 @@ immich:
 
 ## Used In Images
 
-- `/ov-immich:immich`
-- `/ov-immich:immich-ml`
+- `/charly-immich:immich`
+- `/charly-immich:immich-ml`
 
 ## Related Layers
 
-- `/ov-infrastructure:supervisord` -- process manager dependency
-- `/ov-coder:nodejs` -- Node.js runtime dependency (provides pnpm for the Immich build)
-- `/ov-infrastructure:postgresql` -- database dependency
-- `/ov-infrastructure:redis` -- cache dependency
-- `/ov-selkies:ffmpeg` -- FFmpeg multimedia (nonfree codecs) — required dependency
-- `/ov-infrastructure:vectorchord` -- VectorChord extension (migration script creates it if available)
-- `/ov-immich:immich-ml` -- optional ML backend
+- `/charly-infrastructure:supervisord` -- process manager dependency
+- `/charly-coder:nodejs` -- Node.js runtime dependency (provides pnpm for the Immich build)
+- `/charly-infrastructure:postgresql` -- database dependency
+- `/charly-infrastructure:redis` -- cache dependency
+- `/charly-selkies:ffmpeg` -- FFmpeg multimedia (nonfree codecs) — required dependency
+- `/charly-infrastructure:vectorchord` -- VectorChord extension (migration script creates it if available)
+- `/charly-immich:immich-ml` -- optional ML backend
 
 ## When to Use This Skill
 
@@ -96,5 +96,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

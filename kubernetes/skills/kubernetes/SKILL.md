@@ -1,7 +1,7 @@
 ---
 name: kubernetes
 description: |
-  MUST be invoked before any work involving: `ov deploy add --target kubernetes`, `ov deploy from-box`, Kustomize manifest generation, cluster profiles, K8s deployments, `kubernetes:` block in deploy spec, or OCI-label capabilities.
+  MUST be invoked before any work involving: `charly deploy add --target kubernetes`, `charly deploy from-box`, Kustomize manifest generation, cluster profiles, K8s deployments, `kubernetes:` block in deploy spec, or OCI-label capabilities.
 ---
 
 # Kubernetes — Deploying Overthink Images to K8s Clusters
@@ -10,25 +10,25 @@ description: |
 
 Overthink can deploy built images to a Kubernetes cluster by emitting a Kustomize `base/` + `overlays/` tree. The deployment schema stays **target-agnostic** — authors describe *what the workload needs* (kind, replicas, resources, exposure, storage, probes); a per-cluster **cluster profile** file supplies the K8s-specific knobs (storage class, ingress class, cert issuer, secret backend).
 
-Every image's runtime contract is baked into OCI labels at build time, so **a K8s deploy is possible without access to `overthink.yml`** — the `ov deploy from-box` verb reads capabilities from the pushed image alone.
+Every image's runtime contract is baked into OCI labels at build time, so **a K8s deploy is possible without access to `charly.yml`** — the `charly deploy from-box` verb reads capabilities from the pushed image alone.
 
 ## Quick reference
 
 | Action | Command | Description |
 |---|---|---|
-| Add K8s deploy | `ov deploy add <name> <ref> --target kubernetes` | Read BoxConfig + deployment + cluster profile; emit `.overthink/k8s/<name>/` Kustomize tree |
-| Source-less deploy | `ov deploy from-box <registry/name:tag> [name] --cluster <name>` | Deploy from OCI labels only — no `overthink.yml` needed (see Part F.10) |
-| Sync to cluster | `ov deploy sync <name>` | `kubectl apply -k .overthink/k8s/<name>/overlays/default` |
-| Show generated manifests | `ov deploy show <name>` | `kubectl kustomize …` — see what would apply |
-| Delete K8s deploy | `ov deploy del <name>` | Remove overlay dir; base stays if other instances reference it |
+| Add K8s deploy | `charly deploy add <name> <ref> --target kubernetes` | Read BoxConfig + deployment + cluster profile; emit `.opencharly/k8s/<name>/` Kustomize tree |
+| Source-less deploy | `charly deploy from-box <registry/name:tag> [name] --cluster <name>` | Deploy from OCI labels only — no `charly.yml` needed (see Part F.10) |
+| Sync to cluster | `charly deploy sync <name>` | `kubectl apply -k .opencharly/k8s/<name>/overlays/default` |
+| Show generated manifests | `charly deploy show <name>` | `kubectl kustomize …` — see what would apply |
+| Delete K8s deploy | `charly deploy del <name>` | Remove overlay dir; base stays if other instances reference it |
 
 ## The three-layer model
 
 | Concern | Schema slot | OCI label home |
 |---|---|---|
 | **Build** — what goes INTO the image | `image.build:` (or legacy `BoxConfig`) | no (consumed at build) |
-| **Capabilities** — image's runtime contract | `image.capabilities:` (or layer rollups) | **yes** — every field under `org.overthinkos.*` |
-| **Deployment** — how to run the image | `overthink.yml:deployments.<name>` + `~/.config/ov/deploy.yml` overlay | no |
+| **Capabilities** — image's runtime contract | `image.capabilities:` (or layer rollups) | **yes** — every field under `ai.opencharly.*` |
+| **Deployment** — how to run the image | `charly.yml:deployments.<name>` + `~/.config/charly/deploy.yml` overlay | no |
 
 The completeness invariant: every exported field on `BoxMetadata`/`Capabilities` has a `CapabilityLabelMap` entry. A compile-time test enforces this — a new capability field without a label mapping fails the build. See `ov/capabilities.go`.
 
@@ -58,7 +58,7 @@ deployments:
         liveness:  { http: { path: /healthz, port: 8080 } }
         readiness: { http: { path: /ready,   port: 8080 } }
       kubernetes:
-        cluster: production           # pointer to ~/.config/ov/clusters/production.yaml
+        cluster: production           # pointer to ~/.config/charly/clusters/production.yaml
         namespace: apps               # optional override of cluster profile default
         patches: []                   # escape hatch: strategic / JSON6902 patches
         raw: []                       # escape hatch: paths to raw manifests included verbatim
@@ -79,10 +79,10 @@ Explicit override: `kubernetes.workload: Deployment` (rare — prefer `kind:`).
 
 ## Cluster profile
 
-One file per cluster. Lives at `~/.config/ov/clusters/<name>.yaml` (per-user) or `clusters/<name>.yaml` (in-repo, discoverable via `discover.clusters:`). The **only** place cluster-specific K8s knobs live.
+One file per cluster. Lives at `~/.config/charly/clusters/<name>.yaml` (per-user) or `clusters/<name>.yaml` (in-repo, discoverable via `discover.clusters:`). The **only** place cluster-specific K8s knobs live.
 
 ```yaml
-# ~/.config/ov/clusters/production.yaml
+# ~/.config/charly/clusters/production.yaml
 version: 1
 kind: cluster-profile
 name: production
@@ -118,7 +118,7 @@ pod_defaults:
   node_selector: {}
 
 defaults:
-  labels: { managed-by: overthink }
+  labels: { managed-by: opencharly }
 ```
 
 New cluster = write a new profile; zero deployment-spec changes.
@@ -126,7 +126,7 @@ New cluster = write a new profile; zero deployment-spec changes.
 ## Generator output
 
 ```
-.overthink/k8s/<deployment-name>/
+.opencharly/k8s/<deployment-name>/
 ├── base/
 │   ├── kustomization.yaml           # commonLabels, resources: […]
 │   ├── deployment.yaml              # or statefulset.yaml / daemonset.yaml / job.yaml / cronjob.yaml / pod.yaml
@@ -139,20 +139,20 @@ New cluster = write a new profile; zero deployment-spec changes.
         └── kustomization.yaml       # namespace override + patches from kubernetes.patches:
 ```
 
-Apply: `kubectl apply -k .overthink/k8s/<name>/overlays/<instance>` (or `ov deploy sync <name>`).
+Apply: `kubectl apply -k .opencharly/k8s/<name>/overlays/<instance>` (or `charly deploy sync <name>`).
 
-## Source-less deploy — `ov deploy from-box`
+## Source-less deploy — `charly deploy from-box`
 
-Proves the self-contained image invariant: a deploy pipeline with **no access to `overthink.yml`** can still produce a correct Kustomize tree.
+Proves the self-contained image invariant: a deploy pipeline with **no access to `charly.yml`** can still produce a correct Kustomize tree.
 
 ```bash
 # On a machine that doesn't have the source repo:
-ov deploy from-box quay.io/myorg/openclaw:v2 openclaw \
+charly deploy from-box quay.io/myorg/openclaw:v2 openclaw \
     --target kubernetes --cluster production --namespace apps
-# Reads: OCI labels (capabilities) + ~/.config/ov/clusters/production.yaml
-#        + ~/.config/ov/deploy.yml (if present, for per-machine overrides)
-# Emits: .overthink/k8s/openclaw/base/ + overlays/default/
-ov deploy sync openclaw                   # kubectl apply -k ...
+# Reads: OCI labels (capabilities) + ~/.config/charly/clusters/production.yaml
+#        + ~/.config/charly/deploy.yml (if present, for per-machine overrides)
+# Emits: .opencharly/k8s/openclaw/base/ + overlays/default/
+charly deploy sync openclaw                   # kubectl apply -k ...
 ```
 
 ## Relevant code
@@ -165,6 +165,6 @@ ov deploy sync openclaw                   # kubectl apply -k ...
 
 ## Related skills
 
-- `/ov-core:deploy` — unified `ov deploy add`/`del` verb; K8s is one of three targets
-- `/ov-internals:capabilities` — OCI label contract the K8s generator reads from
-- `/ov-internals:install-plan` — shared IR across build + deploy targets
+- `/charly-core:deploy` — unified `charly deploy add`/`del` verb; K8s is one of three targets
+- `/charly-internals:capabilities` — OCI label contract the K8s generator reads from
+- `/charly-internals:install-plan` — shared IR across build + deploy targets

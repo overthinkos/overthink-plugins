@@ -26,11 +26,11 @@ description: |
 
 | Variable | Template Value | Resolved Example |
 |----------|---------------|-----------------|
-| `REDIS_URL` | `redis://{{.ContainerName}}:6379` | `redis://ov-redis:6379` |
+| `REDIS_URL` | `redis://{{.ContainerName}}:6379` | `redis://charly-redis:6379` |
 
-Pod-aware: same-container consumers receive `redis://localhost:6379`, cross-container consumers receive `redis://ov-redis:6379`. When `ov config` runs, `REDIS_URL` is automatically injected into the global `deploy.yml` env for Redis service discovery.
+Pod-aware: same-container consumers receive `redis://localhost:6379`, cross-container consumers receive `redis://charly-redis:6379`. When `charly config` runs, `REDIS_URL` is automatically injected into the global `deploy.yml` env for Redis service discovery.
 
-See `/ov-image:layer` for `env_provide` field docs.
+See `/charly-image:layer` for `env_provide` field docs.
 
 ## Packages
 
@@ -40,7 +40,7 @@ The layer is multi-distro:
   **`valkey-compat-redis`** on Fedora 43. The old `redis` package was replaced;
   dnf resolves the name via `Provides:`, but `rpm -q redis` returns "not
   installed". Any `package:` test must query the real installed name. See
-  `/ov-eval:eval` Authoring Gotcha #8.
+  `/charly-eval:eval` Authoring Gotcha #8.
 - **PAC (Arch/CachyOS):** `valkey` — the Arch `valkey` package provides the
   Redis server and CLI binaries (`/usr/bin/redis-server`, `/usr/bin/redis-cli`),
   so the same service spec and binary paths work on Arch/CachyOS. A `package:`
@@ -57,21 +57,21 @@ my-image:
 
 ## Used In Images
 
-- `/ov-immich:immich`
-- `/ov-immich:immich-ml`
+- `/charly-immich:immich`
+- `/charly-immich:immich-ml`
 
 ## Tests
 
-The layer ships 5 declarative checks embedded in the `org.overthinkos.eval`
-OCI label (see `/ov-eval:eval` for the full schema — this layer is the
+The layer ships 5 declarative checks embedded in the `ai.opencharly.eval`
+OCI label (see `/charly-eval:eval` for the full schema — this layer is the
 **gold-standard pattern** referenced there):
 
-- **Build-scope** (run under `ov eval box`, via `podman run --rm`):
+- **Build-scope** (run under `charly eval box`, via `podman run --rm`):
   - `redis-binary` — `/usr/bin/redis-server` exists
   - `redis-cli-binary` — `/usr/bin/redis-cli` exists
   - `redis-package` — `valkey-compat-redis` package installed (real
     installed provider on Fedora 43; see Packages note above)
-- **Deploy-scope** (run under `ov eval live` against a live service; uses
+- **Deploy-scope** (run under `charly eval live` against a live service; uses
   `${HOST_PORT:6379}` runtime substitution so the checks keep working
   if `deploy.yml` remaps the host port — host-side tests always use
   `127.0.0.1:${HOST_PORT:N}`, not `${CONTAINER_IP}`):
@@ -85,11 +85,11 @@ host, the deploy-scope tests correctly skip with
 
 ## Related Skills
 
-- `/ov-immich:immich` -- primary consumer (depends on redis)
-- `/ov-infrastructure:postgresql` -- often paired with redis in service stacks
-- `/ov-eval:eval` -- declarative testing framework (this layer is the gold-standard pattern)
-- `/ov-image:layer` -- layer authoring + `env_provide` field docs
-- `/ov-infrastructure:valkey` -- Remi-repo Valkey 9 package (separate layer; different version than Fedora's default valkey-compat-redis)
+- `/charly-immich:immich` -- primary consumer (depends on redis)
+- `/charly-infrastructure:postgresql` -- often paired with redis in service stacks
+- `/charly-eval:eval` -- declarative testing framework (this layer is the gold-standard pattern)
+- `/charly-image:layer` -- layer authoring + `env_provide` field docs
+- `/charly-infrastructure:valkey` -- Remi-repo Valkey 9 package (separate layer; different version than Fedora's default valkey-compat-redis)
 
 ## When to Use This Skill
 

@@ -11,14 +11,14 @@ description: |
 
 Privileged builder image used to bootstrap a CachyOS root filesystem via
 `pacstrap` inside a container. It is the `bootstrap_builder_image:` for
-`/ov-distros:cachyos-pacstrap` and the `builder_image:` for the
-`/ov-vm:cachyos` VM.
+`/charly-distros:cachyos-pacstrap` and the `builder_image:` for the
+`/charly-vm:cachyos` VM.
 
 > **Lives in `overthinkos/cachyos`** (git submodule at `image/cachyos`). It is
 > `base: ov.arch` — the `arch` base from main's `base.yml`, reached because the
-> submodule's `overthink.yml` imports the main repo under the `ov`
+> submodule's `charly.yml` imports the main repo under the `ov`
 > namespace. Its single layer, `pacstrap-builder`, stays in the main repo
-> (shared with `/ov-distros:arch-builder`'s pacstrap path) and is pulled by git
+> (shared with `/charly-distros:arch-builder`'s pacstrap path) and is pulled by git
 > reference.
 
 ## Image Properties
@@ -34,7 +34,7 @@ Privileged builder image used to bootstrap a CachyOS root filesystem via
 ## Quick Start
 
 ```bash
-ov -C image/cachyos image build cachyos-pacstrap-builder
+charly -C image/cachyos image build cachyos-pacstrap-builder
 ```
 
 This is the R10 canary for the submodule's composition machinery: a successful
@@ -43,16 +43,16 @@ build proves the `ov` import namespace resolves the `arch` base from main's
 flat-imported `build.yml` (pacstrap builder definition + cachyos distro config)
 is reachable.
 
-`ov eval box cachyos-pacstrap-builder` runs the build-scope eval: 4 probes pass
+`charly eval box cachyos-pacstrap-builder` runs the build-scope eval: 4 probes pass
 (`/usr/sbin/pacstrap`, `arch-install-scripts` installed, `/usr/sbin/grub-install`,
 `/usr/sbin/parted`) — i.e. the pacstrap toolchain the builder must ship.
 
 ## Cross-References
 
-- `/ov-distros:cachyos` — the Docker-Hub CachyOS base (sibling, no pacstrap)
-- `/ov-distros:cachyos-pacstrap` — the rootfs this builder bootstraps
-- `/ov-vm:cachyos` — the VM that uses this as `builder_image:`
-- `/ov-distros:arch` / `/ov-distros:arch-builder` — the Arch base + builder it mirrors
+- `/charly-distros:cachyos` — the Docker-Hub CachyOS base (sibling, no pacstrap)
+- `/charly-distros:cachyos-pacstrap` — the rootfs this builder bootstraps
+- `/charly-vm:cachyos` — the VM that uses this as `builder_image:`
+- `/charly-distros:arch` / `/charly-distros:arch-builder` — the Arch base + builder it mirrors
 
 ## When to Use This Skill
 

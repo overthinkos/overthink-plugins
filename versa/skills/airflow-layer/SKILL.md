@@ -1,7 +1,7 @@
 ---
 name: airflow-layer
 description: |
-  Apache Airflow 3.x with LocalExecutor + SQLite (single-node, dev-friendly), 4 supervisord services (init, scheduler, dag-processor, webserver). Layer is service-only — its Python deps live in /ov-versa:versa-layer's pixi env. No MCP wrapper (no upstream v2 release exists; consumers drive Airflow via direct REST /api/v2 calls).
+  Apache Airflow 3.x with LocalExecutor + SQLite (single-node, dev-friendly), 4 supervisord services (init, scheduler, dag-processor, webserver). Layer is service-only — its Python deps live in /charly-versa:versa-layer's pixi env. No MCP wrapper (no upstream v2 release exists; consumers drive Airflow via direct REST /api/v2 calls).
   Use when working with the airflow layer, Airflow 3.x compatibility findings, the SimpleAuthManager auth-fix pattern, the dag-processor split-from-scheduler architecture change, or the JWT-issuance + REST API trigger flow used by self-authoring notebooks.
 ---
 
@@ -13,7 +13,7 @@ in CeleryExecutor + Postgres + Valkey (those layers stayed available
 under `candy/postgresql/` + `candy/valkey/`).
 
 This layer is **service-only**: it ships no `pixi.toml`. Its Python
-deps (`apache-airflow`) live in `/ov-versa:versa-layer`'s pixi env,
+deps (`apache-airflow`) live in `/charly-versa:versa-layer`'s pixi env,
 so airflow runs alongside marimo in the same pod with one combined
 Python environment.
 
@@ -143,7 +143,7 @@ Deploy-scope (4):
 
 ## Notebook self-author DAG pattern
 
-The marimo notebook in `/ov-versa:notebook-osm` writes its own DAG
+The marimo notebook in `/charly-versa:notebook-osm` writes its own DAG
 file into `/workspace/dags/` and triggers it via the REST API:
 
 1. POST `/auth/token` (admin / `$AIRFLOW_ADMIN_PASSWORD`) → JWT
@@ -159,8 +159,8 @@ and `notebook_gtfs_pipeline` in parallel.
 
 ## Cross-references
 
-- `/ov-versa:versa-layer` — pixi env that owns the airflow Python deps
-- `/ov-versa:notebook-osm` — canonical user of the REST trigger pattern
-- `/ov-versa:versa` — the image composing this layer
-- `/ov-infrastructure:supervisord` — service mgmt
-- `/ov-build:secrets` — the 3 airflow secrets injected via this layer
+- `/charly-versa:versa-layer` — pixi env that owns the airflow Python deps
+- `/charly-versa:notebook-osm` — canonical user of the REST trigger pattern
+- `/charly-versa:versa` — the image composing this layer
+- `/charly-infrastructure:supervisord` — service mgmt
+- `/charly-build:secrets` — the 3 airflow secrets injected via this layer

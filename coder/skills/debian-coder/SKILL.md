@@ -11,16 +11,16 @@ description: |
 
 # debian-coder
 
-Debian 13 trixie counterpart of `/ov-coder:fedora-coder`. Same 80-line `eval:` block, same ~30 layers, same rootless posture (uid 1000 + passwordless sudo). Key wrinkles are all Debian-specific packaging quirks handled inside individual layers: `bat → batcat` symlink, Microsoft's `dotnet-install.sh` cross-distro installer, and package-existence tests (vs binary-path tests) for `virtualization` because Debian bundles libvirt drivers differently.
+Debian 13 trixie counterpart of `/charly-coder:fedora-coder`. Same 80-line `eval:` block, same ~30 layers, same rootless posture (uid 1000 + passwordless sudo). Key wrinkles are all Debian-specific packaging quirks handled inside individual layers: `bat → batcat` symlink, Microsoft's `dotnet-install.sh` cross-distro installer, and package-existence tests (vs binary-path tests) for `virtualization` because Debian bundles libvirt drivers differently.
 
 > **Location:** lives in the **`overthinkos/debian`** repo (git submodule at
-> **`image/debian`**), in that repo's config (its `overthink.yml` + per-kind
+> **`image/debian`**), in that repo's config (its `charly.yml` + per-kind
 > sibling files). Its `debian` base is owned by the same submodule; its ~31
 > layers are pulled by github reference from the main repo. Build/validate from
 > the submodule:
-> `ov -C image/debian image build debian-coder`, or
-> `ov --repo overthinkos/debian image build debian-coder`. Deploy-mode verbs
-> (`ov config`/`ov start`/`ov eval box`) read the built image's OCI labels and
+> `charly -C image/debian image build debian-coder`, or
+> `charly --repo overthinkos/debian image build debian-coder`. Deploy-mode verbs
+> (`charly config`/`charly start`/`charly eval box`) read the built image's OCI labels and
 > work from anywhere once it's in local storage.
 
 ## Definition
@@ -35,7 +35,7 @@ debian-coder:
     # Baseline
     - agent-forwarding
     - sshd
-    - ov
+    - charly
     - ov-mcp
     - container-nesting
     - dbus
@@ -86,32 +86,32 @@ RUN if ! getent passwd 1000 >/dev/null 2>&1; then
     fi
 ```
 
-Resolved identity: `User=user, UID=1000, GID=1000, Home=/home/user`. Identical to fedora-coder / arch-coder. Contrast with `/ov-coder:ubuntu-coder` which runs adopt mode on `ubuntu:ubuntu`.
+Resolved identity: `User=user, UID=1000, GID=1000, Home=/home/user`. Identical to fedora-coder / arch-coder. Contrast with `/charly-coder:ubuntu-coder` which runs adopt mode on `ubuntu:ubuntu`.
 
-See `/ov-image:image` "user_policy" and `/ov-build:build` "base_user" for the full decision table.
+See `/charly-image:image` "user_policy" and `/charly-build:build` "base_user" for the full decision table.
 
 ## Security posture
 
 | Field | Value | Source |
 |---|---|---|
 | `cap_add` | **(empty)** | — |
-| `security_opt` | `[unmask=/proc/*]` | `/ov-distros:container-nesting` |
-| `devices` | `[/dev/fuse, /dev/net/tun]` | `/ov-distros:container-nesting` |
+| `security_opt` | `[unmask=/proc/*]` | `/charly-distros:container-nesting` |
+| `devices` | `[/dev/fuse, /dev/net/tun]` | `/charly-distros:container-nesting` |
 | `privileged` | `false` | — |
 | Network | bridge | defaults |
 | UID / user | `1000 / user` | create mode |
-| sudo | passwordless via `/etc/sudoers.d/ov-user` (discovered via `getent passwd 1000`) | `/ov-coder:sshd` |
+| sudo | passwordless via `/etc/sudoers.d/charly-user` (discovered via `getent passwd 1000`) | `/charly-coder:sshd` |
 
 ## Debian-specific layer quirks
 
-- **bat → batcat symlink** (`/ov-coder:dev-tools`). Debian and Ubuntu rename `bat` → `batcat` to avoid a namespace collision with a legacy `bacula` utility. The dev-tools layer ships a distro-tolerant cmd task that creates `/usr/bin/bat -> /usr/bin/batcat` when only batcat is present; no-op on Fedora/Arch.
-- **dotnet-sdk-9.0 via Microsoft's `dotnet-install.sh`** (`/ov-coder:language-runtimes`). Debian 13 main ships no .NET; Microsoft's trixie apt repo has dotnet-sdk-9.0, but using the official cross-distro `dotnet-install.sh` channel-pin to `9.0` gives version parity with Ubuntu (whose Microsoft noble repo only ships 10.0). Installs to `/usr/share/dotnet` + symlinks `/usr/bin/dotnet`.
-- **libvirt tests use `package:` not `file:`** (`/ov-infrastructure:virtualization`). Debian bundles libvirt drivers differently from Fedora's split packaging, so `file: /usr/sbin/virtqemud` would false-fail. The layer probes via `package: libvirt-daemon-driver-qemu` + `package_map:` per-distro package name.
-- **sudoers via `getent`** (`/ov-coder:sshd`). Instead of hardcoding `user ALL=…`, the layer runs `getent passwd 1000 | cut -d: -f1` at build time to discover the actual uid-1000 account. On debian-coder that returns `user`; on ubuntu-coder it returns `ubuntu`. One cross-distro implementation, no special cases.
+- **bat → batcat symlink** (`/charly-coder:dev-tools`). Debian and Ubuntu rename `bat` → `batcat` to avoid a namespace collision with a legacy `bacula` utility. The dev-tools layer ships a distro-tolerant cmd task that creates `/usr/bin/bat -> /usr/bin/batcat` when only batcat is present; no-op on Fedora/Arch.
+- **dotnet-sdk-9.0 via Microsoft's `dotnet-install.sh`** (`/charly-coder:language-runtimes`). Debian 13 main ships no .NET; Microsoft's trixie apt repo has dotnet-sdk-9.0, but using the official cross-distro `dotnet-install.sh` channel-pin to `9.0` gives version parity with Ubuntu (whose Microsoft noble repo only ships 10.0). Installs to `/usr/share/dotnet` + symlinks `/usr/bin/dotnet`.
+- **libvirt tests use `package:` not `file:`** (`/charly-infrastructure:virtualization`). Debian bundles libvirt drivers differently from Fedora's split packaging, so `file: /usr/sbin/virtqemud` would false-fail. The layer probes via `package: libvirt-daemon-driver-qemu` + `package_map:` per-distro package name.
+- **sudoers via `getent`** (`/charly-coder:sshd`). Instead of hardcoding `user ALL=…`, the layer runs `getent passwd 1000 | cut -d: -f1` at build time to discover the actual uid-1000 account. On debian-coder that returns `user`; on ubuntu-coder it returns `ubuntu`. One cross-distro implementation, no special cases.
 
 ## Test results
 
-`ov eval box ghcr.io/overthinkos/debian-coder:latest` — **143 passed · 0 failed · 0 skipped**.
+`charly eval box ghcr.io/overthinkos/debian-coder:latest` — **143 passed · 0 failed · 0 skipped**.
 
 Against a live running container, the same command adds live-service extension tests (sshd on 2222, supervisord, dbus, ov-mcp, virtqemud session), mirroring fedora-coder's +18 deploy-scope additions.
 
@@ -119,29 +119,29 @@ Against a live running container, the same command adds live-service extension t
 
 ```bash
 # 1. Validate
-ov -C image/debian image validate
+charly -C image/debian image validate
 
 # 2. Build dependencies auto-resolve (debian → debian-builder → debian-coder)
-ov -C image/debian image build debian-coder
+charly -C image/debian image build debian-coder
 
 # 3. Disposable-container tests
-ov eval box ghcr.io/overthinkos/debian-coder:latest
+charly eval box ghcr.io/overthinkos/debian-coder:latest
 
 # 4. Deploy + live tests
-ov config debian-coder
-ov start debian-coder
-ov eval box ghcr.io/overthinkos/debian-coder:latest
+charly config debian-coder
+charly start debian-coder
+charly eval box ghcr.io/overthinkos/debian-coder:latest
 
 # 5. Clean up
-ov stop debian-coder
+charly stop debian-coder
 ```
 
 ## Ports
 
 | Port | Service | Bound by |
 |---|---|---|
-| 2222 | sshd-wrapper (SSH access as `user` with sudo) | `/ov-coder:sshd` |
-| 18765 | ov-mcp (entire `ov` CLI as MCP tools, Streamable HTTP) | `/ov-coder:ov-mcp` |
+| 2222 | sshd-wrapper (SSH access as `user` with sudo) | `/charly-coder:sshd` |
+| 18765 | ov-mcp (entire `ov` CLI as MCP tools, Streamable HTTP) | `/charly-coder:charly-mcp` |
 
 Conflicts with the other three coder-family images on the same ports — use `-i <instance>` or `-p <remap>` to run alongside.
 
@@ -153,31 +153,31 @@ Conflicts with the other three coder-family images on the same ports — use `-i
 
 All four coder-family images share the identical 80-line `eval:` block + ~30 identical layers; they diverge only in per-layer package-format sections.
 
-- `/ov-coder:fedora-coder` — RPM (Fedora 43 via fedora-nonfree).
-- `/ov-coder:arch-coder` — pacman + optional AUR.
-- `/ov-coder:ubuntu-coder` — deb on Ubuntu 24.04; **adopt mode** (`user:ubuntu`).
-- `/ov-coder:debian-coder` — this image; create mode (`user:user`).
+- `/charly-coder:fedora-coder` — RPM (Fedora 43 via fedora-nonfree).
+- `/charly-coder:arch-coder` — pacman + optional AUR.
+- `/charly-coder:ubuntu-coder` — deb on Ubuntu 24.04; **adopt mode** (`user:ubuntu`).
+- `/charly-coder:debian-coder` — this image; create mode (`user:user`).
 
 ## Related images
 
-- `/ov-distros:debian` — parent base.
-- `/ov-distros:debian-builder` — multi-stage builder for pixi/npm/cargo.
+- `/charly-distros:debian` — parent base.
+- `/charly-distros:debian-builder` — multi-stage builder for pixi/npm/cargo.
 
 ## Related layers (Debian-specific content)
 
-- `/ov-coder:sshd` — cross-distro sudoers via `getent passwd 1000`.
-- `/ov-coder:dev-tools` — bat → batcat symlink task.
-- `/ov-coder:language-runtimes` — Microsoft `dotnet-install.sh` cross-distro pattern.
-- `/ov-infrastructure:virtualization` — `package:` + `package_map:` pattern for libvirt.
-- `/ov-coder:build-toolchain` — Debian `-dev` package equivalents of Fedora's `-devel`.
-- `/ov-coder:gh`, `/ov-coder:docker-ce`, `/ov-coder:kubernetes-layer`, `/ov-distros:container-nesting` — each adds an upstream apt repo (with GPG key) for packages not in Debian main.
+- `/charly-coder:sshd` — cross-distro sudoers via `getent passwd 1000`.
+- `/charly-coder:dev-tools` — bat → batcat symlink task.
+- `/charly-coder:language-runtimes` — Microsoft `dotnet-install.sh` cross-distro pattern.
+- `/charly-infrastructure:virtualization` — `package:` + `package_map:` pattern for libvirt.
+- `/charly-coder:build-toolchain` — Debian `-dev` package equivalents of Fedora's `-devel`.
+- `/charly-coder:gh`, `/charly-coder:docker-ce`, `/charly-coder:kubernetes-layer`, `/charly-distros:container-nesting` — each adds an upstream apt repo (with GPG key) for packages not in Debian main.
 
 ## Related commands
 
-- `/ov-core:shell`, `/ov-core:ov-config`, `/ov-core:start`, `/ov-core:stop`, `/ov-eval:eval`
-- `/ov-image:image` — `user_policy:` field reference
-- `/ov-build:build` — `base_user:` declaration (absent for Debian)
-- `/ov-image:layer` — authoring reference (covers `exclude_distros:`, tag-section `repos:`, Microsoft dotnet-install pattern)
+- `/charly-core:shell`, `/charly-core:ov-config`, `/charly-core:start`, `/charly-core:stop`, `/charly-eval:eval`
+- `/charly-image:image` — `user_policy:` field reference
+- `/charly-build:build` — `base_user:` declaration (absent for Debian)
+- `/charly-image:layer` — authoring reference (covers `exclude_distros:`, tag-section `repos:`, Microsoft dotnet-install pattern)
 
 ## When to use this skill
 

@@ -37,18 +37,18 @@ layers:
 
 ## Used In Images
 
-- `/ov-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
-- `/ov-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
-- `/ov-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
+- `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
+- `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
+- `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Related Layers
-- `/ov-selkies:sway-desktop` — Metalayer that pulls fastfetch in
-- `/ov-selkies:selkies-desktop-layer` — Metalayer that pulls fastfetch in
-- `/ov-coder:dev-tools` — Sibling that also packages fastfetch via dnf
+- `/charly-selkies:sway-desktop` — Metalayer that pulls fastfetch in
+- `/charly-selkies:selkies-desktop-layer` — Metalayer that pulls fastfetch in
+- `/charly-coder:dev-tools` — Sibling that also packages fastfetch via dnf
 
 ## Related Commands
-- `/ov-build:build` — Builds the fastfetch RPM into the image
-- `/ov-core:shell` — Interactive shell to run `fastfetch` for environment verification
+- `/charly-build:build` — Builds the fastfetch RPM into the image
+- `/charly-core:shell` — Interactive shell to run `fastfetch` for environment verification
 
 ## When to Use This Skill
 
@@ -59,5 +59,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -31,7 +31,7 @@ MCP-server identity reflect that upstream software identity.
 | MCP servers | 1 (marimo @ container 2718). No airflow MCP wrapper — no Airflow-3 / `/api/v2` release of the upstream package exists; consumers drive Airflow via direct REST `/api/v2/` calls |
 | Registry | `ghcr.io/overthinkos` |
 | Image tag pattern | CalVer (`YYYY.DDD.HHMM`) |
-| Builder | `arch-builder` (pixi/npm/cargo/aur) — declared as versa's OWN explicit `builder:` map. The cachyos base is reached via the `cachyos` import namespace, and a `builder:` map does NOT cross a namespace boundary; `arch-builder` is a name local to main's `base.yml`, so the bare ref resolves in the root namespace. See `/ov-distros:cachyos`. |
+| Builder | `arch-builder` (pixi/npm/cargo/aur) — declared as versa's OWN explicit `builder:` map. The cachyos base is reached via the `cachyos` import namespace, and a `builder:` map does NOT cross a namespace boundary; `arch-builder` is a name local to main's `base.yml`, so the bare ref resolves in the root namespace. See `/charly-distros:cachyos`. |
 
 ## Layer stack (composition order)
 
@@ -43,7 +43,7 @@ MCP-server identity reflect that upstream software identity.
    from CachyOS extra repo; `/opt/cuda` symlinked into
    `/usr/{bin,include,lib64}` for path compatibility with the Fedora
    layout). No AUR builds in this image — `build:` is `[pac]` only.
-5. `marimo` — `/ov-versa:versa-layer` — pixi env (cudf-polars-cu13,
+5. `marimo` — `/charly-versa:versa-layer` — pixi env (cudf-polars-cu13,
    torch cu130, geopandas, quackosm, gtfs-parquet, folium, marimo,
    airflow Python deps, plus polars-st / geopolars / geoarrow-pyarrow /
    geoarrow-pandas / lonboard for Polars-native spatial ops + deck.gl
@@ -52,42 +52,42 @@ MCP-server identity reflect that upstream software identity.
    instead, because its PyPI wheels don't cover Python 3.13/Linux x86_64
    and the pixi env's `no-build = true` blocks sdist resolution),
    supervisord service `marimo edit … --mcp`
-6. `airflow` — `/ov-versa:airflow-layer` — 4 supervisord services
+6. `airflow` — `/charly-versa:airflow-layer` — 4 supervisord services
    (init/scheduler/dag-processor/webserver). No airflow-mcp wrapper —
    no Airflow-3 v2 release of `mcp-server-apache-airflow` exists;
    consumers drive Airflow via direct REST `/api/v2/` calls.
-7. `osm-tools` — `/ov-versa:osm-tools-layer` — tippecanoe (built from
+7. `osm-tools` — `/charly-versa:osm-tools-layer` — tippecanoe (built from
    source), gdal, jq, martin (Rust binary), pmtiles CLI (Go binary),
    gpq-tiles (cargo-installed Rust binary; v0.6.0 from crates.io —
    the system-install fallback for the PyPI-wheel gap)
-8. `maputnik` — `/ov-versa:maputnik-layer` — MapLibre style editor
+8. `maputnik` — `/charly-versa:maputnik-layer` — MapLibre style editor
    built with Vite `--base=/`
-9. `pmtiles-viewer` — `/ov-versa:pmtiles-viewer` — protomaps/PMTiles
+9. `pmtiles-viewer` — `/charly-versa:pmtiles-viewer` — protomaps/PMTiles
    /app SPA, visual inspector for PMTiles archives (port 8001 → 28001)
-10. `shortbread` — `/ov-versa:shortbread` — systemed/tilemaker (C++/Lua)
+10. `shortbread` — `/charly-versa:shortbread` — systemed/tilemaker (C++/Lua)
     + shortbread-tilemaker config — produces shortbread-schema vector
     tiles into `/workspace/tiles/shortbread/`
-11. `versatiles-style` — `/ov-versa:versatiles-style` — @versatiles/style
+11. `versatiles-style` — `/charly-versa:versatiles-style` — @versatiles/style
     MapLibre style generator bundled to `/opt/versatiles-style/`
-12. `versatiles-fonts` — `/ov-versa:versatiles-fonts` — SDF font glyphs
+12. `versatiles-fonts` — `/charly-versa:versatiles-fonts` — SDF font glyphs
     (Noto Sans + 9 others) bundled to `/opt/versatiles-fonts/`
-13. `maplibre-versatiles-styler` — `/ov-versa:maplibre-versatiles-styler` —
+13. `maplibre-versatiles-styler` — `/charly-versa:maplibre-versatiles-styler` —
     interactive MapLibre style-switcher control bundled to
     `/opt/maplibre-versatiles-styler/`
-14. `versatiles` — `/ov-versa:versatiles` — versatiles-rs CLI binary
+14. `versatiles` — `/charly-versa:versatiles` — versatiles-rs CLI binary
     (convert/serve/probe) + `versatiles serve` supervisord service on
     port 8090 → 28090 (parallel tile server to martin)
-15. `versatiles-frontend` — `/ov-versa:versatiles-frontend` —
+15. `versatiles-frontend` — `/charly-versa:versatiles-frontend` —
     versatiles-org/versatiles-frontend SPA (port 8002 → 28002); also
     re-exports versatiles-style / fonts / styler at `/style/`,
     `/fonts/`, `/styler/`
-16. `notebook-osm` — `/ov-versa:notebook-osm` — data-only layer
+16. `notebook-osm` — `/charly-versa:notebook-osm` — data-only layer
     seeding the OSM+GTFS+pipelines notebook into `/workspace/notebooks/`
-17. `notebook-graph` — `/ov-versa:notebook-graph` — data-only layer
+17. `notebook-graph` — `/charly-versa:notebook-graph` — data-only layer
     seeding `gpu-libraries-demo.py` into `/workspace/notebooks/`;
     exercises cuGraph (nx-cugraph backend), cuML (KMeans), PyG
     (GCNConv on cuda:0 with torch_scatter), and graphistry
-18. `debug-tools` — `/ov-versa:debug-tools-layer` — 49 standard
+18. `debug-tools` — `/charly-versa:debug-tools-layer` — 49 standard
     debug utilities (network/process/file/system/session)
 19. `dbus` — D-Bus session bus
 20. `ov` — `ov` CLI binary inside the container
@@ -132,7 +132,7 @@ versa:
   port: [auto]    # auto-allocate one free host port per image-declared
                   # container port. The resolved expansion is persisted
                   # as `resolved_port:` alongside this entry on the
-                  # next `ov config versa` / `ov update versa` run.
+                  # next `charly config versa` / `charly update versa` run.
 ```
 
 That's the entire entry. No `env:` block — the seven URL env vars
@@ -175,9 +175,9 @@ only rewrites to `localhost` when consumer and producer share a pod.
 notebook — the new diagnostic cell at the top (`_resolved_urls`)
 renders a polars DataFrame listing every URL env var, its current
 value, and whether it came from `env_provide` injection or the
-fallback default. See `/ov-versa:notebook-osm` cell #2.
+fallback default. See `/charly-versa:notebook-osm` cell #2.
 
-### Multi-instance pattern (Pattern A from /ov-core:deploy)
+### Multi-instance pattern (Pattern A from /charly-core:deploy)
 
 Run multiple instances of versa side-by-side using the
 `<base>/<instance>` deploy-key form. Each instance gets its own
@@ -210,9 +210,9 @@ deploy:
       - "38090:8090"
 ```
 
-CLI: `ov update versa/ecovoyage` ↔ `ov update versa -i ecovoyage`.
+CLI: `charly update versa/ecovoyage` ↔ `charly update versa -i ecovoyage`.
 
-### Pinned-version pattern (Pattern B from /ov-core:deploy)
+### Pinned-version pattern (Pattern B from /charly-core:deploy)
 
 Run a specific image tag under an arbitrary deploy name (useful for
 canaries, regression bisection, or holding back a specific version):
@@ -227,8 +227,8 @@ deploy:
 ```
 
 Container name: `ov-versa-pinned-2026.131.2134`. CLI:
-`ov update versa-pinned-2026.131.2134`. The deploy key has no
-relation to the image name; `ov update` always pulls the exact tag
+`charly update versa-pinned-2026.131.2134`. The deploy key has no
+relation to the image name; `charly update` always pulls the exact tag
 declared in `image:`.
 
 ## MCP servers
@@ -238,7 +238,7 @@ This image publishes one MCP endpoint (registered by this plugin's
 
 | Name | Container URL | Tool count | Skill |
 |---|---|---:|---|
-| marimo | `http://localhost:2718/mcp/server` | 10 (read-only inspection) | `/ov-versa:versa-mcp` |
+| marimo | `http://localhost:2718/mcp/server` | 10 (read-only inspection) | `/charly-versa:versa-mcp` |
 
 The marimo MCP server name reflects the upstream software identity,
 not OUR image identity. There is no `airflow` MCP — no Airflow-3 /
@@ -249,13 +249,13 @@ instead.
 ## R10 acceptance
 
 ```bash
-ov update --build --force-seed versa
-ov eval live versa         # → 97 passed · 0 failed · 0 skipped
+charly update --build --force-seed versa
+charly eval live versa         # → 97 passed · 0 failed · 0 skipped
 ```
 
 The 4 GPU-library probes (cuGraph/cuML/PyG/graphistry) live alongside
 the 11 OSM/GTFS probes under the `image.versa.deploy_eval` block in
-`overthink.yml` so they run AFTER every per-layer eval section:
+`charly.yml` so they run AFTER every per-layer eval section:
 
 | probe id | what it checks |
 |---|---|
@@ -347,9 +347,9 @@ Python wheel — does not break the `no-build = true` invariant the
 
 ## Known gotchas
 
-- **User deploy.yml needs `image:` field.** `~/.config/ov/deploy.yml`
+- **User deploy.yml needs `image:` field.** `~/.config/charly/deploy.yml`
   versa entry must include `image: versa` — otherwise
-  `ov update --build` fails with "deploy has no 'image:' field".
+  `charly update --build` fails with "deploy has no 'image:' field".
 - **Marimo session persistence reorders cells.** When a marimo session
   is open and the file changes (e.g. after `--force-seed`), marimo
   re-persists with its session's cell order. Surgical reset:
@@ -357,19 +357,19 @@ Python wheel — does not break the `no-build = true` invariant the
 - **Martin caches pmtiles mtime at startup.** Re-run a DAG that
   rewrites `monaco.pmtiles` → martin returns 500/204 forever until
   restart. The OSM DAG's `reload_martin` task handles this automatically;
-  see `/ov-versa:osm-tools-layer`.
+  see `/charly-versa:osm-tools-layer`.
 - **Notebook needs `image:` field too.** Already covered above —
   same point worth emphasizing.
 
 ## Cross-references
 
-- `/ov-versa:versa-layer` — marimo runtime layer (pixi env, service)
-- `/ov-versa:versa-mcp` — marimo MCP server tool catalog
-- `/ov-versa:airflow-layer` — Airflow 3.x compat findings
-- `/ov-versa:notebook-osm` — the dual-DAG OSM+GTFS notebook
-- `/ov-versa:maputnik-layer` — Vite `--base=/` build pattern
-- `/ov-versa:osm-tools-layer` — martin reload pattern
-- `/ov-versa:debug-tools-layer` — debug toolkit
-- `/ov-eval:eval` — eval verbs used by the live probes
-- `/ov-core:deploy` — env block authoring + cross-pod topology
-- `/ov-internals:disposable` — `disposable: true` semantics
+- `/charly-versa:versa-layer` — marimo runtime layer (pixi env, service)
+- `/charly-versa:versa-mcp` — marimo MCP server tool catalog
+- `/charly-versa:airflow-layer` — Airflow 3.x compat findings
+- `/charly-versa:notebook-osm` — the dual-DAG OSM+GTFS notebook
+- `/charly-versa:maputnik-layer` — Vite `--base=/` build pattern
+- `/charly-versa:osm-tools-layer` — martin reload pattern
+- `/charly-versa:debug-tools-layer` — debug toolkit
+- `/charly-eval:eval` — eval verbs used by the live probes
+- `/charly-core:deploy` — env block authoring + cross-pod topology
+- `/charly-internals:disposable` — `disposable: true` semantics

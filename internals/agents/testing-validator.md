@@ -15,10 +15,10 @@ Before any claim that a feature, fix, or change "works", verify that actual LOCA
 
 Before declaring "working", verify ALL of these:
 
-1. `ov box validate` passes with no errors
-2. `ov box generate` produces valid Containerfiles
-3. `ov box build <image>` succeeds (if applicable)
-4. `ov shell <image>` runs successfully (if applicable)
+1. `charly box validate` passes with no errors
+2. `charly box generate` produces valid Containerfiles
+3. `charly box build <image>` succeeds (if applicable)
+4. `charly shell <image>` runs successfully (if applicable)
 5. Services start and respond correctly (if applicable)
 6. No unexpected errors or warnings in output
 7. Behavior matches CLAUDE.md documentation
@@ -40,37 +40,37 @@ Before declaring "working", verify ALL of these:
 
 ```bash
 # Must show:
-ov box validate                          # Exit 0
-ov box generate                          # No errors
-ov box build <affected-image> # Build succeeds
-ov shell <affected-image> -c "..."   # Verify installation
+charly box validate                          # Exit 0
+charly box generate                          # No errors
+charly box build <affected-image> # Build succeeds
+charly shell <affected-image> -c "..."   # Verify installation
 ```
 
 ### For Image Configuration Changes
 
 ```bash
-ov box validate                          # Exit 0
-ov box inspect <image>                   # Config is correct
-ov box build <image>          # Build succeeds
+charly box validate                          # Exit 0
+charly box inspect <image>                   # Config is correct
+charly box build <image>          # Build succeeds
 ```
 
 ### For Go CLI Changes
 
 ```bash
-cd ov && go test ./...               # All tests pass
-cd ov && go vet ./...                # No issues
-task build:ov                        # Binary compiles
-bin/ov box validate                # CLI works
+cd charly && go test ./...               # All tests pass
+cd charly && go vet ./...                # No issues
+task build:charly                        # Binary compiles
+bin/charly box validate                # CLI works
 ```
 
 ### For Runtime/Service Changes
 
 ```bash
-ov start <image>                     # Service starts
-ov status <image>                    # Shows running
-ov logs <image>                      # No errors in logs
-ov eval live <image>                 # Three-section live probe pass
-ov stop <image>                      # Clean shutdown
+charly start <image>                     # Service starts
+charly status <image>                    # Shows running
+charly logs <image>                      # No errors in logs
+charly eval live <image>                 # Three-section live probe pass
+charly stop <image>                      # Clean shutdown
 ```
 
 ### For R10 acceptance (the gate, not a smoke test)
@@ -79,22 +79,22 @@ The acceptance gate is a fresh-rebuild run on a `disposable: true` bed —
 delegate it to the `eval-bed-runner` agent, or run it directly:
 
 ```bash
-ov eval box <image>                # build-scope checks (disposable run)
-ov eval run <bed>                    # full R10 sequence on a kind:eval bed:
+charly eval box <image>                # build-scope checks (disposable run)
+charly eval run <bed>                    # full R10 sequence on a kind:eval bed:
                                      # build → eval image → deploy →
-                                     # eval live → fresh ov update → teardown
+                                     # eval live → fresh charly update → teardown
 ```
 
 Exit codes: `0` pass · `1` infra/usage error (never ran a verdict) · `2`
-checks failed. A `--dry-run`, a green `go test`, or `ov box validate`
-alone is NOT R10 — only a real `ov eval run <bed>` / `ov eval live` against
+checks failed. A `--dry-run`, a green `go test`, or `charly box validate`
+alone is NOT R10 — only a real `charly eval run <bed>` / `charly eval live` against
 a fresh rebuild counts.
 
 ## Confidence Levels (must match CLAUDE.md "AI Attribution" exactly)
 
 | Level | Requirements |
 |-------|-------------|
-| `fully tested and validated` | All 10 standards + a fresh-rebuild R10 (`ov eval run <bed>` / `ov eval live` on a `disposable: true` target) for EVERY affected target + the new/changed code path actually exercised + R10 output pasted |
+| `fully tested and validated` | All 10 standards + a fresh-rebuild R10 (`charly eval run <bed>` / `charly eval live` on a `disposable: true` target) for EVERY affected target + the new/changed code path actually exercised + R10 output pasted |
 | `analysed on a live system` | A live invocation of the runner / verb evaluation / deploy probe the change touched actually ran AND its output is pasted. A bed *rebuild alone* (no eval run) and a `--dry-run` are NOT this tier — they are `syntax check only` |
 | `syntax check only` | Compile + unit tests + validators / dry-run passed; the live runner did NOT execute. Honest default when R10 hasn't run — pair with "R10 not yet run, awaiting authorization" AND do NOT commit |
 | `theoretical suggestion` | No validation — FORBIDDEN as a shipped-code tier |

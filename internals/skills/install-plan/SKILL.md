@@ -18,11 +18,11 @@ description: |
 
 `ov` has five code paths that all need to know "what does applying this layer mean?":
 
-1. **Build mode** — `ov box build` / `ov box generate` emit Containerfiles.
-2. **Pod deploy** (`target: pod`, default) — `ov deploy add <name> <ref>` runs the image via quadlet, optionally building an overlay image when `add_candy:` is set.
-3. **Local deploy** (`target: local`) — `ov deploy add <name> <ref> --target local` applies the recipe to the destination machine's filesystem (`host: local` → direct shell; `host: <user@machine>` → SSH).
-4. **VM deploy** (`target: vm`) — `ov deploy add vm:<name> <ref>` applies the recipe inside a running VM over SSH.
-5. **Kubernetes deploy** (`target: k8s`) — `ov deploy add <name> --target k8s` emits a Kustomize base/overlays tree.
+1. **Build mode** — `charly box build` / `charly box generate` emit Containerfiles.
+2. **Pod deploy** (`target: pod`, default) — `charly deploy add <name> <ref>` runs the image via quadlet, optionally building an overlay image when `add_candy:` is set.
+3. **Local deploy** (`target: local`) — `charly deploy add <name> <ref> --target local` applies the recipe to the destination machine's filesystem (`host: local` → direct shell; `host: <user@machine>` → SSH).
+4. **VM deploy** (`target: vm`) — `charly deploy add vm:<name> <ref>` applies the recipe inside a running VM over SSH.
+5. **Kubernetes deploy** (`target: k8s`) — `charly deploy add <name> --target k8s` emits a Kustomize base/overlays tree.
 
 All five paths are unified behind one IR. A pure compiler (`BuildDeployPlan`) turns `Layer + ResolvedImage + HostContext` into an `InstallPlan`; each code path is a `DeployTarget` consuming the plan.
 
@@ -83,7 +83,7 @@ All twelve concrete step kinds implement this interface. `Reverse()` is called a
 **`Scope`** — where the effect lands:
 - `ScopeSystem` — `/etc`, `/usr`, `/var`; requires sudo on host; `USER root` in Containerfile.
 - `ScopeUser` — `$HOME/.pixi`, `$HOME/.cargo`, `$HOME/.local`, user-scope systemd units.
-- `ScopeUserProfile` — shell init surface (`~/.bashrc` / `~/.zshenv` / fish conf.d + `~/.config/overthink/env.d/`).
+- `ScopeUserProfile` — shell init surface (`~/.bashrc` / `~/.zshenv` / fish conf.d + `~/.config/opencharly/env.d/`).
 
 **`Venue`** — where commands physically execute:
 - `VenueHostNative` — host shell (plain or sudo-wrapped) or a plain `RUN` in Containerfile.
@@ -135,7 +135,7 @@ separate, eval-time concern handled by `ov/eval_image_preflight.go`
 - OCITarget emits a `RUN mkdir -p ... && cat > <dest> <<EOF` heredoc with a sha256-derived end-marker (anti-collision).
 - LocalDeployTarget / VmDeployTarget probe `command -v <shell>` once at the top of `Emit()`; absent shells become VenueSkip-style no-ops with a logged reason. UseDropin=true → whole-file write; UseDropin=false → `replaceOrAppendManagedBlock` against the existing rc file with a per-layer marker.
 - Reverse: `ReverseOpRmFileSystem` / `ReverseOpRmFileUser` for drop-ins; `ReverseOpRemoveManaged` (with `Extra["marker"]=LayerName`) for managed-block append.
-- Round-trip: `LabelShell` (`org.overthinkos.shell`) carries the merged set; `CollectShell` builds it at `ov box build` time, `ExtractMetadata` parses it at deploy time, `MergeDeployShell` overlays deploy.yml entries by id.
+- Round-trip: `LabelShell` (`ai.opencharly.shell`) carries the merged set; `CollectShell` builds it at `charly box build` time, `ExtractMetadata` parses it at deploy time, `MergeDeployShell` overlays deploy.yml entries by id.
 
 Each step's `Reverse()` emits typed `ReverseOp` values. Adding a step kind means: (a) define the struct in `install_plan.go`, (b) decide its Scope/Venue/Gate/Reverse, (c) add a case to each target's step dispatch (`emit*` in OCITarget; `exec*` in LocalDeployTarget), (d) ensure the compiler in `install_build.go` emits it.
 
@@ -146,7 +146,7 @@ func BuildDeployPlan(layer *Layer, img *ResolvedImage, hostCtx HostContext) (*In
 ```
 
 Pure — no I/O, no side effects. Given the same inputs, produces the same plan. Called:
-- Once per layer during `ov box build` (OCITarget walks the combined output).
+- Once per layer during `charly box build` (OCITarget walks the combined output).
 - Once per layer during a pod deploy (PodDeployTarget filters to `add_candy:` for overlay synthesis).
 - Once per layer during a local deploy (LocalDeployTarget walks the combined output).
 
@@ -175,29 +175,29 @@ Five implementations:
 ### `OCITarget` (`ov/build_target_oci.go`)
 Emits Containerfile text. Consumes `phases.install.container` from build.yml (falls back to `install_template:`). For multi-stage builders, delegates to `Generator.buildStageContext` for the existing `BuildStageContext` template rendering. For tasks, delegates to `Generator.emitTasks` with a temporary layer-tasks swap so the existing per-verb emitters (`emitCopy`, `emitWrite`, `emitCmd`, `emitMkdirBatch`, ...) run unchanged.
 
-Used by: `ov box build`, `ov box generate`, pod deploys with `add_candy:` (overlay Containerfile synthesis).
+Used by: `charly box build`, `charly box generate`, pod deploys with `add_candy:` (overlay Containerfile synthesis).
 
 ### `PodDeployTarget` (`ov/deploy_target_pod.go`)
-Wraps the quadlet/podman pipeline with overlay-Containerfile synthesis for `add_candy:`. Picks an overlay tag deterministically from `(base-image, sorted-layer-set)`. Removed on `ov deploy del` unless `--keep-image`.
+Wraps the quadlet/podman pipeline with overlay-Containerfile synthesis for `add_candy:`. Picks an overlay tag deterministically from `(base-image, sorted-layer-set)`. Removed on `charly deploy del` unless `--keep-image`.
 
-Used by: `ov deploy add <name>` (default `target: pod`) with `add_candy:` present.
+Used by: `charly deploy add <name>` (default `target: pod`) with `add_candy:` present.
 
 ### `LocalDeployTarget` (`ov/deploy_target_local.go`)
 Walks the IR; groups contiguous same-`(Scope, Venue)` steps via `plan.StepsByVenue()`; emits one heredoc per batch. Full executor: writes service units (packaged + custom), env.d files, managed blocks, ledger entries. Invokes builder containers via `builder_run.go` for `VenueContainerBuilder` steps. Gates (`GateEnabled`) applied per step; skipped steps logged.
 
-See `/ov-internals:local-infra` for supporting files (hostdistro, ledger, reverse_ops, shell_profile, builder_run, service_render, deploy_ref).
+See `/charly-internals:local-infra` for supporting files (hostdistro, ledger, reverse_ops, shell_profile, builder_run, service_render, deploy_ref).
 
 ### `VmDeployTarget` (`ov/deploy_target_vm.go`)
 Same IR walking as LocalDeployTarget, but shell bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` instead of local `sudo bash`. Ledger writes land on the **guest** filesystem; teardown runs in the guest via SSH. Preflight: `WaitForSSH` (120s) → `WaitForCloudInit` (cloud_image sources only) → `EnsureOvInGuest` (scp the `ov` binary per `VmOvInstall.Strategy`) → ensure guest ledger dir exists.
 
 `DeployExecutor` is the abstraction that lets the same Emit logic retarget from local → SSH. `ShellExecutor` wraps local `bash -c` + file copy; `SSHExecutor` wraps ssh/scp via `golang.org/x/crypto/ssh` with persistent connection. Builder-container invocations (`VenueContainerBuilder` steps) run on the **host**, then artifacts scp into the guest — guests don't need podman installed.
 
-Used by: `ov deploy add vm:<name> <ref>` / `ov deploy del vm:<name>`. See `/ov-internals:vm-deploy-target` for the full flow, `VmDeployState` persistence, and SSH-key idempotency.
+Used by: `charly deploy add vm:<name> <ref>` / `charly deploy del vm:<name>`. See `/charly-internals:vm-deploy-target` for the full flow, `VmDeployState` persistence, and SSH-key idempotency.
 
 ### `K8sDeployTarget` (`ov/k8s_target.go`)
-Emits a Kustomize `base/` + `overlays/` tree under `.overthink/k8s/<name>/`. Does NOT execute anything; the generated manifests are applied via `kubectl apply -k` out-of-band. Cluster-specific choices (storage class, ingress class, cert issuer, secret backend) come from a **cluster profile** (`~/.config/ov/clusters/<name>.yaml`), NOT the InstallPlan — the plan describes what the workload needs; the profile describes how K8s provides it.
+Emits a Kustomize `base/` + `overlays/` tree under `.opencharly/k8s/<name>/`. Does NOT execute anything; the generated manifests are applied via `kubectl apply -k` out-of-band. Cluster-specific choices (storage class, ingress class, cert issuer, secret backend) come from a **cluster profile** (`~/.config/charly/clusters/<name>.yaml`), NOT the InstallPlan — the plan describes what the workload needs; the profile describes how K8s provides it.
 
-See `/ov-kubernetes:kubernetes` for the user-facing surface and profile layout.
+See `/charly-kubernetes:kubernetes` for the user-facing surface and profile layout.
 
 ## `StepBatch` batching
 
@@ -236,11 +236,11 @@ idempotent. Baking `img.Home` at compile time was the VM `$HOME` bug: the
 synthetic plan's Home was the host operator's, so a guest deploy wrote env.d
 pointing at `/home/<operator>` and user-scope installs (npm -g, cargo) landed
 in a root-owned path the guest user couldn't write. See
-`/ov-internals:vm-deploy-target` "Guest-home resolution".
+`/charly-internals:vm-deploy-target` "Guest-home resolution".
 
 ## `ReverseOp` catalogue
 
-See `/ov-local:local-deploy` for the user-facing reverse-op table. The Go-level source of truth is `ReverseOpKind` in `install_plan.go`; each step's `Reverse()` method emits ops tagged with kind + targets + scope. Execution lives in `ov/reverse_ops.go` — one handler per kind, all routed through `runReverseOps(ops, executor)` in LIFO order.
+See `/charly-local:local-deploy` for the user-facing reverse-op table. The Go-level source of truth is `ReverseOpKind` in `install_plan.go`; each step's `Reverse()` method emits ops tagged with kind + targets + scope. Execution lives in `ov/reverse_ops.go` — one handler per kind, all routed through `runReverseOps(ops, executor)` in LIFO order.
 
 Adding a new reverse kind requires:
 1. Add the `ReverseOpKind` constant in `install_plan.go`.
@@ -279,17 +279,17 @@ When you add a step kind, add:
 
 ## Cross-References
 
-- `/ov-internals:local-infra` — supporting files (hostdistro, ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref)
-- `/ov-internals:vm-deploy-target` — VmDeployTarget + DeployExecutor + SSHExecutor + VmDeployState
-- `/ov-internals:vm-spec` — VmSpec shape that VmDeployTarget reads
-- `/ov-internals:go` — overall Go code map; Kong CLI framework; mode-purity invariant
-- `/ov-internals:generate-source` — Containerfile generation call graph; how OCITarget plugs into Generator
-- `/ov-core:deploy` — user-facing `ov deploy add`/`del` surface (host / container / vm: / kubernetes)
-- `/ov-local:local-deploy` — host-target user-facing behavior (ledger, gates, ReverseOps)
-- `/ov-kubernetes:kubernetes` — K8s-target user-facing behavior (cluster profiles, Kustomize layout)
-- `/ov-vm:vm` — VM command family; VmDeployTarget prerequisite (`ov vm create` before `ov deploy add vm:...`)
-- `/ov-build:build` — build-mode user-facing surface; three-phase template story
-- `/ov-image:layer` — candy.yml schema including unified `service:` that map to `ServicePackagedStep` / `ServiceCustomStep`
+- `/charly-internals:local-infra` — supporting files (hostdistro, ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref)
+- `/charly-internals:vm-deploy-target` — VmDeployTarget + DeployExecutor + SSHExecutor + VmDeployState
+- `/charly-internals:vm-spec` — VmSpec shape that VmDeployTarget reads
+- `/charly-internals:go` — overall Go code map; Kong CLI framework; mode-purity invariant
+- `/charly-internals:generate-source` — Containerfile generation call graph; how OCITarget plugs into Generator
+- `/charly-core:deploy` — user-facing `charly deploy add`/`del` surface (host / container / vm: / kubernetes)
+- `/charly-local:local-deploy` — host-target user-facing behavior (ledger, gates, ReverseOps)
+- `/charly-kubernetes:kubernetes` — K8s-target user-facing behavior (cluster profiles, Kustomize layout)
+- `/charly-vm:vm` — VM command family; VmDeployTarget prerequisite (`charly vm create` before `charly deploy add vm:...`)
+- `/charly-build:build` — build-mode user-facing surface; three-phase template story
+- `/charly-image:layer` — candy.yml schema including unified `service:` that map to `ServicePackagedStep` / `ServiceCustomStep`
 
 ## When to Use This Skill
 

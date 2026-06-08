@@ -7,12 +7,12 @@ description: |
 
 # selkies-labwc-nvidia
 
-The NVIDIA-GPU build of the **labwc flavor** (`/ov-selkies:selkies-labwc`) — the
+The NVIDIA-GPU build of the **labwc flavor** (`/charly-selkies:selkies-labwc`) — the
 same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`) with the
 full CUDA toolkit, for NVENC-capable hosts. Always runs as a headless pod; the
 pixelflux encoder is auto-selected per GPU at runtime (NVENC on NVIDIA, software
 x264 otherwise). Lives in the `overthinkos/cachyos` submodule (`image/cachyos`); the
-CPU sibling is `/ov-selkies:selkies-labwc` (in the `overthinkos/selkies` submodule),
+CPU sibling is `/charly-selkies:selkies-labwc` (in the `overthinkos/selkies` submodule),
 and the KDE-Plasma GPU sibling is `selkies-kde-nvidia`.
 
 ## Definition
@@ -29,7 +29,7 @@ selkies-labwc-nvidia:
     - agent-forwarding
     - selkies-desktop
     - dbus
-    - ov
+    - charly
   port:
     - "3000:3000"
     - "9222:9222"
@@ -61,7 +61,7 @@ selkies-labwc-nvidia:
 
 `nvidia` resolves to `cachyos.nvidia` — the x86_64_v3-optimized CachyOS GPU base
 (CachyOS + `nvidia` + `cuda` layers, CUDA toolkit + NVIDIA drivers). See
-`/ov-distros:cachyos`, `/ov-distros:nvidia`, `/ov-distros:cuda`.
+`/charly-distros:cachyos`, `/charly-distros:nvidia`, `/charly-distros:cuda`.
 
 ## REAL NVENC via the CUDA arch-builder
 
@@ -93,28 +93,28 @@ Desktop video recording included via `wl-record-pixelflux` (part of the
 encoding (zero CPU overhead).
 
 ## Key Layers
-- `/ov-selkies:selkies-desktop-layer` — full Selkies labwc streaming desktop metalayer
-- `/ov-distros:nvidia` — GPU runtime and CDI device auto-detection
-- `/ov-distros:cuda` — CUDA toolkit and libraries (via the CachyOS GPU base)
-- `/ov-infrastructure:dbus-layer` — session bus for desktop services
-- `/ov-tools:ov` — in-container `ov` binary (enables `ov eval dbus notify`)
-- `/ov-distros:agent-forwarding` — SSH/GPG/direnv agent forwarding
+- `/charly-selkies:selkies-desktop-layer` — full Selkies labwc streaming desktop metalayer
+- `/charly-distros:nvidia` — GPU runtime and CDI device auto-detection
+- `/charly-distros:cuda` — CUDA toolkit and libraries (via the CachyOS GPU base)
+- `/charly-infrastructure:dbus-layer` — session bus for desktop services
+- `/charly-tools:charly` — in-container `ov` binary (enables `charly eval dbus notify`)
+- `/charly-distros:agent-forwarding` — SSH/GPG/direnv agent forwarding
 
 ## Related Images
-- `/ov-selkies:selkies-desktop-layer` — the labwc desktop metalayer this image is the GPU build of
+- `/charly-selkies:selkies-desktop-layer` — the labwc desktop metalayer this image is the GPU build of
 - `selkies-labwc` (in the `overthinkos/selkies` submodule) — the CPU-encoding labwc sibling
 - `selkies-kde-nvidia` — the KDE-Plasma GPU sibling (same `cachyos.nvidia` base + CUDA arch-builder)
-- `/ov-openclaw:openclaw-desktop` — the CachyOS/CPU all-in-one: this streaming desktop stack + the openclaw-full gateway + AI CLIs + a CPU ollama + the full ov toolchain (ov + container-nesting + golang + gh). Use it if you want to build images / start nested pods / launch VMs from inside the browser-accessible desktop.
-- `/ov-distros:cachyos` — the CachyOS base image family (owns this image's submodule)
+- `/charly-openclaw:openclaw-desktop` — the CachyOS/CPU all-in-one: this streaming desktop stack + the openclaw-full gateway + AI CLIs + a CPU ollama + the full charly toolchain (charly + container-nesting + golang + gh). Use it if you want to build images / start nested pods / launch VMs from inside the browser-accessible desktop.
+- `/charly-distros:cachyos` — the CachyOS base image family (owns this image's submodule)
 
 ## Related Commands
-- `/ov-eval:eval` — parent router for live-container verbs (`ov eval cdp|wl|dbus|vnc|mcp`)
-- `/ov-eval:cdp` — drive Chrome inside the streaming desktop
-- `/ov-eval:wl` — interact with the labwc Wayland session
-- `/ov-eval:dbus` — D-Bus notifications via in-container `ov` binary
-- `/ov-build:ov-mcp-cmd` — inherits chrome-devtools-mcp's 2 deploy-scope `mcp:` checks; use `ov eval mcp list-tools selkies-labwc-nvidia` to verify the MCP server is alive and exposing the full tool catalog.
+- `/charly-eval:eval` — parent router for live-container verbs (`charly eval cdp|wl|dbus|vnc|mcp`)
+- `/charly-eval:cdp` — drive Chrome inside the streaming desktop
+- `/charly-eval:wl` — interact with the labwc Wayland session
+- `/charly-eval:dbus` — D-Bus notifications via in-container `ov` binary
+- `/charly-build:ov-mcp-cmd` — inherits chrome-devtools-mcp's 2 deploy-scope `mcp:` checks; use `charly eval mcp list-tools selkies-labwc-nvidia` to verify the MCP server is alive and exposing the full tool catalog.
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
-- `/ov-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

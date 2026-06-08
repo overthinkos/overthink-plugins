@@ -34,7 +34,7 @@ PATH additions: `~/.local/bin`
 |----------|---------------|
 | `BROWSER_CDP_URL` | `http://{{.ContainerName}}:9222` |
 
-Pod-aware: same-container consumers receive `http://localhost:9222`, cross-container consumers receive `http://ov-<image>:9222`. Consumed by hermes (`env_accept: BROWSER_CDP_URL`) for shared browser automation.
+Pod-aware: same-container consumers receive `http://localhost:9222`, cross-container consumers receive `http://charly-<image>:9222`. Consumed by hermes (`env_accept: BROWSER_CDP_URL`) for shared browser automation.
 
 ## MCP Provides
 
@@ -42,9 +42,9 @@ Pod-aware: same-container consumers receive `http://localhost:9222`, cross-conta
 |------|-------------|-----------|
 | `chrome-devtools` | `http://{{.ContainerName}}:9224/mcp` | http |
 
-Provided by the auto-included `chrome-devtools-mcp` sub-layer (29 Chrome DevTools tools via mcp-proxy). Consumed by hermes (`mcp_accept: chrome-devtools`) for MCP-based browser inspection and automation. See `/ov-selkies:chrome-devtools-mcp` for tool list and architecture.
+Provided by the auto-included `chrome-devtools-mcp` sub-layer (29 Chrome DevTools tools via mcp-proxy). Consumed by hermes (`mcp_accept: chrome-devtools`) for MCP-based browser inspection and automation. See `/charly-selkies:chrome-devtools-mcp` for tool list and architecture.
 
-When deploying with `-i <instance>`, the MCP server name is automatically disambiguated to `chrome-devtools-<instance>` (e.g., `chrome-devtools-31.58.9.4`). See `/ov-core:ov-config` for MCP name disambiguation details.
+When deploying with `-i <instance>`, the MCP server name is automatically disambiguated to `chrome-devtools-<instance>` (e.g., `chrome-devtools-31.58.9.4`). See `/charly-core:ov-config` for MCP name disambiguation details.
 
 ## Environment Accepts (Proxy)
 
@@ -62,14 +62,14 @@ Chrome does NOT natively respect `HTTP_PROXY`/`HTTPS_PROXY` environment variable
 
 Uppercase takes precedence over lowercase (`HTTP_PROXY` over `http_proxy`).
 
-**NO_PROXY auto-enrichment:** `ov config` runs `enrichNoProxy()` before writing the quadlet, adding every deployed container's hostname (`ov-<image>`, `ov-<image>-<instance>`) to `NO_PROXY`. This is required because Chrome does **not** support CIDR notation in `NO_PROXY` (unlike curl/requests) — only exact hostnames work, so `ov` pre-computes the list. Semicolons in user-provided values are auto-converted to commas since Chrome only accepts comma-separated lists. See `/ov-core:ov-config` (Environment Variable Handling → NO_PROXY enrichment).
+**NO_PROXY auto-enrichment:** `charly config` runs `enrichNoProxy()` before writing the quadlet, adding every deployed container's hostname (`ov-<image>`, `ov-<image>-<instance>`) to `NO_PROXY`. This is required because Chrome does **not** support CIDR notation in `NO_PROXY` (unlike curl/requests) — only exact hostnames work, so `ov` pre-computes the list. Semicolons in user-provided values are auto-converted to commas since Chrome only accepts comma-separated lists. See `/charly-core:ov-config` (Environment Variable Handling → NO_PROXY enrichment).
 
 ```bash
 # Deploy with proxy
-ov config selkies-desktop -e HTTP_PROXY=http://proxy:8080 -e "NO_PROXY=localhost,127.0.0.1"
+charly config selkies-desktop -e HTTP_PROXY=http://proxy:8080 -e "NO_PROXY=localhost,127.0.0.1"
 
 # Per-instance proxy (separate from base deployment)
-ov config selkies-desktop -i proxy \
+charly config selkies-desktop -i proxy \
   -e HTTP_PROXY=http://31.58.9.4:6077 \
   -e HTTPS_PROXY=http://31.58.9.4:6077 \
   -e "NO_PROXY=localhost,127.0.0.1" \
@@ -94,7 +94,7 @@ Usually used via the `chrome-sway` or `sway-desktop` composition layers rather t
 
 ## Google Sign-In
 
-Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see `/ov-eval:cdp` for the full recipe). All clicks use `ov eval cdp click --vnc` (CDP selector targeting + VNC pointer delivery), and all text input uses `ov eval vnc type` (real OS-level keysym events). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts. Use `ov remove <image> --purge` to clear for a fresh start — just rebuilding the image does not reset volumes.
+Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see `/charly-eval:cdp` for the full recipe). All clicks use `charly eval cdp click --vnc` (CDP selector targeting + VNC pointer delivery), and all text input uses `charly eval vnc type` (real OS-level keysym events). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts. Use `charly remove <image> --purge` to clear for a fresh start — just rebuilding the image does not reset volumes.
 
 **App Passwords (required for automation):** Google accounts with 2FA (now mandatory for most accounts) require a 16-character [App Password](https://myaccount.google.com/apppasswords). App Passwords bypass all verification challenges and 2FA prompts. Set `GMAIL_PASSWORD` to the App Password in `.env`.
 
@@ -146,7 +146,7 @@ Uses `pgrep` to detect Chrome process state before deciding whether to launch. T
 
 ## chrome-restart
 
-The `chrome-restart` script kills any running Chrome and relaunches it via `chrome-wrapper` with all proxy, CDP, and user-agent settings intact. Used by waybar's `custom/chrome` button (see `/ov-selkies:waybar`) for one-click Chrome restart.
+The `chrome-restart` script kills any running Chrome and relaunches it via `chrome-wrapper` with all proxy, CDP, and user-agent settings intact. Used by waybar's `custom/chrome` button (see `/charly-selkies:waybar`) for one-click Chrome restart.
 
 **Compositor detection:** Tries `swaymsg exec` first (sway — needs IPC context for proper window management), falls back to direct `chrome-wrapper &` (labwc). Uses the same SWAYSOCK discovery pattern as `browser-open` and `waybar-wrapper` (`ls -t /tmp/sway-ipc.*.sock`).
 
@@ -156,8 +156,8 @@ The `chrome-restart` script kills any running Chrome and relaunches it via `chro
 # Manual usage (inside container)
 chrome-restart
 
-# Via ov shell
-ov shell selkies-desktop -i 45.39.130.177 -c "chrome-restart"
+# Via charly shell
+charly shell selkies-desktop -i 45.39.130.177 -c "chrome-restart"
 ```
 
 **When `chrome-restart` is not enough:** Chrome uses `memfd_create` /
@@ -177,7 +177,7 @@ systemctl --user restart ov-selkies-desktop.service
 systemctl --user restart ov-selkies-desktop-192.241.92.221.service
 ```
 
-This container restart is manual (or via `ov update`); see "Chrome supervision
+This container restart is manual (or via `charly update`); see "Chrome supervision
 (selkies-core)" below for how the `[program:chrome]` service relaunches Chrome on
 ordinary exits.
 
@@ -192,14 +192,14 @@ The chrome layer ships cgroup caps in its `security:` block:
 | `memory_swap_max` | `2g` | Caps swap usage so a runaway tab can't drag the host into swap thrash. |
 | `shm_size` | `1g` | Existing `/dev/shm` sizing — unchanged. |
 
-Override per image or per instance via `ov config` flags (see `/ov-core:ov-config`
+Override per image or per instance via `charly config` flags (see `/charly-core:ov-config`
 "Resource Caps"). Merging follows the smallest-wins rule.
 
 ## Chrome supervision (selkies-core)
 
 On the selkies streaming desktop, Chrome is launched + supervised by a
 `[program:chrome]` supervisord service declared in the **`selkies-core`** layer
-(`/ov-selkies:selkies-core`) — shared by both selkies flavors (labwc via
+(`/charly-selkies:selkies-core`) — shared by both selkies flavors (labwc via
 `selkies-desktop`, KDE Plasma via `selkies-kde-desktop`). `sway-browser-vnc`
 launches Chrome via the separate `chrome-sway` layer and is not supervised this way.
 The selkies-core service:
@@ -249,7 +249,7 @@ curl -s "http://localhost:9222/json/list"
 
 ## CDP Diagnostics
 
-`ov eval cdp` commands now show diagnostics on connection failure: checks Chrome process, cdp-proxy status, and port binding. Hints use `ov eval wl sway exec <image> chrome-wrapper` (not `ov shell` with bare `swaymsg`) for manual Chrome restart.
+`charly eval cdp` commands now show diagnostics on connection failure: checks Chrome process, cdp-proxy status, and port binding. Hints use `charly eval wl sway exec <image> chrome-wrapper` (not `charly shell` with bare `swaymsg`) for manual Chrome restart.
 
 ## Used In Images
 
@@ -257,19 +257,19 @@ curl -s "http://localhost:9222/json/list"
 
 ## Related Layers
 
-- `/ov-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-included via `layer:`)
-- `/ov-infrastructure:supervisord` — required dependency for cdp-proxy service
-- `/ov-hermes:hermes` — consumes `BROWSER_CDP_URL` via `env_accept` and `chrome-devtools` via `mcp_accept`
-- `/ov-selkies:selkies-desktop-layer` — desktop metalayer composing chrome with labwc, pipewire, waybar, etc.
+- `/charly-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-included via `layer:`)
+- `/charly-infrastructure:supervisord` — required dependency for cdp-proxy service
+- `/charly-hermes:hermes` — consumes `BROWSER_CDP_URL` via `env_accept` and `chrome-devtools` via `mcp_accept`
+- `/charly-selkies:selkies-desktop-layer` — desktop metalayer composing chrome with labwc, pipewire, waybar, etc.
 
 ## Related Commands
 
-- `/ov-eval:cdp` — Chrome DevTools Protocol automation (click, type, eval, screenshot)
-- `/ov-core:shell` — Interactive shell to access Chrome
-- `/ov-eval:vnc` — VNC automation (used with `--vnc` flag on `ov eval cdp click`)
-- `/ov-eval:wl` — Wayland automation (used with `--wl` flag on `ov eval cdp click`)
-- `/ov-core:ov-config` — Proxy deployment, `normalizeNoProxy()` auto-conversion, `sep:"none"` env handling
-- `/ov-build:ov-mcp-cmd` — the auto-included `chrome-devtools-mcp` sub-layer exposes 29 tools via Streamable HTTP on port 9224; probe with `ov eval mcp list-tools <image>` or run the declarative 2-check suite via `ov eval live <image> --filter mcp`
+- `/charly-eval:cdp` — Chrome DevTools Protocol automation (click, type, eval, screenshot)
+- `/charly-core:shell` — Interactive shell to access Chrome
+- `/charly-eval:vnc` — VNC automation (used with `--vnc` flag on `charly eval cdp click`)
+- `/charly-eval:wl` — Wayland automation (used with `--wl` flag on `charly eval cdp click`)
+- `/charly-core:ov-config` — Proxy deployment, `normalizeNoProxy()` auto-conversion, `sep:"none"` env handling
+- `/charly-build:ov-mcp-cmd` — the auto-included `chrome-devtools-mcp` sub-layer exposes 29 tools via Streamable HTTP on port 9224; probe with `charly eval mcp list-tools <image>` or run the declarative 2-check suite via `charly eval live <image> --filter mcp`
 
 ## When to Use This Skill
 
@@ -282,5 +282,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -27,13 +27,13 @@ layers:
 - `openclaw-full` (via `openclaw-full` metalayer)
 
 ## Related Layers
-- `/ov-coder:nodejs` — runtime dependency
-- `/ov-openclaw:openclaw-full` — metalayer that bundles summarize
-- `/ov-tools:whisper` — speech-to-text companion in the `openclaw-full-ml` layer
+- `/charly-coder:nodejs` — runtime dependency
+- `/charly-openclaw:openclaw-full` — metalayer that bundles summarize
+- `/charly-tools:whisper` — speech-to-text companion in the `openclaw-full-ml` layer
 
 ## Related Commands
-- `/ov-core:shell` — run summarize CLI inside the container
-- `/ov-build:build` — rebuild after layer changes
+- `/charly-core:shell` — run summarize CLI inside the container
+- `/charly-build:build` — rebuild after layer changes
 
 ## When to Use This Skill
 
@@ -44,5 +44,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

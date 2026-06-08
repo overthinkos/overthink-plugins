@@ -60,13 +60,13 @@ layers:
 - `openclaw-full`
 
 ## Related Layers
-- `/ov-openclaw:openclaw` — base gateway layer included in this metalayer
-- `/ov-selkies:sway-desktop-vnc` — desktop layer paired in sway-browser images
+- `/charly-openclaw:openclaw` — base gateway layer included in this metalayer
+- `/charly-selkies:sway-desktop-vnc` — desktop layer paired in sway-browser images
 
 ## Related Commands
-- `/ov-automation:openclaw-deploy` — gateway configuration, model auth, and channel setup
-- `/ov-build:build` — builds the metalayer composition into an image
-- `/ov-core:ov-config` — sets up secrets and quadlets for openclaw-full images
+- `/charly-automation:openclaw-deploy` — gateway configuration, model auth, and channel setup
+- `/charly-build:build` — builds the metalayer composition into an image
+- `/charly-core:ov-config` — sets up secrets and quadlets for openclaw-full images
 
 ## When to Use This Skill
 
@@ -78,5 +78,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

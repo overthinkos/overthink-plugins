@@ -32,7 +32,7 @@ application-consistent snapshots. The hook is a standard dispatcher
 The layer also enables the `qemu-guest-agent.service` (system scope) and
 contributes the virtio-serial channel (below). On a `kind: vm` entity the channel
 is usually declared structurally instead — `channels: [{type: unix, name:
-org.qemu.guest_agent.0}]` (see `/ov-internals:libvirt-renderer`).
+org.qemu.guest_agent.0}]` (see `/charly-internals:libvirt-renderer`).
 
 ## Usage
 
@@ -43,7 +43,7 @@ my-vm-image:
   layers:
     - bootc-base
 # or applied to a VM guest at deploy time:
-#   ov deploy add vm:<name> qemu-guest-agent
+#   charly deploy add vm:<name> qemu-guest-agent
 ```
 
 ## Used In Images
@@ -68,13 +68,13 @@ libvirt:
     - "<channel type='unix'><target type='virtio' name='org.qemu.guest_agent.0'/></channel>"
 ```
 
-This is the `/` classification case: `isDeviceElement` flags it as device-scoped, so the renderer injects it inside `<devices>` rather than before `</domain>`. See `/ov-internals:libvirt-renderer` for the injection pipeline and `/ov-vm:vm` for the QEMU-user-net caveat (the agent shows as enabled/inactive under `ov`'s QEMU backend; libvirt backend activates it).
+This is the `/` classification case: `isDeviceElement` flags it as device-scoped, so the renderer injects it inside `<devices>` rather than before `</domain>`. See `/charly-internals:libvirt-renderer` for the injection pipeline and `/charly-vm:vm` for the QEMU-user-net caveat (the agent shows as enabled/inactive under `ov`'s QEMU backend; libvirt backend activates it).
 
 ## Related Layers
 
-- `/ov-distros:bootc-base` -- composition that includes this layer
-- `/ov-coder:sshd` -- SSH server (also in bootc-base)
-- `/ov-distros:bootc-config` -- bootc system config (also in bootc-base)
+- `/charly-distros:bootc-base` -- composition that includes this layer
+- `/charly-coder:sshd` -- SSH server (also in bootc-base)
+- `/charly-distros:bootc-config` -- bootc system config (also in bootc-base)
 
 ## When to Use This Skill
 
@@ -87,8 +87,8 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations, `libvirt.snippets:`)
-- `/ov-vm:vm` — VM lifecycle; bootc VM caveats; QEMU-user-net limitation
-- `/ov-vm:vms-catalog` — `kind: vm` entity schema that consumes this layer's contribution
-- `/ov-internals:libvirt-renderer` — renderer that injects this layer's snippet into `<devices>`
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations, `libvirt.snippets:`)
+- `/charly-vm:vm` — VM lifecycle; bootc VM caveats; QEMU-user-net limitation
+- `/charly-vm:vms-catalog` — `kind: vm` entity schema that consumes this layer's contribution
+- `/charly-internals:libvirt-renderer` — renderer that injects this layer's snippet into `<devices>`
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

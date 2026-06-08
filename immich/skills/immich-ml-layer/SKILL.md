@@ -45,12 +45,12 @@ immich-ml:
 
 ## Used In Images
 
-- `/ov-immich:immich-ml`
+- `/charly-immich:immich-ml`
 
 ## Related Layers
 
-- `/ov-immich:immich` -- required base (provides server + database)
-- `/ov-distros:cuda` -- GPU acceleration (when used in cuda images)
+- `/charly-immich:immich` -- required base (provides server + database)
+- `/charly-distros:cuda` -- GPU acceleration (when used in cuda images)
 
 ## When to Use This Skill
 
@@ -64,5 +64,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

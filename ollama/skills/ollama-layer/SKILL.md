@@ -29,11 +29,11 @@ description: |
 
 | Variable | Template Value | Resolved Example |
 |----------|---------------|-----------------|
-| `OLLAMA_HOST` | `http://{{.ContainerName}}:11434` | `http://ov-ollama:11434` |
+| `OLLAMA_HOST` | `http://{{.ContainerName}}:11434` | `http://charly-ollama:11434` |
 
-Pod-aware: same-container consumers receive `http://localhost:11434`, cross-container consumers receive `http://ov-ollama:11434`. When `ov config ollama` runs, `OLLAMA_HOST` is automatically injected into the global `deploy.yml` env. Use `ov config ollama --update-all` to propagate to already-deployed services immediately.
+Pod-aware: same-container consumers receive `http://localhost:11434`, cross-container consumers receive `http://charly-ollama:11434`. When `charly config ollama` runs, `OLLAMA_HOST` is automatically injected into the global `deploy.yml` env. Use `charly config ollama --update-all` to propagate to already-deployed services immediately.
 
-See `/ov-image:layer` for `env_provide` field docs and `/ov-core:ov-config` for `--update-all`.
+See `/charly-image:layer` for `env_provide` field docs and `/charly-core:ov-config` for `--update-all`.
 
 ## Usage
 
@@ -45,26 +45,26 @@ ollama:
 ```
 
 ```bash
-ov alias install ollama    # install host 'ollama' command
+charly alias install ollama    # install host 'ollama' command
 ollama run llama3          # uses the alias
 ```
 
 ## Used In Images
 
-- `/ov-ollama:ollama`
+- `/charly-ollama:ollama`
 
 ## Cross-Container Integration
 
-The `env_provide` mechanism makes `OLLAMA_HOST` available to all containers. The `hermes` layer auto-detects this variable and configures itself to use local Ollama as its LLM provider (highest priority in the auto-detection chain: `OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`). See `/ov-hermes:hermes` for details on the auto-provider-configuration.
+The `env_provide` mechanism makes `OLLAMA_HOST` available to all containers. The `hermes` layer auto-detects this variable and configures itself to use local Ollama as its LLM provider (highest priority in the auto-detection chain: `OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`). See `/charly-hermes:hermes` for details on the auto-provider-configuration.
 
 ## Tests
 
-The layer ships 3 declarative checks embedded in the `org.overthinkos.eval`
-OCI label (see `/ov-eval:eval` for the full schema):
+The layer ships 3 declarative checks embedded in the `ai.opencharly.eval`
+OCI label (see `/charly-eval:eval` for the full schema):
 
-- **Build-scope** (run under `ov eval box`):
+- **Build-scope** (run under `charly eval box`):
   - `ollama-binary` — `/usr/bin/ollama` exists
-- **Deploy-scope** (run under `ov eval live` against a live service; uses
+- **Deploy-scope** (run under `charly eval live` against a live service; uses
   `${HOST_PORT:11434}` / `${CONTAINER_IP}` so deploy-time port remapping
   works unchanged):
   - `ollama-tags-api` — `GET http://${CONTAINER_IP}:${HOST_PORT:11434}/api/tags` returns 200
@@ -72,16 +72,16 @@ OCI label (see `/ov-eval:eval` for the full schema):
 
 ## Related Layers
 
-- `/ov-distros:cuda` -- CUDA toolkit dependency
-- `/ov-infrastructure:supervisord` -- process manager dependency
-- `/ov-openclaw:openclaw` -- AI gateway that can use Ollama as backend
-- `/ov-hermes:hermes` -- AI agent that auto-detects `OLLAMA_HOST` for local Ollama provider
+- `/charly-distros:cuda` -- CUDA toolkit dependency
+- `/charly-infrastructure:supervisord` -- process manager dependency
+- `/charly-openclaw:openclaw` -- AI gateway that can use Ollama as backend
+- `/charly-hermes:hermes` -- AI agent that auto-detects `OLLAMA_HOST` for local Ollama provider
 
 ## Related Commands
 
-- `/ov-core:ov-config` — Deploy with quadlet (secrets, volumes, env_provide injection)
-- `/ov-core:start` — Start the Ollama service
-- `/ov-core:service` — Manage Ollama service inside container
+- `/charly-core:ov-config` — Deploy with quadlet (secrets, volumes, env_provide injection)
+- `/charly-core:start` — Start the Ollama service
+- `/charly-core:service` — Manage Ollama service inside container
 
 ## When to Use This Skill
 

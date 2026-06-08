@@ -14,7 +14,7 @@ Lives in the **`overthinkos/fedora`** repo (git submodule at **`image/fedora`**)
 Its `fedora` base comes from the main repo's `base.yml`, reached as `ov.fedora`
 via the submodule's `import:` of the main repo under the `ov` namespace; the
 `agent-forwarding`/`traefik`/`testapi` layers are pulled by github reference.
-Build from the submodule: `ov -C image/fedora image build fedora-test`.
+Build from the submodule: `charly -C image/fedora image build fedora-test`.
 
 ## Image Properties
 
@@ -32,16 +32,16 @@ Used for testing Traefik routing, service health checks, and the `testapi` layer
 
 ## Key Layers
 
-- `/ov-infrastructure:traefik` — Reverse proxy
-- `/ov-infrastructure:testapi` — FastAPI test service
+- `/charly-infrastructure:traefik` — Reverse proxy
+- `/charly-infrastructure:testapi` — FastAPI test service
 
 ## Related Images
-- `/ov-distros:fedora` — parent base image
-- `/ov-distros:valkey-test` — sibling test image (disabled)
+- `/charly-distros:fedora` — parent base image
+- `/charly-distros:valkey-test` — sibling test image (disabled)
 
 ## Related Commands
-- `/ov-build:build` — build the fedora-test image
-- `/ov-build:validate` — validate the test layer composition
+- `/charly-build:build` — build the fedora-test image
+- `/charly-build:validate` — validate the test layer composition
 
 ## When to Use This Skill
 
@@ -49,4 +49,4 @@ Used for testing Traefik routing, service health checks, and the `testapi` layer
 
 ## Related
 
-- `/ov-image:image` — image family umbrella (`image:` entries in `overthink.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)

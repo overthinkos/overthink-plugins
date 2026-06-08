@@ -10,7 +10,7 @@ description: |
 
 # libvirt-renderer
 
-The libvirt renderer converts `VmSpec` + `LibvirtConfig` into a libvirt domain XML (`RenderDomain`) and — for the direct-QEMU backend — into a QEMU argv array (`RenderQemuArgv`). Pure functions: given the same inputs, they produce the same output; no side effects. Consumed by `ov vm create` (libvirt path) and `ov vm create --backend qemu` (direct path).
+The libvirt renderer converts `VmSpec` + `LibvirtConfig` into a libvirt domain XML (`RenderDomain`) and — for the direct-QEMU backend — into a QEMU argv array (`RenderQemuArgv`). Pure functions: given the same inputs, they produce the same output; no side effects. Consumed by `charly vm create` (libvirt path) and `charly vm create --backend qemu` (direct path).
 
 ## Source files
 
@@ -62,7 +62,7 @@ Document rationale for *every* cloud_image VM author:
 | Model | Pros | Cons | When to pick |
 |---|---|---|---|
 | `virtio` (virtio-gpu) | Native `virtio_gpu` kernel DRM driver; Wayland-native; simpler config (just `vram` + `heads`); optional `accel3d: true` for virgl OpenGL passthrough | Only modern Linux kernels (4.16+) | **default for Linux guests** |
-| `qxl` | Legacy SPICE-specific (2010 Red Hat); X11-oriented; requires xf86-video-qxl for acceleration | More knobs to tune (ram_size + vram_size + vram64_size_mb + vgamem_mb quartet); simpledrm→qxldrmfb takeover race under UEFI (see `/ov-vm:arch` Finding B); X11-dominant | Legacy guests only |
+| `qxl` | Legacy SPICE-specific (2010 Red Hat); X11-oriented; requires xf86-video-qxl for acceleration | More knobs to tune (ram_size + vram_size + vram64_size_mb + vgamem_mb quartet); simpledrm→qxldrmfb takeover race under UEFI (see `/charly-vm:arch` Finding B); X11-dominant | Legacy guests only |
 | `cirrus` | Most compatible | Low resolution, no acceleration | BIOS-fallback only |
 | `none` | No video | — | Headless VMs |
 
@@ -75,7 +75,7 @@ SPICE graphics protocol is video-model-agnostic — it streams pixels from virti
 plus — when set — the optional `<rom bar='off'/file='…'/>` (from `rom:`) and
 `<driver name='vfio'/>` (from `driver:`). `managed='yes'` makes libvirt auto-bind
 the device to vfio-pci on VM start and rebind the host driver on stop. Every
-function in the GPU's IOMMU group must be a separate hostdev entry (`ov vm gpu
+function in the GPU's IOMMU group must be a separate hostdev entry (`charly vm gpu
 list` emits the whole group). Passthrough wants `firmware: uefi-insecure` and the
 libvirt backend (the QEMU-argv renderer skips PCI hostdev — see below).
 
@@ -141,11 +141,11 @@ libvirt-managed socket (`<channel type='unix'><source mode='bind'/><target
 type='virtio' name='org.qemu.guest_agent.0'/></channel>`); libvirt auto-assigns
 the socket path under the per-VM lib dir. `extractChannelSocketPaths` pre-creates
 the parent dir. (The same channel is also contributed as a raw snippet by the
-`/ov-distros:qemu-guest-agent` layer for image-composed VMs.)
+`/charly-distros:qemu-guest-agent` layer for image-composed VMs.)
 
 ## Firmware plumbing (D17)
 
-`RenderDomain` reads `spec.Firmware` and, for UEFI, calls `ResolveOvmfForSpec` (see `/ov-internals:ovmf`) to get `(CodePath, NVRAMPath)`. Emits:
+`RenderDomain` reads `spec.Firmware` and, for UEFI, calls `ResolveOvmfForSpec` (see `/charly-internals:ovmf`) to get `(CodePath, NVRAMPath)`. Emits:
 
 ```xml
 <os>
@@ -155,7 +155,7 @@ the parent dir. (The same channel is also contributed as a raw snippet by the
 </os>
 ```
 
-When `spec.Firmware == "bios"` or empty, `ResolveOvmfForSpec` returns `("", "", nil)` and the renderer skips both `<loader>` and `<nvram>` entirely. No OVMF package dependency, no per-VM NVRAM file, no Secure Boot lock-in. This is what makes `/ov-vm:arch` viable — BIOS boot bypasses the stale BOOTX64.EFI issue by never loading it.
+When `spec.Firmware == "bios"` or empty, `ResolveOvmfForSpec` returns `("", "", nil)` and the renderer skips both `<loader>` and `<nvram>` entirely. No OVMF package dependency, no per-VM NVRAM file, no Secure Boot lock-in. This is what makes `/charly-vm:arch` viable — BIOS boot bypasses the stale BOOTX64.EFI issue by never loading it.
 
 `uefi-secure` additionally sets `Features.SMM = true` (required for Secure Boot authenticated variables).
 
@@ -179,7 +179,7 @@ systemd-ssh-generator (systemd ≥ v250) materializes the pubkey into `~<user>/.
 
 ## RenderQemuArgv (direct-QEMU backend)
 
-For `ov vm create --backend qemu`, `RenderQemuArgv` emits a flat array of arguments:
+For `charly vm create --backend qemu`, `RenderQemuArgv` emits a flat array of arguments:
 
 ```
 qemu-system-x86_64 -machine pc-q35-XX,accel=kvm -cpu host,migratable=off \
@@ -201,10 +201,10 @@ Intended for environments without libvirt session daemon (some CI runners, air-g
 
 ## Cross-References
 
-- `/ov-internals:vm-spec` — VmSpec shape the renderer reads
-- `/ov-internals:ovmf` — `ResolveOvmfForSpec` for UEFI path resolution
-- `/ov-internals:cloud-init-renderer` — paired renderer for seed ISO + user-data
-- `/ov-internals:vm-deploy-target` — consumer that applies the rendered domain
-- `/ov-vm:vm` — command-family skill; video-model decision table
-- `/ov-vm:arch` — BIOS decision RCA; virtio-gpu live-test bisect
-- `/ov-distros:qemu-guest-agent` — virtio-serial channel snippet that this renderer emits in `<devices>`
+- `/charly-internals:vm-spec` — VmSpec shape the renderer reads
+- `/charly-internals:ovmf` — `ResolveOvmfForSpec` for UEFI path resolution
+- `/charly-internals:cloud-init-renderer` — paired renderer for seed ISO + user-data
+- `/charly-internals:vm-deploy-target` — consumer that applies the rendered domain
+- `/charly-vm:vm` — command-family skill; video-model decision table
+- `/charly-vm:arch` — BIOS decision RCA; virtio-gpu live-test bisect
+- `/charly-distros:qemu-guest-agent` — virtio-serial channel snippet that this renderer emits in `<devices>`

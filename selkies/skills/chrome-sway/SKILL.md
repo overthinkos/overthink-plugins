@@ -26,7 +26,7 @@ my-browser:
 
 ## Used In Images
 
-Part of `/ov-selkies:sway-desktop` composition.
+Part of `/charly-selkies:sway-desktop` composition.
 
 ## Chrome Lifecycle in Sway
 
@@ -34,15 +34,15 @@ Chrome is launched by Sway's `exec` directive (autostart) via `chrome-wrapper`. 
 
 - **Autostart**: Chrome starts when Sway starts (via `exec chrome-wrapper` in sway config).
 - **Crashes/exits**: Chrome does not auto-restart. If Chrome exits, it must be relaunched manually.
-- **Manual restart**: Use `ov eval wl sway exec <image> chrome-wrapper` to relaunch Chrome from outside the container. Do **not** use `ov shell` with bare `swaymsg` -- the shell may lack the correct `SWAYSOCK` path.
-- **On-demand launch**: The `browser-open` helper auto-launches Chrome if it's not running (see `/ov-selkies:chrome` for details).
+- **Manual restart**: Use `charly eval wl sway exec <image> chrome-wrapper` to relaunch Chrome from outside the container. Do **not** use `charly shell` with bare `swaymsg` -- the shell may lack the correct `SWAYSOCK` path.
+- **On-demand launch**: The `browser-open` helper auto-launches Chrome if it's not running (see `/charly-selkies:chrome` for details).
 
 ## Related Layers
 
-- `/ov-selkies:sway` -- compositor dependency
-- `/ov-selkies:chrome` -- Chrome browser and DevTools (included via layers)
-- `/ov-selkies:sway-desktop` -- composition that includes chrome-sway
-- `/ov-selkies:wayvnc` -- VNC access to see Chrome desktop
+- `/charly-selkies:sway` -- compositor dependency
+- `/charly-selkies:chrome` -- Chrome browser and DevTools (included via layers)
+- `/charly-selkies:sway-desktop` -- composition that includes chrome-sway
+- `/charly-selkies:wayvnc` -- VNC access to see Chrome desktop
 
 ## When to Use This Skill
 
@@ -55,5 +55,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/ov-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
-- `/ov-eval:eval` — declarative testing (`eval:` block, `ov eval box`, `ov eval live`)
+- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
