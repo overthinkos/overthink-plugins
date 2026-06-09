@@ -152,6 +152,21 @@ label for the physical resource, deliberately decoupled from HOW each side
 reaches it (a VM via a PCI hostdev, a pod via `--device`/CDI). The arbiter does
 pure set-intersection on tokens, so the same token unifies pod-vs-VM contention.
 
+**Auto-allocation (the token → hardware bridge).** A token may ALSO carry a
+hardware selector in `build.yml` `resource:` — `resource: {nvidia-gpu: {gpu:
+{vendor: "0x10de"}}}`. When a `target: vm` claimant requires such a token,
+`charly vm create` AUTO-ALLOCATES the matching device: `DetectVFIO` finds a GPU by
+PCI vendor, persists its whole-IOMMU-group `<hostdev>` block into the per-host
+`instance.yml`, and injects it — or **FAILS HARD** when no matching card exists
+(`autoAllocateExclusiveGPUs`, gpu_allocate.go). This is orthogonal to
+arbitration: the arbiter frees the token (stops a holder), auto-allocation wires
+the freed device into the claimant. An operator-authored `<hostdev>` (committed
+`vm.yml` or `instance.yml`) always wins — auto-allocation defers, never
+double-injects. A selector-less token is a pure arbitration label (no
+auto-allocation). Scope today: VM passthrough (a PCI `<hostdev>`); requires
+`backend: libvirt`. See `/charly-build:build` `resource:` + `/charly-vm:vm` "GPU
+passthrough".
+
 **Crash-safety (the restore guarantee).** A holder is NEVER left permanently
 stopped. The lease ledger (`~/.local/share/charly/preemption/leases.yml`) is written
 *before* any holder is stopped, and "restore" means "start every listed holder

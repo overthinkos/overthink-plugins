@@ -952,6 +952,13 @@ eval:
 - **Token = a name, not a mechanism** — operator-chosen (`nvidia-gpu`), decoupled
   from how each side reaches it (VM hostdev vs pod `--device`); pure
   set-intersection unifies pod-vs-VM contention.
+- **GPU auto-allocation** — when a token ALSO carries a `build.yml` `resource:`
+  `gpu:` selector (`resource: {nvidia-gpu: {gpu: {vendor: "0x10de"}}}`), a
+  `target: vm` claimant's `charly vm create` auto-detects the matching GPU,
+  persists its `<hostdev>` into the per-host `instance.yml`, and injects it — or
+  FAILS HARD when no matching card exists. Operator-authored hostdevs win (no
+  double-inject). See `/charly-internals:disposable` "resource-arbitration axis"
+  + `/charly-build:build` `resource:`.
 - **`charly preempt status`** lists active leases + flags STRANDED ones (claimant
   gone). **`charly preempt restore [claimant]`** reconciles stranded leases (also run
   automatically at the next acquire) / force-releases a named one. A holder is

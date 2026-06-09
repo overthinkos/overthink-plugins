@@ -52,14 +52,22 @@ To pass a physical GPU through to a VM and (e.g.) run a CUDA container inside it
    / `amd_iommu=on iommu=pt` on the kernel cmdline) and shows each GPU's IOMMU
    group + current driver. `charly doctor` reports the same under "VFIO / GPU
    passthrough".
-2. **Author the hostdev** — `charly vm gpu list` prints a `libvirt.devices.hostdevs:`
-   block covering **every** function in the GPU's IOMMU group (the GPU + its
-   audio function + any bridge sibling — they must pass through together), each
-   `managed: "yes"` (libvirt auto-binds them to vfio-pci on VM start and rebinds
-   the host driver on stop). Paste it under the `kind: vm` entity. Use
-   `firmware: uefi-insecure` and `backend: libvirt` (the qemu backend does not
-   render `<hostdev>`). A PCI address is host-specific — do not commit it to a
-   shared repo; keep it in a local/uncommitted entity or overlay.
+2. **The hostdev is AUTO-ALLOCATED.** When a `target: vm` deploy/bed declares
+   `requires_exclusive: [<token>]` and that token maps to a `build.yml`
+   `resource:` with a `gpu:` selector (e.g. `resource: {nvidia-gpu: {gpu:
+   {vendor: "0x10de"}}}`), `charly vm create` auto-detects the matching GPU,
+   writes its whole-IOMMU-group `hostdevs:` block (each `managed: "yes"`) into
+   this host's per-domain `instance.yml`, and injects it — or **FAILS HARD** if
+   the required card is absent (`autoAllocateExclusiveGPUs`, gpu_allocate.go).
+   No manual step. The committed `kind: vm` entity stays portable (no PCI
+   address); set `firmware: uefi-insecure` + `backend: libvirt` on it (the qemu
+   backend does not render `<hostdev>`). An operator-authored `hostdevs:` block
+   (committed `vm.yml` OR `instance.yml`) ALWAYS wins — auto-allocation defers
+   to it (no double-inject, no re-detection; delete the block to re-detect).
+   `charly vm gpu list` still prints a ready-to-paste block for the manual
+   override path; `charly vm gpu status` reports host readiness. See
+   `/charly-internals:disposable` "resource-arbitration axis" + `/charly-build:build`
+   `resource:`.
 3. **In-guest driver** — a passthrough guest needs the actual kernel module, not
    just the userspace container toolkit. Apply a kernel-driver layer (it
    blacklists the in-tree driver, regenerates the initramfs, and declares
