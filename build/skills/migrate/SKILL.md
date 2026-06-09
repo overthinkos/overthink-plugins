@@ -17,7 +17,7 @@ The project directory is the current working directory; use the top-level `-C` /
 
 ## CalVer schema versioning
 
-The YAML schema version is a **CalVer string** — `version: YYYY.DDD.HHMM`, the same `ComputeCalVer` scheme as image tags (e.g. the current HEAD `version: 2026.159.1912`). The `calver-schema` migration step (registry HEAD) converts the legacy integer `version: 4` to this form. Every versioned file carries the stamp:
+The YAML schema version is a **CalVer string** — `version: YYYY.DDD.HHMM`, the same `ComputeCalVer` scheme as image tags (e.g. the current HEAD `version: 2026.160.1301`). The `calver-schema` migration step (registry HEAD) converts the legacy integer `version: 4` to this form. Every versioned file carries the stamp:
 
 - `charly.yml` + the per-kind siblings `box.yml` / `deploy.yml` / `vm.yml` / `pod.yml` / `k8s.yml` / `local.yml` (and `eval.yml` when present)
 - the per-host `~/.config/charly/deploy.yml`
@@ -59,7 +59,8 @@ Every hard-cutover schema change the project has ever shipped is **one `Migratio
 | 2026.157.0310 | localpkg-map | layer `localpkg:` scalar → per-format map `{pac: <dir>}` (one `charly` layer carries a native-package SOURCE per distro format); the loader hard-rejects the legacy scalar form |
 | 2026.159.0002 | charly-rebrand | the ov→charly / overthink→opencharly rebrand: `overthink.yml`→`charly.yml`, `@github…/candy/ov[-mcp]` ref paths, `org.overthinkos.*` labels→`ai.opencharly.*`, the import alias `ov`→`charly`, and host-gated relocation of the per-host state dirs (`~/.config/ov`→`charly`, etc.) with `OV_*`→`CH_*` env-key rewrites. The `overthinkos` GitHub org + ghcr registry + repo names are KEPT |
 | 2026.159.1911 | charly-cutover4 | finish the rebrand: `CH_*`→`CHARLY_*` env, credential service prefix `ov/`→`charly/` (incl. OS-keyring re-key), image names `arch-charly`→`charly-arch` / `fedora-charly`→`charly-fedora`, and the fish shell-init `overthink.fish`→`opencharly.fish` + markers. Host transforms gated on `ctx.HostDeployPath` |
-| **2026.159.1912** | **calver-schema** (HEAD) | **the universal stamper**: rewrite the top-level `version:` line of every versioned file to the HEAD CalVer (line-oriented, comment-preserving). This is the integer→CalVer transition (`version: 4` → the HEAD CalVer). **Always stays last** so `LatestSchemaVersion()` tracks it. |
+| 2026.160.1300 | single-filename | charly.yml becomes the ONE filename for box + candy: boxes split out of box.yml/base.yml (and an inline `box:` map, e.g. bootc) into discovered `box/<name>/charly.yml`; candy manifests rename `candy.yml`→`charly.yml`; the per-kind files (`vm`/`pod`/`k8s`/`eval`/`local`/`android`) fold into `charly.yml`'s root; the `build.yml` import is dropped (the distro/builder/init/resource vocabulary is now EMBEDDED in the binary at `charly/build.yml`, mirroring `sidecar.yml`); `discover:` is rewritten to scan `box/` + `candy/`. TouchesHost false — runs under remote-cache auto-migration so a fetched remote's candy manifests rename too |
+| **2026.160.1301** | **calver-schema** (HEAD) | **the universal stamper**: rewrite the top-level `version:` line of every versioned file to the HEAD CalVer (line-oriented, comment-preserving). This is the integer→CalVer transition (`version: 4` → the HEAD CalVer). **Always stays last** so `LatestSchemaVersion()` tracks it. |
 
 Step `Name`s are for `--dry-run` / progress output only — they are no longer CLI sub-verbs. Steps that mutate per-host state (`~/.config/charly`, quadlets, `.secrets`) are flagged `TouchesHost`; see "Remote-cache auto-migration" below.
 
@@ -76,7 +77,7 @@ Step `Name`s are for `--dry-run` / progress output only — they are no longer C
 `LoadUnified` (`charly/unified.go`) parses the merged `version:` and rejects anything older than HEAD:
 
 ```
-charly.yml: schema 2026.159.1912 is required (found "4"). Run: charly migrate
+charly.yml: schema 2026.160.1301 is required (found "4"). Run: charly migrate
 ```
 
 A non-CalVer value (the legacy integer `4`, empty, or garbage) parses as "older than every real CalVer", so a pre-CalVer config flows into the chain with no special case. Residual-key checks (e.g. `kind: deployment`, `target: host`, `secret_backend: kdbx`) remain as defense-in-depth, but **every** remediation hint now points uniformly at bare `charly migrate`.

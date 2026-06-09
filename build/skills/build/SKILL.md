@@ -74,14 +74,14 @@ and `/charly-build:validate`.
 
 ## Build Config (build.yml)
 
-Containerfile generation is driven by a single declarative YAML file referenced in `box.yml`:
+Containerfile generation is driven by the build vocabulary (`distro:` / `builder:` / `init:` /
+`resource:`). The DEFAULT vocabulary is EMBEDDED in the `charly` binary (`charly/build.yml`,
+`//go:embed`, mirroring `sidecar.yml`) and merged as the lowest-priority base — a project needs
+no `build.yml` of its own. A project EXTENDS or OVERRIDES it by declaring its own
+`distro:`/`builder:`/`init:`/`resource:` entries inline in `charly.yml` or in an imported
+vocabulary file (project-wins; the former `defaults.format_config:` field is gone).
 
-```yaml
-defaults:
-  format_config: build.yml    # Unified distro + builder + init config
-```
-
-`build.yml` has three top-level sections:
+`build.yml` (the embed source) has three top-level sections:
 
 - **`distro:`** — Per-distro bootstrap commands (package manager setup, cache mounts, repo management), optional `base_user:` declaration (what uid-1000 account the upstream base image ships), and package format templates (how `rpm:`, `pac:`, `deb:` sections in candy.yml become `RUN` steps). Each format has `install`, `repos`, `copr`, `modules`, and `options` templates.
 - **`builder:`** — Multi-stage builder patterns (pixi, npm, cargo, aur). Each builder has `build_stage` and `copy_stage` templates that generate the appropriate `FROM builder AS ...` and `COPY --from=...` steps.

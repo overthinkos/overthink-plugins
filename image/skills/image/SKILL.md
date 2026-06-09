@@ -135,7 +135,7 @@ Each verb below is also auto-exposed as an MCP tool (`box.new.project`, `box.new
 
 **Comment preservation**: every YAML edit (`set`, `add-layer`, `rm-layer`, `add-rpm`, etc.) goes through the `yaml.v3` *node* API rather than the value API, so human-authored comments and key order are preserved across edits. Tested in `charly/yaml_setter_test.go` and `charly/scaffold_project_test.go`.
 
-**Project scaffold contents**: `charly box new project` writes a minimal `box.yml` whose `defaults.format_config` references the upstream `build.yml` remotely (`@github.com/overthinkos/overthink/build.yml`), so new projects don't have to copy the canonical 1k-line build.yml. Replace with a local `build.yml` + drop the `format_config` field if you need custom distro/builder/init definitions.
+**Project scaffold contents**: `charly box new project` writes a minimal `charly.yml` with `discover: [box, candy]` + empty `box/`/`candy/` dirs. The default distro/builder/init/resource build vocabulary is EMBEDDED in the `charly` binary (`charly/build.yml`, `//go:embed`), so a new project is immediately usable with no `build.yml` to copy; declare `distro:`/`builder:`/`init:`/`resource:` (inline in `charly.yml` or an imported vocab file) only to extend or override the embedded default.
 
 ## box.yml Structure
 

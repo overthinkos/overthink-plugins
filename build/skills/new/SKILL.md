@@ -15,9 +15,9 @@ Three verbs, in decreasing scope:
 
 | Verb | What it creates |
 |---|---|
-| `charly box new project <dir>` | A fresh `box.yml` (with a commented `format_config` placeholder), an empty `candy/` directory, and a `.gitignore` |
-| `charly box new box <name>` | Appends an image entry to an existing `box.yml` |
-| `charly box new candy <name>` | A new layer directory under `candy/<name>/` with a stub `candy.yml` |
+| `charly box new project <dir>` | A fresh `charly.yml` (with `discover: [box, candy]`), empty `box/` + `candy/` directories, and a `.gitignore` |
+| `charly box new box <name>` | A new discovered box at `box/<name>/charly.yml` (kind-keyed `box:` doc) |
+| `charly box new candy <name>` | A new candy at `candy/<name>/charly.yml` (stub kind-keyed `candy:` doc) |
 
 All three are **comment-preserving**: the YAML edits route through the `yaml.v3` Node API rather than the value API, so human-authored comments and key order survive round trips. Implementation lives in `charly/scaffold_project.go` + `charly/yaml_setter.go`.
 
@@ -27,9 +27,9 @@ Each verb also auto-becomes an MCP tool (`box.new.project`, `box.new.box`, `box.
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| New project | `charly box new project <dir>` | Scaffold a fresh charly project (box.yml + candy/ + .gitignore) |
-| New image | `charly box new box <name> --base <ref> [--layers a,b,c]` | Append an image entry to box.yml |
-| New layer | `charly box new candy <name>` | Create a new layer directory with a stub candy.yml |
+| New project | `charly box new project <dir>` | Scaffold a fresh charly project (charly.yml + box/ + candy/ + .gitignore) |
+| New box | `charly box new box <name> --base <ref> [--layers a,b,c]` | Write box/<name>/charly.yml |
+| New candy | `charly box new candy <name>` | Create candy/<name>/charly.yml |
 
 ## Usage
 
@@ -38,24 +38,19 @@ Each verb also auto-becomes an MCP tool (`box.new.project`, `box.new.box`, `box.
 ```bash
 charly box new project ~/my-project
 # Creates:
-#   ~/my-project/box.yml     (with commented format_config placeholder + empty images: {})
-#   ~/my-project/candy/       (empty)
-#   ~/my-project/.gitignore    (ignores .build/ + editor scratch files)
+#   ~/my-project/charly.yml  (version + discover: [box, candy] + defaults)
+#   ~/my-project/box/         (empty — boxes discovered per-dir)
+#   ~/my-project/candy/       (empty — candies discovered per-dir)
+#   ~/my-project/.gitignore   (ignores .build/ + editor scratch files)
 ```
 
-**Important caveat**: a scaffolded project is **not immediately buildable**. The `format_config:` field is commented out because `box.yml`'s `rpm:` / `deb:` / `pac:` sections need a `build.yml` to resolve. Two ways to wire one:
-
-1. Copy the canonical upstream `build.yml` into the project and point at it:
-   ```bash
-   cp /path/to/opencharly/build.yml ~/my-project/
-   charly -C ~/my-project image set defaults.format_config build.yml
-   ```
-2. Reference a published release remotely (once upstream publishes a `build.yml` at the repo root on a tag):
-   ```bash
-   charly -C ~/my-project image set defaults.format_config '"@github.com/overthinkos/overthink/build.yml:<tag>"'
-   ```
-
-Without this step, `charly box validate` reports "must have at least one install file" because `rpm:` isn't a recognized top-level candy.yml field.
+**A scaffolded project is immediately usable.** The default distro/builder/init/resource
+build vocabulary is EMBEDDED in the `charly` binary (`charly/build.yml`, `//go:embed`,
+mirroring `sidecar.yml`) — no `build.yml` to copy or `format_config` to wire. Declare
+`distro:`/`builder:`/`init:`/`resource:` in `charly.yml` (or an imported vocab file) ONLY to
+extend or override the embedded default. Add a box with `charly box new box <name>`
+(writes `box/<name>/charly.yml`) and a candy with `charly box new candy <name>` (writes
+`candy/<name>/charly.yml`).
 
 ### `charly box new box <name>`
 
