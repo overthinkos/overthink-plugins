@@ -202,7 +202,22 @@ charly eval live eval-vm.inner.deeper               # → SSH + 2× podman exec 
 ```
 
 Same chain primitive (`NestedExecutor`) used everywhere — `charly deploy
-add`, `charly eval live`, `charly eval run` (AI iteration scoring). See "ONE
+add`, `charly eval live`, `charly eval run` (AI iteration scoring).
+
+**Exception — a POD leaf nested in a VM delegates its eval to the guest.** Because
+the host-vantage probes (the protocol verbs cdp/wl/dbus/vnc/mcp, which shell out
+to a host `charly eval <verb>` subprocess resolving the container on the HOST's
+podman; and `${HOST_PORT}` addr/http, resolved via HOST `podman inspect`) cannot
+reach a container living in the guest, `charly eval live <vm>.<pod>` does NOT
+chain-dispatch those per-check (they would SKIP). Instead `runVm` runs
+`charly eval live <pod>` IN the guest over SSH (`guestNestedEvalCmd` →
+`SSHExecutor.RunCapture`), where the nested pod is a DIRECT pod — guest-local
+podman, ports on guest localhost, the guest `charly` (installed by
+`EnsureCharlyInGuest`) — so cdp/wl/mcp + `${HOST_PORT}` run natively, zero skips.
+The guest reads the SAME baked checks from the cp-box'd pod image, so the check
+set is identical; the host propagates the guest's report + exit code. A
+pod-in-pod or vm-in-vm leaf (no host↔guest container boundary) still uses the
+multi-hop chain above. See "ONE
 primitive: scenario.pod (flat or dotted)" below for the symmetric
 authoring surface in eval recipes (`kind: recipe`).
 

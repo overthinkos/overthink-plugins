@@ -158,11 +158,14 @@ own layers, including any kernel-driver reboot + the boot-time
    services, GPU device auto-detected in the guest; rootless GPU via CDI —
    `/dev/nvidia*` are world-rw and the CDI spec is world-readable).
 
-Idempotent (cp-image skips an intact image; from-image re-applies on `charly update`).
+Idempotent (cp-box skips an intact image; from-box re-applies on `charly update`).
 The dispatch routes a VM-root deploy node-only (its pod children deploy in-guest
-here, never via a host tree walk). The existing `charly eval live <vm>.<child>`
-multi-hop chain reaches the running nested pod unchanged. `charly vm cp-box` is the
-host→guest delivery for it.
+here, never via a host tree walk). `charly eval live <vm>.<pod>` evaluates the
+running nested pod by DELEGATING to the guest `charly eval live <pod>` (where it is
+a direct pod — guest-local podman + ports + the guest `charly`), so the protocol
+verbs (cdp/wl/dbus/vnc/mcp) and `${HOST_PORT}` checks run natively instead of
+skipping; see `/charly-eval:eval` "parent.child reaches the actual leaf". `charly vm
+cp-box` is the host→guest image delivery for it.
 
 ## VmDeployState persistence
 
