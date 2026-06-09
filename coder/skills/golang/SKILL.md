@@ -28,7 +28,7 @@ my-image:
 
 ## Used In Images
 
-- `aurora`
+- (none currently enabled)
 
 ## Related Skills
 

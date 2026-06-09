@@ -185,7 +185,7 @@ rationale and `/charly-eval:eval` for author-facing workflow implications.
 
 ## Bootc-specific generator behaviour
 
-Three emission rules matter specifically for bootc images. The canonical worked example is `/charly-distros:bazzite`.
+Three emission rules matter specifically for bootc images (those whose `base:` is a bootc container such as `quay.io/fedora/fedora-bootc:43`).
 
 ### 1. `initHasFragments` pre-scan gates empty init stages
 
@@ -197,7 +197,7 @@ The RPM install_template prepends `dnf install -y dnf5-plugins` whenever any lay
 
 ### 3. `export BUILD_ARCH=…;` (not prefix assignment) in `download:` tasks
 
-The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUILD_ARCH}…"` with an explicit semicolon-separator `export`, not the prefix form `BUILD_ARCH=$(uname -m) curl ...`. Bash prefix assignments set the variable in the spawned command's environment **after** the shell has already expanded `${BUILD_ARCH}` in the command's arguments — the expansion sees an unset variable, the URL resolves with an empty arch string, and the download 404s. Source: `charly/tasks.go:envPrefix` with the documenting comment. Layers that use `${BUILD_ARCH}` in a `download:` URL: `/charly-languages:pixi`, `/charly-coder:typst`, `/charly-tools:ujust`, `/charly-tools:yay`, `/charly-infrastructure:vectorchord`, `/charly-tools:sherpa-onnx`.
+The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUILD_ARCH}…"` with an explicit semicolon-separator `export`, not the prefix form `BUILD_ARCH=$(uname -m) curl ...`. Bash prefix assignments set the variable in the spawned command's environment **after** the shell has already expanded `${BUILD_ARCH}` in the command's arguments — the expansion sees an unset variable, the URL resolves with an empty arch string, and the download 404s. Source: `charly/tasks.go:envPrefix` with the documenting comment. Layers that use `${BUILD_ARCH}` in a `download:` URL: `/charly-languages:pixi`, `/charly-coder:typst`, `/charly-tools:yay`, `/charly-infrastructure:vectorchord`, `/charly-tools:sherpa-onnx`.
 
 ## Project directory override
 
@@ -222,6 +222,4 @@ The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUIL
 - `/charly-eval:eval` — test-authoring workflow; `eval:` blocks are embedded via `writeJSONLabel` and benefit directly from LABELs-at-end cache efficiency.
 - `/charly-internals:generate-source` — Deep dive on Containerfile emission internals, `Task` struct, per-verb emitters, `stageInlineContent`, `shellSingleQuote` + `shellAnsiQuote` helpers, LABEL-placement rationale.
 - `/charly-internals:go` — Source-code map: `charly/tasks.go` (~430 lines), `charly/generate.go:writeLayerSteps` + `writeLabels`, `charly/layers.go` struct definitions.
-- `/charly-distros:bazzite` — canonical worked example exercising all three bootc-specific emission rules above.
 - `/charly-selkies:ffmpeg` — canonical URL-repo consumer (triggers the `dnf5-plugins` prepend).
-- `/charly-distros:bootc-config` — bootc boot wiring that depends on the empty-init-stage fix (only `use_packaged:` entries, no custom-exec rendered bodies).

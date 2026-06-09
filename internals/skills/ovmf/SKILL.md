@@ -94,4 +94,3 @@ The libvirt renderer's `RenderDomain` checks for `codePath == ""` and skips `<lo
 - `/charly-internals:libvirt-renderer` — `RenderDomain` consumer; `<loader>`/`<nvram>` emission conditions
 - `/charly-vm:vm` — command-family; BIOS vs UEFI decision matrix
 - `/charly-vm:arch` — live-test RCA showing why `firmware: bios` is the right default for Arch cloud image
-- `/charly-vm:bazzite-bootc` — Fedora-based bootc VM, typical UEFI case

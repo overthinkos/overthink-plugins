@@ -12,8 +12,8 @@ same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`) with
 full CUDA toolkit, for NVENC-capable hosts. Always runs as a headless pod; the
 pixelflux encoder is auto-selected per GPU at runtime (NVENC on NVIDIA, software
 x264 otherwise). Lives in the `overthinkos/cachyos` submodule (`image/cachyos`); the
-CPU sibling is `/charly-selkies:selkies-labwc` (in the `overthinkos/selkies` submodule),
-and the KDE-Plasma GPU sibling is `selkies-kde-nvidia`.
+CPU sibling is `/charly-selkies:selkies-labwc` (now in this same `overthinkos/cachyos`
+submodule), and the KDE-Plasma GPU sibling is `selkies-kde-nvidia`.
 
 ## Definition
 
@@ -102,7 +102,7 @@ encoding (zero CPU overhead).
 
 ## Related Images
 - `/charly-selkies:selkies-desktop-layer` — the labwc desktop metalayer this image is the GPU build of
-- `selkies-labwc` (in the `overthinkos/selkies` submodule) — the CPU-encoding labwc sibling
+- `selkies-labwc` (in this same `overthinkos/cachyos` submodule) — the CPU-encoding labwc sibling
 - `selkies-kde-nvidia` — the KDE-Plasma GPU sibling (same `cachyos.nvidia` base + CUDA arch-builder)
 - `/charly-openclaw:openclaw-desktop` — the CachyOS/CPU all-in-one: this streaming desktop stack + the openclaw-full gateway + AI CLIs + a CPU ollama + the full charly toolchain (charly + container-nesting + golang + gh). Use it if you want to build images / start nested pods / launch VMs from inside the browser-accessible desktop.
 - `/charly-distros:cachyos` — the CachyOS base image family (owns this image's submodule)

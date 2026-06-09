@@ -24,11 +24,10 @@ my-image:
 
 ## Used In Images
 
-- `/charly-distros:bazzite`
+- (none currently enabled)
 
 ## Related Layers
-- `/charly-tools:vscode` — editor sibling in bazzite
-- `/charly-selkies:desktop-apps` — desktop tooling sibling
+- `/charly-tools:vscode` — editor sibling
 
 ## Related Commands
 - `/charly-core:shell` — run typst inside the container

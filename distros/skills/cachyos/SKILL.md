@@ -112,7 +112,7 @@ charly shell cachyos -c "pacman --version"
 ### CachyOS GPU image family
 
 The submodule also carries a CachyOS GPU image family — the Arch/CachyOS siblings
-of the Fedora GPU images (which stay in `image/nvidia` / main). They build on the
+of the Fedora GPU images (which live in `image/fedora`). They build on the
 `cachyos.nvidia` GPU base, which is `cachyos` + `agent-forwarding` + `nvidia` +
 `cuda` (the `nvidia` and `cuda` layers are multi-distro — Fedora rpm + Arch pac —
 so they compose unchanged on CachyOS):
@@ -126,7 +126,7 @@ so they compose unchanged on CachyOS):
 - `cachyos.immich-ml` — Immich with the CUDA ML backend
 - `cachyos.selkies-labwc-nvidia` — GPU NVENC Selkies streaming desktop (labwc flavor)
 - `cachyos.selkies-kde-nvidia` — GPU NVENC Selkies streaming desktop (full KDE Plasma flavor)
-- `cachyos.selkies-kde` — full KDE Plasma Selkies flavor on the plain cachyos base (VAAPI on an AMD/Intel render node, software x264 otherwise; the `-nvidia` sibling adds NVENC). The labwc cpu/amd flavor (`selkies-labwc`) lives in image/selkies.
+- `cachyos.selkies-kde` — full KDE Plasma Selkies flavor on the plain cachyos base (VAAPI on an AMD/Intel render node, software x264 otherwise; the `-nvidia` sibling adds NVENC). The labwc cpu/amd flavor (`selkies-labwc`) lives in this same `image/cachyos` submodule.
 
 ## Why Docker Hub instead of pacstrap
 

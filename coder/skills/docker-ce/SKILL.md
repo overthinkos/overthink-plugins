@@ -32,7 +32,7 @@ my-image:
 
 ## Used In Images
 
-- `bazzite`
+- (none currently enabled)
 
 ## Related Layers
 - `/charly-distros:container-nesting` — Alternative podman-based nested container support

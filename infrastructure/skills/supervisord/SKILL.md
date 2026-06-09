@@ -252,14 +252,14 @@ Transitive dependency for all images with managed services, including:
 
 ## Running supervisord under systemd (bootc mode)
 
-On non-bootc images, supervisord is container PID 1 (`ENTRYPOINT=supervisord` emitted by the init system definition in `build.yml`). On **bootc** images, systemd is PID 1, which means supervisord needs a systemd unit wrapper — otherwise the whole desktop tier never starts. `/charly-distros:bootc-config` ships that wrapper as a systemd **user** unit at `/etc/systemd/user/supervisord.service`, `systemctl --global enable`d so tty1 autologin brings it up. See `/charly-distros:bootc-config` for the full mechanism (including the linger sentinel file).
+On non-bootc images, supervisord is container PID 1 (`ENTRYPOINT=supervisord` emitted by the init system definition in `build.yml`). On **bootc** images, systemd is PID 1, which means supervisord needs a systemd unit wrapper — otherwise the whole desktop tier never starts. The wrapper is a systemd **user** unit at `/etc/systemd/user/supervisord.service`, `systemctl --global enable`d so tty1 autologin brings it up (a linger sentinel file keeps it alive across logouts).
 
 ### Two gotchas specific to running under a systemd user service
 
 Both involve opening `/dev/stdout` or `/dev/fd/1`, which resolve to the journal pipe under a systemd user service — and `open()` on a pipe returns ENXIO.
 
 1. **Main supervisord logfile.** The header template (`templates/supervisord.header.conf`) was changed from `logfile=/dev/stdout` to `logfile=/tmp/supervisord.log`. `/dev/stdout` works when supervisord is PID 1 in a container (fd 1 is real stdio), but fails with `OSError: [Errno 6] No such device or address: '/dev/stdout'` under a systemd user service where fd 1 is a pipe. Writing to a regular file works everywhere.
-2. **Per-program `stdout_logfile=/dev/fd/1`.** Every layer's `service:` fragment redirects program stdout to `/dev/fd/1` so container logs (`podman logs`) show per-program output. Under a systemd user service this fails with `unknown error making dispatchers for <name>: ENXIO` for every program. The fix lives in the systemd user unit itself — set `StandardOutput=file:/tmp/supervisord-stdout.log` so supervisord's fd 1 backs a real file, not a pipe. Existing per-program `/dev/fd/1` lines then resolve correctly. See `/charly-distros:bootc-config` for the unit definition.
+2. **Per-program `stdout_logfile=/dev/fd/1`.** Every layer's `service:` fragment redirects program stdout to `/dev/fd/1` so container logs (`podman logs`) show per-program output. Under a systemd user service this fails with `unknown error making dispatchers for <name>: ENXIO` for every program. The fix lives in the systemd user unit itself — set `StandardOutput=file:/tmp/supervisord-stdout.log` so supervisord's fd 1 backs a real file, not a pipe. Existing per-program `/dev/fd/1` lines then resolve correctly.
 
 Container-mode logs are unaffected — supervisord is still PID 1 there.
 
@@ -270,8 +270,6 @@ Container-mode logs are unaffected — supervisord is still PID 1 there.
 - `/charly-selkies:chrome` -- the chrome layer's cgroup resource caps (bound a Chrome crash loop's blast radius)
 - `/charly-infrastructure:traefik` -- Reverse proxy (depends on supervisord)
 - `/charly-infrastructure:dbus-layer` -- D-Bus session bus (depends on supervisord)
-- `/charly-distros:bootc-config` -- ships the systemd-user supervisord autostart wrapper for bootc images
-- `/charly-distros:bazzite` -- canonical worked example of supervisord running under systemd
 - `/charly-ollama:ollama`, `/charly-openclaw:openclaw`, `/charly-infrastructure:postgresql`, `/charly-infrastructure:redis`, `/charly-selkies:sway` -- All ship `service:` blocks
 
 ## Related Commands

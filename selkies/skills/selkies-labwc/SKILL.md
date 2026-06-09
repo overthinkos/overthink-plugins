@@ -14,7 +14,7 @@ The **labwc flavor** of the selkies streaming desktop — a browser-accessible W
 
 ```yaml
 selkies-labwc:
-  base: cachyos.cachyos       # via the `cachyos` import namespace
+  base: cachyos               # local cachyos base (same image/cachyos submodule)
   build: [pac, aur]          # aur required: chrome (google-chrome) + wl-tools (wlrctl)
   layers:
     - agent-forwarding
@@ -33,19 +33,19 @@ Tunnel config is in `deploy.yml` (not box.yml): `tunnel: {provider: tailscale, p
 
 ## Base
 
-`cachyos.cachyos` — the Arch-derived, x86_64_v3-optimized base (owned by the
-`overthinkos/cachyos` submodule, mounted under main's `cachyos` import namespace).
+`cachyos` — the Arch-derived, x86_64_v3-optimized base, a local sibling box in
+the same `overthinkos/cachyos` submodule (`image/cachyos`) that owns this image.
 Multimedia codecs (ffmpeg, x264, libva) come from Arch's `extra` repo; Chrome
 installs from the AUR (`google-chrome`). The image declares `build: [pac, aur]`
 so the AUR builder compiles `google-chrome` (chrome layer) and `wlrctl`
 (wl-tools layer); inheriting plain `[pac]` would silently skip both. Because a
 `builder:` map does NOT cross a namespace boundary, the image declares its OWN
-`builder:` map (pixi/npm/cargo/aur → `arch-builder`, a name local to main's
-`base.yml`) rather than inheriting one from the cachyos base. The GPU sibling
-(`selkies-labwc-nvidia`, in the `overthinkos/cachyos` submodule) is the same
-`selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`), with
-`builder.pixi: charly.cuda-arch-builder` so the selkies layer compiles pixelflux's
-real NVENC encoder.
+`builder:` map (pixi/npm/cargo/aur → `charly.arch-builder`, the builder main
+provides through the `charly` import namespace) rather than inheriting one from
+the cachyos base. The GPU sibling (`selkies-labwc-nvidia`, in the same submodule)
+is the same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`),
+with `builder.pixi: charly.cuda-arch-builder` so the selkies layer compiles
+pixelflux's real NVENC encoder.
 
 ## Layers
 

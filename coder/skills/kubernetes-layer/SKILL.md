@@ -32,7 +32,7 @@ my-devops:
 
 ## Used In Images
 
-- `bazzite`
+- (none currently enabled)
 
 ## Related Layers
 - `/charly-coder:docker-ce` — common companion for local container builds

@@ -32,7 +32,7 @@ my-ci:
 
 ## Used In Images
 
-- `bazzite`
+- (none currently enabled)
 
 ## Related Layers
 - `/charly-distros:github-runner` — distinct self-hosted runner layer (not act)

@@ -50,7 +50,6 @@ For cloud_image VMs (`source.kind: cloud_image`), cloud-init typically comes pre
 ## Related Skills
 
 - `/charly-coder:sshd` -- SSH server dependency
-- `/charly-distros:bootc-base` — composition that includes this layer
 - `/charly-distros:qemu-guest-agent` — host-guest communication (paired with cloud-init in VMs)
 - `/charly-vm:vm` — VM lifecycle (create, start, stop, ssh) for kind:vm entities
 - `/charly-vm:vms-catalog` — kind:vm authoring reference

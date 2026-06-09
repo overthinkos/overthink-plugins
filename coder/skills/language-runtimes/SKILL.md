@@ -140,7 +140,6 @@ my-polyglot:
 - `/charly-coder:fedora-coder` — kitchen-sink dev image, canonical RPM consumer.
 - `/charly-coder:arch-coder` — pacman-based sibling.
 - `/charly-coder:debian-coder`, `/charly-coder:ubuntu-coder` — deb-based siblings, consumers of the dotnet-install.sh task.
-- `/charly-distros:bazzite`.
 
 ## Related Layers
 

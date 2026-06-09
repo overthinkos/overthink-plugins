@@ -37,7 +37,7 @@ manager UI.
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
 | **charly-image** | 2 | — | Schema for `kind: box` and `kind: candy` (box.yml / candy.yml authoring). |
-| **charly-vm** | 8 | — | Schema for `kind: vm` + bootc VM catalog (cloud_image vs bootc, libvirt/QEMU). Includes `cachyos` (bootstrap VM, in the `overthinkos/cachyos` submodule) and `debian` / `ubuntu` (debootstrap bootstrap VMs, in the `overthinkos/debian` / `overthinkos/ubuntu` submodules). |
+| **charly-vm** | 6 | — | Schema for `kind: vm` + bootc VM catalog (cloud_image vs bootc, libvirt/QEMU). Includes `cachyos` (bootstrap VM, in the `overthinkos/cachyos` submodule) and `debian` / `ubuntu` (debootstrap bootstrap VMs, in the `overthinkos/debian` / `overthinkos/ubuntu` submodules). |
 | **charly-kubernetes** | 2 | — | Schema for `kind: k8s` + cluster probes via `charly eval k8s`. |
 | **charly-local** | 3 | — | Schema for `kind: local` + ssh-host deploys + managed ssh-config fragment. Includes `charly-cachyos` (operator CachyOS workstation profile, in the `overthinkos/cachyos` submodule). |
 | **charly-pod** | 1 | — | Schema for `kind: pod` and `kind: deploy` — thin pointer to `/charly-core:deploy` for verb details. |
@@ -54,10 +54,10 @@ manager UI.
 
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
-| **charly-distros** | 41 | — | Base OS images, GPU runtime, bootc bootstrap, per-distro builders. fedora (+ fedora-builder, fedora-nonfree — the base stack stays in main's `base.yml`, imported by the `overthinkos/fedora` submodule under the `charly` namespace; the charly-fedora / fedora-test showcase images are owned by that submodule), arch (+ arch-builder, owned by the `overthinkos/arch` submodule), cachyos (+ cachyos-pacstrap/-builder, owned by the `overthinkos/cachyos` submodule), debian / ubuntu (+ their `-builder` and `-debootstrap`/`-debootstrap-builder`, owned by the `overthinkos/debian` / `overthinkos/ubuntu` submodules), aurora, bazzite, nvidia, cuda, rocm, bootc-base, bootc-config, etc. |
+| **charly-distros** | 34 | — | Base OS images, GPU runtime, per-distro builders. fedora (+ fedora-builder, fedora-nonfree — the base stack stays in main's `base.yml`, imported by the `overthinkos/fedora` submodule under the `charly` namespace; the charly-fedora / fedora-test showcase images are owned by that submodule), arch (+ arch-builder, owned by the `overthinkos/arch` submodule), cachyos (+ cachyos-pacstrap/-builder, owned by the `overthinkos/cachyos` submodule), debian / ubuntu (+ their `-builder` and `-debootstrap`/`-debootstrap-builder`, owned by the `overthinkos/debian` / `overthinkos/ubuntu` submodules), nvidia, cuda, rocm, etc. The `nvidia` GPU base image now lives in the `overthinkos/fedora` submodule (the `nvidia` / `cuda` / `rocm` layers stay in main). |
 | **charly-languages** | 4 | — | Programming language runtimes — pixi, python, python-ml, python-ml-layer. (golang/rust/nodejs live in `charly-coder` because they're tightly coupled to dev images.) |
 | **charly-infrastructure** | 22 | — | Databases, networking, security, system services. postgresql, redis, valkey, vectorchord, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, ssh-client, gnupg, etc. |
-| **charly-tools** | 19 | — | CLI utilities and the `charly` binary — ripgrep, himalaya, whisper, nano-pdf, summarize, ordercli, gogcli, sherpa-onnx, songsee, blogwatcher, sag, xurl, goplaces, mcporter, yay, ujust, vscode, charly. |
+| **charly-tools** | 18 | — | CLI utilities and the `charly` binary — ripgrep, himalaya, whisper, nano-pdf, summarize, ordercli, gogcli, sherpa-onnx, songsee, blogwatcher, sag, xurl, goplaces, mcporter, yay, vscode, charly. |
 
 #### Per-pod plugins
 
@@ -65,7 +65,7 @@ manager UI.
 |---|--:|---|---|
 | **charly-jupyter** | 15 | jupyter @ 8888 | Jupyter image family (jupyter, jupyter-ml, jupyter-ml-notebook, unsloth-studio) + notebook templates + jupyter-mcp server. |
 | **charly-coder** | 31 | charly @ 18765 | charly coder/dev images (fedora-coder in the `overthinkos/fedora` submodule; arch-coder/charly-arch in `overthinkos/arch`; debian-coder in `overthinkos/debian`; ubuntu-coder in `overthinkos/ubuntu`) + language runtimes (golang/rust/nodejs/docker-ce). |
-| **charly-selkies** | 45 | chrome-devtools @ 9224 | Selkies-desktop family — labwc and full-KDE-Plasma flavors of the browser-streamed Wayland desktop, always a headless pod, per-GPU encode (VAAPI / NVENC / x264 auto-selected at runtime). |
+| **charly-selkies** | 43 | chrome-devtools @ 9224 | Selkies-desktop family — labwc and full-KDE-Plasma flavors of the browser-streamed Wayland desktop, always a headless pod, per-GPU encode (VAAPI / NVENC / x264 auto-selected at runtime). |
 | **charly-openclaw** | 7 | — | OpenClaw AI gateway family (CachyOS base): the `openclaw` layer + headless `openclaw` / `openclaw-full` images + the all-in-one `openclaw-desktop` (streaming desktop + gateway + CPU ollama + nested charly toolchain) + composition layers (`openclaw-full`, `openclaw-full-ml`). |
 | **charly-versa** | 9 | marimo @ 22718, airflow @ 29999 | Versa image — marimo notebook + Airflow + OSM/GTFS analytics + martin vector tiles. |
 | **charly-ollama** | 2 | — | Ollama LLM-server image. Pair with `charly-jupyter` to expose to notebooks. |

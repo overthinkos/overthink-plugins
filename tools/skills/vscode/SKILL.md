@@ -28,10 +28,9 @@ my-image:
 
 ## Used In Images
 
-- `/charly-distros:bazzite`
+- (none currently enabled)
 
 ## Related Layers
-- `/charly-selkies:desktop-apps` — desktop tooling sibling
 - `/charly-coder:dev-tools` — CLI dev tools companion
 - `/charly-coder:typst` — document tooling sibling
 

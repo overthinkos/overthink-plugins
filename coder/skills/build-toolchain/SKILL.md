@@ -91,7 +91,6 @@ my-image:
 
 - `/charly-distros:fedora-builder`
 - `/charly-distros:arch-builder`
-- Also used in `bazzite`
 
 ## Related Layers
 - `/charly-languages:pixi` — Sibling in builder images for conda-forge package builds

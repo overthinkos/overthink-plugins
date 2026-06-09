@@ -151,14 +151,7 @@ Canonical example: `/charly-vm:arch`. Only existing cloud_image VM in the repo �
 
 Use when the VM is built from an **in-repo bootc container image** (a `kind: box` entry with `bootc: true`). `charly vm build` runs `bootc install to-disk --via-loopback` inside a privileged container to produce the qcow2/raw disk.
 
-The 4 bootc VMs currently shipped (each with a dedicated thin skill):
-
-| VM entity | Paired container image | Skill |
-|---|---|---|
-| `aurora-bootc` | `/charly-distros:aurora` | `/charly-vm:aurora-bootc` |
-| `bazzite-bootc` | `/charly-distros:bazzite` | `/charly-vm:bazzite-bootc` |
-
-The `-bootc` suffix marks the bootc VM entity (distinguished from an equivalent container-form deploy by the `vms:` namespacing, not by the name).
+No bootc VM ships in the repo today; a bootc `vms:` entry pairs a `kind: box` image carrying `bootc: true` with the VM hardware spec. By convention a `-bootc` suffix marks the bootc VM entity (distinguished from an equivalent container-form deploy by the `vms:` namespacing, not by the name).
 
 ### Authoring a new bootc VM
 
@@ -223,7 +216,6 @@ Idempotent. Harvests the legacy fields into `vms:` entries, preserving any pre-e
 - `/charly-build:migrate` — `charly migrate` conversion from legacy
 - `/charly-core:deploy` — `charly deploy add vm:<name>` for in-guest layer application
 - `/charly-vm:arch` — canonical cloud_image VM
-- `/charly-vm:aurora-bootc`, `/charly-vm:bazzite-bootc` — bootc VMs
 - `/charly-internals:vm-spec` — Go type reference
 - `/charly-internals:libvirt-renderer` — libvirt XML emission
 - `/charly-internals:cloud-init-renderer` — NoCloud seed ISO + user-data emission

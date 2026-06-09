@@ -97,7 +97,7 @@ A browser-accessible desktop at `http://localhost:3000` with:
 
 ## Known bootc caveat — labwc ↔ pixelflux start-order race
 
-On container images, `ENTRYPOINT=supervisord` with priority-based startup sequences the desktop tier cleanly. On bootc images, supervisord runs under a systemd user service (see `/charly-distros:bootc-config`), and a start-order race surfaces that's invisible in container mode:
+On container images, `ENTRYPOINT=supervisord` with priority-based startup sequences the desktop tier cleanly. On bootc images, supervisord runs under a systemd user service, and a start-order race surfaces that's invisible in container mode:
 
 - `labwc-wrapper` blocks at startup waiting for `/tmp/wayland-1` (pixelflux's socket).
 - `pixelflux` is started by `selkies` (another supervisord program) which — via its own ordering — comes up alongside labwc, not before it.

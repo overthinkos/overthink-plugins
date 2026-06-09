@@ -37,18 +37,18 @@ org.qemu.guest_agent.0}]` (see `/charly-internals:libvirt-renderer`).
 ## Usage
 
 ```yaml
-# box.yml -- typically used via bootc-base composition
+# box.yml -- add to a bootc image's layer list
 my-vm-image:
   bootc: true
   layers:
-    - bootc-base
+    - qemu-guest-agent
 # or applied to a VM guest at deploy time:
 #   charly deploy add vm:<name> qemu-guest-agent
 ```
 
 ## Used In Images
 
-Part of the `bootc-base` composition layer. Used transitively in bootc/VM images.
+Composed into bootc images directly, or applied to a VM guest at deploy time (`charly deploy add vm:<name> qemu-guest-agent`).
 
 ## virtio-serial channel (libvirt XML contribution)
 
@@ -72,9 +72,7 @@ This is the `/` classification case: `isDeviceElement` flags it as device-scoped
 
 ## Related Layers
 
-- `/charly-distros:bootc-base` -- composition that includes this layer
-- `/charly-coder:sshd` -- SSH server (also in bootc-base)
-- `/charly-distros:bootc-config` -- bootc system config (also in bootc-base)
+- `/charly-coder:sshd` -- SSH server (commonly paired in bootc/VM images)
 
 ## When to Use This Skill
 

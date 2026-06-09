@@ -24,7 +24,7 @@ my-image:
 
 ## Used In Images
 
-- `/charly-distros:bazzite`
+- (none currently enabled)
 
 ## Related Layers
 - `/charly-coder:devops-tools` — common companion bundle in observability images

@@ -39,7 +39,7 @@ CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher
 | Unexpected failure / anomaly | `/charly-internals:root-cause-analyzer` agent |
 | Engineering-discipline trigger (failure / dup pattern / ad-hoc fix / "out of scope" framing) | `/charly-internals:strict-policy` |
 | "What does layer X do?" — pod-specific | `/charly-jupyter:<name>`, `/charly-coder:<name>`, `/charly-selkies:<name>`, `/charly-openclaw:<name>`, `/charly-ollama:<name>`, `/charly-openwebui:<name>`, `/charly-comfyui:<name>`, `/charly-immich:<name>`, `/charly-hermes:<name>`, `/charly-filebrowser:<name>` |
-| "What does layer X do?" — base distros / GPU / bootc | `/charly-distros:<name>` (arch, fedora, debian, ubuntu, nvidia, cuda, rocm, bootc-base, …) |
+| "What does layer X do?" — base distros / GPU / bootc | `/charly-distros:<name>` (arch, fedora, debian, ubuntu, nvidia, cuda, rocm, …) |
 | "What does layer X do?" — language runtime | `/charly-languages:<name>` (python, python-ml, pixi) |
 | "What does layer X do?" — infrastructure service | `/charly-infrastructure:<name>` (postgresql, redis, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, …) |
 | "What does layer X do?" — CLI utility | `/charly-tools:<name>` (ripgrep, himalaya, whisper, charly, …) |
@@ -137,18 +137,18 @@ Plugins are sorted into four use-case buckets. Directory names live at
 | commands | `charly-eval` | 9 | `charly eval` orchestrator + live probes (cdp/wl/wl-overlay/dbus/vnc/spice/libvirt/record) |
 | commands | `charly-automation` | 6 | tmux verb, host-side helpers (alias/udev), topic flags (enc/sidecar/openclaw-deploy) |
 | kind | `charly-image` | 2 | `kind: box` and `kind: candy` schema reference |
-| kind | `charly-vm` | 7 | `kind: vm` schema + bootc VM catalog |
+| kind | `charly-vm` | 6 | `kind: vm` schema + VM catalog |
 | kind | `charly-kubernetes` | 2 | `kind: k8s` schema + cluster probes |
 | kind | `charly-local` | 2 | `kind: local` schema + ssh-host deploys |
 | kind | `charly-pod` | 1 | `kind: pod` and `kind: deploy` schema (thin pointer) |
 | development | `charly-internals` | 16 + 5 agents | Go source / IR / capabilities / vm-spec / renderers / cutover-policy / strict-policy / disposable / git-workflow / agents (the agents/workflows/teams guide) + 5 agents (3 enforcers + 2 eval executors) + github MCP |
-| images | `charly-distros` | 34 | Base OS, GPU runtime, bootc, distro builders |
+| images | `charly-distros` | 34 | Base OS, GPU runtime, distro builders |
 | images | `charly-languages` | 4 | python, python-ml, pixi |
 | images | `charly-infrastructure` | 22 | postgres, redis, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, ... |
-| images | `charly-tools` | 19 | CLI utilities + charly binary deploy |
+| images | `charly-tools` | 18 | CLI utilities + charly binary deploy |
 | images | `charly-jupyter` | 15 | jupyter image family + jupyter MCP @ 8888 |
 | images | `charly-coder` | 31 | coder/dev images + charly MCP @ 18765 |
-| images | `charly-selkies` | 45 | selkies-desktop family + chrome-devtools MCP @ 9224 |
+| images | `charly-selkies` | 43 | selkies-desktop family + chrome-devtools MCP @ 9224 |
 | images | `charly-openclaw` | 12 | openclaw AI workstation + chrome-devtools MCP @ 9224 |
 | images | `charly-versa` | 9 | versa image — marimo + airflow + OSM analytics + 2 MCP servers |
 | images | `charly-ollama` | 2 | ollama LLM-server image |

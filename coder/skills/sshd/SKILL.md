@@ -74,7 +74,7 @@ Why not `${USER}` substitution? The generator substitutes `${USER}` in task fiel
 ## Usage
 
 ```yaml
-# box.yml -- typically used via bootc-base composition
+# box.yml -- add the layer to any image that needs an in-container SSH server
 my-image:
   layers:
     - sshd
@@ -82,9 +82,7 @@ my-image:
 
 ## Used In Images
 
-- Part of the `bootc-base` composition layer (used in bootc images)
-- `/charly-distros:aurora`
-- `/charly-distros:bazzite` (via bootc-base) — worked example exercising the dual-mode sudo test below
+- Composed into coder/dev and headless-desktop images that need an in-container SSH server (e.g. `/charly-selkies:selkies-labwc`), and applied to VM guests at deploy time
 
 ## Testing Notes
 
@@ -124,10 +122,7 @@ caught during `charly-arch` bring-up. See `/charly-eval:eval` Authoring Gotcha #
 
 ## Related Skills
 
-- `/charly-distros:bootc-base` -- composition that includes this layer
-- `/charly-distros:bootc-config` -- the bootc boot wiring (tty1 autologin + systemd-user supervisord) that typically runs alongside this layer
 - `/charly-distros:cloud-init` -- depends on sshd for VM provisioning
-- `/charly-distros:bazzite` -- canonical bootc worked example that exercises the dual-mode sudo test
 - `/charly-coder:ubuntu-coder` -- canonical adopt-mode example; sudoers correctly targets `ubuntu` via getent
 - `/charly-coder:debian-coder` -- canonical create-mode deb-family example; sudoers targets `user`
 - `/charly-distros:ubuntu` -- declares the `base_user:` block that makes ubuntu-coder run as `ubuntu`

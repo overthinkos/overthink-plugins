@@ -36,7 +36,7 @@ my-image:
 
 ## Used In Images
 
-- `/charly-distros:bazzite`
+- (none currently enabled)
 
 ## Related Layers
 

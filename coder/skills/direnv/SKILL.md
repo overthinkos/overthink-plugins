@@ -51,7 +51,7 @@ The primary use case in OpenCharly is the `.secrets` workflow: `.envrc` calls `e
 
 Part of `agent-forwarding` composition layer, used in 27 application images.
 
-Also available in `dev-tools` layer (used in `bazzite`).
+Also available in the `dev-tools` layer.
 
 ## Related Layers
 

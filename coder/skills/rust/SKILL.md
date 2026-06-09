@@ -32,7 +32,7 @@ my-image:
 ## Used In Images
 
 - No enabled images use this layer directly
-- Transitive dependency of `language-runtimes` (used in `bazzite`)
+- Transitive dependency of `language-runtimes`
 
 ## When to use the `rust` layer vs the `build-toolchain` `rust`+`cargo` packages
 

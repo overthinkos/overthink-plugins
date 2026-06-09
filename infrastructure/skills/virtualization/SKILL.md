@@ -217,7 +217,6 @@ Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networ
 - `/charly-coder:charly-arch` — Arch counterpart
 - `/charly-coder:debian-coder`, `/charly-coder:ubuntu-coder` — deb-based consumers (via the `charly` layer)
 - `/charly-distros:githubrunner` — VMs for CI workloads
-- `/charly-distros:aurora`, `/charly-distros:bazzite` — bootc siblings
 
 ## Related Layers
 

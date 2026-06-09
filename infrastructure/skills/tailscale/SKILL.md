@@ -31,12 +31,11 @@ my-bootc-image:
   bootc: true
   distro: ["fedora:43", fedora]
   layers:
-    - bootc-base
     - tailscale
     - ...
 ```
 
-The layer's `cmd:` task issues `systemctl enable tailscaled.service` at build time (suffixed with `|| true` because offline bootc assembly can't fully activate a live systemd — same `|| true` pattern used in `/charly-distros:bootc-config` for `systemctl set-default graphical.target`).
+The layer's `cmd:` task issues `systemctl enable tailscaled.service` at build time (suffixed with `|| true` because offline bootc assembly can't fully activate a live systemd).
 
 ## Runtime activation
 
@@ -70,7 +69,6 @@ All three can coexist, but for most cases you want exactly one.
 
 - `/charly-infrastructure:tailscale-up` — runtime-config sibling for `target: local` host deploys (sets `--operator` + `--hostname`). Use both layers together on host targets that need `tailscale serve` to work without sudo.
 - `/charly-distros:container-nesting` — the previous home of the tailscale package (bundled with buildah/skopeo/docker for nested podman; separate concern)
-- `/charly-distros:bootc-config` — companion layer for bootc boot wiring (autologin, graphical target, supervisord user service)
 - `/charly-automation:sidecar` — deploy-time Tailscale sidecar pattern (alternative, not a replacement)
 - `/charly-core:deploy` — `deploy.yml` tunnel/sidecar configuration
 - `/charly-image:layer` — layer authoring reference

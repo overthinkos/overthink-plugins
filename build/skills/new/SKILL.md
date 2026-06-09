@@ -96,7 +96,7 @@ The scaffolded `candy.yml` from step 3 is minimal (a null `rpm.packages:` list w
 
 ## Naming Rules
 
-- Lowercase-hyphenated names only (e.g., `my-tool`, `desktop-apps`)
+- Lowercase-hyphenated names only (e.g., `my-tool`, `dev-tools`)
 - Must not conflict with existing layer names
 
 ## Project directory override

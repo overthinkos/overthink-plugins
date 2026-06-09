@@ -39,7 +39,7 @@ clears the warning.
 ```bash
 charly box reconcile --dry-run      # see the plan
 charly box reconcile                # align to newest referenced (no network)
-charly -C image/selkies image reconcile   # reconcile a submodule's pins
+charly -C image/cachyos image reconcile   # reconcile a submodule's pins
 ```
 
 ## What it does

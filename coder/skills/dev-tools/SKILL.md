@@ -76,7 +76,7 @@ my-dev:
 
 ## Used In Images
 
-- `bazzite` (via `devops-tools` which is separate)
+- (none currently enabled)
 
 ## Related Layers
 - `/charly-coder:gh` — Sibling GitHub CLI commonly paired with dev-tools

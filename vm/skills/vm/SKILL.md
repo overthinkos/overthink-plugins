@@ -19,7 +19,7 @@ description: |
 `charly vm` commands build disk images and manage virtual machines via libvirt (default) or direct QEMU. VMs are declared as **`kind: vm` entities in `vm.yml`** — a first-class primitive alongside `kind: box` entries. Two source types:
 
 - **`source.kind: cloud_image`** — fetches a pre-built qcow2 from an external URL (Arch, Fedora, Ubuntu, Debian, CentOS Cloud images). Renders a NoCloud seed ISO with cloud-init. Canonical example: `/charly-vm:arch`.
-- **`source.kind: bootc`** — pairs with a `kind: box` entry that has `bootc: true`. Runs `bootc install to-disk` inside a privileged container. Canonical example: `/charly-vm:bazzite-bootc`.
+- **`source.kind: bootc`** — pairs with a `kind: box` entry that has `bootc: true`. Runs `bootc install to-disk` inside a privileged container.
 
 VMs are not configured on kind:image entries — `image.vm:` / `image.libvirt:` are rejected at load time. `bootc: true` stays on a kind:image entry to mark it bootable. Legacy projects convert in one shot with `charly migrate` (see `/charly-build:migrate`). For the YAML authoring reference, see `/charly-vm:vms-catalog`; for the Go types, see `/charly-internals:vm-spec`.
 
@@ -85,7 +85,7 @@ Worked end-to-end example: the CachyOS `eval-cachyos-gpu-vm` bed (see
 
 ```bash
 charly vm build arch          # cloud_image: fetch qcow2, resize, render seed ISO
-charly vm build bazzite-bootc --type qcow2   # bootc: bootc install to-disk
+charly vm build <bootc-vm> --type qcow2      # bootc: bootc install to-disk
 charly vm build <name> --size 40G        # disk_size override (CLI wins over vm.yml)
 charly vm build <name> --root-size 10G   # bootc only: cap root partition
 charly vm build <name> --console         # enable console output for debugging
@@ -166,10 +166,10 @@ vms:
         graphics: [{type: spice, autoport: "yes", listen: 127.0.0.1}]
 
   # bootc source
-  bazzite-bootc:
+  my-bootc:
     source:
       kind: bootc
-      box: bazzite                                # kind:image entry
+      box: my-bootc                               # a kind:image entry with bootc: true
     disk_size: 80 GiB
     ram: 16G
     cpus: 6
@@ -294,11 +294,11 @@ ssh -p 2224 -i ~/.local/share/charly/vm/charly-arch/id_ed25519 arch@127.0.0.1
 ### Build and run a bootc VM
 
 ```bash
-charly box build bazzite             # container image must exist first
-charly vm build bazzite-bootc
-charly vm create bazzite-bootc
-charly vm start bazzite-bootc
-charly vm ssh bazzite-bootc
+charly box build <bootc-image>       # container image must exist first
+charly vm build <bootc-vm>
+charly vm create <bootc-vm>
+charly vm start <bootc-vm>
+charly vm ssh <bootc-vm>
 ```
 
 ### Apply layers inside a VM
@@ -332,7 +332,7 @@ charly vm ssh <name> -i dev
 
 ## Known live-tested caveats
 
-Non-obvious issues that surface only when VMs actually boot. `/charly-vm:bazzite-bootc` is the canonical end-to-end bootc worked example; `/charly-vm:arch` is the canonical cloud_image worked example.
+Non-obvious issues that surface only when VMs actually boot. `/charly-vm:arch` is the canonical cloud_image worked example; the bootc-specific caveats below apply to any `source.kind: bootc` VM.
 
 ### Privileged container needs `-v /dev:/dev` (bootc)
 
@@ -398,7 +398,6 @@ Expected. The agent needs a `virtio-serial` channel that charly's QEMU backend d
 
 - `/charly-vm:vms-catalog` — **vm.yml authoring reference** (VmSpec schema, source.kind, adopt pattern)
 - `/charly-vm:arch` — canonical cloud_image VM (BIOS / virtio-gpu / resource sizing / stale BOOTX64.EFI RCA)
-- `/charly-vm:aurora-bootc`, `/charly-vm:bazzite-bootc` — bootc VMs
 - `/charly-internals:vm-spec` — Go type reference; validation rules; migration map
 - `/charly-internals:libvirt-renderer` — RenderDomain + device emission + passt backend + virtio-gpu
 - `/charly-internals:cloud-init-renderer` — RenderCloudInit + composeUsers + seed ISO + charly_install
@@ -411,8 +410,6 @@ Expected. The agent needs a `virtio-serial` channel that charly's QEMU backend d
 - `/charly-build:build` — building container images before VM disk builds
 - `/charly-image:layer` — `libvirt.snippets:` field in candy.yml
 - `/charly-openclaw:openclaw-desktop` — two-level nested-virtualization proof
-- `/charly-distros:bootc-base` — sshd + qemu-guest-agent + bootc-config bundle
-- `/charly-distros:bootc-config` — bootc-side boot wiring (tty1 autologin, graphical target, systemd-user supervisord)
 - `/charly-distros:cloud-init` — guest-side cloud-init package (complements host-side seed ISO rendering)
 - `/charly-distros:qemu-guest-agent` — virtio-serial channel
 
