@@ -110,7 +110,7 @@ Specifically:
   autonomously by `charly update`" — a permission.
 - `ephemeral: true` (or block form) says "this resource MUST be
   destroyed autonomously when no longer needed" — a requirement,
-  enforced by the eval-runner / Gherkin (ADD) step keywords / TTL transient
+  enforced by the eval-runner / Gherkin (ADE) step keywords / TTL transient
   timer registered in `charly deploy add`.
 
 The implication arrow is one-way. Disposable resources are not

@@ -363,13 +363,13 @@ lookup — full image refs like `ghcr.io/overthinkos/fedora-coder:latest`
 are correctly mapped to `charly-fedora-coder`. Implementation:
 `charly/eval_cmd.go` `EvalImageCmd.Run()` and `EvalLiveCmd.Run()`.
 
-## Agent Driven Development (ADD) — `charly box/eval feature run` + the agent grader
+## Agent Driven Evaluation (ADE) — `charly box/eval feature run` + the agent grader
 
-ADD runs an entity's OWN baked Gherkin scenarios (the `description.scenario`
+ADE runs an entity's OWN baked Gherkin scenarios (the `description.scenario`
 blocks, shipped in the `ai.opencharly.description` OCI label) as acceptance
-tests. It is the canonical Gherkin acceptance pattern, named for the agent that drives it: a
-prose-only step is verified by an AI agent, and the whole red→green loop can be
-driven by an agent. This complements the flat `eval:` checks — `charly eval box` /
+tests. It is the canonical Gherkin acceptance pattern, named for the agent that drives the
+evaluation: a prose-only step is graded by an AI agent, and the agent's verdicts
+drive the red→green loop. This complements the flat `eval:` checks — `charly eval box` /
 `charly eval live` run the `eval:` list; `charly box/eval feature run` run the
 `description.scenario` list.
 
