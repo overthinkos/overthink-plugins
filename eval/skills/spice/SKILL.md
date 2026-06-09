@@ -26,7 +26,7 @@ Global flags on every subcommand:
 - `--address host:port` — bypass vm.yml lookup; targets an arbitrary TCP SPICE server.
 - `--socket /path` — bypass vm.yml lookup; targets an arbitrary UNIX-socket SPICE server.
 - `--password SECRET` — SPICE ticket for `--address` mode.
-- `--uri qemu+ssh://[user@]host/session` — resolve the VM on a remote libvirt host. `charly` auto-opens an SSH tunnel and forwards the remote SPICE socket (or TCP port) to a local endpoint for the lifetime of the command. Also accepts the `CH_LIBVIRT_URI` env var.
+- `--uri qemu+ssh://[user@]host/session` — resolve the VM on a remote libvirt host. `charly` auto-opens an SSH tunnel and forwards the remote SPICE socket (or TCP port) to a local endpoint for the lifetime of the command. Also accepts the `CHARLY_LIBVIRT_URI` env var.
 
 Screenshot/cursor `<file>` args accept `-` to write PNG bytes to stdout:
 `charly eval spice screenshot arch - > /tmp/shot.png`. Status messages
@@ -121,14 +121,14 @@ the guest framebuffer agree.
 
 ## Implementation pointers
 
-- `ov/spice.go` — Kong command tree, per-verb structs.
-- `ov/spice_session.go` — thin wrapper over Shells-com/spice's
+- `charly/spice.go` — Kong command tree, per-verb structs.
+- `charly/spice_session.go` — thin wrapper over Shells-com/spice's
   `Connector`/`Driver` interfaces. The Driver stub captures
   display/cursor updates into a sync.Mutex-guarded field; the CLI
   reads them back for screenshot/cursor verbs.
-- `ov/vm_target.go` — shared target resolution (vm.yml → libvirt
+- `charly/vm_target.go` — shared target resolution (vm.yml → libvirt
   domain → live XML → SPICE address).
-- PC-AT scancode table is inline in `ov/spice.go` (friendly keyname
+- PC-AT scancode table is inline in `charly/spice.go` (friendly keyname
   → scancode for `type` and `key`).
 
 ## Dependencies

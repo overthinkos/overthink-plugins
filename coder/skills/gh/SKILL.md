@@ -47,7 +47,7 @@ unambiguous ("which layer do I look at to update the git-lfs version?" — this
 one) and avoids duplicate test ids (`gh-binary` collisions).
 
 Effect for layer authors: any image that wants git tooling composes `gh`
-explicitly. The four power-user images (`arch-ov`, `fedora-ov`,
+explicitly. The four power-user images (`charly-arch`, `charly-fedora`,
 `fedora-coder`, `githubrunner` via the `charly` chain) all list `gh`
 explicitly.
 
@@ -78,7 +78,7 @@ layers:
 
 ## Used In Images
 
-- `/charly-coder:arch-ov`, `/charly-distros:fedora-ov`, `/charly-coder:fedora-coder` — power-user images that compose gh explicitly
+- `/charly-coder:charly-arch`, `/charly-distros:charly-fedora`, `/charly-coder:fedora-coder` — power-user images that compose gh explicitly
 - `/charly-openclaw:openclaw-desktop` — streaming-desktop sibling
 - Any image composing `hermes-full`
 

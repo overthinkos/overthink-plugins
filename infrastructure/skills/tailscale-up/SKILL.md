@@ -8,7 +8,7 @@ description: |
   installs the daemon). Self-gates on `systemctl is-active tailscaled`
   so it's a no-op in image-build / pre-auth contexts.
   Use when adding deploy-runtime tailscale wiring to a target:local host
-  (canonical consumer: local.ov-cachyos) — distinct from the tailscale layer
+  (canonical consumer: local.charly-cachyos) — distinct from the tailscale layer
   which only installs + enables the daemon.
 ---
 
@@ -65,7 +65,7 @@ The layer's single cmd task:
    isn't running (image build, masked unit, etc.).
 3. Resolves the human deploy user via `getent passwd 1000 | cut -d: -f1`.
    This matches the `wheel-nopasswd` layer and the
-   `renderBuilderScript` helper in `ov/deploy_target_local.go` — uid 1000
+   `renderBuilderScript` helper in `charly/deploy_target_local.go` — uid 1000
    is the canonical "first human user" in this repo across CachyOS,
    Arch, Fedora, Debian, and Ubuntu base images. `SUDO_USER` is
    intentionally NOT used: `runSudoShell` calls `sudo -n bash -s`
@@ -106,7 +106,7 @@ the prefs `Hostname` field equals `hostname -s`.
 
 ## Used in
 
-- `local.ov-cachyos` — primary consumer, applies it on every fresh
+- `local.charly-cachyos` — primary consumer, applies it on every fresh
   CachyOS dev workstation.
 - Any future `target: local` template that needs tailnet operator
   permission.
@@ -183,10 +183,10 @@ manual remediation covers the actual single-host case.
 ## Bring-up flow for a fresh CachyOS host
 
 ```bash
-# 1. Apply the ov-cachyos template — installs everything, including
+# 1. Apply the charly-cachyos template — installs everything, including
 #    tailscale (daemon enabled) + tailscale-up (operator/hostname
 #    setters armed for next-time-up state changes).
-charly deploy add ov-cachyos
+charly deploy add charly-cachyos
 
 # 2. Authenticate the daemon via the user's tailnet (browser SSO):
 sudo tailscale up
@@ -197,10 +197,10 @@ tailscale status | head -2
 
 # 4. Optional re-apply (idempotent) to confirm the runtime task takes
 #    effect now that the daemon is logged in:
-charly deploy add ov-cachyos
+charly deploy add charly-cachyos
 ```
 
-Subsequent `charly deploy add ov-cachyos` invocations re-run the runtime
+Subsequent `charly deploy add charly-cachyos` invocations re-run the runtime
 task and re-confirm the operator + hostname state. Hostname changes
 (`sudo hostnamectl set-hostname new-name`) propagate to the tailnet
 on the next deploy.
@@ -281,7 +281,7 @@ host-level serve).
 - `/charly-local:local-deploy` — the `target: local` execution model
   this layer is designed for.
 - `/charly-local:local-spec` — `local.yml` template authoring; the
-  canonical consumer is `local.ov-cachyos`.
+  canonical consumer is `local.charly-cachyos`.
 - the `wheel-nopasswd` layer — provides the passwordless sudo
   used by the eval probe's `tailscale debug prefs` chain.
 - `/charly-image:layer` — layer authoring reference.
@@ -293,7 +293,7 @@ host-level serve).
 Use when the user asks about:
 
 - Why `tailscale serve` fails with "permission denied" on a fresh
-  ov-cachyos host.
+  charly-cachyos host.
 - How to keep the tailnet device name in sync with `hostname -s`.
 - The split between the build-time tailscale install and the
   deploy-time tailscale wiring.

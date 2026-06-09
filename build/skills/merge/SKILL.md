@@ -86,8 +86,8 @@ In some images (observed empirically against `immich:2026.128.x`), the post-buil
 
 ```
 unpacking failed (error: exit status 1; output: file exists)
-ov: error: post-build merge optimization failed (image is functional but unmerged): podman load: exit status 125
-  Diagnostic: set CH_MERGE_KEEP_TMP=1 and re-run `charly box merge <name>` to capture the failing /tmp/charly-merge-*.tar.
+charly: error: post-build merge optimization failed (image is functional but unmerged): podman load: exit status 125
+  Diagnostic: set CHARLY_MERGE_KEEP_TMP=1 and re-run `charly box merge <name>` to capture the failing /tmp/charly-merge-*.tar.
   This is a known limitation against multi-stage RPM-installed images; the build itself succeeded and the image at this tag is correct.
 ```
 
@@ -102,14 +102,14 @@ The trigger appears to be a podman-side overlay-unpack quirk under specific laye
 
 ### Operational impact
 
-**The failure is non-fatal.** `mergeAfterBuild` (`ov/build.go:178-186`) treats merge failure as a non-fatal warning. The build itself returns 0, the image is tagged at its CalVer, every individual layer digest is valid, and `charly start` runs the unmerged image with no functional difference — only the layer count is higher than ideal (~39 layers instead of the ~12 a successful merge would produce).
+**The failure is non-fatal.** `mergeAfterBuild` (`charly/build.go:178-186`) treats merge failure as a non-fatal warning. The build itself returns 0, the image is tagged at its CalVer, every individual layer digest is valid, and `charly start` runs the unmerged image with no functional difference — only the layer count is higher than ideal (~39 layers instead of the ~12 a successful merge would produce).
 
-### Diagnostic hook: `CH_MERGE_KEEP_TMP=1`
+### Diagnostic hook: `CHARLY_MERGE_KEEP_TMP=1`
 
-When merge fails and you want to capture the failing tarball for inspection or forensic analysis, set `CH_MERGE_KEEP_TMP=1`:
+When merge fails and you want to capture the failing tarball for inspection or forensic analysis, set `CHARLY_MERGE_KEEP_TMP=1`:
 
 ```bash
-CH_MERGE_KEEP_TMP=1 charly box merge <name>
+CHARLY_MERGE_KEEP_TMP=1 charly box merge <name>
 ```
 
 On failure the tarball is left at `/tmp/charly-merge-<random>.tar` (path printed to stderr) instead of being cleaned up. The tar is a docker-archive — extract `manifest.json` to see the layer chain, then `tar -xzf <hash>.tar.gz` on individual layers to inspect their contents.
@@ -126,11 +126,11 @@ for f in *.tar.gz; do
 done | awk -F'\t' '{cnt[$2]++} END {for (p in cnt) if (cnt[p]>1) print cnt[p], p}' | sort -rn | head
 ```
 
-Source: `ov/merge.go:saveImageToDaemon` (the keep-on-fail logic; `loaded` flag gates the cleanup defer).
+Source: `charly/merge.go:saveImageToDaemon` (the keep-on-fail logic; `loaded` flag gates the cleanup defer).
 
 ## Project directory override
 
-`charly box merge` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CH_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
+`charly box merge` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 

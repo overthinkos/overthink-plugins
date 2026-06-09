@@ -174,7 +174,7 @@ charly box list candies                       # Verify layer exists
 
 ## Project directory override
 
-`charly box validate` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CH_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
+`charly box validate` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
@@ -194,7 +194,7 @@ charly box list candies                       # Verify layer exists
 - `/charly-image:layer` — **Canonical reference** for the task verb catalog, `var:` substitution, YAML anchors, execution order. The validator rules above enforce what's documented there.
 - `/charly-build:generate` — What the generator emits from validated input (per-verb emitters, cache-mount inheritance, inline-content staging).
 - `/charly-internals:generate-source` — Internal architecture of the task emission pipeline.
-- `/charly-eval:eval` — `charly box validate` schema-checks every `eval:` entry: exactly-one-verb, attribute types, scope/variable consistency (build-scope can't reference runtime-only vars), `id:` uniqueness per section, matcher operator allowlist, unroutable-check rejection. The five live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`) also get per-verb method-allowlist + required-modifier enforcement via `validateOvVerb` (deploy-scope-only; unknown methods rejected with the allowed set listed).
+- `/charly-eval:eval` — `charly box validate` schema-checks every `eval:` entry: exactly-one-verb, attribute types, scope/variable consistency (build-scope can't reference runtime-only vars), `id:` uniqueness per section, matcher operator allowlist, unroutable-check rejection. The five live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`) also get per-verb method-allowlist + required-modifier enforcement via `validateCharlyVerb` (deploy-scope-only; unknown methods rejected with the allowed set listed).
 - `/charly-build:charly-mcp-cmd` — the standalone reference for the `mcp:` verb: required modifiers (`tool:` for `call`, `uri:` for `read`), the 7-method allowlist, and the URL-rewrite / port-publishing behavior that authors occasionally hit.
 - `/charly-eval:cdp`, `/charly-eval:wl`, `/charly-eval:dbus`, `/charly-eval:vnc` — per-verb references for the other four live-container verbs.
 

@@ -26,7 +26,7 @@ description: |
 | `HSA_OVERRIDE_GFX_VERSION` | KFD topology sysfs | `10.3.0` (RDNA2), `11.0.0` (RDNA3) |
 | `DRINODE` | DRM render node enumeration | `/dev/dri/renderD128` (typical), `/dev/dri/renderD129` (multi-GPU) |
 
-Both variables are **not baked into the layer** — they are auto-detected from host state at runtime and injected as container environment variables via `appendAutoDetectedEnv()` in `ov/devices.go`. The same function is called by `charly config`, `charly start`, and `charly shell`, so interactive shells and deployed services see the identical env set.
+Both variables are **not baked into the layer** — they are auto-detected from host state at runtime and injected as container environment variables via `appendAutoDetectedEnv()` in `charly/devices.go`. The same function is called by `charly config`, `charly start`, and `charly shell`, so interactive shells and deployed services see the identical env set.
 
 - `HSA_OVERRIDE_GFX_VERSION` is read from `/sys/class/kfd/kfd/topology/nodes/*/properties` (gfx_target_version field).
 - `DRINODE` is selected by walking `/dev/dri/renderD*` and picking the node that matches the AMD PCI device exposed to the container.

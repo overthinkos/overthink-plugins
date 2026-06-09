@@ -12,7 +12,7 @@ viewers, or managing host aliases via `charly settings set hosts.<alias>`.
 
 ### 1. `charly --host <alias>` — re-exec any charly command on a remote machine
 
-Set `--host` (or `CH_HOST`) at the **top level** of any `charly` invocation.
+Set `--host` (or `CHARLY_HOST`) at the **top level** of any `charly` invocation.
 `charly` shells out to the system `ssh` binary, runs `charly <rest of argv>` on
 the remote host, and streams stdin/stdout/stderr through. Exit code
 propagates.

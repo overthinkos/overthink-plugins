@@ -124,7 +124,7 @@ config → start → deploy nested children → eval-live).
 
 ## One installer (R3)
 
-`ov/android_install.go` holds the SINGLE install path. `AndroidDevice`
+`charly/android_install.go` holds the SINGLE install path. `AndroidDevice`
 abstracts where work runs:
 
 - `InstallByPackage` — apkeep download + adb install. In-pod (`engine exec`,
@@ -147,19 +147,19 @@ results (`apk-fdroid-present`/`-launch`, `apk-net-apidemos-present`).
 
 ## Implementation map
 
-- `ov/android_spec.go` — `AndroidSpec` / `AndroidAdbEndpoint` /
+- `charly/android_spec.go` — `AndroidSpec` / `AndroidAdbEndpoint` /
   `AndroidGoogleAccount` / `ApkPackageSpec`.
-- `ov/android_install.go` — `AndroidDevice` + the shared installer.
-- `ov/android_target.go` — `AndroidDeployTarget` (consumes the IR).
-- `ov/unified_targets_apk.go` — `AndroidUnifiedTarget.Add`/`.Del` (the android
+- `charly/android_install.go` — `AndroidDevice` + the shared installer.
+- `charly/android_target.go` — `AndroidDeployTarget` (consumes the IR).
+- `charly/unified_targets_apk.go` — `AndroidUnifiedTarget.Add`/`.Del` (the android
   deploy + teardown logic, reached via `ResolveTarget`).
-- `ov/android_deploy_cmd.go` — `findAndroidSpec` + the device-resolution helpers
+- `charly/android_deploy_cmd.go` — `findAndroidSpec` + the device-resolution helpers
   (`resolveAndroidDevice`, `androidApkPackageIDs`).
-- `ov/install_plan.go` — `ApkInstallStep`; `ov/install_build.go` —
+- `charly/install_plan.go` — `ApkInstallStep`; `charly/install_build.go` —
   `compileApkStep`.
-- `ov/unified.go` — loader wiring (mirrors every `k8s` site).
-- `ov/deploy.go` `DeploymentNode.Android`; `ov/deploy_add_cmd.go` dispatch +
-  `--node-only`; `ov/deploy_chain.go` / `ov/deploy_tree.go` passthrough.
+- `charly/unified.go` — loader wiring (mirrors every `k8s` site).
+- `charly/deploy.go` `DeploymentNode.Android`; `charly/deploy_add_cmd.go` dispatch +
+  `--node-only`; `charly/deploy_chain.go` / `charly/deploy_tree.go` passthrough.
 
 ## Related skills
 

@@ -72,9 +72,9 @@ charly start ollama jupyter selkies-desktop openwebui
 
 ```bash
 # Tier 1: Auto-generated infrastructure secrets
-charly secrets list ov/openwebui
-charly secrets get ov/openwebui webui-secret-key
-charly secrets set ov/openwebui admin-password --generate
+charly secrets list charly/openwebui
+charly secrets get charly/openwebui webui-secret-key
+charly secrets set charly/openwebui admin-password --generate
 
 # Tier 2: User API keys (GPG-encrypted)
 charly secrets gpg set OPENROUTER_API_KEY sk-or-new-key

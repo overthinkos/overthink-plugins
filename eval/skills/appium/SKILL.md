@@ -269,15 +269,15 @@ Override the session id for a single check with `session:`:
 
 ## Implementation
 
-- `ov/appium.go` — CLI subcommands + Run() methods. `session-create` uses
+- `charly/appium.go` — CLI subcommands + Run() methods. `session-create` uses
   `github.com/tebeka/selenium`'s `NewRemote` (which handles W3C
   `alwaysMatch` wrapping). All other ops use a small raw-HTTP W3C client
   (`w3cSession`) because the SDK can't attach to an existing session id.
-- `ov/appium_session.go` — session-file load/save/delete + XDG path
+- `charly/appium_session.go` — session-file load/save/delete + XDG path
   resolution.
-- `ov/evalrun_ov_verbs.go` — `appiumMethods` allowlist + `runAppium`
+- `charly/evalrun_charly_verbs.go` — `appiumMethods` allowlist + `runAppium`
   dispatcher.
-- `ov/validate_eval.go` — `case "appium"` in `validateOvVerb`.
+- `charly/validate_eval.go` — `case "appium"` in `validateCharlyVerb`.
 
 The host port is read from podman's `NetworkSettings.Ports` via
 `InspectContainer` — same path as the adb verb.

@@ -50,7 +50,7 @@ local:
     install_opts: {with_services: true, allow_root_tasks: true}
     description: {feature: CI runner profile, tag: [working]}
 
-  ov-cachyos:
+  charly-cachyos:
     # Empty placeholder — `layers: []` is a load-time WARNING (allowed
     # for staged template name reservation); a missing `layer:` field
     # is a hard error.
@@ -87,7 +87,7 @@ image is present in local podman storage (LocalImageExists →
 `charly box pull` → fall back to `charly box build` for short names that
 resolve via `cfg.Images`). Operators who never run `charly eval run`
 never pay the image-fetch cost. See `/charly-eval:eval` "Image
-preflight" and `ov/eval_image_preflight.go`.
+preflight" and `charly/eval_image_preflight.go`.
 
 This invariant — "deploy fetches NOTHING speculative" — is codified
 as a CLAUDE.md Key Rule and enforced at the type level: the
@@ -119,7 +119,7 @@ A template with `layers: []` is permitted as a stub for staged name reservation:
 
 ```yaml
 local:
-  ov-cachyos:
+  charly-cachyos:
     layers: []
     install_opts: {}
     description: {feature: CachyOS DX (placeholder), tag: [testing]}
@@ -132,11 +132,11 @@ local:
 - `/charly-local:local-deploy` — the `target: local` deployment surface that consumes this template.
 - `/charly-internals:local-infra` — Go file map (`local_spec.go`, `LocalSpec` struct, `findLocalSpec` lookup).
 - `/charly-image:layer` — layer authoring (the building blocks composed by templates).
-- `/charly-build:migrate` — `charly migrate` migrates legacy `kind: host`/`host.yml` projects and splits `charly.yml`'s inline `image:` / `vm:` / `pod:` / `k8s:` / `local:` / `deploy:` maps into sibling per-kind files. The `ov-cachyos` deploy key + `local.ov-cachyos` template share a name — a concrete demonstration of cross-kind name reuse (a `kind: local` template and a `kind: deploy` entry can share a name).
+- `/charly-build:migrate` — `charly migrate` migrates legacy `kind: host`/`host.yml` projects and splits `charly.yml`'s inline `image:` / `vm:` / `pod:` / `k8s:` / `local:` / `deploy:` maps into sibling per-kind files. The `charly-cachyos` deploy key + `local.charly-cachyos` template share a name — a concrete demonstration of cross-kind name reuse (a `kind: local` template and a `kind: deploy` entry can share a name).
 
 ## Cross-kind name reuse
 
-A `kind: local` template's name lives in the `local:` namespace, independent of layer / image / pod / vm / k8s / deploy. The canonical example is `ov-cachyos` — `local.ov-cachyos` is the template; `deploy.ov-cachyos` is the deployment entry that applies it; both share the name without conflict. Verbs disambiguate: `charly update ov-cachyos` resolves to the deploy entry; the template is referenced internally via the deploy's `local: ov-cachyos` field. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged".
+A `kind: local` template's name lives in the `local:` namespace, independent of layer / image / pod / vm / k8s / deploy. The canonical example is `charly-cachyos` — `local.charly-cachyos` is the template; `deploy.charly-cachyos` is the deployment entry that applies it; both share the name without conflict. Verbs disambiguate: `charly update charly-cachyos` resolves to the deploy entry; the template is referenced internally via the deploy's `local: charly-cachyos` field. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged".
 
 ## When to Use This Skill
 

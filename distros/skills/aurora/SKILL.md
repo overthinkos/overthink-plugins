@@ -18,7 +18,7 @@ Bootc VM image based on Universal Blue's Aurora DX with NVIDIA drivers, SSH acce
 | Base | ghcr.io/ublue-os/aurora-dx-nvidia-open:stable-daily-43.20260305 |
 | Bootc | true |
 | Distro | `fedora:43`, `fedora` (declared — external base inherits no distro tags) |
-| Layers | agent-forwarding, bootc-base, sshd, ov, golang |
+| Layers | agent-forwarding, bootc-base, sshd, charly, golang |
 | Platforms | linux/amd64 |
 | Status | enabled |
 | Registry | ghcr.io/overthinkos |

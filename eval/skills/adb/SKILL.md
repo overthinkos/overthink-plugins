@@ -170,10 +170,10 @@ timeout: 120s
 
 ## Implementation
 
-Source: `ov/adb.go` (CLI subcommands + Run() methods using
+Source: `charly/adb.go` (CLI subcommands + Run() methods using
 `github.com/zach-klippenstein/goadb`); allowlist + dispatcher:
-`ov/evalrun_ov_verbs.go` (`adbMethods` map + `runAdb`); validator:
-`ov/validate_eval.go` (`case "adb"` in `validateOvVerb`).
+`charly/evalrun_charly_verbs.go` (`adbMethods` map + `runAdb`); validator:
+`charly/validate_eval.go` (`case "adb"` in `validateCharlyVerb`).
 
 The host port is read from podman's `NetworkSettings.Ports` via
 `InspectContainer` — same source-of-truth used by the eval test
@@ -186,7 +186,7 @@ expose the container port AS the host port.
   same emulator (W3C WebDriver).
 - `/charly-eval:android` — the `kind: android` device + `apk:` package format +
   `target: android` deploy. `charly eval adb install` / `install-app` are thin
-  wrappers over the SAME shared installer (`ov/android_install.go`) the apk
+  wrappers over the SAME shared installer (`charly/android_install.go`) the apk
   format drives — so the verb, the format, and the deploy target never drift.
 - `/charly-eval:eval` — the unified eval system and the Check struct that holds
   every verb discriminator + modifier.

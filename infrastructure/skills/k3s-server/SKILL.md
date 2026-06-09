@@ -39,7 +39,7 @@ description: |
 ## Operator setup — none required (auto-generated)
 
 `K3S_CLUSTER_TOKEN` auto-generates on first deploy. The resolver
-(`ov/layer_secrets.go` — `ensureLayerSecret`) detects the missing
+(`charly/layer_secrets.go` — `ensureLayerSecret`) detects the missing
 `secret_require:` entry, generates a 32-byte hex token via
 `generateAndStoreSecret`, and persists it to the active credential
 backend (keyring / config-file fallback). Every subsequent
@@ -50,14 +50,14 @@ zero operator setup, server and agents automatically share the token.
 specific cluster identity, e.g., disaster recovery):
 
 ```bash
-charly secrets set ov/secret/K3S_CLUSTER_TOKEN $(openssl rand -hex 32)
+charly secrets set charly/secret/K3S_CLUSTER_TOKEN $(openssl rand -hex 32)
 ```
 
 **Retrieve** the auto-generated token (for debugging or
 out-of-band agent join):
 
 ```bash
-charly secrets get ov/secret K3S_CLUSTER_TOKEN
+charly secrets get charly/secret K3S_CLUSTER_TOKEN
 ```
 
 ## Usage

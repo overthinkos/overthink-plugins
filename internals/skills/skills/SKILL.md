@@ -42,7 +42,7 @@ CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher
 | "What does layer X do?" — base distros / GPU / bootc | `/charly-distros:<name>` (arch, fedora, debian, ubuntu, nvidia, cuda, rocm, bootc-base, …) |
 | "What does layer X do?" — language runtime | `/charly-languages:<name>` (python, python-ml, pixi) |
 | "What does layer X do?" — infrastructure service | `/charly-infrastructure:<name>` (postgresql, redis, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, …) |
-| "What does layer X do?" — CLI utility | `/charly-tools:<name>` (ripgrep, himalaya, whisper, ov, …) |
+| "What does layer X do?" — CLI utility | `/charly-tools:<name>` (ripgrep, himalaya, whisper, charly, …) |
 | Skill authoring / maintenance | `/charly-internals:skills` (this skill) |
 
 If multiple triggers apply, load ALL matching skills in ONE message (parallel `Skill` calls). Full index: `plugins/README.md` (250+ skills).
@@ -127,8 +127,8 @@ When adding a new command, always create a matching command skill. Consider a to
 ## Plugin Structure
 
 Plugins are sorted into four use-case buckets. Directory names live at
-`plugins/<name>/` (no `ov-` prefix); plugin.json `name:` fields keep the
-`ov-` prefix; every skill is invoked as `/charly-<plugin>:<skill>`.
+`plugins/<name>/` (no `charly-` prefix); plugin.json `name:` fields keep the
+`charly-` prefix; every skill is invoked as `/charly-<plugin>:<skill>`.
 
 | Bucket | Plugin | Skills | Purpose |
 |---|---|---:|---|
@@ -176,7 +176,7 @@ content — they live in the superproject's `.claude/workflows/*.js`.
 ### Per-directory CLAUDE.md signposts (hybrid)
 
 The repo-root `CLAUDE.md` is the single canonical R0–R10 rule-set.
-Per-directory `CLAUDE.md` files (`ov/`, `candy/`, `plugins/`, and each
+Per-directory `CLAUDE.md` files (`charly/`, `candy/`, `plugins/`, and each
 `image/<distro>` submodule) are THIN signposts only: they name the skills to
 load for that area and point back to root. They MUST NOT restate any rule —
 duplication drifts (the hooks and an earlier layer-validator both drifted
@@ -211,7 +211,7 @@ Syncthing-synced half** (memory, personal settings).
 - `/charly-internals:generate-source` — Understanding generated Containerfiles
 - `/charly-internals:agents` — Sub-agents, dynamic workflows, agent teams; how they drive the `charly eval` beds; the hooks doctrine; the signpost convention
 - `/charly-build:validate` — Validation rules
-- All `/ov:*` skills — Individual command documentation
+- All `/charly:*` skills — Individual command documentation
 
 ## When to Use This Skill
 

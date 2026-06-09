@@ -4,7 +4,7 @@
 .DS_Store
 Thumbs.db
 
-# Migration rollback backups (`ov migrate` writes <file>.bak.<unix-ts>)
+# Migration rollback backups (`charly migrate` writes <file>.bak.<unix-ts>)
 *.bak
 *.bak.*
 

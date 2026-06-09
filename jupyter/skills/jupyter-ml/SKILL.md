@@ -68,7 +68,7 @@ This image receives env_provide variables from infrastructure layers when they a
 | Variable | Injected by | Value |
 |----------|------------|-------|
 | `OLLAMA_HOST` | `/charly-ollama:ollama` | `http://charly-ollama:11434` |
-| `PGHOST` | `/charly-infrastructure:postgresql` | `ov-postgresql` |
+| `PGHOST` | `/charly-infrastructure:postgresql` | `charly-postgresql` |
 | `PGPORT` | `/charly-infrastructure:postgresql` | `5432` |
 | `REDIS_URL` | `/charly-infrastructure:redis` or `/charly-infrastructure:valkey` | `redis://charly-<image>:6379` |
 

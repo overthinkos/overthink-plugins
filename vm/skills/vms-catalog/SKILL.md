@@ -9,7 +9,7 @@ description: |
 
 # vms
 
-`vm.yml` is the authoring surface for `kind: vm` entities — VM primitives that pair with either a remote cloud-image URL (`source.kind: cloud_image`) or an in-repo bootc container image (`source.kind: bootc`). Loaded through `charly.yml includes:` alongside `box.yml`. Entries are resolved by `LoadUnified` into `VmSpec` Go types (`ov/vm_spec.go`) and consumed by `charly vm build`, `charly vm create`, and `charly deploy add vm:<name>`.
+`vm.yml` is the authoring surface for `kind: vm` entities — VM primitives that pair with either a remote cloud-image URL (`source.kind: cloud_image`) or an in-repo bootc container image (`source.kind: bootc`). Loaded through `charly.yml includes:` alongside `box.yml`. Entries are resolved by `LoadUnified` into `VmSpec` Go types (`charly/vm_spec.go`) and consumed by `charly vm build`, `charly vm create`, and `charly deploy add vm:<name>`.
 
 The VM surface parallels the `kind: box` surface: one YAML entry per entity, kind-keyed, discovered through includes. The Go types that back it live in `/charly-internals:vm-spec`; the rendering paths in `/charly-internals:libvirt-renderer` and `/charly-internals:cloud-init-renderer`.
 
@@ -48,7 +48,7 @@ vms:
       port_forwards: ["8080:80", …]        # additive to SSH forward
     # SSH + key injection:
     ssh:
-      user: arch | root | …                # defaults: cloud_image→"ov", bootc→"root"
+      user: arch | root | …                # defaults: cloud_image→"charly", bootc→"root"
       port: 2222                           # host port → guest :22
       key_source: auto | generate | none | /abs/path.pub
       key_injection:
@@ -59,7 +59,7 @@ vms:
       timezone: UTC
       packages: [sudo, spice-vdagent, …]
       runcmd: ["…", …]
-      ov_install:
+      charly_install:
         strategy: auto | none
     # Libvirt XML knobs (see /charly-internals:libvirt-renderer):
     libvirt:
@@ -80,7 +80,7 @@ vms:
 `autostart: true` sets libvirt's domain autostart flag. Because charly VMs run under
 `qemu:///session` (no portable user-level `virtqemud.socket` to socket-activate at
 boot), `charly vm create` also enables `loginctl enable-linger` (idempotent) and
-writes + enables a per-VM user oneshot `ov-autostart-<domain>.service` that
+writes + enables a per-VM user oneshot `charly-autostart-<domain>.service` that
 `virsh -c qemu:///session start`s the domain at boot (`charly vm destroy` removes it).
 **Requires `backend: libvirt`** — validation rejects `autostart: true` with
 `backend: qemu`. Reapplied on every `charly vm create` / `charly update`. Pair with a
@@ -188,15 +188,15 @@ cloud-init interprets `users: [default, {name: <base_user>}]` as "keep the distr
 
 Leave `base_user:` empty **only** when the upstream has no default account — in which case author a full custom user entry in `cloud_init.users:` with sudo/groups/shell fields. Don't do this when adopting works; `useradd`-at-first-boot races with other cloud-init modules and is harder to reason about.
 
-## ov_install.strategy: auto (cloud_image)
+## charly_install.strategy: auto (cloud_image)
 
-`ov_install.strategy: auto` in `cloud_init:` wires `charly`'s in-guest installer (`/charly-internals:cloud-init-renderer` → emitted `runcmd:` entries) so the provisioned VM comes up with `charly` already installed. Lets `charly deploy add vm:<name>` apply host-deploy-style layer recipes inside the VM over SSH without a bootstrap round-trip. See `/charly-internals:cloud-init-renderer` for the emission + handshake.
+`charly_install.strategy: auto` in `cloud_init:` wires `charly`'s in-guest installer (`/charly-internals:cloud-init-renderer` → emitted `runcmd:` entries) so the provisioned VM comes up with `charly` already installed. Lets `charly deploy add vm:<name>` apply host-deploy-style layer recipes inside the VM over SSH without a bootstrap round-trip. See `/charly-internals:cloud-init-renderer` for the emission + handshake.
 
 `strategy: none` skips the step entirely — useful when the VM will be managed by something other than `charly` after provisioning.
 
 ## Validation rules
 
-Load-time errors raised by `ValidateVmSpec` (`ov/libvirt_validate.go`, see `/charly-internals:vm-spec`):
+Load-time errors raised by `ValidateVmSpec` (`charly/libvirt_validate.go`, see `/charly-internals:vm-spec`):
 
 - `source.kind` must be one of `cloud_image`, `bootc`.
 - `cloud_image` branch requires `url:` populated.

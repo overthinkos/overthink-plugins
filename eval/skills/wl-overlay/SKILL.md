@@ -16,11 +16,11 @@ description: |
 
 Three components work together:
 
-1. **`wl-overlay` layer** — installs `gtk4-layer-shell`, `gtk4`, `python3-gobject` RPMs + `ov-overlay` Python daemon/client
-2. **`charly eval wl overlay` Go commands** — CLI that resolves the container and invokes `ov-overlay` inside it
-3. **`ov-overlay` daemon** — GTK4 application managing multiple named overlay windows via Unix socket IPC
+1. **`wl-overlay` layer** — installs `gtk4-layer-shell`, `gtk4`, `python3-gobject` RPMs + `charly-overlay` Python daemon/client
+2. **`charly eval wl overlay` Go commands** — CLI that resolves the container and invokes `charly-overlay` inside it
+3. **`charly-overlay` daemon** — GTK4 application managing multiple named overlay windows via Unix socket IPC
 
-The daemon starts on-demand in a tmux session (`ov-overlay-daemon`) when the first `show` command is issued. It persists until `hide --all` or the tmux session is killed.
+The daemon starts on-demand in a tmux session (`charly-overlay-daemon`) when the first `show` command is issued. It persists until `hide --all` or the tmux session is killed.
 
 ## Quick Reference
 
@@ -203,4 +203,4 @@ Socket: `/tmp/charly-overlay.sock` (Unix domain, JSON-line)
 - `/charly-selkies:sway-desktop` — Desktop metalayer (includes wl-overlay)
 - `/charly-selkies:selkies-desktop-layer` — Desktop metalayer (includes wl-overlay)
 
-Source: `ov/wl_overlay.go` (Go commands), `candy/wl-overlay/charly-overlay` (Python daemon/client).
+Source: `charly/wl_overlay.go` (Go commands), `candy/wl-overlay/charly-overlay` (Python daemon/client).

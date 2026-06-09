@@ -22,7 +22,7 @@ Minimal Sway desktop with VNC (wayvnc on port 5900) and Chrome (CDP on port 9222
 ```bash
 charly box build sway-browser-vnc
 charly start sway-browser-vnc
-charly status sway-browser-vnc          # Shows all probes: supervisord, cdp, dbus, ov, sway, vnc, wl
+charly status sway-browser-vnc          # Shows all probes: supervisord, cdp, dbus, charly, sway, vnc, wl
 charly eval vnc status sway-browser-vnc
 charly eval wl screenshot sway-browser-vnc screenshot.png
 ```
@@ -104,7 +104,7 @@ mapped here — correct skip behavior).
 Covers all 19 transitive layers: wayvnc (VNC), sway (compositor),
 chrome-sway, xdg-portal, waybar, swaync, pavucontrol, thunar,
 xfce4-terminal, pipewire, wl-screenshot-grim, wl-overlay, wf-recorder,
-desktop-fonts, fastfetch, asciinema, tmux, dbus, ov. Deploy-scope: VNC
+desktop-fonts, fastfetch, asciinema, tmux, dbus, charly. Deploy-scope: VNC
 port 5900 reachable, Chrome CDP on port 9250→9222 with `/json/version`
 200. Image-scope: sway + wayvnc both RUNNING under supervisord.
 

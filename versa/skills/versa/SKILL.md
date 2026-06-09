@@ -2,7 +2,7 @@
 name: versa
 description: |
   versa — image bundling marimo reactive notebook environment with Apache Airflow + GPU-accelerated OSM/GTFS analytics + martin vector tiles + 3D terrain via MapLibre + Polars geospatial extensions (polars-st, geopolars) + GeoArrow + deck.gl rendering via lonboard.
-  Composes a marimo + airflow + OSM/GTFS analytics stack (agent-forwarding, nvidia, cuda, marimo, airflow, osm-tools, maputnik, notebook-osm, notebook-graph, debug-tools, dbus, ov, plus the versatiles tile-serving layers) on a CachyOS / Arch base into a single pod that exposes 7 host ports and 1 MCP server.
+  Composes a marimo + airflow + OSM/GTFS analytics stack (agent-forwarding, nvidia, cuda, marimo, airflow, osm-tools, maputnik, notebook-osm, notebook-graph, debug-tools, dbus, charly, plus the versatiles tile-serving layers) on a CachyOS / Arch base into a single pod that exposes 7 host ports and 1 MCP server.
   MUST be invoked before building, deploying, configuring, or troubleshooting the versa image.
 ---
 
@@ -181,7 +181,7 @@ fallback default. See `/charly-versa:notebook-osm` cell #2.
 
 Run multiple instances of versa side-by-side using the
 `<base>/<instance>` deploy-key form. Each instance gets its own
-container (`charly-versa`, `ov-versa-ecovoyage`, …), its own workspace
+container (`charly-versa`, `charly-versa-ecovoyage`, …), its own workspace
 volume, and its own host-port mappings:
 
 ```yaml
@@ -226,7 +226,7 @@ deploy:
     port: [auto]
 ```
 
-Container name: `ov-versa-pinned-2026.131.2134`. CLI:
+Container name: `charly-versa-pinned-2026.131.2134`. CLI:
 `charly update versa-pinned-2026.131.2134`. The deploy key has no
 relation to the image name; `charly update` always pulls the exact tag
 declared in `image:`.

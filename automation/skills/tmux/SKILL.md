@@ -154,7 +154,7 @@ charly tmux send sway-browser-vnc -s oauth C-c
 
 ```bash
 charly tmux kill sway-browser-vnc -s oauth
-# Killed tmux session "oauth" in ov-sway-browser-vnc
+# Killed tmux session "oauth" in charly-sway-browser-vnc
 ```
 
 ## Use Case: OpenAI Codex OAuth
@@ -229,7 +229,7 @@ For users unfamiliar with tmux:
 
 ## Naming Consistency
 
-Command execution follows a consistent naming pattern across ov:
+Command execution follows a consistent naming pattern across charly:
 
 | Interactive shell | Single command | Persistent session |
 |-------------------|---------------|-------------------|

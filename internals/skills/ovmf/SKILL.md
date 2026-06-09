@@ -4,7 +4,7 @@ description: |
   UEFI firmware (OVMF_CODE + OVMF_VARS) path resolution for VMs. Covers the
   per-distro path table (Fedora vs Arch vs Debian/Ubuntu), per-VM NVRAM copies
   pattern, secure-boot variants, and the "empty strings = skip loader/nvram"
-  contract for firmware: bios. Source: ov/ovmf_paths.go.
+  contract for firmware: bios. Source: charly/ovmf_paths.go.
   MUST be invoked before editing UEFI firmware resolution.
 ---
 
@@ -16,7 +16,7 @@ Per-distro UEFI firmware path resolution for VMs. `ResolveOvmfPaths` picks the c
 
 ## Source file
 
-`ov/ovmf_paths.go` — ~185 LOC; standalone, no other dependencies inside `ov/`.
+`charly/ovmf_paths.go` — ~185 LOC; standalone, no other dependencies inside `charly/`.
 
 ## Per-distro path table
 

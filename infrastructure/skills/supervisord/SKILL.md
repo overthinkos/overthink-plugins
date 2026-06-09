@@ -29,8 +29,8 @@ description: |
 
 This layer declares no `depends: python`. supervisord's runtime is
 pure system-Python (the `supervisor` RPM brings `/usr/bin/python3`
-as its own dependency), so it needs no `python` ov-layer → `pixi`
-ov-layer → conda-forge Python env (~500 MB). See CLAUDE.md
+as its own dependency), so it needs no `python` charly-layer → `pixi`
+charly-layer → conda-forge Python env (~500 MB). See CLAUDE.md
 "Key Rules" → *"Don't declare defensive deps"* for the general rule.
 
 **Arch note:** the `pac: [supervisor]` section is required so that

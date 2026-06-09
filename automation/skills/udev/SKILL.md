@@ -21,7 +21,7 @@ Manage udev rules that grant rootless containers access to GPU devices. Without 
 
 ## What the Rules Do
 
-Rules are written to `/etc/udev/rules.d/99-ov-container-access.rules`:
+Rules are written to `/etc/udev/rules.d/99-charly-container-access.rules`:
 
 ```
 # Card nodes: render group access for NVENC hardware encoding
@@ -52,7 +52,7 @@ User Groups:
   render:   yes
 
 Udev Rules:
-  /etc/udev/rules.d/99-ov-container-access.rules: installed
+  /etc/udev/rules.d/99-charly-container-access.rules: installed
 
 Status: OK — GPU device access available for containers
 ```
@@ -88,7 +88,7 @@ Idempotent: skips if rules are already up to date.
 
 ## Source
 
-`ov/udev.go`.
+`charly/udev.go`.
 
 ## When to Use This Skill
 

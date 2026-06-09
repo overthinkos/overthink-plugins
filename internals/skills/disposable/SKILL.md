@@ -81,7 +81,7 @@ preemptible: <l|blk>  # LOAD-BEARING resource-arbitration. Default absent.
 
 `lifecycle: dev` does NOT make a deploy disposable. A human reader
 might assume it would, so the anti-derivation invariant is enforced
-by `ov/classification.go` and a unit test
+by `charly/classification.go` and a unit test
 `TestVmSpec_LifecycleAloneDoesNotAuthorize`. If you find yourself
 tempted to add "if lifecycle in {scratch,dev,test} then
 disposable=true": don't. That hidden logic is the entire failure
@@ -121,7 +121,7 @@ necessarily ephemeral; ephemeral resources are always disposable.
 A physical host resource can sometimes be held by only ONE deployment at a
 time — the canonical case is a GPU passed through to a VM via VFIO (exactly one
 VM can bind the card). `preemptible` (HOLDER side) + `requires_exclusive`
-(CLAIMANT side) let the resource arbiter (`ov/preempt.go`) free such a resource
+(CLAIMANT side) let the resource arbiter (`charly/preempt.go`) free such a resource
 on demand and give it back afterward.
 
 ```yaml
@@ -169,7 +169,7 @@ implies nor is implied by any other axis. A deploy may legitimately be BOTH
 preemptible (the arbiter stops it) AND disposable (R10 may rebuild it); a test
 holder is often both. Stopping a holder is graceful + reversible (disk + state
 preserved) — the OPPOSITE of `disposable`'s destroy authorization. Enforced by
-`ov/classification.go` (`IsPreemptible()` is independent of `IsDisposable()`).
+`charly/classification.go` (`IsPreemptible()` is independent of `IsDisposable()`).
 
 ## Where the fields live
 
@@ -190,12 +190,12 @@ libvirt domain XML carries:
 
 ```xml
 <metadata>
-  <ov:disposable xmlns:ov="https://overthinkos.org/ns/ov/1.0">true</ov:disposable>
-  <ov:lifecycle xmlns:ov="https://overthinkos.org/ns/ov/1.0">dev</ov:lifecycle>
+  <charly:disposable xmlns:charly="https://opencharly.ai/ns/charly/1.0">true</charly:disposable>
+  <charly:lifecycle xmlns:charly="https://opencharly.ai/ns/charly/1.0">dev</charly:lifecycle>
 </metadata>
 ```
 
-`virsh dumpxml <domain> | grep ov:` tells you the classification
+`virsh dumpxml <domain> | grep charly:` tells you the classification
 without opening vm.yml.
 
 For container deploys, the authoritative source is `deploy.yml` —
@@ -207,7 +207,7 @@ Resolves `<name>` as either a kind:vm entity (vm.yml) or a deploys entry
 (deploy.yml). It **NEVER refuses** on disposability: an explicit
 `charly update` rebuilds ANY target — for a non-disposable, non-ephemeral
 target it prints a one-line transparency note
-(`noteUpdateDisposability` in `ov/update_deploy_dispatch.go`) and
+(`noteUpdateDisposability` in `charly/update_deploy_dispatch.go`) and
 proceeds. Sequence: destroy → rebuild → restart, ending in the shared
 `charly deploy add <node>` layer re-apply for every live substrate (so a
 config change — a newly-added layer or nested pod — takes effect on the
@@ -342,7 +342,7 @@ on shared hosts.
 - `/charly-vm:arch` — canonical worked example.
 - `/charly-core:deploy` — `--disposable` / `--lifecycle` flags on
   `charly deploy add`.
-- `/ov:rebuild` — the rebuild verb command reference (not yet
+- `/charly:rebuild` — the rebuild verb command reference (not yet
   authored — currently living in this skill).
 
 ## When to Use This Skill
@@ -357,5 +357,5 @@ on shared hosts.
   `IsDisposable()` / `IsDisposableFields()`, never derive from
   lifecycle).
 
-Invoke this skill BEFORE reading `ov/classification.go` or the
+Invoke this skill BEFORE reading `charly/classification.go` or the
 related YAML files.

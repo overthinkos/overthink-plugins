@@ -17,11 +17,11 @@ Sidecars are additional containers that run alongside an application container i
 | List available sidecars | `charly config --list-sidecars` |
 | Attach sidecar | `charly config <image> --sidecar tailscale` |
 | Attach with env | `charly config <image> --sidecar tailscale -e TS_HOSTNAME=my-app` |
-| Check sidecar status | `podman exec ov-<image>-tailscale tailscale status` |
+| Check sidecar status | `podman exec charly-<image>-tailscale tailscale status` |
 
 ## Architecture
 
-Sidecar templates are compiled into the `charly` binary via `go:embed` (`ov/sidecar.yml`). At deploy time, `charly config --sidecar <name>` merges the template with per-machine overrides from `deploy.yml`, then generates quadlet files.
+Sidecar templates are compiled into the `charly` binary via `go:embed` (`charly/sidecar.yml`). At deploy time, `charly config --sidecar <name>` merges the template with per-machine overrides from `deploy.yml`, then generates quadlet files.
 
 ```
 charly binary (embedded templates)     deploy.yml (per-machine overrides)
@@ -39,18 +39,18 @@ When sidecars are attached, `charly config` generates **3 files** instead of 1:
 
 | File | Purpose |
 |------|---------|
-| `ov-<image>.pod` | Pod definition: `Network=ov`, ports (`PodmanArgs=-p`), `--shm-size` |
-| `ov-<image>-<sidecar>.container` | Sidecar: image, env, caps, devices, secrets, volumes |
-| `ov-<image>.container` | App: `Pod=ov-<image>.pod`, no ports/network (pod owns them) |
+| `charly-<image>.pod` | Pod definition: `Network=charly`, ports (`PodmanArgs=-p`), `--shm-size` |
+| `charly-<image>-<sidecar>.container` | Sidecar: image, env, caps, devices, secrets, volumes |
+| `charly-<image>.container` | App: `Pod=charly-<image>.pod`, no ports/network (pod owns them) |
 
 ### Dual Networking
 
-The pod stays on the "ov" bridge network (`Network=ov` in `.pod` file) for container-to-container connectivity. The Tailscale sidecar creates a `tailscale0` tun interface for exit node routing. `--exit-node-allow-lan-access` adds a routing exception (`throw 10.89.0.0/24`) that keeps bridge traffic on the bridge.
+The pod stays on the "charly" bridge network (`Network=charly` in `.pod` file) for container-to-container connectivity. The Tailscale sidecar creates a `tailscale0` tun interface for exit node routing. `--exit-node-allow-lan-access` adds a routing exception (`throw 10.89.0.0/24`) that keeps bridge traffic on the bridge.
 
 ```
 charly bridge (container-to-container)
 ┌─────────────────────────────────────┐
-│  ov-<image> pod (Network=ov)        │
+│  charly-<image> pod (Network=charly)        │
 │  ┌───────────┐  ┌────────────────┐  │
 │  │ tailscale │  │ app container  │  │
 │  │ sidecar   │  │ :3000, :9222   │  │
@@ -168,7 +168,7 @@ charly secrets gpg set TS_AUTHKEY_ARMADILLO_QUAIL_TS_NET tskey-auth-XXXXXXXXX
 #    (operator-edited; no auto-write)
 
 # 4. Wipe stale state so the sidecar re-auths with the new key:
-podman volume rm ov-<image>[-<instance>]-tailscale-state
+podman volume rm charly-<image>[-<instance>]-tailscale-state
 
 # 5. Apply:
 charly stop <image> [-i <instance>]
@@ -176,7 +176,7 @@ charly config <image> [-i <instance>]
 charly start <image> [-i <instance>]
 
 # 6. Verify the right tailnet was joined:
-podman exec ov-<image>[-<instance>]-tailscale tailscale status --json \
+podman exec charly-<image>[-<instance>]-tailscale tailscale status --json \
     | python3 -c 'import json,sys; r=json.load(sys.stdin); print(r["MagicDNSSuffix"])'
 # Expected: armadillo-quail.ts.net
 ```
@@ -226,8 +226,8 @@ Any deploy with a tailscale sidecar that doesn't supply
 
 ### State & Secrets
 
-- **Volume:** `ov-<image>-tailscale-state` at `/var/lib/tailscale` — node identity persists across restarts
-- **Secret:** `ov-<image>-tailscale-ts-authkey` — provisioned as podman secret from `TS_AUTHKEY` env var (loaded from `.secrets` via `charly secrets gpg env`)
+- **Volume:** `charly-<image>-tailscale-state` at `/var/lib/tailscale` — node identity persists across restarts
+- **Secret:** `charly-<image>-tailscale-ts-authkey` — provisioned as podman secret from `TS_AUTHKEY` env var (loaded from `.secrets` via `charly secrets gpg env`)
 
 ### Exit Node Routing
 
@@ -243,11 +243,11 @@ charly start selkies-desktop
 
 # First time only: exit node must be set via tailscale set
 # (TS_EXTRA_ARGS only applies on first auth, not restarts)
-podman exec ov-selkies-desktop-tailscale \
+podman exec charly-selkies-desktop-tailscale \
   tailscale set --exit-node=100.80.254.4 --exit-node-allow-lan-access
 
 # Verify: pod shows exit node's IP, not host's
-podman exec ov-selkies-desktop curl -s ifconfig.me
+podman exec charly-selkies-desktop curl -s ifconfig.me
 ```
 
 **Prerequisites:**
@@ -291,4 +291,4 @@ Chrome requires large `/dev/shm`. In pod mode, per-container `ShmSize=` is ignor
 
 ## Source
 
-`ov/sidecar.go` (types, merge, resolution), `ov/sidecar.yml` (embedded templates), `ov/quadlet_pod.go` (pod + sidecar quadlet generation).
+`charly/sidecar.go` (types, merge, resolution), `charly/sidecar.yml` (embedded templates), `charly/quadlet_pod.go` (pod + sidecar quadlet generation).

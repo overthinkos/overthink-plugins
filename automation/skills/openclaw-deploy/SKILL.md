@@ -57,7 +57,7 @@ Compose your own desktop+browser image — e.g. an `openclaw-desktop` entry in `
 box:
   openclaw-desktop:
     base: fedora
-    candy: [agent-forwarding, openclaw-full, sway-desktop, dbus, ov]
+    candy: [agent-forwarding, openclaw-full, sway-desktop, dbus, charly]
     port: ["18789:18789", "5900:5900", "9222:9222", "9224:9224"]
 ```
 

@@ -142,8 +142,8 @@ discipline as an agent team — it is the workflow expression of the B3 model
   (seq barrier) → BedR10 (parallel by bed) → Review (parallel, read-only,
   optional)`. **The barrier is load-bearing because `charly` enforces a stale-binary
   freshness guard** — it refuses heavy ops (`image build`, `deploy add`) whenever
-  any `ov/*.go` source is newer than the installed `/usr/bin/charly` (remediation:
-  `task build:ov`). A teammate editing `ov/*.go` WHILE another's bed is mid-run
+  any `charly/*.go` source is newer than the installed `/usr/bin/charly` (remediation:
+  `task build:charly`). A teammate editing `charly/*.go` WHILE another's bed is mid-run
   trips that guard on the bed's deploy step, so rebuild ONCE at the barrier, then
   run every bed against the now-stable binary.
 - **Same binding rule** as below: disposable-only, commit-gated-not-run,
@@ -276,7 +276,7 @@ Two load-time guards back the isolation: `foldEvalBeds` rejects any
 `kind: eval` bed whose name collides with a `kind: deploy` entry, and
 `validateEvalBeds` requires every bed to set `disposable: true` and to declare a
 `target ∈ {pod, vm, local, android}` (with the referenced vm/local/android
-entity present). Distinct beds therefore get distinct `ov-<bed>`
+entity present). Distinct beds therefore get distinct `charly-<bed>`
 container / libvirt-domain / image names. **Host-port disjointness is NOT
 statically guaranteed** — neither guard checks ports; assigning each bed
 non-overlapping host ports is the AUTHOR's responsibility, and an overlap

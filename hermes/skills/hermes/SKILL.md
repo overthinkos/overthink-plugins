@@ -1,13 +1,13 @@
 ---
 name: hermes
 description: |
-  Full-featured standalone Hermes AI agent with AI CLIs, dev tools, DevOps tools, and ov.
+  Full-featured standalone Hermes AI agent with AI CLIs, dev tools, DevOps tools, and charly.
   MUST be invoked before building, deploying, configuring, or troubleshooting the hermes image.
 ---
 
 # Image: hermes
 
-Full-featured standalone Hermes AI agent. No browser or desktop — designed for cross-container deployment alongside `selkies-desktop` (shared Chrome via `BROWSER_CDP_URL`) and `jupyter` (MCP notebooks via `CH_MCP_SERVERS`).
+Full-featured standalone Hermes AI agent. No browser or desktop — designed for cross-container deployment alongside `selkies-desktop` (shared Chrome via `BROWSER_CDP_URL`) and `jupyter` (MCP notebooks via `CHARLY_MCP_SERVERS`).
 
 ## Definition
 
@@ -46,7 +46,7 @@ charly shell hermes -c "hermes chat"
 
 ## Configuration
 
-The hermes entrypoint performs a **single-phase, first-start-only** auto-configuration of LLM providers and MCP servers. Guarded by `# ov:auto-configured` sentinel in `config.yaml`. To reconfigure: delete `/opt/data/config.yaml` and restart. API keys are synced to `.env` on every start (handles rotation).
+The hermes entrypoint performs a **single-phase, first-start-only** auto-configuration of LLM providers and MCP servers. Guarded by `# charly:auto-configured` sentinel in `config.yaml`. To reconfigure: delete `/opt/data/config.yaml` and restart. API keys are synced to `.env` on every start (handles rotation).
 
 LLM provider based on which env var is set:
 
@@ -100,11 +100,11 @@ charly start hermes
 
 Hermes receives:
 - `BROWSER_CDP_URL=http://charly-selkies-desktop:9222` — controls desktop Chrome
-- `CH_MCP_SERVERS=[{"name":"jupyter","url":"http://charly-jupyter:8888/mcp"},{"name":"chrome-devtools","url":"http://charly-selkies-desktop:9224/mcp"}]` — notebook manipulation + browser DevTools MCP
+- `CHARLY_MCP_SERVERS=[{"name":"jupyter","url":"http://charly-jupyter:8888/mcp"},{"name":"chrome-devtools","url":"http://charly-selkies-desktop:9224/mcp"}]` — notebook manipulation + browser DevTools MCP
 
 ## MCP Server Discovery
 
-When co-deployed with services that declare `mcp_provide` (e.g., jupyter), hermes auto-discovers and connects to their MCP servers at first start. The `CH_MCP_SERVERS` JSON env var is injected by `charly config` and the entrypoint writes the servers into `config.yaml` under `mcp_servers:`.
+When co-deployed with services that declare `mcp_provide` (e.g., jupyter), hermes auto-discovers and connects to their MCP servers at first start. The `CHARLY_MCP_SERVERS` JSON env var is injected by `charly config` and the entrypoint writes the servers into `config.yaml` under `mcp_servers:`.
 
 ```bash
 # Verify MCP connection
@@ -136,7 +136,7 @@ charly shell hermes -c "codex --version"
 charly shell hermes -c "gemini --version"
 charly shell hermes -c "charly version"
 charly shell hermes -c "echo BROWSER_CDP_URL=\$BROWSER_CDP_URL"
-charly shell hermes -c "echo CH_MCP_SERVERS=\$CH_MCP_SERVERS"
+charly shell hermes -c "echo CHARLY_MCP_SERVERS=\$CHARLY_MCP_SERVERS"
 charly shell hermes -c "hermes mcp list"              # Should show chrome-devtools, jupyter
 ```
 
@@ -156,8 +156,8 @@ liveness (hermes-whatsapp is autostart=false — see `/charly-eval:eval` Gotcha 
   `/charly-coder:codex`, `/charly-coder:gemini`, `/charly-coder:dev-tools`,
   `/charly-coder:devops-tools`
 - `/charly-eval:eval` — declarative testing framework + supervisord gotchas
-- `/charly-core:charly-config` — `CH_MCP_SERVERS` auto-discovery + secret provisioning
-- `/charly-build:charly-mcp-cmd` — verify each MCP server in `CH_MCP_SERVERS` is actually alive before debugging hermes tool-call failures; `charly eval mcp list-tools <provider-image>` shows exactly what hermes will see
+- `/charly-core:charly-config` — `CHARLY_MCP_SERVERS` auto-discovery + secret provisioning
+- `/charly-build:charly-mcp-cmd` — verify each MCP server in `CHARLY_MCP_SERVERS` is actually alive before debugging hermes tool-call failures; `charly eval mcp list-tools <provider-image>` shows exactly what hermes will see
 - `/charly-selkies:selkies-labwc` — companion for shared browser (CDP)
 - `/charly-jupyter:jupyter` — MCP notebook tools auto-discovered
 

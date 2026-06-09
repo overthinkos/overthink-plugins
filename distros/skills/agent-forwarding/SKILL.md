@@ -85,8 +85,8 @@ Agent socket paths are **session-bound** — they live under `$XDG_RUNTIME_DIR` 
 
 | Setting | Default | Env Var | Description |
 |---------|---------|---------|-------------|
-| `forward_gpg_agent` | `true` | `CH_FORWARD_GPG_AGENT` | Forward host GPG agent socket |
-| `forward_ssh_agent` | `true` | `CH_FORWARD_SSH_AGENT` | Forward host SSH agent socket |
+| `forward_gpg_agent` | `true` | `CHARLY_FORWARD_GPG_AGENT` | Forward host GPG agent socket |
+| `forward_ssh_agent` | `true` | `CHARLY_FORWARD_SSH_AGENT` | Forward host SSH agent socket |
 
 ```bash
 charly settings set forward_gpg_agent false    # Disable GPG forwarding globally
@@ -102,7 +102,7 @@ images:
   immich:
     forward_gpg_agent: false    # No GPG needed for photo management
     forward_ssh_agent: false    # Security: no host SSH access
-  fedora-ov:
+  charly-fedora:
     forward_gpg_agent: true     # Explicit (same as default)
 ```
 
@@ -120,7 +120,7 @@ Resolution chain: deploy.yml per-image > global setting > default (true).
 
 ## Used In Images
 
-arch-ov, arch-test, aurora, bazzite, comfyui, fedora-ov, fedora-test, githubrunner, immich, immich-ml, jupyter, nvidia, ollama, openclaw, openclaw-full, python-ml, selkies-desktop, selkies-labwc-nvidia, sway-browser-vnc, unsloth-studio, valkey-test
+charly-arch, arch-test, aurora, bazzite, comfyui, charly-fedora, fedora-test, githubrunner, immich, immich-ml, jupyter, nvidia, ollama, openclaw, openclaw-full, python-ml, selkies-desktop, selkies-labwc-nvidia, sway-browser-vnc, unsloth-studio, valkey-test
 
 ## Related Layers
 
@@ -140,7 +140,7 @@ arch-ov, arch-test, aurora, bazzite, comfyui, fedora-ov, fedora-test, githubrunn
 
 ## Source
 
-`ov/agent_forward.go` (socket detection, mount resolution), `ov/runtime_config.go` (settings).
+`charly/agent_forward.go` (socket detection, mount resolution), `charly/runtime_config.go` (settings).
 
 ## When to Use This Skill
 

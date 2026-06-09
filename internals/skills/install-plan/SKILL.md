@@ -6,9 +6,9 @@ description: |
   local deploys (LocalDeployTarget), VM deploys (VmDeployTarget over SSH), and
   Kubernetes deploys (K8sDeployTarget).
   MUST be invoked before reading or modifying any of:
-  ov/install_plan.go, ov/install_build.go, ov/build_target_oci.go,
-  ov/deploy_target_local.go, ov/deploy_target_pod.go, ov/deploy_target_vm.go,
-  ov/k8s_target.go, or when adding
+  charly/install_plan.go, charly/install_build.go, charly/build_target_oci.go,
+  charly/deploy_target_local.go, charly/deploy_target_pod.go, charly/deploy_target_vm.go,
+  charly/k8s_target.go, or when adding
   a new step kind / deploy target / reverse-op kind.
 ---
 
@@ -32,16 +32,16 @@ This skill is the single source of truth for the IR shape. Add a new step kind b
 
 | File | Role |
 |---|---|
-| `ov/install_plan.go` | IR types, enums, `InstallStep` interface, `ReverseOp`, `DeployTarget` interface, `EmitOpts`, `GateEnabled` |
-| `ov/install_build.go` | `BuildDeployPlan` pure compiler: `Layer` → `InstallPlan` |
-| `ov/build_target_oci.go` | `OCITarget` — emits Containerfile text |
-| `ov/deploy_target_pod.go` | `PodDeployTarget` — synthesizes overlay Containerfile when `add_candy:` present, delegates to quadlet/start |
-| `ov/deploy_target_local.go` | `LocalDeployTarget` — executes plan on the destination machine via shell + `podman run <builder>` |
-| `ov/deploy_target_vm.go` | `VmDeployTarget` — executes plan inside a running VM via SSH + scp |
-| `ov/k8s_target.go` | `K8sDeployTarget` — emits Kustomize base/overlays tree |
-| `ov/deploy_executor*.go` | `DeployExecutor` interface + `ShellExecutor` + `SSHExecutor` — shell + file-copy abstraction shared by Local/VM targets |
-| `ov/install_plan_test.go` | IR unit tests (scope/venue/gate/reverse derivations) |
-| `ov/install_build_test.go` | Compiler integration tests (ripgrep, dev-tools, pixi layer) |
+| `charly/install_plan.go` | IR types, enums, `InstallStep` interface, `ReverseOp`, `DeployTarget` interface, `EmitOpts`, `GateEnabled` |
+| `charly/install_build.go` | `BuildDeployPlan` pure compiler: `Layer` → `InstallPlan` |
+| `charly/build_target_oci.go` | `OCITarget` — emits Containerfile text |
+| `charly/deploy_target_pod.go` | `PodDeployTarget` — synthesizes overlay Containerfile when `add_candy:` present, delegates to quadlet/start |
+| `charly/deploy_target_local.go` | `LocalDeployTarget` — executes plan on the destination machine via shell + `podman run <builder>` |
+| `charly/deploy_target_vm.go` | `VmDeployTarget` — executes plan inside a running VM via SSH + scp |
+| `charly/k8s_target.go` | `K8sDeployTarget` — emits Kustomize base/overlays tree |
+| `charly/deploy_executor*.go` | `DeployExecutor` interface + `ShellExecutor` + `SSHExecutor` — shell + file-copy abstraction shared by Local/VM targets |
+| `charly/install_plan_test.go` | IR unit tests (scope/venue/gate/reverse derivations) |
+| `charly/install_build_test.go` | Compiler integration tests (ripgrep, dev-tools, pixi layer) |
 
 ## Core types
 
@@ -110,7 +110,7 @@ Gates apply only to the host target. `EmitOpts.AssumeYes` enables all three. See
 
 The IR carries no image-fetch step kind. Deploys (any target) emit
 zero image-pull / image-build steps; test-bed image preflight is a
-separate, eval-time concern handled by `ov/eval_image_preflight.go`
+separate, eval-time concern handled by `charly/eval_image_preflight.go`
 (CLAUDE.md "Deploy fetches NOTHING speculative").
 
 ## The twelve step kinds
@@ -127,7 +127,7 @@ separate, eval-time concern handled by `ov/eval_image_preflight.go`
 | `ShellSnippetStep` | LayerName, Origin, Shell (bash/zsh/fish/sh), Snippet, PathAppend, Destination, Marker, UseDropin, Priority | HostNative | `pathIsSystemScoped(Destination)` (system for container drop-ins, user-profile for ~/.bashrc etc.) |
 | `RepoChangeStep` | Format, File, Content, Checksum, LayerName | HostNative | Always system |
 | `ApkInstallStep` | Packages (apk specs), LayerName, LayerDir | HostNative | Always system. Only `target: android` executes it; every other target records a skip. |
-| `LocalPkgInstallStep` | PkgbuildRef, LayerName, LayerDir, ProjectDir, Format, LocalPkg (`*LocalPkgDef`) | HostNative | Always system. Compiled from a layer's per-format `localpkg:` map (the `charly` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`) at "step 2.5" (before tasks); `compileLocalPkgStep` resolves the target distro's format FIRST (`DistroDef.LocalPkgFormat`), then the layer's source for that format, so `Format` + `LocalPkg` come from the `format.<fmt>.local_pkg:` block in `build.yml` — EVERY command rendered from config, no hardcoded build/install/glob literals. On a localpkg-capable deploy target (`target: local` / `target: vm`) the HOST builds the format's source via `LocalPkg.BuildTemplate` (pac → `makepkg`; rpm/deb → a distro-matched podman container) into `LocalPkg.PkgGlob` artifacts, then installs them onto the target via `LocalPkg.InstallTemplate` — the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`), which pulls the package's repo deps automatically. There is NO dependency-closure builder (the aur-LAYER deploy path still reuses the shared `buildDepPkgsOnHost`/`transferAndInstallPkgs` leg, R3). `LocalPkg.Probe` gates the install leg; `LocalPkg.SourceSentinel` (`PKGBUILD`/`*.spec`/`debian/control`) marks the source dir. `resolveLocalPkgDir` walks up from `ProjectDir`, so a consumer nested under `image/<distro>` finds the superproject `pkg/<fmt>`. Skipped at image build (`OCITarget`) + on targets whose distro declares no localpkg-capable format (the layer's curl/COPY task is the fallback). Machinery: `ov/localpkg.go`; config: `build.yml format.<fmt>.local_pkg:`. |
+| `LocalPkgInstallStep` | PkgbuildRef, LayerName, LayerDir, ProjectDir, Format, LocalPkg (`*LocalPkgDef`) | HostNative | Always system. Compiled from a layer's per-format `localpkg:` map (the `charly` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`) at "step 2.5" (before tasks); `compileLocalPkgStep` resolves the target distro's format FIRST (`DistroDef.LocalPkgFormat`), then the layer's source for that format, so `Format` + `LocalPkg` come from the `format.<fmt>.local_pkg:` block in `build.yml` — EVERY command rendered from config, no hardcoded build/install/glob literals. On a localpkg-capable deploy target (`target: local` / `target: vm`) the HOST builds the format's source via `LocalPkg.BuildTemplate` (pac → `makepkg`; rpm/deb → a distro-matched podman container) into `LocalPkg.PkgGlob` artifacts, then installs them onto the target via `LocalPkg.InstallTemplate` — the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`), which pulls the package's repo deps automatically. There is NO dependency-closure builder (the aur-LAYER deploy path still reuses the shared `buildDepPkgsOnHost`/`transferAndInstallPkgs` leg, R3). `LocalPkg.Probe` gates the install leg; `LocalPkg.SourceSentinel` (`PKGBUILD`/`*.spec`/`debian/control`) marks the source dir. `resolveLocalPkgDir` walks up from `ProjectDir`, so a consumer nested under `image/<distro>` finds the superproject `pkg/<fmt>`. Skipped at image build (`OCITarget`) + on targets whose distro declares no localpkg-capable format (the layer's curl/COPY task is the fallback). Machinery: `charly/localpkg.go`; config: `build.yml format.<fmt>.local_pkg:`. |
 | `RebootStep` | LayerName | HostNative | Always system; `Reverse()` empty. Emitted last when a layer sets `reboot: true`. Only `VmDeployTarget` acts on it (reboot guest + wait for return); OCI/pod/k8s skip; `LocalDeployTarget` skips + warns (never reboots the operator host). |
 
 **`ShellSnippetStep` notes:**
@@ -172,29 +172,29 @@ type DeployTarget interface {
 
 Five implementations:
 
-### `OCITarget` (`ov/build_target_oci.go`)
+### `OCITarget` (`charly/build_target_oci.go`)
 Emits Containerfile text. Consumes `phases.install.container` from build.yml (falls back to `install_template:`). For multi-stage builders, delegates to `Generator.buildStageContext` for the existing `BuildStageContext` template rendering. For tasks, delegates to `Generator.emitTasks` with a temporary layer-tasks swap so the existing per-verb emitters (`emitCopy`, `emitWrite`, `emitCmd`, `emitMkdirBatch`, ...) run unchanged.
 
 Used by: `charly box build`, `charly box generate`, pod deploys with `add_candy:` (overlay Containerfile synthesis).
 
-### `PodDeployTarget` (`ov/deploy_target_pod.go`)
+### `PodDeployTarget` (`charly/deploy_target_pod.go`)
 Wraps the quadlet/podman pipeline with overlay-Containerfile synthesis for `add_candy:`. Picks an overlay tag deterministically from `(base-image, sorted-layer-set)`. Removed on `charly deploy del` unless `--keep-image`.
 
 Used by: `charly deploy add <name>` (default `target: pod`) with `add_candy:` present.
 
-### `LocalDeployTarget` (`ov/deploy_target_local.go`)
+### `LocalDeployTarget` (`charly/deploy_target_local.go`)
 Walks the IR; groups contiguous same-`(Scope, Venue)` steps via `plan.StepsByVenue()`; emits one heredoc per batch. Full executor: writes service units (packaged + custom), env.d files, managed blocks, ledger entries. Invokes builder containers via `builder_run.go` for `VenueContainerBuilder` steps. Gates (`GateEnabled`) applied per step; skipped steps logged.
 
 See `/charly-internals:local-infra` for supporting files (hostdistro, ledger, reverse_ops, shell_profile, builder_run, service_render, deploy_ref).
 
-### `VmDeployTarget` (`ov/deploy_target_vm.go`)
-Same IR walking as LocalDeployTarget, but shell bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` instead of local `sudo bash`. Ledger writes land on the **guest** filesystem; teardown runs in the guest via SSH. Preflight: `WaitForSSH` (120s) → `WaitForCloudInit` (cloud_image sources only) → `EnsureOvInGuest` (scp the `charly` binary per `VmOvInstall.Strategy`) → ensure guest ledger dir exists.
+### `VmDeployTarget` (`charly/deploy_target_vm.go`)
+Same IR walking as LocalDeployTarget, but shell bodies run via `ssh guest 'sudo bash -s'` through an `SSHExecutor` instead of local `sudo bash`. Ledger writes land on the **guest** filesystem; teardown runs in the guest via SSH. Preflight: `WaitForSSH` (120s) → `WaitForCloudInit` (cloud_image sources only) → `EnsureCharlyInGuest` (scp the `charly` binary per `VmCharlyInstall.Strategy`) → ensure guest ledger dir exists.
 
 `DeployExecutor` is the abstraction that lets the same Emit logic retarget from local → SSH. `ShellExecutor` wraps local `bash -c` + file copy; `SSHExecutor` wraps ssh/scp via `golang.org/x/crypto/ssh` with persistent connection. Builder-container invocations (`VenueContainerBuilder` steps) run on the **host**, then artifacts scp into the guest — guests don't need podman installed.
 
 Used by: `charly deploy add vm:<name> <ref>` / `charly deploy del vm:<name>`. See `/charly-internals:vm-deploy-target` for the full flow, `VmDeployState` persistence, and SSH-key idempotency.
 
-### `K8sDeployTarget` (`ov/k8s_target.go`)
+### `K8sDeployTarget` (`charly/k8s_target.go`)
 Emits a Kustomize `base/` + `overlays/` tree under `.opencharly/k8s/<name>/`. Does NOT execute anything; the generated manifests are applied via `kubectl apply -k` out-of-band. Cluster-specific choices (storage class, ingress class, cert issuer, secret backend) come from a **cluster profile** (`~/.config/charly/clusters/<name>.yaml`), NOT the InstallPlan — the plan describes what the workload needs; the profile describes how K8s provides it.
 
 See `/charly-kubernetes:kubernetes` for the user-facing surface and profile layout.
@@ -205,8 +205,8 @@ See `/charly-kubernetes:kubernetes` for the user-facing surface and profile layo
 
 | Batch | Emission form |
 |---|---|
-| `{ScopeSystem, VenueHostNative}` | `sudo bash <<'OV_ROOT' … OV_ROOT` |
-| `{ScopeUser, VenueHostNative}` | `bash <<'OV_USER' … OV_USER` |
+| `{ScopeSystem, VenueHostNative}` | `sudo bash <<'CHARLY_ROOT' … CHARLY_ROOT` |
+| `{ScopeUser, VenueHostNative}` | `bash <<'CHARLY_USER' … CHARLY_USER` |
 | `{_, VenueContainerBuilder}` | `podman run <builder> bash -s < script` |
 | `{_, VenueSkip}` | Logged, no exec |
 
@@ -240,7 +240,7 @@ in a root-owned path the guest user couldn't write. See
 
 ## `ReverseOp` catalogue
 
-See `/charly-local:local-deploy` for the user-facing reverse-op table. The Go-level source of truth is `ReverseOpKind` in `install_plan.go`; each step's `Reverse()` method emits ops tagged with kind + targets + scope. Execution lives in `ov/reverse_ops.go` — one handler per kind, all routed through `runReverseOps(ops, executor)` in LIFO order.
+See `/charly-local:local-deploy` for the user-facing reverse-op table. The Go-level source of truth is `ReverseOpKind` in `install_plan.go`; each step's `Reverse()` method emits ops tagged with kind + targets + scope. Execution lives in `charly/reverse_ops.go` — one handler per kind, all routed through `runReverseOps(ops, executor)` in LIFO order.
 
 Adding a new reverse kind requires:
 1. Add the `ReverseOpKind` constant in `install_plan.go`.
@@ -293,4 +293,4 @@ When you add a step kind, add:
 
 ## When to Use This Skill
 
-**MUST be invoked** when reading or modifying any of `ov/install_plan.go`, `ov/install_build.go`, `ov/build_target_*.go`, `ov/deploy_target_*.go`; when adding a new step kind, target, or reverse-op kind; or when debugging why a particular layer produces a plan that doesn't match expectations. Invoke BEFORE reading the source files or running Explore agents against this subsystem.
+**MUST be invoked** when reading or modifying any of `charly/install_plan.go`, `charly/install_build.go`, `charly/build_target_*.go`, `charly/deploy_target_*.go`; when adding a new step kind, target, or reverse-op kind; or when debugging why a particular layer produces a plan that doesn't match expectations. Invoke BEFORE reading the source files or running Explore agents against this subsystem.

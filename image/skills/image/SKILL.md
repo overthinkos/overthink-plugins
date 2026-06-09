@@ -64,41 +64,41 @@ Every `charly box …` command resolves `box.yml` (and `build.yml`, `candy/`, et
 # Local project — pick a directory on disk:
 charly -C /path/to/opencharly image list images          # short flag
 charly --dir /path/to/opencharly image list images       # long flag
-CH_PROJECT_DIR=/path/to/opencharly charly box list boxes   # env var
+CHARLY_PROJECT_DIR=/path/to/opencharly charly box list boxes   # env var
 
 # Remote project — clone (or hit cache) and chdir into it:
-charly --repo overthinkos/opencharly image list images        # bare owner/repo → github.com/owner/repo@<default-branch>
-charly --repo overthinkos/opencharly@main image list images   # pinned ref
-charly --repo default image list images                      # literal "default" → overthinkos/opencharly
-CH_PROJECT_REPO=overthinkos/opencharly charly box list boxes
+charly --repo overthinkos/overthink image list images        # bare owner/repo → github.com/owner/repo@<default-branch>
+charly --repo overthinkos/overthink@main image list images   # pinned ref
+charly --repo default image list images                      # literal "default" → overthinkos/overthink
+CHARLY_PROJECT_REPO=overthinkos/overthink charly box list boxes
 ```
 
-`--repo` and `--dir` are mutually exclusive (passing both exits with `ov: --repo and --dir are mutually exclusive`). All five paths are declared on the top-level `CLI` struct in `ov/main.go` and resolved by a single `os.Chdir(cli.Dir)` call **before** Kong dispatches the subcommand, so every existing `os.Getwd()` site picks up the new cwd — no per-command plumbing needed.
+`--repo` and `--dir` are mutually exclusive (passing both exits with `charly: --repo and --dir are mutually exclusive`). All five paths are declared on the top-level `CLI` struct in `charly/main.go` and resolved by a single `os.Chdir(cli.Dir)` call **before** Kong dispatches the subcommand, so every existing `os.Getwd()` site picks up the new cwd — no per-command plumbing needed.
 
-**Repo spec normalization** (in `ov/main_repo.go`):
+**Repo spec normalization** (in `charly/main_repo.go`):
 
 - `default` → `github.com/overthinkos/overthink` at the default branch
 - bare `owner/repo` → `github.com/owner/repo` (auto-prefix when first segment has no dot)
 - bare `owner/repo@ref` → pinned to `ref`
 - `host.tld/owner/repo[@ref]` → used literally (the dot in the host disambiguates)
 
-Remote repos are cloned into `~/.cache/charly/repos/<repoPath>@<version>/` (override via `CH_REPO_CACHE`). The cache is shared with the existing remote-layer fetcher (`ov/refs.go`, `ov/refs_git.go`) — both go through `EnsureRepoDownloaded`.
+Remote repos are cloned into `~/.cache/charly/repos/<repoPath>@<version>/` (override via `CHARLY_REPO_CACHE`). The cache is shared with the existing remote-layer fetcher (`charly/refs.go`, `charly/refs_git.go`) — both go through `EnsureRepoDownloaded`.
 
 **Canonical use case**: running `charly mcp serve` inside a container. The container's cwd is `/workspace` (set by the `charly-mcp` layer's env + volume declaration). There are three deployment patterns, in order of progressively less local setup:
 
 1. **Bind-mount** — the canonical `charly-mcp` pattern. Host project bind-mounted to the container's `/workspace`; volume NAME stays `project` for a stable deployer API. Use this when you want the agent to read your in-flight local edits.
 
    ```bash
-   charly config arch-charly --bind project=/home/you/opencharly
-   charly start arch-charly
-   charly eval mcp call arch-charly box.list.boxes '{}' --name charly
+   charly config charly-arch --bind project=/home/you/opencharly
+   charly start charly-arch
+   charly eval mcp call charly-arch box.list.boxes '{}' --name charly
    ```
 
-2. **Remote pin** — set `CH_PROJECT_REPO=overthinkos/opencharly@<sha-or-ref>` in the container env. The agent reads from a pinned upstream version. No bind mount required.
+2. **Remote pin** — set `CHARLY_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env. The agent reads from a pinned upstream version. No bind mount required.
 
-3. **Auto-default** — `charly mcp serve` with no `box.yml` reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires whenever cwd lacks `box.yml`, regardless of whether `CH_PROJECT_DIR` is set (the `charly-mcp` layer permanently sets `CH_PROJECT_DIR=/workspace`, so a fallback gated on the env var being empty would never fire). Pass `--no-default-repo` on the serve command to opt out. Only `charly mcp serve` auto-fetches; the top-level CLI stays opt-in.
+3. **Auto-default** — `charly mcp serve` with no `box.yml` reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires whenever cwd lacks `box.yml`, regardless of whether `CHARLY_PROJECT_DIR` is set (the `charly-mcp` layer permanently sets `CHARLY_PROJECT_DIR=/workspace`, so a fallback gated on the env var being empty would never fire). Pass `--no-default-repo` on the serve command to opt out. Only `charly mcp serve` auto-fetches; the top-level CLI stays opt-in.
 
-The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory`. See `/charly-build:charly-mcp-cmd` "Deployment: the `charly-mcp` layer" for the full bind-mount pattern and `/charly-internals:go` "main.go" for the implementation note (guarded by `TestOvDir_FlagChdir` + `TestOvDir_Errors` in `main_dir_test.go`, and `TestNormalizeRepoSpec` + `TestOvRepo_*` in `main_repo_test.go`).
+The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory`. See `/charly-build:charly-mcp-cmd` "Deployment: the `charly-mcp` layer" for the full bind-mount pattern and `/charly-internals:go` "main.go" for the implementation note (guarded by `TestCharlyDir_FlagChdir` + `TestCharlyDir_Errors` in `main_dir_test.go`, and `TestNormalizeRepoSpec` + `TestCharlyRepo_*` in `main_repo_test.go`).
 
 ## Quick Reference
 
@@ -111,12 +111,12 @@ The error messages are explicit when misconfigured: `cannot chdir to --dir "/mis
 | Validate | `charly box validate` | Check box.yml + layers |
 | Pull into local storage | `charly box pull <image>` | Fetch from registry so deploy-mode commands work |
 | Run build-time tests | `charly eval box <image>` | Runs the baked layer + image test sections in a disposable `podman run --rm` container (build-scope only). For full-stack live eval against a running deployment, use `charly eval live <name>`. See `/charly-eval:eval`. |
-| Pre-prime remote repo cache | `charly box fetch [<spec>]` | Clones (or hits cache) for the spec — defaults to `default` (overthinkos/opencharly). Prints the cache path. |
+| Pre-prime remote repo cache | `charly box fetch [<spec>]` | Clones (or hits cache) for the spec — defaults to `default` (overthinkos/overthink). Prints the cache path. |
 | Force re-clone | `charly box refresh [<spec>]` | Removes the cache entry and re-clones. |
 
 ### Authoring (the MCP-first surface)
 
-Each verb below is also auto-exposed as an MCP tool (`box.new.project`, `box.new.box`, `box.set`, `box.add-candy`, `box.rm-candy`, `box.write`, `box.cat`, `candy.set`, `candy.add-rpm`, …) via `ov/mcp_server.go`'s Kong reflection. So an LLM agent driving `charly mcp serve` can author a project from scratch over RPC.
+Each verb below is also auto-exposed as an MCP tool (`box.new.project`, `box.new.box`, `box.set`, `box.add-candy`, `box.rm-candy`, `box.write`, `box.cat`, `candy.set`, `candy.add-rpm`, …) via `charly/mcp_server.go`'s Kong reflection. So an LLM agent driving `charly mcp serve` can author a project from scratch over RPC.
 
 | Action | Command |
 |--------|---------|
@@ -133,7 +133,7 @@ Each verb below is also auto-exposed as an MCP tool (`box.new.project`, `box.new
 
 **Safety boundary**: `charly box write` / `charly box cat` resolve the path against `os.Getwd()` (the project root) and reject absolute paths or `..` traversal that would escape the root. They are the deliberate escape hatch for free-form auxiliary files (`pixi.toml`, `package.json`, `root.yml`, `*.service`, scripts) that the schema-aware setters don't cover.
 
-**Comment preservation**: every YAML edit (`set`, `add-layer`, `rm-layer`, `add-rpm`, etc.) goes through the `yaml.v3` *node* API rather than the value API, so human-authored comments and key order are preserved across edits. Tested in `ov/yaml_setter_test.go` and `ov/scaffold_project_test.go`.
+**Comment preservation**: every YAML edit (`set`, `add-layer`, `rm-layer`, `add-rpm`, etc.) goes through the `yaml.v3` *node* API rather than the value API, so human-authored comments and key order are preserved across edits. Tested in `charly/yaml_setter_test.go` and `charly/scaffold_project_test.go`.
 
 **Project scaffold contents**: `charly box new project` writes a minimal `box.yml` whose `defaults.format_config` references the upstream `build.yml` remotely (`@github.com/overthinkos/overthink/build.yml`), so new projects don't have to copy the canonical 1k-line build.yml. Replace with a local `build.yml` + drop the `format_config` field if you need custom distro/builder/init definitions.
 
@@ -190,7 +190,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | Field | Default | Description |
 |-------|---------|-------------|
 | `enabled` | `true` | Set `false` to disable (skipped by generate, validate, list) |
-| `version` | `""` | OPTIONAL dedicated CalVer (`YYYY.DDD.HHMM`). When set it IS the image's `ai.opencharly.version` label; when unset the label is derived as the highest layer version across the chain (`EffectiveVersion`, `ov/effective_version.go`). Layered images leave it unset (they derive — keeps the label content-stable); a layerless bare base on an EXTERNAL registry base needs it (else the label can't be derived) — `charly migrate` backfills those |
+| `version` | `""` | OPTIONAL dedicated CalVer (`YYYY.DDD.HHMM`). When set it IS the image's `ai.opencharly.version` label; when unset the label is derived as the highest layer version across the chain (`EffectiveVersion`, `charly/effective_version.go`). Layered images leave it unset (they derive — keeps the label content-stable); a layerless bare base on an EXTERNAL registry base needs it (else the label can't be derived) — `charly migrate` backfills those |
 | `status` | `""` (= `testing`) | `working`, `testing`, or `broken`. Effective status = worst of image + all layers |
 | `info` | `""` | Free-form description. Aggregated with layer-level info in OCI labels |
 | `base` | `quay.io/fedora/fedora:43` | External OCI image or name of another image |
@@ -266,7 +266,7 @@ Self-reference protection: after merging defaults/base, any `builder` entry poin
 
 Validation checks that every builder referenced in `builder:` declares the matching capability in `produce:`.
 
-Source: `ov/generate.go` (`builderRefForFormat`), `ov/graph.go` (`ResolveImageOrder`, `ImageNeedsBuilder`), `ov/validate.go` (`validateBuilders`).
+Source: `charly/generate.go` (`builderRefForFormat`), `charly/graph.go` (`ResolveImageOrder`, `ImageNeedsBuilder`), `charly/validate.go` (`validateBuilders`).
 
 ## Internal Base Images
 
@@ -307,7 +307,7 @@ The mechanism: a **declarative** fact (what the base image ships, in `build.yml 
 
 This is why `ubuntu-coder`'s resolved identity is `ubuntu:/home/ubuntu` while the other three coder images are `user:/home/user`. The box.yml for all four coder images is identical on the user-related fields (no explicit `user:`); the policy + base_user together decide the outcome.
 
-### How resolution flows (`ov/config.go ResolveImage`)
+### How resolution flows (`charly/config.go ResolveImage`)
 
 1. Resolve `User`, `UID`, `GID` from defaults → image overrides → hardcoded fallback `user` / `1000` / `1000`.
 2. Load the distro config (`DistroConfig` from `build.yml`), resolve the image's `DistroDef` by walking `distro:` tags.
@@ -315,7 +315,7 @@ This is why `ubuntu-coder`'s resolved identity is `ubuntu:/home/ubuntu` while th
    - `adopt` → overwrite User/UID/GID/Home with the distro's `BaseUser`, set `ResolvedImage.UserAdopted = true`.
    - `auto` → same overwrite IF `base_user` exists AND the image didn't explicitly set `user:`.
    - `create` → no-op.
-4. `writeBootstrap` (`ov/generate.go`) keys on `UserAdopted`: adopt emits only a comment; create emits an idempotent `useradd` (see `/charly-build:generate`).
+4. `writeBootstrap` (`charly/generate.go`) keys on `UserAdopted`: adopt emits only a comment; create emits an idempotent `useradd` (see `/charly-build:generate`).
 
 ### Live verification
 
@@ -383,7 +383,7 @@ Auto-intermediates are marked with `Auto: true` and appear in `charly box list t
 3. The trie is walked to detect branch points (where sibling layer sequences diverge). At each branch, an auto-intermediate image is created.
 4. Original images are rebased to the nearest intermediate, so shared layers are built once.
 
-Source: `ov/intermediates.go` (`ComputeIntermediates`, `GlobalLayerOrder`, `walkTrieScoped`).
+Source: `charly/intermediates.go` (`ComputeIntermediates`, `GlobalLayerOrder`, `walkTrieScoped`).
 
 ## Versioning
 
@@ -412,7 +412,7 @@ images:
 
 These are the lowest priority in the env resolution chain. CLI flags (`-e`, `--env-file`) and workspace `.env` take precedence. See `/charly-core:charly-config` and `/charly-core:start` for the full priority chain at config-time and run-time respectively.
 
-Source: `ov/envfile.go` (`ResolveEnvVars`).
+Source: `charly/envfile.go` (`ResolveEnvVars`).
 
 ## Security Configuration
 
@@ -430,7 +430,7 @@ images:
 
 Image `security.privileged` replaces the layer-derived value. `cap_add`, `devices`, `security_opt` are appended to layer-collected values (deduplicated). Applied as container run arguments at runtime (not build time).
 
-Source: `ov/security.go` (`CollectSecurity`).
+Source: `charly/security.go` (`CollectSecurity`).
 
 ## VM Configuration
 
@@ -455,7 +455,7 @@ See `/charly-vm:vms-catalog` for the full VmSpec schema, `/charly-vm:vm` for the
 
 ## OCI Labels
 
-Every image `charly` builds carries a set of `ai.opencharly.*` OCI labels embedding the resolved image config so that `charly config` and `charly deploy` can work without the project source tree. The full list is assembled in `ov/labels.go`:
+Every image `charly` builds carries a set of `ai.opencharly.*` OCI labels embedding the resolved image config so that `charly config` and `charly deploy` can work without the project source tree. The full list is assembled in `charly/labels.go`:
 
 | Label | Contents |
 |---|---|
@@ -564,7 +564,7 @@ Every YAML file is a generic, kind-agnostic container — the loader routes each
 | Shape | YAML | Semantics |
 |---|---|---|
 | **Flat** | a bare string — `- build.yml`, `- '@github.com/owner/repo/build.yml:vTAG'` | Merge the referenced file's entities into THIS project's root namespace (root-wins). Use for same-repo per-kind file splits AND the shared `build.yml` distro/builder/init vocabulary. |
-| **Namespaced** | a single-key map — `- {cachyos: image/cachyos}`, `- {ov: ../..}`, `- {base: '@github.com/owner/repo:vTAG'}` | Mount another project as an isolated child namespace under `alias`; its entries are NOT flat-merged, they're referenced QUALIFIED as `alias.entry`. |
+| **Namespaced** | a single-key map — `- {cachyos: image/cachyos}`, `- {charly: ../..}`, `- {base: '@github.com/owner/repo:vTAG'}` | Mount another project as an isolated child namespace under `alias`; its entries are NOT flat-merged, they're referenced QUALIFIED as `alias.entry`. |
 
 ### Qualified refs (`ns.entry`)
 
@@ -581,14 +581,14 @@ box:
     base: cachyos.cachyos           # the `cachyos` image inside the `cachyos` namespace
 ```
 
-Resolution is **namespace-relative**, exactly like Go package-member access: a bare ref inside a namespace resolves within that namespace first; a qualified ref descends one level per dot (`a.b.c` → namespace `a`, then `b`, then leaf `c`). Submodules import the main repo under the `ov` namespace, so a submodule image writes `base: ov.arch` / `base: ov.fedora` and routes its builders to `ov.arch-builder` / `ov.fedora-builder`.
+Resolution is **namespace-relative**, exactly like Go package-member access: a bare ref inside a namespace resolves within that namespace first; a qualified ref descends one level per dot (`a.b.c` → namespace `a`, then `b`, then leaf `c`). Submodules import the main repo under the `charly` namespace, so a submodule image writes `base: charly.arch` / `base: charly.fedora` and routes its builders to `charly.arch-builder` / `charly.fedora-builder`.
 
 ### Inheritance across a namespace boundary
 
 - **`distro:` / `build:`** are VALUES (distro tags, package formats) → inherited across a namespace boundary, so a `base: cachyos.cachyos` image still picks up cachyos's `distro:`/`build:`.
-- **`builder:`** is a map of REFS relative to the BASE's namespace → it does **NOT** cross the boundary. A consumer image that builds a multi-stage format declares its OWN `builder:` map, qualified to the right builder (`builder: {pixi: ov.arch-builder}`). This avoids leaking a base-namespace-relative ref into a consumer where that namespace doesn't exist.
+- **`builder:`** is a map of REFS relative to the BASE's namespace → it does **NOT** cross the boundary. A consumer image that builds a multi-stage format declares its OWN `builder:` map, qualified to the right builder (`builder: {pixi: charly.arch-builder}`). This avoids leaking a base-namespace-relative ref into a consumer where that namespace doesn't exist.
 
-Cycles between two projects that import each other (the intentional main ↔ cachyos mutual import: main imports `cachyos`, cachyos imports `ov`) are broken at load time **by repo identity, not pinned version** — see `/charly-internals:go` "import-namespace loader". The consequence for authors: **the importing project's namespace pins win**. When an imported namespace's release imports your repo back (`ov: @…/opencharly:<someOldPin>`), that back-reference resolves to YOUR local working tree (the root), NOT the old pinned snapshot — so a stale transitive pin in a published submodule release can never drag a divergent (or stale-schema) version of your own repo into the load.
+Cycles between two projects that import each other (the intentional main ↔ cachyos mutual import: main imports `cachyos`, cachyos imports `charly`) are broken at load time **by repo identity, not pinned version** — see `/charly-internals:go` "import-namespace loader". The consequence for authors: **the importing project's namespace pins win**. When an imported namespace's release imports your repo back (`charly: @…/opencharly:<someOldPin>`), that back-reference resolves to YOUR local working tree (the root), NOT the old pinned snapshot — so a stale transitive pin in a published submodule release can never drag a divergent (or stale-schema) version of your own repo into the load.
 
 **`repo:` (optional root-only field).** Declare your project's canonical repo identity at the top of `charly.yml` (`repo: github.com/overthinkos/overthink`) so the loader recognizes a transitive back-import of your repo and short-circuits it to the local tree. When omitted, the loader infers it from `git remote origin`; absent both, the cycle-break degrades to version-keyed behavior. The field is purely additive (no migration needed).
 
@@ -598,7 +598,7 @@ A namespace is imported to provide bases/builders; the resolver fetches ONLY the
 
 ## `base.yml` — the combined arch + fedora base stack
 
-The main repo ships a single `base.yml` carrying both base-distro stacks: `arch`, `arch-builder`, `fedora`, `fedora-builder`, `fedora-nonfree`. It is flat-imported by `charly.yml` (`- base.yml`) and imported under the `ov` namespace by the per-distro submodules (`ov.arch`, `ov.fedora`, `ov.arch-builder`, `ov.fedora-builder`). The cachyos base is NOT in `base.yml` — it lives inline in `image/cachyos/charly.yml` and is reached through the `cachyos` import namespace (`base: cachyos.cachyos`). See `/charly-distros:arch`, `/charly-distros:fedora`, `/charly-distros:cachyos`.
+The main repo ships a single `base.yml` carrying both base-distro stacks: `arch`, `arch-builder`, `fedora`, `fedora-builder`, `fedora-nonfree`. It is flat-imported by `charly.yml` (`- base.yml`) and imported under the `charly` namespace by the per-distro submodules (`charly.arch`, `charly.fedora`, `charly.arch-builder`, `charly.fedora-builder`). The cachyos base is NOT in `base.yml` — it lives inline in `image/cachyos/charly.yml` and is reached through the `cachyos` import namespace (`base: cachyos.cachyos`). See `/charly-distros:arch`, `/charly-distros:fedora`, `/charly-distros:cachyos`.
 
 ## When to Use This Skill
 

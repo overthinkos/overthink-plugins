@@ -6,7 +6,7 @@ description: |
   InstallPlan inside a running VM over SSH. Covers DeployExecutor interface,
   SSHExecutor, ShellExecutor, VmDeployState persistence, and the guest-side
   ledger.
-  Source: ov/deploy_target_vm.go, ov/deploy_executor*.go, ov/deploy_add_cmd_vm.go.
+  Source: charly/deploy_target_vm.go, charly/deploy_executor*.go, charly/deploy_add_cmd_vm.go.
   MUST be invoked before editing VM-target deploy code.
 ---
 
@@ -14,10 +14,10 @@ description: |
 
 ## Implementation notes
 
-- The pod deploy target is `PodDeployTarget` (`ov/deploy_target_pod.go`); ledger target keying uses `pod:<name>`.
+- The pod deploy target is `PodDeployTarget` (`charly/deploy_target_pod.go`); ledger target keying uses `pod:<name>`.
 - `vmNameFromDeployName` strips the `vm:` prefix. The dispatch upstream (`deploy_add_cmd.go`) rewrites a plain deploy key like `eval-arch-vm` to `vm:<vm-name>` before resolving via `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del`, so internal VM code always sees the prefixed form.
-- `UnifiedDeployTarget` / `LifecycleTarget` interfaces (`ov/deploy_target_unified.go`) + the `ResolveTarget` dispatcher (`ov/unified_targets.go`) provide the full lifecycle contract (`Add` / `Del` / `Test` / `Update` / `Start` / `Stop` / `Status` / `Logs` / `Shell` / `Rebuild`).
-- Disposability is read from the `DeploymentNode` with `target: vm` + matching `vm:` (see `ov/run_subcommand.go::vmDisposableFromDeployments`); it is NOT a `VmSpec` field. This helper surfaces lifecycle metadata to operator-facing output (`vm_classification.go`, `charly vm cycle`); the disposability-as-authorization gate is NOT applied in the `charly update` path — `charly update <vm>` rebuilds on explicit invocation regardless. `VmUnifiedTarget.Rebuild` (`ov/unified_targets_vm.go`) recreates the domain THEN re-applies the deploy node's layers via the shared `charly deploy add <node>` path — the same layer-apply primitive `LocalUnifiedTarget`/`PodUnifiedTarget` Rebuild use (R3).
+- `UnifiedDeployTarget` / `LifecycleTarget` interfaces (`charly/deploy_target_unified.go`) + the `ResolveTarget` dispatcher (`charly/unified_targets.go`) provide the full lifecycle contract (`Add` / `Del` / `Test` / `Update` / `Start` / `Stop` / `Status` / `Logs` / `Shell` / `Rebuild`).
+- Disposability is read from the `DeploymentNode` with `target: vm` + matching `vm:` (see `charly/run_subcommand.go::vmDisposableFromDeployments`); it is NOT a `VmSpec` field. This helper surfaces lifecycle metadata to operator-facing output (`vm_classification.go`, `charly vm cycle`); the disposability-as-authorization gate is NOT applied in the `charly update` path — `charly update <vm>` rebuilds on explicit invocation regardless. `VmUnifiedTarget.Rebuild` (`charly/unified_targets_vm.go`) recreates the domain THEN re-applies the deploy node's layers via the shared `charly deploy add <node>` path — the same layer-apply primitive `LocalUnifiedTarget`/`PodUnifiedTarget` Rebuild use (R3).
 
 `VmDeployTarget` brings `charly deploy add vm:<name>` online: the same `InstallPlan` IR that drives pod builds and host deploys now runs **inside a VM** over SSH. Shell bodies that `LocalDeployTarget` would exec via local `sudo bash -s` are instead exec'd via `ssh guest 'sudo bash -s'` through an `SSHExecutor`. Ledger writes land on the **guest** filesystem under the guest user's `~/.config/opencharly/installed/`; teardown runs in the guest via SSH as well.
 
@@ -27,11 +27,11 @@ description: |
 
 | File | Contents |
 |---|---|
-| `ov/deploy_target_vm.go` | `VmDeployTarget` struct + `Emit` flow |
-| `ov/deploy_executor.go` | `DeployExecutor` interface (RunShell, Scp, Close) + `ShellExecutor` — local shell exec (reused by `LocalDeployTarget` for the builder-image step) |
-| `ov/deploy_executor_ssh.go` | `SSHExecutor` — ssh client with passt-friendly timeouts + WaitForSSH + WaitForCloudInit |
-| `ov/deploy_add_cmd_vm.go` | VM-only deploy helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`); `charly deploy add/del vm:<name>` dispatches through `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del` |
-| `ov/vm_create_spec.go` | `VmCreateCmd.runVmSpecCreate` — prereq: VM must be created before deploy |
+| `charly/deploy_target_vm.go` | `VmDeployTarget` struct + `Emit` flow |
+| `charly/deploy_executor.go` | `DeployExecutor` interface (RunShell, Scp, Close) + `ShellExecutor` — local shell exec (reused by `LocalDeployTarget` for the builder-image step) |
+| `charly/deploy_executor_ssh.go` | `SSHExecutor` — ssh client with passt-friendly timeouts + WaitForSSH + WaitForCloudInit |
+| `charly/deploy_add_cmd_vm.go` | VM-only deploy helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`); `charly deploy add/del vm:<name>` dispatches through `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del` |
+| `charly/vm_create_spec.go` | `VmCreateCmd.runVmSpecCreate` — prereq: VM must be created before deploy |
 
 ## DeployExecutor interface
 
@@ -56,7 +56,7 @@ Five preflight steps before walking plans:
 
 1. **Wait for SSH.** `SSHExecutor.WaitForSSH(ctx, 120)` — polls `net.Dial` to `host:port` with exponential backoff. 120s timeout accommodates cold-boot VMs where cloud-init is provisioning sshd.
 2. **Wait for cloud-init** (cloud_image sources only). `SSHExecutor.WaitForCloudInit` polls `cloud-init status --wait` until status is `done`. Bootc guests skip this step unless the `cloud-init` layer is present.
-3. **EnsureOvInGuest.** Runs the `VmOvInstall.Strategy` state machine (see `/charly-internals:cloud-init-renderer`).
+3. **EnsureCharlyInGuest.** Runs the `VmCharlyInstall.Strategy` state machine (see `/charly-internals:cloud-init-renderer`).
 4. **Ensure guest ledger dir exists.** `ssh -- mkdir -p ~/.config/opencharly/installed/{deploys,layers}`.
 5. **Resolve the guest home** once (`t.Exec.ResolveHome(ctx, "")`) and cache it on `t.guestHome`. Every home-bearing step field is resolved against THIS home, not the host operator's — see below.
 6. **Walk plans.** Same batched `(Scope, Venue)` logic as `LocalDeployTarget`, but with `sudo bash -s` wrapped in `ssh`. See `/charly-local:local-deploy` for the grouping rules.
@@ -103,7 +103,7 @@ the guest — guests never need a container runtime:
   `resolveBuilderImage` (`--builder-image` → compiled `BuilderStep.BuilderImage`
   → `BuilderImageResolver`). Unknown builders honor `--skip-incompatible`.
 
-This is what makes the full ov-cachyos stack — including the npm-builder AI CLIs
+This is what makes the full charly-cachyos stack — including the npm-builder AI CLIs
 (`claude-code`, `codex`, `gemini`, `oracle`, `forgecode`) — install on a VM.
 
 ## RebootStep — the one step only this target executes
@@ -175,7 +175,7 @@ type VmDeployState struct {
     SshUser                 string                  // guest account VmDeployTarget SSHes in as
     Backend                 string                  // "qemu" or "libvirt", pinned at first apply
     KeyInjectionResolved    *VmKeyInjectionResolved // resolved SSH key-injection plan
-    OvInstallStrategy       string                  // how charly is installed into the guest
+    CharlyInstallStrategy       string                  // how charly is installed into the guest
     CloudInitRenderedDigest string                  // digest of the rendered cloud-init (re-render detection)
     Snapshots               []VmSnapshotState       // libvirt snapshot ledger
     Ephemeral               *EphemeralRuntime       // transient run-state for an ephemeral VM
@@ -186,7 +186,7 @@ Persisted in `~/.config/charly/deploy.yml` as the `vm_state:` field on the VM's 
 
 ## SSH key idempotency
 
-`generateSSHKeypair` in `ov/vm.go` checks for `<vmStateDir>/id_ed25519.pub` before creating. Rebuilding a VM doesn't regenerate the keypair. First `charly vm build` writes the keypair; subsequent calls leave it untouched — so iterated rebuilds keep a stable pubkey and SSH stays valid.
+`generateSSHKeypair` in `charly/vm.go` checks for `<vmStateDir>/id_ed25519.pub` before creating. Rebuilding a VM doesn't regenerate the keypair. First `charly vm build` writes the keypair; subsequent calls leave it untouched — so iterated rebuilds keep a stable pubkey and SSH stays valid.
 
 ## CLI dispatch: ResolveTarget → VmUnifiedTarget.Add / .Del
 
@@ -211,7 +211,7 @@ When the VM's network uses libvirt user-mode + `<backend type='passt'/>` + `<por
 - `/charly-internals:install-plan` — InstallPlan IR (the 4 DeployTarget implementers and the 9 step kinds)
 - `/charly-internals:vm-spec` — VmSpec consumed by VmDeployTarget
 - `/charly-internals:libvirt-renderer` — renders domain XML; portForward + passt backend
-- `/charly-internals:cloud-init-renderer` — `EnsureOvInGuest` lives there
+- `/charly-internals:cloud-init-renderer` — `EnsureCharlyInGuest` lives there
 - `/charly-core:deploy` — `charly deploy add vm:<name>` command + deploy.yml schema
 - `/charly-local:local-deploy` — parallel target (LocalDeployTarget); ReverseOps model also used on VM target
 - `/charly-vm:vm` — VM lifecycle; creates the target Emit runs against

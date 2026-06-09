@@ -102,7 +102,7 @@ my-image:
 `charly eval box` runs with USER=1000 on container images but USER=0 on bootc images (bootc intentionally keeps USER=root because systemd manages user sessions via login). A naïve `sudo -n -l; contains: NOPASSWD` check fails on bootc — running as root prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`. The layer's current test drops to `user` explicitly when running as root:
 
 ```yaml
-- id: sudoers-ov-user
+- id: sudoers-charly-user
   command: |
     if [ "$(id -u)" = "0" ]; then
       runuser -u user -- sudo -n -l
@@ -120,7 +120,7 @@ the `-l … -c` form swallows the wrapped command's stdout — reproduced
 cleanly: `runuser -l user -s /bin/bash -c 'sudo -n -l'` prints nothing
 and exits 0, while `runuser -u user -- sudo -n -l` prints the full
 NOPASSWD listing. The layer was fixed to `-u … --` after this was
-caught during `arch-ov` bring-up. See `/charly-eval:eval` Authoring Gotcha #11.
+caught during `charly-arch` bring-up. See `/charly-eval:eval` Authoring Gotcha #11.
 
 ## Related Skills
 

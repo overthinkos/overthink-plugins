@@ -3,8 +3,8 @@ name: cloud-init-renderer
 description: |
   Pure renderer from VmSpec + VmCloudInit to NoCloud seed ISO (user-data +
   meta-data + network-config). Covers composeUsers adopt-merge, SMBIOS vs
-  cloud_init additive channels, xorriso ISO emission, and ov_install.strategy
-  state machine. Source: ov/cloud_init_render.go, ov/cloud_init_iso.go, ov/ov_install.go.
+  cloud_init additive channels, xorriso ISO emission, and charly_install.strategy
+  state machine. Source: charly/cloud_init_render.go, charly/cloud_init_iso.go, charly/charly_install.go.
   MUST be invoked before editing cloud-init emission paths.
 ---
 
@@ -18,10 +18,10 @@ Lives **host-side**, in the `charly` binary. The **guest-side** `/charly-distros
 
 | File | Contents |
 |---|---|
-| `ov/cloud_init_render.go` | `RenderCloudInit`, `ResolveKeyInjectionChannels`, `composeUsers`, `composePackages`, `composeRunCmd` |
-| `ov/cloud_init_iso.go` | `WriteSeedISO` via xorriso; `genisoimage` + `mkisofs` fallbacks |
-| `ov/ov_install.go` | `EnsureOvInGuest` state machine (auto/scp/url/skip strategies) |
-| `ov/cloud_init_types.go` | `VmCloudInit`, `VmCloudInitUser`, `VmCloudInitFile`, `VmCloudInitNetwork`, `VmCloudInitMirrors`, `VmOvInstall` |
+| `charly/cloud_init_render.go` | `RenderCloudInit`, `ResolveKeyInjectionChannels`, `composeUsers`, `composePackages`, `composeRunCmd` |
+| `charly/cloud_init_iso.go` | `WriteSeedISO` via xorriso; `genisoimage` + `mkisofs` fallbacks |
+| `charly/charly_install.go` | `EnsureCharlyInGuest` state machine (auto/scp/url/skip strategies) |
+| `charly/cloud_init_types.go` | `VmCloudInit`, `VmCloudInitUser`, `VmCloudInitFile`, `VmCloudInitNetwork`, `VmCloudInitMirrors`, `VmCharlyInstall` |
 
 ## RenderCloudInit top-level
 
@@ -113,15 +113,15 @@ Clean error when none are present, with distro-appropriate install recipe (`dnf 
 
 The ISO is mounted by QEMU as a CD-ROM; cloud-init's NoCloud datasource reads `/dev/sr0` at first boot.
 
-## EnsureOvInGuest (ov_install.strategy state machine)
+## EnsureCharlyInGuest (charly_install.strategy state machine)
 
-Runs post-boot inside `VmDeployTarget.Emit` after cloud-init completes. Dispatches on `spec.CloudInit.OvInstall.Strategy`:
+Runs post-boot inside `VmDeployTarget.Emit` after cloud-init completes. Dispatches on `spec.CloudInit.CharlyInstall.Strategy`:
 
 | Strategy | Action |
 |---|---|
 | `auto` / `scp` | `scp $(os.Executable()) guest:/usr/local/bin/charly; chmod +x` |
-| `url` | ssh-execute `curl -L <url> -o /usr/local/bin/charly && sha256sum -c` (verified against `VmOvInstall.Checksum`) |
-| `skip` | `ssh 'which ov'` — fails if missing, returns early if present |
+| `url` | ssh-execute `curl -L <url> -o /usr/local/bin/charly && sha256sum -c` (verified against `VmCharlyInstall.Checksum`) |
+| `skip` | `ssh 'which charly'` — fails if missing, returns early if present |
 
 Idempotent. If `charly` is already present at the target version, the function returns without re-scp'ing. See `/charly-internals:vm-deploy-target` for how this plugs into the overall deploy flow.
 
@@ -135,10 +135,10 @@ Explicitly supported — not either/or. `VmKeyInjection.SMBIOS: enabled` + `VmKe
 
 ## Cross-References
 
-- `/charly-internals:vm-spec` — `VmCloudInit`, `VmSSH.KeyInjection`, `VmOvInstall` types
+- `/charly-internals:vm-spec` — `VmCloudInit`, `VmSSH.KeyInjection`, `VmCharlyInstall` types
 - `/charly-internals:libvirt-renderer` — SMBIOS-channel emission (domain XML side)
-- `/charly-internals:vm-deploy-target` — `EnsureOvInGuest` caller; SSH/cloud-init readiness waits
+- `/charly-internals:vm-deploy-target` — `EnsureCharlyInGuest` caller; SSH/cloud-init readiness waits
 - `/charly-vm:vm` — command-family; cloud-init flow
 - `/charly-vm:vms-catalog` — YAML-authoring reference
-- `/charly-vm:arch` — `ov_install.strategy: auto` worked example; adopt-user pattern
+- `/charly-vm:arch` — `charly_install.strategy: auto` worked example; adopt-user pattern
 - `/charly-distros:cloud-init` — **guest-side pairing**: the cloud-init package installed inside bootc images reads the seed ISO this renderer produces

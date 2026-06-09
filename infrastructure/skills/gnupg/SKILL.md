@@ -36,7 +36,7 @@ The container has its own keyring (public keys must be imported separately with 
 
 ## Used In Images
 
-Part of `agent-forwarding` composition layer, used in 27 application images including: `arch-ov`, `fedora-ov`, `nvidia`, `jupyter`, `ollama`, `openclaw`, `immich`, `comfyui`, `selkies-desktop`, and all other non-base images.
+Part of `agent-forwarding` composition layer, used in 27 application images including: `charly-arch`, `charly-fedora`, `nvidia`, `jupyter`, `ollama`, `openclaw`, `immich`, `comfyui`, `selkies-desktop`, and all other non-base images.
 
 ## Related Layers
 

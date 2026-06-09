@@ -60,7 +60,7 @@ cdp-proxy (port 9222) → Chrome (port 9223)
 
 ## Key Insight: Hermes Reconfiguration
 
-Hermes `config.yaml` is guarded by a `# ov:auto-configured` sentinel — it only generates on first start, never overwrites. When chrome-devtools-mcp is added to a running deployment, hermes won't automatically pick it up.
+Hermes `config.yaml` is guarded by a `# charly:auto-configured` sentinel — it only generates on first start, never overwrites. When chrome-devtools-mcp is added to a running deployment, hermes won't automatically pick it up.
 
 **Fix:** Delete config.yaml and restart hermes:
 ```bash

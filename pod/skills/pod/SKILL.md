@@ -13,8 +13,8 @@ A `pod` entity declares a co-scheduled set of containers and the volumes / netwo
 
 Schema sources (read these for the canonical truth):
 
-- `ov/deploy_spec.go` — `DeploySpec` Go type, `kind: deploy` shape, target discriminator.
-- `ov/pod_spec.go` — `PodSpec` Go type, `kind: pod` shape.
+- `charly/deploy_spec.go` — `DeploySpec` Go type, `kind: deploy` shape, target discriminator.
+- `charly/pod_spec.go` — `PodSpec` Go type, `kind: pod` shape.
 - `/charly-core:deploy` — the verb-level skill covering `charly deploy add` / `charly deploy del` / `charly update`.
 
 ## Nested deploys

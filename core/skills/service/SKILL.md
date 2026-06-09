@@ -8,7 +8,7 @@ description: |
 
 ## Terminology note
 
-**"pod"** is the user-visible term for a single-container deployment (matches podman's vocabulary and the `target: pod` deploy-yml value). Internally, the Go struct is `PodDeployTarget` and the file is `ov/deploy_target_pod.go`. This skill's body uses the word "container" in many places because it's also the generic runtime artifact — read "container" as the runtime concept and "pod" as the target/deployment kind.
+**"pod"** is the user-visible term for a single-container deployment (matches podman's vocabulary and the `target: pod` deploy-yml value). Internally, the Go struct is `PodDeployTarget` and the file is `charly/deploy_target_pod.go`. This skill's body uses the word "container" in many places because it's also the generic runtime artifact — read "container" as the runtime concept and "pod" as the target/deployment kind.
 
 `charly start/stop/status/logs/shell` operate on named pod deployments (the unit a user cares about); the underlying runtime is podman/docker (containers), managed via systemd user quadlet.
 
@@ -92,21 +92,21 @@ charly remove my-app -e KEY=VALUE      # Set env vars for lifecycle hooks
 
 ### Generated Files
 
-- Path: `~/.config/containers/systemd/charly-<image>.container` (or `ov-<image>-<instance>.container`)
-- Service name: `ov-<image>.service`
-- Container name: `ov-<image>`
+- Path: `~/.config/containers/systemd/charly-<image>.container` (or `charly-<image>-<instance>.container`)
+- Service name: `charly-<image>.service`
+- Container name: `charly-<image>`
 - Ports bound to configured `bind_address`
 - Entrypoint: determined by build.yml `init:` section config (e.g., `supervisord -n -c /etc/supervisord.conf` for supervisord, `sleep infinity` if no init system)
 - Auto-restart on failure via `WantedBy=default.target` (encrypted services with Secret Service backend include `ExecStartPre=charly config mount` + `TimeoutStartSec=0` for keyring wait; KeePass/no backend omit `WantedBy` — require `charly start`)
 - `charly box validate` enforces: images with init system layers MUST include the required dependency layer (defined by build.yml `init:` section `depends_layer`)
-- `Secret=ov-<image>-<name>,target=/run/secrets/<name>` for each layer-declared secret (Podman only)
+- `Secret=charly-<image>-<name>,target=/run/secrets/<name>` for each layer-declared secret (Podman only)
 
 ### Container Secrets
 
 When image labels declare secrets (from `candy.yml` `secrets` field), `charly config` provisions them:
 1. Checks if Podman secret already exists — **if so, keeps it** (never overwrites)
 2. If missing: resolves secret values from the credential store (env var > keyring > config file)
-3. Creates Podman secrets via `podman secret create ov-<image>-<name>`
+3. Creates Podman secrets via `podman secret create charly-<image>-<name>`
 4. Generates `Secret=` directives in the quadlet file
 5. Secrets are mounted at `/run/secrets/<name>` inside the container
 
@@ -130,7 +130,7 @@ Layer and image-level security settings become `PodmanArgs=` in the quadlet file
 - `devices` -> `PodmanArgs=--device=<DEV>`
 - `security_opt` -> `PodmanArgs=--security-opt=<OPT>`
 
-Source: `ov/security.go`, `ov/quadlet.go`.
+Source: `charly/security.go`, `charly/quadlet.go`.
 
 ### Image Transfer
 
@@ -166,7 +166,7 @@ charly service status my-app -i prod       # Named instance
 
 The service name must match an entry in the image's init system config. Available services are validated against the image's `ai.opencharly.service.<init>` label (e.g., `ai.opencharly.service.supervisord`). The management tool and commands are defined in build.yml `init:` section.
 
-Source: `ov/service.go`.
+Source: `charly/service.go`.
 
 ## Lifecycle Hooks
 
@@ -176,7 +176,7 @@ Layers can declare hooks that run on the host at specific points:
 # In candy.yml:
 hook:
   post_enable: |
-    echo "Service enabled for $CH_IMAGE"
+    echo "Service enabled for $CHARLY_IMAGE"
   pre_remove: |
     echo "Cleaning up before removal"
 ```
@@ -188,7 +188,7 @@ hook:
 
 Hooks from multiple layers are concatenated in layer order. Scripts run on the host (not inside the container). Use `charly remove -e KEY=VALUE` to pass environment variables to hook scripts.
 
-Source: `ov/hooks.go`.
+Source: `charly/hooks.go`.
 
 ## Multi-Instance Support
 
@@ -202,16 +202,16 @@ charly status my-app -i staging
 ```
 
 Instance naming affects:
-- Container name: `ov-<image>` -> `ov-<image>-<instance>`
-- Volume names: `ov-<image>-<name>` -> `ov-<image>-<instance>-<name>`
-- Quadlet file: `ov-<image>.container` -> `ov-<image>-<instance>.container`
-- Service name: `ov-<image>.service` -> `ov-<image>-<instance>.service`
+- Container name: `charly-<image>` -> `charly-<image>-<instance>`
+- Volume names: `charly-<image>-<name>` -> `charly-<image>-<instance>-<name>`
+- Quadlet file: `charly-<image>.container` -> `charly-<image>-<instance>.container`
+- Service name: `charly-<image>.service` -> `charly-<image>-<instance>.service`
 
-Source: `ov/volumes.go` (`InstanceVolumes`), `ov/quadlet.go`.
+Source: `charly/volumes.go` (`InstanceVolumes`), `charly/quadlet.go`.
 
 ## Data Provisioning
 
-Data from data layers is automatically provisioned into bind-backed volumes during `charly config` and synced during `charly update`. See `/charly-core:charly-config` for `--seed`/`--force-seed`/`--data-from` flags. Source: `ov/data.go`.
+Data from data layers is automatically provisioned into bind-backed volumes during `charly config` and synced during `charly update`. See `/charly-core:charly-config` for `--seed`/`--force-seed`/`--data-from` flags. Source: `charly/data.go`.
 
 ## Troubleshooting
 
@@ -242,10 +242,10 @@ has a TUNNEL column and the IMAGE column merges `image[/instance]`:
 
 ```
 IMAGE                              STATUS   PORTS                 TUNNEL                  DEVICES  TOOLS
-sway-browser-vnc                   running  5900,9222,9224        -                       dri,gpu  cdp:9222,dbus,ov,supervisord,sway,vnc:5900,wl
-selkies-desktop/work               running  3001,9240             tailscale (all ports)   -        cdp:9240,dbus,ov,supervisord,wl
-selkies-desktop/personal           running  3002,9241             tailscale (all ports)   -        cdp:9241,dbus,ov,supervisord,wl
-ollama                             running  11434                 -                       gpu      dbus,ov,supervisord
+sway-browser-vnc                   running  5900,9222,9224        -                       dri,gpu  cdp:9222,dbus,charly,supervisord,sway,vnc:5900,wl
+selkies-desktop/work               running  3001,9240             tailscale (all ports)   -        cdp:9240,dbus,charly,supervisord,wl
+selkies-desktop/personal           running  3002,9241             tailscale (all ports)   -        cdp:9241,dbus,charly,supervisord,wl
+ollama                             running  11434                 -                       gpu      dbus,charly,supervisord
 jupyter                            stopped  8888                  tailscale (all ports)   -        -
 ```
 
@@ -275,7 +275,7 @@ shapes:
 - **Host probes** (cdp, vnc) run from the operator's machine using the
   port mappings already on `ContainerSnapshot` — no `podman port` /
   `podman inspect` per probe.
-- **Guest probes** (supervisord, dbus, ov, wl, sway) batch into a
+- **Guest probes** (supervisord, dbus, charly, wl, sway) batch into a
   **single `podman exec sh -c '<concat>'`** invocation per container.
   Each probe contributes a `Snippet()` that prints `KEY=value` lines; the
   batcher delimits sections with `===PROBE:<name>===` markers and
@@ -309,12 +309,12 @@ classifies output regardless of exit code.
 Image:     selkies-desktop
 Instance:  work
 Status:    running (Up 3 days)
-Container: ov-selkies-desktop-work
+Container: charly-selkies-desktop-work
 Mode:      quadlet
 Ports:     3001:3000/tcp, 9240:9222/tcp
 Devices:   nvidia.com/gpu=all, /dev/dri/renderD128
 Tools:     cdp:9240 (ok), dbus (ok), charly (ok), supervisord (ok), wl (ok)
-Volumes:   ov-selkies-desktop-work-data -> /home/abc/data
+Volumes:   charly-selkies-desktop-work-data -> /home/abc/data
 Network:   charly
 Tunnel:    tailscale (all ports)
 ```
@@ -340,8 +340,8 @@ ephemeral entries marked `active`, probes the underlying engine
 (libvirt for VM, podman for pod, kubectl for k8s) and runs `charly deploy
 del <name> --force` for orphans.
 
-Source: `ov/status.go`, `ov/status_engine.go`, `ov/status_collector.go`,
-`ov/status_probes.go`, `ov/status_render.go`, `ov/status_reap.go`.
+Source: `charly/status.go`, `charly/status_engine.go`, `charly/status_collector.go`,
+`charly/status_probes.go`, `charly/status_render.go`, `charly/status_reap.go`.
 
 ## Cross-References
 

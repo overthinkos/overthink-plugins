@@ -122,16 +122,16 @@ rejected by `charly box validate` in k8s identifier fields.
 
 ## Implementation
 
-- `ov/k8s_cmd.go` — the 13 `K8s<Method>Cmd` structs + shared
+- `charly/k8s_cmd.go` — the 13 `K8s<Method>Cmd` structs + shared
   `k8sClusterFlags`. Dynamic-client via `k8s.io/client-go/dynamic` +
   `unstructured` walkers, no typed clientset (keeps binary bloat ~5-8 MB
   instead of ~15 MB with the typed clients).
-- `ov/testspec.go:55+` — `K8s` discriminator on `Check` plus the shared
+- `charly/testspec.go:55+` — `K8s` discriminator on `Check` plus the shared
   resource-identity modifiers (`Name`, `Namespace`, `Label`, `Cluster`,
   `Manifest`, `K8sKind`, `K8sContext`, `Kubeconfig`, `K8sCount`,
   `K8sResource`, `K8sGroup`, `K8sVersion`).
-- `ov/testrun_ov_verbs.go` — `k8sMethods` table + `runK8s` dispatcher
+- `charly/testrun_ov_verbs.go` — `k8sMethods` table + `runK8s` dispatcher
   + `posK8s*` flag builders. Matches the existing `runLibvirt` /
   `runSpice` subprocess-delegation pattern.
-- `ov/k8s_config.go:162 LoadClusterProfile` — how `--cluster <name>`
+- `charly/k8s_config.go:162 LoadClusterProfile` — how `--cluster <name>`
   resolves to a kubeconfig + context.

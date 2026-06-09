@@ -17,7 +17,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "lifecycle", "containers", "verbs"],
+      "keywords": ["charly", "lifecycle", "containers", "verbs"],
       "category": "commands"
     },
     {
@@ -29,7 +29,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "build", "authoring", "containerfile"],
+      "keywords": ["charly", "build", "authoring", "containerfile"],
       "category": "commands"
     },
     {
@@ -41,7 +41,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "eval", "probe", "automation", "live"],
+      "keywords": ["charly", "eval", "probe", "automation", "live"],
       "category": "commands"
     },
     {
@@ -53,7 +53,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "tmux", "alias", "udev", "encryption", "sidecar"],
+      "keywords": ["charly", "tmux", "alias", "udev", "encryption", "sidecar"],
       "category": "commands"
     },
     {
@@ -65,7 +65,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "image", "layer", "schema"],
+      "keywords": ["charly", "image", "layer", "schema"],
       "category": "kind"
     },
     {
@@ -77,7 +77,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "vm", "libvirt", "bootc"],
+      "keywords": ["charly", "vm", "libvirt", "bootc"],
       "category": "kind"
     },
     {
@@ -89,7 +89,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "kubernetes", "k8s"],
+      "keywords": ["charly", "kubernetes", "k8s"],
       "category": "kind"
     },
     {
@@ -101,7 +101,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "local", "ssh", "ansible"],
+      "keywords": ["charly", "local", "ssh", "ansible"],
       "category": "kind"
     },
     {
@@ -113,7 +113,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "pod", "deploy"],
+      "keywords": ["charly", "pod", "deploy"],
       "category": "kind"
     },
     {
@@ -125,7 +125,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "development", "internals", "go", "ir", "agents", "workflows"],
+      "keywords": ["charly", "development", "internals", "go", "ir", "agents", "workflows"],
       "category": "development"
     },
     {
@@ -137,7 +137,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "distro", "fedora", "arch", "debian", "ubuntu", "nvidia", "cuda", "bootc"],
+      "keywords": ["charly", "distro", "fedora", "arch", "debian", "ubuntu", "nvidia", "cuda", "bootc"],
       "category": "images"
     },
     {
@@ -149,7 +149,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "python", "pixi"],
+      "keywords": ["charly", "python", "pixi"],
       "category": "images"
     },
     {
@@ -161,7 +161,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "postgresql", "redis", "k3s", "traefik", "tailscale", "supervisord"],
+      "keywords": ["charly", "postgresql", "redis", "k3s", "traefik", "tailscale", "supervisord"],
       "category": "images"
     },
     {
@@ -173,7 +173,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "cli", "tools", "utilities"],
+      "keywords": ["charly", "cli", "tools", "utilities"],
       "category": "images"
     },
     {
@@ -185,19 +185,19 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "jupyter", "notebooks", "mcp", "collaboration", "ml"],
+      "keywords": ["charly", "jupyter", "notebooks", "mcp", "collaboration", "ml"],
       "category": "images"
     },
     {
       "name": "charly-coder",
       "source": "./coder",
-      "description": "Self-contained skills + MCP wiring for charly coder/dev images (arch-coder, debian-coder, fedora-coder, ubuntu-coder, arch-ov). Ships the charly MCP server (port 18765). Bundles language runtimes (golang, rust, nodejs).",
+      "description": "Self-contained skills + MCP wiring for charly coder/dev images (arch-coder, debian-coder, fedora-coder, ubuntu-coder, charly-arch). Ships the charly MCP server (port 18765). Bundles language runtimes (golang, rust, nodejs).",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "coder", "claude-code", "codex", "mcp"],
+      "keywords": ["charly", "coder", "claude-code", "codex", "mcp"],
       "category": "images"
     },
     {
@@ -209,7 +209,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "selkies", "wayland", "desktop", "vnc", "chrome", "mcp"],
+      "keywords": ["charly", "selkies", "wayland", "desktop", "vnc", "chrome", "mcp"],
       "category": "images"
     },
     {
@@ -221,7 +221,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "openclaw", "ai", "chrome", "mcp"],
+      "keywords": ["charly", "openclaw", "ai", "chrome", "mcp"],
       "category": "images"
     },
     {
@@ -233,7 +233,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "marimo", "airflow", "notebook", "geo", "pmtiles", "gpq-tiles", "freestiler", "shortbread", "versatiles", "versatiles-fonts", "maplibre-versatiles-styler", "tilemaker", "mcp"],
+      "keywords": ["charly", "marimo", "airflow", "notebook", "geo", "pmtiles", "gpq-tiles", "freestiler", "shortbread", "versatiles", "versatiles-fonts", "maplibre-versatiles-styler", "tilemaker", "mcp"],
       "category": "images"
     },
     {
@@ -245,7 +245,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "ollama", "llm"],
+      "keywords": ["charly", "ollama", "llm"],
       "category": "images"
     },
     {
@@ -257,7 +257,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "openwebui", "chat", "llm"],
+      "keywords": ["charly", "openwebui", "chat", "llm"],
       "category": "images"
     },
     {
@@ -269,7 +269,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "comfyui", "image-generation", "diffusion"],
+      "keywords": ["charly", "comfyui", "image-generation", "diffusion"],
       "category": "images"
     },
     {
@@ -281,7 +281,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "immich", "photos"],
+      "keywords": ["charly", "immich", "photos"],
       "category": "images"
     },
     {
@@ -293,7 +293,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "hermes", "agent", "playwright"],
+      "keywords": ["charly", "hermes", "agent", "playwright"],
       "category": "images"
     },
     {
@@ -305,7 +305,7 @@
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["ov", "filebrowser", "files"],
+      "keywords": ["charly", "filebrowser", "files"],
       "category": "images"
     }
   ]

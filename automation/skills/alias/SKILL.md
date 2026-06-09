@@ -34,18 +34,18 @@ charly alias uninstall openclaw   # Removes wrapper
 
 ```sh
 #!/bin/sh
-# ov-alias
+# charly-alias
 # image: openclaw
 # command: openclaw
-_ov_q(){ printf "'"; printf '%s' "$1" | sed "s/'/'\\\\''/g"; printf "' "; }
-c="openclaw"; for a in "$@"; do c="$c $(_ov_q "$a")"; done
+_charly_q(){ printf "'"; printf '%s' "$1" | sed "s/'/'\\\\''/g"; printf "' "; }
+c="openclaw"; for a in "$@"; do c="$c $(_charly_q "$a")"; done
 exec charly shell openclaw -c "$c"
 ```
 
 Key details:
-- The `# ov-alias` marker enables safe list/delete scanning
+- The `# charly-alias` marker enables safe list/delete scanning
 - `charly alias remove` verifies the marker before deleting
-- The `_ov_q()` helper properly single-quotes each argument (POSIX sh compatible)
+- The `_charly_q()` helper properly single-quotes each argument (POSIX sh compatible)
 - Arguments are forwarded to `charly shell <image> -c "<command> <args>"`
 
 ## Declaration
@@ -79,7 +79,7 @@ images:
 
 `CollectImageAliases()` gathers aliases from the image's own layers (in dependency order) plus image-level config. **No base chain traversal** -- aliases are leaf-image specific (unlike volumes).
 
-Source: `ov/alias.go`, `ov/layers.go` (`AliasYAML`, `HasAliases`, `Aliases()`).
+Source: `charly/alias.go`, `charly/layers.go` (`AliasYAML`, `HasAliases`, `Aliases()`).
 
 ## Commands
 
@@ -114,7 +114,7 @@ charly alias add mycommand my-image "custom command"   # explicit command
 charly alias remove mycommand
 ```
 
-Only removes if the file contains the `# ov-alias` marker.
+Only removes if the file contains the `# charly-alias` marker.
 
 ### List All Aliases
 
@@ -125,7 +125,7 @@ charly alias list
 # ollama       ollama       ollama
 ```
 
-Scans `~/.local/bin/` for files with the `# ov-alias` marker.
+Scans `~/.local/bin/` for files with the `# charly-alias` marker.
 
 ## Validation Rules
 

@@ -50,7 +50,7 @@ charly remove openclaw -e CLEANUP_MODE=full
 2. Stops the container if still running
 3. Removes the quadlet file (quadlet mode) or container (direct mode)
 4. Removes the deploy.yml entry (unless `--keep-deploy`)
-5. With `--purge`: removes named volumes (`ov-<image>-<name>`)
+5. With `--purge`: removes named volumes (`charly-<image>-<name>`)
 
 ## Lifecycle Hooks
 
@@ -75,4 +75,4 @@ Instance removal automatically cleans the instance's `env_provide` and `mcp_prov
 - `/charly-core:charly-config` -- Configure/reconfigure services (see "Full instance removal" for 3-step cleanup)
 - `/charly-core:deploy` -- Deploy.yml management, tunnel configuration
 - `/charly-core:service` -- Full service lifecycle
-- `/charly-build:charly-mcp-cmd` -- after `charly config remove` cleans this instance's `mcp_provide` from the global `provides.mcp:` list, consumers' `CH_MCP_SERVERS` no longer lists it; use `charly eval mcp servers <consumer>` to confirm the cleanup propagated
+- `/charly-build:charly-mcp-cmd` -- after `charly config remove` cleans this instance's `mcp_provide` from the global `provides.mcp:` list, consumers' `CHARLY_MCP_SERVERS` no longer lists it; use `charly eval mcp servers <consumer>` to confirm the cleanup propagated

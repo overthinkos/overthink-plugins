@@ -3,23 +3,23 @@ name: vm-spec
 description: |
   Go type reference for VmSpec and the discriminated-union source types
   (VmSource cloud_image | bootc). Documents every field, validation rules,
-  and the adopt-user decision. Source files: ov/vm_spec.go, ov/cloud_init_types.go,
-  ov/libvirt_validate.go.
+  and the adopt-user decision. Source files: charly/vm_spec.go, charly/cloud_init_types.go,
+  charly/libvirt_validate.go.
   MUST be invoked before editing VmSpec Go code or authoring vm.yml entries.
 ---
 
 # vm-spec
 
-Go type reference for the VM surface. `VmSpec` + `VmSource` + `VmChecksum` + `VmNetwork` + `VmSSH` + `VmKeyInjection` + `VmCloudInit` + `VmOvInstall` are the canonical types that drive `charly vm build`, `charly vm create`, and `charly deploy add vm:<name>`. This skill is the authoritative Go reference — field semantics, defaults, validation rules, migration history. The YAML-authoring companion is `/charly-vm:vms-catalog`.
+Go type reference for the VM surface. `VmSpec` + `VmSource` + `VmChecksum` + `VmNetwork` + `VmSSH` + `VmKeyInjection` + `VmCloudInit` + `VmCharlyInstall` are the canonical types that drive `charly vm build`, `charly vm create`, and `charly deploy add vm:<name>`. This skill is the authoritative Go reference — field semantics, defaults, validation rules, migration history. The YAML-authoring companion is `/charly-vm:vms-catalog`.
 
 ## Source files
 
 | File | Contents |
 |---|---|
-| `ov/vm_spec.go` | `VmSpec`, `VmSource`, `VmChecksum`, `VmNetwork`, `VmSSH`, `VmKeyInjection` |
-| `ov/cloud_init_types.go` | `VmCloudInit`, `VmCloudInitUser`, `VmCloudInitFile`, `VmCloudInitNetwork`, `VmCloudInitMirrors`, `VmOvInstall` |
-| `ov/libvirt_schema.go` | `LibvirtConfig` + 30+ sub-types (features, CPU, clock, devices, etc.) |
-| `ov/libvirt_validate.go` | `ValidateVmSpec`, `ValidateLibvirtConfig` |
+| `charly/vm_spec.go` | `VmSpec`, `VmSource`, `VmChecksum`, `VmNetwork`, `VmSSH`, `VmKeyInjection` |
+| `charly/cloud_init_types.go` | `VmCloudInit`, `VmCloudInitUser`, `VmCloudInitFile`, `VmCloudInitNetwork`, `VmCloudInitMirrors`, `VmCharlyInstall` |
+| `charly/libvirt_schema.go` | `LibvirtConfig` + 30+ sub-types (features, CPU, clock, devices, etc.) |
+| `charly/libvirt_validate.go` | `ValidateVmSpec`, `ValidateLibvirtConfig` |
 
 ## VmSpec (top-level shape)
 
@@ -44,7 +44,7 @@ Every field except `Source`, `CloudInit`, and `Source`-branch-specific subfields
 
 ### Autostart (boot-start)
 
-`autostart: true` sets libvirt's per-domain autostart flag (`DomainSetAutostart`, in `runVmSpecCreate` after define). Because VMs run under `qemu:///session`, that flag only fires at host boot once the session daemon is running — and there is no portable user-level `virtqemud.socket` to socket-activate it (Arch/CachyOS ships none). So `ensureBootAutostartPrereqs` (`ov/vm.go`) (a) runs `loginctl enable-linger <user>` (idempotent) and (b) writes + enables a per-VM user systemd oneshot `ov-autostart-<domain>.service` that runs `virsh -c qemu:///session start <domain>` at boot (`WantedBy=default.target`); virsh spawns the session daemon on demand and starts the already-defined domain — deterministic and cross-distro. `charly vm destroy` removes the unit (`removeAutostartUserUnit`). The libvirt flag is a domain property (not XML), so it survives `DomainDefineXML` redefinitions; `runVmSpecCreate` re-asserts both on every create/rebuild. `ValidateVmSpec` rejects `autostart: true` with `backend: qemu`. Additive optional field — no schema-version bump.
+`autostart: true` sets libvirt's per-domain autostart flag (`DomainSetAutostart`, in `runVmSpecCreate` after define). Because VMs run under `qemu:///session`, that flag only fires at host boot once the session daemon is running — and there is no portable user-level `virtqemud.socket` to socket-activate it (Arch/CachyOS ships none). So `ensureBootAutostartPrereqs` (`charly/vm.go`) (a) runs `loginctl enable-linger <user>` (idempotent) and (b) writes + enables a per-VM user systemd oneshot `charly-autostart-<domain>.service` that runs `virsh -c qemu:///session start <domain>` at boot (`WantedBy=default.target`); virsh spawns the session daemon on demand and starts the already-defined domain — deterministic and cross-distro. `charly vm destroy` removes the unit (`removeAutostartUserUnit`). The libvirt flag is a domain property (not XML), so it survives `DomainDefineXML` redefinitions; `runVmSpecCreate` re-asserts both on every create/rebuild. `ValidateVmSpec` rejects `autostart: true` with `backend: qemu`. Additive optional field — no schema-version bump.
 
 `DiskSize` is the **virtual** size: the bootstrap path's `truncate` + `qemu-img convert -O qcow2` (no `preallocation`) produces a sparse qcow2 that grows on demand, so `disk_size: 1T` costs only the bytes actually written.
 
@@ -97,7 +97,7 @@ Leave empty **only** when the image has no default account — then declare a cu
 
 ```go
 type VmSSH struct {
-    User         string   // default: cloud_image → "ov" OR base_user; bootc → "root"
+    User         string   // default: cloud_image → "charly" OR base_user; bootc → "root"
     Port         int      // default: 2222
     KeySource    string   // auto | generate | none | <abs-path>
     KeyInjection *VmKeyInjection
@@ -126,10 +126,10 @@ The renderer combines structured fields with renderer defaults:
 
 `Extra` is a raw-YAML escape hatch merged after structured fields. Prefer structured fields; `Extra` exists for long-tail cloud-init options the schema doesn't cover.
 
-## VmOvInstall strategies
+## VmCharlyInstall strategies
 
 ```go
-type VmOvInstall struct {
+type VmCharlyInstall struct {
     Strategy string  // auto | scp | url | skip
     URL      string  // when Strategy == "url"
     Checksum string  // "sha256:<hex>" for url strategy
@@ -143,7 +143,7 @@ type VmOvInstall struct {
 | `url` | cloud-init runcmd downloads charly from URL at first boot |
 | `skip` | user manages charly install; VmDeployTarget verifies presence only |
 
-## Validation (ov/libvirt_validate.go)
+## Validation (charly/libvirt_validate.go)
 
 `ValidateVmSpec` enforces the invariants documented in `/charly-vm:vms-catalog`. Key checks:
 

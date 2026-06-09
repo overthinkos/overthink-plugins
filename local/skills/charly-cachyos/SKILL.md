@@ -1,32 +1,32 @@
 ---
-name: ov-cachyos
+name: charly-cachyos
 description: |
   Operator CachyOS workstation profile — a kind:local template + target:local
   deploy that installs the full dev stack (30 layers) onto a CachyOS host via
   ShellExecutor. Lives in the overthinkos/cachyos submodule.
-  MUST be invoked before editing or applying the ov-cachyos workstation profile.
+  MUST be invoked before editing or applying the charly-cachyos workstation profile.
 ---
 
-# ov-cachyos
+# charly-cachyos
 
 The operator's CachyOS developer-workstation profile: a `kind: local` template
-(`local.ov-cachyos`) plus a `target: local` + `host: local` deploy entry
-(`deploy.ov-cachyos`) that applies a kitchen-sink dev stack directly to the
+(`local.charly-cachyos`) plus a `target: local` + `host: local` deploy entry
+(`deploy.charly-cachyos`) that applies a kitchen-sink dev stack directly to the
 current machine via `ShellExecutor` — no SSH, no VM, no container.
 
 It lives in the **`overthinkos/cachyos`** repo (git submodule at
 **`image/cachyos`**), in that repo's config (its `charly.yml` + per-kind
 sibling files) — both the
-`kind: local` template and its `kind: deploy` entry (`deploy.ov-cachyos`). The
+`kind: local` template and its `kind: deploy` entry (`deploy.charly-cachyos`). The
 repo also carries a sibling `kind: deploy`, `deploy.cachyos-gpu` — the
 **persistent** operator GPU-workstation VM (`target: vm`, **not** `disposable`;
-see `/charly-vm:cachyos`) — so ov-cachyos is no longer the only `kind: deploy`
+see `/charly-vm:cachyos`) — so charly-cachyos is no longer the only `kind: deploy`
 there; every disposable test bed remains `kind: eval`. Apply it with:
 
 ```bash
-charly -C image/cachyos update ov-cachyos
+charly -C image/cachyos update charly-cachyos
 # or, anywhere:
-charly --repo overthinkos/cachyos update ov-cachyos
+charly --repo overthinkos/cachyos update charly-cachyos
 ```
 
 ## What it installs
@@ -49,7 +49,7 @@ repo's `candy/` (resolved via its `discover:` block):
 | `install_opts.builder_image` | `ghcr.io/overthinkos/arch-builder:2026.122.2252` (OCI ref, not a layer) |
 | `install_opts` | with_service, allow_repo_changes, allow_root_tasks all true |
 | `env` | `EDITOR=nvim`, `PAGER=less` |
-| `disposable` (deploy) | `true` — `charly update ov-cachyos` is authorized |
+| `disposable` (deploy) | `true` — `charly update charly-cachyos` is authorized |
 
 ## Deploy-scope eval probes
 
@@ -63,10 +63,10 @@ card-less or VFIO-passthrough host, so the profile applies cleanly anywhere.
 
 ## Composition-by-reference note
 
-`local.ov-cachyos`'s remote layer refs are collected and materialized by the
+`local.charly-cachyos`'s remote layer refs are collected and materialized by the
 same `CollectRemoteRefs` walk as image layer refs: the walk collects the layer
-refs of the ROOT project's own `kind: local` templates (ov-cachyos is the root
-here), so `charly box validate` / `charly update ov-cachyos` resolve the github-ref'd
+refs of the ROOT project's own `kind: local` templates (charly-cachyos is the root
+here), so `charly box validate` / `charly update charly-cachyos` resolve the github-ref'd
 layers. (Collection is reachability-scoped — a namespace's `kind:local`
 templates, imported only as a dependency, are NOT collected by an importer; only
 the root's own locals are. See `/charly-internals:go` "Remote-layer resolver".)
@@ -76,10 +76,10 @@ the root's own locals are. See `/charly-internals:go` "Remote-layer resolver".)
 - `/charly-local:local-spec` — `kind: local` template authoring reference
 - `/charly-local:local-deploy` — the `target: local` deployment surface
 - `/charly-distros:cachyos` — the CachyOS base of the same family
-- `/charly-core:deploy` — deploy entry semantics (cross-kind name reuse: deploy.ov-cachyos ↔ local.ov-cachyos)
+- `/charly-core:deploy` — deploy entry semantics (cross-kind name reuse: deploy.charly-cachyos ↔ local.charly-cachyos)
 
 ## When to Use This Skill
 
-**MUST be invoked** when editing or applying the ov-cachyos workstation profile,
+**MUST be invoked** when editing or applying the charly-cachyos workstation profile,
 or reasoning about the kind:local remote-layer-ref machinery. Invoke BEFORE
 reading source code or launching Explore agents.

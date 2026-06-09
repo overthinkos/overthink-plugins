@@ -30,7 +30,7 @@ Every image's runtime contract is baked into OCI labels at build time, so **a K8
 | **Capabilities** — image's runtime contract | `image.capabilities:` (or layer rollups) | **yes** — every field under `ai.opencharly.*` |
 | **Deployment** — how to run the image | `charly.yml:deployments.<name>` + `~/.config/charly/deploy.yml` overlay | no |
 
-The completeness invariant: every exported field on `BoxMetadata`/`Capabilities` has a `CapabilityLabelMap` entry. A compile-time test enforces this — a new capability field without a label mapping fails the build. See `ov/capabilities.go`.
+The completeness invariant: every exported field on `BoxMetadata`/`Capabilities` has a `CapabilityLabelMap` entry. A compile-time test enforces this — a new capability field without a label mapping fails the build. See `charly/capabilities.go`.
 
 ## Deployment schema — target-agnostic fields
 
@@ -64,7 +64,7 @@ deployments:
         raw: []                       # escape hatch: paths to raw manifests included verbatim
 ```
 
-**Workload kind heuristic** (inside `ov/k8s_generate.go`):
+**Workload kind heuristic** (inside `charly/k8s_generate.go`):
 
 ```
 kind: service   + storage: []       → Deployment
@@ -157,11 +157,11 @@ charly deploy sync openclaw                   # kubectl apply -k ...
 
 ## Relevant code
 
-- `ov/k8s_config.go` — `K8sDeployConfig` + `ClusterProfile` + `LoadClusterProfile`
-- `ov/k8s_target.go` — `K8sDeployTarget` (fourth DeployTarget alongside OCI / container / host)
-- `ov/k8s_generate.go` — `GenerateK8sKustomize` + workload-kind heuristic + Ingress/PVC emission
-- `ov/k8s_deploy_from_image.go` — `DeployFromImage`
-- `ov/capabilities.go` — `Capabilities` (alias of `BoxMetadata`) + `CapabilityLabelMap` + completeness check
+- `charly/k8s_config.go` — `K8sDeployConfig` + `ClusterProfile` + `LoadClusterProfile`
+- `charly/k8s_target.go` — `K8sDeployTarget` (fourth DeployTarget alongside OCI / container / host)
+- `charly/k8s_generate.go` — `GenerateK8sKustomize` + workload-kind heuristic + Ingress/PVC emission
+- `charly/k8s_deploy_from_image.go` — `DeployFromImage`
+- `charly/capabilities.go` — `Capabilities` (alias of `BoxMetadata`) + `CapabilityLabelMap` + completeness check
 
 ## Related skills
 

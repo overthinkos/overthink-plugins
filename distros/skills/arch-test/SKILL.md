@@ -13,7 +13,7 @@ Test image that validates both `pac:` (pacman) and `aur:` (AUR) package formats 
 **`image/arch`**). The test layers `arch-pac-test` / `arch-aur-test` are vendored
 locally in this repo's `candy/` (resolved via its `discover:` block); the `arch`
 base + `arch-builder` come from main's `base.yml`, reached via the submodule's
-`import:` of the main repo under the `ov` namespace — `base: ov.arch`. Build from
+`import:` of the main repo under the `charly` namespace — `base: charly.arch`. Build from
 the submodule: `cd image/arch && charly box build arch-test`.
 
 ## Image Properties

@@ -90,7 +90,7 @@ vms:
         - pacman-key --init
         - pacman-key --populate archlinux
         - systemctl enable --now spice-vdagentd
-      ov_install:
+      charly_install:
         strategy: auto
     libvirt:
       devices:
@@ -122,7 +122,7 @@ another machine Just Works against a libvirt session here.
 virt-manager --connect qemu+ssh://o.atrawog.org/session
 ```
 
-Double-click `ov-arch`. The SPICE console opens. Under the
+Double-click `charly-arch`. The SPICE console opens. Under the
 hood, virt-manager (and the `virt-viewer --connect qemu+ssh://…
 --attach <vm>` path it uses internally) reads the domain XML, sees
 `<listen type='socket' socket='/…/spice.sock'/>`, and auto-tunnels by
@@ -138,7 +138,7 @@ host.**
 
 **Required host dep**: `nc` (openbsd-netcat on Arch, netcat-openbsd on
 Debian/Ubuntu, nmap-ncat on Fedora) must be installed on the libvirt
-host. ov's `setup.sh` and `pkg/arch/PKGBUILD` install it automatically.
+host. charly's `setup.sh` and `pkg/arch/PKGBUILD` install it automatically.
 Without `nc`, virt-manager hangs at "Connecting to graphical console
 for guest" — no error, just silent failure. Diagnose with
 `ssh <host> which nc` (should return a path).
@@ -156,7 +156,7 @@ charly eval libvirt info arch --uri qemu+ssh://o.atrawog.org/session
 
 `charly` opens an SSH connection, forwards the remote SPICE UNIX socket to a
 local socket, and dials it — all transparent to the user. Set
-`CH_LIBVIRT_URI=qemu+ssh://o.atrawog.org/session` to avoid repeating the flag.
+`CHARLY_LIBVIRT_URI=qemu+ssh://o.atrawog.org/session` to avoid repeating the flag.
 
 ### `charly --host o` (run charly on the remote machine)
 
@@ -261,7 +261,7 @@ Root cause: `pacman -S spice-vdagent` pulls in GTK3 + X11 (~200 MB download, ~1 
 
 ## Finding D — SSH key idempotency across rebuilds
 
-`charly vm build` + `charly vm create` called repeatedly should NOT regenerate the SSH keypair. Implementation idempotency lives in `ov/vm_cloud_image.go::generateSSHKeypair` — it checks for `~/.local/share/charly/vm/charly-<name>/id_ed25519.pub` before creating. See `/charly-internals:vm-deploy-target` for the state persistence flow (VmDeployState in `deploy.yml`).
+`charly vm build` + `charly vm create` called repeatedly should NOT regenerate the SSH keypair. Implementation idempotency lives in `charly/vm_cloud_image.go::generateSSHKeypair` — it checks for `~/.local/share/charly/vm/charly-<name>/id_ed25519.pub` before creating. See `/charly-internals:vm-deploy-target` for the state persistence flow (VmDeployState in `deploy.yml`).
 
 ## Adopt pattern in action
 
@@ -282,8 +282,8 @@ cloud-init appends the pubkey to `/home/arch/.ssh/authorized_keys` without calli
 
 ### Rebuild + boot
 ```bash
-virsh -c qemu:///session destroy ov-arch 2>/dev/null
-virsh -c qemu:///session undefine --nvram ov-arch 2>/dev/null
+virsh -c qemu:///session destroy charly-arch 2>/dev/null
+virsh -c qemu:///session undefine --nvram charly-arch 2>/dev/null
 rm -f ~/.local/share/charly/vm/charly-arch/nvram.fd
 rm -f output/qcow2/{disk.qcow2,seed.iso}
 charly vm build arch
@@ -292,7 +292,7 @@ charly vm create arch --no-auto-detect
 
 ### BIOS firmware + virtio-gpu took effect
 ```bash
-virsh -c qemu:///session dumpxml ov-arch \
+virsh -c qemu:///session dumpxml charly-arch \
   | grep -E "<loader|<nvram|<firmware|<type arch|<model type"
 ```
 Pass: NO `<loader>` / `<nvram>` / `<firmware>` elements; `<model type='virtio'>` inside `<video>`.
@@ -342,7 +342,7 @@ Pass: `active` + version printed.
 - `/charly-core:deploy` — `charly deploy add vm:arch <layer>` for in-guest layer application
 - `/charly-internals:vm-spec` — Go types and validation rules
 - `/charly-internals:libvirt-renderer` — `<backend type='passt'/>` for portForward, virtio-gpu video model
-- `/charly-internals:cloud-init-renderer` — `composeUsers` adopt-merge, seed ISO, `ov_install.strategy: auto`
+- `/charly-internals:cloud-init-renderer` — `composeUsers` adopt-merge, seed ISO, `charly_install.strategy: auto`
 - `/charly-internals:ovmf` — why `firmware: bios` skips `<loader>`/`<nvram>` emission entirely
 - `/charly-internals:vm-deploy-target` — SSH key idempotency, VmDeployState persistence
 - `/charly-distros:cloud-init` — guest-side cloud-init layer (complementary to host-side emission)

@@ -19,7 +19,7 @@ no caps, `unmask=/proc/*` via `/charly-distros:container-nesting`).
 | Property | Value |
 |----------|-------|
 | Base | cachyos (`cachyos.cachyos`) |
-| Layers | agent-forwarding, github-runner, ov, dbus, container-nesting |
+| Layers | agent-forwarding, github-runner, charly, dbus, container-nesting |
 | Build | pac |
 | Platforms | linux/amd64 |
 | UID / user | **1000 / user** (rootless — NO uid/privileged override) |
@@ -77,7 +77,7 @@ PKGBUILD `depends=` set, all three package formats build here:
 `workflow_dispatch` runs the build jobs from a branch (the release-upload step is
 tag-guarded), so the build is exercisable without minting a tag. The `github-runner`
 layer completes the `charly` runtime on the runner — beyond the .NET/runner deps it adds
-the `depends=` packages the ov/virtualization layers don't already provide
+the `depends=` packages the charly/virtualization layers don't already provide
 (`slirp4netns`, `libisoburn`, `cdrtools`, `swtpm`).
 
 ## Token mechanism (credential-backed; obtained via `gh`)
@@ -116,7 +116,7 @@ charly remove githubrunner -e RUNNER_TOKEN=<remove-token>
 
 ## Key Layers
 
-- `/charly-distros:github-runner` — runner agent, hooks, registration, ghcr mirror, .NET deps + the ov-host `depends=` completion (native pac builds in CI)
+- `/charly-distros:github-runner` — runner agent, hooks, registration, ghcr mirror, .NET deps + the charly-host `depends=` completion (native pac builds in CI)
 - `/charly-distros:container-nesting` — rootless nested podman/buildah/skopeo, subuid layout, caps
 - `/charly-tools:charly` — the charly binary + virtualization + gocryptfs + socat
 - `/charly-distros:agent-forwarding` — GPG/SSH/direnv for the `.secrets` workflow
@@ -125,7 +125,7 @@ charly remove githubrunner -e RUNNER_TOKEN=<remove-token>
 
 - `/charly-distros:cachyos` — the CachyOS base (parent, via the `cachyos` namespace)
 - `/charly-openclaw:openclaw-desktop` — same rootless container-nesting posture (uid 1000, no caps)
-- `/charly-distros:fedora-ov`, `/charly-coder:arch-ov` — the charly-toolchain siblings (root path, image-level full-hammer security)
+- `/charly-distros:charly-fedora`, `/charly-coder:charly-arch` — the charly-toolchain siblings (root path, image-level full-hammer security)
 
 ## Related Commands
 

@@ -24,7 +24,7 @@ selkies-labwc-nvidia:
     - pac
     - aur
   builder:
-    pixi: ov.cuda-arch-builder
+    pixi: charly.cuda-arch-builder
   candy:
     - agent-forwarding
     - selkies-desktop
@@ -65,7 +65,7 @@ selkies-labwc-nvidia:
 
 ## REAL NVENC via the CUDA arch-builder
 
-`builder.pixi: ov.cuda-arch-builder` selects the CUDA-equipped pixi builder, whose
+`builder.pixi: charly.cuda-arch-builder` selects the CUDA-equipped pixi builder, whose
 `nvcc` + ffnvcodec NVENC headers let the `selkies` layer's `build.sh` compile
 pixelflux's real `nvenc-sys` encoder. The stock `arch-builder` has no CUDA, so it
 builds the NVENC stub — that is why the GPU images override `builder.pixi` to the
@@ -76,7 +76,7 @@ VAAPI.
 ## Difference from selkies-labwc (CPU sibling)
 
 Same layers, but on a GPU base that includes the full CUDA toolkit, plus the
-`builder.pixi: ov.cuda-arch-builder` override that builds the real NVENC encoder.
+`builder.pixi: charly.cuda-arch-builder` override that builds the real NVENC encoder.
 Use a GPU variant for hardware H.264 encoding (zero CPU overhead); the CPU sibling
 `selkies-labwc` runs on the plain `cachyos` base with software x264 / VAAPI.
 

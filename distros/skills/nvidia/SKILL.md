@@ -55,8 +55,8 @@ charly shell nvidia
 
 - `/charly-distros:fedora` — parent base (no GPU)
 - `/charly-distros:cachyos` — `cachyos.nvidia` is the CachyOS GPU-base sibling (Arch/CachyOS GPU stack)
-- `/charly-coder:arch-ov` — Arch Linux charly toolchain with nvidia (shared layers)
-- `/charly-distros:fedora-ov` — Fedora charly toolchain with nvidia (shared layers)
+- `/charly-coder:charly-arch` — Arch Linux charly toolchain with nvidia (shared layers)
+- `/charly-distros:charly-fedora` — Fedora charly toolchain with nvidia (shared layers)
 
 ## Verification
 

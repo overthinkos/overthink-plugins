@@ -43,7 +43,7 @@ All commands accept `-i INSTANCE` for multi-instance support.
 
 ## Architecture
 
-1. Resolves the container name from image + instance (`ov-<image>[-<instance>]`)
+1. Resolves the container name from image + instance (`charly-<image>[-<instance>]`)
 2. Discovers the mapped port 9222 via `podman port` / `docker port`
 3. **HTTP API** (`/json/list`, `/json/new?url=`, `/json/close/<id>`) for list, open, and close
 4. **CDP WebSocket** for interactive operations (click, type, eval, wait, text, html, screenshot, cdp)
@@ -238,7 +238,7 @@ Key enablers:
 
 **Stale port 1455:** If a previous OAuth attempt left port 1455 occupied: `charly shell $IMG -c 'kill -9 $(ss -tlnp sport = :1455 | grep -oP "pid=\K\d+")'`
 
-Source: `ov/cdp.go`, `ov/vnc.go`.
+Source: `charly/cdp.go`, `charly/vnc.go`.
 
 ## Google Sign-In Automation
 

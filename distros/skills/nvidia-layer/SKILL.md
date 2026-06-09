@@ -64,7 +64,7 @@ nvidia-ctk skips CDI gen.
 
 NVIDIA VAAPI acceleration requires the container to know which DRM render node to bind the EGL context against. On multi-GPU hosts there may be `/dev/dri/renderD128`, `/dev/dri/renderD129`, … and the correct one depends on which physical card backs the NVIDIA driver.
 
-`charly` does **not** bake a hardcoded `DRINODE=/dev/dri/renderD128` into this layer. Instead, it auto-detects the correct render node at container-launch time and injects it as an environment variable. The detection + injection is consolidated in a single function, `appendAutoDetectedEnv()` in `ov/devices.go`, which is called by `charly config`, `charly start`, and `charly shell` — so the three commands always produce the same env set.
+`charly` does **not** bake a hardcoded `DRINODE=/dev/dri/renderD128` into this layer. Instead, it auto-detects the correct render node at container-launch time and injects it as an environment variable. The detection + injection is consolidated in a single function, `appendAutoDetectedEnv()` in `charly/devices.go`, which is called by `charly config`, `charly start`, and `charly shell` — so the three commands always produce the same env set.
 
 Selkies is the primary consumer: pixelflux's Wayland compositor uses `DRINODE` to open the render node and set up the VAAPI H.264 encoder. Without the injection, selkies would fall back to software encode (`libx264`) and lose ~40% of its streaming bandwidth budget.
 
@@ -84,8 +84,8 @@ Creates Vulkan ICD compatibility symlinks for nvidia-ctk CDI device injection.
 
 - `/charly-distros:nvidia` — Fedora NVIDIA GPU base image (nvidia + cuda layers)
 - `/charly-distros:cachyos` — `cachyos.nvidia`, the CachyOS GPU base (cachyos + agent-forwarding + nvidia + cuda); the nvidia/cuda layers being multi-distro (rpm + pac) is what lets this Arch/CachyOS GPU base reuse them unchanged
-- `/charly-coder:arch-ov` — Arch Linux charly toolchain (shared layers + nvidia)
-- `/charly-distros:fedora-ov` — Fedora charly toolchain (shared layers + nvidia)
+- `/charly-coder:charly-arch` — Arch Linux charly toolchain (shared layers + nvidia)
+- `/charly-distros:charly-fedora` — Fedora charly toolchain (shared layers + nvidia)
 
 ## Related Layers
 

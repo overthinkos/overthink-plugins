@@ -43,7 +43,7 @@ charly stop immich --unmount
 
 ## Behavior
 
-- **Quadlet mode:** Runs `systemctl --user stop ov-<image>.service`
+- **Quadlet mode:** Runs `systemctl --user stop charly-<image>.service`
 - **Direct mode:** Runs `<engine> stop <container>`
 - Does not remove the container or its configuration -- use `charly remove` for that
 - Does not disable the service -- the container may restart on next login if enabled

@@ -6,5 +6,5 @@
   "homepage": "https://github.com/overthinkos/overthink",
   "repository": "https://github.com/overthinkos/overthink-plugins",
   "license": "MIT",
-  "keywords": ["ov", "eval", "probe", "automation", "live"]
+  "keywords": ["charly", "eval", "probe", "automation", "live"]
 }

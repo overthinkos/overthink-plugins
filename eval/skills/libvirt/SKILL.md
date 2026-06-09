@@ -25,7 +25,7 @@ charly eval libvirt events     [<vm>]                   # poll lifecycle state t
 ```
 
 **Remote libvirt via `--uri`.** Every verb accepts `--uri
-qemu+ssh://[user@]host/session` (also honored as `CH_LIBVIRT_URI`). When
+qemu+ssh://[user@]host/session` (also honored as `CHARLY_LIBVIRT_URI`). When
 set, `charly` opens an SSH connection to the remote host, discovers the
 remote virtqemud session socket via `id -u`, and forwards it over the
 SSH channel — so `DomainScreenshot`, `DomainSendKey`, QMP, etc. all
@@ -83,7 +83,7 @@ choices:
   and re-encoded as PNG. Independent of whichever graphics protocol
   (SPICE or VNC) the VM exposes on the wire.
 - **send-key** uses Linux keycode set via `DomainSendKey`. Friendly
-  keyname map in `ov/libvirt_ops.go` covers letters/digits/modifiers/
+  keyname map in `charly/libvirt_ops.go` covers letters/digits/modifiers/
   arrows/function keys. Supports chord notation (`"ctrl+alt+F2"`).
 - **passwd** patches the `<graphics type="spice|vnc" passwd="…">`
   attribute via `libvirtxml`, then calls
@@ -143,7 +143,7 @@ not reachable.
 
 ### Cloud-image VM packages: also include `portaudio`
 
-When a cloud-image VM uses `ov_install.strategy: auto` (the modern
+When a cloud-image VM uses `charly_install.strategy: auto` (the modern
 default), VmDeployTarget scps the **host** `charly` binary into the guest
 post-boot. The host binary is built with cgo (the
 `gordonklaus/portaudio` binding for SPICE audio — see
@@ -193,12 +193,12 @@ For ambiguous tests, run both and diff the results.
 
 ## Implementation pointers
 
-- `ov/libvirt_cmd.go` — Kong command tree + all verb implementations.
-- `ov/libvirt_ops.go` — shared helpers (screenshot PPM→PNG decode,
+- `charly/libvirt_cmd.go` — Kong command tree + all verb implementations.
+- `charly/libvirt_ops.go` — shared helpers (screenshot PPM→PNG decode,
   key-name → Linux keycode map).
-- `ov/libvirt_guest_agent.go` — typed client over
+- `charly/libvirt_guest_agent.go` — typed client over
   QEMUDomainAgentCommand with methods for every QGA command in use.
-- `ov/vm_target.go` — shared target resolution; `VmTarget.XML`
+- `charly/vm_target.go` — shared target resolution; `VmTarget.XML`
   gives you the live `libvirtxml.Domain` for fast field lookups.
 
 ## Dependencies

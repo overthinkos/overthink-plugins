@@ -29,7 +29,7 @@ can compose it.
 | `security_opt` | `unmask=/proc/*` |
 | `devices` | `/dev/fuse`, `/dev/net/tun` |
 | Volumes | `storage` at `/var/lib/containers/storage` (only used by root images) |
-| Env | `CH_BUILD_ENGINE=podman`, `CH_RUN_ENGINE=podman`, `_CONTAINERS_USERNS_CONFIGURED=""`, `BUILDAH_ISOLATION=chroot` |
+| Env | `CHARLY_BUILD_ENGINE=podman`, `CHARLY_RUN_ENGINE=podman`, `_CONTAINERS_USERNS_CONFIGURED=""`, `BUILDAH_ISOLATION=chroot` |
 
 ## Packages
 
@@ -131,7 +131,7 @@ masking entirely), this is the least-privilege fix available.
 ## Subuid / subgid layout (must fit inside the outer namespace)
 
 `charly shell` launches the outer container with `--userns=keep-id:uid=1000,gid=1000`
-(default — see `ov/shell.go:254`). That creates a uid_map inside the
+(default — see `charly/shell.go:254`). That creates a uid_map inside the
 outer of:
 
 ```
@@ -151,7 +151,7 @@ user:1:999
 user:1001:64535
 ```
 
-…plus a full-range entry for root (used by `fedora-ov`/`arch-ov`/
+…plus a full-range entry for root (used by `charly-fedora`/`charly-arch`/
 `githubrunner`, which run as uid 0):
 
 ```
@@ -271,12 +271,12 @@ OCI env of any image composing this layer.
 
 ## Image-level compatibility (union semantics)
 
-`ov/security.go:66-97` **unions** image-level `CapAdd`, `SecurityOpt`,
+`charly/security.go:66-97` **unions** image-level `CapAdd`, `SecurityOpt`,
 `Devices` onto the layer-level merged set (via `appendUnique`). Image
 values can only ADD, never strip.
 
 Consequence: images that want the old full-hammer posture
-(`fedora-ov`, `arch-ov`, `githubrunner`) must assert it at the image
+(`charly-fedora`, `charly-arch`, `githubrunner`) must assert it at the image
 level, not expect this layer to donate it. Their `box.yml` entries
 carry:
 
@@ -320,7 +320,7 @@ openclaw-desktop:
 
 ```yaml
 # box.yml
-fedora-ov:
+charly-fedora:
   base: fedora
   uid: 0
   gid: 0
@@ -369,8 +369,8 @@ this order:
 ## Used In Images
 
 - `/charly-openclaw:openclaw-desktop` — rootless path; image-level adds nothing
-- `/charly-distros:fedora-ov` — root path; image-level adds `cap_add:[ALL] + security_opt:[label=disable, seccomp=unconfined]`
-- `/charly-coder:arch-ov` — same root path as fedora-charly
+- `/charly-distros:charly-fedora` — root path; image-level adds `cap_add:[ALL] + security_opt:[label=disable, seccomp=unconfined]`
+- `/charly-coder:charly-arch` — same root path as charly-fedora
 - `/charly-distros:githubrunner` — same root path; doesn't compose the full charly toolchain but keeps nested podman for CI workloads
 
 ## Related Layers
@@ -393,7 +393,7 @@ this order:
 - Authoring or debugging any layer/image that needs nested podman, buildah, or skopeo.
 - Chasing `mount_too_revealing` / `mount proc to proc: Operation not permitted` errors — this is the authoritative RCA.
 - Choosing between `--privileged`, `cap_add: ALL`, and `unmask=/proc/*` — this skill documents why the surgical `unmask` fix is the minimum-privilege path and the others are hammers.
-- Evaluating the security posture of `/charly-openclaw:openclaw-desktop`, `/charly-distros:fedora-ov`, `/charly-coder:arch-ov`, or `/charly-distros:githubrunner`.
+- Evaluating the security posture of `/charly-openclaw:openclaw-desktop`, `/charly-distros:charly-fedora`, `/charly-coder:charly-arch`, or `/charly-distros:githubrunner`.
 
 ## Related
 

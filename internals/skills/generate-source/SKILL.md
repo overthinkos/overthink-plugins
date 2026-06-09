@@ -4,7 +4,7 @@ description: |
   Containerfile generation: understanding charly box generate output, multi-stage builds,
   intermediate images, and the .build/ directory. Use when debugging or understanding
   generated Containerfiles.
-  MUST be invoked before reading or modifying any Go source file in ov/.
+  MUST be invoked before reading or modifying any Go source file in charly/.
 ---
 
 # Generate - Containerfile Generation
@@ -50,7 +50,7 @@ The generated Containerfile follows this order:
 
 ## Task emission pipeline
 
-All install-task logic lives in a single file: `ov/tasks.go` (~380 lines). Authored layer-side as `task:` list in `candy.yml`; emitted as Containerfile directives via this sequence per layer inside `writeLayerSteps` (`ov/generate.go:1021`):
+All install-task logic lives in a single file: `charly/tasks.go` (~380 lines). Authored layer-side as `task:` list in `candy.yml`; emitted as Containerfile directives via this sequence per layer inside `writeLayerSteps` (`charly/generate.go:1021`):
 
 ```
 1. # Layer: <name>                 (comment header)
@@ -74,9 +74,9 @@ All install-task logic lives in a single file: `ov/tasks.go` (~380 lines). Autho
 6. USER root reset (unless last layer + skipRootReset)
 ```
 
-### `Task` struct (`ov/layers.go:195`)
+### `Task` struct (`charly/layers.go:195`)
 
-Flat struct with verb-discriminator fields. Exactly one of `Cmd` / `Mkdir` / `Copy` / `Write` / `Link` / `Download` / `Setcap` / `Build` must be non-empty. Shared modifiers (`User`, `Mode`, `To`, `Target`, `Content`, `Extract`, `Include`, `Env`, `Caps`, `Comment`) are validated per-verb in `ov/validate.go:validateLayerTasks`.
+Flat struct with verb-discriminator fields. Exactly one of `Cmd` / `Mkdir` / `Copy` / `Write` / `Link` / `Download` / `Setcap` / `Build` must be non-empty. Shared modifiers (`User`, `Mode`, `To`, `Target`, `Content`, `Extract`, `Include`, `Env`, `Caps`, `Comment`) are validated per-verb in `charly/validate.go:validateLayerTasks`.
 
 ```go
 func (t *Task) Kind() (string, error)   // returns verb or error ("no action" / "conflicting actions")
@@ -84,7 +84,7 @@ func (t *Task) Kind() (string, error)   // returns verb or error ("no action" / 
 
 The `Layer` struct that feeds emission carries its `require:` / `layer:` refs as `[]CandyRef` (one typed list each — no parallel bare/raw arrays), and its `Has*` predicates (`HasEnv`/`HasPorts`/`HasVolumes`/…) are derived methods (only the filesystem-probe caches like `HasPixiToml` stay fields). Layers are populated by the single `populateLayerFromYAML`. Which layers reach this emission pipeline is decided upstream by the reachability-scoped, per-entity-version resolver (the git tag is the fetch coordinate; the layer's own `version:` is the identity) — see `/charly-internals:go` "Remote-layer resolver".
 
-### Emitter helpers (all in `ov/tasks.go`)
+### Emitter helpers (all in `charly/tasks.go`)
 
 | Helper | Output |
 |---|---|
@@ -97,7 +97,7 @@ The `Layer` struct that feeds emission carries its `require:` / `layer:` refs as
 | `emitSetcapBatch(b, []Task, img)` | `RUN setcap -r … && setcap caps path …` |
 | `emitCmd(b, Task, layerStage, img, userIsRoot)` | `RUN --mount=type=bind,from=<layerStage>,source=/,target=/ctx [--mount=type=cache,…] bash -c $'BUILD_ARCH=$(uname -m)\nset -e\n<command>'` (ANSI-C `$'...'` quoting — see below) |
 
-### Shell-quoting helpers (`ov/tasks.go`)
+### Shell-quoting helpers (`charly/tasks.go`)
 
 Two helpers in `tasks.go` handle the two shell-quoting problems that
 come up when embedding scripts and JSON into a Containerfile:
@@ -218,7 +218,7 @@ COPY candy/mylib/ /
 ## Auto-Intermediate Images — grouping by `(Base, UID)`
 
 Sibling images that share the same base are grouped by
-`ComputeIntermediates` in `ov/intermediates.go` so repeated layer
+`ComputeIntermediates` in `charly/intermediates.go` so repeated layer
 prefixes become shared intermediate images (the `fedora-nonfree-ssh-client-dbus`
 pattern). The grouping key is `siblingKey{base, uid}`, not a bare base
 string: grouping on base alone would collapse images with **different
@@ -233,7 +233,7 @@ appends `-uid<N>` to the intermediate name so OCI tags don't collide
 with the default-UID variant.
 
 ```go
-// ov/intermediates.go (abridged)
+// charly/intermediates.go (abridged)
 type siblingKey struct {
     base string
     uid  int
@@ -261,7 +261,7 @@ protection against any future uid=0 image — it stays in place because
 the defensive grouping is cheap (one extra struct field) and prevents
 a whole class of silent PATH regressions.
 
-Covered by `ov/intermediates_test.go` (the test images construct
+Covered by `charly/intermediates_test.go` (the test images construct
 `ResolvedImage{}` without an explicit UID, so they trip `uid=0` →
 `-uid0` naming).
 
@@ -269,7 +269,7 @@ Covered by `ov/intermediates_test.go` (the test images construct
 
 **All OCI LABEL directives are emitted at the end of the final stage**,
 after the last `USER` directive. This is an intentional cache-efficiency
-choice driven by `ov/generate.go`'s `writeLabels` call being placed
+choice driven by `charly/generate.go`'s `writeLabels` call being placed
 after `writeLayerSteps` + the final `USER` emission.
 
 Why it matters: the `ai.opencharly.eval` LABEL is the most-volatile
@@ -293,7 +293,7 @@ runtime consumers (`charly config`, `charly start`, `charly status`, `charly eva
 
 ### LABEL JSON escaping (`writeJSONLabel`)
 
-`writeJSONLabel` in `ov/generate.go` routes every LABEL value through
+`writeJSONLabel` in `charly/generate.go` routes every LABEL value through
 `shellSingleQuote` before emitting `LABEL key=<quoted>`. This is
 required because test/task commands often contain literal `'` characters
 (e.g. `awk '{print $1}'`, `sed 's/foo/bar/'`) which JSON preserves
@@ -320,7 +320,7 @@ build cache-hits. A CalVer bump on an unchanged upstream is free.
 The `ai.opencharly.version` LABEL baked into each image is likewise NOT a
 per-build timestamp — it's the content-derived `EffectiveVersion` (the image's
 dedicated `version:`, else the highest layer `version:` across the chain; computed
-by `computeEffectiveVersions` in `ov/effective_version.go`). It is STABLE across
+by `computeEffectiveVersions` in `charly/effective_version.go`). It is STABLE across
 builds when no layer changed, so it does not shift the image's config → SHA and
 therefore does not cascade cache-misses to children via `FROM`. Only a real
 content change (a bumped layer `version:`) moves it.
@@ -364,7 +364,7 @@ distro:
     base_user: { name: ubuntu, uid: 1000, gid: 1000, home: /home/ubuntu }
 ```
 
-`ov/config.go:ResolveImage` reconciles this against the image's `user_policy:`:
+`charly/config.go:ResolveImage` reconciles this against the image's `user_policy:`:
 
 - `auto` (default) — adopt `base_user` when declared AND image didn't explicitly set `user:`.
 - `adopt` — always adopt; hard-errors without a declaration.
@@ -374,7 +374,7 @@ When adopt fires, `resolved.User` / `UID` / `GID` / `Home` are overwritten and `
 
 ### writeBootstrap — two emission branches
 
-`ov/generate.go:writeBootstrap` keys on `img.UserAdopted`:
+`charly/generate.go:writeBootstrap` keys on `img.UserAdopted`:
 
 **Adopt (no useradd):**
 ```dockerfile
@@ -401,11 +401,11 @@ The create branch uses the `if !` form (rather than a `getent passwd <UID> >/dev
 
 Pulls the base image via go-containerregistry and extracts `/etc/passwd` to auto-detect the home dir. The declarative `base_user:` approach is preferred (simpler, no network round-trip, explicit intent); `InspectImageUser` remains as a fallback for bases without a `base_user:` declaration.
 
-Source: `ov/config.go:ResolveImage` (policy reconciliation), `ov/generate.go:writeBootstrap` (emission), `ov/format_config.go:BaseUserDef` (struct), `ov/registry.go:InspectImageUser` (fallback).
+Source: `charly/config.go:ResolveImage` (policy reconciliation), `charly/generate.go:writeBootstrap` (emission), `charly/format_config.go:BaseUserDef` (struct), `charly/registry.go:InspectImageUser` (fallback).
 
 ## Tag-section install emission
 
-Distro-version tag sections (`debian:13:`, `ubuntu:24.04:`, etc.) are resolved via first-match-wins on the image's `distro:` priority list. Tag sections use the primary format's **full** install template — so they can carry `repos:`, `keys:`, `options:`, and `package:`, not just packages alone. The generator reads each tag section's full YAML map via `ov/layers.go:TagPkgConfig.Raw`.
+Distro-version tag sections (`debian:13:`, `ubuntu:24.04:`, etc.) are resolved via first-match-wins on the image's `distro:` priority list. Tag sections use the primary format's **full** install template — so they can carry `repos:`, `keys:`, `options:`, and `package:`, not just packages alone. The generator reads each tag section's full YAML map via `charly/layers.go:TagPkgConfig.Raw`.
 
 ## OCI Labels
 
@@ -449,9 +449,9 @@ Built images embed runtime metadata as labels (prefix: `ai.opencharly.`), making
 
 Tunnel configuration is NOT an OCI label — it is a deploy-time concern carried in `deploy.yml` only.
 
-Volumes use short names in labels (prefix `ov-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `ov/labels.go`) plus `deploy.yml` overlay — they never touch `box.yml` at runtime. That's why `charly shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `charly box pull`). See `/charly-image:image` for the build/deploy boundary and `/charly-build:pull` for the sentinel pattern. Labels also include `ai.opencharly.init` for init system identification and `ai.opencharly.service.<init>` for per-init service lists.
+Volumes use short names in labels (prefix `charly-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `charly/labels.go`) plus `deploy.yml` overlay — they never touch `box.yml` at runtime. That's why `charly shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `charly box pull`). See `/charly-image:image` for the build/deploy boundary and `/charly-build:pull` for the sentinel pattern. Labels also include `ai.opencharly.init` for init system identification and `ai.opencharly.service.<init>` for per-init service lists.
 
-Source: `ov/labels.go`, `ov/generate.go` (`writeLabels`).
+Source: `charly/labels.go`, `charly/generate.go` (`writeLabels`).
 
 ## Runtime-Only Features
 
@@ -477,7 +477,7 @@ UID/GID in cache mounts are dynamic (from resolved image config). All non-root c
 
 ### Download caching + the generic `cache:` modifier (`emitDownload` / `taskCacheMounts`)
 
-`emitDownload` (`ov/tasks.go`) writes every `download:` to a **content-addressed**
+`emitDownload` (`charly/tasks.go`) writes every `download:` to a **content-addressed**
 file in the `/tmp/downloads` cache mount: `__c=/tmp/downloads/$(printf %s "$url"
 | sha256sum | cut -c1-64)`, fetched only when absent (`[ -s "$__c" ] ||`), via
 `curl -o "$__c.part" && mv -f "$__c.part" "$__c"` (atomic rename — a
@@ -485,7 +485,7 @@ partial/corrupt download is never reused), then the extractor reads `"$__c"`.
 So a file fetched once survives an upstream layer cache-miss instead of
 re-downloading (the prior code declared the mount but streamed curl past it).
 
-`taskCacheMounts(t, img)` (`ov/tasks.go`) renders a task's layer-declared
+`taskCacheMounts(t, img)` (`charly/tasks.go`) renders a task's layer-declared
 `cache:` paths as cache-mount flags, ownership derived from the task's `user:`
 via `resolveUserSpec` (root → `SharedCacheMount`, else → `OwnedCacheMount`).
 Honored by `emitCmd` and `emitDownload`. Lets any task persist heavy
@@ -519,11 +519,11 @@ charly box inspect my-image --format layers      # Shows layer list for an image
 
 - `/charly-image:layer` — **Canonical author-facing reference** for the task verb catalog, `var:` substitution, YAML anchors, execution order. The emitter pipeline here implements what's documented there.
 - `/charly-build:generate` — User-facing `charly box generate` command.
-- `/charly-internals:go` — Source code map: `ov/tasks.go` (emitter pipeline), `ov/generate.go:writeLayerSteps` (orchestrator call site), `ov/layers.go:Task` struct, `ov/validate.go:validateLayerTasks`.
+- `/charly-internals:go` — Source code map: `charly/tasks.go` (emitter pipeline), `charly/generate.go:writeLayerSteps` (orchestrator call site), `charly/layers.go:Task` struct, `charly/validate.go:validateLayerTasks`.
 - `/charly-build:validate` — User-facing validation rules (what `validateLayerTasks` enforces).
 - `/charly-build:build` — Building from generated Containerfiles.
-- Source: `ov/generate.go`, `ov/tasks.go`, `ov/intermediates.go`, `ov/graph.go`.
+- Source: `charly/generate.go`, `charly/tasks.go`, `charly/intermediates.go`, `charly/graph.go`.
 
 ## When to Use This Skill
 
-**MUST be invoked** before reading or modifying Go source files. Invoke this skill BEFORE launching Explore agents on ov/ code.
+**MUST be invoked** before reading or modifying Go source files. Invoke this skill BEFORE launching Explore agents on charly/ code.

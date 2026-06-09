@@ -148,7 +148,7 @@ charly shell openclaw-desktop -c 'virsh -c qemu:///session list --all'
 The full `charly vm build/create/ssh/stop/destroy` lifecycle completes inside the
 rootless pod, two levels of KVM nesting deep:
 
-1. Host (rootless podman, uid 1000) runs `ov-openclaw-desktop`.
+1. Host (rootless podman, uid 1000) runs `charly-openclaw-desktop`.
 2. Inside it, `charly vm build <bootc-image> --transport containers-storage`
    auto-falls back to `engine.rootful=machine` (no host `sudo` in reach), which
    spawns a podman-machine VM (nested VM #1) via KVM passthrough and runs
@@ -169,10 +169,10 @@ outer container's nested rootless store. Load a private bootc image via the host
 ```bash
 # on host
 podman save -o /tmp/bootc.tar ghcr.io/<registry>/<image>:latest
-podman cp /tmp/bootc.tar ov-openclaw-desktop:/tmp/bootc.tar
+podman cp /tmp/bootc.tar charly-openclaw-desktop:/tmp/bootc.tar
 # inside the pod
 podman load -i /tmp/bootc.tar                              # nested rootless store
-podman --connection ov-root load -i /tmp/bootc.tar         # podman-machine rootful store
+podman --connection charly-root load -i /tmp/bootc.tar         # podman-machine rootful store
 charly vm build <image> --transport containers-storage
 ```
 
@@ -233,7 +233,7 @@ ollama API, chrome-devtools-mcp port). The R10 bed is
 - `/charly-openclaw:openclaw` — minimal gateway only.
 - `/charly-selkies:selkies-labwc` — the CPU streaming desktop WITHOUT openclaw / ollama / charly toolchain.
 - `/charly-selkies:selkies-labwc-nvidia` — GPU streaming desktop (base nvidia), no openclaw/ollama/charly toolchain.
-- `/charly-distros:fedora-ov` / `/charly-coder:arch-ov` — root-mode charly toolchain WITHOUT a streaming desktop.
+- `/charly-distros:charly-fedora` / `/charly-coder:charly-arch` — root-mode charly toolchain WITHOUT a streaming desktop.
 
 ## When to Use This Skill
 

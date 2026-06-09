@@ -128,7 +128,7 @@ A **non-blocking** issue (the current change is correct AND complete without it,
 
 **The regression classes R5 prevents.** Two motivate the rule. First, a *silent-skip regression*: deleting the old artifact (e.g. `box.yml`) while the replacement path quietly drops a stage it used to wire produces an artifact that builds but misbehaves at runtime — which is why the acceptance test is "rebuild from the new config, run the resulting image, observe the service reach steady-state", not just "it compiles". Second, *stale references*: a rename that doesn't sweep every mention in the same commit leaves a code search returning matches that imply the retired thing is still live. (See `CHANGELOG.md` for the incidents that motivated this.)
 
-**What is permitted in historical contexts.** `CHANGELOG.md` entries and migration-command help-text that names the legacy form for the user's benefit ("rename `qc` to `ov-cachyos`"). The grep self-test distinguishes these via context.
+**What is permitted in historical contexts.** `CHANGELOG.md` entries and migration-command help-text that names the legacy form for the user's benefit ("rename `qc` to `charly-cachyos`"). The grep self-test distinguishes these via context.
 
 **Why it matters.** Stale references confuse new contributors and AI agents. A code search for `qc` that returns matches in `deploy.yml` suggests the deployment is still live; a search that returns matches only in `CHANGELOG.md` suggests it was retired. R5's grep self-test enforces this distinction.
 

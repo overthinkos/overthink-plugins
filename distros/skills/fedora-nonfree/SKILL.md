@@ -12,8 +12,8 @@ Fedora base with RPM Fusion free and non-free repositories enabled.
 
 **Defined in `base.yml`.** Lives in the main repo's combined `base.yml`
 (single source of truth), alongside `/charly-distros:fedora` +
-`/charly-distros:fedora-builder`, and is imported under the `ov` namespace by the
-`overthinkos/fedora` submodule (referenced as `ov.fedora-nonfree`). It lives in
+`/charly-distros:fedora-builder`, and is imported under the `charly` namespace by the
+`overthinkos/fedora` submodule (referenced as `charly.fedora-nonfree`). It lives in
 main because in-main consumers (`/charly-immich:immich`,
 `/charly-distros:nvidia`) base on it. Its `rpmfusion`
 layer is pinned as a github ref so the same definition resolves in both main and

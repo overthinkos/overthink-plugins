@@ -35,7 +35,7 @@ charly config immich --encrypt library
 charly config immich -v library:encrypted
 
 # Or via env var
-CH_VOLUMES_IMMICH="library:encrypted" charly config immich --password auto
+CHARLY_VOLUMES_IMMICH="library:encrypted" charly config immich --password auto
 ```
 
 This saves to deploy.yml:
@@ -70,19 +70,19 @@ The path is the **direct volume directory** — `cipher/` and `plain/` are creat
   plain/     # FUSE mount point
 ```
 
-Without an explicit path, the global `encrypted_storage_path` is used with an `ov-<image>-<name>` prefix (backward compatible).
+Without an explicit path, the global `encrypted_storage_path` is used with an `charly-<image>-<name>` prefix (backward compatible).
 
 ## Storage Layout
 
 ### Default (no explicit path)
 ```
 ~/.local/share/charly/encrypted/
-  ov-<image>-<name>/
+  charly-<image>-<name>/
     cipher/    # Encrypted data (always on disk)
     plain/     # Decrypted mount point (mounted on demand)
 ```
 
-Override base path: `charly settings set encrypted_storage_path /path/to/storage` or `CH_ENCRYPTED_STORAGE_PATH=/path`.
+Override base path: `charly settings set encrypted_storage_path /path/to/storage` or `CHARLY_ENCRYPTED_STORAGE_PATH=/path`.
 
 ## Commands
 
@@ -132,7 +132,7 @@ Changes the gocryptfs password for all encrypted volumes of an image.
 
 ## Single Password
 
-When an image has multiple encrypted volumes, `charly config`, `charly config mount`, and `charly start` all use `systemd-ask-password --id=ov-<image>` to cache the passphrase in the kernel keyring. Password is prompted once and reused for all volumes.
+When an image has multiple encrypted volumes, `charly config`, `charly config mount`, and `charly start` all use `systemd-ask-password --id=charly-<image>` to cache the passphrase in the kernel keyring. Password is prompted once and reused for all volumes.
 
 ## Credential lookup — iteration-capable `ssClient`
 
@@ -145,7 +145,7 @@ secret, and a quadlet unit with `TimeoutStartSec=0` would wedge in
 `activating (start-pre)` indefinitely.
 
 `charly` ships its own minimal godbus-based Secret Service client
-(`ov/secret_service.go`, the `ssClient` type) with a three-step iteration in
+(`charly/secret_service.go`, the `ssClient` type) with a three-step iteration in
 `findItemAcrossCollections`:
 
 1. Try the collection at the `default` alias (if healthy — skipped if its
@@ -157,8 +157,8 @@ secret, and a quadlet unit with `TimeoutStartSec=0` would wedge in
 
 Broken collections are skipped with a diagnostic line to stderr:
 
-    ov: skipping broken Secret Service collection <path>: <error>
-    ov: Secret Service default alias target <path> is unhealthy; falling back to collection iteration
+    charly: skipping broken Secret Service collection <path>: <error>
+    charly: Secret Service default alias target <path> is unhealthy; falling back to collection iteration
 
 The client returns `ErrSSNotFound` if no collection has the credential, and
 `ErrSSAllBroken` if every candidate errored on unlock or search (distinct
@@ -176,17 +176,17 @@ from "credential simply not stored").
           → for each candidate: unlock → SearchItems({service, username}) → first match wins
         → ssClient.getSecret(item) → []byte
 
-**Source:** `ov/secret_service.go` (ssClient + findItemAcrossCollections),
-`ov/credential_keyring.go:Get` (the KeyringStore.Get entry point that
+**Source:** `charly/secret_service.go` (ssClient + findItemAcrossCollections),
+`charly/credential_keyring.go:Get` (the KeyringStore.Get entry point that
 delegates to ssClient). Covered by 9 unit tests in
-`ov/secret_service_test.go` including default-alias-healthy,
+`charly/secret_service_test.go` including default-alias-healthy,
 default-alias-broken-fallback-to-iteration, preferLabel routing, all-broken
 → ErrSSAllBroken, not-found-anywhere → ErrSSNotFound, search/unlock errors,
 and candidate dedup.
 
 ## Credential source semantics
 
-`ResolveCredential` at `ov/credential_store.go:139` returns a `(value, source)`
+`ResolveCredential` at `charly/credential_store.go:139` returns a `(value, source)`
 pair where the source string is one of:
 
 | Source | Meaning | Caller reaction |
@@ -201,16 +201,16 @@ pair where the source string is one of:
 **The critical distinction** is between `default` and `unavailable`: both
 look identical from the ConfigFileStore return value (empty string, nil
 error), but they have opposite recovery semantics. Conflating them — polling
-forever on both — would wedge `ov-<image>.service` under `TimeoutStartSec=0`
+forever on both — would wedge `charly-<image>.service` under `TimeoutStartSec=0`
 whenever the keyring is broken, so the two are kept distinct.
 
 **Under systemd (`INVOCATION_ID` set, typical for `ExecStartPre`):**
 
 - `default` → **fail immediately** with an actionable error ("encryption
-  passphrase not stored for ov/enc/<image>; store with `charly secrets set ov/enc
+  passphrase not stored for charly/enc/<image>; store with `charly secrets set charly/enc
   <image>`, or switch backend with `charly config set secret_backend config`").
 - `locked` / `unavailable` → **retry** up to `encMountDeadline` (package
-  variable in `ov/enc.go`, default `2 * time.Minute`, poll period
+  variable in `charly/enc.go`, default `2 * time.Minute`, poll period
   `encMountPollPeriod = 5 * time.Second`). After the deadline elapses, fail
   with a diagnostic listing backend, source, and remediation.
 - `env` / `keyring` / `config` with a non-empty value → return
@@ -220,7 +220,7 @@ whenever the keyring is broken, so the two are kept distinct.
 delegates to `resolveEncPassphrase` which prompts via the extpass script on
 the controlling TTY.
 
-Covered by table tests in `ov/enc_resolve_mount_test.go` (7 cases including
+Covered by table tests in `charly/enc_resolve_mount_test.go` (7 cases including
 `default` fails fast, `locked` retries until deadline, `unavailable` retries
 until deadline, `keyring`/`config` with values return immediately, explicit
 non-keyring backend fails fast without polling, reset callback invocation).
@@ -229,14 +229,14 @@ non-keyring backend fails fast without polling, reset callback invocation).
 
 **Symptom:** `charly config mount <image>` hangs, or a service's `ExecStartPre`
 phase blocks in `activating (start-pre)` state. `journalctl --user -u
-ov-<image>.service` shows lines like:
+charly-<image>.service` shows lines like:
 
-    ov-<image>[...]: ov: Secret Service default alias target <path> is unhealthy; falling back to collection iteration
+    charly-<image>[...]: charly: Secret Service default alias target <path> is unhealthy; falling back to collection iteration
 
 Or `charly doctor` reports:
 
     [!] Secret Service collections -- N healthy + 1 broken. Broken: /org/freedesktop/secrets/collection/<path>. Healthy: "<label>"
-    [!] Keyring index consistency -- <N indexed, <M> missing: ov/enc/<image>...
+    [!] Keyring index consistency -- <N indexed, <M> missing: charly/enc/<image>...
 
 **Cause:** KeePassXC's FdoSecrets plugin can advertise a **stub collection**
 (commonly aliased as `default`) whose every DBus method call returns
@@ -266,11 +266,11 @@ iteration overhead), set:
 
 `findItemAnyCollection` will try that label-matched collection after the
 default alias (if healthy) and before untargeted iteration. Environment
-override: `CH_KEYRING_COLLECTION_LABEL`. See `/charly-build:settings` for the full
+override: `CHARLY_KEYRING_COLLECTION_LABEL`. See `/charly-build:settings` for the full
 runtime-config interface.
 
 **Diagnostic direct query (busctl):** to check a specific collection by
-path without using ov:
+path without using charly:
 
 ```bash
 # List collections
@@ -296,12 +296,12 @@ Store an encrypted-volume passphrase explicitly in the active credential store
 (Secret Service when available, config-file fallback otherwise):
 
 ```bash
-charly secrets set ov/enc my-app <passphrase>
+charly secrets set charly/enc my-app <passphrase>
 ```
 
 To serve credentials from an existing KeePass database, open it in KeePassXC and
 enable the FdoSecrets plugin so its entries appear on the Secret Service bus —
-ov's keyring backend reads them like any other collection. See `/charly-build:secrets`
+charly's keyring backend reads them like any other collection. See `/charly-build:secrets`
 for the full credential-store chain (env → Secret Service keyring → config-file
 fallback).
 
@@ -369,12 +369,12 @@ zero CPU cost between events. No polling.
   same `encMountSignalBackstop` cadence — still unbounded, still
   low-resource.
 
-Source: `ov/enc.go` (`waitForKeyringUnlock`, `waitForKeyringUnlockLoop`,
+Source: `charly/enc.go` (`waitForKeyringUnlock`, `waitForKeyringUnlockLoop`,
 `waitForKeyringUnlockBackstopOnly`).
 
 **Bounded retry for `source=unavailable`:** transient
 backend-probe failures (`source=unavailable`) use a bounded poll
-loop with two package-level variables in `ov/enc.go`:
+loop with two package-level variables in `charly/enc.go`:
 
 - `encMountDeadline` — total wall-clock cap (default `2 * time.Minute`)
 - `encMountPollPeriod` — interval between probes (default `5 * time.Second`)
@@ -390,7 +390,7 @@ units are independent of the container service cgroup. On restart, the
     All encrypted volumes for <image> already mounted (N/N)
 
 When every requested volume is already mounted, `encMount` at
-`ov/enc.go:232-291` iterates the mount list once, finds every target is
+`charly/enc.go:232-291` iterates the mount list once, finds every target is
 live, and returns `nil` **without calling `resolveEncPassphraseForMount`
 or touching the credential store at all**. This means a broken keyring
 backend does NOT block restarts of running services — only fresh mounts
@@ -401,7 +401,7 @@ kicks in.
 
 ## Pre-start safety check: cipher populated + plain empty
 
-`verifyBindMounts` (`ov/enc.go:verifyBindMounts`) runs in the `charly start` / `charly shell` direct-mode code path before the container is started. For any `type: encrypted` volume that does not show up as a FUSE mount, an extra discrimination fires before the generic "not mounted" error: when the cipher dir on disk holds user data (anything beyond the `gocryptfs.conf` + `gocryptfs.diriv` metadata files) AND the plain mount target is empty, the error switches to a louder form spelling out the data-loss risk:
+`verifyBindMounts` (`charly/enc.go:verifyBindMounts`) runs in the `charly start` / `charly shell` direct-mode code path before the container is started. For any `type: encrypted` volume that does not show up as a FUSE mount, an extra discrimination fires before the generic "not mounted" error: when the cipher dir on disk holds user data (anything beyond the `gocryptfs.conf` + `gocryptfs.diriv` metadata files) AND the plain mount target is empty, the error switches to a louder form spelling out the data-loss risk:
 
 ```
 encrypted volume "library": cipher dir at /home/.../charly-immich-library/cipher is populated but plain mount at /home/.../charly-immich-library/plain is empty — refusing to start (would write plaintext over encrypted data); run 'charly config mount immich' first
@@ -411,7 +411,7 @@ This guards against a real data-loss shape: a quadlet missing the `ExecStartPre=
 
 **Important caveat on quadlet-managed services.** This check runs only in the direct-mode (CLI) path. systemd-managed quadlet services bypass it — they go straight to `podman` after `ExecStartPre=charly config mount <image>` succeeds. The actual root-cause fix for those is the `ExecStartPre` hook itself; verifyBindMounts is a belt-and-suspenders safety net for the direct path.
 
-Helper: `cipherPopulatedPlainEmpty(cipherDir, plainDir)` returns true only when both conditions hold. Returns false on any os.ReadDir error (the surrounding error path will surface those — this helper is purely a discrimination hint). Source: `ov/enc.go:cipherPopulatedPlainEmpty`. Tested by `ov/migrate_quadlets_test.go:TestCipherPopulatedPlainEmpty` (5 sub-cases: dangerous, metadata-only, plain-non-empty, missing-cipher, missing-plain).
+Helper: `cipherPopulatedPlainEmpty(cipherDir, plainDir)` returns true only when both conditions hold. Returns false on any os.ReadDir error (the surrounding error path will surface those — this helper is purely a discrimination hint). Source: `charly/enc.go:cipherPopulatedPlainEmpty`. Tested by `charly/migrate_quadlets_test.go:TestCipherPopulatedPlainEmpty` (5 sub-cases: dangerous, metadata-only, plain-non-empty, missing-cipher, missing-plain).
 
 ## Volume Backing Override
 
@@ -442,19 +442,19 @@ Plain bind mounts do not use encrypted storage commands. They are direct host di
 
 **Source files:**
 
-- `ov/enc.go` — `encMount` (with all-mounted short-circuit), `ensureEncryptedMounts`, `encUnmount`, scope unit lifecycle, `resolveEncPassphraseForMount` (bounded retry for `source=unavailable` via `retryUnavailable`), `waitForKeyringUnlock` (event-driven DBus signal wait for `source=locked`), `waitForKeyringUnlockLoop`, `waitForKeyringUnlockBackstopOnly`, `encMountSignalBackstop` (30s), `encMountProgressLogInterval` (1h)
-- `ov/secret_service.go` — godbus-based ssClient, `findItemAcrossCollections` (with locked-vs-broken tracking), `ssOps` interface for test injection, `ErrSSNotFound` / `ErrSSAllBroken` / `ErrSSInteractiveUnlockRequired` sentinel errors, `isCollectionUnlockedSignal` (DBus signal filter)
-- `ov/credential_keyring.go` — `KeyringStore.Probe` (iterates collections, accepts if ≥1 healthy), `KeyringStore.Get` (delegates to `keyringGetViaSSClient`, maps `ErrSSInteractiveUnlockRequired` to `KeyringLockedError`), index-divergence warning
-- `ov/credential_store.go` — `DefaultCredentialStore` (tracks `defaultStoreProbeErr`), `ResolveCredential` (returns the new `"unavailable"` source distinctly from `"default"`)
-- `ov/deploy.go` — `DeployVolumeConfig`, `ResolveVolumeBacking`
-- `ov/runtime_config.go` — `KeyringCollectionLabel` field (the `keyring_collection_label` setting)
+- `charly/enc.go` — `encMount` (with all-mounted short-circuit), `ensureEncryptedMounts`, `encUnmount`, scope unit lifecycle, `resolveEncPassphraseForMount` (bounded retry for `source=unavailable` via `retryUnavailable`), `waitForKeyringUnlock` (event-driven DBus signal wait for `source=locked`), `waitForKeyringUnlockLoop`, `waitForKeyringUnlockBackstopOnly`, `encMountSignalBackstop` (30s), `encMountProgressLogInterval` (1h)
+- `charly/secret_service.go` — godbus-based ssClient, `findItemAcrossCollections` (with locked-vs-broken tracking), `ssOps` interface for test injection, `ErrSSNotFound` / `ErrSSAllBroken` / `ErrSSInteractiveUnlockRequired` sentinel errors, `isCollectionUnlockedSignal` (DBus signal filter)
+- `charly/credential_keyring.go` — `KeyringStore.Probe` (iterates collections, accepts if ≥1 healthy), `KeyringStore.Get` (delegates to `keyringGetViaSSClient`, maps `ErrSSInteractiveUnlockRequired` to `KeyringLockedError`), index-divergence warning
+- `charly/credential_store.go` — `DefaultCredentialStore` (tracks `defaultStoreProbeErr`), `ResolveCredential` (returns the new `"unavailable"` source distinctly from `"default"`)
+- `charly/deploy.go` — `DeployVolumeConfig`, `ResolveVolumeBacking`
+- `charly/runtime_config.go` — `KeyringCollectionLabel` field (the `keyring_collection_label` setting)
 
 ## Cross-References
 
 - `/charly-core:deploy` -- Quadlet integration, volume backing configuration, deploy.yml
 - `/charly-core:charly-config` -- `encrypted_storage_path` and `volumes_path` settings, `charly config mount` short-circuit fast-path documented there too
 - `/charly-core:service` -- Container lifecycle, `charly start` inline mount
-- `/charly-build:secrets` -- Credential store hierarchy (env → keyring → config), `charly secrets set ov/enc <image>` to store a gocryptfs passphrase explicitly, `charly secrets list` to inspect indexed keys
+- `/charly-build:secrets` -- Credential store hierarchy (env → keyring → config), `charly secrets set charly/enc <image>` to store a gocryptfs passphrase explicitly, `charly secrets list` to inspect indexed keys
 - `/charly-build:settings` -- `secret_backend`, `keyring_collection_label`, `encrypted_storage_path`, and other runtime config keys that control credential + volume resolution
 - `/charly-core:charly-doctor` -- "Secret Service collections" health check, "Keyring index consistency" cross-check; invoke `charly doctor` when diagnosing broken-collection symptoms
 

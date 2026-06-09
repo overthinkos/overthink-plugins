@@ -36,12 +36,12 @@ repo** (in the combined `base.yml`). The consumer Arch images live in the
 `charly.yml` plus its per-kind sibling files (`box.yml`/`pod.yml`/`k8s.yml`,
 and `vm.yml` where it has VMs), flat-imported via `import:`. It composes this repo's
 layers by git reference and reaches `arch` / `arch-builder` by importing the
-main repo under the `ov` namespace (`import: [{ov: ../..}]`), so its images
-write `base: ov.arch` and route builders to `ov.arch-builder`:
+main repo under the `charly` namespace (`import: [{charly: ../..}]`), so its images
+write `base: charly.arch` and route builders to `charly.arch-builder`:
 
 - `/charly-distros:arch-builder` — adds pixi, nodejs, build-toolchain, yay (in this repo)
 - `/charly-coder:arch-coder` — kitchen-sink dev image (in `image/arch`)
-- `/charly-coder:arch-ov` — full charly toolchain on Arch (in `image/arch`)
+- `/charly-coder:charly-arch` — full charly toolchain on Arch (in `image/arch`)
 - `/charly-distros:arch-test` — pacman + AUR packaging test (in `image/arch`)
 
 ## Multi-Distro Support
@@ -72,7 +72,7 @@ After `charly box build`:
 
 ## Related Images
 - `/charly-distros:arch-builder` — adds pixi, nodejs, build-toolchain, yay
-- `/charly-coder:arch-ov` — full charly toolchain on Arch
+- `/charly-coder:charly-arch` — full charly toolchain on Arch
 - `/charly-distros:arch-test` — pacman + AUR test image
 - `/charly-distros:fedora` — RPM-based counterpart
 

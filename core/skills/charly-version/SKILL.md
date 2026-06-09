@@ -28,7 +28,7 @@ charly version
 
 `charly version` writes the CalVer tag to **stdout** via `fmt.Println`.
 Declarative tests should match `stdout:` — for example
-`candy/ov/candy.yml` uses:
+`candy/charly/candy.yml` uses:
 
 ```yaml
 - id: charly-version
@@ -51,4 +51,4 @@ the version correctly. See `/charly-eval:eval` Authoring Gotcha #5 and
 - `/charly-image:image` — build-mode family that stamps CalVer tags matching this version
 - `/charly-eval:eval` — declarative testing framework (Gotcha #5 covers the stdout rule)
 - `/charly-build:charly-mcp-cmd` — MCP server section explains why the stream choice matters for the capture pipeline
-- `/charly-internals:go` — `ov/version.go` CalVer computation; `main.go` `VersionCmd.Run` using `fmt.Println`
+- `/charly-internals:go` — `charly/version.go` CalVer computation; `main.go` `VersionCmd.Run` using `fmt.Println`

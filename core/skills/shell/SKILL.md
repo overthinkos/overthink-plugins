@@ -100,7 +100,7 @@ How it works:
 
 This makes loopback-only services accessible through normal podman/docker port mappings and `tailscale serve`.
 
-Source: `ov/generate.go` (relay service generation), `ov/layers.go` (`PortRelayYAML`).
+Source: `charly/generate.go` (relay service generation), `charly/layers.go` (`PortRelayYAML`).
 
 ## Device Auto-Detection
 
@@ -119,9 +119,9 @@ By default, `charly shell` auto-detects available host devices and passes them t
 
 When an AMD GPU is detected, `keep-groups` is auto-added to preserve host supplementary groups (video, render) inside the container, and `HSA_OVERRIDE_GFX_VERSION` is auto-set from the GPU's KFD topology (e.g., `10.3.0` for RDNA2). Additionally, the first detected `/dev/dri/renderD*` device is auto-injected as `DRINODE` and `DRI_NODE` env vars (used by selkies for VAAPI encoding). All auto-detected env vars can be overridden via `-e`.
 
-**Shared code path:** `charly shell` calls `appendAutoDetectedEnv()` in `ov/devices.go` — the same function used by `charly config` and `charly start`. That means the three commands produce an identical env set on every run, eliminating drift that used to exist when DRINODE injection was scattered across 10 different call sites before commit `8f6f322`. See `/charly-core:charly-doctor` (Hardware Detection) for the probe side, `/charly-distros:nvidia` (DRINODE Auto-Injection) for the NVIDIA consumer, and `/charly-distros:rocm` (Runtime Environment) for the AMD consumer.
+**Shared code path:** `charly shell` calls `appendAutoDetectedEnv()` in `charly/devices.go` — the same function used by `charly config` and `charly start`. That means the three commands produce an identical env set on every run, eliminating drift that used to exist when DRINODE injection was scattered across 10 different call sites before commit `8f6f322`. See `/charly-core:charly-doctor` (Hardware Detection) for the probe side, `/charly-distros:nvidia` (DRINODE Auto-Injection) for the NVIDIA consumer, and `/charly-distros:rocm` (Runtime Environment) for the AMD consumer.
 
-Source: `ov/devices.go` (`DetectHostDevices`, `DetectGPU`, `DetectAMDGPU`, `appendAutoDetectedEnv`).
+Source: `charly/devices.go` (`DetectHostDevices`, `DetectGPU`, `DetectAMDGPU`, `appendAutoDetectedEnv`).
 
 ## Environment Variables
 
@@ -142,7 +142,7 @@ Kong `sep:"none"` on `-e` means commas in values are safe (e.g., `NO_PROXY=local
 
 `.env` file format (Docker-compatible): `KEY=VALUE`, `KEY="VALUE"`, `KEY='VALUE'`, `KEY` (inherits from host), `#` comments, blank lines ignored.
 
-Source: `ov/envfile.go` (`ParseEnvFile`, `ResolveEnvVars`, `LoadWorkspaceEnv`).
+Source: `charly/envfile.go` (`ParseEnvFile`, `ResolveEnvVars`, `LoadWorkspaceEnv`).
 
 ## Remote Image References
 
@@ -164,13 +164,13 @@ workflow.
 
 When `engine.build` differs from `engine.run`, images are automatically transferred between engines on demand via `<src> save | <dst> load`.
 
-Source: `ov/transfer.go`.
+Source: `charly/transfer.go`.
 
 ## Container Networking
 
 All containers are connected to a shared `charly` network by default, enabling inter-container DNS resolution by container name. Override with `network: host` in box.yml.
 
-Source: `ov/network.go`.
+Source: `charly/network.go`.
 
 ## `charly cmd` vs `charly shell -c`
 

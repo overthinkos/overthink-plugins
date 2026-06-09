@@ -73,7 +73,7 @@ charly box list aliases
 
 ## Project directory override
 
-`charly box list …` resolves `box.yml` + `candy/` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CH_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
+`charly box list …` resolves `box.yml` + `candy/` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 

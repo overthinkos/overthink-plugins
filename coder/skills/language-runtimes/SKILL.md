@@ -96,13 +96,13 @@ Both exist so future Microsoft-apt-repo-based installs can be slotted into tag s
 ## No pixi-python dependency — system Python only
 
 This layer does NOT declare `requires: python`, so it pulls in neither the
-`python` ov-layer nor the `pixi` ov-layer (and hence no ~500 MB conda-forge
+`python` charly-layer nor the `pixi` charly-layer (and hence no ~500 MB conda-forge
 Python env). It installs `python3-devel` + `python3-ramalama` via RPM —
 **system Python** — which is all its content references. Consumers of
 `language-runtimes` get only the RPM Python stack.
 
 Consequence for `/charly-coder:fedora-coder` (the biggest consumer): the whole
-`python` / `pixi` ov-layer chain stays out of the resolved layer set (because
+`python` / `pixi` charly-layer chain stays out of the resolved layer set (because
 `/charly-coder:uv` and `/charly-infrastructure:supervisord` likewise carry no python
 dep). See CLAUDE.md "Key Rules" → *"Don't declare defensive deps"* for the
 general rule.
@@ -163,7 +163,7 @@ my-polyglot:
 - Composing `language-runtimes` into an image.
 - Debating pixi-python vs. system python3 — this layer is the canonical
   "system python3 only" example.
-- Understanding why the `python` ov-layer is missing from an image that
+- Understanding why the `python` charly-layer is missing from an image that
   uses language-runtimes (that's by design).
 
 ## Related

@@ -20,8 +20,8 @@ The CachyOS family lives in the **`overthinkos/cachyos`** repo (git submodule at
 **`image/cachyos`**), whose config is `charly.yml` plus its per-kind sibling
 files (`box.yml`/`pod.yml`/`k8s.yml`/`vm.yml`), flat-imported via `import:`. The
 `cachyos` base image is **owned there**. It composes the main repo's layers by git reference, flat-imports
-the shared `build.yml`, and imports the main repo under the `ov` namespace
-(`import: [{ov: ../..}]`) so it reaches `ov.arch` / `ov.arch-builder`. Build it
+the shared `build.yml`, and imports the main repo under the `charly` namespace
+(`import: [{charly: ../..}]`) so it reaches `charly.arch` / `charly.arch-builder`. Build it
 from the submodule: `charly -C image/cachyos image build cachyos` (or
 `charly --repo overthinkos/cachyos image build cachyos`).
 
@@ -56,9 +56,9 @@ box:
 
 This is a deliberate **main → cachyos** dependency — building `versa` on main
 needs the cachyos repo reachable. The submodule, in turn, imports the main repo
-under the `ov` namespace (for `ov.arch-builder`), so the two repos import each
+under the `charly` namespace (for `charly.arch-builder`), so the two repos import each
 other. That mutual import is NOT a deadlock: the loader breaks the cycle **by
-repo identity, not pinned version** — cachyos's `ov:` back-reference to main
+repo identity, not pinned version** — cachyos's `charly:` back-reference to main
 resolves to the LOCAL main working tree (registered under its `repo:` identity),
 even when cachyos's published release pins an older main. So main's namespace
 pins win, and a stale transitive pin inside a cachyos release never drags a
@@ -103,10 +103,10 @@ charly shell cachyos -c "pacman --version"
 
 ## Derived / sibling entries (all in overthinkos/cachyos)
 
-- `/charly-distros:cachyos-pacstrap-builder` — privileged pacstrap builder (`base: ov.arch`)
+- `/charly-distros:cachyos-pacstrap-builder` — privileged pacstrap builder (`base: charly.arch`)
 - `/charly-distros:cachyos-pacstrap` — bootstrap-from-scratch rootfs (builds end-to-end)
 - `/charly-vm:cachyos` — bootstrap VM (`cachyos-vm`) + `eval-cachyos-vm` eval bed
-- `/charly-local:ov-cachyos` — the operator CachyOS workstation profile
+- `/charly-local:charly-cachyos` — the operator CachyOS workstation profile
 - `/charly-versa:versa` — the main-repo consumer (`base: cachyos.cachyos`)
 
 ### CachyOS GPU image family
@@ -157,6 +157,6 @@ Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 
-- `/charly-distros:arch` — the Arch base (`cachyos-pacstrap-builder` is `base: ov.arch`, via the `ov` import namespace)
+- `/charly-distros:arch` — the Arch base (`cachyos-pacstrap-builder` is `base: charly.arch`, via the `charly` import namespace)
 - `/charly-image:image` — image family umbrella (composition, build/validate/inspect)
 - `/charly-internals:cutover-policy` — the hard-cutover policy governing submodule splits

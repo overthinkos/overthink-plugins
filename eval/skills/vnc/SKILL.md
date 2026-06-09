@@ -153,7 +153,7 @@ charly eval vnc rfb sway-browser-vnc fbupdate-request                           
 | JavaScript | Yes (eval/wait) | No |
 | Use case | Web automation | Desktop automation |
 
-Source: `ov/vnc_client.go`, `ov/vnc.go`.
+Source: `charly/vnc_client.go`, `charly/vnc.go`.
 
 ## VNC as Anti-Detection Fallback
 

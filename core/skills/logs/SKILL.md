@@ -49,7 +49,7 @@ charly logs comfyui -f -n 50
 
 ## Behavior
 
-- **Quadlet mode:** Uses `journalctl --user -u ov-<image>.service`
+- **Quadlet mode:** Uses `journalctl --user -u charly-<image>.service`
 - **Direct mode:** Uses `<engine> logs <container>`
 - Quadlet mode is the default and recommended deployment method
 - Logs include both stdout and stderr from the container

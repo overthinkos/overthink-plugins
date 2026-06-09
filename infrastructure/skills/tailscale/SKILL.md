@@ -45,7 +45,7 @@ The image does **not** bring up the mesh on first boot — `tailscale up --authk
 - Interactive SSH after boot: `sudo tailscale up` and copy the login URL.
 - Auth key via cloud-init or a systemd drop-in that reads a secret from `/etc/tailscale/authkey` (out of scope for this layer).
 
-For `target: local` host deploys (canonical: `local.ov-cachyos`), pair this layer with `/charly-infrastructure:tailscale-up` — the runtime-config sibling that sets `--operator=$account` so non-root user-systemd quadlets can run `tailscale serve` (the per-pod `tunnel: tailscale` mechanism in `deploy.yml`), and that keeps the tailnet device name in sync with `hostname -s` across hostname changes. `tailscale-up` self-gates on `systemctl is-active tailscaled` so it's a no-op in image-build / pre-auth contexts; bootc consumers don't include it.
+For `target: local` host deploys (canonical: `local.charly-cachyos`), pair this layer with `/charly-infrastructure:tailscale-up` — the runtime-config sibling that sets `--operator=$account` so non-root user-systemd quadlets can run `tailscale serve` (the per-pod `tunnel: tailscale` mechanism in `deploy.yml`), and that keeps the tailnet device name in sync with `hostname -s` across hostname changes. `tailscale-up` self-gates on `systemctl is-active tailscaled` so it's a no-op in image-build / pre-auth contexts; bootc consumers don't include it.
 
 ## Used In Images
 

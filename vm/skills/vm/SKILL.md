@@ -42,7 +42,7 @@ VMs are not configured on kind:image entries — `image.vm:` / `image.libvirt:` 
 | GPU passthrough block | `charly vm gpu list` | Emit a ready-to-paste `libvirt.devices.hostdevs:` block (whole IOMMU group, `managed: "yes"`) |
 | Load image into guest | `charly vm cp-box <vm> <ref> [--as <tag>]` | `podman save | scp | podman load` a host image into a running guest (idempotent) |
 
-VM name convention: `ov-<name>[-<instance>]`. Default libvirt URI: `qemu:///session`.
+VM name convention: `charly-<name>[-<instance>]`. Default libvirt URI: `qemu:///session`.
 
 ## GPU passthrough (VFIO)
 
@@ -88,7 +88,7 @@ Output: `output/<type>/disk.<type>`. For cloud_image, also `output/<type>/seed.i
 
 The `--transport` flag (bootc only) controls how the container image is read: `registry` (pull from registry), `containers-storage` (local podman), `oci` (OCI dir), `oci-archive` (OCI tarball).
 
-Source: `ov/vm_build.go`, `ov/vm_cloud_image.go`.
+Source: `charly/vm_build.go`, `charly/vm_cloud_image.go`.
 
 ## VM Lifecycle
 
@@ -114,15 +114,15 @@ charly vm ssh <name> -- ls /tmp                         # run command via SSH
 
 **`charly vm create` regenerates the cloud-init seed ISO** (cloud_image sources
 only). Edits to `vm.yml`'s `cloud_init:` block — runcmd entries, packages,
-ov_install strategy, network-config — take effect on the next `charly vm create`
+charly_install strategy, network-config — take effect on the next `charly vm create`
 without requiring a full `charly vm build`. The qcow2 disk is left alone; only
-the seed ISO is rewritten (via `RegenerateSeedISO` in `ov/vm_cloud_image.go`).
+the seed ISO is rewritten (via `RegenerateSeedISO` in `charly/vm_cloud_image.go`).
 Use `charly vm destroy --disk` + `charly vm build` when you need a truly fresh disk
 (e.g. when a previous failed cloud-init left stale state in `/home/<user>/`).
 
 **`autostart: true`** on the entity makes `charly vm create` set libvirt's domain
 autostart flag AND wire the session-boot trigger (`loginctl enable-linger` + a
-generated per-VM user unit `ov-autostart-<domain>.service` that `virsh start`s
+generated per-VM user unit `charly-autostart-<domain>.service` that `virsh start`s
 the domain at boot), so the VM starts at host boot. Requires the libvirt backend.
 **`disk_size: 1T`** (or larger) is cheap — the qcow2 is sparse, so the virtual
 size is just a ceiling and physical bytes grow on demand. A host directory can be
@@ -151,7 +151,7 @@ vms:
     ssh: {port: 2224, key_source: generate}
     cloud_init:
       packages: [sudo, spice-vdagent]
-      ov_install: {strategy: auto}
+      charly_install: {strategy: auto}
     libvirt:
       devices:
         video: [{model: virtio, vram: 65536, heads: 1, accel3d: false}]
@@ -207,8 +207,8 @@ is missing, breaking every libvirt-RPC probe with a confusing
 timeout. `arch:` and `k3s-vm:` carry this pin (see `/charly-eval:eval`
 "kind: eval beds").
 
-Source: `ov/vm.go` (`resolveVmBackend`, `startLibvirtUserSession`),
-`ov/vm_libvirt.go`, `ov/vm_qemu.go`.
+Source: `charly/vm.go` (`resolveVmBackend`, `startLibvirtUserSession`),
+`charly/vm_libvirt.go`, `charly/vm_qemu.go`.
 
 ## BIOS vs UEFI decision matrix
 
@@ -259,7 +259,7 @@ Set via `charly settings set`:
 
 | Key | Env Var | Default |
 |-----|---------|---------|
-| `vm.backend` | `CH_VM_BACKEND` | `auto` |
+| `vm.backend` | `CHARLY_VM_BACKEND` | `auto` |
 
 Per-VM overrides live in `vm.yml`. The user-level defaults exist only for fields that don't have a per-VM equivalent (backend is the main one). For anything else, declare it in `vms.<name>`.
 
@@ -271,7 +271,7 @@ Raw-XML escape hatch: `vms.<name>.libvirt.snippets:` (list of strings) — class
 
 Layer-level raw snippets: `candy.yml` `libvirt.snippets:` is supported for layers that contribute device XML (e.g., `/charly-distros:qemu-guest-agent` contributes the virtio-serial channel). Image-level `libvirt: [...]` is not a valid field — VM XML lives on the `kind: vm` entity.
 
-Source: `ov/libvirt.go`, `ov/libvirt_render.go`, `ov/libvirt_render_devices.go`.
+Source: `charly/libvirt.go`, `charly/libvirt_render.go`, `charly/libvirt_render_devices.go`.
 
 ## Common Workflows
 
@@ -328,7 +328,7 @@ Non-obvious issues that surface only when VMs actually boot. `/charly-vm:bazzite
 
 ### Privileged container needs `-v /dev:/dev` (bootc)
 
-`charly vm build` runs `bootc install to-disk --via-loopback` inside a privileged container. `--privileged` alone is not enough — the container's `/dev` is a tmpfs in its own mount namespace, so `losetup`'s `LOOP_CTL_GET_FREE` creates a `/dev/loopN` in the kernel but the node is invisible inside the container. `ov/vm_build.go` adds `-v /dev:/dev` so the container shares the host's `/dev`.
+`charly vm build` runs `bootc install to-disk --via-loopback` inside a privileged container. `--privileged` alone is not enough — the container's `/dev` is a tmpfs in its own mount namespace, so `losetup`'s `LOOP_CTL_GET_FREE` creates a `/dev/loopN` in the kernel but the node is invisible inside the container. `charly/vm_build.go` adds `-v /dev:/dev` so the container shares the host's `/dev`.
 
 ### virtqemud socket probing (libvirt ≥ 8.0)
 
@@ -359,11 +359,11 @@ Symptom without refresh: `Trying to pull ... 403 Forbidden`.
 
 ### `engine.rootful=machine` path (rootless containers)
 
-When `charly vm build` runs from inside a rootless container (no host `sudo`), the engine auto-picks `engine.rootful=machine` — spawns a podman-machine VM with its own rootful storage (`podman --connection ov-root`). Cross-storage load pattern:
+When `charly vm build` runs from inside a rootless container (no host `sudo`), the engine auto-picks `engine.rootful=machine` — spawns a podman-machine VM with its own rootful storage (`podman --connection charly-root`). Cross-storage load pattern:
 
 ```bash
 podman save -o /tmp/bootc.tar ghcr.io/<registry>/<image>:latest
-podman --connection ov-root load -i /tmp/bootc.tar
+podman --connection charly-root load -i /tmp/bootc.tar
 rm /tmp/bootc.tar
 charly vm build <name> --transport containers-storage
 ```
@@ -384,7 +384,7 @@ Rolling distros after a kernel upgrade: `/lib/modules/$(uname -r)` missing, `mod
 
 ### `qemu-guest-agent` inactive under QEMU user-net
 
-Expected. The agent needs a `virtio-serial` channel that ov's QEMU backend doesn't expose under user-net. Switch to libvirt backend (`charly settings set vm.backend libvirt`) to activate it. See `/charly-distros:qemu-guest-agent`.
+Expected. The agent needs a `virtio-serial` channel that charly's QEMU backend doesn't expose under user-net. Switch to libvirt backend (`charly settings set vm.backend libvirt`) to activate it. See `/charly-distros:qemu-guest-agent`.
 
 ## Cross-References
 
@@ -393,7 +393,7 @@ Expected. The agent needs a `virtio-serial` channel that ov's QEMU backend doesn
 - `/charly-vm:aurora-bootc`, `/charly-vm:bazzite-bootc` — bootc VMs
 - `/charly-internals:vm-spec` — Go type reference; validation rules; migration map
 - `/charly-internals:libvirt-renderer` — RenderDomain + device emission + passt backend + virtio-gpu
-- `/charly-internals:cloud-init-renderer` — RenderCloudInit + composeUsers + seed ISO + ov_install
+- `/charly-internals:cloud-init-renderer` — RenderCloudInit + composeUsers + seed ISO + charly_install
 - `/charly-internals:vm-deploy-target` — VmDeployTarget / SSHExecutor / VmDeployState
 - `/charly-internals:ovmf` — UEFI firmware path resolution; per-VM NVRAM; bios-skips-loader sentinel
 - `/charly-internals:cutover-policy` — hard cutover policy

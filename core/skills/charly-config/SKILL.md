@@ -90,7 +90,7 @@ This is the **single entry point** for **container** deployment setup. `charly s
 10. Runs `systemctl --user daemon-reload`
 11. Injects `env_provide` entries from image labels into deploy.yml `provides.env:` (resolves `{{.ContainerName}}` templates)
 12. Injects `mcp_provide` entries from image labels into deploy.yml `provides.mcp:` (resolves templates, defaults transport to `http`)
-13. Synthesizes `CH_MCP_SERVERS` JSON env var for consumer containers (pod-aware: same-image entries resolve to `localhost`)
+13. Synthesizes `CHARLY_MCP_SERVERS` JSON env var for consumer containers (pod-aware: same-image entries resolve to `localhost`)
 14. Warns about missing `mcp_require` servers (same pattern as `env_require` warnings)
 15. If `--update-all`, regenerates quadlets for all other deployed images (preserving Instance, Tunnel, PodName, Sidecars, and instance-scoped volume names) and reloads systemd
 
@@ -119,16 +119,16 @@ Auto-path for bind without explicit host path: `<volumes_path>/<image>/<name>` (
 
 ### Bind-mounting a project checkout for `charly mcp serve`
 
-The `charly-mcp` layer declares a `project` volume at `/workspace` (the volume NAME stays `project` for a stable deployer API) and sets `env: CH_PROJECT_DIR=/workspace`. Bind-mount your opencharly checkout at config time so build-mode MCP tools (`image.build`, `box.list.boxes`, `image.inspect`) can read `box.yml`. Alternatively, skip the bind-mount and `charly mcp serve` will auto-fall back to the upstream `overthinkos/opencharly` repo (see `/charly-build:charly-mcp-cmd` "Project-dir wiring"):
+The `charly-mcp` layer declares a `project` volume at `/workspace` (the volume NAME stays `project` for a stable deployer API) and sets `env: CHARLY_PROJECT_DIR=/workspace`. Bind-mount your opencharly checkout at config time so build-mode MCP tools (`image.build`, `box.list.boxes`, `image.inspect`) can read `box.yml`. Alternatively, skip the bind-mount and `charly mcp serve` will auto-fall back to the upstream `overthinkos/overthink` repo (see `/charly-build:charly-mcp-cmd` "Project-dir wiring"):
 
 ```bash
-charly config arch-charly --bind project=/home/you/opencharly
-charly start arch-charly
-charly eval mcp call arch-charly box.list.boxes '{}' --name charly
+charly config charly-arch --bind project=/home/you/opencharly
+charly start charly-arch
+charly eval mcp call charly-arch box.list.boxes '{}' --name charly
 # → lists images from the bind-mounted /home/you/opencharly
 ```
 
-The `CH_PROJECT_DIR` env var is consumed by the charly binary's global `-C` / `--dir` / `CH_PROJECT_DIR` flag (`ov/main.go` calls `os.Chdir(Dir)` before Kong dispatch). See `/charly-image:image` "Project directory resolution" and `/charly-build:charly-mcp-cmd` "Deployment: the `charly-mcp` layer" for the full pattern.
+The `CHARLY_PROJECT_DIR` env var is consumed by the charly binary's global `-C` / `--dir` / `CHARLY_PROJECT_DIR` flag (`charly/main.go` calls `os.Chdir(Dir)` before Kong dispatch). See `/charly-image:image` "Project directory resolution" and `/charly-build:charly-mcp-cmd` "Deployment: the `charly-mcp` layer" for the full pattern.
 
 ## Secret Provisioning
 
@@ -153,7 +153,7 @@ Data layers (layers with `data:` field) stage files into `/data/<volume>/<dest>/
 Seeding runs for both volume backings, with a minor difference in how podman is invoked:
 
 - **Bind mount** (`--bind <name>` or `--bind <name>=<path>`, or `type: bind` in deploy.yml): the seeder runs `podman run --rm -v <host-path>:/seed --userns=keep-id:uid=<UID>,gid=<GID> <image> bash -c "cp -a /data/<vol>/. /seed/"`. The `--userns=keep-id` aligns the in-container UID with the real host UID so files end up owned by the host user.
-- **Named volume** (the default): the seeder runs `podman run --rm -v <ov-image-name>:/seed <image> bash -c "cp -a /data/<vol>/. /seed/"` — **without** `--userns=keep-id`. Named volumes live in the rootless subuid space; the runtime container reads them without keep-id, so the seeder must write with the same identity.
+- **Named volume** (the default): the seeder runs `podman run --rm -v <charly-image-name>:/seed <image> bash -c "cp -a /data/<vol>/. /seed/"` — **without** `--userns=keep-id`. Named volumes live in the rootless subuid space; the runtime container reads them without keep-id, so the seeder must write with the same identity.
 
 For `FROM scratch` data images (`data_image: true`), bind-mount targets use `podman create` + `podman cp` (the simpler path), and named-volume targets use `podman run --mount type=image,src=<scratch>,dst=/staging,rw=false` with a lightweight `busybox:stable` helper image as the runnable side (pulled lazily on first use).
 
@@ -190,7 +190,7 @@ credential store at all. Output is:
 
     All encrypted volumes for <image> already mounted (N/N)
 
-This makes service restarts (`systemctl --user restart ov-<image>.service`)
+This makes service restarts (`systemctl --user restart charly-<image>.service`)
 resilient to temporary keyring backend problems: the only reason to query the
 keyring is to get the passphrase for a fresh `gocryptfs -init` or mount, and
 the short-circuit skips that entirely when no new mount is needed. A broken
@@ -223,7 +223,7 @@ charly config selkies-desktop -i 192.241.92.221 --memory-max=8g
 charly config jupyter --memory-max=16g --cpus=8
 ```
 
-Merge rules (see `ov/security.go`):
+Merge rules (see `charly/security.go`):
 
 - **Layers → image**: smallest value wins (`minCap` / `minCpus`). A tighter
   cap is a smaller blast radius, so it's the safer default.
@@ -396,9 +396,9 @@ Result in `deploy.yml` `provides.mcp`:
   source: selkies-desktop/31.58.9.4
 ```
 
-Consumers (e.g., hermes) see both as distinct MCP servers in `CH_MCP_SERVERS`. On re-config, stale MCP entries from the same source are automatically cleaned before new entries are injected.
+Consumers (e.g., hermes) see both as distinct MCP servers in `CHARLY_MCP_SERVERS`. On re-config, stale MCP entries from the same source are automatically cleaned before new entries are injected.
 
-Source: `ov/config_image.go` (`injectMCPProvides`).
+Source: `charly/config_image.go` (`injectMCPProvides`).
 
 ## Hermes LLM Provider Auto-Configuration Example
 
@@ -438,7 +438,7 @@ charly config jupyter --update-all
 charly config openwebui ... --update-all
 ```
 
-The entrypoint auto-configures: OpenRouter + Ollama Cloud as semicolon-separated `OPENAI_API_BASE_URLS`, MCP servers from `CH_MCP_SERVERS` → `TOOL_SERVER_CONNECTIONS`, Jupyter code execution from co-deployed jupyter container. `ENABLE_OLLAMA_API` is disabled unless a local Ollama is deployed via `env_provide`. See `/charly-openwebui:openwebui` for details.
+The entrypoint auto-configures: OpenRouter + Ollama Cloud as semicolon-separated `OPENAI_API_BASE_URLS`, MCP servers from `CHARLY_MCP_SERVERS` → `TOOL_SERVER_CONNECTIONS`, Jupyter code execution from co-deployed jupyter container. `ENABLE_OLLAMA_API` is disabled unless a local Ollama is deployed via `env_provide`. See `/charly-openwebui:openwebui` for details.
 
 ## env_require Enforcement
 
@@ -454,7 +454,7 @@ Set them with -e flags, --env-file, or deploy.yml env:
   charly config openwebui -e WEBUI_ADMIN_EMAIL=...
 ```
 
-Source: `ov/config_image.go` (`checkMissingEnvRequires`).
+Source: `charly/config_image.go` (`checkMissingEnvRequires`).
 
 ## secret_require Enforcement
 
@@ -467,43 +467,43 @@ Error: openwebui requires the following credential-backed secret(s):
 
 Store them in the credential backend. For each entry:
 
-  charly secrets set ov/secret WEBUI_ADMIN_PASSWORD <value>
+  charly secrets set charly/secret WEBUI_ADMIN_PASSWORD <value>
 
 Alternatively, pass the value once via -e; it will be auto-imported:
 
   charly config openwebui -e WEBUI_ADMIN_PASSWORD=...
 ```
 
-Source: `ov/config_image.go` (`checkMissingSecretRequires`).
+Source: `charly/config_image.go` (`checkMissingSecretRequires`).
 
 ## Plaintext-to-Credential Migration Hook
 
 When `charly config <image>` runs, it automatically migrates any existing plaintext `NAME=VAL` entry in `deploy.yml`'s `env:` list whose NAME is now declared as `secret_accept` / `secret_require` on the image. The sequence:
 
 1. Scan `dc.Images[deployKey(image, instance)].Env` for names that match `meta.SecretAccepts` / `meta.SecretRequires`
-2. For each match: copy the value to the credential store at the layer-declared `(service, key)` path (default `ov/secret/<NAME>`), remove the entry from `dc.Env`, mark the deploy config dirty
+2. For each match: copy the value to the credential store at the layer-declared `(service, key)` path (default `charly/secret/<NAME>`), remove the entry from `dc.Env`, mark the deploy config dirty
 3. On first mutation, back up `deploy.yml` → `deploy.yml.bak.<unix-timestamp>`
 4. Persist the cleaned deploy config via `SaveDeployConfig`
-5. Log each migrated entry on stderr: `"Migrated plaintext OPENROUTER_API_KEY from deploy.yml to credential store (ov/api-key/openrouter)"`
+5. Log each migrated entry on stderr: `"Migrated plaintext OPENROUTER_API_KEY from deploy.yml to credential store (charly/api-key/openrouter)"`
 
 Idempotent — running on a clean host is a no-op. This gives pre-upgrade hosts an automatic one-time cleanup with a rollback point preserved.
 
-Source: `ov/config_secret_migration.go` (`MigratePlaintextEnvSecrets`).
+Source: `charly/config_secret_migration.go` (`MigratePlaintextEnvSecrets`).
 
 ## `-e` Auto-Import for `secret_accept` / `secret_require`
 
 When a `-e NAME=VAL` flag targets an env var declared as `secret_accept` / `secret_require` on the image, `charly config` auto-imports the value into the credential store and strips it from `c.Env` before the plaintext env merge runs. The stderr output shows each imported key:
 
 ```
-Imported WEBUI_ADMIN_PASSWORD into credential store (ov/secret/WEBUI_ADMIN_PASSWORD)
-Imported OPENROUTER_API_KEY into credential store (ov/api-key/openrouter)
+Imported WEBUI_ADMIN_PASSWORD into credential store (charly/secret/WEBUI_ADMIN_PASSWORD)
+Imported OPENROUTER_API_KEY into credential store (charly/api-key/openrouter)
 ```
 
 The normal secret resolution path then picks up the value from the backend on the same `charly config` invocation. First-time setup is a single command; subsequent runs don't need `-e`.
 
 Plain `env_accept` / `env_require` entries are unaffected — their `-e` values continue to flow through the plaintext env merge into `deploy.yml` and the quadlet as before.
 
-Source: `ov/config_secret_migration.go` (`scrubSecretCLIEnv`).
+Source: `charly/config_secret_migration.go` (`scrubSecretCLIEnv`).
 
 ## Provides Filtering (env_accept / env_require opt-in)
 
@@ -527,7 +527,7 @@ Source: `ov/config_secret_migration.go` (`scrubSecretCLIEnv`).
 
 **`--update-all` effect.** When filtering rules change (e.g., a layer adds a new `env_accept` entry), `charly config <any-image> --update-all` re-runs the resolution pipeline for every deployed image and writes updated `provides:` blocks to their quadlets. Propagation is atomic per-image.
 
-Source: `ov/provides.go` (resolution, filtering, `{{.ContainerName}}` templating), `ov/config_image.go` (`injectEnvProvides`, `injectMCPProvides`, `checkMissingEnvRequires`).
+Source: `charly/provides.go` (resolution, filtering, `{{.ContainerName}}` templating), `charly/config_image.go` (`injectEnvProvides`, `injectMCPProvides`, `checkMissingEnvRequires`).
 
 ## Sidecar Attachment
 
@@ -557,13 +557,13 @@ Kong `sep:"none"` on all `-e` flags means commas in values are preserved (no spl
 
 `normalizeNoProxy()` auto-converts semicolons to commas in `NO_PROXY`/`no_proxy` values during env resolution. Legacy semicolon values in deploy.yml are auto-healed.
 
-**NO_PROXY enrichment:** When `HTTP_PROXY` or `HTTPS_PROXY` is present, `charly config` automatically appends all deployed container hostnames to `NO_PROXY`. This is necessary because Chrome does not support CIDR ranges in NO_PROXY (unlike curl) — without explicit hostnames, Chrome routes internal traffic like `http://charly-immich-ml:2283` through the external proxy, causing Bad Gateway errors. Applied in both the main config path and `--update-all`. Source: `ov/envfile.go` (`enrichNoProxy`), `ov/deploy.go` (`DeployedContainerNames`).
+**NO_PROXY enrichment:** When `HTTP_PROXY` or `HTTPS_PROXY` is present, `charly config` automatically appends all deployed container hostnames to `NO_PROXY`. This is necessary because Chrome does not support CIDR ranges in NO_PROXY (unlike curl) — without explicit hostnames, Chrome routes internal traffic like `http://charly-immich-ml:2283` through the external proxy, causing Bad Gateway errors. Applied in both the main config path and `--update-all`. Source: `charly/envfile.go` (`enrichNoProxy`), `charly/deploy.go` (`DeployedContainerNames`).
 
 **Tunnel persistence:** `charly config setup` automatically persists tunnel config from deploy.yml back to deploy.yml via `saveDeployState`. Tunnel is a deploy-time concern — see `/charly-core:deploy` for tunnel configuration.
 
 **Tunnel is deploy.yml-only:** `labels.go:238` deliberately skips parsing the `ai.opencharly.tunnel` OCI image label. Tunnel config is ONLY sourced from `deploy.yml`. New instances created with `charly config setup -i <name>` do NOT inherit tunnel config from the base image's deploy.yml entry — you must manually add `tunnel: {provider: tailscale, private: all}` to the instance's deploy.yml entry, then re-run `charly config setup` to regenerate the quadlet with `ExecStartPost=tailscale serve` commands.
 
-Source: `ov/envfile.go` (`normalizeNoProxy`), `ov/deploy.go` (`mergeEnvVars`, `saveDeployState`), `sep:"none"` in config_image.go/shell.go/commands.go/start.go.
+Source: `charly/envfile.go` (`normalizeNoProxy`), `charly/deploy.go` (`mergeEnvVars`, `saveDeployState`), `sep:"none"` in config_image.go/shell.go/commands.go/start.go.
 
 ## Cross-References
 
@@ -595,7 +595,7 @@ Source: `ov/envfile.go` (`normalizeNoProxy`), `ov/deploy.go` (`mergeEnvVars`, `s
 
 **Workflow position:** After build, before start. `charly box build` → `charly config` → `charly start`.
 
-Source: `ov/config_image.go` (command structs), `ov/quadlet.go` (quadlet generation), `ov/deploy.go` (deploy state), `ov/enc.go` (encrypted volumes), `ov/secrets.go` (secret provisioning), `ov/data.go` (data seeding).
+Source: `charly/config_image.go` (command structs), `charly/quadlet.go` (quadlet generation), `charly/deploy.go` (deploy state), `charly/enc.go` (encrypted volumes), `charly/secrets.go` (secret provisioning), `charly/data.go` (data seeding).
 
 ## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
 

@@ -44,7 +44,7 @@ so the AUR builder compiles `google-chrome` (chrome layer) and `wlrctl`
 `base.yml`) rather than inheriting one from the cachyos base. The GPU sibling
 (`selkies-labwc-nvidia`, in the `overthinkos/cachyos` submodule) is the same
 `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`), with
-`builder.pixi: ov.cuda-arch-builder` so the selkies layer compiles pixelflux's
+`builder.pixi: charly.cuda-arch-builder` so the selkies layer compiles pixelflux's
 real NVENC encoder.
 
 ## Layers
@@ -61,7 +61,7 @@ real NVENC encoder.
 
 ## Access
 
-Open `https://localhost:3000` in a browser. Accept the self-signed certificate warning (Traefik auto-generates a cert with SANs for localhost, selkies.localhost, and ov-selkies-labwc). The Selkies dashboard shows the labwc desktop with Chrome and Waybar at the top.
+Open `https://localhost:3000` in a browser. Accept the self-signed certificate warning (Traefik auto-generates a cert with SANs for localhost, selkies.localhost, and charly-selkies-labwc). The Selkies dashboard shows the labwc desktop with Chrome and Waybar at the top.
 
 HTTPS is required for the WebCodecs API (`VideoDecoder`) used by the Selkies JS client. From other containers on the same network, use `https://charly-selkies-labwc:3000`.
 
@@ -122,7 +122,7 @@ All level 0/1 characters (ö, ä, ü, ß, =, ?) and AltGr characters (@, €, \\
 ## Known Issues
 
 1. **NVENC encoding fails** with NVIDIA driver 590.48 — pixelflux detects GPU, CUDA inits, but encoder init fails. CPU encoding works fine.
-2. **Chrome volume permissions** — first deploy may need `podman unshare chown 1000:1000 $(podman volume inspect ov-selkies-labwc-chrome-data --format '{{.Mountpoint}}')`
+2. **Chrome volume permissions** — first deploy may need `podman unshare chown 1000:1000 $(podman volume inspect charly-selkies-labwc-chrome-data --format '{{.Mountpoint}}')`
 3. **Audio** — PulseAudio null sinks created by selkies-wrapper. Audio streaming works but may have slight latency over WebSocket.
 
 ## Screenshots and Recording
@@ -217,7 +217,7 @@ From another container on the `charly` bridge network:
 
 ```bash
 # URL: https://charly-selkies-labwc:3000
-# TLS cert SAN includes DNS:ov-selkies-labwc
+# TLS cert SAN includes DNS:charly-selkies-labwc
 # Verify connectivity:
 curl -kso /dev/null -w '%{http_code}' https://charly-selkies-labwc:3000/
 # Expected: 200
@@ -265,7 +265,7 @@ charly config selkies-labwc --sidecar tailscale \
 charly start selkies-labwc
 
 # First time: set exit node inside sidecar (persists in state volume)
-podman exec ov-selkies-labwc-tailscale \
+podman exec charly-selkies-labwc-tailscale \
   tailscale set --exit-node=100.80.254.4 --exit-node-allow-lan-access
 ```
 
@@ -273,21 +273,21 @@ podman exec ov-selkies-labwc-tailscale \
 
 ```bash
 # Exit node routing — shows exit node's public IP, not host's
-podman exec ov-selkies-labwc curl -s ifconfig.me
+podman exec charly-selkies-labwc curl -s ifconfig.me
 
 # Bridge connectivity — other charly containers reachable
-podman exec ov-selkies-labwc getent hosts charly-ollama
+podman exec charly-selkies-labwc getent hosts charly-ollama
 
 # Host tailnet — accessible via host's tailscale serve
 curl -sk https://o.armadillo-quail.ts.net:3000/ | head -1
 
 # Sidecar status
-podman exec ov-selkies-labwc-tailscale tailscale status
+podman exec charly-selkies-labwc-tailscale tailscale status
 ```
 
 ### Architecture
 
-The pod has dual networking: `Network=ov` (bridge for container-to-container) + `tailscale0` (tun interface for exit node). `--exit-node-allow-lan-access` adds `throw 10.89.0.0/24` to exempt bridge traffic. The deploy.yml `tunnel: tailscale` config generates `ExecStartPost=tailscale serve` to expose ports 3000+9222 on the host's tailnet independently.
+The pod has dual networking: `Network=charly` (bridge for container-to-container) + `tailscale0` (tun interface for exit node). `--exit-node-allow-lan-access` adds `throw 10.89.0.0/24` to exempt bridge traffic. The deploy.yml `tunnel: tailscale` config generates `ExecStartPost=tailscale serve` to expose ports 3000+9222 on the host's tailnet independently.
 
 **Known issues:**
 - `TS_DEBUG_FIREWALL_MODE=nftables` is required (iptables-legacy fails in rootless podman) — built into the sidecar template
@@ -319,7 +319,7 @@ charly eval cdp open selkies-labwc -i 45.39.130.21 "https://httpbin.org/ip"
 
 **Tailscale access (no sidecar needed):** The deploy.yml `tunnel: tailscale` config generates `tailscale serve` commands for host-mapped ports. All instances are accessible via the host's Tailscale IP on their respective ports (`https://<host>:3001`, etc.). Use sidecars only when per-instance exit node routing is needed.
 
-**MCP auto-disambiguation:** Each instance provides `chrome-devtools-<instance>` MCP server. Consumers (hermes) receive all instances in `CH_MCP_SERVERS` JSON after `--update-all`.
+**MCP auto-disambiguation:** Each instance provides `chrome-devtools-<instance>` MCP server. Consumers (hermes) receive all instances in `CHARLY_MCP_SERVERS` JSON after `--update-all`.
 
 See `/charly-core:charly-config` for `--update-all` propagation, `/charly-selkies:chrome` for `env_accept` (HTTP_PROXY/HTTPS_PROXY/NO_PROXY).
 
@@ -336,7 +336,7 @@ diagnostic recipe that found the leak.
 
 ## Related Images
 
-- `/charly-selkies:selkies-labwc-nvidia` — the GPU sibling of this CPU image: the same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`, `build: [pac, aur]`) with `builder.pixi: ov.cuda-arch-builder` for real NVENC, in the `overthinkos/cachyos` submodule. See `/charly-distros:cachyos`.
+- `/charly-selkies:selkies-labwc-nvidia` — the GPU sibling of this CPU image: the same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`, `build: [pac, aur]`) with `builder.pixi: charly.cuda-arch-builder` for real NVENC, in the `overthinkos/cachyos` submodule. See `/charly-distros:cachyos`.
 - `/charly-openclaw:openclaw-desktop` — all-in-one CachyOS variant: this streaming desktop fused with the openclaw-full gateway + AI CLIs, a CPU ollama, and the full charly toolchain (build images, run nested pods, launch rootless libvirt VMs from inside the streaming desktop). Uses `/charly-distros:container-nesting`'s `unmask=/proc/*` posture — no `--privileged`, still uid 1000.
 - `/charly-selkies:sway-browser-vnc` — VNC-based alternative using Sway compositor instead of Selkies/labwc streaming
 

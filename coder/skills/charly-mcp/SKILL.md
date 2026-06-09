@@ -2,9 +2,9 @@
 name: charly-mcp
 description: |
   MCP server exposing the full charly CLI as tools (Streamable HTTP on port
-  18765). Meta-layer composition — layers: [ov, supervisord] — ships only
-  service wiring + `/workspace` bind-mount + CH_PROJECT_DIR env plumbing.
-  Auto-falls back to the upstream overthinkos/opencharly repo when /workspace
+  18765). Meta-layer composition — layers: [charly, supervisord] — ships only
+  service wiring + `/workspace` bind-mount + CHARLY_PROJECT_DIR env plumbing.
+  Auto-falls back to the upstream overthinkos/overthink repo when /workspace
   has no box.yml. Use when composing an MCP gateway into any image so LLM
   agents can drive charly remotely.
 ---
@@ -16,12 +16,12 @@ description: |
 | Property | Value |
 |----------|-------|
 | Kind | Meta-layer (no install files of its own) |
-| Composition | `layers: [ov, supervisord]` |
+| Composition | `layers: [charly, supervisord]` |
 | Port | 18765 (Streamable HTTP MCP endpoint at `/mcp`) |
 | Service | supervisord-managed `charly-mcp` program |
 | Volumes | `project` → `/workspace` (bind-mount the project root from the host) |
-| Env | `CH_PROJECT_DIR: "/workspace"` |
-| mcp_provide | `{name: ov, url: http://{{.ContainerName}}:18765/mcp, transport: http}` |
+| Env | `CHARLY_PROJECT_DIR: "/workspace"` |
+| mcp_provide | `{name: charly, url: http://{{.ContainerName}}:18765/mcp, transport: http}` |
 
 **Volume naming note:** the volume NAME is `project` (deployer-facing
 API: `charly config <image> --bind project=/path`) but the in-container PATH
@@ -78,7 +78,7 @@ local edit is immediately visible.
 **2. Pin a remote repo** (reproducible, no local checkout):
 
 ```bash
-charly config <image> -e CH_PROJECT_REPO=overthinkos/opencharly@<sha>
+charly config <image> -e CHARLY_PROJECT_REPO=overthinkos/overthink@<sha>
 charly start <image>
 ```
 
@@ -94,7 +94,7 @@ charly config <image>
 charly start <image>
 # Nothing bound to /workspace; /workspace is world-writable but empty.
 # charly mcp serve's bootstrapProject() detects no box.yml in cwd and
-# silently clones + chdirs into the default overthinkos/opencharly
+# silently clones + chdirs into the default overthinkos/overthink
 # cache. Logs a single line naming the reason.
 ```
 
@@ -102,10 +102,10 @@ Opt out with `--no-default-repo` (hard-fail instead of falling back).
 The top-level charly CLI never auto-fetches — only `charly mcp serve` does.
 
 **How the fallback fires:** this layer's `env:` block permanently sets
-`CH_PROJECT_DIR=/workspace`, but `bootstrapProject()` does NOT early-return on
+`CHARLY_PROJECT_DIR=/workspace`, but `bootstrapProject()` does NOT early-return on
 that env being set — it checks for an actual `box.yml` in the resolved cwd
 and falls back to the default repo if missing. That is what makes pattern 3
-work by default even though `CH_PROJECT_DIR` is always populated. See
+work by default even though `CHARLY_PROJECT_DIR` is always populated. See
 `/charly-build:charly-mcp-cmd` "Project-dir wiring" for the full RCA.
 
 ## Tests
@@ -116,27 +116,27 @@ Six deploy-scope tests ship with the layer:
 |---|---|
 | `charly-mcp-service` | supervisord `charly-mcp` program is running |
 | `charly-mcp-port` | host `127.0.0.1:${HOST_PORT:18765}` reachable |
-| `mcp-ov-ping` | MCP `ping` succeeds over the in-repo client (URL rewritten via `rewriteMCPURLForHost`, host-networked containers included) |
-| `mcp-ov-list-tools` | MCP `list-tools` returns a catalog containing the canonical `image.build`, `status`, `test.mcp.ping` entries |
-| `mcp-ov-call-version` | MCP `call version` returns the in-container CalVer (proves round-trip of a safe tool) |
-| `mcp-ov-call-list-images` | MCP `call box.list.boxes` returns images — **proves the bind-mount OR auto-fallback is working** (matches "fedora" either way, since upstream overthinkos/opencharly always has a `fedora` image) |
+| `mcp-charly-ping` | MCP `ping` succeeds over the in-repo client (URL rewritten via `rewriteMCPURLForHost`, host-networked containers included) |
+| `mcp-charly-list-tools` | MCP `list-tools` returns a catalog containing the canonical `image.build`, `status`, `test.mcp.ping` entries |
+| `mcp-charly-call-version` | MCP `call version` returns the in-container CalVer (proves round-trip of a safe tool) |
+| `mcp-charly-call-list-images` | MCP `call box.list.boxes` returns images — **proves the bind-mount OR auto-fallback is working** (matches "fedora" either way, since upstream overthinkos/overthink always has a `fedora` image) |
 
-All `mcp:` checks pass `mcp_name: ov` so they stay unambiguous on
+All `mcp:` checks pass `mcp_name: charly` so they stay unambiguous on
 images that also expose `jupyter` or `chrome-devtools` servers
 (e.g. `/charly-openclaw:openclaw-desktop`).
 
 ## Host networking caveat
 
 Host-networked containers have an empty `NetworkSettings.Ports`. The
-`ov/mcp_client.go` `lookupHostPort()` function detects
+`charly/mcp_client.go` `lookupHostPort()` function detects
 `HostConfig.NetworkMode == "host"` and returns the container port
 verbatim (container ports ARE host ports under `network: host`). See
-`ov/testvars.go` `IsHostNetworked()` + the matching `mergeRuntimeVars()`
+`charly/testvars.go` `IsHostNetworked()` + the matching `mergeRuntimeVars()`
 handling for `HOST_PORT:<N>` env-var population.
 
 Practical impact: charly-mcp works on both bridge-networked images
-(e.g. `/charly-coder:arch-ov`) and host-networked ones (e.g.
-`/charly-coder:fedora-coder`, `/charly-distros:fedora-ov`).
+(e.g. `/charly-coder:charly-arch`) and host-networked ones (e.g.
+`/charly-coder:fedora-coder`, `/charly-distros:charly-fedora`).
 
 ## Port choice rationale
 
@@ -152,7 +152,7 @@ Compose `charly-mcp` into any image that should be reachable as an MCP
 gateway. Current users:
 
 - `/charly-coder:fedora-coder` — kitchen-sink dev image; uses pattern 3 (auto-fallback) by default, pattern 1 when the developer wants local edits visible.
-- `/charly-coder:arch-ov` — Arch-based charly toolchain image (bridge network, ports 2222/18765).
+- `/charly-coder:charly-arch` — Arch-based charly toolchain image (bridge network, ports 2222/18765).
 
 Images composing `charly-mcp` must publish port 18765 (either via
 layer-declared `ports: [18765]` that auto-collects into the
@@ -169,10 +169,10 @@ in `box.yml`). Both `network: host` and the default charly bridge work.
 ## Cross-References
 
 - `/charly-build:charly-mcp-cmd` — **Part 2: Server** is the authoritative reference for `charly mcp serve` architecture, destructive-hint policy, `--read-only` filter, capture model, and the new bootstrapProject() logic.
-- `/charly-image:image` — "Project directory resolution" covers the `-C` / `--dir` / `CH_PROJECT_DIR` global flag and `--repo` / `CH_PROJECT_REPO`.
+- `/charly-image:image` — "Project directory resolution" covers the `-C` / `--dir` / `CHARLY_PROJECT_DIR` global flag and `--repo` / `CHARLY_PROJECT_REPO`.
 - `/charly-core:charly-config` — `--bind project=<path>` is the deployer's handshake with this layer's `volume:` declaration.
 - `/charly-eval:eval` — Deploy-scope `mcp:` test verb methods used here.
-- `/charly-internals:go` — `ov/mcp_server.go` `bootstrapProject()` implementation, including the env-var proxy detection of top-level flags and the unconditional box.yml check.
+- `/charly-internals:go` — `charly/mcp_server.go` `bootstrapProject()` implementation, including the env-var proxy detection of top-level flags and the unconditional box.yml check.
 
 ## When to Use This Skill
 
@@ -181,7 +181,7 @@ in `box.yml`). Both `network: host` and the default charly bridge work.
 - Adding `charly-mcp` to an image's layer list.
 - Debugging why a build-mode MCP tool returns stale data or an unexpected
   image list (is the agent reading the bind-mount or the auto-fallback?).
-- Authoring an ov-like CLI's MCP deployment and wanting the reference
+- Authoring an charly-like CLI's MCP deployment and wanting the reference
   pattern (`layer:` composition + volumes + env + service + auto-fallback).
 - Investigating port-18765 collisions or MCP URL rewriting on composed
   images (especially host-networked ones).

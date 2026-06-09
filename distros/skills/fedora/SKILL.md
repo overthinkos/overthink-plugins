@@ -12,12 +12,12 @@ Root base image built from `quay.io/fedora/fedora:43`. Foundation for all RPM-ba
 **Defined in the combined `base.yml`.** The Fedora base stack — `fedora`,
 `/charly-distros:fedora-builder`, `/charly-distros:fedora-nonfree` — lives in the main
 repo's `base.yml` (single source of truth, shared with the arch stack),
-flat-imported locally by main AND imported under the `ov` namespace by the
+flat-imported locally by main AND imported under the `charly` namespace by the
 **`overthinkos/fedora`** submodule (mounted at `image/fedora`), which references
-them as `ov.fedora` / `ov.fedora-builder`. The base stack lives in main because
+them as `charly.fedora` / `charly.fedora-builder`. The base stack lives in main because
 fedora is the ecosystem default base (~40 main images root on it,
 `fedora-builder` is `defaults.builder`); the Fedora consumer showcase images
-(`/charly-coder:fedora-coder`, `/charly-distros:fedora-ov`, `/charly-distros:fedora-test`)
+(`/charly-coder:fedora-coder`, `/charly-distros:charly-fedora`, `/charly-distros:fedora-test`)
 live in the submodule (its `charly.yml` plus per-kind sibling files
 (`box.yml`/`pod.yml`/`k8s.yml`), flat-imported via `import:`).
 Build with `charly box build fedora` from the main repo.
@@ -58,7 +58,7 @@ These are **speed-only** — they never change which packages are selected
 (`install_weak_deps` stays on the bootstrap `install_cmd`'s
 `--setopt=install_weak_deps=False`). The block is a `DnfConfig` on `DistroDef`
 and inherits across distro inheritance like the other sub-blocks. Source:
-`ov/generate.go:renderDnfConfWrite`.
+`charly/generate.go:renderDnfConfWrite`.
 
 ## Derived Images
 
@@ -77,7 +77,7 @@ After `charly box build`:
 ## Related Images
 - `/charly-distros:fedora-nonfree` — adds RPM Fusion repos
 - `/charly-distros:fedora-builder` — adds pixi, nodejs, build-toolchain
-- `/charly-distros:fedora-ov` — full charly toolchain on Fedora
+- `/charly-distros:charly-fedora` — full charly toolchain on Fedora
 - `/charly-distros:arch` — pacman-based counterpart base
 
 ## Related Commands

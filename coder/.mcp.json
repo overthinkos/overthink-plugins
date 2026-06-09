@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "ov": {
+    "charly": {
       "type": "http",
       "url": "http://localhost:18765/mcp"
     }

@@ -92,12 +92,12 @@ The CLI has a centralized design for "image not in local storage" errors.
 Every deploy-mode command inherits the same friendly recommendation without
 per-call-site code:
 
-1. `ExtractMetadata(engine, imageRef)` in `ov/labels.go` returns
+1. `ExtractMetadata(engine, imageRef)` in `charly/labels.go` returns
    `ErrImageNotLocal` (wrapped with the image ref) when the image is absent
    from local storage.
-2. `EnsureImage(imageRef, rt)` in `ov/transfer.go` returns the same sentinel
+2. `EnsureImage(imageRef, rt)` in `charly/transfer.go` returns the same sentinel
    when the image is absent from both run and build engines.
-3. `FormatCLIError` in `ov/image.go` unwraps the sentinel at the top-level
+3. `FormatCLIError` in `charly/image.go` unwraps the sentinel at the top-level
    error boundary in `main()` and renders:
 
 ```
@@ -176,7 +176,7 @@ storage).
 
 ## Project directory override
 
-`charly box pull` resolves `box.yml` via `os.Getwd()` when given a short name (to resolve registry + tag). Override with `-C <dir>` / `--dir <dir>` / `CH_PROJECT_DIR=<dir>`. Fully-qualified refs and `@github.com/...` remote refs don't need a project dir. See `/charly-image:image` "Project directory resolution".
+`charly box pull` resolves `box.yml` via `os.Getwd()` when given a short name (to resolve registry + tag). Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. Fully-qualified refs and `@github.com/...` remote refs don't need a project dir. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
@@ -191,4 +191,4 @@ storage).
 - `/charly-core:deploy` — deploy.yml overlay semantics applied on top of the
   labels `pull` materializes.
 - `/charly-internals:go` — `ErrImageNotLocal` / `EnsureImage` / `ExtractMetadata`
-  source locations (`ov/labels.go`, `ov/transfer.go`, `ov/image.go`).
+  source locations (`charly/labels.go`, `charly/transfer.go`, `charly/image.go`).

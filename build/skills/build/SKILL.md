@@ -12,7 +12,7 @@ Invoked as `charly box build`. See `/charly-image:image` for the family overview
 
 `charly box build` generates Containerfiles from `box.yml` and layer definitions, then builds images in dependency order using the configured build engine (Docker or Podman). Images at the same dependency level are built in parallel (up to `--jobs` concurrent builds).
 
-**Mode purity**: `charly box build` reads `box.yml` + `build.yml` + `candy.yml` only. `deploy.yml` is never read during build — this is enforced by `LoadConfig` in `ov/config.go`, which calls `LoadConfigRaw` (no `MergeDeployOverlay`) to guarantee OCI labels are baked strictly from authored configuration, never from local deploy-time overrides. See `/charly-internals:go` "Mode purity" for the architectural invariant this protects and the bug it prevents.
+**Mode purity**: `charly box build` reads `box.yml` + `build.yml` + `candy.yml` only. `deploy.yml` is never read during build — this is enforced by `LoadConfig` in `charly/config.go`, which calls `LoadConfigRaw` (no `MergeDeployOverlay`) to guarantee OCI labels are baked strictly from authored configuration, never from local deploy-time overrides. See `/charly-internals:go` "Mode purity" for the architectural invariant this protects and the bug it prevents.
 
 **IR-driven emission**: `charly box build` emits Containerfiles via `OCITarget` — the build-mode implementation of the shared `DeployTarget` interface. Internally the flow is: `box.yml` + `candy.yml` → `BuildDeployPlan` (pure compiler) → `InstallPlan` IR → `OCITarget.Emit` → Containerfile text. The same IR backs `PodDeployTarget` and `LocalDeployTarget` used by `charly deploy add`. See `/charly-internals:install-plan` for the IR and `/charly-internals:generate-source` for the Go call graph.
 
@@ -87,7 +87,7 @@ defaults:
 - **`builder:`** — Multi-stage builder patterns (pixi, npm, cargo, aur). Each builder has `build_stage` and `copy_stage` templates that generate the appropriate `FROM builder AS ...` and `COPY --from=...` steps.
 - **`init:`** — Init system definitions (supervisord, systemd) including detection rules, fragment templates, entrypoint commands, and service management commands. Optional — images can omit this if they don't need an init system.
 
-All sections use Go `text/template` syntax with access to layer config data. Source: `ov/format_config.go` (loader + distro/builder types, including `DistroDef.BaseUser`), `ov/init_config.go` (init type), `ov/format_template.go` (rendering).
+All sections use Go `text/template` syntax with access to layer config data. Source: `charly/format_config.go` (loader + distro/builder types, including `DistroDef.BaseUser`), `charly/init_config.go` (init type), `charly/format_template.go` (rendering).
 
 ### `base_user:` — declaring a pre-existing base-image account
 
@@ -105,9 +105,9 @@ distro:
     # ... bootstrap inherited from debian
 ```
 
-All four fields (`name`, `uid`, `gid`, `home`) are required when the block is present. Inherited across distro inheritance chains — if the child has no `base_user:` but the parent does, the child inherits it (see `resolveInherits` in `ov/format_config.go`).
+All four fields (`name`, `uid`, `gid`, `home`) are required when the block is present. Inherited across distro inheritance chains — if the child has no `base_user:` but the parent does, the child inherits it (see `resolveInherits` in `charly/format_config.go`).
 
-Consumed by the `user_policy:` reconciliation in `ov/config.go:ResolveImage` — see `/charly-image:image` "user_policy" for the three-value policy (`auto` / `adopt` / `create`) and the decision matrix.
+Consumed by the `user_policy:` reconciliation in `charly/config.go:ResolveImage` — see `/charly-image:image` "user_policy" for the three-value policy (`auto` / `adopt` / `create`) and the decision matrix.
 
 No `base_user:` currently declared for Fedora, Arch, or Debian (their canonical base images ship no pre-existing uid-1000 account). Add one in your project's `build.yml` override if you're basing on a distro-cloud variant that DOES ship one (e.g. `debian:13-cloud`).
 
@@ -153,12 +153,12 @@ charly exposes **two** parallelism knobs with distinct meanings:
 
 | Flag | Env var | `defaults:` key | What it controls |
 |---|---|---|---|
-| `--jobs N` | `CH_BUILD_JOBS` | `jobs` | **Outer** concurrency: how many ov-level images to build in parallel within a DAG level (e.g., when `charly box build` rebuilds the whole graph). |
-| `--podman-jobs N` | `CH_PODMAN_JOBS` | `podman_jobs` (+ `podman_jobs_cap`) | **Inner** concurrency: passed to `podman build --jobs N`, controls how many stages of a *single* multi-stage build run concurrently. |
+| `--jobs N` | `CHARLY_BUILD_JOBS` | `jobs` | **Outer** concurrency: how many charly-level images to build in parallel within a DAG level (e.g., when `charly box build` rebuilds the whole graph). |
+| `--podman-jobs N` | `CHARLY_PODMAN_JOBS` | `podman_jobs` (+ `podman_jobs_cap`) | **Inner** concurrency: passed to `podman build --jobs N`, controls how many stages of a *single* multi-stage build run concurrently. |
 
 Both knobs are **config-driven**: precedence is **CLI flag → env → `defaults:`
 in `charly.yml` → built-in fallback** (4). The inner auto value (when
-`--podman-jobs` / `CH_PODMAN_JOBS` / `defaults.podman_jobs` are all unset) is
+`--podman-jobs` / `CHARLY_PODMAN_JOBS` / `defaults.podman_jobs` are all unset) is
 CPU-proportional, capped at `defaults.podman_jobs_cap`: `min(NCPU, cap)`. The
 cap is the operative ceiling; the repo ships `podman_jobs_cap: 8`. (A
 high-concurrency `--cache-from` SIGABRT race in podman ≤ 5.7.x originally
@@ -175,13 +175,13 @@ defaults:
 
 ```bash
 charly box build <image> --podman-jobs 16             # fully parallel stages (override)
-CH_PODMAN_JOBS=8 charly update <image> --build    # via env
+CHARLY_PODMAN_JOBS=8 charly update <image> --build    # via env
 charly box build <image> --podman-jobs 1              # fully serialised, worst-case debugging
 ```
 
-Source: `ov/build.go:resolvePodmanJobs(override, cap)` + `podmanJobsCapFallback`
+Source: `charly/build.go:resolvePodmanJobs(override, cap)` + `podmanJobsCapFallback`
 / `jobsFallback`; config fill in `BuildCmd.Run`. Covered by
-`ov/build_jobs_test.go`. The outer `--jobs` knob and the inner `--podman-jobs`
+`charly/build_jobs_test.go`. The outer `--jobs` knob and the inner `--podman-jobs`
 are separate fields so the two semantics don't get conflated.
 
 ## Build-context excludes (`defaults.context_ignore`)
@@ -209,7 +209,7 @@ the dominant warm-rebuild win. podman reads `.containerignore`; docker reads
 `.dockerignore` — emitting both keeps the two engines in lockstep. Only add a
 directory you've confirmed no Containerfile COPY/ADDs from (generated
 Containerfiles COPY only from `candy/`, `templates/`, `.build/`). Source:
-`ov/generate.go:writeContextIgnore` + `baselineContextIgnore`.
+`charly/generate.go:writeContextIgnore` + `baselineContextIgnore`.
 
 ## Image-tag retention (`defaults.keep_images`)
 
@@ -245,11 +245,11 @@ nothing. Run it on demand (and clear a backlog) with `charly clean` — see
 ```bash
 charly box build --cache registry my-image        # Read+write registry cache
 charly box build --cache image my-image          # Read-only from registry image
-CH_BUILD_CACHE=registry charly box build         # Via environment variable
+CHARLY_BUILD_CACHE=registry charly box build         # Via environment variable
 ```
 
 The default cache mode is also config-driven: precedence is `--cache` →
-`CH_BUILD_CACHE` → `defaults.cache` in `charly.yml` → auto (`image` for local
+`CHARLY_BUILD_CACHE` → `defaults.cache` in `charly.yml` → auto (`image` for local
 builds, `registry` for `--push`). Set `defaults.cache: image` to make the
 read-only registry cache the project default without per-invocation flags.
 
@@ -258,7 +258,7 @@ read-only registry cache the project default without per-invocation flags.
 `charly box build` tags every image with exactly one tag — its CalVer
 (e.g. `ghcr.io/overthinkos/fedora-supervisord:2026.114.1022`). charly does
 **not** emit a `:latest` tag, ever. Short-name resolution (in
-`ov/local_image.go`) picks the newest CalVer for a given short name
+`charly/local_image.go`) picks the newest CalVer for a given short name
 via the `ai.opencharly.image=<short>` + `ai.opencharly.version=<calver>`
 OCI labels. The CLI accepts an explicit `--tag <calver>` for pinning;
 an empty `--tag` resolves to newest-local automatically.
@@ -291,7 +291,7 @@ Concretely: the cache is keyed by `(parent-image-SHA, instruction-text, COPY-sou
 
 Three kinds of source changes are real cache invalidators — if you see a long rebuild, one of these is the cause:
 
-1. **Layer source file content changed.** Editing a file under `candy/<name>/` — the canonical case is `candy/ov/bin/charly` being rewritten by `task build:ov` after a Go source edit — changes the scratch stage's content hash, which invalidates `COPY --from=<layer>` and everything downstream that depends on it.
+1. **Layer source file content changed.** Editing a file under `candy/<name>/` — the canonical case is `candy/charly/bin/charly` being rewritten by `task build:charly` after a Go source edit — changes the scratch stage's content hash, which invalidates `COPY --from=<layer>` and everything downstream that depends on it.
 2. **Package list / task text changed.** Adding/removing an rpm/deb/pac entry or editing a `cmd:` body changes the RUN instruction text emitted for that layer, invalidating cache from that RUN onward.
 3. **Upstream image content changed.** If a base image (external like `fedora` or internal like `fedora-supervisord`) has different content from the last cached build, the FROM step resolves to a new SHA and downstream RUN/COPY steps all cache-miss. This cascades through the dependency graph — rebuilding `fedora-supervisord` forces its children to re-run from the `FROM fedora-supervisord` step.
 
@@ -316,7 +316,7 @@ Three kinds of source changes are real cache invalidators — if you see a long 
 | A `copy:` source file's content | Rebuild from that layer's COPY onward + downstream |
 | A `cmd:` / `download:` task body | Rebuild from that RUN onward + downstream |
 | A package added/removed in `rpm:`/`deb:`/`pac:` | Rebuild from the install RUN onward + downstream |
-| `task build:ov` → new `candy/ov/bin/charly` | Rebuild the `charly` layer + every image that includes it |
+| `task build:charly` → new `candy/charly/bin/charly` | Rebuild the `charly` layer + every image that includes it |
 | An upstream image got content-changed and rebuilt | Rebuild from the FROM step onward in every descendant |
 
 ## Build Flow Details
@@ -330,7 +330,7 @@ Three kinds of source changes are real cache invalidators — if you see a long 
 
 Podman manifest push uses retry with exponential backoff (3 attempts, 5s/10s/20s delays) to handle transient registry errors (e.g., GHCR 500 errors after long builds).
 
-Source: `ov/build.go` (`retryCmd`).
+Source: `charly/build.go` (`retryCmd`).
 
 ## Layer Merging
 
@@ -366,7 +366,7 @@ CLI flags `--max-mb` and `--max-total-mb` override `box.yml`. `auto` is only use
 6. Reconstruct image with `mutate.Append()`, preserving OCI history alignment (empty-layer entries for ENV/USER/EXPOSE kept in correct positions)
 7. Save via `tarball.WriteToFile()` -> `<engine> load`
 
-Merge is idempotent -- running again after merging shows all layers as `[keep]`. Source: `ov/merge.go`.
+Merge is idempotent -- running again after merging shows all layers as `[keep]`. Source: `charly/merge.go`.
 
 ### Inline Merge
 
@@ -383,10 +383,10 @@ charly settings set engine.run docker     # or podman
 
 ## Host Bootstrap (First Time)
 
-Requires: `go-task`, `go`, `docker` (or `podman`). On Arch the recommended install is `cd pkg/arch && makepkg -si` — the bundled `opencharly-git` PKGBUILD is LOCAL-ONLY (it is NOT published to the AUR, so there is no `yay -S opencharly-git`); it pulls every dep, and the bundled pacman post-install hook enables docker/tailscaled/virtqemud automatically. (`makepkg -si` resolves the AUR-only mandatory deps via an AUR helper, or pre-install them — see the PKGBUILD's `makedepends`/AUR notes.) On other distros, run `task build:ov` from the checkout to compile and install `charly` to `~/.local/bin/charly`.
+Requires: `go-task`, `go`, `docker` (or `podman`). On Arch the recommended install is `cd pkg/arch && makepkg -si` — the bundled `opencharly-git` PKGBUILD is LOCAL-ONLY (it is NOT published to the AUR, so there is no `yay -S opencharly-git`); it pulls every dep, and the bundled pacman post-install hook enables docker/tailscaled/virtqemud automatically. (`makepkg -si` resolves the AUR-only mandatory deps via an AUR helper, or pre-install them — see the PKGBUILD's `makedepends`/AUR notes.) On other distros, run `task build:charly` from the checkout to compile and install `charly` to `~/.local/bin/charly`.
 
 ```bash
-task build:charly        # Build + install ov; on Arch delegates to makepkg -si, elsewhere installs portable to ~/.local/bin
+task build:charly        # Build + install charly; on Arch delegates to makepkg -si, elsewhere installs portable to ~/.local/bin
 task setup:builder   # Create multi-platform buildx builder
 charly box build       # Generate + build + merge all images
 ```
@@ -420,7 +420,7 @@ charly box build --push
 
 ### "charly not found"
 
-On Arch run `cd pkg/arch && makepkg -si` to install the bundled `opencharly-git` package system-wide (it is LOCAL-ONLY — NOT on the AUR — so `yay -S opencharly-git` will not find it). Elsewhere run `task build:ov` from the checkout — `task` itself is required (install via your distro package manager or download from go-task/task releases).
+On Arch run `cd pkg/arch && makepkg -si` to install the bundled `opencharly-git` package system-wide (it is LOCAL-ONLY — NOT on the AUR — so `yay -S opencharly-git` will not find it). Elsewhere run `task build:charly` from the checkout — `task` itself is required (install via your distro package manager or download from go-task/task releases).
 
 ### Build Fails with Missing Base
 
@@ -440,13 +440,13 @@ If you see `cannot unmarshal !!str ... into int` or similar YAML parsing errors 
 
 ### Stale `charly` binary produces stale Containerfiles
 
-Beyond the YAML-unmarshal symptom above, a stale `charly` binary can produce *syntactically valid but outdated* Containerfile output — e.g. emitting an old broken form of a template that HEAD's source has already fixed. Symptom: build fails on a step whose generated shell clearly doesn't match the source you see in `git grep`. Quick diagnostic: `ls -la $(which ov)` vs. `git log -1 ov/generate.go` — if the binary predates the fix, rebuild:
+Beyond the YAML-unmarshal symptom above, a stale `charly` binary can produce *syntactically valid but outdated* Containerfile output — e.g. emitting an old broken form of a template that HEAD's source has already fixed. Symptom: build fails on a step whose generated shell clearly doesn't match the source you see in `git grep`. Quick diagnostic: `ls -la $(which charly)` vs. `git log -1 charly/generate.go` — if the binary predates the fix, rebuild:
 
 ```bash
 task build:charly        # rebuild + pacman-reinstall on Arch (opencharly-git package)
 ```
 
-Common on Arch where `opencharly-git` is pacman-installed and HEAD moves faster than rebuilds. If you find yourself rebuilding `charly` to chase a bug and the symptom persists, the binary path on $PATH may not be the one `task build:ov` updated — confirm with `which ov`.
+Common on Arch where `opencharly-git` is pacman-installed and HEAD moves faster than rebuilds. If you find yourself rebuilding `charly` to chase a bug and the symptom persists, the binary path on $PATH may not be the one `task build:charly` updated — confirm with `which charly`.
 
 ### Buildah cache-mount corruption (pixi tzdata et al.)
 
@@ -495,7 +495,7 @@ returns the **old** content.
 
 ### Known caveat: stale `:latest` under `--cache-from`
 
-ov's Containerfile generator currently emits `FROM <registry>/<builder>:latest`
+charly's Containerfile generator currently emits `FROM <registry>/<builder>:latest`
 for parent builder images (not pinned CalVer). When charly invokes
 `podman build --cache-from <registry>/<image>`, podman resolves those `FROM`
 clauses at parse time and will **pull `:latest` from the remote registry**,
@@ -520,11 +520,11 @@ charly box build <image> --cache=none      # or equivalently --no-cache at the c
 ```
 
 Both `--cache=none` and `--no-cache` short-circuit `cacheArgs()` in
-`ov/build.go:cacheArgs` and do NOT pass `--cache-from` to podman, so
-the broken resolution path never fires. `--no-cache` is ov-level only — it
+`charly/build.go:cacheArgs` and do NOT pass `--cache-from` to podman, so
+the broken resolution path never fires. `--no-cache` is charly-level only — it
 does *not* pass `--no-cache` to podman, it just skips `--cache-from`.
 
-**Proper fix (not yet implemented):** ov's generator should emit pinned
+**Proper fix (not yet implemented):** charly's generator should emit pinned
 CalVer tags for builder `FROM` clauses (e.g.,
 `FROM ghcr.io/overthinkos/fedora-builder:2026.105.0128`) or pass
 `--pull=never` to podman so local tags aren't resolved from the remote.
@@ -535,7 +535,7 @@ for the `--build` flag that also picks up this caveat.
 
 ## Project directory override
 
-`charly box build` (like every build-mode command) resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CH_PROJECT_DIR=<dir>` — honoured before Kong dispatch. See `/charly-image:image` "Project directory resolution" for the canonical reference and the `charly mcp serve` use case. Typical use: building from an `charly mcp serve` MCP tool where the container cwd doesn't hold the project.
+`charly box build` (like every build-mode command) resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>` — honoured before Kong dispatch. See `/charly-image:image` "Project directory resolution" for the canonical reference and the `charly mcp serve` use case. Typical use: building from an `charly mcp serve` MCP tool where the container cwd doesn't hold the project.
 
 ## Cross-References
 

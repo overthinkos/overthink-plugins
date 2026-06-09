@@ -10,7 +10,7 @@ description: |
 
 # git-workflow — branch-per-change, R10-gated auto-landing
 
-Every change to an ov-project repo follows ONE landing discipline. The **R10
+Every change to an charly-project repo follows ONE landing discipline. The **R10
 pass is the sole gate**: nothing is committed, pushed, merged, or tagged on
 unverified state, and once R10 passes the landing is automatic — no per-change
 human "push" step. This skill is the mechanics; CLAUDE.md "Post-Execution
@@ -147,11 +147,11 @@ Teammates therefore share ONE working tree on ONE `feat/<slug>` branch:
   concurrent background tasks; order by expected DURATION, not bed count: launch
   the slow VM/desktop beds first and overlap the cheap pod beds, so wall-clock ≈
   the slowest single bed, not the sum.
-- **Freeze `ov/*.go` during the bed phase.** `charly`'s stale-binary freshness guard
-  gates every heavy verb the instant any `ov/*.go` is newer than `/usr/bin/charly`,
+- **Freeze `charly/*.go` during the bed phase.** `charly`'s stale-binary freshness guard
+  gates every heavy verb the instant any `charly/*.go` is newer than `/usr/bin/charly`,
   so a teammate editing Go mid-bed-run aborts every other agent's next
   build/deploy/eval. For a SHARED-CORE (Go) cutover the lead lands the core
-  first, runs ONE `task build:ov`, then fans out beds with Go frozen; a BED-LOCAL
+  first, runs ONE `task build:charly`, then fans out beds with Go frozen; a BED-LOCAL
   (YAML/candy/skills) cutover has no shared binary and needs no such barrier.
 
 ## B5 — PR path (no write access) + `gh` auto-approve

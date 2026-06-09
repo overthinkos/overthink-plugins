@@ -71,7 +71,7 @@ All `--format` values are the JSON field names from the `inspect` output. When p
 
 ## Project directory override
 
-`charly box inspect` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CH_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
+`charly box inspect` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 

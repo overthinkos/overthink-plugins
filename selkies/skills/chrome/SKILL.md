@@ -62,7 +62,7 @@ Chrome does NOT natively respect `HTTP_PROXY`/`HTTPS_PROXY` environment variable
 
 Uppercase takes precedence over lowercase (`HTTP_PROXY` over `http_proxy`).
 
-**NO_PROXY auto-enrichment:** `charly config` runs `enrichNoProxy()` before writing the quadlet, adding every deployed container's hostname (`ov-<image>`, `ov-<image>-<instance>`) to `NO_PROXY`. This is required because Chrome does **not** support CIDR notation in `NO_PROXY` (unlike curl/requests) — only exact hostnames work, so `charly` pre-computes the list. Semicolons in user-provided values are auto-converted to commas since Chrome only accepts comma-separated lists. See `/charly-core:charly-config` (Environment Variable Handling → NO_PROXY enrichment).
+**NO_PROXY auto-enrichment:** `charly config` runs `enrichNoProxy()` before writing the quadlet, adding every deployed container's hostname (`charly-<image>`, `charly-<image>-<instance>`) to `NO_PROXY`. This is required because Chrome does **not** support CIDR notation in `NO_PROXY` (unlike curl/requests) — only exact hostnames work, so `charly` pre-computes the list. Semicolons in user-provided values are auto-converted to commas since Chrome only accepts comma-separated lists. See `/charly-core:charly-config` (Environment Variable Handling → NO_PROXY enrichment).
 
 ```bash
 # Deploy with proxy
@@ -118,11 +118,11 @@ The detection uses `pgrep -x sway` (exact process name match — NOT `pgrep -f` 
 
 ## CDP Proxy
 
-Chrome 146+ rejects HTTP requests to the DevTools API when the `Host` header contains a non-localhost, non-IP hostname (e.g., `ov-selkies-desktop:9222`). This breaks cross-container CDP access via `env_provide: BROWSER_CDP_URL`.
+Chrome 146+ rejects HTTP requests to the DevTools API when the `Host` header contains a non-localhost, non-IP hostname (e.g., `charly-selkies-desktop:9222`). This breaks cross-container CDP access via `env_provide: BROWSER_CDP_URL`.
 
 **Architecture:** A `cdp-proxy` Python supervisord service listens on `0.0.0.0:9222` and forwards requests to Chrome on `127.0.0.1:9223`. Chrome binds only to the internal loopback address.
 
-**Host header rewrite:** Incoming requests with container hostnames (e.g., `Host: ov-selkies-desktop:9222`) are rewritten to `Host: localhost:9223` before forwarding to Chrome, satisfying Chrome's localhost-only check.
+**Host header rewrite:** Incoming requests with container hostnames (e.g., `Host: charly-selkies-desktop:9222`) are rewritten to `Host: localhost:9223` before forwarding to Chrome, satisfying Chrome's localhost-only check.
 
 **Response URL rewrite:** Chrome's DevTools HTTP API returns WebSocket URLs containing `ws://localhost:9223/...` in JSON responses. The proxy rewrites these to `ws://<client-host>:9222/...` (using the original `Host` header from the client request) so that cross-container WebSocket connections route back through the proxy.
 
@@ -172,9 +172,9 @@ the memory namespace) persists. The only way to clear it is to restart
 the whole container, which tears down the cgroup:
 
 ```bash
-systemctl --user restart ov-selkies-desktop.service
+systemctl --user restart charly-selkies-desktop.service
 # or per-instance
-systemctl --user restart ov-selkies-desktop-192.241.92.221.service
+systemctl --user restart charly-selkies-desktop-192.241.92.221.service
 ```
 
 This container restart is manual (or via `charly update`); see "Chrome supervision

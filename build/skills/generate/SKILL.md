@@ -72,7 +72,7 @@ For each layer, `writeLayerSteps` runs this sequence:
 6. Reset to USER root (unless last layer and no further root steps follow)
 ```
 
-### Per-verb emitters (single Go file: `ov/tasks.go`)
+### Per-verb emitters (single Go file: `charly/tasks.go`)
 
 | Verb | Emitter | Containerfile output |
 |---|---|---|
@@ -134,13 +134,13 @@ WORKDIR /home/user
 USER 1000
 ```
 
-The pivot is `ResolvedImage.UserAdopted`, set by the `user_policy:` reconciliation in `ov/config.go:ResolveImage`. See `/charly-image:image` "user_policy" for the policy semantics, `/charly-build:build` "base_user:" for the declaration, and `/charly-distros:ubuntu` for the canonical adopt-mode worked example.
+The pivot is `ResolvedImage.UserAdopted`, set by the `user_policy:` reconciliation in `charly/config.go:ResolveImage`. See `/charly-image:image` "user_policy" for the policy semantics, `/charly-build:build` "base_user:" for the declaration, and `/charly-distros:ubuntu` for the canonical adopt-mode worked example.
 
 Neither branch does destructive metadata mutation (no `usermod -l` rename). Fedora/Arch/Debian always hit the create branch (no `base_user:` declared); Ubuntu under `user_policy: auto` hits the adopt branch.
 
 ## Tag-section install emission
 
-Distro-version tag sections like `debian:13:` and `ubuntu:24.04:` are resolved via first-match-wins on the image's `distro:` priority list (e.g. `["ubuntu:24.04", "ubuntu", "debian"]`). Each matched tag section uses the primary format's full install template — so a tag section can carry `repos:`, `keys:`, `options:`, and `package:`, not just packages alone. See `ov/layers.go:TagPkgConfig.Raw` for the map that captures full tag-section YAML, and `/charly-image:layer` for authoring reference.
+Distro-version tag sections like `debian:13:` and `ubuntu:24.04:` are resolved via first-match-wins on the image's `distro:` priority list (e.g. `["ubuntu:24.04", "ubuntu", "debian"]`). Each matched tag section uses the primary format's full install template — so a tag section can carry `repos:`, `keys:`, `options:`, and `package:`, not just packages alone. See `charly/layers.go:TagPkgConfig.Raw` for the map that captures full tag-section YAML, and `/charly-image:layer` for authoring reference.
 
 ## ARCH / TARGETARCH emission
 
@@ -189,19 +189,19 @@ Three emission rules matter specifically for bootc images. The canonical worked 
 
 ### 1. `initHasFragments` pre-scan gates empty init stages
 
-Each init system defined in `build.yml` (currently `supervisord` and `systemd`) emits a `FROM scratch AS <stage_name>` scratch stage that layers COPY fragments into, plus an `assembly_template` RUN that bind-mounts from that scratch stage. `ov/generate.go` pre-scans the layer chain for each init system to check whether any layer contributes fragments (per-entry rendered from the unified `service:` list via `ServiceSchema.ServiceTemplate` / `ServiceSchema.SupportsPackaged`, plus relay configs, plus systemd `.service` files). If none, **both** the scratch stage and the assembly_template RUN are suppressed. Without this, a bootc image with only packaged-unit entries (`use_packaged:`, no rendered body) would emit an empty `FROM scratch AS systemd-services` + a RUN that bind-mounts from it — which fails at build time. The `system_enable_template` and `post_assembly_template` for that init still run — they're independent of the scratch stage.
+Each init system defined in `build.yml` (currently `supervisord` and `systemd`) emits a `FROM scratch AS <stage_name>` scratch stage that layers COPY fragments into, plus an `assembly_template` RUN that bind-mounts from that scratch stage. `charly/generate.go` pre-scans the layer chain for each init system to check whether any layer contributes fragments (per-entry rendered from the unified `service:` list via `ServiceSchema.ServiceTemplate` / `ServiceSchema.SupportsPackaged`, plus relay configs, plus systemd `.service` files). If none, **both** the scratch stage and the assembly_template RUN are suppressed. Without this, a bootc image with only packaged-unit entries (`use_packaged:`, no rendered body) would emit an empty `FROM scratch AS systemd-services` + a RUN that bind-mounts from it — which fails at build time. The `system_enable_template` and `post_assembly_template` for that init still run — they're independent of the scratch stage.
 
 ### 2. `anyRepoHasURL` helper → prepend `dnf5-plugins`
 
-The RPM install_template prepends `dnf install -y dnf5-plugins` whenever any layer `rpm.repos:` entry declares a `url:` (checked via the `anyRepoHasURL` template helper in `ov/format_template.go`). Required because `quay.io/fedora/fedora-bootc:43` strips `dnf5-plugins` (which provides the `config-manager` subcommand) from the default install. Without the prepend, `dnf5 config-manager addrepo --from-repofile=…` — emitted for every URL-based repo — fails with `Unknown argument "config-manager" for command "dnf5"`. `/charly-selkies:ffmpeg` is the canonical URL-repo consumer (adds negativo17's `fedora-multimedia.repo`).
+The RPM install_template prepends `dnf install -y dnf5-plugins` whenever any layer `rpm.repos:` entry declares a `url:` (checked via the `anyRepoHasURL` template helper in `charly/format_template.go`). Required because `quay.io/fedora/fedora-bootc:43` strips `dnf5-plugins` (which provides the `config-manager` subcommand) from the default install. Without the prepend, `dnf5 config-manager addrepo --from-repofile=…` — emitted for every URL-based repo — fails with `Unknown argument "config-manager" for command "dnf5"`. `/charly-selkies:ffmpeg` is the canonical URL-repo consumer (adds negativo17's `fedora-multimedia.repo`).
 
 ### 3. `export BUILD_ARCH=…;` (not prefix assignment) in `download:` tasks
 
-The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUILD_ARCH}…"` with an explicit semicolon-separator `export`, not the prefix form `BUILD_ARCH=$(uname -m) curl ...`. Bash prefix assignments set the variable in the spawned command's environment **after** the shell has already expanded `${BUILD_ARCH}` in the command's arguments — the expansion sees an unset variable, the URL resolves with an empty arch string, and the download 404s. Source: `ov/tasks.go:envPrefix` with the documenting comment. Layers that use `${BUILD_ARCH}` in a `download:` URL: `/charly-languages:pixi`, `/charly-coder:typst`, `/charly-tools:ujust`, `/charly-tools:yay`, `/charly-infrastructure:vectorchord`, `/charly-tools:sherpa-onnx`.
+The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUILD_ARCH}…"` with an explicit semicolon-separator `export`, not the prefix form `BUILD_ARCH=$(uname -m) curl ...`. Bash prefix assignments set the variable in the spawned command's environment **after** the shell has already expanded `${BUILD_ARCH}` in the command's arguments — the expansion sees an unset variable, the URL resolves with an empty arch string, and the download 404s. Source: `charly/tasks.go:envPrefix` with the documenting comment. Layers that use `${BUILD_ARCH}` in a `download:` URL: `/charly-languages:pixi`, `/charly-coder:typst`, `/charly-tools:ujust`, `/charly-tools:yay`, `/charly-infrastructure:vectorchord`, `/charly-tools:sherpa-onnx`.
 
 ## Project directory override
 
-`charly box generate` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CH_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
+`charly box generate` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
@@ -221,7 +221,7 @@ The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUIL
 - `/charly-image:layer` — **Canonical task verb catalog, `var:` substitution, YAML anchors, execution order.** Read this first for authoring questions.
 - `/charly-eval:eval` — test-authoring workflow; `eval:` blocks are embedded via `writeJSONLabel` and benefit directly from LABELs-at-end cache efficiency.
 - `/charly-internals:generate-source` — Deep dive on Containerfile emission internals, `Task` struct, per-verb emitters, `stageInlineContent`, `shellSingleQuote` + `shellAnsiQuote` helpers, LABEL-placement rationale.
-- `/charly-internals:go` — Source-code map: `ov/tasks.go` (~430 lines), `ov/generate.go:writeLayerSteps` + `writeLabels`, `ov/layers.go` struct definitions.
+- `/charly-internals:go` — Source-code map: `charly/tasks.go` (~430 lines), `charly/generate.go:writeLayerSteps` + `writeLabels`, `charly/layers.go` struct definitions.
 - `/charly-distros:bazzite` — canonical worked example exercising all three bootc-specific emission rules above.
 - `/charly-selkies:ffmpeg` — canonical URL-repo consumer (triggers the `dnf5-plugins` prepend).
 - `/charly-distros:bootc-config` — bootc boot wiring that depends on the empty-init-stage fix (only `use_packaged:` entries, no custom-exec rendered bodies).

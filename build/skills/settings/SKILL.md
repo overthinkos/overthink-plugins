@@ -9,7 +9,7 @@ description: |
 
 ## Overview
 
-Manage ov's runtime configuration stored in `~/.config/charly/settings.yml`. Controls engine selection, networking, storage paths, secret backend, and agent forwarding.
+Manage charly's runtime configuration stored in `~/.config/charly/settings.yml`. Controls engine selection, networking, storage paths, secret backend, and agent forwarding.
 
 ## Quick Reference
 
@@ -26,16 +26,16 @@ Manage ov's runtime configuration stored in `~/.config/charly/settings.yml`. Con
 
 | Key | Default | Env Var | Description |
 |-----|---------|---------|-------------|
-| `engine.build` | `docker` | `CH_ENGINE_BUILD` | Build engine (docker/podman) |
-| `engine.run` | `docker` | `CH_ENGINE_RUN` | Run engine (docker/podman) |
-| `run_mode` | `quadlet` | `CH_RUN_MODE` | Deployment mode (quadlet/direct) |
-| `bind_address` | `127.0.0.1` | `CH_BIND_ADDRESS` | Default bind address for ports |
-| `encrypted_storage_path` | `~/.local/share/charly/encrypted` | `CH_ENCRYPTED_STORAGE_PATH` | Base path for gocryptfs volumes |
-| `volumes_path` | `~/.local/share/charly/volumes` | `CH_VOLUMES_PATH` | Base path for bind-mounted volumes |
-| `secret_backend` | `auto` | `CH_SECRET_BACKEND` | Credential backend (auto/keyring/config) |
-| `keyring_collection_label` | *(empty)* | `CH_KEYRING_COLLECTION_LABEL` | Preferred Secret Service collection label. Empty = iterate naturally (default alias → listing order). Set to pin charly to a specific collection in multi-database setups (e.g. KeePassXC with multiple open databases). See `/charly-automation:enc` for the full iteration order. |
-| `forward_gpg_agent` | `true` | `CH_FORWARD_GPG_AGENT` | Forward GPG agent into containers |
-| `forward_ssh_agent` | `true` | `CH_FORWARD_SSH_AGENT` | Forward SSH agent into containers |
+| `engine.build` | `docker` | `CHARLY_ENGINE_BUILD` | Build engine (docker/podman) |
+| `engine.run` | `docker` | `CHARLY_ENGINE_RUN` | Run engine (docker/podman) |
+| `run_mode` | `quadlet` | `CHARLY_RUN_MODE` | Deployment mode (quadlet/direct) |
+| `bind_address` | `127.0.0.1` | `CHARLY_BIND_ADDRESS` | Default bind address for ports |
+| `encrypted_storage_path` | `~/.local/share/charly/encrypted` | `CHARLY_ENCRYPTED_STORAGE_PATH` | Base path for gocryptfs volumes |
+| `volumes_path` | `~/.local/share/charly/volumes` | `CHARLY_VOLUMES_PATH` | Base path for bind-mounted volumes |
+| `secret_backend` | `auto` | `CHARLY_SECRET_BACKEND` | Credential backend (auto/keyring/config) |
+| `keyring_collection_label` | *(empty)* | `CHARLY_KEYRING_COLLECTION_LABEL` | Preferred Secret Service collection label. Empty = iterate naturally (default alias → listing order). Set to pin charly to a specific collection in multi-database setups (e.g. KeePassXC with multiple open databases). See `/charly-automation:enc` for the full iteration order. |
+| `forward_gpg_agent` | `true` | `CHARLY_FORWARD_GPG_AGENT` | Forward GPG agent into containers |
+| `forward_ssh_agent` | `true` | `CHARLY_FORWARD_SSH_AGENT` | Forward SSH agent into containers |
 | `hosts.<alias>` | *(none)* | — | SSH target for `charly --host <alias>` remote execution. Free-form: `host`, `user@host`, `user@host:port`. Consulted by the top-level `--host` flag to re-exec `charly` commands on another machine over SSH. See `/charly-core:ssh`. |
 
 ## Usage

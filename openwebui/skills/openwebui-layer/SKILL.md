@@ -41,7 +41,7 @@ description: |
 | `OPENAI_API_BASE_URL` | OpenAI-compatible API base URL |
 | `WEBUI_AUTH` | Enable authentication (default: true) |
 | `WEBUI_ADMIN_EMAIL` | Admin account email for first-start setup |
-| `CH_MCP_SERVERS` | JSON array of MCP servers (auto-injected by `mcp_provide` layers) |
+| `CHARLY_MCP_SERVERS` | JSON array of MCP servers (auto-injected by `mcp_provide` layers) |
 
 ## MCP Accepts
 
@@ -61,18 +61,18 @@ Auto-generated, stored in credential store (keyring/config-file fallback):
 | `webui-secret-key` | `WEBUI_SECRET_KEY` | JWT + encryption key (CRITICAL: losing it breaks all sessions and OAuth tokens) | `charly config` time, `ProvisionPodmanSecrets` |
 | `admin-password` | `WEBUI_ADMIN_PASSWORD` | Admin account password — declared as `secret_require:` | `charly deploy add` time, `ensureLayerSecret` |
 
-Provisioned as `Secret=ov-openwebui-<name>,type=env,target=<ENV>` in the quadlet. The entrypoint checks env vars first (from `type=env` injection), then file mounts at `/run/secrets/` as fallback.
+Provisioned as `Secret=charly-openwebui-<name>,type=env,target=<ENV>` in the quadlet. The entrypoint checks env vars first (from `type=env` injection), then file mounts at `/run/secrets/` as fallback.
 
 **First-run admin login:** `WEBUI_ADMIN_PASSWORD` auto-generates as a 32-byte hex random value if not pre-set. To retrieve the auto-generated password and log in for the first time:
 
 ```bash
-charly secrets get ov/secret WEBUI_ADMIN_PASSWORD
+charly secrets get charly/secret WEBUI_ADMIN_PASSWORD
 ```
 
 Override with a specific password before the first deploy:
 
 ```bash
-charly secrets set ov/secret WEBUI_ADMIN_PASSWORD <password>
+charly secrets set charly/secret WEBUI_ADMIN_PASSWORD <password>
 charly config openwebui  # picks up the override
 ```
 
@@ -94,13 +94,13 @@ The `openwebui-entrypoint` runs on EVERY start (no sentinel — `ENABLE_PERSISTE
    - `OLLAMA_HOST` -> `OLLAMA_BASE_URL` (Ollama server)
    - `OPENROUTER_API_KEY` -> `OPENAI_API_KEY` + `OPENAI_API_BASE_URL=https://openrouter.ai/api/v1`
    - `OLLAMA_API_KEY` -> `OPENAI_API_KEY` + `OPENAI_API_BASE_URL=https://api.ollama.com/v1`
-3. **MCP server discovery** from `CH_MCP_SERVERS` JSON -> builds `TOOL_SERVER_CONNECTIONS` JSON for Open WebUI
+3. **MCP server discovery** from `CHARLY_MCP_SERVERS` JSON -> builds `TOOL_SERVER_CONNECTIONS` JSON for Open WebUI
 4. **Jupyter detection** — if a jupyter MCP server URL is found, sets `CODE_EXECUTION_ENGINE=jupyter`
 5. **Execs** `open-webui serve`
 
 ### TOOL_SERVER_CONNECTIONS Format
 
-The entrypoint translates ov's `CH_MCP_SERVERS` format into Open WebUI's expected `TOOL_SERVER_CONNECTIONS` JSON:
+The entrypoint translates charly's `CHARLY_MCP_SERVERS` format into Open WebUI's expected `TOOL_SERVER_CONNECTIONS` JSON:
 
 ```json
 [{
@@ -155,7 +155,7 @@ openwebui:
 - `/charly-core:charly-config` -- `charly config openwebui --update-all` for service discovery
 - `/charly-build:secrets` -- `charly secrets` for Secret Service / GPG credential management
 - `/charly-core:service` -- `charly service status openwebui` for runtime management
-- `/charly-build:charly-mcp-cmd` -- probe the MCP servers openwebui consumes (auto-configured into `TOOL_SERVER_CONNECTIONS` from `CH_MCP_SERVERS`): `charly eval mcp list-tools <provider-image>` shows what tools openwebui will see, and `charly eval mcp ping` verifies liveness before debugging openwebui itself.
+- `/charly-build:charly-mcp-cmd` -- probe the MCP servers openwebui consumes (auto-configured into `TOOL_SERVER_CONNECTIONS` from `CHARLY_MCP_SERVERS`): `charly eval mcp list-tools <provider-image>` shows what tools openwebui will see, and `charly eval mcp ping` verifies liveness before debugging openwebui itself.
 
 ## Related Images
 

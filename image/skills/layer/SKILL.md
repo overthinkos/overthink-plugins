@@ -87,7 +87,7 @@ charly box write candy/sshd/root.yml --content 'tasks:\n  - cmd: echo configured
 charly box cat candy/sshd/root.yml
 ```
 
-Implementation: `ov/scaffold_cmds.go` (verbs) + `ov/yaml_setter.go` (`SetByDotPath`). Tested in `ov/yaml_setter_test.go` — the comment-preservation guarantee is explicitly exercised (leading file comments, sibling keys, and per-key inline comments all survive round trips). See `/charly-internals:go` "Implementation insights" for the full rationale.
+Implementation: `charly/scaffold_cmds.go` (verbs) + `charly/yaml_setter.go` (`SetByDotPath`). Tested in `charly/yaml_setter_test.go` — the comment-preservation guarantee is explicitly exercised (leading file comments, sibling keys, and per-key inline comments all survive round trips). See `/charly-internals:go` "Implementation insights" for the full rationale.
 
 ## Install Surface (what a layer directory holds)
 
@@ -156,10 +156,10 @@ so an upstream base cache-miss doesn't re-download ~1.5GB from Google's CDN:
 ```yaml
 - cmd: |
     SDK_CACHE=/var/cache/charly-android-sdk
-    if [ ! -f "${SDK_CACHE}/.ov-sdk-complete" ]; then
+    if [ ! -f "${SDK_CACHE}/.charly-sdk-complete" ]; then
       rm -rf "${SDK_CACHE}"; mkdir -p "${SDK_CACHE}"
       sdkmanager --sdk_root="${SDK_CACHE}" "platform-tools" "emulator" "system-images;…"
-      touch "${SDK_CACHE}/.ov-sdk-complete"   # sentinel: only after full success
+      touch "${SDK_CACHE}/.charly-sdk-complete"   # sentinel: only after full success
     fi
     cp -a "${SDK_CACHE}/." /opt/android-sdk/   # materialize into the image
   user: user
@@ -167,7 +167,7 @@ so an upstream base cache-miss doesn't re-download ~1.5GB from Google's CDN:
     - /var/cache/charly-android-sdk                 # owned (uid) because user: user
 ```
 
-The sentinel (`.ov-sdk-complete`, written only after a fully-successful install)
+The sentinel (`.charly-sdk-complete`, written only after a fully-successful install)
 guards against a partial/interrupted download populating the cache. AUR builds
 get the same treatment via `build.yml`'s `aur` builder (owned `cache_mount`
 entries for makepkg `SRCDEST` + yay's clone cache) — see `/charly-build:build`.
@@ -581,7 +581,7 @@ distro:
 
 A top-level `aur:` block (sibling of `pac:`, with a plural `packages:` list) is
 the single-distro shorthand for an Arch-only layer; both forms flatten to the
-same internal `aur` format section (`ov/layers.go` `derivePackageSectionsFromCalamares`).
+same internal `aur` format section (`charly/layers.go` `derivePackageSectionsFromCalamares`).
 Prefer the nested `distro.arch.aur.package` form for multi-distro layers.
 
 The `replaces:` mechanism applies to host (`target: local`) deploys; in OCI image builds the layer is applied to a fresh rootfs that never has the conflicting package, so `replaces:` is a no-op there.
@@ -632,12 +632,12 @@ path_append:
 ```yaml
 # ❌ WRONG — parser rejects the list shape
 env:
-  - CH_PROJECT_DIR=/workspace
+  - CHARLY_PROJECT_DIR=/workspace
   - GOPATH=~/go
 
 # ✓ RIGHT — map form
 env:
-  CH_PROJECT_DIR: "/workspace"
+  CHARLY_PROJECT_DIR: "/workspace"
   GOPATH: "~/go"
 ```
 
@@ -768,7 +768,7 @@ volume:
     path: "~/.myapp"
 ```
 
-Names must match `^[a-z0-9]+(-[a-z0-9]+)*$`. Docker/podman volume names become `ov-<image>-<name>`. Collected across the full image base chain; first declaration wins.
+Names must match `^[a-z0-9]+(-[a-z0-9]+)*$`. Docker/podman volume names become `charly-<image>-<name>`. Collected across the full image base chain; first declaration wins.
 
 ## Security Declaration
 
@@ -832,7 +832,7 @@ Tailscale schemes: `http`, `https`, `https+insecure`, `tcp`, `tls-terminated-tcp
 
 ```yaml
 secret:
-  - name: api-key                # Podman secret `ov-<image>-<name>`
+  - name: api-key                # Podman secret `charly-<image>-<name>`
     target: /run/secrets/api_key # mount path (default: /run/secrets/<name>)
     env: API_KEY                 # fallback env var if Podman secrets unavailable
 ```
@@ -877,14 +877,14 @@ secret_require:
 secret_accept:
   - name: OPENROUTER_API_KEY
     description: "API key for OpenRouter LLM inference"
-    key: ov/api-key/openrouter     # optional override; default ov/secret/<NAME>
+    key: charly/api-key/openrouter     # optional override; default charly/secret/<NAME>
 ```
 
-Use for API keys, passwords, auth tokens. `key:` override must match `^ov/<service>/<key>$` (lowercase). Multiple layers sharing the same upstream credential (e.g. `ov/api-key/openrouter`) all resolve to the same stored value. See `/charly-build:secrets` for the credential-store chain, rotation, and `-e NAME=VAL` auto-import.
+Use for API keys, passwords, auth tokens. `key:` override must match `^charly/<service>/<key>$` (lowercase). Multiple layers sharing the same upstream credential (e.g. `charly/api-key/openrouter`) all resolve to the same stored value. See `/charly-build:secrets` for the credential-store chain, rotation, and `-e NAME=VAL` auto-import.
 
 ## mcp_provide / mcp_require / mcp_accept
 
-Cross-container MCP server discovery. Consumers receive `CH_MCP_SERVERS` as a JSON env var at `charly config` time.
+Cross-container MCP server discovery. Consumers receive `CHARLY_MCP_SERVERS` as a JSON env var at `charly config` time.
 
 ```yaml
 mcp_provide:
@@ -1105,7 +1105,7 @@ Bash/zsh/sh on host targets use a per-layer fence pair so multiple
 layers coexist in one rc file:
 
 ```
-# opencharly:begin <layer> (managed by ov; do not edit inside this block)
+# opencharly:begin <layer> (managed by charly; do not edit inside this block)
 <body>
 # opencharly:end <layer>
 ```
@@ -1156,8 +1156,8 @@ shell: schema. Idempotent.
 - `/charly-build:secrets` — Credential store chain for `secret_accept` / `secret_require`.
 - `/charly-selkies:chrome` — Canonical consumer of `env_accept` (proxy vars), cgroup resource caps, and a heavy user-phase copy/mkdir task list.
 - `/charly-infrastructure:supervisord` — Event listener pattern triggered by resource caps.
-- `/charly-tools:charly` — The ov-binary layer (composed by every charly-driving image). Paired with `/charly-coder:charly-mcp` which turns any image into an MCP server exposing the full charly CLI.
-- `/charly-coder:charly-mcp` — Reference implementation of a meta-layer composition (`layers: [ov, supervisord]` — no install of its own, just wiring) with bind-mounted project directory and `CH_PROJECT_DIR` env-var plumbing.
+- `/charly-tools:charly` — The charly-binary layer (composed by every charly-driving image). Paired with `/charly-coder:charly-mcp` which turns any image into an MCP server exposing the full charly CLI.
+- `/charly-coder:charly-mcp` — Reference implementation of a meta-layer composition (`layers: [charly, supervisord]` — no install of its own, just wiring) with bind-mounted project directory and `CHARLY_PROJECT_DIR` env-var plumbing.
 - `/charly-jupyter:notebook-templates` — Data-layer example.
 - `/charly-internals:generate-source` — Internal architecture of the task emission pipeline (Go side).
 
@@ -1165,7 +1165,7 @@ shell: schema. Idempotent.
 
 ## Cross-kind name reuse
 
-A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same identifier (e.g. `ov-cachyos`) MAY exist as a layer at `candy/charly-cachyos/` AND an image entry `image.ov-cachyos` AND a deploy row `deploy.ov-cachyos` simultaneously. Verbs disambiguate by context. When `charly deploy add <name>` resolves a ref where both an image AND a layer with that name exist, image wins (image-first precedence); use `--add-candy <name>` to explicitly select the layer for an overlay. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/charly-core:deploy`.
+A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same identifier (e.g. `charly-cachyos`) MAY exist as a layer at `candy/charly-cachyos/` AND an image entry `image.charly-cachyos` AND a deploy row `deploy.charly-cachyos` simultaneously. Verbs disambiguate by context. When `charly deploy add <name>` resolves a ref where both an image AND a layer with that name exist, image wins (image-first precedence); use `--add-candy <name>` to explicitly select the layer for an overlay. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/charly-core:deploy`.
 
 ---
 

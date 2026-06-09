@@ -24,7 +24,7 @@ nested overlay, and sorts by `(Kind, image)`. Each substrate is one
 `init()` → `registerSubstrate` — there is NO central registry slice to edit
 when a substrate is added. The pod collector still does the batched `podman
 ps` + `podman inspect` + worker-pool probe fan-out (host probes — CDP/VNC — in
-parallel goroutines; guest probes — supervisord/dbus/ov/wl/sway — batched into
+parallel goroutines; guest probes — supervisord/dbus/charly/wl/sway — batched into
 one `podman exec sh -c`); the other collectors read their own backends
 (libvirt for vm, client-go for live k8s, the install ledger for local, adb for
 android).
@@ -39,42 +39,42 @@ the surface always renders what it can.
 
 Source layout:
 
-- `ov/status.go` — thin `StatusCmd` + dispatch (the `--nested` and `--json`
+- `charly/status.go` — thin `StatusCmd` + dispatch (the `--nested` and `--json`
   flags live here).
-- `ov/status_substrate.go` — the `SubstrateKind` discriminator
+- `charly/status_substrate.go` — the `SubstrateKind` discriminator
   (`pod`/`vm`/`k8s`/`local`/`android`), the `CollectOpts` read-only input, the
   `SubstrateCollector` interface, and the `init()`-time `registerSubstrate`
   registry.
-- `ov/status_engine.go` — `EngineClient` (only place that touches
+- `charly/status_engine.go` — `EngineClient` (only place that touches
   podman/docker), `ContainerSnapshot`, structured `PortMapping`.
-- `ov/status_collector.go` — `Collector.All` (substrate fan-out + merge +
+- `charly/status_collector.go` — `Collector.All` (substrate fan-out + merge +
   nested overlay + sort) / `Collector.Single`; the pod row builder
   (`collectOne`, stamps `Kind=SubstratePod`, `Source="podman"`); the
   worker-pool probe fan-out; `parseQuadletDescription`; deploy.yml lookup;
   `formatLiveMounts`.
-- `ov/status_collect_pod.go` — the `PodCollector` (wraps the engine snapshot +
+- `charly/status_collect_pod.go` — the `PodCollector` (wraps the engine snapshot +
   the `collectOne` row builder).
-- `ov/status_collect_vm.go` — the `VMCollector` (libvirt domains → vm rows,
+- `charly/status_collect_vm.go` — the `VMCollector` (libvirt domains → vm rows,
   `Source="libvirt"`).
-- `ov/status_collect_k8s.go` — the `K8sCollector` (cluster workloads; live
+- `charly/status_collect_k8s.go` — the `K8sCollector` (cluster workloads; live
   client-go probing under `--nested`).
-- `ov/status_collect_local.go` — the `LocalCollector` (install-ledger →
+- `charly/status_collect_local.go` — the `LocalCollector` (install-ledger →
   `target: local` rows, `Source="ledger"`).
-- `ov/status_collect_adb.go` — the `AndroidCollector` (declared
+- `charly/status_collect_adb.go` — the `AndroidCollector` (declared
   `target: android` devices → rows via adb `host:devices`, `Source="adb"`).
-- `ov/status_nested.go` — the nested overlay (`applyNestedOverlay`): folds the
+- `charly/status_nested.go` — the nested overlay (`applyNestedOverlay`): folds the
   DECLARED nested tree onto parent rows and, under `--nested`, probes each
   child's live multi-hop venue via the same `ResolveDeployChain` +
   `NestedExecutor` primitive `charly deploy add` / `charly eval live parent.child` use.
-- `ov/status_probes.go` — `Probe` / `HostProbe` / `GuestProbe` interfaces
-  and the 7 concrete probes (`SupervisordProbe`, `DbusProbe`, `OvProbe`,
+- `charly/status_probes.go` — `Probe` / `HostProbe` / `GuestProbe` interfaces
+  and the 7 concrete probes (`SupervisordProbe`, `DbusProbe`, `CharlyProbe`,
   `WlProbe`, `SwayProbe` are guest; `CdpProbe`, `VncProbe` are host).
   `runGuestProbes` builds a single concatenated shell script with
   per-probe markers and splits the stdout chunks back out.
-- `ov/status_render.go` — the unified `DeploymentStatus` rendered shape +
+- `charly/status_render.go` — the unified `DeploymentStatus` rendered shape +
   `RenderTable` / `RenderDetail` / `RenderJSON` / `RenderJSONOne` + cell
   formatters (`cellKind`, …); `formatTunnelSummary`.
-- `ov/status_reap.go` — `ReapOrphansCmd` (the top-level `charly reap-orphans`
+- `charly/status_reap.go` — `ReapOrphansCmd` (the top-level `charly reap-orphans`
   command).
 
 ## Quick Reference
@@ -169,7 +169,7 @@ row; a MOVED child carries its origin collector's real `Source`.
 
 Two probe kinds. Host probes (cdp, vnc) run from the operator host using
 the snapshot's `HostPortFor(ctrPort, proto)` lookup — no extra `podman
-port` / `podman inspect` calls. Guest probes (supervisord, dbus, ov, wl,
+port` / `podman inspect` calls. Guest probes (supervisord, dbus, charly, wl,
 sway) batch into ONE `podman exec sh -c` per container; each probe's
 snippet emits a `KEY=value` line that its `Parse` recognises. The batcher
 delimits sections with `===PROBE:<name>===` / `===PROBE_END:<name>===`
@@ -266,7 +266,7 @@ The `Volumes:` field is rendered from THREE sources, in priority order:
 
 This means a volume deployed with `--bind <name>=<path>` or `--encrypt <name>` shows up in the live form for running containers — what the container is ACTUALLY mounting, including the gocryptfs FUSE plain dir for encrypted volumes. Showing live mounts (rather than the image-label default) is what lets the operator tell, from `charly status` alone, whether an encrypted volume's gocryptfs FUSE is actually mounted: a running container binding `<...>/charly-immich-cache/plain -> /home/user/.immich/cache` with the FUSE unmounted would otherwise be writing plaintext over the cipher tree, and the live form makes that visible.
 
-For programmatic queries the same data is in `charly status --json`'s `volumes` array. Source: `ov/status_collector.go:formatLiveMounts` + `ov/status_engine.go:mountsFromInspect`. Tested by `ov/status_live_mounts_test.go` (17 sub-cases covering the JSON parser, the encryption-path detector, the renderer, and an end-to-end JSON → MountInfo → display chain).
+For programmatic queries the same data is in `charly status --json`'s `volumes` array. Source: `charly/status_collector.go:formatLiveMounts` + `charly/status_engine.go:mountsFromInspect`. Tested by `charly/status_live_mounts_test.go` (17 sub-cases covering the JSON parser, the encryption-path detector, the renderer, and an end-to-end JSON → MountInfo → display chain).
 
 Authoritative direct queries (when you need the raw inspect data):
 

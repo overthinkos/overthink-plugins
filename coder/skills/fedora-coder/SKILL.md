@@ -13,7 +13,7 @@ description: |
 
 # fedora-coder
 
-The everyday-development counterpart to `/charly-distros:fedora-ov`: all the
+The everyday-development counterpart to `/charly-distros:charly-fedora`: all the
 coding + AI + DevOps tooling a developer needs in one image, no desktop,
 no streaming. Distinct from `openclaw-desktop` (which adds the
 browser-streamed Wayland desktop) — `fedora-coder` is headless and
@@ -22,8 +22,8 @@ meant to be accessed via `ssh -p 2222` or `charly shell`.
 > **Location:** lives in the **`overthinkos/fedora`** repo (git submodule at
 > **`image/fedora`**), in that repo's config (its `charly.yml` + per-kind
 > sibling files). Its base stack (`fedora-nonfree` → `fedora`) is reached by
-> importing the main repo under the `ov` namespace — `base: ov.fedora-nonfree`,
-> which itself roots on `ov.fedora` (the Fedora base lives in main's `base.yml`,
+> importing the main repo under the `charly` namespace — `base: charly.fedora-nonfree`,
+> which itself roots on `charly.fedora` (the Fedora base lives in main's `base.yml`,
 > the ecosystem default base), and its 32 layers are pulled by github reference.
 > Build/validate from
 > the submodule: `charly -C image/fedora image build fedora-coder`, or
@@ -40,7 +40,7 @@ fedora-coder:
     - "2222:2222"                 # sshd-wrapper
     - "18765:18765"               # charly-mcp (Streamable HTTP)
   layers:
-    # Baseline (matches the ov-charly power-user pattern)
+    # Baseline (matches the charly-cachyos power-user pattern)
     - agent-forwarding
     - sshd
     - charly                          # the full toolchain: charly binary + virtualization + gocryptfs + socat
@@ -106,8 +106,8 @@ posture with `/charly-openclaw:openclaw-desktop`).
 | sudo | passwordless via `/etc/sudoers.d/charly-user` | `/charly-coder:sshd` |
 
 **No `--privileged`. No `cap_add: ALL`. No `seccomp=unconfined`. No
-`label=disable`.** All four power-user images (`fedora-coder`, `fedora-ov`,
-`arch-ov`, `githubrunner`) run the rootless posture proven sufficient by the
+`label=disable`.** All four power-user images (`fedora-coder`, `charly-fedora`,
+`charly-arch`, `githubrunner`) run the rootless posture proven sufficient by the
 `container-nesting` kernel RCA — see `/charly-distros:container-nesting` for the
 `mount_too_revealing()` + `unmask=/proc/*` derivation.
 
@@ -126,7 +126,7 @@ charly config fedora-coder                               # canonical 2222/18765
 Reaching host services from inside a bridge-networked container: use
 the host's LAN IP or `host.containers.internal` (podman) rather than
 `127.0.0.1`. For selkies-style sibling-container discovery, the deploy.yml
-`provides.env:` and `CH_MCP_SERVERS` auto-injection give explicit hostnames.
+`provides.env:` and `CHARLY_MCP_SERVERS` auto-injection give explicit hostnames.
 
 ## The 32-layer composition explained
 
@@ -135,7 +135,7 @@ the host's LAN IP or `host.containers.internal` (podman) rather than
 image that uses `build-toolchain` either bases on `fedora-nonfree` or
 includes `rpmfusion` explicitly.
 
-**Python story** — `python` (the pixi-python ov-layer) is NOT pulled in.
+**Python story** — `python` (the pixi-python charly-layer) is NOT pulled in.
 `supervisord`, `language-runtimes`, and `uv` all use system python3 from RPM,
 not the conda-forge pixi env, so none of them declares `requires: python`.
 System Python is available via `language-runtimes` (`python3-devel` +
@@ -169,7 +169,7 @@ charly -C image/fedora image build fedora-coder
 charly eval box ghcr.io/overthinkos/fedora-coder:latest
 # target: 149 passed · 0 failed · 0 skipped
 
-# 4. Deploy (no bind-mount needed; charly-mcp auto-falls back to overthinkos/opencharly)
+# 4. Deploy (no bind-mount needed; charly-mcp auto-falls back to overthinkos/overthink)
 charly config fedora-coder
 charly start fedora-coder
 
@@ -183,7 +183,7 @@ charly stop fedora-coder
 ```
 
 If you want `box.list.boxes` over the MCP surface to list YOUR
-local checkout's images (rather than upstream overthinkos/opencharly),
+local checkout's images (rather than upstream overthinkos/overthink),
 bind-mount the project:
 
 ```bash
@@ -193,7 +193,7 @@ charly start fedora-coder
 
 The volume NAME is `project` (stable bind-mount API); the in-container
 mount path is `/workspace`. See `/charly-coder:charly-mcp` for the three
-deployment patterns (bind-mount / `CH_PROJECT_REPO` / auto-fallback).
+deployment patterns (bind-mount / `CHARLY_PROJECT_REPO` / auto-fallback).
 
 ## Ports
 
@@ -202,7 +202,7 @@ deployment patterns (bind-mount / `CH_PROJECT_REPO` / auto-fallback).
 | 2222 | sshd-wrapper (SSH access as user with sudo) | `/charly-coder:sshd` |
 | 18765 | charly-mcp (entire `charly` CLI as MCP tools, Streamable HTTP) | `/charly-coder:charly-mcp` |
 
-Conflicts with `/charly-coder:arch-ov` (identical ports) and several
+Conflicts with `/charly-coder:charly-arch` (identical ports) and several
 selkies-desktop variants on 2222. Use `-i <instance>` or `-p <remap>`
 if running alongside.
 
@@ -233,7 +233,7 @@ google-cloud-npm) by forking box.yml. See `/charly-image:image` for authoring.
 ## Key Layers
 
 - `/charly-tools:charly` — the full toolchain: charly binary + virtualization + gocryptfs + socat (+ podman-machine, gvisor-tap-vsock for nested VMs)
-- `/charly-coder:charly-mcp` — MCP gateway; auto-falls back to `overthinkos/opencharly` when no bind-mount present
+- `/charly-coder:charly-mcp` — MCP gateway; auto-falls back to `overthinkos/overthink` when no bind-mount present
 - `/charly-distros:container-nesting` — rootless nested podman recipe (authoritative RCA for `mount_too_revealing()` + `unmask=/proc/*`)
 - `/charly-coder:sshd` — SSH daemon + passwordless sudo for the `user` account
 - `/charly-coder:forgecode` — the 5th AI coding CLI
@@ -257,8 +257,8 @@ All four produce the same daily-dev surface (sshd on 2222, charly-mcp on 18765, 
 ## Related Images
 
 - `/charly-openclaw:openclaw-desktop` — sibling rootless-first power-user image; same security posture + container-nesting, but adds the streaming desktop. Prefer when you want browser-accessible GUI + dev tools.
-- `/charly-distros:fedora-ov` — minimal charly toolchain (no coding CLIs, no DevOps), also uid=1000 with sudo.
-- `/charly-coder:arch-ov` — Arch Linux counterpart of fedora-ov.
+- `/charly-distros:charly-fedora` — minimal charly toolchain (no coding CLIs, no DevOps), also uid=1000 with sudo.
+- `/charly-coder:charly-arch` — Arch Linux counterpart of charly-fedora.
 - `/charly-distros:githubrunner` — self-hosted GitHub Actions runner; same uid=1000 posture.
 - `/charly-hermes:hermes` — adds the Hermes AI agent daemon on top of the AI CLIs; prefer when you want an agent, not just CLI tools.
 
@@ -278,7 +278,7 @@ All four produce the same daily-dev surface (sshd on 2222, charly-mcp on 18765, 
 
 - Building, deploying, or troubleshooting the `fedora-coder` image.
 - Picking the right power-user base image for a coding/dev workload (this
-  vs. `fedora-ov` vs. `arch-ov` vs. `openclaw-desktop`).
+  vs. `charly-fedora` vs. `charly-arch` vs. `openclaw-desktop`).
 - Understanding the rootless-first architectural pattern shared by the
   four power-user images (kernel RCA belongs in
   `/charly-distros:container-nesting`; the composition that proves it works

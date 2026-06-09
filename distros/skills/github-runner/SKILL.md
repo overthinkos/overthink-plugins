@@ -25,8 +25,8 @@ description: |
 - .NET runtime deps for the runner binary (its `installdependencies.sh` has no
   Arch branch): `icu`, `krb5`, `openssl`, `libunwind`, `lttng-ust` (NOT `zlib` —
   CachyOS ships `zlib-ng-compat`, which Provides it; an explicit `zlib` conflicts)
-- ov-host `depends=` completion: `slirp4netns`, `libisoburn`, `cdrtools`, `swtpm`
-  — the part of the `charly` PKGBUILD `depends=` set the ov/virtualization layers do
+- charly-host `depends=` completion: `slirp4netns`, `libisoburn`, `cdrtools`, `swtpm`
+  — the part of the `charly` PKGBUILD `depends=` set the charly/virtualization layers do
   not already install. With these present, `charly box pkg pac` builds the pac release
   artifact NATIVELY on the runner (`makepkg -sf` resolves every dep and never
   shells out to `sudo pacman`). See `/charly-distros:githubrunner` "CI: builds the
@@ -63,7 +63,7 @@ location `${HOME}/.config/containers/registries.conf.d/` (rootless podman).
 githubrunner:
   base: cachyos.cachyos
   build: [pac]
-  candy: [agent-forwarding, github-runner, ov, dbus, container-nesting]
+  candy: [agent-forwarding, github-runner, charly, dbus, container-nesting]
   network: host          # no uid/privileged override → rootless
 ```
 

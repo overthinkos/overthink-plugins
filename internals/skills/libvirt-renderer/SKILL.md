@@ -4,8 +4,8 @@ description: |
   Pure renderer from VmSpec + LibvirtConfig to libvirt domain XML and QEMU argv.
   Covers RenderDomain, device emission (passt backend, portForward attribute
   order, virtio-gpu defaults), firmware plumbing, and LibvirtConfig schema shape.
-  Source: ov/libvirt_schema.go, ov/libvirt_render.go, ov/libvirt_render_devices.go,
-  ov/qemu_render.go. MUST be invoked before editing libvirt XML emission.
+  Source: charly/libvirt_schema.go, charly/libvirt_render.go, charly/libvirt_render_devices.go,
+  charly/qemu_render.go. MUST be invoked before editing libvirt XML emission.
 ---
 
 # libvirt-renderer
@@ -16,11 +16,11 @@ The libvirt renderer converts `VmSpec` + `LibvirtConfig` into a libvirt domain X
 
 | File | Contents | LOC |
 |---|---|---|
-| `ov/libvirt_schema.go` | `LibvirtConfig` + 30+ sub-types (features, CPU, clock, memory backing, memtune, numatune, cputune, devices, seclabel, launch security, resource, sysinfo) | ~470 |
-| `ov/libvirt_render.go` | `RenderDomain` top-level composition; firmware plumbing (D17); SMBIOS credentials | ~800 |
-| `ov/libvirt_render_devices.go` | `<devices>` child emitters — channels, graphics, video, rng, memballoon, hostdev, interface (with portForward), filesystem | ~700 |
-| `ov/qemu_render.go` | `RenderQemuArgv` for direct-QEMU backend | ~340 |
-| `ov/libvirt_validate.go` | `ValidateLibvirtConfig` |
+| `charly/libvirt_schema.go` | `LibvirtConfig` + 30+ sub-types (features, CPU, clock, memory backing, memtune, numatune, cputune, devices, seclabel, launch security, resource, sysinfo) | ~470 |
+| `charly/libvirt_render.go` | `RenderDomain` top-level composition; firmware plumbing (D17); SMBIOS credentials | ~800 |
+| `charly/libvirt_render_devices.go` | `<devices>` child emitters — channels, graphics, video, rng, memballoon, hostdev, interface (with portForward), filesystem | ~700 |
+| `charly/qemu_render.go` | `RenderQemuArgv` for direct-QEMU backend | ~340 |
+| `charly/libvirt_validate.go` | `ValidateLibvirtConfig` |
 
 ## LibvirtConfig top-level
 
@@ -43,7 +43,7 @@ type LibvirtConfig struct {
 }
 ```
 
-**Structured first; raw XML is a last resort.** `Snippets` exists for the rare case where libvirt gained a new element before ov's schema caught up. The legacy list-of-strings form `libvirt: ["<xml>", ...]` on `kind:image` entries was deleted in the cutover — raw XML now lives only in `vms.<name>.libvirt.snippets:` (new), on layer-level `libvirt.snippets:` fields, and the `InjectLibvirtXML` post-processor still handles both paths.
+**Structured first; raw XML is a last resort.** `Snippets` exists for the rare case where libvirt gained a new element before charly's schema caught up. The legacy list-of-strings form `libvirt: ["<xml>", ...]` on `kind:image` entries was deleted in the cutover — raw XML now lives only in `vms.<name>.libvirt.snippets:` (new), on layer-level `libvirt.snippets:` fields, and the `InjectLibvirtXML` post-processor still handles both paths.
 
 ## Device-level gotchas learned in live testing
 

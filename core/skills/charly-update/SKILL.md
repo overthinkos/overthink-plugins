@@ -10,7 +10,7 @@ description: |
 
 ## Overview
 
-Redeploy the current artifact and restart the service — for EVERY deploy kind through ONE codepath. `charly update <name>` resolves the deploy via `ResolveTarget` and calls `LifecycleTarget.Rebuild` (`ov/unified_targets_*.go`); there is no per-kind update code. The unified contract is **redeploy the current artifact + restart by default; `--build` rebuilds the artifact first** — realized per substrate: pod → `deploy add → config → start` (`--build` rebuilds the image); vm → destroy→create the domain (reuse the qcow2 disk unless `--build`) **then re-apply the deploy node's layers idempotently** via the shared `deploy add` path (so a config change — a newly-added layer or nested pod — takes effect on the rebuilt guest, exactly like local/pod); local → re-apply layers idempotently. All three live substrates end in the SAME `charly deploy add <node>` layer-apply step. k8s has no live runtime to rebuild (apply it via `kubectl apply -k`), so `charly update <k8s>` errors uniformly. Data sync uses MERGE mode by default — adds new files without overwriting existing user modifications.
+Redeploy the current artifact and restart the service — for EVERY deploy kind through ONE codepath. `charly update <name>` resolves the deploy via `ResolveTarget` and calls `LifecycleTarget.Rebuild` (`charly/unified_targets_*.go`); there is no per-kind update code. The unified contract is **redeploy the current artifact + restart by default; `--build` rebuilds the artifact first** — realized per substrate: pod → `deploy add → config → start` (`--build` rebuilds the image); vm → destroy→create the domain (reuse the qcow2 disk unless `--build`) **then re-apply the deploy node's layers idempotently** via the shared `deploy add` path (so a config change — a newly-added layer or nested pod — takes effect on the rebuilt guest, exactly like local/pod); local → re-apply layers idempotently. All three live substrates end in the SAME `charly deploy add <node>` layer-apply step. k8s has no live runtime to rebuild (apply it via `kubectl apply -k`), so `charly update <k8s>` errors uniformly. Data sync uses MERGE mode by default — adds new files without overwriting existing user modifications.
 
 **`charly update` does NOT auto-pull.** It redeploys the image already in local storage. To advance a deploy to a newer published image, `charly box pull <ref>` first, then `charly update`; or `charly update --build` to rebuild locally. (This consistency with vm's reuse-disk default replaced the former pod-only auto-pull, so `charly update` behaves identically across kinds.) See `/charly-core:deploy` for the unified command family and `/charly-local:local-deploy` for host-target specifics.
 
@@ -76,8 +76,8 @@ When using `-i INSTANCE`, the update operates on a single named instance. The
 container is destroyed and recreated from the new image, but the per-instance named
 volumes are reattached:
 
-- `ov-selkies-desktop-82.23.94.69-chrome-data` → `/home/user/.chrome-debug`
-- `ov-selkies-desktop-82.23.94.69-selkies-config` → `/home/user/.config/selkies`
+- `charly-selkies-desktop-82.23.94.69-chrome-data` → `/home/user/.chrome-debug`
+- `charly-selkies-desktop-82.23.94.69-selkies-config` → `/home/user/.config/selkies`
 
 User-side state in those volumes (Chrome cookies, profile, history, selkies client
 settings) **survives the restart**. The cgroup is recreated fresh, so any in-memory
@@ -106,9 +106,9 @@ podman tag ghcr.io/overthinkos/selkies-desktop:2026.102.1933 \
            ghcr.io/overthinkos/selkies-desktop:latest
 
 # Restart the service(s) — they pick up :latest, no re-pull needed
-systemctl --user restart ov-selkies-desktop.service
+systemctl --user restart charly-selkies-desktop.service
 # or per-instance:
-systemctl --user restart ov-selkies-desktop-82.23.94.69.service
+systemctl --user restart charly-selkies-desktop-82.23.94.69.service
 ```
 
 This is fast (no network round-trip) and survives because podman's image GC is
@@ -122,7 +122,7 @@ local registry pointer moves.
 
 1. Pull/build new image
 2. Sync data from data layers into the image's volumes — both bind mounts and podman named volumes (if `--seed`)
-3. `systemctl --user restart ov-<image>.service`
+3. `systemctl --user restart charly-<image>.service`
 4. Update `deploy.yml` with new `data_source`
 
 ### Direct Mode

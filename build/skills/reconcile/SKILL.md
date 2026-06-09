@@ -59,7 +59,7 @@ charly -C image/selkies image reconcile   # reconcile a submodule's pins
 ## Scope — one project per invocation
 
 `charly box reconcile` operates on the CURRENT project (cwd; honors the top-level
-`-C` / `--dir` / `CH_PROJECT_DIR`). For a multi-repo tree (the main repo + its
+`-C` / `--dir` / `CHARLY_PROJECT_DIR`). For a multi-repo tree (the main repo + its
 `image/<distro>` submodules), run it per repo, or per submodule via `-C
 image/<name>`. This pairs with the cross-repo landing order in
 `/charly-internals:git-workflow` B6: land + tag the producer FIRST, then
@@ -68,11 +68,11 @@ consumer's authoritative R10.
 
 ## Implementation
 
-`ov/reconcile.go` — `ImageReconcileCmd` (wired under `charly box` in `ov/image.go`).
-Reuses `ParseRemoteRef` / `IsRemoteLayerRef` / `StripVersion` (`ov/refs.go`),
-`compareSemver` / `GitLatestTag` / `RepoGitURL` (`ov/refs_git.go`), and the
-comment-preserving load/`yaml.Marshal` pattern from `ov/yaml_setter.go`. Covered
-by `ov/reconcile_test.go` (newest-referenced alignment, comment preservation,
+`charly/reconcile.go` — `ImageReconcileCmd` (wired under `charly box` in `charly/image.go`).
+Reuses `ParseRemoteRef` / `IsRemoteLayerRef` / `StripVersion` (`charly/refs.go`),
+`compareSemver` / `GitLatestTag` / `RepoGitURL` (`charly/refs_git.go`), and the
+comment-preserving load/`yaml.Marshal` pattern from `charly/yaml_setter.go`. Covered
+by `charly/reconcile_test.go` (newest-referenced alignment, comment preservation,
 idempotency, single-version-untouched, no-pins no-op).
 
 ## Cross-References

@@ -1,25 +1,25 @@
 ---
-name: arch-charly
+name: charly-arch
 description: |
   Arch Linux image with the full charly toolchain. Rootless-first — runs as
   uid=1000 with passwordless sudo (no root, no cap_add: ALL).
   Composes /charly-coder:charly-mcp so the image is reachable as an MCP gateway
   on port 18765. NVIDIA GPU runtime composed in.
   MUST be invoked before building, deploying, configuring, or troubleshooting
-  the arch-charly image.
+  the charly-arch image.
 ---
 
-# arch-charly
+# charly-arch
 
-> **Location:** `arch-ov` lives in the **`overthinkos/arch`** repo (git
+> **Location:** `charly-arch` lives in the **`overthinkos/arch`** repo (git
 > submodule at **`image/arch`**) and composes its layers by git reference to
-> this repo. Build from the submodule: `cd image/arch && charly box build arch-ov`
-> (or `charly --repo overthinkos/arch image build arch-ov`). The `arch` base +
+> this repo. Build from the submodule: `cd image/arch && charly box build charly-arch`
+> (or `charly --repo overthinkos/arch image build charly-arch`). The `arch` base +
 > `arch-builder` live in this repo (in `base.yml`; reached via the submodule's
-> `import:` of this repo under the `ov` namespace — `base: ov.arch`).
+> `import:` of this repo under the `charly` namespace — `base: charly.arch`).
 
 Arch Linux container with the full charly toolchain. Uses the same shared
-layer list as `/charly-distros:fedora-ov` — the tag system handles
+layer list as `/charly-distros:charly-fedora` — the tag system handles
 Arch-specific packages and scripts via `pac:` sections. Composes
 `charly-mcp` so the image is addressable as an MCP gateway — LLM agents
 can drive build/test/deploy via Streamable HTTP on port 18765.
@@ -30,7 +30,7 @@ can drive build/test/deploy via Streamable HTTP on port 18765.
 |----------|-------|
 | Base | arch (quay.io/archlinux/archlinux, pinned in base.yml) |
 | Tags | `[all, pac, arch]` |
-| Layers | agent-forwarding, ov, **charly-mcp**, golang, gh, sshd, container-nesting, nvidia |
+| Layers | agent-forwarding, charly, **charly-mcp**, golang, gh, sshd, container-nesting, nvidia |
 | Platforms | linux/amd64 |
 | UID / user | **1000 / user** (rootless-first) |
 | Network | default `charly` bridge |
@@ -40,7 +40,7 @@ can drive build/test/deploy via Streamable HTTP on port 18765.
 
 ### Rootless-first posture
 
-All four power-user images (`arch-ov`, `/charly-distros:fedora-ov`,
+All four power-user images (`charly-arch`, `/charly-distros:charly-fedora`,
 `/charly-coder:fedora-coder`, `/charly-distros:githubrunner`) run rootless because
 the `/charly-distros:container-nesting` kernel-level RCA proves that
 `unmask=/proc/*` + uid-delegation via subuid/subgid ranges is sufficient for
@@ -68,14 +68,14 @@ nested-VM load, and `/charly-distros:container-nesting` for the kernel
 
 ### Network + port publishing
 
-`arch-ov` uses the project-default `charly` bridge — so `charly-mcp`'s MCP URL
-rewriting (`rewriteMCPURLForHost` in `ov/mcp_client.go`) has published port
+`charly-arch` uses the project-default `charly` bridge — so `charly-mcp`'s MCP URL
+rewriting (`rewriteMCPURLForHost` in `charly/mcp_client.go`) has published port
 mappings to work with. (That function also handles host-networked containers
 via `HostConfig.NetworkMode` detection, so the bridge isn't strictly required
 — but it remains the portable default.) If host-port 2222 is already taken by
 another running image (canonical conflict: `/charly-openclaw:openclaw-desktop`
 or any `selkies-desktop-*` variant), remap at config time:
-`charly config arch-charly -p 2223:2222`.
+`charly config charly-arch -p 2223:2222`.
 
 ### MCP gateway (charly-mcp)
 
@@ -83,19 +83,19 @@ The `/charly-coder:charly-mcp` layer deploys `charly mcp serve --listen :18765`
 inside the container under supervisord, advertising ~192 MCP tools
 (the full Kong CLI surface, including the project-scaffolding +
 YAML-editing + file-write authoring verbs). Three deployment patterns
-work — bind-mount your project, pin an `CH_PROJECT_REPO`, or rely on the
-auto-fallback to `overthinkos/opencharly`:
+work — bind-mount your project, pin an `CHARLY_PROJECT_REPO`, or rely on the
+auto-fallback to `overthinkos/overthink`:
 
 ```bash
 # Pattern 1: bind your local checkout
-charly config arch-charly --bind project=/home/you/opencharly
-charly start arch-charly
-charly eval mcp call arch-charly box.list.boxes '{}' --name charly  # lists YOUR project's images
+charly config charly-arch --bind project=/home/you/opencharly
+charly start charly-arch
+charly eval mcp call charly-arch box.list.boxes '{}' --name charly  # lists YOUR project's images
 
 # Pattern 3: no bind-mount (auto-fallback kicks in)
-charly config arch-charly
-charly start arch-charly
-charly eval mcp call arch-charly box.list.boxes '{}' --name charly  # lists upstream overthinkos/opencharly images
+charly config charly-arch
+charly start charly-arch
+charly eval mcp call charly-arch box.list.boxes '{}' --name charly  # lists upstream overthinkos/overthink images
 ```
 
 Volume NAME is `project` (stable bind-mount API); container PATH is
@@ -108,7 +108,7 @@ bind-mount handshake.
 
 Full charly toolchain via shared layers:
 
-- **ov** — the full toolchain: charly binary + VM tools (qemu-full, virtiofsd, libvirt) + gocryptfs + socat
+- **charly** — the full toolchain: charly binary + VM tools (qemu-full, virtiofsd, libvirt) + gocryptfs + socat
 - **charly-mcp** — MCP server exposing the full charly CLI as tools on :18765 (supervisord-managed; bind `project=` for build-mode tools or rely on auto-fallback)
 - **golang** — Go compiler (`go`)
 - **gh** — GitHub CLI + `git` + `git-lfs` (single-responsibility; see `/charly-coder:gh`)
@@ -120,34 +120,34 @@ Full charly toolchain via shared layers:
 
 ```bash
 # Build
-charly box build arch-charly
+charly box build charly-arch
 
 # Interactive shell (as uid=1000)
-charly shell arch-charly
+charly shell charly-arch
 
 # Run a command
-charly shell arch-charly -c "charly version"
-charly shell arch-charly -c "sudo dnf --help"    # sudo works passwordless
+charly shell charly-arch -c "charly version"
+charly shell charly-arch -c "sudo dnf --help"    # sudo works passwordless
 
 # Start as service
-charly start arch-charly
-charly status arch-charly
-charly stop arch-charly
+charly start charly-arch
+charly status charly-arch
+charly stop charly-arch
 ```
 
 ## Nested Containers
 
-Rootless podman works inside arch-charly at any nesting depth. The
+Rootless podman works inside charly-arch at any nesting depth. The
 `/charly-distros:container-nesting` layer provides the config + env vars +
 subuid/subgid delegation (1:999 + 1001:64535 per the podman/stable
 recipe):
 
 ```bash
-# Level 1: run containers inside arch-charly
-charly shell arch-charly -c "podman run --rm quay.io/libpod/alpine:latest echo hello"
+# Level 1: run containers inside charly-arch
+charly shell charly-arch -c "podman run --rm quay.io/libpod/alpine:latest echo hello"
 
-# Level 2: run charly inside arch-charly inside arch-charly
-charly shell arch-charly -c "charly shell arch-charly -c 'charly version'"
+# Level 2: run charly inside charly-arch inside charly-arch
+charly shell charly-arch -c "charly shell charly-arch -c 'charly version'"
 ```
 
 Use `quay.io/libpod/alpine:latest` instead of `docker.io/library/alpine`
@@ -167,18 +167,18 @@ containers. GPU access works at any nesting depth.
 ## Verification
 
 ```bash
-charly shell arch-charly -c "id"                              # uid=1000(user)
-charly shell arch-charly -c "sudo -n whoami"                  # root (passwordless)
-charly shell arch-charly -c "charly version"
-charly shell arch-charly -c "charly doctor"
-charly shell arch-charly -c "podman info"
-charly shell arch-charly -c "podman run --rm quay.io/libpod/alpine:latest echo OK"
-charly shell arch-charly -c "which nvidia-ctk"
+charly shell charly-arch -c "id"                              # uid=1000(user)
+charly shell charly-arch -c "sudo -n whoami"                  # root (passwordless)
+charly shell charly-arch -c "charly version"
+charly shell charly-arch -c "charly doctor"
+charly shell charly-arch -c "podman info"
+charly shell charly-arch -c "podman run --rm quay.io/libpod/alpine:latest echo OK"
+charly shell charly-arch -c "which nvidia-ctk"
 ```
 
-## Unified with fedora-charly
+## Unified with charly-fedora
 
-Both `arch-ov` and `/charly-distros:fedora-ov` use the exact same layer
+Both `charly-arch` and `/charly-distros:charly-fedora` use the exact same layer
 list. The tag system (`build: [pac]` + `distro: [arch]` vs
 `build: [rpm]` + `distro: ["fedora:43", fedora]`) selects the right
 packages and scripts per distro.
@@ -195,15 +195,15 @@ packages and scripts per distro.
 ## Related Images
 
 - `/charly-distros:arch` — parent base image
-- `/charly-distros:fedora-ov` — Fedora counterpart, same layers, same rootless posture
+- `/charly-distros:charly-fedora` — Fedora counterpart, same layers, same rootless posture
 - `/charly-coder:fedora-coder` — kitchen-sink dev sibling (32 layers vs 8; adds coding CLIs + DevOps)
 - `/charly-openclaw:openclaw-desktop` — streaming-desktop counterpart (charly toolchain + browser-accessible Wayland); shares the rootless-first posture
 - `/charly-distros:githubrunner` — self-hosted GitHub Actions runner; same uid=1000 posture
 
 ## Related Commands
 
-- `/charly-core:shell` — open an interactive shell in arch-charly (as uid=1000 with sudo)
-- `/charly-core:service` — manage arch-charly as a service
+- `/charly-core:shell` — open an interactive shell in charly-arch (as uid=1000 with sudo)
+- `/charly-core:service` — manage charly-arch as a service
 - `/charly-vm:vm` — nested libvirt VMs via `qemu:///session` (rootless)
 - `/charly-eval:eval` — three modes: `charly eval box <ref>` (build-scope, disposable container), `charly eval live <name>` (full-stack against running deployment), `charly eval run <score>` (AI iteration loop)
 - `/charly-build:charly-mcp-cmd` — MCP gateway + auto-fallback behavior

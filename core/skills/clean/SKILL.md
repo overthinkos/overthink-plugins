@@ -19,7 +19,7 @@ and `charly eval run`.
 Two artifact classes, two policies (operator principle):
 
 - **One-time / transient → always cleaned immediately.** makepkg leftovers under
-  `pkg/arch` (`src/`, `pkg/`, `*.pkg.tar.zst`, `*.log`). `task build:ov` removes
+  `pkg/arch` (`src/`, `pkg/`, `*.pkg.tar.zst`, `*.log`). `task build:charly` removes
   these right after install; `charly clean` sweeps any backlog.
 - **Reusable → keep-last-N, configurable in `defaults:`.** Container image tags
   and `.eval` run output. Retention is set in `charly.yml` `defaults:` and
@@ -92,11 +92,11 @@ the qcow2 build.
 
 ## Implementation
 
-`ov/clean.go` — `pruneImagesByRetention`, `pruneEvalRuns`,
-`cleanMakepkgArtifacts`, `CleanCmd`. Hooks in `BuildCmd.Run` (`ov/build.go`) and
-`EvalRunCmd.Run` (`ov/eval_runner_cmd.go`). Retention keys live on `BoxConfig`
-(`ov/config.go`), merged via `mergeImageConfig` (`ov/unified.go`), validated in
-`validateBuildTunables` (`ov/validate.go`).
+`charly/clean.go` — `pruneImagesByRetention`, `pruneEvalRuns`,
+`cleanMakepkgArtifacts`, `CleanCmd`. Hooks in `BuildCmd.Run` (`charly/build.go`) and
+`EvalRunCmd.Run` (`charly/eval_runner_cmd.go`). Retention keys live on `BoxConfig`
+(`charly/config.go`), merged via `mergeImageConfig` (`charly/unified.go`), validated in
+`validateBuildTunables` (`charly/validate.go`).
 
 ## Cross-References
 

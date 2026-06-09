@@ -49,7 +49,7 @@ lock is present, generation auto-flips the build stage from `pixi install` (a
 full SAT solve over the conda + PyPI indexes on every cache miss) to
 `pixi install --frozen` (install straight from the lock — no solve,
 deterministic, better cache reuse). The flip is automatic via `HasPixiLock`
-detection (`ov/layers.go`) → the `pixi.toml+lock` install command in
+detection (`charly/layers.go`) → the `pixi.toml+lock` install command in
 `build.yml`; no per-layer config.
 
 **Regenerate the lock whenever you change `pixi.toml`** — `--frozen` fails the

@@ -19,9 +19,9 @@ Three verbs, in decreasing scope:
 | `charly box new box <name>` | Appends an image entry to an existing `box.yml` |
 | `charly box new candy <name>` | A new layer directory under `candy/<name>/` with a stub `candy.yml` |
 
-All three are **comment-preserving**: the YAML edits route through the `yaml.v3` Node API rather than the value API, so human-authored comments and key order survive round trips. Implementation lives in `ov/scaffold_project.go` + `ov/yaml_setter.go`.
+All three are **comment-preserving**: the YAML edits route through the `yaml.v3` Node API rather than the value API, so human-authored comments and key order survive round trips. Implementation lives in `charly/scaffold_project.go` + `charly/yaml_setter.go`.
 
-Each verb also auto-becomes an MCP tool (`box.new.project`, `box.new.box`, `box.new.candy`) via Kong reflection in `ov/mcp_server.go` — so an LLM agent driving `charly mcp serve` can scaffold a project from scratch over RPC. See `/charly-build:charly-mcp-cmd` "Authoring tools".
+Each verb also auto-becomes an MCP tool (`box.new.project`, `box.new.box`, `box.new.candy`) via Kong reflection in `charly/mcp_server.go` — so an LLM agent driving `charly mcp serve` can scaffold a project from scratch over RPC. See `/charly-build:charly-mcp-cmd` "Authoring tools".
 
 ## Quick Reference
 
@@ -106,7 +106,7 @@ The scaffolded `candy.yml` from step 3 is minimal (a null `rpm.packages:` list w
 
 ## Project directory override
 
-`charly box new candy <name>` writes into `candy/<name>/` relative to `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CH_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
+`charly box new candy <name>` writes into `candy/<name>/` relative to `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
@@ -125,4 +125,4 @@ The scaffolded `candy.yml` from step 3 is minimal (a null `rpm.packages:` list w
 
 - `/charly-image:layer` -- Layer authoring guide, candy.yml format, install files + the `charly candy set / add-rpm / add-deb / add-pac / add-aur` editing surface
 - `/charly-build:charly-mcp-cmd` -- "Authoring tools" table + the MCP-only build-from-scratch worked example
-- `/charly-internals:go` -- Implementation notes: the `yaml.v3` Node API is the reason edits preserve comments; `ov/scaffold_project.go` + `ov/yaml_setter.go` house the logic
+- `/charly-internals:go` -- Implementation notes: the `yaml.v3` Node API is the reason edits preserve comments; `charly/scaffold_project.go` + `charly/yaml_setter.go` house the logic

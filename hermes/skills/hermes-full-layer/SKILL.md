@@ -1,7 +1,7 @@
 ---
 name: hermes-full-layer
 description: |
-  Hermes agent with AI CLIs (Claude Code, Codex, Gemini), developer tools, DevOps tools, and ov.
+  Hermes agent with AI CLIs (Claude Code, Codex, Gemini), developer tools, DevOps tools, and charly.
   Use when working with the hermes-full metalayer or full-featured standalone hermes deployments.
 ---
 

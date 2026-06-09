@@ -32,7 +32,7 @@ Resolution order (first match wins):
 
 | Priority | Backend | When used |
 |----------|---------|-----------|
-| 1 | Environment variable | `CH_VNC_PASSWORD`, etc. |
+| 1 | Environment variable | `CHARLY_VNC_PASSWORD`, etc. |
 | 2 | System keyring (Secret Service) | GNOME Keyring, KDE Wallet, KeePassXC (FdoSecrets) |
 | 3 | Config file | Plaintext fallback in `config.yml` (headless last-resort) |
 
@@ -74,7 +74,7 @@ or the config-file fallback) — never a `.kdbx` file.
 
 ```bash
 charly secrets list              # All charly entries (keyring shadow index + config)
-charly secrets list ov/vnc       # Filter by service prefix
+charly secrets list charly/vnc       # Filter by service prefix
 ```
 
 Prints `service/key` pairs, one per line. The listing is the union of the
@@ -84,11 +84,11 @@ plaintext entries, so it reflects everything regardless of the active backend.
 ### Get / Set / Delete
 
 ```bash
-charly secrets get ov/vnc my-image              # Print value
-charly secrets set ov/vnc my-image              # Prompt for value securely
-charly secrets set ov/vnc my-image mypassword   # Set value inline
-charly secrets set ov/vnc my-image --generate   # Generate and print random value
-charly secrets delete ov/vnc my-image           # Remove entry
+charly secrets get charly/vnc my-image              # Print value
+charly secrets set charly/vnc my-image              # Prompt for value securely
+charly secrets set charly/vnc my-image mypassword   # Set value inline
+charly secrets set charly/vnc my-image --generate   # Generate and print random value
+charly secrets delete charly/vnc my-image           # Remove entry
 ```
 
 `set`/`delete` operate on the active store (`DefaultCredentialStore()`); `get`
@@ -130,8 +130,8 @@ automatically.
 
 ```bash
 charly settings set secret_backend keyring   # (optional) force the keyring backend
-charly secrets set ov/secret MY_TOKEN xyz    # store a credential
-charly secrets get ov/secret MY_TOKEN        # read it back
+charly secrets set charly/secret MY_TOKEN xyz    # store a credential
+charly secrets get charly/secret MY_TOKEN        # read it back
 ```
 
 ### Credential-backed layer env vars (`secret_accept` / `secret_require`)
@@ -144,29 +144,29 @@ per-image podman secrets, and injected into the container at runtime via
 `deploy.yml` or the generated quadlet as plaintext**. See `/charly-image:layer`
 (secret_accept / secret_require) for the authoring side.
 
-The credential store namespace for these entries defaults to `ov/secret`
+The credential store namespace for these entries defaults to `charly/secret`
 with the env var name as the key. Layer authors can override with an
-explicit `key: ov/api-key/openrouter` in candy.yml, which is useful when
+explicit `key: charly/api-key/openrouter` in candy.yml, which is useful when
 multiple consumers should resolve the same upstream credential (e.g.,
-openwebui and hermes both pointing at `ov/api-key/openrouter` so one
+openwebui and hermes both pointing at `charly/api-key/openrouter` so one
 `charly secrets set` populates both).
 
 **Storage commands:**
 
 ```bash
 # Default path (matches candy.yml `secret_accept: [{name: WEBUI_ADMIN_PASSWORD}]`)
-charly secrets set ov/secret WEBUI_ADMIN_PASSWORD <password>
+charly secrets set charly/secret WEBUI_ADMIN_PASSWORD <password>
 
-# Explicit key path (matches candy.yml `key: ov/api-key/openrouter`)
-charly secrets set ov/api-key openrouter sk-or-xxxxxxxx
-charly secrets set ov/api-key ollama gsk-yyyyyyyy
-charly secrets set ov/api-key immich <immich-key-from-web-ui>
+# Explicit key path (matches candy.yml `key: charly/api-key/openrouter`)
+charly secrets set charly/api-key openrouter sk-or-xxxxxxxx
+charly secrets set charly/api-key ollama gsk-yyyyyyyy
+charly secrets set charly/api-key immich <immich-key-from-web-ui>
 ```
 
 **Auto-generated `secret_require:` tokens.**
 `secret_require:` entries that miss everywhere (env + credential
 store) auto-generate a 32-byte hex token via `generateRandomHex(32)` +
-`DefaultCredentialStore.Set`, persisted at `ov/secret/<NAME>` (or the
+`DefaultCredentialStore.Set`, persisted at `charly/secret/<NAME>` (or the
 declared `key:` override). The first deploy that resolves the secret
 writes; every subsequent deploy reads the persisted value. Race-free
 across multi-layer declarations because `DefaultCredentialStore` caches
@@ -183,15 +183,15 @@ contract; the caller falls back to `dep.Default` when missing). Only
 the first time):
 
 ```bash
-charly secrets get ov/secret K3S_CLUSTER_TOKEN
-charly secrets get ov/secret WEBUI_ADMIN_PASSWORD
+charly secrets get charly/secret K3S_CLUSTER_TOKEN
+charly secrets get charly/secret WEBUI_ADMIN_PASSWORD
 ```
 
 **Override** a `secret_require:` value with a specific value before
 the first deploy:
 
 ```bash
-charly secrets set ov/secret K3S_CLUSTER_TOKEN <value>
+charly secrets set charly/secret K3S_CLUSTER_TOKEN <value>
 ```
 
 The auto-gen path is skipped whenever any non-empty value is already
@@ -211,7 +211,7 @@ config file.
 with the new value on every `charly config`:
 
 ```bash
-charly secrets set ov/api-key/openrouter <new-value>
+charly secrets set charly/api-key/openrouter <new-value>
 charly config openwebui --update-all
 systemctl --user restart charly-openwebui.service
 ```
@@ -253,7 +253,7 @@ rotation semantics differ. See `/charly-image:layer` (secret_accept / secret_req
 
 ## Project-Level Secrets (.secrets + direnv)
 
-Separate from ov's credential store, project-level environment variables (e.g., `GMAIL_USER`, `GMAIL_PASSWORD`) are stored in `.secrets` — a GPG-encrypted file at the project root. direnv decrypts it in memory via `charly secrets gpg env` when entering the directory (`eval "$(charly secrets gpg env)"` in `.envrc`).
+Separate from charly's credential store, project-level environment variables (e.g., `GMAIL_USER`, `GMAIL_PASSWORD`) are stored in `.secrets` — a GPG-encrypted file at the project root. direnv decrypts it in memory via `charly secrets gpg env` when entering the directory (`eval "$(charly secrets gpg env)"` in `.envrc`).
 
 **This is NOT managed by the `charly secrets` credential store.** The two systems serve different purposes:
 
@@ -506,7 +506,7 @@ For GPG agent forwarding into containers (so `gpg --decrypt` works inside), use 
 
 ## Source
 
-`ov/secrets_cmd.go` (CLI commands), `ov/secrets_gpg.go` (GPG .secrets commands, key management, diagnostics), `ov/credential_store.go` + `ov/credential_keyring.go` + `ov/credential_config.go` (credential backends), `ov/migrate_secrets_kdbx.go` (`charly migrate`).
+`charly/secrets_cmd.go` (CLI commands), `charly/secrets_gpg.go` (GPG .secrets commands, key management, diagnostics), `charly/credential_store.go` + `charly/credential_keyring.go` + `charly/credential_config.go` (credential backends), `charly/migrate_secrets_kdbx.go` (`charly migrate`).
 
 ## When to Use This Skill
 

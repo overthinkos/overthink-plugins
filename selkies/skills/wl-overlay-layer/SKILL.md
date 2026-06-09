@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `dbus` |
-| Install files | `task:`, `ov-overlay` |
+| Install files | `task:`, `charly-overlay` |
 
 ## Packages
 
@@ -22,7 +22,7 @@ description: |
 
 ## Technical Details
 
-### Python Script: `ov-overlay`
+### Python Script: `charly-overlay`
 
 Installed to `~/.local/bin/charly-overlay` via `task:`. Dual-mode script (daemon + client) using GTK4 + gtk4-layer-shell for layer-shell protocol overlays.
 
@@ -39,7 +39,7 @@ Installed to `~/.local/bin/charly-overlay` via `task:`. Dual-mode script (daemon
 - **Layer**: `OVERLAY` (above TOP where waybar/swaync live)
 - **Keyboard mode**: `NONE` (overlays never capture input)
 - **Exclusive zone**: `-1` (don't push other windows)
-- **Namespace**: `ov-overlay-<name>` per overlay window
+- **Namespace**: `charly-overlay-<name>` per overlay window
 
 ## Usage
 

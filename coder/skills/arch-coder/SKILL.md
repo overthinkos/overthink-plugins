@@ -17,8 +17,8 @@ description: |
 > It composes the layers below by **git reference** to this repo
 > (`@github.com/overthinkos/overthink/candy/<name>:<tag>`) rather than copying
 > them; the `arch` base + `arch-builder` live in this repo (in `base.yml`) and
-> are reached by the submodule importing this repo under the `ov` namespace
-> (`base: ov.arch`, `builder: {…: ov.arch-builder}`). Build / deploy from
+> are reached by the submodule importing this repo under the `charly` namespace
+> (`base: charly.arch`, `builder: {…: charly.arch-builder}`). Build / deploy from
 > the submodule, e.g. `cd image/arch && charly box build arch-coder` (the build
 > verb defaults to the submodule's `charly.yml`), or
 > `charly --repo overthinkos/arch image build arch-coder`. The commands below assume
@@ -30,7 +30,7 @@ Arch Linux counterpart of `/charly-coder:fedora-coder`. Same daily-development s
 
 ```yaml
 arch-coder:
-  base: ov.arch                  # via the `ov` import namespace
+  base: charly.arch                  # via the `charly` import namespace
   ports:
     - "2222:2222"                 # sshd-wrapper
     - "18765:18765"               # charly-mcp (Streamable HTTP)
@@ -92,7 +92,7 @@ No explicit `user:` / `uid:` / `gid:` — inherits the defaults. `user_policy:` 
 | UID / user | `1000 / user` | create mode |
 | sudo | passwordless via `/etc/sudoers.d/charly-user` | `/charly-coder:sshd` |
 
-**No `--privileged`, no `cap_add: ALL`, no `seccomp=unconfined`.** The rootless posture is shared with the three sibling power-user images (`fedora-coder`, `fedora-ov`, `arch-ov`); `/charly-distros:container-nesting` proves a privileged posture is unnecessary.
+**No `--privileged`, no `cap_add: ALL`, no `seccomp=unconfined`.** The rootless posture is shared with the three sibling power-user images (`fedora-coder`, `charly-fedora`, `charly-arch`); `/charly-distros:container-nesting` proves a privileged posture is unnecessary.
 
 ## AUR via yay (Arch-specific builder chain)
 
@@ -164,7 +164,7 @@ Conflicts with `/charly-coder:fedora-coder` / `/charly-coder:debian-coder` / `/c
 - `/charly-coder:fedora-coder` — canonical RPM-family sibling.
 - `/charly-coder:debian-coder` — deb-family sibling on Debian 13.
 - `/charly-coder:ubuntu-coder` — deb-family sibling on Ubuntu 24.04 (adopt mode).
-- `/charly-coder:arch-ov` — slimmer Arch alternative with just the charly toolchain (no AI CLIs or DevOps tooling).
+- `/charly-coder:charly-arch` — slimmer Arch alternative with just the charly toolchain (no AI CLIs or DevOps tooling).
 - `/charly-openclaw:openclaw-desktop` — adds a browser-streamed Wayland desktop (plus the openclaw gateway, AI CLIs, and a CPU ollama) with the same rootless charly toolchain.
 
 ## Related layers

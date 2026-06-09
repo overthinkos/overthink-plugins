@@ -203,7 +203,7 @@ charly eval wl sway reload <image>            # Reload sway config
 | Remote access | No | Yes (TCP) |
 | NVIDIA headless | Works | Works (pixman + DPMS fix) |
 
-Source: `ov/wl.go`.
+Source: `charly/wl.go`.
 
 ## Cross-References
 

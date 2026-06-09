@@ -12,8 +12,8 @@ Builder image with package managers and compilation tools. Default builder for p
 
 **Defined in `base.yml`.** Lives in the main repo's combined `base.yml`
 (single source of truth), alongside `/charly-distros:fedora` +
-`/charly-distros:fedora-nonfree`, and is imported under the `ov` namespace by the
-`overthinkos/fedora` submodule (referenced as `ov.fedora-builder`). Its
+`/charly-distros:fedora-nonfree`, and is imported under the `charly` namespace by the
+`overthinkos/fedora` submodule (referenced as `charly.fedora-builder`). Its
 `rpmfusion`/`pixi`/`nodejs`/`build-toolchain` layers are pinned as
 github refs (`@github.com/overthinkos/overthink/candy/<name>:<tag>`) so the same
 definition resolves in both main and the submodule. Build with

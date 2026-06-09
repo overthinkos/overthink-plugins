@@ -117,7 +117,7 @@ Two deliberate choices:
   otherwise self-exit on idle). Required for supervisord to manage
   them.
 - **No `user=` directive.** The supervisord programs inherit the parent
-  supervisord's uid. On `fedora-ov`/`arch-ov`/`githubrunner`,
+  supervisord's uid. On `charly-fedora`/`charly-arch`/`githubrunner`,
   supervisord runs as uid 0 → daemons run as uid 0 →
   `qemu:///session` targets root's session. On `openclaw-desktop`,
   supervisord runs as uid 1000 → daemons run as uid 1000 →
@@ -134,7 +134,7 @@ that emits these program blocks into `.build/<image>/supervisor/NN-virtualizatio
 
 ## Rootless libvirt — `qemu:///session`
 
-`ov/vm.go:22` already hardcodes `qemu:///session` as the charly default.
+`charly/vm.go:22` already hardcodes `qemu:///session` as the charly default.
 This layer makes that URI actually work inside a container at uid
 1000:
 
@@ -193,7 +193,7 @@ openclaw-desktop:
 ```
 
 `/dev/kvm` is auto-detected at `charly shell`/`charly start` time by
-`ov/devices.go` (scans `/dev/kvm`, `/dev/fuse`, `/dev/dri/renderD*`,
+`charly/devices.go` (scans `/dev/kvm`, `/dev/fuse`, `/dev/dri/renderD*`,
 `/dev/net/tun`, `/dev/vhost-*`, `/dev/hwrng`) — no image-level
 `security.devices:` entry needed for the typical deployment.
 
@@ -213,8 +213,8 @@ Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networ
 ## Used In Images
 
 - `/charly-openclaw:openclaw-desktop` — rootless VM host inside a streaming desktop
-- `/charly-distros:fedora-ov` — root VM host (same daemons, uid 0)
-- `/charly-coder:arch-ov` — Arch counterpart
+- `/charly-distros:charly-fedora` — root VM host (same daemons, uid 0)
+- `/charly-coder:charly-arch` — Arch counterpart
 - `/charly-coder:debian-coder`, `/charly-coder:ubuntu-coder` — deb-based consumers (via the `charly` layer)
 - `/charly-distros:githubrunner` — VMs for CI workloads
 - `/charly-distros:aurora`, `/charly-distros:bazzite` — bootc siblings
@@ -228,7 +228,7 @@ Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networ
 
 ## Related Commands
 
-- `/charly-vm:vm` — VM lifecycle (build, create, start, stop, ssh, console, destroy); defaults to `qemu:///session` at ov/vm.go:22
+- `/charly-vm:vm` — VM lifecycle (build, create, start, stop, ssh, console, destroy); defaults to `qemu:///session` at charly/vm.go:22
 - `/charly-build:generate` — Containerfile generation; emits the supervisord `NN-virtualization.conf` fragment via `fragment_assembly` init model
 - `/charly-image:layer` — layer authoring reference (tasks, vars, service blocks, tests syntax)
 - `/charly-eval:eval` — declarative testing framework for the layer's `eval:` block (file, service, command verbs)
