@@ -243,7 +243,7 @@ my-image:
     - my-service  # layers with service: entries need supervisord
 ```
 
-Adding a `service:` block to a candy automatically pulls in `supervisord` via `build.yml `init:` section`'s `depends_layer`. You rarely add `supervisord` to a box's `candy:` list manually.
+Adding a `service:` block to a candy automatically pulls in `supervisord` via `build.yml `init:` section`'s `depends_candy`. You rarely add `supervisord` to a box's `candy:` list manually.
 
 ## Used In Boxes
 

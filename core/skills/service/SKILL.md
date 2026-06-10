@@ -98,7 +98,7 @@ charly remove my-app -e KEY=VALUE      # Set env vars for lifecycle hooks
 - Ports bound to configured `bind_address`
 - Entrypoint: determined by build.yml `init:` section config (e.g., `supervisord -n -c /etc/supervisord.conf` for supervisord, `sleep infinity` if no init system)
 - Auto-restart on failure via `WantedBy=default.target` (encrypted services with Secret Service backend include `ExecStartPre=charly config mount` + `TimeoutStartSec=0` for keyring wait; KeePass/no backend omit `WantedBy` — require `charly start`)
-- `charly box validate` enforces: images with init system layers MUST include the required dependency layer (defined by build.yml `init:` section `depends_layer`)
+- `charly box validate` enforces: images with init system layers MUST include the required dependency layer (defined by build.yml `init:` section `depends_candy`)
 - `Secret=charly-<image>-<name>,target=/run/secrets/<name>` for each layer-declared secret (Podman only)
 
 ### Container Secrets
