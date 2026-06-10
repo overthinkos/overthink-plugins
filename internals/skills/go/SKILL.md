@@ -304,7 +304,7 @@ See `/charly-image:image` "user_policy" for the user-facing decision matrix, `/c
 | `env.go` | ENV merging, path expansion |
 | `envfile.go` | `.env` file parsing (`ParseEnvFile`, `ParseEnvBytes`), runtime env var resolution/merging |
 | `security.go` | Container security config collection, CLI args generation. Merges `Mounts` from layer security configs |
-| `labels.go` | OCI label constants. `LabelEval` carries the three-section `{layer, image, deploy}` test manifest; `BoxMetadata.Tests *LabelEvalSet` is populated by `ExtractMetadata` when present |
+| `labels.go` | OCI label constants. `LabelEval` carries the three-section `{candy, box, deploy}` test manifest; `BoxMetadata.Tests *LabelEvalSet` is populated by `ExtractMetadata` when present |
 | `volumes.go` | Named volume collection/mounting |
 | `alias.go` | Command aliases (wrapper scripts) |
 | `deploy.go` | Per-deployment config overlay, `DeployVolumeConfig`, `ResolveVolumeBacking()`, `saveDeployState()`, `cleanDeployEntry()` (instance-aware provides cleanup) |

@@ -241,7 +241,7 @@ If the container needs state that's only available in deploy (volumes, env, tunn
 `charly` ships a goss-inspired declarative testing framework built into the
 CLI. Eval checks are authored inline under `eval:` (or `deploy_eval:`) in
 a candy/box `charly.yml`, or `deploy.yml`. They are **embedded as a
-three-section OCI label** (`ai.opencharly.eval` → `{layer, image, deploy}`)
+three-section OCI label** (`ai.opencharly.eval` → `{candy, box, deploy}`)
 so any pulled image is self-testable without its source repo. A local
 `deploy.yml` overlay can add checks or override baked ones by `id:`.
 
@@ -260,7 +260,7 @@ check written once works unchanged when `deploy.yml` remaps ports.
 | Validate authored tests at config time | `charly box validate` | Schema, scope/variable consistency, id uniqueness |
 | Inspect effective spec | `charly box inspect <image>` | JSON includes merged eval structure |
 | Filter by verb | `charly eval live <name> --filter file --filter port` | Repeatable |
-| Filter by section | `charly eval live <name> --section deploy` | One of: layer / image / deploy |
+| Filter by section | `charly eval live <name> --section deploy` | One of: candy / box / deploy |
 | Output format | `charly eval live <name> --format json\|tap\|text` | Default text |
 
 ## Exit codes
@@ -1113,12 +1113,12 @@ This is different from `charly box inspect`, `charly box build`, and `charly eva
 
 | Section | Authored in | When it runs |
 |---------|-------------|--------------|
-| `layer` | `eval:` in `candy/<name>/charly.yml` (scope:"build") | `charly eval box` + `charly eval live` |
-| `image` | `eval:` in `charly.yml` per image (scope:"build") | `charly eval box` + `charly eval live` |
+| `candy` | `eval:` in `candy/<name>/charly.yml` (scope:"build") | `charly eval box` + `charly eval live` |
+| `box` | `eval:` in `charly.yml` per box (scope:"build") | `charly eval box` + `charly eval live` |
 | `deploy` | `eval:` with `scope: deploy`, or `deploy_eval:` in `charly.yml`, or local `deploy.yml` `eval:` | `charly eval live <name>` only (deploy-scope checks need a running deployment with port mappings, volumes, and resolved runtime variables) |
 
 The build label `ai.opencharly.eval` contains all three sections with
-`origin:` annotations (`layer:<name>`, `image:<name>`, `deploy-default`,
+`origin:` annotations (`candy:<name>`, `box:<name>`, `deploy-default`,
 `deploy-local`). `CollectEval` walks the base-image chain with a
 visited-image guard: cycles are reported by `validateBoxDAG` at validate
 time, but the collector itself terminates cleanly even if called on a
