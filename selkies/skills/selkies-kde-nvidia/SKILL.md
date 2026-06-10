@@ -12,7 +12,7 @@ The **NVIDIA-GPU build of the KDE Plasma flavor** (`/charly-selkies:selkies-kde`
 the same headless-pod KDE streaming desktop on the CachyOS GPU base
 (`cachyos.nvidia`), with pixelflux's **real NVENC** encoder compiled in. It is the
 KDE sibling of `/charly-selkies:selkies-labwc-nvidia` (labwc + NVENC); both use
-`builder.pixi: charly.cuda-arch-builder` so the `selkies` layer's `build.sh` compiles
+`builder.pixi: arch.cuda-arch-builder` so the `selkies` layer's `build.sh` compiles
 pixelflux's real `nvenc-sys` encoder (the stock `arch-builder` has no CUDA → an
 NVENC stub).
 
@@ -24,7 +24,7 @@ Owned by the `overthinkos/cachyos` submodule (`image/cachyos`).
 selkies-kde-nvidia:
   base: nvidia                            # the CachyOS GPU base (cachyos.nvidia)
   build: [pac, aur]
-  builder: {pixi: charly.cuda-arch-builder}   # nvcc + ffnvcodec headers → real NVENC
+  builder: {pixi: arch.cuda-arch-builder}   # nvcc + ffnvcodec headers → real NVENC
   candy:
     - agent-forwarding
     - selkies-kde-desktop

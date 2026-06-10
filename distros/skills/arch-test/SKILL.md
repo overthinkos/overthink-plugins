@@ -12,8 +12,8 @@ Test image that validates both `pac:` (pacman) and `aur:` (AUR) package formats 
 `arch-test` lives in the **`overthinkos/arch`** repo (git submodule at
 **`image/arch`**). The test layers `arch-pac-test` / `arch-aur-test` are vendored
 locally in this repo's `candy/` (resolved via its `discover:` block); the `arch`
-base + `arch-builder` come from main's `base.yml`, reached via the submodule's
-`import:` of the main repo under the `charly` namespace — `base: charly.arch`. Build from
+base + `arch-builder` are bare-local in the same self-contained submodule
+(`import: []`) — `base: arch`. Build from
 the submodule: `cd image/arch && charly box build arch-test`.
 
 ## Image Properties

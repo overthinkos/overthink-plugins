@@ -40,11 +40,11 @@ installs from the AUR (`google-chrome`). The image declares `build: [pac, aur]`
 so the AUR builder compiles `google-chrome` (chrome layer) and `wlrctl`
 (wl-tools layer); inheriting plain `[pac]` would silently skip both. Because a
 `builder:` map does NOT cross a namespace boundary, the image declares its OWN
-`builder:` map (pixi/npm/cargo/aur → `charly.arch-builder`, the builder main
-provides through the `charly` import namespace) rather than inheriting one from
-the cachyos base. The GPU sibling (`selkies-labwc-nvidia`, in the same submodule)
+`builder:` map (pixi/npm/cargo/aur → `arch.arch-builder`, the builder the
+`overthinkos/arch` submodule provides through the `arch` import namespace) rather
+than inheriting one from the cachyos base. The GPU sibling (`selkies-labwc-nvidia`, in the same submodule)
 is the same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`),
-with `builder.pixi: charly.cuda-arch-builder` so the selkies layer compiles
+with `builder.pixi: arch.cuda-arch-builder` so the selkies layer compiles
 pixelflux's real NVENC encoder.
 
 ## Layers
@@ -336,7 +336,7 @@ diagnostic recipe that found the leak.
 
 ## Related Images
 
-- `/charly-selkies:selkies-labwc-nvidia` — the GPU sibling of this CPU image: the same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`, `build: [pac, aur]`) with `builder.pixi: charly.cuda-arch-builder` for real NVENC, in the `overthinkos/cachyos` submodule. See `/charly-distros:cachyos`.
+- `/charly-selkies:selkies-labwc-nvidia` — the GPU sibling of this CPU image: the same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`, `build: [pac, aur]`) with `builder.pixi: arch.cuda-arch-builder` for real NVENC, in the `overthinkos/cachyos` submodule. See `/charly-distros:cachyos`.
 - `/charly-openclaw:openclaw-desktop` — all-in-one CachyOS variant: this streaming desktop fused with the openclaw-full gateway + AI CLIs, a CPU ollama, and the full charly toolchain (build images, run nested pods, launch rootless libvirt VMs from inside the streaming desktop). Uses `/charly-distros:container-nesting`'s `unmask=/proc/*` posture — no `--privileged`, still uid 1000.
 - `/charly-selkies:sway-browser-vnc` — VNC-based alternative using Sway compositor instead of Selkies/labwc streaming
 

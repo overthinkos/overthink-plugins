@@ -45,8 +45,9 @@ charly -C image/cachyos image reconcile   # reconcile a submodule's pins
 ## What it does
 
 1. **Scan** every `@github.com/owner/repo[/path]:vTAG` ref in the project's
-   versioned YAML files (`charly.yml` + flat-imported `box.yml` / `base.yml` /
-   `eval.yml` / `local.yml` / `build.yml` / `pod.yml` / `k8s.yml` / `vm.yml` /
+   versioned YAML files (`charly.yml` + discovered `box/<name>/charly.yml` /
+   `candy/<name>/charly.yml`, plus any flat-imported legacy per-kind files —
+   `box.yml` / `eval.yml` / `local.yml` / `pod.yml` / `k8s.yml` / `vm.yml` /
    `deploy.yml`). Refs appear in `import:` namespaces, image `base:` / `builder:` /
    `layer:`, and `kind:local` `layer:` lists.
 2. **Target** per repo: the newest version ALREADY referenced (default —

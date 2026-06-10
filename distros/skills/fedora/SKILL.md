@@ -9,18 +9,19 @@ description: |
 
 Root base image built from `quay.io/fedora/fedora:43`. Foundation for all RPM-based OpenCharly images.
 
-**Defined in the combined `base.yml`.** The Fedora base stack — `fedora`,
-`/charly-distros:fedora-builder`, `/charly-distros:fedora-nonfree` — lives in the main
-repo's `base.yml` (single source of truth, shared with the arch stack),
-flat-imported locally by main AND imported under the `charly` namespace by the
-**`overthinkos/fedora`** submodule (mounted at `image/fedora`), which references
-them as `charly.fedora` / `charly.fedora-builder`. The base stack lives in main because
-fedora is the ecosystem default base (~40 main images root on it,
-`fedora-builder` is `defaults.builder`); the Fedora consumer showcase images
+**Owned by the `overthinkos/fedora` submodule.** The Fedora base stack —
+`fedora`, `/charly-distros:fedora-builder`, `/charly-distros:fedora-nonfree` — lives
+bare-local in the **`overthinkos/fedora`** submodule (mounted at `image/fedora`),
+which is SELF-CONTAINED (`import: []`): the base stack is bare-local and the
+submodule composes the main repo's shared layers by `@github` git reference. Its
+images write `base: fedora` and route builders to `fedora-builder` (bare-local
+refs, no namespace qualifier). The Fedora consumer showcase images
 (`/charly-coder:fedora-coder`, `/charly-distros:charly-fedora`, `/charly-distros:fedora-test`)
-live in the submodule (its `charly.yml` plus per-kind sibling files
-(`box.yml`/`pod.yml`/`k8s.yml`), flat-imported via `import:`).
-Build with `charly box build fedora` from the main repo.
+and the Fedora-rooted pod families all live in the same submodule, discovered as
+`box/<name>/charly.yml` boxes. The main repo imports this submodule under the
+`fedora` namespace (one-directional — fedora imports nothing back) to reference
+those relocated boxes. Build with `charly box build fedora` from the submodule
+(or `charly -C image/fedora image build fedora`).
 
 ## Image Properties
 

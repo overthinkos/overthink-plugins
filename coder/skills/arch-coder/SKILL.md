@@ -16,9 +16,9 @@ description: |
 > **`overthinkos/arch`** repo, mounted as a git submodule at **`image/arch`**.
 > It composes the layers below by **git reference** to this repo
 > (`@github.com/overthinkos/overthink/candy/<name>:<tag>`) rather than copying
-> them; the `arch` base + `arch-builder` live in this repo (in `base.yml`) and
-> are reached by the submodule importing this repo under the `charly` namespace
-> (`base: charly.arch`, `builder: {…: charly.arch-builder}`). Build / deploy from
+> them; the `arch` base + `arch-builder` are bare-local in the same
+> self-contained `overthinkos/arch` submodule (`import: []`), so the image
+> writes `base: arch`, `builder: {…: arch-builder}`. Build / deploy from
 > the submodule, e.g. `cd image/arch && charly box build arch-coder` (the build
 > verb defaults to the submodule's `charly.yml`), or
 > `charly --repo overthinkos/arch image build arch-coder`. The commands below assume
@@ -30,7 +30,7 @@ Arch Linux counterpart of `/charly-coder:fedora-coder`. Same daily-development s
 
 ```yaml
 arch-coder:
-  base: charly.arch                  # via the `charly` import namespace
+  base: arch                         # bare-local in the self-contained image/arch submodule
   ports:
     - "2222:2222"                 # sshd-wrapper
     - "18765:18765"               # charly-mcp (Streamable HTTP)

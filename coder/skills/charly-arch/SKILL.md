@@ -15,8 +15,8 @@ description: |
 > submodule at **`image/arch`**) and composes its layers by git reference to
 > this repo. Build from the submodule: `cd image/arch && charly box build charly-arch`
 > (or `charly --repo overthinkos/arch image build charly-arch`). The `arch` base +
-> `arch-builder` live in this repo (in `base.yml`; reached via the submodule's
-> `import:` of this repo under the `charly` namespace — `base: charly.arch`).
+> `arch-builder` are bare-local in the same self-contained `overthinkos/arch`
+> submodule (`import: []`) — `base: arch`.
 
 Arch Linux container with the full charly toolchain. Uses the same shared
 layer list as `/charly-distros:charly-fedora` — the tag system handles
@@ -28,7 +28,7 @@ can drive build/test/deploy via Streamable HTTP on port 18765.
 
 | Property | Value |
 |----------|-------|
-| Base | arch (quay.io/archlinux/archlinux, pinned in base.yml) |
+| Base | arch (quay.io/archlinux/archlinux, pinned in the `overthinkos/arch` submodule) |
 | Tags | `[all, pac, arch]` |
 | Layers | agent-forwarding, charly, **charly-mcp**, golang, gh, sshd, container-nesting, nvidia |
 | Platforms | linux/amd64 |

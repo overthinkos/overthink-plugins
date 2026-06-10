@@ -2,7 +2,7 @@
 name: cachyos-pacstrap-builder
 description: |
   Privileged pacstrap builder image for bootstrapping a CachyOS rootfs from
-  scratch. base: charly.arch (via the `charly` import namespace) + the pacstrap-builder
+  scratch. base: arch.arch (via the `arch` import namespace) + the pacstrap-builder
   layer. Lives in the overthinkos/cachyos submodule (image/cachyos).
   MUST be invoked before building or troubleshooting cachyos-pacstrap / cachyos-vm.
 ---
@@ -15,9 +15,9 @@ Privileged builder image used to bootstrap a CachyOS root filesystem via
 `/charly-vm:cachyos` VM.
 
 > **Lives in `overthinkos/cachyos`** (git submodule at `image/cachyos`). It is
-> `base: charly.arch` — the `arch` base from main's `base.yml`, reached because the
-> submodule's `charly.yml` imports the main repo under the `charly`
-> namespace. Its single layer, `pacstrap-builder`, stays in the main repo
+> `base: arch.arch` — the `arch` base from the **`overthinkos/arch`** submodule,
+> reached because the cachyos `charly.yml` imports that submodule under the `arch`
+> namespace. Its single layer, `pacstrap-builder`, lives in the main repo
 > (shared with `/charly-distros:arch-builder`'s pacstrap path) and is pulled by git
 > reference.
 
@@ -25,7 +25,7 @@ Privileged builder image used to bootstrap a CachyOS root filesystem via
 
 | Property | Value |
 |----------|-------|
-| Base | `charly.arch` (from main's `base.yml`, via the `charly` import namespace) |
+| Base | `arch.arch` (from the `overthinkos/arch` submodule, via the `arch` import namespace) |
 | Layer | pacstrap-builder (`@github.com/overthinkos/overthink/candy/pacstrap-builder:<tag>`) |
 | Distro | arch |
 | Build | pac |
@@ -38,10 +38,10 @@ charly -C image/cachyos image build cachyos-pacstrap-builder
 ```
 
 This is the R10 canary for the submodule's composition machinery: a successful
-build proves the `charly` import namespace resolves the `arch` base from main's
-`base.yml`, the git-ref'd `pacstrap-builder` layer materializes, and the
-flat-imported `build.yml` (pacstrap builder definition + cachyos distro config)
-is reachable.
+build proves the `arch` import namespace resolves the `arch` base from the
+`overthinkos/arch` submodule, the git-ref'd `pacstrap-builder` layer
+materializes, and the embedded build vocabulary (pacstrap builder definition +
+cachyos distro config) is reachable.
 
 `charly eval box cachyos-pacstrap-builder` runs the build-scope eval: 4 probes pass
 (`/usr/sbin/pacstrap`, `arch-install-scripts` installed, `/usr/sbin/grub-install`,

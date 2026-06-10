@@ -10,12 +10,12 @@ description: |
 
 Fedora base with RPM Fusion free and non-free repositories enabled.
 
-**Defined in `base.yml`.** Lives in the main repo's combined `base.yml`
-(single source of truth), alongside `/charly-distros:fedora` +
-`/charly-distros:fedora-builder`, and is imported under the `charly` namespace by the
-`overthinkos/fedora` submodule (referenced as `charly.fedora-nonfree`). It lives in
-main because in-main consumers (`/charly-immich:immich`,
-`/charly-distros:nvidia`) base on it. Its `rpmfusion`
+**Owned by the `overthinkos/fedora` submodule.** Lives bare-local in the
+**`overthinkos/fedora`** submodule (mounted at `image/fedora`), alongside
+`/charly-distros:fedora` + `/charly-distros:fedora-builder`; the submodule is
+SELF-CONTAINED (`import: []`). Its consumers (`/charly-immich:immich`,
+`/charly-distros:nvidia`) live in the same submodule and base on it as a
+bare-local `fedora-nonfree`. Its `rpmfusion`
 layer is pinned as a github ref so the same definition resolves in both main and
 the submodule.
 

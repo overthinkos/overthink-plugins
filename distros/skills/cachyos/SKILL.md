@@ -17,11 +17,12 @@ CachyOS is an Arch derivative, so it shares the Arch toolchain, `pacman`, and th
 `arch-builder` multi-stage builder.
 
 The CachyOS family lives in the **`overthinkos/cachyos`** repo (git submodule at
-**`image/cachyos`**), whose config is `charly.yml` plus its per-kind sibling
-files (`box.yml`/`pod.yml`/`k8s.yml`/`vm.yml`), flat-imported via `import:`. The
-`cachyos` base image is **owned there**. It composes the main repo's layers by git reference, flat-imports
-the shared `build.yml`, and imports the main repo under the `charly` namespace
-(`import: [{charly: ../..}]`) so it reaches `charly.arch` / `charly.arch-builder`. Build it
+**`image/cachyos`**), with the `cachyos` base image **owned there** and its
+boxes discovered as `box/<name>/charly.yml`. It composes the main repo's shared
+layers by `@github` git reference and imports the **`overthinkos/arch`** submodule
+under the `arch` namespace (`import: [{arch: …}]`) so it reaches `arch.arch` (the
+`cachyos-pacstrap-builder` base) and `arch.arch-builder` (the cachyos base's
+builder) — one-directional, since arch imports nothing back. Build it
 from the submodule: `charly -C image/cachyos image build cachyos` (or
 `charly --repo overthinkos/cachyos image build cachyos`).
 
@@ -38,37 +39,37 @@ from the submodule: `charly -C image/cachyos image build cachyos` (or
 | Registry | ghcr.io/overthinkos |
 | Home repo | overthinkos/cachyos (`image/cachyos`) |
 
-## main ↔ cachyos coupling
+## main → cachyos coupling
 
-The main repo's `versa` image is `base: cachyos.cachyos`. Because the cachyos
-base now lives in the submodule, main's `charly.yml` mounts it under the
-`cachyos` import namespace:
+The `cachyos` base and its derived images — `versa`, the `openclaw-*` family,
+`githubrunner`, `android-emulator`, `charly-selftest`, and the `selkies-*` GPU
+desktops — all live in the **`overthinkos/cachyos`** submodule, discovered as
+`box/<name>/charly.yml` boxes. The main repo imports that submodule under the
+`cachyos` import namespace to reference the relocated boxes from its own
+`eval`/`vm`/`local`/`k8s`/`android` entities:
 
 ```yaml
 # main charly.yml
 import:
-  - cachyos: image/cachyos        # namespaced child import → cachyos.<entry>
-
-box:
-  versa:
-    base: cachyos.cachyos         # the `cachyos` image inside the `cachyos` namespace
+  - cachyos: '@github.com/overthinkos/cachyos:<tag>'   # namespaced child import → cachyos.<entry>
 ```
 
-This is a deliberate **main → cachyos** dependency — building `versa` on main
-needs the cachyos repo reachable. The submodule, in turn, imports the main repo
-under the `charly` namespace (for `charly.arch-builder`), so the two repos import each
-other. That mutual import is NOT a deadlock: the loader breaks the cycle **by
-repo identity, not pinned version** — cachyos's `charly:` back-reference to main
-resolves to the LOCAL main working tree (registered under its `repo:` identity),
-even when cachyos's published release pins an older main. So main's namespace
-pins win, and a stale transitive pin inside a cachyos release never drags a
-divergent main snapshot into the load (see `/charly-internals:go`
-"import-namespace loader"). The image DAG
-`versa → cachyos → docker.io/cachyos-v3` is itself acyclic. `versa` inherits its
-`distro:`/`build:` (values) from this base across the namespace boundary; its
-`builder:` map (pixi/npm/cargo/aur → `arch-builder`) is namespace-relative, so
-`versa` declares its own qualified builder map rather than inheriting one across
-the boundary.
+This is a one-directional **main → cachyos** dependency. The submodule, in turn,
+imports the **`overthinkos/arch`** submodule under the `arch` namespace (for
+`arch.arch` and the `arch.arch-builder` builder) — also one-directional, since
+arch imports nothing back. The whole import graph is therefore a DAG
+(main → cachyos → arch, plus main → arch directly), with no mutual cycle. When a
+repo is reached via two paths — arch, here, via main → arch and via
+main → cachyos → arch — the loader resolves it to a single materialization **by
+repo identity**, so main's namespace pins win and a stale transitive pin inside a
+published submodule release never drags a divergent snapshot into the load (see
+`/charly-internals:go` "import-namespace loader"). The image DAG
+`versa → cachyos → docker.io/cachyos-v3` is itself acyclic. `versa` lives in the
+same submodule as its `base: cachyos`, so it inherits the cachyos base's
+`distro:`/`build:` values AND its `builder:` map (pixi/npm/cargo/aur →
+`arch.arch-builder`) directly — there is no namespace boundary between them. The
+namespace-relative builder map crosses the boundary once, where the cachyos base
+itself names the qualified `arch.arch-builder` ref.
 
 ## AUR support — full parity with `arch`
 
@@ -103,11 +104,11 @@ charly shell cachyos -c "pacman --version"
 
 ## Derived / sibling entries (all in overthinkos/cachyos)
 
-- `/charly-distros:cachyos-pacstrap-builder` — privileged pacstrap builder (`base: charly.arch`)
+- `/charly-distros:cachyos-pacstrap-builder` — privileged pacstrap builder (`base: arch.arch`)
 - `/charly-distros:cachyos-pacstrap` — bootstrap-from-scratch rootfs (builds end-to-end)
 - `/charly-vm:cachyos` — bootstrap VM (`cachyos-vm`) + `eval-cachyos-vm` eval bed
 - `/charly-local:charly-cachyos` — the operator CachyOS workstation profile
-- `/charly-versa:versa` — the main-repo consumer (`base: cachyos.cachyos`)
+- `/charly-versa:versa` — CachyOS-rooted notebook/OSM image in this submodule (`base: cachyos`)
 
 ### CachyOS GPU image family
 
@@ -152,11 +153,11 @@ After `charly -C image/cachyos image build cachyos`:
 ## When to Use This Skill
 
 **MUST be invoked** when the task involves the cachyos base image, the
-overthinkos/cachyos submodule, or the main↔cachyos import-namespace coupling.
+overthinkos/cachyos submodule, or the main → cachyos import-namespace coupling.
 Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 
-- `/charly-distros:arch` — the Arch base (`cachyos-pacstrap-builder` is `base: charly.arch`, via the `charly` import namespace)
+- `/charly-distros:arch` — the Arch base (`cachyos-pacstrap-builder` is `base: arch.arch`, via the `arch` import namespace)
 - `/charly-image:image` — image family umbrella (composition, build/validate/inspect)
 - `/charly-internals:cutover-policy` — the hard-cutover policy governing submodule splits

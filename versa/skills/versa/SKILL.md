@@ -31,7 +31,7 @@ MCP-server identity reflect that upstream software identity.
 | MCP servers | 1 (marimo @ container 2718). No airflow MCP wrapper — no Airflow-3 / `/api/v2` release of the upstream package exists; consumers drive Airflow via direct REST `/api/v2/` calls |
 | Registry | `ghcr.io/overthinkos` |
 | Image tag pattern | CalVer (`YYYY.DDD.HHMM`) |
-| Builder | `arch-builder` (pixi/npm/cargo/aur) — declared as versa's OWN explicit `builder:` map. The cachyos base is reached via the `cachyos` import namespace, and a `builder:` map does NOT cross a namespace boundary; `arch-builder` is a name local to main's `base.yml`, so the bare ref resolves in the root namespace. See `/charly-distros:cachyos`. |
+| Builder | `arch.arch-builder` (pixi/npm/cargo/aur) — inherited from versa's bare-local `base: cachyos`. The cachyos base declares the `builder:` map and, because a `builder:` map does NOT cross a namespace boundary, names the qualified `arch.arch-builder` ref (the Arch builder in the `overthinkos/arch` submodule, reached via cachyos's `arch` import namespace). versa lives in the same submodule as that base, so it inherits the map directly. See `/charly-distros:cachyos`. |
 
 ## Layer stack (composition order)
 

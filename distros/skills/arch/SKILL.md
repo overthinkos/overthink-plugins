@@ -7,13 +7,13 @@ description: |
 
 # arch
 
-Root base image built from `quay.io/archlinux/archlinux`, pinned to a precise `base-*` date-serial tag in `base.yml` (the quay mirror has the same content as `docker.io/library/archlinux` without Docker Hub's pull-rate limit). Foundation for all Arch Linux-based OpenCharly images.
+Root base image built from `quay.io/archlinux/archlinux`, pinned to a precise `base-*` date-serial tag in the arch base box (the `overthinkos/arch` submodule at `image/arch`; the quay mirror has the same content as `docker.io/library/archlinux` without Docker Hub's pull-rate limit). Foundation for all Arch Linux-based OpenCharly images.
 
 ## Image Properties
 
 | Property | Value |
 |----------|-------|
-| Base | quay.io/archlinux/archlinux (pinned `base-*` tag in base.yml) |
+| Base | quay.io/archlinux/archlinux (pinned `base-*` tag in the `overthinkos/arch` submodule) |
 | Layers | (none) |
 | Platforms | linux/amd64 |
 | Distro | arch |
@@ -30,16 +30,15 @@ charly shell arch
 
 ## Derived Images
 
-`arch` (this base) and `/charly-distros:arch-builder` **live in this
-repo** (in the combined `base.yml`). The consumer Arch images live in the
-**`overthinkos/arch`** repo (git submodule at **`image/arch`**), whose config is
-`charly.yml` plus its per-kind sibling files (`box.yml`/`pod.yml`/`k8s.yml`,
-and `vm.yml` where it has VMs), flat-imported via `import:`. It composes this repo's
-layers by git reference and reaches `arch` / `arch-builder` by importing the
-main repo under the `charly` namespace (`import: [{charly: ../..}]`), so its images
-write `base: charly.arch` and route builders to `charly.arch-builder`:
+`arch` (this base), `/charly-distros:arch-builder`, and the consumer Arch
+images all live in the **`overthinkos/arch`** repo (git submodule at
+**`image/arch`**), discovered as `box/<name>/charly.yml` boxes. That submodule
+is SELF-CONTAINED (`import: []`): its base/builder stack is bare-local and it
+composes the main repo's shared layers by `@github` git reference. Its images
+write `base: arch` and route builders to `arch-builder` (bare-local refs, no
+namespace qualifier):
 
-- `/charly-distros:arch-builder` — adds pixi, nodejs, build-toolchain, yay (in this repo)
+- `/charly-distros:arch-builder` — adds pixi, nodejs, build-toolchain, yay (in `image/arch`)
 - `/charly-coder:arch-coder` — kitchen-sink dev image (in `image/arch`)
 - `/charly-coder:charly-arch` — full charly toolchain on Arch (in `image/arch`)
 - `/charly-distros:arch-test` — pacman + AUR packaging test (in `image/arch`)

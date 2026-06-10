@@ -580,14 +580,14 @@ box:
     base: cachyos.cachyos           # the `cachyos` image inside the `cachyos` namespace
 ```
 
-Resolution is **namespace-relative**, exactly like Go package-member access: a bare ref inside a namespace resolves within that namespace first; a qualified ref descends one level per dot (`a.b.c` → namespace `a`, then `b`, then leaf `c`). Submodules import the main repo under the `charly` namespace, so a submodule image writes `base: charly.arch` / `base: charly.fedora` and routes its builders to `charly.arch-builder` / `charly.fedora-builder`.
+Resolution is **namespace-relative**, exactly like Go package-member access: a bare ref inside a namespace resolves within that namespace first; a qualified ref descends one level per dot (`a.b.c` → namespace `a`, then `b`, then leaf `c`). The `arch` and `fedora` submodules are SELF-CONTAINED (`import: []`): their base/builder stacks are bare-local, so their images write `base: arch` / `base: fedora` and route builders to a bare-local `arch-builder` / `fedora-builder`. The `cachyos` submodule imports the **`overthinkos/arch`** submodule under the `arch` namespace, so it reaches the Arch base/builder as `arch.arch` / `arch.arch-builder`. The main repo, in turn, imports all three submodules (`arch` / `cachyos` / `fedora` namespaces) to reference their relocated boxes.
 
 ### Inheritance across a namespace boundary
 
 - **`distro:` / `build:`** are VALUES (distro tags, package formats) → inherited across a namespace boundary, so a `base: cachyos.cachyos` image still picks up cachyos's `distro:`/`build:`.
-- **`builder:`** is a map of REFS relative to the BASE's namespace → it does **NOT** cross the boundary. A consumer image that builds a multi-stage format declares its OWN `builder:` map, qualified to the right builder (`builder: {pixi: charly.arch-builder}`). This avoids leaking a base-namespace-relative ref into a consumer where that namespace doesn't exist.
+- **`builder:`** is a map of REFS relative to the BASE's namespace → it does **NOT** cross the boundary. A consumer image that builds a multi-stage format declares its OWN `builder:` map, qualified to the right builder (e.g. the `cachyos` base, which imports the `arch` namespace, declares `builder: {pixi: arch.arch-builder}`). This avoids leaking a base-namespace-relative ref into a consumer where that namespace doesn't exist.
 
-Cycles between two projects that import each other (the intentional main ↔ cachyos mutual import: main imports `cachyos`, cachyos imports `charly`) are broken at load time **by repo identity, not pinned version** — see `/charly-internals:go` "import-namespace loader". The consequence for authors: **the importing project's namespace pins win**. When an imported namespace's release imports your repo back (`charly: @…/opencharly:<someOldPin>`), that back-reference resolves to YOUR local working tree (the root), NOT the old pinned snapshot — so a stale transitive pin in a published submodule release can never drag a divergent (or stale-schema) version of your own repo into the load.
+A repo reached via two import paths (e.g. `arch`, reached both directly as main → `arch` and transitively as main → `cachyos` → `arch`) — or an import cycle between two projects that import each other — is resolved to a single materialization at load time **by repo identity, not pinned version** — see `/charly-internals:go` "import-namespace loader". The consequence for authors: **the importing project's namespace pins win**. When an imported namespace's release imports your repo back (`<root>: @…:<someOldPin>`), that back-reference resolves to YOUR local working tree (the root), NOT the old pinned snapshot — so a stale transitive pin in a published submodule release can never drag a divergent (or stale-schema) version of your own repo into the load.
 
 **`repo:` (optional root-only field).** Declare your project's canonical repo identity at the top of `charly.yml` (`repo: github.com/overthinkos/overthink`) so the loader recognizes a transitive back-import of your repo and short-circuits it to the local tree. When omitted, the loader infers it from `git remote origin`; absent both, the cycle-break degrades to version-keyed behavior. The field is purely additive (no migration needed).
 
@@ -595,9 +595,15 @@ Cycles between two projects that import each other (the intentional main ↔ cac
 
 A namespace is imported to provide bases/builders; the resolver fetches ONLY the layers reachable from the enabled images' `base:`/`builder:` chains (reachability-scoped collection) — a namespace's unreferenced images and its `kind:local` templates are not pulled. The git `:vTAG` on a layer ref is only the FETCH coordinate; the layer's OWN `version:` (read after fetch) is the identity. So when the SAME layer is referenced via two different repo git tags but its `version:` is unchanged (a re-tag for an unrelated push), the resolver picks one materialization with NO warning. Only when a layer resolves to two genuinely different per-entity versions (a family pinned to a newer layer than the shared infra it composes) does it **warn once** (naming both per-entity versions) and use the **newest** (highest CalVer). Run `charly box reconcile` to align the on-disk git-tag pins and clear any warning. See `/charly-internals:go` "Remote-layer resolver", `/charly-build:reconcile`.
 
-## `base.yml` — the combined arch + fedora base stack
+## Base stacks live in their distro submodules
 
-The main repo ships a single `base.yml` carrying both base-distro stacks: `arch`, `arch-builder`, `fedora`, `fedora-builder`, `fedora-nonfree`. It is flat-imported by `charly.yml` (`- base.yml`) and imported under the `charly` namespace by the per-distro submodules (`charly.arch`, `charly.fedora`, `charly.arch-builder`, `charly.fedora-builder`). The cachyos base is NOT in `base.yml` — it lives inline in `image/cachyos/charly.yml` and is reached through the `cachyos` import namespace (`base: cachyos.cachyos`). See `/charly-distros:arch`, `/charly-distros:fedora`, `/charly-distros:cachyos`.
+The arch and fedora base-distro stacks are no longer carried by the main repo — each is owned by its `image/<distro>` submodule:
+
+- **`image/arch`** owns `arch` + `arch-builder` (+ `cuda-arch-builder`), bare-local, and is SELF-CONTAINED (`import: []`).
+- **`image/fedora`** owns `fedora` + `fedora-builder` + `fedora-nonfree` (+ the `nvidia` / `python-ml` GPU bases), bare-local, and is SELF-CONTAINED (`import: []`).
+- **`image/cachyos`** owns the `cachyos` base (+ the pacstrap pair and the selkies GPU desktops) and imports the `arch` namespace to reach `arch.arch` / `arch.arch-builder` / `arch.cuda-arch-builder`.
+
+The main repo imports all three submodules (`arch` / `cachyos` / `fedora` namespaces) to reference their relocated boxes from its own `eval`/`vm`/`local`/`k8s`/`android` entities (one-directional — the submodules import nothing back from main). The distro/builder/init build vocabulary is embedded in the `charly` binary (no `build.yml` import). See `/charly-distros:arch`, `/charly-distros:fedora`, `/charly-distros:cachyos`.
 
 ## When to Use This Skill
 

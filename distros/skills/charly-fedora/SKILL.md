@@ -16,8 +16,8 @@ Fedora-specific packages and scripts via `rpm:` sections. Supports
 nested containers at any depth via `/charly-distros:container-nesting`.
 
 Lives in the **`overthinkos/fedora`** repo (git submodule at **`image/fedora`**).
-Its `fedora` base comes from the main repo's `base.yml`, reached as `charly.fedora`
-via the submodule's `import:` of the main repo under the `charly` namespace; its
+Its `fedora` base is bare-local in the same self-contained submodule
+(`import: []`) — `base: fedora`; its
 layers (incl. the `nvidia` layer) are pulled by github reference. Build from the
 submodule: `charly -C image/fedora image build charly-fedora`. Deploy-mode verbs work
 from anywhere once the image is in local storage.

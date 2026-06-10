@@ -63,7 +63,7 @@ pixelflux picks the H.264 encoder at runtime from the host render node — it us
 
 - **AMD / Intel render node** (`DRINODE=/dev/dri/renderD*`, auto-injected) →
   hardware **VAAPI** (Mesa radeonsi; `vainfo` shows `VAProfileH264*:
-  VAEntrypointEncSlice`). So the **cachyos-base image VAAPI-encodes on an AMD/Intel
+  VAEntrypointEncSlice`). So the **cachyos base image VAAPI-encodes on an AMD/Intel
   host** — "CPU" and "AMD" are the SAME image, not two.
 - **No usable render node** → software **x264**.
 - **NVIDIA** → **NVENC**, but only from the `*-nvidia` image whose pixelflux is

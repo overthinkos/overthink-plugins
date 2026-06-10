@@ -20,11 +20,10 @@ browser-streamed Wayland desktop) — `fedora-coder` is headless and
 meant to be accessed via `ssh -p 2222` or `charly shell`.
 
 > **Location:** lives in the **`overthinkos/fedora`** repo (git submodule at
-> **`image/fedora`**), in that repo's config (its `charly.yml` + per-kind
-> sibling files). Its base stack (`fedora-nonfree` → `fedora`) is reached by
-> importing the main repo under the `charly` namespace — `base: charly.fedora-nonfree`,
-> which itself roots on `charly.fedora` (the Fedora base lives in main's `base.yml`,
-> the ecosystem default base), and its 32 layers are pulled by github reference.
+> **`image/fedora`**), discovered as a `box/<name>/charly.yml` box. Its base
+> stack (`fedora-nonfree` → `fedora`) is bare-local in the same self-contained
+> submodule (`import: []`) — `base: fedora-nonfree`, which itself roots on the
+> bare-local `fedora` base — and its 32 layers are pulled by github reference.
 > Build/validate from
 > the submodule: `charly -C image/fedora image build fedora-coder`, or
 > `charly --repo overthinkos/fedora image build fedora-coder`. Deploy-mode verbs
