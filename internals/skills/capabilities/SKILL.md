@@ -144,5 +144,5 @@ See `/charly-image:image` for current user-facing structure and `/charly-build:m
 - `/charly-kubernetes:kubernetes` — K8s deploy target that reads `LabelService` to generate Kustomize
 - `/charly-eval:eval` — three-section `LabelEval` (layer/image/deploy) — same label-contract pattern
 - `/charly-build:migrate` — `charly migrate` — emits the schema that populates these labels
-- `/charly-internals:go` — Go architecture overview, `LoadUnified`, `parseLayerYAML`
+- `/charly-internals:go` — Go architecture overview, `LoadUnified`, `parseCandyYAML`
 - `/charly-internals:install-plan` — internal IR shared across build and deploy pipelines

@@ -56,7 +56,7 @@ contributions** for the pixi env (`~/.pixi/bin`,
 `RATTLER_CACHE_DIR`) come from the **pixi BUILDER** (declared in
 `build.yml` / `charly.yml` under `builder.pixi.runtime_env:` and
 `path_contributions:`) — see `/charly-internals:generate-source` for the
-`writeLayerEnv` flow. The pixi runtime env flows through the pixi
+`writeCandyEnv` flow. The pixi runtime env flows through the pixi
 BUILDER (not the pixi LAYER) so boxes that consume pixi via
 pixi.toml-triggered builds (jupyter, openwebui, immich-ml, …) get the
 env contract automatically without needing pixi as a top-level candy

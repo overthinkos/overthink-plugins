@@ -39,7 +39,7 @@ description: |
 ## Operator setup — none required (auto-generated)
 
 `K3S_CLUSTER_TOKEN` auto-generates on first deploy. The resolver
-(`charly/layer_secrets.go` — `ensureLayerSecret`) detects the missing
+(`charly/layer_secrets.go` — `ensureCandySecret`) detects the missing
 `secret_require:` entry, generates a 32-byte hex token via
 `generateAndStoreSecret`, and persists it to the active credential
 backend (keyring / config-file fallback). Every subsequent

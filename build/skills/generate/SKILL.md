@@ -53,7 +53,7 @@ All generated files start with `# <path> (generated -- do not edit)`.
 
 ## Per-layer emission pipeline
 
-For each layer, `writeLayerSteps` runs this sequence:
+For each layer, `writeCandySteps` runs this sequence:
 
 ```
 1. Comment header:    # Layer: <name>
@@ -83,7 +83,7 @@ For each layer, `writeLayerSteps` runs this sequence:
 | `download` | `emitDownload` | `RUN --mount=type=cache,dst=/tmp/downloads bash -c 'export BUILD_ARCH=$(uname -m); curl -fsSL <url> \| <extractor>'` (one RUN per download; `export ...;` termination is required so bash expands `${BUILD_ARCH}` in the URL) |
 | `setcap` | `emitSetcapBatch` | `RUN setcap -r … && setcap caps path …` (strip + set chained) |
 | `cmd` | `emitCmd` | `RUN --mount=type=bind,from=<layer-stage>,source=/,target=/ctx [--mount=type=cache,…] bash -c $'BUILD_ARCH=$(uname -m)\nset -e\n<command>'` — ANSI-C `$'...'` quoting keeps the multi-line body on one physical line (podman's Dockerfile parser splits at unescaped newlines) |
-| `build` | handled inline in `writeLayerSteps` | Existing pixi/npm/cargo/aur multi-stage + inline blocks |
+| `build` | handled inline in `writeCandySteps` | Existing pixi/npm/cargo/aur multi-stage + inline blocks |
 
 ## Cache-mount inheritance
 
@@ -221,5 +221,5 @@ The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUIL
 - `/charly-image:layer` — **Canonical task verb catalog, `var:` substitution, YAML anchors, execution order.** Read this first for authoring questions.
 - `/charly-eval:eval` — test-authoring workflow; `eval:` blocks are embedded via `writeJSONLabel` and benefit directly from LABELs-at-end cache efficiency.
 - `/charly-internals:generate-source` — Deep dive on Containerfile emission internals, `Task` struct, per-verb emitters, `stageInlineContent`, `shellSingleQuote` + `shellAnsiQuote` helpers, LABEL-placement rationale.
-- `/charly-internals:go` — Source-code map: `charly/tasks.go` (~430 lines), `charly/generate.go:writeLayerSteps` + `writeLabels`, `charly/layers.go` struct definitions.
+- `/charly-internals:go` — Source-code map: `charly/tasks.go` (~430 lines), `charly/generate.go:writeCandySteps` + `writeLabels`, `charly/layers.go` struct definitions.
 - `/charly-selkies:ffmpeg` — canonical URL-repo consumer (triggers the `dnf5-plugins` prepend).

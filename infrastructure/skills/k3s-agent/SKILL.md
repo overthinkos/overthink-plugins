@@ -19,7 +19,7 @@ description: |
 
 1. Reads `K3S_CLUSTER_TOKEN` from the credential store (same secret the
    server consumes — auto-generated on the first server-or-agent
-   deploy via `ensureLayerSecret`; subsequent deploys read the
+   deploy via `ensureCandySecret`; subsequent deploys read the
    persisted value, so agents and server automatically share the
    token without operator setup).
 2. Requires `K3S_SERVER_URL` from deploy.yml env (e.g.,

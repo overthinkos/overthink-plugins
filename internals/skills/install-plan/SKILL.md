@@ -33,7 +33,7 @@ This skill is the single source of truth for the IR shape. Add a new step kind b
 | File | Role |
 |---|---|
 | `charly/install_plan.go` | IR types, enums, `InstallStep` interface, `ReverseOp`, `DeployTarget` interface, `EmitOpts`, `GateEnabled` |
-| `charly/install_build.go` | `BuildDeployPlan` pure compiler: `Layer` → `InstallPlan` |
+| `charly/install_build.go` | `BuildDeployPlan` pure compiler: `Candy` → `InstallPlan` |
 | `charly/build_target_oci.go` | `OCITarget` — emits Containerfile text |
 | `charly/deploy_target_pod.go` | `PodDeployTarget` — synthesizes overlay Containerfile when `add_candy:` present, delegates to quadlet/start |
 | `charly/deploy_target_local.go` | `LocalDeployTarget` — executes plan on the destination machine via shell + `podman run <builder>` |
@@ -55,14 +55,14 @@ type InstallPlan struct {
     Distro         string       // "fedora:43"
     Layer          string       // set for per-layer plans; "" for merged whole-image plans
     Steps          []InstallStep
-    LayersIncluded []string     // ordered topo-sorted layer names (for merged plans)
-    AddLayers      []string     // refs added via deploy.yml add_candy: (for provenance)
+    CandiesIncluded []string     // ordered topo-sorted layer names (for merged plans)
+    AddCandies      []string     // refs added via deploy.yml add_candy: (for provenance)
     BuilderImage   string       // selected builder for VenueContainerBuilder steps
     Meta           map[string]string
 }
 ```
 
-One plan per layer when the compiler runs on a single `Layer`. For whole-image deploys, `MergePlan(plans, image, addLayers)` merges per-layer plans while preserving layer boundaries for refcount bookkeeping. `DeployID` is a deterministic 16-hex-char sha256 prefix over `(image, layer_order, add_layers)` — same inputs → same ID, so re-deploys are stable.
+One plan per layer when the compiler runs on a single `Candy`. For whole-image deploys, `MergePlan(plans, image, addCandies)` merges per-layer plans while preserving layer boundaries for refcount bookkeeping. `DeployID` is a deterministic 16-hex-char sha256 prefix over `(image, layer_order, add_layers)` — same inputs → same ID, so re-deploys are stable.
 
 ### `InstallStep` interface
 
@@ -118,23 +118,23 @@ separate, eval-time concern handled by `charly/eval_image_preflight.go`
 | Kind | What it carries | Venue default | Scope derivation |
 |---|---|---|---|
 | `SystemPackagesStep` | Format (rpm/deb/pac), Phase, Packages, Repos, Options, Copr, Modules, Exclude, Keys, CacheMounts | HostNative | Always system |
-| `BuilderStep` | Builder (pixi/npm/cargo/aur), BuilderImage, LayerDir, Phase, Artifacts, RawStageContext | ContainerBuilder | aur→system, others→user |
-| `TaskStep` | Task (raw), LayerName, LayerDir, CtxPath, ResolvedUser | HostNative | From ResolvedUser (root or 0 → system; else user) |
-| `FileStep` | Source, Dest, Mode, Owner, LayerName | HostNative | `pathIsSystemScoped(Dest)` |
-| `ServicePackagedStep` | Unit, TargetScope, Enable, OverridesText, OverridesPath, LayerName, PriorEnabled | HostNative | TargetScope field |
-| `ServiceCustomStep` | Name, UnitText, UnitPath, TargetScope, Enable, LayerName | HostNative | TargetScope field |
-| `ShellHookStep` | LayerName, EnvVars, PathAdd, EnvFile | HostNative | Always user-profile |
-| `ShellSnippetStep` | LayerName, Origin, Shell (bash/zsh/fish/sh), Snippet, PathAppend, Destination, Marker, UseDropin, Priority | HostNative | `pathIsSystemScoped(Destination)` (system for container drop-ins, user-profile for ~/.bashrc etc.) |
-| `RepoChangeStep` | Format, File, Content, Checksum, LayerName | HostNative | Always system |
-| `ApkInstallStep` | Packages (apk specs), LayerName, LayerDir | HostNative | Always system. Only `target: android` executes it; every other target records a skip. |
-| `LocalPkgInstallStep` | PkgbuildRef, LayerName, LayerDir, ProjectDir, Format, LocalPkg (`*LocalPkgDef`) | HostNative | Always system. Compiled from a layer's per-format `localpkg:` map (the `charly` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`) at "step 2.5" (before tasks); `compileLocalPkgStep` resolves the target distro's format FIRST (`DistroDef.LocalPkgFormat`), then the layer's source for that format, so `Format` + `LocalPkg` come from the `format.<fmt>.local_pkg:` block in `build.yml` — EVERY command rendered from config, no hardcoded build/install/glob literals. On a localpkg-capable deploy target (`target: local` / `target: vm`) the HOST builds the format's source via `LocalPkg.BuildTemplate` (pac → `makepkg`; rpm/deb → a distro-matched podman container) into `LocalPkg.PkgGlob` artifacts, then installs them onto the target via `LocalPkg.InstallTemplate` — the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`), which pulls the package's repo deps automatically. There is NO dependency-closure builder (the aur-LAYER deploy path still reuses the shared `buildDepPkgsOnHost`/`transferAndInstallPkgs` leg, R3). `LocalPkg.Probe` gates the install leg; `LocalPkg.SourceSentinel` (`PKGBUILD`/`*.spec`/`debian/control`) marks the source dir. `resolveLocalPkgDir` walks up from `ProjectDir`, so a consumer nested under `box/<distro>` finds the superproject `pkg/<fmt>`. Skipped at image build (`OCITarget`) + on targets whose distro declares no localpkg-capable format (the layer's curl/COPY task is the fallback). Machinery: `charly/localpkg.go`; config: `build.yml format.<fmt>.local_pkg:`. |
-| `RebootStep` | LayerName | HostNative | Always system; `Reverse()` empty. Emitted last when a layer sets `reboot: true`. Only `VmDeployTarget` acts on it (reboot guest + wait for return); OCI/pod/k8s skip; `LocalDeployTarget` skips + warns (never reboots the operator host). |
+| `BuilderStep` | Builder (pixi/npm/cargo/aur), BuilderImage, CandyDir, Phase, Artifacts, RawStageContext | ContainerBuilder | aur→system, others→user |
+| `TaskStep` | Task (raw), CandyName, CandyDir, CtxPath, ResolvedUser | HostNative | From ResolvedUser (root or 0 → system; else user) |
+| `FileStep` | Source, Dest, Mode, Owner, CandyName | HostNative | `pathIsSystemScoped(Dest)` |
+| `ServicePackagedStep` | Unit, TargetScope, Enable, OverridesText, OverridesPath, CandyName, PriorEnabled | HostNative | TargetScope field |
+| `ServiceCustomStep` | Name, UnitText, UnitPath, TargetScope, Enable, CandyName | HostNative | TargetScope field |
+| `ShellHookStep` | CandyName, EnvVars, PathAdd, EnvFile | HostNative | Always user-profile |
+| `ShellSnippetStep` | CandyName, Origin, Shell (bash/zsh/fish/sh), Snippet, PathAppend, Destination, Marker, UseDropin, Priority | HostNative | `pathIsSystemScoped(Destination)` (system for container drop-ins, user-profile for ~/.bashrc etc.) |
+| `RepoChangeStep` | Format, File, Content, Checksum, CandyName | HostNative | Always system |
+| `ApkInstallStep` | Packages (apk specs), CandyName, CandyDir | HostNative | Always system. Only `target: android` executes it; every other target records a skip. |
+| `LocalPkgInstallStep` | PkgbuildRef, CandyName, CandyDir, ProjectDir, Format, LocalPkg (`*LocalPkgDef`) | HostNative | Always system. Compiled from a layer's per-format `localpkg:` map (the `charly` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`) at "step 2.5" (before tasks); `compileLocalPkgStep` resolves the target distro's format FIRST (`DistroDef.LocalPkgFormat`), then the layer's source for that format, so `Format` + `LocalPkg` come from the `format.<fmt>.local_pkg:` block in `build.yml` — EVERY command rendered from config, no hardcoded build/install/glob literals. On a localpkg-capable deploy target (`target: local` / `target: vm`) the HOST builds the format's source via `LocalPkg.BuildTemplate` (pac → `makepkg`; rpm/deb → a distro-matched podman container) into `LocalPkg.PkgGlob` artifacts, then installs them onto the target via `LocalPkg.InstallTemplate` — the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`), which pulls the package's repo deps automatically. There is NO dependency-closure builder (the aur-LAYER deploy path still reuses the shared `buildDepPkgsOnHost`/`transferAndInstallPkgs` leg, R3). `LocalPkg.Probe` gates the install leg; `LocalPkg.SourceSentinel` (`PKGBUILD`/`*.spec`/`debian/control`) marks the source dir. `resolveLocalPkgDir` walks up from `ProjectDir`, so a consumer nested under `box/<distro>` finds the superproject `pkg/<fmt>`. Skipped at image build (`OCITarget`) + on targets whose distro declares no localpkg-capable format (the layer's curl/COPY task is the fallback). Machinery: `charly/localpkg.go`; config: `build.yml format.<fmt>.local_pkg:`. |
+| `RebootStep` | CandyName | HostNative | Always system; `Reverse()` empty. Emitted last when a layer sets `reboot: true`. Only `VmDeployTarget` acts on it (reboot guest + wait for return); OCI/pod/k8s skip; `LocalDeployTarget` skips + warns (never reboots the operator host). |
 
 **`ShellSnippetStep` notes:**
 - Compiled by `compileShellSnippetSteps` in `install_build.go` — applies the per-shell-wins-over-generic selection rule from `layer.Shell()`.
 - OCITarget emits a `RUN mkdir -p ... && cat > <dest> <<EOF` heredoc with a sha256-derived end-marker (anti-collision).
 - LocalDeployTarget / VmDeployTarget probe `command -v <shell>` once at the top of `Emit()`; absent shells become VenueSkip-style no-ops with a logged reason. UseDropin=true → whole-file write; UseDropin=false → `replaceOrAppendManagedBlock` against the existing rc file with a per-layer marker.
-- Reverse: `ReverseOpRmFileSystem` / `ReverseOpRmFileUser` for drop-ins; `ReverseOpRemoveManaged` (with `Extra["marker"]=LayerName`) for managed-block append.
+- Reverse: `ReverseOpRmFileSystem` / `ReverseOpRmFileUser` for drop-ins; `ReverseOpRemoveManaged` (with `Extra["marker"]=CandyName`) for managed-block append.
 - Round-trip: `LabelShell` (`ai.opencharly.shell`) carries the merged set; `CollectShell` builds it at `charly box build` time, `ExtractMetadata` parses it at deploy time, `MergeDeployShell` overlays deploy.yml entries by id.
 
 Each step's `Reverse()` emits typed `ReverseOp` values. Adding a step kind means: (a) define the struct in `install_plan.go`, (b) decide its Scope/Venue/Gate/Reverse, (c) add a case to each target's step dispatch (`emit*` in OCITarget; `exec*` in LocalDeployTarget), (d) ensure the compiler in `install_build.go` emits it.
@@ -142,7 +142,7 @@ Each step's `Reverse()` emits typed `ReverseOp` values. Adding a step kind means
 ## The compiler — `BuildDeployPlan`
 
 ```go
-func BuildDeployPlan(layer *Layer, img *ResolvedBox, hostCtx HostContext) (*InstallPlan, error)
+func BuildDeployPlan(layer *Candy, img *ResolvedBox, hostCtx HostContext) (*InstallPlan, error)
 ```
 
 Pure — no I/O, no side effects. Given the same inputs, produces the same plan. Called:
@@ -152,14 +152,14 @@ Pure — no I/O, no side effects. Given the same inputs, produces the same plan.
 
 Pass `HostContext{Target: "host", Distro: ..., GlibcVersion: ...}` for host compilation; zero-value for build/container compilation.
 
-Step emission order (mirrors today's `writeLayerSteps`):
+Step emission order (mirrors today's `writeCandySteps`):
 1. `ShellHookStep` for `env:` + `path_append:` (deterministic map ordering).
-2. ONE `SystemPackagesStep` for the image's primary format — resolved via the most-specific-first distro CASCADE over `ResolvedBox.Distro` (e.g. `[ubuntu:24.04, ubuntu]`) plus the layer's top-level `package:` base: packages UNION across every matching per-distro tag section, while `repo`/`copr`/`option`/`exclude`/`module` resolve most-specific-wins. No per-distro section ever shares a mutable format section, so a deb-family repo (trixie vs noble) resolves deterministically. The cascade lives in **ONE shared function `resolveCascadePackages` (`install_build.go`)** called by BOTH the deploy compiler (`compileSystemPackageSteps`) AND the image-build Containerfile emitter (`generate.go writeLayerSteps`) — there is exactly one package-resolution path, so a layer's packages are identical whether built into an image or applied at deploy. (Non-primary build formats like `aur` are a separate multi-stage builder concern, not a distro tag, and emit from their own format section.)
+2. ONE `SystemPackagesStep` for the image's primary format — resolved via the most-specific-first distro CASCADE over `ResolvedBox.Distro` (e.g. `[ubuntu:24.04, ubuntu]`) plus the layer's top-level `package:` base: packages UNION across every matching per-distro tag section, while `repo`/`copr`/`option`/`exclude`/`module` resolve most-specific-wins. No per-distro section ever shares a mutable format section, so a deb-family repo (trixie vs noble) resolves deterministically. The cascade lives in **ONE shared function `resolveCascadePackages` (`install_build.go`)** called by BOTH the deploy compiler (`compileSystemPackageSteps`) AND the image-build Containerfile emitter (`generate.go writeCandySteps`) — there is exactly one package-resolution path, so a layer's packages are identical whether built into an image or applied at deploy. (Non-primary build formats like `aur` are a separate multi-stage builder concern, not a distro tag, and emit from their own format section.)
 3. `TaskStep`(s) in YAML order.
 4. `BuilderStep`(s) for each matching multi-stage or inline builder.
 5. `ServicePackagedStep` / `ServiceCustomStep` from the `service:` list — per-entry routing via `IsPackaged()` + `ServiceSchema.SupportsPackaged`.
 
-`MergePlan([]*InstallPlan, image, addLayers)` composes per-layer plans into a single whole-image plan for target-level walking (sudo batching, single dry-run output).
+`MergePlan([]*InstallPlan, image, addCandies)` composes per-layer plans into a single whole-image plan for target-level walking (sudo batching, single dry-run output).
 
 ## The `DeployTarget` interface
 
@@ -269,7 +269,7 @@ CLI flags on `DeployAddCmd` / `DeployDelCmd` populate this struct; each target r
 ## Testing
 
 - `install_plan_test.go` — 13 unit tests over step-kind derivations (scope/venue/gate/reverse).
-- `install_build_test.go` — 8 integration tests that load real `candy/` via `ScanAllLayerWithConfig`; `testHostContextWithDistro` helper.
+- `install_build_test.go` — 8 integration tests that load real `candy/` via `ScanAllCandyWithConfig`; `testHostContextWithDistro` helper.
 - `install_build.go:200` comment — canonical fixture docs.
 
 When you add a step kind, add:

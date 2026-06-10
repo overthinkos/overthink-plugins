@@ -1054,7 +1054,7 @@ deploy:
 
 A deploy entry's key in `deploy:` lives in its own namespace. The same name MAY simultaneously be a candy, a `box:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry — and the deploy entry's cross-reference fields (`box:`, `vm:`, `local:`, `k8s:`) are scoped to the matching kind, no fall-through. Concrete worked example: this repo's `deploy.charly-cachyos` references `local.charly-cachyos` via `local: charly-cachyos` — same name across two namespaces.
 
-`ResolveDeployRef` (used by `charly deploy add <name> <ref>`): when a name exists as BOTH a box and a candy, box-first precedence wins for the primary `<ref>` positional. The `--add-candy <ref>` path goes through `ResolveDeployRefAsLayer` which is candy-first. Same-name box and candy is permitted.
+`ResolveDeployRef` (used by `charly deploy add <name> <ref>`): when a name exists as BOTH a box and a candy, box-first precedence wins for the primary `<ref>` positional. The `--add-candy <ref>` path goes through `ResolveDeployRefAsCandy` which is candy-first. Same-name box and candy is permitted.
 
 The loader raises a hard load-time error on the obsolete `deploy.qc` / `deploy.cachyos-dx` keys, and on the obsolete `kind: deployment` doc / root-key `deployment:` (the deploy kind is `kind: deploy`); every such error points at `charly migrate`. See `/charly-build:migrate`.
 

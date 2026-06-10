@@ -378,12 +378,12 @@ Auto-intermediates are marked with `Auto: true` and appear in `charly box list t
 ### Algorithm
 
 `ComputeIntermediates()` runs during generation:
-1. `GlobalLayerOrder()` computes a deterministic layer ordering across all images, prioritizing layers by popularity (how many images need them) for cache efficiency.
+1. `GlobalCandyOrder()` computes a deterministic layer ordering across all images, prioritizing layers by popularity (how many images need them) for cache efficiency.
 2. Images are grouped by their direct parent (base). For each sibling group with 2+ images, a **prefix trie** is built from their relative layer sequences.
 3. The trie is walked to detect branch points (where sibling layer sequences diverge). At each branch, an auto-intermediate image is created.
 4. Original images are rebased to the nearest intermediate, so shared layers are built once.
 
-Source: `charly/intermediates.go` (`ComputeIntermediates`, `GlobalLayerOrder`, `walkTrieScoped`).
+Source: `charly/intermediates.go` (`ComputeIntermediates`, `GlobalCandyOrder`, `walkTrieScoped`).
 
 ## Versioning
 
@@ -591,7 +591,7 @@ A repo reached via two import paths (e.g. `arch`, reached both directly as main 
 
 **`repo:` (optional root-only field).** Declare your project's canonical repo identity at the top of `charly.yml` (`repo: github.com/overthinkos/overthink`) so the loader recognizes a transitive back-import of your repo and short-circuits it to the local tree. When omitted, the loader infers it from `git remote origin`; absent both, the cycle-break degrades to version-keyed behavior. The field is purely additive (no migration needed).
 
-### Layer-version resolution across namespaces — per-entity version
+### Candy-version resolution across namespaces — per-entity version
 
 A namespace is imported to provide bases/builders; the resolver fetches ONLY the layers reachable from the enabled images' `base:`/`builder:` chains (reachability-scoped collection) — a namespace's unreferenced images and its `kind:local` templates are not pulled. The git `:vTAG` on a layer ref is only the FETCH coordinate; the layer's OWN `version:` (read after fetch) is the identity. So when the SAME layer is referenced via two different repo git tags but its `version:` is unchanged (a re-tag for an unrelated push), the resolver picks one materialization with NO warning. Only when a layer resolves to two genuinely different per-entity versions (a family pinned to a newer layer than the shared infra it composes) does it **warn once** (naming both per-entity versions) and use the **newest** (highest CalVer). Run `charly box reconcile` to align the on-disk git-tag pins and clear any warning. See `/charly-internals:go` "Remote-layer resolver", `/charly-build:reconcile`.
 

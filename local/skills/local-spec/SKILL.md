@@ -103,8 +103,8 @@ When a deployment carries `local: <template-name>`:
 | Field | Template provides | Deployment overrides | CLI overrides | Effective value |
 |---|---|---|---|---|
 | `layers` | base list | — | — | `template.Layers` |
-| `add_layers` | — | extra list | `--add-candy` | `deployment.AddLayers ++ CLI.AddLayer` |
-| effective layer order | — | — | — | `template.Layers ++ deployment.AddLayers ++ CLI.AddLayer` |
+| `add_layers` | — | extra list | `--add-candy` | `deployment.AddCandies ++ CLI.AddCandy` |
+| effective layer order | — | — | — | `template.Layers ++ deployment.AddCandies ++ CLI.AddCandy` |
 | `install_opts.*` (bool) | default | wins over template | wins over both | CLI > deployment > template |
 | `install_opts.builder_image` | default `""` | wins | wins over both | CLI > deployment > template |
 | `env` | base list | extends + overrides on key | — | template.Env merged with deployment.Env (deployment-wins on collision) |

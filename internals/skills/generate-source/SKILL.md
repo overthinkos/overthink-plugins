@@ -50,7 +50,7 @@ The generated Containerfile follows this order:
 
 ## Task emission pipeline
 
-All install-task logic lives in a single file: `charly/tasks.go` (~380 lines). Authored layer-side as `task:` list in `charly.yml`; emitted as Containerfile directives via this sequence per layer inside `writeLayerSteps` (`charly/generate.go:1021`):
+All install-task logic lives in a single file: `charly/tasks.go` (~380 lines). Authored layer-side as `task:` list in `charly.yml`; emitted as Containerfile directives via this sequence per layer inside `writeCandySteps` (`charly/generate.go:1021`):
 
 ```
 1. # Layer: <name>                 (comment header)
@@ -70,19 +70,19 @@ All install-task logic lives in a single file: `charly/tasks.go` (~380 lines). A
        case "download": emitDownload    (RUN curl + extractor + /tmp/downloads cache)
        case "setcap":   emitSetcapBatch (coalesces; strip on empty caps)
        case "cmd":      emitCmd         (RUN bash -c 'set -e; ...' + /ctx bind)
-       case "build":    writeLayerSteps handles builder placement
+       case "build":    writeCandySteps handles builder placement
 6. USER root reset (unless last layer + skipRootReset)
 ```
 
 ### `Task` struct (`charly/layers.go:604`)
 
-Flat struct with verb-discriminator fields. Exactly one of `Cmd` / `Mkdir` / `Copy` / `Write` / `Link` / `Download` / `Setcap` / `Build` must be non-empty. Shared modifiers (`User`, `Mode`, `To`, `Target`, `Content`, `Extract`, `Include`, `Env`, `Caps`, `Comment`) are validated per-verb in `charly/validate.go:validateLayerTasks`.
+Flat struct with verb-discriminator fields. Exactly one of `Cmd` / `Mkdir` / `Copy` / `Write` / `Link` / `Download` / `Setcap` / `Build` must be non-empty. Shared modifiers (`User`, `Mode`, `To`, `Target`, `Content`, `Extract`, `Include`, `Env`, `Caps`, `Comment`) are validated per-verb in `charly/validate.go:validateCandyTasks`.
 
 ```go
 func (t *Task) Kind() (string, error)   // returns verb or error ("no action" / "conflicting actions")
 ```
 
-The `Layer` struct that feeds emission carries its `require:` / `candy:` refs as `[]CandyRef` (one typed list each — no parallel bare/raw arrays), and its `Has*` predicates (`HasEnv`/`HasPorts`/`HasVolumes`/…) are derived methods (only the filesystem-probe caches like `HasPixiToml` stay fields). Layers are populated by the single `populateLayerFromYAML`. Which layers reach this emission pipeline is decided upstream by the reachability-scoped, per-entity-version resolver (the git tag is the fetch coordinate; the layer's own `version:` is the identity) — see `/charly-internals:go` "Remote-layer resolver".
+The `Layer` struct that feeds emission carries its `require:` / `candy:` refs as `[]CandyRef` (one typed list each — no parallel bare/raw arrays), and its `Has*` predicates (`HasEnv`/`HasPorts`/`HasVolumes`/…) are derived methods (only the filesystem-probe caches like `HasPixiToml` stay fields). Layers are populated by the single `populateCandyFromYAML`. Which layers reach this emission pipeline is decided upstream by the reachability-scoped, per-entity-version resolver (the git tag is the fetch coordinate; the layer's own `version:` is the identity) — see `/charly-internals:go` "Remote-layer resolver".
 
 ### Emitter helpers (all in `charly/tasks.go`)
 
@@ -125,7 +125,7 @@ putting the value in scope for the downstream URL expansion.
 
 ### Inline-content staging
 
-`stageInlineContent(buildDir, contextRelPrefix, layerName, content)` writes `write:` task content to `<buildDir>/_inline/<layer>/<sha256>` on disk and returns the build-context-relative path (e.g. `.build/<image>/_inline/<layer>/<sha256>`). Content-addressed filename makes writes idempotent — identical content writes no-op; changed content produces a new hash which invalidates only that COPY's cache layer. **No shell heredoc ever appears in the Containerfile** — content travels as bytes.
+`stageInlineContent(buildDir, contextRelPrefix, candyName, content)` writes `write:` task content to `<buildDir>/_inline/<layer>/<sha256>` on disk and returns the build-context-relative path (e.g. `.build/<image>/_inline/<layer>/<sha256>`). Content-addressed filename makes writes idempotent — identical content writes no-op; changed content produces a new hash which invalidates only that COPY's cache layer. **No shell heredoc ever appears in the Containerfile** — content travels as bytes.
 
 ### User resolution
 
@@ -145,7 +145,7 @@ Two-tier:
 - **Build-time (Docker):** `${ARCH}` comes from BuildKit's `TARGETARCH` via `ARG TARGETARCH` + `ENV ARCH=${TARGETARCH}` emitted at layer top. Layer-local `var:` become `ENV` directives too. Docker substitutes these in COPY paths, RUN commands, and ENV values.
 - **Build-time (shell):** `${BUILD_ARCH}` is auto-injected as a local shell variable at the top of each `cmd:` / `download:` RUN (`BUILD_ARCH=$(uname -m)`). Unlike `${ARCH}`, it isn't available in non-shell fields.
 
-`taskUnresolvedRefs(s, known)` returns `${NAME}` references that don't resolve against auto-exports ∪ layer `var:` — used by `validateLayerTasks` to error on typos.
+`taskUnresolvedRefs(s, known)` returns `${NAME}` references that don't resolve against auto-exports ∪ layer `var:` — used by `validateCandyTasks` to error on typos.
 
 ### Adjacent-coalescing (`taskCoalescesWith`)
 
@@ -270,7 +270,7 @@ Covered by `charly/intermediates_test.go` (the test images construct
 **All OCI LABEL directives are emitted at the end of the final stage**,
 after the last `USER` directive. This is an intentional cache-efficiency
 choice driven by `charly/generate.go`'s `writeLabels` call being placed
-after `writeLayerSteps` + the final `USER` emission.
+after `writeCandySteps` + the final `USER` emission.
 
 Why it matters: the `ai.opencharly.eval` LABEL is the most-volatile
 piece of image metadata — it changes every time a test is added, edited,
@@ -342,7 +342,7 @@ fedora (external)
      -> openclaw (adds: nodejs, openclaw)
 ```
 
-`ComputeIntermediates()` uses a prefix trie to detect divergence points. `GlobalLayerOrder()` prioritizes popular layers for cache efficiency.
+`ComputeIntermediates()` uses a prefix trie to detect divergence points. `GlobalCandyOrder()` prioritizes popular layers for cache efficiency.
 
 ### Parent-vs-defaults inheritance (critical)
 
@@ -519,8 +519,8 @@ charly box inspect my-image --format layers      # Shows layer list for an image
 
 - `/charly-image:layer` — **Canonical author-facing reference** for the task verb catalog, `var:` substitution, YAML anchors, execution order. The emitter pipeline here implements what's documented there.
 - `/charly-build:generate` — User-facing `charly box generate` command.
-- `/charly-internals:go` — Source code map: `charly/tasks.go` (emitter pipeline), `charly/generate.go:writeLayerSteps` (orchestrator call site), `charly/layers.go:Task` struct, `charly/validate.go:validateLayerTasks`.
-- `/charly-build:validate` — User-facing validation rules (what `validateLayerTasks` enforces).
+- `/charly-internals:go` — Source code map: `charly/tasks.go` (emitter pipeline), `charly/generate.go:writeCandySteps` (orchestrator call site), `charly/layers.go:Task` struct, `charly/validate.go:validateCandyTasks`.
+- `/charly-build:validate` — User-facing validation rules (what `validateCandyTasks` enforces).
 - `/charly-build:build` — Building from generated Containerfiles.
 - Source: `charly/generate.go`, `charly/tasks.go`, `charly/intermediates.go`, `charly/graph.go`.
 

@@ -407,7 +407,7 @@ task:
 
 | Field | Type | Purpose |
 |-------|------|---------|
-| `version` | `string` | **MANDATORY** CalVer (`YYYY.DDD.HHMM`) of this candy definition — the candy kind requires it (`charly box validate` hard-errors when absent; `charly migrate` backfills it). The authoritative per-entity identity: it drives cross-repo layer resolution (`pickLayerVersion`) and, as the highest layer version, the consuming image's content-stable `ai.opencharly.version` label. Bump it when the candy's content changes. |
+| `version` | `string` | **MANDATORY** CalVer (`YYYY.DDD.HHMM`) of this candy definition — the candy kind requires it (`charly box validate` hard-errors when absent; `charly migrate` backfills it). The authoritative per-entity identity: it drives cross-repo layer resolution (`pickCandyVersion`) and, as the highest layer version, the consuming image's content-stable `ai.opencharly.version` label. Bump it when the candy's content changes. |
 | `status` | `string` | `working`, `testing`, or `broken`. Default: `testing`. |
 | `info` | `string` | Free-form description of what works / doesn't. Recommended for `testing` / `broken`. |
 | `require` | `[]string` | Candy dependencies. Resolved transitively, topologically sorted. |
