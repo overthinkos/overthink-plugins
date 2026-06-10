@@ -17,7 +17,7 @@ The project directory is the current working directory; use the top-level `-C` /
 
 ## CalVer schema versioning
 
-The YAML schema version is a **CalVer string** — `version: YYYY.DDD.HHMM`, the same `ComputeCalVer` scheme as image tags (e.g. the current HEAD `version: 2026.161.1555`). The `calver-schema` migration step (registry HEAD) converts the legacy integer `version: 4` to this form. Every versioned file carries the stamp:
+The YAML schema version is a **CalVer string** — `version: YYYY.DDD.HHMM`, the same `ComputeCalVer` scheme as image tags (e.g. the current HEAD `version: 2026.161.1650`). The `calver-schema` migration step (registry HEAD) converts the legacy integer `version: 4` to this form. Every versioned file carries the stamp:
 
 - `charly.yml` + the per-kind siblings `box.yml` / `deploy.yml` / `vm.yml` / `pod.yml` / `k8s.yml` / `local.yml` (and `eval.yml` when present)
 - the per-host `~/.config/charly/charly.yml`
@@ -63,7 +63,8 @@ Every hard-cutover schema change the project has ever shipped is **one `Migratio
 | 2026.161.1300 | recipe-section-values | finish the candy/box rebrand's eval-harness recipe `from[i].kind:`/`scope:` VALUES (layer→candy, image→box), scoped to `from:` sequence items; the eval label wire keys were already candy/box. The load gate hard-rejects an un-migrated recipe (`invalid kind "layer" (one of: candy, box, pod, vm)`) |
 | 2026.161.1501 | init-candy-keys | finish the candy/box rebrand's INIT-SYSTEM vocabulary — `layer_field:`→`candy_field:`, `layer_file:`→`candy_file:`, `depends_layer:`→`depends_candy:` inside `init:` system defs (`build.yml` / `charly.yml`). The Go `InitDef` now reads `candy_*`; an un-migrated config silently loses the keys. Scoped to the `init:` subtree; TouchesHost false (remote-cache auto-migration applies it to fetched init overrides) |
 | 2026.161.1554 | host-charly-yml | rename the per-host deploy overlay `~/.config/charly/deploy.yml` → `charly.yml` so it loads through the SAME unified loader as every project `charly.yml` (Cutover E). Prepends a `version:` line (per-host configs predate per-file versioning, so they have none — and `stampVersionField` only rewrites an existing line) so the calver-schema stamp + the loader's gate accept it. TouchesHost; retargets `ctx.HostDeployPath`; idempotent |
-| **2026.161.1555** | **calver-schema** (HEAD) | **the universal stamper**: rewrite the top-level `version:` line of every versioned file to the HEAD CalVer (line-oriented, comment-preserving). This is the integer→CalVer transition (`version: 4` → the HEAD CalVer). **Always stays last** so `LatestSchemaVersion()` tracks it. |
+| 2026.161.1649 | ledger-candy-keys | rename the install-ledger json keys `layer`→`candy` / `add_layer`→`add_candy` and stamp each record with the ledger format version (Cutover F). The install ledger (`~/.config/opencharly/installed/{deploys,layers}/*.json`) is per-host deploy STATE the unified loader never parses, so it carries its OWN fixed format version — the `ledgerSchemaVersion` constant (`2026.161.1649`, DECOUPLED from project HEAD so a future non-ledger cutover never invalidates a migrated ledger). The new read path (`ReadDeployRecord`/`ReadCandyRecord`) hard-rejects a record lacking `schema_version` (a pre-cutover record whose `json:"layer"` key would silently unmarshal to an empty `Candy`) with a `charly migrate` hint; this step converts existing ledgers so they pass. TouchesHost (walks `ctx.LedgerRoot/{deploys,layers}`); raw-JSON rewrite (no record schema — key order is irrelevant for the machine-managed ledger); idempotent (a record already carrying `schema_version` is a no-op) |
+| **2026.161.1650** | **calver-schema** (HEAD) | **the universal stamper**: rewrite the top-level `version:` line of every versioned file to the HEAD CalVer (line-oriented, comment-preserving). This is the integer→CalVer transition (`version: 4` → the HEAD CalVer). **Always stays last** so `LatestSchemaVersion()` tracks it. |
 
 Step `Name`s are for `--dry-run` / progress output only — they are no longer CLI sub-verbs. Steps that mutate per-host state (`~/.config/charly`, quadlets, `.secrets`) are flagged `TouchesHost`; see "Remote-cache auto-migration" below.
 
@@ -80,7 +81,7 @@ Step `Name`s are for `--dry-run` / progress output only — they are no longer C
 `LoadUnified` (`charly/unified.go`) parses the merged `version:` and rejects anything older than HEAD:
 
 ```
-charly.yml: schema 2026.161.1555 is required (found "4"). Run: charly migrate
+charly.yml: schema 2026.161.1650 is required (found "4"). Run: charly migrate
 ```
 
 A non-CalVer value (the legacy integer `4`, empty, or garbage) parses as "older than every real CalVer", so a pre-CalVer config flows into the chain with no special case. Residual-key checks (e.g. `kind: deployment`, `target: host`, `secret_backend: kdbx`) remain as defense-in-depth, but **every** remediation hint now points uniformly at bare `charly migrate`.
