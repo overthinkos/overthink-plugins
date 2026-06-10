@@ -48,10 +48,18 @@ VM name convention: `charly-<name>[-<instance>]`. Default libvirt URI: `qemu:///
 
 To pass a physical GPU through to a VM and (e.g.) run a CUDA container inside it:
 
-1. **Host readiness** — `charly vm gpu status` confirms IOMMU is on (`intel_iommu=on`
-   / `amd_iommu=on iommu=pt` on the kernel cmdline) and shows each GPU's IOMMU
-   group + current driver. `charly doctor` reports the same under "VFIO / GPU
-   passthrough".
+1. **Host readiness — and why host `nvidia-smi` is the WRONG check.** `charly vm gpu
+   status` confirms IOMMU is on (`intel_iommu=on` / `amd_iommu=on iommu=pt` on the
+   kernel cmdline) and shows each GPU's IOMMU group + current driver; `charly doctor`
+   reports the same under "VFIO / GPU passthrough". On a passthrough-READY host the
+   card is bound to the **`vfio-pci`** host driver (NOT `nvidia` / `nouveau` /
+   `amdgpu`) precisely so a guest can claim it — so host-side `nvidia-smi` /
+   `rocm-smi` / `nvidia-settings` **FAIL BY DESIGN**. That failure is the *ready*
+   state, NOT a "no GPU" state: never gauge GPU- or passthrough-bed availability from
+   host `nvidia-smi`. The authoritative host checks are `charly vm gpu status` /
+   `charly vm gpu list` (or `lspci -nnk` showing `Kernel driver in use: vfio-pci`);
+   the GPU comes alive INSIDE the guest, where the in-guest driver layer (step 3)
+   binds it and in-guest `nvidia-smi` works.
 2. **The hostdev is AUTO-ALLOCATED.** When a `target: vm` deploy/bed declares
    `requires_exclusive: [<token>]` and that token maps to a `build.yml`
    `resource:` with a `gpu:` selector (e.g. `resource: {nvidia-gpu: {gpu:

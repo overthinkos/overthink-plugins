@@ -64,6 +64,14 @@ when the bed finishes (even on failure, for `restore: always`). A holder is neve
 left stopped: `charly preempt status` / `charly preempt restore` recover a crashed run.
 See `/charly-internals:disposable` "The resource-arbitration axis" + `/charly-core:deploy`.
 
+**A GPU bed runs on a passthrough host where host `nvidia-smi` FAILS — that is the
+READY state, not a blocker.** A `requires_exclusive: [nvidia-gpu]` bed needs the card
+bound to the `vfio-pci` host driver so the guest VM can claim it via VFIO; host-side
+`nvidia-smi` / `rocm-smi` failing is therefore EXPECTED and does NOT mean the bed
+can't run — the GPU comes alive INSIDE the guest. Gauge readiness with `charly vm gpu
+status` (or `charly vm gpu list` / `lspci -nnk` → `Kernel driver in use: vfio-pci`),
+NEVER host `nvidia-smi`. See `/charly-vm:vm` "GPU passthrough (VFIO)".
+
 `charly eval run --all-beds` runs every bed name-sorted. Flags: `--keep` (don't
 tear down), `--no-rebuild` (skip step 6 — FORBIDDEN for an R10 acceptance run;
 needs explicit operator authorization per CLAUDE.md). Per-run logs land in
