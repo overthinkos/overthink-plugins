@@ -2,12 +2,12 @@
 name: gogcli
 description: |
   Google Workspace CLI (Gmail, Calendar, Drive, Contacts, Sheets, Docs).
-  Use when working with the gogcli layer.
+  Use when working with the gogcli candy.
 ---
 
 # gogcli -- Google Workspace CLI
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -29,11 +29,11 @@ candy:
   - gogcli
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:golang` — required Go toolchain dependency
 - `/charly-openclaw:openclaw-full` — metalayer that includes gogcli
 - `/charly-tools:goplaces` — sibling Google API CLI in openclaw-full
@@ -48,9 +48,9 @@ candy:
 Use when the user asks about:
 - Google Workspace CLI access (Gmail, Calendar, Drive, Contacts, Sheets, Docs)
 - Google API tools in containers
-- The `gogcli` layer
+- The `gogcli` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

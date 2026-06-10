@@ -25,7 +25,7 @@ All commands accept `--volume NAME` to target a specific volume (otherwise all e
 
 ## Configuration
 
-Encrypted volumes are configured at deploy time, not build time. Use `charly config --encrypt` to set a layer-declared volume's backing to encrypted:
+Encrypted volumes are configured at deploy time, not build time. Use `charly config --encrypt` to set a candy-declared volume's backing to encrypted:
 
 ```bash
 # Configure "library" volume as encrypted
@@ -47,7 +47,7 @@ volumes:
 
 Rules:
 - Volume must be declared in `charly.yml` (or provided as deploy-only with `path:`)
-- `name`: matches a layer volume name, must match `^[a-z0-9]+(-[a-z0-9]+)*$`
+- `name`: matches a candy volume name, must match `^[a-z0-9]+(-[a-z0-9]+)*$`
 
 ### Per-Volume Explicit Path
 
@@ -327,7 +327,7 @@ Rootless podman with `--userns=keep-id` creates a two-level user namespace. Duri
 - **`charly shell`/`charly start` (direct mode)**: resolves volume backing from deploy.yml, verifies encrypted volumes are mounted, appends `-v <plain>:<container-path>` flags. `charly start` mounts encrypted volumes inline via systemd-run scopes before starting the container
 - **`charly config` (quadlet mode)**: generates quadlet file with `ExecStartPre=charly config mount <image>` for encrypted services. ExecStartPre creates scope units internally — these are independent of the container service. Boot behavior is backend-gated (see below)
 - **`charly remove --purge`**: removes named volumes
-- **Data provisioning**: `charly config --seed` (default) provisions data from data layers into bind-backed directories after mounting encrypted volumes. Works for both bind and encrypted volume types
+- **Data provisioning**: `charly config --seed` (default) provisions data from data candies into bind-backed directories after mounting encrypted volumes. Works for both bind and encrypted volume types
 
 ### Boot Behavior: Backend-Gated
 

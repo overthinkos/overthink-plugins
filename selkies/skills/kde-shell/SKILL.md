@@ -9,7 +9,7 @@ description: >
 
 # kde-shell — SDDM-free Plasma session package leaf
 
-`kde-shell` is a package-only layer holding the KDE Plasma Wayland SESSION that
+`kde-shell` is a package-only candy holding the KDE Plasma Wayland SESSION that
 is common to BOTH KDE consumers, so the package list is defined once (R3):
 
 - **`kde-desktop`** (bare-metal seat) = `kde-shell` + `sddm` + workstation-only
@@ -36,6 +36,6 @@ bluedevil, kinfocenter, partitionmanager, kdeconnect, media players.
 ## Related
 
 - `/charly-selkies:kde-selkies` — headless streamed Plasma consumer (pod).
-- `/charly-eval:wl` — uses this layer's `kdotool` for KWin window management.
+- `/charly-eval:wl` — uses this candy's `kdotool` for KWin window management.
 - `/charly-distros:cachyos` — the CachyOS/Arch base (Plasma packages are pac/AUR).
 - `/charly-image:layer` — package-section authoring (`distro.arch.package`).

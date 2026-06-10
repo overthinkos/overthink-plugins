@@ -7,7 +7,7 @@ description: |
 
 # filebrowser -- Web file manager
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -64,16 +64,16 @@ filebrowser:
 
 Tunnel config is in `deploy.yml`: `tunnel: {provider: tailscale, private: all}`. See `/charly-core:deploy`.
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-filebrowser:filebrowser`
 
-## Related Layers
+## Related Candies
 
 - `/charly-infrastructure:supervisord` -- process manager dependency
 - `/charly-infrastructure:traefik` -- similar pattern (binary download + config file + supervisord)
-- `/charly-infrastructure:dbus-layer` -- D-Bus session bus (co-deployed in filebrowser image)
-- `/charly-tools:charly` -- charly CLI (co-deployed in filebrowser image)
+- `/charly-infrastructure:dbus-layer` -- D-Bus session bus (co-deployed in filebrowser box)
+- `/charly-tools:charly` -- charly CLI (co-deployed in filebrowser box)
 
 ## Related Commands
 
@@ -93,5 +93,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

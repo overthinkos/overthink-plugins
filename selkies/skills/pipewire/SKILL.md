@@ -7,7 +7,7 @@ description: |
 
 # pipewire -- Audio/media server for containers
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -37,11 +37,11 @@ my-desktop:
     - pipewire
 ```
 
-## Used In Images
+## Used In Boxes
 
 Part of `/charly-selkies:sway-desktop` composition.
 
-## Related Layers
+## Related Candies
 
 - `/charly-infrastructure:supervisord` -- process manager dependency
 - `/charly-selkies:sway-desktop` -- composition that includes pipewire
@@ -58,5 +58,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

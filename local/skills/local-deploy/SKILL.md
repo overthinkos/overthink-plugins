@@ -4,11 +4,11 @@ description: |
   MUST be invoked before any work involving: `target: local` deployments, the Ansible-style `host:` destination field (literal `local` for direct shell, anything else routes through ssh(1) reading `~/.ssh/config` + ssh-agent), the `local:` template reference, the `user:` and `ssh_args:` Ansible-shaped overrides, the managed `~/.config/charly/ssh_config` fragment, the install ledger at `~/.config/opencharly/installed/`, ReverseOp teardown, or the `--with-services`/`--allow-repo-changes`/`--allow-root-tasks` gates.
 ---
 
-# Local Deploy — Applying Layers Directly to a Linux Filesystem
+# Local Deploy — Applying Candies Directly to a Linux Filesystem
 
 ## Overview
 
-`target: local` deployments apply an image or layer's install recipe directly to a Linux filesystem instead of baking it into a container image. The destination is named by the deployment's `host:` field (Ansible-style):
+`target: local` deployments apply a box or candy's install recipe directly to a Linux filesystem instead of baking it into a container image. The destination is named by the deployment's `host:` field (Ansible-style):
 
 - `host: local` (literal) or absent → `ShellExecutor` (run on this machine).
 - Anything else → `SSHExecutor` (ssh(1) reads `~/.ssh/config` + ssh-agent for keys, host-key checking, options).
@@ -19,7 +19,7 @@ The deploy applies host packages + configs ONLY. Container images required for `
 
 Use cases:
 - Installing a focused tool set (ripgrep + uv + direnv) on your workstation without a container.
-- Iterating on a layer locally, then baking it into an image.
+- Iterating on a candy locally, then baking it into a box.
 - Pushing a profile to a remote machine over SSH (CI runner, lab box, bastion) without ad-hoc shell scripting.
 
 ## SSH config + agent are the configuration
@@ -123,7 +123,7 @@ Remote `target: local` deploys assume **passwordless sudo** on the destination. 
 | `--with-services` | systemd unit writes; `systemctl enable --now` |
 | `--allow-repo-changes` | `/etc/yum.repos.d/`, `/etc/apt/`, `/etc/pacman.conf` mutations |
 | `--allow-root-tasks` | arbitrary `cmd: user: root` task bodies (opaque shell) |
-| `--skip-incompatible` | skip layers without a destination-matching format section |
+| `--skip-incompatible` | skip candies without a destination-matching format section |
 | `--builder-image <ref>` | override the compile builder image |
 | `--yes` / `-y` | implies all three gates + skips sudo preflight |
 
@@ -143,7 +143,7 @@ Remote `target: local` deploys assume **passwordless sudo** on the destination. 
 - `/charly-core:deploy` — parent command family.
 - `/charly-image:layer` — `service:` schema rendered as systemd units on local-target deploys.
 - `/charly-vm:vm` — managed ssh-config fragment writen on `charly vm create`.
-- `/charly-eval:eval` — `--verify` re-runs layer `eval:` against the deploy post-install.
+- `/charly-eval:eval` — `--verify` re-runs candy `eval:` against the deploy post-install.
 - `/charly-internals:install-plan` — shared IR consumed by `LocalDeployTarget`.
 
 ## When to Use This Skill

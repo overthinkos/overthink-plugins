@@ -2,12 +2,12 @@
 name: camsnap
 description: |
   RTSP/ONVIF camera snapshot and clip CLI.
-  Use when working with the camsnap layer.
+  Use when working with the camsnap candy.
 ---
 
 # camsnap -- Camera snapshot CLI
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -29,16 +29,16 @@ candy:
   - camsnap
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:golang` — Required Go runtime parent dependency
 - `/charly-openclaw:openclaw-full` — Metalayer that bundles camsnap with other agent CLIs
 
 ## Related Commands
-- `/charly-build:build` — Builds the layer (Go install via a cmd task)
+- `/charly-build:build` — Builds the candy (Go install via a cmd task)
 - `/charly-core:shell` — Interactive shell to run camsnap inside the container
 
 ## When to Use This Skill
@@ -46,9 +46,9 @@ candy:
 Use when the user asks about:
 - RTSP or ONVIF camera snapshots
 - Camera snapshot/clip tools
-- The `camsnap` layer
+- The `camsnap` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

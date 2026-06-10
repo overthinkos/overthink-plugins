@@ -7,7 +7,7 @@ description: |
 
 # typst -- document processor
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -22,16 +22,16 @@ my-image:
     - typst
 ```
 
-## Used In Images
+## Used In Boxes
 
 - (none currently enabled)
 
-## Related Layers
+## Related Candies
 - `/charly-tools:vscode` — editor sibling
 
 ## Related Commands
 - `/charly-core:shell` — run typst inside the container
-- `/charly-build:build` — rebuild after layer changes
+- `/charly-build:build` — rebuild after candy changes
 
 ## When to Use This Skill
 
@@ -43,5 +43,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

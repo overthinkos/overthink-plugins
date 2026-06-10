@@ -7,7 +7,7 @@ description: |
 
 # rocm -- AMD ROCm runtime and OpenCL
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ description: |
 | `HSA_OVERRIDE_GFX_VERSION` | KFD topology sysfs | `10.3.0` (RDNA2), `11.0.0` (RDNA3) |
 | `DRINODE` | DRM render node enumeration | `/dev/dri/renderD128` (typical), `/dev/dri/renderD129` (multi-GPU) |
 
-Both variables are **not baked into the layer** — they are auto-detected from host state at runtime and injected as container environment variables via `appendAutoDetectedEnv()` in `charly/devices.go`. The same function is called by `charly config`, `charly start`, and `charly shell`, so interactive shells and deployed services see the identical env set.
+Both variables are **not baked into the candy** — they are auto-detected from host state at runtime and injected as container environment variables via `appendAutoDetectedEnv()` in `charly/devices.go`. The same function is called by `charly config`, `charly start`, and `charly shell`, so interactive shells and deployed services see the identical env set.
 
 - `HSA_OVERRIDE_GFX_VERSION` is read from `/sys/class/kfd/kfd/topology/nodes/*/properties` (gfx_target_version field).
 - `DRINODE` is selected by walking `/dev/dri/renderD*` and picking the node that matches the AMD PCI device exposed to the container.
@@ -41,7 +41,7 @@ security:
     - keep-groups
 ```
 
-Uses `keep-groups` to preserve host supplementary groups (video, render) inside the container. This is the standard approach across all layers -- Podman's `keep-groups` is mutually exclusive with explicit group names.
+Uses `keep-groups` to preserve host supplementary groups (video, render) inside the container. This is the standard approach across all candies -- Podman's `keep-groups` is mutually exclusive with explicit group names.
 
 ## Packages
 
@@ -94,9 +94,9 @@ charly shell my-amd-app -c "echo \$HSA_OVERRIDE_GFX_VERSION"
 - `/charly-core:charly-config` -- Runtime GPU env injection at deployment time (same auto-detect path)
 - `/charly-core:start` -- Runtime GPU env injection at service start time
 
-## Used In Images
+## Used In Boxes
 
-Not directly used in any current image definition. Available as a standalone layer for AMD GPU support. The NVIDIA base image (`/charly-distros:nvidia`) is the currently-shipped GPU image; an AMD counterpart can be composed by substituting this layer.
+Not directly used in any current box definition. Available as a standalone candy for AMD GPU support. The NVIDIA base image (`/charly-distros:nvidia`) is the currently-shipped GPU box; an AMD counterpart can be composed by substituting this candy.
 
 ## When to Use This Skill
 
@@ -107,10 +107,10 @@ Use when the user asks about:
 - `/dev/kfd` device access
 - `HSA_OVERRIDE_GFX_VERSION` configuration
 - AMD GPU passthrough or compute
-- The rocm layer or AMD GPU computing
+- The rocm candy or AMD GPU computing
 - Comparing AMD vs NVIDIA GPU support
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -8,17 +8,17 @@ description: |
   installs the daemon). Self-gates on `systemctl is-active tailscaled`
   so it's a no-op in image-build / pre-auth contexts.
   Use when adding deploy-runtime tailscale wiring to a target:local host
-  (canonical consumer: local.charly-cachyos) — distinct from the tailscale layer
+  (canonical consumer: local.charly-cachyos) — distinct from the tailscale candy
   which only installs + enables the daemon.
 ---
 
 # tailscale-up — runtime wiring for target:local hosts
 
-## Why this layer exists separately from `tailscale`
+## Why this candy exists separately from `tailscale`
 
-The `tailscale` layer installs the daemon and enables the systemd unit.
+The `tailscale` candy installs the daemon and enables the systemd unit.
 That's a **build-time** concern shared by bootc images, VMs, and any
-other image that wants its own tailnet identity at boot.
+other box that wants its own tailnet identity at boot.
 
 The `--operator` and `--hostname` settings, however, are **runtime
 state** that:
@@ -30,9 +30,9 @@ state** that:
 - Need re-application across hostname changes (`hostnamectl set-hostname
   new-name` doesn't propagate to the tailnet device name automatically).
 
-Mixing those concerns into the shared `tailscale` layer would either
+Mixing those concerns into the shared `tailscale` candy would either
 break bootc consumers (with build-time errors from missing daemon
-socket) or require a target-aware conditional inside the shared layer
+socket) or require a target-aware conditional inside the shared candy
 — exactly the kind of `<name>-host` polymorphism that CLAUDE.md's
 "Init-system polymorphism" rule forbids.
 
@@ -40,7 +40,7 @@ socket) or require a target-aware conditional inside the shared layer
 self-gates on `systemctl is-active tailscaled`, and only fires when
 the daemon is actually up. Bootc consumers don't include it.
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -51,20 +51,20 @@ the daemon is actually up. Bootc consumers don't include it.
 
 ## Task body
 
-The layer's single cmd task:
+The candy's single cmd task:
 
 1. **Starts `tailscaled.service`** via `systemctl start ... || true`.
-   The `/charly-infrastructure:tailscale` layer is `systemctl enable`-only
+   The `/charly-infrastructure:tailscale` candy is `systemctl enable`-only
    (no `--now`) because the same task body runs at image-build time
    where systemd isn't PID 1 and `--now` would fail; starting the
    service is therefore a deploy-runtime concern that belongs in this
-   layer. Idempotent — no-op when already running, suppressed when
+   candy. Idempotent — no-op when already running, suppressed when
    no live systemd is available.
 2. Self-gates on `systemctl is-active --quiet tailscaled || exit 0`
    so the rest of the body is a no-op in any context where the daemon
    isn't running (image build, masked unit, etc.).
 3. Resolves the human deploy user via `getent passwd 1000 | cut -d: -f1`.
-   This matches the `wheel-nopasswd` layer and the
+   This matches the `wheel-nopasswd` candy and the
    `renderBuilderScript` helper in `charly/deploy_target_local.go` — uid 1000
    is the canonical "first human user" in this repo across CachyOS,
    Arch, Fedora, Debian, and Ubuntu base images. `SUDO_USER` is
@@ -119,15 +119,15 @@ NOT used in:
 - Bootc images — they need fresh-boot semantics that don't match the
   deploy-runtime contract here. Use `/charly-infrastructure:tailscale` alone.
 
-## Renaming an already-registered device — and why the layer doesn't auto-fix
+## Renaming an already-registered device — and why the candy doesn't auto-fix
 
 `tailscale set --hostname=<X>` updates local prefs and is what the
-layer task does on every deploy. For a **fresh** node that has not
+candy task does on every deploy. For a **fresh** node that has not
 yet run `tailscale up`, the prefs Hostname is what gets registered
 with the control plane on first auth — so the tailnet device name
 matches `/etc/hostname` automatically.
 
-For a node that **was already authed before this layer landed**, the
+For a node that **was already authed before this candy landed**, the
 device name on the tailnet is the value registered at original
 `tailscale up` time and DOES NOT auto-rename when prefs.Hostname
 changes. This is **intentional Tailscale design** — names are sticky
@@ -136,7 +136,7 @@ stable across reconfigurations. The local prefs are updated correctly
 (visible via `tailscale debug prefs | grep Hostname`), but
 `tailscale status` keeps showing the old name.
 
-The layer surfaces this divergence as a hard-fail eval probe
+The candy surfaces this divergence as a hard-fail eval probe
 (`tailscale-up-device-name-matches-hostname`). On every `charly eval live
 <deploy>` against a logged-in tailnet member, the probe compares the
 short form of `tailscale status --self --json | .DNSName` against
@@ -159,12 +159,12 @@ state (skips on a logged-out daemon) so test beds aren't affected.
    advertise-tags, etc.). Only use this on a node where every flag is
    at its Tailscale default.
 
-### Why the layer doesn't auto-rename
+### Why the candy doesn't auto-rename
 
-The layer **does not** reach for `tailscale up --reset` automatically
+The candy **does not** reach for `tailscale up --reset` automatically
 because:
 
-- It wipes operator-set prefs that the layer can't enumerate or
+- It wipes operator-set prefs that the candy can't enumerate or
   preserve (exit-node config, advertised routes, accept-routes are
   typical examples).
 - It triggers a brief disconnect + re-auth attempt, which can fail on
@@ -219,7 +219,7 @@ systemd-resolved hosts (which CachyOS uses).
 
 ## `tailscale serve` for pod deploys — direct, no restart
 
-The `--operator` permission this layer wires is what makes the
+The `--operator` permission this candy wires is what makes the
 **direct, host-level `tailscale serve` workflow** work without
 sudo. For each pod that publishes a host port (e.g. immich-ml on
 2283, ollama on 11434), one shell command on the host adds it to
@@ -279,12 +279,12 @@ host-level serve).
 - `/charly-core:deploy` — `deploy.yml` `tunnel: tailscale` mechanism that
   consumes the `--operator` permission.
 - `/charly-local:local-deploy` — the `target: local` execution model
-  this layer is designed for.
+  this candy is designed for.
 - `/charly-local:local-spec` — `local.yml` template authoring; the
   canonical consumer is `local.charly-cachyos`.
-- the `wheel-nopasswd` layer — provides the passwordless sudo
+- the `wheel-nopasswd` candy — provides the passwordless sudo
   used by the eval probe's `tailscale debug prefs` chain.
-- `/charly-image:layer` — layer authoring reference.
+- `/charly-image:layer` — candy authoring reference.
 - `/charly-eval:eval` — declarative testing reference (three-state
   pattern used here).
 
@@ -297,5 +297,5 @@ Use when the user asks about:
 - How to keep the tailnet device name in sync with `hostname -s`.
 - The split between the build-time tailscale install and the
   deploy-time tailscale wiring.
-- Writing a new layer that adds runtime configuration on top of an
-  install-side layer (this is the canonical worked example).
+- Writing a new candy that adds runtime configuration on top of an
+  install-side candy (this is the canonical worked example).

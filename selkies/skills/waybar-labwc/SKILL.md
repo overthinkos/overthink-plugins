@@ -1,6 +1,6 @@
-# Layer: waybar-labwc
+# Candy: waybar-labwc
 
-Waybar status bar adapted for labwc compositor (not sway). Uses the same unified config as the `waybar` layer — sway-specific modules (workspaces, mode) auto-hide on labwc since `SWAYSOCK` is not set.
+Waybar status bar adapted for labwc compositor (not sway). Uses the same unified config as the `waybar` candy — sway-specific modules (workspaces, mode) auto-hide on labwc since `SWAYSOCK` is not set.
 
 ## Architecture
 
@@ -16,7 +16,7 @@ Waybar connects to `wayland-0` (labwc's socket), NOT `wayland-1` (pixelflux). Th
 
 - `waybar` (RPM)
 
-Fonts (JetBrains Mono, Symbols Nerd Font) provided by the `desktop-fonts` layer in metalayers.
+Fonts (JetBrains Mono, Symbols Nerd Font) provided by the `desktop-fonts` candy in metalayers.
 
 ## Service (supervisord)
 
@@ -26,7 +26,7 @@ Fonts (JetBrains Mono, Symbols Nerd Font) provided by the `desktop-fonts` layer 
 
 ## Configuration
 
-Unified config shared with the `waybar` layer (Catppuccin Mocha, bottom bar):
+Unified config shared with the `waybar` candy (Catppuccin Mocha, bottom bar):
 
 ### Modules
 
@@ -46,14 +46,14 @@ Catppuccin Mocha theme — semi-transparent dark background, JetBrains Mono + Sy
 - `config.json` — Unified module layout (same as waybar layer)
 - `style.css` — Catppuccin Mocha styling (same as waybar layer)
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
 ## Note: Difference from `waybar` Layer
 
-Both layers use the same config. The only differences are:
+Both candies use the same config. The only differences are:
 - **Dependency:** `labwc` instead of `sway`
 - **Wrapper:** Explicitly pins `WAYLAND_DISPLAY=wayland-0` (labwc socket, not pixelflux's wayland-1)
 - **No sway-autotile:** Autotiling is sway-specific
@@ -61,11 +61,11 @@ Both layers use the same config. The only differences are:
 ## Related
 
 - `/charly-selkies:waybar` — the sway-native sibling with the same config
-- `/charly-selkies:labwc` — compositor this layer targets
-- `/charly-selkies:selkies-desktop-layer` — metalayer that composes this layer
+- `/charly-selkies:labwc` — compositor this candy targets
+- `/charly-selkies:selkies-desktop-layer` — metalayer that composes this candy
 - `/charly-selkies:swaync` + `/charly-selkies:chrome` — consumers of the status-bar modules
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

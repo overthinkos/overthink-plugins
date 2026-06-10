@@ -7,7 +7,7 @@ description: |
 
 # redis -- Redis in-memory data store
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ See `/charly-image:layer` for `env_provide` field docs.
 
 ## Packages
 
-The layer is multi-distro:
+The candy is multi-distro:
 
 - **RPM (Fedora):** `redis` (dnf request) → installed as
   **`valkey-compat-redis`** on Fedora 43. The old `redis` package was replaced;
@@ -55,15 +55,15 @@ my-image:
     - redis
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-immich:immich`
 - `/charly-immich:immich-ml`
 
 ## Tests
 
-The layer ships 5 declarative checks embedded in the `ai.opencharly.eval`
-OCI label (see `/charly-eval:eval` for the full schema — this layer is the
+The candy ships 5 declarative checks embedded in the `ai.opencharly.eval`
+OCI label (see `/charly-eval:eval` for the full schema — this candy is the
 **gold-standard pattern** referenced there):
 
 - **Build-scope** (run under `charly eval box`, via `podman run --rm`):
@@ -78,8 +78,8 @@ OCI label (see `/charly-eval:eval` for the full schema — this layer is the
   - `redis-responds` — `redis-cli -h 127.0.0.1 -p ${HOST_PORT:6379} ping` returns `PONG`
   - `redis-port-open` — TCP dial `127.0.0.1:${HOST_PORT:6379}` succeeds
 
-**Composed-vs-standalone skip behavior**: when redis is a sub-layer of
-a larger image (e.g. `immich-ml`) that doesn't expose port 6379 on the
+**Composed-vs-standalone skip behavior**: when redis is a sub-candy of
+a larger box (e.g. `immich-ml`) that doesn't expose port 6379 on the
 host, the deploy-scope tests correctly skip with
 `unresolved variables: HOST_PORT:6379`. No authoring action needed.
 
@@ -87,9 +87,9 @@ host, the deploy-scope tests correctly skip with
 
 - `/charly-immich:immich` -- primary consumer (depends on redis)
 - `/charly-infrastructure:postgresql` -- often paired with redis in service stacks
-- `/charly-eval:eval` -- declarative testing framework (this layer is the gold-standard pattern)
-- `/charly-image:layer` -- layer authoring + `env_provide` field docs
-- `/charly-infrastructure:valkey` -- Remi-repo Valkey 9 package (separate layer; different version than Fedora's default valkey-compat-redis)
+- `/charly-eval:eval` -- declarative testing framework (this candy is the gold-standard pattern)
+- `/charly-image:layer` -- candy authoring + `env_provide` field docs
+- `/charly-infrastructure:valkey` -- Remi-repo Valkey 9 package (separate candy; different version than Fedora's default valkey-compat-redis)
 
 ## When to Use This Skill
 

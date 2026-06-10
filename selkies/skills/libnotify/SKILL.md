@@ -7,7 +7,7 @@ description: |
 
 # libnotify -- Desktop notification client
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -28,25 +28,25 @@ my-image:
 
 ## Purpose
 
-Provides `notify-send` as a convenience CLI for sending desktop notifications from shell scripts and manual use. The `charly eval dbus notify` command uses native Go D-Bus instead and does NOT depend on this layer.
+Provides `notify-send` as a convenience CLI for sending desktop notifications from shell scripts and manual use. The `charly eval dbus notify` command uses native Go D-Bus instead and does NOT depend on this candy.
 
 ### When to use `notify-send` vs `charly eval dbus notify`
 
 | | `notify-send` | `charly eval dbus notify` |
 |---|--------------|-----------------|
-| Requires | `libnotify` layer | `charly` layer (or `gdbus` fallback) |
+| Requires | `libnotify` candy | `charly` candy (or `gdbus` fallback) |
 | Implementation | Shell command, libnotify C library | Native Go `godbus/dbus/v5` |
 | Use case | Shell scripts inside container | Host-side automation, `charly cmd`/`charly tmux cmd` notifications |
 
-## Related Layers
+## Related Candies
 
 - `/charly-infrastructure:dbus-layer` -- D-Bus session bus (required dependency)
 - `/charly-selkies:swaync` -- notification daemon to display the notifications
 - `/charly-tools:charly` -- alternative: native D-Bus via `charly eval dbus notify`
 
-## Used In Images
+## Used In Boxes
 
-Not used in any current image definition. Optional notification CLI -- prefer `charly eval dbus notify` which uses native Go D-Bus.
+Not used in any current box definition. Optional notification CLI -- prefer `charly eval dbus notify` which uses native Go D-Bus.
 
 ## When to Use This Skill
 
@@ -58,5 +58,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

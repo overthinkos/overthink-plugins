@@ -7,7 +7,7 @@ description: |
 
 # heroic -- Heroic Games Launcher
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -69,15 +69,15 @@ Heroic manages its own Wine/Proton independently from Steam:
 
 Both are persistent named volumes.
 
-## Related Layers
+## Related Candies
 
 - `/charly-selkies:steam` — Steam client (sibling game launcher)
 - `/charly-selkies:sway` — Wayland compositor (dependency)
 - `/charly-selkies:sway-desktop-vnc` — Desktop composition with VNC
 
-## Used In Images
+## Used In Boxes
 
-Not used in any current image definition. Standalone gaming layer requiring a Sway desktop image.
+Not used in any current box definition. Standalone gaming candy requiring a Sway desktop box.
 
 ## When to Use This Skill
 
@@ -91,5 +91,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

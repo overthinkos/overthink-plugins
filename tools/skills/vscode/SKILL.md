@@ -7,7 +7,7 @@ description: |
 
 # vscode -- Visual Studio Code editor
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -26,17 +26,17 @@ my-image:
     - vscode
 ```
 
-## Used In Images
+## Used In Boxes
 
 - (none currently enabled)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:dev-tools` — CLI dev tools companion
 - `/charly-coder:typst` — document tooling sibling
 
 ## Related Commands
 - `/charly-core:shell` — launch vscode inside the container
-- `/charly-build:build` — rebuild after layer changes
+- `/charly-build:build` — rebuild after candy changes
 
 ## When to Use This Skill
 
@@ -48,5 +48,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

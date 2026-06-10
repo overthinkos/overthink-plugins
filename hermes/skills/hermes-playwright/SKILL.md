@@ -1,28 +1,28 @@
 ---
 name: hermes-playwright
 description: |
-  Hermes AI agent image with Playwright Chromium browser for web automation.
-  Builds on top of the headless hermes image, adding Chromium and system deps.
-  MUST be invoked before building, deploying, configuring, or troubleshooting the hermes-playwright image.
+  Hermes AI agent box with Playwright Chromium browser for web automation.
+  Builds on top of the headless hermes box, adding Chromium and system deps.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the hermes-playwright box.
 ---
 
 # hermes-playwright
 
 Hermes AI agent with Playwright Chromium — web scraping, browser automation, and all headless agent capabilities.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | agent-forwarding, hermes, hermes-playwright, dbus, charly |
+| Candies | agent-forwarding, hermes, hermes-playwright, dbus, charly |
 | Platforms | linux/amd64 |
 | Security | shm_size: 1g |
 | Registry | ghcr.io/overthinkos |
 
-## Full Layer Stack
+## Full Candy Stack
 
-Builds on the base `hermes` layer (not the hermes image), adding Playwright Chromium:
+Builds on the base `hermes` candy (not the hermes box), adding Playwright Chromium:
 
 1. `fedora` base + `agent-forwarding` + `hermes` + `hermes-playwright` + `dbus` + `charly`
 2. `hermes-playwright` -- Playwright npm package + Chromium Headless Shell + system deps
@@ -58,20 +58,20 @@ const { chromium } = require('playwright');
 charly shell hermes-playwright -c "npx playwright --version"
 ```
 
-## Key Layers
+## Key Candies
 
 - `/charly-hermes:hermes` -- core agent (inherited)
 - `/charly-hermes:hermes-playwright` -- Playwright + Chromium + system deps
 
 ## Fedora Compatibility Note
 
-Playwright's `--with-deps` flag does not support Fedora (falls back to Ubuntu's `apt-get`). The `hermes-playwright` layer works around this by:
+Playwright's `--with-deps` flag does not support Fedora (falls back to Ubuntu's `apt-get`). The `hermes-playwright` candy works around this by:
 1. Installing Chromium's system library dependencies via rpm packages in `charly.yml`
 2. Installing only the browser binary via `npx playwright install chromium` in `task:`
 
 The `PLAYWRIGHT_BROWSERS_PATH=/tmp/.cache/ms-playwright` env var is set automatically.
 
-## Related Images
+## Related Boxes
 
 - `/charly-hermes:hermes` -- full-featured standalone hermes (no browser, uses cross-container CDP)
 
@@ -99,7 +99,7 @@ const { chromium } = require('playwright');
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the hermes-playwright image, Hermes Agent with browser automation, or deploying hermes with Playwright. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the hermes-playwright box, Hermes Agent with browser automation, or deploying hermes with Playwright. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 

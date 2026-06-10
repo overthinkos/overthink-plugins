@@ -7,7 +7,7 @@ description: |
 
 # pavucontrol -- PulseAudio Volume Control
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -36,13 +36,13 @@ The waybar `pulseaudio` module has `"on-click": "pavucontrol"` — clicking the 
 - `/charly-selkies:sway-desktop` -- via metalayer composition
 - `/charly-selkies:selkies-desktop-layer` -- via metalayer composition
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
 - `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
-## Related Layers
+## Related Candies
 
 - `/charly-selkies:pipewire` -- audio server (provides PulseAudio compatibility)
 - `/charly-selkies:waybar` -- volume indicator with pavucontrol on-click
@@ -58,5 +58,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

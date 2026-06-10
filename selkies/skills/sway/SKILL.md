@@ -7,7 +7,7 @@ description: |
 
 # sway -- Headless Wayland compositor
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -62,9 +62,9 @@ my-desktop:
 
 ## XWayland
 
-XWayland is **enabled by default** (`xwayland enable` in the base config). The `xorg-x11-server-Xwayland` package is included in the sway layer. XWayland starts lazily — the Xwayland process only launches when the first X11 client connects (e.g., Steam, Heroic, Qt apps with xcb platform).
+XWayland is **enabled by default** (`xwayland enable` in the base config). The `xorg-x11-server-Xwayland` package is included in the sway candy. XWayland starts lazily — the Xwayland process only launches when the first X11 client connects (e.g., Steam, Heroic, Qt apps with xcb platform).
 
-X11 tools for interacting with XWayland windows (`xdotool`, `xprop`, `xwininfo`, `import`) are provided by the `/charly-selkies:wl-tools` layer.
+X11 tools for interacting with XWayland windows (`xdotool`, `xprop`, `xwininfo`, `import`) are provided by the `/charly-selkies:wl-tools` candy.
 
 ## Stale IPC Socket Cleanup
 
@@ -78,15 +78,15 @@ Supervisord restarts leave old `/tmp/sway-ipc.1000.<old-pid>.sock` files. If mul
 
 By default, `sway-wrapper` auto-detects GPU hardware and uses `gles2` on NVIDIA. However, if `WLR_RENDERER` is pre-set (e.g., by a composing layer), the wrapper skips GPU auto-detection entirely and uses the specified renderer.
 
-- **VNC images** (`sway-desktop-vnc`) override to `pixman` (software rendering) — ensures reliable VNC screenshot capture on NVIDIA headless
-- **Non-VNC images** (Sunshine, standalone sway) use `gles2` via auto-detection — Chrome gets full GPU acceleration
+- **VNC boxes** (`sway-desktop-vnc`) override to `pixman` (software rendering) — ensures reliable VNC screenshot capture on NVIDIA headless
+- **Non-VNC boxes** (Sunshine, standalone sway) use `gles2` via auto-detection — Chrome gets full GPU acceleration
 - `grim` (`charly eval wl screenshot`) works with both renderers
 
-## Used In Images
+## Used In Boxes
 
-Transitive dependency via `chrome-sway` and `sway-desktop` in all desktop images.
+Transitive dependency via `chrome-sway` and `sway-desktop` in all desktop boxes.
 
-## Related Layers
+## Related Candies
 
 - `/charly-infrastructure:dbus-layer` -- D-Bus session bus dependency
 - `/charly-selkies:chrome-sway` -- Chrome on Sway (depends on sway)
@@ -110,5 +110,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

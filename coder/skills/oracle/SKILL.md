@@ -2,12 +2,12 @@
 name: oracle
 description: |
   Oracle CLI for prompt bundling and multi-engine AI queries.
-  Use when working with the oracle layer.
+  Use when working with the oracle candy.
 ---
 
 # oracle -- Prompt bundling CLI
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -22,11 +22,11 @@ candy:
   - oracle
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:nodejs` -- runtime dependency
 - `/charly-openclaw:openclaw-full` -- parent metalayer that bundles oracle
 
@@ -39,9 +39,9 @@ candy:
 Use when the user asks about:
 - Prompt bundling for AI queries
 - Multi-engine AI query tools
-- The `oracle` layer
+- The `oracle` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -7,7 +7,7 @@ description: |
 
 # ollama -- Local LLM inference server
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -49,17 +49,17 @@ charly alias install ollama    # install host 'ollama' command
 ollama run llama3          # uses the alias
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-ollama:ollama`
 
 ## Cross-Container Integration
 
-The `env_provide` mechanism makes `OLLAMA_HOST` available to all containers. The `hermes` layer auto-detects this variable and configures itself to use local Ollama as its LLM provider (highest priority in the auto-detection chain: `OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`). See `/charly-hermes:hermes` for details on the auto-provider-configuration.
+The `env_provide` mechanism makes `OLLAMA_HOST` available to all containers. The `hermes` candy auto-detects this variable and configures itself to use local Ollama as its LLM provider (highest priority in the auto-detection chain: `OLLAMA_HOST` > `OLLAMA_API_KEY` > `OPENROUTER_API_KEY`). See `/charly-hermes:hermes` for details on the auto-provider-configuration.
 
 ## Tests
 
-The layer ships 3 declarative checks embedded in the `ai.opencharly.eval`
+The candy ships 3 declarative checks embedded in the `ai.opencharly.eval`
 OCI label (see `/charly-eval:eval` for the full schema):
 
 - **Build-scope** (run under `charly eval box`):
@@ -70,7 +70,7 @@ OCI label (see `/charly-eval:eval` for the full schema):
   - `ollama-tags-api` — `GET http://${CONTAINER_IP}:${HOST_PORT:11434}/api/tags` returns 200
   - `ollama-version` — `ollama --version` stdout matches `^ollama version`
 
-## Related Layers
+## Related Candies
 
 - `/charly-distros:cuda` -- CUDA toolkit dependency
 - `/charly-infrastructure:supervisord` -- process manager dependency

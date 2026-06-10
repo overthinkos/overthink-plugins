@@ -7,7 +7,7 @@ description: |
 
 # qemu-guest-agent -- QEMU guest agent
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -17,19 +17,19 @@ description: |
 
 - `qemu-guest-agent` -- QEMU guest agent daemon. The package name is identical on
   Arch/CachyOS (`pac`) and Fedora (`rpm`), so the top-level `package:` covers both
-  — this is a cross-distro layer, not RPM-only.
+  — this is a cross-distro candy, not RPM-only.
 
 ## Full functionality (all RPCs + fsfreeze)
 
-The layer exposes the **complete** guest-agent surface — `guest-exec`,
+The candy exposes the **complete** guest-agent surface — `guest-exec`,
 `guest-file-*`, `guest-fsfreeze-*`, `guest-set-*`. The package default blocks no
-RPCs; the layer's `/etc/qemu/qemu-ga.conf` makes that explicit and turns on the
+RPCs; the candy's `/etc/qemu/qemu-ga.conf` makes that explicit and turns on the
 **fsfreeze hook** (the one capability not active by default), so the host can take
 application-consistent snapshots. The hook is a standard dispatcher
 (`/etc/qemu/fsfreeze-hook`) that runs every executable in
 `/etc/qemu/fsfreeze-hook.d/` with `freeze`/`thaw`; drop per-app scripts there.
 
-The layer also enables the `qemu-guest-agent.service` (system scope) and
+The candy also enables the `qemu-guest-agent.service` (system scope) and
 contributes the virtio-serial channel (below). On a `kind: vm` entity the channel
 is usually declared structurally instead — `channels: [{type: unix, name:
 org.qemu.guest_agent.0}]` (see `/charly-internals:libvirt-renderer`).
@@ -46,13 +46,13 @@ my-vm-image:
 #   charly deploy add vm:<name> qemu-guest-agent
 ```
 
-## Used In Images
+## Used In Boxes
 
 Composed into bootc images directly, or applied to a VM guest at deploy time (`charly deploy add vm:<name> qemu-guest-agent`).
 
 ## virtio-serial channel (libvirt XML contribution)
 
-The layer contributes a raw libvirt XML snippet that the libvirt renderer places in the VM's `<devices>` section:
+The candy contributes a raw libvirt XML snippet that the libvirt renderer places in the VM's `<devices>` section:
 
 ```xml
 <channel type='unix'>
@@ -85,8 +85,8 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations, `libvirt.snippets:`)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations, `libvirt.snippets:`)
 - `/charly-vm:vm` — VM lifecycle; bootc VM caveats; QEMU-user-net limitation
-- `/charly-vm:vms-catalog` — `kind: vm` entity schema that consumes this layer's contribution
-- `/charly-internals:libvirt-renderer` — renderer that injects this layer's snippet into `<devices>`
+- `/charly-vm:vms-catalog` — `kind: vm` entity schema that consumes this candy's contribution
+- `/charly-internals:libvirt-renderer` — renderer that injects this candy's snippet into `<devices>`
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

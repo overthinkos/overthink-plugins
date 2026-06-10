@@ -2,12 +2,12 @@
 name: xurl
 description: |
   X (Twitter) API CLI for posts, search, DMs, and media.
-  Use when working with the xurl layer.
+  Use when working with the xurl candy.
 ---
 
 # xurl -- X/Twitter API CLI
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -22,11 +22,11 @@ candy:
   - xurl
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:nodejs` — runtime dependency
 - `/charly-openclaw:openclaw-full` — metalayer that bundles xurl
 - `/charly-hermes:hermes` — companion social/messaging agent
@@ -40,9 +40,9 @@ candy:
 Use when the user asks about:
 - X/Twitter API access in containers
 - Posting, searching, or managing Twitter/X content
-- The `xurl` layer
+- The `xurl` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -2,12 +2,12 @@
 name: songsee
 description: |
   Audio spectrogram and visualization CLI.
-  Use when working with the songsee layer.
+  Use when working with the songsee candy.
 ---
 
 # songsee -- Audio spectrogram CLI
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -29,11 +29,11 @@ candy:
   - songsee
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:golang` -- build/runtime dependency
 - `/charly-openclaw:openclaw-full` -- parent metalayer that bundles songsee
 
@@ -46,9 +46,9 @@ candy:
 Use when the user asks about:
 - Audio spectrogram generation
 - Audio visualization tools
-- The `songsee` layer
+- The `songsee` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

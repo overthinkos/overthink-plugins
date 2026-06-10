@@ -7,7 +7,7 @@ description: |
 
 # comfyui -- GPU-accelerated image generation service
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -19,7 +19,7 @@ description: |
 
 ## Packages
 
-The layer is multi-distro:
+The candy is multi-distro:
 
 - `aria2` (RPM / PAC) -- download manager for model files
 - `git-lfs` (RPM / PAC) -- large file support for model repos
@@ -42,11 +42,11 @@ comfyui:
     - comfyui
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-comfyui:comfyui`
 
-## Related Layers
+## Related Candies
 
 - `/charly-distros:cuda` -- CUDA toolkit dependency
 - `/charly-infrastructure:supervisord` -- process manager dependency
@@ -63,5 +63,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

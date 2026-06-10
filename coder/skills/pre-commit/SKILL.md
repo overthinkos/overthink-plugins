@@ -7,7 +7,7 @@ description: |
 
 # pre-commit -- Git hooks framework
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -28,11 +28,11 @@ my-dev:
     - pre-commit
 ```
 
-## Used In Images
+## Used In Boxes
 
-- No enabled images use this layer directly (dev tool layer)
+- No enabled boxes use this candy directly (dev tool layer)
 
-## Related Layers
+## Related Candies
 
 - `/charly-coder:nodejs` -- required dependency (provides npm for markdownlint-cli)
 - `/charly-languages:pixi` -- transitive (provides pixi for pre-commit installation)
@@ -44,9 +44,9 @@ Use when the user asks about:
 - Pre-commit hooks in containers
 - Git hook frameworks
 - Markdown linting
-- The `pre-commit` layer
+- The `pre-commit` candy
 
 ## Author + Test References
 
-- `/charly-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
+- `/charly-image:layer` — candy authoring reference (tasks, vars, env_provide, tests block syntax)
 - `/charly-eval:eval` — declarative testing framework for the `eval:` block

@@ -7,7 +7,7 @@ description: |
 
 # vectorchord -- VectorChord vector similarity extension for PostgreSQL
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ description: |
 
 - `unzip` (RPM / PAC) -- for extracting VectorChord release archives
 
-The layer is multi-distro (Fedora + Arch/CachyOS). On Arch, pgvector comes from
+The candy is multi-distro (Fedora + Arch/CachyOS). On Arch, pgvector comes from
 the AUR (see `/charly-infrastructure:postgresql`).
 
 ## Build Process (tasks:)
@@ -50,13 +50,13 @@ Supports both `x86_64` and `aarch64` architectures. PostgreSQL version is detect
 VectorChord provides the `vchordrq` index type for PostgreSQL, replacing pgvector's `ivfflat` with an optimized approximate nearest-neighbor search algorithm. Key differences:
 
 - **No result cap** -- pgvector's ivfflat has an inherent limit (~40 results); vchordrq does not
-- **`shared_preload_libraries`** -- VectorChord's `.so` must be loaded at PostgreSQL startup via the `POSTGRES_SHARED_PRELOAD_LIBRARIES` env var (consumed by the postgresql layer's entrypoint)
-- **Extension creation** -- `CREATE EXTENSION vchord CASCADE;` (handled by the immich layer's migration script)
+- **`shared_preload_libraries`** -- VectorChord's `.so` must be loaded at PostgreSQL startup via the `POSTGRES_SHARED_PRELOAD_LIBRARIES` env var (consumed by the postgresql candy's entrypoint)
+- **Extension creation** -- `CREATE EXTENSION vchord CASCADE;` (handled by the immich candy's migration script)
 
 ## Version Requirements (Immich v2.7.2)
 
-- pgvector >= 0.7, < 0.9 (provided by postgresql layer)
-- VectorChord >= 0.3, < 2.0 (provided by this layer)
+- pgvector >= 0.7, < 0.9 (provided by postgresql candy)
+- VectorChord >= 0.3, < 2.0 (provided by this candy)
 - PostgreSQL >= 14, < 19 (Fedora 43 ships PG 18)
 
 ## Usage
@@ -70,12 +70,12 @@ my-image:
     - immich
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-immich:immich`
 - `/charly-immich:immich-ml`
 
-## Related Layers
+## Related Candies
 
 - `/charly-infrastructure:postgresql` -- required dependency (provides PostgreSQL server and pgvector)
 - `/charly-immich:immich` -- primary consumer (migration script creates the extension)
@@ -92,5 +92,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -2,12 +2,12 @@
 name: ffmpeg
 description: |
   FFmpeg multimedia framework (negativo17 nonfree build with H.264/AAC support).
-  Use when working with the ffmpeg layer.
+  Use when working with the ffmpeg candy.
 ---
 
 # ffmpeg -- FFmpeg multimedia
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -29,26 +29,26 @@ candy:
   - ffmpeg
 ```
 
-All layers that need ffmpeg should declare it as a dependency rather than independently adding the negativo17 repo. This ensures a single authoritative install point.
+All candies that need ffmpeg should declare it as a dependency rather than independently adding the negativo17 repo. This ensures a single authoritative install point.
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
-- `hermes` (via `hermes` layer `requires: ffmpeg`)
-- `hermes-playwright` (via `hermes` layer `requires: ffmpeg`)
-- `immich` (via `immich` layer `requires: ffmpeg`)
-- `immich-ml` (via `immich` layer `requires: ffmpeg`)
-- CUDA-based images (via `cuda` layer `requires: ffmpeg`)
-- Whisper-based images (via `whisper` layer `requires: ffmpeg`)
+- `hermes` (via `hermes` candy `requires: ffmpeg`)
+- `hermes-playwright` (via `hermes` candy `requires: ffmpeg`)
+- `immich` (via `immich` candy `requires: ffmpeg`)
+- `immich-ml` (via `immich` candy `requires: ffmpeg`)
+- CUDA-based boxes (via `cuda` candy `requires: ffmpeg`)
+- Whisper-based boxes (via `whisper` candy `requires: ffmpeg`)
 
-## Related Layers
+## Related Candies
 - `/charly-distros:cuda` — Depends on ffmpeg for GPU video processing
 - `/charly-tools:whisper` — Depends on ffmpeg for audio transcoding
 - `/charly-hermes:hermes` — Depends on ffmpeg for media tooling
 - `/charly-immich:immich` — Depends on ffmpeg for photo/video transcoding
 
 ## Related Commands
-- `/charly-build:build` — Builds the ffmpeg negativo17 RPM into the image
+- `/charly-build:build` — Builds the ffmpeg negativo17 RPM into the box
 - `/charly-core:shell` — Interactive shell to run `ffmpeg` for media processing
 
 ## When to Use This Skill
@@ -56,9 +56,9 @@ All layers that need ffmpeg should declare it as a dependency rather than indepe
 Use when the user asks about:
 - FFmpeg in containers
 - Multimedia processing tools
-- The `ffmpeg` layer
+- The `ffmpeg` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

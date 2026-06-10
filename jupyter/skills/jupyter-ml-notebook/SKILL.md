@@ -1,14 +1,14 @@
 ---
 name: jupyter-ml-notebook
 description: |
-  Full CUDA ML JupyterLab image with finetuning, Ollama, and LLM course notebooks, CRDT MCP server, and real-time collaboration.
+  Full CUDA ML JupyterLab box with finetuning, Ollama, and LLM course notebooks, CRDT MCP server, and real-time collaboration.
   Base: nvidia. Port 8888. Combines jupyter-ml with 37 Unsloth fine-tuning notebooks, 6 Ollama integration notebooks, and 15 LLM course notebooks.
-  MUST be invoked before building, deploying, or troubleshooting the jupyter-ml-notebook image.
+  MUST be invoked before building, deploying, or troubleshooting the jupyter-ml-notebook box.
 ---
 
 # jupyter-ml-notebook -- GPU ML Jupyter with Fine-tuning Notebooks
 
-## Image Definition
+## Box Definition
 
 ```yaml
 jupyter-ml-notebook:
@@ -31,19 +31,19 @@ jupyter-ml-notebook:
 
 ## What's Different from jupyter-ml
 
-This image is identical to `jupyter-ml` with two data layer additions:
+This box is identical to `jupyter-ml` with two data candy additions:
 - `notebook-finetuning` — seeds 37 Unsloth fine-tuning notebooks into `/workspace/finetuning/`
 - `notebook-ollama` — seeds 6 Ollama integration notebooks into `/workspace/ollama/`
 
 The Ollama notebooks require a running `ollama` deployment. When deployed via `charly config ollama --update-all`, the `OLLAMA_HOST` env var is automatically injected via `env_provide` -- no manual configuration needed.
 
-## Layer Composition
+## Candy Composition
 
-- `jupyter-ml` — Tier 2 environment-owning meta-layer (PyTorch >= 2.10.0, vLLM 0.19, unsloth, LangChain, CRDT MCP via jupyter-mcp sub-layer)
-- `notebook-templates` — Starter notebooks (data layer, seeds /workspace)
-- `notebook-finetuning` — 37 Unsloth fine-tuning notebooks (data layer, seeds /workspace/finetuning/)
-- `notebook-ollama` — 6 Ollama integration notebooks (data layer, seeds /workspace/ollama/)
-- `notebook-llm-on-supercomputers` — 15 LLM course notebooks (data layer, seeds /workspace/llms_on_supercomputers/)
+- `jupyter-ml` — Tier 2 environment-owning meta-layer (PyTorch >= 2.10.0, vLLM 0.19, unsloth, LangChain, CRDT MCP via jupyter-mcp sub-candy)
+- `notebook-templates` — Starter notebooks (data candy, seeds /workspace)
+- `notebook-finetuning` — 37 Unsloth fine-tuning notebooks (data candy, seeds /workspace/finetuning/)
+- `notebook-ollama` — 6 Ollama integration notebooks (data candy, seeds /workspace/ollama/)
+- `notebook-llm-on-supercomputers` — 15 LLM course notebooks (data candy, seeds /workspace/llms_on_supercomputers/)
 - `agent-forwarding` — SSH/GPG agent forwarding
 - `dbus` — D-Bus session bus
 - `charly` — OpenCharly CLI
@@ -59,11 +59,11 @@ The Ollama notebooks require a running `ollama` deployment. When deployed via `c
 | Name | Path | Purpose |
 |------|------|---------|
 | workspace | /workspace | Persistent notebook storage |
-| models | ~/.cache/huggingface | HuggingFace model cache (from unsloth sub-layer) |
+| models | ~/.cache/huggingface | HuggingFace model cache (from unsloth sub-candy) |
 
-## Data Layers
+## Data Candies
 
-| Layer | Target | Dest | Contents |
+| Candy | Target | Dest | Contents |
 |-------|--------|------|----------|
 | notebook-templates | workspace | *(root)* | getting-started.ipynb |
 | notebook-finetuning | workspace | finetuning/ | 37 Unsloth notebooks (SFT, GRPO, DPO, RLOO, QLoRA) |
@@ -108,7 +108,7 @@ The Ollama notebooks require a running `ollama` deployment. When deployed via `c
 
 ## Service Environment Integration
 
-This image is a **consumer** of env_provide variables from infrastructure layers:
+This box is a **consumer** of env_provide variables from infrastructure candies:
 
 | Variable | Injected by | Value |
 |----------|------------|-------|
@@ -150,7 +150,7 @@ charly shell jupyter-ml-notebook -c "ls /workspace/ollama/"
 charly shell jupyter-ml-notebook -c "ls /workspace/llms_on_supercomputers/"
 ```
 
-## Related Images
+## Related Boxes
 
 - `/charly-jupyter:jupyter-ml` — Same stack without finetuning notebooks
 - `/charly-jupyter:jupyter` — Lightweight variant (no CUDA, multi-arch)
@@ -160,7 +160,7 @@ charly shell jupyter-ml-notebook -c "ls /workspace/llms_on_supercomputers/"
 
 ## When to Use This Skill
 
-MUST be invoked before building, deploying, configuring, or troubleshooting the jupyter-ml-notebook image.
+MUST be invoked before building, deploying, configuring, or troubleshooting the jupyter-ml-notebook box.
 
 ## Related
 

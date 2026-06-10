@@ -82,9 +82,9 @@ Idempotent: skips if rules are already up to date.
 ## Cross-References
 
 - `/charly-core:charly-doctor` — hardware detection and dependency checks (includes GPU)
-- `/charly-distros:nvidia` — NVIDIA GPU runtime layer
-- `/charly-distros:rocm` — AMD ROCm GPU compute layer
-- `/charly-distros:cuda` — CUDA toolkit layer
+- `/charly-distros:nvidia` — NVIDIA GPU runtime candy
+- `/charly-distros:rocm` — AMD ROCm GPU compute candy
+- `/charly-distros:cuda` — CUDA toolkit candy
 
 ## Source
 

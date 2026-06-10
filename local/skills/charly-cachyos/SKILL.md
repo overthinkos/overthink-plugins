@@ -2,7 +2,7 @@
 name: charly-cachyos
 description: |
   Operator CachyOS workstation profile — a kind:local template + target:local
-  deploy that installs the full dev stack (30 layers) onto a CachyOS host via
+  deploy that installs the full dev stack (30 candies) onto a CachyOS host via
   ShellExecutor. Lives in the overthinkos/cachyos submodule.
   MUST be invoked before editing or applying the charly-cachyos workstation profile.
 ---
@@ -31,7 +31,7 @@ charly --repo overthinkos/cachyos update charly-cachyos
 
 ## What it installs
 
-30 layers. Most are pulled from the main repo by **git reference**
+30 candies. Most are pulled from the main repo by **git reference**
 (`@github.com/overthinkos/overthink/candy/<name>:<tag>`); the cachyos-exclusive
 `ghostty`, `keepassxc-keyring`, and `wheel-nopasswd` are vendored locally in this
 repo's `candy/` (resolved via its `discover:` block):
@@ -46,14 +46,14 @@ repo's `candy/` (resolved via its `discover:` block):
 
 | Field | Value |
 |---|---|
-| `install_opts.builder_image` | `ghcr.io/overthinkos/arch-builder:2026.122.2252` (OCI ref, not a layer) |
+| `install_opts.builder_image` | `ghcr.io/overthinkos/arch-builder:2026.122.2252` (OCI ref, not a candy) |
 | `install_opts` | with_service, allow_repo_changes, allow_root_tasks all true |
 | `env` | `EDITOR=nvim`, `PAGER=less` |
 | `disposable` (deploy) | `true` — `charly update charly-cachyos` is authorized |
 
 ## Deploy-scope eval probes
 
-- `passwordless-sudo-host` — `sudo -n true` (wheel-nopasswd layer must have run)
+- `passwordless-sudo-host` — `sudo -n true` (wheel-nopasswd candy must have run)
 - `nvidia-ctk-present` — `command -v nvidia-ctk`
 - `nvidia-cdi-spec` — `/etc/cdi/nvidia.yaml` exists
 
@@ -63,11 +63,11 @@ card-less or VFIO-passthrough host, so the profile applies cleanly anywhere.
 
 ## Composition-by-reference note
 
-`local.charly-cachyos`'s remote layer refs are collected and materialized by the
-same `CollectRemoteRefs` walk as image layer refs: the walk collects the layer
+`local.charly-cachyos`'s remote candy refs are collected and materialized by the
+same `CollectRemoteRefs` walk as box candy refs: the walk collects the candy
 refs of the ROOT project's own `kind: local` templates (charly-cachyos is the root
 here), so `charly box validate` / `charly update charly-cachyos` resolve the github-ref'd
-layers. (Collection is reachability-scoped — a namespace's `kind:local`
+candies. (Collection is reachability-scoped — a namespace's `kind:local`
 templates, imported only as a dependency, are NOT collected by an importer; only
 the root's own locals are. See `/charly-internals:go` "Remote-layer resolver".)
 
@@ -81,5 +81,5 @@ the root's own locals are. See `/charly-internals:go` "Remote-layer resolver".)
 ## When to Use This Skill
 
 **MUST be invoked** when editing or applying the charly-cachyos workstation profile,
-or reasoning about the kind:local remote-layer-ref machinery. Invoke BEFORE
+or reasoning about the kind:local remote-candy-ref machinery. Invoke BEFORE
 reading source code or launching Explore agents.

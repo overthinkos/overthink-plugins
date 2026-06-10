@@ -7,7 +7,7 @@ description: |
 
 # rpmfusion -- RPM Fusion repository configuration
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -23,9 +23,9 @@ fedora-nonfree:
     - rpmfusion
 ```
 
-## Used In Images
+## Used In Boxes
 
-- `/charly-distros:fedora-nonfree` (base for immich and other images needing nonfree packages)
+- `/charly-distros:fedora-nonfree` (base for immich and other boxes needing nonfree packages)
 - `/charly-distros:fedora-builder` — applied **before** `build-toolchain` so cargo crates that
   need RPM Fusion free system libs (`libva-devel`, `x264-devel`, `ffmpeg-devel`) can install
   via dnf in the builder stage. Required for building pixelflux from source — see
@@ -37,7 +37,7 @@ fedora-nonfree:
 
 ## Related Commands
 - `/charly-build:build` -- build the fedora-nonfree base image
-- `/charly-image:image` -- inspect base/image inheritance
+- `/charly-image:image` -- inspect base/box inheritance
 
 ## When to Use This Skill
 
@@ -50,5 +50,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

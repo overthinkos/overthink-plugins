@@ -82,7 +82,7 @@ All `--format` values are the JSON field names from the `inspect` output. When p
 - `/charly-build:generate` -- Containerfile generation for the inspected image
 - `/charly-build:list` -- Enumerate images before inspecting one
 - `/charly-build:merge` -- Post-build layer consolidation
-- `/charly-build:new` -- Scaffold new layers
+- `/charly-build:new` -- Scaffold new candies
 - `/charly-build:pull` -- Fetch prebuilt images into local storage
 - `/charly-build:validate` -- Validate image and layer definitions before inspect
 

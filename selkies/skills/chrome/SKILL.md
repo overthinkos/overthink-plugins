@@ -7,12 +7,12 @@ description: |
 
 # chrome -- Google Chrome with DevTools
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
 | Dependencies | `supervisord` |
-| Composed layers | `chrome-devtools-mcp` |
+| Composed candies | `chrome-devtools-mcp` |
 | Ports | 9222 (CDP, via cdp-proxy), 9224 (Chrome DevTools MCP, via chrome-devtools-mcp) |
 | CDP Proxy | `cdp-proxy` on 0.0.0.0:9222 → Chrome on 127.0.0.1:9223 |
 | Volumes | `chrome-data` -> `~/.chrome-debug` |
@@ -42,7 +42,7 @@ Pod-aware: same-container consumers receive `http://localhost:9222`, cross-conta
 |------|-------------|-----------|
 | `chrome-devtools` | `http://{{.ContainerName}}:9224/mcp` | http |
 
-Provided by the auto-included `chrome-devtools-mcp` sub-layer (29 Chrome DevTools tools via mcp-proxy). Consumed by hermes (`mcp_accept: chrome-devtools`) for MCP-based browser inspection and automation. See `/charly-selkies:chrome-devtools-mcp` for tool list and architecture.
+Provided by the auto-included `chrome-devtools-mcp` sub-candy (29 Chrome DevTools tools via mcp-proxy). Consumed by hermes (`mcp_accept: chrome-devtools`) for MCP-based browser inspection and automation. See `/charly-selkies:chrome-devtools-mcp` for tool list and architecture.
 
 When deploying with `-i <instance>`, the MCP server name is automatically disambiguated to `chrome-devtools-<instance>` (e.g., `chrome-devtools-31.58.9.4`). See `/charly-core:charly-config` for MCP name disambiguation details.
 
@@ -90,11 +90,11 @@ my-browser:
     - chrome
 ```
 
-Usually used via the `chrome-sway` or `sway-desktop` composition layers rather than directly.
+Usually used via the `chrome-sway` or `sway-desktop` composition candies rather than directly.
 
 ## Google Sign-In
 
-Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see `/charly-eval:cdp` for the full recipe). All clicks use `charly eval cdp click --vnc` (CDP selector targeting + VNC pointer delivery), and all text input uses `charly eval vnc type` (real OS-level keysym events). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts. Use `charly remove <image> --purge` to clear for a fresh start — just rebuilding the image does not reset volumes.
+Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see `/charly-eval:cdp` for the full recipe). All clicks use `charly eval cdp click --vnc` (CDP selector targeting + VNC pointer delivery), and all text input uses `charly eval vnc type` (real OS-level keysym events). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts. Use `charly remove <image> --purge` to clear for a fresh start — just rebuilding the box does not reset volumes.
 
 **App Passwords (required for automation):** Google accounts with 2FA (now mandatory for most accounts) require a 16-character [App Password](https://myaccount.google.com/apppasswords). App Passwords bypass all verification challenges and 2FA prompts. Set `GMAIL_PASSWORD` to the App Password in `.env`.
 
@@ -128,7 +128,7 @@ Chrome 146+ rejects HTTP requests to the DevTools API when the `Host` header con
 
 **Content-Length correction:** After URL rewriting, response body sizes change. The proxy recalculates and corrects the `Content-Length` header to match the rewritten body.
 
-The chrome layer depends on `supervisord` (not `socat`) to run cdp-proxy as a managed service.
+The chrome candy depends on `supervisord` (not `socat`) to run cdp-proxy as a managed service.
 
 ### ShaderCache / GpuCache Cleanup
 
@@ -183,7 +183,7 @@ ordinary exits.
 
 ## Resource Caps
 
-The chrome layer ships cgroup caps in its `security:` block:
+The chrome candy ships cgroup caps in its `security:` block:
 
 | Directive | Value | Purpose |
 |-----------|-------|---------|
@@ -192,16 +192,16 @@ The chrome layer ships cgroup caps in its `security:` block:
 | `memory_swap_max` | `2g` | Caps swap usage so a runaway tab can't drag the host into swap thrash. |
 | `shm_size` | `1g` | Existing `/dev/shm` sizing — unchanged. |
 
-Override per image or per instance via `charly config` flags (see `/charly-core:charly-config`
+Override per box or per instance via `charly config` flags (see `/charly-core:charly-config`
 "Resource Caps"). Merging follows the smallest-wins rule.
 
 ## Chrome supervision (selkies-core)
 
 On the selkies streaming desktop, Chrome is launched + supervised by a
-`[program:chrome]` supervisord service declared in the **`selkies-core`** layer
+`[program:chrome]` supervisord service declared in the **`selkies-core`** candy
 (`/charly-selkies:selkies-core`) — shared by both selkies flavors (labwc via
 `selkies-desktop`, KDE Plasma via `selkies-kde-desktop`). `sway-browser-vnc`
-launches Chrome via the separate `chrome-sway` layer and is not supervised this way.
+launches Chrome via the separate `chrome-sway` candy and is not supervised this way.
 The selkies-core service:
 
 - `restart: always` (autorestart) — relaunches Chrome on any exit, including the
@@ -230,7 +230,7 @@ This reduces the chance of Google flagging the sign-in as suspicious (Linux + au
 
 ## NVIDIA Headless Notes
 
-Most images use `gles2` on NVIDIA headless — Chrome gets full GPU acceleration. VNC images (`sway-desktop-vnc`) use `pixman` instead — Chrome falls back to software rendering (chrome-wrapper auto-detects `WLR_RENDERER=pixman` and strips NVIDIA EGL vars). No special handling needed — the chrome-wrapper adapts automatically to both renderers.
+Most boxes use `gles2` on NVIDIA headless — Chrome gets full GPU acceleration. VNC boxes (`sway-desktop-vnc`) use `pixman` instead — Chrome falls back to software rendering (chrome-wrapper auto-detects `WLR_RENDERER=pixman` and strips NVIDIA EGL vars). No special handling needed — the chrome-wrapper adapts automatically to both renderers.
 
 ## Chrome 147+ CDP Changes
 
@@ -251,11 +251,11 @@ curl -s "http://localhost:9222/json/list"
 
 `charly eval cdp` commands now show diagnostics on connection failure: checks Chrome process, cdp-proxy status, and port binding. Hints use `charly eval wl sway exec <image> chrome-wrapper` (not `charly shell` with bare `swaymsg`) for manual Chrome restart.
 
-## Used In Images
+## Used In Boxes
 
 - Part of `chrome-sway` / `sway-desktop` composition (used in `sway-browser-vnc`)
 
-## Related Layers
+## Related Candies
 
 - `/charly-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-included via `candy:`)
 - `/charly-infrastructure:supervisord` — required dependency for cdp-proxy service
@@ -269,7 +269,7 @@ curl -s "http://localhost:9222/json/list"
 - `/charly-eval:vnc` — VNC automation (used with `--vnc` flag on `charly eval cdp click`)
 - `/charly-eval:wl` — Wayland automation (used with `--wl` flag on `charly eval cdp click`)
 - `/charly-core:charly-config` — Proxy deployment, `normalizeNoProxy()` auto-conversion, `sep:"none"` env handling
-- `/charly-build:charly-mcp-cmd` — the auto-included `chrome-devtools-mcp` sub-layer exposes 29 tools via Streamable HTTP on port 9224; probe with `charly eval mcp list-tools <image>` or run the declarative 2-check suite via `charly eval live <image> --filter mcp`
+- `/charly-build:charly-mcp-cmd` — the auto-included `chrome-devtools-mcp` sub-candy exposes 29 tools via Streamable HTTP on port 9224; probe with `charly eval mcp list-tools <image>` or run the declarative 2-check suite via `charly eval live <image> --filter mcp`
 
 ## When to Use This Skill
 
@@ -278,9 +278,9 @@ Use when the user asks about:
 - Google Chrome in containers
 - Chrome DevTools Protocol (CDP) on port 9222
 - Browser automation or `browser-open`
-- The `chrome` layer, `CHROME_FLAGS`, or `shm_size`
+- The `chrome` candy, `CHROME_FLAGS`, or `shm_size`
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

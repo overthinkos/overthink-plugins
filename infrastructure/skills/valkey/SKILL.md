@@ -2,12 +2,12 @@
 name: valkey
 description: |
   Valkey 9.x key-value store (Redis-compatible) on port 6379 via Remi modular repo.
-  Use when working with Valkey, Redis-compatible caching, or the valkey layer.
+  Use when working with Valkey, Redis-compatible caching, or the valkey candy.
 ---
 
 # valkey -- Valkey key-value store
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -48,13 +48,13 @@ my-app:
     - "6379:6379"
 ```
 
-## Related Layers
+## Related Candies
 
 - `/charly-infrastructure:redis` -- Redis alternative (same port 6379)
 
-## Used In Images
+## Used In Boxes
 
-- `/charly-distros:valkey-test` (disabled image)
+- `/charly-distros:valkey-test` (disabled box)
 
 ## When to Use This Skill
 
@@ -66,5 +66,5 @@ Use when the user asks about:
 
 ## Author + Test References
 
-- `/charly-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
+- `/charly-image:layer` — candy authoring reference (tasks, vars, env_provide, tests block syntax)
 - `/charly-eval:eval` — declarative testing framework for the `eval:` block

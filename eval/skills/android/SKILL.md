@@ -100,7 +100,7 @@ deploy:
 ```
 
 `charly deploy add android-stack.device` resolves the device, gates on
-`sys.boot_completed`, and installs the `add_candy:` layers' `apk:` packages via
+`sys.boot_completed`, and installs the `add_candy:` candies' `apk:` packages via
 `AndroidDeployTarget`. Apps ride in on `add_candy:` (the same overlay mechanism
 local/vm targets use) — there is no separate apk-list field. `charly deploy del`
 best-effort `pm uninstall`s each `package:` id (the device/pod lifecycle is

@@ -5,7 +5,7 @@ description: |
   Use when working with the selkies-desktop metalayer composition, labwc desktop, or browser-accessible remote desktops.
 ---
 
-# Layer: selkies-desktop
+# Candy: selkies-desktop
 
 Metalayer composing a full Selkies Wayland streaming desktop with Chrome, Waybar, desktop automation tools, accessibility introspection, and XWayland support.
 
@@ -86,11 +86,11 @@ A browser-accessible desktop at `http://localhost:3000` with:
 | 15 | waybar | Top panel (on wayland-0) |
 | 18 | nginx | Web UI on :3000 |
 
-**Chrome ownership:** Chrome is launched + supervised by the `[program:chrome]` supervisord service in the shared `selkies-core` layer (`restart: always`), NOT by labwc's autostart — labwc's `autostart` no longer starts Chrome. The service is `autostart=true` and self-synchronizing (`chrome-wrapper` polls for the `wayland-0` client socket itself), so a single launcher serves both selkies flavors and there is no per-flavor `supervisorctl start` handoff to race. See `/charly-selkies:selkies-core` (Chrome supervision) and `/charly-selkies:chrome` (Chrome supervision) — the chrome layer supplies the cgroup memory caps.
+**Chrome ownership:** Chrome is launched + supervised by the `[program:chrome]` supervisord service in the shared `selkies-core` candy (`restart: always`), NOT by labwc's autostart — labwc's `autostart` no longer starts Chrome. The service is `autostart=true` and self-synchronizing (`chrome-wrapper` polls for the `wayland-0` client socket itself), so a single launcher serves both selkies flavors and there is no per-flavor `supervisorctl start` handoff to race. See `/charly-selkies:selkies-core` (Chrome supervision) and `/charly-selkies:chrome` (Chrome supervision) — the chrome candy supplies the cgroup memory caps.
 
 **Capture singleton:** the selkies process owns a single process-wide `ScreenCapture` instance. Screenshot requests (`/charly-selkies:wl-screenshot-pixelflux`) and recording requests (`/charly-selkies:wl-record-pixelflux`) both attach to the same capture bridge at `/tmp/charly-capture.sock` — there is never a second capture process. This is the state enforced by commit `6be85eb` after the `WaylandBackend` leak investigation; the per-frame cleanup fix in commit `7977b91` is the paired memory-management step. See `/charly-selkies:selkies` (Pixelflux Memory Management) for the leak diagnosis, rollout recipe, and diagnostic commands.
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:selkies-labwc`
 - `/charly-selkies:selkies-labwc-nvidia`
@@ -105,13 +105,13 @@ On container images, `ENTRYPOINT=supervisord` with priority-based startup sequen
 
 Stable services (`traefik`, `selkies-fileserver`, `chrome-devtools-mcp`, `cdp-proxy`, `sshd`, `tailscaled`, `swaync`, `waybar`, `dbus`, `pipewire`) keep running; the HTTPS selkies web endpoint on port 3000 and the MCP endpoint on 9224 both stay responsive throughout.
 
-Fix options for a follow-up pass (none implemented yet — this layer is shared between container and bootc modes):
+Fix options for a follow-up pass (none implemented yet — this candy is shared between container and bootc modes):
 
 1. Raise labwc's `startsecs` so supervisord waits for pixelflux before declaring labwc RUNNING.
 2. Add an explicit `priority:` ordering via supervisord's eventlistener hooks — a `PROCESS_STATE_RUNNING` listener on selkies that `supervisorctl start`s labwc only after pixelflux publishes its socket.
 3. Have labwc-wrapper spawn pixelflux directly as a child (the container-mode start order without relying on supervisord for ordering).
 
-This race is a property of the layer's bootc mode (supervisord-under-systemd); no enabled image currently composes this layer in bootc mode, so the caveat is documented here from the layer's behavior rather than a live exemplar.
+This race is a property of the candy's bootc mode (supervisord-under-systemd); no enabled box currently composes this candy in bootc mode, so the caveat is documented here from the candy's behavior rather than a live exemplar.
 
 ## Multi-Instance Proxy Deployment
 
@@ -139,7 +139,7 @@ See `/charly-selkies:selkies-labwc` for full multi-instance deployment examples.
 - `/charly-selkies:wl-record-pixelflux` — Desktop video recording via the shared capture singleton
 - `/charly-selkies:wl-screenshot-pixelflux` — Screenshots via the shared capture singleton
 - `/charly-distros:arch-builder` — Builder image that compiles patched pixelflux from source on the cachyos base (`cuda-arch-builder` on the GPU build)
-- `/charly-selkies:selkies-labwc` — CPU labwc image that bundles this metalayer (with `/charly-selkies:selkies-labwc-nvidia` for the GPU build)
+- `/charly-selkies:selkies-labwc` — CPU labwc box that bundles this metalayer (with `/charly-selkies:selkies-labwc-nvidia` for the GPU build)
 - `/charly-eval:wl` — Wayland automation (screenshots, input, windows)
 - `/charly-eval:cdp` — Chrome DevTools Protocol automation
 - `/charly-eval:record` — Desktop video recording via capture bridge
@@ -149,5 +149,5 @@ See `/charly-selkies:selkies-labwc` for full multi-instance deployment examples.
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

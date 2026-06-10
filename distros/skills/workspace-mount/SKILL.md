@@ -8,7 +8,7 @@ description: |
 
 # workspace-mount — virtiofs /workspace mount
 
-A guest-side layer that mounts the virtiofs share tagged `workspace` at
+A guest-side candy that mounts the virtiofs share tagged `workspace` at
 `/workspace` and enables it so it re-mounts on every boot — load-bearing for an
 **autostarting** VM that must come back with its share already mounted.
 
@@ -19,12 +19,12 @@ A guest-side layer that mounts the virtiofs share tagged `workspace` at
   `Type=virtiofs`, `WantedBy=multi-user.target`)
 - `systemctl daemon-reload` + `enable` (boot) + `start` (now, tolerant) — the
   start is `|| true` so an image-build chroot with no device / no systemd does
-  not fail the layer; the enabled unit mounts at the next boot.
+  not fail the candy; the enabled unit mounts at the next boot.
 
 ## The contract
 
 The mount **tag `workspace`** is the contract between the host-side share and
-this layer. The `kind: vm` entity must declare a matching virtiofs filesystem:
+this candy. The `kind: vm` entity must declare a matching virtiofs filesystem:
 
 ```yaml
 libvirt:
@@ -33,7 +33,7 @@ libvirt:
       - {driver: virtiofs, accessmode: passthrough, source: /home/me, target: workspace}
 ```
 
-`target: workspace` (the entity) ↔ `What=workspace` (this layer). The shared
+`target: workspace` (the entity) ↔ `What=workspace` (this candy). The shared
 memory backing virtiofs requires is auto-paired by the renderer (see
 `/charly-internals:libvirt-renderer`), so the entity declares only the filesystem.
 
@@ -54,9 +54,9 @@ operator's `/home/atrawog` → `/workspace`. Generic for any pod-in-VM share.
 - `/charly-internals:libvirt-renderer` — `mapFilesystem` + `ensureVirtiofsSharedMemory`
 - `/charly-vm:vms-catalog` — `filesystems:` authoring on the kind:vm entity
 - `/charly-vm:cachyos` — the CachyOS VM family that consumes it
-- `/charly-image:layer` — layer authoring reference
+- `/charly-image:layer` — candy authoring reference
 
 ## When to Use This Skill
 
 Use when authoring or debugging a virtiofs host-directory share mounted into a VM
-guest, or the `workspace-mount` layer specifically.
+guest, or the `workspace-mount` candy specifically.

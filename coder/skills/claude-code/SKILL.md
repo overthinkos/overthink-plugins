@@ -7,7 +7,7 @@ description: |
 
 # claude-code -- Claude Code CLI
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -25,18 +25,18 @@ my-dev:
     - claude-code
 ```
 
-## Used In Images
+## Used In Boxes
 
-- No enabled images use this layer directly (standalone tool layer)
+- No enabled boxes use this candy directly (standalone tool layer)
 
 ## Related Skills
 
 - `/charly-coder:nodejs` -- required dependency (provides npm)
 - `/charly-coder:codex`, `/charly-coder:gemini` — sibling AI CLIs (all three share the npm-global install pattern)
 - `/charly-hermes:hermes-full-layer` — metalayer that bundles this with codex, gemini, dev-tools, devops-tools
-- `/charly-hermes:hermes` — primary image that ships this CLI
-- `/charly-image:layer` — layer authoring reference
-- `/charly-eval:eval` — declarative testing framework (this layer's test verifies `${HOME}/.npm-global/bin/claude` + `claude --version`)
+- `/charly-hermes:hermes` — primary box that ships this CLI
+- `/charly-image:layer` — candy authoring reference
+- `/charly-eval:eval` — declarative testing framework (this candy's test verifies `${HOME}/.npm-global/bin/claude` + `claude --version`)
 
 ## When to Use This Skill
 
@@ -44,4 +44,4 @@ Use when the user asks about:
 
 - Claude Code CLI in containers
 - Anthropic AI coding tools
-- The `claude-code` layer
+- The `claude-code` candy

@@ -7,7 +7,7 @@ description: |
 
 # openclaw -- AI gateway service
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +39,7 @@ charly alias install openclaw    # install host 'openclaw' command
 openclaw config              # uses the alias
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-openclaw:openclaw`
 - `/charly-openclaw:openclaw-full`
@@ -48,9 +48,9 @@ openclaw config              # uses the alias
 
 The gateway binds to `127.0.0.1:18789` (loopback only). A socat relay forwards from the container's network interface to loopback. This avoids OpenClaw's `allowedOrigins` requirement for the Control UI — all connections appear as loopback to the gateway.
 
-Same pattern as the `chrome` layer (CDP on port 9222).
+Same pattern as the `chrome` candy (CDP on port 9222).
 
-## Related Layers
+## Related Candies
 
 - `/charly-coder:nodejs` -- Node.js runtime dependency
 - `/charly-infrastructure:socat` -- port relay dependency (eth0 -> loopback)
@@ -69,5 +69,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

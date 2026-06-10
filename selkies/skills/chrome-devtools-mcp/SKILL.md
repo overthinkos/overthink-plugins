@@ -2,13 +2,13 @@
 name: chrome-devtools-mcp
 description: |
   Chrome DevTools MCP server via mcp-proxy (Streamable HTTP on port 9224).
-  Use when working with the chrome-devtools-mcp layer, MCP-based browser automation,
+  Use when working with the chrome-devtools-mcp candy, MCP-based browser automation,
   or the mcp-proxy stdio-to-HTTP bridge pattern.
 ---
 
 # chrome-devtools-mcp -- Chrome DevTools MCP Server
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -40,7 +40,7 @@ cdp-proxy (port 9222) → Chrome (port 9223)
 - **mcp-proxy** (Python, installed via pixi as PyPI dependency) bridges stdio-based chrome-devtools-mcp to Streamable HTTP on port 9224
 - **chrome-devtools-mcp** (Node.js, installed via npm `package.json`) connects to Chrome at `http://127.0.0.1:9222` via the cdp-proxy
 - Runs as a supervisord service with `autorestart=true` (handles startup ordering — retries until Chrome is ready)
-- This is a dual-builder layer: pixi (mcp-proxy) + npm (chrome-devtools-mcp)
+- This is a dual-builder candy: pixi (mcp-proxy) + npm (chrome-devtools-mcp)
 
 ## Available Tools (29)
 
@@ -72,33 +72,33 @@ After restart, `hermes mcp list` should show `chrome-devtools` as enabled with a
 
 ## Automatically Included Via
 
-This layer is auto-included by the `chrome` base layer via `candy: [chrome-devtools-mcp]`. Any image that includes `chrome`, `chrome-sway`, or any desktop metalayer gets this automatically — zero explicit configuration needed.
+This candy is auto-included by the `chrome` base layer via `candy: [chrome-devtools-mcp]`. Any box that includes `chrome`, `chrome-sway`, or any desktop metalayer gets this automatically — zero explicit configuration needed.
 
-## Used In Layers
+## Used In Candies
 
 - `/charly-selkies:chrome` — includes via `candy: [chrome-devtools-mcp]`
 
-## Used In Images (via chrome dependency chain)
+## Used In Boxes (via chrome dependency chain)
 
 - `/charly-selkies:selkies-labwc`
 - `/charly-selkies:selkies-labwc-nvidia`
 - `/charly-selkies:sway-browser-vnc`
-- All other images containing a chrome variant
+- All other boxes containing a chrome variant
 
 ## Related Skills
 
-- `/charly-selkies:chrome` — parent layer, provides Chrome + CDP on port 9222
+- `/charly-selkies:chrome` — parent candy, provides Chrome + CDP on port 9222
 - `/charly-jupyter:jupyter-mcp` — analogous MCP server pattern (Tier 1, different domain)
 - `/charly-hermes:hermes` — consumes via `mcp_accept: chrome-devtools`
 - `/charly-tools:mcporter` — MCP server CLI (npm-based, similar npm install pattern)
 - `/charly-eval:cdp` — direct Chrome DevTools Protocol commands (lower-level than MCP)
-- `/charly-build:charly-mcp-cmd` — test-side client for this layer's MCP endpoint (`charly eval mcp ping`, `list-tools`, etc.). The layer ships 2 deploy-scope `mcp:` declarative checks (`mcp-chrome-devtools-ping`, `mcp-chrome-devtools-list-tools` asserting `navigate_page` / `take_screenshot`). **Port-publishing gotcha**: when this layer is added to an image that already has a `deploy.yml` `port:` override (e.g. `sway-browser-vnc`), port 9224 may not be published until the override is updated. `charly eval mcp` surfaces this with the exact `ports: [9224:9224]` remediation message — see `/charly-build:charly-mcp-cmd` for the full fix.
+- `/charly-build:charly-mcp-cmd` — test-side client for this candy's MCP endpoint (`charly eval mcp ping`, `list-tools`, etc.). The candy ships 2 deploy-scope `mcp:` declarative checks (`mcp-chrome-devtools-ping`, `mcp-chrome-devtools-list-tools` asserting `navigate_page` / `take_screenshot`). **Port-publishing gotcha**: when this candy is added to a box that already has a `deploy.yml` `port:` override (e.g. `sway-browser-vnc`), port 9224 may not be published until the override is updated. `charly eval mcp` surfaces this with the exact `ports: [9224:9224]` remediation message — see `/charly-build:charly-mcp-cmd` for the full fix.
 
 ## When to Use This Skill
 
 Use when the user asks about:
 
-- The chrome-devtools-mcp layer or its MCP server
+- The chrome-devtools-mcp candy or its MCP server
 - MCP-based browser automation via Chrome DevTools (vs direct CDP)
 - The mcp-proxy stdio-to-HTTP bridge pattern
 - Port 9224 or the chrome-devtools MCP endpoint
@@ -107,5 +107,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

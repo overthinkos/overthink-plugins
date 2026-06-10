@@ -7,7 +7,7 @@ description: |
 
 # nodejs -- Node.js and npm runtime
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -30,10 +30,10 @@ PAC: `nodejs`, `npm`
 
 ## pnpm (standalone binary)
 
-The layer installs the **pnpm** standalone binary (self-contained — it bundles
+The candy installs the **pnpm** standalone binary (self-contained — it bundles
 its own node) to `/usr/local/bin/pnpm` via a `task:` download. It is deliberately
 NOT a `package.json` dependency: a `package.json` would trigger the npm
-multi-stage builder on this layer, and the builder images that COMPOSE nodejs
+multi-stage builder on this candy, and the builder images that COMPOSE nodejs
 (`arch-builder` / `fedora-builder`) cannot self-provide the npm builder. The
 binary on `/usr/local/bin` is on the default system PATH for every user (incl.
 root — Immich runs its pnpm build as root). Immich and other pnpm consumers use
@@ -48,17 +48,17 @@ my-image:
     - nodejs
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-distros:fedora-builder`
 - `/charly-distros:arch-builder`
-- Transitive dependency for `openclaw`, `claude-code`, `pre-commit`, and other layers
+- Transitive dependency for `openclaw`, `claude-code`, `pre-commit`, and other candies
 
-## Related Layers
+## Related Candies
 
 - `/charly-coder:claude-code` -- depends on nodejs
 - `/charly-coder:pre-commit` -- depends on nodejs
-- `/charly-immich:immich-layer` -- uses the layer's pnpm to build Immich
+- `/charly-immich:immich-layer` -- uses the candy's pnpm to build Immich
 
 ## When to Use This Skill
 
@@ -66,9 +66,9 @@ Use when the user asks about:
 
 - Node.js or npm setup in containers
 - Global npm package installation
-- The `nodejs` layer or npm configuration
+- The `nodejs` candy or npm configuration
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

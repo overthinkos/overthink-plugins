@@ -2,12 +2,12 @@
 name: wl-overlay-layer
 description: |
   Wayland overlay windows via gtk4-layer-shell (for screen recordings).
-  Use when working with the wl-overlay layer, gtk4-layer-shell, or overlay dependencies.
+  Use when working with the wl-overlay candy, gtk4-layer-shell, or overlay dependencies.
 ---
 
 # wl-overlay -- Wayland overlay windows via gtk4-layer-shell
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -62,13 +62,13 @@ charly eval wl overlay hide my-image --all
 - `/charly-selkies:sway-desktop` — sway desktop composition
 - `/charly-selkies:selkies-desktop-layer` — selkies streaming desktop composition
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
 - `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
-## Related Layers
+## Related Candies
 
 - `/charly-infrastructure:dbus-layer` — D-Bus session bus (dependency, required by GTK4)
 - `/charly-selkies:wl-tools` — Wayland automation tools (sibling in desktop stack)
@@ -83,5 +83,5 @@ charly eval wl overlay hide my-image --all
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

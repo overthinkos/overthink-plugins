@@ -2,7 +2,7 @@
 name: selkies-labwc-nvidia
 description: |
   GPU-accelerated Selkies streaming desktop (labwc flavor) on the CachyOS NVIDIA base, with real NVENC.
-  Use when working with the selkies-labwc-nvidia image.
+  Use when working with the selkies-labwc-nvidia box.
 ---
 
 # selkies-labwc-nvidia
@@ -60,22 +60,22 @@ selkies-labwc-nvidia:
 ## Base
 
 `nvidia` resolves to `cachyos.nvidia` — the x86_64_v3-optimized CachyOS GPU base
-(CachyOS + `nvidia` + `cuda` layers, CUDA toolkit + NVIDIA drivers). See
+(CachyOS + `nvidia` + `cuda` candies, CUDA toolkit + NVIDIA drivers). See
 `/charly-distros:cachyos`, `/charly-distros:nvidia`, `/charly-distros:cuda`.
 
 ## REAL NVENC via the CUDA arch-builder
 
 `builder.pixi: arch.cuda-arch-builder` selects the CUDA-equipped pixi builder, whose
-`nvcc` + ffnvcodec NVENC headers let the `selkies` layer's `build.sh` compile
+`nvcc` + ffnvcodec NVENC headers let the `selkies` candy's `build.sh` compile
 pixelflux's real `nvenc-sys` encoder. The stock `arch-builder` has no CUDA, so it
-builds the NVENC stub — that is why the GPU images override `builder.pixi` to the
+builds the NVENC stub — that is why the GPU boxes override `builder.pixi` to the
 CUDA builder (the `selkies-kde-nvidia` sibling does the same). The CPU siblings
 (`selkies-labwc`, `selkies-kde`) use the stock builder and rely on software x264 /
 VAAPI.
 
 ## Difference from selkies-labwc (CPU sibling)
 
-Same layers, but on a GPU base that includes the full CUDA toolkit, plus the
+Same candies, but on a GPU base that includes the full CUDA toolkit, plus the
 `builder.pixi: arch.cuda-arch-builder` override that builds the real NVENC encoder.
 Use a GPU variant for hardware H.264 encoding (zero CPU overhead); the CPU sibling
 `selkies-labwc` runs on the plain `cachyos` base with software x264 / VAAPI.
@@ -83,7 +83,7 @@ Use a GPU variant for hardware H.264 encoding (zero CPU overhead); the CPU sibli
 ## AUR packages
 
 `build: [pac, aur]` — the `selkies-desktop` metalayer composes `chrome` (AUR
-`google-chrome`) + `wl-tools` (AUR `wlrctl`), so the image opts into the AUR builder.
+`google-chrome`) + `wl-tools` (AUR `wlrctl`), so the box opts into the AUR builder.
 Without `aur` in `build:`, both AUR packages would be silently dropped.
 
 ## Recording
@@ -92,7 +92,7 @@ Desktop video recording included via `wl-record-pixelflux` (part of the
 `selkies-desktop` metalayer). On an NVIDIA GPU, pixelflux-record uses NVENC for H.264
 encoding (zero CPU overhead).
 
-## Key Layers
+## Key Candies
 - `/charly-selkies:selkies-desktop-layer` — full Selkies labwc streaming desktop metalayer
 - `/charly-distros:nvidia` — GPU runtime and CDI device auto-detection
 - `/charly-distros:cuda` — CUDA toolkit and libraries (via the CachyOS GPU base)
@@ -100,12 +100,12 @@ encoding (zero CPU overhead).
 - `/charly-tools:charly` — in-container `charly` binary (enables `charly eval dbus notify`)
 - `/charly-distros:agent-forwarding` — SSH/GPG/direnv agent forwarding
 
-## Related Images
-- `/charly-selkies:selkies-desktop-layer` — the labwc desktop metalayer this image is the GPU build of
+## Related Boxes
+- `/charly-selkies:selkies-desktop-layer` — the labwc desktop metalayer this box is the GPU build of
 - `selkies-labwc` (in this same `overthinkos/cachyos` submodule) — the CPU-encoding labwc sibling
 - `selkies-kde-nvidia` — the KDE-Plasma GPU sibling (same `cachyos.nvidia` base + CUDA arch-builder)
-- `/charly-openclaw:openclaw-desktop` — the CachyOS/CPU all-in-one: this streaming desktop stack + the openclaw-full gateway + AI CLIs + a CPU ollama + the full charly toolchain (charly + container-nesting + golang + gh). Use it if you want to build images / start nested pods / launch VMs from inside the browser-accessible desktop.
-- `/charly-distros:cachyos` — the CachyOS base image family (owns this image's submodule)
+- `/charly-openclaw:openclaw-desktop` — the CachyOS/CPU all-in-one: this streaming desktop stack + the openclaw-full gateway + AI CLIs + a CPU ollama + the full charly toolchain (charly + container-nesting + golang + gh). Use it if you want to build boxes / start nested pods / launch VMs from inside the browser-accessible desktop.
+- `/charly-distros:cachyos` — the CachyOS base image family (owns this box's submodule)
 
 ## Related Commands
 - `/charly-eval:eval` — parent router for live-container verbs (`charly eval cdp|wl|dbus|vnc|mcp`)

@@ -3,13 +3,13 @@ name: notebook-openrouter
 description: |
   OpenRouter API integration notebook collection provisioned into the workspace volume at deploy time.
   3 Jupyter notebooks demonstrating OpenRouter API basics, model discovery, and practical inference.
-  Data-only layer with env_require — first layer to use the env_require feature.
+  Data-only candy with env_require — first candy to use the env_require feature.
   Use when working with notebook-openrouter, OpenRouter API tutorials, or Jupyter+OpenRouter integration.
 ---
 
-# notebook-openrouter -- OpenRouter API integration data layer
+# notebook-openrouter -- OpenRouter API integration data candy
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -23,7 +23,7 @@ description: |
 
 ## How It Works
 
-This is a **data layer** with an **env_require** declaration — it uses the `data:` field to map notebooks to a volume, and `env_require:` to declare that the `OPENROUTER_API_KEY` environment variable must be present:
+This is a **data candy** with an **env_require** declaration — it uses the `data:` field to map notebooks to a volume, and `env_require:` to declare that the `OPENROUTER_API_KEY` environment variable must be present:
 
 ```yaml
 info: "OpenRouter API integration notebook collection"
@@ -38,7 +38,7 @@ data:
     dest: openrouter
 ```
 
-At build time, the contents of `data/openrouter/` are staged into `/data/workspace/openrouter/` inside the image.
+At build time, the contents of `data/openrouter/` are staged into `/data/workspace/openrouter/` inside the box.
 
 At deploy time, `charly config` copies the staged data into the workspace volume at `<workspace>/openrouter/`. The `dest: openrouter` field places the notebooks in a subdirectory rather than the volume root.
 
@@ -47,7 +47,7 @@ The `env_require` declaration is stored as an OCI label (`ai.opencharly.env_requ
 Warning: jupyter-ml-notebook requires OPENROUTER_API_KEY (API key for OpenRouter LLM inference) — not set
 ```
 
-This is the first layer in the project to use the `env_require` feature.
+This is the first candy in the project to use the `env_require` feature.
 
 ## Included Notebooks
 
@@ -107,7 +107,7 @@ jupyter-ml-notebook:
     - notebook-ollama
     - notebook-llm-on-supercomputers
     - notebook-openrouter
-    # ... other layers
+    # ... other candies
 ```
 
 ```bash
@@ -117,7 +117,7 @@ charly start jupyter-ml-notebook
 # Open http://localhost:8888 -> navigate to openrouter/
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-jupyter:jupyter-ml-notebook`
 
@@ -126,17 +126,17 @@ charly start jupyter-ml-notebook
 - `/charly-image:layer` — data field documentation, env_require/env_accept field documentation
 - `/charly-core:charly-config` — data provisioning and env_require warning during `charly config` setup
 - `/charly-core:deploy` — volume backing configuration
-- `/charly-jupyter:notebook-ollama` — sibling data layer pattern (Ollama integration notebooks)
-- `/charly-jupyter:notebook-finetuning` — sibling data layer pattern (Unsloth fine-tuning notebooks)
-- `/charly-jupyter:notebook-templates` — sibling data layer pattern (starter notebooks)
-- `/charly-jupyter:notebook-llm-on-supercomputers` — sibling data layer pattern (TU Wien course notebooks)
-- `/charly-jupyter:jupyter-ml-notebook` — the image that includes this layer
+- `/charly-jupyter:notebook-ollama` — sibling data candy pattern (Ollama integration notebooks)
+- `/charly-jupyter:notebook-finetuning` — sibling data candy pattern (Unsloth fine-tuning notebooks)
+- `/charly-jupyter:notebook-templates` — sibling data candy pattern (starter notebooks)
+- `/charly-jupyter:notebook-llm-on-supercomputers` — sibling data candy pattern (TU Wien course notebooks)
+- `/charly-jupyter:jupyter-ml-notebook` — the box that includes this candy
 
 ## When to Use This Skill
 
 Use when the user asks about:
 
-- The notebook-openrouter layer or its contents
+- The notebook-openrouter candy or its contents
 - OpenRouter API tutorial notebooks or integration examples
 - How to provide `OPENROUTER_API_KEY` to Jupyter containers
 - The `env_require` feature (this is the first real consumer)

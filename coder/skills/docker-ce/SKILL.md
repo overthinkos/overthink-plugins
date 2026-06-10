@@ -7,7 +7,7 @@ description: |
 
 # docker-ce -- Docker CE engine and plugins
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -30,14 +30,14 @@ my-image:
     - docker-ce
 ```
 
-## Used In Images
+## Used In Boxes
 
 - (none currently enabled)
 
-## Related Layers
+## Related Candies
 - `/charly-distros:container-nesting` — Alternative podman-based nested container support
 - `/charly-coder:kubernetes-layer` — Sibling kubectl/Helm commonly paired with docker-ce
-- `/charly-coder:github-actions` — Sibling layer needing a container engine for act runs
+- `/charly-coder:github-actions` — Sibling candy needing a container engine for act runs
 
 ## Related Commands
 - `/charly-build:build` — Build the bootc image including docker-ce packages
@@ -49,7 +49,7 @@ Use when the user asks about:
 
 - Docker CE inside containers
 - Docker buildx or compose plugins
-- The `docker-ce` layer or Docker repository setup
+- The `docker-ce` candy or Docker repository setup
 
 ## Related
 

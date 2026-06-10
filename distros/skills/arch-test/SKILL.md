@@ -1,16 +1,16 @@
 ---
 name: arch-test
 description: |
-  Test image for Arch Linux pacman and AUR package installation.
+  Test box for Arch Linux pacman and AUR package installation.
   MUST be invoked before building or troubleshooting the arch-test box.
 ---
 
 # arch-test
 
-Test image that validates both `pac:` (pacman) and `aur:` (AUR) package formats on Arch Linux. Used to verify the multi-distro build system handles Arch packaging correctly.
+Test box that validates both `pac:` (pacman) and `aur:` (AUR) package formats on Arch Linux. Used to verify the multi-distro build system handles Arch packaging correctly.
 
 `arch-test` lives in the **`overthinkos/arch`** repo (git submodule at
-**`box/arch`**). The test layers `arch-pac-test` / `arch-aur-test` are vendored
+**`box/arch`**). The test candies `arch-pac-test` / `arch-aur-test` are vendored
 locally in this repo's `candy/` (resolved via its `discover:` block); the `arch`
 base + `arch-builder` are bare-local in the same self-contained submodule
 (`import: []`) — `base: arch`. Build from
@@ -50,8 +50,8 @@ charly shell arch-test -c "which yay"          # aur: package installed
 
 - `/charly-distros:arch` — base image
 - `/charly-distros:arch-builder` — builder image (provides yay for AUR builds)
-- `/charly-distros:arch-pac-test` — pacman test layer
-- `/charly-distros:arch-aur-test` — AUR test layer
+- `/charly-distros:arch-pac-test` — pacman test candy
+- `/charly-distros:arch-aur-test` — AUR test candy
 
 ## When to Use This Skill
 
@@ -59,5 +59,5 @@ charly shell arch-test -c "which yay"          # aur: package installed
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

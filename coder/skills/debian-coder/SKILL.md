@@ -1,22 +1,22 @@
 ---
 name: debian-coder
 description: |
-  Kitchen-sink development image on Debian 13 trixie: coding + AI-coding
-  CLIs + DevOps tooling in one container. Debian base, 30+ direct layers
+  Kitchen-sink development box on Debian 13 trixie: coding + AI-coding
+  CLIs + DevOps tooling in one container. Debian base, 30+ direct candies
   mirroring fedora-coder's stack but with deb: sections. Runs as uid 1000
   (`user`) with passwordless sudo. 143/0 tests pass.
-  Use when working with the debian-coder image — or when comparing
-  cross-distro parity across the four coder-family images.
+  Use when working with the debian-coder box — or when comparing
+  cross-distro parity across the four coder-family boxes.
 ---
 
 # debian-coder
 
-Debian 13 trixie counterpart of `/charly-coder:fedora-coder`. Same 80-line `eval:` block, same ~30 layers, same rootless posture (uid 1000 + passwordless sudo). Key wrinkles are all Debian-specific packaging quirks handled inside individual layers: `bat → batcat` symlink, Microsoft's `dotnet-install.sh` cross-distro installer, and package-existence tests (vs binary-path tests) for `virtualization` because Debian bundles libvirt drivers differently.
+Debian 13 trixie counterpart of `/charly-coder:fedora-coder`. Same 80-line `eval:` block, same ~30 candies, same rootless posture (uid 1000 + passwordless sudo). Key wrinkles are all Debian-specific packaging quirks handled inside individual candies: `bat → batcat` symlink, Microsoft's `dotnet-install.sh` cross-distro installer, and package-existence tests (vs binary-path tests) for `virtualization` because Debian bundles libvirt drivers differently.
 
 > **Location:** lives in the **`overthinkos/debian`** repo (git submodule at
 > **`box/debian`**), in that repo's config (its `charly.yml` + per-kind
 > sibling files). Its `debian` base is owned by the same submodule; its ~31
-> layers are pulled by github reference from the main repo. Build/validate from
+> candies are pulled by github reference from the main repo. Build/validate from
 > the submodule:
 > `charly -C box/debian box build debian-coder`, or
 > `charly --repo overthinkos/debian box build debian-coder`. Deploy-mode verbs
@@ -104,10 +104,10 @@ See `/charly-image:image` "user_policy" and `/charly-build:build` "base_user" fo
 
 ## Debian-specific layer quirks
 
-- **bat → batcat symlink** (`/charly-coder:dev-tools`). Debian and Ubuntu rename `bat` → `batcat` to avoid a namespace collision with a legacy `bacula` utility. The dev-tools layer ships a distro-tolerant cmd task that creates `/usr/bin/bat -> /usr/bin/batcat` when only batcat is present; no-op on Fedora/Arch.
+- **bat → batcat symlink** (`/charly-coder:dev-tools`). Debian and Ubuntu rename `bat` → `batcat` to avoid a namespace collision with a legacy `bacula` utility. The dev-tools candy ships a distro-tolerant cmd task that creates `/usr/bin/bat -> /usr/bin/batcat` when only batcat is present; no-op on Fedora/Arch.
 - **dotnet-sdk-9.0 via Microsoft's `dotnet-install.sh`** (`/charly-coder:language-runtimes`). Debian 13 main ships no .NET; Microsoft's trixie apt repo has dotnet-sdk-9.0, but using the official cross-distro `dotnet-install.sh` channel-pin to `9.0` gives version parity with Ubuntu (whose Microsoft noble repo only ships 10.0). Installs to `/usr/share/dotnet` + symlinks `/usr/bin/dotnet`.
-- **libvirt tests use `package:` not `file:`** (`/charly-infrastructure:virtualization`). Debian bundles libvirt drivers differently from Fedora's split packaging, so `file: /usr/sbin/virtqemud` would false-fail. The layer probes via `package: libvirt-daemon-driver-qemu` + `package_map:` per-distro package name.
-- **sudoers via `getent`** (`/charly-coder:sshd`). Instead of hardcoding `user ALL=…`, the layer runs `getent passwd 1000 | cut -d: -f1` at build time to discover the actual uid-1000 account. On debian-coder that returns `user`; on ubuntu-coder it returns `ubuntu`. One cross-distro implementation, no special cases.
+- **libvirt tests use `package:` not `file:`** (`/charly-infrastructure:virtualization`). Debian bundles libvirt drivers differently from Fedora's split packaging, so `file: /usr/sbin/virtqemud` would false-fail. The candy probes via `package: libvirt-daemon-driver-qemu` + `package_map:` per-distro package name.
+- **sudoers via `getent`** (`/charly-coder:sshd`). Instead of hardcoding `user ALL=…`, the candy runs `getent passwd 1000 | cut -d: -f1` at build time to discover the actual uid-1000 account. On debian-coder that returns `user`; on ubuntu-coder it returns `ubuntu`. One cross-distro implementation, no special cases.
 
 ## Test results
 
@@ -143,7 +143,7 @@ charly stop debian-coder
 | 2222 | sshd-wrapper (SSH access as `user` with sudo) | `/charly-coder:sshd` |
 | 18765 | charly-mcp (entire `charly` CLI as MCP tools, Streamable HTTP) | `/charly-coder:charly-mcp` |
 
-Conflicts with the other three coder-family images on the same ports — use `-i <instance>` or `-p <remap>` to run alongside.
+Conflicts with the other three coder-family boxes on the same ports — use `-i <instance>` or `-p <remap>` to run alongside.
 
 ## Image size
 
@@ -151,14 +151,14 @@ Conflicts with the other three coder-family images on the same ports — use `-i
 
 ## Cross-distro siblings
 
-All four coder-family images share the identical 80-line `eval:` block + ~30 identical layers; they diverge only in per-layer package-format sections.
+All four coder-family boxes share the identical 80-line `eval:` block + ~30 identical candies; they diverge only in per-candy package-format sections.
 
 - `/charly-coder:fedora-coder` — RPM (Fedora 43 via fedora-nonfree).
 - `/charly-coder:arch-coder` — pacman + optional AUR.
 - `/charly-coder:ubuntu-coder` — deb on Ubuntu 24.04; **adopt mode** (`user:ubuntu`).
-- `/charly-coder:debian-coder` — this image; create mode (`user:user`).
+- `/charly-coder:debian-coder` — this box; create mode (`user:user`).
 
-## Related images
+## Related boxes
 
 - `/charly-distros:debian` — parent base.
 - `/charly-distros:debian-builder` — multi-stage builder for pixi/npm/cargo.
@@ -186,4 +186,4 @@ All four coder-family images share the identical 80-line `eval:` block + ~30 ide
 - Building, deploying, or troubleshooting `debian-coder`.
 - Comparing cross-distro parity, especially between `debian-coder` and `ubuntu-coder` (the base images differ in their pre-existing user account).
 - Understanding why Debian needs the `dotnet-install.sh` shell task (vs Fedora's native `dotnet-sdk` rpm).
-- Adding new deb: sections to layers that are currently Fedora/Arch-only.
+- Adding new deb: sections to candies that are currently Fedora/Arch-only.

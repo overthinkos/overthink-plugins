@@ -1,14 +1,14 @@
 ---
 name: jupyter-ml
 description: |
-  Full CUDA ML JupyterLab image with real-time collaboration and CRDT MCP server.
+  Full CUDA ML JupyterLab box with real-time collaboration and CRDT MCP server.
   Base: nvidia. Port 8888. GPU-accelerated ML training + collaborative notebooks.
-  MUST be invoked before building, deploying, or troubleshooting the jupyter-ml image.
+  MUST be invoked before building, deploying, or troubleshooting the jupyter-ml box.
 ---
 
 # jupyter-ml -- GPU ML Jupyter with CRDT MCP
 
-## Image Definition
+## Box Definition
 
 ```yaml
 jupyter-ml:
@@ -25,16 +25,16 @@ jupyter-ml:
     - linux/amd64
 ```
 
-## Layer Composition
+## Candy Composition
 
-The `jupyter-ml` layer is a Tier 2 environment-owning meta-layer that composes:
+The `jupyter-ml` candy is a Tier 2 environment-owning meta-layer that composes:
 - `llama-cpp` — llama.cpp prebuilt binaries + GGUF tools
 - `unsloth` — vLLM 0.19 cu130 inference engine + fine-tuning (unsloth + unsloth-zoo) + vLLM torch.compile patch
 - `jupyter-mcp` — CRDT MCP extension (fastmcp + jupyter_mcp package)
 
-Additional layers from the image:
+Additional candies from the box:
 - `agent-forwarding` — SSH/GPG agent forwarding
-- `notebook-templates` — Starter notebooks (data layer, seeds /workspace)
+- `notebook-templates` — Starter notebooks (data candy, seeds /workspace)
 - `dbus` — D-Bus session bus
 - `charly` — OpenCharly CLI
 
@@ -59,11 +59,11 @@ quay.io/fedora/fedora:43
 | Name | Path | Purpose |
 |------|------|---------|
 | workspace | /workspace | Persistent notebook storage |
-| models | ~/.cache/huggingface | HuggingFace model cache (from unsloth sub-layer) |
+| models | ~/.cache/huggingface | HuggingFace model cache (from unsloth sub-candy) |
 
 ## Service Environment Integration
 
-This image receives env_provide variables from infrastructure layers when they are deployed:
+This box receives env_provide variables from infrastructure candies when they are deployed:
 
 | Variable | Injected by | Value |
 |----------|------------|-------|
@@ -120,18 +120,18 @@ charly shell jupyter-ml -c "pixi run verify-collaboration"
 | Volume | workspace | workspace + models |
 | Notebook dir | /workspace | /workspace |
 
-## Related Images
+## Related Boxes
 
 - `/charly-jupyter:jupyter-ml-notebook` — Same stack with fine-tuning notebooks
 - `/charly-jupyter:jupyter` — Lightweight variant (no CUDA, multi-arch)
 - `/charly-languages:python-ml` — ML base without Jupyter
 - **CachyOS variant** — `cachyos.jupyter-ml` is the CachyOS GPU sibling (built on the `cachyos.nvidia` GPU base) in the `overthinkos/cachyos` submodule. See `/charly-distros:cachyos`.
 
-**MCP testing:** inherits 3 deploy-scope `mcp:` checks from the `jupyter-ml` layer (`ping`, `list-tools`, `call list_notebooks`). Run `charly eval live jupyter-ml --filter mcp` or probe ad-hoc with `charly eval mcp list-tools jupyter-ml`. See `/charly-build:charly-mcp-cmd`.
+**MCP testing:** inherits 3 deploy-scope `mcp:` checks from the `jupyter-ml` candy (`ping`, `list-tools`, `call list_notebooks`). Run `charly eval live jupyter-ml --filter mcp` or probe ad-hoc with `charly eval mcp list-tools jupyter-ml`. See `/charly-build:charly-mcp-cmd`.
 
 ## When to Use This Skill
 
-MUST be invoked before building, deploying, configuring, or troubleshooting the jupyter-ml image.
+MUST be invoked before building, deploying, configuring, or troubleshooting the jupyter-ml box.
 
 ## Related
 

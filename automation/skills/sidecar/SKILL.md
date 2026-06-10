@@ -68,11 +68,11 @@ CLI `-e KEY=VALUE` flags are automatically routed: env vars matching a sidecar t
 
 ## Environment Contract (env_provide / env_accept / env_require)
 
-Sidecars participate in the same cross-container env discovery pipeline as regular layers, with one critical caveat: **routing is explicit, not implicit**. A sidecar's env (e.g., the tailscale sidecar's `TS_*` vars) is **not** auto-injected into the app container, and vice versa — the app only sees what it explicitly opts in to via `env_accept` or `env_require` in its `charly.yml`.
+Sidecars participate in the same cross-container env discovery pipeline as regular candies, with one critical caveat: **routing is explicit, not implicit**. A sidecar's env (e.g., the tailscale sidecar's `TS_*` vars) is **not** auto-injected into the app container, and vice versa — the app only sees what it explicitly opts in to via `env_accept` or `env_require` in its `charly.yml`.
 
 This matters for two reasons:
 
-1. **Prevents env var leakage.** Without opt-in filtering, every deployed service would see every other service's `env_provide`. The chrome layer doesn't want `TS_*` vars in its env; the tailscale sidecar doesn't want `BROWSER_CDP_URL`. The filtering model is the mechanism that enforces this boundary.
+1. **Prevents env var leakage.** Without opt-in filtering, every deployed service would see every other service's `env_provide`. The chrome candy doesn't want `TS_*` vars in its env; the tailscale sidecar doesn't want `BROWSER_CDP_URL`. The filtering model is the mechanism that enforces this boundary.
 
 2. **Enforces dependency contracts.** When the app declares `env_require` and the provider (or sidecar) is actually deployed, the provide-resolution pipeline (`provides.go`) satisfies the requirement without the user manually setting `-e` flags. When the provider is **not** deployed and no default is set, `charly config` fails hard — deployment does not proceed with a broken env contract.
 
@@ -83,7 +83,7 @@ The tailscale sidecar declares its advertised state (e.g., `TS_HOSTNAME`, the si
 If a future sidecar needs to forward auth tokens or service URLs into the app, the right pattern is:
 
 - Sidecar template declares `env_provide:` with `{{.ContainerName}}`-templated values
-- App layer declares `env_accept: [<var>]` or `env_require: [<var>]`
+- App candy declares `env_accept: [<var>]` or `env_require: [<var>]`
 - `charly config` resolves the provide at deploy time and writes it to `deploy.yml` under `provides:`
 
 Missing `env_accept` on the consumer side silently drops the var. Missing `env_require` is a hard fail. See `/charly-image:layer` (env_require / env_accept) for the authoring side, `/charly-core:charly-config` (Provides Filtering) for the resolution pipeline, and `provides.go` in the `charly` source for the implementation.

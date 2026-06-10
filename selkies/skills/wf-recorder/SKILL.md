@@ -2,12 +2,12 @@
 name: wf-recorder
 description: |
   Wayland screen recorder for wlroots compositors.
-  Use when working with the wf-recorder layer.
+  Use when working with the wf-recorder candy.
 ---
 
 # wf-recorder -- Wayland screen recorder
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -58,9 +58,9 @@ charly eval record stop sway-browser-vnc -n demo -o demo.mp4
 
 ## Included In
 
-- `sway-desktop` metalayer (and all images using sway-desktop-vnc)
+- `sway-desktop` metalayer (and all boxes using sway-desktop-vnc)
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
 
@@ -76,9 +76,9 @@ charly eval record stop sway-browser-vnc -n demo -o demo.mp4
 Use when the user asks about:
 - Desktop video recording on sway
 - wf-recorder in containers
-- The `wf-recorder` layer
+- The `wf-recorder` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

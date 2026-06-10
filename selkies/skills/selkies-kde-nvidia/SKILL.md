@@ -3,16 +3,16 @@ name: selkies-kde-nvidia
 description: |
   The NVIDIA-GPU build of the KDE Plasma Selkies streaming desktop — full Plasma
   nested in pixelflux with REAL NVENC (cuda-arch-builder-compiled). MUST be invoked
-  before building, deploying, or troubleshooting the selkies-kde-nvidia image.
+  before building, deploying, or troubleshooting the selkies-kde-nvidia box.
 ---
 
-# Image: selkies-kde-nvidia
+# Box: selkies-kde-nvidia
 
 The **NVIDIA-GPU build of the KDE Plasma flavor** (`/charly-selkies:selkies-kde`) —
 the same headless-pod KDE streaming desktop on the CachyOS GPU base
 (`cachyos.nvidia`), with pixelflux's **real NVENC** encoder compiled in. It is the
 KDE sibling of `/charly-selkies:selkies-labwc-nvidia` (labwc + NVENC); both use
-`builder.pixi: arch.cuda-arch-builder` so the `selkies` layer's `build.sh` compiles
+`builder.pixi: arch.cuda-arch-builder` so the `selkies` candy's `build.sh` compiles
 pixelflux's real `nvenc-sys` encoder (the stock `arch-builder` has no CUDA → an
 NVENC stub).
 
@@ -36,11 +36,11 @@ selkies-kde-nvidia:
 
 ## NVENC compile-proof (eval-coverage)
 
-The image carries a build-scope `eval:` check `pixelflux-nvenc-compiled` that
+The box carries a build-scope `eval:` check `pixelflux-nvenc-compiled` that
 greps the built pixelflux `.so` for `NvEncodeAPICreateInstance` (the NVENC SDK
 entry point the `nvenc-sys` crate binds). The stub build patches `nvenc-sys` out
 of pixelflux's Cargo.toml, so the symbol is absent → the check FAILS on a
-non-NVENC build. This is the regression-proof for the image's NVENC functionality
+non-NVENC build. This is the regression-proof for the box's NVENC functionality
 (identical to `/charly-selkies:selkies-labwc-nvidia`).
 
 ## Ports / Encoder
@@ -67,7 +67,7 @@ from any running holder). See `/charly-internals:disposable` + `/charly-eval:eva
 - `/charly-selkies:selkies-labwc-nvidia` — the labwc + NVENC sibling (same cuda-arch-builder + NVENC-compile proof).
 - `/charly-selkies:selkies-kde-desktop` — the KDE metalayer + the de-SDDM headless-Plasma design.
 - `/charly-distros:cachyos` — the CachyOS GPU base (`cachyos.nvidia`) + submodule.
-- `/charly-distros:nvidia`, `/charly-distros:cuda` — the GPU runtime + CUDA toolkit layers.
+- `/charly-distros:nvidia`, `/charly-distros:cuda` — the GPU runtime + CUDA toolkit candies.
 
 ## Related
 

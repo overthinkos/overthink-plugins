@@ -2,13 +2,13 @@
 name: notebook-templates
 description: |
   Starter notebook templates provisioned into the workspace volume at deploy time.
-  First data-only layer in the project — no packages, no services, no dependencies.
-  Use when working with notebook-templates, data layers, or jupyter initial content.
+  First data-only candy in the project — no packages, no services, no dependencies.
+  Use when working with notebook-templates, data candies, or jupyter initial content.
 ---
 
-# notebook-templates -- Starter notebook data layer
+# notebook-templates -- Starter notebook data candy
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -21,7 +21,7 @@ description: |
 
 ## How It Works
 
-This is a **data layer** — the first of its kind in the project. It uses the `data:` field in `charly.yml` to map a directory of files to a named volume:
+This is a **data candy** — the first of its kind in the project. It uses the `data:` field in `charly.yml` to map a directory of files to a named volume:
 
 ```yaml
 info: "Starter notebook templates for jupyter"
@@ -31,9 +31,9 @@ data:
     volume: workspace
 ```
 
-At build time, the contents of `data/notebooks/` are staged into `/data/workspace/` inside the image.
+At build time, the contents of `data/notebooks/` are staged into `/data/workspace/` inside the box.
 
-At deploy time, when the volume is configured as a bind mount (`charly config --bind workspace`), `charly config` copies the staged data from the image into the host-backed volume directory. This seeds the volume with starter content (e.g., `getting-started.ipynb`).
+At deploy time, when the volume is configured as a bind mount (`charly config --bind workspace`), `charly config` copies the staged data from the box into the host-backed volume directory. This seeds the volume with starter content (e.g., `getting-started.ipynb`).
 
 ## Included Data
 
@@ -48,7 +48,7 @@ At deploy time, when the volume is configured as a bind mount (`charly config --
 jupyter:
   candy:
     - notebook-templates
-    # ... other layers
+    # ... other candies
 ```
 
 ```bash
@@ -59,7 +59,7 @@ charly config jupyter --bind workspace
 charly start jupyter
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-jupyter:jupyter`
 - `/charly-jupyter:jupyter-ml`
@@ -67,21 +67,21 @@ charly start jupyter
 
 ## Related Skills
 
-- `/charly-image:layer` -- data field documentation and layer authoring rules
+- `/charly-image:layer` -- data field documentation and candy authoring rules
 - `/charly-core:charly-config` -- data provisioning during `charly config` setup
 - `/charly-core:deploy` -- volume backing configuration (bind, named, encrypted)
-- `/charly-jupyter:jupyter` -- the JupyterLab layer that consumes the workspace volume
-- `/charly-jupyter:jupyter` -- the image that includes this layer
+- `/charly-jupyter:jupyter` -- the JupyterLab candy that consumes the workspace volume
+- `/charly-jupyter:jupyter` -- the box that includes this candy
 
 ## When to Use This Skill
 
 Use when the user asks about:
 
-- The notebook-templates layer or its contents
-- Data layers and the `data:` field in `charly.yml`
+- The notebook-templates candy or its contents
+- Data candies and the `data:` field in `charly.yml`
 - How starter content gets provisioned into volumes
 - The `getting-started.ipynb` notebook
-- How `charly config` seeds bind-backed volumes with image data
+- How `charly config` seeds bind-backed volumes with box data
 
 ## Related
 

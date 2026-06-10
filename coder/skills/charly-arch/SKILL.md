@@ -1,52 +1,52 @@
 ---
 name: charly-arch
 description: |
-  Arch Linux image with the full charly toolchain. Rootless-first — runs as
+  Arch Linux box with the full charly toolchain. Rootless-first — runs as
   uid=1000 with passwordless sudo (no root, no cap_add: ALL).
-  Composes /charly-coder:charly-mcp so the image is reachable as an MCP gateway
+  Composes /charly-coder:charly-mcp so the box is reachable as an MCP gateway
   on port 18765. NVIDIA GPU runtime composed in.
   MUST be invoked before building, deploying, configuring, or troubleshooting
-  the charly-arch image.
+  the charly-arch box.
 ---
 
 # charly-arch
 
 > **Location:** `charly-arch` lives in the **`overthinkos/arch`** repo (git
-> submodule at **`box/arch`**) and composes its layers by git reference to
+> submodule at **`box/arch`**) and composes its candies by git reference to
 > this repo. Build from the submodule: `cd box/arch && charly box build charly-arch`
 > (or `charly --repo overthinkos/arch box build charly-arch`). The `arch` base +
 > `arch-builder` are bare-local in the same self-contained `overthinkos/arch`
 > submodule (`import: []`) — `base: arch`.
 
 Arch Linux container with the full charly toolchain. Uses the same shared
-layer list as `/charly-distros:charly-fedora` — the tag system handles
+candy list as `/charly-distros:charly-fedora` — the tag system handles
 Arch-specific packages and scripts via `pac:` sections. Composes
-`charly-mcp` so the image is addressable as an MCP gateway — LLM agents
+`charly-mcp` so the box is addressable as an MCP gateway — LLM agents
 can drive build/test/deploy via Streamable HTTP on port 18765.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
 | Base | arch (quay.io/archlinux/archlinux, pinned in the `overthinkos/arch` submodule) |
 | Tags | `[all, pac, arch]` |
-| Layers | agent-forwarding, charly, **charly-mcp**, golang, gh, sshd, container-nesting, nvidia |
+| Candies | agent-forwarding, charly, **charly-mcp**, golang, gh, sshd, container-nesting, nvidia |
 | Platforms | linux/amd64 |
 | UID / user | **1000 / user** (rootless-first) |
 | Network | default `charly` bridge |
 | Ports | `2222:2222` (sshd), `18765:18765` (charly-mcp) |
-| Security | layer-level only (from `/charly-distros:container-nesting`) |
+| Security | candy-level only (from `/charly-distros:container-nesting`) |
 | Registry | ghcr.io/overthinkos |
 
 ### Rootless-first posture
 
-All four power-user images (`charly-arch`, `/charly-distros:charly-fedora`,
+All four power-user boxes (`charly-arch`, `/charly-distros:charly-fedora`,
 `/charly-coder:fedora-coder`, `/charly-distros:githubrunner`) run rootless because
 the `/charly-distros:container-nesting` kernel-level RCA proves that
 `unmask=/proc/*` + uid-delegation via subuid/subgid ranges is sufficient for
 rootless nested containers + rootless libvirt VMs.
 
-The `/charly-coder:sshd` layer installs `/etc/sudoers.d/charly-user` with
+The `/charly-coder:sshd` candy installs `/etc/sudoers.d/charly-user` with
 passwordless sudo for `user`, so anything that truly needs root inside
 the container is one `sudo` prefix away — but the default user for
 every process (sshd session, `charly` commands, nested `podman run`) is
@@ -62,7 +62,7 @@ Resolved OCI security label:
 | `privileged` | `false` |
 
 See `/charly-openclaw:openclaw-desktop` for the sibling rootless-first
-image that proves this posture works under streaming-desktop +
+box that proves this posture works under streaming-desktop +
 nested-VM load, and `/charly-distros:container-nesting` for the kernel
 `mount_too_revealing()` RCA.
 
@@ -73,13 +73,13 @@ rewriting (`rewriteMCPURLForHost` in `charly/mcp_client.go`) has published port
 mappings to work with. (That function also handles host-networked containers
 via `HostConfig.NetworkMode` detection, so the bridge isn't strictly required
 — but it remains the portable default.) If host-port 2222 is already taken by
-another running image (canonical conflict: `/charly-openclaw:openclaw-desktop`
+another running box (canonical conflict: `/charly-openclaw:openclaw-desktop`
 or any `selkies-desktop-*` variant), remap at config time:
 `charly config charly-arch -p 2223:2222`.
 
 ### MCP gateway (charly-mcp)
 
-The `/charly-coder:charly-mcp` layer deploys `charly mcp serve --listen :18765`
+The `/charly-coder:charly-mcp` candy deploys `charly mcp serve --listen :18765`
 inside the container under supervisord, advertising ~192 MCP tools
 (the full Kong CLI surface, including the project-scaffolding +
 YAML-editing + file-write authoring verbs). Three deployment patterns
@@ -90,12 +90,12 @@ auto-fallback to `overthinkos/overthink`:
 # Pattern 1: bind your local checkout
 charly config charly-arch --bind project=/home/you/opencharly
 charly start charly-arch
-charly eval mcp call charly-arch box.list.boxes '{}' --name charly  # lists YOUR project's images
+charly eval mcp call charly-arch box.list.boxes '{}' --name charly  # lists YOUR project's boxes
 
 # Pattern 3: no bind-mount (auto-fallback kicks in)
 charly config charly-arch
 charly start charly-arch
-charly eval mcp call charly-arch box.list.boxes '{}' --name charly  # lists upstream overthinkos/overthink images
+charly eval mcp call charly-arch box.list.boxes '{}' --name charly  # lists upstream overthinkos/overthink boxes
 ```
 
 Volume NAME is `project` (stable bind-mount API); container PATH is
@@ -106,7 +106,7 @@ bind-mount handshake.
 
 ## What's Installed
 
-Full charly toolchain via shared layers:
+Full charly toolchain via shared candies:
 
 - **charly** — the full toolchain: charly binary + VM tools (qemu-full, virtiofsd, libvirt) + gocryptfs + socat
 - **charly-mcp** — MCP server exposing the full charly CLI as tools on :18765 (supervisord-managed; bind `project=` for build-mode tools or rely on auto-fallback)
@@ -138,7 +138,7 @@ charly stop charly-arch
 ## Nested Containers
 
 Rootless podman works inside charly-arch at any nesting depth. The
-`/charly-distros:container-nesting` layer provides the config + env vars +
+`/charly-distros:container-nesting` candy provides the config + env vars +
 subuid/subgid delegation (1:999 + 1001:64535 per the podman/stable
 recipe):
 
@@ -156,7 +156,7 @@ to dodge Docker Hub rate limits — the baked
 
 ## GPU Support
 
-The `/charly-distros:nvidia` layer provides NVIDIA GPU runtime:
+The `/charly-distros:nvidia` candy provides NVIDIA GPU runtime:
 
 - `nvidia-utils` — `nvidia-smi` and driver userspace
 - `nvidia-container-toolkit` — `nvidia-ctk` for CDI spec generation
@@ -178,12 +178,12 @@ charly shell charly-arch -c "which nvidia-ctk"
 
 ## Unified with charly-fedora
 
-Both `charly-arch` and `/charly-distros:charly-fedora` use the exact same layer
+Both `charly-arch` and `/charly-distros:charly-fedora` use the exact same candy
 list. The tag system (`build: [pac]` + `distro: [arch]` vs
 `build: [rpm]` + `distro: ["fedora:43", fedora]`) selects the right
 packages and scripts per distro.
 
-## Key Layers
+## Key Candies
 
 - `/charly-tools:charly` — the full toolchain: charly binary plus VM/encryption tools
 - `/charly-coder:charly-mcp` — MCP server gateway (port 18765; `/workspace` bind-mount or auto-fallback)
@@ -192,11 +192,11 @@ packages and scripts per distro.
 - `/charly-coder:gh` — GitHub CLI + git + git-lfs (owns all git tooling)
 - `/charly-distros:nvidia` — NVIDIA GPU runtime
 
-## Related Images
+## Related Boxes
 
 - `/charly-distros:arch` — parent base image
-- `/charly-distros:charly-fedora` — Fedora counterpart, same layers, same rootless posture
-- `/charly-coder:fedora-coder` — kitchen-sink dev sibling (32 layers vs 8; adds coding CLIs + DevOps)
+- `/charly-distros:charly-fedora` — Fedora counterpart, same candies, same rootless posture
+- `/charly-coder:fedora-coder` — kitchen-sink dev sibling (32 candies vs 8; adds coding CLIs + DevOps)
 - `/charly-openclaw:openclaw-desktop` — streaming-desktop counterpart (charly toolchain + browser-accessible Wayland); shares the rootless-first posture
 - `/charly-distros:githubrunner` — self-hosted GitHub Actions runner; same uid=1000 posture
 

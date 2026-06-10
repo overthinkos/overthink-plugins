@@ -2,12 +2,12 @@
 name: yay
 description: |
   AUR helper for Arch Linux, enabling aur: package sections in charly.yml.
-  Use when working with the yay layer or Arch AUR builds.
+  Use when working with the yay candy or Arch AUR builds.
 ---
 
 # yay -- AUR helper for Arch Linux
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -38,7 +38,7 @@ Architecture-aware: downloads the correct binary for `x86_64` or `aarch64`.
 
 ## What It Does
 
-Installs the `yay` AUR helper, which enables the `aur:` package format in `charly.yml`. Any layer with an `aur:` section requires a builder that has the `yay` layer (and `builds: [aur]` capability). The `base-devel` and `git` packages are prerequisites for building AUR packages.
+Installs the `yay` AUR helper, which enables the `aur:` package format in `charly.yml`. Any candy with an `aur:` section requires a builder that has the `yay` candy (and `builds: [aur]` capability). The `base-devel` and `git` packages are prerequisites for building AUR packages.
 
 ## Usage
 
@@ -48,26 +48,26 @@ candy:
   - yay
 ```
 
-Not used directly in end-user images. Instead, it's part of the builder image that compiles AUR packages during multi-stage builds.
+Not used directly in end-user boxes. Instead, it's part of the builder image that compiles AUR packages during multi-stage builds.
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-distros:arch-builder` — Arch build infrastructure image
 
-## Related Layers
+## Related Candies
 
 - `/charly-coder:build-toolchain` — C/C++ build tools (also in arch-builder)
-- `/charly-distros:arch-aur-test` — test layer that validates AUR builds
+- `/charly-distros:arch-aur-test` — test candy that validates AUR builds
 
 ## When to Use This Skill
 
 Use when the user asks about:
 - AUR package support in OpenCharly
-- The `yay` layer or AUR helper installation
+- The `yay` candy or AUR helper installation
 - How `aur:` packages in charly.yml get built
-- The `arch-builder` image's AUR capability
+- The `arch-builder` box's AUR capability
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

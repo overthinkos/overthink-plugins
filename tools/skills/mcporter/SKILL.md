@@ -2,12 +2,12 @@
 name: mcporter
 description: |
   MCP server CLI for listing, configuring, and calling MCP tools.
-  Use when working with the mcporter layer.
+  Use when working with the mcporter candy.
 ---
 
 # mcporter -- MCP server CLI
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -22,11 +22,11 @@ candy:
   - mcporter
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:nodejs` — required runtime dependency
 - `/charly-openclaw:openclaw-full` — metalayer that includes mcporter
 - `/charly-coder:claude-code` — sibling AI CLI commonly paired with MCP tools
@@ -40,9 +40,9 @@ candy:
 Use when the user asks about:
 - MCP server management in containers
 - Listing or calling MCP tools
-- The `mcporter` layer
+- The `mcporter` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

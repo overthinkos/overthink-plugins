@@ -2,7 +2,7 @@
 name: labwc
 description: |
   Lightweight Wayland compositor (wlroots-based) for nested desktop inside pixelflux.
-  MUST be invoked when working with: the labwc layer, Wayland compositor config in selkies images, or labwc-wrapper.
+  MUST be invoked when working with: the labwc candy, Wayland compositor config in selkies boxes, or labwc-wrapper.
 ---
 
 # labwc -- Nested Wayland compositor for Selkies desktop
@@ -70,14 +70,14 @@ The compositor and selkies input handler both read `XKB_DEFAULT_LAYOUT` from the
 - `labwc-wrapper` — Waits for pixelflux's `wayland-1` socket, exports XKB_DEFAULT_* from env with defaults, then starts labwc
 - `rc.xml` — labwc configuration: server-side decorations, maximize-all window rule, keyboard shortcuts (Alt+F4 close, Super+E terminal)
 - `autostart` — Does NOT launch Chrome. Chrome is launched + supervised by the
-  `[program:chrome]` service in the **selkies-core** layer (shared by both selkies
+  `[program:chrome]` service in the **selkies-core** candy (shared by both selkies
   flavors). CDP: internal 9223, external 9222 via cdp-proxy.
 
 ## Chrome ownership (selkies-core, not labwc)
 
 Chrome is owned by a supervised `[program:chrome]` service declared in the
-**selkies-core** layer (`candy/selkies-core/charly.yml` `service:` block) — NOT by the
-labwc layer and NOT by labwc's autostart. Both selkies flavors (labwc via
+**selkies-core** candy (`candy/selkies-core/charly.yml` `service:` block) — NOT by the
+labwc candy and NOT by labwc's autostart. Both selkies flavors (labwc via
 `selkies-desktop`, KDE Plasma via `selkies-kde-desktop`) compose selkies-core and get the
 same supervised browser. The per-flavor compositor autostart (labwc's `autostart`,
 KDE's `kde-selkies-session`) does not start Chrome.
@@ -97,12 +97,12 @@ The supervised service uses:
 - `priority: 30`, env `WAYLAND_DISPLAY=wayland-0`.
 
 There is no Chrome eventlistener and no `PROCESS_STATE_FATAL` circuit breaker — relaunch is
-handled entirely by `restart: always` on the supervised service. The chrome layer's cgroup
+handled entirely by `restart: always` on the supervised service. The chrome candy's cgroup
 resource caps (`memory_max`/`memory_high`/`memory_swap_max`/`shm_size`) still apply. See
 `/charly-selkies:selkies-desktop-layer` and `/charly-infrastructure:supervisord` for the
 supervised-service pattern, and `/charly-selkies:chrome` for the resource caps.
 
-**sway-browser-vnc is unaffected:** it launches Chrome via the chrome-sway layer (not
+**sway-browser-vnc is unaffected:** it launches Chrome via the chrome-sway candy (not
 selkies-core), is not pixelflux-nested, and does not hit the startup-race.
 
 ## Window Rules
@@ -114,7 +114,7 @@ All windows open maximized (ideal for streaming desktop):
 </windowRule>
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
@@ -129,9 +129,9 @@ All windows open maximized (ideal for streaming desktop):
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the labwc layer, Wayland compositor configuration in selkies images, the labwc-wrapper script, window rules, or the nested compositor architecture (pixelflux → labwc → apps).
+**MUST be invoked** when the task involves the labwc candy, Wayland compositor configuration in selkies boxes, the labwc-wrapper script, window rules, or the nested compositor architecture (pixelflux → labwc → apps).
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -7,7 +7,7 @@ description: |
 
 # traefik -- Reverse proxy with dynamic routing
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -26,11 +26,11 @@ fedora-test:
     - traefik
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-distros:fedora-test`
 
-## Related Layers
+## Related Candies
 
 - `/charly-infrastructure:supervisord` -- process manager dependency
 - `/charly-infrastructure:testapi` -- test service with Traefik route
@@ -51,5 +51,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

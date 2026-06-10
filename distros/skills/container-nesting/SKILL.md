@@ -6,7 +6,7 @@ description: |
   containers.conf/storage.conf/policy.json plus two canonical env vars
   plus subuid layout that fits inside the outer user namespace. Authoritative
   source for the `mount_too_revealing()` kernel RCA.
-  Use when working with nested containers, the container-nesting layer,
+  Use when working with nested containers, the container-nesting candy,
   or any "rootless-in-rootless podman" question.
 ---
 
@@ -18,10 +18,10 @@ Adds everything needed to run **rootless** podman/buildah/skopeo **inside
 a rootless outer container** — at the default uid 1000, with zero added
 capabilities, no `--privileged`, no `seccomp=unconfined`, no
 `label=disable`. The recipe is a direct port of `quay.io/podman/stable`'s
-canonical configuration, ported into the charly candy system so any image
+canonical configuration, ported into the charly candy system so any box
 can compose it.
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -39,13 +39,13 @@ can compose it.
 **Pacman:** `buildah`, `crun`, `fuse-overlayfs`, `libsecret`, `podman`,
 `shadow`, `skopeo`, `tailscale`.
 
-**Arch must declare `podman` and `crun` explicitly:** the layer's whole
+**Arch must declare `podman` and `crun` explicitly:** the candy's whole
 purpose is **rootless nested podman**, and the `containers.conf` shipped
-by this layer explicitly sets `runtime = "crun"`. RPM users get `podman`
+by this candy explicitly sets `runtime = "crun"`. RPM users get `podman`
 transitively via the Fedora base image; Arch has no such transitive
 pull, so both `podman` and `crun` are declared explicitly in the `pac:`
 list (declaring `docker` instead, or omitting `crun`, leaves the
-Arch-based image with no `podman` binary in `$PATH`).
+Arch-based box with no `podman` binary in `$PATH`).
 
 ## The kernel-level RCA (why none of the obvious fixes work)
 
@@ -112,7 +112,7 @@ for /proc on the outer container. With nothing to mismatch,
 `mount_too_revealing` has nothing to reject. The inner `/proc` mount
 proceeds cleanly.
 
-This layer's `security:` block is `security_opt: [unmask=/proc/*]` +
+This candy's `security:` block is `security_opt: [unmask=/proc/*]` +
 `devices: [/dev/fuse, /dev/net/tun]`. No capability added. No seccomp
 touched. No SELinux touched. The surgical minimum.
 
@@ -143,7 +143,7 @@ So inside the outer, **only inner uids 0-65535 exist**. Subid
 delegation ranges that fall outside this window fail at
 `newuidmap write to uid_map: EPERM`.
 
-The layer emits two non-overlapping ranges for the primary uid-1000
+The candy emits two non-overlapping ranges for the primary uid-1000
 user, skipping uid 1000 itself (because keep-id already owns it):
 
 ```
@@ -171,7 +171,7 @@ delegate subids.
 
 Rootless podman **prefers `~/.config/containers/*` over `/etc/containers/*`**.
 Writing only the system-wide location is a no-op for the desktop user.
-This layer writes every config to both locations.
+This candy writes every config to both locations.
 
 ### `containers.conf`
 
@@ -266,18 +266,18 @@ Without this, `podman pull` fails with `no policy.json file found`.
 | `_CONTAINERS_USERNS_CONFIGURED` | `""` (empty string, SET not UNSET) | Tells the inner podman "you're already inside a rootless user namespace". Without this, the inner re-execs itself via `newuidmap` to create a new descendant user namespace — defeating `userns=host` in containers.conf and re-triggering `mount_too_revealing`. |
 | `BUILDAH_ISOLATION` | `chroot` | Tells buildah RUN steps to use chroot isolation instead of the OCI runtime. Without this, nested `podman build` falls back to OCI isolation which creates a descendant user namespace and hits the same kernel check. |
 
-Both are baked into the layer's `env:` section so they land in the
-OCI env of any image composing this layer.
+Both are baked into the candy's `env:` section so they land in the
+OCI env of any box composing this candy.
 
 ## Box-level compatibility (union semantics)
 
-`charly/security.go:66-97` **unions** image-level `CapAdd`, `SecurityOpt`,
-`Devices` onto the layer-level merged set (via `appendUnique`). Image
+`charly/security.go:66-97` **unions** box-level `CapAdd`, `SecurityOpt`,
+`Devices` onto the candy-level merged set (via `appendUnique`). Box
 values can only ADD, never strip.
 
-Consequence: images that want the old full-hammer posture
-(`charly-fedora`, `charly-arch`, `githubrunner`) must assert it at the image
-level, not expect this layer to donate it. Their `charly.yml` entries
+Consequence: boxes that want the old full-hammer posture
+(`charly-fedora`, `charly-arch`, `githubrunner`) must assert it at the box
+level, not expect this candy to donate it. Their `charly.yml` entries
 carry:
 
 ```yaml
@@ -292,8 +292,8 @@ The resolved OCI label then unions to
 `cap_add:[ALL] + security_opt:[unmask=/proc/*, label=disable, seccomp=unconfined]`,
 which matches their historical posture.
 
-Rootless images like `/charly-openclaw:openclaw-desktop` don't add an
-image-level `security:` block, so the resolved posture stays at
+Rootless boxes like `/charly-openclaw:openclaw-desktop` don't add a
+box-level `security:` block, so the resolved posture stays at
 `security_opt:[unmask=/proc/*]` only — zero capability escalation.
 
 ## Cross-distro coverage
@@ -366,10 +366,10 @@ this order:
 3. `cat /etc/subuid` — must show the 1:999 + 1001:64535 pattern for the primary user.
 4. `podman inspect <outer-container> --format '{{.HostConfig.SecurityOpt}}'` — must include `unmask=/proc/*`.
 
-## Used In Images
+## Used In Boxes
 
-- `/charly-openclaw:openclaw-desktop` — rootless path; image-level adds nothing
-- `/charly-distros:charly-fedora` — root path; image-level adds `cap_add:[ALL] + security_opt:[label=disable, seccomp=unconfined]`
+- `/charly-openclaw:openclaw-desktop` — rootless path; box-level adds nothing
+- `/charly-distros:charly-fedora` — root path; box-level adds `cap_add:[ALL] + security_opt:[label=disable, seccomp=unconfined]`
 - `/charly-coder:charly-arch` — same root path as charly-fedora
 - `/charly-distros:githubrunner` — same root path; doesn't compose the full charly toolchain but keeps nested podman for CI workloads
 
@@ -384,18 +384,18 @@ this order:
 - `/charly-build:build` — build images that ship nested podman
 - `/charly-core:shell` — run nested podman/buildah commands inside the outer
 - `/charly-build:generate` — Containerfile generation (the `service:` supervisord fragments for container-nesting consumers go through the fragment_assembly init model)
-- `/charly-core:charly-config` — image-level `security:` union with layer-level when deploying
+- `/charly-core:charly-config` — box-level `security:` union with candy-level when deploying
 
 ## When to Use This Skill
 
 **MUST be invoked** when:
 
-- Authoring or debugging any layer/image that needs nested podman, buildah, or skopeo.
+- Authoring or debugging any candy/box that needs nested podman, buildah, or skopeo.
 - Chasing `mount_too_revealing` / `mount proc to proc: Operation not permitted` errors — this is the authoritative RCA.
 - Choosing between `--privileged`, `cap_add: ALL`, and `unmask=/proc/*` — this skill documents why the surgical `unmask` fix is the minimum-privilege path and the others are hammers.
 - Evaluating the security posture of `/charly-openclaw:openclaw-desktop`, `/charly-distros:charly-fedora`, `/charly-coder:charly-arch`, or `/charly-distros:githubrunner`.
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

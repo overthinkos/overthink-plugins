@@ -18,7 +18,7 @@ The beds are `kind: eval` entities (the 2026-05 deploy→eval unification moved
 every repo-shipped disposable bed out of `deploy.yml`), driven by `charly eval run
 <bed>`. Drive them from the submodule, e.g. `charly -C box/arch vm create arch`
 and `charly -C box/arch eval run eval-arch-vm` (or `charly --repo overthinkos/arch …`). Any
-layers applied via `add_candy:` are pulled from this repo by git ref.
+candies applied via `add_candy:` are pulled from this repo by git ref.
 
 Canonical `source.kind: cloud_image` VM in the repo. Boots an Arch Linux cloud image as a full VM with SSH + SPICE console access, cloud-init-provisioned SSH keys, virtio-gpu graphics, and the `charly` toolchain auto-installed inside the guest.
 

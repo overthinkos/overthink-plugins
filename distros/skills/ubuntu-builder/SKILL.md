@@ -2,11 +2,11 @@
 name: ubuntu-builder
 description: |
   Minimal Ubuntu 24.04 builder image (pixi + Node.js + build-toolchain)
-  used as the multi-stage builder for Ubuntu-based images — currently
+  used as the multi-stage builder for Ubuntu-based boxes — currently
   ubuntu-coder. Runs as uid 1000 `ubuntu` (adopted from the upstream
   ubuntu:24.04 base image via build.yml's base_user declaration).
   MUST be invoked before building, deploying, configuring, or troubleshooting
-  the ubuntu-builder image.
+  the ubuntu-builder box.
 ---
 
 # ubuntu-builder
@@ -16,7 +16,7 @@ Ubuntu 24.04 (noble) counterpart of `/charly-distros:fedora-builder` and `/charl
 Lives in the **`overthinkos/ubuntu`** repo (git submodule at **`box/ubuntu`**).
 Build it from the submodule: `charly -C box/ubuntu box build ubuntu-builder`
 (normally builds implicitly as a dependency of `ubuntu-coder`). Its
-`pixi`/`nodejs`/`build-toolchain` layers are pulled by github reference from the
+`pixi`/`nodejs`/`build-toolchain` candies are pulled by github reference from the
 main repo.
 
 ## Box Properties
@@ -30,7 +30,7 @@ main repo.
 | User | `ubuntu` / uid 1000 (**adopt mode** — see `/charly-image:image` "user_policy") |
 | Home | `/home/ubuntu` |
 
-## Full layer stack
+## Full candy stack
 
 1. `/charly-distros:ubuntu` — Ubuntu 24.04 + bootstrap. Inherits Debian's `apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg` pattern because `build.yml distro.ubuntu` declares `inherits: debian`. Ubuntu-specific: `base_user: { name: ubuntu, uid: 1000, gid: 1000, home: /home/ubuntu }` — no `useradd` step emitted.
 2. `/charly-languages:pixi` — pixi package manager + env paths (`/home/ubuntu/.pixi`).
@@ -61,7 +61,7 @@ ubuntu:
     cargo: ubuntu-builder
 ```
 
-During `charly box build ubuntu-coder`, cargo/npm/pixi-owning layers get their `FROM ubuntu-builder AS <layer>-<type>-build` stages from this image, then `COPY --from=<stage> --chown=1000:1000 /home/ubuntu /home/ubuntu` into the final ubuntu-coder. (The `--chown=1000:1000` numeric form works uniformly regardless of user name — see `/charly-coder:build-toolchain` for the builder-artifact COPY pattern.)
+During `charly box build ubuntu-coder`, cargo/npm/pixi-owning candies get their `FROM ubuntu-builder AS <layer>-<type>-build` stages from this image, then `COPY --from=<stage> --chown=1000:1000 /home/ubuntu /home/ubuntu` into the final ubuntu-coder. (The `--chown=1000:1000` numeric form works uniformly regardless of user name — see `/charly-coder:build-toolchain` for the builder-artifact COPY pattern.)
 
 ## Cross-distro sibling builders
 
@@ -69,7 +69,7 @@ During `charly box build ubuntu-coder`, cargo/npm/pixi-owning layers get their `
 - `/charly-distros:debian-builder` — deb-family, Debian 13, `user:user` (create — Debian 13 ships no pre-existing uid-1000 user).
 - `/charly-distros:arch-builder` — pacman-family, `user:user` + `yay` for AUR.
 
-The three builders have near-identical layer stacks (pixi + nodejs + build-toolchain). The only meaningful divergence is this image's adopt-mode `ubuntu:ubuntu` identity.
+The three builders have near-identical candy stacks (pixi + nodejs + build-toolchain). The only meaningful divergence is this box's adopt-mode `ubuntu:ubuntu` identity.
 
 ## Quick start
 
@@ -87,14 +87,14 @@ Typically not invoked directly — it's a build-time dependency of `/charly-code
 - `charly shell ubuntu-builder -- id` → `uid=1000(ubuntu) gid=1000(ubuntu)`
 - `charly shell ubuntu-builder -- pixi --version && node --version && gcc --version`
 
-## Related images
+## Related boxes
 
 - `/charly-distros:ubuntu` — parent base; declares `base_user:` in `build.yml`.
 - `/charly-coder:ubuntu-coder` — the consumer that this builder serves.
 - `/charly-distros:debian-builder` — deb-family sibling without adopt mode.
 - `/charly-distros:fedora-builder` — canonical RPM-family sibling.
 
-## Related layers
+## Related candies
 
 - `/charly-languages:pixi`, `/charly-coder:nodejs`, `/charly-coder:build-toolchain`
 

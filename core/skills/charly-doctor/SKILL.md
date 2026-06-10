@@ -104,7 +104,7 @@ AMD GPU detection also reports the GFX version (e.g., `gfx 11.0.0`) from KFD top
 
 **Why centralized:** DRINODE injection lives in the single `appendAutoDetectedEnv()` helper so `/charly-core:charly-config`, `/charly-core:start`, and `/charly-core:shell` all produce the identical env set — a fix applied to one reaches all three. `/charly-distros:nvidia` and `/charly-distros:rocm` ship no hardcoded render nodes in their charly.yml; they rely on this detection instead.
 
-**Disabling auto-detection:** Pass `--no-autodetect` to `charly config` to skip all of DRINODE, DRI_NODE, and HSA_OVERRIDE_GFX_VERSION injection. Useful when you want to set these values explicitly or test a layer without host device dependence. See `/charly-core:charly-config` flag table.
+**Disabling auto-detection:** Pass `--no-autodetect` to `charly config` to skip all of DRINODE, DRI_NODE, and HSA_OVERRIDE_GFX_VERSION injection. Useful when you want to set these values explicitly or test a candy without host device dependence. See `/charly-core:charly-config` flag table.
 
 ## Output Format
 

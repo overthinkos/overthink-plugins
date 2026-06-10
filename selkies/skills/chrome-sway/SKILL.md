@@ -7,12 +7,12 @@ description: |
 
 # chrome-sway -- Chrome browser on Sway compositor
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
 | Dependencies | `sway` |
-| Layers (includes) | `chrome` |
+| Candies (includes) | `chrome` |
 | Install files | `task:`, `chrome-sway.conf` |
 
 ## Usage
@@ -24,7 +24,7 @@ my-browser:
     - chrome-sway
 ```
 
-## Used In Images
+## Used In Boxes
 
 Part of `/charly-selkies:sway-desktop` composition.
 
@@ -37,10 +37,10 @@ Chrome is launched by Sway's `exec` directive (autostart) via `chrome-wrapper`. 
 - **Manual restart**: Use `charly eval wl sway exec <image> chrome-wrapper` to relaunch Chrome from outside the container. Do **not** use `charly shell` with bare `swaymsg` -- the shell may lack the correct `SWAYSOCK` path.
 - **On-demand launch**: The `browser-open` helper auto-launches Chrome if it's not running (see `/charly-selkies:chrome` for details).
 
-## Related Layers
+## Related Candies
 
 - `/charly-selkies:sway` -- compositor dependency
-- `/charly-selkies:chrome` -- Chrome browser and DevTools (included via layers)
+- `/charly-selkies:chrome` -- Chrome browser and DevTools (included via candies)
 - `/charly-selkies:sway-desktop` -- composition that includes chrome-sway
 - `/charly-selkies:wayvnc` -- VNC access to see Chrome desktop
 
@@ -55,5 +55,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

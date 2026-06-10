@@ -8,12 +8,12 @@ description: |
 
 # jupyter -- Lightweight JupyterLab with real-time collaboration
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
 | Dependencies | `supervisord` |
-| Sub-layers | `jupyter-mcp` |
+| Sub-candies | `jupyter-mcp` |
 | Ports | 8888 |
 | Service | `jupyter` (supervisord) |
 | Volume | `workspace` at `/workspace` |
@@ -50,16 +50,16 @@ build loudly.
 
 ## Environment
 
-No custom environment variables on the layer itself. **Runtime PATH
+No custom environment variables on the candy itself. **Runtime PATH
 contributions** for the pixi env (`~/.pixi/bin`,
 `~/.pixi/envs/default/bin`) and cache dirs (`PIXI_CACHE_DIR`,
 `RATTLER_CACHE_DIR`) come from the **pixi BUILDER** (declared in
 `build.yml` / `charly.yml` under `builder.pixi.runtime_env:` and
 `path_contributions:`) — see `/charly-internals:generate-source` for the
 `writeLayerEnv` flow. The pixi runtime env flows through the pixi
-BUILDER (not the pixi LAYER) so images that consume pixi via
+BUILDER (not the pixi LAYER) so boxes that consume pixi via
 pixi.toml-triggered builds (jupyter, openwebui, immich-ml, …) get the
-env contract automatically without needing pixi as a top-level layer
+env contract automatically without needing pixi as a top-level candy
 for sibling-grouped auto-intermediate inheritance.
 
 ## Collaboration
@@ -104,16 +104,16 @@ jupyter:
 
 ## MCP Server Discovery
 
-The `jupyter` layer declares `mcp_provide` for cross-container and pod MCP discovery. The URL template `http://{{.ContainerName}}:8888/mcp` resolves to the actual container name at deploy time (e.g., `http://charly-jupyter:8888/mcp`), or to `http://localhost:8888/mcp` in combined images where both services run in the same container.
+The `jupyter` candy declares `mcp_provide` for cross-container and pod MCP discovery. The URL template `http://{{.ContainerName}}:8888/mcp` resolves to the actual container name at deploy time (e.g., `http://charly-jupyter:8888/mcp`), or to `http://localhost:8888/mcp` in combined boxes where both services run in the same container.
 
 - **Transport:** Streamable HTTP (`http`)
 - **11 tools** available via the `jupyter-mcp` extension (see below)
 - **Hermes auto-configures** via the `CHARLY_MCP_SERVERS` env var -- no manual MCP registration needed
-- **Pod-aware:** resolves to `localhost` in combined images where hermes and jupyter share a container
+- **Pod-aware:** resolves to `localhost` in combined boxes where hermes and jupyter share a container
 
 ## MCP Server Extension (`jupyter_mcp`)
 
-The layer includes a built-in MCP (Model Context Protocol) server at `/mcp` on port 8888. AI agents can create, read, edit, and execute notebook cells programmatically — with changes syncing live to all connected JupyterLab clients via CRDT.
+The candy includes a built-in MCP (Model Context Protocol) server at `/mcp` on port 8888. AI agents can create, read, edit, and execute notebook cells programmatically — with changes syncing live to all connected JupyterLab clients via CRDT.
 
 ### Architecture
 
@@ -160,9 +160,9 @@ Clients do not manage CRDT rooms. The server auto-attaches every `notebook_*`/`c
 
 ### Installation
 
-The MCP extension is installed by the `jupyter-mcp` sub-layer (composed via `candy: [jupyter-mcp]`):
+The MCP extension is installed by the `jupyter-mcp` sub-candy (composed via `candy: [jupyter-mcp]`):
 1. `pip install "fastmcp>=3.2.0"` + opentelemetry runtime deps (not pixi -- cross-platform resolver conflicts with opentelemetry-api on aarch64)
-2. `pip install --no-deps /ctx/jupyter_mcp` (extension package from sub-layer directory)
+2. `pip install --no-deps /ctx/jupyter_mcp` (extension package from sub-candy directory)
 3. Extension enabled via `jupyter_server_config.d/jupyter_mcp.json`
 
 ### Source files
@@ -196,7 +196,7 @@ Multiple MCP clients can edit the same notebook simultaneously:
 
 ## Tests
 
-The layer ships declarative checks embedded in the `ai.opencharly.eval`
+The candy ships declarative checks embedded in the `ai.opencharly.eval`
 OCI label (see `/charly-eval:eval` for the full schema):
 
 - **Build-scope** (run under `charly eval box`):
@@ -218,20 +218,20 @@ OCI label (see `/charly-eval:eval` for the full schema):
   - `mcp-jupyter-call-list-notebooks` — actually invokes
     `notebook_list` and verifies the response shape
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-jupyter:jupyter`
 
-## Related Layers
+## Related Candies
 
 - `/charly-jupyter:jupyter-ml` -- GPU-accelerated variant with full CUDA ML stack + same CRDT MCP server
-- `/charly-jupyter:jupyter-mcp` -- MCP server implementation (sub-layer, 11 tools for programmatic notebook access using `<noun>_<verb>` naming; clients don't manage CRDT rooms — the server auto-attaches)
-- `/charly-jupyter:notebook-templates` -- Starter notebooks (data layer, used alongside this layer in images)
+- `/charly-jupyter:jupyter-mcp` -- MCP server implementation (sub-candy, 11 tools for programmatic notebook access using `<noun>_<verb>` naming; clients don't manage CRDT rooms — the server auto-attaches)
+- `/charly-jupyter:notebook-templates` -- Starter notebooks (data candy, used alongside this candy in boxes)
 - `/charly-hermes:hermes` -- MCP consumer (auto-discovers via `CHARLY_MCP_SERVERS` env var; uses `jupyter` server tools to read/edit/execute cells)
 - `/charly-openwebui:openwebui` -- MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code-block execution into the Jupyter kernel)
 - `/charly-infrastructure:supervisord` -- process manager dependency
 - `/charly-languages:python` -- Python runtime (transitive via supervisord)
-- `/charly-build:charly-mcp-cmd` -- end-to-end testing of the layer's MCP endpoint (`charly eval mcp ping`, `list-tools`, `call`); the layer ships 3 deploy-scope `mcp:` declarative checks against `list_notebooks`/`insert_cell`/`execute_cell`
+- `/charly-build:charly-mcp-cmd` -- end-to-end testing of the candy's MCP endpoint (`charly eval mcp ping`, `list-tools`, `call`); the candy ships 3 deploy-scope `mcp:` declarative checks against `list_notebooks`/`insert_cell`/`execute_cell`
 
 ## When to Use This Skill
 
@@ -241,7 +241,7 @@ Use when the user asks about:
 - jupyter-collaboration or Y-CRDT setup
 - Lightweight Jupyter without GPU/ML dependencies
 - Port 8888 service (check if GPU variant intended)
-- The `jupyter` layer
+- The `jupyter` candy
 - MCP server for notebook manipulation
 - Programmatic notebook access from AI agents
 - `watch_notebook` or change notifications
@@ -249,4 +249,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)

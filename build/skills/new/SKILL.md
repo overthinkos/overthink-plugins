@@ -1,11 +1,11 @@
 ---
 name: new
 description: |
-  Scaffold new layers, images, and whole projects with template files.
-  MUST be invoked before any work involving: charly box new {project, box, candy} commands, creating new projects/images/layers, or scaffolding directories.
+  Scaffold new candies, boxes, and whole projects with template files.
+  MUST be invoked before any work involving: charly box new {project, box, candy} commands, creating new projects/boxes/candies, or scaffolding directories.
 ---
 
-# charly box new -- Scaffold New Projects, Images, and Layers
+# charly box new -- Scaffold New Projects, Boxes, and Candies
 
 The `charly box new` family groups three scaffolding verbs. See `/charly-image:image` for the full family overview and `/charly-image:layer` for the layer-authoring verb catalog it bootstraps.
 
@@ -108,13 +108,13 @@ The scaffolded `charly.yml` from step 3 is minimal (a null `rpm.packages:` list 
 ### `charly box` family siblings
 
 - `/charly-image:image` -- Family overview + charly.yml composition reference
-- `/charly-build:build` -- Build images containing the new layer
+- `/charly-build:build` -- Build images containing the new candy
 - `/charly-build:generate` -- Containerfile generation
-- `/charly-build:inspect` -- Inspect built image including the new layer
+- `/charly-build:inspect` -- Inspect built image including the new candy
 - `/charly-build:list` -- Enumerate layers (the new one shows up here)
 - `/charly-build:merge` -- Post-build layer consolidation
-- `/charly-build:pull` -- Pull prebuilt images (unrelated; for consumers of your new layer)
-- `/charly-build:validate` -- Validate layer and image definitions
+- `/charly-build:pull` -- Pull prebuilt images (unrelated; for consumers of your new candy)
+- `/charly-build:validate` -- Validate candy and box definitions
 
 ### Related skills
 

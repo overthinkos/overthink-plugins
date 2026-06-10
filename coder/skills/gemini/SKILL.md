@@ -2,12 +2,12 @@
 name: gemini
 description: |
   Google Gemini CLI for AI coding assistance and search.
-  Use when working with the gemini layer.
+  Use when working with the gemini candy.
 ---
 
 # gemini -- Google Gemini CLI
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -22,11 +22,11 @@ candy:
   - gemini
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:nodejs` — required runtime dependency
 - `/charly-coder:claude-code` — sibling AI CLI in openclaw-full and hermes-full
 - `/charly-coder:codex` — sibling AI CLI in openclaw-full and hermes-full
@@ -41,9 +41,9 @@ candy:
 Use when the user asks about:
 - Google Gemini CLI in containers
 - AI coding assistance tools
-- The `gemini` layer
+- The `gemini` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

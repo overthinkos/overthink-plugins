@@ -121,19 +121,19 @@ local registry pointer moves.
 ### Quadlet Mode
 
 1. Pull/build new image
-2. Sync data from data layers into the image's volumes — both bind mounts and podman named volumes (if `--seed`)
+2. Sync data from data candies into the image's volumes — both bind mounts and podman named volumes (if `--seed`)
 3. `systemctl --user restart charly-<image>.service`
 4. Update `deploy.yml` with new `data_source`
 
 ### Direct Mode
 
 1. Pull/build new image
-2. Sync data from data layers into the image's volumes (if `--seed`)
+2. Sync data from data candies into the image's volumes (if `--seed`)
 3. Print restart instructions (manual restart required)
 
 ## Data Seeding
 
-Data layers (layers that declare a `data:` block in `charly.yml`) ship
+Data candies (candies that declare a `data:` block in `charly.yml`) ship
 starter content that gets copied into the runtime volume on first
 deployment. Examples: `notebook-templates` ships
 `getting-started.ipynb` into jupyter's `workspace` volume;

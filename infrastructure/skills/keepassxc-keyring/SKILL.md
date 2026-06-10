@@ -13,7 +13,7 @@ description: |
 
 # keepassxc-keyring -- KeePassXC as the system Secret Service
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -31,7 +31,7 @@ description: |
 
 `pinentry` provides the GUI passphrase dialog that gpg-agent spawns; `libsecret` provides `secret-tool` and the C client lib that pinentry-qt uses to query KeePassXC.
 
-## What this layer changes on the host
+## What this candy changes on the host
 
 1. `~/.config/keepassxc/keepassxc.ini` — writes `[FdoSecrets] Enabled=true` block (and three plugin-behavior toggles).
 2. `~/.config/autostart/keepassxc.desktop` — XDG autostart entry that launches KeePassXC on every session login.
@@ -39,11 +39,11 @@ description: |
 4. `systemctl --user disable --now <unit>` for the same competitors' systemd user units (`gnome-keyring-daemon.socket`, `gnome-keyring-daemon.service`, the kwallet service variants). Idempotent, silent if a unit doesn't exist.
 5. `~/.gnupg/gpg-agent.conf` — `pinentry-program /usr/bin/pinentry-qt` (the libsecret-linked pinentry that talks to KeePassXC for GPG passphrase storage).
 6. `~/.config/environment.d/ssh-agent.conf` — exports `SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/ssh-agent.socket"` for systemd-bootstrapped sessions.
-7. **Per-shell init exports (via the `shell:` schema):** for non-systemd-bootstrapped shells (tmux from a screen-locked session, ssh-in shells without a fresh login, scripts), the layer's `shell:` block lands managed-block exports of `SSH_AUTH_SOCK` (guarded with `command -v` / socket-existence check), `KEEPASSXC_DATABASE` advisory pointer, and `GPG_TTY=$(tty)`. bash/zsh/sh share one POSIX-style snippet; fish gets a syntactically-correct counterpart via `set -gx`. environment.d (item 6) and the `shell:` block coexist with no conflict — environment.d wins under systemd, the shell-rc lines fill the gap when systemd isn't in the loop.
-8. **Direnv shell hooks come from the `direnv` layer** (declared via `requires: [direnv]`). This layer writes no direnv hooks itself — the responsibility belongs to the direnv layer's own `shell:` block. `charly migrate` cleans up any legacy inline `direnv-hook` blocks left on a host by older configs.
+7. **Per-shell init exports (via the `shell:` schema):** for non-systemd-bootstrapped shells (tmux from a screen-locked session, ssh-in shells without a fresh login, scripts), the candy's `shell:` block lands managed-block exports of `SSH_AUTH_SOCK` (guarded with `command -v` / socket-existence check), `KEEPASSXC_DATABASE` advisory pointer, and `GPG_TTY=$(tty)`. bash/zsh/sh share one POSIX-style snippet; fish gets a syntactically-correct counterpart via `set -gx`. environment.d (item 6) and the `shell:` block coexist with no conflict — environment.d wins under systemd, the shell-rc lines fill the gap when systemd isn't in the loop.
+8. **Direnv shell hooks come from the `direnv` candy** (declared via `requires: [direnv]`). This candy writes no direnv hooks itself — the responsibility belongs to the direnv candy's own `shell:` block. `charly migrate` cleans up any legacy inline `direnv-hook` blocks left on a host by older configs.
 9. **systemd user service for KeePassXC** with `Restart=on-failure` and explicit dependency on `graphical-session.target`.
 
-## What this layer DOES NOT do
+## What this candy DOES NOT do
 
 - **Marking a `.kdbx` group as "Secret Service exposed"** — this is per-database state inside the `.kdbx` file itself, not in `keepassxc.ini`. It is a one-time GUI action (right-click group → "Mark as Secret Service exposed") performed by the user once per database.
 - **`charly secrets gpg setup`** — the gpg-agent.conf, systemd socket, and Secret-Service passphrase storage are still wired by the user-invoked `charly secrets gpg setup` command. This layer just installs the packages that command requires (`pinentry-qt`, `libsecret`).
@@ -63,9 +63,9 @@ local:
       ...
 ```
 
-Order with respect to `direnv`/`gnupg`/`keepassxc` doesn't strictly matter (the layer system topo-sorts via `require:`), but listing them adjacently makes the YAML self-documenting.
+Order with respect to `direnv`/`gnupg`/`keepassxc` doesn't strictly matter (the candy system topo-sorts via `require:`), but listing them adjacently makes the YAML self-documenting.
 
-## Used In Images / Templates
+## Used In Boxes / Templates
 
 - `charly-cachyos` (kind:local template, applied via the `charly-cachyos` deployment — same name; cross-kind name reuse is permitted)
 
@@ -89,19 +89,19 @@ Deploy-scope (run on the host post-`charly deploy add` against the running user'
 
 | Skill | Relationship |
 |-------|--------------|
-| `/charly-infrastructure:keepassxc` | The package-only layer. `keepassxc-keyring` `require:` on it; never composes it. |
+| `/charly-infrastructure:keepassxc` | The package-only candy. `keepassxc-keyring` `require:` on it; never composes it. |
 | `/charly-infrastructure:gnupg` | Same — keepassxc-keyring `require:` on gnupg, never composes. |
 | `/charly-distros:agent-forwarding` | Distinct concern. agent-forwarding is for FORWARDING the host's GPG/SSH agents INTO containers via socket bind-mounts. keepassxc-keyring is about turning the host itself into a Secret Service server. Both can be active simultaneously. |
 | `/charly-build:secrets` | The CLI surface that talks to KeePassXC after this layer is in place. `charly secrets gpg setup` and `charly secrets gpg doctor` find pinentry-qt + libsecret on PATH because this layer installed them. |
 | `/charly-coder:direnv` | Installs the direnv binary. This layer adds the missing piece (the shell hook) for `.envrc` to actually trigger on `cd`. |
-| `/charly-image:layer` | Layer authoring reference. |
+| `/charly-image:layer` | Candy authoring reference. |
 | `/charly-eval:eval` | `eval:` block format reference. |
 
-## Why a separate layer (and not edits to `keepassxc` or `agent-forwarding`)
+## Why a separate candy (and not edits to `keepassxc` or `agent-forwarding`)
 
-- The `keepassxc` layer is consumed by container/desktop images where FdoSecrets and autostart make no sense.
-- `agent-forwarding` is a clean metalayer (`gnupg + direnv + ssh-client`) used by 27 application images. Adding host-only behavior there would polute every container build that composes it.
-- Keeping host-only secret-service wiring in its own layer means containers stay containers and hosts stay hosts.
+- The `keepassxc` candy is consumed by container/desktop boxes where FdoSecrets and autostart make no sense.
+- `agent-forwarding` is a clean metalayer (`gnupg + direnv + ssh-client`) used by 27 application boxes. Adding host-only behavior there would polute every container build that composes it.
+- Keeping host-only secret-service wiring in its own candy means containers stay containers and hosts stay hosts.
 
 ## When to Use This Skill
 
@@ -119,8 +119,8 @@ Use when the user asks about:
 - `/charly-infrastructure:gnupg` — gpg binary (parent dependency)
 - `/charly-distros:agent-forwarding` — sibling: container-side agent forwarding metalayer
 - `/charly-build:secrets` — `charly secrets` and `charly secrets gpg` CLI surface
-- `/charly-coder:direnv` — direnv binary layer (the shell hook this layer adds completes the chain)
-- `/charly-image:layer` — layer authoring reference
+- `/charly-coder:direnv` — direnv binary candy (the shell hook this candy adds completes the chain)
+- `/charly-image:layer` — candy authoring reference
 - `/charly-eval:eval` — declarative testing reference
-- `/charly-local:local-spec` — `kind: local` template reference (where this layer is composed)
+- `/charly-local:local-spec` — `kind: local` template reference (where this candy is composed)
 - `/charly-local:local-deploy` — `target: local` deploy semantics

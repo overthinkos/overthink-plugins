@@ -207,7 +207,7 @@ Every leaf's default format is author-friendly plaintext with one record per lin
 
 ## Declarative authoring examples
 
-Tests currently shipping in the three provider layers (`candy/jupyter/charly.yml`, `candy/jupyter-ml/charly.yml`, `candy/chrome-devtools-mcp/charly.yml`):
+Tests currently shipping in the three provider candies (`candy/jupyter/charly.yml`, `candy/jupyter-ml/charly.yml`, `candy/chrome-devtools-mcp/charly.yml`):
 
 ```yaml
 # Liveness check — fastest sanity verification
@@ -331,7 +331,7 @@ service:
 
 **Project-dir wiring** — build-mode tools (`box.build`, `box.inspect`, `box.list.*`) resolve `charly.yml` via `os.Getwd()`. Inside the container, cwd is `/workspace` (set by the `charly-mcp` layer's `CHARLY_PROJECT_DIR` env + `volume:` declaration). Three deployment patterns, in order of progressively less local setup:
 
-1. **Bind-mount** — the canonical `charly-mcp` pattern. The layer ships `env: CHARLY_PROJECT_DIR: /workspace` + `volumes: project → /workspace`; the deployer attaches a host checkout via `charly config <image> --bind project=/path/to/opencharly`. The charly CLI's global `-C` / `--dir` / `CHARLY_PROJECT_DIR` flag honours the env var before Kong dispatch, calling `os.Chdir(CHARLY_PROJECT_DIR)` once. Use this when the agent should see your in-flight local edits. The volume NAME is `project` (stable bind-mount API); the in-container PATH is `/workspace` (the generic name works whether the contents are an opencharly checkout or any other workspace).
+1. **Bind-mount** — the canonical `charly-mcp` pattern. The candy ships `env: CHARLY_PROJECT_DIR: /workspace` + `volumes: project → /workspace`; the deployer attaches a host checkout via `charly config <image> --bind project=/path/to/opencharly`. The charly CLI's global `-C` / `--dir` / `CHARLY_PROJECT_DIR` flag honours the env var before Kong dispatch, calling `os.Chdir(CHARLY_PROJECT_DIR)` once. Use this when the agent should see your in-flight local edits. The volume NAME is `project` (stable bind-mount API); the in-container PATH is `/workspace` (the generic name works whether the contents are an opencharly checkout or any other workspace).
 
 2. **Remote pin** — set `CHARLY_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env (e.g. via `charly config <image> -e CHARLY_PROJECT_REPO=...`). The charly CLI clones (or hits its `~/.cache/charly/repos/` cache) and chdirs into the cache path before Kong dispatch. No bind mount required. Use this for reproducible agent runs against a pinned upstream.
 
@@ -339,7 +339,7 @@ service:
 
 See `/charly-image:image` "Project directory resolution" for the flag/env semantics, and `charly/mcp_serve_default_repo_test.go` for the auto-fallback behaviour test.
 
-**Composition style** — `charly-mcp` uses `candy: [charly, supervisord]` (meta-layer composition) rather than `require:` (hard prerequisite) because it adds no install of its own — it's pure wiring. Images that want the MCP server add `charly-mcp` to their layer list; images that just want the charly binary continue to use the `charly` layer alone. Both `candy:` and `require:` reference other layers, but only `candy:` lets the using layer ship no install files.
+**Composition style** — `charly-mcp` uses `candy: [charly, supervisord]` (meta-layer composition) rather than `require:` (hard prerequisite) because it adds no install of its own — it's pure wiring. Boxes that want the MCP server add `charly-mcp` to their candy list; boxes that just want the charly binary continue to use the `charly` candy alone. Both `candy:` and `require:` reference other candies, but only `candy:` lets the using candy ship no install files.
 
 ## Verifying end to end
 
@@ -405,7 +405,7 @@ Default `:18765` chosen for non-collision with other MCP layers:
 
 ## Policy note
 
-The server registers destructive tools with `DestructiveHint: true` rather than withholding them. The LLM runtime (Claude Code, Open WebUI) is responsible for acting on the hint — e.g. prompting the user before calling an annotated tool. For hostile-LLM scenarios or untrusted network deployments, run with `--read-only` (drops the 51 mutating tools at registration time) and/or restrict reach via the tunnel / Traefik layer.
+The server registers destructive tools with `DestructiveHint: true` rather than withholding them. The LLM runtime (Claude Code, Open WebUI) is responsible for acting on the hint — e.g. prompting the user before calling an annotated tool. For hostile-LLM scenarios or untrusted network deployments, run with `--read-only` (drops the 51 mutating tools at registration time) and/or restrict reach via the tunnel / Traefik candy.
 
 ---
 

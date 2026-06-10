@@ -7,7 +7,7 @@ description: |
 
 # k3s-agent -- k3s worker node
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -15,7 +15,7 @@ description: |
 | Depends on | `/charly-infrastructure:k3s` |
 | Service | `k3s-agent.service` (system scope, enabled) |
 
-## What this layer does
+## What this candy does
 
 1. Reads `K3S_CLUSTER_TOKEN` from the credential store (same secret the
    server consumes — auto-generated on the first server-or-agent
@@ -71,7 +71,7 @@ Deploy-scope (uses `/charly-kubernetes:eval-k8s`):
 - `k8s: wait-nodes name=${HOSTNAME}` — this node reaches Ready on the
   server.
 
-## Related Layers
-- `/charly-infrastructure:k3s` — Base layer installing the k3s binary (required dep)
+## Related Candies
+- `/charly-infrastructure:k3s` — Base candy installing the k3s binary (required dep)
 - `/charly-infrastructure:k3s-server` — Control-plane node this agent joins
 - `/charly-kubernetes:eval-k8s` — Test verb used by the agent-joined check

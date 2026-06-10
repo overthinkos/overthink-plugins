@@ -2,12 +2,12 @@
 name: wl-record-pixelflux
 description: |
   Desktop video recorder via selkies WebSocket capture bridge for selkies-desktop.
-  Use when working with the wl-record-pixelflux layer.
+  Use when working with the wl-record-pixelflux candy.
 ---
 
 # wl-record-pixelflux -- Desktop video recording via selkies capture bridge
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -85,7 +85,7 @@ selkies process (single ScreenCapture singleton — process-wide)
 
 - `selkies-desktop` metalayer
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
@@ -96,7 +96,7 @@ selkies process (single ScreenCapture singleton — process-wide)
 - `/charly-core:charly-update` -- Per-instance update pattern used to roll out the per-frame `cleanup_texture_cache()` fix across live instances
 - `/charly-selkies:wl-screenshot-pixelflux` -- Screenshot companion (same capture bridge, same singleton)
 - `/charly-selkies:wf-recorder` -- Alternative for sway-desktop (wlr-screencopy)
-- `/charly-selkies:selkies` -- Parent layer (provides capture bridge, WebSocket stream, and the ScreenCapture singleton — see Pixelflux Memory Management)
+- `/charly-selkies:selkies` -- Parent candy (provides capture bridge, WebSocket stream, and the ScreenCapture singleton — see Pixelflux Memory Management)
 - `/charly-selkies:selkies-desktop-layer` -- Metalayer that composes this recorder into the full browser-accessible desktop
 - `/charly-selkies:ffmpeg` -- Required dependency (MP4 muxing)
 
@@ -105,9 +105,9 @@ selkies process (single ScreenCapture singleton — process-wide)
 Use when the user asks about:
 - Desktop video recording on selkies-desktop
 - The pixelflux recording pipeline
-- The `wl-record-pixelflux` layer
+- The `wl-record-pixelflux` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

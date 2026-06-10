@@ -1,12 +1,12 @@
 ---
 name: ubuntu
 description: |
-  Base Ubuntu 24.04 noble image. Root of the image hierarchy for Ubuntu-
+  Base Ubuntu 24.04 noble image. Root of the box hierarchy for Ubuntu-
   based builds. Runs as uid 1000 `ubuntu` via ADOPT mode — the upstream
   ubuntu:24.04 base image ships a pre-existing ubuntu:ubuntu account,
   and build.yml distro.ubuntu declares base_user to adopt it verbatim.
   MUST be invoked before building, deploying, configuring, or troubleshooting
-  any Ubuntu-based image.
+  any Ubuntu-based box.
 ---
 
 # ubuntu
@@ -16,12 +16,12 @@ Base Ubuntu 24.04 (noble) image. Distinguished from `/charly-distros:debian` by 
 The Ubuntu family lives in its own **`overthinkos/ubuntu`** repo (git submodule
 at **`box/ubuntu`**) — a SEPARATE repo from `overthinkos/debian` (Debian and
 Ubuntu each have their own repo). The `ubuntu` base is **owned there** and
-composes the main repo's layers + shared `build.yml` by git reference. Because
+composes the main repo's candies + shared `build.yml` by git reference. Because
 `distro.ubuntu` is `inherits: debian`, the single remote `build.yml` (which
 carries BOTH distro configs) resolves the inheritance — `overthinkos/ubuntu`
 needs no reference to `overthinkos/debian`. Build from the submodule:
 `charly -C box/ubuntu box build ubuntu` (or `charly --repo overthinkos/ubuntu box build ubuntu`).
-Nothing in main consumes any Ubuntu image, so there is **no main ↔ ubuntu coupling**.
+Nothing in main consumes any Ubuntu box, so there is **no main ↔ ubuntu coupling**.
 
 ## Box Properties
 
@@ -77,7 +77,7 @@ Adopt mode honors the existing `ubuntu` account rather than renaming it to `user
 2. Renaming is an invisible base-image mutation — breaks in hard-to-debug ways.
 3. The rename approach doesn't scale to Debian cloud images (or future distros) that ship their own pre-existing uid-1000 accounts with different names.
 
-Adopt mode respects the base image's contract and scales declaratively. See `/charly-coder:sshd` for the `getent passwd 1000` pattern that makes layer content (sudoers in particular) work uniformly across both create and adopt modes.
+Adopt mode respects the base image's contract and scales declaratively. See `/charly-coder:sshd` for the `getent passwd 1000` pattern that makes candy content (sudoers in particular) work uniformly across both create and adopt modes.
 
 ## Bootstrap
 
@@ -107,7 +107,7 @@ ECR Public mirrors the Dockerhub library namespace without rate-limiting.
 ## Downstream / sibling entries (all in overthinkos/ubuntu)
 
 - `/charly-distros:ubuntu-builder` — pixi/npm/cargo multi-stage builder.
-- `/charly-coder:ubuntu-coder` — kitchen-sink dev image.
+- `/charly-coder:ubuntu-coder` — kitchen-sink dev box.
 - `/charly-distros:ubuntu-debootstrap-builder` — privileged debootstrap builder (`base: debian:13`).
 - `/charly-distros:ubuntu-debootstrap` — bootstrap-from-scratch rootfs.
 - `/charly-vm:ubuntu` — the `ubuntu-debootstrap` bootstrap VM + `eval-ubuntu-debootstrap-vm` bed.
@@ -121,11 +121,11 @@ id                                    # uid=1000(ubuntu) gid=1000(ubuntu)
 charly -C box/ubuntu box validate     # remote build.yml resolves distro.ubuntu (inherits debian)
 ```
 
-## Related images
+## Related boxes
 
 - `/charly-distros:debian` — sibling deb-family base without adopt mode (Debian 13 ships no pre-existing uid-1000 user).
 - `/charly-distros:ubuntu-builder` — multi-stage builder.
-- `/charly-coder:ubuntu-coder` — kitchen-sink dev image.
+- `/charly-coder:ubuntu-coder` — kitchen-sink dev box.
 - `/charly-distros:fedora` — RPM-family counterpart.
 - `/charly-distros:arch` — pacman-family counterpart.
 
@@ -135,7 +135,7 @@ charly -C box/ubuntu box validate     # remote build.yml resolves distro.ubuntu 
 - `/charly-image:image` — `user_policy:` field + reconciliation.
 - `/charly-build:generate` — adopt-vs-create writeBootstrap emission.
 
-## Related layers (cross-distro patterns this base enables)
+## Related candies (cross-distro patterns this base enables)
 
 - `/charly-coder:sshd` — `getent passwd 1000`-based sudoers works for both `user` (create) and `ubuntu` (adopt).
 - `/charly-coder:language-runtimes` — Microsoft `dotnet-install.sh` (Ubuntu noble doesn't ship dotnet-sdk-9.0 in main; Microsoft's noble apt repo only has 10.0; the dotnet-install.sh `--channel 9.0` is the cross-distro solution).
@@ -145,6 +145,6 @@ charly -C box/ubuntu box validate     # remote build.yml resolves distro.ubuntu 
 **MUST be invoked** when:
 
 - Building or troubleshooting the `ubuntu` base image.
-- Adding any Ubuntu-based image (it will inherit the adopt-mode `ubuntu:ubuntu` identity by default).
-- Debugging `${USER}` / `${HOME}` differences between Ubuntu and other deb-based images (ubuntu-coder → `ubuntu:/home/ubuntu`; debian-coder → `user:/home/user`).
+- Adding any Ubuntu-based box (it will inherit the adopt-mode `ubuntu:ubuntu` identity by default).
+- Debugging `${USER}` / `${HOME}` differences between Ubuntu and other deb-based boxes (ubuntu-coder → `ubuntu:/home/ubuntu`; debian-coder → `user:/home/user`).
 - Understanding why ubuntu-coder's `/etc/sudoers.d/charly-user` says `ubuntu ALL=(ALL) NOPASSWD: ALL` rather than `user`.

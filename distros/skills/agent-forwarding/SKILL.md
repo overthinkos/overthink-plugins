@@ -2,20 +2,20 @@
 name: agent-forwarding
 description: |
   Agent forwarding support -- GPG, SSH, and direnv for .secrets workflow.
-  Use when working with agent forwarding, SSH/GPG socket forwarding, or the agent-forwarding layer.
+  Use when working with agent forwarding, SSH/GPG socket forwarding, or the agent-forwarding candy.
 ---
 
 # agent-forwarding -- SSH/GPG Agent Forwarding Support
 
-**Pure composition layer.** This layer carries no
+**Pure composition candy.** This candy carries no
 shell config of its own; per-tool shell init lives in each tool's home
-layer and is inherited transitively via `require:`. Specifically:
+candy and is inherited transitively via `require:`. Specifically:
 
-- **direnv hook** (bash/zsh/fish) → `direnv` layer's `shell:` block.
+- **direnv hook** (bash/zsh/fish) → `direnv` candy's `shell:` block.
 - **`SSH_AUTH_SOCK` redirect to KeePassXC's published agent socket** →
-  `keepassxc-keyring` layer's `shell:` block (target:local only).
+  `keepassxc-keyring` candy's `shell:` block (target:local only).
 - **`GPG_TTY=$(tty)` for the pinentry-qt → libsecret → KeePassXC chain**
-  → `keepassxc-keyring` layer's `shell:` block.
+  → `keepassxc-keyring` candy's `shell:` block.
 
 Putting any of these in `agent-forwarding` would scatter ownership: the
 direnv hook isn't a KeePassXC concern, KeePassXC's socket isn't a GPG
@@ -23,7 +23,7 @@ concern. The composition stays declarative; agent-forwarding pulls
 in `gnupg` + `direnv` + `ssh-client` and inherits whatever each
 contributes.
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -39,7 +39,7 @@ my-image:
     - agent-forwarding
 ```
 
-Included in all application images (27 total). Not included in base images (`fedora`, `arch`) or builder images (`fedora-builder`, `arch-builder`).
+Included in all application boxes (27 total). Not included in base images (`fedora`, `arch`) or builder images (`fedora-builder`, `arch-builder`).
 
 ## How Agent Forwarding Works
 
@@ -94,7 +94,7 @@ charly settings set forward_ssh_agent false    # Disable SSH forwarding globally
 charly settings reset forward_gpg_agent        # Re-enable (back to default: true)
 ```
 
-### Per-Image Override (deploy.yml)
+### Per-Box Override (deploy.yml)
 
 ```yaml
 # ~/.config/charly/deploy.yml
@@ -106,7 +106,7 @@ box:
     forward_gpg_agent: true     # Explicit (same as default)
 ```
 
-Resolution chain: deploy.yml per-image > global setting > default (true).
+Resolution chain: deploy.yml per-box > global setting > default (true).
 
 ## Where Forwarding is Applied
 
@@ -118,7 +118,7 @@ Resolution chain: deploy.yml per-image > global setting > default (true).
 | `charly cmd` | No | Yes | Exec into running container |
 | `charly config` / quadlet | No | No | Intentionally excluded |
 
-## Used In Images
+## Used In Boxes
 
 charly-arch, arch-test, comfyui, charly-fedora, fedora-test, githubrunner, immich, immich-ml, jupyter, nvidia, ollama, openclaw, openclaw-full, python-ml, selkies-desktop, selkies-labwc-nvidia, sway-browser-vnc, unsloth-studio, valkey-test
 
@@ -136,7 +136,7 @@ charly-arch, arch-test, comfyui, charly-fedora, fedora-test, githubrunner, immic
 - `/charly-core:shell` -- where SSH/GPG agent forwarding happens at runtime
 - `/charly-core:service` -- `charly start` direct mode forwarding
 - `/charly-core:charly-config` -- `forward_gpg_agent`, `forward_ssh_agent` settings
-- `/charly-core:deploy` -- per-image forwarding overrides in deploy.yml
+- `/charly-core:deploy` -- per-box forwarding overrides in deploy.yml
 
 ## Source
 
@@ -144,9 +144,9 @@ charly-arch, arch-test, comfyui, charly-fedora, fedora-test, githubrunner, immic
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves SSH or GPG agent forwarding, the `.secrets` + direnv workflow inside containers, or the `agent-forwarding` layer. Invoke this skill BEFORE reading source code.
+**MUST be invoked** when the task involves SSH or GPG agent forwarding, the `.secrets` + direnv workflow inside containers, or the `agent-forwarding` candy. Invoke this skill BEFORE reading source code.
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

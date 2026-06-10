@@ -41,7 +41,7 @@ no caps, `unmask=/proc/*` via `/charly-distros:container-nesting`).
 
 ## Rootless posture (genuinely uid 1000, no caps)
 
-The image carries **no uid/user/privileged override**, so it resolves to
+The box carries **no uid/user/privileged override**, so it resolves to
 `container-nesting`'s posture: uid=1000, `cap_add:[]`, `security_opt:[unmask=/proc/*]`,
 devices `/dev/fuse` + `/dev/net/tun`. The runner process (`run.sh`), all CI jobs,
 and rootless nested podman all run as `user` (uid 1000). See
@@ -76,8 +76,8 @@ PKGBUILD `depends=` set, all three package formats build here:
 
 `workflow_dispatch` runs the build jobs from a branch (the release-upload step is
 tag-guarded), so the build is exercisable without minting a tag. The `github-runner`
-layer completes the `charly` runtime on the runner — beyond the .NET/runner deps it adds
-the `depends=` packages the charly/virtualization layers don't already provide
+candy completes the `charly` runtime on the runner — beyond the .NET/runner deps it adds
+the `depends=` packages the charly/virtualization candies don't already provide
 (`slirp4netns`, `libisoburn`, `cdrtools`, `swtpm`).
 
 ## Token mechanism (credential-backed; obtained via `gh`)
@@ -125,7 +125,7 @@ charly remove githubrunner -e RUNNER_TOKEN=<remove-token>
 
 - `/charly-distros:cachyos` — the CachyOS base (parent, via the `cachyos` namespace)
 - `/charly-openclaw:openclaw-desktop` — same rootless container-nesting posture (uid 1000, no caps)
-- `/charly-distros:charly-fedora`, `/charly-coder:charly-arch` — the charly-toolchain siblings (root path, image-level full-hammer security)
+- `/charly-distros:charly-fedora`, `/charly-coder:charly-arch` — the charly-toolchain siblings (root path, box-level full-hammer security)
 
 ## Related Commands
 
@@ -137,7 +137,7 @@ charly remove githubrunner -e RUNNER_TOKEN=<remove-token>
 ## Verification
 
 Build-scope (`charly eval box githubrunner`) + deploy-scope (`charly eval live`) checks
-ship on the `github-runner` layer (functional: `config.sh --version` proves the
+ship on the `github-runner` candy (functional: `config.sh --version` proves the
 .NET deps resolved; rootless nested `podman run` proves the posture). The
 disposable R10 bed is **`eval-githubrunner-pod`** (`charly eval run eval-githubrunner-pod`)
 — it proves the rootless composition WITHOUT GitHub registration (no token →
@@ -158,6 +158,6 @@ reading source code or launching Explore agents.
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
 - `/charly-eval:eval` — the `eval:` checks + the `eval-githubrunner-pod` R10 bed

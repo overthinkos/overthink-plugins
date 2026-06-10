@@ -13,7 +13,7 @@ description: |
 
 ## Canonical worked example: mixed-`service:` polymorphism
 
-This layer is the canonical demonstration that ONE layer can serve BOTH container/pod targets (supervisord init) AND host/bootc/VM targets (systemd init) without spawning a `<name>-host` sibling. The mechanism is the **mixed `service:` schema pattern**: each daemon (`virtqemud`, `virtnetworkd`) appears TWICE in the layer's `service:` list — once with `use_packaged: <unit>.socket` (rendered only on systemd-init targets) and once with custom `exec:` (rendered only on supervisord-init targets). The init system at deploy time picks the matching form; the other entry is silently skipped.
+This candy is the canonical demonstration that ONE candy can serve BOTH container/pod targets (supervisord init) AND host/bootc/VM targets (systemd init) without spawning a `<name>-host` sibling. The mechanism is the **mixed `service:` schema pattern**: each daemon (`virtqemud`, `virtnetworkd`) appears TWICE in the candy's `service:` list — once with `use_packaged: <unit>.socket` (rendered only on systemd-init targets) and once with custom `exec:` (rendered only on supervisord-init targets). The init system at deploy time picks the matching form; the other entry is silently skipped.
 
 ```yaml
 service:
@@ -44,24 +44,24 @@ service:
     scope: system
 ```
 
-Why this matters: a `<name>-host` sibling layer would duplicate package lists, eval probes, and tasks for systemd targets, and drift between the two siblings would be inevitable. The mixed-entry pattern eliminates the sibling — ONE layer covers both contexts; the schema does the polymorphism. See CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the rule and `/charly-image:layer` "Service Declaration" → "Anti-pattern: `<name>-host` / `<name>-pod` sibling layers" for what NOT to do.
+Why this matters: a `<name>-host` sibling candy would duplicate package lists, eval probes, and tasks for systemd targets, and drift between the two siblings would be inevitable. The mixed-entry pattern eliminates the sibling — ONE candy covers both contexts; the schema does the polymorphism. See CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the rule and `/charly-image:layer` "Service Declaration" → "Anti-pattern: `<name>-host` / `<name>-pod` sibling candies" for what NOT to do.
 
 ## Overview
 
 Installs the QEMU/KVM/libvirt stack AND ships supervisord programs for
-`virtqemud` + `virtnetworkd` running as the layer consumer's uid. In
+`virtqemud` + `virtnetworkd` running as the candy consumer's uid. In
 session mode (`qemu:///session`), these daemons and their clients all
 work at uid 1000 with only `/dev/kvm` device passthrough — no
 `CAP_SYS_ADMIN`, no root escalation. Makes nested rootless VM creation
 work end-to-end from a rootless outer container.
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
 | `require:` | `supervisord` |
 | Services registered | `virtqemud` (priority 5), `virtnetworkd` (priority 6) |
-| Devices | `/dev/kvm` is required by consumers; declared at the image level or via `/charly-distros:container-nesting` |
+| Devices | `/dev/kvm` is required by consumers; declared at the box level or via `/charly-distros:container-nesting` |
 
 ## Packages (RPM)
 
@@ -87,7 +87,7 @@ session daemon even without `virt-manager`):
 
 ## Supervisord services
 
-The layer's `service:` block registers two programs:
+The candy's `service:` block registers two programs:
 
 ```ini
 [program:virtqemud]
@@ -135,7 +135,7 @@ that emits these program blocks into `.build/<image>/supervisor/NN-virtualizatio
 ## Rootless libvirt — `qemu:///session`
 
 `charly/vm.go:22` already hardcodes `qemu:///session` as the charly default.
-This layer makes that URI actually work inside a container at uid
+This candy makes that URI actually work inside a container at uid
 1000:
 
 - No `CAP_SYS_ADMIN` required on the outer container.
@@ -147,7 +147,7 @@ This layer makes that URI actually work inside a container at uid
   `<domain>kvm</domain>` once the daemons are running — verified
   on `openclaw-desktop` at uid 1000.
 
-## Tests baked into the layer
+## Tests baked into the candy
 
 **Build-scope (run by `charly eval box <image>` without deploying):**
 
@@ -194,14 +194,14 @@ openclaw-desktop:
 
 `/dev/kvm` is auto-detected at `charly shell`/`charly start` time by
 `charly/devices.go` (scans `/dev/kvm`, `/dev/fuse`, `/dev/dri/renderD*`,
-`/dev/net/tun`, `/dev/vhost-*`, `/dev/hwrng`) — no image-level
+`/dev/net/tun`, `/dev/vhost-*`, `/dev/hwrng`) — no box-level
 `security.devices:` entry needed for the typical deployment.
 
 ## Composition chain
 
-The `charly` layer (the full toolchain) composes `virtualization` (this layer) +
+The `charly` candy (the full toolchain) composes `virtualization` (this candy) +
 the charly binary + `gocryptfs` + `socat` + `podman-machine` + `gvisor-tap-vsock`.
-So any image that pulls `charly` automatically gets the supervisord-managed
+So any box that pulls `charly` automatically gets the supervisord-managed
 virtqemud/virtnetworkd programs.
 
 ## Cross-distro coverage
@@ -210,40 +210,40 @@ virtqemud/virtnetworkd programs.
 
 Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networking features degrade gracefully on debian-coder / ubuntu-coder).
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-openclaw:openclaw-desktop` — rootless VM host inside a streaming desktop
 - `/charly-distros:charly-fedora` — root VM host (same daemons, uid 0)
 - `/charly-coder:charly-arch` — Arch counterpart
-- `/charly-coder:debian-coder`, `/charly-coder:ubuntu-coder` — deb-based consumers (via the `charly` layer)
+- `/charly-coder:debian-coder`, `/charly-coder:ubuntu-coder` — deb-based consumers (via the `charly` candy)
 - `/charly-distros:githubrunner` — VMs for CI workloads
 
-## Related Layers
+## Related Candies
 
-- `/charly-tools:charly` — the full toolchain that pulls this layer into charly-toolchain images
-- `/charly-distros:container-nesting` — pairs with this layer for images that need both nested containers AND nested VMs; also donates `/dev/kvm`-adjacent devices
-- `/charly-infrastructure:socat` — part of the `charly` layer alongside virtualization; used for VM console/hostfwd relays
-- `/charly-infrastructure:gocryptfs` — part of the `charly` layer; for encrypting VM disk storage
+- `/charly-tools:charly` — the full toolchain that pulls this candy into charly-toolchain boxes
+- `/charly-distros:container-nesting` — pairs with this candy for boxes that need both nested containers AND nested VMs; also donates `/dev/kvm`-adjacent devices
+- `/charly-infrastructure:socat` — part of the `charly` candy alongside virtualization; used for VM console/hostfwd relays
+- `/charly-infrastructure:gocryptfs` — part of the `charly` candy; for encrypting VM disk storage
 
 ## Related Commands
 
 - `/charly-vm:vm` — VM lifecycle (build, create, start, stop, ssh, console, destroy); defaults to `qemu:///session` at charly/vm.go:22
 - `/charly-build:generate` — Containerfile generation; emits the supervisord `NN-virtualization.conf` fragment via `fragment_assembly` init model
-- `/charly-image:layer` — layer authoring reference (tasks, vars, service blocks, tests syntax)
-- `/charly-eval:eval` — declarative testing framework for the layer's `eval:` block (file, service, command verbs)
+- `/charly-image:layer` — candy authoring reference (tasks, vars, service blocks, tests syntax)
+- `/charly-eval:eval` — declarative testing framework for the candy's `eval:` block (file, service, command verbs)
 
 ## When to Use This Skill
 
 **MUST be invoked** when:
 
-- Adding VM support to any image (this layer donates the daemons + packages).
+- Adding VM support to any box (this candy donates the daemons + packages).
 - Debugging `virsh -c qemu:///session` connection failures — the two
   most common causes are supervisord not yet started the daemons (check
   `supervisorctl status virtqemud`) or `/dev/kvm` not passed through
   (check `ls -la /dev/kvm` inside the container).
 - Running `charly vm` from inside a rootless container (the
   supervisord-managed daemons here are what makes that work).
-- Understanding why this layer is a service provider, not just a
+- Understanding why this candy is a service provider, not just a
   package installer — it ships the supervisord programs + `requires:
   supervisord` + the deploy-scope tests on top of the QEMU/libvirt
   packages.

@@ -1,11 +1,11 @@
 ---
 name: openwebui
 description: |
-  Open WebUI image with auto-configured LLM providers, MCP servers, and Jupyter on port 8080.
-  MUST be invoked before building, deploying, configuring, or troubleshooting the openwebui image.
+  Open WebUI box with auto-configured LLM providers, MCP servers, and Jupyter on port 8080.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the openwebui box.
 ---
 
-# Image: openwebui
+# Box: openwebui
 
 Open WebUI with auto-configured LLM providers (Ollama, OpenRouter), MCP server discovery, and Jupyter code execution. No manual setup needed — secrets auto-managed via `charly secrets`.
 
@@ -23,9 +23,9 @@ openwebui:
     - "8080:8080"
 ```
 
-## Layer Stack
+## Candy Stack
 
-| Layer | Purpose |
+| Candy | Purpose |
 |-------|---------|
 | `agent-forwarding` | SSH + GPG agent forwarding into container |
 | `openwebui` | Open WebUI with auto-config entrypoint |
@@ -105,12 +105,12 @@ Open WebUI receives:
 - `TOOL_SERVER_CONNECTIONS=[...]` — MCP servers (jupyter + chrome-devtools)
 - `CODE_EXECUTION_ENGINE=jupyter` — code execution via Jupyter
 
-## Key Layers
+## Key Candies
 
 - `/charly-openwebui:openwebui` — Auto-config entrypoint, secrets, env_accept, TOOL_SERVER_CONNECTIONS format
 - `/charly-distros:agent-forwarding` — SSH/GPG forwarding
 
-## Related Images
+## Related Boxes
 
 - `/charly-jupyter:jupyter` — deploy alongside for MCP notebooks and code execution
 - `/charly-ollama:ollama` — deploy alongside for local LLM inference
@@ -142,14 +142,14 @@ email env var injected. See `/charly-eval:eval` for the framework.
 
 ## Related Skills
 
-- `/charly-openwebui:openwebui` — layer authoring
+- `/charly-openwebui:openwebui` — candy authoring
 - `/charly-eval:eval` — declarative testing framework
 - `/charly-build:secrets` — WEBUI_ADMIN_PASSWORD + provider API keys
 - `/charly-core:charly-config` — `-e WEBUI_ADMIN_EMAIL=...` deploy-time env setup
 
 ## When to Use This Skill
 
-**MUST be invoked** before building, deploying, configuring, or troubleshooting the openwebui image.
+**MUST be invoked** before building, deploying, configuring, or troubleshooting the openwebui box.
 
 ## Related
 

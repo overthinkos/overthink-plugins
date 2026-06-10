@@ -30,7 +30,7 @@ Builder image for Arch Linux multi-stage builds. Counterpart to `/charly-distros
 
 ## Role in Build System
 
-When an Arch-based image has layers with `pixi.toml`, `package.json`, `Cargo.toml`, or `aur:` packages, the build system uses this image as the builder for multi-stage builds. Configured via the `arch` box's `builder:` field (a map of build-type → builder-image):
+When an Arch-based box has candies with `pixi.toml`, `package.json`, `Cargo.toml`, or `aur:` packages, the build system uses this image as the builder for multi-stage builds. Configured via the `arch` box's `builder:` field (a map of build-type → builder-image):
 
 ```yaml
 # charly.yml
@@ -57,10 +57,10 @@ charly shell arch-builder -c "yay --version"
 
 - `/charly-distros:arch` — parent base image
 - `/charly-distros:fedora-builder` — Fedora counterpart (same role, no AUR)
-- `/charly-tools:yay` — AUR helper layer (unique to Arch)
-- `/charly-languages:pixi` — pixi package manager layer
-- `/charly-coder:nodejs` — Node.js layer
-- `/charly-coder:build-toolchain` — C/C++ build tools layer
+- `/charly-tools:yay` — AUR helper candy (unique to Arch)
+- `/charly-languages:pixi` — pixi package manager candy
+- `/charly-coder:nodejs` — Node.js candy
+- `/charly-coder:build-toolchain` — C/C++ build tools candy
 
 ## Verification
 
@@ -74,5 +74,5 @@ charly shell arch-builder -c "pixi --version && node --version && yay --version 
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

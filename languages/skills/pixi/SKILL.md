@@ -7,7 +7,7 @@ description: |
 
 # pixi -- Pixi package manager
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -31,26 +31,26 @@ my-image:
     - pixi
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-distros:fedora-builder` (direct)
 - `/charly-distros:arch-builder` (direct)
-- Transitive dependency via `python` / `supervisord` in most service images
+- Transitive dependency via `python` / `supervisord` in most service boxes
 
-## Related Layers
+## Related Candies
 
 - `/charly-languages:python` -- depends on pixi for Python 3.13 installation
 - `/charly-coder:pre-commit` -- uses pixi for pre-commit installation
 
 ## Committed `pixi.lock` → `pixi install --frozen`
 
-Every pixi layer ships a committed `pixi.lock` next to its `pixi.toml`. When a
+Every pixi candy ships a committed `pixi.lock` next to its `pixi.toml`. When a
 lock is present, generation auto-flips the build stage from `pixi install` (a
 full SAT solve over the conda + PyPI indexes on every cache miss) to
 `pixi install --frozen` (install straight from the lock — no solve,
 deterministic, better cache reuse). The flip is automatic via `HasPixiLock`
 detection (`charly/layers.go`) → the `pixi.toml+lock` install command in
-`build.yml`; no per-layer config.
+`build.yml`; no per-candy config.
 
 **Regenerate the lock whenever you change `pixi.toml`** — `--frozen` fails the
 build loudly if the lock is stale (no silent skew). Generate with the builder's
@@ -72,10 +72,10 @@ Use when the user asks about:
 
 - Pixi package manager setup
 - Conda-forge package installation
-- Python environment base layer
-- The `pixi` layer or `PIXI_CACHE_DIR`
+- Python environment base candy
+- The `pixi` candy or `PIXI_CACHE_DIR`
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

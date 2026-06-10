@@ -7,7 +7,7 @@ description: |
 
 # desktop-fonts -- JetBrains Mono + Nerd Fonts
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -46,7 +46,7 @@ Included in desktop metalayers. Not typically added directly:
 - `/charly-selkies:sway-desktop` -- via metalayer composition
 - `/charly-selkies:selkies-desktop-layer` -- via metalayer composition
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
 - `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
@@ -58,7 +58,7 @@ Included in desktop metalayers. Not typically added directly:
 - `/charly-selkies:waybar-labwc` -- same fonts
 - `/charly-selkies:swaync` -- uses JetBrains Mono
 - `/charly-eval:eval` -- declarative testing framework (Authoring Gotcha #8 on package renames)
-- `/charly-image:layer` -- layer authoring reference
+- `/charly-image:layer` -- candy authoring reference
 
 ## When to Use This Skill
 

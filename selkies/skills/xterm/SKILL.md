@@ -4,7 +4,7 @@
 
 Lightweight X11 terminal emulator. On labwc (selkies-desktop), launching xterm triggers XWayland to start on-demand, enabling X11-based automation tools (xdotool, xprop, xwininfo) to find windows.
 
-## Layer Definition
+## Candy Definition
 
 ```yaml
 rpm:
@@ -46,7 +46,7 @@ With xterm installed, users can launch it to enable full XWayland testing.
 
 - `selkies-desktop` metalayer
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
@@ -54,9 +54,9 @@ With xterm installed, users can launch it to enable full XWayland testing.
 ## Cross-References
 
 - `/charly-eval:wl` — `charly eval wl exec`, `charly eval wl focus`, `charly eval wl close`, `charly eval wl xprop`, `charly eval wl geometry`
-- `/charly-selkies:selkies-desktop-layer` — Desktop metalayer that includes this layer
+- `/charly-selkies:selkies-desktop-layer` — Desktop metalayer that includes this candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

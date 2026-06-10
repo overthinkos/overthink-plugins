@@ -1,16 +1,16 @@
 ---
 name: layer
 description: |
-  MUST be invoked before any work involving: layer authoring, charly.yml, tasks, pixi.toml, package.json, Cargo.toml, or any file under candy/. This skill is the authoritative reference for the `task:` verb catalog, `var:` substitution, execution order, and per-verb validation. Every other skill defers here for install-schema questions.
+  MUST be invoked before any work involving: candy authoring, charly.yml, tasks, pixi.toml, package.json, Cargo.toml, or any file under candy/. This skill is the authoritative reference for the `task:` verb catalog, `var:` substitution, execution order, and per-verb validation. Every other skill defers here for install-schema questions.
 ---
 
 # Layer - Layer Authoring
 
 ## Overview
 
-A **layer** is a directory under `candy/<name>/` that installs a single concern. Layers are the building blocks of container images in opencharly. Each layer declares its packages, environment variables, services, volumes, and **install tasks** in a single `charly.yml` file.
+A **candy** is a directory under `candy/<name>/` that installs a single concern. Candies are the building blocks of container images in opencharly. Each candy declares its packages, environment variables, services, volumes, and **install tasks** in a single `charly.yml` file.
 
-There is **one YAML file per layer** for install logic — no separate Taskfiles. Everything an author needs to install flows through `task:` and auto-detected package manifests (`pixi.toml`, `package.json`, `Cargo.toml`).
+There is **one YAML file per candy** for install logic — no separate Taskfiles. Everything an author needs to install flows through `task:` and auto-detected package manifests (`pixi.toml`, `package.json`, `Cargo.toml`).
 
 ## `directory:` — where the layer's config files live
 
@@ -35,7 +35,7 @@ Resolution rule:
 
 ## Kind-keyed standalone form (`candy: {name, …}`)
 
-Every charly.yml is self-describing: a single `candy:` wrapper with an explicit `name:` field + the body. This makes layer files bundle-mergeable — concatenate with `---` separators to form a single file containing many layers.
+Every charly.yml is self-describing: a single `candy:` wrapper with an explicit `name:` field + the body. This makes candy files bundle-mergeable — concatenate with `---` separators to form a single file containing many candies.
 
 ```yaml
 # candy/chrome/charly.yml
@@ -47,24 +47,24 @@ candy:
     - copy: policies.json
 ```
 
-The runtime parser accepts only this kind-keyed form. `charly migrate` converts any legacy layer files to the canonical shape in a single idempotent pass.
+The runtime parser accepts only this kind-keyed form. `charly migrate` converts any legacy candy files to the canonical shape in a single idempotent pass.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Scaffold new layer | `charly box new candy <name>` | Create layer directory with starter `charly.yml` (see `/charly-build:new`) |
-| Edit a layer field | `charly candy set <name> <dotpath> <value>` | Comment-preserving YAML edit by dot-path |
+| Scaffold new candy | `charly box new candy <name>` | Create candy directory with starter `charly.yml` (see `/charly-build:new`) |
+| Edit a candy field | `charly candy set <name> <dotpath> <value>` | Comment-preserving YAML edit by dot-path |
 | Append rpm/deb/pac/aur packages | `charly candy add-rpm <name> <pkg…>` (plus `add-deb`, `add-pac`, `add-aur`) | Idempotent append; auto-upgrades scaffold's null `package:` to a sequence |
-| Append a Gherkin acceptance scenario (Agent Driven Evaluation) | `charly candy add-scenario <name> <scenario> --given/--when/--then [--pod --tag]` | Idempotent append (dedupe by name) to the layer's `description.scenario`. Writes prose-only steps; bind a deterministic check verb by editing the step, or leave it prose for the agent grader. See `/charly-eval:eval` "Agent Driven Evaluation" |
+| Append a Gherkin acceptance scenario (Agent Driven Evaluation) | `charly candy add-scenario <name> <scenario> --given/--when/--then [--pod --tag]` | Idempotent append (dedupe by name) to the candy's `description.scenario`. Writes prose-only steps; bind a deterministic check verb by editing the step, or leave it prose for the agent grader. See `/charly-eval:eval` "Agent Driven Evaluation" |
 | Write a free-form file (`pixi.toml`, `root.yml`, …) | `charly box write <rel-path> --content X` | Escape hatch for files the schema setters don't cover; guarded against `..` traversal |
-| List all layers | `charly box list candies` | Show available layers from filesystem |
-| List services | `charly box list services` | Layers with `service` in charly.yml |
-| List volumes | `charly box list volumes` | Layers with `volumes` in charly.yml |
-| List aliases | `charly box list aliases` | Layers with `aliases` in charly.yml |
-| Validate | `charly box validate` | Check all layers and images |
+| List all candies | `charly box list candies` | Show available candies from filesystem |
+| List services | `charly box list services` | Candies with `service` in charly.yml |
+| List volumes | `charly box list volumes` | Candies with `volumes` in charly.yml |
+| List aliases | `charly box list aliases` | Candies with `aliases` in charly.yml |
+| Validate | `charly box validate` | Check all candies and boxes |
 
-Every editor verb above auto-becomes an MCP tool via Kong reflection (`candy.set`, `candy.add-rpm`, `box.write`, …) so an agent driving `charly mcp serve` can author layers from scratch over RPC without touching the filesystem directly. See `/charly-build:charly-mcp-cmd` "Authoring tools" for the worked end-to-end example, and `/charly-build:new` for the project / image / layer scaffolders that bootstrap the flow.
+Every editor verb above auto-becomes an MCP tool via Kong reflection (`candy.set`, `candy.add-rpm`, `box.write`, …) so an agent driving `charly mcp serve` can author candies from scratch over RPC without touching the filesystem directly. See `/charly-build:charly-mcp-cmd` "Authoring tools" for the worked end-to-end example, and `/charly-build:new` for the project / box / candy scaffolders that bootstrap the flow.
 
 ### Editing charly.yml via the CLI (no hand-edit required)
 
@@ -91,20 +91,20 @@ Implementation: `charly/scaffold_cmds.go` (verbs) + `charly/yaml_setter.go` (`Se
 
 ## Install Surface (what a layer directory holds)
 
-A layer directory can contain any combination of these:
+A candy directory can contain any combination of these:
 
 | Artifact | Runs as | Purpose |
 |---|---|---|
 | `charly.yml` `distro:` map (+ top-level `package:` base) | root | System packages declared declaratively (see Package Surface below) |
 | `charly.yml` `task:` list | per-task `user:` | Ordered install operations — the primary extension point (see catalog below) |
-| `pixi.toml` / `pyproject.toml` / `environment.yml` | user (builder stage) | Python/conda packages. Multi-stage build. Only one per layer |
+| `pixi.toml` / `pyproject.toml` / `environment.yml` | user (builder stage) | Python/conda packages. Multi-stage build. Only one per candy |
 | `package.json` | user (builder stage) | npm packages — installed globally via `npm install -g` |
 | `Cargo.toml` + `src/` | user (builder stage) | Rust crate — built via `cargo install --path` |
-| `build.sh` | user (builder stage) | Optional post-install script for pixi layers. Runs in the pixi builder after `pixi install`. For build-time logic that can't be expressed in pixi.toml (C extension compilation, npm builds, binary patching). |
+| `build.sh` | user (builder stage) | Optional post-install script for pixi candies. Runs in the pixi builder after `pixi install`. For build-time logic that can't be expressed in pixi.toml (C extension compilation, npm builds, binary patching). |
 
-**Auto-detection:** The build system scans each layer directory for these files. `pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, and `Cargo.toml` trigger automatic multi-stage builds — no manual install commands needed. Use `task:` only for things those manifests can't express (binary downloads, file copies from `/ctx`, inline config writes, post-install configuration, `go install`, etc.).
+**Auto-detection:** The build system scans each candy directory for these files. `pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, and `Cargo.toml` trigger automatic multi-stage builds — no manual install commands needed. Use `task:` only for things those manifests can't express (binary downloads, file copies from `/ctx`, inline config writes, post-install configuration, `go install`, etc.).
 
-**Root vs user rule:** Pixi/npm/cargo builders always run as user — never as root. For `task:`, the `user:` field per task is explicit: `user: root` for system-wide changes, `user: ${USER}` for anything under `${HOME}`, or a literal username for custom users (must be created earlier in the same layer via a `cmd:` task).
+**Root vs user rule:** Pixi/npm/cargo builders always run as user — never as root. For `task:`, the `user:` field per task is explicit: `user: root` for system-wide changes, `user: ${USER}` for anything under `${HOME}`, or a literal username for custom users (must be created earlier in the same candy via a `cmd:` task).
 
 ---
 
@@ -121,7 +121,7 @@ Every task in `task:` is a YAML map with **exactly one verb key** (the discrimin
 | `link:` | symlink path (where the link lives) | `target:` | `user`, `comment` | `ln -sf <target> <link>` (coalesces with adjacent) |
 | `download:` | URL | — (`to:` unless `extract: sh`) | `user`, `extract`, `to`, `include`, `strip_components`, `mode`, `env`, `comment` | `curl` + optional extract (`tar.gz`/`tar.xz`/`tar.zst`/`zip`/`none`/`sh`). `strip_components: N` emits `tar --strip-components=N` for tar.* — drops leading path segments so tarballs that nest under a top-level arch/version dir (Go, Rust, Node binary releases) land files directly at `to:`. See `/charly-coder:uv` for the canonical uv-x86_64-unknown-linux-gnu/uv → /usr/local/bin/uv example. |
 | `setcap:` | file path | — | `user` (implicit root), `caps`, `comment` | File capabilities (`setcap -r` strip if `caps` empty) |
-| `build:` | `"all"` | — | `user` (default `${USER}`), `comment` | Run auto-detected builders (pixi/npm/cargo/aur) at this point (instead of end-of-layer) |
+| `build:` | `"all"` | — | `user` (default `${USER}`), `comment` | Run auto-detected builders (pixi/npm/cargo/aur) at this point (instead of end-of-candy) |
 
 ### Shared modifiers
 
@@ -251,7 +251,7 @@ They happen to emit `COPY` directives under the hood, but they have entirely dis
 |---|---|---|
 | Source of bytes | File on disk under `candy/<name>/` | Inline `content:` block in `charly.yml` |
 | Replaces old pattern | `cp /ctx/foo bar` + `chmod` | `cat > foo << 'EOF' … EOF` |
-| Validation check | `src` must exist under layer dir at generate time | `content` must be non-empty |
+| Validation check | `src` must exist under candy dir at generate time | `content` must be non-empty |
 | Cache key | Layer-stage file content | Content-addressed staged file at `.build/<image>/_inline/<layer>/<sha256>` |
 | Shell-heredoc involvement | None | **None** — content never appears in the Containerfile |
 
@@ -261,7 +261,7 @@ They happen to emit `COPY` directives under the hood, but they have entirely dis
 
 ## `var:` and `${VAR}` Substitution
 
-`var:` is a layer-local `map[string]string`. Values are emitted as `ENV` before the layer's tasks, so every subsequent directive in the layer (including `COPY --chmod=` paths) sees them as shell-resolvable `${VAR}` references.
+`var:` is a candy-local `map[string]string`. Values are emitted as `ENV` before the candy's tasks, so every subsequent directive in the candy (including `COPY --chmod=` paths) sees them as shell-resolvable `${VAR}` references.
 
 ```yaml
 var:
@@ -285,7 +285,7 @@ These names are reserved — `var:` may not shadow them:
 | `UID` | numeric user ID | Generate-time |
 | `GID` | numeric group ID | Generate-time |
 | `HOME` | resolved home directory | Generate-time |
-| `ARCH` | BuildKit-style: `amd64` / `arm64` / `ppc64le` / `s390x` | Build-time via `ARG TARGETARCH` + `ENV ARCH=${TARGETARCH}` at layer top |
+| `ARCH` | BuildKit-style: `amd64` / `arm64` / `ppc64le` / `s390x` | Build-time via `ARG TARGETARCH` + `ENV ARCH=${TARGETARCH}` at candy top |
 | `BUILD_ARCH` | uname-style: `x86_64` / `aarch64` / … | Build-time, shell-only (auto-injected inside `cmd:` and `download:` as `BUILD_ARCH=$(uname -m)`) |
 
 **Why two `ARCH` flavours:** `${ARCH}` is BuildKit form because that's what most upstream release naming uses (traefik, mcp-grafana, cosign, etc.). `${BUILD_ARCH}` is uname form because a handful of projects (pixi, yay, just, typst) use `x86_64`/`aarch64` in their release filenames. Pick whichever matches your URL template — the generator handles both.
@@ -304,7 +304,7 @@ Everything else (paths, URLs, modes, `to`, `target`, `user`, etc.) resolves via 
 ### Validation
 
 - `var:` keys must match `^[A-Z_][A-Z0-9_]*$` (standard shell identifier)
-- Keys may not collide with auto-exports or with the layer's own `env:` keys
+- Keys may not collide with auto-exports or with the candy's own `env:` keys
 - Unresolved `${VAR}` in non-shell fields (paths, URLs, etc.) errors at `charly box validate`
 
 ---
@@ -354,7 +354,7 @@ When two or more consecutive tasks share the same verb AND the same resolved `us
 | `write` | No coalescing needed | Same as `copy` but from staged-inline content |
 | `download` | No | Each URL gets its own RUN — merging would hide failures |
 | `cmd` | No | Each `cmd:` maps 1:1 to one RUN — merging arbitrary shell would erase author intent |
-| `build` | Singleton | One per layer (auto or explicit) |
+| `build` | Singleton | One per candy (auto or explicit) |
 
 **Non-adjacent same-verb tasks never coalesce.** `mkdir /a` → `copy foo /a/foo` → `mkdir /b` renders as three directives, not two. Collapsing the two mkdirs would change observable state (the copy would see a different directory layout) and is forbidden.
 
@@ -407,14 +407,14 @@ task:
 
 | Field | Type | Purpose |
 |-------|------|---------|
-| `version` | `string` | **MANDATORY** CalVer (`YYYY.DDD.HHMM`) of this layer definition — the layer kind requires it (`charly box validate` hard-errors when absent; `charly migrate` backfills it). The authoritative per-entity identity: it drives cross-repo layer resolution (`pickLayerVersion`) and, as the highest layer version, the consuming image's content-stable `ai.opencharly.version` label. Bump it when the layer's content changes. |
+| `version` | `string` | **MANDATORY** CalVer (`YYYY.DDD.HHMM`) of this candy definition — the candy kind requires it (`charly box validate` hard-errors when absent; `charly migrate` backfills it). The authoritative per-entity identity: it drives cross-repo layer resolution (`pickLayerVersion`) and, as the highest layer version, the consuming image's content-stable `ai.opencharly.version` label. Bump it when the candy's content changes. |
 | `status` | `string` | `working`, `testing`, or `broken`. Default: `testing`. |
 | `info` | `string` | Free-form description of what works / doesn't. Recommended for `testing` / `broken`. |
-| `require` | `[]string` | Layer dependencies. Resolved transitively, topologically sorted. |
-| `layer` | `[]string` | Compose other layers into this one (splicing). |
-| `env` | `map[string]string` | Container-runtime environment variables. Merged across layers. |
+| `require` | `[]string` | Candy dependencies. Resolved transitively, topologically sorted. |
+| `layer` | `[]string` | Compose other candies into this one (splicing). |
+| `env` | `map[string]string` | Container-runtime environment variables. Merged across candies. |
 | `path_append` | `[]string` | Paths appended to `$PATH`. Deduplicated. |
-| `var` | `map[string]string` | **Build-time** layer-local variables for `${VAR}` substitution. Emitted as `ENV` before tasks. |
+| `var` | `map[string]string` | **Build-time** candy-local variables for `${VAR}` substitution. Emitted as `ENV` before tasks. |
 | `task` | `[]Task` | **Ordered** install operations. See Task Verb Catalog above. |
 | `ports` | `[]int \| []PortSpec` | Exposed ports (1-65535). Protocol-annotated form: `tcp:5900`, `https+insecure:3000`, etc. |
 | `route` | `{host, port}` | Traefik reverse proxy route. |
@@ -431,8 +431,8 @@ task:
 | `libvirt` | `[]string` | Raw libvirt XML snippets for VM domain XML injection. |
 | `data` | `[]DataYAML` | Data mappings (`src` → volume `dest`) for volume staging. |
 | `env_provide` | `map[string]string` | Env vars injected into OTHER containers when this service is deployed. Template: `{{.ContainerName}}`. |
-| `env_require` | `[]EnvDependency` | Plaintext env vars this layer MUST have. Hard error at `charly config` if missing. |
-| `env_accept` | `[]EnvDependency` | Plaintext env vars this layer CAN optionally use. Opt-in allowlist for `env_provide` injection. |
+| `env_require` | `[]EnvDependency` | Plaintext env vars this candy MUST have. Hard error at `charly config` if missing. |
+| `env_accept` | `[]EnvDependency` | Plaintext env vars this candy CAN optionally use. Opt-in allowlist for `env_provide` injection. |
 | `secret_accept` / `secret_require` | `[]EnvDependency` | Credential-backed env vars. Values live in credential store, never in deploy.yml/quadlet. |
 | `mcp_provide` / `mcp_require` / `mcp_accept` | various | MCP server discovery analogous to `env_*`. |
 | `service` | `[]ServiceEntry` | Unified service list — see "Service Declaration" below. |
@@ -543,16 +543,16 @@ conditions must BOTH hold for the AUR stage to be emitted:
    `build: [pac, aur]`). The `arch` AND `cachyos` bases both declare only
    `build: [pac]`, so a consumer that needs AUR MUST add `aur` itself (the
    `arch-test` and `selkies-desktop` precedents). Without it the AUR section is
-   silently skipped — by design, so a multi-distro layer can carry `aur:` for
+   silently skipped — by design, so a multi-distro candy can carry `aur:` for
    Arch consumers without forcing every Fedora consumer to invoke a builder.
 2. **`builder.aur` is configured** — `arch-builder` for BOTH the `arch` and
    `cachyos` bases. CachyOS is Arch-derived and routes all four
    pixi/npm/cargo/aur formats to `arch-builder`, so an `aur:` layer builds
    **identically on arch and cachyos** — there is no cachyos-specific AUR path.
 
-**Canonical form — nested under `distro.arch`** (how the repo's layers author it:
+**Canonical form — nested under `distro.arch`** (how the repo's candies author it:
 `chrome`, `vscode`, `wl-tools`). The `aur:` block sits beside the regular
-`package:` list inside the arch distro section, so ONE layer carries Fedora RPMs
+`package:` list inside the arch distro section, so ONE candy carries Fedora RPMs
 and Arch repo + AUR packages together; the generator picks the section matching
 the image's `distro:` tags:
 
@@ -580,17 +580,17 @@ distro:
 ```
 
 A top-level `aur:` block (sibling of `pac:`, with a plural `packages:` list) is
-the single-distro shorthand for an Arch-only layer; both forms flatten to the
+the single-distro shorthand for an Arch-only candy; both forms flatten to the
 same internal `aur` format section (`charly/layers.go` `derivePackageSectionsFromCalamares`).
-Prefer the nested `distro.arch.aur.package` form for multi-distro layers.
+Prefer the nested `distro.arch.aur.package` form for multi-distro candies.
 
-The `replaces:` mechanism applies to host (`target: local`) deploys; in OCI image builds the layer is applied to a fresh rootfs that never has the conflicting package, so `replaces:` is a no-op there.
+The `replaces:` mechanism applies to host (`target: local`) deploys; in OCI image builds the candy is applied to a fresh rootfs that never has the conflicting package, so `replaces:` is a no-op there.
 
 ---
 
 ## Dependencies
 
-Layers declare dependencies via `require`. The generator resolves transitively, topologically sorts, and pulls missing dependencies automatically. Circular dependencies are a validation error.
+Candies declare dependencies via `require`. The generator resolves transitively, topologically sorts, and pulls missing dependencies automatically. Circular dependencies are a validation error.
 
 ```yaml
 require:
@@ -603,11 +603,11 @@ require:
 | | `require` | `layer` |
 |---|---|---|
 | Purpose | Prerequisite ordering | Group composition |
-| Effect | Ensures dependency is installed first | Splices layers at this layer's position |
+| Effect | Ensures dependency is installed first | Splices candies at this candy's position |
 | Transitive | Yes — pulls in sub-dependencies | Yes — recursively expands |
-| Typical use | Runtime/build prerequisites | Metalayers, layer bundles |
+| Typical use | Runtime/build prerequisites | Metalayers, candy bundles |
 
-**Common mistake:** `require: [pixi]` when you mean `require: [python]`. The `pixi` layer installs the pixi binary (build tool). The `python` layer installs Python via pixi. Your layer needs Python.
+**Common mistake:** `require: [pixi]` when you mean `require: [python]`. The `pixi` candy installs the pixi binary (build tool). The `python` candy installs Python via pixi. Your candy needs Python.
 
 ---
 
@@ -623,9 +623,9 @@ path_append:
   - "~/.local/bin"
 ```
 
-`~` and `$HOME` expand to the resolved home directory at generation time. Setting `PATH` directly in `env` is a validation error — use `path_append`. Later layers override earlier for the same key.
+`~` and `$HOME` expand to the resolved home directory at generation time. Setting `PATH` directly in `env` is a validation error — use `path_append`. Later candies override earlier for the same key.
 
-**`env:` vs `var:`:** `env:` is container **runtime** environment (emitted as `ENV` and persists into the running container). `var:` is **build-time** substitution for `${VAR}` references inside `task:` — also emitted as `ENV` so BuildKit can substitute in COPY paths, but conceptually scoped to the layer's install. There's no hard rule against using `env:` for both purposes, but keeping them separate makes intent clearer.
+**`env:` vs `var:`:** `env:` is container **runtime** environment (emitted as `ENV` and persists into the running container). `var:` is **build-time** substitution for `${VAR}` references inside `task:` — also emitted as `ENV` so BuildKit can substitute in COPY paths, but conceptually scoped to the candy's install. There's no hard rule against using `env:` for both purposes, but keeping them separate makes intent clearer.
 
 **`env:` is a MAP, not a list.** The YAML parser decodes it as `map[string]string`, not `[]string`. Authoring it as `- KEY=value` fails with `cannot unmarshal !!seq into map[string]string` at `charly box validate`. Always use map form:
 
@@ -641,13 +641,13 @@ env:
   GOPATH: "~/go"
 ```
 
-The `charly-mcp` layer is the canonical example of the map form used to thread a container-level env var into the MCP server process via supervisord.
+The `charly-mcp` candy is the canonical example of the map form used to thread a container-level env var into the MCP server process via supervisord.
 
 ---
 
 ## Service Declaration — unified `service:` schema
 
-A layer declares services via the **unified `service:` list**. One schema covers both distro-packaged systemd units and fully custom entries, rendered to supervisord INI (for container init) or systemd unit files (for bootc images + host deploys) by the init-system's `service_schema` in `build.yml`.
+A candy declares services via the **unified `service:` list**. One schema covers both distro-packaged systemd units and fully custom entries, rendered to supervisord INI (for container init) or systemd unit files (for bootc images + host deploys) by the init-system's `service_schema` in `build.yml`.
 
 Every entry has one `name:` plus either a `use_packaged:` reference (reuse a distro-shipped unit) OR a structured custom spec (`exec`, `env`, `restart`, ...). The two forms are mutually exclusive.
 
@@ -671,7 +671,7 @@ service:
 
 ### Form 2 — custom service
 
-For services that aren't distro-packaged (ollama, custom daemons, layer-provided binaries). charly renders the spec through the init-system's `service_template` in `build.yml` — supervisord-init containers get INI fragments, systemd-init containers and bootc/host deploys get `.service` unit files.
+For services that aren't distro-packaged (ollama, custom daemons, candy-provided binaries). charly renders the spec through the init-system's `service_template` in `build.yml` — supervisord-init containers get INI fragments, systemd-init containers and bootc/host deploys get `.service` unit files.
 
 ```yaml
 service:
@@ -691,9 +691,9 @@ service:
     enable: true
 ```
 
-### Mixed entries in one layer
+### Mixed entries in one candy
 
-A layer can declare multiple entries mixing both forms. The `sshd` layer is the canonical example: it enables the packaged `sshd.service` for systemd-init scope AND runs a custom wrapper via supervisord.
+A candy can declare multiple entries mixing both forms. The `sshd` candy is the canonical example: it enables the packaged `sshd.service` for systemd-init scope AND runs a custom wrapper via supervisord.
 
 ```yaml
 service:
@@ -748,17 +748,17 @@ See `/charly-infrastructure:supervisord` for the supervisord ServiceSchemaDef te
 - `/charly-infrastructure:postgresql` — canonical `use_packaged:` entry with drop-in overrides
 - `/charly-ollama:ollama` — single custom entry (common shape)
 - `/charly-hermes:hermes` — custom entry with complex env and ordering
-- `/charly-coder:sshd` — mixed (packaged + custom) within one layer
+- `/charly-coder:sshd` — mixed (packaged + custom) within one candy
 - `/charly-infrastructure:virtualization` — mixed entries for virtqemud/virtnetworkd (canonical polymorphism example)
-- `/charly-infrastructure:traefik` — multiple custom entries for a multi-service layer
+- `/charly-infrastructure:traefik` — multiple custom entries for a multi-service candy
 
-### Anti-pattern: `<name>-host` / `<name>-pod` sibling layers
+### Anti-pattern: `<name>-host` / `<name>-pod` sibling candies
 
-Do **NOT** split a polymorphic service into two layers like `myservice` (supervisord variant) + `myservice-host` (systemd variant). The mixed-entries pattern above (same `name:`, one `use_packaged:` entry, one `exec:` entry — init system at deploy time picks) is the supported way to carry both.
+Do **NOT** split a polymorphic service into two candies like `myservice` (supervisord variant) + `myservice-host` (systemd variant). The mixed-entries pattern above (same `name:`, one `use_packaged:` entry, one `exec:` entry — init system at deploy time picks) is the supported way to carry both.
 
-If you find yourself reaching for a `-host` suffix on a layer name, reach for a second `service:` entry instead. The same rule applies to `-pod` suffixes for the inverse case (a layer that needs container-only behavior under systemd targets).
+If you find yourself reaching for a `-host` suffix on a candy name, reach for a second `service:` entry instead. The same rule applies to `-pod` suffixes for the inverse case (a candy that needs container-only behavior under systemd targets).
 
-`charly box validate` does NOT (yet) statically reject `*-host` / `*-pod` layer names, because some legitimate uses might exist (a layer whose package literally only exists on host distros). The rule lives in CLAUDE.md "Init-system polymorphism via mixed `service:` entries" + this skill + `/charly-infrastructure:supervisord` — agents that load any of those before authoring will see the guidance. Canonical worked examples: `/charly-coder:sshd` (mixed), `/charly-infrastructure:virtualization` (mixed; CANONICAL example), `/charly-infrastructure:postgresql` (use_packaged-only).
+`charly box validate` does NOT (yet) statically reject `*-host` / `*-pod` candy names, because some legitimate uses might exist (a candy whose package literally only exists on host distros). The rule lives in CLAUDE.md "Init-system polymorphism via mixed `service:` entries" + this skill + `/charly-infrastructure:supervisord` — agents that load any of those before authoring will see the guidance. Canonical worked examples: `/charly-coder:sshd` (mixed), `/charly-infrastructure:virtualization` (mixed; CANONICAL example), `/charly-infrastructure:postgresql` (use_packaged-only).
 
 ## Volume Declaration
 
@@ -793,9 +793,9 @@ security:
   cpus: "4.0"                # CPU quota
 ```
 
-Security settings merge across layers (union for lists; `privileged` true if any layer sets it; smallest-wins for resource caps). Box-level `security:` in `charly.yml` overrides `privileged` and replaces resource caps.
+Security settings merge across candies (union for lists; `privileged` true if any candy sets it; smallest-wins for resource caps). Box-level `security:` in `charly.yml` overrides `privileged` and replaces resource caps.
 
-Resource caps (memory / cpus) bound the blast radius of a Chrome crash loop on the chrome layer. See `/charly-selkies:chrome` (Resource Caps) and `/charly-infrastructure:supervisord` for the (generic) eventlistener pattern.
+Resource caps (memory / cpus) bound the blast radius of a Chrome crash loop on the chrome candy. See `/charly-selkies:chrome` (Resource Caps) and `/charly-infrastructure:supervisord` for the (generic) eventlistener pattern.
 
 ---
 
@@ -808,7 +808,7 @@ port_relay:
   - 9222
 ```
 
-Note: the chrome layer uses a dedicated `cdp-proxy` supervisord service instead of `port_relay`, to handle Chrome 146+ Host header validation.
+Note: the chrome candy uses a dedicated `cdp-proxy` supervisord service instead of `port_relay`, to handle Chrome 146+ Host header validation.
 
 ## Port Protocol Annotations
 
@@ -880,7 +880,7 @@ secret_accept:
     key: charly/api-key/openrouter     # optional override; default charly/secret/<NAME>
 ```
 
-Use for API keys, passwords, auth tokens. `key:` override must match `^charly/<service>/<key>$` (lowercase). Multiple layers sharing the same upstream credential (e.g. `charly/api-key/openrouter`) all resolve to the same stored value. See `/charly-build:secrets` for the credential-store chain, rotation, and `-e NAME=VAL` auto-import.
+Use for API keys, passwords, auth tokens. `key:` override must match `^charly/<service>/<key>$` (lowercase). Multiple candies sharing the same upstream credential (e.g. `charly/api-key/openrouter`) all resolve to the same stored value. See `/charly-build:secrets` for the credential-store chain, rotation, and `-e NAME=VAL` auto-import.
 
 ## mcp_provide / mcp_require / mcp_accept
 
@@ -897,15 +897,15 @@ mcp_accept:
     description: "JupyterLab CRDT MCP server for notebook manipulation"
 ```
 
-**Pod-aware:** when provider and consumer share a container, URLs resolve to `localhost` (local wins over remote for same-named entries). **Naming is the service contract** — keep `name:` stable across layer/package/image renames.
+**Pod-aware:** when provider and consumer share a container, URLs resolve to `localhost` (local wins over remote for same-named entries). **Naming is the service contract** — keep `name:` stable across candy/package/box renames.
 
-**Testing the endpoint:** once a layer is deployed, `charly eval mcp ping <image>` verifies the server is alive, and `charly eval mcp list-tools <image>` enumerates the tool catalog. Both are authorable as deploy-scope `mcp:` declarative checks inside the layer's `eval:` block. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/charly-build:charly-mcp-cmd`.
+**Testing the endpoint:** once a candy is deployed, `charly eval mcp ping <image>` verifies the server is alive, and `charly eval mcp list-tools <image>` enumerates the tool catalog. Both are authorable as deploy-scope `mcp:` declarative checks inside the candy's `eval:` block. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/charly-build:charly-mcp-cmd`.
 
 ---
 
 ## data
 
-Data layers stage files from the layer directory into volume bind-mount areas. Build-time: files COPY into `/data/<volume>/[dest/]`. Deploy-time: `charly config --bind <volume>` provisions them into bind directories; `charly update` merges non-destructively.
+Data candies stage files from the candy directory into volume bind-mount areas. Build-time: files COPY into `/data/<volume>/[dest/]`. Deploy-time: `charly config --bind <volume>` provisions them into bind directories; `charly update` merges non-destructively.
 
 ```yaml
 volume:
@@ -918,7 +918,7 @@ data:
     dest: ""                 # optional subdirectory within volume
 ```
 
-**Data layers** are layers with only `data:` + `volume:` — no packages, no services, no tasks. Valid standalone. **Data images** (`data_image: true` in charly.yml) are scratch-based — consumed via `charly config --data-from <image>`. See `/charly-jupyter:notebook-templates` for a worked example.
+**Data candies** are candies with only `data:` + `volume:` — no packages, no services, no tasks. Valid standalone. **Data images** (`data_image: true` in charly.yml) are scratch-based — consumed via `charly config --data-from <image>`. See `/charly-jupyter:notebook-templates` for a worked example.
 
 ---
 
@@ -944,7 +944,7 @@ UID/GID in non-root cache mounts are dynamic (from resolved image config). Flat 
 
 ## Common Workflows
 
-### Create a new layer
+### Create a new candy
 
 ```bash
 charly box new candy my-tool
@@ -958,13 +958,13 @@ Add a `distro:` section to `charly.yml` keyed by distro name (`distro.fedora`, `
 
 ### Add Python packages
 
-Create `pixi.toml` in the layer directory. **`charly.yml` must depend on `python`, not `pixi`** (the `pixi` layer installs the pixi binary; the `python` layer installs Python via pixi). Never use `pip install`, `conda install`, `pixi global install`, or `uv tool install` inside a `cmd:` task. Always use `pixi.toml`.
+Create `pixi.toml` in the candy directory. **`charly.yml` must depend on `python`, not `pixi`** (the `pixi` candy installs the pixi binary; the `python` candy installs Python via pixi). Never use `pip install`, `conda install`, `pixi global install`, or `uv tool install` inside a `cmd:` task. Always use `pixi.toml`.
 
-**In-tree Python packages** shipped by a layer live at `candy/<layer-name>/<pkg-name>/<pkg-name>/` with `pyproject.toml` at the distribution root. Internal imports must be relative (`from .app import X`) so the package directory can be renamed without editing every `.py` file.
+**In-tree Python packages** shipped by a candy live at `candy/<layer-name>/<pkg-name>/<pkg-name>/` with `pyproject.toml` at the distribution root. Internal imports must be relative (`from .app import X`) so the package directory can be renamed without editing every `.py` file.
 
 ### Add npm packages
 
-Create `package.json` in the layer directory; `charly.yml` depends on `nodejs`. The build system runs `npm install -g` in a multi-stage build. Do **not** put `npm install -g` inside a `cmd:` task — `package.json` is the declarative path.
+Create `package.json` in the candy directory; `charly.yml` depends on `nodejs`. The build system runs `npm install -g` in a multi-stage build. Do **not** put `npm install -g` inside a `cmd:` task — `package.json` is the declarative path.
 
 ### Add Go packages
 
@@ -1038,13 +1038,13 @@ task:
 
 ### Add a service
 
-Declare `service:` with a supervisord `[program:<name>]` fragment and add `supervisord` to `require:`. The generator assembles per-layer service fragments into a single `/etc/supervisord.conf` at image build time.
+Declare `service:` with a supervisord `[program:<name>]` fragment and add `supervisord` to `require:`. The generator assembles per-candy service fragments into a single `/etc/supervisord.conf` at image build time.
 
 ---
 
 ## Style Guide
 
-- Lowercase-hyphenated names for layers.
+- Lowercase-hyphenated names for candies.
 - System packages in the `charly.yml` `distro:` map (+ top-level `package:` base) — not in `cmd:`.
 - Python in `pixi.toml`, npm in `package.json`, Rust in `Cargo.toml`. Never `pip install` / `conda install` / `dnf install python3-*`.
 - Binary downloads via `download:` verb; use `${ARCH}` or `${BUILD_ARCH}` for multi-arch URL templates.
@@ -1057,7 +1057,7 @@ Declare `service:` with a supervisord `[program:<name>]` fragment and add `super
 
 ## Shell Init Surface (`shell:`)
 
-Layers declare per-shell init snippets via the structured `shell:` field.
+Candies declare per-shell init snippets via the structured `shell:` field.
 Same body shape as per-distro `rpm:`/`pac:`/`deb:`:
 intrinsic fields apply to every shell, optional sub-blocks named after a
 shell allowlist key (`bash` / `zsh` / `fish` / `sh`) override the
@@ -1090,7 +1090,7 @@ shell:
 **Selection rule** — applied per (target, shell) at install time:
 1. If `shell.<shell>.init` exists, use it verbatim.
 2. Otherwise, `shell.init` with `${SHELL_NAME}` substituted.
-3. Otherwise, the layer contributes nothing for that shell.
+3. Otherwise, the candy contributes nothing for that shell.
 
 **Where snippets land** — destination is target-aware:
 
@@ -1101,8 +1101,8 @@ shell:
 | sh   | `/etc/profile.d/charly-<layer>-sh.sh`   | managed-block in `~/.profile` |
 | fish | `/etc/fish/conf.d/charly-<layer>.fish`  | `~/.config/fish/conf.d/charly-<layer>.fish` |
 
-Bash/zsh/sh on host targets use a per-layer fence pair so multiple
-layers coexist in one rc file:
+Bash/zsh/sh on host targets use a per-candy fence pair so multiple
+candies coexist in one rc file:
 
 ```
 # opencharly:begin <layer> (managed by charly; do not edit inside this block)
@@ -1110,12 +1110,12 @@ layers coexist in one rc file:
 # opencharly:end <layer>
 ```
 
-`charly deploy del` strips just the layer's fence pair from the rc file
-(without touching unrelated content). Fish always uses a per-layer
+`charly deploy del` strips just the candy's fence pair from the rc file
+(without touching unrelated content). Fish always uses a per-candy
 drop-in file (`conf.d/` is auto-sourced — no fence needed).
 
 **Cross-environment behaviour** — declaring all four shells in one
-layer covers the full cartesian product `{distros} × {host shells}`.
+candy covers the full cartesian product `{distros} × {host shells}`.
 The runtime `command -v <shell>` probe at `target: local` / `target: vm`
 deploy time skips snippets for shells that aren't installed on the
 target — same precedent as how `aur:` skips on non-Arch.
@@ -1127,7 +1127,7 @@ target — same precedent as how `aur:` skips on non-Arch.
 | `init` | string (block scalar) | Snippet body. Required when the block is present. |
 | `path_append` | `[]string` | PATH entries; rendered with shell-appropriate syntax. `~/`-prefix expands at install time. |
 | `path` | string | Override destination file. `..`-traversal is rejected at validate time. |
-| `priority` | int | Optional load order across layers contributing to the same shell. Default 50. |
+| `priority` | int | Optional load order across candies contributing to the same shell. Default 50. |
 
 **OCI label round-trip:** the merged shell config is baked into
 `ai.opencharly.shell` at `charly box build` time and parsed back via
@@ -1143,37 +1143,37 @@ shell: schema. Idempotent.
 
 ## Cross-References
 
-- `/charly-image:image` — Adding layers to image definitions; image composition; `data_image:` for data-only bundles; the full MCP-first authoring table including `box set`, `box add-candy`, `box rm-candy`, `box write`, `box cat`.
+- `/charly-image:image` — Adding candies to box definitions; box composition; `data_image:` for data-only bundles; the full MCP-first authoring table including `box set`, `box add-candy`, `box rm-candy`, `box write`, `box cat`.
 - `/charly-build:charly-mcp-cmd` — "Authoring tools" table exposing `candy.set`, `candy.add-rpm`, `candy.add-deb`, `candy.add-pac`, `candy.add-aur` as MCP tools; end-to-end build-from-scratch worked example.
 - `/charly-build:generate` — What `charly box generate` actually emits; the per-verb emitter pipeline; `.build/<image>/` layout.
 - `/charly-build:validate` — Validation rules (including per-verb task requirements).
-- `/charly-build:new` — Scaffolding a new layer directory.
+- `/charly-build:new` — Scaffolding a new candy directory.
 - `/charly-build:build` — Building images (`--no-cache` caveat; multi-stage scratch).
 - `/charly-core:charly-config` — Cross-container `env_provide` / `mcp_provide` injection; `env_require` enforcement; `--update-all`; resource caps.
 - `/charly-core:deploy` — `deploy.yml` `provides:` section; tunnel is deploy.yml-only.
-- `/charly-eval:eval` — `eval:` field for declarative layer checks (file/port/http/...); embedded in the `ai.opencharly.eval` OCI label under the `layer` section. Layer eval checks default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `candy/sshd/charly.yml`.
+- `/charly-eval:eval` — `eval:` field for declarative candy checks (file/port/http/...); embedded in the `ai.opencharly.eval` OCI label under the `layer` section. Candy eval checks default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `candy/sshd/charly.yml`.
 - `/charly-automation:sidecar` — Sidecars as `env_provide` participants (tailscale `TS_*` filtering).
 - `/charly-build:secrets` — Credential store chain for `secret_accept` / `secret_require`.
 - `/charly-selkies:chrome` — Canonical consumer of `env_accept` (proxy vars), cgroup resource caps, and a heavy user-phase copy/mkdir task list.
 - `/charly-infrastructure:supervisord` — Event listener pattern triggered by resource caps.
-- `/charly-tools:charly` — The charly-binary layer (composed by every charly-driving image). Paired with `/charly-coder:charly-mcp` which turns any image into an MCP server exposing the full charly CLI.
+- `/charly-tools:charly` — The charly-binary candy (composed by every charly-driving box). Paired with `/charly-coder:charly-mcp` which turns any box into an MCP server exposing the full charly CLI.
 - `/charly-coder:charly-mcp` — Reference implementation of a meta-layer composition (`candy: [charly, supervisord]` — no install of its own, just wiring) with bind-mounted project directory and `CHARLY_PROJECT_DIR` env-var plumbing.
-- `/charly-jupyter:notebook-templates` — Data-layer example.
+- `/charly-jupyter:notebook-templates` — Data-candy example.
 - `/charly-internals:generate-source` — Internal architecture of the task emission pipeline (Go side).
 
 ---
 
 ## Cross-kind name reuse
 
-A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same identifier (e.g. `charly-cachyos`) MAY exist as a layer at `candy/charly-cachyos/` AND an image entry `box.charly-cachyos` AND a deploy row `deploy.charly-cachyos` simultaneously. Verbs disambiguate by context. When `charly deploy add <name>` resolves a ref where both a box AND a candy with that name exist, box wins (box-first precedence); use `--add-candy <name>` to explicitly select the layer for an overlay. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/charly-core:deploy`.
+A candy's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same identifier (e.g. `charly-cachyos`) MAY exist as a candy at `candy/charly-cachyos/` AND a box entry `box.charly-cachyos` AND a deploy row `deploy.charly-cachyos` simultaneously. Verbs disambiguate by context. When `charly deploy add <name>` resolves a ref where both a box AND a candy with that name exist, box wins (box-first precedence); use `--add-candy <name>` to explicitly select the candy for an overlay. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/charly-core:deploy`.
 
 ---
 
 ## When to Use This Skill
 
-**MUST be invoked** for any task involving layer authoring, `charly.yml`, `task:`, `var:`, `pixi.toml`, `package.json`, `Cargo.toml`, or any file under `candy/`. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** for any task involving candy authoring, `charly.yml`, `task:`, `var:`, `pixi.toml`, `package.json`, `Cargo.toml`, or any file under `candy/`. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Pre-build. Author layers before adding them to images. See `/charly-image:image` (composition), `/charly-build:build` (building), `/charly-build:generate` (emission internals).
+**Workflow position:** Pre-build. Author candies before adding them to boxes. See `/charly-image:image` (composition), `/charly-build:build` (building), `/charly-build:generate` (emission internals).
 
 ## Related skills
 

@@ -2,12 +2,12 @@
 name: sag
 description: |
   ElevenLabs text-to-speech CLI.
-  Use when working with the sag layer.
+  Use when working with the sag candy.
 ---
 
 # sag -- ElevenLabs TTS CLI
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -33,11 +33,11 @@ candy:
   - sag
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:golang` -- build/runtime dependency
 - `/charly-tools:sherpa-onnx` -- offline TTS sibling
 - `/charly-tools:whisper` -- speech-to-text counterpart
@@ -51,9 +51,9 @@ candy:
 Use when the user asks about:
 - ElevenLabs text-to-speech
 - TTS in containers
-- The `sag` layer
+- The `sag` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -2,12 +2,12 @@
 name: nano-pdf
 description: |
   nano-pdf CLI for PDF editing with natural language.
-  Use when working with the nano-pdf layer.
+  Use when working with the nano-pdf candy.
 ---
 
 # nano-pdf -- PDF editing CLI
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -22,11 +22,11 @@ candy:
   - nano-pdf
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-languages:python` — required Python runtime dependency
 - `/charly-openclaw:openclaw-full` — metalayer that includes nano-pdf
 - `/charly-coder:uv` — sibling Python tooling in openclaw-full
@@ -40,9 +40,9 @@ candy:
 Use when the user asks about:
 - PDF editing with natural language
 - nano-pdf CLI tools
-- The `nano-pdf` layer
+- The `nano-pdf` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

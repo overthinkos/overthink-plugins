@@ -1,7 +1,7 @@
 ---
 name: openclaw-deploy
 description: |
-  Topic skill (no dedicated `charly openclaw` command — the surface is layer composition + image deployment). MUST be invoked before any work involving: OpenClaw gateway configuration, model auth, browser integration, channel setup, or any image composing `openclaw-*` layers (`openclaw`, `openclaw-full`, or a custom image composing `openclaw`/`openclaw-full` + `sway-desktop`).
+  Topic skill (no dedicated `charly openclaw` command — the surface is candy composition + box deployment). MUST be invoked before any work involving: OpenClaw gateway configuration, model auth, browser integration, channel setup, or any box composing `openclaw-*` candies (`openclaw`, `openclaw-full`, or a custom box composing `openclaw`/`openclaw-full` + `sway-desktop`).
 ---
 
 # OpenClaw - AI Gateway Configuration
@@ -10,7 +10,7 @@ description: |
 
 OpenClaw is an AI gateway that connects LLM agents to messaging channels (WhatsApp, Telegram, Discord, Slack, Signal, iMessage, IRC, Teams) and exposes them via a WebSocket API, CLI, and web Control UI. It runs as a Node.js process with an embedded agent runtime, model failover, browser automation, and multi-agent routing.
 
-In OpenCharly, OpenClaw runs as a supervisord service inside containers. The `openclaw` layer provides the npm package; compose it with the `sway-desktop` metalayer (full Sway desktop + Chrome browser + VNC) for browser-based workflows like OAuth and web automation. For a desktop+browser image, compose your own from the layers (shown below); for non-browser channels use the headless `openclaw` / `openclaw-full` images.
+In OpenCharly, OpenClaw runs as a supervisord service inside containers. The `openclaw` candy provides the npm package; compose it with the `sway-desktop` metalayer (full Sway desktop + Chrome browser + VNC) for browser-based workflows like OAuth and web automation. For a desktop+browser box, compose your own from the candies (shown below); for non-browser channels use the headless `openclaw` / `openclaw-full` boxes.
 
 The gateway listens on port 18789 (WebSocket + HTTP). All CLI commands (`openclaw *`) connect to the gateway WebSocket. The Control UI is served at the gateway root URL. Config is stored in `~/.openclaw/openclaw.json` (JSON5 format).
 
@@ -38,9 +38,9 @@ For container lifecycle, use `charly` commands -- see `/charly-core:service`.
 
 ## OpenCharly Integration
 
-### Layer
+### Candy
 
-The `openclaw` layer (`candy/openclaw/`) depends on `nodejs` and `supervisord`. It installs the `openclaw` npm package globally, exposes port 18789, declares a `data` volume at `~/.openclaw`, and runs as a supervisord service:
+The `openclaw` candy (`candy/openclaw/`) depends on `nodejs` and `supervisord`. It installs the `openclaw` npm package globally, exposes port 18789, declares a `data` volume at `~/.openclaw`, and runs as a supervisord service:
 
 ```
 [program:openclaw]
@@ -49,9 +49,9 @@ command=%(ENV_HOME)s/.npm-global/bin/openclaw gateway --port 18789
 
 The gateway binds to loopback only (no `--bind lan`). External access is handled by port_relay (socat), which forwards from the container interface to loopback. This avoids CORS origin checks entirely — the gateway only ever sees loopback connections.
 
-### Image
+### Box
 
-Compose your own desktop+browser image — e.g. an `openclaw-desktop` entry in `charly.yml` combining `openclaw-full` + `sway-desktop` on a Fedora base:
+Compose your own desktop+browser box — e.g. an `openclaw-desktop` entry in `charly.yml` combining `openclaw-full` + `sway-desktop` on a Fedora base:
 
 ```yaml
 box:
@@ -61,7 +61,7 @@ box:
     port: ["18789:18789", "5900:5900", "9222:9222", "9224:9224"]
 ```
 
-The resulting image exposes:
+The resulting box exposes:
 
 | Port | Service | Protocol |
 |------|---------|----------|
@@ -188,7 +188,7 @@ charly tmux capture $IMG -s oauth
 
 **Prerequisites:** Chrome must have an active Google session. The "Continue with Google" button on OpenAI's auth page uses Chrome's Google cookies — sign Chrome into Google (with sync enabled) via the VNC desktop before starting the OAuth flow.
 
-**Callback architecture:** The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container. Chrome and `openclaw-models` share the same network namespace — no port mapping needed for 1455. The `BROWSER=browser-open` env var (set by the chrome layer) auto-opens URLs via CDP, but may not trigger in all TTY contexts — open the URL manually via `charly eval cdp open` as a fallback.
+**Callback architecture:** The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container. Chrome and `openclaw-models` share the same network namespace — no port mapping needed for 1455. The `BROWSER=browser-open` env var (set by the chrome candy) auto-opens URLs via CDP, but may not trigger in all TTY contexts — open the URL manually via `charly eval cdp open` as a fallback.
 
 **Stale port 1455:** If a previous attempt left port 1455 occupied: `charly shell $IMG -c 'kill -9 $(ss -tlnp sport = :1455 | grep -oP "pid=\K\d+")'`
 
@@ -229,14 +229,14 @@ models: {
 
 ### Connecting to Existing Chrome
 
-In a composed openclaw desktop image (e.g. `openclaw-desktop`), Chrome already runs as a supervisord service on port 9222. OpenClaw must connect to it rather than launching a new instance:
+In a composed openclaw desktop box (e.g. `openclaw-desktop`), Chrome already runs as a supervisord service on port 9222. OpenClaw must connect to it rather than launching a new instance:
 
 ```bash
 openclaw config set browser.cdpUrl "http://127.0.0.1:9222"
 supervisorctl restart openclaw
 ```
 
-Do **not** use `openclaw browser start` in this image -- it attempts to launch a separate Chrome instance that fails without Wayland environment variables.
+Do **not** use `openclaw browser start` in this box -- it attempts to launch a separate Chrome instance that fails without Wayland environment variables.
 
 After configuration, verify:
 
@@ -427,6 +427,6 @@ charly shell <image> -c "supervisorctl restart openclaw"
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves OpenClaw gateway configuration, model auth, browser integration, channel setup, or openclaw images. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves OpenClaw gateway configuration, model auth, browser integration, channel setup, or openclaw boxes. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Post-deployment. Configure the gateway after the container is running. See also `/charly-openclaw:openclaw*` (image variants).
+**Workflow position:** Post-deployment. Configure the gateway after the container is running. See also `/charly-openclaw:openclaw*` (box variants).

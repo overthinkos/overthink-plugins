@@ -9,7 +9,7 @@ description: |
 
 ## Overview
 
-`charly config` configures an image for deployment. In `run_mode=quadlet` (the default on systemd-user hosts) it generates a systemd quadlet unit, provisions container secrets, initializes encrypted volumes, and seeds data from data layers into the image's volumes. In `run_mode=direct` (auto-selected on nested environments without systemd-user — eval-sandbox pods, supervisord-only containers, sysvinit hosts) it skips quadlet+systemctl and runs the container via `podman run -d`, recording a marker file at `~/.config/charly/direct/<name>.json` so `charly start`/`charly remove` can find it. Direct mode does NOT support sidecars, encrypted volumes, or cloudflare tunnel companion services (those require systemd) — warnings are emitted and the operation proceeds without those features.
+`charly config` configures an image for deployment. In `run_mode=quadlet` (the default on systemd-user hosts) it generates a systemd quadlet unit, provisions container secrets, initializes encrypted volumes, and seeds data from data candies into the image's volumes. In `run_mode=direct` (auto-selected on nested environments without systemd-user — eval-sandbox pods, supervisord-only containers, sysvinit hosts) it skips quadlet+systemctl and runs the container via `podman run -d`, recording a marker file at `~/.config/charly/direct/<name>.json` so `charly start`/`charly remove` can find it. Direct mode does NOT support sidecars, encrypted volumes, or cloudflare tunnel companion services (those require systemd) — warnings are emitted and the operation proceeds without those features.
 
 This is the **single entry point** for **container** deployment setup. `charly start` requires `charly config` to have been run first in quadlet mode.
 
@@ -64,7 +64,7 @@ This is the **single entry point** for **container** deployment setup. `charly s
 | `--volume` | `-v` | | Configure volume backing (name:type[:path]). Type: volume\|bind\|encrypted |
 | `--bind` | | | Shorthand: configure volume as bind mount (name or name=path) |
 | `--encrypt` | | | Shorthand: configure volume as encrypted (gocryptfs) |
-| `--seed` | | `true` | Seed image volumes (bind mounts AND named volumes) with data from the image's data layers |
+| `--seed` | | `true` | Seed image volumes (bind mounts AND named volumes) with data from the image's data candies |
 | `--no-seed` | | | Disable data seeding |
 | `--force-seed` | | | Re-seed even if target directory is not empty |
 | `--data-from` | | | Seed data from a different data image |
@@ -86,7 +86,7 @@ This is the **single entry point** for **container** deployment setup. `charly s
 6. Provisions container secrets (from `ai.opencharly.secret` label)
 7. Resolves volume backing (named, bind, or encrypted)
 8. Initializes encrypted volumes (gocryptfs) if configured
-9. Seeds data layers into the image's volumes (bind mounts AND podman named volumes)
+9. Seeds data candies into the image's volumes (bind mounts AND podman named volumes)
 10. Runs `systemctl --user daemon-reload`
 11. Injects `env_provide` entries from image labels into deploy.yml `provides.env:` (resolves `{{.ContainerName}}` templates)
 12. Injects `mcp_provide` entries from image labels into deploy.yml `provides.mcp:` (resolves templates, defaults transport to `http`)
@@ -141,7 +141,7 @@ Secrets declared in `charly.yml` `secret:` field are stored as OCI label metadat
 
 ## Data Seeding
 
-Data layers (layers with `data:` field) stage files into `/data/<volume>/<dest>/` at build time. At config time:
+Data candies (candies with `data:` field) stage files into `/data/<volume>/<dest>/` at build time. At config time:
 
 - **First config** (`--seed`, default true): copies staged data into the image's volumes (both bind mounts and named volumes)
 - **Subsequent config**: skips if `data_seeded` flag is set in deploy.yml
@@ -161,12 +161,12 @@ For `FROM scratch` data images (`data_image: true`), bind-mount targets use `pod
 
 `DataProvisionInitial` only runs when the target is empty:
 
-- **Bind mount**: checks the per-entry subdirectory (`<bind-root>/<dest>/`) via `os.ReadDir`, so data layers with distinct `dest:` values can coexist in the same bind mount.
+- **Bind mount**: checks the per-entry subdirectory (`<bind-root>/<dest>/`) via `os.ReadDir`, so data candies with distinct `dest:` values can coexist in the same bind mount.
 - **Named volume**: checks the volume root via `podman volume inspect --format {{.Mountpoint}}` followed by `os.ReadDir` of the returned path. Per-entry subdirectory checks aren't available without exec'ing into a container, so multiple entries targeting the same named volume all run on the initial seed and then transition to merge-safe `cp -an` on subsequent runs.
 
-### Data layer ordering (bind mounts only)
+### Data candy ordering (bind mounts only)
 
-For **bind-mounted** targets, data layers that target the volume **root** (`dest:` absent or empty — e.g. `notebook-templates`, which drops `getting-started.ipynb` directly into `~/workspace/`) should be listed **first** in the image's `candy:` list. A root-targeted layer ordered after subdirectory-targeted layers will see the root as non-empty (because subdirs from earlier layers exist) and skip. This is a convention, not a hard-enforced rule.
+For **bind-mounted** targets, data candies that target the volume **root** (`dest:` absent or empty — e.g. `notebook-templates`, which drops `getting-started.ipynb` directly into `~/workspace/`) should be listed **first** in the box's `candy:` list. A root-targeted candy ordered after subdirectory-targeted candies will see the root as non-empty (because subdirs from earlier candies exist) and skip. This is a convention, not a hard-enforced rule.
 
 This ordering caveat does not apply to named-volume targets, where the initial seed runs against the whole volume regardless of sub-paths.
 
@@ -525,7 +525,7 @@ Source: `charly/config_secret_migration.go` (`scrubSecretCLIEnv`).
 
 **Sidecar interaction.** Sidecars (e.g., the tailscale sidecar) participate in the same filtering pipeline — their `TS_*` env set is routed to the sidecar container, not auto-merged into the app container. For the app to see anything from the sidecar, it must declare `env_accept: [<var>]` or `env_require: [<var>]`. See `/charly-automation:sidecar` (Environment Contract) for the pattern.
 
-**`--update-all` effect.** When filtering rules change (e.g., a layer adds a new `env_accept` entry), `charly config <any-image> --update-all` re-runs the resolution pipeline for every deployed image and writes updated `provides:` blocks to their quadlets. Propagation is atomic per-image.
+**`--update-all` effect.** When filtering rules change (e.g., a candy adds a new `env_accept` entry), `charly config <any-image> --update-all` re-runs the resolution pipeline for every deployed image and writes updated `provides:` blocks to their quadlets. Propagation is atomic per-image.
 
 Source: `charly/provides.go` (resolution, filtering, `{{.ContainerName}}` templating), `charly/config_image.go` (`injectEnvProvides`, `injectMCPProvides`, `checkMissingEnvRequires`).
 

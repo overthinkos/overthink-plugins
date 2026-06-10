@@ -212,7 +212,7 @@ The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUIL
 - `/charly-build:inspect` -- Inspect generated output for a specific image
 - `/charly-build:list` -- Enumerate targets before generation
 - `/charly-build:merge` -- Post-build layer consolidation
-- `/charly-build:new` -- Scaffold a new layer to generate into
+- `/charly-build:new` -- Scaffold a new candy to generate into
 - `/charly-build:pull` -- Pull prebuilt images (orthogonal to generate)
 - `/charly-build:validate` -- Validation rules for images and layers (including per-verb task rules)
 

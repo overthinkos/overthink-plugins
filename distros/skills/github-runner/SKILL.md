@@ -8,7 +8,7 @@ description: |
 
 # github-runner -- GitHub Actions self-hosted runner
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ description: |
   Arch branch): `icu`, `krb5`, `openssl`, `libunwind`, `lttng-ust` (NOT `zlib` —
   CachyOS ships `zlib-ng-compat`, which Provides it; an explicit `zlib` conflicts)
 - charly-host `depends=` completion: `slirp4netns`, `libisoburn`, `cdrtools`, `swtpm`
-  — the part of the `charly` PKGBUILD `depends=` set the charly/virtualization layers do
+  — the part of the `charly` PKGBUILD `depends=` set the charly/virtualization candies do
   not already install. With these present, `charly box pkg pac` builds the pac release
   artifact NATIVELY on the runner (`makepkg -sf` resolves every dep and never
   shells out to `sudo pacman`). See `/charly-distros:githubrunner` "CI: builds the
@@ -73,7 +73,7 @@ charly config githubrunner -e RUNNER_ORG=myorg -e RUNNER_TOKEN="$TOKEN"
 charly remove githubrunner -e RUNNER_TOKEN=$(gh api -X POST /orgs/myorg/actions/runners/remove-token --jq .token)
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-distros:githubrunner`
 
@@ -93,6 +93,6 @@ Use when the user asks about:
 
 ## Author + Test References
 
-- `/charly-image:layer` — layer authoring reference (tasks, vars, secret_accept, eval block syntax)
+- `/charly-image:layer` — candy authoring reference (tasks, vars, secret_accept, eval block syntax)
 - `/charly-eval:eval` — declarative testing framework for the `eval:` block + the `eval-githubrunner-pod` bed
 - `/charly-build:secrets` — the credential store backing `RUNNER_TOKEN`

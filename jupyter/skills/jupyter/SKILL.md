@@ -3,29 +3,29 @@ name: jupyter
 description: |
   Lightweight JupyterLab with real-time collaboration on port 8888. No GPU required.
   Based on fedora (not nvidia), supports both amd64 and arm64.
-  MUST be invoked before building, deploying, configuring, or troubleshooting the jupyter image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the jupyter box.
 ---
 
 # jupyter
 
 Lightweight JupyterLab with real-time collaboration via jupyter-collaboration (Y-CRDT).
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | agent-forwarding, jupyter (sub-layers: jupyter-mcp), notebook-templates, dbus, charly |
+| Candies | agent-forwarding, jupyter (sub-candies: jupyter-mcp), notebook-templates, dbus, charly |
 | Platforms | linux/amd64, linux/arm64 |
 | Ports | 8888 |
 | Registry | ghcr.io/overthinkos |
 
-## Full Layer Stack
+## Full Candy Stack
 
 1. `fedora` (Fedora 43 base — no GPU)
 2. `pixi` → `python` → `supervisord` (transitive)
-3. `jupyter` — JupyterLab + jupyter-collaboration + data science (composes `jupyter-mcp` sub-layer for MCP extension)
-4. `notebook-templates` — Starter notebooks (data layer, seeds /workspace)
+3. `jupyter` — JupyterLab + jupyter-collaboration + data science (composes `jupyter-mcp` sub-candy for MCP extension)
+4. `notebook-templates` — Starter notebooks (data candy, seeds /workspace)
 5. `agent-forwarding` — SSH/GPG agent forwarding
 5. `dbus` — D-Bus session bus
 6. `charly` — charly CLI binary
@@ -64,7 +64,7 @@ charly logs jupyter           # supervisord aggregated stdout/stderr
 
 ## What's Installed
 
-Beyond the JupyterLab core, the image's pixi env carries: pandas /
+Beyond the JupyterLab core, the box's pixi env carries: pandas /
 polars / numpy / scipy / scikit-learn / matplotlib / seaborn for data
 work; pyarrow / duckdb for column-store interop; **spacy 3.8.x +
 `en_core_web_sm`** for NLP (tokenization, NER, POS, dependency
@@ -72,12 +72,12 @@ parsing); black / pytest / graphviz / pyyaml / tqdm as utilities. Full
 list and version pins live in `candy/jupyter/pixi.toml` — see
 `/charly-jupyter:jupyter` for the package matrix.
 
-## Key Layers
+## Key Candies
 
 - `/charly-jupyter:jupyter` — JupyterLab + collaboration + data science
 - `/charly-distros:agent-forwarding` — SSH/GPG forwarding
 
-## Related Images
+## Related Boxes
 
 - `/charly-jupyter:jupyter-ml` — GPU-accelerated variant (nvidia base, full ML stack)
 - `/charly-jupyter:jupyter-ml-notebook` — GPU variant with fine-tuning notebooks
@@ -87,7 +87,7 @@ list and version pins live in `candy/jupyter/pixi.toml` — see
 
 ## MCP Server (Programmatic Notebook Access)
 
-The image includes a built-in MCP server at `http://localhost:8888/mcp` (Streamable HTTP transport, MCP spec 2025-11-25). AI agents can create, read, edit, execute, and watch notebooks programmatically — with changes syncing live to all collaborators via CRDT.
+The box includes a built-in MCP server at `http://localhost:8888/mcp` (Streamable HTTP transport, MCP spec 2025-11-25). AI agents can create, read, edit, execute, and watch notebooks programmatically — with changes syncing live to all collaborators via CRDT.
 
 The MCP server name is set via the `MCP_SERVER_NAME` environment variable (default: `jupyter`). For multi-instance deployments, override per-instance: `charly config jupyter -i work -e MCP_SERVER_NAME=jupyter-work`.
 
@@ -259,7 +259,7 @@ jupyter-lab binary under pixi, notebook-templates provisioned into
 `/workspace`, jupyter-mcp extension enabled, fastmcp pip
 package installed. Deploy-scope: supervisord up, port 8888 reachable
 on `127.0.0.1`, `/api` returns 200 with `version` in body, `/mcp`
-returns 400 on empty POST (proving MCP routing is wired). Image-scope:
+returns 400 on empty POST (proving MCP routing is wired). Box-scope:
 `jupyter_mcp` appears in extension list, workspace has ≥1 `.ipynb`.
 
 See `/charly-eval:eval` for the framework and author-facing gotchas.
@@ -269,12 +269,12 @@ See `/charly-eval:eval` for the framework and author-facing gotchas.
 - `/charly-jupyter:jupyter`, `/charly-jupyter:jupyter-mcp`, `/charly-jupyter:notebook-templates`
 - `/charly-eval:eval` — declarative testing framework
 - `/charly-core:charly-config` — deploy setup
-- `/charly-build:charly-mcp-cmd` — the image inherits 3 deploy-scope `mcp:` declarative checks from the `jupyter` layer (`ping`, `list-tools` asserting all 11 prefixed tool names, `call notebook_list`). Run `charly eval live jupyter --filter mcp` to exercise them against a live deployment, or `charly eval mcp list-tools jupyter` for ad-hoc inspection
+- `/charly-build:charly-mcp-cmd` — the box inherits 3 deploy-scope `mcp:` declarative checks from the `jupyter` candy (`ping`, `list-tools` asserting all 11 prefixed tool names, `call notebook_list`). Run `charly eval live jupyter --filter mcp` to exercise them against a live deployment, or `charly eval mcp list-tools jupyter` for ad-hoc inspection
 - `/charly-jupyter:jupyter-ml`, `/charly-jupyter:jupyter-ml-notebook` — GPU variants that inherit the same MCP test suite
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the jupyter image, collaborative Jupyter notebooks, lightweight Jupyter deployments without GPU, MCP-based notebook access, or multi-client collaboration. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the jupyter box, collaborative Jupyter notebooks, lightweight Jupyter deployments without GPU, MCP-based notebook access, or multi-client collaboration. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 

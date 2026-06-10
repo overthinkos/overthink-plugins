@@ -2,12 +2,12 @@
 name: sherpa-onnx
 description: |
   sherpa-onnx offline text-to-speech.
-  Use when working with the sherpa-onnx layer.
+  Use when working with the sherpa-onnx candy.
 ---
 
 # sherpa-onnx -- Offline TTS
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -29,10 +29,10 @@ candy:
   - sherpa-onnx
 ```
 
-## Used In Images
+## Used In Boxes
 
 
-## Related Layers
+## Related Candies
 - `/charly-tools:whisper` -- speech-to-text counterpart
 - `/charly-tools:sag` -- ElevenLabs TTS alternative
 
@@ -46,9 +46,9 @@ Use when the user asks about:
 - Offline text-to-speech
 - sherpa-onnx TTS engine
 - ONNX-based speech synthesis
-- The `sherpa-onnx` layer
+- The `sherpa-onnx` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -96,7 +96,7 @@ port_relay:
 How it works:
 - socat binds to `eth0:<port>` and forwards to `127.0.0.1:<port>`
 - An init system service is auto-generated (via build.yml `init.<name>.relay_template`) with priority 1 (starts before other services)
-- The socat layer is automatically added as a dependency
+- The socat candy is automatically added as a dependency
 
 This makes loopback-only services accessible through normal podman/docker port mappings and `tailscale serve`.
 
@@ -208,7 +208,7 @@ Use `charly cmd` for quick operations on running services. Use `charly shell -c`
 
 ### Build-mode references
 
-- `/charly-image:image` -- Image definitions (ports, volumes, env) in `charly.yml`; authoritative source before a pull
+- `/charly-image:image` -- Box definitions (ports, volumes, env) in `charly.yml`; authoritative source before a pull
 - `/charly-build:build` -- Build the image you intend to shell into
 
 ### Layer skills

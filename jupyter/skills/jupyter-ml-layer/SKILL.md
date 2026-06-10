@@ -3,17 +3,17 @@ name: jupyter-ml-layer
 description: |
   Full CUDA ML stack + JupyterLab with real-time collaboration and CRDT MCP server on port 8888.
   Use when working with GPU-accelerated Jupyter notebooks, ML training with collaboration,
-  or the jupyter-ml layer.
+  or the jupyter-ml candy.
 ---
 
 # jupyter-ml -- Full ML + JupyterLab with CRDT MCP
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
 | Dependencies | `cuda`, `supervisord` |
-| Sub-layers | `llama-cpp`, `unsloth`, `jupyter-mcp` |
+| Sub-candies | `llama-cpp`, `unsloth`, `jupyter-mcp` |
 | Ports | 8888 |
 | Service | `jupyter-ml` (supervisord) |
 | Volume | `workspace` at `/workspace` |
@@ -21,10 +21,10 @@ description: |
 
 ## Architecture: Environment-Owning Meta-Layer
 
-This is a **Tier 2 "environment owner"** layer that:
+This is a **Tier 2 "environment owner"** candy that:
 1. Owns the pixi.toml with ALL Python dependencies (Jupyter + ML + vLLM runtime deps)
-2. Composes three Tier 1 sub-layers via `candy: [llama-cpp, unsloth, jupyter-mcp]`
-3. MCP extension installed by the `jupyter-mcp` sub-layer (not directly in tasks:)
+2. Composes three Tier 1 sub-candies via `candy: [llama-cpp, unsloth, jupyter-mcp]`
+3. MCP extension installed by the `jupyter-mcp` sub-candy (not directly in tasks:)
 
 Build order: pixi environment → llama-cpp (binaries) → unsloth (vllm wheel + unsloth pip + patch) → jupyter-mcp (MCP extension)
 
@@ -48,7 +48,7 @@ Build order: pixi environment → llama-cpp (binaries) → unsloth (vllm wheel +
 
 **RPM (Fedora):** git, gcc, gcc-c++
 
-**PAC (Arch/CachyOS):** git, gcc (includes g++) — the layer is multi-distro
+**PAC (Arch/CachyOS):** git, gcc (includes g++) — the candy is multi-distro
 
 ## Environment
 
@@ -56,9 +56,9 @@ Build order: pixi environment → llama-cpp (binaries) → unsloth (vllm wheel +
 |----------|-------|---------|
 | `NVIDIA_PYTHON_PROJECT` | `~/.pixi` | NVIDIA driver → pixi env mapping |
 | `LD_LIBRARY_PATH` | `/usr/lib64:$HOME/llama.cpp` | CUDA libs + llama.cpp shared libs |
-| `LLAMA_CPP_PATH` | `~/llama.cpp` | (from llama-cpp sub-layer) |
-| `UNSLOTH_SKIP_LLAMA_CPP_INSTALL` | `1` | (from unsloth sub-layer) |
-| `HF_HOME` | `~/.cache/huggingface` | (from unsloth sub-layer) |
+| `LLAMA_CPP_PATH` | `~/llama.cpp` | (from llama-cpp sub-candy) |
+| `UNSLOTH_SKIP_LLAMA_CPP_INSTALL` | `1` | (from unsloth sub-candy) |
+| `HF_HOME` | `~/.cache/huggingface` | (from unsloth sub-candy) |
 
 ## MCP Server Extension
 
@@ -77,18 +77,18 @@ Endpoint: `http://localhost:8888/mcp` (Streamable HTTP, MCP spec 2025-11-25)
 | ML stack | No | Full (PyTorch, vLLM 0.19, unsloth) |
 | Volume | workspace | workspace |
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-jupyter:jupyter-ml`
 - `/charly-jupyter:jupyter-ml-notebook`
 
-## Related Layers
+## Related Candies
 
 - `/charly-jupyter:jupyter` — Lightweight variant (no CUDA, multi-arch)
-- `/charly-jupyter:llama-cpp` — Sub-layer: llama.cpp binaries
-- `/charly-jupyter:unsloth` — Sub-layer: vLLM wheel + fine-tuning + vLLM patch
-- `/charly-jupyter:jupyter-mcp` — Sub-layer: CRDT MCP extension
-- `/charly-jupyter:notebook-templates` — Starter notebooks (data layer, used alongside this layer in images)
+- `/charly-jupyter:llama-cpp` — Sub-candy: llama.cpp binaries
+- `/charly-jupyter:unsloth` — Sub-candy: vLLM wheel + fine-tuning + vLLM patch
+- `/charly-jupyter:jupyter-mcp` — Sub-candy: CRDT MCP extension
+- `/charly-jupyter:notebook-templates` — Starter notebooks (data candy, used alongside this candy in boxes)
 - `/charly-hermes:hermes` — MCP consumer (auto-discovers via `CHARLY_MCP_SERVERS`; uses jupyter tools to read/edit/execute cells)
 - `/charly-openwebui:openwebui` — MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code blocks to the Jupyter kernel)
 
@@ -98,10 +98,10 @@ Use when the user asks about:
 
 - GPU-accelerated Jupyter with collaboration
 - ML training notebooks with CRDT MCP
-- The `jupyter-ml` layer
+- The `jupyter-ml` candy
 - Combining jupyter features with CUDA ML
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

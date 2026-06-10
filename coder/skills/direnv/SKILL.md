@@ -7,7 +7,7 @@ description: |
 
 # direnv -- Automatic environment variable loading
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -26,13 +26,13 @@ my-image:
     - direnv
 ```
 
-Typically used as part of the `agent-forwarding` composition layer rather than directly. Also available in the heavyweight `dev-tools` layer (46 packages).
+Typically used as part of the `agent-forwarding` composition candy rather than directly. Also available in the heavyweight `dev-tools` candy (46 packages).
 
 ## Runtime Behavior
 
 Provides the `direnv` binary AND the per-shell hook installation for automatic environment variable loading from `.envrc` files.
 
-**Shell hooks are declarative.** The layer carries a `shell:` block:
+**Shell hooks are declarative.** The candy carries a `shell:` block:
 
 ```yaml
 shell:
@@ -47,17 +47,17 @@ Container images get `/etc/profile.d/charly-direnv-<shell>.sh` and `/etc/fish/co
 
 The primary use case in OpenCharly is the `.secrets` workflow: `.envrc` calls `eval "$(charly secrets gpg env)"` which decrypts a GPG-encrypted `.secrets` file in memory and exports the variables — no plaintext on disk. No external `direnvrc` dependency needed.
 
-## Used In Images
+## Used In Boxes
 
-Part of `agent-forwarding` composition layer, used in 27 application images.
+Part of `agent-forwarding` composition candy, used in 27 application boxes.
 
-Also available in the `dev-tools` layer.
+Also available in the `dev-tools` candy.
 
-## Related Layers
+## Related Candies
 
 - `/charly-distros:agent-forwarding` -- metalayer that includes gnupg + direnv + ssh-client
 - `/charly-infrastructure:gnupg` -- GPG tools (needed for `.secrets` decryption)
-- `/charly-coder:dev-tools` -- heavyweight layer that also includes direnv (46 packages)
+- `/charly-coder:dev-tools` -- heavyweight candy that also includes direnv (46 packages)
 
 ## Cross-References
 
@@ -68,11 +68,11 @@ Also available in the `dev-tools` layer.
 Use when the user asks about:
 
 - direnv or `.envrc` files
-- The `direnv` layer
+- The `direnv` candy
 - Automatic environment variable loading
 - The `.secrets` + direnv workflow
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

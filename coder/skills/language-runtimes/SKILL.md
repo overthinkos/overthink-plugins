@@ -3,14 +3,14 @@ name: language-runtimes
 description: |
   Multi-language runtime meta-layer — Go, PHP, .NET 9 SDK, nodejs-devel,
   python3-devel, ramalama. System Python via RPM (not pixi-python). Uses
-  nodejs and rust layers as explicit deps.
+  nodejs and rust candies as explicit deps.
   Use when working with polyglot development or composing multiple language
-  runtimes into a single image.
+  runtimes into a single box.
 ---
 
 # language-runtimes -- Go, PHP, .NET, nodejs-devel, python3-devel
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -21,12 +21,12 @@ description: |
 
 - `dotnet-sdk-9.0` — Microsoft .NET 9 SDK (~600 MB, dominant size)
 - `golang-bin` — Go compiler + standard library
-- `golang-bazil-fuse-devel` — Go FUSE bindings (for layers compiling FUSE Go code)
+- `golang-bazil-fuse-devel` — Go FUSE bindings (for candies compiling FUSE Go code)
 - `libicu` — ICU i18n library (required by .NET)
 - `php` — PHP CLI + core modules
 - `python3-devel` — system Python 3 + dev headers
 - `python3-ramalama` — RamaLama tool (Python)
-- `nodejs-devel` — Node.js headers (some native-module compiles need this alongside the `nodejs` layer's runtime)
+- `nodejs-devel` — Node.js headers (some native-module compiles need this alongside the `nodejs` candy's runtime)
 
 ## Packages (pac) — Arch Linux
 
@@ -55,7 +55,7 @@ Cross-distro parity for .NET 9 requires juggling three asymmetric availability w
 | Debian 13 trixie | Microsoft's trixie apt repo has it; Debian main does not |
 | Ubuntu 24.04 noble | **Neither** Canonical noble (ships 8.0 + 10.0) **nor** Microsoft's noble apt repo (ships only 10.0) has 9.0 |
 
-Rather than carrying that asymmetry in layer code, the layer uses Microsoft's official cross-distro installer script, channel-pinned to `9.0`. It installs to `/usr/share/dotnet` and symlinks `/usr/bin/dotnet`:
+Rather than carrying that asymmetry in candy code, the candy uses Microsoft's official cross-distro installer script, channel-pinned to `9.0`. It installs to `/usr/share/dotnet` and symlinks `/usr/bin/dotnet`:
 
 ```yaml
 task:
@@ -82,7 +82,7 @@ $ /usr/bin/dotnet --version
 9.0.313
 ```
 
-Idempotent: the outer `command -v dotnet` guard makes this task a no-op on Fedora/Arch (where the distro package already installed dotnet) and on rebuilds (where the previous run already placed the symlink). Runtime dependency: `libicu-dev` (already installed by the layer's `deb:` section).
+Idempotent: the outer `command -v dotnet` guard makes this task a no-op on Fedora/Arch (where the distro package already installed dotnet) and on rebuilds (where the previous run already placed the symlink). Runtime dependency: `libicu-dev` (already installed by the candy's `deb:` section).
 
 See `/charly-image:layer` for general cross-distro task-authoring patterns.
 
@@ -95,26 +95,26 @@ Both exist so future Microsoft-apt-repo-based installs can be slotted into tag s
 
 ## No pixi-python dependency — system Python only
 
-This layer does NOT declare `requires: python`, so it pulls in neither the
+This candy does NOT declare `requires: python`, so it pulls in neither the
 `python` charly-layer nor the `pixi` charly-layer (and hence no ~500 MB conda-forge
 Python env). It installs `python3-devel` + `python3-ramalama` via RPM —
 **system Python** — which is all its content references. Consumers of
 `language-runtimes` get only the RPM Python stack.
 
 Consequence for `/charly-coder:fedora-coder` (the biggest consumer): the whole
-`python` / `pixi` charly-layer chain stays out of the resolved layer set (because
+`python` / `pixi` charly-layer chain stays out of the resolved candy set (because
 `/charly-coder:uv` and `/charly-infrastructure:supervisord` likewise carry no python
 dep). See CLAUDE.md "Key Rules" → *"Don't declare defensive deps"* for the
 general rule.
 
-If you genuinely need the pixi-python env (e.g. a layer that
+If you genuinely need the pixi-python env (e.g. a candy that
 installs a Python package from conda-forge via pixi), declare
-`requires: python` on THAT layer directly — don't rely on transitive
+`requires: python` on THAT candy directly — don't rely on transitive
 pulls.
 
 ## Tests
 
-Six build-scope tests ship with the layer:
+Six build-scope tests ship with the candy:
 
 | Test | Purpose |
 |---|---|
@@ -123,7 +123,7 @@ Six build-scope tests ship with the layer:
 | `system-python3` + `system-python3-version` | `/usr/bin/python3` is the system interpreter (the RPM-installed one; explicitly NOT a pixi-env path) |
 
 Go and Node.js testing is delegated to the `/charly-coder:golang` and
-`/charly-coder:nodejs` layer skills — those are
+`/charly-coder:nodejs` candy skills — those are
 the single sources of truth for their respective binaries.
 
 ## Usage
@@ -135,18 +135,18 @@ my-polyglot:
     - language-runtimes
 ```
 
-## Used In Images
+## Used In Boxes
 
-- `/charly-coder:fedora-coder` — kitchen-sink dev image, canonical RPM consumer.
+- `/charly-coder:fedora-coder` — kitchen-sink dev box, canonical RPM consumer.
 - `/charly-coder:arch-coder` — pacman-based sibling.
 - `/charly-coder:debian-coder`, `/charly-coder:ubuntu-coder` — deb-based siblings, consumers of the dotnet-install.sh task.
 
-## Related Layers
+## Related Candies
 
 - `/charly-coder:nodejs` — Node.js runtime (direct dependency)
 - `/charly-coder:rust` — Rust toolchain (direct dependency)
-- `/charly-languages:python` — Pixi-python env. **Not a dep of this layer.**
-- `/charly-coder:golang` — Go toolchain (may be added separately for clarity even though `golang-bin` is already in this layer's RPM list)
+- `/charly-languages:python` — Pixi-python env. **Not a dep of this candy.**
+- `/charly-coder:golang` — Go toolchain (may be added separately for clarity even though `golang-bin` is already in this candy's RPM list)
 - `/charly-coder:uv` — direct-download Rust binary (also carries no pixi-python dep)
 
 ## Related Commands
@@ -159,10 +159,10 @@ my-polyglot:
 
 **MUST be invoked** when:
 
-- Composing `language-runtimes` into an image.
-- Debating pixi-python vs. system python3 — this layer is the canonical
+- Composing `language-runtimes` into a box.
+- Debating pixi-python vs. system python3 — this candy is the canonical
   "system python3 only" example.
-- Understanding why the `python` charly-layer is missing from an image that
+- Understanding why the `python` charly-layer is missing from a box that
   uses language-runtimes (that's by design).
 
 ## Related

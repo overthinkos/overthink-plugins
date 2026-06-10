@@ -8,7 +8,7 @@ description: |
 
 # postgresql -- PostgreSQL database server
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -27,8 +27,8 @@ description: |
 | `POSTGRES_SHARED_PRELOAD_LIBRARIES` | *(optional)* — comma-separated `.so` names loaded at startup |
 
 The entrypoint also reads these variables (with defaults, not set in charly.yml):
-- `POSTGRES_USER` (default: `postgres`) — set by consuming layers (e.g., immich sets `immich`)
-- `POSTGRES_DB` (default: `$POSTGRES_USER`) — set by consuming layers
+- `POSTGRES_USER` (default: `postgres`) — set by consuming candies (e.g., immich sets `immich`)
+- `POSTGRES_DB` (default: `$POSTGRES_USER`) — set by consuming candies
 - `POSTGRES_PASSWORD` — required unless `POSTGRES_HOST_AUTH_METHOD=trust`
 
 ## Service Environment (injected into other containers)
@@ -44,7 +44,7 @@ See `/charly-image:layer` for `env_provide` field docs.
 
 ## Packages
 
-The layer is multi-distro:
+The candy is multi-distro:
 
 - **RPM (Fedora):** `postgresql-server`, `postgresql-contrib`, `pgvector` (vector similarity search extension)
 - **PAC (Arch/CachyOS):** `postgresql`, `postgresql-libs` — the Arch `postgresql` package ships the server + contrib tooling; pgvector on Arch is built from the AUR (see `/charly-infrastructure:vectorchord`).
@@ -58,7 +58,7 @@ my-image:
     - postgresql
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-immich:immich`
 - `/charly-immich:immich-ml`
@@ -69,9 +69,9 @@ The custom entrypoint (`/usr/local/bin/postgresql-entrypoint.sh`) supports:
 
 - **First-run initialization** — `initdb`, database creation, and `/docker-entrypoint-initdb.d/` scripts
 - **Password management** — `POSTGRES_PASSWORD` or `POSTGRES_PASSWORD_FILE`
-- **`POSTGRES_SHARED_PRELOAD_LIBRARIES`** — when set, adds `-c shared_preload_libraries=...` to both the init-phase temp server and the final exec. Used by the `vectorchord` layer to load `vchord.so`. Generic mechanism — any extension layer can use it.
+- **`POSTGRES_SHARED_PRELOAD_LIBRARIES`** — when set, adds `-c shared_preload_libraries=...` to both the init-phase temp server and the final exec. Used by the `vectorchord` candy to load `vchord.so`. Generic mechanism — any extension candy can use it.
 
-## Related Layers
+## Related Candies
 
 - `/charly-immich:immich` -- primary consumer (depends on postgresql)
 - `/charly-infrastructure:vectorchord` -- sets `POSTGRES_SHARED_PRELOAD_LIBRARIES=vchord.so`

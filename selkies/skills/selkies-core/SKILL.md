@@ -42,7 +42,7 @@ selkies-core — those live in the per-flavor metalayer:
 Before the flavor split, `selkies-desktop` bundled the transport + the 13
 fixings + labwc together, so a second flavor (KDE) would have duplicated all 13.
 Factoring `selkies-core` out makes the nested compositor the ONLY swappable seam
-between flavors (the `labwc` vs `kde-selkies` layer), across every GPU config
+between flavors (the `labwc` vs `kde-selkies` candy), across every GPU config
 (the encoder is auto-selected at runtime by pixelflux — see
 `/charly-selkies:selkies-kde-desktop` "Encoder is auto-selected").
 
@@ -61,7 +61,7 @@ budget rather than trip `FATAL`; `priority: 30`; `env WAYLAND_DISPLAY=wayland-0`
 
 Because selkies-core owns Chrome, the per-flavor compositor autostarts
 (`candy/labwc/autostart`, `candy/kde-selkies/kde-selkies-session`) do NOT launch
-it. `sway-browser-vnc` is NOT a selkies flavor (it uses the `chrome-sway` layer,
+it. `sway-browser-vnc` is NOT a selkies flavor (it uses the `chrome-sway` candy,
 not selkies-core, and is not pixelflux-nested) and is unaffected. There is no
 Chrome eventlistener / crash-listener; a wedged crash loop is cleared by
 restarting the container (see `/charly-selkies:chrome` "Chrome supervision").
@@ -71,4 +71,4 @@ restarting the container (see `/charly-selkies:chrome` "Chrome supervision").
 - `/charly-selkies:selkies` — the pixelflux transport at the heart of the core.
 - `/charly-selkies:selkies-desktop-layer` — the labwc flavor metalayer.
 - `/charly-selkies:selkies-kde-desktop` — the KDE Plasma flavor metalayer.
-- `/charly-image:layer` — layer authoring; the unified `service:` schema.
+- `/charly-image:layer` — candy authoring; the unified `service:` schema.

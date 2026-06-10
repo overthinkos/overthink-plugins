@@ -3,13 +3,13 @@ name: notebook-llm-on-supercomputers
 description: |
   LLMs on Supercomputers course notebook collection (TU Wien AI Factory Austria).
   15 Jupyter notebooks covering prompt engineering, RAG, and fine-tuning.
-  Data-only layer — no packages, no services, no dependencies.
+  Data-only candy — no packages, no services, no dependencies.
   Use when working with the LLM course notebooks, LangChain tutorials, or RAG examples.
 ---
 
-# notebook-llm-on-supercomputers -- LLM course data layer
+# notebook-llm-on-supercomputers -- LLM course data candy
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -22,7 +22,7 @@ description: |
 
 ## How It Works
 
-This is a **data layer** — it uses the `data:` field in `charly.yml` to map a directory of notebooks to a named volume with a subdirectory destination:
+This is a **data candy** — it uses the `data:` field in `charly.yml` to map a directory of notebooks to a named volume with a subdirectory destination:
 
 ```yaml
 info: "LLMs on Supercomputers course notebooks (TU Wien AI Factory Austria)"
@@ -33,7 +33,7 @@ data:
     dest: llms_on_supercomputers
 ```
 
-At build time, the contents are staged into `/data/workspace/llms_on_supercomputers/` inside the image. At deploy time, `charly config` or `charly update` provisions them into the workspace volume.
+At build time, the contents are staged into `/data/workspace/llms_on_supercomputers/` inside the box. At deploy time, `charly config` or `charly update` provisions them into the workspace volume.
 
 ## Included Notebooks
 
@@ -104,25 +104,25 @@ The same `importlib.reload(ollama)` pattern from `/charly-jupyter:notebook-ollam
 - D1 series: `hf.co/NousResearch/Nous-Hermes-2-Mistral-7B-DPO-GGUF:Q4_K_M`
 - D2 series: `llama3.2:latest`
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-jupyter:jupyter-ml-notebook`
 
 ## Related Skills
 
-- `/charly-image:layer` — data field documentation and layer authoring rules
+- `/charly-image:layer` — data field documentation and candy authoring rules
 - `/charly-core:charly-config` — data provisioning during `charly config` setup
-- `/charly-jupyter:notebook-finetuning` — sibling data layer (Unsloth fine-tuning notebooks)
-- `/charly-jupyter:notebook-ollama` — sibling data layer (Ollama API tutorials)
-- `/charly-jupyter:notebook-templates` — sibling data layer (starter notebooks)
-- `/charly-ollama:ollama` — the Ollama server image (must be running for D0-D2 notebooks)
-- `/charly-jupyter:jupyter-ml-notebook` — the image that includes this layer
+- `/charly-jupyter:notebook-finetuning` — sibling data candy (Unsloth fine-tuning notebooks)
+- `/charly-jupyter:notebook-ollama` — sibling data candy (Ollama API tutorials)
+- `/charly-jupyter:notebook-templates` — sibling data candy (starter notebooks)
+- `/charly-ollama:ollama` — the Ollama server box (must be running for D0-D2 notebooks)
+- `/charly-jupyter:jupyter-ml-notebook` — the box that includes this candy
 
 ## When to Use This Skill
 
 Use when the user asks about:
 
-- The notebook-llm-on-supercomputers layer or its contents
+- The notebook-llm-on-supercomputers candy or its contents
 - LangChain prompt engineering tutorials
 - RAG examples with ChromaDB
 - The TU Wien LLM course notebooks

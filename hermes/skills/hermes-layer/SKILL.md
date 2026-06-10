@@ -2,13 +2,13 @@
 name: hermes-layer
 description: |
   Hermes self-improving AI agent by Nous Research with voice, messaging, and tool-calling.
-  MUST be invoked before any work involving: the hermes layer, Hermes Agent configuration,
+  MUST be invoked before any work involving: the hermes candy, Hermes Agent configuration,
   hermes service setup, or hermes Python/npm dependencies.
 ---
 
 # hermes -- Self-improving AI agent
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -35,12 +35,12 @@ These env vars are declared via `env_accept:` in `charly.yml` — hermes can use
 |----------|-------------|
 | `OPENROUTER_API_KEY` | API key for OpenRouter LLM inference |
 | `OLLAMA_API_KEY` | API key for Ollama Cloud inference (https://ollama.com) |
-| `OLLAMA_HOST` | Local Ollama server URL (auto-injected by ollama layer `env_provide`) |
+| `OLLAMA_HOST` | Local Ollama server URL (auto-injected by ollama candy `env_provide`) |
 | `HERMES_MODEL` | Override default Hermes model (default depends on detected provider) |
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token for messaging |
 | `SLACK_BOT_TOKEN` | Slack bot token |
 | `DISCORD_BOT_TOKEN` | Discord bot token |
-| `CHARLY_MCP_SERVERS` | JSON array of MCP servers (auto-injected by mcp_provide layers) |
+| `CHARLY_MCP_SERVERS` | JSON array of MCP servers (auto-injected by mcp_provide candies) |
 
 Provide via `charly config hermes -e OLLAMA_API_KEY=...` or workspace `.secrets` / `.env` file.
 
@@ -74,11 +74,11 @@ The hermes entrypoint auto-discovers MCP servers from the `CHARLY_MCP_SERVERS` e
 - Tools are registered as `mcp_<server_name>_<tool_name>`
 - Reload MCP servers at runtime: `/reload-mcp` in interactive chat
 
-**Example:** The `jupyter` layer provides 11 tools (notebook_list, cell_execute, cell_update, etc.) via its MCP server at `http://<container>:8888/mcp`. Noun-shaped surface (notebook_*/cell_* + notebook_list_users + room_list); clients do not manage CRDT rooms.
+**Example:** The `jupyter` candy provides 11 tools (notebook_list, cell_execute, cell_update, etc.) via its MCP server at `http://<container>:8888/mcp`. Noun-shaped surface (notebook_*/cell_* + notebook_list_users + room_list); clients do not manage CRDT rooms.
 
 ## Architecture
 
-This is a **Tier 2 environment-owner layer** with `pixi.toml` defining the Python 3.13 environment. Follows the **selkies build.sh pattern**: the `build.sh` script runs in the pixi builder stage (which has gcc, nodejs, npm) to clone the hermes-agent repo, pip install it, and set up the WhatsApp bridge.
+This is a **Tier 2 environment-owner candy** with `pixi.toml` defining the Python 3.13 environment. Follows the **selkies build.sh pattern**: the `build.sh` script runs in the pixi builder stage (which has gcc, nodejs, npm) to clone the hermes-agent repo, pip install it, and set up the WhatsApp bridge.
 
 ### Build Pipeline
 
@@ -115,13 +115,13 @@ Hermes has browser tools (`browser_navigate`, `browser_click`, `browser_snapshot
 | 3 | Browserbase configured | Cloud session | Remote cloud browser |
 | 4 | *(default)* | Local headless (`agent-browser --session`) | Requires Playwright Chromium |
 
-**Cross-container with selkies-desktop:** Deploy `hermes` alongside `selkies-desktop` as separate pods. The chrome layer's `env_provide: BROWSER_CDP_URL` injects `http://charly-selkies-desktop:9222` into the hermes quadlet via `charly config --update-all`. Hermes uses the desktop Chrome — the user sees hermes browsing in real-time at `:3000`. The `cdp-proxy` in the chrome layer rewrites Host headers for Chrome 146+ compatibility.
+**Cross-container with selkies-desktop:** Deploy `hermes` alongside `selkies-desktop` as separate pods. The chrome candy's `env_provide: BROWSER_CDP_URL` injects `http://charly-selkies-desktop:9222` into the hermes quadlet via `charly config --update-all`. Hermes uses the desktop Chrome — the user sees hermes browsing in real-time at `:3000`. The `cdp-proxy` in the chrome candy rewrites Host headers for Chrome 146+ compatibility.
 
-**In standalone images** (`hermes-playwright`): The `hermes-playwright` layer provides Playwright Chromium for local headless mode (backend #4).
+**In standalone boxs** (`hermes-playwright`): The `hermes-playwright` candy provides Playwright Chromium for local headless mode (backend #4).
 
-**In headless images** (`hermes`): No browser binary installed. Browser tools fail unless `BROWSER_CDP_URL` points to an external Chrome (cross-container via `env_provide`).
+**In headless boxes** (`hermes`): No browser binary installed. Browser tools fail unless `BROWSER_CDP_URL` points to an external Chrome (cross-container via `env_provide`).
 
-**Cross-container:** Deploy Chrome/Selkies in one container and hermes in another. `charly config` injects `BROWSER_CDP_URL=http://charly-<chrome-image>:9222` into hermes's quadlet via `env_provide`. Port 9222 is reachable via the chrome layer's `port_relay`.
+**Cross-container:** Deploy Chrome/Selkies in one container and hermes in another. `charly config` injects `BROWSER_CDP_URL=http://charly-<chrome-image>:9222` into hermes's quadlet via `env_provide`. Port 9222 is reachable via the chrome candy's `port_relay`.
 
 Runtime commands: `/browser connect [url]`, `/browser disconnect`, `/browser status`.
 
@@ -150,7 +150,7 @@ hermes:
     - dbus
 ```
 
-## Related Layers
+## Related Candies
 
 - `/charly-coder:nodejs` -- Node.js runtime dependency
 - `/charly-infrastructure:supervisord` -- process manager dependency
@@ -158,7 +158,7 @@ hermes:
 - `/charly-selkies:ffmpeg` -- audio/video processing (negativo17 nonfree codecs)
 - `/charly-selkies:pipewire` -- audio support for voice features
 - `/charly-hermes:hermes-playwright` -- optional Playwright Chromium browser (standalone headless mode)
-- `/charly-selkies:chrome` -- provides `BROWSER_CDP_URL` via `env_provide` for shared browser in desktop images
+- `/charly-selkies:chrome` -- provides `BROWSER_CDP_URL` via `env_provide` for shared browser in desktop boxes
 - `/charly-jupyter:jupyter` -- MCP server provider (`mcp_provide: jupyter`)
 - `/charly-selkies:chrome-devtools-mcp` -- Chrome DevTools MCP server (`mcp_provide: chrome-devtools`, 29 tools)
 
@@ -168,7 +168,7 @@ hermes:
 - `/charly-core:charly-config` — Injects `BROWSER_CDP_URL` and `CHARLY_MCP_SERVERS` via pod-aware `env_provide`/`mcp_provide`
 - `/charly-build:charly-mcp-cmd` — verify that the MCP servers hermes discovers (`jupyter`, `chrome-devtools`) are alive and exposing expected tools before hermes tries to call them: `charly eval mcp ping jupyter`, `charly eval mcp list-tools <image>`. Useful when hermes reports tool-call failures and you need to isolate whether the server or the agent is at fault.
 
-## Related Images
+## Related Boxes
 
 - `/charly-hermes:hermes` -- full-featured standalone (claude-code + codex + gemini + dev-tools + devops-tools + charly)
 - `/charly-hermes:hermes-playwright` -- agent with Playwright Chromium (standalone headless)
@@ -178,9 +178,9 @@ hermes:
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the hermes layer, Hermes Agent setup, hermes service configuration, hermes Python dependencies, or the hermes entrypoint. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the hermes candy, Hermes Agent setup, hermes service configuration, hermes Python dependencies, or the hermes entrypoint. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

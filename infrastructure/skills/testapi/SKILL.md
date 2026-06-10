@@ -7,7 +7,7 @@ description: |
 
 # testapi -- FastAPI test service
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -26,11 +26,11 @@ fedora-test:
     - testapi
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-distros:fedora-test`
 
-## Related Layers
+## Related Candies
 
 - `/charly-infrastructure:supervisord` -- process manager dependency
 - `/charly-infrastructure:traefik` -- reverse proxy for route handling
@@ -46,5 +46,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

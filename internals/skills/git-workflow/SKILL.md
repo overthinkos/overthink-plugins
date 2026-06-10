@@ -189,7 +189,7 @@ local-override):
 4. **Authoritative consumer R10 against the real tag:** B's R10 now fetches A from
    the pushed `v<CalVer_A>` — verified against exactly what ships.
 5. **Land the consumer** (ff-merge, tag B, push).
-6. **New layer:** a new layer has no standalone R10 — its gate is the consuming
+6. **New candy:** a new candy has no standalone R10 — its gate is the consuming
    image's build. A lands a **provisional** `v<CalVer_A>` (layer + `go test` /
    `charly box generate` smoke); step 4 (B's image R10 against that tag) is the real
    gate. On failure, fix A, land a **new** tag (immutable + accumulate — never

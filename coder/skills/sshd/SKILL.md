@@ -7,7 +7,7 @@ description: |
 
 # sshd -- OpenSSH server
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -19,13 +19,13 @@ description: |
 - `openssh-server` (RPM / deb) — SSH daemon
 - `openssh-clients` (RPM) / `openssh-client` (deb, singular) — SSH client tools (ssh, scp, sftp)
 - `openssh` (pac) — Arch metapackage bundling both daemon and client
-- `sudo` (rpm / pac / deb) — required for the NOPASSWD rule this layer writes
+- `sudo` (rpm / pac / deb) — required for the NOPASSWD rule this candy writes
 
 ### Cross-distro coverage
 
 `rpm:` (Fedora), `pac:` (Arch), `deb:` (Debian/Ubuntu) — full parity across all four supported package-format families. The `openssh-server` / `openssh-clients` naming differs per distro; package-existence tests use `package_map:` to resolve (see below).
 
-**Cross-distro package-test pattern:** the sshd layer's
+**Cross-distro package-test pattern:** the sshd candy's
 `openssh-server-package` check uses `package_map:` to resolve the right
 name per distro — `openssh-server` on Fedora/Debian, `openssh` on Arch.
 This is the canonical worked example for the `package_map` feature; see
@@ -47,7 +47,7 @@ match).
 
 ### Cross-distro sudoers via `getent passwd 1000`
 
-The sudoers drop-in at `/etc/sudoers.d/charly-user` targets the **actual uid-1000 account**, whatever it happens to be named on the running base image. The layer no longer hardcodes a literal `user` — instead it discovers the account name at build time via `getent passwd 1000`:
+The sudoers drop-in at `/etc/sudoers.d/charly-user` targets the **actual uid-1000 account**, whatever it happens to be named on the running base image. The candy no longer hardcodes a literal `user` — instead it discovers the account name at build time via `getent passwd 1000`:
 
 ```yaml
 task:
@@ -64,7 +64,7 @@ task:
 
 This works uniformly across both user-policy modes:
 
-| Image | Resolved account | Sudoers content |
+| Box | Resolved account | Sudoers content |
 |---|---|---|
 | fedora-coder, arch-coder, debian-coder | `user` (create mode — `/charly-image:image` "user_policy") | `user ALL=(ALL) NOPASSWD: ALL` |
 | ubuntu-coder | `ubuntu` (adopt mode — `/charly-distros:ubuntu` `base_user:`) | `ubuntu ALL=(ALL) NOPASSWD: ALL` |
@@ -74,19 +74,19 @@ Why not `${USER}` substitution? The generator substitutes `${USER}` in task fiel
 ## Usage
 
 ```yaml
-# charly.yml -- add the layer to any image that needs an in-container SSH server
+# charly.yml -- add the candy to any box that needs an in-container SSH server
 my-image:
   candy:
     - sshd
 ```
 
-## Used In Images
+## Used In Boxes
 
-- Composed into coder/dev and headless-desktop images that need an in-container SSH server (e.g. `/charly-selkies:selkies-labwc`), and applied to VM guests at deploy time
+- Composed into coder/dev and headless-desktop boxes that need an in-container SSH server (e.g. `/charly-selkies:selkies-labwc`), and applied to VM guests at deploy time
 
 ## Testing Notes
 
-- `/etc/sudoers.d/charly-user` (the NOPASSWD rule written by this layer) is
+- `/etc/sudoers.d/charly-user` (the NOPASSWD rule written by this candy) is
   `root:root 0750` — the non-root test user (uid 1000 in containers)
   cannot traverse `/etc/sudoers.d/`. A `file: /etc/sudoers.d/charly-user; exists: true`
   test reports "missing" even when the file is present. Use
@@ -97,7 +97,7 @@ my-image:
 
 ### Dual-mode sudo check — the `runuser -u user --` wrapper
 
-`charly eval box` runs with USER=1000 on container images but USER=0 on bootc images (bootc intentionally keeps USER=root because systemd manages user sessions via login). A naïve `sudo -n -l; contains: NOPASSWD` check fails on bootc — running as root prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`. The layer's current test drops to `user` explicitly when running as root:
+`charly eval box` runs with USER=1000 on container images but USER=0 on bootc images (bootc intentionally keeps USER=root because systemd manages user sessions via login). A naïve `sudo -n -l; contains: NOPASSWD` check fails on bootc — running as root prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`. The candy's current test drops to `user` explicitly when running as root:
 
 ```yaml
 - id: sudoers-charly-user
@@ -117,7 +117,7 @@ my-image:
 the `-l … -c` form swallows the wrapped command's stdout — reproduced
 cleanly: `runuser -l user -s /bin/bash -c 'sudo -n -l'` prints nothing
 and exits 0, while `runuser -u user -- sudo -n -l` prints the full
-NOPASSWD listing. The layer was fixed to `-u … --` after this was
+NOPASSWD listing. The candy was fixed to `-u … --` after this was
 caught during `charly-arch` bring-up. See `/charly-eval:eval` Authoring Gotcha #11.
 
 ## Related Skills
@@ -127,8 +127,8 @@ caught during `charly-arch` bring-up. See `/charly-eval:eval` Authoring Gotcha #
 - `/charly-coder:debian-coder` -- canonical create-mode deb-family example; sudoers targets `user`
 - `/charly-distros:ubuntu` -- declares the `base_user:` block that makes ubuntu-coder run as `ubuntu`
 - `/charly-eval:eval` -- declarative testing framework (gotchas #10 and #11, `package_map:`, `exclude_distros:`)
-- `/charly-image:image` -- `user_policy:` field (create / adopt / auto) that drives which account this layer's sudoers targets
-- `/charly-image:layer` -- layer authoring (`${VAR}` substitution scope, cmd: vs write:)
+- `/charly-image:image` -- `user_policy:` field (create / adopt / auto) that drives which account this candy's sudoers targets
+- `/charly-image:layer` -- candy authoring (`${VAR}` substitution scope, cmd: vs write:)
 
 ## When to Use This Skill
 

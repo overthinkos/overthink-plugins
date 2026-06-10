@@ -211,7 +211,7 @@ Source: `charly/volumes.go` (`InstanceVolumes`), `charly/quadlet.go`.
 
 ## Data Provisioning
 
-Data from data layers is automatically provisioned into bind-backed volumes during `charly config` and synced during `charly update`. See `/charly-core:charly-config` for `--seed`/`--force-seed`/`--data-from` flags. Source: `charly/data.go`.
+Data from data candies is automatically provisioned into bind-backed volumes during `charly config` and synced during `charly update`. See `/charly-core:charly-config` for `--seed`/`--force-seed`/`--data-from` flags. Source: `charly/data.go`.
 
 ## Troubleshooting
 

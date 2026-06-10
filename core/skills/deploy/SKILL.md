@@ -29,7 +29,7 @@ description: |
 
 The same `DeploymentNode` shape feeds every target (`pod`, `local`, `vm`, `k8s`, `android`) — authors describe *what the workload needs* (ports, volumes, env, security, tests); the generator per target decides *how K8s / quadlet / local apply / VM over SSH / Android apk-install* realizes it.
 
-**`target: android`** installs a deploy's `add_candy:` layers' `apk:` packages
+**`target: android`** installs a deploy's `add_candy:` candies' `apk:` packages
 onto a `kind: android` device (an in-pod emulator or a remote/physical adb
 endpoint) via `AndroidDeployTarget` — the Android analogue of `target: k8s`
 emitting workloads onto a cluster. The cross-ref is `android: <device>`; apps
@@ -44,7 +44,7 @@ on its emulator pod) mirrors `vm → k8s`; a pod's android children deploy AFTER
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Apply container deploy | `charly deploy add <name> <ref>` | Compile layers + build overlay if `add_candy:` present + run via quadlet |
+| Apply container deploy | `charly deploy add <name> <ref>` | Compile candies + build overlay if `add_candy:` present + run via quadlet |
 | Apply local deploy | `charly deploy add <name> <ref>` (entry `target: local`) | Apply layers directly to local filesystem (see `/charly-local:local-deploy`) |
 | Tear down deploy | `charly deploy del <name>` | Stop container + reverse ReverseOps (host) + ledger cleanup |
 | Dry-run | `charly deploy add <name> <ref> --dry-run [--format=json]` | Print the InstallPlan without executing |
@@ -52,7 +52,7 @@ on its emulator pod) mirrors `vm → k8s`; a pod's android children deploy AFTER
 | Configure deployment | `charly config <image>` | Generate .container file + save deploy.yml |
 | Configure instance | `charly config <image> -i <instance>` | Generate instance-specific quadlet + deploy entry |
 | Configure volume backing | `charly config <image> --bind name` | Set volume as host bind mount |
-| Provision data | `charly config <image> --seed` | Auto-provision data layers into bind mounts (default) |
+| Provision data | `charly config <image> --seed` | Auto-provision data candies into bind mounts (default) |
 | Deploy status | `charly deploy status` | Audit deploy.yml vs quadlet sync |
 | Show overrides | `charly deploy show [image]` | Display deploy.yml contents |
 | Show instance overrides | `charly deploy show <image> -i <instance>` | Display instance-specific overrides |
@@ -83,7 +83,7 @@ Applies a deployment. The deploy entry's `target:` field selects the target:
 | Local YAML path | `./custom.yml`, `/abs/path/charly.yml` | File's top-level keys classify image vs layer |
 | Remote repo | `github.com/owner/repo[/box/<n>\|/candy/<n>][@ref]` | Fetched via existing `--repo` cache |
 
-Disambiguation: a ref containing `/candy/` resolves to a layer; `/box/` to an image. For local names, `box/` is checked before `candy/`; same-named entries in both are a hard error. The legacy `@host/org/repo:version` form (used by `require:` and `candy:` in charly.yml) is also accepted.
+Disambiguation: a ref containing `/candy/` resolves to a candy; `/box/` to a box. For local names, `box/` is checked before `candy/`; same-named entries in both are a hard error. The legacy `@host/org/repo:version` form (used by `require:` and `candy:` in charly.yml) is also accepted.
 
 When `<ref>` is omitted, the ref falls back to `deploy.yml['deploys'][<name>]['image']` (or the deploy key itself if no explicit image is declared).
 
@@ -197,10 +197,10 @@ See `/charly-vm:vms-catalog` for vm.yml authoring, `/charly-vm:vm` for the lifec
 
 ### `add_candy:` overlay mechanism
 
-Both container and host targets accept extra layers at deploy time via `--add-candy <ref>` (repeatable) or a `deploy.yml['deploys'][<name>]['add_layers']` list. Semantics:
+Both container and host targets accept extra candies at deploy time via `--add-candy <ref>` (repeatable) or a `deploy.yml['deploys'][<name>]['add_layers']` list. Semantics:
 
-- **Container target**: synthesizes an overlay Containerfile (`FROM <base-image>` + the extra layers' build steps) and builds a deterministic overlay image tagged `<deploy-name>-overlay:<short-hash>`. The deploy runs the overlay, not the base image. Re-running with different overlays rebuilds. `charly deploy del <name>` removes the overlay unless `--keep-image`.
-- **Host target**: the compiler merges the image's layers with `add_candy:`, topo-sorts the union, and compiles one `InstallPlan` covering the combined set. The ledger records which layers (base + overlay) were applied so teardown reverses everything.
+- **Container target**: synthesizes an overlay Containerfile (`FROM <base-image>` + the extra candies' build steps) and builds a deterministic overlay image tagged `<deploy-name>-overlay:<short-hash>`. The deploy runs the overlay, not the base image. Re-running with different overlays rebuilds. `charly deploy del <name>` removes the overlay unless `--keep-image`.
+- **Host target**: the compiler merges the box's candies with `add_candy:`, topo-sorts the union, and compiles one `InstallPlan` covering the combined set. The ledger records which candies (base + overlay) were applied so teardown reverses everything.
 
 Ref forms for `--add-candy` are identical to the primary `<ref>` positional (local name / local path / remote / legacy `@` form).
 
@@ -634,7 +634,7 @@ Direct-mode emission (podman run flags, for `engine.run=direct`): `--memory`, `-
 
 **Unset fields pass through** — setting `--memory-max=6g` alone will not wipe an existing `shm_size` from deploy.yml. Only the fields you pass on the CLI get overwritten; everything else is preserved from the current deploy.yml state.
 
-**Canonical consumer:** the chrome layer's cgroup caps. See `/charly-selkies:chrome` (Resource Caps) — the caps bound a Chrome crash loop's blast radius; a wedged loop (orphan memfd shmem) is cleared by restarting the container, which tears down the cgroup. See `/charly-infrastructure:supervisord` (Event Listeners) for the eventlistener pattern in general and `/charly-image:layer` (Security Declaration) for the authoring side.
+**Canonical consumer:** the chrome candy's cgroup caps. See `/charly-selkies:chrome` (Resource Caps) — the caps bound a Chrome crash loop's blast radius; a wedged loop (orphan memfd shmem) is cleared by restarting the container, which tears down the cgroup. See `/charly-infrastructure:supervisord` (Event Listeners) for the eventlistener pattern in general and `/charly-image:layer` (Security Declaration) for the authoring side.
 
 ### Provides (Top-Level)
 
@@ -786,7 +786,7 @@ volumes:
 - `type`: `volume` (default, named volume), `bind` (host directory), `encrypted` (gocryptfs)
 - `host`: explicit host path — for `bind` type (optional, omit for auto path); for `encrypted` type, the direct volume directory containing `cipher/` and `plain/` (optional, omit to use global `encrypted_storage_path` with `charly-<image>-<name>` prefix)
 - `path`: container path (only for deploy-only volumes not declared in any layer)
-- `data_seeded`: `bool` — tracks whether data from image data layers was provisioned (set by `charly config`)
+- `data_seeded`: `bool` — tracks whether data from image data candies was provisioned (set by `charly config`)
 - `data_source`: `string` — image:tag that provided the data (updated by `charly config` and `charly update`)
 
 **Auto path:** When `type: bind` and no `host` is specified, the host path is computed at runtime: `<volumes_path>/<image>/<name>`. Default volumes_path: `~/.local/share/charly/volumes/`. Configurable: `charly settings set volumes_path /mnt/nas/charly` (env: `CHARLY_VOLUMES_PATH`).
@@ -807,7 +807,7 @@ volumes:
 
 ### Integration
 
-- **Data provisioning**: `charly config` automatically provisions data from data layers into bind-backed volumes (via `--seed`, default true). `charly update` merges new data non-destructively. See `/charly-core:charly-config` and `/charly-core:charly-update`
+- **Data provisioning**: `charly config` automatically provisions data from data candies into bind-backed volumes (via `--seed`, default true). `charly update` merges new data non-destructively. See `/charly-core:charly-config` and `/charly-core:charly-update`
 - **`charly shell`/`charly start`**: resolves volume backing, verifies bind dirs exist and encrypted volumes are mounted, generates `-v` flags
 - **`charly config` (quadlet)**: bind-backed volumes become `Volume=` lines with host paths. `--userns=keep-id` added when bind-backed volumes exist
 - **`charly remove --purge`**: removes named volumes
@@ -1054,7 +1054,7 @@ deploy:
 
 A deploy entry's key in `deploy:` lives in its own namespace. The same name MAY simultaneously be a candy, a `box:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry — and the deploy entry's cross-reference fields (`box:`, `vm:`, `local:`, `k8s:`) are scoped to the matching kind, no fall-through. Concrete worked example: this repo's `deploy.charly-cachyos` references `local.charly-cachyos` via `local: charly-cachyos` — same name across two namespaces.
 
-`ResolveDeployRef` (used by `charly deploy add <name> <ref>`): when a name exists as BOTH an image and a layer, box-first precedence wins for the primary `<ref>` positional. The `--add-candy <ref>` path goes through `ResolveDeployRefAsLayer` which is layer-first. Same-name image and layer is permitted.
+`ResolveDeployRef` (used by `charly deploy add <name> <ref>`): when a name exists as BOTH a box and a candy, box-first precedence wins for the primary `<ref>` positional. The `--add-candy <ref>` path goes through `ResolveDeployRefAsLayer` which is candy-first. Same-name box and candy is permitted.
 
 The loader raises a hard load-time error on the obsolete `deploy.qc` / `deploy.cachyos-dx` keys, and on the obsolete `kind: deployment` doc / root-key `deployment:` (the deploy kind is `kind: deploy`); every such error points at `charly migrate`. See `/charly-build:migrate`.
 

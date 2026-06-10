@@ -7,7 +7,7 @@ description: |
 
 # grafana-tools -- Grafana observability CLI suite
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -22,14 +22,14 @@ my-image:
     - grafana-tools
 ```
 
-## Used In Images
+## Used In Boxes
 
 - (none currently enabled)
 
-## Related Layers
-- `/charly-coder:devops-tools` — common companion bundle in observability images
+## Related Candies
+- `/charly-coder:devops-tools` — common companion bundle in observability boxes
 - `/charly-coder:kubernetes-layer` — pairs with Grafana for cluster observability
-- `/charly-coder:dev-tools` — typically paired in devops images
+- `/charly-coder:dev-tools` — typically paired in devops boxes
 
 ## Related Commands
 - `/charly-build:build` — fetches Grafana CLI binaries via curl during image build
@@ -49,5 +49,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

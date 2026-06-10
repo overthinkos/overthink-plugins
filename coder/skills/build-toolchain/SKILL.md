@@ -7,7 +7,7 @@ description: |
 
 # build-toolchain -- C/C++ compilation toolchain
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -22,8 +22,8 @@ description: |
 ## Packages (41 total, grouped by purpose)
 
 The package list is the **centralized place** to add system libraries that any builder
-stage needs. Image-specific cargo deps live here when they're broadly useful; truly
-image-specific deps stay in their image's own layer.
+stage needs. Box-specific cargo deps live here when they're broadly useful; truly
+box-specific deps stay in their box's own candy.
 
 ### 1. Generic C/C++ build tools (21)
 
@@ -33,9 +33,9 @@ image-specific deps stay in their image's own layer.
 
 ### 2. Rust toolchain (2)
 
-`rust`, `cargo`. Used by `setuptools-rust` and any layer that compiles a Smithay-based
+`rust`, `cargo`. Used by `setuptools-rust` and any candy that compiles a Smithay-based
 Wayland compositor from source. See `/charly-coder:rust` for the disambiguation between
-this builder-stage Rust and the runtime `rust` layer.
+this builder-stage Rust and the runtime `rust` candy.
 
 ### 3. Bindgen runtime + assembler (2)
 
@@ -66,12 +66,12 @@ Each `backend_*` and `renderer_*` feature pulls a pkg-config lookup against the 
 
 These live in **RPM Fusion free** (not in the base Fedora repos), which is why
 `/charly-distros:fedora-builder` now includes `/charly-distros:rpmfusion` **before**
-`build-toolchain` in its layer list. They are required for compiling pixelflux's
+`build-toolchain` in its candy list. They are required for compiling pixelflux's
 `libva-sys`, `x264-sys`, and `ffmpeg-sys-next` cargo crates against the system
 codec libraries.
 
 See `/charly-selkies:selkies` (Patched pixelflux build pipeline) for the consumer story —
-the selkies layer's `build.sh` clones pixelflux from a pinned commit, applies four
+the selkies candy's `build.sh` clones pixelflux from a pinned commit, applies four
 inline source patches, and runs `pip install .` against this builder stage.
 
 ## Cross-distro coverage
@@ -87,22 +87,22 @@ my-image:
     - build-toolchain
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-distros:fedora-builder`
 - `/charly-distros:arch-builder`
 
-## Related Layers
+## Related Candies
 - `/charly-languages:pixi` — Sibling in builder images for conda-forge package builds
 - `/charly-coder:nodejs` — Sibling in builder images for npm package builds
 - `/charly-tools:yay` — Pairs in arch-builder for AUR builds
-- `/charly-coder:rust` — Disambiguates the builder-stage `rust`+`cargo` packages here from the runtime `rust` layer
-- `/charly-distros:rpmfusion` — Must be applied **before** this layer in fedora-builder so codec dev libs (`x264-devel`, `ffmpeg-devel`) can install
+- `/charly-coder:rust` — Disambiguates the builder-stage `rust`+`cargo` packages here from the runtime `rust` candy
+- `/charly-distros:rpmfusion` — Must be applied **before** this candy in fedora-builder so codec dev libs (`x264-devel`, `ffmpeg-devel`) can install
 - `/charly-selkies:selkies` — Primary consumer of all the new cargo/codec deps (Patched pixelflux build pipeline)
 
 ## Related Commands
-- `/charly-build:build` — Multi-stage builders consume this layer for pixi/npm/cargo builds
-- `/charly-build:generate` — See how builder stages are generated from this layer
+- `/charly-build:build` — Multi-stage builders consume this candy for pixi/npm/cargo builds
+- `/charly-build:generate` — See how builder stages are generated from this candy
 
 ## When to Use This Skill
 
@@ -111,9 +111,9 @@ Use when the user asks about:
 - C/C++ compilation inside containers
 - Build tools (cmake, make, ninja, autoconf)
 - Compiler toolchain setup
-- The `build-toolchain` layer or its packages
+- The `build-toolchain` candy or its packages
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -7,7 +7,7 @@ description: |
 
 # github-actions -- Act CLI for local GitHub Actions
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -19,7 +19,7 @@ RPM (from COPR `goncalossilva/act`): `act-cli`, `guestfs-tools`
 
 ## Cross-distro coverage
 
-`rpm:` (Fedora), `pac:` (Arch). `deb:` (Debian/Ubuntu) — `act` and `actionlint` are curl-downloaded GitHub release binaries (distro-agnostic already); `guestfs-tools` is dropped from deb (not in Debian main). The layer's `task:` are format-agnostic so the per-distro divergence is minimal.
+`rpm:` (Fedora), `pac:` (Arch). `deb:` (Debian/Ubuntu) — `act` and `actionlint` are curl-downloaded GitHub release binaries (distro-agnostic already); `guestfs-tools` is dropped from deb (not in Debian main). The candy's `task:` are format-agnostic so the per-distro divergence is minimal.
 
 ## Usage
 
@@ -30,14 +30,14 @@ my-ci:
     - github-actions
 ```
 
-## Used In Images
+## Used In Boxes
 
 - (none currently enabled)
 
-## Related Layers
-- `/charly-distros:github-runner` — distinct self-hosted runner layer (not act)
+## Related Candies
+- `/charly-distros:github-runner` — distinct self-hosted runner candy (not act)
 - `/charly-coder:docker-ce` — common companion for act workflow execution
-- `/charly-coder:dev-tools` — typically paired in CI images
+- `/charly-coder:dev-tools` — typically paired in CI boxes
 
 ## Related Commands
 - `/charly-build:build` — installs act-cli from COPR during image build
@@ -49,9 +49,9 @@ Use when the user asks about:
 
 - Running GitHub Actions locally
 - The act CLI tool
-- The `github-actions` layer
+- The `github-actions` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

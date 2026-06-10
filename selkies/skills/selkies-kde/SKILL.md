@@ -4,10 +4,10 @@ description: |
   The KDE Plasma flavor of the Selkies streaming desktop (cpu/default GPU build) —
   a browser-accessible, headless-pod Wayland desktop running startplasma-wayland
   nested in pixelflux. MUST be invoked before building, deploying, or
-  troubleshooting the selkies-kde image.
+  troubleshooting the selkies-kde box.
 ---
 
-# Image: selkies-kde
+# Box: selkies-kde
 
 The **full KDE Plasma flavor** of the selkies streaming desktop — a
 browser-accessible Wayland desktop streamed via Selkies/pixelflux WebSocket at
@@ -48,10 +48,10 @@ selkies-kde:
 
 ## Encoder (per-GPU, auto-selected at runtime)
 
-- **VAAPI (AMD/Intel):** hardware H264 via the render node (the `selkies` layer
+- **VAAPI (AMD/Intel):** hardware H264 via the render node (the `selkies` candy
   ships `libva-mesa-driver`); `DRINODE` auto-detected by `charly config`.
 - **CPU fallback:** x264 software encoding.
-- **NVENC:** NOT on this image — use `/charly-selkies:selkies-kde-nvidia` (the CachyOS
+- **NVENC:** NOT on this box — use `/charly-selkies:selkies-kde-nvidia` (the CachyOS
   GPU build with the real NVENC-compiled pixelflux).
 
 ## Quick Start

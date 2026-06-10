@@ -1,26 +1,26 @@
 ---
 name: debian
 description: |
-  Base Debian 13 trixie image. Root of the image hierarchy for Debian builds
+  Base Debian 13 trixie image. Root of the box hierarchy for Debian builds
   that run as uid 1000 `user` (create mode — Debian 13 ships no pre-existing
   uid-1000 account). Owned by the overthinkos/debian submodule (box/debian);
-  consumed by no main-repo image.
+  consumed by no main-repo box.
   MUST be invoked before building, deploying, configuring, or troubleshooting
-  any Debian-based image.
+  any Debian-based box.
 ---
 
 # debian
 
-Base Debian 13 (trixie) image. Root of the Debian image hierarchy.
+Base Debian 13 (trixie) image. Root of the Debian box hierarchy.
 
 The Debian family lives in the **`overthinkos/debian`** repo (git submodule at
 **`box/debian`**). The `debian` base is **owned there** (in that repo's
-`charly.yml`) and composes the main repo's layers + shared `build.yml` (which
+`charly.yml`) and composes the main repo's candies + shared `build.yml` (which
 keeps the `debian` distro config + the `deb` format + the `debootstrap` builder
 template) by git reference. Build it from the submodule:
 `charly -C box/debian box build debian` (or `charly --repo overthinkos/debian box build debian`).
 Ubuntu — the deb-family sibling — lives in its own **`overthinkos/ubuntu`** repo
-(see `/charly-distros:ubuntu`). Nothing in main consumes any Debian image, so there
+(see `/charly-distros:ubuntu`). Nothing in main consumes any Debian box, so there
 is **no main ↔ debian coupling**.
 
 ## Box Properties
@@ -60,12 +60,12 @@ WORKDIR /home/user
 USER 1000
 ```
 
-`gnupg` is in the bootstrap package set because downstream layers with `deb.repos[].key` (GitHub CLI, Docker, Kubernetes, Tailscale, Microsoft) call `gpg --dearmor` to convert ASCII-armored keys into `/etc/apt/keyrings/<name>.gpg`. Without `gnupg` the apt-repo stages fail with `gpg: not found`.
+`gnupg` is in the bootstrap package set because downstream candies with `deb.repos[].key` (GitHub CLI, Docker, Kubernetes, Tailscale, Microsoft) call `gpg --dearmor` to convert ASCII-armored keys into `/etc/apt/keyrings/<name>.gpg`. Without `gnupg` the apt-repo stages fail with `gpg: not found`.
 
 ## Downstream / sibling entries (all in overthinkos/debian)
 
 - `/charly-distros:debian-builder` — pixi/npm/cargo multi-stage builder on this base.
-- `/charly-coder:debian-coder` — kitchen-sink dev image on this base.
+- `/charly-coder:debian-coder` — kitchen-sink dev box on this base.
 - `/charly-distros:debian-debootstrap-builder` — privileged debootstrap builder (`base: debian:13`).
 - `/charly-distros:debian-debootstrap` — bootstrap-from-scratch rootfs (`from: builder:debootstrap`).
 - `/charly-vm:debian` — the `debian-debootstrap` bootstrap VM + `eval-debian-debootstrap-vm` bed.
@@ -79,11 +79,11 @@ id                                    # uid=1000(user) gid=1000(user)
 charly -C box/debian box validate     # remote build.yml + layer refs resolve
 ```
 
-## Related images
+## Related boxes
 
 - `/charly-distros:ubuntu` — deb-family sibling base in the separate `overthinkos/ubuntu` submodule; ships `base_user:` + adopts ubuntu:ubuntu.
-- `/charly-distros:debian-builder` — multi-stage builder on top of this image.
-- `/charly-coder:debian-coder` — kitchen-sink dev image on this base.
+- `/charly-distros:debian-builder` — multi-stage builder on top of this box.
+- `/charly-coder:debian-coder` — kitchen-sink dev box on this base.
 - `/charly-distros:fedora` — RPM-family counterpart.
 - `/charly-distros:arch` — pacman-family counterpart (separate `overthinkos/arch` submodule).
 
@@ -98,5 +98,5 @@ charly -C box/debian box validate     # remote build.yml + layer refs resolve
 **MUST be invoked** when:
 
 - Building or troubleshooting the `debian` base image.
-- Adding any deb-family image that inherits from `debian` (not `ubuntu`).
-- Debugging uid-1000 user issues on a Debian-based image — the answer is almost always "create mode fires, user named `user`."
+- Adding any deb-family box that inherits from `debian` (not `ubuntu`).
+- Debugging uid-1000 user issues on a Debian-based box — the answer is almost always "create mode fires, user named `user`."

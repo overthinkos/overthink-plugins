@@ -2,12 +2,12 @@
 name: gnupg
 description: |
   GnuPG encryption and signing tools for GPG agent forwarding.
-  Use when working with GPG, encryption, signing, or the gnupg layer.
+  Use when working with GPG, encryption, signing, or the gnupg candy.
 ---
 
 # gnupg -- GnuPG encryption and signing tools
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -15,7 +15,7 @@ description: |
 
 ## Packages
 
-RPM: `gnupg2` · PAC: `gnupg` · DEB: `gnupg` — full cross-distro parity. Note: `gnupg` is also in the `debian` distro's bootstrap package set (see `/charly-distros:debian`) because downstream layers need `gpg --dearmor` at build time.
+RPM: `gnupg2` · PAC: `gnupg` · DEB: `gnupg` — full cross-distro parity. Note: `gnupg` is also in the `debian` distro's bootstrap package set (see `/charly-distros:debian`) because downstream candies need `gpg --dearmor` at build time.
 
 ## Usage
 
@@ -26,7 +26,7 @@ my-image:
     - gnupg
 ```
 
-Typically used as part of the `agent-forwarding` composition layer rather than directly.
+Typically used as part of the `agent-forwarding` composition candy rather than directly.
 
 ## Runtime Behavior
 
@@ -34,11 +34,11 @@ Provides `gpg`, `gpgconf`, `gpg-agent`, `gpg-connect-agent` binaries inside the 
 
 The container has its own keyring (public keys must be imported separately with `gpg --import`). No host keyring is mounted — only the agent socket is forwarded.
 
-## Used In Images
+## Used In Boxes
 
-Part of `agent-forwarding` composition layer, used in 27 application images including: `charly-arch`, `charly-fedora`, `nvidia`, `jupyter`, `ollama`, `openclaw`, `immich`, `comfyui`, `selkies-desktop`, and all other non-base images.
+Part of `agent-forwarding` composition candy, used in 27 application boxes including: `charly-arch`, `charly-fedora`, `nvidia`, `jupyter`, `ollama`, `openclaw`, `immich`, `comfyui`, `selkies-desktop`, and all other non-base boxes.
 
-## Related Layers
+## Related Candies
 
 - `/charly-distros:agent-forwarding` -- metalayer that includes gnupg + direnv + ssh-client
 - `/charly-coder:direnv` -- environment variable loading from .envrc/.secrets
@@ -55,11 +55,11 @@ Part of `agent-forwarding` composition layer, used in 27 application images incl
 Use when the user asks about:
 
 - GPG encryption or signing inside containers
-- The `gnupg` layer
+- The `gnupg` candy
 - GPG agent forwarding
 - Importing public keys into container keyrings
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

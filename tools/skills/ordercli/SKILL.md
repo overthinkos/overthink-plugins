@@ -2,12 +2,12 @@
 name: ordercli
 description: |
   Food delivery order status CLI (Foodora).
-  Use when working with the ordercli layer.
+  Use when working with the ordercli candy.
 ---
 
 # ordercli -- Food delivery order CLI
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -29,11 +29,11 @@ candy:
   - ordercli
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:golang` -- build/runtime dependency
 - `/charly-openclaw:openclaw-full` -- parent metalayer that bundles ordercli
 
@@ -46,9 +46,9 @@ candy:
 Use when the user asks about:
 - Food delivery order tracking
 - Foodora order status
-- The `ordercli` layer
+- The `ordercli` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

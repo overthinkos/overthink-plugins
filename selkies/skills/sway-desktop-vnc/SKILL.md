@@ -7,27 +7,27 @@ description: |
 
 # sway-desktop-vnc -- Desktop with VNC remote access
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
-| Layers (composition) | `sway-desktop`, `wayvnc` |
+| Candies (composition) | `sway-desktop`, `wayvnc` |
 | Install files | none (pure composition) |
 
 ## NVIDIA Support
 
-Forces `WLR_RENDERER=pixman` (software rendering) via layer env. This ensures VNC screenshots work reliably on all hardware, including NVIDIA headless. The `wayvnc-wrapper` includes a DPMS workaround for wayvnc 0.9.1's headless power event bug (to be removed when Fedora ships a fixed version).
+Forces `WLR_RENDERER=pixman` (software rendering) via candy env. This ensures VNC screenshots work reliably on all hardware, including NVIDIA headless. The `wayvnc-wrapper` includes a DPMS workaround for wayvnc 0.9.1's headless power event bug (to be removed when Fedora ships a fixed version).
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:sway-browser-vnc`
 
-## Related Layers
+## Related Candies
 
 - `/charly-selkies:sway-desktop` -- base desktop (composed)
 - `/charly-selkies:wayvnc` -- VNC server on tcp:5900 (added)
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

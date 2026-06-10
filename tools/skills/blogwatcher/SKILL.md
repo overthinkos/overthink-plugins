@@ -2,12 +2,12 @@
 name: blogwatcher
 description: |
   Blog/RSS feed monitor CLI.
-  Use when working with the blogwatcher layer.
+  Use when working with the blogwatcher candy.
 ---
 
 # blogwatcher -- Blog/RSS feed monitor
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -29,16 +29,16 @@ candy:
   - blogwatcher
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:golang` — Required Go runtime parent dependency
 - `/charly-openclaw:openclaw-full` — Metalayer that bundles blogwatcher with other AI/agent CLIs
 
 ## Related Commands
-- `/charly-build:build` — Builds the layer (Go install via a cmd task)
+- `/charly-build:build` — Builds the candy (Go install via a cmd task)
 - `/charly-core:shell` — Interactive shell to run blogwatcher inside the container
 
 ## When to Use This Skill
@@ -46,9 +46,9 @@ candy:
 Use when the user asks about:
 - Blog or RSS feed monitoring
 - Go-based CLI tools for feed watching
-- The `blogwatcher` layer
+- The `blogwatcher` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

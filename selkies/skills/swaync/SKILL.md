@@ -7,7 +7,7 @@ description: |
 
 # swaync -- SwayNotificationCenter
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -49,7 +49,7 @@ Catppuccin Mocha theme matching waybar:
 The waybar `custom/notification` module displays a notification bell icon using swaync-client:
 - Click: toggle notification panel (`swaync-client -t`)
 - Right-click: toggle Do Not Disturb (`swaync-client -d`)
-- Icons use Nerd Font symbols (from `desktop-fonts` layer)
+- Icons use Nerd Font symbols (from `desktop-fonts` candy)
 
 ## Compositor Compatibility
 
@@ -84,13 +84,13 @@ charly cmd <image> "swaync-client -d"    # toggle DnD
 - `/charly-selkies:sway-desktop` -- via metalayer composition
 - `/charly-selkies:selkies-desktop-layer` -- via metalayer composition
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
 - `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
 
-## Related Layers
+## Related Candies
 
 - `/charly-infrastructure:dbus-layer` -- D-Bus session bus dependency
 - `/charly-selkies:libnotify` -- `notify-send` CLI (optional; `charly eval dbus notify` uses native Go D-Bus instead)
@@ -109,5 +109,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

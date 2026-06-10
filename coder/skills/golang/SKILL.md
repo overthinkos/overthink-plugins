@@ -7,7 +7,7 @@ description: |
 
 # golang -- Go compiler
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ my-image:
     - golang
 ```
 
-## Used In Images
+## Used In Boxes
 
 - (none currently enabled)
 
@@ -36,7 +36,7 @@ my-image:
 - `/charly-coder:rust`, `/charly-coder:nodejs` — sibling language runtimes
 - `/charly-coder:build-toolchain` — C/C++ toolchain often paired with Go builds
 - `/charly-distros:github-runner` — consumes go for Actions workflows
-- `/charly-image:layer` — layer authoring
+- `/charly-image:layer` — candy authoring
 - `/charly-internals:go` — charly CLI is itself built from Go — development conventions
 
 ## When to Use This Skill
@@ -45,7 +45,7 @@ Use when the user asks about:
 
 - Go compiler in containers
 - Go development environment
-- The `golang` layer
+- The `golang` candy
 
 ## Related
 

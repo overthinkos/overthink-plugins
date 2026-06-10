@@ -2,12 +2,12 @@
 name: goplaces
 description: |
   Google Places API CLI for location search.
-  Use when working with the goplaces layer.
+  Use when working with the goplaces candy.
 ---
 
 # goplaces -- Google Places API CLI
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -29,11 +29,11 @@ candy:
   - goplaces
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:golang` — required Go toolchain dependency
 - `/charly-openclaw:openclaw-full` — metalayer that includes goplaces
 - `/charly-tools:gogcli` — sibling Google API CLI in openclaw-full
@@ -48,9 +48,9 @@ candy:
 Use when the user asks about:
 - Google Places API access
 - Location search tools
-- The `goplaces` layer
+- The `goplaces` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

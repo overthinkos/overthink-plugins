@@ -2,13 +2,13 @@
 name: notebook-finetuning
 description: |
   Unsloth fine-tuning notebook collection provisioned into the workspace volume at deploy time.
-  Data-only layer — no packages, no services, no dependencies.
+  Data-only candy — no packages, no services, no dependencies.
   Use when working with notebook-finetuning, Unsloth training notebooks, or unsloth-studio data provisioning.
 ---
 
-# notebook-finetuning -- Unsloth fine-tuning notebook data layer
+# notebook-finetuning -- Unsloth fine-tuning notebook data candy
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -21,7 +21,7 @@ description: |
 
 ## How It Works
 
-This is a **data layer** — it uses the `data:` field in `charly.yml` to map a directory of notebooks to a named volume with a subdirectory destination:
+This is a **data candy** — it uses the `data:` field in `charly.yml` to map a directory of notebooks to a named volume with a subdirectory destination:
 
 ```yaml
 info: "Unsloth fine-tuning notebook collection for unsloth-studio"
@@ -32,7 +32,7 @@ data:
     dest: finetuning
 ```
 
-At build time, the contents of `data/finetuning/` are staged into `/data/workspace/finetuning/` inside the image.
+At build time, the contents of `data/finetuning/` are staged into `/data/workspace/finetuning/` inside the box.
 
 At deploy time, when the workspace volume is configured as a bind mount (`charly config --bind workspace`), `charly config` copies the staged data into the host-backed volume directory at `<workspace>/finetuning/`. This seeds the volume with ready-to-use training notebooks.
 
@@ -64,7 +64,7 @@ unsloth-studio:
   candy:
     - unsloth-studio
     - notebook-finetuning
-    # ... other layers
+    # ... other candies
 ```
 
 ```bash
@@ -85,25 +85,25 @@ The notebooks include several workarounds for upstream library changes:
 - **`max_memory={0: "14GB"}` in model loading** (3 Pixtral-12B notebooks) -- Fixes accelerate device_map estimation for Pixtral-12B models that would otherwise OOM
 - **`max_prompt_length` removed from DPOConfig** (2 DPO notebooks) -- Parameter deprecated and removed in TRL 1.0
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-jupyter:unsloth-studio`
 - `/charly-jupyter:jupyter-ml-notebook`
 
 ## Related Skills
 
-- `/charly-image:layer` -- data field documentation and layer authoring rules
+- `/charly-image:layer` -- data field documentation and candy authoring rules
 - `/charly-core:charly-config` -- data provisioning during `charly config` setup
 - `/charly-core:deploy` -- volume backing configuration (bind, named, encrypted)
 - `/charly-jupyter:unsloth-studio` -- the Tier 2 meta-layer that owns the workspace volume
-- `/charly-jupyter:notebook-templates` -- sibling data layer pattern (starter notebooks for jupyter)
-- `/charly-jupyter:unsloth-studio` -- the image that includes this layer
+- `/charly-jupyter:notebook-templates` -- sibling data candy pattern (starter notebooks for jupyter)
+- `/charly-jupyter:unsloth-studio` -- the box that includes this candy
 
 ## When to Use This Skill
 
 Use when the user asks about:
 
-- The notebook-finetuning layer or its contents
+- The notebook-finetuning candy or its contents
 - Unsloth fine-tuning notebook templates or training workflows
 - How training notebooks get provisioned into the workspace volume
 - The `data:` field with `dest:` subdirectory mapping

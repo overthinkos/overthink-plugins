@@ -8,7 +8,7 @@ description: |
 
 # forgecode -- Forge AI Coding Agent CLI
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -26,19 +26,19 @@ my-dev:
     - forgecode
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `hermes-full` (metalayer) -- bundles forgecode alongside claude-code / codex / gemini
-- `hermes` image -- ships forgecode transitively via hermes-full
+- `hermes` box -- ships forgecode transitively via hermes-full
 
 ## Related Skills
 
 - `/charly-coder:nodejs` -- required dependency (provides npm)
 - `/charly-coder:claude-code`, `/charly-coder:codex`, `/charly-coder:gemini` -- sibling AI CLIs (same npm-global install pattern)
 - `/charly-hermes:hermes-full-layer` -- metalayer that bundles this CLI
-- `/charly-hermes:hermes` -- primary image that ships this CLI
-- `/charly-image:layer` -- layer authoring reference
-- `/charly-eval:eval` -- declarative testing framework (this layer verifies `${HOME}/.npm-global/bin/forge` + `forge --version`)
+- `/charly-hermes:hermes` -- primary box that ships this CLI
+- `/charly-image:layer` -- candy authoring reference
+- `/charly-eval:eval` -- declarative testing framework (this candy verifies `${HOME}/.npm-global/bin/forge` + `forge --version`)
 
 ## When to Use This Skill
 
@@ -46,4 +46,4 @@ Use when the user asks about:
 
 - Forge / forgecode / forgecode.dev in containers
 - Alternative AI coding agents alongside Claude Code / Codex / Gemini
-- The `forgecode` layer
+- The `forgecode` candy

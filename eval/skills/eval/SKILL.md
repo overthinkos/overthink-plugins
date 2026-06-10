@@ -377,7 +377,7 @@ drive the red→green loop. This complements the flat `eval:` checks — `charly
 
 | Stage | Who | Command | What |
 |---|---|---|---|
-| **Specify** | you / an agent | `charly candy add-scenario <layer> <name> --given/--when/--then` (idempotent; MCP tool `candy.add-scenario`) | Author the goal (`feature:`/`narrative:`) + scenarios on the LAYER that provides the behaviour (it bakes into every image that composes the layer — R3). |
+| **Specify** | you / an agent | `charly candy add-scenario <layer> <name> --given/--when/--then` (idempotent; MCP tool `candy.add-scenario`) | Author the goal (`feature:`/`narrative:`) + scenarios on the CANDY that provides the behaviour (it bakes into every box that composes the candy — R3). |
 | **Bind** | author (implicit) | `charly feature pending <entity>` lists the gaps | Embed a check verb → deterministic; leave the step prose → agent-graded. |
 | **Run** | you / CI | `charly box feature run <image>` / `charly eval feature run <deployment>` | Execute the scenarios; per-scenario pass/fail + grader evidence. |
 | **Iterate** | you / an agent | edit + re-run, OR `charly eval run <score>` | Drive red→green by hand, or let the plateau-bounded AI loop write the code until scenarios pass. |
@@ -506,7 +506,7 @@ Every check is a **list entry with exactly one verb discriminator** plus
 shared modifiers and verb-specific attributes. This mirrors the `task:`
 pattern in `charly.yml`.
 
-### Gold-standard pattern (redis layer)
+### Gold-standard pattern (redis candy)
 
 ```yaml
 # candy/redis/charly.yml
@@ -1086,7 +1086,7 @@ The fix: drop into `user` explicitly when running as root, stay as-is otherwise.
 the shell is a login shell — reproduced: `runuser -l user -s /bin/bash
 -c 'sudo -n -l'` prints nothing and exits 0; `runuser -u user -- sudo
 -n -l` prints the full NOPASSWD listing. This bit the earlier shipping
-form of the test; the sshd layer now uses `-u … --`.
+form of the test; the sshd candy now uses `-u … --`.
 
 Worked example: `/charly-coder:sshd` ships exactly the `-u user --` pattern. Alternative: make the check `scope: deploy` so it runs against a live container where you control the user-switch externally.
 

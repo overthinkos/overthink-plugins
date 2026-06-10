@@ -2,10 +2,10 @@
 name: hermes
 description: |
   Full-featured standalone Hermes AI agent with AI CLIs, dev tools, DevOps tools, and charly.
-  MUST be invoked before building, deploying, configuring, or troubleshooting the hermes image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the hermes box.
 ---
 
-# Image: hermes
+# Box: hermes
 
 Full-featured standalone Hermes AI agent. No browser or desktop — designed for cross-container deployment alongside `selkies-desktop` (shared Chrome via `BROWSER_CDP_URL`) and `jupyter` (MCP notebooks via `CHARLY_MCP_SERVERS`).
 
@@ -20,9 +20,9 @@ hermes:
     - dbus
 ```
 
-## Layer Stack
+## Candy Stack
 
-| Layer | Purpose |
+| Candy | Purpose |
 |-------|---------|
 | `agent-forwarding` | SSH + GPG agent forwarding into container |
 | `hermes` | AI agent with LLM auto-config, MCP, browser tools |
@@ -112,14 +112,14 @@ charly shell hermes -c "hermes mcp list"                    # Shows registered s
 charly shell hermes -c "hermes mcp test jupyter"      # Tests connection (expects 11 tools)
 ```
 
-## Key Layers
+## Key Candies
 
 - `/charly-hermes:hermes-full-layer` — Metalayer composition details
 - `/charly-hermes:hermes` — Core agent (env_accept, browser dispatch, LLM config)
 - `/charly-selkies:chrome` — Provides `BROWSER_CDP_URL` (from selkies-desktop)
 - `/charly-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server on port 9224 (from selkies-desktop)
 
-## Related Images
+## Related Boxes
 
 - `/charly-hermes:hermes-playwright` — Hermes with local Playwright Chromium
 - `/charly-selkies:selkies-labwc` — Desktop with Chrome (cross-container browser provider)
@@ -163,7 +163,7 @@ liveness (hermes-whatsapp is autostart=false — see `/charly-eval:eval` Gotcha 
 
 ## When to Use This Skill
 
-**MUST be invoked** before building, deploying, configuring, or troubleshooting the hermes image.
+**MUST be invoked** before building, deploying, configuring, or troubleshooting the hermes box.
 
 ## Related
 

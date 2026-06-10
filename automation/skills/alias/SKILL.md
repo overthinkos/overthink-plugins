@@ -14,8 +14,8 @@ description: |
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Install defaults | `charly alias install <image>` | Create wrappers from layer/image config |
-| Uninstall all | `charly alias uninstall <image>` | Remove all wrappers for an image |
+| Install defaults | `charly alias install <image>` | Create wrappers from candy/box config |
+| Uninstall all | `charly alias uninstall <image>` | Remove all wrappers for a box |
 | Add manually | `charly alias add <name> <image> [command]` | Create a single wrapper |
 | Remove one | `charly alias remove <name>` | Remove a single wrapper |
 | List all | `charly alias list` | Show all installed aliases |
@@ -52,7 +52,7 @@ Key details:
 
 ### In a candy `charly.yml`
 
-Layer aliases require both `name` and `command`:
+Candy aliases require both `name` and `command`:
 
 ```yaml
 aliases:
@@ -77,29 +77,29 @@ box:
 
 ### Collection
 
-`CollectImageAliases()` gathers aliases from the image's own layers (in dependency order) plus image-level config. **No base chain traversal** -- aliases are leaf-image specific (unlike volumes).
+`CollectImageAliases()` gathers aliases from the box's own candies (in dependency order) plus box-level config. **No base chain traversal** -- aliases are leaf-box specific (unlike volumes).
 
 Source: `charly/alias.go`, `charly/layers.go` (`AliasYAML`, `HasAliases`, `Aliases()`).
 
 ## Commands
 
-### Install All Aliases for an Image
+### Install All Aliases for a Box
 
 ```bash
 charly alias install openclaw
 # Created alias: openclaw -> openclaw (in openclaw)
 ```
 
-Installs all aliases declared in the image's layers and image config.
+Installs all aliases declared in the box's candies and box config.
 
-### Uninstall All Aliases for an Image
+### Uninstall All Aliases for a Box
 
 ```bash
 charly alias uninstall openclaw
 # Removed alias: openclaw
 ```
 
-Removes all wrapper scripts that reference the image.
+Removes all wrapper scripts that reference the box.
 
 ### Add a Single Alias
 
@@ -129,9 +129,9 @@ Scans `~/.local/bin/` for files with the `# charly-alias` marker.
 
 ## Validation Rules
 
-- Layer aliases require both `name` and `command`
+- Candy aliases require both `name` and `command`
 - Alias names must match `^[a-zA-Z0-9][a-zA-Z0-9._-]*$`
-- Duplicate alias names within an image are errors
+- Duplicate alias names within a box are errors
 - Box-level alias `command` defaults to `name` if omitted
 
 ## Cross-References

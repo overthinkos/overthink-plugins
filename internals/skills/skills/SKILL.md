@@ -55,7 +55,7 @@ If multiple triggers apply, load ALL matching skills in ONE message (parallel `S
 | Verification check missing from image skill | Add to the image skill's Verification section |
 | Skill's recommended defaults are wrong | Fix in the skill, not CLAUDE.md |
 | New feature added to charly CLI | Update `/charly-core:<cmd>` or `/charly-build:<cmd>` skill + `/charly-internals:go` source map |
-| New layer or image added | Create skill via `charly box new candy` scaffold or manual SKILL.md |
+| New candy or box added | Create skill via `charly box new candy` scaffold or manual SKILL.md |
 | Bug fix changes behavior | Document the fix in affected skills |
 | Cross-skill behavior discovered | Update Cross-References in all affected skills |
 | A live bed contradicts a skill's claim (Risk Driven Development found it stale) | Fix the stale skill in the SAME change — RDD keeps the living docs honest; for a high-risk claim the running system is ground truth, not the doc |

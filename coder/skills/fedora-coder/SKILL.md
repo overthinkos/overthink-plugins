@@ -1,12 +1,12 @@
 ---
 name: fedora-coder
 description: |
-  Kitchen-sink development image: coding + AI-coding CLIs + DevOps tooling
-  in one container. Fedora-nonfree base, 32 direct layers spanning language
+  Kitchen-sink development box: coding + AI-coding CLIs + DevOps tooling
+  in one container. Fedora-nonfree base, 32 direct candies spanning language
   runtimes, build tooling, five AI coding CLIs, and the full cloud/devops
   stack. Runs as uid 1000 with passwordless sudo — rootless-first, matches
   the /charly-openclaw:openclaw-desktop security posture.
-  Use when working with the fedora-coder image — specifically any task that
+  Use when working with the fedora-coder box — specifically any task that
   involves SSH-ing into a single container and having every tool a polyglot
   engineer reaches for during a working day already installed.
 ---
@@ -14,7 +14,7 @@ description: |
 # fedora-coder
 
 The everyday-development counterpart to `/charly-distros:charly-fedora`: all the
-coding + AI + DevOps tooling a developer needs in one image, no desktop,
+coding + AI + DevOps tooling a developer needs in one box, no desktop,
 no streaming. Distinct from `openclaw-desktop` (which adds the
 browser-streamed Wayland desktop) — `fedora-coder` is headless and
 meant to be accessed via `ssh -p 2222` or `charly shell`.
@@ -23,7 +23,7 @@ meant to be accessed via `ssh -p 2222` or `charly shell`.
 > **`box/fedora`**), discovered as a `box/<name>/charly.yml` box. Its base
 > stack (`fedora-nonfree` → `fedora`) is bare-local in the same self-contained
 > submodule (`import: []`) — `base: fedora-nonfree`, which itself roots on the
-> bare-local `fedora` base — and its 32 layers are pulled by github reference.
+> bare-local `fedora` base — and its 32 candies are pulled by github reference.
 > Build/validate from
 > the submodule: `charly -C box/fedora box build fedora-coder`, or
 > `charly --repo overthinkos/fedora box build fedora-coder`. Deploy-mode verbs
@@ -51,7 +51,7 @@ fedora-coder:
     # Language runtimes + managers
     - language-runtimes           # Go + PHP + .NET 9 + nodejs-devel + python3-devel
     - golang
-    - nodejs                       # generic nodejs layer (Node 22 on Fedora)
+    - nodejs                       # generic nodejs candy (Node 22 on Fedora)
     - rust
     - pixi
     - uv                          # direct-download binary (no pixi env)
@@ -88,7 +88,7 @@ normal `-p host:container` remapping (e.g. running `arch-coder` alongside
 `fedora-coder` on the same machine).
 
 No `uid:` / `gid:` / `user:` / `security:` override — inherits
-`1000/1000/user` from `defaults` and the layer-level security from
+`1000/1000/user` from `defaults` and the candy-level security from
 `/charly-distros:container-nesting`. Rootless-first by design (shares this
 posture with `/charly-openclaw:openclaw-desktop`).
 
@@ -105,7 +105,7 @@ posture with `/charly-openclaw:openclaw-desktop`).
 | sudo | passwordless via `/etc/sudoers.d/charly-user` | `/charly-coder:sshd` |
 
 **No `--privileged`. No `cap_add: ALL`. No `seccomp=unconfined`. No
-`label=disable`.** All four power-user images (`fedora-coder`, `charly-fedora`,
+`label=disable`.** All four power-user boxes (`fedora-coder`, `charly-fedora`,
 `charly-arch`, `githubrunner`) run the rootless posture proven sufficient by the
 `container-nesting` kernel RCA — see `/charly-distros:container-nesting` for the
 `mount_too_revealing()` + `unmask=/proc/*` derivation.
@@ -115,7 +115,7 @@ posture with `/charly-openclaw:openclaw-desktop`).
 Default `charly` bridge. Bridge networking plus normal `-p host:container`
 remapping is the right pattern for dev boxes — it lets `fedora-coder` run
 alongside `/charly-coder:arch-coder` on the same host (both want sshd on 2222 and
-charly-mcp on 18765). To run two dev images side by side:
+charly-mcp on 18765). To run two dev boxes side by side:
 
 ```bash
 charly config arch-coder -p 2223:2222 -p 18766:18765     # alt-instance ports
@@ -131,7 +131,7 @@ the host's LAN IP or `host.containers.internal` (podman) rather than
 
 **Why `fedora-nonfree` (not plain `fedora`)** — `build-toolchain` pulls
 `x264-devel` + `ffmpeg-devel`, both of which live in RPM Fusion. Every
-image that uses `build-toolchain` either bases on `fedora-nonfree` or
+box that uses `build-toolchain` either bases on `fedora-nonfree` or
 includes `rpmfusion` explicitly.
 
 **Python story** — `python` (the pixi-python charly-layer) is NOT pulled in.
@@ -146,13 +146,13 @@ defensive deps").
 upstream astral-sh/uv tarball via the `download:` verb's
 `strip_components: 1` modifier. See `/charly-coder:uv` and `/charly-image:layer`.
 
-**`gh` owns all git tooling** — the `gh` layer installs `gh` + `git` +
+**`gh` owns all git tooling** — the `gh` candy installs `gh` + `git` +
 `git-lfs` (with the noscripts + post-install trigger). `dev-tools`
 intentionally does NOT install any of these. See `/charly-coder:gh`.
 
 **No GPU by default** — `nvidia` / `cuda` intentionally NOT composed. If
-you need CUDA in your dev image, spin a sibling `fedora-coder-nvidia`
-with `base: nvidia` + the same layer list.
+you need CUDA in your dev box, spin a sibling `fedora-coder-nvidia`
+with `base: nvidia` + the same candy list.
 
 ## Verification recipe (build + test + deploy-test)
 
@@ -182,7 +182,7 @@ charly stop fedora-coder
 ```
 
 If you want `box.list.boxes` over the MCP surface to list YOUR
-local checkout's images (rather than upstream overthinkos/overthink),
+local checkout's boxes (rather than upstream overthinkos/overthink),
 bind-mount the project:
 
 ```bash
@@ -226,10 +226,10 @@ if running alongside.
 - `grafana-tools` — 7 binaries fetched from GitHub releases (~200 MB)
 - `language-runtimes` — .NET 9 SDK is ~600 MB on its own.
 
-To slim: drop the layer groups you don't need (AI CLIs, kubernetes,
+To slim: drop the candy groups you don't need (AI CLIs, kubernetes,
 google-cloud-npm) by forking charly.yml. See `/charly-image:image` for authoring.
 
-## Key Layers
+## Key Candies
 
 - `/charly-tools:charly` — the full toolchain: charly binary + virtualization + gocryptfs + socat (+ podman-machine, gvisor-tap-vsock for nested VMs)
 - `/charly-coder:charly-mcp` — MCP gateway; auto-falls back to `overthinkos/overthink` when no bind-mount present
@@ -242,9 +242,9 @@ google-cloud-npm) by forking charly.yml. See `/charly-image:image` for authoring
 
 ## Cross-distro siblings
 
-`fedora-coder` is one of **four cross-distro coder images** that share the identical 80-line `eval:` block + ~30 identical layers; they diverge only in each layer's package-format section (`rpm:` / `pac:` / `deb:`) and a handful of distro-specific quirks handled inside individual layers.
+`fedora-coder` is one of **four cross-distro coder boxes** that share the identical 80-line `eval:` block + ~30 identical candies; they diverge only in each candy's package-format section (`rpm:` / `pac:` / `deb:`) and a handful of distro-specific quirks handled inside individual candies.
 
-| Image | Base | Package mgr | User model |
+| Box | Base | Package mgr | User model |
 |---|---|---|---|
 | `/charly-coder:fedora-coder` | `fedora-nonfree` (Fedora 43) | rpm | `user:user` (create) |
 | `/charly-coder:arch-coder` | `arch` | pac + aur | `user:user` (create) |
@@ -253,9 +253,9 @@ google-cloud-npm) by forking charly.yml. See `/charly-image:image` for authoring
 
 All four produce the same daily-dev surface (sshd on 2222, charly-mcp on 18765, 5 AI CLIs, full language runtimes, DevOps tooling). Pick based on distro-family alignment with your team/CI. See `/charly-image:image` "user_policy" for the adopt-vs-create reconciliation that gives ubuntu-coder its `ubuntu` username.
 
-## Related Images
+## Related Boxes
 
-- `/charly-openclaw:openclaw-desktop` — sibling rootless-first power-user image; same security posture + container-nesting, but adds the streaming desktop. Prefer when you want browser-accessible GUI + dev tools.
+- `/charly-openclaw:openclaw-desktop` — sibling rootless-first power-user box; same security posture + container-nesting, but adds the streaming desktop. Prefer when you want browser-accessible GUI + dev tools.
 - `/charly-distros:charly-fedora` — minimal charly toolchain (no coding CLIs, no DevOps), also uid=1000 with sudo.
 - `/charly-coder:charly-arch` — Arch Linux counterpart of charly-fedora.
 - `/charly-distros:githubrunner` — self-hosted GitHub Actions runner; same uid=1000 posture.
@@ -275,11 +275,11 @@ All four produce the same daily-dev surface (sshd on 2222, charly-mcp on 18765, 
 
 **MUST be invoked** when the task involves:
 
-- Building, deploying, or troubleshooting the `fedora-coder` image.
+- Building, deploying, or troubleshooting the `fedora-coder` box.
 - Picking the right power-user base image for a coding/dev workload (this
   vs. `charly-fedora` vs. `charly-arch` vs. `openclaw-desktop`).
 - Understanding the rootless-first architectural pattern shared by the
-  four power-user images (kernel RCA belongs in
+  four power-user boxes (kernel RCA belongs in
   `/charly-distros:container-nesting`; the composition that proves it works
   without a GUI is here).
 - The full MCP auto-fallback deployment pattern when the `/workspace`

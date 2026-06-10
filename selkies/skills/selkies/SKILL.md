@@ -5,7 +5,7 @@ description: |
   Use when working with Selkies streaming engine, pixelflux, pcmflux, or browser-based remote desktop.
 ---
 
-# Layer: selkies
+# Candy: selkies
 
 Browser-accessible desktop streaming via WebSocket using pixelflux (Wayland capture) and pcmflux (audio), served over HTTPS via Traefik with a self-signed certificate.
 
@@ -77,7 +77,7 @@ This fix was rolled out via `charly update -i INSTANCE` across all live selkies-
 
 ### Rebuild cadence
 
-Pixelflux is compiled **from source** in the selkies build stage (`candy/selkies/build.sh`), not installed from PyPI, because these fixes live on a fork not yet merged upstream. The build stage clones from a pinned commit, applies four inline source patches, and runs `pip install .` against the image's pixi builder (`arch-builder` on the cachyos base, `cuda-arch-builder` on the GPU build). See `/charly-distros:arch-builder` and `/charly-coder:build-toolchain` (5 package categories — smithay backend headers, codec devel, bindgen runtime, rust, generic C/C++) for the builder-stage dependency story.
+Pixelflux is compiled **from source** in the selkies build stage (`candy/selkies/build.sh`), not installed from PyPI, because these fixes live on a fork not yet merged upstream. The build stage clones from a pinned commit, applies four inline source patches, and runs `pip install .` against the box's pixi builder (`arch-builder` on the cachyos base, `cuda-arch-builder` on the GPU build). See `/charly-distros:arch-builder` and `/charly-coder:build-toolchain` (5 package categories — smithay backend headers, codec devel, bindgen runtime, rust, generic C/C++) for the builder-stage dependency story.
 
 ### Related fixes
 
@@ -185,12 +185,12 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 
 - `selkies-config` → `~/.config/selkies`
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:selkies-labwc`
 - `/charly-selkies:selkies-labwc-nvidia`
 
-## Related Layers
+## Related Candies
 
 - `/charly-selkies:labwc` — Nested compositor that selkies hosts inside `wayland-1` (autostart Chrome-duplication race + keyboard layout)
 - `/charly-selkies:chrome` — Chrome browser (supervised by the `[program:chrome]` service in `selkies-core`) + cgroup resource caps
@@ -198,14 +198,14 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 - `/charly-selkies:wl-screenshot-pixelflux` — Screenshot path via the shared ScreenCapture singleton
 - `/charly-selkies:wl-record-pixelflux` — Recording path via the shared ScreenCapture singleton
 - `/charly-selkies:selkies-desktop-layer` — Metalayer composing selkies with labwc, Chrome, waybar, desktop tools
-- `/charly-distros:nvidia`, `/charly-distros:rocm` — GPU runtime layers feeding DRINODE into the selkies VAAPI encoder
+- `/charly-distros:nvidia`, `/charly-distros:rocm` — GPU runtime candies feeding DRINODE into the selkies VAAPI encoder
 - `/charly-selkies:ffmpeg` — Codec dep used by the capture bridge for H.264→PNG decode
 - `/charly-coder:build-toolchain` — Builder-stage packages (smithay, bindgen, codec devel) that compile the patched pixelflux
 - `/charly-distros:rpmfusion` — Applied before build-toolchain so codec devel libs (libva-devel, x264-devel, ffmpeg-devel) install
 
-## Related Images
+## Related Boxes
 
-- `/charly-selkies:selkies-labwc`, `/charly-selkies:selkies-labwc-nvidia` — Images that bundle this layer
+- `/charly-selkies:selkies-labwc`, `/charly-selkies:selkies-labwc-nvidia` — Boxes that bundle this candy
 - `/charly-distros:arch-builder` — Builder image for the pixelflux from-source compilation (`cuda-arch-builder` on the GPU build)
 
 ## Related Commands
@@ -223,5 +223,5 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

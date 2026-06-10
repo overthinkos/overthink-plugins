@@ -8,7 +8,7 @@ description: |
 
 # supervisord -- process manager
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -42,7 +42,7 @@ auto-intermediate that composes `supervisord` needs it.
 
 ## How `charly` Generates Supervisord Configs
 
-Layers declare processes via the unified **`service:`** schema in `charly.yml` (see `/charly-image:layer` "Service Declaration"). Each entry is rendered through supervisord's `service_schema.service_template` in `build.yml`, which produces a `[program:<name>]` INI fragment. `charly box generate` collects all rendered fragments across the layer chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `build.yml init:` section).
+Candies declare processes via the unified **`service:`** schema in `charly.yml` (see `/charly-image:layer` "Service Declaration"). Each entry is rendered through supervisord's `service_schema.service_template` in `build.yml`, which produces a `[program:<name>]` INI fragment. `charly box generate` collects all rendered fragments across the candy chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `build.yml init:` section).
 
 ```yaml
 # candy/chrome/charly.yml — unified schema
@@ -100,15 +100,15 @@ Layers declare services under a single `service:` key (singular; value is a list
 
 See `/charly-selkies:selkies-core` for the canonical consumer (the supervised `[program:chrome]` service: `restart: always` + `start_secs`/`start_retries`).
 
-## Polymorphism: a layer that runs on BOTH supervisord and systemd
+## Polymorphism: a candy that runs on BOTH supervisord and systemd
 
-A layer that needs the SAME service to run under supervisord (container/pod targets) AND systemd (host installs / bootc / VMs) must NOT spin up a `<name>-host` sibling layer. The supported pattern is **mixed entries in one `service:` list**: same `name:`, two entries — one with `use_packaged: <unit>.service` (or `.socket`) for the systemd render, the other with custom `exec:` for the supervisord render. Init system at deploy time picks the matching form; the other entry is silently skipped. See `/charly-image:layer` "Service Declaration" → "Mixed entries in one layer" for the schema, CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the project-wide rule, and `/charly-infrastructure:virtualization` for the canonical worked example.
+A candy that needs the SAME service to run under supervisord (container/pod targets) AND systemd (host installs / bootc / VMs) must NOT spin up a `<name>-host` sibling candy. The supported pattern is **mixed entries in one `service:` list**: same `name:`, two entries — one with `use_packaged: <unit>.service` (or `.socket`) for the systemd render, the other with custom `exec:` for the supervisord render. Init system at deploy time picks the matching form; the other entry is silently skipped. See `/charly-image:layer` "Service Declaration" → "Mixed entries in one candy" for the schema, CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the project-wide rule, and `/charly-infrastructure:virtualization` for the canonical worked example.
 
-It is tempting to copy-paste-and-rename a layer with a `-host` suffix when the schema already supports polymorphism via mixed entries. If you find yourself reaching for `-host`, reach for a second `service:` entry instead.
+It is tempting to copy-paste-and-rename a candy with a `-host` suffix when the schema already supports polymorphism via mixed entries. If you find yourself reaching for `-host`, reach for a second `service:` entry instead.
 
 ## Service Priority & Ordering
 
-Supervisord starts programs in **priority order** (ascending). Layers set priorities explicitly so that dependency chains come up in the right order:
+Supervisord starts programs in **priority order** (ascending). Candies set priorities explicitly so that dependency chains come up in the right order:
 
 | Priority | Typical services |
 |----------|------------------|
@@ -154,11 +154,11 @@ priority=200
 user=user
 ```
 
-No layer ships such a listener today. The selkies `[program:chrome]` service
+No candy ships such a listener today. The selkies `[program:chrome]` service
 (in `selkies-core`, `restart: always`, `start_secs: 5`/`start_retries: 3`) relies
 on supervisord's ordinary relaunch for ordinary exits; a genuinely wedged crash
 loop is cleared by restarting the container (`charly update` / `systemctl --user
-restart`), which tears down the cgroup. The chrome layer's
+restart`), which tears down the cgroup. The chrome candy's
 `security.memory_max`/`memory_high`/`memory_swap_max` caps bound the blast radius.
 See `/charly-selkies:chrome` (Chrome supervision) and `/charly-image:layer` (Security
 Declaration → resource caps).
@@ -195,7 +195,7 @@ charly logs <image>                # Container-level stdout/stderr (supervisord 
 ### Declarative-testing liveness check
 
 **`supervisorctl status` returns exit 3 when ANY program is non-RUNNING**
-(FATAL, STOPPED, or EXITED). Layers with `autostart=false` programs
+(FATAL, STOPPED, or EXITED). Candies with `autostart=false` programs
 (e.g. `hermes` ships `hermes-whatsapp` as autostart=false) will always
 fail a naive `command: supervisorctl status; exit_status: 0` test.
 
@@ -210,7 +210,7 @@ supervisord for its own PID and exits 0 iff the socket responds:
   in_container: true
 ```
 
-This is what the current supervisord layer ships in its `eval:` block.
+This is what the current supervisord candy ships in its `eval:` block.
 See `/charly-eval:eval` Authoring Gotcha #4.
 
 **Also note**: `pgrep` is NOT installed by default in minimal images
@@ -243,11 +243,11 @@ my-image:
     - my-service  # layers with service: entries need supervisord
 ```
 
-Adding a `service:` block to a layer automatically pulls in `supervisord` via `build.yml `init:` section`'s `depends_layer`. You rarely add `supervisord` to an image's `candy:` list manually.
+Adding a `service:` block to a candy automatically pulls in `supervisord` via `build.yml `init:` section`'s `depends_layer`. You rarely add `supervisord` to a box's `candy:` list manually.
 
-## Used In Images
+## Used In Boxes
 
-Transitive dependency for all images with managed services, including:
+Transitive dependency for all boxes with managed services, including:
 `openclaw`, `jupyter`, `jupyter-ml`, `jupyter-ml-notebook`, `ollama`, `comfyui`, `immich`, `immich-ml`, `selkies-desktop`, `selkies-labwc-nvidia`, `hermes`, `openwebui`, `filebrowser`.
 
 ## Running supervisord under systemd (bootc mode)
@@ -259,15 +259,15 @@ On non-bootc images, supervisord is container PID 1 (`ENTRYPOINT=supervisord` em
 Both involve opening `/dev/stdout` or `/dev/fd/1`, which resolve to the journal pipe under a systemd user service — and `open()` on a pipe returns ENXIO.
 
 1. **Main supervisord logfile.** The header template (`templates/supervisord.header.conf`) was changed from `logfile=/dev/stdout` to `logfile=/tmp/supervisord.log`. `/dev/stdout` works when supervisord is PID 1 in a container (fd 1 is real stdio), but fails with `OSError: [Errno 6] No such device or address: '/dev/stdout'` under a systemd user service where fd 1 is a pipe. Writing to a regular file works everywhere.
-2. **Per-program `stdout_logfile=/dev/fd/1`.** Every layer's `service:` fragment redirects program stdout to `/dev/fd/1` so container logs (`podman logs`) show per-program output. Under a systemd user service this fails with `unknown error making dispatchers for <name>: ENXIO` for every program. The fix lives in the systemd user unit itself — set `StandardOutput=file:/tmp/supervisord-stdout.log` so supervisord's fd 1 backs a real file, not a pipe. Existing per-program `/dev/fd/1` lines then resolve correctly.
+2. **Per-program `stdout_logfile=/dev/fd/1`.** Every candy's `service:` fragment redirects program stdout to `/dev/fd/1` so container logs (`podman logs`) show per-program output. Under a systemd user service this fails with `unknown error making dispatchers for <name>: ENXIO` for every program. The fix lives in the systemd user unit itself — set `StandardOutput=file:/tmp/supervisord-stdout.log` so supervisord's fd 1 backs a real file, not a pipe. Existing per-program `/dev/fd/1` lines then resolve correctly.
 
 Container-mode logs are unaffected — supervisord is still PID 1 there.
 
-## Related Layers
+## Related Candies
 
-- `/charly-languages:python` -- Optional pixi-python env (NOT a dep of this layer; supervisord uses system python3 from RPM)
+- `/charly-languages:python` -- Optional pixi-python env (NOT a dep of this candy; supervisord uses system python3 from RPM)
 - `/charly-selkies:selkies-core` -- owns the supervised `[program:chrome]` service (`restart: always`, `start_secs`/`start_retries`) for both selkies flavors
-- `/charly-selkies:chrome` -- the chrome layer's cgroup resource caps (bound a Chrome crash loop's blast radius)
+- `/charly-selkies:chrome` -- the chrome candy's cgroup resource caps (bound a Chrome crash loop's blast radius)
 - `/charly-infrastructure:traefik` -- Reverse proxy (depends on supervisord)
 - `/charly-infrastructure:dbus-layer` -- D-Bus session bus (depends on supervisord)
 - `/charly-ollama:ollama`, `/charly-openclaw:openclaw`, `/charly-infrastructure:postgresql`, `/charly-infrastructure:redis`, `/charly-selkies:sway` -- All ship `service:` blocks

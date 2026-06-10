@@ -8,7 +8,7 @@ description: |
 
 # dev-tools -- Developer CLI utilities
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +30,7 @@ RPM (with `--setopt=tsflags=noscripts`): `android-tools`, `apptainer`, `apptaine
 
 ### bat → batcat symlink (Debian/Ubuntu)
 
-Both Debian and Ubuntu rename `bat` → `batcat` in their archives to avoid a namespace collision with a legacy `bacula` utility. The `bat` package installs only `/usr/bin/batcat`; nothing lives at `/usr/bin/bat`. To keep downstream scripts, docs, and declarative tests portable, the layer ships a distro-tolerant symlink task:
+Both Debian and Ubuntu rename `bat` → `batcat` in their archives to avoid a namespace collision with a legacy `bacula` utility. The `bat` package installs only `/usr/bin/batcat`; nothing lives at `/usr/bin/bat`. To keep downstream scripts, docs, and declarative tests portable, the candy ships a distro-tolerant symlink task:
 
 ```yaml
 task:
@@ -60,8 +60,8 @@ On images whose `ai.opencharly.platform.distro` OCI label includes `ubuntu:24.04
 ### Git tooling lives in `/charly-coder:gh`
 
 dev-tools does NOT install `gh`, `git`, or `git-lfs` — those belong
-exclusively to `/charly-coder:gh`, the dedicated GitHub / git tooling layer.
-That keeps ownership unambiguous (one layer installs and tests them). If
+exclusively to `/charly-coder:gh`, the dedicated GitHub / git tooling candy.
+That keeps ownership unambiguous (one candy installs and tests them). If
 you want the git tooling, compose `/charly-coder:gh` alongside
 `/charly-coder:dev-tools`.
 
@@ -74,21 +74,21 @@ my-dev:
     - dev-tools
 ```
 
-## Used In Images
+## Used In Boxes
 
 - (none currently enabled)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:gh` — Sibling GitHub CLI commonly paired with dev-tools
 - `/charly-coder:devops-tools` — Sibling DevOps cloud CLI bundle in bootc images
 - `/charly-coder:build-toolchain` — Sibling C/C++ toolchain in bootc image stacks
 
-## Related Images
+## Related Boxes
 - `/charly-coder:debian-coder`, `/charly-coder:ubuntu-coder` — canonical consumers of the bat→batcat symlink
 - `/charly-coder:fedora-coder`, `/charly-coder:arch-coder` — consumers where the symlink task is a harmless no-op
 
 ## Related Commands
-- `/charly-build:build` — Build images that ship the dev-tools package set
+- `/charly-build:build` — Build boxes that ship the dev-tools package set
 - `/charly-core:shell` — Interactive shell to use bat/ripgrep/neovim/etc.
 - `/charly-eval:eval` — `exclude_distros:` field reference for the fastfetch-binary test
 - `/charly-image:layer` — authoring reference for distro-tolerant `cmd:` tasks and `exclude_distros:`
@@ -100,4 +100,4 @@ Use when the user asks about:
 - Developer tools in containers
 - CLI utilities (bat, ripgrep, fd-find, neovim, etc.)
 - Podman tooling inside containers
-- The `dev-tools` layer or its packages
+- The `dev-tools` candy or its packages

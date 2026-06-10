@@ -2,21 +2,21 @@
 name: openclaw-full-layer
 description: |
   Maximal OpenClaw deployment (gateway + browser + all feasible tools/skills).
-  Use when working with the openclaw-full layer.
+  Use when working with the openclaw-full candy.
 ---
 
 # openclaw-full -- Maximal OpenClaw deployment
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
 | Install files | `charly.yml` (metalayer, layers only) |
-| Depends | none (composes other layers) |
+| Depends | none (composes other candies) |
 
-## Composed Layers
+## Composed Candies
 
-This metalayer includes the following 25 layers:
+This metalayer includes the following 25 candies:
 
 - `openclaw` -- AI gateway
 - `chrome` -- Google Chrome browser
@@ -55,28 +55,28 @@ candy:
   - openclaw-full
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full`
 
-## Related Layers
+## Related Candies
 - `/charly-openclaw:openclaw` — base gateway layer included in this metalayer
-- `/charly-selkies:sway-desktop-vnc` — desktop layer paired in sway-browser images
+- `/charly-selkies:sway-desktop-vnc` — desktop candy paired in sway-browser boxes
 
 ## Related Commands
 - `/charly-automation:openclaw-deploy` — gateway configuration, model auth, and channel setup
-- `/charly-build:build` — builds the metalayer composition into an image
-- `/charly-core:charly-config` — sets up secrets and quadlets for openclaw-full images
+- `/charly-build:build` — builds the metalayer composition into a box
+- `/charly-core:charly-config` — sets up secrets and quadlets for openclaw-full boxes
 
 ## When to Use This Skill
 
 Use when the user asks about:
 - Full OpenClaw deployment with all tools
 - The `openclaw-full` metalayer composition
-- Which tools are included in the maximal OpenClaw image
-- The `openclaw-full` layer
+- Which tools are included in the maximal OpenClaw box
+- The `openclaw-full` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

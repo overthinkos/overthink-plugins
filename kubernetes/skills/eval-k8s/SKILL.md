@@ -53,7 +53,7 @@ charly eval k8s addons --cluster k3s-srv
 
 ## Declarative `k8s:` checks on layer tests
 
-The verb is also callable from a layer's `eval:` block via the `k8s:`
+The verb is also callable from a candy's `eval:` block via the `k8s:`
 discriminator field on `Check`. Every subcommand above maps to a method
 name; shared modifiers (`name:`, `namespace:`, `cluster:`, `timeout:`,
 `kubeconfig:`, `k8s_kind:`, `k8s_count:`, `manifest:`, `k8s_resource:`,
@@ -90,7 +90,7 @@ eval:
     stdout: { contains: "traefik" }
 ```
 
-`cluster: "${DEPLOY_NAME}"` lets a layer's deploy-scope check address its own
+`cluster: "${DEPLOY_NAME}"` lets a candy's deploy-scope check address its own
 cluster generically: `${DEPLOY_NAME}` is a **runtime-only eval var** resolving to
 the sanitized deploy name (`:`/`.`/`/` → `-`) — the SAME identifier
 `K3sPostProvision` uses for the kubeconfig context + ClusterProfile. It is

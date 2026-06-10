@@ -7,7 +7,7 @@ description: |
 
 # wayvnc -- VNC server for Wayland compositors
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -38,11 +38,11 @@ charly eval vnc passwd my-image --generate   # set up VeNCrypt/TLS auth
 
 VNC screenshots work correctly on NVIDIA headless when used via `sway-desktop-vnc` (the standard VNC composition). Two fixes make this work:
 
-1. **Pixman renderer** — `sway-desktop-vnc` sets `WLR_RENDERER=pixman` in its layer env, forcing software rendering. The `sway-wrapper` skips GPU auto-detection when `WLR_RENDERER` is pre-set.
+1. **Pixman renderer** — `sway-desktop-vnc` sets `WLR_RENDERER=pixman` in its candy env, forcing software rendering. The `sway-wrapper` skips GPU auto-detection when `WLR_RENDERER` is pre-set.
 
 2. **DPMS workaround** — wayvnc 0.9.1 gates screen capture on `zwlr_output_power_v1` mode events, but sway's headless backend never emits them. The `wayvnc-wrapper` performs a minimal VNC handshake to trigger wayvnc to bind the power manager, then `swaymsg "output HEADLESS-1 power on"` forces the missing event. Fixed in wayvnc git main (post-0.9.1) — remove workaround when Fedora ships the fix.
 
-For images NOT using `sway-desktop-vnc` (custom sway + wayvnc setups), `charly eval wl screenshot` (grim) remains a reliable fallback.
+For boxes NOT using `sway-desktop-vnc` (custom sway + wayvnc setups), `charly eval wl screenshot` (grim) remains a reliable fallback.
 
 ### Startup Timing
 
@@ -52,11 +52,11 @@ The `wayvnc-wrapper` uses a two-phase wait:
 
 This ensures sway has set the output resolution (default 1920x1080) before wayvnc connects.
 
-## Used In Images
+## Used In Boxes
 
 Part of `/charly-selkies:sway-desktop` composition.
 
-## Related Layers
+## Related Candies
 
 - `/charly-infrastructure:supervisord` -- process manager dependency
 - `/charly-selkies:sway` -- Wayland compositor (provides display)
@@ -79,5 +79,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

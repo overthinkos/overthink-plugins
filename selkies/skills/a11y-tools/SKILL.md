@@ -6,7 +6,7 @@ Provides Python AT-SPI2 bindings for querying the accessibility tree of GTK, Qt,
 
 Used by `charly eval wl atspi tree/find/click`.
 
-## Layer Definition
+## Candy Definition
 
 ```yaml
 requires:
@@ -44,7 +44,7 @@ Chrome needs `--force-renderer-accessibility` flag to expose DOM elements via AT
 
 - `selkies-desktop` metalayer
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
@@ -63,6 +63,6 @@ Chrome needs `--force-renderer-accessibility` flag to expose DOM elements via AT
 
 - `/charly-eval:wl` — `charly eval wl atspi tree/find/click` commands
 - `/charly-infrastructure:dbus-layer` — Required dependency (D-Bus session bus)
-- `/charly-selkies:selkies-desktop-layer` — Desktop metalayer that includes this layer
+- `/charly-selkies:selkies-desktop-layer` — Desktop metalayer that includes this candy
 - `/charly-eval:eval` — declarative testing framework
-- `/charly-image:layer` — layer authoring
+- `/charly-image:layer` — candy authoring

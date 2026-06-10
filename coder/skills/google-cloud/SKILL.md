@@ -7,7 +7,7 @@ description: |
 
 # google-cloud -- Google Cloud SDK
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -22,11 +22,11 @@ my-image:
     - google-cloud
 ```
 
-## Used In Images
+## Used In Boxes
 
 - (none currently enabled)
 
-## Related Layers
+## Related Candies
 
 - `/charly-coder:google-cloud-npm` -- additional GCP npm tools (firebase-tools, gemini-cli)
 
@@ -41,5 +41,5 @@ Use when the user asks about:
 
 ## Author + Test References
 
-- `/charly-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
+- `/charly-image:layer` — candy authoring reference (tasks, vars, env_provide, tests block syntax)
 - `/charly-eval:eval` — declarative testing framework for the `eval:` block

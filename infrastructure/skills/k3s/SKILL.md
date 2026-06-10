@@ -7,14 +7,14 @@ description: |
 
 # k3s -- k3s binary installer (base layer)
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
 | Install files | `charly.yml`, `task:` |
 | Pinned version | `v1.31.11+k3s1` (edit `K3S_VERSION` in `charly.yml` vars to cut over) |
 
-## What this layer does
+## What this candy does
 
 Downloads the verified-checksum k3s binary (plus sha256sum from the
 release manifest), installs it to `/usr/local/bin/k3s`, and creates
@@ -23,15 +23,15 @@ runtime dependencies (`iptables`, `conntrack`, `socat`, `ethtool`,
 `ca-certificates`) via the distro package manager — **not** via the
 upstream `curl | sh` installer. Deliberate, per R9.
 
-**No service is started by this layer.** Role selection happens in the
-dependent layers `/charly-infrastructure:k3s-server` and `/charly-infrastructure:k3s-agent`,
+**No service is started by this candy.** Role selection happens in the
+dependent candies `/charly-infrastructure:k3s-server` and `/charly-infrastructure:k3s-agent`,
 which emit systemd units that wrap this binary with the right CLI verb
 (`k3s server` vs `k3s agent`).
 
 ## Usage
 
 Typically not used directly — compose `/charly-infrastructure:k3s-server` or
-`/charly-infrastructure:k3s-agent` (both depend on this layer).
+`/charly-infrastructure:k3s-agent` (both depend on this candy).
 
 ```yaml
 # For a bare binary-only image (rare):
@@ -52,7 +52,7 @@ candy:
 - `/usr/local/bin/kubectl` exists as a symlink.
 - Each runtime package is installed (per-distro `package_map` handles Debian's `conntrack` rename).
 
-## Related Layers
-- `/charly-infrastructure:k3s-server` — Control-plane node (depends on this layer)
-- `/charly-infrastructure:k3s-agent` — Worker node (depends on this layer)
+## Related Candies
+- `/charly-infrastructure:k3s-server` — Control-plane node (depends on this candy)
+- `/charly-infrastructure:k3s-agent` — Worker node (depends on this candy)
 - `/charly-coder:kubernetes-layer` — Distro `kubectl`/`helm` binaries for the operator, not the cluster

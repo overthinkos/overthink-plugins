@@ -2,13 +2,13 @@
 name: keepassxc
 description: |
   KeePassXC password manager desktop app.
-  Single-responsibility layer (rpm+pac, one test).
-  Use when adding KeePassXC to an image as a standalone layer.
+  Single-responsibility candy (rpm+pac, one test).
+  Use when adding KeePassXC to a box as a standalone candy.
 ---
 
 # keepassxc -- KeePassXC password manager
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -34,7 +34,7 @@ my-desktop-image:
     - keepassxc            # this layer
 ```
 
-## Used In Images
+## Used In Boxes
 
 - (none currently)
 
@@ -48,20 +48,20 @@ No deploy-scope tests: KeePassXC is a GUI app launched on-demand by the user ins
 
 ## Relationship to `/charly-build:secrets`
 
-This layer is the **GUI** for editing `.kdbx` databases. `/charly-build:secrets` is the charly CLI credential store — which talks to the **Secret Service** (system keyring), NOT to a `.kdbx` file directly.
+This candy is the **GUI** for editing `.kdbx` databases. `/charly-build:secrets` is the charly CLI credential store — which talks to the **Secret Service** (system keyring), NOT to a `.kdbx` file directly.
 
 - Author a `.kdbx` file in KeePassXC (GUI) → enable its **FdoSecrets** plugin (Settings → Secret Service Integration) and mark the group "Secret Service exposed" → its entries appear on the Secret Service bus, where `charly`'s keyring backend reads them. No `charly`-side `.kdbx` configuration is involved.
-- See `/charly-infrastructure:keepassxc-keyring` for the layer that wires KeePassXC as the host's Secret Service provider.
+- See `/charly-infrastructure:keepassxc-keyring` for the candy that wires KeePassXC as the host's Secret Service provider.
 
 ## Related Skills
 
 - `/charly-build:secrets` — charly CLI credential store (Secret Service + GPG; reads a KeePassXC database only via its FdoSecrets / Secret Service exposure)
-- `/charly-image:layer` — layer authoring reference
+- `/charly-image:layer` — candy authoring reference
 - `/charly-eval:eval` — declarative testing reference
 
 ## When to Use This Skill
 
 Use when the user asks about:
 
-- Adding KeePassXC to a container or VM image as a standalone layer
+- Adding KeePassXC to a container or VM box as a standalone candy
 - Relationship between the KeePassXC GUI and `charly secrets`

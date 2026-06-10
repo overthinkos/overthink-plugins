@@ -7,7 +7,7 @@ description: |
 
 # llama-cpp -- llama.cpp prebuilt binaries and GGUF tools
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -33,21 +33,21 @@ Downloads the latest llama.cpp release from GitHub into `~/llama.cpp`:
 
 ## Design: Tier 1 "Post-install" Layer
 
-This layer has **no pixi.toml** and **no depends**. It downloads prebuilt binaries and sets environment variables. It is designed to be composed into environment-owning layers (Tier 2) via the `candy:` field.
+This candy has **no pixi.toml** and **no depends**. It downloads prebuilt binaries and sets environment variables. It is designed to be composed into environment-owning candies (Tier 2) via the `candy:` field.
 
-The user-phase tasks run after the pixi environment is established by the parent layer. The `gguf` Python package (for programmatic GGUF access) is declared in the parent layer's pixi.toml, not here.
+The user-phase tasks run after the pixi environment is established by the parent candy. The `gguf` Python package (for programmatic GGUF access) is declared in the parent candy's pixi.toml, not here.
 
-## Used In Layers
+## Used In Candies
 
 - `/charly-languages:python-ml` — via `candy: [llama-cpp]`
 - `/charly-jupyter:jupyter-ml` — via `candy: [llama-cpp, unsloth]`
 - `/charly-jupyter:unsloth-studio` — via `candy: [llama-cpp, unsloth]`
 
-## Related Layers
+## Related Candies
 
 - `/charly-jupyter:unsloth` — Fine-tuning (depends on llama.cpp for GGUF conversion)
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-languages:python-ml` (via `python-ml` metalayer)
 - `/charly-immich:immich-ml` (via `python-ml` metalayer)
@@ -66,5 +66,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

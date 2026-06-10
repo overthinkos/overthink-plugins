@@ -2,15 +2,15 @@
 name: cuda
 description: |
   CUDA toolkit, cuDNN, ONNX Runtime, and NVIDIA GPU development libraries from negativo17 repos.
-  Depends on the nvidia layer for runtime support. Use when working with GPU computing, CUDA,
+  Depends on the nvidia candy for runtime support. Use when working with GPU computing, CUDA,
   cuDNN, machine learning infrastructure, or NVIDIA development tools.
 ---
 
 # cuda -- CUDA development toolkit
 
-CUDA compiler, cuDNN, ONNX Runtime, and GPU development libraries. Depends on the `nvidia` layer for runtime support (driver libs, nvidia-ctk).
+CUDA compiler, cuDNN, ONNX Runtime, and GPU development libraries. Depends on the `nvidia` candy for runtime support (driver libs, nvidia-ctk).
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -29,11 +29,11 @@ RPM: `cuda-nvcc`, `cuda-cudart-devel`, `cuda-cudart-static`, `cuda-nvrtc-devel`,
 
 PAC: `cuda`, `cudnn`, `python-onnxruntime-cpu`
 
-**Note:** FFmpeg codec libraries are provided via the `ffmpeg` dependency layer rather than installed directly. On Fedora, CUDA packages come from the negativo17 `fedora-nvidia` repo (added by the `nvidia` layer); on Arch/CachyOS they come from the standard repos.
+**Note:** FFmpeg codec libraries are provided via the `ffmpeg` dependency candy rather than installed directly. On Fedora, CUDA packages come from the negativo17 `fedora-nvidia` repo (added by the `nvidia` candy); on Arch/CachyOS they come from the standard repos.
 
 ## Multi-distro (Fedora + Arch)
 
-The layer is multi-distro. The `distro.arch` section installs `cuda`, `cudnn`,
+The candy is multi-distro. The `distro.arch` section installs `cuda`, `cudnn`,
 and `python-onnxruntime-cpu` from the Arch repos. Arch installs CUDA under
 `/opt/cuda`, while `CUDA_HOME` is `/usr`, so the Arch path symlinks
 `/opt/cuda/*` into `/usr/*` to stitch the Arch layout into the Fedora layout.
@@ -55,9 +55,9 @@ nvidia:
     - cuda
 ```
 
-## Used In Images
+## Used In Boxes
 
-- `/charly-distros:nvidia` (base for all GPU images)
+- `/charly-distros:nvidia` (base for all GPU boxes)
 - `/charly-immich:immich-ml`
 
 ## Related Candies
@@ -72,5 +72,5 @@ nvidia:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

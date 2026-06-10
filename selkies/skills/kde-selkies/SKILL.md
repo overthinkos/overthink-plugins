@@ -4,12 +4,12 @@ description: >
   The KDE nested-compositor PRIMITIVE for the selkies streaming desktop —
   startplasma-wayland nested in pixelflux, de-SDDM, started by a supervisord
   poll-for-wayland-1 service. MUST be invoked before editing the kde-selkies
-  layer or its kde-selkies-session wrapper.
+  candy or its kde-selkies-session wrapper.
 ---
 
 # kde-selkies — KDE Plasma nested-compositor primitive (the KDE seam)
 
-`kde-selkies` is the KDE analogue of the `labwc` layer: the swappable
+`kde-selkies` is the KDE analogue of the `labwc` candy: the swappable
 nested-compositor primitive that renders a desktop into pixelflux's `wayland-1`.
 It runs a FULL KDE Plasma Wayland session (`startplasma-wayland` =
 kwin_wayland + plasmashell) nested in pixelflux, so selkies streams Plasma.
@@ -29,7 +29,7 @@ no DRM seat, no SDDM, no `graphical.target`. So:
   `exec dbus-run-session startplasma-wayland`. kwin creates `wayland-0` for
   Plasma's own clients.
 - **Chrome:** this session script does NOT launch Chrome. The supervised
-  `[program:chrome]` service in the shared `selkies-core` layer
+  `[program:chrome]` service in the shared `selkies-core` candy
   (`/charly-selkies:selkies-core` "Chrome supervision", `restart: always`) owns it for
   both selkies flavors — `chrome-wrapper` self-polls for the `wayland-0` client
   socket kwin publishes, so it needs no per-flavor handoff and supervisord
@@ -38,14 +38,14 @@ no DRM seat, no SDDM, no `graphical.target`. So:
 
 This headless-no-seat path is exercised by the `eval-selkies-kde-pod` bed:
 `kde-selkies-session` RUNNING ≥20s, `https://:3000/` → 200, Chrome CDP
-`/json/version` → 200, plus the deploy-scope `wl` KWin checks this layer ships.
+`/json/version` → 200, plus the deploy-scope `wl` KWin checks this candy ships.
 
 ## Encoder
 
 `kde-selkies` sets NO `SELKIES_ENCODER` — pixelflux auto-detects at runtime
 (VAAPI on an AMD/Intel renderD via libva-native; NVENC from the cuda-arch-builder
-pixelflux on the `*-nvidia` image; x264 otherwise). So ONE kde-selkies layer
-streams on every GPU config. The encoder identity is asserted per-image in the
+pixelflux on the `*-nvidia` box; x264 otherwise). So ONE kde-selkies candy
+streams on every GPU config. The encoder identity is asserted per-box in the
 GPU eval beds, not here.
 
 ## Related

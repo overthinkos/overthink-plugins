@@ -2,7 +2,7 @@
 name: nvidia
 description: |
   NVIDIA GPU base image with runtime support and CUDA toolkit on Fedora. Base for all
-  GPU-accelerated images (python-ml, jupyter, ollama, comfyui).
+  GPU-accelerated boxes (python-ml, jupyter, ollama, comfyui).
   MUST be invoked before building, deploying, configuring, or troubleshooting the nvidia box.
 ---
 
@@ -10,10 +10,10 @@ description: |
 
 NVIDIA GPU base image — provides GPU runtime (driver libs, CDI toolkit) and CUDA development toolkit on Fedora.
 
-The `nvidia` and `cuda` layers are multi-distro (Fedora rpm + Arch pac), so a
-CachyOS GPU base exists alongside this Fedora `nvidia` image: `cachyos.nvidia`
+The `nvidia` and `cuda` candies are multi-distro (Fedora rpm + Arch pac), so a
+CachyOS GPU base exists alongside this Fedora `nvidia` box: `cachyos.nvidia`
 (cachyos + agent-forwarding + nvidia + cuda) in the `overthinkos/cachyos`
-submodule. The two are siblings — pick the Fedora `nvidia` image for the
+submodule. The two are siblings — pick the Fedora `nvidia` box for the
 RPM-based GPU stack, `cachyos.nvidia` for the Arch/CachyOS GPU stack. See
 `/charly-distros:cachyos`.
 
@@ -34,7 +34,7 @@ RPM-based GPU stack, `cachyos.nvidia` for the Arch/CachyOS GPU stack. See
 
 ## Quick Start
 
-The `nvidia` image lives in the `overthinkos/fedora` submodule (`box/fedora`):
+The `nvidia` box lives in the `overthinkos/fedora` submodule (`box/fedora`):
 
 ```bash
 charly -C box/fedora box build nvidia
@@ -57,8 +57,8 @@ charly shell nvidia
 
 - `/charly-distros:fedora` — parent base (no GPU)
 - `/charly-distros:cachyos` — `cachyos.nvidia` is the CachyOS GPU-base sibling (Arch/CachyOS GPU stack)
-- `/charly-coder:charly-arch` — Arch Linux charly toolchain with nvidia (shared layers)
-- `/charly-distros:charly-fedora` — Fedora charly toolchain with nvidia (shared layers)
+- `/charly-coder:charly-arch` — Arch Linux charly toolchain with nvidia (shared candies)
+- `/charly-distros:charly-fedora` — Fedora charly toolchain with nvidia (shared candies)
 
 ## Verification
 
@@ -73,5 +73,5 @@ After `charly box build`:
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

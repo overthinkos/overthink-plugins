@@ -3,24 +3,24 @@ name: immich
 description: |
   Immich photo management server on port 2283. Includes PostgreSQL, Redis,
   and non-free codec support via RPM Fusion. CPU-only (no ML).
-  MUST be invoked before building, deploying, configuring, or troubleshooting the immich image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the immich box.
 ---
 
 # immich
 
 Self-hosted photo and video management server with full codec support.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
 | Base | fedora-nonfree |
-| Layers | agent-forwarding, nodejs, supervisord, postgresql, vectorchord, redis, immich |
+| Candies | agent-forwarding, nodejs, supervisord, postgresql, vectorchord, redis, immich |
 | Platforms | linux/amd64 |
 | Ports | 2283 |
 | Registry | ghcr.io/overthinkos |
 
-## Full Layer Stack
+## Full Candy Stack
 
 1. `fedora` → `fedora-nonfree` (RPM Fusion for codecs)
 2. `pixi` → `python` → `supervisord` (transitive)
@@ -55,7 +55,7 @@ charly start immich
 # Open http://localhost:2283
 ```
 
-## Key Layers
+## Key Candies
 
 - `/charly-immich:immich` — Immich server, db init, library/cache volumes
 - `/charly-infrastructure:postgresql` — database backend
@@ -63,7 +63,7 @@ charly start immich
 - `/charly-infrastructure:redis` — session/cache backend
 - `/charly-distros:rpmfusion` — non-free codec support (via fedora-nonfree base)
 
-## Related Images
+## Related Boxes
 
 - `/charly-distros:fedora-nonfree` — parent base
 - `/charly-immich:immich-ml` — adds CUDA ML for face recognition and smart search
@@ -77,7 +77,7 @@ After `charly start`:
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the immich image, photo management, or the CPU-only Immich setup. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the immich box, photo management, or the CPU-only Immich setup. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 

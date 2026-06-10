@@ -7,7 +7,7 @@ description: |
 
 # xfce4-terminal -- terminal emulator for Sway
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -27,14 +27,14 @@ my-image:
     - sway-desktop
 ```
 
-## Used In Images
+## Used In Boxes
 
-Part of the `sway-desktop` composition layer. Used transitively in all desktop images.
+Part of the `sway-desktop` composition candy. Used transitively in all desktop boxes.
 
-## Related Layers
+## Related Candies
 
 - `/charly-selkies:sway` -- Sway compositor dependency
-- `/charly-selkies:sway-desktop` -- composition that includes this layer
+- `/charly-selkies:sway-desktop` -- composition that includes this candy
 - `/charly-selkies:thunar` -- file manager (also in sway-desktop)
 
 ## When to Use This Skill
@@ -47,5 +47,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

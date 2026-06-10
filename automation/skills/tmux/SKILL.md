@@ -16,7 +16,7 @@ description: |
 1. **Persistent shells** — SSH drops, terminal closes, network interruption? Just run `charly tmux shell <image>` again and you're back where you left off.
 2. **TTY-dependent background commands** — TUI programs like `openclaw models auth login` need a real terminal to function. `charly shell --tty` piped through `tee` or redirected breaks the TUI event loop. `charly tmux run` provides a real tmux terminal that the TUI can use, while `charly tmux capture` reads the output without attaching.
 
-All operations translate to `engine exec container tmux <args>`. The tmux layer must be present in the image (`candy/tmux/charly.yml` — installs the `tmux` RPM).
+All operations translate to `engine exec container tmux <args>`. The tmux candy must be present in the box (`candy/tmux/charly.yml` — installs the `tmux` RPM).
 
 ## Quick Reference
 
@@ -204,7 +204,7 @@ charly tmux shell jupyter
 
 ## Prerequisites
 
-The `tmux` layer must be included in the image. Check with:
+The `tmux` candy must be included in the box. Check with:
 
 ```bash
 charly shell <image> -c "which tmux"
@@ -212,7 +212,7 @@ charly shell <image> -c "which tmux"
 
 If tmux is not installed, `charly tmux` returns: `"tmux is not installed in container <name> (add the tmux layer to your image)"`.
 
-The tmux layer is already a dependency of `openclaw-full` (and all derivative images). For other images, add `tmux` to the layers list in `charly.yml`.
+The tmux candy is already a dependency of `openclaw-full` (and all derivative boxes). For other boxes, add `tmux` to the candies list in `charly.yml`.
 
 ## tmux Basics
 
@@ -247,7 +247,7 @@ Command execution follows a consistent naming pattern across charly:
 - `/charly-eval:cdp` — Chrome DevTools Protocol (used with tmux for OAuth flows)
 - `/charly-automation:openclaw-deploy` — OpenClaw gateway config (OAuth requires tmux for token exchange)
 - `/charly-core:service` — Supervisord service management (different scope: persistent services vs ad-hoc commands)
-- `/charly-infrastructure:tmux-layer` — The tmux layer definition
+- `/charly-infrastructure:tmux-layer` — The tmux candy definition
 - `/charly-infrastructure:dbus-layer` — D-Bus session bus (required for notifications)
 
 ## When to Use This Skill

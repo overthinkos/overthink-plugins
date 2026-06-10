@@ -136,7 +136,7 @@ charly secrets get charly/secret MY_TOKEN        # read it back
 
 ### Credential-backed layer env vars (`secret_accept` / `secret_require`)
 
-A layer can declare credential-backed env vars in `charly.yml` via the
+A candy can declare credential-backed env vars in `charly.yml` via the
 `secret_accept:` / `secret_require:` sections. At `charly config` time, the
 declared values are resolved from the credential store, provisioned as
 per-image podman secrets, and injected into the container at runtime via

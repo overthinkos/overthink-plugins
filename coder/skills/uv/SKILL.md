@@ -5,17 +5,17 @@ description: |
   direct-download binary (no pixi env, no Python dep). Pulled via the
   `download:` verb with `strip_components: 1` to handle the upstream
   tarball's arch-prefixed top-level directory.
-  Use when working with the uv layer or when deciding whether to install a
+  Use when working with the uv candy or when deciding whether to install a
   CLI tool via pixi vs. direct binary download.
 ---
 
 # uv -- Python package / project manager (astral-sh/uv)
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
-| Kind | Direct-download binary layer |
+| Kind | Direct-download binary candy |
 | Install files | `charly.yml` (no pixi.toml, no dependencies) |
 | Depends | **(none)** — uv is a self-contained Rust binary |
 | Binaries | `/usr/local/bin/uv`, `/usr/local/bin/uvx` |
@@ -32,7 +32,7 @@ doesn't warrant:
   transitively, nothing of which uv actually uses.
 - HOME-dependency — the binary path would vary per-image's `$HOME`, and
   HOME-relative PATH entries in child images go subtly wrong when the
-  `charly` auto-intermediate machinery bakes uid=1000 paths into images
+  `charly` auto-intermediate machinery bakes uid=1000 paths into boxes
   deployed at uid=0 (handled in `charly/intermediates.go` — see
   `/charly-internals:generate-source` "UID-keyed sibling grouping").
 - Confusion — "uv is installed but `which uv` says not found" for
@@ -62,7 +62,7 @@ collapses that wrapper so both binaries land directly at
 
 ## Tests
 
-Three build-scope tests ship with the layer:
+Three build-scope tests ship with the candy:
 
 | Test | Purpose |
 |---|---|
@@ -70,16 +70,16 @@ Three build-scope tests ship with the layer:
 | `uv-version` | `uv --version` exits 0 |
 | `uvx-binary` | `/usr/local/bin/uvx` exists (the per-run tool runner) |
 
-## Used In Images
+## Used In Boxes
 
-- `/charly-coder:fedora-coder` — the canonical kitchen-sink dev image.
-- Any image composing `hermes-full` or directly including `uv`.
+- `/charly-coder:fedora-coder` — the canonical kitchen-sink dev box.
+- Any box composing `hermes-full` or directly including `uv`.
 
-## Related Layers
+## Related Candies
 
-- `/charly-languages:pixi` — direct-download pattern this layer now mirrors. Pixi remains a legitimate multi-binary Python env manager for images that genuinely need one (jupyter, whisper, openwebui); uv is too small to justify the overhead.
+- `/charly-languages:pixi` — direct-download pattern this candy now mirrors. Pixi remains a legitimate multi-binary Python env manager for boxes that genuinely need one (jupyter, whisper, openwebui); uv is too small to justify the overhead.
 - `/charly-coder:typst` — sibling direct-download binary pattern.
-- `/charly-languages:python` — the pixi-python meta-layer this layer does **not** depend on.
+- `/charly-languages:python` — the pixi-python meta-layer this candy does **not** depend on.
 - `/charly-coder:rust` — system Rust toolchain, if you want to build uv from source instead (`cargo install uv`). Usually not worth it — the Astral binary is pre-optimized.
 
 ## Related Commands
@@ -91,8 +91,8 @@ Three build-scope tests ship with the layer:
 
 **MUST be invoked** when:
 
-- Adding `uv` to an image's layer list.
-- Authoring a sibling layer for a small Rust/Go CLI tool — this is the
+- Adding `uv` to a box's candy list.
+- Authoring a sibling candy for a small Rust/Go CLI tool — this is the
   canonical pattern (direct download > pixi > anything else).
 - Debugging why `uv --version` fails: it's a `$PATH` or binary-landing-
   at-wrong-path issue, not a Python env problem.

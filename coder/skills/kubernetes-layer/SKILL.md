@@ -7,7 +7,7 @@ description: |
 
 # kubernetes -- kubectl and Helm
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -30,14 +30,14 @@ my-devops:
     - kubernetes
 ```
 
-## Used In Images
+## Used In Boxes
 
 - (none currently enabled)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:docker-ce` — common companion for local container builds
 - `/charly-coder:devops-tools` — provides kubectx/kubens and cloud CLIs
-- `/charly-coder:dev-tools` — typically paired in DevOps images
+- `/charly-coder:dev-tools` — typically paired in DevOps boxes
 
 ## Related Commands
 - `/charly-build:build` — installs kubectl and helm RPMs during image build
@@ -49,9 +49,9 @@ Use when the user asks about:
 
 - Kubernetes tools in containers
 - kubectl or Helm setup
-- The `kubernetes` layer
+- The `kubernetes` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

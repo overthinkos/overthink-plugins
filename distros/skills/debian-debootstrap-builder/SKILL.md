@@ -11,7 +11,7 @@ description: |
 # debian-debootstrap-builder
 
 Privileged builder image that ships the **debootstrap** toolchain (the
-`debootstrap-builder` layer). It is the `from: builder:debootstrap` /
+`debootstrap-builder` candy). It is the `from: builder:debootstrap` /
 `bootstrap_builder_image:` target for `/charly-distros:debian-debootstrap` and the
 `/charly-vm:debian` bootstrap VM.
 
@@ -28,7 +28,7 @@ Privileged builder image that ships the **debootstrap** toolchain (the
 | Layer | `debootstrap-builder` (pulled by github reference from the main repo) |
 | Home repo | overthinkos/debian (`box/debian`) |
 
-The `debootstrap-builder` layer (debootstrap + arch-install-scripts equivalents,
+The `debootstrap-builder` candy (debootstrap + arch-install-scripts equivalents,
 grub, parted) **stays in the main repo** and is shared with
 `/charly-distros:ubuntu-debootstrap-builder` — both pull it by github reference. The
 `debian` distro config (debootstrap suite/mirror/base packages, bootloader

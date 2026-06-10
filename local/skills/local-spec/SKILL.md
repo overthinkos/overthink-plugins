@@ -8,7 +8,7 @@ description: |
 
 ## Overview
 
-`kind: local` declares a reusable layer-stack template that gets applied to a Linux filesystem (target:local deployments). Unlike `kind: pod` / `kind: vm` / `kind: k8s` which wrap an image, a `kind: local` is defined entirely by its `layers` + `install_opts` + `env` — there's no OCI artifact backing it. The convention file is `local.yml`; templates may also be authored inline in the `local:` map of `charly.yml`.
+`kind: local` declares a reusable candy-stack template that gets applied to a Linux filesystem (target:local deployments). Unlike `kind: pod` / `kind: vm` / `kind: k8s` which wrap an image, a `kind: local` is defined entirely by its `layers` + `install_opts` + `env` — there's no OCI artifact backing it. The convention file is `local.yml`; templates may also be authored inline in the `local:` map of `charly.yml`.
 
 Legacy `kind: host` projects migrate via `charly migrate`.
 
@@ -63,7 +63,7 @@ local:
 
 | Field | Required | Description |
 |---|---|---|
-| `layers` | Yes | Ordered layer stack. `[]` permitted as a placeholder (warning, not error). |
+| `layers` | Yes | Ordered candy stack. `[]` permitted as a placeholder (warning, not error). |
 | `install_opts` | No | Default install gates. Deployment overrides merge on top. |
 | `env` | No | Shell-profile env vars (`KEY=VALUE`). Deployment env wins on key collision. |
 | `description` | No | Gherkin-shaped (Feature/Narrative/Tag/Scenario). Status word lives in `tag`: `working`/`testing`/`broken`. |
@@ -131,7 +131,7 @@ local:
 
 - `/charly-local:local-deploy` — the `target: local` deployment surface that consumes this template.
 - `/charly-internals:local-infra` — Go file map (`local_spec.go`, `LocalSpec` struct, `findLocalSpec` lookup).
-- `/charly-image:layer` — layer authoring (the building blocks composed by templates).
+- `/charly-image:layer` — candy authoring (the building blocks composed by templates).
 - `/charly-build:migrate` — `charly migrate` migrates legacy `kind: host`/`host.yml` projects and splits `charly.yml`'s inline `image:` / `vm:` / `pod:` / `k8s:` / `local:` / `deploy:` maps into sibling per-kind files. The `charly-cachyos` deploy key + `local.charly-cachyos` template share a name — a concrete demonstration of cross-kind name reuse (a `kind: local` template and a `kind: deploy` entry can share a name).
 
 ## Cross-kind name reuse

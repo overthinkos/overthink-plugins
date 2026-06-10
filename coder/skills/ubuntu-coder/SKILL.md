@@ -1,22 +1,22 @@
 ---
 name: ubuntu-coder
 description: |
-  Kitchen-sink development image on Ubuntu 24.04 noble: coding + AI-coding
-  CLIs + DevOps tooling in one container. Ubuntu base, 30+ direct layers
+  Kitchen-sink development box on Ubuntu 24.04 noble: coding + AI-coding
+  CLIs + DevOps tooling in one container. Ubuntu base, 30+ direct candies
   mirroring fedora-coder's stack. Runs as uid 1000 `ubuntu` — the upstream
   ubuntu:24.04 account, adopted verbatim via build.yml's base_user
   declaration. 142/0/1-skip tests pass.
-  Use when working with the ubuntu-coder image — especially when the
-  `${USER}` / `${HOME}` / sudoers differ from the other three coder images.
+  Use when working with the ubuntu-coder box — especially when the
+  `${USER}` / `${HOME}` / sudoers differ from the other three coder boxes.
 ---
 
 # ubuntu-coder
 
-Ubuntu 24.04 noble counterpart of `/charly-coder:fedora-coder`. Same 80-line test block, same ~30 layers, same rootless posture — but **the resolved user is `ubuntu` (not `user`)** because the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` to adopt it. Everything that touches the user account — `${HOME}`, npm prefix, pixi env, sudoers — derives from `resolved.User = "ubuntu"`.
+Ubuntu 24.04 noble counterpart of `/charly-coder:fedora-coder`. Same 80-line test block, same ~30 candies, same rootless posture — but **the resolved user is `ubuntu` (not `user`)** because the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` to adopt it. Everything that touches the user account — `${HOME}`, npm prefix, pixi env, sudoers — derives from `resolved.User = "ubuntu"`.
 
 > **Location:** lives in the **`overthinkos/ubuntu`** repo (git submodule at
 > **`box/ubuntu`**) — a SEPARATE repo from `overthinkos/debian`. Its ~31
-> layers are pulled by github reference from the main repo. Build/validate from
+> candies are pulled by github reference from the main repo. Build/validate from
 > the submodule: `charly -C box/ubuntu box build ubuntu-coder`, or
 > `charly --repo overthinkos/ubuntu box build ubuntu-coder`. Deploy-mode verbs
 > read the built image's OCI labels and work from anywhere once it's local.
@@ -117,7 +117,7 @@ Identical to `/charly-coder:debian-coder` — the only diff is `User` field.
 
 - **fastfetch test is skipped** via `exclude_distros: [ubuntu:24.04]` (`/charly-coder:dev-tools`). Ubuntu 24.04 noble main does not ship `fastfetch` (Debian 13 trixie does, and so do Fedora/Arch). Skipping is cleaner than failing — see `/charly-eval:eval` for the `exclude_distros:` field of the declarative-test schema.
 - **dotnet-sdk-9.0 source**: uses Microsoft's `dotnet-install.sh` (same as debian-coder). Note: Canonical's noble main/universe ships `dotnet-sdk-8.0` and `dotnet-sdk-10.0` but NOT 9.0; Microsoft's noble apt repo ships 10.0 only. `dotnet-install.sh --channel 9.0` is the only cross-distro-consistent path to .NET 9. See `/charly-coder:language-runtimes`.
-- **Everything else** is identical to debian-coder. The sudoers `getent` discovery, bat→batcat symlink, virtualization package-existence tests — all are implemented once in the respective layers and work uniformly on both debian-coder and ubuntu-coder.
+- **Everything else** is identical to debian-coder. The sudoers `getent` discovery, bat→batcat symlink, virtualization package-existence tests — all are implemented once in the respective candies and work uniformly on both debian-coder and ubuntu-coder.
 
 ## Test results
 
@@ -164,7 +164,7 @@ AWS ECR Public mirrors the Dockerhub library namespace without rate-limiting una
 | 2222 | sshd-wrapper (SSH as `ubuntu` with sudo) | `/charly-coder:sshd` |
 | 18765 | charly-mcp | `/charly-coder:charly-mcp` |
 
-Conflicts with the other three coder-family images on these ports.
+Conflicts with the other three coder-family boxes on these ports.
 
 ## Image size
 
@@ -175,9 +175,9 @@ Conflicts with the other three coder-family images on these ports.
 - `/charly-coder:fedora-coder` — RPM-family, `user:user` create.
 - `/charly-coder:arch-coder` — pacman-family + AUR, `user:user` create.
 - `/charly-coder:debian-coder` — deb on Debian 13, `user:user` create.
-- `/charly-coder:ubuntu-coder` — this image; deb on Ubuntu 24.04, `user:ubuntu` **adopt**.
+- `/charly-coder:ubuntu-coder` — this box; deb on Ubuntu 24.04, `user:ubuntu` **adopt**.
 
-## Related images
+## Related boxes
 
 - `/charly-distros:ubuntu` — parent base; declares `base_user:` in `build.yml`.
 - `/charly-distros:ubuntu-builder` — multi-stage builder, also runs as `ubuntu:1000`.
@@ -192,7 +192,7 @@ Conflicts with the other three coder-family images on these ports.
 
 ## Related commands
 
-- `/charly-image:image` — **`user_policy:` field** (the pivot for this image's behavior).
+- `/charly-image:image` — **`user_policy:` field** (the pivot for this box's behavior).
 - `/charly-build:build` — **`base_user:` declaration** (where `ubuntu:1000` is declared).
 - `/charly-eval:eval` — `exclude_distros:` field reference.
 - `/charly-build:generate` — adopt-vs-create writeBootstrap emission.
@@ -204,5 +204,5 @@ Conflicts with the other three coder-family images on these ports.
 
 - Building, deploying, or troubleshooting `ubuntu-coder`.
 - Debugging any behavior that depends on `${USER}` or `${HOME}` inside an Ubuntu container (they resolve to `ubuntu` / `/home/ubuntu`, not `user` / `/home/user`).
-- Writing a layer whose content references the uid-1000 account by name — it must not hardcode `user`; use `getent passwd 1000` or `${USER}` substitution in task fields where the generator expands it.
+- Writing a candy whose content references the uid-1000 account by name — it must not hardcode `user`; use `getent passwd 1000` or `${USER}` substitution in task fields where the generator expands it.
 - Understanding Dockerhub rate-limit workarounds during base-image rebuilds.

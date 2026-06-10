@@ -2,16 +2,16 @@
 name: debian-builder
 description: |
   Minimal Debian 13 builder image (pixi + Node.js + build-toolchain) used
-  as the multi-stage builder for every image based on Debian — currently
+  as the multi-stage builder for every box based on Debian — currently
   debian-coder. Produces the pre-compiled pixi envs, npm globals, and
   cargo crates that land in the final runtime image via COPY --from.
   MUST be invoked before building, deploying, configuring, or troubleshooting
-  the debian-builder image.
+  the debian-builder box.
 ---
 
 # debian-builder
 
-Debian 13 counterpart of `/charly-distros:fedora-builder`. Provides the pixi / npm / cargo build environments so downstream Debian images (currently `/charly-coder:debian-coder`) get pre-compiled artifacts from a dedicated builder stage without bloating the final image.
+Debian 13 counterpart of `/charly-distros:fedora-builder`. Provides the pixi / npm / cargo build environments so downstream Debian boxes (currently `/charly-coder:debian-coder`) get pre-compiled artifacts from a dedicated builder stage without bloating the final image.
 
 Lives in the **`overthinkos/debian`** repo (git submodule at **`box/debian`**).
 Build it from the submodule: `charly -C box/debian box build debian-builder`
@@ -29,7 +29,7 @@ main repo.
 | Registry | `ghcr.io/overthinkos` |
 | User | `user` / uid 1000 (create mode — `debian:13` ships no pre-existing uid-1000 account) |
 
-## Full layer stack
+## Full candy stack
 
 1. `/charly-distros:debian` — Debian 13 + our `apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg` bootstrap + go-task binary + `user:user` uid 1000.
 2. `/charly-languages:pixi` — pixi package manager + env paths.
@@ -48,7 +48,7 @@ debian:
     cargo: debian-builder
 ```
 
-During `charly box build debian-coder`, any layer that ships `pixi.toml` / `package.json` / `Cargo.toml` gets a multi-stage `FROM debian-builder AS <layer>-<builder>-build` section emitted by the generator, then `COPY --from=<stage> --chown=${UID}:${GID}` into the final image. See `/charly-internals:generate-source` for the template.
+During `charly box build debian-coder`, any candy that ships `pixi.toml` / `package.json` / `Cargo.toml` gets a multi-stage `FROM debian-builder AS <layer>-<builder>-build` section emitted by the generator, then `COPY --from=<stage> --chown=${UID}:${GID}` into the final image. See `/charly-internals:generate-source` for the template.
 
 No AUR equivalent (unlike `/charly-distros:arch-builder`) — AUR is an Arch-only concept.
 
@@ -56,7 +56,7 @@ No AUR equivalent (unlike `/charly-distros:arch-builder`) — AUR is an Arch-onl
 
 - `/charly-distros:fedora-builder` — Fedora 43 equivalent (+ `rpmfusion` for x264/ffmpeg/libva headers).
 - `/charly-distros:arch-builder` — Arch Linux equivalent + `yay` for AUR.
-- `/charly-distros:ubuntu-builder` — Ubuntu 24.04 equivalent; differs from this image mainly in `user:ubuntu` vs `user:user` (adopt mode — see `/charly-distros:ubuntu`).
+- `/charly-distros:ubuntu-builder` — Ubuntu 24.04 equivalent; differs from this box mainly in `user:ubuntu` vs `user:user` (adopt mode — see `/charly-distros:ubuntu`).
 
 ## Quick start
 
@@ -69,10 +69,10 @@ Typically not invoked directly — it's a build-time dependency of `/charly-code
 
 ## Verification
 
-- `charly -C box/debian box list | grep debian-builder` — image present.
+- `charly -C box/debian box list | grep debian-builder` — box present.
 - `charly shell debian-builder -- pixi --version && node --version && gcc --version`.
 
-## Related images
+## Related boxes
 
 - `/charly-distros:debian` — parent base, declares the bootstrap packages in `build.yml`.
 - `/charly-coder:debian-coder` — the consumer that this builder exists to serve.
@@ -80,7 +80,7 @@ Typically not invoked directly — it's a build-time dependency of `/charly-code
 - `/charly-distros:arch-builder` — pacman + AUR sibling.
 - `/charly-distros:ubuntu-builder` — Ubuntu 24.04 sibling.
 
-## Related layers
+## Related candies
 
 - `/charly-languages:pixi`, `/charly-coder:nodejs`, `/charly-coder:build-toolchain`
 

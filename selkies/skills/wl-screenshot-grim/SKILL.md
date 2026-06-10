@@ -6,7 +6,7 @@ Provides `grim` for Wayland screenshot capture using the `wlr-screencopy` protoc
 
 For selkies-desktop, use `wl-screenshot-pixelflux` instead.
 
-## Layer Definition
+## Candy Definition
 
 ```yaml
 rpm:
@@ -34,7 +34,7 @@ charly eval wl screenshot <image> [output.png]
 
 - `sway-desktop` metalayer
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
 
@@ -42,9 +42,9 @@ charly eval wl screenshot <image> [output.png]
 
 - `/charly-eval:wl` — `charly eval wl screenshot` auto-detects grim
 - `/charly-selkies:wl-screenshot-pixelflux` — Alternative for selkies-desktop
-- `/charly-selkies:wl-tools` — Companion layer (input, window mgmt, clipboard)
+- `/charly-selkies:wl-tools` — Companion candy (input, window mgmt, clipboard)
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

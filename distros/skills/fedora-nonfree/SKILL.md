@@ -1,7 +1,7 @@
 ---
 name: fedora-nonfree
 description: |
-  Fedora with RPM Fusion non-free repositories enabled. Base for images
+  Fedora with RPM Fusion non-free repositories enabled. Base for boxes
   needing codec or proprietary package support like immich.
   MUST be invoked before building, deploying, configuring, or troubleshooting the fedora-nonfree box.
 ---
@@ -16,7 +16,7 @@ Fedora base with RPM Fusion free and non-free repositories enabled.
 SELF-CONTAINED (`import: []`). Its consumers (`/charly-immich:immich`,
 `/charly-distros:nvidia`) live in the same submodule and base on it as a
 bare-local `fedora-nonfree`. Its `rpmfusion`
-layer is pinned as a github ref so the same definition resolves in both main and
+candy is pinned as a github ref so the same definition resolves in both main and
 the submodule.
 
 ## Box Properties
@@ -55,7 +55,7 @@ charly shell fedora-nonfree
 ## Verification
 
 After `charly box build`:
-- `charly box list` — image appears in list
+- `charly box list` — box appears in list
 - `charly shell fedora-nonfree` — interactive shell works
 
 ## When to Use This Skill
@@ -64,5 +64,5 @@ After `charly box build`:
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

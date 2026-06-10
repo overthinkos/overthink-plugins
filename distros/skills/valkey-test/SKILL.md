@@ -1,14 +1,14 @@
 ---
 name: valkey-test
 description: |
-  Test image with Valkey (Redis-compatible) key-value store.
+  Test box with Valkey (Redis-compatible) key-value store.
   Currently disabled. Used for development testing.
   MUST be invoked before building or troubleshooting the valkey-test box.
 ---
 
 # valkey-test
 
-Development test image with Valkey in-memory data store.
+Development test box with Valkey in-memory data store.
 
 ## Box Properties
 
@@ -22,7 +22,7 @@ Development test image with Valkey in-memory data store.
 
 ## Purpose
 
-Used for testing the Valkey layer (Redis-compatible fork). Runs as a supervisord service on port 6379.
+Used for testing the Valkey candy (Redis-compatible fork). Runs as a supervisord service on port 6379.
 
 ## Key Candies
 
@@ -31,7 +31,7 @@ Used for testing the Valkey layer (Redis-compatible fork). Runs as a supervisord
 
 ## Related Boxes
 - `/charly-distros:fedora` — parent base image
-- `/charly-distros:fedora-test` — sibling test image
+- `/charly-distros:fedora-test` — sibling test box
 
 ## Related Commands
 - `/charly-build:build` — build the valkey-test box
@@ -43,4 +43,4 @@ Used for testing the Valkey layer (Redis-compatible fork). Runs as a supervisord
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)

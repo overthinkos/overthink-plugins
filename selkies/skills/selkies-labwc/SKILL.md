@@ -3,12 +3,12 @@ name: selkies-labwc
 description: |
   The labwc flavor of the Selkies streaming desktop (cpu/default GPU build) — a
   browser-accessible Wayland desktop streamed via pixelflux WebSocket on the CachyOS base.
-  MUST be invoked before building, deploying, or troubleshooting the selkies-labwc image.
+  MUST be invoked before building, deploying, or troubleshooting the selkies-labwc box.
 ---
 
-# Image: selkies-labwc
+# Box: selkies-labwc
 
-The **labwc flavor** of the selkies streaming desktop — a browser-accessible Wayland desktop streamed via Selkies/pixelflux WebSocket at `https://localhost:3000` (HTTPS with self-signed Traefik certificate). It is the symmetric sibling of the KDE Plasma flavor (`/charly-selkies:selkies-kde-desktop`); both compose the shared `/charly-selkies:selkies-core` spine and differ only in the compositor layer (`labwc` here, `kde-selkies` there). Always runs as a headless pod; the pixelflux encoder is auto-selected per GPU at runtime (VAAPI / NVENC / x264).
+The **labwc flavor** of the selkies streaming desktop — a browser-accessible Wayland desktop streamed via Selkies/pixelflux WebSocket at `https://localhost:3000` (HTTPS with self-signed Traefik certificate). It is the symmetric sibling of the KDE Plasma flavor (`/charly-selkies:selkies-kde-desktop`); both compose the shared `/charly-selkies:selkies-core` spine and differ only in the compositor candy (`labwc` here, `kde-selkies` there). Always runs as a headless pod; the pixelflux encoder is auto-selected per GPU at runtime (VAAPI / NVENC / x264).
 
 ## Definition
 
@@ -34,17 +34,17 @@ Tunnel config is in `deploy.yml` (not charly.yml): `tunnel: {provider: tailscale
 ## Base
 
 `cachyos` — the Arch-derived, x86_64_v3-optimized base, a local sibling box in
-the same `overthinkos/cachyos` submodule (`box/cachyos`) that owns this image.
+the same `overthinkos/cachyos` submodule (`box/cachyos`) that owns this box.
 Multimedia codecs (ffmpeg, x264, libva) come from Arch's `extra` repo; Chrome
-installs from the AUR (`google-chrome`). The image declares `build: [pac, aur]`
-so the AUR builder compiles `google-chrome` (chrome layer) and `wlrctl`
+installs from the AUR (`google-chrome`). The box declares `build: [pac, aur]`
+so the AUR builder compiles `google-chrome` (chrome candy) and `wlrctl`
 (wl-tools layer); inheriting plain `[pac]` would silently skip both. Because a
-`builder:` map does NOT cross a namespace boundary, the image declares its OWN
+`builder:` map does NOT cross a namespace boundary, the box declares its OWN
 `builder:` map (pixi/npm/cargo/aur → `arch.arch-builder`, the builder the
 `overthinkos/arch` submodule provides through the `arch` import namespace) rather
 than inheriting one from the cachyos base. The GPU sibling (`selkies-labwc-nvidia`, in the same submodule)
 is the same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`),
-with `builder.pixi: arch.cuda-arch-builder` so the selkies layer compiles
+with `builder.pixi: arch.cuda-arch-builder` so the selkies candy compiles
 pixelflux's real NVENC encoder.
 
 ## Layers
@@ -325,7 +325,7 @@ See `/charly-core:charly-config` for `--update-all` propagation, `/charly-selkie
 
 ## Build Pipeline Note
 
-The selkies-labwc image compiles `pixelflux_wayland` from source in the pixi
+The selkies-labwc box compiles `pixelflux_wayland` from source in the pixi
 builder stage (`arch-builder` on the cachyos base; `cuda-arch-builder` on the GPU
 build, `cachyos.nvidia`). This is because pixelflux's upstream wheel does not include the
 **dmabuf cache cleanup fix** (`renderer.cleanup_texture_cache()` per frame) that
@@ -334,10 +334,10 @@ applied at build time via inline source patching in `candy/selkies/build.sh`. Se
 `/charly-selkies:selkies` (Patched pixelflux build pipeline) for the full pipeline and the
 diagnostic recipe that found the leak.
 
-## Related Images
+## Related Boxes
 
-- `/charly-selkies:selkies-labwc-nvidia` — the GPU sibling of this CPU image: the same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`, `build: [pac, aur]`) with `builder.pixi: arch.cuda-arch-builder` for real NVENC, in the `overthinkos/cachyos` submodule. See `/charly-distros:cachyos`.
-- `/charly-openclaw:openclaw-desktop` — all-in-one CachyOS variant: this streaming desktop fused with the openclaw-full gateway + AI CLIs, a CPU ollama, and the full charly toolchain (build images, run nested pods, launch rootless libvirt VMs from inside the streaming desktop). Uses `/charly-distros:container-nesting`'s `unmask=/proc/*` posture — no `--privileged`, still uid 1000.
+- `/charly-selkies:selkies-labwc-nvidia` — the GPU sibling of this CPU box: the same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`, `build: [pac, aur]`) with `builder.pixi: arch.cuda-arch-builder` for real NVENC, in the `overthinkos/cachyos` submodule. See `/charly-distros:cachyos`.
+- `/charly-openclaw:openclaw-desktop` — all-in-one CachyOS variant: this streaming desktop fused with the openclaw-full gateway + AI CLIs, a CPU ollama, and the full charly toolchain (build boxes, run nested pods, launch rootless libvirt VMs from inside the streaming desktop). Uses `/charly-distros:container-nesting`'s `unmask=/proc/*` posture — no `--privileged`, still uid 1000.
 - `/charly-selkies:sway-browser-vnc` — VNC-based alternative using Sway compositor instead of Selkies/labwc streaming
 
 ## Verification
@@ -353,7 +353,7 @@ charly eval cdp status selkies-labwc          # CDP available on port 9222
 
 Latest `charly eval live selkies-labwc` run: **91 passed, 0 failed, 0 skipped**
 — the largest test suite in the project. Covers all 21 transitive
-layers (selkies, chrome, sshd, chrome-devtools-mcp primary; labwc,
+candies (selkies, chrome, sshd, chrome-devtools-mcp primary; labwc,
 waybar-labwc, pipewire, swaync, pavucontrol, wl-tools, wl-*-pixelflux,
 a11y-tools, xterm, desktop-fonts, asciinema, fastfetch, tmux
 secondary).
@@ -364,7 +364,7 @@ Deploy-scope: ports 3000 (HTTPS selkies), 9222 (Chrome CDP), 9224
 `webSocketDebuggerUrl`. All primary services RUNNING under supervisord
 (labwc, selkies, traefik, chrome via event-listener handoff, sshd).
 
-Note: the sshd layer uses `sudo -n -l` rather than `file:` existence
+Note: the sshd candy uses `sudo -n -l` rather than `file:` existence
 for `/etc/sudoers.d/charly-user` because it's root-only (`/charly-eval:eval` Gotcha #10).
 
 ## Related Skills
@@ -373,9 +373,9 @@ for `/etc/sudoers.d/charly-user` because it's root-only (`/charly-eval:eval` Got
   `/charly-selkies:chrome`, `/charly-selkies:labwc`, `/charly-coder:sshd`,
   `/charly-selkies:chrome-devtools-mcp`, `/charly-selkies:pipewire`
 - `/charly-eval:eval` — declarative testing framework + testing gotchas
-- `/charly-eval:cdp`, `/charly-eval:wl` — desktop automation on this image
+- `/charly-eval:cdp`, `/charly-eval:wl` — desktop automation on this box
 - `/charly-core:charly-config` — deploy setup (tunnel, port remapping, instances)
-- `/charly-build:charly-mcp-cmd` — the image bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `charly eval live selkies-labwc --filter mcp` runs them; `charly eval mcp list-tools selkies-labwc` enumerates the 29 chrome-devtools tools ad-hoc.
+- `/charly-build:charly-mcp-cmd` — the box bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `charly eval live selkies-labwc --filter mcp` runs them; `charly eval mcp list-tools selkies-labwc` enumerates the 29 chrome-devtools tools ad-hoc.
 
 ## Related
 

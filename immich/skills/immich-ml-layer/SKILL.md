@@ -7,7 +7,7 @@ description: |
 
 # immich-ml -- Immich machine learning backend
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -43,14 +43,14 @@ immich-ml:
     - immich-ml
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-immich:immich-ml`
 
-## Related Layers
+## Related Candies
 
 - `/charly-immich:immich` -- required base (provides server + database)
-- `/charly-distros:cuda` -- GPU acceleration (when used in cuda images)
+- `/charly-distros:cuda` -- GPU acceleration (when used in cuda boxes)
 
 ## When to Use This Skill
 
@@ -64,5 +64,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -9,12 +9,12 @@ description: |
 
 Minimal Sway desktop with VNC (wayvnc on port 5900) and Chrome (CDP on port 9222).
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | agent-forwarding, sway-desktop-vnc, dbus, charly |
+| Candies | agent-forwarding, sway-desktop-vnc, dbus, charly |
 | Ports | 5900, 9222, 9224 |
 
 ## Quick Start
@@ -29,7 +29,7 @@ charly eval wl screenshot sway-browser-vnc screenshot.png
 
 ## D-Bus and Notification Support
 
-This image includes `dbus` and `charly` layers, enabling:
+This box includes `dbus` and `charly` candies, enabling:
 - `charly eval dbus notify` — native Go D-Bus notifications via in-container charly binary
 - `charly eval dbus list/call/introspect` — full D-Bus interaction
 - `charly cmd` — single command execution with desktop notification on completion
@@ -101,12 +101,12 @@ Latest `charly eval live sway-browser-vnc` run: **84 passed, 0 failed, 1 skipped
 (`chrome-devtools-mcp-port` references `${HOST_PORT:9224}` which isn't
 mapped here — correct skip behavior).
 
-Covers all 19 transitive layers: wayvnc (VNC), sway (compositor),
+Covers all 19 transitive candies: wayvnc (VNC), sway (compositor),
 chrome-sway, xdg-portal, waybar, swaync, pavucontrol, thunar,
 xfce4-terminal, pipewire, wl-screenshot-grim, wl-overlay, wf-recorder,
 desktop-fonts, fastfetch, asciinema, tmux, dbus, charly. Deploy-scope: VNC
 port 5900 reachable, Chrome CDP on port 9250→9222 with `/json/version`
-200. Image-scope: sway + wayvnc both RUNNING under supervisord.
+200. Box-scope: sway + wayvnc both RUNNING under supervisord.
 
 ## Related Skills
 
@@ -114,13 +114,13 @@ port 5900 reachable, Chrome CDP on port 9250→9222 with `/json/version`
   `/charly-selkies:chrome-sway`, `/charly-selkies:xdg-portal`, `/charly-infrastructure:dbus-layer`,
   `/charly-tools:charly`, `/charly-distros:agent-forwarding`
 - `/charly-eval:eval` — declarative testing framework (parent router for `charly eval cdp|wl|dbus|vnc|mcp`)
-- `/charly-eval:vnc` — VNC automation on this image
+- `/charly-eval:vnc` — VNC automation on this box
 - `/charly-eval:cdp` — Chrome automation (CDP on host port 9250)
 - `/charly-eval:wl` — Wayland input/windows/clipboard (sway subgroup for compositor control)
 - `/charly-eval:dbus` — D-Bus notifications via in-container `charly` binary
-- `/charly-build:charly-mcp-cmd` — the image inherits 2 deploy-scope `mcp:` checks from the `chrome-devtools-mcp` layer (ping + list-tools asserting `navigate_page`/`take_screenshot`). `charly eval live sway-browser-vnc --filter mcp` runs them; note the **port-publishing gotcha** — if your `deploy.yml` has an explicit `port:` override that predates `chrome-devtools-mcp`, port 9224 may not be published. See `/charly-build:charly-mcp-cmd` for the fix.
+- `/charly-build:charly-mcp-cmd` — the box inherits 2 deploy-scope `mcp:` checks from the `chrome-devtools-mcp` candy (ping + list-tools asserting `navigate_page`/`take_screenshot`). `charly eval live sway-browser-vnc --filter mcp` runs them; note the **port-publishing gotcha** — if your `deploy.yml` has an explicit `port:` override that predates `chrome-devtools-mcp`, port 9224 may not be published. See `/charly-build:charly-mcp-cmd` for the fix.
 
-## Related Images
+## Related Boxes
 
 - `selkies-desktop` — browser-accessible remote desktop (can be accessed from sway-browser-vnc's Chrome)
 

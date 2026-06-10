@@ -405,7 +405,7 @@ podman rmi 'ghcr.io/overthinkos/charly-fedora-2*' 2>/dev/null || true
 charly box build <image>
 ```
 
-This also interacts with the dual-path gotcha documented in `/charly-tools:charly`: `bin/charly` (repo-root, used by host-side invocations) and `candy/charly/bin/charly` (what the `charly` layer actually copies into images) must stay in sync. The canonical `task build:charly` path does both; a manual `go build -o bin/charly ./charly` needs an explicit `cp bin/charly candy/charly/bin/charly` follow-up.
+This also interacts with the dual-path gotcha documented in `/charly-tools:charly`: `bin/charly` (repo-root, used by host-side invocations) and `candy/charly/bin/charly` (what the `charly` candy actually copies into images) must stay in sync. The canonical `task build:charly` path does both; a manual `go build -o bin/charly ./charly` needs an explicit `cp bin/charly candy/charly/bin/charly` follow-up.
 
 ## Implementation insights
 
@@ -453,7 +453,7 @@ The layer scaffold writes `rpm:\n  packages:\n  # Add RPM packages here\n` — t
 - `/charly-build:build` — Using the built CLI.
 - `/charly-eval:eval` — Author-facing reference for the declarative-testing feature that `testspec.go` / `testvars.go` / `testrun.go` / `testrun_verbs.go` / `testrun_ov_verbs.go` / `testcollect.go` / `test_cmd.go` / `local_image.go` / `validate_tests.go` / `mcp.go` / `mcp_client.go` implement.
 - `/charly-build:charly-mcp-cmd` — Author-facing reference for both (a) the `charly eval mcp` client verb (method catalog, URL-rewrite behavior, port-publishing gotcha, transport dispatch — pair with the file table's `mcp.go` + `mcp_client.go` rows above) and (b) the `charly mcp serve` server (190 tools auto-generated from Kong reflection including the MCP-first authoring surface, destructive-hint + `--read-only` filter, Streamable-HTTP + stdio transports, auto-fallback to `overthinkos/overthink` — pair with `mcp_server.go` + `main_repo.go` + `scaffold_cmds.go` + `scaffold_project.go` + `yaml_setter.go` above).
-- `/charly-coder:charly-mcp` — The layer that deploys `charly mcp serve` inside a container: bind-mount volume NAME `project` at the container PATH `/workspace`, `CHARLY_PROJECT_DIR=/workspace` so build-mode MCP tools (`box.list.boxes`, `box.inspect`, etc.) reach `charly.yml` from outside the project checkout — or auto-fall back to `overthinkos/overthink` when `/workspace` is empty (the fallback fires on absence of charly.yml, not absence of CHARLY_PROJECT_DIR).
+- `/charly-coder:charly-mcp` — The candy that deploys `charly mcp serve` inside a container: bind-mount volume NAME `project` at the container PATH `/workspace`, `CHARLY_PROJECT_DIR=/workspace` so build-mode MCP tools (`box.list.boxes`, `box.inspect`, etc.) reach `charly.yml` from outside the project checkout — or auto-fall back to `overthinkos/overthink` when `/workspace` is empty (the fallback fires on absence of charly.yml, not absence of CHARLY_PROJECT_DIR).
 - `/charly-eval:cdp`, `/charly-eval:wl`, `/charly-eval:dbus`, `/charly-eval:vnc` — the four sibling live-container verbs.
 - Source: `charly/` directory (~79 source + ~55 test .go files).
 

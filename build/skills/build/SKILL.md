@@ -433,7 +433,7 @@ First build on a new machine won't have cache. Use `--cache registry` to pull fr
 
 ### RPM Conflict: ffmpeg-free vs negativo17
 
-If a build fails with `conflicting requests` involving `libavcodec-free` vs `libavcodec` (epoch 1), the layer is trying to install `ffmpeg-free` (Fedora) in an image that has negativo17's `ffmpeg-libs` (via cuda layer). Fix: change `ffmpeg-free` to `ffmpeg` in the layer's `rpm.packages` and add the `fedora-multimedia` repo from negativo17. See the `immich` layer for the correct pattern.
+If a build fails with `conflicting requests` involving `libavcodec-free` vs `libavcodec` (epoch 1), the candy is trying to install `ffmpeg-free` (Fedora) in an image that has negativo17's `ffmpeg-libs` (via cuda candy). Fix: change `ffmpeg-free` to `ffmpeg` in the candy's `rpm.packages` and add the `fedora-multimedia` repo from negativo17. See the `immich` candy for the correct pattern.
 
 ### YAML Unmarshal Error on charly.yml
 
@@ -547,7 +547,7 @@ for the `--build` flag that also picks up this caveat.
 - `/charly-build:inspect` -- Inspect resolved image config before building
 - `/charly-build:list` -- Enumerate images, layers, build targets
 - `/charly-build:merge` -- Post-build layer consolidation (runs inline after each build level)
-- `/charly-build:new` -- Scaffold a new layer directory before adding to `charly.yml`
+- `/charly-build:new` -- Scaffold a new candy directory before adding to `charly.yml`
 - `/charly-build:pull` -- Pull prebuilt images; orthogonal to building (use for downstream deploy-mode commands)
 - `/charly-build:validate` -- Validate `charly.yml` + layers before building
 

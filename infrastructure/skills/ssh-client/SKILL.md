@@ -2,12 +2,12 @@
 name: ssh-client
 description: |
   OpenSSH client tools for SSH agent forwarding.
-  Use when working with SSH client, SSH agent forwarding, or the ssh-client layer.
+  Use when working with SSH client, SSH agent forwarding, or the ssh-client candy.
 ---
 
 # ssh-client -- OpenSSH client tools
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -17,7 +17,7 @@ description: |
 
 RPM: `openssh-clients` · PAC: `openssh` · DEB: `openssh-client` (singular — Debian splits client/server, unlike Arch's unified `openssh`).
 
-Note: On Arch Linux, `openssh` is a single package that includes both client and server. The `sshd` layer also installs this package but adds a systemd service and opens port 22. On Debian/Ubuntu, `openssh-client` ships only the client tools; `openssh-server` is a separate package installed by the `sshd` layer.
+Note: On Arch Linux, `openssh` is a single package that includes both client and server. The `sshd` candy also installs this package but adds a systemd service and opens port 22. On Debian/Ubuntu, `openssh-client` ships only the client tools; `openssh-server` is a separate package installed by the `sshd` candy.
 
 ## Usage
 
@@ -28,7 +28,7 @@ my-image:
     - ssh-client
 ```
 
-Typically used as part of the `agent-forwarding` composition layer rather than directly. Use the `sshd` layer instead if you need an SSH *server*.
+Typically used as part of the `agent-forwarding` composition candy rather than directly. Use the `sshd` candy instead if you need an SSH *server*.
 
 ## Runtime Behavior
 
@@ -36,11 +36,11 @@ Provides `ssh`, `ssh-add`, `ssh-keygen`, `ssh-agent`, `scp`, `sftp` binaries. Wh
 
 No SSH agent runs inside the container — the `SSH_AUTH_SOCK` environment variable points to the forwarded host socket.
 
-## Used In Images
+## Used In Boxes
 
-Part of `agent-forwarding` composition layer, used in 27 application images.
+Part of `agent-forwarding` composition candy, used in 27 application boxes.
 
-## Related Layers
+## Related Candies
 
 - `/charly-distros:agent-forwarding` -- metalayer that includes gnupg + direnv + ssh-client
 - `/charly-coder:sshd` -- SSH server + client (includes systemd service, port 22)
@@ -52,10 +52,10 @@ Use when the user asks about:
 
 - SSH client tools inside containers
 - SSH agent forwarding
-- The `ssh-client` layer
-- The difference between `ssh-client` and `sshd` layers
+- The `ssh-client` candy
+- The difference between `ssh-client` and `sshd` candies
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

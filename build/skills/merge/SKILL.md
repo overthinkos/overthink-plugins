@@ -141,7 +141,7 @@ Source: `charly/merge.go:saveImageToDaemon` (the keep-on-fail logic; `loaded` fl
 - `/charly-build:generate` -- Containerfile generation
 - `/charly-build:inspect` -- Inspect merged images
 - `/charly-build:list` -- Enumerate images before merging
-- `/charly-build:new` -- Scaffold new layers
+- `/charly-build:new` -- Scaffold new candies
 - `/charly-build:pull` -- Pull prebuilt images into local storage
 - `/charly-build:validate` -- Validate before merging
 

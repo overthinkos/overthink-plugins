@@ -117,7 +117,7 @@ charly start jupyter --build
 
 ### Build-mode references
 
-- `/charly-image:image` -- Image definitions (ports, volumes, env) in `charly.yml`
+- `/charly-image:image` -- Box definitions (ports, volumes, env) in `charly.yml`
 - `/charly-build:build` -- Build the image you intend to start
 
 ## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)

@@ -1,7 +1,7 @@
 ---
 name: image
 description: |
-  MUST be invoked before any work involving: the `charly box` command family, image definitions in charly.yml, image inheritance, defaults, platforms, builder configuration, the image dependency graph, or the build/deploy scope boundary.
+  MUST be invoked before any work involving: the `charly box` command family, box definitions in charly.yml, box inheritance, defaults, platforms, builder configuration, the box dependency graph, or the build/deploy scope boundary.
 ---
 
 # charly box -- Family Overview + Image Composition
@@ -18,7 +18,7 @@ Build-mode operations live only under `charly box`. Top-level invocations like
 `charly build`, `charly validate`, `charly list boxes`, or `charly inspect` return Kong's
 `unexpected argument` error.
 
-An **image** is a named build target in `charly.yml`. Images compose layers
+A **box** is a named build target in `charly.yml`. Boxes compose candies
 into container images with configurable defaults, inheritance chains,
 platform targets, and builder configurations. The `charly` CLI resolves
 dependencies, generates Containerfiles, and builds images in the correct
@@ -33,7 +33,7 @@ order.
 | `charly box inspect` | Print resolved image config as JSON | `/charly-build:inspect` |
 | `charly box list {boxes,candies,targets,services,routes,volumes,aliases}` | List components from charly.yml | `/charly-build:list` |
 | `charly box merge` | Merge small layers in a built image | `/charly-build:merge` |
-| `charly box new candy <name>` | Scaffold a new layer directory | `/charly-build:new` |
+| `charly box new candy <name>` | Scaffold a new candy directory | `/charly-build:new` |
 | `charly box pull` | Fetch an image into local storage | `/charly-build:pull` |
 | `charly eval box` | Run declarative tests against a disposable container from a built image (reads the `ai.opencharly.eval` OCI label) | `/charly-eval:eval` |
 | `charly box validate` | Check charly.yml + layers | `/charly-build:validate` |
@@ -45,7 +45,7 @@ order.
 | `charly box …` | **Yes** (required) | Rarely | No |
 | Everything else | **No** | Yes (required for deploy-mode) | Yes (overlay) |
 
-If a new command needs to resolve layer dependencies, image inheritance, or
+If a new command needs to resolve candy dependencies, box inheritance, or
 registry tag configuration, it must live under `charly box`. Any command that
 operates on a running container or deployed image must go through
 `ExtractMetadata` (labels) + deploy.yml — never `LoadConfig`.
@@ -104,7 +104,7 @@ The error messages are explicit when misconfigured: `cannot chdir to --dir "/mis
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| List images | `charly box list boxes` | Images from charly.yml |
+| List boxes | `charly box list boxes` | Boxes from charly.yml |
 | List build targets | `charly box list targets` | Build targets in dependency order (includes auto-intermediates) |
 | Inspect image | `charly box inspect <image>` | Print resolved config as JSON |
 | Inspect field | `charly box inspect <image> --format <field>` | Print single field (tag, base, layers, ports, etc.) |
@@ -121,13 +121,13 @@ Each verb below is also auto-exposed as an MCP tool (`box.new.project`, `box.new
 | Action | Command |
 |--------|---------|
 | Scaffold a fresh project | `charly box new project <dir>` |
-| Add an image entry | `charly box new box <name> --base <ref> --layers <a,b,c>` |
-| Add a layer dir (stub `charly.yml`) | `charly box new candy <name>` |
+| Add a box entry | `charly box new box <name> --base <ref> --layers <a,b,c>` |
+| Add a candy dir (stub `charly.yml`) | `charly box new candy <name>` |
 | Edit a value in `charly.yml` | `charly box set <dotpath> <yaml-value>` |
-| Append a layer to an image | `charly box add-candy <image> <layer>` |
-| Remove a layer from an image | `charly box rm-candy <image> <layer>` |
+| Append a candy to a box | `charly box add-candy <image> <layer>` |
+| Remove a candy from a box | `charly box rm-candy <image> <layer>` |
 | Edit a value in `candy/<name>/charly.yml` | `charly candy set <name> <dotpath> <yaml-value>` |
-| Append rpm/deb/pac/aur packages to a layer | `charly candy add-rpm <name> <pkg…>` (and `add-deb`, `add-pac`, `add-aur`) |
+| Append rpm/deb/pac/aur packages to a candy | `charly candy add-rpm <name> <pkg…>` (and `add-deb`, `add-pac`, `add-aur`) |
 | Write any file under the project root | `charly box write <rel-path> [--content X \| --from-stdin]` |
 | Read any file under the project root | `charly box cat <rel-path>` |
 
@@ -193,7 +193,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `version` | `""` | OPTIONAL dedicated CalVer (`YYYY.DDD.HHMM`). When set it IS the image's `ai.opencharly.version` label; when unset the label is derived as the highest layer version across the chain (`EffectiveVersion`, `charly/effective_version.go`). Layered images leave it unset (they derive — keeps the label content-stable); a layerless bare base on an EXTERNAL registry base needs it (else the label can't be derived) — `charly migrate` backfills those |
 | `status` | `""` (= `testing`) | `working`, `testing`, or `broken`. Effective status = worst of image + all layers |
 | `info` | `""` | Free-form description. Aggregated with layer-level info in OCI labels |
-| `base` | `quay.io/fedora/fedora:43` | External OCI image or name of another image |
+| `base` | `quay.io/fedora/fedora:43` | External OCI image or name of another box |
 | `bootc` | `false` | Adds `bootc container lint`, enables disk image builds |
 | `platforms` | `["linux/amd64", "linux/arm64"]` | Target architectures |
 | `tag` | `"auto"` | Image tag. `"auto"` for CalVer |
@@ -416,7 +416,7 @@ Source: `charly/envfile.go` (`ResolveEnvVars`).
 
 ## Security Configuration
 
-Box-level `security:` overrides layer-level security settings:
+Box-level `security:` overrides candy-level security settings:
 
 ```yaml
 box:
@@ -428,7 +428,7 @@ box:
       security_opt: [label:disable]
 ```
 
-Image `security.privileged` replaces the layer-derived value. `cap_add`, `devices`, `security_opt` are appended to layer-collected values (deduplicated). Applied as container run arguments at runtime (not build time).
+Box `security.privileged` replaces the candy-derived value. `cap_add`, `devices`, `security_opt` are appended to candy-collected values (deduplicated). Applied as container run arguments at runtime (not build time).
 
 Source: `charly/security.go` (`CollectSecurity`).
 
@@ -532,18 +532,18 @@ box:
 - `/charly-build:inspect` -- `charly box inspect` (resolved OCI label set)
 - `/charly-build:list` -- `charly box list {boxes,candies,targets,services,routes,volumes,aliases}`
 - `/charly-build:merge` -- `charly box merge` (post-build layer consolidation)
-- `/charly-build:new` -- `charly box new candy <name>` (scaffold new layer directory)
+- `/charly-build:new` -- `charly box new candy <name>` (scaffold new candy directory)
 - `/charly-build:pull` -- `charly box pull` (fetch into local storage; `ErrImageNotLocal` recovery)
-- `/charly-build:validate` -- `charly box validate` (charly.yml + layers consistency check)
+- `/charly-build:validate` -- `charly box validate` (charly.yml + candies consistency check)
 
 ### Related skills
 
-- `/charly-image:layer` -- Layer definitions that compose into images (env_provide, env_require, env_accept, security resource caps)
+- `/charly-image:layer` -- Candy definitions that compose into boxes (env_provide, env_require, env_accept, security resource caps)
 - `/charly-core:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
 - `/charly-core:charly-config` -- `charly config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
 - `/charly-internals:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
-- `/charly-eval:eval` — Box-level `eval:` (cross-layer invariants) and `deploy_eval:` (deploy-default checks shipped with the image). Both are embedded in the `ai.opencharly.eval` OCI label.
-- `/charly-build:charly-mcp-cmd` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `charly eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
+- `/charly-eval:eval` — Box-level `eval:` (cross-candy invariants) and `deploy_eval:` (deploy-default checks shipped with the image). Both are embedded in the `ai.opencharly.eval` OCI label.
+- `/charly-build:charly-mcp-cmd` — if the image transitively bundles an mcp-providing candy (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled candy's `mcp:` tests run as part of `charly eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
 - `/charly-vm:vm` — `charly vm build/create/start/stop/ssh` command family; reads `vm.yml`, not `charly.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
 - `/charly-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema.
 - `/charly-build:migrate` — `charly migrate` converts legacy VM fields to `vm.yml`.
@@ -607,9 +607,9 @@ The main repo imports all three submodules (`arch` / `cachyos` / `fedora` namesp
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves image definitions in charly.yml, image inheritance, defaults, platforms, builder configuration, or the image dependency graph. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves box definitions in charly.yml, box inheritance, defaults, platforms, builder configuration, or the box dependency graph. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Pre-build. Define images before building. See also `/charly-image:layer` (layer authoring), `/charly-build:build` (building).
+**Workflow position:** Pre-build. Define images before building. See also `/charly-image:layer` (candy authoring), `/charly-build:build` (building).
 
 ## Related skills
 

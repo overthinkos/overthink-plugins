@@ -2,7 +2,7 @@
 name: wl-screenshot-pixelflux
 description: |
   Screenshot via selkies WebSocket capture bridge for selkies-desktop.
-  Use when working with the wl-screenshot-pixelflux layer.
+  Use when working with the wl-screenshot-pixelflux candy.
 ---
 
 # wl-screenshot-pixelflux -- Screenshot via selkies capture bridge
@@ -13,14 +13,14 @@ Provides `pixelflux-screenshot` for capturing screenshots on selkies-desktop. Co
 
 **Why not grim?** labwc running nested inside pixelflux can't deliver wlr-screencopy frames. The capture bridge bypasses this by tapping into the selkies WebSocket stream which has direct access to the composited desktop.
 
-## Layer Definition
+## Candy Definition
 
 ```yaml
 requires:
   - selkies
 ```
 
-No RPM packages — uses the capture bridge provided by the selkies layer.
+No RPM packages — uses the capture bridge provided by the selkies candy.
 
 ## How It Works
 
@@ -72,7 +72,7 @@ selkies process (single ScreenCapture singleton)
 
 - `selkies-desktop` metalayer
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
 - `/charly-selkies:selkies-labwc-nvidia` (via `selkies-desktop` metalayer)
@@ -82,11 +82,11 @@ selkies process (single ScreenCapture singleton)
 - `/charly-eval:wl` — `charly eval wl screenshot` auto-detects pixelflux-screenshot
 - `/charly-selkies:wl-record-pixelflux` — Recording companion (same capture bridge + same singleton)
 - `/charly-selkies:wl-screenshot-grim` — Alternative for sway-desktop (wlr-screencopy)
-- `/charly-selkies:selkies` — Parent layer providing the ScreenCapture singleton and capture bridge
-- `/charly-selkies:selkies-desktop-layer` — Metalayer that composes this screenshot path into the selkies-labwc image
+- `/charly-selkies:selkies` — Parent candy providing the ScreenCapture singleton and capture bridge
+- `/charly-selkies:selkies-desktop-layer` — Metalayer that composes this screenshot path into the selkies-labwc box
 - `/charly-eval:record` — Uses `/charly-selkies:wl-record-pixelflux` via the same singleton
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

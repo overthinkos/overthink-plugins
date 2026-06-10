@@ -2,12 +2,12 @@
 name: himalaya
 description: |
   Himalaya email CLI (IMAP/SMTP).
-  Use when working with the himalaya layer.
+  Use when working with the himalaya candy.
 ---
 
 # himalaya -- Email CLI
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -22,11 +22,11 @@ candy:
   - himalaya
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:rust` — required Rust toolchain dependency
 - `/charly-openclaw:openclaw-full` — metalayer that includes himalaya
 - `/charly-infrastructure:gnupg` — pairs with himalaya for PGP-encrypted email
@@ -41,9 +41,9 @@ candy:
 Use when the user asks about:
 - Email CLI access (IMAP/SMTP)
 - Himalaya email client in containers
-- The `himalaya` layer
+- The `himalaya` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

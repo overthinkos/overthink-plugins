@@ -1,16 +1,16 @@
 ---
 name: openclaw-desktop
 description: >
-  Use when working with the openclaw-desktop image — the all-in-one CachyOS
-  power image that fuses the selkies streaming desktop, the openclaw-full
+  Use when working with the openclaw-desktop box — the all-in-one CachyOS
+  power box that fuses the selkies streaming desktop, the openclaw-full
   gateway + AI CLIs (claude-code/codex/gemini), a CPU ollama, and the full
-  nested charly toolchain (build images / run nested rootless pods / launch
+  nested charly toolchain (build boxes / run nested rootless pods / launch
   rootless libvirt VMs from a terminal inside the browser-accessible desktop).
 ---
 
 # openclaw-desktop
 
-The all-in-one workstation image: a browser-accessible Wayland **streaming
+The all-in-one workstation box: a browser-accessible Wayland **streaming
 desktop** that also runs the **OpenClaw gateway + its full tool/skill stack**,
 a **CPU Ollama** inference server, and the **complete `charly` toolchain** — all as
 uid 1000 `user` with no `--privileged` and no added capabilities. Open
@@ -53,10 +53,10 @@ default `charly` bridge network. Rootless is the whole design.
 
 `base: cachyos.cachyos` (`/charly-distros:cachyos`, reached via the `cachyos` import
 namespace) is the Arch-derived `x86_64_v3` base. The
-image is **CPU-only** — there is no `nvidia`/`cuda` layer. Ollama auto-detects
+box is **CPU-only** — there is no `nvidia`/`cuda` candy. Ollama auto-detects
 the absence of a GPU and runs CPU inference; selkies streams via the CPU x264
 encoder. `build: [pac, aur]` is mandatory (not inherited): selkies' `chrome`
-layer compiles `google-chrome` from AUR and `wl-tools` builds `wlrctl`;
+candy compiles `google-chrome` from AUR and `wl-tools` builds `wlrctl`;
 inheriting cachyos's bare `[pac]` would gate out the AUR builder and silently
 drop the browser. The `aur → arch-builder` builder map comes from the cachyos
 base.
@@ -80,7 +80,7 @@ documented in `/charly-distros:container-nesting` with the full kernel-level RCA
 
 ## The four fused stacks
 
-| Stack | Layers | What it gives you |
+| Stack | Candies | What it gives you |
 |---|---|---|
 | Streaming desktop | `selkies-desktop` (chrome, chrome-cdp, labwc, waybar, pipewire, swaync, pavucontrol, wl-tools, selkies, sshd, …) | labwc Wayland desktop streamed over HTTPS:3000; Chrome + CDP:9222 + chrome-devtools-mcp:9224; sshd:2222 |
 | OpenClaw + tools | `openclaw-full` (openclaw gateway + claude-code, codex, gemini + 24 more tools) | AI gateway on :18789; `claude` / `codex` / `gemini` CLIs at `${HOME}/.npm-global/bin/`; playwright now drives the desktop's real Chrome (synergy) |
@@ -189,12 +189,12 @@ Every `charly` verb family runs as uid 1000 inside the container sandbox:
 `charly eval box/live/cdp/wl/dbus/vnc/mcp`,
 `charly config/deploy/start/stop/update/remove/shell/cmd/service/status/logs`,
 `charly vm list/create/start/stop/ssh/destroy` (rootless libvirt session),
-`charly doctor/secrets/settings/alias`. The `charly` layer bakes only the binary — for
+`charly doctor/secrets/settings/alias`. The `charly` candy bakes only the binary — for
 build-mode verbs that read `charly.yml`, mount or `podman cp` the project in.
 
 ## Volumes
 
-- `chrome-data` → `~/.chrome-debug` (Chrome profile, from the chrome layer)
+- `chrome-data` → `~/.chrome-debug` (Chrome profile, from the chrome candy)
 - `selkies-config` → `~/.config/selkies`
 - `models` → `~/.ollama` (Ollama model storage)
 
@@ -209,7 +209,7 @@ charly eval wl screenshot openclaw-desktop t.png     # desktop screenshot
 charly shell openclaw-desktop -c 'podman run --rm quay.io/libpod/alpine:latest /bin/true'
 ```
 
-The baked image-level `eval:` carries the nested-rootless posture checks (subuid
+The baked box-level `eval:` carries the nested-rootless posture checks (subuid
 two-ranges, `newuidmap` cap, `policy.json`, containers.conf `userns=host`,
 `_CONTAINERS_USERNS_CONFIGURED` + `BUILDAH_ISOLATION` env), the deploy-scope
 nested-toolchain checks (nested `podman run`, `virsh` session list, in-container
@@ -217,17 +217,17 @@ nested-toolchain checks (nested `podman run`, `virsh` session list, in-container
 ollama API, chrome-devtools-mcp port). The R10 bed is
 `eval-openclaw-desktop-pod` (`charly eval run eval-openclaw-desktop-pod`).
 
-## Key Layers
+## Key Candies
 
 - `/charly-selkies:selkies-desktop-layer` — the streaming desktop metalayer
 - `/charly-openclaw:openclaw-full` — gateway + 27 tools (claude-code/codex/gemini)
-- `/charly-ollama:ollama` — CPU/GPU-agnostic Ollama layer (GPU is image-level)
+- `/charly-ollama:ollama` — CPU/GPU-agnostic Ollama candy (GPU is box-level)
 - `/charly-tools:charly` — the full toolchain: charly binary + virtualization + gocryptfs + socat
 - `/charly-distros:container-nesting` — rootless nested podman recipe (RCA for `unmask=/proc/*`)
 - `/charly-infrastructure:virtualization` — supervisord-managed virtqemud/virtnetworkd
 - `/charly-distros:agent-forwarding` — GPG/SSH/direnv agent sockets
 
-## Related Images
+## Related Boxes
 
 - `/charly-openclaw:openclaw-full` — the headless gateway + tools WITHOUT the desktop / ollama / charly toolchain.
 - `/charly-openclaw:openclaw` — minimal gateway only.
@@ -239,16 +239,16 @@ ollama API, chrome-devtools-mcp port). The R10 bed is
 
 **MUST be invoked** when the task involves:
 
-- Building, deploying, or troubleshooting the `openclaw-desktop` image.
+- Building, deploying, or troubleshooting the `openclaw-desktop` box.
 - Running `charly` verbs (image build, nested pods, rootless VMs) from inside a
   streaming desktop.
 - The OpenClaw gateway, AI CLIs, or a CPU Ollama running alongside a Wayland
-  streaming desktop in one image.
+  streaming desktop in one box.
 - The non-`--privileged` rootless-in-rootless nesting path on a CachyOS desktop.
 
 ## Related
 
 - `/charly-image:image` — image family umbrella (`box:` entries, build/validate/inspect/list)
 - `/charly-eval:eval` — declarative testing + the `eval-openclaw-desktop-pod` R10 bed
-- `/charly-eval:cdp`, `/charly-eval:wl` — desktop automation on this image
+- `/charly-eval:cdp`, `/charly-eval:wl` — desktop automation on this box
 - `/charly-core:charly-config` — deploy setup (tunnel, port remapping, multi-instance, encrypted volumes)

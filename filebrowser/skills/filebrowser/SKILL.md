@@ -2,25 +2,25 @@
 name: filebrowser
 description: |
   FileBrowser Quantum web file manager with Tailscale tunnel.
-  MUST be invoked before building, deploying, configuring, or troubleshooting the filebrowser image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the filebrowser box.
 ---
 
 # filebrowser
 
 Web file manager accessible via Tailscale private tunnel.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
 | Base | fedora |
-| Layers | agent-forwarding, filebrowser, dbus, charly |
+| Candies | agent-forwarding, filebrowser, dbus, charly |
 | Platforms | linux/amd64 |
 | Ports | 8085:8080 |
 | Tunnel | tailscale (private: all) |
 | Registry | ghcr.io/overthinkos |
 
-## Full Layer Stack
+## Full Candy Stack
 
 1. `fedora` (base)
 2. `pixi` -> `python` -> `supervisord` (transitive)
@@ -73,14 +73,14 @@ charly alias install filebrowser
 # Now: filebrowser  (runs inside the container)
 ```
 
-## Key Layers
+## Key Candies
 
 - `/charly-filebrowser:filebrowser` -- FileBrowser Quantum service, config, volumes
 - `/charly-distros:agent-forwarding` -- SSH/GPG agent forwarding
 - `/charly-infrastructure:dbus-layer` -- D-Bus session bus
 - `/charly-tools:charly` -- charly CLI for in-container management
 
-## Related Images
+## Related Boxes
 
 - `/charly-distros:fedora` -- parent base image
 - `/charly-ollama:ollama` -- similar simple service pattern
@@ -106,14 +106,14 @@ See `/charly-eval:eval` for the framework and author-facing gotchas.
 
 ## Related Skills
 
-- `/charly-filebrowser:filebrowser` — layer authoring
+- `/charly-filebrowser:filebrowser` — candy authoring
 - `/charly-eval:eval` — declarative testing framework
 - `/charly-core:charly-config` — deploy-mode setup with volume backing and tunnels
 - `/charly-build:build` — LABELs-at-end cache efficiency
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the filebrowser image, web file management deployment, or the FileBrowser Quantum service. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the filebrowser box, web file management deployment, or the FileBrowser Quantum service. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 

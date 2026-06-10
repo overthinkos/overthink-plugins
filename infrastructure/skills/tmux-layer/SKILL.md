@@ -2,12 +2,12 @@
 name: tmux-layer
 description: |
   Terminal multiplexer.
-  Use when working with the tmux layer.
+  Use when working with the tmux candy.
 ---
 
 # tmux -- Terminal multiplexer
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ candy:
   - tmux
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
@@ -36,12 +36,12 @@ candy:
 - `/charly-hermes:hermes-full-layer`, `/charly-selkies:sway-desktop`, `/charly-selkies:selkies-desktop-layer` — metalayers that include this
 - `/charly-hermes:hermes`, `/charly-selkies:selkies-labwc`, `/charly-selkies:sway-browser-vnc` — primary consumers
 - `/charly-core:shell` — interactive container shell (often wrapped in tmux)
-- `/charly-image:layer` — layer authoring
-- `/charly-eval:eval` — declarative testing framework (this layer tests `/usr/bin/tmux -V`)
+- `/charly-image:layer` — candy authoring
+- `/charly-eval:eval` — declarative testing framework (this candy tests `/usr/bin/tmux -V`)
 
 ## When to Use This Skill
 
 Use when the user asks about:
 - Terminal multiplexer in containers
 - tmux setup
-- The `tmux` layer
+- The `tmux` candy

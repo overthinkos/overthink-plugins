@@ -8,17 +8,17 @@ description: |
 
 # python-ml -- Core ML Python environment (Tier 2 meta-layer)
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
 | Dependencies | `cuda` |
-| Sub-layers | `llama-cpp` |
+| Sub-candies | `llama-cpp` |
 | Install files | `charly.yml`, `pixi.toml`, `task:` |
 
 ## Architecture: Tier 2 Environment-Owner Meta-Layer
 
-This layer **owns the pixi.toml** for the core ML Python environment and composes the `llama-cpp` Tier 1 layer via `candy: [llama-cpp]`. Build order: pixi environment → llama-cpp (binaries) → python-ml user-phase tasks (vLLM wheel).
+This candy **owns the pixi.toml** for the core ML Python environment and composes the `llama-cpp` Tier 1 candy via `candy: [llama-cpp]`. Build order: pixi environment → llama-cpp (binaries) → python-ml user-phase tasks (vLLM wheel).
 
 ## Environment Variables
 
@@ -27,7 +27,7 @@ This layer **owns the pixi.toml** for the core ML Python environment and compose
 | `NVIDIA_PYTHON_PROJECT` | `~/.pixi` |
 | `LD_LIBRARY_PATH` | `/usr/lib64:$HOME/llama.cpp` |
 
-Plus from `llama-cpp` sub-layer:
+Plus from `llama-cpp` sub-candy:
 
 | Variable | Value |
 |----------|-------|
@@ -42,14 +42,14 @@ Plus from `llama-cpp` sub-layer:
 
 - **vLLM 0.19 cu130 nightly wheel** (`pip install --no-deps`)
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-languages:python-ml`
 - `/charly-immich:immich-ml`
 
-## Related Layers
+## Related Candies
 
-- `/charly-jupyter:llama-cpp` — Sub-layer: llama.cpp binaries (composed via `candy:`)
+- `/charly-jupyter:llama-cpp` — Sub-candy: llama.cpp binaries (composed via `candy:`)
 - `/charly-distros:cuda` — CUDA toolkit dependency
 - `/charly-jupyter:jupyter-ml` — Full ML + Jupyter variant (superset of python-ml's pixi env)
 - `/charly-jupyter:unsloth-studio` — Fine-tuning variant (similar pixi env + unsloth)
@@ -61,10 +61,10 @@ Use when the user asks about:
 - Machine learning Python environment
 - PyTorch, transformers, or vLLM setup
 - CUDA Python integration
-- The `python-ml` layer, its packages, or its meta-layer composition
-- The two-tier layer architecture for ML layers
+- The `python-ml` candy, its packages, or its meta-layer composition
+- The two-tier candy architecture for ML candies
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

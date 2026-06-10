@@ -1,26 +1,26 @@
 ---
 name: openclaw
 description: |
-  Headless OpenClaw AI gateway image. Runs the gateway on port 18789
+  Headless OpenClaw AI gateway box. Runs the gateway on port 18789
   without a desktop environment. Use when working with the headless
-  MUST be invoked before building, deploying, configuring, or troubleshooting the openclaw image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the openclaw box.
 ---
 
 # openclaw
 
 Headless OpenClaw AI gateway — no desktop, no browser, just the gateway service.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
 | Base | cachyos |
-| Layers | agent-forwarding, openclaw, dbus, charly |
+| Candies | agent-forwarding, openclaw, dbus, charly |
 | Platforms | linux/amd64 |
 | Ports | 18789 |
 | Registry | ghcr.io/overthinkos |
 
-## Full Layer Stack
+## Full Candy Stack
 
 1. `cachyos` (docker.io/cachyos/cachyos-v3, digest-pinned, Arch-derived)
 2. `pixi` → `python` → `supervisord` (transitive)
@@ -43,11 +43,11 @@ charly start openclaw
 # Gateway at http://localhost:18789
 ```
 
-## Key Layers
+## Key Candies
 
 - `/charly-openclaw:openclaw` — gateway npm package, supervisord service, data volume
 
-## Related Images
+## Related Boxes
 
 - `/charly-openclaw:openclaw-full` — maximal variant (gateway + browser + all tools)
 
@@ -64,7 +64,7 @@ OpenClaw gateway (18789) uses port relay (socat) — the gateway binds to loopba
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the headless openclaw image, deploying openclaw without a desktop, or comparing openclaw variants. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the headless openclaw box, deploying openclaw without a desktop, or comparing openclaw variants. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 

@@ -5,7 +5,7 @@ description: >
   running startplasma-wayland (kwin_wayland + plasmashell) nested in pixelflux,
   the KDE sibling of the labwc selkies-desktop. MUST be invoked before working
   on the selkies-kde-desktop metalayer, the kde-selkies / kde-shell layers, the
-  selkies-kde / selkies-kde-nvidia images, or their eval beds.
+  selkies-kde / selkies-kde-nvidia boxes, or their eval beds.
 ---
 
 # selkies-kde-desktop — KDE Plasma selkies streaming flavor
@@ -56,7 +56,7 @@ self-synchronizing — `chrome-wrapper` itself polls for the `wayland-0` client
 socket that kwin publishes, so no per-flavor handoff is needed. Chrome works
 headless under KDE; `cdp-proxy` proxies its CDP backend.
 
-## Encoder is auto-selected at runtime (one image, every GPU config)
+## Encoder is auto-selected at runtime (one box, every GPU config)
 
 pixelflux picks the H.264 encoder at runtime from the host render node — it uses
 **libva directly (NOT gstreamer; no gst-vaapi element is installed)**:
@@ -64,16 +64,16 @@ pixelflux picks the H.264 encoder at runtime from the host render node — it us
 - **AMD / Intel render node** (`DRINODE=/dev/dri/renderD*`, auto-injected) →
   hardware **VAAPI** (Mesa radeonsi; `vainfo` shows `VAProfileH264*:
   VAEntrypointEncSlice`). So the **cachyos base image VAAPI-encodes on an AMD/Intel
-  host** — "CPU" and "AMD" are the SAME image, not two.
+  host** — "CPU" and "AMD" are the SAME box, not two.
 - **No usable render node** → software **x264**.
-- **NVIDIA** → **NVENC**, but only from the `*-nvidia` image whose pixelflux is
+- **NVIDIA** → **NVENC**, but only from the `*-nvidia` box whose pixelflux is
   built un-stubbed against the `cuda-arch-builder` (the cachyos GPU base's
   pixelflux stubs NVENC). NVENC is proven INSIDE the GPU-passthrough VM (the
   RTX-class card is vfio-bound, invisible to a host pod), never as a host pod.
 
 ## Images + test venues
 
-| Image | Base | Encoder venue |
+| Box | Base | Encoder venue |
 |---|---|---|
 | `selkies-kde` | cachyos | host pod → VAAPI (AMD/Intel) or x264 (`eval-selkies-kde-pod`) |
 | `selkies-kde-nvidia` | cachyos.nvidia (cuda-arch-builder) | nested pod in the GPU-passthrough VM → NVENC (`eval-selkies-kde-nvidia-vm`, `requires_exclusive: [nvidia-gpu]`) |

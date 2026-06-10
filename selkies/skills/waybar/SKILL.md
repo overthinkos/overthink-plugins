@@ -7,7 +7,7 @@ description: |
 
 # waybar -- Status bar and auto-tiling for Sway
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -19,11 +19,11 @@ description: |
 
 - `waybar` (RPM)
 
-Fonts (JetBrains Mono, Symbols Nerd Font) provided by the `desktop-fonts` layer in metalayers.
+Fonts (JetBrains Mono, Symbols Nerd Font) provided by the `desktop-fonts` candy in metalayers.
 
 ## Configuration
 
-Unified config shared with the `waybar-labwc` layer (Catppuccin Mocha, bottom bar):
+Unified config shared with the `waybar-labwc` candy (Catppuccin Mocha, bottom bar):
 
 ### Modules
 
@@ -41,14 +41,14 @@ Catppuccin Mocha theme — semi-transparent dark background, JetBrains Mono + Sy
 
 - `waybar-wrapper` — Waits for Wayland socket, discovers SWAYSOCK, then exec waybar
 - `sway-autotile` — Subscribes to sway window events, auto-tiles windows restored from scratchpad
-- `config.json` — Unified module layout (same as waybar-labwc layer)
-- `style.css` — Catppuccin Mocha styling (same as waybar-labwc layer)
+- `config.json` — Unified module layout (same as waybar-labwc candy)
+- `style.css` — Catppuccin Mocha styling (same as waybar-labwc candy)
 
-## Used In Images
+## Used In Boxes
 
 Part of `/charly-selkies:sway-desktop` composition.
 
-## Related Layers
+## Related Candies
 
 - `/charly-selkies:sway` -- compositor dependency
 - `/charly-selkies:sway-desktop` -- composition that includes waybar
@@ -71,5 +71,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

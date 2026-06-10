@@ -14,7 +14,7 @@ Builder image with package managers and compilation tools. Default builder for p
 **`overthinkos/fedora`** submodule (mounted at `box/fedora`), alongside
 `/charly-distros:fedora` + `/charly-distros:fedora-nonfree`; the submodule is
 SELF-CONTAINED (`import: []`), so its images route builders to a bare-local
-`fedora-builder`. Its `rpmfusion`/`pixi`/`nodejs`/`build-toolchain` layers are
+`fedora-builder`. Its `rpmfusion`/`pixi`/`nodejs`/`build-toolchain` candies are
 pinned as github refs (`@github.com/overthinkos/overthink/candy/<name>:<tag>`) so
 the same definition resolves in both main and the submodule. Build with
 `charly box build fedora-builder` from the submodule.
@@ -31,14 +31,14 @@ the same definition resolves in both main and the submodule. Build with
 ## Full Candy Stack
 
 1. `fedora` (quay.io/fedora/fedora:43)
-2. `rpmfusion` — RPM Fusion free + nonfree repo configuration. Applied **first** so subsequent layers can `dnf install` packages from RPM Fusion (e.g. `x264-devel`, `ffmpeg-devel`, `libva-devel`)
+2. `rpmfusion` — RPM Fusion free + nonfree repo configuration. Applied **first** so subsequent candies can `dnf install` packages from RPM Fusion (e.g. `x264-devel`, `ffmpeg-devel`, `libva-devel`)
 3. `pixi` — pixi package manager + env paths
 4. `nodejs` — Node.js + npm
 5. `build-toolchain` — gcc, cmake, autoconf, ninja, git, pkg-config, **plus** the smithay/cargo build deps (`rust`, `cargo`, `clang-devel`, `nasm`, `wayland-devel`, `libva-devel`, `x264-devel`, `ffmpeg-devel`, `pixman-devel`, …) needed for builder-stage compilation of Wayland compositors like pixelflux. See `/charly-coder:build-toolchain` for the full grouped list.
 
 ## Why rpmfusion is first
 
-The build-toolchain layer's `dnf install` references packages that live in RPM Fusion free
+The build-toolchain candy's `dnf install` references packages that live in RPM Fusion free
 (`libva-devel`, `x264-devel`, `ffmpeg-devel`). These are required to build pixelflux from
 source (its `libva-sys`, `x264-sys`, and `ffmpeg-sys-next` cargo crates link against the
 system libs). Without rpmfusion applied first, those `dnf install` calls would fail.
@@ -68,7 +68,7 @@ charly shell fedora-builder
 ## Verification
 
 After `charly box build`:
-- `charly box list` — image appears in list
+- `charly box list` — box appears in list
 - `charly shell fedora-builder` — interactive shell works
 
 ## When to Use This Skill
@@ -77,5 +77,5 @@ After `charly box build`:
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

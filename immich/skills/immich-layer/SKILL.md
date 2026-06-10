@@ -7,7 +7,7 @@ description: |
 
 # immich -- Self-hosted photo management server
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -33,12 +33,12 @@ description: |
 
 ## Packages
 
-The layer is multi-distro — image libraries are declared per distro:
+The candy is multi-distro — image libraries are declared per distro:
 
 - RPM: `vips`, `vips-devel`, `perl-Image-ExifTool`, `libheif`, `LibRaw`, `gcc-c++`, `make`, `unzip`
 - PAC: `libvips` (no separate `-devel` split — headers ship in the same package), `libheif`, `libraw`, `perl-image-exiftool`, `gcc` (includes `g++`), `make`, `unzip`
 
-**Note:** FFmpeg is provided via the `ffmpeg` dependency layer rather than installed directly.
+**Note:** FFmpeg is provided via the `ffmpeg` dependency candy rather than installed directly.
 
 ## Build Process (tasks:)
 
@@ -69,12 +69,12 @@ immich:
     - immich
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-immich:immich`
 - `/charly-immich:immich-ml`
 
-## Related Layers
+## Related Candies
 
 - `/charly-infrastructure:supervisord` -- process manager dependency
 - `/charly-coder:nodejs` -- Node.js runtime dependency (provides pnpm for the Immich build)
@@ -96,5 +96,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -2,13 +2,13 @@
 name: openwebui-layer
 description: |
   Open WebUI with auto-configured LLM providers, MCP servers, and Jupyter code execution.
-  MUST be invoked before any work involving: the openwebui layer, Open WebUI configuration,
+  MUST be invoked before any work involving: the openwebui candy, Open WebUI configuration,
   LLM provider auto-detection, or MCP server discovery for Open WebUI.
 ---
 
 # openwebui -- Open WebUI with auto-configuration
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -36,12 +36,12 @@ description: |
 |----------|-------------|
 | `OPENROUTER_API_KEY` | API key for OpenRouter (maps to `OPENAI_API_KEY` with OpenRouter base URL) |
 | `OLLAMA_API_KEY` | API key for Ollama Cloud inference |
-| `OLLAMA_HOST` | Local Ollama server URL (auto-injected by ollama layer `env_provide`) |
+| `OLLAMA_HOST` | Local Ollama server URL (auto-injected by ollama candy `env_provide`) |
 | `OPENAI_API_KEY` | Direct OpenAI API key |
 | `OPENAI_API_BASE_URL` | OpenAI-compatible API base URL |
 | `WEBUI_AUTH` | Enable authentication (default: true) |
 | `WEBUI_ADMIN_EMAIL` | Admin account email for first-start setup |
-| `CHARLY_MCP_SERVERS` | JSON array of MCP servers (auto-injected by `mcp_provide` layers) |
+| `CHARLY_MCP_SERVERS` | JSON array of MCP servers (auto-injected by `mcp_provide` candies) |
 
 ## MCP Accepts
 
@@ -144,7 +144,7 @@ openwebui:
     - "8080:8080"
 ```
 
-## Related Layers
+## Related Candies
 
 - `/charly-languages:python` -- Python runtime dependency
 - `/charly-infrastructure:supervisord` -- process manager dependency
@@ -157,18 +157,18 @@ openwebui:
 - `/charly-core:service` -- `charly service status openwebui` for runtime management
 - `/charly-build:charly-mcp-cmd` -- probe the MCP servers openwebui consumes (auto-configured into `TOOL_SERVER_CONNECTIONS` from `CHARLY_MCP_SERVERS`): `charly eval mcp list-tools <provider-image>` shows what tools openwebui will see, and `charly eval mcp ping` verifies liveness before debugging openwebui itself.
 
-## Related Images
+## Related Boxes
 
-- `/charly-openwebui:openwebui` -- the deployed image
+- `/charly-openwebui:openwebui` -- the deployed box
 - `/charly-jupyter:jupyter` -- deploy alongside for MCP notebook access and code execution
 - `/charly-ollama:ollama` -- deploy alongside for local LLM inference
 - `/charly-hermes:hermes` -- alternative AI frontend (CLI-based agent vs web UI)
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the openwebui layer, Open WebUI configuration, LLM provider auto-detection, MCP server discovery for Open WebUI, or the openwebui entrypoint. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the openwebui candy, Open WebUI configuration, LLM provider auto-detection, MCP server discovery for Open WebUI, or the openwebui entrypoint. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

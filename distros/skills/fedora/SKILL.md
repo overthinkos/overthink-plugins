@@ -1,21 +1,21 @@
 ---
 name: fedora
 description: |
-  Base Fedora 43 image. Root of the image hierarchy for all RPM-based images.
+  Base Fedora 43 image. Root of the box hierarchy for all RPM-based boxes.
   MUST be invoked before building, deploying, configuring, or troubleshooting the fedora box.
 ---
 
 # fedora
 
-Root base image built from `quay.io/fedora/fedora:43`. Foundation for all RPM-based OpenCharly images.
+Root base image built from `quay.io/fedora/fedora:43`. Foundation for all RPM-based OpenCharly boxes.
 
 **Owned by the `overthinkos/fedora` submodule.** The Fedora base stack —
 `fedora`, `/charly-distros:fedora-builder`, `/charly-distros:fedora-nonfree` — lives
 bare-local in the **`overthinkos/fedora`** submodule (mounted at `box/fedora`),
 which is SELF-CONTAINED (`import: []`): the base stack is bare-local and the
-submodule composes the main repo's shared layers by `@github` git reference. Its
-images write `base: fedora` and route builders to `fedora-builder` (bare-local
-refs, no namespace qualifier). The Fedora consumer showcase images
+submodule composes the main repo's shared candies by `@github` git reference. Its
+boxes write `base: fedora` and route builders to `fedora-builder` (bare-local
+refs, no namespace qualifier). The Fedora consumer showcase boxes
 (`/charly-coder:fedora-coder`, `/charly-distros:charly-fedora`, `/charly-distros:fedora-test`)
 and the Fedora-rooted pod families all live in the same submodule, discovered as
 `box/<name>/charly.yml` boxes. The main repo imports this submodule under the
@@ -44,7 +44,7 @@ charly shell fedora
 
 `build.yml` `distro.fedora.dnf` writes dnf download-speed knobs to
 `/etc/dnf/dnf.conf` during the bootstrap, so they apply to the bootstrap install
-AND every per-layer dnf install in this image and its descendants:
+AND every per-layer dnf install in this box and its descendants:
 
 ```yaml
 # build.yml
@@ -72,7 +72,7 @@ and inherits across distro inheritance like the other sub-blocks. Source:
 ## Verification
 
 After `charly box build`:
-- `charly box list` — image appears in list
+- `charly box list` — box appears in list
 - `charly shell fedora` — interactive shell works
 
 ## Related Boxes
@@ -87,8 +87,8 @@ After `charly box build`:
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the fedora base image or understanding the image chain. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the fedora base image or understanding the box chain. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)

@@ -1,19 +1,19 @@
 ---
 name: fedora-test
 description: |
-  Test image with Traefik reverse proxy and testapi service.
+  Test box with Traefik reverse proxy and testapi service.
   Currently disabled. Used for development testing.
   MUST be invoked before building or troubleshooting the fedora-test box.
 ---
 
 # fedora-test
 
-Development test image with Traefik reverse proxy and a FastAPI test service.
+Development test box with Traefik reverse proxy and a FastAPI test service.
 
 Lives in the **`overthinkos/fedora`** repo (git submodule at **`box/fedora`**).
 Its `fedora` base is bare-local in the same self-contained submodule
 (`import: []`) — `base: fedora`; the
-`agent-forwarding`/`traefik`/`testapi` layers are pulled by github reference.
+`agent-forwarding`/`traefik`/`testapi` candies are pulled by github reference.
 Build from the submodule: `charly -C box/fedora box build fedora-test`.
 
 ## Box Properties
@@ -28,7 +28,7 @@ Build from the submodule: `charly -C box/fedora box build fedora-test`.
 
 ## Purpose
 
-Used for testing Traefik routing, service health checks, and the `testapi` layer. The testapi service runs on port 9090 and is routed via `testapi.localhost` through Traefik.
+Used for testing Traefik routing, service health checks, and the `testapi` candy. The testapi service runs on port 9090 and is routed via `testapi.localhost` through Traefik.
 
 ## Key Candies
 
@@ -37,11 +37,11 @@ Used for testing Traefik routing, service health checks, and the `testapi` layer
 
 ## Related Boxes
 - `/charly-distros:fedora` — parent base image
-- `/charly-distros:valkey-test` — sibling test image (disabled)
+- `/charly-distros:valkey-test` — sibling test box (disabled)
 
 ## Related Commands
 - `/charly-build:build` — build the fedora-test box
-- `/charly-build:validate` — validate the test layer composition
+- `/charly-build:validate` — validate the test candy composition
 
 ## When to Use This Skill
 
@@ -49,4 +49,4 @@ Used for testing Traefik routing, service health checks, and the `testapi` layer
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)

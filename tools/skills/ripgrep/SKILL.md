@@ -2,12 +2,12 @@
 name: ripgrep
 description: |
   Fast recursive text search (rg).
-  Use when working with the ripgrep layer.
+  Use when working with the ripgrep candy.
 ---
 
 # ripgrep -- Fast text search
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -26,11 +26,11 @@ candy:
   - ripgrep
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:dev-tools` -- bundles ripgrep alongside other CLI utilities
 - `/charly-openclaw:openclaw-full` -- parent metalayer that bundles ripgrep
 
@@ -43,9 +43,9 @@ candy:
 Use when the user asks about:
 - ripgrep (rg) in containers
 - Fast text search tools
-- The `ripgrep` layer
+- The `ripgrep` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

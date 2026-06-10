@@ -4,13 +4,13 @@ description: |
   GitHub CLI, git, and git-lfs — the single-responsibility home for all
   git/GitHub tooling. Ships the noscripts + post-install dance for git-lfs
   so the RPM's systemd trigger doesn't fail at build time.
-  Use when composing git + gh + git-lfs into an image, or when deciding
-  which layer should own a git-related binary.
+  Use when composing git + gh + git-lfs into a box, or when deciding
+  which candy should own a git-related binary.
 ---
 
 # gh -- GitHub CLI + git + git-lfs
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -41,13 +41,13 @@ that doesn't exist in the build container.
 
 ## Single-responsibility ownership
 
-This layer is the exclusive home for `gh`, `git`, and `git-lfs` — no other
-layer (including `/charly-coder:dev-tools`) installs them. That keeps ownership
-unambiguous ("which layer do I look at to update the git-lfs version?" — this
+This candy is the exclusive home for `gh`, `git`, and `git-lfs` — no other
+candy (including `/charly-coder:dev-tools`) installs them. That keeps ownership
+unambiguous ("which candy do I look at to update the git-lfs version?" — this
 one) and avoids duplicate test ids (`gh-binary` collisions).
 
-Effect for layer authors: any image that wants git tooling composes `gh`
-explicitly. The four power-user images (`charly-arch`, `charly-fedora`,
+Effect for candy authors: any box that wants git tooling composes `gh`
+explicitly. The four power-user boxes (`charly-arch`, `charly-fedora`,
 `fedora-coder`, `githubrunner` via the `charly` chain) all list `gh`
 explicitly.
 
@@ -76,18 +76,18 @@ candy:
   - gh
 ```
 
-## Used In Images
+## Used In Boxes
 
-- `/charly-coder:charly-arch`, `/charly-distros:charly-fedora`, `/charly-coder:fedora-coder` — power-user images that compose gh explicitly
+- `/charly-coder:charly-arch`, `/charly-distros:charly-fedora`, `/charly-coder:fedora-coder` — power-user boxes that compose gh explicitly
 - `/charly-openclaw:openclaw-desktop` — streaming-desktop sibling
-- Any image composing `hermes-full`
+- Any box composing `hermes-full`
 
-## Related Layers
+## Related Candies
 
-- `/charly-coder:dev-tools` — does not install git/gh/git-lfs (this layer owns them)
+- `/charly-coder:dev-tools` — does not install git/gh/git-lfs (this candy owns them)
 - `/charly-distros:agent-forwarding` — pairs with gh for SSH/GPG agent access (you usually want both when driving gh from inside a container with the host's GPG keys forwarded)
-- `/charly-distros:github-runner` — self-hosted Actions runner; different layer, different purpose
-- `/charly-coder:github-actions` — installs `act` + `actionlint` for local Actions testing; also different from this layer
+- `/charly-distros:github-runner` — self-hosted Actions runner; different candy, different purpose
+- `/charly-coder:github-actions` — installs `act` + `actionlint` for local Actions testing; also different from this candy
 
 ## Related Commands
 
@@ -98,14 +98,14 @@ candy:
 
 **MUST be invoked** when:
 
-- Adding git or GitHub CLI access to an image (compose this layer —
-  DO NOT add `gh`, `git`, or `git-lfs` to any other layer's packages).
+- Adding git or GitHub CLI access to a box (compose this candy —
+  DO NOT add `gh`, `git`, or `git-lfs` to any other candy's packages).
 - Debugging why `git-lfs install` fails at build time (the noscripts +
   post-install pattern here is the fix).
 - Understanding why `/charly-coder:dev-tools` does not install gh
-  (this layer holds single-responsibility ownership of git tooling).
+  (this candy holds single-responsibility ownership of git tooling).
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

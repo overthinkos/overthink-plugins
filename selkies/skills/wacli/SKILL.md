@@ -2,12 +2,12 @@
 name: wacli
 description: |
   WhatsApp CLI for message sending and history sync.
-  Use when working with the wacli layer.
+  Use when working with the wacli candy.
 ---
 
 # wacli -- WhatsApp CLI
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -29,11 +29,11 @@ candy:
   - wacli
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:golang` — Go toolchain dependency
 - `/charly-openclaw:openclaw-full` — metalayer that bundles wacli
 - `/charly-hermes:hermes` — companion messaging stack with WhatsApp bridge
@@ -47,9 +47,9 @@ candy:
 Use when the user asks about:
 - WhatsApp messaging from containers
 - WhatsApp history sync
-- The `wacli` layer
+- The `wacli` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

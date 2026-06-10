@@ -11,7 +11,7 @@ description: |
 # ubuntu-debootstrap-builder
 
 Privileged builder image that ships the **debootstrap** toolchain (the
-`debootstrap-builder` layer). It is the `from: builder:debootstrap` /
+`debootstrap-builder` candy). It is the `from: builder:debootstrap` /
 `bootstrap_builder_image:` target for `/charly-distros:ubuntu-debootstrap` and the
 `/charly-vm:ubuntu` bootstrap VM.
 
@@ -28,7 +28,7 @@ Privileged builder image that ships the **debootstrap** toolchain (the
 | Layer | `debootstrap-builder` (pulled by github reference from the main repo) |
 | Home repo | overthinkos/ubuntu (`box/ubuntu`) |
 
-The `debootstrap-builder` layer **stays in the main repo** and is shared with
+The `debootstrap-builder` candy **stays in the main repo** and is shared with
 `/charly-distros:debian-debootstrap-builder` — both pull it by github reference. The
 `ubuntu` distro config (`inherits: debian`; debootstrap suite `noble`, mirror
 `http://archive.ubuntu.com/ubuntu`, base packages) lives in the main repo's

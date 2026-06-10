@@ -7,7 +7,7 @@ description: |
 
 # gocryptfs -- Encrypted filesystem support
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -30,7 +30,7 @@ my-image:
     - gocryptfs
 ```
 
-Typically used as part of the `charly` layer (the full toolchain: charly binary + virtualization + gocryptfs + socat) rather than directly.
+Typically used as part of the `charly` candy (the full toolchain: charly binary + virtualization + gocryptfs + socat) rather than directly.
 
 ## Runtime Behavior
 
@@ -40,14 +40,14 @@ The `-allow_other` flag is always passed to gocryptfs (required for rootless pod
 
 See `/charly-automation:enc` for full encrypted volume operations documentation.
 
-## Used In Images
+## Used In Boxes
 
-- Part of the `charly` layer's full toolchain (used in `githubrunner`)
+- Part of the `charly` candy's full toolchain (used in `githubrunner`)
 
-## Related Layers
+## Related Candies
 
-- `/charly-infrastructure:virtualization` -- part of the `charly` layer alongside gocryptfs
-- `/charly-infrastructure:socat` -- part of the `charly` layer alongside gocryptfs
+- `/charly-infrastructure:virtualization` -- part of the `charly` candy alongside gocryptfs
+- `/charly-infrastructure:socat` -- part of the `charly` candy alongside gocryptfs
 
 ## When to Use This Skill
 
@@ -55,10 +55,10 @@ Use when the user asks about:
 
 - Encrypted volumes or filesystems
 - `charly config` encrypted volume operations (mount, unmount, status, passwd)
-- The `gocryptfs` layer
+- The `gocryptfs` candy
 - systemd scope units for encrypted mounts (`charly-enc-*`)
 
 ## Author + Test References
 
-- `/charly-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
+- `/charly-image:layer` — candy authoring reference (tasks, vars, env_provide, tests block syntax)
 - `/charly-eval:eval` — declarative testing framework for the `eval:` block

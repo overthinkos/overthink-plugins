@@ -37,7 +37,7 @@ Invoked as `charly box validate`. See `/charly-image:image` for the family overv
 - `depends` must reference existing layers (local or remote).
 - Circular dependencies are errors.
 - `volumes` names must match `^[a-z0-9]+(-[a-z0-9]+)*$`.
-- Volume names must be unique within a layer.
+- Volume names must be unique within a candy.
 - `aliases` in charly.yml require both `name` and `command`.
 - Alias names must match `^[a-zA-Z0-9][a-zA-Z0-9._-]*$`.
 - Setting `PATH` directly in `env` is an error (use `path_append`).
@@ -154,7 +154,7 @@ Use `path_append` in charly.yml instead of `env: PATH: ...`.
 
 ### "duplicate volume name"
 
-Volume names must be unique within a layer.
+Volume names must be unique within a candy.
 
 ## Common Workflows
 
@@ -186,7 +186,7 @@ charly box list candies                       # Verify layer exists
 - `/charly-build:inspect` -- Inspect a specific image after validation
 - `/charly-build:list` -- Enumerate images/layers to validate
 - `/charly-build:merge` -- Post-build layer consolidation
-- `/charly-build:new` -- Scaffold new layers before validation
+- `/charly-build:new` -- Scaffold new candies before validation
 - `/charly-build:pull` -- Pull prebuilt images (orthogonal to validation)
 
 ### Related skills

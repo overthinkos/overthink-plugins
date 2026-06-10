@@ -1,13 +1,13 @@
 ---
 name: arch-aur-test
 description: |
-  Test layer for AUR package installation on Arch Linux.
-  Use when working with the arch-aur-test layer.
+  Test candy for AUR package installation on Arch Linux.
+  Use when working with the arch-aur-test candy.
 ---
 
 # arch-aur-test -- Arch AUR package test
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -20,7 +20,7 @@ AUR: `yay-bin`
 
 ## What It Does
 
-Validates that the `aur:` package format works correctly on Arch Linux images. Installs the `yay-bin` package from the AUR. Requires a builder image with `builds: [aur]` capability (i.e., `arch-builder` which includes the `yay` layer).
+Validates that the `aur:` package format works correctly on Arch Linux boxes. Installs the `yay-bin` package from the AUR. Requires a builder image with `builds: [aur]` capability (i.e., `arch-builder` which includes the `yay` candy).
 
 ## Usage
 
@@ -30,11 +30,11 @@ candy:
   - arch-aur-test
 ```
 
-Requires an Arch-based image with `build: [pac, aur]` so the builder can resolve AUR packages.
+Requires an Arch-based box with `build: [pac, aur]` so the builder can resolve AUR packages.
 
-## Used In Images
+## Used In Boxes
 
-- `/charly-distros:arch-test` — Arch packaging test image
+- `/charly-distros:arch-test` — Arch packaging test box
 
 ## Related Candies
 
@@ -46,9 +46,9 @@ Requires an Arch-based image with `build: [pac, aur]` so the builder can resolve
 Use when the user asks about:
 - Arch Linux AUR package testing
 - The `aur:` package format in charly.yml
-- The `arch-aur-test` layer
+- The `arch-aur-test` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

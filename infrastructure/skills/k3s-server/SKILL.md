@@ -7,7 +7,7 @@ description: |
 
 # k3s-server -- k3s control-plane node
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -15,7 +15,7 @@ description: |
 | Depends on | `/charly-infrastructure:k3s` |
 | Service | `k3s.service` (system scope, enabled) |
 
-## What this layer does
+## What this candy does
 
 1. Reads `K3S_CLUSTER_TOKEN` from the credential store (`secret_require:`).
 2. Writes `/etc/rancher/k3s/config.yaml` with:
@@ -26,7 +26,7 @@ description: |
      local-path-provisioner all install as default k3s addons.
 3. Emits `/etc/systemd/system/k3s.service` running `k3s server`.
 4. After setup, the runtime publishes `/etc/rancher/k3s/k3s.yaml` back to
-   the operator via the new `artifact:` layer-schema feature. The
+   the operator via the new `artifact:` candy-schema feature. The
    retrieved file lands at `~/.cache/charly/clusters/<deploy_name>/kubeconfig.yaml`
    with `127.0.0.1` rewritten to `${K3S_SERVER_HOSTNAME}` so the operator
    can `kubectl` the cluster from their machine.
@@ -101,8 +101,8 @@ Deploy-scope (using the new `charly eval k8s` verb — see `/charly-kubernetes:e
 - `k8s: storageclass` — `local-path` present.
 - `k8s: addons` — Traefik + ServiceLB + local-path-provisioner all Ready.
 
-## Related Layers
-- `/charly-infrastructure:k3s` — Base layer installing the k3s binary (required dep)
+## Related Candies
+- `/charly-infrastructure:k3s` — Base candy installing the k3s binary (required dep)
 - `/charly-infrastructure:k3s-agent` — Worker nodes joining this server
 - `/charly-coder:kubernetes-layer` — `kubectl`/`helm` on the operator side (not needed in the cluster)
-- `/charly-kubernetes:eval-k8s` — The test verb used by this layer's deploy-scope checks
+- `/charly-kubernetes:eval-k8s` — The test verb used by this candy's deploy-scope checks

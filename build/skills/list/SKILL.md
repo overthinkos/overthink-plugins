@@ -18,7 +18,7 @@ Enumerate images, layers, build targets, and layer properties from `charly.yml` 
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| List images | `charly box list boxes` | All images defined in charly.yml |
+| List boxes | `charly box list boxes` | All boxes defined in charly.yml |
 | List layers | `charly box list candies` | All layers found on filesystem |
 | List targets | `charly box list targets` | Build targets in dependency order |
 | List services | `charly box list services` | Layers that declare a `service:` field |
@@ -84,7 +84,7 @@ charly box list aliases
 - `/charly-build:generate` -- Containerfile generation
 - `/charly-build:inspect` -- Detailed inspection of a specific image
 - `/charly-build:merge` -- Post-build layer consolidation
-- `/charly-build:new` -- Scaffold a new layer
+- `/charly-build:new` -- Scaffold a new candy
 - `/charly-build:pull` -- Pull prebuilt images into local storage
 - `/charly-build:validate` -- Validate charly.yml and layer definitions
 

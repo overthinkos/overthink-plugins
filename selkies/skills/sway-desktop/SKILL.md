@@ -7,16 +7,16 @@ description: |
 
 # sway-desktop -- Base desktop composition (no display server)
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
-| Layers (composition) | `pipewire`, `xdg-portal`, `wl-tools`, `wl-screenshot-grim`, `wl-overlay`, `wf-recorder`, `chrome-sway`, `xfce4-terminal`, `thunar`, `waybar`, `desktop-fonts`, `swaync`, `pavucontrol`, `tmux`, `asciinema`, `fastfetch` |
+| Candies (composition) | `pipewire`, `xdg-portal`, `wl-tools`, `wl-screenshot-grim`, `wl-overlay`, `wf-recorder`, `chrome-sway`, `xfce4-terminal`, `thunar`, `waybar`, `desktop-fonts`, `swaync`, `pavucontrol`, `tmux`, `asciinema`, `fastfetch` |
 | Install files | none (pure composition) |
 
 ## Usage
 
-Not used directly in images — use `sway-desktop-vnc` instead:
+Not used directly in boxes — use `sway-desktop-vnc` instead:
 
 ```yaml
 # charly.yml — VNC variant
@@ -25,7 +25,7 @@ sway-browser-vnc:
     - sway-desktop-vnc
 ```
 
-## Related Layers
+## Related Candies
 
 - `/charly-selkies:pipewire` -- audio/media server (included)
 - `/charly-selkies:xdg-portal` -- XDG desktop portal infrastructure (included)
@@ -36,7 +36,7 @@ sway-browser-vnc:
 - `/charly-selkies:waybar` -- status bar and auto-tiling (included)
 - `/charly-selkies:sway-desktop-vnc` -- VNC variant (adds wayvnc)
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:sway-browser-vnc` (via `sway-desktop-vnc` metalayer)
 
@@ -49,5 +49,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -3,8 +3,8 @@ name: cachyos
 description: |
   CachyOS base image (docker.io/cachyos/cachyos-v3) — x86_64_v3-optimized Arch
   derivative. Owned by the overthinkos/cachyos submodule (box/cachyos);
-  consumed by main's versa image via the `cachyos` import namespace.
-  MUST be invoked before building, deploying, or troubleshooting cachyos images.
+  consumed by main's versa box via the `cachyos` import namespace.
+  MUST be invoked before building, deploying, or troubleshooting cachyos boxes.
 ---
 
 # cachyos
@@ -19,7 +19,7 @@ CachyOS is an Arch derivative, so it shares the Arch toolchain, `pacman`, and th
 The CachyOS family lives in the **`overthinkos/cachyos`** repo (git submodule at
 **`box/cachyos`**), with the `cachyos` base image **owned there** and its
 boxes discovered as `box/<name>/charly.yml`. It composes the main repo's shared
-layers by `@github` git reference and imports the **`overthinkos/arch`** submodule
+candies by `@github` git reference and imports the **`overthinkos/arch`** submodule
 under the `arch` namespace (`import: [{arch: …}]`) so it reaches `arch.arch` (the
 `cachyos-pacstrap-builder` base) and `arch.arch-builder` (the cachyos base's
 builder) — one-directional, since arch imports nothing back. Build it
@@ -41,7 +41,7 @@ from the submodule: `charly -C box/cachyos box build cachyos` (or
 
 ## main → cachyos coupling
 
-The `cachyos` base and its derived images — `versa`, the `openclaw-*` family,
+The `cachyos` base and its derived boxes — `versa`, the `openclaw-*` family,
 `githubrunner`, `android-emulator`, `charly-selftest`, and the `selkies-*` GPU
 desktops — all live in the **`overthinkos/cachyos`** submodule, discovered as
 `box/<name>/charly.yml` boxes. The main repo imports that submodule under the
@@ -77,17 +77,17 @@ CachyOS has the **same AUR capability as the `arch` base**, because it is
 Arch-derived and its `builder.aur` points at the shared `arch-builder` (which
 ships `yay`). Anything that builds on arch builds on cachyos:
 
-- An image based on `cachyos` that needs AUR packages declares
-  `build: [pac, aur]` (exactly as an `arch`-based image would — the base itself
+- A box based on `cachyos` that needs AUR packages declares
+  `build: [pac, aur]` (exactly as an `arch`-based box would — the base itself
   declares only `build: [pac]`, so the consumer opts in). The AUR builder stage
   (`<layer>-aur-build` via `arch-builder`) then compiles the packages and
   `pacman -U`-installs the `.pkg.tar.zst` artifacts. Worked example: the
-  `selkies-desktop` image (`base: cachyos.cachyos`, `build: [pac, aur]`) builds
-  `google-chrome` (chrome layer) + `wlrctl` (wl-tools layer) from the AUR.
-- Layers author AUR packages under `distro.arch.aur.package` (see
-  `/charly-image:layer` "AUR"); the `arch` distro tag is what cachyos images match
+  `selkies-desktop` box (`base: cachyos.cachyos`, `build: [pac, aur]`) builds
+  `google-chrome` (chrome candy) + `wlrctl` (wl-tools candy) from the AUR.
+- Candies author AUR packages under `distro.arch.aur.package` (see
+  `/charly-image:layer` "AUR"); the `arch` distro tag is what cachyos boxes match
   (their `distro:` is `[cachyos, arch]`), so the same `distro.arch` sections used
-  by every Arch image apply unchanged.
+  by every Arch box apply unchanged.
 - The `cachyos` base declares `produce: [pixi, npm, cargo, aur]` (identical to
   `arch`), advertising the same builder-capability profile as every other base
   distro.
@@ -110,12 +110,12 @@ charly shell cachyos -c "pacman --version"
 - `/charly-local:charly-cachyos` — the operator CachyOS workstation profile
 - `/charly-versa:versa` — CachyOS-rooted notebook/OSM image in this submodule (`base: cachyos`)
 
-### CachyOS GPU image family
+### CachyOS GPU box family
 
-The submodule also carries a CachyOS GPU image family — the Arch/CachyOS siblings
-of the Fedora GPU images (which live in `box/fedora`). They build on the
+The submodule also carries a CachyOS GPU box family — the Arch/CachyOS siblings
+of the Fedora GPU boxes (which live in `box/fedora`). They build on the
 `cachyos.nvidia` GPU base, which is `cachyos` + `agent-forwarding` + `nvidia` +
-`cuda` (the `nvidia` and `cuda` layers are multi-distro — Fedora rpm + Arch pac —
+`cuda` (the `nvidia` and `cuda` candies are multi-distro — Fedora rpm + Arch pac —
 so they compose unchanged on CachyOS):
 
 - `cachyos.nvidia` — the GPU base (cachyos + agent-forwarding + nvidia + cuda)
@@ -142,7 +142,7 @@ builds and also builds end-to-end (the pacstrap renderer derives
 ## Verification
 
 After `charly -C box/cachyos box build cachyos`:
-- `charly box list` — image appears
+- `charly box list` — box appears
 - `charly shell cachyos -c "pacman --version"` — pacman available
 - `charly box inspect versa --format base` (from main) → `cachyos.cachyos` (the `cachyos` import namespace resolves)
 - `charly eval box cachyos` — build-scope eval: 3 probes pass (os-release `ID=cachyos`,
@@ -159,5 +159,5 @@ Invoke this skill BEFORE reading source code or launching Explore agents.
 ## Related
 
 - `/charly-distros:arch` — the Arch base (`cachyos-pacstrap-builder` is `base: arch.arch`, via the `arch` import namespace)
-- `/charly-image:image` — image family umbrella (composition, build/validate/inspect)
+- `/charly-image:image` — box family umbrella (composition, build/validate/inspect)
 - `/charly-internals:cutover-policy` — the hard-cutover policy governing submodule splits

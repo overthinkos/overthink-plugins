@@ -7,7 +7,7 @@ description: |
 
 # python -- Python 3.13 via pixi
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -27,11 +27,11 @@ my-image:
     - python
 ```
 
-## Used In Images
+## Used In Boxes
 
-- Transitive dependency via `supervisord` in most service images (`openclaw`, `jupyter`, `ollama`, `comfyui`, `immich`, etc.)
+- Transitive dependency via `supervisord` in most service boxes (`openclaw`, `jupyter`, `ollama`, `comfyui`, `immich`, etc.)
 
-## Related Layers
+## Related Candies
 
 - `/charly-languages:pixi` -- required dependency (provides pixi binary)
 - `/charly-languages:python-ml` -- ML-focused Python with CUDA support
@@ -43,10 +43,10 @@ Use when the user asks about:
 
 - Python runtime in containers
 - Pixi-managed Python installation
-- The `python` layer
+- The `python` candy
 - Why `pip install` and `conda install` are not used (pixi is the only Python package manager)
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

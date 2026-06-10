@@ -7,7 +7,7 @@ description: |
 
 # devops-tools -- cloud and infrastructure CLI tools
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -34,11 +34,11 @@ my-image:
     - devops-tools
 ```
 
-## Used In Images
+## Used In Boxes
 
 - (none currently enabled)
 
-## Related Layers
+## Related Candies
 
 - `/charly-coder:nodejs` -- Node.js dependency for npm packages
 
@@ -54,5 +54,5 @@ Use when the user asks about:
 
 ## Author + Test References
 
-- `/charly-image:layer` — layer authoring reference (tasks, vars, env_provide, tests block syntax)
+- `/charly-image:layer` — candy authoring reference (tasks, vars, env_provide, tests block syntax)
 - `/charly-eval:eval` — declarative testing framework for the `eval:` block

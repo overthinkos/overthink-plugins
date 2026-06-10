@@ -2,12 +2,12 @@
 name: gifgrep
 description: |
   GIF search and download CLI.
-  Use when working with the gifgrep layer.
+  Use when working with the gifgrep candy.
 ---
 
 # gifgrep -- GIF search and download
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -29,11 +29,11 @@ candy:
   - gifgrep
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
 
-## Related Layers
+## Related Candies
 - `/charly-coder:golang` — required Go toolchain dependency
 - `/charly-openclaw:openclaw-full` — metalayer that includes gifgrep
 - `/charly-tools:goplaces` — sibling Go-based CLI in openclaw-full
@@ -47,9 +47,9 @@ candy:
 Use when the user asks about:
 - GIF search and download tools
 - Go-based GIF CLI
-- The `gifgrep` layer
+- The `gifgrep` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

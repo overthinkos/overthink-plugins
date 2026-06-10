@@ -7,28 +7,28 @@ description: |
 
 # jupyter-mcp -- JupyterLab CRDT MCP server extension
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
 | Dependencies | *(none)* |
-| Packages | *(none -- pip-only Tier 1 layer)* |
+| Packages | *(none -- pip-only Tier 1 candy)* |
 | Services | *(none)* |
 | Volumes | *(none)* |
 | Install files | `charly.yml`, `task:`, `jupyter_mcp/` (Python package) |
 
 ## Architecture: Tier 1 Post-Install Layer
 
-This is a **Tier 1 "post-install"** layer — it has no `pixi.toml` and installs into whatever pixi environment exists from the parent Tier 2 layer. It follows the same pattern as `llama-cpp` and `unsloth`.
+This is a **Tier 1 "post-install"** layer — it has no `pixi.toml` and installs into whatever pixi environment exists from the parent Tier 2 candy. It follows the same pattern as `llama-cpp` and `unsloth`.
 
-**Single source of truth:** The `jupyter_mcp` Python package lives only in this layer. Both `jupyter` (lightweight) and `jupyter-ml` (GPU ML) compose it via their `candy:` field. This prevents code duplication and ensures bug fixes propagate to all images.
+**Single source of truth:** The `jupyter_mcp` Python package lives only in this candy. Both `jupyter` (lightweight) and `jupyter-ml` (GPU ML) compose it via their `candy:` field. This prevents code duplication and ensures bug fixes propagate to all boxes.
 
 ## Usage philosophy and caveats
 
 The MCP server **manages CRDT rooms invisibly**. Clients see notebooks and cells; the server takes care of room lifecycle. Reading or mutating any notebook just works — call `cell_get`, `cell_update`, `notebook_get` directly.
 
 - **MCP works WITH the user.** Every `notebook_*` and `cell_*` tool auto-attaches to whichever CRDT room exists for the path (JupyterLab UI tab, another MCP session, or this one), or creates a fresh room if none exists. Calling `cell_update` on a notebook the user has open in JupyterLab edits THAT EXACT Y.Doc — the user sees changes in real time. **There is no scenario where MCP and UI work in parallel rooms.**
-- **No client-side room management.** Clients do not open or close CRDT rooms. Idle rooms (no clients, no MCP activity for `MCP_ROOM_IDLE_TIMEOUT_SEC`, default 600s) are flushed and closed by a server-side sweeper. Configure the timeout via env var on the layer for fast tests.
+- **No client-side room management.** Clients do not open or close CRDT rooms. Idle rooms (no clients, no MCP activity for `MCP_ROOM_IDLE_TIMEOUT_SEC`, default 600s) are flushed and closed by a server-side sweeper. Configure the timeout via env var on the candy for fast tests.
 - **`cell_update` is atomic by `cell_id`.** The cell's stable identifier is preserved across the update, so a sequence of `cell_update` calls never duplicates cells even when the room has concurrent state.
 - **Path canonicalization.** Any path you pass — `"foo.ipynb"`, `"./foo.ipynb"`, `"/workspace/foo.ipynb"` — is normalized to the workspace-relative form before reaching `file_id_manager.index()`. All three converge on the same room. Host paths and `..` escapes are rejected with a clear error.
 - **Single room per notebook is an INVARIANT.** Two MCP sessions plus the JupyterLab UI editing the same notebook ALL share one Y.Doc. If `room_list` ever shows two entries for the same logical file, that's a regression — open a bug.
@@ -43,7 +43,7 @@ The MCP server **manages CRDT rooms invisibly**. Clients see notebooks and cells
 The `task:` performs three operations:
 
 1. **Install FastMCP** — `pip install "fastmcp>=3.2.0"` (not via pixi because pixi's cross-platform resolver conflicts with opentelemetry-api on aarch64)
-2. **Install jupyter-mcp extension** — `pip install --no-deps /ctx/jupyter_mcp` (from the layer's build context)
+2. **Install jupyter-mcp extension** — `pip install --no-deps /ctx/jupyter_mcp` (from the candy's build context)
 3. **Enable Jupyter Server extension** — writes `jupyter_mcp.json` to the Jupyter server config directory
 
 ## MCP Server
@@ -120,11 +120,11 @@ candy/jupyter-mcp/
 
 ## Integration with mcp_provide
 
-The parent `jupyter` layer declares `mcp_provide` to make this MCP server discoverable to other services at deploy time. The hermes service auto-discovers this server via the `CHARLY_MCP_SERVERS` env var and registers all 11 tools as `mcp_jupyter_<tool_name>`.
+The parent `jupyter` candy declares `mcp_provide` to make this MCP server discoverable to other services at deploy time. The hermes service auto-discovers this server via the `CHARLY_MCP_SERVERS` env var and registers all 11 tools as `mcp_jupyter_<tool_name>`.
 
 ## MCP Name Decoupling (design principle)
 
-The `jupyter` MCP server name is **deliberately decoupled** from the layer name, the Python package name, and the image name. Three places anchor it:
+The `jupyter` MCP server name is **deliberately decoupled** from the candy name, the Python package name, and the box name. Three places anchor it:
 
 | File | Field | Value | Purpose |
 |---|---|---|---|
@@ -132,14 +132,14 @@ The `jupyter` MCP server name is **deliberately decoupled** from the layer name,
 | `candy/jupyter/charly.yml` | `mcp_provide[0].name` | `jupyter` | Cross-container discovery (hermes, openwebui) |
 | `plugins/charly-jupyter/.mcp.json` | `mcpServers.jupyter` | — | Claude Code static registration |
 
-**Package/layer/image names describe the artifact; the MCP name describes the service contract.** Rename the artifact freely; the contract is stable.
+**Package/candy/box names describe the artifact; the MCP name describes the service contract.** Rename the artifact freely; the contract is stable.
 
-## Used In Layers
+## Used In Candies
 
 - `/charly-jupyter:jupyter` — lightweight multi-arch JupyterLab (`candy: [jupyter-mcp]`)
 - `/charly-jupyter:jupyter-ml` — GPU ML JupyterLab (`candy: [llama-cpp, unsloth, jupyter-mcp]`)
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-jupyter:jupyter`
 - `/charly-jupyter:jupyter-ml`
@@ -147,11 +147,11 @@ The `jupyter` MCP server name is **deliberately decoupled** from the layer name,
 
 ## Related Skills
 
-- `/charly-jupyter:jupyter` — lightweight Tier 2 parent layer
-- `/charly-jupyter:jupyter-ml` — GPU ML Tier 2 parent layer
-- `/charly-image:layer` — layer authoring rules (Tier 1 pattern)
-- `/charly-build:charly-mcp-cmd` — client-side verb for probing this server's tool catalog (ping, list-tools, call); use `charly eval mcp list-tools jupyter` to see all 11 tools this layer registers
-- `/charly-selkies:chrome-devtools-mcp` — sibling MCP-server-provider layer for Chrome DevTools (different domain, same `mcp_provide` pattern)
+- `/charly-jupyter:jupyter` — lightweight Tier 2 parent candy
+- `/charly-jupyter:jupyter-ml` — GPU ML Tier 2 parent candy
+- `/charly-image:layer` — candy authoring rules (Tier 1 pattern)
+- `/charly-build:charly-mcp-cmd` — client-side verb for probing this server's tool catalog (ping, list-tools, call); use `charly eval mcp list-tools jupyter` to see all 11 tools this candy registers
+- `/charly-selkies:chrome-devtools-mcp` — sibling MCP-server-provider candy for Chrome DevTools (different domain, same `mcp_provide` pattern)
 - `/charly-hermes:hermes` — downstream MCP consumer (auto-discovers `jupyter` via `CHARLY_MCP_SERVERS`; uses the 11 tools to read/edit/execute notebook cells programmatically)
 - `/charly-openwebui:openwebui` — downstream MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI's in-chat code blocks to the Jupyter kernel)
 
@@ -159,14 +159,14 @@ The `jupyter` MCP server name is **deliberately decoupled** from the layer name,
 
 Use when the user asks about:
 
-- The jupyter-mcp layer or its MCP server implementation
+- The jupyter-mcp candy or its MCP server implementation
 - How the CRDT collaboration works in JupyterLab
 - The 11 MCP tools for notebook manipulation
 - The auto-attach single-room invariant
 - The path canonicalization rules
 - The idle-room sweeper / cleanup behavior
 - How the MCP extension is installed and enabled
-- The Tier 1 extraction pattern (avoiding code duplication across Tier 2 layers)
+- The Tier 1 extraction pattern (avoiding code duplication across Tier 2 candies)
 
 ## Related
 

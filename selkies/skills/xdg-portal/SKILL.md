@@ -4,7 +4,7 @@
 
 Provides XDG Desktop Portal support for Sway containers. Installs the portal daemon, the wlroots-specific backend (`xdg-desktop-portal-wlr`), and the GTK fallback backend. Enables screen sharing, screenshots via portal API, and file dialogs for applications running inside the container.
 
-## Layer Definition
+## Candy Definition
 
 ```yaml
 requires:
@@ -51,20 +51,20 @@ rpm:
 
 ## Included In
 
-- `sway-desktop` metalayer (default for all desktop images)
+- `sway-desktop` metalayer (default for all desktop boxes)
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
 
 ## Cross-References
 
-- `/charly-selkies:sway-desktop` — Desktop metalayer that includes this layer
+- `/charly-selkies:sway-desktop` — Desktop metalayer that includes this candy
 - `/charly-infrastructure:dbus-layer` — D-Bus session bus (required dependency)
 - `/charly-selkies:pipewire` — PipeWire (required for ScreenCast)
 - `/charly-selkies:sway` — Sway compositor (required)
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

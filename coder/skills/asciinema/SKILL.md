@@ -2,12 +2,12 @@
 name: asciinema
 description: |
   Terminal session recorder (asciinema).
-  Use when working with the asciinema layer.
+  Use when working with the asciinema candy.
 ---
 
 # asciinema -- Terminal session recorder
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -54,9 +54,9 @@ asciinema play demo.cast
 
 ## Note
 
-Also available via the `dev-tools` layer (which includes asciinema among many other tools). This standalone layer is for images that need terminal recording without the full dev-tools bundle.
+Also available via the `dev-tools` candy (which includes asciinema among many other tools). This standalone candy is for boxes that need terminal recording without the full dev-tools bundle.
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-selkies:sway-browser-vnc` (via `sway-desktop` metalayer)
 - `/charly-selkies:selkies-labwc` (via `selkies-desktop` metalayer)
@@ -69,16 +69,16 @@ Also available via the `dev-tools` layer (which includes asciinema among many ot
 ## Cross-References
 
 - `/charly-eval:record` — `charly eval record start --mode terminal` uses asciinema
-- `/charly-coder:dev-tools` — Also includes asciinema (larger layer)
+- `/charly-coder:dev-tools` — Also includes asciinema (larger candy)
 
 ## When to Use This Skill
 
 Use when the user asks about:
 - Terminal session recording
 - asciinema in containers
-- The `asciinema` layer
+- The `asciinema` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

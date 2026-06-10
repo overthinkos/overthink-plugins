@@ -3,12 +3,12 @@ name: hermes-playwright-layer
 description: |
   Playwright Chromium browser for Hermes Agent with Fedora-compatible system deps.
   MUST be invoked before any work involving: Playwright in hermes containers,
-  Chromium browser automation for hermes, or hermes-playwright layer configuration.
+  Chromium browser automation for hermes, or hermes-playwright candy configuration.
 ---
 
 # hermes-playwright -- Playwright Chromium for Hermes
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -25,7 +25,7 @@ description: |
 
 ## Architecture
 
-This is a **Tier 1 layer** (no pixi.toml) that adds Playwright + Chromium on top of the hermes layer.
+This is a **Tier 1 candy** (no pixi.toml) that adds Playwright + Chromium on top of the hermes candy.
 
 ### Fedora Compatibility
 
@@ -65,11 +65,11 @@ hermes-playwright:
     - charly
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-hermes:hermes-playwright` -- hermes with Playwright Chromium
 
-## Related Layers
+## Related Candies
 
 - `/charly-hermes:hermes` -- base hermes agent (required dependency)
 - `/charly-selkies:chrome` -- similar pattern for Chrome system deps
@@ -77,9 +77,9 @@ hermes-playwright:
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves Playwright browser automation in hermes containers, Chromium system dependencies on Fedora, or the hermes-playwright layer. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves Playwright browser automation in hermes containers, Chromium system dependencies on Fedora, or the hermes-playwright candy. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -3,13 +3,13 @@ name: notebook-ollama
 description: |
   Ollama integration notebook collection provisioned into the workspace volume at deploy time.
   6 Jupyter notebooks demonstrating Ollama via requests, OpenAI, ollama lib, Anthropic, HuggingFace, and GPU.
-  Data-only layer — no packages, no services, no dependencies.
+  Data-only candy — no packages, no services, no dependencies.
   Use when working with notebook-ollama, Ollama API tutorials, or Jupyter+Ollama integration.
 ---
 
-# notebook-ollama -- Ollama integration notebook data layer
+# notebook-ollama -- Ollama integration notebook data candy
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -22,7 +22,7 @@ description: |
 
 ## How It Works
 
-This is a **data layer** — it uses the `data:` field in `charly.yml` to map a directory of notebooks to a named volume with a subdirectory destination:
+This is a **data candy** — it uses the `data:` field in `charly.yml` to map a directory of notebooks to a named volume with a subdirectory destination:
 
 ```yaml
 info: "Ollama integration notebook collection"
@@ -33,7 +33,7 @@ data:
     dest: ollama
 ```
 
-At build time, the contents of `data/ollama/` are staged into `/data/workspace/ollama/` inside the image.
+At build time, the contents of `data/ollama/` are staged into `/data/workspace/ollama/` inside the box.
 
 At deploy time, `charly config` or `charly update` copies the staged data into the workspace volume at `<workspace>/ollama/`. The `dest: ollama` field places the notebooks in a subdirectory rather than the volume root.
 
@@ -60,7 +60,7 @@ The notebooks default to `http://localhost:11434` for the Ollama API endpoint. E
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 ```
 
-When the `ollama` image is deployed via `charly config ollama`, its `env_provide` automatically injects `OLLAMA_HOST=http://charly-ollama:11434` into the global `deploy.yml` env. Any container configured after ollama (or reconfigured with `--update-all`) automatically gets the correct Ollama endpoint — no manual environment setup needed.
+When the `ollama` box is deployed via `charly config ollama`, its `env_provide` automatically injects `OLLAMA_HOST=http://charly-ollama:11434` into the global `deploy.yml` env. Any container configured after ollama (or reconfigured with `--update-all`) automatically gets the correct Ollama endpoint — no manual environment setup needed.
 
 **Setup:**
 ```bash
@@ -119,7 +119,7 @@ jupyter-ml-notebook:
     - notebook-templates
     - notebook-finetuning
     - notebook-ollama
-    # ... other layers
+    # ... other candies
 ```
 
 ```bash
@@ -132,26 +132,26 @@ charly shell ollama -c "ollama pull llama3.2"
 # Open http://localhost:8888 -> navigate to ollama/
 ```
 
-## Used In Images
+## Used In Boxes
 
 - `/charly-jupyter:jupyter-ml-notebook`
 
 ## Related Skills
 
-- `/charly-image:layer` — data field documentation and layer authoring rules
+- `/charly-image:layer` — data field documentation and candy authoring rules
 - `/charly-core:charly-config` — data provisioning during `charly config` setup
 - `/charly-core:deploy` — volume backing configuration
-- `/charly-jupyter:notebook-finetuning` — sibling data layer pattern (Unsloth fine-tuning notebooks)
-- `/charly-jupyter:notebook-templates` — sibling data layer pattern (starter notebooks)
-- `/charly-ollama:ollama` — the Ollama binary layer (server side)
-- `/charly-ollama:ollama` — the standalone Ollama image (must be running for notebooks to connect)
-- `/charly-jupyter:jupyter-ml-notebook` — the image that includes this layer
+- `/charly-jupyter:notebook-finetuning` — sibling data candy pattern (Unsloth fine-tuning notebooks)
+- `/charly-jupyter:notebook-templates` — sibling data candy pattern (starter notebooks)
+- `/charly-ollama:ollama` — the Ollama binary candy (server side)
+- `/charly-ollama:ollama` — the standalone Ollama box (must be running for notebooks to connect)
+- `/charly-jupyter:jupyter-ml-notebook` — the box that includes this candy
 
 ## When to Use This Skill
 
 Use when the user asks about:
 
-- The notebook-ollama layer or its contents
+- The notebook-ollama candy or its contents
 - Ollama API tutorial notebooks or integration examples
 - How Jupyter notebooks connect to a separate Ollama container
 - The `ollama` Python library env var or Pydantic API gotchas

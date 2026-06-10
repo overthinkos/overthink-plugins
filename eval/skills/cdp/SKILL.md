@@ -50,7 +50,7 @@ All commands accept `-i INSTANCE` for multi-instance support.
 
 ## Requirements
 
-- A Chrome layer with the `cdp-proxy` supervisord service
+- A Chrome candy with the `cdp-proxy` supervisord service
 - Chrome launched with `--remote-allow-origins='*'` and `--remote-debugging-port=9223` (internal port)
 - Container must be running (`charly start`)
 
@@ -435,10 +435,10 @@ This pattern works for any page content extraction via JS. The `cdp eval` comman
 - `/charly-eval:dbus` -- D-Bus calls and notifications (sibling verb under `charly eval`).
 - `/charly-core:shell` -- Running commands in containers (`--tty` for OAuth flows)
 - `/charly-core:charly-config` -- Instance deployment, proxy configuration, removal workflow
-- `/charly-image:layer` -- Chrome layer configuration (cdp-proxy service, port declarations)
+- `/charly-image:layer` -- Chrome candy configuration (cdp-proxy service, port declarations)
 - `/charly-selkies:selkies-labwc` -- Full SPA DOM structure, coordinate mapping, session resilience
 - `/charly-selkies:chrome-devtools-mcp` -- MCP-based browser automation (29 tools via Streamable HTTP)
-- `/charly-selkies:chrome` -- Chrome layer with cdp-proxy, env_accept (HTTP_PROXY)
+- `/charly-selkies:chrome` -- Chrome candy with cdp-proxy, env_accept (HTTP_PROXY)
 
 ## When to Use This Skill
 

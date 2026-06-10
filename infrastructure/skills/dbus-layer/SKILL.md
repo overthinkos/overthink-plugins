@@ -7,7 +7,7 @@ description: |
 
 # dbus -- D-Bus session bus service
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -58,17 +58,17 @@ charly eval dbus introspect <image> <dest> <path>  # Service introspection
 
 `charly cmd`/`charly tmux cmd`/`charly eval record cmd` → `sendContainerNotification()` → `charly eval dbus notify` → `org.freedesktop.Notifications.Notify` → swaync/mako → desktop popup
 
-For notifications to work, the image needs:
-1. **`dbus` layer** — D-Bus session bus (this layer)
-2. **`swaync` layer** — notification daemon
-3. **`charly` layer** — in-container charly binary for native D-Bus (falls back to `gdbus` from `glib2`)
+For notifications to work, the box needs:
+1. **`dbus` candy** — D-Bus session bus (this candy)
+2. **`swaync` candy** — notification daemon
+3. **`charly` candy** — in-container charly binary for native D-Bus (falls back to `gdbus` from `glib2`)
 
 ### Error Messages
 
 `charly eval dbus` provides explanatory errors when D-Bus is unavailable:
-- No session bus → suggests adding the `dbus` layer
+- No session bus → suggests adding the `dbus` candy
 - No notification daemon → suggests adding `swaync`
-- No `charly` binary → falls back to `gdbus`, warns about adding `charly` layer
+- No `charly` binary → falls back to `gdbus`, warns about adding `charly` candy
 
 ## `charly status` Probe
 
@@ -78,12 +78,12 @@ The `dbus` probe checks:
 
 Shows as `dbus:ok (notify:swaync)` in `charly status` detail view.
 
-## Used In Images
+## Used In Boxes
 
-- Transitive dependency via `sway` in all desktop images
-- Now explicitly added to all images with supervisord (openclaw, jupyter, ollama, immich, etc.)
+- Transitive dependency via `sway` in all desktop boxes
+- Now explicitly added to all boxes with supervisord (openclaw, jupyter, ollama, immich, etc.)
 
-## Related Layers
+## Related Candies
 
 - `/charly-infrastructure:supervisord` -- process manager dependency
 - `/charly-selkies:sway` -- primary consumer (Sway depends on dbus)
@@ -107,5 +107,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

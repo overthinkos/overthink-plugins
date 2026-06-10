@@ -2,12 +2,12 @@
 name: whisper
 description: |
   OpenAI Whisper local speech-to-text.
-  Use when working with the whisper layer.
+  Use when working with the whisper candy.
 ---
 
 # whisper -- OpenAI Whisper STT
 
-## Layer Properties
+## Candy Properties
 
 | Property | Value |
 |----------|-------|
@@ -22,10 +22,10 @@ candy:
   - whisper
 ```
 
-## Used In Images
+## Used In Boxes
 
 
-## Related Layers
+## Related Candies
 
 - `/charly-languages:python` — Python runtime — required dependency
 - `/charly-distros:cuda` — CUDA toolkit — required dependency
@@ -38,9 +38,9 @@ Use when the user asks about:
 - Speech-to-text in containers
 - OpenAI Whisper setup
 - Audio transcription with CUDA
-- The `whisper` layer
+- The `whisper` candy
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
