@@ -51,7 +51,7 @@ charly box merge --all
 ## Configuration in charly.yml
 
 ```yaml
-images:
+box:
   sway-browser-vnc:
     merge:
       auto: true      # Include in `charly box merge --all`

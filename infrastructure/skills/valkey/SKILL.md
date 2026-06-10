@@ -42,7 +42,7 @@ See `/charly-image:layer` for `env_provide` field docs.
 ```yaml
 # charly.yml
 my-app:
-  layers:
+  candy:
     - valkey
   ports:
     - "6379:6379"

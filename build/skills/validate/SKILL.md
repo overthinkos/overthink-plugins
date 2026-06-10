@@ -33,7 +33,7 @@ Invoked as `charly box validate`. See `/charly-image:image` for the family overv
 
 ### Layer Rules
 
-- Layer directory must contain at least one install source — `charly.yml` with a non-empty `task:` list or a `rpm:` / `deb:` / `pac:` / `aur:` packages section; an auto-detected builder manifest (`pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, `Cargo.toml`); or a `layer:` composition field (pure composition layers are valid).
+- Layer directory must contain at least one install source — `charly.yml` with a non-empty `task:` list or a `rpm:` / `deb:` / `pac:` / `aur:` packages section; an auto-detected builder manifest (`pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, `Cargo.toml`); or a `candy:` composition field (pure composition layers are valid).
 - `depends` must reference existing layers (local or remote).
 - Circular dependencies are errors.
 - `volumes` names must match `^[a-z0-9]+(-[a-z0-9]+)*$`.
@@ -80,7 +80,7 @@ See `/charly-image:layer` for the full verb catalog. The validator enforces:
 - Self-referencing builder is allowed (skipped by generator)
 - `bootc: true` requires appropriate base image
 - Duplicate alias names within an image are errors
-- Image-level alias `command` defaults to `name` if omitted
+- Box-level alias `command` defaults to `name` if omitted
 - `env` accepts list of `KEY=VALUE` strings (runtime only)
 - `env_file` accepts a path string (validated at runtime)
 - `security` at image level overrides layer-level security (not an error)
@@ -200,7 +200,7 @@ charly box list candies                       # Verify layer exists
 
 ## Cross-kind name reuse — NOT a uniqueness violation
 
-`charly box validate` does NOT enforce global name uniqueness across kinds. The same name MAY exist simultaneously as a layer (`candy/<name>/`), an `image:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry, AND a `deploy:` entry. Uniqueness is scoped to each kind. Do not write a validator that flags `image.foo + vm.foo` as ambiguous — verbs disambiguate by command context. The loader raises hard load-time errors on: (a) the obsolete `deploy.qc` / `deploy.cachyos-dx` keys; (b) any obsolete `kind: deployment` doc or root-key `deployment:` (the deploy kind is `kind: deploy`). Every such error points at `charly migrate`. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/charly-build:migrate`.
+`charly box validate` does NOT enforce global name uniqueness across kinds. The same name MAY exist simultaneously as a layer (`candy/<name>/`), a `box:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry, AND a `deploy:` entry. Uniqueness is scoped to each kind. Do not write a validator that flags `box.foo + vm.foo` as ambiguous — verbs disambiguate by command context. The loader raises hard load-time errors on: (a) the obsolete `deploy.qc` / `deploy.cachyos-dx` keys; (b) any obsolete `kind: deployment` doc or root-key `deployment:` (the deploy kind is `kind: deploy`). Every such error points at `charly migrate`. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/charly-build:migrate`.
 
 ## When to Use This Skill
 

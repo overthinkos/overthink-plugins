@@ -21,7 +21,7 @@ PATH additions: `~/.local/bin`
 ```yaml
 # charly.yml
 my-dev:
-  layers:
+  candy:
     - claude-code
 ```
 

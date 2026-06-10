@@ -68,7 +68,7 @@ stream.
 ```yaml
 # charly.yml -- now included in all images with supervisord
 my-image:
-  layers:
+  candy:
     - charly
 ```
 

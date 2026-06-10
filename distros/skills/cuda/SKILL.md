@@ -50,7 +50,7 @@ Extracts cuDNN headers from `cuda-cudnn-devel` RPM (bypasses driver dependency v
 # charly.yml
 nvidia:
   base: fedora-nonfree
-  layers:
+  candy:
     - nvidia
     - cuda
 ```

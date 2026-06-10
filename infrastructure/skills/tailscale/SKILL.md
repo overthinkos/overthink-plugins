@@ -30,7 +30,7 @@ my-bootc-image:
   base: "quay.io/fedora/fedora-bootc:43"
   bootc: true
   distro: ["fedora:43", fedora]
-  layers:
+  candy:
     - tailscale
     - ...
 ```

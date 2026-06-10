@@ -70,7 +70,7 @@ you want the git tooling, compose `/charly-coder:gh` alongside
 ```yaml
 # charly.yml
 my-dev:
-  layers:
+  candy:
     - dev-tools
 ```
 

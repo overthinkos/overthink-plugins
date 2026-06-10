@@ -27,7 +27,7 @@ box:
   my-cloud-image:
     base: "quay.io/fedora/fedora-bootc:43"
     bootc: true
-    layers:
+    candy:
       - cloud-init
 ```
 

@@ -56,7 +56,7 @@ The supervisord `[program:sway]` environment sets `WLR_BACKENDS=headless` — he
 ```yaml
 # charly.yml -- typically not used directly; pulled in via chrome-sway
 my-desktop:
-  layers:
+  candy:
     - sway
 ```
 

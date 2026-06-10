@@ -57,7 +57,7 @@ npx playwright --version
 # charly.yml
 hermes-playwright:
   base: fedora
-  layers:
+  candy:
     - agent-forwarding
     - hermes
     - hermes-playwright

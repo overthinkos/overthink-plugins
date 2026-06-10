@@ -30,7 +30,7 @@ description: |
 ```yaml
 # charly.yml
 openclaw:
-  layers:
+  candy:
     - openclaw
 ```
 

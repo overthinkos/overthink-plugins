@@ -23,7 +23,7 @@ GPU-accelerated Python environment with ML libraries — PyTorch, transformers, 
 
 The `python-ml` layer is a **Tier 2 environment-owner meta-layer** that:
 1. Owns the pixi.toml (core ML Python environment)
-2. Composes `llama-cpp` (Tier 1 sub-layer) via `layers: [llama-cpp]`
+2. Composes `llama-cpp` (Tier 1 sub-layer) via `candy: [llama-cpp]`
 3. Installs vLLM 0.19 wheel via a cmd task (after pixi env is established)
 
 Build order: pixi environment → llama-cpp (binaries) → vLLM 0.19 wheel
@@ -33,7 +33,7 @@ Build order: pixi environment → llama-cpp (binaries) → vLLM 0.19 wheel
 1. `fedora` → `nvidia` (CUDA base)
 2. `pixi` → `python` (transitive)
 3. `python-ml` — ML pixi environment (Tier 2, owns pixi.toml)
-4. `llama-cpp` — llama.cpp binaries (Tier 1, via `layer:` field)
+4. `llama-cpp` — llama.cpp binaries (Tier 1, via `candy:` field)
 
 ## Quick Start
 
@@ -69,5 +69,5 @@ After `charly box build`:
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

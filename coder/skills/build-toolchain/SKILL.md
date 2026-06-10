@@ -83,7 +83,7 @@ inline source patches, and runs `pip install .` against this builder stage.
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - build-toolchain
 ```
 

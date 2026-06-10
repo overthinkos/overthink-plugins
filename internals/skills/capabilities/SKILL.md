@@ -117,9 +117,9 @@ This is what enables the "**K8s deploy without access to charly.yml**" invariant
 
 The long-term direction (documented in `charly/capabilities.go:17-22`) is to split `BoxConfig` into three discriminated sections:
 
-- `image.build:` — Containerfile inputs (base image, layers, distro/builder selection). Consumed only by `charly box build`.
-- `image.capabilities:` — the runtime contract documented here. Emitted as OCI labels.
-- `image.deploy:` — target-specific defaults (K8s storage class, container-target port defaults). Consumed by `charly deploy add`.
+- `box.build:` — Containerfile inputs (base image, layers, distro/builder selection). Consumed only by `charly box build`.
+- `box.capabilities:` — the runtime contract documented here. Emitted as OCI labels.
+- `box.deploy:` — target-specific defaults (K8s storage class, container-target port defaults). Consumed by `charly deploy add`.
 
 Today these co-exist in a single `BoxConfig`. The `Capabilities` alias is the stepping stone — once the schema split lands, `Capabilities` will point at the `capabilities:` subsection directly instead of aliasing the whole struct. The `CapabilityLabelMap` completeness test will keep the contract honest across the migration.
 
@@ -138,8 +138,8 @@ See `/charly-image:image` for current user-facing structure and `/charly-build:m
 
 ## See Also
 
-- `/charly-image:image` — user-facing `image:` entries in `charly.yml`
-- `/charly-image:layer` — user-facing `layer:` authoring, including `service:` which feeds `LabelService`
+- `/charly-image:image` — user-facing `box:` entries in `charly.yml`
+- `/charly-image:layer` — user-facing `candy:` authoring, including `service:` which feeds `LabelService`
 - `/charly-core:deploy` — `charly deploy add` / `from-image` / `sync` commands
 - `/charly-kubernetes:kubernetes` — K8s deploy target that reads `LabelService` to generate Kustomize
 - `/charly-eval:eval` — three-section `LabelEval` (layer/image/deploy) — same label-contract pattern

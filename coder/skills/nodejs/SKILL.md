@@ -44,7 +44,7 @@ this pnpm to drive their build.
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - nodejs
 ```
 

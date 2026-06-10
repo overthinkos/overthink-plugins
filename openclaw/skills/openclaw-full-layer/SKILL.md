@@ -51,7 +51,7 @@ This metalayer includes the following 25 layers:
 
 ```yaml
 # charly.yml
-layers:
+candy:
   - openclaw-full
 ```
 

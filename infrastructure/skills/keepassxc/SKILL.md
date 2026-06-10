@@ -29,7 +29,7 @@ Single package, no custom repos. Ships the KeePassXC GUI binary at `/usr/bin/kee
 ```yaml
 # charly.yml
 my-desktop-image:
-  layers:
+  candy:
     - selkies-desktop      # or another desktop base
     - keepassxc            # this layer
 ```

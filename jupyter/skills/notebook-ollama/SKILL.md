@@ -114,7 +114,7 @@ Pull models before running: `charly shell ollama -c "ollama pull llama3.2"`
 ```yaml
 # charly.yml
 jupyter-ml-notebook:
-  layers:
+  candy:
     - jupyter-ml
     - notebook-templates
     - notebook-finetuning

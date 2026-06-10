@@ -64,10 +64,10 @@ aliases:
 
 ### In a box `charly.yml`
 
-Image-level aliases default `command` to `name` if omitted. Image-level aliases override layer aliases with the same name.
+Box-level aliases default `command` to `name` if omitted. Box-level aliases override candy aliases with the same name.
 
 ```yaml
-images:
+box:
   my-app:
     aliases:
       - name: myapp          # command defaults to "myapp"
@@ -132,7 +132,7 @@ Scans `~/.local/bin/` for files with the `# charly-alias` marker.
 - Layer aliases require both `name` and `command`
 - Alias names must match `^[a-zA-Z0-9][a-zA-Z0-9._-]*$`
 - Duplicate alias names within an image are errors
-- Image-level alias `command` defaults to `name` if omitted
+- Box-level alias `command` defaults to `name` if omitted
 
 ## Cross-References
 
@@ -140,7 +140,7 @@ Scans `~/.local/bin/` for files with the `# charly-alias` marker.
 
 - `/charly-core:shell` -- How aliases execute commands via `charly shell -c`
 - `/charly-image:layer` -- Declaring aliases in charly.yml
-- `/charly-image:image` -- Image-level alias overrides
+- `/charly-image:image` -- Box-level alias overrides
 
 ## When to Use This Skill
 

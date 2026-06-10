@@ -155,7 +155,7 @@ defaults:
     auto: false
     max_mb: 128
 
-images:
+box:
   fedora:
     base: "quay.io/fedora/fedora:43"
     distro: ["fedora:43", fedora]
@@ -163,14 +163,14 @@ images:
   fedora-builder:
     base: fedora
     builds: [pixi, npm, cargo]  # declares what this builder can build
-    layers:
+    candy:
       - pixi
       - nodejs
       - build-toolchain
 
   my-app:
     base: fedora
-    layers:
+    candy:
       - supervisord
       - traefik
       - my-service
@@ -215,7 +215,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `security` | `null` | Container security options. Overrides layer-level security |
 | `network` | `string` | Container network mode (default: shared `charly` network; set `host` for host networking) |
 
-VM-related fields (`vm`, `libvirt`) are not valid on kind:image entries — the loader rejects them. VMs are declared as `kind: vm` entities in `vm.yml` — see `/charly-vm:vms-catalog` for authoring and `/charly-build:migrate` for `charly migrate` conversion of legacy configs. `bootc: true` stays on kind:image entries (marks the image as a bootable container); a separate `kind: vm` entity with `source.kind: bootc` references it.
+VM-related fields (`vm`, `libvirt`) are not valid on kind: box entries — the loader rejects them. VMs are declared as `kind: vm` entities in `vm.yml` — see `/charly-vm:vms-catalog` for authoring and `/charly-build:migrate` for `charly migrate` conversion of legacy configs. `bootc: true` stays on kind: box entries (marks the image as a bootable container); a separate `kind: vm` entity with `source.kind: bootc` references it.
 
 ## Builder and Builds
 
@@ -233,11 +233,11 @@ defaults:
     npm: fedora-builder
     cargo: fedora-builder
 
-images:
+box:
   fedora-builder:
     base: fedora
     builds: [pixi, npm, cargo]
-    layers: [pixi, nodejs, build-toolchain]
+    candy: [pixi, nodejs, build-toolchain]
 
   arch:
     base: "quay.io/archlinux/archlinux:base-20260525.0.535911"
@@ -252,15 +252,15 @@ images:
   arch-builder:
     base: arch              # inherits build: [pac] AND builder: from arch
     builds: [pixi, npm, cargo, aur]
-    layers: [pixi, nodejs, build-toolchain, yay]
+    candy: [pixi, nodejs, build-toolchain, yay]
 
   arch-test:
     base: arch              # inherits builder: from arch
     build: [pac, aur]            # override to add aur format
-    layers: [arch-pac-test, arch-aur-test]
+    candy: [arch-pac-test, arch-aur-test]
 ```
 
-Each build type resolves its builder independently: **`image.builder[type]` → `base_image.builder[type]` → `defaults.builder[type]` → `""`**. This means you can use `fedora-builder` for pixi but `arch-builder` for npm on the same image.
+Each build type resolves its builder independently: **`box.builder[type]` → `base_box.builder[type]` → `defaults.builder[type]` → `""`**. This means you can use `fedora-builder` for pixi but `arch-builder` for npm on the same image.
 
 Self-reference protection: after merging defaults/base, any `builder` entry pointing to the image itself is filtered out. Builder images can't use themselves as builders.
 
@@ -273,13 +273,13 @@ Source: `charly/generate.go` (`builderRefForFormat`), `charly/graph.go` (`Resolv
 When `base` references another image in `charly.yml`, the generator resolves it to the full registry/tag and creates a build dependency. The referenced image must be built first.
 
 ```yaml
-images:
+box:
   fedora:
     base: "quay.io/fedora/fedora:43"
 
   my-app:
     base: fedora        # References fedora image above
-    layers: [my-layer]
+    candy: [my-layer]
 ```
 
 ## user_policy: adopt vs create
@@ -348,14 +348,14 @@ When `base` is a URL string (not the name of another image in `charly.yml`), the
 my-bootc-image:
   base: "quay.io/fedora/fedora-bootc:43"
   bootc: true
-  layers: [sshd, qemu-guest-agent, ffmpeg]
+  candy: [sshd, qemu-guest-agent, ffmpeg]
 
 # ✓ CORRECT — explicit distro: tags matching the base
 my-bootc-image:
   base: "quay.io/fedora/fedora-bootc:43"
   bootc: true
   distro: ["fedora:43", fedora]
-  layers: [sshd, qemu-guest-agent, ffmpeg]
+  candy: [sshd, qemu-guest-agent, ffmpeg]
 ```
 
 Symptom without `distro:`: `charly box inspect <image>` shows `"Distro": null`. The generator's install_template Phase-2 branch short-circuits on `img.DistroDef == nil`, so **no layer `rpm:` install RUN steps are emitted**. The image builds cleanly but is missing every package from every layer that uses declarative `rpm:` sections. Explicit `cmd: dnf install …` tasks still run; the bug affects only declarative `rpm:`/`deb:`/`pac:` sections.
@@ -402,7 +402,7 @@ Override: `charly box generate --tag <value>`.
 The `env` and `env_file` fields inject environment variables into containers at runtime (not build time):
 
 ```yaml
-images:
+box:
   my-app:
     env:
       - DB_HOST=localhost
@@ -416,10 +416,10 @@ Source: `charly/envfile.go` (`ResolveEnvVars`).
 
 ## Security Configuration
 
-Image-level `security:` overrides layer-level security settings:
+Box-level `security:` overrides layer-level security settings:
 
 ```yaml
-images:
+box:
   my-app:
     security:
       privileged: true
@@ -434,7 +434,7 @@ Source: `charly/security.go` (`CollectSecurity`).
 
 ## VM Configuration
 
-VMs are **not** configured on kind:image entries. The `image.vm:` and `image.libvirt:` fields are rejected at load time. VM primitives are declared as `kind: vm` entities in `vm.yml`:
+VMs are **not** configured on kind: box entries. The `box.vm:` and `box.libvirt:` fields are rejected at load time. VM primitives are declared as `kind: vm` entities in `vm.yml`:
 
 ```yaml
 # vm.yml
@@ -442,7 +442,7 @@ vms:
   my-bootc-vm:
     source:
       kind: bootc
-      box: my-bootc-image        # references the kind:image entry above (must have bootc: true)
+      box: my-bootc-image        # references the kind: box entry above (must have bootc: true)
     disk_size: 10 GiB
     ram: 4G
     cpus: 2
@@ -451,7 +451,7 @@ vms:
         filesystems: [{type: mount, source: ..., target: ...}]
 ```
 
-See `/charly-vm:vms-catalog` for the full VmSpec schema, `/charly-vm:vm` for the `charly vm build/create/ssh` command family, and `/charly-build:migrate` for `charly migrate` to convert legacy `image.vm:` / `image.libvirt:` fields to the new schema.
+See `/charly-vm:vms-catalog` for the full VmSpec schema, `/charly-vm:vm` for the `charly vm build/create/ssh` command family, and `/charly-build:migrate` for `charly migrate` to convert legacy `box.vm:` / `box.libvirt:` fields to the new schema.
 
 ## OCI Labels
 
@@ -502,25 +502,25 @@ charly box build my-new-image
 Set `base` to another image name:
 
 ```yaml
-images:
+box:
   nvidia:
     base: fedora
-    layers: [cuda]
+    candy: [cuda]
     platforms: [linux/amd64]
 
   ml-workstation:
     base: nvidia
-    layers: [python-ml, jupyter]
+    candy: [python-ml, jupyter]
 ```
 
 ### Disable an Image
 
 ```yaml
-images:
+box:
   experimental:
     enabled: false
     base: fedora
-    layers: [experimental-layer]
+    candy: [experimental-layer]
 ```
 
 ## Cross-References
@@ -542,7 +542,7 @@ images:
 - `/charly-core:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
 - `/charly-core:charly-config` -- `charly config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
 - `/charly-internals:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
-- `/charly-eval:eval` — Image-level `eval:` (cross-layer invariants) and `deploy_eval:` (deploy-default checks shipped with the image). Both are embedded in the `ai.opencharly.eval` OCI label.
+- `/charly-eval:eval` — Box-level `eval:` (cross-layer invariants) and `deploy_eval:` (deploy-default checks shipped with the image). Both are embedded in the `ai.opencharly.eval` OCI label.
 - `/charly-build:charly-mcp-cmd` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `charly eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
 - `/charly-vm:vm` — `charly vm build/create/start/stop/ssh` command family; reads `vm.yml`, not `charly.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
 - `/charly-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema.
@@ -550,7 +550,7 @@ images:
 
 ## Cross-kind name reuse
 
-The `image:` map's namespace is independent of `candy/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`charly box set`, `charly box new box`, `charly box add-candy`, `charly box rm-candy`, `charly box new project`) write exclusively to `charly.yml` — a per-kind sibling file is reachable only via the `import:` statement from `charly.yml`, never as a default authoring target. Missing `charly.yml` → hard error pointing at `charly box new project .` or `charly migrate`. See CLAUDE.md "Cross-kind name reuse".
+The `box:` map's namespace is independent of `candy/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`charly box set`, `charly box new box`, `charly box add-candy`, `charly box rm-candy`, `charly box new project`) write exclusively to `charly.yml` — a per-kind sibling file is reachable only via the `import:` statement from `charly.yml`, never as a default authoring target. Missing `charly.yml` → hard error pointing at `charly box new project .` or `charly migrate`. See CLAUDE.md "Cross-kind name reuse".
 
 ### Files are generic kind-containers (per-kind filenames are a convenience)
 
@@ -572,7 +572,7 @@ A namespaced import is reached through a dotted ref everywhere a name is resolve
 ```yaml
 import:
   - build.yml                       # flat — shared vocabulary
-  - charly.yml                       # flat — this repo's own kind:image entries
+  - charly.yml                       # flat — this repo's own kind: box entries
   - cachyos: box/cachyos          # namespaced child import
 
 box:

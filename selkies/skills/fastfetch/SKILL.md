@@ -26,7 +26,7 @@ Displays system information (OS, kernel, CPU, GPU, memory, etc.) with ASCII art 
 
 ```yaml
 # box or candy charly.yml
-layers:
+candy:
   - fastfetch
 ```
 

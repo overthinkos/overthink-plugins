@@ -23,7 +23,7 @@ description: |
 
 This is a **Tier 2 "environment owner"** layer that:
 1. Owns the pixi.toml with ALL Python dependencies (Jupyter + ML + vLLM runtime deps)
-2. Composes three Tier 1 sub-layers via `layers: [llama-cpp, unsloth, jupyter-mcp]`
+2. Composes three Tier 1 sub-layers via `candy: [llama-cpp, unsloth, jupyter-mcp]`
 3. MCP extension installed by the `jupyter-mcp` sub-layer (not directly in tasks:)
 
 Build order: pixi environment → llama-cpp (binaries) → unsloth (vllm wheel + unsloth pip + patch) → jupyter-mcp (MCP extension)

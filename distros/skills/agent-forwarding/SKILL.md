@@ -35,7 +35,7 @@ contributes.
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - agent-forwarding
 ```
 
@@ -98,7 +98,7 @@ charly settings reset forward_gpg_agent        # Re-enable (back to default: tru
 
 ```yaml
 # ~/.config/charly/deploy.yml
-images:
+box:
   immich:
     forward_gpg_agent: false    # No GPG needed for photo management
     forward_ssh_agent: false    # Security: no host SSH access

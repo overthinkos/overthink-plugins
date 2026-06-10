@@ -24,7 +24,7 @@ description: |
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - google-cloud-npm
 ```
 

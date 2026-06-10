@@ -278,5 +278,5 @@ See `/charly-eval:eval` for the framework and author-facing gotchas.
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

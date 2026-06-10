@@ -43,7 +43,7 @@ type LibvirtConfig struct {
 }
 ```
 
-**Structured first; raw XML is a last resort.** `Snippets` exists for the rare case where libvirt gained a new element before charly's schema caught up. The legacy list-of-strings form `libvirt: ["<xml>", ...]` on `kind:image` entries was deleted in the cutover — raw XML now lives only in `vms.<name>.libvirt.snippets:` (new), on layer-level `libvirt.snippets:` fields, and the `InjectLibvirtXML` post-processor still handles both paths.
+**Structured first; raw XML is a last resort.** `Snippets` exists for the rare case where libvirt gained a new element before charly's schema caught up. The legacy list-of-strings form `libvirt: ["<xml>", ...]` on `kind: box` entries was deleted in the cutover — raw XML now lives only in `vms.<name>.libvirt.snippets:` (new), on layer-level `libvirt.snippets:` fields, and the `InjectLibvirtXML` post-processor still handles both paths.
 
 ## Device-level gotchas learned in live testing
 

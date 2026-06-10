@@ -28,7 +28,7 @@ Native Wayland screen recorder for wlroots-based compositors (sway, labwc, etc.)
 
 ```yaml
 # box or candy charly.yml
-layers:
+candy:
   - wf-recorder
 ```
 

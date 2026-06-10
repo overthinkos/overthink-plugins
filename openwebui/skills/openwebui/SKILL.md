@@ -14,7 +14,7 @@ Open WebUI with auto-configured LLM providers (Ollama, OpenRouter), MCP server d
 ```yaml
 openwebui:
   base: fedora
-  layers:
+  candy:
     - agent-forwarding
     - openwebui
     - dbus
@@ -153,5 +153,5 @@ email env var injected. See `/charly-eval:eval` for the framework.
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

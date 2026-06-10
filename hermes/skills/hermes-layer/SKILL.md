@@ -144,7 +144,7 @@ charly service start hermes hermes-whatsapp
 # charly.yml
 hermes:
   base: fedora
-  layers:
+  candy:
     - agent-forwarding
     - hermes-full
     - dbus

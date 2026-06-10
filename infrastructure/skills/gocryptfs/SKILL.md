@@ -26,7 +26,7 @@ RPM: `gocryptfs`
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - gocryptfs
 ```
 

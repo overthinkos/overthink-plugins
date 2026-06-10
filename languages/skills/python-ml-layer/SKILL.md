@@ -18,7 +18,7 @@ description: |
 
 ## Architecture: Tier 2 Environment-Owner Meta-Layer
 
-This layer **owns the pixi.toml** for the core ML Python environment and composes the `llama-cpp` Tier 1 layer via `layers: [llama-cpp]`. Build order: pixi environment → llama-cpp (binaries) → python-ml user-phase tasks (vLLM wheel).
+This layer **owns the pixi.toml** for the core ML Python environment and composes the `llama-cpp` Tier 1 layer via `candy: [llama-cpp]`. Build order: pixi environment → llama-cpp (binaries) → python-ml user-phase tasks (vLLM wheel).
 
 ## Environment Variables
 
@@ -49,7 +49,7 @@ Plus from `llama-cpp` sub-layer:
 
 ## Related Layers
 
-- `/charly-jupyter:llama-cpp` — Sub-layer: llama.cpp binaries (composed via `layer:`)
+- `/charly-jupyter:llama-cpp` — Sub-layer: llama.cpp binaries (composed via `candy:`)
 - `/charly-distros:cuda` — CUDA toolkit dependency
 - `/charly-jupyter:jupyter-ml` — Full ML + Jupyter variant (superset of python-ml's pixi env)
 - `/charly-jupyter:unsloth-studio` — Fine-tuning variant (similar pixi env + unsloth)

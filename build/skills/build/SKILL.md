@@ -123,7 +123,7 @@ Each distro may declare a canonical `version:` (`distro.debian.version: "13"`, `
 - `build.yml` `builder.pixi` — **definition**: detection rules, stage template, cache mounts for the pixi builder.
 - `charly.yml` `builder.pixi` — **selection**: which image (e.g. `fedora-builder`) to use as the pixi builder for this image.
 
-An image's effective builder map resolves as: `image.builder[type]` → `base_image.builder[type]` → `defaults.builder[type]` → `""`. Self-references (a builder image pointing at itself) are filtered automatically.
+An image's effective builder map resolves as: `box.builder[type]` → `base_box.builder[type]` → `defaults.builder[type]` → `""`. Self-references (a builder image pointing at itself) are filtered automatically.
 
 ### Why one file, not three
 

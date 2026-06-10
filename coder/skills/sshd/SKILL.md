@@ -76,7 +76,7 @@ Why not `${USER}` substitution? The generator substitutes `${USER}` in task fiel
 ```yaml
 # charly.yml -- add the layer to any image that needs an in-container SSH server
 my-image:
-  layers:
+  candy:
     - sshd
 ```
 

@@ -34,7 +34,7 @@ RPM: `dbus-daemon` (Fedora) · PAC: `dbus` (Arch) · DEB: `dbus` (Debian/Ubuntu)
 ```yaml
 # charly.yml -- now included in all images with supervisord
 my-image:
-  layers:
+  candy:
     - dbus
 ```
 

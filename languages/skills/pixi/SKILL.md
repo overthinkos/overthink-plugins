@@ -27,7 +27,7 @@ PATH additions: `~/.pixi/bin`, `~/.pixi/envs/default/bin`
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - pixi
 ```
 

@@ -71,7 +71,7 @@ type VmSource struct {
     BaseUser string       // adopt-user pattern — see below
 
     // bootc branch:
-    Image      string     // kind:image entry name
+    Image      string     // kind: box entry name
     Transport  string     // registry | containers-storage | oci | oci-archive
     Rootfs     string     // ext4 | xfs | btrfs
     RootSize   string     // "10G" — caps root partition, rest unpartitioned
@@ -163,12 +163,12 @@ The legacy `VmConfig` type + `BoxConfig.Vm` + `BoxConfig.Libvirt` + `ResolvedIma
 
 | Legacy location | New location |
 |---|---|
-| `image.bootc: true` + `image.vm.disk_size` | `vms.<name>.source.kind: bootc` + `vms.<name>.disk_size` |
-| `image.vm.ssh_port` | `vms.<name>.ssh.port` |
-| `image.vm.ram`, `.cpus`, `.rootfs`, `.root_size`, `.kernel_args` | `vms.<name>.ram`, `.cpus`, `source.rootfs`, `source.root_size`, `source.kernel_args` |
-| `image.vm.firmware` | `vms.<name>.firmware` |
-| `image.vm.network` (string) | `vms.<name>.network.mode` |
-| `image.libvirt: ["<xml>", …]` (list of strings) | `vms.<name>.libvirt.snippets: […]` + structured `libvirt.devices.*` |
+| `box.bootc: true` + `box.vm.disk_size` | `vms.<name>.source.kind: bootc` + `vms.<name>.disk_size` |
+| `box.vm.ssh_port` | `vms.<name>.ssh.port` |
+| `box.vm.ram`, `.cpus`, `.rootfs`, `.root_size`, `.kernel_args` | `vms.<name>.ram`, `.cpus`, `source.rootfs`, `source.root_size`, `source.kernel_args` |
+| `box.vm.firmware` | `vms.<name>.firmware` |
+| `box.vm.network` (string) | `vms.<name>.network.mode` |
+| `box.libvirt: ["<xml>", …]` (list of strings) | `vms.<name>.libvirt.snippets: […]` + structured `libvirt.devices.*` |
 
 `charly migrate` performs this mapping idempotently. See `/charly-build:migrate` for the command and `/charly-internals:cutover-policy` for the policy.
 

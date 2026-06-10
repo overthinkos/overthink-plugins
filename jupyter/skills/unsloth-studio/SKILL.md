@@ -24,7 +24,7 @@ Unsloth Studio web UI for LLM fine-tuning with GPU acceleration.
 
 The `unsloth-studio` layer is a **Tier 2 environment-owner meta-layer** that:
 1. Owns the pixi.toml (fine-tuning Python environment)
-2. Composes two Tier 1 sub-layers via `layers: [llama-cpp, unsloth]`
+2. Composes two Tier 1 sub-layers via `candy: [llama-cpp, unsloth]`
 3. Defines the supervisord service for the Studio web UI
 
 Build order: pixi environment → llama-cpp (binaries) → unsloth (vLLM 0.19 wheel + unsloth pip + torch.compile patch) → supervisord config
@@ -34,8 +34,8 @@ Build order: pixi environment → llama-cpp (binaries) → unsloth (vLLM 0.19 wh
 1. `fedora` → `nvidia` (CUDA base)
 2. `pixi` → `python` → `supervisord` (transitive)
 3. `unsloth-studio` — Tier 2 meta-layer (owns pixi.toml, service config)
-4. `llama-cpp` — llama.cpp binaries (Tier 1, via `layer:`)
-5. `unsloth` — vLLM 0.19 + unsloth pip install + torch.compile patch (Tier 1, via `layer:`)
+4. `llama-cpp` — llama.cpp binaries (Tier 1, via `candy:`)
+5. `unsloth` — vLLM 0.19 + unsloth pip install + torch.compile patch (Tier 1, via `candy:`)
 
 ## Ports
 
@@ -93,5 +93,5 @@ After `charly start`:
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

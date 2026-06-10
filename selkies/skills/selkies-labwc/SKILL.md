@@ -16,7 +16,7 @@ The **labwc flavor** of the selkies streaming desktop — a browser-accessible W
 selkies-labwc:
   base: cachyos               # local cachyos base (same box/cachyos submodule)
   build: [pac, aur]          # aur required: chrome (google-chrome) + wl-tools (wlrctl)
-  layers:
+  candy:
     - agent-forwarding
     - selkies-desktop
     - dbus
@@ -379,5 +379,5 @@ for `/etc/sudoers.d/charly-user` because it's root-only (`/charly-eval:eval` Got
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

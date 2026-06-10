@@ -19,7 +19,7 @@ description: |
 # charly.yml
 fedora-nonfree:
   base: fedora
-  layers:
+  candy:
     - rpmfusion
 ```
 

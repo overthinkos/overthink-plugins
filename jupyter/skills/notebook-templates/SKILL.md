@@ -46,7 +46,7 @@ At deploy time, when the volume is configured as a bind mount (`charly config --
 ```yaml
 # charly.yml
 jupyter:
-  layers:
+  candy:
     - notebook-templates
     # ... other layers
 ```

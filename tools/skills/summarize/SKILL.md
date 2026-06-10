@@ -18,7 +18,7 @@ description: |
 
 ```yaml
 # box or candy charly.yml
-layers:
+candy:
   - summarize
 ```
 

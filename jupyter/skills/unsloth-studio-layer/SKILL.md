@@ -21,7 +21,7 @@ description: |
 
 ## Architecture: Tier 2 Environment-Owner Meta-Layer
 
-This layer **owns the pixi.toml** for the fine-tuning environment and composes two Tier 1 layers via `layers: [llama-cpp, unsloth]`. Build order: pixi environment → llama-cpp (binaries) → unsloth (vLLM wheel + unsloth pip + patch) → supervisord config.
+This layer **owns the pixi.toml** for the fine-tuning environment and composes two Tier 1 layers via `candy: [llama-cpp, unsloth]`. Build order: pixi environment → llama-cpp (binaries) → unsloth (vLLM wheel + unsloth pip + patch) → supervisord config.
 
 ## Environment Variables
 

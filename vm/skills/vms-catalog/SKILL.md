@@ -27,7 +27,7 @@ vms:
       base_user: arch                     # adopt this account (see Adopt pattern below)
       cache: ~/.cache/charly/vm-images/       # optional override
       # bootc branch:
-      box: <kind:image entry name>
+      box: <kind: box entry name>
       transport: registry | containers-storage | oci | oci-archive
       rootfs: ext4 | xfs | btrfs
       root_size: 10G                      # optional cap; rest of disk stays unpartitioned
@@ -193,14 +193,14 @@ Load-time errors raised by `ValidateVmSpec` (`charly/libvirt_validate.go`, see `
 
 - `source.kind` must be one of `cloud_image`, `bootc`.
 - `cloud_image` branch requires `url:` populated.
-- `bootc` branch requires `image:` populated and pointing at a resolvable `kind:image` entry.
+- `bootc` branch requires `image:` populated and pointing at a resolvable `kind: box` entry.
 - `firmware:` must be one of `bios`, `uefi-insecure`, `uefi-secure`.
 - `network.mode:` must be one of `user`, `bridge`, `nat`.
 - `ssh.key_source:` must parse as `auto`, `generate`, `none`, or an absolute path.
 - `ssh.key_injection.smbios` / `.cloud_init` must be one of `auto`, `enabled`, `disabled`.
 - `libvirt:` structure is schema-validated via `ValidateLibvirtConfig` — invalid snippets fail fast.
 
-## Migration from legacy (image.bootc / image.vm / image.libvirt)
+## Migration from legacy (box.bootc / box.vm / box.libvirt)
 
 Projects predating this schema had three coupled fields on `kind: box` entries: `bootc: true`, `vm: {...}`, `libvirt: [...]`. All three were deleted in the hard cutover. Conversion is one-shot:
 

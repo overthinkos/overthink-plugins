@@ -72,7 +72,7 @@ vm:
     cpus: 2
 
 deployments:
-  images:
+  box:
     "vm:k3s-srv":
       target: vm
       vm_source: k3s-srv

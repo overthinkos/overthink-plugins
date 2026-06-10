@@ -23,7 +23,7 @@ Pixi (conda-forge): `python >=3.13,<3.14`
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - python
 ```
 

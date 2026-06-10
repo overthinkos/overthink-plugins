@@ -44,7 +44,7 @@ Installs the `yay` AUR helper, which enables the `aur:` package format in `charl
 
 ```yaml
 # charly.yml — typically in a builder image
-layers:
+candy:
   - yay
 ```
 

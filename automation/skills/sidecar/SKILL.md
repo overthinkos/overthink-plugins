@@ -93,7 +93,7 @@ Missing `env_accept` on the consumer side silently drops the var. Missing `env_r
 `--sidecar` assignments and `-e` overrides are saved to `deploy.yml`. Subsequent `charly config` calls re-read them:
 
 ```yaml
-images:
+box:
   selkies-desktop:
     sidecars:
       tailscale:

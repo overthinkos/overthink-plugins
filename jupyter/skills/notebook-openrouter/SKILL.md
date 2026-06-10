@@ -100,7 +100,7 @@ charly secrets gpg set OPENROUTER_API_KEY sk-or-v1-...
 ```yaml
 # charly.yml
 jupyter-ml-notebook:
-  layers:
+  candy:
     - jupyter-ml
     - notebook-templates
     - notebook-finetuning

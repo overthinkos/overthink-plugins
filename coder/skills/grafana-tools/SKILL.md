@@ -18,7 +18,7 @@ description: |
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - grafana-tools
 ```
 

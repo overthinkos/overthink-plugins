@@ -72,7 +72,7 @@ Six build-scope tests:
 
 ```yaml
 # box or candy charly.yml
-layers:
+candy:
   - gh
 ```
 

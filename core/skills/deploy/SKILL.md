@@ -83,7 +83,7 @@ Applies a deployment. The deploy entry's `target:` field selects the target:
 | Local YAML path | `./custom.yml`, `/abs/path/charly.yml` | File's top-level keys classify image vs layer |
 | Remote repo | `github.com/owner/repo[/box/<n>\|/candy/<n>][@ref]` | Fetched via existing `--repo` cache |
 
-Disambiguation: a ref containing `/candy/` resolves to a layer; `/box/` to an image. For local names, `box/` is checked before `candy/`; same-named entries in both are a hard error. The legacy `@host/org/repo:version` form (used by `depends:` and `layer:` in charly.yml) is also accepted.
+Disambiguation: a ref containing `/candy/` resolves to a layer; `/box/` to an image. For local names, `box/` is checked before `candy/`; same-named entries in both are a hard error. The legacy `@host/org/repo:version` form (used by `require:` and `candy:` in charly.yml) is also accepted.
 
 When `<ref>` is omitted, the ref falls back to `deploy.yml['deploys'][<name>]['image']` (or the deploy key itself if no explicit image is declared).
 
@@ -619,8 +619,8 @@ deploy:
 | Source | Merge rule |
 |---|---|
 | Layer → layer | Smallest value wins (tightest cap is the safer default) |
-| Layers → image-level `security:` in charly.yml | Image-level **replaces** the merged layer value |
-| Image-level → deploy-level `security:` in deploy.yml | Deploy-level **replaces** the image-level value |
+| Layers → image-level `security:` in charly.yml | Box-level **replaces** the merged layer value |
+| Box-level → deploy-level `security:` in deploy.yml | Deploy-level **replaces** the image-level value |
 | CLI flag → deploy-level | CLI flag **writes** directly to deploy.yml (`--memory-max=...` on `charly config`) |
 
 Quadlet emission (`[Service]` section of `.container` file):
@@ -1052,9 +1052,9 @@ deploy:
 
 ## Cross-kind name reuse + ResolveDeployRef precedence
 
-A deploy entry's key in `deploy:` lives in its own namespace. The same name MAY simultaneously be a layer, an `image:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry — and the deploy entry's cross-reference fields (`image:`, `vm:`, `local:`, `cluster:`) are scoped to the matching kind, no fall-through. Concrete worked example: this repo's `deploy.charly-cachyos` references `local.charly-cachyos` via `local: charly-cachyos` — same name across two namespaces.
+A deploy entry's key in `deploy:` lives in its own namespace. The same name MAY simultaneously be a layer, a `box:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry — and the deploy entry's cross-reference fields (`image:`, `vm:`, `local:`, `cluster:`) are scoped to the matching kind, no fall-through. Concrete worked example: this repo's `deploy.charly-cachyos` references `local.charly-cachyos` via `local: charly-cachyos` — same name across two namespaces.
 
-`ResolveDeployRef` (used by `charly deploy add <name> <ref>`): when a name exists as BOTH an image and a layer, image-first precedence wins for the primary `<ref>` positional. The `--add-candy <ref>` path goes through `ResolveDeployRefAsLayer` which is layer-first. Same-name image and layer is permitted.
+`ResolveDeployRef` (used by `charly deploy add <name> <ref>`): when a name exists as BOTH an image and a layer, box-first precedence wins for the primary `<ref>` positional. The `--add-candy <ref>` path goes through `ResolveDeployRefAsLayer` which is layer-first. Same-name image and layer is permitted.
 
 The loader raises a hard load-time error on the obsolete `deploy.qc` / `deploy.cachyos-dx` keys, and on the obsolete `kind: deployment` doc / root-key `deployment:` (the deploy kind is `kind: deploy`); every such error points at `charly migrate`. See `/charly-build:migrate`.
 

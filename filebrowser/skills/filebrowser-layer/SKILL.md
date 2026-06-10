@@ -53,7 +53,7 @@ charly config filebrowser --bind files=/mnt/nas/shared
 # charly.yml
 filebrowser:
   base: fedora
-  layers:
+  candy:
     - agent-forwarding
     - filebrowser
     - dbus

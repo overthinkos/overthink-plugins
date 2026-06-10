@@ -22,7 +22,7 @@ RPM: `ripgrep`
 
 ```yaml
 # box or candy charly.yml
-layers:
+candy:
   - ripgrep
 ```
 

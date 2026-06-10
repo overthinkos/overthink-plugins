@@ -25,7 +25,7 @@ description: |
 ```yaml
 # charly.yml -- typically included via sway-desktop composition
 my-desktop:
-  layers:
+  candy:
     - wayvnc
 ```
 

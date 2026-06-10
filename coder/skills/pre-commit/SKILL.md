@@ -24,7 +24,7 @@ npm: `markdownlint-cli`
 ```yaml
 # charly.yml
 my-dev:
-  layers:
+  candy:
     - pre-commit
 ```
 

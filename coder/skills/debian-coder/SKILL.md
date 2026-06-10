@@ -31,7 +31,7 @@ debian-coder:
   ports:
     - "2222:2222"                 # sshd-wrapper
     - "18765:18765"               # charly-mcp (Streamable HTTP)
-  layers:
+  candy:
     # Baseline
     - agent-forwarding
     - sshd

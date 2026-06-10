@@ -159,7 +159,7 @@ declare `ports: [9224:9224]` in the image or run the test from inside the pod
 
 ```yaml
 # ~/.config/charly/deploy.yml
-images:
+box:
   sway-browser-vnc:
     ports:
       - 5900:5900
@@ -269,7 +269,7 @@ No other required modifiers — `ping`, `servers`, `list-*` take only the option
 
 ## Overview
 
-`charly mcp serve` runs the charly CLI *as* an MCP server. Every leaf command in the Kong CLI tree — `image.build`, `status`, `test.mcp.ping`, `config.setup`, `box.new.project`, `candy.add-rpm`, etc. — becomes a callable MCP tool. Tool catalogs are **auto-generated from Kong struct tags** by reflection; there is no hand-written schema per command. Result: **190 tools** covering the entire build + test + deploy surface, including the MCP-first authoring verbs (`image.{new.project, new.image, set, add-layer, rm-layer, fetch, refresh, write, cat}` + `layer.{set, add-rpm, add-deb, add-pac, add-aur}`).
+`charly mcp serve` runs the charly CLI *as* an MCP server. Every leaf command in the Kong CLI tree — `box.build`, `status`, `test.mcp.ping`, `config.setup`, `box.new.project`, `candy.add-rpm`, etc. — becomes a callable MCP tool. Tool catalogs are **auto-generated from Kong struct tags** by reflection; there is no hand-written schema per command. Result: **190 tools** covering the entire build + test + deploy surface, including the MCP-first authoring verbs (`image.{new.project, new.image, set, add-layer, rm-layer, fetch, refresh, write, cat}` + `layer.{set, add-rpm, add-deb, add-pac, add-aur}`).
 
 ```bash
 charly mcp serve                                # Streamable HTTP on :18765/mcp
@@ -286,12 +286,12 @@ The server uses the same `github.com/modelcontextprotocol/go-sdk` v1.5.0 as the 
 The server lives in a single file: `charly/mcp_server.go`.
 
 1. **Reflection** — `buildMcpServer(readOnly)` calls `kong.New(&CLI{}, …)` to materialise the CLI tree, then walks `k.Model.Leaves(true)` — every non-branch node. For each leaf, `kongLeafToTool(leaf, path, destructive)` emits an `*mcp.Tool`:
-   - **Name**: dot-joined Kong path (e.g. `image.build`, `test.mcp.ping`, `config.setup`).
+   - **Name**: dot-joined Kong path (e.g. `box.build`, `test.mcp.ping`, `config.setup`).
    - **Description**: Kong's `Help` tag, with a `[destructive: …]` annotation appended for mutating tools.
    - **InputSchema**: JSON schema built from `long:""`, `help:""`, `enum:""`, `default:""`, `required:""` struct tags. Positional args become required properties; flags become optional properties. **Every schema has `additionalProperties: false`** — unknown keys are rejected by the SDK's input validation before the handler runs. The schema validator is LLM-honest about the allowed surface.
    - **Annotations**: destructive tools get `DestructiveHint: &true`; everything else gets `ReadOnlyHint: true`.
 
-2. **Destructive gating** — `mcpDestructivePaths` is an explicit 63-entry allowlist of mutating tools (lifecycle: `remove`/`stop`/`start`/`update`/`cmd`/`shell`/`service.*`; config: `config.setup`/`mount`/`unmount`/`passwd`/`remove`; secrets: `set`/`delete`/`import`/`init`/`gpg.setup`/`gpg.set`/`gpg.unset`/`gpg.edit`/`gpg.encrypt`/`gpg.add-recipient`/`gpg.import-key`; deploy: `import`/`reset`; image build/scaffold/edit: `image.build`/`merge`/`new.{layer,project,image}`/`set`/`add-layer`/`rm-layer`/`refresh`/`write`; layer edit: `candy.set`/`add-rpm`/`add-deb`/`add-pac`/`add-aur`; VM: `create`/`destroy`/`start`/`stop`/`build`; udev: `install`/`remove`; alias: `install`/`uninstall`/`add`/`remove`; record: `start`/`stop`/`cmd`; tmux: `kill`/`run`/`send`/`cmd`; settings: `set`/`reset`/`migrate-secrets`). When `--read-only` is set, `buildMcpServer` skips registration entirely rather than gating at runtime — read-only servers expose **127 tools** (190 − 63). `image.fetch` (idempotent, additive cache prime) and `box.cat` (read-only file read) are **not** in the destructive set despite living in the authoring family — they're safe under `--read-only`.
+2. **Destructive gating** — `mcpDestructivePaths` is an explicit 63-entry allowlist of mutating tools (lifecycle: `remove`/`stop`/`start`/`update`/`cmd`/`shell`/`service.*`; config: `config.setup`/`mount`/`unmount`/`passwd`/`remove`; secrets: `set`/`delete`/`import`/`init`/`gpg.setup`/`gpg.set`/`gpg.unset`/`gpg.edit`/`gpg.encrypt`/`gpg.add-recipient`/`gpg.import-key`; deploy: `import`/`reset`; image build/scaffold/edit: `box.build`/`merge`/`new.{layer,project,image}`/`set`/`add-layer`/`rm-layer`/`refresh`/`write`; layer edit: `candy.set`/`add-rpm`/`add-deb`/`add-pac`/`add-aur`; VM: `create`/`destroy`/`start`/`stop`/`build`; udev: `install`/`remove`; alias: `install`/`uninstall`/`add`/`remove`; record: `start`/`stop`/`cmd`; tmux: `kill`/`run`/`send`/`cmd`; settings: `set`/`reset`/`migrate-secrets`). When `--read-only` is set, `buildMcpServer` skips registration entirely rather than gating at runtime — read-only servers expose **127 tools** (190 − 63). `box.fetch` (idempotent, additive cache prime) and `box.cat` (read-only file read) are **not** in the destructive set despite living in the authoring family — they're safe under `--read-only`.
 
 3. **Tool invocation** — `makeToolHandler(path, leaf)` returns a closure. On call: decode the MCP JSON arguments, reconstruct a `[]string` argv via `argvFromJSON(…)` (booleans → bare flag, slices → repeated `--flag=value`, positionals in Kong order), then `captureAndRun(argv)` builds a fresh `kong.New(&CLI{})`, calls `k.Parse(argv)`, invokes `kctx.Run()`, and returns captured stdout/stderr as a single `TextContent`. Errors become `IsError: true` tool results, not MCP-protocol errors — the LLM sees the failure text.
 
@@ -329,7 +329,7 @@ service:
     scope: system
 ```
 
-**Project-dir wiring** — build-mode tools (`image.build`, `image.inspect`, `image.list.*`) resolve `charly.yml` via `os.Getwd()`. Inside the container, cwd is `/workspace` (set by the `charly-mcp` layer's `CHARLY_PROJECT_DIR` env + `volume:` declaration). Three deployment patterns, in order of progressively less local setup:
+**Project-dir wiring** — build-mode tools (`box.build`, `box.inspect`, `box.list.*`) resolve `charly.yml` via `os.Getwd()`. Inside the container, cwd is `/workspace` (set by the `charly-mcp` layer's `CHARLY_PROJECT_DIR` env + `volume:` declaration). Three deployment patterns, in order of progressively less local setup:
 
 1. **Bind-mount** — the canonical `charly-mcp` pattern. The layer ships `env: CHARLY_PROJECT_DIR: /workspace` + `volumes: project → /workspace`; the deployer attaches a host checkout via `charly config <image> --bind project=/path/to/opencharly`. The charly CLI's global `-C` / `--dir` / `CHARLY_PROJECT_DIR` flag honours the env var before Kong dispatch, calling `os.Chdir(CHARLY_PROJECT_DIR)` once. Use this when the agent should see your in-flight local edits. The volume NAME is `project` (stable bind-mount API); the in-container PATH is `/workspace` (the generic name works whether the contents are an opencharly checkout or any other workspace).
 
@@ -339,7 +339,7 @@ service:
 
 See `/charly-image:image` "Project directory resolution" for the flag/env semantics, and `charly/mcp_serve_default_repo_test.go` for the auto-fallback behaviour test.
 
-**Composition style** — `charly-mcp` uses `layers: [charly, supervisord]` (meta-layer composition) rather than `require:` (hard prerequisite) because it adds no install of its own — it's pure wiring. Images that want the MCP server add `charly-mcp` to their layer list; images that just want the charly binary continue to use the `charly` layer alone. Both `layer:` and `require:` reference other layers, but only `layer:` lets the using layer ship no install files.
+**Composition style** — `charly-mcp` uses `candy: [charly, supervisord]` (meta-layer composition) rather than `require:` (hard prerequisite) because it adds no install of its own — it's pure wiring. Images that want the MCP server add `charly-mcp` to their layer list; images that just want the charly binary continue to use the `charly` layer alone. Both `candy:` and `require:` reference other layers, but only `candy:` lets the using layer ship no install files.
 
 ## Verifying end to end
 
@@ -374,10 +374,10 @@ Every CLI verb under `charly box …` and `charly candy …` auto-becomes an MCP
 | `box.new.box` | Append a new image entry to `charly.yml`. |
 | `box.new.candy` | Scaffold `candy/<name>/charly.yml` with a stub. |
 | `box.set` | Set any value in `charly.yml` by dot-path (`defaults.tag`, `images.foo.layers`, …). Value is parsed as YAML. |
-| `box.add-candy` / `box.rm-candy` | Append / remove a layer from an image's `layer:` list (idempotent). |
+| `box.add-candy` / `box.rm-candy` | Append / remove a layer from an image's `candy:` list (idempotent). |
 | `candy.set` | Set any value in `candy/<name>/charly.yml` by dot-path. |
 | `candy.add-rpm` / `candy.add-deb` / `candy.add-pac` / `candy.add-aur` | Append packages to a layer's `<format>.packages` list. Idempotent. Upgrades scaffold's null `package:` value to a real sequence. |
-| `image.fetch` / `image.refresh` | Pre-prime / re-clone the remote-repo cache. Spec defaults to `default` (overthinkos/overthink). |
+| `box.fetch` / `box.refresh` | Pre-prime / re-clone the remote-repo cache. Spec defaults to `default` (overthinkos/overthink). |
 | `box.write` / `box.cat` | Write / read any file under the project root — escape hatch for free-form auxiliary files (`pixi.toml`, `package.json`, `root.yml`, scripts, `*.service`). Path is resolved against `os.Getwd()` and rejected if it escapes the project root. |
 
 All YAML edits go through the `yaml.v3` *node* API (not value unmarshal) so comments and key order are preserved across edits. Implementation in `charly/scaffold_project.go`, `charly/yaml_setter.go`, and `charly/scaffold_cmds.go`. Tested in `charly/scaffold_project_test.go` and `charly/yaml_setter_test.go`.
@@ -392,8 +392,8 @@ box.new.candy     {"name": "hello-svc"}
 candy.add-rpm       {"name": "hello-svc", "packages": ["openssh-server"]}
 box.add-candy     {"image": "hello", "layer": "hello-svc"}
 image.validate      {}
-image.build         {"image": "hello"}
-image.inspect       {"image": "hello"}
+box.build         {"image": "hello"}
+box.inspect       {"image": "hello"}
 ```
 
 ## Port choice

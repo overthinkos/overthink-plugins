@@ -40,7 +40,7 @@ See `/charly-image:layer` for `env_provide` field docs and `/charly-core:charly-
 ```yaml
 # charly.yml
 ollama:
-  layers:
+  candy:
     - ollama
 ```
 

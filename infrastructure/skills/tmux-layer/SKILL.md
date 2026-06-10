@@ -22,7 +22,7 @@ RPM: `tmux` · PAC: `tmux` · DEB: `tmux` — full cross-distro parity.
 
 ```yaml
 # box or candy charly.yml
-layers:
+candy:
   - tmux
 ```
 

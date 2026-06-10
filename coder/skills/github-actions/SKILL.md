@@ -26,7 +26,7 @@ RPM (from COPR `goncalossilva/act`): `act-cli`, `guestfs-tools`
 ```yaml
 # charly.yml
 my-ci:
-  layers:
+  candy:
     - github-actions
 ```
 

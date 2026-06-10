@@ -61,7 +61,7 @@ The `dest: finetuning` field places the notebooks in a subdirectory rather than 
 ```yaml
 # charly.yml
 unsloth-studio:
-  layers:
+  candy:
     - unsloth-studio
     - notebook-finetuning
     # ... other layers

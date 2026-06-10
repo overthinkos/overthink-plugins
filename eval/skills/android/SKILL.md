@@ -30,7 +30,7 @@ it. The install machinery is shared — see "One installer (R3)".
 # android.yml (or inline in charly.yml)
 android:
   pixel9a-36:                    # in-pod emulator device
-    box: android-emulator      # the kind:image that BAKES the emulator + system image
+    box: android-emulator      # the kind: box that BAKES the emulator + system image
     device: pixel_9a             # informational (documents the baked AVD profile)
     api_level: 36                # informational (the API level is a BUILD property of image:)
     google_account:              # credential-store secret-key refs for apkeep google-play

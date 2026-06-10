@@ -12,7 +12,7 @@ Metalayer composing Hermes AI agent with a complete tool suite for standalone de
 ## Composition
 
 ```yaml
-layers:
+candy:
   - hermes          # AI agent with browser tools, MCP, LLM auto-config
   - claude-code     # Anthropic Claude Code CLI
   - codex           # OpenAI Codex CLI
@@ -35,7 +35,7 @@ Without a browser provider, hermes browser tools fall back to local headless mod
 # charly.yml
 hermes:
   base: fedora
-  layers:
+  candy:
     - agent-forwarding
     - hermes-full
     - dbus

@@ -22,7 +22,7 @@ RPM: `golang-bin` · PAC: `go` · DEB: `golang-go` — full cross-distro parity.
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - golang
 ```
 

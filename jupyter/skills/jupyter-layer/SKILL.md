@@ -82,7 +82,7 @@ The `workspace` volume is mounted at `/workspace`. JupyterLab serves notebooks f
 # charly.yml
 jupyter:
   base: fedora
-  layers:
+  candy:
     - agent-forwarding
     - jupyter
     - dbus
@@ -160,7 +160,7 @@ Clients do not manage CRDT rooms. The server auto-attaches every `notebook_*`/`c
 
 ### Installation
 
-The MCP extension is installed by the `jupyter-mcp` sub-layer (composed via `layers: [jupyter-mcp]`):
+The MCP extension is installed by the `jupyter-mcp` sub-layer (composed via `candy: [jupyter-mcp]`):
 1. `pip install "fastmcp>=3.2.0"` + opentelemetry runtime deps (not pixi -- cross-platform resolver conflicts with opentelemetry-api on aarch64)
 2. `pip install --no-deps /ctx/jupyter_mcp` (extension package from sub-layer directory)
 3. Extension enabled via `jupyter_server_config.d/jupyter_mcp.json`

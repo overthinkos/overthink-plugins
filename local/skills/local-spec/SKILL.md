@@ -18,7 +18,7 @@ Legacy `kind: host` projects migrate via `charly migrate`.
 kind: local
 name: dev-workstation
 spec:
-  layers:        # required (use [] for a placeholder; see below)
+  candy:        # required (use [] for a placeholder; see below)
     - ripgrep
     - direnv
     - uv
@@ -40,21 +40,21 @@ spec:
 version: 2026.144.1443
 local:
   dev-workstation:
-    layers: [ripgrep, direnv]
+    candy: [ripgrep, direnv]
     install_opts: {with_services: false, allow_repo_changes: true}
     env: [EDITOR=vim]
     description: {feature: Dev workstation, tag: [working]}
 
   ci-runner:
-    layers: [ripgrep, pixi, cargo-toolchain]
+    candy: [ripgrep, pixi, cargo-toolchain]
     install_opts: {with_services: true, allow_root_tasks: true}
     description: {feature: CI runner profile, tag: [working]}
 
   charly-cachyos:
-    # Empty placeholder — `layers: []` is a load-time WARNING (allowed
-    # for staged template name reservation); a missing `layer:` field
+    # Empty placeholder — `candy: []` is a load-time WARNING (allowed
+    # for staged template name reservation); a missing `candy:` field
     # is a hard error.
-    layers: []
+    candy: []
     install_opts: {}
     description: {feature: CachyOS DX (placeholder), tag: [testing]}
 ```
@@ -113,19 +113,19 @@ When a deployment carries `local: <template-name>`:
 
 The `InstallOptsConfig.ApplyTo` method is fill-empty — calling it on the deployment's opts first, then the template's, gives the priority chain automatically.
 
-## Empty `layers: []` is a placeholder
+## Empty `candy: []` is a placeholder
 
-A template with `layers: []` is permitted as a stub for staged name reservation:
+A template with `candy: []` is permitted as a stub for staged name reservation:
 
 ```yaml
 local:
   charly-cachyos:
-    layers: []
+    candy: []
     install_opts: {}
     description: {feature: CachyOS DX (placeholder), tag: [testing]}
 ```
 
-`charly box validate` emits a WARNING but does not error. A missing `layer:` field entirely IS an error — the field's presence is the signal that the author intended a template.
+`charly box validate` emits a WARNING but does not error. A missing `candy:` field entirely IS an error — the field's presence is the signal that the author intended a template.
 
 ## Cross-References
 

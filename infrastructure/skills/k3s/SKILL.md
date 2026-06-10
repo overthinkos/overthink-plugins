@@ -35,7 +35,7 @@ Typically not used directly — compose `/charly-infrastructure:k3s-server` or
 
 ```yaml
 # For a bare binary-only image (rare):
-layers:
+candy:
   - k3s
 ```
 

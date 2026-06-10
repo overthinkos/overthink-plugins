@@ -38,7 +38,7 @@ Arch repos (same package names).
 ```yaml
 # charly.yml
 comfyui:
-  layers:
+  candy:
     - comfyui
 ```
 

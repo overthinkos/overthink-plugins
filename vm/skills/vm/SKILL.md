@@ -21,7 +21,7 @@ description: |
 - **`source.kind: cloud_image`** — fetches a pre-built qcow2 from an external URL (Arch, Fedora, Ubuntu, Debian, CentOS Cloud images). Renders a NoCloud seed ISO with cloud-init. Canonical example: `/charly-vm:arch`.
 - **`source.kind: bootc`** — pairs with a `kind: box` entry that has `bootc: true`. Runs `bootc install to-disk` inside a privileged container.
 
-VMs are not configured on kind:image entries — `image.vm:` / `image.libvirt:` are rejected at load time. `bootc: true` stays on a kind:image entry to mark it bootable. Legacy projects convert in one shot with `charly migrate` (see `/charly-build:migrate`). For the YAML authoring reference, see `/charly-vm:vms-catalog`; for the Go types, see `/charly-internals:vm-spec`.
+VMs are not configured on kind: box entries — `box.vm:` / `box.libvirt:` are rejected at load time. `bootc: true` stays on a kind: box entry to mark it bootable. Legacy projects convert in one shot with `charly migrate` (see `/charly-build:migrate`). For the YAML authoring reference, see `/charly-vm:vms-catalog`; for the Go types, see `/charly-internals:vm-spec`.
 
 ## Quick Reference
 
@@ -169,7 +169,7 @@ vms:
   my-bootc:
     source:
       kind: bootc
-      box: my-bootc                               # a kind:image entry with bootc: true
+      box: my-bootc                               # a kind: box entry with bootc: true
     disk_size: 80 GiB
     ram: 16G
     cpus: 6
@@ -277,7 +277,7 @@ Primary surface is structured `LibvirtConfig` in `vms.<name>.libvirt:` (features
 
 Raw-XML escape hatch: `vms.<name>.libvirt.snippets:` (list of strings) — classified by element name. Device-scoped elements go into `<devices>`, domain-scoped before `</domain>`. Deduplicated by exact string match.
 
-Layer-level raw snippets: `charly.yml` `libvirt.snippets:` is supported for layers that contribute device XML (e.g., `/charly-distros:qemu-guest-agent` contributes the virtio-serial channel). Image-level `libvirt: [...]` is not a valid field — VM XML lives on the `kind: vm` entity.
+Layer-level raw snippets: `charly.yml` `libvirt.snippets:` is supported for layers that contribute device XML (e.g., `/charly-distros:qemu-guest-agent` contributes the virtio-serial channel). Box-level `libvirt: [...]` is not a valid field — VM XML lives on the `kind: vm` entity.
 
 Source: `charly/libvirt.go`, `charly/libvirt_render.go`, `charly/libvirt_render_devices.go`.
 

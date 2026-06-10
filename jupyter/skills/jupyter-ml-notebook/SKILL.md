@@ -13,7 +13,7 @@ description: |
 ```yaml
 jupyter-ml-notebook:
   base: nvidia
-  layers:
+  candy:
     - agent-forwarding
     - jupyter-ml
     - notebook-templates
@@ -164,5 +164,5 @@ MUST be invoked before building, deploying, configuring, or troubleshooting the 
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

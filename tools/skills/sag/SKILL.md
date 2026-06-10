@@ -29,7 +29,7 @@ RPM: `alsa-lib-devel`
 
 ```yaml
 # box or candy charly.yml
-layers:
+candy:
   - sag
 ```
 

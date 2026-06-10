@@ -82,7 +82,7 @@ Flat struct with verb-discriminator fields. Exactly one of `Cmd` / `Mkdir` / `Co
 func (t *Task) Kind() (string, error)   // returns verb or error ("no action" / "conflicting actions")
 ```
 
-The `Layer` struct that feeds emission carries its `require:` / `layer:` refs as `[]CandyRef` (one typed list each — no parallel bare/raw arrays), and its `Has*` predicates (`HasEnv`/`HasPorts`/`HasVolumes`/…) are derived methods (only the filesystem-probe caches like `HasPixiToml` stay fields). Layers are populated by the single `populateLayerFromYAML`. Which layers reach this emission pipeline is decided upstream by the reachability-scoped, per-entity-version resolver (the git tag is the fetch coordinate; the layer's own `version:` is the identity) — see `/charly-internals:go` "Remote-layer resolver".
+The `Layer` struct that feeds emission carries its `require:` / `candy:` refs as `[]CandyRef` (one typed list each — no parallel bare/raw arrays), and its `Has*` predicates (`HasEnv`/`HasPorts`/`HasVolumes`/…) are derived methods (only the filesystem-probe caches like `HasPixiToml` stay fields). Layers are populated by the single `populateLayerFromYAML`. Which layers reach this emission pipeline is decided upstream by the reachability-scoped, per-entity-version resolver (the git tag is the fetch coordinate; the layer's own `version:` is the identity) — see `/charly-internals:go` "Remote-layer resolver".
 
 ### Emitter helpers (all in `charly/tasks.go`)
 

@@ -63,7 +63,7 @@ Run `charly doctor` to verify detection. Run `charly udev install` to set up dev
 # charly.yml -- standalone AMD GPU image
 my-amd-app:
   base: fedora
-  layers:
+  candy:
     - rocm
     - my-app
 ```

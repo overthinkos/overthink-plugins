@@ -21,7 +21,7 @@ Not used directly in images — use `sway-desktop-vnc` instead:
 ```yaml
 # charly.yml — VNC variant
 sway-browser-vnc:
-  layers:
+  candy:
     - sway-desktop-vnc
 ```
 

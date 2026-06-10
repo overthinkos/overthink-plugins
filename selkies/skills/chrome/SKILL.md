@@ -86,7 +86,7 @@ RPM (tasks:): `google-chrome-stable` (from Google's direct RPM)
 ```yaml
 # charly.yml
 my-browser:
-  layers:
+  candy:
     - chrome
 ```
 
@@ -257,7 +257,7 @@ curl -s "http://localhost:9222/json/list"
 
 ## Related Layers
 
-- `/charly-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-included via `layer:`)
+- `/charly-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-included via `candy:`)
 - `/charly-infrastructure:supervisord` — required dependency for cdp-proxy service
 - `/charly-hermes:hermes` — consumes `BROWSER_CDP_URL` via `env_accept` and `chrome-devtools` via `mcp_accept`
 - `/charly-selkies:selkies-desktop-layer` — desktop metalayer composing chrome with labwc, pipewire, waybar, etc.

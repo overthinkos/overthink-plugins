@@ -21,7 +21,7 @@ description: |
 
 This layer has **no pixi.toml** and **no depends**. It installs pip packages into the pixi environment established by a Tier 2 "environment-owner" parent layer. The user-phase tasks run AFTER the parent's pixi COPY in the final image build.
 
-**Cannot be used standalone** — must be composed into an environment-owner layer via the `layer:` field.
+**Cannot be used standalone** — must be composed into an environment-owner layer via the `candy:` field.
 
 ## Environment Variables
 
@@ -37,10 +37,10 @@ This layer has **no pixi.toml** and **no depends**. It installs pip packages int
 3. **opentelemetry runtime deps** (`pip install`) — pixi resolver conflict prevents solving these via conda-forge
 4. **vLLM torch.compile patch** (`patch_vllm_size_nodes.py`) — fixes `_decompose_size_nodes` bug where `getitem` users and `x.size(dim)` patterns crash during model compilation (upstream: vllm-project/vllm#38360)
 
-## Used In Layers (via `layer:` field)
+## Used In Layers (via `candy:` field)
 
-- `/charly-jupyter:jupyter-ml` — `layers: [llama-cpp, unsloth, jupyter-mcp]`
-- `/charly-jupyter:unsloth-studio` — `layers: [llama-cpp, unsloth]`
+- `/charly-jupyter:jupyter-ml` — `candy: [llama-cpp, unsloth, jupyter-mcp]`
+- `/charly-jupyter:unsloth-studio` — `candy: [llama-cpp, unsloth]`
 
 ## Related Layers
 

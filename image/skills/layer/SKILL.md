@@ -33,9 +33,9 @@ Resolution rule:
 
 `charly box validate` fails when `directory:` points at a path that doesn't exist.
 
-## Kind-keyed standalone form (`layer: {name, …}`)
+## Kind-keyed standalone form (`candy: {name, …}`)
 
-Every charly.yml is self-describing: a single `layer:` wrapper with an explicit `name:` field + the body. This makes layer files bundle-mergeable — concatenate with `---` separators to form a single file containing many layers.
+Every charly.yml is self-describing: a single `candy:` wrapper with an explicit `name:` field + the body. This makes layer files bundle-mergeable — concatenate with `---` separators to form a single file containing many layers.
 
 ```yaml
 # candy/chrome/charly.yml
@@ -793,7 +793,7 @@ security:
   cpus: "4.0"                # CPU quota
 ```
 
-Security settings merge across layers (union for lists; `privileged` true if any layer sets it; smallest-wins for resource caps). Image-level `security:` in `charly.yml` overrides `privileged` and replaces resource caps.
+Security settings merge across layers (union for lists; `privileged` true if any layer sets it; smallest-wins for resource caps). Box-level `security:` in `charly.yml` overrides `privileged` and replaces resource caps.
 
 Resource caps (memory / cpus) bound the blast radius of a Chrome crash loop on the chrome layer. See `/charly-selkies:chrome` (Resource Caps) and `/charly-infrastructure:supervisord` for the (generic) eventlistener pattern.
 
@@ -1157,7 +1157,7 @@ shell: schema. Idempotent.
 - `/charly-selkies:chrome` — Canonical consumer of `env_accept` (proxy vars), cgroup resource caps, and a heavy user-phase copy/mkdir task list.
 - `/charly-infrastructure:supervisord` — Event listener pattern triggered by resource caps.
 - `/charly-tools:charly` — The charly-binary layer (composed by every charly-driving image). Paired with `/charly-coder:charly-mcp` which turns any image into an MCP server exposing the full charly CLI.
-- `/charly-coder:charly-mcp` — Reference implementation of a meta-layer composition (`layers: [charly, supervisord]` — no install of its own, just wiring) with bind-mounted project directory and `CHARLY_PROJECT_DIR` env-var plumbing.
+- `/charly-coder:charly-mcp` — Reference implementation of a meta-layer composition (`candy: [charly, supervisord]` — no install of its own, just wiring) with bind-mounted project directory and `CHARLY_PROJECT_DIR` env-var plumbing.
 - `/charly-jupyter:notebook-templates` — Data-layer example.
 - `/charly-internals:generate-source` — Internal architecture of the task emission pipeline (Go side).
 
@@ -1165,7 +1165,7 @@ shell: schema. Idempotent.
 
 ## Cross-kind name reuse
 
-A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same identifier (e.g. `charly-cachyos`) MAY exist as a layer at `candy/charly-cachyos/` AND an image entry `image.charly-cachyos` AND a deploy row `deploy.charly-cachyos` simultaneously. Verbs disambiguate by context. When `charly deploy add <name>` resolves a ref where both an image AND a layer with that name exist, image wins (image-first precedence); use `--add-candy <name>` to explicitly select the layer for an overlay. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/charly-core:deploy`.
+A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same identifier (e.g. `charly-cachyos`) MAY exist as a layer at `candy/charly-cachyos/` AND an image entry `box.charly-cachyos` AND a deploy row `deploy.charly-cachyos` simultaneously. Verbs disambiguate by context. When `charly deploy add <name>` resolves a ref where both a box AND a candy with that name exist, box wins (box-first precedence); use `--add-candy <name>` to explicitly select the layer for an overlay. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/charly-core:deploy`.
 
 ---
 

@@ -14,7 +14,7 @@ Full-featured standalone Hermes AI agent. No browser or desktop — designed for
 ```yaml
 hermes:
   base: fedora
-  layers:
+  candy:
     - agent-forwarding
     - hermes-full      # hermes + claude-code + codex + gemini + dev-tools + devops-tools + charly + tmux
     - dbus
@@ -167,5 +167,5 @@ liveness (hermes-whatsapp is autostart=false — see `/charly-eval:eval` Gotcha 
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)

@@ -47,7 +47,7 @@ Installed to `~/.local/bin/charly-overlay` via `task:`. Dual-mode script (daemon
 # charly.yml — typically included via desktop metalayers
 # Already part of sway-desktop, selkies-desktop
 my-desktop:
-  layers:
+  candy:
     - wl-overlay
 ```
 

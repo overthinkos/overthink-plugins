@@ -43,4 +43,4 @@ Used for testing the Valkey layer (Redis-compatible fork). Runs as a supervisord
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`image:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)

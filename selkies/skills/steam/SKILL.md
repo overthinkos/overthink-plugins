@@ -35,7 +35,7 @@ XWayland is provided by the base `sway` layer.
 # charly.yml — requires nvidia base (RPM Fusion nonfree via fedora-nonfree)
 sway-browser-vnc-steam:
   base: nvidia
-  layers:
+  candy:
     - sway-desktop-vnc
     - steam
 ```

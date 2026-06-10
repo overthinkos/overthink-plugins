@@ -72,11 +72,11 @@ After restart, `hermes mcp list` should show `chrome-devtools` as enabled with a
 
 ## Automatically Included Via
 
-This layer is auto-included by the `chrome` base layer via `layers: [chrome-devtools-mcp]`. Any image that includes `chrome`, `chrome-sway`, or any desktop metalayer gets this automatically — zero explicit configuration needed.
+This layer is auto-included by the `chrome` base layer via `candy: [chrome-devtools-mcp]`. Any image that includes `chrome`, `chrome-sway`, or any desktop metalayer gets this automatically — zero explicit configuration needed.
 
 ## Used In Layers
 
-- `/charly-selkies:chrome` — includes via `layers: [chrome-devtools-mcp]`
+- `/charly-selkies:chrome` — includes via `candy: [chrome-devtools-mcp]`
 
 ## Used In Images (via chrome dependency chain)
 

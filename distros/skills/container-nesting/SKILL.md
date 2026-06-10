@@ -269,7 +269,7 @@ Without this, `podman pull` fails with `no policy.json file found`.
 Both are baked into the layer's `env:` section so they land in the
 OCI env of any image composing this layer.
 
-## Image-level compatibility (union semantics)
+## Box-level compatibility (union semantics)
 
 `charly/security.go:66-97` **unions** image-level `CapAdd`, `SecurityOpt`,
 `Devices` onto the layer-level merged set (via `appendUnique`). Image
@@ -306,7 +306,7 @@ image-level `security:` block, so the resolved posture stays at
 # charly.yml
 openclaw-desktop:
   base: cachyos.cachyos
-  layers:
+  candy:
     - selkies-desktop
     - openclaw-full
     - ollama
@@ -331,7 +331,7 @@ charly-fedora:
     security_opt:
       - label=disable
       - seccomp=unconfined
-  layers:
+  candy:
     - charly
     - container-nesting
     - ...

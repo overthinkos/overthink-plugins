@@ -22,7 +22,7 @@ description: |
 ```yaml
 # charly.yml
 fedora-test:
-  layers:
+  candy:
     - traefik
 ```
 

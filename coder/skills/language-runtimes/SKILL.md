@@ -131,7 +131,7 @@ the single sources of truth for their respective binaries.
 ```yaml
 # charly.yml
 my-polyglot:
-  layers:
+  candy:
     - language-runtimes
 ```
 

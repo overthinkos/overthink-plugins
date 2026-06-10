@@ -33,15 +33,15 @@ Downloads the latest llama.cpp release from GitHub into `~/llama.cpp`:
 
 ## Design: Tier 1 "Post-install" Layer
 
-This layer has **no pixi.toml** and **no depends**. It downloads prebuilt binaries and sets environment variables. It is designed to be composed into environment-owning layers (Tier 2) via the `layer:` field.
+This layer has **no pixi.toml** and **no depends**. It downloads prebuilt binaries and sets environment variables. It is designed to be composed into environment-owning layers (Tier 2) via the `candy:` field.
 
 The user-phase tasks run after the pixi environment is established by the parent layer. The `gguf` Python package (for programmatic GGUF access) is declared in the parent layer's pixi.toml, not here.
 
 ## Used In Layers
 
-- `/charly-languages:python-ml` — via `layers: [llama-cpp]`
-- `/charly-jupyter:jupyter-ml` — via `layers: [llama-cpp, unsloth]`
-- `/charly-jupyter:unsloth-studio` — via `layers: [llama-cpp, unsloth]`
+- `/charly-languages:python-ml` — via `candy: [llama-cpp]`
+- `/charly-jupyter:jupyter-ml` — via `candy: [llama-cpp, unsloth]`
+- `/charly-jupyter:unsloth-studio` — via `candy: [llama-cpp, unsloth]`
 
 ## Related Layers
 

@@ -22,7 +22,7 @@ RPM: `gnupg2` · PAC: `gnupg` · DEB: `gnupg` — full cross-distro parity. Note
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - gnupg
 ```
 

@@ -30,7 +30,7 @@ RPM: `asciinema` · PAC: `asciinema` · DEB: `asciinema` — full parity.
 
 ```yaml
 # box or candy charly.yml
-layers:
+candy:
   - asciinema
 ```
 

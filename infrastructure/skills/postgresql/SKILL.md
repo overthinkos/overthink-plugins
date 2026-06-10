@@ -54,7 +54,7 @@ The layer is multi-distro:
 ```yaml
 # charly.yml -- typically used as dependency of immich
 my-image:
-  layers:
+  candy:
     - postgresql
 ```
 

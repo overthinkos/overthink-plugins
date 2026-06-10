@@ -26,7 +26,7 @@ RPM: `socat`, `iproute`
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - socat
 ```
 

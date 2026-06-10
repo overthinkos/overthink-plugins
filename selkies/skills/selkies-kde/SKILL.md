@@ -82,5 +82,5 @@ charly eval wl screenshot selkies-kde screenshot.png
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`image:` entries, build/validate/inspect/list).
+- `/charly-image:image` — image family umbrella (`box:` entries, build/validate/inspect/list).
 - `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems).

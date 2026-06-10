@@ -1301,7 +1301,7 @@ Merge rules applied by `charly eval live`:
 
 ```yaml
 # ~/.config/charly/deploy.yml
-images:
+box:
   redis-ml:
     eval:
       - id: redis-responds                  # overrides image's baked check

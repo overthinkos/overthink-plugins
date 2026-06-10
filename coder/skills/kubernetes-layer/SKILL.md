@@ -26,7 +26,7 @@ RPM: `kubernetes-client`, `helm`
 ```yaml
 # charly.yml
 my-devops:
-  layers:
+  candy:
     - kubernetes
 ```
 

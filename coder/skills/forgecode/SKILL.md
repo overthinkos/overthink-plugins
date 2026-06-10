@@ -22,7 +22,7 @@ description: |
 ```yaml
 # charly.yml
 my-dev:
-  layers:
+  candy:
     - forgecode
 ```
 

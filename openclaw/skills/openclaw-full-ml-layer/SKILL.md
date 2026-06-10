@@ -26,7 +26,7 @@ This metalayer extends `openclaw-full` with ML capabilities:
 
 ```yaml
 # charly.yml
-layers:
+candy:
 ```
 
 ## Used In Images

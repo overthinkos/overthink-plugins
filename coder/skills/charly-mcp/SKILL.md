@@ -16,7 +16,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Kind | Meta-layer (no install files of its own) |
-| Composition | `layers: [charly, supervisord]` |
+| Composition | `candy: [charly, supervisord]` |
 | Port | 18765 (Streamable HTTP MCP endpoint at `/mcp`) |
 | Service | supervisord-managed `charly-mcp` program |
 | Volumes | `project` → `/workspace` (bind-mount the project root from the host) |
@@ -45,24 +45,24 @@ transport dispatch.
 
 ## Composition vs. dependency
 
-This layer uses `layer:`, not `require:` — deliberately. The
+This layer uses `candy:`, not `require:` — deliberately. The
 distinction:
 
 - `require:` says "my install needs these layers installed first."
-- `layer:` says "I *am* these layers plus my additions."
+- `candy:` says "I *am* these layers plus my additions."
 
 `charly-mcp` installs no packages and copies no files — it's pure wiring
 (service block, mcp_provide declaration, volumes/env, one mkdir
 task to create `/workspace` with 0777 so `charly version` works even
-when no bind-mount is attached). A meta-layer composition (`layer:`)
+when no bind-mount is attached). A meta-layer composition (`candy:`)
 captures that exactly. The validator requires every layer to ship
-*something* installable; `layer:` satisfies that by transitively
+*something* installable; `candy:` satisfies that by transitively
 pulling in the children's install files.
 
 ## Three deployment patterns
 
-Build-mode MCP tools (`image.build`, `box.list.boxes`,
-`image.inspect`, etc.) need to read `charly.yml`. The charly-mcp layer
+Build-mode MCP tools (`box.build`, `box.list.boxes`,
+`box.inspect`, etc.) need to read `charly.yml`. The charly-mcp layer
 supports three paths, in order of "how much local setup":
 
 **1. Bind-mount a local project** (maximal local iteration):
@@ -117,7 +117,7 @@ Six deploy-scope tests ship with the layer:
 | `charly-mcp-service` | supervisord `charly-mcp` program is running |
 | `charly-mcp-port` | host `127.0.0.1:${HOST_PORT:18765}` reachable |
 | `mcp-charly-ping` | MCP `ping` succeeds over the in-repo client (URL rewritten via `rewriteMCPURLForHost`, host-networked containers included) |
-| `mcp-charly-list-tools` | MCP `list-tools` returns a catalog containing the canonical `image.build`, `status`, `test.mcp.ping` entries |
+| `mcp-charly-list-tools` | MCP `list-tools` returns a catalog containing the canonical `box.build`, `status`, `test.mcp.ping` entries |
 | `mcp-charly-call-version` | MCP `call version` returns the in-container CalVer (proves round-trip of a safe tool) |
 | `mcp-charly-call-list-images` | MCP `call box.list.boxes` returns images — **proves the bind-mount OR auto-fallback is working** (matches "fedora" either way, since upstream overthinkos/overthink always has a `fedora` image) |
 
@@ -182,7 +182,7 @@ in `charly.yml`). Both `network: host` and the default charly bridge work.
 - Debugging why a build-mode MCP tool returns stale data or an unexpected
   image list (is the agent reading the bind-mount or the auto-fallback?).
 - Authoring an charly-like CLI's MCP deployment and wanting the reference
-  pattern (`layer:` composition + volumes + env + service + auto-fallback).
+  pattern (`candy:` composition + volumes + env + service + auto-fallback).
 - Investigating port-18765 collisions or MCP URL rewriting on composed
   images (especially host-networked ones).
 

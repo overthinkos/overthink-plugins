@@ -40,7 +40,7 @@ org.qemu.guest_agent.0}]` (see `/charly-internals:libvirt-renderer`).
 # charly.yml -- add to a bootc image's layer list
 my-vm-image:
   bootc: true
-  layers:
+  candy:
     - qemu-guest-agent
 # or applied to a VM guest at deploy time:
 #   charly deploy add vm:<name> qemu-guest-agent

@@ -135,7 +135,7 @@ Open WebUI binds to `0.0.0.0:8080` by default. The `port_relay` field is only fo
 # charly.yml
 openwebui:
   base: fedora
-  layers:
+  candy:
     - agent-forwarding
     - openwebui
     - dbus

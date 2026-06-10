@@ -21,14 +21,14 @@ guessing.
 
 ### 1. Kind-keyed form + mandatory version
 
-- The file is the `layer: { name: <name>, … }` wrapper form (the runtime
+- The file is the `candy: { name: <name>, … }` wrapper form (the runtime
   parser accepts only this shape; `charly migrate` converts legacy files).
 - **`version:` is MANDATORY** — a CalVer `YYYY.DDD.HHMM`. `charly box validate`
   hard-errors when absent. Bump it when the layer's content changes (it is
   the per-entity identity that drives cross-repo resolution and the
   consuming image's `ai.opencharly.version` label).
 
-### 2. Dependencies (`requires:` / `layers:`)
+### 2. Dependencies (`requires:` / `candy:`)
 
 - The field is **`requires`** (prerequisite ordering) and/or **`layers`**
   (composition splicing) — NOT `depends`.

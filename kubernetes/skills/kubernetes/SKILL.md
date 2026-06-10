@@ -10,7 +10,7 @@ description: |
 
 OpenCharly can deploy built images to a Kubernetes cluster by emitting a Kustomize `base/` + `overlays/` tree. The deployment schema stays **target-agnostic** — authors describe *what the workload needs* (kind, replicas, resources, exposure, storage, probes); a per-cluster **cluster profile** file supplies the K8s-specific knobs (storage class, ingress class, cert issuer, secret backend).
 
-Every image's runtime contract is baked into OCI labels at build time, so **a K8s deploy is possible without access to `charly.yml`** — the `charly deploy from-box` verb reads capabilities from the pushed image alone.
+Every box runtime contract is baked into OCI labels at build time, so **a K8s deploy is possible without access to `charly.yml`** — the `charly deploy from-box` verb reads capabilities from the pushed image alone.
 
 ## Quick reference
 
@@ -26,8 +26,8 @@ Every image's runtime contract is baked into OCI labels at build time, so **a K8
 
 | Concern | Schema slot | OCI label home |
 |---|---|---|
-| **Build** — what goes INTO the image | `image.build:` (or legacy `BoxConfig`) | no (consumed at build) |
-| **Capabilities** — image's runtime contract | `image.capabilities:` (or layer rollups) | **yes** — every field under `ai.opencharly.*` |
+| **Build** — what goes INTO the image | `box.build:` (or legacy `BoxConfig`) | no (consumed at build) |
+| **Capabilities** — box runtime contract | `box.capabilities:` (or layer rollups) | **yes** — every field under `ai.opencharly.*` |
 | **Deployment** — how to run the image | `charly.yml:deployments.<name>` + `~/.config/charly/deploy.yml` overlay | no |
 
 The completeness invariant: every exported field on `BoxMetadata`/`Capabilities` has a `CapabilityLabelMap` entry. A compile-time test enforces this — a new capability field without a label mapping fails the build. See `charly/capabilities.go`.
@@ -36,7 +36,7 @@ The completeness invariant: every exported field on `BoxMetadata`/`Capabilities`
 
 ```yaml
 deployments:
-  images:
+  box:
     openclaw:
       target: kubernetes
       kind: service                   # service | daemon | batch | scheduled | oneshot
@@ -108,7 +108,7 @@ secrets:
   store: vault-prod
   prefix: prod/
 
-images:
+box:
   pull_policy: IfNotPresent
   pull_secrets: [regcred-prod]
 

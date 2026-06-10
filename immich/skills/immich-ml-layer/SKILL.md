@@ -39,7 +39,7 @@ description: |
 ```yaml
 # charly.yml -- adds ML to an immich image
 immich-ml:
-  layers:
+  candy:
     - immich-ml
 ```
 

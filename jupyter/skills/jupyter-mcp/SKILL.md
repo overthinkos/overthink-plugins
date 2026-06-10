@@ -21,7 +21,7 @@ description: |
 
 This is a **Tier 1 "post-install"** layer — it has no `pixi.toml` and installs into whatever pixi environment exists from the parent Tier 2 layer. It follows the same pattern as `llama-cpp` and `unsloth`.
 
-**Single source of truth:** The `jupyter_mcp` Python package lives only in this layer. Both `jupyter` (lightweight) and `jupyter-ml` (GPU ML) compose it via their `layer:` field. This prevents code duplication and ensures bug fixes propagate to all images.
+**Single source of truth:** The `jupyter_mcp` Python package lives only in this layer. Both `jupyter` (lightweight) and `jupyter-ml` (GPU ML) compose it via their `candy:` field. This prevents code duplication and ensures bug fixes propagate to all images.
 
 ## Usage philosophy and caveats
 
@@ -136,8 +136,8 @@ The `jupyter` MCP server name is **deliberately decoupled** from the layer name,
 
 ## Used In Layers
 
-- `/charly-jupyter:jupyter` — lightweight multi-arch JupyterLab (`layers: [jupyter-mcp]`)
-- `/charly-jupyter:jupyter-ml` — GPU ML JupyterLab (`layers: [llama-cpp, unsloth, jupyter-mcp]`)
+- `/charly-jupyter:jupyter` — lightweight multi-arch JupyterLab (`candy: [jupyter-mcp]`)
+- `/charly-jupyter:jupyter-ml` — GPU ML JupyterLab (`candy: [llama-cpp, unsloth, jupyter-mcp]`)
 
 ## Used In Images
 

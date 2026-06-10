@@ -43,7 +43,7 @@ vm:
     cpus: 2
 
 deployments:
-  images:
+  box:
     "vm:k3s-ag1":
       target: vm
       vm_source: k3s-ag1

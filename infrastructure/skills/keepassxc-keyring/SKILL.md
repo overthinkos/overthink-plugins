@@ -55,7 +55,7 @@ description: |
 # local.yml
 local:
   charly-cachyos:
-    layers:
+    candy:
       - direnv
       - gnupg
       - keepassxc

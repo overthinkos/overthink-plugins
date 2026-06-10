@@ -23,7 +23,7 @@ description: |
 ```yaml
 # charly.yml -- typically used via sway-desktop composition
 my-image:
-  layers:
+  candy:
     - sway-desktop
 ```
 

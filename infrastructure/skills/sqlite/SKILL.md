@@ -22,7 +22,7 @@ RPM: `sqlite`
 
 ```yaml
 # box or candy charly.yml
-layers:
+candy:
   - sqlite
 ```
 

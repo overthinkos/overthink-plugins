@@ -119,7 +119,7 @@ Auto-path for bind without explicit host path: `<volumes_path>/<image>/<name>` (
 
 ### Bind-mounting a project checkout for `charly mcp serve`
 
-The `charly-mcp` layer declares a `project` volume at `/workspace` (the volume NAME stays `project` for a stable deployer API) and sets `env: CHARLY_PROJECT_DIR=/workspace`. Bind-mount your opencharly checkout at config time so build-mode MCP tools (`image.build`, `box.list.boxes`, `image.inspect`) can read `charly.yml`. Alternatively, skip the bind-mount and `charly mcp serve` will auto-fall back to the upstream `overthinkos/overthink` repo (see `/charly-build:charly-mcp-cmd` "Project-dir wiring"):
+The `charly-mcp` layer declares a `project` volume at `/workspace` (the volume NAME stays `project` for a stable deployer API) and sets `env: CHARLY_PROJECT_DIR=/workspace`. Bind-mount your opencharly checkout at config time so build-mode MCP tools (`box.build`, `box.list.boxes`, `box.inspect`) can read `charly.yml`. Alternatively, skip the bind-mount and `charly mcp serve` will auto-fall back to the upstream `overthinkos/overthink` repo (see `/charly-build:charly-mcp-cmd` "Project-dir wiring"):
 
 ```bash
 charly config charly-arch --bind project=/home/you/opencharly
@@ -166,7 +166,7 @@ For `FROM scratch` data images (`data_image: true`), bind-mount targets use `pod
 
 ### Data layer ordering (bind mounts only)
 
-For **bind-mounted** targets, data layers that target the volume **root** (`dest:` absent or empty — e.g. `notebook-templates`, which drops `getting-started.ipynb` directly into `~/workspace/`) should be listed **first** in the image's `layer:` list. A root-targeted layer ordered after subdirectory-targeted layers will see the root as non-empty (because subdirs from earlier layers exist) and skip. This is a convention, not a hard-enforced rule.
+For **bind-mounted** targets, data layers that target the volume **root** (`dest:` absent or empty — e.g. `notebook-templates`, which drops `getting-started.ipynb` directly into `~/workspace/`) should be listed **first** in the image's `candy:` list. A root-targeted layer ordered after subdirectory-targeted layers will see the root as non-empty (because subdirs from earlier layers exist) and skip. This is a convention, not a hard-enforced rule.
 
 This ordering caveat does not apply to named-volume targets, where the initial seed runs against the whole volume regardless of sub-paths.
 
@@ -213,7 +213,7 @@ on `charly config` persist to `deploy.yml` and take effect on the next quadlet
 regeneration.
 
 ```bash
-# Image-level default (all instances)
+# Box-level default (all instances)
 charly config selkies-desktop --memory-max=6g --memory-high=5g --memory-swap-max=2g
 
 # Per-instance override (tighter cap for one instance)
@@ -227,7 +227,7 @@ Merge rules (see `charly/security.go`):
 
 - **Layers → image**: smallest value wins (`minCap` / `minCpus`). A tighter
   cap is a smaller blast radius, so it's the safer default.
-- **Image-level and deploy-level overrides**: full replace, identical to
+- **Box-level and deploy-level overrides**: full replace, identical to
   how `shm_size` is handled.
 
 Emitted as native systemd cgroup directives (`MemoryMax=`, `MemoryHigh=`,
@@ -248,7 +248,7 @@ guaranteed to work on every systemd version charly targets. For the runtime
   like `shm_size`. Unset CLI fields fall through to layer/image defaults
   rather than being replaced with zero values.
 - Resource caps merge **smallest-wins** across layers (tightest cap = smallest
-  blast radius). Image-level and deploy-level overrides replace entirely.
+  blast radius). Box-level and deploy-level overrides replace entirely.
 
 ## Port-conflict detection
 

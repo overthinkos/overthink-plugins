@@ -186,7 +186,7 @@ See `/charly-eval:eval` "`package:` + `package_map:` pattern" for the resolution
 ```yaml
 # charly.yml — rootless nested VM image
 openclaw-desktop:
-  layers:
+  candy:
     - ...
     - charly                  # the full toolchain — pulls virtualization
     - container-nesting   # donates /dev/fuse + /dev/net/tun devices (VMs only need /dev/kvm)

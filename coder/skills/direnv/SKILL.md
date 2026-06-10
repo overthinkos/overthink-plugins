@@ -22,7 +22,7 @@ RPM: `direnv` · PAC: `direnv` · DEB: `direnv` — full cross-distro parity.
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - direnv
 ```
 

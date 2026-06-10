@@ -25,7 +25,7 @@ RPM: `ffmpeg` (from negativo17 `fedora-multimedia` repo — full nonfree build w
 
 ```yaml
 # box or candy charly.yml
-layers:
+candy:
   - ffmpeg
 ```
 

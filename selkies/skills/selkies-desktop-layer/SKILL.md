@@ -12,7 +12,7 @@ Metalayer composing a full Selkies Wayland streaming desktop with Chrome, Waybar
 ## Composition
 
 ```yaml
-layers:
+candy:
   - pipewire                # Audio (PulseAudio compat)
   - chrome                  # Google Chrome with CDP on :9222, Chrome DevTools MCP on :9224
   - labwc                   # Wayland compositor (nested in pixelflux)

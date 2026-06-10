@@ -25,7 +25,7 @@ DEB: `rustc`, `cargo`
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - rust
 ```
 

@@ -25,9 +25,9 @@ description: |
 - `supervisor` (pac) — same package name on Arch (`extra/` repo), same
   system-Python dependency.
 
-### No `depends: python`
+### No `require: python`
 
-This layer declares no `depends: python`. supervisord's runtime is
+This layer declares no `require: python`. supervisord's runtime is
 pure system-Python (the `supervisor` RPM brings `/usr/bin/python3`
 as its own dependency), so it needs no `python` charly-layer → `pixi`
 charly-layer → conda-forge Python env (~500 MB). See CLAUDE.md
@@ -238,12 +238,12 @@ RPM: `supervisor` (Fedora) · PAC: `supervisor` (Arch community) · DEB: `superv
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - supervisord
     - my-service  # layers with service: entries need supervisord
 ```
 
-Adding a `service:` block to a layer automatically pulls in `supervisord` via `build.yml `init:` section`'s `depends_layer`. You rarely add `supervisord` to an image's `layer:` list manually.
+Adding a `service:` block to a layer automatically pulls in `supervisord` via `build.yml `init:` section`'s `depends_layer`. You rarely add `supervisord` to an image's `candy:` list manually.
 
 ## Used In Images
 

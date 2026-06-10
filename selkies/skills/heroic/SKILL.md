@@ -26,7 +26,7 @@ description: |
 ```yaml
 # charly.yml — typically used with sway-desktop-vnc + steam
 sway-browser-vnc-steam-heroic:
-  layers:
+  candy:
     - sway-desktop-vnc
     - steam
     - heroic

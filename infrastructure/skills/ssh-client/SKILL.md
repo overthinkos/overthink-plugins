@@ -24,7 +24,7 @@ Note: On Arch Linux, `openssh` is a single package that includes both client and
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - ssh-client
 ```
 

@@ -30,7 +30,7 @@ description: |
 ```yaml
 # charly.yml
 my-image:
-  layers:
+  candy:
     - devops-tools
 ```
 
