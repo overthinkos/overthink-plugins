@@ -28,7 +28,7 @@ Each verb also auto-becomes an MCP tool (`box.new.project`, `box.new.box`, `box.
 | Action | Command | Description |
 |--------|---------|-------------|
 | New project | `charly box new project <dir>` | Scaffold a fresh charly project (charly.yml + box/ + candy/ + .gitignore) |
-| New box | `charly box new box <name> --base <ref> [--layers a,b,c]` | Write box/<name>/charly.yml |
+| New box | `charly box new box <name> --base <ref> [--candies a,b,c]` | Write box/<name>/charly.yml |
 | New candy | `charly box new candy <name>` | Create candy/<name>/charly.yml |
 
 ## Usage
@@ -57,15 +57,15 @@ extend or override the embedded default. Add a box with `charly box new box <nam
 ```bash
 charly -C ~/my-project box new box hello \
     --base quay.io/fedora/fedora:43 \
-    --layers sshd,tmux
-# Appends to charly.yml:
-#   images:
-#     hello:
-#       base: quay.io/fedora/fedora:43
-#       layers: [sshd, tmux]
+    --candies sshd,tmux
+# Writes box/hello/charly.yml:
+#   box:
+#     name: hello
+#     base: quay.io/fedora/fedora:43
+#     candy: [sshd, tmux]
 ```
 
-Flags: `--base` (required — URL or name of another image), `--layers` (optional comma-separated layer names). Existing `charly.yml` comments + key order are preserved.
+Flags: `--base` (required — URL or name of another box), `--candies` (optional comma-separated candy names). Existing `charly.yml` comments + key order are preserved.
 
 ### `charly box new candy <name>`
 
@@ -73,26 +73,26 @@ Flags: `--base` (required — URL or name of another image), `--layers` (optiona
 charly -C ~/my-project box new candy sshd
 # Creates:
 #   ~/my-project/candy/sshd/
-#   ~/my-project/candy/sshd/charly.yml  (stub with empty `rpm.packages:` null)
+#   ~/my-project/candy/sshd/charly.yml  (stub: candy name + version, ready for add-rpm)
 ```
 
-Follow up with `charly candy add-rpm sshd openssh-server openssh-clients` (see `/charly-image:layer`) to populate packages without manually editing YAML. The `charly candy add-rpm` helper handles the scaffold's null `package:` → sequence upgrade automatically.
+Follow up with `charly candy add-rpm sshd openssh-server openssh-clients` (see `/charly-image:layer`) to populate packages without manually editing YAML — it creates the `distro.fedora.package` section on demand (and `add-deb` / `add-pac` / `add-aur` the matching `distro.'debian,ubuntu'` / `distro.arch` / `distro.arch.aur` sections).
 
 ## Workflow
 
 The end-to-end scaffold → build flow:
 
 1. `charly box new project ~/my-project` — create the project skeleton
-2. Wire a `build.yml` (copy from opencharly or reference remotely; see caveat above)
-3. `charly box new candy my-svc` — create a layer
+2. (optional) Declare `distro:`/`builder:`/`init:`/`resource:` only to EXTEND or OVERRIDE the embedded build vocabulary — a fresh project needs none
+3. `charly box new candy my-svc` — create a candy
 4. `charly candy add-rpm my-svc openssh-server` — populate packages (see `/charly-image:layer`)
-5. `charly box new box my-app --base quay.io/fedora/fedora:43 --layers my-svc` — wire into charly.yml
+5. `charly box new box my-app --base quay.io/fedora/fedora:43 --candies my-svc` — wire into charly.yml
 6. `charly box validate` — check for errors
 7. `charly box build my-app` — build the image
 
 All six steps are also callable as MCP tools (`box.new.project`, `box.new.candy`, `candy.add-rpm`, …), so an agent driving `charly mcp serve` can run this entire flow over RPC. See `/charly-build:charly-mcp-cmd` "Authoring tools" for the worked MCP-only example.
 
-The scaffolded `charly.yml` from step 3 is minimal (a null `rpm.packages:` list with a placeholder comment). Add sections as needed: `rpm:` / `deb:` / `pac:` / `aur:` for system packages, `env:` for runtime environment, `port:` / `service:` / `volume:` for services, and `task:` for install operations (mkdir, copy, write, download, link, setcap, cmd, build). The scaffolder does not create separate Taskfile shell scripts — all install logic flows through `task:` in `charly.yml`.
+The scaffolded `charly.yml` from step 3 is minimal (a `candy:` block with `name:` + `version:` and a placeholder comment). Add sections as needed: a `distro:` map (per-distro `package:` lists, populated by `charly candy add-rpm` / `add-deb` / `add-pac` / `add-aur`) for system packages, `env:` for runtime environment, `port:` / `service:` / `volume:` for services, and `task:` for install operations (mkdir, copy, write, download, link, setcap, cmd, build). The scaffolder does not create separate Taskfile shell scripts — all install logic flows through `task:` in `charly.yml`.
 
 ## Naming Rules
 
