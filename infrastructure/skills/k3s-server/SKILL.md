@@ -76,7 +76,7 @@ deployments:
     "vm:k3s-srv":
       target: vm
       vm_source: k3s-srv
-      add_layers: [k3s-server]
+      add_candy: [k3s-server]
       env:
         - K3S_SERVER_HOSTNAME=k3s-srv.lan  # optional but recommended
 ```

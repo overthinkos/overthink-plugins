@@ -74,7 +74,7 @@ All install-task logic lives in a single file: `charly/tasks.go` (~380 lines). A
 6. USER root reset (unless last layer + skipRootReset)
 ```
 
-### `Task` struct (`charly/layers.go:195`)
+### `Task` struct (`charly/layers.go:604`)
 
 Flat struct with verb-discriminator fields. Exactly one of `Cmd` / `Mkdir` / `Copy` / `Write` / `Link` / `Download` / `Setcap` / `Build` must be non-empty. Shared modifiers (`User`, `Mode`, `To`, `Target`, `Content`, `Extract`, `Include`, `Env`, `Caps`, `Comment`) are validated per-verb in `charly/validate.go:validateLayerTasks`.
 
@@ -414,7 +414,7 @@ Built images embed runtime metadata as labels (prefix: `ai.opencharly.`), making
 | Label | Type | Example |
 |-------|------|---------|
 | `ai.opencharly.version` | string | content-derived `EffectiveVersion` (the image's dedicated `version:`, else the highest layer `version:` across the chain — NOT the per-build tag), e.g. `"2026.144.1443"`. Resolution prefers this label over the tag (`local_image.go`); also the "is this an charly box?" presence sentinel read by `ExtractMetadata` |
-| `ai.opencharly.image` | string | `"openclaw"` |
+| `ai.opencharly.box` | string | `"openclaw"` |
 | `ai.opencharly.registry` | string | `"ghcr.io/overthinkos"` (omitted if empty) |
 | `ai.opencharly.bootc` | string | `"true"` (omitted if false) |
 | `ai.opencharly.uid` / `.gid` | string | `"1000"` |

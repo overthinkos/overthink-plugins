@@ -3,14 +3,14 @@ name: arch-builder
 description: |
   Arch Linux builder image with pixi, Node.js, build toolchain, and yay AUR helper.
   Default builder for pixi, npm, cargo, and aur multi-stage builds on Arch.
-  MUST be invoked before building, deploying, configuring, or troubleshooting the arch-builder image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the arch-builder box.
 ---
 
 # arch-builder
 
 Builder image for Arch Linux multi-stage builds. Counterpart to `/charly-distros:fedora-builder` — provides the same build capabilities (pixi, npm, cargo) plus AUR support via yay.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
@@ -20,7 +20,7 @@ Builder image for Arch Linux multi-stage builds. Counterpart to `/charly-distros
 | Platforms | linux/amd64 |
 | Registry | ghcr.io/overthinkos |
 
-## Full Layer Stack
+## Full Candy Stack
 
 1. **arch** — base Arch Linux image
 2. **pixi** — pixi package manager (conda-forge Python environments)
@@ -30,7 +30,7 @@ Builder image for Arch Linux multi-stage builds. Counterpart to `/charly-distros
 
 ## Role in Build System
 
-When an Arch-based image has layers with `pixi.toml`, `package.json`, `Cargo.toml`, or `aur:` packages, the build system uses this image as the builder for multi-stage builds. Configured via the `arch` image's `builder:` field (a map of build-type → builder-image):
+When an Arch-based image has layers with `pixi.toml`, `package.json`, `Cargo.toml`, or `aur:` packages, the build system uses this image as the builder for multi-stage builds. Configured via the `arch` box's `builder:` field (a map of build-type → builder-image):
 
 ```yaml
 # charly.yml
@@ -70,7 +70,7 @@ charly shell arch-builder -c "pixi --version && node --version && yay --version 
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the arch-builder image, Arch multi-stage builds, or AUR package building infrastructure. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the arch-builder box, Arch multi-stage builds, or AUR package building infrastructure. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 

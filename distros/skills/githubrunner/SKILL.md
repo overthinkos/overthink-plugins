@@ -5,7 +5,7 @@ description: |
   uid=1000 with zero added capabilities (no root, no privileged) via
   container-nesting, with rootless nested podman/buildah/skopeo for CI.
   Host networking retained for reachability. MUST be invoked before building,
-  deploying, configuring, or troubleshooting the githubrunner image.
+  deploying, configuring, or troubleshooting the githubrunner box.
 ---
 
 # githubrunner
@@ -14,7 +14,7 @@ Self-hosted GitHub Actions runner on **CachyOS**, fully rootless. Shares the
 rootless nested-container posture with `/charly-openclaw:openclaw-desktop` (uid=1000,
 no caps, `unmask=/proc/*` via `/charly-distros:container-nesting`).
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
@@ -27,7 +27,7 @@ no caps, `unmask=/proc/*` via `/charly-distros:container-nesting`).
 | Security | container-nesting's posture: `cap_add:[]`, `security_opt:[unmask=/proc/*]`, devices `/dev/fuse` + `/dev/net/tun` |
 | Registry | ghcr.io/overthinkos |
 
-## Full Layer Stack
+## Full Candy Stack
 
 1. `cachyos` (`docker.io/cachyos/cachyos-v3`, via the `cachyos` import namespace)
 2. `agent-forwarding` — GPG/SSH/direnv (composes gnupg + direnv + ssh-client)
@@ -114,14 +114,14 @@ charly stop githubrunner
 charly remove githubrunner -e RUNNER_TOKEN=<remove-token>
 ```
 
-## Key Layers
+## Key Candies
 
 - `/charly-distros:github-runner` — runner agent, hooks, registration, ghcr mirror, .NET deps + the charly-host `depends=` completion (native pac builds in CI)
 - `/charly-distros:container-nesting` — rootless nested podman/buildah/skopeo, subuid layout, caps
 - `/charly-tools:charly` — the charly binary + virtualization + gocryptfs + socat
 - `/charly-distros:agent-forwarding` — GPG/SSH/direnv for the `.secrets` workflow
 
-## Related Images
+## Related Boxes
 
 - `/charly-distros:cachyos` — the CachyOS base (parent, via the `cachyos` namespace)
 - `/charly-openclaw:openclaw-desktop` — same rootless container-nesting posture (uid 1000, no caps)
@@ -152,7 +152,7 @@ After `charly start` against a registered deploy:
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the githubrunner image,
+**MUST be invoked** when the task involves the githubrunner box,
 self-hosted runners, or GitHub Actions CI/CD. Invoke this skill BEFORE
 reading source code or launching Explore agents.
 

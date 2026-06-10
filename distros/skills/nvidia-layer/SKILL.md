@@ -87,7 +87,7 @@ Creates Vulkan ICD compatibility symlinks for nvidia-ctk CDI device injection.
 - `/charly-coder:charly-arch` — Arch Linux charly toolchain (shared layers + nvidia)
 - `/charly-distros:charly-fedora` — Fedora charly toolchain (shared layers + nvidia)
 
-## Related Layers
+## Related Candies
 
 - `/charly-distros:cuda` — CUDA development toolkit (depends on nvidia)
 - `/charly-distros:rocm` — AMD GPU counterpart (ROCm runtime + OpenCL), uses the same `appendAutoDetectedEnv()` DRINODE injection

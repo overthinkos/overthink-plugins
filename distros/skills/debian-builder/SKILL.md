@@ -19,7 +19,7 @@ Build it from the submodule: `charly -C box/debian box build debian-builder`
 `pixi`/`nodejs`/`build-toolchain` layers are pulled by github reference from the
 main repo.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|

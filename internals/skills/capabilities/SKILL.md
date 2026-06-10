@@ -30,7 +30,7 @@ Key entries:
 | Field | Label const | What it stores |
 |---|---|---|
 | `Version` | `LabelVersion` (`ai.opencharly.version`) | The image's content-derived **`EffectiveVersion`** — its dedicated `version:` if set, else the highest layer `version:` across the chain (`charly/effective_version.go`). NOT the per-build tag; stable when no layer changed. Short-name resolution + `charly clean` retention prefer this label over the tag. Also the "is this an charly image?" presence sentinel (`ExtractMetadata` returns nil when empty). |
-| `Service` | `LabelService` (`ai.opencharly.service`) | **Structured JSON array of `CapabilityService`** — not just names. 22 per-entry fields including `kind`, `events`, `auto_start`, `start_retries`, `priority`, `init`, `layer`. See "LabelService" below. |
+| `Service` | `LabelService` (`ai.opencharly.service`) | **Structured JSON array of `CapabilityService`** — not just names. 23 per-entry fields including `kind`, `events`, `auto_start`, `start_retries`, `priority`, `init`, `layer`. See "LabelService" below. |
 | `Init` | `LabelInit` | Init system name (supervisord / systemd / none). |
 | `ServiceNames` | `LabelInit` | Per-init active-name list; baked alongside `LabelInit` for CLI ergonomics (e.g., `charly service status`). |
 | `Tests` | `LabelEval` | Three-section `{candy, box, deploy}` JSON — the tests baked into the image, consumed by `charly eval live` / `charly eval box`. See `/charly-eval:eval`. |
@@ -43,7 +43,7 @@ Key entries:
 `charly/capabilities_test.go:TestCapabilityLabelCompleteness` runs on every `go test ./...` invocation. It uses `reflect.TypeOf(BoxMetadata{})` to enumerate every exported field and fails if any field is missing from `CapabilityLabelMap`:
 
 ```go
-// charly/capabilities.go:116
+// charly/capabilities.go:143
 func checkCapabilityLabelCompleteness() error {
     rt := reflect.TypeOf(BoxMetadata{})
     var missing []string
@@ -62,7 +62,7 @@ This is the enforcement mechanism that keeps the OCI-label contract and the Go s
 1. Add the field to `BoxMetadata` in `charly/labels.go` with a JSON tag.
 2. Add the label const (`LabelFoo = "ai.opencharly.foo"`) next to the other label consts.
 3. Add the `CapabilityLabelMap` entry: `"Foo": LabelFoo`.
-4. Emit + parse the label in `EmitLabels` / `ExtractMetadata`.
+4. Emit + parse the label in `writeLabels` (via `writeJSONLabel`) / `ExtractMetadata`.
 5. `go test ./...` passes.
 
 Skip step 3 and the test fails with `BoxMetadata fields without CapabilityLabelMap entry: [Foo]`.
@@ -91,9 +91,9 @@ type CapabilityService struct {
     Events           string            // required when Kind == "eventlistener"
     AutoStart        *bool             // three-state; supervisord autostart=
     StartRetries     int
-    StartSecs        int
+    StartSec         int
     StopSignal       string
-    ExitCodes        string
+    ExitCode         string
     Priority         int
     Init             string            // which init owns it (supervisord / systemd)
     Layer            string            // source layer name
@@ -104,7 +104,7 @@ type CapabilityService struct {
 
 ## Source-less deploy: `charly deploy from-box`
 
-`CapabilitiesFromLabels(engine, imageRef)` at `charly/capabilities.go:136` is the source-less entry point: given an engine + image ref, it runs `ExtractMetadata` (which pulls labels via `podman inspect` / `docker inspect`), returns a fully-populated `*Capabilities`, and every downstream consumer (deploy target, K8s generator, quadlet generator) reads from that struct.
+`CapabilitiesFromLabels(engine, imageRef)` at `charly/capabilities.go:166` is the source-less entry point: given an engine + image ref, it runs `ExtractMetadata` (which pulls labels via `podman inspect` / `docker inspect`), returns a fully-populated `*Capabilities`, and every downstream consumer (deploy target, K8s generator, quadlet generator) reads from that struct.
 
 ```go
 caps, err := CapabilitiesFromLabels("podman", "ghcr.io/overthinkos/fedora-coder:latest")
@@ -130,9 +130,9 @@ See `/charly-image:image` for current user-facing structure and `/charly-build:m
 1. Add the const to `charly/labels.go` (`LabelFoo = "ai.opencharly.foo"`).
 2. Add the field to `BoxMetadata` with a matching JSON tag.
 3. Add the `CapabilityLabelMap` entry: `"Foo": LabelFoo`.
-4. Populate it in `EmitLabels` (label emission at build time).
+4. Populate it in `writeLabels` (label emission at build time, via `writeJSONLabel` for struct/list values).
 5. Parse it in `ExtractMetadata` (label read-back at deploy time).
-6. If the field is a struct/list, prefer `mustMarshalJSON` for consistent encoding (see how `LabelService`, `LabelEval`, `LabelVolume` do it).
+6. If the field is a struct/list, route it through `writeJSONLabel` for consistent encoding (see how `LabelService`, `LabelEval`, `LabelVolume` do it).
 7. `go test ./...` — `TestCapabilityLabelCompleteness` passes.
 8. Update `/charly-internals:capabilities` (this skill) with the new entry in the key-labels table.
 

@@ -21,7 +21,7 @@ Privileged builder image used to bootstrap a CachyOS root filesystem via
 > (shared with `/charly-distros:arch-builder`'s pacstrap path) and is pulled by git
 > reference.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|

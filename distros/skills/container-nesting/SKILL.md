@@ -373,7 +373,7 @@ this order:
 - `/charly-coder:charly-arch` — same root path as charly-fedora
 - `/charly-distros:githubrunner` — same root path; doesn't compose the full charly toolchain but keeps nested podman for CI workloads
 
-## Related Layers
+## Related Candies
 
 - `/charly-tools:charly` — pairs with container-nesting in charly-toolchain images (the full toolchain: `charly` binary + VM + encrypted storage tools)
 - `/charly-infrastructure:virtualization` — supervisord-managed rootless libvirt (`virtqemud`, `virtnetworkd`). Pairs with container-nesting for images that need both nested containers AND nested VMs

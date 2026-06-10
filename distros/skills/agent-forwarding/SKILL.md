@@ -122,7 +122,7 @@ Resolution chain: deploy.yml per-image > global setting > default (true).
 
 charly-arch, arch-test, comfyui, charly-fedora, fedora-test, githubrunner, immich, immich-ml, jupyter, nvidia, ollama, openclaw, openclaw-full, python-ml, selkies-desktop, selkies-labwc-nvidia, sway-browser-vnc, unsloth-studio, valkey-test
 
-## Related Layers
+## Related Candies
 
 - `/charly-infrastructure:gnupg` -- GnuPG encryption tools (part of this metalayer)
 - `/charly-coder:direnv` -- direnv environment loader (part of this metalayer)

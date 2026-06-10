@@ -45,7 +45,7 @@ rootfs with `linux-cachyos` (`%ARCH% = x86_64_v3`) installed. (Requires an `char
 with this fix — newer than the published release.) The Docker-Hub `/charly-distros:cachyos`
 base is still the faster default (no privileged build).
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|

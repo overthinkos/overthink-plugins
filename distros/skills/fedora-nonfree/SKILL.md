@@ -3,7 +3,7 @@ name: fedora-nonfree
 description: |
   Fedora with RPM Fusion non-free repositories enabled. Base for images
   needing codec or proprietary package support like immich.
-  MUST be invoked before building, deploying, configuring, or troubleshooting the fedora-nonfree image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the fedora-nonfree box.
 ---
 
 # fedora-nonfree
@@ -19,7 +19,7 @@ bare-local `fedora-nonfree`. Its `rpmfusion`
 layer is pinned as a github ref so the same definition resolves in both main and
 the submodule.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ the submodule.
 | Platforms | linux/amd64 |
 | Registry | ghcr.io/overthinkos |
 
-## Full Layer Stack
+## Full Candy Stack
 
 1. `fedora` (quay.io/fedora/fedora:43)
 2. `rpmfusion` — RPM Fusion free + non-free repos
@@ -40,15 +40,15 @@ charly box build fedora-nonfree
 charly shell fedora-nonfree
 ```
 
-## Key Layers
+## Key Candies
 
 - `/charly-distros:rpmfusion` — RPM Fusion repository configuration
 
-## Derived Images
+## Derived Boxes
 
 - `/charly-immich:immich` — photo management with codec support
 
-## Related Images
+## Related Boxes
 
 - `/charly-distros:fedora` — parent base (without non-free repos)
 
@@ -60,7 +60,7 @@ After `charly box build`:
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the fedora-nonfree image, RPM Fusion support, or non-free codec packages. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the fedora-nonfree box, RPM Fusion support, or non-free codec packages. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 

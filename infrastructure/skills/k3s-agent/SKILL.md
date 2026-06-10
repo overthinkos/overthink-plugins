@@ -47,7 +47,7 @@ deployments:
     "vm:k3s-ag1":
       target: vm
       vm_source: k3s-ag1
-      add_layers: [k3s-agent]
+      add_candy: [k3s-agent]
       env:
         - K3S_SERVER_URL=https://k3s-srv.lan:6443
         # K3S_CLUSTER fed in for the agent-joined test below — must

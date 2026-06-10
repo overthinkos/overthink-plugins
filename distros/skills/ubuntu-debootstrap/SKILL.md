@@ -25,7 +25,7 @@ The canonical Ubuntu base (`/charly-distros:ubuntu`) pulls the upstream-publishe
 This debootstrap variant exists for **offline / air-gapped** builds and as a
 worked example of the `from: builder:debootstrap` pattern.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|

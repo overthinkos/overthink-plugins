@@ -56,13 +56,13 @@ type InstallPlan struct {
     Layer          string       // set for per-layer plans; "" for merged whole-image plans
     Steps          []InstallStep
     LayersIncluded []string     // ordered topo-sorted layer names (for merged plans)
-    AddLayers      []string     // refs added via deploy.yml add_layers: (for provenance)
+    AddLayers      []string     // refs added via deploy.yml add_candy: (for provenance)
     BuilderImage   string       // selected builder for VenueContainerBuilder steps
     Meta           map[string]string
 }
 ```
 
-One plan per layer when the compiler runs on a single `Layer`. For whole-image deploys, `MergePlans(plans, image, addLayers)` merges per-layer plans while preserving layer boundaries for refcount bookkeeping. `DeployID` is a deterministic 16-hex-char sha256 prefix over `(image, layer_order, add_layers)` — same inputs → same ID, so re-deploys are stable.
+One plan per layer when the compiler runs on a single `Layer`. For whole-image deploys, `MergePlan(plans, image, addLayers)` merges per-layer plans while preserving layer boundaries for refcount bookkeeping. `DeployID` is a deterministic 16-hex-char sha256 prefix over `(image, layer_order, add_layers)` — same inputs → same ID, so re-deploys are stable.
 
 ### `InstallStep` interface
 
@@ -159,7 +159,7 @@ Step emission order (mirrors today's `writeLayerSteps`):
 4. `BuilderStep`(s) for each matching multi-stage or inline builder.
 5. `ServicePackagedStep` / `ServiceCustomStep` from the `service:` list — per-entry routing via `IsPackaged()` + `ServiceSchema.SupportsPackaged`.
 
-`MergePlans([]*InstallPlan, image, addLayers)` composes per-layer plans into a single whole-image plan for target-level walking (sudo batching, single dry-run output).
+`MergePlan([]*InstallPlan, image, addLayers)` composes per-layer plans into a single whole-image plan for target-level walking (sudo batching, single dry-run output).
 
 ## The `DeployTarget` interface
 
@@ -269,7 +269,7 @@ CLI flags on `DeployAddCmd` / `DeployDelCmd` populate this struct; each target r
 ## Testing
 
 - `install_plan_test.go` — 13 unit tests over step-kind derivations (scope/venue/gate/reverse).
-- `install_build_test.go` — 8 integration tests that load real `candy/` via `ScanAllLayersWithConfig`; `testHostContextWithDistro` helper.
+- `install_build_test.go` — 8 integration tests that load real `candy/` via `ScanAllLayerWithConfig`; `testHostContextWithDistro` helper.
 - `install_build.go:200` comment — canonical fixture docs.
 
 When you add a step kind, add:

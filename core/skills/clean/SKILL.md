@@ -52,11 +52,11 @@ makepkg). `--keep N` overrides both counts for the invocation.
 ## What gets pruned (and what never does)
 
 **Image-tag retention** (`keep_images`): images are grouped by the
-`ai.opencharly.image` label and ordered by the `ai.opencharly.version`
+`ai.opencharly.box` label and ordered by the `ai.opencharly.version`
 CalVer label; all but the newest N per group are `podman rmi`'d. **Safety**: any
 image referenced by a container (`podman ps -a`, including stopped/quadlet
 deploys) is skipped, and `rmi` runs WITHOUT `-f` so the engine refuses any
-still-referenced image as a backstop. Non-charly images (no `ai.opencharly.image`
+still-referenced image as a backstop. Non-charly images (no `ai.opencharly.box`
 label) and images with an unparseable version are never touched.
 
 **Eval-run retention** (`keep_eval_runs`): each `.eval/<bed|score>/` dir is

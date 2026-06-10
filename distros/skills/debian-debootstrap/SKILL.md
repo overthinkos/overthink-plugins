@@ -27,7 +27,7 @@ air-gapped** builds and as a worked example of the `from: builder:debootstrap` +
 `bootstrap_builder_image:` pattern (the deb-family counterpart of
 `/charly-distros:arch-pacstrap` / `/charly-distros:cachyos-pacstrap`).
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|

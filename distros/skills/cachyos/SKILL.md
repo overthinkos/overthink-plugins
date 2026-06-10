@@ -26,7 +26,7 @@ builder) — one-directional, since arch imports nothing back. Build it
 from the submodule: `charly -C box/cachyos box build cachyos` (or
 `charly --repo overthinkos/cachyos box build cachyos`).
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|

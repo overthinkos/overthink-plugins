@@ -48,7 +48,7 @@ deploy:
   my-laptop:
     target: local
     local: dev-workstation
-    add_layers: [sshkeys]
+    add_candy: [sshkeys]
 
   # Explicit local sentinel.
   my-laptop-explicit:

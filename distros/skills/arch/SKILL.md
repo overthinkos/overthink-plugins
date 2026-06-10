@@ -2,14 +2,14 @@
 name: arch
 description: |
   Base Arch Linux image. Root of the image hierarchy for all pac-based images.
-  MUST be invoked before building, deploying, configuring, or troubleshooting the arch image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the arch box.
 ---
 
 # arch
 
 Root base image built from `quay.io/archlinux/archlinux`, pinned to a precise `base-*` date-serial tag in the arch base box (the `overthinkos/arch` submodule at `box/arch`; the quay mirror has the same content as `docker.io/library/archlinux` without Docker Hub's pull-rate limit). Foundation for all Arch Linux-based OpenCharly images.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ charly box build arch
 charly shell arch
 ```
 
-## Derived Images
+## Derived Boxes
 
 `arch` (this base), `/charly-distros:arch-builder`, and the consumer Arch
 images all live in the **`overthinkos/arch`** repo (git submodule at
@@ -69,7 +69,7 @@ After `charly box build`:
 - `charly shell arch` — interactive shell works
 - `charly shell arch -c "pacman --version"` — pacman available
 
-## Related Images
+## Related Boxes
 - `/charly-distros:arch-builder` — adds pixi, nodejs, build-toolchain, yay
 - `/charly-coder:charly-arch` — full charly toolchain on Arch
 - `/charly-distros:arch-test` — pacman + AUR test image

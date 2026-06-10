@@ -3,7 +3,7 @@ name: fedora-test
 description: |
   Test image with Traefik reverse proxy and testapi service.
   Currently disabled. Used for development testing.
-  MUST be invoked before building or troubleshooting the fedora-test image.
+  MUST be invoked before building or troubleshooting the fedora-test box.
 ---
 
 # fedora-test
@@ -16,7 +16,7 @@ Its `fedora` base is bare-local in the same self-contained submodule
 `agent-forwarding`/`traefik`/`testapi` layers are pulled by github reference.
 Build from the submodule: `charly -C box/fedora box build fedora-test`.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
@@ -30,22 +30,22 @@ Build from the submodule: `charly -C box/fedora box build fedora-test`.
 
 Used for testing Traefik routing, service health checks, and the `testapi` layer. The testapi service runs on port 9090 and is routed via `testapi.localhost` through Traefik.
 
-## Key Layers
+## Key Candies
 
 - `/charly-infrastructure:traefik` — Reverse proxy
 - `/charly-infrastructure:testapi` — FastAPI test service
 
-## Related Images
+## Related Boxes
 - `/charly-distros:fedora` — parent base image
 - `/charly-distros:valkey-test` — sibling test image (disabled)
 
 ## Related Commands
-- `/charly-build:build` — build the fedora-test image
+- `/charly-build:build` — build the fedora-test box
 - `/charly-build:validate` — validate the test layer composition
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the fedora-test image or Traefik routing validation.
+**MUST be invoked** when the task involves the fedora-test box or Traefik routing validation.
 
 ## Related
 

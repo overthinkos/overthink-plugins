@@ -9,7 +9,7 @@ description: |
 ## Schema overview
 
 - **Dispatch via explicit `target:`** — `local | vm | pod | k8s` (short, matches charly command verbs).
-- **Cross-ref fields on `DeploymentNode`** — `vm: <entity>` for target: vm, `image: <name>` for target: pod, `cluster: <name>` for target: k8s, `inside: <deploy>` for nested local-deploy. Deploy nesting uses `nested:`.
+- **Cross-ref fields on `DeploymentNode`** — `vm: <entity>` for target: vm, `box: <name>` for target: pod, `k8s: <name>` for target: k8s, `inside: <deploy>` for nested local-deploy. Deploy nesting uses `nested:`.
 - **Disposability is a deploy property** — `DeploymentNode.Disposable` is the sole source of truth.
 - **Resource arbitration is a deploy property** — `preemptible:` (holder; occupies exclusive host-resource token(s), may be gracefully stopped + restored) and `requires_exclusive:` (claimant; needs sole use) on `DeploymentNode` drive the arbiter (`charly preempt`). A fourth axis ORTHOGONAL to disposable/ephemeral/lifecycle. See "Preemptible resource arbitration" below + `/charly-internals:disposable`.
 - **Disposable R10 test beds are `kind: eval` entities** (run via `charly eval run <bed>`), NOT `deploy:` entries — ecosystem-wide. The main repo's beds (`eval-pod`, `eval-k3s-vm`, `eval-sway-browser-vnc-pod`, …) AND every `box/<distro>` submodule's beds (the arch / cachyos / debian / ubuntu / fedora bootstrap-VM + pacstrap/debootstrap beds, in each submodule's config — its `charly.yml` + per-kind sibling files) are `kind: eval`. Repos ship NO `kind: deploy` test beds; the one `kind: deploy` exception is the cachyos submodule's `charly-cachyos` operator workstation profile (a profile, not a test bed). Operator deployments otherwise live in the per-host `~/.config/charly/deploy.yml`. See `/charly-eval:eval` "kind: eval beds".
@@ -21,13 +21,13 @@ description: |
 1. **Execution verbs** — `charly deploy add <name>` / `charly deploy del <name>`. Apply or reverse a deployment. Four targets are dispatched by the `target:` field:
    - `target: local` → `LocalDeployTarget` on the local filesystem (or, with `inside: <deploy>`, via NestedExecutor into the referenced deployment). See `/charly-local:local-deploy`.
    - `target: vm` (+ `vm: <entity>`) → `VmDeployTarget` inside a running VM via SSH. See "VM target" section below and `/charly-internals:vm-deploy-target`.
-   - `target: pod` (+ `image: <image>`) → `PodDeployTarget`: overlay Containerfile + quadlet/podman.
-   - `target: k8s` (+ `cluster: <name>`) → Kustomize base/overlays tree. See `/charly-kubernetes:kubernetes`.
+   - `target: pod` (+ `box: <image>`) → `PodDeployTarget`: overlay Containerfile + quadlet/podman.
+   - `target: k8s` (+ `k8s: <name>`) → Kustomize base/overlays tree. See `/charly-kubernetes:kubernetes`.
 2. **Config-file management** — `charly deploy show/export/import/reset/path/status`. Read and mutate `~/.config/charly/deploy.yml` itself.
 
 ## Targets, one schema
 
-The same `DeployImageConfig` shape feeds every target (`pod`, `local`, `vm`, `k8s`, `android`) — authors describe *what the workload needs* (ports, volumes, env, security, tests); the generator per target decides *how K8s / quadlet / local apply / VM over SSH / Android apk-install* realizes it.
+The same `DeploymentNode` shape feeds every target (`pod`, `local`, `vm`, `k8s`, `android`) — authors describe *what the workload needs* (ports, volumes, env, security, tests); the generator per target decides *how K8s / quadlet / local apply / VM over SSH / Android apk-install* realizes it.
 
 **`target: android`** installs a deploy's `add_candy:` layers' `apk:` packages
 onto a `kind: android` device (an in-pod emulator or a remote/physical adb
@@ -71,8 +71,8 @@ Applies a deployment. The deploy entry's `target:` field selects the target:
 
 - **`target: local`** — apply layers to the local filesystem via `LocalDeployTarget`. With `host: local` (default) the apply runs directly; with `host: <user@machine>` it runs over SSH. See `/charly-local:local-deploy`.
 - **`target: vm`** (+ `vm: <entity>`) — apply layers inside a running `kind: vm` entity via SSH (`VmDeployTarget`). `<vm-name>` must match an entry in `vm.yml`; the VM must already be created (`charly vm create <vm-name>`). See "VM target" section below.
-- **`target: k8s`** (+ `cluster: <name>`) — emit a Kustomize base/overlays tree. See `/charly-kubernetes:kubernetes`.
-- **`target: pod`** (default, + `image: <image>`) — container deployment. Multiple pod deploys coexist (`my-dev`, `postgres-staging`, etc.); each gets its own quadlet, container name, and deploy.yml entry.
+- **`target: k8s`** (+ `k8s: <name>`) — emit a Kustomize base/overlays tree. See `/charly-kubernetes:kubernetes`.
+- **`target: pod`** (default, + `box: <image>`) — container deployment. Multiple pod deploys coexist (`my-dev`, `postgres-staging`, etc.); each gets its own quadlet, container name, and deploy.yml entry.
 
 `<ref>` accepts four forms, auto-detected:
 
@@ -136,7 +136,7 @@ deploy:
       kind: cloud_image
       url: https://fastly.mirror.pkgbuild.com/...
       base_user: arch
-    add_layers:
+    add_candy:
       - ripgrep
       - github.com/team/configs/candy/sshkeys
     install_opts:
@@ -206,8 +206,8 @@ Ref forms for `--add-candy` are identical to the primary `<ref>` positional (loc
 
 ## Two supported deploy patterns
 
-Every `target: pod` deploy entry MUST declare its `image:` field
-explicitly (hard load-time error if absent — see "Why `image:` is
+Every `target: pod` deploy entry MUST declare its `box:` field
+explicitly (hard load-time error if absent — see "Why `box:` is
 required" below). With that contract locked, two distinct patterns
 are supported:
 
@@ -252,7 +252,7 @@ addressing instance deploys).
 ### Pattern B — Arbitrary deploy name with image (and optional version pin)
 
 The deploy key is purely a name; it does NOT have to match the
-`image:` value. Use this for version pinning, canary deploys, or
+`box:` value. Use this for version pinning, canary deploys, or
 when you want a more descriptive deploy name than the image name
 itself:
 
@@ -278,12 +278,12 @@ target an instance of `versa`, which is a different deploy).
 
 ### Schema rules locked down by these patterns
 
-- **`image:` is REQUIRED on every `target: pod` deploy entry.** Hard
+- **`box:` is REQUIRED on every `target: pod` deploy entry.** Hard
   load-time error if absent, with a remediation hint pointing at
   `charly migrate` (the one-shot migration that injects
   the field into legacy entries).
-- **The `image:` value is either**:
-  - a **short name** (e.g. `versa`) — resolved against `image:`
+- **The `box:` value is either**:
+  - a **short name** (e.g. `versa`) — resolved against `box:`
     entries in `charly.yml` to the currently-built tag, OR
   - a **fully-qualified registry ref** (e.g.
     `ghcr.io/overthinkos/versa:2026.131.2134` or
@@ -291,7 +291,7 @@ target an instance of `versa`, which is a different deploy).
     Use this for version pinning and canary deploys.
 - **The deploy key is purely a name.** It may contain `/` to express
   the multi-instance pattern (`<base>/<instance>`) but does NOT have
-  to match `image:`. `versa-old`, `versa-canary`, and
+  to match `box:`. `versa-old`, `versa-canary`, and
   `my-tenant/staging` are all valid deploy keys.
 - **Container name rule**: `charly-<key-with-slash-replaced-by-dash>`
   (e.g. `charly-versa`, `charly-versa-ecovoyage`, `charly-versa-canary`).
@@ -305,24 +305,24 @@ target an instance of `versa`, which is a different deploy).
 Each deploy entry's quadlet `PublishPort=` is sourced from THAT entry's own
 `port:`/`resolved_port:`, looked up by its deploy key. Multiple deploys backed
 by the same image short-name on one host (Pattern A instances, Pattern B
-pinned/canary deploys, and `kind: eval` beds whose `image:` matches a running
+pinned/canary deploys, and `kind: eval` beds whose `box:` matches a running
 production deploy) each get their own independent ports — a bed remapping
 `45434:11434` keeps that mapping even while a sibling `ollama` deploy publishes
 `11434`. `MergeDeployOntoMetadata` and `dc.Lookup` both take the deploy key
 (typically `c.Image`), never a value derived from the baked
-`ai.opencharly.image` label, so an entry's explicit `port:` is never clobbered
+`ai.opencharly.box` label, so an entry's explicit `port:` is never clobbered
 by a sibling that merely shares the image.
 
-### Why `image:` is required (R10 implication)
+### Why `box:` is required (R10 implication)
 
 The eval runner inspects exactly the image the operator declared in
-`image:`, never what the container happens to be. Without an explicit
-`image:` field the runner would resolve the running container's image
+`box:`, never what the container happens to be. Without an explicit
+`box:` field the runner would resolve the running container's image
 ref via `containerImageRef()`; for volume-pinned deploys (where
 `data_source:` seeds workspace from a specific image tag) the running
 container sits at the seed-version, not the current image, so the
 runner would read the older OCI label and silently drop any probes
-added since. Requiring `image:` makes the inspected image deterministic.
+added since. Requiring `box:` makes the inspected image deterministic.
 
 ## Examples
 
@@ -573,7 +573,7 @@ The `charly deploy add`/`del` surface carries three fields on every deploy.yml e
 
 **`target:`** — `pod` (default, container pipeline) or `local` (local filesystem apply). When `target: local` is set, `charly deploy add` routes to the local executor; `host: local` (default) runs directly, `host: <user@machine>` runs over SSH.
 
-**`add_candy:`** — list of extra layer refs applied on top of the image's base layers. Each entry accepts the same 4 ref forms as the command-line `--add-candy` flag (local name / local YAML path / remote `github.com/.../candy/<n>[@ref]`). See "add_layers: overlay mechanism" above for pod vs local semantics.
+**`add_candy:`** — list of extra layer refs applied on top of the image's base layers. Each entry accepts the same 4 ref forms as the command-line `--add-candy` flag (local name / local YAML path / remote `github.com/.../candy/<n>[@ref]`). See "add_candy: overlay mechanism" above for pod vs local semantics.
 
 **`install_opts:`** — local-target defaults that mirror the CLI flags on `charly deploy add`. CLI flags win on conflict; deploy.yml provides defaults so you don't have to repeat `--with-services --allow-repo-changes` on every invocation.
 
@@ -582,7 +582,7 @@ deploy:
   my-host:
     box: fedora-coder
     target: local
-    add_layers:
+    add_candy:
       - my-team-vimrc                                     # local layer
       - github.com/team-acme/configs/candy/sshkeys       # remote layer
       - ./private-overlay.yml                             # local file
@@ -594,7 +594,7 @@ deploy:
       verify: true
       builder_image: fedora-builder:2026.04
     env:
-      OVERTHINK_DEV: "true"
+      OPENCHARLY_DEV: "true"
 ```
 
 Fields ignored on pod deploys: `install_opts` (local-only). Fields ignored on local deploys: `volumes`, `ports`, `tunnel`, `sidecars`, `security`'s container-runtime bits.
@@ -984,11 +984,11 @@ operator deployment — one codebase.
 deploy:
   webapp:                          # an operator deployment + a companion
     target: pod
-    image: web
+    box: web
     peer:
       chrome:                      # a SIBLING brought up on the shared charly net
         target: pod
-        image: chrome-headless     # a full DeploymentNode (its own target/image/port/…)
+        box: chrome-headless       # a full DeploymentNode (its own target/box/port/…)
         port: [auto]
 ```
 
@@ -1052,7 +1052,7 @@ deploy:
 
 ## Cross-kind name reuse + ResolveDeployRef precedence
 
-A deploy entry's key in `deploy:` lives in its own namespace. The same name MAY simultaneously be a layer, a `box:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry — and the deploy entry's cross-reference fields (`image:`, `vm:`, `local:`, `cluster:`) are scoped to the matching kind, no fall-through. Concrete worked example: this repo's `deploy.charly-cachyos` references `local.charly-cachyos` via `local: charly-cachyos` — same name across two namespaces.
+A deploy entry's key in `deploy:` lives in its own namespace. The same name MAY simultaneously be a candy, a `box:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry — and the deploy entry's cross-reference fields (`box:`, `vm:`, `local:`, `k8s:`) are scoped to the matching kind, no fall-through. Concrete worked example: this repo's `deploy.charly-cachyos` references `local.charly-cachyos` via `local: charly-cachyos` — same name across two namespaces.
 
 `ResolveDeployRef` (used by `charly deploy add <name> <ref>`): when a name exists as BOTH an image and a layer, box-first precedence wins for the primary `<ref>` positional. The `--add-candy <ref>` path goes through `ResolveDeployRefAsLayer` which is layer-first. Same-name image and layer is permitted.
 

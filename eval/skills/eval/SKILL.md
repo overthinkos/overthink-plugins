@@ -47,7 +47,7 @@ tearing it down and rebuilding fearless. The box is restricted at the boundary,
 never by stripping the candy.
 
 1. `charly box build <image>` — build the test artifact (pod beds only).
-2. `charly eval box <image>` — image-section + baked layer-section probes.
+2. `charly eval box <image>` — box-section + baked candy-section probes.
 3. `charly deploy add <bed> <ref>` — apply the bed (or `charly vm create` for vm beds).
 4. (pod beds) `charly config <bed>` + `charly start <bed>`.
 5. `charly eval live <bed>` — full three-section live probe pass.
@@ -81,14 +81,14 @@ memory) is ALWAYS preserved. Set `defaults.keep_eval_runs` in `charly.yml`
 
 | Bed | Target | Ref | Surface |
 |---|---|---|---|
-| `eval-sway-browser-vnc-pod` | pod | `image: sway-browser-vnc` | cdp/wl/vnc/dbus/mcp/record + pod-side file/service/port/process/http |
+| `eval-sway-browser-vnc-pod` | pod | `box: sway-browser-vnc` | cdp/wl/vnc/dbus/mcp/record + pod-side file/service/port/process/http |
 | `eval-k3s-vm` | vm | `vm: k3s-vm` | k8s (all 13 methods) + guest-side file/service/port/process, http via port-forward, VmDeployTarget end-to-end |
-| `eval-pod` | pod | `image: eval-pod` | combined mechanism bed: `kind: box` build + `kind: candy` composition order + `kind: pod` runtime (nc :18794 + supervisord) + every DeployTarget rendering path |
+| `eval-pod` | pod | `box: eval-pod` | combined mechanism bed: `kind: box` build + `kind: candy` composition order + `kind: pod` runtime (nc :18794 + supervisord) + every DeployTarget rendering path |
 | `eval-local` | local | `local: eval-local` | `kind: local` layer apply via ShellExecutor |
-| `eval-jupyter-pod` | pod | `image: jupyter` | jupyter-mcp regression coverage |
-| `eval-jupyter-ml-pod` | pod | `image: jupyter-ml` | jupyter-ml spacy/quarto + GPU MCP probes |
-| `eval-versa-pod` | pod | `image: versa` | versa OSM analytics + vector-tile + marimo MCP |
-| `eval-android-emulator-pod` | pod | `image: android-emulator` | Android 14 emulator (/dev/kvm) + adb/appium |
+| `eval-jupyter-pod` | pod | `box: jupyter` | jupyter-mcp regression coverage |
+| `eval-jupyter-ml-pod` | pod | `box: jupyter-ml` | jupyter-ml spacy/quarto + GPU MCP probes |
+| `eval-versa-pod` | pod | `box: versa` | versa OSM analytics + vector-tile + marimo MCP |
+| `eval-android-emulator-pod` | pod | `box: android-emulator` | Android 14 emulator (/dev/kvm) + adb/appium |
 
 Naming: `eval-<descriptor>-<kind>`, dropping a redundant suffix when the
 descriptor already equals the kind AND the short form is free (`eval-local`,
@@ -253,7 +253,7 @@ check written once works unchanged when `deploy.yml` remaps ports.
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Pure-image eval (disposable, build-scope) | `charly eval box <image>` | Layer + image sections only, in `podman run --rm` (no host port mappings, no volumes attached) |
+| Pure-box eval (disposable, build-scope) | `charly eval box <image>` | Candy + box sections only, in `podman run --rm` (no host port mappings, no volumes attached) |
 | Live full-stack eval (running deployment) | `charly eval live <name> [-i instance]` | All three sections run via `podman exec` / SSH / nested chain, with full runtime variable resolution |
 | R10 bed (full sequence) | `charly eval run <bed>` / `charly eval run --all-beds` | Build → eval image → deploy → eval live → fresh update → tear down on a `kind: eval` disposable bed. Canonical R10 gate |
 | AI iteration loop | `charly eval run <score>` | Drives an AI through plateau-bounded iterations against `kind: score` |
@@ -357,11 +357,11 @@ The banner after `charly eval box` reports the image ref:
 Image: ghcr.io/overthinkos/fedora-coder:latest
 ```
 
-The `meta.Image` short-name (from the `ai.opencharly.image` OCI
+The `meta.Box` short-name (from the `ai.opencharly.box` OCI
 label) is used by `charly eval live` for the `charly-<image>` container-name
 lookup — full image refs like `ghcr.io/overthinkos/fedora-coder:latest`
 are correctly mapped to `charly-fedora-coder`. Implementation:
-`charly/eval_cmd.go` `EvalImageCmd.Run()` and `EvalLiveCmd.Run()`.
+`charly/eval_cmd.go` `EvalBoxCmd.Run()` and `EvalLiveCmd.Run()`.
 
 ## Agent Driven Evaluation (ADE) — `charly box/eval feature run` + the agent grader
 

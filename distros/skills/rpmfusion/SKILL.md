@@ -31,7 +31,7 @@ fedora-nonfree:
   via dnf in the builder stage. Required for building pixelflux from source — see
   `/charly-selkies:selkies` (Patched pixelflux build pipeline).
 
-## Related Layers
+## Related Candies
 - `/charly-selkies:ffmpeg` -- nonfree multimedia codecs installed from RPM Fusion
 - `/charly-immich:immich` -- consumes nonfree codecs via fedora-nonfree
 

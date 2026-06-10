@@ -80,7 +80,7 @@ charly shell my-amd-app -c "rocm-smi"
 charly shell my-amd-app -c "echo \$HSA_OVERRIDE_GFX_VERSION"
 ```
 
-## Related Layers
+## Related Candies
 
 - `/charly-distros:nvidia` -- NVIDIA GPU counterpart (runtime libs + CDI), shares `appendAutoDetectedEnv()` DRINODE injection
 - `/charly-distros:cuda` -- NVIDIA CUDA toolkit (stacked on nvidia)

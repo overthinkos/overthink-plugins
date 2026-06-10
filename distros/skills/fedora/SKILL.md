@@ -2,7 +2,7 @@
 name: fedora
 description: |
   Base Fedora 43 image. Root of the image hierarchy for all RPM-based images.
-  MUST be invoked before building, deploying, configuring, or troubleshooting the fedora image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the fedora box.
 ---
 
 # fedora
@@ -23,7 +23,7 @@ and the Fedora-rooted pod families all live in the same submodule, discovered as
 those relocated boxes. Build with `charly box build fedora` from the submodule
 (or `charly -C box/fedora box build fedora`).
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
@@ -61,7 +61,7 @@ These are **speed-only** — they never change which packages are selected
 and inherits across distro inheritance like the other sub-blocks. Source:
 `charly/generate.go:renderDnfConfWrite`.
 
-## Derived Images
+## Derived Boxes
 
 - `/charly-distros:fedora-nonfree` — adds RPM Fusion repos
 - `/charly-distros:fedora-builder` — adds pixi, nodejs, build-toolchain
@@ -75,7 +75,7 @@ After `charly box build`:
 - `charly box list` — image appears in list
 - `charly shell fedora` — interactive shell works
 
-## Related Images
+## Related Boxes
 - `/charly-distros:fedora-nonfree` — adds RPM Fusion repos
 - `/charly-distros:fedora-builder` — adds pixi, nodejs, build-toolchain
 - `/charly-distros:charly-fedora` — full charly toolchain on Fedora

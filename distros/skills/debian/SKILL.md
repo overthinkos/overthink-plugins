@@ -23,7 +23,7 @@ Ubuntu — the deb-family sibling — lives in its own **`overthinkos/ubuntu`** 
 (see `/charly-distros:ubuntu`). Nothing in main consumes any Debian image, so there
 is **no main ↔ debian coupling**.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|

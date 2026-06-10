@@ -65,7 +65,7 @@ globally; `charly box build immich --include-disabled` only relaxes the
 gate for `immich`.
 
 The flag flows from `BuildCmd.IncludeDisabled` → `ResolveOpts.IncludeDisabled`
-+ `ResolveOpts.IncludeDisabledNames` → `ResolveAllImages` (in `Generator`)
++ `ResolveOpts.IncludeDisabledNames` → `ResolveAllBox` (a `*Config` method)
 → `ResolveBox`. The `shouldIncludeDisabled(name)` helper centralises the
 scoping rule. Sibling commands `charly box inspect <name> --include-disabled`
 and `charly box validate --include-disabled` accept the same flag for
@@ -216,7 +216,7 @@ Containerfiles COPY only from `candy/`, `templates/`, `.build/`). Source:
 
 After `charly box build` (push runs excluded), charly prunes old CalVer tags per image
 down to `defaults.keep_images` — keeping the newest N builds per
-`ai.opencharly.image` group, ordered by the `ai.opencharly.version` label
+`ai.opencharly.box` group, ordered by the `ai.opencharly.version` label
 (the content-derived EffectiveVersion) as the PRIMARY key, with the `:YYYY.DDD.HHMM`
 build TAG as the tiebreaker. The tag tiebreak is load-bearing: the label is
 content-stable, so many builds of an unchanged image share one label-CalVer and
@@ -260,7 +260,7 @@ read-only registry cache the project default without per-invocation flags.
 (e.g. `ghcr.io/overthinkos/fedora-supervisord:2026.114.1022`). charly does
 **not** emit a `:latest` tag, ever. Short-name resolution (in
 `charly/local_image.go`) picks the newest CalVer for a given short name
-via the `ai.opencharly.image=<short>` + `ai.opencharly.version=<calver>`
+via the `ai.opencharly.box=<short>` + `ai.opencharly.version=<calver>`
 OCI labels. The CLI accepts an explicit `--tag <calver>` for pinning;
 an empty `--tag` resolves to newest-local automatically.
 

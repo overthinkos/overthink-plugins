@@ -60,7 +60,7 @@ nvidia:
 - `/charly-distros:nvidia` (base for all GPU images)
 - `/charly-immich:immich-ml`
 
-## Related Layers
+## Related Candies
 
 - `/charly-distros:nvidia` — NVIDIA GPU runtime (driver libs, CDI toolkit) — required dependency
 - `/charly-selkies:ffmpeg` — FFmpeg multimedia (nonfree codecs) — required dependency

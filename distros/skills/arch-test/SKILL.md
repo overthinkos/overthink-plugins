@@ -2,7 +2,7 @@
 name: arch-test
 description: |
   Test image for Arch Linux pacman and AUR package installation.
-  MUST be invoked before building or troubleshooting the arch-test image.
+  MUST be invoked before building or troubleshooting the arch-test box.
 ---
 
 # arch-test
@@ -16,7 +16,7 @@ base + `arch-builder` are bare-local in the same self-contained submodule
 (`import: []`) — `base: arch`. Build from
 the submodule: `cd box/arch && charly box build arch-test`.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
@@ -55,7 +55,7 @@ charly shell arch-test -c "which yay"          # aur: package installed
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves building or troubleshooting the arch-test image, or validating Arch Linux package format support.
+**MUST be invoked** when the task involves building or troubleshooting the arch-test box, or validating Arch Linux package format support.
 
 ## Related
 

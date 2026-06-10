@@ -77,7 +77,7 @@ charly remove githubrunner -e RUNNER_TOKEN=$(gh api -X POST /orgs/myorg/actions/
 
 - `/charly-distros:githubrunner`
 
-## Related Layers
+## Related Candies
 
 - `/charly-infrastructure:supervisord` — process manager dependency
 - `/charly-distros:container-nesting` — rootless nested podman/buildah/skopeo + subuid layout + caps

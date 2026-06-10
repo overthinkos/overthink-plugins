@@ -5,7 +5,7 @@ description: |
   runs as uid=1000 with passwordless sudo (no root, no cap_add: ALL). Same layer
   list as charly-arch. Includes NVIDIA GPU runtime.
   MUST be invoked before building, deploying, configuring, or troubleshooting
-  the charly-fedora image.
+  the charly-fedora box.
 ---
 
 # charly-fedora
@@ -22,7 +22,7 @@ layers (incl. the `nvidia` layer) are pulled by github reference. Build from the
 submodule: `charly -C box/fedora box build charly-fedora`. Deploy-mode verbs work
 from anywhere once the image is in local storage.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
@@ -153,7 +153,7 @@ list. The tag system (`build: [rpm]` + `distro: ["fedora:43", fedora]`
 vs `build: [pac]` + `distro: [arch]`) selects the right packages
 and scripts per distro.
 
-## Key Layers
+## Key Candies
 
 - `/charly-tools:charly` — the full toolchain: charly binary plus VM/encryption tools
 - `/charly-distros:container-nesting` — nested rootless podman/buildah (authoritative RCA for `mount_too_revealing()` + `unmask=/proc/*`)
@@ -161,7 +161,7 @@ and scripts per distro.
 - `/charly-coder:gh` — GitHub CLI + git + git-lfs (owns all git tooling)
 - `/charly-distros:nvidia` — NVIDIA GPU runtime
 
-## Related Images
+## Related Boxes
 
 - `/charly-distros:fedora` — parent base image
 - `/charly-coder:charly-arch` — Arch counterpart, same layers, same rootless posture

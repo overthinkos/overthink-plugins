@@ -15,7 +15,7 @@ exclusively from OCI labels embedded into built images + `deploy.yml` for
 deployment overrides.
 
 Build-mode operations live only under `charly box`. Top-level invocations like
-`charly build`, `charly validate`, `charly list images`, or `charly inspect` return Kong's
+`charly build`, `charly validate`, `charly list boxes`, or `charly inspect` return Kong's
 `unexpected argument` error.
 
 An **image** is a named build target in `charly.yml`. Images compose layers
@@ -31,7 +31,7 @@ order.
 | `charly box build` | Build container images from charly.yml | `/charly-build:build` |
 | `charly box generate` | Write `.build/` Containerfiles | `/charly-build:generate` |
 | `charly box inspect` | Print resolved image config as JSON | `/charly-build:inspect` |
-| `charly box list {images,layers,targets,services,routes,volumes,aliases}` | List components from charly.yml | `/charly-build:list` |
+| `charly box list {boxes,candies,targets,services,routes,volumes,aliases}` | List components from charly.yml | `/charly-build:list` |
 | `charly box merge` | Merge small layers in a built image | `/charly-build:merge` |
 | `charly box new candy <name>` | Scaffold a new layer directory | `/charly-build:new` |
 | `charly box pull` | Fetch an image into local storage | `/charly-build:pull` |
@@ -62,14 +62,14 @@ Every `charly box …` command resolves `charly.yml` (and `build.yml`, `candy/`,
 
 ```bash
 # Local project — pick a directory on disk:
-charly -C /path/to/opencharly box list images          # short flag
-charly --dir /path/to/opencharly box list images       # long flag
+charly -C /path/to/opencharly box list boxes          # short flag
+charly --dir /path/to/opencharly box list boxes       # long flag
 CHARLY_PROJECT_DIR=/path/to/opencharly charly box list boxes   # env var
 
 # Remote project — clone (or hit cache) and chdir into it:
-charly --repo overthinkos/overthink box list images        # bare owner/repo → github.com/owner/repo@<default-branch>
-charly --repo overthinkos/overthink@main box list images   # pinned ref
-charly --repo default box list images                      # literal "default" → overthinkos/overthink
+charly --repo overthinkos/overthink box list boxes        # bare owner/repo → github.com/owner/repo@<default-branch>
+charly --repo overthinkos/overthink@main box list boxes   # pinned ref
+charly --repo default box list boxes                      # literal "default" → overthinkos/overthink
 CHARLY_PROJECT_REPO=overthinkos/overthink charly box list boxes
 ```
 
@@ -477,7 +477,7 @@ All of the above round-trip via `charly config`: the label is read from the imag
 
 ### Tunnel is deploy.yml-only
 
-`labels.go:238` **explicitly skips reading** any tunnel label when resolving an image's deploy config. Tunnels (Tailscale serve, Cloudflare tunnel) are treated as a **deployment** decision, not an image attribute — they live exclusively in `deploy.yml`. This was the deliberate design of commit `2759124` (tunnel→deploy.yml migration), motivated by three concerns:
+`labels.go:334` **explicitly skips reading** any tunnel label when resolving an image's deploy config. Tunnels (Tailscale serve, Cloudflare tunnel) are treated as a **deployment** decision, not an image attribute — they live exclusively in `deploy.yml`. This was the deliberate design of commit `2759124` (tunnel→deploy.yml migration), motivated by three concerns:
 
 1. **Per-instance divergence.** One selkies-desktop image may be deployed with a Tailscale tunnel in one environment and no tunnel in another. Baking the tunnel choice into the image forecloses that.
 2. **`--update-all` safety.** Propagating config changes across deployed services must not accidentally rewrite tunnel settings from image labels and blow away per-instance overrides.
@@ -530,7 +530,7 @@ box:
 - `/charly-build:build` -- `charly box build` (+ the `--no-cache` intermediate scratch-stage caveat)
 - `/charly-build:generate` -- `charly box generate` (Containerfile generation including OCI label emission)
 - `/charly-build:inspect` -- `charly box inspect` (resolved OCI label set)
-- `/charly-build:list` -- `charly box list {images,layers,targets,services,routes,volumes,aliases}`
+- `/charly-build:list` -- `charly box list {boxes,candies,targets,services,routes,volumes,aliases}`
 - `/charly-build:merge` -- `charly box merge` (post-build layer consolidation)
 - `/charly-build:new` -- `charly box new candy <name>` (scaffold new layer directory)
 - `/charly-build:pull` -- `charly box pull` (fetch into local storage; `ErrImageNotLocal` recovery)

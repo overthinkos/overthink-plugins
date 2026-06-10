@@ -3,7 +3,7 @@ name: fedora-builder
 description: |
   Builder image with pixi, Node.js, and C/C++ build toolchain. Used as the
   default builder for multi-stage image builds.
-  MUST be invoked before building, deploying, configuring, or troubleshooting the fedora-builder image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the fedora-builder box.
 ---
 
 # fedora-builder
@@ -19,7 +19,7 @@ pinned as github refs (`@github.com/overthinkos/overthink/candy/<name>:<tag>`) s
 the same definition resolves in both main and the submodule. Build with
 `charly box build fedora-builder` from the submodule.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
@@ -28,7 +28,7 @@ the same definition resolves in both main and the submodule. Build with
 | Platforms | linux/amd64 |
 | Registry | ghcr.io/overthinkos |
 
-## Full Layer Stack
+## Full Candy Stack
 
 1. `fedora` (quay.io/fedora/fedora:43)
 2. `rpmfusion` — RPM Fusion free + nonfree repo configuration. Applied **first** so subsequent layers can `dnf install` packages from RPM Fusion (e.g. `x264-devel`, `ffmpeg-devel`, `libva-devel`)
@@ -55,13 +55,13 @@ charly box build fedora-builder
 charly shell fedora-builder
 ```
 
-## Key Layers
+## Key Candies
 
 - `/charly-languages:pixi` — Python package management foundation
 - `/charly-coder:nodejs` — Node.js runtime and npm
 - `/charly-coder:build-toolchain` — C/C++ compilation tools
 
-## Related Images
+## Related Boxes
 
 - `/charly-distros:fedora` — parent base
 
@@ -73,7 +73,7 @@ After `charly box build`:
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the fedora-builder image, multi-stage builds, or build cache configuration. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the fedora-builder box, multi-stage builds, or build cache configuration. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 

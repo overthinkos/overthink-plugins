@@ -70,7 +70,7 @@ libvirt:
 
 This is the `/` classification case: `isDeviceElement` flags it as device-scoped, so the renderer injects it inside `<devices>` rather than before `</domain>`. See `/charly-internals:libvirt-renderer` for the injection pipeline and `/charly-vm:vm` for the QEMU-user-net caveat (the agent shows as enabled/inactive under `charly`'s QEMU backend; libvirt backend activates it).
 
-## Related Layers
+## Related Candies
 
 - `/charly-coder:sshd` -- SSH server (commonly paired in bootc/VM images)
 

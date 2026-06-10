@@ -23,7 +23,7 @@ needs no reference to `overthinkos/debian`. Build from the submodule:
 `charly -C box/ubuntu box build ubuntu` (or `charly --repo overthinkos/ubuntu box build ubuntu`).
 Nothing in main consumes any Ubuntu image, so there is **no main ↔ ubuntu coupling**.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|

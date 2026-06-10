@@ -36,7 +36,7 @@ Requires an Arch-based image with `build: [pac]` (or `[pac, aur]`).
 
 - `/charly-distros:arch-test` — Arch packaging test image
 
-## Related Layers
+## Related Candies
 
 - `/charly-distros:arch-aur-test` — companion AUR package test
 

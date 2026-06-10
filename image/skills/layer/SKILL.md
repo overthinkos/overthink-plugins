@@ -1143,7 +1143,7 @@ shell: schema. Idempotent.
 
 ## Cross-References
 
-- `/charly-image:image` — Adding layers to image definitions; image composition; `data_image:` for data-only bundles; the full MCP-first authoring table including `image set`, `image add-layer`, `image rm-layer`, `image write`, `image cat`.
+- `/charly-image:image` — Adding layers to image definitions; image composition; `data_image:` for data-only bundles; the full MCP-first authoring table including `box set`, `box add-candy`, `box rm-candy`, `box write`, `box cat`.
 - `/charly-build:charly-mcp-cmd` — "Authoring tools" table exposing `candy.set`, `candy.add-rpm`, `candy.add-deb`, `candy.add-pac`, `candy.add-aur` as MCP tools; end-to-end build-from-scratch worked example.
 - `/charly-build:generate` — What `charly box generate` actually emits; the per-verb emitter pipeline; `.build/<image>/` layout.
 - `/charly-build:validate` — Validation rules (including per-verb task requirements).

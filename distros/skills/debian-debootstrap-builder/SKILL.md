@@ -18,7 +18,7 @@ Privileged builder image that ships the **debootstrap** toolchain (the
 > **Lives in `overthinkos/debian`** (git submodule at `box/debian`). Build:
 > `charly -C box/debian box build debian-debootstrap-builder`.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|

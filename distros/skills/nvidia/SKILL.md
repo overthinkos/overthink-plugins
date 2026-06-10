@@ -3,7 +3,7 @@ name: nvidia
 description: |
   NVIDIA GPU base image with runtime support and CUDA toolkit on Fedora. Base for all
   GPU-accelerated images (python-ml, jupyter, ollama, comfyui).
-  MUST be invoked before building, deploying, configuring, or troubleshooting the nvidia image.
+  MUST be invoked before building, deploying, configuring, or troubleshooting the nvidia box.
 ---
 
 # nvidia
@@ -17,7 +17,7 @@ submodule. The two are siblings — pick the Fedora `nvidia` image for the
 RPM-based GPU stack, `cachyos.nvidia` for the Arch/CachyOS GPU stack. See
 `/charly-distros:cachyos`.
 
-## Image Properties
+## Box Properties
 
 | Property | Value |
 |----------|-------|
@@ -26,7 +26,7 @@ RPM-based GPU stack, `cachyos.nvidia` for the Arch/CachyOS GPU stack. See
 | Platforms | linux/amd64 |
 | Registry | ghcr.io/overthinkos |
 
-## Full Layer Stack
+## Full Candy Stack
 
 1. `fedora-nonfree` (fedora + rpmfusion — provides RPM Fusion free + nonfree repos)
 2. `nvidia` — GPU runtime: driver libs, nvidia-container-toolkit (CDI), VA-API
@@ -41,19 +41,19 @@ charly -C box/fedora box build nvidia
 charly shell nvidia
 ```
 
-## Key Layers
+## Key Candies
 
 - `/charly-distros:nvidia` — NVIDIA GPU runtime (driver libs, CDI generation via nvidia-ctk)
 - `/charly-distros:cuda` — CUDA toolkit and GPU development libraries
 
-## Derived Images
+## Derived Boxes
 
 - `/charly-languages:python-ml` — ML Python environment
 - `/charly-jupyter:jupyter` — Jupyter notebook server
 - `/charly-ollama:ollama` — LLM inference server
 - `/charly-comfyui:comfyui` — image generation UI
 
-## Related Images
+## Related Boxes
 
 - `/charly-distros:fedora` — parent base (no GPU)
 - `/charly-distros:cachyos` — `cachyos.nvidia` is the CachyOS GPU-base sibling (Arch/CachyOS GPU stack)
@@ -69,7 +69,7 @@ After `charly box build`:
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves the nvidia image, GPU base images, CUDA in containers, or CDI device configuration. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the nvidia box, GPU base images, CUDA in containers, or CDI device configuration. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 ## Related
 
