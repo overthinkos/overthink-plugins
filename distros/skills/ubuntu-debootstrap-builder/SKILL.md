@@ -16,7 +16,7 @@ Privileged builder image that ships the **debootstrap** toolchain (the
 `/charly-vm:ubuntu` bootstrap VM.
 
 > **Lives in `overthinkos/ubuntu`** (git submodule at `box/ubuntu`). Build:
-> `charly -C box/ubuntu image build ubuntu-debootstrap-builder`.
+> `charly -C box/ubuntu box build ubuntu-debootstrap-builder`.
 
 ## Image Properties
 

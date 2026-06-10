@@ -23,8 +23,8 @@ layers by `@github` git reference and imports the **`overthinkos/arch`** submodu
 under the `arch` namespace (`import: [{arch: …}]`) so it reaches `arch.arch` (the
 `cachyos-pacstrap-builder` base) and `arch.arch-builder` (the cachyos base's
 builder) — one-directional, since arch imports nothing back. Build it
-from the submodule: `charly -C box/cachyos image build cachyos` (or
-`charly --repo overthinkos/cachyos image build cachyos`).
+from the submodule: `charly -C box/cachyos box build cachyos` (or
+`charly --repo overthinkos/cachyos box build cachyos`).
 
 ## Image Properties
 
@@ -98,7 +98,7 @@ cachyos and AUR on arch are the same code path through `arch-builder`.
 ## Quick Start
 
 ```bash
-charly -C box/cachyos image build cachyos
+charly -C box/cachyos box build cachyos
 charly shell cachyos -c "pacman --version"
 ```
 
@@ -141,7 +141,7 @@ builds and also builds end-to-end (the pacstrap renderer derives
 
 ## Verification
 
-After `charly -C box/cachyos image build cachyos`:
+After `charly -C box/cachyos box build cachyos`:
 - `charly box list` — image appears
 - `charly shell cachyos -c "pacman --version"` — pacman available
 - `charly box inspect versa --format base` (from main) → `cachyos.cachyos` (the `cachyos` import namespace resolves)

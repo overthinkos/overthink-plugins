@@ -16,7 +16,7 @@ the privileged `/charly-distros:debian-debootstrap-builder` container
 (`from: builder:debootstrap`, `bootstrap_builder_image: debian-debootstrap-builder`).
 
 > **Lives in `overthinkos/debian`** (git submodule at `box/debian`). Build:
-> `charly -C box/debian image build debian-debootstrap`.
+> `charly -C box/debian box build debian-debootstrap`.
 
 ## When to use it (and when not)
 

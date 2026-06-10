@@ -16,7 +16,7 @@ Privileged builder image that ships the **debootstrap** toolchain (the
 `/charly-vm:debian` bootstrap VM.
 
 > **Lives in `overthinkos/debian`** (git submodule at `box/debian`). Build:
-> `charly -C box/debian image build debian-debootstrap-builder`.
+> `charly -C box/debian box build debian-debootstrap-builder`.
 
 ## Image Properties
 

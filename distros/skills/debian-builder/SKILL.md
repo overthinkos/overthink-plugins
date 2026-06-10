@@ -14,7 +14,7 @@ description: |
 Debian 13 counterpart of `/charly-distros:fedora-builder`. Provides the pixi / npm / cargo build environments so downstream Debian images (currently `/charly-coder:debian-coder`) get pre-compiled artifacts from a dedicated builder stage without bloating the final image.
 
 Lives in the **`overthinkos/debian`** repo (git submodule at **`box/debian`**).
-Build it from the submodule: `charly -C box/debian image build debian-builder`
+Build it from the submodule: `charly -C box/debian box build debian-builder`
 (normally it builds implicitly as a dependency of `debian-coder`). Its
 `pixi`/`nodejs`/`build-toolchain` layers are pulled by github reference from the
 main repo.
@@ -61,7 +61,7 @@ No AUR equivalent (unlike `/charly-distros:arch-builder`) — AUR is an Arch-onl
 ## Quick start
 
 ```bash
-charly -C box/debian image build debian-builder
+charly -C box/debian box build debian-builder
 charly shell debian-builder
 ```
 
@@ -69,7 +69,7 @@ Typically not invoked directly — it's a build-time dependency of `/charly-code
 
 ## Verification
 
-- `charly -C box/debian image list | grep debian-builder` — image present.
+- `charly -C box/debian box list | grep debian-builder` — image present.
 - `charly shell debian-builder -- pixi --version && node --version && gcc --version`.
 
 ## Related images

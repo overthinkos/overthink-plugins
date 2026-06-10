@@ -57,7 +57,7 @@ selkies-kde:
 ## Quick Start
 
 ```bash
-charly -C box/cachyos image build selkies-kde
+charly -C box/cachyos box build selkies-kde
 charly config selkies-kde
 charly start selkies-kde
 # Access: https://localhost:3000 (accept the self-signed cert)

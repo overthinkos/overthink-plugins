@@ -20,7 +20,7 @@ composes the main repo's layers + shared `build.yml` by git reference. Because
 `distro.ubuntu` is `inherits: debian`, the single remote `build.yml` (which
 carries BOTH distro configs) resolves the inheritance — `overthinkos/ubuntu`
 needs no reference to `overthinkos/debian`. Build from the submodule:
-`charly -C box/ubuntu image build ubuntu` (or `charly --repo overthinkos/ubuntu image build ubuntu`).
+`charly -C box/ubuntu box build ubuntu` (or `charly --repo overthinkos/ubuntu box build ubuntu`).
 Nothing in main consumes any Ubuntu image, so there is **no main ↔ ubuntu coupling**.
 
 ## Image Properties
@@ -115,10 +115,10 @@ ECR Public mirrors the Dockerhub library namespace without rate-limiting.
 ## Verification
 
 ```bash
-charly -C box/ubuntu image build ubuntu
+charly -C box/ubuntu box build ubuntu
 charly shell ubuntu                       # drops into /home/ubuntu as uid 1000
 id                                    # uid=1000(ubuntu) gid=1000(ubuntu)
-charly -C box/ubuntu image validate     # remote build.yml resolves distro.ubuntu (inherits debian)
+charly -C box/ubuntu box validate     # remote build.yml resolves distro.ubuntu (inherits debian)
 ```
 
 ## Related images

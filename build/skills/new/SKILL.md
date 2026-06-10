@@ -55,7 +55,7 @@ extend or override the embedded default. Add a box with `charly box new box <nam
 ### `charly box new box <name>`
 
 ```bash
-charly -C ~/my-project image new image hello \
+charly -C ~/my-project box new box hello \
     --base quay.io/fedora/fedora:43 \
     --layers sshd,tmux
 # Appends to box.yml:
@@ -70,7 +70,7 @@ Flags: `--base` (required — URL or name of another image), `--layers` (optiona
 ### `charly box new candy <name>`
 
 ```bash
-charly -C ~/my-project image new layer sshd
+charly -C ~/my-project box new candy sshd
 # Creates:
 #   ~/my-project/candy/sshd/
 #   ~/my-project/candy/sshd/candy.yml  (stub with empty `rpm.packages:` null)

@@ -52,7 +52,7 @@ x264 when the GPU is unavailable.
 ## Quick Start
 
 ```bash
-charly -C box/cachyos image build selkies-kde-nvidia
+charly -C box/cachyos box build selkies-kde-nvidia
 charly eval box selkies-kde-nvidia            # build-scope incl. pixelflux-nvenc-compiled
 ```
 

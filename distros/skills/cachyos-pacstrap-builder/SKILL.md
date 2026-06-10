@@ -34,7 +34,7 @@ Privileged builder image used to bootstrap a CachyOS root filesystem via
 ## Quick Start
 
 ```bash
-charly -C box/cachyos image build cachyos-pacstrap-builder
+charly -C box/cachyos box build cachyos-pacstrap-builder
 ```
 
 This is the R10 canary for the submodule's composition machinery: a successful

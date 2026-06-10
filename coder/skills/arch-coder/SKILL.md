@@ -21,7 +21,7 @@ description: |
 > writes `base: arch`, `builder: {…: arch-builder}`. Build / deploy from
 > the submodule, e.g. `cd box/arch && charly box build arch-coder` (the build
 > verb defaults to the submodule's `charly.yml`), or
-> `charly --repo overthinkos/arch image build arch-coder`. The commands below assume
+> `charly --repo overthinkos/arch box build arch-coder`. The commands below assume
 > you are inside `box/arch` (or pass `-C box/arch`).
 
 Arch Linux counterpart of `/charly-coder:fedora-coder`. Same daily-development surface (AI CLIs, language runtimes, DevOps stack), same rootless posture (uid 1000 + passwordless sudo), same shape of tests — only the package manager (`pac:` / `aur:`) and a handful of Arch-specific package names differ.

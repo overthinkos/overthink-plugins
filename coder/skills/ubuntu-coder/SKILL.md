@@ -17,8 +17,8 @@ Ubuntu 24.04 noble counterpart of `/charly-coder:fedora-coder`. Same 80-line tes
 > **Location:** lives in the **`overthinkos/ubuntu`** repo (git submodule at
 > **`box/ubuntu`**) — a SEPARATE repo from `overthinkos/debian`. Its ~31
 > layers are pulled by github reference from the main repo. Build/validate from
-> the submodule: `charly -C box/ubuntu image build ubuntu-coder`, or
-> `charly --repo overthinkos/ubuntu image build ubuntu-coder`. Deploy-mode verbs
+> the submodule: `charly -C box/ubuntu box build ubuntu-coder`, or
+> `charly --repo overthinkos/ubuntu box build ubuntu-coder`. Deploy-mode verbs
 > read the built image's OCI labels and work from anywhere once it's local.
 
 ## Definition
@@ -127,10 +127,10 @@ Identical to `/charly-coder:debian-coder` — the only diff is `User` field.
 
 ```bash
 # 1. Validate
-charly -C box/ubuntu image validate
+charly -C box/ubuntu box validate
 
 # 2. Build (auto-chains: ubuntu → ubuntu-builder → ubuntu-coder)
-charly -C box/ubuntu image build ubuntu-coder
+charly -C box/ubuntu box build ubuntu-coder
 
 # 3. Disposable-container tests
 charly eval box ghcr.io/overthinkos/ubuntu-coder:latest

@@ -16,7 +16,7 @@ container (`from: builder:debootstrap`,
 `bootstrap_builder_image: ubuntu-debootstrap-builder`).
 
 > **Lives in `overthinkos/ubuntu`** (git submodule at `box/ubuntu`). Build:
-> `charly -C box/ubuntu image build ubuntu-debootstrap`.
+> `charly -C box/ubuntu box build ubuntu-debootstrap`.
 
 ## When to use it (and when not)
 

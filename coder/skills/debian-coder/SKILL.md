@@ -18,8 +18,8 @@ Debian 13 trixie counterpart of `/charly-coder:fedora-coder`. Same 80-line `eval
 > sibling files). Its `debian` base is owned by the same submodule; its ~31
 > layers are pulled by github reference from the main repo. Build/validate from
 > the submodule:
-> `charly -C box/debian image build debian-coder`, or
-> `charly --repo overthinkos/debian image build debian-coder`. Deploy-mode verbs
+> `charly -C box/debian box build debian-coder`, or
+> `charly --repo overthinkos/debian box build debian-coder`. Deploy-mode verbs
 > (`charly config`/`charly start`/`charly eval box`) read the built image's OCI labels and
 > work from anywhere once it's in local storage.
 
@@ -119,10 +119,10 @@ Against a live running container, the same command adds live-service extension t
 
 ```bash
 # 1. Validate
-charly -C box/debian image validate
+charly -C box/debian box validate
 
 # 2. Build dependencies auto-resolve (debian → debian-builder → debian-coder)
-charly -C box/debian image build debian-coder
+charly -C box/debian box build debian-coder
 
 # 3. Disposable-container tests
 charly eval box ghcr.io/overthinkos/debian-coder:latest

@@ -18,7 +18,7 @@ The Debian family lives in the **`overthinkos/debian`** repo (git submodule at
 `box.yml`) and composes the main repo's layers + shared `build.yml` (which
 keeps the `debian` distro config + the `deb` format + the `debootstrap` builder
 template) by git reference. Build it from the submodule:
-`charly -C box/debian image build debian` (or `charly --repo overthinkos/debian image build debian`).
+`charly -C box/debian box build debian` (or `charly --repo overthinkos/debian box build debian`).
 Ubuntu — the deb-family sibling — lives in its own **`overthinkos/ubuntu`** repo
 (see `/charly-distros:ubuntu`). Nothing in main consumes any Debian image, so there
 is **no main ↔ debian coupling**.
@@ -73,10 +73,10 @@ USER 1000
 ## Verification
 
 ```bash
-charly -C box/debian image build debian
+charly -C box/debian box build debian
 charly shell debian                       # drops into /home/user as uid 1000
 id                                    # uid=1000(user) gid=1000(user)
-charly -C box/debian image validate     # remote build.yml + layer refs resolve
+charly -C box/debian box validate     # remote build.yml + layer refs resolve
 ```
 
 ## Related images

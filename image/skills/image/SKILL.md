@@ -62,14 +62,14 @@ Every `charly box …` command resolves `box.yml` (and `build.yml`, `candy/`, et
 
 ```bash
 # Local project — pick a directory on disk:
-charly -C /path/to/opencharly image list images          # short flag
-charly --dir /path/to/opencharly image list images       # long flag
+charly -C /path/to/opencharly box list images          # short flag
+charly --dir /path/to/opencharly box list images       # long flag
 CHARLY_PROJECT_DIR=/path/to/opencharly charly box list boxes   # env var
 
 # Remote project — clone (or hit cache) and chdir into it:
-charly --repo overthinkos/overthink image list images        # bare owner/repo → github.com/owner/repo@<default-branch>
-charly --repo overthinkos/overthink@main image list images   # pinned ref
-charly --repo default image list images                      # literal "default" → overthinkos/overthink
+charly --repo overthinkos/overthink box list images        # bare owner/repo → github.com/owner/repo@<default-branch>
+charly --repo overthinkos/overthink@main box list images   # pinned ref
+charly --repo default box list images                      # literal "default" → overthinkos/overthink
 CHARLY_PROJECT_REPO=overthinkos/overthink charly box list boxes
 ```
 

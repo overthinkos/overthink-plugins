@@ -37,7 +37,7 @@ RPM-based GPU stack, `cachyos.nvidia` for the Arch/CachyOS GPU stack. See
 The `nvidia` image lives in the `overthinkos/fedora` submodule (`box/fedora`):
 
 ```bash
-charly -C box/fedora image build nvidia
+charly -C box/fedora box build nvidia
 charly shell nvidia
 ```
 

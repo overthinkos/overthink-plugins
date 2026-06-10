@@ -21,7 +21,7 @@ and the Fedora-rooted pod families all live in the same submodule, discovered as
 `box/<name>/charly.yml` boxes. The main repo imports this submodule under the
 `fedora` namespace (one-directional — fedora imports nothing back) to reference
 those relocated boxes. Build with `charly box build fedora` from the submodule
-(or `charly -C box/fedora image build fedora`).
+(or `charly -C box/fedora box build fedora`).
 
 ## Image Properties
 

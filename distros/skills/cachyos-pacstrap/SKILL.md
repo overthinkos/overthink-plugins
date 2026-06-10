@@ -15,7 +15,7 @@ privileged `/charly-distros:cachyos-pacstrap-builder` container
 (`from: builder:pacstrap`, `bootstrap_builder_image: cachyos-pacstrap-builder`).
 
 > **Lives in `overthinkos/cachyos`** (git submodule at `box/cachyos`). Build:
-> `charly -C box/cachyos image build cachyos-pacstrap`.
+> `charly -C box/cachyos box build cachyos-pacstrap`.
 
 ## When to use it (and when not)
 
@@ -40,7 +40,7 @@ used by both `runPrivilegedBootstrap` and `charly/vm_bootstrap.go`):
    back to signature-required and GPGME failed. Both paths now share one renderer
    (R3), so they can't diverge again.
 
-Verified live: `charly -C box/cachyos image build cachyos-pacstrap` produces a
+Verified live: `charly -C box/cachyos box build cachyos-pacstrap` produces a
 rootfs with `linux-cachyos` (`%ARCH% = x86_64_v3`) installed. (Requires an `charly`
 with this fix — newer than the published release.) The Docker-Hub `/charly-distros:cachyos`
 base is still the faster default (no privileged build).

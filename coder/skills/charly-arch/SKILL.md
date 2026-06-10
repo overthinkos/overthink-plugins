@@ -14,7 +14,7 @@ description: |
 > **Location:** `charly-arch` lives in the **`overthinkos/arch`** repo (git
 > submodule at **`box/arch`**) and composes its layers by git reference to
 > this repo. Build from the submodule: `cd box/arch && charly box build charly-arch`
-> (or `charly --repo overthinkos/arch image build charly-arch`). The `arch` base +
+> (or `charly --repo overthinkos/arch box build charly-arch`). The `arch` base +
 > `arch-builder` are bare-local in the same self-contained `overthinkos/arch`
 > submodule (`import: []`) — `base: arch`.
 
