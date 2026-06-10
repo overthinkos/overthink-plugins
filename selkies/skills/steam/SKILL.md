@@ -32,7 +32,7 @@ XWayland is provided by the base `sway` layer.
 ## Usage
 
 ```yaml
-# box.yml — requires nvidia base (RPM Fusion nonfree via fedora-nonfree)
+# charly.yml — requires nvidia base (RPM Fusion nonfree via fedora-nonfree)
 sway-browser-vnc-steam:
   base: nvidia
   layers:
@@ -79,5 +79,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

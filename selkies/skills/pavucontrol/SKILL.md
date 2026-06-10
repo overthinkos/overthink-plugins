@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `pipewire` |
 | Service | none (GUI app, launched on demand) |
-| Install files | `candy.yml` only |
+| Install files | `charly.yml` only |
 
 ## Packages
 
@@ -58,5 +58,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

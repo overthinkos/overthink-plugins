@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `candy.yml`, `task:` |
+| Install files | `charly.yml`, `task:` |
 
 ## Packages
 
@@ -24,7 +24,7 @@ RPM (from `docker-ce-stable` repo): `containerd.io`, `docker-buildx-plugin`, `do
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 my-image:
   layers:
     - docker-ce

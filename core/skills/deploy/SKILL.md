@@ -78,12 +78,12 @@ Applies a deployment. The deploy entry's `target:` field selects the target:
 
 | Form | Example | Resolution |
 |---|---|---|
-| Local image name | `fedora-coder` | Looked up in current project's `box.yml` |
+| Local image name | `fedora-coder` | Looked up in current project's `charly.yml` |
 | Local layer name | `pre-commit` | Looked up in current project's `candy/` directory |
-| Local YAML path | `./custom.yml`, `/abs/path/candy.yml` | File's top-level keys classify image vs layer |
+| Local YAML path | `./custom.yml`, `/abs/path/charly.yml` | File's top-level keys classify image vs layer |
 | Remote repo | `github.com/owner/repo[/box/<n>\|/candy/<n>][@ref]` | Fetched via existing `--repo` cache |
 
-Disambiguation: a ref containing `/candy/` resolves to a layer; `/box/` to an image. For local names, `box.yml` is checked before `candy/`; same-named entries in both are a hard error. The legacy `@host/org/repo:version` form (used by `depends:` and `layer:` in candy.yml) is also accepted.
+Disambiguation: a ref containing `/candy/` resolves to a layer; `/box/` to an image. For local names, `box/` is checked before `candy/`; same-named entries in both are a hard error. The legacy `@host/org/repo:version` form (used by `depends:` and `layer:` in charly.yml) is also accepted.
 
 When `<ref>` is omitted, the ref falls back to `deploy.yml['deploys'][<name>]['image']` (or the deploy key itself if no explicit image is declared).
 
@@ -403,7 +403,7 @@ Source: `charly/quadlet.go` (generation), `charly/commands.go` (command structs)
 
 ## Tunnel Configuration
 
-Expose services outside the container host via tunnels. Tunnel config lives exclusively in `deploy.yml` — it is NOT in `box.yml` or OCI image labels. `charly config setup` persists tunnel config automatically via `saveDeployState`.
+Expose services outside the container host via tunnels. Tunnel config lives exclusively in `deploy.yml` — it is NOT in `charly.yml` or OCI image labels. `charly config setup` persists tunnel config automatically via `saveDeployState`.
 
 ### Tailscale Serve (tailnet-private, default)
 
@@ -454,7 +454,7 @@ fqdn: "app.example.com"
 
 ### Backend Schemes
 
-Port protocols declared in `candy.yml` control the backend URL scheme used by tunnel commands. The protocol flows from layer → OCI label (`ai.opencharly.port_proto`) → tunnel command.
+Port protocols declared in `charly.yml` control the backend URL scheme used by tunnel commands. The protocol flows from layer → OCI label (`ai.opencharly.port_proto`) → tunnel command.
 
 **Tailscale serve/funnel schemes:**
 
@@ -481,7 +481,7 @@ Port protocols declared in `candy.yml` control the backend URL scheme used by tu
 
 `charly box validate` checks port schemes against provider capabilities. For example, `ssh` is valid for Cloudflare but not Tailscale; `tls-terminated-tcp` is valid for Tailscale but not Cloudflare.
 
-See `/charly-image:layer` for port protocol syntax in `candy.yml`.
+See `/charly-image:layer` for port protocol syntax in `charly.yml`.
 
 ### Multi-Port Tailscale Serve
 
@@ -518,7 +518,7 @@ Source: `charly/tunnel.go` (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`, `val
 
 ## deploy.yml — Source of Truth
 
-`~/.config/charly/deploy.yml` is the **source of truth** for per-machine deployment configuration (not checked into git). All deployment commands read from image labels + deploy.yml — no `box.yml` needed.
+`~/.config/charly/deploy.yml` is the **source of truth** for per-machine deployment configuration (not checked into git). All deployment commands read from image labels + deploy.yml — no `charly.yml` needed.
 
 ### How it gets populated
 
@@ -619,7 +619,7 @@ deploy:
 | Source | Merge rule |
 |---|---|
 | Layer → layer | Smallest value wins (tightest cap is the safer default) |
-| Layers → image-level `security:` in box.yml | Image-level **replaces** the merged layer value |
+| Layers → image-level `security:` in charly.yml | Image-level **replaces** the merged layer value |
 | Image-level → deploy-level `security:` in deploy.yml | Deploy-level **replaces** the image-level value |
 | CLI flag → deploy-level | CLI flag **writes** directly to deploy.yml (`--memory-max=...` on `charly config`) |
 
@@ -669,7 +669,7 @@ See `/charly-image:layer` for `env_provide`/`mcp_provide` field declarations and
 
 ### Secrets
 
-Per-deployment secret source overrides. Secrets declared in image labels (from `candy.yml`) are provisioned as Podman secrets at `charly config` time. Deploy.yml can override where the value comes from:
+Per-deployment secret source overrides. Secrets declared in image labels (from `charly.yml`) are provisioned as Podman secrets at `charly config` time. Deploy.yml can override where the value comes from:
 
 ```yaml
 secrets:
@@ -700,7 +700,7 @@ charly deploy status
 
 ### Labels-only architecture
 
-Deployment commands (`charly config`, `start`, `status`, `logs`, `update`, `remove`, `seed`, `service`) resolve all configuration from **OCI image labels** + **deploy.yml** — no `box.yml` dependency. This means you can deploy on any machine with just `charly box pull` + `charly config`.
+Deployment commands (`charly config`, `start`, `status`, `logs`, `update`, `remove`, `seed`, `service`) resolve all configuration from **OCI image labels** + **deploy.yml** — no `charly.yml` dependency. This means you can deploy on any machine with just `charly box pull` + `charly config`.
 
 **Local-storage requirement.** Because deploy-mode commands read OCI labels directly from local container storage (via `ExtractMetadata` → `podman inspect`), the image must be pulled first. If it isn't, the command fails with `ErrImageNotLocal` and the CLI suggests `charly box pull`. See `/charly-build:pull` for the sentinel pattern and remote-ref (`@github.com/...`) handling.
 
@@ -742,7 +742,7 @@ deploy:
 
 ## Volume Backing
 
-Layers declare what persistent storage they need via `volume:` in `candy.yml`. By default, all volumes are Docker/Podman named volumes. At `charly config` time, any volume's backing can be changed to a host bind mount or encrypted gocryptfs mount.
+Layers declare what persistent storage they need via `volume:` in `charly.yml`. By default, all volumes are Docker/Podman named volumes. At `charly config` time, any volume's backing can be changed to a host bind mount or encrypted gocryptfs mount.
 
 ### Per-Volume Configuration via `charly config`
 
@@ -837,10 +837,10 @@ See `/charly-eval:vnc` for full VNC authentication documentation.
 
 ## Port Relay Pattern
 
-Some services (OpenClaw) bind only to loopback for security. The `port_relay` field in `candy.yml` creates a socat relay from the container's network interface to loopback, making the service accessible externally without weakening its security model.
+Some services (OpenClaw) bind only to loopback for security. The `port_relay` field in `charly.yml` creates a socat relay from the container's network interface to loopback, making the service accessible externally without weakening its security model.
 
 ```yaml
-# In candy.yml
+# In charly.yml
 ports:
   - 18789
 port_relay:

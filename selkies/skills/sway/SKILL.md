@@ -54,7 +54,7 @@ The supervisord `[program:sway]` environment sets `WLR_BACKENDS=headless` — he
 ## Usage
 
 ```yaml
-# box.yml -- typically not used directly; pulled in via chrome-sway
+# charly.yml -- typically not used directly; pulled in via chrome-sway
 my-desktop:
   layers:
     - sway
@@ -110,5 +110,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

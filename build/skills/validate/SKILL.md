@@ -1,7 +1,7 @@
 ---
 name: validate
 description: |
-  MUST be invoked before any work involving: charly box validate command, validation rules, common validation errors, or checking box.yml and layer definitions.
+  MUST be invoked before any work involving: charly box validate command, validation rules, common validation errors, or checking charly.yml and layer definitions.
 ---
 
 # charly box validate -- Validation Commands
@@ -10,14 +10,14 @@ Invoked as `charly box validate`. See `/charly-image:image` for the family overv
 
 ## Overview
 
-`charly box validate` checks `box.yml` and all layer definitions for errors. Validation collects all errors at once rather than failing on the first.
+`charly box validate` checks `charly.yml` and all layer definitions for errors. Validation collects all errors at once rather than failing on the first.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Validate all | `charly box validate` | Check box.yml + all layers (enabled images only) |
-| Validate disabled too | `charly box validate --include-disabled` | Extend the validation pass to images marked `enabled: false` (does not modify box.yml) |
+| Validate all | `charly box validate` | Check charly.yml + all layers (enabled images only) |
+| Validate disabled too | `charly box validate --include-disabled` | Extend the validation pass to images marked `enabled: false` (does not modify charly.yml) |
 | Check version | `charly version` | Verify CalVer computation |
 | Inspect image | `charly box inspect <image>` | Show resolved config |
 
@@ -33,12 +33,12 @@ Invoked as `charly box validate`. See `/charly-image:image` for the family overv
 
 ### Layer Rules
 
-- Layer directory must contain at least one install source — `candy.yml` with a non-empty `task:` list or a `rpm:` / `deb:` / `pac:` / `aur:` packages section; an auto-detected builder manifest (`pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, `Cargo.toml`); or a `layer:` composition field (pure composition layers are valid).
+- Layer directory must contain at least one install source — `charly.yml` with a non-empty `task:` list or a `rpm:` / `deb:` / `pac:` / `aur:` packages section; an auto-detected builder manifest (`pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, `Cargo.toml`); or a `layer:` composition field (pure composition layers are valid).
 - `depends` must reference existing layers (local or remote).
 - Circular dependencies are errors.
 - `volumes` names must match `^[a-z0-9]+(-[a-z0-9]+)*$`.
 - Volume names must be unique within a layer.
-- `aliases` in candy.yml require both `name` and `command`.
+- `aliases` in charly.yml require both `name` and `command`.
 - Alias names must match `^[a-zA-Z0-9][a-zA-Z0-9._-]*$`.
 - Setting `PATH` directly in `env` is an error (use `path_append`).
 - Only one pixi manifest per layer (`pixi.toml`, `pyproject.toml`, or `environment.yml`).
@@ -74,7 +74,7 @@ See `/charly-image:layer` for the full verb catalog. The validator enforces:
 
 ### Image Rules
 
-- `base` must reference a valid external image or another image in box.yml
+- `base` must reference a valid external image or another image in charly.yml
 - `layers` field is required
 - `builder` must reference an existing image
 - Self-referencing builder is allowed (skipped by generator)
@@ -146,11 +146,11 @@ Layers form a dependency cycle. Check `depends` fields.
 
 ### "layer X not found"
 
-A `depends` entry or `box.yml` layer references a non-existent layer.
+A `depends` entry or `charly.yml` layer references a non-existent layer.
 
 ### "PATH must not be set directly"
 
-Use `path_append` in candy.yml instead of `env: PATH: ...`.
+Use `path_append` in charly.yml instead of `env: PATH: ...`.
 
 ### "duplicate volume name"
 
@@ -174,13 +174,13 @@ charly box list candies                       # Verify layer exists
 
 ## Project directory override
 
-`charly box validate` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
+`charly box validate` resolves `charly.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
 ### `charly box` family siblings
 
-- `/charly-image:image` -- Family overview + box.yml composition reference
+- `/charly-image:image` -- Family overview + charly.yml composition reference
 - `/charly-build:build` -- Building validated images
 - `/charly-build:generate` -- Containerfile generation after validation
 - `/charly-build:inspect` -- Inspect a specific image after validation
@@ -204,6 +204,6 @@ charly box list candies                       # Verify layer exists
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves charly box validate command, validation rules, common validation errors, or checking box.yml and layer definitions. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves charly box validate command, validation rules, common validation errors, or checking charly.yml and layer definitions. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Validate before building to catch errors early.

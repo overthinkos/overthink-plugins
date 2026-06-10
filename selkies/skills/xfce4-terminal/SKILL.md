@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `sway` |
-| Install files | `candy.yml`, `task:` |
+| Install files | `charly.yml`, `task:` |
 
 ## Packages
 
@@ -21,7 +21,7 @@ description: |
 ## Usage
 
 ```yaml
-# box.yml -- typically used via sway-desktop composition
+# charly.yml -- typically used via sway-desktop composition
 my-image:
   layers:
     - sway-desktop
@@ -47,5 +47,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

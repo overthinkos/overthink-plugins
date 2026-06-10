@@ -17,7 +17,7 @@ description: |
 | Ports | 8888 (Studio UI), 8000 (vLLM API) |
 | Volumes | `workspace` -> `/workspace` |
 | Service | `unsloth-studio` (supervisord) |
-| Install files | `candy.yml`, `pixi.toml` |
+| Install files | `charly.yml`, `pixi.toml` |
 
 ## Architecture: Tier 2 Environment-Owner Meta-Layer
 
@@ -64,5 +64,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

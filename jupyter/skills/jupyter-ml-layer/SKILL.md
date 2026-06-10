@@ -17,7 +17,7 @@ description: |
 | Ports | 8888 |
 | Service | `jupyter-ml` (supervisord) |
 | Volume | `workspace` at `/workspace` |
-| Install files | `candy.yml`, `pixi.toml`, `task:` |
+| Install files | `charly.yml`, `pixi.toml`, `task:` |
 
 ## Architecture: Environment-Owning Meta-Layer
 
@@ -103,5 +103,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

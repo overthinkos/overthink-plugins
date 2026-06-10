@@ -33,7 +33,7 @@ Builder image for Arch Linux multi-stage builds. Counterpart to `/charly-distros
 When an Arch-based image has layers with `pixi.toml`, `package.json`, `Cargo.toml`, or `aur:` packages, the build system uses this image as the builder for multi-stage builds. Configured via the `arch` image's `builder:` field (a map of build-type → builder-image):
 
 ```yaml
-# box.yml
+# charly.yml
 arch:
   builder:
     pixi: arch-builder

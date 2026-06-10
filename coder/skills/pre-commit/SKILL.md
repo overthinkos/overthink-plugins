@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `nodejs` |
-| Install files | `candy.yml`, `pixi.toml`, `package.json`, `task:` |
+| Install files | `charly.yml`, `pixi.toml`, `package.json`, `task:` |
 
 ## Packages
 
@@ -22,7 +22,7 @@ npm: `markdownlint-cli`
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 my-dev:
   layers:
     - pre-commit

@@ -16,7 +16,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Kind | Direct-download binary layer |
-| Install files | `candy.yml` (no pixi.toml, no dependencies) |
+| Install files | `charly.yml` (no pixi.toml, no dependencies) |
 | Depends | **(none)** — uv is a self-contained Rust binary |
 | Binaries | `/usr/local/bin/uv`, `/usr/local/bin/uvx` |
 

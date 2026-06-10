@@ -38,7 +38,7 @@ Start a container image as a background service. In quadlet mode, `charly config
 ## Label-Only Policy
 
 `charly start` reads only OCI labels (via `ExtractMetadata`) + `deploy.yml`. It
-does not touch `box.yml`. Remote refs (`@github.com/...`) are rejected
+does not touch `charly.yml`. Remote refs (`@github.com/...`) are rejected
 with a redirect to `charly box pull`.
 
 If the image isn't in local storage, startup fails with the standard
@@ -117,7 +117,7 @@ charly start jupyter --build
 
 ### Build-mode references
 
-- `/charly-image:image` -- Image definitions (ports, volumes, env) in `box.yml`
+- `/charly-image:image` -- Image definitions (ports, volumes, env) in `charly.yml`
 - `/charly-build:build` -- Build the image you intend to start
 
 ## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)

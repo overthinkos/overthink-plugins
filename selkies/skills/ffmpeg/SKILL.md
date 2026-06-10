@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `candy.yml` (packages only) |
+| Install files | `charly.yml` (packages only) |
 | Depends | none |
 | Repo | negativo17 `fedora-multimedia` |
 
@@ -24,7 +24,7 @@ RPM: `ffmpeg` (from negativo17 `fedora-multimedia` repo — full nonfree build w
 ## Usage
 
 ```yaml
-# box.yml or candy.yml
+# box or candy charly.yml
 layers:
   - ffmpeg
 ```
@@ -60,5 +60,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -11,7 +11,7 @@ description: |
 
 ## Overview
 
-`charly box generate` reads `box.yml` and `candy/`, resolves dependency graphs, and writes Containerfiles to `.build/`. Generation is idempotent and `.build/` is disposable (gitignored). Understanding the generated output is essential for debugging build issues.
+`charly box generate` reads `charly.yml` and `candy/`, resolves dependency graphs, and writes Containerfiles to `.build/`. Generation is idempotent and `.build/` is disposable (gitignored). Understanding the generated output is essential for debugging build issues.
 
 Generation runs through the shared `DeployTarget` interface. `OCITarget` is the build-mode implementation; it consumes the `InstallPlan` IR emitted by `BuildDeployPlan` and writes Containerfile text. `PodDeployTarget` and `LocalDeployTarget` are the deploy-mode siblings consuming the same IR. For the IR shape and step kinds, see **`/charly-internals:install-plan`**. For local-deploy supporting files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref), see **`/charly-internals:local-infra`**.
 
@@ -46,11 +46,11 @@ The generated Containerfile follows this order:
 5. **Per-layer install steps** — see "Task emission pipeline" below. `USER` toggles as each task's `user:` field requires.
 6. **Final assembly** — init system config assembly, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only)
 
-**Config-driven generation:** All format-specific install commands, cache mounts, repo setup, builder stages, and init fragments are defined in `build.yml` at the project root as Go `text/template` strings — three top-level sections: `distro:`, `builder:`, `init:`. Each distro entry contains both bootstrap config and its package format definitions. Referenced via `format_config: build.yml` in `box.yml` — supports local paths and remote `@github.com/org/repo/path:version` refs. Adding a new format (e.g., `apk` for Alpine) requires only YAML changes — zero Go code modifications.
+**Config-driven generation:** All format-specific install commands, cache mounts, repo setup, builder stages, and init fragments are defined in `build.yml` at the project root as Go `text/template` strings — three top-level sections: `distro:`, `builder:`, `init:`. Each distro entry contains both bootstrap config and its package format definitions. Referenced via `format_config: build.yml` in `charly.yml` — supports local paths and remote `@github.com/org/repo/path:version` refs. Adding a new format (e.g., `apk` for Alpine) requires only YAML changes — zero Go code modifications.
 
 ## Task emission pipeline
 
-All install-task logic lives in a single file: `charly/tasks.go` (~380 lines). Authored layer-side as `task:` list in `candy.yml`; emitted as Containerfile directives via this sequence per layer inside `writeLayerSteps` (`charly/generate.go:1021`):
+All install-task logic lives in a single file: `charly/tasks.go` (~380 lines). Authored layer-side as `task:` list in `charly.yml`; emitted as Containerfile directives via this sequence per layer inside `writeLayerSteps` (`charly/generate.go:1021`):
 
 ```
 1. # Layer: <name>                 (comment header)
@@ -346,13 +346,13 @@ fedora (external)
 
 ### Parent-vs-defaults inheritance (critical)
 
-`createIntermediate()` must inherit `Distro` and `BuildFormats` **from the parent image first**, with `cfg.Defaults.*` as the fallback only when the parent is external or empty. The inverse — defaults winning over an explicit parent — is a silent-failure bug: an `arch`-rooted auto-intermediate would get re-tagged as `build: [rpm]` (because `defaults.Build=[rpm]` in `box.yml`), then the layer emitter would scan each layer for an `rpm:` section and find nothing (the layers only declare `pac:`) — emitting empty RUN steps. Symptom: the intermediate built fine but shipped without any of its layers' packages (e.g. `arch-ssh-client` without direnv/gnupg/openssh).
+`createIntermediate()` must inherit `Distro` and `BuildFormats` **from the parent image first**, with `cfg.Defaults.*` as the fallback only when the parent is external or empty. The inverse — defaults winning over an explicit parent — is a silent-failure bug: an `arch`-rooted auto-intermediate would get re-tagged as `build: [rpm]` (because `defaults.Build=[rpm]` in `charly.yml`), then the layer emitter would scan each layer for an `rpm:` section and find nothing (the layers only declare `pac:`) — emitting empty RUN steps. Symptom: the intermediate built fine but shipped without any of its layers' packages (e.g. `arch-ssh-client` without direnv/gnupg/openssh).
 
 The current code resolves `inheritedDistro` / `inheritedBuilds` from the parent first and only falls back to defaults when both are empty. Regression guard: `TestComputeIntermediates_InheritDistroFromParent` constructs a config with `defaults.Build=[rpm]` but an `arch` parent carrying `[pac]`, and asserts that the auto-intermediate comes out `[pac]`. See `/charly-internals:go` `intermediates.go` row for the file-level note.
 
 ## User Resolution
 
-Configurable via `user`, `uid`, `gid`, and `user_policy` fields in `box.yml` (defaults: `"user"`, 1000, 1000, `"auto"`).
+Configurable via `user`, `uid`, `gid`, and `user_policy` fields in `charly.yml` (defaults: `"user"`, 1000, 1000, `"auto"`).
 
 ### Declarative adopt: `build.yml distro.<name>.base_user:`
 
@@ -449,13 +449,13 @@ Built images embed runtime metadata as labels (prefix: `ai.opencharly.`), making
 
 Tunnel configuration is NOT an OCI label — it is a deploy-time concern carried in `deploy.yml` only.
 
-Volumes use short names in labels (prefix `charly-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `charly/labels.go`) plus `deploy.yml` overlay — they never touch `box.yml` at runtime. That's why `charly shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `charly box pull`). See `/charly-image:image` for the build/deploy boundary and `/charly-build:pull` for the sentinel pattern. Labels also include `ai.opencharly.init` for init system identification and `ai.opencharly.service.<init>` for per-init service lists.
+Volumes use short names in labels (prefix `charly-<image>-` added at runtime). Empty arrays are omitted. JSON built from sorted slices for cache stability. Runtime commands read OCI labels exclusively (via `ExtractMetadata` in `charly/labels.go`) plus `deploy.yml` overlay — they never touch `charly.yml` at runtime. That's why `charly shell myimage` works from any directory as long as the image is in local storage (if not, `ExtractMetadata` returns `ErrImageNotLocal` and the CLI suggests `charly box pull`). See `/charly-image:image` for the build/deploy boundary and `/charly-build:pull` for the sentinel pattern. Labels also include `ai.opencharly.init` for init system identification and `ai.opencharly.service.<init>` for per-init service lists.
 
 Source: `charly/labels.go`, `charly/generate.go` (`writeLabels`).
 
 ## Runtime-Only Features
 
-Security configuration (`security:` in candy.yml/box.yml) and environment variable injection (`env:`, `env_file:`) are **runtime-only** features. They affect container run arguments (`--privileged`, `--cap-add`, `-e`) but do not appear in generated Containerfiles.
+Security configuration (`security:` in charly.yml) and environment variable injection (`env:`, `env_file:`) are **runtime-only** features. They affect container run arguments (`--privileged`, `--cap-add`, `-e`) but do not appear in generated Containerfiles.
 
 ## Cache Mounts
 
@@ -490,7 +490,7 @@ re-downloading (the prior code declared the mount but streamed curl past it).
 via `resolveUserSpec` (root → `SharedCacheMount`, else → `OwnedCacheMount`).
 Honored by `emitCmd` and `emitDownload`. Lets any task persist heavy
 downloads/build artifacts the same way package caches do (config-driven; the
-cache-USE logic lives in the candy.yml task body).
+cache-USE logic lives in the charly.yml task body).
 
 `CacheMountDef.Owned` + `RenderCacheMountsAuto` (`cacheMountsAuto` template
 func) let a single builder `cache_mount` list mix shared (root, e.g. pacman) and

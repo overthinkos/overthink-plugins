@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `candy.yml` (packages only) |
+| Install files | `charly.yml` (packages only) |
 | Depends | none |
 
 ## Packages
@@ -21,7 +21,7 @@ RPM: `tmux` · PAC: `tmux` · DEB: `tmux` — full cross-distro parity.
 ## Usage
 
 ```yaml
-# box.yml or candy.yml
+# box or candy charly.yml
 layers:
   - tmux
 ```

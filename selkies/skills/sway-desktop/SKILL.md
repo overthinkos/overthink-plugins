@@ -19,7 +19,7 @@ description: |
 Not used directly in images — use `sway-desktop-vnc` instead:
 
 ```yaml
-# box.yml — VNC variant
+# charly.yml — VNC variant
 sway-browser-vnc:
   layers:
     - sway-desktop-vnc
@@ -49,5 +49,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -1,7 +1,7 @@
 ---
 name: yay
 description: |
-  AUR helper for Arch Linux, enabling aur: package sections in candy.yml.
+  AUR helper for Arch Linux, enabling aur: package sections in charly.yml.
   Use when working with the yay layer or Arch AUR builds.
 ---
 
@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `candy.yml`, `task:` |
+| Install files | `charly.yml`, `task:` |
 | Depends | none |
 
 ## Packages
@@ -23,7 +23,7 @@ PAC: `base-devel`, `git`
 The `task:` task downloads the latest `yay` binary from GitHub releases:
 
 ```yaml
-# task: (in candy.yml)
+# task: (in charly.yml)
 task:
   all:
     cmds:
@@ -38,12 +38,12 @@ Architecture-aware: downloads the correct binary for `x86_64` or `aarch64`.
 
 ## What It Does
 
-Installs the `yay` AUR helper, which enables the `aur:` package format in `candy.yml`. Any layer with an `aur:` section requires a builder that has the `yay` layer (and `builds: [aur]` capability). The `base-devel` and `git` packages are prerequisites for building AUR packages.
+Installs the `yay` AUR helper, which enables the `aur:` package format in `charly.yml`. Any layer with an `aur:` section requires a builder that has the `yay` layer (and `builds: [aur]` capability). The `base-devel` and `git` packages are prerequisites for building AUR packages.
 
 ## Usage
 
 ```yaml
-# box.yml — typically in a builder image
+# charly.yml — typically in a builder image
 layers:
   - yay
 ```
@@ -64,10 +64,10 @@ Not used directly in end-user images. Instead, it's part of the builder image th
 Use when the user asks about:
 - AUR package support in OpenCharly
 - The `yay` layer or AUR helper installation
-- How `aur:` packages in candy.yml get built
+- How `aur:` packages in charly.yml get built
 - The `arch-builder` image's AUR capability
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

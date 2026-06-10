@@ -17,7 +17,7 @@ description: |
 | CDP Proxy | `cdp-proxy` on 0.0.0.0:9222 → Chrome on 127.0.0.1:9223 |
 | Volumes | `chrome-data` -> `~/.chrome-debug` |
 | Security | `shm_size: 1g`, `memory_max: 6g`, `memory_high: 5g`, `memory_swap_max: 2g` |
-| Install files | `candy.yml`, `task:`, `cdp-proxy`, `chrome-wrapper`, `chrome-restart`, `browser-open` |
+| Install files | `charly.yml`, `task:`, `cdp-proxy`, `chrome-wrapper`, `chrome-restart`, `browser-open` |
 
 ## Environment Variables
 
@@ -84,7 +84,7 @@ RPM (tasks:): `google-chrome-stable` (from Google's direct RPM)
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 my-browser:
   layers:
     - chrome
@@ -282,5 +282,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -103,7 +103,7 @@ charly remove my-app -e KEY=VALUE      # Set env vars for lifecycle hooks
 
 ### Container Secrets
 
-When image labels declare secrets (from `candy.yml` `secrets` field), `charly config` provisions them:
+When image labels declare secrets (from `charly.yml` `secrets` field), `charly config` provisions them:
 1. Checks if Podman secret already exists — **if so, keeps it** (never overwrites)
 2. If missing: resolves secret values from the credential store (env var > keyring > config file)
 3. Creates Podman secrets via `podman secret create charly-<image>-<name>`
@@ -173,7 +173,7 @@ Source: `charly/service.go`.
 Layers can declare hooks that run on the host at specific points:
 
 ```yaml
-# In candy.yml:
+# In charly.yml:
 hook:
   post_enable: |
     echo "Service enabled for $CHARLY_IMAGE"

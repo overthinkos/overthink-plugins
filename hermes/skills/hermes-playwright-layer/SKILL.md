@@ -14,7 +14,7 @@ description: |
 |----------|-------|
 | Dependencies | `hermes` |
 | Security | `shm_size: 1g` |
-| Install files | `candy.yml`, `package.json`, `task:` |
+| Install files | `charly.yml`, `package.json`, `task:` |
 | RPM packages | `alsa-lib`, `at-spi2-core`, `cups-libs`, `gtk3`, `libdrm`, `libxkbcommon`, `nss`, `mesa-dri-drivers`, `vulkan-loader`, `libXcomposite`, `libXdamage`, `libXrandr`, `pango`, `cairo` |
 
 ## Environment Variables
@@ -31,7 +31,7 @@ This is a **Tier 1 layer** (no pixi.toml) that adds Playwright + Chromium on top
 
 Playwright's `npx playwright install --with-deps` does **not support Fedora** -- it falls back to Ubuntu and tries `apt-get`, which fails. The workaround:
 
-1. **rpm packages** in `candy.yml` install all Chromium system library dependencies manually
+1. **rpm packages** in `charly.yml` install all Chromium system library dependencies manually
 2. A root-phase `cmd:` task runs `npx playwright install chromium` (without `--with-deps`) to download only the browser binary
 
 ### Browser Location
@@ -54,7 +54,7 @@ npx playwright --version
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 hermes-playwright:
   base: fedora
   layers:
@@ -81,5 +81,5 @@ hermes-playwright:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -44,11 +44,11 @@ charly box merge sway-browser-vnc --max-mb 64
 ### Automatic Merge for All Configured Images
 
 ```bash
-# Merge all images that opt in via box.yml
+# Merge all images that opt in via charly.yml
 charly box merge --all
 ```
 
-## Configuration in box.yml
+## Configuration in charly.yml
 
 ```yaml
 images:
@@ -130,13 +130,13 @@ Source: `charly/merge.go:saveImageToDaemon` (the keep-on-fail logic; `loaded` fl
 
 ## Project directory override
 
-`charly box merge` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
+`charly box merge` resolves `charly.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
 ### `charly box` family siblings
 
-- `/charly-image:image` -- Family overview + box.yml composition reference
+- `/charly-image:image` -- Family overview + charly.yml composition reference
 - `/charly-build:build` -- Building images (merge runs inline after each build level)
 - `/charly-build:generate` -- Containerfile generation
 - `/charly-build:inspect` -- Inspect merged images

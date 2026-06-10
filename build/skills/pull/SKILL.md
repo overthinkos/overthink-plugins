@@ -21,7 +21,7 @@ service. That's `charly update`'s job (see `/charly-core:charly-update`).
 
 This command is the prerequisite for every deploy-mode operation on a fresh
 host. Since the `charly box` refactor, deploy-mode commands no longer read
-`box.yml` — they read OCI labels + `deploy.yml` only. If an image isn't
+`charly.yml` — they read OCI labels + `deploy.yml` only. If an image isn't
 in local storage, the label read fails and the CLI surfaces a friendly
 recommendation pointing here.
 
@@ -29,9 +29,9 @@ recommendation pointing here.
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Pull short name | `charly box pull jupyter` | Resolves registry + tag via `box.yml` (requires project directory) |
+| Pull short name | `charly box pull jupyter` | Resolves registry + tag via `charly.yml` (requires project directory) |
 | Pull fully-qualified ref | `charly box pull ghcr.io/overthinkos/jupyter:2026.108.56` | Pulls as-is, works from anywhere |
-| Pull remote project ref | `charly box pull @github.com/org/repo/image:v1` | Downloads repo, reads its `box.yml`, pulls registry ref |
+| Pull remote project ref | `charly box pull @github.com/org/repo/image:v1` | Downloads repo, reads its `charly.yml`, pulls registry ref |
 | Override tag (short name) | `charly box pull jupyter --tag 2026.108.1` | Pull a specific CalVer tag |
 | Override platform | `charly box pull jupyter --platform linux/arm64` | Pull a specific platform |
 
@@ -43,7 +43,7 @@ recommendation pointing here.
 cd ~/opencharly && charly box pull jupyter
 ```
 
-Resolves `<registry>/jupyter:<tag>` via `box.yml`. Equivalent to the
+Resolves `<registry>/jupyter:<tag>` via `charly.yml`. Equivalent to the
 two-step:
 
 ```bash
@@ -71,7 +71,7 @@ charly box pull @github.com/overthinkos/overthink/jupyter:2026.108.56
 charly box pull @github.com/overthinkos/overthink/jupyter          # latest git tag
 ```
 
-Downloads and caches the repo, reads its `box.yml`, then pulls the
+Downloads and caches the repo, reads its `charly.yml`, then pulls the
 registry ref declared there. This is the **only** place `@github.com/...`
 refs are accepted in `charly`. Deploy-mode commands (`charly shell`, `charly start`,
 `charly config`, etc.) reject them with a message pointing users here.
@@ -164,19 +164,19 @@ charly shell jupyter                      # now works
 ## Why this command exists
 
 Before the `charly box` refactor, deploy-mode commands had dual-mode logic:
-try `box.yml` first, fall back to OCI labels. That produced drift (the
+try `charly.yml` first, fall back to OCI labels. That produced drift (the
 two paths could diverge) and silently pulled-and-built remote refs as a
 side effect of what looked like a simple `charly shell @github.com/...` call.
 
 The refactor drew a hard line: deploy-mode commands read labels only;
-build-mode commands (`charly box …`) read `box.yml` only. `charly box pull`
+build-mode commands (`charly box …`) read `charly.yml` only. `charly box pull`
 is the bridge — it takes a build-mode identifier (short name or remote
 repo ref) and produces a deploy-mode-consumable artifact (labels in local
 storage).
 
 ## Project directory override
 
-`charly box pull` resolves `box.yml` via `os.Getwd()` when given a short name (to resolve registry + tag). Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. Fully-qualified refs and `@github.com/...` remote refs don't need a project dir. See `/charly-image:image` "Project directory resolution".
+`charly box pull` resolves `charly.yml` via `os.Getwd()` when given a short name (to resolve registry + tag). Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. Fully-qualified refs and `@github.com/...` remote refs don't need a project dir. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
@@ -185,7 +185,7 @@ storage).
   pull fetches existing ones.
 - `/charly-core:charly-update` — rolls deployed services to a new image version
   (pulls + data-seeds + restarts).
-- `/charly-build:inspect` — print resolved ref from `box.yml` without pulling.
+- `/charly-build:inspect` — print resolved ref from `charly.yml` without pulling.
 - `/charly-core:shell`, `/charly-core:start`, `/charly-core:charly-config`, `/charly-automation:alias`, `/charly-vm:vm` —
   deploy-mode commands that require a pulled image.
 - `/charly-core:deploy` — deploy.yml overlay semantics applied on top of the

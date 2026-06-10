@@ -21,7 +21,7 @@ description: |
 
 ## How It Works
 
-This is a **data layer** — the first of its kind in the project. It uses the `data:` field in `candy.yml` to map a directory of files to a named volume:
+This is a **data layer** — the first of its kind in the project. It uses the `data:` field in `charly.yml` to map a directory of files to a named volume:
 
 ```yaml
 info: "Starter notebook templates for jupyter"
@@ -44,7 +44,7 @@ At deploy time, when the volume is configured as a bind mount (`charly config --
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 jupyter:
   layers:
     - notebook-templates
@@ -78,7 +78,7 @@ charly start jupyter
 Use when the user asks about:
 
 - The notebook-templates layer or its contents
-- Data layers and the `data:` field in `candy.yml`
+- Data layers and the `data:` field in `charly.yml`
 - How starter content gets provisioned into volumes
 - The `getting-started.ipynb` notebook
 - How `charly config` seeds bind-backed volumes with image data

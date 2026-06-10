@@ -277,7 +277,7 @@ Primary surface is structured `LibvirtConfig` in `vms.<name>.libvirt:` (features
 
 Raw-XML escape hatch: `vms.<name>.libvirt.snippets:` (list of strings) — classified by element name. Device-scoped elements go into `<devices>`, domain-scoped before `</domain>`. Deduplicated by exact string match.
 
-Layer-level raw snippets: `candy.yml` `libvirt.snippets:` is supported for layers that contribute device XML (e.g., `/charly-distros:qemu-guest-agent` contributes the virtio-serial channel). Image-level `libvirt: [...]` is not a valid field — VM XML lives on the `kind: vm` entity.
+Layer-level raw snippets: `charly.yml` `libvirt.snippets:` is supported for layers that contribute device XML (e.g., `/charly-distros:qemu-guest-agent` contributes the virtio-serial channel). Image-level `libvirt: [...]` is not a valid field — VM XML lives on the `kind: vm` entity.
 
 Source: `charly/libvirt.go`, `charly/libvirt_render.go`, `charly/libvirt_render_devices.go`.
 
@@ -408,7 +408,7 @@ Expected. The agent needs a `virtio-serial` channel that charly's QEMU backend d
 - `/charly-core:deploy` — `charly deploy add vm:<name> <ref>` in-guest layer application
 - `/charly-build:pull` — fetch container images into local storage (prereq for bootc VM builds)
 - `/charly-build:build` — building container images before VM disk builds
-- `/charly-image:layer` — `libvirt.snippets:` field in candy.yml
+- `/charly-image:layer` — `libvirt.snippets:` field in charly.yml
 - `/charly-openclaw:openclaw-desktop` — two-level nested-virtualization proof
 - `/charly-distros:cloud-init` — guest-side cloud-init package (complements host-side seed ISO rendering)
 - `/charly-distros:qemu-guest-agent` — virtio-serial channel

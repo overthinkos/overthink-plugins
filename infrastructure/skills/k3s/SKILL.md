@@ -11,8 +11,8 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `candy.yml`, `task:` |
-| Pinned version | `v1.31.11+k3s1` (edit `K3S_VERSION` in `candy.yml` vars to cut over) |
+| Install files | `charly.yml`, `task:` |
+| Pinned version | `v1.31.11+k3s1` (edit `K3S_VERSION` in `charly.yml` vars to cut over) |
 
 ## What this layer does
 

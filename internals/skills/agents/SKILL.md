@@ -76,7 +76,7 @@ under the binding rule). "Prefer agents" governs BOUNDED work.
   8-step RCA before any fix.
 - **`testing-validator`** — blocks "it works" claims lacking the R10 proof;
   owns the 4-tier confidence table (must match CLAUDE.md).
-- **`layer-validator`** — pre-edit `candy.yml` sanity gate; defers the full
+- **`layer-validator`** — pre-edit `charly.yml` sanity gate; defers the full
   schema to `/charly-image:layer` + `charly box validate`.
 
 Invoke by name in a prompt, `@`-mention, or the `Agent` tool (scoped id

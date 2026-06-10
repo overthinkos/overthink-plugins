@@ -1,14 +1,14 @@
 ---
 name: image
 description: |
-  MUST be invoked before any work involving: the `charly box` command family, image definitions in box.yml, image inheritance, defaults, platforms, builder configuration, the image dependency graph, or the build/deploy scope boundary.
+  MUST be invoked before any work involving: the `charly box` command family, image definitions in charly.yml, image inheritance, defaults, platforms, builder configuration, the image dependency graph, or the build/deploy scope boundary.
 ---
 
 # charly box -- Family Overview + Image Composition
 
 ## Overview
 
-`charly box` is the **only** command family that reads `box.yml`. It groups
+`charly box` is the **only** command family that reads `charly.yml`. It groups
 every build-mode operation (build, generate, validate, list, merge, new,
 inspect, pull) under a single namespace. All other `charly` commands read
 exclusively from OCI labels embedded into built images + `deploy.yml` for
@@ -18,7 +18,7 @@ Build-mode operations live only under `charly box`. Top-level invocations like
 `charly build`, `charly validate`, `charly list images`, or `charly inspect` return Kong's
 `unexpected argument` error.
 
-An **image** is a named build target in `box.yml`. Images compose layers
+An **image** is a named build target in `charly.yml`. Images compose layers
 into container images with configurable defaults, inheritance chains,
 platform targets, and builder configurations. The `charly` CLI resolves
 dependencies, generates Containerfiles, and builds images in the correct
@@ -28,19 +28,19 @@ order.
 
 | Subcommand | Purpose | Skill |
 |---|---|---|
-| `charly box build` | Build container images from box.yml | `/charly-build:build` |
+| `charly box build` | Build container images from charly.yml | `/charly-build:build` |
 | `charly box generate` | Write `.build/` Containerfiles | `/charly-build:generate` |
 | `charly box inspect` | Print resolved image config as JSON | `/charly-build:inspect` |
-| `charly box list {images,layers,targets,services,routes,volumes,aliases}` | List components from box.yml | `/charly-build:list` |
+| `charly box list {images,layers,targets,services,routes,volumes,aliases}` | List components from charly.yml | `/charly-build:list` |
 | `charly box merge` | Merge small layers in a built image | `/charly-build:merge` |
 | `charly box new candy <name>` | Scaffold a new layer directory | `/charly-build:new` |
 | `charly box pull` | Fetch an image into local storage | `/charly-build:pull` |
 | `charly eval box` | Run declarative tests against a disposable container from a built image (reads the `ai.opencharly.eval` OCI label) | `/charly-eval:eval` |
-| `charly box validate` | Check box.yml + layers | `/charly-build:validate` |
+| `charly box validate` | Check charly.yml + layers | `/charly-build:validate` |
 
 ## Scope Boundary (Build vs. Deploy)
 
-| | Reads `box.yml` | Reads OCI labels | Reads `deploy.yml` |
+| | Reads `charly.yml` | Reads OCI labels | Reads `deploy.yml` |
 |---|---|---|---|
 | `charly box …` | **Yes** (required) | Rarely | No |
 | Everything else | **No** | Yes (required for deploy-mode) | Yes (overlay) |
@@ -58,7 +58,7 @@ pattern.
 
 ## Project directory resolution
 
-Every `charly box …` command resolves `box.yml` (and `build.yml`, `candy/`, etc.) **relative to the current working directory** — internally via `os.Getwd()` on every entry point. Five ways to override that default — three local, two remote:
+Every `charly box …` command resolves `charly.yml` (and `build.yml`, `candy/`, etc.) **relative to the current working directory** — internally via `os.Getwd()` on every entry point. Five ways to override that default — three local, two remote:
 
 ```bash
 # Local project — pick a directory on disk:
@@ -96,7 +96,7 @@ Remote repos are cloned into `~/.cache/charly/repos/<repoPath>@<version>/` (over
 
 2. **Remote pin** — set `CHARLY_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env. The agent reads from a pinned upstream version. No bind mount required.
 
-3. **Auto-default** — `charly mcp serve` with no `box.yml` reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires whenever cwd lacks `box.yml`, regardless of whether `CHARLY_PROJECT_DIR` is set (the `charly-mcp` layer permanently sets `CHARLY_PROJECT_DIR=/workspace`, so a fallback gated on the env var being empty would never fire). Pass `--no-default-repo` on the serve command to opt out. Only `charly mcp serve` auto-fetches; the top-level CLI stays opt-in.
+3. **Auto-default** — `charly mcp serve` with no `charly.yml` reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires whenever cwd lacks `charly.yml`, regardless of whether `CHARLY_PROJECT_DIR` is set (the `charly-mcp` layer permanently sets `CHARLY_PROJECT_DIR=/workspace`, so a fallback gated on the env var being empty would never fire). Pass `--no-default-repo` on the serve command to opt out. Only `charly mcp serve` auto-fetches; the top-level CLI stays opt-in.
 
 The error messages are explicit when misconfigured: `cannot chdir to --dir "/missing": no such file or directory`. See `/charly-build:charly-mcp-cmd` "Deployment: the `charly-mcp` layer" for the full bind-mount pattern and `/charly-internals:go` "main.go" for the implementation note (guarded by `TestCharlyDir_FlagChdir` + `TestCharlyDir_Errors` in `main_dir_test.go`, and `TestNormalizeRepoSpec` + `TestCharlyRepo_*` in `main_repo_test.go`).
 
@@ -104,11 +104,11 @@ The error messages are explicit when misconfigured: `cannot chdir to --dir "/mis
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| List images | `charly box list boxes` | Images from box.yml |
+| List images | `charly box list boxes` | Images from charly.yml |
 | List build targets | `charly box list targets` | Build targets in dependency order (includes auto-intermediates) |
 | Inspect image | `charly box inspect <image>` | Print resolved config as JSON |
 | Inspect field | `charly box inspect <image> --format <field>` | Print single field (tag, base, layers, ports, etc.) |
-| Validate | `charly box validate` | Check box.yml + layers |
+| Validate | `charly box validate` | Check charly.yml + layers |
 | Pull into local storage | `charly box pull <image>` | Fetch from registry so deploy-mode commands work |
 | Run build-time tests | `charly eval box <image>` | Runs the baked layer + image test sections in a disposable `podman run --rm` container (build-scope only). For full-stack live eval against a running deployment, use `charly eval live <name>`. See `/charly-eval:eval`. |
 | Pre-prime remote repo cache | `charly box fetch [<spec>]` | Clones (or hits cache) for the spec — defaults to `default` (overthinkos/overthink). Prints the cache path. |
@@ -122,11 +122,11 @@ Each verb below is also auto-exposed as an MCP tool (`box.new.project`, `box.new
 |--------|---------|
 | Scaffold a fresh project | `charly box new project <dir>` |
 | Add an image entry | `charly box new box <name> --base <ref> --layers <a,b,c>` |
-| Add a layer dir (stub `candy.yml`) | `charly box new candy <name>` |
-| Edit a value in `box.yml` | `charly box set <dotpath> <yaml-value>` |
+| Add a layer dir (stub `charly.yml`) | `charly box new candy <name>` |
+| Edit a value in `charly.yml` | `charly box set <dotpath> <yaml-value>` |
 | Append a layer to an image | `charly box add-candy <image> <layer>` |
 | Remove a layer from an image | `charly box rm-candy <image> <layer>` |
-| Edit a value in `candy/<name>/candy.yml` | `charly candy set <name> <dotpath> <yaml-value>` |
+| Edit a value in `candy/<name>/charly.yml` | `charly candy set <name> <dotpath> <yaml-value>` |
 | Append rpm/deb/pac/aur packages to a layer | `charly candy add-rpm <name> <pkg…>` (and `add-deb`, `add-pac`, `add-aur`) |
 | Write any file under the project root | `charly box write <rel-path> [--content X \| --from-stdin]` |
 | Read any file under the project root | `charly box cat <rel-path>` |
@@ -137,7 +137,7 @@ Each verb below is also auto-exposed as an MCP tool (`box.new.project`, `box.new
 
 **Project scaffold contents**: `charly box new project` writes a minimal `charly.yml` with `discover: [box, candy]` + empty `box/`/`candy/` dirs. The default distro/builder/init/resource build vocabulary is EMBEDDED in the `charly` binary (`charly/build.yml`, `//go:embed`), so a new project is immediately usable with no `build.yml` to copy; declare `distro:`/`builder:`/`init:`/`resource:` (inline in `charly.yml` or an imported vocab file) only to extend or override the embedded default.
 
-## box.yml Structure
+## charly.yml Structure
 
 ```yaml
 defaults:
@@ -270,7 +270,7 @@ Source: `charly/generate.go` (`builderRefForFormat`), `charly/graph.go` (`Resolv
 
 ## Internal Base Images
 
-When `base` references another image in `box.yml`, the generator resolves it to the full registry/tag and creates a build dependency. The referenced image must be built first.
+When `base` references another image in `charly.yml`, the generator resolves it to the full registry/tag and creates a build dependency. The referenced image must be built first.
 
 ```yaml
 images:
@@ -305,7 +305,7 @@ The mechanism: a **declarative** fact (what the base image ships, in `build.yml 
 | `/charly-distros:debian` | no | create | `user` |
 | `/charly-distros:ubuntu` | **yes** (`ubuntu:1000:/home/ubuntu`) | adopt | `ubuntu` |
 
-This is why `ubuntu-coder`'s resolved identity is `ubuntu:/home/ubuntu` while the other three coder images are `user:/home/user`. The box.yml for all four coder images is identical on the user-related fields (no explicit `user:`); the policy + base_user together decide the outcome.
+This is why `ubuntu-coder`'s resolved identity is `ubuntu:/home/ubuntu` while the other three coder images are `user:/home/user`. The charly.yml for all four coder images is identical on the user-related fields (no explicit `user:`); the policy + base_user together decide the outcome.
 
 ### How resolution flows (`charly/config.go ResolveImage`)
 
@@ -341,7 +341,7 @@ See also `/charly-distros:ubuntu` (canonical adopt consumer), `/charly-build:bui
 
 ## External Bases Require Explicit `distro:`
 
-When `base` is a URL string (not the name of another image in `box.yml`), the generator treats it as **external** and does not inherit distro tags or build formats. This is the canonical gotcha for bootc images, which typically use `quay.io/fedora/fedora-bootc:43`:
+When `base` is a URL string (not the name of another image in `charly.yml`), the generator treats it as **external** and does not inherit distro tags or build formats. This is the canonical gotcha for bootc images, which typically use `quay.io/fedora/fedora-bootc:43`:
 
 ```yaml
 # ❌ BROKEN — Distro resolves to null, no RPM installs emitted
@@ -489,10 +489,10 @@ All of the above round-trip via `charly config`: the label is read from the imag
 
 ### Add a New Image
 
-Add an entry to `box.yml` with `base` and `layers`, then build:
+Add an entry to `charly.yml` with `base` and `layers`, then build:
 
 ```bash
-# Edit box.yml
+# Edit charly.yml
 # Then:
 charly box build my-new-image
 ```
@@ -534,7 +534,7 @@ images:
 - `/charly-build:merge` -- `charly box merge` (post-build layer consolidation)
 - `/charly-build:new` -- `charly box new candy <name>` (scaffold new layer directory)
 - `/charly-build:pull` -- `charly box pull` (fetch into local storage; `ErrImageNotLocal` recovery)
-- `/charly-build:validate` -- `charly box validate` (box.yml + layers consistency check)
+- `/charly-build:validate` -- `charly box validate` (charly.yml + layers consistency check)
 
 ### Related skills
 
@@ -544,17 +544,17 @@ images:
 - `/charly-internals:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
 - `/charly-eval:eval` — Image-level `eval:` (cross-layer invariants) and `deploy_eval:` (deploy-default checks shipped with the image). Both are embedded in the `ai.opencharly.eval` OCI label.
 - `/charly-build:charly-mcp-cmd` — if the image transitively bundles an mcp-providing layer (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled layer's `mcp:` tests run as part of `charly eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
-- `/charly-vm:vm` — `charly vm build/create/start/stop/ssh` command family; reads `vm.yml`, not `box.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
+- `/charly-vm:vm` — `charly vm build/create/start/stop/ssh` command family; reads `vm.yml`, not `charly.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
 - `/charly-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema.
 - `/charly-build:migrate` — `charly migrate` converts legacy VM fields to `vm.yml`.
 
 ## Cross-kind name reuse
 
-The `image:` map's namespace is independent of `candy/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`charly box set`, `charly box new box`, `charly box add-candy`, `charly box rm-candy`, `charly box new project`) write exclusively to `charly.yml` — per-kind `box.yml` is reachable only via the `import:` statement from `charly.yml`, never as a default authoring target. Missing `charly.yml` → hard error pointing at `charly box new project .` or `charly migrate`. See CLAUDE.md "Cross-kind name reuse".
+The `image:` map's namespace is independent of `candy/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`charly box set`, `charly box new box`, `charly box add-candy`, `charly box rm-candy`, `charly box new project`) write exclusively to `charly.yml` — a per-kind sibling file is reachable only via the `import:` statement from `charly.yml`, never as a default authoring target. Missing `charly.yml` → hard error pointing at `charly box new project .` or `charly migrate`. See CLAUDE.md "Cross-kind name reuse".
 
 ### Files are generic kind-containers (per-kind filenames are a convenience)
 
-Every YAML file is a generic, kind-agnostic container — the loader routes each document by its top-level kind-key (its SHAPE), **NEVER by filename**. So ANY file may hold ANY mix of kinds. Splitting entities into per-kind sibling files named for their kind (`box.yml` for boxes, `vm.yml` for VMs, `deploy.yml` for deploys, …) is a pure user **CONVENIENCE** you express in `charly.yml`'s `import:` (and, for candy directories, `discover:`) — it is never required, and the code hardcodes no per-kind filename. **`charly.yml` is the only filename the code knows**; everything else (which files to `import:`, which directories + manifest names to `discover:`) is configured there. Inline maps in `charly.yml` and per-kind splits load identically. `discover:` is a flat generic scan-spec list (`- {path, recursive, manifest}`); the manifest defaults to `candy.yml` but is overridable per spec. Migration of legacy configs: `charly migrate` (idempotent). See `/charly-build:migrate`, `/charly-internals:go`.
+Every YAML file is a generic, kind-agnostic container — the loader routes each document by its top-level kind-key (its SHAPE), **NEVER by filename**. So ANY file may hold ANY mix of kinds. Splitting entities into per-kind sibling files named for their kind (`vm.yml` for VMs, `deploy.yml` for deploys, …) is a pure user **CONVENIENCE** you express in `charly.yml`'s `import:` (and, for candy directories, `discover:`) — it is never required, and the code hardcodes no per-kind filename. **`charly.yml` is the only filename the code knows**; everything else (which files to `import:`, which directories + manifest names to `discover:`) is configured there. Inline maps in `charly.yml` and per-kind splits load identically. `discover:` is a flat generic scan-spec list (`- {path, recursive, manifest}`); the manifest defaults to `charly.yml` but is overridable per spec. Migration of legacy configs: `charly migrate` (idempotent). See `/charly-build:migrate`, `/charly-internals:go`.
 
 ## The `import:` statement (composition + namespaces)
 
@@ -572,7 +572,7 @@ A namespaced import is reached through a dotted ref everywhere a name is resolve
 ```yaml
 import:
   - build.yml                       # flat — shared vocabulary
-  - box.yml                       # flat — this repo's own kind:image entries
+  - charly.yml                       # flat — this repo's own kind:image entries
   - cachyos: box/cachyos          # namespaced child import
 
 box:
@@ -607,13 +607,13 @@ The main repo imports all three submodules (`arch` / `cachyos` / `fedora` namesp
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves image definitions in box.yml, image inheritance, defaults, platforms, builder configuration, or the image dependency graph. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves image definitions in charly.yml, image inheritance, defaults, platforms, builder configuration, or the image dependency graph. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Define images before building. See also `/charly-image:layer` (layer authoring), `/charly-build:build` (building).
 
 ## Related skills
 
-- `/charly-build:migrate` — `charly migrate` converts legacy `box.yml` into `image:` entries in `charly.yml`
+- `/charly-build:migrate` — `charly migrate` migrates legacy configs into the canonical single-`charly.yml` layout
 - `/charly-internals:capabilities` — OCI label contract emitted at build time and consumed by deploy commands
 
 ## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)

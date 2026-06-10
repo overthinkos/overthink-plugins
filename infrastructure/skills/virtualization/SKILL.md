@@ -184,7 +184,7 @@ See `/charly-eval:eval` "`package:` + `package_map:` pattern" for the resolution
 ## Usage
 
 ```yaml
-# box.yml — rootless nested VM image
+# charly.yml — rootless nested VM image
 openclaw-desktop:
   layers:
     - ...

@@ -1,44 +1,44 @@
 ---
 name: layer
 description: |
-  MUST be invoked before any work involving: layer authoring, candy.yml, tasks, pixi.toml, package.json, Cargo.toml, or any file under candy/. This skill is the authoritative reference for the `task:` verb catalog, `var:` substitution, execution order, and per-verb validation. Every other skill defers here for install-schema questions.
+  MUST be invoked before any work involving: layer authoring, charly.yml, tasks, pixi.toml, package.json, Cargo.toml, or any file under candy/. This skill is the authoritative reference for the `task:` verb catalog, `var:` substitution, execution order, and per-verb validation. Every other skill defers here for install-schema questions.
 ---
 
 # Layer - Layer Authoring
 
 ## Overview
 
-A **layer** is a directory under `candy/<name>/` that installs a single concern. Layers are the building blocks of container images in opencharly. Each layer declares its packages, environment variables, services, volumes, and **install tasks** in a single `candy.yml` file.
+A **layer** is a directory under `candy/<name>/` that installs a single concern. Layers are the building blocks of container images in opencharly. Each layer declares its packages, environment variables, services, volumes, and **install tasks** in a single `charly.yml` file.
 
 There is **one YAML file per layer** for install logic — no separate Taskfiles. Everything an author needs to install flows through `task:` and auto-detected package manifests (`pixi.toml`, `package.json`, `Cargo.toml`).
 
 ## `directory:` — where the layer's config files live
 
-A candy.yml's relative file references (`task.copy`, `task.write` inline paths, `data.src`, install-file probes like `pixi.toml` / `package.json`, service-file globs) resolve against **`directory:`**, which defaults to `.` (the directory containing candy.yml).
+A charly.yml's relative file references (`task.copy`, `task.write` inline paths, `data.src`, install-file probes like `pixi.toml` / `package.json`, service-file globs) resolve against **`directory:`**, which defaults to `.` (the directory containing charly.yml).
 
-Use `directory:` to keep candy.yml and its supporting config files in separate directories:
+Use `directory:` to keep charly.yml and its supporting config files in separate directories:
 
 ```yaml
-# candy/my-app/candy.yml
-directory: ../../configs/my-app       # resolves relative to candy.yml's dir
+# candy/my-app/charly.yml
+directory: ../../configs/my-app       # resolves relative to charly.yml's dir
 rpm: { packages: [foo] }
 task:
   - copy: policies.json                # found at configs/my-app/policies.json
 ```
 
 Resolution rule:
-- `""` or `"."` → same dir as candy.yml (the default)
-- relative path → joined onto candy.yml's dir
+- `""` or `"."` → same dir as charly.yml (the default)
+- relative path → joined onto charly.yml's dir
 - absolute path → used as-is
 
 `charly box validate` fails when `directory:` points at a path that doesn't exist.
 
 ## Kind-keyed standalone form (`layer: {name, …}`)
 
-Every candy.yml is self-describing: a single `layer:` wrapper with an explicit `name:` field + the body. This makes layer files bundle-mergeable — concatenate with `---` separators to form a single file containing many layers.
+Every charly.yml is self-describing: a single `layer:` wrapper with an explicit `name:` field + the body. This makes layer files bundle-mergeable — concatenate with `---` separators to form a single file containing many layers.
 
 ```yaml
-# candy/chrome/candy.yml
+# candy/chrome/charly.yml
 candy:
   name: chrome
   directory: .
@@ -53,22 +53,22 @@ The runtime parser accepts only this kind-keyed form. `charly migrate` converts 
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Scaffold new layer | `charly box new candy <name>` | Create layer directory with starter `candy.yml` (see `/charly-build:new`) |
+| Scaffold new layer | `charly box new candy <name>` | Create layer directory with starter `charly.yml` (see `/charly-build:new`) |
 | Edit a layer field | `charly candy set <name> <dotpath> <value>` | Comment-preserving YAML edit by dot-path |
 | Append rpm/deb/pac/aur packages | `charly candy add-rpm <name> <pkg…>` (plus `add-deb`, `add-pac`, `add-aur`) | Idempotent append; auto-upgrades scaffold's null `package:` to a sequence |
 | Append a Gherkin acceptance scenario (Agent Driven Evaluation) | `charly candy add-scenario <name> <scenario> --given/--when/--then [--pod --tag]` | Idempotent append (dedupe by name) to the layer's `description.scenario`. Writes prose-only steps; bind a deterministic check verb by editing the step, or leave it prose for the agent grader. See `/charly-eval:eval` "Agent Driven Evaluation" |
 | Write a free-form file (`pixi.toml`, `root.yml`, …) | `charly box write <rel-path> --content X` | Escape hatch for files the schema setters don't cover; guarded against `..` traversal |
 | List all layers | `charly box list candies` | Show available layers from filesystem |
-| List services | `charly box list services` | Layers with `service` in candy.yml |
-| List volumes | `charly box list volumes` | Layers with `volumes` in candy.yml |
-| List aliases | `charly box list aliases` | Layers with `aliases` in candy.yml |
+| List services | `charly box list services` | Layers with `service` in charly.yml |
+| List volumes | `charly box list volumes` | Layers with `volumes` in charly.yml |
+| List aliases | `charly box list aliases` | Layers with `aliases` in charly.yml |
 | Validate | `charly box validate` | Check all layers and images |
 
 Every editor verb above auto-becomes an MCP tool via Kong reflection (`candy.set`, `candy.add-rpm`, `box.write`, …) so an agent driving `charly mcp serve` can author layers from scratch over RPC without touching the filesystem directly. See `/charly-build:charly-mcp-cmd` "Authoring tools" for the worked end-to-end example, and `/charly-build:new` for the project / image / layer scaffolders that bootstrap the flow.
 
-### Editing candy.yml via the CLI (no hand-edit required)
+### Editing charly.yml via the CLI (no hand-edit required)
 
-The `charly candy …` group edits `candy/<name>/candy.yml` through the `yaml.v3` Node API, so **comments and key order are preserved** across edits. Unlike unmarshal-then-marshal, nothing gets scrambled when an agent (or a shell script) touches the file:
+The `charly candy …` group edits `candy/<name>/charly.yml` through the `yaml.v3` Node API, so **comments and key order are preserved** across edits. Unlike unmarshal-then-marshal, nothing gets scrambled when an agent (or a shell script) touches the file:
 
 ```bash
 # Append packages (idempotent; handles scaffold's null `package:` value):
@@ -95,8 +95,8 @@ A layer directory can contain any combination of these:
 
 | Artifact | Runs as | Purpose |
 |---|---|---|
-| `candy.yml` `distro:` map (+ top-level `package:` base) | root | System packages declared declaratively (see Package Surface below) |
-| `candy.yml` `task:` list | per-task `user:` | Ordered install operations — the primary extension point (see catalog below) |
+| `charly.yml` `distro:` map (+ top-level `package:` base) | root | System packages declared declaratively (see Package Surface below) |
+| `charly.yml` `task:` list | per-task `user:` | Ordered install operations — the primary extension point (see catalog below) |
 | `pixi.toml` / `pyproject.toml` / `environment.yml` | user (builder stage) | Python/conda packages. Multi-stage build. Only one per layer |
 | `package.json` | user (builder stage) | npm packages — installed globally via `npm install -g` |
 | `Cargo.toml` + `src/` | user (builder stage) | Rust crate — built via `cargo install --path` |
@@ -249,7 +249,7 @@ They happen to emit `COPY` directives under the hood, but they have entirely dis
 
 | | `copy` | `write` |
 |---|---|---|
-| Source of bytes | File on disk under `candy/<name>/` | Inline `content:` block in `candy.yml` |
+| Source of bytes | File on disk under `candy/<name>/` | Inline `content:` block in `charly.yml` |
 | Replaces old pattern | `cp /ctx/foo bar` + `chmod` | `cat > foo << 'EOF' … EOF` |
 | Validation check | `src` must exist under layer dir at generate time | `content` must be non-empty |
 | Cache key | Layer-stage file content | Content-addressed staged file at `.build/<image>/_inline/<layer>/<sha256>` |
@@ -281,7 +281,7 @@ These names are reserved — `var:` may not shadow them:
 
 | Name | Value | Resolution |
 |---|---|---|
-| `USER` | image's configured username | Generate-time (from box.yml resolution) |
+| `USER` | image's configured username | Generate-time (from charly.yml resolution) |
 | `UID` | numeric user ID | Generate-time |
 | `GID` | numeric group ID | Generate-time |
 | `HOME` | resolved home directory | Generate-time |
@@ -311,7 +311,7 @@ Everything else (paths, URLs, modes, `to`, `target`, `user`, etc.) resolves via 
 
 ## Style: Explicit Tasks, No YAML Anchors
 
-Every task — root or user — must be written out in full. Do **not** use YAML anchors (`&name`, `<<: *name`) to share `user:` / `mode:` across tasks. `gopkg.in/yaml.v3` parses anchors correctly, but the repo convention is that every `candy.yml` task reads end-to-end without indirection.
+Every task — root or user — must be written out in full. Do **not** use YAML anchors (`&name`, `<<: *name`) to share `user:` / `mode:` across tasks. `gopkg.in/yaml.v3` parses anchors correctly, but the repo convention is that every `charly.yml` task reads end-to-end without indirection.
 
 ```yaml
 # Style across the repo — root and user tasks look identical in shape:
@@ -403,7 +403,7 @@ task:
 
 ---
 
-## candy.yml Field Reference
+## charly.yml Field Reference
 
 | Field | Type | Purpose |
 |-------|------|---------|
@@ -511,7 +511,7 @@ keeps `fastfetch` (absent from Ubuntu's repos) only under `debian` + `fedora` +
 
 ### Image distro chains (where the most-specific-first order comes from)
 
-An image declares its chain in `box.yml` `distro:` (e.g. `[debian:13, debian]`,
+An image declares its chain in `charly.yml` `distro:` (e.g. `[debian:13, debian]`,
 `[ubuntu:24.04, ubuntu]`); a `target: vm` deploy synthesizes the SAME chain from
 the distro's canonical `version:` in `build.yml` via `distroTagChain` — so
 per-version selection works identically on image builds and VM deploys. fedora /
@@ -793,7 +793,7 @@ security:
   cpus: "4.0"                # CPU quota
 ```
 
-Security settings merge across layers (union for lists; `privileged` true if any layer sets it; smallest-wins for resource caps). Image-level `security:` in `box.yml` overrides `privileged` and replaces resource caps.
+Security settings merge across layers (union for lists; `privileged` true if any layer sets it; smallest-wins for resource caps). Image-level `security:` in `charly.yml` overrides `privileged` and replaces resource caps.
 
 Resource caps (memory / cpus) bound the blast radius of a Chrome crash loop on the chrome layer. See `/charly-selkies:chrome` (Resource Caps) and `/charly-infrastructure:supervisord` for the (generic) eventlistener pattern.
 
@@ -918,7 +918,7 @@ data:
     dest: ""                 # optional subdirectory within volume
 ```
 
-**Data layers** are layers with only `data:` + `volume:` — no packages, no services, no tasks. Valid standalone. **Data images** (`data_image: true` in box.yml) are scratch-based — consumed via `charly config --data-from <image>`. See `/charly-jupyter:notebook-templates` for a worked example.
+**Data layers** are layers with only `data:` + `volume:` — no packages, no services, no tasks. Valid standalone. **Data images** (`data_image: true` in charly.yml) are scratch-based — consumed via `charly config --data-from <image>`. See `/charly-jupyter:notebook-templates` for a worked example.
 
 ---
 
@@ -948,23 +948,23 @@ UID/GID in non-root cache mounts are dynamic (from resolved image config). Flat 
 
 ```bash
 charly box new candy my-tool
-# Edit candy/my-tool/candy.yml — add packages, deps, env, tasks
+# Edit candy/my-tool/charly.yml — add packages, deps, env, tasks
 charly box validate
 ```
 
 ### Add system packages
 
-Add a `distro:` section to `candy.yml` keyed by distro name (`distro.fedora`, `distro.debian`, `"debian,ubuntu"` compound, `debian-13` versioned), and/or a top-level `package:` base for cross-distro names. The resolver cascades most-specific-first (packages union, repo/options most-specific-wins). `charly candy add-rpm`/`add-deb`/`add-pac`/`add-aur` append into the right `distro:` section for you.
+Add a `distro:` section to `charly.yml` keyed by distro name (`distro.fedora`, `distro.debian`, `"debian,ubuntu"` compound, `debian-13` versioned), and/or a top-level `package:` base for cross-distro names. The resolver cascades most-specific-first (packages union, repo/options most-specific-wins). `charly candy add-rpm`/`add-deb`/`add-pac`/`add-aur` append into the right `distro:` section for you.
 
 ### Add Python packages
 
-Create `pixi.toml` in the layer directory. **`candy.yml` must depend on `python`, not `pixi`** (the `pixi` layer installs the pixi binary; the `python` layer installs Python via pixi). Never use `pip install`, `conda install`, `pixi global install`, or `uv tool install` inside a `cmd:` task. Always use `pixi.toml`.
+Create `pixi.toml` in the layer directory. **`charly.yml` must depend on `python`, not `pixi`** (the `pixi` layer installs the pixi binary; the `python` layer installs Python via pixi). Never use `pip install`, `conda install`, `pixi global install`, or `uv tool install` inside a `cmd:` task. Always use `pixi.toml`.
 
 **In-tree Python packages** shipped by a layer live at `candy/<layer-name>/<pkg-name>/<pkg-name>/` with `pyproject.toml` at the distribution root. Internal imports must be relative (`from .app import X`) so the package directory can be renamed without editing every `.py` file.
 
 ### Add npm packages
 
-Create `package.json` in the layer directory; `candy.yml` depends on `nodejs`. The build system runs `npm install -g` in a multi-stage build. Do **not** put `npm install -g` inside a `cmd:` task — `package.json` is the declarative path.
+Create `package.json` in the layer directory; `charly.yml` depends on `nodejs`. The build system runs `npm install -g` in a multi-stage build. Do **not** put `npm install -g` inside a `cmd:` task — `package.json` is the declarative path.
 
 ### Add Go packages
 
@@ -1045,7 +1045,7 @@ Declare `service:` with a supervisord `[program:<name>]` fragment and add `super
 ## Style Guide
 
 - Lowercase-hyphenated names for layers.
-- System packages in the `candy.yml` `distro:` map (+ top-level `package:` base) — not in `cmd:`.
+- System packages in the `charly.yml` `distro:` map (+ top-level `package:` base) — not in `cmd:`.
 - Python in `pixi.toml`, npm in `package.json`, Rust in `Cargo.toml`. Never `pip install` / `conda install` / `dnf install python3-*`.
 - Binary downloads via `download:` verb; use `${ARCH}` or `${BUILD_ARCH}` for multi-arch URL templates.
 - Never `dnf clean all` / `pacman -Scc` inside a `cmd:` — cache mounts handle it.
@@ -1064,7 +1064,7 @@ shell allowlist key (`bash` / `zsh` / `fish` / `sh`) override the
 intrinsic for that one shell.
 
 ```yaml
-# candy.yml — generic + override (the canonical shape)
+# charly.yml — generic + override (the canonical shape)
 shell:
   init: |
     # Applies to bash, zsh, sh — ${SHELL_NAME} substituted at install time.
@@ -1151,7 +1151,7 @@ shell: schema. Idempotent.
 - `/charly-build:build` — Building images (`--no-cache` caveat; multi-stage scratch).
 - `/charly-core:charly-config` — Cross-container `env_provide` / `mcp_provide` injection; `env_require` enforcement; `--update-all`; resource caps.
 - `/charly-core:deploy` — `deploy.yml` `provides:` section; tunnel is deploy.yml-only.
-- `/charly-eval:eval` — `eval:` field for declarative layer checks (file/port/http/...); embedded in the `ai.opencharly.eval` OCI label under the `layer` section. Layer eval checks default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `candy/sshd/candy.yml`.
+- `/charly-eval:eval` — `eval:` field for declarative layer checks (file/port/http/...); embedded in the `ai.opencharly.eval` OCI label under the `layer` section. Layer eval checks default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `candy/sshd/charly.yml`.
 - `/charly-automation:sidecar` — Sidecars as `env_provide` participants (tailscale `TS_*` filtering).
 - `/charly-build:secrets` — Credential store chain for `secret_accept` / `secret_require`.
 - `/charly-selkies:chrome` — Canonical consumer of `env_accept` (proxy vars), cgroup resource caps, and a heavy user-phase copy/mkdir task list.
@@ -1171,12 +1171,12 @@ A layer's name lives in its own namespace — same as `image:`, `pod:`, `vm:`, `
 
 ## When to Use This Skill
 
-**MUST be invoked** for any task involving layer authoring, `candy.yml`, `task:`, `var:`, `pixi.toml`, `package.json`, `Cargo.toml`, or any file under `candy/`. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** for any task involving layer authoring, `charly.yml`, `task:`, `var:`, `pixi.toml`, `package.json`, `Cargo.toml`, or any file under `candy/`. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Pre-build. Author layers before adding them to images. See `/charly-image:image` (composition), `/charly-build:build` (building), `/charly-build:generate` (emission internals).
 
 ## Related skills
 
-- `/charly-build:migrate` — `charly migrate` converts legacy flat-form `candy.yml` + raw-INI `service:` blocks into the canonical schema
+- `/charly-build:migrate` — `charly migrate` converts legacy flat-form candy definitions + raw-INI `service:` blocks into the canonical schema
 - `/charly-internals:capabilities` — how the `service:` list is baked into the `LabelService` OCI label
 - `/charly-internals:install-plan` — internal IR the loader feeds into build/deploy pipelines

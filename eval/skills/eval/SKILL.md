@@ -2,7 +2,7 @@
 name: eval
 description: |
   MUST be invoked before any work involving: `charly eval` (image / live / run),
-  the `eval:` / `deploy_eval:` fields in candy.yml / box.yml / deploy.yml,
+  the `eval:` / `deploy_eval:` fields in a candy/box `charly.yml` or `deploy.yml`,
   the `ai.opencharly.eval` OCI label, the AI iteration harness loop,
   `kind: ai` / `kind: recipe` / `kind: score` / `kind: eval` (disposable R10
   beds run via `charly eval run <bed>`) in eval.yml, or any declarative
@@ -240,7 +240,7 @@ If the container needs state that's only available in deploy (volumes, env, tunn
 
 `charly` ships a goss-inspired declarative testing framework built into the
 CLI. Eval checks are authored inline under `eval:` (or `deploy_eval:`) in
-`candy.yml`, `box.yml`, or `deploy.yml`. They are **embedded as a
+a candy/box `charly.yml`, or `deploy.yml`. They are **embedded as a
 three-section OCI label** (`ai.opencharly.eval` → `{layer, image, deploy}`)
 so any pulled image is self-testable without its source repo. A local
 `deploy.yml` overlay can add checks or override baked ones by `id:`.
@@ -302,7 +302,7 @@ For each discovered image, the algorithm is:
    `@github.com/...` refs walk through `ResolveRemoteImage`.
 3. `charly box build <name>` — fallback when pull fails AND the
    identifier is a short name resolvable via the project's
-   `box.yml`. Build fallback is local-only; for any non-short
+   `charly.yml`. Build fallback is local-only; for any non-short
    identifier that fails to pull, the preflight aborts with an
    actionable error.
 
@@ -443,7 +443,7 @@ free; exercise the live grader with an explicit `charly eval feature run <name>`
 # 1. Specify two scenarios on the layer that provides the behaviour.
 charly candy add-scenario web-layer dashboard-loads \
   --then "the dashboard renders without a 500"          # prose → agent-graded
-$EDITOR candy/web-layer/candy.yml                        # add a deterministic step with cdp: eval
+$EDITOR candy/web-layer/charly.yml                        # add a deterministic step with cdp: eval
 
 # 2. See what's still prose-only (the authoring gaps).
 charly feature pending layer:web-layer
@@ -490,26 +490,26 @@ runner composes when it executes checks.
 matched, an image literally named `cdp`, `wl`, `dbus`, `vnc`, `mcp`,
 `record`, `spice`, or `libvirt` cannot be run via `charly eval live <name>` —
 use the explicit `charly eval live <name>` form or rename the image. No such
-images currently exist in `box.yml`.
+images currently exist in `charly.yml`.
 
 **Gotcha — stale container-baked `charly` binary:** `charly eval dbus notify` and
 `charly eval dbus call` delegate to the container's own `charly` binary (see
 `charly/notify.go:20`, `charly/dbus.go:195,229`). If the container bakes an `charly`
 binary too old to know the `charly eval <verb>` subcommand path, the delegation
 fails. Fix by rebuilding and redeploying any image that bakes `charly` (grep
-`box.yml` for `- charly$` to find them). Test runner itself is unaffected —
+`charly.yml` for `- charly$` to find them). Test runner itself is unaffected —
 this only bites the host→container delegation paths.
 
 ## Authoring: the `eval:` list
 
 Every check is a **list entry with exactly one verb discriminator** plus
 shared modifiers and verb-specific attributes. This mirrors the `task:`
-pattern in `candy.yml`.
+pattern in `charly.yml`.
 
 ### Gold-standard pattern (redis layer)
 
 ```yaml
-# candy/redis/candy.yml
+# candy/redis/charly.yml
 eval:
   # Build-scope — run inside the built image via `podman run --rm`.
   - id: redis-binary
@@ -551,7 +551,7 @@ fallback. Source: `charly/testrun_verbs.go:resolvePackageName` + the
 points.
 
 ```yaml
-# candy/sshd/candy.yml — cross-distro authoring
+# candy/sshd/charly.yml — cross-distro authoring
 - id: openssh-server-package
   package: openssh-server              # Fedora / Debian default
   package_map:
@@ -881,7 +881,7 @@ threshold that wasn't met.
 The `dbus:` verb invokes the container's `charly` binary via delegation. If
 the container bakes an `charly` binary too old to know the `charly eval <verb>`
 subcommand path, the delegation fails. Rebuild and redeploy any image that
-bakes `charly` (grep `box.yml` for `- charly$`). The test runner itself is
+bakes `charly` (grep `charly.yml` for `- charly$`). The test runner itself is
 unaffected; this only bites the host→container delegation paths in the
 `dbus` verb.
 
@@ -959,7 +959,7 @@ in_container: true
 ### 5. Know which stream a `--version`-style command writes to
 
 `charly version` writes to **stdout** (via `fmt.Println`) — the canonical
-`candy/charly/candy.yml` test asserts a `stdout:` matcher.
+`candy/charly/charly.yml` test asserts a `stdout:` matcher.
 
 ```yaml
 - id: charly-version
@@ -973,7 +973,7 @@ in_container: true
 some `*-config --version` scripts. Always probe first
 (`charly cmd <image> '<cmd> 2>&1 >/dev/null'` — if the output shows up here
 it was stderr; if silent, it's stdout). See also the `ssh-version`
-check in `candy/ssh-client/candy.yml` which IS a real stderr case.
+check in `candy/ssh-client/charly.yml` which IS a real stderr case.
 
 ### 6. Drop `$` anchor in `matches:` regexes on command output
 
@@ -1092,7 +1092,7 @@ Worked example: `/charly-coder:sshd` ships exactly the `-u user --` pattern. Alt
 
 ### 12. **`charly eval box <short-name>` is ambiguous with multiple CalVer tags** — use the full registry ref
 
-`charly eval box` resolves its positional argument against **local podman storage**, not `box.yml`. When the host has accumulated many CalVer tags for the same image (a normal consequence of iterative `charly box build` runs), the short form errors out:
+`charly eval box` resolves its positional argument against **local podman storage**, not `charly.yml`. When the host has accumulated many CalVer tags for the same image (a normal consequence of iterative `charly box build` runs), the short form errors out:
 
 ```
 charly: error: ambiguous short name "openclaw-desktop" in local storage;
@@ -1107,15 +1107,15 @@ Use the fully-qualified registry ref:
 charly eval box ghcr.io/overthinkos/openclaw-desktop:latest
 ```
 
-This is different from `charly box inspect`, `charly box build`, and `charly eval live` (the live-service runner), which key off `box.yml` and accept short names unambiguously. Only the disposable-container runner has this restriction because it does not consult `box.yml` at all.
+This is different from `charly box inspect`, `charly box build`, and `charly eval live` (the live-service runner), which key off `charly.yml` and accept short names unambiguously. Only the disposable-container runner has this restriction because it does not consult `charly.yml` at all.
 
 ## Three levels, three sections
 
 | Section | Authored in | When it runs |
 |---------|-------------|--------------|
-| `layer` | `eval:` in `candy/<name>/candy.yml` (scope:"build") | `charly eval box` + `charly eval live` |
-| `image` | `eval:` in `box.yml` per image (scope:"build") | `charly eval box` + `charly eval live` |
-| `deploy` | `eval:` with `scope: deploy`, or `deploy_eval:` in `box.yml`, or local `deploy.yml` `eval:` | `charly eval live <name>` only (deploy-scope checks need a running deployment with port mappings, volumes, and resolved runtime variables) |
+| `layer` | `eval:` in `candy/<name>/charly.yml` (scope:"build") | `charly eval box` + `charly eval live` |
+| `image` | `eval:` in `charly.yml` per image (scope:"build") | `charly eval box` + `charly eval live` |
+| `deploy` | `eval:` with `scope: deploy`, or `deploy_eval:` in `charly.yml`, or local `deploy.yml` `eval:` | `charly eval live <name>` only (deploy-scope checks need a running deployment with port mappings, volumes, and resolved runtime variables) |
 
 The build label `ai.opencharly.eval` contains all three sections with
 `origin:` annotations (`layer:<name>`, `image:<name>`, `deploy-default`,
@@ -1318,7 +1318,7 @@ images:
 ## Typical workflow
 
 ```bash
-# 1. Author tests in candy/<name>/candy.yml.
+# 1. Author tests in candy/<name>/charly.yml.
 # 2. Validate schema + references.
 charly box validate
 
@@ -1417,7 +1417,7 @@ deliberately.
 ## Related skills
 
 - **Live-container probe verbs under `charly eval`** — `/charly-eval:cdp`, `/charly-eval:wl`, `/charly-eval:dbus`, `/charly-eval:vnc`, `/charly-build:charly-mcp-cmd`, `/charly-eval:record`, `/charly-eval:spice`, `/charly-eval:libvirt`, `/charly-kubernetes:eval-k8s` are dispatched as `charly eval cdp|wl|dbus|vnc|mcp|record|spice|libvirt|k8s`. See the Subcommands section above.
-- `/charly-image:layer` — layer authoring; `eval:` field is part of every `candy.yml`.
+- `/charly-image:layer` — layer authoring; `eval:` field is part of every `charly.yml`.
 - `/charly-image:image` — image-level `eval:` and `deploy_eval:` at composition time.
 - `/charly-core:deploy` — local `deploy.yml` overlay rules and the `eval:` merge.
 - `/charly-build:validate` — static schema + cross-scope variable checks; the first

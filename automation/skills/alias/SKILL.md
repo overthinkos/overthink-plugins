@@ -50,7 +50,7 @@ Key details:
 
 ## Declaration
 
-### In candy.yml
+### In a candy `charly.yml`
 
 Layer aliases require both `name` and `command`:
 
@@ -62,7 +62,7 @@ aliases:
     command: "ollama run"
 ```
 
-### In box.yml
+### In a box `charly.yml`
 
 Image-level aliases default `command` to `name` if omitted. Image-level aliases override layer aliases with the same name.
 
@@ -139,7 +139,7 @@ Scans `~/.local/bin/` for files with the `# charly-alias` marker.
 - `/charly-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
 - `/charly-core:shell` -- How aliases execute commands via `charly shell -c`
-- `/charly-image:layer` -- Declaring aliases in candy.yml
+- `/charly-image:layer` -- Declaring aliases in charly.yml
 - `/charly-image:image` -- Image-level alias overrides
 
 ## When to Use This Skill

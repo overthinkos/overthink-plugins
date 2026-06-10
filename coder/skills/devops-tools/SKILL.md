@@ -28,7 +28,7 @@ description: |
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 my-image:
   layers:
     - devops-tools

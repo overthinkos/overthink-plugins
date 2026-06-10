@@ -61,7 +61,7 @@ drivers. Two API levels = two images, each with its own `kind: android`.
 ## `apk:` — the package format (declared in layers)
 
 ```yaml
-# candy/<name>/candy.yml
+# candy/<name>/charly.yml
 candy:
   version: 2026.145.1700
   name: my-android-apps

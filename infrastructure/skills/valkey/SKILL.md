@@ -15,7 +15,7 @@ description: |
 | Ports | `6379` |
 | Service | `valkey` (supervisord, priority 20) |
 | Volume | `valkey-data` -> `~/.valkey` |
-| Install files | `candy.yml` only |
+| Install files | `charly.yml` only |
 
 ## Environment Variables
 
@@ -40,7 +40,7 @@ See `/charly-image:layer` for `env_provide` field docs.
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 my-app:
   layers:
     - valkey

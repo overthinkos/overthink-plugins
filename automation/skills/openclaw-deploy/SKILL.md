@@ -51,7 +51,7 @@ The gateway binds to loopback only (no `--bind lan`). External access is handled
 
 ### Image
 
-Compose your own desktop+browser image — e.g. an `openclaw-desktop` entry in `box.yml` combining `openclaw-full` + `sway-desktop` on a Fedora base:
+Compose your own desktop+browser image — e.g. an `openclaw-desktop` entry in `charly.yml` combining `openclaw-full` + `sway-desktop` on a Fedora base:
 
 ```yaml
 box:

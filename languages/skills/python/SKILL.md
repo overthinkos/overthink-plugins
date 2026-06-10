@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `pixi` |
-| Install files | `candy.yml`, `pixi.toml` |
+| Install files | `charly.yml`, `pixi.toml` |
 
 ## Packages
 
@@ -21,7 +21,7 @@ Pixi (conda-forge): `python >=3.13,<3.14`
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 my-image:
   layers:
     - python
@@ -48,5 +48,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

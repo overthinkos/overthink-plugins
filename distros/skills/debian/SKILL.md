@@ -15,7 +15,7 @@ Base Debian 13 (trixie) image. Root of the Debian image hierarchy.
 
 The Debian family lives in the **`overthinkos/debian`** repo (git submodule at
 **`box/debian`**). The `debian` base is **owned there** (in that repo's
-`box.yml`) and composes the main repo's layers + shared `build.yml` (which
+`charly.yml`) and composes the main repo's layers + shared `build.yml` (which
 keeps the `debian` distro config + the `deb` format + the `debootstrap` builder
 template) by git reference. Build it from the submodule:
 `charly -C box/debian box build debian` (or `charly --repo overthinkos/debian box build debian`).

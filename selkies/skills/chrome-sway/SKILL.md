@@ -18,7 +18,7 @@ description: |
 ## Usage
 
 ```yaml
-# box.yml -- typically included via sway-desktop composition
+# charly.yml -- typically included via sway-desktop composition
 my-browser:
   layers:
     - chrome-sway
@@ -55,5 +55,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

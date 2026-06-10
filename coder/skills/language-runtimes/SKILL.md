@@ -15,7 +15,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `nodejs`, `rust` |
-| Install files | `candy.yml` (packages only) |
+| Install files | `charly.yml` (packages only) |
 
 ## Packages (RPM)
 
@@ -129,7 +129,7 @@ the single sources of truth for their respective binaries.
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 my-polyglot:
   layers:
     - language-runtimes

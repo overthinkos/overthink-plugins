@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `candy.yml`, `task:`, `service:`, `artifact:`, `secret_require:` |
+| Install files | `charly.yml`, `task:`, `service:`, `artifact:`, `secret_require:` |
 | Depends on | `/charly-infrastructure:k3s` |
 | Service | `k3s.service` (system scope, enabled) |
 

@@ -14,7 +14,7 @@ CUDA compiler, cuDNN, ONNX Runtime, and GPU development libraries. Depends on th
 
 | Property | Value |
 |----------|-------|
-| Install files | `task:`, `candy.yml` |
+| Install files | `task:`, `charly.yml` |
 | Depends | `nvidia`, `ffmpeg` |
 
 ## Environment Variables
@@ -47,7 +47,7 @@ Extracts cuDNN headers from `cuda-cudnn-devel` RPM (bypasses driver dependency v
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 nvidia:
   base: fedora-nonfree
   layers:
@@ -72,5 +72,5 @@ nvidia:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

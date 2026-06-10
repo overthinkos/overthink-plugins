@@ -48,7 +48,7 @@ namespace qualifier):
 This is the Arch counterpart to `/charly-distros:fedora`. The tag system (`distro: [arch]`, `build: [pac]`) selects `pac:` package sections and `pac:` tasks in tasks:. Layers shared between Arch and Fedora images use distro-specific sections:
 
 ```yaml
-# candy.yml — multi-distro package declarations
+# charly.yml — multi-distro package declarations
 rpm:
   packages: [neovim]     # Fedora
 pac:

@@ -29,7 +29,7 @@ selkies-labwc:
     - linux/amd64
 ```
 
-Tunnel config is in `deploy.yml` (not box.yml): `tunnel: {provider: tailscale, private: all}`. See `/charly-core:deploy`.
+Tunnel config is in `deploy.yml` (not charly.yml): `tunnel: {provider: tailscale, private: all}`. See `/charly-core:deploy`.
 
 ## Base
 

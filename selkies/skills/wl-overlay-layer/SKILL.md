@@ -44,7 +44,7 @@ Installed to `~/.local/bin/charly-overlay` via `task:`. Dual-mode script (daemon
 ## Usage
 
 ```yaml
-# box.yml — typically included via desktop metalayers
+# charly.yml — typically included via desktop metalayers
 # Already part of sway-desktop, selkies-desktop
 my-desktop:
   layers:
@@ -83,5 +83,5 @@ charly eval wl overlay hide my-image --all
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

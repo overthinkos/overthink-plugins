@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Ports | 22 |
-| Install files | `candy.yml` |
+| Install files | `charly.yml` |
 
 ## Packages
 
@@ -74,7 +74,7 @@ Why not `${USER}` substitution? The generator substitutes `${USER}` in task fiel
 ## Usage
 
 ```yaml
-# box.yml -- add the layer to any image that needs an in-container SSH server
+# charly.yml -- add the layer to any image that needs an in-container SSH server
 my-image:
   layers:
     - sshd

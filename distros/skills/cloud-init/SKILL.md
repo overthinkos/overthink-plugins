@@ -12,7 +12,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `sshd` |
-| Install files | `task:`, `candy.yml` |
+| Install files | `task:`, `charly.yml` |
 
 ## Packages
 
@@ -22,7 +22,7 @@ description: |
 ## Usage
 
 ```yaml
-# charly.yml or box.yml
+# charly.yml
 box:
   my-cloud-image:
     base: "quay.io/fedora/fedora-bootc:43"

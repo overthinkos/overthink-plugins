@@ -22,7 +22,7 @@ description: |
 
 ## How It Works
 
-This is a **data layer** — it uses the `data:` field in `candy.yml` to map a directory of notebooks to a named volume with a subdirectory destination:
+This is a **data layer** — it uses the `data:` field in `charly.yml` to map a directory of notebooks to a named volume with a subdirectory destination:
 
 ```yaml
 info: "Ollama integration notebook collection"
@@ -112,7 +112,7 @@ Pull models before running: `charly shell ollama -c "ollama pull llama3.2"`
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 jupyter-ml-notebook:
   layers:
     - jupyter-ml

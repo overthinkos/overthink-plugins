@@ -59,7 +59,7 @@ location `${HOME}/.config/containers/registries.conf.d/` (rootless podman).
 ## Usage
 
 ```yaml
-# box.yml — rootless, CachyOS
+# charly.yml — rootless, CachyOS
 githubrunner:
   base: cachyos.cachyos
   build: [pac]

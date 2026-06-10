@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `candy.yml` |
+| Install files | `charly.yml` |
 
 ## Packages
 
@@ -37,7 +37,7 @@ org.qemu.guest_agent.0}]` (see `/charly-internals:libvirt-renderer`).
 ## Usage
 
 ```yaml
-# box.yml -- add to a bootc image's layer list
+# charly.yml -- add to a bootc image's layer list
 my-vm-image:
   bootc: true
   layers:
@@ -60,7 +60,7 @@ The layer contributes a raw libvirt XML snippet that the libvirt renderer places
 </channel>
 ```
 
-Emitted in `candy.yml` as:
+Emitted in `charly.yml` as:
 
 ```yaml
 libvirt:
@@ -85,7 +85,7 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations, `libvirt.snippets:`)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations, `libvirt.snippets:`)
 - `/charly-vm:vm` — VM lifecycle; bootc VM caveats; QEMU-user-net limitation
 - `/charly-vm:vms-catalog` — `kind: vm` entity schema that consumes this layer's contribution
 - `/charly-internals:libvirt-renderer` — renderer that injects this layer's snippet into `<devices>`

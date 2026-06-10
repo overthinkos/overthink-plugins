@@ -32,7 +32,7 @@ then `charly shell <image-name>` works via labels. See `/charly-build:pull`.
 
 ## How It Works
 
-1. Resolves image from OCI labels via `ExtractMetadata` (never `box.yml`)
+1. Resolves image from OCI labels via `ExtractMetadata` (never `charly.yml`)
 2. Applies `deploy.yml` overlay (volumes, env, sidecars, tunnel)
 3. Ensures image exists in run engine (transfers from build engine if needed)
 4. Resolves volumes (with deploy-time backing), ports, security, environment
@@ -85,10 +85,10 @@ charly shell my-app                            # Interactive shell in running co
 
 ## Port Relay
 
-The `port_relay` field in candy.yml solves the problem of services that bind only to 127.0.0.1 inside the container (e.g., Chrome 146+ DevTools). Container port mappings only forward to interfaces visible from outside, so a loopback-only service is unreachable from the host.
+The `port_relay` field in charly.yml solves the problem of services that bind only to 127.0.0.1 inside the container (e.g., Chrome 146+ DevTools). Container port mappings only forward to interfaces visible from outside, so a loopback-only service is unreachable from the host.
 
 ```yaml
-# In candy.yml:
+# In charly.yml:
 port_relay:
   - 9222
 ```
@@ -127,8 +127,8 @@ Source: `charly/devices.go` (`DetectHostDevices`, `DetectGPU`, `DetectAMDGPU`, `
 
 Runtime environment variables are injected from multiple sources. Resolution priority (last wins for duplicate keys):
 
-1. **Deploy config `env:`** (box.yml / deploy.yml) -- lowest priority
-2. **Deploy config `env_file:`** (box.yml / deploy.yml)
+1. **Deploy config `env:`** (charly.yml / deploy.yml) -- lowest priority
+2. **Deploy config `env_file:`** (charly.yml / deploy.yml)
 3. **Workspace `.env`** file -- auto-loaded from `-w` directory
 4. **CLI `--env-file`** flag
 5. **CLI `-e`** flags -- highest priority
@@ -168,7 +168,7 @@ Source: `charly/transfer.go`.
 
 ## Container Networking
 
-All containers are connected to a shared `charly` network by default, enabling inter-container DNS resolution by container name. Override with `network: host` in box.yml.
+All containers are connected to a shared `charly` network by default, enabling inter-container DNS resolution by container name. Override with `network: host` in charly.yml.
 
 Source: `charly/network.go`.
 
@@ -208,7 +208,7 @@ Use `charly cmd` for quick operations on running services. Use `charly shell -c`
 
 ### Build-mode references
 
-- `/charly-image:image` -- Image definitions (ports, volumes, env) in `box.yml`; authoritative source before a pull
+- `/charly-image:image` -- Image definitions (ports, volumes, env) in `charly.yml`; authoritative source before a pull
 - `/charly-build:build` -- Build the image you intend to shell into
 
 ### Layer skills

@@ -18,7 +18,7 @@ No skills of its own — the backing documentation lives in `/charly-jupyter:jup
 
 ## MCP Name Decoupling
 
-The MCP server name `jupyter` is deliberately stable across renames of the underlying layer, Python package, and image. The `/charly-jupyter:jupyter-mcp` skill documents this pattern in detail ("MCP Name Decoupling" section). Short version: `mcp_provide.name: jupyter` in `candy/jupyter/candy.yml` is the service contract — consumers (`hermes`, `openwebui`, this plugin's `.mcp.json`) all key off that name, not off the layer/package/image name.
+The MCP server name `jupyter` is deliberately stable across renames of the underlying layer, Python package, and image. The `/charly-jupyter:jupyter-mcp` skill documents this pattern in detail ("MCP Name Decoupling" section). Short version: `mcp_provide.name: jupyter` in `candy/jupyter/charly.yml` is the service contract — consumers (`hermes`, `openwebui`, this plugin's `.mcp.json`) all key off that name, not off the layer/package/image name.
 
 ## Related Skills
 

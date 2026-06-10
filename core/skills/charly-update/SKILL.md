@@ -133,7 +133,7 @@ local registry pointer moves.
 
 ## Data Seeding
 
-Data layers (layers that declare a `data:` block in `candy.yml`) ship
+Data layers (layers that declare a `data:` block in `charly.yml`) ship
 starter content that gets copied into the runtime volume on first
 deployment. Examples: `notebook-templates` ships
 `getting-started.ipynb` into jupyter's `workspace` volume;

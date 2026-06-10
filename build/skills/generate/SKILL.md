@@ -1,7 +1,7 @@
 ---
 name: generate
 description: |
-  Containerfile generation from box.yml and layers.
+  Containerfile generation from charly.yml and layers.
   MUST be invoked before any work involving: charly box generate command, Containerfile generation, .build/ directory contents, the task-verb emission pipeline, or understanding generated output.
 ---
 
@@ -11,11 +11,11 @@ Invoked as `charly box generate`. See `/charly-image:image` for the family overv
 
 ## Overview
 
-Parses `box.yml`, scans `candy/`, resolves the dependency graph, and emits all build artifacts into the `.build/` directory. Called internally by `charly box build` but can be run standalone to inspect generated output before a build.
+Parses `charly.yml`, scans `candy/`, resolves the dependency graph, and emits all build artifacts into the `.build/` directory. Called internally by `charly box build` but can be run standalone to inspect generated output before a build.
 
 The generator is **config-driven** — distro format templates, builder stage templates, and init system fragments all come from a single `build.yml` (three top-level sections: `distro:`, `builder:`, `init:`) — and **declarative per-task** for install logic — each task verb (see `/charly-image:layer`) has a dedicated emitter that writes the right Containerfile directive.
 
-**IR-driven emission**: `charly box generate` drives emission through the shared `DeployTarget` interface. `box.yml` + `candy.yml` compile into an `InstallPlan` IR (one per layer); `OCITarget.Emit` walks the IR and writes Containerfile text. The same IR backs `PodDeployTarget` (overlay-Containerfile synthesis when `add_candy:` is set) and `LocalDeployTarget` (local-target execution). See `/charly-internals:install-plan` for the type catalog and `/charly-internals:generate-source` for the Go-level call graph.
+**IR-driven emission**: `charly box generate` drives emission through the shared `DeployTarget` interface. `charly.yml` compile into an `InstallPlan` IR (one per layer); `OCITarget.Emit` walks the IR and writes Containerfile text. The same IR backs `PodDeployTarget` (overlay-Containerfile synthesis when `add_candy:` is set) and `LocalDeployTarget` (local-target execution). See `/charly-internals:install-plan` for the type catalog and `/charly-internals:generate-source` for the Go-level call graph.
 
 **Three-phase templates**: `build.yml` format (`formats.<fmt>`) and builder (`builders.<name>`) definitions carry a `phases: { prepare, install, cleanup }.{ container, host }` structure. The generator reads `phases.install.container` when set and falls back to the top-level `install_template:` otherwise. The `host:` cell is consumed only by `LocalDeployTarget` (`target: local` deploys) — the generator ignores it.
 
@@ -26,7 +26,7 @@ The generator is **config-driven** — distro format templates, builder stage te
 | Generate all | `charly box generate` | Generate Containerfiles for all enabled images |
 | With tag | `charly box generate --tag TAG` | Override the image tag |
 
-`charly box generate` takes **no positional image argument** — it always writes the full `.build/` tree for every enabled image in `box.yml`. To inspect a single image's output, run `charly box generate` (fast — it reuses scratch-stage caches) and then `cat .build/<image>/Containerfile`. Filtering to one image happens implicitly via `charly box build <image>`, which invokes generate internally and then builds only the requested image + its dependencies.
+`charly box generate` takes **no positional image argument** — it always writes the full `.build/` tree for every enabled image in `charly.yml`. To inspect a single image's output, run `charly box generate` (fast — it reuses scratch-stage caches) and then `cat .build/<image>/Containerfile`. Filtering to one image happens implicitly via `charly box build <image>`, which invokes generate internally and then builds only the requested image + its dependencies.
 
 ```bash
 # Generate all Containerfiles
@@ -201,13 +201,13 @@ The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUIL
 
 ## Project directory override
 
-`charly box generate` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
+`charly box generate` resolves `charly.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
 ### `charly box` family siblings
 
-- `/charly-image:image` -- Family overview + box.yml composition reference
+- `/charly-image:image` -- Family overview + charly.yml composition reference
 - `/charly-build:build` -- Building images (calls generate internally)
 - `/charly-build:inspect` -- Inspect generated output for a specific image
 - `/charly-build:list` -- Enumerate targets before generation

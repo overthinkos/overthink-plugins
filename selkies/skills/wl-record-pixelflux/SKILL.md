@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `candy.yml`, `task:`, `pixelflux-record` (Python script) |
+| Install files | `charly.yml`, `task:`, `pixelflux-record` (Python script) |
 | Depends | `selkies` (capture bridge + WebSocket stream), `ffmpeg` (MP4 muxing) |
 
 ## What It Does
@@ -109,5 +109,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

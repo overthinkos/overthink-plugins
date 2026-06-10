@@ -190,7 +190,7 @@ Every `charly` verb family runs as uid 1000 inside the container sandbox:
 `charly config/deploy/start/stop/update/remove/shell/cmd/service/status/logs`,
 `charly vm list/create/start/stop/ssh/destroy` (rootless libvirt session),
 `charly doctor/secrets/settings/alias`. The `charly` layer bakes only the binary — for
-build-mode verbs that read `box.yml`, mount or `podman cp` the project in.
+build-mode verbs that read `charly.yml`, mount or `podman cp` the project in.
 
 ## Volumes
 

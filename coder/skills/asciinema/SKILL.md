@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `candy.yml` (packages only) |
+| Install files | `charly.yml` (packages only) |
 | Depends | none |
 
 ## Packages
@@ -29,7 +29,7 @@ RPM: `asciinema` · PAC: `asciinema` · DEB: `asciinema` — full parity.
 ## Usage
 
 ```yaml
-# box.yml or candy.yml
+# box or candy charly.yml
 layers:
   - asciinema
 ```
@@ -80,5 +80,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

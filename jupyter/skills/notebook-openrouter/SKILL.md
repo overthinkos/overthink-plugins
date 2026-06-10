@@ -98,7 +98,7 @@ charly secrets gpg set OPENROUTER_API_KEY sk-or-v1-...
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 jupyter-ml-notebook:
   layers:
     - jupyter-ml

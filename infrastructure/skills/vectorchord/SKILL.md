@@ -62,7 +62,7 @@ VectorChord provides the `vchordrq` index type for PostgreSQL, replacing pgvecto
 ## Usage
 
 ```yaml
-# box.yml -- used alongside postgresql for Immich smart search
+# charly.yml -- used alongside postgresql for Immich smart search
 my-image:
   layers:
     - postgresql
@@ -92,5 +92,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

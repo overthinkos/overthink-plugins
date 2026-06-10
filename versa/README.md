@@ -63,7 +63,7 @@ entry (Claude Code runs on the host). Container-internal ports
 The MCP server names `marimo` and `airflow` are deliberately stable
 across renames of the underlying layer / Python package / image. The
 service contract is the `mcp_provide.name:` field in
-`candy/marimo/candy.yml` and `candy/airflow/candy.yml`. Consumers
+`candy/marimo/charly.yml` and `candy/airflow/charly.yml`. Consumers
 (this plugin's `.mcp.json`, plus any in-image MCP client) all key off
 those names — not off layer/package/image names — so renames don't
 ripple into client code. This decoupling is the reason the 2026-05

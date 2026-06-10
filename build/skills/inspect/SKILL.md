@@ -67,17 +67,17 @@ The JSON output includes:
 
 All `--format` values are the JSON field names from the `inspect` output. When passing `--format` to select a map (like `builder`) or list, the CLI prints one entry per line.
 
-**Caveat — `--format bind_mounts`**: this one format option reads `deploy.yml` (not `box.yml`), because bind-mount backings are a deploy-time concept (`charly config --bind <volume>` writes them to `deploy.yml`). The output is display-only — no OCI label contamination, no build-mode state leak. All other `--format` values (`ports`, `volumes`, `layers`, `base`, `builder`, …) are strictly `box.yml`-derived per the mode-purity invariant (see `/charly-build:build` and `/charly-internals:go` "Mode purity").
+**Caveat — `--format bind_mounts`**: this one format option reads `deploy.yml` (not `charly.yml`), because bind-mount backings are a deploy-time concept (`charly config --bind <volume>` writes them to `deploy.yml`). The output is display-only — no OCI label contamination, no build-mode state leak. All other `--format` values (`ports`, `volumes`, `layers`, `base`, `builder`, …) are strictly `charly.yml`-derived per the mode-purity invariant (see `/charly-build:build` and `/charly-internals:go` "Mode purity").
 
 ## Project directory override
 
-`charly box inspect` resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
+`charly box inspect` resolves `charly.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
 ### `charly box` family siblings
 
-- `/charly-image:image` -- Family overview + box.yml composition reference
+- `/charly-image:image` -- Family overview + charly.yml composition reference
 - `/charly-build:build` -- Build the inspected image
 - `/charly-build:generate` -- Containerfile generation for the inspected image
 - `/charly-build:list` -- Enumerate images before inspecting one

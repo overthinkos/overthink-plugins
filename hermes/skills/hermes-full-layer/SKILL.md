@@ -32,7 +32,7 @@ Without a browser provider, hermes browser tools fall back to local headless mod
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 hermes:
   base: fedora
   layers:
@@ -67,5 +67,5 @@ Use when working with the `hermes-full` metalayer, full-featured standalone herm
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

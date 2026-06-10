@@ -18,7 +18,7 @@ description: |
 | Service | `jupyter` (supervisord) |
 | Volume | `workspace` at `/workspace` |
 | MCP provides | `jupyter` at `http://{{.ContainerName}}:8888/mcp` (streamable HTTP) |
-| Install files | `candy.yml` (rpm: git), `pixi.toml` |
+| Install files | `charly.yml` (rpm: git), `pixi.toml` |
 
 ## Key Packages
 
@@ -43,7 +43,7 @@ doc = nlp("Apple is looking at buying a U.K. startup for $1 billion")
 [(e.text, e.label_) for e in doc.ents]  # named entities
 ```
 
-The `spacy-import` build-scope eval check (in `candy.yml`) verifies the
+The `spacy-import` build-scope eval check (in `charly.yml`) verifies the
 package + model load successfully on every image build — a future
 upstream rename or version bump that breaks the model load fails the
 build loudly.
@@ -79,7 +79,7 @@ The `workspace` volume is mounted at `/workspace`. JupyterLab serves notebooks f
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 jupyter:
   base: fedora
   layers:
@@ -177,8 +177,8 @@ candy/jupyter-mcp/
 │       ├── tornado_asgi.py         # Tornado↔ASGI bridge (SSE streaming, disconnect handling)
 │       ├── mcp_server.py           # FastMCP tool definitions (11 tools)
 │       └── rtc_adapter.py          # CRDT access via YNotebook + kernel execution
-# (in candy.yml tasks:)  # Build-time: pip install fastmcp + extension + enable
-└── candy.yml
+# (in charly.yml tasks:)  # Build-time: pip install fastmcp + extension + enable
+└── charly.yml
 ```
 
 ### Multi-client support
@@ -249,4 +249,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)

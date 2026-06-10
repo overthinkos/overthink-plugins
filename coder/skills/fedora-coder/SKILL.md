@@ -100,7 +100,7 @@ posture with `/charly-openclaw:openclaw-desktop`).
 | `security_opt` | `[unmask=/proc/*]` | `/charly-distros:container-nesting` |
 | `devices` | `[/dev/fuse, /dev/net/tun]` | `/charly-distros:container-nesting` |
 | `privileged` | `false` | — |
-| Network | default `charly` bridge | box.yml |
+| Network | default `charly` bridge | charly.yml |
 | UID / user | `1000 / user` | defaults |
 | sudo | passwordless via `/etc/sudoers.d/charly-user` | `/charly-coder:sshd` |
 
@@ -227,7 +227,7 @@ if running alongside.
 - `language-runtimes` — .NET 9 SDK is ~600 MB on its own.
 
 To slim: drop the layer groups you don't need (AI CLIs, kubernetes,
-google-cloud-npm) by forking box.yml. See `/charly-image:image` for authoring.
+google-cloud-npm) by forking charly.yml. See `/charly-image:image` for authoring.
 
 ## Key Layers
 

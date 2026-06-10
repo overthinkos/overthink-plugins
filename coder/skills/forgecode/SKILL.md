@@ -13,14 +13,14 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | `nodejs` |
-| Install files | `candy.yml`, `package.json` |
+| Install files | `charly.yml`, `package.json` |
 | npm package | `forgecode` |
 | Installed binary | `forge` (at `${HOME}/.npm-global/bin/forge`) |
 
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 my-dev:
   layers:
     - forgecode

@@ -59,14 +59,14 @@ Shows as `charly:ok (2026.94.1417)` in `charly status` detail view. Returns `-` 
 `println(version)` emitted to stderr; the move to `fmt.Println` landed
 with the MCP server work so the in-process tool-call path — which
 captures `os.Stdout` — returns the CalVer correctly). The layer test at
-`candy/charly/candy.yml` asserts `stdout:` matches `[0-9]{4}\.[0-9]+`. The
+`candy/charly/charly.yml` asserts `stdout:` matches `[0-9]{4}\.[0-9]+`. The
 `charly status` probe uses `CombinedOutput()` so it's agnostic to the
 stream.
 
 ## Usage
 
 ```yaml
-# box.yml -- now included in all images with supervisord
+# charly.yml -- now included in all images with supervisord
 my-image:
   layers:
     - charly
@@ -96,5 +96,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

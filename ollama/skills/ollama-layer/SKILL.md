@@ -38,7 +38,7 @@ See `/charly-image:layer` for `env_provide` field docs and `/charly-core:charly-
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 ollama:
   layers:
     - ollama

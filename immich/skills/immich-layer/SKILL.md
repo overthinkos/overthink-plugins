@@ -63,7 +63,7 @@ All pnpm commands use `npm_config_cache=/tmp/npm-root-cache` to avoid creating r
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 immich:
   layers:
     - immich
@@ -96,5 +96,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

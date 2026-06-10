@@ -32,7 +32,7 @@ RPM: `dbus-daemon` (Fedora) · PAC: `dbus` (Arch) · DEB: `dbus` (Debian/Ubuntu)
 ## Usage
 
 ```yaml
-# box.yml -- now included in all images with supervisord
+# charly.yml -- now included in all images with supervisord
 my-image:
   layers:
     - dbus
@@ -107,5 +107,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

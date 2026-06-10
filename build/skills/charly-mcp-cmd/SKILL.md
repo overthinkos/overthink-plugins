@@ -1,7 +1,7 @@
 ---
 name: charly-mcp-cmd
 description: |
-  MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `charly eval mcp` client: probing MCP servers declared via mcp_provide, testing MCP tool catalogs, debugging the URL-rewriter (including host-networked containers via `HostConfig.NetworkMode` detection) or port-publishing behavior. (2) `charly mcp serve` server: running the charly CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (~192 tools including the MCP-first authoring surface — image/layer scaffolding, comment-preserving YAML edits, free-form file writes), destructive-hint annotations, the `--read-only` filter, auto-fallback to `overthinkos/overthink` when cwd has no `box.yml` (always fires regardless of CHARLY_PROJECT_DIR being set), and the `charly-mcp` deployment layer with its `/workspace` bind mount.
+  MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `charly eval mcp` client: probing MCP servers declared via mcp_provide, testing MCP tool catalogs, debugging the URL-rewriter (including host-networked containers via `HostConfig.NetworkMode` detection) or port-publishing behavior. (2) `charly mcp serve` server: running the charly CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (~192 tools including the MCP-first authoring surface — image/layer scaffolding, comment-preserving YAML edits, free-form file writes), destructive-hint annotations, the `--read-only` filter, auto-fallback to `overthinkos/overthink` when cwd has no `charly.yml` (always fires regardless of CHARLY_PROJECT_DIR being set), and the `charly-mcp` deployment layer with its `/workspace` bind mount.
   Named `charly-mcp-cmd` (not `mcp`) to disambiguate from Claude Code's built-in `/mcp` slash command (the `-cmd` suffix avoids collision with the existing `/charly-coder:charly-mcp` image skill).
 ---
 
@@ -207,7 +207,7 @@ Every leaf's default format is author-friendly plaintext with one record per lin
 
 ## Declarative authoring examples
 
-Tests currently shipping in the three provider layers (`candy/jupyter/candy.yml`, `candy/jupyter-ml/candy.yml`, `candy/chrome-devtools-mcp/candy.yml`):
+Tests currently shipping in the three provider layers (`candy/jupyter/charly.yml`, `candy/jupyter-ml/charly.yml`, `candy/chrome-devtools-mcp/charly.yml`):
 
 ```yaml
 # Liveness check — fastest sanity verification
@@ -306,7 +306,7 @@ The server lives in a single file: `charly/mcp_server.go`.
 Composing `charly-mcp` into an image deploys the server via supervisord:
 
 ```yaml
-# candy/charly-mcp/candy.yml (summary)
+# candy/charly-mcp/charly.yml (summary)
 candy:
   - charly
   - supervisord
@@ -329,13 +329,13 @@ service:
     scope: system
 ```
 
-**Project-dir wiring** — build-mode tools (`image.build`, `image.inspect`, `image.list.*`) resolve `box.yml` via `os.Getwd()`. Inside the container, cwd is `/workspace` (set by the `charly-mcp` layer's `CHARLY_PROJECT_DIR` env + `volume:` declaration). Three deployment patterns, in order of progressively less local setup:
+**Project-dir wiring** — build-mode tools (`image.build`, `image.inspect`, `image.list.*`) resolve `charly.yml` via `os.Getwd()`. Inside the container, cwd is `/workspace` (set by the `charly-mcp` layer's `CHARLY_PROJECT_DIR` env + `volume:` declaration). Three deployment patterns, in order of progressively less local setup:
 
 1. **Bind-mount** — the canonical `charly-mcp` pattern. The layer ships `env: CHARLY_PROJECT_DIR: /workspace` + `volumes: project → /workspace`; the deployer attaches a host checkout via `charly config <image> --bind project=/path/to/opencharly`. The charly CLI's global `-C` / `--dir` / `CHARLY_PROJECT_DIR` flag honours the env var before Kong dispatch, calling `os.Chdir(CHARLY_PROJECT_DIR)` once. Use this when the agent should see your in-flight local edits. The volume NAME is `project` (stable bind-mount API); the in-container PATH is `/workspace` (the generic name works whether the contents are an opencharly checkout or any other workspace).
 
 2. **Remote pin** — set `CHARLY_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env (e.g. via `charly config <image> -e CHARLY_PROJECT_REPO=...`). The charly CLI clones (or hits its `~/.cache/charly/repos/` cache) and chdirs into the cache path before Kong dispatch. No bind mount required. Use this for reproducible agent runs against a pinned upstream.
 
-3. **Auto-default** — `charly mcp serve` with no box.yml reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires regardless of `CHARLY_PROJECT_DIR` being set — it checks whether the resolved cwd actually contains `box.yml`, not whether the env var is populated. This matters because the `charly-mcp` layer permanently sets `CHARLY_PROJECT_DIR=/workspace`: a deployer who forgets the `--bind` still gets a working MCP server backed by the upstream repo, with a log line naming the reason (`charly mcp: CHARLY_PROJECT_DIR=/workspace has no box.yml; falling back to default repo …`). Pass `--no-default-repo` on the serve command to opt out (hard-fail with a clear message). This is the only command in the entire CLI that auto-fetches; the top-level CLI stays opt-in. Implementation: `McpServeCmd.bootstrapProject()` in `charly/mcp_server.go`.
+3. **Auto-default** — `charly mcp serve` with no charly.yml reachable at cwd silently falls back to `github.com/overthinkos/overthink`. The fallback fires regardless of `CHARLY_PROJECT_DIR` being set — it checks whether the resolved cwd actually contains `charly.yml`, not whether the env var is populated. This matters because the `charly-mcp` layer permanently sets `CHARLY_PROJECT_DIR=/workspace`: a deployer who forgets the `--bind` still gets a working MCP server backed by the upstream repo, with a log line naming the reason (`charly mcp: CHARLY_PROJECT_DIR=/workspace has no charly.yml; falling back to default repo …`). Pass `--no-default-repo` on the serve command to opt out (hard-fail with a clear message). This is the only command in the entire CLI that auto-fetches; the top-level CLI stays opt-in. Implementation: `McpServeCmd.bootstrapProject()` in `charly/mcp_server.go`.
 
 See `/charly-image:image` "Project directory resolution" for the flag/env semantics, and `charly/mcp_serve_default_repo_test.go` for the auto-fallback behaviour test.
 
@@ -357,12 +357,12 @@ charly eval mcp list-tools charly-arch --name charly | wc -l
 charly eval mcp call charly-arch version '{}' --name charly
 # 2026.nnn.nnnn          (the container's own charly version)
 charly eval mcp call charly-arch box.list.boxes '{}' --name charly
-# charly-arch [testing]      (reads box.yml from the bind-mounted /workspace)
+# charly-arch [testing]      (reads charly.yml from the bind-mounted /workspace)
 # arch [testing]
 # …
 ```
 
-The deploy-scope tests in `candy/charly-mcp/candy.yml` cover this exact sequence: service-running, port-reachable, `mcp: ping`, `mcp: list-tools`, `mcp: call tool=version`, `mcp: call tool=box.list.boxes` (the last proves the bind-mount + CHARLY_PROJECT_DIR wiring).
+The deploy-scope tests in `candy/charly-mcp/charly.yml` cover this exact sequence: service-running, port-reachable, `mcp: ping`, `mcp: list-tools`, `mcp: call tool=version`, `mcp: call tool=box.list.boxes` (the last proves the bind-mount + CHARLY_PROJECT_DIR wiring).
 
 ## Authoring tools (build-from-scratch over MCP)
 
@@ -370,12 +370,12 @@ Every CLI verb under `charly box …` and `charly candy …` auto-becomes an MCP
 
 | MCP tool | What it does |
 |---|---|
-| `box.new.project` | Scaffold `box.yml` (referencing the upstream `build.yml` remotely), `candy/`, `.gitignore`. |
-| `box.new.box` | Append a new image entry to `box.yml`. |
-| `box.new.candy` | Scaffold `candy/<name>/candy.yml` with a stub. |
-| `box.set` | Set any value in `box.yml` by dot-path (`defaults.tag`, `images.foo.layers`, …). Value is parsed as YAML. |
+| `box.new.project` | Scaffold `charly.yml` (referencing the upstream `build.yml` remotely), `candy/`, `.gitignore`. |
+| `box.new.box` | Append a new image entry to `charly.yml`. |
+| `box.new.candy` | Scaffold `candy/<name>/charly.yml` with a stub. |
+| `box.set` | Set any value in `charly.yml` by dot-path (`defaults.tag`, `images.foo.layers`, …). Value is parsed as YAML. |
 | `box.add-candy` / `box.rm-candy` | Append / remove a layer from an image's `layer:` list (idempotent). |
-| `candy.set` | Set any value in `candy/<name>/candy.yml` by dot-path. |
+| `candy.set` | Set any value in `candy/<name>/charly.yml` by dot-path. |
 | `candy.add-rpm` / `candy.add-deb` / `candy.add-pac` / `candy.add-aur` | Append packages to a layer's `<format>.packages` list. Idempotent. Upgrades scaffold's null `package:` value to a real sequence. |
 | `image.fetch` / `image.refresh` | Pre-prime / re-clone the remote-repo cache. Spec defaults to `default` (overthinkos/overthink). |
 | `box.write` / `box.cat` | Write / read any file under the project root — escape hatch for free-form auxiliary files (`pixi.toml`, `package.json`, `root.yml`, scripts, `*.service`). Path is resolved against `os.Getwd()` and rejected if it escapes the project root. |

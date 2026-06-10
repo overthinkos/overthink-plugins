@@ -46,7 +46,7 @@ volumes:
 ```
 
 Rules:
-- Volume must be declared in `candy.yml` (or provided as deploy-only with `path:`)
+- Volume must be declared in `charly.yml` (or provided as deploy-only with `path:`)
 - `name`: matches a layer volume name, must match `^[a-z0-9]+(-[a-z0-9]+)*$`
 
 ### Per-Volume Explicit Path
@@ -418,7 +418,7 @@ Helper: `cipherPopulatedPlainEmpty(cipherDir, plainDir)` returns true only when 
 When a volume is configured as `type: encrypted` in deploy.yml, it overrides the default named volume. The Docker/Podman named volume is not created -- the gocryptfs mount is used instead.
 
 ```yaml
-# candy.yml declares a volume:
+# charly.yml declares a volume:
 volumes:
   - name: data
     path: "~/.myapp"

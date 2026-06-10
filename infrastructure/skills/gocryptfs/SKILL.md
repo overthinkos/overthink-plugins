@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `candy.yml` (packages only) |
+| Install files | `charly.yml` (packages only) |
 
 ## Packages
 
@@ -24,7 +24,7 @@ RPM: `gocryptfs`
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 my-image:
   layers:
     - gocryptfs

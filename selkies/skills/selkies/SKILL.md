@@ -175,7 +175,7 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 | Intel | Mesa VA-API via auto-detected renderD | VAAPI available | Untested |
 | CPU | pixman fallback | x264enc / x264enc-striped / jpeg | Working but causes flickering at high resolutions |
 
-**DRINODE auto-detection:** `charly config` detects the first `/dev/dri/renderD*` device on the host and injects `DRINODE` and `DRI_NODE` env vars at runtime via `appendAutoDetectedEnv()`. Previously these were hardcoded to `renderD129` in `candy.yml`, causing VAAPI encoder failure on hosts with `renderD128` — the encoder fell back to CPU software encoding, which caused labwc swapchain buffer exhaustion (`No free output buffer slot`) and visible stream flickering. See `/charly-internals:go` for implementation details.
+**DRINODE auto-detection:** `charly config` detects the first `/dev/dri/renderD*` device on the host and injects `DRINODE` and `DRI_NODE` env vars at runtime via `appendAutoDetectedEnv()`. Previously these were hardcoded to `renderD129` in `charly.yml`, causing VAAPI encoder failure on hosts with `renderD128` — the encoder fell back to CPU software encoding, which caused labwc swapchain buffer exhaustion (`No free output buffer slot`) and visible stream flickering. See `/charly-internals:go` for implementation details.
 
 **NVENC note:** pixelflux detects the GPU, CUDA initializes, but NVENC encoder init fails. All NVIDIA libraries load correctly (libnvidia-encode, libcuda, libnvrtc). Likely a pixelflux compatibility issue with driver 590.48. CPU x264enc at 60fps with striped mode (16 parallel stripes) provides acceptable performance.
 
@@ -223,5 +223,5 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

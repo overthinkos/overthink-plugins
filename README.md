@@ -36,7 +36,7 @@ manager UI.
 
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
-| **charly-image** | 2 | — | Schema for `kind: box` and `kind: candy` (box.yml / candy.yml authoring). |
+| **charly-image** | 2 | — | Schema for `kind: box` and `kind: candy` (charly.yml authoring). |
 | **charly-vm** | 6 | — | Schema for `kind: vm` + bootc VM catalog (cloud_image vs bootc, libvirt/QEMU). Includes `cachyos` (bootstrap VM, in the `overthinkos/cachyos` submodule) and `debian` / `ubuntu` (debootstrap bootstrap VMs, in the `overthinkos/debian` / `overthinkos/ubuntu` submodules). |
 | **charly-kubernetes** | 2 | — | Schema for `kind: k8s` + cluster probes via `charly eval k8s`. |
 | **charly-local** | 3 | — | Schema for `kind: local` + ssh-host deploys + managed ssh-config fragment. Includes `charly-cachyos` (operator CachyOS workstation profile, in the `overthinkos/cachyos` submodule). |

@@ -14,7 +14,7 @@ NVIDIA runtime layer providing `nvidia-container-toolkit` for CDI device injecti
 
 | Property | Value |
 |----------|-------|
-| Install files | `candy.yml`, `task:` |
+| Install files | `charly.yml`, `task:` |
 | Depends | none |
 
 ## Packages
@@ -104,5 +104,5 @@ Creates Vulkan ICD compatibility symlinks for nvidia-ctk CDI device injection.
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

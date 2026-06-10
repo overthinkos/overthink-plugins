@@ -28,7 +28,7 @@ charly version
 
 `charly version` writes the CalVer tag to **stdout** via `fmt.Println`.
 Declarative tests should match `stdout:` — for example
-`candy/charly/candy.yml` uses:
+`candy/charly/charly.yml` uses:
 
 ```yaml
 - id: charly-version

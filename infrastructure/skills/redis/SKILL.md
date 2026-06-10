@@ -49,7 +49,7 @@ The layer is multi-distro:
 ## Usage
 
 ```yaml
-# box.yml -- typically used as dependency of immich
+# charly.yml -- typically used as dependency of immich
 my-image:
   layers:
     - redis

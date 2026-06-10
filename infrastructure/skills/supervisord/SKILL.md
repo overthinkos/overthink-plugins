@@ -13,7 +13,7 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | **(none)** — system Python comes from the `supervisor` RPM's own dep |
-| Install files | `candy.yml`, `supervisord.header.conf` (via `build.yml `init:` section` header_file) |
+| Install files | `charly.yml`, `supervisord.header.conf` (via `build.yml `init:` section` header_file) |
 | Init role | Default init system for container images (set in `build.yml `init:` section`) |
 
 ## Packages
@@ -42,10 +42,10 @@ auto-intermediate that composes `supervisord` needs it.
 
 ## How `charly` Generates Supervisord Configs
 
-Layers declare processes via the unified **`service:`** schema in `candy.yml` (see `/charly-image:layer` "Service Declaration"). Each entry is rendered through supervisord's `service_schema.service_template` in `build.yml`, which produces a `[program:<name>]` INI fragment. `charly box generate` collects all rendered fragments across the layer chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `build.yml init:` section).
+Layers declare processes via the unified **`service:`** schema in `charly.yml` (see `/charly-image:layer` "Service Declaration"). Each entry is rendered through supervisord's `service_schema.service_template` in `build.yml`, which produces a `[program:<name>]` INI fragment. `charly box generate` collects all rendered fragments across the layer chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `build.yml init:` section).
 
 ```yaml
-# candy/chrome/candy.yml — unified schema
+# candy/chrome/charly.yml — unified schema
 service:
   - name: chrome
     exec: /home/user/.local/bin/chrome-wrapper --force-renderer-accessibility --no-first-run --start-maximized
@@ -236,7 +236,7 @@ RPM: `supervisor` (Fedora) · PAC: `supervisor` (Arch community) · DEB: `superv
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 my-image:
   layers:
     - supervisord

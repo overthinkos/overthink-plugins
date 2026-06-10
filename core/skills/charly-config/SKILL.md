@@ -96,7 +96,7 @@ This is the **single entry point** for **container** deployment setup. `charly s
 
 ## Volume Backing
 
-Volumes declared in candy.yml default to named volumes. At `charly config` time, backing can be changed per-volume:
+Volumes declared in charly.yml default to named volumes. At `charly config` time, backing can be changed per-volume:
 
 ```bash
 # Named volume (default)
@@ -119,7 +119,7 @@ Auto-path for bind without explicit host path: `<volumes_path>/<image>/<name>` (
 
 ### Bind-mounting a project checkout for `charly mcp serve`
 
-The `charly-mcp` layer declares a `project` volume at `/workspace` (the volume NAME stays `project` for a stable deployer API) and sets `env: CHARLY_PROJECT_DIR=/workspace`. Bind-mount your opencharly checkout at config time so build-mode MCP tools (`image.build`, `box.list.boxes`, `image.inspect`) can read `box.yml`. Alternatively, skip the bind-mount and `charly mcp serve` will auto-fall back to the upstream `overthinkos/overthink` repo (see `/charly-build:charly-mcp-cmd` "Project-dir wiring"):
+The `charly-mcp` layer declares a `project` volume at `/workspace` (the volume NAME stays `project` for a stable deployer API) and sets `env: CHARLY_PROJECT_DIR=/workspace`. Bind-mount your opencharly checkout at config time so build-mode MCP tools (`image.build`, `box.list.boxes`, `image.inspect`) can read `charly.yml`. Alternatively, skip the bind-mount and `charly mcp serve` will auto-fall back to the upstream `overthinkos/overthink` repo (see `/charly-build:charly-mcp-cmd` "Project-dir wiring"):
 
 ```bash
 charly config charly-arch --bind project=/home/you/opencharly
@@ -132,7 +132,7 @@ The `CHARLY_PROJECT_DIR` env var is consumed by the charly binary's global `-C` 
 
 ## Secret Provisioning
 
-Secrets declared in `candy.yml` `secret:` field are stored as OCI label metadata. At config time:
+Secrets declared in `charly.yml` `secret:` field are stored as OCI label metadata. At config time:
 
 - `--password auto` (default): generates random passwords for all secrets
 - `--password manual`: prompts for each secret
@@ -442,7 +442,7 @@ The entrypoint auto-configures: OpenRouter + Ollama Cloud as semicolon-separated
 
 ## env_require Enforcement
 
-Layers can declare `env_require` in `candy.yml` for mandatory environment variables. `charly config` performs a hard check after resolving all env vars — if any required var is missing, it aborts before writing the quadlet and prints clear instructions:
+Layers can declare `env_require` in `charly.yml` for mandatory environment variables. `charly config` performs a hard check after resolving all env vars — if any required var is missing, it aborts before writing the quadlet and prints clear instructions:
 
 ```
 Error: openwebui requires the following environment variable(s):
@@ -458,7 +458,7 @@ Source: `charly/config_image.go` (`checkMissingEnvRequires`).
 
 ## secret_require Enforcement
 
-Parallel to `env_require` but for credential-backed env vars. Layers declare `secret_require` in `candy.yml` (see `/charly-image:layer`). `charly config` resolves each entry from the credential store via `ResolveCredential` and, if any required value is not stored, aborts with a clear remediation message:
+Parallel to `env_require` but for credential-backed env vars. Layers declare `secret_require` in `charly.yml` (see `/charly-image:layer`). `charly config` resolves each entry from the credential store via `ResolveCredential` and, if any required value is not stored, aborts with a clear remediation message:
 
 ```
 Error: openwebui requires the following credential-backed secret(s):

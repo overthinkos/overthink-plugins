@@ -13,7 +13,7 @@ description: |
 |----------|-------|
 | Dependencies | `dbus` |
 | Service | `swaync` (supervisord, priority 14, startsecs=2) |
-| Install files | `candy.yml`, `task:`, `swaync-wrapper`, `config.json`, `style.css` |
+| Install files | `charly.yml`, `task:`, `swaync-wrapper`, `config.json`, `style.css` |
 
 ## Packages
 
@@ -109,5 +109,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

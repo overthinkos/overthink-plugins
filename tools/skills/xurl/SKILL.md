@@ -11,13 +11,13 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `candy.yml`, `package.json` |
+| Install files | `charly.yml`, `package.json` |
 | Depends | `nodejs` |
 
 ## Usage
 
 ```yaml
-# box.yml or candy.yml
+# box or candy charly.yml
 layers:
   - xurl
 ```
@@ -44,5 +44,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

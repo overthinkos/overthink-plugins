@@ -277,7 +277,7 @@ values can only ADD, never strip.
 
 Consequence: images that want the old full-hammer posture
 (`charly-fedora`, `charly-arch`, `githubrunner`) must assert it at the image
-level, not expect this layer to donate it. Their `box.yml` entries
+level, not expect this layer to donate it. Their `charly.yml` entries
 carry:
 
 ```yaml
@@ -303,7 +303,7 @@ image-level `security:` block, so the resolved posture stays at
 ## Usage — rootless image (uid 1000)
 
 ```yaml
-# box.yml
+# charly.yml
 openclaw-desktop:
   base: cachyos.cachyos
   layers:
@@ -319,7 +319,7 @@ openclaw-desktop:
 ## Usage — root image (uid 0)
 
 ```yaml
-# box.yml
+# charly.yml
 charly-fedora:
   base: fedora
   uid: 0
@@ -397,5 +397,5 @@ this order:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

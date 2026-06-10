@@ -21,7 +21,7 @@ description: |
 
 ## How It Works
 
-This is a **data layer** — it uses the `data:` field in `candy.yml` to map a directory of notebooks to a named volume with a subdirectory destination:
+This is a **data layer** — it uses the `data:` field in `charly.yml` to map a directory of notebooks to a named volume with a subdirectory destination:
 
 ```yaml
 info: "Unsloth fine-tuning notebook collection for unsloth-studio"
@@ -59,7 +59,7 @@ The `dest: finetuning` field places the notebooks in a subdirectory rather than 
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 unsloth-studio:
   layers:
     - unsloth-studio

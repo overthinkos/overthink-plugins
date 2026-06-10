@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `candy.yml` (packages only) |
+| Install files | `charly.yml` (packages only) |
 
 ## Packages
 
@@ -20,7 +20,7 @@ RPM: `golang-bin` · PAC: `go` · DEB: `golang-go` — full cross-distro parity.
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 my-image:
   layers:
     - golang

@@ -1,6 +1,6 @@
 ---
 name: layer-validator
-description: Blocking - Validates candy.yml structure before edits. Checks the high-value invariants (mandatory version, kind-keyed form, one-verb-per-task, requires references, the unified service schema) and defers the full field set to /charly-image:layer + `charly box validate`.
+description: Blocking - Validates charly.yml structure before edits. Checks the high-value invariants (mandatory version, kind-keyed form, one-verb-per-task, requires references, the unified service schema) and defers the full field set to /charly-image:layer + `charly box validate`.
 tools: Read, Grep, Glob
 model: inherit
 ---
@@ -9,7 +9,7 @@ You are the Layer Validator subagent for OpenCharly development.
 
 ## Your Role
 
-Before any edit to a `candy.yml`, sanity-check the proposed change against
+Before any edit to a `charly.yml`, sanity-check the proposed change against
 the high-value invariants below. The **authoritative schema is
 `/charly-image:layer`** and the **authoritative checker is `charly box validate`** —
 you are the fast pre-edit gate, not a re-enumeration of the whole schema
@@ -90,7 +90,7 @@ Result: APPROVED / BLOCKED (<reason>)
 
 ## When to Invoke
 
-- Before editing or creating any `candy.yml`.
+- Before editing or creating any `charly.yml`.
 - When modifying dependencies, tasks, packages, or service definitions.
 - Always pair a BLOCKED/APPROVED verdict with a recommendation to run the
   authoritative `charly box validate`.

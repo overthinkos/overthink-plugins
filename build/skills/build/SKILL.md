@@ -10,11 +10,11 @@ Invoked as `charly box build`. See `/charly-image:image` for the family overview
 
 ## Overview
 
-`charly box build` generates Containerfiles from `box.yml` and layer definitions, then builds images in dependency order using the configured build engine (Docker or Podman). Images at the same dependency level are built in parallel (up to `--jobs` concurrent builds).
+`charly box build` generates Containerfiles from `charly.yml` and layer definitions, then builds images in dependency order using the configured build engine (Docker or Podman). Images at the same dependency level are built in parallel (up to `--jobs` concurrent builds).
 
-**Mode purity**: `charly box build` reads `box.yml` + `build.yml` + `candy.yml` only. `deploy.yml` is never read during build — this is enforced by `LoadConfig` in `charly/config.go`, which calls `LoadConfigRaw` (no `MergeDeployOverlay`) to guarantee OCI labels are baked strictly from authored configuration, never from local deploy-time overrides. See `/charly-internals:go` "Mode purity" for the architectural invariant this protects and the bug it prevents.
+**Mode purity**: `charly box build` reads `charly.yml` only. `deploy.yml` is never read during build — this is enforced by `LoadConfig` in `charly/config.go`, which calls `LoadConfigRaw` (no `MergeDeployOverlay`) to guarantee OCI labels are baked strictly from authored configuration, never from local deploy-time overrides. See `/charly-internals:go` "Mode purity" for the architectural invariant this protects and the bug it prevents.
 
-**IR-driven emission**: `charly box build` emits Containerfiles via `OCITarget` — the build-mode implementation of the shared `DeployTarget` interface. Internally the flow is: `box.yml` + `candy.yml` → `BuildDeployPlan` (pure compiler) → `InstallPlan` IR → `OCITarget.Emit` → Containerfile text. The same IR backs `PodDeployTarget` and `LocalDeployTarget` used by `charly deploy add`. See `/charly-internals:install-plan` for the IR and `/charly-internals:generate-source` for the Go call graph.
+**IR-driven emission**: `charly box build` emits Containerfiles via `OCITarget` — the build-mode implementation of the shared `DeployTarget` interface. Internally the flow is: `charly.yml` → `BuildDeployPlan` (pure compiler) → `InstallPlan` IR → `OCITarget.Emit` → Containerfile text. The same IR backs `PodDeployTarget` and `LocalDeployTarget` used by `charly deploy add`. See `/charly-internals:install-plan` for the IR and `/charly-internals:generate-source` for the Go call graph.
 
 **Three-phase templates**: `build.yml` format and builder definitions split each install operation into `phases.{prepare, install, cleanup}.{container, host}` — three phases × two venues. Build-mode emission reads the `container` cell; local deploys read `host`. A top-level `install_template:` field serves as the `(install, container)` fallback when `phases:` is absent. See `/charly-image:layer` "Service Declaration" for the analogue at the init-system level (`init.<name>.service_schema`).
 
@@ -45,14 +45,14 @@ charly box build <image> --include-disabled         # Build an `enabled: false` 
 
 ## `--include-disabled` — operational rebuild of disabled images
 
-Images with `enabled: false` in `box.yml` are excluded from the build /
+Images with `enabled: false` in `charly.yml` are excluded from the build /
 inspect / validate working set by default. To rebuild ONE such image without
 flipping the authored flag (which would commit local-deployment intent into
 shared project config), pass `--include-disabled`:
 
 ```bash
 charly box build immich --include-disabled    # builds the disabled image
-git diff --quiet box.yml                  # confirms box.yml is untouched
+git diff --quiet charly.yml                  # confirms charly.yml is untouched
 ```
 
 **Scoping.** When you pass positional `<image>` args together with
@@ -83,7 +83,7 @@ vocabulary file (project-wins; the former `defaults.format_config:` field is gon
 
 `build.yml` (the embed source) has three top-level sections:
 
-- **`distro:`** — Per-distro bootstrap commands (package manager setup, cache mounts, repo management), optional `base_user:` declaration (what uid-1000 account the upstream base image ships), and package format templates (how `rpm:`, `pac:`, `deb:` sections in candy.yml become `RUN` steps). Each format has `install`, `repos`, `copr`, `modules`, and `options` templates.
+- **`distro:`** — Per-distro bootstrap commands (package manager setup, cache mounts, repo management), optional `base_user:` declaration (what uid-1000 account the upstream base image ships), and package format templates (how `rpm:`, `pac:`, `deb:` sections in charly.yml become `RUN` steps). Each format has `install`, `repos`, `copr`, `modules`, and `options` templates.
 - **`builder:`** — Multi-stage builder patterns (pixi, npm, cargo, aur). Each builder has `build_stage` and `copy_stage` templates that generate the appropriate `FROM builder AS ...` and `COPY --from=...` steps.
 - **`init:`** — Init system definitions (supervisord, systemd) including detection rules, fragment templates, entrypoint commands, and service management commands. Optional — images can omit this if they don't need an init system.
 - **`resource:`** — Exclusive host-resource vocabulary: maps an arbitration token (the name used by a deploy/bed's `requires_exclusive:` and a holder's `preemptible.holds:`) to an optional hardware selector. A `gpu:` selector (`resource: {nvidia-gpu: {gpu: {vendor: "0x10de"}}}`) lets `charly vm create` AUTO-ALLOCATE the matching PCI `<hostdev>` for a GPU-requiring VM (detect → persist into the per-host `instance.yml` → inject) — or FAIL HARD when no matching card is present. The selector lives in YAML, never hardcoded in Go: adding a resource is a config edit. Optional + additive (configs without it load unchanged). See `/charly-internals:disposable` "resource-arbitration axis", `/charly-vm:vm` "GPU passthrough", `/charly-core:deploy` `requires_exclusive`.
@@ -114,14 +114,14 @@ No `base_user:` currently declared for Fedora, Arch, or Debian (their canonical 
 
 ### `version:` — the canonical distro version (for VM per-version reach)
 
-Each distro may declare a canonical `version:` (`distro.debian.version: "13"`, `distro.ubuntu.version: "24.04"`, `distro.fedora.version: "43"`; arch/cachyos are rolling and omit it). It is the single source for synthesizing the most-specific-first tag chain `[<distro>:<version>, <distro>]` on a target that carries only a bare distro name — a `target: vm` deploy, where no image-authored `distro:` tag supplies the version. `syntheticVmImage` + the `distroTagChain` helper consume it so a VM deploy of an ubuntu guest reaches per-version `distro:` sections (e.g. `ubuntu-24.04`) exactly like an image build does. Inherited child-wins via `resolveInherits` (cachyos inherits arch → stays version-less). Image builds carry the version in their own `box.yml` `distro:` tags and don't need it. See `/charly-image:layer` "Package Surface" and `/charly-internals:install-plan`.
+Each distro may declare a canonical `version:` (`distro.debian.version: "13"`, `distro.ubuntu.version: "24.04"`, `distro.fedora.version: "43"`; arch/cachyos are rolling and omit it). It is the single source for synthesizing the most-specific-first tag chain `[<distro>:<version>, <distro>]` on a target that carries only a bare distro name — a `target: vm` deploy, where no image-authored `distro:` tag supplies the version. `syntheticVmImage` + the `distroTagChain` helper consume it so a VM deploy of an ubuntu guest reaches per-version `distro:` sections (e.g. `ubuntu-24.04`) exactly like an image build does. Inherited child-wins via `resolveInherits` (cachyos inherits arch → stays version-less). Image builds carry the version in their own `charly.yml` `distro:` tags and don't need it. See `/charly-image:layer` "Package Surface" and `/charly-internals:install-plan`.
 
 ### The `builder:` name in two places
 
-`builder:` appears in both `build.yml` (top-level section) and `box.yml` (per-image map, plus `defaults.builder`). They share the name on purpose — both maps key on the same slot (the build-type name, e.g. `pixi`, `npm`, `cargo`, `aur`):
+`builder:` appears in both `build.yml` (top-level section) and `charly.yml` (per-image map, plus `defaults.builder`). They share the name on purpose — both maps key on the same slot (the build-type name, e.g. `pixi`, `npm`, `cargo`, `aur`):
 
 - `build.yml` `builder.pixi` — **definition**: detection rules, stage template, cache mounts for the pixi builder.
-- `box.yml` `builder.pixi` — **selection**: which image (e.g. `fedora-builder`) to use as the pixi builder for this image.
+- `charly.yml` `builder.pixi` — **selection**: which image (e.g. `fedora-builder`) to use as the pixi builder for this image.
 
 An image's effective builder map resolves as: `image.builder[type]` → `base_image.builder[type]` → `defaults.builder[type]` → `""`. Self-references (a builder image pointing at itself) are filtered automatically.
 
@@ -345,7 +345,7 @@ charly box merge <image> --max-mb 512      # Custom per-layer threshold
 charly box merge <image> --max-total-mb 4096  # Custom total image size limit
 ```
 
-Configure in box.yml:
+Configure in charly.yml:
 
 ```yaml
 defaults:
@@ -355,7 +355,7 @@ defaults:
     max_total_mb: 0   # Max total image size for merge (0 = no limit)
 ```
 
-CLI flags `--max-mb` and `--max-total-mb` override `box.yml`. `auto` is only used by `charly box merge --all` to select which images to merge; `charly box merge <image>` always merges regardless. `max_total_mb` controls whether large images skip merging entirely (the merge process decompresses layers in memory). Set to `0` to disable (default), or a positive value like `2048` to cap on low-memory CI runners.
+CLI flags `--max-mb` and `--max-total-mb` override `charly.yml`. `auto` is only used by `charly box merge --all` to select which images to merge; `charly box merge <image>` always merges regardless. `max_total_mb` controls whether large images skip merging entirely (the merge process decompresses layers in memory). Set to `0` to disable (default), or a positive value like `2048` to cap on low-memory CI runners.
 
 ### Algorithm
 
@@ -435,7 +435,7 @@ First build on a new machine won't have cache. Use `--cache registry` to pull fr
 
 If a build fails with `conflicting requests` involving `libavcodec-free` vs `libavcodec` (epoch 1), the layer is trying to install `ffmpeg-free` (Fedora) in an image that has negativo17's `ffmpeg-libs` (via cuda layer). Fix: change `ffmpeg-free` to `ffmpeg` in the layer's `rpm.packages` and add the `fedora-multimedia` repo from negativo17. See the `immich` layer for the correct pattern.
 
-### YAML Unmarshal Error on candy.yml
+### YAML Unmarshal Error on charly.yml
 
 If you see `cannot unmarshal !!str ... into int` or similar YAML parsing errors on layer fields, the installed `charly` binary is likely stale. Rebuild with `task build:install` or `cp bin/charly ~/.local/bin/charly`. Verify with `charly box validate`.
 
@@ -461,7 +461,7 @@ error: × failed to link tzdata-2025c-hc9c84f9_1.conda
 Options, in order of least to most disruptive:
 
 1. **Just retry the build.** Often the cache clears itself once the partial package finishes downloading or gets superseded by a checksum mismatch.
-2. **Bump a content-hash on the builder layer** (e.g. `echo "" >> candy/pixi/candy.yml`) to evict the cache mount associated with that build-stage's hash, then revert the cosmetic change. Same workaround as the scratch-stage cache issue above.
+2. **Bump a content-hash on the builder layer** (e.g. `echo "" >> candy/pixi/charly.yml`) to evict the cache mount associated with that build-stage's hash, then revert the cosmetic change. Same workaround as the scratch-stage cache issue above.
 3. **`podman image prune -af` is NOT the right hammer** — see next note.
 
 ### `podman image prune -af` caveat — removes tagged-but-idle images
@@ -477,19 +477,19 @@ to intermediate scratch stages produced by `COPY candy/<x>/ /` instructions
 directory and rebuilding with `--no-cache` may still pull the labwc scratch stage from
 cache, leaving the new file content out of the rebuilt image.
 
-**Workaround:** force a content-hash bump on the layer's `candy.yml`. The simplest is
+**Workaround:** force a content-hash bump on the layer's `charly.yml`. The simplest is
 adding (or removing) a trailing comment line:
 
 ```bash
-echo "" >> candy/labwc/candy.yml          # bump content hash
+echo "" >> candy/labwc/charly.yml          # bump content hash
 charly box build selkies-desktop                   # now invalidates the labwc scratch stage
-git checkout -- candy/labwc/candy.yml     # revert the cosmetic change
+git checkout -- candy/labwc/charly.yml     # revert the cosmetic change
 ```
 
 This was discovered while shipping commit `febb9bd` (labwc autostart race fix): the
 edit to `candy/labwc/autostart` did not propagate to the rebuilt image until
-`candy/labwc/candy.yml` itself was touched. Two consecutive `--no-cache` rebuilds
-produced the same image hash (`502c8012c7a5`) until the candy.yml content changed.
+`candy/labwc/charly.yml` itself was touched. Two consecutive `--no-cache` rebuilds
+produced the same image hash (`502c8012c7a5`) until the charly.yml content changed.
 
 Symptom: `podman image ls` shows a new tag, but `podman run --rm <new tag> cat /path/to/changed/file`
 returns the **old** content.
@@ -509,7 +509,7 @@ fails deep inside selkies' `pixi install && bash build.sh` step with
 `error: can't find Rust compiler`. The remote
 `ghcr.io/overthinkos/fedora-builder:latest` predates the `build-toolchain`
 layer adding `cargo` as an RPM, so its pixi env has no rustc — even though
-the current local `build-toolchain/candy.yml` lists `cargo`. The build phase
+the current local `build-toolchain/charly.yml` lists `cargo`. The build phase
 that rebuilds fedora-builder locally *does* run, but parent-stage FROM
 resolution happens before that stage exists, and podman pulls the stale
 remote image.
@@ -536,20 +536,20 @@ for the `--build` flag that also picks up this caveat.
 
 ## Project directory override
 
-`charly box build` (like every build-mode command) resolves `box.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>` — honoured before Kong dispatch. See `/charly-image:image` "Project directory resolution" for the canonical reference and the `charly mcp serve` use case. Typical use: building from an `charly mcp serve` MCP tool where the container cwd doesn't hold the project.
+`charly box build` (like every build-mode command) resolves `charly.yml` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>` — honoured before Kong dispatch. See `/charly-image:image` "Project directory resolution" for the canonical reference and the `charly mcp serve` use case. Typical use: building from an `charly mcp serve` MCP tool where the container cwd doesn't hold the project.
 
 ## Cross-References
 
 ### `charly box` family siblings
 
-- `/charly-image:image` -- Family overview + box.yml composition reference
+- `/charly-image:image` -- Family overview + charly.yml composition reference
 - `/charly-build:generate` -- Containerfile generation (called internally; stale `:latest` FROM lives there)
 - `/charly-build:inspect` -- Inspect resolved image config before building
 - `/charly-build:list` -- Enumerate images, layers, build targets
 - `/charly-build:merge` -- Post-build layer consolidation (runs inline after each build level)
-- `/charly-build:new` -- Scaffold a new layer directory before adding to `box.yml`
+- `/charly-build:new` -- Scaffold a new layer directory before adding to `charly.yml`
 - `/charly-build:pull` -- Pull prebuilt images; orthogonal to building (use for downstream deploy-mode commands)
-- `/charly-build:validate` -- Validate `box.yml` + layers before building
+- `/charly-build:validate` -- Validate `charly.yml` + layers before building
 
 ### Related skills
 

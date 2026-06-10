@@ -7,7 +7,7 @@ allowed-tools: Bash, Read
 MUST be invoked before any work involving: `charly eval k8s` commands,
 cluster-readiness probes from test scripts, ingress / storage class
 assertions, k3s default-addon health checks, or declarative `k8s:`
-checks on `eval:` blocks in candy.yml.
+checks on `eval:` blocks in charly.yml.
 
 ## Command surface
 
@@ -59,7 +59,7 @@ name; shared modifiers (`name:`, `namespace:`, `cluster:`, `timeout:`,
 `kubeconfig:`, `k8s_kind:`, `k8s_count:`, `manifest:`, `k8s_resource:`,
 `k8s_group:`, `k8s_version:`) are available.
 
-Example from `candy/k3s-server/candy.yml`:
+Example from `candy/k3s-server/charly.yml`:
 
 ```yaml
 eval:

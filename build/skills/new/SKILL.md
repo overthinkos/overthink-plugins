@@ -58,14 +58,14 @@ extend or override the embedded default. Add a box with `charly box new box <nam
 charly -C ~/my-project box new box hello \
     --base quay.io/fedora/fedora:43 \
     --layers sshd,tmux
-# Appends to box.yml:
+# Appends to charly.yml:
 #   images:
 #     hello:
 #       base: quay.io/fedora/fedora:43
 #       layers: [sshd, tmux]
 ```
 
-Flags: `--base` (required — URL or name of another image), `--layers` (optional comma-separated layer names). Existing `box.yml` comments + key order are preserved.
+Flags: `--base` (required — URL or name of another image), `--layers` (optional comma-separated layer names). Existing `charly.yml` comments + key order are preserved.
 
 ### `charly box new candy <name>`
 
@@ -73,7 +73,7 @@ Flags: `--base` (required — URL or name of another image), `--layers` (optiona
 charly -C ~/my-project box new candy sshd
 # Creates:
 #   ~/my-project/candy/sshd/
-#   ~/my-project/candy/sshd/candy.yml  (stub with empty `rpm.packages:` null)
+#   ~/my-project/candy/sshd/charly.yml  (stub with empty `rpm.packages:` null)
 ```
 
 Follow up with `charly candy add-rpm sshd openssh-server openssh-clients` (see `/charly-image:layer`) to populate packages without manually editing YAML. The `charly candy add-rpm` helper handles the scaffold's null `package:` → sequence upgrade automatically.
@@ -86,13 +86,13 @@ The end-to-end scaffold → build flow:
 2. Wire a `build.yml` (copy from opencharly or reference remotely; see caveat above)
 3. `charly box new candy my-svc` — create a layer
 4. `charly candy add-rpm my-svc openssh-server` — populate packages (see `/charly-image:layer`)
-5. `charly box new box my-app --base quay.io/fedora/fedora:43 --layers my-svc` — wire into box.yml
+5. `charly box new box my-app --base quay.io/fedora/fedora:43 --layers my-svc` — wire into charly.yml
 6. `charly box validate` — check for errors
 7. `charly box build my-app` — build the image
 
 All six steps are also callable as MCP tools (`box.new.project`, `box.new.candy`, `candy.add-rpm`, …), so an agent driving `charly mcp serve` can run this entire flow over RPC. See `/charly-build:charly-mcp-cmd` "Authoring tools" for the worked MCP-only example.
 
-The scaffolded `candy.yml` from step 3 is minimal (a null `rpm.packages:` list with a placeholder comment). Add sections as needed: `rpm:` / `deb:` / `pac:` / `aur:` for system packages, `env:` for runtime environment, `port:` / `service:` / `volume:` for services, and `task:` for install operations (mkdir, copy, write, download, link, setcap, cmd, build). The scaffolder does not create separate Taskfile shell scripts — all install logic flows through `task:` in `candy.yml`.
+The scaffolded `charly.yml` from step 3 is minimal (a null `rpm.packages:` list with a placeholder comment). Add sections as needed: `rpm:` / `deb:` / `pac:` / `aur:` for system packages, `env:` for runtime environment, `port:` / `service:` / `volume:` for services, and `task:` for install operations (mkdir, copy, write, download, link, setcap, cmd, build). The scaffolder does not create separate Taskfile shell scripts — all install logic flows through `task:` in `charly.yml`.
 
 ## Naming Rules
 
@@ -107,7 +107,7 @@ The scaffolded `candy.yml` from step 3 is minimal (a null `rpm.packages:` list w
 
 ### `charly box` family siblings
 
-- `/charly-image:image` -- Family overview + box.yml composition reference
+- `/charly-image:image` -- Family overview + charly.yml composition reference
 - `/charly-build:build` -- Build images containing the new layer
 - `/charly-build:generate` -- Containerfile generation
 - `/charly-build:inspect` -- Inspect built image including the new layer
@@ -118,6 +118,6 @@ The scaffolded `candy.yml` from step 3 is minimal (a null `rpm.packages:` list w
 
 ### Related skills
 
-- `/charly-image:layer` -- Layer authoring guide, candy.yml format, install files + the `charly candy set / add-rpm / add-deb / add-pac / add-aur` editing surface
+- `/charly-image:layer` -- Layer authoring guide, charly.yml format, install files + the `charly candy set / add-rpm / add-deb / add-pac / add-aur` editing surface
 - `/charly-build:charly-mcp-cmd` -- "Authoring tools" table + the MCP-only build-from-scratch worked example
 - `/charly-internals:go` -- Implementation notes: the `yaml.v3` Node API is the reason edits preserve comments; `charly/scaffold_project.go` + `charly/yaml_setter.go` house the logic

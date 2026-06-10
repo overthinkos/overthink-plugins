@@ -15,7 +15,7 @@ description: |
 | Dependencies | None (requires pixi env from parent) |
 | Volumes | `models` -> `~/.cache/huggingface` |
 | Aliases | `unsloth` -> `unsloth` |
-| Install files | `candy.yml`, `task:` |
+| Install files | `charly.yml`, `task:` |
 
 ## Architecture: Tier 1 Post-Install Layer
 
@@ -69,5 +69,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

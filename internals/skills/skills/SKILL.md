@@ -22,8 +22,8 @@ CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher
 | host-target / nested host deploy | `/charly-local:local-deploy` + `/charly-internals:local-infra` |
 | `charly eval live` / `charly eval cdp/wl/dbus/vnc/mcp/record/spice/libvirt` | `/charly-eval:eval` |
 | `charly eval k8s <verb>` | `/charly-kubernetes:eval-k8s` |
-| Editing `candy.yml` / layer authoring | `/charly-image:layer` |
-| Editing `box.yml` / image composition | `/charly-image:image` |
+| Editing `charly.yml` / layer authoring | `/charly-image:layer` |
+| Editing `charly.yml` / image composition | `/charly-image:image` |
 | `charly box build` / `charly box generate` / Containerfile | `/charly-build:build` + `/charly-build:generate` + `/charly-internals:generate-source` |
 | `charly box validate` / schema error | `/charly-build:validate` |
 | Secret management / `charly secrets` / Secret Service / GPG `.secrets` | `/charly-build:secrets` |

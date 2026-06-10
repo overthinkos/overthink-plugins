@@ -1,7 +1,7 @@
 ---
 name: list
 description: |
-  List components from box.yml and filesystem.
+  List components from charly.yml and filesystem.
   MUST be invoked before any work involving: charly box list commands, enumerating images, layers, build targets, services, routes, volumes, or aliases.
 ---
 
@@ -12,13 +12,13 @@ See `/charly-image:image` for the family overview.
 
 ## Overview
 
-Enumerate images, layers, build targets, and layer properties from `box.yml` and the filesystem. Useful for discovery and scripting.
+Enumerate images, layers, build targets, and layer properties from `charly.yml` and the filesystem. Useful for discovery and scripting.
 
 ## Quick Reference
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| List images | `charly box list boxes` | All images defined in box.yml |
+| List images | `charly box list boxes` | All images defined in charly.yml |
 | List layers | `charly box list candies` | All layers found on filesystem |
 | List targets | `charly box list targets` | Build targets in dependency order |
 | List services | `charly box list services` | Layers that declare a `service:` field |
@@ -31,7 +31,7 @@ Enumerate images, layers, build targets, and layer properties from `box.yml` and
 ### List All Images
 
 ```bash
-# Show all images from box.yml
+# Show all images from charly.yml
 charly box list boxes
 
 # Output: one image name per line
@@ -73,20 +73,20 @@ charly box list aliases
 
 ## Project directory override
 
-`charly box list …` resolves `box.yml` + `candy/` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
+`charly box list …` resolves `charly.yml` + `candy/` via `os.Getwd()`. Override with `-C <dir>` / `--dir <dir>` / `CHARLY_PROJECT_DIR=<dir>`. See `/charly-image:image` "Project directory resolution".
 
 ## Cross-References
 
 ### `charly box` family siblings
 
-- `/charly-image:image` -- Family overview + box.yml composition reference
+- `/charly-image:image` -- Family overview + charly.yml composition reference
 - `/charly-build:build` -- Build enumerated images
 - `/charly-build:generate` -- Containerfile generation
 - `/charly-build:inspect` -- Detailed inspection of a specific image
 - `/charly-build:merge` -- Post-build layer consolidation
 - `/charly-build:new` -- Scaffold a new layer
 - `/charly-build:pull` -- Pull prebuilt images into local storage
-- `/charly-build:validate` -- Validate box.yml and layer definitions
+- `/charly-build:validate` -- Validate charly.yml and layer definitions
 
 ### Related skills
 

@@ -15,7 +15,7 @@ description: |
 | Packages | *(none -- pip-only Tier 1 layer)* |
 | Services | *(none)* |
 | Volumes | *(none)* |
-| Install files | `candy.yml`, `task:`, `jupyter_mcp/` (Python package) |
+| Install files | `charly.yml`, `task:`, `jupyter_mcp/` (Python package) |
 
 ## Architecture: Tier 1 Post-Install Layer
 
@@ -106,8 +106,8 @@ JupyterLab Kernel Manager (execute_cell)
 
 ```
 candy/jupyter-mcp/
-  candy.yml              # Description only (Tier 1, no deps)
-  # tasks: block in candy.yml — fastmcp + pip install + extension enable
+  charly.yml              # Description only (Tier 1, no deps)
+  # tasks: block in charly.yml — fastmcp + pip install + extension enable
   jupyter_mcp/           # Python package
     pyproject.toml
     jupyter_mcp/
@@ -128,8 +128,8 @@ The `jupyter` MCP server name is **deliberately decoupled** from the layer name,
 
 | File | Field | Value | Purpose |
 |---|---|---|---|
-| `candy/jupyter/candy.yml` | `env.MCP_SERVER_NAME` | `"jupyter"` | Runtime advertisement |
-| `candy/jupyter/candy.yml` | `mcp_provide[0].name` | `jupyter` | Cross-container discovery (hermes, openwebui) |
+| `candy/jupyter/charly.yml` | `env.MCP_SERVER_NAME` | `"jupyter"` | Runtime advertisement |
+| `candy/jupyter/charly.yml` | `mcp_provide[0].name` | `jupyter` | Cross-container discovery (hermes, openwebui) |
 | `plugins/charly-jupyter/.mcp.json` | `mcpServers.jupyter` | — | Claude Code static registration |
 
 **Package/layer/image names describe the artifact; the MCP name describes the service contract.** Rename the artifact freely; the contract is stable.

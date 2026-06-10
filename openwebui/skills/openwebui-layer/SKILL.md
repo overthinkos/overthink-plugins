@@ -132,7 +132,7 @@ Open WebUI binds to `0.0.0.0:8080` by default. The `port_relay` field is only fo
 ## Usage
 
 ```yaml
-# box.yml
+# charly.yml
 openwebui:
   base: fedora
   layers:
@@ -170,5 +170,5 @@ openwebui:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `candy.yml` |
+| Install files | `charly.yml` |
 
 ## Environment Variables
 
@@ -60,7 +60,7 @@ Run `charly doctor` to verify detection. Run `charly udev install` to set up dev
 ## Usage
 
 ```yaml
-# box.yml -- standalone AMD GPU image
+# charly.yml -- standalone AMD GPU image
 my-amd-app:
   base: fedora
   layers:
@@ -112,5 +112,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — layer authoring reference (`candy.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — layer authoring reference (`charly.yml` schema, task verbs, service declarations)
 - `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)

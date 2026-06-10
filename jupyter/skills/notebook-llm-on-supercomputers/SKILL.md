@@ -22,7 +22,7 @@ description: |
 
 ## How It Works
 
-This is a **data layer** — it uses the `data:` field in `candy.yml` to map a directory of notebooks to a named volume with a subdirectory destination:
+This is a **data layer** — it uses the `data:` field in `charly.yml` to map a directory of notebooks to a named volume with a subdirectory destination:
 
 ```yaml
 info: "LLMs on Supercomputers course notebooks (TU Wien AI Factory Austria)"

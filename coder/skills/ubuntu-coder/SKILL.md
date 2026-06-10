@@ -85,7 +85,7 @@ WORKDIR /home/ubuntu
 USER 1000
 ```
 
-Resolved identity: `User=ubuntu, UID=1000, GID=1000, Home=/home/ubuntu`. The image's OCI labels carry these values (`ai.opencharly.user="ubuntu"`, `ai.opencharly.home="/home/ubuntu"`) so deploy-mode quadlets and `charly shell` find them without re-reading `box.yml`.
+Resolved identity: `User=ubuntu, UID=1000, GID=1000, Home=/home/ubuntu`. The image's OCI labels carry these values (`ai.opencharly.user="ubuntu"`, `ai.opencharly.home="/home/ubuntu"`) so deploy-mode quadlets and `charly shell` find them without re-reading `charly.yml`.
 
 **Why adopt over rename?** Ubuntu's cloud-init tooling, documentation, and `/etc/passwd` metadata all expect the user to be named `ubuntu`. Renaming fights the upstream contract. Adopting honors it. See `/charly-image:image` "user_policy" for the full rationale and the 3-value policy table.
 

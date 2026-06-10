@@ -25,7 +25,7 @@ description: |
 ## Usage
 
 ```yaml
-# box.yml -- typical bootc composition
+# charly.yml -- typical bootc composition
 my-bootc-image:
   base: "quay.io/fedora/fedora-bootc:43"
   bootc: true

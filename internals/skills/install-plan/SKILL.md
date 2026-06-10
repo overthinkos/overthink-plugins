@@ -289,7 +289,7 @@ When you add a step kind, add:
 - `/charly-kubernetes:kubernetes` — K8s-target user-facing behavior (cluster profiles, Kustomize layout)
 - `/charly-vm:vm` — VM command family; VmDeployTarget prerequisite (`charly vm create` before `charly deploy add vm:...`)
 - `/charly-build:build` — build-mode user-facing surface; three-phase template story
-- `/charly-image:layer` — candy.yml schema including unified `service:` that map to `ServicePackagedStep` / `ServiceCustomStep`
+- `/charly-image:layer` — charly.yml schema including unified `service:` that map to `ServicePackagedStep` / `ServiceCustomStep`
 
 ## When to Use This Skill
 
