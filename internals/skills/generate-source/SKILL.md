@@ -262,7 +262,7 @@ the defensive grouping is cheap (one extra struct field) and prevents
 a whole class of silent PATH regressions.
 
 Covered by `charly/intermediates_test.go` (the test images construct
-`ResolvedImage{}` without an explicit UID, so they trip `uid=0` →
+`ResolvedBox{}` without an explicit UID, so they trip `uid=0` →
 `-uid0` naming).
 
 ## LABEL Placement — Cache Efficiency
@@ -364,7 +364,7 @@ distro:
     base_user: { name: ubuntu, uid: 1000, gid: 1000, home: /home/ubuntu }
 ```
 
-`charly/config.go:ResolveImage` reconciles this against the image's `user_policy:`:
+`charly/config.go:ResolveBox` reconciles this against the image's `user_policy:`:
 
 - `auto` (default) — adopt `base_user` when declared AND image didn't explicitly set `user:`.
 - `adopt` — always adopt; hard-errors without a declaration.
@@ -401,7 +401,7 @@ The create branch uses the `if !` form (rather than a `getent passwd <UID> >/dev
 
 Pulls the base image via go-containerregistry and extracts `/etc/passwd` to auto-detect the home dir. The declarative `base_user:` approach is preferred (simpler, no network round-trip, explicit intent); `InspectImageUser` remains as a fallback for bases without a `base_user:` declaration.
 
-Source: `charly/config.go:ResolveImage` (policy reconciliation), `charly/generate.go:writeBootstrap` (emission), `charly/format_config.go:BaseUserDef` (struct), `charly/registry.go:InspectImageUser` (fallback).
+Source: `charly/config.go:ResolveBox` (policy reconciliation), `charly/generate.go:writeBootstrap` (emission), `charly/format_config.go:BaseUserDef` (struct), `charly/registry.go:InspectImageUser` (fallback).
 
 ## Tag-section install emission
 

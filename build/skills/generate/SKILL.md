@@ -111,7 +111,7 @@ The `/ctx` bind mount exposes the layer's own directory tree to `cmd:` tasks —
 
 ## writeBootstrap — adopt vs create
 
-`writeBootstrap` emits the user-creation section of the base-image Containerfile and branches on `ResolvedImage.UserAdopted`:
+`writeBootstrap` emits the user-creation section of the base-image Containerfile and branches on `ResolvedBox.UserAdopted`:
 
 **Adopt mode** (`UserAdopted = true`) — the base image already ships the declared user; no `useradd` is needed. Emits:
 
@@ -134,7 +134,7 @@ WORKDIR /home/user
 USER 1000
 ```
 
-The pivot is `ResolvedImage.UserAdopted`, set by the `user_policy:` reconciliation in `charly/config.go:ResolveImage`. See `/charly-image:image` "user_policy" for the policy semantics, `/charly-build:build` "base_user:" for the declaration, and `/charly-distros:ubuntu` for the canonical adopt-mode worked example.
+The pivot is `ResolvedBox.UserAdopted`, set by the `user_policy:` reconciliation in `charly/config.go:ResolveBox`. See `/charly-image:image` "user_policy" for the policy semantics, `/charly-build:build` "base_user:" for the declaration, and `/charly-distros:ubuntu` for the canonical adopt-mode worked example.
 
 Neither branch does destructive metadata mutation (no `usermod -l` rename). Fedora/Arch/Debian always hit the create branch (no `base_user:` declared); Ubuntu under `user_policy: auto` hits the adopt branch.
 

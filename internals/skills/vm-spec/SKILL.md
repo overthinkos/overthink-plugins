@@ -159,7 +159,7 @@ Failed validation → hard load-time error with a one-line remediation hint poin
 
 ## Migration from legacy VmConfig
 
-The legacy `VmConfig` type + `BoxConfig.Vm` + `BoxConfig.Libvirt` + `ResolvedImage.Vm` + `LabelVm` + `LabelLibvirt` were **all deleted** in the hard cutover. Field mapping for forensic purposes:
+The legacy `VmConfig` type + `BoxConfig.Vm` + `BoxConfig.Libvirt` + `ResolvedBox.Vm` + `LabelVm` + `LabelLibvirt` were **all deleted** in the hard cutover. Field mapping for forensic purposes:
 
 | Legacy location | New location |
 |---|---|

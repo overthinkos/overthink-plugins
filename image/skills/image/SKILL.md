@@ -266,7 +266,7 @@ Self-reference protection: after merging defaults/base, any `builder` entry poin
 
 Validation checks that every builder referenced in `builder:` declares the matching capability in `produce:`.
 
-Source: `charly/generate.go` (`builderRefForFormat`), `charly/graph.go` (`ResolveImageOrder`, `ImageNeedsBuilder`), `charly/validate.go` (`validateBuilders`).
+Source: `charly/generate.go` (`builderRefForFormat`), `charly/graph.go` (`ResolveBoxOrder`, `BoxNeedsBuilder`), `charly/validate.go` (`validateBuilders`).
 
 ## Internal Base Images
 
@@ -307,12 +307,12 @@ The mechanism: a **declarative** fact (what the base image ships, in `build.yml 
 
 This is why `ubuntu-coder`'s resolved identity is `ubuntu:/home/ubuntu` while the other three coder images are `user:/home/user`. The charly.yml for all four coder images is identical on the user-related fields (no explicit `user:`); the policy + base_user together decide the outcome.
 
-### How resolution flows (`charly/config.go ResolveImage`)
+### How resolution flows (`charly/config.go ResolveBox`)
 
 1. Resolve `User`, `UID`, `GID` from defaults → image overrides → hardcoded fallback `user` / `1000` / `1000`.
 2. Load the distro config (`DistroConfig` from `build.yml`), resolve the image's `DistroDef` by walking `distro:` tags.
 3. Apply `user_policy`:
-   - `adopt` → overwrite User/UID/GID/Home with the distro's `BaseUser`, set `ResolvedImage.UserAdopted = true`.
+   - `adopt` → overwrite User/UID/GID/Home with the distro's `BaseUser`, set `ResolvedBox.UserAdopted = true`.
    - `auto` → same overwrite IF `base_user` exists AND the image didn't explicitly set `user:`.
    - `create` → no-op.
 4. `writeBootstrap` (`charly/generate.go`) keys on `UserAdopted`: adopt emits only a comment; create emits an idempotent `useradd` (see `/charly-build:generate`).
@@ -337,7 +337,7 @@ charly box inspect debian-coder | grep -E '"User"|"UID"|"Home"|UserAdopted'
 
 Adopt mode means `resolved.User` is not a stable string across distros. Layers that reference the uid-1000 account by name must NOT hardcode `user` — use `${USER}` where the generator substitutes (task fields like `user: ${USER}`), or use `getent passwd 1000 | cut -d: -f1` inside `cmd:` blocks (where the generator does NOT substitute — bash sees the script verbatim). The canonical getent example is `/charly-coder:sshd`'s sudoers task.
 
-See also `/charly-distros:ubuntu` (canonical adopt consumer), `/charly-build:build` "base_user:", `/charly-internals:go` "ResolvedImage.UserAdopted".
+See also `/charly-distros:ubuntu` (canonical adopt consumer), `/charly-build:build` "base_user:", `/charly-internals:go` "ResolvedBox.UserAdopted".
 
 ## External Bases Require Explicit `distro:`
 

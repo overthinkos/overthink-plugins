@@ -95,7 +95,7 @@ the qcow2 build.
 `charly/clean.go` — `pruneImagesByRetention`, `pruneEvalRuns`,
 `cleanMakepkgArtifacts`, `CleanCmd`. Hooks in `BuildCmd.Run` (`charly/build.go`) and
 `EvalRunCmd.Run` (`charly/eval_runner_cmd.go`). Retention keys live on `BoxConfig`
-(`charly/config.go`), merged via `mergeImageConfig` (`charly/unified.go`), validated in
+(`charly/config.go`), merged via `mergeBoxConfig` (`charly/unified.go`), validated in
 `validateBuildTunables` (`charly/validate.go`).
 
 ## Cross-References

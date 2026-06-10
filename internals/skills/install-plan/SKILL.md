@@ -24,7 +24,7 @@ description: |
 4. **VM deploy** (`target: vm`) — `charly deploy add vm:<name> <ref>` applies the recipe inside a running VM over SSH.
 5. **Kubernetes deploy** (`target: k8s`) — `charly deploy add <name> --target k8s` emits a Kustomize base/overlays tree.
 
-All five paths are unified behind one IR. A pure compiler (`BuildDeployPlan`) turns `Layer + ResolvedImage + HostContext` into an `InstallPlan`; each code path is a `DeployTarget` consuming the plan.
+All five paths are unified behind one IR. A pure compiler (`BuildDeployPlan`) turns `Layer + ResolvedBox + HostContext` into an `InstallPlan`; each code path is a `DeployTarget` consuming the plan.
 
 This skill is the single source of truth for the IR shape. Add a new step kind by editing `install_plan.go`, the compiler in `install_build.go`, and each target's `emit*` method — this skill lists every place that needs to stay in sync.
 
@@ -142,7 +142,7 @@ Each step's `Reverse()` emits typed `ReverseOp` values. Adding a step kind means
 ## The compiler — `BuildDeployPlan`
 
 ```go
-func BuildDeployPlan(layer *Layer, img *ResolvedImage, hostCtx HostContext) (*InstallPlan, error)
+func BuildDeployPlan(layer *Layer, img *ResolvedBox, hostCtx HostContext) (*InstallPlan, error)
 ```
 
 Pure — no I/O, no side effects. Given the same inputs, produces the same plan. Called:
@@ -154,7 +154,7 @@ Pass `HostContext{Target: "host", Distro: ..., GlibcVersion: ...}` for host comp
 
 Step emission order (mirrors today's `writeLayerSteps`):
 1. `ShellHookStep` for `env:` + `path_append:` (deterministic map ordering).
-2. ONE `SystemPackagesStep` for the image's primary format — resolved via the most-specific-first distro CASCADE over `ResolvedImage.Distro` (e.g. `[ubuntu:24.04, ubuntu]`) plus the layer's top-level `package:` base: packages UNION across every matching per-distro tag section, while `repo`/`copr`/`option`/`exclude`/`module` resolve most-specific-wins. No per-distro section ever shares a mutable format section, so a deb-family repo (trixie vs noble) resolves deterministically. The cascade lives in **ONE shared function `resolveCascadePackages` (`install_build.go`)** called by BOTH the deploy compiler (`compileSystemPackageSteps`) AND the image-build Containerfile emitter (`generate.go writeLayerSteps`) — there is exactly one package-resolution path, so a layer's packages are identical whether built into an image or applied at deploy. (Non-primary build formats like `aur` are a separate multi-stage builder concern, not a distro tag, and emit from their own format section.)
+2. ONE `SystemPackagesStep` for the image's primary format — resolved via the most-specific-first distro CASCADE over `ResolvedBox.Distro` (e.g. `[ubuntu:24.04, ubuntu]`) plus the layer's top-level `package:` base: packages UNION across every matching per-distro tag section, while `repo`/`copr`/`option`/`exclude`/`module` resolve most-specific-wins. No per-distro section ever shares a mutable format section, so a deb-family repo (trixie vs noble) resolves deterministically. The cascade lives in **ONE shared function `resolveCascadePackages` (`install_build.go`)** called by BOTH the deploy compiler (`compileSystemPackageSteps`) AND the image-build Containerfile emitter (`generate.go writeLayerSteps`) — there is exactly one package-resolution path, so a layer's packages are identical whether built into an image or applied at deploy. (Non-primary build formats like `aur` are a separate multi-stage builder concern, not a distro tag, and emit from their own format section.)
 3. `TaskStep`(s) in YAML order.
 4. `BuilderStep`(s) for each matching multi-stage or inline builder.
 5. `ServicePackagedStep` / `ServiceCustomStep` from the `service:` list — per-entry routing via `IsPackaged()` + `ServiceSchema.SupportsPackaged`.

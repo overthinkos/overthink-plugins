@@ -1120,7 +1120,7 @@ This is different from `charly box inspect`, `charly box build`, and `charly eva
 The build label `ai.opencharly.eval` contains all three sections with
 `origin:` annotations (`layer:<name>`, `image:<name>`, `deploy-default`,
 `deploy-local`). `CollectEval` walks the base-image chain with a
-visited-image guard: cycles are reported by `validateImageDAG` at validate
+visited-image guard: cycles are reported by `validateBoxDAG` at validate
 time, but the collector itself terminates cleanly even if called on a
 pathological config.
 

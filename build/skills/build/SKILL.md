@@ -66,7 +66,7 @@ gate for `immich`.
 
 The flag flows from `BuildCmd.IncludeDisabled` → `ResolveOpts.IncludeDisabled`
 + `ResolveOpts.IncludeDisabledNames` → `ResolveAllImages` (in `Generator`)
-→ `ResolveImage`. The `shouldIncludeDisabled(name)` helper centralises the
+→ `ResolveBox`. The `shouldIncludeDisabled(name)` helper centralises the
 scoping rule. Sibling commands `charly box inspect <name> --include-disabled`
 and `charly box validate --include-disabled` accept the same flag for
 diagnostic / validation work on disabled entries. See `/charly-build:inspect`
@@ -108,13 +108,13 @@ distro:
 
 All four fields (`name`, `uid`, `gid`, `home`) are required when the block is present. Inherited across distro inheritance chains — if the child has no `base_user:` but the parent does, the child inherits it (see `resolveInherits` in `charly/format_config.go`).
 
-Consumed by the `user_policy:` reconciliation in `charly/config.go:ResolveImage` — see `/charly-image:image` "user_policy" for the three-value policy (`auto` / `adopt` / `create`) and the decision matrix.
+Consumed by the `user_policy:` reconciliation in `charly/config.go:ResolveBox` — see `/charly-image:image` "user_policy" for the three-value policy (`auto` / `adopt` / `create`) and the decision matrix.
 
 No `base_user:` currently declared for Fedora, Arch, or Debian (their canonical base images ship no pre-existing uid-1000 account). Add one in your project's `build.yml` override if you're basing on a distro-cloud variant that DOES ship one (e.g. `debian:13-cloud`).
 
 ### `version:` — the canonical distro version (for VM per-version reach)
 
-Each distro may declare a canonical `version:` (`distro.debian.version: "13"`, `distro.ubuntu.version: "24.04"`, `distro.fedora.version: "43"`; arch/cachyos are rolling and omit it). It is the single source for synthesizing the most-specific-first tag chain `[<distro>:<version>, <distro>]` on a target that carries only a bare distro name — a `target: vm` deploy, where no image-authored `distro:` tag supplies the version. `syntheticVmImage` + the `distroTagChain` helper consume it so a VM deploy of an ubuntu guest reaches per-version `distro:` sections (e.g. `ubuntu-24.04`) exactly like an image build does. Inherited child-wins via `resolveInherits` (cachyos inherits arch → stays version-less). Image builds carry the version in their own `charly.yml` `distro:` tags and don't need it. See `/charly-image:layer` "Package Surface" and `/charly-internals:install-plan`.
+Each distro may declare a canonical `version:` (`distro.debian.version: "13"`, `distro.ubuntu.version: "24.04"`, `distro.fedora.version: "43"`; arch/cachyos are rolling and omit it). It is the single source for synthesizing the most-specific-first tag chain `[<distro>:<version>, <distro>]` on a target that carries only a bare distro name — a `target: vm` deploy, where no image-authored `distro:` tag supplies the version. `syntheticVmBox` + the `distroTagChain` helper consume it so a VM deploy of an ubuntu guest reaches per-version `distro:` sections (e.g. `ubuntu-24.04`) exactly like an image build does. Inherited child-wins via `resolveInherits` (cachyos inherits arch → stays version-less). Image builds carry the version in their own `charly.yml` `distro:` tags and don't need it. See `/charly-image:layer` "Package Surface" and `/charly-internals:install-plan`.
 
 ### The `builder:` name in two places
 
@@ -127,7 +127,7 @@ An image's effective builder map resolves as: `box.builder[type]` → `base_box.
 
 ### Why one file, not three
 
-`build.yml` was unified from three former files (`distro.yml` + `builder.yml` + `init.yml`) because they were always resolved together through the same `format_config:` ref. One file → one loader (`LoadBuildConfigForImage`) → three in-memory configs (`DistroConfig` / `BuilderConfig` / `InitConfig`) — the internal split is preserved, only the YAML surface is unified. The `init:` section is optional (absent = no init system); `distro:` and `builder:` are required.
+`build.yml` was unified from three former files (`distro.yml` + `builder.yml` + `init.yml`) because they were always resolved together through the same `format_config:` ref. One file → one loader (`LoadBuildConfigForBox`) → three in-memory configs (`DistroConfig` / `BuilderConfig` / `InitConfig`) — the internal split is preserved, only the YAML surface is unified. The `init:` section is optional (absent = no init system); `distro:` and `builder:` are required.
 
 ## Containerfile Generation
 
