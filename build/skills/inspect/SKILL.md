@@ -67,7 +67,7 @@ The JSON output includes:
 
 All `--format` values are the JSON field names from the `inspect` output. When passing `--format` to select a map (like `builder`) or list, the CLI prints one entry per line.
 
-**Caveat — `--format bind_mounts`**: this one format option reads `deploy.yml` (not `charly.yml`), because bind-mount backings are a deploy-time concept (`charly config --bind <volume>` writes them to `deploy.yml`). The output is display-only — no OCI label contamination, no build-mode state leak. All other `--format` values (`ports`, `volumes`, `layers`, `base`, `builder`, …) are strictly `charly.yml`-derived per the mode-purity invariant (see `/charly-build:build` and `/charly-internals:go` "Mode purity").
+**Caveat — `--format bind_mounts`**: this one format option reads `charly.yml` (not `charly.yml`), because bind-mount backings are a deploy-time concept (`charly config --bind <volume>` writes them to `charly.yml`). The output is display-only — no OCI label contamination, no build-mode state leak. All other `--format` values (`ports`, `volumes`, `layers`, `base`, `builder`, …) are strictly `charly.yml`-derived per the mode-purity invariant (see `/charly-build:build` and `/charly-internals:go` "Mode purity").
 
 ## Project directory override
 
@@ -89,4 +89,4 @@ All `--format` values are the JSON field names from the `inspect` output. When p
 ### Related skills
 
 - `/charly-image:layer` -- Layer-level detail shown in inspect output
-- `/charly-core:deploy` -- `deploy.yml` overlay applied on top of inspect's resolved config
+- `/charly-core:deploy` -- `charly.yml` overlay applied on top of inspect's resolved config

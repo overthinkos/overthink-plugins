@@ -94,10 +94,10 @@ charly settings set forward_ssh_agent false    # Disable SSH forwarding globally
 charly settings reset forward_gpg_agent        # Re-enable (back to default: true)
 ```
 
-### Per-Box Override (deploy.yml)
+### Per-Box Override (charly.yml)
 
 ```yaml
-# ~/.config/charly/deploy.yml
+# ~/.config/charly/charly.yml
 box:
   immich:
     forward_gpg_agent: false    # No GPG needed for photo management
@@ -106,7 +106,7 @@ box:
     forward_gpg_agent: true     # Explicit (same as default)
 ```
 
-Resolution chain: deploy.yml per-box > global setting > default (true).
+Resolution chain: charly.yml per-box > global setting > default (true).
 
 ## Where Forwarding is Applied
 
@@ -136,7 +136,7 @@ charly-arch, arch-test, comfyui, charly-fedora, fedora-test, githubrunner, immic
 - `/charly-core:shell` -- where SSH/GPG agent forwarding happens at runtime
 - `/charly-core:service` -- `charly start` direct mode forwarding
 - `/charly-core:charly-config` -- `forward_gpg_agent`, `forward_ssh_agent` settings
-- `/charly-core:deploy` -- per-box forwarding overrides in deploy.yml
+- `/charly-core:deploy` -- per-box forwarding overrides in charly.yml
 
 ## Source
 

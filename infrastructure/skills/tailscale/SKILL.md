@@ -44,7 +44,7 @@ The box does **not** bring up the mesh on first boot — `tailscale up --authkey
 - Interactive SSH after boot: `sudo tailscale up` and copy the login URL.
 - Auth key via cloud-init or a systemd drop-in that reads a secret from `/etc/tailscale/authkey` (out of scope for this candy).
 
-For `target: local` host deploys (canonical: `local.charly-cachyos`), pair this candy with `/charly-infrastructure:tailscale-up` — the runtime-config sibling that sets `--operator=$account` so non-root user-systemd quadlets can run `tailscale serve` (the per-pod `tunnel: tailscale` mechanism in `deploy.yml`), and that keeps the tailnet device name in sync with `hostname -s` across hostname changes. `tailscale-up` self-gates on `systemctl is-active tailscaled` so it's a no-op in image-build / pre-auth contexts; bootc consumers don't include it.
+For `target: local` host deploys (canonical: `local.charly-cachyos`), pair this candy with `/charly-infrastructure:tailscale-up` — the runtime-config sibling that sets `--operator=$account` so non-root user-systemd quadlets can run `tailscale serve` (the per-pod `tunnel: tailscale` mechanism in `charly.yml`), and that keeps the tailnet device name in sync with `hostname -s` across hostname changes. `tailscale-up` self-gates on `systemctl is-active tailscaled` so it's a no-op in image-build / pre-auth contexts; bootc consumers don't include it.
 
 ## Used In Boxes
 
@@ -61,7 +61,7 @@ Two declarative checks (build-scope):
 
 1. **This candy** (`/charly-infrastructure:tailscale`) — bakes the **daemon** into a system image as a first-class systemd service. The box runs its own tailnet node. Use for bootc/VM images.
 2. **`/charly-distros:container-nesting`** — also installs the tailscale package, but as a **tool** inside a container-in-container harness (rootless podman with Tailscale-backed outbound). Different use case; don't use both in the same box.
-3. **Deploy-mode tunnel/sidecar** (`/charly-automation:sidecar`, `/charly-core:deploy`) — a separate deployment-time decision that runs tailscale in a **sidecar container** alongside your app pod, giving the app a tailnet identity without baking the daemon into the app box. This is `deploy.yml`-only state and is not affected by whether this candy is present.
+3. **Deploy-mode tunnel/sidecar** (`/charly-automation:sidecar`, `/charly-core:deploy`) — a separate deployment-time decision that runs tailscale in a **sidecar container** alongside your app pod, giving the app a tailnet identity without baking the daemon into the app box. This is `charly.yml`-only state and is not affected by whether this candy is present.
 
 All three can coexist, but for most cases you want exactly one.
 
@@ -70,7 +70,7 @@ All three can coexist, but for most cases you want exactly one.
 - `/charly-infrastructure:tailscale-up` — runtime-config sibling for `target: local` host deploys (sets `--operator` + `--hostname`). Use both candies together on host targets that need `tailscale serve` to work without sudo.
 - `/charly-distros:container-nesting` — the previous home of the tailscale package (bundled with buildah/skopeo/docker for nested podman; separate concern)
 - `/charly-automation:sidecar` — deploy-time Tailscale sidecar pattern (alternative, not a replacement)
-- `/charly-core:deploy` — `deploy.yml` tunnel/sidecar configuration
+- `/charly-core:deploy` — `charly.yml` tunnel/sidecar configuration
 - `/charly-image:layer` — candy authoring reference
 - `/charly-eval:eval` — declarative testing reference
 

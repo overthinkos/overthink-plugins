@@ -107,7 +107,7 @@
     {
       "name": "charly-pod",
       "source": "./pod",
-      "description": "Schema authoring for `kind: pod` and `kind: deploy` — deploy.yml shapes, nested deploys, sidecars.",
+      "description": "Schema authoring for `kind: pod` and `kind: deploy` — charly.yml shapes, nested deploys, sidecars.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",

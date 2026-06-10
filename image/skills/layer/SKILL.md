@@ -433,7 +433,7 @@ task:
 | `env_provide` | `map[string]string` | Env vars injected into OTHER containers when this service is deployed. Template: `{{.ContainerName}}`. |
 | `env_require` | `[]EnvDependency` | Plaintext env vars this candy MUST have. Hard error at `charly config` if missing. |
 | `env_accept` | `[]EnvDependency` | Plaintext env vars this candy CAN optionally use. Opt-in allowlist for `env_provide` injection. |
-| `secret_accept` / `secret_require` | `[]EnvDependency` | Credential-backed env vars. Values live in credential store, never in deploy.yml/quadlet. |
+| `secret_accept` / `secret_require` | `[]EnvDependency` | Credential-backed env vars. Values live in credential store, never in charly.yml/quadlet. |
 | `mcp_provide` / `mcp_require` / `mcp_accept` | various | MCP server discovery analogous to `env_*`. |
 | `service` | `[]ServiceEntry` | Unified service list — see "Service Declaration" below. |
 
@@ -863,11 +863,11 @@ env_accept:
 
 `{{.ContainerName}}` resolves at `charly config` time. `env_provide` values are injected only into consumers that declare matching `env_accept` or `env_require` (opt-in filtering — prevents env var leakage). Missing `env_require` without a default is a hard error at `charly config`; missing `env_accept` silently drops the var.
 
-See `/charly-core:charly-config` (`--update-all` flag, provides filtering) and `/charly-core:deploy` (deploy.yml `provides:` section) for the full lifecycle.
+See `/charly-core:charly-config` (`--update-all` flag, provides filtering) and `/charly-core:deploy` (charly.yml `provides:` section) for the full lifecycle.
 
 ## secret_accept / secret_require
 
-Credential-backed env vars. Same YAML shape as `env_accept` / `env_require`, but values flow through the credential store (keyring → config) and arrive via Podman secrets — **never plaintext in deploy.yml or the quadlet**.
+Credential-backed env vars. Same YAML shape as `env_accept` / `env_require`, but values flow through the credential store (keyring → config) and arrive via Podman secrets — **never plaintext in charly.yml or the quadlet**.
 
 ```yaml
 secret_require:
@@ -1131,7 +1131,7 @@ target — same precedent as how `aur:` skips on non-Arch.
 
 **OCI label round-trip:** the merged shell config is baked into
 `ai.opencharly.shell` at `charly box build` time and parsed back via
-`ExtractMetadata` at deploy. `deploy.yml` `shell:` overlays merge by
+`ExtractMetadata` at deploy. `charly.yml` `shell:` overlays merge by
 id (same replace/skip/append semantics as `eval:`).
 
 **Migration:** `charly migrate` rewrites legacy `cmd:` shell-rc
@@ -1150,7 +1150,7 @@ shell: schema. Idempotent.
 - `/charly-build:new` — Scaffolding a new candy directory.
 - `/charly-build:build` — Building images (`--no-cache` caveat; multi-stage scratch).
 - `/charly-core:charly-config` — Cross-container `env_provide` / `mcp_provide` injection; `env_require` enforcement; `--update-all`; resource caps.
-- `/charly-core:deploy` — `deploy.yml` `provides:` section; tunnel is deploy.yml-only.
+- `/charly-core:deploy` — `charly.yml` `provides:` section; tunnel is charly.yml-only.
 - `/charly-eval:eval` — `eval:` field for declarative candy checks (file/port/http/...); embedded in the `ai.opencharly.eval` OCI label under the `layer` section. Candy eval checks default to `scope: build`; opt into `scope: deploy` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` check to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `candy/sshd/charly.yml`.
 - `/charly-automation:sidecar` — Sidecars as `env_provide` participants (tailscale `TS_*` filtering).
 - `/charly-build:secrets` — Credential store chain for `secret_accept` / `secret_require`.

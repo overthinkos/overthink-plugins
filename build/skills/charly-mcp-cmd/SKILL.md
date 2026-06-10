@@ -153,12 +153,12 @@ charly: error: mcp chrome-devtools: container port 9224/tcp is not published to 
 declare `ports: [9224:9224]` in the image or run the test from inside the pod
 ```
 
-**Cause:** the image's OCI label declares the port (e.g., `chrome-devtools-mcp` adds `9224` to `sway-browser-vnc`'s port list), but the running container's quadlet doesn't publish it because `deploy.yml`'s per-image `port:` entry **replaces** (not appends to) the image-declared list. When a new mcp-providing layer is added to an image that already has a `deploy.yml` entry with an explicit `port:` list, the new port silently drops out.
+**Cause:** the image's OCI label declares the port (e.g., `chrome-devtools-mcp` adds `9224` to `sway-browser-vnc`'s port list), but the running container's quadlet doesn't publish it because `charly.yml`'s per-image `port:` entry **replaces** (not appends to) the image-declared list. When a new mcp-providing layer is added to an image that already has a `charly.yml` entry with an explicit `port:` list, the new port silently drops out.
 
-**Fix:** either add the mcp port to the instance's `deploy.yml` entry:
+**Fix:** either add the mcp port to the instance's `charly.yml` entry:
 
 ```yaml
-# ~/.config/charly/deploy.yml
+# ~/.config/charly/charly.yml
 box:
   sway-browser-vnc:
     ports:
@@ -413,9 +413,9 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 
 - `/charly-eval:eval` — parent router; all `charly eval mcp …` invocations are dispatched through it. Full method allowlist for all 5 live-container verbs (cdp/wl/dbus/vnc/mcp) lives in the "Live-container verb catalog" section.
 - `/charly-image:layer` — `mcp_provide` / `mcp_accept` / `mcp_require` field reference for layer authoring.
-- `/charly-core:charly-config` — how `mcp_provide` gets injected into `deploy.yml` `provides.mcp:` and synthesized into `CHARLY_MCP_SERVERS` for consumers at `charly config` time; pod-aware resolution to `localhost`; instance-aware MCP server naming with `-<instance>` suffix.
+- `/charly-core:charly-config` — how `mcp_provide` gets injected into `charly.yml` `provides.mcp:` and synthesized into `CHARLY_MCP_SERVERS` for consumers at `charly config` time; pod-aware resolution to `localhost`; instance-aware MCP server naming with `-<instance>` suffix.
 - `/charly-build:validate` — authoring-time validation rules (method allowlist, required modifiers, scope enforcement).
-- `/charly-core:deploy` — `deploy.yml` `port:` override semantics (the port-publishing gotcha lives here operationally).
+- `/charly-core:deploy` — `charly.yml` `port:` override semantics (the port-publishing gotcha lives here operationally).
 - `/charly-eval:cdp` — sibling live-container verb (Chrome DevTools Protocol).
 - `/charly-eval:wl` — sibling (Wayland desktop control).
 - `/charly-eval:dbus` — sibling (D-Bus calls/notifications).

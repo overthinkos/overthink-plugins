@@ -31,7 +31,7 @@ description: |
 |----------|---------------|-----------------|
 | `OLLAMA_HOST` | `http://{{.ContainerName}}:11434` | `http://charly-ollama:11434` |
 
-Pod-aware: same-container consumers receive `http://localhost:11434`, cross-container consumers receive `http://charly-ollama:11434`. When `charly config ollama` runs, `OLLAMA_HOST` is automatically injected into the global `deploy.yml` env. Use `charly config ollama --update-all` to propagate to already-deployed services immediately.
+Pod-aware: same-container consumers receive `http://localhost:11434`, cross-container consumers receive `http://charly-ollama:11434`. When `charly config ollama` runs, `OLLAMA_HOST` is automatically injected into the global `charly.yml` env. Use `charly config ollama --update-all` to propagate to already-deployed services immediately.
 
 See `/charly-image:layer` for `env_provide` field docs and `/charly-core:charly-config` for `--update-all`.
 

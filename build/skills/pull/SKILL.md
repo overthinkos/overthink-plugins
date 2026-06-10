@@ -21,7 +21,7 @@ service. That's `charly update`'s job (see `/charly-core:charly-update`).
 
 This command is the prerequisite for every deploy-mode operation on a fresh
 host. Since the `charly box` refactor, deploy-mode commands no longer read
-`charly.yml` — they read OCI labels + `deploy.yml` only. If an image isn't
+`charly.yml` — they read OCI labels + `charly.yml` only. If an image isn't
 in local storage, the label read fails and the CLI surfaces a friendly
 recommendation pointing here.
 
@@ -139,7 +139,7 @@ Use `charly box pull <image>` once to seed local storage; use `charly update
 ```bash
 # Install charly (see README Install section)
 charly box pull jupyter                # pull once; labels now readable
-charly config jupyter                    # generate quadlet from labels + deploy.yml
+charly config jupyter                    # generate quadlet from labels + charly.yml
 charly start jupyter                     # systemctl --user start
 ```
 
@@ -188,7 +188,7 @@ storage).
 - `/charly-build:inspect` — print resolved ref from `charly.yml` without pulling.
 - `/charly-core:shell`, `/charly-core:start`, `/charly-core:charly-config`, `/charly-automation:alias`, `/charly-vm:vm` —
   deploy-mode commands that require a pulled image.
-- `/charly-core:deploy` — deploy.yml overlay semantics applied on top of the
+- `/charly-core:deploy` — charly.yml overlay semantics applied on top of the
   labels `pull` materializes.
 - `/charly-internals:go` — `ErrImageNotLocal` / `EnsureImage` / `ExtractMetadata`
   source locations (`charly/labels.go`, `charly/transfer.go`, `charly/image.go`).

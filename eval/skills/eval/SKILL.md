@@ -2,7 +2,7 @@
 name: eval
 description: |
   MUST be invoked before any work involving: `charly eval` (image / live / run),
-  the `eval:` / `deploy_eval:` fields in a candy/box `charly.yml` or `deploy.yml`,
+  the `eval:` / `deploy_eval:` fields in a candy/box `charly.yml` or `charly.yml`,
   the `ai.opencharly.eval` OCI label, the AI iteration harness loop,
   `kind: ai` / `kind: recipe` / `kind: score` / `kind: eval` (disposable R10
   beds run via `charly eval run <bed>`) in eval.yml, or any declarative
@@ -12,7 +12,7 @@ description: |
   verb catalog (file/port/command/http/package/service/process/dns/user/
   group/interface/kernel-param/mount/addr/matching), runtime variable
   resolution (`${HOST_PORT:N}`, `${VOLUME_PATH:name}`, `${CONTAINER_IP}`,
-  `${ENV_*}`), deploy.yml overlay rules, authoring gotchas learned the hard
+  `${ENV_*}`), charly.yml overlay rules, authoring gotchas learned the hard
   way (package renames, absent binaries, host vs container network routing),
   AI-iteration loop semantics (plateau-bounded, progressive recipe
   disclosure, watchdog), and the `from:` block for composing recipes from
@@ -35,7 +35,7 @@ is a `kind: eval` entity, in that repo's config (its `charly.yml` + per-kind sib
 ship NO `kind: deploy` test beds. The lone `kind: deploy` exception is an
 operator profile, not a test bed (the cachyos submodule's `charly-cachyos`
 workstation profile); operator deployments otherwise live in the per-host
-`~/.config/charly/deploy.yml`. `disposable: true` is the sole authorization for the
+`~/.config/charly/charly.yml`. `disposable: true` is the sole authorization for the
 unattended destroy + rebuild on any of them.
 
 A bed is a **candybox** (CLAUDE.md "Candyboxing"): a disposable, secured
@@ -240,14 +240,14 @@ If the container needs state that's only available in deploy (volumes, env, tunn
 
 `charly` ships a goss-inspired declarative testing framework built into the
 CLI. Eval checks are authored inline under `eval:` (or `deploy_eval:`) in
-a candy/box `charly.yml`, or `deploy.yml`. They are **embedded as a
+a candy/box `charly.yml`, or `charly.yml`. They are **embedded as a
 three-section OCI label** (`ai.opencharly.eval` → `{candy, box, deploy}`)
 so any pulled image is self-testable without its source repo. A local
-`deploy.yml` overlay can add checks or override baked ones by `id:`.
+`charly.yml` overlay can add checks or override baked ones by `id:`.
 
 The runner resolves **deploy-time variables** (actual host port mappings,
 volume backings, env vars, container IP, DNS) at execution time, so a
-check written once works unchanged when `deploy.yml` remaps ports.
+check written once works unchanged when `charly.yml` remaps ports.
 
 ## Quick Reference
 
@@ -336,7 +336,7 @@ The surface is three orthogonal verbs, each named for what it evaluates:
 
 - **`charly eval live <name>`** — evaluates a **running deployment**
   (pod / vm / host / k8s; auto-resolved by `<name>` against
-  deploy.yml). Uses `ContainerExecutor` / `SSHExecutor` /
+  charly.yml). Uses `ContainerExecutor` / `SSHExecutor` /
   `NestedExecutor` (for dotted-path children) + `ResolveEvalVarsRuntime`
   so deploy-scope checks see real supervisord state, real
   `HOST_PORT:<N>` mappings (including host-networked containers via
@@ -596,7 +596,7 @@ naturally. An empty-string map value falls through to the next tag
 
 | Field | Purpose |
 |-------|---------|
-| `id` | Optional stable identifier. Enables `deploy.yml` to override by `id`. Unique per section per image. |
+| `id` | Optional stable identifier. Enables `charly.yml` to override by `id`. Unique per section per image. |
 | `description` | Human-readable label for reports. |
 | `skip: true` | Always skip this check (reported but doesn't fail the run). |
 | `exclude_distros: [<tag>, ...]` | Skip the check when any of the image's `distro:` tags matches an entry. Use for probes that only apply on some distros (e.g. `file: /usr/bin/fastfetch` is valid on Fedora/Arch/Debian but fastfetch is dropped from Ubuntu 24.04's noble main). Matched against the image's full distro list (`["ubuntu:24.04", "ubuntu", "debian"]`), so either `ubuntu:24.04` or `ubuntu` matches. See `charly/testspec.go:Check.ExcludeDistros` and `charly/testrun.go:runOne`. |
@@ -1115,7 +1115,7 @@ This is different from `charly box inspect`, `charly box build`, and `charly eva
 |---------|-------------|--------------|
 | `candy` | `eval:` in `candy/<name>/charly.yml` (scope:"build") | `charly eval box` + `charly eval live` |
 | `box` | `eval:` in `charly.yml` per box (scope:"build") | `charly eval box` + `charly eval live` |
-| `deploy` | `eval:` with `scope: deploy`, or `deploy_eval:` in `charly.yml`, or local `deploy.yml` `eval:` | `charly eval live <name>` only (deploy-scope checks need a running deployment with port mappings, volumes, and resolved runtime variables) |
+| `deploy` | `eval:` with `scope: deploy`, or `deploy_eval:` in `charly.yml`, or local `charly.yml` `eval:` | `charly eval live <name>` only (deploy-scope checks need a running deployment with port mappings, volumes, and resolved runtime variables) |
 
 The build label `ai.opencharly.eval` contains all three sections with
 `origin:` annotations (`candy:<name>`, `box:<name>`, `deploy-default`,
@@ -1168,8 +1168,8 @@ before any check executes. `${NAME:arg}` is parameterized form.
 |----------|--------|-------|
 | `${USER}`, `${HOME}`, `${UID}`, `${GID}` | Image metadata (OCI labels) | build + deploy |
 | `${IMAGE}` | Image metadata | build + deploy |
-| `${DNS}`, `${ACME_EMAIL}` | Image metadata + deploy.yml overlay | build + deploy |
-| `${INSTANCE}` | `--instance` flag / deploy.yml key | deploy |
+| `${DNS}`, `${ACME_EMAIL}` | Image metadata + charly.yml overlay | build + deploy |
+| `${INSTANCE}` | `--instance` flag / charly.yml key | deploy |
 | `${CONTAINER_NAME}`, `${CONTAINER_IP}` | `podman inspect` | deploy |
 | `${HOST_PORT:N}` | Port mapping for container port N | deploy |
 | `${VOLUME_PATH:name}` | Host path backing the named volume (bind source, encrypted mount, or `_data` dir) | deploy |
@@ -1292,7 +1292,7 @@ pod→pod address and does NOT reach a VM.)
 
 ## Deploy.yml overlay rules
 
-A local `deploy.yml` can contribute its own `eval:` list per image.
+A local `charly.yml` can contribute its own `eval:` list per image.
 Merge rules applied by `charly eval live`:
 
 1. Local entries with an `id:` matching a baked entry replace that entry.
@@ -1300,7 +1300,7 @@ Merge rules applied by `charly eval live`:
 3. To disable a baked check, reference it with `id:` and `skip: true`.
 
 ```yaml
-# ~/.config/charly/deploy.yml
+# ~/.config/charly/charly.yml
 box:
   redis-ml:
     eval:
@@ -1334,8 +1334,8 @@ charly eval box redis-ml
 charly start redis-ml
 charly eval live redis-ml
 
-# 6. Override a baked deploy check via local deploy.yml, re-test.
-$EDITOR ~/.config/charly/deploy.yml    # add tests: entry with matching id
+# 6. Override a baked deploy check via local charly.yml, re-test.
+$EDITOR ~/.config/charly/charly.yml    # add tests: entry with matching id
 charly eval live redis-ml
 ```
 
@@ -1419,7 +1419,7 @@ deliberately.
 - **Live-container probe verbs under `charly eval`** — `/charly-eval:cdp`, `/charly-eval:wl`, `/charly-eval:dbus`, `/charly-eval:vnc`, `/charly-build:charly-mcp-cmd`, `/charly-eval:record`, `/charly-eval:spice`, `/charly-eval:libvirt`, `/charly-kubernetes:eval-k8s` are dispatched as `charly eval cdp|wl|dbus|vnc|mcp|record|spice|libvirt|k8s`. See the Subcommands section above.
 - `/charly-image:layer` — layer authoring; `eval:` field is part of every `charly.yml`.
 - `/charly-image:image` — image-level `eval:` and `deploy_eval:` at composition time.
-- `/charly-core:deploy` — local `deploy.yml` overlay rules and the `eval:` merge.
+- `/charly-core:deploy` — local `charly.yml` overlay rules and the `eval:` merge.
 - `/charly-build:validate` — static schema + cross-scope variable checks; the first
   gate before `charly box build`.
 - `/charly-build:build` — how eval entries are embedded into the OCI label at build

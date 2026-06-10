@@ -86,7 +86,7 @@ image (preinstalled) instead.
 ## `target: android` deploy
 
 ```yaml
-# deploy.yml / charly.yml — nested under the emulator pod
+# charly.yml / charly.yml — nested under the emulator pod
 deploy:
   android-stack:
     target: pod

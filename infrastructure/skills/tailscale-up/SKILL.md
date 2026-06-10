@@ -114,7 +114,7 @@ the prefs `Hostname` field equals `hostname -s`.
 NOT used in:
 
 - Any `target: pod` deployment — pod tunnels go through the
-  `tunnel: tailscale` mechanism in `deploy.yml` (handled by the host's
+  `tunnel: tailscale` mechanism in `charly.yml` (handled by the host's
   tailscale, not in-pod). See `/charly-core:deploy` "Tailscale Serve".
 - Bootc images — they need fresh-boot semantics that don't match the
   deploy-runtime contract here. Use `/charly-infrastructure:tailscale` alone.
@@ -255,7 +255,7 @@ The serve config is persisted in the daemon's state and survives
 restarts, so a one-time setup is durable. Re-running with the same
 args is idempotent (replaces the existing entry verbatim).
 
-### Compared to the per-pod `tunnel: tailscale` deploy.yml mechanism
+### Compared to the per-pod `tunnel: tailscale` charly.yml mechanism
 
 `/charly-core:deploy` documents a `tunnel: tailscale` field that emits
 `ExecStartPost=tailscale serve ...` into the pod's quadlet. That
@@ -276,7 +276,7 @@ host-level serve).
 
 - `/charly-infrastructure:tailscale` — the install-side companion (daemon
   install + systemctl enable). `tailscale-up` `require:` it.
-- `/charly-core:deploy` — `deploy.yml` `tunnel: tailscale` mechanism that
+- `/charly-core:deploy` — `charly.yml` `tunnel: tailscale` mechanism that
   consumes the `--operator` permission.
 - `/charly-local:local-deploy` — the `target: local` execution model
   this candy is designed for.

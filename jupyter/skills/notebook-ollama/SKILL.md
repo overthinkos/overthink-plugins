@@ -60,7 +60,7 @@ The notebooks default to `http://localhost:11434` for the Ollama API endpoint. E
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 ```
 
-When the `ollama` box is deployed via `charly config ollama`, its `env_provide` automatically injects `OLLAMA_HOST=http://charly-ollama:11434` into the global `deploy.yml` env. Any container configured after ollama (or reconfigured with `--update-all`) automatically gets the correct Ollama endpoint — no manual environment setup needed.
+When the `ollama` box is deployed via `charly config ollama`, its `env_provide` automatically injects `OLLAMA_HOST=http://charly-ollama:11434` into the global `charly.yml` env. Any container configured after ollama (or reconfigured with `--update-all`) automatically gets the correct Ollama endpoint — no manual environment setup needed.
 
 **Setup:**
 ```bash

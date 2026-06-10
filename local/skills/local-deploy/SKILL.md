@@ -33,7 +33,7 @@ For VM destinations, `charly vm create <name>` writes a managed Host stanza into
 | Action | Command |
 |---|---|
 | Direct local | `charly deploy add my-laptop` (`host: local` is the default) |
-| SSH to remote | `charly deploy add ci-3` with `host: user@ci-3.lan` in deploy.yml |
+| SSH to remote | `charly deploy add ci-3` with `host: user@ci-3.lan` in charly.yml |
 | Reference a template | `local: dev-workstation` on the deployment |
 | Tear down | `charly deploy del <name>` |
 | Tear down, keep repo changes | `charly deploy del <name> --keep-repo-changes` |

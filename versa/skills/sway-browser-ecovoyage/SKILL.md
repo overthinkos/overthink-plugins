@@ -35,7 +35,7 @@ charly config sway-browser-vnc/ecovoyage
 charly start sway-browser-vnc/ecovoyage
 ```
 
-The deploy entry is fully specified in `~/.config/charly/deploy.yml` —
+The deploy entry is fully specified in `~/.config/charly/charly.yml` —
 it pins host ports (5901 VNC, 9230 CDP, 9232 MCP) and forwards
 every `*_PUBLIC_URL` env var so chrome's address bar + scripts
 + chrome-devtools-mcp tooling all see the same tailnet URLs the

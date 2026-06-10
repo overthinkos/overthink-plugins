@@ -141,7 +141,7 @@ A candy can declare credential-backed env vars in `charly.yml` via the
 declared values are resolved from the credential store, provisioned as
 per-image podman secrets, and injected into the container at runtime via
 `Secret=<name>,type=env,target=<var>` directives — **never landing in
-`deploy.yml` or the generated quadlet as plaintext**. See `/charly-image:layer`
+`charly.yml` or the generated quadlet as plaintext**. See `/charly-image:layer`
 (secret_accept / secret_require) for the authoring side.
 
 The credential store namespace for these entries defaults to `charly/secret`
@@ -230,9 +230,9 @@ Subsequent `charly config openwebui` resolves from the store without needing
 `-e` again.
 
 **Migration from legacy plaintext:** `charly config` automatically moves any
-`NAME=VAL` entry in `deploy.yml` whose NAME is a `secret_accept` /
+`NAME=VAL` entry in `charly.yml` whose NAME is a `secret_accept` /
 `secret_require` declaration on the image into the credential store.
-The plaintext is stripped, `deploy.yml.bak.<ts>` is written as a rollback
+The plaintext is stripped, `charly.yml.bak.<ts>` is written as a rollback
 point, and the migration logs each entry on stderr. Idempotent — safe to
 run on a clean host.
 

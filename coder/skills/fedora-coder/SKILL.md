@@ -124,7 +124,7 @@ charly config fedora-coder                               # canonical 2222/18765
 
 Reaching host services from inside a bridge-networked container: use
 the host's LAN IP or `host.containers.internal` (podman) rather than
-`127.0.0.1`. For selkies-style sibling-container discovery, the deploy.yml
+`127.0.0.1`. For selkies-style sibling-container discovery, the charly.yml
 `provides.env:` and `CHARLY_MCP_SERVERS` auto-injection give explicit hostnames.
 
 ## The 32-layer composition explained

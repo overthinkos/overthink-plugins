@@ -22,7 +22,7 @@ description: |
    deploy via `ensureCandySecret`; subsequent deploys read the
    persisted value, so agents and server automatically share the
    token without operator setup).
-2. Requires `K3S_SERVER_URL` from deploy.yml env (e.g.,
+2. Requires `K3S_SERVER_URL` from charly.yml env (e.g.,
    `https://k3s-srv.lan:6443`).
 3. Writes `/etc/rancher/k3s/config.yaml` with `server:` and `token:`.
 4. Emits `/etc/systemd/system/k3s-agent.service` running `k3s agent`.

@@ -34,7 +34,7 @@ Key entries:
 | `Init` | `LabelInit` | Init system name (supervisord / systemd / none). |
 | `ServiceNames` | `LabelInit` | Per-init active-name list; baked alongside `LabelInit` for CLI ergonomics (e.g., `charly service status`). |
 | `Tests` | `LabelEval` | Three-section `{candy, box, deploy}` JSON — the tests baked into the image, consumed by `charly eval live` / `charly eval box`. See `/charly-eval:eval`. |
-| `Shell` | `LabelShell` | Three-section `{candy, box, deploy}` JSON shell-init manifest. Each entry carries an Origin (candy name / "box" / "deploy"), an ID for overlay keying, an optional Generic body (intrinsic init + path_append) and a per-shell ByShell map (bash/zsh/fish/sh sub-blocks). Consumed by `charly box inspect`, `charly deploy from-box`, and `MergeDeployShell` for deploy.yml `shell:` overlay merging. See `/charly-image:layer` "Shell Init Surface". |
+| `Shell` | `LabelShell` | Three-section `{candy, box, deploy}` JSON shell-init manifest. Each entry carries an Origin (candy name / "box" / "deploy"), an ID for overlay keying, an optional Generic body (intrinsic init + path_append) and a per-shell ByShell map (bash/zsh/fish/sh sub-blocks). Consumed by `charly box inspect`, `charly deploy from-box`, and `MergeDeployShell` for charly.yml `shell:` overlay merging. See `/charly-image:layer` "Shell Init Surface". |
 | `EnvProvide` / `MCPProvide` | `LabelEnvProvide` / `LabelMCPProvide` | Cross-container discovery: what env vars / MCP servers this image advertises to pod peers. |
 | `EnvRequire` / `MCPRequire` | `LabelEnvRequire` / `LabelMCPRequire` | What this image *needs* from peers — validated at `charly config` time. |
 

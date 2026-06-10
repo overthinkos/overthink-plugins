@@ -11,7 +11,7 @@ description: |
 `charly box` is the **only** command family that reads `charly.yml`. It groups
 every build-mode operation (build, generate, validate, list, merge, new,
 inspect, pull) under a single namespace. All other `charly` commands read
-exclusively from OCI labels embedded into built images + `deploy.yml` for
+exclusively from OCI labels embedded into built images + `charly.yml` for
 deployment overrides.
 
 Build-mode operations live only under `charly box`. Top-level invocations like
@@ -40,7 +40,7 @@ order.
 
 ## Scope Boundary (Build vs. Deploy)
 
-| | Reads `charly.yml` | Reads OCI labels | Reads `deploy.yml` |
+| | Reads `charly.yml` | Reads OCI labels | Reads `charly.yml` |
 |---|---|---|---|
 | `charly box …` | **Yes** (required) | Rarely | No |
 | Everything else | **No** | Yes (required for deploy-mode) | Yes (overlay) |
@@ -48,7 +48,7 @@ order.
 If a new command needs to resolve candy dependencies, box inheritance, or
 registry tag configuration, it must live under `charly box`. Any command that
 operates on a running container or deployed image must go through
-`ExtractMetadata` (labels) + deploy.yml — never `LoadConfig`.
+`ExtractMetadata` (labels) + charly.yml — never `LoadConfig`.
 
 When a deploy-mode command is run against an image that isn't in local
 storage, `ExtractMetadata`/`EnsureImage` return `ErrImageNotLocal` and the
@@ -473,17 +473,17 @@ Every image `charly` builds carries a set of `ai.opencharly.*` OCI labels embedd
 | `ai.opencharly.builder.use` | Consumer-side routing map: format → builder-image name |
 | `ai.opencharly.builder.provide` | Producer-side capability list: formats this image can build for others |
 
-All of the above round-trip via `charly config`: the label is read from the image manifest and applied to deploy.yml + the quadlet. There is one deliberate exception.
+All of the above round-trip via `charly config`: the label is read from the image manifest and applied to charly.yml + the quadlet. There is one deliberate exception.
 
-### Tunnel is deploy.yml-only
+### Tunnel is charly.yml-only
 
-`labels.go:334` **explicitly skips reading** any tunnel label when resolving an image's deploy config. Tunnels (Tailscale serve, Cloudflare tunnel) are treated as a **deployment** decision, not an image attribute — they live exclusively in `deploy.yml`. This was the deliberate design of commit `2759124` (tunnel→deploy.yml migration), motivated by three concerns:
+`labels.go:334` **explicitly skips reading** any tunnel label when resolving an image's deploy config. Tunnels (Tailscale serve, Cloudflare tunnel) are treated as a **deployment** decision, not an image attribute — they live exclusively in `charly.yml`. This was the deliberate design of commit `2759124` (tunnel→charly.yml migration), motivated by three concerns:
 
 1. **Per-instance divergence.** One selkies-desktop image may be deployed with a Tailscale tunnel in one environment and no tunnel in another. Baking the tunnel choice into the image forecloses that.
 2. **`--update-all` safety.** Propagating config changes across deployed services must not accidentally rewrite tunnel settings from image labels and blow away per-instance overrides.
 3. **Instance inheritance gap.** Tunnel config is **not** auto-inherited from the base `charly config <image>` call to an `charly config <image> -i <instance>` call. This is a deliberate gap — see `/charly-selkies:selkies-labwc` (Multi-Instance Proxy Deployment) for the manual workaround and `/charly-core:deploy` (Instance Tunnel Inheritance) for the full lifecycle.
 
-**Practical implication:** you can inspect an image's tunnel declaration with `charly box inspect <image>` and see nothing useful — that's correct. To see a tunnel's actual state, read `deploy.yml` directly (`charly deploy show <image>`) or the generated quadlet (`charly status <image>`).
+**Practical implication:** you can inspect an image's tunnel declaration with `charly box inspect <image>` and see nothing useful — that's correct. To see a tunnel's actual state, read `charly.yml` directly (`charly deploy show <image>`) or the generated quadlet (`charly status <image>`).
 
 ## Common Workflows
 
@@ -540,7 +540,7 @@ box:
 
 - `/charly-image:layer` -- Candy definitions that compose into boxes (env_provide, env_require, env_accept, security resource caps)
 - `/charly-core:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
-- `/charly-core:charly-config` -- `charly config` reads OCI labels + deploy.yml; tunnel is deploy.yml-only
+- `/charly-core:charly-config` -- `charly config` reads OCI labels + charly.yml; tunnel is charly.yml-only
 - `/charly-internals:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
 - `/charly-eval:eval` — Box-level `eval:` (cross-candy invariants) and `deploy_eval:` (deploy-default checks shipped with the image). Both are embedded in the `ai.opencharly.eval` OCI label.
 - `/charly-build:charly-mcp-cmd` — if the image transitively bundles an mcp-providing candy (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled candy's `mcp:` tests run as part of `charly eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.

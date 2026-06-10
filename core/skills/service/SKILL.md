@@ -32,9 +32,9 @@ Container service lifecycle management with two modes: **quadlet** (systemd user
 | JSON output | `charly status --json` | Machine-readable JSON output |
 | Service logs | `charly logs <image> -f` | Follow service logs |
 | Update service | `charly update <image>` | Update image and restart |
-| Remove service | `charly remove <image>` | Stop, remove service + deploy.yml entry |
+| Remove service | `charly remove <image>` | Stop, remove service + charly.yml entry |
 | Purge (+ volumes) | `charly remove <image> --purge` | Also delete named volumes |
-| Remove keep config | `charly remove <image> --keep-deploy` | Remove service but keep deploy.yml entry |
+| Remove keep config | `charly remove <image> --keep-deploy` | Remove service but keep charly.yml entry |
 
 ### Supervisord Services
 
@@ -82,9 +82,9 @@ charly logs my-app -f                  # journalctl --user -u (follow)
 charly update my-app                   # Re-transfer image, restart
 charly stop my-app                     # systemctl --user stop
 charly config remove my-app            # Remove deployment configuration
-charly remove my-app                   # Stop + remove .container + deploy.yml entry
+charly remove my-app                   # Stop + remove .container + charly.yml entry
 charly remove my-app --purge           # Also remove named volumes
-charly remove my-app --keep-deploy     # Remove service but keep deploy.yml for re-config
+charly remove my-app --keep-deploy     # Remove service but keep charly.yml for re-config
 charly remove my-app -e KEY=VALUE      # Set env vars for lifecycle hooks
 ```
 
@@ -117,7 +117,7 @@ For Docker, secrets fall back to `Environment=` injection with a security warnin
 ### Environment Variables in Quadlet
 
 - **`Environment=`** lines for CLI `-e` flags (inline in .container file)
-- **`EnvironmentFile=`** directive for file-sourced vars (`--env-file`, workspace `.env`, or `env_file` in deploy.yml)
+- **`EnvironmentFile=`** directive for file-sourced vars (`--env-file`, workspace `.env`, or `env_file` in charly.yml)
 
 When `EnvironmentFile=` is used, only explicit CLI `-e` vars appear as inline `Environment=` to avoid duplication.
 
@@ -250,16 +250,16 @@ jupyter                            stopped  8888                  tailscale (all
 ```
 
 - **IMAGE**: `image` for base deploys, `image/instance` for multi-
-  instance — matches the `deployKey` shape used in `deploy.yml` keys and
+  instance — matches the `deployKey` shape used in `charly.yml` keys and
   `-i <inst>` flags.
 - **PORTS**: Sorted, deduped host port numbers. **Source priority**:
-  runtime `podman ps` mappings → `deploy.yml` `port:` → image OCI label
+  runtime `podman ps` mappings → `charly.yml` `port:` → image OCI label
   `ai.opencharly.port`. The runtime path uses the structured
   `[]PortMapping` carried on `ContainerSnapshot`; deploy/label paths go
   through canonical `ParsePortMapping` so the IPv4-prefixed
   `127.0.0.1:H:C/proto` form parses correctly.
 - **TUNNEL**: `provider (all ports)` / `provider (ports H,H,H)` /
-  `provider` / `-`. Read from `deploy.yml` only — tunnel config is
+  `provider` / `-`. Read from `charly.yml` only — tunnel config is
   deploy-yml-only (see `labels.go:238`).
 - **DEVICES**: Compact tokens (`gpu`, `dri`, `kvm`, `fuse`, `tun`),
   sorted alphabetically.
@@ -335,7 +335,7 @@ single object. `ports` is a structured array (not `[]string`):
 
 ### Reaping Orphans
 
-Use the top-level `charly reap-orphans` command. It walks deploy.yml
+Use the top-level `charly reap-orphans` command. It walks charly.yml
 ephemeral entries marked `active`, probes the underlying engine
 (libvirt for VM, podman for pod, kubectl for k8s) and runs `charly deploy
 del <name> --force` for orphans.

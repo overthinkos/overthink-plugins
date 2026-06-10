@@ -130,7 +130,7 @@ A **non-blocking** issue (the current change is correct AND complete without it,
 
 **What is permitted in historical contexts.** `CHANGELOG.md` entries and migration-command help-text that names the legacy form for the user's benefit ("rename `qc` to `charly-cachyos`"). The grep self-test distinguishes these via context.
 
-**Why it matters.** Stale references confuse new contributors and AI agents. A code search for `qc` that returns matches in `deploy.yml` suggests the deployment is still live; a search that returns matches only in `CHANGELOG.md` suggests it was retired. R5's grep self-test enforces this distinction.
+**Why it matters.** Stale references confuse new contributors and AI agents. A code search for `qc` that returns matches in `charly.yml` suggests the deployment is still live; a search that returns matches only in `CHANGELOG.md` suggests it was retired. R5's grep self-test enforces this distinction.
 
 **Interaction with other rules.** R5 covers stale references everywhere, not just the deleted artifact itself. R5 is the cleanup discipline that R3 enables — once you've refactored to the unified abstraction, R5 ensures every old reference points to the new one.
 

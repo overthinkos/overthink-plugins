@@ -12,7 +12,7 @@ description: |
 
 # cutover-policy
 
-Every schema change, API rename, or deprecation in OpenCharly ships as a **single hard-cutover PR**. This applies to BOTH code (Go types, exported functions, CLI flags, OCI labels) AND config (charly.yml, deploy.yml, vm.yml field names and shapes).
+Every schema change, API rename, or deprecation in OpenCharly ships as a **single hard-cutover PR**. This applies to BOTH code (Go types, exported functions, CLI flags, OCI labels) AND config (charly.yml, charly.yml, vm.yml field names and shapes).
 
 A cutover may NEVER be phased — not at plan authoring, not at execution. There is no pre-approval split, no post-approval split, no phased rollout, no grace period, no "author it as two plans" fallback. Plans are authored as full-scope, single-phase cutovers regardless of estimated time, scope, or context. Every cutover executes end-to-end through R10 in the SAME conversation. ALWAYS push as far as you can; compact context and continue, as many times as it takes. An approved plan is a CONTRACT; implement it as written.
 

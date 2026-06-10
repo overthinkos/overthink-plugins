@@ -211,7 +211,7 @@ OCI label (see `/charly-eval:eval` for the full schema):
   - `jupyter-port` — `${CONTAINER_IP}:${HOST_PORT:8888}` reachable
   - `jupyter-api` — `GET .../api` returns 200 with `"version"` in body
     (the `${HOST_PORT:8888}` substitution means the check works
-    unchanged when `deploy.yml` remaps the host port)
+    unchanged when `charly.yml` remaps the host port)
   - `mcp-jupyter-ping` — MCP server responds to `ping`
   - `mcp-jupyter-list-tools` — assertion that all 11 documented MCP
     tools are present in `tools/list`

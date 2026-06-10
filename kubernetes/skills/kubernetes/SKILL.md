@@ -28,7 +28,7 @@ Every box runtime contract is baked into OCI labels at build time, so **a K8s de
 |---|---|---|
 | **Build** — what goes INTO the image | `box.build:` (or legacy `BoxConfig`) | no (consumed at build) |
 | **Capabilities** — box runtime contract | `box.capabilities:` (or layer rollups) | **yes** — every field under `ai.opencharly.*` |
-| **Deployment** — how to run the image | `charly.yml:deployments.<name>` + `~/.config/charly/deploy.yml` overlay | no |
+| **Deployment** — how to run the image | `charly.yml:deployments.<name>` + `~/.config/charly/charly.yml` overlay | no |
 
 The completeness invariant: every exported field on `BoxMetadata`/`Capabilities` has a `CapabilityLabelMap` entry. A compile-time test enforces this — a new capability field without a label mapping fails the build. See `charly/capabilities.go`.
 
@@ -150,7 +150,7 @@ Proves the self-contained image invariant: a deploy pipeline with **no access to
 charly deploy from-box quay.io/myorg/openclaw:v2 openclaw \
     --target kubernetes --cluster production --namespace apps
 # Reads: OCI labels (capabilities) + ~/.config/charly/clusters/production.yaml
-#        + ~/.config/charly/deploy.yml (if present, for per-machine overrides)
+#        + ~/.config/charly/charly.yml (if present, for per-machine overrides)
 # Emits: .opencharly/k8s/openclaw/base/ + overlays/default/
 charly deploy sync openclaw                   # kubectl apply -k ...
 ```

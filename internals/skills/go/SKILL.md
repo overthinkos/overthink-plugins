@@ -87,15 +87,15 @@ Two uses in the codebase:
 
 Tradeoff: a subcommand name shadows a positional value with the same text. `charly eval cdp` always dispatches to the cdp subcommand — if an image is literally named `cdp`, use the explicit `charly eval live cdp` form.
 
-### Mode purity: `LoadConfig` must NOT read `deploy.yml`
+### Mode purity: `LoadConfig` must NOT read `charly.yml`
 
-OCI labels are written exclusively from `charly.yml` at `charly box build` / `charly box generate` time. `deploy.yml` is deploy-mode state and must never bleed into the baked image. The key guarantee lives in `charly/config.go:LoadConfig` — it calls `LoadConfigRaw` only, with no `MergeDeployOverlay`.
+OCI labels are written exclusively from `charly.yml` at `charly box build` / `charly box generate` time. `charly.yml` is deploy-mode state and must never bleed into the baked image. The key guarantee lives in `charly/config.go:LoadConfig` — it calls `LoadConfigRaw` only, with no `MergeDeployOverlay`.
 
-**The rule**: every build-mode command (anything under `charly box …`) calls `LoadConfig`. If you ever re-introduce `MergeDeployOverlay` inside `LoadConfig`, you will silently contaminate OCI labels with whatever is in the user's local `deploy.yml` — exactly the bug that made images bake `ports: ["5900:5900","9250:9222"]` from a stale `deploy.yml` entry instead of the `charly.yml`-declared `["5900:5900","9222:9222","9224:9224"]`.
+**The rule**: every build-mode command (anything under `charly box …`) calls `LoadConfig`. If you ever re-introduce `MergeDeployOverlay` inside `LoadConfig`, you will silently contaminate OCI labels with whatever is in the user's local `charly.yml` — exactly the bug that made images bake `ports: ["5900:5900","9250:9222"]` from a stale `charly.yml` entry instead of the `charly.yml`-declared `["5900:5900","9222:9222","9224:9224"]`.
 
 Deploy-mode commands (`charly config`, `charly start`, `charly stop`, `charly update`, `charly deploy add`, `charly deploy del`, `charly shell`, `charly cmd`, `charly service`, `charly vm create`, …) read labels via `ExtractMetadata` and then apply the deploy overlay explicitly via `MergeDeployOntoMetadata(meta, dc, instance)`. This split is load-bearing — never collapse it.
 
-**Host-deploy specifics**: `charly deploy add host` is deploy mode (reads both charly.yml and deploy.yml), not build mode — despite looking like "install on host, not into an image". The compiler (`BuildDeployPlan` in `install_build.go`) is pure and shared with build mode, but the invocation path reads deploy.yml for `add_candy:` and `install_opts:` like every other deploy-mode command.
+**Host-deploy specifics**: `charly deploy add host` is deploy mode (reads both charly.yml and charly.yml), not build mode — despite looking like "install on host, not into an image". The compiler (`BuildDeployPlan` in `install_build.go`) is pure and shared with build mode, but the invocation path reads charly.yml for `add_candy:` and `install_opts:` like every other deploy-mode command.
 
 ### InstallPlan IR — the shared intermediate representation
 
@@ -332,7 +332,7 @@ See `/charly-image:image` "user_policy" for the user-facing decision matrix, `/c
 
 Implements the `charly eval live` / `charly eval box` commands and the
 `ai.opencharly.eval` OCI label. User-facing authoring, verb catalog,
-runtime variables, and deploy.yml overlay rules live in `/charly-eval:eval` — this
+runtime variables, and charly.yml overlay rules live in `/charly-eval:eval` — this
 section is the Go-implementation map.
 
 | File | Purpose |
@@ -355,7 +355,7 @@ section is the Go-implementation map.
 | `eval_loop.go` | The AI iteration loop core: per-iter dispatch, scoring, plateau bookkeeping, watchdog integration, NOTES.md memory, `commitIterationBestEffort` (where the orphan-bash defense kills issue-52328 deadlock leftovers between iterations), result-file emission. |
 | `eval_runner_live.go` | `RunEvalLive` — the live scenario-by-scenario probe driver invoked at iter end by the harness scorer. Buckets scenarios by `pod:`, resolves chains via `ResolveDeployChain` for dotted paths, dispatches to the right `DeployExecutor`. Same code path used by `charly eval self-evaluate` (the AI-side mid-iter sanity check). |
 | `eval_watchdog.go` | `ProgressWatchdog` — per-iteration scoring-progress monitor. Every `progress_check_interval` (default 5m), runs `RunEvalLive` against in-scope scenarios, records a `WatchdogSample`, emits a `harness: progress [phase X/N iter Y] elapsed Nm — current score A/B` stderr line. Cancels the AI runner's context if `progress_no_improvement_timeout` (default 30m) of zero score delta passes. |
-| `migrate_eval.go` | `charly migrate` — strict forward-only migrator from the legacy `harness.yml` shape to `eval.yml` (file/dir/labels/tokens/env renames, `tests:`→`eval:` rewriting in charly.yml/deploy.yml, well-known bench/fixture project-data renames). Idempotent. NO chain-aware handling of legacy `benchmark:` blocks. |
+| `migrate_eval.go` | `charly migrate` — strict forward-only migrator from the legacy `harness.yml` shape to `eval.yml` (file/dir/labels/tokens/env renames, `tests:`→`eval:` rewriting in charly.yml/charly.yml, well-known bench/fixture project-data renames). Idempotent. NO chain-aware handling of legacy `benchmark:` blocks. |
 | `validate_eval.go` | `validateEval(cfg, layers, errs)` hooked into `Validate` in `validate.go`. Enforces: exactly-one-verb per Check, attribute types, port range (1-65535), `time.Duration` parse on `timeout`, `scope` ∈ {build,deploy}, build-scope checks can't reference runtime-only variables (via `IsRuntimeOnlyVar`), `id:` uniqueness per section (including cross-layer collisions via `validateCollectedIDUniqueness` → `CollectEval`), matcher-op allowlist (kept in lockstep with `matchOne`), per-verb method-allowlist and required-modifier checks for `cdp`/`wl`/`dbus`/`vnc`/`mcp` (via `validateCharlyVerb` — deploy-scope-only enforcement, method validation against `cdpMethods`/`wlMethods`/`dbusMethods`/`vncMethods`/`mcpMethods` maps in `evalrun_charly_verbs.go`). |
 
 **Related skill**: `/charly-eval:eval` is the authoring-facing reference.

@@ -1,6 +1,6 @@
 ---
 name: pod
-description: Schema reference for `kind: pod` and `kind: deploy` entities — deploy.yml entry shape, nested deploys, sidecars, pod networking. For verb-level operations see /charly-core:deploy.
+description: Schema reference for `kind: pod` and `kind: deploy` entities — charly.yml entry shape, nested deploys, sidecars, pod networking. For verb-level operations see /charly-core:deploy.
 ---
 
 # `kind: pod` and `kind: deploy` — Schema Reference

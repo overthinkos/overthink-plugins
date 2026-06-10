@@ -185,7 +185,7 @@ type VmDeployState struct {
 }
 ```
 
-Persisted in `~/.config/charly/deploy.yml` as the `vm_state:` field on the VM's deploy entry (`DeploymentNode.VmState`). Each `charly vm build` / `charly vm create` / `charly deploy add vm:<name>` iteration updates the relevant fields. `charly deploy del vm:<name>` preserves the state (so re-adding picks up InstanceID etc.) unless `--purge` is passed.
+Persisted in `~/.config/charly/charly.yml` as the `vm_state:` field on the VM's deploy entry (`DeploymentNode.VmState`). Each `charly vm build` / `charly vm create` / `charly deploy add vm:<name>` iteration updates the relevant fields. `charly deploy del vm:<name>` preserves the state (so re-adding picks up InstanceID etc.) unless `--purge` is passed.
 
 ## SSH key idempotency
 
@@ -193,7 +193,7 @@ Persisted in `~/.config/charly/deploy.yml` as the `vm_state:` field on the VM's 
 
 ## CLI dispatch: ResolveTarget → VmUnifiedTarget.Add / .Del
 
-`charly deploy add vm:<name>` resolves via `deploy_add_cmd.go::dispatchNode` → `ResolveTarget` → `VmUnifiedTarget.Add` when the deploy name starts with `vm:` (or `target: vm` is set in `deploy.yml`):
+`charly deploy add vm:<name>` resolves via `deploy_add_cmd.go::dispatchNode` → `ResolveTarget` → `VmUnifiedTarget.Add` when the deploy name starts with `vm:` (or `target: vm` is set in `charly.yml`):
 
 ```
 charly deploy add vm:arch ripgrep           # apply ripgrep layer in the guest
@@ -215,7 +215,7 @@ When the VM's network uses libvirt user-mode + `<backend type='passt'/>` + `<por
 - `/charly-internals:vm-spec` — VmSpec consumed by VmDeployTarget
 - `/charly-internals:libvirt-renderer` — renders domain XML; portForward + passt backend
 - `/charly-internals:cloud-init-renderer` — `EnsureCharlyInGuest` lives there
-- `/charly-core:deploy` — `charly deploy add vm:<name>` command + deploy.yml schema
+- `/charly-core:deploy` — `charly deploy add vm:<name>` command + charly.yml schema
 - `/charly-local:local-deploy` — parallel target (LocalDeployTarget); ReverseOps model also used on VM target
 - `/charly-vm:vm` — VM lifecycle; creates the target Emit runs against
 - `/charly-vm:arch` — canonical worked example — VmDeployState persistence; ssh_key idempotency live-test

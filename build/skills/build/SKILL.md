@@ -12,7 +12,7 @@ Invoked as `charly box build`. See `/charly-image:image` for the family overview
 
 `charly box build` generates Containerfiles from `charly.yml` and layer definitions, then builds images in dependency order using the configured build engine (Docker or Podman). Images at the same dependency level are built in parallel (up to `--jobs` concurrent builds).
 
-**Mode purity**: `charly box build` reads `charly.yml` only. `deploy.yml` is never read during build — this is enforced by `LoadConfig` in `charly/config.go`, which calls `LoadConfigRaw` (no `MergeDeployOverlay`) to guarantee OCI labels are baked strictly from authored configuration, never from local deploy-time overrides. See `/charly-internals:go` "Mode purity" for the architectural invariant this protects and the bug it prevents.
+**Mode purity**: `charly box build` reads `charly.yml` only. `charly.yml` is never read during build — this is enforced by `LoadConfig` in `charly/config.go`, which calls `LoadConfigRaw` (no `MergeDeployOverlay`) to guarantee OCI labels are baked strictly from authored configuration, never from local deploy-time overrides. See `/charly-internals:go` "Mode purity" for the architectural invariant this protects and the bug it prevents.
 
 **IR-driven emission**: `charly box build` emits Containerfiles via `OCITarget` — the build-mode implementation of the shared `DeployTarget` interface. Internally the flow is: `charly.yml` → `BuildDeployPlan` (pure compiler) → `InstallPlan` IR → `OCITarget.Emit` → Containerfile text. The same IR backs `PodDeployTarget` and `LocalDeployTarget` used by `charly deploy add`. See `/charly-internals:install-plan` for the IR and `/charly-internals:generate-source` for the Go call graph.
 

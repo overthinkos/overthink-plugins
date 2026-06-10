@@ -1,7 +1,7 @@
 ---
 name: sidecar
 description: |
-  Topic skill (no dedicated `charly sidecar` command — the surface is the `--sidecar <name>` / `--list-sidecars` flags on `charly config` and the `sidecar:` field in `deploy.yml`). MUST be invoked before any work involving: sidecar containers, pod networking, Tailscale exit nodes, `charly config --sidecar`, the `deploy.yml` `sidecar:` field, or sidecar-env filtering (`env_accept` / `env_require` routing to the sidecar vs the app container).
+  Topic skill (no dedicated `charly sidecar` command — the surface is the `--sidecar <name>` / `--list-sidecars` flags on `charly config` and the `sidecar:` field in `charly.yml`). MUST be invoked before any work involving: sidecar containers, pod networking, Tailscale exit nodes, `charly config --sidecar`, the `charly.yml` `sidecar:` field, or sidecar-env filtering (`env_accept` / `env_require` routing to the sidecar vs the app container).
 ---
 
 # Sidecar — Deploy-Time Pod Composition
@@ -21,10 +21,10 @@ Sidecars are additional containers that run alongside an application container i
 
 ## Architecture
 
-Sidecar templates are compiled into the `charly` binary via `go:embed` (`charly/sidecar.yml`). At deploy time, `charly config --sidecar <name>` merges the template with per-machine overrides from `deploy.yml`, then generates quadlet files.
+Sidecar templates are compiled into the `charly` binary via `go:embed` (`charly/sidecar.yml`). At deploy time, `charly config --sidecar <name>` merges the template with per-machine overrides from `charly.yml`, then generates quadlet files.
 
 ```
-charly binary (embedded templates)     deploy.yml (per-machine overrides)
+charly binary (embedded templates)     charly.yml (per-machine overrides)
         ↓                                    ↓
    sidecar templates              env overrides + secrets
         ↓ MergeSidecars()                    ↓
@@ -64,7 +64,7 @@ charly bridge (container-to-container)
 
 ### Env Var Routing
 
-CLI `-e KEY=VALUE` flags are automatically routed: env vars matching a sidecar template's keys (all `TS_*` for tailscale) go to the sidecar's deploy.yml env override. Other vars go to the app container.
+CLI `-e KEY=VALUE` flags are automatically routed: env vars matching a sidecar template's keys (all `TS_*` for tailscale) go to the sidecar's charly.yml env override. Other vars go to the app container.
 
 ## Environment Contract (env_provide / env_accept / env_require)
 
@@ -84,13 +84,13 @@ If a future sidecar needs to forward auth tokens or service URLs into the app, t
 
 - Sidecar template declares `env_provide:` with `{{.ContainerName}}`-templated values
 - App candy declares `env_accept: [<var>]` or `env_require: [<var>]`
-- `charly config` resolves the provide at deploy time and writes it to `deploy.yml` under `provides:`
+- `charly config` resolves the provide at deploy time and writes it to `charly.yml` under `provides:`
 
 Missing `env_accept` on the consumer side silently drops the var. Missing `env_require` is a hard fail. See `/charly-image:layer` (env_require / env_accept) for the authoring side, `/charly-core:charly-config` (Provides Filtering) for the resolution pipeline, and `provides.go` in the `charly` source for the implementation.
 
-### deploy.yml Persistence
+### charly.yml Persistence
 
-`--sidecar` assignments and `-e` overrides are saved to `deploy.yml`. Subsequent `charly config` calls re-read them:
+`--sidecar` assignments and `-e` overrides are saved to `charly.yml`. Subsequent `charly config` calls re-read them:
 
 ```yaml
 box:
@@ -164,7 +164,7 @@ character with `_`. So:
 # 2. Store under the per-tailnet env var name:
 charly secrets gpg set TS_AUTHKEY_ARMADILLO_QUAIL_TS_NET tskey-auth-XXXXXXXXX
 
-# 3. Wire `parameter.tailnet:` into deploy.yml under sidecar.tailscale:
+# 3. Wire `parameter.tailnet:` into charly.yml under sidecar.tailscale:
 #    (operator-edited; no auto-write)
 
 # 4. Wipe stale state so the sidecar re-auths with the new key:
@@ -191,7 +191,7 @@ form:
 charly migrate
 # Prompts for the tailnet the existing TS_AUTHKEY belongs to (auto-detects
 # from a running sidecar when present), renames the .secrets entry to the
-# per-tailnet form, and warns about deploy.yml entries that need
+# per-tailnet form, and warns about charly.yml entries that need
 # parameter.tailnet set.
 ```
 
@@ -202,7 +202,7 @@ rename. Idempotent.
 Any deploy with a tailscale sidecar that doesn't supply
 `parameter.tailnet:` fails at `charly config` time with the message:
 
-> sidecar "tailscale": sidecar secret "ts-authkey" references parameter "tailnet" which is unset. Set `sidecars.<sidecar-name>.parameter.tailnet: <value>` in deploy.yml or run `charly migrate`
+> sidecar "tailscale": sidecar secret "ts-authkey" references parameter "tailnet" which is unset. Set `sidecars.<sidecar-name>.parameter.tailnet: <value>` in charly.yml or run `charly migrate`
 
 ### Environment Variables
 
@@ -270,7 +270,7 @@ The sidecar runs its own `tailscaled` daemon in the pod's network namespace with
 
 ### Host Tailnet Port Exposure
 
-The host's `tunnel: tailscale` (configured in deploy.yml) is independent of the sidecar:
+The host's `tunnel: tailscale` (configured in charly.yml) is independent of the sidecar:
 - `ExecStartPost=tailscale serve` runs on the **host**, exposing pod ports on the **host's tailnet**
 - The sidecar handles routing on the **sidecar's tailnet**
 - Both work simultaneously (dual networking)
@@ -281,7 +281,7 @@ Chrome requires large `/dev/shm`. In pod mode, per-container `ShmSize=` is ignor
 
 ## Cross-References
 
-- `/charly-core:deploy` — Quadlet generation, deploy.yml, tunnel configuration (tunnel is deploy.yml-only, not auto-inherited by instances)
+- `/charly-core:deploy` — Quadlet generation, charly.yml, tunnel configuration (tunnel is charly.yml-only, not auto-inherited by instances)
 - `/charly-core:charly-config` — `--sidecar` and `--list-sidecars` flags, Provides Filtering, resource caps, NO_PROXY auto-enrichment
 - `/charly-image:layer` — `env_accept` / `env_require` authoring and the full provides filtering contract
 - `/charly-build:secrets` — `charly secrets gpg set TS_AUTHKEY` for auth key storage

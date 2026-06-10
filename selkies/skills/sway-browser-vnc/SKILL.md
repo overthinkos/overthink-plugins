@@ -118,7 +118,7 @@ port 5900 reachable, Chrome CDP on port 9250→9222 with `/json/version`
 - `/charly-eval:cdp` — Chrome automation (CDP on host port 9250)
 - `/charly-eval:wl` — Wayland input/windows/clipboard (sway subgroup for compositor control)
 - `/charly-eval:dbus` — D-Bus notifications via in-container `charly` binary
-- `/charly-build:charly-mcp-cmd` — the box inherits 2 deploy-scope `mcp:` checks from the `chrome-devtools-mcp` candy (ping + list-tools asserting `navigate_page`/`take_screenshot`). `charly eval live sway-browser-vnc --filter mcp` runs them; note the **port-publishing gotcha** — if your `deploy.yml` has an explicit `port:` override that predates `chrome-devtools-mcp`, port 9224 may not be published. See `/charly-build:charly-mcp-cmd` for the fix.
+- `/charly-build:charly-mcp-cmd` — the box inherits 2 deploy-scope `mcp:` checks from the `chrome-devtools-mcp` candy (ping + list-tools asserting `navigate_page`/`take_screenshot`). `charly eval live sway-browser-vnc --filter mcp` runs them; note the **port-publishing gotcha** — if your `charly.yml` has an explicit `port:` override that predates `chrome-devtools-mcp`, port 9224 may not be published. See `/charly-build:charly-mcp-cmd` for the fix.
 
 ## Related Boxes
 

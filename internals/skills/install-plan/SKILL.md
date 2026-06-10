@@ -56,7 +56,7 @@ type InstallPlan struct {
     Layer          string       // set for per-layer plans; "" for merged whole-image plans
     Steps          []InstallStep
     CandiesIncluded []string     // ordered topo-sorted layer names (for merged plans)
-    AddCandies      []string     // refs added via deploy.yml add_candy: (for provenance)
+    AddCandies      []string     // refs added via charly.yml add_candy: (for provenance)
     BuilderImage   string       // selected builder for VenueContainerBuilder steps
     Meta           map[string]string
 }
@@ -135,7 +135,7 @@ separate, eval-time concern handled by `charly/eval_image_preflight.go`
 - OCITarget emits a `RUN mkdir -p ... && cat > <dest> <<EOF` heredoc with a sha256-derived end-marker (anti-collision).
 - LocalDeployTarget / VmDeployTarget probe `command -v <shell>` once at the top of `Emit()`; absent shells become VenueSkip-style no-ops with a logged reason. UseDropin=true → whole-file write; UseDropin=false → `replaceOrAppendManagedBlock` against the existing rc file with a per-layer marker.
 - Reverse: `ReverseOpRmFileSystem` / `ReverseOpRmFileUser` for drop-ins; `ReverseOpRemoveManaged` (with `Extra["marker"]=CandyName`) for managed-block append.
-- Round-trip: `LabelShell` (`ai.opencharly.shell`) carries the merged set; `CollectShell` builds it at `charly box build` time, `ExtractMetadata` parses it at deploy time, `MergeDeployShell` overlays deploy.yml entries by id.
+- Round-trip: `LabelShell` (`ai.opencharly.shell`) carries the merged set; `CollectShell` builds it at `charly box build` time, `ExtractMetadata` parses it at deploy time, `MergeDeployShell` overlays charly.yml entries by id.
 
 Each step's `Reverse()` emits typed `ReverseOp` values. Adding a step kind means: (a) define the struct in `install_plan.go`, (b) decide its Scope/Venue/Gate/Reverse, (c) add a case to each target's step dispatch (`emit*` in OCITarget; `exec*` in LocalDeployTarget), (d) ensure the compiler in `install_build.go` emits it.
 

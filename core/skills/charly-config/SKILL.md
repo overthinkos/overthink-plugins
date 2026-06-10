@@ -71,10 +71,10 @@ This is the **single entry point** for **container** deployment setup. `charly s
 | `--no-autodetect` | | | Disable GPU/device auto-detection (skips DRINODE, DRI_NODE, HSA_OVERRIDE_GFX_VERSION injection) |
 | `--ssh-key` | | `auto` | SSH public key: `auto` (default ~/.ssh key), path to .pub file, `generate`, or `none` |
 | `--update-all` | | | Regenerate quadlets for all other deployed images to pick up service env changes |
-| `--memory-max` | | | Cgroup `memory.max` hard OOM limit (e.g. `6g`, `500m`). Persists to deploy.yml. |
-| `--memory-high` | | | Cgroup `memory.high` soft limit — reclaim pressure kicks in before OOM. Persists to deploy.yml. |
-| `--memory-swap-max` | | | Cgroup `memory.swap.max` ceiling (e.g. `2g`). Persists to deploy.yml. |
-| `--cpus` | | | CPU quota in cores (e.g. `2.5` for 2.5 cores). Persists to deploy.yml. |
+| `--memory-max` | | | Cgroup `memory.max` hard OOM limit (e.g. `6g`, `500m`). Persists to charly.yml. |
+| `--memory-high` | | | Cgroup `memory.high` soft limit — reclaim pressure kicks in before OOM. Persists to charly.yml. |
+| `--memory-swap-max` | | | Cgroup `memory.swap.max` ceiling (e.g. `2g`). Persists to charly.yml. |
+| `--cpus` | | | CPU quota in cores (e.g. `2.5` for 2.5 cores). Persists to charly.yml. |
 
 ## How It Works
 
@@ -88,8 +88,8 @@ This is the **single entry point** for **container** deployment setup. `charly s
 8. Initializes encrypted volumes (gocryptfs) if configured
 9. Seeds data candies into the image's volumes (bind mounts AND podman named volumes)
 10. Runs `systemctl --user daemon-reload`
-11. Injects `env_provide` entries from image labels into deploy.yml `provides.env:` (resolves `{{.ContainerName}}` templates)
-12. Injects `mcp_provide` entries from image labels into deploy.yml `provides.mcp:` (resolves templates, defaults transport to `http`)
+11. Injects `env_provide` entries from image labels into charly.yml `provides.env:` (resolves `{{.ContainerName}}` templates)
+12. Injects `mcp_provide` entries from image labels into charly.yml `provides.mcp:` (resolves templates, defaults transport to `http`)
 13. Synthesizes `CHARLY_MCP_SERVERS` JSON env var for consumer containers (pod-aware: same-image entries resolve to `localhost`)
 14. Warns about missing `mcp_require` servers (same pattern as `env_require` warnings)
 15. If `--update-all`, regenerates quadlets for all other deployed images (preserving Instance, Tunnel, PodName, Sidecars, and instance-scoped volume names) and reloads systemd
@@ -144,7 +144,7 @@ Secrets declared in `charly.yml` `secret:` field are stored as OCI label metadat
 Data candies (candies with `data:` field) stage files into `/data/<volume>/<dest>/` at build time. At config time:
 
 - **First config** (`--seed`, default true): copies staged data into the image's volumes (both bind mounts and named volumes)
-- **Subsequent config**: skips if `data_seeded` flag is set in deploy.yml
+- **Subsequent config**: skips if `data_seeded` flag is set in charly.yml
 - **`--force-seed`**: re-seeds even if directory is not empty
 - **`--data-from <image>`**: seeds from a separate data image instead of the target image
 
@@ -152,7 +152,7 @@ Data candies (candies with `data:` field) stage files into `/data/<volume>/<dest
 
 Seeding runs for both volume backings, with a minor difference in how podman is invoked:
 
-- **Bind mount** (`--bind <name>` or `--bind <name>=<path>`, or `type: bind` in deploy.yml): the seeder runs `podman run --rm -v <host-path>:/seed --userns=keep-id:uid=<UID>,gid=<GID> <image> bash -c "cp -a /data/<vol>/. /seed/"`. The `--userns=keep-id` aligns the in-container UID with the real host UID so files end up owned by the host user.
+- **Bind mount** (`--bind <name>` or `--bind <name>=<path>`, or `type: bind` in charly.yml): the seeder runs `podman run --rm -v <host-path>:/seed --userns=keep-id:uid=<UID>,gid=<GID> <image> bash -c "cp -a /data/<vol>/. /seed/"`. The `--userns=keep-id` aligns the in-container UID with the real host UID so files end up owned by the host user.
 - **Named volume** (the default): the seeder runs `podman run --rm -v <charly-image-name>:/seed <image> bash -c "cp -a /data/<vol>/. /seed/"` — **without** `--userns=keep-id`. Named volumes live in the rootless subuid space; the runtime container reads them without keep-id, so the seeder must write with the same identity.
 
 For `FROM scratch` data images (`data_image: true`), bind-mount targets use `podman create` + `podman cp` (the simpler path), and named-volume targets use `podman run --mount type=image,src=<scratch>,dst=/staging,rw=false` with a lightweight `busybox:stable` helper image as the runnable side (pulled lazily on first use).
@@ -209,7 +209,7 @@ source classification (`env`/`keyring`/`config`/`locked`/`unavailable`/`default`
 
 Memory and CPU caps flow through the same `security:` block as `shm_size`.
 Layers can declare defaults; image/deploy overrides replace them. CLI flags
-on `charly config` persist to `deploy.yml` and take effect on the next quadlet
+on `charly config` persist to `charly.yml` and take effect on the next quadlet
 regeneration.
 
 ```bash
@@ -262,11 +262,11 @@ Warning: port conflicts detected:
 Wrote /home/atrawog/.config/containers/systemd/charly-<image>-<instance>.container
 ```
 
-The quadlet is still written with the conflicting port, so `charly start` will fail at bind time unless you either free the port, re-run `charly config` with a remap, or edit `deploy.yml`. Detection uses a local `net.Listen` probe per published port at configure time. Handy for multi-instance deployments alongside a production fleet (e.g., running `/charly-openclaw:openclaw-desktop` as a test instance while `/charly-selkies:selkies-labwc` holds the canonical 3000/9222/9224/2222 range).
+The quadlet is still written with the conflicting port, so `charly start` will fail at bind time unless you either free the port, re-run `charly config` with a remap, or edit `charly.yml`. Detection uses a local `net.Listen` probe per published port at configure time. Handy for multi-instance deployments alongside a production fleet (e.g., running `/charly-openclaw:openclaw-desktop` as a test instance while `/charly-selkies:selkies-labwc` holds the canonical 3000/9222/9224/2222 range).
 
 ## Deploy State
 
-All configuration is persisted to `~/.config/charly/deploy.yml`:
+All configuration is persisted to `~/.config/charly/charly.yml`:
 
 ```yaml
 deploy:
@@ -307,11 +307,11 @@ charly config my-app --bind workspace=/new/path
 
 ### Full instance removal (important: 3-step cleanup)
 
-`charly config remove` disables the systemd service but does NOT clean the deploy.yml entry. Running `--update-all` before cleaning deploy.yml will re-create quadlets from stale entries. Full cleanup requires:
+`charly config remove` disables the systemd service but does NOT clean the charly.yml entry. Running `--update-all` before cleaning charly.yml will re-create quadlets from stale entries. Full cleanup requires:
 
 ```bash
 charly config remove <image> -i <instance>     # 1. Stop & disable service
-charly deploy reset <image> -i <instance>       # 2. Remove deploy.yml entry
+charly deploy reset <image> -i <instance>       # 2. Remove charly.yml entry
 rm ~/.config/containers/systemd/charly-<image>-<instance>.container  # 3. Delete quadlet
 systemctl --user daemon-reload              # 4. Reload systemd
 systemctl --user reset-failed               # 5. Clear ghost units (optional)
@@ -343,10 +343,10 @@ charly eval cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
 
 ## Service Environment Injection
 
-When a configured image declares `env_provide` or `mcp_provide` in its layers (stored in OCI labels), `charly config` automatically injects those entries into the `provides:` section of `deploy.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `charly eval mcp ping <image>` — see `/charly-build:charly-mcp-cmd` for the full verb surface.
+When a configured image declares `env_provide` or `mcp_provide` in its layers (stored in OCI labels), `charly config` automatically injects those entries into the `provides:` section of `charly.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `charly eval mcp ping <image>` — see `/charly-build:charly-mcp-cmd` for the full verb surface.
 
 ```yaml
-# deploy.yml after `charly config ollama && charly config jupyter`
+# charly.yml after `charly config ollama && charly config jupyter`
 provides:
   env:
     - name: OLLAMA_HOST
@@ -386,7 +386,7 @@ charly config selkies-desktop -i 31.58.9.4 \
   -p 3001:3000 --update-all
 ```
 
-Result in `deploy.yml` `provides.mcp`:
+Result in `charly.yml` `provides.mcp`:
 ```yaml
 - name: chrome-devtools
   url: http://charly-selkies-desktop:9224/mcp
@@ -449,7 +449,7 @@ Error: openwebui requires the following environment variable(s):
 
   WEBUI_ADMIN_EMAIL — Admin email — pass via: charly config openwebui -e WEBUI_ADMIN_EMAIL=you@example.com
 
-Set them with -e flags, --env-file, or deploy.yml env:
+Set them with -e flags, --env-file, or charly.yml env:
 
   charly config openwebui -e WEBUI_ADMIN_EMAIL=...
 ```
@@ -478,13 +478,13 @@ Source: `charly/config_image.go` (`checkMissingSecretRequires`).
 
 ## Plaintext-to-Credential Migration Hook
 
-When `charly config <image>` runs, it automatically migrates any existing plaintext `NAME=VAL` entry in `deploy.yml`'s `env:` list whose NAME is now declared as `secret_accept` / `secret_require` on the image. The sequence:
+When `charly config <image>` runs, it automatically migrates any existing plaintext `NAME=VAL` entry in `charly.yml`'s `env:` list whose NAME is now declared as `secret_accept` / `secret_require` on the image. The sequence:
 
 1. Scan `dc.Images[deployKey(image, instance)].Env` for names that match `meta.SecretAccepts` / `meta.SecretRequires`
 2. For each match: copy the value to the credential store at the layer-declared `(service, key)` path (default `charly/secret/<NAME>`), remove the entry from `dc.Env`, mark the deploy config dirty
-3. On first mutation, back up `deploy.yml` → `deploy.yml.bak.<unix-timestamp>`
+3. On first mutation, back up `charly.yml` → `charly.yml.bak.<unix-timestamp>`
 4. Persist the cleaned deploy config via `SaveDeployConfig`
-5. Log each migrated entry on stderr: `"Migrated plaintext OPENROUTER_API_KEY from deploy.yml to credential store (charly/api-key/openrouter)"`
+5. Log each migrated entry on stderr: `"Migrated plaintext OPENROUTER_API_KEY from charly.yml to credential store (charly/api-key/openrouter)"`
 
 Idempotent — running on a clean host is a no-op. This gives pre-upgrade hosts an automatic one-time cleanup with a rollback point preserved.
 
@@ -501,13 +501,13 @@ Imported OPENROUTER_API_KEY into credential store (charly/api-key/openrouter)
 
 The normal secret resolution path then picks up the value from the backend on the same `charly config` invocation. First-time setup is a single command; subsequent runs don't need `-e`.
 
-Plain `env_accept` / `env_require` entries are unaffected — their `-e` values continue to flow through the plaintext env merge into `deploy.yml` and the quadlet as before.
+Plain `env_accept` / `env_require` entries are unaffected — their `-e` values continue to flow through the plaintext env merge into `charly.yml` and the quadlet as before.
 
 Source: `charly/config_secret_migration.go` (`scrubSecretCLIEnv`).
 
 ## Provides Filtering (env_accept / env_require opt-in)
 
-`env_provide` is the **supply** side of cross-container env discovery. `env_accept` and `env_require` are the **demand** side. The provide-resolution pipeline in `provides.go` intersects the two sets per consumer, so env vars flow through deploy.yml's `provides:` section only to consumers that explicitly asked for them.
+`env_provide` is the **supply** side of cross-container env discovery. `env_accept` and `env_require` are the **demand** side. The provide-resolution pipeline in `provides.go` intersects the two sets per consumer, so env vars flow through charly.yml's `provides:` section only to consumers that explicitly asked for them.
 
 **Why filtering exists.** Without it, every deployed service would see every other service's `env_provide` — a chrome layer would receive tailscale sidecar `TS_*` vars, a postgres layer would receive ollama's `OLLAMA_HOST`, and the env table would quickly become noise. Explicit opt-in via `env_accept`/`env_require` is how we enforce the principle that services must declare the contracts they rely on.
 
@@ -541,7 +541,7 @@ charly config <image> --sidecar tailscale \
   -e "TS_EXTRA_ARGS=--exit-node=<ip> --exit-node-allow-lan-access"
 ```
 
-- `--sidecar <name>` — Attach sidecar (repeatable). Saved to deploy.yml
+- `--sidecar <name>` — Attach sidecar (repeatable). Saved to charly.yml
 - CLI `-e` env vars matching sidecar template keys (e.g., `TS_*`) are auto-routed to the sidecar, not the app container
 - Generates pod + sidecar + app quadlet files (3 instead of 1)
 
@@ -551,17 +551,17 @@ See `/charly-automation:sidecar` for full sidecar documentation.
 
 **Merge behavior (default):** `-e` performs upsert — new vars override existing vars with the same key; existing vars not in the new set are preserved. This means `charly config setup -e HTTP_PROXY=...` adds the proxy without dropping existing vars like `SSH_AUTHORIZED_KEYS`.
 
-**Clean behavior (`-c`):** `-c`/`--clean` replaces the entire env list in deploy.yml. Use when you want to reset env vars to exactly what's specified on the command line.
+**Clean behavior (`-c`):** `-c`/`--clean` replaces the entire env list in charly.yml. Use when you want to reset env vars to exactly what's specified on the command line.
 
 Kong `sep:"none"` on all `-e` flags means commas in values are preserved (no splitting). `NO_PROXY=localhost,127.0.0.1` works correctly as a single env var.
 
-`normalizeNoProxy()` auto-converts semicolons to commas in `NO_PROXY`/`no_proxy` values during env resolution. Legacy semicolon values in deploy.yml are auto-healed.
+`normalizeNoProxy()` auto-converts semicolons to commas in `NO_PROXY`/`no_proxy` values during env resolution. Legacy semicolon values in charly.yml are auto-healed.
 
 **NO_PROXY enrichment:** When `HTTP_PROXY` or `HTTPS_PROXY` is present, `charly config` automatically appends all deployed container hostnames to `NO_PROXY`. This is necessary because Chrome does not support CIDR ranges in NO_PROXY (unlike curl) — without explicit hostnames, Chrome routes internal traffic like `http://charly-immich-ml:2283` through the external proxy, causing Bad Gateway errors. Applied in both the main config path and `--update-all`. Source: `charly/envfile.go` (`enrichNoProxy`), `charly/deploy.go` (`DeployedContainerNames`).
 
-**Tunnel persistence:** `charly config setup` automatically persists tunnel config from deploy.yml back to deploy.yml via `saveDeployState`. Tunnel is a deploy-time concern — see `/charly-core:deploy` for tunnel configuration.
+**Tunnel persistence:** `charly config setup` automatically persists tunnel config from charly.yml back to charly.yml via `saveDeployState`. Tunnel is a deploy-time concern — see `/charly-core:deploy` for tunnel configuration.
 
-**Tunnel is deploy.yml-only:** `labels.go:238` deliberately skips parsing the `ai.opencharly.tunnel` OCI image label. Tunnel config is ONLY sourced from `deploy.yml`. New instances created with `charly config setup -i <name>` do NOT inherit tunnel config from the base image's deploy.yml entry — you must manually add `tunnel: {provider: tailscale, private: all}` to the instance's deploy.yml entry, then re-run `charly config setup` to regenerate the quadlet with `ExecStartPost=tailscale serve` commands.
+**Tunnel is charly.yml-only:** `labels.go:238` deliberately skips parsing the `ai.opencharly.tunnel` OCI image label. Tunnel config is ONLY sourced from `charly.yml`. New instances created with `charly config setup -i <name>` do NOT inherit tunnel config from the base image's charly.yml entry — you must manually add `tunnel: {provider: tailscale, private: all}` to the instance's charly.yml entry, then re-run `charly config setup` to regenerate the quadlet with `ExecStartPost=tailscale serve` commands.
 
 Source: `charly/envfile.go` (`normalizeNoProxy`), `charly/deploy.go` (`mergeEnvVars`, `saveDeployState`), `sep:"none"` in config_image.go/shell.go/commands.go/start.go.
 
@@ -575,13 +575,13 @@ Source: `charly/envfile.go` (`normalizeNoProxy`), `charly/deploy.go` (`mergeEnvV
 
 - `/charly-automation:sidecar` — Sidecar containers, pod networking, Tailscale exit nodes, Environment Contract (how sidecars participate in provides filtering)
 - `/charly-core:start` — Requires `charly config` first in quadlet mode
-- `/charly-core:deploy` — Deploy state file (deploy.yml), sidecar pod deployment, tunnel lifecycle, instance tunnel inheritance, resource caps persistence
+- `/charly-core:deploy` — Deploy state file (charly.yml), sidecar pod deployment, tunnel lifecycle, instance tunnel inheritance, resource caps persistence
 - `/charly-automation:enc` — Encrypted storage details
 - `/charly-build:secrets` — Container secret management, `charly secrets gpg set TS_AUTHKEY`
 - `/charly-build:settings` — Runtime settings (engine, run_mode, encrypted_storage_path)
 - `/charly-core:service` — Service lifecycle (start, stop, status, logs)
 - `/charly-image:layer` — Volume, secret, `env_provide` / `env_require` / `env_accept` declarations, security resource cap fields, `service:` blocks
-- `/charly-image:image` — Image composition, inheritance, OCI label emission, tunnel deploy.yml-only note (`labels.go:238`)
+- `/charly-image:image` — Image composition, inheritance, OCI label emission, tunnel charly.yml-only note (`labels.go:238`)
 - `/charly-core:charly-doctor` — Host GPU/device detection driving `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
 - `/charly-core:shell` — Interactive shells share the same `appendAutoDetectedEnv()` path
 - `/charly-selkies:chrome` — Chrome HTTP proxy (`env_accept`), NO_PROXY auto-enrichment, cgroup resource caps

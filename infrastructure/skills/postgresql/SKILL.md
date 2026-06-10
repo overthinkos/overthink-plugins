@@ -38,7 +38,7 @@ The entrypoint also reads these variables (with defaults, not set in charly.yml)
 | `PGHOST` | `{{.ContainerName}}` | `charly-postgresql` |
 | `PGPORT` | `5432` | `5432` |
 
-Pod-aware: same-container consumers receive `PGHOST=localhost`, cross-container consumers receive `PGHOST=charly-postgresql`. When `charly config` runs, these are automatically injected into the global `deploy.yml` env for PostgreSQL service discovery.
+Pod-aware: same-container consumers receive `PGHOST=localhost`, cross-container consumers receive `PGHOST=charly-postgresql`. When `charly config` runs, these are automatically injected into the global `charly.yml` env for PostgreSQL service discovery.
 
 See `/charly-image:layer` for `env_provide` field docs.
 

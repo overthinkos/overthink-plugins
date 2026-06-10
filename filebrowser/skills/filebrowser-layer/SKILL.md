@@ -62,7 +62,7 @@ filebrowser:
     - "8085:8080"
 ```
 
-Tunnel config is in `deploy.yml`: `tunnel: {provider: tailscale, private: all}`. See `/charly-core:deploy`.
+Tunnel config is in `charly.yml`: `tunnel: {provider: tailscale, private: all}`. See `/charly-core:deploy`.
 
 ## Used In Boxes
 

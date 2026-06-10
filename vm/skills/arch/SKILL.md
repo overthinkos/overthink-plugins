@@ -15,7 +15,7 @@ The `arch` VM entity and its `eval-arch-vm` / `eval-arch-pacstrap-vm` disposable
 (plus the nested `arch-host` bed) live in the **`overthinkos/arch`** repo (git
 submodule at **`box/arch`**), in that repo's config (its `charly.yml` + per-kind sibling files).
 The beds are `kind: eval` entities (the 2026-05 deploy→eval unification moved
-every repo-shipped disposable bed out of `deploy.yml`), driven by `charly eval run
+every repo-shipped disposable bed out of `charly.yml`), driven by `charly eval run
 <bed>`. Drive them from the submodule, e.g. `charly -C box/arch vm create arch`
 and `charly -C box/arch eval run eval-arch-vm` (or `charly --repo overthinkos/arch …`). Any
 candies applied via `add_candy:` are pulled from this repo by git ref.
@@ -261,7 +261,7 @@ Root cause: `pacman -S spice-vdagent` pulls in GTK3 + X11 (~200 MB download, ~1 
 
 ## Finding D — SSH key idempotency across rebuilds
 
-`charly vm build` + `charly vm create` called repeatedly should NOT regenerate the SSH keypair. Implementation idempotency lives in `charly/vm_cloud_image.go::generateSSHKeypair` — it checks for `~/.local/share/charly/vm/charly-<name>/id_ed25519.pub` before creating. See `/charly-internals:vm-deploy-target` for the state persistence flow (VmDeployState in `deploy.yml`).
+`charly vm build` + `charly vm create` called repeatedly should NOT regenerate the SSH keypair. Implementation idempotency lives in `charly/vm_cloud_image.go::generateSSHKeypair` — it checks for `~/.local/share/charly/vm/charly-<name>/id_ed25519.pub` before creating. See `/charly-internals:vm-deploy-target` for the state persistence flow (VmDeployState in `charly.yml`).
 
 ## Adopt pattern in action
 

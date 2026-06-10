@@ -40,7 +40,7 @@ description: |
 | Variable | Mechanism |
 |----------|-----------|
 | `RUNNER_ORG` | `env_accept` (plaintext identifier; supplied at deploy) |
-| `RUNNER_TOKEN` | `secret_accept` (credential-store-backed; never in deploy.yml/quadlet) |
+| `RUNNER_TOKEN` | `secret_accept` (credential-store-backed; never in charly.yml/quadlet) |
 | `RUNNER_WORK_DIR` | `${HOME}/actions-runner/_work` |
 | `RUNNER_GROUP` | `Default` |
 

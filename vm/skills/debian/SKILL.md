@@ -17,7 +17,7 @@ The `debian-debootstrap` VM entity and its `eval-debian-debootstrap-vm` disposab
 test bed live in the **`overthinkos/debian`** repo (git submodule at
 **`box/debian`**), in that repo's config (its `charly.yml` + per-kind sibling files). The bed is a
 `kind: eval` entity (the 2026-05 deploy→eval unification moved repo-shipped
-disposable beds out of `deploy.yml`), driven by `charly eval run
+disposable beds out of `charly.yml`), driven by `charly eval run
 eval-debian-debootstrap-vm`. Drive the VM lifecycle from the submodule:
 `charly -C box/debian vm build debian-debootstrap` +
 `charly -C box/debian vm create debian-debootstrap` (or

@@ -12,18 +12,18 @@ description: |
 - **Cross-ref fields on `DeploymentNode`** — `vm: <entity>` for target: vm, `box: <name>` for target: pod, `k8s: <name>` for target: k8s, `inside: <deploy>` for nested local-deploy. Deploy nesting uses `nested:`.
 - **Disposability is a deploy property** — `DeploymentNode.Disposable` is the sole source of truth.
 - **Resource arbitration is a deploy property** — `preemptible:` (holder; occupies exclusive host-resource token(s), may be gracefully stopped + restored) and `requires_exclusive:` (claimant; needs sole use) on `DeploymentNode` drive the arbiter (`charly preempt`). A fourth axis ORTHOGONAL to disposable/ephemeral/lifecycle. See "Preemptible resource arbitration" below + `/charly-internals:disposable`.
-- **Disposable R10 test beds are `kind: eval` entities** (run via `charly eval run <bed>`), NOT `deploy:` entries — ecosystem-wide. The main repo's beds (`eval-pod`, `eval-k3s-vm`, `eval-sway-browser-vnc-pod`, …) AND every `box/<distro>` submodule's beds (the arch / cachyos / debian / ubuntu / fedora bootstrap-VM + pacstrap/debootstrap beds, in each submodule's config — its `charly.yml` + per-kind sibling files) are `kind: eval`. Repos ship NO `kind: deploy` test beds; the one `kind: deploy` exception is the cachyos submodule's `charly-cachyos` operator workstation profile (a profile, not a test bed). Operator deployments otherwise live in the per-host `~/.config/charly/deploy.yml`. See `/charly-eval:eval` "kind: eval beds".
+- **Disposable R10 test beds are `kind: eval` entities** (run via `charly eval run <bed>`), NOT `deploy:` entries — ecosystem-wide. The main repo's beds (`eval-pod`, `eval-k3s-vm`, `eval-sway-browser-vnc-pod`, …) AND every `box/<distro>` submodule's beds (the arch / cachyos / debian / ubuntu / fedora bootstrap-VM + pacstrap/debootstrap beds, in each submodule's config — its `charly.yml` + per-kind sibling files) are `kind: eval`. Repos ship NO `kind: deploy` test beds; the one `kind: deploy` exception is the cachyos submodule's `charly-cachyos` operator workstation profile (a profile, not a test bed). Operator deployments otherwise live in the per-host `~/.config/charly/charly.yml`. See `/charly-eval:eval` "kind: eval beds".
 
 ## Overview
 
-`charly deploy` is the parent verb for applying and tearing down deployments, plus managing `deploy.yml` overrides. The command family has two distinct surfaces:
+`charly deploy` is the parent verb for applying and tearing down deployments, plus managing `charly.yml` overrides. The command family has two distinct surfaces:
 
 1. **Execution verbs** — `charly deploy add <name>` / `charly deploy del <name>`. Apply or reverse a deployment. Four targets are dispatched by the `target:` field:
    - `target: local` → `LocalDeployTarget` on the local filesystem (or, with `inside: <deploy>`, via NestedExecutor into the referenced deployment). See `/charly-local:local-deploy`.
    - `target: vm` (+ `vm: <entity>`) → `VmDeployTarget` inside a running VM via SSH. See "VM target" section below and `/charly-internals:vm-deploy-target`.
    - `target: pod` (+ `box: <image>`) → `PodDeployTarget`: overlay Containerfile + quadlet/podman.
    - `target: k8s` (+ `k8s: <name>`) → Kustomize base/overlays tree. See `/charly-kubernetes:kubernetes`.
-2. **Config-file management** — `charly deploy show/export/import/reset/path/status`. Read and mutate `~/.config/charly/deploy.yml` itself.
+2. **Config-file management** — `charly deploy show/export/import/reset/path/status`. Read and mutate `~/.config/charly/charly.yml` itself.
 
 ## Targets, one schema
 
@@ -49,15 +49,15 @@ on its emulator pod) mirrors `vm → k8s`; a pod's android children deploy AFTER
 | Tear down deploy | `charly deploy del <name>` | Stop container + reverse ReverseOps (host) + ledger cleanup |
 | Dry-run | `charly deploy add <name> <ref> --dry-run [--format=json]` | Print the InstallPlan without executing |
 | Layer overlay | `charly deploy add <name> <ref> --add-candy <ref>` | Extra layer(s) applied on top; repeatable |
-| Configure deployment | `charly config <image>` | Generate .container file + save deploy.yml |
+| Configure deployment | `charly config <image>` | Generate .container file + save charly.yml |
 | Configure instance | `charly config <image> -i <instance>` | Generate instance-specific quadlet + deploy entry |
 | Configure volume backing | `charly config <image> --bind name` | Set volume as host bind mount |
 | Provision data | `charly config <image> --seed` | Auto-provision data candies into bind mounts (default) |
-| Deploy status | `charly deploy status` | Audit deploy.yml vs quadlet sync |
-| Show overrides | `charly deploy show [image]` | Display deploy.yml contents |
+| Deploy status | `charly deploy status` | Audit charly.yml vs quadlet sync |
+| Show overrides | `charly deploy show [image]` | Display charly.yml contents |
 | Show instance overrides | `charly deploy show <image> -i <instance>` | Display instance-specific overrides |
-| Import config | `charly deploy import <files>` | Merge files into deploy.yml |
-| Reset config | `charly deploy reset [image]` | Remove deploy.yml overrides |
+| Import config | `charly deploy import <files>` | Merge files into charly.yml |
+| Reset config | `charly deploy reset [image]` | Remove charly.yml overrides |
 | Reset instance config | `charly deploy reset <image> -i <instance>` | Remove instance overrides |
 | Push to registry | `charly box build --push` | Multi-platform push |
 
@@ -72,7 +72,7 @@ Applies a deployment. The deploy entry's `target:` field selects the target:
 - **`target: local`** — apply layers to the local filesystem via `LocalDeployTarget`. With `host: local` (default) the apply runs directly; with `host: <user@machine>` it runs over SSH. See `/charly-local:local-deploy`.
 - **`target: vm`** (+ `vm: <entity>`) — apply layers inside a running `kind: vm` entity via SSH (`VmDeployTarget`). `<vm-name>` must match an entry in `vm.yml`; the VM must already be created (`charly vm create <vm-name>`). See "VM target" section below.
 - **`target: k8s`** (+ `k8s: <name>`) — emit a Kustomize base/overlays tree. See `/charly-kubernetes:kubernetes`.
-- **`target: pod`** (default, + `box: <image>`) — container deployment. Multiple pod deploys coexist (`my-dev`, `postgres-staging`, etc.); each gets its own quadlet, container name, and deploy.yml entry.
+- **`target: pod`** (default, + `box: <image>`) — container deployment. Multiple pod deploys coexist (`my-dev`, `postgres-staging`, etc.); each gets its own quadlet, container name, and charly.yml entry.
 
 `<ref>` accepts four forms, auto-detected:
 
@@ -85,12 +85,12 @@ Applies a deployment. The deploy entry's `target:` field selects the target:
 
 Disambiguation: a ref containing `/candy/` resolves to a candy; `/box/` to a box. For local names, `box/` is checked before `candy/`; same-named entries in both are a hard error. The legacy `@host/org/repo:version` form (used by `require:` and `candy:` in charly.yml) is also accepted.
 
-When `<ref>` is omitted, the ref falls back to `deploy.yml['deploys'][<name>]['image']` (or the deploy key itself if no explicit image is declared).
+When `<ref>` is omitted, the ref falls back to `charly.yml['deploys'][<name>]['image']` (or the deploy key itself if no explicit image is declared).
 
 ### `charly deploy add` flags
 
 **Universal:**
-- `--tag <calver>` — override deploy.yml tag
+- `--tag <calver>` — override charly.yml tag
 - `--dry-run` — print the InstallPlan without executing
 - `--format table|json` — with `--dry-run`
 - `--pull` — force re-fetch of remote refs / image pull
@@ -124,9 +124,9 @@ charly deploy add vm:arch fedora-coder \
 charly deploy del vm:arch                        # reverse all applied layers (VM stays up)
 ```
 
-### `VmDeployState` schema in deploy.yml
+### `VmDeployState` schema in charly.yml
 
-When `charly deploy add vm:<name>` completes, a `vm_state` sub-object lands in the deploy.yml entry:
+When `charly deploy add vm:<name>` completes, a `vm_state` sub-object lands in the charly.yml entry:
 
 ```yaml
 deploy:
@@ -157,7 +157,7 @@ deploy:
 Two ways to mark a deploy entry as VM-targeted:
 
 1. **Name prefix (preferred)**: the deploy key is `vm:<vm-name>`. CLI dispatch reads the prefix and routes through `ResolveTarget` → `VmUnifiedTarget.Add`.
-2. **Explicit field**: the deploy key is anything + `target: vm`. Useful when you want a non-prefixed deploy name (e.g., for readability in `deploy.yml`).
+2. **Explicit field**: the deploy key is anything + `target: vm`. Useful when you want a non-prefixed deploy name (e.g., for readability in `charly.yml`).
 
 Using both is redundant but harmless. Using `target: vm` on a non-`vm:`-prefixed deploy whose underlying VM doesn't exist errors at `charly deploy add` time.
 
@@ -169,7 +169,7 @@ This is the same merge semantics as `LocalDeployTarget` — just with SSH-wrappe
 
 ### VM-relevant `install_opts:` fields
 
-`install_opts:` in the deploy.yml entry mirrors the CLI flags on `charly deploy add`. For VM targets, the relevant ones are:
+`install_opts:` in the charly.yml entry mirrors the CLI flags on `charly deploy add`. For VM targets, the relevant ones are:
 
 | Field | Effect |
 |---|---|
@@ -197,7 +197,7 @@ See `/charly-vm:vms-catalog` for vm.yml authoring, `/charly-vm:vm` for the lifec
 
 ### `add_candy:` overlay mechanism
 
-Both container and host targets accept extra candies at deploy time via `--add-candy <ref>` (repeatable) or a `deploy.yml['deploys'][<name>]['add_layers']` list. Semantics:
+Both container and host targets accept extra candies at deploy time via `--add-candy <ref>` (repeatable) or a `charly.yml['deploys'][<name>]['add_layers']` list. Semantics:
 
 - **Container target**: synthesizes an overlay Containerfile (`FROM <base-image>` + the extra candies' build steps) and builds a deterministic overlay image tagged `<deploy-name>-overlay:<short-hash>`. The deploy runs the overlay, not the base image. Re-running with different overlays rebuilds. `charly deploy del <name>` removes the overlay unless `--keep-image`.
 - **Host target**: the compiler merges the box's candies with `add_candy:`, topo-sorts the union, and compiles one `InstallPlan` covering the combined set. The ledger records which candies (base + overlay) were applied so teardown reverses everything.
@@ -329,7 +329,7 @@ added since. Requiring `box:` makes the inspected image deterministic.
 **Deploy a local image as a container:**
 ```bash
 charly deploy add my-dev fedora-coder
-# Uses deploy.yml['deploys']['my-dev'] for volumes/ports/env/tunnel.
+# Uses charly.yml['deploys']['my-dev'] for volumes/ports/env/tunnel.
 charly deploy del my-dev
 ```
 
@@ -403,7 +403,7 @@ Source: `charly/quadlet.go` (generation), `charly/commands.go` (command structs)
 
 ## Tunnel Configuration
 
-Expose services outside the container host via tunnels. Tunnel config lives exclusively in `deploy.yml` — it is NOT in `charly.yml` or OCI image labels. `charly config setup` persists tunnel config automatically via `saveDeployState`.
+Expose services outside the container host via tunnels. Tunnel config lives exclusively in `charly.yml` — it is NOT in `charly.yml` or OCI image labels. `charly config setup` persists tunnel config automatically via `saveDeployState`.
 
 ### Tailscale Serve (tailnet-private, default)
 
@@ -419,7 +419,7 @@ tunnel:
 
 **`bind_address` must be `127.0.0.1` (the default).** Setting `0.0.0.0` causes the container to bind on the Tailscale interface, preventing Tailscale from intercepting TLS. Result: HTTPS fails with `wrong version number`.
 
-**Port form in `deploy.yml`.** The canonical form is bare `H:C` (e.g. `8888:8888`); `charly config` prepends `127.0.0.1:` automatically when a tunnel is set. The IP-prefixed form `127.0.0.1:8888:8888` (and IPv6 `[::1]:8888:8888`) is also accepted — the canonical `ParsePortMapping` helper in `charly/ports.go` normalizes both shapes to a single-prefixed `PublishPort=` line, so neither form produces a doubled `127.0.0.1:127.0.0.1:8888:8888` quadlet. Unparseable port strings are logged loudly to stderr rather than silently dropped (a silent skip would otherwise suppress the entire `ExecStartPost=tailscale serve` block when even one port couldn't be parsed).
+**Port form in `charly.yml`.** The canonical form is bare `H:C` (e.g. `8888:8888`); `charly config` prepends `127.0.0.1:` automatically when a tunnel is set. The IP-prefixed form `127.0.0.1:8888:8888` (and IPv6 `[::1]:8888:8888`) is also accepted — the canonical `ParsePortMapping` helper in `charly/ports.go` normalizes both shapes to a single-prefixed `PublishPort=` line, so neither form produces a doubled `127.0.0.1:127.0.0.1:8888:8888` quadlet. Unparseable port strings are logged loudly to stderr rather than silently dropped (a silent skip would otherwise suppress the entire `ExecStartPost=tailscale serve` block when even one port couldn't be parsed).
 
 ### Tailscale Funnel (public internet)
 
@@ -504,11 +504,11 @@ Port protocols are stored in the `ai.opencharly.port_proto` image label so deplo
 
 ### Instance Tunnel Inheritance
 
-**Critical:** When deploying instances with `charly config setup -i <name>`, tunnel config is NOT auto-inherited from the base image's deploy.yml entry. Each instance must have its own `tunnel:` section in deploy.yml. Without it, the generated quadlet will have no `ExecStartPost=tailscale serve` commands and the instance will be unreachable via Tailscale.
+**Critical:** When deploying instances with `charly config setup -i <name>`, tunnel config is NOT auto-inherited from the base image's charly.yml entry. Each instance must have its own `tunnel:` section in charly.yml. Without it, the generated quadlet will have no `ExecStartPost=tailscale serve` commands and the instance will be unreachable via Tailscale.
 
-**Root cause:** `labels.go:238` deliberately skips parsing the `ai.opencharly.tunnel` OCI label — tunnel is deploy.yml-only. When `charly config setup` creates a new instance, it writes ports/env/security to deploy.yml but does not copy tunnel from the base entry.
+**Root cause:** `labels.go:238` deliberately skips parsing the `ai.opencharly.tunnel` OCI label — tunnel is charly.yml-only. When `charly config setup` creates a new instance, it writes ports/env/security to charly.yml but does not copy tunnel from the base entry.
 
-**Workaround:** After `charly config setup -i <name>`, manually edit `~/.config/charly/deploy.yml` to add `tunnel: {provider: tailscale, private: all}` to the instance entry, then re-run `charly config setup -i <name>` to regenerate the quadlet.
+**Workaround:** After `charly config setup -i <name>`, manually edit `~/.config/charly/charly.yml` to add `tunnel: {provider: tailscale, private: all}` to the instance entry, then re-run `charly config setup -i <name>` to regenerate the quadlet.
 
 ### Resolution
 
@@ -516,9 +516,9 @@ Port protocols are stored in the `ai.opencharly.port_proto` image label so deplo
 
 Source: `charly/tunnel.go` (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`, `validTailscaleSchemes`, `validCloudflareSchemes`), `charly/validate.go` (`validateTunnel`), `charly/quadlet.go` (systemd integration).
 
-## deploy.yml — Source of Truth
+## charly.yml — Source of Truth
 
-`~/.config/charly/deploy.yml` is the **source of truth** for per-machine deployment configuration (not checked into git). All deployment commands read from image labels + deploy.yml — no `charly.yml` needed.
+`~/.config/charly/charly.yml` is the **source of truth** for per-machine deployment configuration (not checked into git). All deployment commands read from image labels + charly.yml — no `charly.yml` needed.
 
 ### How it gets populated
 
@@ -530,7 +530,7 @@ Source: `charly/tunnel.go` (`schemeTarget`, `tailscaleFlag`, `isTCPFamily`, `val
 
 The top-level deploy map is `deploy:`, and per-entry storage uses a structured `volume:` list. **`yaml.Unmarshal` silently drops unknown root keys**, so a file with the obsolete `image:` root key would parse to an empty `DeployConfig.Deploy` map and downstream commands would behave as if nothing was deployed — including the dangerous case where `bind_mounts: [{encrypted: true}]` entries become invisible to `loadEncryptedVolumes` and the encryption guarantee silently disappears. `LoadDeployConfig` (`charly/deploy.go:hasLegacyImagesKey`) detects the legacy root shape and fails loud, pointing at `charly migrate`.
 
-`charly status` surfaces this as a non-fatal warning (graceful degradation falls back to image-label-driven display); the strictly-deploy.yml-driven verbs (`charly deploy show`, `charly config status`, `charly start`) hard-fail. Run `charly migrate` to convert in place — it backs the original up to `<file>.bak.<unix-ts>` and rewrites to the latest schema. See `/charly-build:migrate` "charly migrate".
+`charly status` surfaces this as a non-fatal warning (graceful degradation falls back to image-label-driven display); the strictly-charly.yml-driven verbs (`charly deploy show`, `charly config status`, `charly start`) hard-fail. Run `charly migrate` to convert in place — it backs the original up to `<file>.bak.<unix-ts>` and rewrites to the latest schema. See `/charly-build:migrate` "charly migrate".
 
 ### Structure
 
@@ -569,13 +569,13 @@ Allowed fields: `workspace`, `version`, `tunnel`, `fqdn`, `acme_email`, `volumes
 
 ### `target` / `add_layer` / `install_opts` fields
 
-The `charly deploy add`/`del` surface carries three fields on every deploy.yml entry. They're honored only when relevant to the deploy target.
+The `charly deploy add`/`del` surface carries three fields on every charly.yml entry. They're honored only when relevant to the deploy target.
 
 **`target:`** — `pod` (default, container pipeline) or `local` (local filesystem apply). When `target: local` is set, `charly deploy add` routes to the local executor; `host: local` (default) runs directly, `host: <user@machine>` runs over SSH.
 
 **`add_candy:`** — list of extra layer refs applied on top of the image's base layers. Each entry accepts the same 4 ref forms as the command-line `--add-candy` flag (local name / local YAML path / remote `github.com/.../candy/<n>[@ref]`). See "add_candy: overlay mechanism" above for pod vs local semantics.
 
-**`install_opts:`** — local-target defaults that mirror the CLI flags on `charly deploy add`. CLI flags win on conflict; deploy.yml provides defaults so you don't have to repeat `--with-services --allow-repo-changes` on every invocation.
+**`install_opts:`** — local-target defaults that mirror the CLI flags on `charly deploy add`. CLI flags win on conflict; charly.yml provides defaults so you don't have to repeat `--with-services --allow-repo-changes` on every invocation.
 
 ```yaml
 deploy:
@@ -601,7 +601,7 @@ Fields ignored on pod deploys: `install_opts` (local-only). Fields ignored on lo
 
 ### Resource Caps
 
-Cgroup memory and CPU limits are stored in the `security:` block of deploy.yml and persist across `charly config` re-runs (a `--memory-max` flag applied once stays in effect until explicitly changed). The fields are:
+Cgroup memory and CPU limits are stored in the `security:` block of charly.yml and persist across `charly config` re-runs (a `--memory-max` flag applied once stays in effect until explicitly changed). The fields are:
 
 ```yaml
 deploy:
@@ -620,8 +620,8 @@ deploy:
 |---|---|
 | Layer → layer | Smallest value wins (tightest cap is the safer default) |
 | Layers → image-level `security:` in charly.yml | Box-level **replaces** the merged layer value |
-| Box-level → deploy-level `security:` in deploy.yml | Deploy-level **replaces** the image-level value |
-| CLI flag → deploy-level | CLI flag **writes** directly to deploy.yml (`--memory-max=...` on `charly config`) |
+| Box-level → deploy-level `security:` in charly.yml | Deploy-level **replaces** the image-level value |
+| CLI flag → deploy-level | CLI flag **writes** directly to charly.yml (`--memory-max=...` on `charly config`) |
 
 Quadlet emission (`[Service]` section of `.container` file):
 
@@ -632,7 +632,7 @@ Quadlet emission (`[Service]` section of `.container` file):
 
 Direct-mode emission (podman run flags, for `engine.run=direct`): `--memory`, `--memory-reservation`, `--memory-swap`, `--cpus`. `SecurityArgs` in `charly/security.go` emits both forms from the same source of truth.
 
-**Unset fields pass through** — setting `--memory-max=6g` alone will not wipe an existing `shm_size` from deploy.yml. Only the fields you pass on the CLI get overwritten; everything else is preserved from the current deploy.yml state.
+**Unset fields pass through** — setting `--memory-max=6g` alone will not wipe an existing `shm_size` from charly.yml. Only the fields you pass on the CLI get overwritten; everything else is preserved from the current charly.yml state.
 
 **Canonical consumer:** the chrome candy's cgroup caps. See `/charly-selkies:chrome` (Resource Caps) — the caps bound a Chrome crash loop's blast radius; a wedged loop (orphan memfd shmem) is cleared by restarting the container, which tears down the cgroup. See `/charly-infrastructure:supervisord` (Event Listeners) for the eventlistener pattern in general and `/charly-image:layer` (Security Declaration) for the authoring side.
 
@@ -681,26 +681,26 @@ If no source is specified, the credential resolution chain is used: env var > ke
 
 ### Workspace recall
 
-Volume binding is configured at deploy time via `--bind` flags. The binding is persisted in deploy.yml:
+Volume binding is configured at deploy time via `--bind` flags. The binding is persisted in charly.yml:
 
 ```bash
-charly config my-app --bind workspace=~/project    # Saves volume config to deploy.yml
+charly config my-app --bind workspace=~/project    # Saves volume config to charly.yml
 charly remove my-app --keep-deploy                 # Quadlet removed, config preserved
-charly config my-app                               # Picks up volumes from deploy.yml
+charly config my-app                               # Picks up volumes from charly.yml
 ```
 
 ### Deploy status audit
 
 ```bash
 charly deploy status
-# sway-browser-vnc              deploy.yml: yes  quadlet: yes  (ok)
-# old-service                   deploy.yml: yes  quadlet: no   (stale config)
-# manual-service                deploy.yml: no   quadlet: yes  (no overrides)
+# sway-browser-vnc              charly.yml: yes  quadlet: yes  (ok)
+# old-service                   charly.yml: yes  quadlet: no   (stale config)
+# manual-service                charly.yml: no   quadlet: yes  (no overrides)
 ```
 
 ### Labels-only architecture
 
-Deployment commands (`charly config`, `start`, `status`, `logs`, `update`, `remove`, `seed`, `service`) resolve all configuration from **OCI image labels** + **deploy.yml** — no `charly.yml` dependency. This means you can deploy on any machine with just `charly box pull` + `charly config`.
+Deployment commands (`charly config`, `start`, `status`, `logs`, `update`, `remove`, `seed`, `service`) resolve all configuration from **OCI image labels** + **charly.yml** — no `charly.yml` dependency. This means you can deploy on any machine with just `charly box pull` + `charly config`.
 
 **Local-storage requirement.** Because deploy-mode commands read OCI labels directly from local container storage (via `ExtractMetadata` → `podman inspect`), the image must be pulled first. If it isn't, the command fails with `ErrImageNotLocal` and the CLI suggests `charly box pull`. See `/charly-build:pull` for the sentinel pattern and remote-ref (`@github.com/...`) handling.
 
@@ -717,7 +717,7 @@ charly start selkies-desktop -i work
 charly start selkies-desktop -i personal
 ```
 
-**Deploy key convention:** Base images use `selkies-desktop` as the deploy.yml key. Instances use `selkies-desktop/work` (slash-separated). Functions: `deployKey()` constructs keys, `parseDeployKey()` splits them back. Source: `charly/deploy.go`.
+**Deploy key convention:** Base images use `selkies-desktop` as the charly.yml key. Instances use `selkies-desktop/work` (slash-separated). Functions: `deployKey()` constructs keys, `parseDeployKey()` splits them back. Source: `charly/deploy.go`.
 
 **Container naming:** `charly-<image>-<instance>` (e.g., `charly-selkies-desktop-work`). Quadlet file: `charly-selkies-desktop-work.container`.
 
@@ -734,9 +734,9 @@ deploy:
     ports: [3002:3000]
 ```
 
-**Instance lifecycle:** All commands accept `-i`: `charly start/stop/status/logs/remove <image> -i <instance>`, `charly deploy show/reset <image> -i <instance>`. Removing an instance only cleans its deploy.yml entry — the base and other instances are unaffected. Provides cleanup waits until the last entry for a base image is removed.
+**Instance lifecycle:** All commands accept `-i`: `charly start/stop/status/logs/remove <image> -i <instance>`, `charly deploy show/reset <image> -i <instance>`. Removing an instance only cleans its charly.yml entry — the base and other instances are unaffected. Provides cleanup waits until the last entry for a base image is removed.
 
-**Instance removal gotcha:** `charly config remove` disables the systemd service but does NOT remove the deploy.yml entry. You MUST also run `charly deploy reset <image> -i <instance>` and delete the quadlet file. If you run `charly config --update-all` before cleaning deploy.yml, stale quadlet files will be re-created. See `/charly-core:charly-config` for the full 3-step cleanup workflow.
+**Instance removal gotcha:** `charly config remove` disables the systemd service but does NOT remove the charly.yml entry. You MUST also run `charly deploy reset <image> -i <instance>` and delete the quadlet file. If you run `charly config --update-all` before cleaning charly.yml, stale quadlet files will be re-created. See `/charly-core:charly-config` for the full 3-step cleanup workflow.
 
 **MCP name disambiguation:** When an instance provides MCP servers, the server name gets `-<instance>` appended (e.g., `chrome-devtools-work`). See `/charly-core:charly-config` for details.
 
@@ -766,9 +766,9 @@ charly config immich -v library:bind:/mnt/nas -v import:bind -v cache:encrypted
 CHARLY_VOLUMES_IMMICH="library:bind:/mnt/nas,import:bind" charly config immich --password auto
 ```
 
-### deploy.yml Volume Config
+### charly.yml Volume Config
 
-Volume backing choices are persisted in deploy.yml:
+Volume backing choices are persisted in charly.yml:
 
 ```yaml
 volumes:
@@ -791,17 +791,17 @@ volumes:
 
 **Auto path:** When `type: bind` and no `host` is specified, the host path is computed at runtime: `<volumes_path>/<image>/<name>`. Default volumes_path: `~/.local/share/charly/volumes/`. Configurable: `charly settings set volumes_path /mnt/nas/charly` (env: `CHARLY_VOLUMES_PATH`).
 
-**Unconfigured volumes** remain named volumes — no deploy.yml entry needed.
+**Unconfigured volumes** remain named volumes — no charly.yml entry needed.
 
 ### Resolution Flow
 
 `ResolveVolumeBacking()` in `charly/deploy.go` splits image volumes into named volumes and bind-backed mounts:
 
 1. Load all volumes from image labels (`ai.opencharly.volume`)
-2. Load deploy.yml volume overrides for this image
+2. Load charly.yml volume overrides for this image
 3. For each declared volume:
-   - If deploy.yml says `type=bind` → host bind mount (explicit path or auto path)
-   - If deploy.yml says `type=encrypted` → gocryptfs FUSE mount
+   - If charly.yml says `type=bind` → host bind mount (explicit path or auto path)
+   - If charly.yml says `type=encrypted` → gocryptfs FUSE mount
    - Otherwise → named volume (Docker/Podman-managed)
 4. Deploy-only volumes (with `path:` set, not in any layer) are also supported
 
@@ -853,7 +853,7 @@ Requires the `socat` layer as a dependency. The relay runs as a `relay-<port>` s
 
 ## Provides Configuration
 
-Global environment and MCP server injection for all deployed images. Stored in deploy.yml under `provides:`.
+Global environment and MCP server injection for all deployed images. Stored in charly.yml under `provides:`.
 
 ### Structure
 
@@ -904,7 +904,7 @@ When a Tailscale sidecar is attached, the pod has dual networking:
 
 Host `tunnel: tailscale` (ExecStartPost=tailscale serve) and the sidecar are **independent**: the host tunnel serves ports on the host's tailnet, while the sidecar handles exit node routing on a potentially different tailnet.
 
-### deploy.yml Sidecar Config
+### charly.yml Sidecar Config
 
 ```yaml
 deploy:
@@ -1038,10 +1038,10 @@ deploy:
 - `/charly-eval:vnc` — VNC password setup for desktop containers
 - `/charly-vm:vm` — Virtual machine deployment (charly vm)
 - `/charly-build:build` — Building images before deployment (+ the `--no-cache` intermediate scratch-stage caveat)
-- `/charly-build:charly-mcp-cmd` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`charly eval mcp ping <image>`); note the **port-publishing gotcha** when a `port:` override in deploy.yml predates a newly-added mcp-providing layer
+- `/charly-build:charly-mcp-cmd` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`charly eval mcp ping <image>`); note the **port-publishing gotcha** when a `port:` override in charly.yml predates a newly-added mcp-providing layer
 - `/charly-image:image` — Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
 - `/charly-image:layer` — Unified `service:` schema (use_packaged + structured custom), `env_provide`/`env_require`/`env_accept` field declarations, security resource caps
-- `/charly-eval:eval` — Local `eval:` in deploy.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.
+- `/charly-eval:eval` — Local `eval:` in charly.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.
 
 **Canonical layer worked examples:**
 - `/charly-selkies:chrome` — cgroup resource-caps consumer (caps bound a Chrome crash loop)

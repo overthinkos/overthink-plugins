@@ -28,7 +28,7 @@ description: |
 |----------|---------------|-----------------|
 | `REDIS_URL` | `redis://{{.ContainerName}}:6379` | `redis://charly-redis:6379` |
 
-Pod-aware: same-container consumers receive `redis://localhost:6379`, cross-container consumers receive `redis://charly-redis:6379`. When `charly config` runs, `REDIS_URL` is automatically injected into the global `deploy.yml` env for Redis service discovery.
+Pod-aware: same-container consumers receive `redis://localhost:6379`, cross-container consumers receive `redis://charly-redis:6379`. When `charly config` runs, `REDIS_URL` is automatically injected into the global `charly.yml` env for Redis service discovery.
 
 See `/charly-image:layer` for `env_provide` field docs.
 
@@ -73,7 +73,7 @@ OCI label (see `/charly-eval:eval` for the full schema — this candy is the
     installed provider on Fedora 43; see Packages note above)
 - **Deploy-scope** (run under `charly eval live` against a live service; uses
   `${HOST_PORT:6379}` runtime substitution so the checks keep working
-  if `deploy.yml` remaps the host port — host-side tests always use
+  if `charly.yml` remaps the host port — host-side tests always use
   `127.0.0.1:${HOST_PORT:N}`, not `${CONTAINER_IP}`):
   - `redis-responds` — `redis-cli -h 127.0.0.1 -p ${HOST_PORT:6379} ping` returns `PONG`
   - `redis-port-open` — TCP dial `127.0.0.1:${HOST_PORT:6379}` succeeds

@@ -123,7 +123,7 @@ Deploy multiple instances with different HTTP proxies. Each instance gets a port
 | 2 | 3002 | 9232 | 9242 | 2232 |
 | N | 300N | 923N | 924N | 223N |
 
-**Tunnel must be in deploy.yml** for each instance. `charly config setup -i <ip>` does NOT inherit tunnel from the base entry. After config, manually add `tunnel: {provider: tailscale, private: all}` to the instance's deploy.yml entry, then re-run `charly config setup -i <ip>` to regenerate the quadlet with Tailscale serve commands. See `/charly-core:deploy` for details.
+**Tunnel must be in charly.yml** for each instance. `charly config setup -i <ip>` does NOT inherit tunnel from the base entry. After config, manually add `tunnel: {provider: tailscale, private: all}` to the instance's charly.yml entry, then re-run `charly config setup -i <ip>` to regenerate the quadlet with Tailscale serve commands. See `/charly-core:deploy` for details.
 
 **Chrome 147+ CDP:** The `/json/new` endpoint requires the PUT HTTP method (not GET). Use `curl -X PUT "http://localhost:<cdp-port>/json/new?<url>"` to create new tabs programmatically.
 
@@ -145,7 +145,7 @@ See `/charly-selkies:selkies-labwc` for full multi-instance deployment examples.
 - `/charly-eval:record` — Desktop video recording via capture bridge
 - `/charly-core:charly-update` — Per-instance update pattern used to roll out pixelflux/Chrome fixes
 - `/charly-core:charly-config` — Multi-instance deployment, resource caps, tunnel, proxy env vars, NO_PROXY auto-enrichment
-- `/charly-core:deploy` — Tunnel configuration (deploy.yml-only, instance inheritance gap)
+- `/charly-core:deploy` — Tunnel configuration (charly.yml-only, instance inheritance gap)
 
 ## Related
 

@@ -83,7 +83,7 @@ the `depends=` packages the charly/virtualization candies don't already provide
 ## Token mechanism (credential-backed; obtained via `gh`)
 
 `RUNNER_TOKEN` is a `secret_accept` (credential-store-backed — never written to
-deploy.yml or the quadlet); `RUNNER_ORG` is an `env_accept`. The registration
+charly.yml or the quadlet); `RUNNER_ORG` is an `env_accept`. The registration
 token is short-lived and only consumed once at `charly config` time (the registered
 runner persists its own `.credentials` on the `state` volume), so it is obtained
 fresh from `gh`. The `post_enable`/`pre_remove` hooks are guarded — they skip

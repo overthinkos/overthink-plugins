@@ -33,7 +33,7 @@ then `charly shell <image-name>` works via labels. See `/charly-build:pull`.
 ## How It Works
 
 1. Resolves image from OCI labels via `ExtractMetadata` (never `charly.yml`)
-2. Applies `deploy.yml` overlay (volumes, env, sidecars, tunnel)
+2. Applies `charly.yml` overlay (volumes, env, sidecars, tunnel)
 3. Ensures image exists in run engine (transfers from build engine if needed)
 4. Resolves volumes (with deploy-time backing), ports, security, environment
 5. If container is already running: `<engine> exec` into it
@@ -127,8 +127,8 @@ Source: `charly/devices.go` (`DetectHostDevices`, `DetectGPU`, `DetectAMDGPU`, `
 
 Runtime environment variables are injected from multiple sources. Resolution priority (last wins for duplicate keys):
 
-1. **Deploy config `env:`** (charly.yml / deploy.yml) -- lowest priority
-2. **Deploy config `env_file:`** (charly.yml / deploy.yml)
+1. **Deploy config `env:`** (charly.yml / charly.yml) -- lowest priority
+2. **Deploy config `env_file:`** (charly.yml / charly.yml)
 3. **Workspace `.env`** file -- auto-loaded from `-w` directory
 4. **CLI `--env-file`** flag
 5. **CLI `-e`** flags -- highest priority
@@ -200,7 +200,7 @@ Use `charly cmd` for quick operations on running services. Use `charly shell -c`
 - `/charly-core:service` -- Starting background services before exec
 - `/charly-core:start` -- Same `appendAutoDetectedEnv()` injection at service-start time
 - `/charly-core:charly-config` -- Deployment setup + same `appendAutoDetectedEnv()` at deploy time; `--no-autodetect` flag disables it
-- `/charly-core:deploy` -- `deploy.yml` overlay applied to labels before shell spawns
+- `/charly-core:deploy` -- `charly.yml` overlay applied to labels before shell spawns
 - `/charly-eval:cdp` -- Chrome DevTools Protocol automation
 - `/charly-eval:wl` (sway subgroup) -- Sway compositor control
 - `/charly-core:charly-doctor` -- Host hardware probe that feeds `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)

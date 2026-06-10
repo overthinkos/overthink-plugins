@@ -50,7 +50,7 @@ Source layout:
 - `charly/status_collector.go` — `Collector.All` (substrate fan-out + merge +
   nested overlay + sort) / `Collector.Single`; the pod row builder
   (`collectOne`, stamps `Kind=SubstratePod`, `Source="podman"`); the
-  worker-pool probe fan-out; `parseQuadletDescription`; deploy.yml lookup;
+  worker-pool probe fan-out; `parseQuadletDescription`; charly.yml lookup;
   `formatLiveMounts`.
 - `charly/status_collect_pod.go` — the `PodCollector` (wraps the engine snapshot +
   the `collectOne` row builder).
@@ -100,8 +100,8 @@ render as indented IMAGE-cell rows (`  └─ <child>`) under their parent.
 | KIND | Substrate discriminator: `pod` / `vm` / `k8s` / `local` / `android` (`-` when unset). Names which collector produced the row |
 | IMAGE | `image` for base deploys, `image/instance` for multi-instance (matches `deployKey` shape); for a vm/local/android row it is the vm name / local-template label / declared android device key |
 | STATUS | `running` / `stopped` / `enabled` / `failed` / `dead` / `paused`; substrate-specific values: `applied` (local ledger), `online` / `offline` / `absent` (android), `declared` / `reachable` / `unreachable` (nested children) |
-| PORTS | Sorted, deduped host port numbers from runtime `podman ps` (deploy.yml / image labels are fallbacks for non-running rows) |
-| TUNNEL | `provider (all ports)` / `provider (ports H,H,H)` / `-` — read from deploy.yml |
+| PORTS | Sorted, deduped host port numbers from runtime `podman ps` (charly.yml / image labels are fallbacks for non-running rows) |
+| TUNNEL | `provider (all ports)` / `provider (ports H,H,H)` / `-` — read from charly.yml |
 | DEVICES | Compact tokens (`gpu`, `dri`, `kvm`, `fuse`, `tun`) sorted alphabetically |
 | TOOLS | Live-probed tools — port-based show `name:port`, socket-based show just `name` |
 
@@ -134,7 +134,7 @@ A deploy can declare a nested tree (`pod → android`, `vm → pod`, `vm → hos
 child's venue is always REACHED THROUGH its parent, so `applyNestedOverlay`
 post-processes the already-merged flat rows: it reads the DECLARED tree from
 the merged deploy config (project `charly.yml` incl. folded `kind: eval`
-beds + `~/.config/charly/deploy.yml`) and attaches each declared child to its
+beds + `~/.config/charly/charly.yml`) and attaches each declared child to its
 parent row's `Nested[]`.
 
 **Dedup — a declared nested child appears exactly once.** A child substrate
@@ -248,7 +248,7 @@ not an array.
 
 1. Runtime `podman ps` mappings (`ContainerSnapshot.Ports`) — wins for
    running containers.
-2. `deploy.yml` `port:` (parsed via canonical `ParsePortMapping` —
+2. `charly.yml` `port:` (parsed via canonical `ParsePortMapping` —
    handles the `127.0.0.1:H:C/proto` IPv4-prefixed form correctly) —
    used when runtime data is empty.
 3. Image-label fallback (`ResolveNewestLocalCalVer` + `ExtractMetadata`)
@@ -261,7 +261,7 @@ not an array.
 The `Volumes:` field is rendered from THREE sources, in priority order:
 
 1. **Live mounts** (`podman inspect .Mounts[]`) — wins for running containers. Format: `<name>: <source> -> <dest>` for named volumes, `bind: <source> -> <dest>` for bind mounts. Encrypted FUSE binds (source matches `<...>/encrypted/<vol>/plain`) get an `(enc)` suffix so the display distinguishes a `type: encrypted` deploy override from a plain bind.
-2. **deploy.yml** volume names — fallback for stopped/enabled containers when no live mounts are available. Lists just the volume names from the deploy entry.
+2. **charly.yml** volume names — fallback for stopped/enabled containers when no live mounts are available. Lists just the volume names from the deploy entry.
 3. **Image OCI label** (`ExtractMetadata`) — last-resort fallback when neither runtime nor deploy data is present. Format: `<volume-name> -> <container-path>` (the layer-declared default).
 
 This means a volume deployed with `--bind <name>=<path>` or `--encrypt <name>` shows up in the live form for running containers — what the container is ACTUALLY mounting, including the gocryptfs FUSE plain dir for encrypted volumes. Showing live mounts (rather than the image-label default) is what lets the operator tell, from `charly status` alone, whether an encrypted volume's gocryptfs FUSE is actually mounted: a running container binding `<...>/charly-immich-cache/plain -> /home/user/.immich/cache` with the FUSE unmounted would otherwise be writing plaintext over the cipher tree, and the live form makes that visible.

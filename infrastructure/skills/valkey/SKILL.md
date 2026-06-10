@@ -29,7 +29,7 @@ description: |
 |----------|---------------|-----------------|
 | `REDIS_URL` | `redis://{{.ContainerName}}:6379` | `redis://charly-valkey:6379` |
 
-Pod-aware: same-container consumers receive `redis://localhost:6379`, cross-container consumers receive `redis://charly-valkey:6379`. When `charly config` runs, `REDIS_URL` is automatically injected into the global `deploy.yml` env for service discovery (Redis-compatible protocol).
+Pod-aware: same-container consumers receive `redis://localhost:6379`, cross-container consumers receive `redis://charly-valkey:6379`. When `charly config` runs, `REDIS_URL` is automatically injected into the global `charly.yml` env for service discovery (Redis-compatible protocol).
 
 See `/charly-image:layer` for `env_provide` field docs.
 

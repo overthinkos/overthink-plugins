@@ -113,7 +113,7 @@ systemctl --user restart charly-selkies-desktop-82.23.94.69.service
 
 This is fast (no network round-trip) and survives because podman's image GC is
 opt-in. To make rollback survive a `podman image prune`, also tag the previous image
-with a stable name (e.g., `:rollback`). The deploy.yml entry is unchanged — only the
+with a stable name (e.g., `:rollback`). The charly.yml entry is unchanged — only the
 local registry pointer moves.
 
 ## Behavior by Mode
@@ -123,7 +123,7 @@ local registry pointer moves.
 1. Pull/build new image
 2. Sync data from data candies into the image's volumes — both bind mounts and podman named volumes (if `--seed`)
 3. `systemctl --user restart charly-<image>.service`
-4. Update `deploy.yml` with new `data_source`
+4. Update `charly.yml` with new `data_source`
 
 ### Direct Mode
 
@@ -144,7 +144,7 @@ deployment. Examples: `notebook-templates` ships
 
 Both backings are seeded:
 
-- **Bind-mounted volumes** (`type: bind` in `deploy.yml`) — the
+- **Bind-mounted volumes** (`type: bind` in `charly.yml`) — the
   staged data is copied into the host directory via a throwaway
   `podman run` with `--userns=keep-id` so the files end up owned by
   the real host user.

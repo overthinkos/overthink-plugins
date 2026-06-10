@@ -111,7 +111,7 @@ remaps to host ports for browser reachability:
 binds it on the operator's machine. Always use **28080** for airflow
 from the host.
 
-## Required deploy.yml entry
+## Required charly.yml entry
 
 The versa deploy entry is minimal — the seven URL env vars the
 notebook reads are all auto-injected via per-producing-layer
@@ -347,7 +347,7 @@ Python wheel — does not break the `no-build = true` invariant the
 
 ## Known gotchas
 
-- **User deploy.yml needs `image:` field.** `~/.config/charly/deploy.yml`
+- **User charly.yml needs `image:` field.** `~/.config/charly/charly.yml`
   versa entry must include `image: versa` — otherwise
   `charly update --build` fails with "deploy has no 'image:' field".
 - **Marimo session persistence reorders cells.** When a marimo session

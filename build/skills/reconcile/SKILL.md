@@ -48,7 +48,7 @@ charly -C box/cachyos box reconcile   # reconcile a submodule's pins
    versioned YAML files (`charly.yml` + discovered `box/<name>/charly.yml` /
    `candy/<name>/charly.yml`, plus any flat-imported legacy per-kind files —
    `charly.yml` / `eval.yml` / `local.yml` / `pod.yml` / `k8s.yml` / `vm.yml` /
-   `deploy.yml`). Refs appear in `import:` namespaces, image `base:` / `builder:` /
+   `charly.yml`). Refs appear in `import:` namespaces, image `base:` / `builder:` /
    `candy:`, and `kind:local` `candy:` lists.
 2. **Target** per repo: the newest version ALREADY referenced (default —
    `compareSemver`, orders CalVer correctly, no network) or, with `--remote`, the

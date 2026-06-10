@@ -17,7 +17,7 @@ The `cachyos-vm` entity and its `eval-cachyos-vm` disposable test bed live in
 the **`overthinkos/cachyos`** repo (git submodule at **`box/cachyos`**),
 in that repo's config (its `charly.yml` + per-kind sibling files). The bed is a `kind: eval` entity
 (the 2026-05 deploy→eval unification moved repo-shipped disposable beds out of
-`deploy.yml`), driven by `charly eval run eval-cachyos-vm`. Drive the VM lifecycle
+`charly.yml`), driven by `charly eval run eval-cachyos-vm`. Drive the VM lifecycle
 from the submodule: `charly -C box/cachyos vm build cachyos-vm` +
 `charly -C box/cachyos vm create cachyos-vm` (or `charly --repo overthinkos/cachyos …`).
 

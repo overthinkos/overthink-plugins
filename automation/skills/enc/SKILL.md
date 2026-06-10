@@ -38,7 +38,7 @@ charly config immich -v library:encrypted
 CHARLY_VOLUMES_IMMICH="library:encrypted" charly config immich --password auto
 ```
 
-This saves to deploy.yml:
+This saves to charly.yml:
 ```yaml
 volumes:
   - name: library
@@ -324,7 +324,7 @@ Rootless podman with `--userns=keep-id` creates a two-level user namespace. Duri
 
 ## Integration with Runtime
 
-- **`charly shell`/`charly start` (direct mode)**: resolves volume backing from deploy.yml, verifies encrypted volumes are mounted, appends `-v <plain>:<container-path>` flags. `charly start` mounts encrypted volumes inline via systemd-run scopes before starting the container
+- **`charly shell`/`charly start` (direct mode)**: resolves volume backing from charly.yml, verifies encrypted volumes are mounted, appends `-v <plain>:<container-path>` flags. `charly start` mounts encrypted volumes inline via systemd-run scopes before starting the container
 - **`charly config` (quadlet mode)**: generates quadlet file with `ExecStartPre=charly config mount <image>` for encrypted services. ExecStartPre creates scope units internally — these are independent of the container service. Boot behavior is backend-gated (see below)
 - **`charly remove --purge`**: removes named volumes
 - **Data provisioning**: `charly config --seed` (default) provisions data from data candies into bind-backed directories after mounting encrypted volumes. Works for both bind and encrypted volume types
@@ -415,7 +415,7 @@ Helper: `cipherPopulatedPlainEmpty(cipherDir, plainDir)` returns true only when 
 
 ## Volume Backing Override
 
-When a volume is configured as `type: encrypted` in deploy.yml, it overrides the default named volume. The Docker/Podman named volume is not created -- the gocryptfs mount is used instead.
+When a volume is configured as `type: encrypted` in charly.yml, it overrides the default named volume. The Docker/Podman named volume is not created -- the gocryptfs mount is used instead.
 
 ```yaml
 # charly.yml declares a volume:
@@ -423,7 +423,7 @@ volumes:
   - name: data
     path: "~/.myapp"
 
-# deploy.yml configures it as encrypted:
+# charly.yml configures it as encrypted:
 volumes:
   - name: data
     type: encrypted
@@ -451,7 +451,7 @@ Plain bind mounts do not use encrypted storage commands. They are direct host di
 
 ## Cross-References
 
-- `/charly-core:deploy` -- Quadlet integration, volume backing configuration, deploy.yml
+- `/charly-core:deploy` -- Quadlet integration, volume backing configuration, charly.yml
 - `/charly-core:charly-config` -- `encrypted_storage_path` and `volumes_path` settings, `charly config mount` short-circuit fast-path documented there too
 - `/charly-core:service` -- Container lifecycle, `charly start` inline mount
 - `/charly-build:secrets` -- Credential store hierarchy (env → keyring → config), `charly secrets set charly/enc <image>` to store a gocryptfs passphrase explicitly, `charly secrets list` to inspect indexed keys

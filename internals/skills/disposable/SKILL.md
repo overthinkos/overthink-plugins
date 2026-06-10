@@ -17,7 +17,7 @@ description: |
 
 Schema v4 makes `DeploymentNode.Disposable` the **sole source of truth** for disposability. `VmSpec.Disposable` is retained during the Phase 1-5 transition for backward compatibility with the legacy `charly update arch` / `charly vm destroy --disk` paths, but the canonical field on any deployment entry (e.g. `deployments.images.eval-arch-vm.disposable: true`) is what the unified dispatcher reads.
 
-A latent bug was fixed alongside the refactor: `MergeDeployConfigs` previously dropped the `Disposable` and `Lifecycle` fields during project ↔ per-machine overlay merge — meaning a disposable flag on the project `deploy.yml` would vanish after merge with a user's `~/.config/charly/deploy.yml`. That's now an explicit merge (project-set OR overlay-set → true), with the same "later wins" rule when both set it.
+A latent bug was fixed alongside the refactor: `MergeDeployConfigs` previously dropped the `Disposable` and `Lifecycle` fields during project ↔ per-machine overlay merge — meaning a disposable flag on the project `charly.yml` would vanish after merge with a user's `~/.config/charly/charly.yml`. That's now an explicit merge (project-set OR overlay-set → true), with the same "later wins" rule when both set it.
 
 ## Why this exists
 
@@ -45,14 +45,14 @@ therefore be:
   The same image can be deployed as disposable on one host and
   non-disposable on another.
 - **Multi-instance aware.** Each deploy entry (vm.yml kind:vm, or
-  deploy.yml entry under `deploy:`) carries its own flag — two
+  charly.yml entry under `deploy:`) carries its own flag — two
   instances of the same image can sit at different tiers with
   different disposability.
 
 ## Schema — four orthogonal fields, clear roles
 
 ```yaml
-# DEPLOY-shaped YAML (deploy.yml entry):
+# DEPLOY-shaped YAML (charly.yml entry):
 
 disposable: <bool>    # LOAD-BEARING authorization. Default false.
                       #   `true` authorizes `charly update <name>` to
@@ -190,7 +190,7 @@ preserved) — the OPPOSITE of `disposable`'s destroy authorization. Enforced by
 
 - `kind: vm` entries in `vm.yml` — the VM template. Applies to
   every instance unless overridden.
-- `deploy:` entries in `deploy.yml` — the container per-deploy
+- `deploy:` entries in `charly.yml` — the container per-deploy
   counterpart. Each instance of a container image has its own
   entry, so per-instance classifications are natural.
 - Per-instance VM overrides (deferred to a follow-up): will live at
@@ -213,13 +213,13 @@ libvirt domain XML carries:
 `virsh dumpxml <domain> | grep charly:` tells you the classification
 without opening vm.yml.
 
-For container deploys, the authoritative source is `deploy.yml` —
+For container deploys, the authoritative source is `charly.yml` —
 `charly status <name>` reflects it at runtime.
 
 ## `charly update <name> [-i <instance>]`
 
 Resolves `<name>` as either a kind:vm entity (vm.yml) or a deploys entry
-(deploy.yml). It **NEVER refuses** on disposability: an explicit
+(charly.yml). It **NEVER refuses** on disposability: an explicit
 `charly update` rebuilds ANY target — for a non-disposable, non-ephemeral
 target it prints a one-line transparency note
 (`noteUpdateDisposability` in `charly/update_deploy_dispatch.go`) and
@@ -262,7 +262,7 @@ For containers, pass `--disposable` to `charly deploy add`:
 charly deploy add my-test fedora-test --disposable --lifecycle test
 ```
 
-This writes both fields to the deploy.yml entry (flags can also be
+This writes both fields to the charly.yml entry (flags can also be
 passed independently). Omitting `--disposable` means the entry
 stays non-disposable — safe default.
 
@@ -276,7 +276,7 @@ rebuild`.
 ### Containers
 
 ```yaml
-# deploy.yml — each entry has an independent classification.
+# charly.yml — each entry has an independent classification.
 deploys:
   fedora-coder:         # main instance (prod): NO disposable field → NOT disposable
     lifecycle: prod
@@ -366,7 +366,7 @@ on shared hosts.
 - `charly update <name>` (determining which targets can be rebuilt
   unattended).
 - Authoring / editing `disposable:` or `lifecycle:` fields in
-  vm.yml or deploy.yml.
+  vm.yml or charly.yml.
 - Running live verification on a rebuildable target (CLAUDE.md R10).
 - Adding a feature that checks disposability (must use
   `IsDisposable()` / `IsDisposableFields()`, never derive from
