@@ -14,14 +14,14 @@ description: |
 libvirt/QEMU.
 
 The `cachyos-vm` entity and its `eval-cachyos-vm` disposable test bed live in
-the **`overthinkos/cachyos`** repo (git submodule at **`image/cachyos`**),
+the **`overthinkos/cachyos`** repo (git submodule at **`box/cachyos`**),
 in that repo's config (its `charly.yml` + per-kind sibling files). The bed is a `kind: eval` entity
 (the 2026-05 deploy→eval unification moved repo-shipped disposable beds out of
 `deploy.yml`), driven by `charly eval run eval-cachyos-vm`. Drive the VM lifecycle
-from the submodule: `charly -C image/cachyos vm build cachyos-vm` +
-`charly -C image/cachyos vm create cachyos-vm` (or `charly --repo overthinkos/cachyos …`).
+from the submodule: `charly -C box/cachyos vm build cachyos-vm` +
+`charly -C box/cachyos vm create cachyos-vm` (or `charly --repo overthinkos/cachyos …`).
 
-## VM Configuration (from image/cachyos/vm.yml)
+## VM Configuration (from box/cachyos/vm.yml)
 
 | Setting | Value |
 |---|---|
@@ -40,7 +40,7 @@ the main repo's `build.yml`, flat-imported by the submodule (a bare-string
 ## Eval bed
 
 `eval-cachyos-vm` is a `kind: eval` bed (`target: vm`, `vm: cachyos-vm`) that
-carries `disposable: true`, so `charly -C image/cachyos eval run eval-cachyos-vm`
+carries `disposable: true`, so `charly -C box/cachyos eval run eval-cachyos-vm`
 runs the full R10 sequence unattended (the equivalent `charly update
 eval-cachyos-vm` rebuild also works, since the eval bed is folded into the
 Deploy map).

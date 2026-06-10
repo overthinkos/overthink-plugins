@@ -29,7 +29,7 @@ time, so every deploy verb resolves it by name; `charly eval run <bed>` drives t
 full R10 sequence on it:
 
 This is the **ecosystem-wide** rule: every repo-shipped disposable test bed —
-the main repo's beds AND every `image/<distro>` submodule's beds (the arch /
+the main repo's beds AND every `box/<distro>` submodule's beds (the arch /
 cachyos / debian / ubuntu / fedora bootstrap-VM and pacstrap/debootstrap beds) —
 is a `kind: eval` entity, in that repo's config (its `charly.yml` + per-kind sibling files). Repos
 ship NO `kind: deploy` test beds. The lone `kind: deploy` exception is an

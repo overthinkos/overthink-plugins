@@ -563,7 +563,7 @@ Every YAML file is a generic, kind-agnostic container — the loader routes each
 | Shape | YAML | Semantics |
 |---|---|---|
 | **Flat** | a bare string — `- build.yml`, `- '@github.com/owner/repo/build.yml:vTAG'` | Merge the referenced file's entities into THIS project's root namespace (root-wins). Use for same-repo per-kind file splits AND the shared `build.yml` distro/builder/init vocabulary. |
-| **Namespaced** | a single-key map — `- {cachyos: image/cachyos}`, `- {charly: ../..}`, `- {base: '@github.com/owner/repo:vTAG'}` | Mount another project as an isolated child namespace under `alias`; its entries are NOT flat-merged, they're referenced QUALIFIED as `alias.entry`. |
+| **Namespaced** | a single-key map — `- {cachyos: box/cachyos}`, `- {charly: ../..}`, `- {base: '@github.com/owner/repo:vTAG'}` | Mount another project as an isolated child namespace under `alias`; its entries are NOT flat-merged, they're referenced QUALIFIED as `alias.entry`. |
 
 ### Qualified refs (`ns.entry`)
 
@@ -573,7 +573,7 @@ A namespaced import is reached through a dotted ref everywhere a name is resolve
 import:
   - build.yml                       # flat — shared vocabulary
   - box.yml                       # flat — this repo's own kind:image entries
-  - cachyos: image/cachyos          # namespaced child import
+  - cachyos: box/cachyos          # namespaced child import
 
 box:
   versa:
@@ -597,11 +597,11 @@ A namespace is imported to provide bases/builders; the resolver fetches ONLY the
 
 ## Base stacks live in their distro submodules
 
-The arch and fedora base-distro stacks are no longer carried by the main repo — each is owned by its `image/<distro>` submodule:
+The arch and fedora base-distro stacks are no longer carried by the main repo — each is owned by its `box/<distro>` submodule:
 
-- **`image/arch`** owns `arch` + `arch-builder` (+ `cuda-arch-builder`), bare-local, and is SELF-CONTAINED (`import: []`).
-- **`image/fedora`** owns `fedora` + `fedora-builder` + `fedora-nonfree` (+ the `nvidia` / `python-ml` GPU bases), bare-local, and is SELF-CONTAINED (`import: []`).
-- **`image/cachyos`** owns the `cachyos` base (+ the pacstrap pair and the selkies GPU desktops) and imports the `arch` namespace to reach `arch.arch` / `arch.arch-builder` / `arch.cuda-arch-builder`.
+- **`box/arch`** owns `arch` + `arch-builder` (+ `cuda-arch-builder`), bare-local, and is SELF-CONTAINED (`import: []`).
+- **`box/fedora`** owns `fedora` + `fedora-builder` + `fedora-nonfree` (+ the `nvidia` / `python-ml` GPU bases), bare-local, and is SELF-CONTAINED (`import: []`).
+- **`box/cachyos`** owns the `cachyos` base (+ the pacstrap pair and the selkies GPU desktops) and imports the `arch` namespace to reach `arch.arch` / `arch.arch-builder` / `arch.cuda-arch-builder`.
 
 The main repo imports all three submodules (`arch` / `cachyos` / `fedora` namespaces) to reference their relocated boxes from its own `eval`/`vm`/`local`/`k8s`/`android` entities (one-directional — the submodules import nothing back from main). The distro/builder/init build vocabulary is embedded in the `charly` binary (no `build.yml` import). See `/charly-distros:arch`, `/charly-distros:fedora`, `/charly-distros:cachyos`.
 

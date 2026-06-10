@@ -24,7 +24,7 @@ MCP-server identity reflect that upstream software identity.
 
 | Property | Value |
 |----------|-------|
-| Base | `cachyos.cachyos` — owned by the **`overthinkos/cachyos`** submodule (`image/cachyos`); main reaches it via the `cachyos` import namespace (the deliberate main → cachyos coupling). CUDA 13 / cuDNN / python-onnxruntime-cpu via CachyOS `extra` repo |
+| Base | `cachyos.cachyos` — owned by the **`overthinkos/cachyos`** submodule (`box/cachyos`); main reaches it via the `cachyos` import namespace (the deliberate main → cachyos coupling). CUDA 13 / cuDNN / python-onnxruntime-cpu via CachyOS `extra` repo |
 | Platforms | `linux/amd64` only (cuDF + cu130 torch are amd64-only) |
 | Layers | 19 (see "Layer stack" below) |
 | Ports | 7 (see "Ports + host mappings") |

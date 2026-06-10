@@ -3,7 +3,7 @@ name: cachyos-pacstrap-builder
 description: |
   Privileged pacstrap builder image for bootstrapping a CachyOS rootfs from
   scratch. base: arch.arch (via the `arch` import namespace) + the pacstrap-builder
-  layer. Lives in the overthinkos/cachyos submodule (image/cachyos).
+  layer. Lives in the overthinkos/cachyos submodule (box/cachyos).
   MUST be invoked before building or troubleshooting cachyos-pacstrap / cachyos-vm.
 ---
 
@@ -14,7 +14,7 @@ Privileged builder image used to bootstrap a CachyOS root filesystem via
 `/charly-distros:cachyos-pacstrap` and the `builder_image:` for the
 `/charly-vm:cachyos` VM.
 
-> **Lives in `overthinkos/cachyos`** (git submodule at `image/cachyos`). It is
+> **Lives in `overthinkos/cachyos`** (git submodule at `box/cachyos`). It is
 > `base: arch.arch` — the `arch` base from the **`overthinkos/arch`** submodule,
 > reached because the cachyos `charly.yml` imports that submodule under the `arch`
 > namespace. Its single layer, `pacstrap-builder`, lives in the main repo
@@ -29,12 +29,12 @@ Privileged builder image used to bootstrap a CachyOS root filesystem via
 | Layer | pacstrap-builder (`@github.com/overthinkos/overthink/candy/pacstrap-builder:<tag>`) |
 | Distro | arch |
 | Build | pac |
-| Home repo | overthinkos/cachyos (`image/cachyos`) |
+| Home repo | overthinkos/cachyos (`box/cachyos`) |
 
 ## Quick Start
 
 ```bash
-charly -C image/cachyos image build cachyos-pacstrap-builder
+charly -C box/cachyos image build cachyos-pacstrap-builder
 ```
 
 This is the R10 canary for the submodule's composition machinery: a successful

@@ -14,13 +14,13 @@ description: |
 Base Ubuntu 24.04 (noble) image. Distinguished from `/charly-distros:debian` by **adopt mode**: the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` so the `charly` generator honors that account rather than creating a new one.
 
 The Ubuntu family lives in its own **`overthinkos/ubuntu`** repo (git submodule
-at **`image/ubuntu`**) — a SEPARATE repo from `overthinkos/debian` (Debian and
+at **`box/ubuntu`**) — a SEPARATE repo from `overthinkos/debian` (Debian and
 Ubuntu each have their own repo). The `ubuntu` base is **owned there** and
 composes the main repo's layers + shared `build.yml` by git reference. Because
 `distro.ubuntu` is `inherits: debian`, the single remote `build.yml` (which
 carries BOTH distro configs) resolves the inheritance — `overthinkos/ubuntu`
 needs no reference to `overthinkos/debian`. Build from the submodule:
-`charly -C image/ubuntu image build ubuntu` (or `charly --repo overthinkos/ubuntu image build ubuntu`).
+`charly -C box/ubuntu image build ubuntu` (or `charly --repo overthinkos/ubuntu image build ubuntu`).
 Nothing in main consumes any Ubuntu image, so there is **no main ↔ ubuntu coupling**.
 
 ## Image Properties
@@ -115,10 +115,10 @@ ECR Public mirrors the Dockerhub library namespace without rate-limiting.
 ## Verification
 
 ```bash
-charly -C image/ubuntu image build ubuntu
+charly -C box/ubuntu image build ubuntu
 charly shell ubuntu                       # drops into /home/ubuntu as uid 1000
 id                                    # uid=1000(ubuntu) gid=1000(ubuntu)
-charly -C image/ubuntu image validate     # remote build.yml resolves distro.ubuntu (inherits debian)
+charly -C box/ubuntu image validate     # remote build.yml resolves distro.ubuntu (inherits debian)
 ```
 
 ## Related images

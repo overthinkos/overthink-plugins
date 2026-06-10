@@ -177,7 +177,7 @@ content — they live in the superproject's `.claude/workflows/*.js`.
 
 The repo-root `CLAUDE.md` is the single canonical R0–R10 rule-set.
 Per-directory `CLAUDE.md` files (`charly/`, `candy/`, `plugins/`, and each
-`image/<distro>` submodule) are THIN signposts only: they name the skills to
+`box/<distro>` submodule) are THIN signposts only: they name the skills to
 load for that area and point back to root. They MUST NOT restate any rule —
 duplication drifts (the hooks and an earlier layer-validator both drifted
 exactly this way). Subagents and teammates load the full `CLAUDE.md`

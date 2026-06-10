@@ -2,7 +2,7 @@
 name: cachyos
 description: |
   CachyOS base image (docker.io/cachyos/cachyos-v3) — x86_64_v3-optimized Arch
-  derivative. Owned by the overthinkos/cachyos submodule (image/cachyos);
+  derivative. Owned by the overthinkos/cachyos submodule (box/cachyos);
   consumed by main's versa image via the `cachyos` import namespace.
   MUST be invoked before building, deploying, or troubleshooting cachyos images.
 ---
@@ -11,19 +11,19 @@ description: |
 
 CachyOS base image, pulled from the upstream-published OCI image
 `docker.io/cachyos/cachyos-v3` (optimized for modern `x86_64_v3` CPUs), pinned
-by digest in `image/cachyos/box.yml` — Docker Hub publishes only a `:latest`
+by digest in `box/cachyos/box.yml` — Docker Hub publishes only a `:latest`
 tag for `cachyos-v3`, so a digest is the most precise pin available.
 CachyOS is an Arch derivative, so it shares the Arch toolchain, `pacman`, and the
 `arch-builder` multi-stage builder.
 
 The CachyOS family lives in the **`overthinkos/cachyos`** repo (git submodule at
-**`image/cachyos`**), with the `cachyos` base image **owned there** and its
+**`box/cachyos`**), with the `cachyos` base image **owned there** and its
 boxes discovered as `box/<name>/charly.yml`. It composes the main repo's shared
 layers by `@github` git reference and imports the **`overthinkos/arch`** submodule
 under the `arch` namespace (`import: [{arch: …}]`) so it reaches `arch.arch` (the
 `cachyos-pacstrap-builder` base) and `arch.arch-builder` (the cachyos base's
 builder) — one-directional, since arch imports nothing back. Build it
-from the submodule: `charly -C image/cachyos image build cachyos` (or
+from the submodule: `charly -C box/cachyos image build cachyos` (or
 `charly --repo overthinkos/cachyos image build cachyos`).
 
 ## Image Properties
@@ -37,7 +37,7 @@ from the submodule: `charly -C image/cachyos image build cachyos` (or
 | Build | pac |
 | Builders | pixi, npm, cargo, aur → arch-builder |
 | Registry | ghcr.io/overthinkos |
-| Home repo | overthinkos/cachyos (`image/cachyos`) |
+| Home repo | overthinkos/cachyos (`box/cachyos`) |
 
 ## main → cachyos coupling
 
@@ -98,7 +98,7 @@ cachyos and AUR on arch are the same code path through `arch-builder`.
 ## Quick Start
 
 ```bash
-charly -C image/cachyos image build cachyos
+charly -C box/cachyos image build cachyos
 charly shell cachyos -c "pacman --version"
 ```
 
@@ -113,7 +113,7 @@ charly shell cachyos -c "pacman --version"
 ### CachyOS GPU image family
 
 The submodule also carries a CachyOS GPU image family — the Arch/CachyOS siblings
-of the Fedora GPU images (which live in `image/fedora`). They build on the
+of the Fedora GPU images (which live in `box/fedora`). They build on the
 `cachyos.nvidia` GPU base, which is `cachyos` + `agent-forwarding` + `nvidia` +
 `cuda` (the `nvidia` and `cuda` layers are multi-distro — Fedora rpm + Arch pac —
 so they compose unchanged on CachyOS):
@@ -127,7 +127,7 @@ so they compose unchanged on CachyOS):
 - `cachyos.immich-ml` — Immich with the CUDA ML backend
 - `cachyos.selkies-labwc-nvidia` — GPU NVENC Selkies streaming desktop (labwc flavor)
 - `cachyos.selkies-kde-nvidia` — GPU NVENC Selkies streaming desktop (full KDE Plasma flavor)
-- `cachyos.selkies-kde` — full KDE Plasma Selkies flavor on the plain cachyos base (VAAPI on an AMD/Intel render node, software x264 otherwise; the `-nvidia` sibling adds NVENC). The labwc cpu/amd flavor (`selkies-labwc`) lives in this same `image/cachyos` submodule.
+- `cachyos.selkies-kde` — full KDE Plasma Selkies flavor on the plain cachyos base (VAAPI on an AMD/Intel render node, software x264 otherwise; the `-nvidia` sibling adds NVENC). The labwc cpu/amd flavor (`selkies-labwc`) lives in this same `box/cachyos` submodule.
 
 ## Why Docker Hub instead of pacstrap
 
@@ -141,7 +141,7 @@ builds and also builds end-to-end (the pacstrap renderer derives
 
 ## Verification
 
-After `charly -C image/cachyos image build cachyos`:
+After `charly -C box/cachyos image build cachyos`:
 - `charly box list` — image appears
 - `charly shell cachyos -c "pacman --version"` — pacman available
 - `charly box inspect versa --format base` (from main) → `cachyos.cachyos` (the `cachyos` import namespace resolves)

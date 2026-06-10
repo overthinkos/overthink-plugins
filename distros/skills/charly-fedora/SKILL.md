@@ -15,11 +15,11 @@ layer list as `/charly-coder:charly-arch` — the tag system handles
 Fedora-specific packages and scripts via `rpm:` sections. Supports
 nested containers at any depth via `/charly-distros:container-nesting`.
 
-Lives in the **`overthinkos/fedora`** repo (git submodule at **`image/fedora`**).
+Lives in the **`overthinkos/fedora`** repo (git submodule at **`box/fedora`**).
 Its `fedora` base is bare-local in the same self-contained submodule
 (`import: []`) — `base: fedora`; its
 layers (incl. the `nvidia` layer) are pulled by github reference. Build from the
-submodule: `charly -C image/fedora image build charly-fedora`. Deploy-mode verbs work
+submodule: `charly -C box/fedora image build charly-fedora`. Deploy-mode verbs work
 from anywhere once the image is in local storage.
 
 ## Image Properties
@@ -88,7 +88,7 @@ Full charly toolchain via shared layers:
 
 ```bash
 # Build (from the overthinkos/fedora submodule)
-charly -C image/fedora image build charly-fedora
+charly -C box/fedora image build charly-fedora
 
 # Interactive shell (as uid=1000)
 charly shell charly-fedora

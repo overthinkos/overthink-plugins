@@ -5,7 +5,7 @@ description: |
   builder (from: builder:debootstrap, bootstrap_builder_image:
   debian-debootstrap-builder). Retained for offline/air-gapped builds and as a
   worked example of the from: builder:debootstrap pattern. Lives in the
-  overthinkos/debian submodule (image/debian).
+  overthinkos/debian submodule (box/debian).
   MUST be invoked before building or troubleshooting debian-debootstrap.
 ---
 
@@ -15,8 +15,8 @@ Bootstrap-from-scratch Debian root filesystem, built via `debootstrap` inside
 the privileged `/charly-distros:debian-debootstrap-builder` container
 (`from: builder:debootstrap`, `bootstrap_builder_image: debian-debootstrap-builder`).
 
-> **Lives in `overthinkos/debian`** (git submodule at `image/debian`). Build:
-> `charly -C image/debian image build debian-debootstrap`.
+> **Lives in `overthinkos/debian`** (git submodule at `box/debian`). Build:
+> `charly -C box/debian image build debian-debootstrap`.
 
 ## When to use it (and when not)
 
@@ -35,7 +35,7 @@ air-gapped** builds and as a worked example of the `from: builder:debootstrap` +
 | bootstrap_builder_image | debian-debootstrap-builder |
 | Distro | debian:13, debian |
 | Build | deb |
-| Home repo | overthinkos/debian (`image/debian`) |
+| Home repo | overthinkos/debian (`box/debian`) |
 
 The `debian` distro config (debootstrap suite `trixie`, mirror
 `http://deb.debian.org/debian`, base packages, bootloader template) lives in the

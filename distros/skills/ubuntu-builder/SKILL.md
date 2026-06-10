@@ -13,8 +13,8 @@ description: |
 
 Ubuntu 24.04 (noble) counterpart of `/charly-distros:fedora-builder` and `/charly-distros:debian-builder`. Same role — pixi/npm/cargo multi-stage builder — with one important difference: the builder runs as `ubuntu` (uid 1000) because the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu.base_user` adopts it.
 
-Lives in the **`overthinkos/ubuntu`** repo (git submodule at **`image/ubuntu`**).
-Build it from the submodule: `charly -C image/ubuntu image build ubuntu-builder`
+Lives in the **`overthinkos/ubuntu`** repo (git submodule at **`box/ubuntu`**).
+Build it from the submodule: `charly -C box/ubuntu image build ubuntu-builder`
 (normally builds implicitly as a dependency of `ubuntu-coder`). Its
 `pixi`/`nodejs`/`build-toolchain` layers are pulled by github reference from the
 main repo.
@@ -74,7 +74,7 @@ The three builders have near-identical layer stacks (pixi + nodejs + build-toolc
 ## Quick start
 
 ```bash
-charly -C image/ubuntu image build ubuntu-builder
+charly -C box/ubuntu image build ubuntu-builder
 charly shell ubuntu-builder               # drops you into /home/ubuntu as uid 1000
 id                                    # uid=1000(ubuntu) gid=1000(ubuntu)
 ```
@@ -83,7 +83,7 @@ Typically not invoked directly — it's a build-time dependency of `/charly-code
 
 ## Verification
 
-- `charly -C image/ubuntu image list | grep ubuntu-builder`
+- `charly -C box/ubuntu image list | grep ubuntu-builder`
 - `charly shell ubuntu-builder -- id` → `uid=1000(ubuntu) gid=1000(ubuntu)`
 - `charly shell ubuntu-builder -- pixi --version && node --version && gcc --version`
 

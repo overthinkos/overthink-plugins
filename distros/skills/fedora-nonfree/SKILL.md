@@ -11,7 +11,7 @@ description: |
 Fedora base with RPM Fusion free and non-free repositories enabled.
 
 **Owned by the `overthinkos/fedora` submodule.** Lives bare-local in the
-**`overthinkos/fedora`** submodule (mounted at `image/fedora`), alongside
+**`overthinkos/fedora`** submodule (mounted at `box/fedora`), alongside
 `/charly-distros:fedora` + `/charly-distros:fedora-builder`; the submodule is
 SELF-CONTAINED (`import: []`). Its consumers (`/charly-immich:immich`,
 `/charly-distros:nvidia`) live in the same submodule and base on it as a

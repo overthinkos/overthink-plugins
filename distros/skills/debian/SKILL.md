@@ -3,7 +3,7 @@ name: debian
 description: |
   Base Debian 13 trixie image. Root of the image hierarchy for Debian builds
   that run as uid 1000 `user` (create mode — Debian 13 ships no pre-existing
-  uid-1000 account). Owned by the overthinkos/debian submodule (image/debian);
+  uid-1000 account). Owned by the overthinkos/debian submodule (box/debian);
   consumed by no main-repo image.
   MUST be invoked before building, deploying, configuring, or troubleshooting
   any Debian-based image.
@@ -14,11 +14,11 @@ description: |
 Base Debian 13 (trixie) image. Root of the Debian image hierarchy.
 
 The Debian family lives in the **`overthinkos/debian`** repo (git submodule at
-**`image/debian`**). The `debian` base is **owned there** (in that repo's
+**`box/debian`**). The `debian` base is **owned there** (in that repo's
 `box.yml`) and composes the main repo's layers + shared `build.yml` (which
 keeps the `debian` distro config + the `deb` format + the `debootstrap` builder
 template) by git reference. Build it from the submodule:
-`charly -C image/debian image build debian` (or `charly --repo overthinkos/debian image build debian`).
+`charly -C box/debian image build debian` (or `charly --repo overthinkos/debian image build debian`).
 Ubuntu — the deb-family sibling — lives in its own **`overthinkos/ubuntu`** repo
 (see `/charly-distros:ubuntu`). Nothing in main consumes any Debian image, so there
 is **no main ↔ debian coupling**.
@@ -73,10 +73,10 @@ USER 1000
 ## Verification
 
 ```bash
-charly -C image/debian image build debian
+charly -C box/debian image build debian
 charly shell debian                       # drops into /home/user as uid 1000
 id                                    # uid=1000(user) gid=1000(user)
-charly -C image/debian image validate     # remote build.yml + layer refs resolve
+charly -C box/debian image validate     # remote build.yml + layer refs resolve
 ```
 
 ## Related images

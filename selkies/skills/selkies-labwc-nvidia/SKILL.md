@@ -11,7 +11,7 @@ The NVIDIA-GPU build of the **labwc flavor** (`/charly-selkies:selkies-labwc`) â
 same `selkies-desktop` metalayer on the CachyOS GPU base (`cachyos.nvidia`) with the
 full CUDA toolkit, for NVENC-capable hosts. Always runs as a headless pod; the
 pixelflux encoder is auto-selected per GPU at runtime (NVENC on NVIDIA, software
-x264 otherwise). Lives in the `overthinkos/cachyos` submodule (`image/cachyos`); the
+x264 otherwise). Lives in the `overthinkos/cachyos` submodule (`box/cachyos`); the
 CPU sibling is `/charly-selkies:selkies-labwc` (now in this same `overthinkos/cachyos`
 submodule), and the KDE-Plasma GPU sibling is `selkies-kde-nvidia`.
 

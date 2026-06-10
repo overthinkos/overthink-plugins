@@ -10,11 +10,11 @@ description: |
 Test image that validates both `pac:` (pacman) and `aur:` (AUR) package formats on Arch Linux. Used to verify the multi-distro build system handles Arch packaging correctly.
 
 `arch-test` lives in the **`overthinkos/arch`** repo (git submodule at
-**`image/arch`**). The test layers `arch-pac-test` / `arch-aur-test` are vendored
+**`box/arch`**). The test layers `arch-pac-test` / `arch-aur-test` are vendored
 locally in this repo's `candy/` (resolved via its `discover:` block); the `arch`
 base + `arch-builder` are bare-local in the same self-contained submodule
 (`import: []`) — `base: arch`. Build from
-the submodule: `cd image/arch && charly box build arch-test`.
+the submodule: `cd box/arch && charly box build arch-test`.
 
 ## Image Properties
 

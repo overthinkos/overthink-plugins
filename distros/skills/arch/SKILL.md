@@ -7,7 +7,7 @@ description: |
 
 # arch
 
-Root base image built from `quay.io/archlinux/archlinux`, pinned to a precise `base-*` date-serial tag in the arch base box (the `overthinkos/arch` submodule at `image/arch`; the quay mirror has the same content as `docker.io/library/archlinux` without Docker Hub's pull-rate limit). Foundation for all Arch Linux-based OpenCharly images.
+Root base image built from `quay.io/archlinux/archlinux`, pinned to a precise `base-*` date-serial tag in the arch base box (the `overthinkos/arch` submodule at `box/arch`; the quay mirror has the same content as `docker.io/library/archlinux` without Docker Hub's pull-rate limit). Foundation for all Arch Linux-based OpenCharly images.
 
 ## Image Properties
 
@@ -32,16 +32,16 @@ charly shell arch
 
 `arch` (this base), `/charly-distros:arch-builder`, and the consumer Arch
 images all live in the **`overthinkos/arch`** repo (git submodule at
-**`image/arch`**), discovered as `box/<name>/charly.yml` boxes. That submodule
+**`box/arch`**), discovered as `box/<name>/charly.yml` boxes. That submodule
 is SELF-CONTAINED (`import: []`): its base/builder stack is bare-local and it
 composes the main repo's shared layers by `@github` git reference. Its images
 write `base: arch` and route builders to `arch-builder` (bare-local refs, no
 namespace qualifier):
 
-- `/charly-distros:arch-builder` — adds pixi, nodejs, build-toolchain, yay (in `image/arch`)
-- `/charly-coder:arch-coder` — kitchen-sink dev image (in `image/arch`)
-- `/charly-coder:charly-arch` — full charly toolchain on Arch (in `image/arch`)
-- `/charly-distros:arch-test` — pacman + AUR packaging test (in `image/arch`)
+- `/charly-distros:arch-builder` — adds pixi, nodejs, build-toolchain, yay (in `box/arch`)
+- `/charly-coder:arch-coder` — kitchen-sink dev image (in `box/arch`)
+- `/charly-coder:charly-arch` — full charly toolchain on Arch (in `box/arch`)
+- `/charly-distros:arch-test` — pacman + AUR packaging test (in `box/arch`)
 
 ## Multi-Distro Support
 

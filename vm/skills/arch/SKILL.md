@@ -5,7 +5,7 @@ description: |
   qcow2 from pkgbuild.com, applies cloud-init, boots under libvirt/QEMU via BIOS
   firmware + virtio-gpu. Documents the stale-BOOTX64.EFI RCA, the
   simpledrm→qxldrmfb takeover race, the adopt-user pattern, and resource sizing.
-  MUST be invoked before editing arch in image/arch/charly.yml or authoring
+  MUST be invoked before editing arch in box/arch/charly.yml or authoring
   another cloud_image VM from a template.
 ---
 
@@ -13,11 +13,11 @@ description: |
 
 The `arch` VM entity and its `eval-arch-vm` / `eval-arch-pacstrap-vm` disposable test beds
 (plus the nested `arch-host` bed) live in the **`overthinkos/arch`** repo (git
-submodule at **`image/arch`**), in that repo's config (its `charly.yml` + per-kind sibling files).
+submodule at **`box/arch`**), in that repo's config (its `charly.yml` + per-kind sibling files).
 The beds are `kind: eval` entities (the 2026-05 deploy→eval unification moved
 every repo-shipped disposable bed out of `deploy.yml`), driven by `charly eval run
-<bed>`. Drive them from the submodule, e.g. `charly -C image/arch vm create arch`
-and `charly -C image/arch eval run eval-arch-vm` (or `charly --repo overthinkos/arch …`). Any
+<bed>`. Drive them from the submodule, e.g. `charly -C box/arch vm create arch`
+and `charly -C box/arch eval run eval-arch-vm` (or `charly --repo overthinkos/arch …`). Any
 layers applied via `add_candy:` are pulled from this repo by git ref.
 
 Canonical `source.kind: cloud_image` VM in the repo. Boots an Arch Linux cloud image as a full VM with SSH + SPICE console access, cloud-init-provisioned SSH keys, virtio-gpu graphics, and the `charly` toolchain auto-installed inside the guest.
@@ -60,7 +60,7 @@ charly update arch       # fresh-rebuild re-verification (R10)
 
 No other VM in this repo is disposable by default. To make another one rebuildable unattended, add `disposable: true` to its `target: vm` deploy entry (the flag is always explicit; never derived).
 
-## Full VmSpec (from image/arch/charly.yml)
+## Full VmSpec (from box/arch/charly.yml)
 
 ```yaml
 vms:

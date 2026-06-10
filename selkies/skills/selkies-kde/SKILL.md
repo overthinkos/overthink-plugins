@@ -20,7 +20,7 @@ SDDM (see `/charly-selkies:selkies-kde-desktop` for that load-bearing design). T
 pixelflux encoder is auto-selected per GPU at runtime (VAAPI on an AMD/Intel
 render node, software x264 otherwise; the `selkies-kde-nvidia` sibling adds NVENC).
 
-Owned by the `overthinkos/cachyos` submodule (`image/cachyos`).
+Owned by the `overthinkos/cachyos` submodule (`box/cachyos`).
 
 ## Definition
 
@@ -57,7 +57,7 @@ selkies-kde:
 ## Quick Start
 
 ```bash
-charly -C image/cachyos image build selkies-kde
+charly -C box/cachyos image build selkies-kde
 charly config selkies-kde
 charly start selkies-kde
 # Access: https://localhost:3000 (accept the self-signed cert)

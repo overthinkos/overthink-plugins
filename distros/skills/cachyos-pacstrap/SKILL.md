@@ -4,7 +4,7 @@ description: |
   Bootstrap-from-scratch CachyOS rootfs via pacstrap inside a privileged builder.
   Builds end-to-end as of charly 2026.141.1850 (shared pacstrap renderer emits
   Architecture + SigLevel); retained for offline/air-gapped builds. Lives in the
-  overthinkos/cachyos submodule (image/cachyos).
+  overthinkos/cachyos submodule (box/cachyos).
   MUST be invoked before building or troubleshooting cachyos-pacstrap.
 ---
 
@@ -14,8 +14,8 @@ Bootstrap-from-scratch CachyOS root filesystem, built via `pacstrap` inside the
 privileged `/charly-distros:cachyos-pacstrap-builder` container
 (`from: builder:pacstrap`, `bootstrap_builder_image: cachyos-pacstrap-builder`).
 
-> **Lives in `overthinkos/cachyos`** (git submodule at `image/cachyos`). Build:
-> `charly -C image/cachyos image build cachyos-pacstrap`.
+> **Lives in `overthinkos/cachyos`** (git submodule at `box/cachyos`). Build:
+> `charly -C box/cachyos image build cachyos-pacstrap`.
 
 ## When to use it (and when not)
 
@@ -40,7 +40,7 @@ used by both `runPrivilegedBootstrap` and `charly/vm_bootstrap.go`):
    back to signature-required and GPGME failed. Both paths now share one renderer
    (R3), so they can't diverge again.
 
-Verified live: `charly -C image/cachyos image build cachyos-pacstrap` produces a
+Verified live: `charly -C box/cachyos image build cachyos-pacstrap` produces a
 rootfs with `linux-cachyos` (`%ARCH% = x86_64_v3`) installed. (Requires an `charly`
 with this fix — newer than the published release.) The Docker-Hub `/charly-distros:cachyos`
 base is still the faster default (no privileged build).
@@ -53,7 +53,7 @@ base is still the faster default (no privileged build).
 | bootstrap_builder_image | cachyos-pacstrap-builder |
 | Distro | cachyos, arch |
 | Build | pac |
-| Home repo | overthinkos/cachyos (`image/cachyos`) |
+| Home repo | overthinkos/cachyos (`box/cachyos`) |
 
 The `cachyos` distro config (pacstrap base packages, CachyOS keyring
 `F3B607488DB35A47`, mirrorlist, `cachyos*` repos) lives in the main repo's

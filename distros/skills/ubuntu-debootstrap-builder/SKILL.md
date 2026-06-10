@@ -4,7 +4,7 @@ description: |
   Privileged debootstrap builder image (base: debian:13 — debootstrap is a
   Debian tool that bootstraps Ubuntu suites too) — ships the debootstrap
   toolchain for ubuntu-debootstrap and the ubuntu-debootstrap VM. Lives in the
-  overthinkos/ubuntu submodule (image/ubuntu).
+  overthinkos/ubuntu submodule (box/ubuntu).
   MUST be invoked before building or troubleshooting ubuntu-debootstrap-builder.
 ---
 
@@ -15,8 +15,8 @@ Privileged builder image that ships the **debootstrap** toolchain (the
 `bootstrap_builder_image:` target for `/charly-distros:ubuntu-debootstrap` and the
 `/charly-vm:ubuntu` bootstrap VM.
 
-> **Lives in `overthinkos/ubuntu`** (git submodule at `image/ubuntu`). Build:
-> `charly -C image/ubuntu image build ubuntu-debootstrap-builder`.
+> **Lives in `overthinkos/ubuntu`** (git submodule at `box/ubuntu`). Build:
+> `charly -C box/ubuntu image build ubuntu-debootstrap-builder`.
 
 ## Image Properties
 
@@ -26,7 +26,7 @@ Privileged builder image that ships the **debootstrap** toolchain (the
 | Distro | debian:13, debian |
 | Build | deb |
 | Layer | `debootstrap-builder` (pulled by github reference from the main repo) |
-| Home repo | overthinkos/ubuntu (`image/ubuntu`) |
+| Home repo | overthinkos/ubuntu (`box/ubuntu`) |
 
 The `debootstrap-builder` layer **stays in the main repo** and is shared with
 `/charly-distros:debian-debootstrap-builder` — both pull it by github reference. The

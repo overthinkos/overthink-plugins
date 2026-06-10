@@ -13,16 +13,16 @@ description: |
 # arch-coder
 
 > **Location:** the `arch-coder` image lives in the dedicated
-> **`overthinkos/arch`** repo, mounted as a git submodule at **`image/arch`**.
+> **`overthinkos/arch`** repo, mounted as a git submodule at **`box/arch`**.
 > It composes the layers below by **git reference** to this repo
 > (`@github.com/overthinkos/overthink/candy/<name>:<tag>`) rather than copying
 > them; the `arch` base + `arch-builder` are bare-local in the same
 > self-contained `overthinkos/arch` submodule (`import: []`), so the image
 > writes `base: arch`, `builder: {…: arch-builder}`. Build / deploy from
-> the submodule, e.g. `cd image/arch && charly box build arch-coder` (the build
+> the submodule, e.g. `cd box/arch && charly box build arch-coder` (the build
 > verb defaults to the submodule's `charly.yml`), or
 > `charly --repo overthinkos/arch image build arch-coder`. The commands below assume
-> you are inside `image/arch` (or pass `-C image/arch`).
+> you are inside `box/arch` (or pass `-C box/arch`).
 
 Arch Linux counterpart of `/charly-coder:fedora-coder`. Same daily-development surface (AI CLIs, language runtimes, DevOps stack), same rootless posture (uid 1000 + passwordless sudo), same shape of tests — only the package manager (`pac:` / `aur:`) and a handful of Arch-specific package names differ.
 
@@ -30,7 +30,7 @@ Arch Linux counterpart of `/charly-coder:fedora-coder`. Same daily-development s
 
 ```yaml
 arch-coder:
-  base: arch                         # bare-local in the self-contained image/arch submodule
+  base: arch                         # bare-local in the self-contained box/arch submodule
   ports:
     - "2222:2222"                 # sshd-wrapper
     - "18765:18765"               # charly-mcp (Streamable HTTP)

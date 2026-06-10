@@ -11,7 +11,7 @@ Root base image built from `quay.io/fedora/fedora:43`. Foundation for all RPM-ba
 
 **Owned by the `overthinkos/fedora` submodule.** The Fedora base stack —
 `fedora`, `/charly-distros:fedora-builder`, `/charly-distros:fedora-nonfree` — lives
-bare-local in the **`overthinkos/fedora`** submodule (mounted at `image/fedora`),
+bare-local in the **`overthinkos/fedora`** submodule (mounted at `box/fedora`),
 which is SELF-CONTAINED (`import: []`): the base stack is bare-local and the
 submodule composes the main repo's shared layers by `@github` git reference. Its
 images write `base: fedora` and route builders to `fedora-builder` (bare-local
@@ -21,7 +21,7 @@ and the Fedora-rooted pod families all live in the same submodule, discovered as
 `box/<name>/charly.yml` boxes. The main repo imports this submodule under the
 `fedora` namespace (one-directional — fedora imports nothing back) to reference
 those relocated boxes. Build with `charly box build fedora` from the submodule
-(or `charly -C image/fedora image build fedora`).
+(or `charly -C box/fedora image build fedora`).
 
 ## Image Properties
 

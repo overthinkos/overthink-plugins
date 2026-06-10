@@ -16,7 +16,7 @@ KDE sibling of `/charly-selkies:selkies-labwc-nvidia` (labwc + NVENC); both use
 pixelflux's real `nvenc-sys` encoder (the stock `arch-builder` has no CUDA → an
 NVENC stub).
 
-Owned by the `overthinkos/cachyos` submodule (`image/cachyos`).
+Owned by the `overthinkos/cachyos` submodule (`box/cachyos`).
 
 ## Definition
 
@@ -52,7 +52,7 @@ x264 when the GPU is unavailable.
 ## Quick Start
 
 ```bash
-charly -C image/cachyos image build selkies-kde-nvidia
+charly -C box/cachyos image build selkies-kde-nvidia
 charly eval box selkies-kde-nvidia            # build-scope incl. pixelflux-nvenc-compiled
 ```
 

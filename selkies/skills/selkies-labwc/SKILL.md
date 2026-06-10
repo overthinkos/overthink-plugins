@@ -14,7 +14,7 @@ The **labwc flavor** of the selkies streaming desktop — a browser-accessible W
 
 ```yaml
 selkies-labwc:
-  base: cachyos               # local cachyos base (same image/cachyos submodule)
+  base: cachyos               # local cachyos base (same box/cachyos submodule)
   build: [pac, aur]          # aur required: chrome (google-chrome) + wl-tools (wlrctl)
   layers:
     - agent-forwarding
@@ -34,7 +34,7 @@ Tunnel config is in `deploy.yml` (not box.yml): `tunnel: {provider: tailscale, p
 ## Base
 
 `cachyos` — the Arch-derived, x86_64_v3-optimized base, a local sibling box in
-the same `overthinkos/cachyos` submodule (`image/cachyos`) that owns this image.
+the same `overthinkos/cachyos` submodule (`box/cachyos`) that owns this image.
 Multimedia codecs (ffmpeg, x264, libva) come from Arch's `extra` repo; Chrome
 installs from the AUR (`google-chrome`). The image declares `build: [pac, aur]`
 so the AUR builder compiles `google-chrome` (chrome layer) and `wlrctl`

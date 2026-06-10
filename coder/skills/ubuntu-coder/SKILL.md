@@ -15,9 +15,9 @@ description: |
 Ubuntu 24.04 noble counterpart of `/charly-coder:fedora-coder`. Same 80-line test block, same ~30 layers, same rootless posture — but **the resolved user is `ubuntu` (not `user`)** because the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` to adopt it. Everything that touches the user account — `${HOME}`, npm prefix, pixi env, sudoers — derives from `resolved.User = "ubuntu"`.
 
 > **Location:** lives in the **`overthinkos/ubuntu`** repo (git submodule at
-> **`image/ubuntu`**) — a SEPARATE repo from `overthinkos/debian`. Its ~31
+> **`box/ubuntu`**) — a SEPARATE repo from `overthinkos/debian`. Its ~31
 > layers are pulled by github reference from the main repo. Build/validate from
-> the submodule: `charly -C image/ubuntu image build ubuntu-coder`, or
+> the submodule: `charly -C box/ubuntu image build ubuntu-coder`, or
 > `charly --repo overthinkos/ubuntu image build ubuntu-coder`. Deploy-mode verbs
 > read the built image's OCI labels and work from anywhere once it's local.
 
@@ -127,10 +127,10 @@ Identical to `/charly-coder:debian-coder` — the only diff is `User` field.
 
 ```bash
 # 1. Validate
-charly -C image/ubuntu image validate
+charly -C box/ubuntu image validate
 
 # 2. Build (auto-chains: ubuntu → ubuntu-builder → ubuntu-coder)
-charly -C image/ubuntu image build ubuntu-coder
+charly -C box/ubuntu image build ubuntu-coder
 
 # 3. Disposable-container tests
 charly eval box ghcr.io/overthinkos/ubuntu-coder:latest

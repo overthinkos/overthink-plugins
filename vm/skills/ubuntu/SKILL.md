@@ -15,15 +15,15 @@ under libvirt/QEMU.
 
 The `ubuntu-debootstrap` VM entity and its `eval-ubuntu-debootstrap-vm` disposable
 test bed live in the **`overthinkos/ubuntu`** repo (git submodule at
-**`image/ubuntu`**), in that repo's config (its `charly.yml` + per-kind sibling files). The bed is a
+**`box/ubuntu`**), in that repo's config (its `charly.yml` + per-kind sibling files). The bed is a
 `kind: eval` entity (the 2026-05 deploy→eval unification moved repo-shipped
 disposable beds out of `deploy.yml`), driven by `charly eval run
 eval-ubuntu-debootstrap-vm`. Drive the VM lifecycle from the submodule:
-`charly -C image/ubuntu vm build ubuntu-debootstrap` +
-`charly -C image/ubuntu vm create ubuntu-debootstrap` (or
+`charly -C box/ubuntu vm build ubuntu-debootstrap` +
+`charly -C box/ubuntu vm create ubuntu-debootstrap` (or
 `charly --repo overthinkos/ubuntu …`).
 
-## VM Configuration (from image/ubuntu/vm.yml)
+## VM Configuration (from box/ubuntu/vm.yml)
 
 | Setting | Value |
 |---|---|
@@ -45,7 +45,7 @@ carries BOTH distro configs, so `inherits: debian` resolves without referencing
 
 `eval-ubuntu-debootstrap-vm` is a `kind: eval` bed (`target: vm`,
 `vm: ubuntu-debootstrap`) that carries `disposable: true`, so
-`charly -C image/ubuntu eval run eval-ubuntu-debootstrap-vm` runs the full R10 sequence
+`charly -C box/ubuntu eval run eval-ubuntu-debootstrap-vm` runs the full R10 sequence
 unattended (the equivalent `charly update eval-ubuntu-debootstrap-vm` rebuild also works,
 since the eval bed is folded into the Deploy map).
 

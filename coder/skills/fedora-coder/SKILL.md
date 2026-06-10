@@ -20,12 +20,12 @@ browser-streamed Wayland desktop) — `fedora-coder` is headless and
 meant to be accessed via `ssh -p 2222` or `charly shell`.
 
 > **Location:** lives in the **`overthinkos/fedora`** repo (git submodule at
-> **`image/fedora`**), discovered as a `box/<name>/charly.yml` box. Its base
+> **`box/fedora`**), discovered as a `box/<name>/charly.yml` box. Its base
 > stack (`fedora-nonfree` → `fedora`) is bare-local in the same self-contained
 > submodule (`import: []`) — `base: fedora-nonfree`, which itself roots on the
 > bare-local `fedora` base — and its 32 layers are pulled by github reference.
 > Build/validate from
-> the submodule: `charly -C image/fedora image build fedora-coder`, or
+> the submodule: `charly -C box/fedora image build fedora-coder`, or
 > `charly --repo overthinkos/fedora image build fedora-coder`. Deploy-mode verbs
 > (`charly config`/`charly start`/`charly eval box`) read the built image's OCI labels and
 > work from anywhere once it's in local storage.
@@ -158,11 +158,11 @@ with `base: nvidia` + the same layer list.
 
 ```bash
 # 1. Validate config (from the overthinkos/fedora submodule)
-charly -C image/fedora image validate
+charly -C box/fedora image validate
 
 # 2. Build (first time ≈ 15–30 min; cached rebuilds are fast thanks to
 # LABEL-at-end ordering — test edits rebuild in seconds)
-charly -C image/fedora image build fedora-coder
+charly -C box/fedora image build fedora-coder
 
 # 3. Build-scope tests (disposable container)
 charly eval box ghcr.io/overthinkos/fedora-coder:latest

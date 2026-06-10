@@ -15,15 +15,15 @@ under libvirt/QEMU.
 
 The `debian-debootstrap` VM entity and its `eval-debian-debootstrap-vm` disposable
 test bed live in the **`overthinkos/debian`** repo (git submodule at
-**`image/debian`**), in that repo's config (its `charly.yml` + per-kind sibling files). The bed is a
+**`box/debian`**), in that repo's config (its `charly.yml` + per-kind sibling files). The bed is a
 `kind: eval` entity (the 2026-05 deploy→eval unification moved repo-shipped
 disposable beds out of `deploy.yml`), driven by `charly eval run
 eval-debian-debootstrap-vm`. Drive the VM lifecycle from the submodule:
-`charly -C image/debian vm build debian-debootstrap` +
-`charly -C image/debian vm create debian-debootstrap` (or
+`charly -C box/debian vm build debian-debootstrap` +
+`charly -C box/debian vm create debian-debootstrap` (or
 `charly --repo overthinkos/debian …`).
 
-## VM Configuration (from image/debian/vm.yml)
+## VM Configuration (from box/debian/vm.yml)
 
 | Setting | Value |
 |---|---|
@@ -43,7 +43,7 @@ submodule (a bare-string `import:` item).
 
 `eval-debian-debootstrap-vm` is a `kind: eval` bed (`target: vm`,
 `vm: debian-debootstrap`) that carries `disposable: true`, so
-`charly -C image/debian eval run eval-debian-debootstrap-vm` runs the full R10 sequence
+`charly -C box/debian eval run eval-debian-debootstrap-vm` runs the full R10 sequence
 unattended (the equivalent `charly update eval-debian-debootstrap-vm` rebuild also works,
 since the eval bed is folded into the Deploy map).
 

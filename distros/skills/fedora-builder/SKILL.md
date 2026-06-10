@@ -11,7 +11,7 @@ description: |
 Builder image with package managers and compilation tools. Default builder for pixi, npm, and cargo multi-stage builds (declared via `builds: [pixi, npm, cargo]`).
 
 **Owned by the `overthinkos/fedora` submodule.** Lives bare-local in the
-**`overthinkos/fedora`** submodule (mounted at `image/fedora`), alongside
+**`overthinkos/fedora`** submodule (mounted at `box/fedora`), alongside
 `/charly-distros:fedora` + `/charly-distros:fedora-nonfree`; the submodule is
 SELF-CONTAINED (`import: []`), so its images route builders to a bare-local
 `fedora-builder`. Its `rpmfusion`/`pixi`/`nodejs`/`build-toolchain` layers are

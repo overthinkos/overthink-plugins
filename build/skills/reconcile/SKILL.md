@@ -39,7 +39,7 @@ clears the warning.
 ```bash
 charly box reconcile --dry-run      # see the plan
 charly box reconcile                # align to newest referenced (no network)
-charly -C image/cachyos image reconcile   # reconcile a submodule's pins
+charly -C box/cachyos image reconcile   # reconcile a submodule's pins
 ```
 
 ## What it does
@@ -61,7 +61,7 @@ charly -C image/cachyos image reconcile   # reconcile a submodule's pins
 
 `charly box reconcile` operates on the CURRENT project (cwd; honors the top-level
 `-C` / `--dir` / `CHARLY_PROJECT_DIR`). For a multi-repo tree (the main repo + its
-`image/<distro>` submodules), run it per repo, or per submodule via `-C
+`box/<distro>` submodules), run it per repo, or per submodule via `-C
 image/<name>`. This pairs with the cross-repo landing order in
 `/charly-internals:git-workflow` B6: land + tag the producer FIRST, then
 `charly box reconcile` repoints the consumer to the producer's fresh tag before the

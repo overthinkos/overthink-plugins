@@ -15,7 +15,7 @@ The operator's CachyOS developer-workstation profile: a `kind: local` template
 current machine via `ShellExecutor` — no SSH, no VM, no container.
 
 It lives in the **`overthinkos/cachyos`** repo (git submodule at
-**`image/cachyos`**), in that repo's config (its `charly.yml` + per-kind
+**`box/cachyos`**), in that repo's config (its `charly.yml` + per-kind
 sibling files) — both the
 `kind: local` template and its `kind: deploy` entry (`deploy.charly-cachyos`). The
 repo also carries a sibling `kind: deploy`, `deploy.cachyos-gpu` — the
@@ -24,7 +24,7 @@ see `/charly-vm:cachyos`) — so charly-cachyos is no longer the only `kind: dep
 there; every disposable test bed remains `kind: eval`. Apply it with:
 
 ```bash
-charly -C image/cachyos update charly-cachyos
+charly -C box/cachyos update charly-cachyos
 # or, anywhere:
 charly --repo overthinkos/cachyos update charly-cachyos
 ```

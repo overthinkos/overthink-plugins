@@ -4,7 +4,7 @@ description: |
   Bootstrap-from-scratch Ubuntu 24.04 rootfs via debootstrap inside a privileged
   builder (from: builder:debootstrap, bootstrap_builder_image:
   ubuntu-debootstrap-builder). Retained for offline/air-gapped builds. Lives in
-  the overthinkos/ubuntu submodule (image/ubuntu).
+  the overthinkos/ubuntu submodule (box/ubuntu).
   MUST be invoked before building or troubleshooting ubuntu-debootstrap.
 ---
 
@@ -15,8 +15,8 @@ Bootstrap-from-scratch Ubuntu 24.04 (noble) root filesystem, built via
 container (`from: builder:debootstrap`,
 `bootstrap_builder_image: ubuntu-debootstrap-builder`).
 
-> **Lives in `overthinkos/ubuntu`** (git submodule at `image/ubuntu`). Build:
-> `charly -C image/ubuntu image build ubuntu-debootstrap`.
+> **Lives in `overthinkos/ubuntu`** (git submodule at `box/ubuntu`). Build:
+> `charly -C box/ubuntu image build ubuntu-debootstrap`.
 
 ## When to use it (and when not)
 
@@ -33,7 +33,7 @@ worked example of the `from: builder:debootstrap` pattern.
 | bootstrap_builder_image | ubuntu-debootstrap-builder |
 | Distro | ubuntu:24.04, ubuntu, debian |
 | Build | deb |
-| Home repo | overthinkos/ubuntu (`image/ubuntu`) |
+| Home repo | overthinkos/ubuntu (`box/ubuntu`) |
 
 The `ubuntu` distro config (`inherits: debian`; debootstrap suite `noble`,
 mirror `http://archive.ubuntu.com/ubuntu`, components `main,universe`) lives in

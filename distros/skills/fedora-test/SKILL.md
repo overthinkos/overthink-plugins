@@ -10,11 +10,11 @@ description: |
 
 Development test image with Traefik reverse proxy and a FastAPI test service.
 
-Lives in the **`overthinkos/fedora`** repo (git submodule at **`image/fedora`**).
+Lives in the **`overthinkos/fedora`** repo (git submodule at **`box/fedora`**).
 Its `fedora` base is bare-local in the same self-contained submodule
 (`import: []`) — `base: fedora`; the
 `agent-forwarding`/`traefik`/`testapi` layers are pulled by github reference.
-Build from the submodule: `charly -C image/fedora image build fedora-test`.
+Build from the submodule: `charly -C box/fedora image build fedora-test`.
 
 ## Image Properties
 

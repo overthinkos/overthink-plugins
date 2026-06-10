@@ -3,7 +3,7 @@ name: git-workflow
 description: |
   Use when committing, branching, pushing, merging, tagging, creating PRs, or
   approving/merging PRs with gh — the feat/-branch, R10-gated, never-force-push
-  landing workflow across the main repo + the plugins submodule + image/<distro>
+  landing workflow across the main repo + the plugins submodule + box/<distro>
   submodules. Covers sync-to-upstream, branch/worktree pruning, the fork+PR path
   for contributors without write access, and cross-repo @github landing order.
 ---
