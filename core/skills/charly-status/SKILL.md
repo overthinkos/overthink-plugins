@@ -112,7 +112,8 @@ render as indented IMAGE-cell rows (`  └─ <child>`) under their parent.
 | Field | Example |
 |-------|---------|
 | Kind | `pod` (omitted when unset) |
-| Image | `ghcr.io/overthinkos/jupyter:latest` |
+| Image | `jupyter` (box short name) |
+| Image ref | `ghcr.io/overthinkos/jupyter:2026.162.1319` — the RUNNING container's image ref:tag (runtime truth; JSON `image_ref`; the R9 freshness check reads this) |
 | Status | `running` |
 | Container | `charly-jupyter` |
 | Mode | `quadlet` |
@@ -201,6 +202,7 @@ is the recursive child tree (omitted when empty):
 {
   "kind": "pod",
   "image": "selkies-desktop",
+  "image_ref": "ghcr.io/overthinkos/selkies-desktop:2026.162.1319",
   "instance": "work",
   "status": "running",
   "container": "charly-selkies-desktop-work",

@@ -110,7 +110,7 @@ When image labels declare secrets (from `charly.yml` `secrets` field), `charly c
 4. Generates `Secret=` directives in the quadlet file
 5. Secrets are mounted at `/run/secrets/<name>` inside the container
 
-**Provisioning is idempotent** — existing secrets are never overwritten. This prevents breaking stateful services (e.g., PostgreSQL) that store their own copy of the password. Forcing re-provisioning has no dedicated `charly` flag yet — a queued charly gap (the charly-CLI-only mandate forbids the old ad-hoc `podman secret rm` path).
+**Provisioning is idempotent** — existing secrets are never overwritten. This prevents breaking stateful services (e.g., PostgreSQL) that store their own copy of the password. To force re-provisioning: `charly config <image> --refresh-secret <name>` (repeatable; `--refresh-secret all` rotates every secret of the image, sidecars included). A candy-owned auto-generated secret gets a NEW value — re-initialize services that stored the old one.
 
 For Docker, secrets fall back to `Environment=` injection with a security warning.
 

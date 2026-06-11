@@ -8,7 +8,7 @@ description: |
 
 Every opencharly image carries a complete snapshot of "what can this image do, what does it need, what does it provide" as `ai.opencharly.*` OCI labels. This skill documents the contract, the single Go type behind it, the completeness test that keeps it honest, and the source-less deploy path it enables.
 
-Source of truth: `charly/capabilities.go` + `charly/labels.go`. See also `/charly-internals:go` for the broader Go architecture and `/charly-internals:install-plan` for how this feeds the build/deploy IR.
+Source of truth: `charly/capabilities.go` + `charly/labels.go`. The CLI read-side probe is `charly box labels <ref>` (whole contract sorted; `--format <key>` for one raw value with a non-zero exit when absent; `--all` for non-charly labels too) — the charly-native R8 artifact check. See also `/charly-internals:go` for the broader Go architecture and `/charly-internals:install-plan` for how this feeds the build/deploy IR.
 
 ## The `Capabilities` type alias
 
