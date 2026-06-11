@@ -138,7 +138,13 @@ descriptor already equals the kind AND the short form is free (`eval-local`,
 `eval-sandbox`, kept disjoint from these beds. Nothing in the `charly` Go code
 hardcodes that name — it flows from the score's `pod:` field through
 `ResolveScoreTarget`, and prompts reference it via the `${TARGET_NAME}`
-substitution token. The supporting
+substitution token. **The sandbox is an OPERATOR-PROVISIONED per-host
+deploy** — the runner restarts-but-never-creates it: provision once with
+`charly deploy add eval-sandbox <ref> --disposable` + `charly start
+eval-sandbox` (the ref must provide charly + nested podman + the configured
+AI CLI; the per-host overlay never ships with the repo). On a host without
+the entry, `charly eval run <score>` fails fast with exactly that
+remediation. The supporting
 `vm: k3s-vm` + `k8s: vm-k3s-vm` entities live in the project `charly.yml`
 alongside its beds. `disposable: true` is the sole authorization
 for the unattended destroy+rebuild (see `/charly-internals:disposable`). Two
