@@ -26,6 +26,8 @@ A violation of any R1–R5 rule (or any of R6–R10, or the "Prioritize Clean Ar
 
 **The rule.** Every failure, error, anomaly, or warning surfaced by ANY tool (build, test, validator, runtime, eval, deploy, lint, hook) triggers IMMEDIATE invocation of `/charly-internals:root-cause-analyzer` BEFORE any remediation attempt. The first occurrence is the investigation trigger; there is no second-occurrence threshold.
 
+**A warning is a failure for R1 purposes.** It triggers the analyzer like any failure; the zero-warnings landing gate — a surviving warning is an R10 failure, never an accepted end state — is operationalized in `/charly-internals:git-workflow` ("Zero warnings").
+
 **Forbidden first responses.** "probably a flake" / "rerun and see" / "transient" / "intermittent" / "works on retry" / "environmental" / "let me try once more" / "maybe the network was slow" / "let me clear the cache and re-run". These are confessions, not defences. Each is a way of avoiding the analysis the rule mandates.
 
 **What is permitted.** The `/charly-internals:root-cause-analyzer` agent's 8-step process. After running it, if the analyzer concludes the root cause is genuinely external (network partition, upstream registry outage, kernel bug with a tracked upstream report), the conclusion is documented in the conversation **with evidence** — never assumed. Only after that documented conclusion is "retry" an authorized response.
@@ -40,13 +42,22 @@ A violation of any R1–R5 rule (or any of R6–R10, or the "Prioritize Clean Ar
 
 **Risk — not documentation status — is the trigger.** Low-risk orientation ("roughly what does this layer do") is a zero-risk skill lookup (R0) — do NOT burn a bed on it. High-risk (being wrong invalidates the plan, is costly / hard-to-reverse, or would mislead RCA) is proven on a bed REGARDLESS of what any doc or code asserts. The archetypal high-risk unknown: whether a SPECIFIC layer composition, at the LATEST available versions the resolver picks, builds / deploys / runs TOGETHER — no skill can certify a never-composed combination.
 
+| Assumption | Risk if wrong | How RDD settles it |
+|---|---|---|
+| "Roughly what does candy X do?" (orientation) | Low, recoverable | Skill lookup (R0) — no bed |
+| "Candy X behaves EXACTLY as documented, and my plan depends on it" | High | Validate on a live bed — the skill may be stale |
+| "The code does X, so my change is safe" | High | Run it — code has bugs; the emitted artifact / live run is the arbiter (R8/R9) |
+| "These candies, at their latest versions, compose & run together" | High (no skill can certify) | Build + deploy + `charly eval` EARLY |
+
+**RDD prevents three failure modes:** (1) a wrong high-risk assumption baked into the design — every task built on it inherits the defect when reality differs from the stale doc or buggy code; (2) unnecessary caution / over-engineering — guards, fallbacks, or pinned-back versions added against a danger a real check would have disproven; (3) erroneous root-cause analysis — diagnosing from speculation or a stale doc / code reading instead of a real bed run.
+
 **Forbidden internal-voice triggers.** "the layers probably compose, I'll find out at R10" / "the newest version is surely drop-in" / "each layer works alone, so the stack is fine" / "the skill says so, it's true" / "the code does X, so it's safe" / "I'll add a guard to be safe" (without proving the danger is real) / "let me bed-test what the skill already says" (for a LOW-risk item). Each either defers proving the riskiest unknown to the most expensive moment, or wastes a bed on a settled one.
 
 **What is permitted / required.** Building the real composition, running the bed, inspecting the running deployment, reading the emitted artifact, or a focused `charly eval box` / `charly eval live` probe — riskiest-assumption first — to PROVE a high-risk claim before editing on it. When the bed contradicts a skill or CLAUDE.md, the DOC IS STALE — fix it in the same change (skills are living documents).
 
 **Why it matters.** The most expensive bug is an edit built on a false premise validated only at the end — the cutover is large, the dependent edits many, and the disproof arrives after hours of work. RDD validates the premise when disproving it is cheap. It also kills over-engineering: a "guard to be safe" added without a proven need is an unvalidated CAUTION — the over-engineering twin of an unvalidated assumption.
 
-**Interaction with other rules.** RDD precedes R1: validate forward so RCA is rarely needed, and so the RCA that does run reasons from a real bed, not a guess. It feeds R10 (`/charly-eval:eval`): the riskiest assumptions are proven on a disposable bed early, so the final fresh-rebuild gate confirms a design already de-risked. Canonical definition in CLAUDE.md "Risk Driven Development (RDD)". Its enforcement surfaces are `testing-validator` standard #9, the `root-cause-analyzer` forbidden-rationalization, and the soft End-of-turn / post-execution checklists — never a blocking gate, because "highest-risk, validated early" is a judgment, not a mechanical invariant.
+**Interaction with other rules.** RDD precedes R1: validate forward so RCA is rarely needed, and so the RCA that does run reasons from a real bed, not a guess. It feeds R10 (`/charly-eval:eval`): the riskiest assumptions are proven on a disposable bed early, so the final fresh-rebuild gate confirms a design already de-risked. Canonical definition in CLAUDE.md "Risk Driven Development (RDD)". Its enforcement surfaces are `testing-validator` standard #9, the `root-cause-analyzer` forbidden-rationalization, and the Acceptance checklist (CLAUDE.md "Post-Execution Policies") — never a blocking gate, because "highest-risk, validated early" is a judgment, not a mechanical invariant.
 
 ## ADE. Agent Driven Evaluation — the spec is the test; agents author and grade it
 
@@ -71,7 +82,7 @@ A violation of any R1–R5 rule (or any of R6–R10, or the "Prioritize Clean Ar
 **What is permitted — classify BLOCKING vs NON-BLOCKING first.** A **blocking** issue (the current change is incorrect, incomplete, or unsafe without it) is, by DEFAULT, **fixed in the same working tree** — the AI does not ask permission to fix what it found:
 
 1. **Fix in the same working tree** (the default). Same commit as the active cutover; same atomic change; proved under the CURRENT cutover's R10.
-2. **Escalate to the operator — only when the blocking issue is itself a genuine crossroad** the AI cannot resolve from the request, code, skills, or sensible defaults. The ask is explicit: "I encountered $X during this cutover. Per R2 I cannot defer it, and it is a decision I cannot make alone. Should I (a) fix it now in this same commit, (b) abort the active cutover and address $X first, or (c) explicitly re-scope?" The operator's response authorizes the path; silence does not. Escalation is the narrow crossroad exception, never the default — a blocking issue with a clear fix is just fixed.
+2. **Escalate to the operator — only when the blocking issue is itself a genuine crossroad** the AI cannot resolve from the request, code, skills, or sensible defaults. A genuine crossroad is one of: a design choice with material trade-offs; a hard-to-reverse or outward-facing action without standing authorization; a contradiction between the plan and CLAUDE.md / a loaded skill; genuinely ambiguous requirements. The ask is explicit: "I encountered $X during this cutover. Per R2 I cannot defer it, and it is a decision I cannot make alone. Should I (a) fix it now in this same commit, (b) abort the active cutover and address $X first, or (c) explicitly re-scope?" The operator's response authorizes the path; silence does not. Escalation is the narrow crossroad exception, never the default — a blocking issue with a clear fix is just fixed.
 
 A **non-blocking** issue (the current change is correct AND complete without it, and it is genuinely separable from this change) takes a third path:
 
@@ -95,7 +106,7 @@ A **non-blocking** issue (the current change is correct AND complete without it,
 
 **Why it matters.** Duplication has compounding cost. Two divergent copies become three, then four, then eight; each copy hides bugs the others fixed. The cost of the unification grows superlinearly with the number of copies. R3 enforces unification at copy-count = 2 — the cheapest possible moment.
 
-**Interaction with other rules.** R3 is paired with the architectural-philosophy framing in CLAUDE.md "Prioritize Clean Architecture Above All Else" — which now contains three labeled sub-paragraphs (No duplication on first surface, Generic over ad-hoc, No workarounds) that mirror R3 + R4 from the architectural angle. Both framings are binding.
+**Interaction with other rules.** R3 is paired with the architectural-philosophy framing in CLAUDE.md "Prioritize Clean Architecture Above All Else" — no duplication on first surface, generic over ad-hoc, no workarounds, stated there as one binding mandate that mirrors R3 + R4 from the architectural angle. Both framings are binding.
 
 ## R4. No ad-hoc workarounds — sleep loops, retry-on-flake, magic-number tuning, "works on my machine" fixes are FORBIDDEN
 
@@ -118,7 +129,7 @@ A **non-blocking** issue (the current change is correct AND complete without it,
 
 **Why it matters.** "Temporary" fixes never get removed. Every sleep loop in the codebase was added with a "this is just for now" justification that was never revisited. R4 forbids the pattern at addition time, before the temporary becomes permanent.
 
-**Interaction with other rules.** R4 is paired with R3 in the architectural-philosophy sub-paragraph "No workarounds" in the "Prioritize Clean Architecture" section. R4 violations also typically violate R1 — the workaround is an attempt to dodge the failure rather than RCA it.
+**Interaction with other rules.** R4 is paired with R3 in CLAUDE.md "Prioritize Clean Architecture Above All Else" (the no-workarounds norm). R4 violations also typically violate R1 — the workaround is an attempt to dodge the failure rather than RCA it.
 
 ## R5. Hard cutover: deprecated path AND every stale reference deleted in the same change
 

@@ -11,41 +11,12 @@ description: |
 
 Skills are living documents at `plugins/<plugin>/skills/<name>/SKILL.md`. They are the primary knowledge source for Claude Code — always invoked before codebase exploration. This skill covers when and how to update them.
 
-## Skill Dispatcher (authoritative in CLAUDE.md R0; mirrored here)
+## Skill Dispatcher — the sole copy lives in CLAUDE.md R0
 
-CLAUDE.md R0 (SKILLS FIRST — THE SUPREME RULE) is the authoritative dispatcher. This section mirrors it so skill-authors already inside `/charly-internals:skills` see the same mapping without having to context-switch back to CLAUDE.md. If this table ever drifts from CLAUDE.md R0, **CLAUDE.md R0 wins** — fix this file, never the other way around.
-
-| Trigger | Skills to load BEFORE doing anything |
-|---|---|
-| `charly update` / `charly vm *` / VM entities | `/charly-vm:vm` + `/charly-internals:vm-deploy-target` |
-| `charly deploy add/del` / pod or container deploys | `/charly-core:deploy` |
-| host-target / nested host deploy | `/charly-local:local-deploy` + `/charly-internals:local-infra` |
-| `charly eval live` / `charly eval cdp/wl/dbus/vnc/mcp/record/spice/libvirt` | `/charly-eval:eval` |
-| `charly eval k8s <verb>` | `/charly-kubernetes:eval-k8s` |
-| Editing `charly.yml` / layer authoring | `/charly-image:layer` |
-| Editing `charly.yml` / image composition | `/charly-image:image` |
-| `charly box build` / `charly box generate` / Containerfile | `/charly-build:build` + `/charly-build:generate` + `/charly-internals:generate-source` |
-| `charly box validate` / schema error | `/charly-build:validate` |
-| Secret management / `charly secrets` / Secret Service / GPG `.secrets` | `/charly-build:secrets` |
-| Schema migration / legacy → latest CalVer | `/charly-build:migrate` |
-| Git/`gh` workflow — `feat/` branch, commit, push, ff-merge, tag, worktree, sync, prune, PR, approve | `/charly-internals:git-workflow` |
-| `charly box reconcile` / cross-repo `@github` pin alignment | `/charly-build:reconcile` |
-| Hard-cutover concerns / rename sweeps | `/charly-internals:cutover-policy` |
-| `disposable: true` semantics | `/charly-internals:disposable` |
-| Go source work | `/charly-internals:go` |
-| IR / InstallPlan / DeployTarget / OCITarget | `/charly-internals:install-plan` |
-| OCI labels / capabilities contract | `/charly-internals:capabilities` |
-| VmSpec / libvirt / cloud-init / OVMF | `/charly-internals:vm-spec` + renderer skills |
-| Unexpected failure / anomaly | `/charly-internals:root-cause-analyzer` agent |
-| Engineering-discipline trigger (failure / dup pattern / ad-hoc fix / "out of scope" framing) | `/charly-internals:strict-policy` |
-| "What does layer X do?" — pod-specific | `/charly-jupyter:<name>`, `/charly-coder:<name>`, `/charly-selkies:<name>`, `/charly-openclaw:<name>`, `/charly-ollama:<name>`, `/charly-openwebui:<name>`, `/charly-comfyui:<name>`, `/charly-immich:<name>`, `/charly-hermes:<name>`, `/charly-filebrowser:<name>` |
-| "What does layer X do?" — base distros / GPU / bootc | `/charly-distros:<name>` (arch, fedora, debian, ubuntu, nvidia, cuda, rocm, …) |
-| "What does layer X do?" — language runtime | `/charly-languages:<name>` (python, python-ml, pixi) |
-| "What does layer X do?" — infrastructure service | `/charly-infrastructure:<name>` (postgresql, redis, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, …) |
-| "What does layer X do?" — CLI utility | `/charly-tools:<name>` (ripgrep, himalaya, whisper, charly, …) |
-| Skill authoring / maintenance | `/charly-internals:skills` (this skill) |
-
-If multiple triggers apply, load ALL matching skills in ONE message (parallel `Skill` calls). Full index: `plugins/README.md` (250+ skills).
+The trigger → skill dispatcher is the table in CLAUDE.md "Skill Dispatcher"
+(Part I, immediately after R0) — the SOLE copy, deliberately mirrored nowhere
+(duplication drifts). When multiple triggers apply, load ALL matching skills
+in ONE message (parallel `Skill` calls). Full index: `plugins/README.md`.
 
 ## When to Update Skills
 
@@ -102,7 +73,7 @@ description: |
 | Command usage, flags, examples | `/charly-core:<cmd>` or `/charly-build:<cmd>` skill |
 | Layer properties, packages, ports | per-pod plugin (`/charly-jupyter:<name>`, `/charly-coder:<name>`, …) or split-foundation plugin (`/charly-distros:*`, `/charly-languages:*`, `/charly-infrastructure:*`, `/charly-tools:*`) for base layers |
 | Image composition, deployment, verification | per-pod plugin or `/charly-distros:<name>` / `/charly-infrastructure:<name>` for base images |
-| Skill disambiguation (which skill to use) | CLAUDE.md (brief table) |
+| Skill disambiguation (which skill to use) | CLAUDE.md R0 "Skill Dispatcher" (the sole copy; never mirrored) |
 | Detailed operational patterns | Relevant `/charly-core:*` / `/charly-build:*` / `/charly-eval:*` / `/charly-automation:*` / kind-plugin skill |
 | Version history / past changes / renames / cutover narration | `CHANGELOG.md` (repo root) — never CLAUDE.md or a skill |
 | Long-term thesis / vision / aspiration ("why & where it's going") | `VISION.md` (repo root) — never restating command usage, architecture, or history |
@@ -130,33 +101,8 @@ Plugins are sorted into four use-case buckets. Directory names live at
 `plugins/<name>/` (no `charly-` prefix); plugin.json `name:` fields keep the
 `charly-` prefix; every skill is invoked as `/charly-<plugin>:<skill>`.
 
-| Bucket | Plugin | Skills | Purpose |
-|---|---|---:|---|
-| commands | `charly-core` | 14 | Lifecycle verbs (start/stop/status/logs/shell/ssh/deploy/update/...) |
-| commands | `charly-build` | 13 | Build/authoring verbs (build/generate/list/inspect/merge/new/pull/validate/secrets/settings/migrate/reconcile/mcp) |
-| commands | `charly-eval` | 9 | `charly eval` orchestrator + live probes (cdp/wl/wl-overlay/dbus/vnc/spice/libvirt/record) |
-| commands | `charly-automation` | 6 | tmux verb, host-side helpers (alias/udev), topic flags (enc/sidecar/openclaw-deploy) |
-| kind | `charly-image` | 2 | `kind: box` and `kind: candy` schema reference |
-| kind | `charly-vm` | 6 | `kind: vm` schema + VM catalog |
-| kind | `charly-kubernetes` | 2 | `kind: k8s` schema + cluster probes |
-| kind | `charly-local` | 2 | `kind: local` schema + ssh-host deploys |
-| kind | `charly-pod` | 1 | `kind: pod` and `kind: deploy` schema (thin pointer) |
-| development | `charly-internals` | 16 + 5 agents | Go source / IR / capabilities / vm-spec / renderers / cutover-policy / strict-policy / disposable / git-workflow / agents (the agents/workflows/teams guide) + 5 agents (3 enforcers + 2 eval executors) + github MCP |
-| images | `charly-distros` | 34 | Base OS, GPU runtime, distro builders |
-| images | `charly-languages` | 4 | python, python-ml, pixi |
-| images | `charly-infrastructure` | 22 | postgres, redis, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, ... |
-| images | `charly-tools` | 18 | CLI utilities + charly binary deploy |
-| images | `charly-jupyter` | 15 | jupyter image family + jupyter MCP @ 8888 |
-| images | `charly-coder` | 31 | coder/dev images + charly MCP @ 18765 |
-| images | `charly-selkies` | 43 | selkies-desktop family + chrome-devtools MCP @ 9224 |
-| images | `charly-openclaw` | 12 | openclaw AI workstation + chrome-devtools MCP @ 9224 |
-| images | `charly-versa` | 9 | versa image — marimo + airflow + OSM analytics + 2 MCP servers |
-| images | `charly-ollama` | 2 | ollama LLM-server image |
-| images | `charly-openwebui` | 2 | openwebui chat frontend |
-| images | `charly-comfyui` | 2 | comfyui image generation |
-| images | `charly-immich` | 4 | immich photo management |
-| images | `charly-hermes` | 6 | hermes agent image |
-| images | `charly-filebrowser` | 2 | filebrowser web file management |
+The authoritative per-plugin skill counts and purposes are the bucket tables
+in `plugins/README.md` — point there, never copy them (counts drift).
 
 ## Agent & signpost conventions
 

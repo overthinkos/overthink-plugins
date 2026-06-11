@@ -73,9 +73,19 @@ charly eval live <image>                 # Three-section live probe pass
 charly stop <image>                      # Clean shutdown
 ```
 
+### For Docs/Comments-Only Changes (no bed run)
+
+The gate is the non-runtime standards (CLAUDE.md R10 gate-by-change-class):
+adversarial consistency review, R5 grep self-test, cross-reference validation,
+markdown integrity, the PreToolUse gates. Evidence = the grep/cross-ref
+outputs + the review verdict. A bed run is NOT required and adds no proof.
+
 ### For R10 acceptance (the gate, not a smoke test)
 
-The acceptance gate is a fresh-rebuild run on a `disposable: true` bed —
+Pick the gate by change class — `/charly-eval:eval` "R10 gate by change class";
+a bed is needed by the code/config classes (plus a workflow whose CONTROL FLOW
+changed — one matching bed). For those, the acceptance gate is a
+fresh-rebuild run on a `disposable: true` bed —
 delegate it to the `eval-bed-runner` agent, or run it directly:
 
 ```bash
@@ -86,18 +96,31 @@ charly eval run <bed>                    # full R10 sequence on a kind:eval bed:
 ```
 
 Exit codes: `0` pass · `1` infra/usage error (never ran a verdict) · `2`
-checks failed. A `--dry-run`, a green `go test`, or `charly box validate`
-alone is NOT R10 — only a real `charly eval run <bed>` / `charly eval live` against
-a fresh rebuild counts.
+checks failed. For those classes, a `--dry-run`, a green `go test`, or
+`charly box validate` alone is NOT R10 — only a real `charly eval run <bed>` /
+`charly eval live` against a fresh rebuild counts.
 
 ## Confidence Levels (must match CLAUDE.md "AI Attribution" exactly)
 
 | Level | Requirements |
 |-------|-------------|
-| `fully tested and validated` | All 10 standards + a fresh-rebuild R10 (`charly eval run <bed>` / `charly eval live` on a `disposable: true` target) for EVERY affected target + the new/changed code path actually exercised + R10 output pasted |
+| `fully tested and validated` | All 10 standards + a fresh-rebuild R10 (`charly eval run <bed>` / `charly eval live` on a `disposable: true` target) for EVERY affected target + the new/changed code path actually exercised + both R10 outputs (exploratory + fresh-rebuild) pasted |
 | `analysed on a live system` | A live invocation of the runner / verb evaluation / deploy probe the change touched actually ran AND its output is pasted. A bed *rebuild alone* (no eval run) and a `--dry-run` are NOT this tier — they are `syntax check only` |
 | `syntax check only` | Compile + unit tests + validators / dry-run passed; the live runner did NOT execute. Honest default when R10 hasn't run — pair with "R10 not yet run, awaiting authorization" AND do NOT commit |
 | `theoretical suggestion` | No validation — FORBIDDEN as a shipped-code tier |
+
+**Docs/policy-only cutovers** (per CLAUDE.md "AI Attribution"): a cutover
+touching ONLY documentation/policy (`CLAUDE.md`, `plugins/**/SKILL.md`,
+`README.md`, `plugins/README.md`, `CHANGELOG.md`, or code comments with ZERO
+behavior change — no behavioral Go / YAML-schema / box/candy-config edit, no
+other runtime surface) has no R10 bed; its applicable
+standards are the non-runtime ones: adversarial consistency review, the R5
+grep self-test, cross-reference validation, markdown integrity, and the
+`pre-commit-gate.sh` / `pre-push-gate.sh` gates. It earns `fully tested and
+validated` when ALL applicable standards pass; the `syntax check only → do
+NOT commit` clause targets code with a pending R10 and does not apply to it.
+A cutover that ALSO touches code or config is NOT docs-only — that surface's
+R10 gates it as usual.
 
 A known rule violation FORBIDS commit at ANY tier — there is no "downgrade
 and ship" path. Fix in the same tree or escalate. See CLAUDE.md.

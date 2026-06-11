@@ -13,11 +13,11 @@ description: |
 
 # disposable — explicit opt-in for autonomous destroy + rebuild
 
-## Schema v4 note (in-progress cutover)
-
-Schema v4 makes `DeploymentNode.Disposable` the **sole source of truth** for disposability. `VmSpec.Disposable` is retained during the Phase 1-5 transition for backward compatibility with the legacy `charly update arch` / `charly vm destroy --disk` paths, but the canonical field on any deployment entry (e.g. `deployments.images.eval-arch-vm.disposable: true`) is what the unified dispatcher reads.
-
-A latent bug was fixed alongside the refactor: `MergeDeployConfigs` previously dropped the `Disposable` and `Lifecycle` fields during project ↔ per-machine overlay merge — meaning a disposable flag on the project `charly.yml` would vanish after merge with a user's `~/.config/charly/charly.yml`. That's now an explicit merge (project-set OR overlay-set → true), with the same "later wins" rule when both set it.
+`DeploymentNode.Disposable` is the sole source of truth for disposability: the
+field on a deployment entry (e.g. `disposable: true` on a `deploy:` / `kind:
+eval` node) is what the unified dispatcher reads. The project ↔ per-machine
+overlay merge preserves it explicitly (project-set OR overlay-set → true,
+later wins when both set it).
 
 ## Why this exists
 
@@ -263,6 +263,51 @@ Flags (authoritative list: `charly update --help`):
 - `-i, --instance <name>` — target a named instance.
 - `--seed` / `--no-seed` / `--force-seed` / `--data-from <image>` —
   bind-backed-volume data-sync control.
+
+## What counts as an R10 run (and what does not)
+
+R10 (CLAUDE.md, Ground Truth Rules) means the cutover's NEW or CHANGED code
+path actually executed LIVE against a fresh rebuild of a `disposable: true`
+target — real subprocess invocation, real container build, real deploy probes,
+real verb evaluation — with pasteable runtime output for each changed piece
+(for classes with a runtime gate — see "The gate is class-dependent" below).
+
+- **A `--dry-run` does NOT count.** Dry-run renders prompts / scope / plans
+  WITHOUT invoking the runner, building artifacts, or reaching a live deploy —
+  it proves nothing about runtime behaviour. Validators, unit tests, and
+  dry-runs are pre-flight checks, never the acceptance gate.
+- **A rebuild alone does NOT count.** The rebuild is preflight setup. If the
+  changed runner / AI loop / verb evaluation never executed against the fresh
+  target, `analysed on a live system` is not available; the honest tier is
+  `syntax check only` paired with an explicit "R10 not yet run" — and pairing
+  that tier with a commit is itself a violation: STOP and ask.
+
+### Task-editing fraud
+
+R10 has ONE definition; redefining it retroactively is FORBIDDEN. `TaskUpdate`
+with status=`completed` and a description like "PARTIAL: dry-run only / canary
+/ abbreviated / full live run deferred" is fraud. Deleting a pending R10 task
+because "the run would take hours" is breach of contract — multi-hour AI loops
+ARE the work, not the obstacle. Session-budget concerns NEVER downgrade R10.
+If R10 genuinely cannot complete, say so plainly, commit NOTHING (main repo OR
+submodule), and escalate — never both downgrade and ship silently. (The
+motivating attribution-fraud incident is recorded in `CHANGELOG.md`.)
+
+### The gate is class-dependent
+
+Which R10 gate a change needs depends on its change class: docs/comments-only
+changes have NO bed to run (the non-runtime standards are their gate);
+hook/workflow script edits execute the changed script live (a workflow whose
+CONTROL FLOW changed runs against one matching bed); `charly` code and
+candy/box/deploy config changes need a bed. The authoritative matrix is
+`/charly-eval:eval` "R10 gate by change class".
+
+### Scope-shrinking flags
+
+The score/bed config in the `eval:` block IS the test specification;
+scope-shrinking `charly eval run` flags require explicit operator authorization
+in the SAME conversation turn. The flag catalog and the rule live in
+`/charly-eval:eval` "Flag discipline".
 
 ## Opting a deploy in
 

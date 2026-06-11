@@ -355,7 +355,6 @@ section is the Go-implementation map.
 | `eval_loop.go` | The AI iteration loop core: per-iter dispatch, scoring, plateau bookkeeping, watchdog integration, NOTES.md memory, `commitIterationBestEffort` (where the orphan-bash defense kills issue-52328 deadlock leftovers between iterations), result-file emission. |
 | `eval_runner_live.go` | `RunEvalLive` — the live scenario-by-scenario probe driver invoked at iter end by the harness scorer. Buckets scenarios by `pod:`, resolves chains via `ResolveDeployChain` for dotted paths, dispatches to the right `DeployExecutor`. Same code path used by `charly eval self-evaluate` (the AI-side mid-iter sanity check). |
 | `eval_watchdog.go` | `ProgressWatchdog` — per-iteration scoring-progress monitor. Every `progress_check_interval` (default 5m), runs `RunEvalLive` against in-scope scenarios, records a `WatchdogSample`, emits a `harness: progress [phase X/N iter Y] elapsed Nm — current score A/B` stderr line. Cancels the AI runner's context if `progress_no_improvement_timeout` (default 30m) of zero score delta passes. |
-| `migrate_eval.go` | `charly migrate` — strict forward-only migrator from the legacy `harness.yml` shape to `eval.yml` (file/dir/labels/tokens/env renames, `tests:`→`eval:` rewriting in charly.yml/charly.yml, well-known bench/fixture project-data renames). Idempotent. NO chain-aware handling of legacy `benchmark:` blocks. |
 | `validate_eval.go` | `validateEval(cfg, layers, errs)` hooked into `Validate` in `validate.go`. Enforces: exactly-one-verb per Check, attribute types, port range (1-65535), `time.Duration` parse on `timeout`, `scope` ∈ {build,deploy}, build-scope checks can't reference runtime-only variables (via `IsRuntimeOnlyVar`), `id:` uniqueness per section (including cross-layer collisions via `validateCollectedIDUniqueness` → `CollectEval`), matcher-op allowlist (kept in lockstep with `matchOne`), per-verb method-allowlist and required-modifier checks for `cdp`/`wl`/`dbus`/`vnc`/`mcp` (via `validateCharlyVerb` — deploy-scope-only enforcement, method validation against `cdpMethods`/`wlMethods`/`dbusMethods`/`vncMethods`/`mcpMethods` maps in `evalrun_charly_verbs.go`). |
 
 **Related skill**: `/charly-eval:eval` is the authoring-facing reference.
@@ -438,6 +437,26 @@ The layer scaffold writes `rpm:\n  packages:\n  # Add RPM packages here\n` — t
 ### Project-dir resolver is a two-step resolver, not one
 
 `charly/main.go` resolves the project dir in two steps: `--repo` resolves to a cache path first (`charly/main_repo.go` calls `ResolveProjectRepo` → `EnsureRepoDownloaded`), then falls through into the `os.Chdir(cli.Dir)` block. The two paths are mutually exclusive (fast-fail if both are set). Downstream code just reads `os.Getwd()` — no per-command plumbing. Tested in `charly/main_repo_test.go` (hermetic via `CHARLY_REPO_CACHE` pre-seeding) + `charly/mcp_serve_default_repo_test.go`.
+
+## R9 — deployed binary matches source; runtime deps live in the PKGBUILD
+
+CLAUDE.md R9, operationalized for the `charly` toolchain:
+
+- **Syncing source does not rebuild the binary.** Syncthing / git / rsync move
+  *source* between hosts. After pushing code, rebuild on the target
+  (`task build:charly`) and verify `charly version` matches what you built — if the
+  version is old, the fix under test isn't really under test. The freshness
+  guard (above) catches a stale `/usr/bin/charly` against newer `charly/*.go`, but the
+  version check is still the explicit proof.
+- **Every runtime OS dependency goes into `pkg/arch/PKGBUILD` `depends=`** —
+  the single source of truth (`nc`, `socat`, `xorriso`, `qemu-guest-agent`, …);
+  the `pkg/fedora` / `pkg/debian` packaging mirrors it. A manual install on one
+  host is a bug report disguised as a fix — it won't survive a fresh install on
+  a synced host.
+
+The verification side (checking the deployed binary + deps on a live target)
+is `/charly-eval:eval` Standards 7–8; the dual-path `bin/charly` ↔
+`candy/charly/bin/charly` gotcha is above and in `/charly-tools:charly`.
 
 ## Style Guide
 

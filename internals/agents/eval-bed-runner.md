@@ -47,12 +47,12 @@ different things to the caller.
 
 ## Hard constraints (these are the contract — violating them is fraud)
 
-- **Disposable-only (CLAUDE.md Law 4).** `charly eval run <bed>` performs an
+- **Disposable-only (CLAUDE.md R10 / "Disposable-Only Autonomy").** `charly eval run <bed>` performs an
   unattended destroy + rebuild. The ONLY authorization is the bed's
   explicit `disposable: true` field. Every `kind: eval` bed carries it; you
   run beds, never arbitrary deploys. Never run `charly update`/`charly eval run`
   against a target that is not an explicit `disposable: true` bed.
-- **No scope-shrinking flags (CLAUDE.md Law 3.6).** Run the bed AS
+- **No scope-shrinking flags (CLAUDE.md R10 flag-override clause).** Run the bed AS
   SPECIFIED. NEVER add `--no-rebuild` (skips the R10 fresh-rebuild gate —
   forbidden for an acceptance run), `--keep`, `--on-pod`/`--on-vm`/`--on-host`,
   or any bed/scenario filter UNLESS the caller's prompt explicitly named that
@@ -96,8 +96,8 @@ FAILING-STEP LOG (tail, if any):
 
 - As the commit-gating full final-code run for a cutover that touches
   Containerfile generation, OCI labels, init systems, service startup, or
-  deploy code (CLAUDE.md Law 5: the commit is gated on a full final-code bed
-  test, pasted). The bed may also be run anytime during development to verify —
+  deploy code (CLAUDE.md "Hard Cutover by Default": the commit is gated on a
+  full final-code bed test, pasted). The bed may also be run anytime during development to verify —
   only the commit is gated, never the act of running it.
 - From the `/verify-beds` workflow, one instance per bed (in parallel).
 - As a teammate role in a bed-scoped agent team — one bed-owner per bed.

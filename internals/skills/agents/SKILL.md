@@ -11,7 +11,7 @@ This skill is the authoritative reference for the three primitives, the charly
 agent roster, the shipped workflows, the bed-scoped parallel-testing model for
 teams, and the one rule that binds them all: **a bed run is R10-class — the
 commit is gated on a full final-code bed test (pasted), but beds run freely
-throughout to verify** (CLAUDE.md Law 5).
+throughout to verify** (CLAUDE.md "Hard Cutover by Default").
 
 ## The three primitives — when to use which
 
@@ -154,16 +154,16 @@ discipline as an agent team — it is the workflow expression of the B3 model
 `charly eval run <bed>` and `charly update` perform an unattended destroy + rebuild.
 Therefore, for ANY agent or workflow that runs them:
 
-- **Disposable-only (Law 4).** The sole authorization is the bed's explicit
+- **Disposable-only (R10 / Disposable-Only Autonomy).** The sole authorization is the bed's explicit
   `disposable: true`. Agents run `kind: eval` beds, never arbitrary deploys.
-- **The commit is gated, not the run (Law 5).** The git commit happens ONLY
+- **The commit is gated, not the run (Hard Cutover by Default).** The git commit happens ONLY
   after a full live test of EVERYTHING — the FINAL code, on `disposable: true`
   beds — passes and is pasted. Running `/verify-beds`, `eval-bed-runner`, or
   any `charly eval run` THROUGHOUT development — in parallel or in the background,
   to validate assumptions before you change and to diagnose errors — is
   ENCOURAGED. A run that passes on an *intermediate* state simply does not
   authorize the commit; only the full final-code run does.
-- **No scope-shrinking flags (Law 3.6).** Never pass `--no-rebuild` / `--keep`
+- **No scope-shrinking flags (R10 flag-override clause).** Never pass `--no-rebuild` / `--keep`
   / `--on-*` / scenario filters unless the user named the flag this turn.
 - **Paste-proof survives delegation.** Sub-agents are built to *summarize*,
   but R10 demands *pasted* proof. The executors return the raw verdict + exit
@@ -198,10 +198,10 @@ Therefore, for ANY agent or workflow that runs them:
     the process table. On a suspected orphan — a `running` domain with NO live
     orchestrator — `charly vm destroy <entity>` (or remove the container) before
     re-running. You re-derive state from disk; you never "lose" a run.
-  - **Paste-proof survives (Law 5).** The owner reports the verbatim
+  - **Paste-proof survives (R10 paste-proof).** The owner reports the verbatim
     `summary.yml` verdict + exit code; the lead pastes it.
 
-## Hooks: lean pointers + deterministic gates (not walls of text)
+## Hooks doctrine — lean pointers + deterministic gates (not walls of text)
 
 Hooks in this project do TWO things and nothing more (see `.claude/hooks/`):
 
@@ -210,8 +210,9 @@ Hooks in this project do TWO things and nothing more (see `.claude/hooks/`):
    single current source).
 2. **Deterministic `PreToolUse` gates** (`pre-commit-gate.sh`,
    `pre-push-gate.sh`) that BLOCK (exit 2) only unambiguous, CLAUDE.md-stated
-   invariants: `git commit --no-verify`, a missing/illegal `Assisted-by:
-   Claude (<tier>)` trailer, the `theoretical suggestion` tier, and
+   invariants: hook bypass via `--no-verify` (`git commit --no-verify` AND
+   `git push --no-verify`), a missing/illegal `Assisted-by: Claude (<tier>)`
+   trailer, the `theoretical suggestion` tier, and
    `git push --force` / `--force-with-lease`.
 
 The honest division of labor: **hooks gate mechanical invariants; agents
@@ -352,9 +353,10 @@ how `charly eval run` actually behaves:
 "go faster" mandate tempts the forbidden shortcut. LEGITIMATE: `--podman-jobs`,
 `--jobs`, `context_ignore`, pre-warming, agent-layer parallelism, longest-pole
 scheduling. R10-SCOPE-SHRINKING (need explicit per-turn operator authorization,
-CLAUDE.md Law 3.6): `--no-rebuild` (skips the R10 fresh-update gate), `--keep`,
-`--skip-rebuild`. "To go faster / to fit the session" is the confession, not the
-defense.
+CLAUDE.md R10 flag-override clause): `--no-rebuild` (skips the R10 fresh-update
+gate), `--keep`, `--skip-rebuild`. "To go faster / to fit the session" is the
+confession, not the defense. The full flag catalog + rule:
+`/charly-eval:eval` "Flag discipline".
 
 ## Cross-References
 
@@ -364,7 +366,7 @@ defense.
   authorization.
 - `/charly-internals:git-workflow` — the R10-gated landing the executors feed.
 - `/charly-internals:skills` — agent/skill discovery + the signpost convention.
-- CLAUDE.md "Agents, Workflows & Teams" + Laws 4/5 + AI Attribution.
+- CLAUDE.md "Agents, Workflows & Teams" + R10 / "Hard Cutover by Default" + AI Attribution.
 
 ## When to Use This Skill
 

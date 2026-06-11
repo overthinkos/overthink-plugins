@@ -5,7 +5,7 @@ description: |
   the `eval:` / `deploy_eval:` fields in a candy/box `charly.yml` or `charly.yml`,
   the `ai.opencharly.eval` OCI label, the AI iteration harness loop,
   `kind: ai` / `kind: recipe` / `kind: score` / `kind: eval` (disposable R10
-  beds run via `charly eval run <bed>`) in eval.yml, or any declarative
+  beds run via `charly eval run <bed>`) in a project's `eval:` block, or any declarative
   check authoring. Covers the unified `charly eval` surface: three
   primary modes (image / live / run),
   9 live-container probe verbs (cdp/wl/dbus/vnc/mcp/record/spice/libvirt/k8s),
@@ -23,7 +23,8 @@ description: |
 
 ## kind: eval beds + `charly eval run <bed>` — config-driven R10 acceptance
 
-The disposable R10 test beds are **`kind: eval` entities in `eval.yml`**. A
+The disposable R10 test beds are **`kind: eval` entities in the `eval:` block
+of the project `charly.yml`**. A
 `kind: eval` entity is a deploy-shaped node folded into the Deploy map at load
 time, so every deploy verb resolves it by name; `charly eval run <bed>` drives the
 full R10 sequence on it:
@@ -76,9 +77,31 @@ status` (or `charly vm gpu list` / `lspci -nnk` → `Kernel driver in use: vfio-
 NEVER host `nvidia-smi`. See `/charly-vm:vm` "GPU passthrough (VFIO)".
 
 `charly eval run --all-beds` runs every bed name-sorted. Flags: `--keep` (don't
-tear down), `--no-rebuild` (skip step 6 — FORBIDDEN for an R10 acceptance run;
-needs explicit operator authorization per CLAUDE.md). Per-run logs land in
+tear down), `--no-rebuild` (skip step 6) — both scope-shrinking, governed by
+"Flag discipline" below. Per-run logs land in
 `.eval/<bed>/<calver>/` (per-step `.log` files + `summary.yml`).
+
+### Flag discipline — the score/bed config IS the test specification
+
+The `kind: score` / `kind: eval` config in the project's `eval:` block IS the
+test spec; the operator authorizes overrides, not Claude. Passing ANY
+scope-shrinking flag to `charly eval run` (or `charly eval live`) without the user
+explicitly naming that flag in the SAME conversation turn is the same fraud
+class as dry-run-as-R10 (CLAUDE.md R10 flag-override clause). The catalog:
+`--plateau-iteration`, `--max-scenario`, `--tag`, `--skip-rebuild`,
+`--on-pod` / `--on-vm` / `--on-host`, `--keep-repo`, `--dry-run`, and the bed
+flags `--no-rebuild` (skips the R10 fresh-rebuild gate) and `--keep`.
+(`--all-beds` is scope-EXPANDING, not shrinking: it is in-spec WITHOUT
+authorization when "R10 gate by change class" mandates it for a cross-cutting
+change, and needs authorization only as a SUBSTITUTE for the class-mandated
+gate.) Internal-voice triggers — "tractable wall-clock", "for the
+canary", "to fit session bounds", "shorten this run", "skip the heavy leg",
+"faster iteration cycle" — are confessions, not defences. The score's
+`plateau_iteration` and the AI's `progress_no_improvement_timeout` together
+define the AI's recovery budget per phase; narrow neither without explicit
+authorization. Speed levers that do NOT shrink scope (e.g. `--podman-jobs`, `--jobs`) need
+no authorization — the lever catalog is `/charly-internals:agents` "Speed
+levers".
 
 **Run retention (`defaults.keep_eval_runs`).** After `charly eval run` (any path —
 bed / `--all-beds` / score), `.eval/<bed|score>/` is trimmed to the newest N run
@@ -88,7 +111,7 @@ memory) is ALWAYS preserved. Set `defaults.keep_eval_runs` in `charly.yml`
 (`0`/absent disables); apply on demand with `charly clean --eval`. See
 `/charly-core:clean`.
 
-### The repo's `kind: eval` beds (eval.yml)
+### The ecosystem's `kind: eval` beds
 
 | Bed | Target | Ref | Surface |
 |---|---|---|---|
@@ -100,6 +123,14 @@ memory) is ALWAYS preserved. Set `defaults.keep_eval_runs` in `charly.yml`
 | `eval-jupyter-ml-pod` | pod | `box: jupyter-ml` | jupyter-ml spacy/quarto + GPU MCP probes |
 | `eval-versa-pod` | pod | `box: versa` | versa OSM analytics + vector-tile + marimo MCP |
 | `eval-android-emulator-pod` | pod | `box: android-emulator` | Android 14 emulator (/dev/kvm) + adb/appium |
+| `eval-charly-vm` | vm | `vm: charly-vm` | `charly` toolchain localpkg deploy witness (opencharly-git pacman install + dep auto-resolve) on the cloud VM |
+
+Bed HOMES: the main repo's `charly.yml` owns `eval-k3s-vm`, `eval-local`, and
+`eval-charly-vm`; the pod beds above live in the `box/<distro>` submodules'
+`eval:` blocks (`eval-pod`, `eval-jupyter-pod`, `eval-jupyter-ml-pod`,
+`eval-sway-browser-vnc-pod` in `box/fedora`; `eval-versa-pod`,
+`eval-android-emulator-pod` in `box/cachyos`) and run from that submodule
+(e.g. `charly -C box/fedora eval run eval-pod`).
 
 Naming: `eval-<descriptor>-<kind>`, dropping a redundant suffix when the
 descriptor already equals the kind AND the short form is free (`eval-local`,
@@ -108,8 +139,8 @@ descriptor already equals the kind AND the short form is free (`eval-local`,
 hardcodes that name — it flows from the score's `pod:` field through
 `ResolveScoreTarget`, and prompts reference it via the `${TARGET_NAME}`
 substitution token. The supporting
-`vm: k3s-vm` + `k8s: vm-k3s-vm` entities live in `eval.yml` alongside the
-beds. `disposable: true` is the sole authorization
+`vm: k3s-vm` + `k8s: vm-k3s-vm` entities live in the project `charly.yml`
+alongside its beds. `disposable: true` is the sole authorization
 for the unattended destroy+rebuild (see `/charly-internals:disposable`). Two
 load-time guards back the beds: `validateEvalBeds` enforces `target ∈ {pod, vm,
 local, android}`, a resolvable cross-ref, and `disposable: true`; `foldEvalBeds`
@@ -177,6 +208,27 @@ means the runner works for ANY bed an operator defines — `charly eval run <nam
 resolves the bed by name through the same path every deploy verb uses, with no
 hardcoded bed table to keep in sync.
 
+## R10 gate by change class — pick the gate that exercises the change
+
+The R10 principle is EXERCISE, not ceremony: a gate that cannot fail on the
+change proves nothing (wasted verification), and a change whose gate never
+executed is unproven (the fraud class CLAUDE.md R10 bans). Pick the SMALLEST
+gate that genuinely exercises every changed code path — and run it in full.
+CLAUDE.md R10 carries the mandate; this matrix is the authoritative detail.
+
+| Change class | Pre-flight | The R10 gate | Explicitly NOT required |
+|---|---|---|---|
+| **Docs / comments only** — `*.md` (CLAUDE.md, `plugins/**/SKILL.md`, READMEs, CHANGELOG), code comments; zero behavior change | markdown integrity, link checks | The non-runtime standards: adversarial consistency review, the R5 grep self-test, cross-reference validation, the `pre-commit-gate.sh`/`pre-push-gate.sh` gates | ANY bed run or image build — beds cannot fail on prose |
+| **Hook / workflow scripts** — `.claude/hooks/*.sh`, `.claude/workflows/*.js` | `bash -n` / async-body parse | Execute the changed script live: run the hook directly (paste its output); a workflow whose CONTROL FLOW changed runs against ONE bed matching the change. Prompt-string-only workflow edits: parse + the non-runtime standards | The full bed fan-out |
+| **`charly` Go code** | `go test ./...` + `go vet` + `task build:charly` (R9 freshness + `charly version` check) | `charly eval run <bed>` for EACH bed whose kind matches a touched code path: box/candy/pod/DeployTarget mechanism → `eval-pod`; `target: local` → `eval-local`; VM / k8s → `eval-k3s-vm`; a feature surface → its feature bed. Cross-cutting loader / resolver / IR / unified-schema changes → `--all-beds` (in-spec for that class, not a scope override) | Beds whose substrate the change cannot reach |
+| **Candy / box / pod / vm / k8s / local / android config** | `charly box validate` | Build + run a bed that COMPOSES the changed entity (a candy edit → a bed whose image stacks that candy); when no bed composes it, the R7 sequence on a disposable deploy: build → `charly eval box` → deploy → `charly eval live` → fresh `charly update` | Beds that do not compose the changed entity |
+| **Score / recipe / ai eval config** | `charly box validate` | The affected score / bed run AS SPECIFIED (see "Flag discipline") | Unrelated beds |
+
+Mixed changes take the UNION of their classes' gates (docs ride along with the
+code class in the same commit). Class assignment is honest, not aspirational:
+a "comment" edit that changes a prompt string an agent executes is
+script-text, not docs; a YAML comment is docs, but a YAML field is config.
+
 ## The 10 Testing Standards (READ FIRST — referenced by CLAUDE.md R1–R10)
 
 An earlier agent claimed "cutover complete, all tests pass" after green `go test ./...` runs, then built an image that crash-looped at startup because a Containerfile stage was silently dropped. The unit tests didn't notice — they only exercised YAML loaders. **Unit tests are NOT a substitute for running the service.**
@@ -185,13 +237,13 @@ These are the 10 standards referenced in CLAUDE.md's AI attribution tier ("fully
 
 0. **Prove every HIGH-RISK assumption BEFORE you edit (RDD — Risk Driven Development)** — the proactive bookend to Standard 10's fresh-rebuild gate. Low-risk orientation ("what does layer X do") is a skill lookup (R0, zero risk); every high-risk assumption — including any a skill or the code merely *asserts*, and above all whether this layer composition at its latest available versions builds / deploys / runs TOGETHER — is proven on a `disposable: true` bed FIRST (`charly eval` it). Never accept docs or code as ground truth for a high-risk decision; if the bed disagrees with a skill, the skill is stale — fix it. Standard 0 (validate forward, riskiest-first) and Standard 10 (re-verify on a fresh rebuild) are the two ends of the same loop.
 
-1. **Build a real artifact** (R1) — `charly box build <image>` / `go build` / `charly vm build <vm>`. Not just `go test`. Not just `charly box generate`.
-2. **Verify the emitted artifact's content** (R3) — `grep -c supervisord-conf .build/<image>/Containerfile` for any image that uses supervisord; `virsh dumpxml` for a VM; `podman inspect --format '{{.Created}}'` to confirm the image was just rebuilt.
-3. **Verify critical OCI / capability labels post-build** (R4) — `podman inspect <ref> --format '{{index .Config.Labels "ai.opencharly.init"}}'` returns the expected value. Empty / missing → the detection path silently returned nil → regression.
+1. **Build a real artifact** (R7) — `charly box build <image>` / `go build` / `charly vm build <vm>`. Not just `go test`. Not just `charly box generate`.
+2. **Verify the emitted artifact's content** (R8) — `grep -c supervisord-conf .build/<image>/Containerfile` for any image that uses supervisord; `virsh dumpxml` for a VM; `podman inspect --format '{{.Created}}'` to confirm the image was just rebuilt.
+3. **Verify critical OCI / capability labels post-build** (R8) — `podman inspect <ref> --format '{{index .Config.Labels "ai.opencharly.init"}}'` returns the expected value. Empty / missing → the detection path silently returned nil → regression.
 4. **Deploy to a DISPOSABLE target** (R10) — NEVER experiment on a resource that doesn't carry `disposable: true`. If no suitable disposable target exists, create one first (`charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml and `charly vm create`). The setup is part of the task. On a disposable target: `charly update <name>` (unattended). On anything else: confirm with the user before any irreversible destroy — EXCEPT preempting a declared-`preemptible:` holder, which is standing-authorized (reversible: graceful stop + guaranteed restore).
 5. **Target must reach steady-state** — `systemctl --user status charly-<image>.service` → `Active: active (running)`; `virsh domstate <vm>` → `running (booted)`; SPICE socket file exists and accepts a handshake. If `start-limit-hit` appears, the container is crashing — reproduce directly via `podman run --rm <image> <entrypoint>`.
 6. **Run the declarative test suite** — `charly eval live <image>` full three-section pass against the live container (or `--uri` / `--host` remote equivalent for a remote target).
-7. **Verify the deployed binary is the one you built** (R8) — `charly version` on the target matches the expected CalVer; `podman inspect <ref> --format '{{.Created}}'` timestamp is from THIS build, not the prior one. Source-only changes (Syncthing, git push) do NOT update the deployed binary; you must build AND deploy on the target host.
+7. **Verify the deployed binary is the one you built** (R9) — `charly version` on the target matches the expected CalVer; `podman inspect <ref> --format '{{.Created}}'` timestamp is from THIS build, not the prior one. Source-only changes (Syncthing, git push) do NOT update the deployed binary; you must build AND deploy on the target host.
 8. **Verify runtime deps are installed via package management** (R9) — `which nc`, `rpm -q <pkg>`, `pacman -Q <pkg>`. Manual installs do NOT count — they won't survive a fresh install on a synced host. Every runtime dep must live in `setup.sh` + `pkg/arch/PKGBUILD`.
 9. **Leave the target healthy, not paused/errored** — final snapshot of `virsh domstate` / `systemctl status` / `podman ps` is healthy. If the target is in a broken state during exploration, `charly update` it back to the committed config before continuing — never layer experiments on broken state.
 10. **Re-verify on a FRESH rebuild after committing the source-level fix** (R10) — `charly update <disposable-target>` one more time from clean, with the new source applied. Run standards 1–9 again against this fresh rebuild. **THIS IS THE ACCEPTANCE GATE.** A fix that works on a hand-patched target but not on a fresh rebuild is a regression waiting for the next unrelated rebuild to wipe your patch. Paste BOTH the exploratory-pass output AND the fresh-rebuild-pass output into the conversation — the user sees both.
@@ -361,6 +413,14 @@ The surface is three orthogonal verbs, each named for what it evaluates:
 
 The mode is **explicit in the verb**; there is no autodetect or
 implicit fallback. Choose the mode by picking the right verb.
+
+**Which verb/bed proves what (CLAUDE.md R7):** `charly eval box` passes on
+zero-content stages too — it is NOT a substitute for the generated-artifact
+checks (R8). For the R10 gate, pick the `kind: eval` bed whose kind matches
+what you changed (`eval-pod` for the combined box/candy/pod/DeployTarget
+mechanism, `eval-local`, `eval-k3s-vm`, or a feature bed). `charly eval run
+<score>` is the multi-hour AI-iteration benchmark, never a quick gate — the
+same verb dispatches by the kind the name resolves to.
 
 The banner after `charly eval box` reports the image ref:
 
@@ -1237,7 +1297,7 @@ Three pieces compose it:
 ### Worked example — a Chrome pod CDP-probes a web-server pod (pod→pod)
 
 ```yaml
-# eval.yml — kind:eval bed: web SUBJECT (root) + chrome DRIVER (peer)
+# charly.yml eval: block — kind:eval bed: web SUBJECT (root) + chrome DRIVER (peer)
 eval-cross-pod-cdp:
     target: pod
     box: web                       # the SUBJECT under test (nginx fixture on :8080)
@@ -1437,8 +1497,8 @@ deliberately.
 - `/charly-build:build` — how eval entries are embedded into the OCI label at build
   time; LABELs-at-end cache behavior.
 - `/charly-build:inspect` — view the merged 3-section eval structure as JSON.
-- `/charly-build:migrate` — `charly migrate` brings legacy configs (including
-  any residual `harness.yml`) up to the current `eval.yml` schema.
+- `/charly-build:migrate` — `charly migrate` brings legacy configs up to the
+  current schema (the `eval:` block in `charly.yml`).
 - `/charly-internals:go` — implementation map: `evalspec.go`, `evalvars.go`,
   `evalrun.go`, `evalrun_verbs.go`, `evalrun_charly_verbs.go`,
   `evalcollect.go`, `eval_cmd.go`, `eval_runner_cmd.go`, `eval_loop.go`,
@@ -1460,6 +1520,6 @@ deliberately.
 behavior at any level. Triggers: `charly eval` (any subcommand), `charly eval
 run`, `charly eval box`, `charly eval live`, the `eval:` / `deploy_eval:`
 YAML fields, the `ai.opencharly.eval` OCI label, `kind: ai` /
-`kind: recipe` / `kind: score` / `kind: eval` in `eval.yml`,
+`kind: recipe` / `kind: score` / `kind: eval` in the `eval:` block,
 `charly eval run <bed>` / `--all-beds` (kind:eval R10 beds), or any check
 verb by name (file/port/http/command/package/service/cdp/wl/dbus/vnc/mcp/...).

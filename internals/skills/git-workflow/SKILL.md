@@ -32,6 +32,11 @@ Policies" carries the mandate, `/charly-internals:cutover-policy` the one-phase 
   `/charly-internals:root-cause-analyzer` then a real fix). "Warning" is never an
   acceptable end state — it is an R10 failure (strengthens R1).
 - **Atomic.** One commit per repo per cutover (the cutover-policy "one phase").
+- **Tree-safety before destructive actions (R6).** Always check `git status` +
+  `git stash list` before any destructive working-tree action — `git stash`
+  discards in-progress work; `rm` on a tracked file is destructive. When the
+  sandbox blocks an action, read the reason and find a non-destructive
+  alternative — never work around it with a cleverer command.
 - **Eval-coverage.** R10 does not pass unless the change ships the test coverage
   that PROVES its functionality (`eval:` checks for new/changed layers & images,
   Go tests for `charly` code) AND the live run exercised it. A change whose new
@@ -69,7 +74,7 @@ rebase-then-push collision can't normally arise; in the rare case `feat/` was
 already pushed and then rebased, update the remote with
 `git push --delete origin feat/<slug>` followed by a fresh push — NEVER `--force`.
 
-## B4 — sync to upstream + prune (per repo: main, plugins, image/*)
+## B4 — sync to upstream + prune (per repo: main, plugins, box/*)
 
 - **Sync-before-start / before-landing.** `git fetch origin --prune --tags`; ff
   local `main` to `origin/main`. Never force-reset a diverged local `main` — if it
@@ -90,11 +95,11 @@ already pushed and then rebased, update the remote with
 ## B2 — multi-repo / multi-worktree coordination
 
 One logical change spanning several repos uses the **same `feat/<slug>` in each**
-(main, `plugins`, `image/*`), so the branches correlate. R10 runs against the
+(main, `plugins`, `box/<distro>`), so the branches correlate. R10 runs against the
 **assembled superproject** (submodule pointers at the `feat/` commits) — the whole
 change is verified before anything merges. Then land in **dependency order**:
 
-1. each `image/*` submodule — commit → `--ff-only` merge → tag (it has
+1. each `box/<distro>` submodule — commit → `--ff-only` merge → tag (it has
    `charly.yml`) → push;
 2. `plugins` — commit → `--ff-only` merge → push (**no tag**, no `charly.yml`);
 3. the superproject — stage the now-merged submodule pointers → atomic commit →
@@ -211,6 +216,37 @@ ONE fresh tag per push (a repo accumulates many), immutable (only ever added),
 INDEPENDENT of `charly.yml` `version:` (the schema version, bumped only by a
 `MigrationStep` raising `LatestSchemaVersion()`). A YAML schema/format change does
 BOTH: raise `LatestSchemaVersion()` AND mint the tag. See `/charly-build:migrate`.
+
+## After landing — cleanliness + report
+
+- **Working-tree cleanliness.** After commit + landing, `git status` is clean
+  in every repo. Untracked files that aren't part of the cutover (test
+  artifacts, build outputs) belong in `.gitignore`; if they aren't, that's its
+  own immediate-next cutover, not part of this one.
+- **Report format.** The final message states: what was committed (commit
+  subject + hash, per repo), the confidence tier with the proof that supports
+  it, what was pushed, and the pasted R10 outputs (exploratory +
+  fresh-rebuild). A worked commit message:
+
+```
+Fix: Add fuse-overlayfs for container startup
+
+Tested via overlay session on LOCAL system.
+
+Assisted-by: Claude (fully tested and validated)
+```
+
+## If R10 fails
+
+R10 failure is a return-to-implementation signal, not a stopping point:
+
+1. Run `/charly-internals:root-cause-analyzer` BEFORE attempting any fix —
+   blind retry is FORBIDDEN.
+2. Fix in the SAME working tree — never a follow-up PR.
+3. Re-run the FULL R10 from a fresh `charly update`, not just the failing
+   piece — a fix that survives only the targeted re-run is a regression in
+   waiting.
+4. Commit only when R10 passes end-to-end on the FINAL code.
 
 ## Cross-References
 
