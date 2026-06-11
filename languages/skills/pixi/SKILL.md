@@ -57,10 +57,8 @@ build loudly if the lock is stale (no silent skew). Generate with the builder's
 own pixi so the lock format matches what installs it, e.g.:
 
 ```bash
-podman run --rm --userns=keep-id \
-  -v "$PWD/candy/<name>:/m" -w /m \
-  ghcr.io/overthinkos/fedora-builder:<calver> \
-  bash -c 'grep -q system-requirements pixi.toml || printf "\n[system-requirements]\nlibc = { family = \"glibc\", version = \"2.39\" }\n" >> pixi.toml; pixi lock'
+charly shell fedora-builder --tag <calver> --bind workspace="$PWD/candy/<name>" \
+  -c 'grep -q system-requirements pixi.toml || printf "\n[system-requirements]\nlibc = { family = \"glibc\", version = \"2.39\" }\n" >> pixi.toml; pixi lock'
 ```
 
 The `[system-requirements]` glibc fix mirrors what the build stage injects, so

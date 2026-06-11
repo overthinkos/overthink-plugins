@@ -134,11 +134,10 @@ header lands at the bottom; etc.
 Surgical reset (kill marimo, restore from `/data/`, restart):
 
 ```bash
-podman exec charly-versa bash -c '
-  supervisorctl stop marimo
-  cp /data/workspace/notebooks/osm-monaco-viz.py \
-     /workspace/notebooks/osm-monaco-viz.py
-  supervisorctl start marimo'
+charly service stop versa marimo
+charly cmd versa "cp /data/workspace/notebooks/osm-monaco-viz.py \
+     /workspace/notebooks/osm-monaco-viz.py"
+charly service start versa marimo
 ```
 
 Then the user reloads their browser tab (the old session's WebSocket

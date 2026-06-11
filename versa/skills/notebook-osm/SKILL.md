@@ -173,9 +173,9 @@ End-to-end run via marimo's own export (executes every cell
 server-side):
 
 ```bash
-podman exec charly-versa /home/user/.pixi/envs/default/bin/marimo \
+charly cmd versa "/home/user/.pixi/envs/default/bin/marimo \
   export ipynb /workspace/notebooks/osm-monaco-viz.py \
-  --include-outputs --sort topological -o /tmp/notebook-run.ipynb -f
+  --include-outputs --sort topological -o /tmp/notebook-run.ipynb -f"
 ```
 
 Expected results (verified):

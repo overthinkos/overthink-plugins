@@ -129,7 +129,7 @@ charly shell openwebui -c "open-webui version"
 podman secret ls | grep openwebui              # webui-secret-key, admin-password
 
 # Verify MCP (inside container process)
-podman exec charly-openwebui cat /proc/3/environ | tr '\0' '\n' | grep TOOL_SERVER_CONNECTIONS
+charly cmd openwebui "cat /proc/3/environ" | tr '\0' '\n' | grep TOOL_SERVER_CONNECTIONS
 ```
 
 ## Test Coverage

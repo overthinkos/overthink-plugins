@@ -220,7 +220,7 @@ charly tmux capture $IMG -s oauth
 # Expected: "OpenAI OAuth complete", "Default model set to openai-codex/gpt-5.4"
 
 # 7. Restart gateway
-charly shell $IMG -c "supervisorctl restart openclaw"
+charly service restart $IMG openclaw
 charly shell $IMG -c "openclaw models status"
 ```
 

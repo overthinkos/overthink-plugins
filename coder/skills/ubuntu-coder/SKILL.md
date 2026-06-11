@@ -92,7 +92,7 @@ Resolved identity: `User=ubuntu, UID=1000, GID=1000, Home=/home/ubuntu`. The ima
 ## Live verification
 
 ```
-$ podman run --rm ghcr.io/overthinkos/ubuntu-coder:latest bash -c 'id; /usr/bin/dotnet --version; sudo -l'
+$ charly shell ubuntu-coder -c 'id; /usr/bin/dotnet --version; sudo -l'
 uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),4(adm),20(dialout),24(cdrom),25(floppy),27(sudo),29(audio),30(dip),44(video),46(plugdev),105(libvirt)
 9.0.313
 User ubuntu may run the following commands on <host>:
@@ -136,7 +136,7 @@ charly -C box/ubuntu box build ubuntu-coder
 charly eval box ghcr.io/overthinkos/ubuntu-coder:latest
 
 # 4. Confirm adopt mode at runtime
-podman run --rm ghcr.io/overthinkos/ubuntu-coder:latest id
+charly shell ubuntu-coder -c "id"
 # → uid=1000(ubuntu) gid=1000(ubuntu) ...
 
 # 5. Deploy + live tests

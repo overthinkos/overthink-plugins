@@ -61,9 +61,9 @@ Two paths to execute notebook content programmatically:
    osm-monaco-viz.py notebook:
 
    ```bash
-   podman exec charly-versa /home/user/.pixi/envs/default/bin/marimo \
+   charly cmd versa "/home/user/.pixi/envs/default/bin/marimo \
      export ipynb /workspace/notebooks/osm-monaco-viz.py \
-     --include-outputs --sort topological -o /tmp/notebook-run.ipynb -f
+     --include-outputs --sort topological -o /tmp/notebook-run.ipynb -f"
    ```
 
    Requires `nbformat` in the pixi env (already pinned in

@@ -190,7 +190,7 @@ credential store at all. Output is:
 
     All encrypted volumes for <image> already mounted (N/N)
 
-This makes service restarts (`systemctl --user restart charly-<image>.service`)
+This makes service restarts (`charly restart <image>`)
 resilient to temporary keyring backend problems: the only reason to query the
 keyring is to get the passphrase for a fresh `gocryptfs -init` or mount, and
 the short-circuit skips that entirely when no new mount is needed. A broken
@@ -312,9 +312,8 @@ charly config my-app --bind workspace=/new/path
 ```bash
 charly config remove <image> -i <instance>     # 1. Stop & disable service
 charly deploy reset <image> -i <instance>       # 2. Remove charly.yml entry
-rm ~/.config/containers/systemd/charly-<image>-<instance>.container  # 3. Delete quadlet
-systemctl --user daemon-reload              # 4. Reload systemd
-systemctl --user reset-failed               # 5. Clear ghost units (optional)
+charly remove <image> -i <instance>         # 3. Remove container + quadlet (reloads systemd)
+charly reap-orphans                         # 4. Clear ghost units (optional)
 ```
 
 Only THEN run `charly config <image> --update-all` to propagate the clean state.

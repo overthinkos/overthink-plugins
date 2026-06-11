@@ -13,7 +13,7 @@ helpers. Composed by `/charly-versa:versa` so operators can debug
 the deployed services (marimo, airflow, martin, maputnik, etc.) from
 INSIDE the running container.
 
-Without this layer, `podman exec charly-versa ps` returns
+Without this layer, `charly cmd versa "ps"` returns
 "command not found" — minimal Fedora images don't ship procps-ng,
 iproute, bind-utils, etc. by default.
 

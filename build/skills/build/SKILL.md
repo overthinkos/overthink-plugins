@@ -505,7 +505,7 @@ edit to `candy/labwc/autostart` did not propagate to the rebuilt image until
 `candy/labwc/charly.yml` itself was touched. Two consecutive `--no-cache` rebuilds
 produced the same image hash (`502c8012c7a5`) until the charly.yml content changed.
 
-Symptom: `podman image ls` shows a new tag, but `podman run --rm <new tag> cat /path/to/changed/file`
+Symptom: `podman image ls` shows a new tag, but `charly shell <image> -c "cat /path/to/changed/file"`
 returns the **old** content.
 
 ### Known caveat: stale `:latest` under `--cache-from`

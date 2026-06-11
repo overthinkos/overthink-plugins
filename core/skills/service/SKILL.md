@@ -231,7 +231,7 @@ Stop the conflicting container before starting. Common conflicts: standalone `ol
 If `charly service status` shows a service cycling STARTING/STOPPED, run it manually to see the error:
 
 ```bash
-charly shell <image> -c "supervisorctl stop <service>"
+charly service stop <image> <service>
 charly shell <image> -c "<service-command>"
 ```
 

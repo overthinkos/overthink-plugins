@@ -279,9 +279,9 @@ End-to-end notebook test (executes all 13 cells via marimo's own
 export):
 
 ```bash
-podman exec charly-versa /home/user/.pixi/envs/default/bin/marimo \
+charly cmd versa "/home/user/.pixi/envs/default/bin/marimo \
   export ipynb /workspace/notebooks/osm-monaco-viz.py \
-  --include-outputs --sort topological -o /tmp/notebook-run.ipynb -f
+  --include-outputs --sort topological -o /tmp/notebook-run.ipynb -f"
 ```
 
 Expected outputs (verified end-to-end):
@@ -353,7 +353,7 @@ Python wheel — does not break the `no-build = true` invariant the
 - **Marimo session persistence reorders cells.** When a marimo session
   is open and the file changes (e.g. after `--force-seed`), marimo
   re-persists with its session's cell order. Surgical reset:
-  `supervisorctl stop marimo && cp /data/workspace/notebooks/osm-monaco-viz.py /workspace/notebooks/ && supervisorctl start marimo`.
+  `charly service stop versa marimo`, then `charly cmd versa "cp /data/workspace/notebooks/osm-monaco-viz.py /workspace/notebooks/"`, then `charly service start versa marimo`.
 - **Martin caches pmtiles mtime at startup.** Re-run a DAG that
   rewrites `monaco.pmtiles` → martin returns 500/204 forever until
   restart. The OSM DAG's `reload_martin` task handles this automatically;

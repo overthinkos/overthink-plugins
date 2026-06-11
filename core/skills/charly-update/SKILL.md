@@ -106,9 +106,9 @@ podman tag ghcr.io/overthinkos/selkies-desktop:2026.102.1933 \
            ghcr.io/overthinkos/selkies-desktop:latest
 
 # Restart the service(s) — they pick up :latest, no re-pull needed
-systemctl --user restart charly-selkies-desktop.service
+charly restart selkies-desktop
 # or per-instance:
-systemctl --user restart charly-selkies-desktop-82.23.94.69.service
+charly restart selkies-desktop -i 82.23.94.69
 ```
 
 This is fast (no network round-trip) and survives because podman's image GC is

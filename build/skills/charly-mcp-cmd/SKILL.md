@@ -172,8 +172,8 @@ box:
 **Verification** that the fix worked:
 
 ```bash
-podman inspect charly-<image> --format '{{json .NetworkSettings.Ports}}' | jq
-# Expect: the mcp port maps to a non-null [{"HostIp":"...","HostPort":"..."}]
+charly status <image> --json
+# Expect: the mcp port listed in the port mappings with a non-null host port
 charly eval mcp ping <image>
 # ok
 ```

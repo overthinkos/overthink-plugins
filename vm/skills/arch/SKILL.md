@@ -282,8 +282,8 @@ cloud-init appends the pubkey to `/home/arch/.ssh/authorized_keys` without calli
 
 ### Rebuild + boot
 ```bash
-virsh -c qemu:///session destroy charly-arch 2>/dev/null
-virsh -c qemu:///session undefine --nvram charly-arch 2>/dev/null
+charly vm stop arch --force 2>/dev/null
+charly vm destroy arch 2>/dev/null
 rm -f ~/.local/share/charly/vm/charly-arch/nvram.fd
 rm -f output/qcow2/{disk.qcow2,seed.iso}
 charly vm build arch
@@ -292,7 +292,7 @@ charly vm create arch --no-auto-detect
 
 ### BIOS firmware + virtio-gpu took effect
 ```bash
-virsh -c qemu:///session dumpxml charly-arch \
+charly eval libvirt domain-xml arch \
   | grep -E "<loader|<nvram|<firmware|<type arch|<model type"
 ```
 Pass: NO `<loader>` / `<nvram>` / `<firmware>` elements; `<model type='virtio'>` inside `<video>`.

@@ -247,7 +247,7 @@ podman exec charly-selkies-desktop-tailscale \
   tailscale set --exit-node=100.80.254.4 --exit-node-allow-lan-access
 
 # Verify: pod shows exit node's IP, not host's
-podman exec charly-selkies-desktop curl -s ifconfig.me
+charly cmd selkies-desktop "curl -s ifconfig.me"
 ```
 
 **Prerequisites:**

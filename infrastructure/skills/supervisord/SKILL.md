@@ -157,8 +157,7 @@ user=user
 No candy ships such a listener today. The selkies `[program:chrome]` service
 (in `selkies-core`, `restart: always`, `start_secs: 5`/`start_retries: 3`) relies
 on supervisord's ordinary relaunch for ordinary exits; a genuinely wedged crash
-loop is cleared by restarting the container (`charly update` / `systemctl --user
-restart`), which tears down the cgroup. The chrome candy's
+loop is cleared by restarting the container (`charly update` / `charly restart`), which tears down the cgroup. The chrome candy's
 `security.memory_max`/`memory_high`/`memory_swap_max` caps bound the blast radius.
 See `/charly-selkies:chrome` (Chrome supervision) and `/charly-image:layer` (Security
 Declaration → resource caps).
@@ -259,7 +258,7 @@ On non-bootc images, supervisord is container PID 1 (`ENTRYPOINT=supervisord` em
 Both involve opening `/dev/stdout` or `/dev/fd/1`, which resolve to the journal pipe under a systemd user service — and `open()` on a pipe returns ENXIO.
 
 1. **Main supervisord logfile.** The header template (`templates/supervisord.header.conf`) was changed from `logfile=/dev/stdout` to `logfile=/tmp/supervisord.log`. `/dev/stdout` works when supervisord is PID 1 in a container (fd 1 is real stdio), but fails with `OSError: [Errno 6] No such device or address: '/dev/stdout'` under a systemd user service where fd 1 is a pipe. Writing to a regular file works everywhere.
-2. **Per-program `stdout_logfile=/dev/fd/1`.** Every candy's `service:` fragment redirects program stdout to `/dev/fd/1` so container logs (`podman logs`) show per-program output. Under a systemd user service this fails with `unknown error making dispatchers for <name>: ENXIO` for every program. The fix lives in the systemd user unit itself — set `StandardOutput=file:/tmp/supervisord-stdout.log` so supervisord's fd 1 backs a real file, not a pipe. Existing per-program `/dev/fd/1` lines then resolve correctly.
+2. **Per-program `stdout_logfile=/dev/fd/1`.** Every candy's `service:` fragment redirects program stdout to `/dev/fd/1` so container logs (`charly logs <image>`) show per-program output. Under a systemd user service this fails with `unknown error making dispatchers for <name>: ENXIO` for every program. The fix lives in the systemd user unit itself — set `StandardOutput=file:/tmp/supervisord-stdout.log` so supervisord's fd 1 backs a real file, not a pipe. Existing per-program `/dev/fd/1` lines then resolve correctly.
 
 Container-mode logs are unaffected — supervisord is still PID 1 there.
 

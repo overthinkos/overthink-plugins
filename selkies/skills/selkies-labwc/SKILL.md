@@ -273,10 +273,10 @@ podman exec charly-selkies-labwc-tailscale \
 
 ```bash
 # Exit node routing — shows exit node's public IP, not host's
-podman exec charly-selkies-labwc curl -s ifconfig.me
+charly cmd selkies-labwc "curl -s ifconfig.me"
 
 # Bridge connectivity — other charly containers reachable
-podman exec charly-selkies-labwc getent hosts charly-ollama
+charly cmd selkies-labwc "getent hosts charly-ollama"
 
 # Host tailnet — accessible via host's tailscale serve
 curl -sk https://o.armadillo-quail.ts.net:3000/ | head -1
