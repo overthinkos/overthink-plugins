@@ -268,10 +268,10 @@ This means a volume deployed with `--bind <name>=<path>` or `--encrypt <name>` s
 
 For programmatic queries the same data is in `charly status --json`'s `volumes` array. Source: `charly/status_collector.go:formatLiveMounts` + `charly/status_engine.go:mountsFromInspect`. Tested by `charly/status_live_mounts_test.go` (17 sub-cases covering the JSON parser, the encryption-path detector, the renderer, and an end-to-end JSON → MountInfo → display chain).
 
-Authoritative direct queries (when you need the raw inspect data):
+Authoritative direct queries (when you need the raw mount data):
 
 ```bash
-podman inspect <container> --format '{{range .Mounts}}{{.Type}}:{{.Source}}->{{.Destination}} {{"\n"}}{{end}}'
+charly status <image> --json    # volumes[] carries the live mounts
 charly deploy show <image>
 ```
 

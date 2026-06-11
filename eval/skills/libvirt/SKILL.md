@@ -20,7 +20,7 @@ charly eval libvirt send-key   <vm> KEYS…               # keyboard injection (
 charly eval libvirt passwd     <vm> [PASSWORD]          # live graphics password patch
 charly eval libvirt qmp        <vm> COMMAND [JSON_ARGS] # QMP passthrough
 charly eval libvirt domain-xml <vm>                     # dump live XML
-charly eval libvirt console    <vm>                     # (stub) serial console — use `virsh console`
+charly eval libvirt console    <vm>                     # (stub) serial console — use `charly vm console <vm>`
 charly eval libvirt events     [<vm>]                   # poll lifecycle state transitions
 ```
 

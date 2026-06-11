@@ -183,7 +183,7 @@ image`), never the full run. (3) **Reconnect via durable state** —
 `.eval/<bed>/<calver>/summary.yml` + the live domain ARE the truth: "done" =
 summary.yml present; "alive" = the orchestrator is in the process table; clean up
 an orphan (`running` domain, no live orchestrator) with `charly vm destroy <entity>`
-before re-running. See `/charly-internals:agents` "The binding rule".
+(or `charly remove <name>` for a pod) before re-running. See `/charly-internals:agents` "The binding rule".
 
 ### Prereq for the vm bed
 
@@ -194,6 +194,10 @@ systemctl --user enable --now virtqemud.service     # libvirt >= 8 (modular)
 # OR (older monolithic):
 systemctl --user enable --now libvirtd.service
 ```
+
+(The host libvirt daemon is host infrastructure, not a charly-managed
+resource — enabling it via systemctl sits outside the charly-CLI-only
+mandate's scope.)
 
 `charly eval run eval-k3s-vm` best-effort starts the unit before `charly vm create`
 (via `startLibvirtUserSession()` in `charly/vm.go`); `resolveVmBackend()` surfaces
@@ -238,14 +242,14 @@ These are the 10 standards referenced in CLAUDE.md's AI attribution tier ("fully
 0. **Prove every HIGH-RISK assumption BEFORE you edit (RDD — Risk Driven Development)** — the proactive bookend to Standard 10's fresh-rebuild gate. Low-risk orientation ("what does layer X do") is a skill lookup (R0, zero risk); every high-risk assumption — including any a skill or the code merely *asserts*, and above all whether this layer composition at its latest available versions builds / deploys / runs TOGETHER — is proven on a `disposable: true` bed FIRST (`charly eval` it). Never accept docs or code as ground truth for a high-risk decision; if the bed disagrees with a skill, the skill is stale — fix it. Standard 0 (validate forward, riskiest-first) and Standard 10 (re-verify on a fresh rebuild) are the two ends of the same loop.
 
 1. **Build a real artifact** (R7) — `charly box build <image>` / `go build` / `charly vm build <vm>`. Not just `go test`. Not just `charly box generate`.
-2. **Verify the emitted artifact's content** (R8) — `grep -c supervisord-conf .build/<image>/Containerfile` for any image that uses supervisord; `virsh dumpxml` for a VM; `podman inspect --format '{{.Created}}'` to confirm the image was just rebuilt.
-3. **Verify critical OCI / capability labels post-build** (R8) — `podman inspect <ref> --format '{{index .Config.Labels "ai.opencharly.init"}}'` returns the expected value. Empty / missing → the detection path silently returned nil → regression.
+2. **Verify the emitted artifact's content** (R8) — `grep -c supervisord-conf .build/<image>/Containerfile` for any image that uses supervisord; `charly eval libvirt domain-xml <vm>` for a VM.
+3. **Verify critical OCI / capability labels post-build** (R8) — verify the claimed capability contract through the `charly` surface (`charly eval box <ref>` runs the baked checks; `charly box inspect <box>` shows the resolved config — `/charly-internals:capabilities`). Empty / missing label → the detection path silently returned nil → regression. (Printing a BUILT ref's labels has no dedicated verb yet — a queued charly gap; never ad-hoc podman.)
 4. **Deploy to a DISPOSABLE target** (R10) — NEVER experiment on a resource that doesn't carry `disposable: true`. If no suitable disposable target exists, create one first (`charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml and `charly vm create`). The setup is part of the task. On a disposable target: `charly update <name>` (unattended). On anything else: confirm with the user before any irreversible destroy — EXCEPT preempting a declared-`preemptible:` holder, which is standing-authorized (reversible: graceful stop + guaranteed restore).
-5. **Target must reach steady-state** — `systemctl --user status charly-<image>.service` → `Active: active (running)`; `virsh domstate <vm>` → `running (booted)`; SPICE socket file exists and accepts a handshake. If `start-limit-hit` appears, the container is crashing — reproduce directly via `podman run --rm <image> <entrypoint>`.
+5. **Target must reach steady-state** — `charly status <image>` → `running`; `charly eval libvirt info <vm>` → state `running`; SPICE socket file exists and accepts a handshake. If the service start-limit is hit, the container is crashing — read `charly logs <image>` and reproduce in a disposable shell (`charly shell <image>`, running the service command manually).
 6. **Run the declarative test suite** — `charly eval live <image>` full three-section pass against the live container (or `--uri` / `--host` remote equivalent for a remote target).
-7. **Verify the deployed binary is the one you built** (R9) — `charly version` on the target matches the expected CalVer; `podman inspect <ref> --format '{{.Created}}'` timestamp is from THIS build, not the prior one. Source-only changes (Syncthing, git push) do NOT update the deployed binary; you must build AND deploy on the target host.
-8. **Verify runtime deps are installed via package management** (R9) — `which nc`, `rpm -q <pkg>`, `pacman -Q <pkg>`. Manual installs do NOT count — they won't survive a fresh install on a synced host. Every runtime dep must live in `setup.sh` + `pkg/arch/PKGBUILD`.
-9. **Leave the target healthy, not paused/errored** — final snapshot of `virsh domstate` / `systemctl status` / `podman ps` is healthy. If the target is in a broken state during exploration, `charly update` it back to the committed config before continuing — never layer experiments on broken state.
+7. **Verify the deployed binary is the one you built** (R9) — `charly version` on the target matches the expected CalVer (`charly status <image>` detail's `charly` tool probe shows it for a container). Exposing the deployed image ref+tag on `charly status` is a queued charly gap. Source-only changes (Syncthing, git push) do NOT update the deployed binary; you must build AND deploy on the target host.
+8. **Verify runtime deps are installed via package management** (R9) — on the HOST: `charly doctor` (dependency status), or the host package manager directly (`rpm -q <pkg>` / `pacman -Q <pkg>` — host packages are not charly-managed resources, so the package manager IS their interface); inside a container: `charly cmd <box> 'rpm -q <pkg>'`. Manual installs do NOT count — they won't survive a fresh install on a synced host. Every runtime dep must live in `setup.sh` + `pkg/arch/PKGBUILD`.
+9. **Leave the target healthy, not paused/errored** — the final `charly status` (and `charly eval libvirt info <vm>` for a VM) is healthy. If the target is in a broken state during exploration, `charly update` it back to the committed config before continuing — never layer experiments on broken state.
 10. **Re-verify on a FRESH rebuild after committing the source-level fix** (R10) — `charly update <disposable-target>` one more time from clean, with the new source applied. Run standards 1–9 again against this fresh rebuild. **THIS IS THE ACCEPTANCE GATE.** A fix that works on a hand-patched target but not on a fresh rebuild is a regression waiting for the next unrelated rebuild to wipe your patch. Paste BOTH the exploratory-pass output AND the fresh-rebuild-pass output into the conversation — the user sees both.
 
 ### `charly eval live parent.child` reaches the actual leaf
@@ -288,7 +292,7 @@ authoring surface in eval recipes (`kind: recipe`).
 
 - **"Unit tests pass → cutover done"** — no. Build + deploy + run + test, every time.
 - **"Retested after update → still passing!"** but the pre-update test was against the old running image and the post-update container failed to come up — see the `is not running` error and conclude the update broke it, not that "tests pass in aggregate."
-- **"Service start failed, probably a transient"** — no. `A dependency job for X failed` + immediate exit is a real error. Read the service log: `podman run --rm <image> <entrypoint>` will reproduce the failure directly.
+- **"Service start failed, probably a transient"** — no. `A dependency job for X failed` + immediate exit is a real error. Read `charly logs <image>`; `charly shell <image>` reproduces it in a disposable container.
 - **"Lifecycle: dev implies disposable"** — no. `disposable: true` is the ONE authorization for autonomous destroy + rebuild. Lifecycle tags are human-facing metadata; they do not authorize anything. See `/charly-internals:disposable`.
 - **"This is a dev box so I can just nuke it"** — no. The only authorization for autonomous destroy is the explicit `disposable: true` field on a specific deploy. Everything else requires user confirmation, regardless of hostname.
 - **"I tested on the VM I've been patching all afternoon, looks fine"** — incomplete. Run `charly update <disposable-target>` once more from clean and re-verify before claiming success. Without the fresh-rebuild re-verification, your "fix" may be latent on hand-patched state.
@@ -1088,7 +1092,7 @@ provides, the test must name the actual installed package.
 | `redis` | `valkey-compat-redis` |
 | `liberation-fonts` | `liberation-sans-fonts` (+ `-serif-fonts`, `-mono-fonts`) |
 
-Always verify with `podman run --rm <image> rpm -qf /path/to/binary`.
+Always verify with `charly shell <image> -c 'rpm -qf /path/to/binary'`.
 
 ### 9. Volume paths don't exist at build-scope
 

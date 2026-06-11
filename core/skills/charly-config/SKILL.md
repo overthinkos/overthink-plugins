@@ -137,7 +137,7 @@ Secrets declared in `charly.yml` `secret:` field are stored as OCI label metadat
 - `--password auto` (default): generates random passwords for all secrets
 - `--password manual`: prompts for each secret
 
-**Idempotent:** existing Podman secrets are never overwritten. To re-provision: `podman secret rm <name> && charly config setup <image>`.
+**Idempotent:** existing Podman secrets are never overwritten. Forcing re-provisioning has no dedicated `charly` flag yet — a queued charly gap (the charly-CLI-only mandate forbids the old ad-hoc `podman secret rm` path).
 
 ## Data Seeding
 

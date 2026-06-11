@@ -196,7 +196,7 @@ Therefore, for ANY agent or workflow that runs them:
     live domain/container ARE the source of truth: "done + verdict" =
     `summary.yml` exists; "still alive" = the `charly eval run` orchestrator is in
     the process table. On a suspected orphan — a `running` domain with NO live
-    orchestrator — `charly vm destroy <entity>` (or remove the container) before
+    orchestrator — `charly vm destroy <entity>` (or `charly remove <name>`) before
     re-running. You re-derive state from disk; you never "lose" a run.
   - **Paste-proof survives (R10 paste-proof).** The owner reports the verbatim
     `summary.yml` verdict + exit code; the lead pastes it.

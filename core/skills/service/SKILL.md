@@ -110,7 +110,7 @@ When image labels declare secrets (from `charly.yml` `secrets` field), `charly c
 4. Generates `Secret=` directives in the quadlet file
 5. Secrets are mounted at `/run/secrets/<name>` inside the container
 
-**Provisioning is idempotent** — existing secrets are never overwritten. This prevents breaking stateful services (e.g., PostgreSQL) that store their own copy of the password. To force re-provisioning: `podman secret rm <name> && charly config setup <image>`.
+**Provisioning is idempotent** — existing secrets are never overwritten. This prevents breaking stateful services (e.g., PostgreSQL) that store their own copy of the password. Forcing re-provisioning has no dedicated `charly` flag yet — a queued charly gap (the charly-CLI-only mandate forbids the old ad-hoc `podman secret rm` path).
 
 For Docker, secrets fall back to `Environment=` injection with a security warning.
 
@@ -220,8 +220,8 @@ Data from data candies is automatically provisioned into bind-backed volumes dur
 If `charly start` fails with `bind: address already in use`, another container or host process is using the port. Find the conflict:
 
 ```bash
-ss -tlnp | grep <port>           # Find what's listening
-podman ps --format '{{.Names}} {{.Ports}}' | grep <port>  # Find container
+ss -tlnp | grep <port>           # Find what's listening (host-level, not a charly resource)
+charly status --json | jq -r '.[] | select(.ports[]?.host_port == <port>) | .image'   # Find the charly container
 ```
 
 Stop the conflicting container before starting. Common conflicts: standalone `ollama` container on 11434, existing VNC on 5900.

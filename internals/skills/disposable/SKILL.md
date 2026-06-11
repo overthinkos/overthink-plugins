@@ -220,8 +220,8 @@ libvirt domain XML carries:
 </metadata>
 ```
 
-`virsh dumpxml <domain> | grep charly:` tells you the classification
-without opening vm.yml.
+`charly eval libvirt domain-xml <vm> | grep charly:` (the vm.yml entity
+name) tells you the classification without opening vm.yml.
 
 For container deploys, the authoritative source is `charly.yml` —
 `charly status <name>` reflects it at runtime.
