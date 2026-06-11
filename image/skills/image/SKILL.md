@@ -173,9 +173,7 @@ box:
     candy:
       - supervisord
       - traefik
-      - my-service
-    ports:
-      - "8080:8080"
+      - my-service          # published ports are inherited from the candies (no box `port:`)
     env:
       - MY_VAR=value
     env_file: "~/.config/my-app/.env"
@@ -201,7 +199,6 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `distro` | `[]` | Distro identity tags in priority order: `["fedora:43", fedora]`. For packages: first matching section wins (override). For tasks: additive. Inherited from base image |
 | `build` | `["rpm"]` | Package formats tied to builder definitions: `[rpm]` or `[pac, aur]`. ALL formats installed in order. Valid: rpm, deb, pac, aur. Inherited from base image |
 | `layers` | (required) | Layer list (image-specific, not inherited) |
-| `ports` | `[]` | Runtime port mappings (`"host:container"` or `"port"`) |
 | `user` | `"user"` | Username for non-root operations. See `user_policy:` — may be overridden at resolve time when adopt mode fires |
 | `uid` | `1000` | User ID (may be overridden by `base_user:` under adopt) |
 | `gid` | `1000` | Group ID (may be overridden by `base_user:` under adopt) |
@@ -453,6 +450,19 @@ vms:
 
 See `/charly-vm:vms-catalog` for the full VmSpec schema, `/charly-vm:vm` for the `charly vm build/create/ssh` command family, and `/charly-build:migrate` for `charly migrate` to convert legacy `box.vm:` / `box.libvirt:` fields to the new schema.
 
+## Ports — inherited from candies, auto-allocated at deploy
+
+**Boxes do NOT declare ports.** A box's published ports are inherited from EVERY candy in its base chain — the candy that runs a service declares the container port (`candy.yml` `port:`), and `CollectBoxPorts` (`charly/ports.go`, over the shared `boxCandyChain` walk) collects the full set. The same set feeds both the `ai.opencharly.port` OCI label and the Containerfile `EXPOSE` directives, so they can never diverge. A residual box-level `port:` is a hard load error pointing at `charly migrate`.
+
+```bash
+charly box inspect android-emulator --format ports
+# 2222   (sshd)         3000  (selkies)      4723 (appium-server)
+# 5037   (android adb)  9222  (chrome-cdp)   9224 (chrome-devtools-mcp)
+# — all inherited from the candy chain; the box declares no `port:`
+```
+
+**Host mappings are auto-allocated on `127.0.0.1` at deploy.** At `charly config`, every inherited container port without an explicit deploy pin gets a freshly-allocated free loopback host port (`ResolveDeployPorts`), persisted as `resolved_port:` and stable across `charly update`. A deploy/bed `port:` entry is a PIN (`host:container`) for specific container ports — the rest still auto-allocate. `charly status` shows the live mapping; eval probes resolve it via `${HOST_PORT:N}`. See `/charly-core:deploy` and `/charly-eval:eval`.
+
 ## OCI Labels
 
 Every image `charly` builds carries a set of `ai.opencharly.*` OCI labels embedding the resolved image config so that `charly config` and `charly deploy` can work without the project source tree. The full list is assembled in `charly/labels.go`:
@@ -460,7 +470,7 @@ Every image `charly` builds carries a set of `ai.opencharly.*` OCI labels embedd
 | Label | Contents |
 |---|---|
 | `ai.opencharly.volume` | Volume declarations from the layer chain |
-| `ai.opencharly.port` | Ports + protocol annotations |
+| `ai.opencharly.port` | Published container ports, **inherited from the candy chain** (`CollectBoxPorts`) — bare container ports; host mappings are auto-allocated at deploy |
 | `ai.opencharly.security` | `cap_add`, `devices`, `security_opt`, `mounts`, resource caps |
 | `ai.opencharly.env` | Runtime env keys |
 | `ai.opencharly.env_provide` | Cross-container env provides (resolved at deploy time) |

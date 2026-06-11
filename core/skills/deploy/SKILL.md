@@ -300,18 +300,41 @@ target an instance of `versa`, which is a different deploy).
   For Pattern B (arbitrary name), only the single `<key>` form
   works.
 
-### Port resolution is keyed by deploy-key, not image short-name
+### Auto port mapping — inherited container ports, auto-allocated on 127.0.0.1
 
-Each deploy entry's quadlet `PublishPort=` is sourced from THAT entry's own
-`port:`/`resolved_port:`, looked up by its deploy key. Multiple deploys backed
-by the same image short-name on one host (Pattern A instances, Pattern B
+A box's published CONTAINER ports are inherited from its candy chain (boxes
+declare no `port:` — see `/charly-image:image` "Ports"). At `charly config`,
+`ResolveDeployPorts` maps EACH inherited container port to a host:container
+publish entry: a fresh free **`127.0.0.1`** host port is auto-allocated unless
+the deploy explicitly **pins** it. The result persists as `resolved_port:` and a
+prior allocation is reused for stability across `charly update`. `localizePort` +
+`BindAddress` (default `127.0.0.1`) bind every published port — auto-allocated
+and pinned alike — to loopback only; `charly status` shows the live mapping and
+eval probes resolve it via `${HOST_PORT:N}`.
+
+A deploy/bed `port:` entry is a **PIN** (`host:container`) for specific container
+ports — the rest still auto-allocate (it is no longer a wholesale replacement,
+and the legacy `port: [auto]` sentinel is retired — absence IS auto). Pin only
+when you need a fixed, predictable host port:
+
+```yaml
+  jupyter:
+    box: jupyter
+    target: pod
+    port: ["8888:8888"]   # pin 8888 for a stable bookmark; other ports auto-allocate
+```
+
+**Port resolution is keyed by deploy-key, not image short-name.** Each deploy
+entry's quadlet `PublishPort=` is sourced from THAT entry's own
+`resolved_port:`/`port:`, looked up by its deploy key. Multiple deploys backed by
+the same image short-name on one host (Pattern A instances, Pattern B
 pinned/canary deploys, and `kind: eval` beds whose `box:` matches a running
-production deploy) each get their own independent ports — a bed remapping
-`45434:11434` keeps that mapping even while a sibling `ollama` deploy publishes
-`11434`. `MergeDeployOntoMetadata` and `dc.Lookup` both take the deploy key
-(typically `c.Image`), never a value derived from the baked
-`ai.opencharly.box` label, so an entry's explicit `port:` is never clobbered
-by a sibling that merely shares the image.
+production deploy) each get their own independent ports — a bed's
+auto-allocation never collides with a sibling's (the allocator excludes other
+deploys' host ports). `MergeDeployOntoMetadata` and `dc.Lookup` both take the
+deploy key (typically `c.Image`), never a value derived from the baked
+`ai.opencharly.box` label, so an entry's resolved ports are never clobbered by a
+sibling that merely shares the image.
 
 ### Why `box:` is required (R10 implication)
 

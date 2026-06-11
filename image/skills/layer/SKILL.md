@@ -416,7 +416,7 @@ task:
 | `path_append` | `[]string` | Paths appended to `$PATH`. Deduplicated. |
 | `var` | `map[string]string` | **Build-time** candy-local variables for `${VAR}` substitution. Emitted as `ENV` before tasks. |
 | `task` | `[]Task` | **Ordered** install operations. See Task Verb Catalog above. |
-| `ports` | `[]int \| []PortSpec` | Exposed ports (1-65535). Protocol-annotated form: `tcp:5900`, `https+insecure:3000`, etc. |
+| `port` | `[]int \| []PortSpec` | The candy's **container** ports (1-65535) — the SINGLE source of truth for published ports. Every box composing this candy inherits them (`CollectBoxPorts`); boxes declare no `port:`. Host mappings are auto-allocated on `127.0.0.1` at deploy. Protocol-annotated form: `tcp:5900`, `https+insecure:3000`, etc. (the backend scheme rides into `ai.opencharly.port_proto`). |
 | `route` | `{host, port}` | Traefik reverse proxy route. |
 | `service` | multiline string | Supervisord `[program:<name>]` fragment. |
 | `package` / `distro` | list / map | The package surface: top-level `package:` base + per-distro/version `distro:` map (bare / versioned / compound keys). Resolved via the most-specific-first cascade (see Package Surface). |

@@ -1239,12 +1239,13 @@ eval-cross-pod-cdp:
     target: pod
     box: web                       # the SUBJECT under test (nginx fixture on :8080)
     disposable: true
-    port: [auto]
+    # No port: — every inherited container port auto-allocates a free 127.0.0.1
+    # host port (conflict-free across concurrent beds). Pin with `port:
+    # ["H:C"]` only when a fixed host port is needed.
     peer:
         chrome:                    # the DRIVER, a sibling on the charly net
             target: pod
             box: chrome-headless   # headless Chrome + cdp-proxy (publishes 9222)
-            port: [auto]
     eval:
         - id: web-fixture-up       # the subject serves its marker
           scope: deploy
