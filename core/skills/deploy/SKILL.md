@@ -972,6 +972,13 @@ eval:
   actually power off (so the resource is truly released), records a crash-safe
   lease, then proceeds. Nested `charly` subprocesses inherit the lease
   (`CHARLY_PREEMPT_LEASE`) and never re-acquire.
+- **Standing authorization — preempt autonomously.** The AI may trigger preemption
+  (bring up a `requires_exclusive:` claimant, stopping a running `preemptible`
+  holder) WITHOUT per-run operator confirmation. Preemption is reversible by design
+  (graceful stop + guaranteed `restore`), so it is exempt from the
+  confirm-before-destroy rule that governs irreversible teardown of a
+  non-preemptible resource. See `/charly-internals:disposable` "Standing
+  authorization".
 - **Token = a name, not a mechanism** — operator-chosen (`nvidia-gpu`), decoupled
   from how each side reaches it (VM hostdev vs pod `--device`); pure
   set-intersection unifies pod-vs-VM contention.

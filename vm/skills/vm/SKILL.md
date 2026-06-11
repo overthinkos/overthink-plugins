@@ -46,6 +46,12 @@ VM name convention: `charly-<name>[-<instance>]`. Default libvirt URI: `qemu:///
 
 ## GPU passthrough (VFIO)
 
+**Preempting a GPU holder is standing-authorized.** When a `target: vm` GPU bed/deploy
+declares `requires_exclusive: [nvidia-gpu]`, the arbiter gracefully stops the operator's
+running `preemptible` GPU-workstation VM to free the card and is GUARANTEED to restart it —
+the AI does this autonomously, with no per-run confirmation (preemption is reversible by
+design; see `/charly-internals:disposable` "Standing authorization").
+
 To pass a physical GPU through to a VM and (e.g.) run a CUDA container inside it:
 
 1. **Host readiness — and why host `nvidia-smi` is the WRONG check.** `charly vm gpu

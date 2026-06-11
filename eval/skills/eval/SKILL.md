@@ -62,6 +62,9 @@ token (e.g. the operator's GPU workstation VM) is gracefully stopped — and the
 arbiter waits until it actually powers off so the device is freed — then restored
 when the bed finishes (even on failure, for `restore: always`). A holder is never
 left stopped: `charly preempt status` / `charly preempt restore` recover a crashed run.
+Triggering this — running a `requires_exclusive:` bed that stops the operator's
+`preemptible` GPU holder — is STANDING-authorized (no per-run confirmation): it is
+reversible by design (graceful stop + guaranteed restore), not a destroy.
 See `/charly-internals:disposable` "The resource-arbitration axis" + `/charly-core:deploy`.
 
 **A GPU bed runs on a passthrough host where host `nvidia-smi` FAILS — that is the
@@ -185,7 +188,7 @@ These are the 10 standards referenced in CLAUDE.md's AI attribution tier ("fully
 1. **Build a real artifact** (R1) — `charly box build <image>` / `go build` / `charly vm build <vm>`. Not just `go test`. Not just `charly box generate`.
 2. **Verify the emitted artifact's content** (R3) — `grep -c supervisord-conf .build/<image>/Containerfile` for any image that uses supervisord; `virsh dumpxml` for a VM; `podman inspect --format '{{.Created}}'` to confirm the image was just rebuilt.
 3. **Verify critical OCI / capability labels post-build** (R4) — `podman inspect <ref> --format '{{index .Config.Labels "ai.opencharly.init"}}'` returns the expected value. Empty / missing → the detection path silently returned nil → regression.
-4. **Deploy to a DISPOSABLE target** (R10) — NEVER experiment on a resource that doesn't carry `disposable: true`. If no suitable disposable target exists, create one first (`charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml and `charly vm create`). The setup is part of the task. On a disposable target: `charly update <name>` (unattended). On anything else: confirm with the user before any destroy.
+4. **Deploy to a DISPOSABLE target** (R10) — NEVER experiment on a resource that doesn't carry `disposable: true`. If no suitable disposable target exists, create one first (`charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml and `charly vm create`). The setup is part of the task. On a disposable target: `charly update <name>` (unattended). On anything else: confirm with the user before any irreversible destroy — EXCEPT preempting a declared-`preemptible:` holder, which is standing-authorized (reversible: graceful stop + guaranteed restore).
 5. **Target must reach steady-state** — `systemctl --user status charly-<image>.service` → `Active: active (running)`; `virsh domstate <vm>` → `running (booted)`; SPICE socket file exists and accepts a handshake. If `start-limit-hit` appears, the container is crashing — reproduce directly via `podman run --rm <image> <entrypoint>`.
 6. **Run the declarative test suite** — `charly eval live <image>` full three-section pass against the live container (or `--uri` / `--host` remote equivalent for a remote target).
 7. **Verify the deployed binary is the one you built** (R8) — `charly version` on the target matches the expected CalVer; `podman inspect <ref> --format '{{.Created}}'` timestamp is from THIS build, not the prior one. Source-only changes (Syncthing, git push) do NOT update the deployed binary; you must build AND deploy on the target host.

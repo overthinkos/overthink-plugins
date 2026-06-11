@@ -147,6 +147,16 @@ or the persistent claimant is stopped/destroyed — the arbiter **restarts** the
 holders. A transient (eval) claim auto-releases via `defer`; a persistent claim
 releases on the claimant's teardown command.
 
+**Standing authorization — the AI preempts autonomously.** Triggering preemption
+is STANDING-authorized: the AI may bring up a `requires_exclusive:` claimant — and
+thereby gracefully stop a running `preemptible` holder — WITHOUT per-run operator
+confirmation. This is safe because preemption is **reversible by design**: the
+holder is gracefully stopped (disk + definition preserved) and GUARANTEED to be
+restarted (crash-safe `restore: always`), the OPPOSITE of an irreversible
+`disposable` destroy. The confirm-before-destroy rule (CLAUDE.md "Disposable-Only
+Autonomy") governs irreversible teardown of a NON-preemptible, non-disposable
+resource; it does NOT gate preemption of a declared holder.
+
 **The token is a name, not a mechanism.** `nvidia-gpu` is an operator-chosen
 label for the physical resource, deliberately decoupled from HOW each side
 reaches it (a VM via a PCI hostdev, a pod via `--device`/CDI). The arbiter does
