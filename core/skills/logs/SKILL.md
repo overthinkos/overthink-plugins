@@ -46,6 +46,7 @@ charly logs comfyui -f -n 50
 | `-f, --follow` | Stream logs continuously |
 | `-n, --lines LINES` | Number of recent lines to show |
 | `-i, --instance INSTANCE` | Target a specific container instance |
+| `--sidecar NAME` | Show the named SIDECAR container's logs instead of the app container's |
 
 ## Behavior
 

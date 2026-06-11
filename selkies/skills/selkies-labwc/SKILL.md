@@ -122,7 +122,7 @@ All level 0/1 characters (ö, ä, ü, ß, =, ?) and AltGr characters (@, €, \\
 ## Known Issues
 
 1. **NVENC encoding fails** with NVIDIA driver 590.48 — pixelflux detects GPU, CUDA inits, but encoder init fails. CPU encoding works fine.
-2. **Chrome volume permissions** — first deploy may need `podman unshare chown 1000:1000 $(podman volume inspect charly-selkies-labwc-chrome-data --format '{{.Mountpoint}}')`
+2. **Chrome volume permissions** — first deploy may need `podman unshare chown 1000:1000 $(charly volume list selkies-labwc | awk '/chrome-data/{print $2}')` — provisioning-time ownership is a queued charly gap``
 3. **Audio** — PulseAudio null sinks created by selkies-wrapper. Audio streaming works but may have slight latency over WebSocket.
 
 ## Screenshots and Recording
@@ -265,8 +265,8 @@ charly config selkies-labwc --sidecar tailscale \
 charly start selkies-labwc
 
 # First time: set exit node inside sidecar (persists in state volume)
-podman exec charly-selkies-labwc-tailscale \
-  tailscale set --exit-node=100.80.254.4 --exit-node-allow-lan-access
+charly cmd selkies-labwc --sidecar tailscale \
+  "tailscale set --exit-node=100.80.254.4 --exit-node-allow-lan-access"
 ```
 
 ### Verify Dual Networking
@@ -282,7 +282,7 @@ charly cmd selkies-labwc "getent hosts charly-ollama"
 curl -sk https://o.armadillo-quail.ts.net:3000/ | head -1
 
 # Sidecar status
-podman exec charly-selkies-labwc-tailscale tailscale status
+charly cmd selkies-labwc --sidecar tailscale "tailscale status"
 ```
 
 ### Architecture

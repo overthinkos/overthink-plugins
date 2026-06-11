@@ -400,7 +400,7 @@ bin/charly box inspect <image>
 `charly box build` auto-generates intermediate images (e.g., `ghcr.io/overthinkos/charly-fedora-2-dbus-nodejs`) that bundle the `charly` layer plus common layers for cache reuse across many downstream images. These intermediates are aggressively podman-cached. Updating `candy/charly/bin/charly` does invalidate the COPY step inside the intermediate, but if the intermediate tag already exists locally, `charly box build` may reuse it without re-running the build chain. To force a fresh binary propagation after a manual `bin/charly` update:
 
 ```bash
-podman rmi 'ghcr.io/overthinkos/charly-fedora-2*' 2>/dev/null || true
+charly clean --invalidate 'charly-fedora-2*'
 charly box build <image>
 ```
 

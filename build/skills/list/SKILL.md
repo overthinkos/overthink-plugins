@@ -25,6 +25,7 @@ Enumerate images, layers, build targets, and layer properties from `charly.yml` 
 | List routes | `charly box list routes` | Layers that declare a `route:` field |
 | List volumes | `charly box list volumes` | Layers that declare `volume:` |
 | List aliases | `charly box list aliases` | Layers that declare `alias:` |
+| List image tags | `charly box list tags [<box>]` | Locally stored CalVer tags of charly-built images, newest first (rollback discovery for `charly update --tag`) |
 
 ## Usage
 

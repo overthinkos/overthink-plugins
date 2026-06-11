@@ -126,7 +126,7 @@ curl -s -o /dev/null -w '%{http_code}' http://localhost:8080   # 200
 charly shell openwebui -c "open-webui version"
 
 # Verify secrets
-podman secret ls | grep openwebui              # webui-secret-key, admin-password
+charly status openwebui   # the Secrets: line lists the provisioned charly-openwebui-* engine secrets              # webui-secret-key, admin-password
 
 # Verify MCP (inside container process)
 charly cmd openwebui "cat /proc/3/environ" | tr '\0' '\n' | grep TOOL_SERVER_CONNECTIONS

@@ -68,7 +68,7 @@ cp bin/charly candy/charly/bin/charly                 # REQUIRED — sync to lay
 charly box build <image>                     # Rebuild affected images.
 ```
 
-**Why this bites**: `charly box build` uses auto-generated intermediate images (e.g., `ghcr.io/overthinkos/charly-fedora-2-dbus-nodejs`) that cache the `charly` candy. If you update `bin/charly` in repo-root but forget the candy copy, the intermediate's cache hit serves stale content. After cleaning up a stale dual-path situation, `podman rmi 'ghcr.io/overthinkos/charly-fedora-2*'` forces a clean intermediate rebuild.
+**Why this bites**: `charly box build` uses auto-generated intermediate images (e.g., `ghcr.io/overthinkos/charly-fedora-2-dbus-nodejs`) that cache the `charly` candy. If you update `bin/charly` in repo-root but forget the candy copy, the intermediate's cache hit serves stale content. After cleaning up a stale dual-path situation, `charly clean --invalidate 'charly-fedora-2*'` forces a clean intermediate rebuild.
 
 ## `charly status` Probe
 

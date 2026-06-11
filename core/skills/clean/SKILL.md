@@ -44,6 +44,8 @@ charly clean --dry-run    # print everything that WOULD be removed; touch nothin
 charly clean --images     # only image-tag retention
 charly clean --eval       # only eval-run retention
 charly clean --keep N     # override the retention count for this run (0 = use defaults:)
+charly clean --invalidate '<glob>'   # remove charly-labeled image tags matching the glob
+                                     # (full ref or last segment; in-use skipped; runs ONLY this)
 ```
 
 With neither `--images` nor `--eval`, all three categories run (images + eval +

@@ -17,7 +17,7 @@ Sidecars are additional containers that run alongside an application container i
 | List available sidecars | `charly config --list-sidecars` |
 | Attach sidecar | `charly config <image> --sidecar tailscale` |
 | Attach with env | `charly config <image> --sidecar tailscale -e TS_HOSTNAME=my-app` |
-| Check sidecar status | `podman exec charly-<image>-tailscale tailscale status` |
+| Check sidecar status | `charly cmd <image> --sidecar tailscale "tailscale status"` |
 
 ## Architecture
 
@@ -168,7 +168,7 @@ charly secrets gpg set TS_AUTHKEY_ARMADILLO_QUAIL_TS_NET tskey-auth-XXXXXXXXX
 #    (operator-edited; no auto-write)
 
 # 4. Wipe stale state so the sidecar re-auths with the new key:
-podman volume rm charly-<image>[-<instance>]-tailscale-state
+charly volume reset <image> tailscale-state [-i <instance>]
 
 # 5. Apply:
 charly stop <image> [-i <instance>]
@@ -176,7 +176,7 @@ charly config <image> [-i <instance>]
 charly start <image> [-i <instance>]
 
 # 6. Verify the right tailnet was joined:
-podman exec charly-<image>[-<instance>]-tailscale tailscale status --json \
+charly cmd <image> --sidecar tailscale "tailscale status --json" [-i <instance>] \
     | python3 -c 'import json,sys; r=json.load(sys.stdin); print(r["MagicDNSSuffix"])'
 # Expected: armadillo-quail.ts.net
 ```
@@ -243,8 +243,8 @@ charly start selkies-desktop
 
 # First time only: exit node must be set via tailscale set
 # (TS_EXTRA_ARGS only applies on first auth, not restarts)
-podman exec charly-selkies-desktop-tailscale \
-  tailscale set --exit-node=100.80.254.4 --exit-node-allow-lan-access
+charly cmd selkies-desktop --sidecar tailscale \
+  "tailscale set --exit-node=100.80.254.4 --exit-node-allow-lan-access"
 
 # Verify: pod shows exit node's IP, not host's
 charly cmd selkies-desktop "curl -s ifconfig.me"

@@ -135,6 +135,13 @@ A **non-blocking** issue (the current change is correct AND complete without it,
 | `podman logs` / `journalctl --user -u charly-*` | `charly logs <box>` |
 | `podman rm` / hand-editing quadlets | `charly remove <box>` (`--purge` for volumes) |
 | `podman inspect` OCI labels | `charly box labels <ref>` (`--format <key>` for one value; non-zero exit when absent) |
+| `podman exec`/`logs` into a SIDECAR container | `charly cmd <box> --sidecar <name> "<cmd>"` / `charly logs <box> --sidecar <name>` |
+| `podman volume ls/inspect` | `charly volume list <box>` (names + mountpoints) |
+| `podman volume rm <one-volume>` | `charly volume reset <box> <name>` (in-use refused; next start recreates) |
+| `podman cp` | `charly cp <box> <src> <dst>` (`:` prefix marks the container side; `--sidecar` supported) |
+| `podman image ls` | `charly box list tags [<box>]` (newest first; rollback via `charly update --tag`) |
+| `podman rmi '<glob>'` | `charly clean --invalidate '<glob>'` (charly-labeled tags only; in-use skipped) |
+| `podman secret ls` | `charly status <box>` (the `Secrets:` detail line / JSON `secrets`) |
 | `podman secret rm` + re-setup | `charly config <box> --refresh-secret <name\|all>` |
 | `systemctl --user status/restart charly-<x>` | `charly status <x>` / `charly restart <x>` |
 | ad-hoc `supervisorctl …` | `charly service status <box>` / `charly service start/stop/restart <box> <svc>` |

@@ -88,33 +88,24 @@ To roll a fleet of instances forward, loop the per-instance update:
 streaming session resumes cleanly on the new image with its per-instance
 volume state intact.
 
-### Rollback via `podman tag`
+### Rollback to a previous CalVer tag
 
-`charly update` does not have a built-in rollback flag, but the previous CalVer-tagged image
-is left in the local podman image store after each `charly box build`. To roll back:
+Previous CalVer-tagged images stay in local storage after each `charly box build`
+(retention: `defaults.keep_images`, see `/charly-core:clean`). To roll back:
 
 ```bash
-# Find the previous tag
-podman image ls ghcr.io/overthinkos/selkies-desktop
-# REPOSITORY                            TAG             IMAGE ID
-# ghcr.io/overthinkos/selkies-desktop   latest          bc2bb4f90ca0   <- new (broken)
-# ghcr.io/overthinkos/selkies-desktop   2026.102.2333   bc2bb4f90ca0
-# ghcr.io/overthinkos/selkies-desktop   2026.102.1933   502c8012c7a5   <- previous
+# Find the previous tag (newest first; the (in use) marker shows the live one)
+charly box list tags selkies-desktop
 
-# Re-point :latest at the previous tag
-podman tag ghcr.io/overthinkos/selkies-desktop:2026.102.1933 \
-           ghcr.io/overthinkos/selkies-desktop:latest
-
-# Restart the service(s) — they pick up :latest, no re-pull needed
-charly restart selkies-desktop
+# Re-deploy the previous tag — repins + restarts through the unified update path
+charly update selkies-desktop --tag 2026.102.1933
 # or per-instance:
-charly restart selkies-desktop -i 82.23.94.69
+charly update selkies-desktop -i 82.23.94.69 --tag 2026.102.1933
 ```
 
-This is fast (no network round-trip) and survives because podman's image GC is
-opt-in. To make rollback survive a `podman image prune`, also tag the previous image
-with a stable name (e.g., `:rollback`). The charly.yml entry is unchanged — only the
-local registry pointer moves.
+This is fast (no network round-trip; `charly update` redeploys from local
+storage). The pinned `tag:` persists in the per-host overlay until the next
+`charly update --tag <newer>` advances it.
 
 ## Behavior by Mode
 

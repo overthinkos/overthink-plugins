@@ -116,6 +116,7 @@ render as indented IMAGE-cell rows (`  └─ <child>`) under their parent.
 | Image ref | `ghcr.io/overthinkos/jupyter:2026.162.1319` — the RUNNING container's image ref:tag (runtime truth; JSON `image_ref`; the R9 freshness check reads this) |
 | Status | `running` |
 | Container | `charly-jupyter` |
+| Secrets | `charly-jupyter-db-password` — engine secrets provisioned for this box (detail view only; JSON `secrets`) |
 | Mode | `quadlet` |
 | Ports | `8888/tcp -> 127.0.0.1:8888` |
 | Devices | `nvidia (CUDA)` |

@@ -169,7 +169,7 @@ outer container's nested rootless store. Load a private bootc image via the host
 ```bash
 # on host
 podman save -o /tmp/bootc.tar ghcr.io/<registry>/<image>:latest
-podman cp /tmp/bootc.tar charly-openclaw-desktop:/tmp/bootc.tar
+charly cp openclaw-desktop /tmp/bootc.tar :/tmp/bootc.tar
 # inside the pod
 podman load -i /tmp/bootc.tar                              # nested rootless store
 podman --connection charly-root load -i /tmp/bootc.tar         # podman-machine rootful store
@@ -190,7 +190,7 @@ Every `charly` verb family runs as uid 1000 inside the container sandbox:
 `charly config/deploy/start/stop/update/remove/shell/cmd/service/status/logs`,
 `charly vm list/create/start/stop/ssh/destroy` (rootless libvirt session),
 `charly doctor/secrets/settings/alias`. The `charly` candy bakes only the binary — for
-build-mode verbs that read `charly.yml`, mount or `podman cp` the project in.
+build-mode verbs that read `charly.yml`, mount or `charly cp` the project in.
 
 ## Volumes
 
