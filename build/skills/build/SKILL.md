@@ -41,7 +41,21 @@ charly box build --no-cache [image...]              # Disable cache entirely
 charly box build --jobs N [image...]                # Max concurrent images per DAG level (0=auto from defaults.jobs, else 4)
 charly box build --podman-jobs N [image...]         # Max concurrent stages within a single podman build (0=auto: min(NCPU, defaults.podman_jobs_cap))
 charly box build <image> --include-disabled         # Build an `enabled: false` image without flipping authored config
+charly box build <image> --dev-local-pkg            # EVAL-BED ONLY: build localpkg candies (the charly toolchain) from LOCAL in-dev source, not the published release
 ```
+
+### `--dev-local-pkg` — disposable eval beds bake the IN-DEVELOPMENT charly
+
+A `localpkg:` candy (the `charly` toolchain) normally installs the latest
+**published** release in an image build (`releases/latest/download/`). The
+eval-bed runner instead passes `--dev-local-pkg` for EVERY bed image build, so the
+package is BUILT from the LOCAL working tree (`pkg/<fmt>` + `charly/`) — a
+disposable eval bed always tests the in-development charly, never a stale release.
+Generic across all kinds + all localpkg candies, one decision point
+(`renderLocalPkgImageInstall`); a production box build omits the flag. A dev build
+that cannot find its local source HARD-errors (no silent release fallback, R4).
+Full mechanics: `/charly-internals:install-plan` "Eval-vs-production charly
+toolchain"; the candy view: `/charly-tools:charly`.
 
 ## `--include-disabled` — operational rebuild of disabled images
 

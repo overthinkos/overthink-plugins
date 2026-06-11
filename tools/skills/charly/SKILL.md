@@ -21,6 +21,29 @@ The `charly` binary inside containers serves two purposes:
 
 2. **In-container CLI** — full charly functionality available inside the container for scripting, service management, and automation.
 
+## Eval-vs-production binary source — disposable beds bake the IN-DEV charly
+
+The `charly` candy installs the binary as a proper, dependency-resolving OS
+package via `localpkg:` (`{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`).
+The BINARY SOURCE depends on the box type — a hard distinction, NEVER mixed:
+
+- **Disposable eval boxes** (`kind: eval` beds) bake the latest **in-development**
+  charly: the eval-bed runner builds every bed image with `charly box build
+  --dev-local-pkg`, so the package is BUILT from the local working tree
+  (`pkg/<fmt>` + `charly/`). A bed therefore tests the charly code under
+  development — never a stale published release.
+- **Production boxes** bake the latest **published** charly: a normal
+  `charly box build` DOWNLOADS the published release package
+  (`releases/latest/download/opencharly-<arch>.<fmt>`).
+
+ONE decision point (`renderLocalPkgImageInstall`), generic across all kinds and
+all localpkg candies; the eval-bed runner sets `--dev-local-pkg` automatically, a
+production build never does. A dev build that cannot find its local source HARD
+errors (R4 — no silent fallback to the release). Full mechanics:
+`/charly-internals:install-plan` "Eval-vs-production charly toolchain". This is
+WHY a fresh eval bed exercises your uncommitted charly changes while a real box
+ships the released toolchain.
+
 ## Updating the Binary — dual-path gotcha
 
 The `charly` candy's `copy: bin/charly` task is resolved **relative to the candy directory**, so the box build reads `candy/charly/bin/charly` — NOT the repo-root `bin/charly`. Two independent paths need to stay in sync:

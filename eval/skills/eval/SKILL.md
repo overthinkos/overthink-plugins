@@ -46,7 +46,7 @@ composition inside it (the substance of RDD), and `disposable: true` makes
 tearing it down and rebuilding fearless. The box is restricted at the boundary,
 never by stripping the candy.
 
-1. `charly box build <image>` — build the test artifact (pod beds only).
+1. `charly box build <image> --dev-local-pkg` — build the test artifact (pod beds only). The eval-bed runner sets `--dev-local-pkg` AUTOMATICALLY, so a bed bakes the **in-development** charly toolchain (any `localpkg:` candy built from local source) — never a stale published release. A bed thus always tests the code under development; a production box build downloads the released package. See `/charly-tools:charly` "Eval-vs-production binary source" + `/charly-internals:install-plan` "Eval-vs-production charly toolchain".
 2. `charly eval box <image>` — box-section + baked candy-section probes.
 3. `charly deploy add <bed> <ref>` — apply the bed (or `charly vm create` for vm beds).
 4. (pod beds) `charly config <bed>` + `charly start <bed>`.

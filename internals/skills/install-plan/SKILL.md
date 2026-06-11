@@ -127,8 +127,30 @@ separate, eval-time concern handled by `charly/eval_image_preflight.go`
 | `ShellSnippetStep` | CandyName, Origin, Shell (bash/zsh/fish/sh), Snippet, PathAppend, Destination, Marker, UseDropin, Priority | HostNative | `pathIsSystemScoped(Destination)` (system for container drop-ins, user-profile for ~/.bashrc etc.) |
 | `RepoChangeStep` | Format, File, Content, Checksum, CandyName | HostNative | Always system |
 | `ApkInstallStep` | Packages (apk specs), CandyName, CandyDir | HostNative | Always system. Only `target: android` executes it; every other target records a skip. |
-| `LocalPkgInstallStep` | PkgbuildRef, CandyName, CandyDir, ProjectDir, Format, LocalPkg (`*LocalPkgDef`) | HostNative | Always system. Compiled from a layer's per-format `localpkg:` map (the `charly` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`) at "step 2.5" (before tasks); `compileLocalPkgStep` resolves the target distro's format FIRST (`DistroDef.LocalPkgFormat`), then the layer's source for that format, so `Format` + `LocalPkg` come from the `format.<fmt>.local_pkg:` block in `build.yml` — EVERY command rendered from config, no hardcoded build/install/glob literals. On a localpkg-capable deploy target (`target: local` / `target: vm`) the HOST builds the format's source via `LocalPkg.BuildTemplate` (pac → `makepkg`; rpm/deb → a distro-matched podman container) into `LocalPkg.PkgGlob` artifacts, then installs them onto the target via `LocalPkg.InstallTemplate` — the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`), which pulls the package's repo deps automatically. There is NO dependency-closure builder (the aur-LAYER deploy path still reuses the shared `buildDepPkgsOnHost`/`transferAndInstallPkgs` leg, R3). `LocalPkg.Probe` gates the install leg; `LocalPkg.SourceSentinel` (`PKGBUILD`/`*.spec`/`debian/control`) marks the source dir. `resolveLocalPkgDir` walks up from `ProjectDir`, so a consumer nested under `box/<distro>` finds the superproject `pkg/<fmt>`. Skipped at image build (`OCITarget`) + on targets whose distro declares no localpkg-capable format (the layer's curl/COPY task is the fallback). Machinery: `charly/localpkg.go`; config: `build.yml format.<fmt>.local_pkg:`. |
+| `LocalPkgInstallStep` | PkgbuildRef, CandyName, CandyDir, ProjectDir, Format, LocalPkg (`*LocalPkgDef`) | HostNative | Always system. Compiled from a layer's per-format `localpkg:` map (the `charly` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`) at "step 2.5" (before tasks); `compileLocalPkgStep` resolves the target distro's format FIRST (`DistroDef.LocalPkgFormat`), then the layer's source for that format, so `Format` + `LocalPkg` come from the `format.<fmt>.local_pkg:` block in `build.yml` — EVERY command rendered from config, no hardcoded build/install/glob literals. On a localpkg-capable deploy target (`target: local` / `target: vm`) the HOST builds the format's source via `LocalPkg.BuildTemplate` (pac → `makepkg`; rpm/deb → a distro-matched podman container) into `LocalPkg.PkgGlob` artifacts, then installs them onto the target via `LocalPkg.InstallTemplate` — the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`), which pulls the package's repo deps automatically. There is NO dependency-closure builder (the aur-LAYER deploy path still reuses the shared `buildDepPkgsOnHost`/`transferAndInstallPkgs` leg, R3). `LocalPkg.Probe` gates the install leg; `LocalPkg.SourceSentinel` (`PKGBUILD`/`*.spec`/`debian/control`) marks the source dir. `resolveLocalPkgDir` walks up from `ProjectDir`, so a consumer nested under `box/<distro>` finds the superproject `pkg/<fmt>`. At IMAGE build the install is **mode-switched by box type** (unified in `renderLocalPkgImageInstall`, shared by `OCITarget` + `generate.go writeCandySteps` — R3): a PRODUCTION box DOWNLOADS the published release (`LocalPkg.DownloadTemplate`), while a DISPOSABLE eval bed BUILDS the package from LOCAL in-development source and COPYs it in — see "Eval-vs-production charly toolchain" below. Skipped only on a distro with no localpkg-capable format (the layer's task fallback). Machinery: `charly/localpkg.go`; config: `build.yml format.<fmt>.local_pkg:`. |
 | `RebootStep` | CandyName | HostNative | Always system; `Reverse()` empty. Emitted last when a layer sets `reboot: true`. Only `VmDeployTarget` acts on it (reboot guest + wait for return); OCI/pod/k8s skip; `LocalDeployTarget` skips + warns (never reboots the operator host). |
+
+### Eval-vs-production charly toolchain (the `--dev-local-pkg` distinction)
+
+A `localpkg:` candy (the `charly` toolchain) installs the charly binary as a
+proper OS package on every distro image. The BINARY SOURCE depends on the box
+type — a hard, GENERIC distinction, NEVER mixed, decided in ONE place
+(`renderLocalPkgImageInstall`, `charly/localpkg.go`):
+
+| Box type | charly binary source | How |
+|---|---|---|
+| **Disposable eval box** (`kind: eval` bed) | latest **in-development** | the eval-bed runner ALWAYS passes `charly box build --dev-local-pkg`, so the localpkg is BUILT from local source (`pkg/<fmt>` + `charly/`, via `buildLocalPkgOnHost`) and COPY'd into the image — a bed tests the charly code under development |
+| **Production box** (any normal `charly box build`) | latest **published** | the default: the localpkg DOWNLOADS the published release (`releases/latest/download/opencharly-<arch>.<fmt>`) |
+
+Both install via the SAME dep-resolving `InstallTemplate` (`pacman -U` / `dnf
+install` / `apt-get install`) — only the package SOURCE differs, so the toolchain
+is OS-tracked either way. The switch flows through `Generator.DevLocalPkg` ←
+`BuildCmd.DevLocalPkg` (`--dev-local-pkg`); the eval-bed runner sets it for EVERY
+bed image build (`eval_bed_run.go`), a production build never does. Generic
+across all kinds + all localpkg candies. A dev build that cannot locate its local
+source **HARD-ERRORS** — it NEVER silently falls back to the release (R4), so a
+bed can never accidentally test a stale published binary. Net: a disposable eval
+bed always exercises the in-development charly; a real box ships the released one.
 
 **`ShellSnippetStep` notes:**
 - Compiled by `compileShellSnippetSteps` in `install_build.go` — applies the per-shell-wins-over-generic selection rule from `layer.Shell()`.
