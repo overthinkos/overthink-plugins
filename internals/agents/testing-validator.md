@@ -104,23 +104,23 @@ checks failed. For those classes, a `--dry-run`, a green `go test`, or
 
 | Level | Requirements |
 |-------|-------------|
-| `fully tested and validated` | All 10 standards + a fresh-rebuild R10 (`charly eval run <bed>` / `charly eval live` on a `disposable: true` target) for EVERY affected target + the new/changed code path actually exercised + both R10 outputs (exploratory + fresh-rebuild) pasted |
-| `analysed on a live system` | A live invocation of the runner / verb evaluation / deploy probe the change touched actually ran AND its output is pasted. A bed *rebuild alone* (no eval run) and a `--dry-run` are NOT this tier — they are `syntax check only` |
-| `syntax check only` | Compile + unit tests + validators / dry-run passed; the live runner did NOT execute. Honest default when R10 hasn't run — pair with "R10 not yet run, awaiting authorization" AND do NOT commit |
+| `fully tested and validated` | All 10 standards + a fresh-rebuild R10 (`charly eval run <bed>` / `charly eval live` on a `disposable: true` target) for EVERY affected target + the new/changed code path actually exercised + both R10 outputs (exploratory + fresh-rebuild) pasted (docs-only cutovers: per the provision below) |
+| `analysed on a live system` | A live invocation of the runner / verb evaluation / deploy probe the change touched actually ran AND its output is pasted. A rebuild WITHOUT the subsequent invocation does NOT qualify; NEVER this tier on a `--dry-run` alone |
+| `syntax check only` | Compile + unit tests + validators / dry-run passed; the live runner did NOT execute. The honest default when R10 hasn't run — pair with explicit "R10 not yet run" AND do NOT commit (pairing this tier with a commit is a violation; STOP and ask). Targets code with a pending R10 — docs-only cutovers take the provision below |
 | `theoretical suggestion` | No validation — FORBIDDEN as a shipped-code tier |
 
-**Docs/policy-only cutovers** (per CLAUDE.md "AI Attribution"): a cutover
-touching ONLY documentation/policy (`CLAUDE.md`, `plugins/**/SKILL.md`,
-`README.md`, `plugins/README.md`, `CHANGELOG.md`, or code comments with ZERO
-behavior change — no behavioral Go / YAML-schema / box/candy-config edit, no
-other runtime surface) has no R10 bed; its applicable
-standards are the non-runtime ones: adversarial consistency review, the R5
-grep self-test, cross-reference validation, markdown integrity, and the
+**Docs/policy-only cutovers — the tiers are read against the APPLICABLE
+standards** (per CLAUDE.md "AI Attribution"): a cutover touching ONLY
+documentation/policy (`*.md` files or code comments with ZERO behavior
+change — no behavioral Go / YAML-schema / box/candy-config edit, no other
+runtime surface) has no R10 bed; its applicable standards are the
+non-runtime ones: adversarial consistency review, the R5 grep self-test,
+cross-reference validation, markdown integrity, and the
 `pre-commit-gate.sh` / `pre-push-gate.sh` gates. It earns `fully tested and
 validated` when ALL applicable standards pass; the `syntax check only → do
-NOT commit` clause targets code with a pending R10 and does not apply to it.
-A cutover that ALSO touches code or config is NOT docs-only — that surface's
-R10 gates it as usual.
+NOT commit` clause does not apply to it. The moment a cutover ALSO touches
+code or config it is NOT docs-only — that surface's R10 gates it as usual,
+and the docs ride along in the same commit.
 
 A known rule violation FORBIDS commit at ANY tier — there is no "downgrade
 and ship" path. Fix in the same tree or escalate. See CLAUDE.md.

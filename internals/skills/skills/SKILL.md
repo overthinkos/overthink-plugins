@@ -31,6 +31,8 @@ in ONE message (parallel `Skill` calls). Full index: `plugins/README.md`.
 | Cross-skill behavior discovered | Update Cross-References in all affected skills |
 | A live bed contradicts a skill's claim (Risk Driven Development found it stale) | Fix the stale skill in the SAME change — RDD keeps the living docs honest; for a high-risk claim the running system is ground truth, not the doc |
 | Removed identifier still referenced in skill paragraph (R5 self-test failed) | Update / delete the paragraph in the SAME commit as the removal (R5) |
+| CLAUDE.md heading / R-number / clause name changes (they are a public API) | Sweep every mirroring surface in the SAME commit — see "Mirroring surfaces" below (R5) |
+| Rule DETAIL accretes inside CLAUDE.md (matrix, catalog, worked example growing in place) | Move the detail to its owning skill (see the Authoritative-copy registry); CLAUDE.md keeps the mandate + a `*Detail:*` pointer |
 
 ## When NOT to Update Skills
 
@@ -75,8 +77,58 @@ description: |
 | Image composition, deployment, verification | per-pod plugin or `/charly-distros:<name>` / `/charly-infrastructure:<name>` for base images |
 | Skill disambiguation (which skill to use) | CLAUDE.md R0 "Skill Dispatcher" (the sole copy; never mirrored) |
 | Detailed operational patterns | Relevant `/charly-core:*` / `/charly-build:*` / `/charly-eval:*` / `/charly-automation:*` / kind-plugin skill |
+| Hard rule / gate / mandate (the WHAT and the MUST) | CLAUDE.md — stated ONCE, in mandate form, with a `*Detail:*` pointer |
+| Operationalization / matrix / catalog / worked example (the HOW) | The ONE owning skill (see the Authoritative-copy registry below) |
 | Version history / past changes / renames / cutover narration | `CHANGELOG.md` (repo root) — never CLAUDE.md or a skill |
 | Long-term thesis / vision / aspiration ("why & where it's going") | `VISION.md` (repo root) — never restating command usage, architecture, or history |
+
+## Mandate in CLAUDE.md, detail in the skill
+
+The canonical split for every rule: **CLAUDE.md states the rule ONCE, in
+mandate form (≤ a few lines), and points at exactly ONE owning skill via a
+`*Detail:*` pointer; the owning skill carries the operationalization** —
+forbidden-pattern catalogs, decision matrices, worked examples, command
+sequences. Every other document links to the owner and NEVER restates it
+(restated copies drift; the linked original cannot).
+
+Named exceptions where CLAUDE.md itself is the canonical copy (skills link
+TO it, never duplicate it): the **Skill Dispatcher** table, the canonical
+**RDD** and **ADE** definitions (strict-policy operationalizes them but the
+definition lives in CLAUDE.md), the **Acceptance checklist**, and the
+**AI Attribution** tier table.
+
+### Authoritative-copy registry
+
+| Matrix / catalog / definition | Sole owner |
+|---|---|
+| "R10 gate by change class" matrix + "Flag discipline" catalog | `/charly-eval:eval` |
+| R1–R5, RDD, ADE operationalization (forbidden patterns, risk table, worked examples) | `/charly-internals:strict-policy` |
+| Hard-cutover workflow, forbidden patterns, deliverables | `/charly-internals:cutover-policy` |
+| `disposable:` / `preemptible:` flag semantics, "What counts as an R10 run" | `/charly-internals:disposable` |
+| Landing mechanics (branch loop, multi-repo order, CalVer tags, PR path) | `/charly-internals:git-workflow` |
+| Agent/workflow/team primitives, hooks doctrine | `/charly-internals:agents` |
+| Skill Dispatcher, RDD/ADE definitions, Acceptance checklist, attribution tiers, Key Rules index | CLAUDE.md |
+
+## Mirroring surfaces — sweep when CLAUDE.md wording changes
+
+**CLAUDE.md's section headings, R-numbers, and named clauses ("flag-override
+clause", "gate by change class", "Acceptance checklist", "Post-Execution
+Policies", …) are a public API.** These surfaces reference them and MUST be
+swept in the SAME commit as any rename or removal (R5):
+
+- the 5 hooks in `.claude/hooks/` (`runtime-verification-reminder.sh`,
+  `end-of-turn-challenge.sh`, `team-coordination-reminder.sh`,
+  `pre-commit-gate.sh`, `pre-push-gate.sh`),
+- the 5 agents in `plugins/internals/agents/*.md`,
+- the 8 per-directory signpost `CLAUDE.md` files (`charly/`, `candy/`,
+  `plugins/`, each `box/<distro>`),
+- the workflows in `.claude/workflows/*.js`,
+- every SKILL.md that quotes a section name (grep before assuming).
+
+The sweep test: `grep -rn '<old phrase>'` across the superproject + submodules
+returns only `CHANGELOG.md` context afterwards. Prefer keeping headings and
+clause names STABLE when rewording content — a stable name keeps every
+mirroring surface valid for free.
 
 ## Command skills vs topic skills
 

@@ -1,15 +1,19 @@
 ---
 name: strict-policy
 description: |
-  Operationalization of CLAUDE.md R1-R5 — the engineering-discipline rules
-  that come BEFORE runtime verification. Covers: (R1) RCA on every failure
-  via /charly-internals:root-cause-analyzer; (R2) no "pre-existing" / "out of scope" /
-  "follow-up PR" classifications; (R3) no code duplication, generic over
-  ad-hoc; (R4) no ad-hoc workarounds; (R5) hard cutover deletes the
-  deprecated path AND every stale reference in the same commit.
-  MUST be invoked when a failure / warning / anomaly surfaces, when the
-  same pattern is about to land in a second surface, when a sleep / retry /
-  magic-number is tempting, or when a cutover commit is about to ship.
+  Operationalization of CLAUDE.md R1-R5 plus the RDD and ADE pillars — the
+  engineering-discipline rules that come BEFORE runtime verification.
+  Covers: (R1) RCA on every failure via /charly-internals:root-cause-analyzer;
+  (RDD) prove every HIGH-RISK assumption on a disposable bed BEFORE editing;
+  (ADE) the spec-is-the-test Gherkin acceptance discipline; (R2) no
+  "pre-existing" / "out of scope" / "follow-up PR" classifications; (R3) no
+  code duplication, generic over ad-hoc; (R4) no ad-hoc workarounds; (R5)
+  hard cutover deletes the deprecated path AND every stale reference in the
+  same commit.
+  MUST be invoked when a failure / warning / anomaly surfaces, when a plan
+  rests on a high-risk unproven assumption, when a pattern is about to land
+  in a second surface, when a sleep / retry / magic-number is tempting, or
+  when a cutover commit is about to ship.
 ---
 
 # strict-policy — operationalizing R1–R5

@@ -16,7 +16,7 @@ Every schema change, API rename, or deprecation in OpenCharly ships as a **singl
 
 A cutover may NEVER be phased — not at plan authoring, not at execution. There is no pre-approval split, no post-approval split, no phased rollout, no grace period, no "author it as two plans" fallback. Plans are authored as full-scope, single-phase cutovers regardless of estimated time, scope, or context. Every cutover executes end-to-end through R10 in the SAME conversation. ALWAYS push as far as you can; compact context and continue, as many times as it takes. An approved plan is a CONTRACT; implement it as written.
 
-This skill is the source of truth for the policy. `CLAUDE.md` links here rather than re-stating the full policy inline. The project's `UserPromptSubmit` hook at `.claude/hooks/runtime-verification-reminder.sh` mirrors the key directives and fires at every user prompt.
+This skill is the source of truth for the policy. `CLAUDE.md` links here rather than re-stating the full policy inline. The project's `UserPromptSubmit` hook at `.claude/hooks/runtime-verification-reminder.sh` points to the key directives (a lean pointer per the hooks doctrine, never a copy) and fires at every user prompt.
 
 ## One phase, many tasks, one cutover — the workflow
 
