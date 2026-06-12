@@ -228,7 +228,10 @@ BOTH: raise `LatestSchemaVersion()` AND mint the tag. See `/charly-build:migrate
 - **Report format.** The final message states: what was committed (commit
   subject + hash, per repo), the confidence tier with the proof that supports
   it, what was pushed, and the pasted R10 outputs (exploratory +
-  fresh-rebuild). A worked commit message:
+  fresh-rebuild). The tier must match CLAUDE.md "AI Attribution", keyed to the
+  change class (`/charly-eval:eval` "R10 gate by change class") — a
+  Documentation-only change class commit lands at `documentation reviewed`,
+  runtime classes at a runtime tier. A worked commit message:
 
 ```
 Fix: Add fuse-overlayfs for container startup

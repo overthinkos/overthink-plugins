@@ -233,16 +233,28 @@ executed is unproven (the fraud class CLAUDE.md R10 bans). Pick the SMALLEST
 gate that genuinely exercises every changed code path — and run it in full.
 CLAUDE.md R10 carries the mandate; this matrix is the authoritative detail.
 
-| Change class | Pre-flight | The R10 gate | Explicitly NOT required |
-|---|---|---|---|
-| **Docs / comments only** — `*.md` (CLAUDE.md, `plugins/**/SKILL.md`, READMEs, CHANGELOG), code comments; zero behavior change | markdown integrity, link checks | The non-runtime standards: adversarial consistency review, the R5 grep self-test, cross-reference validation, the `pre-commit-gate.sh`/`pre-push-gate.sh` gates | ANY bed run or image build — beds cannot fail on prose |
-| **Hook / workflow scripts** — `.claude/hooks/*.sh`, `.claude/workflows/*.js` | `bash -n` / async-body parse | Execute the changed script live: run the hook directly (paste its output); a workflow whose CONTROL FLOW changed runs against ONE bed matching the change. Prompt-string-only workflow edits: parse + the non-runtime standards | The full bed fan-out |
-| **`charly` Go code** | `go test ./...` + `go vet` + `task build:charly` (R9 freshness + `charly version` check) | `charly eval run <bed>` for EACH bed whose kind matches a touched code path: box/candy/pod/DeployTarget mechanism → `eval-pod`; `target: local` → `eval-local`; VM / k8s → `eval-k3s-vm`; a feature surface → its feature bed. Cross-cutting loader / resolver / IR / unified-schema changes → `--all-beds` (in-spec for that class, not a scope override) | Beds whose substrate the change cannot reach |
-| **Candy / box / pod / vm / k8s / local / android config** | `charly box validate` | Build + run a bed that COMPOSES the changed entity (a candy edit → a bed whose image stacks that candy); when no bed composes it, the R7 sequence on a disposable deploy: build → `charly eval box` → deploy → `charly eval live` → fresh `charly update` | Beds that do not compose the changed entity |
-| **Score / recipe / ai eval config** | `charly box validate` | The affected score / bed run AS SPECIFIED (see "Flag discipline") | Unrelated beds |
+| Change class | Pre-flight | The R10 gate | Tier on a clean pass | Explicitly NOT required |
+|---|---|---|---|---|
+| **Documentation-only change class** — `*.md` (CLAUDE.md, `plugins/**/SKILL.md`, READMEs, CHANGELOG), or comment-only code edits; zero behavior change | markdown integrity, link checks | The non-runtime standards: adversarial consistency review, the R5 grep self-test, cross-reference validation, the `pre-commit-gate.sh`/`pre-push-gate.sh` gates | `documentation reviewed` | ANY bed run or image build — beds cannot fail on prose |
+| **Hook / workflow scripts** — `.claude/hooks/*.sh`, `.claude/workflows/*.js` | `bash -n` / async-body parse | Execute the changed script live: run the hook directly (paste its output); a workflow whose CONTROL FLOW changed runs against ONE bed matching the change. Prompt-string-only workflow edits: parse + the non-runtime standards | `fully tested and validated` | The full bed fan-out |
+| **`charly` Go code** | `go test ./...` + `go vet` + `task build:charly` (R9 freshness + `charly version` check) | `charly eval run <bed>` for EACH bed whose kind matches a touched code path: box/candy/pod/DeployTarget mechanism → `eval-pod`; `target: local` → `eval-local`; VM / k8s → `eval-k3s-vm`; a feature surface → its feature bed. Cross-cutting loader / resolver / IR / unified-schema changes → `--all-beds` (in-spec for that class, not a scope override) | `fully tested and validated` | Beds whose substrate the change cannot reach |
+| **Candy / box / pod / vm / k8s / local / android config** | `charly box validate` | Build + run a bed that COMPOSES the changed entity (a candy edit → a bed whose image stacks that candy); when no bed composes it, the R7 sequence on a disposable deploy: build → `charly eval box` → deploy → `charly eval live` → fresh `charly update` | `fully tested and validated` | Beds that do not compose the changed entity |
+| **Score / recipe / ai eval config** | `charly box validate` | The affected score / bed run AS SPECIFIED (see "Flag discipline") | `fully tested and validated` | Unrelated beds |
+
+**Tier on a clean pass — the class fixes the gate; the gate fixes the tier.**
+Passing a class's full gate earns the tier in that column. `analysed on a live
+system` and `syntax check only` are partial-completion WAYPOINTS for the RUNTIME
+classes only — a live invocation ran but no fresh-rebuild R10 → `analysed on a
+live system`; only compile / validate / dry-run ran → `syntax check only` (which
+FORBIDS commit). The Documentation-only change class has no live runner, so it
+has no waypoint: its non-runtime standards either all pass (→ `documentation
+reviewed`) or the change is not ready. The tier DEFINITIONS live in CLAUDE.md
+"AI Attribution"; this column names which tier each gate earns, it does not
+redefine them.
 
 Mixed changes take the UNION of their classes' gates (docs ride along with the
-code class in the same commit). Class assignment is honest, not aspirational:
+code class in the same commit, at that code class's runtime tier — never
+`documentation reviewed`). Class assignment is honest, not aspirational:
 a "comment" edit that changes a prompt string an agent executes is
 script-text, not docs; a YAML comment is docs, but a YAML field is config.
 

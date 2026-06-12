@@ -73,12 +73,15 @@ charly eval live <image>                 # Three-section live probe pass
 charly stop <image>                      # Clean shutdown
 ```
 
-### For Docs/Comments-Only Changes (no bed run)
+### For the Documentation-only change class (no bed run)
 
-The gate is the non-runtime standards (CLAUDE.md R10 gate-by-change-class):
-adversarial consistency review, R5 grep self-test, cross-reference validation,
-markdown integrity, the PreToolUse gates. Evidence = the grep/cross-ref
-outputs + the review verdict. A bed run is NOT required and adds no proof.
+The gate is the non-runtime standards (CLAUDE.md R10 "Documentation-only change
+class"): adversarial consistency review, R5 grep self-test, cross-reference
+validation, markdown integrity, the PreToolUse gates. Evidence = the
+grep/cross-ref outputs + the review verdict. A bed run is NOT required and adds
+no proof. The honest tier is `documentation reviewed` (never a runtime tier);
+`pre-commit-gate.sh` rejects it on a commit whose staged diff is not
+all-documentation.
 
 ### For R10 acceptance (the gate, not a smoke test)
 
@@ -104,23 +107,25 @@ checks failed. For those classes, a `--dry-run`, a green `go test`, or
 
 | Level | Requirements |
 |-------|-------------|
-| `fully tested and validated` | All 10 standards + a fresh-rebuild R10 (`charly eval run <bed>` / `charly eval live` on a `disposable: true` target) for EVERY affected target + the new/changed code path actually exercised + both R10 outputs (exploratory + fresh-rebuild) pasted (docs-only cutovers: per the provision below) |
-| `analysed on a live system` | A live invocation of the runner / verb evaluation / deploy probe the change touched actually ran AND its output is pasted. A rebuild WITHOUT the subsequent invocation does NOT qualify; NEVER this tier on a `--dry-run` alone |
-| `syntax check only` | Compile + unit tests + validators / dry-run passed; the live runner did NOT execute. The honest default when R10 hasn't run — pair with explicit "R10 not yet run" AND do NOT commit (pairing this tier with a commit is a violation; STOP and ask). Targets code with a pending R10 — docs-only cutovers take the provision below |
+| `fully tested and validated` | *(runtime classes)* All 10 standards + a fresh-rebuild R10 (`charly eval run <bed>` / `charly eval live` on a `disposable: true` target) for EVERY affected target + the new/changed code path actually exercised + both R10 outputs (exploratory + fresh-rebuild) pasted |
+| `analysed on a live system` | *(runtime classes)* A live invocation of the runner / verb evaluation / deploy probe the change touched actually ran AND its output is pasted. A rebuild WITHOUT the subsequent invocation does NOT qualify; NEVER this tier on a `--dry-run` alone |
+| `documentation reviewed` | *(the Documentation-only change class)* The change touches ONLY documentation (`*.md`, or comment-only code edits, ZERO behavior change) and ALL non-runtime standards passed. No runtime test exists to run; FORBIDDEN once any code/config behavior is touched (runtime tier, docs ride along) |
+| `syntax check only` | *(runtime classes)* Compile + unit tests + validators / dry-run passed; the live runner did NOT execute. The honest default when a runtime R10 hasn't run — pair with explicit "R10 not yet run" AND do NOT commit (pairing this tier with a commit is a violation; STOP and ask) |
 | `theoretical suggestion` | No validation — FORBIDDEN as a shipped-code tier |
 
-**Docs/policy-only cutovers — the tiers are read against the APPLICABLE
-standards** (per CLAUDE.md "AI Attribution"): a cutover touching ONLY
-documentation/policy (`*.md` files or code comments with ZERO behavior
-change — no behavioral Go / YAML-schema / box/candy-config edit, no other
-runtime surface) has no R10 bed; its applicable standards are the
-non-runtime ones: adversarial consistency review, the R5 grep self-test,
-cross-reference validation, markdown integrity, and the
-`pre-commit-gate.sh` / `pre-push-gate.sh` gates. It earns `fully tested and
-validated` when ALL applicable standards pass; the `syntax check only → do
-NOT commit` clause does not apply to it. The moment a cutover ALSO touches
-code or config it is NOT docs-only — that surface's R10 gates it as usual,
-and the docs ride along in the same commit.
+**`documentation reviewed` is the Documentation-only change class's honest
+tier** (per CLAUDE.md "AI Attribution"): a cutover touching ONLY documentation
+(`*.md` files or comment-only code edits with ZERO behavior change — no
+behavioral Go / YAML-schema / box/candy-config edit, no other runtime surface)
+has no R10 bed; its applicable standards are the non-runtime ones: adversarial
+consistency review, the R5 grep self-test, cross-reference validation, markdown
+integrity, and the `pre-commit-gate.sh` / `pre-push-gate.sh` gates. It earns
+`documentation reviewed` when ALL of them pass; the `syntax check only → do NOT
+commit` clause (a runtime-class rule) does not apply. The moment a cutover ALSO
+touches code or config it is NOT docs-only — that surface's R10 gates it at a
+runtime tier, and the docs ride along in the same commit. (`pre-commit-gate.sh`
+rejects `documentation reviewed` on any commit whose staged diff is not
+all-documentation.)
 
 A known rule violation FORBIDS commit at ANY tier — there is no "downgrade
 and ship" path. Fix in the same tree or escalate. See CLAUDE.md.

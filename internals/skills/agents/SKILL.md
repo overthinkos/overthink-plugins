@@ -234,13 +234,17 @@ Hooks in this project do TWO things and nothing more. The full inventory
    injection is out of scope: the gate is a discipline backstop, not a
    security boundary),
    a missing `Assisted-by: Claude (<tier>)` trailer on an inline `-m` message
-   (scoped to the commit invocation's own arg span; a `-F`/heredoc/
-   command-substituted message is not scanned for absence — tier legality
-   still applies), any tier OUTSIDE the legal-on-commit set {`fully tested and
-   validated`, `analysed on a live system`} (the AI-Attribution table forbids
-   `theoretical suggestion` everywhere and pairs `syntax check only` with
-   "do NOT commit"; docs-only cutovers ship at `fully tested and validated`
-   per the provision), and force-push
+   (every commit Claude is involved in must attribute — a pure-human hand-commit
+   never reaches this PreToolUse gate; scoped to the commit invocation's own arg
+   span; a `-F`/heredoc/command-substituted message is not scanned for absence —
+   tier legality still applies), any tier OUTSIDE the legal-on-commit set
+   {`fully tested and validated`, `analysed on a live system`, `documentation
+   reviewed`} (the AI-Attribution table forbids `theoretical suggestion`
+   everywhere and pairs `syntax check only` with "do NOT commit"), the
+   `documentation reviewed` tier on a commit whose staged diff is NOT
+   all-documentation (`*.md`/CHANGELOG/README/LICENSE/VISION/`*.txt`, or
+   comment-only code edits — the tier-vs-diff coherence check, conservative-safe:
+   it never lets a behavioral change pass as docs), and force-push
    (`git push --force` / `--force-with-lease` / `-f`, bundled forms included).
 
 The honest division of labor: **hooks gate mechanical invariants; agents

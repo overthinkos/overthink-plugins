@@ -102,18 +102,19 @@ definition lives in CLAUDE.md), the **Acceptance checklist**, and the
 
 | Matrix / catalog / definition | Sole owner |
 |---|---|
-| "R10 gate by change class" matrix + "Flag discipline" catalog | `/charly-eval:eval` |
+| "R10 gate by change class" matrix (incl. the class → gate → tier cross-walk) + "Flag discipline" catalog | `/charly-eval:eval` |
 | R1–R5, RDD, ADE operationalization (forbidden patterns, risk table, worked examples) | `/charly-internals:strict-policy` |
 | Hard-cutover workflow, forbidden patterns, deliverables | `/charly-internals:cutover-policy` |
 | `disposable:` / `preemptible:` flag semantics, "What counts as an R10 run" | `/charly-internals:disposable` |
 | Landing mechanics (branch loop, multi-repo order, CalVer tags, PR path) | `/charly-internals:git-workflow` |
 | Agent/workflow/team primitives, hooks doctrine | `/charly-internals:agents` |
-| Skill Dispatcher, RDD/ADE definitions, Acceptance checklist, attribution tiers, Key Rules index | CLAUDE.md |
+| Skill Dispatcher, RDD/ADE definitions, Acceptance checklist, attribution tiers (incl. `documentation reviewed`), Documentation-only change class anchor, Key Rules index | CLAUDE.md |
 
 ## Mirroring surfaces — sweep when CLAUDE.md wording changes
 
 **CLAUDE.md's section headings, R-numbers, and named clauses ("flag-override
-clause", "gate by change class", "Acceptance checklist", "Post-Execution
+clause", "gate by change class", "Documentation-only change class",
+"documentation reviewed" tier, "Acceptance checklist", "Post-Execution
 Policies", …) are a public API.** These surfaces reference them and MUST be
 swept in the SAME commit as any rename or removal (R5):
 
