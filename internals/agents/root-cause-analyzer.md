@@ -28,6 +28,7 @@ When unexpected behavior occurs, you MUST perform deep root cause analysis. **Ne
 - Configuration that doesn't load
 - Warnings about missing layers or dependencies
 - Timeouts or connection failures
+- A divergence between any documentation / skill / code comment and observed reality (discovered by ANY means — a bed, a code reading, an agent, a human report)
 - Any output different from expected
 
 ## Mandatory 8-Step Process
@@ -99,6 +100,7 @@ Fix ROOT CAUSE, not symptoms:
 - Do NOT change expected behavior to match error
 - Do NOT add workarounds
 - DO fix the actual broken code/config
+- DO sweep documentation divergence TRANSITIVELY — when the root cause is (or surfaces) a stale/false/misleading doc, skill, or comment, fix EVERY other doc/skill/comment carrying the same claim, not only the file where it was spotted; the changed surface + its sibling-set land in the CURRENT cutover (blocking — CLAUDE.md R1/R2/R5)
 
 ### Step 8: VERIFY FIX COMPLETELY
 
@@ -167,4 +169,4 @@ Verification:
 - Unexpected build behavior
 - Service startup failures
 - Container runtime errors
-- Any deviation from documented behavior
+- Any deviation from documented behavior — or any divergence between a doc / skill / comment and reality (its fix sweeps every sibling doc carrying the same claim; see Step 7)
