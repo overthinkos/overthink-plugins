@@ -227,7 +227,13 @@ Hooks in this project do TWO things and nothing more. The full inventory
 2. **Deterministic `PreToolUse` gates** that BLOCK (exit 2) only unambiguous,
    CLAUDE.md-stated invariants: hook bypass via `--no-verify` (`git commit
    --no-verify` — the `-n` short alias, bundled forms included, scanned as a
-   flag BEFORE the message provider — AND `git push --no-verify`),
+   flag BEFORE the message provider — AND `git push --no-verify`) or via a
+   `core.hooksPath` override in git's global options (`git -c
+   core.hooksPath=… commit/push` — the config spelling of the same bypass;
+   the scan covers the global-opts span only, so `git commit -c <commit>`
+   and a message mentioning the key never false-trigger, and env-var config
+   injection is out of scope: the gate is a discipline backstop, not a
+   security boundary),
    a missing `Assisted-by: Claude (<tier>)` trailer on an inline `-m` message
    (scoped to the commit invocation's own arg span; a `-F`/heredoc/
    command-substituted message is not scanned for absence — tier legality
