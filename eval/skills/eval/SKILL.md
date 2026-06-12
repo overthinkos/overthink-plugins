@@ -206,7 +206,14 @@ resource — enabling it via systemctl sits outside the charly-CLI-only
 mandate's scope.)
 
 `charly eval run eval-k3s-vm` best-effort starts the unit before `charly vm create`
-(via `startLibvirtUserSession()` in `charly/vm.go`); `resolveVmBackend()` surfaces
+(via `startLibvirtUserSession()` in `charly/vm.go`), and `resolveVmBackend()` now
+spawns it too **before** probing the socket — so a cold socket is never mistaken
+for "libvirt absent" (Arch/CachyOS ship no persistent `virtqemud.socket`; the
+socket appears only after an autospawn). **Never gauge libvirt readiness with
+`systemctl is-active virtqemud.service`** — a socket-activated / autospawn daemon
+reports the service `inactive` while libvirt works fine; check the socket
+(`$XDG_RUNTIME_DIR/libvirt/virtqemud-sock`) or `virsh -c qemu:///session list`
+instead. `resolveVmBackend()` surfaces
 a clear error when libvirt is absent. The `k3s-vm:` vm template pins
 `backend: libvirt` explicitly so the silent `auto -> qemu` fallback can't mask
 a missing daemon. See `/charly-vm:vm` "Prereq", `/charly-eval:libvirt`.

@@ -212,13 +212,30 @@ Resolution order: **libvirt → qemu** (auto-detected). Override via `charly set
 systemctl --user enable --now virtqemud.service
 ```
 
-`charly vm create` best-effort starts `virtqemud.service` (and falls back
-to `libvirtd.service`) before backend resolution, so on hosts where
-the unit is installed-but-not-started, the first VM create works
-without manual intervention. If the unit isn't installed at all
-(libvirt missing entirely), `resolveVmBackend()` surfaces the
-explicit error `"libvirt backend requires libvirt session daemon"`
-with the remediation hint above.
+`resolveVmBackend()` itself best-effort spawns the session daemon
+(`startLibvirtUserSession()`: `systemctl --user start virtqemud.service` →
+`libvirtd.service` → a `virsh -c qemu:///session list` autospawn) **before**
+probing for its socket, so EVERY vm verb (create / build / start / stop /
+destroy / console) detects libvirt uniformly — not just `charly vm create`.
+This matters because many hosts (Arch / CachyOS) ship **no persistent
+`virtqemud.socket`**: the session socket exists only AFTER a client triggers
+libvirt's on-demand autospawn, so a COLD socket probe (run before any spawn)
+false-negatives a fully working libvirt and silently falls back to qemu — the
+bug that made the per-verb detection nondeterministic. If the unit isn't
+installed at all (libvirt missing entirely), `resolveVmBackend()` surfaces the
+explicit error `"libvirt backend requires libvirt session daemon"` with the
+remediation hint above.
+
+**Do NOT gauge libvirt availability with `systemctl is-active
+<virtqemud|libvirtd>.service`.** A socket-activated OR on-demand-autospawn
+daemon reports the SERVICE `inactive` even while libvirt is fully usable (it
+spawns per connection with `--timeout` and exits when idle, so the *service*
+is idle between calls). The only valid signals are the **socket**
+(`$XDG_RUNTIME_DIR/libvirt/virtqemud-sock`) or a real connection
+(`virsh -c qemu:///session list`). The system/rootful path (`qemu:///system`,
+`libvirtd.socket`) is a SEPARATE daemon charly does not use — charly is
+rootless-first (`qemu:///session`), so a non-root user with only the system
+daemon still needs the user-session path (which `resolveVmBackend()` autospawns).
 
 For projects whose eval beds use `charly eval libvirt …` and `charly eval
 spice …` probes (e.g., the project's `arch:` VM template), pin the
