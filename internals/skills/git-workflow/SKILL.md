@@ -37,6 +37,19 @@ Policies" carries the mandate, `/charly-internals:cutover-policy` the one-phase 
   discards in-progress work; `rm` on a tracked file is destructive. When the
   sandbox blocks an action, read the reason and find a non-destructive
   alternative — never work around it with a cleverer command.
+- **Right worktree — pin ONE absolute path for the whole edit→commit→land
+  sequence.** Before branching, staging, or committing, confirm the worktree you
+  are driving is the SAME one your edits landed in: `git -C <path> rev-parse
+  --show-toplevel` must equal the path you edited, and `git -C <path> status
+  --short` must list those edits. Under symlinked or near-twin sibling worktrees —
+  a parent dir that is itself a symlink (`~/Atrapub` → `~/Sync/Atrapub`), or
+  look-alike names such as `…/overthink` vs `…/av-overthink` — `cd`-ing to the
+  wrong sibling makes `git switch -c` + `git commit` run against a CLEAN tree and
+  report "nothing to commit", silently landing nothing (or worse, work in the
+  wrong repo). Never change the path spelling mid-sequence. An unexpected "nothing
+  to commit" / "working tree clean" right after you edited a file is the signature
+  of this mistake — STOP and re-verify `--show-toplevel` before retrying (blind
+  retry is an R1 violation).
 - **Eval-coverage.** R10 does not pass unless the change ships the test coverage
   that PROVES its functionality (`eval:` checks for new/changed layers & images,
   Go tests for `charly` code) AND the live run exercised it. A change whose new
