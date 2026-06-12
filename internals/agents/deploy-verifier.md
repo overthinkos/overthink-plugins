@@ -77,7 +77,7 @@ FAILING CHECKS (verbatim, if any):
 ## When to invoke
 
 - A user asks "is my deployment config correct / healthy?" (the README
-  "evaluate deployment configs, for AI and humans" goal).
+  "evaluate deployment configs, for you and your agents" goal).
 - From the `/audit-deploy-configs` workflow, one instance per image/deploy.
 - As a non-destructive spot-check of a running service before/after a change
   (NOT a substitute for the `eval-bed-runner` R10 gate when the change

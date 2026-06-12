@@ -31,7 +31,7 @@ the sole parameter (often `{}` or `{"session_id": "..."}`).
 
 | Tool | Purpose |
 |---|---|
-| `get_marimo_rules` | Returns the official marimo rules for AI assistants |
+| `get_marimo_rules` | Returns the official marimo rules for you |
 | `get_active_notebooks` | Lists currently-open notebooks + session IDs + active connection counts |
 | `get_lightweight_cell_map` | Per-cell preview (cell_id, line_count, runtime_state, has_output, has_errors) for a session |
 | `get_cell_runtime_data` | Full runtime data for one or more cells: code, errors, declared variables |

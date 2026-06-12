@@ -22,7 +22,7 @@ candies applied via `add_candy:` are pulled from this repo by git ref.
 
 Canonical `source.kind: cloud_image` VM in the repo. Boots an Arch Linux cloud image as a full VM with SSH + SPICE console access, cloud-init-provisioned SSH keys, virtio-gpu graphics, and the `charly` toolchain auto-installed inside the guest.
 
-This skill is the **decision log** for every non-obvious choice in the entry — BIOS vs UEFI, virtio-gpu vs QXL, resource sizing vs package list pruning, adopt-user vs create-user. Every decision traces to a live-test RCA; the rationales belong here permanently so a future editor (human or agent) doesn't reopen the same questions.
+This skill is the **decision log** for every non-obvious choice in the entry — BIOS vs UEFI, virtio-gpu vs QXL, resource sizing vs package list pruning, adopt-user vs create-user. Every decision traces to a live-test RCA; the rationales belong here permanently so a future editor (you or your agents) doesn't reopen the same questions.
 
 ## VM Configuration
 

@@ -39,7 +39,7 @@ run alongside charly-managed resources. The `disposable: true` flag must
 therefore be:
 
 - **Explicit.** Default false. No derivation from anything else. A
-  human writes `disposable: true` on a specific deploy or nothing
+  you write `disposable: true` on a specific deploy or nothing
   happens.
 - **Per-deploy.** Set on the running deployment, not on the image.
   The same image can be deployed as disposable on one host and
@@ -79,7 +79,7 @@ preemptible: <l|blk>  # LOAD-BEARING resource-arbitration. Default absent.
 
 **Anti-derivation invariant — with one named exception**:
 
-`lifecycle: dev` does NOT make a deploy disposable. A human reader
+`lifecycle: dev` does NOT make a deploy disposable. A reader
 might assume it would, so the anti-derivation invariant is enforced
 by `charly/classification.go` and a unit test
 `TestVmSpec_LifecycleAloneDoesNotAuthorize`. If you find yourself
@@ -147,8 +147,8 @@ or the persistent claimant is stopped/destroyed — the arbiter **restarts** the
 holders. A transient (eval) claim auto-releases via `defer`; a persistent claim
 releases on the claimant's teardown command.
 
-**Standing authorization — the AI preempts autonomously.** Triggering preemption
-is STANDING-authorized: the AI may bring up a `requires_exclusive:` claimant — and
+**Standing authorization — you preempt autonomously.** Triggering preemption
+is STANDING-authorized: you may bring up a `requires_exclusive:` claimant — and
 thereby gracefully stop a running `preemptible` holder — WITHOUT per-run operator
 confirmation. This is safe because preemption is **reversible by design**: the
 holder is gracefully stopped (disk + definition preserved) and GUARANTEED to be
@@ -237,18 +237,19 @@ proceeds. Sequence: destroy → rebuild → restart, ending in the shared
 `charly deploy add <node>` layer re-apply for every live substrate (so a
 config change — a newly-added layer or nested pod — takes effect on the
 rebuilt target). `disposable: true` stays load-bearing as the
-authorization for the **AI's AUTONOMOUS** destroy + rebuild (CLAUDE.md
+authorization for the **UNATTENDED autonomous** destroy + rebuild (CLAUDE.md
 R10) and the eval-runner's unattended fresh rebuild — NOT as an
-`charly update` capability check. A human (or the AI WITH explicit
-authorization) may `charly update` a non-disposable target directly.
+`charly update` capability check. You may `charly update` a non-disposable
+target directly — that is an attended action you authorize explicitly, never
+the unattended autonomy the flag grants.
 
 ```bash
-# Disposable: the AI may run this autonomously (no human in the loop):
+# Disposable: you may run this UNATTENDED (autonomous, no confirmation):
 charly update arch
 
 # Non-disposable: the command still proceeds — with a transparency note.
-# (The AI needs explicit human authorization to run it; a human running
-#  it directly is always fine.)
+# (Run it UNATTENDED only with explicit authorization; running it
+#  attended/directly is always fine.)
 $ charly update production-api
 Note: "production-api" is not marked `disposable: true` (lifecycle: (unset));
 rebuilding it anyway per your explicit `charly update`.
@@ -347,14 +348,14 @@ deploys:
     disposable: true
 ```
 
-`charly update` itself runs on ANY of these — a human can rebuild
+`charly update` itself runs on ANY of these — you can rebuild
 `fedora-coder-dev` directly and it proceeds with the
 `noteUpdateDisposability` transparency note (the `lifecycle: dev`
 tag is informational, never an authorization). What the
-`disposable: true` flag gates is AUTONOMOUS rebuild: the AI (and the
+`disposable: true` flag gates is AUTONOMOUS rebuild: you (and the
 eval-runner) may unattended-rebuild only `fedora-coder-qa` and
 `fedora-coder-scratch`; rebuilding `fedora-coder-dev` autonomously
-requires explicit human authorization, because a lifecycle tag does
+requires explicit authorization, because a lifecycle tag does
 NOT authorize autonomous destroy.
 
 ### VMs

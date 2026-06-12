@@ -10,7 +10,7 @@ Deploys `sway-browser-vnc` as a pinned Pattern A instance
 rendered by the `versa/ecovoyage` notebook (`osm-monaco-viz.py`).
 The pod's chrome-devtools-mcp + raw CDP + VNC ports are all exposed
 on the host's existing tailnet identity (`ac.armadillo-quail.ts.net`)
-so external Claude Code / agents — and the human operator —
+so external Claude Code / agents — and you —
 can drive Chrome programmatically over Streamable HTTP MCP.
 
 ## Why this exists

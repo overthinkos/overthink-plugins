@@ -83,10 +83,10 @@ A violation of any R1–R5 rule (or any of R6–R10, or the "Prioritize Clean Ar
 
 **Forbidden phrasings.** "this was already failing before my change" / "unrelated to this PR" / "out of scope for this cutover" / "I'll file a follow-up issue" / "this is tracked separately" / "we can address that later" / "noted but not required for this commit" / "intentionally deferred to keep the diff focused".
 
-**What is permitted — classify BLOCKING vs NON-BLOCKING first.** A **blocking** issue (the current change is incorrect, incomplete, or unsafe without it) is, by DEFAULT, **fixed in the same working tree** — the AI does not ask permission to fix what it found:
+**What is permitted — classify BLOCKING vs NON-BLOCKING first.** A **blocking** issue (the current change is incorrect, incomplete, or unsafe without it) is, by DEFAULT, **fixed in the same working tree** — you do not ask permission to fix what it found:
 
 1. **Fix in the same working tree** (the default). Same commit as the active cutover; same atomic change; proved under the CURRENT cutover's R10.
-2. **Escalate to the operator — only when the blocking issue is itself a genuine crossroad** the AI cannot resolve from the request, code, skills, or sensible defaults. A genuine crossroad is one of: a design choice with material trade-offs; a hard-to-reverse or outward-facing action without standing authorization; a contradiction between the plan and CLAUDE.md / a loaded skill; genuinely ambiguous requirements. The ask is explicit: "I encountered $X during this cutover. Per R2 I cannot defer it, and it is a decision I cannot make alone. Should I (a) fix it now in this same commit, (b) abort the active cutover and address $X first, or (c) explicitly re-scope?" The operator's response authorizes the path; silence does not. Escalation is the narrow crossroad exception, never the default — a blocking issue with a clear fix is just fixed.
+2. **Escalate to the operator — only when the blocking issue is itself a genuine crossroad** you cannot resolve from the request, code, skills, or sensible defaults. A genuine crossroad is one of: a design choice with material trade-offs; a hard-to-reverse or outward-facing action without standing authorization; a contradiction between the plan and CLAUDE.md / a loaded skill; genuinely ambiguous requirements. The ask is explicit: "I encountered $X during this cutover. Per R2 I cannot defer it, and it is a decision I cannot make alone. Should I (a) fix it now in this same commit, (b) abort the active cutover and address $X first, or (c) explicitly re-scope?" The operator's response authorizes the path; silence does not. Escalation is the narrow crossroad exception, never the default — a blocking issue with a clear fix is just fixed.
 
 A **non-blocking** issue (the current change is correct AND complete without it, and it is genuinely separable from this change) takes a third path:
 
@@ -94,7 +94,7 @@ A **non-blocking** issue (the current change is correct AND complete without it,
 
 **Why the escape hatch is closed.** Deferring a surfaced test failure as "pre-existing, unrelated" leaves brokenness on `main` for the window between the deferral and the eventual fix — when fixing in place would have cost a few lines and 30 seconds of attention. R2 closes this escape hatch absolutely. (See `CHANGELOG.md` for the incident that motivated this.)
 
-**Why it matters.** "Pre-existing" is the most common AI-agent escape hatch — it lets the agent claim the work is complete while leaving brokenness in the tree. Every "pre-existing" deferral compounds: the next cutover finds two pre-existing issues, the third finds three, and the codebase entropy grows monotonically. R2 forces the agent to either pay the small fix-cost now OR escalate to a human; it removes the silent third option of "leave it".
+**Why it matters.** "Pre-existing" is the most common agent escape hatch — it lets the agent claim the work is complete while leaving brokenness in the tree. Every "pre-existing" deferral compounds: the next cutover finds two pre-existing issues, the third finds three, and the codebase entropy grows monotonically. R2 forces the agent to either pay the small fix-cost now OR escalate to the operator; it removes the silent third option of "leave it".
 
 **Interaction with other rules.** R2 covers both approved-plan phasing AND incidentally-surfaced issues mid-session: **no deferral, neither planned nor incidental.**
 
@@ -170,7 +170,7 @@ A probe NO `charly` verb expresses is a charly GAP — close it as its own cutov
 
 **What is permitted in historical contexts.** `CHANGELOG.md` entries and migration-command help-text that names the legacy form for the user's benefit ("rename `qc` to `charly-cachyos`"). The grep self-test distinguishes these via context.
 
-**Why it matters.** Stale references confuse new contributors and AI agents. A code search for `qc` that returns matches in `charly.yml` suggests the deployment is still live; a search that returns matches only in `CHANGELOG.md` suggests it was retired. R5's grep self-test enforces this distinction.
+**Why it matters.** Stale references confuse you. A code search for `qc` that returns matches in `charly.yml` suggests the deployment is still live; a search that returns matches only in `CHANGELOG.md` suggests it was retired. R5's grep self-test enforces this distinction.
 
 **Interaction with other rules.** R5 covers stale references everywhere, not just the deleted artifact itself. R5 is the cleanup discipline that R3 enables — once you've refactored to the unified abstraction, R5 ensures every old reference points to the new one.
 

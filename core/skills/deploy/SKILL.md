@@ -972,7 +972,7 @@ eval:
   actually power off (so the resource is truly released), records a crash-safe
   lease, then proceeds. Nested `charly` subprocesses inherit the lease
   (`CHARLY_PREEMPT_LEASE`) and never re-acquire.
-- **Standing authorization — preempt autonomously.** The AI may trigger preemption
+- **Standing authorization — preempt autonomously.** You may trigger preemption
   (bring up a `requires_exclusive:` claimant, stopping a running `preemptible`
   holder) WITHOUT per-run operator confirmation. Preemption is reversible by design
   (graceful stop + guaranteed `restore`), so it is exempt from the

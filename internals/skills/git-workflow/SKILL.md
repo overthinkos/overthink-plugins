@@ -13,7 +13,7 @@ description: |
 Every change to an charly-project repo follows ONE landing discipline. The **R10
 pass is the sole gate**: nothing is committed, pushed, merged, or tagged on
 unverified state, and once R10 passes the landing is automatic — no per-change
-human "push" step. This skill is the mechanics; CLAUDE.md "Post-Execution
+manual "push" step. This skill is the mechanics; CLAUDE.md "Post-Execution
 Policies" carries the mandate, `/charly-internals:cutover-policy` the one-phase rule,
 `/charly-build:migrate` the schema-version/tag coupling.
 
@@ -62,7 +62,7 @@ git commit -m "<conventional commit>  ...  Assisted-by: Claude (<tier>)"
 git push origin feat/<slug>
 git switch main && git merge --ff-only origin/main   # re-sync; if main advanced, see below
 git merge --ff-only feat/<slug>
-git tag -a "$(date -u +v%Y).$((10#$(date -u +%j))).$(date -u +%H%M)" -m "<subject>" HEAD
+git tag -a "$(date -u +v%Y.%j.%H%M)" -m "<subject>" HEAD
 git push origin main --follow-tags
 git branch -d feat/<slug> && git push origin --delete feat/<slug>
 ```
@@ -206,10 +206,12 @@ producer→consumer. Multi-level chains (A→B→C) recurse the same way.
 
 ## CalVer tag computation
 
-`v<YYYY.DDD.HHMM>` from the current UTC push time, day-of-year NOT zero-padded:
+`v<YYYY.DDD.HHMM>` from the current UTC push time. Every component is fixed-width
+zero-padded (4-digit year, 3-digit day-of-year, 4-digit HHMM) so tags sort
+chronologically under a plain alphanumeric sort:
 
 ```bash
-git tag -a "$(date -u +v%Y).$((10#$(date -u +%j))).$(date -u +%H%M)" -m "<subject>" HEAD
+git tag -a "$(date -u +v%Y.%j.%H%M)" -m "<subject>" HEAD
 ```
 
 ONE fresh tag per push (a repo accumulates many), immutable (only ever added),

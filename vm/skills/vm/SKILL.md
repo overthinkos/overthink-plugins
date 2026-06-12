@@ -12,7 +12,7 @@ description: |
 
 - **Disposability is a deploy property only.** A `kind: vm` entity carries no `disposable:` / `lifecycle:` field. Put `disposable: true` on the matching `deploy.<name>-vm` entry. The `vm:` entity entry only describes VM shape (disk, RAM, SSH, cloud-init, libvirt), never authorization.
 - **Deploy-level cross-ref**: a deployment with `target: vm` references its VM entity via `vm: <entity-name>`.
-- **`charly update <vm-entity-name>`** does NOT gate on `disposable:` — an explicit human invocation rebuilds ANY target (destroy→create the domain, reuse the qcow2 disk unless `--build`, then re-apply the deploy node's layers via the shared `deploy add` path). For a non-disposable, non-ephemeral target it prints a one-line transparency note (`noteUpdateDisposability`) and proceeds. The `disposable: true` flag stays load-bearing as the authorization for the AI's AUTONOMOUS destroy + rebuild (CLAUDE.md R10) and the eval-runner's unattended fresh rebuild, NOT as an `charly update` capability check. See `/charly-internals:disposable` and `/charly-core:charly-update`.
+- **`charly update <vm-entity-name>`** does NOT gate on `disposable:` — an explicit invocation rebuilds ANY target (destroy→create the domain, reuse the qcow2 disk unless `--build`, then re-apply the deploy node's layers via the shared `deploy add` path). For a non-disposable, non-ephemeral target it prints a one-line transparency note (`noteUpdateDisposability`) and proceeds. The `disposable: true` flag stays load-bearing as the authorization for UNATTENDED autonomous destroy + rebuild (CLAUDE.md R10) and the eval-runner's unattended fresh rebuild, NOT as an `charly update` capability check. See `/charly-internals:disposable` and `/charly-core:charly-update`.
 
 ## Overview
 
@@ -49,7 +49,7 @@ VM name convention: `charly-<name>[-<instance>]`. Default libvirt URI: `qemu:///
 **Preempting a GPU holder is standing-authorized.** When a `target: vm` GPU bed/deploy
 declares `requires_exclusive: [nvidia-gpu]`, the arbiter gracefully stops the operator's
 running `preemptible` GPU-workstation VM to free the card and is GUARANTEED to restart it —
-the AI does this autonomously, with no per-run confirmation (preemption is reversible by
+you do this autonomously, with no per-run confirmation (preemption is reversible by
 design; see `/charly-internals:disposable` "Standing authorization").
 
 To pass a physical GPU through to a VM and (e.g.) run a CUDA container inside it:

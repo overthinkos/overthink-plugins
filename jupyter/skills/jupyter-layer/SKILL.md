@@ -113,7 +113,7 @@ The `jupyter` candy declares `mcp_provide` for cross-container and pod MCP disco
 
 ## MCP Server Extension (`jupyter_mcp`)
 
-The candy includes a built-in MCP (Model Context Protocol) server at `/mcp` on port 8888. AI agents can create, read, edit, and execute notebook cells programmatically — with changes syncing live to all connected JupyterLab clients via CRDT.
+The candy includes a built-in MCP (Model Context Protocol) server at `/mcp` on port 8888. You can create, read, edit, and execute notebook cells programmatically — with changes syncing live to all connected JupyterLab clients via CRDT.
 
 ### Architecture
 
@@ -243,7 +243,7 @@ Use when the user asks about:
 - Port 8888 service (check if GPU variant intended)
 - The `jupyter` candy
 - MCP server for notebook manipulation
-- Programmatic notebook access from AI agents
+- Programmatic notebook access for you
 - `watch_notebook` or change notifications
 - Multi-client concurrent editing
 

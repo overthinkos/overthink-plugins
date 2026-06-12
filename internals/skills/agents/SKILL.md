@@ -103,8 +103,7 @@ teammate.
   Beds skipped for a missing host prereq are logged, never silently dropped.
 - **`/audit-deploy-configs [image|deploy …]`** — validates + `charly eval box`
   + optional `charly eval live` + `deploy-verifier` over a set of deploy configs;
-  aggregates a health report. Serves the "evaluate deployment configs, for AI
-  and humans" goal.
+  aggregates a health report. Serves the "evaluate deployment configs, for you and your agents" goal.
 - **`/triage-eval-failure <bed>`** — competing-hypotheses RCA of a failed bed
   run: parallel `root-cause-analyzer`-style agents each validate a hypothesis
   on the live bed, cross-check adversarially, converge on the root cause, and

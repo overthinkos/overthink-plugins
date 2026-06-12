@@ -4,7 +4,7 @@ description: |
   MUST be invoked before any work involving: `charly eval` (image / live / run),
   the `eval:` / `deploy_eval:` fields in a candy/box `charly.yml` or `charly.yml`,
   the `ai.opencharly.eval` OCI label, the AI iteration harness loop,
-  `kind: ai` / `kind: recipe` / `kind: score` / `kind: eval` (disposable R10
+  `kind: agent` / `kind: recipe` / `kind: score` / `kind: eval` (disposable R10
   beds run via `charly eval run <bed>`) in a project's `eval:` block, or any declarative
   check authoring. Covers the unified `charly eval` surface: three
   primary modes (image / live / run),
@@ -501,7 +501,7 @@ the still-unbound work.
   image-backed (pod) deployment; deterministic steps run their checks and
   prose-only steps bind to the **agent grader** (unless `--no-agent`). Flags:
   `-i/--instance`, `--format text|json|tap|junit`, `--tag <expr>`,
-  `--ai <name>`, `--timeout <dur>`, `--no-agent`, `--strict`.
+  `--agent <name>`, `--timeout <dur>`, `--no-agent`, `--strict`.
 
 Exit codes follow the 0/1/2 convention (a scenario fail → exit 2 via
 `EvalFailedError`; an infra error → 1). No scenarios baked → a no-op pass.
@@ -509,7 +509,7 @@ Exit codes follow the 0/1/2 convention (a scenario fail → exit 2 via
 ### The agent grader contract
 
 For a prose-only step (when grading is enabled), the runner spawns the
-configured `kind: ai` CLI ONCE (bounded — never the plateau loop), handing it the
+configured `kind: agent` CLI ONCE (bounded — never the plateau loop), handing it the
 scenario goal (`feature`/`narrative`), the step's Given/When/Then, the live
 target name, and the instruction that it MAY probe via `charly cmd <target> …`,
 `charly eval mcp/cdp/wl <target> …`, `charly status <target>`. The agent returns a
@@ -517,8 +517,8 @@ single-line JSON verdict `{"verdict":"pass|fail","evidence":"…"}`; the runner
 parses it (plain or `stream-json`) into a pass/fail with evidence. An
 unparseable / timed-out / launch-failed grader is a **FAIL** with the raw output
 — never a silent pass. The grader wall-clock cap is `--timeout` → the ai entry's
-`timeout:` → a 5m default. Which AI: `--ai <name>` → the sole configured `ai:`
-entry → an explicit "specify --ai" error.
+`timeout:` → a 5m default. Which agent: `--agent <name>` → the sole configured `agent:`
+entry → an explicit "specify --agent" error.
 
 `--no-agent` is the deterministic-only mode (CI): prose-only steps report
 `unbound` (visible, never silently green). The unattended `charly eval run <bed>`
@@ -1536,7 +1536,7 @@ deliberately.
 **MUST be invoked** before authoring, running, or debugging eval
 behavior at any level. Triggers: `charly eval` (any subcommand), `charly eval
 run`, `charly eval box`, `charly eval live`, the `eval:` / `deploy_eval:`
-YAML fields, the `ai.opencharly.eval` OCI label, `kind: ai` /
+YAML fields, the `ai.opencharly.eval` OCI label, `kind: agent` /
 `kind: recipe` / `kind: score` / `kind: eval` in the `eval:` block,
 `charly eval run <bed>` / `--all-beds` (kind:eval R10 beds), or any check
 verb by name (file/port/http/command/package/service/cdp/wl/dbus/vnc/mcp/...).

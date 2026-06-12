@@ -1,7 +1,7 @@
 ---
 name: marimo-layer
 description: |
-  marimo reactive notebook server (also runs as MCP server via --mcp), GPU-accelerated OSM/GTFS analytics deps (cudf-polars-cu13, polars, geopandas, quackosm, gtfs-parquet), Apache Airflow Python deps (the airflow layer ships no pixi env), and the marimo-team/learn curriculum + marimo-team/skills bundle for AI agents.
+  marimo reactive notebook server (also runs as MCP server via --mcp), GPU-accelerated OSM/GTFS analytics deps (cudf-polars-cu13, polars, geopandas, quackosm, gtfs-parquet), Apache Airflow Python deps (the airflow layer ships no pixi env), and the marimo-team/learn curriculum + marimo-team/skills bundle for you.
   Use when working with the marimo layer, its pixi environment, the supervisord service spec, or the cell-display + mo.iframe rendering patterns.
 ---
 

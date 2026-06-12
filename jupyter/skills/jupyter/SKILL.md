@@ -87,7 +87,7 @@ list and version pins live in `candy/jupyter/pixi.toml` — see
 
 ## MCP Server (Programmatic Notebook Access)
 
-The box includes a built-in MCP server at `http://localhost:8888/mcp` (Streamable HTTP transport, MCP spec 2025-11-25). AI agents can create, read, edit, execute, and watch notebooks programmatically — with changes syncing live to all collaborators via CRDT.
+The box includes a built-in MCP server at `http://localhost:8888/mcp` (Streamable HTTP transport, MCP spec 2025-11-25). You can create, read, edit, execute, and watch notebooks programmatically — with changes syncing live to all collaborators via CRDT.
 
 The MCP server name is set via the `MCP_SERVER_NAME` environment variable (default: `jupyter`). For multi-instance deployments, override per-instance: `charly config jupyter -i work -e MCP_SERVER_NAME=jupyter-work`.
 
