@@ -463,7 +463,7 @@ drive the red→green loop. This complements the flat `eval:` checks — `charly
 | **Run** | you / CI | `charly box feature run <image>` / `charly eval feature run <deployment>` | Execute the scenarios; per-scenario pass/fail + grader evidence. |
 | **Iterate** | you / an agent | edit + re-run, OR `charly eval run <score>` | Drive red→green by hand, or let the plateau-bounded AI loop write the code until scenarios pass. |
 | **Bake** | the build | `charly box build` | Goal + scenarios bake into `ai.opencharly.description`; runs source-less against a pulled image. |
-| **Gate** | R10 | `charly eval run <bed>` | Runs the bed image's deterministic scenarios as an opt-in gate (no-op pass when none authored). |
+| **Gate** | R10 | `charly eval run <bed>` | Runs the bed image's deterministic scenarios — every candy ships them (ADE authoring is mandatory; `charly box validate` enforces it). The live agent grader via `charly eval feature run` stays opt-in. |
 
 ### The BIND contract — a step binds to its verifier BY SHAPE
 

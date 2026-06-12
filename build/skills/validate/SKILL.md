@@ -34,6 +34,7 @@ Invoked as `charly box validate`. See `/charly-image:image` for the family overv
 ### Layer Rules
 
 - Layer directory must contain at least one install source — `charly.yml` with a non-empty `task:` list or a `rpm:` / `deb:` / `pac:` / `aur:` packages section; an auto-detected builder manifest (`pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, `Cargo.toml`); or a `candy:` composition field (pure composition layers are valid).
+- **ADE is MANDATORY per candy:** every **local** candy MUST carry a full ADE `description:` (a non-empty `feature:` + at least one `scenario:`) AND a non-empty `eval:` list (enforced by `validateCandyContents`; a hard error names the missing field). A fetched **remote** candy is exempt — its compliance is its own repo's concern, same scope as the mandatory `version:` rule. See `/charly-eval:eval`.
 - `depends` must reference existing layers (local or remote).
 - Circular dependencies are errors.
 - `volumes` names must match `^[a-z0-9]+(-[a-z0-9]+)*$`.
