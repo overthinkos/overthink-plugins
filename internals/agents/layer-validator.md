@@ -30,9 +30,9 @@ guessing.
 
 ### 2. Dependencies (`requires:` / `candy:`)
 
-- The field is **`requires`** (prerequisite ordering) and/or **`layers`**
-  (composition splicing) — NOT `depends`.
-- Each entry references an existing layer under `candy/` (short name) or a
+- The field is **`requires`** (prerequisite ordering) and/or **`candy`**
+  (composition splicing) — NOT `depends` and NOT `layers`.
+- Each entry references an existing candy under `candy/` (short name) or a
   qualified remote ref. Check with `ls candy/` + Glob.
 - A common mistake: `requires: [pixi]` when you mean `requires: [python]`
   (pixi installs the build tool; python installs Python via pixi).
@@ -78,7 +78,7 @@ guessing.
 LAYER VALIDATION: <layer-name>
 
 [PASS/FAIL] Kind-keyed form + version: <details>
-[PASS/FAIL] requires/layers references: <details>
+[PASS/FAIL] requires/candy references: <details>
 [PASS/FAIL] tasks (one verb each): <details>
 [PASS/FAIL] service schema: <details>
 [PASS/FAIL] env/path/ports: <details>

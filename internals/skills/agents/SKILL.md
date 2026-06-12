@@ -79,6 +79,12 @@ under the binding rule). "Prefer agents" governs BOUNDED work.
 - **`layer-validator`** — pre-edit `charly.yml` sanity gate; defers the full
   schema to `/charly-image:layer` + `charly box validate`.
 
+An agent's narrowed `tools:` frontmatter (e.g. `layer-validator`'s
+Read/Grep/Glob) is ROLE-lane discipline — it keeps enforcers gating and
+executors running — never a security boundary: security lives at the candybox
+wall (CLAUDE.md "Candyboxing"), and inside the box every agent gets the full
+candy store.
+
 Invoke by name in a prompt, `@`-mention, or the `Agent` tool (scoped id
 `charly-internals:<name>`). Custom agents load at SESSION START, so the shipped
 workflows do NOT depend on `agentType:` — they inline each agent's role in a
@@ -201,19 +207,36 @@ Therefore, for ANY agent or workflow that runs them:
   - **Paste-proof survives (R10 paste-proof).** The owner reports the verbatim
     `summary.yml` verdict + exit code; the lead pastes it.
 
-## Hooks doctrine — lean pointers + deterministic gates (not walls of text)
+## Hooks doctrine — ultra-lean pointers + deterministic gates (not walls of text)
 
-Hooks in this project do TWO things and nothing more (see `.claude/hooks/`):
+Hooks in this project do TWO things and nothing more. The full inventory
+(`.claude/hooks/`, wired in the committed `.claude/settings.json`):
 
-1. **Lean reminders** (`UserPromptSubmit`, `Stop`) that POINT to CLAUDE.md /
-   skills — they never re-state R0–R10 (duplication drifts; CLAUDE.md is the
-   single current source).
-2. **Deterministic `PreToolUse` gates** (`pre-commit-gate.sh`,
-   `pre-push-gate.sh`) that BLOCK (exit 2) only unambiguous, CLAUDE.md-stated
-   invariants: hook bypass via `--no-verify` (`git commit --no-verify` AND
-   `git push --no-verify`), a missing/illegal `Assisted-by: Claude (<tier>)`
-   trailer, the `theoretical suggestion` tier, and
-   `git push --force` / `--force-with-lease`.
+| Hook | Event | Role |
+|---|---|---|
+| `runtime-verification-reminder.sh` | `UserPromptSubmit` | ultra-lean pointer: R0 / RDD / R10 / one-phase |
+| `end-of-turn-challenge.sh` | `Stop` | ultra-lean pointer: Acceptance checklist (soft, exit 0) |
+| `team-coordination-reminder.sh` | `TaskCreated` / `TaskCompleted` / `TeammateIdle` | ultra-lean pointer: bed-scoped team model (soft, exit 0) |
+| `pre-commit-gate.sh` | `PreToolUse(Bash)` | deterministic gate (exit 2 blocks) |
+| `pre-push-gate.sh` | `PreToolUse(Bash)` | deterministic gate (exit 2 blocks) |
+
+1. **Ultra-lean pointer reminders** that POINT to CLAUDE.md / skill section
+   names, ≤10 output lines with at most ONE behavioral anchor each — they
+   never re-state R0–R10 (duplication drifts; CLAUDE.md is the single current
+   source).
+2. **Deterministic `PreToolUse` gates** that BLOCK (exit 2) only unambiguous,
+   CLAUDE.md-stated invariants: hook bypass via `--no-verify` (`git commit
+   --no-verify` — the `-n` short alias, bundled forms included, scanned as a
+   flag BEFORE the message provider — AND `git push --no-verify`),
+   a missing `Assisted-by: Claude (<tier>)` trailer on an inline `-m` message
+   (scoped to the commit invocation's own arg span; a `-F`/heredoc/
+   command-substituted message is not scanned for absence — tier legality
+   still applies), any tier OUTSIDE the legal-on-commit set {`fully tested and
+   validated`, `analysed on a live system`} (the AI-Attribution table forbids
+   `theoretical suggestion` everywhere and pairs `syntax check only` with
+   "do NOT commit"; docs-only cutovers ship at `fully tested and validated`
+   per the provision), and force-push
+   (`git push --force` / `--force-with-lease` / `-f`, bundled forms included).
 
 The honest division of labor: **hooks gate mechanical invariants; agents
 judge proof.** Whether a tier is *justified* by the evidence is a reasoning
