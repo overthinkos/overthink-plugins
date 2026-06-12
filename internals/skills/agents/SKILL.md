@@ -242,8 +242,9 @@ Hooks in this project do TWO things and nothing more. The full inventory
    reviewed`} (the AI-Attribution table forbids `theoretical suggestion`
    everywhere and pairs `syntax check only` with "do NOT commit"), the
    `documentation reviewed` tier on a commit whose staged diff is NOT
-   all-documentation (`*.md`/CHANGELOG/README/LICENSE/VISION/`*.txt`, or
-   comment-only code edits — the tier-vs-diff coherence check, conservative-safe:
+   all-documentation (`*.md`/CHANGELOG/README/LICENSE/VISION/`*.txt`,
+   comment-only code edits, or a submodule pointer bump to an all-documentation
+   submodule commit — the tier-vs-diff coherence check, conservative-safe:
    it never lets a behavioral change pass as docs), and force-push
    (`git push --force` / `--force-with-lease` / `-f`, bundled forms included).
 

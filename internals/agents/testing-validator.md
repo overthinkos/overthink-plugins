@@ -81,7 +81,8 @@ validation, markdown integrity, the PreToolUse gates. Evidence = the
 grep/cross-ref outputs + the review verdict. A bed run is NOT required and adds
 no proof. The honest tier is `documentation reviewed` (never a runtime tier);
 `pre-commit-gate.sh` rejects it on a commit whose staged diff is not
-all-documentation.
+all-documentation (a submodule pointer bump counts as documentation only when the
+bumped submodule commit is itself all-documentation).
 
 ### For R10 acceptance (the gate, not a smoke test)
 
@@ -109,14 +110,15 @@ checks failed. For those classes, a `--dry-run`, a green `go test`, or
 |-------|-------------|
 | `fully tested and validated` | *(runtime classes)* All 10 standards + a fresh-rebuild R10 (`charly eval run <bed>` / `charly eval live` on a `disposable: true` target) for EVERY affected target + the new/changed code path actually exercised + both R10 outputs (exploratory + fresh-rebuild) pasted |
 | `analysed on a live system` | *(runtime classes)* A live invocation of the runner / verb evaluation / deploy probe the change touched actually ran AND its output is pasted. A rebuild WITHOUT the subsequent invocation does NOT qualify; NEVER this tier on a `--dry-run` alone |
-| `documentation reviewed` | *(the Documentation-only change class)* The change touches ONLY documentation (`*.md`, or comment-only code edits, ZERO behavior change) and ALL non-runtime standards passed. No runtime test exists to run; FORBIDDEN once any code/config behavior is touched (runtime tier, docs ride along) |
+| `documentation reviewed` | *(the Documentation-only change class)* The change touches ONLY documentation (`*.md`, comment-only code edits, or a submodule pointer bump to an all-documentation submodule commit, ZERO behavior change) and ALL non-runtime standards passed. No runtime test exists to run; FORBIDDEN once any code/config behavior is touched (runtime tier, docs ride along) |
 | `syntax check only` | *(runtime classes)* Compile + unit tests + validators / dry-run passed; the live runner did NOT execute. The honest default when a runtime R10 hasn't run — pair with explicit "R10 not yet run" AND do NOT commit (pairing this tier with a commit is a violation; STOP and ask) |
 | `theoretical suggestion` | No validation — FORBIDDEN as a shipped-code tier |
 
 **`documentation reviewed` is the Documentation-only change class's honest
 tier** (per CLAUDE.md "AI Attribution"): a cutover touching ONLY documentation
-(`*.md` files or comment-only code edits with ZERO behavior change — no
-behavioral Go / YAML-schema / box/candy-config edit, no other runtime surface)
+(`*.md` files, comment-only code edits, or a submodule pointer bump to an
+all-documentation submodule commit, with ZERO behavior change — no behavioral
+Go / YAML-schema / box/candy-config edit, no other runtime surface)
 has no R10 bed; its applicable standards are the non-runtime ones: adversarial
 consistency review, the R5 grep self-test, cross-reference validation, markdown
 integrity, and the `pre-commit-gate.sh` / `pre-push-gate.sh` gates. It earns
@@ -125,7 +127,8 @@ commit` clause (a runtime-class rule) does not apply. The moment a cutover ALSO
 touches code or config it is NOT docs-only — that surface's R10 gates it at a
 runtime tier, and the docs ride along in the same commit. (`pre-commit-gate.sh`
 rejects `documentation reviewed` on any commit whose staged diff is not
-all-documentation.)
+all-documentation — a submodule pointer bump qualifies only when the bumped
+submodule commit is itself all-documentation.)
 
 A known rule violation FORBIDS commit at ANY tier — there is no "downgrade
 and ship" path. Fix in the same tree or escalate. See CLAUDE.md.

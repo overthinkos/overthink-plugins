@@ -117,7 +117,7 @@ See `CHANGELOG.md` for the catalog of past cutovers that followed this shape —
 - **Purely additive changes** — new field that defaults to "off" with no removal of existing surface. No cutover needed; just add it.
 - **Internal refactoring** — a Go function rename that isn't part of any stable API. No cutover needed; normal refactor rules apply.
 - **Bug fixes** — behavior change without schema or API change. No cutover.
-- **Documentation-only changes** — `*.md` or comment-only edits with zero behavior change. No hard-cutover machinery to run; the gate is the non-runtime standards (CLAUDE.md "Documentation-only change class") and the honest tier is `documentation reviewed`. R1–R5 still apply — a stale-doc divergence is still an incident (R1), swept claim-keyed (R5).
+- **Documentation-only changes** — `*.md`, comment-only edits, or a submodule pointer bump to an all-documentation submodule commit, with zero behavior change. No hard-cutover machinery to run; the gate is the non-runtime standards (CLAUDE.md "Documentation-only change class") and the honest tier is `documentation reviewed`. R1–R5 still apply — a stale-doc divergence is still an incident (R1), swept claim-keyed (R5).
 
 The policy kicks in when the change is **visible to consumers** (YAML authors, other Go packages, OCI-label readers) AND removes something that was previously usable.
 

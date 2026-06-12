@@ -135,6 +135,17 @@ the submodule is the silent-drop failure. If it was already pushed, land a NEW
 pointer-bump commit (NEVER amend/force-push). See `CHANGELOG.md` 2026-06-08 for
 the incident this rule prevents.
 
+**Attribution of the pointer-bump commit — derived from what it points at.** When
+the bumped submodule commit is itself all-documentation (a skill / `*.md` edit),
+the superproject pointer-bump commit IS the Documentation-only change class and
+lands at `documentation reviewed`: `pre-commit-gate.sh` recurses into the
+submodule's own `old..new` diff to certify it (objects must be present locally; a
+bump it cannot certify is rejected). A bump that integrates submodule CODE is a
+code class and takes a runtime tier, the docs riding along. So a docs-only skill
+cutover lands `plugins` (the `*.md`) at `documentation reviewed`, then the
+superproject pointer bump at `documentation reviewed` too — both halves honest, no
+runtime tier borrowed.
+
 This mirrors the submodules-first push order. A change developed in a git worktree
 keeps its `feat/` branch in the worktree; the ff-merge targets the canonical
 repo's `main`; the worktree is removed after. Concurrent worktrees on one repo
