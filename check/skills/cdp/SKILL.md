@@ -12,7 +12,7 @@ description: |
 
 ### Also as a declarative verb
 
-Every `charly check cdp <method>` is authorable as a `cdp:` verb inside a `check:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tab:`, `expression:`, `url:`, `selector:`, etc.). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `artifact_min_bytes:`) work like other verbs. See `/charly-check:check` for the full method allowlist and YAML shape. Example: `- cdp: eval\n  tab: "1"\n  expression: "document.title"\n  stdout: "Dashboard"`.
+Every `charly check cdp <method>` is authorable as a `cdp:` verb on a `check:`/`run:` step in a candy/box `plan:` (a query is a `check:` step; a navigation/click action is a `run:` step). The method name becomes the verb's YAML value; method-specific args are sibling fields (`tab:`, `expression:`, `url:`, `selector:`, etc.). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `artifact_min_bytes:`) work like other verbs. See `/charly-check:check` for the full method allowlist and YAML shape. Example: `- cdp: eval\n  tab: "1"\n  expression: "document.title"\n  stdout: "Dashboard"`.
 
 ## Quick Reference
 

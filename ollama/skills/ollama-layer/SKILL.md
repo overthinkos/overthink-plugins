@@ -59,10 +59,10 @@ The `env_provide` mechanism makes `OLLAMA_HOST` available to all containers. The
 
 ## Tests
 
-The candy ships its acceptance scenarios in the top-level `scenario:` list,
+The candy ships its acceptance steps in its `plan:`,
 baked into the `ai.opencharly.description` OCI label (see `/charly-check:check`
-for the full schema). Each step is one inline Op — a probe verb defaulting to
-`do: assert` — and its `context:` list gates where it runs:
+for the full schema). Each step is one inline Op — a probe is a `check:`
+step — and its `context:` list gates where it runs:
 
 - **`context: [build]`** (run under `charly check box`):
   - `ollama-binary` — `/usr/bin/ollama` exists

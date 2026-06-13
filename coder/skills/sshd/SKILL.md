@@ -50,8 +50,9 @@ match).
 The sudoers drop-in at `/etc/sudoers.d/charly-user` targets the **actual uid-1000 account**, whatever it happens to be named on the running base image. The candy no longer hardcodes a literal `user` — instead it discovers the account name at build time via `getent passwd 1000`:
 
 ```yaml
-task:
-  - cmd: |
+plan:
+  - run: write the NOPASSWD sudoers drop-in for the uid-1000 account
+    command: |
       account=$(getent passwd 1000 | cut -d: -f1)
       if [ -z "$account" ]; then
         echo "sshd layer: no uid-1000 account found — refusing to write sudoers" >&2
@@ -59,7 +60,7 @@ task:
       fi
       printf '%s ALL=(ALL) NOPASSWD: ALL\n' "$account" > /etc/sudoers.d/charly-user
       chmod 0440 /etc/sudoers.d/charly-user
-    user: root
+    run_as: root
 ```
 
 This works uniformly across both user-policy modes:
@@ -69,7 +70,7 @@ This works uniformly across both user-policy modes:
 | fedora-coder, arch-coder, debian-coder | `user` (create mode — `/charly-image:image` "user_policy") | `user ALL=(ALL) NOPASSWD: ALL` |
 | ubuntu-coder | `ubuntu` (adopt mode — `/charly-distros:ubuntu` `base_user:`) | `ubuntu ALL=(ALL) NOPASSWD: ALL` |
 
-Why not `${USER}` substitution? The generator substitutes `${USER}` in task fields (paths, URLs, etc.) but **not** inside `cmd:` command text — `cmd:` is passed verbatim to bash, and bash at RUN time doesn't have `$USER` exported. `getent` is the robust, fully-generic alternative. See `/charly-image:layer` "`${VAR}` substitution scope" and `/charly-image:image` "user_policy" for the full architectural context.
+Why not `${USER}` substitution? The generator substitutes `${USER}` in plan-step fields (paths, URLs, etc.) but **not** inside `command:` command text — `command:` is passed verbatim to bash, and bash at RUN time doesn't have `$USER` exported. `getent` is the robust, fully-generic alternative. See `/charly-image:layer` "`${VAR}` substitution scope" and `/charly-image:image` "user_policy" for the full architectural context.
 
 ## Usage
 
@@ -128,7 +129,7 @@ caught during `charly-arch` bring-up. See `/charly-check:check` Authoring Gotcha
 - `/charly-distros:ubuntu` -- declares the `base_user:` block that makes ubuntu-coder run as `ubuntu`
 - `/charly-check:check` -- declarative testing framework (gotchas #10 and #11, `package_map:`, `exclude_distros:`)
 - `/charly-image:image` -- `user_policy:` field (create / adopt / auto) that drives which account this candy's sudoers targets
-- `/charly-image:layer` -- candy authoring (`${VAR}` substitution scope, cmd: vs write:)
+- `/charly-image:layer` -- candy authoring (`${VAR}` substitution scope, command: vs write:)
 
 ## When to Use This Skill
 

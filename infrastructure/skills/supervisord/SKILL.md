@@ -202,18 +202,16 @@ The robust liveness probe is `supervisorctl pid`, which asks
 supervisord for its own PID and exits 0 iff the socket responds:
 
 ```yaml
-scenario:
-  - name: supervisorctl-responds
-    step:
-      - then: supervisord's control socket responds
-        command: supervisorctl pid   # probe verb → defaults to do: assert
-        exit_status: 0
-        context: [deploy]
-        in_container: true
+plan:
+  - check: supervisord's control socket responds
+    command: supervisorctl pid
+    exit_status: 0
+    context: [deploy]
+    in_container: true
 ```
 
-This is what the current supervisord candy ships in its top-level `scenario:`
-list — one deterministic `do: assert` step.
+This is what the current supervisord candy ships in its `plan:`
+— one deterministic `check:` step.
 See `/charly-check:check` Authoring Gotcha #4.
 
 **Also note**: `pgrep` is NOT installed by default in minimal images

@@ -12,7 +12,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `charly.yml`, `task:` |
+| Install files | `charly.yml`, `plan:` |
 
 ## Packages
 
@@ -30,15 +30,16 @@ RPM (with `--setopt=tsflags=noscripts`): `android-tools`, `apptainer`, `apptaine
 
 ### bat → batcat symlink (Debian/Ubuntu)
 
-Both Debian and Ubuntu rename `bat` → `batcat` in their archives to avoid a namespace collision with a legacy `bacula` utility. The `bat` package installs only `/usr/bin/batcat`; nothing lives at `/usr/bin/bat`. To keep downstream scripts, docs, and declarative tests portable, the candy ships a distro-tolerant symlink task:
+Both Debian and Ubuntu rename `bat` → `batcat` in their archives to avoid a namespace collision with a legacy `bacula` utility. The `bat` package installs only `/usr/bin/batcat`; nothing lives at `/usr/bin/bat`. To keep downstream scripts, docs, and declarative tests portable, the candy ships a distro-tolerant symlink plan step:
 
 ```yaml
-task:
-  - cmd: |
+plan:
+  - run: symlink batcat to bat on Debian/Ubuntu
+    command: |
       if [ -f /usr/bin/batcat ] && [ ! -e /usr/bin/bat ]; then
         ln -sf /usr/bin/batcat /usr/bin/bat
       fi
-    user: root
+    run_as: root
 ```
 
 No-op on Fedora/Arch (where `/usr/bin/bat` already exists from the distro package) — the guard short-circuits. Creates the symlink on Debian/Ubuntu. Idempotent across rebuilds.
@@ -85,13 +86,13 @@ my-dev:
 
 ## Related Boxes
 - `/charly-coder:debian-coder`, `/charly-coder:ubuntu-coder` — canonical consumers of the bat→batcat symlink
-- `/charly-coder:fedora-coder`, `/charly-coder:arch-coder` — consumers where the symlink task is a harmless no-op
+- `/charly-coder:fedora-coder`, `/charly-coder:arch-coder` — consumers where the symlink plan step is a harmless no-op
 
 ## Related Commands
 - `/charly-build:build` — Build boxes that ship the dev-tools package set
 - `/charly-core:shell` — Interactive shell to use bat/ripgrep/neovim/etc.
 - `/charly-check:check` — `exclude_distros:` field reference for the fastfetch-binary test
-- `/charly-image:layer` — authoring reference for distro-tolerant `cmd:` tasks and `exclude_distros:`
+- `/charly-image:layer` — authoring reference for distro-tolerant `command:` plan steps and `exclude_distros:`
 
 ## When to Use This Skill
 

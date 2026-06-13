@@ -26,28 +26,27 @@ check:
     box: sway-browser-vnc        # the shipping image, deployed as-is
     disposable: true
     lifecycle: dev
-    scenario:                      # delta probes sway-browser-vnc doesn't bake
-      - name: sway-desktop-verb-surface
-        step:                      # each step is one inline Op; a probe verb defaults to do: assert
-          - then: CDP /json/version answers over the published HOST_PORT
-            http: "http://127.0.0.1:${HOST_PORT:9222}/json/version"
-            id: esbv-pod-http-cdp
-            context: [deploy]
-            status: 200
-          - then: CDP enumerates the live debugging targets
-            cdp: list
-            id: esbv-pod-cdp-list
-            context: [deploy]
-          - then: the Sway tree is reachable over the Wayland socket
-            wl: sway-tree
-            id: esbv-pod-wl-sway-tree
-            context: [deploy]
-          - then: a terminal recording starts
-            record: start
-            id: esbv-pod-record-start
-            context: [deploy]
-            record_name: check-term
-            record_mode: terminal
+    plan:                          # delta probes sway-browser-vnc doesn't bake
+                                   # each step is one inline Op; a probe is a check: step
+      - check: CDP /json/version answers over the published HOST_PORT
+        http: "http://127.0.0.1:${HOST_PORT:9222}/json/version"
+        id: esbv-pod-http-cdp
+        context: [deploy]
+        status: 200
+      - check: CDP enumerates the live debugging targets
+        cdp: list
+        id: esbv-pod-cdp-list
+        context: [deploy]
+      - check: the Sway tree is reachable over the Wayland socket
+        wl: sway-tree
+        id: esbv-pod-wl-sway-tree
+        context: [deploy]
+      - check: a terminal recording starts
+        record: start
+        id: esbv-pod-record-start
+        context: [deploy]
+        record_name: check-term
+        record_mode: terminal
 ```
 
 `disposable: true` is the sole authorization for `charly update`/`charly remove` to
@@ -58,9 +57,9 @@ time (`charly box validate` notes this).
 
 ## Probe coverage
 
-`sway-browser-vnc` already bakes binaries/services + cdp/vnc/wl/dbus scenario
-steps, and inherits the two `mcp:` probes from the `chrome-devtools-mcp` layer.
-The bed's `scenario:` block above adds the remaining deploy-context steps —
+`sway-browser-vnc` already bakes binaries/services + cdp/vnc/wl/dbus checks,
+and inherits the two `mcp:` probes from the `chrome-devtools-mcp` layer.
+The bed's `plan:` above adds the remaining deploy-context `check:` steps —
 operator-side `http:` (CDP `/json/version` via `HOST_PORT`), `cdp: list`,
 `wl: sway-tree`, and `record: start` — so a single `charly check live` run
 exercises the full cdp/wl/vnc/dbus/mcp/record surface.

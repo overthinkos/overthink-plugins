@@ -78,23 +78,22 @@ shows asset 404s for `/maputnik/assets/index-*.js` etc.
 
 ## Check lock-in
 
-A deploy-context scenario step greps the served HTML for the
-(forbidden) `/maputnik/` prefix and fails if present. The `command`
-probe verb defaults to `do: assert`, so this is a deterministic
+A deploy-context `check:` step greps the served HTML for the
+(forbidden) `/maputnik/` prefix and fails if present. It is a `check:`
+step, so it is a deterministic
 acceptance step that locks in the fix against a future revert to the
-Vite default. The scenario lives top-level (a sibling of
+Vite default. The step lives in the `plan:` (a sibling of
 `description:`):
 
 ```yaml
-scenario:
-  - name: maputnik serves a root-relative SPA
-    step:
-      - id: maputnik-asset-base-not-prefixed
-        command: |
-          ! curl -fsS http://localhost:8000/ | grep -q '"/maputnik/'
-        in_container: true
-        exit_status: 0
-        context: [deploy]
+plan:
+  - check: maputnik serves a root-relative SPA
+    id: maputnik-asset-base-not-prefixed
+    command: |
+      ! curl -fsS http://localhost:8000/ | grep -q '"/maputnik/'
+    in_container: true
+    exit_status: 0
+    context: [deploy]
 ```
 
 Plus the standard probe steps (also `context: [deploy]`):

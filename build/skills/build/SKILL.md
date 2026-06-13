@@ -313,23 +313,23 @@ Three kinds of source changes are real cache invalidators — if you see a long 
 ### What does NOT invalidate cache
 
 - **CalVer tag shifts alone.** The Containerfile emits `ARG BASE_IMAGE=<registry>/<name>:<calver>` with a fresh CalVer on every generate. That ARG default appears in the Containerfile text but is not part of the cache key for subsequent RUN/COPY steps — podman/buildah resolves the FROM to an image SHA first, and caches downstream steps off that SHA. If the SHA is unchanged, cache hits. The cache cost comes from content changes in the layer itself, not the tag.
-- **`scenario:` edits.** LABEL directives are emitted last in every final stage (after the last USER). A `scenario:` edit — the most common layer mutation — only re-runs the final LABEL block (~2 seconds on a 138-step stack like `immich-ml`). See `/charly-internals:generate-source` for the rationale.
+- **Baked `plan:` edits.** LABEL directives are emitted last in every final stage (after the last USER). Editing a baked step (a `check:`/`agent-check:` step, or a runtime-context `run:` step) — a common layer mutation — only re-runs the final LABEL block (~2 seconds on a 138-step stack like `immich-ml`). (Editing a build/deploy-context `run:` step changes the install timeline, so it re-runs that RUN/COPY instead.) See `/charly-internals:generate-source` for the rationale.
 - **Re-running `charly box build` without source changes.** Fully cached; seconds to complete.
 
 ### `write:` vs `copy:` — cache granularity
 
-- `write:` tasks use `stageInlineContent` (content-addressed staging under `.build/<image>/_inline/<layer>/<sha256>/`). Editing a `write: content:` block changes only that single COPY layer's cache key — siblings in the same layer keep their cache.
-- `copy:` tasks reference files from the layer directory. Editing any file under `candy/<name>/` changes the WHOLE scratch stage's content hash (since `COPY candy/<name>/ /` is one instruction), invalidating every downstream `COPY --from=<layer>` step.
+- `write:` steps use `stageInlineContent` (content-addressed staging under `.build/<image>/_inline/<layer>/<sha256>/`). Editing a `write: content:` block changes only that single COPY layer's cache key — siblings in the same layer keep their cache.
+- `copy:` steps reference files from the layer directory. Editing any file under `candy/<name>/` changes the WHOLE scratch stage's content hash (since `COPY candy/<name>/ /` is one instruction), invalidating every downstream `COPY --from=<layer>` step.
 
 ### Rule of thumb for rebuild cost
 
 | Edit | Cost |
 |------|------|
 | `charly box build` with zero source changes | Seconds — every step cache-hits |
-| A `scenario:` / label entry | ~2 sec (LABEL re-emit only) |
-| A `write:` task's content | Just that single content-addressed COPY layer |
+| A baked `check:` step / label entry | ~2 sec (LABEL re-emit only) |
+| A `write:` step's content | Just that single content-addressed COPY layer |
 | A `copy:` source file's content | Rebuild from that layer's COPY onward + downstream |
-| A `command:` / `download:` task body | Rebuild from that RUN onward + downstream |
+| A `command:` / `download:` run step body | Rebuild from that RUN onward + downstream |
 | A package added/removed in `rpm:`/`deb:`/`pac:` | Rebuild from the install RUN onward + downstream |
 | `task build:charly` → new `candy/charly/bin/charly` | Rebuild the `charly` layer + every image that includes it |
 | An upstream image got content-changed and rebuilt | Rebuild from the FROM step onward in every descendant |

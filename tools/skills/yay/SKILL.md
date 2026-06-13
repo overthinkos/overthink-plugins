@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `charly.yml`, `task:` |
+| Install files | `charly.yml`, `plan:` |
 | Depends | none |
 
 ## Packages
@@ -20,18 +20,17 @@ PAC: `base-devel`, `git`
 
 ## Install Script
 
-The `task:` task downloads the latest `yay` binary from GitHub releases:
+The `plan:` step downloads the latest `yay` binary from GitHub releases:
 
 ```yaml
-# task: (in charly.yml)
-task:
-  all:
-    cmds:
-      - |
-        ARCH=$(uname -m)
-        URL=$(curl -fsSL https://api.github.com/repos/Jguer/yay/releases/latest \
-          | grep -o "https://github.com/Jguer/yay/releases/download/[^\"]*_${ARCH}.tar.gz")
-        curl -fsSL "$URL" | tar -xzf - -C /usr/local/bin --strip-components=1 --wildcards '*/yay'
+# plan: (in charly.yml)
+plan:
+  - run: download the latest yay binary from GitHub releases
+    command: |
+      ARCH=$(uname -m)
+      URL=$(curl -fsSL https://api.github.com/repos/Jguer/yay/releases/latest \
+        | grep -o "https://github.com/Jguer/yay/releases/download/[^\"]*_${ARCH}.tar.gz")
+      curl -fsSL "$URL" | tar -xzf - -C /usr/local/bin --strip-components=1 --wildcards '*/yay'
 ```
 
 Architecture-aware: downloads the correct binary for `x86_64` or `aarch64`.
@@ -69,5 +68,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, plan-step verbs, service declarations)
 - `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

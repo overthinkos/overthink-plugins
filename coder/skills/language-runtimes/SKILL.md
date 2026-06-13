@@ -42,7 +42,7 @@ Drops on Arch: `python3-ramalama` (not packaged — install via `uv tool install
 - `php-cli` — PHP CLI binary (Debian splits `php` into `php-cli` / `php-fpm` / etc.)
 - `python3-dev` — system Python 3 + dev headers
 
-`dotnet-sdk-9.0` is **not** in the `deb:` package list. It's installed by a cross-distro `cmd:` task via Microsoft's official `dotnet-install.sh` — see the next subsection. `python3-ramalama`, `golang-bazil-fuse-devel`, `nodejs-devel` are dropped (not packaged on Debian/Ubuntu).
+`dotnet-sdk-9.0` is **not** in the `deb:` package list. It's installed by a cross-distro `command:` plan step via Microsoft's official `dotnet-install.sh` — see the next subsection. `python3-ramalama`, `golang-bazil-fuse-devel`, `nodejs-devel` are dropped (not packaged on Debian/Ubuntu).
 
 ### dotnet-sdk-9.0 via Microsoft's `dotnet-install.sh`
 
@@ -58,8 +58,9 @@ Cross-distro parity for .NET 9 requires juggling three asymmetric availability w
 Rather than carrying that asymmetry in candy code, the candy uses Microsoft's official cross-distro installer script, channel-pinned to `9.0`. It installs to `/usr/share/dotnet` and symlinks `/usr/bin/dotnet`:
 
 ```yaml
-task:
-  - cmd: |
+plan:
+  - run: install the .NET 9 SDK on Debian/Ubuntu via dotnet-install.sh
+    command: |
       if command -v dotnet >/dev/null 2>&1; then
         exit 0                        # already installed by distro rpm/pac
       fi
@@ -72,7 +73,7 @@ task:
       /tmp/dotnet-install.sh --channel 9.0 --install-dir /usr/share/dotnet
       ln -sf /usr/share/dotnet/dotnet /usr/bin/dotnet
       rm -f /tmp/dotnet-install.sh
-    user: root
+    run_as: root
 ```
 
 On `ghcr.io/overthinkos/ubuntu-coder:latest`:
@@ -82,9 +83,9 @@ $ /usr/bin/dotnet --version
 9.0.313
 ```
 
-Idempotent: the outer `command -v dotnet` guard makes this task a no-op on Fedora/Arch (where the distro package already installed dotnet) and on rebuilds (where the previous run already placed the symlink). Runtime dependency: `libicu-dev` (already installed by the candy's `deb:` section).
+Idempotent: the outer `command -v dotnet` guard makes this plan step a no-op on Fedora/Arch (where the distro package already installed dotnet) and on rebuilds (where the previous run already placed the symlink). Runtime dependency: `libicu-dev` (already installed by the candy's `deb:` section).
 
-See `/charly-image:layer` for general cross-distro task-authoring patterns.
+See `/charly-image:layer` for general cross-distro plan-step authoring patterns.
 
 ## Tag-section overrides
 
@@ -139,7 +140,7 @@ my-polyglot:
 
 - `/charly-coder:fedora-coder` — kitchen-sink dev box, canonical RPM consumer.
 - `/charly-coder:arch-coder` — pacman-based sibling.
-- `/charly-coder:debian-coder`, `/charly-coder:ubuntu-coder` — deb-based siblings, consumers of the dotnet-install.sh task.
+- `/charly-coder:debian-coder`, `/charly-coder:ubuntu-coder` — deb-based siblings, consumers of the dotnet-install.sh plan step.
 
 ## Related Candies
 
@@ -151,7 +152,7 @@ my-polyglot:
 
 ## Related Commands
 
-- `/charly-image:layer` — authoring reference (tag-section cascade, `cmd:` vs declarative repos)
+- `/charly-image:layer` — authoring reference (tag-section cascade, `command:` vs declarative repos)
 - `/charly-build:build` — `base_user:` and bootstrap packages
 - `/charly-core:shell` — verify runtimes inside a container
 

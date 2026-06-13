@@ -2,10 +2,10 @@
 name: check
 description: |
   MUST be invoked before any work involving: `charly check` (image / live / run),
-  the `scenario:` / `description:` fields in a candy/box `charly.yml`, the project-root `check:` block in `charly.yml`,
-  the `ai.opencharly.description` OCI label (where scenarios travel), the AI iteration harness loop,
-  `kind: agent` / `kind: recipe` / `kind: score` / `kind: check` (disposable R10
-  beds run via `charly check run <bed>`) in a project's `check:` block, or any scenario / Op
+  the `plan:` / `description:` fields in a candy/box `charly.yml`, the project-root `check:` block in `charly.yml`,
+  the `ai.opencharly.description` OCI label (where the baked `plan:` travels), the AI iteration harness loop,
+  `kind: agent` / `kind: check` (disposable R10
+  beds run via `charly check run <bed>`) in a project's `check:` block, or any `plan:` step / Op
   authoring. Covers the unified `charly check` surface: three
   primary modes (image / live / run),
   9 live-container probe verbs (cdp/wl/dbus/vnc/mcp/record/spice/libvirt/k8s),
@@ -14,9 +14,9 @@ description: |
   resolution (`${HOST_PORT:N}`, `${VOLUME_PATH:name}`, `${CONTAINER_IP}`,
   `${ENV_*}`), charly.yml overlay rules, authoring gotchas learned the hard
   way (package renames, absent binaries, host vs container network routing),
-  AI-iteration loop semantics (plateau-bounded, progressive recipe
-  disclosure, watchdog), and the `from:` block for composing recipes from
-  existing layer/image/pod/vm tests.
+  AI-iteration loop semantics (plateau-bounded, progressive plan-step
+  disclosure, watchdog), and the `include: <kind>:<name>` step for composing a
+  bed's `plan:` from existing candy/box/pod/vm plans.
 ---
 
 # Check — unified declarative + AI-iteration evaluation
@@ -81,9 +81,9 @@ tear down), `--no-rebuild` (skip step 6) — both scope-shrinking, governed by
 "Flag discipline" below. Per-run logs land in
 `.check/<bed>/<calver>/` (per-step `.log` files + `summary.yml`).
 
-### Flag discipline — the score/bed config IS the test specification
+### Flag discipline — the `iterate:`/bed config IS the test specification
 
-The `kind: score` / `kind: check` config in the project's `check:` block IS the
+The `iterate:` / `kind: check` config in the project's `check:` block IS the
 test spec; the operator authorizes overrides, not Claude. Passing ANY
 scope-shrinking flag to `charly check run` (or `charly check live`) without the user
 explicitly naming that flag in the SAME conversation turn is the same fraud
@@ -96,15 +96,15 @@ authorization when "R10 gate by change class" mandates it for a cross-cutting
 change, and needs authorization only as a SUBSTITUTE for the class-mandated
 gate.) Internal-voice triggers — "tractable wall-clock", "for the
 canary", "to fit session bounds", "shorten this run", "skip the heavy leg",
-"faster iteration cycle" — are confessions, not defences. The score's
-`plateau_iteration` and the AI's `progress_no_improvement_timeout` together
+"faster iteration cycle" — are confessions, not defences. The `iterate:`
+block's `plateau_iteration` and the AI's `progress_no_improvement_timeout` together
 define the AI's recovery budget per phase; narrow neither without explicit
 authorization. Speed levers that do NOT shrink scope (e.g. `--podman-jobs`, `--jobs`) need
 no authorization — the lever catalog is `/charly-internals:agents` "Speed
 levers".
 
 **Run retention (`defaults.keep_check_runs`).** After `charly check run` (any path —
-bed / `--all-beds` / score), `.check/<bed|score>/` is trimmed to the newest N run
+bed / `--all-beds` / `iterate:` entity), `.check/<name>/` is trimmed to the newest N run
 artifacts (CalVer run dirs, `runs/<id>/` dirs, `result-<calver>.yml`) so harness
 output doesn't accumulate unbounded. `NOTES.md` (the durable Syncthing-replicated
 memory) is ALWAYS preserved. Set `defaults.keep_check_runs` in `charly.yml`
@@ -134,16 +134,17 @@ Bed HOMES: the main repo's `charly.yml` owns `check-k3s-vm`, `check-local`, and
 
 Naming: `check-<descriptor>-<kind>`, dropping a redundant suffix when the
 descriptor already equals the kind AND the short form is free (`check-local`,
-`check-pod`). The harness AI-sandbox pod (the score `pod:` target) is named
+`check-pod`). The harness AI-sandbox pod (the `iterate:` block's `sandbox:`
+target) is named
 `check-sandbox`, kept disjoint from these beds. Nothing in the `charly` Go code
-hardcodes that name — it flows from the score's `pod:` field through
-`ResolveScoreTarget`, and prompts reference it via the `${TARGET_NAME}`
+hardcodes that name — it flows from the `iterate.sandbox:` field through
+`ResolveIterateSandbox`, and prompts reference it via the `${TARGET_NAME}`
 substitution token. **The sandbox is an OPERATOR-PROVISIONED per-host
 deploy** — the runner restarts-but-never-creates it: provision once with
 `charly deploy add check-sandbox <ref> --disposable` + `charly start
 check-sandbox` (the ref must provide charly + nested podman + the configured
 AI CLI; the per-host overlay never ships with the repo). On a host without
-the entry, `charly check run <score>` fails fast with exactly that
+the entry, `charly check run <bed>` fails fast with exactly that
 remediation. The supporting
 `vm: k3s-vm` + `k8s: vm-k3s-vm` entities live in the project `charly.yml`
 alongside its beds. `disposable: true` is the sole authorization
@@ -239,7 +240,7 @@ CLAUDE.md R10 carries the mandate; this matrix is the authoritative detail.
 | **Hook / workflow scripts** — `.claude/hooks/*.sh`, `.claude/workflows/*.js` | `bash -n` / async-body parse | Execute the changed script live: run the hook directly (paste its output); a workflow whose CONTROL FLOW changed runs against ONE bed matching the change. Prompt-string-only workflow edits: parse + the non-runtime standards | `fully tested and validated` | The full bed fan-out |
 | **`charly` Go code** | `go test ./...` + `go vet` + `task build:charly` (R9 freshness + `charly version` check) | `charly check run <bed>` for EACH bed whose kind matches a touched code path: box/candy/pod/DeployTarget mechanism → `check-pod`; `target: local` → `check-local`; VM / k8s → `check-k3s-vm`; a feature surface → its feature bed. Cross-cutting loader / resolver / IR / unified-schema changes → `--all-beds` (in-spec for that class, not a scope override) | `fully tested and validated` | Beds whose substrate the change cannot reach |
 | **Candy / box / pod / vm / k8s / local / android config** | `charly box validate` | Build + run a bed that COMPOSES the changed entity (a candy edit → a bed whose image stacks that candy); when no bed composes it, the R7 sequence on a disposable deploy: build → `charly check box` → deploy → `charly check live` → fresh `charly update` | `fully tested and validated` | Beds that do not compose the changed entity |
-| **Score / recipe / ai check config** | `charly box validate` | The affected score / bed run AS SPECIFIED (see "Flag discipline") | `fully tested and validated` | Unrelated beds |
+| **`iterate:` / ai check config** | `charly box validate` | The affected `iterate:` bed run AS SPECIFIED (see "Flag discipline") | `fully tested and validated` | Unrelated beds |
 
 **Tier on a clean pass — the class fixes the gate; the gate fixes the tier.**
 Passing a class's full gate earns the tier in that column. `analysed on a live
@@ -312,9 +313,8 @@ podman, ports on guest localhost, the guest `charly` (installed by
 The guest reads the SAME baked checks from the cp-box'd pod image, so the check
 set is identical; the host propagates the guest's report + exit code. A
 pod-in-pod or vm-in-vm leaf (no host↔guest container boundary) still uses the
-multi-hop chain above. See "ONE
-primitive: scenario.pod (flat or dotted)" below for the symmetric
-authoring surface in check recipes (`kind: recipe`).
+multi-hop chain above. See the per-step `pod:` field below for the symmetric
+authoring surface in a bed's `plan:`.
 
 ### Specific anti-patterns observed and banned
 
@@ -334,12 +334,13 @@ If the container needs state that's only available in deploy (volumes, env, tunn
 ## Overview
 
 `charly` ships a goss-inspired declarative testing framework built into the
-CLI. Scenario steps — each one inline Op — are authored under a top-level
-`scenario:` list in a candy/box `charly.yml`. They are **baked into the
-`ai.opencharly.description` OCI label** (`LabelDescriptionSet`, which carries
-the collected scenarios with `candy:`/`box:`/`deploy` origin annotations) so
-any pulled image is self-testable without its source repo. A local
-`charly.yml` overlay can add steps or override baked ones by `id:`.
+CLI. Plan steps — each one intent keyword (`run:`/`check:`/`agent-run:`/
+`agent-check:`/`include:`) carrying prose, plus an inline Op for `run:`/`check:` —
+are authored under a `plan:` list in a candy/box `charly.yml`. They are **baked
+into the `ai.opencharly.description` OCI label** (`LabelDescriptionSet`, which
+carries the collected `plan:` steps with `candy:`/`box:`/`deploy` origin
+annotations) so any pulled image is self-testable without its source repo. A
+local `charly.yml` overlay can add steps or override baked ones by `id:`.
 
 The runner resolves **deploy-time variables** (actual host port mappings,
 volume backings, env vars, container IP, DNS) at execution time, so a
@@ -352,7 +353,7 @@ check written once works unchanged when `charly.yml` remaps ports.
 | Pure-box check (disposable, build-context) | `charly check box <image>` | Candy + box sections only, in `podman run --rm` (no host port mappings, no volumes attached) |
 | Live full-stack check (running deployment) | `charly check live <name> [-i instance]` | All three sections run via `podman exec` / SSH / nested chain, with full runtime variable resolution |
 | R10 bed (full sequence) | `charly check run <bed>` / `charly check run --all-beds` | Build → check image → deploy → check live → fresh update → tear down on a `kind: check` disposable bed. Canonical R10 gate |
-| AI iteration loop | `charly check run <score>` | Drives an AI through plateau-bounded iterations against `kind: score` |
+| AI iteration loop | `charly check run <bed>` | Drives an AI through plateau-bounded iterations against a bed carrying an `iterate:` block |
 | Validate authored tests at config time | `charly box validate` | Schema, context/variable consistency, id uniqueness |
 | Inspect effective spec | `charly box inspect <image>` | JSON includes merged check structure |
 | Filter by verb | `charly check live <name> --filter file --filter port` | Repeatable |
@@ -382,10 +383,10 @@ process exit code in `main()` via `errors.As`.
 
 ## Image preflight (host-target runs only)
 
-When `charly check run --on-host <name>` (or any score whose target
-resolves to `TargetKindHost`) dispatches the runner, an image
-preflight runs FIRST: walk the score's recipes, collect every
-distinct `scenario.pod` plus `score.target_image`, deduplicate, and
+When `charly check run --on-host <name>` (or any `iterate:` entity whose
+sandbox resolves to `TargetKindHost`) dispatches the runner, an image
+preflight runs FIRST: walk the bed's `plan:`, collect every
+distinct step `pod:` plus the bed's target image, deduplicate, and
 ensure each image is present in local podman storage BEFORE handing
 off to the host runner.
 
@@ -402,8 +403,8 @@ For each discovered image, the algorithm is:
    identifier that fails to pull, the preflight aborts with an
    actionable error.
 
-Failures abort the check BEFORE any scenario runs, so operators see
-problems early rather than mid-scenario.
+Failures abort the check BEFORE any plan step runs, so operators see
+problems early rather than mid-run.
 
 This is the **only** image-fetch surface in the system: deploys (any
 target — `local`, `pod`, `vm`, `k8s`) emit zero image-pull steps. A
@@ -424,7 +425,7 @@ The surface is three orthogonal verbs, each named for what it evaluates:
 
 - **`charly check box <image>`** — evaluates the image **artifact** in
   isolation. Spawns a disposable container via `podman run --rm
-  <image-ref>` (`ImageExecutor`). Only scenario steps at
+  <image-ref>` (`ImageExecutor`). Only `check:` steps at
   `context: [build]` run; deploy-context steps are skipped with a clear
   message. The right choice for build-time invariants ("did this
   binary land at this path?", "is this package installed?") where a
@@ -440,8 +441,9 @@ The surface is three orthogonal verbs, each named for what it evaluates:
   Same dispatcher that powers `charly check live parent.child` for
   pod-in-vm topologies.
 
-- **`charly check run <score>`** — drives an AI runner through
-  plateau-bounded iterations against a `kind: score`. See "AI
+- **`charly check run <bed>`** — runs a `kind: check` R10 bed (full
+  sequence); when the bed carries an `iterate:` block it instead drives
+  an AI runner through plateau-bounded iterations. See "AI
   iteration loop semantics" below.
 
 The mode is **explicit in the verb**; there is no autodetect or
@@ -451,9 +453,9 @@ implicit fallback. Choose the mode by picking the right verb.
 zero-content stages too — it is NOT a substitute for the generated-artifact
 checks (R8). For the R10 gate, pick the `kind: check` bed whose kind matches
 what you changed (`check-pod` for the combined box/candy/pod/DeployTarget
-mechanism, `check-local`, `check-k3s-vm`, or a feature bed). `charly check run
-<score>` is the multi-hour AI-iteration benchmark, never a quick gate — the
-same verb dispatches by the kind the name resolves to.
+mechanism, `check-local`, `check-k3s-vm`, or a feature bed). `charly check run`
+on an `iterate:` bed is the multi-hour AI-iteration benchmark, never a quick
+gate — the same verb dispatches by whether the entity carries an `iterate:` block.
 
 The banner after `charly check box` reports the image ref:
 
@@ -469,66 +471,63 @@ are correctly mapped to `charly-fedora-coder`. Implementation:
 
 ## Agent Driven Evaluation (ADE) — `charly box/check feature run` + the agent grader
 
-ADE runs an entity's OWN baked Gherkin scenarios (the top-level `scenario:`
-blocks, shipped in the `ai.opencharly.description` OCI label) as acceptance
-tests. It is the canonical Gherkin acceptance pattern, named for the agent that drives the
-evaluation: a prose-only step is graded by an AI agent, and the agent's verdicts
-drive the red→green loop. `charly check box` / `charly check live` and `charly
-box/check feature run` read the SAME top-level `scenario:` list — `charly check
-box`/`live` run its deterministic (`do: assert`) steps, while `charly box/check
-feature run` also bind the prose-only (`do: instruct`) steps to the agent grader.
+ADE runs an entity's OWN baked `plan:` (shipped in the
+`ai.opencharly.description` OCI label) as acceptance tests. It is named for the
+agent that drives the evaluation: an `agent-check:` step is graded by an AI
+agent, and the agent's verdicts drive the red→green loop. `charly check box` /
+`charly check live` and `charly box/check feature run` read the SAME baked
+`plan:` — `charly check box`/`live` run its deterministic `check:` steps, while
+`charly box/check feature run` also bind the `agent-check:` (and `agent-run:`)
+steps to the agent grader.
 
 ### The six-stage loop
 
 | Stage | Who | Command | What |
 |---|---|---|---|
-| **Specify** | you / an agent | `charly candy add-scenario <layer> <name> --given/--when/--then` (idempotent; MCP tool `candy.add-scenario`) | Author the goal (`feature:`/`narrative:`) + scenarios on the CANDY that provides the behaviour (it bakes into every box that composes the candy — R3). |
-| **Bind** | author (implicit) | `charly feature pending <entity>` lists the gaps | Embed a check verb → deterministic; leave the step prose → agent-graded. |
-| **Run** | you / CI | `charly box feature run <image>` / `charly check feature run <deployment>` | Execute the scenarios; per-scenario pass/fail + grader evidence. |
-| **Iterate** | you / an agent | edit + re-run, OR `charly check run <score>` | Drive red→green by hand, or let the plateau-bounded AI loop write the code until scenarios pass. |
-| **Bake** | the build | `charly box build` | Goal + scenarios bake into `ai.opencharly.description`; runs source-less against a pulled image. |
-| **Gate** | R10 | `charly check run <bed>` | Runs the bed image's deterministic scenarios — every candy ships them (ADE authoring is mandatory: `charly box validate` requires a non-empty `description.feature:` and a `scenario:` list with at least one deterministic `do: assert` step). The live agent grader via `charly check feature run` stays opt-in. |
+| **Specify** | you / an agent | hand-edit the candy's `plan:` (or `charly box set candy.<name>.plan ...`) | Author the `description:` string + `plan:` steps on the CANDY that provides the behaviour (it bakes into every box that composes the candy — R3). |
+| **Bind** | author (implicit) | `charly feature pending <entity>` lists the agent-graded steps | Use a `check:` step (inline verb) → deterministic; use an `agent-check:` step (prose) → agent-graded. |
+| **Run** | you / CI | `charly box feature run <image>` / `charly check feature run <deployment>` | Execute the plan; per-step pass/fail + grader evidence. |
+| **Iterate** | you / an agent | edit + re-run, OR `charly check run <bed>` (an `iterate:` bed) | Drive red→green by hand, or let the plateau-bounded AI loop write the code until the `check:` steps pass. |
+| **Bake** | the build | `charly box build` | `description:` + `plan:` bake into `ai.opencharly.description`; runs source-less against a pulled image. |
+| **Gate** | R10 | `charly check run <bed>` | Runs the bed image's deterministic `check:` steps — every candy ships them (ADE authoring is mandatory: `charly box validate` requires a non-empty `description:` string and a `plan:` with at least one deterministic `check:` step). The live agent grader via `charly check feature run` stays opt-in. |
 
 ### The BIND contract — a step binds to its verifier BY SHAPE
 
 ```yaml
-description:
-  feature: Dashboard          # description keeps only feature / narrative / tag
-scenario:                     # top-level sibling of description (no longer nested)
-  - name: dashboard-loads
-    step:
-      - then: the page title is Dashboard
-        cdp: eval                          # probe verb → defaults do: assert (DETERMINISTIC)
-        expression: document.title
-      - then: the chart looks populated, not empty   # PROSE-ONLY → do: instruct (agent-graded)
+description: Dashboard          # plain string: the candy's purpose; first line = summary
+plan:                           # the ONE flat operational list
+  - check: the page title is Dashboard   # inline verb → DETERMINISTIC
+    cdp: eval
+    expression: document.title
+  - agent-check: the chart looks populated, not empty   # PROSE-ONLY → agent-graded
 ```
 
-A step with an embedded check verb (`file`/`http`/`command`/`cdp`/`mcp`/…) is a
-`do: assert` Op and runs that check. A step with only Gherkin prose (`then:` and
-no verb) is a `do: instruct` Op and binds to the agent grader. `charly feature
-pending` lists every prose-only step so an author sees the still-unbound work.
+A `check:` step carries an embedded probe verb (`file`/`http`/`command`/`cdp`/
+`mcp`/…) and runs that check deterministically. An `agent-check:` step carries
+only prose and binds to the agent grader. `charly feature pending` lists every
+`agent-run:`/`agent-check:` step so an author sees the agent-graded work.
 
 ### The two run verbs
 
 - **`charly box feature run <image>`** — build context. A disposable container
-  (`podman run --rm` per check), deterministic steps only. A prose-only step has
-  no stable target to probe, so it reports unbound (advisory skip; `--strict`
-  fails it). Resolves the image against local storage (never `charly.yml`),
-  like `charly check box`.
+  (`podman run --rm` per check), deterministic `check:` steps only. An
+  `agent-check:`/`agent-run:` step has no stable target to probe, so it reports
+  unbound (advisory skip; `--strict` fails it). Resolves the image against local
+  storage (never `charly.yml`), like `charly check box`.
 - **`charly check feature run <deployment>`** — deploy context. Against a running
-  image-backed (pod) deployment; deterministic steps run their checks and
-  prose-only steps bind to the **agent grader** (unless `--no-agent`). Flags:
+  image-backed (pod) deployment; deterministic `check:` steps run their checks and
+  `agent-check:` steps bind to the **agent grader** (unless `--no-agent`). Flags:
   `-i/--instance`, `--format text|json|tap|junit`, `--tag <expr>`,
   `--agent <name>`, `--timeout <dur>`, `--no-agent`, `--strict`.
 
-Exit codes follow the 0/1/2 convention (a scenario fail → exit 2 via
-`CheckFailedError`; an infra error → 1). No scenarios baked → a no-op pass.
+Exit codes follow the 0/1/2 convention (a step fail → exit 2 via
+`CheckFailedError`; an infra error → 1). No plan baked → a no-op pass.
 
 ### The agent grader contract
 
 For a prose-only step (when grading is enabled), the runner spawns the
 configured `kind: agent` CLI ONCE (bounded — never the plateau loop), handing it the
-scenario goal (`feature`/`narrative`), the step's Given/When/Then, the live
+entity's `description:`, the step's prose, the live
 target name, and the instruction that it MAY probe via `charly cmd <target> …`,
 `charly check mcp/cdp/wl <target> …`, `charly status <target>`. The agent returns a
 single-line JSON verdict `{"verdict":"pass|fail","evidence":"…"}`; the runner
@@ -538,7 +537,7 @@ unparseable / timed-out / launch-failed grader is a **FAIL** with the raw output
 `timeout:` → a 5m default. Which agent: `--agent <name>` → the sole configured `agent:`
 entry → an explicit "specify --agent" error.
 
-`--no-agent` is the deterministic-only mode (CI): prose-only steps report
+`--no-agent` is the deterministic-only mode (CI): `agent-check:` steps report
 `unbound` (visible, never silently green). The unattended `charly check run <bed>`
 gate runs `charly check feature run <bed> --no-agent` so a bed stays deterministic and
 free; exercise the live grader with an explicit `charly check feature run <name>`.
@@ -546,13 +545,12 @@ free; exercise the live grader with an explicit `charly check feature run <name>
 ### Worked example (end to end)
 
 ```bash
-# 1. Specify two scenarios on the layer that provides the behaviour.
-charly candy add-scenario web-layer dashboard-loads \
-  --then "the dashboard renders without a 500"          # prose → agent-graded
-$EDITOR candy/web-layer/charly.yml                        # add a deterministic step with cdp: eval
+# 1. Author plan steps on the layer that provides the behaviour.
+$EDITOR candy/web-layer/charly.yml    # add a `check:` step (cdp: eval) +
+                                      # an `agent-check:` prose step
 
-# 2. See what's still prose-only (the authoring gaps).
-charly feature pending layer:web-layer
+# 2. See the agent-graded steps.
+charly feature pending candy:web-layer
 
 # 3. Build → run build-context acceptance (deterministic steps).
 charly box build web
@@ -560,14 +558,14 @@ charly box feature run web
 
 # 4. Deploy, then run deploy-context acceptance with the agent grader.
 charly start web
-charly check feature run web                # prose steps agent-graded against the live pod
-charly check feature run web --no-agent     # deterministic-only (CI): prose reports unbound
+charly check feature run web                # agent-check steps agent-graded against the live pod
+charly check feature run web --no-agent     # deterministic-only (CI): agent-check steps report unbound
 ```
 
 Implementation: `charly/check_feature_run.go` (the verbs), `charly/check_feature_grader.go`
 (`AgentGrader` + `RunAIOnce` + `parseVerdict`), the `Runner.Grader` dispatch in
 `charly/description_run.go`, and `charly/description_cmd.go` (`charly feature
-list/pending/validate`). The scenario engine (`RunScenarios`) and target
+list/pending/validate`). The plan engine (`RunPlan`) and target
 resolution are shared with the harness loop and `charly check box`/`live` (R3).
 
 ## Subcommands: live-container verbs
@@ -606,44 +604,49 @@ fails. Fix by rebuilding and redeploying any image that bakes `charly` (grep
 `charly.yml` for `- charly$` to find them). Test runner itself is unaffected —
 this only bites the host→container delegation paths.
 
-## Authoring: the `scenario:` list
+## Authoring: the `plan:` list
 
-Every step is one inline Op — a **list entry with exactly one verb discriminator** plus
-shared modifiers and verb-specific attributes. This mirrors the `task:`
-pattern in `charly.yml`.
+Every step is ONE intent keyword (`run:`/`check:`/`agent-run:`/`agent-check:`/
+`include:`) carrying prose, plus — for `run:`/`check:` — an inline Op (a single
+verb discriminator + shared modifiers + verb-specific attributes). `run:` steps
+ARE the install timeline (they replace the old `task:` list); `check:` steps are
+the deterministic idempotent probes `charly check`/`charly check live` run.
 
 ### Gold-standard pattern (redis candy)
 
 ```yaml
 # candy/redis/charly.yml
-scenario:
-  - name: redis-service
-    step:
-      # Build-context — run inside the built image via `podman run --rm`.
-      - id: redis-binary
-        file: /usr/bin/redis-server
-        exists: true
-      - id: redis-cli-binary
-        file: /usr/bin/redis-cli
-        exists: true
-      - id: redis-package
-        package: valkey-compat-redis     # see "Authoring Gotchas" on Fedora 43 renames
-        installed: true
+plan:
+  # Build-context check: — run inside the built image via `podman run --rm`.
+  - check: the redis-server binary is installed
+    id: redis-binary
+    file: /usr/bin/redis-server
+    exists: true
+  - check: the redis-cli binary is installed
+    id: redis-cli-binary
+    file: /usr/bin/redis-cli
+    exists: true
+  - check: the redis package is installed
+    id: redis-package
+    package: valkey-compat-redis     # see "Authoring Gotchas" on Fedora 43 renames
+    installed: true
 
-      # Deploy-context — HOST_PORT:N resolves to the effective port mapping, so
-      # the same step works whether the deploy publishes 6379:6379 or 16379:6379.
-      - id: redis-responds
-        context: [deploy]
-        command: redis-cli -h 127.0.0.1 -p ${HOST_PORT:6379} ping
-        stdout: PONG
-        in_container: false    # run redis-cli from the host
-      - id: redis-port-open
-        context: [deploy]
-        addr: 127.0.0.1:${HOST_PORT:6379}
-        reachable: true
+  # Deploy-context check: — HOST_PORT:N resolves to the effective port mapping, so
+  # the same step works whether the deploy publishes 6379:6379 or 16379:6379.
+  - check: redis answers ping over the published port
+    id: redis-responds
+    context: [deploy]
+    command: redis-cli -h 127.0.0.1 -p ${HOST_PORT:6379} ping
+    stdout: PONG
+    in_container: false    # run redis-cli from the host
+  - check: the redis port is reachable from the host
+    id: redis-port-open
+    context: [deploy]
+    addr: 127.0.0.1:${HOST_PORT:6379}
+    reachable: true
 ```
 
-The six steps cover: binary existence, package identity, a functional
+The five `check:` steps cover: binary existence, package identity, a functional
 live probe, and raw TCP reachability. Adopt this shape for any primary
 service layer.
 
@@ -709,8 +712,7 @@ naturally. An empty-string map value falls through to the next tag
 | `skip: true` | Always skip this check (reported but doesn't fail the run). |
 | `exclude_distros: [<tag>, ...]` | Skip the check when any of the image's `distro:` tags matches an entry. Use for probes that only apply on some distros (e.g. `file: /usr/bin/fastfetch` is valid on Fedora/Arch/Debian but fastfetch is dropped from Ubuntu 24.04's noble main). Matched against the image's full distro list (`["ubuntu:24.04", "ubuntu", "debian"]`), so either `ubuntu:24.04` or `ubuntu` matches. See `charly/testspec.go:Check.ExcludeDistros` and `charly/testrun.go:runOne`. |
 | `timeout: "5s"` | Per-check timeout (http, addr). |
-| `context: [build\|deploy\|runtime\|agent]` | Which contexts the step runs in (a list). Build steps run in `charly check box`; deploy/runtime steps need a live deployment. |
-| `do: act\|assert\|instruct` | The Op's mode. A probe verb defaults to `assert`; install verbs default to `act`; the `agent:` prose verb defaults to `instruct` (agent-graded). |
+| `context: [build\|deploy\|runtime]` | Which contexts the step runs in (a list). Build steps run in `charly check box`; deploy/runtime steps need a live deployment. |
 
 #### `exclude_distros:` worked example
 
@@ -1222,13 +1224,13 @@ This is different from `charly box inspect`, `charly box build`, and `charly che
 
 | Section | Authored in | When it runs |
 |---------|-------------|--------------|
-| `candy` | `scenario:` in `candy/<name>/charly.yml` (build context) | `charly check box` + `charly check live` |
-| `box` | `scenario:` in `charly.yml` per box (build context) | `charly check box` + `charly check live` |
-| `deploy` | a `scenario:` step with `context: [deploy]`, or a local `charly.yml` `scenario:` overlay | `charly check live <name>` only (deploy-context steps need a running deployment with port mappings, volumes, and resolved runtime variables) |
+| `candy` | `plan:` in `candy/<name>/charly.yml` (build context) | `charly check box` + `charly check live` |
+| `box` | `plan:` in `charly.yml` per box (build context) | `charly check box` + `charly check live` |
+| `deploy` | a `plan:` step with `context: [deploy]`, or a local `charly.yml` `plan:` overlay | `charly check live <name>` only (deploy-context steps need a running deployment with port mappings, volumes, and resolved runtime variables) |
 
-The `ai.opencharly.description` label carries the collected scenarios from all three
+The `ai.opencharly.description` label carries the collected `plan:` steps from all three
 sections with `origin:` annotations (`candy:<name>`, `box:<name>`, `deploy-default`,
-`deploy-local`). `CollectCheck` walks the base-image chain with a
+`deploy-local`). `CollectDescriptions` walks the base-image chain with a
 visited-image guard: cycles are reported by `validateBoxDAG` at validate
 time, but the collector itself terminates cleanly even if called on a
 pathological config.
@@ -1236,7 +1238,7 @@ pathological config.
 ## Verb routing (which executor runs each check)
 
 Every verb dispatches through one of two executors depending on the run
-mode — this is what makes the same `scenario:` list work both against a
+mode — this is what makes the same `plan:` work both against a
 disposable container (`charly check box`) and a running service (`charly check live`):
 
 | Verb + attributes | Under `charly check live` (running service) | Under `charly check box` (disposable) |
@@ -1308,7 +1310,7 @@ Three pieces compose it:
   DRIVER deployment instead of the subject. For a `cdp:`/`vnc:`/`mcp:` check it
   connects to the driver's CDP/VNC/MCP endpoint (`charly check cdp <method> <driver>`);
   for a `command:` check it runs in the driver's venue. Works in `charly check live`,
-  `kind: check` beds, and recipes (the driver's own `${HOST_PORT}`/`${CONTAINER_IP}`
+  `kind: check` beds, and `iterate:` beds (the driver's own `${HOST_PORT}`/`${CONTAINER_IP}`
   resolve too).
 - **`peer:` siblings** — bring the driver up ALONGSIDE the subject on the shared
   `charly` network (see `/charly-core:deploy` "Sibling peers"). A `kind: check` bed (or a
@@ -1347,29 +1349,30 @@ check-cross-pod-cdp:
         chrome:                    # the DRIVER, a sibling on the charly net
             target: pod
             box: chrome-headless   # headless Chrome + cdp-proxy (publishes 9222)
-    scenario:
-        - name: chrome-drives-web-subject
-          step:
-            - id: web-fixture-up       # the subject serves its marker
-              context: [deploy]
-              http: http://127.0.0.1:${HOST_PORT:8080}/
-              status: 200
-              body: [{contains: charly-fixture-web-content-marker}]
-            - id: cdp-open-web-subject # DRIVE: chrome navigates to the subject over the charly net
-              context: [deploy]
-              cdp: open
-              on: chrome
-              url: http://${PEER_HOST:check-cross-pod-cdp}:8080
-              eventually: 45s
-              retry_interval: 3s
-            - id: cdp-web-fixture-rendered  # ASSERT: the rendered page carries the marker
-              context: [deploy]
-              cdp: text
-              on: chrome
-              tab: "1"                 # the first page (cdp `open` lands on tab 1)
-              eventually: 30s
-              retry_interval: 3s
-              stdout: [{contains: charly-fixture-web-content-marker}]
+    plan:
+        - check: the web subject serves its marker
+          id: web-fixture-up
+          context: [deploy]
+          http: http://127.0.0.1:${HOST_PORT:8080}/
+          status: 200
+          body: [{contains: charly-fixture-web-content-marker}]
+        - check: chrome navigates to the subject over the charly net   # DRIVE (passes on exit 0)
+          id: cdp-open-web-subject
+          context: [deploy]
+          cdp: open
+          on: chrome
+          url: http://${PEER_HOST:check-cross-pod-cdp}:8080
+          eventually: 45s
+          retry_interval: 3s
+        - check: the rendered page carries the marker   # ASSERT
+          id: cdp-web-fixture-rendered
+          context: [deploy]
+          cdp: text
+          on: chrome
+          tab: "1"                 # the first page (cdp `open` lands on tab 1)
+          eventually: 30s
+          retry_interval: 3s
+          stdout: [{contains: charly-fixture-web-content-marker}]
 ```
 
 `bringUpPeers` config+starts the chrome peer alongside the web root; the
@@ -1404,7 +1407,7 @@ pod→pod address and does NOT reach a VM.)
 
 ## Deploy.yml overlay rules
 
-A local `charly.yml` can contribute its own `scenario:` list per image.
+A local `charly.yml` can contribute its own `plan:` steps per image.
 Merge rules applied by `charly check live`:
 
 1. Local entries with an `id:` matching a baked entry replace that entry.
@@ -1415,18 +1418,19 @@ Merge rules applied by `charly check live`:
 # ~/.config/charly/charly.yml
 box:
   redis-ml:
-    scenario:
-      - name: redis-overlay
-        step:
-          - id: redis-responds                  # overrides image's baked step
-            command: redis-cli -h 127.0.0.1 -p 16379 ping
-            stdout: PONG
-            in_container: false
-          - id: external-tunnel                 # appended (no baked match)
-            http: https://redis.tailnet.ts.net/health
-            status: 200
-          - id: old-probe                       # disable a legacy baked step
-            skip: true
+    plan:
+      - check: redis answers ping               # overrides image's baked step (by id)
+        id: redis-responds
+        command: redis-cli -h 127.0.0.1 -p 16379 ping
+        stdout: PONG
+        in_container: false
+      - check: the external tunnel is healthy   # appended (no baked match)
+        id: external-tunnel
+        http: https://redis.tailnet.ts.net/health
+        status: 200
+      - check: a legacy baked step              # disable a legacy baked step
+        id: old-probe
+        skip: true
 ```
 
 ## Typical workflow
@@ -1436,7 +1440,7 @@ box:
 # 2. Validate schema + references.
 charly box validate
 
-# 3. Build the image (scenarios are auto-embedded as `LabelDescriptionSet`).
+# 3. Build the image (the plan is auto-embedded as `LabelDescriptionSet`).
 #    LABELs are emitted LAST in the final stage — a test edit rebuilds
 #    in ~2 sec (cache hits every upstream RUN/COPY).
 charly box build redis-ml
@@ -1480,25 +1484,25 @@ ports.
 per-phase durations (measured solving all 92/92 across 9 iterations on a
 `disposable: true` check-sandbox):
 
-| Phase | Recipe | Typical iter1 duration | Notes |
+| Phase | Plan segment | Typical iter1 duration | Notes |
 |---|---|---|---|
 | 1 | single-pod-system-state | ~10 min | trivial pod deploy |
 | 2 | network-and-http | ~few min (cumulative scoring keeps phase 1 in scope) | nginx + curl in fedora:43 |
 | 3 | cross-pod-nonce-traffic | ~few min | redis + redis-client; EVAL_NONCE_KEY/VALUE substituted per iter |
-| 4 | mcp-protocol-probe | ~14 min | jupyter image build (~6 min) + 32 scenarios |
+| 4 | mcp-protocol-probe | ~14 min | jupyter image build (~6 min) + 32 check steps |
 | 5 | kubernetes-cluster | ~20-30 min | k3s/kwok cluster bring-up |
-| 6 | desktop-display-and-input | ~50 min iter1, ~10 min iter2 | sway-browser-vnc image build (~14 min) + 13 cdp/wl/vnc scenarios; commonly takes 2 iters due to Chrome SIGBUS instability |
-| 7 | vm-control-libvirt-spice | ~40-50 min | libvirt domain (cloud-init, qemu-guest-agent) + 9 scenarios |
-| 8 | nested-deployment-chain | ~40 min | socket-passthrough nested pods + 9 cross-hop scenarios |
+| 6 | desktop-display-and-input | ~50 min iter1, ~10 min iter2 | sway-browser-vnc image build (~14 min) + 13 cdp/wl/vnc checks; commonly takes 2 iters due to Chrome SIGBUS instability |
+| 7 | vm-control-libvirt-spice | ~40-50 min | libvirt domain (cloud-init, qemu-guest-agent) + 9 checks |
+| 8 | nested-deployment-chain | ~40 min | socket-passthrough nested pods + 9 cross-hop checks |
 
 **Total wall-clock for a fresh `charly check run default`**: typically
 **5-7 hours** on dev-class hardware. Set expectations accordingly — this
 is NOT a quick smoke. For a fast canary that exercises the loader +
 scoring paths end-to-end without real AI work, run
-`charly check run scaffolding-selftest` (~5 min, single recipe
-`composition-import-selftest`).
+`charly check run scaffolding-selftest` (~5 min, a single-segment plan
+that `include:`s `composition-import-selftest`).
 
-The plateau bound is `score.<name>.plateau_iteration` (default 3). In
+The plateau bound is `iterate.plateau_iteration` (default 3). In
 **progressive mode**, plateau ENDS the whole run — it does not advance
 to the next phase, so an AI that stalls on one phase doesn't collect
 easy wins on later phases it never engaged with.
@@ -1531,16 +1535,16 @@ deliberately.
 ## Related skills
 
 - **Live-container probe verbs under `charly check`** — `/charly-check:cdp`, `/charly-check:wl`, `/charly-check:dbus`, `/charly-check:vnc`, `/charly-build:charly-mcp-cmd`, `/charly-check:record`, `/charly-check:spice`, `/charly-check:libvirt`, `/charly-kubernetes:check-k8s` are dispatched as `charly check cdp|wl|dbus|vnc|mcp|record|spice|libvirt|k8s`. See the Subcommands section above.
-- `/charly-image:layer` — layer authoring; the `scenario:` field is part of every `charly.yml`.
-- `/charly-image:image` — image-level `scenario:` blocks at composition time.
-- `/charly-core:deploy` — local `charly.yml` overlay rules and the `scenario:` merge.
+- `/charly-image:layer` — layer authoring; the `plan:` field is part of every `charly.yml`.
+- `/charly-image:image` — image-level `plan:` blocks at composition time.
+- `/charly-core:deploy` — local `charly.yml` overlay rules and the `plan:` merge.
 - `/charly-build:validate` — static schema + cross-scope variable checks; the first
   gate before `charly box build`.
 - `/charly-build:build` — how check entries are embedded into the OCI label at build
   time; LABELs-at-end cache behavior.
-- `/charly-build:inspect` — view the merged scenario / description structure as JSON.
+- `/charly-build:inspect` — view the merged `plan:` / description structure as JSON.
 - `/charly-build:migrate` — `charly migrate` brings legacy configs up to the
-  current schema (folding the old candy/box check lists into the top-level `scenario:` list).
+  current schema (collapsing the old `task`/`scenario`/`do`/recipe/score formats into one flat `plan:`).
 - `/charly-internals:go` — implementation map: `checkspec.go`, `checkvars.go`,
   `checkrun.go`, `checkrun_verbs.go`, `checkrun_charly_verbs.go`,
   `checkcollect.go`, `check_cmd.go`, `check_runner_cmd.go`, `check_loop.go`,
@@ -1549,7 +1553,7 @@ deliberately.
 - `/charly-internals:generate-source` — how `LabelDescriptionSet` is written into the Containerfile
   via `writeJSONLabel`, and why the LABEL block lives at the end of the
   final stage.
-- `/charly-internals:capabilities` — the `ai.opencharly.description` label (`LabelDescriptionSet`) carrying the scenarios is
+- `/charly-internals:capabilities` — the `ai.opencharly.description` label (`LabelDescriptionSet`) carrying the baked `plan:` is
   part of the same capability contract as `LabelService`.
 - `/charly-internals:agents` — the sub-agents (`check-bed-runner`,
   `deploy-verifier`) and dynamic workflows (`/verify-beds`,
@@ -1560,8 +1564,8 @@ deliberately.
 
 **MUST be invoked** before authoring, running, or debugging check
 behavior at any level. Triggers: `charly check` (any subcommand), `charly check
-run`, `charly check box`, `charly check live`, the `scenario:` / `description:`
+run`, `charly check box`, `charly check live`, the `plan:` / `description:`
 YAML fields, the project-root `check:` block, the `ai.opencharly.description` OCI label, `kind: agent` /
-`kind: recipe` / `kind: score` / `kind: check` in the `check:` block,
+`kind: check` (+ the bed's `iterate:` block) in the `check:` block,
 `charly check run <bed>` / `--all-beds` (kind:check R10 beds), or any check
 verb by name (file/port/http/command/package/service/cdp/wl/dbus/vnc/mcp/...).

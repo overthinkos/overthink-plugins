@@ -14,7 +14,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `charly.yml` (packages + one post-install task) |
+| Install files | `charly.yml` (packages + one post-install `run:` step) |
 | Depends | **(none)** |
 
 ## Packages
@@ -22,7 +22,7 @@ description: |
 - RPM (with `--setopt=tsflags=noscripts`): `gh`, `git`, `git-lfs`
 - pac: `github-cli`, `git`, `git-lfs`
 
-## Why `tsflags=noscripts` + a post-install task
+## Why `tsflags=noscripts` + a post-install `run:` step
 
 The `git-lfs` RPM's `%post` scriptlet runs `git-lfs install --system`
 which tries to modify `/etc/` and talk to systemd — operations that
@@ -30,9 +30,10 @@ fail (loudly or silently) inside a buildah container. We install with
 noscripts and then run the git-lfs hook configuration manually:
 
 ```yaml
-task:
-  - cmd: /usr/bin/git-lfs install --system --skip-repo 2>/dev/null || true
-    user: root
+plan:
+  - run: configure git-lfs system hooks
+    command: /usr/bin/git-lfs install --system --skip-repo 2>/dev/null || true
+    run_as: root
 ```
 
 The `|| true` tolerates distros/versions where the command layout
@@ -107,5 +108,5 @@ candy:
 
 ## Related
 
-- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, plan-step verbs, service declarations)
 - `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

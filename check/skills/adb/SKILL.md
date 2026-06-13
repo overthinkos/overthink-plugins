@@ -20,14 +20,15 @@ adb-server port — pod / vm / host / nested all work transparently because
 the connection is plain TCP to `127.0.0.1:<host-port>` and the
 portforward / passt / etc. layer handles the rest.
 
-### Also as a declarative scenario step
+### Also as a declarative `check:`/`run:` plan step
 
-Every `charly check adb <method>` is authorable as an `adb:` verb in a
-scenario `step:` — one inline Op in the top-level `scenario:` list. The
-method name becomes the verb's YAML value; method-specific args are
-sibling fields (`apk:`, `property:`, `args:`, `artifact:`). Shared
-matchers (`stdout:`, `stderr:`, `exit_status:`, `artifact_min_bytes:`)
-work like other verbs, and a probe verb defaults to `do: assert`.
+Every `charly check adb <method>` is authorable as an `adb:` verb —
+one inline Op as a `check:` step in the candy/box `plan:` list (a probe
+is a `check:` step; an adb action that changes device state is a `run:`
+step). The method name becomes the verb's YAML value; method-specific
+args are sibling fields (`apk:`, `property:`, `args:`, `artifact:`).
+Shared matchers (`stdout:`, `stderr:`, `exit_status:`,
+`artifact_min_bytes:`) work like other verbs.
 **`context: [deploy]` only** — needs a running container with a
 host-mapped ADB server port; the validator rejects `context: [build]`
 use at `charly box validate` time.
@@ -35,21 +36,21 @@ use at `charly box validate` time.
 Example:
 
 ```yaml
-scenario:
-  - name: emulator-boots
-    step:
-      - id: emulator-is-up
-        adb: devices
-        context: [deploy]
-        stdout:
-          - contains: "emulator-5554"
-      - id: boot-done
-        adb: getprop
-        property: sys.boot_completed
-        context: [deploy]
-        stdout:
-          - contains: "1"
-        timeout: 300s
+plan:
+  - check: the emulator is attached to the adb server
+    id: emulator-is-up
+    adb: devices
+    context: [deploy]
+    stdout:
+      - contains: "emulator-5554"
+  - check: the emulator reports boot completed
+    id: boot-done
+    adb: getprop
+    property: sys.boot_completed
+    context: [deploy]
+    stdout:
+      - contains: "1"
+    timeout: 300s
 ```
 
 See `/charly-check:check` for the full per-verb schema notes; this skill is the
@@ -144,15 +145,14 @@ is immune to the stdin-heredoc hazard that breaks shell-based settle loops
 ```yaml
 # Order matters — wait-for-device (boot) BEFORE wait-ui-settled (UI),
 # wait-ui-settled BEFORE any UI-interacting step (appium / monkey).
-scenario:
-  - name: emulator-ui-settled
-    step:
-      - id: emulator-ui-settled
-        adb: wait-ui-settled
-        context: [deploy]
-        timeout: 600s
-        stdout:
-          - contains: settled
+plan:
+  - check: the emulator UI has settled past the ANR churn
+    id: emulator-ui-settled
+    adb: wait-ui-settled
+    context: [deploy]
+    timeout: 600s
+    stdout:
+      - contains: settled
 ```
 
 `current-focus` and `keyevent` are the building blocks `wait-ui-settled`
@@ -168,7 +168,7 @@ shell-fields split handles separation.
 ### Long-running wait
 
 `wait-for-device` blocks up to `--timeout` (default 60s) — set
-`timeout:` on the scenario step to a value at least as large as
+`timeout:` on the plan step to a value at least as large as
 `--timeout`, plus a small margin. Common pattern:
 
 ```yaml
@@ -196,12 +196,12 @@ expose the container port AS the host port.
   `target: android` deploy. `charly check adb install` / `install-app` are thin
   wrappers over the SAME shared installer (`charly/android_install.go`) the apk
   format drives — so the verb, the format, and the deploy target never drift.
-- `/charly-check:check` — the unified check system and the Op (scenario step) that
+- `/charly-check:check` — the unified check system and the Op (a `plan:` step) that
   holds every verb discriminator + modifier.
 - `/charly-tools:android-emulator` (when authored) — the image these verbs target.
 
 ## When to Use This Skill
 
 **MUST be invoked** for any task involving `charly check adb` commands or
-`adb:` declarative scenario steps. Invoke this skill BEFORE reading the
+`adb:` declarative `plan:` steps. Invoke this skill BEFORE reading the
 verb's Go source or reaching for `command: adb ...` workarounds.

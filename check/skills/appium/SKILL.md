@@ -27,40 +27,44 @@ the W3C escape hatch: `POST /session/<id>/execute/sync` with
 
 ### Also as a declarative verb
 
-Every `charly check appium <method>` is authorable as an `appium:` verb
-inside a `scenario:` step. **Deploy-context only** (`context: [deploy]`). A
-probe verb defaults to `do: assert`, so each step asserts unless told otherwise.
+Every `charly check appium <method>` is authorable as the inline Op of a
+`check:` step in a `plan:` (deploy-context only — `context: [deploy]`); an
+Appium action that drives the UI is a `run:` step.
 
 ```yaml
-scenario:
-  - name: appium-drives-the-emulator-ui
-    step:
-      - id: appium-up
-        appium: status
-        stdout: { contains: '"ready":true' }
-        context: [deploy]
-      - id: open-session
-        appium: session-create
-        caps: |
-          {"platformName":"Android","appium:automationName":"UiAutomator2","appium:deviceName":"emulator-5554"}
-        context: [deploy]
-      - id: install
-        appium: install-app
-        apk: ./tests/data/ApiDemos-debug.apk   # HOST path; staged into the container by the verb
-        context: [deploy]
-      - id: tap-animation
-        appium: click
-        strategy: xpath
-        selector: '//android.widget.TextView[@text="Animation"]'
-        context: [deploy]
-      - id: snapshot
-        appium: screenshot
-        artifact: /tmp/post-tap.png
-        artifact_min_bytes: 10000
-        context: [deploy]
-      - id: close
-        appium: session-delete
-        context: [deploy]
+plan:
+  - check: the Appium server reports ready
+    id: appium-up
+    appium: status
+    stdout: { contains: '"ready":true' }
+    context: [deploy]
+  - run: open a W3C WebDriver session against the emulator
+    id: open-session
+    appium: session-create
+    caps: |
+      {"platformName":"Android","appium:automationName":"UiAutomator2","appium:deviceName":"emulator-5554"}
+    context: [deploy]
+  - run: install the ApiDemos test app
+    id: install
+    appium: install-app
+    apk: ./tests/data/ApiDemos-debug.apk   # HOST path; staged into the container by the verb
+    context: [deploy]
+  - run: tap the Animation list entry
+    id: tap-animation
+    appium: click
+    strategy: xpath
+    selector: '//android.widget.TextView[@text="Animation"]'
+    context: [deploy]
+  - check: a screenshot of the post-tap screen is captured
+    id: snapshot
+    appium: screenshot
+    artifact: /tmp/post-tap.png
+    artifact_min_bytes: 10000
+    context: [deploy]
+  - run: close the WebDriver session
+    id: close
+    appium: session-delete
+    context: [deploy]
 ```
 
 ## Quick Reference
@@ -82,10 +86,10 @@ scenario:
 | `source` | `charly check appium source <image>` | — | GET /source (UI hierarchy XML) |
 | `back` | `charly check appium back <image>` | — | POST /back (navigate back) |
 
-### Tier 2 — per-class sugar groups (nested CLI; flat `<group>-<op>` in a `scenario:` step)
+### Tier 2 — per-class sugar groups (nested CLI; flat `<group>-<op>` in a `plan:` step)
 
 Mirrors `wl`'s `sway-*` / `overlay-*` pattern — `charly check appium gesture tap …`
-on the CLI is `appium: gesture-tap` in a `scenario:` step.
+on the CLI is `appium: gesture-tap` in a `plan:` step.
 
 | Group | Ops (check-YAML method names) | Key modifiers |
 |---|---|---|
@@ -306,7 +310,7 @@ mitigation if it stops working.
 - `/charly-check:android` — the `kind: android` device + `apk:` package format +
   `target: android` deploy this UI automation runs against.
 - `/charly-check:check` — the unified check system and the Op struct that
-  holds every verb discriminator + modifier (one Op per `scenario:` step).
+  holds every verb discriminator + modifier (one Op per `plan:` step).
 - `/charly-tools:android-emulator` (when authored) — the image these verbs target.
 
 ## When to Use This Skill

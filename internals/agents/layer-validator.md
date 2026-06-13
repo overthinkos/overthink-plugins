@@ -1,6 +1,6 @@
 ---
 name: layer-validator
-description: Blocking - Validates charly.yml structure before edits. Checks the high-value invariants (mandatory version, kind-keyed form, one-verb-per-task, requires references, the unified service schema) and defers the full field set to /charly-image:layer + `charly box validate`.
+description: Blocking - Validates charly.yml structure before edits. Checks the high-value invariants (mandatory version, kind-keyed form, one-verb-per-run-step, requires references, the unified service schema) and defers the full field set to /charly-image:layer + `charly box validate`.
 tools: Read, Grep, Glob
 model: inherit
 ---
@@ -37,14 +37,16 @@ guessing.
 - A common mistake: `requires: [pixi]` when you mean `requires: [python]`
   (pixi installs the build tool; python installs Python via pixi).
 
-### 3. Tasks — exactly one verb per entry
+### 3. Plan `run:` steps — exactly one verb per entry
 
-- Each `tasks:` entry is a map with **exactly one verb** discriminator:
-  `cmd` / `mkdir` / `copy` / `write` / `link` / `download` / `setcap` /
-  `build`. Zero or multiple verbs is a hard error.
+- The candy's operational list is `plan:` (a flat ordered list of steps).
+  Each state-change step is a `run:` step carrying **exactly one verb**
+  discriminator: `command` / `mkdir` / `copy` / `write` / `link` /
+  `download` / `setcap` / `build`. Zero or multiple verbs is a hard error.
+  (Deterministic probes are `check:` steps — see `/charly-check:check`.)
 - `copy:`/`write:` need `to:`/`content:` respectively; `download:` needs
   `to:` (unless `extract: sh`); `link:` needs `target:`.
-- `user:` per task: `root` / `${USER}` / literal username (created earlier
+- `run_as:` per step: `root` / `${USER}` / literal username (created earlier
   in the same layer) / `<uid>:<gid>`.
 
 ### 4. Unified `service:` schema (NOT a raw INI string)
@@ -79,7 +81,7 @@ LAYER VALIDATION: <layer-name>
 
 [PASS/FAIL] Kind-keyed form + version: <details>
 [PASS/FAIL] requires/candy references: <details>
-[PASS/FAIL] tasks (one verb each): <details>
+[PASS/FAIL] plan run: steps (one verb each): <details>
 [PASS/FAIL] service schema: <details>
 [PASS/FAIL] env/path/ports: <details>
 [PASS/FAIL] package sections / volumes / aliases: <details>
@@ -91,6 +93,6 @@ Result: APPROVED / BLOCKED (<reason>)
 ## When to Invoke
 
 - Before editing or creating any `charly.yml`.
-- When modifying dependencies, tasks, packages, or service definitions.
+- When modifying dependencies, plan steps, packages, or service definitions.
 - Always pair a BLOCKED/APPROVED verdict with a recommendation to run the
   authoritative `charly box validate`.

@@ -27,13 +27,11 @@ spec:
     allow_repo_changes: true
   env:           # optional
     - EDITOR=vim
-  description:   # optional — Gherkin-shaped self-description
-    feature: Standard developer workstation profile
-    tag: [working]
-  scenario:      # optional — top-level acceptance scenarios; each step: is one inline Op
-    - scenario: ripgrep is installed after deploy
-      step:
-        - {command: "rg --version", do: assert, context: [deploy]}
+  description: Standard developer workstation profile   # optional — plain string
+  plan:          # optional — flat ordered list of steps; each is one intent keyword + inline Op
+    - check: ripgrep is installed after deploy
+      command: rg --version
+      context: [deploy]
 ```
 
 ## Inline form in charly.yml
@@ -45,12 +43,12 @@ local:
     candy: [ripgrep, direnv]
     install_opts: {with_services: false, allow_repo_changes: true}
     env: [EDITOR=vim]
-    description: {feature: Dev workstation, tag: [working]}
+    description: Dev workstation
 
   ci-runner:
     candy: [ripgrep, pixi, cargo-toolchain]
     install_opts: {with_services: true, allow_root_tasks: true}
-    description: {feature: CI runner profile, tag: [working]}
+    description: CI runner profile
 
   charly-cachyos:
     # Empty placeholder — `candy: []` is a load-time WARNING (allowed
@@ -58,7 +56,7 @@ local:
     # is a hard error.
     candy: []
     install_opts: {}
-    description: {feature: CachyOS DX (placeholder), tag: [testing]}
+    description: CachyOS DX (placeholder)
 ```
 
 ## Field reference
@@ -68,10 +66,10 @@ local:
 | `layers` | Yes | Ordered candy stack. `[]` permitted as a placeholder (warning, not error). |
 | `install_opts` | No | Default install gates. Deployment overrides merge on top. |
 | `env` | No | Shell-profile env vars (`KEY=VALUE`). Deployment env wins on key collision. |
-| `description` | No | Gherkin-shaped (Feature/Narrative/Tag). Status word lives in `tag`: `working`/`testing`/`broken`. |
-| `scenario` | No | Top-level acceptance scenarios (sibling of `description`, no longer nested under it). Each `step:` is one inline Op — a verb + matchers + `do:`/`context:`. A probe step defaults to `do: assert`; deploy-scope steps carry `context: [deploy]`. Merged with deployment.scenario. |
+| `description` | No | Plain string — the profile's purpose; first line = the summary. |
+| `plan` | No | Flat ordered list of steps (sibling of `description`). Each step is one intent keyword — `run:` (state-change) / `check:` (deterministic probe) / `agent-run:` / `agent-check:` / `include:` — carrying prose plus, for `run:`/`check:`, an inline Op (verb + matchers + `context:`). Deploy-scope steps carry `context: [deploy]`. Merged with deployment.plan. |
 
-There is **no** `status:` or `info:` field. Status lives in `description.tag` (one of `working`/`testing`/`broken`); the human-facing description lives in `description.feature` + `description.narrative`.
+There is **no** `status:` or `info:` field; `description` is the human-facing summary string.
 
 ## What the deploy does NOT do
 
@@ -82,8 +80,8 @@ steps. The deploy applies host packages + configs only. There is no
 
 Test-bed image preflight is the **check entry point's** job, not the
 deploy's. When `charly check run --on-host <name>` resolves to a host
-target, the runner walks the score's recipes, collects every distinct
-`scenario.pod` value plus `score.target_image`, and ensures each
+target, the runner walks the bed's `plan:`, collects every distinct
+step `pod:` value plus the bed's target image, and ensures each
 image is present in local podman storage (LocalImageExists →
 `charly box pull` → fall back to `charly box build` for short names that
 resolve via `cfg.Images`). Operators who never run `charly check run`
@@ -109,7 +107,7 @@ When a deployment carries `local: <template-name>`:
 | `install_opts.*` (bool) | default | wins over template | wins over both | CLI > deployment > template |
 | `install_opts.builder_image` | default `""` | wins | wins over both | CLI > deployment > template |
 | `env` | base list | extends + overrides on key | — | template.Env merged with deployment.Env (deployment-wins on collision) |
-| `scenario` | base scenarios | extends list | — | `template.Scenario ++ deployment.Scenario` |
+| `plan` | base plan | extends list | — | `template.Plan ++ deployment.Plan` |
 
 The `InstallOptsConfig.ApplyTo` method is fill-empty — calling it on the deployment's opts first, then the template's, gives the priority chain automatically.
 
@@ -122,7 +120,7 @@ local:
   charly-cachyos:
     candy: []
     install_opts: {}
-    description: {feature: CachyOS DX (placeholder), tag: [testing]}
+    description: CachyOS DX (placeholder)
 ```
 
 `charly box validate` emits a WARNING but does not error. A missing `candy:` field entirely IS an error — the field's presence is the signal that the author intended a template.

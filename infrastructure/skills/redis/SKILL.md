@@ -62,11 +62,11 @@ my-image:
 
 ## Tests
 
-The candy ships 5 deterministic `do: assert` steps in its top-level
-`scenario:` list, baked into the `ai.opencharly.description` OCI label
+The candy ships 5 deterministic `check:` steps in its `plan:`,
+baked into the `ai.opencharly.description` OCI label
 (see `/charly-check:check` for the full schema — this candy is the
 **gold-standard pattern** referenced there). Each step is one inline Op,
-and a probe verb defaults to `do: assert`:
+and a probe is a `check:` step:
 
 - **`context: [build]`** (run under `charly check box`, via `podman run --rm`):
   - `redis-binary` — `/usr/bin/redis-server` exists

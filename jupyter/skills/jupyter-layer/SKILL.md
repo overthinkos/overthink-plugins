@@ -43,8 +43,8 @@ doc = nlp("Apple is looking at buying a U.K. startup for $1 billion")
 [(e.text, e.label_) for e in doc.ents]  # named entities
 ```
 
-The `spacy-import` build-context scenario step (a deterministic `do: assert`
-Op in the top-level `scenario:` list) verifies the package + model load
+The `spacy-import` build-context `check:` step (a deterministic Op in
+the `plan:`) verifies the package + model load
 successfully on every image build — a future upstream rename or version
 bump that breaks the model load fails the build loudly.
 
@@ -196,10 +196,10 @@ Multiple MCP clients can edit the same notebook simultaneously:
 
 ## Tests
 
-The candy ships its acceptance scenarios in the top-level `scenario:` list,
+The candy ships its acceptance steps in its `plan:`,
 baked into the `ai.opencharly.description` OCI label (see `/charly-check:check`
-for the full schema). Each step is one inline Op — a probe verb defaults to
-`do: assert` — tagged with the `context:` axis that selects when it runs:
+for the full schema). Each step is one inline Op — a probe is a `check:`
+step — tagged with the `context:` axis that selects when it runs:
 
 - **`context: [build]`** (run under `charly check box`):
   - `jupyter-lab-binary` — `${HOME}/.pixi/envs/default/bin/jupyter-lab`
@@ -233,7 +233,7 @@ for the full schema). Each step is one inline Op — a probe verb defaults to
 - `/charly-openwebui:openwebui` -- MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code-block execution into the Jupyter kernel)
 - `/charly-infrastructure:supervisord` -- process manager dependency
 - `/charly-languages:python` -- Python runtime (transitive via supervisord)
-- `/charly-build:charly-mcp-cmd` -- end-to-end testing of the candy's MCP endpoint (`charly check mcp ping`, `list-tools`, `call`); the candy ships 3 deploy-context `mcp:` scenario steps against `list_notebooks`/`insert_cell`/`execute_cell`
+- `/charly-build:charly-mcp-cmd` -- end-to-end testing of the candy's MCP endpoint (`charly check mcp ping`, `list-tools`, `call`); the candy ships 3 deploy-context `mcp:` steps in its `plan:` against `list_notebooks`/`insert_cell`/`execute_cell`
 
 ## When to Use This Skill
 

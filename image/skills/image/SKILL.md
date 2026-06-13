@@ -35,7 +35,7 @@ order.
 | `charly box merge` | Merge small layers in a built image | `/charly-build:merge` |
 | `charly box new candy <name>` | Scaffold a new candy directory | `/charly-build:new` |
 | `charly box pull` | Fetch an image into local storage | `/charly-build:pull` |
-| `charly check box` | Run declarative tests against a disposable container from a built image (reads the baked `scenario:` Ops from the `ai.opencharly.description` OCI label) | `/charly-check:check` |
+| `charly check box` | Run declarative tests against a disposable container from a built image (reads the baked `plan:` from the `ai.opencharly.description` OCI label) | `/charly-check:check` |
 | `charly box validate` | Check charly.yml + layers | `/charly-build:validate` |
 
 ## Scope Boundary (Build vs. Deploy)
@@ -110,7 +110,7 @@ The error messages are explicit when misconfigured: `cannot chdir to --dir "/mis
 | Inspect field | `charly box inspect <image> --format <field>` | Print single field (tag, base, layers, ports, etc.) |
 | Validate | `charly box validate` | Check charly.yml + layers |
 | Pull into local storage | `charly box pull <image>` | Fetch from registry so deploy-mode commands work |
-| Run build-time tests | `charly check box <image>` | Runs the baked `scenario:` steps in a disposable `podman run --rm` container (`context: [build]` steps only). For full-stack live check against a running deployment, use `charly check live <name>`. See `/charly-check:check`. |
+| Run build-time tests | `charly check box <image>` | Runs the baked `check:` steps in a disposable `podman run --rm` container (`context: [build]` steps only). For full-stack live check against a running deployment, use `charly check live <name>`. See `/charly-check:check`. |
 | Pre-prime remote repo cache | `charly box fetch [<spec>]` | Clones (or hits cache) for the spec — defaults to `default` (overthinkos/overthink). Prints the cache path. |
 | Force re-clone | `charly box refresh [<spec>]` | Removes the cache entry and re-clones. |
 
@@ -552,7 +552,7 @@ box:
 - `/charly-core:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
 - `/charly-core:charly-config` -- `charly config` reads OCI labels + charly.yml; tunnel is charly.yml-only
 - `/charly-internals:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
-- `/charly-check:check` — Box-level `scenario:` steps (cross-candy invariants; deploy-default checks shipped with the image are steps carrying `context: [deploy]`). The scenario Ops are embedded in the `ai.opencharly.description` OCI label.
+- `/charly-check:check` — Box-level `plan:` steps (cross-candy invariants; deploy-default checks shipped with the image are `check:` steps carrying `context: [deploy]`). The plan steps are embedded in the `ai.opencharly.description` OCI label.
 - `/charly-build:charly-mcp-cmd` — if the image transitively bundles an mcp-providing candy (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled candy's `mcp:` tests run as part of `charly check live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
 - `/charly-vm:vm` — `charly vm build/create/start/stop/ssh` command family; reads `vm.yml`, not `charly.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
 - `/charly-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema.

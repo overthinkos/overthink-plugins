@@ -45,7 +45,7 @@ serve. Priority 35 is one higher than maputnik's 34, just to keep
 the supervisord start order deterministic (cosmetic — both are
 HTTP-only static servers, neither depends on the other).
 
-## Vite `--base=/` override (locked in by a scenario step)
+## Vite `--base=/` override (locked in by a `check:` step)
 
 PMTiles app's `package.json` build script runs Vite. Without an
 explicit base flag Vite defaults to whatever's configured in
@@ -67,23 +67,22 @@ The build override:
   run_as: root
 ```
 
-The scenario step (deploy context) greps the served HTML for forbidden
+The `check:` step (deploy context) greps the served HTML for forbidden
 subpath prefixes and fails if any are present:
 
 ```yaml
-scenario:
-  - scenario: served HTML uses root-relative asset URLs
-    step:
-      - id: pmtiles-viewer-asset-base-not-prefixed
-        command: |
-          ! curl -fsS http://localhost:8001/ | grep -qE '"/(pmtiles|app)/'
-        context: [deploy]
-        in_container: true
-        exit_status: 0
+plan:
+  - check: served HTML uses root-relative asset URLs
+    id: pmtiles-viewer-asset-base-not-prefixed
+    command: |
+      ! curl -fsS http://localhost:8001/ | grep -qE '"/(pmtiles|app)/'
+    context: [deploy]
+    in_container: true
+    exit_status: 0
 ```
 
-The `command` verb defaults to `do: assert`, so the step fails the
-scenario when the forbidden prefix is present.
+The step is a `check:` step, so it fails when the forbidden prefix is
+present.
 
 ## Use case in the versa image
 
@@ -104,7 +103,7 @@ remote archive" input — point it at e.g.
 `http://127.0.0.1:23000/monaco-gpqtiles` to inspect that archive's
 bbox / zoom range / tile contents directly in the browser.
 
-## Scenario steps
+## Plan steps
 
 Build context (`context: [build]`):
 - `pmtiles-viewer-build-dir-exists` — `/opt/pmtiles-viewer/build` exists (directory)

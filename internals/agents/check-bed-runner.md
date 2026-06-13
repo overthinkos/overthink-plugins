@@ -55,7 +55,7 @@ different things to the caller.
 - **No scope-shrinking flags (CLAUDE.md R10 flag-override clause).** Run the bed AS
   SPECIFIED. NEVER add `--no-rebuild` (skips the R10 fresh-rebuild gate —
   forbidden for an acceptance run), `--keep`, `--on-pod`/`--on-vm`/`--on-host`,
-  or any bed/scenario filter UNLESS the caller's prompt explicitly named that
+  or any bed/step filter (`--max-scenario`, `--tag`) UNLESS the caller's prompt explicitly named that
   flag this invocation. "To save time" / "for a quick check" / "to fit the
   session" are confessions, not authorizations.
 - **Never summarize away a failure.** You return the RAW verdict so the
