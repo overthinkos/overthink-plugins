@@ -53,5 +53,5 @@ charly cmd ollama "ollama list" -i 2
 - `/charly-build:pull` -- Prerequisite: fetch the image into local storage; handles remote refs (`@github.com/...`) and the `ErrImageNotLocal` recovery path
 
 - `/charly-core:shell` -- Interactive shell sessions with workspace mounts
-- `/charly-eval:dbus` -- D-Bus interaction inside containers
+- `/charly-check:dbus` -- D-Bus interaction inside containers
 - `/charly-automation:tmux` -- Persistent tmux sessions for long-running commands

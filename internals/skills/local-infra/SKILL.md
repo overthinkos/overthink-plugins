@@ -51,7 +51,7 @@ Pattern mirrors `charly/shell_profile.go` (the env.d managed block in `~/.profil
 - `EnsureSshConfigInclude` ensures `Include ~/.config/charly/ssh_config` is present in `~/.ssh/config` (also fenced).
 - `RemoveVmSshStanza` returns the count of remaining stanzas; when zero the fragment file is deleted.
 - `RemoveSshConfigInclude` strips the Include line; when `~/.ssh/config` becomes empty after stripping, the file is deleted.
-- `VmSshAlias("eval-arch-vm")` → `"charly-eval-arch-vm"`. Unique within the managed fragment.
+- `VmSshAlias("check-arch-vm")` → `"charly-check-arch-vm"`. Unique within the managed fragment.
 
 ## Ledger at `~/.config/opencharly/installed/`
 

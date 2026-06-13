@@ -57,7 +57,7 @@ Part of `/charly-selkies:sway-desktop` composition.
 - `/charly-selkies:desktop-fonts` -- JetBrains Mono + Nerd Font icons
 
 ## Related Commands
-- `/charly-eval:wl` — interact with the Wayland session hosting waybar
+- `/charly-check:wl` — interact with the Wayland session hosting waybar
 - `/charly-core:shell` — restart waybar via supervisorctl
 
 ## When to Use This Skill
@@ -72,4 +72,4 @@ Use when the user asks about:
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

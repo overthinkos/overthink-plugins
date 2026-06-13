@@ -125,7 +125,7 @@ All windows open maximized (ideal for streaming desktop):
 - `/charly-selkies:selkies-desktop-layer` — desktop metalayer that composes labwc + chrome + waybar + selkies
 - `/charly-selkies:waybar-labwc` — status bar configured for labwc
 - `/charly-selkies:chrome` — Chrome browser (supervised by the selkies-core `[program:chrome]` service)
-- `/charly-eval:wl` — Wayland automation commands (screenshots, input, window management). Supports KWin (KDE Plasma) in addition to wlroots (sway/labwc); on labwc it uses the wlroots backends (wlrctl pointer/toplevel, wlr-randr, wtype, wl-clipboard, pixelflux-screenshot)
+- `/charly-check:wl` — Wayland automation commands (screenshots, input, window management). Supports KWin (KDE Plasma) in addition to wlroots (sway/labwc); on labwc it uses the wlroots backends (wlrctl pointer/toplevel, wlr-randr, wtype, wl-clipboard, pixelflux-screenshot)
 
 ## When to Use This Skill
 
@@ -134,4 +134,4 @@ All windows open maximized (ideal for streaming desktop):
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

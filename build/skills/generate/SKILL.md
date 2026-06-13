@@ -178,10 +178,10 @@ All `ai.opencharly.*` LABEL directives are emitted at the **end** of
 the final stage, after the last `USER` directive. This means a test or
 label edit only re-runs the LABEL steps themselves (metadata-only, ~2
 sec) instead of invalidating the buildkit cache for every upstream
-RUN/COPY. Particularly important for test authoring: `eval:` edits on
+RUN/COPY. Particularly important for test authoring: `check:` edits on
 a 138-step stack like `immich-ml` cost seconds, not minutes per
 iteration. See `/charly-internals:generate-source` "LABEL Placement" for the
-rationale and `/charly-eval:eval` for author-facing workflow implications.
+rationale and `/charly-check:check` for author-facing workflow implications.
 
 ## Bootc-specific generator behaviour
 
@@ -219,7 +219,7 @@ The `download:` task emits `export BUILD_ARCH=$(uname -m); curl -fsSL "…${BUIL
 ### Related skills
 
 - `/charly-image:layer` — **Canonical task verb catalog, `var:` substitution, YAML anchors, execution order.** Read this first for authoring questions.
-- `/charly-eval:eval` — test-authoring workflow; `eval:` blocks are embedded via `writeJSONLabel` and benefit directly from LABELs-at-end cache efficiency.
+- `/charly-check:check` — test-authoring workflow; `check:` blocks are embedded via `writeJSONLabel` and benefit directly from LABELs-at-end cache efficiency.
 - `/charly-internals:generate-source` — Deep dive on Containerfile emission internals, `Task` struct, per-verb emitters, `stageInlineContent`, `shellSingleQuote` + `shellAnsiQuote` helpers, LABEL-placement rationale.
 - `/charly-internals:go` — Source-code map: `charly/tasks.go` (~430 lines), `charly/generate.go:writeCandySteps` + `writeLabels`, `charly/layers.go` struct definitions.
 - `/charly-selkies:ffmpeg` — canonical URL-repo consumer (triggers the `dnf5-plugins` prepend).

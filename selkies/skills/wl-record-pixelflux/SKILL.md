@@ -50,21 +50,21 @@ pixelflux-record output.mp4 --fps 60 --audio # 60fps + audio
 # Stop with Ctrl-C
 ```
 
-## Integration with `charly eval record`
+## Integration with `charly check record`
 
 ```bash
 # Start desktop video recording (auto-detects pixelflux-record)
-charly eval record start selkies-desktop -n demo --mode desktop --audio
+charly check record start selkies-desktop -n demo --mode desktop --audio
 
 # Run commands (visible in recording)
-charly eval record cmd selkies-desktop "echo hello" -n demo
+charly check record cmd selkies-desktop "echo hello" -n demo
 
 # Interact with desktop
-charly eval cdp open selkies-desktop "https://example.com"
-charly eval wl click selkies-desktop 640 360
+charly check cdp open selkies-desktop "https://example.com"
+charly check wl click selkies-desktop 640 360
 
 # Stop and copy to host
-charly eval record stop selkies-desktop -n demo -o demo.mp4
+charly check record stop selkies-desktop -n demo -o demo.mp4
 ```
 
 ## Architecture
@@ -92,7 +92,7 @@ selkies process (single ScreenCapture singleton — process-wide)
 
 ## Cross-References
 
-- `/charly-eval:record` -- `charly eval record start --mode desktop` auto-detects pixelflux-record
+- `/charly-check:record` -- `charly check record start --mode desktop` auto-detects pixelflux-record
 - `/charly-core:charly-update` -- Per-instance update pattern used to roll out the per-frame `cleanup_texture_cache()` fix across live instances
 - `/charly-selkies:wl-screenshot-pixelflux` -- Screenshot companion (same capture bridge, same singleton)
 - `/charly-selkies:wf-recorder` -- Alternative for sway-desktop (wlr-screencopy)
@@ -110,4 +110,4 @@ Use when the user asks about:
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

@@ -36,7 +36,7 @@ Kong reflection, currently ~192 tools including the authoring
 surface — project scaffolding, YAML editing, file-write verbs) as MCP
 over Streamable HTTP. Any box composing `charly-mcp` advertises itself
 via the `ai.opencharly.mcp_provide` OCI label, so consumers —
-Claude Code, Open WebUI, OpenClaw, or the in-repo `charly eval mcp` client
+Claude Code, Open WebUI, OpenClaw, or the in-repo `charly check mcp` client
 — can drive it without any out-of-band URL configuration.
 
 See `/charly-build:charly-mcp-cmd` Part 2 for the full server architecture: Kong
@@ -171,7 +171,7 @@ in `charly.yml`). Both `network: host` and the default charly bridge work.
 - `/charly-build:charly-mcp-cmd` — **Part 2: Server** is the authoritative reference for `charly mcp serve` architecture, destructive-hint policy, `--read-only` filter, capture model, and the new bootstrapProject() logic.
 - `/charly-image:image` — "Project directory resolution" covers the `-C` / `--dir` / `CHARLY_PROJECT_DIR` global flag and `--repo` / `CHARLY_PROJECT_REPO`.
 - `/charly-core:charly-config` — `--bind project=<path>` is the deployer's handshake with this candy's `volume:` declaration.
-- `/charly-eval:eval` — Deploy-scope `mcp:` test verb methods used here.
+- `/charly-check:check` — Deploy-scope `mcp:` test verb methods used here.
 - `/charly-internals:go` — `charly/mcp_server.go` `bootstrapProject()` implementation, including the env-var proxy detection of top-level flags and the unconditional charly.yml check.
 
 ## When to Use This Skill

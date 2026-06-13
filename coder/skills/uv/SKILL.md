@@ -101,4 +101,4 @@ Three build-scope tests ship with the candy:
 
 ## Related
 
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

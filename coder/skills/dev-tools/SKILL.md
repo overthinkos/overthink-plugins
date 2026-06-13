@@ -55,7 +55,7 @@ The `fastfetch-binary` test is declared with an `exclude_distros:` filter:
     - ubuntu:24.04
 ```
 
-On images whose `ai.opencharly.platform.distro` OCI label includes `ubuntu:24.04`, the test runner skips this check with a reason — see `/charly-eval:eval` "`exclude_distros:` field". This was added because dropping fastfetch from the `ubuntu:24.04:` tag section is clean, but the baked test probe would otherwise false-fail.
+On images whose `ai.opencharly.platform.distro` OCI label includes `ubuntu:24.04`, the test runner skips this check with a reason — see `/charly-check:check` "`exclude_distros:` field". This was added because dropping fastfetch from the `ubuntu:24.04:` tag section is clean, but the baked test probe would otherwise false-fail.
 
 ### Git tooling lives in `/charly-coder:gh`
 
@@ -90,7 +90,7 @@ my-dev:
 ## Related Commands
 - `/charly-build:build` — Build boxes that ship the dev-tools package set
 - `/charly-core:shell` — Interactive shell to use bat/ripgrep/neovim/etc.
-- `/charly-eval:eval` — `exclude_distros:` field reference for the fastfetch-binary test
+- `/charly-check:check` — `exclude_distros:` field reference for the fastfetch-binary test
 - `/charly-image:layer` — authoring reference for distro-tolerant `cmd:` tasks and `exclude_distros:`
 
 ## When to Use This Skill

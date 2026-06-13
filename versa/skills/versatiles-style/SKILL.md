@@ -69,7 +69,7 @@ Single-origin against the versatiles-frontend service avoids
 cross-origin CORS issues that would otherwise need explicit
 `Access-Control-Allow-Origin: *` headers.
 
-## Eval probes
+## Check probes
 
 Build-scope:
 - `versatiles-style-bundle-present` — `find /opt/versatiles-style -maxdepth 3 -name 'versatiles-style*.js' -size +1c` matches at least one non-empty file (the install path's exact filename depends on package version; the find pattern is lenient)

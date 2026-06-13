@@ -76,8 +76,8 @@ charly status <image>
 charly logs <image>
 
 # Check declarative test verdicts (which checks fail, and why)
-charly eval box <image>                # build-scope checks, disposable run
-charly eval live <image>                 # live three-section probe pass
+charly check box <image>                # build-scope checks, disposable run
+charly check live <image>                 # live three-section probe pass
 ```
 
 ### Step 5: FORM HYPOTHESIS
@@ -127,7 +127,7 @@ charly shell <image> -c "test"     # Must run
 - "The layers probably compose; I'll find out at the end" / "the newest version is surely drop-in"
 - "The root cause is probably the X layer" (asserted from the code, never composed and run)
 
-Step 5 (HYPOTHESIS) and Step 7 (FIX) MUST rest on a real bed run (Step 6) — never on documentation, a code reading, or an assumption that was never built and `charly eval`'d.
+Step 5 (HYPOTHESIS) and Step 7 (FIX) MUST rest on a real bed run (Step 6) — never on documentation, a code reading, or an assumption that was never built and `charly check`'d.
 
 **ALWAYS say and do:**
 

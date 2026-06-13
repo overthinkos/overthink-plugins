@@ -26,7 +26,7 @@ candy:
   - wl-record-pixelflux    # Desktop video recording via selkies capture bridge
   - a11y-tools              # AT-SPI2 accessibility introspection (python3-pyatspi)
   - xterm                   # X11 terminal for XWayland testing
-  - tmux                    # Terminal multiplexer (required by charly eval record)
+  - tmux                    # Terminal multiplexer (required by charly check record)
   - asciinema               # Terminal session recording
   - fastfetch               # System information display
   - selkies                 # Streaming server (pixelflux + pcmflux + nginx)
@@ -48,11 +48,11 @@ A browser-accessible desktop at `http://localhost:3000` with:
 - **pcmflux** audio capture → Opus encoding at 320kbps
 - **PipeWire** audio server with PulseAudio compatibility
 - **NGINX** web frontend on port 3000
-- **Full `charly eval wl` automation:** 22 subcommands all working — screenshots (pixelflux), input (wtype, wlrctl), window management (wlrctl toplevel), clipboard (wl-copy/paste), resolution (wlr-randr), accessibility (AT-SPI2), XWayland tools (xdotool, xprop)
-- **`charly eval cdp click --wl`:** CSS selector → Wayland pointer click (no VNC needed)
-- **`charly eval cdp axtree`:** Chrome accessibility tree via CDP
-- **Desktop video recording** via `charly eval record start --mode desktop` (capture bridge → H.264 → ffmpeg MP4, with optional audio)
-- **Fullscreen overlays** via `charly eval wl overlay` (title cards, lower-thirds, countdowns, highlights, fades — rendered by compositor with true alpha transparency, no post-production needed)
+- **Full `charly check wl` automation:** 22 subcommands all working — screenshots (pixelflux), input (wtype, wlrctl), window management (wlrctl toplevel), clipboard (wl-copy/paste), resolution (wlr-randr), accessibility (AT-SPI2), XWayland tools (xdotool, xprop)
+- **`charly check cdp click --wl`:** CSS selector → Wayland pointer click (no VNC needed)
+- **`charly check cdp axtree`:** Chrome accessibility tree via CDP
+- **Desktop video recording** via `charly check record start --mode desktop` (capture bridge → H.264 → ffmpeg MP4, with optional audio)
+- **Fullscreen overlays** via `charly check wl overlay` (title cards, lower-thirds, countdowns, highlights, fades — rendered by compositor with true alpha transparency, no post-production needed)
 - **Configurable keyboard layout** via `XKB_DEFAULT_LAYOUT` — German (de), French (fr), Nordic (no), etc. AltGr characters (@, €, \\, ~) work via direct scancode injection. See `/charly-selkies:labwc`
 
 ## What Works / What Doesn't
@@ -140,9 +140,9 @@ See `/charly-selkies:selkies-labwc` for full multi-instance deployment examples.
 - `/charly-selkies:wl-screenshot-pixelflux` — Screenshots via the shared capture singleton
 - `/charly-distros:arch-builder` — Builder image that compiles patched pixelflux from source on the cachyos base (`cuda-arch-builder` on the GPU build)
 - `/charly-selkies:selkies-labwc` — CPU labwc box that bundles this metalayer (with `/charly-selkies:selkies-labwc-nvidia` for the GPU build)
-- `/charly-eval:wl` — Wayland automation (screenshots, input, windows)
-- `/charly-eval:cdp` — Chrome DevTools Protocol automation
-- `/charly-eval:record` — Desktop video recording via capture bridge
+- `/charly-check:wl` — Wayland automation (screenshots, input, windows)
+- `/charly-check:cdp` — Chrome DevTools Protocol automation
+- `/charly-check:record` — Desktop video recording via capture bridge
 - `/charly-core:charly-update` — Per-instance update pattern used to roll out pixelflux/Chrome fixes
 - `/charly-core:charly-config` — Multi-instance deployment, resource caps, tunnel, proxy env vars, NO_PROXY auto-enrichment
 - `/charly-core:deploy` — Tunnel configuration (charly.yml-only, instance inheritance gap)
@@ -150,4 +150,4 @@ See `/charly-selkies:selkies-labwc` for full multi-instance deployment examples.
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

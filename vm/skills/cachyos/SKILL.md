@@ -3,8 +3,8 @@ name: cachyos
 description: |
   CachyOS bootstrap VM (kind:vm cachyos-vm) — source.kind: bootstrap via
   cachyos-pacstrap-builder + pacstrap, btrfs rootfs, uefi-insecure. Plus the
-  disposable eval-cachyos-vm kind:eval bed. Lives in the overthinkos/cachyos submodule.
-  MUST be invoked before editing cachyos-vm or its eval bed.
+  disposable check-cachyos-vm kind:check bed. Lives in the overthinkos/cachyos submodule.
+  MUST be invoked before editing cachyos-vm or its check bed.
 ---
 
 # cachyos (VM)
@@ -13,11 +13,11 @@ description: |
 `pacstrap` (using `/charly-distros:cachyos-pacstrap-builder`), then boots it under
 libvirt/QEMU.
 
-The `cachyos-vm` entity and its `eval-cachyos-vm` disposable test bed live in
+The `cachyos-vm` entity and its `check-cachyos-vm` disposable test bed live in
 the **`overthinkos/cachyos`** repo (git submodule at **`box/cachyos`**),
-in that repo's config (its `charly.yml` + per-kind sibling files). The bed is a `kind: eval` entity
-(the 2026-05 deploy→eval unification moved repo-shipped disposable beds out of
-`charly.yml`), driven by `charly eval run eval-cachyos-vm`. Drive the VM lifecycle
+in that repo's config (its `charly.yml` + per-kind sibling files). The bed is a `kind: check` entity
+(the 2026-05 deploy→check unification moved repo-shipped disposable beds out of
+`charly.yml`), driven by `charly check run check-cachyos-vm`. Drive the VM lifecycle
 from the submodule: `charly -C box/cachyos vm build cachyos-vm` +
 `charly -C box/cachyos vm create cachyos-vm` (or `charly --repo overthinkos/cachyos …`).
 
@@ -37,15 +37,15 @@ The `cachyos` distro config (base packages, keyring, mirrors, repos) comes from
 the main repo's `build.yml`, flat-imported by the submodule (a bare-string
 `import:` item).
 
-## Eval bed
+## Check bed
 
-`eval-cachyos-vm` is a `kind: eval` bed (`target: vm`, `vm: cachyos-vm`) that
-carries `disposable: true`, so `charly -C box/cachyos eval run eval-cachyos-vm`
+`check-cachyos-vm` is a `kind: check` bed (`target: vm`, `vm: cachyos-vm`) that
+carries `disposable: true`, so `charly -C box/cachyos check run check-cachyos-vm`
 runs the full R10 sequence unattended (the equivalent `charly update
-eval-cachyos-vm` rebuild also works, since the eval bed is folded into the
+check-cachyos-vm` rebuild also works, since the check bed is folded into the
 Deploy map).
 
-`eval-cachyos-gpu-vm` is the **full KDE GPU workstation** bed — it mirrors the
+`check-cachyos-gpu-vm` is the **full KDE GPU workstation** bed — it mirrors the
 operator `cachyos-gpu` workstation's dual-desktop config and is the acceptance gate
 for migrating it. A `cachyos-gpu-vm` guest (bootstrap VM, UEFI, `backend: libvirt`,
 podman) receives a physical NVIDIA GPU via a VFIO `<hostdev>` and runs BOTH (a) a
@@ -94,5 +94,5 @@ remains the faster path when you don't need a VM disk.
 
 ## When to Use This Skill
 
-**MUST be invoked** when editing `cachyos-vm` or its eval bed, or authoring a
+**MUST be invoked** when editing `cachyos-vm` or its check bed, or authoring a
 CachyOS VM. Invoke BEFORE reading source code or launching Explore agents.

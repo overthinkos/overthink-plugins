@@ -155,7 +155,7 @@ openwebui:
 - `/charly-core:charly-config` -- `charly config openwebui --update-all` for service discovery
 - `/charly-build:secrets` -- `charly secrets` for Secret Service / GPG credential management
 - `/charly-core:service` -- `charly service status openwebui` for runtime management
-- `/charly-build:charly-mcp-cmd` -- probe the MCP servers openwebui consumes (auto-configured into `TOOL_SERVER_CONNECTIONS` from `CHARLY_MCP_SERVERS`): `charly eval mcp list-tools <provider-image>` shows what tools openwebui will see, and `charly eval mcp ping` verifies liveness before debugging openwebui itself.
+- `/charly-build:charly-mcp-cmd` -- probe the MCP servers openwebui consumes (auto-configured into `TOOL_SERVER_CONNECTIONS` from `CHARLY_MCP_SERVERS`): `charly check mcp list-tools <provider-image>` shows what tools openwebui will see, and `charly check mcp ping` verifies liveness before debugging openwebui itself.
 
 ## Related Boxes
 
@@ -171,4 +171,4 @@ openwebui:
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

@@ -142,22 +142,22 @@ charly shell hermes -c "hermes mcp list"              # Should show chrome-devto
 
 ## Test Coverage
 
-Latest `charly eval live hermes` run: **50 passed, 0 failed, 0 skipped**.
+Latest `charly check live hermes` run: **50 passed, 0 failed, 0 skipped**.
 Covers all 4 AI CLIs at `${HOME}/.npm-global/bin/{claude,codex,gemini}`
 + pixi's `hermes` at `${HOME}/.pixi/envs/default/bin/hermes`, plus
 dev-tools (rg, bat, gh, fastfetch, nvim, htop) and devops-tools (aws,
 scw, kubectx, kubens, tofu, jq). Deploy-scope: pipewire + hermes
 services up, `/opt/data` volume mounted. Uses `supervisorctl pid` for
-liveness (hermes-whatsapp is autostart=false — see `/charly-eval:eval` Gotcha #4).
+liveness (hermes-whatsapp is autostart=false — see `/charly-check:check` Gotcha #4).
 
 ## Related Skills
 
 - `/charly-hermes:hermes-full-layer`, `/charly-hermes:hermes`, `/charly-coder:claude-code`,
   `/charly-coder:codex`, `/charly-coder:gemini`, `/charly-coder:dev-tools`,
   `/charly-coder:devops-tools`
-- `/charly-eval:eval` — declarative testing framework + supervisord gotchas
+- `/charly-check:check` — declarative testing framework + supervisord gotchas
 - `/charly-core:charly-config` — `CHARLY_MCP_SERVERS` auto-discovery + secret provisioning
-- `/charly-build:charly-mcp-cmd` — verify each MCP server in `CHARLY_MCP_SERVERS` is actually alive before debugging hermes tool-call failures; `charly eval mcp list-tools <provider-image>` shows exactly what hermes will see
+- `/charly-build:charly-mcp-cmd` — verify each MCP server in `CHARLY_MCP_SERVERS` is actually alive before debugging hermes tool-call failures; `charly check mcp list-tools <provider-image>` shows exactly what hermes will see
 - `/charly-selkies:selkies-labwc` — companion for shared browser (CDP)
 - `/charly-jupyter:jupyter` — MCP notebook tools auto-discovered
 

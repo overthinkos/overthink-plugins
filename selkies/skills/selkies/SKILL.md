@@ -210,9 +210,9 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 
 ## Related Commands
 
-- `/charly-eval:wl` — Wayland automation (screenshot via capture bridge, input, windows)
-- `/charly-eval:cdp` — Chrome DevTools and SPA bridge (click, type, key-combo through remote desktop)
-- `/charly-eval:record` — Desktop video recording via capture bridge
+- `/charly-check:wl` — Wayland automation (screenshot via capture bridge, input, windows)
+- `/charly-check:cdp` — Chrome DevTools and SPA bridge (click, type, key-combo through remote desktop)
+- `/charly-check:record` — Desktop video recording via capture bridge
 - `/charly-core:charly-update` — Per-instance update pattern used to roll out pixelflux memory fixes
 - `/charly-core:charly-config` — DRINODE auto-injection, resource caps, NO_PROXY auto-enrichment, keyboard layout XKB env
 - `/charly-core:charly-doctor` — Host GPU probe feeding `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
@@ -224,4 +224,4 @@ The `C.UTF-8` locale (built-in to glibc, no package needed) ensures `wtype` can 
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

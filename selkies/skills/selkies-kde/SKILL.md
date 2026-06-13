@@ -61,13 +61,13 @@ charly -C box/cachyos box build selkies-kde
 charly config selkies-kde
 charly start selkies-kde
 # Access: https://localhost:3000 (accept the self-signed cert)
-charly eval wl screenshot selkies-kde screenshot.png
+charly check wl screenshot selkies-kde screenshot.png
 ```
 
 ## Verification
 
-- `charly eval box selkies-kde` — build-scope (binaries: `plasmashell`, `kwin_wayland`, chrome, selkies).
-- `charly eval run eval-selkies-kde-pod` — the disposable R10 bed: compositor renders
+- `charly check box selkies-kde` — build-scope (binaries: `plasmashell`, `kwin_wayland`, chrome, selkies).
+- `charly check run check-selkies-kde-pod` — the disposable R10 bed: compositor renders
   (plasmashell + kwin_wayland present, `wayland-0` up), live :3000 stream
   (traefik HTTPS + capture STATUS-socket `frames>0`), `kde-selkies-stable` ≥20s uptime.
 

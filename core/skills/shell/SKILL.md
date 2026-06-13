@@ -201,8 +201,8 @@ Use `charly cmd` for quick operations on running services. Use `charly shell -c`
 - `/charly-core:start` -- Same `appendAutoDetectedEnv()` injection at service-start time
 - `/charly-core:charly-config` -- Deployment setup + same `appendAutoDetectedEnv()` at deploy time; `--no-autodetect` flag disables it
 - `/charly-core:deploy` -- `charly.yml` overlay applied to labels before shell spawns
-- `/charly-eval:cdp` -- Chrome DevTools Protocol automation
-- `/charly-eval:wl` (sway subgroup) -- Sway compositor control
+- `/charly-check:cdp` -- Chrome DevTools Protocol automation
+- `/charly-check:wl` (sway subgroup) -- Sway compositor control
 - `/charly-core:charly-doctor` -- Host hardware probe that feeds `appendAutoDetectedEnv()` (DRINODE, HSA_OVERRIDE_GFX_VERSION)
 - `/charly-build:settings` -- Engine and bind address settings
 

@@ -60,7 +60,7 @@ Tilemaker v3.0+ detects the `.pmtiles` extension on `--output` and
 produces a PMTiles archive directly (no `.mbtiles` intermediate).
 Monaco-scale runs complete in ~30 seconds.
 
-## Eval probes
+## Check probes
 
 Build-scope:
 - `tilemaker-installed` — `tilemaker --version` exit 0

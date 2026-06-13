@@ -172,11 +172,11 @@ charly tmux run $IMG -s oauth \
 charly tmux capture $IMG -s oauth | grep -o 'https://auth.openai.com/[^ ]*'
 
 # 3. Open URL in Chrome, complete OAuth via CDP
-charly eval cdp open $IMG "<oauth-url>"
-TAB=$(charly eval cdp list $IMG | grep -i "openai" | head -1 | awk '{print $1}')
-charly eval cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc   # Continue with Google
+charly check cdp open $IMG "<oauth-url>"
+TAB=$(charly check cdp list $IMG | grep -i "openai" | head -1 | awk '{print $1}')
+charly check cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc   # Continue with Google
 sleep 5
-charly eval cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc          # Continue (consent)
+charly check cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc          # Continue (consent)
 
 # 4. Verify token exchange completed
 sleep 10
@@ -244,7 +244,7 @@ Command execution follows a consistent naming pattern across charly:
 
 - `charly cmd` — Single command execution with D-Bus notification (running containers only, no tmux)
 - `/charly-core:shell` — `charly shell` for one-shot commands (no persistence) or `charly shell -c` (full container setup)
-- `/charly-eval:cdp` — Chrome DevTools Protocol (used with tmux for OAuth flows)
+- `/charly-check:cdp` — Chrome DevTools Protocol (used with tmux for OAuth flows)
 - `/charly-automation:openclaw-deploy` — OpenClaw gateway config (OAuth requires tmux for token exchange)
 - `/charly-core:service` — Supervisord service management (different scope: persistent services vs ad-hoc commands)
 - `/charly-infrastructure:tmux-layer` — The tmux candy definition

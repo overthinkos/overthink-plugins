@@ -46,7 +46,7 @@ The `cachyos` base and its derived boxes — `versa`, the `openclaw-*` family,
 desktops — all live in the **`overthinkos/cachyos`** submodule, discovered as
 `box/<name>/charly.yml` boxes. The main repo imports that submodule under the
 `cachyos` import namespace to reference the relocated boxes from its own
-`eval`/`vm`/`local`/`k8s`/`android` entities:
+`check`/`vm`/`local`/`k8s`/`android` entities:
 
 ```yaml
 # main charly.yml
@@ -106,7 +106,7 @@ charly shell cachyos -c "pacman --version"
 
 - `/charly-distros:cachyos-pacstrap-builder` — privileged pacstrap builder (`base: arch.arch`)
 - `/charly-distros:cachyos-pacstrap` — bootstrap-from-scratch rootfs (builds end-to-end)
-- `/charly-vm:cachyos` — bootstrap VM (`cachyos-vm`) + `eval-cachyos-vm` eval bed
+- `/charly-vm:cachyos` — bootstrap VM (`cachyos-vm`) + `check-cachyos-vm` check bed
 - `/charly-local:charly-cachyos` — the operator CachyOS workstation profile
 - `/charly-versa:versa` — CachyOS-rooted notebook/OSM image in this submodule (`base: cachyos`)
 
@@ -145,7 +145,7 @@ After `charly -C box/cachyos box build cachyos`:
 - `charly box list` — box appears
 - `charly shell cachyos -c "pacman --version"` — pacman available
 - `charly box inspect versa --format base` (from main) → `cachyos.cachyos` (the `cachyos` import namespace resolves)
-- `charly eval box cachyos` — build-scope eval: 3 probes pass (os-release `ID=cachyos`,
+- `charly check box cachyos` — build-scope check: 3 probes pass (os-release `ID=cachyos`,
   `pacman --version`, `pacman-conf --repo-list` contains `cachyos-v3`). These also
   pass when `cachyos` is built from main via the `cachyos` import namespace, and are
   inherited by `versa` through the base chain.

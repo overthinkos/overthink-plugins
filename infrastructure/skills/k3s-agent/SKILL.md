@@ -27,7 +27,7 @@ description: |
 3. Writes `/etc/rancher/k3s/config.yaml` with `server:` and `token:`.
 4. Emits `/etc/systemd/system/k3s-agent.service` running `k3s agent`.
 
-No join-token handoff, no kubeconfig retrieval — agents only need the
+No join-token handoff, no kubeconfig retricheck — agents only need the
 server URL (declarative, known at author time) and the pre-shared token
 (from the credential store).
 
@@ -57,8 +57,8 @@ deployments:
 
 ```bash
 charly deploy add vm:k3s-ag1
-# agent registers; charly eval k8s wait-nodes on server confirms the join.
-charly eval k8s wait-nodes --cluster k3s-srv --count 2 --timeout 3m
+# agent registers; charly check k8s wait-nodes on server confirms the join.
+charly check k8s wait-nodes --cluster k3s-srv --count 2 --timeout 3m
 ```
 
 ## Tests
@@ -67,11 +67,11 @@ Build-scope:
 - `/etc/rancher/k3s/config.yaml` exists, mode 0600.
 - `/etc/systemd/system/k3s-agent.service` exists.
 
-Deploy-scope (uses `/charly-kubernetes:eval-k8s`):
+Deploy-scope (uses `/charly-kubernetes:check-k8s`):
 - `k8s: wait-nodes name=${HOSTNAME}` — this node reaches Ready on the
   server.
 
 ## Related Candies
 - `/charly-infrastructure:k3s` — Base candy installing the k3s binary (required dep)
 - `/charly-infrastructure:k3s-server` — Control-plane node this agent joins
-- `/charly-kubernetes:eval-k8s` — Test verb used by the agent-joined check
+- `/charly-kubernetes:check-k8s` — Test verb used by the agent-joined check

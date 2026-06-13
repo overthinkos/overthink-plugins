@@ -3,8 +3,8 @@ name: debian
 description: |
   Debian bootstrap VM (kind:vm debian-debootstrap) — source.kind: bootstrap via
   debian-debootstrap-builder + debootstrap, ext4 rootfs, uefi-insecure. Plus the
-  disposable eval-debian-debootstrap-vm kind:eval bed. Lives in the overthinkos/debian submodule.
-  MUST be invoked before editing debian-debootstrap or its eval bed.
+  disposable check-debian-debootstrap-vm kind:check bed. Lives in the overthinkos/debian submodule.
+  MUST be invoked before editing debian-debootstrap or its check bed.
 ---
 
 # debian (VM)
@@ -13,12 +13,12 @@ description: |
 `debootstrap` (using `/charly-distros:debian-debootstrap-builder`), then boots it
 under libvirt/QEMU.
 
-The `debian-debootstrap` VM entity and its `eval-debian-debootstrap-vm` disposable
+The `debian-debootstrap` VM entity and its `check-debian-debootstrap-vm` disposable
 test bed live in the **`overthinkos/debian`** repo (git submodule at
 **`box/debian`**), in that repo's config (its `charly.yml` + per-kind sibling files). The bed is a
-`kind: eval` entity (the 2026-05 deploy→eval unification moved repo-shipped
-disposable beds out of `charly.yml`), driven by `charly eval run
-eval-debian-debootstrap-vm`. Drive the VM lifecycle from the submodule:
+`kind: check` entity (the 2026-05 deploy→check unification moved repo-shipped
+disposable beds out of `charly.yml`), driven by `charly check run
+check-debian-debootstrap-vm`. Drive the VM lifecycle from the submodule:
 `charly -C box/debian vm build debian-debootstrap` +
 `charly -C box/debian vm create debian-debootstrap` (or
 `charly --repo overthinkos/debian …`).
@@ -39,13 +39,13 @@ The `debian` distro config (debootstrap suite/mirror, base packages, bootloader
 template) comes from the main repo's `build.yml`, flat-imported by the
 submodule (a bare-string `import:` item).
 
-## Eval bed
+## Check bed
 
-`eval-debian-debootstrap-vm` is a `kind: eval` bed (`target: vm`,
+`check-debian-debootstrap-vm` is a `kind: check` bed (`target: vm`,
 `vm: debian-debootstrap`) that carries `disposable: true`, so
-`charly -C box/debian eval run eval-debian-debootstrap-vm` runs the full R10 sequence
-unattended (the equivalent `charly update eval-debian-debootstrap-vm` rebuild also works,
-since the eval bed is folded into the Deploy map).
+`charly -C box/debian check run check-debian-debootstrap-vm` runs the full R10 sequence
+unattended (the equivalent `charly update check-debian-debootstrap-vm` rebuild also works,
+since the check bed is folded into the Deploy map).
 
 ## debootstrap path
 
@@ -67,5 +67,5 @@ don't need a VM disk.
 
 ## When to Use This Skill
 
-**MUST be invoked** when editing `debian-debootstrap` or its eval bed, or
+**MUST be invoked** when editing `debian-debootstrap` or its check bed, or
 authoring a Debian VM. Invoke BEFORE reading source code or launching Explore agents.

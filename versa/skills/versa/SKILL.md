@@ -250,7 +250,7 @@ instead.
 
 ```bash
 charly update --build --force-seed versa
-charly eval live versa         # → 97 passed · 0 failed · 0 skipped
+charly check live versa         # → 97 passed · 0 failed · 0 skipped
 ```
 
 The 4 GPU-library probes (cuGraph/cuML/PyG/graphistry) live alongside
@@ -371,6 +371,6 @@ Python wheel — does not break the `no-build = true` invariant the
 - `/charly-versa:maputnik-layer` — Vite `--base=/` build pattern
 - `/charly-versa:osm-tools-layer` — martin reload pattern
 - `/charly-versa:debug-tools-layer` — debug toolkit
-- `/charly-eval:eval` — eval verbs used by the live probes
+- `/charly-check:check` — check verbs used by the live probes
 - `/charly-core:deploy` — env block authoring + cross-pod topology
 - `/charly-internals:disposable` — `disposable: true` semantics

@@ -172,7 +172,7 @@ writes; every subsequent deploy reads the persisted value. Race-free
 across multi-layer declarations because `DefaultCredentialStore` caches
 via `sync.Once` — when k3s-server and k3s-agent both declare
 `K3S_CLUSTER_TOKEN`, whichever resolves first writes, and the other
-reads. No operator setup required for `charly update eval-k3s-vm` to succeed
+reads. No operator setup required for `charly update check-k3s-vm` to succeed
 on a fresh host.
 
 `secret_accept:` entries do NOT auto-generate (they're optional by
@@ -253,7 +253,7 @@ rotation semantics differ. See `/charly-image:layer` (secret_accept / secret_req
 
 ## Project-Level Secrets (.secrets + direnv)
 
-Separate from charly's credential store, project-level environment variables (e.g., `GMAIL_USER`, `GMAIL_PASSWORD`) are stored in `.secrets` — a GPG-encrypted file at the project root. direnv decrypts it in memory via `charly secrets gpg env` when entering the directory (`eval "$(charly secrets gpg env)"` in `.envrc`).
+Separate from charly's credential store, project-level environment variables (e.g., `GMAIL_USER`, `GMAIL_PASSWORD`) are stored in `.secrets` — a GPG-encrypted file at the project root. direnv decrypts it in memory via `charly secrets gpg env` when entering the directory (`check "$(charly secrets gpg env)"` in `.envrc`).
 
 **This is NOT managed by the `charly secrets` credential store.** The two systems serve different purposes:
 
@@ -271,7 +271,7 @@ Manage GPG-encrypted `.secrets` environment files directly from the CLI. All com
 | Action | Command | Description |
 |--------|---------|-------------|
 | Show contents | `charly secrets gpg show [-f FILE]` | Decrypt and print to stdout |
-| Export for eval | `charly secrets gpg env [-f FILE]` | Decrypt .secrets as `export KEY='value'` for eval/direnv |
+| Export for check | `charly secrets gpg env [-f FILE]` | Decrypt .secrets as `export KEY='value'` for check/direnv |
 | Edit in editor | `charly secrets gpg edit [-f FILE]` | Decrypt, open `$EDITOR`, re-encrypt |
 | Encrypt file | `charly secrets gpg encrypt -r KEY_ID [-i .env] [-o .secrets]` | Encrypt plaintext env file |
 | Decrypt file | `charly secrets gpg decrypt [-i .secrets] [-o FILE]` | Decrypt to file or stdout |
@@ -286,11 +286,11 @@ Manage GPG-encrypted `.secrets` environment files directly from the CLI. All com
 
 ### `charly secrets gpg env`
 
-Decrypt `.secrets` and output `export KEY='value'` lines to stdout. Designed for `eval` or direnv:
+Decrypt `.secrets` and output `export KEY='value'` lines to stdout. Designed for `check` or direnv:
 
 ```bash
-eval "$(charly secrets gpg env)"              # Load secrets into current shell
-eval "$(charly secrets gpg env -f .secrets.prod)"  # Load from specific file
+check "$(charly secrets gpg env)"              # Load secrets into current shell
+check "$(charly secrets gpg env -f .secrets.prod)"  # Load from specific file
 ```
 
 **Behavior:**
@@ -301,7 +301,7 @@ eval "$(charly secrets gpg env -f .secrets.prod)"  # Load from specific file
 
 **Usage in `.envrc`:**
 ```bash
-eval "$(charly secrets gpg env)"
+check "$(charly secrets gpg env)"
 ```
 
 ### Common Workflows

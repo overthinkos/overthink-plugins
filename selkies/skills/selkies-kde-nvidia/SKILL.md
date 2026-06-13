@@ -34,9 +34,9 @@ selkies-kde-nvidia:
   platform: [linux/amd64]
 ```
 
-## NVENC compile-proof (eval-coverage)
+## NVENC compile-proof (check-coverage)
 
-The box carries a build-scope `eval:` check `pixelflux-nvenc-compiled` that
+The box carries a build-scope `check:` check `pixelflux-nvenc-compiled` that
 greps the built pixelflux `.so` for `NvEncodeAPICreateInstance` (the NVENC SDK
 entry point the `nvenc-sys` crate binds). The stub build patches `nvenc-sys` out
 of pixelflux's Cargo.toml, so the symbol is absent → the check FAILS on a
@@ -53,13 +53,13 @@ x264 when the GPU is unavailable.
 
 ```bash
 charly -C box/cachyos box build selkies-kde-nvidia
-charly eval box selkies-kde-nvidia            # build-scope incl. pixelflux-nvenc-compiled
+charly check box selkies-kde-nvidia            # build-scope incl. pixelflux-nvenc-compiled
 ```
 
 NVENC at runtime requires a passed-through NVIDIA GPU — proven on the
-`eval-selkies-kde-nvidia-vm` bed (a `requires_exclusive: [nvidia-gpu]` passthrough
+`check-selkies-kde-nvidia-vm` bed (a `requires_exclusive: [nvidia-gpu]` passthrough
 VM that asserts real NVENC frame production; the preemption arbiter frees the GPU
-from any running holder). See `/charly-internals:disposable` + `/charly-eval:eval`.
+from any running holder). See `/charly-internals:disposable` + `/charly-check:check`.
 
 ## Related Skills
 

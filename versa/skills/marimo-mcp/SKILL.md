@@ -74,21 +74,21 @@ Two paths to execute notebook content programmatically:
 Ping the server (proves it's alive + reachable):
 
 ```bash
-charly eval mcp ping marimo --name marimo
+charly check mcp ping marimo --name marimo
 ```
 
 List the tools (catalog enumeration):
 
 ```bash
-charly eval mcp list-tools marimo --name marimo
+charly check mcp list-tools marimo --name marimo
 ```
 
 Inspect a session's cell map (real diagnostic):
 
 ```bash
-SID=$(charly eval mcp call versa get_active_notebooks '{"args":{}}' --name marimo \
+SID=$(charly check mcp call versa get_active_notebooks '{"args":{}}' --name marimo \
   | python3 -c 'import sys,json; print(json.load(sys.stdin)["data"]["notebooks"][0]["session_id"])')
-charly eval mcp call versa get_lightweight_cell_map "{\"args\":{\"session_id\":\"$SID\"}}" --name marimo
+charly check mcp call versa get_lightweight_cell_map "{\"args\":{\"session_id\":\"$SID\"}}" --name marimo
 ```
 
 ## MCP name decoupling
@@ -105,4 +105,4 @@ explicitly broken in a hard cutover.
 - `/charly-versa:airflow-mcp` — the OTHER MCP server in the same pod
 - `/charly-versa:notebook-osm` — example notebook diagnosed via this MCP
 - `/charly-build:charly-mcp-cmd` — MCP probe verb authoring + URL rewriter
-- `/charly-eval:eval` — `charly eval mcp` subcommand reference
+- `/charly-check:check` — `charly check mcp` subcommand reference

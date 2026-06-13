@@ -24,10 +24,10 @@ rpm:
 
 ## Usage
 
-Used by `charly eval wl screenshot` — auto-detected when `grim` is available in the container.
+Used by `charly check wl screenshot` — auto-detected when `grim` is available in the container.
 
 ```bash
-charly eval wl screenshot <image> [output.png]
+charly check wl screenshot <image> [output.png]
 ```
 
 ## Included In
@@ -40,11 +40,11 @@ charly eval wl screenshot <image> [output.png]
 
 ## Cross-References
 
-- `/charly-eval:wl` — `charly eval wl screenshot` auto-detects grim
+- `/charly-check:wl` — `charly check wl screenshot` auto-detects grim
 - `/charly-selkies:wl-screenshot-pixelflux` — Alternative for selkies-desktop
 - `/charly-selkies:wl-tools` — Companion candy (input, window mgmt, clipboard)
 
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

@@ -236,9 +236,9 @@ To test real-time collaboration, deploy `sway-browser-vnc` alongside:
 ```bash
 charly start sway-browser-vnc
 # Open JupyterLab in two Chrome tabs via container DNS:
-charly eval cdp open sway-browser-vnc "http://charly-jupyter:8888/lab"
+charly check cdp open sway-browser-vnc "http://charly-jupyter:8888/lab"
 # Open second tab
-charly eval cdp open sway-browser-vnc "http://charly-jupyter:8888/lab"
+charly check cdp open sway-browser-vnc "http://charly-jupyter:8888/lab"
 ```
 
 **Executing cells via CDP:** Use `Input.dispatchKeyEvent` (not VNC keys — unreliable when Chrome lacks compositor focus):
@@ -246,14 +246,14 @@ charly eval cdp open sway-browser-vnc "http://charly-jupyter:8888/lab"
 ```bash
 TAB=<tab-id>
 # Focus cell, then Shift+Enter via CDP
-charly eval cdp eval sway-browser-vnc $TAB "document.querySelector('.jp-Cell-inputArea .cm-content')?.focus()"
-charly eval cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"rawKeyDown","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}'
-charly eval cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"keyUp","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}'
+charly check cdp eval sway-browser-vnc $TAB "document.querySelector('.jp-Cell-inputArea .cm-content')?.focus()"
+charly check cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"rawKeyDown","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}'
+charly check cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"keyUp","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}'
 ```
 
 ## Test Coverage
 
-Latest `charly eval live jupyter` run: **29 passed, 0 failed, 0 skipped**.
+Latest `charly check live jupyter` run: **29 passed, 0 failed, 0 skipped**.
 All scenario steps embedded in the `ai.opencharly.description` OCI label:
 jupyter-lab binary under pixi, notebook-templates provisioned into
 `/workspace`, jupyter-mcp extension enabled, fastmcp pip
@@ -262,14 +262,14 @@ on `127.0.0.1`, `/api` returns 200 with `version` in body, `/mcp`
 returns 400 on empty POST (proving MCP routing is wired). `context: [build]` steps:
 `jupyter_mcp` appears in extension list, workspace has ≥1 `.ipynb`.
 
-See `/charly-eval:eval` for the framework and author-facing gotchas.
+See `/charly-check:check` for the framework and author-facing gotchas.
 
 ## Related Skills
 
 - `/charly-jupyter:jupyter`, `/charly-jupyter:jupyter-mcp`, `/charly-jupyter:notebook-templates`
-- `/charly-eval:eval` — declarative testing framework
+- `/charly-check:check` — declarative testing framework
 - `/charly-core:charly-config` — deploy setup
-- `/charly-build:charly-mcp-cmd` — the box inherits 3 `context: [deploy]` `mcp:` scenario steps from the `jupyter` candy (`ping`, `list-tools` asserting all 11 prefixed tool names, `call notebook_list`). Run `charly eval live jupyter --filter mcp` to exercise them against a live deployment, or `charly eval mcp list-tools jupyter` for ad-hoc inspection
+- `/charly-build:charly-mcp-cmd` — the box inherits 3 `context: [deploy]` `mcp:` scenario steps from the `jupyter` candy (`ping`, `list-tools` asserting all 11 prefixed tool names, `call notebook_list`). Run `charly check live jupyter --filter mcp` to exercise them against a live deployment, or `charly check mcp list-tools jupyter` for ad-hoc inspection
 - `/charly-jupyter:jupyter-ml`, `/charly-jupyter:jupyter-ml-notebook` — GPU variants that inherit the same MCP test suite
 
 ## When to Use This Skill

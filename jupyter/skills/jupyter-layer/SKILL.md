@@ -197,17 +197,17 @@ Multiple MCP clients can edit the same notebook simultaneously:
 ## Tests
 
 The candy ships its acceptance scenarios in the top-level `scenario:` list,
-baked into the `ai.opencharly.description` OCI label (see `/charly-eval:eval`
+baked into the `ai.opencharly.description` OCI label (see `/charly-check:check`
 for the full schema). Each step is one inline Op — a probe verb defaults to
 `do: assert` — tagged with the `context:` axis that selects when it runs:
 
-- **`context: [build]`** (run under `charly eval box`):
+- **`context: [build]`** (run under `charly check box`):
   - `jupyter-lab-binary` — `${HOME}/.pixi/envs/default/bin/jupyter-lab`
     exists (proves pixi env install succeeded)
   - `spacy-import` — `python -c "import spacy;
     spacy.load('en_core_web_sm')"` exits 0 (proves NLP packages + model
     load successfully)
-- **`context: [deploy]`** (run under `charly eval live` against a live service):
+- **`context: [deploy]`** (run under `charly check live` against a live service):
   - `workspace-dir` — `/workspace` exists (mount visible)
   - `jupyter-service` — supervisord program `jupyter` is RUNNING
   - `jupyter-port` — `${CONTAINER_IP}:${HOST_PORT:8888}` reachable
@@ -233,7 +233,7 @@ for the full schema). Each step is one inline Op — a probe verb defaults to
 - `/charly-openwebui:openwebui` -- MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code-block execution into the Jupyter kernel)
 - `/charly-infrastructure:supervisord` -- process manager dependency
 - `/charly-languages:python` -- Python runtime (transitive via supervisord)
-- `/charly-build:charly-mcp-cmd` -- end-to-end testing of the candy's MCP endpoint (`charly eval mcp ping`, `list-tools`, `call`); the candy ships 3 deploy-context `mcp:` scenario steps against `list_notebooks`/`insert_cell`/`execute_cell`
+- `/charly-build:charly-mcp-cmd` -- end-to-end testing of the candy's MCP endpoint (`charly check mcp ping`, `list-tools`, `call`); the candy ships 3 deploy-context `mcp:` scenario steps against `list_notebooks`/`insert_cell`/`execute_cell`
 
 ## When to Use This Skill
 

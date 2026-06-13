@@ -1,7 +1,7 @@
 ---
 name: agents
 description: |
-  Claude Code multi-agent support in OpenCharly — sub-agents, dynamic workflows, and agent teams, and how each drives the existing `charly eval` disposable beds to test and verify. MUST be invoked before authoring or invoking an charly sub-agent / dynamic workflow / agent team, wiring agent-lifecycle hooks, or asking "which primitive should drive the R10 beds?".
+  Claude Code multi-agent support in OpenCharly — sub-agents, dynamic workflows, and agent teams, and how each drives the existing `charly check` disposable beds to test and verify. MUST be invoked before authoring or invoking an charly sub-agent / dynamic workflow / agent team, wiring agent-lifecycle hooks, or asking "which primitive should drive the R10 beds?".
 ---
 
 # Agents, Workflows & Teams
@@ -30,7 +30,7 @@ throughout to verify** (CLAUDE.md "Hard Cutover by Default").
   every deploy config) as a script you can rerun. Triggered by the word
   `workflow` in a prompt, by `/effort ultracode`, or by a saved `/<name>`.
 - **Agent team** — parallel *exploration/review* where teammates challenge
-  each other (competing-hypotheses triage of an eval failure). Experimental;
+  each other (competing-hypotheses triage of an check failure). Experimental;
   opt-in only (see "Agent teams" below).
 
 **Preference (default): agents over background tasks — everything that CAN run as
@@ -43,7 +43,7 @@ RESORT, when deterministic scripted control flow (loops / conditionals / large
 fan-out) genuinely cannot be expressed as a team — and even then it surfaces its
 work as agents and stays bed-scoped (see "Implementation workflows are bed-scoped
 too"). Operator-facing agents beat opaque background tasks every time. **The one
-exception is long-running work that outlives a single turn** (a VM/emulator eval
+exception is long-running work that outlives a single turn** (a VM/emulator check
 bed): no agent can reliably hold it — a sub-agent returns synchronously (its
 background children die on return) and a teammate is torn down on idle — so it
 runs as a harness-tracked background task owned by the persistent session, driven
@@ -52,20 +52,20 @@ under the binding rule). "Prefer agents" governs BOUNDED work.
 
 ## The charly agent roster (`plugins/internals/agents/`)
 
-**Executors** — they RUN `charly eval` and return verbatim proof:
+**Executors** — they RUN `charly check` and return verbatim proof:
 
-- **`eval-bed-runner`** — runs `charly eval run <bed>` ONE-SHOT (the full R10
-  sequence: build → eval image → deploy → eval live → fresh `charly update` →
-  teardown) on a `kind: eval` disposable bed; returns per-step status, exit code
+- **`check-bed-runner`** — runs `charly check run <bed>` ONE-SHOT (the full R10
+  sequence: build → check image → deploy → check live → fresh `charly update` →
+  teardown) on a `kind: check` disposable bed; returns per-step status, exit code
   (0 pass / 1 infra / 2 checks-failed), and the failing-step log tail. The R10
   acceptance discipline. A **persistent owner runs every full bed as a
   `run_in_background` task** (main session / background agent / split-pane
   teammate — see "Bed-scoped" below; an in-process teammate CANNOT, its bg dies
   on yield) and pastes the verbatim verdict; teammates do bed-local edits + short
-  foreground checks (`charly eval box`), never the full run. There is no
+  foreground checks (`charly check box`), never the full run. There is no
   duration/600s carve-out — the 600s is a Bash FOREGROUND cap, irrelevant to a
   backgrounded bed.
-- **`deploy-verifier`** — read-mostly: `charly eval box` / `charly eval live` /
+- **`deploy-verifier`** — read-mostly: `charly check box` / `charly check live` /
   `charly status` against an image or a running deploy (the charly repo's images OR a
   user's own deploy config). Answers "does this deploy config work?" without
   mutating anything.
@@ -97,21 +97,21 @@ teammate.
 
 - **`/verify-beds [bed …]`** — the commit-gating full-live-test fan-out, also
   usable for continuous verification throughout development. Runs each
-  `kind: eval` bed (default: all) **in parallel** via `parallel()`, bounded by
+  `kind: check` bed (default: all) **in parallel** via `parallel()`, bounded by
   the runtime's 16-concurrent agent ceiling (KVM/libvirt are multi-tenant,
   podman builds distinct image tags concurrently), and aggregates pass/fail.
   Beds skipped for a missing host prereq are logged, never silently dropped.
-- **`/audit-deploy-configs [image|deploy …]`** — validates + `charly eval box`
-  + optional `charly eval live` + `deploy-verifier` over a set of deploy configs;
+- **`/audit-deploy-configs [image|deploy …]`** — validates + `charly check box`
+  + optional `charly check live` + `deploy-verifier` over a set of deploy configs;
   aggregates a health report. Serves the "evaluate deployment configs, for you and your agents" goal.
-- **`/triage-eval-failure <bed>`** — competing-hypotheses RCA of a failed bed
+- **`/triage-check-failure <bed>`** — competing-hypotheses RCA of a failed bed
   run: parallel `root-cause-analyzer`-style agents each validate a hypothesis
   on the live bed, cross-check adversarially, converge on the root cause, and
   hand back a fix to re-run the real bed (per R1).
 - **`/verify-status [substrate …]`** — substrate-coverage fan-out for the
   unified `charly status` surface: for each substrate (pod / vm / local / android) it
-  runs the bed that exercises it (`eval-pod` / `eval-k3s-vm` / `eval-local` /
-  `eval-android-emulator-pod`) to completion and aggregates a verdict keyed on
+  runs the bed that exercises it (`check-pod` / `check-k3s-vm` / `check-local` /
+  `check-android-emulator-pod`) to completion and aggregates a verdict keyed on
   that bed's `status-shows-*` deploy-scope assertion. Same parallel +
   skip-logging discipline as `/verify-beds`.
 
@@ -122,17 +122,17 @@ cutover (fans the coding out across `agent()` calls) obeys the SAME bed-scoped
 discipline as an agent team — it is the workflow expression of the B3 model
 (`/charly-internals:git-workflow`), not an exemption from it:
 
-- **Partition the parallel work by `kind: eval` bed.** One disjoint disposable
-  bed per parallel owner (`eval-pod` / `eval-k3s-vm` / `eval-local` /
-  `eval-android-emulator-pod` / …). Distinct beds get distinct container/VM/image
+- **Partition the parallel work by `kind: check` bed.** One disjoint disposable
+  bed per parallel owner (`check-pod` / `check-k3s-vm` / `check-local` /
+  `check-android-emulator-pod` / …). Distinct beds get distinct container/VM/image
   names; the author assigns each disjoint host ports too (the loader does NOT
   check ports — an overlap fails the second bed at deploy), so they run
   concurrently and safely.
-- **Eval-test at EVERY stage, never only at the end.** Each parallel owner
+- **Check-test at EVERY stage, never only at the end.** Each parallel owner
   **verifies before it changes** (Risk Driven Development — proves its bed's
   high-risk assumptions, above all the composition, on its live bed/backend
   first, never trusting a doc or the code for a high-risk call) and runs its
-  bed's real `charly eval run <bed>` as the fresh-rebuild R10.
+  bed's real `charly check run <bed>` as the fresh-rebuild R10.
 - **Read-only review is an ADDITIONAL layer, NEVER a substitute.** A workflow
   that replaces real-deployment bed runs with a read-only diff-review phase is a
   protocol violation — the opposite of this skill and of CLAUDE.md "Agents,
@@ -156,15 +156,15 @@ discipline as an agent team — it is the workflow expression of the B3 model
 
 ## The binding rule: running a bed is R10-class
 
-`charly eval run <bed>` and `charly update` perform an unattended destroy + rebuild.
+`charly check run <bed>` and `charly update` perform an unattended destroy + rebuild.
 Therefore, for ANY agent or workflow that runs them:
 
 - **Disposable-only (R10 / Disposable-Only Autonomy).** The sole authorization is the bed's explicit
-  `disposable: true`. Agents run `kind: eval` beds, never arbitrary deploys.
+  `disposable: true`. Agents run `kind: check` beds, never arbitrary deploys.
 - **The commit is gated, not the run (Hard Cutover by Default).** The git commit happens ONLY
   after a full live test of EVERYTHING — the FINAL code, on `disposable: true`
-  beds — passes and is pasted. Running `/verify-beds`, `eval-bed-runner`, or
-  any `charly eval run` THROUGHOUT development — in parallel or in the background,
+  beds — passes and is pasted. Running `/verify-beds`, `check-bed-runner`, or
+  any `charly check run` THROUGHOUT development — in parallel or in the background,
   to validate assumptions before you change and to diagnose errors — is
   ENCOURAGED. A run that passes on an *intermediate* state simply does not
   authorize the commit; only the full final-code run does.
@@ -176,7 +176,7 @@ Therefore, for ANY agent or workflow that runs them:
   conversation. A delegated bed run whose failure is summarized away is the
   exact fraud pattern the project bans.
 - **Handling a long-running bed — by mechanism, not by who owns it.** A
-  VM/emulator bed (`eval-k3s-vm`, `eval-android-emulator-pod`, the bootstrap-VM
+  VM/emulator bed (`check-k3s-vm`, `check-android-emulator-pod`, the bootstrap-VM
   beds) runs for minutes-to-tens-of-minutes and its libvirt domain / emulator
   OUTLIVES a single turn. Run it by the mechanism, not a who-owns-it rule:
   - **Launch as a harness-tracked background task** (`run_in_background`). NEVER
@@ -190,16 +190,16 @@ Therefore, for ANY agent or workflow that runs them:
     persistent main session does. An ephemeral sub-agent does NOT (the `Agent`
     tool returns synchronously — its background children die when it returns),
     and an idle teammate does NOT (its process tree is torn down on idle) — both
-    orphan the bed. **Every full `charly eval run <bed>` belongs to the persistent
+    orphan the bed. **Every full `charly check run <bed>` belongs to the persistent
     session as a background task — the only session that survives across turns to
     be notified.** Duration-independent: there is no time budget, and the Bash
     600s figure is a FOREGROUND cap that never applies to a backgrounded bed.
     Sub-agents/teammates do bed-local edits + short foreground checks
-    (`charly eval box`), never the full run.
+    (`charly check box`), never the full run.
   - **Reconnect via durable state, never a held process handle.**
-    `.eval/<bed>/<calver>/summary.yml` (overall `ok:` + per-step status) + the
+    `.check/<bed>/<calver>/summary.yml` (overall `ok:` + per-step status) + the
     live domain/container ARE the source of truth: "done + verdict" =
-    `summary.yml` exists; "still alive" = the `charly eval run` orchestrator is in
+    `summary.yml` exists; "still alive" = the `charly check run` orchestrator is in
     the process table. On a suspected orphan — a `running` domain with NO live
     orchestrator — `charly vm destroy <entity>` (or `charly remove <name>`) before
     re-running. You re-derive state from disk; you never "lose" a run.
@@ -273,11 +273,11 @@ can enforce gates (exit 2 = block + feedback); the shipped
 
 ### Bed-scoped parallel real-deployment testing
 
-The **eval bed is the unit of ownership, isolation, AND throughput** — it
-replaces the git worktree. `charly eval run --all-beds` is strictly SEQUENTIAL (a
-plain loop in `eval_runner_cmd.go`; `charly` spawns no goroutines for beds), so the
+The **check bed is the unit of ownership, isolation, AND throughput** — it
+replaces the git worktree. `charly check run --all-beds` is strictly SEQUENTIAL (a
+plain loop in `check_runner_cmd.go`; `charly` spawns no goroutines for beds), so the
 ONLY way to compress a multi-bed cutover's wall-clock is to run the beds
-concurrently — and **every full `charly eval run <bed>` is a long, multi-turn
+concurrently — and **every full `charly check run <bed>` is a long, multi-turn
 background task whose OWNER must survive across turns to receive the completion
 notification.** A bed run is launched with `run_in_background` (uncapped — it runs
 across turns; the Bash 600s figure is a FOREGROUND cap that never applies) and
@@ -290,7 +290,7 @@ this host) which contexts can own a bed:**
 - ✓ **A background agent** (`Agent` tool, `run_in_background`) — a separate
   supervisor-managed process that persists, runs to completion, and reports
   (proven: a 100s task completed + reported back). A per-bed out-of-process owner
-  that works headless. Caveat: its INTERNAL `charly eval run` is one foreground call
+  that works headless. Caveat: its INTERNAL `charly check run` is one foreground call
   (600s-capped), so for a long bed prefer the main-session `run_in_background`
   task or step the bed.
 - ✓ **A split-pane teammate** — a separate persistent process, so it CAN own a
@@ -299,16 +299,16 @@ this host) which contexts can own a bed:**
 - ✗ **An in-process teammate** (the headless `teammateMode: auto` default) —
   CANNOT own a bed that outlives a turn: its `run_in_background` task is TORN DOWN
   the instant it yields (verified 4× — marker absent, no process, never
-  re-invoked). It runs bed-local EDITS + short foreground checks (`charly eval box`,
-  `charly box validate`) only, never the full `charly eval run`.
+  re-invoked). It runs bed-local EDITS + short foreground checks (`charly check box`,
+  `charly box validate`) only, never the full `charly check run`.
 
 So **"one agent ⇄ one bed" = one PERSISTENT owner per bed**, launched
 longest-pole-first: headless → the persistent session runs N concurrent
 `run_in_background` bed tasks (or a background agent per bed); interactive tmux →
 a split-pane teammate per bed. NEVER an in-process teammate.
-Two load-time guards back the isolation: `foldEvalBeds` rejects any
-`kind: eval` bed whose name collides with a `kind: deploy` entry, and
-`validateEvalBeds` requires every bed to set `disposable: true` and to declare a
+Two load-time guards back the isolation: `foldCheckBeds` rejects any
+`kind: check` bed whose name collides with a `kind: deploy` entry, and
+`validateCheckBeds` requires every bed to set `disposable: true` and to declare a
 `target ∈ {pod, vm, local, android}` (with the referenced vm/local/android
 entity present). Distinct beds therefore get distinct `charly-<bed>`
 container / libvirt-domain / image names. **Host-port disjointness is NOT
@@ -320,7 +320,7 @@ not catch an overlap for you. A bed pins an image → layers → files, so ownin
 bed owns those source files.
 
 Each bed is a **candybox** (CLAUDE.md "Candyboxing"): a disposable, secured
-deployment stocked with the FULL `charly` + MCP + `charly eval` toolset, so the bed's
+deployment stocked with the FULL `charly` + MCP + `charly check` toolset, so the bed's
 owner can build / deploy / prove the real thing inside its boundary and rebuild
 it fearlessly — never a tool-restricted sandbox.
 
@@ -328,13 +328,13 @@ The playbook:
 
 1. **Lead partitions the beds** so no two teammates own the same bed's source.
 2. **A PERSISTENT owner runs each bed; in-process teammates edit + short-check.**
-   The full `charly eval run <bed>` (build → eval image → deploy → eval live → fresh
+   The full `charly check run <bed>` (build → check image → deploy → check live → fresh
    `charly update` → teardown) runs as a `run_in_background` task on a PERSISTENT
    owner: headless → the lead/persistent session (one `run_in_background` task per
    bed, or a background agent per bed); interactive tmux → a split-pane teammate
-   per bed. It follows the `eval-bed-runner` verbatim-verdict discipline; failures
+   per bed. It follows the `check-bed-runner` verbatim-verdict discipline; failures
    triage via `root-cause-analyzer`. IN-PROCESS teammates (the headless default)
-   do bed-local EDITS + short foreground checks (`charly eval box`,
+   do bed-local EDITS + short foreground checks (`charly check box`,
    `charly box validate`) ONLY — they cannot run a full bed (their bg dies on
    yield). Review/RCA are auxiliary — never a substitute for the live run.
 3. **Verify before you change (Risk Driven Development)**: each teammate proves
@@ -353,16 +353,16 @@ The playbook:
 5. **The lead owns the single commit**, gated on the consolidated full
    final-code live test (the beds in parallel). Teammates never commit/push.
 
-Worked partition (illustrative): A→`{eval-pod, eval-local}`,
-B→`{eval-jupyter-pod, eval-versa-pod}`, C→`{eval-k3s-vm}` (VM, needs the
-libvirt user session), D→`{eval-sway-browser-vnc-pod}` (heavy). All concurrent
+Worked partition (illustrative): A→`{check-pod, check-local}`,
+B→`{check-jupyter-pod, check-versa-pod}`, C→`{check-k3s-vm}` (VM, needs the
+libvirt user session), D→`{check-sway-browser-vnc-pod}` (heavy). All concurrent
 → multiple pods *and* a VM live at once; wall-clock ≈ the slowest chain, not
 the sum.
 
 ### Speed levers (grounded in the real bed cycle)
 
 One-agent-per-bed is the headline speedup; these compound it, each grounded in
-how `charly eval run` actually behaves:
+how `charly check run` actually behaves:
 
 - **A pod bed builds the image ONCE.** Step 1 (`charly box build`) is the only
   build; the "fresh `charly update`" R10 gate is a `systemctl restart` onto the
@@ -374,9 +374,9 @@ how `charly eval run` actually behaves:
   `EffectiveVersion` keeps the base `FROM`-SHA stable so cache misses don't
   cascade. Build the base (or the first same-base bed) once before fan-out →
   every sibling bed's build is incremental, rebuilding only changed layers.
-- **`eval:`-check iteration is nearly free.** LABELs are emitted LAST in the
+- **`check:`-check iteration is nearly free.** LABELs are emitted LAST in the
   Containerfile, so a check-only edit rebuilds in seconds (every upstream
-  RUN/COPY cache-hits). Write eval coverage aggressively; only layer/package
+  RUN/COPY cache-hits). Write check coverage aggressively; only layer/package
   edits pay a full rebuild.
 - **`context_ignore` + `--podman-jobs` / `--jobs`** are the legitimate
   build-speed levers (trim the build-context tar; parallelize stages within one
@@ -389,12 +389,12 @@ scheduling. R10-SCOPE-SHRINKING (need explicit per-turn operator authorization,
 CLAUDE.md R10 flag-override clause): `--no-rebuild` (skips the R10 fresh-update
 gate), `--keep`, `--skip-rebuild`. "To go faster / to fit the session" is the
 confession, not the defense. The full flag catalog + rule:
-`/charly-eval:eval` "Flag discipline".
+`/charly-check:check` "Flag discipline".
 
 ## Cross-References
 
-- `/charly-eval:eval` — the bed surface these agents/workflows drive (`charly eval
-  run`/`image`/`live`, the `kind: eval` bed inventory, exit codes).
+- `/charly-check:check` — the bed surface these agents/workflows drive (`charly check
+  run`/`image`/`live`, the `kind: check` bed inventory, exit codes).
 - `/charly-internals:disposable` — why `disposable: true` is the sole destroy
   authorization.
 - `/charly-internals:git-workflow` — the R10-gated landing the executors feed.
@@ -405,5 +405,5 @@ confession, not the defense. The full flag catalog + rule:
 
 Invoke before authoring or invoking an charly sub-agent / dynamic workflow /
 agent team, before wiring agent-lifecycle or commit/push gate hooks, and
-whenever deciding which primitive should drive the `charly eval` beds for a given
+whenever deciding which primitive should drive the `charly check` beds for a given
 verification.

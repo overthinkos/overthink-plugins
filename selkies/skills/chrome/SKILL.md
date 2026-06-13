@@ -94,7 +94,7 @@ Usually used via the `chrome-sway` or `sway-desktop` composition candies rather 
 
 ## Google Sign-In
 
-Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see `/charly-eval:cdp` for the full recipe). All clicks use `charly eval cdp click --vnc` (CDP selector targeting + VNC pointer delivery), and all text input uses `charly eval vnc type` (real OS-level keysym events). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts. Use `charly remove <image> --purge` to clear for a fresh start — just rebuilding the box does not reset volumes.
+Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see `/charly-check:cdp` for the full recipe). All clicks use `charly check cdp click --vnc` (CDP selector targeting + VNC pointer delivery), and all text input uses `charly check vnc type` (real OS-level keysym events). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts. Use `charly remove <image> --purge` to clear for a fresh start — just rebuilding the box does not reset volumes.
 
 **App Passwords (required for automation):** Google accounts with 2FA (now mandatory for most accounts) require a 16-character [App Password](https://myaccount.google.com/apppasswords). App Passwords bypass all verification challenges and 2FA prompts. Set `GMAIL_PASSWORD` to the App Password in `.env`.
 
@@ -249,7 +249,7 @@ curl -s "http://localhost:9222/json/list"
 
 ## CDP Diagnostics
 
-`charly eval cdp` commands now show diagnostics on connection failure: checks Chrome process, cdp-proxy status, and port binding. Hints use `charly eval wl sway exec <image> chrome-wrapper` (not `charly shell` with bare `swaymsg`) for manual Chrome restart.
+`charly check cdp` commands now show diagnostics on connection failure: checks Chrome process, cdp-proxy status, and port binding. Hints use `charly check wl sway exec <image> chrome-wrapper` (not `charly shell` with bare `swaymsg`) for manual Chrome restart.
 
 ## Used In Boxes
 
@@ -264,12 +264,12 @@ curl -s "http://localhost:9222/json/list"
 
 ## Related Commands
 
-- `/charly-eval:cdp` — Chrome DevTools Protocol automation (click, type, eval, screenshot)
+- `/charly-check:cdp` — Chrome DevTools Protocol automation (click, type, check, screenshot)
 - `/charly-core:shell` — Interactive shell to access Chrome
-- `/charly-eval:vnc` — VNC automation (used with `--vnc` flag on `charly eval cdp click`)
-- `/charly-eval:wl` — Wayland automation (used with `--wl` flag on `charly eval cdp click`)
+- `/charly-check:vnc` — VNC automation (used with `--vnc` flag on `charly check cdp click`)
+- `/charly-check:wl` — Wayland automation (used with `--wl` flag on `charly check cdp click`)
 - `/charly-core:charly-config` — Proxy deployment, `normalizeNoProxy()` auto-conversion, `sep:"none"` env handling
-- `/charly-build:charly-mcp-cmd` — the auto-included `chrome-devtools-mcp` sub-candy exposes 29 tools via Streamable HTTP on port 9224; probe with `charly eval mcp list-tools <image>` or run the declarative 2-check suite via `charly eval live <image> --filter mcp`
+- `/charly-build:charly-mcp-cmd` — the auto-included `chrome-devtools-mcp` sub-candy exposes 29 tools via Streamable HTTP on port 9224; probe with `charly check mcp list-tools <image>` or run the declarative 2-check suite via `charly check live <image> --filter mcp`
 
 ## When to Use This Skill
 
@@ -283,4 +283,4 @@ Use when the user asks about:
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

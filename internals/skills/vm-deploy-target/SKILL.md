@@ -15,7 +15,7 @@ description: |
 ## Implementation notes
 
 - The pod deploy target is `PodDeployTarget` (`charly/deploy_target_pod.go`); ledger target keying uses `pod:<name>`.
-- `vmNameFromDeployName` strips the `vm:` prefix. The dispatch upstream (`deploy_add_cmd.go`) rewrites a plain deploy key like `eval-arch-vm` to `vm:<vm-name>` before resolving via `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del`, so internal VM code always sees the prefixed form.
+- `vmNameFromDeployName` strips the `vm:` prefix. The dispatch upstream (`deploy_add_cmd.go`) rewrites a plain deploy key like `check-arch-vm` to `vm:<vm-name>` before resolving via `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del`, so internal VM code always sees the prefixed form.
 - `UnifiedDeployTarget` / `LifecycleTarget` interfaces (`charly/deploy_target_unified.go`) + the `ResolveTarget` dispatcher (`charly/unified_targets.go`) provide the full lifecycle contract (`Add` / `Del` / `Test` / `Update` / `Start` / `Stop` / `Status` / `Logs` / `Shell` / `Rebuild`).
 - Disposability is read from the `DeploymentNode` with `target: vm` + matching `vm:` (see `charly/run_subcommand.go::vmDisposableFromDeployments`); it is NOT a `VmSpec` field. This helper surfaces lifecycle metadata to operator-facing output (`vm_classification.go`, `charly vm cycle`); the disposability-as-authorization gate is NOT applied in the `charly update` path — `charly update <vm>` rebuilds on explicit invocation regardless. `VmUnifiedTarget.Rebuild` (`charly/unified_targets_vm.go`) recreates the domain THEN re-applies the deploy node's layers via the shared `charly deploy add <node>` path — the same layer-apply primitive `LocalUnifiedTarget`/`PodUnifiedTarget` Rebuild use (R3).
 
@@ -160,11 +160,11 @@ own layers, including any kernel-driver reboot + the boot-time
 
 Idempotent (cp-box skips an intact image; from-box re-applies on `charly update`).
 The dispatch routes a VM-root deploy node-only (its pod children deploy in-guest
-here, never via a host tree walk). `charly eval live <vm>.<pod>` evaluates the
-running nested pod by DELEGATING to the guest `charly eval live <pod>` (where it is
+here, never via a host tree walk). `charly check live <vm>.<pod>` evaluates the
+running nested pod by DELEGATING to the guest `charly check live <pod>` (where it is
 a direct pod — guest-local podman + ports + the guest `charly`), so the protocol
 verbs (cdp/wl/dbus/vnc/mcp) and `${HOST_PORT}` checks run natively instead of
-skipping; see `/charly-eval:eval` "parent.child reaches the actual leaf". `charly vm
+skipping; see `/charly-check:check` "parent.child reaches the actual leaf". `charly vm
 cp-box` is the host→guest image delivery for it.
 
 ## VmDeployState persistence

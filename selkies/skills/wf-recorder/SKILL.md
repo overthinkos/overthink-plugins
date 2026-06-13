@@ -42,18 +42,18 @@ wf-recorder -f output.mp4 -r 60        # 60fps
 # Stop with Ctrl-C
 ```
 
-## Integration with `charly eval record`
+## Integration with `charly check record`
 
 ```bash
 # Start recording sway desktop (auto-detects wf-recorder)
-charly eval record start sway-browser-vnc -n demo --mode desktop
+charly check record start sway-browser-vnc -n demo --mode desktop
 
 # Interact with desktop
-charly eval wl click sway-browser-vnc 640 360
-charly eval record cmd sway-browser-vnc "neofetch" -n demo
+charly check wl click sway-browser-vnc 640 360
+charly check record cmd sway-browser-vnc "neofetch" -n demo
 
 # Stop and copy to host
-charly eval record stop sway-browser-vnc -n demo -o demo.mp4
+charly check record stop sway-browser-vnc -n demo -o demo.mp4
 ```
 
 ## Included In
@@ -66,7 +66,7 @@ charly eval record stop sway-browser-vnc -n demo -o demo.mp4
 
 ## Cross-References
 
-- `/charly-eval:record` — `charly eval record start --mode desktop` auto-detects wf-recorder
+- `/charly-check:record` — `charly check record start --mode desktop` auto-detects wf-recorder
 - `/charly-selkies:wl-record-pixelflux` — Alternative for selkies-desktop (pixelflux pipeline)
 - `/charly-selkies:wl-screenshot-grim` — Screenshot companion (same wlr-screencopy protocol)
 - `/charly-selkies:sway-desktop` — Parent metalayer
@@ -81,4 +81,4 @@ Use when the user asks about:
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

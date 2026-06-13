@@ -30,7 +30,7 @@ description: |
    retrieved file lands at `~/.cache/charly/clusters/<deploy_name>/kubeconfig.yaml`
    with `127.0.0.1` rewritten to `${K3S_SERVER_HOSTNAME}` so the operator
    can `kubectl` the cluster from their machine.
-5. The `K3sPostProvision` hook (Go, runs after artifact retrieval)
+5. The `K3sPostProvision` hook (Go, runs after artifact retricheck)
    merges the kubeconfig into `~/.kube/config` under context
    `<deploy_name>` and writes a matching ClusterProfile to
    `~/.config/charly/clusters/<deploy_name>.yaml` with `ingress.class=traefik`
@@ -86,7 +86,7 @@ charly vm create k3s-srv
 charly deploy add vm:k3s-srv
 # → kubeconfig auto-retrieved + ClusterProfile written
 kubectl --context k3s-srv get nodes
-charly eval k8s addons --cluster k3s-srv
+charly check k8s addons --cluster k3s-srv
 ```
 
 ## Tests
@@ -95,7 +95,7 @@ Build-scope:
 - `/etc/rancher/k3s/config.yaml` exists, mode 0600.
 - `/etc/systemd/system/k3s.service` exists.
 
-Deploy-scope (using the new `charly eval k8s` verb — see `/charly-kubernetes:eval-k8s`):
+Deploy-scope (using the new `charly check k8s` verb — see `/charly-kubernetes:check-k8s`):
 - `k8s: wait-nodes` — at least 1 node Ready.
 - `k8s: ingressclass` — `traefik` present.
 - `k8s: storageclass` — `local-path` present.
@@ -105,4 +105,4 @@ Deploy-scope (using the new `charly eval k8s` verb — see `/charly-kubernetes:e
 - `/charly-infrastructure:k3s` — Base candy installing the k3s binary (required dep)
 - `/charly-infrastructure:k3s-agent` — Worker nodes joining this server
 - `/charly-coder:kubernetes-layer` — `kubectl`/`helm` on the operator side (not needed in the cluster)
-- `/charly-kubernetes:eval-k8s` — The test verb used by this candy's deploy-scope checks
+- `/charly-kubernetes:check-k8s` — The test verb used by this candy's deploy-scope checks

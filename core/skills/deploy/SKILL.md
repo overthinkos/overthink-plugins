@@ -12,7 +12,7 @@ description: |
 - **Cross-ref fields on `DeploymentNode`** — `vm: <entity>` for target: vm, `box: <name>` for target: pod, `k8s: <name>` for target: k8s, `inside: <deploy>` for nested local-deploy. Deploy nesting uses `nested:`.
 - **Disposability is a deploy property** — `DeploymentNode.Disposable` is the sole source of truth.
 - **Resource arbitration is a deploy property** — `preemptible:` (holder; occupies exclusive host-resource token(s), may be gracefully stopped + restored) and `requires_exclusive:` (claimant; needs sole use) on `DeploymentNode` drive the arbiter (`charly preempt`). A fourth axis ORTHOGONAL to disposable/ephemeral/lifecycle. See "Preemptible resource arbitration" below + `/charly-internals:disposable`.
-- **Disposable R10 test beds are `kind: eval` entities** (run via `charly eval run <bed>`), NOT `deploy:` entries — ecosystem-wide. The main repo's beds (`eval-pod`, `eval-k3s-vm`, `eval-sway-browser-vnc-pod`, …) AND every `box/<distro>` submodule's beds (the arch / cachyos / debian / ubuntu / fedora bootstrap-VM + pacstrap/debootstrap beds, in each submodule's config — its `charly.yml` + per-kind sibling files) are `kind: eval`. Repos ship NO `kind: deploy` test beds; the one `kind: deploy` exception is the cachyos submodule's `charly-cachyos` operator workstation profile (a profile, not a test bed). Operator deployments otherwise live in the per-host `~/.config/charly/charly.yml`. See `/charly-eval:eval` "kind: eval beds".
+- **Disposable R10 test beds are `kind: check` entities** (run via `charly check run <bed>`), NOT `deploy:` entries — ecosystem-wide. The main repo's beds (`check-pod`, `check-k3s-vm`, `check-sway-browser-vnc-pod`, …) AND every `box/<distro>` submodule's beds (the arch / cachyos / debian / ubuntu / fedora bootstrap-VM + pacstrap/debootstrap beds, in each submodule's config — its `charly.yml` + per-kind sibling files) are `kind: check`. Repos ship NO `kind: deploy` test beds; the one `kind: deploy` exception is the cachyos submodule's `charly-cachyos` operator workstation profile (a profile, not a test bed). Operator deployments otherwise live in the per-host `~/.config/charly/charly.yml`. See `/charly-check:check` "kind: check beds".
 
 ## Overview
 
@@ -36,7 +36,7 @@ emitting workloads onto a cluster. The cross-ref is `android: <device>`; apps
 ride in on `add_candy:` (no apk-list field). Nested `pod → android` (the device
 on its emulator pod) mirrors `vm → k8s`; a pod's android children deploy AFTER
 `charly start` (use `--node-only` on the pod's deploy-add, then dotted-path
-`charly deploy add pod.device`). See `/charly-eval:android`. K8s-specific choices (storage class, ingress class, cert issuer, secret backend) live in a **cluster profile** file (`~/.config/charly/clusters/<name>.yaml` or in-repo `clusters/<name>.yaml`), *not* in the deployment. This means one deployment spec targets dev/staging/prod clusters with zero schema changes — only the cluster profile differs.
+`charly deploy add pod.device`). See `/charly-check:android`. K8s-specific choices (storage class, ingress class, cert issuer, secret backend) live in a **cluster profile** file (`~/.config/charly/clusters/<name>.yaml` or in-repo `clusters/<name>.yaml`), *not* in the deployment. This means one deployment spec targets dev/staging/prod clusters with zero schema changes — only the cluster profile differs.
 
 `charly start` / `charly stop` remain as ergonomic wrappers: `charly start <image>` is equivalent to `charly deploy add <image> <image>` with the container target; `charly stop <name>` is `charly deploy del <name>`. New scripts should prefer the explicit `charly deploy add`/`charly deploy del` forms, especially when using `--add-candy` overlays or the `host` target.
 
@@ -94,7 +94,7 @@ When `<ref>` is omitted, the ref falls back to `charly.yml['deploys'][<name>]['i
 - `--dry-run` — print the InstallPlan without executing
 - `--format table|json` — with `--dry-run`
 - `--pull` — force re-fetch of remote refs / image pull
-- `--verify` — run layer `eval:` post-deploy
+- `--verify` — run layer `check:` post-deploy
 - `--add-candy <ref>` — repeatable; extra layer(s) applied on top (all 4 ref forms)
 
 **Local-target-specific** (silently ignored on pod deploys):
@@ -176,7 +176,7 @@ This is the same merge semantics as `LocalDeployTarget` — just with SSH-wrappe
 | `with_services` | Enable systemd units declared in layers' `service:` lists |
 | `allow_repo_changes` | Permit repo-config mutations (rpmfusion, copr) in the guest |
 | `allow_root_tasks` | Permit arbitrary `cmd: user: root` tasks in the guest |
-| `verify` | Run layer `eval:` over SSH post-deploy |
+| `verify` | Run layer `check:` over SSH post-deploy |
 | `skip_incompatible` | Skip layers lacking a guest-matching format section |
 
 `builder_image` + `yes` also apply. Host-target-only gates that don't apply to VM target: none — the gate semantics are identical.
@@ -310,7 +310,7 @@ the deploy explicitly **pins** it. The result persists as `resolved_port:` and a
 prior allocation is reused for stability across `charly update`. `localizePort` +
 `BindAddress` (default `127.0.0.1`) bind every published port — auto-allocated
 and pinned alike — to loopback only; `charly status` shows the live mapping and
-eval probes resolve it via `${HOST_PORT:N}`.
+check probes resolve it via `${HOST_PORT:N}`.
 
 A deploy/bed `port:` entry is a **PIN** (`host:container`) for specific container
 ports — the rest still auto-allocate (it is no longer a wholesale replacement,
@@ -328,7 +328,7 @@ when you need a fixed, predictable host port:
 entry's quadlet `PublishPort=` is sourced from THAT entry's own
 `resolved_port:`/`port:`, looked up by its deploy key. Multiple deploys backed by
 the same image short-name on one host (Pattern A instances, Pattern B
-pinned/canary deploys, and `kind: eval` beds whose `box:` matches a running
+pinned/canary deploys, and `kind: check` beds whose `box:` matches a running
 production deploy) each get their own independent ports — a bed's
 auto-allocation never collides with a sibling's (the allocator excludes other
 deploys' host ports). `MergeDeployOntoMetadata` and `dc.Lookup` both take the
@@ -338,7 +338,7 @@ sibling that merely shares the image.
 
 ### Why `box:` is required (R10 implication)
 
-The eval runner inspects exactly the image the operator declared in
+The check runner inspects exactly the image the operator declared in
 `box:`, never what the container happens to be. Without an explicit
 `box:` field the runner would resolve the running container's image
 ref via `containerImageRef()`; for volume-pinned deploys (where
@@ -844,7 +844,7 @@ For images with wayvnc (VNC on tcp:5900), set a VNC password after enabling:
 
 ```bash
 charly config sway-browser-vnc
-charly eval vnc passwd sway-browser-vnc --generate   # auto-generates password, prints to stdout
+charly check vnc passwd sway-browser-vnc --generate   # auto-generates password, prints to stdout
 ```
 
 Or pre-set via settings before deployment:
@@ -853,10 +853,10 @@ Or pre-set via settings before deployment:
 charly settings set vnc.password.sway-browser-vnc mysecret
 charly config sway-browser-vnc
 # After container starts, run passwd to configure server-side auth:
-charly eval vnc passwd sway-browser-vnc    # uses stored password (no prompt)
+charly check vnc passwd sway-browser-vnc    # uses stored password (no prompt)
 ```
 
-See `/charly-eval:vnc` for full VNC authentication documentation.
+See `/charly-check:vnc` for full VNC authentication documentation.
 
 ## Port Relay Pattern
 
@@ -872,7 +872,7 @@ port_relay:
 
 Requires the `socat` layer as a dependency. The relay runs as a `relay-<port>` service in the configured init system. See `/charly-openclaw:openclaw` for an example.
 
-**Chrome CDP exception:** Chrome DevTools no longer uses `port_relay`. Chrome 146+ rejects connections with non-localhost Host headers, so a simple socat relay is insufficient. Instead, Chrome uses a `cdp-proxy` Python supervisord service that listens on `0.0.0.0:9222`, forwards to Chrome on `127.0.0.1:9223` with Host header rewriting, and rewrites response URLs (e.g., `webSocketDebuggerUrl`) with Content-Length correction. See `/charly-selkies:chrome` and `/charly-eval:cdp` for details.
+**Chrome CDP exception:** Chrome DevTools no longer uses `port_relay`. Chrome 146+ rejects connections with non-localhost Host headers, so a simple socat relay is insufficient. Instead, Chrome uses a `cdp-proxy` Python supervisord service that listens on `0.0.0.0:9222`, forwards to Chrome on `127.0.0.1:9223` with Host header rewriting, and rewrites response URLs (e.g., `webSocketDebuggerUrl`) with Content-Length correction. See `/charly-selkies:chrome` and `/charly-check:cdp` for details.
 
 ## Provides Configuration
 
@@ -955,16 +955,16 @@ deploy:
       stop: shutdown               # graceful shutdown (default & only) — frees a VFIO device
       restore: always              # always (default) | on-success
 
-# CLAIMANT (a deploy or a kind:eval bed) that needs sole use while it runs:
-eval:
-  eval-gpu-bed:
+# CLAIMANT (a deploy or a kind:check bed) that needs sole use while it runs:
+check:
+  check-gpu-bed:
     target: vm
-    vm: gpu-eval-vm
+    vm: gpu-check-vm
     disposable: true
     requires_exclusive: [nvidia-gpu]
 ```
 
-- **When the arbiter acts.** Before a claimant is brought up — `charly eval run <bed>`
+- **When the arbiter acts.** Before a claimant is brought up — `charly check run <bed>`
   (transient claim, auto-released at teardown), or a standalone `charly vm create` /
   `charly start` (persistent claim, released on `charly vm stop`/`vm destroy`/`charly stop`/
   `charly remove`) — it gracefully stops every running preemptible holder whose
@@ -1006,8 +1006,8 @@ ALONGSIDE** it on the shared `charly` network — *siblings*, not children. Cont
 `nested:`, whose children run **inside** this node's venue and are addressed by a
 dotted path (`parent.child`). A peer is a companion **instrument**: the canonical
 case is a Chrome DRIVER pod that CDP-probes a SEPARATE web-server SUBJECT, where a
-check on the subject carries `on: <peer>` (see `/charly-eval:eval` "Cross-deployment
-probing"). The SAME field + lifecycle serve a `kind: eval` bed and a `kind: deploy`
+check on the subject carries `on: <peer>` (see `/charly-check:check` "Cross-deployment
+probing"). The SAME field + lifecycle serve a `kind: check` bed and a `kind: deploy`
 operator deployment — one codebase.
 
 ```yaml
@@ -1033,7 +1033,7 @@ deploy:
   bring peers up after the owner and tear them down with it, by shelling out to the
   SAME verbs — a pod peer via `charly config` + `charly start` (+ readiness wait), a
   non-pod peer via `charly deploy add` / `charly deploy del`. Wired into `charly deploy add` /
-  `charly deploy del` (operator path) AND the `kind: eval` bed runner (the bed's
+  `charly deploy del` (operator path) AND the `kind: check` bed runner (the bed's
   `--node-only` add never double-deploys; the runner brings peers up after the root
   starts). A bed's `charly update` (destroy + rebuild) tears peers down and back up too.
 - **Disposability is inherited, never invented.** `foldPeers` promotes a peer to
@@ -1042,11 +1042,11 @@ deploy:
   deploy stays non-disposable. No new autonomy is granted — peers are components of
   their owner, touched only by the owner's explicit add/del/update (R6,
   `/charly-internals:disposable`).
-- **Peers are NOT eval-live'd.** A `kind: eval` bed evaluates its SUBJECT (root +
-  any `nested:` children via `bedEvalLiveRefs`); peers are instruments, never
+- **Peers are NOT check-live'd.** A `kind: check` bed evaluates its SUBJECT (root +
+  any `nested:` children via `bedCheckLiveRefs`); peers are instruments, never
   evaluated themselves — the subject's `on: <peer>` checks drive *through* them.
 - **Addressing the subject from a driven probe** uses the `${PEER_HOST:<name>}` /
-  `${PEER_ENDPOINT:<name>:<port>}` variables — see `/charly-eval:eval` "Cross-deployment
+  `${PEER_ENDPOINT:<name>:<port>}` variables — see `/charly-check:check` "Cross-deployment
   probing".
 
 ## Cross-References
@@ -1065,13 +1065,13 @@ deploy:
 - `/charly-core:charly-update` — Per-instance update pattern; equivalent to `charly deploy add <name> --pull`
 - `/charly-core:charly-config` — Resource cap flags (`--memory-max/high/swap/cpus`), provides filtering, env_require enforcement, NO_PROXY auto-enrichment, `--sidecar`, `-i` instance support, MCP name disambiguation
 - `/charly-automation:enc` — Encrypted storage commands (charly config mount/unmount)
-- `/charly-eval:vnc` — VNC password setup for desktop containers
+- `/charly-check:vnc` — VNC password setup for desktop containers
 - `/charly-vm:vm` — Virtual machine deployment (charly vm)
 - `/charly-build:build` — Building images before deployment (+ the `--no-cache` intermediate scratch-stage caveat)
-- `/charly-build:charly-mcp-cmd` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`charly eval mcp ping <image>`); note the **port-publishing gotcha** when a `port:` override in charly.yml predates a newly-added mcp-providing layer
+- `/charly-build:charly-mcp-cmd` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`charly check mcp ping <image>`); note the **port-publishing gotcha** when a `port:` override in charly.yml predates a newly-added mcp-providing layer
 - `/charly-image:image` — Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
 - `/charly-image:layer` — Unified `service:` schema (use_packaged + structured custom), `env_provide`/`env_require`/`env_accept` field declarations, security resource caps
-- `/charly-eval:eval` — Local `eval:` in charly.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.
+- `/charly-check:check` — Local `check:` in charly.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.
 
 **Canonical layer worked examples:**
 - `/charly-selkies:chrome` — cgroup resource-caps consumer (caps bound a Chrome crash loop)
@@ -1095,7 +1095,7 @@ The loader raises a hard load-time error on the obsolete `deploy.qc` / `deploy.c
 **Workflow position:** After `/charly-build:build`, before `/charly-core:service`.
 Previous step: `/charly-build:build` (build the image). Next step: `/charly-core:service` (start, status, logs).
 
-## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-check:check` 10 standards)
 
 Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 

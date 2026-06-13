@@ -91,8 +91,8 @@ This candy is auto-included by the `chrome` base layer via `candy: [chrome-devto
 - `/charly-jupyter:jupyter-mcp` — analogous MCP server pattern (Tier 1, different domain)
 - `/charly-hermes:hermes` — consumes via `mcp_accept: chrome-devtools`
 - `/charly-tools:mcporter` — MCP server CLI (npm-based, similar npm install pattern)
-- `/charly-eval:cdp` — direct Chrome DevTools Protocol commands (lower-level than MCP)
-- `/charly-build:charly-mcp-cmd` — test-side client for this candy's MCP endpoint (`charly eval mcp ping`, `list-tools`, etc.). The candy ships 2 deploy-scope `mcp:` declarative checks (`mcp-chrome-devtools-ping`, `mcp-chrome-devtools-list-tools` asserting `navigate_page` / `take_screenshot`). **Port-publishing gotcha**: when this candy is added to a box that already has a `charly.yml` `port:` override (e.g. `sway-browser-vnc`), port 9224 may not be published until the override is updated. `charly eval mcp` surfaces this with the exact `ports: [9224:9224]` remediation message — see `/charly-build:charly-mcp-cmd` for the full fix.
+- `/charly-check:cdp` — direct Chrome DevTools Protocol commands (lower-level than MCP)
+- `/charly-build:charly-mcp-cmd` — test-side client for this candy's MCP endpoint (`charly check mcp ping`, `list-tools`, etc.). The candy ships 2 deploy-scope `mcp:` declarative checks (`mcp-chrome-devtools-ping`, `mcp-chrome-devtools-list-tools` asserting `navigate_page` / `take_screenshot`). **Port-publishing gotcha**: when this candy is added to a box that already has a `charly.yml` `port:` override (e.g. `sway-browser-vnc`), port 9224 may not be published until the override is updated. `charly check mcp` surfaces this with the exact `ports: [9224:9224]` remediation message — see `/charly-build:charly-mcp-cmd` for the full fix.
 
 ## When to Use This Skill
 
@@ -108,4 +108,4 @@ Use when the user asks about:
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

@@ -44,17 +44,17 @@ charly box build <image> --include-disabled         # Build an `enabled: false` 
 charly box build <image> --dev-local-pkg            # EVAL-BED ONLY: build localpkg candies (the charly toolchain) from LOCAL in-dev source, not the published release
 ```
 
-### `--dev-local-pkg` — disposable eval beds bake the IN-DEVELOPMENT charly
+### `--dev-local-pkg` — disposable check beds bake the IN-DEVELOPMENT charly
 
 A `localpkg:` candy (the `charly` toolchain) normally installs the latest
 **published** release in an image build (`releases/latest/download/`). The
-eval-bed runner instead passes `--dev-local-pkg` for EVERY bed image build, so the
+check-bed runner instead passes `--dev-local-pkg` for EVERY bed image build, so the
 package is BUILT from the LOCAL working tree (`pkg/<fmt>` + `charly/`) — a
-disposable eval bed always tests the in-development charly, never a stale release.
+disposable check bed always tests the in-development charly, never a stale release.
 Generic across all kinds + all localpkg candies, one decision point
 (`renderLocalPkgImageInstall`); a production box build omits the flag. A dev build
 that cannot find its local source HARD-errors (no silent release fallback, R4).
-Full mechanics: `/charly-internals:install-plan` "Eval-vs-production charly
+Full mechanics: `/charly-internals:install-plan` "Check-vs-production charly
 toolchain"; the candy view: `/charly-tools:charly`.
 
 ## `--include-disabled` — operational rebuild of disabled images
@@ -212,7 +212,7 @@ not hand-edit them; add excludes to `defaults.context_ignore` instead.
 defaults:
   context_ignore:        # heavy dirs never COPYed by any Containerfile
     - image
-    - .eval
+    - .check
     - output
     - pkg
     - tests
@@ -246,7 +246,7 @@ defaults:
 
 This stops the iterative-build tag accumulation that otherwise reclaims
 nothing. Run it on demand (and clear a backlog) with `charly clean` — see
-`/charly-core:clean` for the full retention surface (images + eval runs + makepkg).
+`/charly-core:clean` for the full retention surface (images + check runs + makepkg).
 
 ## Build Cache
 
@@ -568,7 +568,7 @@ for the `--build` flag that also picks up this caveat.
 ### Related skills
 
 - `/charly-image:layer` -- Layer definitions that get built
-- `/charly-eval:eval` -- Tests are embedded as `ai.opencharly.description` OCI label at build time; LABEL-at-end optimization (see Cache Efficiency above) makes test edits cheap.
+- `/charly-check:check` -- Tests are embedded as `ai.opencharly.description` OCI label at build time; LABEL-at-end optimization (see Cache Efficiency above) makes test edits cheap.
 - `/charly-core:charly-update` -- `charly update <image> --build` invokes `BuildCmd.Run` and picks up the same `--jobs` cap and stale-`:latest` caveat
 - `/charly-vm:vm` -- Building bootc disk images (`charly vm build`)
 - `/charly-core:charly-config` -- Engine configuration
@@ -585,7 +585,7 @@ Next step: `/charly-core:deploy` (quadlet setup, tunnels) → `/charly-core:serv
 
 - `/charly-internals:capabilities` — OCI labels emitted during the build stage; `CapabilityLabelMap` completeness check
 
-## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-check:check` 10 standards)
 
 Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 

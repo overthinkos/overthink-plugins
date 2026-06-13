@@ -120,7 +120,7 @@ charly start jupyter --build
 - `/charly-image:image` -- Box definitions (ports, volumes, env) in `charly.yml`
 - `/charly-build:build` -- Build the image you intend to start
 
-## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-check:check` 10 standards)
 
 Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 

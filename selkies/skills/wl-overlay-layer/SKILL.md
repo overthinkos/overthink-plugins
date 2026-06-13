@@ -52,9 +52,9 @@ my-desktop:
 ```
 
 ```bash
-charly eval wl overlay show my-image --type text --text "Hello" --name intro
-charly eval wl overlay list my-image
-charly eval wl overlay hide my-image --all
+charly check wl overlay show my-image --type text --text "Hello" --name intro
+charly check wl overlay list my-image
+charly check wl overlay hide my-image --all
 ```
 
 ## Used In
@@ -77,11 +77,11 @@ charly eval wl overlay hide my-image --all
 
 ## Related Commands
 
-- `/charly-eval:wl-overlay` — Overlay command usage, types, recording workflow
-- `/charly-eval:wl` — Compositor-agnostic desktop automation
-- `/charly-eval:record` — Recording commands (overlays compose with recording)
+- `/charly-check:wl-overlay` — Overlay command usage, types, recording workflow
+- `/charly-check:wl` — Compositor-agnostic desktop automation
+- `/charly-check:record` — Recording commands (overlays compose with recording)
 
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

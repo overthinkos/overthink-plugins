@@ -65,7 +65,7 @@ ensures versatiles-style runs first and populates
 `/opt/versatiles-style/` before this layer's `cp -r` copies it
 under `/opt/versatiles-frontend/style/`.
 
-## Eval probes
+## Check probes
 
 Build-scope:
 - `versatiles-frontend-index-html` — `/opt/versatiles-frontend/index.html` exists

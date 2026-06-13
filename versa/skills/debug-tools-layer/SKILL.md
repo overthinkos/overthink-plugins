@@ -2,7 +2,7 @@
 name: debug-tools-layer
 description: |
   Debug toolkit for inspecting deployed services from inside the container — network probes (ip/ss/lsof/ping/dig/nc/socat/tcpdump/traceroute/mtr/wget), process inspection (ps/top/htop/pgrep/free/vmstat/strace/ltrace), file inspection (file/tree/xxd/vim/nano), system stats (iotop/iftop/sysstat), session helpers (tmux/rsync/yq). Distro-agnostic.
-  Use when working with the debug-tools layer, the per-distro package-name divergence (nmap-ncat vs ncat vs gnu-netcat), or the 16 build-scope eval probes that lock in headline binary presence.
+  Use when working with the debug-tools layer, the per-distro package-name divergence (nmap-ncat vs ncat vs gnu-netcat), or the 16 build-scope check probes that lock in headline binary presence.
 ---
 
 # debug-tools — distro-agnostic debug toolkit
@@ -26,7 +26,7 @@ iproute, bind-utils, etc. by default.
 | Ports | none |
 | Services | none |
 | Volumes | none |
-| Eval probes | 16 build-scope (one per headline binary) |
+| Check probes | 16 build-scope (one per headline binary) |
 
 ## Tool catalog
 
@@ -87,7 +87,7 @@ Single common name (`socat`, `tcpdump`, `lsof`, `file`, `tree`,
 `nano`, `htop`, `strace`, `ltrace`, `iotop`, `iftop`, `sysstat`,
 `tmux`, `rsync`, `wget`) covers all four distros.
 
-## Eval coverage (16 probes — locks in headline binaries)
+## Check coverage (16 probes — locks in headline binaries)
 
 Spot-checks one binary per category. If a future package rename
 breaks one, the build fails loudly at image build time:

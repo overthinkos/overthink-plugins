@@ -21,7 +21,7 @@ sibling files) — both the
 repo also carries a sibling `kind: deploy`, `deploy.cachyos-gpu` — the
 **persistent** operator GPU-workstation VM (`target: vm`, **not** `disposable`;
 see `/charly-vm:cachyos`) — so charly-cachyos is no longer the only `kind: deploy`
-there; every disposable test bed remains `kind: eval`. Apply it with:
+there; every disposable test bed remains `kind: check`. Apply it with:
 
 ```bash
 charly -C box/cachyos update charly-cachyos
@@ -51,7 +51,7 @@ repo's `candy/` (resolved via its `discover:` block):
 | `env` | `EDITOR=nvim`, `PAGER=less` |
 | `disposable` (deploy) | `true` — `charly update charly-cachyos` is authorized |
 
-## Deploy-scope eval probes
+## Deploy-scope check probes
 
 - `passwordless-sudo-host` — `sudo -n true` (wheel-nopasswd candy must have run)
 - `nvidia-ctk-present` — `command -v nvidia-ctk`

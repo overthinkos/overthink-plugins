@@ -23,7 +23,7 @@ then runs analysis + visualisation cells.
 | Type | Pure data layer (no packages, no services, no tasks) |
 | Dependencies | none (file-only) |
 | Data | `data/notebooks/` → `workspace:notebooks/` (deploy-time bind/seed) |
-| Eval | `notebook-osm-viz-present` — file exists in volume |
+| Check | `notebook-osm-viz-present` — file exists in volume |
 | Notebook | `/workspace/notebooks/osm-monaco-viz.py` (~20 cells) |
 
 ## Notebook architecture (21 cells, source order)

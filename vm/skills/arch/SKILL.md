@@ -11,13 +11,13 @@ description: |
 
 # arch
 
-The `arch` VM entity and its `eval-arch-vm` / `eval-arch-pacstrap-vm` disposable test beds
+The `arch` VM entity and its `check-arch-vm` / `check-arch-pacstrap-vm` disposable test beds
 (plus the nested `arch-host` bed) live in the **`overthinkos/arch`** repo (git
 submodule at **`box/arch`**), in that repo's config (its `charly.yml` + per-kind sibling files).
-The beds are `kind: eval` entities (the 2026-05 deploy→eval unification moved
-every repo-shipped disposable bed out of `charly.yml`), driven by `charly eval run
+The beds are `kind: check` entities (the 2026-05 deploy→check unification moved
+every repo-shipped disposable bed out of `charly.yml`), driven by `charly check run
 <bed>`. Drive them from the submodule, e.g. `charly -C box/arch vm create arch`
-and `charly -C box/arch eval run eval-arch-vm` (or `charly --repo overthinkos/arch …`). Any
+and `charly -C box/arch check run check-arch-vm` (or `charly --repo overthinkos/arch …`). Any
 candies applied via `add_candy:` are pulled from this repo by git ref.
 
 Canonical `source.kind: cloud_image` VM in the repo. Boots an Arch Linux cloud image as a full VM with SSH + SPICE console access, cloud-init-provisioned SSH keys, virtio-gpu graphics, and the `charly` toolchain auto-installed inside the guest.
@@ -42,11 +42,11 @@ This skill is the **decision log** for every non-obvious choice in the entry —
 | Video model | `virtio-gpu` | Modern default for Linux guests (Finding B, secondary) |
 | SPICE listener | `type: socket` (UNIX, auto-path) | Enables zero-config remote GUI via `qemu+ssh://` (see "Connecting from a remote workstation" below). virt-manager and `remote-viewer` auto-forward UNIX sockets through libvirt RPC fd-passing; TCP-loopback listeners are never auto-tunneled. No TCP port bound. |
 
-Disposability is **not** a field on the VM entity — the `eval-arch-vm` `kind: eval` bed carries `disposable: true` (LOAD-BEARING), which authorizes the unattended destroy + rebuild + restart driven by `charly eval run eval-arch-vm` (and the equivalent `charly update eval-arch-vm`, since the eval bed is folded into the Deploy map). See `/charly-internals:disposable`.
+Disposability is **not** a field on the VM entity — the `check-arch-vm` `kind: check` bed carries `disposable: true` (LOAD-BEARING), which authorizes the unattended destroy + rebuild + restart driven by `charly check run check-arch-vm` (and the equivalent `charly update check-arch-vm`, since the check bed is folded into the Deploy map). See `/charly-internals:disposable`.
 
 ## Disposable verification target
 
-This is the repo's canonical verification target. The `eval-arch-vm` `kind: eval` bed carries `disposable: true`, which means `charly eval run eval-arch-vm` runs the full R10 sequence (build → create → eval live → fresh rebuild → tear down) unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
+This is the repo's canonical verification target. The `check-arch-vm` `kind: check` bed carries `disposable: true`, which means `charly check run check-arch-vm` runs the full R10 sequence (build → create → check live → fresh rebuild → tear down) unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
 
 If you're implementing something that touches VM config, libvirt rendering, cloud-init, SPICE, or any VM-adjacent behavior, the expected verification loop is:
 
@@ -143,15 +143,15 @@ Without `nc`, virt-manager hangs at "Connecting to graphical console
 for guest" — no error, just silent failure. Diagnose with
 `ssh <host> which nc` (should return a path).
 
-### `charly eval spice` with `--uri` (for CLI diagnostics / local artifacts)
+### `charly check spice` with `--uri` (for CLI diagnostics / local artifacts)
 
 To probe the remote VM from the CLI and write screenshots into the local
 filesystem:
 
 ```bash
-charly eval spice status arch --uri qemu+ssh://o.atrawog.org/session
-charly eval spice screenshot arch --uri qemu+ssh://o.atrawog.org/session /tmp/shot.png
-charly eval libvirt info arch --uri qemu+ssh://o.atrawog.org/session
+charly check spice status arch --uri qemu+ssh://o.atrawog.org/session
+charly check spice screenshot arch --uri qemu+ssh://o.atrawog.org/session /tmp/shot.png
+charly check libvirt info arch --uri qemu+ssh://o.atrawog.org/session
 ```
 
 `charly` opens an SSH connection, forwards the remote SPICE UNIX socket to a
@@ -292,7 +292,7 @@ charly vm create arch --no-auto-detect
 
 ### BIOS firmware + virtio-gpu took effect
 ```bash
-charly eval libvirt domain-xml arch \
+charly check libvirt domain-xml arch \
   | grep -E "<loader|<nvram|<firmware|<type arch|<model type"
 ```
 Pass: NO `<loader>` / `<nvram>` / `<firmware>` elements; `<model type='virtio'>` inside `<video>`.
@@ -337,7 +337,7 @@ Pass: `active` + version printed.
 ## Cross-References
 
 - `/charly-vm:vms-catalog` — VmSpec authoring reference (schema, source.kind, adopt pattern)
-- `/charly-vm:vm` — VM lifecycle commands + BIOS/UEFI decision matrix + video model choice (disposability lives on the `kind: eval` bed)
+- `/charly-vm:vm` — VM lifecycle commands + BIOS/UEFI decision matrix + video model choice (disposability lives on the `kind: check` bed)
 - `/charly-build:migrate` — `charly migrate` legacy conversion
 - `/charly-core:deploy` — `charly deploy add vm:arch <layer>` for in-guest layer application
 - `/charly-internals:vm-spec` — Go types and validation rules

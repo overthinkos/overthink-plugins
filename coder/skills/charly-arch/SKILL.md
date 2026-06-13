@@ -90,12 +90,12 @@ auto-fallback to `overthinkos/overthink`:
 # Pattern 1: bind your local checkout
 charly config charly-arch --bind project=/home/you/opencharly
 charly start charly-arch
-charly eval mcp call charly-arch box.list.boxes '{}' --name charly  # lists YOUR project's boxes
+charly check mcp call charly-arch box.list.boxes '{}' --name charly  # lists YOUR project's boxes
 
 # Pattern 3: no bind-mount (auto-fallback kicks in)
 charly config charly-arch
 charly start charly-arch
-charly eval mcp call charly-arch box.list.boxes '{}' --name charly  # lists upstream overthinkos/overthink boxes
+charly check mcp call charly-arch box.list.boxes '{}' --name charly  # lists upstream overthinkos/overthink boxes
 ```
 
 Volume NAME is `project` (stable bind-mount API); container PATH is
@@ -205,7 +205,7 @@ packages and scripts per distro.
 - `/charly-core:shell` — open an interactive shell in charly-arch (as uid=1000 with sudo)
 - `/charly-core:service` — manage charly-arch as a service
 - `/charly-vm:vm` — nested libvirt VMs via `qemu:///session` (rootless)
-- `/charly-eval:eval` — three modes: `charly eval box <ref>` (build-scope, disposable container), `charly eval live <name>` (full-stack against running deployment), `charly eval run <score>` (AI iteration loop)
+- `/charly-check:check` — three modes: `charly check box <ref>` (build-scope, disposable container), `charly check live <name>` (full-stack against running deployment), `charly check run <score>` (AI iteration loop)
 - `/charly-build:charly-mcp-cmd` — MCP gateway + auto-fallback behavior
 
 ## Related

@@ -26,7 +26,7 @@ Policies" carries the mandate, `/charly-internals:cutover-policy` the one-phase 
 - **R10-gated.** Commit/push/merge/tag happen only after R10 PASS. A rule
   violation or R10 FAIL ⇒ none of them happen (fix in the same tree, re-run R10).
 - **Zero warnings.** R10 is NOT successful while ANY warning remains — resolver
-  newest-wins warnings, build, `charly box validate`, `charly eval`, or deploy
+  newest-wins warnings, build, `charly box validate`, `charly check`, or deploy
   warnings. Every warning is fixed before R10 passes (a version-mismatch warning
   is cleared with `charly box reconcile`; any other warning triggers
   `/charly-internals:root-cause-analyzer` then a real fix). "Warning" is never an
@@ -50,8 +50,8 @@ Policies" carries the mandate, `/charly-internals:cutover-policy` the one-phase 
   to commit" / "working tree clean" right after you edited a file is the signature
   of this mistake — STOP and re-verify `--show-toplevel` before retrying (blind
   retry is an R1 violation).
-- **Eval-coverage.** R10 does not pass unless the change ships the test coverage
-  that PROVES its functionality (`eval:` checks for new/changed layers & images,
+- **Check-coverage.** R10 does not pass unless the change ships the test coverage
+  that PROVES its functionality (`check:` checks for new/changed layers & images,
   Go tests for `charly` code) AND the live run exercised it. A change whose new
   functionality has no test that would FAIL without it is not landable.
 - **Tags only on `charly.yml` repos.** `plugins` and `pkg/arch` are tag-exempt.
@@ -153,25 +153,25 @@ each use a distinct `feat/` slug.
 
 ## B3 — agent teams on ONE shared tree (no worktree)
 
-When an agent team parallelizes work, **the eval bed is the unit of isolation,
-not a worktree**. Each teammate owns a disjoint `kind: eval` bed's SOURCE files;
+When an agent team parallelizes work, **the check bed is the unit of isolation,
+not a worktree**. Each teammate owns a disjoint `kind: check` bed's SOURCE files;
 distinct beds get distinct container/VM/image names; the lead assigns each
 disjoint host ports too (the loader does NOT check ports — an overlap fails the
 second bed at deploy), and a bed pins an image → layers → files, so bed-ownership
 already isolates the source files each teammate edits. **Teammates edit; a
-PERSISTENT owner runs every full `charly eval run <bed>`** as a `run_in_background`
+PERSISTENT owner runs every full `charly check run <bed>`** as a `run_in_background`
 task — the lead's persistent session, a background agent, or (interactive tmux) a
 split-pane teammate; an in-process teammate CANNOT (its bg dies on yield).
 Teammates therefore share ONE working tree on ONE `feat/<slug>` branch:
 
 - Teammates edit their bed-scoped files in the shared tree + run short foreground
-  checks (`charly eval box`) — never the full `charly eval run`, and **never commit or
+  checks (`charly check box`) — never the full `charly check run`, and **never commit or
   push**. The lead runs the full beds and owns the single atomic commit, gated on
   the consolidated full final-code bed run (B1).
 - Reserve a real `git worktree` (per `isolation: worktree`) only for genuine
   **same-file** concurrency that bed-ownership does not separate — not as the
   default for team parallelism.
-- **Schedule longest-pole-first.** `charly eval run` has no bed-level concurrency and
+- **Schedule longest-pole-first.** `charly check run` has no bed-level concurrency and
   no `charly` cap — the limit is host CPU/RAM/podman. The lead runs ALL full beds as
   concurrent background tasks; order by expected DURATION, not bed count: launch
   the slow VM/desktop beds first and overlap the cheap pod beds, so wall-clock ≈
@@ -179,7 +179,7 @@ Teammates therefore share ONE working tree on ONE `feat/<slug>` branch:
 - **Freeze `charly/*.go` during the bed phase.** `charly`'s stale-binary freshness guard
   gates every heavy verb the instant any `charly/*.go` is newer than `/usr/bin/charly`,
   so a teammate editing Go mid-bed-run aborts every other agent's next
-  build/deploy/eval. For a SHARED-CORE (Go) cutover the lead lands the core
+  build/deploy/check. For a SHARED-CORE (Go) cutover the lead lands the core
   first, runs ONE `task build:charly`, then fans out beds with Go frozen; a BED-LOCAL
   (YAML/candy/skills) cutover has no shared binary and needs no such barrier.
 
@@ -196,7 +196,7 @@ Detect permission: `gh repo view --json viewerPermission`
   deliverable; never force-push, never need upstream write.
 - **`gh` auto-approve/merge (maintainer-side, with approve rights):** for an open
   PR, **fetch its head, review the diff, and run R10 against it**; ONLY on R10
-  PASS (and only if the change ships its eval/test coverage) `gh pr review
+  PASS (and only if the change ships its check/test coverage) `gh pr review
   --approve` then `gh pr merge --rebase --delete-branch` (rebase keeps `main`
   linear, matching ff-only), then tag the new `main` HEAD. **Never a blind
   approve** — no approval/merge of unreviewed or R10-unverified code, whoever
@@ -253,7 +253,7 @@ BOTH: raise `LatestSchemaVersion()` AND mint the tag. See `/charly-build:migrate
   subject + hash, per repo), the confidence tier with the proof that supports
   it, what was pushed, and the pasted R10 outputs (exploratory +
   fresh-rebuild). The tier must match CLAUDE.md "AI Attribution", keyed to the
-  change class (`/charly-eval:eval` "R10 gate by change class") — a
+  change class (`/charly-check:check` "R10 gate by change class") — a
   Documentation-only change class commit lands at `documentation reviewed`,
   runtime classes at a runtime tier. A worked commit message:
 
@@ -283,7 +283,7 @@ R10 failure is a return-to-implementation signal, not a stopping point:
 - `/charly-internals:cutover-policy` — one-phase, atomic-commit, R10-at-the-end.
 - `/charly-build:migrate` — `version:` ↔ tag coupling, per-push tags, push order.
 - `/charly-build:reconcile` — cross-repo `@github` pin alignment used by B6.
-- `/charly-eval:eval` — the eval-coverage gate (R10) every change must satisfy.
+- `/charly-check:check` — the check-coverage gate (R10) every change must satisfy.
 - `/charly-internals:root-cause-analyzer` — run on any R10 failure before re-trying.
 
 ## When to Use This Skill

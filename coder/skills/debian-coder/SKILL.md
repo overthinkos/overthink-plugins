@@ -11,7 +11,7 @@ description: |
 
 # debian-coder
 
-Debian 13 trixie counterpart of `/charly-coder:fedora-coder`. Same 80-line `eval:` block, same ~30 candies, same rootless posture (uid 1000 + passwordless sudo). Key wrinkles are all Debian-specific packaging quirks handled inside individual candies: `bat → batcat` symlink, Microsoft's `dotnet-install.sh` cross-distro installer, and package-existence tests (vs binary-path tests) for `virtualization` because Debian bundles libvirt drivers differently.
+Debian 13 trixie counterpart of `/charly-coder:fedora-coder`. Same 80-line `check:` block, same ~30 candies, same rootless posture (uid 1000 + passwordless sudo). Key wrinkles are all Debian-specific packaging quirks handled inside individual candies: `bat → batcat` symlink, Microsoft's `dotnet-install.sh` cross-distro installer, and package-existence tests (vs binary-path tests) for `virtualization` because Debian bundles libvirt drivers differently.
 
 > **Location:** lives in the **`overthinkos/debian`** repo (git submodule at
 > **`box/debian`**), in that repo's config (its `charly.yml` + per-kind
@@ -20,7 +20,7 @@ Debian 13 trixie counterpart of `/charly-coder:fedora-coder`. Same 80-line `eval
 > the submodule:
 > `charly -C box/debian box build debian-coder`, or
 > `charly --repo overthinkos/debian box build debian-coder`. Deploy-mode verbs
-> (`charly config`/`charly start`/`charly eval box`) read the built image's OCI labels and
+> (`charly config`/`charly start`/`charly check box`) read the built image's OCI labels and
 > work from anywhere once it's in local storage.
 
 ## Definition
@@ -111,7 +111,7 @@ See `/charly-image:image` "user_policy" and `/charly-build:build` "base_user" fo
 
 ## Test results
 
-`charly eval box ghcr.io/overthinkos/debian-coder:latest` — **143 passed · 0 failed · 0 skipped**.
+`charly check box ghcr.io/overthinkos/debian-coder:latest` — **143 passed · 0 failed · 0 skipped**.
 
 Against a live running container, the same command adds live-service extension tests (sshd on 2222, supervisord, dbus, charly-mcp, virtqemud session), mirroring fedora-coder's +18 deploy-scope additions.
 
@@ -125,12 +125,12 @@ charly -C box/debian box validate
 charly -C box/debian box build debian-coder
 
 # 3. Disposable-container tests
-charly eval box ghcr.io/overthinkos/debian-coder:latest
+charly check box ghcr.io/overthinkos/debian-coder:latest
 
 # 4. Deploy + live tests
 charly config debian-coder
 charly start debian-coder
-charly eval box ghcr.io/overthinkos/debian-coder:latest
+charly check box ghcr.io/overthinkos/debian-coder:latest
 
 # 5. Clean up
 charly stop debian-coder
@@ -151,7 +151,7 @@ Conflicts with the other three coder-family boxes on the same ports — use `-i 
 
 ## Cross-distro siblings
 
-All four coder-family boxes share the identical 80-line `eval:` block + ~30 identical candies; they diverge only in per-candy package-format sections.
+All four coder-family boxes share the identical 80-line `check:` block + ~30 identical candies; they diverge only in per-candy package-format sections.
 
 - `/charly-coder:fedora-coder` — RPM (Fedora 43 via fedora-nonfree).
 - `/charly-coder:arch-coder` — pacman + optional AUR.
@@ -174,7 +174,7 @@ All four coder-family boxes share the identical 80-line `eval:` block + ~30 iden
 
 ## Related commands
 
-- `/charly-core:shell`, `/charly-core:charly-config`, `/charly-core:start`, `/charly-core:stop`, `/charly-eval:eval`
+- `/charly-core:shell`, `/charly-core:charly-config`, `/charly-core:start`, `/charly-core:stop`, `/charly-check:check`
 - `/charly-image:image` — `user_policy:` field reference
 - `/charly-build:build` — `base_user:` declaration (absent for Debian)
 - `/charly-image:layer` — authoring reference (covers `exclude_distros:`, tag-section `repos:`, Microsoft dotnet-install pattern)

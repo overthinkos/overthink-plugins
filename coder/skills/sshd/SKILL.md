@@ -29,7 +29,7 @@ description: |
 `openssh-server-package` check uses `package_map:` to resolve the right
 name per distro — `openssh-server` on Fedora/Debian, `openssh` on Arch.
 This is the canonical worked example for the `package_map` feature; see
-`/charly-eval:eval` "Cross-distro package names (`package_map:`)" for the
+`/charly-check:check` "Cross-distro package names (`package_map:`)" for the
 mechanics and the priority ordering (`fedora:43` > `fedora` when both
 match).
 
@@ -91,13 +91,13 @@ my-image:
   cannot traverse `/etc/sudoers.d/`. A `file: /etc/sudoers.d/charly-user; exists: true`
   test reports "missing" even when the file is present. Use
   `command: sudo -n -l; stdout: [{contains: NOPASSWD}]` to verify the
-  semantic instead. See `/charly-eval:eval` Authoring Gotcha #10.
+  semantic instead. See `/charly-check:check` Authoring Gotcha #10.
 - Host-side port reachability uses `127.0.0.1:${HOST_PORT:2222}`, not
-  `${CONTAINER_IP}:${HOST_PORT:2222}`. See `/charly-eval:eval` Gotcha #1.
+  `${CONTAINER_IP}:${HOST_PORT:2222}`. See `/charly-check:check` Gotcha #1.
 
 ### Dual-mode sudo check — the `runuser -u user --` wrapper
 
-`charly eval box` runs with USER=1000 on container images but USER=0 on bootc images (bootc intentionally keeps USER=root because systemd manages user sessions via login). A naïve `sudo -n -l; contains: NOPASSWD` check fails on bootc — running as root prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`. The candy's current test drops to `user` explicitly when running as root:
+`charly check box` runs with USER=1000 on container images but USER=0 on bootc images (bootc intentionally keeps USER=root because systemd manages user sessions via login). A naïve `sudo -n -l; contains: NOPASSWD` check fails on bootc — running as root prints root's Defaults block, which doesn't contain the literal string `NOPASSWD`. The candy's current test drops to `user` explicitly when running as root:
 
 ```yaml
 - id: sudoers-charly-user
@@ -118,7 +118,7 @@ the `-l … -c` form swallows the wrapped command's stdout — reproduced
 cleanly: `runuser -l user -s /bin/bash -c 'sudo -n -l'` prints nothing
 and exits 0, while `runuser -u user -- sudo -n -l` prints the full
 NOPASSWD listing. The candy was fixed to `-u … --` after this was
-caught during `charly-arch` bring-up. See `/charly-eval:eval` Authoring Gotcha #11.
+caught during `charly-arch` bring-up. See `/charly-check:check` Authoring Gotcha #11.
 
 ## Related Skills
 
@@ -126,7 +126,7 @@ caught during `charly-arch` bring-up. See `/charly-eval:eval` Authoring Gotcha #
 - `/charly-coder:ubuntu-coder` -- canonical adopt-mode example; sudoers correctly targets `ubuntu` via getent
 - `/charly-coder:debian-coder` -- canonical create-mode deb-family example; sudoers targets `user`
 - `/charly-distros:ubuntu` -- declares the `base_user:` block that makes ubuntu-coder run as `ubuntu`
-- `/charly-eval:eval` -- declarative testing framework (gotchas #10 and #11, `package_map:`, `exclude_distros:`)
+- `/charly-check:check` -- declarative testing framework (gotchas #10 and #11, `package_map:`, `exclude_distros:`)
 - `/charly-image:image` -- `user_policy:` field (create / adopt / auto) that drives which account this candy's sudoers targets
 - `/charly-image:layer` -- candy authoring (`${VAR}` substitution scope, cmd: vs write:)
 

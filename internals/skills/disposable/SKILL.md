@@ -15,7 +15,7 @@ description: |
 
 `DeploymentNode.Disposable` is the sole source of truth for disposability: the
 field on a deployment entry (e.g. `disposable: true` on a `deploy:` / `kind:
-eval` node) is what the unified dispatcher reads. The project ↔ per-machine
+check` node) is what the unified dispatcher reads. The project ↔ per-machine
 overlay merge preserves it explicitly (project-set OR overlay-set → true,
 later wins when both set it).
 
@@ -110,7 +110,7 @@ Specifically:
   autonomously by `charly update`" — a permission.
 - `ephemeral: true` (or block form) says "this resource MUST be
   destroyed autonomously when no longer needed" — a requirement,
-  enforced by the eval-runner / Gherkin (ADE) step keywords / TTL transient
+  enforced by the check-runner / Gherkin (ADE) step keywords / TTL transient
   timer registered in `charly deploy add`.
 
 The implication arrow is one-way. Disposable resources are not
@@ -133,18 +133,18 @@ preemptible:
   stop: shutdown                     # graceful shutdown (default & only) — frees a VFIO device
   restore: always                    # always (default) | on-success
 
-# CLAIMANT — a deploy/eval bed that needs sole use of the resource while it runs:
+# CLAIMANT — a deploy/check bed that needs sole use of the resource while it runs:
 requires_exclusive: [nvidia-gpu]
 ```
 
-**How it works.** Before a claimant is brought up (`charly eval run <bed>`, or a
+**How it works.** Before a claimant is brought up (`charly check run <bed>`, or a
 standalone `charly vm create` / `charly start`), the arbiter finds every RUNNING
 preemptible holder whose `holds:` intersects the claimant's
 `requires_exclusive:`, **gracefully stops** each (waiting until it actually
 powers off so the resource is truly released), records a crash-safe **lease**,
-and lets the claim proceed. When the claim is released — the eval bed tears down,
+and lets the claim proceed. When the claim is released — the check bed tears down,
 or the persistent claimant is stopped/destroyed — the arbiter **restarts** the
-holders. A transient (eval) claim auto-releases via `defer`; a persistent claim
+holders. A transient (check) claim auto-releases via `defer`; a persistent claim
 releases on the claimant's teardown command.
 
 **Standing authorization — you preempt autonomously.** Triggering preemption
@@ -185,7 +185,7 @@ lists active leases and flags STRANDED ones (claimant gone); `charly preempt res
 [claimant]` reconciles them (also run automatically at the next acquire).
 
 **`restore:` policy.** `always` (default) restarts the holder regardless of the
-claim's outcome — the holder MUST survive, so it comes back even if the eval
+claim's outcome — the holder MUST survive, so it comes back even if the check
 failed. `on-success` leaves the holder stopped on a FAILED claim (for operator
 inspection); recover it with `charly preempt restore`.
 
@@ -220,7 +220,7 @@ libvirt domain XML carries:
 </metadata>
 ```
 
-`charly eval libvirt domain-xml <vm> | grep charly:` (the vm.yml entity
+`charly check libvirt domain-xml <vm> | grep charly:` (the vm.yml entity
 name) tells you the classification without opening vm.yml.
 
 For container deploys, the authoritative source is `charly.yml` —
@@ -238,7 +238,7 @@ proceeds. Sequence: destroy → rebuild → restart, ending in the shared
 config change — a newly-added layer or nested pod — takes effect on the
 rebuilt target). `disposable: true` stays load-bearing as the
 authorization for the **UNATTENDED autonomous** destroy + rebuild (CLAUDE.md
-R10) and the eval-runner's unattended fresh rebuild — NOT as an
+R10) and the check-runner's unattended fresh rebuild — NOT as an
 `charly update` capability check. You may `charly update` a non-disposable
 target directly — that is an attended action you authorize explicitly, never
 the unattended autonomy the flag grants.
@@ -301,14 +301,14 @@ changes have NO bed to run (the non-runtime standards are their gate);
 hook/workflow script edits execute the changed script live (a workflow whose
 CONTROL FLOW changed runs against one matching bed); `charly` code and
 candy/box/deploy config changes need a bed. The authoritative matrix is
-`/charly-eval:eval` "R10 gate by change class".
+`/charly-check:check` "R10 gate by change class".
 
 ### Scope-shrinking flags
 
-The score/bed config in the `eval:` block IS the test specification;
-scope-shrinking `charly eval run` flags require explicit operator authorization
+The score/bed config in the `check:` block IS the test specification;
+scope-shrinking `charly check run` flags require explicit operator authorization
 in the SAME conversation turn. The flag catalog and the rule live in
-`/charly-eval:eval` "Flag discipline".
+`/charly-check:check` "Flag discipline".
 
 ## Opting a deploy in
 
@@ -353,7 +353,7 @@ deploys:
 `noteUpdateDisposability` transparency note (the `lifecycle: dev`
 tag is informational, never an authorization). What the
 `disposable: true` flag gates is AUTONOMOUS rebuild: you (and the
-eval-runner) may unattended-rebuild only `fedora-coder-qa` and
+check-runner) may unattended-rebuild only `fedora-coder-qa` and
 `fedora-coder-scratch`; rebuilding `fedora-coder-dev` autonomously
 requires explicit authorization, because a lifecycle tag does
 NOT authorize autonomous destroy.
@@ -406,7 +406,7 @@ on shared hosts.
   fully-stocked, secured box safe to destroy and rebuild — and the live surface
   you prove a high-risk assumption on BEFORE editing (RDD), never trusting a doc
   or the code for a high-risk call.
-- `/charly-eval:eval` — the 10 testing standards; disposable-only deployment
+- `/charly-check:check` — the 10 testing standards; disposable-only deployment
   is Standard 4, fresh-rebuild re-verification is Standard 10.
 - `/charly-vm:vms-catalog` — kind:vm schema, including `disposable:` and
   `lifecycle:` fields.

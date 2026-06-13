@@ -87,7 +87,7 @@ charly.yml or the quadlet); `RUNNER_ORG` is an `env_accept`. The registration
 token is short-lived and only consumed once at `charly config` time (the registered
 runner persists its own `.credentials` on the `state` volume), so it is obtained
 fresh from `gh`. The `post_enable`/`pre_remove` hooks are guarded — they skip
-when `RUNNER_TOKEN` is empty, so a token-less deploy (e.g. an eval bed) brings the
+when `RUNNER_TOKEN` is empty, so a token-less deploy (e.g. an check bed) brings the
 image up without registering, and a stale token never errors a teardown.
 
 ```bash
@@ -136,10 +136,10 @@ charly remove githubrunner -e RUNNER_TOKEN=<remove-token>
 
 ## Verification
 
-Build-scope (`charly eval box githubrunner`) + deploy-scope (`charly eval live`) checks
+Build-scope (`charly check box githubrunner`) + deploy-scope (`charly check live`) checks
 ship on the `github-runner` candy (functional: `config.sh --version` proves the
 .NET deps resolved; rootless nested `podman run` proves the posture). The
-disposable R10 bed is **`eval-githubrunner-pod`** (`charly eval run eval-githubrunner-pod`)
+disposable R10 bed is **`check-githubrunner-pod`** (`charly check run check-githubrunner-pod`)
 — it proves the rootless composition WITHOUT GitHub registration (no token →
 guarded hooks no-op).
 
@@ -160,4 +160,4 @@ reading source code or launching Explore agents.
 
 - `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
-- `/charly-eval:eval` — the `eval:` checks + the `eval-githubrunner-pod` R10 bed
+- `/charly-check:check` — the `check:` checks + the `check-githubrunner-pod` R10 bed

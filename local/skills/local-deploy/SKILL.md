@@ -15,7 +15,7 @@ description: |
 
 The same `InstallPlan` IR that drives `charly box build` (via OCITarget) and container deploys (via PodDeployTarget) is consumed by `LocalDeployTarget`, which translates each IR step into shell commands, `podman run <builder>` invocations for compile-needing work, and systemd unit writes.
 
-The deploy applies host packages + configs ONLY. Container images required for `charly eval run` / `charly eval live` are ensured by the eval preflight (see `/charly-eval:eval` "Image preflight"), not by the deploy. Deploys (any target) emit zero image-pull / image-build steps — that's the CLAUDE.md "Deploy fetches NOTHING speculative" Key Rule, codified at the type level. Migration of legacy `image:` blocks: `charly migrate` (idempotent).
+The deploy applies host packages + configs ONLY. Container images required for `charly check run` / `charly check live` are ensured by the check preflight (see `/charly-check:check` "Image preflight"), not by the deploy. Deploys (any target) emit zero image-pull / image-build steps — that's the CLAUDE.md "Deploy fetches NOTHING speculative" Key Rule, codified at the type level. Migration of legacy `image:` blocks: `charly migrate` (idempotent).
 
 Use cases:
 - Installing a focused tool set (ripgrep + uv + direnv) on your workstation without a container.
@@ -143,7 +143,7 @@ Remote `target: local` deploys assume **passwordless sudo** on the destination. 
 - `/charly-core:deploy` — parent command family.
 - `/charly-image:layer` — `service:` schema rendered as systemd units on local-target deploys.
 - `/charly-vm:vm` — managed ssh-config fragment writen on `charly vm create`.
-- `/charly-eval:eval` — `--verify` re-runs candy `eval:` against the deploy post-install.
+- `/charly-check:check` — `--verify` re-runs candy `check:` against the deploy post-install.
 - `/charly-internals:install-plan` — shared IR consumed by `LocalDeployTarget`.
 
 ## When to Use This Skill

@@ -72,7 +72,7 @@ charly box build selkies-labwc
 charly config selkies-labwc
 charly start selkies-labwc
 # Access: https://localhost:3000 (accept cert warning)
-charly eval wl screenshot selkies-labwc screenshot.png
+charly check wl screenshot selkies-labwc screenshot.png
 ```
 
 ## Keyboard Configuration
@@ -127,19 +127,19 @@ All level 0/1 characters (ö, ä, ü, ß, =, ?) and AltGr characters (@, €, \\
 
 ## Screenshots and Recording
 
-The capture bridge provides `charly eval wl screenshot` and `charly eval record` support:
+The capture bridge provides `charly check wl screenshot` and `charly check record` support:
 
 ```bash
 # Screenshot (works with or without browser connected)
-charly eval wl screenshot selkies-labwc screenshot.png
+charly check wl screenshot selkies-labwc screenshot.png
 
 # Check bridge status
 charly shell selkies-labwc -c "pixelflux-screenshot --status"
 
 # Desktop video recording (with audio via PulseAudio)
-charly eval record start selkies-labwc -n demo --mode desktop --audio
+charly check record start selkies-labwc -n demo --mode desktop --audio
 # ... interact with desktop ...
-charly eval record stop selkies-labwc -n demo -o demo.mp4
+charly check record stop selkies-labwc -n demo -o demo.mp4
 ```
 
 The bridge auto-heals: if no valid H.264 frames are available (e.g., after browser disconnect), it reconnects as controller to restart the pipeline.
@@ -165,36 +165,36 @@ The SPA renders the remote desktop on a `<canvas id="videoCanvas">` with an invi
 
 The SPA maps mouse events from the canvas viewport to the remote desktop with a scaling factor. When the canvas is 1908x950 and the remote desktop runs at a different resolution, there is an empirical **~0.824x / 0.836y** ratio between input coordinates and where the remote cursor lands.
 
-Use `charly eval cdp spa click` with `--scale` for automatic correction:
+Use `charly check cdp spa click` with `--scale` for automatic correction:
 
 ```bash
 # Click at canvas position (990, 375) with scale correction
-charly eval cdp spa click <client> $TAB 990 375 --scale 0.824,0.836
+charly check cdp spa click <client> $TAB 990 375 --scale 0.824,0.836
 ```
 
 ### Keyboard Passthrough
 
-**Recommended:** Use `charly eval cdp spa` commands for keyboard interaction — they bypass the local compositor and Chrome shortcut handlers:
+**Recommended:** Use `charly check cdp spa` commands for keyboard interaction — they bypass the local compositor and Chrome shortcut handlers:
 
 ```bash
 # Type text (no double-char issue, bypasses local shortcuts)
-charly eval cdp spa type <client> $TAB "hello world"
+charly check cdp spa type <client> $TAB "hello world"
 
 # Send modifier combos that reach the REMOTE desktop:
-charly eval cdp spa key-combo <client> $TAB super+e    # Open foot terminal in labwc
-charly eval cdp spa key-combo <client> $TAB ctrl+t     # New tab in remote Chrome
-charly eval cdp spa key-combo <client> $TAB alt+f4     # Close window in labwc
+charly check cdp spa key-combo <client> $TAB super+e    # Open foot terminal in labwc
+charly check cdp spa key-combo <client> $TAB ctrl+t     # New tab in remote Chrome
+charly check cdp spa key-combo <client> $TAB alt+f4     # Close window in labwc
 
 # Send special keys
-charly eval cdp spa key <client> $TAB return
-charly eval cdp spa key <client> $TAB escape
+charly check cdp spa key <client> $TAB return
+charly check cdp spa key <client> $TAB escape
 ```
 
 **Alternative methods** (limited — local compositor/Chrome may intercept keys):
 
 ```bash
-charly eval vnc type <client> "text"     # VNC keysym events (Super key intercepted by local compositor)
-charly eval wl type <client> "text"      # wtype via Wayland (same limitation)
+charly check vnc type <client> "text"     # VNC keysym events (Super key intercepted by local compositor)
+charly check wl type <client> "text"      # wtype via Wayland (same limitation)
 ```
 
 The SPA's `onkeydown` handler on `#overlayInput` intercepts events with `stopImmediatePropagation()`, converts to keysyms, and sends via WebSocket to the remote labwc compositor.
@@ -229,7 +229,7 @@ curl -kso /dev/null -w '%{http_code}' https://charly-selkies-labwc:3000/websocke
 ### Streaming Health Checks
 
 ```bash
-# From within the client browser tab (via CDP eval):
+# From within the client browser tab (via CDP check):
 # Check canvas dimensions (non-zero = stream active)
 document.getElementById("videoCanvas").width   // e.g., 1908
 document.getElementById("videoCanvas").height  // e.g., 950
@@ -314,7 +314,7 @@ charly config hermes --update-all
 charly start selkies-labwc -i 45.39.130.21
 
 # Verify proxy IP
-charly eval cdp open selkies-labwc -i 45.39.130.21 "https://httpbin.org/ip"
+charly check cdp open selkies-labwc -i 45.39.130.21 "https://httpbin.org/ip"
 ```
 
 **Tailscale access (no sidecar needed):** The charly.yml `tunnel: tailscale` config generates `tailscale serve` commands for host-mapped ports. All instances are accessible via the host's Tailscale IP on their respective ports (`https://<host>:3001`, etc.). Use sidecars only when per-instance exit node routing is needed.
@@ -345,13 +345,13 @@ diagnostic recipe that found the leak.
 ```bash
 charly status selkies-labwc              # All services RUNNING
 curl -k https://localhost:3000         # HTTPS 200, Selkies dashboard HTML
-charly eval wl screenshot selkies-labwc t.png # Screenshot via capture bridge
-charly eval cdp status selkies-labwc          # CDP available on port 9222
+charly check wl screenshot selkies-labwc t.png # Screenshot via capture bridge
+charly check cdp status selkies-labwc          # CDP available on port 9222
 ```
 
 ## Test Coverage
 
-Latest `charly eval live selkies-labwc` run: **91 passed, 0 failed, 0 skipped**
+Latest `charly check live selkies-labwc` run: **91 passed, 0 failed, 0 skipped**
 — the largest test suite in the project. Covers all 21 transitive
 candies (selkies, chrome, sshd, chrome-devtools-mcp primary; labwc,
 waybar-labwc, pipewire, swaync, pavucontrol, wl-tools, wl-*-pixelflux,
@@ -365,17 +365,17 @@ Deploy-scope: ports 3000 (HTTPS selkies), 9222 (Chrome CDP), 9224
 (labwc, selkies, traefik, chrome via event-listener handoff, sshd).
 
 Note: the sshd candy uses `sudo -n -l` rather than `file:` existence
-for `/etc/sudoers.d/charly-user` because it's root-only (`/charly-eval:eval` Gotcha #10).
+for `/etc/sudoers.d/charly-user` because it's root-only (`/charly-check:check` Gotcha #10).
 
 ## Related Skills
 
 - `/charly-selkies:selkies-desktop-layer` (metalayer), `/charly-selkies:selkies`,
   `/charly-selkies:chrome`, `/charly-selkies:labwc`, `/charly-coder:sshd`,
   `/charly-selkies:chrome-devtools-mcp`, `/charly-selkies:pipewire`
-- `/charly-eval:eval` — declarative testing framework + testing gotchas
-- `/charly-eval:cdp`, `/charly-eval:wl` — desktop automation on this box
+- `/charly-check:check` — declarative testing framework + testing gotchas
+- `/charly-check:cdp`, `/charly-check:wl` — desktop automation on this box
 - `/charly-core:charly-config` — deploy setup (tunnel, port remapping, instances)
-- `/charly-build:charly-mcp-cmd` — the box bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `charly eval live selkies-labwc --filter mcp` runs them; `charly eval mcp list-tools selkies-labwc` enumerates the 29 chrome-devtools tools ad-hoc.
+- `/charly-build:charly-mcp-cmd` — the box bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `charly check live selkies-labwc --filter mcp` runs them; `charly check mcp list-tools selkies-labwc` enumerates the 29 chrome-devtools tools ad-hoc.
 
 ## Related
 

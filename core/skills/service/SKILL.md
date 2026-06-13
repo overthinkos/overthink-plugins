@@ -291,8 +291,8 @@ shapes:
 | dbus | guest | `pgrep -x dbus-daemon` + scan for swaync/mako/dunst | D-Bus session bus + notifier (one snippet, four checks) |
 | charly | guest | `command -v charly && charly version` | In-container charly binary + CalVer version |
 
-Each tool also has its own `status` subcommand: `charly eval cdp status`,
-`charly eval vnc status`, `charly eval wl status`. These commands now use the
+Each tool also has its own `status` subcommand: `charly check cdp status`,
+`charly check vnc status`, `charly check wl status`. These commands now use the
 same probe types via `runGuestProbes` / `cdpProbe.ProbeHost` /
 `vncProbe.ProbeHost`.
 
@@ -351,10 +351,10 @@ Source: `charly/status.go`, `charly/status_engine.go`, `charly/status_collector.
 - `/charly-core:deploy` -- Quadlet generation details, tunnels, volume backing
 - `/charly-automation:enc` -- Encrypted storage (mounted inline by charly start)
 - `/charly-core:charly-config` -- `run_mode`, `auto_enable`, `engine.run` settings
-- `/charly-eval:cdp` -- CDP status subcommand (`charly eval cdp status`)
-- `/charly-eval:vnc` -- VNC status subcommand (`charly eval vnc status`)
-- `/charly-eval:wl` -- Desktop automation + sway subgroup (`charly eval wl sway status`)
-- `/charly-eval:wl` -- WL status subcommand (`charly eval wl status`)
+- `/charly-check:cdp` -- CDP status subcommand (`charly check cdp status`)
+- `/charly-check:vnc` -- VNC status subcommand (`charly check vnc status`)
+- `/charly-check:wl` -- Desktop automation + sway subgroup (`charly check wl sway status`)
+- `/charly-check:wl` -- WL status subcommand (`charly check wl status`)
 
 ## When to Use This Skill
 

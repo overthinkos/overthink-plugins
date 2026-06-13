@@ -89,4 +89,4 @@ Use when the user asks about:
 - `/charly-vm:vm` — VM lifecycle; bootc VM caveats; QEMU-user-net limitation
 - `/charly-vm:vms-catalog` — `kind: vm` entity schema that consumes this candy's contribution
 - `/charly-internals:libvirt-renderer` — renderer that injects this candy's snippet into `<devices>`
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

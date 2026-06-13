@@ -56,7 +56,7 @@ At build time, the contents are staged into `/data/workspace/llms_on_supercomput
 | `D1_09_LLM_as_a_Judge.ipynb` | LLM-as-a-Judge evaluation pattern | OpenAI, evidently |
 | `D1_10_Prompt_Optimization.ipynb` | Prompt optimization techniques | OpenAI, evidently |
 
-### D2 — Retrieval Augmented Generation (2 notebooks)
+### D2 — Retricheck Augmented Generation (2 notebooks)
 
 | Notebook | Topic | Libraries |
 |----------|-------|-----------|
@@ -130,4 +130,4 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

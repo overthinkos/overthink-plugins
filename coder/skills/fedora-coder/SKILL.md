@@ -27,7 +27,7 @@ meant to be accessed via `ssh -p 2222` or `charly shell`.
 > Build/validate from
 > the submodule: `charly -C box/fedora box build fedora-coder`, or
 > `charly --repo overthinkos/fedora box build fedora-coder`. Deploy-mode verbs
-> (`charly config`/`charly start`/`charly eval box`) read the built image's OCI labels and
+> (`charly config`/`charly start`/`charly check box`) read the built image's OCI labels and
 > work from anywhere once it's in local storage.
 
 ## Definition
@@ -165,7 +165,7 @@ charly -C box/fedora box validate
 charly -C box/fedora box build fedora-coder
 
 # 3. Build-scope tests (disposable container)
-charly eval box ghcr.io/overthinkos/fedora-coder:latest
+charly check box ghcr.io/overthinkos/fedora-coder:latest
 # target: 149 passed · 0 failed · 0 skipped
 
 # 4. Deploy (no bind-mount needed; charly-mcp auto-falls back to overthinkos/overthink)
@@ -173,8 +173,8 @@ charly config fedora-coder
 charly start fedora-coder
 
 # 5. Full-scope tests — prefers the running container automatically
-# (see /charly-eval:eval "Live vs disposable executor selection")
-charly eval box ghcr.io/overthinkos/fedora-coder:latest
+# (see /charly-check:check "Live vs disposable executor selection")
+charly check box ghcr.io/overthinkos/fedora-coder:latest
 # target: 167 passed · 0 failed · 0 skipped
 
 # 6. Clean up
@@ -207,8 +207,8 @@ if running alongside.
 
 ## Test results
 
-- `charly eval box fedora-coder` — **149 passed · 0 failed · 0 skipped**.
-- `charly eval box fedora-coder` against a live running
+- `charly check box fedora-coder` — **149 passed · 0 failed · 0 skipped**.
+- `charly check box fedora-coder` against a live running
   container — **167 passed · 0 failed · 0 skipped** (adds deploy-scope:
   sshd reachable, supervisord responding, dbus+charly-mcp+virtqemud+
   virtnetworkd services running, libvirt session list + KVM domcaps,
@@ -242,7 +242,7 @@ google-cloud-npm) by forking charly.yml. See `/charly-image:image` for authoring
 
 ## Cross-distro siblings
 
-`fedora-coder` is one of **four cross-distro coder boxes** that share the identical 80-line `eval:` block + ~30 identical candies; they diverge only in each candy's package-format section (`rpm:` / `pac:` / `deb:`) and a handful of distro-specific quirks handled inside individual candies.
+`fedora-coder` is one of **four cross-distro coder boxes** that share the identical 80-line `check:` block + ~30 identical candies; they diverge only in each candy's package-format section (`rpm:` / `pac:` / `deb:`) and a handful of distro-specific quirks handled inside individual candies.
 
 | Box | Base | Package mgr | User model |
 |---|---|---|---|
@@ -266,7 +266,7 @@ All four produce the same daily-dev surface (sshd on 2222, charly-mcp on 18765, 
 - `/charly-core:shell` — open an interactive shell inside the container (as user, with sudo)
 - `/charly-core:charly-config` — deploy setup (--bind project=…, tunnel, --update-all)
 - `/charly-core:start`, `/charly-core:stop` — lifecycle
-- `/charly-eval:eval` — live-service tests (`charly eval live <name>`) and build-scope tests (`charly eval box <ref>`)
+- `/charly-check:check` — live-service tests (`charly check live <name>`) and build-scope tests (`charly check box <ref>`)
 - `/charly-build:charly-mcp-cmd` — MCP gateway documentation; `--no-default-repo` to disable auto-fallback
 - `/charly-vm:vm` — nested libvirt VMs (via virtqemud inside the container)
 - `/charly-image:layer` — authoring reference (covers the new `strip_components:` modifier)

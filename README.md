@@ -8,7 +8,7 @@ Plugins are sorted into **four use-case buckets**:
 
 | Bucket | When to install | Plugins |
 |---|---|---|
-| **commands** | "I want to run charly verbs" | `charly-core`, `charly-build`, `charly-eval`, `charly-automation` |
+| **commands** | "I want to run charly verbs" | `charly-core`, `charly-build`, `charly-check`, `charly-automation` |
 | **kind** | "I want to author the YAML schema for an entity" | `charly-image`, `charly-vm`, `charly-kubernetes`, `charly-local`, `charly-pod` |
 | **development** | "I'm a contributor working on the charly source code itself" | `charly-internals` |
 | **images** | "I want to deploy a specific image" | `charly-distros`, `charly-languages`, `charly-infrastructure`, `charly-tools`, `charly-jupyter`, `charly-coder`, `charly-selkies`, `charly-openclaw`, `charly-versa`, `charly-ollama`, `charly-openwebui`, `charly-comfyui`, `charly-immich`, `charly-hermes`, `charly-filebrowser` |
@@ -29,7 +29,7 @@ manager UI.
 |---|--:|---|---|
 | **charly-core** | 15 | — | Lifecycle: start, stop, restart, charly-status, logs, shell, ssh, deploy, charly-update, remove, charly-config, cmd, charly-version, charly-doctor, clean. |
 | **charly-build** | 13 | — | Build/authoring: build, generate, list, inspect, merge, new, pull, validate, secrets, settings, migrate, reconcile, charly-mcp-cmd. |
-| **charly-eval** | 13 | — | Live-container evaluation: `eval` orchestrator + cdp, wl, wl-overlay, dbus, vnc, spice, libvirt, record, adb, appium probes + `android` (the `kind: android` device + `apk:` package format + `target: android` deploy) + the `eval-sway-browser-vnc-pod` R10 bed. |
+| **charly-check** | 13 | — | Live-container evaluation: `check` orchestrator + cdp, wl, wl-overlay, dbus, vnc, spice, libvirt, record, adb, appium probes + `android` (the `kind: android` device + `apk:` package format + `target: android` deploy) + the `check-sway-browser-vnc-pod` R10 bed. |
 | **charly-automation** | 6 | — | tmux verb, host-side wrappers (alias, udev), topic flags (enc, sidecar, openclaw-deploy). |
 
 ### kind — schema-kind authoring
@@ -38,7 +38,7 @@ manager UI.
 |---|--:|---|---|
 | **charly-image** | 2 | — | Schema for `kind: box` and `kind: candy` (charly.yml authoring). |
 | **charly-vm** | 6 | — | Schema for `kind: vm` + bootc VM catalog (cloud_image vs bootc, libvirt/QEMU). Includes `cachyos` (bootstrap VM, in the `overthinkos/cachyos` submodule) and `debian` / `ubuntu` (debootstrap bootstrap VMs, in the `overthinkos/debian` / `overthinkos/ubuntu` submodules). |
-| **charly-kubernetes** | 2 | — | Schema for `kind: k8s` + cluster probes via `charly eval k8s`. |
+| **charly-kubernetes** | 2 | — | Schema for `kind: k8s` + cluster probes via `charly check k8s`. |
 | **charly-local** | 3 | — | Schema for `kind: local` + ssh-host deploys + managed ssh-config fragment. Includes `charly-cachyos` (operator CachyOS workstation profile, in the `overthinkos/cachyos` submodule). |
 | **charly-pod** | 1 | — | Schema for `kind: pod` and `kind: deploy` — thin pointer to `/charly-core:deploy` for verb details. |
 
@@ -46,7 +46,7 @@ manager UI.
 
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
-| **charly-internals** | 16 + 5 agents | github (stdio) | Go source map, install-plan IR, capabilities/OCI labels, vm-spec, libvirt/cloud-init renderers, cutover-policy, strict-policy, disposable, ovmf, generate-source, git-workflow, skills, agents (the agents/workflows/teams guide). Ships 5 agents — enforcers root-cause-analyzer, layer-validator, testing-validator; executors eval-bed-runner, deploy-verifier (drive the `charly eval` beds). The `/verify-beds` + `/audit-deploy-configs` dynamic workflows live in the superproject's `.claude/workflows/`. |
+| **charly-internals** | 16 + 5 agents | github (stdio) | Go source map, install-plan IR, capabilities/OCI labels, vm-spec, libvirt/cloud-init renderers, cutover-policy, strict-policy, disposable, ovmf, generate-source, git-workflow, skills, agents (the agents/workflows/teams guide). Ships 5 agents — enforcers root-cause-analyzer, layer-validator, testing-validator; executors check-bed-runner, deploy-verifier (drive the `charly check` beds). The `/verify-beds` + `/audit-deploy-configs` dynamic workflows live in the superproject's `.claude/workflows/`. |
 
 ### images — deployable image catalog
 
@@ -85,7 +85,7 @@ plugin name carries the `charly-` prefix; the skill name does not. Examples:
 - `/charly-image:layer` — schema authoring for `kind: candy`.
 - `/charly-distros:arch` — Arch Linux base image reference.
 - `/charly-jupyter:notebook-templates` — bundled notebook starter content.
-- `/charly-eval:cdp` — Chrome DevTools Protocol live probe.
+- `/charly-check:cdp` — Chrome DevTools Protocol live probe.
 
 ## Skill name uniqueness
 
@@ -93,7 +93,7 @@ Every skill in this marketplace has a globally-unique folder name. Where a
 short name could be ambiguous, the canonical names are:
 
 - `charly-infrastructure:tmux-layer` (the tmux package layer) vs `charly-automation:tmux` (the verb).
-- `charly-infrastructure:dbus-layer` (the D-Bus service layer) vs `charly-eval:dbus` (the verb).
+- `charly-infrastructure:dbus-layer` (the D-Bus service layer) vs `charly-check:dbus` (the verb).
 - `charly-automation:openclaw-deploy` (the deployment topic) vs `charly-openclaw:openclaw` (the image).
 - `charly-vm:vms-catalog` (the VM catalog skill) vs the kind-name `vm`.
 - `charly-build:generate` (the build verb) vs `charly-internals:generate-source` (the source-reading reference).

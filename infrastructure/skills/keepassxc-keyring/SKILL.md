@@ -95,7 +95,7 @@ Deploy-scope (run on the host post-`charly deploy add` against the running user'
 | `/charly-build:secrets` | The CLI surface that talks to KeePassXC after this layer is in place. `charly secrets gpg setup` and `charly secrets gpg doctor` find pinentry-qt + libsecret on PATH because this layer installed them. |
 | `/charly-coder:direnv` | Installs the direnv binary. This layer adds the missing piece (the shell hook) for `.envrc` to actually trigger on `cd`. |
 | `/charly-image:layer` | Candy authoring reference. |
-| `/charly-eval:eval` | `eval:` block format reference. |
+| `/charly-check:check` | `check:` block format reference. |
 
 ## Why a separate candy (and not edits to `keepassxc` or `agent-forwarding`)
 
@@ -121,6 +121,6 @@ Use when the user asks about:
 - `/charly-build:secrets` — `charly secrets` and `charly secrets gpg` CLI surface
 - `/charly-coder:direnv` — direnv binary candy (the shell hook this candy adds completes the chain)
 - `/charly-image:layer` — candy authoring reference
-- `/charly-eval:eval` — declarative testing reference
+- `/charly-check:check` — declarative testing reference
 - `/charly-local:local-spec` — `kind: local` template reference (where this candy is composed)
 - `/charly-local:local-deploy` — `target: local` deploy semantics

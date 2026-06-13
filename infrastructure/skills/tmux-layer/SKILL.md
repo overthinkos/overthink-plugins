@@ -37,7 +37,7 @@ candy:
 - `/charly-hermes:hermes`, `/charly-selkies:selkies-labwc`, `/charly-selkies:sway-browser-vnc` — primary consumers
 - `/charly-core:shell` — interactive container shell (often wrapped in tmux)
 - `/charly-image:layer` — candy authoring
-- `/charly-eval:eval` — declarative testing framework (this candy tests `/usr/bin/tmux -V`)
+- `/charly-check:check` — declarative testing framework (this candy tests `/usr/bin/tmux -V`)
 
 ## When to Use This Skill
 

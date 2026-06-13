@@ -12,7 +12,7 @@ description: |
 
 - **Disposability is a deploy property only.** A `kind: vm` entity carries no `disposable:` / `lifecycle:` field. Put `disposable: true` on the matching `deploy.<name>-vm` entry. The `vm:` entity entry only describes VM shape (disk, RAM, SSH, cloud-init, libvirt), never authorization.
 - **Deploy-level cross-ref**: a deployment with `target: vm` references its VM entity via `vm: <entity-name>`.
-- **`charly update <vm-entity-name>`** does NOT gate on `disposable:` — an explicit invocation rebuilds ANY target (destroy→create the domain, reuse the qcow2 disk unless `--build`, then re-apply the deploy node's layers via the shared `deploy add` path). For a non-disposable, non-ephemeral target it prints a one-line transparency note (`noteUpdateDisposability`) and proceeds. The `disposable: true` flag stays load-bearing as the authorization for UNATTENDED autonomous destroy + rebuild (CLAUDE.md R10) and the eval-runner's unattended fresh rebuild, NOT as an `charly update` capability check. See `/charly-internals:disposable` and `/charly-core:charly-update`.
+- **`charly update <vm-entity-name>`** does NOT gate on `disposable:` — an explicit invocation rebuilds ANY target (destroy→create the domain, reuse the qcow2 disk unless `--build`, then re-apply the deploy node's layers via the shared `deploy add` path). For a non-disposable, non-ephemeral target it prints a one-line transparency note (`noteUpdateDisposability`) and proceeds. The `disposable: true` flag stays load-bearing as the authorization for UNATTENDED autonomous destroy + rebuild (CLAUDE.md R10) and the check-runner's unattended fresh rebuild, NOT as an `charly update` capability check. See `/charly-internals:disposable` and `/charly-core:charly-update`.
 
 ## Overview
 
@@ -92,8 +92,8 @@ To pass a physical GPU through to a VM and (e.g.) run a CUDA container inside it
 Code-43 workarounds for consumer NVIDIA cards are first-class libvirt fields:
 `libvirt.features.kvm.hidden: on` and `libvirt.features.hyperv.vendor_id`.
 Optional per-hostdev `rom: {bar: off}` / `driver: {name: vfio}` are supported.
-Worked end-to-end example: the CachyOS `eval-cachyos-gpu-vm` bed (see
-`/charly-vm:cachyos`, `/charly-eval:eval`).
+Worked end-to-end example: the CachyOS `check-cachyos-gpu-vm` bed (see
+`/charly-vm:cachyos`, `/charly-check:check`).
 
 ## Building Disk Images
 
@@ -237,14 +237,14 @@ is idle between calls). The only valid signals are the **socket**
 rootless-first (`qemu:///session`), so a non-root user with only the system
 daemon still needs the user-session path (which `resolveVmBackend()` autospawns).
 
-For projects whose eval beds use `charly eval libvirt …` and `charly eval
+For projects whose check beds use `charly check libvirt …` and `charly check
 spice …` probes (e.g., the project's `arch:` VM template), pin the
 backend explicitly via `backend: libvirt` on the kind:vm entity —
 `backend: auto` would silently fall through to qemu when the daemon
 is missing, breaking every libvirt-RPC probe with a confusing
-"no such file or directory" error 5+ minutes into the eval-live
-timeout. `arch:` and `k3s-vm:` carry this pin (see `/charly-eval:eval`
-"kind: eval beds").
+"no such file or directory" error 5+ minutes into the check-live
+timeout. `arch:` and `k3s-vm:` carry this pin (see `/charly-check:check`
+"kind: check beds").
 
 Source: `charly/vm.go` (`resolveVmBackend`, `startLibvirtUserSession`),
 `charly/vm_libvirt.go`, `charly/vm_qemu.go`.
@@ -450,7 +450,7 @@ Expected. The agent needs a `virtio-serial` channel that charly's QEMU backend d
 
 **Workflow position:** Standalone workflow. VM management is separate from container lifecycle, but `charly deploy add vm:<name>` bridges into the shared InstallPlan + DeployTarget machinery.
 
-## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-check:check` 10 standards)
 
 Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 

@@ -164,9 +164,9 @@ hermes:
 
 ## Related Commands
 
-- `/charly-eval:cdp` — CDP automation; hermes uses the same Chrome endpoint via `BROWSER_CDP_URL`
+- `/charly-check:cdp` — CDP automation; hermes uses the same Chrome endpoint via `BROWSER_CDP_URL`
 - `/charly-core:charly-config` — Injects `BROWSER_CDP_URL` and `CHARLY_MCP_SERVERS` via pod-aware `env_provide`/`mcp_provide`
-- `/charly-build:charly-mcp-cmd` — verify that the MCP servers hermes discovers (`jupyter`, `chrome-devtools`) are alive and exposing expected tools before hermes tries to call them: `charly eval mcp ping jupyter`, `charly eval mcp list-tools <image>`. Useful when hermes reports tool-call failures and you need to isolate whether the server or the agent is at fault.
+- `/charly-build:charly-mcp-cmd` — verify that the MCP servers hermes discovers (`jupyter`, `chrome-devtools`) are alive and exposing expected tools before hermes tries to call them: `charly check mcp ping jupyter`, `charly check mcp list-tools <image>`. Useful when hermes reports tool-call failures and you need to isolate whether the server or the agent is at fault.
 
 ## Related Boxes
 
@@ -183,4 +183,4 @@ hermes:
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

@@ -87,7 +87,7 @@ After `charly start`:
 
 ## Test Coverage
 
-Latest `charly eval live immich-ml` run: **61 passed, 0 failed, 2 skipped**.
+Latest `charly check live immich-ml` run: **61 passed, 0 failed, 2 skipped**.
 The 2 skips are `redis-responds` and `redis-port-open` — they reference
 `${HOST_PORT:6379}` which isn't mapped on this box (redis is internal
 to the pod). Correct skip behavior; no authoring action needed.
@@ -108,7 +108,7 @@ postgresql + redis + immich-server + immich-ml all RUNNING.
   `/charly-distros:cuda`, `/charly-languages:python-ml`, `/charly-coder:nodejs`,
   `/charly-infrastructure:supervisord`, `/charly-infrastructure:dbus-layer`, `/charly-tools:charly`,
   `/charly-distros:agent-forwarding`
-- `/charly-eval:eval` — framework + runtime variable rules (why skips happen)
+- `/charly-check:check` — framework + runtime variable rules (why skips happen)
 - `/charly-core:charly-config` — deploy setup (pg password secret, volume backing)
 - `/charly-immich:immich` — non-ML variant
 

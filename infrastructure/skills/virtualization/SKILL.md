@@ -44,7 +44,7 @@ service:
     scope: system
 ```
 
-Why this matters: a `<name>-host` sibling candy would duplicate package lists, eval probes, and tasks for systemd targets, and drift between the two siblings would be inevitable. The mixed-entry pattern eliminates the sibling — ONE candy covers both contexts; the schema does the polymorphism. See CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the rule and `/charly-image:layer` "Service Declaration" → "Anti-pattern: `<name>-host` / `<name>-pod` sibling candies" for what NOT to do.
+Why this matters: a `<name>-host` sibling candy would duplicate package lists, check probes, and tasks for systemd targets, and drift between the two siblings would be inevitable. The mixed-entry pattern eliminates the sibling — ONE candy covers both contexts; the schema does the polymorphism. See CLAUDE.md "Init-system polymorphism via mixed `service:` entries" for the rule and `/charly-image:layer` "Service Declaration" → "Anti-pattern: `<name>-host` / `<name>-pod` sibling candies" for what NOT to do.
 
 ## Overview
 
@@ -149,7 +149,7 @@ This candy makes that URI actually work inside a container at uid
 
 ## Tests baked into the candy
 
-**Build-scope (run by `charly eval box <image>` without deploying):**
+**Build-scope (run by `charly check box <image>` without deploying):**
 
 - `virtqemud-package` / `virtnetworkd-package` — package-existence probes using `package:` + `package_map:` (see below).
 - `virsh-binary` — `/usr/bin/virsh` exists.
@@ -172,7 +172,7 @@ The fix probes package presence with distro-specific names:
   installed: true
 ```
 
-See `/charly-eval:eval` "`package:` + `package_map:` pattern" for the resolution order (tag > base name > fallback).
+See `/charly-check:check` "`package:` + `package_map:` pattern" for the resolution order (tag > base name > fallback).
 
 **Deploy-scope (run against a live `charly start`ed container):**
 
@@ -230,7 +230,7 @@ Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networ
 - `/charly-vm:vm` — VM lifecycle (build, create, start, stop, ssh, console, destroy); defaults to `qemu:///session` at charly/vm.go:22
 - `/charly-build:generate` — Containerfile generation; emits the supervisord `NN-virtualization.conf` fragment via `fragment_assembly` init model
 - `/charly-image:layer` — candy authoring reference (tasks, vars, service blocks, tests syntax)
-- `/charly-eval:eval` — declarative testing framework for the candy's `eval:` block (file, service, command verbs)
+- `/charly-check:check` — declarative testing framework for the candy's `check:` block (file, service, command verbs)
 
 ## When to Use This Skill
 

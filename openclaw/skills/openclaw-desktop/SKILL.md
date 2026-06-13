@@ -179,14 +179,14 @@ charly vm build <image> --transport containers-storage
 ### Docker Hub rate-limit note
 
 For nested test harnesses, prefer `quay.io/libpod/alpine:latest` (unmetered)
-over `docker.io/library/alpine` — the baked `nested-podman-run` eval already
+over `docker.io/library/alpine` — the baked `nested-podman-run` check already
 uses this mirror.
 
 ## What works from inside the desktop
 
 Every `charly` verb family runs as uid 1000 inside the container sandbox:
 `charly box build/generate/validate/merge/inspect/list/pull`,
-`charly eval box/live/cdp/wl/dbus/vnc/mcp`,
+`charly check box/live/cdp/wl/dbus/vnc/mcp`,
 `charly config/deploy/start/stop/update/remove/shell/cmd/service/status/logs`,
 `charly vm list/create/start/stop/ssh/destroy` (rootless libvirt session),
 `charly doctor/secrets/settings/alias`. The `charly` candy bakes only the binary — for
@@ -205,17 +205,17 @@ charly status openclaw-desktop                       # all services RUNNING
 curl -k https://localhost:3000                   # selkies HTTPS 200
 curl -s http://localhost:18789                   # openclaw gateway
 curl -s http://localhost:11434/api/tags          # ollama API
-charly eval wl screenshot openclaw-desktop t.png     # desktop screenshot
+charly check wl screenshot openclaw-desktop t.png     # desktop screenshot
 charly shell openclaw-desktop -c 'podman run --rm quay.io/libpod/alpine:latest /bin/true'
 ```
 
-The baked box-level `eval:` carries the nested-rootless posture checks (subuid
+The baked box-level `check:` carries the nested-rootless posture checks (subuid
 two-ranges, `newuidmap` cap, `policy.json`, containers.conf `userns=host`,
 `_CONTAINERS_USERNS_CONFIGURED` + `BUILDAH_ISOLATION` env), the deploy-scope
 nested-toolchain checks (nested `podman run`, `virsh` session list, in-container
 `charly version`/`charly doctor`), and the three fused services' liveness (gateway,
 ollama API, chrome-devtools-mcp port). The R10 bed is
-`eval-openclaw-desktop-pod` (`charly eval run eval-openclaw-desktop-pod`).
+`check-openclaw-desktop-pod` (`charly check run check-openclaw-desktop-pod`).
 
 ## Key Candies
 
@@ -249,6 +249,6 @@ ollama API, chrome-devtools-mcp port). The R10 bed is
 ## Related
 
 - `/charly-image:image` — image family umbrella (`box:` entries, build/validate/inspect/list)
-- `/charly-eval:eval` — declarative testing + the `eval-openclaw-desktop-pod` R10 bed
-- `/charly-eval:cdp`, `/charly-eval:wl` — desktop automation on this box
+- `/charly-check:check` — declarative testing + the `check-openclaw-desktop-pod` R10 bed
+- `/charly-check:cdp`, `/charly-check:wl` — desktop automation on this box
 - `/charly-core:charly-config` — deploy setup (tunnel, port remapping, multi-instance, encrypted volumes)

@@ -56,7 +56,7 @@ The runtime parser accepts only this kind-keyed form. `charly migrate` converts 
 | Scaffold new candy | `charly box new candy <name>` | Create candy directory with starter `charly.yml` (see `/charly-build:new`) |
 | Edit a candy field | `charly candy set <name> <dotpath> <value>` | Comment-preserving YAML edit by dot-path |
 | Append rpm/deb/pac/aur packages | `charly candy add-rpm <name> <pkg…>` (plus `add-deb`, `add-pac`, `add-aur`) | Idempotent append; auto-upgrades scaffold's null `package:` to a sequence |
-| Append a Gherkin acceptance scenario (Agent Driven Evaluation) | `charly candy add-scenario <name> <scenario> --given/--when/--then [--pod --tag]` | Idempotent append (dedupe by name) to the candy's top-level `scenario:` list. Writes prose-only steps; bind a deterministic check verb by editing the step, or leave it prose for the agent grader. See `/charly-eval:eval` "Agent Driven Evaluation" |
+| Append a Gherkin acceptance scenario (Agent Driven Evaluation) | `charly candy add-scenario <name> <scenario> --given/--when/--then [--pod --tag]` | Idempotent append (dedupe by name) to the candy's top-level `scenario:` list. Writes prose-only steps; bind a deterministic check verb by editing the step, or leave it prose for the agent grader. See `/charly-check:check` "Agent Driven Evaluation" |
 | Write a free-form file (`pixi.toml`, `root.yml`, …) | `charly box write <rel-path> --content X` | Escape hatch for files the schema setters don't cover; guarded against `..` traversal |
 | List all candies | `charly box list candies` | Show available candies from filesystem |
 | List services | `charly box list services` | Candies with `service` in charly.yml |
@@ -420,7 +420,7 @@ task:
 | `route` | `{host, port}` | Traefik reverse proxy route. |
 | `service` | multiline string | Supervisord `[program:<name>]` fragment. |
 | `package` / `distro` | list / map | The package surface: top-level `package:` base + per-distro/version `distro:` map (bare / versioned / compound keys). Resolved via the most-specific-first cascade (see Package Surface). |
-| `apk` | `[]ApkPackageSpec` | **Android app-install package format** — apps installed onto a `kind: android` device by a `target: android` deploy (NOT into the image). Each entry is `package:` (apkeep download by id, with `source`/`arch`/`version`) XOR `apk:` (committed local APK). Device-scoped (top-level, not under `distro:`); compiles to an `ApkInstallStep` that ONLY `target: android` executes (skipped at image-build + on every other target). See `/charly-eval:android`. |
+| `apk` | `[]ApkPackageSpec` | **Android app-install package format** — apps installed onto a `kind: android` device by a `target: android` deploy (NOT into the image). Each entry is `package:` (apkeep download by id, with `source`/`arch`/`version`) XOR `apk:` (committed local APK). Device-scoped (top-level, not under `distro:`); compiles to an `ApkInstallStep` that ONLY `target: android` executes (skipped at image-build + on every other target). See `/charly-check:android`. |
 | `localpkg` | map (format→dir) | **Native-package deploy format** (sibling of `apk`). A per-format map (`pac`/`rpm`/`deb` → a bundled package SOURCE dir, e.g. the `charly` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`). Compiles to a `LocalPkgInstallStep` (`/charly-internals:install-plan`) emitted at "step 2.5", BEFORE the layer's `task:`. On a DEPLOY target (`target: local` / `target: vm`) charly picks the entry matching the target distro's package format, builds the package on the HOST (pac via `makepkg`; rpm/deb distro-natively in a podman container), and installs it via the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`) — so the package's repo dependencies resolve automatically and there is NO dependency-closure builder. Every command (build / install / probe / glob / `source_sentinel`) is rendered from the distro's `format.<fmt>.local_pkg:` block in `build.yml` — zero hardcoded package-manager literals in Go. The legacy scalar form (`localpkg: pkg/arch`) is rejected at load with an `charly migrate` hint. Resolution walks up from the deploy project dir, so a consumer under `box/<distro>` finds the superproject's `pkg/<fmt>`. Skipped at image build — the layer's own `task:` (curl/COPY) is the fallback. The `charly` layer uses this to install `charly` as the native OS package at `/usr/bin/charly` on every distro instead of a curl'd binary. |
 | `volumes` | `[]{name, path}` | Persistent named volumes. |
 | `aliases` | `[]{name, command}` | Host command aliases. |
@@ -899,7 +899,7 @@ mcp_accept:
 
 **Pod-aware:** when provider and consumer share a container, URLs resolve to `localhost` (local wins over remote for same-named entries). **Naming is the service contract** — keep `name:` stable across candy/package/box renames.
 
-**Testing the endpoint:** once a candy is deployed, `charly eval mcp ping <image>` verifies the server is alive, and `charly eval mcp list-tools <image>` enumerates the tool catalog. Both are authorable as `mcp:` scenario steps scoped `context: [deploy]` in the candy's top-level `scenario:` list. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/charly-build:charly-mcp-cmd`.
+**Testing the endpoint:** once a candy is deployed, `charly check mcp ping <image>` verifies the server is alive, and `charly check mcp list-tools <image>` enumerates the tool catalog. Both are authorable as `mcp:` scenario steps scoped `context: [deploy]` in the candy's top-level `scenario:` list. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/charly-build:charly-mcp-cmd`.
 
 ---
 
@@ -1068,7 +1068,7 @@ intrinsic for that one shell.
 shell:
   init: |
     # Applies to bash, zsh, sh — ${SHELL_NAME} substituted at install time.
-    eval "$(direnv hook ${SHELL_NAME})"
+    check "$(direnv hook ${SHELL_NAME})"
   fish:
     init: |
       # Different syntax — explicit override.
@@ -1076,8 +1076,8 @@ shell:
 
 # Pure per-shell form
 shell:
-  bash: { init: 'eval "$(direnv hook bash)"' }
-  zsh:  { init: 'eval "$(direnv hook zsh)"' }
+  bash: { init: 'check "$(direnv hook bash)"' }
+  zsh:  { init: 'check "$(direnv hook zsh)"' }
   fish: { init: 'direnv hook fish | source' }
 
 # PATH contributions (rendered with shell-appropriate syntax —
@@ -1151,7 +1151,7 @@ shell: schema. Idempotent.
 - `/charly-build:build` — Building images (`--no-cache` caveat; multi-stage scratch).
 - `/charly-core:charly-config` — Cross-container `env_provide` / `mcp_provide` injection; `env_require` enforcement; `--update-all`; resource caps.
 - `/charly-core:deploy` — `charly.yml` `provides:` section; tunnel is charly.yml-only.
-- `/charly-eval:eval` — top-level `scenario:` list of declarative steps (file/port/http/...); baked into the `ai.opencharly.description` OCI label (each layer's `LabeledDescription` carries its `Scenario` set). Scenario steps default to `context: [build]`; set `context: [deploy]` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` step to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `candy/sshd/charly.yml`.
+- `/charly-check:check` — top-level `scenario:` list of declarative steps (file/port/http/...); baked into the `ai.opencharly.description` OCI label (each layer's `LabeledDescription` carries its `Scenario` set). Scenario steps default to `context: [build]`; set `context: [deploy]` to reference runtime vars like `${HOST_PORT:N}`. **Cross-distro package tests:** use `package_map:` on a `package:` step to resolve distro-specific package names (Fedora `openssh-server` vs Arch `openssh`); see the skill's "Cross-distro package names" section and the worked example in `candy/sshd/charly.yml`.
 - `/charly-automation:sidecar` — Sidecars as `env_provide` participants (tailscale `TS_*` filtering).
 - `/charly-build:secrets` — Credential store chain for `secret_accept` / `secret_require`.
 - `/charly-selkies:chrome` — Canonical consumer of `env_accept` (proxy vars), cgroup resource caps, and a heavy user-phase copy/mkdir task list.

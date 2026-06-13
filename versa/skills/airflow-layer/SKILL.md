@@ -126,7 +126,7 @@ start at higher priority numbers (30+) once init has finished.
 | `airflow-dag-processor` | 31 | always | Scan dags folder + serialise DAGs into the DB |
 | `airflow-webserver` | 31 | always | `airflow api-server` (FastAPI on :8080) |
 
-## Eval probes (8 — proves the auth + REST paths work)
+## Check probes (8 — proves the auth + REST paths work)
 
 Build-scope (4):
 - `airflow-init-script` `/usr/local/bin/airflow-init.sh` exists + executable

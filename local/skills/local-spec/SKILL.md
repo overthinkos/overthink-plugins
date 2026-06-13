@@ -80,15 +80,15 @@ steps. The deploy applies host packages + configs only. There is no
 `image:` field; declaring one in legacy YAML hard-errors at
 `charly box validate` time with a pointer to `charly migrate`.
 
-Test-bed image preflight is the **eval entry point's** job, not the
-deploy's. When `charly eval run --on-host <name>` resolves to a host
+Test-bed image preflight is the **check entry point's** job, not the
+deploy's. When `charly check run --on-host <name>` resolves to a host
 target, the runner walks the score's recipes, collects every distinct
 `scenario.pod` value plus `score.target_image`, and ensures each
 image is present in local podman storage (LocalImageExists →
 `charly box pull` → fall back to `charly box build` for short names that
-resolve via `cfg.Images`). Operators who never run `charly eval run`
-never pay the image-fetch cost. See `/charly-eval:eval` "Image
-preflight" and `charly/eval_image_preflight.go`.
+resolve via `cfg.Images`). Operators who never run `charly check run`
+never pay the image-fetch cost. See `/charly-check:check` "Image
+preflight" and `charly/check_image_preflight.go`.
 
 This invariant — "deploy fetches NOTHING speculative" — is codified
 as a CLAUDE.md Key Rule and enforced at the type level: the

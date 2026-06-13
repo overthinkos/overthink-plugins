@@ -2,7 +2,7 @@
 name: dbus-layer
 description: |
   D-Bus session bus for inter-process communication inside containers.
-  Use when working with D-Bus, desktop services, Wayland compositor dependencies, or charly eval dbus commands.
+  Use when working with D-Bus, desktop services, Wayland compositor dependencies, or charly check dbus commands.
 ---
 
 # dbus -- D-Bus session bus service
@@ -38,25 +38,25 @@ my-image:
     - dbus
 ```
 
-## `charly eval dbus` Integration
+## `charly check dbus` Integration
 
-The `charly eval dbus` command provides native Go D-Bus interaction with containers via `godbus/dbus/v5`. It operates in two modes:
+The `charly check dbus` command provides native Go D-Bus interaction with containers via `godbus/dbus/v5`. It operates in two modes:
 
-- **Remote mode** (`charly eval dbus notify myimage "title" "body"`): delegates to the container's `charly` binary via `engine exec container charly eval dbus notify . "title" "body"`. Falls back to `gdbus call` if `charly` binary is not in the container.
-- **Local mode** (`charly eval dbus notify . "title" "body"`): connects directly to the local session bus. This is what runs inside the container when delegated from the host.
+- **Remote mode** (`charly check dbus notify myimage "title" "body"`): delegates to the container's `charly` binary via `engine exec container charly check dbus notify . "title" "body"`. Falls back to `gdbus call` if `charly` binary is not in the container.
+- **Local mode** (`charly check dbus notify . "title" "body"`): connects directly to the local session bus. This is what runs inside the container when delegated from the host.
 
 ### Commands
 
 ```bash
-charly eval dbus notify <image> "title" "body"    # Send desktop notification
-charly eval dbus list <image>                      # List D-Bus services
-charly eval dbus call <image> <dest> <path> <method> [type:value...]  # Generic method call
-charly eval dbus introspect <image> <dest> <path>  # Service introspection
+charly check dbus notify <image> "title" "body"    # Send desktop notification
+charly check dbus list <image>                      # List D-Bus services
+charly check dbus call <image> <dest> <path> <method> [type:value...]  # Generic method call
+charly check dbus introspect <image> <dest> <path>  # Service introspection
 ```
 
 ### Notification Delivery Chain
 
-`charly cmd`/`charly tmux cmd`/`charly eval record cmd` → `sendContainerNotification()` → `charly eval dbus notify` → `org.freedesktop.Notifications.Notify` → swaync/mako → desktop popup
+`charly cmd`/`charly tmux cmd`/`charly check record cmd` → `sendContainerNotification()` → `charly check dbus notify` → `org.freedesktop.Notifications.Notify` → swaync/mako → desktop popup
 
 For notifications to work, the box needs:
 1. **`dbus` candy** — D-Bus session bus (this candy)
@@ -65,7 +65,7 @@ For notifications to work, the box needs:
 
 ### Error Messages
 
-`charly eval dbus` provides explanatory errors when D-Bus is unavailable:
+`charly check dbus` provides explanatory errors when D-Bus is unavailable:
 - No session bus → suggests adding the `dbus` candy
 - No notification daemon → suggests adding `swaync`
 - No `charly` binary → falls back to `gdbus`, warns about adding `charly` candy
@@ -93,7 +93,7 @@ Shows as `dbus:ok (notify:swaync)` in `charly status` detail view.
 
 ## Related Commands
 
-- `/charly-eval:dbus` — Native Go D-Bus commands (notify, list, call, introspect)
+- `/charly-check:dbus` — Native Go D-Bus commands (notify, list, call, introspect)
 
 ## When to Use This Skill
 
@@ -101,11 +101,11 @@ Use when the user asks about:
 
 - D-Bus session bus configuration
 - `DBUS_SESSION_BUS_ADDRESS` environment variable
-- `charly eval dbus` commands (notify, call, list, introspect)
+- `charly check dbus` commands (notify, call, list, introspect)
 - Desktop notifications in containers
 - Inter-process communication in containers
 
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

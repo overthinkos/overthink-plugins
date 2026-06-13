@@ -24,21 +24,21 @@ rpm:
 ## Usage
 
 ```bash
-charly eval wl exec <image> xterm           # Launch xterm (triggers XWayland)
-charly eval wl focus <image> xterm          # Focus by app_id
-charly eval wl xprop <image> xterm          # Query X11 properties
-charly eval wl geometry <image> xterm       # Get window position/size
-charly eval wl close <image> xterm          # Close window
+charly check wl exec <image> xterm           # Launch xterm (triggers XWayland)
+charly check wl focus <image> xterm          # Focus by app_id
+charly check wl xprop <image> xterm          # Query X11 properties
+charly check wl geometry <image> xterm       # Get window position/size
+charly check wl close <image> xterm          # Close window
 ```
 
-**Important:** The `charly eval wl exec` command sets `DISPLAY=:0` automatically for X11 apps.
+**Important:** The `charly check wl exec` command sets `DISPLAY=:0` automatically for X11 apps.
 
 ## Why It's in selkies-desktop
 
 labwc has XWayland compiled in (`+xwayland`) but starts it on-demand only when an X11 client opens. Without an X11 app like xterm:
 - XWayland never starts
 - xdotool, xprop, xwininfo find no windows
-- `charly eval wl scroll` (xdotool click 4/5) and `charly eval wl drag` (xdotool mousedown/mouseup) can't target X11 windows
+- `charly check wl scroll` (xdotool click 4/5) and `charly check wl drag` (xdotool mousedown/mouseup) can't target X11 windows
 
 With xterm installed, users can launch it to enable full XWayland testing.
 
@@ -53,10 +53,10 @@ With xterm installed, users can launch it to enable full XWayland testing.
 
 ## Cross-References
 
-- `/charly-eval:wl` — `charly eval wl exec`, `charly eval wl focus`, `charly eval wl close`, `charly eval wl xprop`, `charly eval wl geometry`
+- `/charly-check:wl` — `charly check wl exec`, `charly check wl focus`, `charly check wl close`, `charly check wl xprop`, `charly check wl geometry`
 - `/charly-selkies:selkies-desktop-layer` — Desktop metalayer that includes this candy
 
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

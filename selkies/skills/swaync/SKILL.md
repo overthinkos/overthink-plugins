@@ -60,14 +60,14 @@ Works with any wlroots compositor via `wlr-layer-shell` protocol:
 ## Testing Notifications
 
 ```bash
-# Preferred: use charly eval dbus notify (native Go D-Bus, no shell quoting issues)
-charly eval dbus notify <image> "Title" "Body text"
+# Preferred: use charly check dbus notify (native Go D-Bus, no shell quoting issues)
+charly check dbus notify <image> "Title" "Body text"
 
 # Alternative: use charly cmd with notification (triggers on completion)
 charly cmd <image> "sleep 2 && echo done"
 
 # Check if swaync is receiving notifications
-charly eval dbus list <image> | grep Notifications
+charly check dbus list <image> | grep Notifications
 
 # Low-level: notify-send (requires libnotify layer)
 charly cmd <image> "notify-send 'Title' 'Body text'" --no-notify
@@ -93,7 +93,7 @@ charly cmd <image> "swaync-client -d"    # toggle DnD
 ## Related Candies
 
 - `/charly-infrastructure:dbus-layer` -- D-Bus session bus dependency
-- `/charly-selkies:libnotify` -- `notify-send` CLI (optional; `charly eval dbus notify` uses native Go D-Bus instead)
+- `/charly-selkies:libnotify` -- `notify-send` CLI (optional; `charly check dbus notify` uses native Go D-Bus instead)
 - `/charly-selkies:waybar` -- notification bell module
 - `/charly-selkies:waybar-labwc` -- same notification bell module
 - `/charly-selkies:desktop-fonts` -- Nerd Font icons for notification bell
@@ -110,4 +110,4 @@ Use when the user asks about:
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

@@ -56,7 +56,7 @@ MapLibre substitutes `{fontstack}` (e.g. `Noto Sans Regular`) and
 pans/zooms. The versatiles-frontend http.server serves the files
 directly — no special URL rewriting needed.
 
-## Eval probes
+## Check probes
 
 Build-scope:
 - `versatiles-fonts-bundle-present` — at least one `*.pbf` glyph file exists under `/opt/versatiles-fonts/`

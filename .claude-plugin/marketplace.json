@@ -33,15 +33,15 @@
       "category": "commands"
     },
     {
-      "name": "charly-eval",
-      "source": "./eval",
-      "description": "Live-container evaluation and probe verbs — `charly eval` orchestrator + per-protocol live probes (cdp, wl, wl-overlay, dbus, vnc, spice, libvirt, record).",
+      "name": "charly-check",
+      "source": "./check",
+      "description": "Live-container evaluation and probe verbs — `charly check` orchestrator + per-protocol live probes (cdp, wl, wl-overlay, dbus, vnc, spice, libvirt, record).",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
       "repository": "https://github.com/overthinkos/overthink-plugins",
       "license": "MIT",
-      "keywords": ["charly", "eval", "probe", "automation", "live"],
+      "keywords": ["charly", "check", "probe", "automation", "live"],
       "category": "commands"
     },
     {
@@ -83,7 +83,7 @@
     {
       "name": "charly-kubernetes",
       "source": "./kubernetes",
-      "description": "Schema authoring for `kind: k8s` — Kustomize manifests + cluster probes via `charly eval k8s`.",
+      "description": "Schema authoring for `kind: k8s` — Kustomize manifests + cluster probes via `charly check k8s`.",
       "version": "1.0.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",
@@ -119,7 +119,7 @@
     {
       "name": "charly-internals",
       "source": "./internals",
-      "description": "Development internals for charly contributors — Go source map, install-plan IR, capabilities/OCI labels, vm-spec, libvirt/cloud-init renderers, cutover-policy, strict-policy, disposable, ovmf, generate-source, skill maintenance, and the agents/workflows/teams guide. Ships five agents (root-cause-analyzer, layer-validator, testing-validator, eval-bed-runner, deploy-verifier) and the github MCP server.",
+      "description": "Development internals for charly contributors — Go source map, install-plan IR, capabilities/OCI labels, vm-spec, libvirt/cloud-init renderers, cutover-policy, strict-policy, disposable, ovmf, generate-source, skill maintenance, and the agents/workflows/teams guide. Ships five agents (root-cause-analyzer, layer-validator, testing-validator, check-bed-runner, deploy-verifier) and the github MCP server.",
       "version": "1.1.0",
       "author": { "name": "overthinkos" },
       "homepage": "https://github.com/overthinkos/overthink",

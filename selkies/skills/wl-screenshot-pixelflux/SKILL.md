@@ -51,10 +51,10 @@ Fields: `connected` (WebSocket up), `mode` (controller/viewer/reconnecting), `fr
 
 ## Usage
 
-Used by `charly eval wl screenshot` — auto-detected when `pixelflux-screenshot` is available (preferred over grim).
+Used by `charly check wl screenshot` — auto-detected when `pixelflux-screenshot` is available (preferred over grim).
 
 ```bash
-charly eval wl screenshot <image> [output.png]
+charly check wl screenshot <image> [output.png]
 ```
 
 ## Architecture
@@ -79,14 +79,14 @@ selkies process (single ScreenCapture singleton)
 
 ## Cross-References
 
-- `/charly-eval:wl` — `charly eval wl screenshot` auto-detects pixelflux-screenshot
+- `/charly-check:wl` — `charly check wl screenshot` auto-detects pixelflux-screenshot
 - `/charly-selkies:wl-record-pixelflux` — Recording companion (same capture bridge + same singleton)
 - `/charly-selkies:wl-screenshot-grim` — Alternative for sway-desktop (wlr-screencopy)
 - `/charly-selkies:selkies` — Parent candy providing the ScreenCapture singleton and capture bridge
 - `/charly-selkies:selkies-desktop-layer` — Metalayer that composes this screenshot path into the selkies-labwc box
-- `/charly-eval:record` — Uses `/charly-selkies:wl-record-pixelflux` via the same singleton
+- `/charly-check:record` — Uses `/charly-selkies:wl-record-pixelflux` via the same singleton
 
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

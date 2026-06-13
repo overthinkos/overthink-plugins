@@ -35,7 +35,7 @@ order.
 | `charly box merge` | Merge small layers in a built image | `/charly-build:merge` |
 | `charly box new candy <name>` | Scaffold a new candy directory | `/charly-build:new` |
 | `charly box pull` | Fetch an image into local storage | `/charly-build:pull` |
-| `charly eval box` | Run declarative tests against a disposable container from a built image (reads the baked `scenario:` Ops from the `ai.opencharly.description` OCI label) | `/charly-eval:eval` |
+| `charly check box` | Run declarative tests against a disposable container from a built image (reads the baked `scenario:` Ops from the `ai.opencharly.description` OCI label) | `/charly-check:check` |
 | `charly box validate` | Check charly.yml + layers | `/charly-build:validate` |
 
 ## Scope Boundary (Build vs. Deploy)
@@ -91,7 +91,7 @@ Remote repos are cloned into `~/.cache/charly/repos/<repoPath>@<version>/` (over
    ```bash
    charly config charly-arch --bind project=/home/you/opencharly
    charly start charly-arch
-   charly eval mcp call charly-arch box.list.boxes '{}' --name charly
+   charly check mcp call charly-arch box.list.boxes '{}' --name charly
    ```
 
 2. **Remote pin** — set `CHARLY_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env. The agent reads from a pinned upstream version. No bind mount required.
@@ -110,7 +110,7 @@ The error messages are explicit when misconfigured: `cannot chdir to --dir "/mis
 | Inspect field | `charly box inspect <image> --format <field>` | Print single field (tag, base, layers, ports, etc.) |
 | Validate | `charly box validate` | Check charly.yml + layers |
 | Pull into local storage | `charly box pull <image>` | Fetch from registry so deploy-mode commands work |
-| Run build-time tests | `charly eval box <image>` | Runs the baked `scenario:` steps in a disposable `podman run --rm` container (`context: [build]` steps only). For full-stack live eval against a running deployment, use `charly eval live <name>`. See `/charly-eval:eval`. |
+| Run build-time tests | `charly check box <image>` | Runs the baked `scenario:` steps in a disposable `podman run --rm` container (`context: [build]` steps only). For full-stack live check against a running deployment, use `charly check live <name>`. See `/charly-check:check`. |
 | Pre-prime remote repo cache | `charly box fetch [<spec>]` | Clones (or hits cache) for the spec — defaults to `default` (overthinkos/overthink). Prints the cache path. |
 | Force re-clone | `charly box refresh [<spec>]` | Removes the cache entry and re-clones. |
 
@@ -461,7 +461,7 @@ charly box inspect android-emulator --format ports
 # — all inherited from the candy chain; the box declares no `port:`
 ```
 
-**Host mappings are auto-allocated on `127.0.0.1` at deploy.** At `charly config`, every inherited container port without an explicit deploy pin gets a freshly-allocated free loopback host port (`ResolveDeployPorts`), persisted as `resolved_port:` and stable across `charly update`. A deploy/bed `port:` entry is a PIN (`host:container`) for specific container ports — the rest still auto-allocate. `charly status` shows the live mapping; eval probes resolve it via `${HOST_PORT:N}`. See `/charly-core:deploy` and `/charly-eval:eval`.
+**Host mappings are auto-allocated on `127.0.0.1` at deploy.** At `charly config`, every inherited container port without an explicit deploy pin gets a freshly-allocated free loopback host port (`ResolveDeployPorts`), persisted as `resolved_port:` and stable across `charly update`. A deploy/bed `port:` entry is a PIN (`host:container`) for specific container ports — the rest still auto-allocate. `charly status` shows the live mapping; check probes resolve it via `${HOST_PORT:N}`. See `/charly-core:deploy` and `/charly-check:check`.
 
 ## OCI Labels
 
@@ -552,8 +552,8 @@ box:
 - `/charly-core:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
 - `/charly-core:charly-config` -- `charly config` reads OCI labels + charly.yml; tunnel is charly.yml-only
 - `/charly-internals:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
-- `/charly-eval:eval` — Box-level `scenario:` steps (cross-candy invariants; deploy-default checks shipped with the image are steps carrying `context: [deploy]`). The scenario Ops are embedded in the `ai.opencharly.description` OCI label.
-- `/charly-build:charly-mcp-cmd` — if the image transitively bundles an mcp-providing candy (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled candy's `mcp:` tests run as part of `charly eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
+- `/charly-check:check` — Box-level `scenario:` steps (cross-candy invariants; deploy-default checks shipped with the image are steps carrying `context: [deploy]`). The scenario Ops are embedded in the `ai.opencharly.description` OCI label.
+- `/charly-build:charly-mcp-cmd` — if the image transitively bundles an mcp-providing candy (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled candy's `mcp:` tests run as part of `charly check live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
 - `/charly-vm:vm` — `charly vm build/create/start/stop/ssh` command family; reads `vm.yml`, not `charly.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
 - `/charly-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema.
 - `/charly-build:migrate` — `charly migrate` converts legacy VM fields to `vm.yml`.
@@ -613,7 +613,7 @@ The arch and fedora base-distro stacks are no longer carried by the main repo �
 - **`box/fedora`** owns `fedora` + `fedora-builder` + `fedora-nonfree` (+ the `nvidia` / `python-ml` GPU bases), bare-local, and is SELF-CONTAINED (`import: []`).
 - **`box/cachyos`** owns the `cachyos` base (+ the pacstrap pair and the selkies GPU desktops) and imports the `arch` namespace to reach `arch.arch` / `arch.arch-builder` / `arch.cuda-arch-builder`.
 
-The main repo imports all three submodules (`arch` / `cachyos` / `fedora` namespaces) to reference their relocated boxes from its own `eval`/`vm`/`local`/`k8s`/`android` entities (one-directional — the submodules import nothing back from main). The distro/builder/init build vocabulary is embedded in the `charly` binary (no `build.yml` import). See `/charly-distros:arch`, `/charly-distros:fedora`, `/charly-distros:cachyos`.
+The main repo imports all three submodules (`arch` / `cachyos` / `fedora` namespaces) to reference their relocated boxes from its own `check`/`vm`/`local`/`k8s`/`android` entities (one-directional — the submodules import nothing back from main). The distro/builder/init build vocabulary is embedded in the `charly` binary (no `build.yml` import). See `/charly-distros:arch`, `/charly-distros:fedora`, `/charly-distros:cachyos`.
 
 ## When to Use This Skill
 
@@ -626,7 +626,7 @@ The main repo imports all three submodules (`arch` / `cachyos` / `fedora` namesp
 - `/charly-build:migrate` — `charly migrate` migrates legacy configs into the canonical single-`charly.yml` layout
 - `/charly-internals:capabilities` — OCI label contract emitted at build time and consumed by deploy commands
 
-## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-check:check` 10 standards)
 
 Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 

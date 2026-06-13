@@ -91,7 +91,7 @@ and passed through.
 ## When NOT to use `--host`
 
 - When you want artifacts (screenshots, recordings) to land in the local
-  filesystem → use `charly eval libvirt|spice|vnc --uri qemu+ssh://…`
+  filesystem → use `charly check libvirt|spice|vnc --uri qemu+ssh://…`
   instead; it runs charly locally and forwards the display channel over SSH.
 - When `charly` isn't installed on the remote machine → use `--uri` or
   `charly ssh tunnel`.
@@ -101,6 +101,6 @@ and passed through.
 - `/charly-vm:arch` — "Connecting from a remote workstation" —
   the canonical worked example across all three paths.
 - `/charly-build:settings` — `hosts.<alias>` key schema.
-- `/charly-eval:spice` — `--uri` + `--socket` flags on `charly eval spice`.
-- `/charly-eval:libvirt` — `--uri` flag on every `charly eval libvirt` verb.
-- `/charly-eval:vnc` — `charly eval vnc vm <name> …` subcommand group.
+- `/charly-check:spice` — `--uri` + `--socket` flags on `charly check spice`.
+- `/charly-check:libvirt` — `--uri` flag on every `charly check libvirt` verb.
+- `/charly-check:vnc` — `charly check vnc vm <name> …` subcommand group.

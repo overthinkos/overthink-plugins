@@ -46,12 +46,12 @@ Same pattern as `/charly-versa:versatiles-style`:
 2. **Tier 2** (fallback): `npm install maplibre-versatiles-styler` and
    copy the package's `dist/` directory.
 
-The eval probe is lenient about the exact filename (the package
+The check probe is lenient about the exact filename (the package
 ships both ESM and UMD builds across multiple paths) — it asserts
 that at least one non-empty `*.js` file exists under
 `/opt/maplibre-versatiles-styler/`.
 
-## Eval probes
+## Check probes
 
 Build-scope:
 - `maplibre-versatiles-styler-bundle-present` — at least one non-empty `*.js` file exists under `/opt/maplibre-versatiles-styler/`

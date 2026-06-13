@@ -28,11 +28,11 @@ my-image:
 
 ## Purpose
 
-Provides `notify-send` as a convenience CLI for sending desktop notifications from shell scripts and manual use. The `charly eval dbus notify` command uses native Go D-Bus instead and does NOT depend on this candy.
+Provides `notify-send` as a convenience CLI for sending desktop notifications from shell scripts and manual use. The `charly check dbus notify` command uses native Go D-Bus instead and does NOT depend on this candy.
 
-### When to use `notify-send` vs `charly eval dbus notify`
+### When to use `notify-send` vs `charly check dbus notify`
 
-| | `notify-send` | `charly eval dbus notify` |
+| | `notify-send` | `charly check dbus notify` |
 |---|--------------|-----------------|
 | Requires | `libnotify` candy | `charly` candy (or `gdbus` fallback) |
 | Implementation | Shell command, libnotify C library | Native Go `godbus/dbus/v5` |
@@ -42,11 +42,11 @@ Provides `notify-send` as a convenience CLI for sending desktop notifications fr
 
 - `/charly-infrastructure:dbus-layer` -- D-Bus session bus (required dependency)
 - `/charly-selkies:swaync` -- notification daemon to display the notifications
-- `/charly-tools:charly` -- alternative: native D-Bus via `charly eval dbus notify`
+- `/charly-tools:charly` -- alternative: native D-Bus via `charly check dbus notify`
 
 ## Used In Boxes
 
-Not used in any current box definition. Optional notification CLI -- prefer `charly eval dbus notify` which uses native Go D-Bus.
+Not used in any current box definition. Optional notification CLI -- prefer `charly check dbus notify` which uses native Go D-Bus.
 
 ## When to Use This Skill
 
@@ -59,4 +59,4 @@ Use when the user asks about:
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

@@ -115,13 +115,13 @@ Identical to `/charly-coder:debian-coder` — the only diff is `User` field.
 
 ## Ubuntu-specific layer quirks (differences vs debian-coder)
 
-- **fastfetch test is skipped** via `exclude_distros: [ubuntu:24.04]` (`/charly-coder:dev-tools`). Ubuntu 24.04 noble main does not ship `fastfetch` (Debian 13 trixie does, and so do Fedora/Arch). Skipping is cleaner than failing — see `/charly-eval:eval` for the `exclude_distros:` field of the declarative-test schema.
+- **fastfetch test is skipped** via `exclude_distros: [ubuntu:24.04]` (`/charly-coder:dev-tools`). Ubuntu 24.04 noble main does not ship `fastfetch` (Debian 13 trixie does, and so do Fedora/Arch). Skipping is cleaner than failing — see `/charly-check:check` for the `exclude_distros:` field of the declarative-test schema.
 - **dotnet-sdk-9.0 source**: uses Microsoft's `dotnet-install.sh` (same as debian-coder). Note: Canonical's noble main/universe ships `dotnet-sdk-8.0` and `dotnet-sdk-10.0` but NOT 9.0; Microsoft's noble apt repo ships 10.0 only. `dotnet-install.sh --channel 9.0` is the only cross-distro-consistent path to .NET 9. See `/charly-coder:language-runtimes`.
 - **Everything else** is identical to debian-coder. The sudoers `getent` discovery, bat→batcat symlink, virtualization package-existence tests — all are implemented once in the respective candies and work uniformly on both debian-coder and ubuntu-coder.
 
 ## Test results
 
-`charly eval box ghcr.io/overthinkos/ubuntu-coder:latest` — **142 passed · 0 failed · 1 skipped** (fastfetch, by design).
+`charly check box ghcr.io/overthinkos/ubuntu-coder:latest` — **142 passed · 0 failed · 1 skipped** (fastfetch, by design).
 
 ## Verification recipe
 
@@ -133,7 +133,7 @@ charly -C box/ubuntu box validate
 charly -C box/ubuntu box build ubuntu-coder
 
 # 3. Disposable-container tests
-charly eval box ghcr.io/overthinkos/ubuntu-coder:latest
+charly check box ghcr.io/overthinkos/ubuntu-coder:latest
 
 # 4. Confirm adopt mode at runtime
 charly shell ubuntu-coder -c "id"
@@ -142,7 +142,7 @@ charly shell ubuntu-coder -c "id"
 # 5. Deploy + live tests
 charly config ubuntu-coder
 charly start ubuntu-coder
-charly eval box ghcr.io/overthinkos/ubuntu-coder:latest
+charly check box ghcr.io/overthinkos/ubuntu-coder:latest
 ```
 
 ## Gotcha: Dockerhub rate-limits during base pulls
@@ -194,7 +194,7 @@ Conflicts with the other three coder-family boxes on these ports.
 
 - `/charly-image:image` — **`user_policy:` field** (the pivot for this box's behavior).
 - `/charly-build:build` — **`base_user:` declaration** (where `ubuntu:1000` is declared).
-- `/charly-eval:eval` — `exclude_distros:` field reference.
+- `/charly-check:check` — `exclude_distros:` field reference.
 - `/charly-build:generate` — adopt-vs-create writeBootstrap emission.
 - `/charly-core:shell`, `/charly-core:charly-config`, `/charly-core:start`, `/charly-core:stop`.
 

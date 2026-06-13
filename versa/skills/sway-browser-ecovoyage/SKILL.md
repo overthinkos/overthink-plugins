@@ -21,7 +21,7 @@ Verifying these from a sandboxed agent context requires a browser
 that can reach the dynamic tile URLs (e.g.
 `https://ac.armadillo-quail.ts.net:33000/monaco/{z}/{x}/{y}`).
 
-The existing `eval-sway-browser-vnc-pod` is general-purpose and
+The existing `check-sway-browser-vnc-pod` is general-purpose and
 isn't preconfigured with the ecovoyage URLs — and its loopback
 isn't the same loopback as the host, so 127.0.0.1 references to
 versa/ecovoyage's host ports don't resolve. Tailnet URLs solve
@@ -71,19 +71,19 @@ These are passed in as env vars (`MARTIN_PUBLIC_URL`,
 
 ```bash
 # 1. Open the marimo notebook in chrome
-charly eval cdp open sway-browser-vnc/ecovoyage \
+charly check cdp open sway-browser-vnc/ecovoyage \
   "https://ac.armadillo-quail.ts.net:32718/?file=notebooks/osm-monaco-viz.py"
 
 # 2. Run all stale cells (after the DAGs finish executing)
-charly eval cdp evaluate_script sway-browser-vnc/ecovoyage \
+charly check cdp evaluate_script sway-browser-vnc/ecovoyage \
   --expression 'document.querySelectorAll("button[data-testid=run-button]").forEach(b => b.click())'
 
 # 3. Wait for the streets MapLibre canvas to appear
-charly eval cdp wait sway-browser-vnc/ecovoyage \
+charly check cdp wait sway-browser-vnc/ecovoyage \
   --selector ".maplibregl-canvas" --timeout 90s
 
 # 4. Screenshot — validate dimensions + non-uniform content
-charly eval cdp screenshot sway-browser-vnc/ecovoyage \
+charly check cdp screenshot sway-browser-vnc/ecovoyage \
   --artifact /tmp/ecovoyage-streets.png \
   --artifact-min-bytes 50000 \
   --artifact-min-dimensions 800x600 \
@@ -92,7 +92,7 @@ charly eval cdp screenshot sway-browser-vnc/ecovoyage \
 # 5. Inspect the iframe contents directly (catch JS errors before they
 #    silently produce blank canvases — see the hyphen-in-JS-identifier
 #    bug story below)
-charly eval cdp evaluate_script sway-browser-vnc/ecovoyage \
+charly check cdp evaluate_script sway-browser-vnc/ecovoyage \
   --expression '[...document.querySelectorAll("iframe")].map(f => ({
     src: f.src, canvas: !!f.contentDocument?.querySelector("canvas"),
     consts: [...(f.contentDocument?.body?.innerHTML?.matchAll(/const map_[a-z_-]+/g) || [])].map(m=>m[0])
@@ -120,7 +120,7 @@ can plug it into its MCP config:
 In opencharly's `provides:` registry this server is published as
 `chrome-devtools-ecovoyage` (instance-suffixed by `charly config`'s
 MCP name-disambiguation rule — see `/charly-core:deploy`) so it
-doesn't collide with the `eval-sway-browser-vnc-pod`'s base
+doesn't collide with the `check-sway-browser-vnc-pod`'s base
 `chrome-devtools` provide.
 
 ## Hard-won lessons (carried over from this skill's authoring session)
@@ -146,7 +146,7 @@ identifiers (hyphens in `const` names was the canonical bug:
 ### Container chrome ≠ host chrome on `127.0.0.1`
 
 If you debug from a container-sandboxed chrome
-(e.g. `eval-sway-browser-vnc-pod`), `127.0.0.1` is **that pod's
+(e.g. `check-sway-browser-vnc-pod`), `127.0.0.1` is **that pod's
 loopback**, not the host's. Maps with `http://127.0.0.1:<host-port>`
 tile URLs will silently fail to fetch tiles even though MapLibre
 instantiates the canvas. This is why every `*_PUBLIC_URL` env var
@@ -160,7 +160,7 @@ sandboxed pods.
 - `/charly-versa:versa` — the image hosting the maps (versa/ecovoyage = Pattern A instance)
 - `/charly-selkies:sway-browser-vnc` — the base image this deploy instantiates
 - `/charly-selkies:chrome-devtools-mcp` — the layer providing the MCP server
-- `/charly-eval:cdp` — the verb catalog driving Chrome
-- `/charly-build:charly-mcp-cmd` — verifying the MCP endpoint via `charly eval mcp ping/list-tools/call`
+- `/charly-check:cdp` — the verb catalog driving Chrome
+- `/charly-build:charly-mcp-cmd` — verifying the MCP endpoint via `charly check mcp ping/list-tools/call`
 - `/charly-core:deploy` — Pattern A multi-instance + MCP name disambiguation
 - `/charly-automation:sidecar` — alternative tailscale sidecar pattern (not used here; this skill uses host-serve)

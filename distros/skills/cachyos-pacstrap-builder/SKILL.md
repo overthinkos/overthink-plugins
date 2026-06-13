@@ -43,7 +43,7 @@ build proves the `arch` import namespace resolves the `arch` base from the
 materializes, and the embedded build vocabulary (pacstrap builder definition +
 cachyos distro config) is reachable.
 
-`charly eval box cachyos-pacstrap-builder` runs the build-scope eval: 4 probes pass
+`charly check box cachyos-pacstrap-builder` runs the build-scope check: 4 probes pass
 (`/usr/sbin/pacstrap`, `arch-install-scripts` installed, `/usr/sbin/grub-install`,
 `/usr/sbin/parted`) — i.e. the pacstrap toolchain the builder must ship.
 

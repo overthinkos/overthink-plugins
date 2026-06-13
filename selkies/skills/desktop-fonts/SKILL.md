@@ -25,7 +25,7 @@ description: |
 package — dnf resolves it to `liberation-sans-fonts` (and sibling
 `-serif-fonts` / `-mono-fonts` packages). Any `package:` test must
 query the real installed name (`liberation-sans-fonts`), not the
-dnf-level request. See `/charly-eval:eval` Authoring Gotcha #8.
+dnf-level request. See `/charly-check:check` Authoring Gotcha #8.
 
 ## Usage
 
@@ -57,7 +57,7 @@ Included in desktop metalayers. Not typically added directly:
 - `/charly-selkies:waybar` -- uses JetBrains Mono + Symbols Nerd Font
 - `/charly-selkies:waybar-labwc` -- same fonts
 - `/charly-selkies:swaync` -- uses JetBrains Mono
-- `/charly-eval:eval` -- declarative testing framework (Authoring Gotcha #8 on package renames)
+- `/charly-check:check` -- declarative testing framework (Authoring Gotcha #8 on package renames)
 - `/charly-image:layer` -- candy authoring reference
 
 ## When to Use This Skill

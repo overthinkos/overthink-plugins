@@ -72,7 +72,7 @@ All three can coexist, but for most cases you want exactly one.
 - `/charly-automation:sidecar` — deploy-time Tailscale sidecar pattern (alternative, not a replacement)
 - `/charly-core:deploy` — `charly.yml` tunnel/sidecar configuration
 - `/charly-image:layer` — candy authoring reference
-- `/charly-eval:eval` — declarative testing reference
+- `/charly-check:check` — declarative testing reference
 
 ## When to Use This Skill
 

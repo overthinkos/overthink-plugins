@@ -36,7 +36,7 @@ my-dev:
 - `/charly-hermes:hermes-full-layer` — metalayer that bundles this with codex, gemini, dev-tools, devops-tools
 - `/charly-hermes:hermes` — primary box that ships this CLI
 - `/charly-image:layer` — candy authoring reference
-- `/charly-eval:eval` — declarative testing framework (this candy's test verifies `${HOME}/.npm-global/bin/claude` + `claude --version`)
+- `/charly-check:check` — declarative testing framework (this candy's test verifies `${HOME}/.npm-global/bin/claude` + `claude --version`)
 
 ## When to Use This Skill
 

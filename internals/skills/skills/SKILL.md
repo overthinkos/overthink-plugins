@@ -22,7 +22,7 @@ in ONE message (parallel `Skill` calls). Full index: `plugins/README.md`.
 
 | Trigger | Action |
 |---------|--------|
-| Deployment step fails or needs undocumented workaround | Update the relevant `/charly-core:*`, `/charly-build:*`, `/charly-eval:*`, `/charly-automation:*`, kind plugin (`/charly-image:*`, `/charly-vm:*`, `/charly-kubernetes:*`, `/charly-local:*`, `/charly-pod:*`), per-pod plugin (`/charly-jupyter:*`, `/charly-coder:*`, …), or split-foundation plugin (`/charly-distros:*`, `/charly-languages:*`, `/charly-infrastructure:*`, `/charly-tools:*`) |
+| Deployment step fails or needs undocumented workaround | Update the relevant `/charly-core:*`, `/charly-build:*`, `/charly-check:*`, `/charly-automation:*`, kind plugin (`/charly-image:*`, `/charly-vm:*`, `/charly-kubernetes:*`, `/charly-local:*`, `/charly-pod:*`), per-pod plugin (`/charly-jupyter:*`, `/charly-coder:*`, …), or split-foundation plugin (`/charly-distros:*`, `/charly-languages:*`, `/charly-infrastructure:*`, `/charly-tools:*`) |
 | Verification check missing from image skill | Add to the image skill's Verification section |
 | Skill's recommended defaults are wrong | Fix in the skill, not CLAUDE.md |
 | New feature added to charly CLI | Update `/charly-core:<cmd>` or `/charly-build:<cmd>` skill + `/charly-internals:go` source map |
@@ -77,7 +77,7 @@ description: |
 | Layer properties, packages, ports | per-pod plugin (`/charly-jupyter:<name>`, `/charly-coder:<name>`, …) or split-foundation plugin (`/charly-distros:*`, `/charly-languages:*`, `/charly-infrastructure:*`, `/charly-tools:*`) for base layers |
 | Image composition, deployment, verification | per-pod plugin or `/charly-distros:<name>` / `/charly-infrastructure:<name>` for base images |
 | Skill disambiguation (which skill to use) | CLAUDE.md R0 "Skill Dispatcher" (the sole copy; never mirrored) |
-| Detailed operational patterns | Relevant `/charly-core:*` / `/charly-build:*` / `/charly-eval:*` / `/charly-automation:*` / kind-plugin skill |
+| Detailed operational patterns | Relevant `/charly-core:*` / `/charly-build:*` / `/charly-check:*` / `/charly-automation:*` / kind-plugin skill |
 | Hard rule / gate / mandate (the WHAT and the MUST) | CLAUDE.md — stated ONCE, in mandate form, with a `*Detail:*` pointer |
 | Operationalization / matrix / catalog / worked example (the HOW) | The ONE owning skill (see the Authoritative-copy registry below) |
 | Version history / past changes / renames / cutover narration | `CHANGELOG.md` (repo root) — never CLAUDE.md or a skill |
@@ -102,7 +102,7 @@ definition lives in CLAUDE.md), the **Acceptance checklist**, and the
 
 | Matrix / catalog / definition | Sole owner |
 |---|---|
-| "R10 gate by change class" matrix (incl. the class → gate → tier cross-walk) + "Flag discipline" catalog | `/charly-eval:eval` |
+| "R10 gate by change class" matrix (incl. the class → gate → tier cross-walk) + "Flag discipline" catalog | `/charly-check:check` |
 | R1–R5, RDD, ADE operationalization (forbidden patterns, risk table, worked examples) | `/charly-internals:strict-policy` |
 | Hard-cutover workflow, forbidden patterns, deliverables | `/charly-internals:cutover-policy` |
 | `disposable:` / `preemptible:` flag semantics, "What counts as an R10 run" | `/charly-internals:disposable` |
@@ -169,7 +169,7 @@ Sub-agents are markdown + YAML frontmatter (`name`, `description`, `tools`,
 plugin agents (use `.claude/agents/` or `settings.json` if you genuinely
 need them). The charly roster splits into **enforcers** (root-cause-analyzer,
 layer-validator, testing-validator — gate claims) and **executors**
-(eval-bed-runner, deploy-verifier — drive `charly eval` and return verbatim
+(check-bed-runner, deploy-verifier — drive `charly check` and return verbatim
 proof). Full story: `/charly-internals:agents`. Dynamic workflows are NOT plugin
 content — they live in the superproject's `.claude/workflows/*.js`.
 
@@ -209,7 +209,7 @@ Syncthing-synced half** (memory, personal settings).
 
 - `/charly-internals:go` — Source code structure, adding new commands
 - `/charly-internals:generate-source` — Understanding generated Containerfiles
-- `/charly-internals:agents` — Sub-agents, dynamic workflows, agent teams; how they drive the `charly eval` beds; the hooks doctrine; the signpost convention
+- `/charly-internals:agents` — Sub-agents, dynamic workflows, agent teams; how they drive the `charly check` beds; the hooks doctrine; the signpost convention
 - `/charly-build:validate` — Validation rules
 - All `/charly:*` skills — Individual command documentation
 

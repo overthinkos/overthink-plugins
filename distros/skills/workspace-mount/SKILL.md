@@ -37,12 +37,12 @@ libvirt:
 memory backing virtiofs requires is auto-paired by the renderer (see
 `/charly-internals:libvirt-renderer`), so the entity declares only the filesystem.
 
-## Eval
+## Check
 
 - `workspace-mount-unit` — the `.mount` unit file contains `Type=virtiofs`.
 - `workspace-virtiofs-rw` — skip-aware: N/A when no share is attached (image
   build / no-device target); when `/workspace` IS mounted it MUST be `virtiofs`
-  and writable. Mirrors the GPU eval gate's skip-with-explanation pattern.
+  and writable. Mirrors the GPU check gate's skip-with-explanation pattern.
 
 ## Used in
 

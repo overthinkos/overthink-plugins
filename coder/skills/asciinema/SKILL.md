@@ -34,19 +34,19 @@ candy:
   - asciinema
 ```
 
-Used by `charly eval record start --mode terminal` for terminal recording sessions. Also available standalone via `asciinema rec`.
+Used by `charly check record start --mode terminal` for terminal recording sessions. Also available standalone via `asciinema rec`.
 
-## Integration with `charly eval record`
+## Integration with `charly check record`
 
 ```bash
 # Start recording a terminal session
-charly eval record start <image> -n demo --mode terminal
+charly check record start <image> -n demo --mode terminal
 
 # Send commands to the recorded terminal
-charly eval record cmd <image> "echo hello" -n demo
+charly check record cmd <image> "echo hello" -n demo
 
 # Stop and copy to host
-charly eval record stop <image> -n demo -o demo.cast
+charly check record stop <image> -n demo -o demo.cast
 
 # Play back
 asciinema play demo.cast
@@ -64,11 +64,11 @@ Also available via the `dev-tools` candy (which includes asciinema among many ot
 
 ## Related Commands
 
-- `/charly-eval:record` — Terminal recording via asciinema (start, stop, cmd)
+- `/charly-check:record` — Terminal recording via asciinema (start, stop, cmd)
 
 ## Cross-References
 
-- `/charly-eval:record` — `charly eval record start --mode terminal` uses asciinema
+- `/charly-check:record` — `charly check record start --mode terminal` uses asciinema
 - `/charly-coder:dev-tools` — Also includes asciinema (larger candy)
 
 ## When to Use This Skill
@@ -81,4 +81,4 @@ Use when the user asks about:
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

@@ -57,7 +57,7 @@ This candy is the **GUI** for editing `.kdbx` databases. `/charly-build:secrets`
 
 - `/charly-build:secrets` — charly CLI credential store (Secret Service + GPG; reads a KeePassXC database only via its FdoSecrets / Secret Service exposure)
 - `/charly-image:layer` — candy authoring reference
-- `/charly-eval:eval` — declarative testing reference
+- `/charly-check:check` — declarative testing reference
 
 ## When to Use This Skill
 

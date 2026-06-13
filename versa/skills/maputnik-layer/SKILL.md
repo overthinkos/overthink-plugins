@@ -2,7 +2,7 @@
 name: maputnik-layer
 description: |
   Maputnik — visual editor for MapLibre GL vector-tile styles. Pure-JS SPA built from upstream source via npm at image build time, served as static dist by python -m http.server. Pairs with osm-tools's martin tile server.
-  Use when working with the maputnik layer, the Vite --base=/ build override (critical fix; default --base=/maputnik/ produces 404 asset paths), or the asset-base lock-in eval test.
+  Use when working with the maputnik layer, the Vite --base=/ build override (critical fix; default --base=/maputnik/ produces 404 asset paths), or the asset-base lock-in check test.
 ---
 
 # maputnik — visual MapLibre style editor
@@ -76,7 +76,7 @@ shows asset 404s for `/maputnik/assets/index-*.js` etc.
   run_as: root
 ```
 
-## Eval lock-in
+## Check lock-in
 
 A deploy-context scenario step greps the served HTML for the
 (forbidden) `/maputnik/` prefix and fails if present. The `command`

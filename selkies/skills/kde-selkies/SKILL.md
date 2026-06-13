@@ -36,7 +36,7 @@ no DRM seat, no SDDM, no `graphical.target`. So:
   relaunches Chrome if it self-exits during the startup-race. Chrome works headless
   under KDE.
 
-This headless-no-seat path is exercised by the `eval-selkies-kde-pod` bed:
+This headless-no-seat path is exercised by the `check-selkies-kde-pod` bed:
 `kde-selkies-session` RUNNING ≥20s, `https://:3000/` → 200, Chrome CDP
 `/json/version` → 200, plus the deploy-scope `wl` KWin checks this candy ships.
 
@@ -46,7 +46,7 @@ This headless-no-seat path is exercised by the `eval-selkies-kde-pod` bed:
 (VAAPI on an AMD/Intel renderD via libva-native; NVENC from the cuda-arch-builder
 pixelflux on the `*-nvidia` box; x264 otherwise). So ONE kde-selkies candy
 streams on every GPU config. The encoder identity is asserted per-box in the
-GPU eval beds, not here.
+GPU check beds, not here.
 
 ## Related
 

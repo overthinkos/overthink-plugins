@@ -37,7 +37,7 @@ Provides the `direnv` binary AND the per-shell hook installation for automatic e
 ```yaml
 shell:
   init: |
-    eval "$(direnv hook ${SHELL_NAME})"   # bash/zsh/sh — POSIX-style
+    check "$(direnv hook ${SHELL_NAME})"   # bash/zsh/sh — POSIX-style
   fish:
     init: |
       direnv hook fish | source            # fish — different syntax
@@ -45,7 +45,7 @@ shell:
 
 Container images get `/etc/profile.d/charly-direnv-<shell>.sh` and `/etc/fish/conf.d/charly-direnv.fish` emitted at `charly box build` time. `target: local` host deploys get a managed-block in `~/.bashrc` / `~/.zshrc` plus `~/.config/fish/conf.d/charly-direnv.fish` at `charly deploy add` time, only for shells the runtime probe finds. The fish hook lands in `~/.config/fish/conf.d/charly-direnv.fish` (its own conf.d drop-in), so it works without editing `~/.config/fish/config.fish`.
 
-The primary use case in OpenCharly is the `.secrets` workflow: `.envrc` calls `eval "$(charly secrets gpg env)"` which decrypts a GPG-encrypted `.secrets` file in memory and exports the variables — no plaintext on disk. No external `direnvrc` dependency needed.
+The primary use case in OpenCharly is the `.secrets` workflow: `.envrc` calls `check "$(charly secrets gpg env)"` which decrypts a GPG-encrypted `.secrets` file in memory and exports the variables — no plaintext on disk. No external `direnvrc` dependency needed.
 
 ## Used In Boxes
 
@@ -75,4 +75,4 @@ Use when the user asks about:
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

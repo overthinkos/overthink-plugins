@@ -5,7 +5,7 @@ description: >
   running startplasma-wayland (kwin_wayland + plasmashell) nested in pixelflux,
   the KDE sibling of the labwc selkies-desktop. MUST be invoked before working
   on the selkies-kde-desktop metalayer, the kde-selkies / kde-shell layers, the
-  selkies-kde / selkies-kde-nvidia boxes, or their eval beds.
+  selkies-kde / selkies-kde-nvidia boxes, or their check beds.
 ---
 
 # selkies-kde-desktop — KDE Plasma selkies streaming flavor
@@ -41,8 +41,8 @@ A pod has no DRM seat, no SDDM, no `graphical.target`. `kde-selkies` therefore
 runs `startplasma-wayland` directly under a supervisord poll-for-`wayland-1`
 service — **no `after: graphical-session.target`**, no display manager. kwin
 renders INTO pixelflux's `wayland-1` and creates `wayland-0` for Plasma's own
-clients. This headless-no-seat path is PROVEN on a real pod (`eval-selkies-kde-pod`:
-`kde-selkies-session` RUNNING ≥20s, `https://:3000/` → 200, full live-eval pass).
+clients. This headless-no-seat path is PROVEN on a real pod (`check-selkies-kde-pod`:
+`kde-selkies-session` RUNNING ≥20s, `https://:3000/` → 200, full live-check pass).
 
 **Chrome is a supervised `selkies-core` service.** Chrome is launched and
 supervised by the `[program:chrome]` supervisord service defined in `selkies-core`
@@ -75,8 +75,8 @@ pixelflux picks the H.264 encoder at runtime from the host render node — it us
 
 | Box | Base | Encoder venue |
 |---|---|---|
-| `selkies-kde` | cachyos | host pod → VAAPI (AMD/Intel) or x264 (`eval-selkies-kde-pod`) |
-| `selkies-kde-nvidia` | cachyos.nvidia (cuda-arch-builder) | nested pod in the GPU-passthrough VM → NVENC (`eval-selkies-kde-nvidia-vm`, `requires_exclusive: [nvidia-gpu]`) |
+| `selkies-kde` | cachyos | host pod → VAAPI (AMD/Intel) or x264 (`check-selkies-kde-pod`) |
+| `selkies-kde-nvidia` | cachyos.nvidia (cuda-arch-builder) | nested pod in the GPU-passthrough VM → NVENC (`check-selkies-kde-nvidia-vm`, `requires_exclusive: [nvidia-gpu]`) |
 
 The labwc sibling (`selkies-labwc` / `selkies-labwc-nvidia`) mirrors this exactly
 on the `selkies-desktop` metalayer.
@@ -87,6 +87,6 @@ on the `selkies-desktop` metalayer.
 - `/charly-selkies:selkies-desktop-layer` — the labwc sibling flavor.
 - `/charly-selkies:labwc` — the labwc nested-compositor primitive (the other seam).
 - `/charly-distros:cachyos`, `/charly-distros:nvidia` — the CPU + GPU bases.
-- `/charly-eval:eval` — the disposable `kind: eval` beds that prove each flavor.
+- `/charly-check:check` — the disposable `kind: check` beds that prove each flavor.
 - `/charly-internals:disposable` — `requires_exclusive`/`preemptible` (the GPU-VM bed
   preempts the operator workstation for the single passthrough GPU).

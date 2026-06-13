@@ -174,11 +174,11 @@ sleep 5
 charly tmux capture $IMG -s oauth | grep -o 'https://auth.openai.com/[^ ]*'
 
 # 3. Open URL in Chrome, click "Continue with Google", then "Continue" on consent
-charly eval cdp open $IMG "<oauth-url>"
-TAB=$(charly eval cdp list $IMG | grep -i "openai" | head -1 | awk '{print $1}')
-charly eval cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc   # Continue with Google
+charly check cdp open $IMG "<oauth-url>"
+TAB=$(charly check cdp list $IMG | grep -i "openai" | head -1 | awk '{print $1}')
+charly check cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc   # Continue with Google
 sleep 5
-charly eval cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc          # Continue (consent)
+charly check cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc          # Continue (consent)
 
 # 4. Verify completion
 sleep 10
@@ -188,7 +188,7 @@ charly tmux capture $IMG -s oauth
 
 **Prerequisites:** Chrome must have an active Google session. The "Continue with Google" button on OpenAI's auth page uses Chrome's Google cookies — sign Chrome into Google (with sync enabled) via the VNC desktop before starting the OAuth flow.
 
-**Callback architecture:** The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container. Chrome and `openclaw-models` share the same network namespace — no port mapping needed for 1455. The `BROWSER=browser-open` env var (set by the chrome candy) auto-opens URLs via CDP, but may not trigger in all TTY contexts — open the URL manually via `charly eval cdp open` as a fallback.
+**Callback architecture:** The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container. Chrome and `openclaw-models` share the same network namespace — no port mapping needed for 1455. The `BROWSER=browser-open` env var (set by the chrome candy) auto-opens URLs via CDP, but may not trigger in all TTY contexts — open the URL manually via `charly check cdp open` as a fallback.
 
 **Stale port 1455:** If a previous attempt left port 1455 occupied: `charly shell $IMG -c 'kill -9 $(ss -tlnp sport = :1455 | grep -oP "pid=\K\d+")'`
 
@@ -404,7 +404,7 @@ Use `--tty` for the interactive CLI. The `BROWSER=browser-open` env var auto-ope
 charly shell <image> --tty -c "openclaw models auth login --provider openai-codex --set-default"
 ```
 
-For browser-assisted OAuth (Google sign-in), see `/charly-eval:cdp`.
+For browser-assisted OAuth (Google sign-in), see `/charly-check:cdp`.
 
 ### First-run gateway setup (complete sequence)
 
@@ -418,10 +418,10 @@ charly shell <image> -c "supervisorctl restart openclaw"
 
 ## Cross-References
 
-- `/charly-eval:cdp` -- `charly eval cdp` CDP commands (lower-level container-external automation)
+- `/charly-check:cdp` -- `charly check cdp` CDP commands (lower-level container-external automation)
 - `/charly-core:deploy` -- Quadlet, tunnels, volume backing, VNC password
 - `/charly-core:service` -- `charly start/stop/enable/disable/status/logs/update/remove`
-- `/charly-eval:vnc` -- VNC desktop automation and password management
+- `/charly-check:vnc` -- VNC desktop automation and password management
 - `/charly-automation:alias` -- Host command aliases (`charly alias add openclaw`)
 - `/charly-core:shell` -- `charly shell --tty` for interactive container commands
 

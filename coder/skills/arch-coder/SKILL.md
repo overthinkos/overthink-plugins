@@ -102,7 +102,7 @@ See `/charly-distros:arch-builder` and `/charly-tools:yay`.
 
 ## Cross-distro siblings
 
-`arch-coder` is one of **four cross-distro coder boxes** that share the identical 80-line `eval:` block and ~30 identical candies, diverging only in each candy's package-format section (`rpm:` / `pac:` / `deb:`):
+`arch-coder` is one of **four cross-distro coder boxes** that share the identical 80-line `check:` block and ~30 identical candies, diverging only in each candy's package-format section (`rpm:` / `pac:` / `deb:`):
 
 - `/charly-coder:fedora-coder` — RPM-based, Fedora 43 via `fedora-nonfree`, uid=1000 `user`.
 - `/charly-coder:arch-coder` — this box; pacman + optional AUR, uid=1000 `user`.
@@ -138,12 +138,12 @@ ssh -p 2222 user@localhost           # passwordless sudo
 
 ```bash
 charly box build arch-coder
-charly eval box ghcr.io/overthinkos/arch-coder:latest
+charly check box ghcr.io/overthinkos/arch-coder:latest
 # disposable-container tests against the baked OCI label
 
 charly config arch-coder
 charly start arch-coder
-charly eval box ghcr.io/overthinkos/arch-coder:latest
+charly check box ghcr.io/overthinkos/arch-coder:latest
 # adds deploy-scope checks: sshd reachable, supervisord, dbus, charly-mcp,
 # virtqemud, libvirt session list, KVM domcaps, MCP tool-call probes.
 ```
@@ -177,7 +177,7 @@ Conflicts with `/charly-coder:fedora-coder` / `/charly-coder:debian-coder` / `/c
 
 ## Related commands
 
-- `/charly-core:shell`, `/charly-core:charly-config`, `/charly-core:start`, `/charly-core:stop`, `/charly-eval:eval`
+- `/charly-core:shell`, `/charly-core:charly-config`, `/charly-core:start`, `/charly-core:stop`, `/charly-check:check`
 - `/charly-image:image` — `user_policy:` field reference
 - `/charly-build:build` — `base_user:` declaration (absent for arch)
 - `/charly-image:layer` — authoring reference

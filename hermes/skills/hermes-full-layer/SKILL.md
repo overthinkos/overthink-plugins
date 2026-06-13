@@ -54,7 +54,7 @@ hermes:
 - `/charly-selkies:chrome` — Provides `BROWSER_CDP_URL` (cross-container, from selkies-desktop)
 - `/charly-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-discovered via `mcp_provide`, 29 tools)
 - `/charly-jupyter:jupyter-mcp` — JupyterLab CRDT MCP server (auto-discovered via `mcp_provide`, 11 tools: notebook_*/cell_* + notebook_list_users + room_list; auto-attach single-room invariant)
-- `/charly-build:charly-mcp-cmd` — host-side MCP client (`charly eval mcp ping|list-tools|call|...`) to verify either of the above is alive and exposing the expected tool catalog before hermes tries to invoke them
+- `/charly-build:charly-mcp-cmd` — host-side MCP client (`charly check mcp ping|list-tools|call|...`) to verify either of the above is alive and exposing the expected tool catalog before hermes tries to invoke them
 
 ## Related Boxes
 
@@ -68,4 +68,4 @@ Use when working with the `hermes-full` metalayer, full-featured standalone herm
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

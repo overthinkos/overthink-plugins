@@ -24,7 +24,7 @@ This skill is the source of truth for the policy. `CLAUDE.md` links here rather 
 
 1. **Plan**: write a plan file that describes the cutover as ONE phase. Decompose into tasks with `TaskCreate`. The plan file names the cutover, not a sequence of cutovers.
 2. **Implement**: execute every task in the same working tree. **Prove the highest-risk unknowns on a live `disposable: true` bed FIRST (Risk Driven Development — never trust a skill / CLAUDE.md / code for a high-risk call; the archetypal one is whether this layer composition, at its latest versions, builds / deploys / runs together).** Transitional aliases, legacy-accepting code paths, or temporary dual-dispatch are permitted DURING implementation. They MUST be deleted before the end of the same cutover.
-3. **Test at the end, not between tasks**: run unit tests, `charly box build`, `charly deploy add` + `charly eval live`, and the R10 fresh-rebuild re-verification AFTER all tasks are marked complete. Testing between tasks is cheap smoke-confirmation; the acceptance gate is the full-stack run against the final code.
+3. **Test at the end, not between tasks**: run unit tests, `charly box build`, `charly deploy add` + `charly check live`, and the R10 fresh-rebuild re-verification AFTER all tasks are marked complete. Testing between tasks is cheap smoke-confirmation; the acceptance gate is the full-stack run against the final code.
 4. **Ship or fix**: if any verification step fails, fix it in the same working tree and re-run the full verification. Do NOT commit a partial state.
 
 **Forbidden**: "Phase 1 landed, Phase 2 pending" as a stopping point. That leaves the system half-migrated — legacy paths live alongside new paths, migrations not yet run, tests passing for some beds and not others. Every historical instance of that pattern in this project left dead code and untested integration points that bit users later.
@@ -42,7 +42,7 @@ The one-phase rule forbids splitting a SINGLE cutover's scope across turns or pl
 
 The discriminator: *would shipping the current cutover WITHOUT this fix leave the tree correct and the cutover's claim true?* Yes → non-blocking (its own immediate-next cutover). No → blocking (this cutover). Unsure → blocking. Backports / cherry-picks are the canonical non-blocking example: never part of the current cutover's post-execution flow, each is its own atomic, fully-R10'd cutover you open automatically when needed, pausing only if the backport target or release strategy is a genuine crossroad.
 
-**Objective test for "separable".** The issue is separable ONLY if the current cutover's OWN R10 (its eval-coverage + fresh-rebuild) passes and proves the cutover's claim WITHOUT the fix — the fix is neither exercised by, nor changes the verdict of, this cutover's test coverage. A fix that would alter this cutover's R10 result or its eval-coverage gate is BLOCKING.
+**Objective test for "separable".** The issue is separable ONLY if the current cutover's OWN R10 (its check-coverage + fresh-rebuild) passes and proves the cutover's claim WITHOUT the fix — the fix is neither exercised by, nor changes the verdict of, this cutover's test coverage. A fix that would alter this cutover's R10 result or its check-coverage gate is BLOCKING.
 
 **This does not loosen the no-split rule.** "No pre/post-approval split" and "no author-it-as-two-plans" forbid carving ONE change's scope into two to avoid doing it all now. The non-blocking path applies to a DIFFERENT, separable change — one this cutover surfaced, or any other issue you find — never to the current change's own scope. You open that next cutover autonomously (you do not wait for authorization); you pause to ask only at a genuine unexpected/unplanned crossroad. Mislabeling a blocking issue "non-blocking" to ship faster is the forbidden split wearing a disguise; when unsure, it is blocking. (See CLAUDE.md R2 — this section operationalizes the blocking/non-blocking half of it.)
 
@@ -129,7 +129,7 @@ The policy kicks in when the change is **visible to consumers** (YAML authors, o
 - `/charly-internals:install-plan` — shared IR that survived the cutover unchanged (non-example — additive extension of the DeployTarget surface)
 - CLAUDE.md "Hard Cutover by Default" — summary pointing at this skill
 
-## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-check:check` 10 standards)
 
 Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 

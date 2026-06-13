@@ -134,16 +134,16 @@ charly cmd openwebui "cat /proc/3/environ" | tr '\0' '\n' | grep TOOL_SERVER_CON
 
 ## Test Coverage
 
-Latest `charly eval live openwebui` run: **24 passed, 0 failed, 0 skipped**.
+Latest `charly check live openwebui` run: **24 passed, 0 failed, 0 skipped**.
 Covers: openwebui entrypoint script presence, pixi python + charly binary,
 and deploy-scope: service up, port reachable on `127.0.0.1:${HOST_PORT:8080}`,
 HTTP 200 on `/` (30-second timeout for first-request startup), admin
-email env var injected. See `/charly-eval:eval` for the framework.
+email env var injected. See `/charly-check:check` for the framework.
 
 ## Related Skills
 
 - `/charly-openwebui:openwebui` — candy authoring
-- `/charly-eval:eval` — declarative testing framework
+- `/charly-check:check` — declarative testing framework
 - `/charly-build:secrets` — WEBUI_ADMIN_PASSWORD + provider API keys
 - `/charly-core:charly-config` — `-e WEBUI_ADMIN_EMAIL=...` deploy-time env setup
 

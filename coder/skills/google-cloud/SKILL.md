@@ -42,4 +42,4 @@ Use when the user asks about:
 ## Author + Test References
 
 - `/charly-image:layer` — candy authoring reference (tasks, vars, env_provide, tests block syntax)
-- `/charly-eval:eval` — declarative testing framework for the `eval:` block
+- `/charly-check:check` — declarative testing framework for the `check:` block

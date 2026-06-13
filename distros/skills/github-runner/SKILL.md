@@ -51,7 +51,7 @@ location `${HOME}/.config/containers/registries.conf.d/` (rootless podman).
 ## Lifecycle Hooks (token-guarded)
 
 - **post_enable** — registers the runner with `RUNNER_ORG` + `RUNNER_TOKEN`.
-  Skips (no-op) when `RUNNER_TOKEN` is empty — so a token-less deploy (an eval
+  Skips (no-op) when `RUNNER_TOKEN` is empty — so a token-less deploy (an check
   bed) brings the image up without registering.
 - **pre_remove** — deregisters; needs a **remove**-token (distinct from the
   registration token). Also skips when the token is empty.
@@ -93,6 +93,6 @@ Use when the user asks about:
 
 ## Author + Test References
 
-- `/charly-image:layer` — candy authoring reference (tasks, vars, secret_accept, eval block syntax)
-- `/charly-eval:eval` — declarative testing framework for the `eval:` block + the `eval-githubrunner-pod` bed
+- `/charly-image:layer` — candy authoring reference (tasks, vars, secret_accept, check block syntax)
+- `/charly-check:check` — declarative testing framework for the `check:` block + the `check-githubrunner-pod` bed
 - `/charly-build:secrets` — the credential store backing `RUNNER_TOKEN`

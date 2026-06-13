@@ -34,7 +34,7 @@ Invoked as `charly box validate`. See `/charly-image:image` for the family overv
 ### Layer Rules
 
 - Layer directory must contain at least one install source — `charly.yml` with a non-empty `task:` list or a `rpm:` / `deb:` / `pac:` / `aur:` packages section; an auto-detected builder manifest (`pixi.toml`, `pyproject.toml`, `environment.yml`, `package.json`, `Cargo.toml`); or a `candy:` composition field (pure composition layers are valid).
-- **ADE is MANDATORY per candy:** every **local** candy MUST carry a full ADE `description:` (a non-empty `feature:` + at least one `scenario:`) AND a non-empty `eval:` list (enforced by `validateCandyContents`; a hard error names the missing field). A fetched **remote** candy is exempt — its compliance is its own repo's concern, same scope as the mandatory `version:` rule. See `/charly-eval:eval`.
+- **ADE is MANDATORY per candy:** every **local** candy MUST carry a full ADE `description:` (a non-empty `feature:` + at least one `scenario:`) AND a non-empty `check:` list (enforced by `validateCandyContents`; a hard error names the missing field). A fetched **remote** candy is exempt — its compliance is its own repo's concern, same scope as the mandatory `version:` rule. See `/charly-check:check`.
 - `depends` must reference existing layers (local or remote).
 - Circular dependencies are errors.
 - `volumes` names must match `^[a-z0-9]+(-[a-z0-9]+)*$`.
@@ -195,9 +195,9 @@ charly box list candies                       # Verify layer exists
 - `/charly-image:layer` — **Canonical reference** for the task verb catalog, `var:` substitution, YAML anchors, execution order. The validator rules above enforce what's documented there.
 - `/charly-build:generate` — What the generator emits from validated input (per-verb emitters, cache-mount inheritance, inline-content staging).
 - `/charly-internals:generate-source` — Internal architecture of the task emission pipeline.
-- `/charly-eval:eval` — `charly box validate` schema-checks every `eval:` entry: exactly-one-verb, attribute types, scope/variable consistency (build-scope can't reference runtime-only vars), `id:` uniqueness per section, matcher operator allowlist, unroutable-check rejection. The five live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`) also get per-verb method-allowlist + required-modifier enforcement via `validateCharlyVerb` (deploy-scope-only; unknown methods rejected with the allowed set listed).
+- `/charly-check:check` — `charly box validate` schema-checks every `check:` entry: exactly-one-verb, attribute types, scope/variable consistency (build-scope can't reference runtime-only vars), `id:` uniqueness per section, matcher operator allowlist, unroutable-check rejection. The five live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`) also get per-verb method-allowlist + required-modifier enforcement via `validateCharlyVerb` (deploy-scope-only; unknown methods rejected with the allowed set listed).
 - `/charly-build:charly-mcp-cmd` — the standalone reference for the `mcp:` verb: required modifiers (`tool:` for `call`, `uri:` for `read`), the 7-method allowlist, and the URL-rewrite / port-publishing behavior that authors occasionally hit.
-- `/charly-eval:cdp`, `/charly-eval:wl`, `/charly-eval:dbus`, `/charly-eval:vnc` — per-verb references for the other four live-container verbs.
+- `/charly-check:cdp`, `/charly-check:wl`, `/charly-check:dbus`, `/charly-check:vnc` — per-verb references for the other four live-container verbs.
 
 ## Cross-kind name reuse — NOT a uniqueness violation
 

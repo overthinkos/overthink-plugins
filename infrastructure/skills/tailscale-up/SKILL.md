@@ -75,14 +75,14 @@ The candy's single cmd task:
    so a logged-out daemon doesn't fail the deploy).
 5. Reads `/etc/hostname` directly (NOT `hostname -s` — the `hostname`
    binary lives in Arch's `inetutils` package, which is NOT in the
-   minimal cloud-image base used by the `eval-arch-vm` R10 bed; reading the
+   minimal cloud-image base used by the `check-arch-vm` R10 bed; reading the
    file is binary-dependency-free and works on every distro). Calls
    `tailscale set --hostname=<short-form>` (also suppressed) to keep
    the tailnet device name in sync with the system hostname; the short
    form is the value before the first dot, matching `hostname -s`
    semantics.
 
-## Eval probes
+## Check probes
 
 Both deploy-scope probes use a three-state pattern:
 
@@ -136,8 +136,8 @@ stable across reconfigurations. The local prefs are updated correctly
 (visible via `tailscale debug prefs | grep Hostname`), but
 `tailscale status` keeps showing the old name.
 
-The candy surfaces this divergence as a hard-fail eval probe
-(`tailscale-up-device-name-matches-hostname`). On every `charly eval live
+The candy surfaces this divergence as a hard-fail check probe
+(`tailscale-up-device-name-matches-hostname`). On every `charly check live
 <deploy>` against a logged-in tailnet member, the probe compares the
 short form of `tailscale status --self --json | .DNSName` against
 `/etc/hostname` (cut to short form). If they differ, the probe fails
@@ -283,9 +283,9 @@ host-level serve).
 - `/charly-local:local-spec` — `local.yml` template authoring; the
   canonical consumer is `local.charly-cachyos`.
 - the `wheel-nopasswd` candy — provides the passwordless sudo
-  used by the eval probe's `tailscale debug prefs` chain.
+  used by the check probe's `tailscale debug prefs` chain.
 - `/charly-image:layer` — candy authoring reference.
-- `/charly-eval:eval` — declarative testing reference (three-state
+- `/charly-check:check` — declarative testing reference (three-state
   pattern used here).
 
 ## When to Use This Skill

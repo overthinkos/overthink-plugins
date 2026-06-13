@@ -69,7 +69,7 @@ bin/charly box validate                # CLI works
 charly start <image>                     # Service starts
 charly status <image>                    # Shows running
 charly logs <image>                      # No errors in logs
-charly eval live <image>                 # Three-section live probe pass
+charly check live <image>                 # Three-section live probe pass
 charly stop <image>                      # Clean shutdown
 ```
 
@@ -86,29 +86,29 @@ bumped submodule commit is itself all-documentation).
 
 ### For R10 acceptance (the gate, not a smoke test)
 
-Pick the gate by change class — `/charly-eval:eval` "R10 gate by change class";
+Pick the gate by change class — `/charly-check:check` "R10 gate by change class";
 a bed is needed by the code/config classes (plus a workflow whose CONTROL FLOW
 changed — one matching bed). For those, the acceptance gate is a
 fresh-rebuild run on a `disposable: true` bed —
-delegate it to the `eval-bed-runner` agent, or run it directly:
+delegate it to the `check-bed-runner` agent, or run it directly:
 
 ```bash
-charly eval box <image>                # build-scope checks (disposable run)
-charly eval run <bed>                    # full R10 sequence on a kind:eval bed:
-                                     # build → eval image → deploy →
-                                     # eval live → fresh charly update → teardown
+charly check box <image>                # build-scope checks (disposable run)
+charly check run <bed>                    # full R10 sequence on a kind:check bed:
+                                     # build → check image → deploy →
+                                     # check live → fresh charly update → teardown
 ```
 
 Exit codes: `0` pass · `1` infra/usage error (never ran a verdict) · `2`
 checks failed. For those classes, a `--dry-run`, a green `go test`, or
-`charly box validate` alone is NOT R10 — only a real `charly eval run <bed>` /
-`charly eval live` against a fresh rebuild counts.
+`charly box validate` alone is NOT R10 — only a real `charly check run <bed>` /
+`charly check live` against a fresh rebuild counts.
 
 ## Confidence Levels (must match CLAUDE.md "AI Attribution" exactly)
 
 | Level | Requirements |
 |-------|-------------|
-| `fully tested and validated` | *(runtime classes)* All 10 standards + a fresh-rebuild R10 (`charly eval run <bed>` / `charly eval live` on a `disposable: true` target) for EVERY affected target + the new/changed code path actually exercised + both R10 outputs (exploratory + fresh-rebuild) pasted |
+| `fully tested and validated` | *(runtime classes)* All 10 standards + a fresh-rebuild R10 (`charly check run <bed>` / `charly check live` on a `disposable: true` target) for EVERY affected target + the new/changed code path actually exercised + both R10 outputs (exploratory + fresh-rebuild) pasted |
 | `analysed on a live system` | *(runtime classes)* A live invocation of the runner / verb evaluation / deploy probe the change touched actually ran AND its output is pasted. A rebuild WITHOUT the subsequent invocation does NOT qualify; NEVER this tier on a `--dry-run` alone |
 | `documentation reviewed` | *(the Documentation-only change class)* The change touches ONLY documentation (`*.md`, comment-only code edits, or a submodule pointer bump to an all-documentation submodule commit, ZERO behavior change) and ALL non-runtime standards passed. No runtime test exists to run; FORBIDDEN once any code/config behavior is touched (runtime tier, docs ride along) |
 | `syntax check only` | *(runtime classes)* Compile + unit tests + validators / dry-run passed; the live runner did NOT execute. The honest default when a runtime R10 hasn't run — pair with explicit "R10 not yet run" AND do NOT commit (pairing this tier with a commit is a violation; STOP and ask) |

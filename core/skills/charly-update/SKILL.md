@@ -14,7 +14,7 @@ Redeploy the current artifact and restart the service — for EVERY deploy kind 
 
 **`charly update` does NOT auto-pull.** It redeploys the image already in local storage. To advance a deploy to a newer published image, `charly box pull <ref>` first, then `charly update`; or `charly update --build` to rebuild locally. (This consistency with vm's reuse-disk default replaced the former pod-only auto-pull, so `charly update` behaves identically across kinds.) See `/charly-core:deploy` for the unified command family and `/charly-local:local-deploy` for host-target specifics.
 
-**`charly update` obeys an EXPLICIT invocation on ANY target.** It does NOT refuse a non-`disposable: true` deploy — for a target that is neither disposable nor ephemeral it prints a one-line transparency note (`noteUpdateDisposability`, naming the deploy key + lifecycle, so the operator can catch a mistyped name) and proceeds with the rebuild. The `disposable:` flag stays load-bearing as the authorization for UNATTENDED autonomous destroy + rebuild (CLAUDE.md R10) and for the eval-runner's unattended fresh-rebuild (`validateEvalBeds`); it does NOT gate this explicitly-invoked verb. See `/charly-internals:disposable`.
+**`charly update` obeys an EXPLICIT invocation on ANY target.** It does NOT refuse a non-`disposable: true` deploy — for a target that is neither disposable nor ephemeral it prints a one-line transparency note (`noteUpdateDisposability`, naming the deploy key + lifecycle, so the operator can catch a mistyped name) and proceeds with the rebuild. The `disposable:` flag stays load-bearing as the authorization for UNATTENDED autonomous destroy + rebuild (CLAUDE.md R10) and for the check-runner's unattended fresh-rebuild (`validateCheckBeds`); it does NOT gate this explicitly-invoked verb. See `/charly-internals:disposable`.
 
 ## Quick Reference
 
@@ -169,7 +169,7 @@ When seeding populates a named volume, the output shows
 - `/charly-build:build` -- building images locally
 - `/charly-core:charly-status` -- check service status after update
 
-## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-check:check` 10 standards)
 
 Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 

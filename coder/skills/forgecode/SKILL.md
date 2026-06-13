@@ -38,7 +38,7 @@ my-dev:
 - `/charly-hermes:hermes-full-layer` -- metalayer that bundles this CLI
 - `/charly-hermes:hermes` -- primary box that ships this CLI
 - `/charly-image:layer` -- candy authoring reference
-- `/charly-eval:eval` -- declarative testing framework (this candy verifies `${HOME}/.npm-global/bin/forge` + `forge --version`)
+- `/charly-check:check` -- declarative testing framework (this candy verifies `${HOME}/.npm-global/bin/forge` + `forge --version`)
 
 ## When to Use This Skill
 

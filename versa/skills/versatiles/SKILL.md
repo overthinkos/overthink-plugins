@@ -1,7 +1,7 @@
 ---
 name: versatiles
 description: |
-  VersaTiles CLI (versatiles-rs) — a single Rust binary that handles `convert` / `serve` / `probe` / `dev` for the `.versatiles`, `.pmtiles`, `.mbtiles`, and `.tar` tile-container formats. Installed from the pre-built linux-x86_64-gnu tarball on GitHub releases. Ships a supervisord service running `versatiles serve` on port 8090 (host 28090) that watches `/workspace/tiles/shortbread/`, parallel to martin on 3000/23000. The `convert` subcommand is symmetric — PMTiles ↔ .versatiles ↔ MBTiles round-trip — and is exercised end-to-end by both the layer's deploy-scope eval probe and a dedicated notebook cell.
+  VersaTiles CLI (versatiles-rs) — a single Rust binary that handles `convert` / `serve` / `probe` / `dev` for the `.versatiles`, `.pmtiles`, `.mbtiles`, and `.tar` tile-container formats. Installed from the pre-built linux-x86_64-gnu tarball on GitHub releases. Ships a supervisord service running `versatiles serve` on port 8090 (host 28090) that watches `/workspace/tiles/shortbread/`, parallel to martin on 3000/23000. The `convert` subcommand is symmetric — PMTiles ↔ .versatiles ↔ MBTiles round-trip — and is exercised end-to-end by both the layer's deploy-scope check probe and a dedicated notebook cell.
   MUST be invoked before building, deploying, or troubleshooting the versatiles layer.
 ---
 
@@ -88,7 +88,7 @@ copied verbatim — only the container changes. Conversions involving
 re-encoding (PNG → WebP, etc.) are also supported via subcommand
 flags but not exercised by this image.
 
-The layer's **deploy-scope `versatiles-convert-roundtrip` eval
+The layer's **deploy-scope `versatiles-convert-roundtrip` check
 probe** runs the PMTiles → .versatiles → PMTiles round-trip on the
 OSM DAG's `monaco.pmtiles` output every time R10 runs, asserting
 both intermediate files are readable via `versatiles probe`. The
@@ -96,7 +96,7 @@ notebook's dedicated `versatiles convert` demo cell re-runs the
 round-trip and renders a `polars.DataFrame` comparing tile counts +
 file sizes across all three steps for visual inspection.
 
-## Eval probes
+## Check probes
 
 Build-scope:
 - `versatiles-installed` — `versatiles --version` exit 0

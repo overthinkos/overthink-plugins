@@ -17,18 +17,18 @@ description: |
 
 The `charly` binary inside containers serves two purposes:
 
-1. **Native D-Bus agent** — `charly eval dbus` commands on the host delegate to an in-venue `charly` via `engine exec container charly eval dbus <cmd> . <args>`, which connects to the local D-Bus session bus using `godbus/dbus/v5` (pure Go, no external tools needed). The primary path for `charly eval dbus notify`, `charly eval dbus call`, `charly eval dbus list`, and `charly eval dbus introspect`. **The box need NOT bake the `charly` candy for this:** when the venue lacks `charly`, the explicit dbus commands COPY the host's own binary in on demand (the generic copy-`charly`-into-a-running-venue mechanism, `EnsureCharlyInVenue` over `DeployExecutor.PutFile` — `podman cp` for a container, `scp` for a VM/host) and invoke the delivered copy. Baking the candy only pre-stages the binary so the first call skips the copy.
+1. **Native D-Bus agent** — `charly check dbus` commands on the host delegate to an in-venue `charly` via `engine exec container charly check dbus <cmd> . <args>`, which connects to the local D-Bus session bus using `godbus/dbus/v5` (pure Go, no external tools needed). The primary path for `charly check dbus notify`, `charly check dbus call`, `charly check dbus list`, and `charly check dbus introspect`. **The box need NOT bake the `charly` candy for this:** when the venue lacks `charly`, the explicit dbus commands COPY the host's own binary in on demand (the generic copy-`charly`-into-a-running-venue mechanism, `EnsureCharlyInVenue` over `DeployExecutor.PutFile` — `podman cp` for a container, `scp` for a VM/host) and invoke the delivered copy. Baking the candy only pre-stages the binary so the first call skips the copy.
 
 2. **In-container CLI** — full charly functionality available inside the container for scripting, service management, and automation.
 
-## Eval-vs-production binary source — disposable beds bake the IN-DEV charly
+## Check-vs-production binary source — disposable beds bake the IN-DEV charly
 
 The `charly` candy installs the binary as a proper, dependency-resolving OS
 package via `localpkg:` (`{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`).
 The BINARY SOURCE depends on the box type — a hard distinction, NEVER mixed:
 
-- **Disposable eval boxes** (`kind: eval` beds) bake the latest **in-development**
-  charly: the eval-bed runner builds every bed image with `charly box build
+- **Disposable check boxes** (`kind: check` beds) bake the latest **in-development**
+  charly: the check-bed runner builds every bed image with `charly box build
   --dev-local-pkg`, so the package is BUILT from the local working tree
   (`pkg/<fmt>` + `charly/`). A bed therefore tests the charly code under
   development — never a stale published release.
@@ -37,11 +37,11 @@ The BINARY SOURCE depends on the box type — a hard distinction, NEVER mixed:
   (`releases/latest/download/opencharly-<arch>.<fmt>`).
 
 ONE decision point (`renderLocalPkgImageInstall`), generic across all kinds and
-all localpkg candies; the eval-bed runner sets `--dev-local-pkg` automatically, a
+all localpkg candies; the check-bed runner sets `--dev-local-pkg` automatically, a
 production build never does. A dev build that cannot find its local source HARD
 errors (R4 — no silent fallback to the release). Full mechanics:
-`/charly-internals:install-plan` "Eval-vs-production charly toolchain". This is
-WHY a fresh eval bed exercises your uncommitted charly changes while a real box
+`/charly-internals:install-plan` "Check-vs-production charly toolchain". This is
+WHY a fresh check bed exercises your uncommitted charly changes while a real box
 ships the released toolchain.
 
 ## Updating the Binary — dual-path gotcha
@@ -104,8 +104,8 @@ my-image:
 
 - `/charly-infrastructure:virtualization`, `/charly-infrastructure:gocryptfs`, `/charly-infrastructure:socat` -- the candies the `charly` candy composes alongside the binary to form the full toolchain
 - `/charly-coder:charly-mcp` -- candies: [charly, supervisord] meta-composition that deploys `charly mcp serve` (~192-tool MCP gateway) with a `/workspace` bind mount (volume NAME `project`) for build-mode tools + auto-fallback to overthinkos/overthink when nothing is bound
-- `/charly-infrastructure:dbus-layer` -- D-Bus session bus (charly eval dbus commands need this)
-- `/charly-selkies:swaync` -- notification daemon (needed for charly eval dbus notify to show popups)
+- `/charly-infrastructure:dbus-layer` -- D-Bus session bus (charly check dbus commands need this)
+- `/charly-selkies:swaync` -- notification daemon (needed for charly check dbus notify to show popups)
 
 ## When to Use This Skill
 
@@ -114,10 +114,10 @@ Use when the user asks about:
 - Installing the charly binary inside containers
 - The full charly toolchain composition (charly binary + virtualization + gocryptfs + socat)
 - In-container charly CLI usage
-- Native D-Bus support (charly eval dbus commands delegate to in-container binary)
+- Native D-Bus support (charly check dbus commands delegate to in-container binary)
 - Updating the charly candy binary after code changes
 
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

@@ -23,23 +23,23 @@ Minimal Sway desktop with VNC (wayvnc on port 5900) and Chrome (CDP on port 9222
 charly box build sway-browser-vnc
 charly start sway-browser-vnc
 charly status sway-browser-vnc          # Shows all probes: supervisord, cdp, dbus, charly, sway, vnc, wl
-charly eval vnc status sway-browser-vnc
-charly eval wl screenshot sway-browser-vnc screenshot.png
+charly check vnc status sway-browser-vnc
+charly check wl screenshot sway-browser-vnc screenshot.png
 ```
 
 ## D-Bus and Notification Support
 
 This box includes `dbus` and `charly` candies, enabling:
-- `charly eval dbus notify` — native Go D-Bus notifications via in-container charly binary
-- `charly eval dbus list/call/introspect` — full D-Bus interaction
+- `charly check dbus notify` — native Go D-Bus notifications via in-container charly binary
+- `charly check dbus list/call/introspect` — full D-Bus interaction
 - `charly cmd` — single command execution with desktop notification on completion
 - `charly tmux cmd` — tmux command sending with notification
 - `charly status` — supervisord, dbus, and charly probes
 
 ```bash
-charly eval dbus notify sway-browser-vnc "Build Complete" "Image built successfully"
+charly check dbus notify sway-browser-vnc "Build Complete" "Image built successfully"
 charly cmd sway-browser-vnc "make test"    # Notifies on completion
-charly eval dbus list sway-browser-vnc          # List all D-Bus services
+charly check dbus list sway-browser-vnc          # List all D-Bus services
 ```
 
 The notification daemon (swaync) is included via the sway-desktop metalayer.
@@ -49,24 +49,24 @@ The notification daemon (swaync) is included via the sway-desktop metalayer.
 Fullscreen overlays for recording (via wl-overlay, included in sway-desktop):
 
 ```bash
-charly eval wl overlay show sway-browser-vnc --type text --text "INTRO" --name title
-charly eval wl overlay show sway-browser-vnc --type lower-third --text "Speaker" --subtitle "Role" --name lt
-charly eval wl overlay show sway-browser-vnc --type countdown --seconds 3 --name cd
-charly eval wl overlay show sway-browser-vnc --type highlight --region "430,290,510,50" --name hl
-charly eval wl overlay show sway-browser-vnc --type fade --color black --name outro
-charly eval wl overlay hide sway-browser-vnc --all
+charly check wl overlay show sway-browser-vnc --type text --text "INTRO" --name title
+charly check wl overlay show sway-browser-vnc --type lower-third --text "Speaker" --subtitle "Role" --name lt
+charly check wl overlay show sway-browser-vnc --type countdown --seconds 3 --name cd
+charly check wl overlay show sway-browser-vnc --type highlight --region "430,290,510,50" --name hl
+charly check wl overlay show sway-browser-vnc --type fade --color black --name outro
+charly check wl overlay hide sway-browser-vnc --all
 ```
 
-All overlay types render with true RGBA compositor transparency. See `/charly-eval:wl-overlay` for the full recording workflow.
+All overlay types render with true RGBA compositor transparency. See `/charly-check:wl-overlay` for the full recording workflow.
 
 ## Recording
 
 Desktop video recording via wf-recorder (included in sway-desktop):
 
 ```bash
-charly eval record start sway-browser-vnc -n demo --mode desktop
+charly check record start sway-browser-vnc -n demo --mode desktop
 # ... interact ...
-charly eval record stop sway-browser-vnc -n demo -o demo.mp4
+charly check record stop sway-browser-vnc -n demo -o demo.mp4
 ```
 
 ## Use as Selkies Remote Desktop Client
@@ -79,25 +79,25 @@ charly start sway-browser-vnc
 charly start selkies-desktop
 
 # Open selkies URL in sway-browser-vnc's Chrome
-charly eval cdp open sway-browser-vnc "https://charly-selkies-desktop:3000"
+charly check cdp open sway-browser-vnc "https://charly-selkies-desktop:3000"
 
 # Interact with the remote desktop:
 # Mouse: CDP Input.dispatchMouseEvent on the Selkies tab (with ~0.82x coordinate scaling)
-# Keyboard: charly eval vnc type sway-browser-vnc "text" (passthrough via SPA's overlayInput)
-# Screenshots: charly eval vnc screenshot sway-browser-vnc (shows full client desktop with stream)
-#              charly eval cdp screenshot sway-browser-vnc $TAB (shows only the stream content)
+# Keyboard: charly check vnc type sway-browser-vnc "text" (passthrough via SPA's overlayInput)
+# Screenshots: charly check vnc screenshot sway-browser-vnc (shows full client desktop with stream)
+#              charly check cdp screenshot sway-browser-vnc $TAB (shows only the stream content)
 ```
 
 **Key limitations when using as a client:**
 - Super key consumed by sway (can't trigger remote labwc keybinds like Super+e)
 - Ctrl+T/W consumed by local Chrome (open/close tabs locally, not remotely)
-- Clipboard permission dialog appears on first connection — dismiss with `charly eval vnc key Return` or CDP `Browser.grantPermissions`
+- Clipboard permission dialog appears on first connection — dismiss with `charly check vnc key Return` or CDP `Browser.grantPermissions`
 
 See `/charly-selkies:selkies-labwc` for detailed SPA interaction documentation.
 
 ## Test Coverage
 
-Latest `charly eval live sway-browser-vnc` run: **84 passed, 0 failed, 1 skipped**
+Latest `charly check live sway-browser-vnc` run: **84 passed, 0 failed, 1 skipped**
 (`chrome-devtools-mcp-port` references `${HOST_PORT:9224}` which isn't
 mapped here — correct skip behavior).
 
@@ -113,12 +113,12 @@ port 5900 reachable, Chrome CDP on port 9250→9222 with `/json/version`
 - `/charly-selkies:sway-desktop-vnc`, `/charly-selkies:sway`, `/charly-selkies:wayvnc`,
   `/charly-selkies:chrome-sway`, `/charly-selkies:xdg-portal`, `/charly-infrastructure:dbus-layer`,
   `/charly-tools:charly`, `/charly-distros:agent-forwarding`
-- `/charly-eval:eval` — declarative testing framework (parent router for `charly eval cdp|wl|dbus|vnc|mcp`)
-- `/charly-eval:vnc` — VNC automation on this box
-- `/charly-eval:cdp` — Chrome automation (CDP on host port 9250)
-- `/charly-eval:wl` — Wayland input/windows/clipboard (sway subgroup for compositor control)
-- `/charly-eval:dbus` — D-Bus notifications via in-container `charly` binary
-- `/charly-build:charly-mcp-cmd` — the box inherits 2 deploy-scope `mcp:` checks from the `chrome-devtools-mcp` candy (ping + list-tools asserting `navigate_page`/`take_screenshot`). `charly eval live sway-browser-vnc --filter mcp` runs them; note the **port-publishing gotcha** — if your `charly.yml` has an explicit `port:` override that predates `chrome-devtools-mcp`, port 9224 may not be published. See `/charly-build:charly-mcp-cmd` for the fix.
+- `/charly-check:check` — declarative testing framework (parent router for `charly check cdp|wl|dbus|vnc|mcp`)
+- `/charly-check:vnc` — VNC automation on this box
+- `/charly-check:cdp` — Chrome automation (CDP on host port 9250)
+- `/charly-check:wl` — Wayland input/windows/clipboard (sway subgroup for compositor control)
+- `/charly-check:dbus` — D-Bus notifications via in-container `charly` binary
+- `/charly-build:charly-mcp-cmd` — the box inherits 2 deploy-scope `mcp:` checks from the `chrome-devtools-mcp` candy (ping + list-tools asserting `navigate_page`/`take_screenshot`). `charly check live sway-browser-vnc --filter mcp` runs them; note the **port-publishing gotcha** — if your `charly.yml` has an explicit `port:` override that predates `chrome-devtools-mcp`, port 9224 may not be published. See `/charly-build:charly-mcp-cmd` for the fix.
 
 ## Related Boxes
 

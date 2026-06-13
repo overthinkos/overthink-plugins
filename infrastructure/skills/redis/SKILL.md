@@ -40,7 +40,7 @@ The candy is multi-distro:
   **`valkey-compat-redis`** on Fedora 43. The old `redis` package was replaced;
   dnf resolves the name via `Provides:`, but `rpm -q redis` returns "not
   installed". Any `package:` test must query the real installed name. See
-  `/charly-eval:eval` Authoring Gotcha #8.
+  `/charly-check:check` Authoring Gotcha #8.
 - **PAC (Arch/CachyOS):** `valkey` — the Arch `valkey` package provides the
   Redis server and CLI binaries (`/usr/bin/redis-server`, `/usr/bin/redis-cli`),
   so the same service spec and binary paths work on Arch/CachyOS. A `package:`
@@ -64,16 +64,16 @@ my-image:
 
 The candy ships 5 deterministic `do: assert` steps in its top-level
 `scenario:` list, baked into the `ai.opencharly.description` OCI label
-(see `/charly-eval:eval` for the full schema — this candy is the
+(see `/charly-check:check` for the full schema — this candy is the
 **gold-standard pattern** referenced there). Each step is one inline Op,
 and a probe verb defaults to `do: assert`:
 
-- **`context: [build]`** (run under `charly eval box`, via `podman run --rm`):
+- **`context: [build]`** (run under `charly check box`, via `podman run --rm`):
   - `redis-binary` — `/usr/bin/redis-server` exists
   - `redis-cli-binary` — `/usr/bin/redis-cli` exists
   - `redis-package` — `valkey-compat-redis` package installed (real
     installed provider on Fedora 43; see Packages note above)
-- **`context: [deploy]`** (run under `charly eval live` against a live service; uses
+- **`context: [deploy]`** (run under `charly check live` against a live service; uses
   `${HOST_PORT:6379}` runtime substitution so the steps keep working
   if `charly.yml` remaps the host port — host-side tests always use
   `127.0.0.1:${HOST_PORT:N}`, not `${CONTAINER_IP}`):
@@ -89,7 +89,7 @@ host, the `context: [deploy]` steps correctly skip with
 
 - `/charly-immich:immich` -- primary consumer (depends on redis)
 - `/charly-infrastructure:postgresql` -- often paired with redis in service stacks
-- `/charly-eval:eval` -- declarative testing framework (this candy is the gold-standard pattern)
+- `/charly-check:check` -- declarative testing framework (this candy is the gold-standard pattern)
 - `/charly-image:layer` -- candy authoring + `env_provide` field docs
 - `/charly-infrastructure:valkey` -- Remi-repo Valkey 9 package (separate candy; different version than Fedora's default valkey-compat-redis)
 

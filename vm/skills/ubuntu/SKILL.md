@@ -3,8 +3,8 @@ name: ubuntu
 description: |
   Ubuntu bootstrap VM (kind:vm ubuntu-debootstrap) — source.kind: bootstrap via
   ubuntu-debootstrap-builder + debootstrap, ext4 rootfs, uefi-insecure. Plus the
-  disposable eval-ubuntu-debootstrap-vm kind:eval bed. Lives in the overthinkos/ubuntu submodule.
-  MUST be invoked before editing ubuntu-debootstrap or its eval bed.
+  disposable check-ubuntu-debootstrap-vm kind:check bed. Lives in the overthinkos/ubuntu submodule.
+  MUST be invoked before editing ubuntu-debootstrap or its check bed.
 ---
 
 # ubuntu (VM)
@@ -13,12 +13,12 @@ description: |
 `debootstrap` (using `/charly-distros:ubuntu-debootstrap-builder`), then boots it
 under libvirt/QEMU.
 
-The `ubuntu-debootstrap` VM entity and its `eval-ubuntu-debootstrap-vm` disposable
+The `ubuntu-debootstrap` VM entity and its `check-ubuntu-debootstrap-vm` disposable
 test bed live in the **`overthinkos/ubuntu`** repo (git submodule at
 **`box/ubuntu`**), in that repo's config (its `charly.yml` + per-kind sibling files). The bed is a
-`kind: eval` entity (the 2026-05 deploy→eval unification moved repo-shipped
-disposable beds out of `charly.yml`), driven by `charly eval run
-eval-ubuntu-debootstrap-vm`. Drive the VM lifecycle from the submodule:
+`kind: check` entity (the 2026-05 deploy→check unification moved repo-shipped
+disposable beds out of `charly.yml`), driven by `charly check run
+check-ubuntu-debootstrap-vm`. Drive the VM lifecycle from the submodule:
 `charly -C box/ubuntu vm build ubuntu-debootstrap` +
 `charly -C box/ubuntu vm create ubuntu-debootstrap` (or
 `charly --repo overthinkos/ubuntu …`).
@@ -41,13 +41,13 @@ by the submodule (a bare-string `import:` item). The single imported `build.yml`
 carries BOTH distro configs, so `inherits: debian` resolves without referencing
 `overthinkos/debian`.
 
-## Eval bed
+## Check bed
 
-`eval-ubuntu-debootstrap-vm` is a `kind: eval` bed (`target: vm`,
+`check-ubuntu-debootstrap-vm` is a `kind: check` bed (`target: vm`,
 `vm: ubuntu-debootstrap`) that carries `disposable: true`, so
-`charly -C box/ubuntu eval run eval-ubuntu-debootstrap-vm` runs the full R10 sequence
-unattended (the equivalent `charly update eval-ubuntu-debootstrap-vm` rebuild also works,
-since the eval bed is folded into the Deploy map).
+`charly -C box/ubuntu check run check-ubuntu-debootstrap-vm` runs the full R10 sequence
+unattended (the equivalent `charly update check-ubuntu-debootstrap-vm` rebuild also works,
+since the check bed is folded into the Deploy map).
 
 ## debootstrap path
 
@@ -69,5 +69,5 @@ don't need a VM disk.
 
 ## When to Use This Skill
 
-**MUST be invoked** when editing `ubuntu-debootstrap` or its eval bed, or
+**MUST be invoked** when editing `ubuntu-debootstrap` or its check bed, or
 authoring an Ubuntu VM. Invoke BEFORE reading source code or launching Explore agents.

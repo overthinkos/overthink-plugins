@@ -153,7 +153,7 @@ For monaco.pmtiles → source name `monaco` → tiles at
 `access-control-allow-origin` so cross-port (22718 → 23000) XHR from
 marimo works without proxy tricks.
 
-## Eval probes
+## Check probes
 
 Build-scope:
 - `tippecanoe-installed`, `gdal-installed`, `jq-installed`,

@@ -9,7 +9,7 @@ description: |
 
 ## Overview
 
-`charly config` configures an image for deployment. In `run_mode=quadlet` (the default on systemd-user hosts) it generates a systemd quadlet unit, provisions container secrets, initializes encrypted volumes, and seeds data from data candies into the image's volumes. In `run_mode=direct` (auto-selected on nested environments without systemd-user — eval-sandbox pods, supervisord-only containers, sysvinit hosts) it skips quadlet+systemctl and runs the container via `podman run -d`, recording a marker file at `~/.config/charly/direct/<name>.json` so `charly start`/`charly remove` can find it. Direct mode does NOT support sidecars, encrypted volumes, or cloudflare tunnel companion services (those require systemd) — warnings are emitted and the operation proceeds without those features.
+`charly config` configures an image for deployment. In `run_mode=quadlet` (the default on systemd-user hosts) it generates a systemd quadlet unit, provisions container secrets, initializes encrypted volumes, and seeds data from data candies into the image's volumes. In `run_mode=direct` (auto-selected on nested environments without systemd-user — check-sandbox pods, supervisord-only containers, sysvinit hosts) it skips quadlet+systemctl and runs the container via `podman run -d`, recording a marker file at `~/.config/charly/direct/<name>.json` so `charly start`/`charly remove` can find it. Direct mode does NOT support sidecars, encrypted volumes, or cloudflare tunnel companion services (those require systemd) — warnings are emitted and the operation proceeds without those features.
 
 This is the **single entry point** for **container** deployment setup. `charly start` requires `charly config` to have been run first in quadlet mode.
 
@@ -124,7 +124,7 @@ The `charly-mcp` layer declares a `project` volume at `/workspace` (the volume N
 ```bash
 charly config charly-arch --bind project=/home/you/opencharly
 charly start charly-arch
-charly eval mcp call charly-arch box.list.boxes '{}' --name charly
+charly check mcp call charly-arch box.list.boxes '{}' --name charly
 # → lists images from the bind-mounted /home/you/opencharly
 ```
 
@@ -334,15 +334,15 @@ charly start selkies-desktop -i 198.145.102.110
 Each instance gets unique host ports. The Chrome layer's `chrome-wrapper` translates `HTTP_PROXY`/`HTTPS_PROXY` into Chrome's `--proxy-server` flag. Verify with CDP:
 
 ```bash
-charly eval cdp status selkies-desktop -i 198.145.102.110
-charly eval cdp open selkies-desktop -i 198.145.102.110 "https://ip.me"
-charly eval cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
+charly check cdp status selkies-desktop -i 198.145.102.110
+charly check cdp open selkies-desktop -i 198.145.102.110 "https://ip.me"
+charly check cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
   "document.querySelector('#ip-lookup').value"
 ```
 
 ## Service Environment Injection
 
-When a configured image declares `env_provide` or `mcp_provide` in its layers (stored in OCI labels), `charly config` automatically injects those entries into the `provides:` section of `charly.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `charly eval mcp ping <image>` — see `/charly-build:charly-mcp-cmd` for the full verb surface.
+When a configured image declares `env_provide` or `mcp_provide` in its layers (stored in OCI labels), `charly config` automatically injects those entries into the `provides:` section of `charly.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `charly check mcp ping <image>` — see `/charly-build:charly-mcp-cmd` for the full verb surface.
 
 ```yaml
 # charly.yml after `charly config ollama && charly config jupyter`
@@ -423,7 +423,7 @@ Open WebUI uses `env_require` for mandatory admin credentials and `env_accept` f
 
 ```bash
 # Minimal: admin credentials required (hard error if missing)
-eval "$(charly secrets gpg env)"
+check "$(charly secrets gpg env)"
 charly config openwebui \
   -e "WEBUI_ADMIN_EMAIL=$WEBUI_ADMIN_EMAIL" \
   -e "WEBUI_ADMIN_PASSWORD=$WEBUI_ADMIN_PASSWORD" \
@@ -596,7 +596,7 @@ Source: `charly/envfile.go` (`normalizeNoProxy`), `charly/deploy.go` (`mergeEnvV
 
 Source: `charly/config_image.go` (command structs), `charly/quadlet.go` (quadlet generation), `charly/deploy.go` (deploy state), `charly/enc.go` (encrypted volumes), `charly/secrets.go` (secret provisioning), `charly/data.go` (data seeding).
 
-## Live-deploy verification is mandatory (see `/charly-eval:eval` 10 standards)
+## Live-deploy verification is mandatory (see `/charly-check:check` 10 standards)
 
 Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
 

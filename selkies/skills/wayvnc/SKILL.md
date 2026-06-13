@@ -30,8 +30,8 @@ my-desktop:
 ```
 
 ```bash
-charly eval vnc screenshot my-image          # capture desktop
-charly eval vnc passwd my-image --generate   # set up VeNCrypt/TLS auth
+charly check vnc screenshot my-image          # capture desktop
+charly check vnc passwd my-image --generate   # set up VeNCrypt/TLS auth
 ```
 
 ## NVIDIA Headless: Fixed via Pixman + DPMS Workaround
@@ -42,7 +42,7 @@ VNC screenshots work correctly on NVIDIA headless when used via `sway-desktop-vn
 
 2. **DPMS workaround** — wayvnc 0.9.1 gates screen capture on `zwlr_output_power_v1` mode events, but sway's headless backend never emits them. The `wayvnc-wrapper` performs a minimal VNC handshake to trigger wayvnc to bind the power manager, then `swaymsg "output HEADLESS-1 power on"` forces the missing event. Fixed in wayvnc git main (post-0.9.1) — remove workaround when Fedora ships the fix.
 
-For boxes NOT using `sway-desktop-vnc` (custom sway + wayvnc setups), `charly eval wl screenshot` (grim) remains a reliable fallback.
+For boxes NOT using `sway-desktop-vnc` (custom sway + wayvnc setups), `charly check wl screenshot` (grim) remains a reliable fallback.
 
 ### Startup Timing
 
@@ -65,7 +65,7 @@ Part of `/charly-selkies:sway-desktop` composition.
 
 ## Related Commands
 
-- `/charly-eval:vnc` — VNC screenshot, click, type, key, mouse commands
+- `/charly-check:vnc` — VNC screenshot, click, type, key, mouse commands
 
 ## When to Use This Skill
 
@@ -80,4 +80,4 @@ Use when the user asks about:
 ## Related
 
 - `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
-- `/charly-eval:eval` — declarative testing (`eval:` block, `charly eval box`, `charly eval live`)
+- `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

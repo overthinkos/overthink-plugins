@@ -1,7 +1,7 @@
 ---
 name: charly-mcp-cmd
 description: |
-  MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `charly eval mcp` client: probing MCP servers declared via mcp_provide, testing MCP tool catalogs, debugging the URL-rewriter (including host-networked containers via `HostConfig.NetworkMode` detection) or port-publishing behavior. (2) `charly mcp serve` server: running the charly CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (~192 tools including the MCP-first authoring surface — image/layer scaffolding, comment-preserving YAML edits, free-form file writes), destructive-hint annotations, the `--read-only` filter, auto-fallback to `overthinkos/overthink` when cwd has no `charly.yml` (always fires regardless of CHARLY_PROJECT_DIR being set), and the `charly-mcp` deployment layer with its `/workspace` bind mount.
+  MUST be invoked before any work involving: Model Context Protocol — both directions. (1) `charly check mcp` client: probing MCP servers declared via mcp_provide, testing MCP tool catalogs, debugging the URL-rewriter (including host-networked containers via `HostConfig.NetworkMode` detection) or port-publishing behavior. (2) `charly mcp serve` server: running the charly CLI itself as an MCP server over Streamable HTTP or stdio, auto-generated from Kong reflection (~192 tools including the MCP-first authoring surface — image/layer scaffolding, comment-preserving YAML edits, free-form file writes), destructive-hint annotations, the `--read-only` filter, auto-fallback to `overthinkos/overthink` when cwd has no `charly.yml` (always fires regardless of CHARLY_PROJECT_DIR being set), and the `charly-mcp` deployment layer with its `/workspace` bind mount.
   Named `charly-mcp-cmd` (not `mcp`) to disambiguate from Claude Code's built-in `/mcp` slash command (the `-cmd` suffix avoids collision with the existing `/charly-coder:charly-mcp` image skill).
 ---
 
@@ -9,22 +9,22 @@ description: |
 
 `charly` speaks MCP in both directions. This skill covers both:
 
-- **Client** — `charly eval mcp <method>`: connect to any MCP server declared via `mcp_provide` and probe/call/read. Used to test MCP endpoints shipped by `jupyter-mcp`, `chrome-devtools-mcp`, or the charly server itself.
+- **Client** — `charly check mcp <method>`: connect to any MCP server declared via `mcp_provide` and probe/call/read. Used to test MCP endpoints shipped by `jupyter-mcp`, `chrome-devtools-mcp`, or the charly server itself.
 - **Server** — `charly mcp serve`: expose the entire charly CLI surface (build + test + deploy modes, 190 tools) as MCP over Streamable HTTP or stdio. Used by LLM agents (Claude Code, Open WebUI, OpenClaw) to drive charly remotely. Deployed in-container via the `charly-mcp` layer. The 190-tool catalog now includes a project-scaffolding + YAML-editing + file-write authoring surface, so an agent can build an `charly` project from scratch over RPC — see "Authoring tools" below.
 
 Both surfaces share the same SDK: `github.com/modelcontextprotocol/go-sdk v1.5.0`.
 
 ---
 
-# Part 1 — Client (`charly eval mcp …`)
+# Part 1 — Client (`charly check mcp …`)
 
 ## Overview
 
-`charly eval mcp` connects to Model Context Protocol servers declared by running containers via `mcp_provide`, using [github.com/modelcontextprotocol/go-sdk](https://pkg.go.dev/github.com/modelcontextprotocol/go-sdk) (v1.5.0). Seven leaf subcommands cover the full MCP client surface: `ping`, `servers`, `list-tools`, `list-resources`, `list-prompts`, `call`, `read`. No MCP URL argument is ever typed by the user — the verb reads the target image's `ai.opencharly.mcp_provide` OCI label, resolves `{{.ContainerName}}` templates, applies pod-aware `localhost` rewriting, and maps the container-network URL to the published host port automatically.
+`charly check mcp` connects to Model Context Protocol servers declared by running containers via `mcp_provide`, using [github.com/modelcontextprotocol/go-sdk](https://pkg.go.dev/github.com/modelcontextprotocol/go-sdk) (v1.5.0). Seven leaf subcommands cover the full MCP client surface: `ping`, `servers`, `list-tools`, `list-resources`, `list-prompts`, `call`, `read`. No MCP URL argument is ever typed by the user — the verb reads the target image's `ai.opencharly.mcp_provide` OCI label, resolves `{{.ContainerName}}` templates, applies pod-aware `localhost` rewriting, and maps the container-network URL to the published host port automatically.
 
 ### Also as a declarative verb
 
-Every `charly eval mcp <method>` is authorable as an `mcp:` step inside a top-level `scenario:` list. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tool:`, `uri:`, `input:`, `mcp_name:`). As a probe verb, `mcp:` defaults to `do: assert`. Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `timeout:`) work like other verbs. See `/charly-eval:eval` for the parent router and the complete method allowlist. Example:
+Every `charly check mcp <method>` is authorable as an `mcp:` step inside a top-level `scenario:` list. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tool:`, `uri:`, `input:`, `mcp_name:`). As a probe verb, `mcp:` defaults to `do: assert`. Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `timeout:`) work like other verbs. See `/charly-check:check` for the parent router and the complete method allowlist. Example:
 
 ```yaml
 scenario:
@@ -41,13 +41,13 @@ scenario:
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Ping | `charly eval mcp ping <image>` | Liveness check — returns `ok` on a successful `Ping` RPC |
-| Enumerate | `charly eval mcp servers <image>` | List MCP servers declared by the image (no dial) |
-| List tools | `charly eval mcp list-tools <image>` | Tool name + first-line description per line |
-| List resources | `charly eval mcp list-resources <image>` | URI + name + MIME type per line |
-| List prompts | `charly eval mcp list-prompts <image>` | Prompt name + description per line |
-| Call | `charly eval mcp call <image> <tool> [<input-json>]` | Invoke a tool; prints TextContent payload |
-| Read | `charly eval mcp read <image> <uri>` | Read a resource; prints Text content |
+| Ping | `charly check mcp ping <image>` | Liveness check — returns `ok` on a successful `Ping` RPC |
+| Enumerate | `charly check mcp servers <image>` | List MCP servers declared by the image (no dial) |
+| List tools | `charly check mcp list-tools <image>` | Tool name + first-line description per line |
+| List resources | `charly check mcp list-resources <image>` | URI + name + MIME type per line |
+| List prompts | `charly check mcp list-prompts <image>` | Prompt name + description per line |
+| Call | `charly check mcp call <image> <tool> [<input-json>]` | Invoke a tool; prints TextContent payload |
+| Read | `charly check mcp read <image> <uri>` | Read a resource; prints Text content |
 
 Every leaf accepts:
 - `-i <instance>` — target a specific instance
@@ -74,7 +74,7 @@ Source: `charly/mcp.go` (Kong subcommand tree + leaf Run() methods), `charly/mcp
 ### Ping
 
 ```bash
-charly eval mcp ping jupyter
+charly check mcp ping jupyter
 # ok
 ```
 
@@ -83,10 +83,10 @@ Calls `ClientSession.Ping(ctx, nil)`. Exit 0 iff the server responds. Useful as 
 ### Servers (discovery only, no dial)
 
 ```bash
-charly eval mcp servers jupyter
+charly check mcp servers jupyter
 # jupyter   http://localhost:8888/mcp   http
 
-charly eval mcp servers jupyter --json
+charly check mcp servers jupyter --json
 # [{"name":"jupyter","url":"http://localhost:8888/mcp","transport":"http","source":"jupyter"}]
 ```
 
@@ -95,13 +95,13 @@ Reads `mcp_provide` from the OCI label, applies template substitution + pod-awar
 ### List tools / resources / prompts
 
 ```bash
-charly eval mcp list-tools jupyter
+charly check mcp list-tools jupyter
 # list_notebooks       List all notebooks accessible in the workspace.
 # execute_cell         Execute a cell and return its outputs.
 # insert_cell          Insert a new cell at the given position.
 # …
 
-charly eval mcp list-tools jupyter --json | jq '.[].name'
+charly check mcp list-tools jupyter --json | jq '.[].name'
 ```
 
 Plaintext output is tab-separated (`name\tfirst-line-of-description`) for easy `contains:` matching in declarative tests without JSON parsing. Multi-line descriptions collapse to the first non-empty line. `list-resources` emits `uri\tname\tmime`; `list-prompts` emits `name\tdescription`. The runner automatically pages through `NextCursor` so all results return in a single invocation.
@@ -109,10 +109,10 @@ Plaintext output is tab-separated (`name\tfirst-line-of-description`) for easy `
 ### Call a tool
 
 ```bash
-charly eval mcp call jupyter list_notebooks '{}'
+charly check mcp call jupyter list_notebooks '{}'
 # [{"path":"finetuning/01_FastInference_Qwen.ipynb",…}]
 
-charly eval mcp call jupyter get_cell '{"path":"intro.ipynb","index":0}'
+charly check mcp call jupyter get_cell '{"path":"intro.ipynb","index":0}'
 ```
 
 The third positional is the tool's arguments as a JSON object (optional — omit for zero-arg tools). The argument string is parsed with `encoding/json`; parse errors exit 1 immediately with the error location. Returned `TextContent` blocks print one per line; `ImageContent` / `AudioContent` emit a `[image content: <mime>, <N> bytes]` placeholder (use `--json` for the actual payload). If the server sets `IsError: true`, the leaf exits 1 after printing the error text to stderr.
@@ -120,7 +120,7 @@ The third positional is the tool's arguments as a JSON object (optional — omit
 ### Read a resource
 
 ```bash
-charly eval mcp read my-image file:///workspace/data.txt
+charly check mcp read my-image file:///workspace/data.txt
 ```
 
 Calls `ReadResource(URI: …)`. Text content is printed to stdout; binary blobs emit a `[binary resource … use --json for base64]` placeholder to stderr.
@@ -130,10 +130,10 @@ Calls `ReadResource(URI: …)`. Text content is printed to stdout; binary blobs 
 When an image declares more than one `mcp_provide` entry, every leaf requires `--name`:
 
 ```bash
-charly eval mcp ping my-image
+charly check mcp ping my-image
 # charly: error: image provides multiple mcp servers; use --name (available: jupyter, chrome-devtools)
 
-charly eval mcp ping my-image --name chrome-devtools
+charly check mcp ping my-image --name chrome-devtools
 # ok
 ```
 
@@ -152,7 +152,7 @@ No existing image ships multiple providers today — `jupyter` layers expose one
 
 ## Port-publishing gotcha (encountered during live testing)
 
-**Symptom:** `charly eval mcp ping` fails with:
+**Symptom:** `charly check mcp ping` fails with:
 
 ```
 charly: error: mcp chrome-devtools: container port 9224/tcp is not published to a host port;
@@ -180,7 +180,7 @@ box:
 ```bash
 charly status <image> --json
 # Expect: the mcp port listed in the port mappings with a non-null host port
-charly eval mcp ping <image>
+charly check mcp ping <image>
 # ok
 ```
 
@@ -209,7 +209,7 @@ Every leaf's default format is author-friendly plaintext with one record per lin
 - `read` → concatenated `ResourceContents.Text`, one per line
 - `servers` → `<name>\t<url>\t<transport>`
 
-`--json` on any leaf emits the SDK's raw result struct (e.g., `ListToolsResult`, `CallToolResult`) with `json.MarshalIndent`. Declarative tests always receive plaintext — the subprocess dispatcher runs `charly eval mcp …` without `--json`.
+`--json` on any leaf emits the SDK's raw result struct (e.g., `ListToolsResult`, `CallToolResult`) with `json.MarshalIndent`. Declarative tests always receive plaintext — the subprocess dispatcher runs `charly check mcp …` without `--json`.
 
 ## Declarative authoring examples
 
@@ -262,7 +262,7 @@ scenario:
           - matches: "."
 ```
 
-Each `mcp:` step is a probe verb, so it defaults to `do: assert` — a deterministic step that satisfies the mandatory-ADE gate. **Deploy-context only.** `mcp:` steps require a running container with the mcp port published; `charly box validate` rejects build-context mcp steps at authoring time, and `charly eval box` skips them at runtime with the message `"mcp: <method> requires a running container (skip under charly eval box)"`. Follow the same rule as the other four live-container verbs — `cdp`, `wl`, `dbus`, `vnc`.
+Each `mcp:` step is a probe verb, so it defaults to `do: assert` — a deterministic step that satisfies the mandatory-ADE gate. **Deploy-context only.** `mcp:` steps require a running container with the mcp port published; `charly box validate` rejects build-context mcp steps at authoring time, and `charly check box` skips them at runtime with the message `"mcp: <method> requires a running container (skip under charly check box)"`. Follow the same rule as the other four live-container verbs — `cdp`, `wl`, `dbus`, `vnc`.
 
 ## Validator coverage
 
@@ -291,7 +291,7 @@ charly mcp serve --stdio                        # Stdio transport for editor/LLM
 charly mcp serve --read-only                    # Skip registering the 51 destructive tools
 ```
 
-The server uses the same `github.com/modelcontextprotocol/go-sdk` v1.5.0 as the client, so the wire format is identical and `charly eval mcp ping <image>` works against it unchanged.
+The server uses the same `github.com/modelcontextprotocol/go-sdk` v1.5.0 as the client, so the wire format is identical and `charly check mcp ping <image>` works against it unchanged.
 
 ## Architecture
 
@@ -362,13 +362,13 @@ charly config charly-arch --bind project=/home/you/opencharly
 charly start charly-arch
 
 # From the host — the container's mcp_provide URL is auto-rewritten to the published host port:
-charly eval mcp ping charly-arch --name charly
+charly check mcp ping charly-arch --name charly
 # ok
-charly eval mcp list-tools charly-arch --name charly | wc -l
+charly check mcp list-tools charly-arch --name charly | wc -l
 # 190
-charly eval mcp call charly-arch version '{}' --name charly
+charly check mcp call charly-arch version '{}' --name charly
 # 2026.nnn.nnnn          (the container's own charly version)
-charly eval mcp call charly-arch box.list.boxes '{}' --name charly
+charly check mcp call charly-arch box.list.boxes '{}' --name charly
 # charly-arch [testing]      (reads charly.yml from the bind-mounted /workspace)
 # arch [testing]
 # …
@@ -397,7 +397,7 @@ All YAML edits go through the `yaml.v3` *node* API (not value unmarshal) so comm
 End-to-end MCP-only worked example:
 
 ```jsonc
-// All called as MCP tool calls (e.g. via `charly eval mcp call <ctr> <tool> '<args>'`):
+// All called as MCP tool calls (e.g. via `charly check mcp call <ctr> <tool> '<args>'`):
 box.new.project   {"dir": "/tmp/hello"}
 box.new.box     {"name": "hello", "base": "quay.io/fedora/fedora:43"}
 box.new.candy     {"name": "hello-svc"}
@@ -423,20 +423,20 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 
 ## Cross-References
 
-- `/charly-eval:eval` — parent router; all `charly eval mcp …` invocations are dispatched through it. Full method allowlist for all 5 live-container verbs (cdp/wl/dbus/vnc/mcp) lives in the "Live-container verb catalog" section.
+- `/charly-check:check` — parent router; all `charly check mcp …` invocations are dispatched through it. Full method allowlist for all 5 live-container verbs (cdp/wl/dbus/vnc/mcp) lives in the "Live-container verb catalog" section.
 - `/charly-image:layer` — `mcp_provide` / `mcp_accept` / `mcp_require` field reference for layer authoring.
 - `/charly-core:charly-config` — how `mcp_provide` gets injected into `charly.yml` `provides.mcp:` and synthesized into `CHARLY_MCP_SERVERS` for consumers at `charly config` time; pod-aware resolution to `localhost`; instance-aware MCP server naming with `-<instance>` suffix.
 - `/charly-build:validate` — authoring-time validation rules (method allowlist, required modifiers, scope enforcement).
 - `/charly-core:deploy` — `charly.yml` `port:` override semantics (the port-publishing gotcha lives here operationally).
-- `/charly-eval:cdp` — sibling live-container verb (Chrome DevTools Protocol).
-- `/charly-eval:wl` — sibling (Wayland desktop control).
-- `/charly-eval:dbus` — sibling (D-Bus calls/notifications).
-- `/charly-eval:vnc` — sibling (VNC framebuffer / input).
+- `/charly-check:cdp` — sibling live-container verb (Chrome DevTools Protocol).
+- `/charly-check:wl` — sibling (Wayland desktop control).
+- `/charly-check:dbus` — sibling (D-Bus calls/notifications).
+- `/charly-check:vnc` — sibling (VNC framebuffer / input).
 - `/charly-jupyter:jupyter-mcp` — the FastMCP server implementation layer (11 tools for notebook manipulation over CRDT: notebook_*/cell_* + notebook_list_users + room_list; clients do not manage CRDT rooms — the server auto-attaches).
 - `/charly-selkies:chrome-devtools-mcp` — the mcp-proxy wrapper around chrome-devtools-mcp (29 tools for browser automation).
-- `/charly-hermes:hermes` — a consumer (`mcp_accept: jupyter, chrome-devtools`); use `charly eval mcp` to verify the services hermes discovers are actually alive.
+- `/charly-hermes:hermes` — a consumer (`mcp_accept: jupyter, chrome-devtools`); use `charly check mcp` to verify the services hermes discovers are actually alive.
 - `/charly-openwebui:openwebui` — another consumer (`mcp_accept: jupyter, chrome-devtools`).
-- `/charly-jupyter:jupyter`, `/charly-jupyter:jupyter-ml`, `/charly-jupyter:jupyter-ml-notebook` — images bundling `jupyter-mcp`; `charly eval live <image> --filter mcp` exercises the verb end-to-end.
+- `/charly-jupyter:jupyter`, `/charly-jupyter:jupyter-ml`, `/charly-jupyter:jupyter-ml-notebook` — images bundling `jupyter-mcp`; `charly check live <image> --filter mcp` exercises the verb end-to-end.
 - `/charly-selkies:sway-browser-vnc`, `/charly-selkies:selkies-labwc`, `/charly-selkies:selkies-labwc-nvidia` — images bundling `chrome-devtools-mcp` (transitively via the chrome metalayer).
 - `/charly-internals:go` — implementation map: `mcp.go` (client Kong subcommand tree), `mcp_client.go` (client SDK wrapper + URL rewriter), `mcp_server.go` (server: Kong→MCP reflection, destructive-hint set, `captureAndRun`), `testrun_ov_verbs.go` (declarative dispatcher entry `mcpMethods`), `validate_tests.go` (`validateCharlyVerb` case for `mcp`).
 - `/charly-coder:charly-mcp` — the deployment layer that wires `charly mcp serve` into an image via supervisord. Includes the `/workspace` bind-mount (volume NAME `project`) + `CHARLY_PROJECT_DIR` env var pattern for build-mode tools.
@@ -448,9 +448,9 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 
 **MUST be invoked** when the task involves Model Context Protocol on either side:
 
-- **Client** — `charly eval mcp` commands, probing/testing MCP servers declared via `mcp_provide`, examining MCP tool/resource/prompt catalogs, debugging the URL-rewriter or port-publishing behavior, or authoring deploy-context `mcp:` steps in a `scenario:` list.
+- **Client** — `charly check mcp` commands, probing/testing MCP servers declared via `mcp_provide`, examining MCP tool/resource/prompt catalogs, debugging the URL-rewriter or port-publishing behavior, or authoring deploy-context `mcp:` steps in a `scenario:` list.
 - **Server** — `charly mcp serve` operation, the `charly-mcp` layer, destructive-hint policy, the `--read-only` filter, Kong-reflection tool generation, the project-dir bind-mount pattern, or symptoms like "MCP tool returned empty output" (check `println` vs `fmt.Println` in the invoked command — the server captures `os.Stdout`, not fd 1).
 
 Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Test mode / live service operation. Client: deploy an image with `mcp_provide`, start it, then probe. Server: compose `charly-mcp` into an image, bind `--bind project=/path/to/opencharly` at config time, start the container, then consume from any MCP-speaking LLM runtime. Pairs with `/charly-eval:eval` (parent router + declarative-verb catalog), `/charly-core:charly-config` (consumer-side injection + `--bind` for the project dir), `/charly-coder:charly-mcp` (server deployment layer), and the consumer-layer skills (`/charly-hermes:hermes`, `/charly-openwebui:openwebui`).
+**Workflow position:** Test mode / live service operation. Client: deploy an image with `mcp_provide`, start it, then probe. Server: compose `charly-mcp` into an image, bind `--bind project=/path/to/opencharly` at config time, start the container, then consume from any MCP-speaking LLM runtime. Pairs with `/charly-check:check` (parent router + declarative-verb catalog), `/charly-core:charly-config` (consumer-side injection + `--bind` for the project dir), `/charly-coder:charly-mcp` (server deployment layer), and the consumer-layer skills (`/charly-hermes:hermes`, `/charly-openwebui:openwebui`).
