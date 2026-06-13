@@ -30,8 +30,10 @@ spec:
   description:   # optional — Gherkin-shaped self-description
     feature: Standard developer workstation profile
     tag: [working]
-  eval:          # optional — deploy-scope checks
-    - {id: rg-version, scope: deploy, command: "rg --version"}
+  scenario:      # optional — top-level acceptance scenarios; each step: is one inline Op
+    - scenario: ripgrep is installed after deploy
+      step:
+        - {command: "rg --version", do: assert, context: [deploy]}
 ```
 
 ## Inline form in charly.yml
@@ -66,9 +68,8 @@ local:
 | `layers` | Yes | Ordered candy stack. `[]` permitted as a placeholder (warning, not error). |
 | `install_opts` | No | Default install gates. Deployment overrides merge on top. |
 | `env` | No | Shell-profile env vars (`KEY=VALUE`). Deployment env wins on key collision. |
-| `description` | No | Gherkin-shaped (Feature/Narrative/Tag/Scenario). Status word lives in `tag`: `working`/`testing`/`broken`. |
-| `eval` | No | Deploy-scope checks; merged with deployment.eval. |
-| `deploy_eval` | No | Same as `eval` but reserved for image-style deploy-tests propagation. |
+| `description` | No | Gherkin-shaped (Feature/Narrative/Tag). Status word lives in `tag`: `working`/`testing`/`broken`. |
+| `scenario` | No | Top-level acceptance scenarios (sibling of `description`, no longer nested under it). Each `step:` is one inline Op — a verb + matchers + `do:`/`context:`. A probe step defaults to `do: assert`; deploy-scope steps carry `context: [deploy]`. Merged with deployment.scenario. |
 
 There is **no** `status:` or `info:` field. Status lives in `description.tag` (one of `working`/`testing`/`broken`); the human-facing description lives in `description.feature` + `description.narrative`.
 
@@ -108,8 +109,7 @@ When a deployment carries `local: <template-name>`:
 | `install_opts.*` (bool) | default | wins over template | wins over both | CLI > deployment > template |
 | `install_opts.builder_image` | default `""` | wins | wins over both | CLI > deployment > template |
 | `env` | base list | extends + overrides on key | — | template.Env merged with deployment.Env (deployment-wins on collision) |
-| `eval` | base checks | extends list | — | `template.Eval ++ deployment.Eval` |
-| `deploy_eval` | base checks | extends list | — | `template.DeployEval ++ deployment.DeployEval` |
+| `scenario` | base scenarios | extends list | — | `template.Scenario ++ deployment.Scenario` |
 
 The `InstallOptsConfig.ApplyTo` method is fill-empty — calling it on the deployment's opts first, then the template's, gives the priority chain automatically.
 

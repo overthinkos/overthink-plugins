@@ -43,7 +43,7 @@ The generated Containerfile follows this order:
 2. **`FROM ${BASE_IMAGE}`** — external bases get bootstrap from `build.yml` `distro:` section (install cmd, cache mounts, workarounds); internal bases get `USER root`
 3. **Image metadata** — consolidated `ENV` directives, `EXPOSE` ports, `ai.opencharly.*` labels
 4. **COPY build artifacts** — config-driven from `build.yml` `builder.<name>.copy_artifacts` and `copy_binary` definitions
-5. **Per-layer install steps** — see "Task emission pipeline" below. `USER` toggles as each task's `user:` field requires.
+5. **Per-layer install steps** — see "Task emission pipeline" below. `USER` toggles as each task's `run_as:` field requires.
 6. **Final assembly** — init system config assembly, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only)
 
 **Config-driven generation:** All format-specific install commands, cache mounts, repo setup, builder stages, and init fragments are defined in `build.yml` at the project root as Go `text/template` strings — three top-level sections: `distro:`, `builder:`, `init:`. Each distro entry contains both bootstrap config and its package format definitions. Referenced via `format_config: build.yml` in `charly.yml` — supports local paths and remote `@github.com/org/repo/path:version` refs. Adding a new format (e.g., `apk` for Alpine) requires only YAML changes — zero Go code modifications.
@@ -69,7 +69,7 @@ All install-task logic lives in a single file: `charly/tasks.go` (~380 lines). A
        case "link":     emitLinkBatch   (coalesces adjacent same-user)
        case "download": emitDownload    (RUN curl + extractor + /tmp/downloads cache)
        case "setcap":   emitSetcapBatch (coalesces; strip on empty caps)
-       case "cmd":      emitCmd         (RUN bash -c 'set -e; ...' + /ctx bind)
+       case "command":  emitCmd         (RUN bash -c 'set -e; ...' + /ctx bind)
        case "build":    writeCandySteps handles builder placement
 6. USER root reset (unless last layer + skipRootReset)
 ```
@@ -143,7 +143,7 @@ Two-tier:
 
 - **Generate-time:** `taskSubstPath` expands `~/` to `img.Home` and substitutes `${USER}` / `${UID}` / `${GID}` / `${HOME}` literally (values known at generate time). Applied to paths, URLs, modes, `to`, `target`, etc.
 - **Build-time (Docker):** `${ARCH}` comes from BuildKit's `TARGETARCH` via `ARG TARGETARCH` + `ENV ARCH=${TARGETARCH}` emitted at layer top. Layer-local `var:` become `ENV` directives too. Docker substitutes these in COPY paths, RUN commands, and ENV values.
-- **Build-time (shell):** `${BUILD_ARCH}` is auto-injected as a local shell variable at the top of each `cmd:` / `download:` RUN (`BUILD_ARCH=$(uname -m)`). Unlike `${ARCH}`, it isn't available in non-shell fields.
+- **Build-time (shell):** `${BUILD_ARCH}` is auto-injected as a local shell variable at the top of each `command:` / `download:` RUN (`BUILD_ARCH=$(uname -m)`). Unlike `${ARCH}`, it isn't available in non-shell fields.
 
 `taskUnresolvedRefs(s, known)` returns `${NAME}` references that don't resolve against auto-exports ∪ layer `var:` — used by `validateCandyTasks` to error on typos.
 
@@ -153,7 +153,7 @@ Only these verbs coalesce: `mkdir`, `link`, `setcap`. Coalescing requires same v
 
 ### Parent-dir auto-insertion
 
-For `copy:` and `write:` tasks, if the destination's parent directory isn't already registered in `declaredDirs` (which tracks every `mkdir:` task PLUS all ancestor paths, matching Unix `mkdir -p` semantics), the orchestrator prepends a single `RUN mkdir -p <parent>` (as the task's `user:`) immediately before the COPY. This is the only implicit directive in the pipeline; authors can disable it for a specific path by declaring the parent via explicit `mkdir:`.
+For `copy:` and `write:` tasks, if the destination's parent directory isn't already registered in `declaredDirs` (which tracks every `mkdir:` task PLUS all ancestor paths, matching Unix `mkdir -p` semantics), the orchestrator prepends a single `RUN mkdir -p <parent>` (as the task's `run_as:`) immediately before the COPY. This is the only implicit directive in the pipeline; authors can disable it for a specific path by declaring the parent via explicit `mkdir:`.
 
 ## Multi-Stage Builds
 
@@ -272,15 +272,15 @@ after the last `USER` directive. This is an intentional cache-efficiency
 choice driven by `charly/generate.go`'s `writeLabels` call being placed
 after `writeCandySteps` + the final `USER` emission.
 
-Why it matters: the `ai.opencharly.eval` LABEL is the most-volatile
-piece of image metadata — it changes every time a test is added, edited,
+Why it matters: the `ai.opencharly.description` LABEL is the most-volatile
+piece of image metadata — it changes every time a scenario is added, edited,
 or removed. If LABELs appeared BEFORE the RUN/COPY install steps,
 buildkit's cache would invalidate at the first changed LABEL and every
 downstream instruction would rebuild from scratch. For a 138-step stack
 like `immich-ml`, that means re-running pnpm install, the Immich server
-build, geodata downloads — minutes to hours for a one-line test edit.
+build, geodata downloads — minutes to hours for a one-line scenario edit.
 
-With LABELs at the end, a test/label edit only re-runs the LABEL
+With LABELs at the end, a scenario/label edit only re-runs the LABEL
 instructions themselves (pure manifest metadata, no filesystem work).
 Measured: ~2 seconds of delta over a no-change rebuild baseline of
 ~24 seconds for `filebrowser`.
@@ -464,10 +464,10 @@ Security configuration (`security:` in charly.yml) and environment variable inje
 | `rpm.packages` | `/var/cache/libdnf5` | `sharing=locked` |
 | `deb.packages` | `/var/cache/apt` + `/var/lib/apt` | `sharing=locked` |
 | `pac.packages` + `aur` | `/var/cache/pacman/pkg` | `sharing=locked` |
-| `cmd:` as root | Distro-format caches (above) + `/ctx` bind to layer stage + any `cache:` (shared) | — |
-| `cmd:` as non-root | `/tmp/npm-cache` (UID-scoped) + `/ctx` bind to layer stage + any `cache:` (owned) | `uid=<UID>,gid=<GID>` |
+| `command:` as root | Distro-format caches (above) + `/ctx` bind to layer stage + any `cache:` (shared) | — |
+| `command:` as non-root | `/tmp/npm-cache` (UID-scoped) + `/ctx` bind to layer stage + any `cache:` (owned) | `uid=<UID>,gid=<GID>` |
 | `download:` | `/tmp/downloads` (shared) — **content-addressed**: file fetched once, reused across builds + any `cache:` | — |
-| `task: cache:` | each declared path; ownership from the task `user:` (root → shared/locked, else uid/gid-owned) | per-user |
+| `task: cache:` | each declared path; ownership from the task `run_as:` (root → shared/locked, else uid/gid-owned) | per-user |
 | AUR builder stage | `/var/cache/pacman/pkg` (shared) + `/tmp/aur-srcdest` + `/tmp/aur-xdg-cache` (owned: makepkg SRCDEST + yay clones) | mixed |
 | pixi builder stage | `/tmp/pixi-cache` + `/tmp/rattler-cache` | `uid=<UID>,gid=<GID>` |
 | npm builder stage | `/tmp/npm-cache` | `uid=<UID>,gid=<GID>` |
@@ -486,7 +486,7 @@ So a file fetched once survives an upstream layer cache-miss instead of
 re-downloading (the prior code declared the mount but streamed curl past it).
 
 `taskCacheMounts(t, img)` (`charly/tasks.go`) renders a task's layer-declared
-`cache:` paths as cache-mount flags, ownership derived from the task's `user:`
+`cache:` paths as cache-mount flags, ownership derived from the task's `run_as:`
 via `resolveUserSpec` (root → `SharedCacheMount`, else → `OwnedCacheMount`).
 Honored by `emitCmd` and `emitDownload`. Lets any task persist heavy
 downloads/build artifacts the same way package caches do (config-driven; the

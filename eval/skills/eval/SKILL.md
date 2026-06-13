@@ -2,11 +2,11 @@
 name: eval
 description: |
   MUST be invoked before any work involving: `charly eval` (image / live / run),
-  the `eval:` / `deploy_eval:` fields in a candy/box `charly.yml` or `charly.yml`,
-  the `ai.opencharly.eval` OCI label, the AI iteration harness loop,
+  the `scenario:` / `description:` fields in a candy/box `charly.yml`, the project-root `eval:` block in `charly.yml`,
+  the `ai.opencharly.description` OCI label (where scenarios travel), the AI iteration harness loop,
   `kind: agent` / `kind: recipe` / `kind: score` / `kind: eval` (disposable R10
-  beds run via `charly eval run <bed>`) in a project's `eval:` block, or any declarative
-  check authoring. Covers the unified `charly eval` surface: three
+  beds run via `charly eval run <bed>`) in a project's `eval:` block, or any scenario / Op
+  authoring. Covers the unified `charly eval` surface: three
   primary modes (image / live / run),
   9 live-container probe verbs (cdp/wl/dbus/vnc/mcp/record/spice/libvirt/k8s),
   verb catalog (file/port/command/http/package/service/process/dns/user/
@@ -327,18 +327,19 @@ authoring surface in eval recipes (`kind: recipe`).
 - **"I'll test it later / Phase 2"** — no. If the plan said "clean cutover in one PR", don't invent a Phase 2.
 - **"The skill/code says so, so I don't need to test it"** — for a HIGH-RISK assumption, no: docs drift and code has bugs; prove it on a disposable bed FIRST (Standard 0). Conversely, do NOT bed-test a LOW-risk orientation fact a skill already states — that's wasted effort. Risk, not documentation status, is the trigger.
 
-If the container needs state that's only available in deploy (volumes, env, tunnel), author the test at `scope: deploy`. If it needs something at build only (binary path, package presence), author at `scope: build`. Both scopes must pass for the cutover to be real.
+If the container needs state that's only available in deploy (volumes, env, tunnel), author the step at `context: [deploy]`. If it needs something at build only (binary path, package presence), author at `context: [build]`. Both contexts must pass for the cutover to be real.
 
 **Confidence tier mapping:** The "fully tested and validated" confidence level in CLAUDE.md's AI-attribution table requires ALL 10 standards met — including Standard 10, the fresh-rebuild re-verification. Anything short of that ships at a lower confidence tier.
 
 ## Overview
 
 `charly` ships a goss-inspired declarative testing framework built into the
-CLI. Eval checks are authored inline under `eval:` (or `deploy_eval:`) in
-a candy/box `charly.yml`, or `charly.yml`. They are **embedded as a
-three-section OCI label** (`ai.opencharly.eval` → `{candy, box, deploy}`)
-so any pulled image is self-testable without its source repo. A local
-`charly.yml` overlay can add checks or override baked ones by `id:`.
+CLI. Scenario steps — each one inline Op — are authored under a top-level
+`scenario:` list in a candy/box `charly.yml`. They are **baked into the
+`ai.opencharly.description` OCI label** (`LabelDescriptionSet`, which carries
+the collected scenarios with `candy:`/`box:`/`deploy` origin annotations) so
+any pulled image is self-testable without its source repo. A local
+`charly.yml` overlay can add steps or override baked ones by `id:`.
 
 The runner resolves **deploy-time variables** (actual host port mappings,
 volume backings, env vars, container IP, DNS) at execution time, so a
@@ -348,11 +349,11 @@ check written once works unchanged when `charly.yml` remaps ports.
 
 | Action | Command | Description |
 |--------|---------|-------------|
-| Pure-box eval (disposable, build-scope) | `charly eval box <image>` | Candy + box sections only, in `podman run --rm` (no host port mappings, no volumes attached) |
+| Pure-box eval (disposable, build-context) | `charly eval box <image>` | Candy + box sections only, in `podman run --rm` (no host port mappings, no volumes attached) |
 | Live full-stack eval (running deployment) | `charly eval live <name> [-i instance]` | All three sections run via `podman exec` / SSH / nested chain, with full runtime variable resolution |
 | R10 bed (full sequence) | `charly eval run <bed>` / `charly eval run --all-beds` | Build → eval image → deploy → eval live → fresh update → tear down on a `kind: eval` disposable bed. Canonical R10 gate |
 | AI iteration loop | `charly eval run <score>` | Drives an AI through plateau-bounded iterations against `kind: score` |
-| Validate authored tests at config time | `charly box validate` | Schema, scope/variable consistency, id uniqueness |
+| Validate authored tests at config time | `charly box validate` | Schema, context/variable consistency, id uniqueness |
 | Inspect effective spec | `charly box inspect <image>` | JSON includes merged eval structure |
 | Filter by verb | `charly eval live <name> --filter file --filter port` | Repeatable |
 | Filter by section | `charly eval live <name> --section deploy` | One of: candy / box / deploy |
@@ -423,8 +424,8 @@ The surface is three orthogonal verbs, each named for what it evaluates:
 
 - **`charly eval box <image>`** — evaluates the image **artifact** in
   isolation. Spawns a disposable container via `podman run --rm
-  <image-ref>` (`ImageExecutor`). Only `eval:`-block checks at
-  `scope: build` run; deploy-scope checks are skipped with a clear
+  <image-ref>` (`ImageExecutor`). Only scenario steps at
+  `context: [build]` run; deploy-context steps are skipped with a clear
   message. The right choice for build-time invariants ("did this
   binary land at this path?", "is this package installed?") where a
   running service would only add noise.
@@ -433,7 +434,7 @@ The surface is three orthogonal verbs, each named for what it evaluates:
   (pod / vm / host / k8s; auto-resolved by `<name>` against
   charly.yml). Uses `ContainerExecutor` / `SSHExecutor` /
   `NestedExecutor` (for dotted-path children) + `ResolveEvalVarsRuntime`
-  so deploy-scope checks see real supervisord state, real
+  so deploy-context steps see real supervisord state, real
   `HOST_PORT:<N>` mappings (including host-networked containers via
   `HostConfig.NetworkMode` detection), and real in-container env.
   Same dispatcher that powers `charly eval live parent.child` for
@@ -468,13 +469,14 @@ are correctly mapped to `charly-fedora-coder`. Implementation:
 
 ## Agent Driven Evaluation (ADE) — `charly box/eval feature run` + the agent grader
 
-ADE runs an entity's OWN baked Gherkin scenarios (the `description.scenario`
+ADE runs an entity's OWN baked Gherkin scenarios (the top-level `scenario:`
 blocks, shipped in the `ai.opencharly.description` OCI label) as acceptance
 tests. It is the canonical Gherkin acceptance pattern, named for the agent that drives the
 evaluation: a prose-only step is graded by an AI agent, and the agent's verdicts
-drive the red→green loop. This complements the flat `eval:` checks — `charly eval box` /
-`charly eval live` run the `eval:` list; `charly box/eval feature run` run the
-`description.scenario` list.
+drive the red→green loop. `charly eval box` / `charly eval live` and `charly
+box/eval feature run` read the SAME top-level `scenario:` list — `charly eval
+box`/`live` run its deterministic (`do: assert`) steps, while `charly box/eval
+feature run` also bind the prose-only (`do: instruct`) steps to the agent grader.
 
 ### The six-stage loop
 
@@ -485,34 +487,35 @@ drive the red→green loop. This complements the flat `eval:` checks — `charly
 | **Run** | you / CI | `charly box feature run <image>` / `charly eval feature run <deployment>` | Execute the scenarios; per-scenario pass/fail + grader evidence. |
 | **Iterate** | you / an agent | edit + re-run, OR `charly eval run <score>` | Drive red→green by hand, or let the plateau-bounded AI loop write the code until scenarios pass. |
 | **Bake** | the build | `charly box build` | Goal + scenarios bake into `ai.opencharly.description`; runs source-less against a pulled image. |
-| **Gate** | R10 | `charly eval run <bed>` | Runs the bed image's deterministic scenarios — every candy ships them (ADE authoring is mandatory; `charly box validate` enforces it). The live agent grader via `charly eval feature run` stays opt-in. |
+| **Gate** | R10 | `charly eval run <bed>` | Runs the bed image's deterministic scenarios — every candy ships them (ADE authoring is mandatory: `charly box validate` requires a non-empty `description.feature:` and a `scenario:` list with at least one deterministic `do: assert` step). The live agent grader via `charly eval feature run` stays opt-in. |
 
 ### The BIND contract — a step binds to its verifier BY SHAPE
 
 ```yaml
 description:
-  scenario:
-    - name: dashboard-loads
-      step:
-        - then: the page title is Dashboard
-          cdp: eval
-          expression: document.title        # DETERMINISTIC — embedded check verb
-        - then: the chart looks populated, not empty   # PROSE-ONLY — agent-graded
+  feature: Dashboard          # description keeps only feature / narrative / tag
+scenario:                     # top-level sibling of description (no longer nested)
+  - name: dashboard-loads
+    step:
+      - then: the page title is Dashboard
+        cdp: eval                          # probe verb → defaults do: assert (DETERMINISTIC)
+        expression: document.title
+      - then: the chart looks populated, not empty   # PROSE-ONLY → do: instruct (agent-graded)
 ```
 
-A step with an embedded check verb (`file`/`http`/`command`/`cdp`/`mcp`/…) runs
-that check. A step with only Gherkin prose (`then:` and no verb) binds to the
-agent grader. `charly feature pending` lists every prose-only step so an author sees
-the still-unbound work.
+A step with an embedded check verb (`file`/`http`/`command`/`cdp`/`mcp`/…) is a
+`do: assert` Op and runs that check. A step with only Gherkin prose (`then:` and
+no verb) is a `do: instruct` Op and binds to the agent grader. `charly feature
+pending` lists every prose-only step so an author sees the still-unbound work.
 
 ### The two run verbs
 
-- **`charly box feature run <image>`** — BUILD scope. A disposable container
+- **`charly box feature run <image>`** — build context. A disposable container
   (`podman run --rm` per check), deterministic steps only. A prose-only step has
   no stable target to probe, so it reports unbound (advisory skip; `--strict`
   fails it). Resolves the image against local storage (never `charly.yml`),
   like `charly eval box`.
-- **`charly eval feature run <deployment>`** — DEPLOY scope. Against a running
+- **`charly eval feature run <deployment>`** — deploy context. Against a running
   image-backed (pod) deployment; deterministic steps run their checks and
   prose-only steps bind to the **agent grader** (unless `--no-agent`). Flags:
   `-i/--instance`, `--format text|json|tap|junit`, `--tag <expr>`,
@@ -551,11 +554,11 @@ $EDITOR candy/web-layer/charly.yml                        # add a deterministic 
 # 2. See what's still prose-only (the authoring gaps).
 charly feature pending layer:web-layer
 
-# 3. Build → run build-scope acceptance (deterministic steps).
+# 3. Build → run build-context acceptance (deterministic steps).
 charly box build web
 charly box feature run web
 
-# 4. Deploy, then run deploy-scope acceptance with the agent grader.
+# 4. Deploy, then run deploy-context acceptance with the agent grader.
 charly start web
 charly eval feature run web                # prose steps agent-graded against the live pod
 charly eval feature run web --no-agent     # deterministic-only (CI): prose reports unbound
@@ -603,9 +606,9 @@ fails. Fix by rebuilding and redeploying any image that bakes `charly` (grep
 `charly.yml` for `- charly$` to find them). Test runner itself is unaffected —
 this only bites the host→container delegation paths.
 
-## Authoring: the `eval:` list
+## Authoring: the `scenario:` list
 
-Every check is a **list entry with exactly one verb discriminator** plus
+Every step is one inline Op — a **list entry with exactly one verb discriminator** plus
 shared modifiers and verb-specific attributes. This mirrors the `task:`
 pattern in `charly.yml`.
 
@@ -613,32 +616,34 @@ pattern in `charly.yml`.
 
 ```yaml
 # candy/redis/charly.yml
-eval:
-  # Build-scope — run inside the built image via `podman run --rm`.
-  - id: redis-binary
-    file: /usr/bin/redis-server
-    exists: true
-  - id: redis-cli-binary
-    file: /usr/bin/redis-cli
-    exists: true
-  - id: redis-package
-    package: valkey-compat-redis     # see "Authoring Gotchas" on Fedora 43 renames
-    installed: true
+scenario:
+  - name: redis-service
+    step:
+      # Build-context — run inside the built image via `podman run --rm`.
+      - id: redis-binary
+        file: /usr/bin/redis-server
+        exists: true
+      - id: redis-cli-binary
+        file: /usr/bin/redis-cli
+        exists: true
+      - id: redis-package
+        package: valkey-compat-redis     # see "Authoring Gotchas" on Fedora 43 renames
+        installed: true
 
-  # Deploy-scope — HOST_PORT:N resolves to the effective port mapping, so
-  # the same test works whether the deploy publishes 6379:6379 or 16379:6379.
-  - id: redis-responds
-    scope: deploy
-    command: redis-cli -h 127.0.0.1 -p ${HOST_PORT:6379} ping
-    stdout: PONG
-    in_container: false    # run redis-cli from the host
-  - id: redis-port-open
-    scope: deploy
-    addr: 127.0.0.1:${HOST_PORT:6379}
-    reachable: true
+      # Deploy-context — HOST_PORT:N resolves to the effective port mapping, so
+      # the same step works whether the deploy publishes 6379:6379 or 16379:6379.
+      - id: redis-responds
+        context: [deploy]
+        command: redis-cli -h 127.0.0.1 -p ${HOST_PORT:6379} ping
+        stdout: PONG
+        in_container: false    # run redis-cli from the host
+      - id: redis-port-open
+        context: [deploy]
+        addr: 127.0.0.1:${HOST_PORT:6379}
+        reachable: true
 ```
 
-The six entries cover: binary existence, package identity, a functional
+The six steps cover: binary existence, package identity, a functional
 live probe, and raw TCP reachability. Adopt this shape for any primary
 service layer.
 
@@ -689,11 +694,11 @@ naturally. An empty-string map value falls through to the next tag
 | `mount` | `mount_source`, `filesystem`, `opts` | `findmnt` |
 | `addr` | `reachable`, `timeout` | Pure Go-native `net.DialTimeout` for `charly eval live`; `nc` for `charly eval box` |
 | `matching` | `contains` | Pure in-process value matching — no target probe |
-| `cdp` | Method name (status/list/eval/text/html/url/axtree/screenshot/open/click/type/raw/wait/coords + spa-*) + method-specific modifiers (`tab`, `expression`, `url`, `selector`, `text`, `artifact`, `x`, `y`) + shared `stdout`/`stderr`/`exit_status`/`artifact_min_bytes` | **Deploy-scope only.** Wraps `charly eval cdp <method>`. See Live-container verb catalog below. |
-| `wl` | Method name (screenshot/status/click/type/key/key-combo/mouse/scroll/drag/clipboard/toplevel/windows/focus/close/geometry/xprop/atspi/exec/resolution + overlay-*/sway-*) + method-specific modifiers (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `charly eval wl <method>` (including `sway` and `overlay` nested subgroups). See Live-container verb catalog below. |
-| `dbus` | Method name (list/call/introspect/notify) + method-specific modifiers (`dest`, `path`, `method`, `args`, `text`) + shared matchers | **Deploy-scope only.** Wraps `charly eval dbus <method>`. |
-| `vnc` | Method name (status/screenshot/click/mouse/type/key/rfb/passwd) + method-specific modifiers (`x`, `y`, `text`, `key`, `artifact`) + shared matchers | **Deploy-scope only.** Wraps `charly eval vnc <method>`. |
-| `mcp` | Method name (ping/servers/list-tools/list-resources/list-prompts/call/read) + method-specific modifiers (`tool`, `uri`, `input`, `mcp_name`) + shared matchers | **Deploy-scope only.** Speaks `github.com/modelcontextprotocol/go-sdk` to any `mcp_provide` endpoint. See "Method allowlist — mcp" below. |
+| `cdp` | Method name (status/list/eval/text/html/url/axtree/screenshot/open/click/type/raw/wait/coords + spa-*) + method-specific modifiers (`tab`, `expression`, `url`, `selector`, `text`, `artifact`, `x`, `y`) + shared `stdout`/`stderr`/`exit_status`/`artifact_min_bytes` | **Deploy-context only.** Wraps `charly eval cdp <method>`. See Live-container verb catalog below. |
+| `wl` | Method name (screenshot/status/click/type/key/key-combo/mouse/scroll/drag/clipboard/toplevel/windows/focus/close/geometry/xprop/atspi/exec/resolution + overlay-*/sway-*) + method-specific modifiers (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) + shared matchers | **Deploy-context only.** Wraps `charly eval wl <method>` (including `sway` and `overlay` nested subgroups). See Live-container verb catalog below. |
+| `dbus` | Method name (list/call/introspect/notify) + method-specific modifiers (`dest`, `path`, `method`, `args`, `text`) + shared matchers | **Deploy-context only.** Wraps `charly eval dbus <method>`. |
+| `vnc` | Method name (status/screenshot/click/mouse/type/key/rfb/passwd) + method-specific modifiers (`x`, `y`, `text`, `key`, `artifact`) + shared matchers | **Deploy-context only.** Wraps `charly eval vnc <method>`. |
+| `mcp` | Method name (ping/servers/list-tools/list-resources/list-prompts/call/read) + method-specific modifiers (`tool`, `uri`, `input`, `mcp_name`) + shared matchers | **Deploy-context only.** Speaks `github.com/modelcontextprotocol/go-sdk` to any `mcp_provide` endpoint. See "Method allowlist — mcp" below. |
 
 ### Shared modifiers
 
@@ -704,7 +709,8 @@ naturally. An empty-string map value falls through to the next tag
 | `skip: true` | Always skip this check (reported but doesn't fail the run). |
 | `exclude_distros: [<tag>, ...]` | Skip the check when any of the image's `distro:` tags matches an entry. Use for probes that only apply on some distros (e.g. `file: /usr/bin/fastfetch` is valid on Fedora/Arch/Debian but fastfetch is dropped from Ubuntu 24.04's noble main). Matched against the image's full distro list (`["ubuntu:24.04", "ubuntu", "debian"]`), so either `ubuntu:24.04` or `ubuntu` matches. See `charly/testspec.go:Check.ExcludeDistros` and `charly/testrun.go:runOne`. |
 | `timeout: "5s"` | Per-check timeout (http, addr). |
-| `scope: build\|deploy` | Default `build` at layer/image level, `deploy` at deploy level. |
+| `context: [build\|deploy\|runtime\|agent]` | Which contexts the step runs in (a list). Build steps run in `charly eval box`; deploy/runtime steps need a live deployment. |
+| `do: act\|assert\|instruct` | The Op's mode. A probe verb defaults to `assert`; install verbs default to `act`; the `agent:` prose verb defaults to `instruct` (agent-graded). |
 
 #### `exclude_distros:` worked example
 
@@ -748,9 +754,9 @@ verb. One code per test. See Authoring Gotcha #2.
 These five verbs wrap the corresponding `charly eval <verb> <method>` CLI
 subcommands so every live-container operation (browser automation, Wayland
 input/screenshot, D-Bus calls, VNC framebuffer capture, MCP protocol
-probes) is authorable as a declarative check. All five are **deploy-scope
+probes) is authorable as a declarative step. All five are **deploy-context
 only** — they need a running container with port mappings; `charly box
-validate` rejects them in build scope, and `charly eval box` skips them at
+validate` rejects them in build context, and `charly eval box` skips them at
 runtime with a clear message.
 
 **Assertion semantics:** subprocess delegation — the runner executes
@@ -885,26 +891,26 @@ auto-picks.
 
 ```yaml
 - id: mcp-ping
-  scope: deploy
+  context: [deploy]
   mcp: ping
   timeout: 10s                # optional; default 30s
 
 - id: mcp-list-tools
-  scope: deploy
+  context: [deploy]
   mcp: list-tools
   stdout:
     - contains: insert_cell   # plaintext "name\tdescription" per line
     - contains: execute_cell
 
 - id: mcp-call-tool
-  scope: deploy
+  context: [deploy]
   mcp: call
   tool: list_notebooks        # required
   input: "{}"                 # optional JSON arg blob
   exit_status: 0              # assert no IsError
 
 - id: mcp-read-resource
-  scope: deploy
+  context: [deploy]
   mcp: read
   uri: file:///tmp/example.txt
   stdout:
@@ -1105,7 +1111,7 @@ no parameter expansion. An unresolved variable is reported as a
 command: psql -U ${POSTGRES_USER:-postgres}
 
 # ✓ Plain env-var reference; resolves from the container's environment
-# at deploy scope. For a true default, set it in the layer's `env:`.
+# in the deploy context. For a true default, set it in the layer's `env:`.
 command: psql -U ${POSTGRES_USER}
 ```
 
@@ -1122,10 +1128,10 @@ provides, the test must name the actual installed package.
 
 Always verify with `charly shell <image> -c 'rpm -qf /path/to/binary'`.
 
-### 9. Volume paths don't exist at build-scope
+### 9. Volume paths don't exist at build context
 
 `/workspace`, `${VOLUME_CONTAINER_PATH:name}`, and similar paths
-are provisioned by `charly config` at deploy time. A build-scope test on
+are provisioned by `charly config` at deploy time. A build-context step on
 them fails in `charly eval box` because the mount isn't attached.
 
 ```yaml
@@ -1134,9 +1140,9 @@ them fails in `charly eval box` because the mount isn't attached.
   file: /workspace
   filetype: directory
 
-# ✓ Scope to deploy so it runs only against live containers
+# ✓ context: [deploy] so it runs only against live containers
 - id: workspace-dir
-  scope: deploy
+  context: [deploy]
   file: /workspace
   filetype: directory
 ```
@@ -1191,7 +1197,7 @@ the shell is a login shell — reproduced: `runuser -l user -s /bin/bash
 -n -l` prints the full NOPASSWD listing. This bit the earlier shipping
 form of the test; the sshd candy now uses `-u … --`.
 
-Worked example: `/charly-coder:sshd` ships exactly the `-u user --` pattern. Alternative: make the check `scope: deploy` so it runs against a live container where you control the user-switch externally.
+Worked example: `/charly-coder:sshd` ships exactly the `-u user --` pattern. Alternative: give the step `context: [deploy]` so it runs against a live container where you control the user-switch externally.
 
 ### 12. **`charly eval box <short-name>` is ambiguous with multiple CalVer tags** — use the full registry ref
 
@@ -1216,12 +1222,12 @@ This is different from `charly box inspect`, `charly box build`, and `charly eva
 
 | Section | Authored in | When it runs |
 |---------|-------------|--------------|
-| `candy` | `eval:` in `candy/<name>/charly.yml` (scope:"build") | `charly eval box` + `charly eval live` |
-| `box` | `eval:` in `charly.yml` per box (scope:"build") | `charly eval box` + `charly eval live` |
-| `deploy` | `eval:` with `scope: deploy`, or `deploy_eval:` in `charly.yml`, or local `charly.yml` `eval:` | `charly eval live <name>` only (deploy-scope checks need a running deployment with port mappings, volumes, and resolved runtime variables) |
+| `candy` | `scenario:` in `candy/<name>/charly.yml` (build context) | `charly eval box` + `charly eval live` |
+| `box` | `scenario:` in `charly.yml` per box (build context) | `charly eval box` + `charly eval live` |
+| `deploy` | a `scenario:` step with `context: [deploy]`, or a local `charly.yml` `scenario:` overlay | `charly eval live <name>` only (deploy-context steps need a running deployment with port mappings, volumes, and resolved runtime variables) |
 
-The build label `ai.opencharly.eval` contains all three sections with
-`origin:` annotations (`candy:<name>`, `box:<name>`, `deploy-default`,
+The `ai.opencharly.description` label carries the collected scenarios from all three
+sections with `origin:` annotations (`candy:<name>`, `box:<name>`, `deploy-default`,
 `deploy-local`). `CollectEval` walks the base-image chain with a
 visited-image guard: cycles are reported by `validateBoxDAG` at validate
 time, but the collector itself terminates cleanly even if called on a
@@ -1230,7 +1236,7 @@ pathological config.
 ## Verb routing (which executor runs each check)
 
 Every verb dispatches through one of two executors depending on the run
-mode — this is what makes the same `eval:` list work both against a
+mode — this is what makes the same `scenario:` list work both against a
 disposable container (`charly eval box`) and a running service (`charly eval live`):
 
 | Verb + attributes | Under `charly eval live` (running service) | Under `charly eval box` (disposable) |
@@ -1267,7 +1273,7 @@ verbs (`/charly-eval:adb`) over shell entirely.
 `charly eval live` resolves these via `podman inspect` on the running container
 before any check executes. `${NAME:arg}` is parameterized form.
 
-| Variable | Source | Scope |
+| Variable | Source | Context |
 |----------|--------|-------|
 | `${USER}`, `${HOME}`, `${UID}`, `${GID}` | Image metadata (OCI labels) | build + deploy |
 | `${IMAGE}` | Image metadata | build + deploy |
@@ -1281,7 +1287,7 @@ before any check executes. `${NAME:arg}` is parameterized form.
 | `${PEER_HOST:name}` | A SEPARATE deployment's container DNS name on the shared `charly` net (`charly-<name>`); cross-deployment addressing (see below) | deploy |
 | `${PEER_ENDPOINT:name:port}` | A host-reachable `127.0.0.1:NNNN` for a separate deployment's `port` (published port / VM ssh-forward); host-vantage cross-deployment addressing | deploy |
 
-Build-scope checks may **not** reference deploy-scope variables — the
+Build-context steps may **not** reference deploy-context variables — the
 validator flags this at `charly box validate` time.
 
 **No bash-style defaults**: `${VAR:-fallback}` is unsupported (see
@@ -1316,14 +1322,14 @@ Three pieces compose it:
   - **`${PEER_ENDPOINT:<name>:<port>}`** → a host-reachable `127.0.0.1:NNNN` for
     that deployment's `<port>` (container published port, or an ssh `-L` forward
     for a VM/host subject). The host-vantage address a `local`/host driver uses to
-    reach a pod/VM subject. (Both are runtime-only — a build-scope check can't use
+    reach a pod/VM subject. (Both are runtime-only — a build-context step can't use
     them.)
 
   An unresolvable `${PEER_*}` — the peer/subject is unreachable (not running, bad
   port, VM ssh-forward refused) — **FAILS** the referencing check, never SKIPs it.
   A skip on an unreachable dependency is a fake pass: it would let a bed go green
   even though the cross-deployment probe never reached its target. (Legitimate
-  skips — `skip: true`, `exclude_distros`, a deploy-only var under build scope —
+  skips — `skip: true`, `exclude_distros`, a deploy-only var under build context —
   are unaffected; only an unresolved mandatory `${PEER_*}` is treated as a failure.)
 
 ### Worked example — a Chrome pod CDP-probes a web-server pod (pod→pod)
@@ -1341,27 +1347,29 @@ eval-cross-pod-cdp:
         chrome:                    # the DRIVER, a sibling on the charly net
             target: pod
             box: chrome-headless   # headless Chrome + cdp-proxy (publishes 9222)
-    eval:
-        - id: web-fixture-up       # the subject serves its marker
-          scope: deploy
-          http: http://127.0.0.1:${HOST_PORT:8080}/
-          status: 200
-          body: [{contains: charly-fixture-web-content-marker}]
-        - id: cdp-open-web-subject # DRIVE: chrome navigates to the subject over the charly net
-          scope: deploy
-          cdp: open
-          on: chrome
-          url: http://${PEER_HOST:eval-cross-pod-cdp}:8080
-          eventually: 45s
-          retry_interval: 3s
-        - id: cdp-web-fixture-rendered  # ASSERT: the rendered page carries the marker
-          scope: deploy
-          cdp: text
-          on: chrome
-          tab: "1"                 # the first page (cdp `open` lands on tab 1)
-          eventually: 30s
-          retry_interval: 3s
-          stdout: [{contains: charly-fixture-web-content-marker}]
+    scenario:
+        - name: chrome-drives-web-subject
+          step:
+            - id: web-fixture-up       # the subject serves its marker
+              context: [deploy]
+              http: http://127.0.0.1:${HOST_PORT:8080}/
+              status: 200
+              body: [{contains: charly-fixture-web-content-marker}]
+            - id: cdp-open-web-subject # DRIVE: chrome navigates to the subject over the charly net
+              context: [deploy]
+              cdp: open
+              on: chrome
+              url: http://${PEER_HOST:eval-cross-pod-cdp}:8080
+              eventually: 45s
+              retry_interval: 3s
+            - id: cdp-web-fixture-rendered  # ASSERT: the rendered page carries the marker
+              context: [deploy]
+              cdp: text
+              on: chrome
+              tab: "1"                 # the first page (cdp `open` lands on tab 1)
+              eventually: 30s
+              retry_interval: 3s
+              stdout: [{contains: charly-fixture-web-content-marker}]
 ```
 
 `bringUpPeers` config+starts the chrome peer alongside the web root; the
@@ -1396,7 +1404,7 @@ pod→pod address and does NOT reach a VM.)
 
 ## Deploy.yml overlay rules
 
-A local `charly.yml` can contribute its own `eval:` list per image.
+A local `charly.yml` can contribute its own `scenario:` list per image.
 Merge rules applied by `charly eval live`:
 
 1. Local entries with an `id:` matching a baked entry replace that entry.
@@ -1407,16 +1415,18 @@ Merge rules applied by `charly eval live`:
 # ~/.config/charly/charly.yml
 box:
   redis-ml:
-    eval:
-      - id: redis-responds                  # overrides image's baked check
-        command: redis-cli -h 127.0.0.1 -p 16379 ping
-        stdout: PONG
-        in_container: false
-      - id: external-tunnel                 # appended (no baked match)
-        http: https://redis.tailnet.ts.net/health
-        status: 200
-      - id: old-probe                       # disable a legacy baked check
-        skip: true
+    scenario:
+      - name: redis-overlay
+        step:
+          - id: redis-responds                  # overrides image's baked step
+            command: redis-cli -h 127.0.0.1 -p 16379 ping
+            stdout: PONG
+            in_container: false
+          - id: external-tunnel                 # appended (no baked match)
+            http: https://redis.tailnet.ts.net/health
+            status: 200
+          - id: old-probe                       # disable a legacy baked step
+            skip: true
 ```
 
 ## Typical workflow
@@ -1426,12 +1436,12 @@ box:
 # 2. Validate schema + references.
 charly box validate
 
-# 3. Build the image (tests are auto-embedded as LabelEval).
+# 3. Build the image (scenarios are auto-embedded as `LabelDescriptionSet`).
 #    LABELs are emitted LAST in the final stage — a test edit rebuilds
 #    in ~2 sec (cache hits every upstream RUN/COPY).
 charly box build redis-ml
 
-# 4. Run against a disposable container (build-scope checks only).
+# 4. Run against a disposable container (build-context steps only).
 charly eval box redis-ml
 
 # 5. Start the service and test end-to-end.
@@ -1521,25 +1531,25 @@ deliberately.
 ## Related skills
 
 - **Live-container probe verbs under `charly eval`** — `/charly-eval:cdp`, `/charly-eval:wl`, `/charly-eval:dbus`, `/charly-eval:vnc`, `/charly-build:charly-mcp-cmd`, `/charly-eval:record`, `/charly-eval:spice`, `/charly-eval:libvirt`, `/charly-kubernetes:eval-k8s` are dispatched as `charly eval cdp|wl|dbus|vnc|mcp|record|spice|libvirt|k8s`. See the Subcommands section above.
-- `/charly-image:layer` — layer authoring; `eval:` field is part of every `charly.yml`.
-- `/charly-image:image` — image-level `eval:` and `deploy_eval:` at composition time.
-- `/charly-core:deploy` — local `charly.yml` overlay rules and the `eval:` merge.
+- `/charly-image:layer` — layer authoring; the `scenario:` field is part of every `charly.yml`.
+- `/charly-image:image` — image-level `scenario:` blocks at composition time.
+- `/charly-core:deploy` — local `charly.yml` overlay rules and the `scenario:` merge.
 - `/charly-build:validate` — static schema + cross-scope variable checks; the first
   gate before `charly box build`.
 - `/charly-build:build` — how eval entries are embedded into the OCI label at build
   time; LABELs-at-end cache behavior.
-- `/charly-build:inspect` — view the merged 3-section eval structure as JSON.
+- `/charly-build:inspect` — view the merged scenario / description structure as JSON.
 - `/charly-build:migrate` — `charly migrate` brings legacy configs up to the
-  current schema (the `eval:` block in `charly.yml`).
+  current schema (folding the old candy/box check lists into the top-level `scenario:` list).
 - `/charly-internals:go` — implementation map: `evalspec.go`, `evalvars.go`,
   `evalrun.go`, `evalrun_verbs.go`, `evalrun_charly_verbs.go`,
   `evalcollect.go`, `eval_cmd.go`, `eval_runner_cmd.go`, `eval_loop.go`,
   `eval_runner_live.go`, `eval_watchdog.go`, `validate_eval.go`,
-  `mcp.go`, `mcp_client.go`, plus the `LabelEval` constant in `labels.go`.
-- `/charly-internals:generate-source` — how `LabelEval` is written into the Containerfile
+  `mcp.go`, `mcp_client.go`, plus the `LabelDescriptionSet` type in `labels.go`.
+- `/charly-internals:generate-source` — how `LabelDescriptionSet` is written into the Containerfile
   via `writeJSONLabel`, and why the LABEL block lives at the end of the
   final stage.
-- `/charly-internals:capabilities` — the `LabelEval` three-section OCI label is
+- `/charly-internals:capabilities` — the `ai.opencharly.description` label (`LabelDescriptionSet`) carrying the scenarios is
   part of the same capability contract as `LabelService`.
 - `/charly-internals:agents` — the sub-agents (`eval-bed-runner`,
   `deploy-verifier`) and dynamic workflows (`/verify-beds`,
@@ -1550,8 +1560,8 @@ deliberately.
 
 **MUST be invoked** before authoring, running, or debugging eval
 behavior at any level. Triggers: `charly eval` (any subcommand), `charly eval
-run`, `charly eval box`, `charly eval live`, the `eval:` / `deploy_eval:`
-YAML fields, the `ai.opencharly.eval` OCI label, `kind: agent` /
+run`, `charly eval box`, `charly eval live`, the `scenario:` / `description:`
+YAML fields, the project-root `eval:` block, the `ai.opencharly.description` OCI label, `kind: agent` /
 `kind: recipe` / `kind: score` / `kind: eval` in the `eval:` block,
 `charly eval run <bed>` / `--all-beds` (kind:eval R10 beds), or any check
 verb by name (file/port/http/command/package/service/cdp/wl/dbus/vnc/mcp/...).

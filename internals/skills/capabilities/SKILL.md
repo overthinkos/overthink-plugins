@@ -33,7 +33,8 @@ Key entries:
 | `Service` | `LabelService` (`ai.opencharly.service`) | **Structured JSON array of `CapabilityService`** — not just names. 23 per-entry fields including `kind`, `events`, `auto_start`, `start_retries`, `priority`, `init`, `layer`. See "LabelService" below. |
 | `Init` | `LabelInit` | Init system name (supervisord / systemd / none). |
 | `ServiceNames` | `LabelInit` | Per-init active-name list; baked alongside `LabelInit` for CLI ergonomics (e.g., `charly service status`). |
-| `Tests` | `LabelEval` | Three-section `{candy, box, deploy}` JSON — the tests baked into the image, consumed by `charly eval live` / `charly eval box`. See `/charly-eval:eval`. |
+| `Description` | `LabelDescription` (`ai.opencharly.description`) | **Three-section `{candy, box, deploy}` `LabelDescriptionSet`** — the Gherkin-shaped self-description baked into the image. Each `LabeledDescription` carries `{feature, narrative, tag}` plus a `Scenario []Scenario` list whose steps are inline Ops; the deterministic `do: assert` steps are the acceptance scenarios consumed by `charly eval live` / `charly eval box`. See `/charly-eval:eval`. |
+| `EvalLevel` | `LabelEvalLevel` (`ai.opencharly.eval_level`) | The per-box acceptance-depth rung (`none` / `build` / `noagent` (default) / `agent`) gating how deep `charly eval run <bed>` drives acceptance. |
 | `Shell` | `LabelShell` | Three-section `{candy, box, deploy}` JSON shell-init manifest. Each entry carries an Origin (candy name / "box" / "deploy"), an ID for overlay keying, an optional Generic body (intrinsic init + path_append) and a per-shell ByShell map (bash/zsh/fish/sh sub-blocks). Consumed by `charly box inspect`, `charly deploy from-box`, and `MergeDeployShell` for charly.yml `shell:` overlay merging. See `/charly-image:layer` "Shell Init Surface". |
 | `EnvProvide` / `MCPProvide` | `LabelEnvProvide` / `LabelMCPProvide` | Cross-container discovery: what env vars / MCP servers this image advertises to pod peers. |
 | `EnvRequire` / `MCPRequire` | `LabelEnvRequire` / `LabelMCPRequire` | What this image *needs* from peers — validated at `charly config` time. |
@@ -132,7 +133,7 @@ See `/charly-image:image` for current user-facing structure and `/charly-build:m
 3. Add the `CapabilityLabelMap` entry: `"Foo": LabelFoo`.
 4. Populate it in `writeLabels` (label emission at build time, via `writeJSONLabel` for struct/list values).
 5. Parse it in `ExtractMetadata` (label read-back at deploy time).
-6. If the field is a struct/list, route it through `writeJSONLabel` for consistent encoding (see how `LabelService`, `LabelEval`, `LabelVolume` do it).
+6. If the field is a struct/list, route it through `writeJSONLabel` for consistent encoding (see how `LabelService`, `LabelDescription`, `LabelVolume` do it).
 7. `go test ./...` — `TestCapabilityLabelCompleteness` passes.
 8. Update `/charly-internals:capabilities` (this skill) with the new entry in the key-labels table.
 
@@ -142,7 +143,7 @@ See `/charly-image:image` for current user-facing structure and `/charly-build:m
 - `/charly-image:layer` — user-facing `candy:` authoring, including `service:` which feeds `LabelService`
 - `/charly-core:deploy` — `charly deploy add` / `from-image` / `sync` commands
 - `/charly-kubernetes:kubernetes` — K8s deploy target that reads `LabelService` to generate Kustomize
-- `/charly-eval:eval` — three-section `LabelEval` (layer/image/deploy) — same label-contract pattern
+- `/charly-eval:eval` — three-section `LabelDescription` (candy/box/deploy) — same label-contract pattern
 - `/charly-build:migrate` — `charly migrate` — emits the schema that populates these labels
 - `/charly-internals:go` — Go architecture overview, `LoadUnified`, `parseCandyYAML`
 - `/charly-internals:install-plan` — internal IR shared across build and deploy pipelines

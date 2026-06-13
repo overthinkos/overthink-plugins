@@ -62,17 +62,19 @@ my-image:
 
 ## Tests
 
-The candy ships 5 declarative checks embedded in the `ai.opencharly.eval`
-OCI label (see `/charly-eval:eval` for the full schema — this candy is the
-**gold-standard pattern** referenced there):
+The candy ships 5 deterministic `do: assert` steps in its top-level
+`scenario:` list, baked into the `ai.opencharly.description` OCI label
+(see `/charly-eval:eval` for the full schema — this candy is the
+**gold-standard pattern** referenced there). Each step is one inline Op,
+and a probe verb defaults to `do: assert`:
 
-- **Build-scope** (run under `charly eval box`, via `podman run --rm`):
+- **`context: [build]`** (run under `charly eval box`, via `podman run --rm`):
   - `redis-binary` — `/usr/bin/redis-server` exists
   - `redis-cli-binary` — `/usr/bin/redis-cli` exists
   - `redis-package` — `valkey-compat-redis` package installed (real
     installed provider on Fedora 43; see Packages note above)
-- **Deploy-scope** (run under `charly eval live` against a live service; uses
-  `${HOST_PORT:6379}` runtime substitution so the checks keep working
+- **`context: [deploy]`** (run under `charly eval live` against a live service; uses
+  `${HOST_PORT:6379}` runtime substitution so the steps keep working
   if `charly.yml` remaps the host port — host-side tests always use
   `127.0.0.1:${HOST_PORT:N}`, not `${CONTAINER_IP}`):
   - `redis-responds` — `redis-cli -h 127.0.0.1 -p ${HOST_PORT:6379} ping` returns `PONG`
@@ -80,7 +82,7 @@ OCI label (see `/charly-eval:eval` for the full schema — this candy is the
 
 **Composed-vs-standalone skip behavior**: when redis is a sub-candy of
 a larger box (e.g. `immich-ml`) that doesn't expose port 6379 on the
-host, the deploy-scope tests correctly skip with
+host, the `context: [deploy]` steps correctly skip with
 `unresolved variables: HOST_PORT:6379`. No authoring action needed.
 
 ## Related Skills

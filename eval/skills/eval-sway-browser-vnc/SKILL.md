@@ -17,7 +17,7 @@ beds (`eval-pod` — the combined image/layer/pod/DeployTarget mechanism bed —
 and `eval-local`) — all `kind: eval` entities in their project's `charly.yml`
 `eval:` block (this bed and `eval-pod` in `box/fedora`; `eval-local` in main).
 
-## Bed (the `eval:` block)
+## Bed (a `kind: eval` entity in the `eval:` block)
 
 ```yaml
 eval:
@@ -26,11 +26,28 @@ eval:
     box: sway-browser-vnc        # the shipping image, deployed as-is
     disposable: true
     lifecycle: dev
-    eval:                          # delta probes sway-browser-vnc doesn't bake
-      - { http: "http://127.0.0.1:${HOST_PORT:9222}/json/version", id: esbv-pod-http-cdp, scope: deploy, status: 200 }
-      - { cdp: list,        id: esbv-pod-cdp-list,     scope: deploy }
-      - { wl: sway-tree,    id: esbv-pod-wl-sway-tree, scope: deploy }
-      - { record: start,    id: esbv-pod-record-start, scope: deploy, record_name: eval-term, record_mode: terminal }
+    scenario:                      # delta probes sway-browser-vnc doesn't bake
+      - name: sway-desktop-verb-surface
+        step:                      # each step is one inline Op; a probe verb defaults to do: assert
+          - then: CDP /json/version answers over the published HOST_PORT
+            http: "http://127.0.0.1:${HOST_PORT:9222}/json/version"
+            id: esbv-pod-http-cdp
+            context: [deploy]
+            status: 200
+          - then: CDP enumerates the live debugging targets
+            cdp: list
+            id: esbv-pod-cdp-list
+            context: [deploy]
+          - then: the Sway tree is reachable over the Wayland socket
+            wl: sway-tree
+            id: esbv-pod-wl-sway-tree
+            context: [deploy]
+          - then: a terminal recording starts
+            record: start
+            id: esbv-pod-record-start
+            context: [deploy]
+            record_name: eval-term
+            record_mode: terminal
 ```
 
 `disposable: true` is the sole authorization for `charly update`/`charly remove` to
@@ -41,12 +58,12 @@ time (`charly box validate` notes this).
 
 ## Probe coverage
 
-`sway-browser-vnc` already bakes binaries/services + cdp/vnc/wl/dbus checks, and
-inherits the two `mcp:` probes from the `chrome-devtools-mcp` layer. The bed's
-`eval:` block above adds the remaining deploy-scope probes — operator-side
-`http:` (CDP `/json/version` via `HOST_PORT`), `cdp: list`, `wl: sway-tree`, and
-`record: start` — so a single `charly eval live` run exercises the full
-cdp/wl/vnc/dbus/mcp/record surface.
+`sway-browser-vnc` already bakes binaries/services + cdp/vnc/wl/dbus scenario
+steps, and inherits the two `mcp:` probes from the `chrome-devtools-mcp` layer.
+The bed's `scenario:` block above adds the remaining deploy-context steps —
+operator-side `http:` (CDP `/json/version` via `HOST_PORT`), `cdp: list`,
+`wl: sway-tree`, and `record: start` — so a single `charly eval live` run
+exercises the full cdp/wl/vnc/dbus/mcp/record surface.
 
 ## Usage
 
@@ -57,7 +74,7 @@ charly eval run eval-sway-browser-vnc-pod
 # Or drive the steps manually:
 charly config eval-sway-browser-vnc-pod
 charly start  eval-sway-browser-vnc-pod
-charly eval live eval-sway-browser-vnc-pod        # deploy-scope cdp/wl/vnc/dbus/mcp/record
+charly eval live eval-sway-browser-vnc-pod        # deploy-context cdp/wl/vnc/dbus/mcp/record
 charly update eval-sway-browser-vnc-pod && charly eval live eval-sway-browser-vnc-pod  # fresh-rebuild re-verify
 ```
 

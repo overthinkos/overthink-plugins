@@ -254,8 +254,9 @@ charly eval live versa         # → 97 passed · 0 failed · 0 skipped
 ```
 
 The 4 GPU-library probes (cuGraph/cuML/PyG/graphistry) live alongside
-the 11 OSM/GTFS probes under the `image.versa.deploy_eval` block in
-`charly.yml` so they run AFTER every per-layer eval section:
+the 11 OSM/GTFS probes as `context: [deploy]` steps in the box's
+top-level `scenario:` list in `charly.yml` so they run AFTER every
+per-layer scenario section:
 
 | probe id | what it checks |
 |---|---|

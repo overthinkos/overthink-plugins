@@ -59,13 +59,15 @@ The `env_provide` mechanism makes `OLLAMA_HOST` available to all containers. The
 
 ## Tests
 
-The candy ships 3 declarative checks embedded in the `ai.opencharly.eval`
-OCI label (see `/charly-eval:eval` for the full schema):
+The candy ships its acceptance scenarios in the top-level `scenario:` list,
+baked into the `ai.opencharly.description` OCI label (see `/charly-eval:eval`
+for the full schema). Each step is one inline Op — a probe verb defaulting to
+`do: assert` — and its `context:` list gates where it runs:
 
-- **Build-scope** (run under `charly eval box`):
+- **`context: [build]`** (run under `charly eval box`):
   - `ollama-binary` — `/usr/bin/ollama` exists
-- **Deploy-scope** (run under `charly eval live` against a live service; uses
-  `${HOST_PORT:11434}` / `${CONTAINER_IP}` so deploy-time port remapping
+- **`context: [deploy]`** (run under `charly eval live` against a live service;
+  uses `${HOST_PORT:11434}` / `${CONTAINER_IP}` so deploy-time port remapping
   works unchanged):
   - `ollama-tags-api` — `GET http://${CONTAINER_IP}:${HOST_PORT:11434}/api/tags` returns 200
   - `ollama-version` — `ollama --version` stdout matches `^ollama version`

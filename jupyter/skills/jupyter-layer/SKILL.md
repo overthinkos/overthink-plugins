@@ -43,10 +43,10 @@ doc = nlp("Apple is looking at buying a U.K. startup for $1 billion")
 [(e.text, e.label_) for e in doc.ents]  # named entities
 ```
 
-The `spacy-import` build-scope eval check (in `charly.yml`) verifies the
-package + model load successfully on every image build — a future
-upstream rename or version bump that breaks the model load fails the
-build loudly.
+The `spacy-import` build-context scenario step (a deterministic `do: assert`
+Op in the top-level `scenario:` list) verifies the package + model load
+successfully on every image build — a future upstream rename or version
+bump that breaks the model load fails the build loudly.
 
 ## Environment
 
@@ -196,21 +196,23 @@ Multiple MCP clients can edit the same notebook simultaneously:
 
 ## Tests
 
-The candy ships declarative checks embedded in the `ai.opencharly.eval`
-OCI label (see `/charly-eval:eval` for the full schema):
+The candy ships its acceptance scenarios in the top-level `scenario:` list,
+baked into the `ai.opencharly.description` OCI label (see `/charly-eval:eval`
+for the full schema). Each step is one inline Op — a probe verb defaults to
+`do: assert` — tagged with the `context:` axis that selects when it runs:
 
-- **Build-scope** (run under `charly eval box`):
+- **`context: [build]`** (run under `charly eval box`):
   - `jupyter-lab-binary` — `${HOME}/.pixi/envs/default/bin/jupyter-lab`
     exists (proves pixi env install succeeded)
   - `spacy-import` — `python -c "import spacy;
     spacy.load('en_core_web_sm')"` exits 0 (proves NLP packages + model
     load successfully)
-- **Deploy-scope** (run under `charly eval live` against a live service):
+- **`context: [deploy]`** (run under `charly eval live` against a live service):
   - `workspace-dir` — `/workspace` exists (mount visible)
   - `jupyter-service` — supervisord program `jupyter` is RUNNING
   - `jupyter-port` — `${CONTAINER_IP}:${HOST_PORT:8888}` reachable
   - `jupyter-api` — `GET .../api` returns 200 with `"version"` in body
-    (the `${HOST_PORT:8888}` substitution means the check works
+    (the `${HOST_PORT:8888}` substitution means the step works
     unchanged when `charly.yml` remaps the host port)
   - `mcp-jupyter-ping` — MCP server responds to `ping`
   - `mcp-jupyter-list-tools` — assertion that all 11 documented MCP
@@ -231,7 +233,7 @@ OCI label (see `/charly-eval:eval` for the full schema):
 - `/charly-openwebui:openwebui` -- MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code-block execution into the Jupyter kernel)
 - `/charly-infrastructure:supervisord` -- process manager dependency
 - `/charly-languages:python` -- Python runtime (transitive via supervisord)
-- `/charly-build:charly-mcp-cmd` -- end-to-end testing of the candy's MCP endpoint (`charly eval mcp ping`, `list-tools`, `call`); the candy ships 3 deploy-scope `mcp:` declarative checks against `list_notebooks`/`insert_cell`/`execute_cell`
+- `/charly-build:charly-mcp-cmd` -- end-to-end testing of the candy's MCP endpoint (`charly eval mcp ping`, `list-tools`, `call`); the candy ships 3 deploy-context `mcp:` scenario steps against `list_notebooks`/`insert_cell`/`execute_cell`
 
 ## When to Use This Skill
 

@@ -24,14 +24,17 @@ Both surfaces share the same SDK: `github.com/modelcontextprotocol/go-sdk v1.5.0
 
 ### Also as a declarative verb
 
-Every `charly eval mcp <method>` is authorable as an `mcp:` verb inside a `eval:` block. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tool:`, `uri:`, `input:`, `mcp_name:`). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `timeout:`) work like other verbs. See `/charly-eval:eval` for the parent router and the complete method allowlist. Example:
+Every `charly eval mcp <method>` is authorable as an `mcp:` step inside a top-level `scenario:` list. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tool:`, `uri:`, `input:`, `mcp_name:`). As a probe verb, `mcp:` defaults to `do: assert`. Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `timeout:`) work like other verbs. See `/charly-eval:eval` for the parent router and the complete method allowlist. Example:
 
 ```yaml
-- mcp: list-tools
-  scope: deploy
-  stdout:
-    - contains: insert_cell
-    - contains: execute_cell
+scenario:
+  - name: jupyter-mcp-tools
+    step:
+      - mcp: list-tools
+        context: [deploy]
+        stdout:
+          - contains: insert_cell
+          - contains: execute_cell
 ```
 
 ## Quick Reference
@@ -137,9 +140,12 @@ charly eval mcp ping my-image --name chrome-devtools
 In declarative tests, the modifier is `mcp_name:`:
 
 ```yaml
-- mcp: ping
-  mcp_name: chrome-devtools
-  scope: deploy
+scenario:
+  - name: chrome-devtools-ping
+    step:
+      - mcp: ping
+        mcp_name: chrome-devtools
+        context: [deploy]
 ```
 
 No existing image ships multiple providers today — `jupyter` layers expose one server (`jupyter`), `chrome-devtools-mcp` exposes one (`chrome-devtools`). The disambiguation exists for future compositions.
@@ -207,57 +213,63 @@ Every leaf's default format is author-friendly plaintext with one record per lin
 
 ## Declarative authoring examples
 
-Tests currently shipping in the three provider candies (`candy/jupyter/charly.yml`, `candy/jupyter-ml/charly.yml`, `candy/chrome-devtools-mcp/charly.yml`):
+Scenarios currently shipping in the three provider candies (`candy/jupyter/charly.yml`, `candy/jupyter-ml/charly.yml`, `candy/chrome-devtools-mcp/charly.yml`), in each candy's top-level `scenario:` list:
 
 ```yaml
-# Liveness check — fastest sanity verification
-- id: mcp-jupyter-ping
-  scope: deploy
-  mcp: ping
-  timeout: 10s
+scenario:
+  # Liveness check — fastest sanity verification
+  - name: mcp-jupyter-ping
+    step:
+      - mcp: ping
+        context: [deploy]
+        timeout: 10s
 
-# Catalog assertion — ensure the server exposes the tools we expect
-- id: mcp-jupyter-list-tools
-  scope: deploy
-  mcp: list-tools
-  stdout:
-    - contains: insert_cell
-    - contains: execute_cell
+  # Catalog assertion — ensure the server exposes the tools we expect
+  - name: mcp-jupyter-list-tools
+    step:
+      - mcp: list-tools
+        context: [deploy]
+        stdout:
+          - contains: insert_cell
+          - contains: execute_cell
 
-# Real tool invocation — exercises the full request/response path
-- id: mcp-jupyter-list-notebooks
-  scope: deploy
-  mcp: call
-  tool: list_notebooks
-  input: "{}"
-  exit_status: 0
+  # Real tool invocation — exercises the full request/response path
+  - name: mcp-jupyter-list-notebooks
+    step:
+      - mcp: call
+        context: [deploy]
+        tool: list_notebooks
+        input: "{}"
+        exit_status: 0
 
-# Tool with arguments
-- id: mcp-get-notebook
-  scope: deploy
-  mcp: call
-  tool: get_notebook
-  input: '{"path":"getting-started.ipynb"}'
-  stdout:
-    - contains: cells
+  # Tool with arguments
+  - name: mcp-get-notebook
+    step:
+      - mcp: call
+        context: [deploy]
+        tool: get_notebook
+        input: '{"path":"getting-started.ipynb"}'
+        stdout:
+          - contains: cells
 
-# Resource read
-- id: mcp-read-prompt-template
-  scope: deploy
-  mcp: read
-  uri: file:///workspace/prompt.txt
-  stdout:
-    - matches: "."
+  # Resource read
+  - name: mcp-read-prompt-template
+    step:
+      - mcp: read
+        context: [deploy]
+        uri: file:///workspace/prompt.txt
+        stdout:
+          - matches: "."
 ```
 
-**Deploy-scope only.** `mcp:` checks require a running container with the mcp port published; `charly box validate` rejects build-scope mcp checks at authoring time, and `charly eval box` skips them at runtime with the message `"mcp: <method> requires a running container (skip under charly eval box)"`. Follow the same rule as the other four live-container verbs — `cdp`, `wl`, `dbus`, `vnc`.
+Each `mcp:` step is a probe verb, so it defaults to `do: assert` — a deterministic step that satisfies the mandatory-ADE gate. **Deploy-context only.** `mcp:` steps require a running container with the mcp port published; `charly box validate` rejects build-context mcp steps at authoring time, and `charly eval box` skips them at runtime with the message `"mcp: <method> requires a running container (skip under charly eval box)"`. Follow the same rule as the other four live-container verbs — `cdp`, `wl`, `dbus`, `vnc`.
 
 ## Validator coverage
 
 `charly box validate` enforces at the `validateCharlyVerb` dispatch in `charly/validate_tests.go`:
 
 - Method name must be in `mcpMethods` (7 entries); unknown methods list the allowed set in the error.
-- `scope` must be `deploy`; build-scope raises `"mcp: verb requires scope:\"deploy\""`.
+- `context` must include `deploy`; a build-context mcp step raises `"mcp: verb requires context:\"deploy\""`.
 - `call` requires `tool:`; missing field raises `"mcp: call requires modifier \"tool\""`.
 - `read` requires `uri:`.
 
@@ -362,7 +374,7 @@ charly eval mcp call charly-arch box.list.boxes '{}' --name charly
 # …
 ```
 
-The deploy-scope tests in `candy/charly-mcp/charly.yml` cover this exact sequence: service-running, port-reachable, `mcp: ping`, `mcp: list-tools`, `mcp: call tool=version`, `mcp: call tool=box.list.boxes` (the last proves the bind-mount + CHARLY_PROJECT_DIR wiring).
+The deploy-context scenario steps in `candy/charly-mcp/charly.yml` cover this exact sequence: service-running, port-reachable, `mcp: ping`, `mcp: list-tools`, `mcp: call tool=version`, `mcp: call tool=box.list.boxes` (the last proves the bind-mount + CHARLY_PROJECT_DIR wiring).
 
 ## Authoring tools (build-from-scratch over MCP)
 
@@ -436,7 +448,7 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 
 **MUST be invoked** when the task involves Model Context Protocol on either side:
 
-- **Client** — `charly eval mcp` commands, probing/testing MCP servers declared via `mcp_provide`, examining MCP tool/resource/prompt catalogs, debugging the URL-rewriter or port-publishing behavior, or authoring deploy-scope `mcp:` checks in a `eval:` block.
+- **Client** — `charly eval mcp` commands, probing/testing MCP servers declared via `mcp_provide`, examining MCP tool/resource/prompt catalogs, debugging the URL-rewriter or port-publishing behavior, or authoring deploy-context `mcp:` steps in a `scenario:` list.
 - **Server** — `charly mcp serve` operation, the `charly-mcp` layer, destructive-hint policy, the `--read-only` filter, Kong-reflection tool generation, the project-dir bind-mount pattern, or symptoms like "MCP tool returned empty output" (check `println` vs `fmt.Println` in the invoked command — the server captures `os.Stdout`, not fd 1).
 
 Invoke this skill BEFORE reading source code or launching Explore agents.

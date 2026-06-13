@@ -96,10 +96,10 @@ After `charly start`:
 ## Test Coverage
 
 Latest `charly eval live filebrowser` run: **24 passed, 0 failed, 0 skipped**.
-All tests embedded in the `ai.opencharly.eval` OCI label, covering
+All scenario steps embedded in the `ai.opencharly.description` OCI label, covering
 agent-forwarding prerequisites (gpg, ssh, direnv binaries), supervisord
 + dbus daemon + charly binary presence, filebrowser binary + config, and
-deploy-scope: service up, port reachable on `127.0.0.1:${HOST_PORT:8080}`,
+`context: [deploy]` steps: service up, port reachable on `127.0.0.1:${HOST_PORT:8080}`,
 HTTP 200 on `/`, data volume mounted.
 
 See `/charly-eval:eval` for the framework and author-facing gotchas.

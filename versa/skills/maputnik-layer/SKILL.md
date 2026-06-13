@@ -54,7 +54,7 @@ shows asset 404s for `/maputnik/assets/index-*.js` etc.
 **Fix in the build cmd**:
 
 ```yaml
-- cmd: |
+- command: |
     set -euo pipefail
     git clone --depth 1 https://github.com/maplibre/maputnik /tmp/maputnik
     cd /tmp/maputnik
@@ -73,25 +73,31 @@ shows asset 404s for `/maputnik/assets/index-*.js` etc.
     fi
     cd /
     rm -rf /tmp/maputnik /root/.npm
-  user: root
+  run_as: root
 ```
 
 ## Eval lock-in
 
-A deploy-scope eval probe greps the served HTML for the (forbidden)
-`/maputnik/` prefix and fails if present. Locks in the fix against a
-future revert to the Vite default:
+A deploy-context scenario step greps the served HTML for the
+(forbidden) `/maputnik/` prefix and fails if present. The `command`
+probe verb defaults to `do: assert`, so this is a deterministic
+acceptance step that locks in the fix against a future revert to the
+Vite default. The scenario lives top-level (a sibling of
+`description:`):
 
 ```yaml
-- id: maputnik-asset-base-not-prefixed
-  scope: deploy
-  command: |
-    ! curl -fsS http://localhost:8000/ | grep -q '"/maputnik/'
-  in_container: true
-  exit_status: 0
+scenario:
+  - name: maputnik serves a root-relative SPA
+    step:
+      - id: maputnik-asset-base-not-prefixed
+        command: |
+          ! curl -fsS http://localhost:8000/ | grep -q '"/maputnik/'
+        in_container: true
+        exit_status: 0
+        context: [deploy]
 ```
 
-Plus the standard probes (also deploy-scope):
+Plus the standard probe steps (also `context: [deploy]`):
 
 - `maputnik-running` — supervisord program is RUNNING
 - `maputnik-port-reachable` — TCP 8000 reachable

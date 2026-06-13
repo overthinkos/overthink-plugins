@@ -20,31 +20,36 @@ adb-server port — pod / vm / host / nested all work transparently because
 the connection is plain TCP to `127.0.0.1:<host-port>` and the
 portforward / passt / etc. layer handles the rest.
 
-### Also as a declarative verb
+### Also as a declarative scenario step
 
-Every `charly eval adb <method>` is authorable as an `adb:` verb inside a
-`eval:` block. The method name becomes the verb's YAML value; method-
-specific args are sibling fields (`apk:`, `property:`, `args:`,
-`artifact:`). Shared matchers (`stdout:`, `stderr:`, `exit_status:`,
-`artifact_min_bytes:`) work like other verbs. **Deploy-scope only** —
-needs a running container with a host-mapped ADB server port; the
-validator rejects build-scope use at `charly box validate` time.
+Every `charly eval adb <method>` is authorable as an `adb:` verb in a
+scenario `step:` — one inline Op in the top-level `scenario:` list. The
+method name becomes the verb's YAML value; method-specific args are
+sibling fields (`apk:`, `property:`, `args:`, `artifact:`). Shared
+matchers (`stdout:`, `stderr:`, `exit_status:`, `artifact_min_bytes:`)
+work like other verbs, and a probe verb defaults to `do: assert`.
+**`context: [deploy]` only** — needs a running container with a
+host-mapped ADB server port; the validator rejects `context: [build]`
+use at `charly box validate` time.
 
 Example:
 
 ```yaml
-- id: emulator-is-up
-  scope: deploy
-  adb: devices
-  stdout:
-    - contains: "emulator-5554"
-- id: boot-done
-  scope: deploy
-  adb: getprop
-  property: sys.boot_completed
-  stdout:
-    - contains: "1"
-  timeout: 300s
+scenario:
+  - name: emulator-boots
+    step:
+      - id: emulator-is-up
+        adb: devices
+        context: [deploy]
+        stdout:
+          - contains: "emulator-5554"
+      - id: boot-done
+        adb: getprop
+        property: sys.boot_completed
+        context: [deploy]
+        stdout:
+          - contains: "1"
+        timeout: 300s
 ```
 
 See `/charly-eval:eval` for the full per-verb schema notes; this skill is the
@@ -138,13 +143,16 @@ is immune to the stdin-heredoc hazard that breaks shell-based settle loops
 
 ```yaml
 # Order matters — wait-for-device (boot) BEFORE wait-ui-settled (UI),
-# wait-ui-settled BEFORE any UI-interacting check (appium / monkey).
-- id: emulator-ui-settled
-  scope: deploy
-  adb: wait-ui-settled
-  timeout: 600s
-  stdout:
-    - contains: settled
+# wait-ui-settled BEFORE any UI-interacting step (appium / monkey).
+scenario:
+  - name: emulator-ui-settled
+    step:
+      - id: emulator-ui-settled
+        adb: wait-ui-settled
+        context: [deploy]
+        timeout: 600s
+        stdout:
+          - contains: settled
 ```
 
 `current-focus` and `keyevent` are the building blocks `wait-ui-settled`
@@ -160,7 +168,7 @@ shell-fields split handles separation.
 ### Long-running wait
 
 `wait-for-device` blocks up to `--timeout` (default 60s) — set
-`timeout:` on the eval check to a value at least as large as
+`timeout:` on the scenario step to a value at least as large as
 `--timeout`, plus a small margin. Common pattern:
 
 ```yaml
@@ -188,12 +196,12 @@ expose the container port AS the host port.
   `target: android` deploy. `charly eval adb install` / `install-app` are thin
   wrappers over the SAME shared installer (`charly/android_install.go`) the apk
   format drives — so the verb, the format, and the deploy target never drift.
-- `/charly-eval:eval` — the unified eval system and the Check struct that holds
-  every verb discriminator + modifier.
+- `/charly-eval:eval` — the unified eval system and the Op (scenario step) that
+  holds every verb discriminator + modifier.
 - `/charly-tools:android-emulator` (when authored) — the image these verbs target.
 
 ## When to Use This Skill
 
 **MUST be invoked** for any task involving `charly eval adb` commands or
-`adb:` declarative checks. Invoke this skill BEFORE reading the verb's
-Go source or reaching for `command: adb ...` workarounds.
+`adb:` declarative scenario steps. Invoke this skill BEFORE reading the
+verb's Go source or reaching for `command: adb ...` workarounds.

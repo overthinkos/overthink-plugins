@@ -45,7 +45,7 @@ serve. Priority 35 is one higher than maputnik's 34, just to keep
 the supervisord start order deterministic (cosmetic — both are
 HTTP-only static servers, neither depends on the other).
 
-## Vite `--base=/` override (locked in by eval)
+## Vite `--base=/` override (locked in by a scenario step)
 
 PMTiles app's `package.json` build script runs Vite. Without an
 explicit base flag Vite defaults to whatever's configured in
@@ -56,7 +56,7 @@ HTML bakes a subpath into `<script src>` references and they
 The build override:
 
 ```yaml
-- cmd: |
+- command: |
     git clone --depth 1 https://github.com/protomaps/PMTiles /tmp/PMTiles
     cd /tmp/PMTiles/app
     npm ci --no-audit --no-fund
@@ -64,20 +64,26 @@ The build override:
     cp -r dist /opt/pmtiles-viewer/build
     cd /
     rm -rf /tmp/PMTiles /root/.npm
-  user: root
+  run_as: root
 ```
 
-The eval lock-in (deploy-scope) greps the served HTML for forbidden
+The scenario step (deploy context) greps the served HTML for forbidden
 subpath prefixes and fails if any are present:
 
 ```yaml
-- id: pmtiles-viewer-asset-base-not-prefixed
-  scope: deploy
-  command: |
-    ! curl -fsS http://localhost:8001/ | grep -qE '"/(pmtiles|app)/'
-  in_container: true
-  exit_status: 0
+scenario:
+  - scenario: served HTML uses root-relative asset URLs
+    step:
+      - id: pmtiles-viewer-asset-base-not-prefixed
+        command: |
+          ! curl -fsS http://localhost:8001/ | grep -qE '"/(pmtiles|app)/'
+        context: [deploy]
+        in_container: true
+        exit_status: 0
 ```
+
+The `command` verb defaults to `do: assert`, so the step fails the
+scenario when the forbidden prefix is present.
 
 ## Use case in the versa image
 
@@ -98,14 +104,14 @@ remote archive" input — point it at e.g.
 `http://127.0.0.1:23000/monaco-gpqtiles` to inspect that archive's
 bbox / zoom range / tile contents directly in the browser.
 
-## Eval probes
+## Scenario steps
 
-Build-scope:
+Build context (`context: [build]`):
 - `pmtiles-viewer-build-dir-exists` — `/opt/pmtiles-viewer/build` exists (directory)
 - `pmtiles-viewer-index-html` — `/opt/pmtiles-viewer/build/index.html` exists
 - `nodejs-installed-pmtiles-viewer` — `node --version` succeeds
 
-Deploy-scope:
+Deploy context (`context: [deploy]`):
 - `pmtiles-viewer-running` — supervisord service RUNNING
 - `pmtiles-viewer-port-reachable` — TCP 8001 reachable
 - `pmtiles-viewer-http-up` — `GET /` returns 200

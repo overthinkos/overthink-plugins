@@ -28,35 +28,39 @@ the W3C escape hatch: `POST /session/<id>/execute/sync` with
 ### Also as a declarative verb
 
 Every `charly eval appium <method>` is authorable as an `appium:` verb
-inside an `eval:` block. **Deploy-scope only**.
+inside a `scenario:` step. **Deploy-context only** (`context: [deploy]`). A
+probe verb defaults to `do: assert`, so each step asserts unless told otherwise.
 
 ```yaml
-- id: appium-up
-  scope: deploy
-  appium: status
-  stdout: { contains: '"ready":true' }
-- id: open-session
-  scope: deploy
-  appium: session-create
-  caps: |
-    {"platformName":"Android","appium:automationName":"UiAutomator2","appium:deviceName":"emulator-5554"}
-- id: install
-  scope: deploy
-  appium: install-app
-  apk: ./tests/data/ApiDemos-debug.apk   # HOST path; staged into the container by the verb
-- id: tap-animation
-  scope: deploy
-  appium: click
-  strategy: xpath
-  selector: '//android.widget.TextView[@text="Animation"]'
-- id: snapshot
-  scope: deploy
-  appium: screenshot
-  artifact: /tmp/post-tap.png
-  artifact_min_bytes: 10000
-- id: close
-  scope: deploy
-  appium: session-delete
+scenario:
+  - name: appium-drives-the-emulator-ui
+    step:
+      - id: appium-up
+        appium: status
+        stdout: { contains: '"ready":true' }
+        context: [deploy]
+      - id: open-session
+        appium: session-create
+        caps: |
+          {"platformName":"Android","appium:automationName":"UiAutomator2","appium:deviceName":"emulator-5554"}
+        context: [deploy]
+      - id: install
+        appium: install-app
+        apk: ./tests/data/ApiDemos-debug.apk   # HOST path; staged into the container by the verb
+        context: [deploy]
+      - id: tap-animation
+        appium: click
+        strategy: xpath
+        selector: '//android.widget.TextView[@text="Animation"]'
+        context: [deploy]
+      - id: snapshot
+        appium: screenshot
+        artifact: /tmp/post-tap.png
+        artifact_min_bytes: 10000
+        context: [deploy]
+      - id: close
+        appium: session-delete
+        context: [deploy]
 ```
 
 ## Quick Reference
@@ -78,10 +82,10 @@ inside an `eval:` block. **Deploy-scope only**.
 | `source` | `charly eval appium source <image>` | — | GET /source (UI hierarchy XML) |
 | `back` | `charly eval appium back <image>` | — | POST /back (navigate back) |
 
-### Tier 2 — per-class sugar groups (nested CLI; flat `<group>-<op>` in eval YAML)
+### Tier 2 — per-class sugar groups (nested CLI; flat `<group>-<op>` in a `scenario:` step)
 
 Mirrors `wl`'s `sway-*` / `overlay-*` pattern — `charly eval appium gesture tap …`
-on the CLI is `appium: gesture-tap` in an `eval:` block.
+on the CLI is `appium: gesture-tap` in a `scenario:` step.
 
 | Group | Ops (eval-YAML method names) | Key modifiers |
 |---|---|---|
@@ -301,8 +305,8 @@ mitigation if it stops working.
   control (install / shell / screencap / logcat).
 - `/charly-eval:android` — the `kind: android` device + `apk:` package format +
   `target: android` deploy this UI automation runs against.
-- `/charly-eval:eval` — the unified eval system and the Check struct that
-  holds every verb discriminator + modifier.
+- `/charly-eval:eval` — the unified eval system and the Op struct that
+  holds every verb discriminator + modifier (one Op per `scenario:` step).
 - `/charly-tools:android-emulator` (when authored) — the image these verbs target.
 
 ## When to Use This Skill

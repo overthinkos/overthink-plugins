@@ -35,7 +35,7 @@ order.
 | `charly box merge` | Merge small layers in a built image | `/charly-build:merge` |
 | `charly box new candy <name>` | Scaffold a new candy directory | `/charly-build:new` |
 | `charly box pull` | Fetch an image into local storage | `/charly-build:pull` |
-| `charly eval box` | Run declarative tests against a disposable container from a built image (reads the `ai.opencharly.eval` OCI label) | `/charly-eval:eval` |
+| `charly eval box` | Run declarative tests against a disposable container from a built image (reads the baked `scenario:` Ops from the `ai.opencharly.description` OCI label) | `/charly-eval:eval` |
 | `charly box validate` | Check charly.yml + layers | `/charly-build:validate` |
 
 ## Scope Boundary (Build vs. Deploy)
@@ -110,7 +110,7 @@ The error messages are explicit when misconfigured: `cannot chdir to --dir "/mis
 | Inspect field | `charly box inspect <image> --format <field>` | Print single field (tag, base, layers, ports, etc.) |
 | Validate | `charly box validate` | Check charly.yml + layers |
 | Pull into local storage | `charly box pull <image>` | Fetch from registry so deploy-mode commands work |
-| Run build-time tests | `charly eval box <image>` | Runs the baked layer + image test sections in a disposable `podman run --rm` container (build-scope only). For full-stack live eval against a running deployment, use `charly eval live <name>`. See `/charly-eval:eval`. |
+| Run build-time tests | `charly eval box <image>` | Runs the baked `scenario:` steps in a disposable `podman run --rm` container (`context: [build]` steps only). For full-stack live eval against a running deployment, use `charly eval live <name>`. See `/charly-eval:eval`. |
 | Pre-prime remote repo cache | `charly box fetch [<spec>]` | Clones (or hits cache) for the spec — defaults to `default` (overthinkos/overthink). Prints the cache path. |
 | Force re-clone | `charly box refresh [<spec>]` | Removes the cache entry and re-clones. |
 
@@ -332,7 +332,7 @@ charly box inspect debian-coder | grep -E '"User"|"UID"|"Home"|UserAdopted'
 
 ### Layer consequences
 
-Adopt mode means `resolved.User` is not a stable string across distros. Layers that reference the uid-1000 account by name must NOT hardcode `user` — use `${USER}` where the generator substitutes (task fields like `user: ${USER}`), or use `getent passwd 1000 | cut -d: -f1` inside `cmd:` blocks (where the generator does NOT substitute — bash sees the script verbatim). The canonical getent example is `/charly-coder:sshd`'s sudoers task.
+Adopt mode means `resolved.User` is not a stable string across distros. Layers that reference the uid-1000 account by name must NOT hardcode `user` — use `${USER}` where the generator substitutes (task fields like `run_as: ${USER}`), or use `getent passwd 1000 | cut -d: -f1` inside `command:` blocks (where the generator does NOT substitute — bash sees the script verbatim). The canonical getent example is `/charly-coder:sshd`'s sudoers task.
 
 See also `/charly-distros:ubuntu` (canonical adopt consumer), `/charly-build:build` "base_user:", `/charly-internals:go` "ResolvedBox.UserAdopted".
 
@@ -355,7 +355,7 @@ my-bootc-image:
   candy: [sshd, qemu-guest-agent, ffmpeg]
 ```
 
-Symptom without `distro:`: `charly box inspect <image>` shows `"Distro": null`. The generator's install_template Phase-2 branch short-circuits on `img.DistroDef == nil`, so **no layer `rpm:` install RUN steps are emitted**. The image builds cleanly but is missing every package from every layer that uses declarative `rpm:` sections. Explicit `cmd: dnf install …` tasks still run; the bug affects only declarative `rpm:`/`deb:`/`pac:` sections.
+Symptom without `distro:`: `charly box inspect <image>` shows `"Distro": null`. The generator's install_template Phase-2 branch short-circuits on `img.DistroDef == nil`, so **no layer `rpm:` install RUN steps are emitted**. The image builds cleanly but is missing every package from every layer that uses declarative `rpm:` sections. Explicit `command: dnf install …` tasks still run; the bug affects only declarative `rpm:`/`deb:`/`pac:` sections.
 
 Internal bases (`base: fedora`) inherit `distro:` and `build:` from the parent image automatically — you only need explicit tags on images whose `base:` is a URL. The `quay.io/fedora/fedora-bootc:43` example above is the canonical pattern: an external bootc base must declare its own `distro:` tags, or the generator sees `Distro: null` and emits no rpm-install RUN steps.
 
@@ -552,7 +552,7 @@ box:
 - `/charly-core:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
 - `/charly-core:charly-config` -- `charly config` reads OCI labels + charly.yml; tunnel is charly.yml-only
 - `/charly-internals:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
-- `/charly-eval:eval` — Box-level `eval:` (cross-candy invariants) and `deploy_eval:` (deploy-default checks shipped with the image). Both are embedded in the `ai.opencharly.eval` OCI label.
+- `/charly-eval:eval` — Box-level `scenario:` steps (cross-candy invariants; deploy-default checks shipped with the image are steps carrying `context: [deploy]`). The scenario Ops are embedded in the `ai.opencharly.description` OCI label.
 - `/charly-build:charly-mcp-cmd` — if the image transitively bundles an mcp-providing candy (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled candy's `mcp:` tests run as part of `charly eval live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
 - `/charly-vm:vm` — `charly vm build/create/start/stop/ssh` command family; reads `vm.yml`, not `charly.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
 - `/charly-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema.

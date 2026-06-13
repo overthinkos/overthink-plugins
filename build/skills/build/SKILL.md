@@ -307,13 +307,13 @@ Concretely: the cache is keyed by `(parent-image-SHA, instruction-text, COPY-sou
 Three kinds of source changes are real cache invalidators — if you see a long rebuild, one of these is the cause:
 
 1. **Layer source file content changed.** Editing a file under `candy/<name>/` — the canonical case is `candy/charly/bin/charly` being rewritten by `task build:charly` after a Go source edit — changes the scratch stage's content hash, which invalidates `COPY --from=<layer>` and everything downstream that depends on it.
-2. **Package list / task text changed.** Adding/removing an rpm/deb/pac entry or editing a `cmd:` body changes the RUN instruction text emitted for that layer, invalidating cache from that RUN onward.
+2. **Package list / task text changed.** Adding/removing an rpm/deb/pac entry or editing a `command:` body changes the RUN instruction text emitted for that layer, invalidating cache from that RUN onward.
 3. **Upstream image content changed.** If a base image (external like `fedora` or internal like `fedora-supervisord`) has different content from the last cached build, the FROM step resolves to a new SHA and downstream RUN/COPY steps all cache-miss. This cascades through the dependency graph — rebuilding `fedora-supervisord` forces its children to re-run from the `FROM fedora-supervisord` step.
 
 ### What does NOT invalidate cache
 
 - **CalVer tag shifts alone.** The Containerfile emits `ARG BASE_IMAGE=<registry>/<name>:<calver>` with a fresh CalVer on every generate. That ARG default appears in the Containerfile text but is not part of the cache key for subsequent RUN/COPY steps — podman/buildah resolves the FROM to an image SHA first, and caches downstream steps off that SHA. If the SHA is unchanged, cache hits. The cache cost comes from content changes in the layer itself, not the tag.
-- **`eval:` edits.** LABEL directives are emitted last in every final stage (after the last USER). A `eval:` edit — the most common layer mutation — only re-runs the final LABEL block (~2 seconds on a 138-step stack like `immich-ml`). See `/charly-internals:generate-source` for the rationale.
+- **`scenario:` edits.** LABEL directives are emitted last in every final stage (after the last USER). A `scenario:` edit — the most common layer mutation — only re-runs the final LABEL block (~2 seconds on a 138-step stack like `immich-ml`). See `/charly-internals:generate-source` for the rationale.
 - **Re-running `charly box build` without source changes.** Fully cached; seconds to complete.
 
 ### `write:` vs `copy:` — cache granularity
@@ -326,10 +326,10 @@ Three kinds of source changes are real cache invalidators — if you see a long 
 | Edit | Cost |
 |------|------|
 | `charly box build` with zero source changes | Seconds — every step cache-hits |
-| A `eval:` / label entry | ~2 sec (LABEL re-emit only) |
+| A `scenario:` / label entry | ~2 sec (LABEL re-emit only) |
 | A `write:` task's content | Just that single content-addressed COPY layer |
 | A `copy:` source file's content | Rebuild from that layer's COPY onward + downstream |
-| A `cmd:` / `download:` task body | Rebuild from that RUN onward + downstream |
+| A `command:` / `download:` task body | Rebuild from that RUN onward + downstream |
 | A package added/removed in `rpm:`/`deb:`/`pac:` | Rebuild from the install RUN onward + downstream |
 | `task build:charly` → new `candy/charly/bin/charly` | Rebuild the `charly` layer + every image that includes it |
 | An upstream image got content-changed and rebuilt | Rebuild from the FROM step onward in every descendant |
@@ -568,7 +568,7 @@ for the `--build` flag that also picks up this caveat.
 ### Related skills
 
 - `/charly-image:layer` -- Layer definitions that get built
-- `/charly-eval:eval` -- Tests are embedded as `ai.opencharly.eval` OCI label at build time; LABEL-at-end optimization (see Cache Efficiency above) makes test edits cheap.
+- `/charly-eval:eval` -- Tests are embedded as `ai.opencharly.description` OCI label at build time; LABEL-at-end optimization (see Cache Efficiency above) makes test edits cheap.
 - `/charly-core:charly-update` -- `charly update <image> --build` invokes `BuildCmd.Run` and picks up the same `--jobs` cap and stale-`:latest` caveat
 - `/charly-vm:vm` -- Building bootc disk images (`charly vm build`)
 - `/charly-core:charly-config` -- Engine configuration

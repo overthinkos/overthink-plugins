@@ -220,7 +220,7 @@ charly shell jupyter -c "jupyter server extension list 2>&1 | grep -E 'ydoc|cola
 charly shell jupyter -c 'echo PATH=$PATH'
 # Expected: PATH starts with /home/user/.pixi/bin:/home/user/.pixi/envs/default/bin:...
 
-# spacy + en_core_web_sm load (the build-scope eval check, runnable
+# spacy + en_core_web_sm load (the `context: [build]` scenario step, runnable
 # at runtime too)
 charly shell jupyter -c '~/.pixi/envs/default/bin/python -c "import spacy; spacy.load(\"en_core_web_sm\"); print(\"ok\")"'
 # Expected: ok
@@ -254,12 +254,12 @@ charly eval cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"key
 ## Test Coverage
 
 Latest `charly eval live jupyter` run: **29 passed, 0 failed, 0 skipped**.
-All tests embedded in the `ai.opencharly.eval` OCI label:
+All scenario steps embedded in the `ai.opencharly.description` OCI label:
 jupyter-lab binary under pixi, notebook-templates provisioned into
 `/workspace`, jupyter-mcp extension enabled, fastmcp pip
-package installed. Deploy-scope: supervisord up, port 8888 reachable
+package installed. `context: [deploy]` steps: supervisord up, port 8888 reachable
 on `127.0.0.1`, `/api` returns 200 with `version` in body, `/mcp`
-returns 400 on empty POST (proving MCP routing is wired). Box-scope:
+returns 400 on empty POST (proving MCP routing is wired). `context: [build]` steps:
 `jupyter_mcp` appears in extension list, workspace has ≥1 `.ipynb`.
 
 See `/charly-eval:eval` for the framework and author-facing gotchas.
@@ -269,7 +269,7 @@ See `/charly-eval:eval` for the framework and author-facing gotchas.
 - `/charly-jupyter:jupyter`, `/charly-jupyter:jupyter-mcp`, `/charly-jupyter:notebook-templates`
 - `/charly-eval:eval` — declarative testing framework
 - `/charly-core:charly-config` — deploy setup
-- `/charly-build:charly-mcp-cmd` — the box inherits 3 deploy-scope `mcp:` declarative checks from the `jupyter` candy (`ping`, `list-tools` asserting all 11 prefixed tool names, `call notebook_list`). Run `charly eval live jupyter --filter mcp` to exercise them against a live deployment, or `charly eval mcp list-tools jupyter` for ad-hoc inspection
+- `/charly-build:charly-mcp-cmd` — the box inherits 3 `context: [deploy]` `mcp:` scenario steps from the `jupyter` candy (`ping`, `list-tools` asserting all 11 prefixed tool names, `call notebook_list`). Run `charly eval live jupyter --filter mcp` to exercise them against a live deployment, or `charly eval mcp list-tools jupyter` for ad-hoc inspection
 - `/charly-jupyter:jupyter-ml`, `/charly-jupyter:jupyter-ml-notebook` — GPU variants that inherit the same MCP test suite
 
 ## When to Use This Skill
