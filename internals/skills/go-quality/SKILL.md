@@ -56,6 +56,33 @@ staticcheck 242, unparam 100, unused 53, gocyclo 46, gocritic 43, errorlint 29, 
 dupl 10, ineffassign 4, unconvert 3, misspell 1. Re-run to refresh; the per-linter shape is the
 triage map.
 
+## Auto-fix safety — NEVER blanket `--fix` (CRITICAL)
+
+**`golangci-lint run --fix` CORRUPTS this source tree** (confirmed 2026-06-14, v2.12.2):
+gocritic's autofixer rewrites multi-statement blocks into a one-liner whose body it emits as a
+literal `{ ... }` elision placeholder — the `...` is gocritic's snip marker, written verbatim
+into the file → `syntax error: unexpected ...` (broke `ssh_client.go` + `deploy_executor_nested.go`,
+`go build` failed). Recovery: `git checkout -- charly/` then `go build ./...`.
+
+- **`gofmt -w .` is the ONLY safe blanket auto-fix** (pure formatting, AST-identical).
+- Fix every linter category **manually / per-finding with review**, or `--fix` scoped to a
+  SINGLE proven-safe linter at a time — NEVER gocritic. golangci-lint is for *finding*, not
+  auto-*fixing*. (Memory: [[golangci-lint-fix-corrupts-source]].)
+
+## Dead-code (`unused`) — legitimate-keep patterns (do NOT delete)
+
+golangci-lint `unused` is reliable for `package main`, but some flagged symbols are
+intentionally retained — deleting them is wrong. Flag (don't delete) a symbol that:
+- carries an explicit **retention doc-comment** ("kept for …", "retained because …");
+- is referenced by a closure that is itself assigned-but-not-called (`check := func(){…}; _ = check`)
+  — deleting the symbol breaks `go build` even though `unused` flags it;
+- is named only in **comments / cross-references** (incl. comments in OTHER files / tests) —
+  deleting orphans the reference;
+- is deliberately-unwired scaffolding for a not-yet-shipped path.
+Always confirm with `go build ./...` + `go test ./...` after deletions: a deletion that breaks
+either means the symbol WAS used (transitively) — restore + flag it. A stale retention comment
+whose named consumer no longer exists is its own R1 incident (fix the comment, then re-evaluate).
+
 ## The `.go` compliance checklist
 
 **Linter-covered (deterministic — let golangci-lint find these, agents only triage + dedup):**
