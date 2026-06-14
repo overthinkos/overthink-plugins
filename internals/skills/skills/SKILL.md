@@ -205,6 +205,34 @@ Rule of thumb: **if it's useful to every contributor, it lives in git**
 (skills, CLAUDE.md, code). **If it's useful only to you, it lives in the
 Syncthing-synced half** (memory, personal settings).
 
+## Skill↔code source-map sync audit
+
+Many skills carry a *source map* of the Go code — `Source:` frontmatter, file-listing
+tables (`| charly/foo.go | … |`), and inline identifier references (type/function names).
+These silently desync when the code is refactored (a renamed file or symbol that no
+skill's grep self-test caught). Audit and fix them as follows:
+
+1. **Extract the claims**: pull every `charly/*.go` filename reference and identifier
+   reference out of the skills, and check each against the live source — file exists?
+   symbol still defined? (`gopls`/`grep` confirm.)
+2. **Search INSIDE the submodule**: `plugins/` is a git submodule, so a superproject
+   `git grep -- plugins` is a **FALSE ZERO** (git grep does not cross the gitlink). Use
+   `git -C plugins grep` or filesystem `grep -rn`.
+3. **Filter the false-positive classes** before flagging:
+   - URL substrings (`pkg.go.dev`, `dl.google.com` → matches `.go`),
+   - substring artifacts (`mcp.go` contains `p.go`; `localpkg.go` contains `pkg.go`),
+   - legitimate non-charly refs (upstream files like `storage_dest.go`),
+   - prose anti-pattern examples (a skill *mentioning* `deprecated.go` as a thing to avoid).
+4. **Claim-keyed sweep (R5)**: a stale claim is fixed across EVERY skill that repeats it,
+   not just the file where it surfaced — `git -C plugins grep '<claim>'` returns only
+   CHANGELOG context afterwards.
+5. **Land docs-only**: skill edits are the Documentation-only change class →
+   `documentation reviewed` (no beds); plugins commit → superproject pointer bump → CalVer
+   tag (plugins is tag-exempt). See `/charly-internals:git-workflow`.
+
+The code-side companion (golangci-lint, the `.go` compliance checklist) is
+`/charly-internals:go-quality`.
+
 ## Cross-References
 
 - `/charly-internals:go` — Source code structure, adding new commands
