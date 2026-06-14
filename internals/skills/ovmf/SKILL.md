@@ -74,7 +74,7 @@ func ResolveOvmfForSpec(spec *VmSpec, vmStateDir string) (codePath, nvramPath st
 }
 ```
 
-The libvirt renderer's `RenderDomain` checks for `codePath == ""` and skips `<loader>` + `<nvram>` emission. QEMU then boots via SeaBIOS (shipped with QEMU itself, no separate package). No OVMF on the host package-manager list. No per-VM NVRAM file. No Secure Boot lock-in.
+The libvirt renderer (`buildDomainOS` in `libvirt_yaml_bridge.go`) emits `<loader>` + `<nvram>` only when `VmRuntimeParams.OVMFCodePath` / `.NVRAMPath` are non-empty; for BIOS, `ResolveOvmfForSpec` returns empty paths (resolved upstream in `vm_create_spec.go`) so both are skipped. QEMU then boots via SeaBIOS (shipped with QEMU itself, no separate package). No OVMF on the host package-manager list. No per-VM NVRAM file. No Secure Boot lock-in.
 
 **When to pick BIOS**:
 
@@ -91,6 +91,6 @@ The libvirt renderer's `RenderDomain` checks for `codePath == ""` and skips `<lo
 ## Cross-References
 
 - `/charly-internals:vm-spec` — `spec.Firmware` field
-- `/charly-internals:libvirt-renderer` — `RenderDomain` consumer; `<loader>`/`<nvram>` emission conditions
+- `/charly-internals:libvirt-renderer` — `RenderDomainXML` consumer; `<loader>`/`<nvram>` emission conditions
 - `/charly-vm:vm` — command-family; BIOS vs UEFI decision matrix
 - `/charly-vm:arch` — live-test RCA showing why `firmware: bios` is the right default for Arch cloud image

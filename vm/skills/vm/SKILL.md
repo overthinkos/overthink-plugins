@@ -304,13 +304,13 @@ Per-VM overrides live in `vm.yml`. The user-level defaults exist only for fields
 
 ## Libvirt XML configuration
 
-Primary surface is structured `LibvirtConfig` in `vms.<name>.libvirt:` (features, CPU, clock, devices, sysinfo, launch_security, etc.). See `/charly-internals:libvirt-renderer` for the full schema.
+Primary surface is structured `LibvirtDomain` in `vms.<name>.libvirt:` (features, CPU, clock, devices, sysinfo, launch_security, etc.). See `/charly-internals:libvirt-renderer` for the full schema.
 
 Raw-XML escape hatch: `vms.<name>.libvirt.snippets:` (list of strings) — classified by element name. Device-scoped elements go into `<devices>`, domain-scoped before `</domain>`. Deduplicated by exact string match.
 
 Layer-level raw snippets: `charly.yml` `libvirt.snippets:` is supported for layers that contribute device XML (e.g., `/charly-distros:qemu-guest-agent` contributes the virtio-serial channel). Box-level `libvirt: [...]` is not a valid field — VM XML lives on the `kind: vm` entity.
 
-Source: `charly/libvirt.go`, `charly/libvirt_render.go`, `charly/libvirt_render_devices.go`.
+Source: `charly/libvirt.go`, `charly/libvirt_yaml.go`, `charly/libvirt_yaml_bridge.go`.
 
 ## Common Workflows
 
@@ -430,7 +430,7 @@ Expected. The agent needs a `virtio-serial` channel that charly's QEMU backend d
 - `/charly-vm:vms-catalog` — **vm.yml authoring reference** (VmSpec schema, source.kind, adopt pattern)
 - `/charly-vm:arch` — canonical cloud_image VM (BIOS / virtio-gpu / resource sizing / stale BOOTX64.EFI RCA)
 - `/charly-internals:vm-spec` — Go type reference; validation rules; migration map
-- `/charly-internals:libvirt-renderer` — RenderDomain + device emission + passt backend + virtio-gpu
+- `/charly-internals:libvirt-renderer` — RenderDomainXML + device emission + passt backend + virtio-gpu
 - `/charly-internals:cloud-init-renderer` — RenderCloudInit + composeUsers + seed ISO + charly_install
 - `/charly-internals:vm-deploy-target` — VmDeployTarget / SSHExecutor / VmDeployState
 - `/charly-internals:ovmf` — UEFI firmware path resolution; per-VM NVRAM; bios-skips-loader sentinel

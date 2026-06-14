@@ -18,8 +18,8 @@ Go type reference for the VM surface. `VmSpec` + `VmSource` + `VmChecksum` + `Vm
 |---|---|
 | `charly/vm_spec.go` | `VmSpec`, `VmSource`, `VmChecksum`, `VmNetwork`, `VmSSH`, `VmKeyInjection` |
 | `charly/cloud_init_types.go` | `VmCloudInit`, `VmCloudInitUser`, `VmCloudInitFile`, `VmCloudInitNetwork`, `VmCloudInitMirrors`, `VmCharlyInstall` |
-| `charly/libvirt_schema.go` | `LibvirtConfig` + 30+ sub-types (features, CPU, clock, devices, etc.) |
-| `charly/libvirt_validate.go` | `ValidateVmSpec`, `ValidateLibvirtConfig` |
+| `charly/libvirt_yaml.go` | `LibvirtDomain` + 30+ sub-types (features, CPU, clock, devices, etc.) |
+| `charly/libvirt_validate.go` | `ValidateVmSpec`, `ValidateLibvirtDomain` |
 
 ## VmSpec (top-level shape)
 
@@ -36,7 +36,7 @@ type VmSpec struct {
     Network  *VmNetwork
     SSH      *VmSSH
     CloudInit *VmCloudInit
-    Libvirt  *LibvirtConfig
+    Libvirt  *LibvirtDomain
 }
 ```
 
@@ -153,7 +153,7 @@ type VmCharlyInstall struct {
 - `network.mode:` ∈ {`user`, `bridge`, `nat`}.
 - `ssh.key_source:` parses as `auto` | `generate` | `none` | absolute path.
 - `ssh.key_injection.{smbios,cloud_init}` ∈ {`auto`, `enabled`, `disabled`}.
-- `Libvirt` structure routed to `ValidateLibvirtConfig`.
+- `Libvirt` structure routed to `ValidateLibvirtDomain`.
 
 Failed validation → hard load-time error with a one-line remediation hint pointing at `/charly-vm:vms-catalog` or `charly migrate`.
 
@@ -175,7 +175,7 @@ The legacy `VmConfig` type + `BoxConfig.Vm` + `BoxConfig.Libvirt` + `ResolvedBox
 ## Cross-References
 
 - `/charly-vm:vms-catalog` — YAML-authoring companion (when to pick cloud_image vs bootc, adopt pattern, step-by-step recipes)
-- `/charly-internals:libvirt-renderer` — `LibvirtConfig` rendering + pure render functions
+- `/charly-internals:libvirt-renderer` — `LibvirtDomain` rendering + pure render functions
 - `/charly-internals:cloud-init-renderer` — `RenderCloudInit`, `composeUsers`, seed ISO
 - `/charly-internals:vm-deploy-target` — VmDeployTarget consuming VmSpec via DeployExecutor
 - `/charly-internals:ovmf` — `ResolveOvmfForSpec` reads `spec.Firmware`

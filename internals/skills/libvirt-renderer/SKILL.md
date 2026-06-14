@@ -1,32 +1,35 @@
 ---
 name: libvirt-renderer
 description: |
-  Pure renderer from VmSpec + LibvirtConfig to libvirt domain XML and QEMU argv.
-  Covers RenderDomain, device emission (passt backend, portForward attribute
-  order, virtio-gpu defaults), firmware plumbing, and LibvirtConfig schema shape.
-  Source: charly/libvirt_schema.go, charly/libvirt_render.go, charly/libvirt_render_devices.go,
+  Translation facade from VmSpec + LibvirtDomain to libvirt domain XML (via the
+  libvirtxml library) and QEMU argv. Covers RenderDomainXML, device emission (passt
+  backend, portForward attribute order, virtio-gpu defaults), firmware plumbing, and
+  LibvirtDomain schema shape.
+  Source: charly/libvirt_yaml.go, charly/libvirt_yaml_bridge.go, charly/libvirt_helpers.go,
   charly/qemu_render.go. MUST be invoked before editing libvirt XML emission.
 ---
 
 # libvirt-renderer
 
-The libvirt renderer converts `VmSpec` + `LibvirtConfig` into a libvirt domain XML (`RenderDomain`) and — for the direct-QEMU backend — into a QEMU argv array (`RenderQemuArgv`). Pure functions: given the same inputs, they produce the same output; no side effects. Consumed by `charly vm create` (libvirt path) and `charly vm create --backend qemu` (direct path).
+The libvirt renderer converts `VmSpec` + `LibvirtDomain` into a libvirt domain XML (`RenderDomainXML`, which builds a `libvirtxml.Domain` tree via `BuildLibvirtDomainXML` and marshals it) and — for the direct-QEMU backend — into a QEMU argv array (`RenderQemuArgv`). Pure functions: given the same inputs, they produce the same output; no side effects. The opencharly YAML layer is a translation facade over `libvirt.org/go/libvirtxml`, not an independent schema. Consumed by `charly vm create` (libvirt path) and `charly vm create --backend qemu` (direct path).
 
 ## Source files
 
 | File | Contents | LOC |
 |---|---|---|
-| `charly/libvirt_schema.go` | `LibvirtConfig` + 30+ sub-types (features, CPU, clock, memory backing, memtune, numatune, cputune, devices, seclabel, launch security, resource, sysinfo) | ~470 |
-| `charly/libvirt_render.go` | `RenderDomain` top-level composition; firmware plumbing (D17); SMBIOS credentials | ~800 |
-| `charly/libvirt_render_devices.go` | `<devices>` child emitters — channels, graphics, video, rng, memballoon, hostdev, interface (with portForward), filesystem | ~700 |
+| `charly/libvirt_yaml.go` | `LibvirtDomain` + 30+ sub-types (features, CPU, clock, memory backing, memtune, numatune, cputune, devices, seclabel, launch security, resource, sysinfo) | ~480 |
+| `charly/libvirt_yaml_bridge.go` | `RenderDomainXML`/`BuildLibvirtDomainXML` top-level composition (builds a `libvirtxml.Domain`); `buildDomainDevices` `<devices>` child emitters — channels, graphics, video, rng, memballoon, hostdev, interface (with portForward), filesystem; firmware plumbing (D17); SMBIOS credentials; `XMLPassthrough` merge | ~1850 |
+| `charly/libvirt_helpers.go` | helpers shared by the libvirt YAML bridge + `qemu_render` argv emitter (incl. `VmRuntimeParams`) | ~160 |
+| `charly/libvirt_yaml_listen.go` | structured `<listen>` support for `LibvirtGraphics` | ~130 |
 | `charly/qemu_render.go` | `RenderQemuArgv` for direct-QEMU backend | ~340 |
-| `charly/libvirt_validate.go` | `ValidateLibvirtConfig` |
+| `charly/libvirt_validate.go` | `ValidateLibvirtDomain` |
 
-## LibvirtConfig top-level
+## LibvirtDomain top-level
 
 ```go
-type LibvirtConfig struct {
-    Snippets []string                      // raw XML escape hatch, classified by isDeviceElement
+type LibvirtDomain struct {
+    Snippets       []string                // raw XML escape hatch (candy-composed), classified by isDeviceElement
+    XMLPassthrough string                  // verbatim libvirt XML fragments, merged via libvirtxml.Unmarshal at render time
     Features       *LibvirtFeatures        // ACPI/APIC/PAE/SMM/HAP/VMPort/PMU/HyperV/KVM
     CPU            *LibvirtCPU             // mode, model, features, topology, numa
     Clock          *LibvirtClock           // offset, timers
@@ -145,17 +148,18 @@ the parent dir. (The same channel is also contributed as a raw snippet by the
 
 ## Firmware plumbing (D17)
 
-`RenderDomain` reads `spec.Firmware` and, for UEFI, calls `ResolveOvmfForSpec` (see `/charly-internals:ovmf`) to get `(CodePath, NVRAMPath)`. Emits:
+`buildDomainOS` (in `libvirt_yaml_bridge.go`, called from `BuildLibvirtDomainXML`) reads `spec.Firmware`. The OVMF paths are resolved UPSTREAM by the CLI layer (`vm_create_spec.go` calls `ResolveOvmfForSpec` — see `/charly-internals:ovmf`) and passed into the renderer via `VmRuntimeParams.OVMFCodePath` / `.NVRAMPath`; the renderer itself never touches the host filesystem. For `firmware: uefi-insecure` / `uefi-secure` it sets `<os firmware='efi'>` with the matching secure-boot `<feature>` toggles, then emits a `<loader>`/`<nvram>` only when the runtime params are non-empty. Emits:
 
 ```xml
-<os>
+<os firmware='efi'>
   <type arch='x86_64' machine='pc-q35-...'>hvm</type>
-  <loader readonly='yes' type='pflash'>{CodePath}</loader>
-  <nvram template='{template-from-ResolveOvmfForSpec}'>{NVRAMPath}</nvram>
+  <firmware><feature enabled='yes|no' name='secure-boot'/>...</firmware>
+  <loader readonly='yes' secure='yes|no' type='pflash'>{rt.OVMFCodePath}</loader>
+  <nvram>{rt.NVRAMPath}</nvram>
 </os>
 ```
 
-When `spec.Firmware == "bios"` or empty, `ResolveOvmfForSpec` returns `("", "", nil)` and the renderer skips both `<loader>` and `<nvram>` entirely. No OVMF package dependency, no per-VM NVRAM file, no Secure Boot lock-in. This is what makes `/charly-vm:arch` viable — BIOS boot bypasses the stale BOOTX64.EFI issue by never loading it.
+When `spec.Firmware == "bios"` or empty, `ResolveOvmfForSpec` returns empty paths, `VmRuntimeParams.OVMFCodePath`/`.NVRAMPath` stay empty, and `buildDomainOS` emits neither `<loader>` nor `<nvram>` (the firmware `switch` has no bios case). No OVMF package dependency, no per-VM NVRAM file, no Secure Boot lock-in. This is what makes `/charly-vm:arch` viable — BIOS boot bypasses the stale BOOTX64.EFI issue by never loading it.
 
 `uefi-secure` additionally sets `Features.SMM = true` (required for Secure Boot authenticated variables).
 
@@ -193,7 +197,7 @@ Intended for environments without libvirt session daemon (some CI runners, air-g
 
 ## Validation
 
-`ValidateLibvirtConfig` rejects:
+`ValidateLibvirtDomain` rejects:
 
 - invalid element string in `Snippets` (checked via existing `ValidateLibvirtSnippet` — malformed XML / empty string / non-XML content).
 - enumerated values out of range (e.g. `CPU.Mode` not in {`host-passthrough`, `host-model`, `custom`, `maximum`}).

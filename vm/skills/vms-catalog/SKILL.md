@@ -198,7 +198,7 @@ Load-time errors raised by `ValidateVmSpec` (`charly/libvirt_validate.go`, see `
 - `network.mode:` must be one of `user`, `bridge`, `nat`.
 - `ssh.key_source:` must parse as `auto`, `generate`, `none`, or an absolute path.
 - `ssh.key_injection.smbios` / `.cloud_init` must be one of `auto`, `enabled`, `disabled`.
-- `libvirt:` structure is schema-validated via `ValidateLibvirtConfig` — invalid snippets fail fast.
+- `libvirt:` structure is schema-validated via `ValidateLibvirtDomain` — invalid snippets fail fast.
 
 ## Migration from legacy (box.bootc / box.vm / box.libvirt)
 

@@ -123,19 +123,19 @@ The VM path spans the following module topology:
 |---|---|
 | `charly/vm_spec.go` | `VmSpec` + `VmSource` discriminated union (cloud_image / bootc) + `VmChecksum` + `VmNetwork` + `VmSSH` + `VmKeyInjection` |
 | `charly/cloud_init_types.go` | `VmCloudInit` + `VmCloudInitUser/File/Network/Mirrors` + `VmCharlyInstall` (auto/scp/url/skip state machine) |
-| `charly/libvirt_schema.go` | `LibvirtConfig` + 30+ sub-types (features, CPU, clock, memory backing, numatune, cputune, devices, seclabel, launch security, resource, sysinfo) |
-| `charly/libvirt_render.go` + `libvirt_render_devices.go` | `RenderDomain` pure function + device emission (passt backend, portForward attribute order, virtio-gpu default, SMBIOS credentials) |
+| `charly/libvirt_yaml.go` | `LibvirtDomain` + 30+ sub-types (features, CPU, clock, memory backing, numatune, cputune, devices, seclabel, launch security, resource, sysinfo) — the opencharly YAML-facing shape of the `libvirt:` stanza |
+| `charly/libvirt_yaml_bridge.go` | `RenderDomainXML`/`BuildLibvirtDomainXML` pure functions (build a `libvirtxml.Domain` tree, marshal to XML) + `buildDomainDevices` device emission (passt backend, portForward attribute order, virtio-gpu default, SMBIOS credentials, `XMLPassthrough` merge) |
 | `charly/qemu_render.go` | `RenderQemuArgv` for direct-QEMU backend |
 | `charly/cloud_init_render.go` + `cloud_init_iso.go` | `RenderCloudInit` + `ResolveKeyInjectionChannels` + `composeUsers` (adopt-merge) + `WriteSeedISO` via xorriso/genisoimage/mkisofs |
 | `charly/vm_cloud_image.go` + `http_fetch.go` | `BuildCloudImage` pipeline: fetch URL + sha256 sidecar + resize + seed ISO render |
 | `charly/charly_install.go` | `EnsureCharlyInVenue` — the GENERIC "copy charly into a running venue" mechanism (container `podman cp` / VM-SSH `scp` / host `install`, all via `DeployExecutor.PutFile`): returns the `charly` invocation command, copying the host `os.Executable()` to a non-`$PATH` `/tmp/charly-<calver>` on absence/older (idempotent, never shadows a packaged charly). Used by the explicit `charly check dbus notify`/`call` paths + nested from-image delegation, so an image need not bake the `charly` layer. `EnsureCharlyInGuest` is the VM-deploy strategy wrapper (auto/scp/url/skip) layered on top |
 | `charly/ovmf_paths.go` | `ResolveOvmfPaths` (per-distro OVMF_CODE/VARS paths) + `EnsurePerVmNvram` + `ResolveOvmfForSpec` (bios-sentinel returning empty strings) |
-| `charly/libvirt_validate.go` | `ValidateVmSpec` + `ValidateLibvirtConfig` |
+| `charly/libvirt_validate.go` | `ValidateVmSpec` + `ValidateLibvirtDomain` |
 | `charly/deploy_executor*.go` | `DeployExecutor` interface + `ShellExecutor` + `SSHExecutor` with `WaitForSSH` + `WaitForCloudInit` |
 | `charly/deploy_target_vm.go` | `VmDeployTarget.Emit` |
 | `charly/deploy_add_cmd_vm.go` | VM-only deploy helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`); `charly deploy add vm:<name>` itself dispatches through `dispatchNode` → `ResolveTarget` → `VmUnifiedTarget.Add` |
 | `charly/vm_create_spec.go` + `vm_build.go` | CLI command wiring for `charly vm build/create` reading `kind: vm` entities |
-| `charly/migrate_vm_spec.go` | `charly migrate` one-shot conversion from legacy box.bootc/box.vm/box.libvirt |
+| `charly/libvirt_helpers.go` + `libvirt_yaml_listen.go` | helpers shared by the libvirt YAML bridge + `qemu_render` argv emitter (`VmRuntimeParams`); structured `<listen>` support for `LibvirtGraphics` |
 
 **`unified.go` VM support**: `"vm"` is in the `entityKind` enum, with a `VmDoc` loader struct, a `mergeVmMap` merger, and `"vm"` in `rootShapeKeys` (so `vm.yml` is recognized as a valid entity-shape include file).
 
@@ -228,7 +228,7 @@ Submodule convention: `plugins/` is a submodule rooted at the
 | `status.go` | `status` command (structured table/detail view, live tool probing, `--json`) |
 | `commands.go` | `enable`/`disable`/`logs`/`update`/`remove` |
 | `service.go` | `service` command (init system service management inside containers) |
-| `seed.go` | `seed` command (bind-backed volume data seeding) |
+| `data.go` | Volume data seeding (`provisionData`, `seedKind`, `SeederHelperImage`) for bind-backed + named-volume targets, driven by `charly config --seed`/`--force-seed` |
 | `hooks.go` | Lifecycle hooks (`post_enable`, `pre_remove`) collection and execution |
 | `remote_image.go` | Remote image ref resolution, pull-or-build |
 | `vm.go` | VM lifecycle: create, start, stop, destroy, list, console, ssh |
@@ -237,14 +237,12 @@ Submodule convention: `plugins/` is a submodule rooted at the
 | `vm_qemu.go` | QEMU backend: direct VM operations via qemu-system |
 | `smbios_credentials.go` | SSH key injection via SMBIOS/systemd credentials at VM boot |
 | `libvirt.go` | Libvirt XML snippet collection and injection |
-| `browser.go` | Browser automation commands (open, list, close, text, html, url, screenshot, click, type, check, wait, cdp) |
 | `browser_cdp.go` | CDPClient -- lightweight Chrome DevTools Protocol WebSocket client (golang.org/x/net/websocket) |
-| `cdp.go` | CDP commands + `CdpCmd` struct. `cdpGetWindowOffset`, `cdpDispatchKeyEvent`, `deepQueryJS` |
+| `cdp.go` | CDP browser automation commands + `CdpCmd` struct (open, list, close, text, html, url, screenshot, click, type, check, wait). `cdpGetWindowOffset`, `cdpDispatchKeyEvent`, `deepQueryJS` |
 | `cdp_spa.go` | SPA-aware remote desktop interaction: `CdpSpaCmd` (click, type, key, key-combo, mouse, status). `spaDetect`, `spaEnsureFocus`, `spaKeyMap`, `spaModifierMap`, coordinate scaling via `--scale` |
-| `browser_test.go` | Browser command and CDP client tests |
-| `wl.go` | Wayland desktop commands (screenshot, click, type, key, mouse, status, windows, focus). `--from-x11` flag + `FindX11WindowGeometry()` for XWayland coordinate translation |
+| `cdp_test.go` | CDP command + client tests |
+| `wl.go` | Wayland desktop commands (screenshot, click, type, key, mouse, status, windows, focus); `SwayCmd` Sway compositor support (`charly check wl sway`) — `swayNode` `Focused`/`FullscreenMode` fields, `searchSwayNode` prefers focused/fullscreen nodes, XWayland class matching via `swayWindowProperties`. `--from-x11` flag + `FindX11WindowGeometry()` for XWayland coordinate translation |
 | `vnc.go` | VNC desktop commands (screenshot, click, type, key, mouse, status, passwd, rfb). `--from-x11` flag for XWayland coordinate translation |
-| `sway.go` | Sway compositor commands. `swayNode` has `Focused`/`FullscreenMode` fields; `searchSwayNode` prefers focused/fullscreen nodes; XWayland class matching via `swayWindowProperties` |
 
 ### Infrastructure
 
