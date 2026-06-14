@@ -149,7 +149,9 @@ runtime tier borrowed.
 This mirrors the submodules-first push order. A change developed in a git worktree
 keeps its `feat/` branch in the worktree; the ff-merge targets the canonical
 repo's `main`; the worktree is removed after. Concurrent worktrees on one repo
-each use a distinct `feat/` slug.
+each use a distinct `feat/` slug. **For the full multi-worktree end-to-end — which
+path lands `main` when it lives in ANOTHER worktree, the doc-tier `git -C`
+literal-path rule, and the mandatory post-landing worktree refresh — see B7.**
 
 ## B3 — agent teams on ONE shared tree (no worktree)
 
@@ -227,6 +229,78 @@ local-override):
 Each repo gets ONE R10 against ITS final code — the producer against its own
 change, the consumer against the producer's landed tag — and repos land
 producer→consumer. Multi-level chains (A→B→C) recurse the same way.
+
+## B7 — Multi-worktree landing + refresh (the canonical end-to-end)
+
+This project is developed across SEVERAL git worktrees sharing one `.git` — and only
+ONE worktree can have `main` checked out. Every "push + update all worktrees" follows
+this EXACT ordered sequence; deviating is how the ad-hoc disasters happen. It composes
+B1 (branch loop), B2 (per-repo order + pointer-bump safety), B4 (sync/prune).
+
+**0. Pre-flight (worktree safety).** `git worktree list` → note which worktree holds
+`main`. Pin ONE worktree for the whole edit→commit→land sequence; drive every step with
+a **literal absolute path** `git -C /abs/path …`. NEVER a leading `cd`+`\`-continued
+chain (it scopes every later command into the submodule) and NEVER a shell variable for
+a path — **shell variables do NOT persist between Bash tool calls**, so a `WT=…` set in
+an earlier call is EMPTY later and `git -C "$WT/plugins"` silently becomes `git -C
+/plugins` (this was a real failure). Verify: `git -C /abs rev-parse --show-toplevel` ==
+the path you edited AND `git -C /abs status --short` lists your edits.
+
+**1. Sync-before-start.** `git fetch origin --prune --tags`; ff local `main` to
+`origin/main` (B4).
+
+**2. Land in dependency order, same `feat/<slug>` in every repo** (box submodules →
+plugins → superproject). Per-repo mechanics = B2 + B1; pointer-bump safety = B2 step 3.
+Two proven additions:
+  - **plugins docs commit at `documentation reviewed`: `git -C <LITERAL-abs-plugins>
+    commit …`.** RDD-proven on the live gate: a literal `-C` scopes `pre-commit-gate.sh`
+    to the plugins all-docs index in ONE shot (it passes even while the superproject has
+    non-doc code staged, and recurses the submodule's `old..new` diff). Do NOT use a
+    `$var` (may be unset → `git diff --cached --raw failed`); do NOT use `cd plugins &&
+    git commit` (the gate fires BEFORE the in-command `cd`, so it inspects the
+    SUPERPROJECT index and blocks on staged code). The literal `-C` removes the old
+    "empty the other index first" dance entirely.
+  - **box/<distro> re-stamp** (schema-HEAD bump): edit on the submodule's own `main`;
+    **gate = `charly box validate` standalone** (a version-stamp change has no build
+    behavior — building proves nothing); commit, annotated tag, push.
+
+**3. Land `main` — it lives in ONE worktree, so NEVER `git switch main` elsewhere (git
+fatals "already used by worktree"). Pick ONE path:**
+  - **Path A (remote-mediated, from the work worktree):** `git push origin feat/<slug>`
+    → `git push origin feat/<slug>:main` (a ff of `origin/main` — the worktree-safe
+    `merge --ff-only`, NEVER a force) → tag + push tag → `git -C <main-wt> merge
+    --ff-only origin/main` to advance the LOCAL `main` ref (`push :main` doesn't move it).
+  - **Path B (drive the main worktree by path):** `git -C <main-wt> merge --ff-only
+    feat/<slug>` (guard: `git -C <main-wt> status` clean + `git merge-base --is-ancestor
+    <old-main> <feat-HEAD>`) → `git -C <main-wt> push origin main --follow-tags`.
+    Advances local `main` automatically; pushes no remote `feat/`.
+
+**4. Tags: annotated only** (`git tag -a v<…> -m "<desc>" HEAD`). `--follow-tags` does
+NOT push a LIGHTWEIGHT tag → verify `git cat-file -t <tag>` == `tag` AND `git ls-remote
+--tags origin <tag>` is non-empty.
+
+**5. Reconcile (when box submodules were re-stamped).** Bump the superproject GITLINKS
+`+1` to the re-stamped box mains (a separate superproject commit; B2 step-3 safety) — do
+**NOT** bump the `@github` build pins: they lag deliberately, `charly box reconcile`
+reports "already reconciled", and bumping them pulls multi-cutover producer drift (a
+separate version-adoption cutover, NOT reconciliation).
+
+**6. Refresh EVERY worktree — PART of landing, NEVER a follow-up (R2).** For each
+worktree: the one on `main` → `git -C <wt> merge --ff-only origin/main`; each other →
+`git -C <wt> checkout --detach origin/main`; THEN `git -C <wt> submodule update --init
+--recursive`. The Skill tool serves skills from the MAIN worktree — a stale main
+worktree silently serves STALE SKILLS to sessions, so refreshing it is mandatory. (A
+` M <sub>` in a worktree used only for the ff-merge is this drift, not lost work.)
+
+**Landing gotchas (each cost real time):** the **PreToolUse pre-commit-gate fires ONCE
+per Bash call, BEFORE the command runs** → a `git reset && git commit` in ONE call fails
+(the reset hasn't happened yet); split into separate Bash calls. `task build:charly`
+dirties `pkg/arch/PKGBUILD` (makepkg `pkgver()`) → `git -C <pkg/arch> restore PKGBUILD`.
+`git merge-base --is-ancestor A B` ERRORS if B's object isn't fetched (common for a
+sibling-worktree submodule) → `git fetch` first; cross-check `git ls-tree origin/main
+<sub>` before concluding "DIVERGED". A `git grep -- <submodule-path>` from the
+superproject is a FALSE ZERO (git grep does not cross a gitlink) → `git -C <sub> grep`
+for the R5 sweep.
 
 ## CalVer tag computation
 
