@@ -259,7 +259,7 @@ Each `mcp:` step is a `check:` step — a deterministic probe that satisfies the
 
 ## Validator coverage
 
-`charly box validate` enforces at the `validateCharlyVerb` dispatch in `charly/validate_tests.go`:
+`charly box validate` enforces at the `validateCharlyVerb` dispatch in `charly/validate_check.go`:
 
 - Method name must be in `mcpMethods` (7 entries); unknown methods list the allowed set in the error.
 - `context` must include `deploy`; a build-context mcp step raises `"mcp: verb requires context:\"deploy\""`.
@@ -431,7 +431,7 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 - `/charly-openwebui:openwebui` — another consumer (`mcp_accept: jupyter, chrome-devtools`).
 - `/charly-jupyter:jupyter`, `/charly-jupyter:jupyter-ml`, `/charly-jupyter:jupyter-ml-notebook` — images bundling `jupyter-mcp`; `charly check live <image> --filter mcp` exercises the verb end-to-end.
 - `/charly-selkies:sway-browser-vnc`, `/charly-selkies:selkies-labwc`, `/charly-selkies:selkies-labwc-nvidia` — images bundling `chrome-devtools-mcp` (transitively via the chrome metalayer).
-- `/charly-internals:go` — implementation map: `mcp.go` (client Kong subcommand tree), `mcp_client.go` (client SDK wrapper + URL rewriter), `mcp_server.go` (server: Kong→MCP reflection, destructive-hint set, `captureAndRun`), `testrun_ov_verbs.go` (declarative dispatcher entry `mcpMethods`), `validate_tests.go` (`validateCharlyVerb` case for `mcp`).
+- `/charly-internals:go` — implementation map: `mcp.go` (client Kong subcommand tree), `mcp_client.go` (client SDK wrapper + URL rewriter), `mcp_server.go` (server: Kong→MCP reflection, destructive-hint set, `captureAndRun`), `checkrun_charly_verbs.go` (declarative dispatcher entry `mcpMethods`), `validate_check.go` (`validateCharlyVerb` case for `mcp`).
 - `/charly-coder:charly-mcp` — the deployment layer that wires `charly mcp serve` into an image via supervisord. Includes the `/workspace` bind-mount (volume NAME `project`) + `CHARLY_PROJECT_DIR` env var pattern for build-mode tools.
 - `/charly-tools:charly` — the underlying binary layer; required by `charly-mcp`.
 - `/charly-image:image` — "Project directory resolution" subsection documents the `-C` / `--dir` / `CHARLY_PROJECT_DIR` global flag that makes the server's project-dir bind-mount work.

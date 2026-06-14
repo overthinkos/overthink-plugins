@@ -657,7 +657,7 @@ literal name, so a test that works on Fedora (`openssh-server`) fails on
 Arch (where the package is just `openssh`). `package_map:` is the
 authoring hook: the first key that matches any of the image's
 `distro:` tags wins; otherwise the `package:` scalar is used as the
-fallback. Source: `charly/testrun_verbs.go:resolvePackageName` + the
+fallback. Source: `charly/checkrun_verbs.go:resolvePackageName` + the
 `Runner.Distros` field wired from `meta.Distro` at both test entry
 points.
 
@@ -710,7 +710,7 @@ naturally. An empty-string map value falls through to the next tag
 | `id` | Optional stable identifier. Enables `charly.yml` to override by `id`. Unique per section per image. |
 | `description` | Human-readable label for reports. |
 | `skip: true` | Always skip this check (reported but doesn't fail the run). |
-| `exclude_distros: [<tag>, ...]` | Skip the check when any of the image's `distro:` tags matches an entry. Use for probes that only apply on some distros (e.g. `file: /usr/bin/fastfetch` is valid on Fedora/Arch/Debian but fastfetch is dropped from Ubuntu 24.04's noble main). Matched against the image's full distro list (`["ubuntu:24.04", "ubuntu", "debian"]`), so either `ubuntu:24.04` or `ubuntu` matches. See `charly/testspec.go:Check.ExcludeDistros` and `charly/testrun.go:runOne`. |
+| `exclude_distros: [<tag>, ...]` | Skip the check when any of the image's `distro:` tags matches an entry. Use for probes that only apply on some distros (e.g. `file: /usr/bin/fastfetch` is valid on Fedora/Arch/Debian but fastfetch is dropped from Ubuntu 24.04's noble main). Matched against the image's full distro list (`["ubuntu:24.04", "ubuntu", "debian"]`), so either `ubuntu:24.04` or `ubuntu` matches. See `charly/checkspec.go:Op.ExcludeDistros` and `charly/checkrun.go:runOne`. |
 | `timeout: "5s"` | Per-check timeout (http, addr). |
 | `context: [build\|deploy\|runtime]` | Which contexts the step runs in (a list). Build steps run in `charly check box`; deploy/runtime steps need a live deployment. |
 
@@ -1251,8 +1251,8 @@ disposable container (`charly check box`) and a running service (`charly check l
 | http, dns, addr | Host-side (from the `charly` process) | In-container `curl` / `getent hosts` / `nc` |
 | matching | In-process matcher check | Same |
 
-The routing table lives in `charly/testrun.go` (`runOne` switch) and
-`charly/testrun_verbs.go`. When a check is unroutable (e.g. `port:
+The routing table lives in `charly/checkrun.go` (`runOne` switch) and
+`charly/checkrun_verbs.go`. When a check is unroutable (e.g. `port:
 reachable` under `charly check box`), the runner reports it as **skipped**
 with a reason rather than failing the run.
 
@@ -1547,7 +1547,7 @@ deliberately.
   current schema (collapsing the old `task`/`scenario`/`do`/recipe/score formats into one flat `plan:`).
 - `/charly-internals:go` — implementation map: `checkspec.go`, `checkvars.go`,
   `checkrun.go`, `checkrun_verbs.go`, `checkrun_charly_verbs.go`,
-  `checkcollect.go`, `check_cmd.go`, `check_runner_cmd.go`, `check_loop.go`,
+  `description_collect.go`, `check_cmd.go`, `check_runner_cmd.go`, `check_loop.go`,
   `check_runner_live.go`, `check_watchdog.go`, `validate_check.go`,
   `mcp.go`, `mcp_client.go`, plus the `LabelDescriptionSet` type in `labels.go`.
 - `/charly-internals:generate-source` — how `LabelDescriptionSet` is written into the Containerfile

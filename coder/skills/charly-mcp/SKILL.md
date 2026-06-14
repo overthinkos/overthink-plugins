@@ -131,7 +131,7 @@ Host-networked containers have an empty `NetworkSettings.Ports`. The
 `charly/mcp_client.go` `lookupHostPort()` function detects
 `HostConfig.NetworkMode == "host"` and returns the container port
 verbatim (container ports ARE host ports under `network: host`). See
-`charly/testvars.go` `IsHostNetworked()` + the matching `mergeRuntimeVars()`
+`charly/checkvars.go` `IsHostNetworked()` + the matching `mergeRuntimeVars()`
 handling for `HOST_PORT:<N>` env-var population.
 
 Practical impact: charly-mcp works on both bridge-networked boxes

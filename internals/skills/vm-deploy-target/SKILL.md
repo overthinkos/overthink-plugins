@@ -48,7 +48,7 @@ Two implementations:
 - `ShellExecutor` — `bash -c <script>` / file copy. Used by `LocalDeployTarget` for container-builder invocations and by the dry-run path of any target.
 - `SSHExecutor` — ssh/scp via `golang.org/x/crypto/ssh`. Used exclusively by `VmDeployTarget`. Carries Host/Port/User/KeyPath + maintains a persistent connection across multiple shell invocations.
 
-**Name choice**: the interface is `DeployExecutor` (not `Executor`) to avoid a clash with the `Executor` type in `testrun.go`; likewise `deployShellQuote` (not `shellQuote`) avoids a clash in `wl.go`.
+**Name choice**: the interface is `DeployExecutor` — a deploy-scoped name kept distinct from the check runner's own execution types; likewise `deployShellQuote` (not `shellQuote`) avoids a clash in `wl.go`.
 
 ## VmDeployTarget.Emit flow
 
