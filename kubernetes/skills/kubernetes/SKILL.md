@@ -160,7 +160,7 @@ charly deploy sync openclaw                   # kubectl apply -k ...
 - `charly/k8s_config.go` — `K8sDeployConfig` + `ClusterProfile` + `LoadClusterProfile`
 - `charly/k8s_target.go` — `K8sDeployTarget` (fourth DeployTarget alongside OCI / container / host)
 - `charly/k8s_generate.go` — `GenerateK8sKustomize` + workload-kind heuristic + Ingress/PVC emission
-- `charly/k8s_deploy_from_image.go` — `DeployFromImage`
+- `charly/deploy_from_box_cmd.go` — `DeployFromBoxCmd` (`charly deploy from-box`, K8s among its targets)
 - `charly/capabilities.go` — `Capabilities` (alias of `BoxMetadata`) + `CapabilityLabelMap` + completeness check
 
 ## Related skills
