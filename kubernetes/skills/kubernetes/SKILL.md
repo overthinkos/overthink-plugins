@@ -141,6 +141,12 @@ New cluster = write a new profile; zero deployment-spec changes.
 
 Apply: `kubectl apply -k .opencharly/k8s/<name>/overlays/<instance>` (or `charly deploy sync <name>`).
 
+**Egress validation.** Every manifest is validated through `writeK8sYAML` before it
+is written: workload / service / pvc / ingress against the `#K8sObject` envelope
+(non-empty `apiVersion`/`kind` + named `metadata`), and the base + overlay
+`kustomization.yaml` against `#Kustomization`. A structurally-broken manifest fails
+deploy generation instead of reaching the cluster. Owned by `/charly-internals:egress`.
+
 ## Source-less deploy — `charly deploy from-box`
 
 Proves the self-contained image invariant: a deploy pipeline with **no access to `charly.yml`** can still produce a correct Kustomize tree.
@@ -168,3 +174,4 @@ charly deploy sync openclaw                   # kubectl apply -k ...
 - `/charly-core:deploy` — unified `charly deploy add`/`del` verb; K8s is one of three targets
 - `/charly-internals:capabilities` — OCI label contract the K8s generator reads from
 - `/charly-internals:install-plan` — shared IR across build + deploy targets
+- `/charly-internals:egress` — the CUE egress gate that validates every generated manifest before write (`#K8sObject` / `#Kustomization`)

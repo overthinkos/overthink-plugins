@@ -44,6 +44,7 @@ Dockerfile / systemd-INI / ssh_config. So egress validation is layered:
 | Function | Purpose |
 |----------|---------|
 | `ValidateEgress(kind, label, data []byte) error` | Ingest serialized YAML/JSON bytes, unify with the egress kind's schema, `Validate(cue.Concrete(true))`. JSON is a YAML subset, so one ingest path covers both. |
+| `ValidateEgressValue(kind, label, v any) error` | Validate an in-memory Go value (a manifest `map[string]any`, a record struct) — `cueSchemaCtx.Encode(v)` then unify+validate, no marshal roundtrip. Used where the writer holds the artifact as a Go value just before serialization (k8s manifests). |
 | `registerVendoredEgressKind(kind, file, defPath)` | Compile a vendored schema file as its OWN `cue.Value` and register it (see "schema sources"). |
 | `egressDef(kind) (cue.Value, bool)` | Resolve a kind's def — the vendored registry first, then charly's own shared-scope kinds via `cueKindDef`. |
 
@@ -89,6 +90,8 @@ CLI (the `/charly-tools:cue` candy):
 | cloud-init **user-data** | `RenderCloudInit` (`cloud_init_render.go`) | `cloud_config` | vendored Canonical cloud-config (`schema/vendor/cloud_config.cue`, `#CloudConfig`) |
 | cloud-init **meta-data** | `RenderCloudInit` | `cloud_init_meta` | `schema/egress_cloud_init.cue` `#CloudInitMeta` |
 | cloud-init **network-config** | `RenderCloudInit` | `cloud_init_net` | `schema/egress_cloud_init.cue` `#NetworkConfigV2` |
+| **k8s manifests** (Deployment/StatefulSet/DaemonSet/Job/CronJob/Pod/Service/PVC/Ingress) | `GenerateK8sKustomize` → `writeK8sYAML` (`k8s_generate.go`) | `k8s_object` | `schema/egress_k8s.cue` `#K8sObject` envelope (validates structure — the egress failure mode for machine-generated manifests; deep per-field types are an ingress concern) |
+| **k8s Kustomization** (base + overlay) | `GenerateK8sKustomize` → `writeK8sYAML` | `kustomization` | `schema/egress_k8s.cue` `#Kustomization` |
 
 ## Caveats
 
