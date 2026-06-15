@@ -46,7 +46,7 @@ charly box new project ~/my-project
 
 **A scaffolded project is immediately usable.** The default distro/builder/init/resource
 build vocabulary (and the default sidecar templates) are EMBEDDED in the `charly` binary
-(`charly/charly.yml`, `//go:embed`) — no build vocabulary to copy or `format_config` to wire. Declare
+(`charly/charly.cue`, `//go:embed`) — no build vocabulary to copy or `format_config` to wire. Declare
 `distro:`/`builder:`/`init:`/`resource:` in `charly.yml` (or an imported vocab file) ONLY to
 extend or override the embedded default. Add a box with `charly box new box <name>`
 (writes `box/<name>/charly.yml`) and a candy with `charly box new candy <name>` (writes

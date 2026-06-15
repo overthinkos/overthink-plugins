@@ -89,14 +89,15 @@ and `/charly-build:validate`.
 ## Build Config (build.yml)
 
 Containerfile generation is driven by the build vocabulary (`distro:` / `builder:` / `init:` /
-`resource:`). The DEFAULT vocabulary is EMBEDDED in the `charly` binary (`charly/charly.yml`,
-`//go:embed` — the single embedded default config, parsed by the same unified loader as any
-project `charly.yml`) and merged as the lowest-priority base — a project needs
+`resource:`). The DEFAULT vocabulary is EMBEDDED in the `charly` binary (`charly/charly.cue`,
+`//go:embed` — the single embedded default config, authored in CUE and compiled to data by the
+CUE-source front-end, then parsed by the same unified loader as any project `charly.yml`) and
+merged as the lowest-priority base — a project needs
 no build vocabulary of its own. A project EXTENDS or OVERRIDES it by declaring its own
 `distro:`/`builder:`/`init:`/`resource:` entries inline in `charly.yml` or in an imported
 vocabulary file (project-wins; the former `defaults.format_config:` field is gone).
 
-The embedded `charly.yml`'s build vocabulary has three top-level sections:
+The embedded `charly.cue`'s build vocabulary has three top-level sections:
 
 - **`distro:`** — Per-distro bootstrap commands (package manager setup, cache mounts, repo management), optional `base_user:` declaration (what uid-1000 account the upstream base image ships), and package format templates (how `rpm:`, `pac:`, `deb:` sections in charly.yml become `RUN` steps). Each format has `install`, `repos`, `copr`, `modules`, and `options` templates.
 - **`builder:`** — Multi-stage builder patterns (pixi, npm, cargo, aur). Each builder has `build_stage` and `copy_stage` templates that generate the appropriate `FROM builder AS ...` and `COPY --from=...` steps.
