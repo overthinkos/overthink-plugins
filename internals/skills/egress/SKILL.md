@@ -94,6 +94,19 @@ CLI (the `/charly-tools:cue` candy):
 | **k8s Kustomization** (base + overlay) | `GenerateK8sKustomize` → `writeK8sYAML` | `kustomization` | `schema/egress_k8s.cue` `#Kustomization` |
 | **install-ledger deploy record** | `WriteDeployRecord` / `WriteDeployRecordVia` (`install_ledger.go`) | `deploy_record` | `schema/egress_ledger.cue` `#DeployRecord` (requires `deploy_id`/`target`/`deployed_at`; `image` optional — candy-only deploys leave it empty) |
 | **install-ledger candy record** | `WriteCandyRecord` / `AddCandyDeploymentVia` | `candy_record` | `schema/egress_ledger.cue` `#CandyRecord` (requires `candy`/`deployed_at`; steps/reverse_ops open) |
+| **traefik dynamic config** (`.build/<box>/traefik-routes.yml`) | `generateTraefikRoutes` (`generate.go`) | `traefik_routes` | `schema/egress_traefik.cue` `#TraefikRoutes` (hand-built YAML — non-empty Host rule / service / backend url; null routers/services when no route candies) |
+
+## Deliberately NOT egress-validated
+
+The gate earns its keep on output that is HAND-ASSEMBLED with real invariants
+(traefik routes, ledger records) or that incorporates external/variable data
+(cloud-init Extra, k8s capabilities from labels). It is **intentionally not added**
+where the writer is a straight `yaml.Marshal(typedStruct)` of charly's own struct
+with no transformation — the output cannot malform by construction, so a schema
+would be validation theater:
+
+- **runtime config** `~/.config/charly/config.yml` (`SaveRuntimeConfig` — pure `yaml.Marshal(*RuntimeConfig)`).
+- **deploy-state** `~/.config/charly/charly.yml` (`SaveDeployConfig`) — additionally, project config is already CUE-validated on LOAD (ingress).
 
 ## Caveats
 
