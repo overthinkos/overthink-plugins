@@ -2,9 +2,9 @@
 name: vm-spec
 description: |
   Go type reference for VmSpec and the discriminated-union source types
-  (VmSource cloud_image | bootc). Documents every field, validation rules,
-  and the adopt-user decision. Source files: charly/vm_spec.go, charly/cloud_init_types.go,
-  charly/libvirt_validate.go.
+  (VmSource cloud_image | bootc | clone | imported | bootstrap). Documents every
+  field, validation rules, and the adopt-user decision. Source files:
+  charly/vm_spec.go, charly/cloud_init_types.go, charly/schema/vm.cue.
   MUST be invoked before editing VmSpec Go code or authoring vm.yml entries.
 ---
 
@@ -19,7 +19,7 @@ Go type reference for the VM surface. `VmSpec` + `VmSource` + `VmChecksum` + `Vm
 | `charly/vm_spec.go` | `VmSpec`, `VmSource`, `VmChecksum`, `VmNetwork`, `VmSSH`, `VmKeyInjection` |
 | `charly/cloud_init_types.go` | `VmCloudInit`, `VmCloudInitUser`, `VmCloudInitFile`, `VmCloudInitNetwork`, `VmCloudInitMirrors`, `VmCharlyInstall` |
 | `charly/libvirt_yaml.go` | `LibvirtDomain` + 30+ sub-types (features, CPU, clock, devices, etc.) |
-| `charly/libvirt_validate.go` | `ValidateVmSpec`, `ValidateLibvirtDomain` |
+| `charly/schema/vm.cue` + `cue_kind_vm.go` | `#Vm` — the closed CUE schema validating `VmSpec` + the `#LibvirtDomain`/`#VmCloudInit` subtrees (registered in the per-kind CUE registry; the Go VM/libvirt validators were deleted) |
 
 ## VmSpec (top-level shape)
 
@@ -44,7 +44,7 @@ Every field except `Source`, `CloudInit`, and `Source`-branch-specific subfields
 
 ### Autostart (boot-start)
 
-`autostart: true` sets libvirt's per-domain autostart flag (`DomainSetAutostart`, in `runVmSpecCreate` after define). Because VMs run under `qemu:///session`, that flag only fires at host boot once the session daemon is running — and there is no portable user-level `virtqemud.socket` to socket-activate it (Arch/CachyOS ships none). So `ensureBootAutostartPrereqs` (`charly/vm.go`) (a) runs `loginctl enable-linger <user>` (idempotent) and (b) writes + enables a per-VM user systemd oneshot `charly-autostart-<domain>.service` that runs `virsh -c qemu:///session start <domain>` at boot (`WantedBy=default.target`); virsh spawns the session daemon on demand and starts the already-defined domain — deterministic and cross-distro. `charly vm destroy` removes the unit (`removeAutostartUserUnit`). The libvirt flag is a domain property (not XML), so it survives `DomainDefineXML` redefinitions; `runVmSpecCreate` re-asserts both on every create/rebuild. `ValidateVmSpec` rejects `autostart: true` with `backend: qemu`. Additive optional field — no schema-version bump.
+`autostart: true` sets libvirt's per-domain autostart flag (`DomainSetAutostart`, in `runVmSpecCreate` after define). Because VMs run under `qemu:///session`, that flag only fires at host boot once the session daemon is running — and there is no portable user-level `virtqemud.socket` to socket-activate it (Arch/CachyOS ships none). So `ensureBootAutostartPrereqs` (`charly/vm.go`) (a) runs `loginctl enable-linger <user>` (idempotent) and (b) writes + enables a per-VM user systemd oneshot `charly-autostart-<domain>.service` that runs `virsh -c qemu:///session start <domain>` at boot (`WantedBy=default.target`); virsh spawns the session daemon on demand and starts the already-defined domain — deterministic and cross-distro. `charly vm destroy` removes the unit (`removeAutostartUserUnit`). The libvirt flag is a domain property (not XML), so it survives `DomainDefineXML` redefinitions; `runVmSpecCreate` re-asserts both on every create/rebuild. The `#Vm` CUE schema rejects `autostart: true` with `backend: qemu` (`if autostart { backend: "auto" | "libvirt" }`). Additive optional field — no schema-version bump.
 
 `DiskSize` is the **virtual** size: the bootstrap path's `truncate` + `qemu-img convert -O qcow2` (no `preallocation`) produces a sparse qcow2 that grows on demand, so `disk_size: 1T` costs only the bytes actually written.
 
@@ -79,7 +79,7 @@ type VmSource struct {
 }
 ```
 
-`Kind` is the discriminator. `ValidateVmSpec` enforces that exactly one branch's required fields are populated.
+`Kind` is the discriminator. The `#VmSource` CUE disjunction (`schema/vm.cue`) enforces that exactly one branch's required fields are populated and forbids cross-branch fields (each arm pins `kind` and marks the others `_|_`).
 
 ### Adopt-user decision (BaseUser)
 
@@ -143,19 +143,24 @@ type VmCharlyInstall struct {
 | `url` | cloud-init runcmd downloads charly from URL at first boot |
 | `skip` | user manages charly install; VmDeployTarget verifies presence only |
 
-## Validation (charly/libvirt_validate.go)
+## Validation (charly/schema/vm.cue)
 
-`ValidateVmSpec` enforces the invariants documented in `/charly-vm:vms-catalog`. Key checks:
+The closed `#Vm` CUE schema (registered via `cue_kind_vm.go`) enforces every VmSpec
+invariant — there is no Go VM validator. Key checks:
 
-- `source.kind` ∈ {`cloud_image`, `bootc`}.
-- cloud_image branch requires `url:` populated; bootc branch requires `image:`.
-- `firmware:` ∈ {`bios`, `uefi-insecure`, `uefi-secure`}.
-- `network.mode:` ∈ {`user`, `bridge`, `nat`}.
-- `ssh.key_source:` parses as `auto` | `generate` | `none` | absolute path.
-- `ssh.key_injection.{smbios,cloud_init}` ∈ {`auto`, `enabled`, `disabled`}.
-- `Libvirt` structure routed to `ValidateLibvirtDomain`.
+- `source.kind` ∈ {`cloud_image`, `bootc`, `clone`, `imported`, `bootstrap`}; the
+  `#VmSource` disjunction requires each arm's fields and forbids cross-arm fields.
+- `firmware:` ∈ {`bios` (default), `uefi-insecure`, `uefi-secure`}; `uefi-secure` ⇒
+  `machine ≠ i440fx` AND requires an explicit `libvirt.features.smm: true`.
+- `network.mode:` ∈ {`user` (default), `bridge`, `nat`, `network`}; `bridge` ⇒ `bridge:` set.
+- `ssh.port` ⊕ `ssh.port_auto` (mutually exclusive); `ssh.key_source:` ∈ {`auto`,
+  `generate`, `none`} or an absolute path; `ssh.key_injection.{smbios,cloud_init}` ∈
+  {`auto`, `enabled`, `disabled`}.
+- the `#LibvirtDomain` subtree is modeled + closed in the same schema (enums/ranges/
+  PCI-hex + `cpu.mode:custom ⇒ model`); see `/charly-internals:libvirt-renderer`.
 
-Failed validation → hard load-time error with a one-line remediation hint pointing at `/charly-vm:vms-catalog` or `charly migrate`.
+Failed validation → hard load-time error (the closed schema also rejects unknown
+keys/typos); `charly box validate` runs the full concrete check.
 
 ## Migration from legacy VmConfig
 

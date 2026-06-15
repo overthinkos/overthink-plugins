@@ -22,7 +22,7 @@ The libvirt renderer converts `VmSpec` + `LibvirtDomain` into a libvirt domain X
 | `charly/libvirt_helpers.go` | helpers shared by the libvirt YAML bridge + `qemu_render` argv emitter (incl. `VmRuntimeParams`) | ~160 |
 | `charly/libvirt_yaml_listen.go` | structured `<listen>` support for `LibvirtGraphics` | ~130 |
 | `charly/qemu_render.go` | `RenderQemuArgv` for direct-QEMU backend | ~340 |
-| `charly/libvirt_validate.go` | `ValidateLibvirtDomain` |
+| `charly/schema/vm.cue` | `#LibvirtDomain` — the closed CUE schema for the libvirt subtree (enums/ranges/PCI-hex + the `uefi-secure ⇒ smm` cross-rule); registered via `cue_kind_vm.go`. Validation lives here, not in Go |
 
 ## LibvirtDomain top-level
 
@@ -87,8 +87,8 @@ GPUs: `libvirt.features.kvm.hidden: on` → `<kvm><hidden state='on'/></kvm>`, a
 `libvirt.features.hyperv.vendor_id: {state, value}` → `<hyperv><vendor_id …/>`.
 `features.ibs` and the rest of the KVM struct (hint_dedicated / poll_control /
 pv_ipi / dirty_ring) render too; other HyperV enlightenments stay available via
-`libvirt.snippets`. `ValidateLibvirtDomain` checks hostdev type/managed enums and
-hex PCI source fields. Worked example: the CachyOS `check-cachyos-gpu-vm` bed.
+`libvirt.snippets`. The `#LibvirtDomain` CUE schema (`schema/vm.cue`) checks
+hostdev type/managed enums and hex PCI source fields. Worked example: the CachyOS `check-cachyos-gpu-vm` bed.
 
 ### virtiofs filesystem shares + auto-paired shared memory
 
@@ -103,8 +103,8 @@ calls `ensureVirtiofsSharedMemory`, which auto-injects
 whenever a virtiofs share is present and no shared backing was declared (an
 explicit backing, e.g. hugepages, is honored — only the missing source/access
 bits are filled). Without this libvirt refuses to start the domain; auto-pairing
-means an author never has to remember the coupling. `ValidateLibvirtDomain`
-requires `source`+`target` and checks the driver/accessmode enums — a literal
+means an author never has to remember the coupling. The `#LibvirtDomain` CUE
+schema requires `source`+`target` and checks the driver/accessmode enums — a literal
 `/home/...` source is allowed (a share's purpose is to expose a host dir). The
 guest mounts the tag with the `workspace-mount` layer (or `mount -t virtiofs`).
 
@@ -161,7 +161,13 @@ the parent dir. (The same channel is also contributed as a raw snippet by the
 
 When `spec.Firmware == "bios"` or empty, `ResolveOvmfForSpec` returns empty paths, `VmRuntimeParams.OVMFCodePath`/`.NVRAMPath` stay empty, and `buildDomainOS` emits neither `<loader>` nor `<nvram>` (the firmware `switch` has no bios case). No OVMF package dependency, no per-VM NVRAM file, no Secure Boot lock-in. This is what makes `/charly-vm:arch` viable — BIOS boot bypasses the stale BOOTX64.EFI issue by never loading it.
 
-`uefi-secure` additionally sets `Features.SMM = true` (required for Secure Boot authenticated variables).
+`uefi-secure` does NOT auto-enable SMM: `buildDomainOS` emits the secure-boot
+`<feature>` toggles + secure `<loader>`, but `buildDomainFeatures` only emits
+`<smm state='on'/>` from an explicit `libvirt.features.smm: true`. Because Secure
+Boot's authenticated variables require SMM, the author MUST declare
+`libvirt.features.smm: true`, and the `#Vm` CUE schema enforces it — the
+`uefi-secure ⇒ libvirt.features.smm:true` required-field rule rejects a
+`uefi-secure` VM that omits it (`schema/vm.cue`).
 
 ## SMBIOS credentials (type 11 OEM strings)
 
@@ -197,11 +203,22 @@ Intended for environments without libvirt session daemon (some CI runners, air-g
 
 ## Validation
 
-`ValidateLibvirtDomain` rejects:
+The libvirt subtree is validated by the closed `#LibvirtDomain` CUE schema
+(`charly/schema/vm.cue`, registered via `cue_kind_vm.go`) — there is no Go
+libvirt validator. It rejects:
 
-- invalid element string in `Snippets` (checked via existing `ValidateLibvirtSnippet` — malformed XML / empty string / non-XML content).
-- enumerated values out of range (e.g. `CPU.Mode` not in {`host-passthrough`, `host-model`, `custom`, `maximum`}).
-- mutually exclusive combinations (e.g. `Clock.Offset` + `Clock.Adjustment` without sanity).
+- unknown keys (a typo — the schema is closed, no trailing `...`).
+- out-of-range enums (`cpu.mode`, `graphics.type`, `filesystem.driver`/`accessmode`,
+  `hostdev.type`/`managed`, `clock.offset`, `launch_security.type`).
+- missing required fields (`video.model`, `filesystem.source`/`target`, and — for a
+  `pci` hostdev — hex `source.domain`/`bus`/`slot`/`function` via `#LibvirtPCIHex`).
+- the cross-rules: `cpu.mode:custom ⇒ model`, and (on the `#Vm` parent)
+  `firmware:uefi-secure ⇒ libvirt.features.smm:true`.
+
+XML well-formedness of raw `libvirt.snippets` is still checked by
+`ValidateLibvirtSnippet` for **candy/image-level** snippets (`charly/validate.go`);
+`kind: vm` entity-inline `libvirt.snippets` are modeled typed-open (`[...string]`)
+and not XML-parsed at config time.
 
 ## Cross-References
 

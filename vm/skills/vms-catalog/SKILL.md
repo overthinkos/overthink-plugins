@@ -189,16 +189,15 @@ Leave `base_user:` empty **only** when the upstream has no default account — i
 
 ## Validation rules
 
-Load-time errors raised by `ValidateVmSpec` (`charly/libvirt_validate.go`, see `/charly-internals:vm-spec`):
+Load-time errors raised by the closed `#Vm` CUE schema (`charly/schema/vm.cue`, see `/charly-internals:vm-spec`):
 
-- `source.kind` must be one of `cloud_image`, `bootc`.
-- `cloud_image` branch requires `url:` populated.
-- `bootc` branch requires `image:` populated and pointing at a resolvable `kind: box` entry.
-- `firmware:` must be one of `bios`, `uefi-insecure`, `uefi-secure`.
-- `network.mode:` must be one of `user`, `bridge`, `nat`.
-- `ssh.key_source:` must parse as `auto`, `generate`, `none`, or an absolute path.
+- `source.kind` must be one of `cloud_image`, `bootc`, `clone`, `imported`, `bootstrap`; each arm requires its own fields and forbids the others'.
+- `cloud_image` requires `url:`; `bootc` requires `box:` resolving to a `kind: box` entry; `clone` requires `from_vm:`+`from_snapshot:`; `imported` requires `libvirt_name:`+`disk_path:`+`disk_format:`; `bootstrap` requires `builder:`+`distro:`.
+- `firmware:` must be one of `bios`, `uefi-insecure`, `uefi-secure`; `uefi-secure` additionally requires an explicit `libvirt.features.smm: true`.
+- `network.mode:` must be one of `user`, `bridge`, `nat`, `network`.
+- `ssh.key_source:` must parse as `auto`, `generate`, `none`, or an absolute path; `ssh.port` and `ssh.port_auto` are mutually exclusive.
 - `ssh.key_injection.smbios` / `.cloud_init` must be one of `auto`, `enabled`, `disabled`.
-- `libvirt:` structure is schema-validated via `ValidateLibvirtDomain` — invalid snippets fail fast.
+- the `libvirt:` subtree is modeled + closed by `#LibvirtDomain` in the same schema — unknown keys and bad enums fail fast.
 
 ## Migration from legacy (box.bootc / box.vm / box.libvirt)
 
