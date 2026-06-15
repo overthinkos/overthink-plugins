@@ -57,6 +57,8 @@ Pattern mirrors `charly/shell_profile.go` (the env.d managed block in `~/.profil
 
 Every target:local deploy writes a `DeployRecord` and per-layer `CandyRecord`s with `deployed_by:` refcount semantics. See the file map above for the JSON shapes.
 
+Each record is **egress-validated** (`ValidateEgressValue` against `#DeployRecord` / `#CandyRecord`) before the JSON is written — on the host (`writeJSONAtomic`) and guest (`*Via` executor heredoc) paths alike — so a record missing its identity/time fields fails the deploy instead of silently corrupting teardown. Owned by `/charly-internals:egress`.
+
 ## Cross-References
 
 - `/charly-internals:install-plan` — the IR these files support; full step-kind catalogue.

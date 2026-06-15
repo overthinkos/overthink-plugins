@@ -92,6 +92,8 @@ CLI (the `/charly-tools:cue` candy):
 | cloud-init **network-config** | `RenderCloudInit` | `cloud_init_net` | `schema/egress_cloud_init.cue` `#NetworkConfigV2` |
 | **k8s manifests** (Deployment/StatefulSet/DaemonSet/Job/CronJob/Pod/Service/PVC/Ingress) | `GenerateK8sKustomize` → `writeK8sYAML` (`k8s_generate.go`) | `k8s_object` | `schema/egress_k8s.cue` `#K8sObject` envelope (validates structure — the egress failure mode for machine-generated manifests; deep per-field types are an ingress concern) |
 | **k8s Kustomization** (base + overlay) | `GenerateK8sKustomize` → `writeK8sYAML` | `kustomization` | `schema/egress_k8s.cue` `#Kustomization` |
+| **install-ledger deploy record** | `WriteDeployRecord` / `WriteDeployRecordVia` (`install_ledger.go`) | `deploy_record` | `schema/egress_ledger.cue` `#DeployRecord` (requires `deploy_id`/`target`/`deployed_at`; `image` optional — candy-only deploys leave it empty) |
+| **install-ledger candy record** | `WriteCandyRecord` / `AddCandyDeploymentVia` | `candy_record` | `schema/egress_ledger.cue` `#CandyRecord` (requires `candy`/`deployed_at`; steps/reverse_ops open) |
 
 ## Caveats
 
