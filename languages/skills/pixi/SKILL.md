@@ -42,6 +42,17 @@ my-image:
 - `/charly-languages:python` -- depends on pixi for Python 3.13 installation
 - `/charly-coder:pre-commit` -- uses pixi for pre-commit installation
 
+## Pinned pixi version (`var: PIXI_VERSION`)
+
+The `pixi` candy installs a **pinned** pixi release — `var: PIXI_VERSION` drives the
+`releases/download/${PIXI_VERSION}/pixi-${BUILD_ARCH}-unknown-linux-musl.tar.gz`
+download. Bump `PIXI_VERSION` (and the candy `version:`) deliberately to adopt a
+newer pixi; do NOT revert to an unpinned `releases/latest` URL, which makes the
+same candy version install a different pixi over time (non-reproducible builds,
+against charly's content-hash/CalVer model). Candy `pixi.toml` files use the
+modern `[workspace]` table (the deprecated `[project]` form emits a warning under
+pixi ≥ 0.70 and is being removed upstream).
+
 ## Committed `pixi.lock` → `pixi install --frozen`
 
 Every pixi candy ships a committed `pixi.lock` next to its `pixi.toml`. When a
