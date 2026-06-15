@@ -26,10 +26,17 @@ Lives **host-side**, in the `charly` binary. The **guest-side** `/charly-distros
 ## RenderCloudInit top-level
 
 ```go
-func RenderCloudInit(spec *VmSpec, vmName, sshPubKey string) (userData, metaData, networkConfig string, err error)
+func RenderCloudInit(spec *VmSpec, rt CloudInitRuntimeParams) (userData, metaData, networkConfig string, err error)
 ```
 
 Returns three strings — the three files NoCloud expects on the seed ISO. The caller (`BuildCloudImage` or `VmDeployTarget`) then calls `WriteSeedISO` to pack them.
+
+**Egress validation gate.** Before returning, each rendered document is validated
+against a CUE schema — user-data against the vendored Canonical cloud-config
+schema (`#CloudConfig`), meta-data against `#CloudInitMeta`, network-config against
+`#NetworkConfigV2` (via `ValidateEgress`). A malformed render fails here, so a
+cloud-init that its own schema would reject never reaches the seed ISO. The gate
+is owned by `/charly-internals:egress`.
 
 ## composeUsers (adopt-merge pattern)
 

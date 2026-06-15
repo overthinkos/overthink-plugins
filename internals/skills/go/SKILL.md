@@ -307,6 +307,7 @@ See `/charly-image:image` "user_policy" for the user-facing decision matrix, `/c
 | `envfile.go` | `.env` file parsing (`ParseEnvFile`, `ParseEnvBytes`), runtime env var resolution/merging |
 | `security.go` | Container security config collection, CLI args generation. Merges `Mounts` from layer security configs |
 | `labels.go` | OCI label constants. `LabelDescription` (`ai.opencharly.description`) carries the `LabelDescriptionSet` — each `LabeledDescription` (a `Description` string) plus its `Plan []Step` list; `BoxMetadata`'s `*LabelDescriptionSet` field is populated by `ExtractMetadata` when present |
+| `egress.go` | **Egress validation** — `ValidateEgress(kind,label,bytes)` gates the config files charly WRITES (cloud-init, k8s, units, ssh_config, …) against a CUE schema before the bytes hit disk. VENDORED schemas (`schema/vendor/*.cue`, package+import) compile as their own `cue.Value` via `registerVendoredEgressKind` (they can't join the package-less concatenated `sharedCueSchema`); charly's own package-less egress schemas resolve via `cueKindDef`. See `/charly-internals:egress`. |
 | `volumes.go` | Named volume collection/mounting |
 | `alias.go` | Command aliases (wrapper scripts) |
 | `deploy.go` | Per-deployment config overlay, `DeployVolumeConfig`, `ResolveVolumeBacking()`, `saveDeployState()`, `cleanDeployEntry()` (instance-aware provides cleanup) |

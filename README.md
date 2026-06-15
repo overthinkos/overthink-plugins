@@ -46,7 +46,7 @@ manager UI.
 
 | Plugin | Skill count | MCP server | Purpose |
 |---|--:|---|---|
-| **charly-internals** | 16 + 5 agents | github (stdio) | Go source map, install-plan IR, capabilities/OCI labels, vm-spec, libvirt/cloud-init renderers, cutover-policy, strict-policy, disposable, ovmf, generate-source, git-workflow, skills, agents (the agents/workflows/teams guide). Ships 5 agents — enforcers root-cause-analyzer, layer-validator, testing-validator; executors check-bed-runner, deploy-verifier (drive the `charly check` beds). The `/verify-beds` + `/audit-deploy-configs` dynamic workflows live in the superproject's `.claude/workflows/`. |
+| **charly-internals** | 17 + 5 agents | github (stdio) | Go source map, install-plan IR, capabilities/OCI labels, vm-spec, libvirt/cloud-init renderers, egress (validating the config files charly WRITES), cutover-policy, strict-policy, disposable, ovmf, generate-source, git-workflow, skills, agents (the agents/workflows/teams guide). Ships 5 agents — enforcers root-cause-analyzer, layer-validator, testing-validator; executors check-bed-runner, deploy-verifier (drive the `charly check` beds). The `/verify-beds` + `/audit-deploy-configs` dynamic workflows live in the superproject's `.claude/workflows/`. |
 
 ### images — deployable image catalog
 
@@ -57,7 +57,7 @@ manager UI.
 | **charly-distros** | 34 | — | Base OS images, GPU runtime, per-distro builders. fedora (+ fedora-builder, fedora-nonfree — the base stack is owned by the `overthinkos/fedora` submodule, which is self-contained (`import: []`); the charly-fedora / fedora-test showcase images are owned by that submodule too), arch (+ arch-builder, owned by the self-contained `overthinkos/arch` submodule), cachyos (+ cachyos-pacstrap/-builder, owned by the `overthinkos/cachyos` submodule, which imports the `arch` namespace), debian / ubuntu (+ their `-builder` and `-debootstrap`/`-debootstrap-builder`, owned by the `overthinkos/debian` / `overthinkos/ubuntu` submodules), nvidia, cuda, rocm, etc. The `nvidia` GPU base image now lives in the `overthinkos/fedora` submodule (the `nvidia` / `cuda` / `rocm` layers stay in main). |
 | **charly-languages** | 4 | — | Programming language runtimes — pixi, python, python-ml, python-ml-layer. (golang/rust/nodejs live in `charly-coder` because they're tightly coupled to dev images.) |
 | **charly-infrastructure** | 22 | — | Databases, networking, security, system services. postgresql, redis, valkey, vectorchord, k3s, traefik, supervisord, tailscale, gocryptfs, virtualization, dbus-layer, tmux-layer, ssh-client, gnupg, etc. |
-| **charly-tools** | 18 | — | CLI utilities and the `charly` binary — ripgrep, himalaya, whisper, nano-pdf, summarize, ordercli, gogcli, sherpa-onnx, songsee, blogwatcher, sag, xurl, goplaces, mcporter, yay, vscode, charly. |
+| **charly-tools** | 19 | — | CLI utilities and the `charly` binary — ripgrep, himalaya, whisper, nano-pdf, summarize, ordercli, gogcli, sherpa-onnx, songsee, blogwatcher, sag, xurl, goplaces, mcporter, yay, vscode, charly, cue. |
 
 #### Per-pod plugins
 
