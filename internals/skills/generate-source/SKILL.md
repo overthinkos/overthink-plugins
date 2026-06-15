@@ -522,6 +522,7 @@ charly box inspect my-image --format layers      # Shows layer list for an image
 - `/charly-internals:go` — Source code map: `charly/tasks.go` (emitter pipeline), `charly/generate.go:writeCandySteps` (orchestrator call site), `charly/layers.go:Task` struct, `charly/validate.go:validateCandyTasks`.
 - `/charly-build:validate` — User-facing validation rules (what `validateCandyTasks` enforces).
 - `/charly-build:build` — Building from generated Containerfiles.
+- `/charly-internals:egress` — the emitted Containerfile is egress-validated (`writeContainerfile` → `#RenderedText`, rejecting the `<no value>` template-failure marker) before it is written; the traefik-routes scratch-stage input is likewise validated (`#TraefikRoutes`).
 - Source: `charly/generate.go`, `charly/tasks.go`, `charly/intermediates.go`, `charly/graph.go`.
 
 ## When to Use This Skill

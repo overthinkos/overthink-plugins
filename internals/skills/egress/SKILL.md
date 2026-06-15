@@ -45,6 +45,7 @@ Dockerfile / systemd-INI / ssh_config. So egress validation is layered:
 |----------|---------|
 | `ValidateEgress(kind, label, data []byte) error` | Ingest serialized YAML/JSON bytes, unify with the egress kind's schema, `Validate(cue.Concrete(true))`. JSON is a YAML subset, so one ingest path covers both. |
 | `ValidateEgressValue(kind, label, v any) error` | Validate an in-memory Go value (a manifest `map[string]any`, a record struct) — `cueSchemaCtx.Encode(v)` then unify+validate, no marshal roundtrip. Used where the writer holds the artifact as a Go value just before serialization (k8s manifests). |
+| `validateTextEgress(kind, label, text string) error` | Validate a rendered NON-DATA text artifact (Containerfile, service unit) by unifying it as a CUE string with a string-constraint def (`#RenderedText` rejects the Go text/template `<no value>` nil-field marker — a render failure). No concreteness. |
 | `registerVendoredEgressKind(kind, file, defPath)` | Compile a vendored schema file as its OWN `cue.Value` and register it (see "schema sources"). |
 | `egressDef(kind) (cue.Value, bool)` | Resolve a kind's def — the vendored registry first, then charly's own shared-scope kinds via `cueKindDef`. |
 
@@ -95,6 +96,8 @@ CLI (the `/charly-tools:cue` candy):
 | **install-ledger deploy record** | `WriteDeployRecord` / `WriteDeployRecordVia` (`install_ledger.go`) | `deploy_record` | `schema/egress_ledger.cue` `#DeployRecord` (requires `deploy_id`/`target`/`deployed_at`; `image` optional — candy-only deploys leave it empty) |
 | **install-ledger candy record** | `WriteCandyRecord` / `AddCandyDeploymentVia` | `candy_record` | `schema/egress_ledger.cue` `#CandyRecord` (requires `candy`/`deployed_at`; steps/reverse_ops open) |
 | **traefik dynamic config** (`.build/<box>/traefik-routes.yml`) | `generateTraefikRoutes` (`generate.go`) | `traefik_routes` | `schema/egress_traefik.cue` `#TraefikRoutes` (hand-built YAML — non-empty Host rule / service / backend url; null routers/services when no route candies) |
+| **Containerfile** (`.build/<box>/Containerfile`) | `writeContainerfile` (`generate.go`) | `rendered_text` | `schema/egress_text.cue` `#RenderedText` (rejects the `<no value>` template-failure marker) |
+| **systemd/supervisord service units** | `RenderService` (`service_render.go`) | `rendered_text` | `schema/egress_text.cue` `#RenderedText` (same template-failure gate) |
 
 ## Deliberately NOT egress-validated
 
