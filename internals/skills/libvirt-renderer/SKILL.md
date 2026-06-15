@@ -220,6 +220,14 @@ XML well-formedness of raw `libvirt.snippets` is still checked by
 `kind: vm` entity-inline `libvirt.snippets` are modeled typed-open (`[...string]`)
 and not XML-parsed at config time.
 
+**Egress validation of the RENDERED domain XML** (distinct from the `#LibvirtDomain`
+INGRESS validation above): `RenderDomainXML` runs `ValidateXMLEgress` on its output —
+the XML is decoded via CUE's experimental `xml+koala` encoding and validated against
+the koala-shaped `#LibvirtDomainXML` envelope (non-empty `$type`/`name.$$`/`memory.$$`),
+catching a broken render or `XMLPassthrough` snippet before VM create. It is
+**best-effort**: if koala cannot decode the XML it returns nil and defers to libvirt's
+`DomainDefineXML`, which remains the authoritative gate. Owned by `/charly-internals:egress`.
+
 ## Cross-References
 
 - `/charly-internals:vm-spec` — VmSpec shape the renderer reads
