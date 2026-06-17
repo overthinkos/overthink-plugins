@@ -1097,7 +1097,7 @@ intrinsic for that one shell.
 shell:
   init: |
     # Applies to bash, zsh, sh — ${SHELL_NAME} substituted at install time.
-    check "$(direnv hook ${SHELL_NAME})"
+    eval "$(direnv hook ${SHELL_NAME})"
   fish:
     init: |
       # Different syntax — explicit override.
@@ -1105,8 +1105,8 @@ shell:
 
 # Pure per-shell form
 shell:
-  bash: { init: 'check "$(direnv hook bash)"' }
-  zsh:  { init: 'check "$(direnv hook zsh)"' }
+  bash: { init: 'eval "$(direnv hook bash)"' }
+  zsh:  { init: 'eval "$(direnv hook zsh)"' }
   fish: { init: 'direnv hook fish | source' }
 
 # PATH contributions (rendered with shell-appropriate syntax —

@@ -253,7 +253,7 @@ rotation semantics differ. See `/charly-image:layer` (secret_accept / secret_req
 
 ## Project-Level Secrets (.secrets + direnv)
 
-Separate from charly's credential store, project-level environment variables (e.g., `GMAIL_USER`, `GMAIL_PASSWORD`) are stored in `.secrets` — a GPG-encrypted file at the project root. direnv decrypts it in memory via `charly secrets gpg env` when entering the directory (`check "$(charly secrets gpg env)"` in `.envrc`).
+Separate from charly's credential store, project-level environment variables (e.g., `GMAIL_USER`, `GMAIL_PASSWORD`) are stored in `.secrets` — a GPG-encrypted file at the project root. direnv decrypts it in memory via `charly secrets gpg env` when entering the directory (`eval "$(charly secrets gpg env)"` in `.envrc`).
 
 **This is NOT managed by the `charly secrets` credential store.** The two systems serve different purposes:
 
@@ -286,11 +286,11 @@ Manage GPG-encrypted `.secrets` environment files directly from the CLI. All com
 
 ### `charly secrets gpg env`
 
-Decrypt `.secrets` and output `export KEY='value'` lines to stdout. Designed for `check` or direnv:
+Decrypt `.secrets` and output `export KEY='value'` lines to stdout. Designed for `eval` or direnv:
 
 ```bash
-check "$(charly secrets gpg env)"              # Load secrets into current shell
-check "$(charly secrets gpg env -f .secrets.prod)"  # Load from specific file
+eval "$(charly secrets gpg env)"              # Load secrets into current shell
+eval "$(charly secrets gpg env -f .secrets.prod)"  # Load from specific file
 ```
 
 **Behavior:**
@@ -301,7 +301,7 @@ check "$(charly secrets gpg env -f .secrets.prod)"  # Load from specific file
 
 **Usage in `.envrc`:**
 ```bash
-check "$(charly secrets gpg env)"
+eval "$(charly secrets gpg env)"
 ```
 
 ### Common Workflows

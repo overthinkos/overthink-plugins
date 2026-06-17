@@ -423,7 +423,7 @@ Open WebUI uses `env_require` for mandatory admin credentials and `env_accept` f
 
 ```bash
 # Minimal: admin credentials required (hard error if missing)
-check "$(charly secrets gpg env)"
+eval "$(charly secrets gpg env)"
 charly config openwebui \
   -e "WEBUI_ADMIN_EMAIL=$WEBUI_ADMIN_EMAIL" \
   -e "WEBUI_ADMIN_PASSWORD=$WEBUI_ADMIN_PASSWORD" \
