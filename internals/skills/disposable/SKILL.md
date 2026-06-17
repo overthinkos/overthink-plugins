@@ -177,6 +177,24 @@ auto-allocation). Scope today: VM passthrough (a PCI `<hostdev>`); requires
 `backend: libvirt`. See `/charly-build:build` `resource:` + `/charly-vm:vm` "GPU
 passthrough".
 
+**The mode flip (vfio ↔ nvidia) + the device_lock wedge.** For a gpu-backed
+token the arbiter flips the card's host driver via `applyMode → switchMode`
+(`charly/preempt.go` → `charly/gpu_driver_switch.go`): a SHARED claim flips the
+WHOLE IOMMU group to nvidia + regenerates CDI; an EXCLUSIVE claim flips it to
+vfio. The flip is **group-aware** (every function: display→nvidia/vfio,
+HDMI-audio→snd_hda_intel/vfio) and **safe by construction** — the nvidia→vfio
+detach uses `modprobe -r` (module-refcount-guarded → `EBUSY` fast-fail if a
+client holds the GPU), NEVER a sysfs `unbind` of a busy nvidia, because that
+hangs the nvidia `.remove` forever holding the kernel `device_lock`
+(reboot-only). If a switch ever wedges anyway (a GSP-teardown stall past the
+bounded deadline), the arbiter **POISONS** the token (a boot-id-keyed marker
+under the preemption dir) and REFUSES it to every later claimant — including
+`reconcileStranded`, so a wedged card can never be handed out to produce a
+SECOND `D`-state — until a host reboot clears it. `charly vm gpu status` flags a
+poisoned/wedged card; `charly vm gpu recover` clears the marker once the card is
+verified healthy. Full RCA + the safe-switch model: `/charly-vm:vm` "GPU
+driver-mode switch".
+
 **Crash-safety (the restore guarantee).** A holder is NEVER left permanently
 stopped. The lease ledger (`~/.local/share/charly/preemption/leases.yml`) is written
 *before* any holder is stopped, and "restore" means "start every listed holder

@@ -38,8 +38,10 @@ VMs are not configured on kind: box entries — `box.vm:` / `box.libvirt:` are r
 | List VMs | `charly vm list [-a]` | List running (or all) VMs |
 | Console | `charly vm console <name>` | Attach to serial console |
 | SSH | `charly vm ssh <name>` | SSH into VM |
-| GPU passthrough readiness | `charly vm gpu status` | Host IOMMU + vfio-pci + per-GPU group/driver report |
+| GPU passthrough readiness | `charly vm gpu status` | Host IOMMU + vfio-pci + per-GPU **per-function** group/driver/mode report (flags wedge/poison) |
 | GPU passthrough block | `charly vm gpu list` | Emit a ready-to-paste `libvirt.devices.hostdevs:` block (whole IOMMU group, `managed: "yes"`) |
+| GPU driver mode (switch) | `charly vm gpu mode [vfio\|nvidia]` | Flip the WHOLE IOMMU group (display→nvidia/vfio, audio→snd_hda_intel/vfio); omit the arg to SHOW the mode |
+| GPU recover | `charly vm gpu recover` | Rebind an unbound/half-switched card to vfio-pci; reports **reboot-required** and does nothing on a true device_lock wedge |
 | Load image into guest | `charly vm cp-box <vm> <ref> [--as <tag>]` | `podman save | scp | podman load` a host image into a running guest (idempotent) |
 
 VM name convention: `charly-<name>[-<instance>]`. Default libvirt URI: `qemu:///session`.
@@ -94,6 +96,77 @@ Code-43 workarounds for consumer NVIDIA cards are first-class libvirt fields:
 Optional per-hostdev `rom: {bar: off}` / `driver: {name: vfio}` are supported.
 Worked end-to-end example: the CachyOS `check-cachyos-gpu-vm` bed (see
 `/charly-vm:cachyos`, `/charly-check:check`).
+
+## GPU driver-mode switch (vfio ↔ nvidia) — and the device_lock hazard
+
+A single passthrough-capable NVIDIA card serves EITHER a VM (every IOMMU-group
+function on `vfio-pci`) OR many shared CDI pods (display function on `nvidia`,
+HDMI-audio on `snd_hda_intel`), one mode at a time. The arbiter flips it
+automatically for `requires_exclusive` (→ vfio) / `requires_shared` (→ nvidia)
+claims (see `/charly-internals:disposable`); `charly vm gpu mode [vfio|nvidia]`
+is the manual operator override and `charly vm gpu status` the honest inspector
+(per-function driver + IOMMU group + mode). **The switch is group-aware** — it
+moves EVERY function of the IOMMU group together, because a VFIO group is
+guest-usable only when ALL its members are vfio-bound
+(`VFIO_GROUP_FLAGS_VIABLE`); flipping only the display function (the old
+behavior) stranded the audio function and broke group viability. It uses
+`driver_override` + `drivers_probe` to force the exact target driver regardless
+of the boot-time `ids=` dynamic-id table.
+
+### The device_lock wedge (why the nvidia→vfio switch is careful)
+
+Unbinding the `nvidia` driver via **sysfs `unbind` while any client still holds
+the GPU** hangs the host, reboot-only. Source-confirmed (NVIDIA open driver
+`kernel-open/nvidia/nv-pci.c`) + RDD-proven on this host:
+
+- `nv_pci_remove` (the PCI `.remove`, fired by sysfs `unbind` / `rmmod`) calls
+  `nv_pci_remove_helper(block_if_gpu_in_use=TRUE)`, which — when
+  `nvl->usage_count != 0` (an open `/dev/nvidia*` fd, a live CUDA context, or
+  `nvidia_uvm`/`nvidia_modeset`/`nvidia_drm` attached) — BLOCKS FOREVER in
+  `while (usage_count != 0) os_delay(500)`. The Linux PCI core holds the
+  per-device **`device_lock`** (`dev->mutex`, an uninterruptible mutex) across
+  the *entire* `.remove`, so every later bind/reset/remove on that device
+  serializes behind it in unkillable `D` state.
+- Recovery is **REBOOT-ONLY**: no userspace primitive releases a held
+  `device_lock` or aborts an in-kernel driver callback. A sysfs `reset`
+  (`pci_reset_function`) and `echo 1 > remove` re-take the same lock and also
+  `D`-state; `kill`/`timeout` cannot touch a `D`-state task; a raw `setpci`
+  secondary-bus-reset bypasses the lock but fixes neither the mutex nor
+  `usage_count` and risks an MCE.
+- It is **NOT** power/runtime-PM related (a common wrong guess — do not invoke
+  `power/control` / `d3cold` to explain it): `usage_count` is a plain
+  open-reference count. And `nv_pci_shutdown` (host reboot/shutdown) passes
+  `block=FALSE` and early-returns, so a host reboot NEVER wedges on a busy GPU.
+
+### Why the switch is safe by construction
+
+The switch NEVER sysfs-unbinds a busy nvidia. The nvidia→vfio path detaches via
+**`modprobe -r`**, which is module-refcount-guarded — it returns `EBUSY`
+*immediately* if any client holds the GPU (it never reaches the blocking
+`.remove` loop), so module-unload IS the deterministic preflight gate. If a
+client remains the switch REFUSES rather than force-unbinding. The host-side
+precondition is fully verifiable WITHOUT touching the device: `lsmod` (nvidia
+refcount + dependents — the only proxy that reflects the in-kernel
+`nvidia_dev_get` refs of uvm/modeset/drm), `lsof /dev/nvidia*`, and
+`nvidia-smi --query-compute-apps`; NEVER open `/dev/nvidia*` to probe (that
+increments `usage_count`). The whole switch runs under a bounded deadline; if a
+GSP-teardown stall ever wedges it anyway, the arbiter **POISONS** the resource
+(keyed to the current boot id) so no later claimant re-wedges the card —
+`charly vm gpu status` flags it and acquires are refused with a reboot-required
+error until the host reboots.
+
+### `charly vm gpu recover`
+
+Recovers a card left **unbound / half-switched** (e.g. an interrupted flip) back
+to the clean vfio-pci default — but ONLY when the card is NOT wedged. It first
+runs a read-only probe for a true device_lock wedge (a `D`-state task in
+`nv_pci_remove`); on a wedge it reports **reboot-required and attempts NOTHING**
+(a bind on a wedged card would add a second permanent `D`-state). On a healthy
+card it rebinds the whole group to vfio-pci and clears any stale poison marker.
+
+Implementation + full RCA: `charly/gpu_driver_switch.go` (the switch primitive),
+`charly/preempt.go` (poisoning), `charly/vm_gpu_cmd.go` (status/recover); the
+arbiter side is `/charly-internals:disposable` "resource-arbitration axis".
 
 ## Building Disk Images
 

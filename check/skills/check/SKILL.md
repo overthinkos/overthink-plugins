@@ -55,6 +55,22 @@ never by stripping the candy.
 6. `charly update <bed>` — fresh-rebuild re-verification (R10 acceptance gate).
 7. `charly remove <bed>` (or `charly vm destroy`) — leave the host clean.
 
+**The bed tests the LATEST LOCAL candies — not the pinned remote.** Step 1 also
+points a bed's parent-repo `@github.com/<org>/<parent>/candy/...:<tag>` candy refs
+at the LOCAL superproject working tree — the candy-ref analogue of the auto
+`--dev-local-pkg` toolchain build above. `runCheckBed` auto-appends a
+`CHARLY_REPO_OVERRIDE` for the bed project's OWN superproject (detected via `git
+rev-parse --show-superproject-working-tree`; the ref's `:vTAG` is ignored, so the
+bed always builds the dev's current tree). So a `box/<distro>` submodule bed —
+which pulls main's shared candies via `@github` refs — verifies the IN-DEVELOPMENT
+candy tree; without this it would build the STALE pinned remote candy and serve no
+purpose. An explicit operator `CHARLY_REPO_OVERRIDE` entry for the same repo still
+wins (it is placed first). A bed whose project is its own root needs no override —
+its candies already resolve from the local tree. Source:
+`selfSuperprojectOverridePair` + `mergeRepoOverrides` (`charly/refs.go`), applied
+in `runCheckBed` (`charly/check_bed_run.go`); the underlying `CHARLY_REPO_OVERRIDE`
+is the Go-`replace`-style "verify before you push" mechanism.
+
 **Exclusive-resource preemption wraps the sequence.** When a bed declares
 `requires_exclusive: [token...]` (e.g. a GPU-passthrough bed needing the one
 physical card), `runCheckBed` acquires a resource-arbitration lease BEFORE step 1
@@ -75,6 +91,15 @@ bound to the `vfio-pci` host driver so the guest VM can claim it via VFIO; host-
 can't run — the GPU comes alive INSIDE the guest. Gauge readiness with `charly vm gpu
 status` (or `charly vm gpu list` / `lspci -nnk` → `Kernel driver in use: vfio-pci`),
 NEVER host `nvidia-smi`. See `/charly-vm:vm` "GPU passthrough (VFIO)".
+
+A `requires_shared: [nvidia-gpu]` bed (a GPU CDI pod) makes the arbiter flip the
+WHOLE IOMMU group vfio→nvidia at deploy and back nvidia→vfio at teardown — the
+group-aware, `modprobe -r`-gated switch (`charly vm gpu mode`/`status`/`recover`).
+NEVER manually sysfs-`unbind` a busy nvidia to "free" a card between bed runs:
+that hangs the kernel `device_lock` (reboot-only). If a card shows wedged/poisoned
+in `charly vm gpu status`, a host reboot is required; the arbiter refuses a poisoned
+token until then. Full model + RCA: `/charly-vm:vm` "GPU driver-mode switch" +
+`/charly-internals:disposable` "resource-arbitration axis".
 
 `charly check run --all-beds` runs every bed name-sorted. Flags: `--keep` (don't
 tear down), `--no-rebuild` (skip step 6) — both scope-shrinking, governed by
