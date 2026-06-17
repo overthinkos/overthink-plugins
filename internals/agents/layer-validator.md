@@ -28,13 +28,13 @@ guessing.
   the per-entity identity that drives cross-repo resolution and the
   consuming image's `ai.opencharly.version` label).
 
-### 2. Dependencies (`requires:` / `candy:`)
+### 2. Dependencies (`require:` / `candy:`)
 
-- The field is **`requires`** (prerequisite ordering) and/or **`candy`**
+- The field is **`require`** (prerequisite ordering) and/or **`candy`**
   (composition splicing) — NOT `depends` and NOT `layers`.
 - Each entry references an existing candy under `candy/` (short name) or a
   qualified remote ref. Check with `ls candy/` + Glob.
-- A common mistake: `requires: [pixi]` when you mean `requires: [python]`
+- A common mistake: `require: [pixi]` when you mean `require: [python]`
   (pixi installs the build tool; python installs Python via pixi).
 
 ### 3. Plan `run:` steps — exactly one verb per entry

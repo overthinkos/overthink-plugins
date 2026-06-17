@@ -96,7 +96,7 @@ Both exist so future Microsoft-apt-repo-based installs can be slotted into tag s
 
 ## No pixi-python dependency — system Python only
 
-This candy does NOT declare `requires: python`, so it pulls in neither the
+This candy does NOT declare `require: python`, so it pulls in neither the
 `python` charly-layer nor the `pixi` charly-layer (and hence no ~500 MB conda-forge
 Python env). It installs `python3-devel` + `python3-ramalama` via RPM —
 **system Python** — which is all its content references. Consumers of
@@ -110,7 +110,7 @@ general rule.
 
 If you genuinely need the pixi-python env (e.g. a candy that
 installs a Python package from conda-forge via pixi), declare
-`requires: python` on THAT candy directly — don't rely on transitive
+`require: python` on THAT candy directly — don't rely on transitive
 pulls.
 
 ## Tests

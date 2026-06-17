@@ -23,7 +23,7 @@ spec:
     - direnv
     - uv
   install_opts:  # optional — defaults merged 3-tier (CLI > deployment > template)
-    with_services: false
+    with_service: false
     allow_repo_changes: true
   env:           # optional
     - EDITOR=vim
@@ -41,13 +41,13 @@ version: 2026.144.1443
 local:
   dev-workstation:
     candy: [ripgrep, direnv]
-    install_opts: {with_services: false, allow_repo_changes: true}
+    install_opts: {with_service: false, allow_repo_changes: true}
     env: [EDITOR=vim]
     description: Dev workstation
 
   ci-runner:
     candy: [ripgrep, pixi, cargo-toolchain]
-    install_opts: {with_services: true, allow_root_tasks: true}
+    install_opts: {with_service: true, allow_root_tasks: true}
     description: CI runner profile
 
   charly-cachyos:

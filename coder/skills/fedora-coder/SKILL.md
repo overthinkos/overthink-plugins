@@ -136,7 +136,7 @@ includes `rpmfusion` explicitly.
 
 **Python story** — `python` (the pixi-python charly-layer) is NOT pulled in.
 `supervisord`, `language-runtimes`, and `uv` all use system python3 from RPM,
-not the conda-forge pixi env, so none of them declares `requires: python`.
+not the conda-forge pixi env, so none of them declares `require: python`.
 System Python is available via `language-runtimes` (`python3-devel` +
 `python3-ramalama`). See the "Key Rules" note in `CLAUDE.md` ("don't declare
 defensive deps").

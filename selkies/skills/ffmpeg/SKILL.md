@@ -34,12 +34,12 @@ All candies that need ffmpeg should declare it as a dependency rather than indep
 ## Used In Boxes
 
 - `openclaw-full` (via `openclaw-full` metalayer)
-- `hermes` (via `hermes` candy `requires: ffmpeg`)
-- `hermes-playwright` (via `hermes` candy `requires: ffmpeg`)
-- `immich` (via `immich` candy `requires: ffmpeg`)
-- `immich-ml` (via `immich` candy `requires: ffmpeg`)
-- CUDA-based boxes (via `cuda` candy `requires: ffmpeg`)
-- Whisper-based boxes (via `whisper` candy `requires: ffmpeg`)
+- `hermes` (via `hermes` candy `require: ffmpeg`)
+- `hermes-playwright` (via `hermes` candy `require: ffmpeg`)
+- `immich` (via `immich` candy `require: ffmpeg`)
+- `immich-ml` (via `immich` candy `require: ffmpeg`)
+- CUDA-based boxes (via `cuda` candy `require: ffmpeg`)
+- Whisper-based boxes (via `whisper` candy `require: ffmpeg`)
 
 ## Related Candies
 - `/charly-distros:cuda` — Depends on ffmpeg for GPU video processing

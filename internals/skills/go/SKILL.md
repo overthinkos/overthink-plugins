@@ -328,7 +328,7 @@ See `/charly-image:image` "user_policy" for the user-facing decision matrix, `/c
 
 | File | Purpose |
 |------|---------|
-| `refs.go` | Remote ref types, parsing, cache management |
+| `refs.go` | Remote ref types, parsing, cache management. `CHARLY_REPO_OVERRIDE` (`RepoOverrideEnv`) Go-`replace`-style local-tree override (`repoOverrideDir`). `selfSuperprojectOverridePair(dir)` derives the bed project's OWN superproject override (`git rev-parse --show-superproject-working-tree` → `rootRepoIdentity`); `mergeRepoOverrides` appends it after operator entries (operator wins). `runCheckBed` auto-applies it so a `box/<distro>` bed tests LOCAL parent-repo candies, never the pinned remote — the candy-ref analogue of auto `--dev-local-pkg`. Tests: `repo_override_test.go`. |
 | `refs_git.go` | Git operations: clone, resolve ref, tag resolution |
 
 ### Declarative Testing
@@ -381,6 +381,54 @@ section is the Go-implementation map.
 ### Add a New Validation Rule
 
 Add to `charly/validate.go`. All validation rules are centralized there.
+
+### Updating Go code when an ingress CUE schema changes
+
+The ingress CUE schemas (`charly/schema/*.cue`) and the Go structs they
+validate-then-decode-into are TWO hand-maintained sources that MUST stay in
+lockstep — there is no codegen between them (see point 5). When you add or
+change a `schema/*.cue` definition, update the Go side in the SAME change:
+
+1. **Match the Go struct's yaml tag to the schema field key.** The schema key is
+   the WIRE key — e.g. CUE `#InstallOpts.with_service?` pairs with the Go field
+   `WithServices` carrying the struct tag `yaml:"with_service"`. The wire key is
+   SINGULAR even though the Go field and the `--with-services` CLI flag are
+   plural. A mismatch is a SILENT bug, not a compile error:
+   - a schema field with NO matching Go yaml tag → CUE accepts the key but the
+     loader's yaml.v3 decode silently DROPS the value (`keylint.go` surfaces it
+     only as a non-fatal `key ignored` warning);
+   - a Go yaml-tag field with NO matching schema field → CUE hard-rejects an
+     otherwise-valid config with `field not allowed` (a false positive).
+2. **Keep the definition CLOSED.** A `#Def: {…}` is closed by DEFAULT (rejects
+   unknown keys — that is exactly what catches a misspelled field). For two
+   mutually-exclusive fields use a disjunction applied with `&`
+   (`#Box: {…} & ({from?: _|_} | {base?: _|_})`), which keeps the struct CLOSED;
+   NEVER an embedded `matchN`, which silently disables closedness (the comments
+   in `box.cue` / `candy.cue` / `vm.cue` document this exact choice).
+3. **New kind:** add `schema/<kind>.cue` (the `#<Kind>` def, reusing the shared
+   defs in `_common.cue`) + a one-line `cue_kind_<kind>.go` registration (mirror
+   an existing one; call `registerCueKind`), and add the kind to the corpus test
+   (`cue_kinds_corpus_test.go`).
+4. **Run the guards before committing:** `cd charly && go test ./...` (the
+   corpus + closedness tests and `TestEmbeddedDefaults_SchemaConformance` fail on
+   a schema↔struct divergence) and `charly box validate` across the project +
+   every `box/<distro>` submodule (the embedded `charly.cue` vocabulary is
+   covered by `validateVocabularyCollections`). Add or extend a test for every
+   new field set — the test is the regression guard that keeps the two sources
+   from drifting.
+5. **Do NOT generate the Go structs with `cue exp gengotypes`.** It generalizes
+   every disjunction to `any` (so the closed `& ({a}|{b})` patterns and any
+   `string | int` field lose their Go-side type precision) and remaps names
+   (`#foo`→`Foo`), so it cannot reproduce the hand-written loader structs. The
+   manual lockstep + the `go test` guards above are the single-source-of-truth
+   enforcement instead.
+6. **`keylint` self-decoding types:** a type whose authored keys are NOT literal
+   struct fields (the operator-map matchers, the dynamic per-shell sub-blocks) is
+   false-flagged by yaml.v3 `KnownFields(true)`; add it to
+   `keylintSelfDecodingTypes` in `keylint.go`. CUE's closed-schema check is the
+   real unknown-key gate for these (see the `keylint.go` header). The ingress
+   recipe is owned by `/charly-build:validate`; the egress analog is the "Adding
+   a new egress schema" recipe in `/charly-internals:egress`.
 
 ### Debug a Build Issue
 

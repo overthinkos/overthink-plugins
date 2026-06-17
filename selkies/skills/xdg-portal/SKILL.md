@@ -7,7 +7,7 @@ Provides XDG Desktop Portal support for Sway containers. Installs the portal dae
 ## Candy Definition
 
 ```yaml
-requires:
+require:
   - dbus
   - sway
   - pipewire

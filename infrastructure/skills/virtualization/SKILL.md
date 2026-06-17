@@ -244,6 +244,6 @@ Drops on deb: `gvisor-tap-vsock`, `podman-machine` (not packaged; VM-mode networ
 - Running `charly vm` from inside a rootless container (the
   supervisord-managed daemons here are what makes that work).
 - Understanding why this candy is a service provider, not just a
-  package installer — it ships the supervisord programs + `requires:
+  package installer — it ships the supervisord programs + `require:
   supervisord` + the deploy-scope tests on top of the QEMU/libvirt
   packages.

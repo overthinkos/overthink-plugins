@@ -16,7 +16,7 @@ Provides `pixelflux-screenshot` for capturing screenshots on selkies-desktop. Co
 ## Candy Definition
 
 ```yaml
-requires:
+require:
   - selkies
 ```
 

@@ -23,7 +23,7 @@ description: |
 ## Why direct download (not pixi)
 
 uv is a completely self-contained Rust binary needing no Python runtime, so
-installing it via pixi (`pixi.toml` with `uv = "*"` + `requires: python`,
+installing it via pixi (`pixi.toml` with `uv = "*"` + `require: python`,
 landing it in `$HOME/.pixi/envs/default/bin/` inside a conda-forge Python
 environment) would be the wrong fit. Pixi would bring three problems uv
 doesn't warrant:

@@ -173,7 +173,7 @@ This is the same merge semantics as `LocalDeployTarget` — just with SSH-wrappe
 
 | Field | Effect |
 |---|---|
-| `with_services` | Enable systemd units declared in layers' `service:` lists |
+| `with_service` | Enable systemd units declared in layers' `service:` lists |
 | `allow_repo_changes` | Permit repo-config mutations (rpmfusion, copr) in the guest |
 | `allow_root_tasks` | Permit arbitrary `cmd: user: root` tasks in the guest |
 | `verify` | Run layer `check:` over SSH post-deploy |
@@ -610,7 +610,7 @@ deploy:
       - github.com/team-acme/configs/candy/sshkeys       # remote layer
       - ./private-overlay.yml                             # local file
     install_opts:
-      with_services: true
+      with_service: true
       allow_repo_changes: true
       allow_root_tasks: false
       skip_incompatible: false

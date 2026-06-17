@@ -167,6 +167,17 @@ The `newuidmap`/`newgidmap` binaries get `cap_setuid=ep` / `cap_setgid=ep`
 file capabilities (via a dedicated task) so any uid invoking them can
 delegate subids.
 
+**The `setcap(8)` binary MUST be installed for that task to do anything.**
+Fedora and Arch ship it transitively (`libcap` is in the base image), but
+Debian/Ubuntu do NOT — so the candy's deb sections declare **`libcap2-bin`**
+explicitly. Without it the `setcap cap_setuid=ep /usr/bin/newuidmap` step exits
+127 (`setcap: command not found`) and, because the step is a bare `RUN`, the
+build hard-fails on the deb path (and any image that did slip through would ship
+a capability-less `newuidmap`, so nested podman dies at runtime with
+`newuidmap: open of uid_map failed: Permission denied`). RDD-confirmed
+2026-06-15: this is the one non-format-agnostic deb dependency — every other
+piece of the recipe is shared.
+
 ## Config files — written to both system-wide and user locations
 
 Rootless podman **prefers `~/.config/containers/*` over `/etc/containers/*`**.
@@ -298,7 +309,7 @@ box-level `security:` block, so the resolved posture stays at
 
 ## Cross-distro coverage
 
-`rpm:` (Fedora), `pac:` (Arch), plus compound tag `debian,ubuntu:` for shared packages (`podman`, `buildah`, `skopeo`, `fuse-overlayfs`, `crun`, `uidmap`, `passwd`, `libsecret-1-0`). Each of `debian:13:` and `ubuntu:24.04:` additionally declares the Tailscale apt repo (`https://pkgs.tailscale.com/stable/debian` or `.../ubuntu`) with signed-by key for the `tailscale` package. Drops on deb: none at the nesting recipe level — all the critical pieces (containers.conf, storage.conf, subuid layout, `_CONTAINERS_USERNS_CONFIGURED=""` env) are format-agnostic task content.
+`rpm:` (Fedora), `pac:` (Arch), plus per-distro deb sections (`debian:` / `debian-13:` / `ubuntu:` / `ubuntu-24.04:`) over the shared deb package set (`podman`, `buildah`, `skopeo`, `fuse-overlayfs`, `crun`, `uidmap`, `passwd`, `libsecret-1-0`, plus **`libcap2-bin`** — the `setcap` provider, see the subuid/subgid section above). The version-specific `debian-13:` / `ubuntu-24.04:` sections additionally declare the Tailscale apt repo (`https://pkgs.tailscale.com/stable/debian` or `.../ubuntu`) with signed-by key for the `tailscale` package. Drops on deb: none at the nesting recipe level — all the critical pieces (containers.conf, storage.conf, subuid layout, `_CONTAINERS_USERNS_CONFIGURED=""` env) are format-agnostic task content; the sole deb-only addition is `libcap2-bin`.
 
 ## Usage — rootless image (uid 1000)
 

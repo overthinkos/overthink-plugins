@@ -9,7 +9,7 @@ Used by `charly check wl atspi tree/find/click`.
 ## Candy Definition
 
 ```yaml
-requires:
+require:
   - dbus
 
 rpm:

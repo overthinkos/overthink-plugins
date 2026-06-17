@@ -40,7 +40,7 @@ description: |
 5. `~/.gnupg/gpg-agent.conf` — `pinentry-program /usr/bin/pinentry-qt` (the libsecret-linked pinentry that talks to KeePassXC for GPG passphrase storage).
 6. `~/.config/environment.d/ssh-agent.conf` — exports `SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/ssh-agent.socket"` for systemd-bootstrapped sessions.
 7. **Per-shell init exports (via the `shell:` schema):** for non-systemd-bootstrapped shells (tmux from a screen-locked session, ssh-in shells without a fresh login, scripts), the candy's `shell:` block lands managed-block exports of `SSH_AUTH_SOCK` (guarded with `command -v` / socket-existence check), `KEEPASSXC_DATABASE` advisory pointer, and `GPG_TTY=$(tty)`. bash/zsh/sh share one POSIX-style snippet; fish gets a syntactically-correct counterpart via `set -gx`. environment.d (item 6) and the `shell:` block coexist with no conflict — environment.d wins under systemd, the shell-rc lines fill the gap when systemd isn't in the loop.
-8. **Direnv shell hooks come from the `direnv` candy** (declared via `requires: [direnv]`). This candy writes no direnv hooks itself — the responsibility belongs to the direnv candy's own `shell:` block. `charly migrate` cleans up any legacy inline `direnv-hook` blocks left on a host by older configs.
+8. **Direnv shell hooks come from the `direnv` candy** (declared via `require: [direnv]`). This candy writes no direnv hooks itself — the responsibility belongs to the direnv candy's own `shell:` block. `charly migrate` cleans up any legacy inline `direnv-hook` blocks left on a host by older configs.
 9. **systemd user service for KeePassXC** with `Restart=on-failure` and explicit dependency on `graphical-session.target`.
 
 ## What this candy DOES NOT do
