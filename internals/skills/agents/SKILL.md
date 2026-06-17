@@ -206,23 +206,27 @@ Therefore, for ANY agent or workflow that runs them:
   - **Paste-proof survives (R10 paste-proof).** The owner reports the verbatim
     `summary.yml` verdict + exit code; the lead pastes it.
 
-## Hooks doctrine — ultra-lean pointers + deterministic gates (not walls of text)
+## Hooks doctrine — pointer reminders + deterministic gates (not rule-body copies)
 
 Hooks in this project do TWO things and nothing more. The full inventory
 (`.claude/hooks/`, wired in the committed `.claude/settings.json`):
 
 | Hook | Event | Role |
 |---|---|---|
-| `runtime-verification-reminder.sh` | `UserPromptSubmit` | ultra-lean pointer: R0 / RDD / R10 / one-phase |
-| `end-of-turn-challenge.sh` | `Stop` | ultra-lean pointer: Acceptance checklist (soft, exit 0) |
-| `team-coordination-reminder.sh` | `TaskCreated` / `TaskCompleted` / `TeammateIdle` | ultra-lean pointer: bed-scoped team model (soft, exit 0) |
+| `runtime-verification-reminder.sh` | `UserPromptSubmit` | pointer roster: full R0-R10 + RDD + ADE as second-pass triggers |
+| `end-of-turn-challenge.sh` | `Stop` | pointer: re-audit vs R0-R10 + Acceptance checklist + per-repo CHANGELOG entry (soft, exit 0) |
+| `team-coordination-reminder.sh` | `TaskCreated` / `TaskCompleted` / `TeammateIdle` | pointer: bed-scoped team model (soft, exit 0) |
 | `pre-commit-gate.sh` | `PreToolUse(Bash)` | deterministic gate (exit 2 blocks) |
 | `pre-push-gate.sh` | `PreToolUse(Bash)` | deterministic gate (exit 2 blocks) |
 
-1. **Ultra-lean pointer reminders** that POINT to CLAUDE.md / skill section
-   names, ≤10 output lines with at most ONE behavioral anchor each — they
-   never re-state R0–R10 (duplication drifts; CLAUDE.md is the single current
-   source).
+1. **Pointer reminders** that POINT to CLAUDE.md / skill section names. The
+   `UserPromptSubmit` reminder names the FULL R0–R10 + RDD + ADE roster as terse
+   second-pass *triggers* (rule label + a few-word essence + an anchor) so every
+   rule gets a "verify THIS turn against it" nudge; the `Stop` reminder prompts a
+   re-audit of the turn's changes + the per-repo CHANGELOG entry. They are
+   reminders, NOT copies: a trigger never restates the rule BODY — CLAUDE.md is
+   the single current source, and that is where each trigger points (duplicating
+   rule bodies drifts).
 2. **Deterministic `PreToolUse` gates** that BLOCK (exit 2) only unambiguous,
    CLAUDE.md-stated invariants: hook bypass via `--no-verify` (`git commit
    --no-verify` — the `-n` short alias, bundled forms included, scanned as a
@@ -245,13 +249,20 @@ Hooks in this project do TWO things and nothing more. The full inventory
    all-documentation (`*.md`/CHANGELOG/README/LICENSE/VISION/`*.txt`,
    comment-only code edits, or a submodule pointer bump to an all-documentation
    submodule commit — the tier-vs-diff coherence check, conservative-safe:
-   it never lets a behavioral change pass as docs), and force-push
-   (`git push --force` / `--force-with-lease` / `-f`, bundled forms included).
+   it never lets a behavioral change pass as docs), force-push
+   (`git push --force` / `--force-with-lease` / `-f`, bundled forms included),
+   and a RUNTIME-tier commit (`fully tested and validated` / `analysed on a live
+   system`) that stages no `CHANGELOG/<YYYY-MM>.md` entry in a repo that tracks a
+   `CHANGELOG/` (history -> each repo's per-repo monthly `CHANGELOG/`; exempt: a
+   repo with no `CHANGELOG/`, and a commit whose staged diff is EXCLUSIVELY
+   submodule pointer bumps — fires only when an inline tier is parsed, like the
+   absent-trailer check).
 
 The honest division of labor: **hooks gate mechanical invariants; agents
 judge proof.** Whether a tier is *justified* by the evidence is a reasoning
 task — that stays with `testing-validator` + the pasted-proof rule, NOT a
-regex in a hook. Never re-bloat the hooks back into CLAUDE.md copies.
+regex in a hook. Never re-bloat the reminders into CLAUDE.md rule-body copies —
+name + point, never restate.
 
 ## Agent teams (experimental — enabled in committed settings)
 

@@ -16,4 +16,4 @@ and the marketplace/plugin manifests.
 `CLAUDE.md`, one level up when this is a submodule of `opencharly`). R0–R10,
 the hard-cutover policy, AI attribution, and the git-workflow are defined
 there — this file only signposts and never restates them. History lives in
-`CHANGELOG.md`; skills describe current behavior in present tense.
+this repo's `CHANGELOG/` (one file per month); skills describe current behavior in present tense.

@@ -16,7 +16,7 @@ Every schema change, API rename, or deprecation in OpenCharly ships as a **singl
 
 A cutover may NEVER be phased — not at plan authoring, not at execution. There is no pre-approval split, no post-approval split, no phased rollout, no grace period, no "author it as two plans" fallback. Plans are authored as full-scope, single-phase cutovers regardless of estimated time, scope, or context. Every cutover executes end-to-end through R10 in the SAME conversation. ALWAYS push as far as you can; compact context and continue, as many times as it takes. An approved plan is a CONTRACT; implement it as written.
 
-This skill is the source of truth for the policy. `CLAUDE.md` links here rather than re-stating the full policy inline. The project's `UserPromptSubmit` hook at `.claude/hooks/runtime-verification-reminder.sh` points to the key directives (a lean pointer per the hooks doctrine, never a copy) and fires at every user prompt.
+This skill is the source of truth for the policy. `CLAUDE.md` links here rather than re-stating the full policy inline. The project's `UserPromptSubmit` hook at `.claude/hooks/runtime-verification-reminder.sh` names the full R0-R10 + RDD + ADE roster as second-pass triggers (a pointer roster per the hooks doctrine, never rule-body copies) and fires at every user prompt.
 
 ## One phase, many tasks, one cutover — the workflow
 
@@ -62,8 +62,8 @@ Each of these has a specific failure mode that has occurred historically: the fi
 - A **fresh release git tag** `v<YYYY.DDD.HHMM>` (current UTC push time) on the cutover's push — ONE per push, **decoupled** from the `charly.yml` `version:` field (the schema version, bumped only when a `MigrationStep` raises `LatestSchemaVersion()`). Tag EVERY push, including one that does NOT bump `version:` (content removal — a submodule extraction, an image drop). Tags are **immutable** — only ever added, never moved or force-pushed. Every component is fixed-width zero-padded (4-digit year, 3-digit day-of-year, 4-digit HHMM) so tags sort chronologically under a plain alphanumeric sort; compute `v$(date -u +%Y.%j.%H%M)`. Each charly-project repo (one with `charly.yml`) is tagged at its own push time; `plugins` / `pkg/arch` are exempt. See `/charly-build:migrate` "Per-push release git tags" and CLAUDE.md "Post-Execution Policies".
 - **Hard load-time errors** for any residual legacy field, with a one-line remediation hint pointing at the migration command.
 - **Deletion — in the same PR** — of every Go type, function, CLI flag, OCI label, YAML field, skill doc paragraph, and test fixture that references the removed surface.
-- **Stale-reference sweep (R5).** Every reference, comment, docstring, error message, skill paragraph, migration help-text, test fixture, and hook string naming a deleted identifier MUST be updated or deleted in the same commit. After commit, `git grep '<deleted-id>'` returns ONLY historical mentions in `CHANGELOG.md` or migration help-text.
-- **A `CHANGELOG.md` entry** (repo root) recording the cutover narrative. Historical content lives ONLY in `CHANGELOG.md`; CLAUDE.md and the skills state the new standing rules forward-looking, with no history. See CLAUDE.md "Where things are documented".
+- **Stale-reference sweep (R5).** Every reference, comment, docstring, error message, skill paragraph, migration help-text, test fixture, and hook string naming a deleted identifier MUST be updated or deleted in the same commit. After commit, `git grep '<deleted-id>'` returns ONLY historical mentions in `CHANGELOG/` or migration help-text.
+- **A `CHANGELOG/` entry** in the repo's current month file (`CHANGELOG/YYYY-MM.md`) recording the cutover narrative. Historical content lives ONLY in the repo's `CHANGELOG/`; CLAUDE.md and the skills state the new standing rules forward-looking, with no history. See CLAUDE.md "Where things are documented".
 - **Engineering-discipline gates (R1–R5).** See `/charly-internals:strict-policy`. Every failure during the cutover triggers `/charly-internals:root-cause-analyzer` BEFORE any remediation (R1). Every issue surfaced is fixed in the cutover or escalated (R2). Duplication is refactored on first surface (R3). Workarounds are forbidden (R4). Stale references are swept (R5).
 
 ## Rationale
@@ -106,11 +106,11 @@ One PR, one commit, with these deliverables:
 - **Load-time error** — old projects loading under the new code get a hard error naming the legacy field and pointing at `charly migrate`.
 - **Documentation refresh** — every referring skill revised in the same sweep; no stale references to any deleted identifier in `plugins/`, `README.md`, or `CLAUDE.md` (R5 grep self-test).
 - **Test deletions** — fixtures and assertions exercising the legacy surface removed; new fixtures exercise the replacement.
-- **CHANGELOG entry** — the cutover narrative appended to `CHANGELOG.md` (the only place the history lives).
+- **CHANGELOG entry** — the cutover narrative appended to the repo's current month file `CHANGELOG/YYYY-MM.md`; the repo's `CHANGELOG/` is the only home for its history.
 
 The commit uses the Conventional Commits `!` breaking-change marker; the body lists every deleted identifier, every removed YAML field, and every updated test. `charly migrate` is runnable against old projects from that commit forward, with no additional steps.
 
-See `CHANGELOG.md` for the catalog of past cutovers that followed this shape — each took the same three steps: **delete old surface + publish migration + hard load error**.
+See `CHANGELOG/` for the catalog of past cutovers that followed this shape — each took the same three steps: **delete old surface + publish migration + hard load error**.
 
 ## When the policy might not apply
 

@@ -41,7 +41,7 @@ in ONE message (parallel `Skill` calls). Full index: `plugins/README.md`.
 - **User-specific config** — use Claude Code memory system
 - **Bug fixes in charly code** — the fix is in git; document behavioral changes in skills only
 - **Anything derivable from code** — skills document *usage*, not implementation details
-- **Historical / version-history content** — dated change notes, "renamed from", "previously / formerly / was", completed cutovers, retired / relocated identifiers → `CHANGELOG.md` (repo root), NEVER a skill or CLAUDE.md. Skills describe current behavior in present tense only. When a cutover lands, append its narrative to `CHANGELOG.md` and state the new standing rule forward-looking in the skill, with no history.
+- **Historical / version-history content** — dated change notes, "renamed from", "previously / formerly / was", completed cutovers, retired / relocated identifiers → the repo's `CHANGELOG/` (one file per calendar month, `YYYY-MM.md`), NEVER a skill or CLAUDE.md. Skills describe current behavior in present tense only. When a cutover lands, append its narrative to the current month's `CHANGELOG/YYYY-MM.md` and state the new standing rule forward-looking in the skill, with no history.
 
 ## How to Update
 
@@ -80,7 +80,7 @@ description: |
 | Detailed operational patterns | Relevant `/charly-core:*` / `/charly-build:*` / `/charly-check:*` / `/charly-automation:*` / kind-plugin skill |
 | Hard rule / gate / mandate (the WHAT and the MUST) | CLAUDE.md — stated ONCE, in mandate form, with a `*Detail:*` pointer |
 | Operationalization / matrix / catalog / worked example (the HOW) | The ONE owning skill (see the Authoritative-copy registry below) |
-| Version history / past changes / renames / cutover narration | `CHANGELOG.md` (repo root) — never CLAUDE.md or a skill |
+| Version history / past changes / renames / cutover narration | the repo's `CHANGELOG/` (monthly `YYYY-MM.md`) — never CLAUDE.md or a skill |
 | Long-term thesis / vision / aspiration ("why & where it's going") | `VISION.md` (repo root) — never restating command usage, architecture, or history |
 
 ## Mandate in CLAUDE.md, detail in the skill
@@ -128,7 +128,7 @@ swept in the SAME commit as any rename or removal (R5):
 - every SKILL.md that quotes a section name (grep before assuming).
 
 The sweep test: `grep -rn '<old phrase>'` across the superproject + submodules
-returns only `CHANGELOG.md` context afterwards. Prefer keeping headings and
+returns only `CHANGELOG/` context afterwards. Prefer keeping headings and
 clause names STABLE when rewording content — a stable name keeps every
 mirroring surface valid for free.
 
@@ -178,9 +178,10 @@ content — they live in the superproject's `.claude/workflows/*.js`.
 The repo-root `CLAUDE.md` is the single canonical R0–R10 rule-set.
 Per-directory `CLAUDE.md` files (`charly/`, `candy/`, `plugins/`, and each
 `box/<distro>` submodule) are THIN signposts only: they name the skills to
-load for that area and point back to root. They MUST NOT restate any rule —
-duplication drifts (the hooks and an earlier layer-validator both drifted
-exactly this way). Subagents and teammates load the full `CLAUDE.md`
+load for that area and point back to root. They MUST NOT restate any rule body —
+duplication drifts (an earlier layer-validator and the reminder hooks both drifted
+exactly this way; the reminder hooks now name rules as pointers/triggers, never
+restating their bodies). Subagents and teammates load the full `CLAUDE.md`
 hierarchy from their working directory, so a signpost reaches a worker scoped
 to that subtree without bloating root.
 

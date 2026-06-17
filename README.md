@@ -100,9 +100,11 @@ short name could be ambiguous, the canonical names are:
 
 ## Recent changes
 
-See the repo-root [`CHANGELOG.md`](../CHANGELOG.md) for the full history of
-plugin reorganizations, skill renames, and marketplace version bumps. This
-index and the skill docs themselves describe only the current structure.
+See this repo's [`CHANGELOG/`](CHANGELOG/README.md) — and the superproject's
+[`CHANGELOG/`](../CHANGELOG/README.md) for older project-wide history — for the
+full history of plugin reorganizations, skill renames, and marketplace version
+bumps (one file per month). This index and the skill docs themselves describe
+only the current structure.
 
 ## Installation
 

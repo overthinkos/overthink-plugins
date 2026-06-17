@@ -141,7 +141,7 @@ dead code/`unused`, `ineffassign`, `unconvert`, `staticcheck` correctness, `gocr
   numbers/durations; retry-on-flake; environment-specific shims; ad-hoc
   `podman`/`docker`/`virsh`/`systemctl` that BYPASS charly (see allowlist for the legitimate ones).
 - **R5 stale paths**: `deprecated`/`DEPRECATED`/`TODO` markers with un-swept old code paths;
-  references to deleted identifiers (grep the identifier — only `CHANGELOG.md` should remain).
+  references to deleted identifiers (grep the identifier — only `CHANGELOG/` should remain).
 - **Repo invariants**: YAML-tag ↔ Go-identifier plural/singular symmetry; mode purity
   (`LoadConfig` must NOT read the deploy overlay / `charly.yml`); InstallPlan IR sync points;
   the "charly CLI is the only operational interface" rule.

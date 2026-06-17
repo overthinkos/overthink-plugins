@@ -310,7 +310,7 @@ because "the run would take hours" is breach of contract — multi-hour AI loops
 ARE the work, not the obstacle. Session-budget concerns NEVER downgrade R10.
 If R10 genuinely cannot complete, say so plainly, commit NOTHING (main repo OR
 submodule), and escalate — never both downgrade and ship silently. (The
-motivating attribution-fraud incident is recorded in `CHANGELOG.md`.)
+motivating attribution-fraud incident is recorded in `CHANGELOG/`.)
 
 ### The gate is class-dependent
 

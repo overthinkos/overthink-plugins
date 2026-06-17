@@ -179,7 +179,7 @@ in `charly.yml` → built-in fallback** (4). The inner auto value (when
 CPU-proportional, capped at `defaults.podman_jobs_cap`: `min(NCPU, cap)`. The
 cap is the operative ceiling; the repo ships `podman_jobs_cap: 8`. (A
 high-concurrency `--cache-from` SIGABRT race in podman ≤ 5.7.x originally
-motivated a hard cap of 4 — see `CHANGELOG.md` for that history and the 20-run
+motivated a hard cap of 4 — see `CHANGELOG/` for that history and the 20-run
 race gate required before raising the cap on a new podman version.)
 
 ```yaml

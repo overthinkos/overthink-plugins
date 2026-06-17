@@ -132,8 +132,8 @@ Always, in order: (a) create/switch to the landing branch FIRST; (b) THEN
 committing, confirm the commit records it — `git show --stat` lists `<sub>` and
 `git ls-tree HEAD <sub>` shows `<new>`. A pointer-bump commit whose `--stat` omits
 the submodule is the silent-drop failure. If it was already pushed, land a NEW
-pointer-bump commit (NEVER amend/force-push). See `CHANGELOG.md` 2026-06-08 for
-the incident this rule prevents.
+pointer-bump commit (NEVER amend/force-push). See the project `CHANGELOG/2026-06.md`
+(2026-06-08) for the incident this rule prevents.
 
 **Attribution of the pointer-bump commit — derived from what it points at.** When
 the bumped submodule commit is itself all-documentation (a skill / `*.md` edit),
