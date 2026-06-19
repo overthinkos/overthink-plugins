@@ -12,10 +12,10 @@ description: |
 # arch
 
 The `arch` VM entity and its `check-arch-vm` / `check-arch-pacstrap-vm` disposable test beds
-(plus the nested `arch-host` bed) live in the **`overthinkos/arch`** repo (git
-submodule at **`box/arch`**), in that repo's config (its `charly.yml` + per-kind sibling files).
-The beds are `kind: check` entities (the 2026-05 deploy→check unification moved
-every repo-shipped disposable bed out of `charly.yml`), driven by `charly check run
+(plus the nested `arch-host` member) live in the **`overthinkos/arch`** repo (git
+submodule at **`box/arch`**), all in that repo's unified `charly.yml`.
+The beds are `disposable: true` bundles (a check bed is just a bundle that carries
+`disposable: true` — there is no separate bed kind), driven by `charly check run
 <bed>`. Drive them from the submodule, e.g. `charly -C box/arch vm create arch`
 and `charly -C box/arch check run check-arch-vm` (or `charly --repo overthinkos/arch …`). Any
 candies applied via `add_candy:` are pulled from this repo by git ref.
@@ -42,11 +42,11 @@ This skill is the **decision log** for every non-obvious choice in the entry —
 | Video model | `virtio-gpu` | Modern default for Linux guests (Finding B, secondary) |
 | SPICE listener | `type: socket` (UNIX, auto-path) | Enables zero-config remote GUI via `qemu+ssh://` (see "Connecting from a remote workstation" below). virt-manager and `remote-viewer` auto-forward UNIX sockets through libvirt RPC fd-passing; TCP-loopback listeners are never auto-tunneled. No TCP port bound. |
 
-Disposability is **not** a field on the VM entity — the `check-arch-vm` `kind: check` bed carries `disposable: true` (LOAD-BEARING), which authorizes the unattended destroy + rebuild + restart driven by `charly check run check-arch-vm` (and the equivalent `charly update check-arch-vm`, since the check bed is folded into the Deploy map). See `/charly-internals:disposable`.
+Disposability is **not** a field on the VM entity — the `check-arch-vm` bundle carries `disposable: true` (LOAD-BEARING), which authorizes the unattended destroy + rebuild + restart driven by `charly check run check-arch-vm` (and the equivalent `charly update check-arch-vm`, since the bundle is folded into the Bundle map). See `/charly-internals:disposable`.
 
 ## Disposable verification target
 
-This is the repo's canonical verification target. The `check-arch-vm` `kind: check` bed carries `disposable: true`, which means `charly check run check-arch-vm` runs the full R10 sequence (build → create → check live → fresh rebuild → tear down) unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
+This is the repo's canonical verification target. The `check-arch-vm` bundle carries `disposable: true`, which means `charly check run check-arch-vm` runs the full R10 sequence (build → create → check live → fresh rebuild → tear down) unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
 
 If you're implementing something that touches VM config, libvirt rendering, cloud-init, SPICE, or any VM-adjacent behavior, the expected verification loop is:
 
@@ -58,22 +58,24 @@ charly update arch       # fresh-rebuild re-verification (R10)
 # paste BOTH outputs into the conversation
 ```
 
-No other VM in this repo is disposable by default. To make another one rebuildable unattended, add `disposable: true` to its `target: vm` deploy entry (the flag is always explicit; never derived).
+No other VM in this repo is disposable by default. To make another one rebuildable unattended, add `disposable: true` to the bundle that deploys it (the flag is always explicit; never derived).
 
 ## Full VmSpec (from box/arch/charly.yml)
 
 ```yaml
-vms:
-  arch:
+# Name-first: the entity key IS the VM name; `vm:` is the kind discriminator.
+arch:
+  vm:
     source:
       kind: cloud_image
       url: https://fastly.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2
       checksum:
         type: sha256
       base_user: arch
+    backend: libvirt            # REQUIRED — the bed's libvirt-RPC + spice probes hit the session daemon
     disk_size: 40G
     ram: 8G
-    cpus: 4
+    cpu: 4
     machine: q35
     firmware: bios
     network:
@@ -83,32 +85,43 @@ vms:
       key_source: generate
     cloud_init:
       timezone: UTC
-      packages:
+      package:
         - sudo
         - spice-vdagent
+        - qemu-guest-agent
+        - portaudio                 # charly binary's SPICE-audio .so deps
+        - opusfile
+        - base-devel
+        - git
       runcmd:
         - pacman-key --init
         - pacman-key --populate archlinux
         - systemctl enable --now spice-vdagentd
+        - systemctl enable --now qemu-guest-agent
       charly_install:
         strategy: auto
-    libvirt:
-      devices:
-        channels:
-          - {type: spicevmc, name: com.redhat.spice.0}
-        graphics:
-          # Socket-only SPICE — virt-manager and `remote-viewer
-          # --connect qemu+ssh://…` auto-forward the UNIX socket over
-          # libvirt RPC, zero extra setup. libvirt auto-allocates the
-          # socket path under $XDG_RUNTIME_DIR/libvirt/qemu/.
-          - type: spice
-            listen:
-              - type: socket
-        video:
-          - {model: virtio, vram: 65536, heads: 1, accel3d: false}
-        rng:
-          - {model: virtio, backend: /dev/urandom}
-        memballoon: {model: virtio}
+
+# Every non-scalar block becomes a CHILD NODE `<entity>-<key>`, never nested under `vm:`.
+arch-libvirt:
+  libvirt:
+    devices:
+      channels:
+        - {type: spicevmc, name: com.redhat.spice.0}
+      graphics:
+        # Socket-only SPICE — virt-manager and `remote-viewer
+        # --connect qemu+ssh://…` auto-forward the UNIX socket over
+        # libvirt RPC, zero extra setup. libvirt auto-allocates the
+        # socket path under $XDG_RUNTIME_DIR/libvirt/qemu/.
+        - type: spice
+          listen:
+            - type: socket
+      video:
+        - {model: virtio, vram: 65536, heads: 1, accel3d: false}
+      rng:
+        - {model: virtio, backend: /dev/urandom}
+      memballoon: {model: virtio}
+    snippets:
+      - "<channel type='unix'><target type='virtio' name='org.qemu.guest_agent.0'/></channel>"
 ```
 
 ## Connecting from a remote workstation
@@ -337,9 +350,9 @@ Pass: `active` + version printed.
 ## Cross-References
 
 - `/charly-vm:vms-catalog` — VmSpec authoring reference (schema, source.kind, adopt pattern)
-- `/charly-vm:vm` — VM lifecycle commands + BIOS/UEFI decision matrix + video model choice (disposability lives on the `kind: check` bed)
+- `/charly-vm:vm` — VM lifecycle commands + BIOS/UEFI decision matrix + video model choice (disposability lives on the `disposable: true` bundle)
 - `/charly-build:migrate` — `charly migrate` legacy conversion
-- `/charly-core:deploy` — `charly deploy add vm:arch <layer>` for in-guest layer application
+- `/charly-core:deploy` — `charly bundle add vm:arch <layer>` for in-guest layer application
 - `/charly-internals:vm-spec` — Go types and validation rules
 - `/charly-internals:libvirt-renderer` — `<backend type='passt'/>` for portForward, virtio-gpu video model
 - `/charly-internals:cloud-init-renderer` — `composeUsers` adopt-merge, seed ISO, `charly_install.strategy: auto`

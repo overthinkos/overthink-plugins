@@ -20,10 +20,10 @@ adb-server port — pod / vm / host / nested all work transparently because
 the connection is plain TCP to `127.0.0.1:<host-port>` and the
 portforward / passt / etc. layer handles the rest.
 
-### Also as a declarative `check:`/`run:` plan step
+### Also as a declarative `check:`/`run:` step
 
 Every `charly check adb <method>` is authorable as an `adb:` verb —
-one inline Op as a `check:` step in the candy/box `plan:` list (a probe
+one inline Op carried by a `check:` step node in the candy/box plan (a probe
 is a `check:` step; an adb action that changes device state is a `run:`
 step). The method name becomes the verb's YAML value; method-specific
 args are sibling fields (`apk:`, `property:`, `args:`, `artifact:`).
@@ -33,23 +33,25 @@ Shared matchers (`stdout:`, `stderr:`, `exit_status:`,
 host-mapped ADB server port; the validator rejects `context: [build]`
 use at `charly box validate` time.
 
-Example:
+Example — each step is its own child node of the candy/box, named by its `id:`
+(there is no `plan:` list key; mirror `candy/redis/charly.yml`):
 
 ```yaml
-plan:
-  - check: the emulator is attached to the adb server
+emulator-is-up:
+    check: the emulator is attached to the adb server
     id: emulator-is-up
     adb: devices
     context: [deploy]
     stdout:
-      - contains: "emulator-5554"
-  - check: the emulator reports boot completed
+        - contains: "emulator-5554"
+boot-done:
+    check: the emulator reports boot completed
     id: boot-done
     adb: getprop
     property: sys.boot_completed
     context: [deploy]
     stdout:
-      - contains: "1"
+        - contains: "1"
     timeout: 300s
 ```
 
@@ -145,14 +147,15 @@ is immune to the stdin-heredoc hazard that breaks shell-based settle loops
 ```yaml
 # Order matters — wait-for-device (boot) BEFORE wait-ui-settled (UI),
 # wait-ui-settled BEFORE any UI-interacting step (appium / monkey).
-plan:
-  - check: the emulator UI has settled past the ANR churn
+# A child step node of the candy/box plan, named by its id:
+emulator-ui-settled:
+    check: the emulator UI has settled past the ANR churn
     id: emulator-ui-settled
     adb: wait-ui-settled
     context: [deploy]
     timeout: 600s
     stdout:
-      - contains: settled
+        - contains: settled
 ```
 
 `current-focus` and `keyevent` are the building blocks `wait-ui-settled`
@@ -196,12 +199,12 @@ expose the container port AS the host port.
   `target: android` deploy. `charly check adb install` / `install-app` are thin
   wrappers over the SAME shared installer (`charly/android_install.go`) the apk
   format drives — so the verb, the format, and the deploy target never drift.
-- `/charly-check:check` — the unified check system and the Op (a `plan:` step) that
+- `/charly-check:check` — the unified check system and the Op (a plan step) that
   holds every verb discriminator + modifier.
 - `/charly-tools:android-emulator` (when authored) — the image these verbs target.
 
 ## When to Use This Skill
 
 **MUST be invoked** for any task involving `charly check adb` commands or
-`adb:` declarative `plan:` steps. Invoke this skill BEFORE reading the
+`adb:` declarative plan steps. Invoke this skill BEFORE reading the
 verb's Go source or reaching for `command: adb ...` workarounds.

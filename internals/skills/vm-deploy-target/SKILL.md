@@ -17,9 +17,9 @@ description: |
 - The pod deploy target is `PodDeployTarget` (`charly/deploy_target_pod.go`); ledger target keying uses `pod:<name>`.
 - `vmNameFromDeployName` strips the `vm:` prefix. The dispatch upstream (`deploy_add_cmd.go`) rewrites a plain deploy key like `check-arch-vm` to `vm:<vm-name>` before resolving via `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del`, so internal VM code always sees the prefixed form.
 - `UnifiedDeployTarget` / `LifecycleTarget` interfaces (`charly/deploy_target_unified.go`) + the `ResolveTarget` dispatcher (`charly/unified_targets.go`) provide the full lifecycle contract (`Add` / `Del` / `Test` / `Update` / `Start` / `Stop` / `Status` / `Logs` / `Shell` / `Rebuild`).
-- Disposability is read per-`DeploymentNode` via `charly/deploy.go::DeploymentNode.IsDisposable()` (`disposable: true`, or ephemeral); it is NOT a `VmSpec` field. The disposability-as-authorization gate is NOT applied in the `charly update` path — `charly update <vm>` rebuilds on explicit invocation regardless (it only NOTES non-disposability, never refuses). `VmUnifiedTarget.Rebuild` (`charly/unified_targets_vm.go`) recreates the domain THEN re-applies the deploy node's layers via the shared `charly deploy add <node>` path — the same layer-apply primitive `LocalUnifiedTarget`/`PodUnifiedTarget` Rebuild use (R3).
+- Disposability is read per-`BundleNode` via `charly/deploy.go::BundleNode.IsDisposable()` (`disposable: true`, or ephemeral); it is NOT a `VmSpec` field. The disposability-as-authorization gate is NOT applied in the `charly update` path — `charly update <vm>` rebuilds on explicit invocation regardless (it only NOTES non-disposability, never refuses). `VmUnifiedTarget.Rebuild` (`charly/unified_targets_vm.go`) recreates the domain THEN re-applies the deploy node's layers via the shared `charly bundle add <node>` path — the same layer-apply primitive `LocalUnifiedTarget`/`PodUnifiedTarget` Rebuild use (R3).
 
-`VmDeployTarget` brings `charly deploy add vm:<name>` online: the same `InstallPlan` IR that drives pod builds and host deploys now runs **inside a VM** over SSH. Shell bodies that `LocalDeployTarget` would exec via local `sudo bash -s` are instead exec'd via `ssh guest 'sudo bash -s'` through an `SSHExecutor`. Ledger writes land on the **guest** filesystem under the guest user's `~/.config/opencharly/installed/`; teardown runs in the guest via SSH as well.
+`VmDeployTarget` brings `charly bundle add vm:<name>` online: the same `InstallPlan` IR that drives pod builds and host deploys now runs **inside a VM** over SSH. Shell bodies that `LocalDeployTarget` would exec via local `sudo bash -s` are instead exec'd via `ssh guest 'sudo bash -s'` through an `SSHExecutor`. Ledger writes land on the **guest** filesystem under the guest user's `~/.config/opencharly/installed/`; teardown runs in the guest via SSH as well.
 
 `VmDeployTarget` is the 4th `DeployTarget` interface implementer — after `OCITarget` (build-mode Containerfile emission), `PodDeployTarget` (podman quadlet), and `LocalDeployTarget` (local filesystem). `K8sDeployTarget` is the 5th. See `/charly-internals:install-plan` for the shared IR.
 
@@ -30,7 +30,7 @@ description: |
 | `charly/deploy_target_vm.go` | `VmDeployTarget` struct + `Emit` flow |
 | `charly/deploy_executor.go` | `DeployExecutor` interface (RunShell, Scp, Close) + `ShellExecutor` — local shell exec (reused by `LocalDeployTarget` for the builder-image step) |
 | `charly/deploy_executor_ssh.go` | `SSHExecutor` — ssh client with passt-friendly timeouts + WaitForSSH + WaitForCloudInit |
-| `charly/deploy_add_cmd_vm.go` | VM-only deploy helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`); `charly deploy add/del vm:<name>` dispatches through `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del` |
+| `charly/deploy_add_cmd_vm.go` | VM-only deploy helpers (`deployNestedPodsInGuest`, `buildVmReverseRunner`, `vmNameFromDeployName`); `charly bundle add/del vm:<name>` dispatches through `ResolveTarget` → `VmUnifiedTarget.Add` / `.Del` |
 | `charly/vm_create_spec.go` | `VmCreateCmd.runVmSpecCreate` — prereq: VM must be created before deploy |
 
 ## DeployExecutor interface
@@ -133,7 +133,7 @@ storage, and ALL of the load / integrity-probe / tag steps follow it consistentl
   --device nvidia.com/gpu=all` consumer that needs `/dev/nvidia*` via root.
 - **`--rootless`** → the SSH user's ROOTLESS podman (`podman`, no sudo; the tag
   runs via `RunUser`, not `RunSystem`). This is what `deployNestedPodsInGuest`
-  uses: the nested pod comes up via the guest user's own `charly deploy from-box`
+  uses: the nested pod comes up via the guest user's own `charly bundle from-box`
   (a `--user` quadlet) which reads the USER's storage, so the image MUST land
   there — a root-loaded image would be invisible to it.
 
@@ -153,7 +153,7 @@ own layers, including any kernel-driver reboot + the boot-time
    XDG_RUNTIME_DIR=/run/user/$(id -u)` (so `systemctl --user` reaches the
    lingering user bus over the non-login SSH session — same requirement as
    VmDeployTarget's own user services), then the guest's own project-free
-   `charly deploy from-box localhost/charly-<childKey>:latest <childKey>` — which
+   `charly bundle from-box localhost/charly-<childKey>:latest <childKey>` — which
    generates + starts the quadlet from the image's baked OCI labels (ports,
    services, GPU device auto-detected in the guest; rootless GPU via CDI —
    `/dev/nvidia*` are world-rw and the CDI spec is world-readable).
@@ -185,7 +185,7 @@ type VmDeployState struct {
 }
 ```
 
-Persisted in `~/.config/charly/charly.yml` as the `vm_state:` field on the VM's deploy entry (`DeploymentNode.VmState`). Each `charly vm build` / `charly vm create` / `charly deploy add vm:<name>` iteration updates the relevant fields. `charly deploy del vm:<name>` preserves the state (so re-adding picks up InstanceID etc.) unless `--purge` is passed.
+Persisted in `~/.config/charly/charly.yml` as the `vm_state:` field on the VM's deploy entry (`BundleNode.VmState`). Each `charly vm build` / `charly vm create` / `charly bundle add vm:<name>` iteration updates the relevant fields. `charly bundle del vm:<name>` preserves the state (so re-adding picks up InstanceID etc.) unless `--purge` is passed.
 
 ## SSH key idempotency
 
@@ -193,14 +193,14 @@ Persisted in `~/.config/charly/charly.yml` as the `vm_state:` field on the VM's 
 
 ## CLI dispatch: ResolveTarget → VmUnifiedTarget.Add / .Del
 
-`charly deploy add vm:<name>` resolves via `deploy_add_cmd.go::dispatchNode` → `ResolveTarget` → `VmUnifiedTarget.Add` when the deploy name starts with `vm:` (or `target: vm` is set in `charly.yml`):
+`charly bundle add vm:<name>` resolves via `deploy_add_cmd.go::dispatchNode` → `ResolveTarget` → `VmUnifiedTarget.Add` when the deploy name starts with `vm:` (or `target: vm` is set in `charly.yml`):
 
 ```
-charly deploy add vm:arch ripgrep           # apply ripgrep layer in the guest
-charly deploy add vm:arch fedora-coder \    # apply full fedora-coder layer set
+charly bundle add vm:arch ripgrep           # apply ripgrep layer in the guest
+charly bundle add vm:arch fedora-coder \    # apply full fedora-coder layer set
     --add-candy team-extras \
     --add-candy github.com/team/configs/candy/sshkeys
-charly deploy del vm:arch                   # reverse all applied layers in the guest
+charly bundle del vm:arch                   # reverse all applied layers in the guest
 ```
 
 Prereq: VM must exist (`charly vm create arch` first). `VmUnifiedTarget.Add` does NOT auto-provision the VM — keeps the "provision" step explicit. If the VM is undefined, the dispatch returns a clean error pointing at `charly vm create`.
@@ -215,7 +215,7 @@ When the VM's network uses libvirt user-mode + `<backend type='passt'/>` + `<por
 - `/charly-internals:vm-spec` — VmSpec consumed by VmDeployTarget
 - `/charly-internals:libvirt-renderer` — renders domain XML; portForward + passt backend
 - `/charly-internals:cloud-init-renderer` — `EnsureCharlyInGuest` lives there
-- `/charly-core:deploy` — `charly deploy add vm:<name>` command + charly.yml schema
+- `/charly-core:deploy` — `charly bundle add vm:<name>` command + charly.yml schema
 - `/charly-local:local-deploy` — parallel target (LocalDeployTarget); ReverseOps model also used on VM target
 - `/charly-vm:vm` — VM lifecycle; creates the target Emit runs against
 - `/charly-vm:arch` — canonical worked example — VmDeployState persistence; ssh_key idempotency live-test

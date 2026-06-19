@@ -14,34 +14,40 @@ live-container test verbs (cdp / wl / vnc / dbus / mcp / record) on the Sway
 stack. It deploys the **shipping `/charly-selkies:sway-browser-vnc` image directly**
 — there is no separate check image. It sits alongside the other `check-*` smoke
 beds (`check-pod` — the combined image/layer/pod/DeployTarget mechanism bed —
-and `check-local`) — all `kind: check` entities in their project's `charly.yml`
-`check:` block (this bed and `check-pod` in `box/fedora`; `check-local` in main).
+and `check-local`) — all `disposable: true` bundles, top-level entries in their
+project's `charly.yml` (this bed and `check-pod` in `box/fedora`; `check-local`
+in main).
 
-## Bed (a `kind: check` entity in the `check:` block)
+## Bed (a `disposable: true` bundle)
+
+A check bed is just a bundle marked `disposable: true` — there is no separate
+`check:` block. Each delta probe sway-browser-vnc doesn't bake is its own child
+step node under the bundle (named by its `id:`); mirror `box/fedora/charly.yml`:
 
 ```yaml
-check:
-  check-sway-browser-vnc-pod:
-    target: pod
-    box: sway-browser-vnc        # the shipping image, deployed as-is
-    disposable: true
-    lifecycle: dev
-    plan:                          # delta probes sway-browser-vnc doesn't bake
-                                   # each step is one inline Op; a probe is a check: step
-      - check: CDP /json/version answers over the published HOST_PORT
+check-sway-browser-vnc-pod:
+    bundle:
+        box: sway-browser-vnc        # the shipping image, deployed as-is
+        disposable: true
+        lifecycle: dev
+    esbv-pod-http-cdp:
+        check: CDP /json/version answers over the published HOST_PORT
         http: "http://127.0.0.1:${HOST_PORT:9222}/json/version"
         id: esbv-pod-http-cdp
         context: [deploy]
         status: 200
-      - check: CDP enumerates the live debugging targets
+    esbv-pod-cdp-list:
+        check: CDP enumerates the live debugging targets
         cdp: list
         id: esbv-pod-cdp-list
         context: [deploy]
-      - check: the Sway tree is reachable over the Wayland socket
+    esbv-pod-wl-sway-tree:
+        check: the Sway tree is reachable over the Wayland socket
         wl: sway-tree
         id: esbv-pod-wl-sway-tree
         context: [deploy]
-      - check: a terminal recording starts
+    esbv-pod-record-start:
+        check: a terminal recording starts
         record: start
         id: esbv-pod-record-start
         context: [deploy]
@@ -59,7 +65,7 @@ time (`charly box validate` notes this).
 
 `sway-browser-vnc` already bakes binaries/services + cdp/vnc/wl/dbus checks,
 and inherits the two `mcp:` probes from the `chrome-devtools-mcp` layer.
-The bed's `plan:` above adds the remaining deploy-context `check:` steps —
+The bed's child step nodes above add the remaining deploy-context `check:` steps —
 operator-side `http:` (CDP `/json/version` via `HOST_PORT`), `cdp: list`,
 `wl: sway-tree`, and `record: start` — so a single `charly check live` run
 exercises the full cdp/wl/vnc/dbus/mcp/record surface.
@@ -81,7 +87,7 @@ Note: `charly config <key>` persists `image: <key>` (it assumes deploy-key ==
 image-name; see `/charly-core:deploy`). Because this bed's key
 (`check-sway-browser-vnc-pod`) differs from its image (`sway-browser-vnc`), set
 the operator ref to `sway-browser-vnc` in `~/.config/charly/charly.yml` (the check
-runner / `charly deploy add` does this for you — `charly` "never clobbers
+runner / `charly bundle add` does this for you — `charly` "never clobbers
 operator-authored refs").
 
 ## Related Skills

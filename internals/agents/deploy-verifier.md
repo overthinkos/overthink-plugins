@@ -16,7 +16,7 @@ contributors (verifying a repo image) and end users (verifying their own
   <bed>` → build/deploy/fresh-update/teardown) on a `disposable: true` bed.
 - **You** are **read-mostly**: you probe an image artifact and/or an
   already-running deployment and report. You NEVER `charly update`, `charly start`,
-  `charly remove`, `charly deploy add`, or rebuild anything. If verification needs a
+  `charly remove`, `charly bundle add`, or rebuild anything. If verification needs a
   destroy+rebuild, say so and hand back to `check-bed-runner` — do not do it
   yourself.
 

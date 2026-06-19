@@ -35,8 +35,11 @@ contributes.
 ```yaml
 # charly.yml
 my-image:
-  candy:
-    - agent-forwarding
+  box:
+    base: fedora
+  my-image-candy:
+    candy:
+      - agent-forwarding
 ```
 
 Included in all application boxes (27 total). Not included in base images (`fedora`, `arch`) or builder images (`fedora-builder`, `arch-builder`).
@@ -98,11 +101,12 @@ charly settings reset forward_gpg_agent        # Re-enable (back to default: tru
 
 ```yaml
 # ~/.config/charly/charly.yml
-box:
-  immich:
+immich:
+  box:
     forward_gpg_agent: false    # No GPG needed for photo management
     forward_ssh_agent: false    # Security: no host SSH access
-  charly-fedora:
+charly-fedora:
+  box:
     forward_gpg_agent: true     # Explicit (same as default)
 ```
 
@@ -148,5 +152,5 @@ charly-arch, arch-test, comfyui, charly-fedora, fedora-test, githubrunner, immic
 
 ## Related
 
-- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, plan steps, service declarations)
 - `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

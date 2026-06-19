@@ -17,9 +17,13 @@ description: |
 ## Usage
 
 ```yaml
-# box or candy charly.yml
-candy:
-  - codex
+# box or candy charly.yml — composition is a child node, not a top-level list
+my-box:
+    box:
+        base: fedora
+    my-box-candy:
+        candy:
+            - codex
 ```
 
 ## Used In Boxes
@@ -44,5 +48,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, plan-step verbs, service declarations)
 - `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

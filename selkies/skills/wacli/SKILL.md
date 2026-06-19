@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `charly.yml`, `task:` |
+| Install files | `charly.yml` (a `run:` install step) |
 | Depends | `golang` |
 
 ## Environment
@@ -24,9 +24,13 @@ description: |
 ## Usage
 
 ```yaml
-# box or candy charly.yml
-candy:
-  - wacli
+# a box composing this candy — the candy list is a child node
+my-box:
+  box:
+    base: fedora
+  my-box-candy:
+    candy:
+      - wacli
 ```
 
 ## Used In Boxes
@@ -51,5 +55,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, `run:`/`check:` step verbs, service declarations)
 - `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

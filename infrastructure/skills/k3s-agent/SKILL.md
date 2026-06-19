@@ -56,7 +56,7 @@ deployments:
 ```
 
 ```bash
-charly deploy add vm:k3s-ag1
+charly bundle add vm:k3s-ag1
 # agent registers; charly check k8s wait-nodes on server confirms the join.
 charly check k8s wait-nodes --cluster k3s-srv --count 2 --timeout 3m
 ```

@@ -28,11 +28,12 @@ server (`/charly-versa:osm-tools-layer`).
 ## Service spec
 
 ```yaml
-service:
-  - name: maputnik
-    exec: /usr/bin/python3 -m http.server 8000 --directory /opt/maputnik/build
-    restart: always
-    working_directory: /opt/maputnik
+maputnik-service:
+  service:
+    - name: maputnik
+      exec: /usr/bin/python3 -m http.server 8000 --directory /opt/maputnik/build
+      restart: always
+      working_directory: /opt/maputnik
 ```
 
 Pure stdlib server — no marimo-pixi-env coupling. The system
@@ -54,7 +55,9 @@ shows asset 404s for `/maputnik/assets/index-*.js` etc.
 **Fix in the build cmd**:
 
 ```yaml
-- command: |
+maputnik-step-build:
+  run: build maputnik from upstream source with the Vite --base=/ override
+  command: |
     set -euo pipefail
     git clone --depth 1 https://github.com/maplibre/maputnik /tmp/maputnik
     cd /tmp/maputnik
@@ -82,18 +85,19 @@ A deploy-context `check:` step greps the served HTML for the
 (forbidden) `/maputnik/` prefix and fails if present. It is a `check:`
 step, so it is a deterministic
 acceptance step that locks in the fix against a future revert to the
-Vite default. The step lives in the `plan:` (a sibling of
-`description:`):
+Vite default. The step is a child step node of the candy, named by its
+`id:`:
 
 ```yaml
-plan:
-  - check: maputnik serves a root-relative SPA
-    id: maputnik-asset-base-not-prefixed
-    command: |
-      ! curl -fsS http://localhost:8000/ | grep -q '"/maputnik/'
-    in_container: true
-    exit_status: 0
-    context: [deploy]
+maputnik-asset-base-not-prefixed:
+  check: maputnik serves a root-relative SPA
+  id: maputnik-asset-base-not-prefixed
+  command: |
+    ! curl -fsS http://localhost:8000/ | grep -q '"/maputnik/'
+  in_container: true
+  exit_status: 0
+  context:
+    - deploy
 ```
 
 Plus the standard probe steps (also `context: [deploy]`):

@@ -9,7 +9,7 @@ description: |
 
 # vms
 
-`vm.yml` is the authoring surface for `kind: vm` entities — VM primitives that pair with either a remote cloud-image URL (`source.kind: cloud_image`) or an in-repo bootc container image (`source.kind: bootc`). Loaded through `charly.yml`'s `import:` (or inline under its root). Entries are resolved by `LoadUnified` into `VmSpec` Go types (`charly/vm_spec.go`) and consumed by `charly vm build`, `charly vm create`, and `charly deploy add vm:<name>`.
+`vm.yml` is the authoring surface for `kind: vm` entities — VM primitives that pair with either a remote cloud-image URL (`source.kind: cloud_image`) or an in-repo bootc container image (`source.kind: bootc`). Loaded through `charly.yml`'s `import:` (or inline under its root). Entries are resolved by `LoadUnified` into `VmSpec` Go types (`charly/vm_spec.go`) and consumed by `charly vm build`, `charly vm create`, and `charly bundle add vm:<name>`.
 
 The VM surface parallels the `kind: box` surface: one YAML entry per entity, kind-keyed, discovered through includes. The Go types that back it live in `/charly-internals:vm-spec`; the rendering paths in `/charly-internals:libvirt-renderer` and `/charly-internals:cloud-init-renderer`.
 
@@ -183,7 +183,7 @@ Leave `base_user:` empty **only** when the upstream has no default account — i
 
 ## charly_install.strategy: auto (cloud_image)
 
-`charly_install.strategy: auto` in `cloud_init:` wires `charly`'s in-guest installer (`/charly-internals:cloud-init-renderer` → emitted `runcmd:` entries) so the provisioned VM comes up with `charly` already installed. Lets `charly deploy add vm:<name>` apply host-deploy-style layer recipes inside the VM over SSH without a bootstrap round-trip. See `/charly-internals:cloud-init-renderer` for the emission + handshake.
+`charly_install.strategy: auto` in `cloud_init:` wires `charly`'s in-guest installer (`/charly-internals:cloud-init-renderer` → emitted `runcmd:` entries) so the provisioned VM comes up with `charly` already installed. Lets `charly bundle add vm:<name>` apply host-deploy-style layer recipes inside the VM over SSH without a bootstrap round-trip. See `/charly-internals:cloud-init-renderer` for the emission + handshake.
 
 `strategy: none` skips the step entirely — useful when the VM will be managed by something other than `charly` after provisioning.
 
@@ -213,7 +213,7 @@ Idempotent. Harvests the legacy fields into `vms:` entries, preserving any pre-e
 
 - `/charly-vm:vm` — the `charly vm build/create/start/stop/ssh/console` command family
 - `/charly-build:migrate` — `charly migrate` conversion from legacy
-- `/charly-core:deploy` — `charly deploy add vm:<name>` for in-guest layer application
+- `/charly-core:deploy` — `charly bundle add vm:<name>` for in-guest layer application
 - `/charly-vm:arch` — canonical cloud_image VM
 - `/charly-internals:vm-spec` — Go type reference
 - `/charly-internals:libvirt-renderer` — libvirt XML emission
@@ -226,7 +226,7 @@ Idempotent. Harvests the legacy fields into `vms:` entries, preserving any pre-e
 
 ## Live-deploy verification is mandatory (see `/charly-check:check` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly bundle add <name> <ref> --disposable` or mark a VM in vm.yml.
 
 **After committing the source-level fix, `charly update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 

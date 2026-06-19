@@ -50,9 +50,13 @@ This metalayer includes the following 25 candies:
 ## Usage
 
 ```yaml
-# charly.yml
-candy:
-  - openclaw-full
+# box charly.yml — composition is a child node, not a top-level list
+openclaw-full-box:
+    box:
+        base: fedora
+    openclaw-full-box-candy:
+        candy:
+            - openclaw-full
 ```
 
 ## Used In Boxes

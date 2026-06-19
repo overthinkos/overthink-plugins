@@ -1,8 +1,8 @@
 ---
 name: charly-cachyos
 description: |
-  Operator CachyOS workstation profile — a kind:local template + target:local
-  deploy that installs the full dev stack (30 candies) onto a CachyOS host via
+  Operator CachyOS workstation profile — a kind:local template plus a host:local
+  bundle that installs the full dev stack (30 candies) onto a CachyOS host via
   ShellExecutor. Lives in the overthinkos/cachyos submodule.
   MUST be invoked before editing or applying the charly-cachyos workstation profile.
 ---
@@ -10,18 +10,18 @@ description: |
 # charly-cachyos
 
 The operator's CachyOS developer-workstation profile: a `kind: local` template
-(`local.charly-cachyos`) plus a `target: local` + `host: local` deploy entry
-(`deploy.charly-cachyos`) that applies a kitchen-sink dev stack directly to the
+(`charly-cachyos-app`) plus a `host: local` bundle (`charly-cachyos`, the
+deploying entry) that applies a kitchen-sink dev stack directly to the
 current machine via `ShellExecutor` — no SSH, no VM, no container.
 
 It lives in the **`overthinkos/cachyos`** repo (git submodule at
-**`box/cachyos`**), in that repo's config (its `charly.yml` + per-kind
-sibling files) — both the
-`kind: local` template and its `kind: deploy` entry (`deploy.charly-cachyos`). The
-repo also carries a sibling `kind: deploy`, `deploy.cachyos-gpu` — the
-**persistent** operator GPU-workstation VM (`target: vm`, **not** `disposable`;
-see `/charly-vm:cachyos`) — so charly-cachyos is no longer the only `kind: deploy`
-there; every disposable test bed remains `kind: check`. Apply it with:
+**`box/cachyos`**), in that repo's single `charly.yml` — both the
+`kind: local` template (`charly-cachyos-app`) and the `charly-cachyos` bundle
+that deploys it. The repo also carries the `cachyos-gpu` bundle — the
+**persistent** operator GPU-workstation VM (`bundle: { vm: cachyos-gpu-workstation-vm }`,
+**not** `disposable`; see `/charly-vm:cachyos`) — so `charly-cachyos` is no longer
+the only non-disposable bundle there; every disposable test bed is a
+`disposable: true` bundle. Apply it with:
 
 ```bash
 charly -C box/cachyos update charly-cachyos
@@ -49,7 +49,7 @@ repo's `candy/` (resolved via its `discover:` block):
 | `install_opts.builder_image` | `ghcr.io/overthinkos/arch-builder:2026.122.2252` (OCI ref, not a candy) |
 | `install_opts` | with_service, allow_repo_changes, allow_root_tasks all true |
 | `env` | `EDITOR=nvim`, `PAGER=less` |
-| `disposable` (deploy) | `true` — `charly update charly-cachyos` is authorized |
+| `disposable` (bundle) | `true` — `charly update charly-cachyos` is authorized |
 
 ## Deploy-scope check probes
 
@@ -63,10 +63,10 @@ card-less or VFIO-passthrough host, so the profile applies cleanly anywhere.
 
 ## Composition-by-reference note
 
-`local.charly-cachyos`'s remote candy refs are collected and materialized by the
+`charly-cachyos-app`'s remote candy refs are collected and materialized by the
 same `CollectRemoteRefs` walk as box candy refs: the walk collects the candy
-refs of the ROOT project's own `kind: local` templates (charly-cachyos is the root
-here), so `charly box validate` / `charly update charly-cachyos` resolve the github-ref'd
+refs of the ROOT project's own `kind: local` templates (the cachyos repo is the
+root here), so `charly box validate` / `charly update charly-cachyos` resolve the github-ref'd
 candies. (Collection is reachability-scoped — a namespace's `kind:local`
 templates, imported only as a dependency, are NOT collected by an importer; only
 the root's own locals are. See `/charly-internals:go` "Remote-layer resolver".)
@@ -76,7 +76,7 @@ the root's own locals are. See `/charly-internals:go` "Remote-layer resolver".)
 - `/charly-local:local-spec` — `kind: local` template authoring reference
 - `/charly-local:local-deploy` — the `target: local` deployment surface
 - `/charly-distros:cachyos` — the CachyOS base of the same family
-- `/charly-core:deploy` — deploy entry semantics (cross-kind name reuse: deploy.charly-cachyos ↔ local.charly-cachyos)
+- `/charly-core:deploy` — bundle entry semantics (globally-unique names within a document: the `charly-cachyos` bundle deploys the suffixed `charly-cachyos-app` `kind: local` template)
 
 ## When to Use This Skill
 

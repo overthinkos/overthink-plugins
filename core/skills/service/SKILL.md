@@ -337,7 +337,7 @@ single object. `ports` is a structured array (not `[]string`):
 
 Use the top-level `charly reap-orphans` command. It walks charly.yml
 ephemeral entries marked `active`, probes the underlying engine
-(libvirt for VM, podman for pod, kubectl for k8s) and runs `charly deploy
+(libvirt for VM, podman for pod, kubectl for k8s) and runs `charly bundle
 del <name> --force` for orphans.
 
 Source: `charly/status.go`, `charly/status_engine.go`, `charly/status_collector.go`,

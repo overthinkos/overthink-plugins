@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `charly.yml`, `task:` |
+| Install files | `charly.yml` (`run:` step) |
 | Depends | `golang` |
 
 ## Environment
@@ -24,9 +24,13 @@ description: |
 ## Usage
 
 ```yaml
-# box or candy charly.yml
-candy:
-  - blogwatcher
+# box charly.yml — name-first: compose the candy via a child node
+my-box:
+  box:
+    base: fedora
+  my-box-candy:
+    candy:
+      - blogwatcher
 ```
 
 ## Used In Boxes
@@ -38,7 +42,7 @@ candy:
 - `/charly-openclaw:openclaw-full` — Metalayer that bundles blogwatcher with other AI/agent CLIs
 
 ## Related Commands
-- `/charly-build:build` — Builds the candy (Go install via a cmd task)
+- `/charly-build:build` — Builds the candy (Go install via a `run:` step)
 - `/charly-core:shell` — Interactive shell to run blogwatcher inside the container
 
 ## When to Use This Skill
@@ -50,5 +54,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, plan-step verbs, service declarations)
 - `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

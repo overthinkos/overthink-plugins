@@ -26,8 +26,12 @@ Validates that the `pac:` package format works correctly on Arch Linux boxes. In
 
 ```yaml
 # charly.yml
-candy:
-  - arch-pac-test
+my-image:
+  box:
+    base: arch
+  my-image-candy:
+    candy:
+      - arch-pac-test
 ```
 
 Requires an Arch-based box with `build: [pac]` (or `[pac, aur]`).
@@ -49,5 +53,5 @@ Use when the user asks about:
 
 ## Author + Test References
 
-- `/charly-image:layer` — candy authoring reference (tasks, vars, env_provide, tests block syntax)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, plan steps, service declarations)
 - `/charly-check:check` — declarative testing framework for the `check:` block

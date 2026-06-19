@@ -59,13 +59,13 @@ Source layout:
 - `charly/status_collect_k8s.go` — the `K8sCollector` (cluster workloads; live
   client-go probing under `--nested`).
 - `charly/status_collect_local.go` — the `LocalCollector` (install-ledger →
-  `target: local` rows, `Source="ledger"`).
+  `local`-kind rows, `Source="ledger"`).
 - `charly/status_collect_adb.go` — the `AndroidCollector` (declared
-  `target: android` devices → rows via adb `host:devices`, `Source="adb"`).
+  `android` devices → rows via adb `host:devices`, `Source="adb"`).
 - `charly/status_nested.go` — the nested overlay (`applyNestedOverlay`): folds the
   DECLARED nested tree onto parent rows and, under `--nested`, probes each
   child's live multi-hop venue via the same `ResolveDeployChain` +
-  `NestedExecutor` primitive `charly deploy add` / `charly check live parent.child` use.
+  `NestedExecutor` primitive `charly bundle add` / `charly check live parent.child` use.
 - `charly/status_probes.go` — `Probe` / `HostProbe` / `GuestProbe` interfaces
   and the 7 concrete probes (`SupervisordProbe`, `DbusProbe`, `CharlyProbe`,
   `WlProbe`, `SwayProbe` are guest; `CdpProbe`, `VncProbe` are host).
@@ -135,8 +135,8 @@ A deploy can declare a nested tree (`pod → android`, `vm → pod`, `vm → hos
 …). `charly status` reflects it WITHOUT a dedicated "nested" collector — a nested
 child's venue is always REACHED THROUGH its parent, so `applyNestedOverlay`
 post-processes the already-merged flat rows: it reads the DECLARED tree from
-the merged deploy config (project `charly.yml` incl. folded `kind: check`
-beds + `~/.config/charly/charly.yml`) and attaches each declared child to its
+the merged deploy config (project `charly.yml` incl. folded disposable check
+bundles + `~/.config/charly/charly.yml`) and attaches each declared child to its
 parent row's `Nested[]`.
 
 **Dedup — a declared nested child appears exactly once.** A child substrate
@@ -157,7 +157,7 @@ match keeps the synthesized declared row (`Source="nested"`).
   subprocesses.
 - **`charly status --nested`**: each child's LIVE venue is probed through the real
   multi-hop chain (`ResolveDeployChain` → `NestedExecutor`, the SAME primitive
-  `charly deploy add` and `charly check live parent.child` use — no bespoke nested dial)
+  `charly bundle add` and `charly check live parent.child` use — no bespoke nested dial)
   under a STRICT 4-second per-child context deadline. A timed-out / failing
   child renders `unreachable`; the table is NEVER blocked. The deadline is a
   context cancellation, never a sleep/retry loop. `--nested` also turns on live
@@ -240,8 +240,8 @@ with no flat row is synthesized (`"source": "nested"`, `"status": "declared"`):
 Because the JSON encoder indents (`SetIndent("", "  ")`), the on-the-wire
 substring for a substrate row is `"kind": "pod"` — a SPACE after the colon.
 Check `command` checks that grep `charly status --json` output assert on the spaced
-form (e.g. `contains: '"kind": "vm"'`). The four `kind: check` beds each carry a
-`status-shows-*` deploy-scope check that proves the live `charly status --json`
+form (e.g. `contains: '"kind": "vm"'`). The four disposable check bundles each carry a
+`status-shows-*` member check that proves the live `charly status --json`
 reports the right kind (and, for android, the `"nested"` tree).
 
 Single-image (`charly status <image> -i <inst> --json`) emits one object,
@@ -275,7 +275,7 @@ Authoritative direct queries (when you need the raw mount data):
 
 ```bash
 charly status <image> --json    # volumes[] carries the live mounts
-charly deploy show <image>
+charly bundle show <image>
 ```
 
 ## Usage
@@ -314,7 +314,7 @@ charly status --json | jq '.[] | select(.nested) | .nested[].image'
 
 ## Live-deploy verification is mandatory (see `/charly-check:check` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly bundle add <name> <ref> --disposable` or mark a VM in vm.yml.
 
 **After committing the source-level fix, `charly update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 

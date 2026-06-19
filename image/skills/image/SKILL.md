@@ -35,7 +35,7 @@ order.
 | `charly box merge` | Merge small layers in a built image | `/charly-build:merge` |
 | `charly box new candy <name>` | Scaffold a new candy directory | `/charly-build:new` |
 | `charly box pull` | Fetch an image into local storage | `/charly-build:pull` |
-| `charly check box` | Run declarative tests against a disposable container from a built image (reads the baked `plan:` from the `ai.opencharly.description` OCI label) | `/charly-check:check` |
+| `charly check box` | Run declarative tests against a disposable container from a built image (reads the baked plan from the `ai.opencharly.description` OCI label) | `/charly-check:check` |
 | `charly box validate` | Check charly.yml + layers | `/charly-build:validate` |
 
 ## Scope Boundary (Build vs. Deploy)
@@ -155,28 +155,39 @@ defaults:
     auto: false
     max_mb: 128
 
-box:
-  fedora:
+# Every box is a name-first node: the `box:` discriminator holds the scalar +
+# build-vocabulary fields (base / version / builder / builds / platforms /
+# build / description); every non-scalar collection (distro identity tags,
+# candy composition, env, security) becomes its own `<box>-<key>:` child node.
+fedora:
+  box:
     base: "quay.io/fedora/fedora:43"
+  fedora-distro:
     distro: ["fedora:43", fedora]
 
-  fedora-builder:
+fedora-builder:
+  box:
     base: fedora
     builds: [pixi, npm, cargo]  # declares what this builder can build
+  fedora-builder-candy:
     candy:
       - pixi
       - nodejs
       - build-toolchain
 
-  my-app:
+my-app:
+  box:
     base: fedora
+    env_file: "~/.config/my-app/.env"
+  my-app-candy:
     candy:
       - supervisord
       - traefik
       - my-service          # published ports are inherited from the candies (no box `port:`)
+  my-app-env:
     env:
       - MY_VAR=value
-    env_file: "~/.config/my-app/.env"
+  my-app-security:
     security:
       cap_add: [SYS_PTRACE]
 ```
@@ -196,7 +207,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `platforms` | `["linux/amd64", "linux/arm64"]` | Target architectures |
 | `tag` | `"auto"` | Image tag. `"auto"` for CalVer |
 | `registry` | `""` | Container registry prefix |
-| `distro` | `[]` | Distro identity tags in priority order: `["fedora:43", fedora]`. For packages: first matching section wins (override). For tasks: additive. Inherited from base image |
+| `distro` | `[]` | Distro identity tags in priority order: `["fedora:43", fedora]`. For packages: first matching section wins (override). For plan steps: additive. Inherited from base image |
 | `build` | `["rpm"]` | Package formats tied to builder definitions: `[rpm]` or `[pac, aur]`. ALL formats installed in order. Valid: rpm, deb, pac, aur. Inherited from base image |
 | `layers` | (required) | Layer list (image-specific, not inherited) |
 | `user` | `"user"` | Username for non-root operations. See `user_policy:` — may be overridden at resolve time when adopt mode fires |
@@ -230,30 +241,37 @@ defaults:
     npm: fedora-builder
     cargo: fedora-builder
 
-box:
-  fedora-builder:
+fedora-builder:
+  box:
     base: fedora
     builds: [pixi, npm, cargo]
+  fedora-builder-candy:
     candy: [pixi, nodejs, build-toolchain]
 
-  arch:
+arch:
+  box:
     base: "quay.io/archlinux/archlinux:base-20260525.0.535911"
-    distro: [arch]
     build: [pac]
     builder:
       pixi: arch-builder
       npm: arch-builder
       cargo: arch-builder
       aur: arch-builder
+  arch-distro:
+    distro: [arch]
 
-  arch-builder:
+arch-builder:
+  box:
     base: arch              # inherits build: [pac] AND builder: from arch
     builds: [pixi, npm, cargo, aur]
+  arch-builder-candy:
     candy: [pixi, nodejs, build-toolchain, yay]
 
-  arch-test:
+arch-test:
+  box:
     base: arch              # inherits builder: from arch
     build: [pac, aur]            # override to add aur format
+  arch-test-candy:
     candy: [arch-pac-test, arch-aur-test]
 ```
 
@@ -270,12 +288,14 @@ Source: `charly/generate.go` (`builderRefForFormat`), `charly/graph.go` (`Resolv
 When `base` references another image in `charly.yml`, the generator resolves it to the full registry/tag and creates a build dependency. The referenced image must be built first.
 
 ```yaml
-box:
-  fedora:
+fedora:
+  box:
     base: "quay.io/fedora/fedora:43"
 
-  my-app:
+my-app:
+  box:
     base: fedora        # References fedora image above
+  my-app-candy:
     candy: [my-layer]
 ```
 
@@ -332,7 +352,7 @@ charly box inspect debian-coder | grep -E '"User"|"UID"|"Home"|UserAdopted'
 
 ### Layer consequences
 
-Adopt mode means `resolved.User` is not a stable string across distros. Layers that reference the uid-1000 account by name must NOT hardcode `user` — use `${USER}` where the generator substitutes (task fields like `run_as: ${USER}`), or use `getent passwd 1000 | cut -d: -f1` inside `command:` blocks (where the generator does NOT substitute — bash sees the script verbatim). The canonical getent example is `/charly-coder:sshd`'s sudoers task.
+Adopt mode means `resolved.User` is not a stable string across distros. Layers that reference the uid-1000 account by name must NOT hardcode `user` — use `${USER}` where the generator substitutes (step fields like `run_as: ${USER}`), or use `getent passwd 1000 | cut -d: -f1` inside `command:` blocks (where the generator does NOT substitute — bash sees the script verbatim). The canonical getent example is `/charly-coder:sshd`'s sudoers step.
 
 See also `/charly-distros:ubuntu` (canonical adopt consumer), `/charly-build:build` "base_user:", `/charly-internals:go` "ResolvedBox.UserAdopted".
 
@@ -341,21 +361,26 @@ See also `/charly-distros:ubuntu` (canonical adopt consumer), `/charly-build:bui
 When `base` is a URL string (not the name of another image in `charly.yml`), the generator treats it as **external** and does not inherit distro tags or build formats. This is the canonical gotcha for bootc images, which typically use `quay.io/fedora/fedora-bootc:43`:
 
 ```yaml
-# ❌ BROKEN — Distro resolves to null, no RPM installs emitted
+# ❌ BROKEN — no `<box>-distro:` child node → Distro resolves to null, no RPM installs emitted
 my-bootc-image:
-  base: "quay.io/fedora/fedora-bootc:43"
-  bootc: true
-  candy: [sshd, qemu-guest-agent, ffmpeg]
+  box:
+    base: "quay.io/fedora/fedora-bootc:43"
+    bootc: true
+  my-bootc-image-candy:
+    candy: [sshd, qemu-guest-agent, ffmpeg]
 
-# ✓ CORRECT — explicit distro: tags matching the base
+# ✓ CORRECT — explicit distro: tags matching the base, in a `<box>-distro:` child node
 my-bootc-image:
-  base: "quay.io/fedora/fedora-bootc:43"
-  bootc: true
-  distro: ["fedora:43", fedora]
-  candy: [sshd, qemu-guest-agent, ffmpeg]
+  box:
+    base: "quay.io/fedora/fedora-bootc:43"
+    bootc: true
+  my-bootc-image-distro:
+    distro: ["fedora:43", fedora]
+  my-bootc-image-candy:
+    candy: [sshd, qemu-guest-agent, ffmpeg]
 ```
 
-Symptom without `distro:`: `charly box inspect <image>` shows `"Distro": null`. The generator's install_template Phase-2 branch short-circuits on `img.DistroDef == nil`, so **no layer `rpm:` install RUN steps are emitted**. The image builds cleanly but is missing every package from every layer that uses declarative `rpm:` sections. Explicit `command: dnf install …` tasks still run; the bug affects only declarative `rpm:`/`deb:`/`pac:` sections.
+Symptom without `distro:`: `charly box inspect <image>` shows `"Distro": null`. The generator's install_template Phase-2 branch short-circuits on `img.DistroDef == nil`, so **no layer `rpm:` install RUN steps are emitted**. The image builds cleanly but is missing every package from every layer that uses declarative `rpm:` sections. Explicit `command: dnf install …` steps still run; the bug affects only declarative `rpm:`/`deb:`/`pac:` sections.
 
 Internal bases (`base: fedora`) inherit `distro:` and `build:` from the parent image automatically — you only need explicit tags on images whose `base:` is a URL. The `quay.io/fedora/fedora-bootc:43` example above is the canonical pattern: an external bootc base must declare its own `distro:` tags, or the generator sees `Distro: null` and emits no rpm-install RUN steps.
 
@@ -399,12 +424,13 @@ Override: `charly box generate --tag <value>`.
 The `env` and `env_file` fields inject environment variables into containers at runtime (not build time):
 
 ```yaml
-box:
-  my-app:
+my-app:
+  box:
+    env_file: "~/.config/my-app/.env"
+  my-app-env:
     env:
       - DB_HOST=localhost
       - LOG_LEVEL=info
-    env_file: "~/.config/my-app/.env"
 ```
 
 These are the lowest priority in the env resolution chain. CLI flags (`-e`, `--env-file`) and workspace `.env` take precedence. See `/charly-core:charly-config` and `/charly-core:start` for the full priority chain at config-time and run-time respectively.
@@ -416,8 +442,10 @@ Source: `charly/envfile.go` (`ResolveEnvVars`).
 Box-level `security:` overrides candy-level security settings:
 
 ```yaml
-box:
-  my-app:
+my-app:
+  box:
+    base: fedora
+  my-app-security:
     security:
       privileged: true
       cap_add: [SYS_ADMIN]
@@ -434,15 +462,16 @@ Source: `charly/security.go` (`CollectSecurity`).
 VMs are **not** configured on kind: box entries. The `box.vm:` and `box.libvirt:` fields are rejected at load time. VM primitives are declared as `kind: vm` entities in `vm.yml`:
 
 ```yaml
-# vm.yml
-vms:
-  my-bootc-vm:
+# vm.yml (any file — the loader routes by shape, not filename)
+my-bootc-vm:
+  vm:
     source:
       kind: bootc
-      box: my-bootc-image        # references the kind: box entry above (must have bootc: true)
+      box: my-bootc-image        # references the box node above (must have bootc: true)
     disk_size: 10 GiB
     ram: 4G
     cpus: 2
+  my-bootc-vm-libvirt:
     libvirt:
       devices:
         filesystems: [{type: mount, source: ..., target: ...}]
@@ -452,7 +481,7 @@ See `/charly-vm:vms-catalog` for the full VmSpec schema, `/charly-vm:vm` for the
 
 ## Ports — inherited from candies, auto-allocated at deploy
 
-**Boxes do NOT declare ports.** A box's published ports are inherited from EVERY candy in its base chain — the candy that runs a service declares the container port (`candy.yml` `port:`), and `CollectBoxPorts` (`charly/ports.go`, over the shared `boxCandyChain` walk) collects the full set. The same set feeds both the `ai.opencharly.port` OCI label and the Containerfile `EXPOSE` directives, so they can never diverge. A residual box-level `port:` is a hard load error pointing at `charly migrate`.
+**Boxes do NOT declare ports.** A box's published ports are inherited from EVERY candy in its base chain — the candy that runs a service declares the container port (the candy's `<name>-port:` child node), and `CollectBoxPorts` (`charly/ports.go`, over the shared `boxCandyChain` walk) collects the full set. The same set feeds both the `ai.opencharly.port` OCI label and the Containerfile `EXPOSE` directives, so they can never diverge. A residual box-level `port:` is a hard load error pointing at `charly migrate`.
 
 ```bash
 charly box inspect android-emulator --format ports
@@ -465,7 +494,7 @@ charly box inspect android-emulator --format ports
 
 ## OCI Labels
 
-Every image `charly` builds carries a set of `ai.opencharly.*` OCI labels embedding the resolved image config so that `charly config` and `charly deploy` can work without the project source tree. The full list is assembled in `charly/labels.go`:
+Every image `charly` builds carries a set of `ai.opencharly.*` OCI labels embedding the resolved image config so that `charly config` and `charly bundle` can work without the project source tree. The full list is assembled in `charly/labels.go`:
 
 | Label | Contents |
 |---|---|
@@ -493,7 +522,7 @@ All of the above round-trip via `charly config`: the label is read from the imag
 2. **`--update-all` safety.** Propagating config changes across deployed services must not accidentally rewrite tunnel settings from image labels and blow away per-instance overrides.
 3. **Instance inheritance gap.** Tunnel config is **not** auto-inherited from the base `charly config <image>` call to an `charly config <image> -i <instance>` call. This is a deliberate gap — see `/charly-selkies:selkies-labwc` (Multi-Instance Proxy Deployment) for the manual workaround and `/charly-core:deploy` (Instance Tunnel Inheritance) for the full lifecycle.
 
-**Practical implication:** you can inspect an image's tunnel declaration with `charly box inspect <image>` and see nothing useful — that's correct. To see a tunnel's actual state, read `charly.yml` directly (`charly deploy show <image>`) or the generated quadlet (`charly status <image>`).
+**Practical implication:** you can inspect an image's tunnel declaration with `charly box inspect <image>` and see nothing useful — that's correct. To see a tunnel's actual state, read `charly.yml` directly (`charly bundle show <image>`) or the generated quadlet (`charly status <image>`).
 
 ## Common Workflows
 
@@ -512,24 +541,28 @@ charly box build my-new-image
 Set `base` to another image name:
 
 ```yaml
-box:
-  nvidia:
+nvidia:
+  box:
     base: fedora
-    candy: [cuda]
     platforms: [linux/amd64]
+  nvidia-candy:
+    candy: [cuda]
 
-  ml-workstation:
+ml-workstation:
+  box:
     base: nvidia
+  ml-workstation-candy:
     candy: [python-ml, jupyter]
 ```
 
 ### Disable an Image
 
 ```yaml
-box:
-  experimental:
+experimental:
+  box:
     enabled: false
     base: fedora
+  experimental-candy:
     candy: [experimental-layer]
 ```
 
@@ -552,7 +585,7 @@ box:
 - `/charly-core:deploy` -- Deploying built images (quadlet, bootc, tunnel lifecycle, instance tunnel inheritance)
 - `/charly-core:charly-config` -- `charly config` reads OCI labels + charly.yml; tunnel is charly.yml-only
 - `/charly-internals:go` -- `LoadConfig`, `ExtractMetadata`, `EnsureImage`, `ErrImageNotLocal` source locations
-- `/charly-check:check` — Box-level `plan:` steps (cross-candy invariants; deploy-default checks shipped with the image are `check:` steps carrying `context: [deploy]`). The plan steps are embedded in the `ai.opencharly.description` OCI label.
+- `/charly-check:check` — Box-level plan steps (cross-candy invariants; deploy-default checks shipped with the image are `check:` steps carrying `context: [deploy]`). The plan steps are embedded in the `ai.opencharly.description` OCI label.
 - `/charly-build:charly-mcp-cmd` — if the image transitively bundles an mcp-providing candy (e.g. `jupyter`, `chrome-devtools-mcp`), the bundled candy's `mcp:` tests run as part of `charly check live <image> --filter mcp`; see the skill for per-verb details and the port-publishing gotcha.
 - `/charly-vm:vm` — `charly vm build/create/start/stop/ssh` command family; reads `vm.yml`, not `charly.yml`. Covers BIOS vs UEFI firmware, virtio-gpu video model, bootc caveats (rootful storage refresh, `-v /dev:/dev` loopback).
 - `/charly-vm:vms-catalog` — authoring reference for the `kind: vm` entity schema.
@@ -560,11 +593,11 @@ box:
 
 ## Cross-kind name reuse
 
-The `box:` map's namespace is independent of `candy/`, `pod:`, `vm:`, `k8s:`, `local:`, and `deploy:`. The same name MAY exist across all of them. Authoring verbs (`charly box set`, `charly box new box`, `charly box add-candy`, `charly box rm-candy`, `charly box new project`) write exclusively to `charly.yml` — a per-kind sibling file is reachable only via the `import:` statement from `charly.yml`, never as a default authoring target. Missing `charly.yml` → hard error pointing at `charly box new project .` or `charly migrate`. See CLAUDE.md "Cross-kind name reuse".
+Every entity is a top-level **name-first** node, so within a single document the top-level node names are **globally unique**: a `box`, a `bundle`, a `vm`, a `k8s`, and a `local` in ONE `charly.yml` MUST NOT share a name (they would collide on the same YAML key — `charly box validate` flags it; rename one, e.g. the convention of suffixing the template a bundle deploys). Cross-kind reuse across SEPARATE discovered files (a `candy/redis` + a `box/redis` → distinct internal maps) IS still permitted, and verbs disambiguate by command context. Authoring verbs (`charly box set`, `charly box new box`, `charly box add-candy`, `charly box rm-candy`, `charly box new project`) write exclusively to `charly.yml` — a per-kind sibling file is reachable only via the `import:` statement from `charly.yml`, never as a default authoring target. Missing `charly.yml` → hard error pointing at `charly box new project .` or `charly migrate`. See CLAUDE.md "cross-FILE cross-kind reuse is fine, but a single document's top-level node names are GLOBALLY UNIQUE".
 
 ### Files are generic kind-containers (per-kind filenames are a convenience)
 
-Every YAML file is a generic, kind-agnostic container — the loader routes each document by its top-level kind-key (its SHAPE), **NEVER by filename**. So ANY file may hold ANY mix of kinds. Splitting entities into per-kind sibling files named for their kind (`vm.yml` for VMs, `deploy.yml` for deploys, …) is a pure user **CONVENIENCE** you express in `charly.yml`'s `import:` (and, for candy directories, `discover:`) — it is never required, and the code hardcodes no per-kind filename. **`charly.yml` is the only filename the code knows**; everything else (which files to `import:`, which directories + manifest names to `discover:`) is configured there. Inline maps in `charly.yml` and per-kind splits load identically. `discover:` is a flat generic scan-spec list (`- {path, recursive, manifest}`); the manifest defaults to `charly.yml` but is overridable per spec. Migration of legacy configs: `charly migrate` (idempotent). See `/charly-build:migrate`, `/charly-internals:go`.
+Every YAML file is a generic, kind-agnostic container — the loader routes each document by its top-level kind-key (its SHAPE), **NEVER by filename**. So ANY file may hold ANY mix of kinds. Splitting entities into per-kind sibling files named for their kind (`vm.yml` for VMs, `bundle.yml` for bundles, …) is a pure user **CONVENIENCE** you express in `charly.yml`'s `import:` (and, for candy directories, `discover:`) — it is never required, and the code hardcodes no per-kind filename. **`charly.yml` is the only filename the code knows**; everything else (which files to `import:`, which directories + manifest names to `discover:`) is configured there. Inline maps in `charly.yml` and per-kind splits load identically. `discover:` is a flat generic scan-spec list (`- {path, recursive, manifest}`); the manifest defaults to `charly.yml` but is overridable per spec. Migration of legacy configs: `charly migrate` (idempotent). See `/charly-build:migrate`, `/charly-internals:go`.
 
 ## The `import:` statement (composition + namespaces)
 
@@ -582,11 +615,11 @@ A namespaced import is reached through a dotted ref everywhere a name is resolve
 ```yaml
 import:
   - build.yml                       # flat — shared vocabulary
-  - charly.yml                       # flat — this repo's own kind: box entries
+  - charly.yml                       # flat — this repo's own box nodes
   - cachyos: box/cachyos          # namespaced child import
 
-box:
-  versa:
+versa:
+  box:
     base: cachyos.cachyos           # the `cachyos` image inside the `cachyos` namespace
 ```
 
@@ -628,7 +661,7 @@ The main repo imports all three submodules (`arch` / `cachyos` / `fedora` namesp
 
 ## Live-deploy verification is mandatory (see `/charly-check:check` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly bundle add <name> <ref> --disposable` or mark a VM in vm.yml.
 
 **After committing the source-level fix, `charly update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 

@@ -56,7 +56,7 @@ under the binding rule). "Prefer agents" governs BOUNDED work.
 
 - **`check-bed-runner`** — runs `charly check run <bed>` ONE-SHOT (the full R10
   sequence: build → check image → deploy → check live → fresh `charly update` →
-  teardown) on a `kind: check` disposable bed; returns per-step status, exit code
+  teardown) on a disposable check bed; returns per-step status, exit code
   (0 pass / 1 infra / 2 checks-failed), and the failing-step log tail. The R10
   acceptance discipline. A **persistent owner runs every full bed as a
   `run_in_background` task** (main session / background agent / split-pane
@@ -97,7 +97,7 @@ teammate.
 
 - **`/verify-beds [bed …]`** — the commit-gating full-live-test fan-out, also
   usable for continuous verification throughout development. Runs each
-  `kind: check` bed (default: all) **in parallel** via `parallel()`, bounded by
+  check bed (default: all) **in parallel** via `parallel()`, bounded by
   the runtime's 16-concurrent agent ceiling (KVM/libvirt are multi-tenant,
   podman builds distinct image tags concurrently), and aggregates pass/fail.
   Beds skipped for a missing host prereq are logged, never silently dropped.
@@ -122,7 +122,7 @@ cutover (fans the coding out across `agent()` calls) obeys the SAME bed-scoped
 discipline as an agent team — it is the workflow expression of the B3 model
 (`/charly-internals:git-workflow`), not an exemption from it:
 
-- **Partition the parallel work by `kind: check` bed.** One disjoint disposable
+- **Partition the parallel work by check bed.** One disjoint disposable
   bed per parallel owner (`check-pod` / `check-k3s-vm` / `check-local` /
   `check-android-emulator-pod` / …). Distinct beds get distinct container/VM/image
   names; the author assigns each disjoint host ports too (the loader does NOT
@@ -160,7 +160,7 @@ discipline as an agent team — it is the workflow expression of the B3 model
 Therefore, for ANY agent or workflow that runs them:
 
 - **Disposable-only (R10 / Disposable-Only Autonomy).** The sole authorization is the bed's explicit
-  `disposable: true`. Agents run `kind: check` beds, never arbitrary deploys.
+  `disposable: true`. Agents run disposable check beds, never arbitrary deploys.
 - **The commit is gated, not the run (Hard Cutover by Default).** The git commit happens ONLY
   after a full live test of EVERYTHING — the FINAL code, on `disposable: true`
   beds — passes and is pasted. Running `/verify-beds`, `check-bed-runner`, or
@@ -285,12 +285,12 @@ can enforce gates (exit 2 = block + feedback); the shipped
 ### Bed-scoped parallel real-deployment testing
 
 The **check bed is the unit of ownership, isolation, AND throughput** — it
-replaces the git worktree. `charly check run --all-beds` is strictly SEQUENTIAL (a
-plain loop in `check_runner_cmd.go`; `charly` spawns no goroutines for beds), so the
-ONLY way to compress a multi-bed cutover's wall-clock is to run the beds
-concurrently — and **every full `charly check run <bed>` is a long, multi-turn
-background task whose OWNER must survive across turns to receive the completion
-notification.** A bed run is launched with `run_in_background` (uncapped — it runs
+replaces the git worktree. `charly check run <bed>` runs exactly ONE bed; the
+old strictly-SEQUENTIAL roster sweep was removed precisely because its
+wall-clock ≈ the SUM of every bed, so running a roster means N concurrent
+`charly check run <bed>` processes — one per agent — and **every full
+`charly check run <bed>` is a long, multi-turn background task whose OWNER must
+survive across turns to receive the completion notification.** A bed run is launched with `run_in_background` (uncapped — it runs
 across turns; the Bash 600s figure is a FOREGROUND cap that never applies) and
 re-invokes its launching context when it exits. **Empirically verified (2026-06,
 this host) which contexts can own a bed:**
@@ -317,13 +317,14 @@ So **"one agent ⇄ one bed" = one PERSISTENT owner per bed**, launched
 longest-pole-first: headless → the persistent session runs N concurrent
 `run_in_background` bed tasks (or a background agent per bed); interactive tmux →
 a split-pane teammate per bed. NEVER an in-process teammate.
-Two load-time guards back the isolation: `foldCheckBeds` rejects any
-`kind: check` bed whose name collides with a `kind: deploy` entry, and
-`validateCheckBeds` requires every bed to set `disposable: true` and to declare a
-`target ∈ {pod, vm, local, android}` (with the referenced vm/local/android
-entity present). Distinct beds therefore get distinct `charly-<bed>`
+Two load-time mechanisms back the isolation: the bed set is DERIVED from the
+disposable bundles (`CheckBeds()`) — a bed is just a `disposable: true` bundle, so
+it shares the bundle namespace's global name-uniqueness and can't collide with
+another bundle by construction — and `validateCheckBeds` requires every bed to set
+`disposable: true` and to resolve to a substrate (pod / vm / local / android, with
+the referenced vm/local/android entity present). Distinct beds therefore get distinct `charly-<bed>`
 container / libvirt-domain / image names. **Host-port disjointness is NOT
-statically guaranteed** — neither guard checks ports; assigning each bed
+statically guaranteed** — neither mechanism checks ports; assigning each bed
 non-overlapping host ports is the AUTHOR's responsibility, and an overlap
 surfaces only at deploy time when `CheckPortAvailability` fails the SECOND bed's
 `start`. Partition beds with disjoint ports BY CONSTRUCTION — the loader will
@@ -405,7 +406,7 @@ confession, not the defense. The full flag catalog + rule:
 ## Cross-References
 
 - `/charly-check:check` — the bed surface these agents/workflows drive (`charly check
-  run`/`image`/`live`, the `kind: check` bed inventory, exit codes).
+  run`/`image`/`live`, the disposable check-bed inventory, exit codes).
 - `/charly-internals:disposable` — why `disposable: true` is the sole destroy
   authorization.
 - `/charly-internals:git-workflow` — the R10-gated landing the executors feed.

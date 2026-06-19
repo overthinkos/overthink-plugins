@@ -27,19 +27,24 @@ it. The install machinery is shared — see "One installer (R3)".
 ## `kind: android` — the device
 
 ```yaml
-# android.yml (or inline in charly.yml)
-android:
-  pixel9a-36:                    # in-pod emulator device
-    box: android-emulator      # the kind: box that BAKES the emulator + system image
-    device: pixel_9a             # informational (documents the baked AVD profile)
-    api_level: 36                # informational (the API level is a BUILD property of image:)
-    google_account:              # credential-store secret-key refs for apkeep google-play
-      email_secret: GOOGLE_ACCOUNT_EMAIL
-      token_secret: GOOGLE_AAS_TOKEN
+# charly.yml — each device is its own name-first entity (the android: discriminator
+# holds scalars; non-scalar fields become child nodes)
+pixel9a-36:                          # in-pod emulator device
+    android:
+        box: android-emulator       # the kind: box that BAKES the emulator + system image
+        device: pixel_9a             # informational (documents the baked AVD profile)
+        api_level: 36                # informational (the API level is a BUILD property of image:)
+    pixel9a-36-google_account:       # non-scalar field → child node
+        google_account:              # credential-store secret-key refs for apkeep google-play
+            email_secret: GOOGLE_ACCOUNT_EMAIL
+            token_secret: GOOGLE_AAS_TOKEN
 
-  my-phone:                      # remote/physical device
-    adb: { host: 192.168.1.50:5555 }   # an adb SERVER addr (a host running `adb connect`)
-    serial: 192.168.1.50:5555
+my-phone:                            # remote/physical device
+    android:
+        serial: 192.168.1.50:5555
+    my-phone-adb:                    # non-scalar field → child node
+        adb:
+            host: 192.168.1.50:5555  # an adb SERVER addr (a host running `adb connect`)
 ```
 
 **Device source is exclusive: `image:` XOR `adb:`.**
@@ -61,15 +66,17 @@ drivers. Two API levels = two images, each with its own `kind: android`.
 ## `apk:` — the package format (declared in layers)
 
 ```yaml
-# candy/<name>/charly.yml
-candy:
-  version: 2026.145.1700
-  name: my-android-apps
-  apk:
-    - package: org.fdroid.fdroid   # apkeep download by id
-      source: apk-pure             # apk-pure(default) | google-play | f-droid | huawei-app-gallery
-      arch: x86_64                 # native ABI (apk-pure) — match the emulator
-    - apk: tests/data/MyApp.apk    # committed local APK (project-root- or layer-relative), goadb push
+# candy/my-android-apps/charly.yml — name-first: the candy name is the top-level key,
+# the apk: list is a child node
+my-android-apps:
+    candy:
+        version: 2026.145.1700
+    my-android-apps-apk:
+        apk:
+            - package: org.fdroid.fdroid   # apkeep download by id
+              source: apk-pure             # apk-pure(default) | google-play | f-droid | huawei-app-gallery
+              arch: x86_64                 # native ABI (apk-pure) — match the emulator
+            - apk: tests/data/MyApp.apk    # committed local APK (project-root- or layer-relative), goadb push
 ```
 
 Each entry is **`package:` (apkeep) XOR `apk:` (committed file)**. `source:`
@@ -86,23 +93,23 @@ image (preinstalled) instead.
 ## `target: android` deploy
 
 ```yaml
-# charly.yml / charly.yml — nested under the emulator pod
-deploy:
-  android-stack:
-    target: pod
-    box: android-emulator
-    nested:
-      device:
-        target: android
-        android: pixel9a-36          # → kind:android device
-        add_candy:
-          - my-android-apps          # layers whose apk: packages install onto the device
+# charly.yml — the device deploys INTO the emulator pod (pod → android), so it is a
+# resource node placed UNDER the android-stack bundle (was nested:)
+android-stack:
+    bundle:
+        box: android-emulator
+    device:                              # deploy-into: applies apk: layers onto the device
+        bundle:
+            android: pixel9a-36          # → the kind: android device, deployed onto the emulator pod
+        device-add_candy:
+            add_candy:
+                - my-android-apps        # layers whose apk: packages install onto the device
 ```
 
-`charly deploy add android-stack.device` resolves the device, gates on
+`charly bundle add android-stack.device` resolves the device, gates on
 `sys.boot_completed`, and installs the `add_candy:` candies' `apk:` packages via
 `AndroidDeployTarget`. Apps ride in on `add_candy:` (the same overlay mechanism
-local/vm targets use) — there is no separate apk-list field. `charly deploy del`
+local/vm targets use) — there is no separate apk-list field. `charly bundle del`
 best-effort `pm uninstall`s each `package:` id (the device/pod lifecycle is
 owned by the pod deploy).
 
@@ -117,8 +124,8 @@ apps deploy onto the device. `target: android` is a **passthrough** hop in the
 deploy chain (the device shares its host pod's adb venue / the endpoint addr —
 there is no shell venue to "enter"), so `charly check live pod.android` runs the
 device's checks against the pod's published adb port. A pod's children can only
-deploy AFTER `charly start` (the container doesn't exist at `charly deploy add` time),
-so `charly deploy add --node-only` brings the pod up first and the children deploy
+deploy AFTER `charly start` (the container doesn't exist at `charly bundle add` time),
+so `charly bundle add --node-only` brings the pod up first and the children deploy
 afterwards by dotted path; `charly check run <bed>` automates this (deploy pod →
 config → start → deploy nested children → check-live).
 
@@ -158,7 +165,7 @@ results (`apk-fdroid-present`/`-launch`, `apk-net-apidemos-present`).
 - `charly/install_plan.go` — `ApkInstallStep`; `charly/install_build.go` —
   `compileApkStep`.
 - `charly/unified.go` — loader wiring (mirrors every `k8s` site).
-- `charly/deploy.go` `DeploymentNode.Android`; `charly/deploy_add_cmd.go` dispatch +
+- `charly/deploy.go` `BundleNode.Android`; `charly/deploy_add_cmd.go` dispatch +
   `--node-only`; `charly/deploy_chain.go` / `charly/deploy_tree.go` passthrough.
 
 ## Related skills
@@ -175,4 +182,4 @@ results (`apk-fdroid-present`/`-launch`, `apk-net-apidemos-present`).
 **MUST be invoked** for any task involving `kind: android`, `target: android`,
 the `apk:` layer package format, `AndroidDeployTarget`, an adb-endpoint device,
 or nested `pod → android` deployment. Invoke BEFORE reading the android_*.go
-source or editing android.yml / a layer's `apk:` list.
+source or editing a device's `charly.yml` / a layer's `apk:` list.

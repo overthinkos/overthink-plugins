@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `charly.yml`, `task:` |
+| Install files | `charly.yml` (binary fetch + symlinks via a `run:` plan step) |
 | Pinned version | `v1.31.11+k3s1` (edit `K3S_VERSION` in `charly.yml` vars to cut over) |
 
 ## What this candy does
@@ -34,9 +34,14 @@ Typically not used directly — compose `/charly-infrastructure:k3s-server` or
 `/charly-infrastructure:k3s-agent` (both depend on this candy).
 
 ```yaml
-# For a bare binary-only image (rare):
-candy:
-  - k3s
+# For a bare binary-only image (rare) — a box composes the candy through a
+# <box>-candy child node (node-form: every non-scalar field is its own node):
+k3s-base:
+  box:
+    base: fedora
+  k3s-base-candy:
+    candy:
+      - k3s
 ```
 
 ## Cross-distro coverage

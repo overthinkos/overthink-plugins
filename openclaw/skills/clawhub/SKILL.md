@@ -17,9 +17,13 @@ description: |
 ## Usage
 
 ```yaml
-# box or candy charly.yml
-candy:
-  - clawhub
+# box charly.yml — composition is a child node, not a top-level list
+my-box:
+    box:
+        base: fedora
+    my-box-candy:
+        candy:
+            - clawhub
 ```
 
 ## Used In Boxes

@@ -45,8 +45,9 @@ reachable, always on PATH, no HOME gymnastics.
 ## Install plan
 
 ```yaml
-plan:
-  - run: download and unpack the uv binary to /usr/local/bin
+# a child step node under the uv candy entity
+uv-download:
+    run: download and unpack the uv binary to /usr/local/bin
     download: "https://github.com/astral-sh/uv/releases/latest/download/uv-${BUILD_ARCH}-unknown-linux-gnu.tar.gz"
     extract: tar.gz
     strip_components: 1

@@ -156,7 +156,7 @@ literal-path rule, and the mandatory post-landing worktree refresh — see B7.**
 ## B3 — agent teams on ONE shared tree (no worktree)
 
 When an agent team parallelizes work, **the check bed is the unit of isolation,
-not a worktree**. Each teammate owns a disjoint `kind: check` bed's SOURCE files;
+not a worktree**. Each teammate owns a disjoint check bed's SOURCE files;
 distinct beds get distinct container/VM/image names; the lead assigns each
 disjoint host ports too (the loader does NOT check ports — an overlap fails the
 second bed at deploy), and a bed pins an image → layers → files, so bed-ownership

@@ -19,10 +19,10 @@ description: |
 `charly` has five code paths that all need to know "what does applying this layer mean?":
 
 1. **Build mode** — `charly box build` / `charly box generate` emit Containerfiles.
-2. **Pod deploy** (`target: pod`, default) — `charly deploy add <name> <ref>` runs the image via quadlet, optionally building an overlay image when `add_candy:` is set.
-3. **Local deploy** (`target: local`) — `charly deploy add <name> <ref> --target local` applies the recipe to the destination machine's filesystem (`host: local` → direct shell; `host: <user@machine>` → SSH).
-4. **VM deploy** (`target: vm`) — `charly deploy add vm:<name> <ref>` applies the recipe inside a running VM over SSH.
-5. **Kubernetes deploy** (`target: k8s`) — `charly deploy add <name> --target k8s` emits a Kustomize base/overlays tree.
+2. **Pod deploy** (`target: pod`, default) — `charly bundle add <name> <ref>` runs the image via quadlet, optionally building an overlay image when `add_candy:` is set.
+3. **Local deploy** (`target: local`) — `charly bundle add <name> <ref> --target local` applies the recipe to the destination machine's filesystem (`host: local` → direct shell; `host: <user@machine>` → SSH).
+4. **VM deploy** (`target: vm`) — `charly bundle add vm:<name> <ref>` applies the recipe inside a running VM over SSH.
+5. **Kubernetes deploy** (`target: k8s`) — `charly bundle add <name> --target k8s` emits a Kustomize base/overlays tree.
 
 All five paths are unified behind one IR. A pure compiler (`BuildDeployPlan`) turns `Layer + ResolvedBox + HostContext` into an `InstallPlan`; each code path is a `DeployTarget` consuming the plan.
 
@@ -139,7 +139,7 @@ type — a hard, GENERIC distinction, NEVER mixed, decided in ONE place
 
 | Box type | charly binary source | How |
 |---|---|---|
-| **Disposable check box** (`kind: check` bed) | latest **in-development** | the check-bed runner ALWAYS passes `charly box build --dev-local-pkg`, so the localpkg is BUILT from local source (`pkg/<fmt>` + `charly/`, via `buildLocalPkgOnHost`) and COPY'd into the image — a bed tests the charly code under development |
+| **Disposable check box** (a `disposable: true` bundle) | latest **in-development** | the check-bed runner ALWAYS passes `charly box build --dev-local-pkg`, so the localpkg is BUILT from local source (`pkg/<fmt>` + `charly/`, via `buildLocalPkgOnHost`) and COPY'd into the image — a bed tests the charly code under development |
 | **Production box** (any normal `charly box build`) | latest **published** | the default: the localpkg DOWNLOADS the published release (`releases/latest/download/opencharly-<arch>.<fmt>`) |
 
 Both install via the SAME dep-resolving `InstallTemplate` (`pacman -U` / `dnf
@@ -200,9 +200,9 @@ Emits Containerfile text. Consumes `phases.install.container` from build.yml (fa
 Used by: `charly box build`, `charly box generate`, pod deploys with `add_candy:` (overlay Containerfile synthesis).
 
 ### `PodDeployTarget` (`charly/deploy_target_pod.go`)
-Wraps the quadlet/podman pipeline with overlay-Containerfile synthesis for `add_candy:`. Picks an overlay tag deterministically from `(base-image, sorted-layer-set)`. Removed on `charly deploy del` unless `--keep-image`.
+Wraps the quadlet/podman pipeline with overlay-Containerfile synthesis for `add_candy:`. Picks an overlay tag deterministically from `(base-image, sorted-layer-set)`. Removed on `charly bundle del` unless `--keep-image`.
 
-Used by: `charly deploy add <name>` (default `target: pod`) with `add_candy:` present.
+Used by: `charly bundle add <name>` (default `target: pod`) with `add_candy:` present.
 
 ### `LocalDeployTarget` (`charly/deploy_target_local.go`)
 Walks the IR; groups contiguous same-`(Scope, Venue)` steps via `plan.StepsByVenue()`; emits one heredoc per batch. Full executor: writes service units (packaged + custom), env.d files, managed blocks, ledger entries. Invokes builder containers via `builder_run.go` for `VenueContainerBuilder` steps. Gates (`GateEnabled`) applied per step; skipped steps logged.
@@ -214,7 +214,7 @@ Same IR walking as LocalDeployTarget, but shell bodies run via `ssh guest 'sudo 
 
 `DeployExecutor` is the abstraction that lets the same Emit logic retarget from local → SSH. `ShellExecutor` wraps local `bash -c` + file copy; `SSHExecutor` wraps ssh/scp via `golang.org/x/crypto/ssh` with persistent connection. Builder-container invocations (`VenueContainerBuilder` steps) run on the **host**, then artifacts scp into the guest — guests don't need podman installed.
 
-Used by: `charly deploy add vm:<name> <ref>` / `charly deploy del vm:<name>`. See `/charly-internals:vm-deploy-target` for the full flow, `VmDeployState` persistence, and SSH-key idempotency.
+Used by: `charly bundle add vm:<name> <ref>` / `charly bundle del vm:<name>`. See `/charly-internals:vm-deploy-target` for the full flow, `VmDeployState` persistence, and SSH-key idempotency.
 
 ### `K8sDeployTarget` (`charly/k8s_target.go`)
 Emits a Kustomize `base/` + `overlays/` tree under `.opencharly/k8s/<name>/`. Does NOT execute anything; the generated manifests are applied via `kubectl apply -k` out-of-band. Cluster-specific choices (storage class, ingress class, cert issuer, secret backend) come from a **cluster profile** (`~/.config/charly/clusters/<name>.yaml`), NOT the InstallPlan — the plan describes what the workload needs; the profile describes how K8s provides it.
@@ -286,7 +286,7 @@ type EmitOpts struct {
 }
 ```
 
-CLI flags on `DeployAddCmd` / `DeployDelCmd` populate this struct; each target reads what it needs. `AssumeYes` enables all three opt-in gates (via `GateEnabled`).
+CLI flags on `BundleAddCmd` / `BundleDelCmd` populate this struct; each target reads what it needs. `AssumeYes` enables all three opt-in gates (via `GateEnabled`).
 
 ## Testing
 
@@ -306,10 +306,10 @@ When you add a step kind, add:
 - `/charly-internals:vm-spec` — VmSpec shape that VmDeployTarget reads
 - `/charly-internals:go` — overall Go code map; Kong CLI framework; mode-purity invariant
 - `/charly-internals:generate-source` — Containerfile generation call graph; how OCITarget plugs into Generator
-- `/charly-core:deploy` — user-facing `charly deploy add`/`del` surface (host / container / vm: / kubernetes)
+- `/charly-core:deploy` — user-facing `charly bundle add`/`del` surface (host / container / vm: / kubernetes)
 - `/charly-local:local-deploy` — host-target user-facing behavior (ledger, gates, ReverseOps)
 - `/charly-kubernetes:kubernetes` — K8s-target user-facing behavior (cluster profiles, Kustomize layout)
-- `/charly-vm:vm` — VM command family; VmDeployTarget prerequisite (`charly vm create` before `charly deploy add vm:...`)
+- `/charly-vm:vm` — VM command family; VmDeployTarget prerequisite (`charly vm create` before `charly bundle add vm:...`)
 - `/charly-build:build` — build-mode user-facing surface; three-phase template story
 - `/charly-image:layer` — charly.yml schema including unified `service:` that map to `ServicePackagedStep` / `ServiceCustomStep`
 

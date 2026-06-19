@@ -54,11 +54,22 @@ The gateway binds to loopback only (no `--bind lan`). External access is handled
 Compose your own desktop+browser box — e.g. an `openclaw-desktop` entry in `charly.yml` combining `openclaw-full` + `sway-desktop` on a Fedora base:
 
 ```yaml
-box:
-  openclaw-desktop:
+openclaw-desktop:
+  box:
     base: fedora
-    candy: [agent-forwarding, openclaw-full, sway-desktop, dbus, charly]
-    port: ["18789:18789", "5900:5900", "9222:9222", "9224:9224"]
+  openclaw-desktop-candy:
+    candy:
+      - agent-forwarding
+      - openclaw-full
+      - sway-desktop
+      - dbus
+      - charly
+  openclaw-desktop-port:
+    port:
+      - "18789:18789"
+      - "5900:5900"
+      - "9222:9222"
+      - "9224:9224"
 ```
 
 The resulting box exposes:

@@ -13,9 +13,9 @@ description: |
 
 This is the **single entry point** for **container** deployment setup. `charly start` requires `charly config` to have been run first in quadlet mode.
 
-**Relationship to `charly deploy add`** — `charly config` remains the primary way to create/update a quadlet and provision secrets/volumes/sidecars for a container deploy. `charly deploy add <name> <ref>` (container target) wraps both `charly config` and `charly start` and additionally handles `--add-candy` overlay synthesis (an overlay Containerfile is built before the quadlet references the resulting overlay image). `charly deploy add host` bypasses `charly config` entirely — the host target has no quadlet; it writes systemd units directly (when `--with-services` is enabled) and records every action in the ledger at `~/.config/opencharly/installed/`. See `/charly-core:deploy` for the command family and `/charly-local:local-deploy` for host-target semantics.
+**Relationship to `charly bundle add`** — `charly config` remains the primary way to create/update a quadlet and provision secrets/volumes/sidecars for a container deploy. `charly bundle add <name> <ref>` (container target) wraps both `charly config` and `charly start` and additionally handles `--add-candy` overlay synthesis (an overlay Containerfile is built before the quadlet references the resulting overlay image). `charly bundle add host` bypasses `charly config` entirely — the host target has no quadlet; it writes systemd units directly (when `--with-services` is enabled) and records every action in the ledger at `~/.config/opencharly/installed/`. See `/charly-core:deploy` for the command family and `/charly-local:local-deploy` for host-target semantics.
 
-**`charly config` vs `charly settings` — common verb confusion.** `charly config <image>` configures an image for deployment (quadlet + secrets + volumes + data seed). `charly settings list` shows runtime config keys (secret_backend, vm.backend, etc.). A trailing `charly config show` parses as `charly config setup show` with `show` as the image positional — and errors with `image "show" is not available locally`. To inspect runtime configuration use `charly settings list`; to inspect a configured image's resolved deploy state use `charly box inspect <image>` or `charly deploy show <name>`.
+**`charly config` vs `charly settings` — common verb confusion.** `charly config <image>` configures an image for deployment (quadlet + secrets + volumes + data seed). `charly settings list` shows runtime config keys (secret_backend, vm.backend, etc.). A trailing `charly config show` parses as `charly config setup show` with `show` as the image positional — and errors with `image "show" is not available locally`. To inspect runtime configuration use `charly settings list`; to inspect a configured image's resolved deploy state use `charly box inspect <image>` or `charly bundle show <name>`.
 
 ## Quick Reference
 
@@ -266,18 +266,23 @@ The quadlet is still written with the conflicting port, so `charly start` will f
 
 ## Deploy State
 
-All configuration is persisted to `~/.config/charly/charly.yml`:
+All configuration is persisted to `~/.config/charly/charly.yml` in node-form — a
+`version:` stamp, an optional top-level `provides:` directive, and each deploy as a
+name-first `<name>: {bundle: <scalars>, <child-nodes>}` entry (no `deploy:` map
+wrapper, no `target:` field — the `bundle:` cross-ref scalar implies the target):
 
 ```yaml
-deploy:
-  my-app:
+my-app:
+  bundle:
+    box: my-app
     tag: latest
-    volumes:
+    data_seeded: true
+    data_source: "my-app:latest"
+  my-app-volume:
+    volume:
       - name: workspace
         type: bind
         host: ~/project
-    data_seeded: true
-    data_source: "my-app:latest"
 ```
 
 ## Common Workflows
@@ -311,7 +316,7 @@ charly config my-app --bind workspace=/new/path
 
 ```bash
 charly config remove <image> -i <instance>     # 1. Stop & disable service
-charly deploy reset <image> -i <instance>       # 2. Remove charly.yml entry
+charly bundle reset <image> -i <instance>       # 2. Remove charly.yml entry
 charly remove <image> -i <instance>         # 3. Remove container + quadlet (reloads systemd)
 charly reap-orphans                         # 4. Clear ghost units (optional)
 ```
@@ -356,9 +361,12 @@ provides:
       url: http://charly-jupyter:8888/mcp
       transport: http
       source: jupyter
-deploy:
-  ollama: { ... }
-  jupyter: { ... }
+ollama:
+  bundle:
+    box: ollama
+jupyter:
+  bundle:
+    box: jupyter
 ```
 
 **Self-exclusion (env):** An image's own env_provide vars are filtered out of its own environment — the image uses its own `env:` (e.g., `OLLAMA_HOST=0.0.0.0`), not the service discovery URL.
@@ -482,7 +490,7 @@ When `charly config <image>` runs, it automatically migrates any existing plaint
 1. Scan `dc.Images[deployKey(image, instance)].Env` for names that match `meta.SecretAccepts` / `meta.SecretRequires`
 2. For each match: copy the value to the credential store at the layer-declared `(service, key)` path (default `charly/secret/<NAME>`), remove the entry from `dc.Env`, mark the deploy config dirty
 3. On first mutation, back up `charly.yml` → `charly.yml.bak.<unix-timestamp>`
-4. Persist the cleaned deploy config via `SaveDeployConfig`
+4. Persist the cleaned deploy config via `SaveBundleConfig`
 5. Log each migrated entry on stderr: `"Migrated plaintext OPENROUTER_API_KEY from charly.yml to credential store (charly/api-key/openrouter)"`
 
 Idempotent — running on a clean host is a no-op. This gives pre-upgrade hosts an automatic one-time cleanup with a rollback point preserved.
@@ -598,7 +606,7 @@ Source: `charly/config_image.go` (command structs), `charly/quadlet.go` (quadlet
 
 ## Live-deploy verification is mandatory (see `/charly-check:check` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly bundle add <name> <ref> --disposable` or mark a VM in vm.yml.
 
 **After committing the source-level fix, `charly update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 

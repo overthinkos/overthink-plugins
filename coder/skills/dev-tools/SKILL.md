@@ -33,12 +33,13 @@ RPM (with `--setopt=tsflags=noscripts`): `android-tools`, `apptainer`, `apptaine
 Both Debian and Ubuntu rename `bat` → `batcat` in their archives to avoid a namespace collision with a legacy `bacula` utility. The `bat` package installs only `/usr/bin/batcat`; nothing lives at `/usr/bin/bat`. To keep downstream scripts, docs, and declarative tests portable, the candy ships a distro-tolerant symlink plan step:
 
 ```yaml
-plan:
-  - run: symlink batcat to bat on Debian/Ubuntu
+# a child step node under the dev-tools candy entity
+dev-tools-symlink-bat:
+    run: symlink batcat to bat on Debian/Ubuntu
     command: |
-      if [ -f /usr/bin/batcat ] && [ ! -e /usr/bin/bat ]; then
-        ln -sf /usr/bin/batcat /usr/bin/bat
-      fi
+        if [ -f /usr/bin/batcat ] && [ ! -e /usr/bin/bat ]; then
+          ln -sf /usr/bin/batcat /usr/bin/bat
+        fi
     run_as: root
 ```
 
@@ -49,11 +50,14 @@ No-op on Fedora/Arch (where `/usr/bin/bat` already exists from the distro packag
 The `fastfetch-binary` test is declared with an `exclude_distros:` filter:
 
 ```yaml
-- id: fastfetch-binary
-  file: /usr/bin/fastfetch
-  exists: true
-  exclude_distros:
-    - ubuntu:24.04
+# an id-named check step node under the dev-tools candy entity
+fastfetch-binary:
+    check: the fastfetch binary is installed (skipped on ubuntu:24.04)
+    id: fastfetch-binary
+    file: /usr/bin/fastfetch
+    exists: true
+    exclude_distros:
+        - ubuntu:24.04
 ```
 
 On images whose `ai.opencharly.platform.distro` OCI label includes `ubuntu:24.04`, the test runner skips this check with a reason — see `/charly-check:check` "`exclude_distros:` field". This was added because dropping fastfetch from the `ubuntu:24.04:` tag section is clean, but the baked test probe would otherwise false-fail.
@@ -69,10 +73,13 @@ you want the git tooling, compose `/charly-coder:gh` alongside
 ## Usage
 
 ```yaml
-# charly.yml
+# charly.yml — composition is a child node, not a top-level list
 my-dev:
-  candy:
-    - dev-tools
+    box:
+        base: fedora
+    my-dev-candy:
+        candy:
+            - dev-tools
 ```
 
 ## Used In Boxes

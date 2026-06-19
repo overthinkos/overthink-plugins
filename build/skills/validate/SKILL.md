@@ -44,11 +44,13 @@ Invoked as `charly box validate`. See `/charly-image:image` for the family overv
 - Setting `PATH` directly in `env` is an error (use `path_append`).
 - Only one pixi manifest per layer (`pixi.toml`, `pyproject.toml`, or `environment.yml`).
 
-### `task:` Rules
+### `run:` Step Rules
 
-See `/charly-image:layer` for the full verb catalog. The validator enforces:
+A `run:` step carries the deterministic state-change op inline (the same verb
+catalog the legacy `task:` map used). See `/charly-image:layer` for the full
+verb catalog. The validator enforces:
 
-- **Exactly one verb per task.** A task map must contain exactly one of `cmd` / `mkdir` / `copy` / `write` / `link` / `download` / `setcap` / `build`. Zero verbs → `"task has no action"`; multiple → `"task has conflicting actions: X and Y"`.
+- **Exactly one op verb per `run:` step.** A `run:` step must carry exactly one of `cmd` / `mkdir` / `copy` / `write` / `link` / `download` / `setcap` / `build`. Zero op verbs → the step has no action; more than one → conflicting actions.
 - **Per-verb required modifiers:**
   - `copy` → `to:` (destination) required; `copy:` value must be relative to the layer directory, no `..` traversal
   - `write` → `content:` required (non-empty)
@@ -58,9 +60,9 @@ See `/charly-image:layer` for the full verb catalog. The validator enforces:
 - **Path rules:** paths must be absolute, `~/`-prefixed, or `${HOME}`-prefixed. `copy:` source must exist under the layer directory at generate time.
 - **Mode rules:** `mode:` must match `^0[0-7]{3,4}$` (octal) if present.
 - **Download extract values:** must be one of `tar.gz` / `tar.xz` / `tar.zst` / `zip` / `none` / `sh` or empty.
-- **`cache:` rules:** only valid on `cmd:` / `download:` tasks; each path must be absolute (or `~/` / `${HOME}`-prefixed). Declares extra BuildKit cache mounts (owned per the task `user:`).
+- **`cache:` rules:** only valid on `cmd:` / `download:` `run:` steps; each path must be absolute (or `~/` / `${HOME}`-prefixed). Declares extra BuildKit cache mounts (owned per the step `run_as:`).
 - **`build:` value:** must be `"all"` (initial implementation; specific builder names reserved for future use).
-- **`user:` format:** must be `root`, `${USER}`, a literal name matching `^[a-z_][a-z0-9_-]*$`, or numeric `<uid>:<gid>`. Unresolved `${VAR}` in `user:` errors.
+- **`run_as:` format:** must be `root`, `${USER}`, a literal name matching `^[a-z_][a-z0-9_-]*$`, or numeric `<uid>:<gid>`. Unresolved `${VAR}` in `run_as:` errors.
 
 ### `var:` Rules
 
@@ -192,17 +194,22 @@ charly box list candies                       # Verify layer exists
 
 ### Related skills
 
-- `/charly-image:layer` — **Canonical reference** for the task verb catalog, `var:` substitution, YAML anchors, execution order. The validator rules above enforce what's documented there.
+- `/charly-image:layer` — **Canonical reference** for the `run:`/`check:` step verb catalog, `var:` substitution, YAML anchors, execution order. The validator rules above enforce what's documented there.
 - `/charly-build:generate` — What the generator emits from validated input (per-verb emitters, cache-mount inheritance, inline-content staging).
-- `/charly-internals:generate-source` — Internal architecture of the task emission pipeline.
+- `/charly-internals:generate-source` — Internal architecture of the run-step emission pipeline.
 - `/charly-internals:egress` — the **egress** counterpart: `charly box validate` proves the INPUT config; `/charly-internals:egress` validates the config files charly WRITES to a system (cloud-init, k8s, units, ssh_config, libvirt XML) before the bytes hit disk.
 - `/charly-check:check` — `charly box validate` schema-checks every `check:` entry: exactly-one-verb, attribute types, scope/variable consistency (build-scope can't reference runtime-only vars), `id:` uniqueness per section, matcher operator allowlist, unroutable-check rejection. The five live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`) also get per-verb method-allowlist + required-modifier enforcement via `validateCharlyVerb` (deploy-scope-only; unknown methods rejected with the allowed set listed).
 - `/charly-build:charly-mcp-cmd` — the standalone reference for the `mcp:` verb: required modifiers (`tool:` for `call`, `uri:` for `read`), the 7-method allowlist, and the URL-rewrite / port-publishing behavior that authors occasionally hit.
 - `/charly-check:cdp`, `/charly-check:wl`, `/charly-check:dbus`, `/charly-check:vnc` — per-verb references for the other four live-container verbs.
 
-## Cross-kind name reuse — NOT a uniqueness violation
+## Cross-kind name reuse across files — permitted; same-document collision — rejected
 
-`charly box validate` does NOT enforce global name uniqueness across kinds. The same name MAY exist simultaneously as a layer (`candy/<name>/`), a `box:` entry, a `pod:` entry, a `vm:` entry, a `k8s:` entry, a `local:` entry, AND a `deploy:` entry. Uniqueness is scoped to each kind. Do not write a validator that flags `box.foo + vm.foo` as ambiguous — verbs disambiguate by command context. The loader raises hard load-time errors on: (a) the obsolete `deploy.qc` / `deploy.cachyos-dx` keys; (b) any obsolete `kind: deployment` doc or root-key `deployment:` (the deploy kind is `kind: deploy`). Every such error points at `charly migrate`. See CLAUDE.md "Cross-kind name reuse is permitted and encouraged" and `/charly-build:migrate`.
+The unified form is **name-first**: every entity flattens to a top-level `<name>:` key whose first child is its kind discriminator (`candy:` / `box:` / `bundle:` / `pod:` / `vm:` / `k8s:` / `local:` / `android:` / …). Two consequences for `charly box validate`:
+
+- **Cross-FILE cross-kind reuse is fine.** The same name MAY exist simultaneously in SEPARATE discovered files — a `candy/redis/charly.yml` candy and a `box/redis/charly.yml` box resolve to distinct internal maps, and the validator does NOT flag them. Verbs disambiguate by command context (`ResolveDeployRef` is box-first; `--add-candy <name>` selects the candy-first path).
+- **Same-document collision IS rejected.** Two top-level entities WITHIN one document (e.g. the root `charly.yml` carrying a `bundle` + a `vm` + a `local`) MUST NOT share a name — they would collide on one YAML key. `charly box validate` flags the collision; rename one (the convention: keep the user-facing `bundle`, suffix the template it deploys — a `check-local` bundle + a `check-local-app` local template).
+
+The loader still raises hard load-time errors on obsolete keys — the obsolete `qc` / `cachyos-dx` deployment names, and any obsolete `kind: deployment` doc or root-key `deployment:` (the deploy kind is now the name-first `bundle:`). Every such error points at `charly migrate`. See CLAUDE.md and `/charly-build:migrate`.
 
 ## When to Use This Skill
 

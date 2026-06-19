@@ -30,8 +30,9 @@ fail (loudly or silently) inside a buildah container. We install with
 noscripts and then run the git-lfs hook configuration manually:
 
 ```yaml
-plan:
-  - run: configure git-lfs system hooks
+# a child step node under the gh candy entity
+gh-configure-git-lfs:
+    run: configure git-lfs system hooks
     command: /usr/bin/git-lfs install --system --skip-repo 2>/dev/null || true
     run_as: root
 ```
@@ -72,9 +73,13 @@ Six build-scope tests:
 ## Usage
 
 ```yaml
-# box or candy charly.yml
-candy:
-  - gh
+# box or candy charly.yml — composition is a child node, not a top-level list
+my-box:
+    box:
+        base: fedora
+    my-box-candy:
+        candy:
+            - gh
 ```
 
 ## Used In Boxes

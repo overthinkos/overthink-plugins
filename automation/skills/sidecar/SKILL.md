@@ -21,7 +21,7 @@ Sidecars are additional containers that run alongside an application container i
 
 ## Architecture
 
-Sidecar templates are compiled into the `charly` binary via `go:embed` — they live in the `sidecar:` section of the embedded default `charly/charly.cue` (compiled to data by the CUE-source front-end), parsed through the SAME unified loader as any project `charly.yml` (`UnifiedFile.Sidecar`). A project may also declare its own root `sidecar:` template library that extends/overrides the embedded set. At deploy time, `charly config --sidecar <name>` merges the embedded template with the project's templates and the per-machine overrides from `charly.yml`, then generates quadlet files.
+Sidecar templates are compiled into the `charly` binary via `go:embed` — they are name-first `sidecar`-kind nodes in the embedded default `charly/charly.cue` (compiled to data by the CUE-source front-end), parsed through the SAME unified loader as any project `charly.yml` (folded into `UnifiedFile.Sidecar`). A project may also declare its own `sidecar`-kind nodes that extend/override the embedded set. At deploy time, `charly config --sidecar <name>` merges the embedded template with the project's templates and the per-machine overrides from `charly.yml`, then generates quadlet files.
 
 ```
 charly binary (embedded templates)     charly.yml (per-machine overrides)
@@ -93,9 +93,11 @@ Missing `env_accept` on the consumer side silently drops the var. Missing `env_r
 `--sidecar` assignments and `-e` overrides are saved to `charly.yml`. Subsequent `charly config` calls re-read them:
 
 ```yaml
-box:
-  selkies-desktop:
-    sidecars:
+selkies-desktop:
+  bundle:
+    box: selkies-desktop
+  selkies-desktop-sidecar:
+    sidecar:
       tailscale:
         env:
           TS_HOSTNAME: selkies-desktop
@@ -113,24 +115,27 @@ tailnet's MagicDNS suffix. Each tailnet's auth-key lives in `.secrets`
 (GPG-encrypted env file, loaded by direnv) under a per-tailnet env var
 name derived from the suffix.
 
-**Schema in the embedded `charly.cue` `sidecar:` section:**
+**Schema in the embedded `charly.cue` (the name-first `tailscale` sidecar node):**
 
 ```yaml
-sidecar:
-  tailscale:
+tailscale:
+  sidecar:
     parameter:
       tailnet: ""            # required: deploy must supply via parameter.tailnet
+  tailscale-secret:
     secret:
       - name: ts-authkey
         env: TS_AUTHKEY                                                     # container var (what tailscale's binary reads)
         env_from: "TS_AUTHKEY_{{.Parameter.tailnet | tailnetEnvSuffix}}"    # host-side var (what charly reads from .secrets)
 ```
 
-**Deploy.yml shape:**
+**Bundle shape (a deploy of the `sway-browser-vnc` box as the `ecovoyage` instance):**
 
 ```yaml
-deploy:
-  sway-browser-vnc/ecovoyage:
+ecovoyage:
+  bundle:
+    box: sway-browser-vnc
+  ecovoyage-sidecar:
     sidecar:
       tailscale:
         parameter:

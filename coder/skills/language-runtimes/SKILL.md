@@ -58,21 +58,22 @@ Cross-distro parity for .NET 9 requires juggling three asymmetric availability w
 Rather than carrying that asymmetry in candy code, the candy uses Microsoft's official cross-distro installer script, channel-pinned to `9.0`. It installs to `/usr/share/dotnet` and symlinks `/usr/bin/dotnet`:
 
 ```yaml
-plan:
-  - run: install the .NET 9 SDK on Debian/Ubuntu via dotnet-install.sh
+# a child step node under the language-runtimes candy entity
+language-runtimes-dotnet-install:
+    run: install the .NET 9 SDK on Debian/Ubuntu via dotnet-install.sh
     command: |
-      if command -v dotnet >/dev/null 2>&1; then
-        exit 0                        # already installed by distro rpm/pac
-      fi
-      if ! command -v apt-get >/dev/null 2>&1; then
-        exit 0                        # non-Debian-family + no dotnet — intentional drop
-      fi
-      install -d /usr/share/dotnet
-      curl -fsSL https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
-      chmod +x /tmp/dotnet-install.sh
-      /tmp/dotnet-install.sh --channel 9.0 --install-dir /usr/share/dotnet
-      ln -sf /usr/share/dotnet/dotnet /usr/bin/dotnet
-      rm -f /tmp/dotnet-install.sh
+        if command -v dotnet >/dev/null 2>&1; then
+          exit 0                        # already installed by distro rpm/pac
+        fi
+        if ! command -v apt-get >/dev/null 2>&1; then
+          exit 0                        # non-Debian-family + no dotnet — intentional drop
+        fi
+        install -d /usr/share/dotnet
+        curl -fsSL https://builds.dotnet.microsoft.com/dotnet/scripts/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
+        chmod +x /tmp/dotnet-install.sh
+        /tmp/dotnet-install.sh --channel 9.0 --install-dir /usr/share/dotnet
+        ln -sf /usr/share/dotnet/dotnet /usr/bin/dotnet
+        rm -f /tmp/dotnet-install.sh
     run_as: root
 ```
 
@@ -130,10 +131,13 @@ the single sources of truth for their respective binaries.
 ## Usage
 
 ```yaml
-# charly.yml
+# charly.yml — composition is a child node, not a top-level list
 my-polyglot:
-  candy:
-    - language-runtimes
+    box:
+        base: fedora
+    my-polyglot-candy:
+        candy:
+            - language-runtimes
 ```
 
 ## Used In Boxes

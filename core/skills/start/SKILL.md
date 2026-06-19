@@ -11,7 +11,7 @@ description: |
 
 Start a container image as a background service. In quadlet mode, `charly config <image>` MUST be run first to generate the systemd quadlet unit. In direct mode, start creates an ephemeral container directly.
 
-**Relationship to `charly deploy add`** — `charly start <image>` is the ergonomic wrapper for `charly deploy add <image> <image>` (container target). New scripts should prefer `charly deploy add <name> <ref>` directly when they need explicit deploy names, `--add-candy` overlays, or the host target. `charly start` covers the common single-image case and is retained for backwards compatibility. See `/charly-core:deploy` for the unified command family and `/charly-local:local-deploy` for the host target.
+**Relationship to `charly bundle add`** — `charly start <image>` is the ergonomic wrapper for `charly bundle add <image> <image>` (container target). New scripts should prefer `charly bundle add <name> <ref>` directly when they need explicit deploy names, `--add-candy` overlays, or the host target. `charly start` covers the common single-image case and is retained for backwards compatibility. See `/charly-core:deploy` for the unified command family and `/charly-local:local-deploy` for the host target.
 
 ## Quick Reference
 
@@ -122,7 +122,7 @@ charly start jupyter --build
 
 ## Live-deploy verification is mandatory (see `/charly-check:check` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly bundle add <name> <ref> --disposable` or mark a VM in vm.yml.
 
 **After committing the source-level fix, `charly update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 

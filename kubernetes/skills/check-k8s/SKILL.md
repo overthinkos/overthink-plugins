@@ -7,7 +7,7 @@ allowed-tools: Bash, Read
 MUST be invoked before any work involving: `charly check k8s` commands,
 cluster-readiness probes from test scripts, ingress / storage class
 assertions, k3s default-addon health checks, or declarative `k8s:`
-steps in a candy/box `plan:` in charly.yml.
+steps in a candy/box plan (the candy's child step nodes) in charly.yml.
 
 ## Command surface
 
@@ -42,7 +42,7 @@ in this precedence:
 4. Neither given → current-context of the default kubeconfig
    (matches `kubectl` with no flags).
 
-`charly deploy add vm:k3s-srv` (or any deploy whose layers include
+`charly bundle add vm:k3s-srv` (or any deploy whose layers include
 `k3s-server`) automatically writes a ClusterProfile named after the
 deploy, so after provisioning you can do:
 
@@ -51,43 +51,49 @@ charly check k8s nodes --cluster k3s-srv
 charly check k8s addons --cluster k3s-srv
 ```
 
-## Declarative `k8s:` steps in a layer `plan:`
+## Declarative `k8s:` steps in a candy's plan
 
-The verb is also callable from a candy's `plan:` steps via the `k8s:`
-discriminator on a step's `Op`. Every subcommand above maps to a method
-name; shared modifiers (`name:`, `namespace:`, `cluster:`, `timeout:`,
+The verb is also callable from a candy's plan steps via the `k8s:`
+discriminator on a step's `Op`. In the unified node-form a plan is NOT a
+`plan:` list — each step is its own child step node (`<candy>-step-N:`, or
+named by its `id:`) nested under the candy. Every subcommand above maps to a
+method name; shared modifiers (`name:`, `namespace:`, `cluster:`, `timeout:`,
 `kubeconfig:`, `k8s_kind:`, `k8s_count:`, `manifest:`, `k8s_resource:`,
 `k8s_group:`, `k8s_version:`) are available. A `k8s:` step is a `check:`
 step.
 
-Example from `candy/k3s-server/charly.yml`:
+Example from `candy/k3s-server/charly.yml` — the k8s cluster-readiness steps as
+child step nodes nested under the `k3s-server:` candy:
 
 ```yaml
-plan:
-  - check: the cluster reports at least one Ready node
+k3s-server:
+  candy: {version: …, description: …}     # candy scalars (elided)
+  # … require / distro / service / earlier build-context steps elided …
+  k3s-server-step-3:
+    check: the cluster reports at least one Ready node
     k8s: wait-nodes
     cluster: "${DEPLOY_NAME}"
     k8s_count: 1
     timeout: 180s
-    stdout: { contains: "Ready" }
+    stdout: {contains: "Ready"}
     context: [deploy]
-
   # `addons` BLOCKS until Traefik + ServiceLB + local-path are all Ready, so it
   # MUST precede any ingressclass/storageclass step — those resources are
   # registered by the addon stack. Ordering matters: `ingressclass`/`storageclass`
   # are one-shot list verbs with no internal wait, and they exit 0 on an EMPTY
   # list, so a `contains` matcher run before the addons settle FAILS rather than
   # waits. Gate first, assert second.
-  - check: Traefik, ServiceLB, and local-path addons are all Ready
+  k3s-server-step-4:
+    check: Traefik, ServiceLB, and local-path addons are all Ready
     k8s: addons
     cluster: "${DEPLOY_NAME}"
     timeout: 240s
     context: [deploy]
-
-  - check: Traefik is registered as the cluster's default ingress class
+  k3s-server-step-5:
+    check: Traefik is registered as the cluster's default ingress class
     k8s: ingressclass
     cluster: "${DEPLOY_NAME}"
-    stdout: { contains: "traefik" }
+    stdout: {contains: "traefik"}
     context: [deploy]
 ```
 

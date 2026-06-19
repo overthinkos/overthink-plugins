@@ -24,9 +24,13 @@ RPM: `ffmpeg` (from negativo17 `fedora-multimedia` repo — full nonfree build w
 ## Usage
 
 ```yaml
-# box or candy charly.yml
-candy:
-  - ffmpeg
+# a box composing this candy — the candy list is a child node
+my-box:
+  box:
+    base: fedora
+  my-box-candy:
+    candy:
+      - ffmpeg
 ```
 
 All candies that need ffmpeg should declare it as a dependency rather than independently adding the negativo17 repo. This ensures a single authoritative install point.
@@ -60,5 +64,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, `run:`/`check:` step verbs, service declarations)
 - `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

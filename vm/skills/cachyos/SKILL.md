@@ -3,7 +3,7 @@ name: cachyos
 description: |
   CachyOS bootstrap VM (kind:vm cachyos-vm) — source.kind: bootstrap via
   cachyos-pacstrap-builder + pacstrap, btrfs rootfs, uefi-insecure. Plus the
-  disposable check-cachyos-vm kind:check bed. Lives in the overthinkos/cachyos submodule.
+  disposable check-cachyos-vm bundle. Lives in the overthinkos/cachyos submodule.
   MUST be invoked before editing cachyos-vm or its check bed.
 ---
 
@@ -15,13 +15,13 @@ libvirt/QEMU.
 
 The `cachyos-vm` entity and its `check-cachyos-vm` disposable test bed live in
 the **`overthinkos/cachyos`** repo (git submodule at **`box/cachyos`**),
-in that repo's config (its `charly.yml` + per-kind sibling files). The bed is a `kind: check` entity
-(the 2026-05 deploy→check unification moved repo-shipped disposable beds out of
-`charly.yml`), driven by `charly check run check-cachyos-vm`. Drive the VM lifecycle
+all in that repo's unified `charly.yml`. The bed is a `disposable: true` bundle
+(a check bed is just a bundle carrying `disposable: true` — there is no separate
+bed kind), driven by `charly check run check-cachyos-vm`. Drive the VM lifecycle
 from the submodule: `charly -C box/cachyos vm build cachyos-vm` +
 `charly -C box/cachyos vm create cachyos-vm` (or `charly --repo overthinkos/cachyos …`).
 
-## VM Configuration (from box/cachyos/vm.yml)
+## VM Configuration (from box/cachyos/charly.yml)
 
 | Setting | Value |
 |---|---|
@@ -39,11 +39,11 @@ the main repo's `build.yml`, flat-imported by the submodule (a bare-string
 
 ## Check bed
 
-`check-cachyos-vm` is a `kind: check` bed (`target: vm`, `vm: cachyos-vm`) that
-carries `disposable: true`, so `charly -C box/cachyos check run check-cachyos-vm`
+`check-cachyos-vm` is a `disposable: true` bundle (`bundle: {vm: cachyos-vm,
+disposable: true}`), so `charly -C box/cachyos check run check-cachyos-vm`
 runs the full R10 sequence unattended (the equivalent `charly update
-check-cachyos-vm` rebuild also works, since the check bed is folded into the
-Deploy map).
+check-cachyos-vm` rebuild also works, since the bundle is folded into the
+Bundle map).
 
 `check-cachyos-gpu-vm` is the **full KDE GPU workstation** bed — it mirrors the
 operator `cachyos-gpu` workstation's dual-desktop config and is the acceptance gate
@@ -56,7 +56,7 @@ guest mid-deploy so the open module loads on a clean boot and the boot-time
 `nvidia-ctk cdi generate` writes `/etc/cdi/nvidia.yaml`), then `VmUnifiedTarget.Add`
 (`deployNestedPodsInGuest`) host-builds `selkies-kde-nvidia`, `charly vm cp-box
 --rootless`s it into the guest user's podman as `localhost/charly-selkies-kde:latest`,
-and runs the guest's own project-free `charly deploy from-box
+and runs the guest's own project-free `charly bundle from-box
 localhost/charly-selkies-kde:latest selkies-kde` — a PERSISTENT in-guest `--user`
 quadlet (GPU device auto-detected; `loginctl enable-linger` so it survives the
 guest reboot the fresh-rebuild leg recreates). Deploy-scope checks run in-guest over

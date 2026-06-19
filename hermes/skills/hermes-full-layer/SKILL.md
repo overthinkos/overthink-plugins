@@ -12,15 +12,20 @@ Metalayer composing Hermes AI agent with a complete tool suite for standalone de
 ## Composition
 
 ```yaml
-candy:
-  - hermes          # AI agent with browser tools, MCP, LLM auto-config
-  - claude-code     # Anthropic Claude Code CLI
-  - codex           # OpenAI Codex CLI
-  - gemini          # Google Gemini CLI
-  - dev-tools       # bat, ripgrep, neovim, gh, direnv, fd-find, htop, etc.
-  - devops-tools    # AWS CLI, Scaleway, kubectx, OpenTofu, wrangler, jq, rsync
-  - charly              # OpenCharly CLI for in-container management
-  - tmux            # Terminal multiplexer for persistent sessions
+# the hermes-full metalayer is a candy entity; its composition lives in a candy child node
+hermes-full:
+  candy:
+    version: 2026.156.1921   # mandatory CalVer
+  hermes-full-candy:         # composition child node — the candies it pulls in
+    candy:
+      - hermes          # AI agent with browser tools, MCP, LLM auto-config
+      - claude-code     # Anthropic Claude Code CLI
+      - codex           # OpenAI Codex CLI
+      - gemini          # Google Gemini CLI
+      - dev-tools       # bat, ripgrep, neovim, gh, direnv, fd-find, htop, etc.
+      - devops-tools    # AWS CLI, Scaleway, kubectx, OpenTofu, wrangler, jq, rsync
+      - charly              # OpenCharly CLI for in-container management
+      - tmux            # Terminal multiplexer for persistent sessions
 ```
 
 ## Browser Integration
@@ -34,11 +39,13 @@ Without a browser provider, hermes browser tools fall back to local headless mod
 ```yaml
 # charly.yml
 hermes:
-  base: fedora
-  candy:
-    - agent-forwarding
-    - hermes-full
-    - dbus
+  box:
+    base: fedora
+  hermes-candy:        # composition child node
+    candy:
+      - agent-forwarding
+      - hermes-full
+      - dbus
 ```
 
 ## Related Candies
@@ -67,5 +74,5 @@ Use when working with the `hermes-full` metalayer, full-featured standalone herm
 
 ## Related
 
-- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, plan steps, service declarations)
 - `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

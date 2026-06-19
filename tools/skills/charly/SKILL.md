@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `task:`, `bin/charly` |
+| Install files | `run:` step, `bin/charly` |
 
 ## What It Provides
 
@@ -27,7 +27,7 @@ The `charly` candy installs the binary as a proper, dependency-resolving OS
 package via `localpkg:` (`{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`).
 The BINARY SOURCE depends on the box type — a hard distinction, NEVER mixed:
 
-- **Disposable check boxes** (`kind: check` beds) bake the latest **in-development**
+- **Disposable check beds** (`disposable: true` bundles) bake the latest **in-development**
   charly: the check-bed runner builds every bed image with `charly box build
   --dev-local-pkg`, so the package is BUILT from the local working tree
   (`pkg/<fmt>` + `charly/`). A bed therefore tests the charly code under
@@ -46,7 +46,7 @@ ships the released toolchain.
 
 ## Updating the Binary — dual-path gotcha
 
-The `charly` candy's `copy: bin/charly` task is resolved **relative to the candy directory**, so the box build reads `candy/charly/bin/charly` — NOT the repo-root `bin/charly`. Two independent paths need to stay in sync:
+The `charly` candy's `copy: bin/charly` run step is resolved **relative to the candy directory**, so the box build reads `candy/charly/bin/charly` — NOT the repo-root `bin/charly`. Two independent paths need to stay in sync:
 
 | Path | Who reads it |
 |------|-------------|
@@ -89,10 +89,13 @@ stream.
 ## Usage
 
 ```yaml
-# charly.yml -- now included in all images with supervisord
+# charly.yml — name-first; the charly candy is now composed into all supervisord images
 my-image:
-  candy:
-    - charly
+  box:
+    base: fedora
+  my-image-candy:
+    candy:
+      - charly
 ```
 
 ## Used In Boxes
@@ -119,5 +122,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, plan-step verbs, service declarations)
 - `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

@@ -125,14 +125,16 @@ stay in sync automatically:
 
 ```yaml
 versa:
-  target: pod
-  box: versa
-  disposable: true
-  lifecycle: dev
-  port: [auto]    # auto-allocate one free host port per image-declared
-                  # container port. The resolved expansion is persisted
-                  # as `resolved_port:` alongside this entry on the
-                  # next `charly config versa` / `charly update versa` run.
+  bundle:
+    box: versa
+    disposable: true
+    lifecycle: dev
+  versa-port:
+    port:
+      - auto    # auto-allocate one free host port per image-declared
+                # container port. The resolved expansion is persisted
+                # as `resolved_port:` alongside this entry on the
+                # next `charly config versa` / `charly update versa` run.
 ```
 
 That's the entire entry. No `env:` block — the seven URL env vars
@@ -154,14 +156,15 @@ bookmarks), replace `port: [auto]` with an explicit list — the
 chose, so the URL env vars stay correct either way:
 
 ```yaml
-port:
-  - "22718:2718"
-  - "28080:8080"
-  - "23000:3000"
-  - "28000:8000"
-  - "28001:8001"
-  - "28002:8002"
-  - "28090:8090"
+versa-port:
+  port:
+    - "22718:2718"
+    - "28080:8080"
+    - "23000:3000"
+    - "28000:8000"
+    - "28001:8001"
+    - "28002:8002"
+    - "28090:8090"
 ```
 
 For cross-pod topologies (airflow in a separate pod on the shared
@@ -185,21 +188,24 @@ container (`charly-versa`, `charly-versa-ecovoyage`, …), its own workspace
 volume, and its own host-port mappings:
 
 ```yaml
-deploy:
-  versa:
+versa:
+  bundle:
     box: versa
-    target: pod
     disposable: true
-    port: [auto]               # auto-allocated host ports
+  versa-port:
+    port:
+      - auto                   # auto-allocated host ports
 
-  versa/ecovoyage:
-    box: versa               # SAME image, explicit field required
-    target: pod
+versa/ecovoyage:
+  bundle:
+    box: versa                 # SAME image, explicit field required
     disposable: true
+  versa-ecovoyage-volume:
     volume:
       - name: workspace
         type: bind
         host: /home/atrawog/Sync/Atrapub/ecovoyage
+  versa-ecovoyage-port:
     port:
       - "32718:2718"           # explicit pinned ports for stable bookmarks
       - "38080:8080"
@@ -218,12 +224,13 @@ Run a specific image tag under an arbitrary deploy name (useful for
 canaries, regression bisection, or holding back a specific version):
 
 ```yaml
-deploy:
-  versa-pinned-2026.131.2134:
+versa-pinned-2026.131.2134:
+  bundle:
     box: ghcr.io/overthinkos/versa:2026.131.2134  # exact ref, never re-resolved
-    target: pod
     disposable: true
-    port: [auto]
+  versa-pinned-2026.131.2134-port:
+    port:
+      - auto
 ```
 
 Container name: `charly-versa-pinned-2026.131.2134`. CLI:

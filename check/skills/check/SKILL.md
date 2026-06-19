@@ -2,10 +2,10 @@
 name: check
 description: |
   MUST be invoked before any work involving: `charly check` (image / live / run),
-  the `plan:` / `description:` fields in a candy/box `charly.yml`, the project-root `check:` block in `charly.yml`,
-  the `ai.opencharly.description` OCI label (where the baked `plan:` travels), the AI iteration harness loop,
-  `kind: agent` / `kind: check` (disposable R10
-  beds run via `charly check run <bed>`) in a project's `check:` block, or any `plan:` step / Op
+  the plan steps / `description:` field in a candy/box `charly.yml`, the disposable test-bed bundles in a project's `charly.yml`,
+  the `ai.opencharly.description` OCI label (where the baked plan travels), the AI iteration harness loop,
+  `kind: agent` (the agent grader) and the disposable R10 bundles
+  (`disposable: true`, run via `charly check run <bed>`), or any plan step / Op
   authoring. Covers the unified `charly check` surface: three
   primary modes (image / live / run),
   9 live-container probe verbs (cdp/wl/dbus/vnc/mcp/record/spice/libvirt/k8s),
@@ -16,28 +16,28 @@ description: |
   way (package renames, absent binaries, host vs container network routing),
   AI-iteration loop semantics (plateau-bounded, progressive plan-step
   disclosure, watchdog), and the `include: <kind>:<name>` step for composing a
-  bed's `plan:` from existing candy/box/pod/vm plans.
+  bed's plan from existing candy/box/pod/vm plans.
 ---
 
 # Check — unified declarative + AI-iteration evaluation
 
-## kind: check beds + `charly check run <bed>` — config-driven R10 acceptance
+## Disposable test-bed bundles + `charly check run <bed>` — config-driven R10 acceptance
 
-The disposable R10 test beds are **`kind: check` entities in the `check:` block
-of the project `charly.yml`**. A
-`kind: check` entity is a deploy-shaped node folded into the Deploy map at load
-time, so every deploy verb resolves it by name; `charly check run <bed>` drives the
+The disposable R10 test beds are **`disposable: true` bundles in the project
+`charly.yml`** — a check bed is just a bundle marked `disposable: true`, there is
+no separate `check:` block. A bundle is a top-level entity resolved by name, so
+every deploy verb resolves a bed by name; `charly check run <bed>` drives the
 full R10 sequence on it:
 
 This is the **ecosystem-wide** rule: every repo-shipped disposable test bed —
 the main repo's beds AND every `box/<distro>` submodule's beds (the arch /
 cachyos / debian / ubuntu / fedora bootstrap-VM and pacstrap/debootstrap beds) —
-is a `kind: check` entity, in that repo's config (its `charly.yml` + per-kind sibling files). Repos
-ship NO `kind: deploy` test beds. The lone `kind: deploy` exception is an
-operator profile, not a test bed (the cachyos submodule's `charly-cachyos`
-workstation profile); operator deployments otherwise live in the per-host
-`~/.config/charly/charly.yml`. `disposable: true` is the sole authorization for the
-unattended destroy + rebuild on any of them.
+is a `disposable: true` bundle, a top-level entry in that repo's `charly.yml`. A
+test bed is ALWAYS `disposable: true`; the lone non-disposable bundle a repo
+ships is an operator profile, not a test bed (the cachyos submodule's
+`charly-cachyos` workstation profile); operator deployments otherwise live in the
+per-host `~/.config/charly/charly.yml`. `disposable: true` is the sole
+authorization for the unattended destroy + rebuild on any of them.
 
 A bed is a **candybox** (CLAUDE.md "Candyboxing"): a disposable, secured
 container / VM stocked with the FULL toolset — the entire `charly check` probe surface
@@ -49,7 +49,7 @@ never by stripping the candy.
 
 1. `charly box build <image> --dev-local-pkg` — build the test artifact (pod beds only). The check-bed runner sets `--dev-local-pkg` AUTOMATICALLY, so a bed bakes the **in-development** charly toolchain (any `localpkg:` candy built from local source) — never a stale published release. A bed thus always tests the code under development; a production box build downloads the released package. See `/charly-tools:charly` "Check-vs-production binary source" + `/charly-internals:install-plan` "Check-vs-production charly toolchain".
 2. `charly check box <image>` — box-section + baked candy-section probes.
-3. `charly deploy add <bed> <ref>` — apply the bed (or `charly vm create` for vm beds).
+3. `charly bundle add <bed> <ref>` — apply the bed (or `charly vm create` for vm beds).
 4. (pod beds) `charly config <bed>` + `charly start <bed>`.
 5. `charly check live <bed>` — full three-section live probe pass.
 6. `charly update <bed>` — fresh-rebuild re-verification (R10 acceptance gate).
@@ -101,14 +101,18 @@ in `charly vm gpu status`, a host reboot is required; the arbiter refuses a pois
 token until then. Full model + RCA: `/charly-vm:vm` "GPU driver-mode switch" +
 `/charly-internals:disposable` "resource-arbitration axis".
 
-`charly check run --all-beds` runs every bed name-sorted. Flags: `--keep` (don't
+`charly check run <bed>` runs exactly ONE bed. Flags: `--keep` (don't
 tear down), `--no-rebuild` (skip step 6) — both scope-shrinking, governed by
 "Flag discipline" below. Per-run logs land in
-`.check/<bed>/<calver>/` (per-step `.log` files + `summary.yml`).
+`.check/<bed>/<calver>/` (per-step `.log` files + `summary.yml`). To run a
+WHOLE ROSTER, fan the beds out CONCURRENTLY — one `charly check run <bed>`
+process per agent — via the `/verify-beds` workflow (or an agent team), which
+collapses wall-clock to ≈ the slowest single bed (see "Approximate wall-clock"
+below).
 
 ### Flag discipline — the `iterate:`/bed config IS the test specification
 
-The `iterate:` / `kind: check` config in the project's `check:` block IS the
+The `iterate:` block / the bundle config in the project's `charly.yml` IS the
 test spec; the operator authorizes overrides, not Claude. Passing ANY
 scope-shrinking flag to `charly check run` (or `charly check live`) without the user
 explicitly naming that flag in the SAME conversation turn is the same fraud
@@ -116,10 +120,11 @@ class as dry-run-as-R10 (CLAUDE.md R10 flag-override clause). The catalog:
 `--plateau-iteration`, `--max-scenario`, `--tag`, `--skip-rebuild`,
 `--on-pod` / `--on-vm` / `--on-host`, `--keep-repo`, `--dry-run`, and the bed
 flags `--no-rebuild` (skips the R10 fresh-rebuild gate) and `--keep`.
-(`--all-beds` is scope-EXPANDING, not shrinking: it is in-spec WITHOUT
-authorization when "R10 gate by change class" mandates it for a cross-cutting
-change, and needs authorization only as a SUBSTITUTE for the class-mandated
-gate.) Internal-voice triggers — "tractable wall-clock", "for the
+(Fanning the FULL ROSTER out concurrently via `/verify-beds` — one `charly
+check run <bed>` per agent — is scope-EXPANDING, not shrinking: it is in-spec
+WITHOUT authorization when "R10 gate by change class" mandates the full
+fan-out for a cross-cutting change, and needs authorization only as a
+SUBSTITUTE for the class-mandated gate.) Internal-voice triggers — "tractable wall-clock", "for the
 canary", "to fit session bounds", "shorten this run", "skip the heavy leg",
 "faster iteration cycle" — are confessions, not defences. The `iterate:`
 block's `plateau_iteration` and the AI's `progress_no_improvement_timeout` together
@@ -129,21 +134,21 @@ no authorization — the lever catalog is `/charly-internals:agents` "Speed
 levers".
 
 **Run retention (`defaults.keep_check_runs`).** After `charly check run` (any path —
-bed / `--all-beds` / `iterate:` entity), `.check/<name>/` is trimmed to the newest N run
+bed / `iterate:` entity), `.check/<name>/` is trimmed to the newest N run
 artifacts (CalVer run dirs, `runs/<id>/` dirs, `result-<calver>.yml`) so harness
 output doesn't accumulate unbounded. `NOTES.md` (the durable Syncthing-replicated
 memory) is ALWAYS preserved. Set `defaults.keep_check_runs` in `charly.yml`
 (`0`/absent disables); apply on demand with `charly clean --check`. See
 `/charly-core:clean`.
 
-### The ecosystem's `kind: check` beds
+### The ecosystem's disposable test-bed bundles
 
 | Bed | Target | Ref | Surface |
 |---|---|---|---|
 | `check-sway-browser-vnc-pod` | pod | `box: sway-browser-vnc` | cdp/wl/vnc/dbus/mcp/record + pod-side file/service/port/process/http |
 | `check-k3s-vm` | vm | `vm: k3s-vm` | k8s (all 13 methods) + guest-side file/service/port/process, http via port-forward, VmDeployTarget end-to-end |
 | `check-pod` | pod | `box: check-pod` | combined mechanism bed: `kind: box` build + `kind: candy` composition order + `kind: pod` runtime (nc :18794 + supervisord) + every DeployTarget rendering path |
-| `check-local` | local | `local: check-local` | `kind: local` layer apply via ShellExecutor |
+| `check-local` | local | `local: check-local-app` | `kind: local` layer apply via ShellExecutor |
 | `check-jupyter-pod` | pod | `box: jupyter` | jupyter-mcp regression coverage |
 | `check-jupyter-ml-pod` | pod | `box: jupyter-ml` | jupyter-ml spacy/quarto + GPU MCP probes |
 | `check-versa-pod` | pod | `box: versa` | versa OSM analytics + vector-tile + marimo MCP |
@@ -151,8 +156,8 @@ memory) is ALWAYS preserved. Set `defaults.keep_check_runs` in `charly.yml`
 | `check-charly-vm` | vm | `vm: charly-vm` | `charly` toolchain localpkg deploy witness (opencharly-git pacman install + dep auto-resolve) on the cloud VM |
 
 Bed HOMES: the main repo's `charly.yml` owns `check-k3s-vm`, `check-local`, and
-`check-charly-vm`; the pod beds above live in the `box/<distro>` submodules'
-`check:` blocks (`check-pod`, `check-jupyter-pod`, `check-jupyter-ml-pod`,
+`check-charly-vm`; the pod beds above are top-level bundles in the `box/<distro>`
+submodules' `charly.yml` (`check-pod`, `check-jupyter-pod`, `check-jupyter-ml-pod`,
 `check-sway-browser-vnc-pod` in `box/fedora`; `check-versa-pod`,
 `check-android-emulator-pod` in `box/cachyos`) and run from that submodule
 (e.g. `charly -C box/fedora check run check-pod`).
@@ -166,7 +171,7 @@ hardcodes that name — it flows from the `iterate.sandbox:` field through
 `ResolveIterateSandbox`, and prompts reference it via the `${TARGET_NAME}`
 substitution token. **The sandbox is an OPERATOR-PROVISIONED per-host
 deploy** — the runner restarts-but-never-creates it: provision once with
-`charly deploy add check-sandbox <ref> --disposable` + `charly start
+`charly bundle add check-sandbox <ref> --disposable` + `charly start
 check-sandbox` (the ref must provide charly + nested podman + the configured
 AI CLI; the per-host overlay never ships with the repo). On a host without
 the entry, `charly check run <bed>` fails fast with exactly that
@@ -174,9 +179,10 @@ remediation. The supporting
 `vm: k3s-vm` + `k8s: vm-k3s-vm` entities live in the project `charly.yml`
 alongside its beds. `disposable: true` is the sole authorization
 for the unattended destroy+rebuild (see `/charly-internals:disposable`). Two
-load-time guards back the beds: `validateCheckBeds` enforces `target ∈ {pod, vm,
-local, android}`, a resolvable cross-ref, and `disposable: true`; `foldCheckBeds`
-enforces the name-disjointness from `kind: deploy`. Neither checks host ports —
+load-time guards back the beds: `validateCheckBeds` enforces the bundle's deploy
+kind ∈ {pod, vm, local, android}, a resolvable cross-ref, and `disposable: true`;
+`foldCheckBeds` enforces the bundle's name is disjoint from every other bundle.
+Neither checks host ports —
 disjoint ports across beds are the AUTHOR's responsibility (an overlap fails the
 second bed at deploy via `CheckPortAvailability`).
 
@@ -185,11 +191,12 @@ second bed at deploy via `CheckPortAvailability`).
 `check-pod` ~110s (one build → deploy → check → fresh-update → teardown cycle
 covering all four mechanisms) · `check-local` ~45s · `check-k3s-vm` ~5–7 min · the
 heavy feature beds (`check-sway-browser-vnc-pod` ~14 min incl. image build)
-longer. **`charly check run --all-beds` runs beds STRICTLY SEQUENTIALLY (a plain loop
-— no concurrency in `charly`), so its wall-clock ≈ the SUM.** To collapse that to ≈
-the slowest single bed, parallelize at the AGENT layer — one agent/teammate per
-bed, N concurrent `charly check run <bed>` processes (`/verify-beds` and an agent team
-both do this; see `/charly-internals:agents` "Speed levers"). The dominant cost is
+longer. **`charly check run <bed>` runs exactly ONE bed, so a roster run is N
+of them — and running them SEQUENTIALLY would make wall-clock ≈ the SUM.** To
+collapse that to ≈ the slowest single bed, fan the beds out CONCURRENTLY at the
+AGENT layer — one `charly check run <bed>` process per agent/teammate
+(`/verify-beds` and an agent team both do this; see `/charly-internals:agents`
+"Speed levers"). The dominant cost is
 the step-1 `charly box build`: a pod bed builds the image ONCE — the "fresh
 `charly update`" R10 step is a `systemctl restart` onto the already-built image, not
 a second build — and same-base beds share cached layers, so pre-warming a shared
@@ -246,10 +253,10 @@ a missing daemon. See `/charly-vm:vm` "Prereq", `/charly-check:libvirt`.
 
 ### Why this is config-driven
 
-Beds are `kind: check` config; the runner reads the bed node directly. This
-means the runner works for ANY bed an operator defines — `charly check run <name>`
-resolves the bed by name through the same path every deploy verb uses, with no
-hardcoded bed table to keep in sync.
+Beds are `disposable: true` bundles; the runner reads the bundle node directly.
+This means the runner works for ANY bundle an operator defines — `charly check
+run <name>` resolves the bundle by name through the same path every deploy verb
+uses, with no hardcoded bed table to keep in sync.
 
 ## R10 gate by change class — pick the gate that exercises the change
 
@@ -263,7 +270,7 @@ CLAUDE.md R10 carries the mandate; this matrix is the authoritative detail.
 |---|---|---|---|---|
 | **Documentation-only change class** — `*.md` (CLAUDE.md, `plugins/**/SKILL.md`, READMEs, CHANGELOG), comment-only code edits, or a submodule pointer bump to an all-documentation submodule commit; zero behavior change | markdown integrity, link checks | The non-runtime standards: adversarial consistency review, the R5 grep self-test, cross-reference validation, the `pre-commit-gate.sh`/`pre-push-gate.sh` gates | `documentation reviewed` | ANY bed run or image build — beds cannot fail on prose |
 | **Hook / workflow scripts** — `.claude/hooks/*.sh`, `.claude/workflows/*.js` | `bash -n` / async-body parse | Execute the changed script live: run the hook directly (paste its output); a workflow whose CONTROL FLOW changed runs against ONE bed matching the change. Prompt-string-only workflow edits: parse + the non-runtime standards | `fully tested and validated` | The full bed fan-out |
-| **`charly` Go code** | `go test ./...` + `go vet` + `task build:charly` (R9 freshness + `charly version` check) | `charly check run <bed>` for EACH bed whose kind matches a touched code path: box/candy/pod/DeployTarget mechanism → `check-pod`; `target: local` → `check-local`; VM / k8s → `check-k3s-vm`; a feature surface → its feature bed. Cross-cutting loader / resolver / IR / unified-schema changes → `--all-beds` (in-spec for that class, not a scope override) | `fully tested and validated` | Beds whose substrate the change cannot reach |
+| **`charly` Go code** | `go test ./...` + `go vet` + `task build:charly` (R9 freshness + `charly version` check) | `charly check run <bed>` for EACH bed whose kind matches a touched code path: box/candy/pod/DeployTarget mechanism → `check-pod`; `target: local` → `check-local`; VM / k8s → `check-k3s-vm`; a feature surface → its feature bed. Cross-cutting loader / resolver / IR / unified-schema changes → fan EVERY matching bed out CONCURRENTLY via `/verify-beds` (one `charly check run <bed>` per agent; in-spec for that class, not a scope override) | `fully tested and validated` | Beds whose substrate the change cannot reach |
 | **Candy / box / pod / vm / k8s / local / android config** | `charly box validate` | Build + run a bed that COMPOSES the changed entity (a candy edit → a bed whose image stacks that candy); when no bed composes it, the R7 sequence on a disposable deploy: build → `charly check box` → deploy → `charly check live` → fresh `charly update` | `fully tested and validated` | Beds that do not compose the changed entity |
 | **`iterate:` / ai check config** | `charly box validate` | The affected `iterate:` bed run AS SPECIFIED (see "Flag discipline") | `fully tested and validated` | Unrelated beds |
 
@@ -298,7 +305,7 @@ These are the 10 standards referenced in CLAUDE.md's AI attribution tier ("fully
 1. **Build a real artifact** (R7) — `charly box build <image>` / `go build` / `charly vm build <vm>`. Not just `go test`. Not just `charly box generate`.
 2. **Verify the emitted artifact's content** (R8) — `grep -c supervisord-conf .build/<image>/Containerfile` for any image that uses supervisord; `charly check libvirt domain-xml <vm>` for a VM.
 3. **Verify critical OCI / capability labels post-build** (R8) — `charly box labels <ref> --format init` (or any `ai.opencharly.<key>` shorthand) prints the BUILT ref's label and exits non-zero when absent; `charly box labels <ref>` lists the whole capability contract (`/charly-internals:capabilities`). Empty / missing label → the detection path silently returned nil → regression.
-4. **Deploy to a DISPOSABLE target** (R10) — NEVER experiment on a resource that doesn't carry `disposable: true`. If no suitable disposable target exists, create one first (`charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml and `charly vm create`). The setup is part of the task. On a disposable target: `charly update <name>` (unattended). On anything else: confirm with the user before any irreversible destroy — EXCEPT preempting a declared-`preemptible:` holder, which is standing-authorized (reversible: graceful stop + guaranteed restore).
+4. **Deploy to a DISPOSABLE target** (R10) — NEVER experiment on a resource that doesn't carry `disposable: true`. If no suitable disposable target exists, create one first (`charly bundle add <name> <ref> --disposable` or mark a VM `disposable: true` in `charly.yml` and `charly vm create`). The setup is part of the task. On a disposable target: `charly update <name>` (unattended). On anything else: confirm with the user before any irreversible destroy — EXCEPT preempting a declared-`preemptible:` holder, which is standing-authorized (reversible: graceful stop + guaranteed restore).
 5. **Target must reach steady-state** — `charly status <image>` → `running`; `charly check libvirt info <vm>` → state `running`; SPICE socket file exists and accepts a handshake. If the service start-limit is hit, the container is crashing — read `charly logs <image>` and reproduce in a disposable shell (`charly shell <image>`, running the service command manually).
 6. **Run the declarative test suite** — `charly check live <image>` full three-section pass against the live container (or `--uri` / `--host` remote equivalent for a remote target).
 7. **Verify the deployed binary is the one you built** (R9) — `charly version` on the target matches the expected CalVer, and `charly status <image>` (detail `Image ref:` line; JSON `image_ref`) shows the running container's image ref carries THIS build's CalVer tag, not the prior one. Source-only changes (Syncthing, git push) do NOT update the deployed binary; you must build AND deploy on the target host.
@@ -313,7 +320,7 @@ These are the 10 standards referenced in CLAUDE.md's AI attribution tier ("fully
 `DeployExecutor` chain that lands probes inside the leaf's actual
 venue — `command: id` for a pod-in-VM leaf returns the inner pod's user, not
 the parent VM's. Live-check and AI-iteration-scoring chain construction go
-through the same code path `charly deploy add` uses.
+through the same code path `charly bundle add` uses.
 For deeply-nested paths, each segment adds one hop:
 
 ```bash
@@ -322,7 +329,7 @@ charly check live check-vm.inner                      # → SSH + podman exec ch
 charly check live check-vm.inner.deeper               # → SSH + 2× podman exec (3 hops)
 ```
 
-Same chain primitive (`NestedExecutor`) used everywhere — `charly deploy
+Same chain primitive (`NestedExecutor`) used everywhere — `charly bundle
 add`, `charly check live`, `charly check run` (AI iteration scoring).
 
 **Exception — a POD leaf nested in a VM delegates its check to the guest.** Because
@@ -339,7 +346,7 @@ The guest reads the SAME baked checks from the cp-box'd pod image, so the check
 set is identical; the host propagates the guest's report + exit code. A
 pod-in-pod or vm-in-vm leaf (no host↔guest container boundary) still uses the
 multi-hop chain above. See the per-step `pod:` field below for the symmetric
-authoring surface in a bed's `plan:`.
+authoring surface in a bed's plan.
 
 ### Specific anti-patterns observed and banned
 
@@ -361,11 +368,13 @@ If the container needs state that's only available in deploy (volumes, env, tunn
 `charly` ships a goss-inspired declarative testing framework built into the
 CLI. Plan steps — each one intent keyword (`run:`/`check:`/`agent-run:`/
 `agent-check:`/`include:`) carrying prose, plus an inline Op for `run:`/`check:` —
-are authored under a `plan:` list in a candy/box `charly.yml`. They are **baked
-into the `ai.opencharly.description` OCI label** (`LabelDescriptionSet`, which
-carries the collected `plan:` steps with `candy:`/`box:`/`deploy` origin
-annotations) so any pulled image is self-testable without its source repo. A
-local `charly.yml` overlay can add steps or override baked ones by `id:`.
+are authored as child step nodes (each named by its `id:`, else
+`<entity>-step-N`) under a candy/box entity in `charly.yml`; there is no `plan:`
+list key. They are **baked into the `ai.opencharly.description` OCI label**
+(`LabelDescriptionSet`, which carries the collected plan steps with
+`candy:`/`box:`/`deploy` origin annotations) so any pulled image is self-testable
+without its source repo. A local `charly.yml` overlay can add steps or override
+baked ones by `id:`.
 
 The runner resolves **deploy-time variables** (actual host port mappings,
 volume backings, env vars, container IP, DNS) at execution time, so a
@@ -377,7 +386,7 @@ check written once works unchanged when `charly.yml` remaps ports.
 |--------|---------|-------------|
 | Pure-box check (disposable, build-context) | `charly check box <image>` | Candy + box sections only, in `podman run --rm` (no host port mappings, no volumes attached) |
 | Live full-stack check (running deployment) | `charly check live <name> [-i instance]` | All three sections run via `podman exec` / SSH / nested chain, with full runtime variable resolution |
-| R10 bed (full sequence) | `charly check run <bed>` / `charly check run --all-beds` | Build → check image → deploy → check live → fresh update → tear down on a `kind: check` disposable bed. Canonical R10 gate |
+| R10 bed (full sequence) | `charly check run <bed>` | Build → check image → deploy → check live → fresh update → tear down on a `disposable: true` bundle (ONE bed per invocation). Canonical R10 gate; for a whole roster fan beds out concurrently via `/verify-beds` |
 | AI iteration loop | `charly check run <bed>` | Drives an AI through plateau-bounded iterations against a bed carrying an `iterate:` block |
 | Validate authored tests at config time | `charly box validate` | Schema, context/variable consistency, id uniqueness |
 | Inspect effective spec | `charly box inspect <image>` | JSON includes merged check structure |
@@ -401,8 +410,9 @@ check written once works unchanged when `charly.yml` remaps ports.
 `charly check run <bed>` propagates `2` when the bed's **check step** (check-image /
 check-live) fails on checks, but `1` when an **infra step** (build / deploy /
 vm-create) fails — so a broken bed image is distinguishable from a genuine
-test failure. `charly check run --all-beds` returns `2` only when *every* failing
-bed failed on checks; any infra failure makes it `1`. Implementation:
+test failure. When `/verify-beds` fans a roster out, it aggregates the per-bed
+exit codes — reporting `2` only when *every* failing bed failed on checks, and
+`1` when any bed hit an infra failure. Implementation:
 `CheckFailedError` + `CheckCheckFailExitCode` (charly/check_cmd.go), mapped to the
 process exit code in `main()` via `errors.As`.
 
@@ -410,7 +420,7 @@ process exit code in `main()` via `errors.As`.
 
 When `charly check run --on-host <name>` (or any `iterate:` entity whose
 sandbox resolves to `TargetKindHost`) dispatches the runner, an image
-preflight runs FIRST: walk the bed's `plan:`, collect every
+preflight runs FIRST: walk the bed's plan, collect every
 distinct step `pod:` plus the bed's target image, deduplicate, and
 ensure each image is present in local podman storage BEFORE handing
 off to the host runner.
@@ -466,7 +476,7 @@ The surface is three orthogonal verbs, each named for what it evaluates:
   Same dispatcher that powers `charly check live parent.child` for
   pod-in-vm topologies.
 
-- **`charly check run <bed>`** — runs a `kind: check` R10 bed (full
+- **`charly check run <bed>`** — runs a `disposable: true` R10 bundle (full
   sequence); when the bed carries an `iterate:` block it instead drives
   an AI runner through plateau-bounded iterations. See "AI
   iteration loop semantics" below.
@@ -476,7 +486,7 @@ implicit fallback. Choose the mode by picking the right verb.
 
 **Which verb/bed proves what (CLAUDE.md R7):** `charly check box` passes on
 zero-content stages too — it is NOT a substitute for the generated-artifact
-checks (R8). For the R10 gate, pick the `kind: check` bed whose kind matches
+checks (R8). For the R10 gate, pick the disposable bed whose kind matches
 what you changed (`check-pod` for the combined box/candy/pod/DeployTarget
 mechanism, `check-local`, `check-k3s-vm`, or a feature bed). `charly check run`
 on an `iterate:` bed is the multi-hour AI-iteration benchmark, never a quick
@@ -496,12 +506,12 @@ are correctly mapped to `charly-fedora-coder`. Implementation:
 
 ## Agent Driven Evaluation (ADE) — `charly box/check feature run` + the agent grader
 
-ADE runs an entity's OWN baked `plan:` (shipped in the
+ADE runs an entity's OWN baked plan (shipped in the
 `ai.opencharly.description` OCI label) as acceptance tests. It is named for the
 agent that drives the evaluation: an `agent-check:` step is graded by an AI
 agent, and the agent's verdicts drive the red→green loop. `charly check box` /
 `charly check live` and `charly box/check feature run` read the SAME baked
-`plan:` — `charly check box`/`live` run its deterministic `check:` steps, while
+plan — `charly check box`/`live` run its deterministic `check:` steps, while
 `charly box/check feature run` also bind the `agent-check:` (and `agent-run:`)
 steps to the agent grader.
 
@@ -509,22 +519,27 @@ steps to the agent grader.
 
 | Stage | Who | Command | What |
 |---|---|---|---|
-| **Specify** | you / an agent | hand-edit the candy's `plan:` (or `charly box set candy.<name>.plan ...`) | Author the `description:` string + `plan:` steps on the CANDY that provides the behaviour (it bakes into every box that composes the candy — R3). |
+| **Specify** | you / an agent | hand-edit the candy's plan steps (or `charly box set candy.<name>.plan ...`) | Author the `description:` string + plan steps (child step nodes) on the CANDY that provides the behaviour (it bakes into every box that composes the candy — R3). |
 | **Bind** | author (implicit) | `charly feature pending <entity>` lists the agent-graded steps | Use a `check:` step (inline verb) → deterministic; use an `agent-check:` step (prose) → agent-graded. |
 | **Run** | you / CI | `charly box feature run <image>` / `charly check feature run <deployment>` | Execute the plan; per-step pass/fail + grader evidence. |
 | **Iterate** | you / an agent | edit + re-run, OR `charly check run <bed>` (an `iterate:` bed) | Drive red→green by hand, or let the plateau-bounded AI loop write the code until the `check:` steps pass. |
-| **Bake** | the build | `charly box build` | `description:` + `plan:` bake into `ai.opencharly.description`; runs source-less against a pulled image. |
-| **Gate** | R10 | `charly check run <bed>` | Runs the bed image's deterministic `check:` steps — every candy ships them (ADE authoring is mandatory: `charly box validate` requires a non-empty `description:` string and a `plan:` with at least one deterministic `check:` step). The live agent grader via `charly check feature run` stays opt-in. |
+| **Bake** | the build | `charly box build` | `description:` + plan steps bake into `ai.opencharly.description`; runs source-less against a pulled image. |
+| **Gate** | R10 | `charly check run <bed>` | Runs the bed image's deterministic `check:` steps — every candy ships them (ADE authoring is mandatory: `charly box validate` requires a non-empty `description:` string and at least one deterministic `check:` step). The live agent grader via `charly check feature run` stays opt-in. |
 
 ### The BIND contract — a step binds to its verifier BY SHAPE
 
 ```yaml
-description: Dashboard          # plain string: the candy's purpose; first line = summary
-plan:                           # the ONE flat operational list
-  - check: the page title is Dashboard   # inline verb → DETERMINISTIC
-    cdp: eval
-    expression: document.title
-  - agent-check: the chart looks populated, not empty   # PROSE-ONLY → agent-graded
+# candy/<name>/charly.yml — description: is a scalar under candy:; each plan step
+# is its own named child node (the ONE flat operational sequence), no plan: list key
+dashboard:
+    candy:
+        description: Dashboard          # the candy's purpose; first line = summary
+    dashboard-title:
+        check: the page title is Dashboard   # inline verb → DETERMINISTIC
+        cdp: eval
+        expression: document.title
+    dashboard-chart-populated:
+        agent-check: the chart looks populated, not empty   # PROSE-ONLY → agent-graded
 ```
 
 A `check:` step carries an embedded probe verb (`file`/`http`/`command`/`cdp`/
@@ -629,46 +644,57 @@ fails. Fix by rebuilding and redeploying any image that bakes `charly` (grep
 `charly.yml` for `- charly$` to find them). Test runner itself is unaffected —
 this only bites the host→container delegation paths.
 
-## Authoring: the `plan:` list
+## Authoring: the plan (child step nodes)
 
-Every step is ONE intent keyword (`run:`/`check:`/`agent-run:`/`agent-check:`/
-`include:`) carrying prose, plus — for `run:`/`check:` — an inline Op (a single
-verb discriminator + shared modifiers + verb-specific attributes). `run:` steps
-ARE the install timeline (they replace the old `task:` list); `check:` steps are
-the deterministic idempotent probes `charly check`/`charly check live` run.
+Every step is its own named child node under the entity — ONE intent keyword
+(`run:`/`check:`/`agent-run:`/`agent-check:`/`include:`) carrying prose, plus —
+for `run:`/`check:` — an inline Op (a single verb discriminator + shared
+modifiers + verb-specific attributes). There is no `plan:` list key: each step is
+a node named by its `id:` (else `<entity>-step-N`), mirroring
+`candy/redis/charly.yml`. `run:` steps ARE the install timeline (they replace the
+old `task:` list); `check:` steps are the deterministic idempotent probes
+`charly check`/`charly check live` run.
 
 ### Gold-standard pattern (redis candy)
 
 ```yaml
-# candy/redis/charly.yml
-plan:
-  # Build-context check: — run inside the built image via `podman run --rm`.
-  - check: the redis-server binary is installed
-    id: redis-binary
-    file: /usr/bin/redis-server
-    exists: true
-  - check: the redis-cli binary is installed
-    id: redis-cli-binary
-    file: /usr/bin/redis-cli
-    exists: true
-  - check: the redis package is installed
-    id: redis-package
-    package: valkey-compat-redis     # see "Authoring Gotchas" on Fedora 43 renames
-    installed: true
-
-  # Deploy-context check: — HOST_PORT:N resolves to the effective port mapping, so
-  # the same step works whether the deploy publishes 6379:6379 or 16379:6379.
-  - check: redis answers ping over the published port
-    id: redis-responds
-    context: [deploy]
-    command: redis-cli -h 127.0.0.1 -p ${HOST_PORT:6379} ping
-    stdout: PONG
-    in_container: false    # run redis-cli from the host
-  - check: the redis port is reachable from the host
-    id: redis-port-open
-    context: [deploy]
-    addr: 127.0.0.1:${HOST_PORT:6379}
-    reachable: true
+# candy/redis/charly.yml — each step is a child node of the redis candy (named by
+# its id:), NOT a plan: list. The candy: discriminator holds only scalars.
+redis:
+    candy:
+        version: 2026.144.1531
+        description: A Redis-compatible key-value server supervised on 127.0.0.1:6379
+    # Build-context check: — run inside the built image via `podman run --rm`.
+    redis-binary:
+        check: the redis-server binary is installed
+        id: redis-binary
+        file: /usr/bin/redis-server
+        exists: true
+    redis-cli-binary:
+        check: the redis-cli binary is installed
+        id: redis-cli-binary
+        file: /usr/bin/redis-cli
+        exists: true
+    redis-package:
+        check: the redis package is installed
+        id: redis-package
+        package: valkey-compat-redis     # see "Authoring Gotchas" on Fedora 43 renames
+        installed: true
+    # Deploy-context check: — HOST_PORT:N resolves to the effective port mapping, so
+    # the same step works whether the deploy publishes 6379:6379 or 16379:6379.
+    redis-responds:
+        check: redis answers ping over the published port
+        id: redis-responds
+        context: [deploy]
+        command: redis-cli -h 127.0.0.1 -p ${HOST_PORT:6379} ping
+        stdout: PONG
+        in_container: false    # run redis-cli from the host
+    redis-port-open:
+        check: the redis port is reachable from the host
+        id: redis-port-open
+        context: [deploy]
+        addr: 127.0.0.1:${HOST_PORT:6379}
+        reachable: true
 ```
 
 The five `check:` steps cover: binary existence, package identity, a functional
@@ -687,14 +713,16 @@ fallback. Source: `charly/checkrun_verbs.go:resolvePackageName` + the
 points.
 
 ```yaml
-# candy/sshd/charly.yml — cross-distro authoring
-- id: openssh-server-package
-  package: openssh-server              # Fedora / Debian default
-  package_map:
-    arch: openssh                 # Arch ships the metapackage as 'openssh'
-    fedora: openssh-server
-    fedora:43: openssh-server          # explicit version tag — matches before 'fedora'
-  installed: true
+# candy/sshd/charly.yml — cross-distro authoring (a child step node)
+openssh-server-package:
+    check: the openssh-server package is installed
+    id: openssh-server-package
+    package: openssh-server              # Fedora / Debian default
+    package_map:
+        arch: openssh                 # Arch ships the metapackage as 'openssh'
+        fedora: openssh-server
+        fedora:43: openssh-server          # explicit version tag — matches before 'fedora'
+    installed: true
 ```
 
 Tag priority: entries in `distro:` are in priority order (e.g.
@@ -742,11 +770,13 @@ naturally. An empty-string map value falls through to the next tag
 #### `exclude_distros:` worked example
 
 ```yaml
-- id: fastfetch-binary
-  file: /usr/bin/fastfetch
-  exists: true
-  exclude_distros:
-    - ubuntu:24.04
+fastfetch-binary:
+    check: the fastfetch binary is installed (skipped on Ubuntu 24.04)
+    id: fastfetch-binary
+    file: /usr/bin/fastfetch
+    exists: true
+    exclude_distros:
+        - ubuntu:24.04
 ```
 
 On `ghcr.io/overthinkos/ubuntu-coder:latest` this reports `skipped (excluded on distro "ubuntu:24.04")` instead of `failed`. On any other image it runs normally. Prefer this over dropping the test entirely — it keeps the guard in place for Fedora/Arch/Debian and documents why Ubuntu is special.
@@ -809,22 +839,28 @@ SPA-nested (selkies coordinate-scaling / passthrough input):
 `spa-mouse`.
 
 ```yaml
-- id: cdp-up
-  cdp: status
-  stdout:
-    equals: ok
+cdp-up:
+    check: the CDP endpoint is reachable
+    id: cdp-up
+    cdp: status
+    stdout:
+        equals: ok
 
-- id: cdp-page-title
-  cdp: eval
-  tab: "1"
-  expression: "document.title"
-  stdout: "Dashboard"
+cdp-page-title:
+    check: the page title is Dashboard
+    id: cdp-page-title
+    cdp: eval
+    tab: "1"
+    expression: "document.title"
+    stdout: "Dashboard"
 
-- id: cdp-screenshot-valid
-  cdp: screenshot
-  tab: "1"
-  artifact: /tmp/cdp.png
-  artifact_min_bytes: 10000       # PNG must be non-empty
+cdp-screenshot-valid:
+    check: a non-empty CDP screenshot is captured
+    id: cdp-screenshot-valid
+    cdp: screenshot
+    tab: "1"
+    artifact: /tmp/cdp.png
+    artifact_min_bytes: 10000       # PNG must be non-empty
 ```
 
 #### Method allowlist — `wl` (22 top-level + 4 overlay + 12 sway)
@@ -841,20 +877,26 @@ Sway-nested: `sway-tree`, `sway-workspaces`, `sway-outputs`, `sway-msg`,
 `sway-layout`, `sway-workspace`, `sway-reload`.
 
 ```yaml
-- id: wl-desktop-captured
-  wl: screenshot
-  artifact: /tmp/wl.png
-  artifact_min_bytes: 10000
+wl-desktop-captured:
+    check: a non-empty desktop screenshot is captured
+    id: wl-desktop-captured
+    wl: screenshot
+    artifact: /tmp/wl.png
+    artifact_min_bytes: 10000
 
-- id: wl-has-windows
-  wl: toplevel
-  stdout:
-    matches: "."        # at least one line of output
+wl-has-windows:
+    check: at least one toplevel window is present
+    id: wl-has-windows
+    wl: toplevel
+    stdout:
+        matches: "."        # at least one line of output
 
-- id: wl-sway-has-workspace-1
-  wl: sway-workspaces
-  stdout:
-    contains: '"name":"1"'
+wl-sway-has-workspace-1:
+    check: sway reports workspace "1"
+    id: wl-sway-has-workspace-1
+    wl: sway-workspaces
+    stdout:
+        contains: '"name":"1"'
 ```
 
 #### Method allowlist — `dbus` (4 methods)
@@ -863,19 +905,23 @@ Queries: `list`, `call`, `introspect`.
 Actions: `notify`.
 
 ```yaml
-- id: dbus-notifications-registered
-  dbus: list
-  stdout:
-    contains: "org.freedesktop.Notifications"
+dbus-notifications-registered:
+    check: the Notifications service is registered on the bus
+    id: dbus-notifications-registered
+    dbus: list
+    stdout:
+        contains: "org.freedesktop.Notifications"
 
-- id: dbus-get-capabilities
-  dbus: call
-  dest: org.freedesktop.Notifications
-  path: /org/freedesktop/Notifications
-  method: org.freedesktop.Notifications.GetCapabilities
-  args: []
-  stdout:
-    contains: body
+dbus-get-capabilities:
+    check: the Notifications service answers GetCapabilities
+    id: dbus-get-capabilities
+    dbus: call
+    dest: org.freedesktop.Notifications
+    path: /org/freedesktop/Notifications
+    method: org.freedesktop.Notifications.GetCapabilities
+    args: []
+    stdout:
+        contains: body
 ```
 
 #### Method allowlist — `vnc` (8 methods)
@@ -884,15 +930,19 @@ Queries: `status`, `screenshot`, `rfb`.
 Actions: `click`, `mouse`, `type`, `key`, `passwd`.
 
 ```yaml
-- id: vnc-up
-  vnc: status
-  stdout:
-    equals: ok
+vnc-up:
+    check: the VNC endpoint is reachable
+    id: vnc-up
+    vnc: status
+    stdout:
+        equals: ok
 
-- id: vnc-framebuffer-captured
-  vnc: screenshot
-  artifact: /tmp/vnc.png
-  artifact_min_bytes: 5000
+vnc-framebuffer-captured:
+    check: a non-empty VNC framebuffer is captured
+    id: vnc-framebuffer-captured
+    vnc: screenshot
+    artifact: /tmp/vnc.png
+    artifact_min_bytes: 5000
 ```
 
 #### Method allowlist — `mcp` (7 methods)
@@ -917,31 +967,39 @@ add `mcp_name: <server>` on the check; otherwise the single entry
 auto-picks.
 
 ```yaml
-- id: mcp-ping
-  context: [deploy]
-  mcp: ping
-  timeout: 10s                # optional; default 30s
+mcp-ping:
+    check: the MCP server answers a ping
+    id: mcp-ping
+    context: [deploy]
+    mcp: ping
+    timeout: 10s                # optional; default 30s
 
-- id: mcp-list-tools
-  context: [deploy]
-  mcp: list-tools
-  stdout:
-    - contains: insert_cell   # plaintext "name\tdescription" per line
-    - contains: execute_cell
+mcp-list-tools:
+    check: the MCP server lists its notebook tools
+    id: mcp-list-tools
+    context: [deploy]
+    mcp: list-tools
+    stdout:
+        - contains: insert_cell   # plaintext "name\tdescription" per line
+        - contains: execute_cell
 
-- id: mcp-call-tool
-  context: [deploy]
-  mcp: call
-  tool: list_notebooks        # required
-  input: "{}"                 # optional JSON arg blob
-  exit_status: 0              # assert no IsError
+mcp-call-tool:
+    check: calling list_notebooks succeeds (no IsError)
+    id: mcp-call-tool
+    context: [deploy]
+    mcp: call
+    tool: list_notebooks        # required
+    input: "{}"                 # optional JSON arg blob
+    exit_status: 0              # assert no IsError
 
-- id: mcp-read-resource
-  context: [deploy]
-  mcp: read
-  uri: file:///tmp/example.txt
-  stdout:
-    - matches: "."            # non-empty body
+mcp-read-resource:
+    check: reading a resource returns a non-empty body
+    id: mcp-read-resource
+    context: [deploy]
+    mcp: read
+    uri: file:///tmp/example.txt
+    stdout:
+        - matches: "."            # non-empty body
 ```
 
 Ad-hoc CLI equivalents (each leaf also supports `--json` for programmatic
@@ -991,20 +1049,24 @@ artifact's correctness post-run.
 
 ```yaml
 # Combined screenshot validity assertion — bytes + dimensions + content.
-- id: cdp-screenshot-real
-  cdp: screenshot
-  tab: "1"
-  artifact: /tmp/cdp.png
-  artifact_min_bytes: 5000
-  artifact_min_dimensions: 800x600
-  artifact_not_uniform: true
+cdp-screenshot-real:
+    check: the CDP screenshot is a real, non-uniform image
+    id: cdp-screenshot-real
+    cdp: screenshot
+    tab: "1"
+    artifact: /tmp/cdp.png
+    artifact_min_bytes: 5000
+    artifact_min_dimensions: 800x600
+    artifact_not_uniform: true
 
 # Recording validity — bytes + event count.
-- id: record-cast-has-events
-  record: stop
-  artifact: /tmp/session.cast
-  artifact_min_bytes: 200
-  artifact_min_cast_events: 5
+record-cast-has-events:
+    check: the terminal recording captured real events
+    id: record-cast-has-events
+    record: stop
+    artifact: /tmp/session.cast
+    artifact_min_bytes: 200
+    artifact_min_cast_events: 5
 ```
 
 The four modifiers are independent — set just the one you need or
@@ -1098,11 +1160,13 @@ in_container: true
 `candy/charly/charly.yml` test asserts a `stdout:` matcher.
 
 ```yaml
-- id: charly-version
-  command: /usr/local/bin/charly version
-  exit_status: 0
-  stdout:
-    - matches: "[0-9]{4}\\.[0-9]+"
+charly-version:
+    check: charly version prints a CalVer to stdout
+    id: charly-version
+    command: /usr/local/bin/charly version
+    exit_status: 0
+    stdout:
+        - matches: "[0-9]{4}\\.[0-9]+"
 ```
 
 **But other tools genuinely write to stderr** — `ssh -V`, `openssl version`,
@@ -1163,15 +1227,19 @@ them fails in `charly check box` because the mount isn't attached.
 
 ```yaml
 # ❌ Fails under `charly check box` — workspace isn't mounted
-- id: workspace-dir
-  file: /workspace
-  filetype: directory
+workspace-dir:
+    check: the workspace directory exists
+    id: workspace-dir
+    file: /workspace
+    filetype: directory
 
 # ✓ context: [deploy] so it runs only against live containers
-- id: workspace-dir
-  context: [deploy]
-  file: /workspace
-  filetype: directory
+workspace-dir:
+    check: the workspace directory exists
+    id: workspace-dir
+    context: [deploy]
+    file: /workspace
+    filetype: directory
 ```
 
 ### 10. Disposable tests run as the image's default USER — not root
@@ -1183,16 +1251,20 @@ the user can't traverse the parent directory.
 
 ```yaml
 # ❌ Reports "exists=false" even though the file IS there (0750 dir)
-- id: sudoers-charly-user
-  file: /etc/sudoers.d/charly-user
-  exists: true
+sudoers-charly-user:
+    check: the charly-user sudoers drop-in exists
+    id: sudoers-charly-user
+    file: /etc/sudoers.d/charly-user
+    exists: true
 
 # ✓ Verify the semantic (can I sudo?) instead of the file bit
-- id: sudoers-charly-user
-  command: sudo -n -l
-  exit_status: 0
-  stdout:
-    - contains: "NOPASSWD"
+sudoers-charly-user:
+    check: the user can sudo without a password
+    id: sudoers-charly-user
+    command: sudo -n -l
+    exit_status: 0
+    stdout:
+        - contains: "NOPASSWD"
 ```
 
 ### 11. **Bootc images keep USER=root** — tests must cover both modes
@@ -1205,16 +1277,18 @@ The fix: drop into `user` explicitly when running as root, stay as-is otherwise.
 
 ```yaml
 # Dual-mode: container (USER=1000) AND bootc (USER=root) both pass
-- id: sudoers-charly-user
-  command: |
-    if [ "$(id -u)" = "0" ]; then
-      runuser -u user -- sudo -n -l
-    else
-      sudo -n -l
-    fi
-  exit_status: 0
-  stdout:
-    - contains: "NOPASSWD"
+sudoers-charly-user:
+    check: the user can sudo without a password (container AND bootc)
+    id: sudoers-charly-user
+    command: |
+        if [ "$(id -u)" = "0" ]; then
+          runuser -u user -- sudo -n -l
+        else
+          sudo -n -l
+        fi
+    exit_status: 0
+    stdout:
+        - contains: "NOPASSWD"
 ```
 
 **Don't use `runuser -l user -s /bin/bash -c '…'`.** On Arch's util-linux
@@ -1249,11 +1323,11 @@ This is different from `charly box inspect`, `charly box build`, and `charly che
 
 | Section | Authored in | When it runs |
 |---------|-------------|--------------|
-| `candy` | `plan:` in `candy/<name>/charly.yml` (build context) | `charly check box` + `charly check live` |
-| `box` | `plan:` in `charly.yml` per box (build context) | `charly check box` + `charly check live` |
-| `deploy` | a `plan:` step with `context: [deploy]`, or a local `charly.yml` `plan:` overlay | `charly check live <name>` only (deploy-context steps need a running deployment with port mappings, volumes, and resolved runtime variables) |
+| `candy` | step nodes under the candy in `candy/<name>/charly.yml` (build context) | `charly check box` + `charly check live` |
+| `box` | step nodes under the box in `charly.yml` (build context) | `charly check box` + `charly check live` |
+| `deploy` | a step node with `context: [deploy]`, or a local `charly.yml` step-node overlay | `charly check live <name>` only (deploy-context steps need a running deployment with port mappings, volumes, and resolved runtime variables) |
 
-The `ai.opencharly.description` label carries the collected `plan:` steps from all three
+The `ai.opencharly.description` label carries the collected plan steps from all three
 sections with `origin:` annotations (`candy:<name>`, `box:<name>`, `deploy-default`,
 `deploy-local`). `CollectDescriptions` walks the base-image chain with a
 visited-image guard: cycles are reported by `validateBoxDAG` at validate
@@ -1263,7 +1337,7 @@ pathological config.
 ## Verb routing (which executor runs each check)
 
 Every verb dispatches through one of two executors depending on the run
-mode — this is what makes the same `plan:` work both against a
+mode — this is what makes the same plan work both against a
 disposable container (`charly check box`) and a running service (`charly check live`):
 
 | Verb + attributes | Under `charly check live` (running service) | Under `charly check box` (disposable) |
@@ -1311,8 +1385,8 @@ before any check executes. `${NAME:arg}` is parameterized form.
 | `${VOLUME_PATH:name}` | Host path backing the named volume (bind source, encrypted mount, or `_data` dir) | deploy |
 | `${VOLUME_CONTAINER_PATH:name}` | In-container mount path for a volume | deploy |
 | `${ENV_NAME}` | Effective env var value on the running container | deploy |
-| `${PEER_HOST:name}` | A SEPARATE deployment's container DNS name on the shared `charly` net (`charly-<name>`); cross-deployment addressing (see below) | deploy |
-| `${PEER_ENDPOINT:name:port}` | A host-reachable `127.0.0.1:NNNN` for a separate deployment's `port` (published port / VM ssh-forward); host-vantage cross-deployment addressing | deploy |
+| `${HOST:member}` | A SEPARATE member's container DNS name on the shared `charly` net (`charly-<member>`); no `:<port>` segment → container DNS; cross-member addressing (see below) | deploy |
+| `${HOST:member:port}` | A host-reachable `127.0.0.1:NNNN` for a separate member's `port` (published port / VM ssh-forward); the `:<port>` segment selects host-vantage cross-member addressing | deploy |
 
 Build-context steps may **not** reference deploy-context variables — the
 validator flags this at `charly box validate` time.
@@ -1320,7 +1394,7 @@ validator flags this at `charly box validate` time.
 **No bash-style defaults**: `${VAR:-fallback}` is unsupported (see
 Authoring Gotcha #7). Plain `${VAR}` only.
 
-## Cross-deployment probing — `on:` driver, `peer:` siblings, `${PEER_*}`
+## Cross-deployment probing — venue-from-position members + `${HOST:...}`
 
 A check normally probes **the deployment under test**. Cross-deployment probing
 lets ONE deployment act as a test DRIVER against a SEPARATE deployment as the
@@ -1329,110 +1403,125 @@ separate web-server SUBJECT pod**, so a real browser tests the subject without
 baking Chrome into the subject image. "A different kind of deployment tests
 another kind" — pod→pod, local→pod, and local→VM, all through one mechanism.
 
-Three pieces compose it:
+Two pieces compose it:
 
-- **`on: <driver>`** (the step modifier) — DISPATCH this probe against a named
-  DRIVER deployment instead of the subject. For a `cdp:`/`vnc:`/`mcp:` check it
-  connects to the driver's CDP/VNC/MCP endpoint (`charly check cdp <method> <driver>`);
-  for a `command:` check it runs in the driver's venue. Works in `charly check live`,
-  `kind: check` beds, and `iterate:` beds (the driver's own `${HOST_PORT}`/`${CONTAINER_IP}`
-  resolve too).
-- **`peer:` siblings** — bring the driver up ALONGSIDE the subject on the shared
-  `charly` network (see `/charly-core:deploy` "Sibling peers"). A `kind: check` bed (or a
-  `kind: deploy`) declares the driver under `peer:`; it is brought up by the same
-  deploy verbs and is NEVER check-live'd (an instrument, not a subject).
-- **`${PEER_*}` address variables** — let the driven probe TARGET the subject:
-  - **`${PEER_HOST:<name>}`** → the deployment's container DNS name on the shared
-    `charly` net (`charly-<name>`; also verifies it is running). The pod→pod address:
-    `http://${PEER_HOST:<subject>}:8080`. Reference the subject by its OWN deploy
+- **venue-from-position members** — bring the driver up ALONGSIDE the subject on
+  the shared `charly` network (see `/charly-core:deploy` "Sibling members"). A bundle
+  declares each as a MEMBER NODE — a resource node (`bundle: {box:/vm:/local: …}`)
+  placed directly under the bundle — and a plan step's EXECUTION VENUE is its TREE
+  POSITION: a step node nested under member `M` runs ON `M` (bare name), a step under
+  a nested child `C` of parent path `P` runs on `P.C` (dotted). There is no authored
+  `on:`/`pod:` step field — both are RETIRED; tree position is the sole source of
+  venue (`flattenBundleVenues` stamps it at load time). A `cdp:`/`vnc:`/`mcp:` step
+  placed under a driver member connects to that member's CDP/VNC/MCP endpoint; a
+  `command:` step runs in that member's venue. Members are brought up by the same
+  deploy verbs and are NEVER check-live'd (instruments, not subjects). A bundle whose
+  ROOT carries no workload cross-ref is a **GROUP** bundle — it has no venue of its
+  own, so every plan step MUST live under a member (a direct step on a group root is a
+  hard load error). **Agent-provisioned members:** in an `iterate:` bed a member
+  marked `agent_provisioned: true` is the artifact the AI BUILDS during the benchmark
+  (e.g. the `os` venue), NOT something the bed brings up — `foldMembers` SKIPS it, so it
+  is never a top-level addressable entry (no auto bring-up) and never collides cross-bed
+  when the same venue name recurs across iterate beds; the scorer reaches its
+  `charly-<name>` container via the bare-name fallback (`resolveScoringChain`).
+- **`${HOST:...}` address variable** — lets the driven probe TARGET the subject;
+  the presence of a `:<port>` segment selects which form resolves:
+  - **`${HOST:<member>}`** (NO `:<port>`) → the member's container DNS name on the shared
+    `charly` net (`charly-<member>`; also verifies it is running). The pod→pod address:
+    `http://${HOST:<subject>}:8080`. Reference the subject by its OWN deploy
     name (for a bed, that's the bed name — the container is `charly-<bedname>`).
-  - **`${PEER_ENDPOINT:<name>:<port>}`** → a host-reachable `127.0.0.1:NNNN` for
-    that deployment's `<port>` (container published port, or an ssh `-L` forward
+  - **`${HOST:<member>:<port>}`** (WITH `:<port>`) → a host-reachable `127.0.0.1:NNNN` for
+    that member's `<port>` (container published port, or an ssh `-L` forward
     for a VM/host subject). The host-vantage address a `local`/host driver uses to
     reach a pod/VM subject. (Both are runtime-only — a build-context step can't use
     them.)
 
-  An unresolvable `${PEER_*}` — the peer/subject is unreachable (not running, bad
+  An unresolvable `${HOST:...}` — the member/subject is unreachable (not running, bad
   port, VM ssh-forward refused) — **FAILS** the referencing check, never SKIPs it.
   A skip on an unreachable dependency is a fake pass: it would let a bed go green
   even though the cross-deployment probe never reached its target. (Legitimate
   skips — `skip: true`, `exclude_distros`, a deploy-only var under build context —
-  are unaffected; only an unresolved mandatory `${PEER_*}` is treated as a failure.)
+  are unaffected; only an unresolved mandatory `${HOST:...}` is treated as a failure.)
 
 ### Worked example — a Chrome pod CDP-probes a web-server pod (pod→pod)
 
 ```yaml
-# charly.yml check: block — kind:check bed: web SUBJECT (root) + chrome DRIVER (peer)
+# charly.yml — a disposable GROUP bundle (no workload root): a web SUBJECT member +
+# a chrome DRIVER member. Each is a resource node placed UNDER the bundle; each
+# carries its own plan-step nodes (venue = the member's name). Mirror
+# box/fedora/charly.yml's check-cross-pod-cdp.
 check-cross-pod-cdp:
-    target: pod
-    box: web                       # the SUBJECT under test (nginx fixture on :8080)
-    disposable: true
-    # No port: — every inherited container port auto-allocates a free 127.0.0.1
-    # host port (conflict-free across concurrent beds). Pin with `port:
-    # ["H:C"]` only when a fixed host port is needed.
-    peer:
-        chrome:                    # the DRIVER, a sibling on the charly net
-            target: pod
-            box: chrome-headless   # headless Chrome + cdp-proxy (publishes 9222)
-    plan:
-        - check: the web subject serves its marker
-          id: web-fixture-up
-          context: [deploy]
-          http: http://127.0.0.1:${HOST_PORT:8080}/
-          status: 200
-          body: [{contains: charly-fixture-web-content-marker}]
-        - check: chrome navigates to the subject over the charly net   # DRIVE (passes on exit 0)
-          id: cdp-open-web-subject
-          context: [deploy]
-          cdp: open
-          on: chrome
-          url: http://${PEER_HOST:check-cross-pod-cdp}:8080
-          eventually: 45s
-          retry_interval: 3s
-        - check: the rendered page carries the marker   # ASSERT
-          id: cdp-web-fixture-rendered
-          context: [deploy]
-          cdp: text
-          on: chrome
-          tab: "1"                 # the first page (cdp `open` lands on tab 1)
-          eventually: 30s
-          retry_interval: 3s
-          stdout: [{contains: charly-fixture-web-content-marker}]
+    bundle:
+        disposable: true             # group root — NO box:/vm:/local: cross-ref
+    web:                             # the SUBJECT member (nginx fixture on :8080)
+        bundle:
+            box: web
+        # No port: — every inherited container port auto-allocates a free 127.0.0.1
+        # host port (conflict-free across concurrent beds). Pin with a port: child
+        # (["H:C"]) only when a fixed host port is needed.
+        web-fixture-up:              # step node UNDER web → venue=web
+            check: the web subject serves its marker
+            id: web-fixture-up
+            context: [deploy]
+            http: http://127.0.0.1:${HOST_PORT:8080}/
+            status: 200
+            body: [{contains: charly-fixture-web-content-marker}]
+    chrome:                          # the DRIVER member (headless Chrome + cdp-proxy, publishes 9222)
+        bundle:
+            box: chrome-headless
+        cdp-open-web-subject:        # step node UNDER chrome → venue=chrome (DRIVE; passes on exit 0)
+            check: chrome navigates to the subject over the charly net
+            id: cdp-open-web-subject
+            context: [deploy]
+            cdp: open
+            url: http://${HOST:web}:8080
+            eventually: 45s
+            retry_interval: 3s
+        cdp-web-fixture-rendered:    # also venue=chrome (ASSERT)
+            check: the rendered page carries the marker
+            id: cdp-web-fixture-rendered
+            context: [deploy]
+            cdp: text
+            tab: "1"                 # the first page (cdp `open` lands on tab 1)
+            eventually: 30s
+            retry_interval: 3s
+            stdout: [{contains: charly-fixture-web-content-marker}]
 ```
 
-`bringUpPeers` config+starts the chrome peer alongside the web root; the
-`on: chrome` checks dispatch `charly check cdp <method> chrome` (connecting to chrome's
-published 9222) while `${PEER_HOST:check-cross-pod-cdp}` resolves to the web
-subject's `charly-check-cross-pod-cdp` container, reached over the shared net.
+`bringUpMembers` config+starts the chrome member alongside the web member; the
+`cdp:` steps nested under `chrome` run with venue=chrome (dispatching
+`charly check cdp <method> chrome`, connecting to chrome's published 9222) while
+`${HOST:web}` resolves to the web member's `charly-web` container, reached over the
+shared net.
 
 **Driver-box requirement (CDP):** a headless Chrome CDP driver MUST launch with
 `--remote-allow-origins='*'` (Chrome 146+ rejects the CDP WebSocket upgrade
 otherwise — `cdp open` via HTTP works, but `cdp text`/`check`/`screenshot` fail).
 The `chrome-headless` box sets it; see `/charly-check:cdp` "Requirements".
 
-### Cross-kind: a host driver reaching a pod OR a VM subject (`${PEER_ENDPOINT}`)
+### Cross-kind: a host driver reaching a pod OR a VM subject (`${HOST:<member>:<port>}`)
 
-`${PEER_ENDPOINT}` is **kind-agnostic** — it routes through the ONE host-vantage
+The `:<port>` (endpoint) form `${HOST:<member>:<port>}` is **kind-agnostic** — it routes through the ONE host-vantage
 port resolver (`resolveCheckEndpoint`): a pod subject resolves to its auto-
 published port (`podman port`); a VM subject resolves to an `ssh -L
 127.0.0.1:<rand>:127.0.0.1:<guestport>` forward over the managed `charly-<vm>` alias
 (the SAME forward `check-k3s-vm` uses to reach the cluster API host-side). So the
-identical check — `command: curl …${PEER_ENDPOINT:<subject>:<port>}` dispatched
-`on:` a `kind: local` host driver — proves a pod subject (`check-cross-local-http`)
-and a VM subject (`check-cross-vm-http`) with ZERO kind-specific check code; only
-the subject kind differs.
+identical check — `command: curl …${HOST:<subject>:<port>}` placed under a
+`kind: local` host-driver MEMBER (venue = that member) — proves a pod subject
+(`check-cross-local-http`) and a VM subject (`check-cross-vm-http`) with ZERO
+kind-specific check code; only the subject kind differs.
 
-**The VM subject is driven from a host-side (`target: local`) peer, NOT a pod
-driver.** `${PEER_ENDPOINT}` is a host-vantage `127.0.0.1:NNNN` address; a pod
+**The VM subject is driven from a host-side (`local:`) driver member, NOT a pod
+driver.** `${HOST:<member>:<port>}` is a host-vantage `127.0.0.1:NNNN` address; a pod
 driver can't reach it (that loopback is the pod's own netns), and a rootless
 `qemu:///session` VM shares no L2 bridge with rootless pods. The generic, no-hack
-VM cell therefore uses a local driver peer — the host where both the published
-port and the ssh-forward live. (`${PEER_HOST}` — pod-net container DNS — is the
+VM cell therefore uses a local driver member — the host where both the published
+port and the ssh-forward live. (`${HOST:<member>}` — no `:<port>`, pod-net container DNS — is the
 pod→pod address and does NOT reach a VM.)
 
-## Deploy.yml overlay rules
+## charly.yml overlay rules
 
-A local `charly.yml` can contribute its own `plan:` steps per image.
+A local `charly.yml` can contribute its own step nodes per image.
 Merge rules applied by `charly check live`:
 
 1. Local entries with an `id:` matching a baked entry replace that entry.
@@ -1440,20 +1529,22 @@ Merge rules applied by `charly check live`:
 3. To disable a baked check, reference it with `id:` and `skip: true`.
 
 ```yaml
-# ~/.config/charly/charly.yml
-box:
-  redis-ml:
-    plan:
-      - check: redis answers ping               # overrides image's baked step (by id)
+# ~/.config/charly/charly.yml — name-first: the redis-ml box, then overlay step nodes
+redis-ml:
+    box: {}
+    redis-responds:
+        check: redis answers ping               # overrides image's baked step (by id)
         id: redis-responds
         command: redis-cli -h 127.0.0.1 -p 16379 ping
         stdout: PONG
         in_container: false
-      - check: the external tunnel is healthy   # appended (no baked match)
+    external-tunnel:
+        check: the external tunnel is healthy   # appended (no baked match)
         id: external-tunnel
         http: https://redis.tailnet.ts.net/health
         status: 200
-      - check: a legacy baked step              # disable a legacy baked step
+    old-probe:
+        check: a legacy baked step              # disable a legacy baked step
         id: old-probe
         skip: true
 ```
@@ -1478,7 +1569,7 @@ charly start redis-ml
 charly check live redis-ml
 
 # 6. Override a baked deploy check via local charly.yml, re-test.
-$EDITOR ~/.config/charly/charly.yml    # add tests: entry with matching id
+$EDITOR ~/.config/charly/charly.yml    # add a check step node with matching id
 charly check live redis-ml
 ```
 
@@ -1560,16 +1651,16 @@ deliberately.
 ## Related skills
 
 - **Live-container probe verbs under `charly check`** — `/charly-check:cdp`, `/charly-check:wl`, `/charly-check:dbus`, `/charly-check:vnc`, `/charly-build:charly-mcp-cmd`, `/charly-check:record`, `/charly-check:spice`, `/charly-check:libvirt`, `/charly-kubernetes:check-k8s` are dispatched as `charly check cdp|wl|dbus|vnc|mcp|record|spice|libvirt|k8s`. See the Subcommands section above.
-- `/charly-image:layer` — layer authoring; the `plan:` field is part of every `charly.yml`.
-- `/charly-image:image` — image-level `plan:` blocks at composition time.
-- `/charly-core:deploy` — local `charly.yml` overlay rules and the `plan:` merge.
+- `/charly-image:layer` — layer authoring; plan steps (child step nodes) are part of every `charly.yml`.
+- `/charly-image:image` — image-level plan steps at composition time.
+- `/charly-core:deploy` — local `charly.yml` overlay rules and the plan-step merge.
 - `/charly-build:validate` — static schema + cross-scope variable checks; the first
   gate before `charly box build`.
 - `/charly-build:build` — how check entries are embedded into the OCI label at build
   time; LABELs-at-end cache behavior.
-- `/charly-build:inspect` — view the merged `plan:` / description structure as JSON.
+- `/charly-build:inspect` — view the merged plan / description structure as JSON.
 - `/charly-build:migrate` — `charly migrate` brings legacy configs up to the
-  current schema (collapsing the old `task`/`scenario`/`do`/recipe/score formats into one flat `plan:`).
+  current schema (collapsing the old `task`/`scenario`/`do`/recipe/score formats into one flat plan of child step nodes).
 - `/charly-internals:go` — implementation map: `checkspec.go`, `checkvars.go`,
   `checkrun.go`, `checkrun_verbs.go`, `checkrun_charly_verbs.go`,
   `description_collect.go`, `check_cmd.go`, `check_runner_cmd.go`, `check_loop.go`,
@@ -1578,7 +1669,7 @@ deliberately.
 - `/charly-internals:generate-source` — how `LabelDescriptionSet` is written into the Containerfile
   via `writeJSONLabel`, and why the LABEL block lives at the end of the
   final stage.
-- `/charly-internals:capabilities` — the `ai.opencharly.description` label (`LabelDescriptionSet`) carrying the baked `plan:` is
+- `/charly-internals:capabilities` — the `ai.opencharly.description` label (`LabelDescriptionSet`) carrying the baked plan is
   part of the same capability contract as `LabelService`.
 - `/charly-internals:agents` — the sub-agents (`check-bed-runner`,
   `deploy-verifier`) and dynamic workflows (`/verify-beds`,
@@ -1589,8 +1680,9 @@ deliberately.
 
 **MUST be invoked** before authoring, running, or debugging check
 behavior at any level. Triggers: `charly check` (any subcommand), `charly check
-run`, `charly check box`, `charly check live`, the `plan:` / `description:`
-YAML fields, the project-root `check:` block, the `ai.opencharly.description` OCI label, `kind: agent` /
-`kind: check` (+ the bed's `iterate:` block) in the `check:` block,
-`charly check run <bed>` / `--all-beds` (kind:check R10 beds), or any check
+run`, `charly check box`, `charly check live`, the plan steps / `description:`
+field in a candy/box `charly.yml`, the disposable test-bed bundles, the
+`ai.opencharly.description` OCI label, `kind: agent` (the agent grader) or a
+`disposable: true` bundle (+ its `iterate:` block),
+`charly check run <bed>` (disposable R10 bundles; roster fan-out via `/verify-beds`), or any check
 verb by name (file/port/http/command/package/service/cdp/wl/dbus/vnc/mcp/...).

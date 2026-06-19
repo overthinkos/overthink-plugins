@@ -45,18 +45,19 @@ auto-intermediate that composes `supervisord` needs it.
 Candies declare processes via the unified **`service:`** schema in `charly.yml` (see `/charly-image:layer` "Service Declaration"). Each entry is rendered through supervisord's `service_schema.service_template` in `build.yml`, which produces a `[program:<name>]` INI fragment. `charly box generate` collects all rendered fragments across the candy chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `build.yml init:` section).
 
 ```yaml
-# candy/chrome/charly.yml — unified schema
-service:
-  - name: chrome
-    exec: /home/user/.local/bin/chrome-wrapper --force-renderer-accessibility --no-first-run --start-maximized
-    restart: always
-    user: user
-    env:
-      # ...
-    priority: 50                  # supervisord-specific; ordering hint
-    stdout: file:/tmp/supervisor-chrome.log
-    scope: system
-    enable: true
+# candy/chrome/charly.yml — node-form: the service: list lives in a <candy>-service child node
+chrome-service:
+  service:
+    - name: chrome
+      exec: /home/user/.local/bin/chrome-wrapper --force-renderer-accessibility --no-first-run --start-maximized
+      restart: always
+      user: user
+      env:
+        # ...
+      priority: 50                  # supervisord-specific; ordering hint
+      stdout: file:/tmp/supervisor-chrome.log
+      scope: system
+      enable: true
 ```
 
 The render template maps the abstract spec to supervisord INI:
@@ -202,16 +203,18 @@ The robust liveness probe is `supervisorctl pid`, which asks
 supervisord for its own PID and exits 0 iff the socket responds:
 
 ```yaml
-plan:
-  - check: supervisord's control socket responds
-    command: supervisorctl pid
-    exit_status: 0
-    context: [deploy]
-    in_container: true
+# node-form: each step is its own child node (no plan: list key)
+supervisord-step-6:
+  check: supervisord's control socket responds
+  command: supervisorctl pid
+  exit_status: 0
+  in_container: true
+  context:
+    - runtime
 ```
 
-This is what the current supervisord candy ships in its `plan:`
-— one deterministic `check:` step.
+This is the deterministic `check:` step node the current supervisord candy
+ships (`supervisord-step-6`).
 See `/charly-check:check` Authoring Gotcha #4.
 
 **Also note**: `pgrep` is NOT installed by default in minimal images
@@ -237,11 +240,14 @@ RPM: `supervisor` (Fedora) · PAC: `supervisor` (Arch community) · DEB: `superv
 ## Usage
 
 ```yaml
-# charly.yml
+# charly.yml — a box composes candies through a <box>-candy child node
 my-image:
-  candy:
-    - supervisord
-    - my-service  # layers with service: entries need supervisord
+  box:
+    base: fedora
+  my-image-candy:
+    candy:
+      - supervisord
+      - my-service  # layers with service: entries need supervisord
 ```
 
 Adding a `service:` block to a candy automatically pulls in `supervisord` via `build.yml `init:` section`'s `depends_candy`. You rarely add `supervisord` to a box's `candy:` list manually.

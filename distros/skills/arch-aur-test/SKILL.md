@@ -26,8 +26,12 @@ Validates that the `aur:` package format works correctly on Arch Linux boxes. In
 
 ```yaml
 # charly.yml
-candy:
-  - arch-aur-test
+my-image:
+  box:
+    base: arch
+  my-image-candy:
+    candy:
+      - arch-aur-test
 ```
 
 Requires an Arch-based box with `build: [pac, aur]` so the builder can resolve AUR packages.
@@ -50,5 +54,5 @@ Use when the user asks about:
 
 ## Related
 
-- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, task verbs, service declarations)
+- `/charly-image:layer` — candy authoring reference (`charly.yml` schema, plan steps, service declarations)
 - `/charly-check:check` — declarative testing (`check:` block, `charly check box`, `charly check live`)

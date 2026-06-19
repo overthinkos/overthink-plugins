@@ -83,7 +83,7 @@ deployments:
 
 ```bash
 charly vm create k3s-srv
-charly deploy add vm:k3s-srv
+charly bundle add vm:k3s-srv
 # → kubeconfig auto-retrieved + ClusterProfile written
 kubectl --context k3s-srv get nodes
 charly check k8s addons --cluster k3s-srv

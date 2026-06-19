@@ -17,7 +17,7 @@ description: |
 charly's CUE work has two halves:
 
 - **Ingress** (`charly/cue_schema.go`): validates the INPUT config a user authors
-  (`charly.yml` / box / candy / vm / k8s / deploy) against `schema/*.cue`. Owned by
+  (`charly.yml` / box / candy / vm / k8s / bundle) against `schema/*.cue`. Owned by
   `/charly-build:validate`.
 - **Egress** (`charly/egress.go`, this skill): validates the OUTPUT config charly
   WRITES onto a system — the seed ISO's cloud-init, Kustomize manifests, quadlet
@@ -111,7 +111,7 @@ with no transformation — the output cannot malform by construction, so a schem
 would be validation theater:
 
 - **runtime config** `~/.config/charly/config.yml` (`SaveRuntimeConfig` — pure `yaml.Marshal(*RuntimeConfig)`).
-- **deploy-state** `~/.config/charly/charly.yml` (`SaveDeployConfig`) — additionally, project config is already CUE-validated on LOAD (ingress).
+- **deploy-state** `~/.config/charly/charly.yml` (`SaveBundleConfig`) — additionally, project config is already CUE-validated on LOAD (ingress).
 
 ## Caveats
 

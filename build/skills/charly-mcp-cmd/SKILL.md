@@ -24,16 +24,16 @@ Both surfaces share the same SDK: `github.com/modelcontextprotocol/go-sdk v1.5.0
 
 ### Also as a declarative verb
 
-Every `charly check mcp <method>` is authorable as an `mcp:` verb on a `check:` step in a candy/box `plan:`. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tool:`, `uri:`, `input:`, `mcp_name:`). A probe is a `check:` step. Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `timeout:`) work like other verbs. See `/charly-check:check` for the parent router and the complete method allowlist. Example:
+Every `charly check mcp <method>` is authorable as an `mcp:` verb on a `check:` step node in a candy/box plan. The method name becomes the verb's YAML value; method-specific args are sibling fields (`tool:`, `uri:`, `input:`, `mcp_name:`). A probe is a `check:` step node — a top-level, name-first node (there is no `plan:` list key). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `timeout:`) work like other verbs. See `/charly-check:check` for the parent router and the complete method allowlist. Example:
 
 ```yaml
-plan:
-  - check: jupyter exposes its core notebook mcp tools
+jupyter-mcp-list-tools:
+    check: jupyter exposes its core notebook mcp tools
     mcp: list-tools
     context: [deploy]
     stdout:
-      - contains: insert_cell
-      - contains: execute_cell
+        - contains: insert_cell
+        - contains: execute_cell
 ```
 
 ## Quick Reference
@@ -139,8 +139,8 @@ charly check mcp ping my-image --name chrome-devtools
 In declarative tests, the modifier is `mcp_name:`:
 
 ```yaml
-plan:
-  - check: the chrome-devtools mcp server responds to ping
+chrome-devtools-mcp-ping:
+    check: the chrome-devtools mcp server responds to ping
     mcp: ping
     mcp_name: chrome-devtools
     context: [deploy]
@@ -163,12 +163,14 @@ declare `ports: [9224:9224]` in the image or run the test from inside the pod
 
 ```yaml
 # ~/.config/charly/charly.yml
-box:
-  sway-browser-vnc:
-    ports:
-      - 5900:5900
-      - 9250:9222
-      - 9224:9224   # ← add this
+sway-browser-vnc:
+    bundle:
+        box: sway-browser-vnc
+sway-browser-vnc-port:
+    port:
+        - 5900:5900
+        - 9250:9222
+        - 9224:9224   # ← add this
 ```
 
 … or remove the `port:` override entirely so the image default (which already includes 9224) applies. Re-run `charly config <image>` and restart the service (`charly stop && charly start` — `charly update` may no-op if the image tag hasn't changed).
@@ -211,48 +213,52 @@ Every leaf's default format is author-friendly plaintext with one record per lin
 
 ## Declarative authoring examples
 
-Checks currently shipping in the three provider candies (`candy/jupyter/charly.yml`, `candy/jupyter-ml/charly.yml`, `candy/chrome-devtools-mcp/charly.yml`), in each candy's `plan:`:
+Checks currently shipping in the three provider candies (`candy/jupyter/charly.yml`, `candy/jupyter-ml/charly.yml`, `candy/chrome-devtools-mcp/charly.yml`), in each candy's plan (as top-level `check:` step nodes):
 
 ```yaml
-plan:
-  # Liveness check — fastest sanity verification
-  - check: the jupyter mcp server responds to ping
+# Liveness check — fastest sanity verification
+jupyter-mcp-ping:
+    check: the jupyter mcp server responds to ping
     mcp: ping
     context: [deploy]
     timeout: 10s
 
-  # Catalog assertion — ensure the server exposes the tools we expect
-  - check: the jupyter mcp server exposes the expected tools
+# Catalog assertion — ensure the server exposes the tools we expect
+jupyter-mcp-list-tools:
+    check: the jupyter mcp server exposes the expected tools
     mcp: list-tools
     context: [deploy]
     stdout:
-      - contains: insert_cell
-      - contains: execute_cell
+        - contains: insert_cell
+        - contains: execute_cell
 
-  # Real tool invocation — exercises the full request/response path
-  - check: list_notebooks returns successfully
+# Real tool invocation — exercises the full request/response path
+jupyter-mcp-call-list-notebooks:
+    check: list_notebooks returns successfully
     mcp: call
     context: [deploy]
     tool: list_notebooks
     input: "{}"
     exit_status: 0
 
-  # Tool with arguments
-  - check: get_notebook returns a notebook with cells
+# Tool with arguments
+jupyter-mcp-call-get-notebook:
+    check: get_notebook returns a notebook with cells
     mcp: call
     context: [deploy]
     tool: get_notebook
     input: '{"path":"getting-started.ipynb"}'
     stdout:
-      - contains: cells
+        - contains: cells
 
-  # Resource read
-  - check: a prompt resource reads back non-empty
+# Resource read
+jupyter-mcp-read-prompt:
+    check: a prompt resource reads back non-empty
     mcp: read
     context: [deploy]
     uri: file:///workspace/prompt.txt
     stdout:
-      - matches: "."
+        - matches: "."
 ```
 
 Each `mcp:` step is a `check:` step — a deterministic probe that satisfies the mandatory-ADE gate. **Deploy-context only.** `mcp:` steps require a running container with the mcp port published; `charly box validate` rejects build-context mcp steps at authoring time, and `charly check box` skips them at runtime with the message `"mcp: <method> requires a running container (skip under charly check box)"`. Follow the same rule as the other four live-container verbs — `cdp`, `wl`, `dbus`, `vnc`.
@@ -311,27 +317,36 @@ The server lives in a single file: `charly/mcp_server.go`.
 Composing `charly-mcp` into an image deploys the server via supervisord:
 
 ```yaml
-# candy/charly-mcp/charly.yml (summary)
-candy:
-  - charly
-  - supervisord
-ports:
-  - 18765
-mcp_provide:
-  - name: charly
-    url: "http://{{.ContainerName}}:18765/mcp"
-    transport: http
-volumes:
-  - name: project        # Bind-mount the project root; see below
-    path: /workspace
-env:
-  CHARLY_PROJECT_DIR: "/workspace"
-service:
-  - name: charly-mcp
-    exec: /usr/local/bin/charly mcp serve --listen :18765
-    restart: always
-    enable: true
-    scope: system
+# candy/charly-mcp/charly.yml (summary; the candy's required version: is elided)
+charly-mcp:
+    candy:
+        description: Runs the charly CLI itself as an MCP server (charly mcp serve) over Streamable HTTP on :18765
+charly-mcp-candy:
+    candy:
+        - charly
+        - supervisord
+charly-mcp-port:
+    port:
+        - 18765
+charly-mcp-mcp_provide:
+    mcp_provide:
+        - name: charly
+          url: "http://{{.ContainerName}}:18765/mcp"
+          transport: http
+charly-mcp-volumes:
+    volumes:
+        - name: project        # Bind-mount the project root; see below
+          path: /workspace
+charly-mcp-env:
+    env:
+        CHARLY_PROJECT_DIR: "/workspace"
+charly-mcp-service:
+    service:
+        - name: charly-mcp
+          exec: /usr/local/bin/charly mcp serve --listen :18765
+          restart: always
+          enable: true
+          scope: system
 ```
 
 **Project-dir wiring** — build-mode tools (`box.build`, `box.inspect`, `box.list.*`) resolve `charly.yml` via `os.Getwd()`. Inside the container, cwd is `/workspace` (set by the `charly-mcp` layer's `CHARLY_PROJECT_DIR` env + `volume:` declaration). Three deployment patterns, in order of progressively less local setup:
@@ -367,7 +382,7 @@ charly check mcp call charly-arch box.list.boxes '{}' --name charly
 # …
 ```
 
-The deploy-context `check:` steps in `candy/charly-mcp/charly.yml`'s `plan:` cover this exact sequence: service-running, port-reachable, `mcp: ping`, `mcp: list-tools`, `mcp: call tool=version`, `mcp: call tool=box.list.boxes` (the last proves the bind-mount + CHARLY_PROJECT_DIR wiring).
+The deploy-context `check:` step nodes in `candy/charly-mcp/charly.yml` cover this exact sequence: service-running, port-reachable, `mcp: ping`, `mcp: list-tools`, `mcp: call tool=version`, `mcp: call tool=box.list.boxes` (the last proves the bind-mount + CHARLY_PROJECT_DIR wiring).
 
 ## Authoring tools (build-from-scratch over MCP)
 
@@ -441,7 +456,7 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 
 **MUST be invoked** when the task involves Model Context Protocol on either side:
 
-- **Client** — `charly check mcp` commands, probing/testing MCP servers declared via `mcp_provide`, examining MCP tool/resource/prompt catalogs, debugging the URL-rewriter or port-publishing behavior, or authoring deploy-context `mcp:` steps in a `plan:`.
+- **Client** — `charly check mcp` commands, probing/testing MCP servers declared via `mcp_provide`, examining MCP tool/resource/prompt catalogs, debugging the URL-rewriter or port-publishing behavior, or authoring deploy-context `mcp:` step nodes in a candy/box plan.
 - **Server** — `charly mcp serve` operation, the `charly-mcp` layer, destructive-hint policy, the `--read-only` filter, Kong-reflection tool generation, the project-dir bind-mount pattern, or symptoms like "MCP tool returned empty output" (check `println` vs `fmt.Println` in the invoked command — the server captures `os.Stdout`, not fd 1).
 
 Invoke this skill BEFORE reading source code or launching Explore agents.

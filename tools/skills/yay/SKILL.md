@@ -11,7 +11,7 @@ description: |
 
 | Property | Value |
 |----------|-------|
-| Install files | `charly.yml`, `plan:` |
+| Install files | `charly.yml` (`run:` step) |
 | Depends | none |
 
 ## Packages
@@ -20,12 +20,15 @@ PAC: `base-devel`, `git`
 
 ## Install Script
 
-The `plan:` step downloads the latest `yay` binary from GitHub releases:
+The `run:` step downloads the latest `yay` binary from GitHub releases:
 
 ```yaml
-# plan: (in charly.yml)
-plan:
-  - run: download the latest yay binary from GitHub releases
+# yay charly.yml — a plan step is a child step node (no plan: list)
+yay:
+  candy:
+    version: 2026.144.1443
+  yay-step-0:
+    run: download the latest yay binary from GitHub releases
     command: |
       ARCH=$(uname -m)
       URL=$(curl -fsSL https://api.github.com/repos/Jguer/yay/releases/latest \
@@ -42,9 +45,13 @@ Installs the `yay` AUR helper, which enables the `aur:` package format in `charl
 ## Usage
 
 ```yaml
-# charly.yml — typically in a builder image
-candy:
-  - yay
+# charly.yml — typically in a builder image (name-first; compose via a child node)
+my-builder:
+  box:
+    base: arch
+  my-builder-candy:
+    candy:
+      - yay
 ```
 
 Not used directly in end-user boxes. Instead, it's part of the builder image that compiles AUR packages during multi-stage builds.

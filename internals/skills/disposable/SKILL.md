@@ -13,9 +13,9 @@ description: |
 
 # disposable — explicit opt-in for autonomous destroy + rebuild
 
-`DeploymentNode.Disposable` is the sole source of truth for disposability: the
-field on a deployment entry (e.g. `disposable: true` on a `deploy:` / `kind:
-check` node) is what the unified dispatcher reads. The project ↔ per-machine
+`BundleNode.Disposable` is the sole source of truth for disposability: the
+field on a deployment entry (e.g. `disposable: true` on a `bundle:` node,
+including a check bed) is what the unified dispatcher reads. The project ↔ per-machine
 overlay merge preserves it explicitly (project-set OR overlay-set → true,
 later wins when both set it).
 
@@ -44,8 +44,8 @@ therefore be:
 - **Per-deploy.** Set on the running deployment, not on the image.
   The same image can be deployed as disposable on one host and
   non-disposable on another.
-- **Multi-instance aware.** Each deploy entry (vm.yml kind:vm, or
-  charly.yml entry under `deploy:`) carries its own flag — two
+- **Multi-instance aware.** Each deploy entry (vm.yml kind:vm, or a
+  `bundle:` entry in charly.yml) carries its own flag — two
   instances of the same image can sit at different tiers with
   different disposability.
 
@@ -95,9 +95,9 @@ contract rather than weakening it. "Must be destroyed when not
 needed" can only be honored if "may be destroyed" is also true.
 
 Specifically:
-- `LoadDeployConfig` auto-promotes `Disposable=true` when an entry
+- `LoadBundleConfig` auto-promotes `Disposable=true` when an entry
   carries `ephemeral: ...`.
-- `DeploymentNode.IsDisposable()` returns `Disposable || IsEphemeral()`
+- `BundleNode.IsDisposable()` returns `Disposable || IsEphemeral()`
   so every consumer (including `charly update`) treats ephemerals as
   authorized.
 - Authoring `disposable: false` together with `ephemeral: ...` is
@@ -111,7 +111,7 @@ Specifically:
 - `ephemeral: true` (or block form) says "this resource MUST be
   destroyed autonomously when no longer needed" — a requirement,
   enforced by the check-runner / Gherkin (ADE) step keywords / TTL transient
-  timer registered in `charly deploy add`.
+  timer registered in `charly bundle add`.
 
 The implication arrow is one-way. Disposable resources are not
 necessarily ephemeral; ephemeral resources are always disposable.
@@ -218,7 +218,7 @@ preserved) — the OPPOSITE of `disposable`'s destroy authorization. Enforced by
 
 - `kind: vm` entries in `vm.yml` — the VM template. Applies to
   every instance unless overridden.
-- `deploy:` entries in `charly.yml` — the container per-deploy
+- `bundle:` entries in `charly.yml` — the container per-deploy
   counterpart. Each instance of a container image has its own
   entry, so per-instance classifications are natural.
 - Per-instance VM overrides (deferred to a follow-up): will live at
@@ -252,7 +252,7 @@ Resolves `<name>` as either a kind:vm entity (vm.yml) or a deploys entry
 target it prints a one-line transparency note
 (`noteUpdateDisposability` in `charly/update_deploy_dispatch.go`) and
 proceeds. Sequence: destroy → rebuild → restart, ending in the shared
-`charly deploy add <node>` layer re-apply for every live substrate (so a
+`charly bundle add <node>` layer re-apply for every live substrate (so a
 config change — a newly-added layer or nested pod — takes effect on the
 rebuilt target). `disposable: true` stays load-bearing as the
 authorization for the **UNATTENDED autonomous** destroy + rebuild (CLAUDE.md
@@ -323,17 +323,17 @@ candy/box/deploy config changes need a bed. The authoritative matrix is
 
 ### Scope-shrinking flags
 
-The score/bed config in the `check:` block IS the test specification;
+The `iterate:`/bed config in the `check:` block IS the test specification;
 scope-shrinking `charly check run` flags require explicit operator authorization
 in the SAME conversation turn. The flag catalog and the rule live in
 `/charly-check:check` "Flag discipline".
 
 ## Opting a deploy in
 
-For containers, pass `--disposable` to `charly deploy add`:
+For containers, pass `--disposable` to `charly bundle add`:
 
 ```bash
-charly deploy add my-test fedora-test --disposable --lifecycle test
+charly bundle add my-test fedora-test --disposable --lifecycle test
 ```
 
 This writes both fields to the charly.yml entry (flags can also be
@@ -350,20 +350,27 @@ rebuild`.
 ### Containers
 
 ```yaml
-# charly.yml — each entry has an independent classification.
-deploys:
-  fedora-coder:         # main instance (prod): NO disposable field → NOT disposable
-    lifecycle: prod
+# charly.yml — each name-first bundle entry has an independent classification.
+fedora-coder:             # main instance (prod): NO disposable field → NOT disposable
+    bundle:
+        box: fedora-coder
+        lifecycle: prod
 
-  fedora-coder-dev:     # dev instance: lifecycle tag does NOT authorize rebuild
-    lifecycle: dev      # ← human tag only; this is NOT disposable.
+fedora-coder-dev:         # dev instance: lifecycle tag does NOT authorize rebuild
+    bundle:
+        box: fedora-coder
+        lifecycle: dev    # ← human tag only; this is NOT disposable.
 
-  fedora-coder-qa:      # explicit opt-in
-    lifecycle: qa
-    disposable: true
+fedora-coder-qa:          # explicit opt-in
+    bundle:
+        box: fedora-coder
+        lifecycle: qa
+        disposable: true
 
-  fedora-coder-scratch: # minimal: no tag, explicit disposable
-    disposable: true
+fedora-coder-scratch:     # minimal: no tag, explicit disposable
+    bundle:
+        box: fedora-coder
+        disposable: true
 ```
 
 `charly update` itself runs on ANY of these — you can rebuild
@@ -430,7 +437,7 @@ on shared hosts.
   `lifecycle:` fields.
 - `/charly-vm:arch` — canonical worked example.
 - `/charly-core:deploy` — `--disposable` / `--lifecycle` flags on
-  `charly deploy add`.
+  `charly bundle add`.
 - `/charly:rebuild` — the rebuild verb command reference (not yet
   authored — currently living in this skill).
 

@@ -32,45 +32,49 @@ For VM destinations, `charly vm create <name>` writes a managed Host stanza into
 
 | Action | Command |
 |---|---|
-| Direct local | `charly deploy add my-laptop` (`host: local` is the default) |
-| SSH to remote | `charly deploy add ci-3` with `host: user@ci-3.lan` in charly.yml |
+| Direct local | `charly bundle add my-laptop` (`host: local` is the default) |
+| SSH to remote | `charly bundle add ci-3` with `host: user@ci-3.lan` in charly.yml |
 | Reference a template | `local: dev-workstation` on the deployment |
-| Tear down | `charly deploy del <name>` |
-| Tear down, keep repo changes | `charly deploy del <name> --keep-repo-changes` |
+| Tear down | `charly bundle del <name>` |
+| Tear down, keep repo changes | `charly bundle del <name> --keep-repo-changes` |
 
 ## `host:` destination semantics
 
 Reserved literal: `local`. Anything else (including `localhost`, `127.0.0.1`) goes through SSH.
 
 ```yaml
-deploy:
-  # Direct local — host: omitted == "local".
-  my-laptop:
-    target: local
+# Each deployment is a name-first bundle: the `local:` cross-ref selects
+# the local target, and `host:` selects direct shell vs SSH.
+
+# Direct local — host: omitted == "local". add_candy is a list, so it
+# lives in its own child node.
+my-laptop:
+  bundle:
     local: dev-workstation
+  my-laptop-add_candy:
     add_candy: [sshkeys]
 
-  # Explicit local sentinel.
-  my-laptop-explicit:
-    target: local
+# Explicit local sentinel.
+my-laptop-explicit:
+  bundle:
     local: dev-workstation
     host: local
 
-  # SSH to remote machine (ssh-config + agent supply credentials).
-  ci-runner-3:
-    target: local
+# SSH to remote machine (ssh-config + agent supply credentials).
+ci-runner-3:
+  bundle:
     local: ci-runner
     host: ubuntu@ci-runner-3.lan
 
-  # SSH with explicit port.
-  bastion:
-    target: local
+# SSH with explicit port.
+bastion:
+  bundle:
     local: dev-workstation
     host: admin@bastion.example.com:2222
 
-  # SSH to loopback for testing the SSH path.
-  ssh-self-test:
-    target: local
+# SSH to loopback for testing the SSH path.
+ssh-self-test:
+  bundle:
     local: dev-workstation
     host: localhost
 ```
@@ -82,24 +86,27 @@ Two pass-through fields mirror Ansible's per-host overrides:
 ```yaml
 # Explicit user override (Ansible's ansible_user). Used when host: has
 # no "@" prefix. Cleaner than embedding the user in host: when the
-# destination is an ssh-config alias.
+# destination is an ssh-config alias. host: and user: are scalars, so
+# they sit directly under bundle:.
 workshop-laptop:
-  target: local
-  local: dev-workstation
-  host: workshop-laptop.lan
-  user: alice
+  bundle:
+    local: dev-workstation
+    host: workshop-laptop.lan
+    user: alice
 
 # ssh_args: passes options through to ssh(1) (Ansible's
 # ansible_ssh_extra_args). Use sparingly — ssh-config Host stanzas are
-# the right home for persistent options.
+# the right home for persistent options. ssh_args is a list, so it lives
+# in its own child node.
 via-bastion:
-  target: local
-  local: dev-workstation
-  host: target.internal
-  user: ops
-  ssh_args:
-    - "-o"
-    - "ProxyJump=ops@bastion.example.com"
+  bundle:
+    local: dev-workstation
+    host: target.internal
+    user: ops
+  via-bastion-ssh_args:
+    ssh_args:
+      - "-o"
+      - "ProxyJump=ops@bastion.example.com"
 ```
 
 **Precedence rule** for `user:` vs the inline `host: <user>@<machine>` form: the inline user wins (more-specific beats more-general). When both are set with different values, the validator emits an error — pick one. When both are absent, ssh(1) reads the `User` directive from `~/.ssh/config` or falls back to `$USER`.

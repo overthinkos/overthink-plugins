@@ -2,21 +2,21 @@
 name: vm
 description: |
   MUST be invoked before any work involving: virtual machines, charly vm commands,
-  kind:vm entities in vm.yml, cloud_image vs bootc source types,
+  kind:vm entities in charly.yml, cloud_image vs bootc source types,
   libvirt/QEMU backends, BIOS vs UEFI firmware, virtio-gpu video, or VM lifecycle.
 ---
 
 # VM — Virtual Machine Management
 
-## Disposability + deploy cross-ref
+## Disposability + bundle cross-ref
 
-- **Disposability is a deploy property only.** A `kind: vm` entity carries no `disposable:` / `lifecycle:` field. Put `disposable: true` on the matching `deploy.<name>-vm` entry. The `vm:` entity entry only describes VM shape (disk, RAM, SSH, cloud-init, libvirt), never authorization.
-- **Deploy-level cross-ref**: a deployment with `target: vm` references its VM entity via `vm: <entity-name>`.
-- **`charly update <vm-entity-name>`** does NOT gate on `disposable:` — an explicit invocation rebuilds ANY target (destroy→create the domain, reuse the qcow2 disk unless `--build`, then re-apply the deploy node's layers via the shared `deploy add` path). For a non-disposable, non-ephemeral target it prints a one-line transparency note (`noteUpdateDisposability`) and proceeds. The `disposable: true` flag stays load-bearing as the authorization for UNATTENDED autonomous destroy + rebuild (CLAUDE.md R10) and the check-runner's unattended fresh rebuild, NOT as an `charly update` capability check. See `/charly-internals:disposable` and `/charly-core:charly-update`.
+- **Disposability is a deployment property, never a VM-entity field.** A `kind: vm` entity carries no `disposable:` / `lifecycle:` field. Put `disposable: true` on the bundle that deploys it. The `vm:` entity only describes VM shape (disk, RAM, SSH, cloud-init, libvirt), never authorization.
+- **Bundle-level cross-ref**: a bundle that deploys a VM names its VM entity via a `vm: <entity-name>` cross-ref scalar (`<bed>: {bundle: {vm: <entity-name>, disposable: true}}`).
+- **`charly update <vm-entity-name>`** does NOT gate on `disposable:` — an explicit invocation rebuilds ANY target (destroy→create the domain, reuse the qcow2 disk unless `--build`, then re-apply the bundle's layers via the shared `bundle add` path). For a non-disposable, non-ephemeral target it prints a one-line transparency note (`noteUpdateDisposability`) and proceeds. The `disposable: true` flag stays load-bearing as the authorization for UNATTENDED autonomous destroy + rebuild (CLAUDE.md R10) and the check-runner's unattended fresh rebuild, NOT as an `charly update` capability check. See `/charly-internals:disposable` and `/charly-core:charly-update`.
 
 ## Overview
 
-`charly vm` commands build disk images and manage virtual machines via libvirt (default) or direct QEMU. VMs are declared as **`kind: vm` entities in `vm.yml`** — a first-class primitive alongside `kind: box` entries. Two source types:
+`charly vm` commands build disk images and manage virtual machines via libvirt (default) or direct QEMU. VMs are declared as **`kind: vm` entities in the unified `charly.yml`** — a first-class primitive alongside `kind: box` entries, each a name-first top-level node (`<name>: {vm: …}`). Two source types:
 
 - **`source.kind: cloud_image`** — fetches a pre-built qcow2 from an external URL (Arch, Fedora, Ubuntu, Debian, CentOS Cloud images). Renders a NoCloud seed ISO with cloud-init. Canonical example: `/charly-vm:arch`.
 - **`source.kind: bootc`** — pairs with a `kind: box` entry that has `bootc: true`. Runs `bootc install to-disk` inside a privileged container.
@@ -48,7 +48,7 @@ VM name convention: `charly-<name>[-<instance>]`. Default libvirt URI: `qemu:///
 
 ## GPU passthrough (VFIO)
 
-**Preempting a GPU holder is standing-authorized.** When a `target: vm` GPU bed/deploy
+**Preempting a GPU holder is standing-authorized.** When a GPU bundle deploying a VM
 declares `requires_exclusive: [nvidia-gpu]`, the arbiter gracefully stops the operator's
 running `preemptible` GPU-workstation VM to free the card and is GUARANTEED to restart it —
 you do this autonomously, with no per-run confirmation (preemption is reversible by
@@ -68,7 +68,7 @@ To pass a physical GPU through to a VM and (e.g.) run a CUDA container inside it
    `charly vm gpu list` (or `lspci -nnk` showing `Kernel driver in use: vfio-pci`);
    the GPU comes alive INSIDE the guest, where the in-guest driver layer (step 3)
    binds it and in-guest `nvidia-smi` works.
-2. **The hostdev is AUTO-ALLOCATED.** When a `target: vm` deploy/bed declares
+2. **The hostdev is AUTO-ALLOCATED.** When a bundle deploying a VM declares
    `requires_exclusive: [<token>]` and that token maps to a `build.yml`
    `resource:` with a `gpu:` selector (e.g. `resource: {nvidia-gpu: {gpu:
    {vendor: "0x10de"}}}`), `charly vm create` auto-detects the matching GPU,
@@ -78,7 +78,7 @@ To pass a physical GPU through to a VM and (e.g.) run a CUDA container inside it
    No manual step. The committed `kind: vm` entity stays portable (no PCI
    address); set `firmware: uefi-insecure` + `backend: libvirt` on it (the qemu
    backend does not render `<hostdev>`). An operator-authored `hostdevs:` block
-   (committed `vm.yml` OR `instance.yml`) ALWAYS wins — auto-allocation defers
+   (committed `charly.yml` OR `instance.yml`) ALWAYS wins — auto-allocation defers
    to it (no double-inject, no re-detection; delete the block to re-detect).
    `charly vm gpu list` still prints a ready-to-paste block for the manual
    override path; `charly vm gpu status` reports host readiness. See
@@ -87,7 +87,7 @@ To pass a physical GPU through to a VM and (e.g.) run a CUDA container inside it
 3. **In-guest driver** — a passthrough guest needs the actual kernel module, not
    just the userspace container toolkit. Apply a kernel-driver layer (it
    blacklists the in-tree driver, regenerates the initramfs, and declares
-   `reboot: true` so `charly deploy add vm:<name>` reboots the guest and waits for it
+   `reboot: true` so `charly bundle add vm:<name>` reboots the guest and waits for it
    to return). The `nvidia`-toolkit layer + `nvidia-ctk cdi generate` then makes
    the GPU available to containers via CDI (`--device nvidia.com/gpu=all`).
 
@@ -173,7 +173,7 @@ arbiter side is `/charly-internals:disposable` "resource-arbitration axis".
 ```bash
 charly vm build arch          # cloud_image: fetch qcow2, resize, render seed ISO
 charly vm build <bootc-vm> --type qcow2      # bootc: bootc install to-disk
-charly vm build <name> --size 40G        # disk_size override (CLI wins over vm.yml)
+charly vm build <name> --size 40G        # disk_size override (CLI wins over charly.yml)
 charly vm build <name> --root-size 10G   # bootc only: cap root partition
 charly vm build <name> --console         # enable console output for debugging
 charly vm build <name> --transport containers-storage   # bootc: local podman storage
@@ -188,7 +188,7 @@ Source: `charly/vm_build.go`, `charly/vm_cloud_image.go`.
 ## VM Lifecycle
 
 ```bash
-charly vm create arch                        # default resources from vm.yml
+charly vm create arch                        # default resources from charly.yml
 charly vm create <name> --ram 8G --cpus 4               # CLI overrides
 charly vm create <name> --ssh-key auto                  # auto-detect SSH key (default)
 charly vm create <name> --ssh-key generate              # generate new keypair
@@ -202,13 +202,13 @@ charly vm destroy <name>                                # remove VM definition
 charly vm destroy <name> --disk                         # also delete disk image
 charly vm list [-a]
 charly vm console <name>                                # serial console
-charly vm ssh <name>                                    # SSH with resolved user/port from vm.yml
+charly vm ssh <name>                                    # SSH with resolved user/port from charly.yml
 charly vm ssh <name> -p 2224 -l arch                    # override user/port
 charly vm ssh <name> -- ls /tmp                         # run command via SSH
 ```
 
 **`charly vm create` regenerates the cloud-init seed ISO** (cloud_image sources
-only). Edits to `vm.yml`'s `cloud_init:` block — runcmd entries, packages,
+only). Edits to the VM entity's `cloud_init:` block — runcmd entries, packages,
 charly_install strategy, network-config — take effect on the next `charly vm create`
 without requiring a full `charly vm build`. The qcow2 disk is left alone; only
 the seed ISO is rewritten (via `RegenerateSeedISO` in `charly/vm_cloud_image.go`).
@@ -226,12 +226,14 @@ the `/charly-distros:workspace-mount` layer. See `/charly-vm:vms-catalog`.
 
 ## `kind: vm` entity reference
 
-Canonical `vm.yml` shape, condensed from `/charly-vm:vms-catalog`:
+Canonical node-form shape, condensed from `/charly-vm:vms-catalog`. Each VM is a
+name-first top-level node; every non-scalar block (here `libvirt:`) is a CHILD NODE
+`<entity>-<key>`, never nested under `vm:`:
 
 ```yaml
-vms:
-  # cloud_image source
-  arch:
+# cloud_image source
+arch:
+  vm:
     source:
       kind: cloud_image
       url: https://fastly.mirror.pkgbuild.com/images/latest/Arch-Linux-x86_64-cloudimg.qcow2
@@ -239,27 +241,29 @@ vms:
       base_user: arch                               # adopt pattern (no useradd)
     disk_size: 40G
     ram: 8G
-    cpus: 4
+    cpu: 4
     machine: q35
     firmware: bios                                  # BIOS preferred for cloud images — see decision matrix below
     network: {mode: user}
     ssh: {port: 2224, key_source: generate}
     cloud_init:
-      packages: [sudo, spice-vdagent]
+      package: [sudo, spice-vdagent]
       charly_install: {strategy: auto}
-    libvirt:
-      devices:
-        video: [{model: virtio, vram: 65536, heads: 1, accel3d: false}]
-        graphics: [{type: spice, autoport: "yes", listen: 127.0.0.1}]
+arch-libvirt:                                       # CHILD NODE — libvirt block hoisted out of `vm:`
+  libvirt:
+    devices:
+      video: [{model: virtio, vram: 65536, heads: 1, accel3d: false}]
+      graphics: [{type: spice, autoport: "yes", listen: 127.0.0.1}]
 
-  # bootc source
-  my-bootc:
+# bootc source
+my-bootc:
+  vm:
     source:
       kind: bootc
       box: my-bootc                               # a kind: box entry with bootc: true
     disk_size: 80 GiB
     ram: 16G
-    cpus: 6
+    cpu: 6
     ssh: {user: root, port: 2250}
 ```
 
@@ -317,7 +321,7 @@ backend explicitly via `backend: libvirt` on the kind:vm entity —
 is missing, breaking every libvirt-RPC probe with a confusing
 "no such file or directory" error 5+ minutes into the check-live
 timeout. `arch:` and `k3s-vm:` carry this pin (see `/charly-check:check`
-"kind: check beds").
+on disposable VM beds).
 
 Source: `charly/vm.go` (`resolveVmBackend`, `startLibvirtUserSession`),
 `charly/vm_libvirt.go`, `charly/vm_qemu.go`.
@@ -354,7 +358,7 @@ SSH keys inject via two additive channels (both on by default for cloud_image VM
 - **SMBIOS type 11 OEM strings** — systemd-ssh-generator (systemd ≥ v250) materializes the pubkey into `~<user>/.ssh/authorized_keys` during early boot. Works even without cloud-init.
 - **cloud-init user-data** — `users:[...].ssh_authorized_keys` list in the rendered user-data on the NoCloud seed ISO.
 
-The `--ssh-key` flag (and `vms.<name>.ssh.key_source`) controls the source of the pubkey:
+The `--ssh-key` flag (and the entity's `vm.ssh.key_source`) controls the source of the pubkey:
 
 | Value | Behavior |
 |-------|----------|
@@ -373,15 +377,15 @@ Set via `charly settings set`:
 |-----|---------|---------|
 | `vm.backend` | `CHARLY_VM_BACKEND` | `auto` |
 
-Per-VM overrides live in `vm.yml`. The user-level defaults exist only for fields that don't have a per-VM equivalent (backend is the main one). For anything else, declare it in `vms.<name>`.
+Per-VM overrides live on the VM entity in `charly.yml`. The user-level defaults exist only for fields that don't have a per-VM equivalent (backend is the main one). For anything else, declare it on the `<name>` VM entity (`<name>.vm.…`).
 
 ## Libvirt XML configuration
 
-Primary surface is structured `LibvirtDomain` in `vms.<name>.libvirt:` (features, CPU, clock, devices, sysinfo, launch_security, etc.). See `/charly-internals:libvirt-renderer` for the full schema.
+Primary surface is the structured `LibvirtDomain` in the VM's `<name>-libvirt` child node (`<name>-libvirt: {libvirt: {features, cpu, clock, devices, sysinfo, launch_security, …}}`). See `/charly-internals:libvirt-renderer` for the full schema.
 
-Raw-XML escape hatch: `vms.<name>.libvirt.snippets:` (list of strings) — classified by element name. Device-scoped elements go into `<devices>`, domain-scoped before `</domain>`. Deduplicated by exact string match.
+Raw-XML escape hatch: the `<name>-libvirt` node's `libvirt.snippets:` (list of strings) — classified by element name. Device-scoped elements go into `<devices>`, domain-scoped before `</domain>`. Deduplicated by exact string match.
 
-Layer-level raw snippets: `charly.yml` `libvirt.snippets:` is supported for layers that contribute device XML (e.g., `/charly-distros:qemu-guest-agent` contributes the virtio-serial channel). Box-level `libvirt: [...]` is not a valid field — VM XML lives on the `kind: vm` entity.
+Layer-level raw snippets: a candy's `charly.yml` `libvirt.snippets:` is supported for layers that contribute device XML (e.g., `/charly-distros:qemu-guest-agent` contributes the virtio-serial channel). Box-level `libvirt: [...]` is not a valid field — VM XML lives on the VM entity's `<name>-libvirt` child node.
 
 Source: `charly/libvirt.go`, `charly/libvirt_yaml.go`, `charly/libvirt_yaml_bridge.go`.
 
@@ -409,12 +413,12 @@ charly vm ssh <bootc-vm>
 
 ```bash
 charly vm create arch
-charly deploy add vm:arch ripgrep         # apply ripgrep layer over SSH
-charly deploy add vm:arch fedora-coder --add-candy team-extras
-charly deploy del vm:arch                 # reverse all applied layers
+charly bundle add vm:arch ripgrep         # apply ripgrep layer over SSH
+charly bundle add vm:arch fedora-coder --add-candy team-extras
+charly bundle del vm:arch                 # reverse all applied layers
 ```
 
-See `/charly-core:deploy` "vm: target" for the `charly deploy add vm:<name>` surface and `/charly-internals:vm-deploy-target` for the executor model.
+See `/charly-core:deploy` "vm: target" for the `charly bundle add vm:<name>` surface and `/charly-internals:vm-deploy-target` for the executor model.
 
 ### Debug VM boot issues
 
@@ -500,7 +504,7 @@ Expected. The agent needs a `virtio-serial` channel that charly's QEMU backend d
 
 ## Cross-References
 
-- `/charly-vm:vms-catalog` — **vm.yml authoring reference** (VmSpec schema, source.kind, adopt pattern)
+- `/charly-vm:vms-catalog` — **VM entity authoring reference** (VmSpec schema, source.kind, adopt pattern)
 - `/charly-vm:arch` — canonical cloud_image VM (BIOS / virtio-gpu / resource sizing / stale BOOTX64.EFI RCA)
 - `/charly-internals:vm-spec` — Go type reference; validation rules; migration map
 - `/charly-internals:libvirt-renderer` — RenderDomainXML + device emission + passt backend + virtio-gpu
@@ -509,7 +513,7 @@ Expected. The agent needs a `virtio-serial` channel that charly's QEMU backend d
 - `/charly-internals:ovmf` — UEFI firmware path resolution; per-VM NVRAM; bios-skips-loader sentinel
 - `/charly-internals:cutover-policy` — hard cutover policy
 - `/charly-build:migrate` — `charly migrate` legacy conversion
-- `/charly-core:deploy` — `charly deploy add vm:<name> <ref>` in-guest layer application
+- `/charly-core:deploy` — `charly bundle add vm:<name> <ref>` in-guest layer application
 - `/charly-build:pull` — fetch container images into local storage (prereq for bootc VM builds)
 - `/charly-build:build` — building container images before VM disk builds
 - `/charly-image:layer` — `libvirt.snippets:` field in charly.yml
@@ -521,11 +525,11 @@ Expected. The agent needs a `virtio-serial` channel that charly's QEMU backend d
 
 **MUST be invoked** when the task involves virtual machines, charly vm commands, kind:vm entities, cloud_image vs bootc source types, libvirt/QEMU backends, BIOS vs UEFI firmware choice, or VM lifecycle management. Invoke this skill BEFORE reading source code or launching Explore agents.
 
-**Workflow position:** Standalone workflow. VM management is separate from container lifecycle, but `charly deploy add vm:<name>` bridges into the shared InstallPlan + DeployTarget machinery.
+**Workflow position:** Standalone workflow. VM management is separate from container lifecycle, but `charly bundle add vm:<name>` bridges into the shared InstallPlan + DeployTarget machinery.
 
 ## Live-deploy verification is mandatory (see `/charly-check:check` 10 standards)
 
-Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly deploy add <name> <ref> --disposable` or mark a VM in vm.yml.
+Changes that touch this verb's output must reach a healthy deployment on a target explicitly marked `disposable: true` (see `/charly-internals:disposable`). Use `charly update <name>` to destroy + rebuild unattended on any disposable target. Never experiment on a non-disposable deploy — set up a disposable one first with `charly bundle add <name> <ref> --disposable` or mark a VM's bundle `disposable: true` in `charly.yml`.
 
 **After committing the source-level fix, `charly update` the disposable target ONCE MORE from clean and re-run the full verification.** A fix that passes only on a hand-patched target is not a real fix — it's a regression waiting for the next unrelated rebuild. Paste BOTH the exploratory-pass output and the fresh-rebuild-pass output into the conversation.
 

@@ -28,40 +28,46 @@ the W3C escape hatch: `POST /session/<id>/execute/sync` with
 ### Also as a declarative verb
 
 Every `charly check appium <method>` is authorable as the inline Op of a
-`check:` step in a `plan:` (deploy-context only — `context: [deploy]`); an
-Appium action that drives the UI is a `run:` step.
+`check:` step node in the candy/box plan (deploy-context only — `context:
+[deploy]`); an Appium action that drives the UI is a `run:` step. Each step is
+its own named child node (named by its `id:`); there is no `plan:` list key.
 
 ```yaml
-plan:
-  - check: the Appium server reports ready
+appium-up:
+    check: the Appium server reports ready
     id: appium-up
     appium: status
     stdout: { contains: '"ready":true' }
     context: [deploy]
-  - run: open a W3C WebDriver session against the emulator
+open-session:
+    run: open a W3C WebDriver session against the emulator
     id: open-session
     appium: session-create
     caps: |
-      {"platformName":"Android","appium:automationName":"UiAutomator2","appium:deviceName":"emulator-5554"}
+        {"platformName":"Android","appium:automationName":"UiAutomator2","appium:deviceName":"emulator-5554"}
     context: [deploy]
-  - run: install the ApiDemos test app
+install:
+    run: install the ApiDemos test app
     id: install
     appium: install-app
     apk: ./tests/data/ApiDemos-debug.apk   # HOST path; staged into the container by the verb
     context: [deploy]
-  - run: tap the Animation list entry
+tap-animation:
+    run: tap the Animation list entry
     id: tap-animation
     appium: click
     strategy: xpath
     selector: '//android.widget.TextView[@text="Animation"]'
     context: [deploy]
-  - check: a screenshot of the post-tap screen is captured
+snapshot:
+    check: a screenshot of the post-tap screen is captured
     id: snapshot
     appium: screenshot
     artifact: /tmp/post-tap.png
     artifact_min_bytes: 10000
     context: [deploy]
-  - run: close the WebDriver session
+close:
+    run: close the WebDriver session
     id: close
     appium: session-delete
     context: [deploy]
@@ -86,10 +92,10 @@ plan:
 | `source` | `charly check appium source <image>` | — | GET /source (UI hierarchy XML) |
 | `back` | `charly check appium back <image>` | — | POST /back (navigate back) |
 
-### Tier 2 — per-class sugar groups (nested CLI; flat `<group>-<op>` in a `plan:` step)
+### Tier 2 — per-class sugar groups (nested CLI; flat `<group>-<op>` in a plan step)
 
 Mirrors `wl`'s `sway-*` / `overlay-*` pattern — `charly check appium gesture tap …`
-on the CLI is `appium: gesture-tap` in a `plan:` step.
+on the CLI is `appium: gesture-tap` in a plan step.
 
 | Group | Ops (check-YAML method names) | Key modifiers |
 |---|---|---|
@@ -168,10 +174,12 @@ fired immediately after it returns "no such element". Set an implicit wait once
 after `session-create` so every `find` polls until the element renders:
 
 ```yaml
-- appium: raw
-  method: POST
-  path: /timeouts
-  request_body: '{"implicit":10000}'
+set-implicit-wait:
+    run: set a W3C implicit wait so every find polls until the element renders
+    appium: raw
+    method: POST
+    path: /timeouts
+    request_body: '{"implicit":10000}'
 ```
 
 (Verified: without it, ~half the per-screen checks fail the layout race; with
@@ -270,9 +278,11 @@ Mode `0600`. Why XDG cache and NOT in-project / NOT `~/.local/share`:
 Override the session id for a single check with `session:`:
 
 ```yaml
-- appium: screenshot
-  artifact: /tmp/x.png
-  session: 37e8f3c1-...   # bypass the session file
+post-tap-shot:
+    check: capture a screenshot against an explicit session id
+    appium: screenshot
+    artifact: /tmp/x.png
+    session: 37e8f3c1-...   # bypass the session file
 ```
 
 ## Implementation
@@ -310,7 +320,7 @@ mitigation if it stops working.
 - `/charly-check:android` — the `kind: android` device + `apk:` package format +
   `target: android` deploy this UI automation runs against.
 - `/charly-check:check` — the unified check system and the Op struct that
-  holds every verb discriminator + modifier (one Op per `plan:` step).
+  holds every verb discriminator + modifier (one Op per plan step).
 - `/charly-tools:android-emulator` (when authored) — the image these verbs target.
 
 ## When to Use This Skill

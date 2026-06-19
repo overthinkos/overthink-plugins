@@ -80,7 +80,7 @@ backstop refuses it). The real run silently retains such in-use images.
 The same retention runs automatically (no flag needed):
 
 - After `charly box build` (push runs excluded) → `keep_images`.
-- After `charly check run` (any path: bed / `--all-beds` / score) → `keep_check_runs`,
+- After `charly check run` (any path: bed / score) → `keep_check_runs`,
   after the new run's output is written so the newest run is kept.
 
 `charly clean` exists for on-demand sweeps and to clear a pre-existing backlog.

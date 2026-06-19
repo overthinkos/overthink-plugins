@@ -21,9 +21,13 @@ RPM: `sqlite`
 ## Usage
 
 ```yaml
-# box or candy charly.yml
-candy:
-  - sqlite
+# box charly.yml — a box composes the candy through a <box>-candy child node
+my-box:
+  box:
+    base: fedora
+  my-box-candy:
+    candy:
+      - sqlite
 ```
 
 ## Used In Boxes

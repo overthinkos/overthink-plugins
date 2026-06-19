@@ -31,12 +31,13 @@ without leaving the pod.
 ## Service spec
 
 ```yaml
-service:
-  - name: pmtiles-viewer
-    exec: /usr/bin/python3 -m http.server 8001 --directory /opt/pmtiles-viewer/build
-    restart: always
-    working_directory: /opt/pmtiles-viewer
-    priority: 35
+pmtiles-viewer-service:
+  service:
+    - name: pmtiles-viewer
+      exec: /usr/bin/python3 -m http.server 8001 --directory /opt/pmtiles-viewer/build
+      restart: always
+      working_directory: /opt/pmtiles-viewer
+      priority: 35
 ```
 
 Pure stdlib server — no marimo-pixi-env coupling. The system
@@ -56,7 +57,9 @@ HTML bakes a subpath into `<script src>` references and they
 The build override:
 
 ```yaml
-- command: |
+pmtiles-viewer-step-build:
+  run: build the PMTiles app SPA from upstream source with the Vite --base=/ override
+  command: |
     git clone --depth 1 https://github.com/protomaps/PMTiles /tmp/PMTiles
     cd /tmp/PMTiles/app
     npm ci --no-audit --no-fund
@@ -71,14 +74,15 @@ The `check:` step (deploy context) greps the served HTML for forbidden
 subpath prefixes and fails if any are present:
 
 ```yaml
-plan:
-  - check: served HTML uses root-relative asset URLs
-    id: pmtiles-viewer-asset-base-not-prefixed
-    command: |
-      ! curl -fsS http://localhost:8001/ | grep -qE '"/(pmtiles|app)/'
-    context: [deploy]
-    in_container: true
-    exit_status: 0
+pmtiles-viewer-asset-base-not-prefixed:
+  check: served HTML uses root-relative asset URLs
+  id: pmtiles-viewer-asset-base-not-prefixed
+  command: |
+    ! curl -fsS http://localhost:8001/ | grep -qE '"/(pmtiles|app)/'
+  context:
+    - deploy
+  in_container: true
+  exit_status: 0
 ```
 
 The step is a `check:` step, so it fails when the forbidden prefix is

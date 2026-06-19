@@ -3,7 +3,7 @@ name: ubuntu
 description: |
   Ubuntu bootstrap VM (kind:vm ubuntu-debootstrap) — source.kind: bootstrap via
   ubuntu-debootstrap-builder + debootstrap, ext4 rootfs, uefi-insecure. Plus the
-  disposable check-ubuntu-debootstrap-vm kind:check bed. Lives in the overthinkos/ubuntu submodule.
+  disposable check-ubuntu-debootstrap-vm bundle. Lives in the overthinkos/ubuntu submodule.
   MUST be invoked before editing ubuntu-debootstrap or its check bed.
 ---
 
@@ -15,15 +15,15 @@ under libvirt/QEMU.
 
 The `ubuntu-debootstrap` VM entity and its `check-ubuntu-debootstrap-vm` disposable
 test bed live in the **`overthinkos/ubuntu`** repo (git submodule at
-**`box/ubuntu`**), in that repo's config (its `charly.yml` + per-kind sibling files). The bed is a
-`kind: check` entity (the 2026-05 deploy→check unification moved repo-shipped
-disposable beds out of `charly.yml`), driven by `charly check run
+**`box/ubuntu`**), all in that repo's unified `charly.yml`. The bed is a
+`disposable: true` bundle (a check bed is just a bundle carrying `disposable: true`
+— there is no separate bed kind), driven by `charly check run
 check-ubuntu-debootstrap-vm`. Drive the VM lifecycle from the submodule:
 `charly -C box/ubuntu vm build ubuntu-debootstrap` +
 `charly -C box/ubuntu vm create ubuntu-debootstrap` (or
 `charly --repo overthinkos/ubuntu …`).
 
-## VM Configuration (from box/ubuntu/vm.yml)
+## VM Configuration (from box/ubuntu/charly.yml)
 
 | Setting | Value |
 |---|---|
@@ -43,11 +43,11 @@ carries BOTH distro configs, so `inherits: debian` resolves without referencing
 
 ## Check bed
 
-`check-ubuntu-debootstrap-vm` is a `kind: check` bed (`target: vm`,
-`vm: ubuntu-debootstrap`) that carries `disposable: true`, so
+`check-ubuntu-debootstrap-vm` is a `disposable: true` bundle
+(`bundle: {vm: ubuntu-debootstrap, disposable: true}`), so
 `charly -C box/ubuntu check run check-ubuntu-debootstrap-vm` runs the full R10 sequence
 unattended (the equivalent `charly update check-ubuntu-debootstrap-vm` rebuild also works,
-since the check bed is folded into the Deploy map).
+since the bundle is folded into the Bundle map).
 
 ## debootstrap path
 
