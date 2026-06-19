@@ -80,7 +80,7 @@ base_user:
 `ubuntu-coder` doesn't set an explicit `user:` field, so `user_policy: auto` (the default) adopts the base_user. The generator emits no `useradd` — the bootstrap section is a one-line comment:
 
 ```
-# User ubuntu (uid=1000) adopted from base image (declared in build.yml distro.base_user) — no useradd needed
+# User ubuntu (uid=1000) adopted from base image (declared in the embedded distro.base_user) — no useradd needed
 WORKDIR /home/ubuntu
 USER 1000
 ```
