@@ -11,8 +11,8 @@ description: |
 - **A bundle is name-first; the target is inferred from the `bundle:` cross-ref scalar** — exactly one of `box:` (pod) / `vm:` / `k8s:` / `local:` / `android:` under `bundle:` selects `local | vm | pod | k8s | android`. There is NO authored `target:` field.
 - **Cross-ref scalars under `bundle:`** — `vm: <entity>` for a VM target, `box: <name>` for a pod target, `k8s: <name>` for a cluster target, `local: <template>` for a local-deploy. Deploy-into nesting is **tree position** (a resource node placed under another resource), not a `nested:` field; sibling members (a resource node placed under the bundle) replace the old `peer:` field.
 - **Disposability is a bundle property** — `BundleNode.Disposable` (the `disposable:` scalar under `bundle:`) is the sole source of truth.
-- **Resource arbitration is a bundle property** — a `<name>-preemptible` child node (holder; occupies exclusive host-resource token(s), may be gracefully stopped + restored) and a `<name>-requires_exclusive` child node (claimant; needs sole use) drive the arbiter (`charly preempt`). A fourth axis ORTHOGONAL to disposable/ephemeral/lifecycle. See "Preemptible resource arbitration" below + `/charly-internals:disposable`.
-- **Disposable R10 test beds are just `disposable: true` bundles** (run via `charly check run <bed>`) — there is NO separate bed kind. The main repo's beds (`check-pod`, `check-k3s-vm`, `check-sway-browser-vnc-pod`, …) AND every `box/<distro>` submodule's beds (the arch / cachyos / debian / ubuntu / fedora bootstrap-VM + pacstrap/debootstrap beds, in each submodule's config — its `charly.yml` + per-kind sibling files) are disposable bundles. The cachyos submodule's `charly-cachyos` operator workstation profile is a non-disposable bundle (a profile, not a test bed). Operator deployments otherwise live in the per-host `~/.config/charly/charly.yml`. See `/charly-check:check` "disposable check bundles".
+- **Resource arbitration is a bundle property** — a `<name>-preemptible` child node (holder; occupies exclusive host-resource token(s), may be gracefully stopped + restored) a `<name>-requires_exclusive` child node (claimant; needs SOLE use), and a `<name>-requires_shared` child node (claimant; REFCOUNTED shared use — many concurrent claimants; a GPU-token claim flips the whole IOMMU group vfio→nvidia+CDI at deploy, back at teardown when the LAST claimant releases) drive the arbiter (`charly preempt`). A fourth axis ORTHOGONAL to disposable/ephemeral/lifecycle. See "Preemptible resource arbitration" below + `/charly-internals:disposable`.
+- **Disposable R10 test beds are just `disposable: true` bundles** (run via `charly check run <bed>`) — there is NO separate bed kind. The main repo's beds (`check-pod`, `check-k3s-vm`, `check-sway-browser-vnc-pod`, …) AND every `box/<distro>` submodule's beds (the arch / cachyos / debian / ubuntu / fedora bootstrap-VM + pacstrap/debootstrap beds, in each submodule's `charly.yml`) are disposable bundles. The cachyos submodule's `charly-cachyos` operator workstation profile is a non-disposable bundle (a profile, not a test bed). Operator deployments otherwise live in the per-host `~/.config/charly/charly.yml`. See `/charly-check:check` "disposable check bundles".
 
 ## Overview
 
@@ -968,7 +968,7 @@ selkies-desktop:
           TS_EXTRA_ARGS: "--exit-node=100.80.254.4 --exit-node-allow-lan-access"
 ```
 
-## Preemptible resource arbitration (`preemptible` / `requires_exclusive` / `charly preempt`)
+## Preemptible resource arbitration (`preemptible` / `requires_exclusive` / `requires_shared` / `charly preempt`)
 
 A physical host resource can be held by only ONE deployment at a time — the
 canonical case is a GPU passed through to a VM via VFIO. The resource arbiter
@@ -1001,6 +1001,15 @@ check-gpu-bed:
   actually power off (so the resource is truly released), records a crash-safe
   lease, then proceeds. Nested `charly` subprocesses inherit the lease
   (`CHARLY_PREEMPT_LEASE`) and never re-acquire.
+- **`requires_shared:` — the REFCOUNTED claimant** (mutually exclusive with
+  `requires_exclusive:` on one node, per `validate_preempt.go`). Many concurrent
+  `requires_shared:` claimants share a token, so a GPU-CDI **pod** declares
+  `requires_shared: [nvidia-gpu]` and the arbiter flips the whole IOMMU group
+  **vfio→nvidia+CDI** at the first claimant's deploy and back **nvidia→vfio** only
+  when the LAST claimant releases — the group-aware `modprobe`-gated switch
+  (`charly vm gpu mode`). A `preemptible` holder whose `holds:` intersects a shared
+  claim is still preempted first. Full GPU-mode-switch model: `/charly-vm:vm` +
+  `/charly-internals:disposable`; the bed surface: `/charly-check:check`.
 - **Standing authorization — preempt autonomously.** You may trigger preemption
   (bring up a `requires_exclusive:` claimant, stopping a running `preemptible`
   holder) WITHOUT per-run operator confirmation. Preemption is reversible by design

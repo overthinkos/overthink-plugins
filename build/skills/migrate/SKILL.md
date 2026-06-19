@@ -19,7 +19,7 @@ The project directory is the current working directory; use the top-level `-C` /
 
 The YAML schema version is a **CalVer string** — `version: YYYY.DDD.HHMM`, the same `ComputeCalVer` scheme as image tags (e.g. the current HEAD `version: 2026.165.1048`). It is CANONICAL fixed-width: a 4-digit year, a 3-digit zero-padded day-of-year, and a 4-digit zero-padded HHMM, so a plain alphanumeric sort of CalVer strings is chronological. `ParseCalVer` is EXTREMELY STRICT — it accepts ONLY that exact form (no `version: 4`, no non-padded `2026.45.830`), and a non-canonical value is "not a CalVer", which the load gate treats as older-than-HEAD so it flows into `charly migrate` and is re-stamped canonical. The `calver-schema` migration step (registry HEAD) converts the legacy integer `version: 4` to this form. Every versioned file carries the stamp:
 
-- `charly.yml` + the per-kind siblings `box.yml` / `deploy.yml` / `vm.yml` / `pod.yml` / `k8s.yml` / `local.yml` (and `check.yml` when present)
+- every project `charly.yml` (splitting into per-kind `vm.yml` / `local.yml` / … siblings is an optional `import:` convenience a project MAY use — never the default; see `/charly-image:image`)
 - the per-host `~/.config/charly/charly.yml`
 
 `charly/version.go` provides `ParseCalVer(string) (CalVer, bool)` and `CalVer.Less` (generation-only `ComputeCalVer` is unchanged). `LatestSchemaVersion()` (in `charly/migrate_registry.go`) is the curated **HEAD** value — the constant every file is stamped to and the value the load-time gate requires.
