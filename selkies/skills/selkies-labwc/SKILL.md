@@ -29,7 +29,7 @@ selkies-labwc:
     - linux/amd64
 ```
 
-Tunnel config is in `charly.yml` (not charly.yml): `tunnel: {provider: tailscale, private: all}`. See `/charly-core:deploy`.
+Tunnel config is in `charly.yml`: `tunnel: {provider: tailscale, private: all}`. See `/charly-core:deploy`.
 
 ## Base
 
@@ -380,4 +380,4 @@ for `/etc/sudoers.d/charly-user` because it's root-only (`/charly-check:check` G
 ## Related
 
 - `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
-- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-build:build` — the embedded build vocabulary (distros, builders, init-systems)

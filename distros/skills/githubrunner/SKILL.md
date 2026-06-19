@@ -159,5 +159,5 @@ reading source code or launching Explore agents.
 ## Related
 
 - `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
-- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-build:build` — the embedded build vocabulary (distros, builders, init-systems)
 - `/charly-check:check` — the `check:` checks + the `check-githubrunner-pod` R10 bed

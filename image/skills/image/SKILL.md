@@ -58,7 +58,7 @@ pattern.
 
 ## Project directory resolution
 
-Every `charly box …` command resolves `charly.yml` (and `build.yml`, `candy/`, etc.) **relative to the current working directory** — internally via `os.Getwd()` on every entry point. Five ways to override that default — three local, two remote:
+Every `charly box …` command resolves `charly.yml` (and `candy/`, imported files, etc.) **relative to the current working directory** — internally via `os.Getwd()` on every entry point. Five ways to override that default — three local, two remote:
 
 ```bash
 # Local project — pick a directory on disk:
@@ -135,7 +135,7 @@ Each verb below is also auto-exposed as an MCP tool (`box.new.project`, `box.new
 
 **Comment preservation**: every YAML edit (`set`, `add-layer`, `rm-layer`, `add-rpm`, etc.) goes through the `yaml.v3` *node* API rather than the value API, so human-authored comments and key order are preserved across edits. Tested in `charly/yaml_setter_test.go` and `charly/scaffold_project_test.go`.
 
-**Project scaffold contents**: `charly box new project` writes a minimal `charly.yml` with `discover: [box, candy]` + empty `box/`/`candy/` dirs. The default distro/builder/init/resource build vocabulary (and the default sidecar templates) are EMBEDDED in the `charly` binary (`charly/charly.cue`, `//go:embed` — the single embedded default config, authored in CUE and compiled to data, then parsed by the same unified loader as any project `charly.yml`), so a new project is immediately usable with no build vocabulary to copy; declare `distro:`/`builder:`/`init:`/`resource:`/`sidecar:` (inline in `charly.yml` or an imported vocab file) only to extend or override the embedded default.
+**Project scaffold contents**: `charly box new project` writes a minimal `charly.yml` with `discover: [box, candy]` + empty `box/`/`candy/` dirs. The default distro/builder/init/resource build vocabulary (and the default sidecar templates) are EMBEDDED in the `charly` binary (`charly/charly.yml`, `//go:embed` — the single embedded default config, plain node-form YAML parsed by the same unified loader as any project `charly.yml`), so a new project is immediately usable with no build vocabulary to copy; declare `distro:`/`builder:`/`init:`/`resource:`/`sidecar:` (inline in `charly.yml` or an imported vocab file) only to extend or override the embedded default.
 
 ## charly.yml Structure
 
@@ -216,7 +216,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `user_policy` | `"auto"` | How to reconcile `user:` against the base image's pre-existing uid-1000 account. Values: `auto` / `adopt` / `create`. See "user_policy" section below |
 | `merge` | `null` | Layer merge settings |
 | `aliases` | `[]` | Command aliases |
-| `builder` | `{}` | Build type → builder image map (inherited from base image + defaults). Keys match the `build.yml` `builder:` section — e.g., `builder.pixi` selects which image to use as the pixi builder |
+| `builder` | `{}` | Build type → builder image map (inherited from base image + defaults). Keys match the embedded `builder:` vocabulary — e.g., `builder.pixi` selects which image to use as the pixi builder |
 | `builds` | `[]` | What this builder image can build: `pixi`, `npm`, `cargo`, `aur` (not inherited) |
 | `env` | `[]` | Runtime env vars (`KEY=VALUE`). Not inherited from defaults |
 | `env_file` | `""` | Path to `.env` file for runtime injection. Not inherited |
@@ -229,7 +229,7 @@ VM-related fields (`vm`, `libvirt`) are not valid on kind: box entries — the l
 
 Builder images provide build tools (pixi, npm, cargo, yay) for multi-stage builds without bloating final images. Three fields control this:
 
-- **`builder:`** on images — map of build type → builder image name. Inherited: image → base image → defaults → `{}`. The keys (`pixi`, `npm`, `cargo`, `aur`) match entries in `build.yml`'s `builder:` section — intentionally the same word, because both maps key on the same slot.
+- **`builder:`** on images — map of build type → builder image name. Inherited: image → base image → defaults → `{}`. The keys (`pixi`, `npm`, `cargo`, `aur`) match entries in the embedded `builder:` vocabulary — intentionally the same word, because both maps key on the same slot.
 - **`produce:`** on builder images — list declaring what the builder can build. Not inherited.
 - **`build:`** — package formats tied to builder definitions (`rpm`, `deb`, `pac`, `aur`). ALL formats installed in order. Inherited from base image. Default: `[rpm]`.
 - **`distro:`** — distro identity tags in priority order (`["fedora:43", fedora]`). First matching section overrides packages. Inherited from base image.
@@ -303,7 +303,7 @@ my-app:
 
 `user_policy:` cleanly handles base images that ship a pre-existing uid-1000 account (notably Ubuntu 24.04's `ubuntu:ubuntu`). A plain `getent passwd $UID || useradd …` bootstrap short-circuits on such accounts, leaving the image's configured `user:` never created — sudoers, `${HOME}`, npm prefix, etc. would then break because they assume the configured name exists.
 
-The mechanism: a **declarative** fact (what the base image ships, in `build.yml distro.<name>.base_user:` — see `/charly-build:build`) + an **image-level policy** (how to reconcile with the image's `user:` field).
+The mechanism: a **declarative** fact (what the base image ships, in the embedded `distro.<name>.base_user:` vocabulary — see `/charly-build:build`) + an **image-level policy** (how to reconcile with the image's `user:` field).
 
 ### Policy values
 
@@ -327,7 +327,7 @@ This is why `ubuntu-coder`'s resolved identity is `ubuntu:/home/ubuntu` while th
 ### How resolution flows (`charly/config.go ResolveBox`)
 
 1. Resolve `User`, `UID`, `GID` from defaults → image overrides → hardcoded fallback `user` / `1000` / `1000`.
-2. Load the distro config (`DistroConfig` from `build.yml`), resolve the image's `DistroDef` by walking `distro:` tags.
+2. Load the distro config (`DistroConfig` from the embedded build vocabulary), resolve the image's `DistroDef` by walking `distro:` tags.
 3. Apply `user_policy`:
    - `adopt` → overwrite User/UID/GID/Home with the distro's `BaseUser`, set `ResolvedBox.UserAdopted = true`.
    - `auto` → same overwrite IF `base_user` exists AND the image didn't explicitly set `user:`.
@@ -605,7 +605,7 @@ Every YAML file is a generic, kind-agnostic container — the loader routes each
 
 | Shape | YAML | Semantics |
 |---|---|---|
-| **Flat** | a bare string — `- build.yml`, `- '@github.com/owner/repo/build.yml:vTAG'` | Merge the referenced file's entities into THIS project's root namespace (root-wins). Use for same-repo per-kind file splits AND the shared `build.yml` distro/builder/init vocabulary. |
+| **Flat** | a bare string — `- build.yml`, `- '@github.com/owner/repo/build.yml:vTAG'` | Merge the referenced file's entities into THIS project's root namespace (root-wins). Use for same-repo per-kind file splits AND an optional project-level `build.yml` that overrides or extends the embedded `distro`/`builder`/`init` vocabulary. |
 | **Namespaced** | a single-key map — `- {cachyos: box/cachyos}`, `- {charly: ../..}`, `- {base: '@github.com/owner/repo:vTAG'}` | Mount another project as an isolated child namespace under `alias`; its entries are NOT flat-merged, they're referenced QUALIFIED as `alias.entry`. |
 
 ### Qualified refs (`ns.entry`)
@@ -614,7 +614,7 @@ A namespaced import is reached through a dotted ref everywhere a name is resolve
 
 ```yaml
 import:
-  - build.yml                       # flat — shared vocabulary
+  - build.yml                       # flat — optional build-vocabulary override
   - charly.yml                       # flat — this repo's own box nodes
   - cachyos: box/cachyos          # namespaced child import
 

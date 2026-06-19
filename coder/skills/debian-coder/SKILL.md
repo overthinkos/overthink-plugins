@@ -77,7 +77,7 @@ debian-coder:
 
 ## User model — create mode
 
-The `debian:13` upstream base image ships **no** pre-existing uid-1000 account. `build.yml distro.debian` declares no `base_user:`, so `user_policy: auto` (the default) falls through to create mode. The bootstrap section of `.build/debian/Containerfile` emits:
+The `debian:13` upstream base image ships **no** pre-existing uid-1000 account. The embedded `distro.debian` vocabulary declares no `base_user:`, so `user_policy: auto` (the default) falls through to create mode. The bootstrap section of `.build/debian/Containerfile` emits:
 
 ```
 RUN if ! getent passwd 1000 >/dev/null 2>&1; then

@@ -74,7 +74,7 @@ Typically not invoked directly — it's a build-time dependency of `/charly-code
 
 ## Related boxes
 
-- `/charly-distros:debian` — parent base, declares the bootstrap packages in `build.yml`.
+- `/charly-distros:debian` — parent base, declares the bootstrap packages in the embedded `distro:` vocabulary.
 - `/charly-coder:debian-coder` — the consumer that this builder exists to serve.
 - `/charly-distros:fedora-builder` — RPM-family sibling.
 - `/charly-distros:arch-builder` — pacman + AUR sibling.

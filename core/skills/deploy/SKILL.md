@@ -405,7 +405,7 @@ Contents include:
 - `Environment=` / `EnvironmentFile=` for env vars
 - `ExecStartPost=` / `ExecStopPost=` for tunnel commands
 
-Service name: `charly-<image>.service`. Container name: `charly-<image>`. Entrypoint: determined by build.yml `init:` section for the configured init system. Encrypted volumes are mounted via `ExecStartPre=charly config mount` in the quadlet, which creates transient `charly-enc-<image>-<volume>.scope` units for each encrypted volume. These scope units are independent of the container service — they survive stop/restart (see `/charly-automation:enc`). With Secret Service backend: auto-starts after login (ExecStartPre waits for keyring unlock, `TimeoutStartSec=0`). With KeePass or no backend: requires `charly start` (no `WantedBy=default.target`).
+Service name: `charly-<image>.service`. Container name: `charly-<image>`. Entrypoint: determined by the embedded `init:` vocabulary for the configured init system. Encrypted volumes are mounted via `ExecStartPre=charly config mount` in the quadlet, which creates transient `charly-enc-<image>-<volume>.scope` units for each encrypted volume. These scope units are independent of the container service — they survive stop/restart (see `/charly-automation:enc`). With Secret Service backend: auto-starts after login (ExecStartPre waits for keyring unlock, `TimeoutStartSec=0`). With KeePass or no backend: requires `charly start` (no `WantedBy=default.target`).
 
 ### Security in Quadlet
 
@@ -1011,7 +1011,7 @@ check-gpu-bed:
 - **Token = a name, not a mechanism** — operator-chosen (`nvidia-gpu`), decoupled
   from how each side reaches it (VM hostdev vs pod `--device`); pure
   set-intersection unifies pod-vs-VM contention.
-- **GPU auto-allocation** — when a token ALSO carries a `build.yml` `resource:`
+- **GPU auto-allocation** — when a token ALSO carries an embedded `resource:`
   `gpu:` selector (`resource: {nvidia-gpu: {gpu: {vendor: "0x10de"}}}`), a
   VM-targeted claimant's `charly vm create` auto-detects the matching GPU,
   persists its `<hostdev>` into the per-host `instance.yml`, and injects it — or

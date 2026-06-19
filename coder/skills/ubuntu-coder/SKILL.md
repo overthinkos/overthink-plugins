@@ -4,15 +4,15 @@ description: |
   Kitchen-sink development box on Ubuntu 24.04 noble: coding + AI-coding
   CLIs + DevOps tooling in one container. Ubuntu base, 30+ direct candies
   mirroring fedora-coder's stack. Runs as uid 1000 `ubuntu` — the upstream
-  ubuntu:24.04 account, adopted verbatim via build.yml's base_user
-  declaration. 142/0/1-skip tests pass.
+  ubuntu:24.04 account, adopted verbatim via the embedded build
+  vocabulary's base_user declaration. 142/0/1-skip tests pass.
   Use when working with the ubuntu-coder box — especially when the
   `${USER}` / `${HOME}` / sudoers differ from the other three coder boxes.
 ---
 
 # ubuntu-coder
 
-Ubuntu 24.04 noble counterpart of `/charly-coder:fedora-coder`. Same 80-line test block, same ~30 candies, same rootless posture — but **the resolved user is `ubuntu` (not `user`)** because the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` to adopt it. Everything that touches the user account — `${HOME}`, npm prefix, pixi env, sudoers — derives from `resolved.User = "ubuntu"`.
+Ubuntu 24.04 noble counterpart of `/charly-coder:fedora-coder`. Same 80-line test block, same ~30 candies, same rootless posture — but **the resolved user is `ubuntu` (not `user`)** because the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and the embedded `distro.ubuntu` vocabulary declares `base_user:` to adopt it. Everything that touches the user account — `${HOME}`, npm prefix, pixi env, sudoers — derives from `resolved.User = "ubuntu"`.
 
 > **Location:** lives in the **`overthinkos/ubuntu`** repo (git submodule at
 > **`box/ubuntu`**) — a SEPARATE repo from `overthinkos/debian`. Its ~31
@@ -67,7 +67,7 @@ ubuntu-coder:
 
 ## User model — adopt mode
 
-`build.yml distro.ubuntu.base_user` declares:
+The embedded build vocabulary (`charly/charly.yml`) declares `distro.ubuntu.base_user`:
 
 ```yaml
 base_user:
@@ -179,7 +179,7 @@ Conflicts with the other three coder-family boxes on these ports.
 
 ## Related boxes
 
-- `/charly-distros:ubuntu` — parent base; declares `base_user:` in `build.yml`.
+- `/charly-distros:ubuntu` — parent base; declares `base_user:` in the embedded build vocabulary.
 - `/charly-distros:ubuntu-builder` — multi-stage builder, also runs as `ubuntu:1000`.
 
 ## Related layers

@@ -163,7 +163,7 @@ reaches it (a VM via a PCI hostdev, a pod via `--device`/CDI). The arbiter does
 pure set-intersection on tokens, so the same token unifies pod-vs-VM contention.
 
 **Auto-allocation (the token → hardware bridge).** A token may ALSO carry a
-hardware selector in `build.yml` `resource:` — `resource: {nvidia-gpu: {gpu:
+hardware selector in the embedded `resource:` vocabulary — `resource: {nvidia-gpu: {gpu:
 {vendor: "0x10de"}}}`. When a `target: vm` claimant requires such a token,
 `charly vm create` AUTO-ALLOCATES the matching device: `DetectVFIO` finds a GPU by
 PCI vendor, persists its whole-IOMMU-group `<hostdev>` block into the per-host

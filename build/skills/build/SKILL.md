@@ -16,7 +16,7 @@ Invoked as `charly box build`. See `/charly-image:image` for the family overview
 
 **IR-driven emission**: `charly box build` emits Containerfiles via `OCITarget` — the build-mode implementation of the shared `DeployTarget` interface. Internally the flow is: `charly.yml` → `BuildDeployPlan` (pure compiler) → `InstallPlan` IR → `OCITarget.Emit` → Containerfile text. The same IR backs `PodDeployTarget` and `LocalDeployTarget` used by `charly bundle add`. See `/charly-internals:install-plan` for the IR and `/charly-internals:generate-source` for the Go call graph.
 
-**Three-phase templates**: `build.yml` format and builder definitions split each install operation into `phases.{prepare, install, cleanup}.{container, host}` — three phases × two venues. Build-mode emission reads the `container` cell; local deploys read `host`. A top-level `install_template:` field serves as the `(install, container)` fallback when `phases:` is absent. See `/charly-image:layer` "Service Declaration" for the analogue at the init-system level (`init.<name>.service_schema`).
+**Three-phase templates**: the embedded build vocabulary's format and builder definitions split each install operation into `phases.{prepare, install, cleanup}.{container, host}` — three phases × two venues. Build-mode emission reads the `container` cell; local deploys read `host`. A top-level `install_template:` field serves as the `(install, container)` fallback when `phases:` is absent. See `/charly-image:layer` "Service Declaration" for the analogue at the init-system level (`init.<name>.service_schema`).
 
 ## Quick Reference
 
@@ -86,18 +86,18 @@ and `charly box validate --include-disabled` accept the same flag for
 diagnostic / validation work on disabled entries. See `/charly-build:inspect`
 and `/charly-build:validate`.
 
-## Build Config (build.yml)
+## Build Config (the embedded build vocabulary)
 
 Containerfile generation is driven by the build vocabulary (`distro:` / `builder:` / `init:` /
-`resource:`). The DEFAULT vocabulary is EMBEDDED in the `charly` binary (`charly/charly.cue`,
-`//go:embed` — the single embedded default config, authored in CUE and compiled to data by the
-CUE-source front-end, then parsed by the same unified loader as any project `charly.yml`) and
+`resource:`). The DEFAULT vocabulary is EMBEDDED in the `charly` binary (`charly/charly.yml`,
+`//go:embed` — the single embedded default config, plain node-form YAML parsed by the
+same unified loader as any project `charly.yml`) and
 merged as the lowest-priority base — a project needs
 no build vocabulary of its own. A project EXTENDS or OVERRIDES it by declaring its own
 `distro:`/`builder:`/`init:`/`resource:` entries inline in `charly.yml` or in an imported
 vocabulary file (project-wins; the former `defaults.format_config:` field is gone).
 
-The embedded `charly.cue`'s build vocabulary has three top-level sections:
+The embedded `charly/charly.yml`'s build vocabulary has three top-level sections:
 
 - **`distro:`** — Per-distro bootstrap commands (package manager setup, cache mounts, repo management), optional `base_user:` declaration (what uid-1000 account the upstream base image ships), and package format templates (how `rpm:`, `pac:`, `deb:` sections in charly.yml become `RUN` steps). Each format has `install`, `repos`, `copr`, `modules`, and `options` templates.
 - **`builder:`** — Multi-stage builder patterns (pixi, npm, cargo, aur). Each builder has `build_stage` and `copy_stage` templates that generate the appropriate `FROM builder AS ...` and `COPY --from=...` steps.
@@ -126,7 +126,7 @@ All four fields (`name`, `uid`, `gid`, `home`) are required when the block is pr
 
 Consumed by the `user_policy:` reconciliation in `charly/config.go:ResolveBox` — see `/charly-image:image` "user_policy" for the three-value policy (`auto` / `adopt` / `create`) and the decision matrix.
 
-No `base_user:` currently declared for Fedora, Arch, or Debian (their canonical base images ship no pre-existing uid-1000 account). Add one in your project's `build.yml` override if you're basing on a distro-cloud variant that DOES ship one (e.g. `debian:13-cloud`).
+No `base_user:` currently declared for Fedora, Arch, or Debian (their canonical base images ship no pre-existing uid-1000 account). Add one in your project's `charly.yml` build-vocabulary override if you're basing on a distro-cloud variant that DOES ship one (e.g. `debian:13-cloud`).
 
 ### `version:` — the canonical distro version (for VM per-version reach)
 
@@ -134,16 +134,16 @@ Each distro may declare a canonical `version:` (`distro.debian.version: "13"`, `
 
 ### The `builder:` name in two places
 
-`builder:` appears in both `build.yml` (top-level section) and `charly.yml` (per-image map, plus `defaults.builder`). They share the name on purpose — both maps key on the same slot (the build-type name, e.g. `pixi`, `npm`, `cargo`, `aur`):
+`builder:` appears in both the embedded build vocabulary (top-level section) and `charly.yml` (per-image map, plus `defaults.builder`). They share the name on purpose — both maps key on the same slot (the build-type name, e.g. `pixi`, `npm`, `cargo`, `aur`):
 
-- `build.yml` `builder.pixi` — **definition**: detection rules, stage template, cache mounts for the pixi builder.
+- the embedded build vocabulary's `builder.pixi` — **definition**: detection rules, stage template, cache mounts for the pixi builder.
 - `charly.yml` `builder.pixi` — **selection**: which image (e.g. `fedora-builder`) to use as the pixi builder for this image.
 
 An image's effective builder map resolves as: `box.builder[type]` → `base_box.builder[type]` → `defaults.builder[type]` → `""`. Self-references (a builder image pointing at itself) are filtered automatically.
 
 ### Why one file, not three
 
-`build.yml` was unified from three former files (`distro.yml` + `builder.yml` + `init.yml`) because they were always resolved together through the same `format_config:` ref. One file → one loader (`LoadBuildConfigForBox`) → three in-memory configs (`DistroConfig` / `BuilderConfig` / `InitConfig`) — the internal split is preserved, only the YAML surface is unified. The `init:` section is optional (absent = no init system); `distro:` and `builder:` are required.
+The embedded build vocabulary was unified from three former files (`distro.yml` + `builder.yml` + `init.yml`) because they were always resolved together through the same `format_config:` ref. One file → one loader (`LoadBuildConfigForBox`) → three in-memory configs (`DistroConfig` / `BuilderConfig` / `InitConfig`) — the internal split is preserved, only the YAML surface is unified. The `init:` section is optional (absent = no init system); `distro:` and `builder:` are required.
 
 ## Containerfile Generation
 

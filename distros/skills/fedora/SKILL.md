@@ -42,12 +42,12 @@ charly shell fedora
 
 ## dnf download tuning (`distro.fedora.dnf`)
 
-`build.yml` `distro.fedora.dnf` writes dnf download-speed knobs to
+The embedded `distro.fedora.dnf` vocabulary writes dnf download-speed knobs to
 `/etc/dnf/dnf.conf` during the bootstrap, so they apply to the bootstrap install
 AND every per-layer dnf install in this box and its descendants:
 
 ```yaml
-# build.yml
+# charly/charly.yml (embedded build vocabulary)
 distro:
   fedora:
     dnf:

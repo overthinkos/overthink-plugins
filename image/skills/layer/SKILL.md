@@ -179,7 +179,7 @@ android-sdk-cache:                                  # step child node, keyed by 
 
 The sentinel (`.charly-sdk-complete`, written only after a fully-successful install)
 guards against a partial/interrupted download populating the cache. AUR builds
-get the same treatment via `build.yml`'s `aur` builder (owned `cache_mount`
+get the same treatment via the embedded build vocabulary's `aur` builder (owned `cache_mount`
 entries for makepkg `SRCDEST` + yay's clone cache) — see `/charly-build:build`.
 
 ### Verb examples
@@ -471,7 +471,7 @@ immich-build:
 | `service` | multiline string | Supervisord `[program:<name>]` fragment. |
 | `package` / `distro` | list / map | The package surface: top-level `package:` base + per-distro/version `distro:` map (bare / versioned / compound keys). Resolved via the most-specific-first cascade (see Package Surface). |
 | `apk` | `[]ApkPackageSpec` | **Android app-install package format** — apps installed onto a `kind: android` device by a `target: android` deploy (NOT into the image). Each entry is `package:` (apkeep download by id, with `source`/`arch`/`version`) XOR `apk:` (committed local APK). Device-scoped (top-level, not under `distro:`); compiles to an `ApkInstallStep` that ONLY `target: android` executes (skipped at image-build + on every other target). See `/charly-check:android`. |
-| `localpkg` | map (format→dir) | **Native-package deploy format** (sibling of `apk`). A per-format map (`pac`/`rpm`/`deb` → a bundled package SOURCE dir, e.g. the `charly` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`). Compiles to a `LocalPkgInstallStep` (`/charly-internals:install-plan`) emitted at "step 2.5", BEFORE the layer's `run:` steps. On a DEPLOY target (`target: local` / `target: vm`) charly picks the entry matching the target distro's package format, builds the package on the HOST (pac via `makepkg`; rpm/deb distro-natively in a podman container), and installs it via the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`) — so the package's repo dependencies resolve automatically and there is NO dependency-closure builder. Every command (build / install / probe / glob / `source_sentinel`) is rendered from the distro's `format.<fmt>.local_pkg:` block in `build.yml` — zero hardcoded package-manager literals in Go. The legacy scalar form (`localpkg: pkg/arch`) is rejected at load with an `charly migrate` hint. Resolution walks up from the deploy project dir, so a consumer under `box/<distro>` finds the superproject's `pkg/<fmt>`. Skipped at image build — the layer's own `run:` steps (curl/COPY) are the fallback. The `charly` layer uses this to install `charly` as the native OS package at `/usr/bin/charly` on every distro instead of a curl'd binary. |
+| `localpkg` | map (format→dir) | **Native-package deploy format** (sibling of `apk`). A per-format map (`pac`/`rpm`/`deb` → a bundled package SOURCE dir, e.g. the `charly` layer's `{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`). Compiles to a `LocalPkgInstallStep` (`/charly-internals:install-plan`) emitted at "step 2.5", BEFORE the layer's `run:` steps. On a DEPLOY target (`target: local` / `target: vm`) charly picks the entry matching the target distro's package format, builds the package on the HOST (pac via `makepkg`; rpm/deb distro-natively in a podman container), and installs it via the format's AUTO-RESOLVING local-file install (`pacman -U` / `dnf install` / `apt-get install`) — so the package's repo dependencies resolve automatically and there is NO dependency-closure builder. Every command (build / install / probe / glob / `source_sentinel`) is rendered from the distro's `format.<fmt>.local_pkg:` block in the embedded build vocabulary — zero hardcoded package-manager literals in Go. The legacy scalar form (`localpkg: pkg/arch`) is rejected at load with an `charly migrate` hint. Resolution walks up from the deploy project dir, so a consumer under `box/<distro>` finds the superproject's `pkg/<fmt>`. Skipped at image build — the layer's own `run:` steps (curl/COPY) are the fallback. The `charly` layer uses this to install `charly` as the native OS package at `/usr/bin/charly` on every distro instead of a curl'd binary. |
 | `volumes` | `[]{name, path}` | Persistent named volumes. |
 | `aliases` | `[]{name, command}` | Host command aliases. |
 | `security` | object | Container security: `privileged`, `cap_add`, `devices`, `security_opt`, `shm_size`, resource caps. |
@@ -565,7 +565,7 @@ keeps `fastfetch` (absent from Ubuntu's repos) only under `debian` + `fedora` +
 
 An image declares its chain in `charly.yml` `distro:` (e.g. `[debian:13, debian]`,
 `[ubuntu:24.04, ubuntu]`); a `target: vm` deploy synthesizes the SAME chain from
-the distro's canonical `version:` in `build.yml` via `distroTagChain` — so
+the distro's canonical `version:` in the embedded build vocabulary via `distroTagChain` — so
 per-version selection works identically on image builds and VM deploys. fedora /
 arch carry only a bare tag (`[fedora]` / `[arch]`) and reach their packages via
 the bare-distro tag section. See `/charly-build:build` and `/charly-internals:install-plan`.
@@ -705,7 +705,7 @@ The `charly-mcp` candy is the canonical example of the map form used to thread a
 
 ## Service Declaration — unified `service:` schema
 
-A candy declares services via the **unified `service:` list**. One schema covers both distro-packaged systemd units and fully custom entries, rendered to supervisord INI (for container init) or systemd unit files (for bootc images + host deploys) by the init-system's `service_schema` in `build.yml`.
+A candy declares services via the **unified `service:` list**. One schema covers both distro-packaged systemd units and fully custom entries, rendered to supervisord INI (for container init) or systemd unit files (for bootc images + host deploys) by the init-system's `service_schema` in the embedded build vocabulary.
 
 Every entry has one `name:` plus either a `use_packaged:` reference (reuse a distro-shipped unit) OR a structured custom spec (`exec`, `env`, `restart`, ...). The two forms are mutually exclusive.
 
@@ -730,7 +730,7 @@ postgresql-service:
 
 ### Form 2 — custom service
 
-For services that aren't distro-packaged (ollama, custom daemons, candy-provided binaries). charly renders the spec through the init-system's `service_template` in `build.yml` — supervisord-init containers get INI fragments, systemd-init containers and bootc/host deploys get `.service` unit files.
+For services that aren't distro-packaged (ollama, custom daemons, candy-provided binaries). charly renders the spec through the init-system's `service_template` in the embedded build vocabulary — supervisord-init containers get INI fragments, systemd-init containers and bootc/host deploys get `.service` unit files.
 
 ```yaml
 ollama-service:
@@ -797,7 +797,7 @@ Beyond the core `service:` schema above, supervisord-rendered entries accept add
 
 ### Rendering to init systems
 
-The actual unit text is rendered by the init-system's `service_schema` block in `build.yml`:
+The actual unit text is rendered by the init-system's `service_schema` block in the embedded build vocabulary:
 
 - **Supervisord init** — `service_template` produces `[program:NAME]` INI fragments with `autorestart` / `environment` / etc.; fragments go to `/etc/supervisord.d/<layer>-<name>.conf` and are assembled at container-build time.
 - **Systemd init (bootc + host deploys)** — `service_template` produces `[Unit]` / `[Service]` / `[Install]` blocks; the rendered file goes to `/etc/systemd/system/charly-<layer>-<name>.service` (or the user-scope path when `scope: user`). For `use_packaged:` entries, `dropin_template` + `dropin_path_template` produce an override file alongside the packaged unit.

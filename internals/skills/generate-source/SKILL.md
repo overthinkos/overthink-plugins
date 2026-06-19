@@ -39,14 +39,14 @@ Generation runs through the shared `DeployTarget` interface. `OCITarget` is the 
 
 The generated Containerfile follows this order:
 
-1. **Multi-stage build stages** — scratch stages per layer, builder stages from `build.yml` `builder:` templates (pixi, npm, aur, cargo), init system config assembly (driven by `build.yml` `init:` section), traefik routes
-2. **`FROM ${BASE_IMAGE}`** — external bases get bootstrap from `build.yml` `distro:` section (install cmd, cache mounts, workarounds); internal bases get `USER root`
+1. **Multi-stage build stages** — scratch stages per layer, builder stages from the embedded `builder:` vocabulary (pixi, npm, aur, cargo), init system config assembly (driven by the embedded `init:` vocabulary), traefik routes
+2. **`FROM ${BASE_IMAGE}`** — external bases get bootstrap from the embedded `distro:` vocabulary (install cmd, cache mounts, workarounds); internal bases get `USER root`
 3. **Image metadata** — consolidated `ENV` directives, `EXPOSE` ports, `ai.opencharly.*` labels
-4. **COPY build artifacts** — config-driven from `build.yml` `builder.<name>.copy_artifacts` and `copy_binary` definitions
+4. **COPY build artifacts** — config-driven from the embedded `builder.<name>.copy_artifacts` and `copy_binary` definitions
 5. **Per-layer install steps** — see "Task emission pipeline" below. `USER` toggles as each task's `run_as:` field requires.
 6. **Final assembly** — init system config assembly, traefik routes COPY, `USER <UID>`, `RUN bootc container lint` (bootc images only)
 
-**Config-driven generation:** All format-specific install commands, cache mounts, repo setup, builder stages, and init fragments are defined in `build.yml` at the project root as Go `text/template` strings — three top-level sections: `distro:`, `builder:`, `init:`. Each distro entry contains both bootstrap config and its package format definitions. Referenced via `format_config: build.yml` in `charly.yml` — supports local paths and remote `@github.com/org/repo/path:version` refs. Adding a new format (e.g., `apk` for Alpine) requires only YAML changes — zero Go code modifications.
+**Config-driven generation:** All format-specific install commands, cache mounts, repo setup, builder stages, and init fragments are defined in the embedded build vocabulary (`charly/charly.yml`, `//go:embed`) as Go `text/template` strings — three top-level sections: `distro:`, `builder:`, `init:`. Each distro entry contains both bootstrap config and its package format definitions. The embedded vocabulary is parsed by the same unified loader as any project `charly.yml`. Adding a new format (e.g., `apk` for Alpine) requires only YAML changes — zero Go code modifications.
 
 ## Task emission pipeline
 
@@ -354,9 +354,9 @@ The current code resolves `inheritedDistro` / `inheritedBuilds` from the parent 
 
 Configurable via `user`, `uid`, `gid`, and `user_policy` fields in `charly.yml` (defaults: `"user"`, 1000, 1000, `"auto"`).
 
-### Declarative adopt: `build.yml distro.<name>.base_user:`
+### Declarative adopt: the embedded `distro.<name>.base_user:`
 
-Some base images ship a pre-existing uid-1000 account (Ubuntu 24.04 ships `ubuntu:ubuntu`). The `base_user:` declaration in `build.yml` tells charly about it:
+Some base images ship a pre-existing uid-1000 account (Ubuntu 24.04 ships `ubuntu:ubuntu`). The `base_user:` declaration in the embedded build vocabulary tells charly about it:
 
 ```yaml
 distro:
@@ -378,7 +378,7 @@ When adopt fires, `resolved.User` / `UID` / `GID` / `Home` are overwritten and `
 
 **Adopt (no useradd):**
 ```dockerfile
-# User ubuntu (uid=1000) adopted from base image (declared in build.yml distro.base_user) — no useradd needed
+# User ubuntu (uid=1000) adopted from base image (declared in the embedded distro.base_user vocabulary) — no useradd needed
 
 WORKDIR /home/ubuntu
 USER 1000
@@ -495,7 +495,7 @@ cache-USE logic lives in the charly.yml task body).
 `CacheMountDef.Owned` + `RenderCacheMountsAuto` (`cacheMountsAuto` template
 func) let a single builder `cache_mount` list mix shared (root, e.g. pacman) and
 owned (user, e.g. makepkg SRCDEST / yay clones) entries — used by the `aur`
-builder in `build.yml` to cache AUR source downloads + clones across builds.
+builder in the embedded build vocabulary to cache AUR source downloads + clones across builds.
 
 ## Common Workflows
 

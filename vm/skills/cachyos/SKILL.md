@@ -34,8 +34,8 @@ from the submodule: `charly -C box/cachyos vm build cachyos-vm` +
 | SSH | user `cachy`, port 12226, key_source generate |
 
 The `cachyos` distro config (base packages, keyring, mirrors, repos) comes from
-the main repo's `build.yml`, flat-imported by the submodule (a bare-string
-`import:` item).
+the embedded `distro: cachyos` build vocabulary baked into the `charly` binary
+(`charly/charly.yml`), merged in by the unified loader.
 
 ## Check bed
 

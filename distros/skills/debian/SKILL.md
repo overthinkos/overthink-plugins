@@ -15,9 +15,9 @@ Base Debian 13 (trixie) image. Root of the Debian box hierarchy.
 
 The Debian family lives in the **`overthinkos/debian`** repo (git submodule at
 **`box/debian`**). The `debian` base is **owned there** (in that repo's
-`charly.yml`) and composes the main repo's candies + shared `build.yml` (which
-keeps the `debian` distro config + the `deb` format + the `debootstrap` builder
-template) by git reference. Build it from the submodule:
+`charly.yml`) and composes the main repo's candies by git reference; the
+`debian` distro config, the `deb` format, and the `debootstrap` builder
+template come from charly's embedded build vocabulary. Build it from the submodule:
 `charly -C box/debian box build debian` (or `charly --repo overthinkos/debian box build debian`).
 Ubuntu — the deb-family sibling — lives in its own **`overthinkos/ubuntu`** repo
 (see `/charly-distros:ubuntu`). Nothing in main consumes any Debian box, so there
@@ -38,7 +38,7 @@ is **no main ↔ debian coupling**.
 
 ## User model — create, not adopt
 
-`build.yml distro.debian` **does not** declare a `base_user:` block, because the upstream `debian:13` base image ships no pre-existing uid-1000 account. `user_policy: auto` (the default for any downstream image) falls through to create mode — the generator emits an idempotent `useradd -m -u 1000 -g 1000 user` during bootstrap.
+The embedded `distro.debian` vocabulary **does not** declare a `base_user:` block, because the upstream `debian:13` base image ships no pre-existing uid-1000 account. `user_policy: auto` (the default for any downstream image) falls through to create mode — the generator emits an idempotent `useradd -m -u 1000 -g 1000 user` during bootstrap.
 
 This is the intentional asymmetry vs `/charly-distros:ubuntu`, which DOES ship `ubuntu:ubuntu` at uid 1000 and declares `base_user:` to adopt that identity. See `/charly-image:image` "user_policy" and `/charly-build:build` "base_user" for the full decision table.
 
@@ -76,7 +76,7 @@ USER 1000
 charly -C box/debian box build debian
 charly shell debian                       # drops into /home/user as uid 1000
 id                                    # uid=1000(user) gid=1000(user)
-charly -C box/debian box validate     # remote build.yml + layer refs resolve
+charly -C box/debian box validate     # embedded build vocab + remote layer refs resolve
 ```
 
 ## Related boxes

@@ -21,7 +21,7 @@ Sidecars are additional containers that run alongside an application container i
 
 ## Architecture
 
-Sidecar templates are compiled into the `charly` binary via `go:embed` — they are name-first `sidecar`-kind nodes in the embedded default `charly/charly.cue` (compiled to data by the CUE-source front-end), parsed through the SAME unified loader as any project `charly.yml` (folded into `UnifiedFile.Sidecar`). A project may also declare its own `sidecar`-kind nodes that extend/override the embedded set. At deploy time, `charly config --sidecar <name>` merges the embedded template with the project's templates and the per-machine overrides from `charly.yml`, then generates quadlet files.
+Sidecar templates are compiled into the `charly` binary via `go:embed` — they are name-first `sidecar`-kind nodes in the embedded default `charly/charly.yml` (plain node-form YAML), parsed through the SAME unified loader as any project `charly.yml` (folded into `UnifiedFile.Sidecar`). A project may also declare its own `sidecar`-kind nodes that extend/override the embedded set. At deploy time, `charly config --sidecar <name>` merges the embedded template with the project's templates and the per-machine overrides from `charly.yml`, then generates quadlet files.
 
 ```
 charly binary (embedded templates)     charly.yml (per-machine overrides)
@@ -115,7 +115,7 @@ tailnet's MagicDNS suffix. Each tailnet's auth-key lives in `.secrets`
 (GPG-encrypted env file, loaded by direnv) under a per-tailnet env var
 name derived from the suffix.
 
-**Schema in the embedded `charly.cue` (the name-first `tailscale` sidecar node):**
+**Schema in the embedded `charly/charly.yml` (the name-first `tailscale` sidecar node):**
 
 ```yaml
 tailscale:
@@ -296,4 +296,4 @@ Chrome requires large `/dev/shm`. In pod mode, per-container `ShmSize=` is ignor
 
 ## Source
 
-`charly/sidecar.go` (types, merge, resolution), `charly/charly.cue` (the embedded default config — its `sidecar:` section is the template library, read via `UnifiedFile.Sidecar`), `charly/embed_defaults.go` (the embed + `embeddedDefaults()`), `charly/cue_source.go` (the CUE-source front-end), `charly/quadlet_pod.go` (pod + sidecar quadlet generation).
+`charly/sidecar.go` (types, merge, resolution), `charly/charly.yml` (the embedded default config — its `sidecar:` section is the template library, read via `UnifiedFile.Sidecar`), `charly/embed_defaults.go` (the embed + `embeddedDefaults()`), `charly/quadlet_pod.go` (pod + sidecar quadlet generation).

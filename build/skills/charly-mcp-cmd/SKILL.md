@@ -390,7 +390,7 @@ Every CLI verb under `charly box …` and `charly candy …` auto-becomes an MCP
 
 | MCP tool | What it does |
 |---|---|
-| `box.new.project` | Scaffold `charly.yml` (referencing the upstream `build.yml` remotely), `candy/`, `.gitignore`. |
+| `box.new.project` | Scaffold `charly.yml` (the build vocabulary is embedded in the charly binary), `candy/`, `.gitignore`. |
 | `box.new.box` | Append a new image entry to `charly.yml`. |
 | `box.new.candy` | Scaffold `candy/<name>/charly.yml` with a stub. |
 | `box.set` | Set any value in `charly.yml` by dot-path (`defaults.tag`, `images.foo.layers`, …). Value is parsed as YAML. |

@@ -32,8 +32,8 @@ The `debootstrap-builder` candy (debootstrap + arch-install-scripts equivalents,
 grub, parted) **stays in the main repo** and is shared with
 `/charly-distros:ubuntu-debootstrap-builder` — both pull it by github reference. The
 `debian` distro config (debootstrap suite/mirror/base packages, bootloader
-template) lives in the main repo's `build.yml` and is flat-imported by the
-submodule (a bare-string `import:` item).
+template) is part of the embedded `distro:` vocabulary, loaded automatically by
+the unified loader.
 
 ## Cross-References
 

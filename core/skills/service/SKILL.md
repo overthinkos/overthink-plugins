@@ -14,7 +14,7 @@ description: |
 
 ## Overview
 
-Container service lifecycle management with two modes: **quadlet** (systemd user services via podman quadlet, always preferred) and **direct** (`<engine> run -d` / `<engine> stop`, fallback only for platforms without quadlet support). Also manages individual init system services inside running containers (supervisord, systemd, etc. -- configured via build.yml `init:` section).
+Container service lifecycle management with two modes: **quadlet** (systemd user services via podman quadlet, always preferred) and **direct** (`<engine> run -d` / `<engine> stop`, fallback only for platforms without quadlet support). Also manages individual init system services inside running containers (supervisord, systemd, etc. -- configured via the embedded `init:` vocabulary).
 
 ## Quick Reference
 
@@ -96,9 +96,9 @@ charly remove my-app -e KEY=VALUE      # Set env vars for lifecycle hooks
 - Service name: `charly-<image>.service`
 - Container name: `charly-<image>`
 - Ports bound to configured `bind_address`
-- Entrypoint: determined by build.yml `init:` section config (e.g., `supervisord -n -c /etc/supervisord.conf` for supervisord, `sleep infinity` if no init system)
+- Entrypoint: determined by the embedded `init:` vocabulary (e.g., `supervisord -n -c /etc/supervisord.conf` for supervisord, `sleep infinity` if no init system)
 - Auto-restart on failure via `WantedBy=default.target` (encrypted services with Secret Service backend include `ExecStartPre=charly config mount` + `TimeoutStartSec=0` for keyring wait; KeePass/no backend omit `WantedBy` — require `charly start`)
-- `charly box validate` enforces: images with init system layers MUST include the required dependency layer (defined by build.yml `init:` section `depends_candy`)
+- `charly box validate` enforces: images with init system layers MUST include the required dependency layer (defined by the embedded `init:` vocabulary `depends_candy`)
 - `Secret=charly-<image>-<name>,target=/run/secrets/<name>` for each layer-declared secret (Podman only)
 
 ### Container Secrets
@@ -154,7 +154,7 @@ charly remove my-app --purge         # Also remove named volumes
 
 ## Init System Service Management
 
-Manage individual services inside a running container (uses the init system configured via build.yml `init:` section — supervisord, systemd, etc.):
+Manage individual services inside a running container (uses the init system configured via the embedded `init:` vocabulary — supervisord, systemd, etc.):
 
 ```bash
 charly service status my-app               # Show status of all services
@@ -164,7 +164,7 @@ charly service restart my-app traefik      # Restart a specific service
 charly service status my-app -i prod       # Named instance
 ```
 
-The service name must match an entry in the image's init system config. Available services are validated against the image's `ai.opencharly.service.<init>` label (e.g., `ai.opencharly.service.supervisord`). The management tool and commands are defined in build.yml `init:` section.
+The service name must match an entry in the image's init system config. Available services are validated against the image's `ai.opencharly.service.<init>` label (e.g., `ai.opencharly.service.supervisord`). The management tool and commands are defined in the embedded `init:` vocabulary.
 
 Source: `charly/service.go`.
 

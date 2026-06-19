@@ -36,8 +36,9 @@ check-debian-debootstrap-vm`. Drive the VM lifecycle from the submodule:
 | SSH | user `debian`, port 12227, key_source generate |
 
 The `debian` distro config (debootstrap suite/mirror, base packages, bootloader
-template) comes from the main repo's `build.yml`, flat-imported by the
-submodule (a bare-string `import:` item).
+template) comes from the embedded `distro:` build vocabulary baked into the
+charly binary, which the unified loader makes available to the submodule's
+`charly.yml` automatically — no explicit import needed.
 
 ## Check bed
 

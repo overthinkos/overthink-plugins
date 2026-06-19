@@ -60,4 +60,4 @@ charly shell arch-test -c "which yay"          # aur: package installed
 ## Related
 
 - `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
-- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-build:build` — the embedded build vocabulary (distros, builders, init-systems)

@@ -13,11 +13,11 @@ Invoked as `charly box generate`. See `/charly-image:image` for the family overv
 
 Parses `charly.yml`, scans `candy/`, resolves the dependency graph, and emits all build artifacts into the `.build/` directory. Called internally by `charly box build` but can be run standalone to inspect generated output before a build.
 
-The generator is **config-driven** — distro format templates, builder stage templates, and init system fragments all come from a single `build.yml` (three top-level sections: `distro:`, `builder:`, `init:`) — and **declarative per-task** for install logic — each task verb (see `/charly-image:layer`) has a dedicated emitter that writes the right Containerfile directive.
+The generator is **config-driven** — distro format templates, builder stage templates, and init system fragments all come from the build vocabulary embedded in the `charly` binary at `charly/charly.yml` (three top-level sections: `distro:`, `builder:`, `init:`) — and **declarative per-task** for install logic — each task verb (see `/charly-image:layer`) has a dedicated emitter that writes the right Containerfile directive.
 
 **IR-driven emission**: `charly box generate` drives emission through the shared `DeployTarget` interface. `charly.yml` compile into an `InstallPlan` IR (one per layer); `OCITarget.Emit` walks the IR and writes Containerfile text. The same IR backs `PodDeployTarget` (overlay-Containerfile synthesis when `add_candy:` is set) and `LocalDeployTarget` (local-target execution). See `/charly-internals:install-plan` for the type catalog and `/charly-internals:generate-source` for the Go-level call graph.
 
-**Three-phase templates**: `build.yml` format (`formats.<fmt>`) and builder (`builders.<name>`) definitions carry a `phases: { prepare, install, cleanup }.{ container, host }` structure. The generator reads `phases.install.container` when set and falls back to the top-level `install_template:` otherwise. The `host:` cell is consumed only by `LocalDeployTarget` (`target: local` deploys) — the generator ignores it.
+**Three-phase templates**: the embedded build vocabulary's format (`formats.<fmt>`) and builder (`builders.<name>`) definitions carry a `phases: { prepare, install, cleanup }.{ container, host }` structure. The generator reads `phases.install.container` when set and falls back to the top-level `install_template:` otherwise. The `host:` cell is consumed only by `LocalDeployTarget` (`target: local` deploys) — the generator ignores it.
 
 ## Quick Reference
 
@@ -87,14 +87,14 @@ For each layer, `writeCandySteps` runs this sequence:
 
 ## Cache-mount inheritance
 
-Cache mounts come from `build.yml` — `distro:` section (format caches) and `builder:` section (builder caches). `charly tasks.go` picks the right set based on task context:
+Cache mounts come from the embedded build vocabulary — the `distro:` section (format caches) and `builder:` section (builder caches). `charly tasks.go` picks the right set based on task context:
 
 | Task context | Cache mount(s) |
 |---|---|
 | `cmd:` as root | Distro format caches (`/var/cache/libdnf5` / `/var/cache/apt` / `/var/cache/pacman/pkg`) + `/ctx` bind mount |
 | `cmd:` as non-root | `/tmp/npm-cache` (UID-scoped) + `/ctx` bind mount |
 | `download:` | `/tmp/downloads` (shared across layers) |
-| Package install | Distro format caches from `build.yml` `distro:` section |
+| Package install | Distro format caches from the embedded `distro:` section |
 | pixi builder | `/tmp/pixi-cache` + `/tmp/rattler-cache` (UID-scoped) |
 | npm builder | `/tmp/npm-cache` (UID-scoped) |
 
@@ -116,7 +116,7 @@ The `/ctx` bind mount exposes the layer's own directory tree to `cmd:` tasks —
 **Adopt mode** (`UserAdopted = true`) — the base image already ships the declared user; no `useradd` is needed. Emits:
 
 ```dockerfile
-# User ubuntu (uid=1000) adopted from base image (declared in build.yml distro.base_user) — no useradd needed
+# User ubuntu (uid=1000) adopted from base image (declared in the embedded charly/charly.yml distro.base_user) — no useradd needed
 
 WORKDIR /home/ubuntu
 USER 1000
@@ -169,7 +169,7 @@ The Containerfile references the file by its relative path: `COPY --from=<layer-
 - `.build/` is disposable and gitignored; `charly box generate` will recreate it from scratch.
 - Layer dependencies resolve transitively and topologically; circular `require:` is a validation error (surfaced by `/charly-build:validate`).
 - Pixi manylinux fix is injected into `pixi.toml` files during the pixi builder stage.
-- Multi-stage builds use builder images declared in `build.yml` `builder:` section (`pixi-builder`, `npm-builder`, `arch-builder` for AUR, etc.).
+- Multi-stage builds use builder images declared in the embedded `builder:` section (`pixi-builder`, `npm-builder`, `arch-builder` for AUR, etc.).
 - Stale `.build/<image>/` directories (from removed or renamed images) are cleaned at the start of each generation.
 
 ### LABEL placement (cache efficiency)
@@ -189,7 +189,7 @@ Three emission rules matter specifically for bootc images (those whose `base:` i
 
 ### 1. `initHasFragments` pre-scan gates empty init stages
 
-Each init system defined in `build.yml` (currently `supervisord` and `systemd`) emits a `FROM scratch AS <stage_name>` scratch stage that layers COPY fragments into, plus an `assembly_template` RUN that bind-mounts from that scratch stage. `charly/generate.go` pre-scans the layer chain for each init system to check whether any layer contributes fragments (per-entry rendered from the unified `service:` list via `ServiceSchema.ServiceTemplate` / `ServiceSchema.SupportsPackaged`, plus relay configs, plus systemd `.service` files). If none, **both** the scratch stage and the assembly_template RUN are suppressed. Without this, a bootc image with only packaged-unit entries (`use_packaged:`, no rendered body) would emit an empty `FROM scratch AS systemd-services` + a RUN that bind-mounts from it — which fails at build time. The `system_enable_template` and `post_assembly_template` for that init still run — they're independent of the scratch stage.
+Each init system defined in the embedded `init:` vocabulary (currently `supervisord` and `systemd`) emits a `FROM scratch AS <stage_name>` scratch stage that layers COPY fragments into, plus an `assembly_template` RUN that bind-mounts from that scratch stage. `charly/generate.go` pre-scans the layer chain for each init system to check whether any layer contributes fragments (per-entry rendered from the unified `service:` list via `ServiceSchema.ServiceTemplate` / `ServiceSchema.SupportsPackaged`, plus relay configs, plus systemd `.service` files). If none, **both** the scratch stage and the assembly_template RUN are suppressed. Without this, a bootc image with only packaged-unit entries (`use_packaged:`, no rendered body) would emit an empty `FROM scratch AS systemd-services` + a RUN that bind-mounts from it — which fails at build time. The `system_enable_template` and `post_assembly_template` for that init still run — they're independent of the scratch stage.
 
 ### 2. `anyRepoHasURL` helper → prepend `dnf5-plugins`
 

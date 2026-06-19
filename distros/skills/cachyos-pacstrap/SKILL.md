@@ -56,8 +56,9 @@ base is still the faster default (no privileged build).
 | Home repo | overthinkos/cachyos (`box/cachyos`) |
 
 The `cachyos` distro config (pacstrap base packages, CachyOS keyring
-`F3B607488DB35A47`, mirrorlist, `cachyos*` repos) lives in the main repo's
-`build.yml` and is flat-imported by the submodule (a bare-string `import:` item).
+`F3B607488DB35A47`, mirrorlist, `cachyos*` repos) lives in the embedded build
+vocabulary (`charly/charly.yml`, baked into the `charly` binary) and is resolved
+by name whenever a box declares `distro: cachyos`.
 
 ## Cross-References
 

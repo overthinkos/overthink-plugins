@@ -287,4 +287,4 @@ All four produce the same daily-dev surface (sshd on 2222, charly-mcp on 18765, 
 
 ## Related
 
-- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-build:build` — the embedded build vocabulary (distros, builders, init-systems)

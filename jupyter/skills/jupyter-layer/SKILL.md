@@ -53,8 +53,9 @@ bump that breaks the model load fails the build loudly.
 No custom environment variables on the candy itself. **Runtime PATH
 contributions** for the pixi env (`~/.pixi/bin`,
 `~/.pixi/envs/default/bin`) and cache dirs (`PIXI_CACHE_DIR`,
-`RATTLER_CACHE_DIR`) come from the **pixi BUILDER** (declared in
-`build.yml` / `charly.yml` under `builder.pixi.runtime_env:` and
+`RATTLER_CACHE_DIR`) come from the **pixi BUILDER** (declared in the
+embedded `builder:` vocabulary (`charly/charly.yml`) under
+`builder.pixi.runtime_env:` and
 `path_contributions:`) — see `/charly-internals:generate-source` for the
 `writeCandyEnv` flow. The pixi runtime env flows through the pixi
 BUILDER (not the pixi LAYER) so boxes that consume pixi via

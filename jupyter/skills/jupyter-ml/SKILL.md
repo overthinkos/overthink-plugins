@@ -136,4 +136,4 @@ MUST be invoked before building, deploying, configuring, or troubleshooting the 
 ## Related
 
 - `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
-- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-build:build` — the embedded build vocabulary (distros, builders, init-systems)

@@ -37,10 +37,10 @@ worked example of the `from: builder:debootstrap` pattern.
 
 The `ubuntu` distro config (`inherits: debian`; debootstrap suite `noble`,
 mirror `http://archive.ubuntu.com/ubuntu`, components `main,universe`) lives in
-the main repo's `build.yml` and is flat-imported by the submodule (a bare-string
-`import:` item). The single imported `build.yml` carries BOTH the `ubuntu` and
-`debian` distro configs, so the `inherits: debian` resolution needs no reference
-to `overthinkos/debian`.
+the embedded build vocabulary (`charly/charly.yml`, baked into the `charly`
+binary). The embedded vocabulary carries BOTH the `ubuntu` and `debian` distro
+configs, so the `inherits: debian` resolution needs no reference to
+`overthinkos/debian`.
 
 ## Cross-References
 

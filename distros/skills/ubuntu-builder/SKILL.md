@@ -4,14 +4,14 @@ description: |
   Minimal Ubuntu 24.04 builder image (pixi + Node.js + build-toolchain)
   used as the multi-stage builder for Ubuntu-based boxes — currently
   ubuntu-coder. Runs as uid 1000 `ubuntu` (adopted from the upstream
-  ubuntu:24.04 base image via build.yml's base_user declaration).
+  ubuntu:24.04 base image via the embedded distro vocabulary's base_user declaration).
   MUST be invoked before building, deploying, configuring, or troubleshooting
   the ubuntu-builder box.
 ---
 
 # ubuntu-builder
 
-Ubuntu 24.04 (noble) counterpart of `/charly-distros:fedora-builder` and `/charly-distros:debian-builder`. Same role — pixi/npm/cargo multi-stage builder — with one important difference: the builder runs as `ubuntu` (uid 1000) because the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu.base_user` adopts it.
+Ubuntu 24.04 (noble) counterpart of `/charly-distros:fedora-builder` and `/charly-distros:debian-builder`. Same role — pixi/npm/cargo multi-stage builder — with one important difference: the builder runs as `ubuntu` (uid 1000) because the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and the embedded `distro.ubuntu.base_user` vocabulary adopts it.
 
 Lives in the **`overthinkos/ubuntu`** repo (git submodule at **`box/ubuntu`**).
 Build it from the submodule: `charly -C box/ubuntu box build ubuntu-builder`
@@ -32,7 +32,7 @@ main repo.
 
 ## Full candy stack
 
-1. `/charly-distros:ubuntu` — Ubuntu 24.04 + bootstrap. Inherits Debian's `apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg` pattern because `build.yml distro.ubuntu` declares `inherits: debian`. Ubuntu-specific: `base_user: { name: ubuntu, uid: 1000, gid: 1000, home: /home/ubuntu }` — no `useradd` step emitted.
+1. `/charly-distros:ubuntu` — Ubuntu 24.04 + bootstrap. Inherits Debian's `apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg` pattern because the embedded `distro.ubuntu` vocabulary declares `inherits: debian`. Ubuntu-specific: `base_user: { name: ubuntu, uid: 1000, gid: 1000, home: /home/ubuntu }` — no `useradd` step emitted.
 2. `/charly-languages:pixi` — pixi package manager + env paths (`/home/ubuntu/.pixi`).
 3. `/charly-coder:nodejs` — Node.js + npm (generic `nodejs`).
 4. `/charly-coder:build-toolchain` — same Debian `-dev` packages as `/charly-distros:debian-builder`.
@@ -42,7 +42,7 @@ main repo.
 When the generator emits the Containerfile for this image, the bootstrap section contains:
 
 ```
-# User ubuntu (uid=1000) adopted from base image (declared in build.yml distro.base_user) — no useradd needed
+# User ubuntu (uid=1000) adopted from base image (declared in the embedded distro.base_user vocabulary) — no useradd needed
 WORKDIR /home/ubuntu
 USER 1000
 ```
@@ -89,7 +89,7 @@ Typically not invoked directly — it's a build-time dependency of `/charly-code
 
 ## Related boxes
 
-- `/charly-distros:ubuntu` — parent base; declares `base_user:` in `build.yml`.
+- `/charly-distros:ubuntu` — parent base; declares `base_user:` in the embedded distro vocabulary.
 - `/charly-coder:ubuntu-coder` — the consumer that this builder serves.
 - `/charly-distros:debian-builder` — deb-family sibling without adopt mode.
 - `/charly-distros:fedora-builder` — canonical RPM-family sibling.
@@ -100,7 +100,7 @@ Typically not invoked directly — it's a build-time dependency of `/charly-code
 
 ## Related commands
 
-- `/charly-build:build` — `base_user:` declaration format in `build.yml distro.*`
+- `/charly-build:build` — `base_user:` declaration format in the embedded `distro.*` vocabulary
 - `/charly-image:image` — `user_policy:` field (auto / adopt / create) and the decision table
 - `/charly-build:generate` — adopt-vs-create writeBootstrap emission modes
 

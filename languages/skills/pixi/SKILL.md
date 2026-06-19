@@ -61,7 +61,7 @@ full SAT solve over the conda + PyPI indexes on every cache miss) to
 `pixi install --frozen` (install straight from the lock — no solve,
 deterministic, better cache reuse). The flip is automatic via `HasPixiLock`
 detection (`charly/layers.go`) → the `pixi.toml+lock` install command in
-`build.yml`; no per-candy config.
+the embedded build vocabulary (`charly/charly.yml`); no per-candy config.
 
 **Regenerate the lock whenever you change `pixi.toml`** — `--frozen` fails the
 build loudly if the lock is stale (no silent skew). Generate with the builder's

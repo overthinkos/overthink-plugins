@@ -4,20 +4,20 @@ description: |
   Base Ubuntu 24.04 noble image. Root of the box hierarchy for Ubuntu-
   based builds. Runs as uid 1000 `ubuntu` via ADOPT mode — the upstream
   ubuntu:24.04 base image ships a pre-existing ubuntu:ubuntu account,
-  and build.yml distro.ubuntu declares base_user to adopt it verbatim.
+  and the embedded distro.ubuntu vocabulary declares base_user to adopt it verbatim.
   MUST be invoked before building, deploying, configuring, or troubleshooting
   any Ubuntu-based box.
 ---
 
 # ubuntu
 
-Base Ubuntu 24.04 (noble) image. Distinguished from `/charly-distros:debian` by **adopt mode**: the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and `build.yml distro.ubuntu` declares `base_user:` so the `charly` generator honors that account rather than creating a new one.
+Base Ubuntu 24.04 (noble) image. Distinguished from `/charly-distros:debian` by **adopt mode**: the upstream `ubuntu:24.04` base image ships a pre-existing `ubuntu:ubuntu` account at uid 1000, and the embedded `distro.ubuntu` vocabulary declares `base_user:` so the `charly` generator honors that account rather than creating a new one.
 
 The Ubuntu family lives in its own **`overthinkos/ubuntu`** repo (git submodule
 at **`box/ubuntu`**) — a SEPARATE repo from `overthinkos/debian` (Debian and
 Ubuntu each have their own repo). The `ubuntu` base is **owned there** and
-composes the main repo's candies + shared `build.yml` by git reference. Because
-`distro.ubuntu` is `inherits: debian`, the single remote `build.yml` (which
+composes the main repo's candies by git reference plus the embedded build vocabulary. Because
+`distro.ubuntu` is `inherits: debian`, the embedded build vocabulary (which
 carries BOTH distro configs) resolves the inheritance — `overthinkos/ubuntu`
 needs no reference to `overthinkos/debian`. Build from the submodule:
 `charly -C box/ubuntu box build ubuntu` (or `charly --repo overthinkos/ubuntu box build ubuntu`).
@@ -38,7 +38,7 @@ Nothing in main consumes any Ubuntu box, so there is **no main ↔ ubuntu coupli
 
 ## User model — adopt from base image
 
-`build.yml distro.ubuntu` inherits from `distro.debian` (same apt bootstrap template) and adds a `base_user:` block:
+The embedded `distro.ubuntu` vocabulary inherits from `distro.debian` (same apt bootstrap template) and adds a `base_user:` block:
 
 ```yaml
 distro:
@@ -54,7 +54,7 @@ distro:
 Any downstream image with `user_policy: auto` (the default) that **did not** explicitly set its own `user:` field will adopt this — `resolved.User = "ubuntu"`, `resolved.Home = "/home/ubuntu"`, `resolved.UserAdopted = true`. The bootstrap emits **no** `useradd`; it emits a one-line comment documenting the adoption:
 
 ```
-# User ubuntu (uid=1000) adopted from base image (declared in build.yml distro.base_user) — no useradd needed
+# User ubuntu (uid=1000) adopted from base image (declared in charly/charly.yml distro.base_user) — no useradd needed
 WORKDIR /home/ubuntu
 USER 1000
 ```
@@ -87,7 +87,7 @@ RUN --mount=type=cache,dst=/var/cache/apt,sharing=locked
     --mount=type=cache,dst=/var/lib/apt,sharing=locked
     apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg && \
     ... install go-task binary ...
-# User ubuntu (uid=1000) adopted from base image (declared in build.yml distro.base_user) — no useradd needed
+# User ubuntu (uid=1000) adopted from base image (declared in charly/charly.yml distro.base_user) — no useradd needed
 WORKDIR /home/ubuntu
 USER 1000
 ```
@@ -118,7 +118,7 @@ ECR Public mirrors the Dockerhub library namespace without rate-limiting.
 charly -C box/ubuntu box build ubuntu
 charly shell ubuntu                       # drops into /home/ubuntu as uid 1000
 id                                    # uid=1000(ubuntu) gid=1000(ubuntu)
-charly -C box/ubuntu box validate     # remote build.yml resolves distro.ubuntu (inherits debian)
+charly -C box/ubuntu box validate     # the embedded build vocabulary resolves distro.ubuntu (inherits debian)
 ```
 
 ## Related boxes
@@ -131,7 +131,7 @@ charly -C box/ubuntu box validate     # remote build.yml resolves distro.ubuntu 
 
 ## Related commands
 
-- `/charly-build:build` — `base_user:` declaration format, which lives in `build.yml distro.ubuntu`.
+- `/charly-build:build` — `base_user:` declaration format, which lives in the embedded `distro.ubuntu` vocabulary.
 - `/charly-image:image` — `user_policy:` field + reconciliation.
 - `/charly-build:generate` — adopt-vs-create writeBootstrap emission.
 

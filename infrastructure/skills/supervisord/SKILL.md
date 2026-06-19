@@ -13,8 +13,8 @@ description: |
 | Property | Value |
 |----------|-------|
 | Dependencies | **(none)** — system Python comes from the `supervisor` RPM's own dep |
-| Install files | `charly.yml`, `supervisord.header.conf` (via `build.yml `init:` section` header_file) |
-| Init role | Default init system for container images (set in `build.yml `init:` section`) |
+| Install files | `charly.yml`, `supervisord.header.conf` (via the embedded `init:` vocabulary's `header_file:`) |
+| Init role | Default init system for container images (set in the embedded `init:` vocabulary) |
 
 ## Packages
 
@@ -42,7 +42,7 @@ auto-intermediate that composes `supervisord` needs it.
 
 ## How `charly` Generates Supervisord Configs
 
-Candies declare processes via the unified **`service:`** schema in `charly.yml` (see `/charly-image:layer` "Service Declaration"). Each entry is rendered through supervisord's `service_schema.service_template` in `build.yml`, which produces a `[program:<name>]` INI fragment. `charly box generate` collects all rendered fragments across the candy chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from `build.yml init:` section).
+Candies declare processes via the unified **`service:`** schema in `charly.yml` (see `/charly-image:layer` "Service Declaration"). Each entry is rendered through supervisord's `service_schema.service_template` in the embedded build vocabulary, which produces a `[program:<name>]` INI fragment. `charly box generate` collects all rendered fragments across the candy chain and writes them into `/etc/supervisord.conf` inside the image, prefixed by the header from `templates/supervisord.header.conf` (referenced from the embedded `init:` vocabulary).
 
 ```yaml
 # candy/chrome/charly.yml — node-form: the service: list lives in a <candy>-service child node
@@ -78,7 +78,7 @@ The render template maps the abstract spec to supervisord INI:
 
 **Supervisord does NOT support `use_packaged:`** — it doesn't consume systemd units. Entries with `use_packaged:` are skipped with a warning when rendering into a supervisord-init image. Use a custom entry (with explicit `exec:`) on supervisord-init images, or target a systemd init (bootc / `target: local`) where `use_packaged:` is honored.
 
-The rendered INI lands at `/etc/supervisord.d/<layer>-<name>.conf` and is assembled into `/etc/supervisord.conf` at container-build time via the init system's fragment pipeline (`build.yml init.supervisord.fragment_template` + `stage_fragment_copy`).
+The rendered INI lands at `/etc/supervisord.d/<layer>-<name>.conf` and is assembled into `/etc/supervisord.conf` at container-build time via the init system's fragment pipeline (the embedded `init.supervisord.fragment_template` + `stage_fragment_copy`).
 
 At runtime, PID 1 is `supervisord`. The container's lifecycle is the supervisord process's lifecycle — when supervisord exits, the container exits (and the systemd quadlet's `Restart=always` rebuilds it).
 
@@ -227,7 +227,7 @@ Authoring Gotcha #3.
 
 ## Header File
 
-`templates/supervisord.header.conf` (at the repo root) defines global `[supervisord]`, `[unix_http_server]`, `[supervisorctl]`, and `[rpcinterface:supervisor]` sections. It's referenced from `build.yml `init:` section` as the init system's `header_file:` and prepended to every generated `supervisord.conf`. Common fields:
+`templates/supervisord.header.conf` (at the repo root) defines global `[supervisord]`, `[unix_http_server]`, `[supervisorctl]`, and `[rpcinterface:supervisor]` sections. It's referenced from the embedded `init:` vocabulary as the init system's `header_file:` and prepended to every generated `supervisord.conf`. Common fields:
 
 - `[unix_http_server] file=/tmp/supervisor.sock` — the socket `supervisorctl` uses
 - `[supervisord] nodaemon=true logfile=/tmp/supervisord.log pidfile=/tmp/supervisord.pid`
@@ -250,7 +250,7 @@ my-image:
       - my-service  # layers with service: entries need supervisord
 ```
 
-Adding a `service:` block to a candy automatically pulls in `supervisord` via `build.yml `init:` section`'s `depends_candy`. You rarely add `supervisord` to a box's `candy:` list manually.
+Adding a `service:` block to a candy automatically pulls in `supervisord` via the embedded `init:` vocabulary's `depends_candy`. You rarely add `supervisord` to a box's `candy:` list manually.
 
 ## Used In Boxes
 
@@ -259,7 +259,7 @@ Transitive dependency for all boxes with managed services, including:
 
 ## Running supervisord under systemd (bootc mode)
 
-On non-bootc images, supervisord is container PID 1 (`ENTRYPOINT=supervisord` emitted by the init system definition in `build.yml`). On **bootc** images, systemd is PID 1, which means supervisord needs a systemd unit wrapper — otherwise the whole desktop tier never starts. The wrapper is a systemd **user** unit at `/etc/systemd/user/supervisord.service`, `systemctl --global enable`d so tty1 autologin brings it up (a linger sentinel file keeps it alive across logouts).
+On non-bootc images, supervisord is container PID 1 (`ENTRYPOINT=supervisord` emitted by the init system definition in the embedded build vocabulary). On **bootc** images, systemd is PID 1, which means supervisord needs a systemd unit wrapper — otherwise the whole desktop tier never starts. The wrapper is a systemd **user** unit at `/etc/systemd/user/supervisord.service`, `systemctl --global enable`d so tty1 autologin brings it up (a linger sentinel file keeps it alive across logouts).
 
 ### Two gotchas specific to running under a systemd user service
 

@@ -69,8 +69,8 @@ To pass a physical GPU through to a VM and (e.g.) run a CUDA container inside it
    the GPU comes alive INSIDE the guest, where the in-guest driver layer (step 3)
    binds it and in-guest `nvidia-smi` works.
 2. **The hostdev is AUTO-ALLOCATED.** When a bundle deploying a VM declares
-   `requires_exclusive: [<token>]` and that token maps to a `build.yml`
-   `resource:` with a `gpu:` selector (e.g. `resource: {nvidia-gpu: {gpu:
+   `requires_exclusive: [<token>]` and that token maps to an embedded
+   `resource:` vocabulary entry with a `gpu:` selector (e.g. `resource: {nvidia-gpu: {gpu:
    {vendor: "0x10de"}}}`), `charly vm create` auto-detects the matching GPU,
    writes its whole-IOMMU-group `hostdevs:` block (each `managed: "yes"`) into
    this host's per-domain `instance.yml`, and injects it — or **FAILS HARD** if

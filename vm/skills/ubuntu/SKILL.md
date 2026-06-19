@@ -36,10 +36,10 @@ check-ubuntu-debootstrap-vm`. Drive the VM lifecycle from the submodule:
 | SSH | user `ubuntu`, port 12229, key_source generate |
 
 The `ubuntu` distro config (`inherits: debian`; debootstrap suite `noble`,
-mirror, base packages) comes from the main repo's `build.yml`, flat-imported
-by the submodule (a bare-string `import:` item). The single imported `build.yml`
-carries BOTH distro configs, so `inherits: debian` resolves without referencing
-`overthinkos/debian`.
+mirror, base packages) comes from the embedded build vocabulary
+(`charly/charly.yml`, baked into the charly binary), available to every repo
+without an import. The embedded vocabulary carries BOTH distro configs, so
+`inherits: debian` resolves without referencing `overthinkos/debian`.
 
 ## Check bed
 

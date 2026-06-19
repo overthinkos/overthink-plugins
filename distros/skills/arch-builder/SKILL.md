@@ -42,7 +42,7 @@ arch:
     aur: arch-builder
 ```
 
-The builder definitions themselves (pixi/npm/cargo/aur) live in `build.yml`'s `builder:` section — the same word is used intentionally because both maps key on the same slot (the build-type name).
+The builder definitions themselves (pixi/npm/cargo/aur) live in the embedded `builder:` vocabulary — the same word is used intentionally because both maps key on the same slot (the build-type name).
 
 ## Quick Start
 
@@ -75,4 +75,4 @@ charly shell arch-builder -c "pixi --version && node --version && yay --version 
 ## Related
 
 - `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
-- `/charly-build:build` — `build.yml` vocabulary (distros, builders, init-systems)
+- `/charly-build:build` — the embedded build vocabulary (distros, builders, init-systems)
