@@ -424,19 +424,14 @@ Built images embed runtime metadata as labels (prefix: `ai.opencharly.`), making
 | `ai.opencharly.alias` | JSON | `[{"name":"openclaw","command":"openclaw"}]` |
 | `ai.opencharly.security` | JSON | `{"privileged":false,"cap_add":["SYS_PTRACE"]}` |
 | `ai.opencharly.network` | string | `"host"` (omitted if default) |
-| `ai.opencharly.fqdn` | string | FQDN for tunnel routing |
-| `ai.opencharly.acme_email` | string | ACME certificate email |
 | `ai.opencharly.env` | JSON | `["KEY=VALUE"]` runtime env vars |
 | `ai.opencharly.hook` | JSON | lifecycle hooks config |
-| `ai.opencharly.vm` | JSON | VM config (bootc images) |
-| `ai.opencharly.libvirt` | JSON | libvirt XML snippets |
 | `ai.opencharly.route` | JSON | `[{"host":"app.localhost","port":8080}]` |
 | `ai.opencharly.init` | string | active init system name |
 | `ai.opencharly.init_def` | JSON | build-resolved init contract — `{entrypoint, fallback_entrypoint, management_tool, management_commands}` — read label-first at deploy for the entrypoint + in-container service-management surface |
 | `ai.opencharly.service.<init>` | JSON | service names per init system |
-| `ai.opencharly.env_layer` | JSON | layer-level env vars (merged) |
+| `ai.opencharly.env_candy` | JSON | candy-level env vars (merged) |
 | `ai.opencharly.path_append` | JSON | PATH append entries |
-| `ai.opencharly.engine` | string | Required run engine (`docker`/`podman`, omitted if any) |
 | `ai.opencharly.platform.distro` | JSON | `["arch"]` distro identity (first match picks bootstrap/format templates) |
 | `ai.opencharly.platform.format` | JSON | `["pac"]` package formats installed (`pac`, `rpm`, `deb`, `pixi`, `aur`, …) |
 | `ai.opencharly.builder.use` | JSON | `{"aur":"arch-builder","pixi":"default-builder"}` consumer-side routing: format → builder image |
@@ -445,7 +440,7 @@ Built images embed runtime metadata as labels (prefix: `ai.opencharly.`), making
 | `ai.opencharly.port_relay` | JSON | `[9222]` ports with socat relay |
 | `ai.opencharly.status` | string | Effective status: `working`, `testing`, or `broken` (always emitted) |
 | `ai.opencharly.info` | string | Aggregated status info from image + non-working layers (omitted if empty) |
-| `ai.opencharly.layer_version` | JSON | `{"chrome":"2026.83.1430"}` layer name → CalVer (only versioned layers) |
+| `ai.opencharly.candy_version` | JSON | `{"chrome":"2026.83.1430"}` candy name → CalVer (only versioned candies) |
 | `ai.opencharly.skill` | string | Skill documentation URL (omitted if no skill exists) |
 
 Tunnel configuration is NOT an OCI label — it is a deploy-time concern carried in `charly.yml` only.
