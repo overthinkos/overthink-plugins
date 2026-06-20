@@ -103,6 +103,8 @@ A non-CalVer value (the legacy integer `4`, empty, or garbage) parses as "older 
 
 The operator command never changes — it stays `charly migrate`.
 
+**The validated schema is CUE-single-source.** The `@go()`-annotated `charly/schema/*.cue` defs are the sole source for the Go param structs (generated into `charly/spec` by `task cue:gen`); a wire-key change is a CUE edit first, then `task cue:gen`, then — only if it breaks existing on-disk configs — a migration step here. A pure codegen refactor that leaves every authored wire key untouched needs NO migration step and NO `version:` bump. See the `/charly-internals:go` recipe "Updating Go code when an ingress CUE schema changes".
+
 ### Standing rule: a schema/format change bumps `version:` AND mints a git tag
 
 Any change to the YAML schema or composition format (a key rename, a deleted key, a new key shape — e.g. the 2026-05 `include:` → `import:` cutover) is a hard-cutover that MUST:
@@ -116,7 +118,7 @@ Running `charly migrate` twice is a no-op (`TestMigrateCalverSchema_StampsAndIde
 
 ## See Also
 
-- `/charly-image:layer` — the `layer:` kind-keyed schema the chain produces
+- `/charly-image:layer` — the node-form candy schema the chain produces
 - `/charly-image:image` — `image:` entries + `charly box build/validate/inspect`
 - `/charly-core:deploy` — `deploy:` entries the chain migrates (require-image, charly-cachyos)
 - `/charly-local:local-spec` — `kind: local` templates (target-local, local-images)

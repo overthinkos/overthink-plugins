@@ -14,17 +14,29 @@ The `charly` CLI is a Go program in the `charly/` directory. It uses the Kong CL
 
 ### Unified YAML loader (`LoadUnified`)
 
-The unified format's entry point is `LoadUnified(dir)` at `charly/unified.go`. It reads `<dir>/charly.yml`, recursively resolves the `import:` statement (max depth 8, cycle-safe via visited set), parses every file as a **YAML multi-document stream** (so bundle files with `---` separators work), and routes each document by shape:
+The unified format's entry point is `LoadUnified(dir)` at `charly/unified.go`. It reads `<dir>/charly.yml`, recursively resolves the `import:` statement (max depth 8, cycle-safe via visited set), and parses every file as a **YAML multi-document stream** (so bundle files with `---` separators work). Every document is **unified node-form** (name-first): `mergeUnifiedDocs` runs each document through the shared routing core — `classifyDoc` (top-level-key inspection) → the closed `#NodeDoc` CUE gate → `normalizeNodeInto` (the reserved-word-driven node decomposer in `reserved_registry.go`). **`#NodeDoc` (`schema/node.cue`) is the SOLE load-time gate** for every loaded document, the root `charly.yml` and discovered manifests alike. `classifyDoc` does NOT route a legacy kind-keyed / root-shape document — it HARD-REJECTS it with a `charly migrate` hint (the legacy `mergeKindDoc` / `firstKindKey` / `kindKeyedDoc` / `VmDoc` routing was deleted in the `#NodeDoc`-sole-gate cutover). The legacy-shape detector is `rootShapeKeySet` (CUE-derived: `spec.DocDirectives` + every `spec.KindWords` entry, plus the `legacyKindAliases` `deploy`/`check`) — a DETECTOR only, no routing reads it.
 
-- **Root-shape doc** — has any of `version:`, `import:`, `discover:`, `defaults:`, `distro:`, `builder:`, `init:`, `box:`, `candy:`, `bundle:` → parsed as `UnifiedFile`, merged root-wins.
-- **Kind-keyed doc** — has exactly one of `candy:`, `box:`, `bundle:`, `builder:`, `distro:`, `init:` (and the other kinds) + a `name:` inside → registered under `name:` in the matching map.
-- **Ambiguous** (both root and kind keys) → loader error with file + doc-index.
-
-`UnifiedFile.ApplyDiscover(rootDir)` walks the **flat generic `discover:` list** after initial merge. `discover:` is `DiscoverConfig` = `[]ScanSpec` (`{path, recursive, manifest}`) — no kind dimension. For each spec, `findEntityDirs` finds directories containing the spec's `manifest` (default `UnifiedFileName` — `charly.yml`, the ONE filename the code knows; the former separate `DefaultManifest` constant is deleted; a missing discover path is a no-op, not an error), and `applyDiscoveredManifest` routes each discovered document BY SHAPE via `firstKindKey`: a `candy:`-shaped doc registers a lazy `From:` directory reference (`scanCandy` parses + validates it later), every other shape decodes + merges via `mergeKindDoc`. Explicit map entries always win over discovered entries. **`ApplyDiscover` runs in the loader's main path (`loadUnifiedInto` depth-0 boundary, for the root AND every namespace), so discovered `box:` docs reach `ProjectConfig` — not just the layer-loading path.** There is no per-kind discovery function and no `entityKind.Filename` — both were deleted; the kind vocabulary lives only in `kindKeys`/`kindKeysSet` for shape classification.
+`UnifiedFile.ApplyDiscover(rootDir)` walks the **flat generic `discover:` list** after initial merge. `discover:` is `DiscoverConfig` = `[]ScanSpec` (`{path, recursive, manifest}`) — no kind dimension. For each spec, `findEntityDirs` finds directories containing the spec's `manifest` (default `UnifiedFileName` — `charly.yml`, the ONE filename the code knows; a missing discover path is a no-op, not an error), and `applyDiscoveredManifest` validates each discovered document through the SAME `classifyDoc` → `#NodeDoc` gate: a `candy:` node registers a lazy `From:` directory reference (`scanCandy` parses + validates it later), every other node decomposes + merges via `normalizeNodeInto`. Explicit map entries always win over discovered entries. **`ApplyDiscover` runs in the loader's main path (`loadUnifiedInto` depth-0 boundary, for the root AND every namespace), so discovered `box:` nodes reach `ProjectConfig` — not just the layer-loading path.** The authoring kind vocabulary is CUE-derived — `spec.KindWords` projected to the `kindWordSet` membership set in `reserved_registry.go`; the former hand `kindKeys`/`kindKeysSet`/`entityKind` lists were deleted.
 
 Projections to today's concrete types: `ProjectConfig()` → `*Config`, `ProjectDistroConfig()` → `*DistroConfig`, etc. Existing `LoadConfig` / `LoadBuildConfigForBox` / `LoadBundleConfig` continue to work unchanged — migration to the unified entry point is incremental.
 
 **Binary-embedded default config (`charly/embed_defaults.go`).** The loader has ONE document-interpretation path (`mergeUnifiedDocs`). The binary-embedded default config is plain node-form YAML at `charly/charly.yml` (`//go:embed charly.yml`, `embed_defaults.go`), parsed by the SAME unified loader as any project `charly.yml` — there is no CUE-source front-end and no compile step: `embeddedDefaults` feeds the embedded bytes straight through the UNCHANGED `mergeUnifiedDocs`, then `applyEmbeddedDefaults` merges the vocabulary in as the lowest-priority base (project-wins). The embedded vocabulary is schema-validated against `charly/schema` (`#Distro`/`#Builder`/`#Init`/`#Resource`/`#Sidecar`) through the shared `validateVocabularyCollections` helper (`validate.go`, also used by `charly box validate` for project files) — guarded by `TestEmbeddedDefaults_SchemaConformance`, with `TestEmbeddedDefaults_SameLoaderPath` proving the embed flows through the identical loader core.
+
+### CUE is the single source of truth — the `charly/spec` package
+
+The `charly.yml` ingress schema has ONE author-of-record: the CUE definitions in `charly/schema/*.cue`. The Go param structs, the reserved-word vocabulary, and the kind/verb wiring are GENERATED or DERIVED from that source — there are no hand-maintained parallel copies. The pieces:
+
+- **`charly/spec` — the generated param structs.** `task cue:gen` regenerates this package from `charly/schema/*.cue`. Its members:
+  - `spec/cue_types_gen.go` — **generated** by `cue exp gengotypes` (then yaml-tag retagged). Carries the `Code generated … DO NOT EDIT` banner; NEVER hand-edit. Every authored param type lives here (`Box`, `Candy`, `Vm`, `Op`, `Deploy`, …).
+  - `spec/vocab_gen.go` — **generated** by the companion `charly/internal/schemagen` (`-mode=vocab`). The CUE-derived reserved-word slices: `KindWords`, `ResourceKinds`, `DocDirectives`, `StepKeywords`, `ContextWords`, `DataKeys`, `OpFields`, `OpVerbs`, `AuthoringVerbs`, `LiveVerbMethods`.
+  - `spec/union_types.go` — **hand-written** faithful union / shorthand types. `cue exp gengotypes` degrades every CUE disjunction to `any`/`map[string]any`/an empty struct, so the matching CUE def is annotated `@go(-)` (suppressing the lossy generated type) and the precise Go type is hand-written here in the SAME package, referenced by the generated structs by name.
+  - `spec/charly_names.go` — **hand-written** charly-name aliases (`type BoxConfig = Box`, `type VmSpec = Vm`, …). Def-level `@go(CharlyName)` is BROKEN in cue v0.16.1 (it dangles the fields that reference the renamed def, producing uncompilable Go — RDD-verified on a live spike), so the charly NAME is exposed as a Go type alias here instead of via a def-level attribute. The per-FIELD `@go(GoName,…)` attributes (which DO work) carry the name/pointer/type overrides in `charly/schema/*.cue`.
+  - `spec/gen_repro_test.go` — `TestGenReproducible`, the **reproducibility gate**: re-runs the same `task cue:gen` tools into a temp dir and diffs against the committed `cue_types_gen.go` + `vocab_gen.go`, failing on any drift (skips gracefully when the pinned `cue` CLI is absent).
+  - `spec/scalar_aliases.go`, `spec/hand_state_types.go`, `spec/charly_methods.go` — hand-written supporting scalar aliases, runtime state types, and the pure methods (`Op.Kind()`, …) that moved into package `spec` alongside the types they operate on.
+- **`charly/internal/schemagen` (`main.go`) — the companion generator.** Three modes: `-mode=concat` (concatenate `schema/*.cue` into one `schema_spec.cue` compilation unit headed `package spec`), `-mode=vocab` (compile that and emit `spec/vocab_gen.go`), `-mode=retag` (the principled Go yaml-tag transform on the `gengotypes` output → `spec/cue_types_gen.go`). Compiled and documented — never `sed` on generated Go.
+- **`charly/internal/schemaconcat` (`schemaconcat.go`) — the shared concat contract (R3).** The ONE `ConcatSchema` both the RUNTIME (`cue_schema.go`'s `sharedCueSchema`) and the dev-time generator call to fold every package-less `schema/*.cue` file into one compilation unit, so the schema the runtime validates against and the Go types `gengotypes` produces can never drift. A leaf package depending only on the stdlib `io/fs` abstraction (runtime passes its `//go:embed` FS, the generator passes `os.DirFS`).
+- **`charly/spec_aliases.go` (package main) — the zero-churn repoint + the compile-time parity gate.** Every package-main param type is now a `type X = spec.X` alias (`BoxConfig`, `Op`, `CandyYAML`, `VmSpec`, `ServiceEntry`, …); the hand struct DEFINITIONS were deleted. Because every `BoxConfig{…}` / `[]ServiceEntry` reference throughout package main compiles against the spec types, **the Go compiler IS the field-parity check**: a renamed or removed spec field (or wire-key/type change) fails the build at this surface. Name collisions where the package-main type is a different concept stay hand-written (`CalVer`, `CandyRef`, the runtime `Candy` — the param is aliased as `CandyYAML`).
+- **`charly/reserved_registry.go` (package main) — the reserved-word ⇄ handler registry + the startup bijection gate.** Hosts the CUE-derived membership sets that REPLACED the former eight hand vocab lists (`kindKeys`/`kindKeysSet`/`rootShapeKeys`/`docDirectiveKeys` from `unified.go` + `nodeEntityKinds`/`nodeResourceKinds`/`nodeStepVerbs`/`nodeDataKeys`/`nodeDocDirectives` from `node_parse.go`): `kindWordSet`, `resourceKindSet`, `stepKeywordSet`, `dataKeySet`, `docDirectiveSet` (each a set view of a `spec.*` slice). `reservedKindHandlers` binds each kind word to its CUE def (`"vm" → "#Vm"`), `VerbCatalog` dispatches verbs, `liveVerbDispatch` dispatches live-verb methods. The `init()` runs three **bijection** checks fail-fast at process start (mirrored as `TestReservedWordRegistry_*`): `checkKindBijection(reservedKindHandlers, spec.KindWords)`, `checkVerbBijection(VerbCatalog, spec.OpVerbs, spec.AuthoringVerbs)`, `checkMethodAllowlists(liveVerbDispatch, spec.LiveVerbMethods)` — so a kind/verb/method can never be added to the schema without a handler, nor a handler kept after its word is dropped. `normalizeNodeInto` (the reserved-word-driven node decomposer) also lives here.
 
 ### import-namespace loader (`UnifiedFile.Import` + `Namespaces`)
 
@@ -139,7 +151,7 @@ The VM path spans the following module topology:
 | `charly/vm_create_spec.go` + `vm_build.go` | CLI command wiring for `charly vm build/create` reading `kind: vm` entities |
 | `charly/libvirt_helpers.go` + `libvirt_yaml_listen.go` | helpers shared by the libvirt YAML bridge + `qemu_render` argv emitter (`VmRuntimeParams`); structured `<listen>` support for `LibvirtGraphics` |
 
-**`unified.go` VM support**: `"vm"` is in the `entityKind` enum, with a `VmDoc` loader struct, a `mergeVmMap` merger, and `"vm"` in `rootShapeKeys` (so `vm.yml` is recognized as a valid entity-shape include file).
+**`unified.go` VM support**: `"vm"` is a CUE kind word (`spec.KindWords` → `kindWordSet`), bound in `reservedKindHandlers` to the `#Vm` def its node-form value validates against; `VmSpec = spec.Vm` is the generated param alias. The loader decomposes a `vm:` node into `UnifiedFile.VM` (`map[string]*VmSpec`) and merges it with the surviving `mergeVmMap` (root-wins, like every sibling map merger). `#NodeDoc` is the sole load gate — the former `entityKind` enum, the `VmDoc` loader struct, and the `rootShapeKeys`/`docDirectiveKeys` hand vocab lists were deleted; a residual legacy `vm:`-keyed (or `vms:`-plural) document is hard-rejected by `classifyDoc` with a `charly migrate` hint.
 
 Full subsystem references: `/charly-internals:vm-spec`, `/charly-internals:libvirt-renderer`, `/charly-internals:cloud-init-renderer`, `/charly-internals:vm-deploy-target`, `/charly-internals:ovmf`, `/charly-internals:cutover-policy`.
 
@@ -204,7 +216,7 @@ Submodule convention: `plugins/` is a submodule rooted at the
 | `config.go` | `charly.yml` parsing, inheritance resolution. `BuildFormats` type. `Distro` field. `ResolvedBox.Tags` (union). `SupportsTag()`, `SupportsBuild()` methods |
 | `format_config.go` | `DistroConfig` (with per-distro `Formats`), `BuilderConfig` types. `BuildFile` loader struct matches the three top-level build-vocabulary sections (`distro:`, `builder:`, `init:`). `LoadBuildConfigForBox` reads the project `charly.yml` (via `LoadUnified`, with the embedded build vocabulary merged in as the project-wins base) and splits it into `DistroConfig` / `BuilderConfig` / `InitConfig` views. Per-image config resolution with remote ref support |
 | `format_template.go` | Go `text/template` rendering engine. Template helpers: `cacheMounts`, `cacheMountsOwned`, `quote`, `default`, `splitFirst`, `replace`, `join`. `InstallContext`, `BuildStageContext` types |
-| `layers.go` | Layer scanning, file detection. `CandyYAML` struct (CUE-decoded via `cue_loader.go`; load-time top-level typo-detection via the `rejectUnknownCandyTopLevelKeys` guard — no custom `UnmarshalYAML`). `Task` struct + `Kind()` method (exactly-one-verb). `derivePackageSectionsFromCalamares` is the SOLE package-surface populator: every `distro:` key (bare / versioned / compound) → a per-distro `tagSections` entry (NOT a shared format section — that collapse caused the non-deterministic deb-repo bug); top-level `package:` → `topPackages` (folded at resolve time); arch `aur:` keeps its `aur` format section. `compileSystemPackageSteps` (`install_build.go`) cascades these — see `/charly-internals:install-plan`. |
+| `layers.go` | Layer scanning, file detection. `CandyYAML` (the `= spec.Candy` generated param alias — no hand struct; see `spec_aliases.go`), CUE-decoded via `cue_loader.go`; load-time top-level typo-detection via the `rejectUnknownCandyTopLevelKeys` guard — no custom `UnmarshalYAML`. `Task` struct + `Kind()` method (exactly-one-verb). `derivePackageSectionsFromCalamares` is the SOLE package-surface populator: every `distro:` key (bare / versioned / compound) → a per-distro `tagSections` entry (NOT a shared format section — that collapse caused the non-deterministic deb-repo bug); top-level `package:` → `topPackages` (folded at resolve time); arch `aur:` keeps its `aur` format section. `compileSystemPackageSteps` (`install_build.go`) cascades these — see `/charly-internals:install-plan`. |
 | `tasks.go` | **All task emission logic** — per-verb emitters (`emitMkdirBatch`, `emitCopy`, `emitWrite`, `emitLinkBatch`, `emitDownload`, `emitSetcapBatch`, `emitCmd`, `emitBuild`), `emitTasks` orchestrator, `stageInlineContent` (content-addressed), `resolveUserSpec`, `taskSubstPath`, `taskUnresolvedRefs`. Adjacent-coalescing (`taskCoalescesWith`). **Shell-quoting helpers:** `shellSingleQuote(s)` for standard `'...'` escaping (used by LABEL values + `emitDownload` env entries) and `shellAnsiQuote(s)` for bash ANSI-C `$'...'` quoting (used by `emitCmd` so multi-line script bodies survive podman's line-oriented Dockerfile parser). **`emitDownload` env rule:** uses `export VAR=val;` (semicolon-terminated) not `VAR=val cmd`, because bash expands `${VAR}` in URL arguments before the cmd-prefix environment is assembled. ~430 lines, single home for install-task codegen. |
 | `generate.go` | Containerfile generation. `writeCandySteps` orchestrates per-layer: packages → `emitTasks` (from `tasks.go`) → builders → USER reset. **Package resolution goes through the SAME `resolveCascadePackages` (`install_build.go`) the deploy compiler uses** — ONE distro-specificity cascade for build AND deploy (folds the top-level `package:` base + unions distro tag sections most-specific-first), then renders the primary format's install template; non-primary build formats (`aur`) emit from their own format section. There is no separate build-path Phase1/Phase2 resolution anymore. Config-driven format install, builder stages, and bootstrap from the build vocabulary (`distro:` + `builder:` sections — the embedded default lives in `charly/charly.yml`). **`writeLabels` is called at the END of the final stage (after the final `USER` directive)** — the volatile `LabelDescription` value would otherwise invalidate every downstream RUN/COPY on a baked-plan edit; with LABELs-at-end, only the LABEL steps themselves re-emit (cache preserves all install work). `writeJSONLabel` routes every JSON label value through `shellSingleQuote` so embedded `'` chars in test commands (`awk '{print $1}'`) don't break podman's `key=value` LABEL parser. |
 | `validate.go` | All validation rules. `validateCandyTasks` enforces exactly-one-verb, per-verb required modifiers, `var` key rules, path/mode/caps format, `${VAR}` resolution checks. Format/builder validation against config definitions (not hardcoded maps) |
@@ -340,7 +352,7 @@ section is the Go-implementation map.
 
 | File | Purpose |
 |------|---------|
-| `checkspec.go` | `Op` struct (the unified verb vocabulary — the former Task + Check merged into one; `Kind()` enforces exactly-one verb). Built-in verbs (file/port/command/http/package/service/process/dns/user/group/interface/kernel-param/mount/addr/matching) plus 9 live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`/`record`/`spice`/`libvirt`/`k8s`) dispatched via `checkrun_charly_verbs.go`. **`Status` on the http verb is a plain `int`** — not a MatcherList. One expected code per test; no `[200, 302]` list shorthand. `Matcher` + `MatcherList` with custom YAML **and** JSON unmarshalers for scalar/list/map shorthand — symmetry between charly.yml authoring and hand-crafted OCI labels. The plan step types travel in `LabelDescriptionSet` (the `ai.opencharly.description` label carries a `Plan []Step` field per `LabeledDescription`). Extended `${NAME[:arg]}` matcher (in `ExpandTestVars`) — backward-compatible widening of `taskVarRefPattern` in `tasks.go`. **No bash-style defaults**: `${VAR:-fallback}` is unsupported; only `${IDENT}`. `ExpandTestVars`, `TestVarRefs`, `IsRuntimeOnlyVar`, `Op.ExpandVars`. |
+| `checkspec.go` | `Op` (the `= spec.Op` generated param alias — no hand struct; `Op.Kind()` is a package-`spec` method) — the unified verb vocabulary, the former Task + Check merged into one; `Kind()` enforces exactly-one verb. Built-in verbs (file/port/command/http/package/service/process/dns/user/group/interface/kernel-param/mount/addr/matching) plus 9 live-container verbs (`cdp`/`wl`/`dbus`/`vnc`/`mcp`/`record`/`spice`/`libvirt`/`k8s`) dispatched via `checkrun_charly_verbs.go`. **`Status` on the http verb is a plain `int`** — not a MatcherList. One expected code per test; no `[200, 302]` list shorthand. `Matcher` + `MatcherList` with custom YAML **and** JSON unmarshalers for scalar/list/map shorthand — symmetry between charly.yml authoring and hand-crafted OCI labels. The plan step types travel in `LabelDescriptionSet` (the `ai.opencharly.description` label carries a `Plan []Step` field per `LabeledDescription`). Extended `${NAME[:arg]}` matcher (in `ExpandTestVars`) — backward-compatible widening of `taskVarRefPattern` in `tasks.go`. **No bash-style defaults**: `${VAR:-fallback}` is unsupported; only `${IDENT}`. `ExpandTestVars`, `TestVarRefs`, `IsRuntimeOnlyVar`, `Op.ExpandVars`. |
 | `checkvars.go` | `ResolveCheckVarsBuild` / `ResolveCheckVarsRuntime`. `InspectContainer` is a swappable package-level `var` (test-friendly pattern matching `InspectLabels` in `labels.go`). Maps `podman inspect` output into `HOST_PORT:<N>`, `VOLUME_PATH:<name>`, `VOLUME_CONTAINER_PATH:<name>`, `CONTAINER_IP`, `CONTAINER_NAME`, `ENV_<NAME>`. |
 | `checkrun.go` | `Runner`, `Executor` interface, `ContainerExecutor` (via `podman exec`), `ImageExecutor` (via `podman run --rm`). `CheckStatus`/`CheckResult` types (named to avoid collision with doctor.go). Per-verb dispatch for `file`/`port`/`command`/`http`. Matcher evaluation: `matchOne` + `matchNumeric` (`lt`/`le`/`gt`/`ge`). `validMatcherOps` allowlist kept in lockstep with the runner switch by `TestMatcher_AllowlistRunnerSync`. Output formatters: text, JSON, TAP. |
 | `checkrun_verbs.go` | Dispatch for the remaining verbs: `package` (rpm/dpkg/pacman), `service` (supervisorctl + systemctl), `process` (pgrep), `dns` (host-side `net.LookupIP` or in-container `getent`), `user`/`group` (getent passwd/group), `interface` (`ip -o addr show` + MTU), `kernel-param` (`sysctl -n`), `mount` (`findmnt`), `addr` (host-side `net.DialTimeout` or in-container `nc -z`), `matching` (pure in-process value matching). **`resolvePackageName(c, distros)`** implements the distro-aware package-map: when `Check.PackageMap` is non-empty, the first entry in `Runner.Distros` that matches a key wins; otherwise `Check.Package` is used as-is. Covered by `TestResolvePackageName` (6 sub-cases including empty-map fallback, first-matching-tag-wins priority, and empty-string-map-value fall-through). `Runner.Distros` is populated from `meta.Distro` at both entry points in `check_cmd.go`. |
@@ -382,53 +394,71 @@ section is the Go-implementation map.
 
 Add to `charly/validate.go`. All validation rules are centralized there.
 
-### Updating Go code when an ingress CUE schema changes
+### How to change the charly.yml schema (CUE is the single source of truth)
 
-The ingress CUE schemas (`charly/schema/*.cue`) and the Go structs they
-validate-then-decode-into are TWO hand-maintained sources that MUST stay in
-lockstep — there is no codegen between them (see point 5). When you add or
-change a `schema/*.cue` definition, update the Go side in the SAME change:
+CUE (`charly/schema/*.cue`) is the SOLE author-of-record for the `charly.yml`
+ingress schema; the Go param structs in `charly/spec` and the reserved-word
+vocabulary are GENERATED / DERIVED from it (see "CUE is the single source of
+truth"). The recipe:
 
-1. **Match the Go struct's yaml tag to the schema field key.** The schema key is
-   the WIRE key — e.g. CUE `#InstallOpts.with_service?` pairs with the Go field
-   `WithServices` carrying the struct tag `yaml:"with_service"`. The wire key is
-   SINGULAR even though the Go field and the `--with-services` CLI flag are
-   plural. A mismatch is a SILENT bug, not a compile error:
-   - a schema field with NO matching Go yaml tag → CUE accepts the key but the
-     loader's yaml.v3 decode silently DROPS the value (`keylint.go` surfaces it
-     only as a non-fatal `key ignored` warning);
-   - a Go yaml-tag field with NO matching schema field → CUE hard-rejects an
-     otherwise-valid config with `field not allowed` (a false positive).
-2. **Keep the definition CLOSED.** A `#Def: {…}` is closed by DEFAULT (rejects
-   unknown keys — that is exactly what catches a misspelled field). For two
-   mutually-exclusive fields use a disjunction applied with `&`
-   (`#Box: {…} & ({from?: _|_} | {base?: _|_})`), which keeps the struct CLOSED;
-   NEVER an embedded `matchN`, which silently disables closedness (the comments
-   in `box.cue` / `candy.cue` / `vm.cue` document this exact choice).
-3. **New kind:** add `schema/<kind>.cue` (the `#<Kind>` def, reusing the shared
-   defs in `_common.cue`) + a one-line `cue_kind_<kind>.go` registration (mirror
-   an existing one; call `registerCueKind`), and add the kind to the corpus test
+1. **Edit CUE only.** Add or change the field, kind, verb, or method enum in
+   `schema/*.cue`. A param-struct field is just a CUE field; a new KIND is a new
+   `#Node` arm + a per-kind `#Def`; a new VERB is a field on `#Op` (+ a
+   `#*Method` enum if it carries methods). Keep the `#Def` CLOSED (closed by
+   DEFAULT — that is what catches a misspelled field); for two mutually-exclusive
+   fields use a disjunction applied with `&` (`#Box: {…} & ({from?: _|_} |
+   {base?: _|_})`), NEVER an embedded `matchN`, which silently disables
+   closedness (the comments in `box.cue` / `candy.cue` / `vm.cue` document this).
+2. **Annotate for Go with `@go()`.** A multi-word field → `@go(GoName)` (wire key
+   preserved); a named scalar you want as a plain Go `string`/`map` →
+   `@go(,type=string)` merged as `@go(GoName,type=string)`; a pointer / tri-state
+   field → `@go(GoName,optional=nillable)` (→ `*T`) or `@go(GoName,type=*int|*bool)`;
+   a disjunction field → `@go(GoName,type=YourUnionType)` and hand-write that
+   union in `charly/spec/union_types.go`; a never-authored field → `@go(-)`.
+   NOTE: def-level `@go(CharlyName)` is BROKEN in cue v0.16.1 (it dangles the
+   referencing fields) — expose a charly type NAME via a Go alias in
+   `charly/spec/charly_names.go` (`type BoxConfig = Box`) instead.
+3. **Regenerate: `task cue:gen`.** It runs `cue exp gengotypes` into
+   `charly/spec/cue_types_gen.go`, the companion `charly/internal/schemagen` into
+   `charly/spec/vocab_gen.go`, and the principled yaml-tag retag transform (both
+   over the `charly/internal/schemaconcat` concatenation). NEVER hand-edit the
+   generated files (they carry the `Code generated … DO NOT EDIT` banner).
+   `TestGenReproducible` (`spec/gen_repro_test.go`) fails if committed ≠ fresh.
+4. **Bind behavior.** For a new KIND or VERB add ONE handler in
+   `charly/reserved_registry.go` binding the reserved word to its generated param
+   type (`reservedKindHandlers` / `VerbCatalog` / `liveVerbDispatch`). The startup
+   bijection gate (`checkKindBijection` / `checkVerbBijection` /
+   `checkMethodAllowlists` against `spec.KindWords` / `spec.OpVerbs` /
+   `spec.AuthoringVerbs` / `spec.LiveVerbMethods`) panics fast (and fails
+   `TestReservedWordRegistry_*`) if CUE and the registry disagree.
+5. **The drift gates (keep them all green).** There is no `spec_parity_test.go`;
+   field parity is enforced three ways. (a) The **compile-time alias surface** —
+   every package-main param type is a `type X = spec.X` alias in
+   `charly/spec_aliases.go`, so a hand-referenced field that no longer has a
+   matching spec field (name + wire-key + type) FAILS the build at that surface.
+   (b) `TestGenReproducible` proves the generated files match a fresh `task
+   cue:gen`. (c) The reserved-word bijection gate proves the kind/verb/method
+   wiring matches CUE. New kind also needs its `schema/<kind>.cue` `#<Kind>` def
+   (reusing the shared defs in `_common.cue`) + a one-line `cue_kind_<kind>.go`
+   `registerCueKind` registration + a corpus-test entry
    (`cue_kinds_corpus_test.go`).
-4. **Run the guards before committing:** `cd charly && go test ./...` (the
-   corpus + closedness tests and `TestEmbeddedDefaults_SchemaConformance` fail on
-   a schema↔struct divergence) and `charly box validate` across the project +
-   every `box/<distro>` submodule (the embedded `charly/charly.yml` vocabulary is
-   covered by `validateVocabularyCollections`). Add or extend a test for every
-   new field set — the test is the regression guard that keeps the two sources
-   from drifting.
-5. **Do NOT generate the Go structs with `cue exp gengotypes`.** It generalizes
-   every disjunction to `any` (so the closed `& ({a}|{b})` patterns and any
-   `string | int` field lose their Go-side type precision) and remaps names
-   (`#foo`→`Foo`), so it cannot reproduce the hand-written loader structs. The
-   manual lockstep + the `go test` guards above are the single-source-of-truth
-   enforcement instead.
-6. **`keylint` self-decoding types:** a type whose authored keys are NOT literal
-   struct fields (the operator-map matchers, the dynamic per-shell sub-blocks) is
-   false-flagged by yaml.v3 `KnownFields(true)`; add it to
-   `keylintSelfDecodingTypes` in `keylint.go`. CUE's closed-schema check is the
-   real unknown-key gate for these (see the `keylint.go` header). The ingress
-   recipe is owned by `/charly-build:validate`; the egress analog is the "Adding
-   a new egress schema" recipe in `/charly-internals:egress`.
+6. **Schema-version bump ONLY on an authored WIRE-key change.** Only if the
+   change alters an authored WIRE key (the YAML users write) is it a FORMAT
+   change: then add a `charly migrate` step + bump `LatestSchemaVersion`
+   (`migrate_registry.go`, calver stamp last) per `/charly-build:migrate`. A pure
+   Go-identifier change via `@go()` is NOT a format change (wire key preserved) —
+   do NOT bump the schema version.
+7. **Guards (all must pass):** `cd charly && go test ./...` (reproducibility +
+   bijection + corpus + closedness + embedded-defaults via
+   `validateVocabularyCollections` / `TestEmbeddedDefaults_SchemaConformance`) +
+   `charly box validate` on the repo and every `box/<distro>` submodule + the R10
+   bed gate.
+
+Do NOT reintroduce a hand-maintained vocab list, a per-verb dispatch switch, or
+a hand-written param struct — they are generated / derived from CUE now. Do NOT
+use `cue get go` (that is the Go→CUE direction; CUE is the source here). The
+ingress validation recipe is owned by `/charly-build:validate`; the egress
+analog is the "Adding a new egress schema" recipe in `/charly-internals:egress`.
 
 ### Debug a Build Issue
 

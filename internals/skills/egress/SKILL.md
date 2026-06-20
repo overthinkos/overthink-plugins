@@ -17,14 +17,21 @@ description: |
 charly's CUE work has two halves:
 
 - **Ingress** (`charly/cue_schema.go`): validates the INPUT config a user authors
-  (`charly.yml` / box / candy / vm / k8s / bundle) against `schema/*.cue`. Owned by
-  `/charly-build:validate`.
+  (`charly.yml` / box / candy / vm / k8s / bundle) against `schema/*.cue`, AND is
+  the single source for the Go param structs that config decodes into — the
+  `@go()`-annotated `schema/*.cue` GENERATE the `charly/spec` param structs via
+  `task cue:gen` (`cue exp gengotypes`), kept honest by the reproducibility +
+  parity tests. Owned by `/charly-build:validate`; the schema-change codegen
+  recipe is `/charly-internals:go` "Updating Go code when an ingress CUE schema
+  changes".
 - **Egress** (`charly/egress.go`, this skill): validates the OUTPUT config charly
   WRITES onto a system — the seed ISO's cloud-init, Kustomize manifests, quadlet
   and systemd units, the ssh_config fragment, the install ledger, libvirt domain
   XML, … — BEFORE the bytes are written. Ingress proves the input; egress proves
   the output. A malformed artifact fails loudly in charly with a precise CUE
-  error instead of silently on the target.
+  error instead of silently on the target. Egress is **validation-only**: it
+  shares no codegen path with ingress — `ValidateEgress` ingests already-rendered
+  bytes and is unchanged by the ingress single-source-schema work.
 
 ## Two-layer model (what CUE can and cannot do)
 

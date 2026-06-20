@@ -57,6 +57,8 @@ chrome:
 
 The runtime parser accepts only this node-form. `charly migrate` converts any legacy candy file — the old kind-keyed `candy: {name, …}` wrapper and its inline `plan:` list — to the canonical shape in a single idempotent pass.
 
+The candy + plan-step schema the parser validates against is **CUE-single-source**: the `@go()`-annotated `charly/schema/*.cue` defs (`#Candy`, `#Op`, …) are the sole source for both the Go param structs (generated into `charly/spec` by `task cue:gen`) and load-time validation, so adding or changing a candy field is a CUE edit → `task cue:gen` → see the `/charly-internals:go` recipe "Updating Go code when an ingress CUE schema changes".
+
 ## Quick Reference
 
 | Action | Command | Description |

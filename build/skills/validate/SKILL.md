@@ -12,6 +12,8 @@ Invoked as `charly box validate`. See `/charly-image:image` for the family overv
 
 `charly box validate` checks `charly.yml` and all layer definitions for errors. Validation collects all errors at once rather than failing on the first.
 
+The param schema these rules enforce is **CUE-single-source**: the `@go()`-annotated `charly/schema/*.cue` defs are the sole source for both the Go param structs (generated into `charly/spec` by `task cue:gen`) and the load-time validation, so changing a validated field is a CUE edit → `task cue:gen` → see the `/charly-internals:go` recipe "Updating Go code when an ingress CUE schema changes". The authoring surface is **node-form only** (name-first `<name>: {<kind>: …}`); a legacy kind-keyed document is rejected at load with a `charly migrate` hint.
+
 ## Quick Reference
 
 | Action | Command | Description |
