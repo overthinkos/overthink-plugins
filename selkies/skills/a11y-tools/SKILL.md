@@ -1,3 +1,10 @@
+---
+name: a11y-tools
+description: |
+  AT-SPI2 accessibility introspection — Python AT-SPI2 bindings to query the accessibility tree of GTK, Qt, and Chrome apps for element-based automation (find by name/role, not pixel coordinates), backing `charly check wl atspi tree/find/click`.
+  Use when working with accessibility-tree introspection, AT-SPI2, or element-based desktop automation.
+---
+
 # a11y-tools - AT-SPI2 Accessibility Introspection
 
 ## Overview

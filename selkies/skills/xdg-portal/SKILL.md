@@ -1,3 +1,10 @@
+---
+name: xdg-portal
+description: |
+  XDG Desktop Portal infrastructure for Sway containers — the portal daemon, the wlroots backend (xdg-desktop-portal-wlr), and the GTK fallback — enabling screen sharing, portal screenshots, and file dialogs.
+  Use when working with XDG desktop portals, screen-sharing, or file-dialog support inside a container.
+---
+
 # xdg-portal - XDG Desktop Portal Infrastructure
 
 ## Overview

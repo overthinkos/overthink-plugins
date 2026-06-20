@@ -1,3 +1,10 @@
+---
+name: waybar-labwc
+description: |
+  Waybar status bar adapted for the labwc compositor (not sway) — shares the unified waybar config and connects to labwc's wayland-0 socket for layer-shell exclusive zones and the wlr-foreign-toplevel taskbar.
+  Use when working with the labwc status bar or the selkies-desktop waybar.
+---
+
 # Candy: waybar-labwc
 
 Waybar status bar adapted for labwc compositor (not sway). Uses the same unified config as the `waybar` candy — sway-specific modules (workspaces, mode) auto-hide on labwc since `SWAYSOCK` is not set.

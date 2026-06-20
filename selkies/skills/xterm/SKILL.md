@@ -1,3 +1,10 @@
+---
+name: xterm
+description: |
+  Lightweight X11 terminal emulator (xterm) that triggers on-demand XWayland on labwc/selkies-desktop, enabling X11 automation tools (xdotool, xprop, xwininfo) to find windows.
+  Use when working with xterm, on-demand XWayland startup, or X11-based window automation on a Wayland desktop.
+---
+
 # xterm - X11 Terminal (XWayland)
 
 ## Overview

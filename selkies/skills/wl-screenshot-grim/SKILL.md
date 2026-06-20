@@ -1,3 +1,10 @@
+---
+name: wl-screenshot-grim
+description: |
+  Wayland screenshot capture via `grim` using the wlr-screencopy protocol, for sway and standalone wlroots compositors.
+  Use when capturing screenshots on wlroots desktops — NOT on selkies-desktop (use wl-screenshot-pixelflux there).
+---
+
 # wl-screenshot-grim - Screenshot via grim (wlr-screencopy)
 
 ## Overview

@@ -1,3 +1,10 @@
+---
+name: wl-tools
+description: |
+  Compositor-agnostic desktop automation CLI tools — Wayland-native input (wtype), X11, and clipboard (wl-clipboard) — that back the `charly check wl` command on wlroots compositors (sway, labwc) and partially on KWin.
+  Use when working with `charly check wl`, Wayland desktop automation, keyboard/window control, or clipboard tooling.
+---
+
 # wl-tools - Compositor-Agnostic Desktop Automation Tools
 
 ## Overview
