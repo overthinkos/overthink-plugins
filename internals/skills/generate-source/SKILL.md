@@ -432,6 +432,7 @@ Built images embed runtime metadata as labels (prefix: `ai.opencharly.`), making
 | `ai.opencharly.libvirt` | JSON | libvirt XML snippets |
 | `ai.opencharly.route` | JSON | `[{"host":"app.localhost","port":8080}]` |
 | `ai.opencharly.init` | string | active init system name |
+| `ai.opencharly.init_def` | JSON | build-resolved init contract — `{entrypoint, fallback_entrypoint, management_tool, management_commands}` — read label-first at deploy for the entrypoint + in-container service-management surface |
 | `ai.opencharly.service.<init>` | JSON | service names per init system |
 | `ai.opencharly.env_layer` | JSON | layer-level env vars (merged) |
 | `ai.opencharly.path_append` | JSON | PATH append entries |

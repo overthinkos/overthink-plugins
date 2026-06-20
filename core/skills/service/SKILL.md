@@ -164,7 +164,7 @@ charly service restart my-app traefik      # Restart a specific service
 charly service status my-app -i prod       # Named instance
 ```
 
-The service name must match an entry in the image's init system config. Available services are validated against the image's `ai.opencharly.service.<init>` label (e.g., `ai.opencharly.service.supervisord`). The management tool and commands are defined in the embedded `init:` vocabulary.
+The service name must match an entry in the image's init system config. Available services are validated against the image's `ai.opencharly.service.<init>` label (e.g., `ai.opencharly.service.supervisord`). The management tool and commands are resolved from the embedded `init:` vocabulary at build time and **baked into the `ai.opencharly.init_def` label**; `charly service …` reads that label (so any vocabulary-declared init system — including custom ones — works at runtime, not just at build), falling back to the built-in `supervisord`/`systemd` registry only for images built before the label existed.
 
 Source: `charly/service.go`.
 
