@@ -1675,6 +1675,9 @@ deliberately.
   `deploy-verifier`) and dynamic workflows (`/verify-beds`,
   `/audit-deploy-configs`) that DRIVE these beds, and the R10/disposable/
   paste-proof rules that bind any agent or workflow running `charly check run`.
+- `/charly-internals:plugin` — the `check: { plugin: <verb> }` step dispatches to a
+  plugin-provided verb (built-in or out-of-tree), with its `plugin_input` validated
+  at runtime against the plugin's served CUE schema before `runPluginVerb` invokes it.
 
 ## When to Use This Skill
 
