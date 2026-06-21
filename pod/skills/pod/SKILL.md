@@ -11,6 +11,8 @@ This skill is a thin schema pointer. For runtime verbs (`charly bundle add`, `ch
 
 A `pod` entity declares a co-scheduled set of containers and the volumes / network / sidecars they share. A deploy node is the **bind site** — its first child key is the substrate kind at the EDGE (`pod:` the default, or `vm:` / `k8s:` / `local:` / `android:`, or `group:` for a targetless member group), carrying `image:` (the box a `pod`/`k8s`/`android` runs) or `from:` (inherit a same-kind template), plus the runtime knobs (encrypted volumes, tunnels, env, ports).
 
+A host/remote deploy MUST use the `host:` FIELD on a `local:` (or `pod:`) deploy (`local: {from: <template>, host: <user@machine>}`) — there is NO `host:` venue KIND. `group:` here is EXCLUSIVELY the targetless deploy group; a Calamares package group is the separate `package-group:` kind, never `group:`.
+
 Schema sources (read these for the canonical truth):
 
 - `charly/deploy.go` — `BundleConfig` + `BundleNode` Go types, the deploy entry shape, target discriminator.

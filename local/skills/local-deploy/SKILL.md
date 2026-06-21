@@ -40,6 +40,8 @@ For VM destinations, `charly vm create <name>` writes a managed Host stanza into
 
 ## `host:` destination semantics
 
+A host/remote deploy MUST be authored as the `host:` FIELD on a `local:` deploy — `local: {from: <template>, host: <user@machine>}`. The `host:` field is a SCALAR on the `local:` substrate node; there is NO standalone `host:` venue KIND, and authoring a `host:` node is a hard load error.
+
 Reserved literal: `local`. Anything else (including `localhost`, `127.0.0.1`) goes through SSH.
 
 ```yaml

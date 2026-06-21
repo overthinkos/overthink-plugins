@@ -502,6 +502,13 @@ are removed (a stray one is a hard load error pointing at `charly migrate`, whic
 existing `calamares` step rewrites into the `distro:` map). The arch `aur:`
 sub-block is the one exception that stays a build format — see AUR below.
 
+> **Calamares package groups MUST use the `package-group:` kind, NOT `group:`.**
+> A `package-group:` entity is a Calamares installer package group (the `#Group`
+> schema — `name`/`package`/`subgroup`/`distro`/…). `group:` is EXCLUSIVELY a
+> targetless DEPLOY group (resource members, no own workload — see
+> `/charly-core:deploy`). The two are distinct kinds; authoring a Calamares group
+> under `group:` is wrong.
+
 ```yaml
 my-app-package:            # the always-included BASE — installed on EVERY distro
   package:
