@@ -86,7 +86,7 @@ charly vm create k3s-srv
 charly bundle add vm:k3s-srv
 # → kubeconfig auto-retrieved + ClusterProfile written
 kubectl --context k3s-srv get nodes
-charly check k8s addons --cluster k3s-srv
+charly check kube addons --cluster k3s-srv
 ```
 
 ## Tests
@@ -95,11 +95,13 @@ Build-scope:
 - `/etc/rancher/k3s/config.yaml` exists, mode 0600.
 - `/etc/systemd/system/k3s.service` exists.
 
-Deploy-scope (using the new `charly check k8s` verb — see `/charly-kubernetes:check-k8s`):
-- `k8s: wait-nodes` — at least 1 node Ready.
-- `k8s: ingressclass` — `traefik` present.
-- `k8s: storageclass` — `local-path` present.
-- `k8s: addons` — Traefik + ServiceLB + local-path-provisioner all Ready.
+Deploy-scope (using the `charly check kube` verb — see `/charly-kubernetes:check-k8s`).
+The cluster-probe verb is `kube` (`charly check kube`); the `k8s` spelling is
+reserved for the deploy KIND only:
+- `kube: wait-nodes` — at least 1 node Ready.
+- `kube: ingressclass` — `traefik` present.
+- `kube: storageclass` — `local-path` present.
+- `kube: addons` — Traefik + ServiceLB + local-path-provisioner all Ready.
 
 ## Related Candies
 - `/charly-infrastructure:k3s` — Base candy installing the k3s binary (required dep)

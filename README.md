@@ -38,7 +38,7 @@ manager UI.
 |---|--:|---|---|
 | **charly-image** | 2 | — | Schema for `kind: box` and `kind: candy` (charly.yml authoring). |
 | **charly-vm** | 6 | — | Schema for `kind: vm` + bootc VM catalog (cloud_image vs bootc, libvirt/QEMU). Includes `cachyos` (bootstrap VM, in the `overthinkos/cachyos` submodule) and `debian` / `ubuntu` (debootstrap bootstrap VMs, in the `overthinkos/debian` / `overthinkos/ubuntu` submodules). |
-| **charly-kubernetes** | 2 | — | Schema for `kind: k8s` + cluster probes via `charly check k8s`. |
+| **charly-kubernetes** | 2 | — | Schema for `kind: k8s` + cluster probes via `charly check kube`. |
 | **charly-local** | 3 | — | Schema for `kind: local` + ssh-host deploys + managed ssh-config fragment. Includes `charly-cachyos` (operator CachyOS workstation profile, in the `overthinkos/cachyos` submodule). |
 | **charly-pod** | 1 | — | Schema for `kind: pod` and the `bundle` deploy kind — thin pointer to `/charly-core:deploy` for verb details. |
 

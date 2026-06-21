@@ -57,8 +57,8 @@ deployments:
 
 ```bash
 charly bundle add vm:k3s-ag1
-# agent registers; charly check k8s wait-nodes on server confirms the join.
-charly check k8s wait-nodes --cluster k3s-srv --count 2 --timeout 3m
+# agent registers; charly check kube wait-nodes on server confirms the join.
+charly check kube wait-nodes --cluster k3s-srv --count 2 --timeout 3m
 ```
 
 ## Tests
@@ -67,8 +67,10 @@ Build-scope:
 - `/etc/rancher/k3s/config.yaml` exists, mode 0600.
 - `/etc/systemd/system/k3s-agent.service` exists.
 
-Deploy-scope (uses `/charly-kubernetes:check-k8s`):
-- `k8s: wait-nodes name=${HOSTNAME}` — this node reaches Ready on the
+Deploy-scope (uses `/charly-kubernetes:check-k8s`). The cluster-probe verb is
+`kube` (`charly check kube`); the `k8s` spelling is reserved for the deploy KIND
+only:
+- `kube: wait-nodes name=${HOSTNAME}` — this node reaches Ready on the
   server.
 
 ## Related Candies

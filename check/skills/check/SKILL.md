@@ -8,9 +8,9 @@ description: |
   (`disposable: true`, run via `charly check run <bed>`), or any plan step / Op
   authoring. Covers the unified `charly check` surface: three
   primary modes (image / live / run),
-  9 live-container probe verbs (cdp/wl/dbus/vnc/mcp/record/spice/libvirt/k8s),
+  9 live-container probe verbs (cdp/wl/dbus/vnc/mcp/record/spice/libvirt/kube),
   verb catalog (file/port/command/http/package/service/process/dns/user/
-  group/interface/kernel-param/mount/addr/matching), runtime variable
+  unix_group/interface/kernel-param/mount/addr/matching), runtime variable
   resolution (`${HOST_PORT:N}`, `${VOLUME_PATH:name}`, `${CONTAINER_IP}`,
   `${ENV_*}`), charly.yml overlay rules, authoring gotchas learned the hard
   way (package renames, absent binaries, host vs container network routing),
@@ -41,7 +41,7 @@ authorization for the unattended destroy + rebuild on any of them.
 
 A bed is a **candybox** (CLAUDE.md "Candyboxing"): a disposable, secured
 container / VM stocked with the FULL toolset — the entire `charly check` probe surface
-(cdp/wl/dbus/vnc/mcp/adb/appium/k8s), nested podman, real package managers, the
+(cdp/wl/dbus/vnc/mcp/adb/appium/kube), nested podman, real package managers, the
 whole layer/image library — so the AI can build, deploy, and prove the *real*
 composition inside it (the substance of RDD), and `disposable: true` makes
 tearing it down and rebuilding fearless. The box is restricted at the boundary,
@@ -146,7 +146,7 @@ memory) is ALWAYS preserved. Set `defaults.keep_check_runs` in `charly.yml`
 | Bed | Target | Ref | Surface |
 |---|---|---|---|
 | `check-sway-browser-vnc-pod` | pod | `box: sway-browser-vnc` | cdp/wl/vnc/dbus/mcp/record + pod-side file/service/port/process/http |
-| `check-k3s-vm` | vm | `vm: k3s-vm` | k8s (all 13 methods) + guest-side file/service/port/process, http via port-forward, VmDeployTarget end-to-end |
+| `check-k3s-vm` | vm | `vm: k3s-vm` | kube (all 13 methods) + guest-side file/service/port/process, http via port-forward, VmDeployTarget end-to-end |
 | `check-pod` | pod | `box: check-pod` | combined mechanism bed: `kind: box` build + `kind: candy` composition order + `kind: pod` runtime (nc :18794 + supervisord) + every DeployTarget rendering path |
 | `check-local` | local | `local: check-local-app` | `kind: local` layer apply via ShellExecutor |
 | `check-jupyter-pod` | pod | `box: jupyter` | jupyter-mcp regression coverage |
@@ -735,7 +735,7 @@ naturally. An empty-string map value falls through to the next tag
 
 | Verb | Typical attributes | Notes |
 |------|---------------------|-------|
-| `file` | `exists`, `mode`, `owner`, `group_of`, `filetype`, `contains`, `sha256` | `group_of` (not `group`) avoids the verb collision |
+| `file` | `exists`, `mode`, `owner`, `group_of`, `filetype`, `contains`, `sha256` | `group_of` (not `group`) — `group` is a reserved kind word, so the owning-group attribute is spelled `group_of` (the getent-group probe verb is `unix_group`) |
 | `package` | `installed`, `versions` | Tries rpm / dpkg / pacman — exact match on installed name (see gotchas) |
 | `service` | `running`, `enabled` | Supervisord first, then systemd |
 | `port` | `listening`, `ip`, `reachable` | **`listening` needs `ss`/`netstat` inside the container** — absent from minimal images |
@@ -744,7 +744,7 @@ naturally. An empty-string map value falls through to the next tag
 | `http` | `status` (int, single value), `body`, `headers`, `method`, `request_body`, `allow_insecure`, `no_follow_redirects`, `ca_file`, `timeout` | Host-side under `charly check live`; curl-in-container under `charly check box` |
 | `dns` | `resolvable`, `addrs`, `server` | Host resolver for `charly check live`; `getent hosts` for `charly check box` |
 | `user` | `uid`, `gid`, `home`, `shell` | `getent passwd` |
-| `group` | `gid`, `groups` | `getent group` |
+| `unix_group` | `gid`, `groups` | `getent group` |
 | `interface` | `mtu`, `addrs` | `ip -o addr show` |
 | `kernel-param` | `value` (scalar or matcher) | `sysctl -n` |
 | `mount` | `mount_source`, `filesystem`, `opts` | `findmnt` |
@@ -755,6 +755,8 @@ naturally. An empty-string map value falls through to the next tag
 | `dbus` | Method name (list/call/introspect/notify) + method-specific modifiers (`dest`, `path`, `method`, `args`, `text`) + shared matchers | **Deploy-context only.** Wraps `charly check dbus <method>`. |
 | `vnc` | Method name (status/screenshot/click/mouse/type/key/rfb/passwd) + method-specific modifiers (`x`, `y`, `text`, `key`, `artifact`) + shared matchers | **Deploy-context only.** Wraps `charly check vnc <method>`. |
 | `mcp` | Method name (ping/servers/list-tools/list-resources/list-prompts/call/read) + method-specific modifiers (`tool`, `uri`, `input`, `mcp_name`) + shared matchers | **Deploy-context only.** Speaks `github.com/modelcontextprotocol/go-sdk` to any `mcp_provide` endpoint. See "Method allowlist — mcp" below. |
+
+> **STRICT RULE — a step verb (or Op modifier) MUST NEVER be spelled like a reserved KIND word.** Kinds (`pod`, `vm`, `k8s`, `local`, `android`, `box`, `candy`, `bundle`, `group`, `host`, `target`, …) live ONLY at a config EDGE — the opening discriminator of a top-level node or a tree-child node — never as a key in the middle of a step. A new probe verb that would collide with a kind word MUST pick a non-colliding spelling (the `k8s`/`group` probe verbs were renamed to `kube`/`unix_group` for exactly this reason). This is machine-enforced by `charly/spec` `TestNoKindWordAsStepVerb` + `TestNoKindWordAsOpModifier` — adding a colliding verb fails the build.
 
 ### Shared modifiers
 
@@ -1342,7 +1344,7 @@ disposable container (`charly check box`) and a running service (`charly check l
 
 | Verb + attributes | Under `charly check live` (running service) | Under `charly check box` (disposable) |
 |-------------------|-----------------------------------|------------------------------------|
-| file, package, service, process, user, group, interface, kernel-param, mount | `ContainerExecutor` (`podman exec`) | `ImageExecutor` (`podman run --rm`) |
+| file, package, service, process, user, unix_group, interface, kernel-param, mount | `ContainerExecutor` (`podman exec`) | `ImageExecutor` (`podman run --rm`) |
 | port with `listening` | `ContainerExecutor` (`ss`/`netstat` inside) | `ImageExecutor` |
 | port with `reachable` | Host-side `net.DialTimeout` | Skipped (no host port binding on a disposable run) |
 | command (`in_container: true`, default) | `ContainerExecutor` | `ImageExecutor` |
@@ -1650,7 +1652,7 @@ deliberately.
 
 ## Related skills
 
-- **Live-container probe verbs under `charly check`** — `/charly-check:cdp`, `/charly-check:wl`, `/charly-check:dbus`, `/charly-check:vnc`, `/charly-build:charly-mcp-cmd`, `/charly-check:record`, `/charly-check:spice`, `/charly-check:libvirt`, `/charly-kubernetes:check-k8s` are dispatched as `charly check cdp|wl|dbus|vnc|mcp|record|spice|libvirt|k8s`. See the Subcommands section above.
+- **Live-container probe verbs under `charly check`** — `/charly-check:cdp`, `/charly-check:wl`, `/charly-check:dbus`, `/charly-check:vnc`, `/charly-build:charly-mcp-cmd`, `/charly-check:record`, `/charly-check:spice`, `/charly-check:libvirt`, `/charly-kubernetes:check-k8s` are dispatched as `charly check cdp|wl|dbus|vnc|mcp|record|spice|libvirt|kube`. See the Subcommands section above.
 - `/charly-image:layer` — layer authoring; plan steps (child step nodes) are part of every `charly.yml`.
 - `/charly-image:image` — image-level plan steps at composition time.
 - `/charly-core:deploy` — local `charly.yml` overlay rules and the plan-step merge.
