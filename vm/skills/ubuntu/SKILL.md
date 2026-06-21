@@ -3,7 +3,7 @@ name: ubuntu
 description: |
   Ubuntu bootstrap VM (kind:vm ubuntu-debootstrap) — source.kind: bootstrap via
   ubuntu-debootstrap-builder + debootstrap, ext4 rootfs, uefi-insecure. Plus the
-  disposable check-ubuntu-debootstrap-vm bundle. Lives in the overthinkos/ubuntu submodule.
+  disposable check-ubuntu-debootstrap-vm deploy. Lives in the overthinkos/ubuntu submodule.
   MUST be invoked before editing ubuntu-debootstrap or its check bed.
 ---
 
@@ -16,7 +16,7 @@ under libvirt/QEMU.
 The `ubuntu-debootstrap` VM entity and its `check-ubuntu-debootstrap-vm` disposable
 test bed live in the **`overthinkos/ubuntu`** repo (git submodule at
 **`box/ubuntu`**), all in that repo's unified `charly.yml`. The bed is a
-`disposable: true` bundle (a check bed is just a bundle carrying `disposable: true`
+`disposable: true` deploy (a check bed is just a deploy carrying `disposable: true`
 — there is no separate bed kind), driven by `charly check run
 check-ubuntu-debootstrap-vm`. Drive the VM lifecycle from the submodule:
 `charly -C box/ubuntu vm build ubuntu-debootstrap` +
@@ -43,8 +43,8 @@ without an import. The embedded vocabulary carries BOTH distro configs, so
 
 ## Check bed
 
-`check-ubuntu-debootstrap-vm` is a `disposable: true` bundle
-(`bundle: {vm: ubuntu-debootstrap, disposable: true}`), so
+`check-ubuntu-debootstrap-vm` is a `disposable: true` deploy
+(`vm: {from: ubuntu-debootstrap, disposable: true}`), so
 `charly -C box/ubuntu check run check-ubuntu-debootstrap-vm` runs the full R10 sequence
 unattended (the equivalent `charly update check-ubuntu-debootstrap-vm` rebuild also works,
 since the bundle is folded into the Bundle map).

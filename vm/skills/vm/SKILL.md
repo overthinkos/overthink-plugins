@@ -8,11 +8,11 @@ description: |
 
 # VM — Virtual Machine Management
 
-## Disposability + bundle cross-ref
+## Disposability + deploy cross-ref
 
-- **Disposability is a deployment property, never a VM-entity field.** A `kind: vm` entity carries no `disposable:` / `lifecycle:` field. Put `disposable: true` on the bundle that deploys it. The `vm:` entity only describes VM shape (disk, RAM, SSH, cloud-init, libvirt), never authorization.
-- **Bundle-level cross-ref**: a bundle that deploys a VM names its VM entity via a `vm: <entity-name>` cross-ref scalar (`<bed>: {bundle: {vm: <entity-name>, disposable: true}}`).
-- **`charly update <vm-entity-name>`** does NOT gate on `disposable:` — an explicit invocation rebuilds ANY target (destroy→create the domain, reuse the qcow2 disk unless `--build`, then re-apply the bundle's layers via the shared `bundle add` path). For a non-disposable, non-ephemeral target it prints a one-line transparency note (`noteUpdateDisposability`) and proceeds. The `disposable: true` flag stays load-bearing as the authorization for UNATTENDED autonomous destroy + rebuild (CLAUDE.md R10) and the check-runner's unattended fresh rebuild, NOT as an `charly update` capability check. See `/charly-internals:disposable` and `/charly-core:charly-update`.
+- **Disposability is a deployment property, never a VM-entity field.** A `kind: vm` entity carries no `disposable:` / `lifecycle:` field. Put `disposable: true` on the deploy that deploys it. The `vm:` entity only describes VM shape (disk, RAM, SSH, cloud-init, libvirt), never authorization.
+- **VM cross-ref**: a `vm:` deploy names its VM entity via the `from:` field (`<bed>: {vm: {from: <entity-name>, disposable: true}}`).
+- **`charly update <vm-entity-name>`** does NOT gate on `disposable:` — an explicit invocation rebuilds ANY target (destroy→create the domain, reuse the qcow2 disk unless `--build`, then re-apply the deploy's layers via the shared `bundle add` path). For a non-disposable, non-ephemeral target it prints a one-line transparency note (`noteUpdateDisposability`) and proceeds. The `disposable: true` flag stays load-bearing as the authorization for UNATTENDED autonomous destroy + rebuild (CLAUDE.md R10) and the check-runner's unattended fresh rebuild, NOT as an `charly update` capability check. See `/charly-internals:disposable` and `/charly-core:charly-update`.
 
 ## Overview
 
@@ -48,7 +48,7 @@ VM name convention: `charly-<name>[-<instance>]`. Default libvirt URI: `qemu:///
 
 ## GPU passthrough (VFIO)
 
-**Preempting a GPU holder is standing-authorized.** When a GPU bundle deploying a VM
+**Preempting a GPU holder is standing-authorized.** When a GPU deploy of a VM
 declares `requires_exclusive: [nvidia-gpu]`, the arbiter gracefully stops the operator's
 running `preemptible` GPU-workstation VM to free the card and is GUARANTEED to restart it —
 you do this autonomously, with no per-run confirmation (preemption is reversible by
@@ -68,7 +68,7 @@ To pass a physical GPU through to a VM and (e.g.) run a CUDA container inside it
    `charly vm gpu list` (or `lspci -nnk` showing `Kernel driver in use: vfio-pci`);
    the GPU comes alive INSIDE the guest, where the in-guest driver layer (step 3)
    binds it and in-guest `nvidia-smi` works.
-2. **The hostdev is AUTO-ALLOCATED.** When a bundle deploying a VM declares
+2. **The hostdev is AUTO-ALLOCATED.** When a deploy of a VM declares
    `requires_exclusive: [<token>]` and that token maps to an embedded
    `resource:` vocabulary entry with a `gpu:` selector (e.g. `resource: {nvidia-gpu: {gpu:
    {vendor: "0x10de"}}}`), `charly vm create` auto-detects the matching GPU,

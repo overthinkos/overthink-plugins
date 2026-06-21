@@ -268,13 +268,13 @@ The quadlet is still written with the conflicting port, so `charly start` will f
 
 All configuration is persisted to `~/.config/charly/charly.yml` in node-form — a
 `version:` stamp, an optional top-level `provides:` directive, and each deploy as a
-name-first `<name>: {bundle: <scalars>, <child-nodes>}` entry (no `deploy:` map
-wrapper, no `target:` field — the `bundle:` cross-ref scalar implies the target):
+name-first `<name>: {<substrate-kind>: <scalars>, <child-nodes>}` entry (no `deploy:` map
+wrapper, no `target:` field — the substrate kind at the edge selects the target):
 
 ```yaml
 my-app:
-  bundle:
-    box: my-app
+  pod:
+    image: my-app
     tag: latest
     data_seeded: true
     data_source: "my-app:latest"
@@ -362,11 +362,11 @@ provides:
       transport: http
       source: jupyter
 ollama:
-  bundle:
-    box: ollama
+  pod:
+    image: ollama
 jupyter:
-  bundle:
-    box: jupyter
+  pod:
+    image: jupyter
 ```
 
 **Self-exclusion (env):** An image's own env_provide vars are filtered out of its own environment — the image uses its own `env:` (e.g., `OLLAMA_HOST=0.0.0.0`), not the service discovery URL.

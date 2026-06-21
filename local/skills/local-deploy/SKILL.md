@@ -1,7 +1,7 @@
 ---
 name: local-deploy
 description: |
-  MUST be invoked before any work involving: `target: local` deployments, the Ansible-style `host:` destination field (literal `local` for direct shell, anything else routes through ssh(1) reading `~/.ssh/config` + ssh-agent), the `local:` template reference, the `user:` and `ssh_args:` Ansible-shaped overrides, the managed `~/.config/charly/ssh_config` fragment, the install ledger at `~/.config/opencharly/installed/`, ReverseOp teardown, or the `--with-services`/`--allow-repo-changes`/`--allow-root-tasks` gates.
+  MUST be invoked before any work involving: `target: local` deployments, the Ansible-style `host:` destination field (literal `local` for direct shell, anything else routes through ssh(1) reading `~/.ssh/config` + ssh-agent), the `local:` substrate kind and its `from:` template reference, the `user:` and `ssh_args:` Ansible-shaped overrides, the managed `~/.config/charly/ssh_config` fragment, the install ledger at `~/.config/opencharly/installed/`, ReverseOp teardown, or the `--with-services`/`--allow-repo-changes`/`--allow-root-tasks` gates.
 ---
 
 # Local Deploy — Applying Candies Directly to a Linux Filesystem
@@ -34,7 +34,7 @@ For VM destinations, `charly vm create <name>` writes a managed Host stanza into
 |---|---|
 | Direct local | `charly bundle add my-laptop` (`host: local` is the default) |
 | SSH to remote | `charly bundle add ci-3` with `host: user@ci-3.lan` in charly.yml |
-| Reference a template | `local: dev-workstation` on the deployment |
+| Reference a template | `from: dev-workstation` inside the `local:` node |
 | Tear down | `charly bundle del <name>` |
 | Tear down, keep repo changes | `charly bundle del <name> --keep-repo-changes` |
 
@@ -43,39 +43,39 @@ For VM destinations, `charly vm create <name>` writes a managed Host stanza into
 Reserved literal: `local`. Anything else (including `localhost`, `127.0.0.1`) goes through SSH.
 
 ```yaml
-# Each deployment is a name-first bundle: the `local:` cross-ref selects
-# the local target, and `host:` selects direct shell vs SSH.
+# Each deployment is a name-first deploy: the `local:` substrate kind at
+# the edge, `from:` selects the template, and `host:` selects direct shell vs SSH.
 
 # Direct local — host: omitted == "local". add_candy is a list, so it
 # lives in its own child node.
 my-laptop:
-  bundle:
-    local: dev-workstation
+  local:
+    from: dev-workstation
   my-laptop-add_candy:
     add_candy: [sshkeys]
 
 # Explicit local sentinel.
 my-laptop-explicit:
-  bundle:
-    local: dev-workstation
+  local:
+    from: dev-workstation
     host: local
 
 # SSH to remote machine (ssh-config + agent supply credentials).
 ci-runner-3:
-  bundle:
-    local: ci-runner
+  local:
+    from: ci-runner
     host: ubuntu@ci-runner-3.lan
 
 # SSH with explicit port.
 bastion:
-  bundle:
-    local: dev-workstation
+  local:
+    from: dev-workstation
     host: admin@bastion.example.com:2222
 
 # SSH to loopback for testing the SSH path.
 ssh-self-test:
-  bundle:
-    local: dev-workstation
+  local:
+    from: dev-workstation
     host: localhost
 ```
 
@@ -87,10 +87,10 @@ Two pass-through fields mirror Ansible's per-host overrides:
 # Explicit user override (Ansible's ansible_user). Used when host: has
 # no "@" prefix. Cleaner than embedding the user in host: when the
 # destination is an ssh-config alias. host: and user: are scalars, so
-# they sit directly under bundle:.
+# they sit directly under the substrate kind.
 workshop-laptop:
-  bundle:
-    local: dev-workstation
+  local:
+    from: dev-workstation
     host: workshop-laptop.lan
     user: alice
 
@@ -99,8 +99,8 @@ workshop-laptop:
 # the right home for persistent options. ssh_args is a list, so it lives
 # in its own child node.
 via-bastion:
-  bundle:
-    local: dev-workstation
+  local:
+    from: dev-workstation
     host: target.internal
     user: ops
   via-bastion-ssh_args:
@@ -138,7 +138,7 @@ Remote `target: local` deploys assume **passwordless sudo** on the destination. 
 
 `charly box validate` checks every `target: local` deployment:
 
-- `local: <name>` references a `kind: local` template that exists.
+- `from: <name>` (inside the `local:` node) references a `kind: local` template that exists.
 - `host:` field, when non-`local`, parses via `ParseSSHTarget`.
 - `user:` and `ssh_args:` only meaningful when `host:` is non-`local` (otherwise error).
 - `user:` redundancy: when `host: <inline>@<machine>` and `user:` are both set with different values, error.

@@ -94,8 +94,8 @@ Missing `env_accept` on the consumer side silently drops the var. Missing `env_r
 
 ```yaml
 selkies-desktop:
-  bundle:
-    box: selkies-desktop
+  pod:
+    image: selkies-desktop
   selkies-desktop-sidecar:
     sidecar:
       tailscale:
@@ -129,12 +129,12 @@ tailscale:
         env_from: "TS_AUTHKEY_{{.Parameter.tailnet | tailnetEnvSuffix}}"    # host-side var (what charly reads from .secrets)
 ```
 
-**Bundle shape (a deploy of the `sway-browser-vnc` box as the `ecovoyage` instance):**
+**Deploy shape (a deploy of the `sway-browser-vnc` box as the `ecovoyage` instance):**
 
 ```yaml
 ecovoyage:
-  bundle:
-    box: sway-browser-vnc
+  pod:
+    image: sway-browser-vnc
   ecovoyage-sidecar:
     sidecar:
       tailscale:

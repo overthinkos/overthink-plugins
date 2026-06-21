@@ -14,7 +14,7 @@ description: |
 # disposable — explicit opt-in for autonomous destroy + rebuild
 
 `BundleNode.Disposable` is the sole source of truth for disposability: the
-field on a deployment entry (e.g. `disposable: true` on a `bundle:` node,
+field on a deployment entry (e.g. `disposable: true` on a deploy node,
 including a check bed) is what the unified dispatcher reads. The project ↔ per-machine
 overlay merge preserves it explicitly (project-set OR overlay-set → true,
 later wins when both set it).
@@ -45,7 +45,7 @@ therefore be:
   The same image can be deployed as disposable on one host and
   non-disposable on another.
 - **Multi-instance aware.** Each deploy entry (vm.yml kind:vm, or a
-  `bundle:` entry in charly.yml) carries its own flag — two
+  deploy entry in charly.yml) carries its own flag — two
   instances of the same image can sit at different tiers with
   different disposability.
 
@@ -218,7 +218,7 @@ preserved) — the OPPOSITE of `disposable`'s destroy authorization. Enforced by
 
 - `kind: vm` entries in `vm.yml` — the VM template. Applies to
   every instance unless overridden.
-- `bundle:` entries in `charly.yml` — the container per-deploy
+- deploy entries in `charly.yml` — the container per-deploy
   counterpart. Each instance of a container image has its own
   entry, so per-instance classifications are natural.
 - Per-instance VM overrides (deferred to a follow-up): will live at
@@ -350,26 +350,26 @@ rebuild`.
 ### Containers
 
 ```yaml
-# charly.yml — each name-first bundle entry has an independent classification.
+# charly.yml — each name-first deploy entry has an independent classification.
 fedora-coder:             # main instance (prod): NO disposable field → NOT disposable
-    bundle:
-        box: fedora-coder
+    pod:
+        image: fedora-coder
         lifecycle: prod
 
 fedora-coder-dev:         # dev instance: lifecycle tag does NOT authorize rebuild
-    bundle:
-        box: fedora-coder
+    pod:
+        image: fedora-coder
         lifecycle: dev    # ← human tag only; this is NOT disposable.
 
 fedora-coder-qa:          # explicit opt-in
-    bundle:
-        box: fedora-coder
+    pod:
+        image: fedora-coder
         lifecycle: qa
         disposable: true
 
 fedora-coder-scratch:     # minimal: no tag, explicit disposable
-    bundle:
-        box: fedora-coder
+    pod:
+        image: fedora-coder
         disposable: true
 ```
 

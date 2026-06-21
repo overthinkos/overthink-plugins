@@ -94,13 +94,13 @@ image (preinstalled) instead.
 
 ```yaml
 # charly.yml — the device deploys INTO the emulator pod (pod → android), so it is a
-# resource node placed UNDER the android-stack bundle (was nested:)
+# resource node placed UNDER the android-stack deploy (was nested:)
 android-stack:
-    bundle:
-        box: android-emulator
+    pod:
+        image: android-emulator
     device:                              # deploy-into: applies apk: layers onto the device
-        bundle:
-            android: pixel9a-36          # → the kind: android device, deployed onto the emulator pod
+        android:
+            from: pixel9a-36             # → the kind: android device, deployed onto the emulator pod
         device-add_candy:
             add_candy:
                 - my-android-apps        # layers whose apk: packages install onto the device

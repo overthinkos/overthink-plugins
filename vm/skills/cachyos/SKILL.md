@@ -3,7 +3,7 @@ name: cachyos
 description: |
   CachyOS bootstrap VM (kind:vm cachyos-vm) — source.kind: bootstrap via
   cachyos-pacstrap-builder + pacstrap, btrfs rootfs, uefi-insecure. Plus the
-  disposable check-cachyos-vm bundle. Lives in the overthinkos/cachyos submodule.
+  disposable check-cachyos-vm deploy. Lives in the overthinkos/cachyos submodule.
   MUST be invoked before editing cachyos-vm or its check bed.
 ---
 
@@ -15,8 +15,8 @@ libvirt/QEMU.
 
 The `cachyos-vm` entity and its `check-cachyos-vm` disposable test bed live in
 the **`overthinkos/cachyos`** repo (git submodule at **`box/cachyos`**),
-all in that repo's unified `charly.yml`. The bed is a `disposable: true` bundle
-(a check bed is just a bundle carrying `disposable: true` — there is no separate
+all in that repo's unified `charly.yml`. The bed is a `disposable: true` deploy
+(a check bed is just a deploy carrying `disposable: true` — there is no separate
 bed kind), driven by `charly check run check-cachyos-vm`. Drive the VM lifecycle
 from the submodule: `charly -C box/cachyos vm build cachyos-vm` +
 `charly -C box/cachyos vm create cachyos-vm` (or `charly --repo overthinkos/cachyos …`).
@@ -39,10 +39,10 @@ the embedded `distro: cachyos` build vocabulary baked into the `charly` binary
 
 ## Check bed
 
-`check-cachyos-vm` is a `disposable: true` bundle (`bundle: {vm: cachyos-vm,
+`check-cachyos-vm` is a `disposable: true` deploy (`vm: {from: cachyos-vm,
 disposable: true}`), so `charly -C box/cachyos check run check-cachyos-vm`
 runs the full R10 sequence unattended (the equivalent `charly update
-check-cachyos-vm` rebuild also works, since the bundle is folded into the
+check-cachyos-vm` rebuild also works, since the deploy is folded into the
 Bundle map).
 
 `check-cachyos-gpu-vm` is the **full KDE GPU workstation** bed — it mirrors the

@@ -2,7 +2,7 @@
 name: charly-cachyos
 description: |
   Operator CachyOS workstation profile — a kind:local template plus a host:local
-  bundle that installs the full dev stack (30 candies) onto a CachyOS host via
+  deploy that installs the full dev stack (30 candies) onto a CachyOS host via
   ShellExecutor. Lives in the overthinkos/cachyos submodule.
   MUST be invoked before editing or applying the charly-cachyos workstation profile.
 ---
@@ -10,18 +10,18 @@ description: |
 # charly-cachyos
 
 The operator's CachyOS developer-workstation profile: a `kind: local` template
-(`charly-cachyos-app`) plus a `host: local` bundle (`charly-cachyos`, the
+(`charly-cachyos-app`) plus a `host: local` deploy (`charly-cachyos`, the
 deploying entry) that applies a kitchen-sink dev stack directly to the
 current machine via `ShellExecutor` — no SSH, no VM, no container.
 
 It lives in the **`overthinkos/cachyos`** repo (git submodule at
 **`box/cachyos`**), in that repo's single `charly.yml` — both the
-`kind: local` template (`charly-cachyos-app`) and the `charly-cachyos` bundle
-that deploys it. The repo also carries the `cachyos-gpu` bundle — the
-**persistent** operator GPU-workstation VM (`bundle: { vm: cachyos-gpu-workstation-vm }`,
+`kind: local` template (`charly-cachyos-app`) and the `charly-cachyos` `local:` deploy
+that deploys it. The repo also carries the `cachyos-gpu` deploy — the
+**persistent** operator GPU-workstation VM (`vm: { from: cachyos-gpu-workstation-vm }`,
 **not** `disposable`; see `/charly-vm:cachyos`) — so `charly-cachyos` is no longer
-the only non-disposable bundle there; every disposable test bed is a
-`disposable: true` bundle. Apply it with:
+the only non-disposable deploy there; every disposable test bed is a
+`disposable: true` deploy. Apply it with:
 
 ```bash
 charly -C box/cachyos update charly-cachyos
@@ -49,7 +49,7 @@ repo's `candy/` (resolved via its `discover:` block):
 | `install_opts.builder_image` | `ghcr.io/overthinkos/arch-builder:2026.122.2252` (OCI ref, not a candy) |
 | `install_opts` | with_service, allow_repo_changes, allow_root_tasks all true |
 | `env` | `EDITOR=nvim`, `PAGER=less` |
-| `disposable` (bundle) | `true` — `charly update charly-cachyos` is authorized |
+| `disposable` (deploy) | `true` — `charly update charly-cachyos` is authorized |
 
 ## Deploy-scope check probes
 

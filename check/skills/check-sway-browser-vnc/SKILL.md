@@ -14,20 +14,20 @@ live-container test verbs (cdp / wl / vnc / dbus / mcp / record) on the Sway
 stack. It deploys the **shipping `/charly-selkies:sway-browser-vnc` image directly**
 — there is no separate check image. It sits alongside the other `check-*` smoke
 beds (`check-pod` — the combined image/layer/pod/DeployTarget mechanism bed —
-and `check-local`) — all `disposable: true` bundles, top-level entries in their
+and `check-local`) — all `disposable: true` deploys, top-level entries in their
 project's `charly.yml` (this bed and `check-pod` in `box/fedora`; `check-local`
 in main).
 
-## Bed (a `disposable: true` bundle)
+## Bed (a `disposable: true` deploy)
 
-A check bed is just a bundle marked `disposable: true` — there is no separate
+A check bed is just a deploy marked `disposable: true` — there is no separate
 `check:` block. Each delta probe sway-browser-vnc doesn't bake is its own child
-step node under the bundle (named by its `id:`); mirror `box/fedora/charly.yml`:
+step node under the deploy (named by its `id:`); mirror `box/fedora/charly.yml`:
 
 ```yaml
 check-sway-browser-vnc-pod:
-    bundle:
-        box: sway-browser-vnc        # the shipping image, deployed as-is
+    pod:
+        image: sway-browser-vnc      # the shipping image, deployed as-is
         disposable: true
         lifecycle: dev
     esbv-pod-http-cdp:

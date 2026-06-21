@@ -164,8 +164,8 @@ declare `ports: [9224:9224]` in the image or run the test from inside the pod
 ```yaml
 # ~/.config/charly/charly.yml
 sway-browser-vnc:
-    bundle:
-        box: sway-browser-vnc
+    pod:
+        image: sway-browser-vnc
 sway-browser-vnc-port:
     port:
         - 5900:5900

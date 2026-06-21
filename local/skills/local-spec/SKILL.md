@@ -1,14 +1,14 @@
 ---
 name: local-spec
 description: |
-  MUST be invoked before any work involving: authoring `kind: local` templates, `local.yml` files, inline `kind: local` template nodes in `charly.yml`, or the merge semantics between a `kind: local` template and the bundle that deploys it.
+  MUST be invoked before any work involving: authoring `kind: local` templates, `local.yml` files, inline `kind: local` template nodes in `charly.yml`, or the merge semantics between a `kind: local` template and the deploy that deploys it.
 ---
 
 # kind: local — Authoring Reference
 
 ## Overview
 
-`kind: local` declares a reusable candy-stack template that gets applied to a Linux filesystem (deployed by a bundle whose `local:` cross-ref selects the local target). Unlike `kind: pod` / `kind: vm` / `kind: k8s` which wrap an image, a `kind: local` is defined entirely by its `layers` + `install_opts` + `env` — there's no OCI artifact backing it. The convention file is `local.yml`; templates may also be authored inline in `charly.yml` as top-level name-first nodes (`<name>: { local: {…} }`).
+`kind: local` declares a reusable candy-stack template that gets applied to a Linux filesystem (deployed by a `local:` deploy whose `from:` field selects this template). Unlike `kind: pod` / `kind: vm` / `kind: k8s` which wrap an image, a `kind: local` is defined entirely by its `layers` + `install_opts` + `env` — there's no OCI artifact backing it. The convention file is `local.yml`; templates may also be authored inline in `charly.yml` as top-level name-first nodes (`<name>: { local: {…} }`).
 
 Legacy `kind: host` projects migrate via `charly migrate`.
 
@@ -26,7 +26,7 @@ dev-workstation:
       - ripgrep
       - direnv
       - uv
-  dev-workstation-install_opts:  # optional — defaults merged 3-tier (CLI > bundle > template)
+  dev-workstation-install_opts:  # optional — defaults merged 3-tier (CLI > deploy > template)
     install_opts:
       with_service: false
       allow_repo_changes: true
@@ -82,7 +82,7 @@ charly-cachyos-app:
 | `install_opts` | No | Default install gates. Deployment overrides merge on top. |
 | `env` | No | Shell-profile env vars (`KEY=VALUE`). Deployment env wins on key collision. |
 | `description` | No | Plain string — the profile's purpose; first line = the summary. |
-| plan steps | No | Each step is its own child step node (`<name>-step-N`, or named by its `id:`) — one intent keyword: `run:` (state-change) / `check:` (deterministic probe) / `agent-run:` / `agent-check:` / `include:` — carrying prose plus, for `run:`/`check:`, an inline Op (verb + matchers + `context:`). Deploy-scope steps carry `context: [deploy]`. Merged with the bundle's step nodes. |
+| plan steps | No | Each step is its own child step node (`<name>-step-N`, or named by its `id:`) — one intent keyword: `run:` (state-change) / `check:` (deterministic probe) / `agent-run:` / `agent-check:` / `include:` — carrying prose plus, for `run:`/`check:`, an inline Op (verb + matchers + `context:`). Deploy-scope steps carry `context: [deploy]`. Merged with the deploy's step nodes. |
 
 There is **no** `status:` or `info:` field; `description` is the human-facing summary string.
 
@@ -110,9 +110,9 @@ unreachable from any new code. Migration: `charly migrate`
 (idempotent; rewrites legacy `image:` blocks under `local.<name>`
 to a dated comment fence).
 
-## Merge semantics — `kind: local` template + a bundle
+## Merge semantics — `kind: local` template + a deploy
 
-When a bundle carries `local: <template-name>`:
+When a `local:` deploy carries `from: <template-name>`:
 
 | Field | Template provides | Deployment overrides | CLI overrides | Effective value |
 |---|---|---|---|---|
@@ -147,12 +147,12 @@ charly-cachyos-app:
 - `/charly-local:local-deploy` — the `target: local` deployment surface that consumes this template.
 - `/charly-internals:local-infra` — Go file map (`local_spec.go`, `LocalSpec` struct, `findLocalSpec` lookup).
 - `/charly-image:layer` — candy authoring (the building blocks composed by templates).
-- `/charly-build:migrate` — `charly migrate` migrates legacy `kind: host`/`host.yml` projects up to the node-form schema (every entity name-first inline in `charly.yml`). The `charly-cachyos` bundle deploys the suffixed `charly-cachyos-app` `kind: local` template — within one document top-level names are globally unique, so the bundle keeps the user-facing name and the template it deploys is suffixed (see "Globally-unique names within one document" below).
+- `/charly-build:migrate` — `charly migrate` migrates legacy `kind: host`/`host.yml` projects up to the node-form schema (every entity name-first inline in `charly.yml`). The `charly-cachyos` deploy applies the suffixed `charly-cachyos-app` `kind: local` template — within one document top-level names are globally unique, so the deploy keeps the user-facing name and the template it deploys is suffixed (see "Globally-unique names within one document" below).
 
 ## Globally-unique names within one document
 
-Every entity flattens to a top-level `<name>:` key, so within one document (the project-root `charly.yml`) top-level names must be **globally unique** — a bundle and the `kind: local` template it deploys cannot share a name (they would collide on one YAML key). The convention: keep the user-facing bundle name and **suffix the template it deploys**. The canonical example is `charly-cachyos` — the `charly-cachyos` bundle (`bundle: { local: charly-cachyos-app, host: local }`) deploys the `charly-cachyos-app` `kind: local` template; `charly update charly-cachyos` resolves to the bundle, which references the template via its `local: charly-cachyos-app` field. Cross-kind reuse of the SAME name across SEPARATE discovered files (a `candy/redis` + a `box/redis`) remains permitted. See CLAUDE.md "a single document's top-level node names are GLOBALLY UNIQUE".
+Every entity flattens to a top-level `<name>:` key, so within one document (the project-root `charly.yml`) top-level names must be **globally unique** — a deploy and the `kind: local` template it deploys cannot share a name (they would collide on one YAML key). The convention: keep the user-facing deploy name and **suffix the template it deploys**. The canonical example is `charly-cachyos` — the `charly-cachyos` deploy (`local: { from: charly-cachyos-app, host: local }`) deploys the `charly-cachyos-app` `kind: local` template; `charly update charly-cachyos` resolves to the deploy, which references the template via its `from: charly-cachyos-app` field. Cross-kind reuse of the SAME name across SEPARATE discovered files (a `candy/redis` + a `box/redis`) remains permitted. See CLAUDE.md "a single document's top-level node names are GLOBALLY UNIQUE".
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves authoring or editing `kind: local` templates, `local.yml` files, inline `kind: local` template nodes in `charly.yml`, or the merge between a template and a deploying bundle. Invoke this skill BEFORE reading Go source or launching Explore agents.
+**MUST be invoked** when the task involves authoring or editing `kind: local` templates, `local.yml` files, inline `kind: local` template nodes in `charly.yml`, or the merge between a template and the deploy that deploys it. Invoke this skill BEFORE reading Go source or launching Explore agents.

@@ -136,7 +136,7 @@ A deploy can declare a nested tree (`pod → android`, `vm → pod`, `vm → hos
 child's venue is always REACHED THROUGH its parent, so `applyNestedOverlay`
 post-processes the already-merged flat rows: it reads the DECLARED tree from
 the merged deploy config (project `charly.yml` incl. folded disposable check
-bundles + `~/.config/charly/charly.yml`) and attaches each declared child to its
+deploys + `~/.config/charly/charly.yml`) and attaches each declared child to its
 parent row's `Nested[]`.
 
 **Dedup — a declared nested child appears exactly once.** A child substrate
@@ -240,7 +240,7 @@ with no flat row is synthesized (`"source": "nested"`, `"status": "declared"`):
 Because the JSON encoder indents (`SetIndent("", "  ")`), the on-the-wire
 substring for a substrate row is `"kind": "pod"` — a SPACE after the colon.
 Check `command` checks that grep `charly status --json` output assert on the spaced
-form (e.g. `contains: '"kind": "vm"'`). The four disposable check bundles each carry a
+form (e.g. `contains: '"kind": "vm"'`). The four disposable check deploys each carry a
 `status-shows-*` member check that proves the live `charly status --json`
 reports the right kind (and, for android, the `"nested"` tree).
 

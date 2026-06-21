@@ -27,7 +27,7 @@ The `charly` candy installs the binary as a proper, dependency-resolving OS
 package via `localpkg:` (`{pac: pkg/arch, rpm: pkg/fedora, deb: pkg/debian}`).
 The BINARY SOURCE depends on the box type — a hard distinction, NEVER mixed:
 
-- **Disposable check beds** (`disposable: true` bundles) bake the latest **in-development**
+- **Disposable check beds** (`disposable: true` deploys) bake the latest **in-development**
   charly: the check-bed runner builds every bed image with `charly box build
   --dev-local-pkg`, so the package is BUILT from the local working tree
   (`pkg/<fmt>` + `charly/`). A bed therefore tests the charly code under

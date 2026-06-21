@@ -3,7 +3,7 @@ name: debian
 description: |
   Debian bootstrap VM (kind:vm debian-debootstrap) — source.kind: bootstrap via
   debian-debootstrap-builder + debootstrap, ext4 rootfs, uefi-insecure. Plus the
-  disposable check-debian-debootstrap-vm bundle. Lives in the overthinkos/debian submodule.
+  disposable check-debian-debootstrap-vm deploy. Lives in the overthinkos/debian submodule.
   MUST be invoked before editing debian-debootstrap or its check bed.
 ---
 
@@ -16,7 +16,7 @@ under libvirt/QEMU.
 The `debian-debootstrap` VM entity and its `check-debian-debootstrap-vm` disposable
 test bed live in the **`overthinkos/debian`** repo (git submodule at
 **`box/debian`**), all in that repo's unified `charly.yml`. The bed is a
-`disposable: true` bundle (a check bed is just a bundle carrying `disposable: true`
+`disposable: true` deploy (a check bed is just a deploy carrying `disposable: true`
 — there is no separate bed kind), driven by `charly check run
 check-debian-debootstrap-vm`. Drive the VM lifecycle from the submodule:
 `charly -C box/debian vm build debian-debootstrap` +
@@ -42,8 +42,8 @@ charly binary, which the unified loader makes available to the submodule's
 
 ## Check bed
 
-`check-debian-debootstrap-vm` is a `disposable: true` bundle
-(`bundle: {vm: debian-debootstrap, disposable: true}`), so
+`check-debian-debootstrap-vm` is a `disposable: true` deploy
+(`vm: {from: debian-debootstrap, disposable: true}`), so
 `charly -C box/debian check run check-debian-debootstrap-vm` runs the full R10 sequence
 unattended (the equivalent `charly update check-debian-debootstrap-vm` rebuild also works,
 since the bundle is folded into the Bundle map).

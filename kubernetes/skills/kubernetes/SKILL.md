@@ -8,7 +8,7 @@ description: |
 
 ## Overview
 
-OpenCharly can deploy built images to a Kubernetes cluster by emitting a Kustomize `base/` + `overlays/` tree. The deployment schema stays **target-agnostic** — the bundle node describes *what the workload needs* (kind, replica, resources, exposure, storage, probes); a per-cluster **`kind: k8s` cluster template** (the `k8s:` entity, which absorbed the former cluster-profile file) supplies the K8s-specific knobs (storage class, ingress class, cert issuer, secret backend).
+OpenCharly can deploy built images to a Kubernetes cluster by emitting a Kustomize `base/` + `overlays/` tree. The deployment schema stays **target-agnostic** — the deploy node describes *what the workload needs* (kind, replica, resources, exposure, storage, probes); a per-cluster **`kind: k8s` cluster template** (the `k8s:` entity, which absorbed the former cluster-profile file) supplies the K8s-specific knobs (storage class, ingress class, cert issuer, secret backend).
 
 Every box runtime contract is baked into OCI labels at build time, so **a K8s deploy is possible without access to `charly.yml`** — the `charly bundle from-box` verb reads capabilities from the pushed image alone.
 
@@ -16,7 +16,7 @@ Every box runtime contract is baked into OCI labels at build time, so **a K8s de
 
 | Action | Command | Description |
 |---|---|---|
-| Add K8s deploy | `charly bundle add <name> <ref> --target kubernetes` | Read BoxConfig + the bundle node + the `kind: k8s` cluster template; emit `.opencharly/k8s/<name>/` Kustomize tree |
+| Add K8s deploy | `charly bundle add <name> <ref> --target kubernetes` | Read BoxConfig + the deploy node + the `kind: k8s` cluster template; emit `.opencharly/k8s/<name>/` Kustomize tree |
 | Source-less deploy | `charly bundle from-box <registry/name:tag> [name] --cluster <name>` | Deploy from OCI labels only — no `charly.yml` needed (see Part F.10) |
 | Sync to cluster | `charly bundle sync <name>` | `kubectl apply -k .opencharly/k8s/<name>/overlays/default` |
 | Show generated manifests | `charly bundle show <name>` | `kubectl kustomize …` — see what would apply |
@@ -28,23 +28,23 @@ Every box runtime contract is baked into OCI labels at build time, so **a K8s de
 |---|---|---|
 | **Build** — what goes INTO the image | `box.build:` (or legacy `BoxConfig`) | no (consumed at build) |
 | **Capabilities** — box runtime contract | `box.capabilities:` (or layer rollups) | **yes** — every field under `ai.opencharly.*` |
-| **Deployment** — how to run the image | a name-first `bundle:` entity in `charly.yml` + `~/.config/charly/charly.yml` overlay | no |
+| **Deployment** — how to run the image | a name-first deploy node (substrate kind at the edge — here `k8s:`) in `charly.yml` + `~/.config/charly/charly.yml` overlay | no |
 
 The completeness invariant: every exported field on `BoxMetadata`/`Capabilities` has a `CapabilityLabelMap` entry. A compile-time test enforces this — a new capability field without a label mapping fails the build. See `charly/capabilities.go`.
 
 ## Deployment schema — target-agnostic fields
 
-A K8s deployment is a name-first `bundle:` entity: the kind discriminator
-carries the scalars + the cross-refs (`box:` = the image to deploy, `k8s:` =
+A K8s deployment is a name-first `k8s:` deploy: the kind discriminator
+carries the scalars + the cross-refs (`image:` = the box to deploy, `from:` =
 the `kind: k8s` cluster template); every non-scalar field (resources / security
 / expose / storage / probes / the `kubernetes:` deploy-knobs block) is a child
-node `<name>-<key>:` nested under the bundle.
+node `<name>-<key>:` nested under the deploy.
 
 ```yaml
 openclaw:
-  bundle:
-    box: openclaw                   # the image to deploy (falls back to the bundle name)
-    k8s: production                 # cross-ref → the kind:k8s cluster template (was kubernetes.cluster)
+  k8s:
+    image: openclaw                 # the box to deploy (falls back to the deploy name)
+    from: production                # cross-ref → inherit the kind:k8s cluster template
     kind: service                   # service | daemon | batch | scheduled | oneshot
     replica: 3
     restart: always                 # always | on-failure | never (honored on Pod/Job/CronJob)
@@ -90,12 +90,12 @@ Explicit override: `kubernetes.workload: Deployment` (rare — prefer `kind:`).
 
 ## Cluster template (`kind: k8s`)
 
-One `kind: k8s` entity per cluster, declared name-first in `charly.yml` (or a discovered `k8s.yml`). The `k8s:` kind **absorbed the former `kind: cluster-profile` file** — `charly migrate` synthesizes a `kind: k8s` entry from any pre-existing `clusters/<name>.yaml`. It is the **only** place cluster-specific K8s knobs live; a bundle reaches it by name through its `k8s:` cross-ref. The kind discriminator carries the scalars (`box:` cross-ref, `kubeconfig_context:`, `admission_policy:`, `default_namespace:`); every non-scalar policy block (storage / ingress / secret / image_default / pod_default / defaults) is a child node `<name>-<key>:` nested under it.
+One `kind: k8s` entity per cluster, declared name-first in `charly.yml` (or a discovered `k8s.yml`). The `k8s:` kind **absorbed the former `kind: cluster-profile` file** — `charly migrate` synthesizes a `kind: k8s` entry from any pre-existing `clusters/<name>.yaml`. It is the **only** place cluster-specific K8s knobs live; a deploy reaches it by name through its `from:` cross-ref. The kind discriminator carries the scalars (`box:` cross-ref, `kubeconfig_context:`, `admission_policy:`, `default_namespace:`); every non-scalar policy block (storage / ingress / secret / image_default / pod_default / defaults) is a child node `<name>-<key>:` nested under it.
 
 ```yaml
 production:                          # a kind: k8s cluster template (name-first)
   k8s:
-    box: ""                          # empty → a cluster-policy-only template (the workload box is named on the bundle)
+    box: ""                          # empty → a cluster-policy-only template (the workload box is named on the deploy)
     kubeconfig_context: gke_prod_us-east1
     admission_policy: restricted     # restricted | baseline | privileged
     default_namespace: apps
@@ -131,7 +131,7 @@ production:                          # a kind: k8s cluster template (name-first)
       labels: {managed-by: opencharly}
 ```
 
-New cluster = write a new `kind: k8s` template; zero bundle changes.
+New cluster = write a new `kind: k8s` template; zero deploy changes.
 
 ## Generator output
 
@@ -173,7 +173,7 @@ charly bundle sync openclaw                   # kubectl apply -k ...
 
 ## Relevant code
 
-- `charly/k8s_config.go` — `K8sDeployConfig` (the bundle's `kubernetes:` deploy-knobs block: namespace / workload override / patches / raw)
+- `charly/k8s_config.go` — `K8sDeployConfig` (the deploy's `kubernetes:` deploy-knobs block: namespace / workload override / patches / raw)
 - `charly/k8s_spec.go` — `K8sSpec` (the `kind: k8s` cluster template; absorbed the former `ClusterProfile` / `clusters/*.yaml`)
 - `charly/k8s_target.go` — `K8sDeployTarget` (fourth DeployTarget alongside OCI / container / host)
 - `charly/k8s_generate.go` — `GenerateK8sKustomize` + workload-kind heuristic + Ingress/PVC emission

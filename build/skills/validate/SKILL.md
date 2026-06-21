@@ -206,12 +206,12 @@ charly box list candies                       # Verify layer exists
 
 ## Cross-kind name reuse across files — permitted; same-document collision — rejected
 
-The unified form is **name-first**: every entity flattens to a top-level `<name>:` key whose first child is its kind discriminator (`candy:` / `box:` / `bundle:` / `pod:` / `vm:` / `k8s:` / `local:` / `android:` / …). Two consequences for `charly box validate`:
+The unified form is **name-first**: every entity flattens to a top-level `<name>:` key whose first child is its kind discriminator (`candy:` / `box:` / `pod:` / `vm:` / `k8s:` / `local:` / `android:` / `group:` / …). Two consequences for `charly box validate`:
 
 - **Cross-FILE cross-kind reuse is fine.** The same name MAY exist simultaneously in SEPARATE discovered files — a `candy/redis/charly.yml` candy and a `box/redis/charly.yml` box resolve to distinct internal maps, and the validator does NOT flag them. Verbs disambiguate by command context (`ResolveDeployRef` is box-first; `--add-candy <name>` selects the candy-first path).
-- **Same-document collision IS rejected.** Two top-level entities WITHIN one document (e.g. the root `charly.yml` carrying a `bundle` + a `vm` + a `local`) MUST NOT share a name — they would collide on one YAML key. `charly box validate` flags the collision; rename one (the convention: keep the user-facing `bundle`, suffix the template it deploys — a `check-local` bundle + a `check-local-app` local template).
+- **Same-document collision IS rejected.** Two top-level entities WITHIN one document (e.g. the root `charly.yml` carrying a `pod` + a `vm` + a `local`) MUST NOT share a name — they would collide on one YAML key. `charly box validate` flags the collision; rename one (the convention: keep the user-facing deploy, suffix the template it deploys — a `check-local` deploy + a `check-local-app` local template).
 
-The loader still raises hard load-time errors on obsolete keys — the obsolete `qc` / `cachyos-dx` deployment names, and any obsolete `kind: deployment` doc or root-key `deployment:` (the deploy kind is now the name-first `bundle:`). Every such error points at `charly migrate`. See CLAUDE.md and `/charly-build:migrate`.
+The loader still raises hard load-time errors on obsolete keys — the obsolete `qc` / `cachyos-dx` deployment names, and any obsolete `kind: deployment` doc or root-key `deployment:` (the deploy kind is now the name-first substrate kind: `pod:` / `vm:` / `k8s:` / `local:` / `android:` / `group:`). Every such error points at `charly migrate`. See CLAUDE.md and `/charly-build:migrate`.
 
 ## When to Use This Skill
 

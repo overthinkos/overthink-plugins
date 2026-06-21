@@ -125,8 +125,8 @@ stay in sync automatically:
 
 ```yaml
 versa:
-  bundle:
-    box: versa
+  pod:
+    image: versa
     disposable: true
     lifecycle: dev
   versa-port:
@@ -189,16 +189,16 @@ volume, and its own host-port mappings:
 
 ```yaml
 versa:
-  bundle:
-    box: versa
+  pod:
+    image: versa
     disposable: true
   versa-port:
     port:
       - auto                   # auto-allocated host ports
 
 versa/ecovoyage:
-  bundle:
-    box: versa                 # SAME image, explicit field required
+  pod:
+    image: versa               # SAME image, explicit field required
     disposable: true
   versa-ecovoyage-volume:
     volume:
@@ -225,8 +225,8 @@ canaries, regression bisection, or holding back a specific version):
 
 ```yaml
 versa-pinned-2026.131.2134:
-  bundle:
-    box: ghcr.io/overthinkos/versa:2026.131.2134  # exact ref, never re-resolved
+  pod:
+    image: ghcr.io/overthinkos/versa:2026.131.2134  # exact ref, never re-resolved
     disposable: true
   versa-pinned-2026.131.2134-port:
     port:

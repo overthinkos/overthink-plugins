@@ -14,7 +14,7 @@ description: |
 The `arch` VM entity and its `check-arch-vm` / `check-arch-pacstrap-vm` disposable test beds
 (plus the nested `arch-host` member) live in the **`overthinkos/arch`** repo (git
 submodule at **`box/arch`**), all in that repo's unified `charly.yml`.
-The beds are `disposable: true` bundles (a check bed is just a bundle that carries
+The beds are `disposable: true` deploys (a check bed is just a deploy that carries
 `disposable: true` — there is no separate bed kind), driven by `charly check run
 <bed>`. Drive them from the submodule, e.g. `charly -C box/arch vm create arch`
 and `charly -C box/arch check run check-arch-vm` (or `charly --repo overthinkos/arch …`). Any
@@ -46,7 +46,7 @@ Disposability is **not** a field on the VM entity — the `check-arch-vm` bundle
 
 ## Disposable verification target
 
-This is the repo's canonical verification target. The `check-arch-vm` bundle carries `disposable: true`, which means `charly check run check-arch-vm` runs the full R10 sequence (build → create → check live → fresh rebuild → tear down) unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
+This is the repo's canonical verification target. The `check-arch-vm` deploy carries `disposable: true`, which means `charly check run check-arch-vm` runs the full R10 sequence (build → create → check live → fresh rebuild → tear down) unattended — no user confirmation. The hook reminders in `.claude/hooks/` reference disposability specifically; this VM is what Claude is expected to verify against.
 
 If you're implementing something that touches VM config, libvirt rendering, cloud-init, SPICE, or any VM-adjacent behavior, the expected verification loop is:
 
@@ -58,7 +58,7 @@ charly update arch       # fresh-rebuild re-verification (R10)
 # paste BOTH outputs into the conversation
 ```
 
-No other VM in this repo is disposable by default. To make another one rebuildable unattended, add `disposable: true` to the bundle that deploys it (the flag is always explicit; never derived).
+No other VM in this repo is disposable by default. To make another one rebuildable unattended, add `disposable: true` to the deploy that deploys it (the flag is always explicit; never derived).
 
 ## Full VmSpec (from box/arch/charly.yml)
 
@@ -350,7 +350,7 @@ Pass: `active` + version printed.
 ## Cross-References
 
 - `/charly-vm:vms-catalog` — VmSpec authoring reference (schema, source.kind, adopt pattern)
-- `/charly-vm:vm` — VM lifecycle commands + BIOS/UEFI decision matrix + video model choice (disposability lives on the `disposable: true` bundle)
+- `/charly-vm:vm` — VM lifecycle commands + BIOS/UEFI decision matrix + video model choice (disposability lives on the `disposable: true` deploy)
 - `/charly-build:migrate` — `charly migrate` legacy conversion
 - `/charly-core:deploy` — `charly bundle add vm:arch <layer>` for in-guest layer application
 - `/charly-internals:vm-spec` — Go types and validation rules

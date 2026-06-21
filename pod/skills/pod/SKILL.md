@@ -1,25 +1,25 @@
 ---
 name: pod
-description: Schema reference for `kind: pod` and `kind: bundle` entities — charly.yml entry shape, tree-position nesting, sidecars, pod networking. For verb-level operations see /charly-core:deploy.
+description: Schema reference for `kind: pod` and deploy entities — charly.yml entry shape, tree-position nesting, sidecars, pod networking. For verb-level operations see /charly-core:deploy.
 ---
 
-# `kind: pod` and `kind: bundle` — Schema Reference
+# `kind: pod` and deploy entities — Schema Reference
 
 This skill is a thin schema pointer. For runtime verbs (`charly bundle add`, `charly bundle del`, `charly update`), see `/charly-core:deploy`.
 
-## What lives in `kind: pod` / `kind: bundle`
+## What lives in `kind: pod` / a deploy node
 
-A `pod` entity declares a co-scheduled set of containers and the volumes / network / sidecars they share. A `bundle` entity (the migrated `deploy:` kind) is the **bind site** — it picks an image (or image+layers) through a single cross-ref scalar (`box:` deploys as a pod, the default substrate; `vm:` / `k8s:` / `local:` / `android:` target the named substrate), and stores the runtime knobs (encrypted volumes, tunnels, env, ports).
+A `pod` entity declares a co-scheduled set of containers and the volumes / network / sidecars they share. A deploy node is the **bind site** — its first child key is the substrate kind at the EDGE (`pod:` the default, or `vm:` / `k8s:` / `local:` / `android:`, or `group:` for a targetless member group), carrying `image:` (the box a `pod`/`k8s`/`android` runs) or `from:` (inherit a same-kind template), plus the runtime knobs (encrypted volumes, tunnels, env, ports).
 
 Schema sources (read these for the canonical truth):
 
-- `charly/deploy.go` — `BundleConfig` + `BundleNode` Go types, the `bundle` entry shape, target discriminator.
+- `charly/deploy.go` — `BundleConfig` + `BundleNode` Go types, the deploy entry shape, target discriminator.
 - `charly/pod_spec.go` — `PodSpec` Go type, `kind: pod` shape.
 - `/charly-core:deploy` — the verb-level skill covering `charly bundle add` / `charly bundle del` / `charly update`.
 
 ## Nesting & membership (tree position)
 
-Nesting is expressed by **tree position**, not a `nested:` field: a resource node placed UNDER another resource node deploys INTO it (the migrated `nested:` — e.g. a `pod → android` tree), and the parent and its nested entries share the pod and the tunnel; each nested entry is a separate quadlet/process inside the same pod namespace. A resource node placed directly under a `bundle` is instead a sibling member (the migrated `peer:`). There are no authored `nested:` / `peer:` / `target:` / `on:` fields — membership is read from the tree.
+Nesting is expressed by **tree position**, not a `nested:` field: a resource node placed UNDER another resource node deploys INTO it (the migrated `nested:` — e.g. a `pod → android` tree), and the parent and its nested entries share the pod and the tunnel; each nested entry is a separate quadlet/process inside the same pod namespace. A resource node placed directly under a deploy is instead a sibling member (the migrated `peer:`). There are no authored `nested:` / `peer:` / `target:` / `on:` fields — membership is read from the tree.
 
 ## Sidecars
 

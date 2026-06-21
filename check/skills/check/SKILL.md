@@ -2,9 +2,9 @@
 name: check
 description: |
   MUST be invoked before any work involving: `charly check` (image / live / run),
-  the plan steps / `description:` field in a candy/box `charly.yml`, the disposable test-bed bundles in a project's `charly.yml`,
+  the plan steps / `description:` field in a candy/box `charly.yml`, the disposable test-bed deploys in a project's `charly.yml`,
   the `ai.opencharly.description` OCI label (where the baked plan travels), the AI iteration harness loop,
-  `kind: agent` (the agent grader) and the disposable R10 bundles
+  `kind: agent` (the agent grader) and the disposable R10 deploys
   (`disposable: true`, run via `charly check run <bed>`), or any plan step / Op
   authoring. Covers the unified `charly check` surface: three
   primary modes (image / live / run),
@@ -21,19 +21,19 @@ description: |
 
 # Check — unified declarative + AI-iteration evaluation
 
-## Disposable test-bed bundles + `charly check run <bed>` — config-driven R10 acceptance
+## Disposable test-bed deploys + `charly check run <bed>` — config-driven R10 acceptance
 
-The disposable R10 test beds are **`disposable: true` bundles in the project
-`charly.yml`** — a check bed is just a bundle marked `disposable: true`, there is
-no separate `check:` block. A bundle is a top-level entity resolved by name, so
+The disposable R10 test beds are **`disposable: true` deploys in the project
+`charly.yml`** — a check bed is just a deploy marked `disposable: true`, there is
+no separate `check:` block. A deploy is a top-level entity resolved by name, so
 every deploy verb resolves a bed by name; `charly check run <bed>` drives the
 full R10 sequence on it:
 
 This is the **ecosystem-wide** rule: every repo-shipped disposable test bed —
 the main repo's beds AND every `box/<distro>` submodule's beds (the arch /
 cachyos / debian / ubuntu / fedora bootstrap-VM and pacstrap/debootstrap beds) —
-is a `disposable: true` bundle, a top-level entry in that repo's `charly.yml`. A
-test bed is ALWAYS `disposable: true`; the lone non-disposable bundle a repo
+is a `disposable: true` deploy, a top-level entry in that repo's `charly.yml`. A
+test bed is ALWAYS `disposable: true`; the lone non-disposable deploy a repo
 ships is an operator profile, not a test bed (the cachyos submodule's
 `charly-cachyos` workstation profile); operator deployments otherwise live in the
 per-host `~/.config/charly/charly.yml`. `disposable: true` is the sole
@@ -112,7 +112,7 @@ below).
 
 ### Flag discipline — the `iterate:`/bed config IS the test specification
 
-The `iterate:` block / the bundle config in the project's `charly.yml` IS the
+The `iterate:` block / the deploy config in the project's `charly.yml` IS the
 test spec; the operator authorizes overrides, not Claude. Passing ANY
 scope-shrinking flag to `charly check run` (or `charly check live`) without the user
 explicitly naming that flag in the SAME conversation turn is the same fraud
@@ -141,22 +141,22 @@ memory) is ALWAYS preserved. Set `defaults.keep_check_runs` in `charly.yml`
 (`0`/absent disables); apply on demand with `charly clean --check`. See
 `/charly-core:clean`.
 
-### The ecosystem's disposable test-bed bundles
+### The ecosystem's disposable test-bed deploys
 
 | Bed | Target | Ref | Surface |
 |---|---|---|---|
-| `check-sway-browser-vnc-pod` | pod | `box: sway-browser-vnc` | cdp/wl/vnc/dbus/mcp/record + pod-side file/service/port/process/http |
-| `check-k3s-vm` | vm | `vm: k3s-vm` | kube (all 13 methods) + guest-side file/service/port/process, http via port-forward, VmDeployTarget end-to-end |
-| `check-pod` | pod | `box: check-pod` | combined mechanism bed: `kind: box` build + `kind: candy` composition order + `kind: pod` runtime (nc :18794 + supervisord) + every DeployTarget rendering path |
-| `check-local` | local | `local: check-local-app` | `kind: local` layer apply via ShellExecutor |
-| `check-jupyter-pod` | pod | `box: jupyter` | jupyter-mcp regression coverage |
-| `check-jupyter-ml-pod` | pod | `box: jupyter-ml` | jupyter-ml spacy/quarto + GPU MCP probes |
-| `check-versa-pod` | pod | `box: versa` | versa OSM analytics + vector-tile + marimo MCP |
-| `check-android-emulator-pod` | pod | `box: android-emulator` | Android 14 emulator (/dev/kvm) + adb/appium |
-| `check-charly-vm` | vm | `vm: charly-vm` | `charly` toolchain localpkg deploy witness (opencharly-git pacman install + dep auto-resolve) on the cloud VM |
+| `check-sway-browser-vnc-pod` | pod | `image: sway-browser-vnc` | cdp/wl/vnc/dbus/mcp/record + pod-side file/service/port/process/http |
+| `check-k3s-vm` | vm | `from: k3s-vm` | kube (all 13 methods) + guest-side file/service/port/process, http via port-forward, VmDeployTarget end-to-end |
+| `check-pod` | pod | `image: check-pod` | combined mechanism bed: `kind: box` build + `kind: candy` composition order + `kind: pod` runtime (nc :18794 + supervisord) + every DeployTarget rendering path |
+| `check-local` | local | `from: check-local-app` | `kind: local` layer apply via ShellExecutor |
+| `check-jupyter-pod` | pod | `image: jupyter` | jupyter-mcp regression coverage |
+| `check-jupyter-ml-pod` | pod | `image: jupyter-ml` | jupyter-ml spacy/quarto + GPU MCP probes |
+| `check-versa-pod` | pod | `image: versa` | versa OSM analytics + vector-tile + marimo MCP |
+| `check-android-emulator-pod` | pod | `image: android-emulator` | Android 14 emulator (/dev/kvm) + adb/appium |
+| `check-charly-vm` | vm | `from: charly-vm` | `charly` toolchain localpkg deploy witness (opencharly-git pacman install + dep auto-resolve) on the cloud VM |
 
 Bed HOMES: the main repo's `charly.yml` owns `check-k3s-vm`, `check-local`, and
-`check-charly-vm`; the pod beds above are top-level bundles in the `box/<distro>`
+`check-charly-vm`; the pod beds above are top-level deploys in the `box/<distro>`
 submodules' `charly.yml` (`check-pod`, `check-jupyter-pod`, `check-jupyter-ml-pod`,
 `check-sway-browser-vnc-pod` in `box/fedora`; `check-versa-pod`,
 `check-android-emulator-pod` in `box/cachyos`) and run from that submodule
@@ -179,9 +179,9 @@ remediation. The supporting
 `vm: k3s-vm` + `k8s: vm-k3s-vm` entities live in the project `charly.yml`
 alongside its beds. `disposable: true` is the sole authorization
 for the unattended destroy+rebuild (see `/charly-internals:disposable`). Two
-load-time guards back the beds: `validateCheckBeds` enforces the bundle's deploy
+load-time guards back the beds: `validateCheckBeds` enforces the deploy's substrate
 kind ∈ {pod, vm, local, android}, a resolvable cross-ref, and `disposable: true`;
-`foldCheckBeds` enforces the bundle's name is disjoint from every other bundle.
+`foldCheckBeds` enforces the deploy's name is disjoint from every other deploy.
 Neither checks host ports —
 disjoint ports across beds are the AUTHOR's responsibility (an overlap fails the
 second bed at deploy via `CheckPortAvailability`).
@@ -253,9 +253,9 @@ a missing daemon. See `/charly-vm:vm` "Prereq", `/charly-check:libvirt`.
 
 ### Why this is config-driven
 
-Beds are `disposable: true` bundles; the runner reads the bundle node directly.
-This means the runner works for ANY bundle an operator defines — `charly check
-run <name>` resolves the bundle by name through the same path every deploy verb
+Beds are `disposable: true` deploys; the runner reads the deploy node directly.
+This means the runner works for ANY deploy an operator defines — `charly check
+run <name>` resolves the deploy by name through the same path every deploy verb
 uses, with no hardcoded bed table to keep in sync.
 
 ## R10 gate by change class — pick the gate that exercises the change
@@ -386,7 +386,7 @@ check written once works unchanged when `charly.yml` remaps ports.
 |--------|---------|-------------|
 | Pure-box check (disposable, build-context) | `charly check box <image>` | Candy + box sections only, in `podman run --rm` (no host port mappings, no volumes attached) |
 | Live full-stack check (running deployment) | `charly check live <name> [-i instance]` | All three sections run via `podman exec` / SSH / nested chain, with full runtime variable resolution |
-| R10 bed (full sequence) | `charly check run <bed>` | Build → check image → deploy → check live → fresh update → tear down on a `disposable: true` bundle (ONE bed per invocation). Canonical R10 gate; for a whole roster fan beds out concurrently via `/verify-beds` |
+| R10 bed (full sequence) | `charly check run <bed>` | Build → check image → deploy → check live → fresh update → tear down on a `disposable: true` deploy (ONE bed per invocation). Canonical R10 gate; for a whole roster fan beds out concurrently via `/verify-beds` |
 | AI iteration loop | `charly check run <bed>` | Drives an AI through plateau-bounded iterations against a bed carrying an `iterate:` block |
 | Validate authored tests at config time | `charly box validate` | Schema, context/variable consistency, id uniqueness |
 | Inspect effective spec | `charly box inspect <image>` | JSON includes merged check structure |
@@ -476,7 +476,7 @@ The surface is three orthogonal verbs, each named for what it evaluates:
   Same dispatcher that powers `charly check live parent.child` for
   pod-in-vm topologies.
 
-- **`charly check run <bed>`** — runs a `disposable: true` R10 bundle (full
+- **`charly check run <bed>`** — runs a `disposable: true` R10 deploy (full
   sequence); when the bed carries an `iterate:` block it instead drives
   an AI runner through plateau-bounded iterations. See "AI
   iteration loop semantics" below.
@@ -756,7 +756,7 @@ naturally. An empty-string map value falls through to the next tag
 | `vnc` | Method name (status/screenshot/click/mouse/type/key/rfb/passwd) + method-specific modifiers (`x`, `y`, `text`, `key`, `artifact`) + shared matchers | **Deploy-context only.** Wraps `charly check vnc <method>`. |
 | `mcp` | Method name (ping/servers/list-tools/list-resources/list-prompts/call/read) + method-specific modifiers (`tool`, `uri`, `input`, `mcp_name`) + shared matchers | **Deploy-context only.** Speaks `github.com/modelcontextprotocol/go-sdk` to any `mcp_provide` endpoint. See "Method allowlist — mcp" below. |
 
-> **STRICT RULE — a step verb (or Op modifier) MUST NEVER be spelled like a reserved KIND word.** Kinds (`pod`, `vm`, `k8s`, `local`, `android`, `box`, `candy`, `bundle`, `group`, `host`, `target`, …) live ONLY at a config EDGE — the opening discriminator of a top-level node or a tree-child node — never as a key in the middle of a step. A new probe verb that would collide with a kind word MUST pick a non-colliding spelling (the `k8s`/`group` probe verbs were renamed to `kube`/`unix_group` for exactly this reason). This is machine-enforced by `charly/spec` `TestNoKindWordAsStepVerb` + `TestNoKindWordAsOpModifier` — adding a colliding verb fails the build.
+> **STRICT RULE — a step verb (or Op modifier) MUST NEVER be spelled like a reserved KIND word.** Kinds (`pod`, `vm`, `k8s`, `local`, `android`, `box`, `candy`, `group`, `host`, `target`, …) live ONLY at a config EDGE — the opening discriminator of a top-level node or a tree-child node — never as a key in the middle of a step. A new probe verb that would collide with a kind word MUST pick a non-colliding spelling (the `k8s`/`group` probe verbs were renamed to `kube`/`unix_group` for exactly this reason). This is machine-enforced by `charly/spec` `TestNoKindWordAsStepVerb` + `TestNoKindWordAsOpModifier` — adding a colliding verb fails the build.
 
 ### Shared modifiers
 
@@ -1408,17 +1408,17 @@ another kind" — pod→pod, local→pod, and local→VM, all through one mechan
 Two pieces compose it:
 
 - **venue-from-position members** — bring the driver up ALONGSIDE the subject on
-  the shared `charly` network (see `/charly-core:deploy` "Sibling members"). A bundle
-  declares each as a MEMBER NODE — a resource node (`bundle: {box:/vm:/local: …}`)
-  placed directly under the bundle — and a plan step's EXECUTION VENUE is its TREE
+  the shared `charly` network (see `/charly-core:deploy` "Sibling members"). A deploy
+  declares each as a MEMBER NODE — a resource node on a substrate kind (`pod: {image: …}` / `vm: {from: …}` / `local: {from: …}`)
+  placed directly under the deploy — and a plan step's EXECUTION VENUE is its TREE
   POSITION: a step node nested under member `M` runs ON `M` (bare name), a step under
   a nested child `C` of parent path `P` runs on `P.C` (dotted). There is no authored
   `on:`/`pod:` step field — both are RETIRED; tree position is the sole source of
   venue (`flattenBundleVenues` stamps it at load time). A `cdp:`/`vnc:`/`mcp:` step
   placed under a driver member connects to that member's CDP/VNC/MCP endpoint; a
   `command:` step runs in that member's venue. Members are brought up by the same
-  deploy verbs and are NEVER check-live'd (instruments, not subjects). A bundle whose
-  ROOT carries no workload cross-ref is a **GROUP** bundle — it has no venue of its
+  deploy verbs and are NEVER check-live'd (instruments, not subjects). A **GROUP**
+  deploy (the `group:` kind) carries no workload of its own — it has no venue of its
   own, so every plan step MUST live under a member (a direct step on a group root is a
   hard load error). **Agent-provisioned members:** in an `iterate:` bed a member
   marked `agent_provisioned: true` is the artifact the AI BUILDS during the benchmark
@@ -1448,16 +1448,16 @@ Two pieces compose it:
 ### Worked example — a Chrome pod CDP-probes a web-server pod (pod→pod)
 
 ```yaml
-# charly.yml — a disposable GROUP bundle (no workload root): a web SUBJECT member +
-# a chrome DRIVER member. Each is a resource node placed UNDER the bundle; each
+# charly.yml — a disposable GROUP deploy (no workload root): a web SUBJECT member +
+# a chrome DRIVER member. Each is a resource node placed UNDER the deploy; each
 # carries its own plan-step nodes (venue = the member's name). Mirror
 # box/fedora/charly.yml's check-cross-pod-cdp.
 check-cross-pod-cdp:
-    bundle:
-        disposable: true             # group root — NO box:/vm:/local: cross-ref
+    group:
+        disposable: true             # group kind — no own workload (no image:/from:)
     web:                             # the SUBJECT member (nginx fixture on :8080)
-        bundle:
-            box: web
+        pod:
+            image: web
         # No port: — every inherited container port auto-allocates a free 127.0.0.1
         # host port (conflict-free across concurrent beds). Pin with a port: child
         # (["H:C"]) only when a fixed host port is needed.
@@ -1469,8 +1469,8 @@ check-cross-pod-cdp:
             status: 200
             body: [{contains: charly-fixture-web-content-marker}]
     chrome:                          # the DRIVER member (headless Chrome + cdp-proxy, publishes 9222)
-        bundle:
-            box: chrome-headless
+        pod:
+            image: chrome-headless
         cdp-open-web-subject:        # step node UNDER chrome → venue=chrome (DRIVE; passes on exit 0)
             check: chrome navigates to the subject over the charly net
             id: cdp-open-web-subject
@@ -1686,8 +1686,8 @@ deliberately.
 **MUST be invoked** before authoring, running, or debugging check
 behavior at any level. Triggers: `charly check` (any subcommand), `charly check
 run`, `charly check box`, `charly check live`, the plan steps / `description:`
-field in a candy/box `charly.yml`, the disposable test-bed bundles, the
+field in a candy/box `charly.yml`, the disposable test-bed deploys, the
 `ai.opencharly.description` OCI label, `kind: agent` (the agent grader) or a
-`disposable: true` bundle (+ its `iterate:` block),
-`charly check run <bed>` (disposable R10 bundles; roster fan-out via `/verify-beds`), or any check
+`disposable: true` deploy (+ its `iterate:` block),
+`charly check run <bed>` (disposable R10 deploys; roster fan-out via `/verify-beds`), or any check
 verb by name (file/port/http/command/package/service/cdp/wl/dbus/vnc/mcp/...).

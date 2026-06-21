@@ -17,7 +17,7 @@ description: |
 charly's CUE work has two halves:
 
 - **Ingress** (`charly/cue_schema.go`): validates the INPUT config a user authors
-  (`charly.yml` / box / candy / vm / k8s / bundle) against `schema/*.cue`, AND is
+  (`charly.yml` / box / candy / vm / k8s / pod) against `schema/*.cue`, AND is
   the single source for the Go param structs that config decodes into — the
   `@go()`-annotated `schema/*.cue` GENERATE the `charly/spec` param structs via
   `task cue:gen` (`cue exp gengotypes`), kept honest by the reproducibility +

@@ -87,6 +87,6 @@ on the `selkies-desktop` metalayer.
 - `/charly-selkies:selkies-desktop-layer` — the labwc sibling flavor.
 - `/charly-selkies:labwc` — the labwc nested-compositor primitive (the other seam).
 - `/charly-distros:cachyos`, `/charly-distros:nvidia` — the CPU + GPU bases.
-- `/charly-check:check` — the disposable check beds (`disposable: true` bundles) that prove each flavor.
+- `/charly-check:check` — the disposable check beds (`disposable: true` deploys) that prove each flavor.
 - `/charly-internals:disposable` — `requires_exclusive`/`preemptible` (the GPU-VM bed
   preempts the operator workstation for the single passthrough GPU).

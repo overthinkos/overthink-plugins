@@ -139,7 +139,7 @@ type — a hard, GENERIC distinction, NEVER mixed, decided in ONE place
 
 | Box type | charly binary source | How |
 |---|---|---|
-| **Disposable check box** (a `disposable: true` bundle) | latest **in-development** | the check-bed runner ALWAYS passes `charly box build --dev-local-pkg`, so the localpkg is BUILT from local source (`pkg/<fmt>` + `charly/`, via `buildLocalPkgOnHost`) and COPY'd into the image — a bed tests the charly code under development |
+| **Disposable check box** (a `disposable: true` deploy) | latest **in-development** | the check-bed runner ALWAYS passes `charly box build --dev-local-pkg`, so the localpkg is BUILT from local source (`pkg/<fmt>` + `charly/`, via `buildLocalPkgOnHost`) and COPY'd into the image — a bed tests the charly code under development |
 | **Production box** (any normal `charly box build`) | latest **published** | the default: the localpkg DOWNLOADS the published release (`releases/latest/download/opencharly-<arch>.<fmt>`) |
 
 Both install via the SAME dep-resolving `InstallTemplate` (`pacman -U` / `dnf

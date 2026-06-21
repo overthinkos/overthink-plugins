@@ -318,9 +318,9 @@ longest-pole-first: headless → the persistent session runs N concurrent
 `run_in_background` bed tasks (or a background agent per bed); interactive tmux →
 a split-pane teammate per bed. NEVER an in-process teammate.
 Two load-time mechanisms back the isolation: the bed set is DERIVED from the
-disposable bundles (`CheckBeds()`) — a bed is just a `disposable: true` bundle, so
-it shares the bundle namespace's global name-uniqueness and can't collide with
-another bundle by construction — and `validateCheckBeds` requires every bed to set
+disposable deploys (`CheckBeds()`) — a bed is just a `disposable: true` deploy, so
+it shares the deploy namespace's global name-uniqueness and can't collide with
+another deploy by construction — and `validateCheckBeds` requires every bed to set
 `disposable: true` and to resolve to a substrate (pod / vm / local / android, with
 the referenced vm/local/android entity present). Distinct beds therefore get distinct `charly-<bed>`
 container / libvirt-domain / image names. **Host-port disjointness is NOT
