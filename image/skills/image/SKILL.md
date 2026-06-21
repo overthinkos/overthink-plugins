@@ -18,11 +18,22 @@ Build-mode operations live only under `charly box`. Top-level invocations like
 `charly build`, `charly validate`, `charly list boxes`, or `charly inspect` return Kong's
 `unexpected argument` error.
 
-A **box** is a named build target in `charly.yml`. Boxes compose candies
-into container images with configurable defaults, inheritance chains,
+A **box** is an **image** — a named build target in `charly.yml`. Boxes compose
+candies into container images with configurable defaults, inheritance chains,
 platform targets, and builder configurations. The `charly` CLI resolves
 dependencies, generates Containerfiles, and builds images in the correct
 order.
+
+**Authoring rule (MUST).** An IMAGE MUST be authored as a `candy:` node carrying
+`base:` (an external base distro / OCI ref) **or** `from:` (a builder ref, e.g.
+`from: builder:pacstrap`) — there is **no `box:` KIND**. A `candy:` node carrying
+neither `base:` nor `from:` is a **LAYER** fragment (see `/charly-image:layer`).
+The `charly box` COMMAND family (build / validate / generate / inspect / list /
+merge / labels) is UNCHANGED — it operates on images (candies carrying `base:`/
+`from:`); only the YAML `box:` KIND keyword was removed. The `box/<name>/` and
+`candy/<name>/` discovery directories, and the `BoxConfig` / `uf.Box` Go types
+backing images, are likewise unchanged — a `candy:` node routes to `uf.Box`
+(image) or `uf.Candy` (layer) by the presence of `base:`/`from:`.
 
 ## The `charly box` Command Family
 
@@ -155,18 +166,18 @@ defaults:
     auto: false
     max_mb: 128
 
-# Every box is a name-first node: the `box:` discriminator holds the scalar +
+# Every image is a name-first node: the `candy:` discriminator (an image carries `base:`/`from:`) holds the scalar +
 # build-vocabulary fields (base / version / builder / builds / platforms /
 # build / description); every non-scalar collection (distro identity tags,
 # candy composition, env, security) becomes its own `<box>-<key>:` child node.
 fedora:
-  box:
+  candy:
     base: "quay.io/fedora/fedora:43"
   fedora-distro:
     distro: ["fedora:43", fedora]
 
 fedora-builder:
-  box:
+  candy:
     base: fedora
     builds: [pixi, npm, cargo]  # declares what this builder can build
   fedora-builder-candy:
@@ -176,7 +187,7 @@ fedora-builder:
       - build-toolchain
 
 my-app:
-  box:
+  candy:
     base: fedora
     env_file: "~/.config/my-app/.env"
   my-app-candy:
@@ -223,7 +234,7 @@ Every setting resolves through: **image -> defaults -> hardcoded fallback** (fir
 | `security` | `null` | Container security options. Overrides layer-level security |
 | `network` | `string` | Container network mode (default: shared `charly` network; set `host` for host networking) |
 
-VM-related fields (`vm`, `libvirt`) are not valid on kind: box entries — the loader rejects them. VMs are declared as `kind: vm` entities in `vm.yml` — see `/charly-vm:vms-catalog` for authoring and `/charly-build:migrate` for `charly migrate` conversion of legacy configs. `bootc: true` stays on kind: box entries (marks the image as a bootable container); a separate `kind: vm` entity with `source.kind: bootc` references it.
+VM-related fields (`vm`, `libvirt`) are not valid on `candy:` image entries — the loader rejects them. VMs are declared as `kind: vm` entities in `vm.yml` — see `/charly-vm:vms-catalog` for authoring and `/charly-build:migrate` for `charly migrate` conversion of legacy configs. `bootc: true` stays on a `candy:` image entry (marks the image as a bootable container); a separate `kind: vm` entity with `source.kind: bootc` references it.
 
 ## Builder and Builds
 
@@ -242,14 +253,14 @@ defaults:
     cargo: fedora-builder
 
 fedora-builder:
-  box:
+  candy:
     base: fedora
     builds: [pixi, npm, cargo]
   fedora-builder-candy:
     candy: [pixi, nodejs, build-toolchain]
 
 arch:
-  box:
+  candy:
     base: "quay.io/archlinux/archlinux:base-20260525.0.535911"
     build: [pac]
     builder:
@@ -261,14 +272,14 @@ arch:
     distro: [arch]
 
 arch-builder:
-  box:
+  candy:
     base: arch              # inherits build: [pac] AND builder: from arch
     builds: [pixi, npm, cargo, aur]
   arch-builder-candy:
     candy: [pixi, nodejs, build-toolchain, yay]
 
 arch-test:
-  box:
+  candy:
     base: arch              # inherits builder: from arch
     build: [pac, aur]            # override to add aur format
   arch-test-candy:
@@ -289,11 +300,11 @@ When `base` references another image in `charly.yml`, the generator resolves it 
 
 ```yaml
 fedora:
-  box:
+  candy:
     base: "quay.io/fedora/fedora:43"
 
 my-app:
-  box:
+  candy:
     base: fedora        # References fedora image above
   my-app-candy:
     candy: [my-layer]
@@ -363,7 +374,7 @@ When `base` is a URL string (not the name of another image in `charly.yml`), the
 ```yaml
 # ❌ BROKEN — no `<box>-distro:` child node → Distro resolves to null, no RPM installs emitted
 my-bootc-image:
-  box:
+  candy:
     base: "quay.io/fedora/fedora-bootc:43"
     bootc: true
   my-bootc-image-candy:
@@ -371,7 +382,7 @@ my-bootc-image:
 
 # ✓ CORRECT — explicit distro: tags matching the base, in a `<box>-distro:` child node
 my-bootc-image:
-  box:
+  candy:
     base: "quay.io/fedora/fedora-bootc:43"
     bootc: true
   my-bootc-image-distro:
@@ -425,7 +436,7 @@ The `env` and `env_file` fields inject environment variables into containers at 
 
 ```yaml
 my-app:
-  box:
+  candy:
     env_file: "~/.config/my-app/.env"
   my-app-env:
     env:
@@ -443,7 +454,7 @@ Box-level `security:` overrides candy-level security settings:
 
 ```yaml
 my-app:
-  box:
+  candy:
     base: fedora
   my-app-security:
     security:
@@ -459,7 +470,7 @@ Source: `charly/security.go` (`CollectSecurity`).
 
 ## VM Configuration
 
-VMs are **not** configured on kind: box entries. The `box.vm:` and `box.libvirt:` fields are rejected at load time. VM primitives are declared as `kind: vm` entities in `vm.yml`:
+VMs are **not** configured on `candy:` image entries. The `vm:` and `libvirt:` fields on a `candy:` image are rejected at load time. VM primitives are declared as `kind: vm` entities in `vm.yml`:
 
 ```yaml
 # vm.yml (any file — the loader routes by shape, not filename)
@@ -467,7 +478,7 @@ my-bootc-vm:
   vm:
     source:
       kind: bootc
-      box: my-bootc-image        # references the box node above (must have bootc: true)
+      box: my-bootc-image        # `box:` source field → the `candy:` image node above (must have bootc: true)
     disk_size: 10 GiB
     ram: 4G
     cpus: 2
@@ -542,14 +553,14 @@ Set `base` to another image name:
 
 ```yaml
 nvidia:
-  box:
+  candy:
     base: fedora
     platforms: [linux/amd64]
   nvidia-candy:
     candy: [cuda]
 
 ml-workstation:
-  box:
+  candy:
     base: nvidia
   ml-workstation-candy:
     candy: [python-ml, jupyter]
@@ -559,7 +570,7 @@ ml-workstation:
 
 ```yaml
 experimental:
-  box:
+  candy:
     enabled: false
     base: fedora
   experimental-candy:
@@ -593,7 +604,7 @@ experimental:
 
 ## Cross-kind name reuse
 
-Every entity is a top-level **name-first** node, so within a single document the top-level node names are **globally unique**: a `box`, a `pod`, a `vm`, a `k8s`, and a `local` in ONE `charly.yml` MUST NOT share a name (they would collide on the same YAML key — `charly box validate` flags it; rename one, e.g. the convention of suffixing the template a deploy inherits). Cross-kind reuse across SEPARATE discovered files (a `candy/redis` + a `box/redis` → distinct internal maps) IS still permitted, and verbs disambiguate by command context. Authoring verbs (`charly box set`, `charly box new box`, `charly box add-candy`, `charly box rm-candy`, `charly box new project`) write exclusively to `charly.yml` — a per-kind sibling file is reachable only via the `import:` statement from `charly.yml`, never as a default authoring target. Missing `charly.yml` → hard error pointing at `charly box new project .` or `charly migrate`. See CLAUDE.md "cross-FILE cross-kind reuse is fine, but a single document's top-level node names are GLOBALLY UNIQUE".
+Every entity is a top-level **name-first** node, so within a single document the top-level node names are **globally unique**: a `candy` (image or layer), a `pod`, a `vm`, a `k8s`, and a `local` in ONE `charly.yml` MUST NOT share a name (they would collide on the same YAML key — `charly box validate` flags it; rename one, e.g. the convention of suffixing the template a deploy inherits). Cross-FILE name reuse across SEPARATE discovered files (a layer `candy/redis` + an image `box/redis` — both `candy:` nodes, routed to distinct internal maps `uf.Candy` vs `uf.Box` by `base:`/`from:` presence) IS still permitted, and verbs disambiguate by command context. Authoring verbs (`charly box set`, `charly box new box`, `charly box add-candy`, `charly box rm-candy`, `charly box new project`) write exclusively to `charly.yml` — a per-kind sibling file is reachable only via the `import:` statement from `charly.yml`, never as a default authoring target. Missing `charly.yml` → hard error pointing at `charly box new project .` or `charly migrate`. See CLAUDE.md "cross-FILE cross-kind reuse is fine, but a single document's top-level node names are GLOBALLY UNIQUE".
 
 ### Files are generic kind-containers (per-kind filenames are a convenience)
 
@@ -621,7 +632,7 @@ import:
   - cachyos: box/cachyos          # namespaced child import
 
 versa:
-  box:
+  candy:
     base: cachyos.cachyos           # the `cachyos` image inside the `cachyos` namespace
 ```
 

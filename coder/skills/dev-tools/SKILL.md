@@ -75,7 +75,7 @@ you want the git tooling, compose `/charly-coder:gh` alongside
 ```yaml
 # charly.yml — composition is a child node, not a top-level list
 my-dev:
-    box:
+    candy:
         base: fedora
     my-dev-candy:
         candy:

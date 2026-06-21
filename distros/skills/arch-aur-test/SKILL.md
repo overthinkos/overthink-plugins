@@ -27,7 +27,7 @@ Validates that the `aur:` package format works correctly on Arch Linux boxes. In
 ```yaml
 # charly.yml
 my-image:
-  box:
+  candy:
     base: arch
   my-image-candy:
     candy:

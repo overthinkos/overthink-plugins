@@ -278,5 +278,5 @@ See `/charly-check:check` for the framework and author-facing gotchas.
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`candy:` image entries — those carrying `base:`/`from:` — in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — the embedded build vocabulary (distros, builders, init-systems)

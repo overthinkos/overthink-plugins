@@ -43,4 +43,4 @@ Used for testing the Valkey candy (Redis-compatible fork). Runs as a supervisord
 
 ## Related
 
-- `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`candy:` image entries — those carrying `base:`/`from:` — in `charly.yml`, build/validate/inspect/list)

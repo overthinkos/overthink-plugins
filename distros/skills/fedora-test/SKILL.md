@@ -49,4 +49,4 @@ Used for testing Traefik routing, service health checks, and the `testapi` candy
 
 ## Related
 
-- `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`candy:` image entries — those carrying `base:`/`from:` — in `charly.yml`, build/validate/inspect/list)

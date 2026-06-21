@@ -16,12 +16,12 @@ description: |
 
 ## Overview
 
-`charly vm` commands build disk images and manage virtual machines via libvirt (default) or direct QEMU. VMs are declared as **`kind: vm` entities in the unified `charly.yml`** — a first-class primitive alongside `kind: box` entries, each a name-first top-level node (`<name>: {vm: …}`). Two source types:
+`charly vm` commands build disk images and manage virtual machines via libvirt (default) or direct QEMU. VMs are declared as **`kind: vm` entities in the unified `charly.yml`** — a first-class primitive alongside `candy:` image entries, each a name-first top-level node (`<name>: {vm: …}`). Two source types:
 
 - **`source.kind: cloud_image`** — fetches a pre-built qcow2 from an external URL (Arch, Fedora, Ubuntu, Debian, CentOS Cloud images). Renders a NoCloud seed ISO with cloud-init. Canonical example: `/charly-vm:arch`.
-- **`source.kind: bootc`** — pairs with a `kind: box` entry that has `bootc: true`. Runs `bootc install to-disk` inside a privileged container.
+- **`source.kind: bootc`** — pairs (via its `box:` source field) with a `candy:` image entry that has `bootc: true`. Runs `bootc install to-disk` inside a privileged container.
 
-VMs are not configured on kind: box entries — `box.vm:` / `box.libvirt:` are rejected at load time. `bootc: true` stays on a kind: box entry to mark it bootable. Legacy projects convert in one shot with `charly migrate` (see `/charly-build:migrate`). For the YAML authoring reference, see `/charly-vm:vms-catalog`; for the Go types, see `/charly-internals:vm-spec`.
+VMs are not configured on `candy:` image entries — `vm:` / `libvirt:` on a `candy:` image are rejected at load time. `bootc: true` stays on a `candy:` image entry to mark it bootable. Legacy projects convert in one shot with `charly migrate` (see `/charly-build:migrate`). For the YAML authoring reference, see `/charly-vm:vms-catalog`; for the Go types, see `/charly-internals:vm-spec`.
 
 ## Quick Reference
 
@@ -260,7 +260,7 @@ my-bootc:
   vm:
     source:
       kind: bootc
-      box: my-bootc                               # a kind: box entry with bootc: true
+      box: my-bootc                               # `box:` source field → a `candy:` image entry with bootc: true
     disk_size: 80 GiB
     ram: 16G
     cpu: 6

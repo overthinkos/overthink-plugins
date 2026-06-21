@@ -133,7 +133,7 @@ the single sources of truth for their respective binaries.
 ```yaml
 # charly.yml — composition is a child node, not a top-level list
 my-polyglot:
-    box:
+    candy:
         base: fedora
     my-polyglot-candy:
         candy:

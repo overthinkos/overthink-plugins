@@ -91,7 +91,7 @@ stream.
 ```yaml
 # charly.yml — name-first; the charly candy is now composed into all supervisord images
 my-image:
-  box:
+  candy:
     base: fedora
   my-image-candy:
     candy:

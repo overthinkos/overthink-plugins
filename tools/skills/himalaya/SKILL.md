@@ -19,7 +19,7 @@ description: |
 ```yaml
 # box charly.yml — name-first: compose the candy via a child node
 my-box:
-  box:
+  candy:
     base: fedora
   my-box-candy:
     candy:

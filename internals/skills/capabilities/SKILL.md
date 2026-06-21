@@ -140,7 +140,7 @@ See `/charly-image:image` for current user-facing structure and `/charly-build:m
 
 ## See Also
 
-- `/charly-image:image` — user-facing `box:` entries in `charly.yml`
+- `/charly-image:image` — user-facing `candy:` image entries (with `base:`/`from:`) in `charly.yml`
 - `/charly-image:layer` — user-facing `candy:` authoring, including `service:` which feeds `LabelService`
 - `/charly-core:deploy` — `charly bundle add` / `from-image` / `sync` commands
 - `/charly-kubernetes:kubernetes` — K8s deploy target that reads `LabelService` to generate Kustomize

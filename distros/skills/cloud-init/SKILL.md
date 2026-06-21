@@ -24,7 +24,7 @@ description: |
 ```yaml
 # charly.yml
 my-cloud-image:
-  box:
+  candy:
     base: "quay.io/fedora/fedora-bootc:43"
     bootc: true
   my-cloud-image-candy:

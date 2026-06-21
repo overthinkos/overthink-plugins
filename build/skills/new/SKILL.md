@@ -16,8 +16,8 @@ Three verbs, in decreasing scope:
 | Verb | What it creates |
 |---|---|
 | `charly box new project <dir>` | A fresh `charly.yml` (with `discover: [box, candy]`), empty `box/` + `candy/` directories, and a `.gitignore` |
-| `charly box new box <name>` | A new discovered box at `box/<name>/charly.yml` (kind-keyed `box:` doc) |
-| `charly box new candy <name>` | A new candy at `candy/<name>/charly.yml` (stub kind-keyed `candy:` doc) |
+| `charly box new box <name>` | A new discovered image at `box/<name>/charly.yml` (a `candy:` image doc — kind-keyed `candy:` carrying `base:`; there is no `box:` KIND) |
+| `charly box new candy <name>` | A new layer candy at `candy/<name>/charly.yml` (stub kind-keyed `candy:` doc, no `base:`/`from:`) |
 
 All three are **comment-preserving**: the YAML edits route through the `yaml.v3` Node API rather than the value API, so human-authored comments and key order survive round trips. Implementation lives in `charly/scaffold_project.go` + `charly/yaml_setter.go`.
 
@@ -58,8 +58,8 @@ extend or override the embedded default. Add a box with `charly box new box <nam
 charly -C ~/my-project box new box hello \
     --base quay.io/fedora/fedora:43 \
     --candies sshd,tmux
-# Writes box/hello/charly.yml:
-#   box:
+# Writes box/hello/charly.yml (an image = a `candy:` node carrying `base:`):
+#   candy:
 #     name: hello
 #     base: quay.io/fedora/fedora:43
 #     candy: [sshd, tmux]

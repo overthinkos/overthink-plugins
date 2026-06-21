@@ -37,7 +37,7 @@ Typically not used directly — compose `/charly-infrastructure:k3s-server` or
 # For a bare binary-only image (rare) — a box composes the candy through a
 # <box>-candy child node (node-form: every non-scalar field is its own node):
 k3s-base:
-  box:
+  candy:
     base: fedora
   k3s-base-candy:
     candy:

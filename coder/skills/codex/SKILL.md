@@ -19,7 +19,7 @@ description: |
 ```yaml
 # box or candy charly.yml — composition is a child node, not a top-level list
 my-box:
-    box:
+    candy:
         base: fedora
     my-box-candy:
         candy:

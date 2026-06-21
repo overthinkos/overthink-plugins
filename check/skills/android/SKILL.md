@@ -17,7 +17,7 @@ Two cooperating concepts:
 - **`apk` package format** — Android apps declared in LAYERS (NOT a kind),
   parallel to `package:`/`aur:`. A `target: android` deploy applies its layers'
   `apk:` packages onto the device. The app is the deployable workload, the way a
-  `kind: box` is the workload for a pod/k8s deploy.
+  `candy:` image (a `candy:` node carrying `base:`/`from:`) is the workload for a pod/k8s deploy.
 
 This sits ABOVE the device-interaction verbs: `charly check adb` (`/charly-check:adb`)
 and `charly check appium` (`/charly-check:appium`) drive a running device; `kind: android`
@@ -31,7 +31,7 @@ it. The install machinery is shared — see "One installer (R3)".
 # holds scalars; non-scalar fields become child nodes)
 pixel9a-36:                          # in-pod emulator device
     android:
-        box: android-emulator       # the kind: box that BAKES the emulator + system image
+        box: android-emulator       # `box:` source field → the `candy:` image that BAKES the emulator + system image
         device: pixel_9a             # informational (documents the baked AVD profile)
         api_level: 36                # informational (the API level is a BUILD property of image:)
     pixel9a-36-google_account:       # non-scalar field → child node
@@ -58,7 +58,7 @@ my-phone:                            # remote/physical device
   the committed-`apk:` path needs neither (pure goadb push).
 
 **Build-vs-runtime boundary (load-bearing).** The Android system image + API
-level are baked into the referenced `kind: box` at BUILD time (sdkmanager in
+level are baked into the referenced `candy:` image at BUILD time (sdkmanager in
 the android-sdk layer). `kind: android` REFERENCES that image — it never drives
 a build. `device:`/`api_level:` are documentation, not assertions or build
 drivers. Two API levels = two images, each with its own `kind: android`.

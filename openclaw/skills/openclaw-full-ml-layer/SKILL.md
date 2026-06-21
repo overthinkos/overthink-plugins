@@ -27,7 +27,7 @@ This metalayer extends `openclaw-full` with ML capabilities:
 ```yaml
 # box charly.yml — composition is a child node, not a top-level list
 openclaw-full-ml-box:
-    box:
+    candy:
         base: nvidia
     openclaw-full-ml-box-candy:
         candy:

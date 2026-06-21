@@ -71,7 +71,7 @@ type VmSource struct {
     BaseUser string       // adopt-user pattern — see below
 
     // bootc branch:
-    Image      string     // kind: box entry name
+    Image      string     // `candy:` image entry name (carries base:/from:)
     Transport  string     // registry | containers-storage | oci | oci-archive
     Rootfs     string     // ext4 | xfs | btrfs
     RootSize   string     // "10G" — caps root partition, rest unpartitioned

@@ -284,8 +284,8 @@ target an instance of `versa`, which is a different deploy).
   `charly migrate` (the one-shot migration that injects
   the field into legacy entries).
 - **The `image:` value is either**:
-  - a **short name** (e.g. `versa`) — resolved against `box:`
-    entries in `charly.yml` to the currently-built tag, OR
+  - a **short name** (e.g. `versa`) — resolved against the `candy:`
+    image entries (those carrying `base:`/`from:`) in `charly.yml` to the currently-built tag, OR
   - a **fully-qualified registry ref** (e.g.
     `ghcr.io/overthinkos/versa:2026.131.2134` or
     `…@sha256:…`) — pinned to that exact image, never re-resolved.

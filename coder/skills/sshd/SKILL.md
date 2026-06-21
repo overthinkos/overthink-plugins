@@ -82,7 +82,7 @@ Why not `${USER}` substitution? The generator substitutes `${USER}` in plan-step
 # charly.yml -- add the candy to any box that needs an in-container SSH server
 # composition is a child node, not a top-level list
 my-image:
-    box:
+    candy:
         base: fedora
     my-image-candy:
         candy:

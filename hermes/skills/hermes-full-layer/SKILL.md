@@ -39,7 +39,7 @@ Without a browser provider, hermes browser tools fall back to local headless mod
 ```yaml
 # charly.yml
 hermes:
-  box:
+  candy:
     base: fedora
   hermes-candy:        # composition child node
     candy:

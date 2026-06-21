@@ -47,7 +47,7 @@ Installs the `yay` AUR helper, which enables the `aur:` package format in `charl
 ```yaml
 # charly.yml — typically in a builder image (name-first; compose via a child node)
 my-builder:
-  box:
+  candy:
     base: arch
   my-builder-candy:
     candy:

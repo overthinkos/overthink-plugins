@@ -55,7 +55,7 @@ Compose your own desktop+browser box — e.g. an `openclaw-desktop` entry in `ch
 
 ```yaml
 openclaw-desktop:
-  box:
+  candy:
     base: fedora
   openclaw-desktop-candy:
     candy:

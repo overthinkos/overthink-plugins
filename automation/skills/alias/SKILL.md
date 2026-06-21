@@ -73,7 +73,7 @@ Box-level aliases default `command` to `name` if omitted. Box-level aliases over
 
 ```yaml
 my-app:
-  box:
+  candy:
     base: fedora
   my-app-alias:
     alias:

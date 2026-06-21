@@ -248,7 +248,7 @@ ollama API, chrome-devtools-mcp port). The R10 bed is
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`box:` entries, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`candy:` image entries with `base:`/`from:`, build/validate/inspect/list)
 - `/charly-check:check` — declarative testing + the `check-openclaw-desktop-pod` R10 bed
 - `/charly-check:cdp`, `/charly-check:wl` — desktop automation on this box
 - `/charly-core:charly-config` — deploy setup (tunnel, port remapping, multi-instance, encrypted volumes)

@@ -29,7 +29,7 @@ Native Wayland screen recorder for wlroots-based compositors (sway, labwc, etc.)
 ```yaml
 # a box composing this candy — the candy list is a child node
 my-box:
-  box:
+  candy:
     base: fedora
   my-box-candy:
     candy:

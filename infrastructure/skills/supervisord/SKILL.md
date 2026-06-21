@@ -242,7 +242,7 @@ RPM: `supervisor` (Fedora) · PAC: `supervisor` (Arch community) · DEB: `superv
 ```yaml
 # charly.yml — a box composes candies through a <box>-candy child node
 my-image:
-  box:
+  candy:
     base: fedora
   my-image-candy:
     candy:

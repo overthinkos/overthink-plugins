@@ -126,5 +126,5 @@ port 5900 reachable, Chrome CDP on port 9250→9222 with `/json/version`
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`candy:` image entries — those carrying `base:`/`from:` — in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — the embedded build vocabulary (distros, builders, init-systems)

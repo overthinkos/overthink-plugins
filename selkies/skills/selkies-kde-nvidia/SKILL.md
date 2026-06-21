@@ -71,5 +71,5 @@ from any running holder). See `/charly-internals:disposable` + `/charly-check:ch
 
 ## Related
 
-- `/charly-image:image` — image family umbrella (`box:` entries, build/validate/inspect/list).
+- `/charly-image:image` — image family umbrella (`candy:` image entries with `base:`/`from:`, build/validate/inspect/list).
 - `/charly-build:build` — the embedded build vocabulary (distros, builders, init-systems).

@@ -74,5 +74,5 @@ charly shell arch-builder -c "pixi --version && node --version && yay --version 
 
 ## Related
 
-- `/charly-image:image` — box family umbrella (`box:` entries in `charly.yml`, build/validate/inspect/list)
+- `/charly-image:image` — image family umbrella (`candy:` image entries — those carrying `base:`/`from:` — in `charly.yml`, build/validate/inspect/list)
 - `/charly-build:build` — the embedded build vocabulary (distros, builders, init-systems)

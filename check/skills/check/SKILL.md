@@ -147,7 +147,7 @@ memory) is ALWAYS preserved. Set `defaults.keep_check_runs` in `charly.yml`
 |---|---|---|---|
 | `check-sway-browser-vnc-pod` | pod | `image: sway-browser-vnc` | cdp/wl/vnc/dbus/mcp/record + pod-side file/service/port/process/http |
 | `check-k3s-vm` | vm | `from: k3s-vm` | kube (all 13 methods) + guest-side file/service/port/process, http via port-forward, VmDeployTarget end-to-end |
-| `check-pod` | pod | `image: check-pod` | combined mechanism bed: `kind: box` build + `kind: candy` composition order + `kind: pod` runtime (nc :18794 + supervisord) + every DeployTarget rendering path |
+| `check-pod` | pod | `image: check-pod` | combined mechanism bed: `candy:` image build (a `candy:` carrying `base:`/`from:`) + `candy:` layer composition order + `kind: pod` runtime (nc :18794 + supervisord) + every DeployTarget rendering path |
 | `check-local` | local | `from: check-local-app` | `kind: local` layer apply via ShellExecutor |
 | `check-jupyter-pod` | pod | `image: jupyter` | jupyter-mcp regression coverage |
 | `check-jupyter-ml-pod` | pod | `image: jupyter-ml` | jupyter-ml spacy/quarto + GPU MCP probes |
@@ -369,7 +369,7 @@ If the container needs state that's only available in deploy (volumes, env, tunn
 CLI. Plan steps — each one intent keyword (`run:`/`check:`/`agent-run:`/
 `agent-check:`/`include:`) carrying prose, plus an inline Op for `run:`/`check:` —
 are authored as child step nodes (each named by its `id:`, else
-`<entity>-step-N`) under a candy/box entity in `charly.yml`; there is no `plan:`
+`<entity>-step-N`) under a `candy:` entity (layer or image) in `charly.yml`; there is no `plan:`
 list key. They are **baked into the `ai.opencharly.description` OCI label**
 (`LabelDescriptionSet`, which carries the collected plan steps with
 `candy:`/`box:`/`deploy` origin annotations) so any pulled image is self-testable
@@ -756,7 +756,7 @@ naturally. An empty-string map value falls through to the next tag
 | `vnc` | Method name (status/screenshot/click/mouse/type/key/rfb/passwd) + method-specific modifiers (`x`, `y`, `text`, `key`, `artifact`) + shared matchers | **Deploy-context only.** Wraps `charly check vnc <method>`. |
 | `mcp` | Method name (ping/servers/list-tools/list-resources/list-prompts/call/read) + method-specific modifiers (`tool`, `uri`, `input`, `mcp_name`) + shared matchers | **Deploy-context only.** Speaks `github.com/modelcontextprotocol/go-sdk` to any `mcp_provide` endpoint. See "Method allowlist — mcp" below. |
 
-> **STRICT RULE — a step verb (or Op modifier) MUST NEVER be spelled like a reserved KIND word.** Kinds (`pod`, `vm`, `k8s`, `local`, `android`, `box`, `candy`, `group`, `host`, `target`, …) live ONLY at a config EDGE — the opening discriminator of a top-level node or a tree-child node — never as a key in the middle of a step. A new probe verb that would collide with a kind word MUST pick a non-colliding spelling (the `k8s`/`group` probe verbs were renamed to `kube`/`unix_group` for exactly this reason). This is machine-enforced by `charly/spec` `TestNoKindWordAsStepVerb` + `TestNoKindWordAsOpModifier` — adding a colliding verb fails the build.
+> **STRICT RULE — a step verb (or Op modifier) MUST NEVER be spelled like a reserved KIND word.** Kinds (`candy`, `pod`, `vm`, `k8s`, `local`, `android`, `group`, `host`, `target`, …) live ONLY at a config EDGE — the opening discriminator of a top-level node or a tree-child node — never as a key in the middle of a step. A new probe verb that would collide with a kind word MUST pick a non-colliding spelling (the `k8s`/`group` probe verbs were renamed to `kube`/`unix_group` for exactly this reason). This is machine-enforced by `charly/spec` `TestNoKindWordAsStepVerb` + `TestNoKindWordAsOpModifier` — adding a colliding verb fails the build.
 
 ### Shared modifiers
 
@@ -1533,7 +1533,7 @@ Merge rules applied by `charly check live`:
 ```yaml
 # ~/.config/charly/charly.yml — name-first: the redis-ml box, then overlay step nodes
 redis-ml:
-    box: {}
+    candy: {}
     redis-responds:
         check: redis answers ping               # overrides image's baked step (by id)
         id: redis-responds

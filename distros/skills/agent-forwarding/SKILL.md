@@ -35,7 +35,7 @@ contributes.
 ```yaml
 # charly.yml
 my-image:
-  box:
+  candy:
     base: fedora
   my-image-candy:
     candy:
@@ -102,11 +102,11 @@ charly settings reset forward_gpg_agent        # Re-enable (back to default: tru
 ```yaml
 # ~/.config/charly/charly.yml
 immich:
-  box:
+  candy:
     forward_gpg_agent: false    # No GPG needed for photo management
     forward_ssh_agent: false    # Security: no host SSH access
 charly-fedora:
-  box:
+  candy:
     forward_gpg_agent: true     # Explicit (same as default)
 ```
 

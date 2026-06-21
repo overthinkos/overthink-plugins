@@ -12,6 +12,17 @@ A **candy** is a directory under `candy/<name>/` that installs a single concern.
 
 There is **one YAML file per candy** for install logic — no separate Taskfiles. Everything an author needs to install flows through the `run:` step child nodes and auto-detected package manifests (`pixi.toml`, `package.json`, `Cargo.toml`).
 
+**Layer vs image — ONE `candy:` kind (MUST).** There is exactly one entity kind,
+`candy:`; there is **no `box:` KIND**. A `candy:` node carrying neither `base:`
+nor `from:` is a **LAYER fragment** (this skill). A `candy:` node carrying `base:`
+(an external base distro / OCI ref) **or** `from:` (a builder ref) is a full
+**IMAGE** — author it per `/charly-image:image`. The loader routes a `candy:`
+node to `uf.Box` (image) or `uf.Candy` (layer) purely on `base:`/`from:` presence;
+`candy/<name>/` and `box/<name>/` remain the two discovery directories, and a
+layer-named and image-named entity may coexist (distinct `uf.Candy` vs `uf.Box`
+maps). The `charly box` COMMAND family is UNCHANGED — only the YAML `box:` KIND
+keyword was removed.
+
 ## `directory:` — where the layer's config files live
 
 A charly.yml's relative file references (`copy:` / `write:` step paths, `data.src`, install-file probes like `pixi.toml` / `package.json`, service-file globs) resolve against **`directory:`**, which defaults to `.` (the directory containing charly.yml).
@@ -1264,7 +1275,7 @@ shell: schema. Idempotent.
 
 ## Cross-kind name reuse
 
-A candy is a top-level **name-first** node, so within a single document the top-level node names are **globally unique**. Cross-kind reuse across SEPARATE discovered files IS still permitted: the same identifier (e.g. `charly-cachyos`) MAY exist as a candy at `candy/charly-cachyos/charly.yml` AND a box at `box/charly-cachyos/charly.yml` simultaneously (distinct internal maps). Verbs disambiguate by command context. When `charly bundle add <name>` resolves a ref where both a box AND a candy with that name exist, box wins (box-first precedence); use `--add-candy <name>` to explicitly select the candy for an overlay. See CLAUDE.md "cross-FILE cross-kind reuse is fine, but a single document's top-level node names are GLOBALLY UNIQUE" and `/charly-core:deploy`.
+A candy is a top-level **name-first** node, so within a single document the top-level node names are **globally unique**. Cross-FILE name reuse across SEPARATE discovered files IS still permitted: the same identifier (e.g. `charly-cachyos`) MAY exist as a layer at `candy/charly-cachyos/charly.yml` AND an image at `box/charly-cachyos/charly.yml` simultaneously — both are `candy:` nodes (the image carries `base:`/`from:`; there is no `box:` KIND), routed to distinct internal maps (`uf.Candy` vs `uf.Box`). Verbs disambiguate by command context. When `charly bundle add <name>` resolves a ref where both an image AND a layer with that name exist, the image wins (image-first precedence); use `--add-candy <name>` to explicitly select the layer for an overlay. See CLAUDE.md "cross-FILE cross-kind reuse is fine, but a single document's top-level node names are GLOBALLY UNIQUE" and `/charly-core:deploy`.
 
 ---
 
