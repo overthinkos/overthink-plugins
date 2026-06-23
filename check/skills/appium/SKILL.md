@@ -1,36 +1,43 @@
 ---
 name: appium
 description: |
-  MUST be invoked before any work involving: charly check appium commands, Android UI automation, WebDriver session management, APK install via Appium, element find/click/send-keys, mobile-specific WebDriver caps — anywhere the goal is to drive a running Appium 3.x server inside a container via W3C WebDriver from outside.
+  MUST be invoked before any work involving: the `appium:` check verb (declarative, dispatched to the out-of-process plugin candy/plugin-appium), Android UI automation, WebDriver session management, APK install via Appium, element find/click/send-keys, mobile-specific WebDriver caps — anywhere the goal is to drive a running Appium 3.x server inside a container via W3C WebDriver from outside.
 ---
 
 # Appium — W3C WebDriver client
 
 ## Overview
 
-`charly check appium <method>` is the host-side Appium WebDriver client. It
-talks W3C WebDriver to the container's host-published Appium port
+`appium:` is a DECLARATIVE check verb that drives a host-side Appium WebDriver
+client — authored as `appium: <method>` inside a candy/box plan `check:`/`run:`
+step. It is NOT a host CLI command: there is no `charly check appium`. The
+verb's implementation and its `github.com/tebeka/selenium` dependency were
+dep-shed into the out-of-tree `candy/plugin-appium` plugin module; at check
+time the host dispatches `appium:` through the provider registry to that
+out-of-process plugin (the same path a bed's checks take via `charly check
+live` / `charly check run`).
+
+The plugin talks W3C WebDriver to the container's host-published Appium port
 (container `:4723` → host's `HOST_PORT:4723`, e.g. `35001` on the
 `check-android-emulator-pod` deploy) at base path `/wd/hub`.
 
 Session lifecycle uses a persistent JSON session file at
 `~/.cache/charly/appium/sessions/<image>[_<instance>].json` so multi-step
-tests share one WebDriver session across separate `charly check appium`
-invocations. `session-create` writes the file; the other operations
-load it; `session-delete` removes it and best-effort closes the remote
-session.
+tests share one WebDriver session across separate `appium:` steps.
+`session-create` writes the file; the other operations load it;
+`session-delete` removes it and best-effort closes the remote session.
 
 The Appium-specific endpoints not in the standard WebDriver surface
 (`install_app`, `is_app_installed`, `remove_app`, etc.) route through
 the W3C escape hatch: `POST /session/<id>/execute/sync` with
 `{"script": "mobile: installApp", "args": [...]}`.
 
-### Also as a declarative verb
+### Authoring the `appium:` verb in a plan step
 
-Every `charly check appium <method>` is authorable as the inline Op of a
-`check:` step node in the candy/box plan (deploy-context only — `context:
-[deploy]`); an Appium action that drives the UI is a `run:` step. Each step is
-its own named child node (named by its `id:`); there is no `plan:` list key.
+The verb is the inline Op of a `check:` step node in the candy/box plan
+(deploy-context only — `context: [deploy]`); an Appium action that drives the
+UI is a `run:` step. Each step is its own named child node (named by its
+`id:`); there is no `plan:` list key.
 
 ```yaml
 appium-up:
@@ -75,27 +82,31 @@ close:
 
 ## Quick Reference
 
-| Subcommand | CLI form | Required modifier | Description |
+These are the `appium:` declarative-verb methods (NOT host CLI commands — there
+is no `charly check appium`). The method name is the `appium:` value; the
+modifiers below are sibling fields on the same `check:`/`run:` step node.
+
+| Method | Declarative form | Required modifier | Description |
 |---|---|---|---|
-| `status` | `charly check appium status <image>` | — | GET /status, prints JSON, fails on HTTP != 200 |
-| `session-create` | `charly check appium session-create <image> --caps <json>` | `caps:` | Create W3C session, persist id |
-| `session-delete` | `charly check appium session-delete <image>` | — | Close session and remove file |
-| `install-app` | `charly check appium install-app <image> --apk <path>` | `apk:` | mobile:installApp escape hatch |
-| `find` | `charly check appium find <image> --selector <s> [--strategy STRAT]` | `selector:` | Find element, prints W3C id |
-| `click` | `charly check appium click <image> --selector <s>` | `selector:` | Find + click |
-| `send-keys` | `charly check appium send-keys <image> --selector <s> --text <t>` | `selector:`+`text:` | Find + type |
-| `screenshot` | `charly check appium screenshot <image> --artifact <png>` | `artifact:` | GET /screenshot, decode base64, write PNG |
-| `get-text` | `charly check appium get-text <image> --selector <s>` | `selector:` | find + GET .../text, prints element text |
-| `get-attribute` | `charly check appium get-attribute <image> --selector <s> --attribute <a>` | `selector:`+`attribute:` | find + GET .../attribute/<a> (checked/enabled/text/...) |
-| `clear` | `charly check appium clear <image> --selector <s>` | `selector:` | find + POST .../clear |
-| `find-all` | `charly check appium find-all <image> --selector <s>` | `selector:` | POST /elements; prints count + ids |
-| `source` | `charly check appium source <image>` | — | GET /source (UI hierarchy XML) |
-| `back` | `charly check appium back <image>` | — | POST /back (navigate back) |
+| `status` | `appium: status` | — | GET /status, prints JSON, fails on HTTP != 200 |
+| `session-create` | `appium: session-create` + `caps:` | `caps:` | Create W3C session, persist id |
+| `session-delete` | `appium: session-delete` | — | Close session and remove file |
+| `install-app` | `appium: install-app` + `apk:` | `apk:` | mobile:installApp escape hatch |
+| `find` | `appium: find` + `selector:` (+ `strategy:`) | `selector:` | Find element, prints W3C id |
+| `click` | `appium: click` + `selector:` | `selector:` | Find + click |
+| `send-keys` | `appium: send-keys` + `selector:` + `text:` | `selector:`+`text:` | Find + type |
+| `screenshot` | `appium: screenshot` + `artifact:` | `artifact:` | GET /screenshot, decode base64, write PNG |
+| `get-text` | `appium: get-text` + `selector:` | `selector:` | find + GET .../text, prints element text |
+| `get-attribute` | `appium: get-attribute` + `selector:` + `attribute:` | `selector:`+`attribute:` | find + GET .../attribute/<a> (checked/enabled/text/...) |
+| `clear` | `appium: clear` + `selector:` | `selector:` | find + POST .../clear |
+| `find-all` | `appium: find-all` + `selector:` | `selector:` | POST /elements; prints count + ids |
+| `source` | `appium: source` | — | GET /source (UI hierarchy XML) |
+| `back` | `appium: back` | — | POST /back (navigate back) |
 
-### Tier 2 — per-class sugar groups (nested CLI; flat `<group>-<op>` in a plan step)
+### Tier 2 — per-class sugar groups (flat `<group>-<op>` method names)
 
-Mirrors `wl`'s `sway-*` / `overlay-*` pattern — `charly check appium gesture tap …`
-on the CLI is `appium: gesture-tap` in a plan step.
+Mirrors `wl`'s `sway-*` / `overlay-*` pattern — the gesture/app/key/device
+groups expose flat method names, e.g. `appium: gesture-tap` in a plan step.
 
 | Group | Ops (check-YAML method names) | Key modifiers |
 |---|---|---|
@@ -106,10 +117,10 @@ on the CLI is `appium: gesture-tap` in a plan step.
 
 ### Tier 3 — generic escape hatch (the cdp-`raw` equivalent — 100% coverage)
 
-| Method | CLI form | Required | Description |
+| Method | Declarative form | Required | Description |
 |---|---|---|---|
-| `execute` | `charly check appium execute <image> --expression <s> [--request-body <json>]` | `expression:` | `POST /execute/sync` — any `mobile:` command or JS. Object `request_body` → `[obj]`; array → as-is. Optional `selector:` resolves an element id for `{element}` substitution in `request_body`. |
-| `raw` | `charly check appium raw <image> --method <verb> --path <p> [--request-body <json>]` | `method:`+`path:` | Any W3C call relative to `/session/<id>` (charly prepends it). `path:`/`request_body:` support the `{element}` token when `selector:` is set. Reaches **everything** including `mobile:` via `/execute/sync`. |
+| `execute` | `appium: execute` + `expression:` (+ `request_body:`) | `expression:` | `POST /execute/sync` — any `mobile:` command or JS. Object `request_body` → `[obj]`; array → as-is. Optional `selector:` resolves an element id for `{element}` substitution in `request_body`. |
+| `raw` | `appium: raw` + `method:` + `path:` (+ `request_body:`) | `method:`+`path:` | Any W3C call relative to `/session/<id>` (charly prepends it). `path:`/`request_body:` support the `{element}` token when `selector:` is set. Reaches **everything** including `mobile:` via `/execute/sync`. |
 
 **`raw` is the coverage guarantee** — anything not covered by a typed method or
 sugar group is reachable here (e.g. `raw GET /element/{element}/rect`,
@@ -287,17 +298,21 @@ post-tap-shot:
 
 ## Implementation
 
-- `charly/appium.go` — CLI subcommands + Run() methods. `session-create` uses
-  `github.com/tebeka/selenium`'s `NewRemote` (which handles W3C
-  `alwaysMatch` wrapping). All other ops use a small raw-HTTP W3C client
-  (`w3cSession`) because the SDK can't attach to an existing session id.
-- `charly/appium_session.go` — session-file load/save/delete + XDG path
-  resolution.
-- `charly/checkrun_charly_verbs.go` — `appiumMethods` allowlist + `runAppium`
-  dispatcher.
-- `charly/validate_check.go` — `case "appium"` in `validateCharlyVerb`.
+The `appium:` verb and its `github.com/tebeka/selenium` dependency live in the
+out-of-tree `candy/plugin-appium` plugin module (an external-charly-verb
+plugin), NOT in charly's core (which carries no selenium dependency). The verb
+keeps its `appium:` discriminator + every modifier on charly's core closed
+`#Op`, so authoring is unchanged; at
+check time the host dispatches it through the provider registry —
+`providerRegistry.ResolveVerb("appium")` → the out-of-process `grpcProvider` →
+`invokeVerbProvider`, which hands the plugin the full `#Op` as params.
 
-The host port is read from podman's `NetworkSettings.Ports` via
+Inside the plugin: `session-create` uses `tebeka/selenium`'s `NewRemote` (which
+handles W3C `alwaysMatch` wrapping); all other ops use a small raw-HTTP W3C
+client (`w3cSession`) because the SDK can't attach to an existing session id.
+The session file is loaded/saved/deleted with XDG path resolution.
+
+The plugin reads the host port from podman's `NetworkSettings.Ports` via
 `InspectContainer` — same path as the adb verb.
 
 ## Library risks (documented)
@@ -325,7 +340,6 @@ mitigation if it stops working.
 
 ## When to Use This Skill
 
-**MUST be invoked** for any task involving `charly check appium` commands or
-`appium:` declarative checks. Invoke this skill BEFORE reading the
-verb's Go source or reaching for `command: curl http://localhost:.../wd/hub/...`
-workarounds.
+**MUST be invoked** for any task involving the `appium:` declarative check verb
+or its plan steps. Invoke this skill BEFORE reading the plugin's Go source or
+reaching for `command: curl http://localhost:.../wd/hub/...` workarounds.

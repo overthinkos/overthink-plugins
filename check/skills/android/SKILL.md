@@ -1,7 +1,7 @@
 ---
 name: android
 description: |
-  MUST be invoked before any work involving: the `kind: android` schema kind, a `target: android` deploy, the `apk:` layer package format (installing Android apps declaratively), AndroidDeployTarget, an in-pod emulator OR a remote/physical adb-endpoint device, or nested `pod → android` deployment. The first-class Android device + app surface that sits above `charly check adb`/`appium`.
+  MUST be invoked before any work involving: the `kind: android` schema kind, a `target: android` deploy, the `apk:` layer package format (installing Android apps declaratively), AndroidDeployTarget, an in-pod emulator OR a remote/physical adb-endpoint device, or nested `pod → android` deployment. The first-class Android device + app surface that sits above the `adb:`/`appium:` check verbs.
 ---
 
 # kind: android + the `apk` package format
@@ -19,10 +19,11 @@ Two cooperating concepts:
   `apk:` packages onto the device. The app is the deployable workload, the way a
   `candy:` image (a `candy:` node carrying `base:`/`from:`) is the workload for a pod/k8s deploy.
 
-This sits ABOVE the device-interaction verbs: `charly check adb` (`/charly-check:adb`)
-and `charly check appium` (`/charly-check:appium`) drive a running device; `kind: android`
-+ `target: android` declaratively describe a device and the apps installed on
-it. The install machinery is shared — see "One installer (R3)".
+This sits ABOVE the device-interaction verbs: the `adb:` (`/charly-check:adb`)
+and `appium:` (`/charly-check:appium`) declarative check verbs drive a running
+device; `kind: android` + `target: android` declaratively describe a device and
+the apps installed on it. The install machinery is shared — see "One installer
+(R3)".
 
 ## `kind: android` — the device
 
@@ -140,7 +141,7 @@ abstracts where work runs:
   or the credential store (via `google_account:`) on the host.
 - `InstallFromHostApk` — committed APK pushed via goadb, venue-agnostic.
 
-Both `charly check adb install-app` and `charly check adb install` are thin wrappers over
+Both the `adb: install-app` and `adb: install` verbs are thin wrappers over
 this — so the apk format, the check verbs, and the deploy target can never drift
 on single/split/`.xapk` handling.
 
