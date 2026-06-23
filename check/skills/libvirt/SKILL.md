@@ -75,9 +75,9 @@ QEMUDomainAgentCommand passthrough). The command name mirrors the
 libvirt/virsh vocabulary so skills translate cleanly. Design
 choices:
 
-- **Target resolution** identical to `charly check spice`: vm.yml entity
-  name → libvirt domain → live XML via `libvirtxml.Domain`. Errors
-  are the same across both commands.
+- **Target resolution** identical to the `spice:` verb's host-side
+  pre-resolution: vm.yml entity name → libvirt domain → live XML via
+  `libvirtxml.Domain`. Errors are the same across both.
 - **Framebuffer screenshot** goes through `DomainScreenshot` —
   QEMU's VNC framebuffer capture, returned as PPM, decoded in-process
   and re-encoded as PNG. Independent of whichever graphics protocol
@@ -108,7 +108,7 @@ charly check libvirt info arch
 # Framebuffer capture (independent of SPICE wire state).
 charly check libvirt screenshot arch /tmp/fb.png
 
-# Keyboard injection via libvirt (alternate path to `charly check spice key`).
+# Keyboard injection via libvirt (alternate path to the `spice: key` verb).
 charly check libvirt send-key arch ctrl+alt+F2
 
 # Live graphics password update.
@@ -165,7 +165,7 @@ cloud_init:
 
 ## Daemon prerequisite (host side)
 
-Every `charly check libvirt …` and `charly check spice …` probe routes through
+Every `charly check libvirt …` command and every `spice:` check verb routes through
 the libvirt user-session daemon socket. The daemon must be running as
 a user-service:
 
@@ -182,12 +182,13 @@ unit doesn't exist (libvirt not installed), the explicit-backend
 gate in `resolveVmBackend()` surfaces a clear error pointing at the
 remediation.
 
-## Architecture split (vs. `charly check spice`)
+## Architecture split (vs. the `spice:` verb)
 
 - **`charly check libvirt`** — libvirt RPC only. Every byte goes to
   libvirtd. Works regardless of the VM's graphics protocol.
-- **`charly check spice`** — SPICE wire only. Proves the SPICE protocol
-  path is alive end-to-end.
+- **the `spice:` check verb** — SPICE wire only. Proves the SPICE protocol
+  path is alive end-to-end (a declarative verb served out-of-process by
+  `candy/plugin-spice`, not a host CLI command).
 
 For ambiguous tests, run both and diff the results.
 

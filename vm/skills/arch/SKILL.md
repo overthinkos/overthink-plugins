@@ -156,20 +156,26 @@ Without `nc`, virt-manager hangs at "Connecting to graphical console
 for guest" — no error, just silent failure. Diagnose with
 `ssh <host> which nc` (should return a path).
 
-### `charly check spice` with `--uri` (for CLI diagnostics / local artifacts)
+### Probing the remote VM's SPICE wire (the `spice:` verb + `charly check libvirt`)
 
-To probe the remote VM from the CLI and write screenshots into the local
-filesystem:
+SPICE-wire probing is the declarative `spice:` check verb — there is no host
+`charly check spice` command (the verb is served out-of-process by
+`candy/plugin-spice`; see `/charly-check:spice`). When a `spice:` step targets
+this remote VM, set `CHARLY_LIBVIRT_URI=qemu+ssh://o.atrawog.org/session` (the
+former `--uri` flag carried this same env): the host resolves the remote SPICE
+endpoint, forwards the remote SPICE UNIX socket to a local socket, and hands
+the plugin the dialable address — all transparent.
+
+For libvirt-RPC diagnostics that write artifacts straight into the local
+filesystem, `charly check libvirt` is still an in-core host CLI command and
+accepts the same `--uri`:
 
 ```bash
-charly check spice status arch --uri qemu+ssh://o.atrawog.org/session
-charly check spice screenshot arch --uri qemu+ssh://o.atrawog.org/session /tmp/shot.png
 charly check libvirt info arch --uri qemu+ssh://o.atrawog.org/session
+charly check libvirt screenshot arch --uri qemu+ssh://o.atrawog.org/session - > /tmp/shot.png
 ```
 
-`charly` opens an SSH connection, forwards the remote SPICE UNIX socket to a
-local socket, and dials it — all transparent to the user. Set
-`CHARLY_LIBVIRT_URI=qemu+ssh://o.atrawog.org/session` to avoid repeating the flag.
+Set `CHARLY_LIBVIRT_URI=qemu+ssh://o.atrawog.org/session` to avoid repeating the flag.
 
 ### `charly --host o` (run charly on the remote machine)
 
@@ -179,8 +185,8 @@ For commands that don't need their output to land locally:
 charly settings set hosts.o o.atrawog.org
 charly --host o status
 charly --host o vm list
-charly --host o test spice status arch
-charly --host o test spice screenshot arch - > /tmp/shot.png
+charly --host o test libvirt info arch
+charly --host o test libvirt screenshot arch - > /tmp/shot.png
 ```
 
 `charly` re-execs itself over SSH (via your system's `ssh`, so `~/.ssh/config`

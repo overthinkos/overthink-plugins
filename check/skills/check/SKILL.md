@@ -8,7 +8,7 @@ description: |
   (`disposable: true`, run via `charly check run <bed>`), or any plan step / Op
   authoring. Covers the unified `charly check` surface: three
   primary modes (image / live / run),
-  8 in-core live-container probe verbs (cdp/wl/dbus/vnc/mcp/record/spice/libvirt) plus the out-of-process plugin check verbs (kube/adb/appium),
+  7 in-core live-container probe verbs (cdp/wl/dbus/vnc/mcp/record/libvirt) plus the out-of-process plugin check verbs (kube/adb/appium/spice),
   verb catalog (file/port/command/http/package/service/process/dns/user/
   unix_group/interface/kernel-param/mount/addr/matching), runtime variable
   resolution (`${HOST_PORT:N}`, `${VOLUME_PATH:name}`, `${CONTAINER_IP}`,
@@ -623,16 +623,15 @@ explicit subcommand names below take over when matched.
 | `charly check vnc …` | `/charly-check:vnc` | VNC framebuffer screenshot + click/key/type/passwd |
 | `charly check mcp …` | (this skill) | MCP client — ping/list-tools/list-resources/list-prompts/call/read/servers against any `mcp_provide` endpoint. Speaks `github.com/modelcontextprotocol/go-sdk` (Streamable HTTP by default, SSE when `transport: sse`). |
 | `charly check record …` | `/charly-check:record` | Recording sessions — start/stop/list/cmd. Terminal (asciinema) or desktop (pixelflux/wf-recorder). Container-only. |
-| `charly check spice …` | `/charly-check:spice` | SPICE wire client for VMs — handshake, native-SPICE framebuffer screenshot, input injection. VM-only. |
 | `charly check libvirt …` | `/charly-check:libvirt` | libvirt-RPC test commands for VMs — info, domain XML, QMP, qemu-guest-agent, snapshots, events. VM-only. |
 
-These eight verbs live under `charly check` because every one of them is a "probe or
+These seven verbs live under `charly check` because every one of them is a "probe or
 drive a running service" operation — the same surface the declarative test
 runner composes when it executes checks.
 
 **Reserved image names:** because subcommand names take priority when
 matched, an image literally named `cdp`, `wl`, `dbus`, `vnc`, `mcp`,
-`record`, `spice`, or `libvirt` cannot be run via `charly check live <name>` —
+`record`, or `libvirt` cannot be run via `charly check live <name>` —
 use the explicit `charly check live <name>` form or rename the image. No such
 images currently exist in `charly.yml`.
 
@@ -1652,7 +1651,7 @@ deliberately.
 
 ## Related skills
 
-- **Live-container probe verbs under `charly check`** — `/charly-check:cdp`, `/charly-check:wl`, `/charly-check:dbus`, `/charly-check:vnc`, `/charly-build:charly-mcp-cmd`, `/charly-check:record`, `/charly-check:spice`, `/charly-check:libvirt` are dispatched as `charly check cdp|wl|dbus|vnc|mcp|record|spice|libvirt`. The `kube:` cluster-probe verb (`/charly-kubernetes:check-k8s`) is NOT a host `charly check` subcommand — it is a declarative `kube:` check verb served out-of-process by `candy/plugin-kube` (parallel to the `adb:`/`appium:` plugin verbs). See the Subcommands section above.
+- **Live-container probe verbs under `charly check`** — `/charly-check:cdp`, `/charly-check:wl`, `/charly-check:dbus`, `/charly-check:vnc`, `/charly-build:charly-mcp-cmd`, `/charly-check:record`, `/charly-check:libvirt` are dispatched as `charly check cdp|wl|dbus|vnc|mcp|record|libvirt`. The `kube:` cluster-probe verb (`/charly-kubernetes:check-k8s`) and the `spice:` SPICE-wire verb (`/charly-check:spice`) are NOT host `charly check` subcommands — each is a declarative check verb served out-of-process by its plugin (`candy/plugin-kube`, `candy/plugin-spice`), parallel to the `adb:`/`appium:` plugin verbs. See the Subcommands section above.
 - `/charly-image:layer` — layer authoring; plan steps (child step nodes) are part of every `charly.yml`.
 - `/charly-image:image` — image-level plan steps at composition time.
 - `/charly-core:deploy` — local `charly.yml` overlay rules and the plan-step merge.

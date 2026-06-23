@@ -1,63 +1,119 @@
 ---
 name: spice
-description: SPICE wire-level client for VMs — `charly check spice <vm>` handshake, inputs, native display screenshots via the Shells-com/spice library.
+description: the `spice:` SPICE-wire check verb for VMs — handshake, native-SPICE display screenshots, and input injection, served out-of-process by candy/plugin-spice (the vendored Shells-com/spice library).
 allowed-tools: Bash, Read
 ---
 
-MUST be invoked before any work involving: `charly check spice` commands,
-SPICE protocol debugging, libvirt-VM display testing via the SPICE
-wire, or anything that needs to *prove* a SPICE server is speaking
-the protocol correctly (not just that the TCP port is open).
+# SPICE — VM display-protocol check verb
 
-## Command surface
+## Overview
 
+`spice:` is a DECLARATIVE check verb — authored as `spice: <method>` inside a
+candy/box plan `check:`/`run:` step. **There is no host `charly check spice`
+command.** The SPICE-wire implementation (and the upstream SPICE client
+library + its cgo opus/portaudio audio transitives) was dep-shed into the
+out-of-tree `candy/plugin-spice` plugin module; at check time the host
+dispatches `spice:` through the provider registry to that out-of-process
+plugin (the same path a bed's checks take via `charly check live` / `charly
+check run`). This mirrors the `adb:` / `appium:` / `kube:` externalizations
+(see charly/check_cmd.go).
+
+The verb *proves* the SPICE server is speaking the protocol correctly on the
+wire — not just that the TCP port is open: main-channel handshake, auth,
+channel enumeration, native display-channel image decode, and input injection.
+VM-only — it needs a running libvirt VM that exposes a `<graphics type='spice'>`
+device.
+
+### The host pre-resolves the endpoint; the plugin speaks the wire
+
+The out-of-process plugin owns NO go-libvirt. The host does the
+vm.yml → libvirt-domain → live-XML → `<graphics type='spice'>` resolution
+(`preresolveSpiceEndpoint`, charly/spice_preresolve.go, over the
+`ResolveVmTarget` / `SpiceEndpoint` machinery that stays in core), opens any
+qemu+ssh:// side tunnel itself, and hands the plugin a plain DIALABLE endpoint
+via the CheckEnv. The plugin just dials it and runs the method.
+
+## Authoring the `spice:` verb in a plan step
+
+The verb is one inline Op carried by a step node in the candy/box plan (a
+display/handshake probe is a `check:` step; an input action that changes guest
+state is a `run:` step). The method name becomes the verb's YAML value
+(`spice: <method>`); the former CLI positional args become sibling Op modifier
+fields:
+
+| Method | Declarative form | Modifiers | Description |
+|---|---|---|---|
+| `status` | `spice: status` | — | handshake + channel enumeration (first line `SPICE:     ok`) |
+| `screenshot` | `spice: screenshot` + `artifact:` | `artifact:` | native SPICE display-channel decode → PNG |
+| `cursor` | `spice: cursor` + `artifact:` | `artifact:` | capture cursor bitmap + position → PNG |
+| `click` | `spice: click` + `x:`/`y:` | `x:`, `y:`, `button:` | mouse press/release via the inputs channel |
+| `mouse` | `spice: mouse` + `x:`/`y:` | `x:`, `y:` | pointer move (no click) |
+| `type` | `spice: type` + `text:` | `text:` | type text as PC-AT scancodes |
+| `key` | `spice: key` + `key:` | `key:` | press one named key (Return, Escape, F2, …) |
+
+The shared matchers (`stdout:`, `stderr:`, `exit_status:`) and the artifact
+validators (`artifact_min_bytes:`, `artifact_min_dimensions:`,
+`artifact_not_uniform:`, …) work like every other verb. **`context: [deploy]`**
+— the verb needs a running VM; under `charly check box` (no running VM) it
+skips, and a SPICE-less deployment (e.g. a GPU desktop with no `<graphics
+type='spice'>` device) is reported N/A SKIP.
+
+The method-name vocabulary (`status`/`screenshot`/`cursor`/`click`/`mouse`/
+`type`/`key`) and every modifier stay on charly's core closed `#Op` — so
+authoring is UNCHANGED from a built-in verb (`spice: status`, not `plugin:
+spice`); the plugin advertises the verb with no plugin_input.
+
+Example — each step is its own child node of the candy/box, named by its `id:`:
+
+```yaml
+spice-handshake:
+    check: the SPICE server completes the handshake and enumerates channels
+    id: spice-handshake
+    spice: status
+    context: [deploy]
+    stdout:
+        - contains: ok
+        - contains: "inputs:    ready"
+desktop-rendered:
+    check: the SPICE display channel decodes a non-uniform framebuffer
+    id: desktop-rendered
+    spice: screenshot
+    artifact: /tmp/spice-shot.png
+    context: [deploy]
+    artifact_not_uniform: true
 ```
-charly check spice status     <vm>              # handshake + channel enumeration
-charly check spice screenshot <vm> [FILE]       # native SPICE display-channel decode → PNG
-charly check spice click      <vm> X Y          # mouse press/release via inputs channel
-charly check spice mouse      <vm> X Y          # pointer move (no click)
-charly check spice type       <vm> TEXT         # type text as PC-AT scancodes
-charly check spice key        <vm> NAME         # press one named key (Return, Escape, F2, …)
-charly check spice cursor     <vm> [FILE]       # capture cursor bitmap + position
+
+Input injection is authored as `run:` steps (each one mutates guest state) — a
+console login sequence walks the form with `spice: key` / `spice: type` steps:
+
+```yaml
+drive-login:
+    run: type the username and password at the console
+    id: drive-login
+    spice: key
+    key: return
+    context: [deploy]
+# … followed by sibling `spice: type` (text: arch) and `spice: key` (key: tab)
+# steps to walk the login form.
 ```
-
-Global flags on every subcommand:
-
-- `--address host:port` — bypass vm.yml lookup; targets an arbitrary TCP SPICE server.
-- `--socket /path` — bypass vm.yml lookup; targets an arbitrary UNIX-socket SPICE server.
-- `--password SECRET` — SPICE ticket for `--address` mode.
-- `--uri qemu+ssh://[user@]host/session` — resolve the VM on a remote libvirt host. `charly` auto-opens an SSH tunnel and forwards the remote SPICE socket (or TCP port) to a local endpoint for the lifetime of the command. Also accepts the `CHARLY_LIBVIRT_URI` env var.
-
-Screenshot/cursor `<file>` args accept `-` to write PNG bytes to stdout:
-`charly check spice screenshot arch - > /tmp/shot.png`. Status messages
-go to stderr so stdout stays binary-clean — pipeline-friendly.
 
 ## Remote libvirt (qemu+ssh://)
 
-When `--uri qemu+ssh://…` is set, `charly check spice` runs locally but pokes a
-remote libvirt. Libvirt RPC is tunneled over the SSH control channel for
-free; the SPICE display channel needs a side tunnel, which `charly` opens
-transparently:
+A `spice:` step can target a VM on a remote libvirt host. Set
+`CHARLY_LIBVIRT_URI=qemu+ssh://[user@]host/session` (the former `--uri` flag
+carried this same env): the host-side pre-resolver runs locally, discovers the
+remote SPICE endpoint, and opens the side tunnel transparently — libvirt RPC
+rides the SSH control channel; the SPICE display channel gets a dedicated
+forward.
 
-```bash
-charly check spice status arch --uri qemu+ssh://o.atrawog.org/session
-# → opens SSH → discovers remote virtqemud socket via `id -u` → forwards
-#   the SPICE UNIX socket → dials it → prints channel enumeration.
-```
+- For VMs that declare `<listen type='socket'/>` (the arch default after the
+  socket-listen cutover), the host forwards the UNIX socket.
+- For TCP-listener VMs, the host opens a `127.0.0.1:<random>` forward.
 
-For VMs that declare `<listen type='socket'/>` (the default for
-arch after the socket-listen cutover), `charly` forwards the UNIX
-socket. For TCP-listener VMs, `charly` opens a 127.0.0.1:<random> forward.
-
-Alternative: `charly --host o test spice status arch` runs `charly` on
-the remote machine itself — no side tunnel needed because the VM's SPICE
-socket is local to the remote host. Useful when you want artifacts to stay
-remote, or when the SPICE server doesn't bind loopback on the remote side.
-
-GUI clients (virt-manager, `remote-viewer --connect qemu+ssh://…`) don't
-need any charly involvement for socket listeners — they auto-forward via
-libvirt RPC fd-passing. See `/charly-vm:arch` "Connecting from a
-remote workstation" for the complete story.
+GUI clients (virt-manager, `remote-viewer --connect qemu+ssh://…`) don't need
+any charly involvement for socket listeners — they auto-forward via libvirt
+RPC fd-passing. See `/charly-vm:arch` "Connecting from a remote workstation"
+for the complete story.
 
 ## What it does (and doesn't)
 
@@ -65,77 +121,98 @@ remote workstation" for the complete story.
   SPICE_TICKET), channel enumeration (Display/Inputs/Cursor/Playback/
   Record/Webdav), display channel with native QUIC/GLZ/LZ/LZ4 image
   decode, input channel for key/mouse events.
-- **Pure-Go + cgo audio deps.** Uses `github.com/Shells-com/spice`.
-  Audio channels drag in `portaudio` + `opusfile` (Arch packages
-  listed in `pkg/arch/PKGBUILD`); these are required at build + run
-  time but the CLI itself never plays/records audio.
-- **Target resolution.** Default path: `charly check spice <vm>` loads
-  vm.yml, finds the running libvirt domain, parses live XML via
-  `libvirtxml.Domain`, and extracts the SPICE host/port/passwd from
-  the `<graphics type="spice">` element (honoring autoport='yes').
-- **Not implemented.** Audio playback/record (no user story).
-  Complex agent-channel operations (clipboard, resolution change);
-  the upstream library exposes them but the CLI doesn't wrap them
-  yet — use the libvirt subcommands (`libvirt passwd`, `libvirt
-  guest exec`) for the corresponding management ops.
+- **Endpoint resolved host-side.** The host loads vm.yml, finds the running
+  libvirt domain, parses live XML via `libvirtxml.Domain`, and extracts the
+  SPICE host/port/passwd from the `<graphics type='spice'>` element (honoring
+  autoport='yes') before handing the plugin a dialable endpoint. The operator
+  escape-hatches the former CLI exposed (`--address`, `--socket`, `--password`)
+  are NOT part of the declarative verb — the endpoint comes from the bed's VM
+  context.
+- **Native SPICE screenshot.** `spice: screenshot` is a native SPICE
+  display-channel decode (NOT libvirt `DomainScreenshot`) — it proves the SPICE
+  display path renders pixels end-to-end. `type`/`key` emit PC-AT scancodes
+  (the friendly-keyname → scancode table lives in the plugin).
+- **Not implemented.** Audio playback/record (no user story) — the plugin is
+  built WITHOUT `-tags spice_audio`, so the upstream library's cgo
+  opus/portaudio audio channels are not linked. Complex agent-channel
+  operations (clipboard, resolution change); the upstream library exposes them
+  but the verb doesn't wrap them yet — use the `libvirt:` verb (`libvirt:
+  passwd`, `libvirt: guest/exec`) for the corresponding management ops.
 
-## End-to-end example
+## Architecture split (vs. the `libvirt:` verb)
 
-```bash
-# Start a VM with SPICE graphics (arch ships this by default).
-charly vm start arch
+The two verbs are single-protocol by design:
 
-# Handshake + report channels.
-charly check spice status arch
-# → connected: 127.0.0.1:5901
-#   display:   1280x800
-#   inputs:    ready
+- **`spice:`** — every byte flows through the SPICE wire. Use when the thing
+  under test is "is SPICE itself healthy?".
+- **`libvirt:`** — every call goes through libvirtd RPC. Use when the thing
+  under test is "is the VM working?" (framebuffer capture, keyboard injection,
+  snapshots, domain state). The `libvirt:` verb remains an in-core
+  `charly check libvirt` host CLI command as well (see `/charly-check:libvirt`).
 
-# Native SPICE screenshot (not libvirt DomainScreenshot).
-charly check spice screenshot arch /tmp/out.png
-# → Screenshot saved to /tmp/out.png (1280x800, native SPICE display decode)
+For input testing, prefer `spice: type`/`key`/`click` to prove the SPICE wire
+delivers input to the guest. For display testing, compare `spice: screenshot`
+against `libvirt: screenshot` — if both render the same pixels, the SPICE
+server + the guest framebuffer agree.
 
-# Drive the login.
-charly check spice key arch return
-charly check spice type arch arch
-charly check spice key arch tab
-charly check spice type arch "my-password"
-charly check spice key arch return
-```
+## Implementation
 
-## Architecture split (vs. `charly check libvirt`)
+The `spice:` verb and its SPICE-wire client live in the out-of-tree
+`candy/plugin-spice` plugin module (an external-charly-verb plugin), NOT in
+charly's core (which carries no SPICE library and no opus/portaudio cgo deps).
 
-The two commands are single-protocol by design:
+- `candy/plugin-spice/provider.go` — the out-of-process verb provider: it
+  dials the host-pre-resolved endpoint, dispatches the method, then
+  self-evaluates the stdout/stderr/exit_status matchers + the artifact
+  validators itself.
+- `candy/plugin-spice/session.go` / `methods.go` — the connection wrapper over
+  the SPICE library's `Connector`/`Driver` interfaces and the per-method
+  implementations.
+- `candy/plugin-spice/third_party/spice` — the vendored Shells-com/spice
+  library, built without the audio tag (`ch-audio-stub.go`).
+- `candy/plugin-spice/schema/spice.cue` — the plugin's served CUE schema (the
+  verb keeps its discriminator + modifiers on core `#Op`, so the schema carries
+  no plugin_input).
 
-- **`charly check spice`** — every byte flows through the SPICE wire.
-  Use when the thing under test is "is SPICE itself healthy?".
-- **`charly check libvirt`** — every call goes through libvirtd RPC.
-  Use when the thing under test is "is the VM working?" (framebuffer
-  capture, keyboard injection, snapshots, domain state).
+Host side (stays in core):
 
-For input testing, prefer `charly check spice type/key/click` to prove
-the SPICE wire delivers input to the guest. For display testing,
-compare `charly check spice screenshot` against `charly check libvirt
-screenshot` — if both render the same pixels, the SPICE server +
-the guest framebuffer agree.
-
-## Implementation pointers
-
-- `charly/spice.go` — Kong command tree, per-verb structs.
-- `charly/spice_session.go` — thin wrapper over Shells-com/spice's
-  `Connector`/`Driver` interfaces. The Driver stub captures
-  display/cursor updates into a sync.Mutex-guarded field; the CLI
-  reads them back for screenshot/cursor verbs.
-- `charly/vm_target.go` — shared target resolution (vm.yml → libvirt
-  domain → live XML → SPICE address).
-- PC-AT scancode table is inline in `charly/spice.go` (friendly keyname
-  → scancode for `type` and `key`).
+- `charly/spice_preresolve.go` — `preresolveSpiceEndpoint`: vm.yml → libvirt
+  domain → live XML → SPICE endpoint, plus any qemu+ssh:// side tunnel, handing
+  the plugin a dialable `SpiceEnv` via the CheckEnv.
+- `charly/vm_target.go` — shared VM target resolution (`ResolveVmTarget` /
+  `SpiceEndpoint`); `VmTarget.XML` gives the live `libvirtxml.Domain`.
+- The registry dispatch: `providerRegistry.ResolveVerb("spice")` → the
+  out-of-process `grpcProvider` → `invokeVerbProvider`, which hands the plugin
+  the full `#Op` as params after the host pre-resolves the endpoint.
 
 ## Dependencies
 
-- `github.com/Shells-com/spice` (MIT) — SPICE client library.
-- `portaudio` + `opusfile` Arch system packages (cgo dependencies
-  pulled in by the library's audio channels).
-- `libvirt.org/go/libvirtxml` — XML parsing for SPICE address
-  extraction.
-- `github.com/digitalocean/go-libvirt` — domain lookup.
+These now live in `candy/plugin-spice`, NOT in charly's core:
+
+- `github.com/Shells-com/spice` (MIT) — SPICE client library, vendored under
+  `third_party/spice`.
+- `github.com/hraban/opus` + `github.com/gordonklaus/portaudio` — cgo audio
+  transitives, indirect and NOT linked (the plugin is built without
+  `-tags spice_audio`).
+
+The host-side VM resolution still uses core's libvirt deps
+(`libvirt.org/go/libvirtxml`, `github.com/digitalocean/go-libvirt`) via
+`charly/vm_target.go`.
+
+## Related skills
+
+- `/charly-check:libvirt` — the sibling in-core `charly check libvirt` host CLI
+  command (libvirt RPC: framebuffer screenshot, send-key, QMP, snapshots, guest
+  agent).
+- `/charly-check:check` — the unified check system and the Op (a plan step)
+  that holds every verb discriminator + modifier.
+- `/charly-vm:arch` — the arch VM that ships SPICE by default; "Connecting from
+  a remote workstation".
+- `/charly-internals:plugin` — the external-charly-verb plugin model the spice
+  verb follows.
+
+## When to Use This Skill
+
+**MUST be invoked** for any task involving the `spice:` declarative check verb,
+SPICE protocol debugging, or proving a libvirt VM's SPICE display path is alive
+end-to-end. Invoke this skill BEFORE reading the plugin's Go source.
