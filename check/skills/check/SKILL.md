@@ -8,7 +8,7 @@ description: |
   (`disposable: true`, run via `charly check run <bed>`), or any plan step / Op
   authoring. Covers the unified `charly check` surface: three
   primary modes (image / live / run),
-  9 live-container probe verbs (cdp/wl/dbus/vnc/mcp/record/spice/libvirt/kube),
+  8 in-core live-container probe verbs (cdp/wl/dbus/vnc/mcp/record/spice/libvirt) plus the out-of-process plugin check verbs (kube/adb/appium),
   verb catalog (file/port/command/http/package/service/process/dns/user/
   unix_group/interface/kernel-param/mount/addr/matching), runtime variable
   resolution (`${HOST_PORT:N}`, `${VOLUME_PATH:name}`, `${CONTAINER_IP}`,
@@ -1652,7 +1652,7 @@ deliberately.
 
 ## Related skills
 
-- **Live-container probe verbs under `charly check`** — `/charly-check:cdp`, `/charly-check:wl`, `/charly-check:dbus`, `/charly-check:vnc`, `/charly-build:charly-mcp-cmd`, `/charly-check:record`, `/charly-check:spice`, `/charly-check:libvirt`, `/charly-kubernetes:check-k8s` are dispatched as `charly check cdp|wl|dbus|vnc|mcp|record|spice|libvirt|kube`. See the Subcommands section above.
+- **Live-container probe verbs under `charly check`** — `/charly-check:cdp`, `/charly-check:wl`, `/charly-check:dbus`, `/charly-check:vnc`, `/charly-build:charly-mcp-cmd`, `/charly-check:record`, `/charly-check:spice`, `/charly-check:libvirt` are dispatched as `charly check cdp|wl|dbus|vnc|mcp|record|spice|libvirt`. The `kube:` cluster-probe verb (`/charly-kubernetes:check-k8s`) is NOT a host `charly check` subcommand — it is a declarative `kube:` check verb served out-of-process by `candy/plugin-kube` (parallel to the `adb:`/`appium:` plugin verbs). See the Subcommands section above.
 - `/charly-image:layer` — layer authoring; plan steps (child step nodes) are part of every `charly.yml`.
 - `/charly-image:image` — image-level plan steps at composition time.
 - `/charly-core:deploy` — local `charly.yml` overlay rules and the plan-step merge.

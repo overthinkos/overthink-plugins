@@ -57,8 +57,20 @@ deployments:
 
 ```bash
 charly bundle add vm:k3s-ag1
-# agent registers; charly check kube wait-nodes on server confirms the join.
-charly check kube wait-nodes --cluster k3s-srv --count 2 --timeout 3m
+```
+
+The agent registers; a server-side `kube: wait-nodes` check step confirms the
+join — the declarative `kube:` verb served out-of-process by `candy/plugin-kube`
+(there is no host `charly check kube` command):
+
+```yaml
+  confirm-join:
+    check: both nodes reach Ready once the agent joins
+    kube: wait-nodes
+    cluster: k3s-srv
+    kube_count: 2
+    timeout: 3m
+    context: [deploy]
 ```
 
 ## Tests
@@ -68,8 +80,9 @@ Build-scope:
 - `/etc/systemd/system/k3s-agent.service` exists.
 
 Deploy-scope (uses `/charly-kubernetes:check-k8s`). The cluster-probe verb is
-`kube` (`charly check kube`); the `k8s` spelling is reserved for the deploy KIND
-only:
+the declarative `kube:` check verb (served out-of-process by `candy/plugin-kube` —
+there is no host `charly check kube` command); the `k8s` spelling is reserved for
+the deploy KIND only:
 - `kube: wait-nodes name=${HOSTNAME}` — this node reaches Ready on the
   server.
 
