@@ -89,8 +89,6 @@ arch:
         - sudo
         - spice-vdagent
         - qemu-guest-agent
-        - portaudio                 # charly binary's SPICE-audio .so deps
-        - opusfile
         - base-devel
         - git
       runcmd:

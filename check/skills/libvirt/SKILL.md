@@ -141,16 +141,16 @@ this in for bootc VMs; cloud-image VMs need to add it to
 Use `charly check libvirt info <vm>` — if `Agent: false`, the agent is
 not reachable.
 
-### Cloud-image VM packages: also include `portaudio`
+### Cloud-image VM packages
 
 When a cloud-image VM uses `charly_install.strategy: auto` (the modern
 default), VmDeployTarget scps the **host** `charly` binary into the guest
-post-boot. The host binary is built with cgo (the
-`gordonklaus/portaudio` binding for SPICE audio — see
-`pkg/arch/PKGBUILD` `depends=()`), so the guest needs
-`libportaudio.so.2` available before the binary runs. Without it,
-`charly version` exits 127 with `error while loading shared libraries:
-libportaudio.so.2: cannot open shared object file`.
+post-boot. The core charly binary is cgo-free for audio — the SPICE audio
+channels (the sole opus/portaudio cgo consumers) were dep-shed out of core
+into the out-of-tree `candy/plugin-spice`, gated behind `-tags spice_audio`.
+`ldd $(command -v charly)` shows no libportaudio/libopus, so the scp'd binary
+runs in the guest with NO portaudio/opusfile installed. Only a host/guest that
+opts into the `spice_audio` plugin-spice build would need them.
 
 Minimum cloud-image package list for full check-live coverage:
 
@@ -160,7 +160,6 @@ cloud_init:
     - sudo
     - spice-vdagent      # for spice-vdagentd
     - qemu-guest-agent   # for `charly check libvirt guest *` probes
-    - portaudio          # for libportaudio.so.2 (host charly binary dep)
 ```
 
 ## Daemon prerequisite (host side)
