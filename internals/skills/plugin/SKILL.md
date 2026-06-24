@@ -2,7 +2,7 @@
 name: plugin
 description: |
   Use when authoring or modifying a charly PLUGIN — a candy with a `plugin:` block that contributes
-  Providers (verbs/kinds/deploy-targets/steps/builders), its own CUE schema, builtin (compiled-in) or
+  Providers (verbs/kinds/deploy-targets/steps/builders/commands), its own CUE schema, builtin (compiled-in) or
   external (out-of-tree git repo). Covers the unified Provider model, the per-plugin CUE-schema contract
   (single source → Go params for dev + schema-over-Describe RPC for runtime), the SDK, and the loader.
 ---
@@ -20,7 +20,7 @@ my-plugin:
       What this plugin provides.
   my-plugin-decl:
     plugin:
-      providers: [verb:myprobe]     # "<class>:<word>" — class ∈ kind|verb|deploy|step|builder
+      providers: [verb:myprobe]     # "<class>:<word>" — class ∈ kind|verb|deploy|step|builder|command
       source: builtin               # OR github.com/org/repo/candy/<name>  (out-of-tree)
   myprobe-check:                     # ADE: ≥1 deterministic check (its OWN acceptance test)
     check: the myprobe verb dispatches and passes
@@ -34,7 +34,7 @@ applies (`/charly-image:layer`), including the mandatory `version:`/`description
 
 ## One Provider, transport-invisible
 
-Every reserved word — every kind, verb, deploy-target, step, builder — is served by ONE `Provider`
+Every reserved word — every kind, verb, deploy-target, step, builder, command — is served by ONE `Provider`
 (`charly/provider.go`): `Reserved() string`, `Class() ProviderClass`, `Invoke(ctx, *Operation) (*Result,
 error)`. A Provider is IN-PROCESS (a builtin, registered from `init()`) or OUT-OF-PROCESS (an external,
 served over go-plugin gRPC). The registry (`providerRegistry`, `provider_registry.go`), the call sites, and
@@ -50,9 +50,15 @@ over go-plugin gRPC), and the SAME provider works in either placement with ZERO 
 direction is that every internal/builtin provider migrates external over time — so author every plugin
 placement-agnostic from day one, and design it to work either way.
 
-**Every class is placement-free at BOTH deploy time AND image-build time.** verb, kind, deploy-target, step, and
-builder are external-capable today; the `command` class still serves only in-process (`builtinCommandBase.Invoke`
-returns "in-process only") — its out-of-process Invoke is the one remaining future cutover.
+**Every class is placement-free** — kind, verb, deploy-target, step, builder, AND command are ALL
+external-capable. An external (out-of-tree) COMMAND plugin contributes a `charly <word>` CLI subcommand
+dispatched OUT-OF-PROCESS: the declared word is prescanned into the Kong grammar before parse, and the provider
+is LAZY-connected on the first actual `charly <word>` invocation, which forwards the pass-through args via
+`Invoke(OpRun)`. `builtinCommandBase.Invoke` returning "in-process only" is the BUILTIN command path ALONE (a
+builtin command contributes via its static `KongCommand()` + Go `Run` handler and never serves itself
+out-of-process) — NOT a class-level limit. Each class's leg differs by lifecycle phase: verb/kind/deploy/step/
+builder ride build (`OpEmit`/`OpResolve`) and/or deploy (`OpExecute`); command rides CLI invocation (`OpRun`).
+See "Authoring an external COMMAND plugin" below.
 
 - **The perf invariant that makes placement free.** A builtin dispatches through its typed in-proc fast path
   (`CheckVerbProvider.RunVerb` / `KindProvider.DecodeNode` / `DeployTargetProvider.ResolveTarget` /
@@ -86,7 +92,9 @@ returns "in-process only") — its out-of-process Invoke is the one remaining fu
     multi-stage build via `Invoke(OpResolve)` → `spec.BuilderResolveReply`: its `Stage` (a `FROM <ref> AS <name>`
     block) is spliced PRE-main-FROM and its `CopyArtifacts` (`COPY --from=<stage> …`) POST-main-FROM. This is the
     build-time BUILDER leg — the multi-stage counterpart of the verb/step OpEmit leg, so `builder` is an
-    external-capable class at build too (alongside verb/kind/deploy/step; `command` stays the one pending class).
+    external-capable class at build too (alongside verb/kind/deploy/step). The `command` class has no build-time
+    leg — a command dispatches at CLI invocation, not at build — and is external-capable THERE via `Invoke(OpRun)`
+    (the Placement paragraph above), so EVERY class (kind/verb/deploy/step/builder/command) is external-capable.
   This is operator-authorized build-time execution of host-built plugin code: a project's composed external
   plugins run as host code during its image builds. Detail → `/charly-build:generate` + `/charly-internals:generate-source`.
 
@@ -156,6 +164,28 @@ The SDK (`charly/plugin/sdk`) is the ONLY charly package an external module impo
 `BuildCapabilities`, `ProvidedCapability`, `Conn`. `schemaconcat` stays `internal/` (the SDK, under `charly/`,
 imports it; the external module reaches it only transitively through the SDK).
 
+## Authoring an external COMMAND plugin (a `charly <word>` subcommand)
+
+A `command:<word>` provider is an external plugin (authored exactly like the verb-class one above — its own Go
+module, self-contained `schema/<name>.cue`, generated `params/`, `sdk.Serve` + `BuildCapabilities`) that
+contributes a TOP-LEVEL `charly <word>` CLI subcommand. Mirror `candy/plugin-example-command/`:
+
+- `plugin.providers: [command:<word>]` + `source: github.com/org/repo/candy/<name>` in the candy's `plugin:`
+  block; `Describe` returns the capability with `Class: "command", Word: "<word>"`.
+- `Invoke` handles `OpRun` (the command-run selector): the host forwards the user's pass-through CLI tokens
+  from `charly <word> <args…>` as `op.Params = {"args": [...]}` marshalled DIRECTLY — NOT wrapped in the
+  `plugin_input` envelope a verb CHECK step uses. The provider decodes that into its generated typed params
+  struct (e.g. `params.<Word>Input` with an `Args []string` field) and does its effect.
+
+The discovery → grammar → dispatch flow (host side, owned by `charly/plugin_command_prescan.go` +
+`provider_command_external.go`): when the candy is discovered in the project, a byte-gated prescan
+(`prescanProjectCommandWords`, run in `main` BEFORE `kong.Parse`) registers the declared word so `charly <word>`
+PARSES; `collectExternalCommandPlugins` builds a Kong grammar holder for it with the provider UNconnected. The
+host build + gRPC connect is LAZY — paid ONLY when the user actually runs the command: `dispatchExternalCommand`
+calls `connectCommandPlugin` (scoped to the one word) then `Invoke(OpRun, {"args":[…]})`. So every `charly`
+invocation that is NOT `charly <word>` is byte-for-byte unaffected. (A builtin command, by contrast, contributes
+via its compiled-in `CommandProvider.KongCommand()` + Go `Run` handler — `provider_command.go`.)
+
 ## Why self-contained schemas
 
 A plugin's `#<Word>Input` references NO base def, so it compiles STANDALONE — the exact property
@@ -177,7 +207,7 @@ compile.)
 
 ## Cross-References
 
-- `/charly-internals:go` — the provider registry + the reserved-word spine (verbs/kinds/deploy/steps/builders).
+- `/charly-internals:go` — the provider registry + the reserved-word spine (verbs/kinds/deploy/steps/builders/commands).
 - `/charly-image:layer` — the candy authoring surface the `plugin:` block extends.
 - `/charly-check:check` — the `plugin:` check verb + ADE (a plugin's own acceptance plan).
 - `/charly-build:validate` — `charly box validate` rules.
