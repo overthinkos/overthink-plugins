@@ -164,6 +164,10 @@ Every state-change step is a `run:` **child node**: a YAML map keyed by the step
 
 A `run:` step can carry `plugin: <word>` + `plugin_input: {…}` instead of a built-in verb — it dispatches to the reserved word's `Provider`. In the BUILD context the step EXECUTES at image-build time to emit its Containerfile fragment, served PLACEMENT-AGNOSTICALLY: the SAME plugin works whether it is compiled into `charly` (a builtin) OR loaded from an out-of-tree candy (an EXTERNAL plugin, host-built + connected during generation). A builtin renders an act shell `RUN` in-proc; an external returns a Containerfile fragment over go-plugin gRPC, spliced verbatim (egress-validated). See `/charly-internals:plugin` (placement) + `/charly-build:generate` (the build-time emit).
 
+### External multi-stage builder (`external_builder:`)
+
+A candy may set `external_builder: <word>` — the reserved word of an OUT-OF-TREE builder plugin (an external `ClassBuilder` provider, `builder:<word>`) — to contribute a multi-stage build at IMAGE BUILD. The generator resolves the word, `Invoke(OpResolve)`s the provider, and splices the returned reply: its `FROM…AS` stage PRE-main-FROM and its `COPY --from=<stage>` artifacts POST-main-FROM. This is the build-time BUILDER leg, the multi-stage counterpart of a `run:` step's `plugin:` verb. A built-in builder (pixi/cargo/npm/aur) is selected by detection files (`pixi.toml`, `Cargo.toml`, `package.json`, `aur:`), NOT this field. A candy whose only content is `external_builder:` is valid (it ships no install files). See `/charly-internals:plugin` (placement) + `/charly-build:generate` (the build-time emit).
+
 ### Caching downloads (`download:` auto-caches; `cache:` for heavy installers)
 
 Every `download:` step is **content-addressed cached automatically**: the file

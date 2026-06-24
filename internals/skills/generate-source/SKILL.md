@@ -213,6 +213,15 @@ Key details: passwordless sudo is required because yay calls `pacman -U` as root
 
 **Status:** Working. Verified with `yay-bin` in `arch-test` image.
 
+### External Builder Stage (`external_builder:` — the build-time BUILDER leg)
+
+The pixi/npm/cargo/aur builders above emit from charly's embedded `builders.<name>` vocabulary (`emitBuilderStages` / `emitBuilderArtifacts`). An OUT-OF-TREE builder plugin emits through a parallel pair: a candy selects it with the field `external_builder: <word>` (the reserved word of an EXTERNAL `ClassBuilder` provider), and the generator emits its multi-stage build via:
+
+- **`emitExternalBuilderStages`** (called right after `emitBuilderStages`, PRE-main-FROM) — for each candy with `external_builder` set, resolves the word through `providerRegistry.ResolveBuilder`, requires an EXTERNAL provider (a `*grpcProvider`; a builtin builder is selected by detection files, not `external_builder:`, and is rejected here LOUDLY), then `resolveExternalBuilder` (the BUILDER-leg analogue of `emitPluginFragment`) calls `prov.Invoke(OpResolve)` with the requesting candy name (`op.Params = {candy}`) + a `spec.BuildEnv` descriptor (`op.Env`). The returned `spec.BuilderResolveReply.Stage` (a `FROM <ref> AS <name>` block) is written verbatim and CACHED per candy on the `Generator`.
+- **`emitExternalBuilderArtifacts`** (called right after `emitBuilderArtifacts`, POST-main-FROM) — writes the cached reply's `CopyArtifacts` (`COPY --from=<stage> …` directives) without re-Invoking.
+
+An empty `Stage`, an unresolvable word, or an Invoke error fails LOUDLY (R4) — never a silently-dropped builder stage. Both halves are egress-validated with the rest of the Containerfile before write. See `/charly-build:generate` + `/charly-internals:plugin` (placement).
+
 ### Scratch Context Stage
 
 ```dockerfile

@@ -68,11 +68,18 @@ returns "in-process only") — its out-of-process Invoke is the one remaining fu
   provider connects) and routed host-side by the shared check classifier. Detail → `/charly-internals:install-plan`
   (the `externalDeployTarget` lifecycle + the `OpExecute` reverse channel).
 - **Build time.** `charly box build` / `charly box generate` connect the project's external plugin candies during
-  image generation, so a `run:` plugin verb (or a plugin builder) EXECUTES at build to emit a Containerfile
-  fragment — a builtin renders it in-proc, an external over gRPC (`OpEmit` → `spec.EmitReply.Fragment`, spliced
-  verbatim into the Containerfile, egress-validated). This is operator-authorized build-time execution of
-  host-built plugin code: a project's composed external plugins run as host code during its image builds.
-  Detail → `/charly-build:generate` + `/charly-internals:generate-source`.
+  image generation, so a plugin EXECUTES at build to emit its Containerfile contribution, placement-agnostically
+  (a builtin in-proc, an external over gRPC) — and BOTH the verb/step leg AND the builder leg ride the SAME
+  connect seam, class-agnostically:
+  - a `run:` plugin **verb / step** returns a Containerfile fragment via `OpEmit` → `spec.EmitReply.Fragment`,
+    spliced verbatim into the Containerfile (egress-validated).
+  - an external **builder** (`ClassBuilder`) selected by a candy's `external_builder: <word>` field returns a
+    multi-stage build via `Invoke(OpResolve)` → `spec.BuilderResolveReply`: its `Stage` (a `FROM <ref> AS <name>`
+    block) is spliced PRE-main-FROM and its `CopyArtifacts` (`COPY --from=<stage> …`) POST-main-FROM. This is the
+    build-time BUILDER leg — the multi-stage counterpart of the verb/step OpEmit leg, so `builder` is an
+    external-capable class at build too (alongside verb/kind/deploy/step; `command` stays the one pending class).
+  This is operator-authorized build-time execution of host-built plugin code: a project's composed external
+  plugins run as host code during its image builds. Detail → `/charly-build:generate` + `/charly-internals:generate-source`.
 
 ## The per-plugin CUE schema — the single source, two consumers
 

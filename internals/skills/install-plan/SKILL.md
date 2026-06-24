@@ -43,7 +43,7 @@ This skill is the single source of truth for the IR shape. Add a new step kind b
 | `charly/deploy_target_local.go` | `LocalDeployTarget` — executes plan on the destination machine via shell + `podman run <builder>` |
 | `charly/deploy_target_vm.go` | `VmDeployTarget` — executes plan inside a running VM via SSH + scp |
 | `charly/deploy_target_external.go` | `externalDeployTarget` — Add/Test/Update/Del for an OUT-OF-PROCESS deploy provider over the executor reverse channel (`OpExecute`); records teardown ops to the ledger keyed on `computeDeployID` |
-| `charly/spec/deploy_wire.go` | The deploy IR wire types shared with the plugin SDK: `Scope`, `ReverseOp` (+ `ReverseOpPluginScript`), `InstallPlanView`, `DeployVenue`, `DeployReply`, plus the build-time `BuildEnv` / `EmitReply` |
+| `charly/spec/deploy_wire.go` | The deploy IR wire types shared with the plugin SDK: `Scope`, `ReverseOp` (+ `ReverseOpPluginScript`), `InstallPlanView`, `DeployVenue`, `DeployReply`, plus the build-time `BuildEnv` / `EmitReply` (verb/step `OpEmit`) / `BuilderResolveReply` (builder `OpResolve`: `{Stage, CopyArtifacts}`) |
 | `charly/plugin_prescan.go` | The byte-gated, additive parse pre-scan that recognizes an EXTERNAL deploy SUBSTRATE word at config-parse time, before the provider connects |
 | `charly/k8s_target.go` | `K8sDeployTarget` — emits Kustomize base/overlays tree |
 | `charly/deploy_executor*.go` | `DeployExecutor` interface + `ShellExecutor` + `SSHExecutor` — shell + file-copy abstraction shared by Local/VM targets |
@@ -239,9 +239,10 @@ The ledger key is `computeDeployID(name, nil, nil)` — derived from the deploy 
 
 ## Op selectors at build vs deploy
 
-A provider's `Invoke` carries an `op.Op` selector (`charly/provider.go`). Two drive this subsystem, placement-agnostically (in-proc for a builtin, go-plugin gRPC for an external):
+A provider's `Invoke` carries an `op.Op` selector (`charly/provider.go`). Three drive this subsystem, placement-agnostically (in-proc for a builtin, go-plugin gRPC for an external):
 
-- **`OpEmit`** is INVOKED at IMAGE-BUILD time — a `run:` plugin verb / plugin builder returns a `spec.EmitReply.Fragment` (with a `spec.BuildEnv` descriptor in `op.Env`) that the generator splices verbatim into the Containerfile (egress-validated). This is a BUILD-mode concern, dispatched from `emitTasks` (`charly/tasks.go`), NOT the IR/`OCITarget`. See `/charly-build:generate` + `/charly-internals:generate-source`.
+- **`OpEmit`** is INVOKED at IMAGE-BUILD time — a `run:` plugin verb / plugin step returns a `spec.EmitReply.Fragment` (with a `spec.BuildEnv` descriptor in `op.Env`) that the generator splices verbatim into the Containerfile (egress-validated). This is a BUILD-mode concern, dispatched from `emitTasks` (`charly/tasks.go`), NOT the IR/`OCITarget`. See `/charly-build:generate` + `/charly-internals:generate-source`.
+- **`OpResolve`** is ALSO INVOKED at IMAGE-BUILD time — the BUILDER leg. An EXTERNAL `ClassBuilder` provider selected by a candy's `external_builder: <word>` field returns a `spec.BuilderResolveReply` (`{Stage, CopyArtifacts}`, with a `spec.BuildEnv` descriptor in `op.Env` + the candy name in `op.Params`): `Stage` (a `FROM <ref> AS <name>` block) splices PRE-main-FROM, `CopyArtifacts` (`COPY --from=<stage> …`) POST-main-FROM. Dispatched from `emitExternalBuilderStages` / `emitExternalBuilderArtifacts` (`charly/generate.go`), the multi-stage counterpart of the verb/step `OpEmit` leg. See `/charly-build:generate` + `/charly-internals:generate-source`.
 - **`OpExecute`** drives the EXTERNAL deploy lifecycle over the executor reverse channel — `externalDeployTarget`'s Add/Update `InvokeWithExecutor(OpExecute)`, the plugin returning the `spec.DeployReply` teardown record (above).
 
 ## `StepBatch` batching
