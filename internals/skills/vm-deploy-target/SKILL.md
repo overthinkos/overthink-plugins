@@ -21,7 +21,7 @@ description: |
 
 `VmDeployTarget` brings `charly bundle add vm:<name>` online: the same `InstallPlan` IR that drives pod builds and host deploys now runs **inside a VM** over SSH. Shell bodies that `LocalDeployTarget` would exec via local `sudo bash -s` are instead exec'd via `ssh guest 'sudo bash -s'` through an `SSHExecutor`. Ledger writes land on the **guest** filesystem under the guest user's `~/.config/opencharly/installed/`; teardown runs in the guest via SSH as well.
 
-`VmDeployTarget` is the 4th `DeployTarget` interface implementer — after `OCITarget` (build-mode Containerfile emission), `PodDeployTarget` (podman quadlet), and `LocalDeployTarget` (local filesystem). `K8sDeployTarget` is the 5th. See `/charly-internals:install-plan` for the shared IR.
+`VmDeployTarget` is the 4th `DeployTarget` interface implementer — after `OCITarget` (pod-overlay `add_candy:` Containerfile synthesis; `charly box build`/`generate` itself uses the separate `writeCandySteps` → `emitTasks` generator), `PodDeployTarget` (podman quadlet), and `LocalDeployTarget` (local filesystem). `K8sDeployTarget` is the 5th. See `/charly-internals:install-plan` for the shared IR.
 
 ## Source files
 

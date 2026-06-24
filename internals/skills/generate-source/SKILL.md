@@ -13,7 +13,7 @@ description: |
 
 `charly box generate` reads `charly.yml` and `candy/`, resolves dependency graphs, and writes Containerfiles to `.build/`. Generation is idempotent and `.build/` is disposable (gitignored). Understanding the generated output is essential for debugging build issues.
 
-Generation runs through the shared `DeployTarget` interface. `OCITarget` is the build-mode implementation; it consumes the `InstallPlan` IR emitted by `BuildDeployPlan` and writes Containerfile text. `PodDeployTarget` and `LocalDeployTarget` are the deploy-mode siblings consuming the same IR. For the IR shape and step kinds, see **`/charly-internals:install-plan`**. For local-deploy supporting files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref), see **`/charly-internals:local-infra`**.
+Build-mode Containerfile generation is the `writeCandySteps` → `emitTasks` path (the per-verb emitters in `charly/tasks.go`), walking each layer's ops directly to write Containerfile text — NOT the `InstallPlan` IR. The IR + `OCITarget.Emit` is the DEPLOY-mode path: `OCITarget` is constructed only by `PodDeployTarget` for `add_candy:` overlay-Containerfile synthesis, alongside `LocalDeployTarget` / `VmDeployTarget` / `K8sDeployTarget` consuming the same IR. Build shares the compiler helpers (`resolveCascadePackages`, `compileShellSnippetSteps`, `renderLocalPkgImageInstall` — one source of truth, R3) with the IR, but not the `OCITarget` walk. For the IR shape and step kinds, see **`/charly-internals:install-plan`**. For local-deploy supporting files (ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref), see **`/charly-internals:local-infra`**.
 
 ## Quick Reference
 
@@ -71,8 +71,13 @@ All install-task logic lives in a single file: `charly/tasks.go` (~380 lines). A
        case "setcap":   emitSetcapBatch (coalesces; strip on empty caps)
        case "command":  emitCmd         (RUN bash -c 'set -e; ...' + /ctx bind)
        case "build":    writeCandySteps handles builder placement
+       case "plugin":   builtin ProvisionActor → act shell RUN (in-proc);
+                        any other provider → emitPluginFragment → Invoke(OpEmit)
+                        → spec.EmitReply.Fragment spliced verbatim
 6. USER root reset (unless last layer + skipRootReset)
 ```
+
+The `plugin:` verb case is placement-agnostic above the registry. `plugin: command` is the one special case — it rehydrates `plugin_input.command` and emits via the SAME `emitCmd` as the literal `command` verb. Every other `plugin:` step resolves its provider via `providerRegistry.ResolveVerb`: a builtin `ProvisionActor` renders an act shell `RUN` in-proc (the zero-JSON fast path, `resolveProvisionScript`), while ANY other resolved provider — an external `grpcProvider` (host-built + connected by `NewGenerator`'s build-time plugin connect seam, `loadProjectPlugins`), or a builtin emitting a richer fragment — renders via `emitPluginFragment`, which calls `prov.Invoke(OpEmit)` with the step's `plugin_input` (`op.Params`) + a `spec.BuildEnv` descriptor (`op.Env`) and splices the returned `spec.EmitReply.Fragment` verbatim into the Containerfile. An unresolved verb is a loud error, never a silently-dropped step. This is the build half of operator-authorized build-time plugin execution — see `/charly-internals:plugin` (placement) + `/charly-build:generate`.
 
 ### `Task` struct (`charly/layers.go:604`)
 

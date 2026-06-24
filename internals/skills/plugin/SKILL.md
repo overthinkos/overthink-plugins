@@ -42,6 +42,38 @@ the bijection gate treat both identically — **the transport is invisible above
 `check: { plugin: <word>, plugin_input: {…} }` step dispatches through `runPluginVerb` →
 `providerRegistry.ResolveVerb(word)` → `Invoke`, whether the provider is compiled in or out-of-process.
 
+## Placement: builtin OR external, in-proc OR out-of-process — at deploy AND build time
+
+Placement is a free, per-plugin choice, invisible above the registry: a provider runs EITHER compiled into
+`charly` (a builtin, in-process) OR dynamically loaded from an out-of-tree candy (an external, out-of-process
+over go-plugin gRPC), and the SAME provider works in either placement with ZERO authoring change. The strategic
+direction is that every internal/builtin provider migrates external over time — so author every plugin
+placement-agnostic from day one, and design it to work either way.
+
+**Every class is placement-free at BOTH deploy time AND image-build time.** verb, kind, deploy-target, step, and
+builder are external-capable today; the `command` class still serves only in-process (`builtinCommandBase.Invoke`
+returns "in-process only") — its out-of-process Invoke is the one remaining future cutover.
+
+- **The perf invariant that makes placement free.** A builtin dispatches through its typed in-proc fast path
+  (`CheckVerbProvider.RunVerb` / `KindProvider.DecodeNode` / `DeployTargetProvider.ResolveTarget` /
+  `StepProvider.Emit*` / `BuilderProvider.Reverse`) and NEVER marshals the Op into the serializable `Invoke`
+  envelope; the JSON envelope (`marshalJSON`) is paid ONLY out-of-process. Choosing builtin therefore costs no
+  envelope tax — placement is a free build/deploy decision, not a performance trade-off. Locked by
+  `TestPerfGate_BuiltinVerbsSkipEnvelope` + `BenchmarkVerbTypedDispatchFork` (0-alloc) vs
+  `BenchmarkVerbEnvelopeMarshal` (`provider_bench_test.go`).
+- **Deploy time.** An external deploy-target provider runs its full Add/Test/Update/Del lifecycle over the
+  host-served executor reverse channel — the plugin applies the deployment's ops on the real venue it cannot
+  hold across the process boundary (`OpExecute`), and the host records the returned teardown ops to the ledger.
+  A bed/deploy that uses an external deploy SUBSTRATE word is recognized at config-PARSE time (before the
+  provider connects) and routed host-side by the shared check classifier. Detail → `/charly-internals:install-plan`
+  (the `externalDeployTarget` lifecycle + the `OpExecute` reverse channel).
+- **Build time.** `charly box build` / `charly box generate` connect the project's external plugin candies during
+  image generation, so a `run:` plugin verb (or a plugin builder) EXECUTES at build to emit a Containerfile
+  fragment — a builtin renders it in-proc, an external over gRPC (`OpEmit` → `spec.EmitReply.Fragment`, spliced
+  verbatim into the Containerfile, egress-validated). This is operator-authorized build-time execution of
+  host-built plugin code: a project's composed external plugins run as host code during its image builds.
+  Detail → `/charly-build:generate` + `/charly-internals:generate-source`.
+
 ## The per-plugin CUE schema — the single source, two consumers
 
 **Every plugin ships its OWN `.cue` schema, and it is the SINGLE SOURCE for that plugin's params.** It is
@@ -133,6 +165,8 @@ compile.)
 - `/charly-image:layer` — the candy authoring surface the `plugin:` block extends.
 - `/charly-check:check` — the `plugin:` check verb + ADE (a plugin's own acceptance plan).
 - `/charly-build:validate` — `charly box validate` rules.
+- `/charly-internals:install-plan` — the `externalDeployTarget` deploy lifecycle (`OpExecute` reverse channel, ledger record) + the `OpEmit` build-time fragment; the deploy wire types in `charly/spec/deploy_wire.go`.
+- `/charly-build:generate` + `/charly-internals:generate-source` — the build-time plugin connect seam + the `emitTasks` placement-agnostic plugin-verb dispatch (`OpEmit` → fragment).
 
 ## When to Use This Skill
 

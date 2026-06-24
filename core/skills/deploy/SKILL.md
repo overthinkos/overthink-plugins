@@ -1100,7 +1100,7 @@ webapp:                            # an operator deploy + a companion member
 
 **Deploy surface:**
 - `/charly-local:local-deploy` — Local-target execution model: LocalDeployTarget, ledger, gates, 15 ReverseOp kinds, sudo batching
-- `/charly-internals:install-plan` — The InstallPlan IR shared by `charly box build` (OCITarget), pod deploys (PodDeployTarget), and local deploys (LocalDeployTarget)
+- `/charly-internals:install-plan` — The InstallPlan IR shared by the deploy targets: pod deploys (PodDeployTarget, incl. `add_candy:` overlay synthesis via OCITarget), local deploys (LocalDeployTarget), VM/k8s/external (`charly box build` itself emits via the separate writeCandySteps → emitTasks generator, not the IR)
 - `/charly-internals:local-infra` — Supporting Go files for local deploys: hostdistro, ledger, builder_run, shell_profile, reverse_ops, service_render, deploy_ref
 
 **Deploy-adjacent commands:**

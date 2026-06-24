@@ -160,6 +160,10 @@ Every state-change step is a `run:` **child node**: a YAML map keyed by the step
 | `cache` | `command`, `download` | — | List of absolute BuildKit cache-mount paths for this step's RUN. Ownership follows `run_as:` (root → shared/locked, non-root → uid/gid-owned). Persists heavy downloads/build artifacts across builds the SAME way package caches do — surviving an upstream layer cache-miss. The cache-USE logic (sentinel guards, copy-into-place) lives in the step body; charly only mounts the cache. See "Caching downloads" below. |
 | `comment` | all | — | Emitted as a Containerfile comment above the step |
 
+### Plugin verb steps (`plugin:`)
+
+A `run:` step can carry `plugin: <word>` + `plugin_input: {…}` instead of a built-in verb — it dispatches to the reserved word's `Provider`. In the BUILD context the step EXECUTES at image-build time to emit its Containerfile fragment, served PLACEMENT-AGNOSTICALLY: the SAME plugin works whether it is compiled into `charly` (a builtin) OR loaded from an out-of-tree candy (an EXTERNAL plugin, host-built + connected during generation). A builtin renders an act shell `RUN` in-proc; an external returns a Containerfile fragment over go-plugin gRPC, spliced verbatim (egress-validated). See `/charly-internals:plugin` (placement) + `/charly-build:generate` (the build-time emit).
+
 ### Caching downloads (`download:` auto-caches; `cache:` for heavy installers)
 
 Every `download:` step is **content-addressed cached automatically**: the file

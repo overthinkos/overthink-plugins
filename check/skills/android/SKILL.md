@@ -82,7 +82,7 @@ my-android-apps:
 
 Each entry is **`package:` (apkeep) XOR `apk:` (committed file)**. `source:`
 applies only to `package:`. The format compiles to an `ApkInstallStep` that
-ONLY `target: android` executes — at image build (OCITarget) and on
+ONLY `target: android` executes — at image build and on
 local/vm/pod/k8s targets it is recorded-skipped (there is no Android device
 there; this is the same "wrong-venue skip" `aur:` uses off-Arch). A layer
 carrying only `apk:` is valid install content.

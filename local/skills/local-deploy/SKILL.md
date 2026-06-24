@@ -13,7 +13,7 @@ description: |
 - `host: local` (literal) or absent → `ShellExecutor` (run on this machine).
 - Anything else → `SSHExecutor` (ssh(1) reads `~/.ssh/config` + ssh-agent for keys, host-key checking, options).
 
-The same `InstallPlan` IR that drives `charly box build` (via OCITarget) and container deploys (via PodDeployTarget) is consumed by `LocalDeployTarget`, which translates each IR step into shell commands, `podman run <builder>` invocations for compile-needing work, and systemd unit writes.
+The same `InstallPlan` IR that drives container deploys (via `PodDeployTarget`, incl. `add_candy:` overlay synthesis through `OCITarget`) is consumed by `LocalDeployTarget`, which translates each IR step into shell commands, `podman run <builder>` invocations for compile-needing work, and systemd unit writes. (`charly box build` itself emits Containerfiles via the separate `writeCandySteps` → `emitTasks` generator, not the IR — see `/charly-internals:install-plan`.)
 
 The deploy applies host packages + configs ONLY. Container images required for `charly check run` / `charly check live` are ensured by the check preflight (see `/charly-check:check` "Image preflight"), not by the deploy. Deploys (any target) emit zero image-pull / image-build steps — that's the CLAUDE.md "Deploy fetches NOTHING speculative" Key Rule, codified at the type level. Migration of legacy `image:` blocks: `charly migrate` (idempotent).
 
