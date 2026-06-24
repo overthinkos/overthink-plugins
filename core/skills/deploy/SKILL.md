@@ -31,6 +31,8 @@ description: |
 
 The same `BundleNode` shape feeds every target (`pod`, `local`, `vm`, `k8s`, `android`) — authors describe *what the workload needs* (ports, volumes, env, security, tests); the generator per target decides *how K8s / quadlet / local apply / VM over SSH / Android apk-install* realizes it.
 
+A deploy's install timeline can include a `run: plugin: <verb>` step. When the verb is served by an EXTERNAL (out-of-process) plugin, that step EXECUTES at deploy on a `local:`/`vm:` target — the plugin runs its effect on the live venue over the executor reverse channel (`Invoke(OpExecute)`) and returns teardown `ReverseOp`s the target records to the ledger and replays at `charly bundle del`. A builtin `ProvisionActor` verb keeps its in-proc shell path; the two are placement-agnostic (same authored step, the runtime picks the path). Detail → `/charly-internals:install-plan` (the `ExternalPluginStep` IR kind) + `/charly-internals:plugin`.
+
 **An `android:` deploy** installs a deploy's `add_candy:` candies' `apk:` packages
 onto an `android` device entity (an in-pod emulator or a remote/physical adb
 endpoint) via `AndroidDeployTarget` — the Android analogue of a `k8s:` deploy

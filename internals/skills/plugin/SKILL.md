@@ -65,8 +65,17 @@ returns "in-process only") — its out-of-process Invoke is the one remaining fu
   host-served executor reverse channel — the plugin applies the deployment's ops on the real venue it cannot
   hold across the process boundary (`OpExecute`), and the host records the returned teardown ops to the ledger.
   A bed/deploy that uses an external deploy SUBSTRATE word is recognized at config-PARSE time (before the
-  provider connects) and routed host-side by the shared check classifier. Detail → `/charly-internals:install-plan`
-  (the `externalDeployTarget` lifecycle + the `OpExecute` reverse channel).
+  provider connects) and routed host-side by the shared check classifier. An external **`run:` plugin verb /
+  step** composed INSIDE a deploy (a `local:`/`vm:` target, where the install runs ON the target, not baked
+  into an image) likewise EXECUTES at deploy: it lowers to an `ExternalPluginStep` IR node whose `EmitLocal` /
+  `EmitVM` `Invoke(OpExecute)` WITH the live `DeployExecutor` on the SAME reverse channel, so the plugin runs
+  its deploy-context effect on the target and RETURNS its teardown `ReverseOp`s, which the target records to
+  the ledger and replays at `charly bundle del` (record-and-replay, the SAME `spec.DeployReply` wire as the
+  deploy target — R3). Only an EXTERNAL provider is routed there (the `executorInvoker` discriminator,
+  satisfied SOLELY by the out-of-process `grpcProvider`); a builtin `ProvisionActor` verb keeps its in-proc
+  shell path. So the verb/step class is external-capable at BOTH build (`OpEmit`, next bullet) AND deploy
+  (`OpExecute`), placement-agnostic. Detail → `/charly-internals:install-plan` (the `externalDeployTarget`
+  lifecycle + the `ExternalPluginStep` IR kind + the `OpExecute` reverse channel).
 - **Build time.** `charly box build` / `charly box generate` connect the project's external plugin candies during
   image generation, so a plugin EXECUTES at build to emit its Containerfile contribution, placement-agnostically
   (a builtin in-proc, an external over gRPC) — and BOTH the verb/step leg AND the builder leg ride the SAME
