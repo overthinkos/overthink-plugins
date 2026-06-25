@@ -199,6 +199,31 @@ placements, ZERO authoring change.
   `inprocProvider`, whereas a LEGACY in-charly-module builtin uses its typed fast path
   (`RunVerb`/`DecodeNode`, no envelope). The candy path pays the JSON envelope but not the gRPC transport.
 
+## Authoring a HOST-COUPLED check-verb candy (the kit, COMPILED-IN-ONLY)
+
+A check verb whose logic needs the LIVE check engine — exec-in-container, host TCP dial, the HTTP
+client (`file`/`http`/`port`/`command`/`service`/…) — cannot serve itself over the pb `Invoke` envelope
+(its `*Runner` cannot cross a process boundary). It instead implements **`charly/plugin/kit`**, the
+importable contract for the in-proc check engine, and is **COMPILED-IN-ONLY** (no out-of-process
+placement until a CheckContext reverse channel lands). `candy/plugin-port` is the reference. Shape:
+
+- The candy's importable root package implements `kit.CheckVerbProvider` (`Reserved()` + `RunVerb(ctx,
+  cc kit.CheckContext, op *spec.Op) kit.Result`) — the verb's logic (formerly the `r.runX` *Runner
+  method) lives HERE, reaching the deployment through `cc.Exec().RunCapture` / `cc.Mode()` /
+  `cc.DialTimeout()` / `cc.HTTPClient()` / `cc.Distros()`. It exports `NewCheckVerb() kit.CheckVerbProvider`
+  + the raw schema `embed.FS` (`SchemaFS` + `SchemaDir`) + `InputDefs`. NO `main.go`/`cmd/serve` (not served).
+- charly's `registerCompiledCheckVerb` (generated into `plugins_generated.go` by pluginsgen, which detects
+  the kit shape by the exported `NewCheckVerb`) wraps it in a `kitVerbAdapter` (a package-main
+  `CheckVerbProvider` that passes the live `*Runner` as a `kit.CheckContext` via `runnerCheckContext` and
+  converts `kit.Result`→`CheckResult`), concatenates the candy's schema (the candy can't import
+  `internal/schemaconcat`), and registers through the SAME `RegisterBuiltinPluginUnit` gate (origin
+  `"builtin"`). Dispatch is the SAME `runOne`→`CheckVerbProvider.RunVerb` path an in-charly-module verb
+  uses — full typed fast path, the real `*Runner`, no envelope.
+- `kit` imports only the stdlib + `charly/spec`; the candy imports `kit` + `spec` + its `params`.
+
+The progression: a LEGACY in-charly-module check verb (RunVerb on `*Runner`) → a kit candy (RunVerb on
+`kit.CheckContext`), relocating the verb's Go out of charly's module while keeping the in-proc fast path.
+
 The SDK (`charly/plugin/sdk`) is the ONLY charly package an external module imports — `Serve`, `Handshake`,
 `BuildCapabilities`, `ProvidedCapability`, `Conn`. `schemaconcat` stays `internal/` (the SDK, under `charly/`,
 imports it; the external module reaches it only transitively through the SDK).
