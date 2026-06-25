@@ -131,9 +131,11 @@ schema-handling one.
   `pluginSchemas` set (filled by the gate) and unifies the authored input against it. Wired into
   `runPluginVerb` before dispatch — a missing/empty/typo'd field is a hard `TestFail`, not a silent surprise.
 
-## Authoring a BUILTIN plugin (compiled into charly)
+## Authoring a BUILTIN plugin (Go in charly's own module)
 
-A builtin's Go lives in charly's module (no `go.work` — charly cannot import `candy/`). Mirror
+A LEGACY builtin's Go lives in charly's module itself (so it needs no `go.work` entry — this is
+the in-charly-module path, distinct from a candy COMPILED IN via `compiled_plugins:`, which DOES
+ride `go.work`; see "Authoring a COMPILED-IN plugin candy" below). Mirror
 `charly/plugin/builtins/exampleprobe/`:
 
 - `schema/<name>.cue` — the self-contained `#<Word>Input` def (e.g. `{ marker: string & !="" }`).
@@ -158,7 +160,40 @@ The candy IS its own Go module (`go.mod` + `replace …/charly => …` while in-
   schema STANDALONE (failing loudly before serving) and ships the source in `schema_cue`.
 - The candy's `plugin.source` is the `github.com/org/repo/candy/<name>` ref. charly's loader fetches the repo
   (the same `@github` resolver candies use), `go build`s the provider binary ON THE HOST, and connects
-  out-of-process via `LocalTransport`.
+  out-of-process via `LocalTransport`. The host build runs with `GOWORK=off` so a repo-root `go.work` cannot
+  reject a non-member candy dir — the out-of-process build is always standalone in the candy's own module.
+
+## Authoring a COMPILED-IN plugin candy (the candy compiled INTO charly)
+
+The SAME out-of-tree candy can be COMPILED INTO charly — the in-proc placement of a candy, selected
+per-charly-build by `charly.yml` `compiled_plugins:`. This ships a plugin candy INSIDE the binary
+WITHOUT its Go living in charly's module (it rides `go.work`). `candy/plugin-example-external/` is the
+reference: it is BOTH the out-of-process example above AND the compiled-in example — one provider, two
+placements, ZERO authoring change.
+
+- The provider lives in the candy's IMPORTABLE root package (`NewProvider() pb.ProviderServer` +
+  `NewMeta() pb.PluginMetaServer` + `//go:embed schema/*.cue`), NOT `package main`. `main.go` moves to
+  `cmd/serve/` as a 3-line `sdk.Serve(<pkg>.NewProvider(), <pkg>.NewMeta())` shim (the out-of-process
+  entrypoint, host-built only when the candy is NOT compiled in).
+- List the candy in `compiled_plugins:` (the embedded `charly/charly.yml` for the default binary; a
+  consumer's own `charly.yml` for a custom footprint — "which plugins are in the binary" is a normal
+  candy-inclusion choice).
+- `pluginsgen` (`charly/internal/pluginsgen`, run by `task build:charly` before `go build`, `GOWORK=off`,
+  stdlib+yaml only) reads `compiled_plugins:` and emits `charly/plugins_generated.go` (one
+  `registerCompiledPlugin(<pkg>.NewProvider(), <pkg>.NewMeta())` per candy) + the repo-root `go.work` (a
+  `use ./candy/<name>` per candy, so `go build ./charly` resolves the candy imports). Both are COMMITTED
+  + reproducibility-gated (`TestPluginsGenReproducible`).
+- `registerCompiledPlugin` drives `InProcServedTransport`: it calls the candy's `Describe` IN-PROCESS, runs
+  the SAME `buildUnit` capability-lift + schema gate an external goes through (so the compiled-in schema
+  enters the SAME `loadBuiltinPluginUnits` gate), and registers each capability wrapped in an
+  `inprocProvider` (origin `"builtin"`) — the in-proc twin of `grpcProvider`. Dispatch is registry-routed,
+  transport-invisible.
+- COEXIST: a candy compiled in (origin `"builtin"`) is SKIPPED by `loadProjectPlugins` (the out-of-process
+  host build is redundant); a candy NOT in `compiled_plugins:` still host-builds + connects out-of-process
+  when a plan references its word. Placement is a per-charly-build choice, invisible above the registry.
+- PERF: a compiled-in CANDY dispatches through the pb `Invoke` envelope IN-PROCESS (no socket) via
+  `inprocProvider`, whereas a LEGACY in-charly-module builtin uses its typed fast path
+  (`RunVerb`/`DecodeNode`, no envelope). The candy path pays the JSON envelope but not the gRPC transport.
 
 The SDK (`charly/plugin/sdk`) is the ONLY charly package an external module imports — `Serve`, `Handshake`,
 `BuildCapabilities`, `ProvidedCapability`, `Conn`. `schemaconcat` stays `internal/` (the SDK, under `charly/`,
