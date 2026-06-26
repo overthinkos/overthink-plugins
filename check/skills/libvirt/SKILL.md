@@ -83,7 +83,7 @@ choices:
   and re-encoded as PNG. Independent of whichever graphics protocol
   (SPICE or VNC) the VM exposes on the wire.
 - **send-key** uses Linux keycode set via `DomainSendKey`. Friendly
-  keyname map in `charly/libvirt_ops.go` covers letters/digits/modifiers/
+  keyname map in `candy/plugin-vm/libvirt_ops.go` covers letters/digits/modifiers/
   arrows/function keys. Supports chord notation (`"ctrl+alt+F2"`).
 - **passwd** patches the `<graphics type="spice|vnc" passwd="…">`
   attribute via `libvirtxml`, then calls
@@ -193,15 +193,23 @@ For ambiguous tests, run both and diff the results.
 
 ## Implementation pointers
 
-- `charly/libvirt_cmd.go` — Kong command tree + all verb implementations.
-- `charly/libvirt_ops.go` — shared helpers (screenshot PPM→PNG decode,
+The `libvirt:` verb is served OUT-OF-PROCESS by candy/plugin-vm (the go-libvirt
+shed moved it out of charly core). The host dispatches it as a nested
+`charly check libvirt <method> <target>` subprocess, passing the resolved
+VM-entity name (`Runner.vmTargetName()`) as the `<target>` — so the verb addresses
+the live domain `charly-<vm-entity>`, not `charly-<deploy-name>`.
+
+- `candy/plugin-vm/libvirt_cmd.go` — Kong command tree + all verb implementations.
+- `candy/plugin-vm/libvirt_ops.go` — shared helpers (screenshot PPM→PNG decode,
   key-name → Linux keycode map).
-- `charly/libvirt_guest_agent.go` — typed client over
+- `candy/plugin-vm/libvirt_guest_agent.go` — typed client over
   QEMUDomainAgentCommand with methods for every QGA command in use.
-- `charly/vm_target.go` — shared target resolution; `VmTarget.XML`
+- `candy/plugin-vm/vm_target.go` — VM target resolution; `VmTarget.XML`
   gives you the live `libvirtxml.Domain` for fast field lookups.
 
 ## Dependencies
+
+These live in candy/plugin-vm (the out-of-process plugin), NOT charly core:
 
 - `github.com/digitalocean/go-libvirt` — pure-Go libvirt RPC client.
 - `libvirt.org/go/libvirtxml` — typed domain XML parsing/generation.

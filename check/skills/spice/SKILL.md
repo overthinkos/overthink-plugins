@@ -26,12 +26,15 @@ device.
 
 ### The host pre-resolves the endpoint; the plugin speaks the wire
 
-The out-of-process plugin owns NO go-libvirt. The host does the
-vm.yml → libvirt-domain → live-XML → `<graphics type='spice'>` resolution
-(`preresolveSpiceEndpoint`, charly/spice_preresolve.go, over the
-`ResolveVmTarget` / `SpiceEndpoint` machinery that stays in core), opens any
-qemu+ssh:// side tunnel itself, and hands the plugin a plain DIALABLE endpoint
-via the CheckEnv. The plugin just dials it and runs the method.
+charly core owns NO go-libvirt. The host (`preresolveSpiceEndpoint`,
+charly/spice_preresolve.go) DELEGATES the vm.yml → libvirt-domain → live-XML →
+`<graphics type='spice'>` resolution to the out-of-process vm plugin
+(`invokeVmPlugin("resolve-spice", …)` → candy/plugin-vm's `ResolveVmTarget` /
+`SpiceEndpoint`, where the go-libvirt deps live), passing the resolved VM-entity
+name (`Runner.vmTargetName()`) as the domain target. It opens any qemu+ssh:// side
+tunnel itself from the returned endpoint and hands the spice plugin a plain
+DIALABLE endpoint via the CheckEnv. The spice plugin just dials it and runs the
+method.
 
 ## Authoring the `spice:` verb in a plan step
 
@@ -174,13 +177,16 @@ charly's core (which carries no SPICE library and no opus/portaudio cgo deps).
   verb keeps its discriminator + modifiers on core `#Op`, so the schema carries
   no plugin_input).
 
-Host side (stays in core):
+Host side:
 
-- `charly/spice_preresolve.go` — `preresolveSpiceEndpoint`: vm.yml → libvirt
-  domain → live XML → SPICE endpoint, plus any qemu+ssh:// side tunnel, handing
-  the plugin a dialable `SpiceEnv` via the CheckEnv.
-- `charly/vm_target.go` — shared VM target resolution (`ResolveVmTarget` /
-  `SpiceEndpoint`); `VmTarget.XML` gives the live `libvirtxml.Domain`.
+- `charly/spice_preresolve.go` — `preresolveSpiceEndpoint`: delegates vm.yml →
+  libvirt domain → live XML → SPICE endpoint to the vm plugin, opens any
+  qemu+ssh:// side tunnel, and hands the spice plugin a dialable `SpiceEnv` via
+  the CheckEnv. Stays in core (it owns no go-libvirt).
+- `candy/plugin-vm/vm_target.go` — the OUT-OF-PROCESS VM target resolution
+  (`ResolveVmTarget` / `SpiceEndpoint`, go-libvirt); `VmTarget.XML` gives the live
+  `libvirtxml.Domain`. The host reaches it via `invokeVmPlugin("resolve-spice", …)`,
+  passing `Runner.vmTargetName()` (the resolved VM-entity name, not the deploy name).
 - The registry dispatch: `providerRegistry.ResolveVerb("spice")` → the
   out-of-process `grpcProvider` → `invokeVerbProvider`, which hands the plugin
   the full `#Op` as params after the host pre-resolves the endpoint.
@@ -195,9 +201,11 @@ These now live in `candy/plugin-spice`, NOT in charly's core:
   transitives, indirect and NOT linked (the plugin is built without
   `-tags spice_audio`).
 
-The host-side VM resolution still uses core's libvirt deps
-(`libvirt.org/go/libvirtxml`, `github.com/digitalocean/go-libvirt`) via
-`charly/vm_target.go`.
+The VM target resolution (go-libvirt / `libvirtxml`) runs OUT-OF-PROCESS in
+`candy/plugin-vm/vm_target.go` — the host reaches it via
+`invokeVmPlugin("resolve-spice", …)`, not a direct core call, and passes the
+resolved VM-entity name (`Runner.vmTargetName()`) so the plugin addresses the live
+domain `charly-<vm-entity>` even when the deploy/bed name differs.
 
 ## Related skills
 
