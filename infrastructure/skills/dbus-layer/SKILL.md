@@ -56,7 +56,7 @@ charly check dbus introspect <image> <dest> <path>  # Service introspection
 
 ### Notification Delivery Chain
 
-`charly cmd`/`charly tmux cmd`/`charly check record cmd` → `sendContainerNotification()` → `charly check dbus notify` → `org.freedesktop.Notifications.Notify` → swaync/mako → desktop popup
+`charly cmd`/`charly tmux cmd` → `sendContainerNotification()` → `charly check dbus notify` → `org.freedesktop.Notifications.Notify` → swaync/mako → desktop popup
 
 For notifications to work, the box needs:
 1. **`dbus` candy** — D-Bus session bus (this candy)

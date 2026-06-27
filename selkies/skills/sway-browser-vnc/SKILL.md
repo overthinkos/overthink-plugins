@@ -61,12 +61,23 @@ All overlay types render with true RGBA compositor transparency. See `/charly-ch
 
 ## Recording
 
-Desktop video recording via wf-recorder (included in sway-desktop):
+Desktop video recording via wf-recorder (included in sway-desktop) is authored as
+`record:` plan steps (the declarative verb served out-of-process by `candy/plugin-record`)
+and run with `charly check live sway-browser-vnc --filter record`:
 
-```bash
-charly check record start sway-browser-vnc -n demo --mode desktop
-# ... interact ...
-charly check record stop sway-browser-vnc -n demo -o demo.mp4
+```yaml
+sway-rec-start:
+    check: a desktop recording starts
+    record: start
+    context: [deploy]
+    record_name: demo
+    record_mode: desktop
+sway-rec-stop:
+    check: the desktop recording is captured
+    record: stop
+    context: [deploy]
+    record_name: demo
+    artifact: demo.mp4
 ```
 
 ## Use as Selkies Remote Desktop Client

@@ -127,7 +127,8 @@ All level 0/1 characters (ö, ä, ü, ß, =, ?) and AltGr characters (@, €, \\
 
 ## Screenshots and Recording
 
-The capture bridge provides `charly check wl screenshot` and `charly check record` support:
+The capture bridge provides `charly check wl screenshot` and the declarative `record:`
+check verb (served out-of-process by `candy/plugin-record`):
 
 ```bash
 # Screenshot (works with or without browser connected)
@@ -135,11 +136,25 @@ charly check wl screenshot selkies-labwc screenshot.png
 
 # Check bridge status
 charly shell selkies-labwc -c "pixelflux-screenshot --status"
+```
 
-# Desktop video recording (with audio via PulseAudio)
-charly check record start selkies-labwc -n demo --mode desktop --audio
-# ... interact with desktop ...
-charly check record stop selkies-labwc -n demo -o demo.mp4
+Desktop video recording (with audio via PulseAudio) is authored as `record:` plan steps
+and run with `charly check live selkies-labwc --filter record`:
+
+```yaml
+labwc-rec-start:
+    check: a desktop recording with audio starts
+    record: start
+    context: [deploy]
+    record_name: demo
+    record_mode: desktop
+    record_audio: true
+labwc-rec-stop:
+    check: the desktop recording is captured
+    record: stop
+    context: [deploy]
+    record_name: demo
+    artifact: demo.mp4
 ```
 
 The bridge auto-heals: if no valid H.264 frames are available (e.g., after browser disconnect), it reconnects as controller to restart the pipeline.

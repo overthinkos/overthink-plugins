@@ -46,18 +46,29 @@ wf-recorder -f output.mp4 -r 60        # 60fps
 # Stop with Ctrl-C
 ```
 
-## Integration with `charly check record`
+## Integration with the `record:` check verb
 
-```bash
-# Start recording sway desktop (auto-detects wf-recorder)
-charly check record start sway-browser-vnc -n demo --mode desktop
+Author `record:` plan steps (the declarative verb served out-of-process by
+`candy/plugin-record` — no host `charly check` subcommand for it) and run them with
+`charly check live sway-browser-vnc --filter record`. A `record: start` step with
+`record_mode: desktop` auto-detects wf-recorder; desktop interaction is driven with the
+`wl:`/`cdp:` verbs (which keep their host subcommands); `record: stop` + `artifact:`
+copies the `.mp4` out:
 
-# Interact with desktop
-charly check wl click sway-browser-vnc 640 360
-charly check record cmd sway-browser-vnc "neofetch" -n demo
-
-# Stop and copy to host
-charly check record stop sway-browser-vnc -n demo -o demo.mp4
+```yaml
+sway-rec-start:
+    check: a desktop recording starts
+    record: start
+    context: [deploy]
+    record_name: demo
+    record_mode: desktop
+sway-rec-stop:
+    check: the desktop recording is captured
+    record: stop
+    context: [deploy]
+    record_name: demo
+    artifact: demo.mp4
+    artifact_not_uniform: true
 ```
 
 ## Included In
@@ -70,7 +81,7 @@ charly check record stop sway-browser-vnc -n demo -o demo.mp4
 
 ## Cross-References
 
-- `/charly-check:record` — `charly check record start --mode desktop` auto-detects wf-recorder
+- `/charly-check:record` — the `record:` check verb (`record_mode: desktop`) auto-detects wf-recorder
 - `/charly-selkies:wl-record-pixelflux` — Alternative for selkies-desktop (pixelflux pipeline)
 - `/charly-selkies:wl-screenshot-grim` — Screenshot companion (same wlr-screencopy protocol)
 - `/charly-selkies:sway-desktop` — Parent metalayer

@@ -8,7 +8,7 @@ description: |
   (`disposable: true`, run via `charly check run <bed>`), or any plan step / Op
   authoring. Covers the unified `charly check` surface: three
   primary modes (image / live / run),
-  6 in-core live-container probe verbs (cdp/wl/dbus/vnc/record/libvirt) plus the out-of-process plugin check verbs (kube/adb/appium/spice/mcp),
+  5 in-core live-container probe verbs (cdp/wl/dbus/vnc/libvirt) plus the out-of-process plugin check verbs (kube/adb/appium/spice/mcp/record),
   verb catalog (file/port/command/http/package/service/process/dns/user/
   unix_group/interface/kernel-param/mount/addr/matching), runtime variable
   resolution (`${HOST_PORT:N}`, `${VOLUME_PATH:name}`, `${CONTAINER_IP}`,
@@ -621,19 +621,18 @@ explicit subcommand names below take over when matched.
 | `charly check wl …` | `/charly-check:wl` | Wayland desktop input/windows/clipboard + sway IPC |
 | `charly check dbus …` | `/charly-check:dbus` | D-Bus calls, introspection, desktop notifications |
 | `charly check vnc …` | `/charly-check:vnc` | VNC framebuffer screenshot + click/key/type/passwd |
-| `charly check record …` | `/charly-check:record` | Recording sessions — start/stop/list/cmd. Terminal (asciinema) or desktop (pixelflux/wf-recorder). Container-only. |
 | `charly check libvirt …` | `/charly-check:libvirt` | libvirt-RPC test commands for VMs — info, domain XML, QMP, qemu-guest-agent, snapshots, events. VM-only. |
 
-These six verbs live under `charly check` because every one of them is a "probe or
+These five verbs live under `charly check` because every one of them is a "probe or
 drive a running service" operation — the same surface the declarative test
-runner composes when it executes checks. The `mcp:` verb is NOT a host subcommand:
-it is a declarative-only check verb served out-of-process by `candy/plugin-mcp`,
-parallel to the `kube:`/`spice:`/`adb:`/`appium:` plugin verbs (see the
-"Method allowlist — mcp" section and the Related-skills note below).
+runner composes when it executes checks. The `mcp:` and `record:` verbs are NOT host
+subcommands: each is a declarative-only check verb served out-of-process by its
+plugin (`candy/plugin-mcp`, `candy/plugin-record`), parallel to the
+`kube:`/`spice:`/`adb:`/`appium:` plugin verbs (see the Related-skills note below).
 
 **Reserved image names:** because subcommand names take priority when
 matched, an image literally named `cdp`, `wl`, `dbus`, `vnc`,
-`record`, or `libvirt` cannot be run via `charly check live <name>` —
+or `libvirt` cannot be run via `charly check live <name>` —
 use the explicit `charly check live <name>` form or rename the image. No such
 images currently exist in `charly.yml`.
 
@@ -1653,7 +1652,7 @@ deliberately.
 
 ## Related skills
 
-- **Live-container probe verbs under `charly check`** — `/charly-check:cdp`, `/charly-check:wl`, `/charly-check:dbus`, `/charly-check:vnc`, `/charly-check:record`, `/charly-check:libvirt` are dispatched as `charly check cdp|wl|dbus|vnc|record|libvirt`. The `mcp:` MCP-protocol verb (`/charly-build:charly-mcp-cmd`), the `kube:` cluster-probe verb (`/charly-kubernetes:check-k8s`) and the `spice:` SPICE-wire verb (`/charly-check:spice`) are NOT host `charly check` subcommands — each is a declarative check verb served out-of-process by its plugin (`candy/plugin-mcp`, `candy/plugin-kube`, `candy/plugin-spice`), parallel to the `adb:`/`appium:` plugin verbs. See the Subcommands section above.
+- **Live-container probe verbs under `charly check`** — `/charly-check:cdp`, `/charly-check:wl`, `/charly-check:dbus`, `/charly-check:vnc`, `/charly-check:libvirt` are dispatched as `charly check cdp|wl|dbus|vnc|libvirt`. The `mcp:` MCP-protocol verb (`/charly-build:charly-mcp-cmd`), the `record:` recording verb (`/charly-check:record`), the `kube:` cluster-probe verb (`/charly-kubernetes:check-k8s`) and the `spice:` SPICE-wire verb (`/charly-check:spice`) are NOT host `charly check` subcommands — each is a declarative check verb served out-of-process by its plugin (`candy/plugin-mcp`, `candy/plugin-record`, `candy/plugin-kube`, `candy/plugin-spice`), parallel to the `adb:`/`appium:` plugin verbs. See the Subcommands section above.
 - `/charly-image:layer` — layer authoring; plan steps (child step nodes) are part of every `charly.yml`.
 - `/charly-image:image` — image-level plan steps at composition time.
 - `/charly-core:deploy` — local `charly.yml` overlay rules and the plan-step merge.

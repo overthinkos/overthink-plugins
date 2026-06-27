@@ -50,21 +50,30 @@ pixelflux-record output.mp4 --fps 60 --audio # 60fps + audio
 # Stop with Ctrl-C
 ```
 
-## Integration with `charly check record`
+## Integration with the `record:` check verb
 
-```bash
-# Start desktop video recording (auto-detects pixelflux-record)
-charly check record start selkies-desktop -n demo --mode desktop --audio
+Author `record:` plan steps (the declarative verb served out-of-process by
+`candy/plugin-record` — no host `charly check` subcommand for it) and run them with
+`charly check live selkies-desktop --filter record`. A `record: start` step with
+`record_mode: desktop` + `record_audio: true` auto-detects pixelflux-record; desktop
+interaction is driven with the `cdp:`/`wl:` verbs (which keep their host subcommands);
+`record: stop` + `artifact:` copies the `.mp4` out:
 
-# Run commands (visible in recording)
-charly check record cmd selkies-desktop "echo hello" -n demo
-
-# Interact with desktop
-charly check cdp open selkies-desktop "https://example.com"
-charly check wl click selkies-desktop 640 360
-
-# Stop and copy to host
-charly check record stop selkies-desktop -n demo -o demo.mp4
+```yaml
+pixelflux-rec-start:
+    check: a desktop recording with audio starts
+    record: start
+    context: [deploy]
+    record_name: demo
+    record_mode: desktop
+    record_audio: true
+pixelflux-rec-stop:
+    check: the desktop recording is captured
+    record: stop
+    context: [deploy]
+    record_name: demo
+    artifact: demo.mp4
+    artifact_not_uniform: true
 ```
 
 ## Architecture
@@ -92,7 +101,7 @@ selkies process (single ScreenCapture singleton — process-wide)
 
 ## Cross-References
 
-- `/charly-check:record` -- `charly check record start --mode desktop` auto-detects pixelflux-record
+- `/charly-check:record` -- the `record:` check verb (`record_mode: desktop`) auto-detects pixelflux-record
 - `/charly-core:charly-update` -- Per-instance update pattern used to roll out the per-frame `cleanup_texture_cache()` fix across live instances
 - `/charly-selkies:wl-screenshot-pixelflux` -- Screenshot companion (same capture bridge, same singleton)
 - `/charly-selkies:wf-recorder` -- Alternative for sway-desktop (wlr-screencopy)

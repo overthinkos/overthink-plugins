@@ -107,18 +107,21 @@ Supported formats: `5s`, `1.5m`, `500ms`, or bare seconds (`5`).
 
 ## Recording Workflow
 
-Overlays compose naturally with `charly check record`:
+Overlays compose naturally with the declarative `record:` verb (`/charly-check:record`,
+served out-of-process by `candy/plugin-record`): bracket the captured timeline with
+`record: start` … `record: stop` plan steps, and drive the overlay actions with
+`charly check wl overlay …` (the `wl` verb keeps its host subcommand) — or author the
+overlays as sibling `wl: overlay-show`/`overlay-hide` steps in the same plan. Run it with
+`charly check live <image> --filter record --filter wl`.
 
 ```bash
-# Title card
+# Title card (the wl verb keeps its host `charly check` subcommand)
 charly check wl overlay show myimage --type text --text "Building a REST API" \
   --bg "rgba(0,0,0,0.9)" --font-size 64 --name title
 
-# Start recording
-charly check record start myimage -n demo -m desktop
+# ... start the desktop recording via a `record: start` plan step (record_mode: desktop) ...
 
 # Fade out title after 3s
-sleep 3
 charly check wl overlay hide myimage --name title
 
 # Lower-third speaker ID
@@ -129,10 +132,8 @@ charly check wl overlay show myimage --type lower-third \
 
 # Fade to black for ending
 charly check wl overlay show myimage --type fade --color black --name outro
-sleep 2
 
-# Stop recording
-charly check record stop myimage -n demo -o demo.mp4
+# ... stop + copy out the recording via a `record: stop` plan step (artifact: demo.mp4) ...
 charly check wl overlay hide myimage --all
 ```
 
@@ -156,7 +157,7 @@ All overlay types work on all wlroots-based compositors:
 
 ### Selkies-Desktop Capture Latency
 
-On selkies-desktop, `pixelflux-screenshot` captures from the H.264 WebSocket stream. In controller mode (no browser client connected), the frame rate is very low — screenshots may take 15-30 seconds to reflect overlay changes. **This does NOT affect recordings** — `charly check record` captures at 30fps, so overlays appear immediately in recorded video.
+On selkies-desktop, `pixelflux-screenshot` captures from the H.264 WebSocket stream. In controller mode (no browser client connected), the frame rate is very low — screenshots may take 15-30 seconds to reflect overlay changes. **This does NOT affect recordings** — the `record:` verb captures at 30fps, so overlays appear immediately in recorded video.
 
 ## IPC Protocol
 

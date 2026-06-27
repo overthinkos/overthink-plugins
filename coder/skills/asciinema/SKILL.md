@@ -38,22 +38,38 @@ my-box:
             - asciinema
 ```
 
-Used by `charly check record start --mode terminal` for terminal recording sessions. Also available standalone via `asciinema rec`.
+Used by the `record:` check verb (a `record: start` step with `record_mode: terminal`) for terminal recording sessions. Also available standalone via `asciinema rec`.
 
-## Integration with `charly check record`
+## Integration with the `record:` check verb
+
+Author ordered `record:` plan steps (the declarative verb served out-of-process by
+`candy/plugin-record` — there is no host `charly check` subcommand for it) and run them
+with `charly check live <image> --filter record`:
+
+```yaml
+term-start:
+    check: a terminal recording starts
+    record: start
+    context: [deploy]
+    record_name: demo
+    record_mode: terminal
+term-echo:
+    check: a command is sent into the recording
+    record: cmd
+    context: [deploy]
+    record_name: demo
+    text: echo hello
+term-stop:
+    check: the recording stops and is copied out
+    record: stop
+    context: [deploy]
+    record_name: demo
+    artifact: demo.cast
+```
 
 ```bash
-# Start recording a terminal session
-charly check record start <image> -n demo --mode terminal
-
-# Send commands to the recorded terminal
-charly check record cmd <image> "echo hello" -n demo
-
-# Stop and copy to host
-charly check record stop <image> -n demo -o demo.cast
-
-# Play back
-asciinema play demo.cast
+charly check live <image> --filter record   # runs the steps above
+asciinema play demo.cast                     # play back the copied-out artifact
 ```
 
 ## Note
@@ -72,7 +88,7 @@ Also available via the `dev-tools` candy (which includes asciinema among many ot
 
 ## Cross-References
 
-- `/charly-check:record` — `charly check record start --mode terminal` uses asciinema
+- `/charly-check:record` — the `record:` check verb (`record_mode: terminal`) uses asciinema
 - `/charly-coder:dev-tools` — Also includes asciinema (larger candy)
 
 ## When to Use This Skill
