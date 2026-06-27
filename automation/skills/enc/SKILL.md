@@ -342,9 +342,10 @@ Rootless podman with `--userns=keep-id` creates a two-level user namespace. Duri
 
 **Secret Service flow on reboot:**
 1. Boot → systemd starts user instance (linger) → quadlet service starts
-2. ExecStartPre → `charly config mount` → keyring locked → subscribes to
+2. ExecStartPre → `charly config mount` → keyring locked → the core RPCs
+   `verb:credential await-unlock` to candy/plugin-secrets, which subscribes to
    DBus `PropertiesChanged` signals on Secret Service collections, with a
-   30-second backstop re-probe (`encMountSignalBackstop`)
+   30-second backstop re-probe (`awaitSignalBackstop`)
 3. User logs in → PAM unlocks GNOME Keyring / KeePassXC unlocks database
 4. DBus signal fires (or backstop re-probes) → passphrase found → volumes
    mount → container starts
@@ -352,29 +353,40 @@ Rootless podman with `--userns=keep-id` creates a two-level user namespace. Duri
    systemd sends SIGTERM on `systemctl stop`. No arbitrary deadline.
 
 **Event-driven keyring waiting:** when
-`source=locked` under a keyring-capable backend, charly subscribes to DBus
+`source=locked` under a keyring-capable backend, the core's
+`resolveEncPassphraseForMount` RPCs `verb:credential await-unlock` to
+candy/plugin-secrets — the Secret Service owner since the godbus dep-shed
+(charly's core links no godbus). The plugin subscribes to DBus
 `org.freedesktop.DBus.Properties.PropertiesChanged` signals on the
-`/org/freedesktop/secrets/collection/*` namespace. The wait loop blocks
+`/org/freedesktop/secrets/collection/*` namespace; its wait loop blocks
 on `select { case <-sigCh | case <-backstop | case <-ctx.Done() }` —
-zero CPU cost between events. No polling.
+zero CPU cost between events. No polling. The blocking gRPC Invoke survives
+an unbounded wait (go-plugin sets no keepalive/idle timeout on the local
+Unix-socket connection).
 
-- `encMountSignalBackstop` — safety-net re-probe interval (default
+- `awaitSignalBackstop` — safety-net re-probe interval (default
   `30 * time.Second`). Catches unlock events when the Secret Service
   provider does not emit `PropertiesChanged` (KeePassXC's FdoSecrets
   plugin does NOT emit this signal; GNOME Keyring and KDE Wallet do).
   The backstop is what catches the unlock on KeePassXC hosts.
-- `encMountProgressLogInterval` — throttle for periodic "still waiting"
+- `awaitProgressLogInterval` — throttle for periodic "still waiting"
   journal output (default `1 * time.Hour`).
-- SIGTERM cancellation via `signal.NotifyContext(ctx, SIGINT, SIGTERM)`
-  — `systemctl stop` sends SIGTERM, the context cancels, the function
-  returns cleanly, and systemd transitions the unit to `inactive`.
+- SIGTERM cancellation: the core builds the wait ctx via
+  `signal.NotifyContext(ctx, SIGINT, SIGTERM)` and passes it on the
+  Invoke — `systemctl stop` sends SIGTERM, the ctx cancels, gRPC
+  propagates the cancellation to the plugin's Invoke, the loop returns
+  cleanly, and systemd transitions the unit to `inactive`.
 - If the DBus session bus is unavailable (edge case: linger-based start
-  before graphical session), falls back to backstop-only polling at the
-  same `encMountSignalBackstop` cadence — still unbounded, still
-  low-resource.
+  before graphical session), the plugin falls back to backstop-only
+  polling at the same `awaitSignalBackstop` cadence — still unbounded,
+  still low-resource.
 
-Source: `charly/enc.go` (`waitForKeyringUnlock`, `waitForKeyringUnlockLoop`,
-`waitForKeyringUnlockBackstopOnly`).
+Source: `candy/plugin-secrets/keyring_unlock_wait.go` (`awaitUnlock`,
+`awaitUnlockLoop`, `awaitUnlockBackstopOnly`, `isCollectionUnlockedSignal`),
+reached via `verb:credential await-unlock`. The core seam is
+`charly/enc.go` (`awaitKeyringUnlockViaPlugin`) +
+`charly/credential_plugin.go` (`pluginCredentialStore.awaitUnlock`, the
+`credentialAwaiter` interface).
 
 **Bounded retry for `source=unavailable`:** transient
 backend-probe failures (`source=unavailable`) use a bounded poll
@@ -446,8 +458,9 @@ Plain bind mounts do not use encrypted storage commands. They are direct host di
 
 **Source files:**
 
-- `charly/enc.go` — `encMount` (with all-mounted short-circuit), `ensureEncryptedMounts`, `encUnmount`, scope unit lifecycle, `resolveEncPassphraseForMount` (bounded retry for `source=unavailable` via `retryUnavailable`), `waitForKeyringUnlock` (event-driven DBus signal wait for `source=locked`), `waitForKeyringUnlockLoop`, `waitForKeyringUnlockBackstopOnly`, `encMountSignalBackstop` (30s), `encMountProgressLogInterval` (1h)
-- `charly/keyring_unlock_signal.go` — `isCollectionUnlockedSignal` (the DBus signal filter `enc.go`'s unlock-waiter keeps in core; `godbus` stays for it)
+- `charly/enc.go` — `encMount` (with all-mounted short-circuit), `ensureEncryptedMounts`, `encUnmount`, scope unit lifecycle, `resolveEncPassphraseForMount` (bounded retry for `source=unavailable` via `retryUnavailable`), `awaitKeyringUnlockViaPlugin` (the `source=locked` waiter — delegates the event-driven DBus wait to `verb:credential await-unlock`, out-of-process in candy/plugin-secrets, so charly's core links no godbus)
+- `candy/plugin-secrets/keyring_unlock_wait.go` — `awaitUnlock` (the externalized event-driven DBus signal wait for `source=locked`), `awaitUnlockLoop`, `awaitUnlockBackstopOnly`, `isCollectionUnlockedSignal` (the collection-unlocked signal filter), `awaitSignalBackstop` (30s), `awaitProgressLogInterval` (1h)
+- `charly/credential_plugin.go` — the core seam: `pluginCredentialStore.awaitUnlock` (RPCs `verb:credential await-unlock` over a SIGINT/SIGTERM-cancellable ctx) + the `credentialAwaiter` interface
 - `charly/credential_plugin.go` — the CORE adapter: `DefaultCredentialStore` (→ `pluginCredentialStore`), `ResolveCredential` (the `"unavailable"`-vs-`"default"` source distinction), `resolveSecretBackend`, `resetDefaultCredentialStore` (propagates a keyring re-probe to the plugin over `verb:credential reset`)
 - `candy/plugin-secrets/secret_service.go` — godbus-based ssClient, `findItemAcrossCollections` (with locked-vs-broken tracking), `ssOps` interface for test injection, `ErrSSNotFound` / `ErrSSAllBroken` / `ErrSSInteractiveUnlockRequired` sentinel errors
 - `candy/plugin-secrets/credential_keyring.go` — `KeyringStore.Probe` (iterates collections, accepts if ≥1 healthy), `KeyringStore.Get` (delegates to `keyringGetViaSSClient`, maps `ErrSSInteractiveUnlockRequired` to `KeyringLockedError`), index-divergence warning
