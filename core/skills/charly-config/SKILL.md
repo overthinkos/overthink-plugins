@@ -124,8 +124,8 @@ The `charly-mcp` layer declares a `project` volume at `/workspace` (the volume N
 ```bash
 charly config charly-arch --bind project=/home/you/opencharly
 charly start charly-arch
-charly check mcp call charly-arch box.list.boxes '{}' --name charly
-# → lists images from the bind-mounted /home/you/opencharly
+charly check live charly-arch --filter mcp
+# → the baked mcp: call box.list.boxes step lists images from the bind-mounted /home/you/opencharly
 ```
 
 The `CHARLY_PROJECT_DIR` env var is consumed by the charly binary's global `-C` / `--dir` / `CHARLY_PROJECT_DIR` flag (`charly/main.go` calls `os.Chdir(Dir)` before Kong dispatch). See `/charly-image:image` "Project directory resolution" and `/charly-build:charly-mcp-cmd` "Deployment: the `charly-mcp` layer" for the full pattern.
@@ -347,7 +347,7 @@ charly check cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
 
 ## Service Environment Injection
 
-When a configured image declares `env_provide` or `mcp_provide` in its layers (stored in OCI labels), `charly config` automatically injects those entries into the `provides:` section of `charly.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with `charly check mcp ping <image>` — see `/charly-build:charly-mcp-cmd` for the full verb surface.
+When a configured image declares `env_provide` or `mcp_provide` in its layers (stored in OCI labels), `charly config` automatically injects those entries into the `provides:` section of `charly.yml`. This enables cross-container service discovery without manual configuration. Verify that an injected MCP endpoint is actually reachable with the `mcp:` check verb (`charly check live <image> --filter mcp`) — see `/charly-build:charly-mcp-cmd` for the full verb surface.
 
 ```yaml
 # charly.yml after `charly config ollama && charly config jupyter`

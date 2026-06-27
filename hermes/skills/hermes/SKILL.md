@@ -157,7 +157,7 @@ liveness (hermes-whatsapp is autostart=false — see `/charly-check:check` Gotch
   `/charly-coder:devops-tools`
 - `/charly-check:check` — declarative testing framework + supervisord gotchas
 - `/charly-core:charly-config` — `CHARLY_MCP_SERVERS` auto-discovery + secret provisioning
-- `/charly-build:charly-mcp-cmd` — verify each MCP server in `CHARLY_MCP_SERVERS` is actually alive before debugging hermes tool-call failures; `charly check mcp list-tools <provider-image>` shows exactly what hermes will see
+- `/charly-build:charly-mcp-cmd` — verify each MCP server in `CHARLY_MCP_SERVERS` is actually alive before debugging hermes tool-call failures; `charly check live <provider-image> --filter mcp` shows exactly what hermes will see
 - `/charly-selkies:selkies-labwc` — companion for shared browser (CDP)
 - `/charly-jupyter:jupyter` — MCP notebook tools auto-discovered
 

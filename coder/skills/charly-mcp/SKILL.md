@@ -36,7 +36,7 @@ Kong reflection, currently ~192 tools including the authoring
 surface — project scaffolding, YAML editing, file-write verbs) as MCP
 over Streamable HTTP. Any box composing `charly-mcp` advertises itself
 via the `ai.opencharly.mcp_provide` OCI label, so consumers —
-Claude Code, Open WebUI, OpenClaw, or the in-repo `charly check mcp` client
+Claude Code, Open WebUI, OpenClaw, or charly's own declarative `mcp:` check verb
 — can drive it without any out-of-band URL configuration.
 
 See `/charly-build:charly-mcp-cmd` Part 2 for the full server architecture: Kong

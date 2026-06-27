@@ -269,7 +269,7 @@ curl -s "http://localhost:9222/json/list"
 - `/charly-check:vnc` — VNC automation (used with `--vnc` flag on `charly check cdp click`)
 - `/charly-check:wl` — Wayland automation (used with `--wl` flag on `charly check cdp click`)
 - `/charly-core:charly-config` — Proxy deployment, `normalizeNoProxy()` auto-conversion, `sep:"none"` env handling
-- `/charly-build:charly-mcp-cmd` — the auto-included `chrome-devtools-mcp` sub-candy exposes 29 tools via Streamable HTTP on port 9224; probe with `charly check mcp list-tools <image>` or run the declarative 2-check suite via `charly check live <image> --filter mcp`
+- `/charly-build:charly-mcp-cmd` — the auto-included `chrome-devtools-mcp` sub-candy exposes 29 tools via Streamable HTTP on port 9224; run the declarative 2-check suite via `charly check live <image> --filter mcp`
 
 ## When to Use This Skill
 

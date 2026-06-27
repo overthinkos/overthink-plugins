@@ -71,25 +71,33 @@ Two paths to execute notebook content programmatically:
 
 ## Verification
 
-Ping the server (proves it's alive + reachable):
+Run the candy's baked `mcp:` steps (ping + catalog enumeration) against a live
+deployment — the `mcp:` check verb is declarative-only, served out-of-process by
+`candy/plugin-mcp` (there is no host `charly check` subcommand for it):
 
 ```bash
-charly check mcp ping marimo --name marimo
+charly check live versa --filter mcp   # runs the baked mcp: ping / list-tools steps (mcp_name: marimo)
 ```
 
-List the tools (catalog enumeration):
+Author them as declarative steps on the candy:
 
-```bash
-charly check mcp list-tools marimo --name marimo
+```yaml
+marimo-mcp-ping:
+    check: the marimo mcp server responds to ping
+    mcp: ping
+    mcp_name: marimo
+    context: [deploy]
+marimo-mcp-list-tools:
+    check: the marimo mcp server lists its tools
+    mcp: list-tools
+    mcp_name: marimo
+    context: [deploy]
 ```
 
-Inspect a session's cell map (real diagnostic):
-
-```bash
-SID=$(charly check mcp call versa get_active_notebooks '{"args":{}}' --name marimo \
-  | python3 -c 'import sys,json; print(json.load(sys.stdin)["data"]["notebooks"][0]["session_id"])')
-charly check mcp call versa get_lightweight_cell_map "{\"args\":{\"session_id\":\"$SID\"}}" --name marimo
-```
+For an ad-hoc, multi-call diagnostic (e.g. `get_active_notebooks` → extract a
+`session_id` → `get_lightweight_cell_map`) the declarative verb has no cross-call
+state chaining; point an external MCP client (`/charly-tools:mcporter`) at the
+server's published host port instead.
 
 ## MCP name decoupling
 
@@ -105,4 +113,4 @@ explicitly broken in a hard cutover.
 - `/charly-versa:airflow-mcp` — the OTHER MCP server in the same pod
 - `/charly-versa:notebook-osm` — example notebook diagnosed via this MCP
 - `/charly-build:charly-mcp-cmd` — MCP probe verb authoring + URL rewriter
-- `/charly-check:check` — `charly check mcp` subcommand reference
+- `/charly-check:check` — `mcp:` declarative check-verb reference

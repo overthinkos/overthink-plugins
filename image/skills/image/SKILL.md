@@ -102,7 +102,7 @@ Remote repos are cloned into `~/.cache/charly/repos/<repoPath>@<version>/` (over
    ```bash
    charly config charly-arch --bind project=/home/you/opencharly
    charly start charly-arch
-   charly check mcp call charly-arch box.list.boxes '{}' --name charly
+   charly check live charly-arch --filter mcp   # the baked mcp: call box.list.boxes step
    ```
 
 2. **Remote pin** — set `CHARLY_PROJECT_REPO=overthinkos/overthink@<sha-or-ref>` in the container env. The agent reads from a pinned upstream version. No bind mount required.

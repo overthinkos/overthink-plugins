@@ -1000,7 +1000,7 @@ my-app-mcp_accept:
 
 **Pod-aware:** when provider and consumer share a container, URLs resolve to `localhost` (local wins over remote for same-named entries). **Naming is the service contract** — keep `name:` stable across candy/package/box renames.
 
-**Testing the endpoint:** once a candy is deployed, `charly check mcp ping <image>` verifies the server is alive, and `charly check mcp list-tools <image>` enumerates the tool catalog. Both are authorable as `mcp:` `check:` steps scoped `context: [deploy]` — each its own step child node on the candy. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/charly-build:charly-mcp-cmd`.
+**Testing the endpoint:** once a candy is deployed, `charly check live <image> --filter mcp` runs the candy's declarative `mcp:` check steps (served out-of-process by candy/plugin-mcp) — `ping` verifies the server is alive, `list-tools` enumerates the tool catalog. Both are authorable as `mcp:` `check:` steps scoped `context: [deploy]` — each its own step child node on the candy. The full verb reference (methods, URL rewriting, port-publishing gotcha, validator rules) lives in `/charly-build:charly-mcp-cmd`.
 
 ---
 

@@ -90,12 +90,12 @@ auto-fallback to `overthinkos/overthink`:
 # Pattern 1: bind your local checkout
 charly config charly-arch --bind project=/home/you/opencharly
 charly start charly-arch
-charly check mcp call charly-arch box.list.boxes '{}' --name charly  # lists YOUR project's boxes
+charly check live charly-arch --filter mcp  # the baked mcp: call box.list.boxes step lists YOUR project's boxes
 
 # Pattern 3: no bind-mount (auto-fallback kicks in)
 charly config charly-arch
 charly start charly-arch
-charly check mcp call charly-arch box.list.boxes '{}' --name charly  # lists upstream overthinkos/overthink boxes
+charly check live charly-arch --filter mcp  # box.list.boxes lists upstream overthinkos/overthink boxes
 ```
 
 Volume NAME is `project` (stable bind-mount API); container PATH is

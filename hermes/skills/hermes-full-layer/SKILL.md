@@ -61,7 +61,7 @@ hermes:
 - `/charly-selkies:chrome` — Provides `BROWSER_CDP_URL` (cross-container, from selkies-desktop)
 - `/charly-selkies:chrome-devtools-mcp` — Chrome DevTools MCP server (auto-discovered via `mcp_provide`, 29 tools)
 - `/charly-jupyter:jupyter-mcp` — JupyterLab CRDT MCP server (auto-discovered via `mcp_provide`, 11 tools: notebook_*/cell_* + notebook_list_users + room_list; auto-attach single-room invariant)
-- `/charly-build:charly-mcp-cmd` — host-side MCP client (`charly check mcp ping|list-tools|call|...`) to verify either of the above is alive and exposing the expected tool catalog before hermes tries to invoke them
+- `/charly-build:charly-mcp-cmd` — the declarative `mcp:` check verb (run via `charly check live <image> --filter mcp`), served out-of-process by candy/plugin-mcp, to verify either of the above is alive and exposing the expected tool catalog before hermes tries to invoke them
 
 ## Related Boxes
 

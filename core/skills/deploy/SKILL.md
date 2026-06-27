@@ -1117,7 +1117,7 @@ webapp:                            # an operator deploy + a companion member
 - `/charly-check:vnc` — VNC password setup for desktop containers
 - `/charly-vm:vm` — Virtual machine deployment (charly vm)
 - `/charly-build:build` — Building images before deployment (+ the `--no-cache` intermediate scratch-stage caveat)
-- `/charly-build:charly-mcp-cmd` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`charly check mcp ping <image>`); note the **port-publishing gotcha** when a `port:` override in charly.yml predates a newly-added mcp-providing layer
+- `/charly-build:charly-mcp-cmd` — verify the MCP endpoints declared by `provides.mcp:` entries are actually reachable (`charly check live <image> --filter mcp`); note the **port-publishing gotcha** when a `port:` override in charly.yml predates a newly-added mcp-providing layer
 - `/charly-image:image` — Image configuration, OCI label emission, `labels.go:238` tunnel read-skip
 - `/charly-image:layer` — Unified `service:` schema (use_packaged + structured custom), `env_provide`/`env_require`/`env_accept` field declarations, security resource caps
 - `/charly-check:check` — Local `check:` in charly.yml overlays image-baked deploy defaults: entries with matching `id:` replace, otherwise append. `id: X, skip: true` disables a baked check without a replacement.

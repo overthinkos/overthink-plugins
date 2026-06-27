@@ -166,7 +166,7 @@ hermes:
 
 - `/charly-check:cdp` — CDP automation; hermes uses the same Chrome endpoint via `BROWSER_CDP_URL`
 - `/charly-core:charly-config` — Injects `BROWSER_CDP_URL` and `CHARLY_MCP_SERVERS` via pod-aware `env_provide`/`mcp_provide`
-- `/charly-build:charly-mcp-cmd` — verify that the MCP servers hermes discovers (`jupyter`, `chrome-devtools`) are alive and exposing expected tools before hermes tries to call them: `charly check mcp ping jupyter`, `charly check mcp list-tools <image>`. Useful when hermes reports tool-call failures and you need to isolate whether the server or the agent is at fault.
+- `/charly-build:charly-mcp-cmd` — verify that the MCP servers hermes discovers (`jupyter`, `chrome-devtools`) are alive and exposing expected tools before hermes tries to call them: `charly check live jupyter --filter mcp`, `charly check live <image> --filter mcp`. Useful when hermes reports tool-call failures and you need to isolate whether the server or the agent is at fault.
 
 ## Related Boxes
 

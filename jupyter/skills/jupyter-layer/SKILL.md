@@ -234,7 +234,7 @@ step — tagged with the `context:` axis that selects when it runs:
 - `/charly-openwebui:openwebui` -- MCP consumer (sets `CODE_EXECUTION_ENGINE=jupyter` when this server is discovered, routing Open WebUI code-block execution into the Jupyter kernel)
 - `/charly-infrastructure:supervisord` -- process manager dependency
 - `/charly-languages:python` -- Python runtime (transitive via supervisord)
-- `/charly-build:charly-mcp-cmd` -- end-to-end testing of the candy's MCP endpoint (`charly check mcp ping`, `list-tools`, `call`); the candy ships 3 deploy-context `mcp:` steps in its `plan:` against `list_notebooks`/`insert_cell`/`execute_cell`
+- `/charly-build:charly-mcp-cmd` -- end-to-end testing of the candy's MCP endpoint via the declarative `mcp:` check verb (`ping`/`list-tools`/`call`, run via `charly check live <image> --filter mcp`); the candy ships 3 deploy-context `mcp:` steps in its `plan:` against `list_notebooks`/`insert_cell`/`execute_cell`
 
 ## When to Use This Skill
 

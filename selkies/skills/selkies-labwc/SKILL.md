@@ -375,7 +375,7 @@ for `/etc/sudoers.d/charly-user` because it's root-only (`/charly-check:check` G
 - `/charly-check:check` — declarative testing framework + testing gotchas
 - `/charly-check:cdp`, `/charly-check:wl` — desktop automation on this box
 - `/charly-core:charly-config` — deploy setup (tunnel, port remapping, instances)
-- `/charly-build:charly-mcp-cmd` — the box bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `charly check live selkies-labwc --filter mcp` runs them; `charly check mcp list-tools selkies-labwc` enumerates the 29 chrome-devtools tools ad-hoc.
+- `/charly-build:charly-mcp-cmd` — the box bundles `chrome-devtools-mcp` (transitively via the chrome metalayer), so 2 deploy-scope `mcp:` checks (`ping`, `list-tools`) run against its MCP server on port 9224. `charly check live selkies-labwc --filter mcp` runs them, enumerating the 29 chrome-devtools tools.
 
 ## Related
 

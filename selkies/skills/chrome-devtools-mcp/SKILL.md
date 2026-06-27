@@ -92,7 +92,7 @@ This candy is auto-included by the `chrome` base layer via `candy: [chrome-devto
 - `/charly-hermes:hermes` — consumes via `mcp_accept: chrome-devtools`
 - `/charly-tools:mcporter` — MCP server CLI (npm-based, similar npm install pattern)
 - `/charly-check:cdp` — direct Chrome DevTools Protocol commands (lower-level than MCP)
-- `/charly-build:charly-mcp-cmd` — test-side client for this candy's MCP endpoint (`charly check mcp ping`, `list-tools`, etc.). The candy ships 2 deploy-scope `mcp:` declarative checks (`mcp-chrome-devtools-ping`, `mcp-chrome-devtools-list-tools` asserting `navigate_page` / `take_screenshot`). **Port-publishing gotcha**: when this candy is added to a box that already has a `charly.yml` `port:` override (e.g. `sway-browser-vnc`), port 9224 may not be published until the override is updated. `charly check mcp` surfaces this with the exact `ports: [9224:9224]` remediation message — see `/charly-build:charly-mcp-cmd` for the full fix.
+- `/charly-build:charly-mcp-cmd` — test-side reference for this candy's MCP endpoint — the `mcp:` check verb, exercised via `charly check live <image> --filter mcp`. The candy ships 2 deploy-scope `mcp:` declarative checks (`mcp-chrome-devtools-ping`, `mcp-chrome-devtools-list-tools` asserting `navigate_page` / `take_screenshot`). **Port-publishing gotcha**: when this candy is added to a box that already has a `charly.yml` `port:` override (e.g. `sway-browser-vnc`), port 9224 may not be published until the override is updated. The `mcp:` check verb surfaces this with the exact `ports: [9224:9224]` remediation message — see `/charly-build:charly-mcp-cmd` for the full fix.
 
 ## When to Use This Skill
 

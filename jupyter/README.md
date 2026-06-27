@@ -29,4 +29,4 @@ The MCP server name `jupyter` is deliberately stable across renames of the under
 - `/charly-jupyter:jupyter-ml` — GPU image
 - `/charly-jupyter:jupyter-ml-notebook` — GPU image + seeded finetuning/ollama/openrouter/llms_on_supercomputers notebooks
 - `/charly-hermes:hermes` — another MCP consumer that discovers the `jupyter` server via cross-container `env_provide` / `mcp_provide`
-- `/charly-build:charly-mcp-cmd` — the host-side CLI/test verb for probing this MCP server directly (`charly check mcp ping jupyter`, `charly check mcp list-tools jupyter`, `charly check mcp call jupyter list_notebooks '{}'`). Useful for diagnosing whether a failed `mcp__jupyter__*` tool call is a server issue or a Claude Code session-registration issue.
+- `/charly-build:charly-mcp-cmd` — the declarative `mcp:` check verb for probing this MCP server directly (run via `charly check live jupyter --filter mcp`, served out-of-process by candy/plugin-mcp, exercising the candy's `mcp: ping`/`mcp: list-tools`/`mcp: call` steps). Useful for diagnosing whether a failed `mcp__jupyter__*` tool call is a server issue or a Claude Code session-registration issue.

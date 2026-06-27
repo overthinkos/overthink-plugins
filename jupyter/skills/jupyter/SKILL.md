@@ -269,7 +269,7 @@ See `/charly-check:check` for the framework and author-facing gotchas.
 - `/charly-jupyter:jupyter`, `/charly-jupyter:jupyter-mcp`, `/charly-jupyter:notebook-templates`
 - `/charly-check:check` — declarative testing framework
 - `/charly-core:charly-config` — deploy setup
-- `/charly-build:charly-mcp-cmd` — the box inherits 3 `context: [deploy]` `mcp:` scenario steps from the `jupyter` candy (`ping`, `list-tools` asserting all 11 prefixed tool names, `call notebook_list`). Run `charly check live jupyter --filter mcp` to exercise them against a live deployment, or `charly check mcp list-tools jupyter` for ad-hoc inspection
+- `/charly-build:charly-mcp-cmd` — the box inherits 3 `context: [deploy]` `mcp:` scenario steps from the `jupyter` candy (`ping`, `list-tools` asserting all 11 prefixed tool names, `call notebook_list`). Run `charly check live jupyter --filter mcp` to exercise them against a live deployment
 - `/charly-jupyter:jupyter-ml`, `/charly-jupyter:jupyter-ml-notebook` — GPU variants that inherit the same MCP test suite
 
 ## When to Use This Skill

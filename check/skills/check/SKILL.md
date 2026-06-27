@@ -8,7 +8,7 @@ description: |
   (`disposable: true`, run via `charly check run <bed>`), or any plan step / Op
   authoring. Covers the unified `charly check` surface: three
   primary modes (image / live / run),
-  7 in-core live-container probe verbs (cdp/wl/dbus/vnc/mcp/record/libvirt) plus the out-of-process plugin check verbs (kube/adb/appium/spice),
+  6 in-core live-container probe verbs (cdp/wl/dbus/vnc/record/libvirt) plus the out-of-process plugin check verbs (kube/adb/appium/spice/mcp),
   verb catalog (file/port/command/http/package/service/process/dns/user/
   unix_group/interface/kernel-param/mount/addr/matching), runtime variable
   resolution (`${HOST_PORT:N}`, `${VOLUME_PATH:name}`, `${CONTAINER_IP}`,
@@ -333,7 +333,7 @@ Same chain primitive (`NestedExecutor`) used everywhere — `charly bundle
 add`, `charly check live`, `charly check run` (AI iteration scoring).
 
 **Exception — a POD leaf nested in a VM delegates its check to the guest.** Because
-the host-vantage probes (the protocol verbs cdp/wl/dbus/vnc/mcp, which shell out
+the host-vantage probes (the protocol verbs cdp/wl/dbus/vnc, which shell out
 to a host `charly check <verb>` subprocess resolving the container on the HOST's
 podman; and `${HOST_PORT}` addr/http, resolved via HOST `podman inspect`) cannot
 reach a container living in the guest, `charly check live <vm>.<pod>` does NOT
@@ -569,7 +569,7 @@ For a prose-only step (when grading is enabled), the runner spawns the
 configured `kind: agent` CLI ONCE (bounded — never the plateau loop), handing it the
 entity's `description:`, the step's prose, the live
 target name, and the instruction that it MAY probe via `charly cmd <target> …`,
-`charly check mcp/cdp/wl <target> …`, `charly status <target>`. The agent returns a
+`charly check cdp/wl <target> …`, `charly status <target>`. The agent returns a
 single-line JSON verdict `{"verdict":"pass|fail","evidence":"…"}`; the runner
 parses it (plain or `stream-json`) into a pass/fail with evidence. An
 unparseable / timed-out / launch-failed grader is a **FAIL** with the raw output
@@ -621,16 +621,18 @@ explicit subcommand names below take over when matched.
 | `charly check wl …` | `/charly-check:wl` | Wayland desktop input/windows/clipboard + sway IPC |
 | `charly check dbus …` | `/charly-check:dbus` | D-Bus calls, introspection, desktop notifications |
 | `charly check vnc …` | `/charly-check:vnc` | VNC framebuffer screenshot + click/key/type/passwd |
-| `charly check mcp …` | (this skill) | MCP client — ping/list-tools/list-resources/list-prompts/call/read/servers against any `mcp_provide` endpoint. Speaks `github.com/modelcontextprotocol/go-sdk` (Streamable HTTP by default, SSE when `transport: sse`). |
 | `charly check record …` | `/charly-check:record` | Recording sessions — start/stop/list/cmd. Terminal (asciinema) or desktop (pixelflux/wf-recorder). Container-only. |
 | `charly check libvirt …` | `/charly-check:libvirt` | libvirt-RPC test commands for VMs — info, domain XML, QMP, qemu-guest-agent, snapshots, events. VM-only. |
 
-These seven verbs live under `charly check` because every one of them is a "probe or
+These six verbs live under `charly check` because every one of them is a "probe or
 drive a running service" operation — the same surface the declarative test
-runner composes when it executes checks.
+runner composes when it executes checks. The `mcp:` verb is NOT a host subcommand:
+it is a declarative-only check verb served out-of-process by `candy/plugin-mcp`,
+parallel to the `kube:`/`spice:`/`adb:`/`appium:` plugin verbs (see the
+"Method allowlist — mcp" section and the Related-skills note below).
 
 **Reserved image names:** because subcommand names take priority when
-matched, an image literally named `cdp`, `wl`, `dbus`, `vnc`, `mcp`,
+matched, an image literally named `cdp`, `wl`, `dbus`, `vnc`,
 `record`, or `libvirt` cannot be run via `charly check live <name>` —
 use the explicit `charly check live <name>` form or rename the image. No such
 images currently exist in `charly.yml`.
@@ -809,17 +811,20 @@ verb. One code per test. See Authoring Gotcha #2.
 
 ### Live-container verb catalog: `cdp`, `wl`, `dbus`, `vnc`, `mcp`
 
-These five verbs wrap the corresponding `charly check <verb> <method>` CLI
-subcommands so every live-container operation (browser automation, Wayland
-input/screenshot, D-Bus calls, VNC framebuffer capture, MCP protocol
-probes) is authorable as a declarative step. All five are **deploy-context
-only** — they need a running container with port mappings; `charly box
-validate` rejects them in build context, and `charly check box` skips them at
-runtime with a clear message.
+The four in-core verbs (`cdp`, `wl`, `dbus`, `vnc`) wrap the corresponding host
+`charly check <verb> <method>` CLI subcommands; the `mcp` verb has **no** host
+subcommand — it dispatches out-of-process via `candy/plugin-mcp` (parallel to the
+`kube:`/`spice:`/`adb:`/`appium:` plugin verbs). Either way, every live-container
+operation (browser automation, Wayland input/screenshot, D-Bus calls, VNC
+framebuffer capture, MCP protocol probes) is authorable as a declarative step.
+All five are **deploy-context only** — they need a running container with port
+mappings; `charly box validate` rejects them in build context, and `charly check
+box` skips them at runtime with a clear message.
 
-**Assertion semantics:** subprocess delegation — the runner executes
-`charly check <verb> <method> <image> <args…> [-i <instance>]` on the host,
-captures stdout/stderr/exit, and feeds the output through the existing
+**Assertion semantics:** delegation — for the four in-core verbs the runner
+executes `charly check <verb> <method> <image> <args…> [-i <instance>]` on the
+host; for `mcp` it dispatches the method to the out-of-process `candy/plugin-mcp`.
+Either path captures stdout/stderr/exit and feeds the output through the existing
 matcher pipeline. Queries (status/list/eval/text/html/url/axtree/screenshot/…)
 produce assertable output. Side-effect actions (click/type/open/close/…) pass
 when they exit 0 — follow them with a query check to verify the effect.
@@ -1003,16 +1008,13 @@ mcp-read-resource:
         - matches: "."            # non-empty body
 ```
 
-Ad-hoc CLI equivalents (each leaf also supports `--json` for programmatic
-use and `--name <server>` for multi-server images):
-
-```bash
-charly check mcp ping       <image> [-i <instance>] [--name <server>]
-charly check mcp servers    <image> [-i <instance>]
-charly check mcp list-tools <image> [-i <instance>] [--name <server>]
-charly check mcp call       <image> <tool> '<json-args>' [-i <instance>]
-charly check mcp read       <image> <uri>            [-i <instance>]
-```
+There is **no** host `charly check` subcommand for `mcp`: it is a
+declarative-only check verb served out-of-process by `candy/plugin-mcp` (parallel
+to `kube:`/`spice:`/`adb:`/`appium:`). Exercise it by running the candy's baked
+`mcp:` steps against a live deployment — `charly check live <image> --filter mcp` —
+or author the steps above. For multi-server images the `--name` flag is the
+declarative `mcp_name:` modifier; the full verb reference (methods, URL rewriting,
+port-publishing gotcha, validator rules) lives in `/charly-build:charly-mcp-cmd`.
 
 Output format: tab-separated plaintext (one record per line) so matchers
 can `contains:` without JSON decoding. `list-tools` emits
@@ -1651,7 +1653,7 @@ deliberately.
 
 ## Related skills
 
-- **Live-container probe verbs under `charly check`** — `/charly-check:cdp`, `/charly-check:wl`, `/charly-check:dbus`, `/charly-check:vnc`, `/charly-build:charly-mcp-cmd`, `/charly-check:record`, `/charly-check:libvirt` are dispatched as `charly check cdp|wl|dbus|vnc|mcp|record|libvirt`. The `kube:` cluster-probe verb (`/charly-kubernetes:check-k8s`) and the `spice:` SPICE-wire verb (`/charly-check:spice`) are NOT host `charly check` subcommands — each is a declarative check verb served out-of-process by its plugin (`candy/plugin-kube`, `candy/plugin-spice`), parallel to the `adb:`/`appium:` plugin verbs. See the Subcommands section above.
+- **Live-container probe verbs under `charly check`** — `/charly-check:cdp`, `/charly-check:wl`, `/charly-check:dbus`, `/charly-check:vnc`, `/charly-check:record`, `/charly-check:libvirt` are dispatched as `charly check cdp|wl|dbus|vnc|record|libvirt`. The `mcp:` MCP-protocol verb (`/charly-build:charly-mcp-cmd`), the `kube:` cluster-probe verb (`/charly-kubernetes:check-k8s`) and the `spice:` SPICE-wire verb (`/charly-check:spice`) are NOT host `charly check` subcommands — each is a declarative check verb served out-of-process by its plugin (`candy/plugin-mcp`, `candy/plugin-kube`, `candy/plugin-spice`), parallel to the `adb:`/`appium:` plugin verbs. See the Subcommands section above.
 - `/charly-image:layer` — layer authoring; plan steps (child step nodes) are part of every `charly.yml`.
 - `/charly-image:image` — image-level plan steps at composition time.
 - `/charly-core:deploy` — local `charly.yml` overlay rules and the plan-step merge.

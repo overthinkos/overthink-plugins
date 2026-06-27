@@ -155,7 +155,7 @@ openwebui:
 - `/charly-core:charly-config` -- `charly config openwebui --update-all` for service discovery
 - `/charly-build:secrets` -- `charly secrets` for Secret Service / GPG credential management
 - `/charly-core:service` -- `charly service status openwebui` for runtime management
-- `/charly-build:charly-mcp-cmd` -- probe the MCP servers openwebui consumes (auto-configured into `TOOL_SERVER_CONNECTIONS` from `CHARLY_MCP_SERVERS`): `charly check mcp list-tools <provider-image>` shows what tools openwebui will see, and `charly check mcp ping` verifies liveness before debugging openwebui itself.
+- `/charly-build:charly-mcp-cmd` -- probe the MCP servers openwebui consumes (auto-configured into `TOOL_SERVER_CONNECTIONS` from `CHARLY_MCP_SERVERS`): `charly check live <provider-image> --filter mcp` shows what tools openwebui will see and verifies liveness before debugging openwebui itself.
 
 ## Related Boxes
 

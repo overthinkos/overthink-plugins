@@ -112,7 +112,7 @@ encoding (zero CPU overhead).
 - `/charly-check:cdp` — drive Chrome inside the streaming desktop
 - `/charly-check:wl` — interact with the labwc Wayland session
 - `/charly-check:dbus` — D-Bus notifications via in-container `charly` binary
-- `/charly-build:charly-mcp-cmd` — inherits chrome-devtools-mcp's 2 deploy-scope `mcp:` checks; use `charly check mcp list-tools selkies-labwc-nvidia` to verify the MCP server is alive and exposing the full tool catalog.
+- `/charly-build:charly-mcp-cmd` — inherits chrome-devtools-mcp's 2 deploy-scope `mcp:` checks; use `charly check live selkies-labwc-nvidia --filter mcp` to verify the MCP server is alive and exposing the full tool catalog.
 
 ## Related
 
