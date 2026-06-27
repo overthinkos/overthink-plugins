@@ -150,8 +150,8 @@ The two verbs are single-protocol by design:
   under test is "is SPICE itself healthy?".
 - **`libvirt:`** — every call goes through libvirtd RPC. Use when the thing
   under test is "is the VM working?" (framebuffer capture, keyboard injection,
-  snapshots, domain state). The `libvirt:` verb remains an in-core
-  `charly check libvirt` host CLI command as well (see `/charly-check:libvirt`).
+  snapshots, domain state). The `libvirt:` verb is likewise a declarative check
+  verb served out-of-process — by `candy/plugin-vm` (see `/charly-check:libvirt`).
 
 For input testing, prefer `spice: type`/`key`/`click` to prove the SPICE wire
 delivers input to the guest. For display testing, compare `spice: screenshot`
@@ -209,9 +209,9 @@ domain `charly-<vm-entity>` even when the deploy/bed name differs.
 
 ## Related skills
 
-- `/charly-check:libvirt` — the sibling in-core `charly check libvirt` host CLI
-  command (libvirt RPC: framebuffer screenshot, send-key, QMP, snapshots, guest
-  agent).
+- `/charly-check:libvirt` — the sibling declarative `libvirt:` check verb,
+  served out-of-process by `candy/plugin-vm` (libvirt RPC: framebuffer
+  screenshot, send-key, QMP, snapshots, guest agent).
 - `/charly-check:check` — the unified check system and the Op (a plan step)
   that holds every verb discriminator + modifier.
 - `/charly-vm:arch` — the arch VM that ships SPICE by default; "Connecting from

@@ -154,7 +154,7 @@ Without `nc`, virt-manager hangs at "Connecting to graphical console
 for guest" — no error, just silent failure. Diagnose with
 `ssh <host> which nc` (should return a path).
 
-### Probing the remote VM's SPICE wire (the `spice:` verb + `charly check libvirt`)
+### Probing the remote VM's SPICE wire (the `spice:` verb + the `libvirt:` verb)
 
 SPICE-wire probing is the declarative `spice:` check verb — there is no host
 `charly check spice` command (the verb is served out-of-process by
@@ -164,16 +164,17 @@ former `--uri` flag carried this same env): the host resolves the remote SPICE
 endpoint, forwards the remote SPICE UNIX socket to a local socket, and hands
 the plugin the dialable address — all transparent.
 
-For libvirt-RPC diagnostics that write artifacts straight into the local
-filesystem, `charly check libvirt` is still an in-core host CLI command and
-accepts the same `--uri`:
+libvirt-RPC diagnostics (domain info, framebuffer screenshot, send-key, QMP,
+snapshots) are the declarative `libvirt:` check verb — likewise served
+out-of-process, by `candy/plugin-vm` (see `/charly-check:libvirt`). It honors
+the SAME `CHARLY_LIBVIRT_URI`, so a `libvirt: info` / `libvirt: screenshot`
+step (the latter writing its artifact locally via the `artifact:` modifier)
+probes the remote VM transparently:
 
 ```bash
-charly check libvirt info arch --uri qemu+ssh://o.atrawog.org/session
-charly check libvirt screenshot arch --uri qemu+ssh://o.atrawog.org/session - > /tmp/shot.png
+CHARLY_LIBVIRT_URI=qemu+ssh://o.atrawog.org/session \
+  charly check live arch --filter libvirt
 ```
-
-Set `CHARLY_LIBVIRT_URI=qemu+ssh://o.atrawog.org/session` to avoid repeating the flag.
 
 ### `charly --host o` (run charly on the remote machine)
 
