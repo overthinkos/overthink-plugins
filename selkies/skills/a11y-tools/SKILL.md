@@ -1,7 +1,7 @@
 ---
 name: a11y-tools
 description: |
-  AT-SPI2 accessibility introspection — Python AT-SPI2 bindings to query the accessibility tree of GTK, Qt, and Chrome apps for element-based automation (find by name/role, not pixel coordinates), backing `charly check wl atspi tree/find/click`.
+  AT-SPI2 accessibility introspection — Python AT-SPI2 bindings to query the accessibility tree of GTK, Qt, and Chrome apps for element-based automation (find by name/role, not pixel coordinates), backing the `wl: atspi` verb (tree/find/click actions).
   Use when working with accessibility-tree introspection, AT-SPI2, or element-based desktop automation.
 ---
 
@@ -11,7 +11,7 @@ description: |
 
 Provides Python AT-SPI2 bindings for querying the accessibility tree of GTK, Qt, and Chrome applications. Enables element-based automation — find buttons, menus, and text fields by name/role instead of pixel coordinates.
 
-Used by `charly check wl atspi tree/find/click`.
+Used by the `wl: atspi` verb.
 
 ## Candy Definition
 
@@ -35,7 +35,7 @@ rpm:
 
 ## Important: System Python Required
 
-The RPM packages install to system Python (`/usr/bin/python3`). Containers with pixi environments have pixi's python3 first in PATH, but pixi's python3 doesn't see system RPM packages. The `charly check wl atspi` command explicitly uses `/usr/bin/python3` to ensure AT-SPI2 bindings are found.
+The RPM packages install to system Python (`/usr/bin/python3`). Containers with pixi environments have pixi's python3 first in PATH, but pixi's python3 doesn't see system RPM packages. The `wl: atspi` verb explicitly uses `/usr/bin/python3` to ensure AT-SPI2 bindings are found.
 
 ## What You Can Query
 
@@ -68,7 +68,7 @@ Chrome needs `--force-renderer-accessibility` flag to expose DOM elements via AT
 
 ## Related Skills
 
-- `/charly-check:wl` — `charly check wl atspi tree/find/click` commands
+- `/charly-check:wl` — the `wl: atspi` verb (tree/find/click)
 - `/charly-infrastructure:dbus-layer` — Required dependency (D-Bus session bus)
 - `/charly-selkies:selkies-desktop-layer` — Desktop metalayer that includes this candy
 - `/charly-check:check` — declarative testing framework

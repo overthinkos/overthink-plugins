@@ -51,11 +51,11 @@ A browser-accessible desktop at `http://localhost:3000` with:
 - **pcmflux** audio capture → Opus encoding at 320kbps
 - **PipeWire** audio server with PulseAudio compatibility
 - **NGINX** web frontend on port 3000
-- **Full `charly check wl` automation:** 22 subcommands all working — screenshots (pixelflux), input (wtype, wlrctl), window management (wlrctl toplevel), clipboard (wl-copy/paste), resolution (wlr-randr), accessibility (AT-SPI2), XWayland tools (xdotool, xprop)
-- **`cdp: coords` + `charly check wl click --from-cdp`:** CSS selector → Wayland pointer click (no VNC needed)
+- **Full `wl:` verb automation:** ~40 methods all working — screenshots (pixelflux), input (wtype, wlrctl), window management (wlrctl toplevel), clipboard (wl-copy/paste), resolution (wlr-randr), accessibility (AT-SPI2), XWayland tools (xdotool, xprop)
+- **`cdp: coords` + `wl: click`:** CSS selector → desktop X/Y → Wayland pointer click (no VNC needed)
 - **`cdp: axtree`:** Chrome accessibility tree via the `cdp:` verb
 - **Desktop video recording** via the `record:` check verb (`record_mode: desktop`, capture bridge → H.264 → ffmpeg MP4, with optional audio)
-- **Fullscreen overlays** via `charly check wl overlay` (title cards, lower-thirds, countdowns, highlights, fades — rendered by compositor with true alpha transparency, no post-production needed)
+- **Fullscreen overlays** via the `wl:` verb's `overlay-show` / `overlay-hide` methods (title cards, lower-thirds, countdowns, highlights, fades — rendered by compositor with true alpha transparency, no post-production needed)
 - **Configurable keyboard layout** via `XKB_DEFAULT_LAYOUT` — German (de), French (fr), Nordic (no), etc. AltGr characters (@, €, \\, ~) work via direct scancode injection. See `/charly-selkies:labwc`
 
 ## What Works / What Doesn't

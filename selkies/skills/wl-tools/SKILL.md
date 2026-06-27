@@ -1,17 +1,17 @@
 ---
 name: wl-tools
 description: |
-  Compositor-agnostic desktop automation CLI tools — Wayland-native input (wtype), X11, and clipboard (wl-clipboard) — that back the `charly check wl` command on wlroots compositors (sway, labwc) and partially on KWin.
-  Use when working with `charly check wl`, Wayland desktop automation, keyboard/window control, or clipboard tooling.
+  Compositor-agnostic desktop automation CLI tools — Wayland-native input (wtype), X11, and clipboard (wl-clipboard) — that back the `wl:` check verb on wlroots compositors (sway, labwc) and partially on KWin.
+  Use when working with the `wl:` check verb, Wayland desktop automation, keyboard/window control, or clipboard tooling.
 ---
 
 # wl-tools - Compositor-Agnostic Desktop Automation Tools
 
 ## Overview
 
-Provides CLI tools for desktop automation — Wayland-native, X11, and clipboard. Used by the `charly check wl` command. Works on all wlroots compositors (sway, labwc). No daemon or special device access needed.
+Provides CLI tools for desktop automation — Wayland-native, X11, and clipboard. Used by the `wl:` check verb (served out-of-process by candy/plugin-wl). Works on all wlroots compositors (sway, labwc). No daemon or special device access needed.
 
-On KWin (KDE Plasma) `charly check wl` reuses this candy's `wtype` (keyboard) and `wl-clipboard` (KWin implements `wlr-data-control`); window management on KWin is driven by `kdotool` (KWin scripting), which is shipped by the `kde-shell` candy (`/charly-selkies:kde-shell`), not this one. See the "What works where" table below.
+On KWin (KDE Plasma) the `wl:` verb reuses this candy's `wtype` (keyboard) and `wl-clipboard` (KWin implements `wlr-data-control`); window management on KWin is driven by `kdotool` (KWin scripting), which is shipped by the `kde-shell` candy (`/charly-selkies:kde-shell`), not this one. See the "What works where" table below.
 
 **Note:** Screenshots are NOT included in this candy. Use `wl-screenshot-grim` (sway) or `wl-screenshot-pixelflux` (selkies) depending on your compositor.
 
@@ -80,7 +80,7 @@ All packages are in Fedora official repos.
 | xdotool | YES (XWayland) | YES (XWayland on-demand) | YES (XWayland on-demand) |
 | ydotool | YES | YES (needs /dev/uinput) | n/a (KWin pointer is unsupported) |
 
-On KWin the screenshot path is `pixelflux` (the same selkies capture bridge), `charly check wl status` reports `compositor: kwin` + `kdotool: available`, and `charly check wl` routes window management (toplevel/windows/focus/close/fullscreen/minimize/geometry) through `kdotool`. KWin pointer (click/double-click/mouse/scroll/drag) and resolution are unsupported and return a clear "unsupported on KWin" error rather than hanging. The KWin-specific deploy-scope `wl` check checks live in the `kde-selkies` candy (`/charly-selkies:kde-selkies`).
+On KWin the screenshot path is `pixelflux` (the same selkies capture bridge), the `wl: status` method reports `compositor: kwin` + `kdotool: available`, and the `wl:` verb routes window management (toplevel/windows/focus/close/fullscreen/minimize/geometry) through `kdotool`. KWin pointer (click/double-click/mouse/scroll/drag) and resolution are unsupported and return a clear "unsupported on KWin" error rather than hanging. The KWin-specific deploy-scope `wl` check checks live in the `kde-selkies` candy (`/charly-selkies:kde-selkies`).
 
 ## Used In Boxes
 
@@ -90,7 +90,7 @@ On KWin the screenshot path is `pixelflux` (the same selkies capture bridge), `c
 
 ## Cross-References
 
-- `/charly-check:wl` — CLI command that uses these tools (routes per compositor: wlroots via these tools, KWin via `kdotool`)
+- `/charly-check:wl` — the `wl:` check verb that uses these tools (routes per compositor: wlroots via these tools, KWin via `kdotool`)
 - `/charly-selkies:kde-shell` — KDE Plasma session candy that ships `kdotool` (KWin window-management automation, KWin-only)
 - `/charly-selkies:kde-selkies` — KDE Plasma selkies flavor; hosts the KWin-specific deploy-scope `wl` check checks
 - `/charly-selkies:wl-screenshot-grim` — Screenshot candy for sway (grim)

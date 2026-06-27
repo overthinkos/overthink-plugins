@@ -24,7 +24,7 @@ is common to BOTH KDE consumers, so the package list is defined once (R3):
 session components (plasma-pa, plasma-nm, powerdevil, kscreen, kde-gtk-config,
 breeze-gtk, kdialog, kio-admin) + curated apps usable in both venues (ark,
 dolphin, konsole, kate, kcalc, gwenview, spectacle) + `kdotool` (AUR) — the
-KWin window-management automation `charly check wl` drives on KWin (the KWin analogue
+KWin window-management automation the `wl:` verb drives on KWin (the KWin analogue
 of wlroots' `wlrctl toplevel`; KWin-only, so it lives here not in `wl-tools`).
 `require: [dbus]`.
 

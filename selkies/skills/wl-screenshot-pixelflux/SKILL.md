@@ -51,11 +51,9 @@ Fields: `connected` (WebSocket up), `mode` (controller/viewer/reconnecting), `fr
 
 ## Usage
 
-Used by `charly check wl screenshot` — auto-detected when `pixelflux-screenshot` is available (preferred over grim).
+Used by the `wl: screenshot` method — auto-detected when `pixelflux-screenshot` is available (preferred over grim).
 
-```bash
-charly check wl screenshot <image> [output.png]
-```
+Invoke it as a `wl: screenshot` step (run with `charly check live <image> --filter wl`).
 
 ## Architecture
 
@@ -79,7 +77,7 @@ selkies process (single ScreenCapture singleton)
 
 ## Cross-References
 
-- `/charly-check:wl` — `charly check wl screenshot` auto-detects pixelflux-screenshot
+- `/charly-check:wl` — the `wl: screenshot` method auto-detects pixelflux-screenshot
 - `/charly-selkies:wl-record-pixelflux` — Recording companion (same capture bridge + same singleton)
 - `/charly-selkies:wl-screenshot-grim` — Alternative for sway-desktop (wlr-screencopy)
 - `/charly-selkies:selkies` — Parent candy providing the ScreenCapture singleton and capture bridge

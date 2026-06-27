@@ -43,7 +43,7 @@ VNC screenshots work correctly on NVIDIA headless when used via `sway-desktop-vn
 
 2. **DPMS workaround** — wayvnc 0.9.1 gates screen capture on `zwlr_output_power_v1` mode events, but sway's headless backend never emits them. The `wayvnc-wrapper` performs a minimal VNC handshake to trigger wayvnc to bind the power manager, then `swaymsg "output HEADLESS-1 power on"` forces the missing event. Fixed in wayvnc git main (post-0.9.1) — remove workaround when Fedora ships the fix.
 
-For boxes NOT using `sway-desktop-vnc` (custom sway + wayvnc setups), `charly check wl screenshot` (grim) remains a reliable fallback.
+For boxes NOT using `sway-desktop-vnc` (custom sway + wayvnc setups), the `wl: screenshot` method (grim) remains a reliable fallback.
 
 ### Startup Timing
 

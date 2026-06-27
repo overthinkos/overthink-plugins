@@ -72,7 +72,7 @@ charly box build selkies-labwc
 charly config selkies-labwc
 charly start selkies-labwc
 # Access: https://localhost:3000 (accept cert warning)
-charly check wl screenshot selkies-labwc screenshot.png
+charly check live selkies-labwc --filter wl    # desktop screenshot via the wl: screenshot step
 ```
 
 ## Keyboard Configuration
@@ -127,12 +127,12 @@ All level 0/1 characters (ö, ä, ü, ß, =, ?) and AltGr characters (@, €, \\
 
 ## Screenshots and Recording
 
-The capture bridge provides `charly check wl screenshot` and the declarative `record:`
+The capture bridge provides the `wl:` verb's `screenshot` method and the declarative `record:`
 check verb (served out-of-process by `candy/plugin-record`):
 
 ```bash
-# Screenshot (works with or without browser connected)
-charly check wl screenshot selkies-labwc screenshot.png
+# Desktop screenshot via the wl: screenshot step (works with or without browser connected)
+charly check live selkies-labwc --filter wl
 
 # Check bridge status
 charly shell selkies-labwc -c "pixelflux-screenshot --status"
@@ -222,7 +222,7 @@ spa-return:
 ```
 
 **Alternative methods** (limited — local compositor/Chrome may intercept keys): a
-`vnc: type` step (VNC keysym events) or `charly check wl type <client> "text"`
+`vnc: type` step (VNC keysym events) or a `wl: type` step
 (wtype via Wayland) — both hit the same limitation (the Super key is intercepted by
 the local compositor).
 
@@ -374,7 +374,7 @@ diagnostic recipe that found the leak.
 ```bash
 charly status selkies-labwc              # All services RUNNING
 curl -k https://localhost:3000         # HTTPS 200, Selkies dashboard HTML
-charly check wl screenshot selkies-labwc t.png # Screenshot via capture bridge
+charly check live selkies-labwc --filter wl    # desktop screenshot via the wl: screenshot step (capture bridge)
 charly check live selkies-labwc --filter cdp   # cdp: status — CDP available on port 9222
 ```
 

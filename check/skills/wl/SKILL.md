@@ -1,55 +1,69 @@
 ---
 name: wl
 description: |
-  MUST be invoked before any work involving: Wayland desktop automation — `charly check wl` commands (screenshots, click/type/scroll/drag, window management, clipboard, resolution control, AT-SPI2 introspection, window geometry), nested `wl sway` / `wl overlay` subcommands, or `wl:` declarative verbs inside `check:` blocks. Covers sway-desktop and selkies-desktop image automation on sway, labwc, AND KWin (KDE Plasma) — window management routes to wlrctl on wlroots and kdotool on KWin.
+  MUST be invoked before any work involving: Wayland desktop automation — the `wl:` check verb (screenshots, click/type/scroll/drag, window management, clipboard, resolution control, AT-SPI2 introspection, window geometry), its nested `wl: sway-*` / `wl: overlay-*` methods, or `wl:` declarative steps inside `check:`/`run:` blocks. Served out-of-process by `candy/plugin-wl`. Covers sway-desktop and selkies-desktop image automation on sway, labwc, AND KWin (KDE Plasma) — window management routes to wlrctl on wlroots and kdotool on KWin.
 ---
 
 # WL - Wayland Desktop Automation
 
 ## Overview
 
-`charly check wl` is the unified desktop automation command for wlroots compositors (sway, labwc) **and KWin (KDE Plasma)**. It provides screenshots, input (click, type, key combos, scroll, drag), window management, clipboard, resolution control, accessibility introspection (AT-SPI2), and window geometry queries. Works on sway-desktop, selkies-desktop (labwc), and selkies-kde-desktop (KWin) images.
+The `wl:` check verb is the unified desktop automation verb for wlroots compositors (sway, labwc) **and KWin (KDE Plasma)**. It is **NOT a host `charly check` subcommand** — it is a declarative check verb served out-of-process by its plugin (`candy/plugin-wl`), parallel to the `cdp:`/`vnc:`/`dbus:` plugin verbs. Author a `wl:` step in a candy/box plan and run it against a live deployment with `charly check live <image> --filter wl`. It provides screenshots, input (click, type, key combos, scroll, drag), window management, clipboard, resolution control, accessibility introspection (AT-SPI2), and window geometry queries. Works on sway-desktop, selkies-desktop (labwc), and selkies-kde-desktop (KWin) images.
 
-**Per-compositor routing.** `detectCompositor` picks the backend per method. On wlroots: `wlrctl` (pointer + `wlrctl toplevel` window management), `wlr-randr` (resolution). On **KWin**: window management (toplevel/windows/focus/close/fullscreen/minimize/geometry) via **`kdotool`** (KWin scripting), keyboard via `wtype`, clipboard via `wl-clipboard`, screenshot via `pixelflux`; `status` reports `compositor: kwin`. KWin **pointer** (click/double-click/mouse/scroll/drag) and **resolution** have no host-safe backend on the headless nested KWin and return a clear "unsupported on KWin" error (not a hang) — see the Compositor Compatibility table below.
+**Served out-of-process — no host CLI subcommand.** The host dispatches the `wl:` verb through the provider registry exactly like a built-in (`ResolveVerb("wl")` → the out-of-process gRPC provider → `Provider.Invoke` with the full `Op`), and the plugin drives the running container's compositor. Authoring is unchanged from a built-in verb: you write `wl: screenshot`, never `plugin: wl`.
 
-### Also as a declarative verb
+**Per-compositor routing.** The plugin's `detectCompositor` picks the backend per method. On wlroots: `wlrctl` (pointer + `wlrctl toplevel` window management), `wlr-randr` (resolution). On **KWin**: window management (toplevel/windows/focus/close/fullscreen/minimize/geometry) via **`kdotool`** (KWin scripting), keyboard via `wtype`, clipboard via `wl-clipboard`, screenshot via `pixelflux`; `status` reports `compositor: kwin`. KWin **pointer** (click/double-click/mouse/scroll/drag) and **resolution** have no host-safe backend on the headless nested KWin and return a clear "unsupported on KWin" error (not a hang) — see the Compositor Compatibility table below.
 
-Every `charly check wl <method>` (including nested `wl overlay <method>` and `wl sway <method>`) is authorable as a `wl:` verb inside a `check:` block. Nested subcommands are hyphenated in YAML: `wl: overlay-show`, `wl: sway-tree`, `wl: sway-workspaces`. Method-specific fields (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`) are siblings of the verb line. See `/charly-check:check` for the full method allowlist. Example: `- wl: screenshot\n  artifact: /tmp/desktop.png\n  artifact_min_bytes: 10000`.
+### Authoring a `wl:` step
+
+Each method is the declarative `wl:` step you author: the method name is the verb's YAML value, and method-specific fields (`x`, `y`, `text`, `key`, `combo`, `target`, `action`, `artifact`, `artifact_min_bytes`) are siblings of the verb line. Nested methods are hyphenated: `wl: overlay-show`, `wl: sway-tree`, `wl: sway-workspaces`. A query is a `check:` step; a side-effect action (click/type/exec/…) is a `run:` step. All `wl:` steps are **deploy-context only** (they need a running deployment), so author them with `context: [deploy]`. See `/charly-check:check` for the full method allowlist. Example:
+
+```yaml
+desktop-captured:
+    check: a non-empty desktop screenshot is captured
+    wl: screenshot
+    context: [deploy]
+    artifact: /tmp/desktop.png
+    artifact_min_bytes: 10000
+```
 
 ## Quick Reference
 
-| Action | Command | Description |
-|--------|---------|-------------|
-| Screenshot | `charly check wl screenshot <image> [file]` | Capture desktop as PNG via grim |
-| Click | `charly check wl click <image> <x> <y>` | Click at absolute coordinates via wlrctl |
-| Double-click | `charly check wl double-click <image> <x> <y>` | Double-click with configurable delay |
-| Type text | `charly check wl type <image> <text>` | Send keyboard input via wtype |
-| Send key | `charly check wl key <image> <key-name>` | Press a named key via wtype |
-| Key combo | `charly check wl key-combo <image> <keys>` | Send key combination (ctrl+c, alt+tab) |
-| Move mouse | `charly check wl mouse <image> <x> <y>` | Move pointer to absolute coordinates |
-| Scroll | `charly check wl scroll <image> <x> <y> <dir>` | Scroll at coordinates (up/down/left/right) |
-| Drag | `charly check wl drag <image> <x1> <y1> <x2> <y2>` | Drag between coordinates (experimental) |
-| List windows | `charly check wl windows <image>` | List windows (wlrctl toplevel, xdotool fallback) |
-| List toplevel | `charly check wl toplevel <image>` | List Wayland toplevel windows via wlrctl |
-| Focus window | `charly check wl focus <image> <title>` | Focus window (wlrctl toplevel, xdotool fallback) |
-| Close window | `charly check wl close <image> <title>` | Close window via wlrctl toplevel |
-| Fullscreen | `charly check wl fullscreen <image> <title>` | Toggle fullscreen via wlrctl toplevel |
-| Minimize | `charly check wl minimize <image> <title>` | Toggle minimize via wlrctl toplevel |
-| Launch app | `charly check wl exec <image> <command>` | Launch application in container |
-| Resolution | `charly check wl resolution <image> <WxH>` | Set output resolution via wlr-randr |
-| Clipboard | `charly check wl clipboard <image> get/set/clear` | Read/write Wayland clipboard |
-| Window props | `charly check wl xprop <image> [target]` | Query X11 window properties |
-| Window rect | `charly check wl geometry <image> <target>` | Get window position/size as JSON |
-| A11y tree | `charly check wl atspi <image> tree` | Dump accessibility tree as JSON |
-| A11y find | `charly check wl atspi <image> find <query>` | Find elements by name/role |
-| A11y click | `charly check wl atspi <image> click <query>` | Click element by name/role |
-| Status | `charly check wl status <image>` | Check all tool availability |
-| Overlay show | `charly check wl overlay show <image> --type text --text "Hello"` | Show recording overlay (see `/charly-check:wl-overlay`) |
-| Overlay hide | `charly check wl overlay hide <image> --all` | Remove all overlays |
+| Action | Declarative step | Description |
+|--------|------------------|-------------|
+| Screenshot | `wl: screenshot` + `artifact:` | Capture desktop as PNG via grim |
+| Click | `wl: click` + `x:` + `y:` | Click at absolute coordinates via wlrctl |
+| Double-click | `wl: double-click` + `x:` + `y:` | Double-click with configurable delay |
+| Type text | `wl: type` + `text:` | Send keyboard input via wtype |
+| Send key | `wl: key` + `key:` | Press a named key via wtype |
+| Key combo | `wl: key-combo` + `combo:` | Send key combination (ctrl+c, alt+tab) |
+| Move mouse | `wl: mouse` + `x:` + `y:` | Move pointer to absolute coordinates |
+| Scroll | `wl: scroll` + `x:` + `y:` + `action:` | Scroll at coordinates (up/down/left/right) |
+| Drag | `wl: drag` + `x:` + `y:` (+ end coords) | Drag between coordinates (experimental) |
+| List windows | `wl: windows` | List windows (wlrctl toplevel, xdotool fallback) |
+| List toplevel | `wl: toplevel` | List Wayland toplevel windows via wlrctl |
+| Focus window | `wl: focus` + `target:` | Focus window (wlrctl toplevel, xdotool fallback) |
+| Close window | `wl: close` + `target:` | Close window via wlrctl toplevel |
+| Fullscreen | `wl: fullscreen` + `target:` | Toggle fullscreen via wlrctl toplevel |
+| Minimize | `wl: minimize` + `target:` | Toggle minimize via wlrctl toplevel |
+| Launch app | `wl: exec` + `text:` | Launch application in container |
+| Resolution | `wl: resolution` + `text:` | Set output resolution via wlr-randr |
+| Clipboard | `wl: clipboard` + `action:` | Read/write Wayland clipboard (get/set/clear) |
+| Window props | `wl: xprop` + `target:` | Query X11 window properties |
+| Window rect | `wl: geometry` + `target:` | Get window position/size as JSON |
+| A11y tree | `wl: atspi` + `action: tree` | Dump accessibility tree as JSON |
+| A11y find | `wl: atspi` + `action: find` + `target:` | Find elements by name/role |
+| A11y click | `wl: atspi` + `action: click` + `target:` | Click element by name/role |
+| Status | `wl: status` | Check all tool availability |
+| Overlay show | `wl: overlay-show` (+ overlay fields) | Show recording overlay (see `/charly-check:wl-overlay`) |
+| Overlay hide | `wl: overlay-hide` | Remove overlays |
+
+Run a candy's baked `wl:` steps against a live deployment with
+`charly check live <image> --filter wl` (add `-i <instance>` for multi-instance).
 
 ## Compositor Compatibility
 
-Backend availability per compositor (`charly check wl` routes to the available one):
+Backend availability per compositor (the plugin routes each method to the available one):
 
 | Tool | Protocol | sway | labwc (selkies) | KWin (KDE Plasma) |
 |------|----------|------|-----------------|-------------------|
@@ -71,20 +85,23 @@ host-safe backend on the headless nested KWin (`org_kde_kwin_fake_input` is remo
 in KWin 6, the RemoteDesktop portal is approval-gated, `/dev/uinput` leaks into the
 host, `kscreen-doctor` hangs) and return a clear "unsupported on KWin" error.
 
-**Coordinate translation flags:**
-- `--from-cdp` — Works on all compositors (uses `window.screenX/Y`)
-- `--from-sway` — Sway only (uses `swaymsg -t get_tree`)
-- `--from-x11` — Works on all compositors with XWayland
+**Coordinates.** The `wl:` verb takes **desktop-absolute** `x:`/`y:`. To click an
+element located by CSS selector, read its desktop coordinates from a `cdp: coords`
+step (it reports both viewport and desktop coords) and author the `wl: click` with
+those `x:`/`y:` — see "CDP → WL Bridge" below.
 
 ## Architecture
 
 ```
-CLI command -> resolveContainer (engine + container name)
-           -> exec sh -c "export WAYLAND_DISPLAY=... && <tool command>"
-           -> capture stdout (screenshot) or run silently (input)
+host (charly check live --filter wl)
+   -> resolve the venue (engine + container name)
+   -> Op + venue handed to candy/plugin-wl over gRPC
+candy/plugin-wl
+   -> exec into the container: export WAYLAND_DISPLAY=… && <tool command>
+   -> capture stdout (screenshot/query) or run silently (input)
 ```
 
-Uses `exec` into the container. All tools use native Wayland protocols — no daemon, no `/dev/uinput`, no VNC server required.
+The plugin `exec`s into the container. All tools use native Wayland protocols — no daemon, no `/dev/uinput`, no VNC server required.
 
 ## Requirements
 
@@ -95,125 +112,182 @@ Uses `exec` into the container. All tools use native Wayland protocols — no da
 - For XWayland: an X11 app like `xterm` must be running to trigger XWayland start on labwc
 - Included in `sway-desktop` and `selkies-desktop` metalayers
 
-## Commands
+## Methods
+
+Each method below is a `wl:` plan step authored with `context: [deploy]`; run a
+candy's baked steps with `charly check live <image> --filter wl` (add
+`-i <instance>` for a specific instance).
 
 ### Key Combo
-```bash
-charly check wl key-combo my-app ctrl+c          # Ctrl+C
-charly check wl key-combo my-app alt+tab         # Alt+Tab
-charly check wl key-combo my-app ctrl+shift+t    # Ctrl+Shift+T
-charly check wl key-combo my-app super+l         # Super+L (lock)
+```yaml
+wl-key-combo:
+    run: send a key combination
+    wl: key-combo
+    context: [deploy]
+    combo: ctrl+shift+t        # also ctrl+c, alt+tab, super+l
 ```
 
 Modifiers: `ctrl`/`control`, `alt`, `shift`, `super`/`win`/`logo`, `meta`. Uses `wtype -M`.
 
 ### Scroll
-```bash
-charly check wl scroll my-app 960 540 down              # scroll down 3 steps at center
-charly check wl scroll my-app 960 540 up --amount 10    # scroll up 10 steps
+```yaml
+wl-scroll:
+    run: scroll down at the desktop center
+    wl: scroll
+    context: [deploy]
+    x: 960
+    y: 540
+    action: down               # up/down/left/right
 ```
 
 Uses xdotool click 4/5/6/7 (X11 scroll buttons) for XWayland windows. Falls back to wtype Page_Up/Page_Down.
 
 ### Drag (Experimental)
-```bash
-charly check wl drag my-app 100 100 500 500                # drag left to right
-charly check wl drag my-app 100 100 500 500 --duration 500  # slower drag (500ms)
+```yaml
+wl-drag:
+    run: drag from one point to another
+    wl: drag
+    context: [deploy]
+    x: 100
+    y: 100
+    # end coordinates carried as the step's drag-target fields
 ```
 
 Requires XWayland (uses `xdotool mousemove + mousedown/mouseup`).
 
 ### Window Management (wlrctl toplevel)
-```bash
-charly check wl toplevel my-app                  # list all windows
-charly check wl focus my-app "Chrome"            # focus by title
-charly check wl close my-app "Chrome"            # close by title
-charly check wl fullscreen my-app "Chrome"       # toggle fullscreen
-charly check wl minimize my-app "Chrome"         # toggle minimize
-charly check wl exec my-app foot                 # launch terminal
+```yaml
+wl-focus-chrome:
+    run: focus a window by title
+    wl: focus
+    context: [deploy]
+    target: Chrome             # also close / fullscreen / minimize via the matching method
+wl-launch-terminal:
+    run: launch a terminal in the container
+    wl: exec
+    context: [deploy]
+    text: foot
 ```
 
+`wl: toplevel` lists all windows; `wl: close` / `wl: fullscreen` / `wl: minimize` take the same `target:`.
+
 ### Resolution
-```bash
-charly check wl resolution my-app 1920x1080              # auto-detect output
-charly check wl resolution my-app 2560x1440 -o WL-1      # specific output
+```yaml
+wl-resolution:
+    run: set the output resolution
+    wl: resolution
+    context: [deploy]
+    text: 1920x1080            # auto-detect output
 ```
 
 ### Clipboard
-```bash
-charly check wl clipboard my-app get                   # read clipboard
-charly check wl clipboard my-app set "hello"           # write clipboard
-charly check wl clipboard my-app clear                 # clear clipboard
-charly check wl clipboard my-app get --primary         # read primary selection
+```yaml
+wl-clipboard-set:
+    run: write the Wayland clipboard
+    wl: clipboard
+    context: [deploy]
+    action: set
+    text: hello
 ```
 
+`action: get` reads the clipboard; `action: clear` clears it.
+
 ### Window Geometry
-```bash
-charly check wl geometry my-app "Chrome"    # returns JSON: {"x":0,"y":0,"width":1920,"height":1080}
-charly check wl xprop my-app                # active window properties
-charly check wl xprop my-app "Chrome"      # specific window properties
+```yaml
+wl-geometry:
+    check: the window geometry is reported
+    wl: geometry
+    context: [deploy]
+    target: Chrome             # returns JSON: {"x":0,"y":0,"width":1920,"height":1080}
+wl-xprop:
+    check: the active window's X11 properties are reported
+    wl: xprop
+    context: [deploy]
 ```
 
 ### AT-SPI2 Accessibility
-```bash
-charly check wl atspi my-app tree                    # dump full accessibility tree
-charly check wl atspi my-app find "Save"             # find elements named "Save"
-charly check wl atspi my-app find "button"           # find elements with role "button"
-charly check wl atspi my-app find "Save:button"      # find by name AND role
-charly check wl atspi my-app click "Save:button"     # click element by name/role
+```yaml
+wl-atspi-tree:
+    check: the accessibility tree is dumped
+    wl: atspi
+    context: [deploy]
+    action: tree               # dump full accessibility tree as JSON
+wl-atspi-click:
+    run: click an element by name AND role
+    wl: atspi
+    context: [deploy]
+    action: click
+    target: "Save:button"      # name / role / "name:role"
 ```
 
 Requires `a11y-tools` layer. Chrome needs `--force-renderer-accessibility` flag.
 
 ### CDP → WL Bridge
 
-Locate an element's viewport coords with the `cdp: coords` verb (CSS selector in Chrome), then deliver the click via `charly check wl click` with `--from-cdp` (wlrctl pointer — critical for selkies-desktop which has no VNC):
+Locate an element's viewport coords with the `cdp: coords` verb (CSS selector in
+Chrome) — it reports both the viewport and the desktop center — then deliver the
+click with a `wl: click` step at the reported desktop `x:`/`y:` (wlrctl pointer —
+critical for selkies-desktop which has no VNC):
 
-```bash
-# cdp: coords on '#submit-button' → viewport coords, then deliver via wlrctl
-charly check wl click selkies-desktop 640 360 --from-cdp $TAB
+```yaml
+submit-locate:
+    check: the submit button is located
+    cdp: coords
+    context: [deploy]
+    tab: "1"
+    selector: "#submit-button"
+submit-wl-click:
+    run: deliver the click via the wl pointer at the reported desktop center
+    wl: click
+    context: [deploy]
+    x: 640
+    y: 360
 ```
 
-## Sway-Specific Commands (`charly check wl sway`)
+## Sway-Specific Methods (`wl: sway-*`)
 
-Sway IPC commands are grouped under `charly check wl sway <subcommand>`. These require a sway compositor and use swaymsg. They will error on labwc.
+The sway IPC methods are the hyphenated `wl: sway-*` methods. They require a sway
+compositor (swaymsg) and error on labwc.
 
-```bash
-charly check wl sway tree <image>              # Get sway window tree (JSON)
-charly check wl sway msg <image> 'focus left'  # Run any swaymsg command
-charly check wl sway workspaces <image>        # List workspaces (JSON)
-charly check wl sway outputs <image>           # List outputs (JSON)
-charly check wl sway focus <image> left        # Focus by direction or [criteria]
-charly check wl sway move <image> right        # Move focused window
-charly check wl sway resize <image> width 10px # Resize focused window
-charly check wl sway kill <image>              # Close focused window
-charly check wl sway floating <image>          # Toggle floating
-charly check wl sway layout <image> tabbed     # Set layout mode
-charly check wl sway workspace <image> 2       # Switch workspace
-charly check wl sway reload <image>            # Reload sway config
+```yaml
+wl-sway-tree:
+    check: the sway window tree is reported
+    wl: sway-tree
+    context: [deploy]
+wl-sway-msg:
+    run: run any swaymsg command
+    wl: sway-msg
+    context: [deploy]
+    text: focus left
 ```
+
+Other sway methods: `wl: sway-workspaces` / `sway-outputs` (JSON queries),
+`sway-focus` / `sway-move` / `sway-resize` / `sway-kill` / `sway-floating` /
+`sway-layout` / `sway-workspace` (window/workspace control via `target:`/`action:`),
+and `sway-reload` (reload sway config).
 
 ## Differences from VNC
 
-| Aspect | `charly check wl` | `vnc:` verb |
+| Aspect | `wl:` verb | `vnc:` verb |
 |--------|---------|----------|
-| Compositors | All wlroots (+ sway subgroup) | Requires wayvnc |
+| Compositors | All wlroots (+ sway-* methods) | Requires wayvnc |
 | Transport | exec into container | TCP port 5900 |
 | Window mgmt | wlrctl toplevel + sway IPC | No |
 | Clipboard | wl-copy/paste | rfb cut-text |
 | Remote access | No | Yes (TCP) |
 | NVIDIA headless | Works | Works (pixman + DPMS fix) |
 
-Source: `charly/wl.go`.
+Source: `candy/plugin-wl` (the out-of-process Wayland-automation provider).
 
 ## Cross-References
 
-- `/charly-check:check` — parent router; `charly check wl …` is how every invocation is dispatched.
-- `/charly-check:vnc` — VNC/RFB protocol alternative (sibling verb; TCP-based, works remotely).
-- `/charly-check:cdp` — Chrome DevTools Protocol (sibling verb; DOM-level interaction, `--wl` flag for click, `axtree` for accessibility).
+- `/charly-check:check` — parent router; the `wl:` verb catalog entry, the method allowlist, and `charly check live <image> --filter wl`.
+- `/charly-internals:plugin` — the out-of-process provider model that serves `wl` (`candy/plugin-wl`).
+- `/charly-check:vnc` — VNC/RFB protocol alternative via the declarative `vnc:` verb (sibling verb; TCP-based, works remotely).
+- `/charly-check:cdp` — Chrome DevTools Protocol via the declarative `cdp:` verb (sibling verb; DOM-level interaction, `axtree` for accessibility).
 - `/charly-check:dbus` — D-Bus calls and desktop notifications via the declarative `dbus:` verb served out-of-process by `candy/plugin-dbus`.
 - `/charly-selkies:wl-tools` — Compositor-agnostic tools (wtype, wlrctl, wl-clipboard, wlr-randr, xdotool, ydotool)
-- `/charly-check:wl-overlay` — Fullscreen overlays for recordings (title cards, lower-thirds, countdowns, highlights, fades)
+- `/charly-check:wl-overlay` — Fullscreen overlays for recordings (title cards, lower-thirds, countdowns, highlights, fades) via the `wl: overlay-*` methods
 - `/charly-selkies:wl-overlay-layer` — Overlay layer (gtk4-layer-shell, python3-gobject)
 - `/charly-selkies:wl-screenshot-grim` — Screenshot layer for sway (grim, wlr-screencopy)
 - `/charly-selkies:wl-screenshot-pixelflux` — Screenshot layer for selkies (pixelflux rendering pipeline)

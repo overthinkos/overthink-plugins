@@ -24,7 +24,7 @@ charly box build sway-browser-vnc
 charly start sway-browser-vnc
 charly status sway-browser-vnc          # Shows all probes: supervisord, cdp, dbus, charly, sway, vnc, wl
 charly check live sway-browser-vnc --filter vnc   # run the candy's vnc: status / screenshot steps
-charly check wl screenshot sway-browser-vnc screenshot.png
+charly check live sway-browser-vnc --filter wl    # desktop screenshot via the wl: screenshot step
 ```
 
 ## D-Bus and Notification Support
@@ -60,13 +60,49 @@ The notification daemon (swaync) is included via the sway-desktop metalayer.
 
 Fullscreen overlays for recording (via wl-overlay, included in sway-desktop):
 
-```bash
-charly check wl overlay show sway-browser-vnc --type text --text "INTRO" --name title
-charly check wl overlay show sway-browser-vnc --type lower-third --text "Speaker" --subtitle "Role" --name lt
-charly check wl overlay show sway-browser-vnc --type countdown --seconds 3 --name cd
-charly check wl overlay show sway-browser-vnc --type highlight --region "430,290,510,50" --name hl
-charly check wl overlay show sway-browser-vnc --type fade --color black --name outro
-charly check wl overlay hide sway-browser-vnc --all
+```yaml
+# author overlay steps in the plan, run with: charly check live sway-browser-vnc --filter wl
+show-title:
+    check: a fullscreen title card is shown
+    wl: overlay-show
+    context: [deploy]
+    type: text
+    text: INTRO
+    name: title
+show-lower-third:
+    check: a lower-third is shown
+    wl: overlay-show
+    context: [deploy]
+    type: lower-third
+    text: Speaker
+    subtitle: Role
+    name: lt
+show-countdown:
+    check: a 3-second countdown is shown
+    wl: overlay-show
+    context: [deploy]
+    type: countdown
+    seconds: 3
+    name: cd
+show-highlight:
+    check: a highlight region is shown
+    wl: overlay-show
+    context: [deploy]
+    type: highlight
+    region: "430,290,510,50"
+    name: hl
+show-fade:
+    check: a fade-to-black outro is shown
+    wl: overlay-show
+    context: [deploy]
+    type: fade
+    color: black
+    name: outro
+hide-all:
+    check: all overlays are hidden
+    wl: overlay-hide
+    context: [deploy]
+    all: true
 ```
 
 All overlay types render with true RGBA compositor transparency. See `/charly-check:wl-overlay` for the full recording workflow.
@@ -138,7 +174,7 @@ port 5900 reachable, Chrome CDP on port 9250→9222 with `/json/version`
 - `/charly-selkies:sway-desktop-vnc`, `/charly-selkies:sway`, `/charly-selkies:wayvnc`,
   `/charly-selkies:chrome-sway`, `/charly-selkies:xdg-portal`, `/charly-infrastructure:dbus-layer`,
   `/charly-tools:charly`, `/charly-distros:agent-forwarding`
-- `/charly-check:check` — declarative testing framework (parent router for the `charly check wl` host subcommand + the out-of-process `cdp:`/`vnc:`/`mcp:`/`dbus:` verbs)
+- `/charly-check:check` — declarative testing framework (parent router for the out-of-process live-container check verbs `wl:`/`cdp:`/`vnc:`/`mcp:`/`dbus:`)
 - `/charly-check:vnc` — VNC automation on this box
 - `/charly-check:cdp` — Chrome automation (CDP on host port 9250)
 - `/charly-check:wl` — Wayland input/windows/clipboard (sway subgroup for compositor control)

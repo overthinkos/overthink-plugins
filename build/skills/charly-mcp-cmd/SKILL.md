@@ -436,7 +436,7 @@ The server registers destructive tools with `DestructiveHint: true` rather than 
 
 ## Cross-References
 
-- `/charly-check:check` — parent router for the declarative `mcp:` check verb. The full `mcp` method allowlist (and how the verb relates to the in-core wl verb and the out-of-process cdp/vnc/dbus/kube/spice/adb/appium plugin verbs) lives in its "Live-container verb catalog" + "Method allowlist — mcp" sections.
+- `/charly-check:check` — parent router for the declarative `mcp:` check verb. The full `mcp` method allowlist (and how the verb relates to the other out-of-process live-container plugin verbs wl/cdp/vnc/dbus/record/kube/spice/adb/appium/libvirt) lives in its "Live-container verb catalog" + "Method allowlist — mcp" sections.
 - `/charly-image:layer` — `mcp_provide` / `mcp_accept` / `mcp_require` field reference for layer authoring.
 - `/charly-core:charly-config` — how `mcp_provide` gets injected into `charly.yml` `provides.mcp:` and synthesized into `CHARLY_MCP_SERVERS` for consumers at `charly config` time; pod-aware resolution to `localhost`; instance-aware MCP server naming with `-<instance>` suffix.
 - `/charly-build:validate` — authoring-time validation rules (method allowlist, required modifiers, scope enforcement).

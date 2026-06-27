@@ -205,9 +205,11 @@ charly status openclaw-desktop                       # all services RUNNING
 curl -k https://localhost:3000                   # selkies HTTPS 200
 curl -s http://localhost:18789                   # openclaw gateway
 curl -s http://localhost:11434/api/tags          # ollama API
-charly check wl screenshot openclaw-desktop t.png     # desktop screenshot
 charly shell openclaw-desktop -c 'podman run --rm quay.io/libpod/alpine:latest /bin/true'
 ```
+
+A desktop screenshot is captured by a `wl: screenshot` step, run with
+`charly check live openclaw-desktop --filter wl`.
 
 The baked box-level `check:` carries the nested-rootless posture checks (subuid
 two-ranges, `newuidmap` cap, `policy.json`, containers.conf `userns=host`,

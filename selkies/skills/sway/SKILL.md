@@ -68,11 +68,11 @@ X11 tools for interacting with XWayland windows (`xdotool`, `xprop`, `xwininfo`,
 
 ## Stale IPC Socket Cleanup
 
-Supervisord restarts leave old `/tmp/sway-ipc.1000.<old-pid>.sock` files. If multiple sockets exist, naive discovery (`ls /tmp/sway-ipc.*.sock | head -1`) picks alphabetically -- which selects the smallest PID (oldest = stale socket), causing `charly check wl sway` commands to fail silently.
+Supervisord restarts leave old `/tmp/sway-ipc.1000.<old-pid>.sock` files. If multiple sockets exist, naive discovery (`ls /tmp/sway-ipc.*.sock | head -1`) picks alphabetically -- which selects the smallest PID (oldest = stale socket), causing the `wl:` verb's sway-* methods to fail silently.
 
-**Fix**: `sway-wrapper` cleans old sockets before starting Sway. Both `sway-wrapper` and `charly check wl sway` (`wl.go`) use `ls -t | head -1` (newest modification time first) when discovering the active socket.
+**Fix**: `sway-wrapper` cleans old sockets before starting Sway. Both `sway-wrapper` and the `wl:` sway-* methods (now in candy/plugin-wl) use `ls -t | head -1` (newest modification time first) when discovering the active socket.
 
-**Symptoms of stale socket**: `charly check wl sway` commands fail, resolution stays at 1280x720 (wlr-randr resize fails), Chrome renders at wrong size.
+**Symptoms of stale socket**: the `wl:` verb's sway-* methods fail, resolution stays at 1280x720 (wlr-randr resize fails), Chrome renders at wrong size.
 
 ## NVIDIA Headless: Renderer
 
@@ -80,7 +80,7 @@ By default, `sway-wrapper` auto-detects GPU hardware and uses `gles2` on NVIDIA.
 
 - **VNC boxes** (`sway-desktop-vnc`) override to `pixman` (software rendering) — ensures reliable VNC screenshot capture on NVIDIA headless
 - **Non-VNC boxes** (Sunshine, standalone sway) use `gles2` via auto-detection — Chrome gets full GPU acceleration
-- `grim` (`charly check wl screenshot`) works with both renderers
+- `grim` (the `wl: screenshot` method) works with both renderers
 
 ## Used In Boxes
 

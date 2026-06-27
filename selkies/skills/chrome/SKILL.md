@@ -249,7 +249,7 @@ curl -s "http://localhost:9222/json/list"
 
 ## CDP Diagnostics
 
-The `cdp:` check verb now shows diagnostics on connection failure: checks Chrome process, cdp-proxy status, and port binding. Hints use `charly check wl sway exec <image> chrome-wrapper` (not `charly shell` with bare `swaymsg`) for manual Chrome restart.
+The `cdp:` check verb now shows diagnostics on connection failure: checks Chrome process, cdp-proxy status, and port binding. Hints point to relaunching Chrome with a `wl: exec` step running `chrome-wrapper` (not `charly shell` with bare `swaymsg`) for manual Chrome restart.
 
 ## Used In Boxes
 
@@ -266,8 +266,8 @@ The `cdp:` check verb now shows diagnostics on connection failure: checks Chrome
 
 - `/charly-check:cdp` — Chrome DevTools Protocol automation (click, type, check, screenshot)
 - `/charly-core:shell` — Interactive shell to access Chrome
-- `/charly-check:vnc` — VNC automation (delivers the pointer for `cdp:`-located clicks; the `--from-cdp` flag translates viewport→desktop coords)
-- `/charly-check:wl` — Wayland automation (delivers the pointer for `cdp:`-located clicks via wlrctl; the `--from-cdp` flag translates viewport→desktop coords)
+- `/charly-check:vnc` — VNC automation (delivers the pointer for `cdp:`-located clicks; a `cdp: coords` step reports the desktop X/Y, then a `vnc: click` step delivers the click there)
+- `/charly-check:wl` — Wayland automation (delivers the pointer for `cdp:`-located clicks via wlrctl; a `cdp: coords` step reports the desktop X/Y, then a `wl: click` step delivers the click there)
 - `/charly-core:charly-config` — Proxy deployment, `normalizeNoProxy()` auto-conversion, `sep:"none"` env handling
 - `/charly-build:charly-mcp-cmd` — the auto-included `chrome-devtools-mcp` sub-candy exposes 29 tools via Streamable HTTP on port 9224; run the declarative 2-check suite via `charly check live <image> --filter mcp`
 

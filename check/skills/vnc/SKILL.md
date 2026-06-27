@@ -118,12 +118,9 @@ vnc-click-center:
 The `vnc:` verb takes **desktop-absolute** `x:`/`y:`. To click an element located by
 CSS selector, read its desktop coordinates from a `cdp: coords` step (it reports
 both viewport and desktop coords) and author the `vnc: click` with those `x:`/`y:`
-— see "Using CDP Coordinates with VNC" below. For ad-hoc host-side coordinate
-translation, the surviving in-core `wl:` host verb carries `--from-cdp` /
-`--from-sway` / `--from-x11` (`charly check wl click --from-x11 <class>` queries
-X11 geometry via xdotool, finds the sway node, and scales to desktop coordinates —
-essential for XWayland windows like Steam/Heroic where the X11 resolution differs
-from the compositor resolution).
+— see "Using CDP Coordinates with VNC" below. The sibling `wl: click` verb takes the
+same desktop-absolute coords and is the Wayland-native alternative on a wlroots
+desktop without VNC.
 
 ### Type
 ```yaml
@@ -269,7 +266,7 @@ When to use the VNC-delivered click and VNC type:
 - Sites that validate input event sequences (keyDown/keyPress/input/keyUp)
 - Any form where CDP type fails silently (value appears but form doesn't accept it)
 
-**Chrome first-run dialogs:** On fresh profiles, Chrome opens a first-run dialog as a separate window invisible to CDP. Dismiss it by focusing it (a `wl: sway-focus` step, or the surviving `charly check wl sway msg my-app 'focus left'` host command) then pressing Return with a `vnc: key` step (`key: Return`).
+**Chrome first-run dialogs:** On fresh profiles, Chrome opens a first-run dialog as a separate window invisible to CDP. Dismiss it by focusing it (a `wl: sway-focus` step) then pressing Return with a `vnc: key` step (`key: Return`).
 
 See `/charly-check:cdp` for the full Google sign-in recipe.
 
@@ -298,10 +295,9 @@ sync-button-vnc-click:
     y: 439
 ```
 
-For ad-hoc host-side translation, the surviving in-core `wl:` host verb still
-carries `--from-cdp` (viewport→desktop via `window.screenX/screenY`) and
-`--from-sway` (window-relative→desktop via the sway tree):
-`charly check wl click my-app 1220 328 --from-cdp $TAB`.
+The sibling `wl: click` verb takes the same desktop-absolute coords (the `cdp: coords`
+step reports them), so on a wlroots desktop without VNC author a `wl: click` step with
+the reported desktop `x:`/`y:` instead of `vnc: click`.
 
 ## NVIDIA Headless: VNC Screenshots Work
 
@@ -310,7 +306,7 @@ VNC screenshots work correctly on NVIDIA headless for images using `sway-desktop
 1. **Pixman renderer** — `sway-desktop-vnc` forces `WLR_RENDERER=pixman` (software rendering), producing buffers wayvnc can reliably capture
 2. **DPMS workaround** — `wayvnc-wrapper` triggers the missing headless power event that wayvnc 0.9.1 waits for before starting capture
 
-Both the `vnc: screenshot` step and `charly check wl screenshot` work on NVIDIA headless:
+Both the `vnc: screenshot` step and the `wl: screenshot` step (grim, always works) work on NVIDIA headless:
 ```yaml
 nvidia-vnc-screenshot:
     check: a non-empty VNC framebuffer is captured (works with pixman + DPMS fix)
@@ -318,9 +314,12 @@ nvidia-vnc-screenshot:
     context: [deploy]
     artifact: /tmp/out.png
     artifact_min_bytes: 5000
-```
-```bash
-charly check wl screenshot <image> out.png            # Wayland screenshot (grim, always works)
+nvidia-wl-screenshot:
+    check: a non-empty Wayland screenshot is captured (grim)
+    wl: screenshot
+    context: [deploy]
+    artifact: /tmp/wl-out.png
+    artifact_min_bytes: 5000
 ```
 
 ## Cross-References
@@ -329,7 +328,7 @@ charly check wl screenshot <image> out.png            # Wayland screenshot (grim
 - `/charly-check:wl` — Wayland-native desktop automation (sibling verb; works on NVIDIA headless).
 - `/charly-check:cdp` — Chrome DevTools Protocol automation (sibling verb; same container, different protocol).
 - `/charly-check:dbus` — D-Bus calls and desktop notifications via the declarative `dbus:` verb served out-of-process by `candy/plugin-dbus`.
-- `/charly-check:wl` (sway subgroup) — Sway compositor control (window management, workspaces)
+- `/charly-check:wl` — the `wl:` verb's sway-* methods for Sway compositor control (window management, workspaces)
 - `/charly-core:charly-config` — VNC password storage, `secret_backend` setting, `migrate-secrets` command
 - `/charly-core:service` — Managing wayvnc supervisord service
 - `/charly-core:deploy` — VNC password setup in deployment workflows

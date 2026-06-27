@@ -31,11 +31,9 @@ rpm:
 
 ## Usage
 
-Used by `charly check wl screenshot` — auto-detected when `grim` is available in the container.
+Used by the `wl: screenshot` method — auto-detected when `grim` is available in the container.
 
-```bash
-charly check wl screenshot <image> [output.png]
-```
+Invoke it as a `wl: screenshot` step (run with `charly check live <image> --filter wl`).
 
 ## Included In
 
@@ -47,7 +45,7 @@ charly check wl screenshot <image> [output.png]
 
 ## Cross-References
 
-- `/charly-check:wl` — `charly check wl screenshot` auto-detects grim
+- `/charly-check:wl` — the `wl: screenshot` method auto-detects grim
 - `/charly-selkies:wl-screenshot-pixelflux` — Alternative for selkies-desktop
 - `/charly-selkies:wl-tools` — Companion candy (input, window mgmt, clipboard)
 

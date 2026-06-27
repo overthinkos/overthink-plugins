@@ -2,7 +2,7 @@
 name: wl-overlay
 description: |
   Fullscreen Wayland overlays for screen recordings via gtk4-layer-shell.
-  MUST be invoked before any work involving: charly check wl overlay commands, recording
+  MUST be invoked before any work involving: the `wl: overlay-*` methods, recording
   overlays, title cards, lower-thirds, countdowns, or fade transitions.
 ---
 
@@ -10,59 +10,79 @@ description: |
 
 ## Overview
 
-`charly check wl overlay` creates and manages fullscreen Wayland overlays using the layer-shell protocol via gtk4-layer-shell. Overlays render directly in the compositor, appearing natively in screen recordings without post-production editing. Supports true alpha transparency — desktop content is visible through semi-transparent overlays.
+The `wl: overlay-*` methods create and manage fullscreen Wayland overlays using the layer-shell protocol via gtk4-layer-shell. Overlays render directly in the compositor, appearing natively in screen recordings without post-production editing. Supports true alpha transparency — desktop content is visible through semi-transparent overlays. They are part of the `wl:` check verb — **NOT a host `charly check` subcommand** — served out-of-process by `candy/plugin-wl`. Author a `wl: overlay-show` / `wl: overlay-hide` step in a candy/box plan and run it against a live deployment with `charly check live <image> --filter wl`.
 
 ## Architecture
 
 Three components work together:
 
 1. **`wl-overlay` layer** — installs `gtk4-layer-shell`, `gtk4`, `python3-gobject` RPMs + `charly-overlay` Python daemon/client
-2. **`charly check wl overlay` Go commands** — CLI that resolves the container and invokes `charly-overlay` inside it
+2. **The `wl: overlay-*` methods** — dispatched out-of-process to `candy/plugin-wl`, which resolves the container and invokes `charly-overlay` inside it
 3. **`charly-overlay` daemon** — GTK4 application managing multiple named overlay windows via Unix socket IPC
 
-The daemon starts on-demand in a tmux session (`charly-overlay-daemon`) when the first `show` command is issued. It persists until `hide --all` or the tmux session is killed.
+The daemon starts on-demand in a tmux session (`charly-overlay-daemon`) when the first `overlay-show` runs. It persists until `overlay-hide` (with `all: true`) or the tmux session is killed.
 
 ## Quick Reference
 
-| Action | Command | Description |
-|--------|---------|-------------|
-| Show overlay | `charly check wl overlay show <image> --type text --text "Hello"` | Display a named overlay |
-| Hide one | `charly check wl overlay hide <image> --name intro` | Remove specific overlay |
-| Hide all | `charly check wl overlay hide <image> --all` | Remove all overlays |
-| List | `charly check wl overlay list <image>` | List active overlays (JSON) |
-| Status | `charly check wl overlay status <image>` | Check daemon health |
+| Action | Declarative step | Description |
+|--------|------------------|-------------|
+| Show overlay | `wl: overlay-show` (+ `type:` + `text:`) | Display a named overlay |
+| Hide one | `wl: overlay-hide` + `name:` | Remove specific overlay |
+| Hide all | `wl: overlay-hide` + `all: true` | Remove all overlays |
+| List | `wl: overlay-list` | List active overlays (JSON) |
+| Status | `wl: overlay-status` | Check daemon health |
 
 ## Overlay Types
+
+Each example is a `wl: overlay-show` step authored with `context: [deploy]`. The former
+CLI flags are the step's sibling fields (see "Overlay-show fields" below).
 
 ### Text (Title Card)
 
 Full-screen semi-transparent overlay with centered text. Use for intro/outro title cards.
 
-```bash
-charly check wl overlay show myimage --type text \
-  --text "Building a REST API" \
-  --bg "rgba(0,0,0,0.7)" \
-  --font-size 64 --name title
+```yaml
+overlay-title:
+    run: show a title card
+    wl: overlay-show
+    context: [deploy]
+    type: text
+    text: Building a REST API
+    bg: rgba(0,0,0,0.7)
+    font_size: 64
+    name: title
 ```
 
 ### Lower-Third
 
 Bottom-anchored bar with name and optional subtitle. Use for speaker identification.
 
-```bash
-charly check wl overlay show myimage --type lower-third \
-  --text "Andreas Trawoeger" \
-  --subtitle "Developer" --name speaker
+```yaml
+overlay-speaker:
+    run: show a lower-third speaker ID
+    wl: overlay-show
+    context: [deploy]
+    type: lower-third
+    text: Andreas Trawoeger
+    subtitle: Developer
+    name: speaker
 ```
 
 ### Watermark
 
 Corner-anchored persistent text at low opacity. Use for draft/preview markers.
 
-```bash
-charly check wl overlay show myimage --type watermark \
-  --text "DRAFT" --position bottom-right \
-  --color red --opacity 0.5 --name wm
+```yaml
+overlay-watermark:
+    run: show a draft watermark
+    wl: overlay-show
+    context: [deploy]
+    type: watermark
+    text: DRAFT
+    position: bottom-right
+    color: red
+    opacity: 0.5
+    name: wm
 ```
 
 Default opacity is 0.3. Positions: `top-left`, `top-right`, `bottom-left`, `bottom-right`, `top`, `bottom`.
@@ -71,18 +91,29 @@ Default opacity is 0.3. Positions: `top-left`, `top-right`, `bottom-left`, `bott
 
 Full-screen animated countdown that auto-hides on completion. Use before recording starts.
 
-```bash
-charly check wl overlay show myimage --type countdown --seconds 5 --name cd
+```yaml
+overlay-countdown:
+    run: show a 5-second countdown
+    wl: overlay-show
+    context: [deploy]
+    type: countdown
+    seconds: 5
+    name: cd
 ```
 
 ### Highlight
 
 Transparent overlay with a colored rectangle at specified coordinates. Use to draw attention to a screen region.
 
-```bash
-charly check wl overlay show myimage --type highlight \
-  --region "430,290,510,50" \
-  --color "rgba(255,0,0,0.4)" --name hl
+```yaml
+overlay-highlight:
+    run: highlight a screen region
+    wl: overlay-show
+    context: [deploy]
+    type: highlight
+    region: "430,290,510,50"
+    color: rgba(255,0,0,0.4)
+    name: hl
 ```
 
 Region format: `X,Y,Width,Height` in pixels.
@@ -91,16 +122,29 @@ Region format: `X,Y,Width,Height` in pixels.
 
 Full-screen solid color overlay. Use for transitions (fade to black, fade to white).
 
-```bash
-charly check wl overlay show myimage --type fade --color black --name outro
+```yaml
+overlay-fade:
+    run: fade to black
+    wl: overlay-show
+    context: [deploy]
+    type: fade
+    color: black
+    name: outro
 ```
 
 ## Duration Auto-Hide
 
-Any overlay (except countdown, which has built-in auto-hide) can auto-remove after a duration:
+Any overlay (except countdown, which has built-in auto-hide) can auto-remove after a duration via the `duration:` field:
 
-```bash
-charly check wl overlay show myimage --type text --text "INTRO" --duration 5s --name intro
+```yaml
+overlay-intro:
+    run: show an intro card that auto-hides after 5s
+    wl: overlay-show
+    context: [deploy]
+    type: text
+    text: INTRO
+    duration: 5s
+    name: intro
 ```
 
 Supported formats: `5s`, `1.5m`, `500ms`, or bare seconds (`5`).
@@ -109,32 +153,56 @@ Supported formats: `5s`, `1.5m`, `500ms`, or bare seconds (`5`).
 
 Overlays compose naturally with the declarative `record:` verb (`/charly-check:record`,
 served out-of-process by `candy/plugin-record`): bracket the captured timeline with
-`record: start` … `record: stop` plan steps, and drive the overlay actions with
-`charly check wl overlay …` (the `wl` verb keeps its host subcommand) — or author the
-overlays as sibling `wl: overlay-show`/`overlay-hide` steps in the same plan. Run it with
+`record: start` … `record: stop` plan steps, and drive the overlay actions with sibling
+`wl: overlay-show` / `wl: overlay-hide` steps in the same plan. Run it with
 `charly check live <image> --filter record --filter wl`.
 
-```bash
-# Title card (the wl verb keeps its host `charly check` subcommand)
-charly check wl overlay show myimage --type text --text "Building a REST API" \
-  --bg "rgba(0,0,0,0.9)" --font-size 64 --name title
-
-# ... start the desktop recording via a `record: start` plan step (record_mode: desktop) ...
-
-# Fade out title after 3s
-charly check wl overlay hide myimage --name title
-
-# Lower-third speaker ID
-charly check wl overlay show myimage --type lower-third \
-  --text "Andreas Trawoeger" --subtitle "Developer" --name speaker
-
-# ... record content ...
-
-# Fade to black for ending
-charly check wl overlay show myimage --type fade --color black --name outro
-
-# ... stop + copy out the recording via a `record: stop` plan step (artifact: demo.mp4) ...
-charly check wl overlay hide myimage --all
+```yaml
+# candy/<name>/charly.yml — the recorded timeline as ordered record:/wl: steps
+title-card:
+    run: show the title card
+    wl: overlay-show
+    context: [deploy]
+    type: text
+    text: Building a REST API
+    bg: rgba(0,0,0,0.9)
+    font_size: 64
+    name: title
+record-begin:
+    run: start the desktop recording
+    record: start
+    context: [deploy]
+    record_mode: desktop
+title-hide:
+    run: fade out the title card
+    wl: overlay-hide
+    context: [deploy]
+    name: title
+lower-third:
+    run: show the speaker lower-third
+    wl: overlay-show
+    context: [deploy]
+    type: lower-third
+    text: Andreas Trawoeger
+    subtitle: Developer
+    name: speaker
+outro-fade:
+    run: fade to black for the ending
+    wl: overlay-show
+    context: [deploy]
+    type: fade
+    color: black
+    name: outro
+record-end:
+    run: stop and copy out the recording
+    record: stop
+    context: [deploy]
+    artifact: /tmp/demo.mp4
+overlay-clear:
+    run: remove all overlays
+    wl: overlay-hide
+    context: [deploy]
+    all: true
 ```
 
 ## Compositor Compatibility
@@ -171,22 +239,24 @@ Socket: `/tmp/charly-overlay.sock` (Unix domain, JSON-line)
 {"action":"status"}
 ```
 
-## Show Command Flags
+## Overlay-show fields
 
-| Flag | Default | Description |
+The `wl: overlay-show` step carries these fields (the former CLI flags):
+
+| Field | Default | Description |
 |------|---------|-------------|
-| `--type` | (required) | `text`, `lower-third`, `watermark`, `countdown`, `highlight`, `fade` |
-| `--text` | `""` | Text content |
-| `--subtitle` | `""` | Subtitle (lower-third only) |
-| `--name` | auto-generated | Overlay identifier for hide/list |
-| `--position` | `center` | Positioning (watermark: corner anchoring) |
-| `--bg` | type-dependent | Background color (CSS rgba or named) |
-| `--color` | `white` | Text/highlight color |
-| `--font-size` | `48` | Font size in pixels |
-| `--opacity` | `1.0` (watermark: `0.3`) | Overall window opacity |
-| `--duration` | none | Auto-hide after duration (e.g. `5s`) |
-| `--seconds` | `3` | Countdown seconds |
-| `--region` | `100,100,400,300` | Highlight region `X,Y,W,H` |
+| `type` | (required) | `text`, `lower-third`, `watermark`, `countdown`, `highlight`, `fade` |
+| `text` | `""` | Text content |
+| `subtitle` | `""` | Subtitle (lower-third only) |
+| `name` | auto-generated | Overlay identifier for hide/list |
+| `position` | `center` | Positioning (watermark: corner anchoring) |
+| `bg` | type-dependent | Background color (CSS rgba or named) |
+| `color` | `white` | Text/highlight color |
+| `font_size` | `48` | Font size in pixels |
+| `opacity` | `1.0` (watermark: `0.3`) | Overall window opacity |
+| `duration` | none | Auto-hide after duration (e.g. `5s`) |
+| `seconds` | `3` | Countdown seconds |
+| `region` | `100,100,400,300` | Highlight region `X,Y,W,H` |
 
 ## Requirements
 
@@ -197,11 +267,11 @@ Socket: `/tmp/charly-overlay.sock` (Unix domain, JSON-line)
 
 ## Cross-References
 
-- `/charly-check:wl` — Compositor-agnostic desktop automation (screenshots, input, windows)
-- `/charly-check:record` — Terminal and desktop recording (overlays compose with recording workflow)
-- `/charly-check:cdp` — Chrome DevTools Protocol (DOM-level interaction)
+- `/charly-check:wl` — Compositor-agnostic desktop automation via the `wl:` verb (screenshots, input, windows)
+- `/charly-check:record` — Terminal and desktop recording via the `record:` verb (overlays compose with the recording workflow)
+- `/charly-check:cdp` — Chrome DevTools Protocol via the `cdp:` verb (DOM-level interaction)
 - `/charly-selkies:wl-overlay-layer` — Layer reference (RPM packages, dependencies)
 - `/charly-selkies:sway-desktop` — Desktop metalayer (includes wl-overlay)
 - `/charly-selkies:selkies-desktop-layer` — Desktop metalayer (includes wl-overlay)
 
-Source: `charly/wl_overlay.go` (Go commands), `candy/wl-overlay/charly-overlay` (Python daemon/client).
+Source: `candy/plugin-wl` (the out-of-process provider), `candy/wl-overlay/charly-overlay` (Python daemon/client).

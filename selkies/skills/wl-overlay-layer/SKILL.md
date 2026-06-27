@@ -51,10 +51,25 @@ my-desktop:
     - wl-overlay
 ```
 
-```bash
-charly check wl overlay show my-image --type text --text "Hello" --name intro
-charly check wl overlay list my-image
-charly check wl overlay hide my-image --all
+```yaml
+overlay-show:
+    check: a text overlay is shown on the desktop
+    wl: overlay-show
+    type: text
+    text: Hello
+    name: intro
+    context: [deploy]
+
+overlay-list:
+    check: the active overlays are listed
+    wl: overlay-list
+    context: [deploy]
+
+overlay-hide:
+    check: all overlays are hidden
+    wl: overlay-hide
+    all: true
+    context: [deploy]
 ```
 
 ## Used In

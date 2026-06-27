@@ -61,7 +61,7 @@ charly -C box/cachyos box build selkies-kde
 charly config selkies-kde
 charly start selkies-kde
 # Access: https://localhost:3000 (accept the self-signed cert)
-charly check wl screenshot selkies-kde screenshot.png
+charly check live selkies-kde --filter wl    # run the candy's wl: screenshot step
 ```
 
 ## Verification

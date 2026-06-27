@@ -34,7 +34,7 @@ Chrome is launched by Sway's `exec` directive (autostart) via `chrome-wrapper`. 
 
 - **Autostart**: Chrome starts when Sway starts (via `exec chrome-wrapper` in sway config).
 - **Crashes/exits**: Chrome does not auto-restart. If Chrome exits, it must be relaunched manually.
-- **Manual restart**: Use `charly check wl sway exec <image> chrome-wrapper` to relaunch Chrome from outside the container. Do **not** use `charly shell` with bare `swaymsg` -- the shell may lack the correct `SWAYSOCK` path.
+- **Manual restart**: Relaunch Chrome with a `wl: exec` step running `chrome-wrapper` (the `wl:` verb dispatches out-of-process via candy/plugin-wl). Do **not** use `charly shell` with bare `swaymsg` -- the shell may lack the correct `SWAYSOCK` path.
 - **On-demand launch**: The `browser-open` helper auto-launches Chrome if it's not running (see `/charly-selkies:chrome` for details).
 
 ## Related Candies

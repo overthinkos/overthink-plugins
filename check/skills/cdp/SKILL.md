@@ -227,14 +227,18 @@ sync-button-vnc-click:
     y: 439
 ```
 
-**`charly check wl click --from-cdp`** — the surviving in-core `wl:` host verb carries
-the `--from-cdp` flag, which translates viewport coords to desktop coords using a CDP
-tab as the reference frame (the declarative `vnc:` verb takes the desktop coords
-directly, as in the step above):
+**Delivering the same click via the `wl:` verb** — the `wl:` verb (like `vnc:`)
+takes desktop-absolute coords directly, so it is the Wayland-native alternative on a
+wlroots desktop without VNC. Read the desktop center from the `cdp: coords` step
+above, then author a `wl: click` step at those `x:`/`y:`:
 
-```bash
-charly check wl click my-app 1220 328 --from-cdp $TAB
-# Translated viewport (1220, 328) → desktop (1220, 439) via CDP tab ...
+```yaml
+sync-button-wl-click:
+    run: click the sync button via the wl pointer
+    wl: click
+    context: [deploy]
+    x: 1220
+    y: 439
 ```
 
 ### Evaluate JavaScript
@@ -288,7 +292,7 @@ When a `cdp:` step fails to connect, the plugin's `diagnoseCDP()` routine runs a
 2. **Proxy status**: Is the cdp-proxy forwarding to Chrome? (`supervisorctl status cdp-proxy`)
 3. **Port binding**: Is Chrome listening on 127.0.0.1:9223? Is cdp-proxy listening on 0.0.0.0:9222? (`ss -tlnp`)
 
-Hints direct users to `charly check wl sway exec <image> chrome-wrapper` for manual Chrome restart (not `charly shell` with bare `swaymsg`, which may lack the correct `SWAYSOCK` path).
+Hints direct users to relaunch Chrome with a `wl: exec` step running `chrome-wrapper` (the `wl:` verb dispatches out-of-process via `candy/plugin-wl`) — not `charly shell` with bare `swaymsg`, which may lack the correct `SWAYSOCK` path.
 
 ## browser-open Script and BROWSER Env
 
@@ -382,11 +386,19 @@ verbs; text is entered with the `vnc:` verb's real keysym events.
 
 ### Step 0: Dismiss Chrome First-Run Dialog
 
-On a fresh profile, Chrome opens a first-run dialog ("Make Google Chrome the default browser") as a **separate window** that CDP cannot see (no debuggable tabs). It tiles alongside any CDP-opened tabs in sway, breaking coordinate translation. Focus and dismiss it through the surviving `wl:` host verb:
+On a fresh profile, Chrome opens a first-run dialog ("Make Google Chrome the default browser") as a **separate window** that CDP cannot see (no debuggable tabs). It tiles alongside any CDP-opened tabs in sway, breaking coordinate translation. Focus and dismiss it with `wl:` steps (sway IPC + a key press):
 
-```bash
-charly check wl sway msg my-app 'focus left'     # first-run dialog is typically the left window
-charly check wl key my-app Return                # press OK
+```yaml
+firstrun-focus:
+    run: focus the first-run dialog (typically the left window)
+    wl: sway-msg
+    context: [deploy]
+    text: focus left
+firstrun-dismiss:
+    run: press OK to dismiss the dialog
+    wl: key
+    context: [deploy]
+    key: Return
 ```
 
 After dismissal, Chrome shows `chrome://intro/` — "Sign in to Chrome" with shadow DOM buttons.
@@ -499,8 +511,7 @@ Cookies and sync state are stored in the `chrome-data` volume (`~/.chrome-debug`
 Pointer delivery via the `vnc:`/`wl:` verbs is essential for the sign-in flow:
 - **`chrome://` pages** (intro, sync-confirmation): CDP mouse events and JS `.click()` are blocked. `vnc: click` / `wl: click` (locate via `cdp: coords`) is the only way to click.
 - **Google sign-in pages**: real pointer events delivered via `vnc:` bypass anti-automation detection.
-- **Coordinate math**: viewport center + `window.screenX` + `window.screenY` + `chromeHeight` = desktop coords. On popup windows (no toolbar), `chromeHeight=0`.
-- The surviving in-core `wl:` host verb also carries the `--from-cdp` flag, which performs this viewport→desktop translation directly from a CDP tab reference frame (the declarative `vnc:` verb takes the desktop coords directly).
+- **Coordinate math**: viewport center + `window.screenX` + `window.screenY` + `chromeHeight` = desktop coords. On popup windows (no toolbar), `chromeHeight=0`. The `cdp: coords` step already reports the desktop center, so the `vnc: click` / `wl: click` step takes those `x:`/`y:` directly.
 
 Use a `cdp: coords` step to debug coordinate translation. It shows element position in viewport, desktop (via CDP), and desktop (via sway) systems.
 
@@ -603,7 +614,7 @@ This pattern works for any page content extraction via JS — the `cdp: eval` st
 
 - `/charly-check:check` -- parent router; the `cdp:` verb catalog entry, the method allowlist, the artifact-validation modifiers, and `charly check live <image> --filter cdp`.
 - `/charly-internals:plugin` -- the out-of-process provider model that serves `cdp` (`candy/plugin-cdp`).
-- `/charly-check:wl` -- Wayland desktop automation (sibling host verb under `charly check`); also sway subgroup for compositor control; carries `--from-cdp`.
+- `/charly-check:wl` -- Wayland desktop automation via the declarative `wl:` verb served out-of-process by `candy/plugin-wl` (sibling verb; also the `wl:` sway-* methods for compositor control); takes desktop-absolute coords (use a `cdp: coords` step to translate viewport→desktop).
 - `/charly-check:vnc` -- VNC desktop automation via the declarative `vnc:` verb served out-of-process by candy/plugin-vnc (same container, pixel-level interaction); takes desktop-absolute coords (use a `cdp: coords` step to translate viewport→desktop).
 - `/charly-check:dbus` -- D-Bus calls and notifications via the declarative `dbus:` verb served out-of-process by `candy/plugin-dbus`.
 - `/charly-core:shell` -- Running commands in containers (`--tty` for OAuth flows)

@@ -30,22 +30,22 @@ rpm:
 
 ## Usage
 
-```bash
-charly check wl exec <image> xterm           # Launch xterm (triggers XWayland)
-charly check wl focus <image> xterm          # Focus by app_id
-charly check wl xprop <image> xterm          # Query X11 properties
-charly check wl geometry <image> xterm       # Get window position/size
-charly check wl close <image> xterm          # Close window
-```
+Drive xterm through the `wl:` verb's methods (run with `charly check live <image> --filter wl`):
 
-**Important:** The `charly check wl exec` command sets `DISPLAY=:0` automatically for X11 apps.
+- `wl: exec` — launch xterm (triggers XWayland)
+- `wl: focus` — focus by app_id
+- `wl: xprop` — query X11 properties
+- `wl: geometry` — get window position/size
+- `wl: close` — close window
+
+**Important:** The `wl: exec` verb sets `DISPLAY=:0` automatically for X11 apps.
 
 ## Why It's in selkies-desktop
 
 labwc has XWayland compiled in (`+xwayland`) but starts it on-demand only when an X11 client opens. Without an X11 app like xterm:
 - XWayland never starts
 - xdotool, xprop, xwininfo find no windows
-- `charly check wl scroll` (xdotool click 4/5) and `charly check wl drag` (xdotool mousedown/mouseup) can't target X11 windows
+- the `wl: scroll` method (xdotool click 4/5) and the `wl: drag` method (xdotool mousedown/mouseup) can't target X11 windows
 
 With xterm installed, users can launch it to enable full XWayland testing.
 
@@ -60,7 +60,7 @@ With xterm installed, users can launch it to enable full XWayland testing.
 
 ## Cross-References
 
-- `/charly-check:wl` — `charly check wl exec`, `charly check wl focus`, `charly check wl close`, `charly check wl xprop`, `charly check wl geometry`
+- `/charly-check:wl` — the `wl:` verb's exec / focus / close / xprop / geometry methods
 - `/charly-selkies:selkies-desktop-layer` — Desktop metalayer that includes this candy
 
 ## Related

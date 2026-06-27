@@ -291,7 +291,7 @@ shapes:
 | dbus | guest | `pgrep -x dbus-daemon` + scan for swaync/mako/dunst | D-Bus session bus + notifier (one snippet, four checks) |
 | charly | guest | `command -v charly && charly version` | In-container charly binary + CalVer version |
 
-The `wl` tool has its own `status` subcommand (`charly check wl status`); the
+The `wl:` verb has its own `status` method (a `wl: status` step); the
 `vnc` and `cdp` status are the declarative `vnc: status` / `cdp: status` verbs
 (served out-of-process by candy/plugin-vnc / candy/plugin-cdp).
 These all use the same probe types via `runGuestProbes` / `cdpProbe.ProbeHost` /
@@ -354,8 +354,8 @@ Source: `charly/status.go`, `charly/status_engine.go`, `charly/status_collector.
 - `/charly-core:charly-config` -- `run_mode`, `auto_enable`, `engine.run` settings
 - `/charly-check:cdp` -- the `cdp:` check verb (`cdp: status`, served out-of-process by candy/plugin-cdp)
 - `/charly-check:vnc` -- the `vnc:` check verb (`vnc: status`, served out-of-process by candy/plugin-vnc)
-- `/charly-check:wl` -- Desktop automation + sway subgroup (`charly check wl sway status`)
-- `/charly-check:wl` -- WL status subcommand (`charly check wl status`)
+- `/charly-check:wl` -- Desktop automation + the `wl:` verb's sway-* methods (e.g. a `wl: sway-tree` step)
+- `/charly-check:wl` -- the `wl: status` method (tool availability check)
 
 ## When to Use This Skill
 
