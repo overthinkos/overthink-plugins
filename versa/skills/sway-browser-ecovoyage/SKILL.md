@@ -69,34 +69,55 @@ These are passed in as env vars (`MARTIN_PUBLIC_URL`,
 
 ## Map-debug recipe
 
-```bash
+Author the recipe as ordered `cdp:` plan steps (the `cdp:` verb is served
+out-of-process by candy/plugin-cdp) and run them with
+`charly check live sway-browser-vnc/ecovoyage --filter cdp`:
+
+```yaml
 # 1. Open the marimo notebook in chrome
-charly check cdp open sway-browser-vnc/ecovoyage \
-  "https://ac.armadillo-quail.ts.net:32718/?file=notebooks/osm-monaco-viz.py"
-
+map-open:
+    run: open the marimo notebook
+    cdp: open
+    context: [deploy]
+    url: "https://ac.armadillo-quail.ts.net:32718/?file=notebooks/osm-monaco-viz.py"
 # 2. Run all stale cells (after the DAGs finish executing)
-charly check cdp evaluate_script sway-browser-vnc/ecovoyage \
-  --expression 'document.querySelectorAll("button[data-testid=run-button]").forEach(b => b.click())'
-
+map-run-cells:
+    run: click every run-button
+    cdp: eval
+    context: [deploy]
+    tab: "1"
+    expression: 'document.querySelectorAll("button[data-testid=run-button]").forEach(b => b.click())'
 # 3. Wait for the streets MapLibre canvas to appear
-charly check cdp wait sway-browser-vnc/ecovoyage \
-  --selector ".maplibregl-canvas" --timeout 90s
-
+map-wait-canvas:
+    check: the MapLibre canvas appears
+    cdp: wait
+    context: [deploy]
+    tab: "1"
+    selector: ".maplibregl-canvas"
+    timeout: 90s
 # 4. Screenshot — validate dimensions + non-uniform content
-charly check cdp screenshot sway-browser-vnc/ecovoyage \
-  --artifact /tmp/ecovoyage-streets.png \
-  --artifact-min-bytes 50000 \
-  --artifact-min-dimensions 800x600 \
-  --artifact-not-uniform
-
+map-screenshot:
+    check: the streets map renders real, non-uniform content
+    cdp: screenshot
+    context: [deploy]
+    tab: "1"
+    artifact: /tmp/ecovoyage-streets.png
+    artifact_min_bytes: 50000
+    artifact_min_dimensions: 800x600
+    artifact_not_uniform: true
 # 5. Inspect the iframe contents directly (catch JS errors before they
 #    silently produce blank canvases — see the hyphen-in-JS-identifier
 #    bug story below)
-charly check cdp evaluate_script sway-browser-vnc/ecovoyage \
-  --expression '[...document.querySelectorAll("iframe")].map(f => ({
-    src: f.src, canvas: !!f.contentDocument?.querySelector("canvas"),
-    consts: [...(f.contentDocument?.body?.innerHTML?.matchAll(/const map_[a-z_-]+/g) || [])].map(m=>m[0])
-  }))'
+map-inspect-iframes:
+    check: the iframe canvases are populated
+    cdp: eval
+    context: [deploy]
+    tab: "1"
+    expression: |
+        [...document.querySelectorAll("iframe")].map(f => ({
+          src: f.src, canvas: !!f.contentDocument?.querySelector("canvas"),
+          consts: [...(f.contentDocument?.body?.innerHTML?.matchAll(/const map_[a-z_-]+/g) || [])].map(m=>m[0])
+        }))
 ```
 
 ## chrome-devtools-mcp from external Claude Code

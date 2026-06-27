@@ -143,7 +143,7 @@ charly check vnc rfb sway-browser-vnc fbupdate-request                          
 
 ## Differences from CDP Commands
 
-| Aspect | `charly check cdp` (CDP) | `charly check vnc` (RFB) |
+| Aspect | `cdp:` verb (CDP) | `charly check vnc` (RFB) |
 |--------|----------------|----------------|
 | Protocol | WebSocket JSON | Binary TCP |
 | Scope | Browser tabs | Whole desktop |
@@ -159,20 +159,21 @@ Source: `charly/vnc_client.go`, `charly/vnc.go`.
 
 Some websites (notably Google sign-in) detect and block CDP-based input. VNC provides a reliable fallback because `charly check vnc type` sends real X11 keysym events through the Wayland compositor — indistinguishable from physical keyboard input.
 
-**CDP + VNC Hybrid Pattern:** Use `charly check cdp click --vnc` for clicking (CDP selector precision + VNC pointer delivery) and `charly check vnc type` for typing credentials:
+**CDP + VNC Hybrid Pattern:** Locate the element's viewport coords with the `cdp: coords` verb (CDP selector precision), deliver the click via `charly check vnc click` (the `--from-cdp` flag translates viewport→desktop coords), and type credentials with `charly check vnc type`:
 
 ```bash
-# --vnc click: CDP finds element by selector, delivers click via VNC pointer
-charly check cdp click my-app $TAB '#identifierId' --vnc
+# Locate via the cdp: coords verb (selector → viewport coords), then deliver the
+# click via VNC — --from-cdp translates viewport→desktop using the tab as reference
+charly check vnc click my-app 1166 310 --from-cdp $TAB   # coords of '#identifierId'
 sleep 0.5                                          # let compositor process focus
 # VNC type sends real key events through the compositor
 charly check vnc type my-app "$GMAIL_USER"
 ```
 
-**Tested timing:** 500ms sleep between `--vnc` click and VNC type is sufficient. No characters were dropped at this timing during Google sign-in testing.
+**Tested timing:** 500ms sleep between the VNC click and VNC type is sufficient. No characters were dropped at this timing during Google sign-in testing.
 
-When to use `--vnc` click and VNC type:
-- **`chrome://` pages** (required): CDP mouse events and JS `.click()` are blocked on Chrome's privileged pages (`chrome://intro/`, `chrome://sync-confirmation/`, `chrome://settings/`). `--vnc` is the only way to click.
+When to use the VNC-delivered click and VNC type:
+- **`chrome://` pages** (required): CDP mouse events and JS `.click()` are blocked on Chrome's privileged pages (`chrome://intro/`, `chrome://sync-confirmation/`, `chrome://settings/`). Delivering the click via VNC is the only way to click.
 - Google sign-in or other anti-automation-protected forms
 - Sites that validate input event sequences (keyDown/keyPress/input/keyUp)
 - Any form where CDP type fails silently (value appears but form doesn't accept it)
@@ -188,7 +189,7 @@ VNC uses desktop-absolute coordinates, while CDP returns viewport-relative coord
 **`--from-cdp <tab-id>`** — Translates viewport coords to desktop coords via CDP's `window.screenX/screenY`:
 
 ```bash
-# Get viewport coords from charly check cdp coords, then click via VNC
+# Get viewport coords from the cdp: coords verb, then click via VNC
 charly check vnc click my-app 1220 328 --from-cdp $TAB
 # Translated viewport (1220, 328) → desktop (1220, 439) via CDP tab ...
 ```

@@ -184,12 +184,13 @@ charly tmux run $IMG -s oauth "openclaw models auth login --provider openai-code
 sleep 5
 charly tmux capture $IMG -s oauth | grep -o 'https://auth.openai.com/[^ ]*'
 
-# 3. Open URL in Chrome, click "Continue with Google", then "Continue" on consent
-charly check cdp open $IMG "<oauth-url>"
-TAB=$(charly check cdp list $IMG | grep -i "openai" | head -1 | awk '{print $1}')
-charly check cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc   # Continue with Google
-sleep 5
-charly check cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc          # Continue (consent)
+# 3. Drive the browser via cdp:/vnc: plan steps (the cdp: verb is served
+#    out-of-process by candy/plugin-cdp): cdp: open the OAuth URL, then locate
+#    "Continue with Google" and "Continue" (consent) with cdp: coords on
+#    'button._buttonStyleFix_wvuha_65' / 'button._primary_3rdp0_107' and deliver
+#    each click via the vnc: verb (chrome:// + anti-automation pages need the VNC
+#    pointer). Run the leg with:  charly check live $IMG --filter cdp --filter vnc
+#    Full recipe: /charly-check:cdp.
 
 # 4. Verify completion
 sleep 10
@@ -199,7 +200,7 @@ charly tmux capture $IMG -s oauth
 
 **Prerequisites:** Chrome must have an active Google session. The "Continue with Google" button on OpenAI's auth page uses Chrome's Google cookies — sign Chrome into Google (with sync enabled) via the VNC desktop before starting the OAuth flow.
 
-**Callback architecture:** The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container. Chrome and `openclaw-models` share the same network namespace — no port mapping needed for 1455. The `BROWSER=browser-open` env var (set by the chrome candy) auto-opens URLs via CDP, but may not trigger in all TTY contexts — open the URL manually via `charly check cdp open` as a fallback.
+**Callback architecture:** The OAuth callback hits `http://127.0.0.1:1455/auth/callback` inside the container. Chrome and `openclaw-models` share the same network namespace — no port mapping needed for 1455. The `BROWSER=browser-open` env var (set by the chrome candy) auto-opens URLs via CDP, but may not trigger in all TTY contexts — author a `cdp: open` step (the `cdp:` verb, served out-of-process by candy/plugin-cdp) as a fallback.
 
 **Stale port 1455:** If a previous attempt left port 1455 occupied: `charly shell $IMG -c 'kill -9 $(ss -tlnp sport = :1455 | grep -oP "pid=\K\d+")'`
 
@@ -429,7 +430,7 @@ charly shell <image> -c "supervisorctl restart openclaw"
 
 ## Cross-References
 
-- `/charly-check:cdp` -- `charly check cdp` CDP commands (lower-level container-external automation)
+- `/charly-check:cdp` -- the `cdp:` check verb (Chrome DevTools Protocol automation, served out-of-process by candy/plugin-cdp)
 - `/charly-core:deploy` -- Quadlet, tunnels, volume backing, VNC password
 - `/charly-core:service` -- `charly start/stop/enable/disable/status/logs/update/remove`
 - `/charly-check:vnc` -- VNC desktop automation and password management

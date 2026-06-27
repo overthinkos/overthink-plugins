@@ -336,13 +336,10 @@ charly config selkies-desktop -i 198.145.102.110 \
 charly start selkies-desktop -i 198.145.102.110
 ```
 
-Each instance gets unique host ports. The Chrome layer's `chrome-wrapper` translates `HTTP_PROXY`/`HTTPS_PROXY` into Chrome's `--proxy-server` flag. Verify with CDP:
+Each instance gets unique host ports. The Chrome layer's `chrome-wrapper` translates `HTTP_PROXY`/`HTTPS_PROXY` into Chrome's `--proxy-server` flag. Verify with the `cdp:` check verb (served out-of-process by candy/plugin-cdp) — author `cdp: status` / `cdp: open` (`url: https://ip.me`) / `cdp: eval` (`expression: document.querySelector('#ip-lookup').value`) steps and run them against the instance:
 
 ```bash
-charly check cdp status selkies-desktop -i 198.145.102.110
-charly check cdp open selkies-desktop -i 198.145.102.110 "https://ip.me"
-charly check cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
-  "document.querySelector('#ip-lookup').value"
+charly check live selkies-desktop -i 198.145.102.110 --filter cdp
 ```
 
 ## Service Environment Injection

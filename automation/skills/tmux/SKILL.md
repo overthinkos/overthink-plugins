@@ -171,12 +171,12 @@ charly tmux run $IMG -s oauth \
 # 2. Read the OAuth URL from tmux output
 charly tmux capture $IMG -s oauth | grep -o 'https://auth.openai.com/[^ ]*'
 
-# 3. Open URL in Chrome, complete OAuth via CDP
-charly check cdp open $IMG "<oauth-url>"
-TAB=$(charly check cdp list $IMG | grep -i "openai" | head -1 | awk '{print $1}')
-charly check cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc   # Continue with Google
-sleep 5
-charly check cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc          # Continue (consent)
+# 3. Drive the browser via cdp:/vnc: plan steps (the cdp: verb is served
+#    out-of-process by candy/plugin-cdp): cdp: open the OAuth URL, then locate
+#    "Continue with Google" / "Continue" (consent) with cdp: coords on
+#    'button._buttonStyleFix_wvuha_65' / 'button._primary_3rdp0_107' and deliver
+#    each click via the vnc: verb. Run the leg with:
+#    charly check live $IMG --filter cdp --filter vnc   (full recipe: /charly-check:cdp)
 
 # 4. Verify token exchange completed
 sleep 10

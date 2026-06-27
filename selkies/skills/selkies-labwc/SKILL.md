@@ -180,29 +180,45 @@ The SPA renders the remote desktop on a `<canvas id="videoCanvas">` with an invi
 
 The SPA maps mouse events from the canvas viewport to the remote desktop with a scaling factor. When the canvas is 1908x950 and the remote desktop runs at a different resolution, there is an empirical **~0.824x / 0.836y** ratio between input coordinates and where the remote cursor lands.
 
-Use `charly check cdp spa click` with `--scale` for automatic correction:
+Use a `cdp: spa-click` step (the `cdp:` verb is served out-of-process by candy/plugin-cdp); the SPA methods apply the scale correction automatically:
 
-```bash
+```yaml
 # Click at canvas position (990, 375) with scale correction
-charly check cdp spa click <client> $TAB 990 375 --scale 0.824,0.836
+spa-click:
+    run: click at canvas coords
+    cdp: spa-click
+    context: [deploy]
+    tab: "1"
+    x: 990
+    y: 375
 ```
 
 ### Keyboard Passthrough
 
-**Recommended:** Use `charly check cdp spa` commands for keyboard interaction — they bypass the local compositor and Chrome shortcut handlers:
+**Recommended:** Use the `cdp: spa-*` steps for keyboard interaction — they bypass the local compositor and Chrome shortcut handlers (see `/charly-check:check` for the precise SPA-method modifier shape):
 
-```bash
+```yaml
 # Type text (no double-char issue, bypasses local shortcuts)
-charly check cdp spa type <client> $TAB "hello world"
-
+spa-type:
+    run: type text
+    cdp: spa-type
+    context: [deploy]
+    tab: "1"
+    text: hello world
 # Send modifier combos that reach the REMOTE desktop:
-charly check cdp spa key-combo <client> $TAB super+e    # Open foot terminal in labwc
-charly check cdp spa key-combo <client> $TAB ctrl+t     # New tab in remote Chrome
-charly check cdp spa key-combo <client> $TAB alt+f4     # Close window in labwc
-
-# Send special keys
-charly check cdp spa key <client> $TAB return
-charly check cdp spa key <client> $TAB escape
+spa-super-e:
+    run: super+e — open foot terminal in labwc (also ctrl+t / alt+f4)
+    cdp: spa-key-combo
+    context: [deploy]
+    tab: "1"
+    text: super+e
+# Send special keys:
+spa-return:
+    run: return (also escape)
+    cdp: spa-key
+    context: [deploy]
+    tab: "1"
+    text: return
 ```
 
 **Alternative methods** (limited — local compositor/Chrome may intercept keys):
@@ -328,8 +344,8 @@ charly config selkies-labwc -i 45.39.130.21 \
 charly config hermes --update-all
 charly start selkies-labwc -i 45.39.130.21
 
-# Verify proxy IP
-charly check cdp open selkies-labwc -i 45.39.130.21 "https://httpbin.org/ip"
+# Verify proxy IP — author a cdp: open step (url: https://httpbin.org/ip) and run:
+charly check live selkies-labwc -i 45.39.130.21 --filter cdp
 ```
 
 **Tailscale access (no sidecar needed):** The charly.yml `tunnel: tailscale` config generates `tailscale serve` commands for host-mapped ports. All instances are accessible via the host's Tailscale IP on their respective ports (`https://<host>:3001`, etc.). Use sidecars only when per-instance exit node routing is needed.
@@ -361,7 +377,7 @@ diagnostic recipe that found the leak.
 charly status selkies-labwc              # All services RUNNING
 curl -k https://localhost:3000         # HTTPS 200, Selkies dashboard HTML
 charly check wl screenshot selkies-labwc t.png # Screenshot via capture bridge
-charly check cdp status selkies-labwc          # CDP available on port 9222
+charly check live selkies-labwc --filter cdp   # cdp: status — CDP available on port 9222
 ```
 
 ## Test Coverage

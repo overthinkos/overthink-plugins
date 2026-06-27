@@ -94,7 +94,7 @@ Usually used via the `chrome-sway` or `sway-desktop` composition candies rather 
 
 ## Google Sign-In
 
-Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see `/charly-check:cdp` for the full recipe). All clicks use `charly check cdp click --vnc` (CDP selector targeting + VNC pointer delivery), and all text input uses `charly check vnc type` (real OS-level keysym events). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts. Use `charly remove <image> --purge` to clear for a fresh start — just rebuilding the box does not reset volumes.
+Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see `/charly-check:cdp` for the full recipe). All clicks locate the element with the `cdp: coords` verb (CDP selector targeting) and deliver the pointer via `charly check vnc click` (the `--from-cdp` flag translates the coords), and all text input uses `charly check vnc type` (real OS-level keysym events). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts. Use `charly remove <image> --purge` to clear for a fresh start — just rebuilding the box does not reset volumes.
 
 **App Passwords (required for automation):** Google accounts with 2FA (now mandatory for most accounts) require a 16-character [App Password](https://myaccount.google.com/apppasswords). App Passwords bypass all verification challenges and 2FA prompts. Set `GMAIL_PASSWORD` to the App Password in `.env`.
 
@@ -249,7 +249,7 @@ curl -s "http://localhost:9222/json/list"
 
 ## CDP Diagnostics
 
-`charly check cdp` commands now show diagnostics on connection failure: checks Chrome process, cdp-proxy status, and port binding. Hints use `charly check wl sway exec <image> chrome-wrapper` (not `charly shell` with bare `swaymsg`) for manual Chrome restart.
+The `cdp:` check verb now shows diagnostics on connection failure: checks Chrome process, cdp-proxy status, and port binding. Hints use `charly check wl sway exec <image> chrome-wrapper` (not `charly shell` with bare `swaymsg`) for manual Chrome restart.
 
 ## Used In Boxes
 
@@ -266,8 +266,8 @@ curl -s "http://localhost:9222/json/list"
 
 - `/charly-check:cdp` — Chrome DevTools Protocol automation (click, type, check, screenshot)
 - `/charly-core:shell` — Interactive shell to access Chrome
-- `/charly-check:vnc` — VNC automation (used with `--vnc` flag on `charly check cdp click`)
-- `/charly-check:wl` — Wayland automation (used with `--wl` flag on `charly check cdp click`)
+- `/charly-check:vnc` — VNC automation (delivers the pointer for `cdp:`-located clicks; the `--from-cdp` flag translates viewport→desktop coords)
+- `/charly-check:wl` — Wayland automation (delivers the pointer for `cdp:`-located clicks via wlrctl; the `--from-cdp` flag translates viewport→desktop coords)
 - `/charly-core:charly-config` — Proxy deployment, `normalizeNoProxy()` auto-conversion, `sep:"none"` env handling
 - `/charly-build:charly-mcp-cmd` — the auto-included `chrome-devtools-mcp` sub-candy exposes 29 tools via Streamable HTTP on port 9224; run the declarative 2-check suite via `charly check live <image> --filter mcp`
 

@@ -291,9 +291,10 @@ shapes:
 | dbus | guest | `pgrep -x dbus-daemon` + scan for swaync/mako/dunst | D-Bus session bus + notifier (one snippet, four checks) |
 | charly | guest | `command -v charly && charly version` | In-container charly binary + CalVer version |
 
-Each tool also has its own `status` subcommand: `charly check cdp status`,
-`charly check vnc status`, `charly check wl status`. These commands now use the
-same probe types via `runGuestProbes` / `cdpProbe.ProbeHost` /
+The `vnc`/`wl` tools each have their own `status` subcommand
+(`charly check vnc status`, `charly check wl status`); cdp's status is the
+declarative `cdp: status` verb (served out-of-process by candy/plugin-cdp).
+These all use the same probe types via `runGuestProbes` / `cdpProbe.ProbeHost` /
 `vncProbe.ProbeHost`.
 
 **Note:** `supervisorctl status` exits with code 3 when any service
@@ -351,7 +352,7 @@ Source: `charly/status.go`, `charly/status_engine.go`, `charly/status_collector.
 - `/charly-core:deploy` -- Quadlet generation details, tunnels, volume backing
 - `/charly-automation:enc` -- Encrypted storage (mounted inline by charly start)
 - `/charly-core:charly-config` -- `run_mode`, `auto_enable`, `engine.run` settings
-- `/charly-check:cdp` -- CDP status subcommand (`charly check cdp status`)
+- `/charly-check:cdp` -- the `cdp:` check verb (`cdp: status`, served out-of-process by candy/plugin-cdp)
 - `/charly-check:vnc` -- VNC status subcommand (`charly check vnc status`)
 - `/charly-check:wl` -- Desktop automation + sway subgroup (`charly check wl sway status`)
 - `/charly-check:wl` -- WL status subcommand (`charly check wl status`)

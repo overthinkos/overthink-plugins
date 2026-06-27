@@ -1,52 +1,90 @@
 ---
 name: cdp
 description: |
-  MUST be invoked before any work involving: Chrome DevTools Protocol, charly check cdp commands, browser automation, clicking elements, taking screenshots, or OAuth flows inside containers.
+  Chrome DevTools Protocol browser automation via the declarative `cdp:` check
+  verb, served out-of-process by `candy/plugin-cdp`.
+  MUST be invoked before any work involving: the `cdp:` check verb, Chrome
+  DevTools Protocol, browser automation, clicking elements, taking screenshots,
+  or OAuth flows inside containers.
 ---
 
 # CDP - Chrome DevTools Protocol
 
 ## Overview
 
-`charly check cdp` commands connect to Chrome DevTools Protocol (CDP) on port 9222 inside running containers. Provides HTTP API operations (open, list, close tabs) and WebSocket CDP operations (click, type, eval, wait, text, html, screenshot) for headless browser automation.
+The `cdp:` check verb connects to Chrome DevTools Protocol (CDP) on port 9222
+inside running containers. It is **NOT a host `charly check` subcommand** — it is
+a declarative check verb served out-of-process by its plugin (`candy/plugin-cdp`),
+parallel to the `mcp:`/`record:`/`adb:`/`appium:` plugin verbs. Author a `cdp:` step
+in a candy/box plan and run it against a live deployment with
+`charly check live <image> --filter cdp`.
 
-### Also as a declarative verb
+It provides HTTP API operations (open, list, close tabs) and WebSocket CDP
+operations (click, type, eval, wait, text, html, screenshot) for headless browser
+automation.
 
-Every `charly check cdp <method>` is authorable as a `cdp:` verb on a `check:`/`run:` step in a candy/box `plan:` (a query is a `check:` step; a navigation/click action is a `run:` step). The method name becomes the verb's YAML value; method-specific args are sibling fields (`tab:`, `expression:`, `url:`, `selector:`, etc.). Shared matchers (`stdout:`, `stderr:`, `exit_status:`, `artifact_min_bytes:`) work like other verbs. See `/charly-check:check` for the full method allowlist and YAML shape. Example: `- cdp: eval\n  tab: "1"\n  expression: "document.title"\n  stdout: "Dashboard"`.
+**Served out-of-process — no host CLI subcommand.** The host dispatches the `cdp:`
+verb through the provider registry exactly like a built-in (`ResolveVerb("cdp")` →
+the out-of-process gRPC provider → `Provider.Invoke` with the full `Op`), and the
+plugin drives the running container's CDP endpoint. Authoring is unchanged from a
+built-in verb: you write `cdp: open`, never `plugin: cdp`.
+
+### Authoring a `cdp:` step
+
+Each method is the declarative `cdp:` step you author: the method name is the verb's
+YAML value, modifiers are sibling fields (`tab:`, `expression:`, `url:`, `selector:`,
+`text:`, `artifact:`, `x:`, `y:`). Shared matchers (`stdout:`, `stderr:`,
+`exit_status:`, `artifact_min_bytes:`) work like every other verb. A query is a
+`check:` step; a navigation/click action is a `run:` step. All `cdp:` steps are
+**deploy-context only** (they need a running container), so author them with
+`context: [deploy]`. See `/charly-check:check` for the full method allowlist and
+YAML shape. Example:
+
+```yaml
+page-title:
+    check: the page title is Dashboard
+    cdp: eval
+    context: [deploy]
+    tab: "1"
+    expression: document.title
+    stdout: Dashboard
+```
 
 ## Quick Reference
 
-| Action | Command | Description |
-|--------|---------|-------------|
-| Open URL | `charly check cdp open <image> <url>` | Open URL in new Chrome tab |
-| List tabs | `charly check cdp list <image>` | List all open tabs (id, title, url) |
-| Close tab | `charly check cdp close <image> <tab-id>` | Close a tab by ID |
-| Get text | `charly check cdp text <image> <tab-id>` | Get page text content |
-| Get HTML | `charly check cdp html <image> <tab-id>` | Get page HTML source |
-| Get URL | `charly check cdp url <image> <tab-id>` | Get page title and URL |
-| Screenshot | `charly check cdp screenshot <image> <tab-id> [file]` | Capture PNG screenshot |
-| Click | `charly check cdp click <image> <tab-id> <selector> [--vnc]` | Click element by CSS selector |
-| Coords | `charly check cdp coords <image> <tab-id> <selector>` | Show element coords in viewport + desktop |
-| Type | `charly check cdp type <image> <tab-id> <selector> <text>` | Type into input field |
-| Check JS | `charly check cdp eval <image> <tab-id> <expression>` | Evaluate JavaScript |
-| Wait | `charly check cdp wait <image> <tab-id> <selector>` | Wait for element (--timeout 30s) |
-| Raw CDP | `charly check cdp raw <image> <tab-id> <method> [json]` | Send raw CDP command |
-| Status | `charly check cdp status <image>` | Check CDP availability, show port and tab count |
-| SPA click | `charly check cdp spa click <image> <tab> <x> <y> [--scale]` | Click at canvas coords with SPA scale correction |
-| SPA type | `charly check cdp spa type <image> <tab> <text>` | Type text via SPA (bypasses local compositor/Chrome) |
-| SPA key | `charly check cdp spa key <image> <tab> <key>` | Send key press via SPA (Return, Escape, F1-F12, etc.) |
-| SPA key-combo | `charly check cdp spa key-combo <image> <tab> <combo>` | Send modifier combo via SPA (super+e, ctrl+t, alt+F4) |
-| SPA mouse | `charly check cdp spa mouse <image> <tab> <x> <y> [--scale]` | Move pointer with SPA scale correction |
-| SPA status | `charly check cdp spa status <image> <tab>` | Show SPA state (canvas, overlay, decoders) |
+| Action | Declarative step | Description |
+|--------|------------------|-------------|
+| Open URL | `cdp: open` + `url:` | Open URL in new Chrome tab |
+| List tabs | `cdp: list` | List all open tabs (id, title, url) |
+| Close tab | `cdp: close` + `tab:` | Close a tab by ID |
+| Get text | `cdp: text` + `tab:` | Get page text content |
+| Get HTML | `cdp: html` + `tab:` | Get page HTML source |
+| Get URL | `cdp: url` + `tab:` | Get page title and URL |
+| Screenshot | `cdp: screenshot` + `tab:` + `artifact:` | Capture PNG screenshot |
+| Click | `cdp: click` + `tab:` + `selector:` | Click element by CSS selector |
+| Coords | `cdp: coords` + `tab:` + `selector:` | Show element coords in viewport + desktop |
+| Type | `cdp: type` + `tab:` + `selector:` + `text:` | Type into input field |
+| Check JS | `cdp: eval` + `tab:` + `expression:` | Evaluate JavaScript |
+| Wait | `cdp: wait` + `tab:` + `selector:` | Wait for element |
+| Raw CDP | `cdp: raw` + `tab:` | Send raw CDP command |
+| Status | `cdp: status` | Check CDP availability, show port and tab count |
+| SPA click | `cdp: spa-click` + `tab:` + `x:` + `y:` | Click at canvas coords with SPA scale correction |
+| SPA type | `cdp: spa-type` + `tab:` + `text:` | Type text via SPA (bypasses local compositor/Chrome) |
+| SPA key | `cdp: spa-key` + `tab:` + `text:` | Send key press via SPA (Return, Escape, F1-F12, etc.) |
+| SPA key-combo | `cdp: spa-key-combo` + `tab:` + `text:` | Send modifier combo via SPA (super+e, ctrl+t, alt+F4) |
+| SPA mouse | `cdp: spa-mouse` + `tab:` + `x:` + `y:` | Move pointer with SPA scale correction |
+| SPA status | `cdp: spa-status` + `tab:` | Show SPA state (canvas, overlay, decoders) |
 
-All commands accept `-i INSTANCE` for multi-instance support.
+Run a candy's baked `cdp:` steps against a live deployment with
+`charly check live <image> --filter cdp`. The `-i <instance>` flag on `charly check
+live` selects a multi-instance deployment.
 
 ## Architecture
 
 1. Resolves the container name from image + instance (`charly-<image>[-<instance>]`)
 2. Discovers the mapped port 9222 via `podman port` / `docker port`
 3. **HTTP API** (`/json/list`, `/json/new?url=`, `/json/close/<id>`) for list, open, and close
-4. **CDP WebSocket** for interactive operations (click, type, eval, wait, text, html, screenshot, cdp)
+4. **CDP WebSocket** for interactive operations (click, type, eval, wait, text, html, screenshot, raw)
 
 ## Requirements
 
@@ -56,88 +94,142 @@ All commands accept `-i INSTANCE` for multi-instance support.
 
 The `cdp-proxy` is essential because Chrome 146+ binds DevTools only to 127.0.0.1 and rejects connections with non-localhost Host headers. Chrome binds to `127.0.0.1:9223` internally. The `cdp-proxy` Python script listens on `0.0.0.0:9222` and forwards to Chrome with Host header rewriting. It also rewrites response URLs (`webSocketDebuggerUrl: ws://localhost:9223/...` to `ws://<client-host>:9222/...`) with Content-Length correction, ensuring CDP WebSocket connections work correctly from the host.
 
-## Commands
+## Methods
+
+Each method below is the declarative `cdp:` step you author; queries produce
+assertable output (run them as `check:` steps), side-effect actions pass when they
+exit 0 (run them as `run:` steps, then follow with a query check to verify the
+effect). All steps are deploy-context only.
 
 ### Open a URL
 
-```bash
-charly check cdp open my-app "https://example.com"
+```yaml
+open-example:
+    run: open example.com in a new tab
+    cdp: open
+    context: [deploy]
+    url: https://example.com
 ```
 
-Uses HTTP API: `PUT /json/new?url=<encoded-url>`. Returns the new tab ID.
+Uses HTTP API: `PUT /json/new?url=<encoded-url>`. Returns the new tab ID (the new
+tab is conventionally tab `1` — there is no framework-managed variable to carry a
+tab ID between steps; reference subsequent steps as `tab: "1"`).
 
 ### List Tabs
 
-```bash
-charly check cdp list my-app
-# ID                                    TITLE                URL
-# 7F8A3B2C...                          Example Domain       https://example.com/
+```yaml
+list-tabs:
+    check: a tab is open
+    cdp: list
+    context: [deploy]
+    stdout:
+        contains: example.com
+# Output: one line per tab — "ID  TITLE  URL"
 ```
 
 Uses HTTP API: `GET /json/list`.
 
 ### Close a Tab
 
-```bash
-charly check cdp close my-app 7F8A3B2C...
+```yaml
+close-tab:
+    run: close the tab
+    cdp: close
+    context: [deploy]
+    tab: "1"
 ```
 
 Uses HTTP API: `GET /json/close/<id>`.
 
 ### Get Page Content
 
-```bash
-charly check cdp text my-app $TAB      # Plain text
-charly check cdp html my-app $TAB      # HTML source
-charly check cdp url my-app $TAB       # Title and URL
+```yaml
+page-text:
+    check: the page text contains the marker
+    cdp: text          # plain text; cdp: html → HTML source; cdp: url → title and URL
+    context: [deploy]
+    tab: "1"
+    stdout:
+        contains: Example Domain
 ```
 
 Uses CDP WebSocket: `Runtime.evaluate` with `document.body.innerText` / `document.documentElement.outerHTML`, `Target.getTargetInfo`.
 
 ### Screenshot
 
-```bash
-charly check cdp screenshot my-app $TAB              # Prints base64 to stdout
-charly check cdp screenshot my-app $TAB page.png     # Saves to file
+```yaml
+page-screenshot:
+    check: a non-empty screenshot is captured
+    cdp: screenshot
+    context: [deploy]
+    tab: "1"
+    artifact: /tmp/page.png
+    artifact_min_bytes: 10000
 ```
 
-Uses CDP: `Page.captureScreenshot`.
+Uses CDP: `Page.captureScreenshot`. Combine with the artifact validators
+(`artifact_min_bytes`, `artifact_min_dimensions`, `artifact_not_uniform`) to assert
+the capture is real — see `/charly-check:check` "Artifact-validation modifiers".
 
 ### Click and Type
 
-```bash
-charly check cdp click my-app $TAB 'button[type="submit"]'
-charly check cdp type my-app $TAB 'input[name="email"]' "user@example.com"
+```yaml
+submit-click:
+    run: click the submit button
+    cdp: click
+    context: [deploy]
+    tab: "1"
+    selector: button[type="submit"]
+email-type:
+    run: type the email address
+    cdp: type
+    context: [deploy]
+    tab: "1"
+    selector: input[name="email"]
+    text: user@example.com
 ```
 
 Click uses CDP: `Runtime.evaluate` with `deepQuery()` to find element (piercing shadow DOM), `scrollIntoViewIfNeeded()` + `getBoundingClientRect()` for coordinates, `Input.dispatchMouseEvent` for click. Type uses `deepQuery()` + `scrollIntoViewIfNeeded()` + `focus()` to select the element, then `Input.dispatchKeyEvent` for each character (keyDown, char, keyUp — matching Puppeteer behavior).
 
-**Shadow DOM support:** All selector-based commands (click, type, wait) automatically pierce shadow DOM boundaries via recursive `deepQuery()`. This means selectors work on Chrome's internal pages (`chrome://settings/*`), Polymer/Lit web components, and any page using Web Components with shadow DOM. Hidden/zero-sized elements are skipped — only visible matches are returned.
+**Shadow DOM support:** All selector-based methods (click, type, wait) automatically pierce shadow DOM boundaries via recursive `deepQuery()`. This means selectors work on Chrome's internal pages (`chrome://settings/*`), Polymer/Lit web components, and any page using Web Components with shadow DOM. Hidden/zero-sized elements are skipped — only visible matches are returned.
 
-**Note on Chrome internal dialogs:** Some Chrome UI elements (e.g., the "Turn on sync" confirmation dialog) are rendered as native browser chrome, invisible to CDP. Use VNC keyboard (`charly check vnc key ... Tab`, `charly check vnc key ... Return`) to interact with these dialogs. VNC screenshots (`charly check vnc screenshot`) show the full desktop including these dialogs, while CDP screenshots only show the page viewport.
+**Note on Chrome internal dialogs:** Some Chrome UI elements (e.g., the "Turn on sync" confirmation dialog) are rendered as native browser chrome, invisible to CDP. Interact with these via the surviving `vnc:` verb keyboard (`charly check vnc key ... Tab`, `charly check vnc key ... Return`). VNC screenshots (`charly check vnc screenshot`) show the full desktop including these dialogs, while CDP screenshots only show the page viewport.
 
 ### Coordinate Systems
 
 CDP coordinates are **viewport-relative** (relative to Chrome's content area). VNC coordinates are **desktop-absolute** (the full Wayland framebuffer). The offset between them includes Chrome's window position on the desktop plus Chrome's UI chrome (title bar, tab bar, address bar — typically ~107px).
 
-**`charly check cdp coords`** — Shows an element's coordinates in both systems:
+**`cdp: coords`** — Shows an element's coordinates in both systems:
 
-```bash
-charly check cdp coords my-app $TAB '#sync-button'
+```yaml
+sync-button-coords:
+    check: the sync button is located
+    cdp: coords
+    context: [deploy]
+    tab: "1"
+    selector: "#sync-button"
 # Element:  #sync-button (108x36)
 # Viewport: x=1166 y=310  center=(1220, 328)
 # Desktop:  x=1166 y=421  center=(1220, 439)  (via window.screenX/screenY, chromeHeight=107)
 # Sway:     window at (4, 4) size 1912x1032  (app_id=google-chrome)
 ```
 
-**`charly check cdp click --vnc`** — Finds element via CDP selector, delivers click via VNC:
+**Delivering a pointer click via VNC on a `chrome://` page** — CDP mouse events and
+JS `.click()` are blocked on `chrome://` pages. Locate the element with `cdp: coords`,
+then deliver the click through the surviving `vnc:` verb at the desktop center:
 
-```bash
-charly check cdp click my-app $TAB '#sync-button' --vnc
-# Clicked element at viewport (1220, 328) → desktop (1220, 439) via VNC
+```yaml
+sync-button-vnc-click:
+    run: click the sync button via VNC pointer
+    vnc: click
+    context: [deploy]
+    x: 1220
+    y: 439
 ```
 
-**`charly check vnc click --from-cdp`** — Translates viewport coords to desktop coords:
+**`charly check vnc click --from-cdp`** — the `vnc:`/`wl:` host verbs survive and carry
+the `--from-cdp` flag, which translates viewport coords to desktop coords using a CDP
+tab as the reference frame:
 
 ```bash
 charly check vnc click my-app 1220 328 --from-cdp $TAB
@@ -146,34 +238,50 @@ charly check vnc click my-app 1220 328 --from-cdp $TAB
 
 ### Evaluate JavaScript
 
-```bash
-charly check cdp eval my-app $TAB 'document.title'
-charly check cdp eval my-app $TAB 'JSON.stringify(localStorage)'
+```yaml
+read-title:
+    check: read the document title
+    cdp: eval
+    context: [deploy]
+    tab: "1"
+    expression: document.title
+    stdout:
+        contains: Example
 ```
 
-Uses CDP: `Runtime.evaluate`. Returns the result value.
+Uses CDP: `Runtime.evaluate`. Returns the result value (e.g.
+`JSON.stringify(localStorage)` for the full local-storage blob).
 
 ### Wait for Element
 
-```bash
-charly check cdp wait my-app $TAB 'h1'                    # Default 30s timeout
-charly check cdp wait my-app $TAB '.loaded' --timeout 60s  # Custom timeout
+```yaml
+wait-loaded:
+    check: the heading appears
+    cdp: wait
+    context: [deploy]
+    tab: "1"
+    selector: h1
+    timeout: 60s        # default 30s
 ```
 
 Polls with CDP until the CSS selector matches an element.
 
 ### Raw CDP Command
 
-```bash
-charly check cdp raw my-app $TAB 'Page.navigate' '{"url":"https://example.com"}'
-charly check cdp raw my-app $TAB 'Runtime.evaluate' '{"expression":"1+1"}'
+```yaml
+raw-navigate:
+    run: navigate via a raw CDP method
+    cdp: raw
+    context: [deploy]
+    tab: "1"
+    expression: Page.navigate {"url":"https://example.com"}
 ```
 
-Sends arbitrary CDP method with optional JSON params. Returns raw CDP response.
+Sends an arbitrary CDP method with optional JSON params. Returns the raw CDP response.
 
 ## CDP Connection Diagnostics
 
-When `charly check cdp` commands fail to connect, the `diagnoseCDP()` function runs automatically and provides targeted hints:
+When a `cdp:` step fails to connect, the plugin's `diagnoseCDP()` routine runs automatically and provides targeted hints:
 
 1. **Chrome process check**: Is Chrome running inside the container? (`pgrep chrome`)
 2. **Proxy status**: Is the cdp-proxy forwarding to Chrome? (`supervisorctl status cdp-proxy`)
@@ -187,9 +295,14 @@ Images with Chrome include a `browser-open` script and set `BROWSER=browser-open
 
 ## OAuth Automation Example
 
-Complete flow for deploying openclaw with Codex OAuth. **All browser interactions must be VNC-visible** — use `--vnc` flag on `charly check cdp click`.
+Complete flow for deploying openclaw with Codex OAuth. **All browser interactions must be VNC-visible** — deliver pointer clicks on the OAuth pages through the `vnc:` verb.
 
 **Critical:** The `openclaw models auth login` TUI requires a real terminal. Do NOT pipe through `tee` or redirect stdout. Use **`charly tmux`** (see `/charly-automation:tmux`).
+
+The cdp/vnc interactions are authored as ordered plan steps and run with
+`charly check live <image> --filter cdp --filter vnc`; the surrounding host
+orchestration (`charly tmux`, `charly service`, `charly shell`) is a separate surface,
+unaffected by the verb externalization:
 
 ```bash
 IMG=sway-browser-vnc   # any image composing chrome-cdp + a Wayland desktop + VNC
@@ -200,20 +313,33 @@ IMG=sway-browser-vnc   # any image composing chrome-cdp + a Wayland desktop + VN
 # 2. Start OAuth in a tmux session (real terminal)
 charly tmux run $IMG -s oauth "openclaw models auth login --provider openai-codex --set-default"
 
-# 3. Read OAuth URL from tmux output
+# 3. Read OAuth URL from tmux output, then drive the browser via the cdp:/vnc: steps below
 sleep 5
-OAUTH_URL=$(charly tmux capture $IMG -s oauth | grep -o 'https://auth.openai.com/[^ ]*')
-charly check cdp open $IMG "$OAUTH_URL"
+charly tmux capture $IMG -s oauth | grep -o 'https://auth.openai.com/[^ ]*'
+```
 
-# 4. Click "Continue with Google" (VNC-visible)
-sleep 5
-TAB=$(charly check cdp list $IMG | grep -i "openai\|auth" | head -1 | awk '{print $1}')
-charly check cdp click $IMG $TAB 'button._buttonStyleFix_wvuha_65' --vnc
+```yaml
+# candy/<name>/charly.yml — the browser leg as ordered cdp:/vnc: steps
+oauth-open:
+    run: open the OAuth URL captured from the TUI
+    cdp: open
+    context: [deploy]
+    url: "${ENV_OAUTH_URL}"          # threaded in via the deploy env
+oauth-continue-google:
+    run: click "Continue with Google" (VNC-visible)
+    cdp: coords                       # locate, then deliver the pointer via vnc:
+    context: [deploy]
+    tab: "1"
+    selector: button._buttonStyleFix_wvuha_65
+oauth-consent:
+    run: click "Continue" on the Codex consent page (VNC-visible)
+    cdp: coords
+    context: [deploy]
+    tab: "1"
+    selector: button._primary_3rdp0_107
+```
 
-# 5. Click "Continue" on Codex consent page (VNC-visible)
-sleep 5
-charly check cdp click $IMG $TAB 'button._primary_3rdp0_107' --vnc
-
+```bash
 # 6. Verify token exchange completed
 sleep 10
 charly tmux capture $IMG -s oauth
@@ -231,14 +357,14 @@ charly shell $IMG -c "openclaw models status"
 
 Key enablers:
 - `charly tmux run` provides a real terminal for the TUI to complete the token exchange (see `/charly-automation:tmux`)
-- `charly check cdp click --vnc` finds elements via CDP, clicks via VNC (visible to user)
+- the `cdp:` verb finds elements by CSS selector; the `vnc:` verb delivers the pointer click (visible to user)
 - `cdp-proxy` makes Chrome DevTools accessible from host through podman bridge networking (with Host header rewriting)
 - `shm_size: 1g` prevents Chrome from crashing due to /dev/shm exhaustion
 - Callback at `localhost:1455` is container-internal (no port mapping needed)
 
 **Stale port 1455:** If a previous OAuth attempt left port 1455 occupied: `charly shell $IMG -c 'kill -9 $(ss -tlnp sport = :1455 | grep -oP "pid=\K\d+")'`
 
-Source: `charly/cdp.go`, `charly/vnc.go`.
+Source: `candy/plugin-cdp`.
 
 ## Google Sign-In Automation
 
@@ -248,86 +374,112 @@ Sign into a Google account inside a running container. Requires `GMAIL_USER` and
 
 **Fresh profile prerequisite:** A fresh `chrome-data` volume triggers Chrome's first-run flow. Use `charly remove <image> --purge` before `charly config` to ensure a clean start. Just rebuilding the image does not reset named volumes.
 
+The sign-in flow is authored as ordered `cdp:`/`vnc:`/`wl:` steps and run with
+`charly check live <image> --filter cdp --filter vnc --filter wl`. `chrome://` pages
+block CDP mouse events, so the pointer is delivered through the surviving `vnc:`/`wl:`
+verbs; text is entered with the `vnc:` verb's real keysym events.
+
 ### Step 0: Dismiss Chrome First-Run Dialog
 
-On a fresh profile, Chrome opens a first-run dialog ("Make Google Chrome the default browser") as a **separate window** that CDP cannot see (no debuggable tabs). It tiles alongside any CDP-opened tabs in sway, breaking coordinate translation.
+On a fresh profile, Chrome opens a first-run dialog ("Make Google Chrome the default browser") as a **separate window** that CDP cannot see (no debuggable tabs). It tiles alongside any CDP-opened tabs in sway, breaking coordinate translation. Focus and dismiss it through the surviving `wl:`/`vnc:` verbs:
 
 ```bash
-# Focus the first-run dialog and dismiss it
 charly check wl sway msg my-app 'focus left'     # first-run dialog is typically the left window
-charly check vnc key my-app Return            # press OK
+charly check vnc key my-app Return               # press OK
 ```
 
 After dismissal, Chrome shows `chrome://intro/` — "Sign in to Chrome" with shadow DOM buttons.
 
 ### Step 1: Click "Sign in" on chrome://intro
 
-`chrome://` pages block CDP mouse events and JS `.click()`. Use `--vnc` click (CDP selector targeting + VNC pointer delivery):
+`chrome://` pages block CDP mouse events and JS `.click()`. Locate the button with
+`cdp: coords` (shadow DOM path: `intro-app` > `sign-in-promo` > `#acceptSignInButton`),
+then deliver the click via the `vnc:` verb at the reported desktop center:
 
-```bash
-TAB=$(charly check cdp list my-app | grep intro | head -1 | awk '{print $1}')
-charly check cdp click my-app $TAB '#acceptSignInButton' --vnc
+```yaml
+intro-locate:
+    check: the sign-in button is located
+    cdp: coords
+    context: [deploy]
+    tab: "1"
+    selector: "#acceptSignInButton"
 ```
 
-Shadow DOM path: `intro-app` > `sign-in-promo` > `#acceptSignInButton`. The `--vnc` flag uses `deepQuery` to find the element, translates viewport coords to desktop coords via `window.screenX/screenY`, and delivers the click through VNC.
+This opens a new tab with the Google sign-in page (conventionally tab `1`). The tab
+ID survives Google's same-tab navigations (email → password → result).
 
-This opens a new tab with the Google sign-in page. Capture the new tab ID:
+### Step 2: Enter Email (locate via CDP, deliver via VNC)
 
-```bash
-sleep 3
-TAB=$(charly check cdp list my-app | grep -i "sign in" | head -1 | awk '{print $1}')
+```yaml
+email-wait:
+    check: the email field appears
+    cdp: wait
+    context: [deploy]
+    tab: "1"
+    selector: "#identifierId"
+    timeout: 30s
+email-locate:
+    check: the email field is located (focus via vnc: at these coords)
+    cdp: coords
+    context: [deploy]
+    tab: "1"
+    selector: "#identifierId"
 ```
 
-**Note:** The tab ID survives Google's same-tab navigations (email → password → result).
-
-### Step 2: Enter Email (--vnc click + VNC type)
-
-```bash
-charly check cdp wait my-app $TAB '#identifierId' --timeout 30s
-charly check cdp click my-app $TAB '#identifierId' --vnc    # focus field via VNC pointer
-sleep 0.5                                          # let compositor process focus
-charly check vnc type my-app "$GMAIL_USER"                   # real keysym events
-```
-
-Use `charly check cdp coords my-app $TAB '#identifierId'` to inspect element position in all three coordinate systems (viewport, desktop via CDP, desktop via sway) for debugging.
+After focusing the field with `vnc: click` at the reported coords, type with the
+`vnc:` verb's real keysym events (`charly check vnc type my-app "$GMAIL_USER"`). Use
+`cdp: coords` to inspect element position in all three coordinate systems (viewport,
+desktop via CDP, desktop via sway) for debugging.
 
 ### Step 3: Submit Email
 
-```bash
-charly check cdp click my-app $TAB '#identifierNext' --vnc
-sleep 5                                            # page transition
-charly check cdp url my-app $TAB                             # expect /challenge/pwd
-charly check cdp screenshot my-app $TAB step3.png            # verification checkpoint
+Click `#identifierNext` (locate via `cdp: coords`, deliver via `vnc:`), then verify the
+transition:
+
+```yaml
+pwd-page-reached:
+    check: the password challenge page is reached
+    cdp: url
+    context: [deploy]
+    tab: "1"
+    stdout:
+        contains: challenge/pwd
+pwd-checkpoint:
+    check: a verification screenshot is captured
+    cdp: screenshot
+    context: [deploy]
+    tab: "1"
+    artifact: /tmp/step3.png
+    artifact_min_bytes: 5000
 ```
 
 ### Step 4: Enter Password
 
-```bash
-charly check cdp wait my-app $TAB 'input[type="password"]' --timeout 15s
-charly check cdp click my-app $TAB 'input[type="password"]' --vnc
-sleep 0.5
-charly check vnc type my-app "$GMAIL_PASSWORD"
+```yaml
+pwd-wait:
+    check: the password field appears
+    cdp: wait
+    context: [deploy]
+    tab: "1"
+    selector: input[type="password"]
+    timeout: 15s
+pwd-locate:
+    check: the password field is located (focus via vnc:, then vnc: type "$GMAIL_PASSWORD")
+    cdp: coords
+    context: [deploy]
+    tab: "1"
+    selector: input[type="password"]
 ```
 
 ### Step 5: Submit Password
 
-```bash
-charly check cdp click my-app $TAB '#passwordNext' --vnc
-sleep 7                                            # backend verification
-charly check cdp screenshot my-app $TAB step5.png
-charly check vnc screenshot my-app step5-desktop.png         # catches native dialogs
-```
+Click `#passwordNext` (locate via `cdp: coords`, deliver via `vnc:`), then capture
+verification screenshots — `cdp: screenshot` for the viewport and
+`charly check vnc screenshot` for the full desktop (catches native dialogs).
 
 ### Step 6: Enable Sync (chrome://sync-confirmation)
 
-After successful sign-in, Chrome navigates to `chrome://sync-confirmation/` — a `chrome://` page (NOT a native dialog). CDP can see it but `--vnc` click is required:
-
-```bash
-TAB=$(charly check cdp list my-app | grep -i sync-confirmation | head -1 | awk '{print $1}')
-# If no sync-confirmation tab, it may already be on the current tab:
-# TAB stays the same from step 5
-charly check cdp click my-app $TAB '#confirmButton' --vnc    # "Yes, I'm in"
-```
+After successful sign-in, Chrome navigates to `chrome://sync-confirmation/` — a `chrome://` page (NOT a native dialog). CDP can see it but the click must be delivered via `vnc:` (locate via `cdp: coords` on `#confirmButton`, "Yes, I'm in").
 
 Shadow DOM path: `sync-confirmation-app` > `#confirmButton`. Other buttons: `#notNowButton` ("No thanks"), `#settingsButton` ("Settings").
 
@@ -335,11 +487,7 @@ Shadow DOM path: `sync-confirmation-app` > `#confirmButton`. Other buttons: `#no
 
 **2FA/CAPTCHA:** Take a VNC screenshot (`charly check vnc screenshot my-app challenge.png`) and complete manually via a VNC client. App Passwords bypass most challenges.
 
-**Search engine choice:** May appear as a new tab. Handle via CDP check if present:
-```bash
-STAB=$(charly check cdp list my-app | grep search-engine | head -1 | awk '{print $1}')
-# If STAB is non-empty, select Google via shadow DOM check
-```
+**Search engine choice:** May appear as a new tab. Probe for it with a `cdp: list` step and select Google via a shadow DOM `cdp: coords` + `vnc:` click if present.
 
 ### Sign-In Persistence
 
@@ -347,16 +495,17 @@ Cookies and sync state are stored in the `chrome-data` volume (`~/.chrome-debug`
 
 ### Coordinate Translation for Sign-In
 
-The `--vnc` flag on `charly check cdp click` is essential for the sign-in flow:
-- **`chrome://` pages** (intro, sync-confirmation): CDP mouse events and JS `.click()` are blocked. `--vnc` is the only way to click.
-- **Google sign-in pages**: `--vnc` delivers real pointer events that bypass anti-automation detection.
+Pointer delivery via the `vnc:`/`wl:` verbs is essential for the sign-in flow:
+- **`chrome://` pages** (intro, sync-confirmation): CDP mouse events and JS `.click()` are blocked. `vnc: click` / `wl: click` (locate via `cdp: coords`) is the only way to click.
+- **Google sign-in pages**: real pointer events delivered via `vnc:` bypass anti-automation detection.
 - **Coordinate math**: viewport center + `window.screenX` + `window.screenY` + `chromeHeight` = desktop coords. On popup windows (no toolbar), `chromeHeight=0`.
+- The `vnc:`/`wl:` host verbs also carry the `--from-cdp` flag, which performs this viewport→desktop translation directly from a CDP tab reference frame.
 
-Use `charly check cdp coords my-app $TAB '<selector>'` to debug coordinate translation. It shows element position in viewport, desktop (via CDP), and desktop (via sway) systems.
+Use a `cdp: coords` step to debug coordinate translation. It shows element position in viewport, desktop (via CDP), and desktop (via sway) systems.
 
-## SPA Remote Desktop Interaction (`charly check cdp spa`)
+## SPA Remote Desktop Interaction (`cdp: spa-*`)
 
-The `charly check cdp spa` subcommands provide first-class support for interacting with Selkies-style remote desktop SPAs. These bypass the local compositor and Chrome shortcut handlers — the **only way** to send Super+e, Ctrl+T, or Alt+F4 to the remote desktop.
+The `cdp: spa-*` methods provide first-class support for interacting with Selkies-style remote desktop SPAs. These bypass the local compositor and Chrome shortcut handlers — the **only way** to send Super+e, Ctrl+T, or Alt+F4 to the remote desktop.
 
 ### SPA DOM Structure
 
@@ -366,73 +515,96 @@ The `charly check cdp spa` subcommands provide first-class support for interacti
 
 ### Usage Example
 
-```bash
-IMG=sway-browser-vnc
-TAB=$(charly check cdp list $IMG | grep -i selkies | awk '{print $1}')
-
-# Check SPA state
-charly check cdp spa status $IMG $TAB
-
-# Click at canvas coordinates (where elements appear in CDP screenshots)
-charly check cdp spa click $IMG $TAB 990 375 --scale 0.824,0.836
-
-# Type text (bypasses local compositor — no double-char issue)
-charly check cdp spa type $IMG $TAB "hello world"
-
-# Send modifier combos that normally can't reach the remote desktop:
-charly check cdp spa key-combo $IMG $TAB super+e    # Open foot terminal in labwc
-charly check cdp spa key-combo $IMG $TAB ctrl+t     # New tab in REMOTE Chrome
-charly check cdp spa key-combo $IMG $TAB alt+f4     # Close window in labwc
-
-# Send special keys
-charly check cdp spa key $IMG $TAB return
-charly check cdp spa key $IMG $TAB escape
+```yaml
+spa-check-state:
+    check: the SPA is in a healthy state
+    cdp: spa-status
+    context: [deploy]
+    tab: "1"
+spa-click-target:
+    run: click at canvas coordinates (where elements appear in CDP screenshots)
+    cdp: spa-click
+    context: [deploy]
+    tab: "1"
+    x: 990
+    y: 375
+spa-type-text:
+    run: type text (bypasses local compositor — no double-char issue)
+    cdp: spa-type
+    context: [deploy]
+    tab: "1"
+    text: hello world
+spa-open-terminal:
+    run: send super+e to open a foot terminal in labwc
+    cdp: spa-key-combo
+    context: [deploy]
+    tab: "1"
+    text: super+e          # also: ctrl+t (new tab in REMOTE Chrome), alt+f4 (close window)
+spa-press-return:
+    run: send a special key
+    cdp: spa-key
+    context: [deploy]
+    tab: "1"
+    text: return           # also: escape, F1-F12, etc.
 ```
+
+See `/charly-check:check` for the precise SPA-method modifier shape.
 
 ### Coordinate Scaling
 
-The SPA maps mouse events from canvas to remote desktop with an internal scaling factor. Use `--scale scaleX,scaleY` to correct: a click at canvas position `(x, y)` is sent to `(x/scaleX, y/scaleY)`. Determine the scale empirically by comparing `charly check cdp spa click` cursor position (via `charly check cdp screenshot`) with the target.
+The SPA maps mouse events from canvas to remote desktop with an internal scaling factor; `cdp: spa-click` / `cdp: spa-mouse` apply the correction so a click at canvas position `(x, y)` lands on the right remote-desktop pixel. Determine the scale empirically by comparing the `cdp: spa-click` cursor position (via a `cdp: screenshot`) with the target.
 
 ### Keyboard Architecture
 
-`charly check cdp spa type/key/key-combo` sends `Input.dispatchKeyEvent` directly to the page. The SPA's `onkeydown` handler on `#overlayInput` (with `stopImmediatePropagation`) captures these and forwards to the remote compositor via WebSocket. Only keyDown + keyUp are sent (no "char" event) to prevent double input.
+`cdp: spa-type` / `cdp: spa-key` / `cdp: spa-key-combo` send `Input.dispatchKeyEvent` directly to the page. The SPA's `onkeydown` handler on `#overlayInput` (with `stopImmediatePropagation`) captures these and forwards to the remote compositor via WebSocket. Only keyDown + keyUp are sent (no "char" event) to prevent double input.
 
 ### When to use `spa` vs regular CDP vs VNC/WL
 
-| Scenario | Command |
-|----------|---------|
-| Click/type in a web page | `charly check cdp click/type` (CSS selector targeting) |
-| Click/type in a remote desktop via SPA | `charly check cdp spa click/type` (canvas coordinates) |
-| Send Super+key or Ctrl+T to remote desktop | `charly check cdp spa key-combo` (only option that works) |
+| Scenario | Verb |
+|----------|------|
+| Click/type in a web page | `cdp: click` / `cdp: type` (CSS selector targeting) |
+| Click/type in a remote desktop via SPA | `cdp: spa-click` / `cdp: spa-type` (canvas coordinates) |
+| Send Super+key or Ctrl+T to remote desktop | `cdp: spa-key-combo` (only option that works) |
 | Click in local compositor | `charly check wl click` or `charly check vnc click` |
-| Take screenshot of stream content | `charly check cdp screenshot` (captures canvas) |
+| Take screenshot of stream content | `cdp: screenshot` (captures canvas) |
 | Take screenshot of full client desktop | `charly check vnc screenshot` or `charly check wl screenshot` |
 
 ## CDP Proxy Verification
 
-Use `cdp status` → `cdp open` → `cdp eval` to verify proxy connectivity on instances:
+Author `cdp: status` → `cdp: open` → `cdp: eval` steps to verify proxy connectivity
+on an instance, then run `charly check live <image> -i <instance> --filter cdp`:
 
-```bash
-# Check CDP is available
-charly check cdp status selkies-desktop -i 198.145.102.110
-
-# Open a test page
-charly check cdp open selkies-desktop -i 198.145.102.110 "https://ip.me"
-
-# Extract the detected IP (ip.me stores it in an input field)
-charly check cdp eval selkies-desktop -i 198.145.102.110 <tab-id> \
-  "document.querySelector('#ip-lookup').value"
-# → Should return 198.145.102.110 (the proxy IP)
+```yaml
+cdp-available:
+    check: CDP is available on port 9222
+    cdp: status
+    context: [deploy]
+    stdout:
+        equals: ok
+proxy-ip-open:
+    run: open a test page
+    cdp: open
+    context: [deploy]
+    url: https://ip.me
+proxy-ip-detected:
+    check: the proxy IP is reflected by the page
+    cdp: eval
+    context: [deploy]
+    tab: "1"
+    expression: document.querySelector('#ip-lookup').value
+    stdout:
+        contains: 198.145.102.110
 ```
 
-This pattern works for any page content extraction via JS. The `cdp eval` command returns the expression's result directly.
+This pattern works for any page content extraction via JS — the `cdp: eval` step returns the expression's result directly.
 
 ## Cross-References
 
-- `/charly-check:check` -- parent router; `charly check cdp …` is how every invocation is dispatched.
-- `/charly-check:wl` -- Wayland desktop automation (sibling verb under `charly check`); also sway subgroup for compositor control.
-- `/charly-check:vnc` -- VNC desktop automation (sibling verb; same container, pixel-level interaction).
-- `/charly-check:dbus` -- D-Bus calls and notifications (sibling verb under `charly check`).
+- `/charly-check:check` -- parent router; the `cdp:` verb catalog entry, the method allowlist, the artifact-validation modifiers, and `charly check live <image> --filter cdp`.
+- `/charly-internals:plugin` -- the out-of-process provider model that serves `cdp` (`candy/plugin-cdp`).
+- `/charly-check:wl` -- Wayland desktop automation (sibling host verb under `charly check`); also sway subgroup for compositor control; carries `--from-cdp`.
+- `/charly-check:vnc` -- VNC desktop automation (sibling host verb; same container, pixel-level interaction); carries `--from-cdp` for viewport→desktop translation.
+- `/charly-check:dbus` -- D-Bus calls and notifications (sibling host verb under `charly check`).
 - `/charly-core:shell` -- Running commands in containers (`--tty` for OAuth flows)
 - `/charly-core:charly-config` -- Instance deployment, proxy configuration, removal workflow
 - `/charly-image:layer` -- Chrome candy configuration (cdp-proxy service, port declarations)
@@ -442,6 +614,6 @@ This pattern works for any page content extraction via JS. The `cdp eval` comman
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves Chrome DevTools Protocol, charly check cdp commands, browser automation, clicking elements, taking screenshots, or OAuth flows inside containers. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves the `cdp:` check verb, Chrome DevTools Protocol, browser automation, clicking elements, taking screenshots, or OAuth flows inside containers. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Desktop automation. Use after a desktop container is running. Preferred over VNC for structured interaction. See also `/charly-check:vnc` (pixel), `/charly-check:wl` (sway subgroup) (window).

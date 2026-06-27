@@ -231,24 +231,49 @@ claude mcp list    # Should show: jupyter: http://localhost:8888/mcp (HTTP) - �
 
 ## Testing Collaboration
 
-To test real-time collaboration, deploy `sway-browser-vnc` alongside:
+To test real-time collaboration, deploy `sway-browser-vnc` alongside (`charly start sway-browser-vnc`).
 
-```bash
-charly start sway-browser-vnc
-# Open JupyterLab in two Chrome tabs via container DNS:
-charly check cdp open sway-browser-vnc "http://charly-jupyter:8888/lab"
-# Open second tab
-charly check cdp open sway-browser-vnc "http://charly-jupyter:8888/lab"
+Author the browser leg as `cdp:` plan steps (the `cdp:` verb is served
+out-of-process by candy/plugin-cdp) and run them with `charly check live
+sway-browser-vnc --filter cdp`:
+
+```yaml
+# Open JupyterLab in two Chrome tabs via container DNS (two cdp: open steps):
+collab-tab-1:
+    run: open JupyterLab in tab 1
+    cdp: open
+    context: [deploy]
+    url: http://charly-jupyter:8888/lab
+collab-tab-2:
+    run: open JupyterLab in a second tab
+    cdp: open
+    context: [deploy]
+    url: http://charly-jupyter:8888/lab
 ```
 
-**Executing cells via CDP:** Use `Input.dispatchKeyEvent` (not VNC keys — unreliable when Chrome lacks compositor focus):
+**Executing cells via CDP:** Use `Input.dispatchKeyEvent` (not VNC keys — unreliable when Chrome lacks compositor focus). Focus the cell with a `cdp: eval` step, then send Shift+Enter with `cdp: raw` steps:
 
-```bash
-TAB=<tab-id>
-# Focus cell, then Shift+Enter via CDP
-charly check cdp eval sway-browser-vnc $TAB "document.querySelector('.jp-Cell-inputArea .cm-content')?.focus()"
-charly check cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"rawKeyDown","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}'
-charly check cdp raw sway-browser-vnc $TAB 'Input.dispatchKeyEvent' '{"type":"keyUp","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}'
+```yaml
+cell-focus:
+    run: focus the input cell
+    cdp: eval
+    context: [deploy]
+    tab: "1"
+    expression: "document.querySelector('.jp-Cell-inputArea .cm-content')?.focus()"
+cell-shift-enter-down:
+    run: Shift+Enter keyDown
+    cdp: raw
+    context: [deploy]
+    tab: "1"
+    expression: |
+        Input.dispatchKeyEvent {"type":"rawKeyDown","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}
+cell-shift-enter-up:
+    run: Shift+Enter keyUp
+    cdp: raw
+    context: [deploy]
+    tab: "1"
+    expression: |
+        Input.dispatchKeyEvent {"type":"keyUp","windowsVirtualKeyCode":13,"nativeVirtualKeyCode":13,"modifiers":8}
 ```
 
 ## Test Coverage

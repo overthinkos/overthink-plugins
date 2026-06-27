@@ -167,10 +167,11 @@ Requires `a11y-tools` layer. Chrome needs `--force-renderer-accessibility` flag.
 
 ### CDP → WL Bridge
 
-Use `charly check cdp click --wl` to find elements by CSS selector in Chrome and deliver clicks via wlrctl (critical for selkies-desktop which has no VNC):
+Locate an element's viewport coords with the `cdp: coords` verb (CSS selector in Chrome), then deliver the click via `charly check wl click` with `--from-cdp` (wlrctl pointer — critical for selkies-desktop which has no VNC):
 
 ```bash
-charly check cdp click selkies-desktop $TAB '#submit-button' --wl
+# cdp: coords on '#submit-button' → viewport coords, then deliver via wlrctl
+charly check wl click selkies-desktop 640 360 --from-cdp $TAB
 ```
 
 ## Sway-Specific Commands (`charly check wl sway`)

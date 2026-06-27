@@ -89,14 +89,16 @@ sway-browser-vnc can act as a test client for selkies-desktop, simulating how a 
 charly start sway-browser-vnc
 charly start selkies-desktop
 
-# Open selkies URL in sway-browser-vnc's Chrome
-charly check cdp open sway-browser-vnc "https://charly-selkies-desktop:3000"
+# Open selkies URL in sway-browser-vnc's Chrome via a cdp: open step
+# (the cdp: verb is served out-of-process by candy/plugin-cdp):
+#   cdp: open  url: https://charly-selkies-desktop:3000
+# Run with: charly check live sway-browser-vnc --filter cdp
 
 # Interact with the remote desktop:
-# Mouse: CDP Input.dispatchMouseEvent on the Selkies tab (with ~0.82x coordinate scaling)
+# Mouse: cdp: spa-click on the Selkies tab (with ~0.82x coordinate scaling)
 # Keyboard: charly check vnc type sway-browser-vnc "text" (passthrough via SPA's overlayInput)
 # Screenshots: charly check vnc screenshot sway-browser-vnc (shows full client desktop with stream)
-#              charly check cdp screenshot sway-browser-vnc $TAB (shows only the stream content)
+#              a cdp: screenshot step (shows only the stream content)
 ```
 
 **Key limitations when using as a client:**
@@ -124,7 +126,7 @@ port 5900 reachable, Chrome CDP on port 9250→9222 with `/json/version`
 - `/charly-selkies:sway-desktop-vnc`, `/charly-selkies:sway`, `/charly-selkies:wayvnc`,
   `/charly-selkies:chrome-sway`, `/charly-selkies:xdg-portal`, `/charly-infrastructure:dbus-layer`,
   `/charly-tools:charly`, `/charly-distros:agent-forwarding`
-- `/charly-check:check` — declarative testing framework (parent router for `charly check cdp|wl|dbus|vnc|mcp`)
+- `/charly-check:check` — declarative testing framework (parent router for the `charly check wl|dbus|vnc` host subcommands + the out-of-process `cdp:`/`mcp:` verbs)
 - `/charly-check:vnc` — VNC automation on this box
 - `/charly-check:cdp` — Chrome automation (CDP on host port 9250)
 - `/charly-check:wl` — Wayland input/windows/clipboard (sway subgroup for compositor control)

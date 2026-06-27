@@ -108,7 +108,7 @@ encoding (zero CPU overhead).
 - `/charly-distros:cachyos` — the CachyOS base image family (owns this box's submodule)
 
 ## Related Commands
-- `/charly-check:check` — parent router for live-container verbs (`charly check cdp|wl|dbus|vnc|mcp`)
+- `/charly-check:check` — parent router for the live-container check verbs (`charly check wl|dbus|vnc` host subcommands + the out-of-process `cdp:`/`mcp:` verbs)
 - `/charly-check:cdp` — drive Chrome inside the streaming desktop
 - `/charly-check:wl` — interact with the labwc Wayland session
 - `/charly-check:dbus` — D-Bus notifications via in-container `charly` binary
