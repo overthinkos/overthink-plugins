@@ -195,7 +195,7 @@ charly check wl sway reload <image>            # Reload sway config
 
 ## Differences from VNC
 
-| Aspect | `charly check wl` | `charly check vnc` |
+| Aspect | `charly check wl` | `vnc:` verb |
 |--------|---------|----------|
 | Compositors | All wlroots (+ sway subgroup) | Requires wayvnc |
 | Transport | exec into container | TCP port 5900 |

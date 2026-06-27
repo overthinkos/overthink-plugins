@@ -91,8 +91,9 @@ and passed through.
 ## When NOT to use `--host`
 
 - When you want artifacts (screenshots, recordings) to land in the local
-  filesystem → use `charly check libvirt|vnc --uri qemu+ssh://…`
-  instead; it runs charly locally and forwards the display channel over SSH.
+  filesystem → use `charly check libvirt --uri qemu+ssh://…` (or the declarative
+  `vnc:`/`spice:` verbs against the vm target) instead; it runs charly locally and
+  forwards the display channel over SSH.
 - When `charly` isn't installed on the remote machine → use `--uri` or
   `charly ssh tunnel`.
 
@@ -103,4 +104,4 @@ and passed through.
 - `/charly-build:settings` — `hosts.<alias>` key schema.
 - `/charly-check:spice` — the declarative `spice:` check verb; the host resolves the VM's SPICE endpoint (honoring `CHARLY_LIBVIRT_URI` for a remote hypervisor).
 - `/charly-check:libvirt` — `--uri` flag on every `charly check libvirt` verb.
-- `/charly-check:vnc` — `charly check vnc vm <name> …` subcommand group.
+- `/charly-check:vnc` — the declarative `vnc:` check verb (served out-of-process by candy/plugin-vnc); the host pre-resolves the RFB endpoint for pod AND vm targets (a VM's libvirt VNC via bridge/tunnel).

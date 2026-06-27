@@ -866,20 +866,15 @@ Source: `charly/deploy.go` (`DeployVolumeConfig`, `ResolveVolumeBacking`), `char
 
 ## VNC Password for Deployments
 
-For images with wayvnc (VNC on tcp:5900), set a VNC password after enabling:
+For images with wayvnc (VNC on tcp:5900), provision a VNC password after enabling.
+Store the password in the VNC credential store (retained host-side), then configure
+server-side auth (VeNCrypt/TLS) by running the candy's `vnc: passwd` step:
 
 ```bash
+charly settings set vnc.password.sway-browser-vnc mysecret   # store in the VNC credential store
 charly config sway-browser-vnc
-charly check vnc passwd sway-browser-vnc --generate   # auto-generates password, prints to stdout
-```
-
-Or pre-set via settings before deployment:
-
-```bash
-charly settings set vnc.password.sway-browser-vnc mysecret
-charly config sway-browser-vnc
-# After container starts, run passwd to configure server-side auth:
-charly check vnc passwd sway-browser-vnc    # uses stored password (no prompt)
+# After the container starts, configure server-side auth via the vnc: passwd step:
+charly check live sway-browser-vnc --filter vnc
 ```
 
 See `/charly-check:vnc` for full VNC authentication documentation.

@@ -23,7 +23,7 @@ Minimal Sway desktop with VNC (wayvnc on port 5900) and Chrome (CDP on port 9222
 charly box build sway-browser-vnc
 charly start sway-browser-vnc
 charly status sway-browser-vnc          # Shows all probes: supervisord, cdp, dbus, charly, sway, vnc, wl
-charly check vnc status sway-browser-vnc
+charly check live sway-browser-vnc --filter vnc   # run the candy's vnc: status / screenshot steps
 charly check wl screenshot sway-browser-vnc screenshot.png
 ```
 
@@ -96,15 +96,15 @@ charly start selkies-desktop
 
 # Interact with the remote desktop:
 # Mouse: cdp: spa-click on the Selkies tab (with ~0.82x coordinate scaling)
-# Keyboard: charly check vnc type sway-browser-vnc "text" (passthrough via SPA's overlayInput)
-# Screenshots: charly check vnc screenshot sway-browser-vnc (shows full client desktop with stream)
+# Keyboard: a vnc: type step (passthrough via SPA's overlayInput)
+# Screenshots: a vnc: screenshot step (shows full client desktop with stream)
 #              a cdp: screenshot step (shows only the stream content)
 ```
 
 **Key limitations when using as a client:**
 - Super key consumed by sway (can't trigger remote labwc keybinds like Super+e)
 - Ctrl+T/W consumed by local Chrome (open/close tabs locally, not remotely)
-- Clipboard permission dialog appears on first connection — dismiss with `charly check vnc key Return` or CDP `Browser.grantPermissions`
+- Clipboard permission dialog appears on first connection — dismiss with a `vnc: key` step (`key: Return`) or CDP `Browser.grantPermissions`
 
 See `/charly-selkies:selkies-labwc` for detailed SPA interaction documentation.
 
@@ -126,7 +126,7 @@ port 5900 reachable, Chrome CDP on port 9250→9222 with `/json/version`
 - `/charly-selkies:sway-desktop-vnc`, `/charly-selkies:sway`, `/charly-selkies:wayvnc`,
   `/charly-selkies:chrome-sway`, `/charly-selkies:xdg-portal`, `/charly-infrastructure:dbus-layer`,
   `/charly-tools:charly`, `/charly-distros:agent-forwarding`
-- `/charly-check:check` — declarative testing framework (parent router for the `charly check wl|dbus|vnc` host subcommands + the out-of-process `cdp:`/`mcp:` verbs)
+- `/charly-check:check` — declarative testing framework (parent router for the `charly check wl|dbus` host subcommands + the out-of-process `cdp:`/`vnc:`/`mcp:` verbs)
 - `/charly-check:vnc` — VNC automation on this box
 - `/charly-check:cdp` — Chrome automation (CDP on host port 9250)
 - `/charly-check:wl` — Wayland input/windows/clipboard (sway subgroup for compositor control)

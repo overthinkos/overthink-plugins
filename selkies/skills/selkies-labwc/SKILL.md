@@ -221,12 +221,10 @@ spa-return:
     text: return
 ```
 
-**Alternative methods** (limited — local compositor/Chrome may intercept keys):
-
-```bash
-charly check vnc type <client> "text"     # VNC keysym events (Super key intercepted by local compositor)
-charly check wl type <client> "text"      # wtype via Wayland (same limitation)
-```
+**Alternative methods** (limited — local compositor/Chrome may intercept keys): a
+`vnc: type` step (VNC keysym events) or `charly check wl type <client> "text"`
+(wtype via Wayland) — both hit the same limitation (the Super key is intercepted by
+the local compositor).
 
 The SPA's `onkeydown` handler on `#overlayInput` intercepts events with `stopImmediatePropagation()`, converts to keysyms, and sends via WebSocket to the remote labwc compositor.
 

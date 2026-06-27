@@ -30,8 +30,9 @@ my-desktop:
 ```
 
 ```bash
-charly check vnc screenshot my-image          # capture desktop
-charly check vnc passwd my-image --generate   # set up VeNCrypt/TLS auth
+charly check live my-image --filter vnc        # run the candy's vnc: screenshot / status steps
+charly settings set vnc.password.my-image …    # store auth in the VNC credential store
+# the candy's vnc: passwd step then configures VeNCrypt/TLS server-side
 ```
 
 ## NVIDIA Headless: Fixed via Pixman + DPMS Workaround

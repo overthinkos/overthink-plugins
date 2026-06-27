@@ -193,7 +193,7 @@ Click uses CDP: `Runtime.evaluate` with `deepQuery()` to find element (piercing 
 
 **Shadow DOM support:** All selector-based methods (click, type, wait) automatically pierce shadow DOM boundaries via recursive `deepQuery()`. This means selectors work on Chrome's internal pages (`chrome://settings/*`), Polymer/Lit web components, and any page using Web Components with shadow DOM. Hidden/zero-sized elements are skipped — only visible matches are returned.
 
-**Note on Chrome internal dialogs:** Some Chrome UI elements (e.g., the "Turn on sync" confirmation dialog) are rendered as native browser chrome, invisible to CDP. Interact with these via the surviving `vnc:` verb keyboard (`charly check vnc key ... Tab`, `charly check vnc key ... Return`). VNC screenshots (`charly check vnc screenshot`) show the full desktop including these dialogs, while CDP screenshots only show the page viewport.
+**Note on Chrome internal dialogs:** Some Chrome UI elements (e.g., the "Turn on sync" confirmation dialog) are rendered as native browser chrome, invisible to CDP. Interact with these via the surviving `vnc:` verb keyboard (a `vnc: key` step with `key: Tab` / `key: Return`). VNC screenshots (a `vnc: screenshot` step) show the full desktop including these dialogs, while CDP screenshots only show the page viewport.
 
 ### Coordinate Systems
 
@@ -227,12 +227,13 @@ sync-button-vnc-click:
     y: 439
 ```
 
-**`charly check vnc click --from-cdp`** — the `vnc:`/`wl:` host verbs survive and carry
+**`charly check wl click --from-cdp`** — the surviving in-core `wl:` host verb carries
 the `--from-cdp` flag, which translates viewport coords to desktop coords using a CDP
-tab as the reference frame:
+tab as the reference frame (the declarative `vnc:` verb takes the desktop coords
+directly, as in the step above):
 
 ```bash
-charly check vnc click my-app 1220 328 --from-cdp $TAB
+charly check wl click my-app 1220 328 --from-cdp $TAB
 # Translated viewport (1220, 328) → desktop (1220, 439) via CDP tab ...
 ```
 
@@ -381,11 +382,11 @@ verbs; text is entered with the `vnc:` verb's real keysym events.
 
 ### Step 0: Dismiss Chrome First-Run Dialog
 
-On a fresh profile, Chrome opens a first-run dialog ("Make Google Chrome the default browser") as a **separate window** that CDP cannot see (no debuggable tabs). It tiles alongside any CDP-opened tabs in sway, breaking coordinate translation. Focus and dismiss it through the surviving `wl:`/`vnc:` verbs:
+On a fresh profile, Chrome opens a first-run dialog ("Make Google Chrome the default browser") as a **separate window** that CDP cannot see (no debuggable tabs). It tiles alongside any CDP-opened tabs in sway, breaking coordinate translation. Focus and dismiss it through the surviving `wl:` host verb:
 
 ```bash
 charly check wl sway msg my-app 'focus left'     # first-run dialog is typically the left window
-charly check vnc key my-app Return               # press OK
+charly check wl key my-app Return                # press OK
 ```
 
 After dismissal, Chrome shows `chrome://intro/` — "Sign in to Chrome" with shadow DOM buttons.
@@ -427,7 +428,7 @@ email-locate:
 ```
 
 After focusing the field with `vnc: click` at the reported coords, type with the
-`vnc:` verb's real keysym events (`charly check vnc type my-app "$GMAIL_USER"`). Use
+`vnc:` verb's real keysym events (a `vnc: type` step with `text: "${ENV_GMAIL_USER}"`). Use
 `cdp: coords` to inspect element position in all three coordinate systems (viewport,
 desktop via CDP, desktop via sway) for debugging.
 
@@ -474,8 +475,8 @@ pwd-locate:
 ### Step 5: Submit Password
 
 Click `#passwordNext` (locate via `cdp: coords`, deliver via `vnc:`), then capture
-verification screenshots — `cdp: screenshot` for the viewport and
-`charly check vnc screenshot` for the full desktop (catches native dialogs).
+verification screenshots — `cdp: screenshot` for the viewport and a
+`vnc: screenshot` step for the full desktop (catches native dialogs).
 
 ### Step 6: Enable Sync (chrome://sync-confirmation)
 
@@ -485,7 +486,7 @@ Shadow DOM path: `sync-confirmation-app` > `#confirmButton`. Other buttons: `#no
 
 ### Handling Challenges
 
-**2FA/CAPTCHA:** Take a VNC screenshot (`charly check vnc screenshot my-app challenge.png`) and complete manually via a VNC client. App Passwords bypass most challenges.
+**2FA/CAPTCHA:** Take a VNC screenshot (a `vnc: screenshot` step) and complete manually via a VNC client. App Passwords bypass most challenges.
 
 **Search engine choice:** May appear as a new tab. Probe for it with a `cdp: list` step and select Google via a shadow DOM `cdp: coords` + `vnc:` click if present.
 
@@ -499,7 +500,7 @@ Pointer delivery via the `vnc:`/`wl:` verbs is essential for the sign-in flow:
 - **`chrome://` pages** (intro, sync-confirmation): CDP mouse events and JS `.click()` are blocked. `vnc: click` / `wl: click` (locate via `cdp: coords`) is the only way to click.
 - **Google sign-in pages**: real pointer events delivered via `vnc:` bypass anti-automation detection.
 - **Coordinate math**: viewport center + `window.screenX` + `window.screenY` + `chromeHeight` = desktop coords. On popup windows (no toolbar), `chromeHeight=0`.
-- The `vnc:`/`wl:` host verbs also carry the `--from-cdp` flag, which performs this viewport→desktop translation directly from a CDP tab reference frame.
+- The surviving in-core `wl:` host verb also carries the `--from-cdp` flag, which performs this viewport→desktop translation directly from a CDP tab reference frame (the declarative `vnc:` verb takes the desktop coords directly).
 
 Use a `cdp: coords` step to debug coordinate translation. It shows element position in viewport, desktop (via CDP), and desktop (via sway) systems.
 
@@ -565,9 +566,9 @@ The SPA maps mouse events from canvas to remote desktop with an internal scaling
 | Click/type in a web page | `cdp: click` / `cdp: type` (CSS selector targeting) |
 | Click/type in a remote desktop via SPA | `cdp: spa-click` / `cdp: spa-type` (canvas coordinates) |
 | Send Super+key or Ctrl+T to remote desktop | `cdp: spa-key-combo` (only option that works) |
-| Click in local compositor | `charly check wl click` or `charly check vnc click` |
+| Click in local compositor | `wl: click` or `vnc: click` |
 | Take screenshot of stream content | `cdp: screenshot` (captures canvas) |
-| Take screenshot of full client desktop | `charly check vnc screenshot` or `charly check wl screenshot` |
+| Take screenshot of full client desktop | `vnc: screenshot` or `wl: screenshot` |
 
 ## CDP Proxy Verification
 
@@ -603,7 +604,7 @@ This pattern works for any page content extraction via JS — the `cdp: eval` st
 - `/charly-check:check` -- parent router; the `cdp:` verb catalog entry, the method allowlist, the artifact-validation modifiers, and `charly check live <image> --filter cdp`.
 - `/charly-internals:plugin` -- the out-of-process provider model that serves `cdp` (`candy/plugin-cdp`).
 - `/charly-check:wl` -- Wayland desktop automation (sibling host verb under `charly check`); also sway subgroup for compositor control; carries `--from-cdp`.
-- `/charly-check:vnc` -- VNC desktop automation (sibling host verb; same container, pixel-level interaction); carries `--from-cdp` for viewport→desktop translation.
+- `/charly-check:vnc` -- VNC desktop automation via the declarative `vnc:` verb served out-of-process by candy/plugin-vnc (same container, pixel-level interaction); takes desktop-absolute coords (use a `cdp: coords` step to translate viewport→desktop).
 - `/charly-check:dbus` -- D-Bus calls and notifications (sibling host verb under `charly check`).
 - `/charly-core:shell` -- Running commands in containers (`--tty` for OAuth flows)
 - `/charly-core:charly-config` -- Instance deployment, proxy configuration, removal workflow

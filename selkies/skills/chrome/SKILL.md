@@ -94,7 +94,7 @@ Usually used via the `chrome-sway` or `sway-desktop` composition candies rather 
 
 ## Google Sign-In
 
-Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see `/charly-check:cdp` for the full recipe). All clicks locate the element with the `cdp: coords` verb (CDP selector targeting) and deliver the pointer via `charly check vnc click` (the `--from-cdp` flag translates the coords), and all text input uses `charly check vnc type` (real OS-level keysym events). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts. Use `charly remove <image> --purge` to clear for a fresh start — just rebuilding the box does not reset volumes.
+Web sign-in at `accounts.google.com` works via CDP + VNC hybrid automation (see `/charly-check:cdp` for the full recipe). All clicks locate the element with the `cdp: coords` verb (CDP selector targeting — it reports the desktop coords) and deliver the pointer via a `vnc: click` step at those coords, and all text input uses a `vnc: type` step (real OS-level keysym events). Sign-in cookies persist in the `chrome-data` volume (`~/.chrome-debug`), surviving container restarts. Use `charly remove <image> --purge` to clear for a fresh start — just rebuilding the box does not reset volumes.
 
 **App Passwords (required for automation):** Google accounts with 2FA (now mandatory for most accounts) require a 16-character [App Password](https://myaccount.google.com/apppasswords). App Passwords bypass all verification challenges and 2FA prompts. Set `GMAIL_PASSWORD` to the App Password in `.env`.
 

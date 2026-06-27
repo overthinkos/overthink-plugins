@@ -1,42 +1,87 @@
 ---
 name: vnc
 description: |
-  MUST be invoked before any work involving: VNC automation, charly check vnc commands, RFB protocol desktop interaction, VNC screenshots, clicking coordinates, or VNC authentication.
+  VNC/RFB desktop automation via the declarative `vnc:` check verb, served
+  out-of-process by `candy/plugin-vnc` (covers pod AND vm targets).
+  MUST be invoked before any work involving: the `vnc:` check verb, VNC
+  automation, RFB protocol desktop interaction, VNC screenshots, clicking
+  coordinates, or VNC authentication.
 ---
 
 # VNC - VNC Desktop Automation
 
 ## Overview
 
-`charly check vnc` commands connect to VNC servers (RFB protocol on port tcp:5900) inside running containers. Provides screenshot capture, keyboard/mouse input, and VNC password management for Wayland desktop automation via wayvnc.
+The `vnc:` check verb connects to VNC servers (RFB protocol on port tcp:5900)
+inside running containers — and to a VM's libvirt VNC display. It is **NOT a host
+`charly check` subcommand** — it is a declarative check verb served out-of-process
+by its plugin (`candy/plugin-vnc`), parallel to the `cdp:`/`mcp:`/`record:` plugin
+verbs. Author a `vnc:` step in a candy/box plan and run it against a live
+deployment with `charly check live <image> --filter vnc`. It provides screenshot
+capture, keyboard/mouse input, and VNC password management for Wayland desktop
+automation via wayvnc.
 
-### Also as a declarative verb
+**Served out-of-process — covers pod AND vm targets.** The host dispatches the
+`vnc:` verb through the provider registry exactly like a built-in
+(`ResolveVerb("vnc")` → the out-of-process gRPC provider → `Provider.Invoke` with
+the full `Op`). Before dialing, the host pre-resolves the RFB endpoint — a pod's
+published port 5900, or a VM's libvirt VNC reached via bridge/tunnel — and the
+plugin dials it and speaks RFB. ONE verb covers BOTH pod and vm targets — the two
+former host CLI subcommands (a per-method pod form and a separate
+`vnc vm <name> <method>` VM form) are gone. Authoring is unchanged from a built-in
+verb: you write `vnc: screenshot`, never `plugin: vnc`.
 
-Every `charly check vnc <method>` (status/screenshot/click/mouse/type/key/rfb/passwd) is authorable as a `vnc:` verb inside a `check:` block. Method-specific fields (`x`, `y`, `text`, `key`, `artifact`, `artifact_min_bytes`) are siblings of the verb line. See `/charly-check:check` for the full YAML shape. Example: `- vnc: screenshot\n  artifact: /tmp/vnc.png\n  artifact_min_bytes: 5000`.
+### Authoring a `vnc:` step
+
+Each method is the declarative `vnc:` step you author: the method name
+(status/screenshot/click/mouse/type/key/rfb/passwd) is the verb's YAML value, and
+method-specific fields (`x`, `y`, `text`, `key`, `artifact`, `artifact_min_bytes`)
+are siblings of the verb line. All `vnc:` steps are **deploy-context only** (they
+need a running deployment), so author them with `context: [deploy]`. See
+`/charly-check:check` for the full YAML shape. Example:
+
+```yaml
+desktop-captured:
+    check: a non-empty VNC framebuffer is captured
+    vnc: screenshot
+    context: [deploy]
+    artifact: /tmp/vnc.png
+    artifact_min_bytes: 5000
+```
 
 ## Quick Reference
 
-| Action | Command | Description |
-|--------|---------|-------------|
-| Screenshot | `charly check vnc screenshot <image> [file]` | Capture VNC framebuffer as PNG |
-| Click | `charly check vnc click <image> <x> <y>` | Click at x,y coordinates |
-| Type text | `charly check vnc type <image> <text>` | Send keyboard input as key events |
-| Send key | `charly check vnc key <image> <key-name>` | Press a special key (Return, Escape, etc.) |
-| Move mouse | `charly check vnc mouse <image> <x> <y>` | Move mouse without clicking |
-| Status | `charly check vnc status <image>` | Check VNC server, show resolution and desktop name |
-| Set password | `charly check vnc passwd <image>` | Set VNC auth password for deployment |
-| Raw RFB | `charly check vnc rfb <image> <method> [json]` | Send raw RFB protocol message |
+| Action | Declarative step | Description |
+|--------|------------------|-------------|
+| Screenshot | `vnc: screenshot` + `artifact:` | Capture VNC framebuffer as PNG |
+| Click | `vnc: click` + `x:` + `y:` | Click at x,y coordinates |
+| Type text | `vnc: type` + `text:` | Send keyboard input as key events |
+| Send key | `vnc: key` + `key:` | Press a special key (Return, Escape, etc.) |
+| Move mouse | `vnc: mouse` + `x:` + `y:` | Move mouse without clicking |
+| Status | `vnc: status` | Check VNC server, show resolution and desktop name |
+| Set password | `vnc: passwd` | Set VNC auth password for deployment |
+| Raw RFB | `vnc: rfb` | Send raw RFB protocol message |
+
+Run a candy's baked `vnc:` steps against a live deployment with
+`charly check live <image> --filter vnc` (add `-i <instance>` for multi-instance).
 
 ## Architecture
 
 ```
-CLI command -> resolveVNCContainer (engine + container name)
-           -> resolveVNCAddress (docker/podman port <name> 5900)
-           -> resolveVNCPassword (charly settings + VNC_PASSWORD env)
-           -> NewVNCClient(address, password) -> RFB handshake -> operation
+host (charly check live --filter vnc)
+   -> vnc_preresolve.go: pre-resolve the RFB endpoint
+        pod: podman port <name> 5900   |   vm: libvirt VNC via bridge/tunnel
+   -> resolveVNCPassword (charly settings + VNC_PASSWORD env — retained host-side)
+   -> Op + endpoint + password handed to candy/plugin-vnc over gRPC
+candy/plugin-vnc
+   -> NewVNCClient(address, password) -> RFB handshake -> operation
 ```
 
-Custom RFC 6143 VNC client implementation (no external dependency). Supports None, VNC auth (DES), and VeNCrypt (TLS + sub-auth) security types.
+The host pre-resolves the dual pod/vm endpoint and the credential, then dispatches
+the verb out-of-process. The custom RFC 6143 VNC client (no external dependency;
+supports None, VNC auth (DES), and VeNCrypt (TLS + sub-auth) security types) lives
+in `candy/plugin-vnc`. The host retains only the endpoint pre-resolution and
+`resolveVNCPassword` (the VNC credential store).
 
 ## Requirements
 
@@ -44,76 +89,107 @@ Custom RFC 6143 VNC client implementation (no external dependency). Supports Non
 - Container must be running (`charly start`)
 - Wayland compositor must be active (sway)
 
-## Commands
+## Methods
+
+Each method below is a `vnc:` plan step authored with `context: [deploy]`; run a
+candy's baked steps with `charly check live <image> --filter vnc` (add
+`-i <instance>` for a specific instance).
 
 ### Screenshot
-```bash
-charly check vnc screenshot sway-browser-vnc              # saves screenshot.png
-charly check vnc screenshot sway-browser-vnc desktop.png   # custom filename
-charly check vnc screenshot sway-browser-vnc -i prod       # specific instance
+```yaml
+vnc-screenshot:
+    check: a non-empty VNC framebuffer is captured
+    vnc: screenshot
+    context: [deploy]
+    artifact: /tmp/desktop.png        # host path for the captured PNG
+    artifact_min_bytes: 5000
 ```
 
 ### Click
-```bash
-charly check vnc click sway-browser-vnc 960 540             # left click at center of 1920x1080
-charly check vnc click sway-browser-vnc 100 200 --button right  # right click
-charly check vnc click sway-browser-vnc 100 200 --button middle # middle click
-charly check vnc click sway-browser-vnc 100 200 --from-cdp $TAB   # translate from CDP viewport
-charly check vnc click sway-browser-vnc 100 200 --from-sway google-chrome  # translate from sway window
-charly check vnc click sway-browser-vnc 100 200 --from-x11 Steam  # translate from X11 window (XWayland)
+```yaml
+vnc-click-center:
+    run: left-click the desktop center (1920x1080)
+    vnc: click
+    context: [deploy]
+    x: 960
+    y: 540
 ```
 
-**`--from-x11 <class-or-title>`** translates coordinates from X11 window-internal space to desktop-absolute VNC coordinates. Works the same as `charly check wl click --from-x11` -- queries X11 geometry via xdotool, finds the sway node, and scales to desktop coordinates. Essential for XWayland windows (Steam, Heroic) where the X11 resolution differs from the compositor resolution.
+The `vnc:` verb takes **desktop-absolute** `x:`/`y:`. To click an element located by
+CSS selector, read its desktop coordinates from a `cdp: coords` step (it reports
+both viewport and desktop coords) and author the `vnc: click` with those `x:`/`y:`
+— see "Using CDP Coordinates with VNC" below. For ad-hoc host-side coordinate
+translation, the surviving in-core `wl:` host verb carries `--from-cdp` /
+`--from-sway` / `--from-x11` (`charly check wl click --from-x11 <class>` queries
+X11 geometry via xdotool, finds the sway node, and scales to desktop coordinates —
+essential for XWayland windows like Steam/Heroic where the X11 resolution differs
+from the compositor resolution).
 
 ### Type
-```bash
-charly check vnc type sway-browser-vnc "hello world"    # types each character as key events
+```yaml
+vnc-type:
+    run: type each character as key events
+    vnc: type
+    context: [deploy]
+    text: hello world
 ```
-Only supports ASCII/Latin-1 characters. For special keys, use `charly check vnc key`.
+Only supports ASCII/Latin-1 characters. For special keys, use the `vnc: key` method.
 
 ### Key
-```bash
-charly check vnc key sway-browser-vnc Return       # press Enter
-charly check vnc key sway-browser-vnc Escape       # press Escape
-charly check vnc key sway-browser-vnc Tab          # press Tab
-charly check vnc key sway-browser-vnc F5           # press F5
-charly check vnc key sway-browser-vnc Control_L    # press left Ctrl
+```yaml
+vnc-key:
+    run: press a special key
+    vnc: key
+    context: [deploy]
+    key: Return            # also Escape, Tab, F5, Control_L, ...
 ```
 
 Valid key names: Return, Escape, Tab, BackSpace, Delete, Home, End, Page_Up, Page_Down, Up, Down, Left, Right, Insert, F1-F12, Shift_L, Shift_R, Control_L, Control_R, Alt_L, Alt_R, Super_L, Super_R, Meta_L, Meta_R, Caps_Lock, space.
 
 ### Mouse
-```bash
-charly check vnc mouse sway-browser-vnc 500 300    # move mouse to (500, 300)
+```yaml
+vnc-mouse:
+    run: move the mouse without clicking
+    vnc: mouse
+    context: [deploy]
+    x: 500
+    y: 300
 ```
 
 ### Status
-```bash
-charly check vnc status sway-browser-vnc
-# Output:
-# Desktop:    sway
-# Resolution: 1920x1080
+```yaml
+vnc-status:
+    check: the VNC server reports its desktop and resolution
+    vnc: status
+    context: [deploy]
+    stdout:
+        contains: "1920x1080"
+# Output: Desktop: sway / Resolution: 1920x1080
 ```
 
-### Password
-```bash
-charly check vnc passwd sway-browser-vnc              # prompts for password
-charly check vnc passwd sway-browser-vnc --generate   # generates random password, prints to stdout
+### Password (`vnc: passwd`)
+
+```yaml
+vnc-passwd:
+    run: provision VNC auth (VeNCrypt/TLS) for the deployment
+    vnc: passwd
+    context: [deploy]
 ```
 
-Sets up VNC authentication (VeNCrypt/TLS):
-1. Stores password in system keyring or config file (depending on `secret_backend` setting) as `vnc.password.<image>`
-2. Resolves `$HOME` inside container for absolute config paths
+The `vnc: passwd` method sets up VNC authentication (VeNCrypt/TLS):
+1. Stores the password in the VNC credential store (system keyring or config file, depending on the `secret_backend` setting) as `vnc.password.<image>`
+2. Resolves `$HOME` inside the venue for absolute config paths
 3. Generates self-signed TLS cert+key (valid 3650 days) if not present
 4. Generates RSA key in traditional format (`-traditional` flag for OpenSSL 3.x) if not present
 5. Writes `~/.config/wayvnc/config` with `enable_auth=true` (wayvnc reads this automatically)
-6. Restarts wayvnc supervisord service
+6. Restarts the wayvnc supervisord service
 
-After setting a password, all `charly check vnc` commands authenticate transparently via VeNCrypt/TLS.
+After a password is set, all `vnc:` operations authenticate transparently via VeNCrypt/TLS.
 
 ### Password Resolution Chain
 
-When connecting, password is resolved in this order:
+When connecting, the password is resolved by the host-side credential store
+(`resolveVNCPassword`, retained in core) in this order:
 1. `VNC_PASSWORD` environment variable (CI/automation override)
 2. System keyring lookup for `vnc.password.<image>-<instance>` (when `secret_backend=auto` or `keyring`)
 3. Config file lookup for `vnc.password.<image>-<instance>` (instance-specific)
@@ -121,29 +197,29 @@ When connecting, password is resolved in this order:
 5. Empty string (no auth — server must allow unauthenticated connections)
 
 ```bash
-# One-off password override via env
-VNC_PASSWORD=secret charly check vnc screenshot sway-browser-vnc out.png
+# One-off password override via env (applies to the run)
+VNC_PASSWORD=secret charly check live sway-browser-vnc --filter vnc
 
-# Set password programmatically (alternative to charly check vnc passwd)
+# Set password programmatically (alternative to the vnc: passwd step)
 charly settings set vnc.password.sway-browser-vnc mysecret
 
 # Instance-specific password
 charly settings set vnc.password.sway-browser-vnc-prod prodpassword
 ```
 
-Requires `openssl` inside the container for TLS cert and RSA key generation.
+Requires `openssl` inside the venue for TLS cert and RSA key generation.
 
-### Raw RFB
-```bash
-charly check vnc rfb sway-browser-vnc key '{"key": 65293, "down": true}'           # raw key event
-charly check vnc rfb sway-browser-vnc pointer '{"x": 100, "y": 200, "button": 1}'  # raw pointer
-charly check vnc rfb sway-browser-vnc cut-text '{"text": "clipboard"}'              # clipboard
-charly check vnc rfb sway-browser-vnc fbupdate-request                              # get dimensions
-```
+### Raw RFB (`vnc: rfb`)
+
+A `vnc: rfb` step sends a raw RFB protocol message (raw key/pointer/cut-text
+events, framebuffer-update requests) for cases the typed methods above don't
+cover — the message kind and its JSON payload are the step's modifiers. Prefer the
+typed `vnc: click`/`type`/`key` methods; reach for `vnc: rfb` only for low-level
+protocol work.
 
 ## Differences from CDP Commands
 
-| Aspect | `cdp:` verb (CDP) | `charly check vnc` (RFB) |
+| Aspect | `cdp:` verb (CDP) | `vnc:` verb (RFB) |
 |--------|----------------|----------------|
 | Protocol | WebSocket JSON | Binary TCP |
 | Scope | Browser tabs | Whole desktop |
@@ -153,24 +229,39 @@ charly check vnc rfb sway-browser-vnc fbupdate-request                          
 | JavaScript | Yes (check/wait) | No |
 | Use case | Web automation | Desktop automation |
 
-Source: `charly/vnc_client.go`, `charly/vnc.go`.
+Source: `candy/plugin-vnc` (the out-of-process RFB client); host-side endpoint
+pre-resolution + the VNC credential store in `charly/vnc_preresolve.go`.
 
 ## VNC as Anti-Detection Fallback
 
-Some websites (notably Google sign-in) detect and block CDP-based input. VNC provides a reliable fallback because `charly check vnc type` sends real X11 keysym events through the Wayland compositor — indistinguishable from physical keyboard input.
+Some websites (notably Google sign-in) detect and block CDP-based input. VNC provides a reliable fallback because the `vnc:` verb's `type` method sends real X11 keysym events through the Wayland compositor — indistinguishable from physical keyboard input.
 
-**CDP + VNC Hybrid Pattern:** Locate the element's viewport coords with the `cdp: coords` verb (CDP selector precision), deliver the click via `charly check vnc click` (the `--from-cdp` flag translates viewport→desktop coords), and type credentials with `charly check vnc type`:
+**CDP + VNC Hybrid Pattern:** Locate the element with a `cdp: coords` step (CDP selector precision — it reports the desktop coordinates), deliver the click with a `vnc: click` step at those desktop coords, and type credentials with a `vnc: type` step:
 
-```bash
-# Locate via the cdp: coords verb (selector → viewport coords), then deliver the
-# click via VNC — --from-cdp translates viewport→desktop using the tab as reference
-charly check vnc click my-app 1166 310 --from-cdp $TAB   # coords of '#identifierId'
-sleep 0.5                                          # let compositor process focus
-# VNC type sends real key events through the compositor
-charly check vnc type my-app "$GMAIL_USER"
+```yaml
+# 1. Locate via cdp: coords — reports both viewport and desktop coords for '#identifierId'
+email-locate:
+    check: the email field is located
+    cdp: coords
+    context: [deploy]
+    tab: "1"
+    selector: "#identifierId"
+# 2. Deliver the click via VNC at the reported desktop coords
+email-vnc-click:
+    run: focus the email field via the VNC pointer
+    vnc: click
+    context: [deploy]
+    x: 1166
+    y: 421
+# 3. Type real key events through the compositor
+email-vnc-type:
+    run: type the email address
+    vnc: type
+    context: [deploy]
+    text: "${ENV_GMAIL_USER}"
 ```
 
-**Tested timing:** 500ms sleep between the VNC click and VNC type is sufficient. No characters were dropped at this timing during Google sign-in testing.
+**Tested timing:** the compositor needs a moment between the VNC click and VNC type; author the type step after the click in plan order. No characters were dropped during Google sign-in testing.
 
 When to use the VNC-delivered click and VNC type:
 - **`chrome://` pages** (required): CDP mouse events and JS `.click()` are blocked on Chrome's privileged pages (`chrome://intro/`, `chrome://sync-confirmation/`, `chrome://settings/`). Delivering the click via VNC is the only way to click.
@@ -178,30 +269,39 @@ When to use the VNC-delivered click and VNC type:
 - Sites that validate input event sequences (keyDown/keyPress/input/keyUp)
 - Any form where CDP type fails silently (value appears but form doesn't accept it)
 
-**Chrome first-run dialogs:** On fresh profiles, Chrome opens a first-run dialog as a separate window invisible to CDP. Dismiss with `charly check wl sway msg my-app 'focus left'` then `charly check vnc key my-app Return`.
+**Chrome first-run dialogs:** On fresh profiles, Chrome opens a first-run dialog as a separate window invisible to CDP. Dismiss it by focusing it (a `wl: sway-focus` step, or the surviving `charly check wl sway msg my-app 'focus left'` host command) then pressing Return with a `vnc: key` step (`key: Return`).
 
 See `/charly-check:cdp` for the full Google sign-in recipe.
 
 ## Using CDP Coordinates with VNC
 
-VNC uses desktop-absolute coordinates, while CDP returns viewport-relative coordinates. Use the `--from-cdp` or `--from-sway` flags to explicitly translate:
+The `vnc:` verb takes desktop-absolute coordinates, while CDP returns
+viewport-relative coordinates. A **`cdp: coords`** step bridges them: it reports an
+element's position in three systems — viewport, desktop (via `window.screenX/screenY`),
+and desktop (via the sway tree) — so you author the `vnc: click` with the reported
+desktop `x:`/`y:`:
 
-**`--from-cdp <tab-id>`** — Translates viewport coords to desktop coords via CDP's `window.screenX/screenY`:
-
-```bash
-# Get viewport coords from the cdp: coords verb, then click via VNC
-charly check vnc click my-app 1220 328 --from-cdp $TAB
-# Translated viewport (1220, 328) → desktop (1220, 439) via CDP tab ...
+```yaml
+sync-button-coords:
+    check: the sync button is located
+    cdp: coords
+    context: [deploy]
+    tab: "1"
+    selector: "#sync-button"
+# Viewport: x=1166 y=310  center=(1220, 328)
+# Desktop:  x=1166 y=421  center=(1220, 439)   ← use these for vnc: click
+sync-button-vnc-click:
+    run: click the sync button via the VNC pointer
+    vnc: click
+    context: [deploy]
+    x: 1220
+    y: 439
 ```
 
-**`--from-sway <app-id>`** — Translates window-relative coords to desktop coords via sway tree:
-
-```bash
-charly check vnc click my-app 500 200 --from-sway google-chrome
-# Translated window-relative (500, 200) → desktop (504, 204) via sway app_id=google-chrome
-```
-
-Without flags, X and Y are desktop-absolute coordinates (the default, unchanged behavior).
+For ad-hoc host-side translation, the surviving in-core `wl:` host verb still
+carries `--from-cdp` (viewport→desktop via `window.screenX/screenY`) and
+`--from-sway` (window-relative→desktop via the sway tree):
+`charly check wl click my-app 1220 328 --from-cdp $TAB`.
 
 ## NVIDIA Headless: VNC Screenshots Work
 
@@ -210,15 +310,22 @@ VNC screenshots work correctly on NVIDIA headless for images using `sway-desktop
 1. **Pixman renderer** — `sway-desktop-vnc` forces `WLR_RENDERER=pixman` (software rendering), producing buffers wayvnc can reliably capture
 2. **DPMS workaround** — `wayvnc-wrapper` triggers the missing headless power event that wayvnc 0.9.1 waits for before starting capture
 
-Both `charly check vnc screenshot` and `charly check wl screenshot` work on NVIDIA headless:
+Both the `vnc: screenshot` step and `charly check wl screenshot` work on NVIDIA headless:
+```yaml
+nvidia-vnc-screenshot:
+    check: a non-empty VNC framebuffer is captured (works with pixman + DPMS fix)
+    vnc: screenshot
+    context: [deploy]
+    artifact: /tmp/out.png
+    artifact_min_bytes: 5000
+```
 ```bash
-charly check vnc screenshot <image> out.png           # VNC screenshot (works with pixman + DPMS fix)
 charly check wl screenshot <image> out.png            # Wayland screenshot (grim, always works)
 ```
 
 ## Cross-References
 
-- `/charly-check:check` — parent router; `charly check vnc …` is how every invocation is dispatched.
+- `/charly-check:check` — parent router; the `vnc:` verb dispatches out-of-process via `candy/plugin-vnc` (the host pre-resolves the pod/vm RFB endpoint).
 - `/charly-check:wl` — Wayland-native desktop automation (sibling verb; works on NVIDIA headless).
 - `/charly-check:cdp` — Chrome DevTools Protocol automation (sibling verb; same container, different protocol).
 - `/charly-check:dbus` — D-Bus calls and desktop notifications (sibling verb under `charly check`).
@@ -231,6 +338,6 @@ charly check wl screenshot <image> out.png            # Wayland screenshot (grim
 
 ## When to Use This Skill
 
-**MUST be invoked** when the task involves VNC automation, charly check vnc commands, RFB protocol desktop interaction, VNC screenshots, clicking coordinates, or VNC authentication. Invoke this skill BEFORE reading source code or launching Explore agents.
+**MUST be invoked** when the task involves VNC automation, the `vnc:` check verb, RFB protocol desktop interaction, VNC screenshots, clicking coordinates, or VNC authentication. Invoke this skill BEFORE reading source code or launching Explore agents.
 
 **Workflow position:** Desktop automation. Use for pixel-level interaction when CDP can't reach the element. See also `/charly-check:cdp` (DOM, preferred), `/charly-check:wl` (sway subgroup) (window).
